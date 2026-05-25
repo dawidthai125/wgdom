@@ -129,6 +129,7 @@ interface PhotoEntry {
   uploadedBy: string;
   uploadedAt: string;
   status: "pending" | "approved" | "rejected";
+  caption?: string;
 }
 
 type RoomTypeKey = "salon" | "pokoj" | "kuchnia" | "korytarz" | "lazienka" | "toaleta" | "inne";
@@ -150,6 +151,13 @@ interface RoomDimension {
   length: string;
   width: string;
   height: string;
+  note?: string;
+}
+
+interface WorkReportItem {
+  id: string;
+  text: string;
+  note: string;
 }
 
 /** Raport pracownika: zakres prac + wymiary / rysunek — przypisany do roboty */
@@ -157,8 +165,11 @@ interface WorkerJobReport {
   id: string;
   workerName: string;
   submittedAt: string;
-  workItems: string[];
+  updatedAt?: string;
+  workItems: WorkReportItem[];
   rooms: RoomDimension[];
+  generalNote?: string;
+  sketchNote?: string;
   sketch?: { path: string; publicUrl: string } | null;
 }
 
@@ -236,7 +247,41 @@ function defaultJob(): Job {
 }
 
 function jobWorkerReports(job: Job): WorkerJobReport[] {
-  return job.workerReports || [];
+  return (job.workerReports || []).map(normalizeWorkerReport);
+}
+
+function normalizeWorkItem(raw: unknown): WorkReportItem {
+  if (typeof raw === "string") {
+    return { id: crypto.randomUUID(), text: raw, note: "" };
+  }
+  const o = raw as Partial<WorkReportItem>;
+  return {
+    id: o.id || crypto.randomUUID(),
+    text: o.text || "",
+    note: o.note || "",
+  };
+}
+
+function normalizeWorkerReport(r: WorkerJobReport): WorkerJobReport {
+  const items = Array.isArray(r.workItems) ? r.workItems.map(normalizeWorkItem) : [];
+  return {
+    ...r,
+    workItems: items,
+    generalNote: r.generalNote || "",
+    sketchNote: r.sketchNote || "",
+    rooms: (r.rooms || []).map((room) => ({
+      ...room,
+      note: room.note || "",
+    })),
+  };
+}
+
+function workItemHasContent(item: WorkReportItem): boolean {
+  return Boolean(item.text.trim() || item.note.trim());
+}
+
+function roomHasContent(room: RoomDimension): boolean {
+  return Boolean(room.length.trim() || room.width.trim() || room.height.trim() || (room.note || "").trim());
 }
 
 function roomDisplayName(room: RoomDimension, pokojIndex: number): string {
@@ -246,7 +291,7 @@ function roomDisplayName(room: RoomDimension, pokojIndex: number): string {
 }
 
 function defaultRoom(roomType: RoomTypeKey, customLabel = ""): RoomDimension {
-  return { id: crypto.randomUUID(), roomType, customLabel, length: "", width: "", height: "" };
+  return { id: crypto.randomUUID(), roomType, customLabel, length: "", width: "", height: "", note: "" };
 }
 
 function jobDuration(job: Job): number {
@@ -538,6 +583,7 @@ async function uploadPhoto(
   file: File,
   label: string,
   uploadedBy: string,
+  caption = "",
 ): Promise<{ entry: PhotoEntry | null; error?: string }> {
   const ext = file.name.split(".").pop() || "jpg";
   const filename = `${label}-${Date.now()}.${ext}`;
@@ -573,6 +619,7 @@ async function uploadPhoto(
         uploadedBy,
         uploadedAt: new Date().toISOString(),
         status: "pending",
+        caption: caption.trim(),
       },
     };
   } catch {
@@ -2930,8 +2977,9 @@ function HelpView() {
             {[
               {q:"Jak się zalogować?", a:"Administrator musi wpisać Twój numer w kartotece Pracownicy (np. +48 501 234 567). Logujesz się 9 cyframi: 501234567. Wybierz swoje imię z listy, nie wpisuj ręcznie."},
               {q:"Jak dodać wiele zdjęć?", a:"W robocie użyj sekcji „Galeria — wiele zdjęć”: wybierz typ (przed/w trakcie/po), kliknij „Wybierz z galerii”, zaznacz wiele zdjęć, podejrzyj miniaturki i „Wyślij”."},
-              {q:"Jak wysłać raport z budowy?", a:"Sekcja „Raport z budowy”: dodaj punkty wykonanych prac (Enter lub +). Wymiary — wpisz ręcznie (kliknij pomieszczenie, dł./szer./wys. w metrach) albo wgraj zdjęcie rysunku. Kliknij „Wyślij raport do admina”."},
-              {q:"Gdzie admin widzi raport?", a:"Roboty → wybierz robotę → sekcja „Raporty pracowników” (nad zdjęciami). Każdy raport można rozwinąć — widać punkty, tabelę wymiarów i rysunek."},
+              {q:"Jak wysłać raport z budowy?", a:"Sekcja „Raport z budowy”: punkty zakresu (z opisem do każdego), wymiary z opisem pomieszczenia lub foto rysunku z opisem, na dole „Wiadomość dla admina”. Po wysłaniu możesz edytować lub usunąć raport w „Twoje raporty”."},
+              {q:"Opisy zdjęć?", a:"Przy galerii — opis pod każdym zdjęciem przed wysłaniem. Przy aparacie — pole „Opis do następnych zdjęć”. Po wgraniu — edytuj opis lub usuń zdjęcie w „Twoje wgrane zdjęcia”."},
+              {q:"Gdzie admin widzi raport?", a:"Roboty → wybierz robotę → „Raporty — zakres i wymiary”. Rozwiń wpis — widać punkty z opisami, tabelę wymiarów, rysunek i wiadomość."},
               {q:"Nie widzę żadnej roboty", a:"Administrator musi dodać robotę ze statusem „w trakcie”. Lista ładuje się z chmury."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
@@ -3109,6 +3157,15 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.2", label:"Edycja raportów i opisy pracownika",
+    items:[
+      {type:"new", text:"Pracownik może edytować i usuwać swoje raporty (ikona ołówka / kosz)"},
+      {type:"new", text:"Opisy: do każdego punktu zakresu, pomieszczenia, rysunku i całego raportu (wiadomość dla admina)"},
+      {type:"new", text:"Opisy zdjęć — przy galerii (każde zdjęcie), aparacie i po wgraniu (edycja + usunięcie)"},
+      {type:"improve", text:"Admin widzi wszystkie opisy w raportach i pod zdjęciami"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.1", label:"Raport admina + uproszczenie robót",
     items:[
@@ -4081,6 +4138,8 @@ function JobReportForm({
   submitLabel = "Zapisz raport",
   description,
   disabled = false,
+  editReport = null,
+  onCancelEdit,
 }: {
   jobId: string;
   authorName: string;
@@ -4088,53 +4147,76 @@ function JobReportForm({
   submitLabel?: string;
   description?: string;
   disabled?: boolean;
+  editReport?: WorkerJobReport | null;
+  onCancelEdit?: () => void;
 }) {
-  const [reportItems, setReportItems] = useState<string[]>([]);
+  const [reportItems, setReportItems] = useState<WorkReportItem[]>([]);
   const [newItemText, setNewItemText] = useState("");
   const [dimMode, setDimMode] = useState<"manual" | "sketch">("manual");
   const [reportRooms, setReportRooms] = useState<RoomDimension[]>([]);
   const [sketchFile, setSketchFile] = useState<File | null>(null);
   const [sketchPreview, setSketchPreview] = useState<string | null>(null);
+  const [existingSketch, setExistingSketch] = useState<WorkerJobReport["sketch"]>(null);
+  const [generalNote, setGeneralNote] = useState("");
+  const [sketchNote, setSketchNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const pokojCountRef = useRef(0);
+  const isEdit = Boolean(editReport);
 
   useEffect(() => {
-    return () => { if (sketchPreview) URL.revokeObjectURL(sketchPreview); };
+    return () => { if (sketchPreview && sketchPreview.startsWith("blob:")) URL.revokeObjectURL(sketchPreview); };
   }, [sketchPreview]);
 
-  useEffect(() => {
-    setReportItems([]);
-    setNewItemText("");
-    setDimMode("manual");
-    setReportRooms([]);
-    if (sketchPreview) URL.revokeObjectURL(sketchPreview);
+  const loadFromReport = (report: WorkerJobReport | null) => {
+    if (sketchPreview && sketchPreview.startsWith("blob:")) URL.revokeObjectURL(sketchPreview);
+    if (!report) {
+      setReportItems([]);
+      setNewItemText("");
+      setDimMode("manual");
+      setReportRooms([]);
+      setSketchFile(null);
+      setSketchPreview(null);
+      setExistingSketch(null);
+      setGeneralNote("");
+      setSketchNote("");
+      pokojCountRef.current = 0;
+      return;
+    }
+    const normalized = normalizeWorkerReport(report);
+    setReportItems(normalized.workItems);
+    setReportRooms(normalized.rooms);
+    setGeneralNote(normalized.generalNote || "");
+    setSketchNote(normalized.sketchNote || "");
+    setExistingSketch(normalized.sketch || null);
     setSketchFile(null);
-    setSketchPreview(null);
+    setSketchPreview(normalized.sketch?.publicUrl || null);
+    setDimMode(normalized.sketch ? "sketch" : "manual");
+    pokojCountRef.current = normalized.rooms.filter((r) => r.roomType === "pokoj").length;
+  };
+
+  useEffect(() => {
+    loadFromReport(editReport);
     setError("");
     setSuccess(false);
-    pokojCountRef.current = 0;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jobId]);
+  }, [jobId, editReport?.id]);
 
   const resetForm = () => {
-    setReportItems([]);
-    setNewItemText("");
-    setDimMode("manual");
-    setReportRooms([]);
-    if (sketchPreview) URL.revokeObjectURL(sketchPreview);
-    setSketchFile(null);
-    setSketchPreview(null);
-    setError("");
-    pokojCountRef.current = 0;
+    loadFromReport(null);
+    onCancelEdit?.();
   };
 
   const addReportItem = () => {
     const t = newItemText.trim();
     if (!t) return;
-    setReportItems((prev) => [...prev, t]);
+    setReportItems((prev) => [...prev, { id: crypto.randomUUID(), text: t, note: "" }]);
     setNewItemText("");
+  };
+
+  const updateReportItem = (id: string, patch: Partial<WorkReportItem>) => {
+    setReportItems((prev) => prev.map((item) => (item.id === id ? { ...item, ...patch } : item)));
   };
 
   const addRoom = (roomType: RoomTypeKey) => {
@@ -4152,26 +4234,28 @@ function JobReportForm({
 
   const onSketchPick = (files: FileList | null) => {
     if (!files?.[0]) return;
-    if (sketchPreview) URL.revokeObjectURL(sketchPreview);
+    if (sketchPreview && sketchPreview.startsWith("blob:")) URL.revokeObjectURL(sketchPreview);
     setSketchFile(files[0]);
     setSketchPreview(URL.createObjectURL(files[0]));
+    setExistingSketch(null);
     setDimMode("sketch");
     setError("");
   };
 
   const handleSubmit = async () => {
-    const hasItems = reportItems.length > 0;
-    const hasRooms = reportRooms.some((r) => r.length.trim() || r.width.trim() || r.height.trim());
-    const hasSketch = dimMode === "sketch" && sketchFile;
-    if (!hasItems && !hasRooms && !hasSketch) {
-      setError("Dodaj co najmniej jeden punkt zakresu, wymiary pomieszczeń lub rysunek.");
+    const items = reportItems.filter(workItemHasContent);
+    const rooms = reportRooms.filter(roomHasContent);
+    const hasSketch = dimMode === "sketch" && (sketchFile || existingSketch);
+    const hasGeneral = generalNote.trim().length > 0;
+    if (items.length === 0 && rooms.length === 0 && !hasSketch && !hasGeneral) {
+      setError("Dodaj zakres, wymiary, rysunek lub wiadomość dla admina.");
       return;
     }
     setSaving(true);
     setError("");
     setSuccess(false);
-    let sketch: WorkerJobReport["sketch"] = null;
-    if (hasSketch && sketchFile) {
+    let sketch: WorkerJobReport["sketch"] = existingSketch;
+    if (dimMode === "sketch" && sketchFile) {
       const { entry, error: upErr } = await uploadPhoto(jobId, sketchFile, "sketch", authorName);
       if (!entry) {
         setError(upErr || "Nie udało się wgrać rysunku.");
@@ -4179,17 +4263,23 @@ function JobReportForm({
         return;
       }
       sketch = { path: entry.path, publicUrl: entry.publicUrl };
+    } else if (dimMode !== "sketch") {
+      sketch = null;
     }
+    const now = new Date().toISOString();
     const report: WorkerJobReport = {
-      id: crypto.randomUUID(),
-      workerName: authorName,
-      submittedAt: new Date().toISOString(),
-      workItems: [...reportItems],
-      rooms: reportRooms.filter((r) => r.length.trim() || r.width.trim() || r.height.trim()),
+      id: editReport?.id || crypto.randomUUID(),
+      workerName: editReport?.workerName || authorName,
+      submittedAt: editReport?.submittedAt || now,
+      updatedAt: isEdit ? now : undefined,
+      workItems: items,
+      rooms,
+      generalNote: generalNote.trim(),
+      sketchNote: sketchNote.trim(),
       sketch,
     };
     await onSaved(report);
-    resetForm();
+    if (!isEdit) loadFromReport(null);
     setSuccess(true);
     setSaving(false);
     setTimeout(() => setSuccess(false), 4000);
@@ -4197,23 +4287,46 @@ function JobReportForm({
 
   return (
     <div className="space-y-4">
+      {isEdit && (
+        <div className="flex items-center justify-between gap-2 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+          <p className="text-xs text-amber-400 font-medium">Edycja raportu</p>
+          {onCancelEdit && (
+            <button type="button" onClick={resetForm} className="text-xs text-muted-foreground hover:text-foreground">Anuluj</button>
+          )}
+        </div>
+      )}
       {description && <p className="text-xs text-muted-foreground">{description}</p>}
       {success && (
-        <p className="text-xs text-green-400 bg-green-500/10 rounded-lg px-3 py-2">Raport zapisany.</p>
+        <p className="text-xs text-green-400 bg-green-500/10 rounded-lg px-3 py-2">{isEdit ? "Zmiany zapisane." : "Raport zapisany."}</p>
       )}
       {error && <p className="text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2">{error}</p>}
 
       <div>
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Zakres wykonanych prac</p>
         {reportItems.length > 0 && (
-          <ul className="space-y-1.5 mb-3">
-            {reportItems.map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm bg-secondary/50 rounded-lg px-3 py-2">
-                <span className="text-primary shrink-0">•</span>
-                <span className="flex-1">{item}</span>
-                <button type="button" onClick={() => setReportItems((p) => p.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-destructive shrink-0">
-                  <X size={14}/>
-                </button>
+          <ul className="space-y-2 mb-3">
+            {reportItems.map((item) => (
+              <li key={item.id} className="bg-secondary/50 rounded-xl px-3 py-2 space-y-2">
+                <div className="flex items-start gap-2">
+                  <span className="text-primary shrink-0 mt-2">•</span>
+                  <input
+                    type="text"
+                    value={item.text}
+                    onChange={(e) => updateReportItem(item.id, { text: e.target.value })}
+                    placeholder="Co zostało zrobione..."
+                    className="flex-1 bg-background rounded-lg px-2.5 py-1.5 text-sm border border-border focus:border-primary focus:outline-none"
+                  />
+                  <button type="button" onClick={() => setReportItems((p) => p.filter((x) => x.id !== item.id))} className="text-muted-foreground hover:text-destructive shrink-0 mt-1.5">
+                    <X size={14}/>
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={item.note}
+                  onChange={(e) => updateReportItem(item.id, { note: e.target.value })}
+                  placeholder="Opis / uwagi do tego punktu (opcjonalnie)"
+                  className="w-full bg-background rounded-lg px-2.5 py-1.5 text-xs border border-border focus:border-primary focus:outline-none ml-5"
+                />
               </li>
             ))}
           </ul>
@@ -4291,6 +4404,13 @@ function JobReportForm({
                             </div>
                           ))}
                         </div>
+                        <input
+                          type="text"
+                          value={room.note || ""}
+                          onChange={(e) => updateRoom(room.id, { note: e.target.value })}
+                          placeholder="Opis pomieszczenia / uwagi (opcjonalnie)"
+                          className="w-full bg-background rounded-lg px-2.5 py-1.5 text-xs border border-border focus:border-primary focus:outline-none"
+                        />
                       </div>
                     );
                   });
@@ -4302,15 +4422,35 @@ function JobReportForm({
           <div className="space-y-3">
             <label className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl border border-dashed border-border text-sm text-muted-foreground cursor-pointer hover:border-primary/40 hover:text-foreground transition-colors">
               <ImagePlus size={16}/>
-              {sketchFile ? sketchFile.name : "Wybierz zdjęcie rysunku z wymiarami"}
+              {sketchFile ? sketchFile.name : existingSketch ? "Zmień rysunek" : "Wybierz zdjęcie rysunku z wymiarami"}
               <input type="file" accept="image/*" capture="environment" className="sr-only"
                 onChange={(e) => { onSketchPick(e.target.files); e.target.value = ""; }}/>
             </label>
             {sketchPreview && (
               <img src={sketchPreview} alt="Podgląd rysunku" className="rounded-xl border border-border max-h-48 w-full object-contain bg-secondary"/>
             )}
+            <input
+              type="text"
+              value={sketchNote}
+              onChange={(e) => setSketchNote(e.target.value)}
+              placeholder="Opis rysunku / uwagi (opcjonalnie)"
+              className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
+            />
           </div>
         )}
+      </div>
+
+      <div>
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <StickyNote size={12}/>Wiadomość dla admina
+        </p>
+        <textarea
+          value={generalNote}
+          onChange={(e) => setGeneralNote(e.target.value)}
+          placeholder="Coś ważnego do przekazania — opcjonalnie"
+          rows={2}
+          className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none resize-none"
+        />
       </div>
 
       <button type="button" onClick={handleSubmit} disabled={saving || disabled}
@@ -4411,14 +4551,23 @@ function JobWorkerReportsPanel({
                     {report.workItems.length > 0 && (
                       <div>
                         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Zakres wykonanych prac</p>
-                        <ul className="space-y-1.5">
-                          {report.workItems.map((item, i) => (
-                            <li key={i} className="flex gap-2 text-sm">
-                              <span className="text-primary shrink-0">•</span>
-                              <span>{item}</span>
+                        <ul className="space-y-2">
+                          {report.workItems.map((item) => (
+                            <li key={item.id} className="text-sm">
+                              <div className="flex gap-2">
+                                <span className="text-primary shrink-0">•</span>
+                                <span>{item.text}</span>
+                              </div>
+                              {item.note && <p className="text-xs text-muted-foreground ml-4 mt-0.5 italic">{item.note}</p>}
                             </li>
                           ))}
                         </ul>
+                      </div>
+                    )}
+                    {report.generalNote && (
+                      <div className="bg-primary/5 border border-primary/15 rounded-lg px-3 py-2">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Wiadomość</p>
+                        <p className="text-sm">{report.generalNote}</p>
                       </div>
                     )}
                     {report.rooms.length > 0 && (
@@ -4441,7 +4590,10 @@ function JobWorkerReportsPanel({
                                 const idx = room.roomType === "pokoj" ? pokojIdx++ : 0;
                                 return (
                                   <tr key={room.id}>
-                                    <td className="px-3 py-2 font-medium">{roomDisplayName(room, idx)}</td>
+                                    <td className="px-3 py-2">
+                                      <p className="font-medium">{roomDisplayName(room, idx)}</p>
+                                      {room.note && <p className="text-[10px] text-muted-foreground mt-0.5 italic">{room.note}</p>}
+                                    </td>
                                     <td className="px-3 py-2 text-right font-mono text-xs">{room.length || "—"}</td>
                                     <td className="px-3 py-2 text-right font-mono text-xs">{room.width || "—"}</td>
                                     <td className="px-3 py-2 text-right font-mono text-xs">{room.height || "—"}</td>
@@ -4459,7 +4611,11 @@ function JobWorkerReportsPanel({
                         <a href={report.sketch.publicUrl} target="_blank" rel="noopener noreferrer" className="block max-w-xs">
                           <img src={report.sketch.publicUrl} alt="Rysunek" className="rounded-xl border border-border w-full object-contain bg-secondary max-h-64"/>
                         </a>
+                        {report.sketchNote && <p className="text-xs text-muted-foreground mt-2 italic">{report.sketchNote}</p>}
                       </div>
+                    )}
+                    {report.updatedAt && (
+                      <p className="text-[10px] text-muted-foreground">Edytowano: {fmtDate(report.updatedAt.slice(0, 10))}</p>
                     )}
                     <button
                       type="button"
@@ -4491,12 +4647,13 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
   const [uploadError, setUploadError] = useState("");
   const [search, setSearch] = useState("");
   const [galleryLabel, setGalleryLabel] = useState<PhotoEntry["label"]>("progress");
-  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
-  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  const [galleryPicks, setGalleryPicks] = useState<{ file: File; preview: string; caption: string }[]>([]);
+  const [quickPhotoCaption, setQuickPhotoCaption] = useState("");
+  const [editingReport, setEditingReport] = useState<WorkerJobReport | null>(null);
 
   useEffect(() => {
-    return () => { galleryPreviews.forEach((u) => URL.revokeObjectURL(u)); };
-  }, [galleryPreviews]);
+    return () => { galleryPicks.forEach((p) => URL.revokeObjectURL(p.preview)); };
+  }, [galleryPicks]);
 
   useEffect(() => {
     fetchKeysFromCloud(["kw-jobs"])
@@ -4524,16 +4681,27 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
     {value:"progress",icon:ImagePlus,title:"W trakcie prac", desc:"Postęp prac — można wgrać wiele zdjęć",    color:"bg-yellow-500/10 border-yellow-500/20 text-yellow-400"},
   ];
 
-  const uploadFilesBatch = async (files: File[], label: PhotoEntry["label"]) => {
-    if (!selectedJob || files.length === 0) return;
+  const syncJobs = (updater: (prev: Job[]) => Job[]) => {
+    setJobsLocal((prev) => {
+      const updated = updater(prev);
+      pushKeysToCloud(["kw-jobs"], [updated]).catch(() => {});
+      return updated;
+    });
+  };
+
+  const uploadFilesBatch = async (
+    picks: { file: File; caption: string }[],
+    label: PhotoEntry["label"],
+  ) => {
+    if (!selectedJob || picks.length === 0) return;
     setUploading(true);
     setUploadError("");
     setUploadedCount(0);
-    setUploadTotal(files.length);
+    setUploadTotal(picks.length);
     const newPhotos: PhotoEntry[] = [];
     let failMsg = "";
-    for (const file of files) {
-      const { entry, error } = await uploadPhoto(selectedJob.id, file, label, workerName);
+    for (const pick of picks) {
+      const { entry, error } = await uploadPhoto(selectedJob.id, pick.file, label, workerName, pick.caption);
       if (entry) {
         newPhotos.push(entry);
         setUploadedCount((p) => p + 1);
@@ -4542,18 +4710,16 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
       }
     }
     if (newPhotos.length > 0) {
-      setJobsLocal((prev) => {
-        const updated = prev.map((j) =>
+      syncJobs((prev) =>
+        prev.map((j) =>
           j.id === selectedJobId ? { ...j, photos: [...(j.photos || []), ...newPhotos] } : j,
-        );
-        pushKeysToCloud(["kw-jobs"], [updated]).catch(() => {});
-        return updated;
-      });
+        ),
+      );
     }
     if (failMsg) {
       setUploadError(
         newPhotos.length > 0
-          ? `Wgrano ${newPhotos.length} z ${files.length}. ${failMsg}`
+          ? `Wgrano ${newPhotos.length} z ${picks.length}. ${failMsg}`
           : failMsg,
       );
     }
@@ -4561,40 +4727,88 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
     setUploadTotal(0);
   };
 
+  const uploadFilesBatchLegacy = async (files: File[], label: PhotoEntry["label"], caption = "") => {
+    await uploadFilesBatch(files.map((file) => ({ file, caption })), label);
+  };
+
   const handleFiles = async (files: FileList | null, label: PhotoEntry["label"]) => {
     if (!files?.length) return;
-    await uploadFilesBatch(Array.from(files), label);
+    await uploadFilesBatchLegacy(Array.from(files), label, quickPhotoCaption);
+    setQuickPhotoCaption("");
   };
 
   const onGalleryPick = (files: FileList | null) => {
     if (!files?.length) return;
-    galleryPreviews.forEach((u) => URL.revokeObjectURL(u));
-    const list = Array.from(files);
-    setGalleryFiles(list);
-    setGalleryPreviews(list.map((f) => URL.createObjectURL(f)));
+    galleryPicks.forEach((p) => URL.revokeObjectURL(p.preview));
+    setGalleryPicks(Array.from(files).map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+      caption: "",
+    })));
     setUploadError("");
   };
 
   const clearGallery = () => {
-    galleryPreviews.forEach((u) => URL.revokeObjectURL(u));
-    setGalleryFiles([]);
-    setGalleryPreviews([]);
+    galleryPicks.forEach((p) => URL.revokeObjectURL(p.preview));
+    setGalleryPicks([]);
   };
 
   const submitGallery = async () => {
-    if (galleryFiles.length === 0) return;
-    await uploadFilesBatch(galleryFiles, galleryLabel);
+    if (galleryPicks.length === 0) return;
+    await uploadFilesBatch(galleryPicks.map((p) => ({ file: p.file, caption: p.caption })), galleryLabel);
     clearGallery();
   };
 
-  const saveWorkerReport = async (report: WorkerJobReport) => {
-    setJobsLocal((prev) => {
-      const updated = prev.map((j) =>
-        j.id === selectedJobId ? { ...j, workerReports: [...jobWorkerReports(j), report] } : j,
+  const handleReportSaved = async (report: WorkerJobReport) => {
+    if (editingReport) {
+      syncJobs((prev) =>
+        prev.map((j) =>
+          j.id === selectedJobId
+            ? { ...j, workerReports: jobWorkerReports(j).map((r) => (r.id === report.id ? report : r)) }
+            : j,
+        ),
       );
-      pushKeysToCloud(["kw-jobs"], [updated]).catch(() => {});
-      return updated;
-    });
+      setEditingReport(null);
+    } else {
+      syncJobs((prev) =>
+        prev.map((j) =>
+          j.id === selectedJobId ? { ...j, workerReports: [...jobWorkerReports(j), report] } : j,
+        ),
+      );
+    }
+  };
+
+  const deleteMyReport = (reportId: string) => {
+    if (!window.confirm("Usunąć ten raport?")) return;
+    syncJobs((prev) =>
+      prev.map((j) =>
+        j.id === selectedJobId
+          ? { ...j, workerReports: jobWorkerReports(j).filter((r) => r.id !== reportId) }
+          : j,
+      ),
+    );
+    if (editingReport?.id === reportId) setEditingReport(null);
+  };
+
+  const updateMyPhoto = (photoId: string, patch: Partial<PhotoEntry>) => {
+    syncJobs((prev) =>
+      prev.map((j) =>
+        j.id === selectedJobId
+          ? { ...j, photos: (j.photos || []).map((p) => (p.id === photoId ? { ...p, ...patch } : p)) }
+          : j,
+      ),
+    );
+  };
+
+  const deleteMyPhoto = (photoId: string) => {
+    if (!window.confirm("Usunąć to zdjęcie z listy?")) return;
+    syncJobs((prev) =>
+      prev.map((j) =>
+        j.id === selectedJobId
+          ? { ...j, photos: (j.photos || []).filter((p) => p.id !== photoId) }
+          : j,
+      ),
+    );
   };
 
   const myPhotos = selectedJob ? (selectedJob.photos||[]).filter(p=>p.uploadedBy===workerName) : [];
@@ -4643,7 +4857,7 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
               {activeJobs.map(job => {
                 const pending = (job.photos||[]).filter(p=>p.status==="pending").length;
                 return (
-                  <button key={job.id} onClick={()=>{setSelectedJobId(job.id);setUploadedCount(0);setUploadError("");}}
+                  <button key={job.id} onClick={()=>{setSelectedJobId(job.id);setUploadedCount(0);setUploadError("");setEditingReport(null);}}
                     className="w-full bg-card border border-border rounded-2xl px-5 py-4 text-left hover:border-primary/40 hover:bg-primary/5 transition-all">
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -4697,23 +4911,32 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
               </div>
               <label className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold cursor-pointer hover:bg-primary/90 active:scale-[0.98] transition-all">
                 <ImagePlus size={18}/>
-                Wybierz z galerii ({galleryFiles.length || "wiele"})
+                Wybierz z galerii ({galleryPicks.length || "wiele"})
                 <input type="file" accept="image/*" multiple className="sr-only"
                   onChange={(e) => { onGalleryPick(e.target.files); e.target.value = ""; }}/>
               </label>
-              {galleryPreviews.length > 0 && (
+              {galleryPicks.length > 0 && (
                 <div className="space-y-3">
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {galleryPreviews.map((url, i) => (
-                      <div key={url} className="aspect-square rounded-lg overflow-hidden bg-secondary border border-border">
-                        <img src={url} alt="" className="w-full h-full object-cover"/>
+                  <div className="space-y-2">
+                    {galleryPicks.map((pick, i) => (
+                      <div key={pick.preview} className="flex gap-2 items-start bg-secondary/40 rounded-xl p-2">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-secondary border border-border shrink-0">
+                          <img src={pick.preview} alt="" className="w-full h-full object-cover"/>
+                        </div>
+                        <input
+                          type="text"
+                          value={pick.caption}
+                          onChange={(e) => setGalleryPicks((prev) => prev.map((p, j) => j === i ? { ...p, caption: e.target.value } : p))}
+                          placeholder="Opis zdjęcia (opcjonalnie)"
+                          className="flex-1 bg-background rounded-lg px-2.5 py-2 text-xs border border-border focus:border-primary focus:outline-none"
+                        />
                       </div>
                     ))}
                   </div>
                   <div className="flex gap-2">
                     <button type="button" onClick={submitGallery} disabled={uploading}
                       className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50">
-                      Wyślij {galleryFiles.length} zdjęć
+                      Wyślij {galleryPicks.length} zdjęć
                     </button>
                     <button type="button" onClick={clearGallery} disabled={uploading}
                       className="px-4 py-3 rounded-xl border border-border text-sm text-muted-foreground hover:bg-secondary">
@@ -4724,23 +4947,68 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
               )}
             </div>
 
-            {/* Worker report: scope + dimensions */}
+            {myReports.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold mb-3">Twoje raporty ({myReports.length})</p>
+                <div className="space-y-2">
+                  {[...myReports].reverse().map((r) => (
+                    <div key={r.id} className={`bg-card border rounded-xl px-4 py-3 text-sm ${editingReport?.id === r.id ? "border-violet-500/50" : "border-border"}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground">{fmtDate(r.submittedAt.slice(0, 10))}{r.updatedAt && " · edyt."}</p>
+                          {r.workItems.length > 0 && (
+                            <ul className="text-xs space-y-0.5 text-foreground/90 mt-1">
+                              {r.workItems.slice(0, 2).map((item) => (
+                                <li key={item.id}>• {item.text}</li>
+                              ))}
+                              {r.workItems.length > 2 && <li className="text-muted-foreground">… +{r.workItems.length - 2} punktów</li>}
+                            </ul>
+                          )}
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          <button type="button" onClick={() => setEditingReport(normalizeWorkerReport(r))}
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10" title="Edytuj">
+                            <Edit2 size={14}/>
+                          </button>
+                          <button type="button" onClick={() => deleteMyReport(r.id)}
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10" title="Usuń">
+                            <Trash2 size={14}/>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="bg-card border border-violet-500/25 rounded-2xl p-4">
               <p className="text-sm font-semibold flex items-center gap-2 mb-3">
-                <ClipboardList size={16} className="text-violet-400"/>Raport z budowy
+                <ClipboardList size={16} className="text-violet-400"/>
+                {editingReport ? "Edytuj raport" : "Raport z budowy"}
               </p>
               <JobReportForm
+                key={`${selectedJob.id}-${editingReport?.id || "new"}`}
                 jobId={selectedJob.id}
                 authorName={workerName}
-                onSaved={saveWorkerReport}
-                submitLabel="Wyślij raport do admina"
-                description="Zakres wykonanych prac (punkty) oraz wymiary mieszkania — admin zobaczy to przy tej robocie."
+                editReport={editingReport}
+                onCancelEdit={() => setEditingReport(null)}
+                onSaved={handleReportSaved}
+                submitLabel={editingReport ? "Zapisz zmiany" : "Wyślij raport do admina"}
+                description={editingReport ? undefined : "Zakres prac, wymiary i opisy — admin zobaczy przy tej robocie."}
                 disabled={uploading}
               />
             </div>
 
             <div>
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Szybki aparat (pojedynczo)</p>
+              <input
+                type="text"
+                value={quickPhotoCaption}
+                onChange={(e) => setQuickPhotoCaption(e.target.value)}
+                placeholder="Opis do następnych zdjęć z aparatu (opcjonalnie)"
+                className="w-full bg-secondary rounded-xl px-3 py-2.5 text-xs border border-transparent focus:border-primary focus:outline-none mb-2"
+              />
               <div className="space-y-2">
                 {LABELS.map(lbl => (
                   <label key={lbl.value} className={`flex items-center gap-4 px-4 py-3 rounded-xl border cursor-pointer transition-all hover:opacity-90 active:scale-[0.98] ${lbl.color}`}>
@@ -4756,46 +5024,38 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
               </div>
             </div>
 
-            {myReports.length > 0 && (
-              <div>
-                <p className="text-sm font-semibold mb-3">Twoje raporty ({myReports.length})</p>
-                <div className="space-y-2">
-                  {[...myReports].reverse().slice(0, 5).map((r) => (
-                    <div key={r.id} className="bg-card border border-border rounded-xl px-4 py-3 text-sm">
-                      <p className="text-xs text-muted-foreground mb-1">{fmtDate(r.submittedAt.slice(0, 10))}</p>
-                      {r.workItems.length > 0 && (
-                        <ul className="text-xs space-y-0.5 text-foreground/90">
-                          {r.workItems.slice(0, 3).map((item, i) => (
-                            <li key={i}>• {item}</li>
-                          ))}
-                          {r.workItems.length > 3 && <li className="text-muted-foreground">… +{r.workItems.length - 3} punktów</li>}
-                        </ul>
-                      )}
-                      {(r.rooms.length > 0 || r.sketch) && (
-                        <p className="text-[10px] text-muted-foreground mt-1.5">
-                          {r.rooms.length > 0 && `${r.rooms.length} pom.`}
-                          {r.rooms.length > 0 && r.sketch && " · "}
-                          {r.sketch && "rysunek"}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {myPhotos.length > 0 && (
               <div>
                 <p className="text-sm font-semibold mb-3">Twoje wgrane zdjęcia ({myPhotos.length})</p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-3">
                   {myPhotos.map(p=>(
-                    <div key={p.id} className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
-                      <img src={p.publicUrl} alt={p.label} className="w-full h-full object-cover"/>
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1.5 py-1">
-                        <p className="text-[9px] text-white font-medium">{p.label==="before"?"Przed":p.label==="after"?"Po":"W trakcie"}</p>
+                    <div key={p.id} className="flex gap-3 bg-card border border-border rounded-xl p-3">
+                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-secondary shrink-0">
+                        <img src={p.publicUrl} alt={p.label} className="w-full h-full object-cover"/>
                       </div>
-                      <div className={`absolute top-1 right-1 rounded-full px-1.5 py-0.5 text-[8px] font-bold ${p.status==="approved"?"bg-green-500 text-white":p.status==="rejected"?"bg-red-500 text-white":"bg-yellow-500 text-black"}`}>
-                        {p.status==="approved"?"✓":p.status==="rejected"?"✗":"?"}
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] text-muted-foreground">
+                            {p.label==="before"?"Przed":p.label==="after"?"Po":"W trakcie"} · {fmtDate(p.uploadedAt.slice(0,10))}
+                          </span>
+                          <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${p.status==="approved"?"bg-green-500 text-white":p.status==="rejected"?"bg-red-500 text-white":"bg-yellow-500 text-black"}`}>
+                            {p.status==="approved"?"✓":p.status==="rejected"?"✗":"?"}
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          defaultValue={p.caption || ""}
+                          onBlur={(e) => {
+                            const v = e.target.value;
+                            if (v !== (p.caption || "")) updateMyPhoto(p.id, { caption: v });
+                          }}
+                          placeholder="Opis zdjęcia (opcjonalnie)"
+                          className="w-full bg-secondary rounded-lg px-2.5 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none"
+                        />
+                        <button type="button" onClick={() => deleteMyPhoto(p.id)}
+                          className="text-[10px] text-muted-foreground hover:text-destructive flex items-center gap-1">
+                          <Trash2 size={11}/>Usuń zdjęcie
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -4842,6 +5102,7 @@ function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photo
           </div>
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
             <p className="text-[9px] text-white font-medium truncate">{LABEL_NAMES[p.label]||p.label}</p>
+            {p.caption && <p className="text-[8px] text-white/90 truncate italic">{p.caption}</p>}
             <p className="text-[8px] text-white/70 truncate">{p.uploadedBy}</p>
           </div>
           {showActions && (
@@ -4929,6 +5190,7 @@ function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photo
           <img src={lightbox.publicUrl} alt={lightbox.label} className="max-w-full max-h-[90vh] rounded-xl object-contain" onClick={e=>e.stopPropagation()}/>
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center">
             <p className="text-white/90 text-sm font-medium">{LABEL_NAMES[lightbox.label]||lightbox.label}</p>
+            {lightbox.caption && <p className="text-white/80 text-xs mt-1 italic">{lightbox.caption}</p>}
             <p className="text-white/50 text-xs mt-0.5">{lightbox.uploadedBy} · {new Date(lightbox.uploadedAt).toLocaleDateString("pl-PL")}</p>
           </div>
         </div>
