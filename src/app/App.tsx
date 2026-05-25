@@ -2557,214 +2557,437 @@ function DashboardView({
   weekEmployees: WeekEmployee[];
   weekFrom: string; weekTo: string;
   savedWeeks: WeekSnapshot[];
-  onNavigate: (v: "payroll"|"directory"|"archive"|"jobs") => void;
+  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule") => void;
 }) {
   const todayKey = todayDayKey();
   const todayIso = todayIsoDate();
-  const workingToday = weekEmployees.filter(e => todayKey && e.days[todayKey]?.active);
+  const workingToday = weekEmployees.filter((e) => todayKey && e.days[todayKey]?.active);
+  const offToday = weekEmployees.filter((e) => !(todayKey && e.days[todayKey]?.active));
 
-  const activeJobs = jobs.filter(j=>j.status==="in_progress");
-  const completedJobs = jobs.filter(j=>j.status==="completed");
-  const jobsMissingDocs = jobs.filter(j=>j.status==="in_progress" && DOCUMENT_TYPES.some(d=>!j.documents[d]));
-  const jobsReadyToClose = jobs.filter(j=>j.status==="in_progress" && DOCUMENT_TYPES.every(d=>j.documents[d]));
+  const activeJobs = jobs.filter((j) => j.status === "in_progress");
+  const completedJobs = jobs.filter((j) => j.status === "completed");
+  const jobsMissingDocs = jobs.filter(
+    (j) => j.status === "in_progress" && DOCUMENT_TYPES.some((d) => !j.documents[d]),
+  );
+  const jobsReadyToClose = jobs.filter(
+    (j) => j.status === "in_progress" && DOCUMENT_TYPES.every((d) => j.documents[d]),
+  );
 
-  const weekTotal = weekEmployees.reduce((s,e)=>s+calcWeekEmployee(e).netPay,0);
-  const weekHours = weekEmployees.reduce((s,e)=>s+calcWeekEmployee(e).totalHours,0);
+  const weekTotal = weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).netPay, 0);
+  const weekHours = weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).totalHours, 0);
 
   const yearNow = new Date().getFullYear();
-  const yearWeeks = savedWeeks.filter(w=>new Date(w.weekFrom).getFullYear()===yearNow);
-  const yearTotal = yearWeeks.reduce((s,w)=>s+w.totalNet,0);
-
+  const yearWeeks = savedWeeks.filter((w) => new Date(w.weekFrom).getFullYear() === yearNow);
+  const yearTotal = yearWeeks.reduce((s, w) => s + w.totalNet, 0);
   const monthNow = new Date().getMonth();
-  const monthWeeks = yearWeeks.filter(w=>new Date(w.weekFrom).getMonth()===monthNow);
-  const monthTotal = monthWeeks.reduce((s,w)=>s+w.totalNet,0);
+  const monthWeeks = yearWeeks.filter((w) => new Date(w.weekFrom).getMonth() === monthNow);
+  const monthTotal = monthWeeks.reduce((s, w) => s + w.totalNet, 0);
 
-  const recentJobs = [...activeJobs].sort((a,b)=>b.startDate.localeCompare(a.startDate)).slice(0,5);
-  const recentWeeks = [...savedWeeks].sort((a,b)=>b.weekFrom.localeCompare(a.weekFrom)).slice(0,4);
+  const recentJobs = [...activeJobs].sort((a, b) => b.startDate.localeCompare(a.startDate)).slice(0, 6);
+  const recentWeeks = [...savedWeeks].sort((a, b) => b.weekFrom.localeCompare(a.weekFrom)).slice(0, 3);
+
+  const pendingPhotos = useMemo(
+    () =>
+      jobs.flatMap((j) =>
+        (j.photos || [])
+          .filter((p) => p.status === "pending")
+          .map((p) => ({ photo: p, job: j })),
+      ),
+    [jobs],
+  );
+
+  const recentReports = useMemo(() => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 14);
+    const cutoffIso = cutoff.toISOString();
+    return jobs
+      .filter((j) => j.status === "in_progress")
+      .flatMap((j) => jobWorkerReports(j).map((r) => ({ report: r, job: j })))
+      .filter(({ report: r }) => r.submittedAt >= cutoffIso || (r.updatedAt && r.updatedAt >= cutoffIso))
+      .sort((a, b) =>
+        (b.report.updatedAt || b.report.submittedAt).localeCompare(
+          a.report.updatedAt || a.report.submittedAt,
+        ),
+      )
+      .slice(0, 5);
+  }, [jobs]);
+
+  const totalReportsActive = useMemo(
+    () => activeJobs.reduce((s, j) => s + jobWorkerReports(j).length, 0),
+    [activeJobs],
+  );
+
+  const attentionCount =
+    jobsMissingDocs.length + pendingPhotos.length + recentReports.length;
+
+  const todayLabel = new Date().toLocaleDateString("pl-PL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 space-y-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6">
 
-        {/* Hero stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <button onClick={()=>onNavigate("jobs")} className="bg-card border border-border rounded-xl p-5 text-left hover:border-primary/30 hover:bg-primary/5 transition-colors group">
-            <div className="flex items-center gap-2 text-muted-foreground mb-3"><MapPin size={13}/><span className="text-xs font-medium uppercase tracking-wider">Aktywne roboty</span></div>
-            <p className="text-3xl font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{activeJobs.length}</p>
-            <p className="text-xs text-muted-foreground mt-1">{completedJobs.length} zdanych łącznie</p>
-          </button>
-
-          <button onClick={()=>onNavigate("payroll")} className="bg-card border border-border rounded-xl p-5 text-left hover:border-primary/30 hover:bg-primary/5 transition-colors">
-            <div className="flex items-center gap-2 text-muted-foreground mb-3"><Wallet size={13}/><span className="text-xs font-medium uppercase tracking-wider">Wypłata ten tydzień</span></div>
-            <p className="text-2xl font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(weekTotal)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{fmtH(weekHours)} · {weekEmployees.length} prac.</p>
-          </button>
-
-          <button onClick={()=>onNavigate("jobs")} className={`bg-card border rounded-xl p-5 text-left transition-colors ${jobsMissingDocs.length>0?"border-yellow-500/30 hover:border-yellow-500/50":"border-border hover:border-primary/30"}`}>
-            <div className="flex items-center gap-2 text-muted-foreground mb-3"><AlertTriangle size={13}/><span className="text-xs font-medium uppercase tracking-wider">Brak dokumentów</span></div>
-            <p className={`text-3xl font-bold ${jobsMissingDocs.length>0?"text-yellow-400":"text-muted-foreground"}`} style={{fontFamily:"'JetBrains Mono', monospace"}}>{jobsMissingDocs.length}</p>
-            <p className="text-xs text-muted-foreground mt-1">{jobsReadyToClose.length} gotowych do zdania</p>
-          </button>
-
-          <button onClick={()=>onNavigate("directory")} className="bg-card border border-border rounded-xl p-5 text-left hover:border-primary/30 hover:bg-primary/5 transition-colors">
-            <div className="flex items-center gap-2 text-muted-foreground mb-3"><Users size={13}/><span className="text-xs font-medium uppercase tracking-wider">Pracownicy</span></div>
-            <p className="text-3xl font-bold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{directory.filter(d=>d.active).length}</p>
-            <p className="text-xs text-muted-foreground mt-1">{workingToday.length > 0 ? `${workingToday.length} pracuje dziś` : "aktywnych"}</p>
-          </button>
-        </div>
-
-        {/* Finance bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-card border border-border rounded-xl p-5">
-            <div className="flex items-center gap-2 text-muted-foreground mb-2"><TrendingUp size={13}/><span className="text-xs font-medium uppercase tracking-wider">Ten miesiąc</span></div>
-            <p className="text-xl font-bold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(monthTotal)} PLN</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{monthWeeks.length} tygodni · {MONTH_NAMES[monthNow]}</p>
+        {/* Nagłówek */}
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight">Pulpit</h1>
+            <p className="text-sm text-muted-foreground capitalize mt-0.5">{todayLabel}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Tydzień listy płac: {fmtDate(weekFrom)} – {fmtDate(weekTo)}
+            </p>
           </div>
-          <div className="bg-card border border-border rounded-xl p-5">
-            <div className="flex items-center gap-2 text-muted-foreground mb-2"><Calendar size={13}/><span className="text-xs font-medium uppercase tracking-wider">Ten rok</span></div>
-            <p className="text-xl font-bold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(yearTotal)} PLN</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{yearWeeks.length} tygodni · {yearNow}</p>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                { v: "schedule" as const, icon: CalendarDays, label: "Grafik" },
+                { v: "payroll" as const, icon: Wallet, label: "Lista płac" },
+                { v: "jobs" as const, icon: MapPin, label: "Roboty" },
+              ] as const
+            ).map(({ v, icon: Icon, label }) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => onNavigate(v)}
+                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl bg-secondary hover:bg-secondary/80 border border-border transition-colors"
+              >
+                <Icon size={13} className="text-primary"/>
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Skróty liczbowe */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <button
+            type="button"
+            onClick={() => onNavigate("jobs")}
+            className="bg-card border border-border rounded-xl px-4 py-3 text-left hover:border-primary/30 transition-colors"
+          >
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Roboty w trakcie</p>
+            <p className="text-2xl font-bold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              {activeJobs.length}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{completedJobs.length} zdanych</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate("payroll")}
+            className="bg-card border border-border rounded-xl px-4 py-3 text-left hover:border-primary/30 transition-colors"
+          >
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Wypłata tyg.</p>
+            <p className="text-lg font-bold text-primary leading-tight" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              {fmt(weekTotal)}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{fmtH(weekHours)} · {weekEmployees.length} os.</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate("directory")}
+            className="bg-card border border-border rounded-xl px-4 py-3 text-left hover:border-primary/30 transition-colors"
+          >
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Ekipa dziś</p>
+            <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              {workingToday.length}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {weekEmployees.length > 0 ? `${offToday.length} wolne · ${directory.filter((d) => d.active).length} w kartotece` : "brak w liście płac"}
+            </p>
+          </button>
+          <div
+            className={`rounded-xl px-4 py-3 border ${
+              attentionCount > 0
+                ? "bg-amber-500/5 border-amber-500/25"
+                : "bg-card border-border"
+            }`}
+          >
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Do ogarnięcia</p>
+            <p
+              className={`text-2xl font-bold ${attentionCount > 0 ? "text-amber-400" : "text-muted-foreground"}`}
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              {attentionCount}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {attentionCount > 0 ? "patrz sekcja poniżej" : "wszystko OK"}
+            </p>
+          </div>
+        </div>
 
-          {/* Active jobs */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-2"><MapPin size={13} className="text-muted-foreground"/><span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Aktywne roboty</span></div>
-              <button onClick={()=>onNavigate("jobs")} className="text-xs text-primary hover:underline">Wszystkie →</button>
+        {/* Wymaga uwagi */}
+        {attentionCount > 0 && (
+          <div className="bg-card border border-amber-500/20 rounded-xl overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-amber-500/15 flex items-center gap-2 bg-amber-500/5">
+              <AlertTriangle size={14} className="text-amber-400 shrink-0"/>
+              <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">Wymaga uwagi</span>
             </div>
-            {recentJobs.length===0 ? (
-              <div className="p-8 text-center text-muted-foreground text-sm">Brak aktywnych robót.</div>
-            ) : (
-              <div className="divide-y divide-border">
-                {recentJobs.map(job=>{
-                  const docsOk=DOCUMENT_TYPES.filter(d=>job.documents[d]).length;
-                  const cost=jobTotalCost(job);
-                  return (
-                    <div key={job.id} className="px-5 py-3.5 flex items-center gap-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium truncate">{job.address||"Bez adresu"}{job.flatNumber&&<span className="text-muted-foreground"> m.{job.flatNumber}</span>}</p>
-                          {job.keysHandedOver&&<KeyRound size={11} className="text-blue-400 shrink-0"/>}
-                        </div>
-                        <p className="text-xs text-muted-foreground">{job.client||"—"} · {fmtDate(job.startDate)}</p>
-                      </div>
-                      <div className="text-right shrink-0 space-y-1">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-16 bg-border rounded-full h-1 overflow-hidden">
-                            <div className="bg-primary h-1 rounded-full" style={{width:`${(docsOk/DOCUMENT_TYPES.length)*100}%`}}/>
-                          </div>
-                          <span className="text-xs text-muted-foreground">{docsOk}/{DOCUMENT_TYPES.length}</span>
-                        </div>
-                        {cost>0&&<p className="text-xs font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cost)} PLN</p>}
-                      </div>
-                    </div>
-                  );
-                })}
+            <div className="divide-y divide-border">
+              {pendingPhotos.length > 0 && (
+                <div className="px-5 py-3.5">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-sm font-medium flex items-center gap-2">
+                      <Camera size={14} className="text-yellow-400"/>
+                      Zdjęcia do akceptacji
+                      <span className="text-[10px] bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded-full font-bold">
+                        {pendingPhotos.length}
+                      </span>
+                    </p>
+                    <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline">
+                      Roboty →
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    {pendingPhotos.slice(0, 3).map(({ photo, job }) => (
+                      <p key={photo.id} className="text-xs text-muted-foreground truncate">
+                        <span className="text-foreground">{job.address || "Bez adresu"}</span>
+                        {photo.caption ? ` — ${photo.caption}` : ` · ${photo.uploadedBy}`}
+                      </p>
+                    ))}
+                    {pendingPhotos.length > 3 && (
+                      <p className="text-[10px] text-muted-foreground">+ {pendingPhotos.length - 3} więcej</p>
+                    )}
+                  </div>
+                </div>
+              )}
+              {recentReports.length > 0 && (
+                <div className="px-5 py-3.5">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-sm font-medium flex items-center gap-2">
+                      <ClipboardList size={14} className="text-violet-400"/>
+                      Raporty z budowy (14 dni)
+                      <span className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full font-bold">
+                        {recentReports.length}
+                      </span>
+                    </p>
+                    <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline">
+                      Roboty →
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    {recentReports.map(({ report, job }) => (
+                      <p key={report.id} className="text-xs text-muted-foreground truncate">
+                        <span className="text-foreground">{report.workerName}</span>
+                        {" · "}
+                        {job.address || "Bez adresu"}
+                        {report.workItems[0]?.text && ` — ${report.workItems[0].text}`}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {jobsMissingDocs.length > 0 && (
+                <div className="px-5 py-3.5">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-sm font-medium flex items-center gap-2">
+                      <FileText size={14} className="text-yellow-400"/>
+                      Brak dokumentów
+                      <span className="text-[10px] bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded-full font-bold">
+                        {jobsMissingDocs.length}
+                      </span>
+                    </p>
+                    {jobsReadyToClose.length > 0 && (
+                      <span className="text-[10px] text-green-400">{jobsReadyToClose.length} got. do zdania</span>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    {jobsMissingDocs.slice(0, 4).map((job) => {
+                      const missing = DOCUMENT_TYPES.filter((d) => !job.documents[d]);
+                      return (
+                        <p key={job.id} className="text-xs">
+                          <span className="font-medium">{job.address || "Bez adresu"}</span>
+                          <span className="text-muted-foreground"> — brak: {missing.slice(0, 3).map((d) => DOC_LABELS[d]).join(", ")}{missing.length > 3 ? "…" : ""}</span>
+                        </p>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* Pracuje dziś — szersza kolumna */}
+          <div className="lg:col-span-2 bg-card border border-border rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <HardHat size={13} className="text-primary"/>
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pracuje dziś</span>
               </div>
-            )}
-          </div>
-
-          {/* Working today */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-2"><HardHat size={13} className="text-muted-foreground"/><span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pracuje dziś ({new Date().toLocaleDateString("pl-PL",{weekday:"long"})})</span></div>
-              <button onClick={()=>onNavigate("payroll")} className="text-xs text-primary hover:underline">Lista płac →</button>
+              <button type="button" onClick={() => onNavigate("schedule")} className="text-xs text-primary hover:underline">
+                Grafik →
+              </button>
             </div>
-            {weekEmployees.length===0 ? (
-              <div className="p-8 text-center text-muted-foreground text-sm">Brak pracowników w bieżącym tygodniu.</div>
-            ) : workingToday.length===0 ? (
+            {weekEmployees.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground text-sm">
-                {todayKey ? "Nikt nie jest zaplanowany na dziś." : "Dziś niedziela — wolne 🙂"}
+                Brak pracowników w tym tygodniu.
+                <button type="button" onClick={() => onNavigate("payroll")} className="block mx-auto mt-2 text-xs text-primary hover:underline">
+                  Otwórz listę płac
+                </button>
+              </div>
+            ) : workingToday.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground text-sm">
+                {todayKey ? "Nikt nie jest zaplanowany na dziś." : "Niedziela — wolne"}
+                {offToday.length > 0 && (
+                  <p className="text-xs mt-2">{offToday.length} w ekipie tygodnia</p>
+                )}
               </div>
             ) : (
-              <div className="divide-y divide-border">
-                {workingToday.map(emp=>{
-                  const {totalHours,netPay}=calcWeekEmployee(emp);
+              <div className="divide-y divide-border max-h-[420px] overflow-y-auto">
+                {workingToday.map((emp) => {
+                  const { netPay } = calcWeekEmployee(emp);
                   const todayH = todayKey ? hoursWorked(emp.days[todayKey].from, emp.days[todayKey].to) : 0;
                   const todayJobs = jobsForEmployeeOnDashboard(emp, jobs, todayIso, weekFrom, weekTo, directory);
                   const streets = todayJobs.map(formatJobStreet);
                   return (
-                    <div key={emp.id} className="px-5 py-3.5 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-sm font-bold text-primary shrink-0">
-                        {emp.name?emp.name[0].toUpperCase():"?"}
+                    <div key={emp.id} className="px-5 py-3.5 flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                        {emp.name ? emp.name[0].toUpperCase() : "?"}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{emp.name||"Bez nazwy"}</p>
-                        <p className="text-xs text-muted-foreground">{emp.position||"—"} · {todayKey&&emp.days[todayKey].from}–{todayKey&&emp.days[todayKey].to}</p>
-                        {streets.length > 0 && (
-                          <p className="text-xs text-primary mt-0.5 flex items-start gap-1 leading-snug">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <p className="text-sm font-semibold truncate">{emp.name || "Bez nazwy"}</p>
+                          <p className="text-sm font-semibold shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                            {fmtH(todayH)}
+                          </p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {todayKey && `${emp.days[todayKey].from}–${emp.days[todayKey].to}`}
+                          {emp.position ? ` · ${emp.position}` : ""}
+                        </p>
+                        {streets.length > 0 ? (
+                          <p className="text-xs text-primary mt-1 flex items-start gap-1 leading-snug">
                             <MapPin size={11} className="shrink-0 mt-0.5"/>
                             <span>{streets.join(" · ")}</span>
                           </p>
+                        ) : (
+                          <p className="text-[10px] text-muted-foreground mt-1 italic">Brak wpisu na robocie na dziś</p>
                         )}
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(todayH)}</p>
-                        <p className="text-xs text-muted-foreground">tyg: {fmt(netPay)} PLN</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">Tydz.: {fmt(netPay)} PLN</p>
                       </div>
                     </div>
                   );
                 })}
-                {/* Show employees with hours this week but not today */}
-                {weekEmployees.filter(e=>!(todayKey&&e.days[todayKey]?.active)).map(emp=>(
-                  <div key={emp.id} className="px-5 py-3 flex items-center gap-3 opacity-40">
-                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
-                      {emp.name?emp.name[0].toUpperCase():"?"}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm">{emp.name||"Bez nazwy"}</p>
-                    </div>
-                    <span className="text-xs text-muted-foreground">wolne</span>
-                  </div>
-                ))}
               </div>
             )}
           </div>
 
-          {/* Jobs needing attention */}
-          {jobsMissingDocs.length>0&&(
-            <div className="bg-card border border-yellow-500/20 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-yellow-500/20 flex items-center gap-2">
-                <AlertTriangle size={13} className="text-yellow-400"/>
-                <span className="text-xs font-medium uppercase tracking-wider text-yellow-400">Brakujące dokumenty</span>
+          {/* Aktywne roboty */}
+          <div className="lg:col-span-3 bg-card border border-border rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MapPin size={13} className="text-muted-foreground"/>
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Roboty w trakcie</span>
+                {totalReportsActive > 0 && (
+                  <span className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">
+                    {totalReportsActive} rap.
+                  </span>
+                )}
               </div>
+              <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline">
+                Wszystkie →
+              </button>
+            </div>
+            {recentJobs.length === 0 ? (
+              <div className="p-10 text-center text-muted-foreground text-sm">
+                Brak aktywnych robót.
+                <button type="button" onClick={() => onNavigate("jobs")} className="block mx-auto mt-2 text-xs text-primary hover:underline">
+                  Dodaj robotę
+                </button>
+              </div>
+            ) : (
               <div className="divide-y divide-border">
-                {jobsMissingDocs.slice(0,4).map(job=>{
-                  const missing=DOCUMENT_TYPES.filter(d=>!job.documents[d]);
+                {recentJobs.map((job) => {
+                  const docsOk = DOCUMENT_TYPES.filter((d) => job.documents[d]).length;
+                  const cost = jobTotalCost(job);
+                  const reportsN = jobWorkerReports(job).length;
+                  const pendingN = (job.photos || []).filter((p) => p.status === "pending").length;
                   return (
-                    <div key={job.id} className="px-5 py-3.5">
-                      <p className="text-sm font-medium">{job.address||"Bez adresu"}{job.flatNumber&&` m.${job.flatNumber}`}</p>
-                      <p className="text-xs text-yellow-400/70 mt-0.5">{missing.map(d=>DOC_LABELS[d]).join(", ")}</p>
+                    <div key={job.id} className="px-5 py-3.5 flex items-center gap-4 hover:bg-secondary/20 transition-colors">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-semibold truncate">
+                            {job.address || "Bez adresu"}
+                            {job.flatNumber && <span className="text-muted-foreground font-normal"> m.{job.flatNumber}</span>}
+                          </p>
+                          {job.keysHandedOver && <KeyRound size={11} className="text-blue-400 shrink-0"/>}
+                          {pendingN > 0 && (
+                            <span className="text-[9px] bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded-full">{pendingN} zdj.</span>
+                          )}
+                          {reportsN > 0 && (
+                            <span className="text-[9px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full">{reportsN} rap.</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">{job.client || "—"} · od {fmtDate(job.startDate)}</p>
+                      </div>
+                      <div className="shrink-0 text-right space-y-1.5 min-w-[88px]">
+                        <div className="flex items-center gap-1.5 justify-end">
+                          <div className="w-14 bg-border rounded-full h-1 overflow-hidden">
+                            <div className="bg-primary h-1 rounded-full" style={{ width: `${(docsOk / DOCUMENT_TYPES.length) * 100}%` }}/>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground">{docsOk}/{DOCUMENT_TYPES.length}</span>
+                        </div>
+                        {cost > 0 && (
+                          <p className="text-xs font-semibold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                            {fmt(cost)} PLN
+                          </p>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
               </div>
-            </div>
-          )}
+            )}
+          </div>
+        </div>
 
-          {/* Recent archived weeks */}
-          {recentWeeks.length>0&&(
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-                <div className="flex items-center gap-2"><Archive size={13} className="text-muted-foreground"/><span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Ostatnie tygodnie</span></div>
-                <button onClick={()=>onNavigate("archive")} className="text-xs text-primary hover:underline">Archiwum →</button>
-              </div>
-              <div className="divide-y divide-border">
-                {recentWeeks.map(w=>(
-                  <div key={w.id} className="px-5 py-3.5 flex items-center gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium">{fmtDate(w.weekFrom)} – {fmtDate(w.weekTo)}</p>
-                      <p className="text-xs text-muted-foreground">{w.totalEmployees} prac. · {fmtH(w.totalHours)}</p>
-                    </div>
-                    <p className="text-sm font-bold text-primary shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(w.totalNet)} PLN</p>
+        {/* Podsumowanie finansowe + archiwum */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <TrendingUp size={16} className="text-primary"/>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Wypłaty · {MONTH_NAMES[monthNow]}</p>
+              <p className="text-lg font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(monthTotal)} PLN</p>
+              <p className="text-[10px] text-muted-foreground">{monthWeeks.length} tyg. w archiwum</p>
+            </div>
+          </div>
+          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+              <Calendar size={16} className="text-muted-foreground"/>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Wypłaty · {yearNow}</p>
+              <p className="text-lg font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(yearTotal)} PLN</p>
+              <p className="text-[10px] text-muted-foreground">{yearWeeks.length} tyg. zapisanych</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onNavigate("archive")}
+            className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/30 transition-colors"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Archive size={14} className="text-muted-foreground"/>
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Ostatnie tygodnie</span>
+            </div>
+            {recentWeeks.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Brak archiwum — zapisz tydzień w liście płac</p>
+            ) : (
+              <div className="space-y-1">
+                {recentWeeks.map((w) => (
+                  <div key={w.id} className="flex justify-between gap-2 text-xs">
+                    <span className="text-muted-foreground">{fmtDate(w.weekFrom)} – {fmtDate(w.weekTo)}</span>
+                    <span className="font-semibold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(w.totalNet)}</span>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </button>
         </div>
 
       </div>
@@ -3090,7 +3313,7 @@ function HelpView() {
             {icon:Bell, title:"Reminder w sobotę", desc:"Co sobotę w Liście Płac pojawia się żółty baner przypominający o zamknięciu tygodnia. Kliknij \"Zapisz tydzień\" zanim zapomnisz."},
             {icon:Search, title:"Globalne wyszukiwanie", desc:"Ikona lupy w prawym górnym rogu. Wpisz imię pracownika lub adres roboty — aplikacja znajdzie to w całej bazie danych."},
             {icon:CalendarDays, title:"Grafik tygodniowy", desc:"Menu Grafik — cały tydzień na jednym ekranie: wiersz = pracownik, kolumna = dzień. Godziny z listy płac, adres z wpisu na robocie."},
-            {icon:LayoutDashboard, title:"Pulpit — gdzie dziś pracuje ekipa", desc:"Przy „Pracuje dziś” widać ulicę, gdy pracownik ma wpis na robocie (Pracownicy na robocie → Dodaj wpis) na dziś lub w bieżącym tygodniu listy płac. Imię musi zgadzać się z kartoteką (np. Adam Kowalski, nie samo Adam)."},
+            {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"U góry: skróty do Grafiku, Listy płac i Robót. „Wymaga uwagi” zbiera zdjęcia do akceptacji, raporty pracowników i brakujące dokumenty. „Pracuje dziś” pokazuje tylko zaplanowanych — z adresem z wpisu na robocie."},
             {icon:Users, title:"Filtrowanie robót po pracowniku", desc:"W zakładce Roboty jest rozwijana lista pracowników. Wybierz kogoś — zobaczysz tylko roboty na których ten pracownik miał wpisy czasu pracy."},
             {icon:FileDown, title:"PDF z roboty do wysłania klientowi", desc:"Każda robota ma przycisk PDF w nagłówku. Generuje profesjonalny dokument z listą dokumentów, czasem pracy i kosztami — można go od razu wysłać mailowo."},
           ].map((tip,i)=>(
@@ -3157,6 +3380,15 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.3", label:"Nowy pulpit — czytelniejszy układ",
+    items:[
+      {type:"improve", text:"Pulpit przeprojektowany: nagłówek z datą, skróty Grafik / Lista płac / Roboty"},
+      {type:"new", text:"Sekcja „Wymaga uwagi”: zdjęcia do akceptacji, raporty pracowników (14 dni), brakujące dokumenty"},
+      {type:"improve", text:"„Pracuje dziś” — tylko aktywni (bez długiej listy „wolne”), link do grafiku"},
+      {type:"improve", text:"Lista robót z etykietami raportów i oczekujących zdjęć; finanse i archiwum na dole"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.2", label:"Edycja raportów i opisy pracownika",
     items:[
