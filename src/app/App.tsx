@@ -23,6 +23,7 @@ import {
   pushAllDataToCloud,
   fetchKeysFromCloud,
 } from "@/lib/cloud-sync";
+import { isSupabaseConfigured } from "@/config/supabase";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 pdfMake.vfs = pdfFonts as any;
@@ -615,7 +616,7 @@ async function uploadPhoto(
 
     const res = await fetch(`${API_BASE}/storage-upload`, {
       method: "POST",
-      headers: { Authorization: API_HEADERS.Authorization, apikey: API_HEADERS.apikey },
+      headers: { Authorization: API_HEADERS.Authorization },
       body: form,
     });
 
@@ -4212,22 +4213,37 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [globalSearch, setGlobalSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<"idle"|"saving"|"saved"|"error">("idle");
+  const [syncStatus, setSyncStatus] = useState<"idle"|"saving"|"saved"|"error"|"offline">("idle");
+  const [syncError, setSyncError] = useState("");
   const syncTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
   const initialSyncDone = useRef(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
 
   const pushToCloud = pushAllDataToCloud;
 
+  const runCloudSync = useCallback(async () => {
+    if (!isSupabaseConfigured()) {
+      setSyncStatus("offline");
+      setSyncError("Brak VITE_SUPABASE_* w Vercel — ustaw zmienne i zrób redeploy");
+      return;
+    }
+    setSyncStatus("saving");
+    setSyncError("");
+    try {
+      await pushToCloud([directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts]);
+      setSyncStatus("saved");
+      setTimeout(() => setSyncStatus("idle"), 2500);
+    } catch (e) {
+      setSyncStatus("error");
+      setSyncError(e instanceof Error ? e.message : "Błąd połączenia z chmurą");
+    }
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts]);
+
   // On mount: push existing local data to cloud (first-time sync from laptop)
   useEffect(() => {
     const hasData = directory.length>0 || jobs.length>0 || weekEmployees.length>0 || savedWeeks.length>0;
     if (!hasData) { initialSyncDone.current = true; return; }
-    setSyncStatus("saving");
-    pushToCloud([directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts])
-      .then(()=>{ setSyncStatus("saved"); setTimeout(()=>setSyncStatus("idle"),2500); })
-      .catch(()=>setSyncStatus("error"))
-      .finally(()=>{ initialSyncDone.current = true; });
+    runCloudSync().finally(() => { initialSyncDone.current = true; });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -4235,17 +4251,8 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
   useEffect(() => {
     if (!initialSyncDone.current) return;
     if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
-    setSyncStatus("saving");
-    syncTimerRef.current = setTimeout(async () => {
-      try {
-        await pushToCloud([directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts]);
-        setSyncStatus("saved");
-        setTimeout(() => setSyncStatus("idle"), 2500);
-      } catch {
-        setSyncStatus("error");
-      }
-    }, 2000);
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts]);
+    syncTimerRef.current = setTimeout(() => { runCloudSync(); }, 2000);
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, runCloudSync]);
 
   // Backup
   const exportBackup = () => {
@@ -4476,13 +4483,25 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
             {view==="payroll"&&<span className="text-xs text-muted-foreground hidden sm:block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN · {weekEmployees.length} prac.</span>}
             {view==="schedule"&&<span className="text-xs text-muted-foreground hidden sm:block">{fmtDate(weekFrom)} – {fmtDate(weekTo)} · {weekEmployees.length} prac.</span>}
             {view==="jobs"&&<span className="text-xs text-muted-foreground hidden sm:block">{jobs.filter(j=>j.status==="in_progress").length} aktywne · {jobs.filter(j=>j.status==="completed").length} zdane</span>}
-            {/* Sync indicator */}
-            <div className="p-1.5 rounded-lg" title={syncStatus==="saving"?"Zapisywanie...":syncStatus==="saved"?"Zsynchronizowano":syncStatus==="error"?"Błąd synchronizacji":"Zsynchronizowano"}>
+            {/* Sync indicator — kliknij przy błędzie, aby ponowić */}
+            <button
+              type="button"
+              onClick={() => (syncStatus === "error" || syncStatus === "offline") && runCloudSync()}
+              className={`p-1.5 rounded-lg ${syncStatus === "error" || syncStatus === "offline" ? "hover:bg-secondary cursor-pointer" : "cursor-default"}`}
+              title={
+                syncStatus === "saving" ? "Zapisywanie..."
+                : syncStatus === "saved" ? "Zsynchronizowano"
+                : syncStatus === "error" ? `Błąd synchronizacji — kliknij, aby ponowić${syncError ? `\n${syncError}` : ""}`
+                : syncStatus === "offline" ? syncError || "Chmura niedostępna — brak konfiguracji"
+                : "Zsynchronizowano"
+              }
+            >
               {syncStatus==="saving"&&<CloudUpload size={15} className="text-muted-foreground animate-pulse"/>}
               {syncStatus==="saved"&&<Cloud size={15} className="text-green-500"/>}
               {syncStatus==="error"&&<CloudOff size={15} className="text-destructive"/>}
+              {syncStatus==="offline"&&<CloudOff size={15} className="text-yellow-500"/>}
               {syncStatus==="idle"&&<Cloud size={15} className="text-muted-foreground/40"/>}
-            </div>
+            </button>
             <button onClick={()=>setShowSearch(v=>!v)} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
               <Search size={16}/>
             </button>

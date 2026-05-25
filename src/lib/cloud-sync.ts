@@ -2,6 +2,7 @@ import {
   supabaseProjectId,
   supabaseAnonKey,
   supabaseFunctionsBase,
+  isSupabaseConfigured,
 } from "@/config/supabase";
 
 /** Klucze danych biznesowych — każdy nowy typ zapisu MUSI być tutaj. */
@@ -24,7 +25,6 @@ export const API_BASE = supabaseFunctionsBase;
 export const API_HEADERS: Record<string, string> = {
   "Content-Type": "application/json",
   Authorization: `Bearer ${supabaseAnonKey}`,
-  apikey: supabaseAnonKey,
 };
 
 export function isDataKey(key: string): key is DataKey {
@@ -36,12 +36,18 @@ export async function pushKeysToCloud(
   keys: string[],
   values: unknown[],
 ): Promise<void> {
+  if (!isSupabaseConfigured() || !API_BASE) {
+    throw new Error("Brak konfiguracji Supabase (VITE_SUPABASE_*)");
+  }
   const res = await fetch(`${API_BASE}/batch-set`, {
     method: "POST",
     headers: API_HEADERS,
     body: JSON.stringify({ keys, values }),
   });
-  if (!res.ok) throw new Error(`batch-set failed: ${res.status}`);
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(`batch-set ${res.status}${errText ? `: ${errText.slice(0, 120)}` : ""}`);
+  }
 }
 
 /** Wszystkie dane aplikacji naraz (kolejność jak DATA_KEYS). */
@@ -53,6 +59,9 @@ export async function pushAllDataToCloud(values: unknown[]): Promise<void> {
 export async function fetchKeysFromCloud(
   keys: string[],
 ): Promise<unknown[]> {
+  if (!isSupabaseConfigured() || !API_BASE) {
+    throw new Error("Brak konfiguracji Supabase (VITE_SUPABASE_*)");
+  }
   const res = await fetch(`${API_BASE}/batch-get`, {
     method: "POST",
     headers: API_HEADERS,
