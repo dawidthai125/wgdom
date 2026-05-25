@@ -134,15 +134,41 @@ app.post("/make-server-0afb8820/storage-upload", async (c) => {
   }
 });
 
+/** Konfiguracja emaili Resend (sekrety Supabase opcjonalne). */
+function resendFrom(): string {
+  return Deno.env.get("RESEND_FROM") || "W&G DOM <biuro@wgdom.fun>";
+}
+
+/** Adresy Reply-To — kliknięcie „Odpowiedz” w mailu idzie tutaj, nie na biuro@wgdom.fun. */
+function resendReplyTo(): string[] {
+  const raw = Deno.env.get("REPLY_TO_EMAILS") || "biuro@wgdom.pl,dawid.thai@int.pl";
+  return raw.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+function backupEmailTo(): string {
+  return Deno.env.get("BACKUP_EMAIL") || "dawid.thai@int.pl";
+}
+
+async function sendViaResend(body: Record<string, unknown>): Promise<Response> {
+  const resendKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendKey) throw new Error("RESEND_API_KEY not set");
+  return fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${resendKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
 // Send backup email via Resend
 app.post("/make-server-0afb8820/send-backup-email", async (c) => {
   const resendKey = Deno.env.get("RESEND_API_KEY");
   if (!resendKey) return c.json({ ok: false, error: "RESEND_API_KEY not set" }, 500);
 
   const { data, date } = await c.req.json();
-  // Resend w trybie testowym wysyła tylko na email właściciela konta.
-  // Po weryfikacji domeny ustaw BACKUP_EMAIL=dawid.thai@int.pl w sekretach Supabase.
-  const backupTo = Deno.env.get("BACKUP_EMAIL") || "dawid.thai@icloud.com";
+  const backupTo = backupEmailTo();
 
   const json = JSON.stringify(data, null, 2);
   // Base64 encode for attachment
@@ -150,24 +176,18 @@ app.post("/make-server-0afb8820/send-backup-email", async (c) => {
   const bytes = encoder.encode(json);
   const base64 = btoa(String.fromCharCode(...bytes));
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${resendKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "W&G DOM <onboarding@resend.dev>",
-      to: [backupTo],
-      subject: `Auto-backup W&G DOM — ${date}`,
-      html: `<p>Automatyczny backup danych W&amp;G DOM z dnia <strong>${date}</strong>.</p><p>Backup jest dołączony jako plik JSON. Możesz go zaimportować w aplikacji w sekcji <em>Eksportuj / Importuj backup</em>.</p>`,
-      attachments: [
-        {
-          filename: `backup-${date}.json`,
-          content: base64,
-        },
-      ],
-    }),
+  const res = await sendViaResend({
+    from: resendFrom(),
+    reply_to: resendReplyTo(),
+    to: [backupTo],
+    subject: `Auto-backup W&G DOM — ${date}`,
+    html: `<p>Automatyczny backup danych W&amp;G DOM z dnia <strong>${date}</strong>.</p><p>Backup jest dołączony jako plik JSON. Możesz go zaimportować w aplikacji w sekcji <em>Eksportuj / Importuj backup</em>.</p>`,
+    attachments: [
+      {
+        filename: `backup-${date}.json`,
+        content: base64,
+      },
+    ],
   });
 
   if (!res.ok) {
@@ -328,18 +348,12 @@ app.post("/make-server-0afb8820/send-job-email", async (c) => {
   const subject = String(payload.subject || "W&G DOM — materiały z roboty").trim();
   const html = buildJobEmailHtml(payload);
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${resendKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "W&G DOM <onboarding@resend.dev>",
-      to: [to],
-      subject,
-      html,
-    }),
+  const res = await sendViaResend({
+    from: resendFrom(),
+    reply_to: resendReplyTo(),
+    to: [to],
+    subject,
+    html,
   });
 
   if (!res.ok) {

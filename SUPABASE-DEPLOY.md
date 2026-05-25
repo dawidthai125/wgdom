@@ -89,11 +89,18 @@ Bez tego klucza wysyłka emaili zwróci błąd *„RESEND_API_KEY not set”*.
 
 1. Supabase Dashboard → **Edge Functions**
 2. Zakładka **Secrets** (czasem: **Manage secrets**)
-3. **Add new secret**
+3. **Add new secret** — wymagany:
    - **Name:** `RESEND_API_KEY`
    - **Value:** wklej klucz `re_...`
-4. *(Opcjonalnie)* **BACKUP_EMAIL** — adres na auto-backup w poniedziałek (domyślnie `dawid.thai@icloud.com`). Ustaw `dawid.thai@int.pl` dopiero po weryfikacji domeny w Resend.
-5. Zapisz
+4. *(Opcjonalnie — domyślne wartości w kodzie już OK po weryfikacji wgdom.fun)*:
+
+| Sekret | Domyślnie w kodzie | Po co |
+|--------|-------------------|--------|
+| `BACKUP_EMAIL` | `dawid.thai@int.pl` | Auto-backup w poniedziałek |
+| `RESEND_FROM` | `W&G DOM <biuro@wgdom.fun>` | Nadawca maili |
+| `REPLY_TO_EMAILS` | `biuro@wgdom.pl,dawid.thai@int.pl` | Gdzie trafia „Odpowiedz” |
+
+5. Zapisz i **Deploy** funkcji (krok 3c)
 
 > **Nie dodawaj** `RESEND_API_KEY` do Vercel — to sekret tylko dla serwera Supabase.
 
@@ -188,8 +195,9 @@ supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfi
 | `RESEND_API_KEY not set` | Dodaj sekret w kroku 4, redeploy funkcji |
 | `404` na `/send-job-email` | Stary kod na Supabase — powtórz krok 3 (wklej nowy `index.tsx`) |
 | Email nie dochodzi | Sprawdź spam; na Resend free domain `onboarding@resend.dev` może trafiać do spamu |
-| Resend: „only send testing emails to your own email” | Darmowy Resend wysyła tylko na email właściciela konta (np. `@icloud.com`). Do `@int.pl` i klientów — zweryfikuj domenę w [resend.com/domains](https://resend.com/domains) |
-| Backup nie przychodzi w poniedziałek | Wdróż nowy `index.tsx` (BACKUP_EMAIL); bez weryfikacji domeny backup idzie na `@icloud.com`, nie `@int.pl` |
+| Resend: „only send testing emails to your own email” | Zweryfikuj domenę `wgdom.fun` w Resend (już zrobione) i wdróż nowy `index.tsx` |
+| Backup nie przychodzi w poniedziałek | Wdróż nowy `index.tsx`; backup idzie na `dawid.thai@int.pl` |
+| Klient odpisuje, nic nie przychodzi | Resend **nie odbiera** poczty na `biuro@wgdom.fun` — używamy Reply-To (patrz sekcja 8) |
 | Resend: „validation error” | Adres odbiorcy musi być poprawny (`name@domena.pl`) |
 | `Brak treści do wysłania` | W modalu zaznacz co najmniej jedno zdjęcie lub element raportu |
 | Czerwona chmurka w app | Internet / Supabase — sprawdź health (test A) |
@@ -214,3 +222,33 @@ supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfi
 - [ ] Health przetestowany przez PowerShell **albo** synchronizacja w app działa
 - [ ] Vercel ma v2.4 (frontend z zakładką Kontakty i przyciskiem Email)
 - [ ] Test wysyłki z aplikacji — mail dotarł
+
+---
+
+## 8. Odpowiedzi na maile (Reply-To vs skrzynka biuro@wgdom.fun)
+
+**Resend służy tylko do WYSYŁANIA.** Adres `biuro@wgdom.fun` **nie ma skrzynki pocztowej** — jak ktoś napisze bezpośrednio na ten adres, mail **nie dotrze** (chyba że skonfigurujesz przekierowanie DNS).
+
+### Co robi aplikacja (już w kodzie)
+
+Każdy mail wysyłany z aplikacji ma:
+
+| Pole | Wartość |
+|------|---------|
+| **Od (From)** | `biuro@wgdom.fun` — profesjonalny nadawca |
+| **Odpowiedz (Reply-To)** | `biuro@wgdom.pl` + `dawid.thai@int.pl` |
+
+Gdy klient w Gmailu/Outlooku klika **„Odpowiedz”**, odpowiedź idzie na **Reply-To** (`.pl` i `@int.pl`), **nie** na `@wgdom.fun`.
+
+> Większość programów pocztowych bierze **pierwszy** adres Reply-To (`biuro@wgdom.pl`). Ustaw przekierowanie/kopię z `@wgdom.pl` → `@int.pl` u swojego hostingu poczty `.pl`, żeby oba były na bieżąco.
+
+### Jeśli ktoś napisze BEZPOŚREDNIO na biuro@wgdom.fun
+
+To wymaga **przekierowania poczty** na domenie `wgdom.fun` (poza aplikacją), np.:
+
+1. **[Cloudflare Email Routing](https://developers.cloudflare.com/email-routing/)** (darmowe) — jeśli DNS `wgdom.fun` jest w Cloudflare  
+   → reguła: `biuro@wgdom.fun` → forward na `biuro@wgdom.pl` i `dawid.thai@int.pl`
+2. **[ImprovMX](https://improvmx.com)** — darmowy forward przez rekordy MX na `wgdom.fun`
+3. **Panel rejestratora domeny** — często ma „przekierowanie email” / alias
+
+Vercel **nie obsługuje** skrzynek pocztowych — tylko hosting aplikacji.
