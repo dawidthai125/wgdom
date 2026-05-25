@@ -24,6 +24,7 @@ export const API_BASE = supabaseFunctionsBase;
 export const API_HEADERS: Record<string, string> = {
   "Content-Type": "application/json",
   Authorization: `Bearer ${supabaseAnonKey}`,
+  apikey: supabaseAnonKey,
 };
 
 export function isDataKey(key: string): key is DataKey {

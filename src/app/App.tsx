@@ -615,7 +615,7 @@ async function uploadPhoto(
 
     const res = await fetch(`${API_BASE}/storage-upload`, {
       method: "POST",
-      headers: { Authorization: API_HEADERS.Authorization },
+      headers: { Authorization: API_HEADERS.Authorization, apikey: API_HEADERS.apikey },
       body: form,
     });
 

@@ -104,21 +104,37 @@ Bez tego klucza wysyłka emaili zwróci błąd *„RESEND_API_KEY not set”*.
 
 ## 5. Test czy działa
 
-### Test A — health check (w przeglądarce)
+### Test A — health check (⚠️ nie w zwykłej przeglądarce)
 
-Otwórz w nowej karcie:
-
-```
-https://kchwyjlnkdlymwvsnfiu.supabase.co/functions/v1/make-server-0afb8820/health
-```
-
-Oczekiwany wynik (JSON):
+Supabase **wymaga nagłówka autoryzacji** przy każdym wywołaniu funkcji.  
+Jeśli wkleisz URL health w pasek adresu, dostaniesz:
 
 ```json
-{"status":"ok"}
+{"code":"UNAUTHORIZED_NO_AUTH_HEADER","message":"Missing authorization header"}
 ```
 
-Jeśli widzisz `ok` — funkcja działa.
+**To normalne** — nie znaczy, że funkcja jest zła.
+
+#### Jak prawidłowo przetestować
+
+1. Supabase Dashboard → **Project Settings** → **API**
+2. Skopiuj klucz **`anon` `public`** (długi JWT zaczynający się od `eyJ...`)
+3. W **PowerShell** (Windows) uruchom — wklej swój klucz zamiast `TWOJ_ANON_KEY`:
+
+```powershell
+$anon = "TWOJ_ANON_KEY"
+Invoke-RestMethod -Uri "https://kchwyjlnkdlymwvsnfiu.supabase.co/functions/v1/make-server-0afb8820/health" -Headers @{ Authorization = "Bearer $anon"; apikey = $anon }
+```
+
+Oczekiwany wynik:
+
+```
+status
+------
+ok
+```
+
+**Alternatywa:** w aplikacji [wgdom.vercel.app](https://wgdom.vercel.app) sprawdź ikonę chmurki u góry — jeśli synchronizacja działa (szara/zielona chmurka), backend jest OK i health w przeglądarce możesz pominąć.
 
 ### Test B — email z aplikacji
 
@@ -167,6 +183,7 @@ supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfi
 
 | Objaw | Co zrobić |
 |--------|-----------|
+| `UNAUTHORIZED_NO_AUTH_HEADER` | Otworzyłeś URL funkcji w przeglądarce bez klucza — użyj testu A (PowerShell) albo testuj z aplikacji |
 | `RESEND_API_KEY not set` | Dodaj sekret w kroku 4, redeploy funkcji |
 | `404` na `/send-job-email` | Stary kod na Supabase — powtórz krok 3 (wklej nowy `index.tsx`) |
 | Email nie dochodzi | Sprawdź spam; na Resend free domain `onboarding@resend.dev` może trafiać do spamu |
@@ -191,6 +208,6 @@ supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfi
 
 - [ ] Edge Function `make-server-0afb8820` — wdrożony nowy `index.tsx` + `kv_store.tsx`
 - [ ] Sekret `RESEND_API_KEY` ustawiony
-- [ ] Health URL zwraca `{"status":"ok"}`
+- [ ] Health przetestowany przez PowerShell **albo** synchronizacja w app działa
 - [ ] Vercel ma v2.4 (frontend z zakładką Kontakty i przyciskiem Email)
 - [ ] Test wysyłki z aplikacji — mail dotarł
