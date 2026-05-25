@@ -12,6 +12,7 @@ export const DATA_KEYS = [
   "kw-weekFrom",
   "kw-weekTo",
   "kw-jobs",
+  "kw-contacts",
 ] as const;
 
 export type DataKey = (typeof DATA_KEYS)[number];

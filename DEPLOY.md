@@ -37,10 +37,12 @@ Frontend na Vercel **tylko** woła API. Edge Function zostaje na Supabase:
 - Kod: `supabase/functions/server/index.tsx`
 - Deploy: Supabase Dashboard → Edge Functions → `make-server-0afb8820`
 - Sekrety (Dashboard → Edge Functions → Secrets):
-  - `RESEND_API_KEY` — backup email (opcjonalnie)
+  - `RESEND_API_KEY` — backup email i wysyłka materiałów z robót (opcjonalnie)
   - `SUPABASE_SERVICE_ROLE_KEY` — zwykle ustawiane automatycznie
 
 **Nie wrzucaj** `SERVICE_ROLE_KEY` ani `RESEND_API_KEY` do Vercel — to sekrety serwera.
+
+Szczegółowa instrukcja wdrożenia backendu (email, Edge Function): **[SUPABASE-DEPLOY.md](./SUPABASE-DEPLOY.md)**.
 
 ## 4. Lokalnie
 

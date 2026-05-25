@@ -1,0 +1,196 @@
+# Supabase — wdrożenie backendu (krok po kroku)
+
+Backend W&G DOM to **jedna Edge Function** na Supabase. Frontend (Vercel) tylko do niej woła — bez deployu Supabase email z roboty **nie zadziała**.
+
+**Twój projekt:** `kchwyjlnkdlymwvsnfiu`  
+**Nazwa funkcji:** `make-server-0afb8820`  
+**Pliki w repozytorium:** `supabase/functions/server/index.tsx` + `kv_store.tsx`
+
+---
+
+## Spis treści
+
+1. [Wejście do Supabase](#1-wejście-do-supabase)
+2. [Sprawdzenie Edge Function](#2-sprawdzenie-edge-function)
+3. [Wdrożenie kodu (Dashboard)](#3-wdrożenie-kodu-dashboard)
+4. [Sekret RESEND_API_KEY (email)](#4-sekret-resend_api_key-email)
+5. [Test czy działa](#5-test-czy-działa)
+6. [Opcja: deploy przez CLI](#6-opcja-deploy-przez-cli)
+7. [Rozwiązywanie problemów](#7-rozwiązywanie-problemów)
+
+---
+
+## 1. Wejście do Supabase
+
+1. Otwórz [https://supabase.com/dashboard](https://supabase.com/dashboard)
+2. Zaloguj się na konto, na którym masz projekt W&G DOM
+3. Kliknij projekt **`kchwyjlnkdlymwvsnfiu`** (lub ten, którego ID masz w Vercel jako `VITE_SUPABASE_PROJECT_ID`)
+
+---
+
+## 2. Sprawdzenie Edge Function
+
+1. W lewym menu: **Edge Functions**
+2. Powinna być funkcja **`make-server-0afb8820`**
+   - **Jeśli jest** → przejdź do kroku 3 (aktualizacja kodu)
+   - **Jeśli nie ma** → utwórz nową funkcję o tej nazwie (Deploy a new function → możesz wkleić kod z repozytorium)
+
+---
+
+## 3. Wdrożenie kodu (Dashboard)
+
+Funkcja składa się z **dwóch plików**. Oba muszą być na serwerze.
+
+### 3a. Plik główny `index.tsx`
+
+1. **Edge Functions** → kliknij **`make-server-0afb8820`**
+2. Otwórz edytor kodu (zakładka **Code** / **Edit**)
+3. **Usuń całą starą zawartość** pliku głównego
+4. Skopiuj **cały** plik z komputera:
+   ```
+   supabase/functions/server/index.tsx
+   ```
+   (z repozytorium GitHub po pushu albo lokalnie z folderu WGDOM1)
+5. Wklej do edytora Supabase
+
+### 3b. Plik pomocniczy `kv_store.tsx`
+
+1. W tym samym edytorze funkcji dodaj **drugi plik** (przycisk **Add file** / **+** obok listy plików)
+2. Nazwa pliku: **`kv_store.tsx`**
+3. Skopiuj zawartość z:
+   ```
+   supabase/functions/server/kv_store.tsx
+   ```
+4. Wklej i zapisz
+
+### 3c. Deploy
+
+1. Kliknij **Deploy** (lub **Save and deploy**)
+2. Poczekaj, aż status będzie **Active** / zielony (zwykle 30–60 s)
+3. Po deployu funkcja ma m.in. nowy endpoint:
+   ```
+   POST .../send-job-email
+   ```
+   (oprócz starych: `batch-get`, `batch-set`, `storage-upload`, `send-backup-email`)
+
+---
+
+## 4. Sekret RESEND_API_KEY (email)
+
+Bez tego klucza wysyłka emaili zwróci błąd *„RESEND_API_KEY not set”*.
+
+### 4a. Klucz z Resend (jeśli jeszcze nie masz)
+
+1. Wejdź na [https://resend.com](https://resend.com) → załóż konto / zaloguj
+2. **API Keys** → **Create API Key**
+3. Skopiuj klucz (zaczyna się od `re_...`) — **pokazuje się tylko raz**
+
+### 4b. Wklejenie sekretu w Supabase
+
+1. Supabase Dashboard → **Edge Functions**
+2. Zakładka **Secrets** (czasem: **Manage secrets**)
+3. **Add new secret**
+   - **Name:** `RESEND_API_KEY`
+   - **Value:** wklej klucz `re_...`
+4. Zapisz
+
+> **Nie dodawaj** `RESEND_API_KEY` do Vercel — to sekret tylko dla serwera Supabase.
+
+### 4c. Po zmianie sekretów
+
+- Jeśli Supabase prosi o **redeploy** funkcji — zrób Deploy jeszcze raz (krok 3c)
+
+---
+
+## 5. Test czy działa
+
+### Test A — health check (w przeglądarce)
+
+Otwórz w nowej karcie:
+
+```
+https://kchwyjlnkdlymwvsnfiu.supabase.co/functions/v1/make-server-0afb8820/health
+```
+
+Oczekiwany wynik (JSON):
+
+```json
+{"status":"ok"}
+```
+
+Jeśli widzisz `ok` — funkcja działa.
+
+### Test B — email z aplikacji
+
+1. Wejdź na [https://wgdom.vercel.app](https://wgdom.vercel.app) (po deployu Vercel z v2.4)
+2. **Kontakty** → dodaj kontakt z **prawdziwym emailem** (możesz swój)
+3. **Roboty** → wybierz robotę ze zdjęciami lub raportem
+4. **Email** → wybierz odbiorcę, zaznacz pozycje → **Wyślij**
+5. Sprawdź skrzynkę (i folder **Spam**)
+
+### Test C — logi błędów
+
+Jeśli coś nie działa:
+
+1. Supabase → **Edge Functions** → **`make-server-0afb8820`**
+2. Zakładka **Logs** / **Invocations**
+3. Szukaj czerwonych wpisów przy kliknięciu „Wyślij” w aplikacji
+
+---
+
+## 6. Opcja: deploy przez CLI
+
+Tylko jeśli masz zainstalowane [Supabase CLI](https://supabase.com/docs/guides/cli).
+
+```bash
+# W folderze projektu WGDOM1
+npm i -g supabase
+
+# Logowanie (otworzy przeglądarkę)
+supabase login
+
+# Połączenie z projektem
+supabase link --project-ref kchwyjlnkdlymwvsnfiu
+
+# Sekret (jednorazowo)
+supabase secrets set RESEND_API_KEY=re_twoj_klucz
+
+# Deploy funkcji (ścieżka zależy od struktury — w tym projekcie pliki są w server/)
+supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfiu
+```
+
+> Jeśli CLI zgłasza brak `config.toml`, bezpieczniej użyj **kroku 3 (Dashboard)** — wklejenie dwóch plików ręcznie.
+
+---
+
+## 7. Rozwiązywanie problemów
+
+| Objaw | Co zrobić |
+|--------|-----------|
+| `RESEND_API_KEY not set` | Dodaj sekret w kroku 4, redeploy funkcji |
+| `404` na `/send-job-email` | Stary kod na Supabase — powtórz krok 3 (wklej nowy `index.tsx`) |
+| Email nie dochodzi | Sprawdź spam; na Resend free domain `onboarding@resend.dev` może trafiać do spamu |
+| Resend: „validation error” | Adres odbiorcy musi być poprawny (`name@domena.pl`) |
+| `Brak treści do wysłania` | W modalu zaznacz co najmniej jedno zdjęcie lub element raportu |
+| Czerwona chmurka w app | Internet / Supabase — sprawdź health (test A) |
+| Zdjęcia w mailu puste | Bucket `make-0afb8820-photos` musi być publiczny (ustawiane automatycznie przez funkcję) |
+
+---
+
+## Co wdrożyć po każdej aktualizacji backendu?
+
+| Zmiana w kodzie | Gdzie deploy |
+|-----------------|--------------|
+| Tylko `src/` (React, UI) | **Git push** → Vercel sam zbuduje |
+| `supabase/functions/server/*` | **Supabase** (ten dokument, krok 3) |
+| Nowy sekret (np. nowy klucz Resend) | Supabase → Secrets (krok 4) |
+
+---
+
+## Szybka checklista v2.4 (email z roboty)
+
+- [ ] Edge Function `make-server-0afb8820` — wdrożony nowy `index.tsx` + `kv_store.tsx`
+- [ ] Sekret `RESEND_API_KEY` ustawiony
+- [ ] Health URL zwraca `{"status":"ok"}`
+- [ ] Vercel ma v2.4 (frontend z zakładką Kontakty i przyciskiem Email)
+- [ ] Test wysyłki z aplikacji — mail dotarł

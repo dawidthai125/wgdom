@@ -12,7 +12,7 @@ import {
   Mic, MicOff, Bell, Copy, ScrollText, Sparkles,
   BookOpen, ChevronDown as ChevDown, HelpCircle, Smartphone, Monitor,
   Camera, ImagePlus, Lock, LogOut, Eye, ArrowLeft, ShieldCheck, ThumbsUp, ThumbsDown, Clock3,
-  ClipboardList, Ruler,
+  ClipboardList, Ruler, Mail, Send,
 } from "lucide-react";
 import {
   API_BASE,
@@ -45,6 +45,15 @@ interface DirectoryEmployee {
   defaultRate: string; // domyślna stawka PLN/h
   startDate: string;   // data zatrudnienia ISO
   active: boolean;     // czy aktualnie pracuje
+  notes: string;
+}
+
+/** Kontakt email — odbiorcy materiałów z robót */
+interface EmailContact {
+  id: string;
+  name: string;
+  email: string;
+  company: string;
   notes: string;
 }
 
@@ -201,6 +210,16 @@ function defaultDays(): Record<DayKey, DayData> { return Object.fromEntries(DAYS
 function defaultDirEmployee(): DirectoryEmployee {
   return { id: crypto.randomUUID(), name: "", phone: "", position: "", defaultRate: "25.00", startDate: new Date().toISOString().slice(0,10), active: true, notes: "" };
 }
+
+function defaultEmailContact(): EmailContact {
+  return { id: crypto.randomUUID(), name: "", email: "", company: "", notes: "" };
+}
+
+const PHOTO_LABEL_NAMES: Record<PhotoEntry["label"], string> = {
+  before: "Przed remontem",
+  after: "Po remoncie",
+  progress: "W trakcie",
+};
 
 function weekEmployeeFromDir(dir: DirectoryEmployee): WeekEmployee {
   return { id: crypto.randomUUID(), directoryId: dir.id, name: dir.name, phone: dir.phone, position: dir.position, rate: dir.defaultRate, days: defaultDays(), settled: false };
@@ -1314,6 +1333,100 @@ function DirectoryView({directory, onChange}:{directory:DirectoryEmployee[]; onC
   );
 }
 
+// ─── Kontakty email ───────────────────────────────────────────────────────────
+
+function ContactsView({ contacts, onChange }: { contacts: EmailContact[]; onChange: (c: EmailContact[]) => void }) {
+  const [editId, setEditId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+
+  const filtered = contacts.filter((c) => {
+    const q = search.toLowerCase();
+    return !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q) || c.company.toLowerCase().includes(q);
+  });
+
+  const addContact = () => {
+    const c = defaultEmailContact();
+    onChange([...contacts, c]);
+    setEditId(c.id);
+  };
+
+  const update = (updated: EmailContact) => onChange(contacts.map((c) => (c.id === updated.id ? updated : c)));
+  const remove = (id: string) => onChange(contacts.filter((c) => c.id !== id));
+  const editContact = contacts.find((c) => c.id === editId) || null;
+
+  return (
+    <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8 space-y-6">
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+            <div className="relative flex-1 max-w-sm">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
+              <input type="text" placeholder="Szukaj po nazwie, emailu, firmie..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-card border border-border rounded-xl pl-8 pr-3 py-2.5 text-sm focus:border-primary focus:outline-none transition-colors"/>
+            </div>
+            <button type="button" onClick={addContact} className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors ml-auto">
+              <Plus size={14}/>Nowy kontakt
+            </button>
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Lista odbiorców materiałów z robót (zdjęcia, zakres prac, wymiary). Wybierzesz je przy wysyłce email z karty roboty.
+          </p>
+
+          <div className="grid grid-cols-2 gap-4 max-w-xs">
+            <StatCard label="Kontakty" value={String(contacts.length)} icon={Mail} accent/>
+            <StatCard label="Z emailem" value={String(contacts.filter((c) => c.email.trim()).length)} icon={Send}/>
+          </div>
+
+          <div className="space-y-2">
+            {filtered.length === 0 && (
+              <div className="bg-card rounded-xl border border-border p-10 text-center text-muted-foreground text-sm">
+                {contacts.length === 0 ? "Brak kontaktów — dodaj pierwszego odbiorcę." : "Brak wyników wyszukiwania."}
+              </div>
+            )}
+            {filtered.map((contact) => (
+              <div key={contact.id} className={`bg-card rounded-xl border transition-all ${editId === contact.id ? "border-primary/40" : "border-border"} overflow-hidden`}>
+                {editId === contact.id && editContact ? (
+                  <div className="p-5 space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div><label className="text-xs text-muted-foreground block mb-1">Imię i nazwisko / nazwa *</label><input type="text" value={editContact.name} onChange={(e) => update({ ...editContact, name: e.target.value })} placeholder="Jan Kowalski" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
+                      <div><label className="text-xs text-muted-foreground block mb-1">Email *</label><input type="email" value={editContact.email} onChange={(e) => update({ ...editContact, email: e.target.value })} placeholder="jan@example.com" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
+                      <div><label className="text-xs text-muted-foreground block mb-1">Firma / rola</label><input type="text" value={editContact.company} onChange={(e) => update({ ...editContact, company: e.target.value })} placeholder="np. Zleceniodawca, Inwestor..." className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
+                      <div><label className="text-xs text-muted-foreground block mb-1">Uwagi</label><input type="text" value={editContact.notes} onChange={(e) => update({ ...editContact, notes: e.target.value })} placeholder="Opcjonalnie..." className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
+                    </div>
+                    <div className="flex items-center gap-2 pt-2">
+                      <button type="button" onClick={() => setEditId(null)} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"><Check size={13}/>Zapisz</button>
+                      <button type="button" onClick={() => setEditId(null)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Anuluj</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="px-5 py-4 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                      {contact.name ? contact.name[0].toUpperCase() : "@"}
+                    </div>
+                    <div className="min-w-0 flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0.5">
+                      <div>
+                        <p className="text-sm font-semibold leading-tight">{contact.name || <span className="italic text-muted-foreground">Bez nazwy</span>}</p>
+                        <p className="text-xs text-muted-foreground">{contact.company || "—"}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
+                        <Mail size={11} className="shrink-0"/>{contact.email || <span className="italic">brak email</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button type="button" onClick={() => setEditId(contact.id)} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"><Edit2 size={13}/></button>
+                      <button type="button" onClick={() => remove(contact.id)} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-destructive transition-colors"><Trash2 size={13}/></button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Archiwum — grafik tygodnia (zapisany) ────────────────────────────────────
 
 function ArchiveScheduleGrid({
@@ -1699,14 +1812,426 @@ function ArchiveView({savedWeeks, onDelete, jobs, directory}:{savedWeeks:WeekSna
   );
 }
 
+// ─── Email z roboty ───────────────────────────────────────────────────────────
+
+type EmailSelectKey = string;
+
+function jobEmailDefaultSubject(job: Job): string {
+  const addr = `${job.address || "Robota"}${job.flatNumber ? ` m.${job.flatNumber}` : ""}`;
+  return `W&G DOM — ${addr}`;
+}
+
+function collectJobEmailSelectableKeys(job: Job): EmailSelectKey[] {
+  const keys: EmailSelectKey[] = [];
+  for (const p of (job.photos || []).filter((ph) => ph.status !== "rejected" && ph.publicUrl)) {
+    keys.push(`p:${p.id}`);
+  }
+  for (const report of jobWorkerReports(job)) {
+    for (const item of report.workItems.filter(workItemHasContent)) {
+      keys.push(`wi:${report.id}:${item.id}`);
+    }
+    if (report.generalNote?.trim()) keys.push(`gn:${report.id}`);
+    let pokojIdx = 0;
+    for (const room of report.rooms.filter(roomHasContent)) {
+      const idx = room.roomType === "pokoj" ? pokojIdx++ : 0;
+      void idx;
+      keys.push(`rm:${report.id}:${room.id}`);
+    }
+    if (report.sketch?.publicUrl) keys.push(`sk:${report.id}`);
+  }
+  return keys;
+}
+
+function buildJobEmailPayload(
+  job: Job,
+  selected: Set<EmailSelectKey>,
+  to: string,
+  toName: string,
+  subject: string,
+  introMessage: string,
+) {
+  const photos = (job.photos || [])
+    .filter((p) => selected.has(`p:${p.id}`) && p.publicUrl)
+    .map((p) => ({
+      publicUrl: p.publicUrl,
+      label: p.label,
+      caption: p.caption,
+      uploadedBy: p.uploadedBy,
+    }));
+
+  const reportMap = new Map<string, {
+    workerName: string;
+    date: string;
+    workItems: { text: string; note?: string }[];
+    rooms: { name: string; length: string; width: string; height: string; note?: string }[];
+    sketch?: { publicUrl: string; note?: string };
+    generalNote?: string;
+  }>();
+
+  for (const report of jobWorkerReports(job)) {
+    const workItems = report.workItems
+      .filter((item) => workItemHasContent(item) && selected.has(`wi:${report.id}:${item.id}`))
+      .map((item) => ({ text: item.text, note: item.note || undefined }));
+
+    const rooms: { name: string; length: string; width: string; height: string; note?: string }[] = [];
+    let pokojIdx = 0;
+    for (const room of report.rooms.filter(roomHasContent)) {
+      const idx = room.roomType === "pokoj" ? pokojIdx++ : 0;
+      if (selected.has(`rm:${report.id}:${room.id}`)) {
+        rooms.push({
+          name: roomDisplayName(room, idx),
+          length: room.length,
+          width: room.width,
+          height: room.height,
+          note: room.note || undefined,
+        });
+      }
+    }
+
+    const sketch = selected.has(`sk:${report.id}`) && report.sketch?.publicUrl
+      ? { publicUrl: report.sketch.publicUrl, note: report.sketchNote || undefined }
+      : undefined;
+
+    const generalNote = selected.has(`gn:${report.id}`) && report.generalNote?.trim()
+      ? report.generalNote.trim()
+      : undefined;
+
+    if (workItems.length > 0 || rooms.length > 0 || sketch || generalNote) {
+      reportMap.set(report.id, {
+        workerName: report.workerName,
+        date: fmtDate(report.submittedAt.slice(0, 10)),
+        workItems,
+        rooms,
+        sketch,
+        generalNote,
+      });
+    }
+  }
+
+  const reportSections = Array.from(reportMap.values()).map((sec) => ({
+    workerName: sec.workerName,
+    date: sec.date,
+    workItems: sec.workItems.length > 0 ? sec.workItems : undefined,
+    rooms: sec.rooms.length > 0 ? sec.rooms : undefined,
+    sketch: sec.sketch,
+    generalNote: sec.generalNote,
+  }));
+
+  return {
+    to,
+    toName: toName || undefined,
+    subject: subject.trim() || jobEmailDefaultSubject(job),
+    introMessage: introMessage.trim() || undefined,
+    jobHeader: {
+      address: job.address,
+      flatNumber: job.flatNumber,
+      client: job.client,
+    },
+    photos,
+    reportSections,
+  };
+}
+
+function JobEmailModal({
+  job,
+  contacts,
+  onClose,
+  onManageContacts,
+}: {
+  job: Job;
+  contacts: EmailContact[];
+  onClose: () => void;
+  onManageContacts: () => void;
+}) {
+  const allKeys = useMemo(() => collectJobEmailSelectableKeys(job), [job]);
+  const [selected, setSelected] = useState<Set<EmailSelectKey>>(() => new Set(allKeys));
+  const [contactId, setContactId] = useState("");
+  const [manualEmail, setManualEmail] = useState("");
+  const [subject, setSubject] = useState(() => jobEmailDefaultSubject(job));
+  const [introMessage, setIntroMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const validContacts = contacts.filter((c) => c.email.trim());
+  const useManual = contactId === "__manual__";
+  const selectedContact = validContacts.find((c) => c.id === contactId) || null;
+  const recipientEmail = useManual ? manualEmail.trim() : (selectedContact?.email.trim() || "");
+
+  const toggleKey = (key: EmailSelectKey) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const selectAll = () => setSelected(new Set(allKeys));
+  const selectNone = () => setSelected(new Set());
+
+  const selectionCount = selected.size;
+  const canSend = recipientEmail.length > 0 && selectionCount > 0 && !sending;
+
+  const handleSend = async () => {
+    setError("");
+    if (!recipientEmail) {
+      setError("Wybierz odbiorcę lub wpisz adres email.");
+      return;
+    }
+    if (selectionCount === 0) {
+      setError("Zaznacz co najmniej jedną pozycję do wysłania.");
+      return;
+    }
+
+    const payload = buildJobEmailPayload(
+      job,
+      selected,
+      recipientEmail,
+      selectedContact?.name || "",
+      subject,
+      introMessage,
+    );
+
+    const hasContent = payload.photos.length > 0 || payload.reportSections.some(
+      (s) => (s.workItems?.length || 0) > 0 || (s.rooms?.length || 0) > 0 || s.sketch || s.generalNote,
+    );
+    if (!hasContent) {
+      setError("Wybrane pozycje nie zawierają treści — zaznacz coś innego.");
+      return;
+    }
+
+    setSending(true);
+    try {
+      const res = await fetch(`${API_BASE}/send-job-email`, {
+        method: "POST",
+        headers: API_HEADERS,
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || `Błąd wysyłki (${res.status})`);
+      }
+      setSuccess(true);
+      setTimeout(onClose, 1800);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Nie udało się wysłać emaila.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (allKeys.length === 0) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+        <div className="bg-card rounded-2xl border border-border w-full max-w-md shadow-2xl p-6 space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold">Wyślij email z roboty</p>
+              <p className="text-xs text-muted-foreground mt-1">Na tej robocie nie ma jeszcze zdjęć ani raportów do wysłania.</p>
+            </div>
+            <button type="button" onClick={onClose} className="p-1 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
+          </div>
+          <button type="button" onClick={onClose} className="w-full py-2.5 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">Zamknij</button>
+        </div>
+      </div>
+    );
+  }
+
+  const reports = jobWorkerReports(job);
+  const photos = (job.photos || []).filter((p) => p.status !== "rejected" && p.publicUrl);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div className="bg-card rounded-t-2xl sm:rounded-2xl border border-border w-full max-w-lg shadow-2xl max-h-[92dvh] flex flex-col">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between shrink-0">
+          <div>
+            <p className="text-sm font-semibold flex items-center gap-2"><Mail size={15} className="text-primary"/>Wyślij email</p>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">{job.address || "Robota"}{job.flatNumber && ` m.${job.flatNumber}`}</p>
+          </div>
+          <button type="button" onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          {success ? (
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              <CheckCircle2 size={40} className="text-green-400"/>
+              <p className="text-sm font-semibold">Wysłano na {recipientEmail}</p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground block">Odbiorca</label>
+                {validContacts.length === 0 ? (
+                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-4 py-3 text-xs text-yellow-400/90">
+                    Brak kontaktów z emailem.{" "}
+                    <button type="button" onClick={onManageContacts} className="underline font-medium hover:text-yellow-300">Dodaj w Kontaktach</button>
+                  </div>
+                ) : (
+                  <select value={contactId} onChange={(e) => setContactId(e.target.value)} className="w-full bg-secondary rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none">
+                    <option value="">— Wybierz z listy —</option>
+                    {validContacts.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name || c.email}{c.company ? ` (${c.company})` : ""} — {c.email}</option>
+                    ))}
+                    <option value="__manual__">Inny adres…</option>
+                  </select>
+                )}
+                {(useManual || validContacts.length === 0) && (
+                  <input type="email" value={manualEmail} onChange={(e) => setManualEmail(e.target.value)} placeholder="email@example.com" className="w-full bg-secondary rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"/>
+                )}
+              </div>
+
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">Temat</label>
+                <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full bg-secondary rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"/>
+              </div>
+
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">Wiadomość (opcjonalnie)</label>
+                <textarea value={introMessage} onChange={(e) => setIntroMessage(e.target.value)} rows={2} placeholder="Krótka wiadomość na początku maila..." className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none resize-none"/>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Co wysłać</label>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={selectAll} className="text-[10px] text-primary hover:underline">Wszystko</button>
+                    <span className="text-muted-foreground/30">·</span>
+                    <button type="button" onClick={selectNone} className="text-[10px] text-muted-foreground hover:underline">Nic</button>
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground mb-3">Zaznaczono: {selectionCount} z {allKeys.length}</p>
+
+                {photos.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs font-semibold mb-2 flex items-center gap-1.5"><Camera size={12}/>Zdjęcia ({photos.length})</p>
+                    <div className="space-y-2">
+                      {photos.map((p) => {
+                        const key = `p:${p.id}`;
+                        return (
+                          <label key={p.id} className={`flex items-center gap-3 p-2 rounded-xl border cursor-pointer transition-colors ${selected.has(key) ? "border-primary/40 bg-primary/5" : "border-border hover:bg-secondary/40"}`}>
+                            <input type="checkbox" checked={selected.has(key)} onChange={() => toggleKey(key)} className="shrink-0 accent-primary"/>
+                            <img src={p.publicUrl} alt="" className="w-12 h-12 rounded-lg object-cover bg-secondary shrink-0"/>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-medium">{PHOTO_LABEL_NAMES[p.label]}</p>
+                              {p.caption && <p className="text-[10px] text-muted-foreground truncate">{p.caption}</p>}
+                              <p className="text-[10px] text-muted-foreground">{p.uploadedBy} · {fmtDate(p.uploadedAt.slice(0, 10))}</p>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {reports.map((report) => {
+                  const reportKeys = allKeys.filter((k) => k.includes(`:${report.id}`) || k.endsWith(`:${report.id}`));
+                  if (reportKeys.length === 0) return null;
+                  let pokojIdx = 0;
+                  return (
+                    <div key={report.id} className="mb-4 border border-border rounded-xl overflow-hidden">
+                      <div className="px-3 py-2 bg-secondary/40 border-b border-border">
+                        <p className="text-xs font-semibold">{report.workerName}</p>
+                        <p className="text-[10px] text-muted-foreground">{fmtDate(report.submittedAt.slice(0, 10))}</p>
+                      </div>
+                      <div className="p-2 space-y-1">
+                        {report.workItems.filter(workItemHasContent).map((item) => {
+                          const key = `wi:${report.id}:${item.id}`;
+                          return (
+                            <label key={item.id} className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer ${selected.has(key) ? "bg-violet-500/10" : "hover:bg-secondary/30"}`}>
+                              <input type="checkbox" checked={selected.has(key)} onChange={() => toggleKey(key)} className="mt-0.5 shrink-0 accent-primary"/>
+                              <div className="min-w-0">
+                                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Zakres</p>
+                                <p className="text-xs">{item.text}</p>
+                                {item.note && <p className="text-[10px] text-muted-foreground italic">{item.note}</p>}
+                              </div>
+                            </label>
+                          );
+                        })}
+                        {report.generalNote?.trim() && (
+                          <label className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer ${selected.has(`gn:${report.id}`) ? "bg-violet-500/10" : "hover:bg-secondary/30"}`}>
+                            <input type="checkbox" checked={selected.has(`gn:${report.id}`)} onChange={() => toggleKey(`gn:${report.id}`)} className="mt-0.5 shrink-0 accent-primary"/>
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Wiadomość</p>
+                              <p className="text-xs line-clamp-2">{report.generalNote}</p>
+                            </div>
+                          </label>
+                        )}
+                        {report.rooms.filter(roomHasContent).map((room) => {
+                          const idx = room.roomType === "pokoj" ? pokojIdx++ : 0;
+                          const key = `rm:${report.id}:${room.id}`;
+                          return (
+                            <label key={room.id} className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer ${selected.has(key) ? "bg-violet-500/10" : "hover:bg-secondary/30"}`}>
+                              <input type="checkbox" checked={selected.has(key)} onChange={() => toggleKey(key)} className="mt-0.5 shrink-0 accent-primary"/>
+                              <div>
+                                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Wymiary — {roomDisplayName(room, idx)}</p>
+                                <p className="text-xs font-mono">{room.length || "—"} × {room.width || "—"} × {room.height || "—"} m</p>
+                              </div>
+                            </label>
+                          );
+                        })}
+                        {report.sketch?.publicUrl && (
+                          <label className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer ${selected.has(`sk:${report.id}`) ? "bg-violet-500/10" : "hover:bg-secondary/30"}`}>
+                            <input type="checkbox" checked={selected.has(`sk:${report.id}`)} onChange={() => toggleKey(`sk:${report.id}`)} className="mt-0.5 shrink-0 accent-primary"/>
+                            <div className="flex items-center gap-2">
+                              <img src={report.sketch.publicUrl} alt="" className="w-10 h-10 rounded object-cover bg-secondary"/>
+                              <div>
+                                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Rysunek z wymiarami</p>
+                                {report.sketchNote && <p className="text-[10px] text-muted-foreground italic">{report.sketchNote}</p>}
+                              </div>
+                            </div>
+                          </label>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {error && (
+                <div className="flex items-start gap-2 bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2 text-xs text-destructive">
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5"/>
+                  <span>{error}</span>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {!success && (
+          <div className="px-5 py-4 border-t border-border flex gap-2 shrink-0" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">Anuluj</button>
+            <button type="button" onClick={handleSend} disabled={!canSend} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+              {sending ? <><div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"/>Wysyłanie…</> : <><Send size={14}/>Wyślij</>}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Jobs View ────────────────────────────────────────────────────────────────
 
-function JobsView({jobs, setJobs, directory}:{jobs:Job[]; setJobs:(v:Job[]|((p:Job[])=>Job[]))=>void; directory:DirectoryEmployee[]}) {
-  const [selectedJobId, setSelectedJobId] = useState<string|null>(null);
+function JobsView({
+  jobs,
+  setJobs,
+  directory,
+  contacts,
+  onManageContacts,
+}: {
+  jobs: Job[];
+  setJobs: (v: Job[] | ((p: Job[]) => Job[])) => void;
+  directory: DirectoryEmployee[];
+  contacts: EmailContact[];
+  onManageContacts: () => void;
+}) {
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all"|"in_progress"|"completed">("all");
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string|null>(null);
+  const [filter, setFilter] = useState<"all" | "in_progress" | "completed">("all");
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [workerFilter, setWorkerFilter] = useState<string>("");
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   // Work entry add form state
   const [showAddEntry, setShowAddEntry] = useState(false);
@@ -2092,6 +2617,15 @@ function JobsView({jobs, setJobs, directory}:{jobs:Job[]; setJobs:(v:Job[]|((p:J
                   </div>
                 )}
                 <div className="flex items-center gap-2 justify-end flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailModal(true)}
+                    disabled={collectJobEmailSelectableKeys(selectedJob).length === 0}
+                    title={collectJobEmailSelectableKeys(selectedJob).length === 0 ? "Brak zdjęć ani raportów do wysłania" : "Wyślij wybrane materiały emailem"}
+                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-primary/90 hover:bg-primary text-primary-foreground rounded-lg font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Mail size={12}/>Email
+                  </button>
                   <button onClick={()=>exportJobPDF(selectedJob)} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-destructive/80 hover:bg-destructive text-white rounded-lg font-medium transition-colors">
                     <FileDown size={12}/>PDF
                   </button>
@@ -2397,6 +2931,14 @@ function JobsView({jobs, setJobs, directory}:{jobs:Job[]; setJobs:(v:Job[]|((p:J
           <p className="text-sm font-medium">Wybierz robotę z listy</p>
           <p className="text-xs text-center max-w-xs">lub kliknij "Nowa robota" aby dodać nową.</p>
         </div>
+      )}
+      {showEmailModal && selectedJob && (
+        <JobEmailModal
+          job={selectedJob}
+          contacts={contacts}
+          onClose={() => setShowEmailModal(false)}
+          onManageContacts={() => { setShowEmailModal(false); onManageContacts(); }}
+        />
       )}
     </div>
   );
@@ -3255,9 +3797,10 @@ function HelpView() {
           <p className="text-sm text-foreground/90 leading-relaxed">Wszystko co dodajesz w aplikacji jako dane firmy zapisuje się <strong>lokalnie i w chmurze</strong>. Nie musisz klikać „Zapisz do chmury” — dzieje się to samo po każdej zmianie (ikona chmurki u góry).</p>
           <ul className="text-sm text-muted-foreground space-y-2 list-disc pl-5 leading-relaxed">
             <li><strong>Pracownicy</strong> — kartoteka, stawki, telefony</li>
+            <li><strong>Kontakty</strong> — odbiorcy email (klient, inwestor itd.)</li>
             <li><strong>Lista płac</strong> — godziny, zaliczki, rozliczenia w bieżącym tygodniu</li>
             <li><strong>Archiwum</strong> — zapisane tygodnie</li>
-            <li><strong>Roboty</strong> — adresy, dokumenty, materiały, faktury, wpisy czasu pracy</li>
+            <li><strong>Roboty</strong> — adresy, dokumenty, materiały, raporty, wpisy czasu pracy</li>
             <li><strong>Zdjęcia</strong> — pliki w chmurze Supabase Storage; informacja o zdjęciu (kto, kiedy, status) w danych roboty</li>
             <li><strong>Hasło admina</strong> — po zmianie hasła działa na każdym urządzeniu</li>
           </ul>
@@ -3316,6 +3859,7 @@ function HelpView() {
             {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"U góry: skróty do Grafiku, Listy płac i Robót. „Wymaga uwagi” zbiera zdjęcia do akceptacji, raporty pracowników i brakujące dokumenty. „Pracuje dziś” pokazuje tylko zaplanowanych — z adresem z wpisu na robocie."},
             {icon:Users, title:"Filtrowanie robót po pracowniku", desc:"W zakładce Roboty jest rozwijana lista pracowników. Wybierz kogoś — zobaczysz tylko roboty na których ten pracownik miał wpisy czasu pracy."},
             {icon:FileDown, title:"PDF z roboty do wysłania klientowi", desc:"Każda robota ma przycisk PDF w nagłówku. Generuje profesjonalny dokument z listą dokumentów, czasem pracy i kosztami — można go od razu wysłać mailowo."},
+            {icon:Mail, title:"Email z roboty — zdjęcia i raporty", desc:"W Kontaktach dodaj odbiorców (email klienta). Przy robocie: Email → wybierz osobę, zaznacz zdjęcia / zakres / wymiary / rysunek (wszystko lub pojedyncze pozycje) i wyślij. Pusty mail nie przejdzie."},
           ].map((tip,i)=>(
             <div key={i} className="flex gap-4 bg-secondary/40 rounded-xl p-4 border border-border">
               <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
@@ -3380,6 +3924,14 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.4", label:"Email z roboty + lista kontaktów",
+    items:[
+      {type:"new", text:"Zakładka Kontakty — lista odbiorców email (nazwa, adres, firma)"},
+      {type:"new", text:"Przy robocie: przycisk Email — wybór odbiorcy i zaznaczenie zdjęć, zakresu, wymiarów, rysunku"},
+      {type:"improve", text:"Można wysłać wszystko lub pojedyncze pozycje; pusty email nie zostanie wysłany"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.3", label:"Nowy pulpit — czytelniejszy układ",
     items:[
@@ -3613,7 +4165,7 @@ function ChangelogView() {
 
 // ─── Root App ─────────────────────────────────────────────────────────────────
 
-type View = "dashboard" | "payroll" | "schedule" | "directory" | "archive" | "jobs" | "changelog" | "help";
+type View = "dashboard" | "payroll" | "schedule" | "directory" | "contacts" | "archive" | "jobs" | "changelog" | "help";
 
 function CloudLoader({children}: {children: React.ReactNode}) {
   const [ready, setReady] = useState(false);
@@ -3655,6 +4207,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
   const [weekFrom, setWeekFrom] = useLocalStorage("kw-weekFrom", week.from);
   const [weekTo, setWeekTo] = useLocalStorage("kw-weekTo", week.to);
   const [jobs, setJobs] = useLocalStorage<Job[]>("kw-jobs", []);
+  const [contacts, setContacts] = useLocalStorage<EmailContact[]>("kw-contacts", []);
   const [view, setView] = useState<View>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [globalSearch, setGlobalSearch] = useState("");
@@ -3671,7 +4224,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
     const hasData = directory.length>0 || jobs.length>0 || weekEmployees.length>0 || savedWeeks.length>0;
     if (!hasData) { initialSyncDone.current = true; return; }
     setSyncStatus("saving");
-    pushToCloud([directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs])
+    pushToCloud([directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts])
       .then(()=>{ setSyncStatus("saved"); setTimeout(()=>setSyncStatus("idle"),2500); })
       .catch(()=>setSyncStatus("error"))
       .finally(()=>{ initialSyncDone.current = true; });
@@ -3685,14 +4238,14 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
     setSyncStatus("saving");
     syncTimerRef.current = setTimeout(async () => {
       try {
-        await pushToCloud([directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs]);
+        await pushToCloud([directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts]);
         setSyncStatus("saved");
         setTimeout(() => setSyncStatus("idle"), 2500);
       } catch {
         setSyncStatus("error");
       }
     }, 2000);
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs]);
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts]);
 
   // Backup
   const exportBackup = () => {
@@ -3843,6 +4396,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
     {key:"payroll", label:"Lista Płac", icon:FileText},
     {key:"schedule", label:"Grafik", icon:CalendarDays, badge:weekEmployees.length || undefined},
     {key:"directory", label:"Pracownicy", icon:Users, badge:directory.filter(d=>d.active).length},
+    {key:"contacts", label:"Kontakty", icon:Mail, badge:contacts.filter(c=>c.email.trim()).length||undefined},
     {key:"archive", label:"Archiwum", icon:Archive, badge:savedWeeks.length||undefined},
     {key:"jobs", label:"Roboty", icon:MapPin, badge:(()=>{ const pend=jobs.reduce((s,j)=>s+(j.photos||[]).filter(p=>p.status==="pending").length,0); return pend>0?pend:jobs.filter(j=>j.status==="in_progress").length||undefined; })()},
     {key:"changelog", label:"Zmiany", icon:ScrollText},
@@ -3993,8 +4547,9 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
           {view==="payroll"&&<PayrollView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} onChange={setDirectory}/>}
+          {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>setSavedWeeks(prev=>prev.filter(w=>w.id!==id))} jobs={jobs} directory={directory}/>}
-          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory}/>}
+          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")}/>}
           {view==="changelog"&&<ChangelogView/>}
           {view==="help"&&<HelpView/>}
         </div>
