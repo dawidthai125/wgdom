@@ -2294,55 +2294,15 @@ function JobsView({jobs, setJobs, directory}:{jobs:Job[]; setJobs:(v:Job[]|((p:J
               </div>
             )}
 
-            {/* Invoice */}
-            <div className="bg-card rounded-xl border border-border overflow-hidden">
-              <div className="px-5 py-4 border-b border-border flex items-center gap-2">
-                <Receipt size={13} className="text-muted-foreground"/>
-                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Faktura / Rozliczenie z klientem</span>
-              </div>
-              <div className="p-5 space-y-4">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {(["pending","invoiced","paid"] as const).map(s=>(
-                    <button key={s} onClick={()=>updateJob({...selectedJob,invoiceStatus:s})}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${selectedJob.invoiceStatus===s
-                        ? s==="paid"?"bg-green-500/20 text-green-400 border-green-500/30"
-                          :s==="invoiced"?"bg-blue-500/15 text-blue-400 border-blue-500/25"
-                          :"bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
-                        :"bg-transparent text-muted-foreground border-border hover:bg-secondary"}`}>
-                      {s==="paid"?<CheckCircle2 size={11}/>:s==="invoiced"?<FileText size={11}/>:<Circle size={11}/>}
-                      {s==="pending"?"Oczekuje":s==="invoiced"?"Wystawiona FV":"Zapłacone"}
-                    </button>
-                  ))}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs text-muted-foreground block mb-1">Numer faktury</label>
-                    <input type="text" placeholder="FV/2025/001" value={selectedJob.invoiceNumber||""}
-                      onChange={e=>updateJob({...selectedJob,invoiceNumber:e.target.value})}
-                      className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground block mb-1">Kwota faktury (PLN)</label>
-                    <input type="number" min="0" step="100" placeholder="0.00" value={selectedJob.invoiceAmount||""}
-                      onChange={e=>updateJob({...selectedJob,invoiceAmount:e.target.value})}
-                      className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"
-                      style={{fontFamily:"'JetBrains Mono', monospace"}}/>
-                  </div>
-                </div>
-                {selectedJob.invoiceAmount&&parseFloat(selectedJob.invoiceAmount)>0&&(
-                  <div className="bg-secondary/50 rounded-lg px-4 py-2.5 flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Zysk (FV - koszt remontu)</span>
-                    <span className={`font-bold ${parseFloat(selectedJob.invoiceAmount)-jobTotalCost(selectedJob)>=0?"text-green-400":"text-destructive"}`} style={{fontFamily:"'JetBrains Mono', monospace"}}>
-                      {fmt(parseFloat(selectedJob.invoiceAmount)-jobTotalCost(selectedJob))} PLN
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* Worker reports */}
             <JobWorkerReportsPanel
+              jobId={selectedJob.id}
+              authorName="Administrator"
               reports={jobWorkerReports(selectedJob)}
+              onAddReport={(report) => updateJob({
+                ...selectedJob,
+                workerReports: [...jobWorkerReports(selectedJob), report],
+              })}
               onDelete={(reportId) => updateJob({
                 ...selectedJob,
                 workerReports: jobWorkerReports(selectedJob).filter(r => r.id !== reportId),
@@ -2575,13 +2535,6 @@ function DashboardView({
   const recentJobs = [...activeJobs].sort((a,b)=>b.startDate.localeCompare(a.startDate)).slice(0,5);
   const recentWeeks = [...savedWeeks].sort((a,b)=>b.weekFrom.localeCompare(a.weekFrom)).slice(0,4);
 
-  const INVOICE_COLORS: Record<string,string> = {
-    pending:"bg-yellow-500/10 text-yellow-400",
-    invoiced:"bg-blue-500/10 text-blue-400",
-    paid:"bg-green-500/15 text-green-400",
-  };
-  const INVOICE_LABELS: Record<string,string> = { pending:"Oczekuje", invoiced:"Wystawiona FV", paid:"Zapłacone" };
-
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 space-y-8">
@@ -2767,29 +2720,6 @@ function DashboardView({
           )}
         </div>
 
-        {/* Invoice status strip */}
-        {jobs.some(j=>j.invoiceStatus&&j.invoiceStatus!=="pending") && (
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-border flex items-center gap-2">
-              <Receipt size={13} className="text-muted-foreground"/>
-              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Status faktur</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border">
-              {(["pending","invoiced","paid"] as const).map(status=>{
-                const count=jobs.filter(j=>j.invoiceStatus===status).length;
-                const amount=jobs.filter(j=>j.invoiceStatus===status).reduce((s,j)=>s+(parseFloat(j.invoiceAmount)||0),0);
-                return (
-                  <div key={status} className="px-5 py-4">
-                    <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium mb-2 ${INVOICE_COLORS[status]}`}>{INVOICE_LABELS[status]}</span>
-                    <p className="text-xl font-bold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{count} <span className="text-sm font-normal text-muted-foreground">robót</span></p>
-                    {amount>0&&<p className="text-xs text-muted-foreground mt-0.5">{fmt(amount)} PLN</p>}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
       </div>
     </div>
   );
@@ -2914,9 +2844,9 @@ function HelpView() {
               {q:"Kiedy robota zmienia status na Zdana?", a:"Automatycznie gdy zaznaczysz wszystkie wymagane dokumenty (bez zdjęć). Możesz też kliknąć przycisk statusu ręcznie — ale jeśli brakuje dokumentów, aplikacja ostrzeże i powie czego brakuje."},
               {q:"Jak dodać czas pracy na robocie?", a:'Przewiń do sekcji "Pracownicy na robocie" → kliknij "Dodaj wpis". Wybierz pracownika, datę, ile godzin pracował i stawkę. Aplikacja liczy koszt automatycznie.'},
               {q:"Jak dodać koszty materiałów?", a:'Przewiń do sekcji "Materiały" → kliknij "Dodaj". Wpisz opis i koszt. Materiały sumują się z kosztem pracy i tworzą łączny koszt remontu.'},
-              {q:"Co to jest Faktura / Rozliczenie?", a:"Na dole karty roboty możesz wpisać numer faktury i kwotę którą wystawiłeś klientowi. Aplikacja policzy zysk (kwota faktury minus łączny koszt remontu). Status faktury: Oczekuje → Wystawiona FV → Zapłacone."},
+              {q:"Jak dodać raport (zakres + wymiary)?", a:'Sekcja „Raporty — zakres i wymiary” na karcie roboty: u góry formularz (taki sam jak u pracownika), na dole lista wysłanych raportów. Możesz też poprosić pracownika o wysłanie z telefonu.'},
               {q:"Jak wyeksportować kartę roboty do PDF?", a:'Kliknij czerwony przycisk "PDF" w nagłówku roboty. Wygeneruje się dokument z dokumentami, pracownikami, materiałami i podsumowaniem kosztów.'},
-              {q:"Raporty pracowników — gdzie?", a:"Sekcja „Raporty pracowników” na karcie roboty (nad zdjęciami). Pracownik wysyła zakres prac i wymiary w trybie pracownika — każdy raport ma datę, imię, listę punktów, tabelę pomieszczeń i opcjonalny rysunek."},
+              {q:"Raporty pracowników — gdzie?", a:"Roboty → wybierz robotę → „Raporty — zakres i wymiary”. Rozwiń wpis — widać punkty, tabelę pomieszczeń i rysunek."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-secondary/30">
@@ -3179,6 +3109,14 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.1", label:"Raport admina + uproszczenie robót",
+    items:[
+      {type:"new", text:"Admin może dodać raport (zakres + wymiary / rysunek) bezpośrednio w Roboty — ten sam formularz co pracownik"},
+      {type:"improve", text:"Sekcja raportów: formularz u góry, lista zapisanych poniżej"},
+      {type:"improve", text:"Usunięto sekcję Faktura / Rozliczenie z klientem z karty roboty i pulpit"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.0", label:"Raporty pracownika — zakres prac i wymiary",
     items:[
@@ -4134,16 +4072,272 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
   );
 }
 
+// ─── Job report form (worker + admin) ─────────────────────────────────────────
+
+function JobReportForm({
+  jobId,
+  authorName,
+  onSaved,
+  submitLabel = "Zapisz raport",
+  description,
+  disabled = false,
+}: {
+  jobId: string;
+  authorName: string;
+  onSaved: (report: WorkerJobReport) => void | Promise<void>;
+  submitLabel?: string;
+  description?: string;
+  disabled?: boolean;
+}) {
+  const [reportItems, setReportItems] = useState<string[]>([]);
+  const [newItemText, setNewItemText] = useState("");
+  const [dimMode, setDimMode] = useState<"manual" | "sketch">("manual");
+  const [reportRooms, setReportRooms] = useState<RoomDimension[]>([]);
+  const [sketchFile, setSketchFile] = useState<File | null>(null);
+  const [sketchPreview, setSketchPreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const pokojCountRef = useRef(0);
+
+  useEffect(() => {
+    return () => { if (sketchPreview) URL.revokeObjectURL(sketchPreview); };
+  }, [sketchPreview]);
+
+  useEffect(() => {
+    setReportItems([]);
+    setNewItemText("");
+    setDimMode("manual");
+    setReportRooms([]);
+    if (sketchPreview) URL.revokeObjectURL(sketchPreview);
+    setSketchFile(null);
+    setSketchPreview(null);
+    setError("");
+    setSuccess(false);
+    pokojCountRef.current = 0;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobId]);
+
+  const resetForm = () => {
+    setReportItems([]);
+    setNewItemText("");
+    setDimMode("manual");
+    setReportRooms([]);
+    if (sketchPreview) URL.revokeObjectURL(sketchPreview);
+    setSketchFile(null);
+    setSketchPreview(null);
+    setError("");
+    pokojCountRef.current = 0;
+  };
+
+  const addReportItem = () => {
+    const t = newItemText.trim();
+    if (!t) return;
+    setReportItems((prev) => [...prev, t]);
+    setNewItemText("");
+  };
+
+  const addRoom = (roomType: RoomTypeKey) => {
+    if (roomType === "pokoj") {
+      pokojCountRef.current += 1;
+      setReportRooms((prev) => [...prev, defaultRoom("pokoj", `Pokój ${pokojCountRef.current}`)]);
+    } else {
+      setReportRooms((prev) => [...prev, defaultRoom(roomType)]);
+    }
+  };
+
+  const updateRoom = (id: string, patch: Partial<RoomDimension>) => {
+    setReportRooms((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  };
+
+  const onSketchPick = (files: FileList | null) => {
+    if (!files?.[0]) return;
+    if (sketchPreview) URL.revokeObjectURL(sketchPreview);
+    setSketchFile(files[0]);
+    setSketchPreview(URL.createObjectURL(files[0]));
+    setDimMode("sketch");
+    setError("");
+  };
+
+  const handleSubmit = async () => {
+    const hasItems = reportItems.length > 0;
+    const hasRooms = reportRooms.some((r) => r.length.trim() || r.width.trim() || r.height.trim());
+    const hasSketch = dimMode === "sketch" && sketchFile;
+    if (!hasItems && !hasRooms && !hasSketch) {
+      setError("Dodaj co najmniej jeden punkt zakresu, wymiary pomieszczeń lub rysunek.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    setSuccess(false);
+    let sketch: WorkerJobReport["sketch"] = null;
+    if (hasSketch && sketchFile) {
+      const { entry, error: upErr } = await uploadPhoto(jobId, sketchFile, "sketch", authorName);
+      if (!entry) {
+        setError(upErr || "Nie udało się wgrać rysunku.");
+        setSaving(false);
+        return;
+      }
+      sketch = { path: entry.path, publicUrl: entry.publicUrl };
+    }
+    const report: WorkerJobReport = {
+      id: crypto.randomUUID(),
+      workerName: authorName,
+      submittedAt: new Date().toISOString(),
+      workItems: [...reportItems],
+      rooms: reportRooms.filter((r) => r.length.trim() || r.width.trim() || r.height.trim()),
+      sketch,
+    };
+    await onSaved(report);
+    resetForm();
+    setSuccess(true);
+    setSaving(false);
+    setTimeout(() => setSuccess(false), 4000);
+  };
+
+  return (
+    <div className="space-y-4">
+      {description && <p className="text-xs text-muted-foreground">{description}</p>}
+      {success && (
+        <p className="text-xs text-green-400 bg-green-500/10 rounded-lg px-3 py-2">Raport zapisany.</p>
+      )}
+      {error && <p className="text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2">{error}</p>}
+
+      <div>
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Zakres wykonanych prac</p>
+        {reportItems.length > 0 && (
+          <ul className="space-y-1.5 mb-3">
+            {reportItems.map((item, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm bg-secondary/50 rounded-lg px-3 py-2">
+                <span className="text-primary shrink-0">•</span>
+                <span className="flex-1">{item}</span>
+                <button type="button" onClick={() => setReportItems((p) => p.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-destructive shrink-0">
+                  <X size={14}/>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newItemText}
+            onChange={(e) => setNewItemText(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addReportItem(); } }}
+            placeholder="np. Położono płytki w łazience..."
+            className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
+          />
+          <button type="button" onClick={addReportItem} className="px-4 py-2.5 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 shrink-0">
+            <Plus size={16}/>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <Ruler size={12}/>Wymiary mieszkania
+        </p>
+        <div className="flex gap-2 mb-3">
+          <button type="button" onClick={() => setDimMode("manual")}
+            className={`flex-1 text-xs py-2 rounded-lg border transition-colors ${dimMode === "manual" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`}>
+            Wpisz wymiary
+          </button>
+          <button type="button" onClick={() => setDimMode("sketch")}
+            className={`flex-1 text-xs py-2 rounded-lg border transition-colors ${dimMode === "sketch" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`}>
+            Foto rysunku
+          </button>
+        </div>
+
+        {dimMode === "manual" ? (
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-1.5">
+              {(["salon", "pokoj", "kuchnia", "korytarz", "lazienka", "toaleta"] as RoomTypeKey[]).map((rt) => (
+                <button key={rt} type="button" onClick={() => addRoom(rt)}
+                  className="text-[11px] px-2.5 py-1 rounded-full border border-border text-muted-foreground hover:border-primary/40 hover:text-foreground">
+                  + {ROOM_TYPE_LABELS[rt]}
+                </button>
+              ))}
+            </div>
+            {reportRooms.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Kliknij pomieszczenie powyżej, potem wpisz wymiary w metrach.</p>
+            ) : (
+              <div className="space-y-2">
+                {(() => {
+                  let pokojIdx = 0;
+                  return reportRooms.map((room) => {
+                    const label = room.roomType === "pokoj"
+                      ? roomDisplayName(room, pokojIdx++)
+                      : roomDisplayName(room, 0);
+                    return (
+                      <div key={room.id} className="bg-secondary/40 rounded-xl p-3 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-medium">{label}</p>
+                          <button type="button" onClick={() => setReportRooms((p) => p.filter((r) => r.id !== room.id))} className="text-muted-foreground hover:text-destructive">
+                            <Trash2 size={14}/>
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          {(["length", "width", "height"] as const).map((field, fi) => (
+                            <div key={field}>
+                              <label className="text-[10px] text-muted-foreground block mb-0.5">{fi === 0 ? "Długość" : fi === 1 ? "Szerokość" : "Wysokość"}</label>
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                placeholder="m"
+                                value={room[field]}
+                                onChange={(e) => updateRoom(room.id, { [field]: e.target.value })}
+                                className="w-full bg-background rounded-lg px-2 py-1.5 text-sm font-mono border border-border focus:border-primary focus:outline-none"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <label className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl border border-dashed border-border text-sm text-muted-foreground cursor-pointer hover:border-primary/40 hover:text-foreground transition-colors">
+              <ImagePlus size={16}/>
+              {sketchFile ? sketchFile.name : "Wybierz zdjęcie rysunku z wymiarami"}
+              <input type="file" accept="image/*" capture="environment" className="sr-only"
+                onChange={(e) => { onSketchPick(e.target.files); e.target.value = ""; }}/>
+            </label>
+            {sketchPreview && (
+              <img src={sketchPreview} alt="Podgląd rysunku" className="rounded-xl border border-border max-h-48 w-full object-contain bg-secondary"/>
+            )}
+          </div>
+        )}
+      </div>
+
+      <button type="button" onClick={handleSubmit} disabled={saving || disabled}
+        className="w-full py-3.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-600/90 disabled:opacity-50 transition-all">
+        {saving ? "Zapisywanie…" : submitLabel}
+      </button>
+    </div>
+  );
+}
+
 // ─── Worker reports (admin) ───────────────────────────────────────────────────
 
 function JobWorkerReportsPanel({
+  jobId,
   reports,
+  authorName,
+  onAddReport,
   onDelete,
 }: {
+  jobId: string;
   reports: WorkerJobReport[];
+  authorName: string;
+  onAddReport: (report: WorkerJobReport) => void;
   onDelete: (reportId: string) => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(true);
   const sorted = useMemo(
     () => [...reports].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt)),
     [reports],
@@ -4158,17 +4352,37 @@ function JobWorkerReportsPanel({
       <div className="px-5 py-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ClipboardList size={13} className="text-muted-foreground"/>
-          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Raporty pracowników</span>
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Raporty — zakres i wymiary</span>
           {reports.length > 0 && (
             <span className="bg-violet-500/15 text-violet-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
               {reports.length}
             </span>
           )}
         </div>
+        <button type="button" onClick={() => setShowForm((v) => !v)}
+          className="text-xs text-primary hover:text-primary/80 flex items-center gap-1">
+          <Plus size={12}/>{showForm ? "Ukryj formularz" : "Dodaj raport"}
+        </button>
       </div>
+
+      {showForm && (
+        <div className="px-5 py-4 border-b border-border bg-violet-500/5">
+          <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <ClipboardList size={14} className="text-violet-400"/>Nowy raport
+          </p>
+          <JobReportForm
+            jobId={jobId}
+            authorName={authorName}
+            onSaved={(report) => { onAddReport(report); setOpenId(report.id); }}
+            submitLabel="Zapisz raport"
+            description="Te same pola co w trybie pracownika — zakres prac, wymiary pomieszczeń lub foto rysunku."
+          />
+        </div>
+      )}
+
       {sorted.length === 0 ? (
         <p className="px-5 py-4 text-sm text-muted-foreground">
-          Brak raportów. Pracownik może wysłać zakres prac i wymiary w trybie pracownika.
+          Brak zapisanych raportów. Dodaj pierwszy powyżej lub poproś pracownika o wysłanie z telefonu.
         </p>
       ) : (
         <div className="divide-y divide-border">
@@ -4279,24 +4493,10 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
   const [galleryLabel, setGalleryLabel] = useState<PhotoEntry["label"]>("progress");
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
-  const [reportItems, setReportItems] = useState<string[]>([]);
-  const [newItemText, setNewItemText] = useState("");
-  const [dimMode, setDimMode] = useState<"manual" | "sketch">("manual");
-  const [reportRooms, setReportRooms] = useState<RoomDimension[]>([]);
-  const [sketchFile, setSketchFile] = useState<File | null>(null);
-  const [sketchPreview, setSketchPreview] = useState<string | null>(null);
-  const [reportSaving, setReportSaving] = useState(false);
-  const [reportError, setReportError] = useState("");
-  const [reportSuccess, setReportSuccess] = useState(false);
-  const pokojCountRef = useRef(0);
 
   useEffect(() => {
     return () => { galleryPreviews.forEach((u) => URL.revokeObjectURL(u)); };
   }, [galleryPreviews]);
-
-  useEffect(() => {
-    return () => { if (sketchPreview) URL.revokeObjectURL(sketchPreview); };
-  }, [sketchPreview]);
 
   useEffect(() => {
     fetchKeysFromCloud(["kw-jobs"])
@@ -4387,90 +4587,14 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
     clearGallery();
   };
 
-  const resetReportForm = () => {
-    setReportItems([]);
-    setNewItemText("");
-    setDimMode("manual");
-    setReportRooms([]);
-    if (sketchPreview) URL.revokeObjectURL(sketchPreview);
-    setSketchFile(null);
-    setSketchPreview(null);
-    setReportError("");
-    pokojCountRef.current = 0;
-  };
-
-  const addReportItem = () => {
-    const t = newItemText.trim();
-    if (!t) return;
-    setReportItems((prev) => [...prev, t]);
-    setNewItemText("");
-  };
-
-  const addRoom = (roomType: RoomTypeKey) => {
-    if (roomType === "pokoj") {
-      pokojCountRef.current += 1;
-      setReportRooms((prev) => [...prev, defaultRoom("pokoj", `Pokój ${pokojCountRef.current}`)]);
-    } else {
-      setReportRooms((prev) => [...prev, defaultRoom(roomType)]);
-    }
-  };
-
-  const updateRoom = (id: string, patch: Partial<RoomDimension>) => {
-    setReportRooms((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
-  };
-
-  const onSketchPick = (files: FileList | null) => {
-    if (!files?.[0]) return;
-    if (sketchPreview) URL.revokeObjectURL(sketchPreview);
-    setSketchFile(files[0]);
-    setSketchPreview(URL.createObjectURL(files[0]));
-    setDimMode("sketch");
-    setReportError("");
-  };
-
-  const submitReport = async () => {
-    if (!selectedJob) return;
-    const hasItems = reportItems.length > 0;
-    const hasRooms = reportRooms.some((r) => r.length.trim() || r.width.trim() || r.height.trim());
-    const hasSketch = dimMode === "sketch" && sketchFile;
-    if (!hasItems && !hasRooms && !hasSketch) {
-      setReportError("Dodaj co najmniej jeden punkt zakresu, wymiary pomieszczeń lub rysunek.");
-      return;
-    }
-    setReportSaving(true);
-    setReportError("");
-    setReportSuccess(false);
-    let sketch: WorkerJobReport["sketch"] = null;
-    if (hasSketch && sketchFile) {
-      const { entry, error } = await uploadPhoto(selectedJob.id, sketchFile, "sketch", workerName);
-      if (!entry) {
-        setReportError(error || "Nie udało się wgrać rysunku.");
-        setReportSaving(false);
-        return;
-      }
-      sketch = { path: entry.path, publicUrl: entry.publicUrl };
-    }
-    const report: WorkerJobReport = {
-      id: crypto.randomUUID(),
-      workerName,
-      submittedAt: new Date().toISOString(),
-      workItems: [...reportItems],
-      rooms: reportRooms.filter((r) => r.length.trim() || r.width.trim() || r.height.trim()),
-      sketch,
-    };
+  const saveWorkerReport = async (report: WorkerJobReport) => {
     setJobsLocal((prev) => {
       const updated = prev.map((j) =>
-        j.id === selectedJobId
-          ? { ...j, workerReports: [...jobWorkerReports(j), report] }
-          : j,
+        j.id === selectedJobId ? { ...j, workerReports: [...jobWorkerReports(j), report] } : j,
       );
       pushKeysToCloud(["kw-jobs"], [updated]).catch(() => {});
       return updated;
     });
-    resetReportForm();
-    setReportSuccess(true);
-    setReportSaving(false);
-    setTimeout(() => setReportSuccess(false), 4000);
   };
 
   const myPhotos = selectedJob ? (selectedJob.photos||[]).filter(p=>p.uploadedBy===workerName) : [];
@@ -4519,7 +4643,7 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
               {activeJobs.map(job => {
                 const pending = (job.photos||[]).filter(p=>p.status==="pending").length;
                 return (
-                  <button key={job.id} onClick={()=>{setSelectedJobId(job.id);setUploadedCount(0);setUploadError("");resetReportForm();setReportSuccess(false);}}
+                  <button key={job.id} onClick={()=>{setSelectedJobId(job.id);setUploadedCount(0);setUploadError("");}}
                     className="w-full bg-card border border-border rounded-2xl px-5 py-4 text-left hover:border-primary/40 hover:bg-primary/5 transition-all">
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -4601,133 +4725,18 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
             </div>
 
             {/* Worker report: scope + dimensions */}
-            <div className="bg-card border border-violet-500/25 rounded-2xl p-4 space-y-4">
-              <div>
-                <p className="text-sm font-semibold flex items-center gap-2">
-                  <ClipboardList size={16} className="text-violet-400"/>Raport z budowy
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">Zakres wykonanych prac (punkty) oraz wymiary mieszkania — admin zobaczy to przy tej robocie.</p>
-              </div>
-
-              {reportSuccess && (
-                <p className="text-xs text-green-400 bg-green-500/10 rounded-lg px-3 py-2">Raport wysłany — dziękujemy!</p>
-              )}
-              {reportError && <p className="text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2">{reportError}</p>}
-
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Zakres wykonanych prac</p>
-                {reportItems.length > 0 && (
-                  <ul className="space-y-1.5 mb-3">
-                    {reportItems.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm bg-secondary/50 rounded-lg px-3 py-2">
-                        <span className="text-primary shrink-0">•</span>
-                        <span className="flex-1">{item}</span>
-                        <button type="button" onClick={() => setReportItems((p) => p.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-destructive shrink-0">
-                          <X size={14}/>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newItemText}
-                    onChange={(e) => setNewItemText(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addReportItem(); } }}
-                    placeholder="np. Położono płytki w łazience..."
-                    className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
-                  />
-                  <button type="button" onClick={addReportItem} className="px-4 py-2.5 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 shrink-0">
-                    <Plus size={16}/>
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Ruler size={12}/>Wymiary mieszkania
-                </p>
-                <div className="flex gap-2 mb-3">
-                  <button type="button" onClick={() => setDimMode("manual")}
-                    className={`flex-1 text-xs py-2 rounded-lg border transition-colors ${dimMode === "manual" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`}>
-                    Wpisz wymiary
-                  </button>
-                  <button type="button" onClick={() => setDimMode("sketch")}
-                    className={`flex-1 text-xs py-2 rounded-lg border transition-colors ${dimMode === "sketch" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`}>
-                    Foto rysunku
-                  </button>
-                </div>
-
-                {dimMode === "manual" ? (
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap gap-1.5">
-                      {(["salon", "pokoj", "kuchnia", "korytarz", "lazienka", "toaleta"] as RoomTypeKey[]).map((rt) => (
-                        <button key={rt} type="button" onClick={() => addRoom(rt)}
-                          className="text-[11px] px-2.5 py-1 rounded-full border border-border text-muted-foreground hover:border-primary/40 hover:text-foreground">
-                          + {ROOM_TYPE_LABELS[rt]}
-                        </button>
-                      ))}
-                    </div>
-                    {reportRooms.length === 0 ? (
-                      <p className="text-xs text-muted-foreground">Kliknij pomieszczenie powyżej, potem wpisz wymiary w metrach.</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {(() => {
-                          let pokojIdx = 0;
-                          return reportRooms.map((room) => {
-                            const label = room.roomType === "pokoj"
-                              ? roomDisplayName(room, pokojIdx++)
-                              : roomDisplayName(room, 0);
-                            return (
-                              <div key={room.id} className="bg-secondary/40 rounded-xl p-3 space-y-2">
-                                <div className="flex items-center justify-between gap-2">
-                                  <p className="text-sm font-medium">{label}</p>
-                                  <button type="button" onClick={() => setReportRooms((p) => p.filter((r) => r.id !== room.id))} className="text-muted-foreground hover:text-destructive">
-                                    <Trash2 size={14}/>
-                                  </button>
-                                </div>
-                                <div className="grid grid-cols-3 gap-2">
-                                  {(["length", "width", "height"] as const).map((field, fi) => (
-                                    <div key={field}>
-                                      <label className="text-[10px] text-muted-foreground block mb-0.5">{fi === 0 ? "Długość" : fi === 1 ? "Szerokość" : "Wysokość"}</label>
-                                      <input
-                                        type="text"
-                                        inputMode="decimal"
-                                        placeholder="m"
-                                        value={room[field]}
-                                        onChange={(e) => updateRoom(room.id, { [field]: e.target.value })}
-                                        className="w-full bg-background rounded-lg px-2 py-1.5 text-sm font-mono border border-border focus:border-primary focus:outline-none"
-                                      />
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          });
-                        })()}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <label className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl border border-dashed border-border text-sm text-muted-foreground cursor-pointer hover:border-primary/40 hover:text-foreground transition-colors">
-                      <ImagePlus size={16}/>
-                      {sketchFile ? sketchFile.name : "Wybierz zdjęcie rysunku z wymiarami"}
-                      <input type="file" accept="image/*" capture="environment" className="sr-only"
-                        onChange={(e) => { onSketchPick(e.target.files); e.target.value = ""; }}/>
-                    </label>
-                    {sketchPreview && (
-                      <img src={sketchPreview} alt="Podgląd rysunku" className="rounded-xl border border-border max-h-48 w-full object-contain bg-secondary"/>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <button type="button" onClick={submitReport} disabled={reportSaving || uploading}
-                className="w-full py-3.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-600/90 disabled:opacity-50 transition-all">
-                {reportSaving ? "Wysyłanie raportu…" : "Wyślij raport do admina"}
-              </button>
+            <div className="bg-card border border-violet-500/25 rounded-2xl p-4">
+              <p className="text-sm font-semibold flex items-center gap-2 mb-3">
+                <ClipboardList size={16} className="text-violet-400"/>Raport z budowy
+              </p>
+              <JobReportForm
+                jobId={selectedJob.id}
+                authorName={workerName}
+                onSaved={saveWorkerReport}
+                submitLabel="Wyślij raport do admina"
+                description="Zakres wykonanych prac (punkty) oraz wymiary mieszkania — admin zobaczy to przy tej robocie."
+                disabled={uploading}
+              />
             </div>
 
             <div>
