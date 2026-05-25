@@ -24,11 +24,17 @@ import {
   fetchKeysFromCloud,
 } from "@/lib/cloud-sync";
 import { isSupabaseConfigured } from "@/config/supabase";
-import pdfMake from "pdfmake/build/pdfmake";
-import pdfFonts from "pdfmake/build/vfs_fonts";
-pdfMake.vfs = pdfFonts as any;
-import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle } from "docx";
 import { saveAs } from "file-saver";
+
+/** pdfmake ~1 MB — ładuj dopiero przy eksporcie PDF (szybszy start na telefonie). */
+async function loadPdfMake() {
+  const pdfMake = (await import("pdfmake/build/pdfmake")).default;
+  const pdfFonts = await import("pdfmake/build/vfs_fonts");
+  pdfMake.vfs = pdfFonts as any;
+  return pdfMake;
+}
+
+type PdfDocDef = Parameters<Awaited<ReturnType<typeof loadPdfMake>>["createPdf"]>[0];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -852,7 +858,8 @@ function PayrollView({
   const C = { navy:"#344254", red:"#C0392B", lightNavy:"#EDF1F6", white:"#FFFFFF", lightGray:"#F8F9FB", muted:"#6B7A8D", green:"#1E7E34", gold:"#7B5800" };
   const PW = 841.89; // A4 landscape width in points
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
+    const pdfMake = await loadPdfMake();
     const settled = rows.filter(r=>r.emp.settled).length;
 
     const hdrRow = ["Lp.","Pracownik","Stanowisko","Stawka (PLN/h)","Godziny","Brutto (PLN)","Zaliczki (PLN)","Do wypłaty (PLN)","Status"].map(t=>({
@@ -932,6 +939,7 @@ function PayrollView({
   };
 
   const exportWord = async () => {
+    const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle } = await import("docx");
     const bNone={style:BorderStyle.NONE,size:0,color:"FFFFFF"};
     const bThin={style:BorderStyle.SINGLE,size:2,color:"DDE3EA"};
     const mkCell=(txt:string,opts:{bold?:boolean;fill?:string;align?:typeof AlignmentType[keyof typeof AlignmentType];color?:string;size?:number}={})=>
@@ -1543,7 +1551,8 @@ function ArchiveView({savedWeeks, onDelete, jobs, directory}:{savedWeeks:WeekSna
   const monthMatCost = monthJobs.reduce((s,j)=>s+jobMaterialsCost(j),0);
   const monthInvoiced = monthJobs.reduce((s,j)=>s+(parseFloat(j.invoiceAmount)||0),0);
 
-  const exportMonthlyReport = () => {
+  const exportMonthlyReport = async () => {
+    const pdfMake = await loadPdfMake();
     const C = { navy:"#344254", red:"#C0392B", light:"#EDF1F6", white:"#FFFFFF", muted:"#8A9BB0", green:"#1E7E34" };
     const monthLabel = `${MONTH_NAMES[activeMonth]} ${activeYear}`;
     const filename = `raport-${activeYear}-${String(activeMonth+1).padStart(2,"0")}.pdf`;
@@ -1600,7 +1609,7 @@ function ArchiveView({savedWeeks, onDelete, jobs, directory}:{savedWeeks:WeekSna
       );
     });
 
-    const dd: Parameters<typeof pdfMake.createPdf>[0] = {
+    const dd: PdfDocDef = {
       pageSize:"A4", pageOrientation:"landscape",
       pageMargins:[40,60,40,60],
       defaultStyle:{font:"Roboto", fontSize:10, lineHeight:1.3},
@@ -2279,7 +2288,8 @@ function JobsView({
     setDeleteConfirmId(null);
   };
 
-  const exportJobPDF = (job: Job) => {
+  const exportJobPDF = async (job: Job) => {
+    const pdfMake = await loadPdfMake();
     const C2 = { navy:"#344254", red:"#C0392B", light:"#EDF1F6", white:"#FFFFFF", muted:"#8A9BB0" };
     const title = `${job.address||"Bez adresu"}${job.flatNumber?` m.${job.flatNumber}`:""}`;
     const docsChecked = DOCUMENT_TYPES.filter(d=>job.documents[d]);
@@ -2292,7 +2302,7 @@ function JobsView({
       {text:m.description||"—",fontSize:9},{text:fmtDate(m.date),fontSize:9,color:C2.muted,alignment:"right"},
       {text:`${fmt(m.cost)} PLN`,fontSize:9,bold:true,alignment:"right",color:C2.red},
     ]);
-    const dd: Parameters<typeof pdfMake.createPdf>[0] = {
+    const dd: PdfDocDef = {
       pageSize:"A4", pageOrientation:"portrait",
       pageMargins:[40,60,40,60],
       defaultStyle:{font:"Roboto",fontSize:10,lineHeight:1.3},
@@ -4479,10 +4489,18 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
           </div>}
           <ChevronRight size={13} className="text-muted-foreground/40 hidden sm:block"/>
           <h2 className="text-sm font-semibold">{navItems.find(n=>n.key===view)?.label}</h2>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-1 sm:gap-2">
             {view==="payroll"&&<span className="text-xs text-muted-foreground hidden sm:block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN · {weekEmployees.length} prac.</span>}
             {view==="schedule"&&<span className="text-xs text-muted-foreground hidden sm:block">{fmtDate(weekFrom)} – {fmtDate(weekTo)} · {weekEmployees.length} prac.</span>}
             {view==="jobs"&&<span className="text-xs text-muted-foreground hidden sm:block">{jobs.filter(j=>j.status==="in_progress").length} aktywne · {jobs.filter(j=>j.status==="completed").length} zdane</span>}
+            {/* Backup na mobile (na desktopie jest w sidebarze) */}
+            <button type="button" onClick={exportBackup} title="Eksportuj backup" className="sm:hidden p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+              <Download size={16}/>
+            </button>
+            <label title="Importuj backup" className="sm:hidden p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground cursor-pointer">
+              <Upload size={16}/>
+              <input type="file" accept=".json" className="hidden" onChange={e=>e.target.files?.[0]&&importBackup(e.target.files[0])}/>
+            </label>
             {/* Sync indicator — kliknij przy błędzie, aby ponowić */}
             <button
               type="button"
@@ -4576,7 +4594,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
         {/* Mobile bottom nav */}
         <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex z-40" style={{paddingBottom:"env(safe-area-inset-bottom)"}}>
           {navItems.map(({key,icon:Icon,badge})=>(
-            <button key={key} onClick={()=>setView(key)} className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 relative transition-colors ${view===key?"text-primary":"text-muted-foreground"}`}>
+            <button key={key} onClick={()=>setView(key)} className={`flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[48px] py-2 relative transition-colors ${view===key?"text-primary":"text-muted-foreground"}`}>
               <div className="relative">
                 <Icon size={20}/>
                 {badge!==undefined&&badge>0&&<span className="absolute -top-1 -right-1.5 min-w-4 h-4 flex items-center justify-center text-[9px] font-bold rounded-full bg-primary text-primary-foreground px-0.5">{badge}</span>}
@@ -5636,7 +5654,7 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-8">
+      <div className="flex-1 overflow-y-auto pb-8" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>
         {!selectedJob ? (
           <div className="max-w-lg mx-auto px-4 pt-6 space-y-4">
             <div>
