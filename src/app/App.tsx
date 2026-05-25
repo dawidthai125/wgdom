@@ -12,7 +12,7 @@ import {
   Mic, MicOff, Bell, Copy, ScrollText, Sparkles,
   BookOpen, ChevronDown as ChevDown, HelpCircle, Smartphone, Monitor,
   Camera, ImagePlus, Lock, LogOut, Eye, ArrowLeft, ShieldCheck, ThumbsUp, ThumbsDown, Clock3,
-  ClipboardList, Ruler, Mail, Send,
+  ClipboardList, Ruler, Mail, Send, RotateCcw,
 } from "lucide-react";
 import {
   API_BASE,
@@ -22,7 +22,12 @@ import {
   pushKeysToCloud,
   pushAllDataToCloud,
   fetchKeysFromCloud,
+  normalizeJobsValue,
+  mergeJobsById,
+  fetchJobsBackupStatus,
+  restoreCloudJobsBackup,
 } from "@/lib/cloud-sync";
+import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
 import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
@@ -4124,7 +4129,8 @@ function HelpView() {
               {q:"Czy dane mogą zniknąć?", a:"Dane są przechowywane w dwóch miejscach: lokalnie w przeglądarce i w chmurze Supabase. Nawet jeśli wyczyścisz przeglądarkę — przy następnym otwarciu aplikacja pobierze dane z chmury."},
               {q:"Co oznaczają ikonki chmurki w prawym górnym rogu?", a:"Szara chmurka = wszystko zsynchronizowane. Animowana chmurka ze strzałką = trwa zapis. Zielona chmurka = właśnie zapisano. Czerwona chmurka z X = błąd połączenia (sprawdź internet)."},
               {q:"Co to jest backup i jak go zrobić?", a:'W lewym menu (na komputerze) na dole jest "Eksportuj backup". Kliknij — pobierze się plik .json ze wszystkimi danymi. Trzymaj go w bezpiecznym miejscu (dysk zewnętrzny, Google Drive). Żeby przywrócić dane — kliknij "Importuj backup" i wybierz ten plik.'},
-              {q:"Automatyczny backup emailem", a:"Co poniedziałek (gdy otworzysz aplikację) wysyłana jest kopia JSON na dawid.thai@int.pl. Maile wysyłane są z biuro@wgdom.fun — odpowiedzi (Reply) trafiają na biuro@wgdom.pl i dawid.thai@int.pl."},
+              {q:"Automatyczny backup emailem", a:"Codziennie przy pierwszym wejściu w aplikację wysyłana jest kopia JSON na adres z ustawień (domyślnie dawid.thai@int.pl). Dodatkowo co zapis do chmury tworzy kopie robót w Supabase (prev / prev2 / dzienna)."},
+              {q:"Utrata robót — co robić?", a:"Menu Dane → „Przywróć roboty (chmura)” lub „(lokalnie)”. Chmura trzyma poprzednie wersje od pierwszego zapisu po aktualizacji. Regularnie rób też Eksport backup na dysk."},
               {q:"Używam dwóch urządzeń — które dane są właściwe?", a:"Zawsze wygrywa urządzenie które ma dane. Jeśli otworzysz aplikację na telefonie po raz pierwszy — pobierze wszystko z chmury. Jeśli masz dane na laptopie — przy starcie wyśle je do chmury i telefon je pobierze."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
@@ -4221,6 +4227,17 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.5.1", label:"Ochrona przed utratą robót",
+    items:[
+      {type:"fix", text:"Chmura nie nadpisze wielu robót jedną — serwer scala dane przy podejrzanym zapisie"},
+      {type:"new", text:"Automatyczne kopie: kw-jobs-prev, prev2 i dzienna w Supabase przy każdym zapisie"},
+      {type:"new", text:"Lokalne kopie robót (12 ostatnich) przed synchronizacją z chmurą"},
+      {type:"new", text:"Przywróć roboty (chmura / lokalnie) — menu Dane w sidebarze"},
+      {type:"improve", text:"Start aplikacji scala lokalne i chmurowe roboty zamiast ślepo nadpisywać"},
+      {type:"improve", text:"Backup email codziennie przy pierwszym wejściu (nie tylko w poniedziałek)"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.5", label:"Pulpit → robota, link klienta, PWA, offline, historia",
     items:[
@@ -4487,7 +4504,19 @@ function CloudLoader({children}: {children: React.ReactNode}) {
     fetchKeysFromCloud(keys)
       .then((values) => {
         keys.forEach((key, i) => {
-          const v = values[i];
+          let v = values[i];
+          if (key === "kw-jobs") {
+            let localJobs: unknown[] = [];
+            try {
+              localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]"));
+            } catch { /* ignore */ }
+            const cloudJobs = normalizeJobsValue(v);
+            const merged = mergeJobsById(localJobs, cloudJobs);
+            v = merged;
+            if (merged.length > cloudJobs.length && isSupabaseConfigured()) {
+              pushKeysToCloud(["kw-jobs"], [merged]).catch(() => {});
+            }
+          }
           const hasRealData = v != null && !(Array.isArray(v) && v.length === 0);
           if (hasRealData) localStorage.setItem(key, JSON.stringify(v));
         });
@@ -4528,6 +4557,12 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
   const syncTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
   const initialSyncDone = useRef(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [jobsBackupStatus, setJobsBackupStatus] = useState<{ current: number; prev: number; prev2: number; today: number } | null>(null);
+  const [restoreBusy, setRestoreBusy] = useState(false);
+
+  useEffect(() => {
+    fetchJobsBackupStatus().then(setJobsBackupStatus).catch(() => {});
+  }, [jobs.length]);
 
   const pushToCloud = pushAllDataToCloud;
 
@@ -4537,6 +4572,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
       setSyncError("Brak VITE_SUPABASE_* w Vercel — ustaw zmienne i zrób redeploy");
       return;
     }
+    if (jobs.length > 0) saveLocalJobsSnapshot(jobs);
     setSyncStatus("saving");
     setSyncError("");
     try {
@@ -4577,8 +4613,11 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
     reader.onload=async (e)=>{
       try {
         const data=JSON.parse(e.target?.result as string);
+        if (data["kw-jobs"] != null) {
+          const local = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]"));
+          data["kw-jobs"] = mergeJobsById(local, normalizeJobsValue(data["kw-jobs"]));
+        }
         Object.entries(data).forEach(([k,v])=>localStorage.setItem(k,JSON.stringify(v)));
-        // Also push restored data to cloud so all devices get it
         const keys = [...DATA_KEYS].filter(k => data[k] != null);
         if (keys.length > 0) {
           await pushKeysToCloud(keys, keys.map((k) => data[k])).catch(() => {});
@@ -4589,13 +4628,50 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
     reader.readAsText(file);
   };
 
-  // Auto-backup every Monday — wysyła email z backupem
+  const restoreJobsFromCloud = async (source: "prev" | "prev2" | "today") => {
+    const labels = { prev: "poprzedni zapis", prev2: "starszą kopię", today: "zapis z dziś" };
+    if (!window.confirm(`Przywrócić roboty z chmury (${labels[source]})? Obecna lista zostanie zachowana w kopii.`)) return;
+    setRestoreBusy(true);
+    try {
+      const { count } = await restoreCloudJobsBackup(source);
+      const [cloudJobs] = await fetchKeysFromCloud(["kw-jobs"]);
+      const merged = mergeJobsById(jobs, normalizeJobsValue(cloudJobs)) as Job[];
+      localStorage.setItem("kw-jobs", JSON.stringify(merged));
+      setJobs(merged);
+      await pushKeysToCloud(["kw-jobs"], [merged]);
+      alert(`Przywrócono ${count} robót z kopii chmurowej. Łącznie w aplikacji: ${merged.length}.`);
+      fetchJobsBackupStatus().then(setJobsBackupStatus).catch(() => {});
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Nie udało się przywrócić kopii z chmury.");
+    } finally {
+      setRestoreBusy(false);
+    }
+  };
+
+  const restoreJobsFromLocal = () => {
+    const snaps = listLocalJobsSnapshots();
+    if (snaps.length === 0) {
+      alert("Brak lokalnych kopii robót na tym urządzeniu.");
+      return;
+    }
+    const latest = snaps[0];
+    const when = new Date(latest.at).toLocaleString("pl-PL");
+    if (!window.confirm(`Przywrócić ${latest.jobs.length} robót z lokalnej kopii (${when})?`)) return;
+    const restored = restoreLocalJobsSnapshot(0);
+    if (!restored) { alert("Błąd odczytu lokalnej kopii."); return; }
+    const merged = mergeJobsById(jobs, restored) as Job[];
+    setJobs(merged);
+    pushKeysToCloud(["kw-jobs"], [merged]).catch(() => {});
+    alert(`Przywrócono lokalną kopię. Łącznie robot: ${merged.length}.`);
+  };
+
+  // Auto-backup codziennie — email + lokalny snapshot przy pierwszym wejściu w danym dniu
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
-    const isMonday = new Date().getDay() === 1;
     const lastBackup = localStorage.getItem("kw-last-backup");
-    if (isMonday && lastBackup !== today && (directory.length > 0 || jobs.length > 0)) {
+    if (lastBackup !== today && (directory.length > 0 || jobs.length > 0)) {
       localStorage.setItem("kw-last-backup", today);
+      if (jobs.length > 0) saveLocalJobsSnapshot(jobs);
       const data: Record<string,unknown> = {};
       [...DATA_KEYS].forEach(k => { const v = localStorage.getItem(k); if(v) data[k] = JSON.parse(v); });
       fetch(`${API_BASE}/send-backup-email`, {
@@ -4773,6 +4849,27 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
             <Upload size={13}/>Importuj backup
             <input type="file" accept=".json" className="hidden" onChange={e=>e.target.files?.[0]&&importBackup(e.target.files[0])}/>
           </label>
+          {jobsBackupStatus && (jobsBackupStatus.prev > 0 || jobsBackupStatus.prev2 > 0) && (
+            <p className="text-[10px] text-muted-foreground px-1 leading-snug">
+              Kopie chmury: {jobsBackupStatus.prev} / {jobsBackupStatus.prev2} rob.
+            </p>
+          )}
+          <button
+            type="button"
+            disabled={restoreBusy || !jobsBackupStatus?.prev}
+            onClick={() => restoreJobsFromCloud("prev")}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10 transition-colors disabled:opacity-40"
+          >
+            <RotateCcw size={13}/>Przywróć roboty (chmura)
+          </button>
+          <button
+            type="button"
+            disabled={restoreBusy || listLocalJobsSnapshots().length === 0}
+            onClick={restoreJobsFromLocal}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-40"
+          >
+            <RotateCcw size={13}/>Przywróć roboty (lokalnie)
+          </button>
         </div>
       </aside>
 
@@ -5992,9 +6089,15 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
     fetchKeysFromCloud(["kw-jobs"])
       .then((values) => {
         const cloud = values[0];
-        if (Array.isArray(cloud)) {
-          setJobsLocal(cloud);
-          try { localStorage.setItem("kw-jobs", JSON.stringify(cloud)); } catch { /* ignore */ }
+        if (cloud != null) {
+          let localJobs: Job[] = [];
+          try {
+            localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")) as Job[];
+          } catch { /* ignore */ }
+          const cloudJobs = normalizeJobsValue(cloud) as Job[];
+          const merged = mergeJobsById(localJobs, cloudJobs) as Job[];
+          setJobsLocal(merged);
+          try { localStorage.setItem("kw-jobs", JSON.stringify(merged)); } catch { /* ignore */ }
         }
       })
       .catch(() => {})
@@ -6017,6 +6120,7 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
   const syncJobs = (updater: (prev: Job[]) => Job[]) => {
     setJobsLocal((prev) => {
       const updated = updater(prev);
+      saveLocalJobsSnapshot(updated);
       pushKeysToCloud(["kw-jobs"], [updated]).catch(() => {});
       return updated;
     });

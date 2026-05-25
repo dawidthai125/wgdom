@@ -49,11 +49,126 @@ app.post("/make-server-0afb8820/batch-get", async (c) => {
   return c.json({ values });
 });
 
+function normalizeJobsKvValue(raw: unknown): unknown[] {
+  if (Array.isArray(raw)) return raw;
+  if (raw && typeof raw === "object" && "id" in (raw as object)) return [raw];
+  return [];
+}
+
+function jobId(j: unknown): string | undefined {
+  if (!j || typeof j !== "object" || !("id" in j)) return undefined;
+  return String((j as { id: string }).id);
+}
+
+function mergeJobsUnion(prev: unknown[], next: unknown[]): unknown[] {
+  const map = new Map<string, unknown>();
+  for (const j of prev) {
+    const id = jobId(j);
+    if (id) map.set(id, j);
+  }
+  for (const j of next) {
+    const id = jobId(j);
+    if (id) map.set(id, j);
+  }
+  return [...map.values()].sort((a, b) => {
+    const da = (a as { startDate?: string }).startDate || "";
+    const db = (b as { startDate?: string }).startDate || "";
+    return db.localeCompare(da);
+  });
+}
+
+/** Podejrzane nadpisanie — np. z wielu robót zostaje jedna. */
+function isSuspiciousJobsShrink(prev: unknown[], next: unknown[]): boolean {
+  if (next.length === 0 && prev.length > 0) return true;
+  if (prev.length >= 2 && next.length === 1) return true;
+  if (prev.length >= 3 && next.length < Math.ceil(prev.length / 2)) return true;
+  return false;
+}
+
+async function rotateJobsBackups(prev: unknown): Promise<void> {
+  const prev2 = await kv.get("kw-jobs-prev");
+  if (prev2 != null) await kv.set("kw-jobs-prev2", prev2);
+  await kv.set("kw-jobs-prev", prev);
+  const day = new Date().toISOString().slice(0, 10);
+  await kv.set(`kw-jobs-day-${day}`, prev);
+}
+
 // Batch set multiple keys at once
 app.post("/make-server-0afb8820/batch-set", async (c) => {
   const { keys, values } = await c.req.json();
-  await kv.mset(keys, values);
+  const safeValues = [...values];
+  for (let i = 0; i < keys.length; i++) {
+    if (keys[i] === "kw-jobs") {
+      const prev = await kv.get("kw-jobs");
+      let nextNorm = normalizeJobsKvValue(values[i]);
+      if (prev != null) {
+        await rotateJobsBackups(prev);
+        const prevNorm = normalizeJobsKvValue(prev);
+        if (isSuspiciousJobsShrink(prevNorm, nextNorm)) {
+          console.log(
+            `kw-jobs: blocked suspicious shrink ${prevNorm.length} → ${nextNorm.length}, merging`,
+          );
+          nextNorm = mergeJobsUnion(prevNorm, nextNorm);
+        }
+      }
+      safeValues[i] = nextNorm;
+    }
+  }
+  await kv.mset(keys, safeValues);
   return c.json({ ok: true });
+});
+
+/** Status kopii zapasowych robót w chmurze. */
+app.get("/make-server-0afb8820/jobs-backup-status", async (c) => {
+  try {
+    const current = normalizeJobsKvValue(await kv.get("kw-jobs"));
+    const prev = normalizeJobsKvValue(await kv.get("kw-jobs-prev"));
+    const prev2 = normalizeJobsKvValue(await kv.get("kw-jobs-prev2"));
+    const day = new Date().toISOString().slice(0, 10);
+    const daySnap = normalizeJobsKvValue(await kv.get(`kw-jobs-day-${day}`));
+    return c.json({
+      ok: true,
+      current: current.length,
+      prev: prev.length,
+      prev2: prev2.length,
+      today: daySnap.length,
+    });
+  } catch (e) {
+    return c.json({ ok: false, error: String(e) }, 500);
+  }
+});
+
+/** Przywróć roboty z kopii chmurowej (prev / prev2 / dziś). */
+app.post("/make-server-0afb8820/restore-jobs-backup", async (c) => {
+  try {
+    let body: { source?: string } = {};
+    try {
+      body = await c.req.json();
+    } catch {
+      body = {};
+    }
+    const source = body.source || "prev";
+    let raw: unknown = null;
+    if (source === "prev2") raw = await kv.get("kw-jobs-prev2");
+    else if (source === "today") {
+      const day = new Date().toISOString().slice(0, 10);
+      raw = (await kv.get(`kw-jobs-day-${day}`)) ?? (await kv.get("kw-jobs-prev"));
+    } else raw = await kv.get("kw-jobs-prev");
+
+    const jobs = normalizeJobsKvValue(raw);
+    if (jobs.length === 0) {
+      return c.json({ ok: false, error: "Brak zapisanej kopii robót" }, 404);
+    }
+
+    const current = await kv.get("kw-jobs");
+    if (current != null) await rotateJobsBackups(current);
+
+    await kv.set("kw-jobs", jobs);
+    return c.json({ ok: true, count: jobs.length, source });
+  } catch (e) {
+    console.error("restore-jobs-backup:", e);
+    return c.json({ ok: false, error: String(e) }, 500);
+  }
 });
 
 // Delete keys

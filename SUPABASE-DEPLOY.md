@@ -83,7 +83,10 @@ Funkcja składa się z **dwóch plików**. Oba muszą być na serwerze.
 | POST | `/send-job-email` | Email z roboty (v2.4) |
 | **GET** | **`/client-share?token=...`** | **Link podglądu dla klienta (v2.5)** |
 
-> **v2.5 — co NIE wymaga Supabase:** PWA, kolejka offline, watermark, historia roboty, klik z pulpitu — to działa tylko w frontendzie (Vercel). **Link klienta** wymaga nowego endpointu `client-share` na Supabase.
+| **GET** | **`/jobs-backup-status`** | **Ile robót w kopii prev/prev2 (v2.5.1)** |
+| **POST** | **`/restore-jobs-backup`** | **Przywróć roboty z kopii chmurowej (v2.5.1)** |
+
+> **v2.5.1 — ochrona robót:** przy każdym zapisie `kw-jobs` serwer robi kopię (`prev`, `prev2`, dzienna). Gdy zapis wygląda podejrzanie (np. z 6 robót zostaje 1), **scala** zamiast nadpisywać.
 
 ---
 
