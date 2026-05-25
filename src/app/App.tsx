@@ -1,0 +1,4595 @@
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
+import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
+import {
+  Calculator, Clock, Banknote, User, Plus, Trash2,
+  ChevronRight, Users, FileText, FileDown, CheckCircle2,
+  Circle, Archive, ChevronDown, ChevronUp,
+  Calendar, CalendarDays, TrendingUp, Wallet, X, Phone,
+  UserPlus, Edit2, Check, Search, Building2, MapPin, KeyRound,
+  LayoutDashboard, Package, Receipt, AlertTriangle, Download, Upload,
+  HardHat, StickyNote, Cloud, CloudUpload, CloudOff,
+  Mic, MicOff, Bell, Copy, ScrollText, Sparkles,
+  BookOpen, ChevronDown as ChevDown, HelpCircle, Smartphone, Monitor,
+  Camera, ImagePlus, Lock, LogOut, Eye, ArrowLeft, ShieldCheck, ThumbsUp, ThumbsDown, Clock3,
+} from "lucide-react";
+import {
+  API_BASE,
+  API_HEADERS,
+  DATA_KEYS,
+  ADMIN_HASH_KEY,
+  pushKeysToCloud,
+  pushAllDataToCloud,
+  fetchKeysFromCloud,
+} from "@/lib/cloud-sync";
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
+pdfMake.vfs = pdfFonts as any;
+import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle } from "docx";
+import { saveAs } from "file-saver";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type DayKey = "Pn" | "Wt" | "Sr" | "Cz" | "Pt" | "So";
+const DAY_LABELS: Record<DayKey, string> = { Pn: "Poniedziałek", Wt: "Wtorek", Sr: "Środa", Cz: "Czwartek", Pt: "Piątek", So: "Sobota" };
+const DAYS: DayKey[] = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"];
+const MONTH_NAMES = ["Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec","Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"];
+
+/** Trwała kartoteka pracownika */
+interface DirectoryEmployee {
+  id: string;
+  name: string;
+  phone: string;
+  position: string;    // stanowisko np. "Murarz", "Kierowca"
+  defaultRate: string; // domyślna stawka PLN/h
+  startDate: string;   // data zatrudnienia ISO
+  active: boolean;     // czy aktualnie pracuje
+  notes: string;
+}
+
+interface DayData { active: boolean; from: string; to: string; zaliczka: string; }
+
+/** Pracownik przypisany do konkretnego tygodnia — snapshot danych z kartoteki */
+interface WeekEmployee {
+  id: string;             // lokalny ID w ramach tygodnia
+  directoryId: string;    // powiązanie z kartoteką (może być "" dla spoza kartoteki)
+  name: string;
+  phone: string;
+  position: string;
+  rate: string;           // stawka na ten tydzień (może różnić się od domyślnej)
+  days: Record<DayKey, DayData>;
+  settled: boolean;
+}
+
+interface EmployeeSnapshot {
+  name: string; position: string; rate: number;
+  totalHours: number; grossPay: number; totalZaliczka: number; netPay: number;
+  settled: boolean;
+}
+
+/** Wpis czasu na robocie zapisany w archiwum tygodnia */
+interface ArchivedWorkEntry {
+  jobId: string;
+  address: string;
+  flatNumber: string;
+  directoryId: string;
+  employeeName: string;
+  date: string;
+  hours: number;
+  rate: number;
+}
+
+interface WeekSnapshot {
+  id: string;
+  weekFrom: string; weekTo: string;
+  savedAt: string;
+  employees: EmployeeSnapshot[];
+  totalEmployees: number; totalHours: number;
+  totalGross: number; totalZaliczka: number; totalNet: number;
+  /** Pełna lista płac (dni, godziny, zaliczki) — od v1.9 */
+  weekEmployees?: WeekEmployee[];
+  /** Przypisania do robót w tym tygodniu — od v1.9 */
+  workEntries?: ArchivedWorkEntry[];
+}
+
+// ─── Jobs Types ───────────────────────────────────────────────────────────────
+
+const DOCUMENT_TYPES = ["zlecenie","zakres","kosztorys","kominiarz","pomiary","oswiadczenia","gwarancje","rysunek","zdjecia"] as const;
+const REQUIRED_DOCS = ["zlecenie","zakres","kosztorys","kominiarz","pomiary","oswiadczenia","gwarancje","rysunek"] as const;
+type DocType = typeof DOCUMENT_TYPES[number];
+const DOC_LABELS: Record<DocType,string> = {
+  zlecenie:"Zlecenie", zakres:"Zakres robót", kosztorys:"Kosztorys",
+  kominiarz:"Kominiarz", pomiary:"Pomiary", oswiadczenia:"Oświadczenia",
+  gwarancje:"Gwarancje", rysunek:"Rysunek/Plan", zdjecia:"Zdjęcia",
+};
+
+interface WorkEntry {
+  id: string;
+  directoryId: string;
+  employeeName: string;
+  date: string;
+  hours: number;
+  rate: number;
+  notes: string;
+}
+
+interface MaterialEntry {
+  id: string;
+  description: string;
+  cost: number;
+  date: string;
+}
+
+interface PhotoEntry {
+  id: string;
+  path: string;
+  publicUrl: string;
+  label: "before" | "after" | "progress";
+  uploadedBy: string;
+  uploadedAt: string;
+  status: "pending" | "approved" | "rejected";
+}
+
+interface Job {
+  id: string;
+  address: string;
+  flatNumber: string;
+  client: string;
+  startDate: string;
+  endDate: string;
+  status: "in_progress" | "completed";
+  keysHandedOver: boolean;
+  notes: string;
+  documents: Record<DocType, boolean>;
+  workEntries: WorkEntry[];
+  materials: MaterialEntry[];
+  invoiceStatus: "pending" | "invoiced" | "paid";
+  invoiceNumber: string;
+  invoiceAmount: string;
+  photos: PhotoEntry[];
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function defaultDay(): DayData { return { active: false, from: "07:00", to: "16:00", zaliczka: "" }; }
+function defaultDays(): Record<DayKey, DayData> { return Object.fromEntries(DAYS.map((d) => [d, defaultDay()])) as Record<DayKey, DayData>; }
+
+function defaultDirEmployee(): DirectoryEmployee {
+  return { id: crypto.randomUUID(), name: "", phone: "", position: "", defaultRate: "25.00", startDate: new Date().toISOString().slice(0,10), active: true, notes: "" };
+}
+
+function weekEmployeeFromDir(dir: DirectoryEmployee): WeekEmployee {
+  return { id: crypto.randomUUID(), directoryId: dir.id, name: dir.name, phone: dir.phone, position: dir.position, rate: dir.defaultRate, days: defaultDays(), settled: false };
+}
+
+function parseTime(t: string) { const [h, m] = t.split(":").map(Number); return isNaN(h)||isNaN(m) ? 0 : h+m/60; }
+function hoursWorked(from: string, to: string) { const d = parseTime(to)-parseTime(from); return d>0 ? +d.toFixed(2) : 0; }
+function fmt(n: number) { return n.toLocaleString("pl-PL",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtH(n: number) { const h=Math.floor(n),m=Math.round((n-h)*60); return m===0?`${h}h`:`${h}h ${m}m`; }
+function fmtDate(iso: string) { if(!iso) return ""; const [y,mo,d]=iso.split("-"); return `${d}.${mo}.${y}`; }
+function getWeekRange() {
+  const now=new Date(),day=now.getDay(),diff=day===0?1:1-day;
+  const mon=new Date(now); mon.setDate(now.getDate()+diff);
+  const sat=new Date(mon); sat.setDate(mon.getDate()+5);
+  const iso=(d:Date)=>d.toISOString().slice(0,10);
+  return {from:iso(mon),to:iso(sat)};
+}
+function calcWeekEmployee(emp: WeekEmployee) {
+  const totalHours = DAYS.reduce((s,d)=>s+(emp.days[d].active ? hoursWorked(emp.days[d].from,emp.days[d].to) : 0), 0);
+  const totalZaliczka = DAYS.reduce((s,d)=>s+(parseFloat(emp.days[d].zaliczka)||0), 0);
+  const rateNum = parseFloat(emp.rate)||0;
+  const grossPay = +(totalHours*rateNum).toFixed(2);
+  const netPay = +(grossPay-totalZaliczka).toFixed(2);
+  return {totalHours,totalZaliczka,grossPay,netPay,rateNum};
+}
+
+// ─── Jobs Helpers ─────────────────────────────────────────────────────────────
+
+function defaultJob(): Job {
+  return {
+    id: crypto.randomUUID(), address: "", flatNumber: "", client: "Wrocławskie Mieszkania",
+    startDate: new Date().toISOString().slice(0,10), endDate: "", status: "in_progress",
+    keysHandedOver: false,
+    notes: "",
+    documents: Object.fromEntries(DOCUMENT_TYPES.map(d=>[d,false])) as Record<DocType,boolean>,
+    workEntries: [],
+    materials: [],
+    invoiceStatus: "pending",
+    invoiceNumber: "",
+    invoiceAmount: "",
+    photos: [],
+  };
+}
+function jobDuration(job: Job): number {
+  const end = job.endDate ? new Date(job.endDate) : new Date();
+  const start = new Date(job.startDate);
+  return Math.max(0, Math.round((end.getTime()-start.getTime())/(1000*60*60*24)));
+}
+function jobCost(job: Job): number {
+  return job.workEntries.reduce((s,e)=>s+e.hours*e.rate,0);
+}
+function jobTotalHours(job: Job): number {
+  return job.workEntries.reduce((s,e)=>s+e.hours,0);
+}
+function jobMaterialsCost(job: Job): number {
+  return (job.materials||[]).reduce((s,m)=>s+m.cost,0);
+}
+function jobTotalCost(job: Job): number {
+  return jobCost(job)+jobMaterialsCost(job);
+}
+function todayDayKey(): DayKey|null {
+  const d=new Date().getDay(); return d===0?null:DAYS[d-1];
+}
+
+function localIsoDate(d = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function todayIsoDate(): string {
+  return localIsoDate();
+}
+
+function personNamesMatch(a: string, b: string): boolean {
+  const na = a.trim().toLowerCase().replace(/\s+/g, " ");
+  const nb = b.trim().toLowerCase().replace(/\s+/g, " ");
+  if (!na || !nb) return false;
+  if (na === nb) return true;
+  if (na.includes(nb) || nb.includes(na)) return true;
+  const fa = na.split(" ")[0];
+  const fb = nb.split(" ")[0];
+  return fa.length > 2 && fa === fb;
+}
+
+function employeeMatchesWorkEntry(
+  emp: WeekEmployee,
+  we: WorkEntry,
+  directory: DirectoryEmployee[],
+): boolean {
+  if (emp.directoryId && we.directoryId && emp.directoryId === we.directoryId) return true;
+  if (we.directoryId) {
+    const dir = directory.find((d) => d.id === we.directoryId);
+    if (dir && personNamesMatch(emp.name, dir.name)) return true;
+  }
+  if (emp.directoryId) {
+    const dir = directory.find((d) => d.id === emp.directoryId);
+    if (dir && personNamesMatch(dir.name, we.employeeName)) return true;
+  }
+  return personNamesMatch(emp.name, we.employeeName);
+}
+
+function sortJobsActiveFirst(jobs: Job[]): Job[] {
+  return [...jobs].sort((a, b) => {
+    if (a.status === "in_progress" && b.status !== "in_progress") return -1;
+    if (b.status === "in_progress" && a.status !== "in_progress") return 1;
+    return 0;
+  });
+}
+
+/** Pulpit: adres roboty — wpis na dziś, albo w bieżącym tygodniu listy płac. */
+function jobsForEmployeeOnDashboard(
+  emp: WeekEmployee,
+  jobs: Job[],
+  dateIso: string,
+  weekFrom: string,
+  weekTo: string,
+  directory: DirectoryEmployee[],
+): Job[] {
+  const active = jobs.filter((j) => j.status === "in_progress");
+  const onToday = sortJobsActiveFirst(
+    active.filter((job) =>
+      job.workEntries.some(
+        (we) => we.date === dateIso && employeeMatchesWorkEntry(emp, we, directory),
+      ),
+    ),
+  );
+  if (onToday.length) return onToday;
+
+  const seen = new Set<string>();
+  const inWeek: Job[] = [];
+  for (const job of sortJobsActiveFirst(active)) {
+    if (
+      job.workEntries.some(
+        (we) =>
+          we.date >= weekFrom &&
+          we.date <= weekTo &&
+          employeeMatchesWorkEntry(emp, we, directory),
+      ) &&
+      !seen.has(job.id)
+    ) {
+      seen.add(job.id);
+      inWeek.push(job);
+    }
+  }
+  return inWeek;
+}
+
+function weekDayColumns(weekFrom: string): { key: DayKey; iso: string; shortLabel: string; dateLabel: string }[] {
+  const [y, m, d] = weekFrom.split("-").map(Number);
+  const mon = new Date(y, m - 1, d);
+  const short: Record<DayKey, string> = { Pn: "Pn", Wt: "Wt", Sr: "Śr", Cz: "Cz", Pt: "Pt", So: "So" };
+  return DAYS.map((key, i) => {
+    const dt = new Date(mon);
+    dt.setDate(mon.getDate() + i);
+    const iso = localIsoDate(dt);
+    const [, mo, day] = iso.split("-");
+    return { key, iso, shortLabel: short[key], dateLabel: `${day}.${mo}` };
+  });
+}
+
+function shortJobAddress(job: Job): string {
+  const a = job.address?.trim() || "—";
+  const base = a.length > 24 ? `${a.slice(0, 22)}…` : a;
+  return job.flatNumber ? `${base} m.${job.flatNumber}` : base;
+}
+
+function jobsForEmployeeOnIsoDate(
+  emp: WeekEmployee,
+  jobs: Job[],
+  dateIso: string,
+  directory: DirectoryEmployee[],
+): Job[] {
+  return sortJobsActiveFirst(
+    jobs.filter((job) =>
+      job.workEntries.some(
+        (we) => we.date === dateIso && employeeMatchesWorkEntry(emp, we, directory),
+      ),
+    ),
+  );
+}
+
+function scheduleCellFor(
+  emp: WeekEmployee,
+  dayKey: DayKey,
+  dateIso: string,
+  jobs: Job[],
+  directory: DirectoryEmployee[],
+): { working: boolean; timeRange: string; hoursLabel: string; locations: string[] } {
+  const day = emp.days[dayKey];
+  const activeJobs = jobs.filter((j) => j.status === "in_progress");
+  const jobList = jobsForEmployeeOnIsoDate(emp, activeJobs, dateIso, directory);
+  const locations = jobList.map(shortJobAddress);
+  const working = day.active || locations.length > 0;
+  return {
+    working,
+    timeRange: day.active ? `${day.from}–${day.to}` : "",
+    hoursLabel: day.active ? fmtH(hoursWorked(day.from, day.to)) : "",
+    locations,
+  };
+}
+
+function collectWorkEntriesForWeek(jobs: Job[], weekFrom: string, weekTo: string): ArchivedWorkEntry[] {
+  const out: ArchivedWorkEntry[] = [];
+  for (const job of jobs) {
+    for (const we of job.workEntries) {
+      if (we.date >= weekFrom && we.date <= weekTo) {
+        out.push({
+          jobId: job.id,
+          address: job.address,
+          flatNumber: job.flatNumber,
+          directoryId: we.directoryId,
+          employeeName: we.employeeName,
+          date: we.date,
+          hours: we.hours,
+          rate: we.rate,
+        });
+      }
+    }
+  }
+  return out.sort((a, b) => a.date.localeCompare(b.date) || a.employeeName.localeCompare(b.employeeName, "pl"));
+}
+
+function buildWeekSnapshot(
+  weekFrom: string,
+  weekTo: string,
+  weekEmployees: WeekEmployee[],
+  jobs: Job[],
+  existing?: WeekSnapshot,
+): WeekSnapshot {
+  const employees = weekEmployees.map((emp) => {
+    const { totalHours, totalZaliczka, grossPay, netPay, rateNum } = calcWeekEmployee(emp);
+    return {
+      name: emp.name,
+      position: emp.position,
+      rate: rateNum,
+      totalHours,
+      grossPay,
+      totalZaliczka,
+      netPay,
+      settled: emp.settled,
+    };
+  });
+  return {
+    id: existing?.id ?? crypto.randomUUID(),
+    weekFrom,
+    weekTo,
+    savedAt: new Date().toISOString(),
+    employees,
+    totalEmployees: weekEmployees.length,
+    totalHours: weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).totalHours, 0),
+    totalGross: weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).grossPay, 0),
+    totalZaliczka: weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).totalZaliczka, 0),
+    totalNet: weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).netPay, 0),
+    weekEmployees: JSON.parse(JSON.stringify(weekEmployees)) as WeekEmployee[],
+    workEntries: collectWorkEntriesForWeek(jobs, weekFrom, weekTo),
+  };
+}
+
+function archivedWorkEntryMatches(
+  emp: WeekEmployee,
+  we: ArchivedWorkEntry,
+  directory: DirectoryEmployee[],
+): boolean {
+  if (emp.directoryId && we.directoryId && emp.directoryId === we.directoryId) return true;
+  if (we.directoryId) {
+    const dir = directory.find((d) => d.id === we.directoryId);
+    if (dir && personNamesMatch(emp.name, dir.name)) return true;
+  }
+  if (emp.directoryId) {
+    const dir = directory.find((d) => d.id === emp.directoryId);
+    if (dir && personNamesMatch(dir.name, we.employeeName)) return true;
+  }
+  return personNamesMatch(emp.name, we.employeeName);
+}
+
+function scheduleCellFromArchive(
+  emp: WeekEmployee,
+  dayKey: DayKey,
+  dateIso: string,
+  workEntries: ArchivedWorkEntry[],
+  directory: DirectoryEmployee[],
+): { working: boolean; timeRange: string; hoursLabel: string; locations: string[] } {
+  const day = emp.days[dayKey];
+  const dayEntries = workEntries.filter(
+    (we) => we.date === dateIso && archivedWorkEntryMatches(emp, we, directory),
+  );
+  const locations = [...new Set(dayEntries.map((we) => {
+    const a = we.address?.trim() || "—";
+    const base = a.length > 24 ? `${a.slice(0, 22)}…` : a;
+    return we.flatNumber ? `${base} m.${we.flatNumber}` : base;
+  }))];
+  const working = day.active || locations.length > 0;
+  return {
+    working,
+    timeRange: day.active ? `${day.from}–${day.to}` : "",
+    hoursLabel: day.active ? fmtH(hoursWorked(day.from, day.to)) : "",
+    locations,
+  };
+}
+
+function formatJobStreet(job: Job): string {
+  const street = job.address?.trim() || "Bez adresu";
+  return job.flatNumber ? `${street} m.${job.flatNumber}` : street;
+}
+
+/** 9 cyfr numeru PL (bez +48) — do logowania pracownika. */
+function normalizePhone9(phone: string): string | null {
+  const d = phone.replace(/\D/g, "");
+  if (d.length < 9) return null;
+  return d.slice(-9);
+}
+
+function workerHasPhonePin(emp: DirectoryEmployee): boolean {
+  return normalizePhone9(emp.phone) !== null;
+}
+
+function workerPhonePinValid(emp: DirectoryEmployee, pinInput: string): boolean {
+  const stored = normalizePhone9(emp.phone);
+  const entered = normalizePhone9(pinInput);
+  if (!stored || !entered) return false;
+  return stored === entered;
+}
+
+const ADMIN_PIN_KEY = "kw-admin-pin";
+
+async function uploadPhoto(
+  jobId: string,
+  file: File,
+  label: string,
+  uploadedBy: string,
+): Promise<{ entry: PhotoEntry | null; error?: string }> {
+  const ext = file.name.split(".").pop() || "jpg";
+  const filename = `${label}-${Date.now()}.${ext}`;
+
+  try {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("jobId", jobId);
+    form.append("filename", filename);
+
+    const res = await fetch(`${API_BASE}/storage-upload`, {
+      method: "POST",
+      headers: { Authorization: API_HEADERS.Authorization },
+      body: form,
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      return {
+        entry: null,
+        error: data.error || (res.status === 404
+          ? "Serwer zdjęć nie jest wdrożony — zaktualizuj funkcję Supabase (storage-upload)"
+          : `Błąd serwera (${res.status})`),
+      };
+    }
+
+    return {
+      entry: {
+        id: crypto.randomUUID(),
+        path: data.path,
+        publicUrl: data.publicUrl,
+        label: label as PhotoEntry["label"],
+        uploadedBy,
+        uploadedAt: new Date().toISOString(),
+        status: "pending",
+      },
+    };
+  } catch {
+    return { entry: null, error: "Brak połączenia z internetem" };
+  }
+}
+
+function useLocalStorage<T>(key: string, initial: T): [T, (v: T|((p:T)=>T))=>void] {
+  const [state, setState] = useState<T>(()=>{ try{ const s=localStorage.getItem(key); return s?JSON.parse(s):initial; }catch{ return initial; } });
+  const set = useCallback((v: T|((p:T)=>T))=>{
+    setState(prev=>{ const next=typeof v==="function"?(v as (p:T)=>T)(prev):v; try{localStorage.setItem(key,JSON.stringify(next));}catch{} return next; });
+  },[key]);
+  return [state,set];
+}
+
+// ─── Shared UI ────────────────────────────────────────────────────────────────
+
+function Checkbox({checked,onChange}:{checked:boolean;onChange:(v:boolean)=>void}) {
+  return <button onClick={()=>onChange(!checked)} className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all shrink-0 ${checked?"bg-primary border-primary":"border-muted-foreground/40"}`}>
+    {checked&&<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+  </button>;
+}
+
+function StatCard({label,value,sub,icon:Icon,accent=false}:{label:string;value:string;sub?:string;icon:React.ElementType;accent?:boolean}) {
+  return <div className={`rounded-xl border p-4 space-y-2 ${accent?"bg-primary/10 border-primary/20":"bg-card border-border"}`}>
+    <div className="flex items-center gap-2 text-muted-foreground"><Icon size={13}/><span className="text-xs font-medium uppercase tracking-wider">{label}</span></div>
+    <p className={`text-xl font-bold leading-tight ${accent?"text-primary":"text-foreground"}`} style={{fontFamily:"'JetBrains Mono', monospace"}}>{value}</p>
+    {sub&&<p className="text-xs text-muted-foreground">{sub}</p>}
+  </div>;
+}
+
+type SpeechRecognitionCtor = new() => {
+  lang: string; interimResults: boolean;
+  onresult: ((e: {results: {[i: number]: {[i: number]: {transcript: string}}}}) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  start(): void; stop(): void;
+};
+
+function VoiceNoteButton({onResult}: {onResult:(text:string)=>void}) {
+  const [listening, setListening] = useState(false);
+  const recRef = useRef<ReturnType<SpeechRecognitionCtor>|null>(null);
+
+  const w = window as unknown as Record<string,unknown>;
+  const SR = (w.SpeechRecognition || w.webkitSpeechRecognition) as SpeechRecognitionCtor | undefined;
+
+  if (!SR) return null;
+
+  const toggle = () => {
+    if (listening) {
+      recRef.current?.stop();
+      setListening(false);
+      return;
+    }
+    const rec = new SR();
+    rec.lang = "pl-PL";
+    rec.interimResults = false;
+    rec.onresult = (e) => {
+      const text = e.results[0][0].transcript;
+      onResult(text);
+    };
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    rec.start();
+    recRef.current = rec;
+    setListening(true);
+  };
+
+  return (
+    <button type="button" onClick={toggle} title={listening ? "Zatrzymaj nagrywanie" : "Dyktuj notatkę głosową"}
+      className={`p-1.5 rounded-lg transition-colors shrink-0 ${listening ? "text-destructive animate-pulse bg-destructive/10" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
+      {listening ? <MicOff size={14}/> : <Mic size={14}/>}
+    </button>
+  );
+}
+
+// ─── Employee Calculator (weekly hours detail) ────────────────────────────────
+
+function WeekEmployeeDetail({emp, onChange, onClose}:{emp:WeekEmployee; onChange:(u:WeekEmployee)=>void; onClose:()=>void}) {
+  const updateDay = useCallback((key:DayKey,field:keyof DayData,value:string|boolean)=>{
+    onChange({...emp, days:{...emp.days,[key]:{...emp.days[key],[field]:value}}});
+  },[emp,onChange]);
+  const {totalHours,totalZaliczka,grossPay,netPay,rateNum}=calcWeekEmployee(emp);
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+        <div>
+          <p className="text-sm font-semibold">{emp.name||"Pracownik"}</p>
+          <p className="text-xs text-muted-foreground">{emp.position||"—"}</p>
+        </div>
+        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"><X size={16}/></button>
+      </div>
+      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+        {/* Rate override */}
+        <div className="flex items-center gap-3 bg-secondary rounded-xl px-4 py-3">
+          <Banknote size={14} className="text-muted-foreground shrink-0"/>
+          <span className="text-sm text-muted-foreground flex-1">Stawka w tym tygodniu</span>
+          <input type="number" min="0" step="0.50" value={emp.rate}
+            onChange={(e)=>onChange({...emp,rate:e.target.value})}
+            className="w-24 bg-background rounded-lg px-2 py-1.5 text-sm text-right border border-transparent focus:border-primary focus:outline-none"
+            style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+          <span className="text-xs text-muted-foreground">PLN/h</span>
+        </div>
+
+        {/* Days */}
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] px-4 py-2 text-xs text-muted-foreground border-b border-border" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+            <span>Dzień</span><span className="text-center">Od</span><span className="text-center">Do</span><span className="text-center">Godziny</span><span className="text-center">Zaliczka</span>
+          </div>
+          <div className="divide-y divide-border">
+            {DAYS.map((key)=>{
+              const day=emp.days[key]; const h=day.active?hoursWorked(day.from,day.to):0;
+              return <div key={key} className={`px-4 py-3 transition-opacity ${day.active?"":"opacity-50"}`}>
+                <div className="sm:hidden space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5"><Checkbox checked={day.active} onChange={(v)=>updateDay(key,"active",v)}/><span className={`text-sm font-medium ${key==="So"?"text-primary":""}`}>{DAY_LABELS[key]}</span></div>
+                    {day.active&&h>0&&<span className="text-xs font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(h)}</span>}
+                  </div>
+                  {day.active&&<div className="grid grid-cols-3 gap-2 pl-8">
+                    <div><label className="text-xs text-muted-foreground block mb-1">Od</label><input type="time" value={day.from} onChange={(e)=>updateDay(key,"from",e.target.value)} className="w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none" style={{fontFamily:"'JetBrains Mono', monospace"}}/></div>
+                    <div><label className="text-xs text-muted-foreground block mb-1">Do</label><input type="time" value={day.to} onChange={(e)=>updateDay(key,"to",e.target.value)} className="w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none" style={{fontFamily:"'JetBrains Mono', monospace"}}/></div>
+                    <div><label className="text-xs text-muted-foreground block mb-1">Zaliczka</label><input type="number" min="0" step="10" placeholder="0" value={day.zaliczka} onChange={(e)=>updateDay(key,"zaliczka",e.target.value)} className="w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none placeholder:text-muted-foreground/40" style={{fontFamily:"'JetBrains Mono', monospace"}}/></div>
+                  </div>}
+                </div>
+                <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center gap-3">
+                  <div className="flex items-center gap-3"><Checkbox checked={day.active} onChange={(v)=>updateDay(key,"active",v)}/><span className={`text-sm font-medium ${key==="So"?"text-primary":""}`}>{DAY_LABELS[key]}</span></div>
+                  <input type="time" value={day.from} disabled={!day.active} onChange={(e)=>updateDay(key,"from",e.target.value)} className="w-full bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                  <input type="time" value={day.to} disabled={!day.active} onChange={(e)=>updateDay(key,"to",e.target.value)} className="w-full bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                  <div className="text-center"><span className={`text-sm font-semibold ${day.active&&h>0?"text-primary":"text-muted-foreground/25"}`} style={{fontFamily:"'JetBrains Mono', monospace"}}>{day.active&&h>0?fmtH(h):"—"}</span></div>
+                  <input type="number" min="0" step="10" placeholder="0" value={day.zaliczka} disabled={!day.active} onChange={(e)=>updateDay(key,"zaliczka",e.target.value)} className="w-full bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed placeholder:text-muted-foreground/30" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                </div>
+              </div>;
+            })}
+          </div>
+        </div>
+
+        {/* Mini summary */}
+        <div className="space-y-2">
+          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Łącznie</span><span className="font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalHours)}</span></div>
+          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto</span><span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(grossPay)} PLN</span></div>
+          {totalZaliczka>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Zaliczki</span><span className="font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>−{fmt(totalZaliczka)} PLN</span></div>}
+          <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-xl px-4 py-3">
+            <span className="text-sm font-semibold text-primary">Do wypłaty</span>
+            <span className={`text-xl font-bold ${netPay<0?"text-destructive":"text-primary"}`} style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(netPay)} PLN</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Lista Płac (current week) ────────────────────────────────────────────────
+
+function PayrollView({
+  weekEmployees, weekFrom, weekTo, directory,
+  onWeekChange, onToggleSettled, onSaveWeek, savedWeeks,
+  onAddFromDirectory, onRemoveWeekEmployee, onUpdateWeekEmployee, onGoToCurrent,
+}:{
+  weekEmployees: WeekEmployee[]; weekFrom:string; weekTo:string;
+  directory: DirectoryEmployee[];
+  onWeekChange:(f:string,t:string)=>void;
+  onToggleSettled:(id:string)=>void;
+  onSaveWeek:()=>void;
+  savedWeeks:WeekSnapshot[];
+  onAddFromDirectory:(ids:string[])=>void;
+  onRemoveWeekEmployee:(id:string)=>void;
+  onUpdateWeekEmployee:(emp:WeekEmployee)=>void;
+  onGoToCurrent:()=>void;
+}) {
+  const [selectedEmpId, setSelectedEmpId] = useState<string|null>(null);
+  const [showPicker, setShowPicker] = useState(false);
+  const [pickerSearch, setPickerSearch] = useState("");
+  const [pickerSelected, setPickerSelected] = useState<Set<string>>(new Set());
+  const [deleteConfirm, setDeleteConfirm] = useState<string|null>(null);
+  const [satDismissed, setSatDismissed] = useState(false);
+
+  const isSaturday = new Date().getDay() === 6;
+
+  const lastSavedWeek = savedWeeks.length > 0
+    ? [...savedWeeks].sort((a,b) => b.weekFrom.localeCompare(a.weekFrom))[0]
+    : null;
+
+  const copyFromLastWeek = () => {
+    if (!lastSavedWeek) return;
+    const lastNames = new Set(lastSavedWeek.employees.map(e => e.name));
+    const alreadyAssigned = new Set(weekEmployees.map(e => e.directoryId).filter(Boolean));
+    const toAdd = directory.filter(d => d.active && lastNames.has(d.name) && !alreadyAssigned.has(d.id));
+    if (toAdd.length > 0) onAddFromDirectory(toAdd.map(d => d.id));
+  };
+
+  const rows = weekEmployees.map((emp)=>({emp,...calcWeekEmployee(emp)}));
+  const totalGross = rows.reduce((s,r)=>s+r.grossPay,0);
+  const totalZaliczkaSum = rows.reduce((s,r)=>s+r.totalZaliczka,0);
+  const totalNet = rows.reduce((s,r)=>s+r.netPay,0);
+  const totalHoursAll = rows.reduce((s,r)=>s+r.totalHours,0);
+
+  const alreadySaved = savedWeeks.some((w)=>w.weekFrom===weekFrom&&w.weekTo===weekTo);
+
+  // Directory employees not yet in this week
+  const assignedDirIds = new Set(weekEmployees.map((e)=>e.directoryId).filter(Boolean));
+  const availableFromDir = directory.filter((d)=>d.active&&!assignedDirIds.has(d.id));
+  const filteredAvailable = availableFromDir.filter((d)=>
+    d.name.toLowerCase().includes(pickerSearch.toLowerCase()) ||
+    d.position.toLowerCase().includes(pickerSearch.toLowerCase())
+  );
+
+  const selectedEmp = weekEmployees.find((e)=>e.id===selectedEmpId)||null;
+
+  const C = { navy:"#344254", red:"#C0392B", lightNavy:"#EDF1F6", white:"#FFFFFF", lightGray:"#F8F9FB", muted:"#6B7A8D", green:"#1E7E34", gold:"#7B5800" };
+  const PW = 841.89; // A4 landscape width in points
+
+  const exportPDF = () => {
+    const settled = rows.filter(r=>r.emp.settled).length;
+
+    const hdrRow = ["Lp.","Pracownik","Stanowisko","Stawka (PLN/h)","Godziny","Brutto (PLN)","Zaliczki (PLN)","Do wypłaty (PLN)","Status"].map(t=>({
+      text:t, bold:true, color:C.white, fillColor:C.navy, fontSize:8, alignment:"center" as const, margin:[2,4,2,4] as [number,number,number,number],
+    }));
+
+    const dataRows = rows.map((r,i)=>{
+      const bg = i%2===0?C.white:C.lightGray;
+      return [
+        {text:String(i+1), alignment:"center" as const, fillColor:bg, bold:true},
+        {text:r.emp.name||"—", fillColor:bg},
+        {text:r.emp.position||"—", fillColor:bg, color:C.muted},
+        {text:`${fmt(r.rateNum)} PLN/h`, alignment:"right" as const, fillColor:bg, color:C.muted},
+        {text:fmtH(r.totalHours), alignment:"right" as const, fillColor:bg},
+        {text:`${fmt(r.grossPay)} PLN`, alignment:"right" as const, fillColor:bg, color:C.muted},
+        {text:r.totalZaliczka>0?`${fmt(r.totalZaliczka)} PLN`:"—", alignment:"right" as const, fillColor:bg},
+        {text:`${fmt(r.netPay)} PLN`, bold:true, color:C.red, alignment:"right" as const, fillColor:bg},
+        {text:r.emp.settled?"Rozliczony":"Oczekuje", alignment:"center" as const, color:r.emp.settled?C.green:C.gold, bold:r.emp.settled, fillColor:bg},
+      ];
+    });
+
+    const sumRow = [
+      {text:"", fillColor:C.lightNavy},
+      {text:"SUMA", bold:true, fillColor:C.lightNavy},
+      {text:"", fillColor:C.lightNavy},
+      {text:"", fillColor:C.lightNavy},
+      {text:fmtH(totalHoursAll), bold:true, alignment:"right" as const, fillColor:C.lightNavy},
+      {text:`${fmt(totalGross)} PLN`, bold:true, alignment:"right" as const, fillColor:C.lightNavy, color:C.muted},
+      {text:totalZaliczkaSum>0?`${fmt(totalZaliczkaSum)} PLN`:"—", bold:true, alignment:"right" as const, fillColor:C.lightNavy},
+      {text:`${fmt(totalNet)} PLN`, bold:true, color:C.red, alignment:"right" as const, fillColor:C.lightNavy, fontSize:10},
+      {text:"", fillColor:C.lightNavy},
+    ];
+
+    const docDef: any = {
+      pageSize:"A4", pageOrientation:"landscape", pageMargins:[25,68,25,32],
+      header:()=>({
+        stack:[
+          {canvas:[
+            {type:"rect",x:0,y:0,w:PW,h:50,color:C.navy},
+            {type:"rect",x:0,y:50,w:PW,h:3,color:C.red},
+          ]},
+          {text:"LISTA PŁAC", fontSize:18, bold:true, color:C.white, absolutePosition:{x:25,y:15}},
+          {text:"W&G DOM", fontSize:9, color:C.white, absolutePosition:{x:PW-80,y:20}},
+        ]
+      }),
+      footer:(cur:number,total:number)=>({
+        stack:[
+          {canvas:[{type:"rect",x:0,y:0,w:PW,h:22,color:C.lightNavy}]},
+          {columns:[
+            {text:`W&G DOM — Lista Płac — wygenerowano ${new Date().toLocaleDateString("pl-PL")}`, fontSize:7, color:C.navy},
+            {text:`Strona ${cur}/${total}`, fontSize:7, color:C.navy, alignment:"right"},
+          ], absolutePosition:{x:25,y:5}, width:PW-50},
+        ]
+      }),
+      content:[
+        {columns:[
+          {text:[{text:"Okres: ",bold:true,color:C.navy},{text:`${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`,color:C.navy}]},
+          {text:[{text:"Pracownicy: ",bold:true,color:C.navy},{text:String(rows.length),color:C.navy}]},
+          {text:[{text:"Rozliczeni: ",bold:true,color:C.navy},{text:`${settled}/${rows.length}`,color:C.navy}]},
+          {text:[{text:"Do wypłaty: ",bold:true,color:C.navy},{text:`${fmt(totalNet)} PLN`,bold:true,color:C.red}], alignment:"right"},
+        ], fontSize:9, margin:[0,0,0,14]},
+        {table:{
+          headerRows:1,
+          widths:[18,"*",78,58,42,54,54,65,52],
+          body:[hdrRow,...dataRows,sumRow],
+        }, layout:{
+          hLineWidth:(i:number,node:any)=>(i===0||i===node.table.body.length)?0:0.5,
+          vLineWidth:()=>0,
+          hLineColor:()=>"#DDE3EA",
+          paddingLeft:()=>5, paddingRight:()=>5, paddingTop:()=>4, paddingBottom:()=>4,
+        }},
+      ],
+      defaultStyle:{font:"Roboto", fontSize:9, color:C.navy},
+    };
+
+    pdfMake.createPdf(docDef).download(`lista-plac-${weekFrom}.pdf`);
+  };
+
+  const exportWord = async () => {
+    const bNone={style:BorderStyle.NONE,size:0,color:"FFFFFF"};
+    const bThin={style:BorderStyle.SINGLE,size:2,color:"DDE3EA"};
+    const mkCell=(txt:string,opts:{bold?:boolean;fill?:string;align?:typeof AlignmentType[keyof typeof AlignmentType];color?:string;size?:number}={})=>
+      new TableCell({
+        children:[new Paragraph({
+          children:[new TextRun({text:txt,bold:opts.bold??false,size:opts.size??18,color:opts.color??"344254",font:"Calibri"})],
+          alignment:opts.align??AlignmentType.CENTER,
+        })],
+        shading:opts.fill?{fill:opts.fill,color:opts.fill}:undefined,
+        margins:{top:90,bottom:90,left:120,right:120},
+        borders:{top:bThin,bottom:bThin,left:bNone,right:bNone},
+      });
+    const colHeaders=["Lp.","Pracownik","Stanowisko","Stawka\n(PLN/h)","Godziny","Brutto\n(PLN)","Zaliczki\n(PLN)","Do wyplaty\n(PLN)","Status"];
+    const settled=rows.filter(r=>r.emp.settled).length;
+    const doc=new Document({
+      styles:{default:{document:{run:{font:"Calibri"}}}},
+      sections:[{
+        properties:{page:{margin:{top:800,bottom:800,left:1000,right:1000}}},
+        children:[
+          new Paragraph({children:[new TextRun({text:"W&G DOM",bold:true,size:32,color:"344254",font:"Calibri"})],alignment:AlignmentType.LEFT,spacing:{after:80}}),
+          new Paragraph({children:[new TextRun({text:"LISTA PLAC",bold:true,size:52,color:"C0392B",font:"Calibri"})],alignment:AlignmentType.LEFT,spacing:{after:80}}),
+          new Paragraph({children:[
+            new TextRun({text:"Okres: ",bold:true,size:20,color:"344254",font:"Calibri"}),
+            new TextRun({text:`${fmtDate(weekFrom)} - ${fmtDate(weekTo)}   `,size:20,color:"344254",font:"Calibri"}),
+            new TextRun({text:"Pracownicy: ",bold:true,size:20,color:"344254",font:"Calibri"}),
+            new TextRun({text:`${rows.length}   `,size:20,color:"344254",font:"Calibri"}),
+            new TextRun({text:"Rozliczeni: ",bold:true,size:20,color:"344254",font:"Calibri"}),
+            new TextRun({text:`${settled}/${rows.length}   `,size:20,color:"344254",font:"Calibri"}),
+            new TextRun({text:"Do wyplaty: ",bold:true,size:20,color:"344254",font:"Calibri"}),
+            new TextRun({text:`${fmt(totalNet)} PLN`,bold:true,size:20,color:"C0392B",font:"Calibri"}),
+          ],spacing:{after:280}}),
+          new Table({
+            width:{size:100,type:WidthType.PERCENTAGE},
+            rows:[
+              new TableRow({
+                children:colHeaders.map(h=>mkCell(h,{bold:true,fill:"344254",color:"FFFFFF",size:16})),
+                tableHeader:true,
+              }),
+              ...rows.map((r,i)=>new TableRow({children:[
+                mkCell(String(i+1),{bold:true,fill:i%2===0?"FFFFFF":"EDF1F6"}),
+                mkCell(r.emp.name||"-",{align:AlignmentType.LEFT,fill:i%2===0?"FFFFFF":"EDF1F6"}),
+                mkCell(r.emp.position||"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:"6B7A8D"}),
+                mkCell(`${fmt(r.rateNum)} PLN/h`,{fill:i%2===0?"FFFFFF":"EDF1F6",color:"6B7A8D"}),
+                mkCell(fmtH(r.totalHours),{fill:i%2===0?"FFFFFF":"EDF1F6"}),
+                mkCell(`${fmt(r.grossPay)} PLN`,{fill:i%2===0?"FFFFFF":"EDF1F6",color:"6B7A8D"}),
+                mkCell(r.totalZaliczka>0?`${fmt(r.totalZaliczka)} PLN`:"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.totalZaliczka>0?"C0392B":"6B7A8D"}),
+                mkCell(`${fmt(r.netPay)} PLN`,{bold:true,fill:i%2===0?"FFFFFF":"EDF1F6",color:"C0392B"}),
+                mkCell(r.emp.settled?"Rozliczony":"Oczekuje",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.emp.settled?"1E7E34":"7B5800",bold:r.emp.settled}),
+              ]})),
+              new TableRow({children:[
+                mkCell("",{fill:"EDF1F6"}),
+                mkCell("SUMA",{bold:true,fill:"EDF1F6",align:AlignmentType.LEFT}),
+                mkCell("",{fill:"EDF1F6"}),
+                mkCell("",{fill:"EDF1F6"}),
+                mkCell(fmtH(totalHoursAll),{bold:true,fill:"EDF1F6"}),
+                mkCell(`${fmt(totalGross)} PLN`,{bold:true,fill:"EDF1F6",color:"6B7A8D"}),
+                mkCell(totalZaliczkaSum>0?`${fmt(totalZaliczkaSum)} PLN`:"-",{bold:true,fill:"EDF1F6",color:"C0392B"}),
+                mkCell(`${fmt(totalNet)} PLN`,{bold:true,fill:"EDF1F6",color:"C0392B",size:22}),
+                mkCell("",{fill:"EDF1F6"}),
+              ]}),
+            ],
+          }),
+          new Paragraph({spacing:{before:360},children:[new TextRun({text:`Wygenerowano: ${new Date().toLocaleDateString("pl-PL")}`,size:16,color:"8A9BB0",font:"Calibri"})]}),
+        ],
+      }],
+    });
+    saveAs(await Packer.toBlob(doc),`lista-plac-${weekFrom}.docx`);
+  };
+
+  return (
+    <div className="flex flex-1 min-h-0 overflow-hidden">
+      {/* Main list */}
+      <div className={`flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-300 ${selectedEmp?"sm:w-1/2":"w-full"}`}>
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8 space-y-6">
+
+            {/* Saturday reminder */}
+            {isSaturday && !satDismissed && (
+              <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/25 rounded-xl px-4 py-3">
+                <Bell size={15} className="text-yellow-400 shrink-0"/>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-yellow-400">Dziś sobota — pamiętaj o zamknięciu tygodnia!</p>
+                  <p className="text-xs text-muted-foreground">Kliknij "Zapisz tydzień" aby zarchiwizować bieżący tydzień.</p>
+                </div>
+                <button onClick={()=>setSatDismissed(true)} className="p-1 text-muted-foreground hover:text-foreground transition-colors shrink-0"><X size={14}/></button>
+              </div>
+            )}
+
+            {/* Controls */}
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between flex-wrap">
+              <div className="bg-card rounded-xl border border-border px-5 py-3.5 flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2 text-muted-foreground"><Calendar size={13}/><span className="text-xs font-medium uppercase tracking-wider">Tydzień</span></div>
+                <div className="flex items-center gap-2">
+                  <input type="date" value={weekFrom} onChange={(e)=>onWeekChange(e.target.value,weekTo)} className="bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                  <span className="text-muted-foreground">—</span>
+                  <input type="date" value={weekTo} onChange={(e)=>onWeekChange(weekFrom,e.target.value)} className="bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                </div>
+                {weekFrom !== getWeekRange().from && (
+                  <button onClick={onGoToCurrent} className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors border border-primary/30 px-2.5 py-1.5 rounded-lg hover:bg-primary/10">
+                    <Calendar size={11}/>Bieżący tydzień
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button onClick={()=>setShowPicker(true)} className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors">
+                  <UserPlus size={14}/>Dodaj pracownika
+                </button>
+                {lastSavedWeek && weekEmployees.length === 0 && (
+                  <button onClick={copyFromLastWeek} className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors" title={`Skopiuj pracowników z ${fmtDate(lastSavedWeek.weekFrom)}–${fmtDate(lastSavedWeek.weekTo)}`}>
+                    <Copy size={14}/>Kopiuj z poprzedniego tygodnia
+                  </button>
+                )}
+                <button onClick={onSaveWeek} className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${alreadySaved?"bg-green-500/15 text-green-400 border border-green-500/20":"bg-secondary hover:bg-secondary/70 border border-border"}`}>
+                  <Archive size={14}/>{alreadySaved?"Zapisany ✓":"Zapisz tydzień"}
+                </button>
+                <button onClick={exportPDF} className="flex items-center gap-2 px-4 py-2.5 bg-destructive/80 hover:bg-destructive text-white rounded-lg text-sm font-medium transition-colors"><FileDown size={14}/>PDF</button>
+                <button onClick={exportWord} className="flex items-center gap-2 px-4 py-2.5 bg-primary/90 hover:bg-primary text-primary-foreground rounded-lg text-sm font-medium transition-colors"><FileDown size={14}/>Word</button>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
+              <div className="px-5 py-4 border-b border-border flex items-center gap-2">
+                <FileText size={13} className="text-muted-foreground"/>
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Lista Płac — {fmtDate(weekFrom)} – {fmtDate(weekTo)}</span>
+                <span className="ml-auto text-xs text-muted-foreground">{weekEmployees.filter(e=>e.settled).length}/{weekEmployees.length} rozliczonych</span>
+              </div>
+
+              {weekEmployees.length === 0 ? (
+                <div className="p-12 text-center space-y-3">
+                  <Users size={36} className="mx-auto text-muted-foreground/20"/>
+                  <p className="text-sm text-muted-foreground">Brak pracowników w tym tygodniu.</p>
+                  <button onClick={()=>setShowPicker(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium">
+                    <UserPlus size={14}/>Dodaj pracowników
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="hidden sm:block overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead><tr className="border-b border-border text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                        <th className="px-4 py-3 text-left w-7">Lp.</th>
+                        <th className="px-3 py-3 text-left">Pracownik</th>
+                        <th className="px-3 py-3 text-right">Godziny</th>
+                        <th className="px-3 py-3 text-right">Brutto</th>
+                        <th className="px-3 py-3 text-right">Zaliczki</th>
+                        <th className="px-3 py-3 text-right">Do wypłaty</th>
+                        <th className="px-4 py-3 text-center">Status</th>
+                        <th className="px-3 py-3 w-8"/>
+                      </tr></thead>
+                      <tbody className="divide-y divide-border">
+                        {rows.map((r,i)=>(
+                          <tr key={r.emp.id} onClick={()=>setSelectedEmpId(r.emp.id===selectedEmpId?null:r.emp.id)}
+                            className={`cursor-pointer transition-colors hover:bg-secondary/30 ${r.emp.settled?"opacity-60":""} ${r.emp.id===selectedEmpId?"bg-primary/5 border-l-2 border-primary":""}`}>
+                            <td className="px-4 py-3.5 text-muted-foreground text-xs" style={{fontFamily:"'JetBrains Mono', monospace"}}>{i+1}</td>
+                            <td className="px-3 py-3.5">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{r.emp.name?r.emp.name[0].toUpperCase():"?"}</div>
+                                <div>
+                                  <p className="font-medium leading-tight">{r.emp.name||<span className="italic text-muted-foreground">Bez nazwy</span>}</p>
+                                  <p className="text-xs text-muted-foreground">{r.emp.position||"—"} · {fmt(r.rateNum)} PLN/h</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-3 py-3.5 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalHours>0?fmtH(r.totalHours):<span className="text-muted-foreground/40">—</span>}</td>
+                            <td className="px-3 py-3.5 text-right text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.grossPay)}</td>
+                            <td className="px-3 py-3.5 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalZaliczka>0?<span className="text-destructive">−{fmt(r.totalZaliczka)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
+                            <td className="px-3 py-3.5 text-right font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.netPay)} <span className="text-xs font-normal">PLN</span></td>
+                            <td className="px-4 py-3.5" onClick={(e)=>e.stopPropagation()}>
+                              <button onClick={()=>onToggleSettled(r.emp.id)} className={`mx-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${r.emp.settled?"bg-green-500/15 text-green-400 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}>
+                                {r.emp.settled?<><CheckCircle2 size={11}/>Rozl.</>:<><Circle size={11}/>Oczek.</>}
+                              </button>
+                            </td>
+                            <td className="px-3 py-3.5" onClick={(e)=>e.stopPropagation()}>
+                              {deleteConfirm===r.emp.id?(
+                                <div className="flex items-center gap-1">
+                                  <button onClick={()=>{onRemoveWeekEmployee(r.emp.id);setDeleteConfirm(null);}} className="text-xs bg-destructive text-white px-2 py-0.5 rounded">Usuń</button>
+                                  <button onClick={()=>setDeleteConfirm(null)} className="text-xs text-muted-foreground hover:text-foreground px-1"><X size={11}/></button>
+                                </div>
+                              ):(
+                                <button onClick={()=>setDeleteConfirm(r.emp.id)} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded"><Trash2 size={13}/></button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot><tr className="border-t-2 border-border bg-secondary/30">
+                        <td colSpan={2} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Suma</td>
+                        <td className="px-3 py-3 text-right font-bold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalHoursAll)}</td>
+                        <td className="px-3 py-3 text-right font-bold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalGross)}</td>
+                        <td className="px-3 py-3 text-right font-bold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>{totalZaliczkaSum>0?`−${fmt(totalZaliczkaSum)}`:"—"}</td>
+                        <td className="px-3 py-3 text-right font-bold text-primary text-base" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} <span className="text-xs font-normal">PLN</span></td>
+                        <td colSpan={2}/>
+                      </tr></tfoot>
+                    </table>
+                  </div>
+                  {/* Mobile */}
+                  <div className="sm:hidden divide-y divide-border">
+                    {rows.map((r)=>(
+                      <div key={r.emp.id} className={`p-4 space-y-3 ${r.emp.settled?"opacity-60":""}`} onClick={()=>setSelectedEmpId(r.emp.id===selectedEmpId?null:r.emp.id)}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground">{r.emp.name?r.emp.name[0].toUpperCase():"?"}</div>
+                            <div><p className="text-sm font-medium">{r.emp.name||"—"}</p><p className="text-xs text-muted-foreground">{r.emp.position||"—"}</p></div>
+                          </div>
+                          <button onClick={(e)=>{e.stopPropagation();onToggleSettled(r.emp.id);}} className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${r.emp.settled?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>
+                            {r.emp.settled?<><CheckCircle2 size={11}/>OK</>:<><Circle size={11}/>Oczek.</>}
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                          <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Godz.</p><p className="text-sm font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalHours>0?fmtH(r.totalHours):"—"}</p></div>
+                          <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Zaliczki</p><p className="text-sm font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalZaliczka>0?`−${fmt(r.totalZaliczka)}`:"—"}</p></div>
+                          <div className="bg-primary/10 rounded-lg px-2 py-2"><p className="text-xs text-primary/70">Do wypłaty</p><p className="text-sm font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.netPay)}</p></div>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="p-4 bg-secondary/30 flex items-center justify-between">
+                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Łącznie</span>
+                      <span className="text-lg font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Detail panel */}
+      {selectedEmp && (
+        <div className="w-full sm:w-80 lg:w-96 border-l border-border bg-card shrink-0 overflow-hidden flex flex-col absolute sm:relative inset-0 sm:inset-auto z-10 sm:z-auto">
+          <WeekEmployeeDetail emp={selectedEmp} onChange={onUpdateWeekEmployee} onClose={()=>setSelectedEmpId(null)}/>
+        </div>
+      )}
+
+      {/* Picker modal */}
+      {showPicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:"rgba(0,0,0,0.7)"}}>
+          <div className="bg-card rounded-2xl border border-border w-full max-w-md shadow-2xl flex flex-col max-h-[80vh]">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <div><p className="text-sm font-semibold">Dodaj pracowników do tygodnia</p><p className="text-xs text-muted-foreground">{fmtDate(weekFrom)} – {fmtDate(weekTo)}</p></div>
+              <button onClick={()=>{setShowPicker(false);setPickerSearch("");setPickerSelected(new Set());}} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
+            </div>
+            <div className="px-4 py-3 border-b border-border space-y-2">
+              <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/><input type="text" placeholder="Szukaj..." value={pickerSearch} onChange={(e)=>setPickerSearch(e.target.value)} className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"/></div>
+              {filteredAvailable.length>0&&(
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Zaznaczono: {pickerSelected.size} / {filteredAvailable.length}</span>
+                  {pickerSelected.size===filteredAvailable.length
+                    ? <button onClick={()=>setPickerSelected(new Set())} className="text-xs text-primary hover:underline font-medium">Odznacz wszystkich</button>
+                    : <button onClick={()=>setPickerSelected(new Set(filteredAvailable.map(d=>d.id)))} className="text-xs text-primary hover:underline font-medium">Zaznacz wszystkich</button>
+                  }
+                </div>
+              )}
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-1">
+              {filteredAvailable.length===0&&<p className="text-sm text-muted-foreground text-center py-8">Wszyscy aktywni pracownicy są już dodani.</p>}
+              {filteredAvailable.map((d)=>{
+                const sel = pickerSelected.has(d.id);
+                return (
+                  <button key={d.id} onClick={()=>setPickerSelected(prev=>{const n=new Set(prev);sel?n.delete(d.id):n.add(d.id);return n;})} className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors text-left ${sel?"bg-primary/10 border border-primary/30":"hover:bg-secondary border border-transparent"}`}>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${sel?"bg-primary text-primary-foreground":"bg-secondary text-muted-foreground"}`}>{d.name?d.name[0].toUpperCase():"?"}</div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">{d.name||<span className="italic text-muted-foreground">Bez nazwy</span>}</p>
+                      <p className="text-xs text-muted-foreground">{d.position||"—"} · {d.defaultRate} PLN/h</p>
+                    </div>
+                    {sel
+                      ? <CheckCircle2 size={16} className="text-primary shrink-0"/>
+                      : <Circle size={16} className="text-muted-foreground/40 shrink-0"/>
+                    }
+                  </button>
+                );
+              })}
+            </div>
+            <div className="px-4 py-3 border-t border-border">
+              <button
+                onClick={()=>{if(pickerSelected.size>0){onAddFromDirectory([...pickerSelected]);}setShowPicker(false);setPickerSearch("");setPickerSelected(new Set());}}
+                disabled={pickerSelected.size===0}
+                className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {pickerSelected.size>0?`Dodaj zaznaczonych (${pickerSelected.size})`:"Zaznacz pracowników"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Kartoteka pracowników ────────────────────────────────────────────────────
+
+function DirectoryView({directory, onChange}:{directory:DirectoryEmployee[]; onChange:(d:DirectoryEmployee[])=>void}) {
+  const [editId, setEditId] = useState<string|null>(null);
+  const [search, setSearch] = useState("");
+  const [showInactive, setShowInactive] = useState(false);
+
+  const filtered = directory.filter((d)=>{
+    if(!showInactive&&!d.active) return false;
+    return d.name.toLowerCase().includes(search.toLowerCase()) || d.position.toLowerCase().includes(search.toLowerCase()) || d.phone.includes(search);
+  });
+
+  const addEmployee = () => {
+    const e = defaultDirEmployee();
+    onChange([...directory, e]);
+    setEditId(e.id);
+  };
+
+  const update = (updated:DirectoryEmployee) => onChange(directory.map((d)=>d.id===updated.id?updated:d));
+  const remove = (id:string) => onChange(directory.filter((d)=>d.id!==id));
+  const toggleActive = (id:string) => update({...directory.find((d)=>d.id===id)!, active:!directory.find((d)=>d.id===id)!.active});
+
+  const editEmp = directory.find((d)=>d.id===editId)||null;
+
+  return (
+    <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8 space-y-6">
+          {/* Top bar */}
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+            <div className="relative flex-1 max-w-sm">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
+              <input type="text" placeholder="Szukaj po nazwisku, stanowisku, telefonie..." value={search} onChange={(e)=>setSearch(e.target.value)} className="w-full bg-card border border-border rounded-xl pl-8 pr-3 py-2.5 text-sm focus:border-primary focus:outline-none transition-colors"/>
+            </div>
+            <div className="flex items-center gap-3 ml-auto">
+              <button onClick={()=>setShowInactive(v=>!v)} className={`text-xs px-3 py-2 rounded-lg border transition-colors ${showInactive?"bg-secondary border-border text-foreground":"border-border text-muted-foreground hover:text-foreground"}`}>
+                {showInactive?"Ukryj nieaktywnych":"Pokaż nieaktywnych"}
+              </button>
+              <button onClick={addEmployee} className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors">
+                <Plus size={14}/>Nowy pracownik
+              </button>
+            </div>
+          </div>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-3 gap-4">
+            <StatCard label="Aktywni" value={String(directory.filter(d=>d.active).length)} icon={Users} accent/>
+            <StatCard label="Nieaktywni" value={String(directory.filter(d=>!d.active).length)} icon={User}/>
+            <StatCard label="Łącznie" value={String(directory.length)} icon={Building2}/>
+          </div>
+
+          {/* Employee cards */}
+          <div className="space-y-2">
+            {filtered.length===0&&(
+              <div className="bg-card rounded-xl border border-border p-10 text-center text-muted-foreground text-sm">
+                {directory.length===0?"Brak pracowników — dodaj pierwszego.":"Brak wyników wyszukiwania."}
+              </div>
+            )}
+            {filtered.map((emp)=>(
+              <div key={emp.id} className={`bg-card rounded-xl border transition-all ${editId===emp.id?"border-primary/40":"border-border"} ${!emp.active?"opacity-60":""} overflow-hidden`}>
+                {editId===emp.id&&editEmp ? (
+                  <div className="p-5 space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div><label className="text-xs text-muted-foreground block mb-1">Imię i nazwisko *</label><input type="text" value={editEmp.name} onChange={(e)=>update({...editEmp,name:e.target.value})} placeholder="Jan Kowalski" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
+                      <div><label className="text-xs text-muted-foreground block mb-1">Stanowisko</label><input type="text" value={editEmp.position} onChange={(e)=>update({...editEmp,position:e.target.value})} placeholder="np. Murarz, Kierowca..." className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
+                      <div><label className="text-xs text-muted-foreground block mb-1">Telefon</label><input type="tel" value={editEmp.phone} onChange={(e)=>update({...editEmp,phone:e.target.value})} placeholder="+48 000 000 000" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
+                      <div><label className="text-xs text-muted-foreground block mb-1">Domyślna stawka (PLN/h)</label><input type="number" min="0" step="0.5" value={editEmp.defaultRate} onChange={(e)=>update({...editEmp,defaultRate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/></div>
+                      <div><label className="text-xs text-muted-foreground block mb-1">Data zatrudnienia</label><input type="date" value={editEmp.startDate} onChange={(e)=>update({...editEmp,startDate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/></div>
+                      <div><label className="text-xs text-muted-foreground block mb-1">Uwagi</label><input type="text" value={editEmp.notes} onChange={(e)=>update({...editEmp,notes:e.target.value})} placeholder="Dodatkowe informacje..." className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
+                    </div>
+                    <div className="flex items-center gap-2 pt-2">
+                      <button onClick={()=>setEditId(null)} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"><Check size={13}/>Zapisz</button>
+                      <button onClick={()=>setEditId(null)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Anuluj</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="px-5 py-4 flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${emp.active?"bg-primary text-primary-foreground":"bg-secondary text-muted-foreground"}`}>
+                      {emp.name?emp.name[0].toUpperCase():"?"}
+                    </div>
+                    <div className="min-w-0 flex-1 grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-0.5">
+                      <div>
+                        <p className="text-sm font-semibold leading-tight">{emp.name||<span className="italic text-muted-foreground">Bez nazwy</span>}</p>
+                        <p className="text-xs text-muted-foreground">{emp.position||<span className="italic">brak stanowiska</span>}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Phone size={11} className="shrink-0"/>{emp.phone||"—"}
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span style={{fontFamily:"'JetBrains Mono', monospace"}}>{emp.defaultRate} PLN/h</span>
+                        {emp.startDate&&<span>od {fmtDate(emp.startDate)}</span>}
+                        {!emp.active&&<span className="bg-secondary text-muted-foreground px-2 py-0.5 rounded-full">Nieaktywny</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={()=>setEditId(emp.id)} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"><Edit2 size={13}/></button>
+                      <button onClick={()=>toggleActive(emp.id)} title={emp.active?"Oznacz jako nieaktywny":"Przywróć"} className={`p-1.5 rounded-lg transition-colors ${emp.active?"hover:bg-secondary text-muted-foreground hover:text-yellow-400":"text-green-400 hover:bg-green-400/10"}`}>
+                        {emp.active?<Circle size={13}/>:<CheckCircle2 size={13}/>}
+                      </button>
+                      <button onClick={()=>remove(emp.id)} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-destructive transition-colors"><Trash2 size={13}/></button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Archiwum — grafik tygodnia (zapisany) ────────────────────────────────────
+
+function ArchiveScheduleGrid({
+  week,
+  directory,
+}: {
+  week: WeekSnapshot;
+  directory: DirectoryEmployee[];
+}) {
+  const emps = week.weekEmployees ?? [];
+  const workEntries = week.workEntries ?? [];
+  const columns = weekDayColumns(week.weekFrom);
+  const sortedEmps = [...emps].sort((a, b) => a.name.localeCompare(b.name, "pl"));
+
+  if (emps.length === 0) {
+    return (
+      <div className="px-5 py-8 text-center text-muted-foreground text-sm">
+        Brak zapisanego grafiku — to starszy wpis archiwum (tylko podsumowanie płac).
+        <p className="text-xs mt-2">Nowe zapisy tygodnia zawierają pełny grafik.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[640px] border-collapse text-left">
+        <thead>
+          <tr className="bg-secondary/30">
+            <th className="sticky left-0 z-10 bg-secondary/30 border-b border-r border-border px-3 py-2 text-xs font-semibold text-muted-foreground min-w-[120px]">
+              Pracownik
+            </th>
+            {columns.map((col) => (
+              <th key={col.key} className="border-b border-border px-2 py-2 text-center min-w-[80px]">
+                <p className="text-xs font-bold">{col.shortLabel}</p>
+                <p className="text-[10px] text-muted-foreground font-mono">{col.dateLabel}</p>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {sortedEmps.map((emp, ri) => (
+            <tr key={emp.id} className={ri % 2 === 0 ? "bg-background" : "bg-card/30"}>
+              <td className={`sticky left-0 z-10 border-r border-b border-border px-3 py-2 ${ri % 2 === 0 ? "bg-background" : "bg-card/30"}`}>
+                <p className="text-sm font-medium">{emp.name || "—"}</p>
+                <p className="text-[10px] text-muted-foreground">{emp.position || "—"}</p>
+              </td>
+              {columns.map((col) => {
+                const cell = scheduleCellFromArchive(emp, col.key, col.iso, workEntries, directory);
+                return (
+                  <td key={col.key} className={`border-b border-border px-1.5 py-2 align-top text-center ${cell.working ? "" : "opacity-40"}`}>
+                    {cell.working ? (
+                      <div className="space-y-1 flex flex-col items-center">
+                        {cell.timeRange && (
+                          <span className="text-[10px] font-semibold text-green-400/90 bg-green-500/10 px-1.5 py-0.5 rounded font-mono whitespace-nowrap">
+                            {cell.timeRange}
+                          </span>
+                        )}
+                        {cell.locations.map((loc, i) => (
+                          <span key={i} className="text-[9px] text-primary flex items-start gap-0.5 max-w-[88px]">
+                            <MapPin size={8} className="shrink-0 mt-0.5"/>
+                            <span className="text-left">{loc}</span>
+                          </span>
+                        ))}
+                        {!cell.timeRange && cell.locations.length === 0 && (
+                          <span className="text-[9px] text-muted-foreground italic">robota</span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground/50 text-sm">—</span>
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ─── Archive view ─────────────────────────────────────────────────────────────
+
+function ArchiveView({savedWeeks, onDelete, jobs, directory}:{savedWeeks:WeekSnapshot[]; onDelete:(id:string)=>void; jobs:Job[]; directory:DirectoryEmployee[]}) {
+  const [selectedYear, setSelectedYear] = useState<number|null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<number|null>(null);
+  const [expandedWeek, setExpandedWeek] = useState<string|null>(null);
+  const [expandedTab, setExpandedTab] = useState<"payroll"|"schedule">("payroll");
+  const [deleteConfirm, setDeleteConfirm] = useState<string|null>(null);
+
+  const years = useMemo(()=>Array.from(new Set(savedWeeks.map((w)=>new Date(w.weekFrom).getFullYear()))).sort((a,b)=>b-a),[savedWeeks]);
+  const activeYear = selectedYear??years[0]??new Date().getFullYear();
+  const months = useMemo(()=>Array.from(new Set(savedWeeks.filter((w)=>new Date(w.weekFrom).getFullYear()===activeYear).map((w)=>new Date(w.weekFrom).getMonth()))).sort((a,b)=>b-a),[savedWeeks,activeYear]);
+  const activeMonth = selectedMonth!==null?selectedMonth:(months[0]??new Date().getMonth());
+
+  const filteredWeeks = useMemo(()=>savedWeeks.filter((w)=>{const d=new Date(w.weekFrom);return d.getFullYear()===activeYear&&d.getMonth()===activeMonth;}).sort((a,b)=>b.weekFrom.localeCompare(a.weekFrom)),[savedWeeks,activeYear,activeMonth]);
+
+  const yearlyWeeks = savedWeeks.filter((w)=>new Date(w.weekFrom).getFullYear()===activeYear);
+  const yearlyNet = yearlyWeeks.reduce((s,w)=>s+w.totalNet,0);
+  const yearlyHours = yearlyWeeks.reduce((s,w)=>s+w.totalHours,0);
+
+  const monthlyNet = filteredWeeks.reduce((s,w)=>s+w.totalNet,0);
+  const monthlyHours = filteredWeeks.reduce((s,w)=>s+w.totalHours,0);
+  const monthlyGross = filteredWeeks.reduce((s,w)=>s+w.totalGross,0);
+  const monthlyZaliczka = filteredWeeks.reduce((s,w)=>s+w.totalZaliczka,0);
+
+  // Jobs that started in this month
+  const monthJobs = jobs.filter(j=>{
+    const d = new Date(j.startDate);
+    return d.getFullYear()===activeYear && d.getMonth()===activeMonth;
+  });
+  const monthJobsCost = monthJobs.reduce((s,j)=>s+jobCost(j),0);
+  const monthMatCost = monthJobs.reduce((s,j)=>s+jobMaterialsCost(j),0);
+  const monthInvoiced = monthJobs.reduce((s,j)=>s+(parseFloat(j.invoiceAmount)||0),0);
+
+  const exportMonthlyReport = () => {
+    const C = { navy:"#344254", red:"#C0392B", light:"#EDF1F6", white:"#FFFFFF", muted:"#8A9BB0", green:"#1E7E34" };
+    const monthLabel = `${MONTH_NAMES[activeMonth]} ${activeYear}`;
+    const filename = `raport-${activeYear}-${String(activeMonth+1).padStart(2,"0")}.pdf`;
+
+    // Build jobs table rows
+    const jobRows = monthJobs.map(j=>[
+      {text:(j.address||"—")+(j.flatNumber?` m.${j.flatNumber}`:""), fontSize:8},
+      {text:j.client||"—", fontSize:8, color:C.muted},
+      {text:j.status==="completed"?"Zdane":"W trakcie", fontSize:8, color:j.status==="completed"?C.green:C.red},
+      {text:jobCost(j)>0?`${fmt(jobCost(j))} PLN`:"—", fontSize:8, alignment:"right"},
+      {text:jobMaterialsCost(j)>0?`${fmt(jobMaterialsCost(j))} PLN`:"—", fontSize:8, alignment:"right", color:C.muted},
+      {text:jobTotalCost(j)>0?`${fmt(jobTotalCost(j))} PLN`:"—", fontSize:8, bold:true, alignment:"right", color:C.red},
+      {text:parseFloat(j.invoiceAmount||"0")>0?`${fmt(parseFloat(j.invoiceAmount))} PLN`:"—", fontSize:8, alignment:"right"},
+    ]);
+
+    // Build payroll sections for each week
+    const payrollSections: unknown[] = [];
+    filteredWeeks.forEach((w, wi) => {
+      payrollSections.push(
+        {text:`Tydzień ${wi+1}: ${fmtDate(w.weekFrom)} – ${fmtDate(w.weekTo)}`, fontSize:9, bold:true, color:C.navy, margin:[0, wi===0?0:10, 0, 4]},
+        {
+          table:{
+            headerRows:1,
+            widths:["*","auto","auto","auto","auto","auto"],
+            body:[
+              [
+                {text:"Pracownik", bold:true, fillColor:C.navy, color:C.white, fontSize:7},
+                {text:"Stanowisko", bold:true, fillColor:C.navy, color:C.white, fontSize:7},
+                {text:"Godz.", bold:true, fillColor:C.navy, color:C.white, fontSize:7, alignment:"right"},
+                {text:"Brutto", bold:true, fillColor:C.navy, color:C.white, fontSize:7, alignment:"right"},
+                {text:"Zaliczki", bold:true, fillColor:C.navy, color:C.white, fontSize:7, alignment:"right"},
+                {text:"Do wypłaty", bold:true, fillColor:C.navy, color:C.white, fontSize:7, alignment:"right"},
+              ],
+              ...w.employees.map((e,i)=>[
+                {text:e.name||"—", fontSize:7, fillColor:i%2===0?C.white:C.light},
+                {text:e.position||"—", fontSize:7, color:C.muted, fillColor:i%2===0?C.white:C.light},
+                {text:fmtH(e.totalHours), fontSize:7, alignment:"right", fillColor:i%2===0?C.white:C.light},
+                {text:`${fmt(e.grossPay)} PLN`, fontSize:7, alignment:"right", color:C.muted, fillColor:i%2===0?C.white:C.light},
+                {text:e.totalZaliczka>0?`${fmt(e.totalZaliczka)} PLN`:"—", fontSize:7, alignment:"right", color:e.totalZaliczka>0?C.red:C.muted, fillColor:i%2===0?C.white:C.light},
+                {text:`${fmt(e.netPay)} PLN`, fontSize:7, bold:true, alignment:"right", color:C.red, fillColor:i%2===0?C.white:C.light},
+              ]),
+              [
+                {text:"SUMA", bold:true, fillColor:C.light, fontSize:8},
+                {text:`${w.totalEmployees} prac.`, fontSize:7, fillColor:C.light, color:C.muted},
+                {text:fmtH(w.totalHours), bold:true, fontSize:8, alignment:"right", fillColor:C.light},
+                {text:`${fmt(w.totalGross)} PLN`, bold:true, fontSize:8, alignment:"right", color:C.muted, fillColor:C.light},
+                {text:w.totalZaliczka>0?`${fmt(w.totalZaliczka)} PLN`:"—", bold:true, fontSize:8, alignment:"right", color:C.red, fillColor:C.light},
+                {text:`${fmt(w.totalNet)} PLN`, bold:true, fontSize:8, alignment:"right", color:C.red, fillColor:C.light},
+              ],
+            ],
+          },
+          layout:{hLineColor:()=>"#E5E7EB", vLineColor:()=>"#E5E7EB"},
+        }
+      );
+    });
+
+    const dd: Parameters<typeof pdfMake.createPdf>[0] = {
+      pageSize:"A4", pageOrientation:"landscape",
+      pageMargins:[40,60,40,60],
+      defaultStyle:{font:"Roboto", fontSize:10, lineHeight:1.3},
+      content:[
+        // Header bar
+        {canvas:[{type:"rect",x:0,y:0,w:762,h:55,color:C.navy}]},
+        {text:"W&G DOM", fontSize:26, bold:true, color:C.white, absolutePosition:{x:40,y:18}},
+        {text:"Raport Miesięczny", fontSize:12, color:C.red, absolutePosition:{x:40,y:46}},
+        {text:monthLabel, fontSize:20, bold:true, color:C.white, absolutePosition:{x:500,y:22}},
+        {text:`Wygenerowano: ${new Date().toLocaleDateString("pl-PL")}`, fontSize:8, color:C.muted, absolutePosition:{x:500,y:50}},
+        {text:" ", fontSize:6, margin:[0,20,0,0]},
+
+        // Summary boxes
+        {
+          columns:[
+            {stack:[
+              {canvas:[{type:"rect",x:0,y:0,w:170,h:55,color:"#1A2332",r:6}]},
+              {text:"WYPŁATY NETTO", fontSize:7, bold:true, color:C.muted, absolutePosition:{x:10,y:8}},
+              {text:`${fmt(monthlyNet)} PLN`, fontSize:16, bold:true, color:C.red, absolutePosition:{x:10,y:22}},
+              {text:`${fmtH(monthlyHours)} · ${filteredWeeks.length} tyg.`, fontSize:7, color:C.muted, absolutePosition:{x:10,y:46}},
+            ], width:180, margin:[0,0,0,0]},
+            {stack:[
+              {canvas:[{type:"rect",x:0,y:0,w:170,h:55,color:"#1A2332",r:6}]},
+              {text:"KOSZT ROBÓT", fontSize:7, bold:true, color:C.muted, absolutePosition:{x:10,y:8}},
+              {text:`${fmt(monthJobsCost)} PLN`, fontSize:16, bold:true, color:C.white, absolutePosition:{x:10,y:22}},
+              {text:`${monthJobs.filter(j=>j.status==="in_progress").length} w trakcie · ${monthJobs.filter(j=>j.status==="completed").length} zdanych`, fontSize:7, color:C.muted, absolutePosition:{x:10,y:46}},
+            ], width:180, margin:[0,0,0,0]},
+            {stack:[
+              {canvas:[{type:"rect",x:0,y:0,w:170,h:55,color:"#1A2332",r:6}]},
+              {text:"MATERIAŁY", fontSize:7, bold:true, color:C.muted, absolutePosition:{x:10,y:8}},
+              {text:`${fmt(monthMatCost)} PLN`, fontSize:16, bold:true, color:C.white, absolutePosition:{x:10,y:22}},
+              {text:`${monthJobs.length} robót`, fontSize:7, color:C.muted, absolutePosition:{x:10,y:46}},
+            ], width:180, margin:[0,0,0,0]},
+            {stack:[
+              {canvas:[{type:"rect",x:0,y:0,w:170,h:55,color:"#1A2332",r:6}]},
+              {text:"FAKTUROWANIE", fontSize:7, bold:true, color:C.muted, absolutePosition:{x:10,y:8}},
+              {text:`${fmt(monthInvoiced)} PLN`, fontSize:16, bold:true, color:monthInvoiced>0?C.green:C.muted, absolutePosition:{x:10,y:22}},
+              {text:`zysk: ${fmt(monthInvoiced-monthJobsCost-monthMatCost)} PLN`, fontSize:7, color:C.muted, absolutePosition:{x:10,y:46}},
+            ], width:180, margin:[0,0,0,0]},
+          ],
+          columnGap:10,
+          margin:[0,10,0,20],
+        },
+
+        // Jobs section
+        ...(monthJobs.length>0 ? [
+          {text:"ROBOTY W MIESIĄCU", fontSize:9, bold:true, color:C.muted, margin:[0,0,0,6]},
+          {
+            table:{
+              headerRows:1,
+              widths:["*","*","auto","auto","auto","auto","auto"],
+              body:[
+                [
+                  {text:"Adres", bold:true, fillColor:C.navy, color:C.white, fontSize:8},
+                  {text:"Klient", bold:true, fillColor:C.navy, color:C.white, fontSize:8},
+                  {text:"Status", bold:true, fillColor:C.navy, color:C.white, fontSize:8},
+                  {text:"Koszt prac", bold:true, fillColor:C.navy, color:C.white, fontSize:8, alignment:"right"},
+                  {text:"Materiały", bold:true, fillColor:C.navy, color:C.white, fontSize:8, alignment:"right"},
+                  {text:"Łącznie", bold:true, fillColor:C.navy, color:C.white, fontSize:8, alignment:"right"},
+                  {text:"Faktura", bold:true, fillColor:C.navy, color:C.white, fontSize:8, alignment:"right"},
+                ],
+                ...jobRows,
+                [
+                  {text:"SUMA", bold:true, fillColor:C.light, colSpan:3, fontSize:9}, {}, {},
+                  {text:`${fmt(monthJobsCost)} PLN`, bold:true, fillColor:C.light, alignment:"right", fontSize:9, color:C.muted},
+                  {text:`${fmt(monthMatCost)} PLN`, bold:true, fillColor:C.light, alignment:"right", fontSize:9, color:C.muted},
+                  {text:`${fmt(monthJobsCost+monthMatCost)} PLN`, bold:true, fillColor:C.light, alignment:"right", fontSize:9, color:C.red},
+                  {text:monthInvoiced>0?`${fmt(monthInvoiced)} PLN`:"—", bold:true, fillColor:C.light, alignment:"right", fontSize:9},
+                ],
+              ],
+            },
+            layout:{hLineColor:()=>"#E5E7EB", vLineColor:()=>"#E5E7EB"},
+            margin:[0,0,0,20],
+          },
+        ] as unknown[] : []),
+
+        // Payroll section
+        ...(filteredWeeks.length>0 ? [
+          {text:"LISTA PŁAC — TYGODNIE", fontSize:9, bold:true, color:C.muted, margin:[0,0,0,8]},
+          ...payrollSections,
+          // Monthly payroll total
+          {
+            canvas:[{type:"rect",x:0,y:0,w:762,h:42,color:C.navy}],
+            margin:[0,14,0,0],
+          },
+          {
+            columns:[
+              {text:"PODSUMOWANIE WYPŁAT — "+monthLabel, fontSize:10, bold:true, color:C.white},
+              {stack:[
+                {columns:[
+                  {text:"Brutto:", fontSize:9, color:C.muted, width:"auto"},
+                  {text:`${fmt(monthlyGross)} PLN`, fontSize:9, color:C.white, width:"auto", margin:[6,0,0,0]},
+                  {text:"Zaliczki:", fontSize:9, color:C.muted, width:"auto", margin:[12,0,0,0]},
+                  {text:`${fmt(monthlyZaliczka)} PLN`, fontSize:9, color:monthlyZaliczka>0?C.red:C.muted, width:"auto", margin:[6,0,0,0]},
+                  {text:"DO WYPŁATY:", fontSize:10, bold:true, color:C.white, width:"auto", margin:[14,0,0,0]},
+                  {text:`${fmt(monthlyNet)} PLN`, fontSize:14, bold:true, color:C.red, width:"auto", margin:[6,-2,0,0]},
+                ]},
+              ], alignment:"right"},
+            ],
+            absolutePosition:{x:40, y:-42+12},
+          },
+          {text:" ", fontSize:6, margin:[0,26,0,0]},
+        ] as unknown[] : []),
+      ],
+    };
+    pdfMake.createPdf(dd).download(filename);
+  };
+
+  if(savedWeeks.length===0) return <div className="flex-1 flex flex-col items-center justify-center gap-4 text-muted-foreground"><Archive size={48} className="opacity-15"/><p className="text-sm font-medium">Brak zapisanych tygodni</p><p className="text-xs text-center max-w-xs">Przejdź do Listy Płac i kliknij "Zapisz tydzień".</p></div>;
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 space-y-6">
+        <div className="flex items-center gap-2 flex-wrap">
+          {years.map((y)=><button key={y} onClick={()=>{setSelectedYear(y);setSelectedMonth(null);}} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeYear===y?"bg-primary text-primary-foreground":"bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>{y}</button>)}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <StatCard label="Wypłaty rok" value={`${fmt(yearlyNet)} PLN`} sub={`${yearlyWeeks.length} tygodni`} icon={TrendingUp} accent/>
+          <StatCard label="Godziny rok" value={fmtH(yearlyHours)} sub={`śr. ${fmtH(yearlyHours/Math.max(yearlyWeeks.length,1))}/tydz.`} icon={Clock}/>
+          <StatCard label="Tygodni" value={String(yearlyWeeks.length)} sub="zapisanych" icon={Calendar}/>
+          <StatCard label="Miesięcy" value={String(new Set(yearlyWeeks.map(w=>new Date(w.weekFrom).getMonth())).size)} sub={`z ${activeYear}`} icon={Archive}/>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {months.map((m)=><button key={m} onClick={()=>setSelectedMonth(m)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${activeMonth===m?"bg-secondary text-foreground border border-primary/30":"text-muted-foreground hover:text-foreground hover:bg-secondary/50"}`}>{MONTH_NAMES[m]}</button>)}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <StatCard label={`Wypłaty — ${MONTH_NAMES[activeMonth]}`} value={`${fmt(monthlyNet)} PLN`} sub={`${filteredWeeks.length} tygodni`} icon={Wallet} accent/>
+          <StatCard label="Godziny w miesiącu" value={fmtH(monthlyHours)} sub={`brutto: ${fmt(monthlyGross)} PLN`} icon={Clock}/>
+          <StatCard label="Maks. pracownicy" value={String(Math.max(...filteredWeeks.map(w=>w.totalEmployees),0))} sub="w tygodniu" icon={Users}/>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground px-1">Tygodnie — {MONTH_NAMES[activeMonth]} {activeYear}</h3>
+          <button onClick={exportMonthlyReport} className="flex items-center gap-2 px-4 py-2 bg-destructive/80 hover:bg-destructive text-white rounded-xl text-sm font-medium transition-colors shrink-0">
+            <FileDown size={14}/>Raport miesięczny PDF
+          </button>
+        </div>
+        {filteredWeeks.length===0&&<div className="bg-card rounded-xl border border-border p-8 text-center text-muted-foreground text-sm">Brak zapisanych tygodni w tym miesiącu.</div>}
+        {filteredWeeks.map((week)=>{
+          const isOpen=expandedWeek===week.id;
+          return <div key={week.id} className="bg-card rounded-xl border border-border overflow-hidden">
+            <button onClick={()=>{setExpandedWeek(isOpen?null:week.id);setExpandedTab("payroll");}} className="w-full px-5 py-4 flex items-center gap-4 hover:bg-secondary/20 transition-colors text-left">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-sm font-semibold">{fmtDate(week.weekFrom)} – {fmtDate(week.weekTo)}</span>
+                  <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">{week.totalEmployees} prac.</span>
+                  {week.weekEmployees && week.weekEmployees.length > 0 && (
+                    <span className="text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-full">+ grafik</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-4 mt-0.5">
+                  <span className="text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(week.totalHours)}</span>
+                  <span className="text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>brutto: {fmt(week.totalGross)} PLN</span>
+                  <span className="text-xs font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>netto: {fmt(week.totalNet)} PLN</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {deleteConfirm===week.id?<div className="flex items-center gap-1" onClick={(e)=>e.stopPropagation()}><button onClick={()=>onDelete(week.id)} className="text-xs bg-destructive text-white px-2 py-1 rounded font-medium">Usuń</button><button onClick={()=>setDeleteConfirm(null)} className="text-xs text-muted-foreground px-1"><X size={12}/></button></div>:<button onClick={(e)=>{e.stopPropagation();setDeleteConfirm(week.id);}} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors rounded"><Trash2 size={13}/></button>}
+                {isOpen?<ChevronUp size={16} className="text-muted-foreground"/>:<ChevronDown size={16} className="text-muted-foreground"/>}
+              </div>
+            </button>
+            {isOpen&&<div className="border-t border-border">
+              <div className="flex border-b border-border px-2 pt-2 gap-1">
+                <button onClick={()=>setExpandedTab("payroll")} className={`px-4 py-2 text-xs font-medium rounded-t-lg transition-colors ${expandedTab==="payroll"?"bg-background text-primary border border-b-0 border-border":"text-muted-foreground hover:text-foreground"}`}>
+                  Lista płac
+                </button>
+                <button onClick={()=>setExpandedTab("schedule")} className={`px-4 py-2 text-xs font-medium rounded-t-lg transition-colors flex items-center gap-1.5 ${expandedTab==="schedule"?"bg-background text-primary border border-b-0 border-border":"text-muted-foreground hover:text-foreground"}`}>
+                  <CalendarDays size={12}/>Grafik
+                </button>
+              </div>
+              {expandedTab==="payroll" ? (
+              <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead><tr className="text-xs text-muted-foreground border-b border-border" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                  <th className="px-5 py-2.5 text-left">Pracownik</th><th className="px-3 py-2.5 text-left hidden sm:table-cell">Stanowisko</th>
+                  <th className="px-3 py-2.5 text-right">Godziny</th><th className="px-3 py-2.5 text-right">Brutto</th>
+                  <th className="px-3 py-2.5 text-right">Zaliczki</th><th className="px-3 py-2.5 text-right">Wypłata</th>
+                  <th className="px-5 py-2.5 text-center">Status</th>
+                </tr></thead>
+                <tbody className="divide-y divide-border">
+                  {week.employees.map((emp,i)=>(
+                    <tr key={i} className={`hover:bg-secondary/20 ${emp.settled?"opacity-60":""}`}>
+                      <td className="px-5 py-3"><div className="flex items-center gap-2"><div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{emp.name?emp.name[0].toUpperCase():"?"}</div><span className="font-medium">{emp.name||"—"}</span></div></td>
+                      <td className="px-3 py-3 text-muted-foreground text-xs hidden sm:table-cell">{emp.position||"—"}</td>
+                      <td className="px-3 py-3 text-right text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(emp.totalHours)}</td>
+                      <td className="px-3 py-3 text-right text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(emp.grossPay)}</td>
+                      <td className="px-3 py-3 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{emp.totalZaliczka>0?<span className="text-destructive">−{fmt(emp.totalZaliczka)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
+                      <td className="px-3 py-3 text-right font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(emp.netPay)} PLN</td>
+                      <td className="px-5 py-3 text-center"><span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${emp.settled?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>{emp.settled?<><CheckCircle2 size={10}/>Rozliczony</>:<><Circle size={10}/>Oczekuje</>}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot><tr className="border-t border-border bg-secondary/20">
+                  <td className="px-5 py-2.5 text-xs font-bold text-muted-foreground uppercase" colSpan={2}>Suma</td>
+                  <td className="px-3 py-2.5 text-right text-xs font-bold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(week.totalHours)}</td>
+                  <td className="px-3 py-2.5 text-right text-xs font-bold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(week.totalGross)}</td>
+                  <td className="px-3 py-2.5 text-right text-xs font-bold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>{week.totalZaliczka>0?`−${fmt(week.totalZaliczka)}`:"—"}</td>
+                  <td className="px-3 py-2.5 text-right text-sm font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(week.totalNet)} PLN</td>
+                  <td/>
+                </tr></tfoot>
+              </table>
+              </div>
+              ) : (
+                <ArchiveScheduleGrid week={week} directory={directory}/>
+              )}
+            </div>}
+          </div>;
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Jobs View ────────────────────────────────────────────────────────────────
+
+function JobsView({jobs, setJobs, directory}:{jobs:Job[]; setJobs:(v:Job[]|((p:Job[])=>Job[]))=>void; directory:DirectoryEmployee[]}) {
+  const [selectedJobId, setSelectedJobId] = useState<string|null>(null);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"all"|"in_progress"|"completed">("all");
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string|null>(null);
+  const [workerFilter, setWorkerFilter] = useState<string>("");
+
+  // Work entry add form state
+  const [showAddEntry, setShowAddEntry] = useState(false);
+  const [entryDirId, setEntryDirId] = useState("");
+  const [entryDate, setEntryDate] = useState(localIsoDate());
+  const [entryHours, setEntryHours] = useState("8");
+  const [entryRate, setEntryRate] = useState("");
+
+  const [statusWarning, setStatusWarning] = useState(false);
+
+  const selectedJob = jobs.find(j=>j.id===selectedJobId)||null;
+
+  const docsCount = (job: Job) => DOCUMENT_TYPES.filter(d=>job.documents[d]).length;
+  const allDocsDone = (job: Job) => REQUIRED_DOCS.every(d=>job.documents[d]);
+
+  const updateJob = (updated: Job) => {
+    // auto-complete when all docs checked
+    const wasAllDone = allDocsDone(updated);
+    const withStatus = wasAllDone && updated.status === "in_progress"
+      ? { ...updated, status: "completed" as const }
+      : updated;
+    setJobs(prev=>prev.map(j=>j.id===withStatus.id?withStatus:j));
+  };
+
+  const tryToggleStatus = (job: Job) => {
+    if (job.status === "in_progress" && !allDocsDone(job)) {
+      setStatusWarning(true);
+      setTimeout(() => setStatusWarning(false), 4000);
+      return;
+    }
+    setStatusWarning(false);
+    updateJob({ ...job, status: job.status === "in_progress" ? "completed" : "in_progress" });
+  };
+
+  const addJob = () => {
+    const j = defaultJob();
+    setJobs(prev=>[j,...prev]);
+    setSelectedJobId(j.id);
+  };
+
+  const deleteJob = (id: string) => {
+    setJobs(prev=>prev.filter(j=>j.id!==id));
+    if(selectedJobId===id) setSelectedJobId(null);
+    setDeleteConfirmId(null);
+  };
+
+  const exportJobPDF = (job: Job) => {
+    const C2 = { navy:"#344254", red:"#C0392B", light:"#EDF1F6", white:"#FFFFFF", muted:"#8A9BB0" };
+    const title = `${job.address||"Bez adresu"}${job.flatNumber?` m.${job.flatNumber}`:""}`;
+    const docsChecked = DOCUMENT_TYPES.filter(d=>job.documents[d]);
+    const workerRows = job.workEntries.map(e=>[
+      {text:fmtDate(e.date),fontSize:9,color:C2.muted},{text:e.employeeName||"—",fontSize:9},
+      {text:fmtH(e.hours),fontSize:9,alignment:"right"},{text:`${fmt(e.rate)} PLN/h`,fontSize:9,color:C2.muted,alignment:"right"},
+      {text:`${fmt(e.hours*e.rate)} PLN`,fontSize:9,bold:true,alignment:"right",color:C2.red},
+    ]);
+    const matRows = (job.materials||[]).map(m=>[
+      {text:m.description||"—",fontSize:9},{text:fmtDate(m.date),fontSize:9,color:C2.muted,alignment:"right"},
+      {text:`${fmt(m.cost)} PLN`,fontSize:9,bold:true,alignment:"right",color:C2.red},
+    ]);
+    const dd: Parameters<typeof pdfMake.createPdf>[0] = {
+      pageSize:"A4", pageOrientation:"portrait",
+      pageMargins:[40,60,40,60],
+      defaultStyle:{font:"Roboto",fontSize:10,lineHeight:1.3},
+      content:[
+        {canvas:[{type:"rect",x:0,y:0,w:515,h:50,color:C2.navy}]},
+        {text:"W&G DOM", fontSize:22, bold:true, color:C2.white, absolutePosition:{x:40,y:20}},
+        {text:"Karta Roboty", fontSize:11, color:C2.red, absolutePosition:{x:40,y:46}},
+        {text:`Wygenerowano: ${new Date().toLocaleDateString("pl-PL")}`, fontSize:8, color:C2.muted, absolutePosition:{x:350,y:52}},
+        {text:" ", fontSize:6, margin:[0,20,0,0]},
+        // Job header
+        {text:title, fontSize:18, bold:true, color:C2.navy, margin:[0,8,0,2]},
+        {text:job.client||"—", fontSize:11, color:C2.muted, margin:[0,0,0,10]},
+        {
+          columns:[
+            {stack:[
+              {text:"Data rozpoczęcia", fontSize:8, color:C2.muted},
+              {text:fmtDate(job.startDate)||"—", fontSize:10, bold:true, color:C2.navy},
+            ]},
+            {stack:[
+              {text:"Data zakończenia", fontSize:8, color:C2.muted},
+              {text:fmtDate(job.endDate)||"—", fontSize:10, bold:true, color:C2.navy},
+            ]},
+            {stack:[
+              {text:"Status", fontSize:8, color:C2.muted},
+              {text:job.status==="completed"?"Zdane":"W trakcie", fontSize:10, bold:true, color:job.status==="completed"?"#1E7E34":C2.red},
+            ]},
+            {stack:[
+              {text:"Klucze", fontSize:8, color:C2.muted},
+              {text:job.keysHandedOver?"Zdane":"Nie zdane", fontSize:10, bold:true, color:job.keysHandedOver?"#1E7E34":C2.muted},
+            ]},
+          ],
+          margin:[0,0,0,14],
+        },
+        // Documents
+        {text:"DOKUMENTY DO ODBIORU", fontSize:8, bold:true, color:C2.muted, margin:[0,0,0,6]},
+        {
+          columns: DOCUMENT_TYPES.map(d=>({
+            stack:[
+              {canvas:[{type:"rect",x:0,y:0,w:55,h:32,color:job.documents[d]?"#D4EFDF":"#F8F9FB",r:4}]},
+              {text:DOC_LABELS[d], fontSize:7, color:job.documents[d]?"#1E7E34":C2.muted, absolutePosition:{x:0,y:0}, margin:[4,10,4,0], alignment:"center"},
+            ],
+            width:"auto",margin:[0,0,6,0],
+          })),
+          columnGap:0,
+          margin:[0,0,0,16],
+        },
+        // Workers
+        ...(job.workEntries.length>0 ? [
+          {text:"CZAS PRACY PRACOWNIKÓW", fontSize:8, bold:true, color:C2.muted, margin:[0,0,0,4]},
+          {
+            table:{
+              headerRows:1,
+              widths:["auto","*","auto","auto","auto"],
+              body:[
+                [{text:"Data",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8},{text:"Pracownik",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8},{text:"Godz.",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8,alignment:"right"},{text:"Stawka",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8,alignment:"right"},{text:"Koszt",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8,alignment:"right"}],
+                ...workerRows,
+                [{text:"Suma",bold:true,fillColor:C2.light,colSpan:2,fontSize:9},{},
+                 {text:fmtH(jobTotalHours(job)),bold:true,fillColor:C2.light,alignment:"right",fontSize:9},
+                 {text:"",fillColor:C2.light},
+                 {text:`${fmt(jobCost(job))} PLN`,bold:true,fillColor:C2.light,color:C2.red,alignment:"right",fontSize:9}],
+              ],
+            },
+            layout:{hLineColor:()=>"#E5E7EB",vLineColor:()=>"#E5E7EB"},
+            margin:[0,0,0,12],
+          },
+        ] : []),
+        // Materials
+        ...(matRows.length>0 ? [
+          {text:"MATERIAŁY", fontSize:8, bold:true, color:C2.muted, margin:[0,0,0,4]},
+          {
+            table:{
+              headerRows:1,
+              widths:["*","auto","auto"],
+              body:[
+                [{text:"Opis",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8},{text:"Data",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8,alignment:"right"},{text:"Koszt",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8,alignment:"right"}],
+                ...matRows,
+                [{text:"Suma materiałów",bold:true,fillColor:C2.light,colSpan:2,fontSize:9},{},{text:`${fmt(jobMaterialsCost(job))} PLN`,bold:true,fillColor:C2.light,color:C2.red,alignment:"right",fontSize:9}],
+              ],
+            },
+            layout:{hLineColor:()=>"#E5E7EB",vLineColor:()=>"#E5E7EB"},
+            margin:[0,0,0,12],
+          },
+        ] : []),
+        // Total
+        ...((job.workEntries.length>0||(job.materials||[]).length>0) ? [
+          {canvas:[{type:"rect",x:0,y:0,w:515,h:40,color:C2.navy}]},
+          {columns:[
+            {text:"ŁĄCZNY KOSZT REMONTU", fontSize:9, bold:true, color:C2.white, margin:[0,12,0,0]},
+            {text:`${fmt(jobTotalCost(job))} PLN`, fontSize:18, bold:true, color:C2.red, alignment:"right", margin:[0,6,0,0]},
+          ], absolutePosition:{x:40,y:-40+2}},
+          {text:" ", fontSize:6, margin:[0,24,0,0]},
+        ] : []),
+        // Notes
+        ...(job.notes ? [
+          {text:"NOTATKI", fontSize:8, bold:true, color:C2.muted, margin:[0,8,0,4]},
+          {text:job.notes, fontSize:9, color:C2.navy, margin:[0,0,0,0]},
+        ] : []),
+      ],
+    };
+    pdfMake.createPdf(dd).download(`robota-${(job.address||"bez-adresu").replace(/\s+/g,"-").toLowerCase()}.pdf`);
+  };
+
+  // Filter + search
+  const filtered = jobs.filter(j=>{
+    if(filter==="in_progress"&&j.status!=="in_progress") return false;
+    if(filter==="completed"&&j.status!=="completed") return false;
+    if(workerFilter && !j.workEntries.some(e=>e.directoryId===workerFilter)) return false;
+    const q = search.toLowerCase();
+    return !q || j.address.toLowerCase().includes(q) || j.client.toLowerCase().includes(q) || j.flatNumber.toLowerCase().includes(q);
+  });
+
+  // Group by month of startDate
+  const grouped = useMemo(()=>{
+    const map = new Map<string, Job[]>();
+    filtered.forEach(j=>{
+      const d = new Date(j.startDate);
+      const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2,"0")}`;
+      if(!map.has(key)) map.set(key,[]);
+      map.get(key)!.push(j);
+    });
+    // Sort groups newest first
+    return Array.from(map.entries()).sort((a,b)=>b[0].localeCompare(a[0]));
+  },[filtered]);
+
+  const groupLabel = (key: string) => {
+    const [y,m] = key.split("-");
+    return `${MONTH_NAMES[parseInt(m)]} ${y}`;
+  };
+
+  // Work entry form helpers
+  const selectedDirEmp = directory.find(d=>d.id===entryDirId)||null;
+
+  const handleAddEntry = () => {
+    if(!selectedJob||!entryDirId||!entryDate||!entryHours) return;
+    const emp = directory.find(d=>d.id===entryDirId);
+    const entry: WorkEntry = {
+      id: crypto.randomUUID(),
+      directoryId: entryDirId,
+      employeeName: emp?.name||"—",
+      date: entryDate,
+      hours: parseFloat(entryHours)||0,
+      rate: parseFloat(entryRate)||parseFloat(emp?.defaultRate||"0")||0,
+      notes: "",
+    };
+    updateJob({...selectedJob, workEntries:[...selectedJob.workEntries,entry]});
+    setShowAddEntry(false);
+    setEntryDirId("");
+    setEntryHours("8");
+    setEntryRate("");
+  };
+
+  const openAddEntry = () => {
+    setEntryDirId("");
+    setEntryDate(localIsoDate());
+    setEntryHours("8");
+    setEntryRate("");
+    setShowAddEntry(true);
+  };
+
+  return (
+    <div className="flex flex-1 min-h-0 overflow-hidden">
+      {/* Left panel — job list */}
+      <div className={`flex flex-col border-r border-border bg-card shrink-0 overflow-hidden transition-all duration-300 ${selectedJob?"hidden sm:flex sm:w-72 lg:w-80":"flex w-full sm:w-72 lg:w-80"}`}>
+        {/* Top */}
+        <div className="px-4 pt-4 pb-3 space-y-3 border-b border-border">
+          <button onClick={addJob} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors">
+            <Plus size={14}/>Nowa robota
+          </button>
+          <div className="relative">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
+            <input type="text" placeholder="Szukaj adresu, klienta..." value={search} onChange={e=>setSearch(e.target.value)} className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"/>
+          </div>
+          <div className="flex gap-1">
+            {(["all","in_progress","completed"] as const).map(f=>(
+              <button key={f} onClick={()=>setFilter(f)} className={`flex-1 text-xs py-1.5 rounded-lg font-medium transition-colors ${filter===f?"bg-secondary text-foreground border border-primary/30":"text-muted-foreground hover:text-foreground hover:bg-secondary/50"}`}>
+                {f==="all"?"Wszystkie":f==="in_progress"?"W trakcie":"Zdane"}
+              </button>
+            ))}
+          </div>
+          {directory.filter(d=>d.active).length>0&&(
+            <select value={workerFilter} onChange={e=>setWorkerFilter(e.target.value)}
+              className="w-full bg-secondary rounded-lg px-3 py-2 text-xs border border-transparent focus:border-primary focus:outline-none text-muted-foreground">
+              <option value="">Wszyscy pracownicy</option>
+              {directory.filter(d=>d.active).map(d=>(
+                <option key={d.id} value={d.id}>{d.name}{d.position?` — ${d.position}`:""}</option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        {/* Job list */}
+        <div className="flex-1 overflow-y-auto">
+          {jobs.length===0&&(
+            <div className="p-8 text-center space-y-2 text-muted-foreground">
+              <MapPin size={32} className="mx-auto opacity-20"/>
+              <p className="text-sm">Brak robót. Kliknij "Nowa robota".</p>
+            </div>
+          )}
+          {grouped.map(([key,groupJobs])=>(
+            <div key={key}>
+              <div className="px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground bg-background/50 border-b border-border sticky top-0">
+                {groupLabel(key)}
+              </div>
+              {groupJobs.map(job=>{
+                const docsCount = DOCUMENT_TYPES.filter(d=>job.documents[d]).length;
+                const cost = jobCost(job);
+                const isSelected = job.id===selectedJobId;
+                return (
+                  <button key={job.id} onClick={()=>setSelectedJobId(job.id)} className={`w-full text-left px-4 py-3.5 border-b border-border transition-colors hover:bg-secondary/40 ${isSelected?"bg-primary/8 border-l-2 border-l-primary":""}`}>
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold truncate leading-tight">{job.address||<span className="italic text-muted-foreground">Bez adresu</span>}{job.flatNumber&&<span className="text-muted-foreground"> m.{job.flatNumber}</span>}</p>
+                        <p className="text-xs text-muted-foreground truncate">{job.client||"—"}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {job.keysHandedOver && <span title="Klucze zdane"><KeyRound size={12} className="text-blue-400"/></span>}
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${job.status==="completed"?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>
+                          {job.status==="completed"?"Zdane":"W trakcie"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mt-2">
+                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        <div className="flex-1 bg-border rounded-full h-1 overflow-hidden">
+                          <div className="bg-primary h-1 rounded-full transition-all" style={{width:`${(docsCount/REQUIRED_DOCS.length)*100}%`}}/>
+                        </div>
+                        <span className="text-xs text-muted-foreground shrink-0">{docsCount}/{REQUIRED_DOCS.length}</span>
+                      </div>
+                      {cost>0&&<span className="text-xs font-semibold text-primary shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cost)} PLN</span>}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+          {jobs.length>0&&filtered.length===0&&(
+            <div className="p-8 text-center text-muted-foreground text-sm">Brak wyników.</div>
+          )}
+        </div>
+      </div>
+
+      {/* Right panel — job detail */}
+      {selectedJob ? (
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-3xl mx-auto px-4 sm:px-8 py-6 space-y-6">
+
+            {/* Back button (mobile) */}
+            <button onClick={()=>setSelectedJobId(null)} className="sm:hidden flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2">
+              <ChevronRight size={14} className="rotate-180"/>Powrót do listy
+            </button>
+
+            {/* Header */}
+            <div className="bg-card rounded-xl border border-border p-5 space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-1">Adres</label>
+                      <input type="text" value={selectedJob.address} onChange={e=>updateJob({...selectedJob,address:e.target.value})} placeholder="ul. Przykładowa 12" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-1">Nr mieszkania</label>
+                      <input type="text" value={selectedJob.flatNumber} onChange={e=>updateJob({...selectedJob,flatNumber:e.target.value})} placeholder="np. 5A" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-1">Klient / Zleceniodawca</label>
+                      <input type="text" value={selectedJob.client} onChange={e=>updateJob({...selectedJob,client:e.target.value})} placeholder="np. Wrocławskie Mieszkania" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <label className="text-xs text-muted-foreground block mb-1">Data rozpoczęcia</label>
+                        <input type="date" value={selectedJob.startDate} onChange={e=>updateJob({...selectedJob,startDate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-xs text-muted-foreground block mb-1">Data zakończenia</label>
+                        <input type="date" value={selectedJob.endDate} onChange={e=>updateJob({...selectedJob,endDate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status row */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <button
+                    onClick={()=>tryToggleStatus(selectedJob)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${selectedJob.status==="completed"?"bg-green-500/15 text-green-400 border-green-500/20 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 border-yellow-500/20 hover:bg-yellow-500/20"}`}>
+                    {selectedJob.status==="completed"?<><CheckCircle2 size={13}/>Zdane</>:<><Circle size={13}/>W trakcie</>}
+                  </button>
+                  <button
+                    onClick={()=>updateJob({...selectedJob, keysHandedOver:!selectedJob.keysHandedOver})}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${selectedJob.keysHandedOver?"bg-blue-500/15 text-blue-400 border-blue-500/20 hover:bg-blue-500/25":"bg-secondary text-muted-foreground border-border hover:text-foreground hover:bg-secondary/70"}`}>
+                    {selectedJob.keysHandedOver?<><CheckCircle2 size={13}/>Klucze zdane</>:<><Circle size={13}/>Klucze</>}
+                  </button>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock size={13}/>
+                    <span>Czas remontu: <span className="font-semibold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{jobDuration(selectedJob)} dni</span></span>
+                  </div>
+                  {!allDocsDone(selectedJob) && selectedJob.status === "in_progress" && (
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      Brakuje <span className="font-semibold text-yellow-400">{REQUIRED_DOCS.filter(d=>!selectedJob.documents[d]).length}</span> z {REQUIRED_DOCS.length} wymaganych dokumentów
+                    </span>
+                  )}
+                  {allDocsDone(selectedJob) && selectedJob.status === "in_progress" && (
+                    <span className="text-xs text-green-400 ml-auto flex items-center gap-1">
+                      <CheckCircle2 size={11}/>Wszystkie dokumenty skompletowane — można zdać
+                    </span>
+                  )}
+                </div>
+                {statusWarning && (
+                  <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-lg px-4 py-2.5 text-sm text-destructive">
+                    <X size={14} className="shrink-0"/>
+                    <span>
+                      Nie można oznaczyć jako zdane — brakuje <strong>{REQUIRED_DOCS.filter(d=>!selectedJob.documents[d]).length}</strong> dokumentów:{" "}
+                      {REQUIRED_DOCS.filter(d=>!selectedJob.documents[d]).map(d=>DOC_LABELS[d]).join(", ")}.
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2 justify-end flex-wrap">
+                  <button onClick={()=>exportJobPDF(selectedJob)} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-destructive/80 hover:bg-destructive text-white rounded-lg font-medium transition-colors">
+                    <FileDown size={12}/>PDF
+                  </button>
+                  {deleteConfirmId===selectedJob.id?(
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">Na pewno usunąć?</span>
+                      <button onClick={()=>deleteJob(selectedJob.id)} className="text-xs bg-destructive text-white px-3 py-1 rounded-lg font-medium">Usuń</button>
+                      <button onClick={()=>setDeleteConfirmId(null)} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg"><X size={12}/></button>
+                    </div>
+                  ):(
+                    <button onClick={()=>setDeleteConfirmId(selectedJob.id)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition-colors px-2 py-1 rounded-lg hover:bg-secondary">
+                      <Trash2 size={12}/>Usuń robotę
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <label className="text-xs text-muted-foreground flex-1">Notatki</label>
+                  <VoiceNoteButton onResult={text=>updateJob({...selectedJob,notes:(selectedJob.notes?selectedJob.notes+" ":"")+text})}/>
+                </div>
+                <textarea value={selectedJob.notes} onChange={e=>updateJob({...selectedJob,notes:e.target.value})} placeholder="Uwagi, informacje dodatkowe..." rows={3} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors resize-none"/>
+              </div>
+            </div>
+
+            {/* Documents card */}
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
+              <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText size={13} className="text-muted-foreground"/>
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Dokumenty do odbioru</span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  <span className="font-semibold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{REQUIRED_DOCS.filter(d=>selectedJob.documents[d]).length}</span>/{REQUIRED_DOCS.length} wymaganych
+                </span>
+              </div>
+              <div className="p-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {DOCUMENT_TYPES.map(doc=>{
+                  const checked = selectedJob.documents[doc];
+                  const optional = doc === "zdjecia";
+                  return (
+                    <button key={doc} onClick={()=>updateJob({...selectedJob,documents:{...selectedJob.documents,[doc]:!checked}})}
+                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all ${checked?"bg-green-500/10 border-green-500/20":optional?"bg-secondary border-dashed border-border hover:border-muted-foreground/30":"bg-secondary border-border hover:border-muted-foreground/30"}`}>
+                      {checked
+                        ? <CheckCircle2 size={15} className="text-green-400 shrink-0"/>
+                        : <Circle size={15} className="text-muted-foreground/40 shrink-0"/>
+                      }
+                      <div className="min-w-0">
+                        <span className={`text-xs font-medium leading-tight ${checked?"text-green-400":"text-muted-foreground"}`}>{DOC_LABELS[doc]}</span>
+                        {optional&&<p className="text-[10px] text-muted-foreground/50 leading-none mt-0.5">opcjonalne</p>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Workers & Cost card */}
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
+              <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users size={13} className="text-muted-foreground"/>
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pracownicy na robocie</span>
+                </div>
+                <button onClick={openAddEntry} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg font-medium transition-colors">
+                  <Plus size={12}/>Dodaj wpis
+                </button>
+              </div>
+
+              {/* Add entry form */}
+              {showAddEntry&&(
+                <div className="px-5 py-4 bg-secondary/40 border-b border-border space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nowy wpis pracy</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-1">Pracownik</label>
+                      <select value={entryDirId} onChange={e=>{
+                        setEntryDirId(e.target.value);
+                        const emp=directory.find(d=>d.id===e.target.value);
+                        if(emp) setEntryRate(emp.defaultRate);
+                      }} className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors">
+                        <option value="">Wybierz pracownika...</option>
+                        {directory.filter(d=>d.active).map(d=>(
+                          <option key={d.id} value={d.id}>{d.name} — {d.position}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-1">Data</label>
+                      <input type="date" value={entryDate} onChange={e=>setEntryDate(e.target.value)} className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-1">Godziny</label>
+                      <input type="number" min="0.5" step="0.5" value={entryHours} onChange={e=>setEntryHours(e.target.value)} className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-1">Stawka (PLN/h)</label>
+                      <input type="number" min="0" step="0.5" value={entryRate} onChange={e=>setEntryRate(e.target.value)} placeholder={selectedDirEmp?.defaultRate||"0"} className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={handleAddEntry} disabled={!entryDirId||!entryHours} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                      <Check size={13}/>Dodaj
+                    </button>
+                    <button onClick={()=>setShowAddEntry(false)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Anuluj</button>
+                    {entryDirId&&entryHours&&entryRate&&(
+                      <span className="ml-auto text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                        = {fmt((parseFloat(entryHours)||0)*(parseFloat(entryRate)||0))} PLN
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Work entries table */}
+              {selectedJob.workEntries.length===0&&!showAddEntry&&(
+                <div className="p-8 text-center text-muted-foreground text-sm">
+                  Brak wpisów. Kliknij "Dodaj wpis" aby dodać czas pracy.
+                </div>
+              )}
+              {selectedJob.workEntries.length>0&&(
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-xs text-muted-foreground border-b border-border" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                        <th className="px-5 py-2.5 text-left">Data</th>
+                        <th className="px-3 py-2.5 text-left">Pracownik</th>
+                        <th className="px-3 py-2.5 text-left hidden lg:table-cell">Notatka</th>
+                        <th className="px-3 py-2.5 text-right">Godziny</th>
+                        <th className="px-3 py-2.5 text-right">Stawka</th>
+                        <th className="px-3 py-2.5 text-right">Koszt</th>
+                        <th className="px-3 py-2.5 w-8"/>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {selectedJob.workEntries.map(entry=>(
+                        <tr key={entry.id} className="hover:bg-secondary/20">
+                          <td className="px-5 py-3 text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtDate(entry.date)}</td>
+                          <td className="px-3 py-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{entry.employeeName?entry.employeeName[0].toUpperCase():"?"}</div>
+                              <span className="text-sm font-medium">{entry.employeeName||"—"}</span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 hidden lg:table-cell">
+                            <input type="text" placeholder="np. łazienka, elektryka..." value={entry.notes||""}
+                              onChange={e=>updateJob({...selectedJob,workEntries:selectedJob.workEntries.map(we=>we.id===entry.id?{...we,notes:e.target.value}:we)})}
+                              className="w-full bg-transparent text-xs text-muted-foreground placeholder:text-muted-foreground/30 border-b border-transparent hover:border-border focus:border-primary focus:outline-none transition-colors py-1"/>
+                          </td>
+                          <td className="px-3 py-3 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(entry.hours)}</td>
+                          <td className="px-3 py-3 text-right text-muted-foreground text-xs" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(entry.rate)} PLN/h</td>
+                          <td className="px-3 py-3 text-right font-semibold text-primary text-sm" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(entry.hours*entry.rate)}</td>
+                          <td className="px-3 py-3">
+                            <button onClick={()=>updateJob({...selectedJob,workEntries:selectedJob.workEntries.filter(e=>e.id!==entry.id)})} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded">
+                              <Trash2 size={12}/>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t-2 border-border bg-secondary/30">
+                        <td colSpan={2} className="px-5 py-2.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">Suma</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(jobTotalHours(selectedJob))}</td>
+                        <td className="px-3 py-2.5 text-right text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                          {new Set(selectedJob.workEntries.map(e=>e.date)).size} dni
+                        </td>
+                        <td className="px-3 py-2.5 text-right text-sm font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(jobCost(selectedJob))}</td>
+                        <td/>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
+
+              {/* Cost summary card */}
+              {selectedJob.workEntries.length>0&&(
+                <div className="px-5 pb-2">
+                  <div className="bg-secondary/50 rounded-xl px-4 py-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Koszt pracowników</p>
+                      <p className="text-xs text-muted-foreground">{jobTotalHours(selectedJob).toFixed(1)}h · {new Set(selectedJob.workEntries.map(e=>e.date)).size} dni</p>
+                    </div>
+                    <span className="text-lg font-bold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(jobCost(selectedJob))} PLN</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Materials */}
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
+              <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-2"><Package size={13} className="text-muted-foreground"/><span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Materiały</span></div>
+                <button onClick={()=>{
+                  const desc=window.prompt("Opis materiału:");
+                  if(!desc) return;
+                  const costStr=window.prompt("Koszt (PLN):");
+                  const cost=parseFloat(costStr||"0")||0;
+                  const m:MaterialEntry={id:crypto.randomUUID(),description:desc,cost,date:new Date().toISOString().slice(0,10)};
+                  updateJob({...selectedJob,materials:[...(selectedJob.materials||[]),m]});
+                }} className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors">
+                  <Plus size={13}/>Dodaj
+                </button>
+              </div>
+              {(selectedJob.materials||[]).length===0 ? (
+                <p className="px-5 py-4 text-sm text-muted-foreground">Brak wpisów materiałów.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead><tr className="text-xs text-muted-foreground border-b border-border" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                      <th className="px-5 py-2 text-left">Opis</th><th className="px-3 py-2 text-right">Data</th><th className="px-5 py-2 text-right">Koszt</th>
+                    </tr></thead>
+                    <tbody className="divide-y divide-border">
+                      {(selectedJob.materials||[]).map(m=>(
+                        <tr key={m.id} className="hover:bg-secondary/20 group">
+                          <td className="px-5 py-2.5 font-medium">{m.description}</td>
+                          <td className="px-3 py-2.5 text-right text-muted-foreground text-xs" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtDate(m.date)}</td>
+                          <td className="px-5 py-2.5 text-right font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                            <span>{fmt(m.cost)} PLN</span>
+                            <button onClick={()=>updateJob({...selectedJob,materials:(selectedJob.materials||[]).filter(x=>x.id!==m.id)})} className="ml-2 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"><Trash2 size={12}/></button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot><tr className="border-t border-border bg-secondary/20">
+                      <td colSpan={2} className="px-5 py-2.5 text-xs font-bold text-muted-foreground uppercase">Suma materiałów</td>
+                      <td className="px-5 py-2.5 text-right font-bold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(jobMaterialsCost(selectedJob))} PLN</td>
+                    </tr></tfoot>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Total cost summary */}
+            {(selectedJob.workEntries.length>0||(selectedJob.materials||[]).length>0)&&(
+              <div className="bg-primary/10 border border-primary/20 rounded-xl px-5 py-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Łączny koszt remontu</p>
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <span>Pracownicy: {fmt(jobCost(selectedJob))} PLN</span>
+                    <span>Materiały: {fmt(jobMaterialsCost(selectedJob))} PLN</span>
+                  </div>
+                </div>
+                <span className="text-2xl font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(jobTotalCost(selectedJob))} <span className="text-base font-normal">PLN</span></span>
+              </div>
+            )}
+
+            {/* Invoice */}
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
+              <div className="px-5 py-4 border-b border-border flex items-center gap-2">
+                <Receipt size={13} className="text-muted-foreground"/>
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Faktura / Rozliczenie z klientem</span>
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {(["pending","invoiced","paid"] as const).map(s=>(
+                    <button key={s} onClick={()=>updateJob({...selectedJob,invoiceStatus:s})}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${selectedJob.invoiceStatus===s
+                        ? s==="paid"?"bg-green-500/20 text-green-400 border-green-500/30"
+                          :s==="invoiced"?"bg-blue-500/15 text-blue-400 border-blue-500/25"
+                          :"bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
+                        :"bg-transparent text-muted-foreground border-border hover:bg-secondary"}`}>
+                      {s==="paid"?<CheckCircle2 size={11}/>:s==="invoiced"?<FileText size={11}/>:<Circle size={11}/>}
+                      {s==="pending"?"Oczekuje":s==="invoiced"?"Wystawiona FV":"Zapłacone"}
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">Numer faktury</label>
+                    <input type="text" placeholder="FV/2025/001" value={selectedJob.invoiceNumber||""}
+                      onChange={e=>updateJob({...selectedJob,invoiceNumber:e.target.value})}
+                      className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">Kwota faktury (PLN)</label>
+                    <input type="number" min="0" step="100" placeholder="0.00" value={selectedJob.invoiceAmount||""}
+                      onChange={e=>updateJob({...selectedJob,invoiceAmount:e.target.value})}
+                      className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"
+                      style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                  </div>
+                </div>
+                {selectedJob.invoiceAmount&&parseFloat(selectedJob.invoiceAmount)>0&&(
+                  <div className="bg-secondary/50 rounded-lg px-4 py-2.5 flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Zysk (FV - koszt remontu)</span>
+                    <span className={`font-bold ${parseFloat(selectedJob.invoiceAmount)-jobTotalCost(selectedJob)>=0?"text-green-400":"text-destructive"}`} style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                      {fmt(parseFloat(selectedJob.invoiceAmount)-jobTotalCost(selectedJob))} PLN
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Photos */}
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
+              <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Camera size={13} className="text-muted-foreground"/>
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Zdjęcia</span>
+                  {(selectedJob.photos||[]).filter(p=>p.status==="pending").length > 0 && (
+                    <span className="bg-yellow-500/20 text-yellow-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {(selectedJob.photos||[]).filter(p=>p.status==="pending").length} nowych
+                    </span>
+                  )}
+                </div>
+                <label className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer px-2 py-1.5 rounded-lg hover:bg-secondary transition-colors">
+                  <ImagePlus size={13}/>Dodaj
+                  <input type="file" accept="image/*" multiple className="sr-only"
+                    onChange={async e=>{
+                      const files = e.target.files;
+                      if (!files) return;
+                      for (const file of Array.from(files)) {
+                        const { entry } = await uploadPhoto(selectedJob.id, file, "progress", "admin");
+                        if (entry) updateJob({...selectedJob, photos:[...(selectedJob.photos||[]), {...entry, status:"approved"}]});
+                      }
+                    }}/>
+                </label>
+              </div>
+              <div className="p-4">
+                <PhotoGallery
+                  photos={selectedJob.photos||[]}
+                  onUpdate={photos=>updateJob({...selectedJob, photos})}
+                />
+              </div>
+            </div>
+
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 hidden sm:flex flex-col items-center justify-center gap-3 text-muted-foreground">
+          <MapPin size={48} className="opacity-15"/>
+          <p className="text-sm font-medium">Wybierz robotę z listy</p>
+          <p className="text-xs text-center max-w-xs">lub kliknij "Nowa robota" aby dodać nową.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Grafik tygodniowy ────────────────────────────────────────────────────────
+
+function ScheduleView({
+  weekEmployees,
+  weekFrom,
+  weekTo,
+  jobs,
+  directory,
+  onWeekChange,
+  onGoToCurrent,
+  onOpenPayroll,
+}: {
+  weekEmployees: WeekEmployee[];
+  weekFrom: string;
+  weekTo: string;
+  jobs: Job[];
+  directory: DirectoryEmployee[];
+  onWeekChange: (from: string, to: string) => void;
+  onGoToCurrent: () => void;
+  onOpenPayroll: () => void;
+}) {
+  const columns = useMemo(() => weekDayColumns(weekFrom), [weekFrom]);
+  const todayIso = todayIsoDate();
+  const currentWeek = getWeekRange();
+  const sortedEmps = useMemo(
+    () => [...weekEmployees].sort((a, b) => a.name.localeCompare(b.name, "pl")),
+    [weekEmployees],
+  );
+
+  return (
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <div className="px-4 sm:px-6 py-4 border-b border-border bg-card shrink-0 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold flex items-center gap-2">
+              <CalendarDays size={16} className="text-primary"/>
+              Grafik tygodniowy
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Kto pracuje, gdzie i w jakich godzinach — ten sam tydzień co Lista Płac
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <input type="date" value={weekFrom} onChange={(e) => onWeekChange(e.target.value, weekTo)}
+              className="bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
+            <span className="text-muted-foreground text-sm">–</span>
+            <input type="date" value={weekTo} onChange={(e) => onWeekChange(weekFrom, e.target.value)}
+              className="bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
+            {weekFrom !== currentWeek.from && (
+              <button onClick={onGoToCurrent} className="text-xs px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/70 border border-border font-medium">
+                Bieżący tydzień
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-3 text-[10px] text-muted-foreground">
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-primary/20 border border-primary/30"/>Dziś</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-green-500/15 border border-green-500/25"/>Praca (lista płac)</span>
+          <span className="flex items-center gap-1.5"><MapPin size={10} className="text-primary"/>Adres z roboty</span>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-auto">
+        {sortedEmps.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 px-6 text-center text-muted-foreground">
+            <CalendarDays size={40} className="opacity-20 mb-3"/>
+            <p className="text-sm font-medium text-foreground">Brak pracowników w tym tygodniu</p>
+            <p className="text-xs mt-2 max-w-sm">Dodaj ekipę w Liście Płac i zaznacz dni pracy. Adresy pojawią się po wpisach „Pracownicy na robocie”.</p>
+            <button onClick={onOpenPayroll} className="mt-4 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium">
+              Otwórz Listę Płac
+            </button>
+          </div>
+        ) : (
+          <table className="w-full min-w-[720px] border-collapse text-left">
+            <thead className="sticky top-0 z-20 bg-card shadow-[0_1px_0_var(--border)]">
+              <tr>
+                <th className="sticky left-0 z-30 bg-card border-b border-r border-border px-3 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider min-w-[120px] sm:min-w-[140px]">
+                  Pracownik
+                </th>
+                {columns.map((col) => (
+                  <th
+                    key={col.key}
+                    className={`border-b border-border px-2 py-3 text-center min-w-[88px] sm:min-w-[100px] ${col.iso === todayIso ? "bg-primary/10" : "bg-card"}`}
+                  >
+                    <p className={`text-xs font-bold ${col.iso === todayIso ? "text-primary" : ""}`}>{col.shortLabel}</p>
+                    <p className="text-[10px] text-muted-foreground font-mono">{col.dateLabel}</p>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {sortedEmps.map((emp, ri) => (
+                <tr key={emp.id} className={ri % 2 === 0 ? "bg-background" : "bg-card/40"}>
+                  <td className={`sticky left-0 z-10 border-r border-b border-border px-3 py-2.5 ${ri % 2 === 0 ? "bg-background" : "bg-card/40"}`}>
+                    <p className="text-sm font-medium leading-tight">{emp.name || "—"}</p>
+                    <p className="text-[10px] text-muted-foreground truncate max-w-[130px]">{emp.position || "—"}</p>
+                  </td>
+                  {columns.map((col) => {
+                    const cell = scheduleCellFor(emp, col.key, col.iso, jobs, directory);
+                    const isToday = col.iso === todayIso;
+                    return (
+                      <td
+                        key={col.key}
+                        className={`border-b border-border px-1.5 py-2 align-top text-center ${isToday ? "bg-primary/5" : ""} ${cell.working ? "" : "opacity-40"}`}
+                      >
+                        {cell.working ? (
+                          <div className="space-y-1 min-h-[52px] flex flex-col items-center justify-start">
+                            {cell.timeRange && (
+                              <span className="text-[10px] font-semibold text-green-400/90 bg-green-500/10 px-1.5 py-0.5 rounded font-mono whitespace-nowrap">
+                                {cell.timeRange}
+                              </span>
+                            )}
+                            {cell.hoursLabel && (
+                              <span className="text-[9px] text-muted-foreground">{cell.hoursLabel}</span>
+                            )}
+                            {cell.locations.length > 0 ? (
+                              cell.locations.map((loc, i) => (
+                                <span key={i} className="text-[9px] leading-snug text-primary flex items-start gap-0.5 max-w-[96px]">
+                                  <MapPin size={8} className="shrink-0 mt-0.5"/>
+                                  <span className="text-left">{loc}</span>
+                                </span>
+                              ))
+                            ) : cell.timeRange ? (
+                              <span className="text-[9px] text-muted-foreground italic">bez roboty</span>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground/50 text-sm">—</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+
+function DashboardView({
+  jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
+  onNavigate,
+}: {
+  jobs: Job[];
+  directory: DirectoryEmployee[];
+  weekEmployees: WeekEmployee[];
+  weekFrom: string; weekTo: string;
+  savedWeeks: WeekSnapshot[];
+  onNavigate: (v: "payroll"|"directory"|"archive"|"jobs") => void;
+}) {
+  const todayKey = todayDayKey();
+  const todayIso = todayIsoDate();
+  const workingToday = weekEmployees.filter(e => todayKey && e.days[todayKey]?.active);
+
+  const activeJobs = jobs.filter(j=>j.status==="in_progress");
+  const completedJobs = jobs.filter(j=>j.status==="completed");
+  const jobsMissingDocs = jobs.filter(j=>j.status==="in_progress" && DOCUMENT_TYPES.some(d=>!j.documents[d]));
+  const jobsReadyToClose = jobs.filter(j=>j.status==="in_progress" && DOCUMENT_TYPES.every(d=>j.documents[d]));
+
+  const weekTotal = weekEmployees.reduce((s,e)=>s+calcWeekEmployee(e).netPay,0);
+  const weekHours = weekEmployees.reduce((s,e)=>s+calcWeekEmployee(e).totalHours,0);
+
+  const yearNow = new Date().getFullYear();
+  const yearWeeks = savedWeeks.filter(w=>new Date(w.weekFrom).getFullYear()===yearNow);
+  const yearTotal = yearWeeks.reduce((s,w)=>s+w.totalNet,0);
+
+  const monthNow = new Date().getMonth();
+  const monthWeeks = yearWeeks.filter(w=>new Date(w.weekFrom).getMonth()===monthNow);
+  const monthTotal = monthWeeks.reduce((s,w)=>s+w.totalNet,0);
+
+  const recentJobs = [...activeJobs].sort((a,b)=>b.startDate.localeCompare(a.startDate)).slice(0,5);
+  const recentWeeks = [...savedWeeks].sort((a,b)=>b.weekFrom.localeCompare(a.weekFrom)).slice(0,4);
+
+  const INVOICE_COLORS: Record<string,string> = {
+    pending:"bg-yellow-500/10 text-yellow-400",
+    invoiced:"bg-blue-500/10 text-blue-400",
+    paid:"bg-green-500/15 text-green-400",
+  };
+  const INVOICE_LABELS: Record<string,string> = { pending:"Oczekuje", invoiced:"Wystawiona FV", paid:"Zapłacone" };
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 space-y-8">
+
+        {/* Hero stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <button onClick={()=>onNavigate("jobs")} className="bg-card border border-border rounded-xl p-5 text-left hover:border-primary/30 hover:bg-primary/5 transition-colors group">
+            <div className="flex items-center gap-2 text-muted-foreground mb-3"><MapPin size={13}/><span className="text-xs font-medium uppercase tracking-wider">Aktywne roboty</span></div>
+            <p className="text-3xl font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{activeJobs.length}</p>
+            <p className="text-xs text-muted-foreground mt-1">{completedJobs.length} zdanych łącznie</p>
+          </button>
+
+          <button onClick={()=>onNavigate("payroll")} className="bg-card border border-border rounded-xl p-5 text-left hover:border-primary/30 hover:bg-primary/5 transition-colors">
+            <div className="flex items-center gap-2 text-muted-foreground mb-3"><Wallet size={13}/><span className="text-xs font-medium uppercase tracking-wider">Wypłata ten tydzień</span></div>
+            <p className="text-2xl font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(weekTotal)}</p>
+            <p className="text-xs text-muted-foreground mt-1">{fmtH(weekHours)} · {weekEmployees.length} prac.</p>
+          </button>
+
+          <button onClick={()=>onNavigate("jobs")} className={`bg-card border rounded-xl p-5 text-left transition-colors ${jobsMissingDocs.length>0?"border-yellow-500/30 hover:border-yellow-500/50":"border-border hover:border-primary/30"}`}>
+            <div className="flex items-center gap-2 text-muted-foreground mb-3"><AlertTriangle size={13}/><span className="text-xs font-medium uppercase tracking-wider">Brak dokumentów</span></div>
+            <p className={`text-3xl font-bold ${jobsMissingDocs.length>0?"text-yellow-400":"text-muted-foreground"}`} style={{fontFamily:"'JetBrains Mono', monospace"}}>{jobsMissingDocs.length}</p>
+            <p className="text-xs text-muted-foreground mt-1">{jobsReadyToClose.length} gotowych do zdania</p>
+          </button>
+
+          <button onClick={()=>onNavigate("directory")} className="bg-card border border-border rounded-xl p-5 text-left hover:border-primary/30 hover:bg-primary/5 transition-colors">
+            <div className="flex items-center gap-2 text-muted-foreground mb-3"><Users size={13}/><span className="text-xs font-medium uppercase tracking-wider">Pracownicy</span></div>
+            <p className="text-3xl font-bold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{directory.filter(d=>d.active).length}</p>
+            <p className="text-xs text-muted-foreground mt-1">{workingToday.length > 0 ? `${workingToday.length} pracuje dziś` : "aktywnych"}</p>
+          </button>
+        </div>
+
+        {/* Finance bar */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-card border border-border rounded-xl p-5">
+            <div className="flex items-center gap-2 text-muted-foreground mb-2"><TrendingUp size={13}/><span className="text-xs font-medium uppercase tracking-wider">Ten miesiąc</span></div>
+            <p className="text-xl font-bold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(monthTotal)} PLN</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{monthWeeks.length} tygodni · {MONTH_NAMES[monthNow]}</p>
+          </div>
+          <div className="bg-card border border-border rounded-xl p-5">
+            <div className="flex items-center gap-2 text-muted-foreground mb-2"><Calendar size={13}/><span className="text-xs font-medium uppercase tracking-wider">Ten rok</span></div>
+            <p className="text-xl font-bold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(yearTotal)} PLN</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{yearWeeks.length} tygodni · {yearNow}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          {/* Active jobs */}
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-2"><MapPin size={13} className="text-muted-foreground"/><span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Aktywne roboty</span></div>
+              <button onClick={()=>onNavigate("jobs")} className="text-xs text-primary hover:underline">Wszystkie →</button>
+            </div>
+            {recentJobs.length===0 ? (
+              <div className="p-8 text-center text-muted-foreground text-sm">Brak aktywnych robót.</div>
+            ) : (
+              <div className="divide-y divide-border">
+                {recentJobs.map(job=>{
+                  const docsOk=DOCUMENT_TYPES.filter(d=>job.documents[d]).length;
+                  const cost=jobTotalCost(job);
+                  return (
+                    <div key={job.id} className="px-5 py-3.5 flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium truncate">{job.address||"Bez adresu"}{job.flatNumber&&<span className="text-muted-foreground"> m.{job.flatNumber}</span>}</p>
+                          {job.keysHandedOver&&<KeyRound size={11} className="text-blue-400 shrink-0"/>}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{job.client||"—"} · {fmtDate(job.startDate)}</p>
+                      </div>
+                      <div className="text-right shrink-0 space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-16 bg-border rounded-full h-1 overflow-hidden">
+                            <div className="bg-primary h-1 rounded-full" style={{width:`${(docsOk/DOCUMENT_TYPES.length)*100}%`}}/>
+                          </div>
+                          <span className="text-xs text-muted-foreground">{docsOk}/{DOCUMENT_TYPES.length}</span>
+                        </div>
+                        {cost>0&&<p className="text-xs font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cost)} PLN</p>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Working today */}
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-2"><HardHat size={13} className="text-muted-foreground"/><span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pracuje dziś ({new Date().toLocaleDateString("pl-PL",{weekday:"long"})})</span></div>
+              <button onClick={()=>onNavigate("payroll")} className="text-xs text-primary hover:underline">Lista płac →</button>
+            </div>
+            {weekEmployees.length===0 ? (
+              <div className="p-8 text-center text-muted-foreground text-sm">Brak pracowników w bieżącym tygodniu.</div>
+            ) : workingToday.length===0 ? (
+              <div className="p-8 text-center text-muted-foreground text-sm">
+                {todayKey ? "Nikt nie jest zaplanowany na dziś." : "Dziś niedziela — wolne 🙂"}
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {workingToday.map(emp=>{
+                  const {totalHours,netPay}=calcWeekEmployee(emp);
+                  const todayH = todayKey ? hoursWorked(emp.days[todayKey].from, emp.days[todayKey].to) : 0;
+                  const todayJobs = jobsForEmployeeOnDashboard(emp, jobs, todayIso, weekFrom, weekTo, directory);
+                  const streets = todayJobs.map(formatJobStreet);
+                  return (
+                    <div key={emp.id} className="px-5 py-3.5 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                        {emp.name?emp.name[0].toUpperCase():"?"}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium">{emp.name||"Bez nazwy"}</p>
+                        <p className="text-xs text-muted-foreground">{emp.position||"—"} · {todayKey&&emp.days[todayKey].from}–{todayKey&&emp.days[todayKey].to}</p>
+                        {streets.length > 0 && (
+                          <p className="text-xs text-primary mt-0.5 flex items-start gap-1 leading-snug">
+                            <MapPin size={11} className="shrink-0 mt-0.5"/>
+                            <span>{streets.join(" · ")}</span>
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(todayH)}</p>
+                        <p className="text-xs text-muted-foreground">tyg: {fmt(netPay)} PLN</p>
+                      </div>
+                    </div>
+                  );
+                })}
+                {/* Show employees with hours this week but not today */}
+                {weekEmployees.filter(e=>!(todayKey&&e.days[todayKey]?.active)).map(emp=>(
+                  <div key={emp.id} className="px-5 py-3 flex items-center gap-3 opacity-40">
+                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
+                      {emp.name?emp.name[0].toUpperCase():"?"}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm">{emp.name||"Bez nazwy"}</p>
+                    </div>
+                    <span className="text-xs text-muted-foreground">wolne</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Jobs needing attention */}
+          {jobsMissingDocs.length>0&&(
+            <div className="bg-card border border-yellow-500/20 rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-yellow-500/20 flex items-center gap-2">
+                <AlertTriangle size={13} className="text-yellow-400"/>
+                <span className="text-xs font-medium uppercase tracking-wider text-yellow-400">Brakujące dokumenty</span>
+              </div>
+              <div className="divide-y divide-border">
+                {jobsMissingDocs.slice(0,4).map(job=>{
+                  const missing=DOCUMENT_TYPES.filter(d=>!job.documents[d]);
+                  return (
+                    <div key={job.id} className="px-5 py-3.5">
+                      <p className="text-sm font-medium">{job.address||"Bez adresu"}{job.flatNumber&&` m.${job.flatNumber}`}</p>
+                      <p className="text-xs text-yellow-400/70 mt-0.5">{missing.map(d=>DOC_LABELS[d]).join(", ")}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Recent archived weeks */}
+          {recentWeeks.length>0&&(
+            <div className="bg-card border border-border rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-2"><Archive size={13} className="text-muted-foreground"/><span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Ostatnie tygodnie</span></div>
+                <button onClick={()=>onNavigate("archive")} className="text-xs text-primary hover:underline">Archiwum →</button>
+              </div>
+              <div className="divide-y divide-border">
+                {recentWeeks.map(w=>(
+                  <div key={w.id} className="px-5 py-3.5 flex items-center gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">{fmtDate(w.weekFrom)} – {fmtDate(w.weekTo)}</p>
+                      <p className="text-xs text-muted-foreground">{w.totalEmployees} prac. · {fmtH(w.totalHours)}</p>
+                    </div>
+                    <p className="text-sm font-bold text-primary shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(w.totalNet)} PLN</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Invoice status strip */}
+        {jobs.some(j=>j.invoiceStatus&&j.invoiceStatus!=="pending") && (
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-border flex items-center gap-2">
+              <Receipt size={13} className="text-muted-foreground"/>
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Status faktur</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border">
+              {(["pending","invoiced","paid"] as const).map(status=>{
+                const count=jobs.filter(j=>j.invoiceStatus===status).length;
+                const amount=jobs.filter(j=>j.invoiceStatus===status).reduce((s,j)=>s+(parseFloat(j.invoiceAmount)||0),0);
+                return (
+                  <div key={status} className="px-5 py-4">
+                    <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium mb-2 ${INVOICE_COLORS[status]}`}>{INVOICE_LABELS[status]}</span>
+                    <p className="text-xl font-bold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{count} <span className="text-sm font-normal text-muted-foreground">robót</span></p>
+                    {amount>0&&<p className="text-xs text-muted-foreground mt-0.5">{fmt(amount)} PLN</p>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+// ─── Instrukcja obsługi ───────────────────────────────────────────────────────
+
+function HelpView() {
+  const [open, setOpen] = useState<string|null>("start");
+
+  const sections: {id:string; icon:React.ElementType; title:string; subtitle:string; content:React.ReactNode}[] = [
+    {
+      id:"start",
+      icon:Smartphone,
+      title:"Od czego zacząć?",
+      subtitle:"Pierwsze kroki w aplikacji",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">Aplikacja W&G DOM służy do zarządzania pracownikami, robotami i finansami firmy. Wszystkie dane zapisują się automatycznie i są dostępne na każdym urządzeniu — telefonie, tablecie i komputerze.</p>
+          <div className="space-y-3">
+            {[
+              {num:"1", title:"Dodaj pracowników", desc:'Kliknij "Pracownicy" w menu → "Nowy pracownik". Wpisz imię, nazwisko, telefon, stanowisko i stawkę godzinową. To trzeba zrobić tylko raz — potem ta lista będzie dostępna w całej aplikacji.'},
+              {num:"2", title:"Otwórz nową robotę", desc:'Kliknij "Roboty" w menu → "Nowa robota". Wpisz adres, klienta i datę rozpoczęcia. Możesz od razu zacząć zaznaczać dokumenty i dodawać pracowników.'},
+              {num:"3", title:"Uzupełniaj listę płac w tygodniu", desc:'Kliknij "Lista Płac" w menu → "Dodaj pracownika". Zaznacz dni pracy, godziny i ewentualne zaliczki. Pod koniec tygodnia kliknij "Zapisz tydzień".'},
+            ].map(s=>(
+              <div key={s.num} className="flex gap-4 bg-secondary/50 rounded-xl p-4">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">{s.num}</div>
+                <div>
+                  <p className="text-sm font-semibold mb-1">{s.title}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{s.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex gap-3">
+            <Monitor size={16} className="text-blue-400 shrink-0 mt-0.5"/>
+            <div>
+              <p className="text-sm font-medium text-blue-400 mb-1">Dane synchronizują się automatycznie</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">Nie musisz nic zapisywać ręcznie. Chmurka w prawym górnym rogu mruga gdy zapisuje — jak jest zielona, wszystko jest bezpieczne. Otwórz aplikację na telefonie, danych i na wszystkich urządzeniach będą te same dane.</p>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id:"schedule",
+      icon:CalendarDays,
+      title:"Grafik tygodniowy",
+      subtitle:"Siatka: kto, gdzie i kiedy",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">W menu <strong>Grafik</strong> widzisz tabelę: wiersze to pracownicy z bieżącego tygodnia listy płac, kolumny to dni (Pn–So) z datami.</p>
+          <div className="space-y-3">
+            {[
+              {q:"Skąd biorą się godziny?", a:"Z Listy Płac — zaznaczone dni i godziny od–do (zielony pasek w komórce). Jeśli dzień nie jest zaznaczony w liście płac, komórka jest pusta (—), chyba że jest wpis na robocie."},
+              {q:"Skąd bierze się adres?", a:"Z Roboty → Pracownicy na robocie → Dodaj wpis z datą tego dnia. Adres pojawia się pod godzinami z ikoną pinezki."},
+              {q:"Czy grafik zmienia dane?", a:"Nie — tylko podgląd. Edycja godzin: Lista Płac. Edycja miejsca pracy: Roboty."},
+              {q:"Inny tydzień?", a:"Zmień daty u góry (tak jak w Liście Płac) lub kliknij „Bieżący tydzień”."},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id:"payroll",
+      icon:FileText,
+      title:"Lista Płac",
+      subtitle:"Jak rozliczać pracowników tygodniowo",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">Lista Płac służy do śledzenia godzin pracy każdego pracownika w danym tygodniu i wyliczania wypłat.</p>
+          <div className="space-y-3">
+            {[
+              {q:"Jak dodać pracownika do tygodnia?", a:'Kliknij "Dodaj pracownika" → zaznacz jednego lub kilku pracowników z listy (lub "Zaznacz wszystkich") → kliknij "Dodaj zaznaczonych". Jeśli tydzień jest pusty, pojawi się też przycisk "Kopiuj z poprzedniego tygodnia" — kliknij go, żeby od razu dodać tych samych co ostatnio.'},
+              {q:"Jak wpisać godziny pracy?", a:"Kliknij na pracownika na liście — otworzy się panel z dniami tygodnia. Zaznacz dni kiedy pracował i wpisz godziny od–do. Aplikacja sama policzy ile godzin i ile się należy."},
+              {q:"Co to jest zaliczka?", a:"Jeśli pracownik wziął pieniądze w trakcie tygodnia (np. na materiały albo za coś zapłacił), wpisz to jako zaliczkę w danym dniu. Zostanie odjęta od kwoty do wypłaty."},
+              {q:"Co oznacza status Rozliczony / Oczekuje?", a:'Kiedy wypłacisz pracownikowi należną kwotę, kliknij przycisk "Oczekuje" — zmieni się na zielony "Rozliczony". To tylko znacznik dla Ciebie, żebyś wiedział komu już zapłaciłeś.'},
+              {q:"Jak zapisać tydzień do archiwum?", a:'Kliknij "Zapisz tydzień". Dane trafią do Archiwum gdzie możesz je zawsze sprawdzić. W sobotę aplikacja przypomni żebyś nie zapomniał. Jeśli zapis już istnieje, zapyta czy nadpisać.'},
+              {q:"Jak przejść do innego tygodnia?", a:'Zmień daty ręcznie lub kliknij "Bieżący tydzień" żeby wrócić do aktualnego. Aplikacja automatycznie archiwizuje poprzedni tydzień przy przejściu.'},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 flex gap-3">
+            <FileDown size={16} className="text-primary shrink-0 mt-0.5"/>
+            <div>
+              <p className="text-sm font-medium text-primary mb-1">Eksport do PDF i Word</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">Przycisk "PDF" generuje gotowy dokument z listą płac z polskimi znakami. Przycisk "Word" tworzy plik .docx który możesz edytować w Microsoft Word.</p>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id:"jobs",
+      icon:MapPin,
+      title:"Roboty",
+      subtitle:"Zarządzanie zleceniami i dokumentami",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">W zakładce Roboty prowadzisz ewidencję wszystkich zleceń — od otwarcia do zdania kluczy. Każda robota ma swoją kartę z dokumentami, pracownikami i kosztami.</p>
+          <div className="space-y-3">
+            {[
+              {q:"Jak założyć nową robotę?", a:'Kliknij "Nowa robota" w lewym górnym rogu. Wpisz adres, numer mieszkania i klienta (domyślnie Wrocławskie Mieszkania). Możesz też wpisać daty rozpoczęcia i zakończenia.'},
+              {q:"Dokumenty do odbioru — co to jest?", a:"To lista dokumentów które trzeba zebrać żeby zdać robotę. Zaznaczaj je gdy je masz: Zlecenie, Zakres robót, Kosztorys, Kominiarz, Pomiary, Oświadczenia, Gwarancje, Rysunek/Plan. Zdjęcia są opcjonalne. Pasek postępu na liście robót pokazuje ile dokumentów masz już skompletowanych."},
+              {q:"Kiedy robota zmienia status na Zdana?", a:"Automatycznie gdy zaznaczysz wszystkie wymagane dokumenty (bez zdjęć). Możesz też kliknąć przycisk statusu ręcznie — ale jeśli brakuje dokumentów, aplikacja ostrzeże i powie czego brakuje."},
+              {q:"Jak dodać czas pracy na robocie?", a:'Przewiń do sekcji "Pracownicy na robocie" → kliknij "Dodaj wpis". Wybierz pracownika, datę, ile godzin pracował i stawkę. Aplikacja liczy koszt automatycznie.'},
+              {q:"Jak dodać koszty materiałów?", a:'Przewiń do sekcji "Materiały" → kliknij "Dodaj". Wpisz opis i koszt. Materiały sumują się z kosztem pracy i tworzą łączny koszt remontu.'},
+              {q:"Co to jest Faktura / Rozliczenie?", a:"Na dole karty roboty możesz wpisać numer faktury i kwotę którą wystawiłeś klientowi. Aplikacja policzy zysk (kwota faktury minus łączny koszt remontu). Status faktury: Oczekuje → Wystawiona FV → Zapłacone."},
+              {q:"Jak wyeksportować kartę roboty do PDF?", a:'Kliknij czerwony przycisk "PDF" w nagłówku roboty. Wygeneruje się dokument z dokumentami, pracownikami, materiałami i podsumowaniem kosztów.'},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id:"directory",
+      icon:Users,
+      title:"Pracownicy",
+      subtitle:"Kartoteka — dane osobowe i stawki",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">Kartoteka to główna baza pracowników. Dane wpisane tutaj będą dostępne w Liście Płac i Robotach — nie musisz wpisywać ich za każdym razem.</p>
+          <div className="space-y-3">
+            {[
+              {q:"Jak dodać nowego pracownika?", a:'Kliknij "Nowy pracownik". Wpisz imię i nazwisko, telefon, stanowisko (np. Murarz, Elektryk, Kierowca) i domyślną stawkę godzinową. Data zatrudnienia jest opcjonalna.'},
+              {q:"Telefon a logowanie pracownika", a:"Numer w kartotece (np. +48 501 234 567) to hasło pracownika — wpisuje 9 ostatnich cyfr: 501234567. Bez telefonu nie zaloguje się do wgrywania zdjęć."},
+              {q:"Co to jest domyślna stawka?", a:"To stawka PLN za godzinę, którą ten pracownik zwykle zarabia. Będzie się automatycznie podpowiadać w Liście Płac i w Robotach. Możesz ją zmienić dla konkretnego tygodnia lub roboty — bez zmiany tej domyślnej."},
+              {q:"Jak oznaczyć pracownika jako nieaktywnego?", a:"Kliknij okrągły przycisk przy pracowniku (po prawej). Zmieni status na Nieaktywny — pracownik zniknie z list przy dodawaniu do tygodnia, ale jego historia zostanie. Żeby przywrócić — kliknij ponownie."},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id:"archive",
+      icon:Archive,
+      title:"Archiwum",
+      subtitle:"Historia tygodni i raport miesięczny",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">Archiwum przechowuje wszystkie zamknięte tygodnie z historią wypłat. Możesz tu sprawdzić ile kto zarobił w dowolnym tygodniu i wygenerować raport miesięczny.</p>
+          <div className="space-y-3">
+            {[
+              {q:"Jak przeglądać archiwum?", a:"U góry wybierz rok, potem miesiąc. Zobaczysz wszystkie tygodnie z tego okresu z podsumowaniem godzin i wypłat. Kliknij tydzień żeby rozwinąć szczegółową listę pracowników."},
+              {q:"Jak wygenerować raport miesięczny?", a:'Wybierz miesiąc, potem kliknij czerwony przycisk "Raport miesięczny PDF". Dostaniesz dokument A4 poziomy z: podsumowaniem finansowym (wypłaty, koszty robót, materiały, faktury), tabelą wszystkich robót z tego miesiąca i szczegółowymi listami płac z każdego tygodnia.'},
+              {q:"Jak usunąć zapisany tydzień?", a:"Przy każdym tygodniu jest ikona kosza. Kliknij ją → potwierdź. Uwaga: tej operacji nie można cofnąć."},
+              {q:"Co jest w archiwum od wersji 1.9?", a:"Pełny tydzień: podsumowanie wypłat, szczegóły listy płac (dni i godziny) oraz zapisany grafik z adresami robót. W sobotę aplikacja robi auto-zapis bieżącego tygodnia."},
+              {q:"Gdzie zobaczyć stary grafik?", a:"Archiwum → rozwiń tydzień → zakładka Grafik. Starsze wpisy (sprzed 1.9) mają tylko listę płac bez grafiku."},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id:"worker",
+      icon:HardHat,
+      title:"Tryb pracownika — zdjęcia",
+      subtitle:"Wgrywanie zdjęć z budowy bez hasła admina",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">Na ekranie startowym wybierz <strong>Pracownik</strong> → znajdź się na liście → wpisz <strong>9 ostatnich cyfr telefonu</strong> (bez +48). Potem wybierz robotę i dodaj zdjęcia — najlepiej przez <strong>Galerię</strong> (wiele naraz).</p>
+          <div className="space-y-3">
+            {[
+              {q:"Jak się zalogować?", a:"Administrator musi wpisać Twój numer w kartotece Pracownicy (np. +48 501 234 567). Logujesz się 9 cyframi: 501234567. Wybierz swoje imię z listy, nie wpisuj ręcznie."},
+              {q:"Nie widzę siebie na liście", a:"Musisz być „aktywny” w kartotece. Jeśli jesteś, a lista pusta — sprawdź internet. Jeśli przy imieniu jest „brak numeru” — poproś admina o wpisanie telefonu."},
+              {q:"Jak dodać wiele zdjęć?", a:"W robocie użyj sekcji „Galeria — wiele zdjęć”: wybierz typ (przed/w trakcie/po), kliknij „Wybierz z galerii”, zaznacz wiele zdjęć, podejrzyj miniaturki i „Wyślij”."},
+              {q:"Nie widzę żadnej roboty", a:"Administrator musi dodać robotę ze statusem „w trakcie”. Lista ładuje się z chmury."},
+              {q:"Gdzie admin widzi zdjęcia?", a:"Roboty → Zdjęcia → akceptacja lub odrzucenie."},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id:"changelog",
+      icon:ScrollText,
+      title:"Historia zmian",
+      subtitle:"Co nowego w aplikacji",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">W menu po lewej (lub na dole na telefonie) jest zakładka <strong>Zmiany</strong>. Tam znajdziesz chronologiczną listę wszystkich aktualizacji — od pierwszej wersji po najnowszą.</p>
+          <div className="space-y-3">
+            {[
+              {q:"Po co jest ta zakładka?", a:"Żebyś wiedział co się zmieniło po aktualizacji — nowe funkcje, poprawki i ulepszenia. Najnowsza wersja jest na górze z zieloną etykietą „Najnowsza”."},
+              {q:"Skąd wiem jaka jest moja wersja?", a:"W prawym górnym rogu strony Zmiany widać numer wersji (np. v1.6). Ten sam numer pojawia się przy każdym wpisie w historii."},
+              {q:"Czy muszę coś robić po aktualizacji?", a:"Nie — wystarczy odświeżyć stronę. Dane wczytają się z chmury automatycznie. Przeczytaj tylko wpisy „Nowość”, jeśli chcesz skorzystać z nowych przycisków."},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id:"cloud-data",
+      icon:Cloud,
+      title:"Co zapisuje się w chmurze?",
+      subtitle:"Które dane są wspólne na wszystkich urządzeniach",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">Wszystko co dodajesz w aplikacji jako dane firmy zapisuje się <strong>lokalnie i w chmurze</strong>. Nie musisz klikać „Zapisz do chmury” — dzieje się to samo po każdej zmianie (ikona chmurki u góry).</p>
+          <ul className="text-sm text-muted-foreground space-y-2 list-disc pl-5 leading-relaxed">
+            <li><strong>Pracownicy</strong> — kartoteka, stawki, telefony</li>
+            <li><strong>Lista płac</strong> — godziny, zaliczki, rozliczenia w bieżącym tygodniu</li>
+            <li><strong>Archiwum</strong> — zapisane tygodnie</li>
+            <li><strong>Roboty</strong> — adresy, dokumenty, materiały, faktury, wpisy czasu pracy</li>
+            <li><strong>Zdjęcia</strong> — pliki w chmurze Supabase Storage; informacja o zdjęciu (kto, kiedy, status) w danych roboty</li>
+            <li><strong>Hasło admina</strong> — po zmianie hasła działa na każdym urządzeniu</li>
+          </ul>
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">
+            <AlertTriangle size={16} className="text-amber-400 shrink-0 mt-0.5"/>
+            <div>
+              <p className="text-sm font-medium text-amber-400 mb-1">Bez internetu</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">Możesz pracować dalej — dane zostaną w przeglądarce. Gdy wróci sieć, aplikacja ponowi zapis (czerwona chmurka = sprawdź połączenie i poczekaj chwilę).</p>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id:"backup",
+      icon:Download,
+      title:"Kopie zapasowe i synchronizacja",
+      subtitle:"Jak nie stracić danych",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">Dane zapisują się automatycznie w chmurze — nie musisz nic robić. Ale warto wiedzieć jak działa system bezpieczeństwa.</p>
+          <div className="space-y-3">
+            {[
+              {q:"Czy dane mogą zniknąć?", a:"Dane są przechowywane w dwóch miejscach: lokalnie w przeglądarce i w chmurze Supabase. Nawet jeśli wyczyścisz przeglądarkę — przy następnym otwarciu aplikacja pobierze dane z chmury."},
+              {q:"Co oznaczają ikonki chmurki w prawym górnym rogu?", a:"Szara chmurka = wszystko zsynchronizowane. Animowana chmurka ze strzałką = trwa zapis. Zielona chmurka = właśnie zapisano. Czerwona chmurka z X = błąd połączenia (sprawdź internet)."},
+              {q:"Co to jest backup i jak go zrobić?", a:'W lewym menu (na komputerze) na dole jest "Eksportuj backup". Kliknij — pobierze się plik .json ze wszystkimi danymi. Trzymaj go w bezpiecznym miejscu (dysk zewnętrzny, Google Drive). Żeby przywrócić dane — kliknij "Importuj backup" i wybierz ten plik.'},
+              {q:"Automatyczny backup emailem", a:"Co poniedziałek aplikacja automatycznie wysyła kopię zapasową na adres dawid.thai@int.pl jako załącznik. Jeśli coś pójdzie nie tak — jest tam zawsze aktualna kopia z poprzedniego tygodnia."},
+              {q:"Używam dwóch urządzeń — które dane są właściwe?", a:"Zawsze wygrywa urządzenie które ma dane. Jeśli otworzysz aplikację na telefonie po raz pierwszy — pobierze wszystko z chmury. Jeśli masz dane na laptopie — przy starcie wyśle je do chmury i telefon je pobierze."},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id:"tips",
+      icon:Sparkles,
+      title:"Przydatne sztuczki",
+      subtitle:"Funkcje które ułatwiają pracę",
+      content:(
+        <div className="space-y-3">
+          {[
+            {icon:Copy, title:"Kopiuj pracowników z zeszłego tygodnia", desc:"W Liście Płac, gdy tydzień jest pusty, pojawia się przycisk \"Kopiuj z poprzedniego tygodnia\". Kliknij — od razu doda tych samych pracowników co w poprzednim tygodniu. Oszczędzasz czas."},
+            {icon:Mic, title:"Dyktowanie notatek głosem", desc:"Przy polu Notatki w robotach jest ikona mikrofonu. Kliknij, powiedz co chcesz wpisać — aplikacja zamieni mowę na tekst. Działa w przeglądarce Chrome na telefonie i komputerze."},
+            {icon:Bell, title:"Reminder w sobotę", desc:"Co sobotę w Liście Płac pojawia się żółty baner przypominający o zamknięciu tygodnia. Kliknij \"Zapisz tydzień\" zanim zapomnisz."},
+            {icon:Search, title:"Globalne wyszukiwanie", desc:"Ikona lupy w prawym górnym rogu. Wpisz imię pracownika lub adres roboty — aplikacja znajdzie to w całej bazie danych."},
+            {icon:CalendarDays, title:"Grafik tygodniowy", desc:"Menu Grafik — cały tydzień na jednym ekranie: wiersz = pracownik, kolumna = dzień. Godziny z listy płac, adres z wpisu na robocie."},
+            {icon:LayoutDashboard, title:"Pulpit — gdzie dziś pracuje ekipa", desc:"Przy „Pracuje dziś” widać ulicę, gdy pracownik ma wpis na robocie (Pracownicy na robocie → Dodaj wpis) na dziś lub w bieżącym tygodniu listy płac. Imię musi zgadzać się z kartoteką (np. Adam Kowalski, nie samo Adam)."},
+            {icon:Users, title:"Filtrowanie robót po pracowniku", desc:"W zakładce Roboty jest rozwijana lista pracowników. Wybierz kogoś — zobaczysz tylko roboty na których ten pracownik miał wpisy czasu pracy."},
+            {icon:FileDown, title:"PDF z roboty do wysłania klientowi", desc:"Każda robota ma przycisk PDF w nagłówku. Generuje profesjonalny dokument z listą dokumentów, czasem pracy i kosztami — można go od razu wysłać mailowo."},
+          ].map((tip,i)=>(
+            <div key={i} className="flex gap-4 bg-secondary/40 rounded-xl p-4 border border-border">
+              <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+                <tip.icon size={15} className="text-primary"/>
+              </div>
+              <div>
+                <p className="text-sm font-semibold mb-1">{tip.title}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{tip.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="max-w-3xl mx-auto px-4 sm:px-8 py-8 space-y-3">
+
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+            <BookOpen size={18} className="text-primary"/>
+          </div>
+          <div>
+            <h1 className="text-lg font-bold">Instrukcja obsługi</h1>
+            <p className="text-xs text-muted-foreground">Wszystko co musisz wiedzieć żeby sprawnie korzystać z aplikacji</p>
+          </div>
+        </div>
+
+        {/* Sections */}
+        {sections.map(sec=>(
+          <div key={sec.id} className="bg-card border border-border rounded-2xl overflow-hidden">
+            <button
+              onClick={()=>setOpen(open===sec.id?null:sec.id)}
+              className="w-full flex items-center gap-4 px-5 py-4 hover:bg-secondary/20 transition-colors text-left"
+            >
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${open===sec.id?"bg-primary/15":"bg-secondary"}`}>
+                <sec.icon size={18} className={open===sec.id?"text-primary":"text-muted-foreground"}/>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold leading-tight">{sec.title}</p>
+                <p className="text-xs text-muted-foreground">{sec.subtitle}</p>
+              </div>
+              <ChevDown size={16} className={`text-muted-foreground transition-transform shrink-0 ${open===sec.id?"rotate-180":""}`}/>
+            </button>
+            {open===sec.id&&(
+              <div className="px-5 pb-5 border-t border-border pt-4">
+                {sec.content}
+              </div>
+            )}
+          </div>
+        ))}
+
+        <p className="text-xs text-muted-foreground text-center pt-2 pb-4">Masz pytanie? Napisz lub zadzwoń do osoby która skonfigurowała aplikację.</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Changelog ───────────────────────────────────────────────────────────────
+
+const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"1.9", label:"Pełne archiwum tygodnia",
+    items:[
+      {type:"new", text:"Archiwum zapisuje cały tydzień: lista płac (dni, godziny, zaliczki) + grafik + wpisy na robotach"},
+      {type:"new", text:"W Archiwum po rozwinięciu tygodnia: zakładki Lista płac | Grafik"},
+      {type:"improve", text:"Auto-zapis w sobotę — pełny snapshot bieżącego tygodnia do archiwum"},
+      {type:"improve", text:"Przejście na nowy tydzień nadal archiwizuje poprzedni (z pełnymi danymi)"},
+      {type:"new", text:"Gotowość pod Vercel + GitHub — konfiguracja przez zmienne VITE_SUPABASE_*"},
+    ],
+  },
+  {
+    date:"2026-05-25", version:"1.8", label:"Grafik tygodniowy",
+    items:[
+      {type:"new", text:"Zakładka Grafik — siatka dni × pracownicy: godziny z listy płac + adres roboty"},
+      {type:"new", text:"Przewijanie poziome na telefonie, sticky kolumna z imionami, podświetlenie dzisiejszego dnia"},
+      {type:"improve", text:"Ten sam wybór tygodnia co Lista Płac (daty od–do, bieżący tydzień)"},
+    ],
+  },
+  {
+    date:"2026-05-25", version:"1.7", label:"Logowanie pracownika & galeria zdjęć",
+    items:[
+      {type:"new", text:"Pracownik wybiera się z listy kartoteki — hasło to 9 ostatnich cyfr telefonu (bez +48)"},
+      {type:"new", text:"Galeria — wybór wielu zdjęć naraz, podgląd przed wysłaniem i pasek postępu"},
+      {type:"improve", text:"Bez numeru w kartotece pracownik nie może się zalogować (komunikat dla admina)"},
+    ],
+  },
+  {
+    date:"2026-05-25", version:"1.6", label:"Zasady rozwoju & spójna dokumentacja",
+    items:[
+      {type:"new", text:"Moduł cloud-sync — jeden punkt zapisu do chmury Supabase dla wszystkich danych"},
+      {type:"improve", text:"Ustalone zasady: każda trwała zmiana → chmura, wpis w Zmianach, opis w Instrukcji"},
+      {type:"new", text:"Instrukcja: sekcje „Historia zmian” i „Co zapisuje się w chmurze”"},
+      {type:"fix", text:"Logo aplikacji — poprawiona ścieżka do pliku w projekcie"},
+      {type:"fix", text:"Pulpit — lepsze dopasowanie pracownika do roboty (imię, kartoteka, data lokalna, wpisy z tygodnia)"},
+      {type:"new", text:"Pulpit — przy „Pracuje dziś” widać ulicę roboty, jeśli pracownik ma wpis czasu na dziś"},
+      {type:"fix", text:"Tryb pracownika — naprawione wgrywanie zdjęć (endpoint storage-upload na serwerze Supabase)"},
+      {type:"improve", text:"Tryb pracownika — lista robót ładuje się z chmury przy wejściu; czytelniejsze komunikaty błędów"},
+    ],
+  },
+  {
+    date:"2026-05-25", version:"1.5", label:"Raport miesięczny & Email backup",
+    items:[
+      {type:"new", text:"Raport miesięczny PDF — pełny dokument z robotami, listą płac i podsumowaniem finansowym"},
+      {type:"new", text:"Auto-backup wysyłany e-mailem co poniedziałek na dawid.thai@int.pl (przez Resend API)"},
+      {type:"new", text:"Lista zmian — ta strona"},
+    ],
+  },
+  {
+    date:"2026-05-25", version:"1.4", label:"7 usprawnień operacyjnych",
+    items:[
+      {type:"new", text:"PDF eksport pojedynczej roboty — karta z dokumentami, pracownikami, materiałami i kosztem"},
+      {type:"new", text:"Kopiuj pracowników z poprzedniego tygodnia — jeden klik wypełnia listę płac"},
+      {type:"new", text:"Filtrowanie robót po pracowniku — dropdown w panelu listy robót"},
+      {type:"new", text:"Sobotni reminder — baner przypominający o zamknięciu tygodnia"},
+      {type:"new", text:"Potwierdzenie nadpisania archiwum — dialog przed nadpisaniem zapisanego tygodnia"},
+      {type:"new", text:"Notatki głosowe (mikrofon) — dyktowanie notatek w robotach (Chrome/Edge)"},
+      {type:"new", text:"Auto-backup co poniedziałek — wcześniej pobierał plik lokalnie, teraz wysyła email"},
+    ],
+  },
+  {
+    date:"2026-05-24", version:"1.3", label:"Synchronizacja w chmurze (Supabase)",
+    items:[
+      {type:"new", text:"Synchronizacja danych przez Supabase — dane dostępne na wszystkich urządzeniach"},
+      {type:"new", text:"Wskaźnik synchronizacji w topbarze (chmurka zielona/animowana/błąd)"},
+      {type:"new", text:"CloudLoader — wczytuje dane z chmury przed startem aplikacji"},
+      {type:"new", text:"Zdjęcia jako opcjonalny typ dokumentu w robotach (nie blokuje statusu \"Zdane\")"},
+      {type:"improve", text:"Eksport/Import backup JSON z automatycznym push do chmury po imporcie"},
+      {type:"fix", text:"Naprawa kalkulacji tygodnia w niedzielę — aplikacja prawidłowo przechodzi na kolejny tydzień"},
+    ],
+  },
+  {
+    date:"2026-05-23", version:"1.2", label:"Eksport PDF/Word & Interfejs mobilny",
+    items:[
+      {type:"new", text:"Eksport listy płac do PDF z polskimi znakami (pdfmake + czcionka Roboto)"},
+      {type:"new", text:"Eksport listy płac do Word z polskimi znakami (docx + czcionka Calibri)"},
+      {type:"new", text:"Pełna obsługa iPhone i Safari — dynamiczna wysokość (100dvh), safe-area-inset"},
+      {type:"new", text:"Dolna nawigacja na urządzeniach mobilnych"},
+      {type:"improve", text:"Domyślna godzina rozpoczęcia pracy zmieniona z 08:00 na 07:00"},
+      {type:"improve", text:"Automatyczna migracja istniejących pracowników z 08:00 na 07:00"},
+    ],
+  },
+  {
+    date:"2026-05-22", version:"1.1", label:"Lista Płac — ulepszenia",
+    items:[
+      {type:"new", text:"Picker z zaznaczaniem wielu pracowników naraz — \"Zaznacz wszystkich\" i odznaczanie pojedynczo"},
+      {type:"new", text:"Automatyczne przejście na bieżący tydzień przy starcie aplikacji"},
+      {type:"new", text:"Przycisk \"Bieżący tydzień\" w Lista Płac"},
+      {type:"new", text:"Auto-archiwizacja poprzedniego tygodnia przy przejściu do nowego"},
+    ],
+  },
+  {
+    date:"2026-05-20", version:"1.0", label:"Pierwsze uruchomienie aplikacji",
+    items:[
+      {type:"new", text:"Dashboard — przegląd aktywnych robót, wypłat tygodnia, pracujących dziś"},
+      {type:"new", text:"Lista Płac — tygodniowe śledzenie godzin, zaliczek i wypłat pracowników"},
+      {type:"new", text:"Kartoteka pracowników — dane, stawki, stanowiska, historia zatrudnienia"},
+      {type:"new", text:"Archiwum tygodni — historia zapisanych tygodni z podsumowaniami rocznymi/miesięcznymi"},
+      {type:"new", text:"Roboty — zarządzanie zleceniami z dokumentami do odbioru, pracownikami i materiałami"},
+      {type:"new", text:"Moduł fakturowania — status FV, numer, kwota, wyliczony zysk"},
+      {type:"new", text:"Globalne wyszukiwanie pracowników i robót"},
+      {type:"new", text:"Dane przechowywane lokalnie w przeglądarce (localStorage)"},
+    ],
+  },
+];
+
+function ChangelogView() {
+  const TYPE_STYLE = {
+    new:     {bg:"bg-primary/15",    text:"text-primary",       dot:"bg-primary",     label:"Nowość"},
+    fix:     {bg:"bg-green-500/15",  text:"text-green-400",     dot:"bg-green-400",   label:"Poprawka"},
+    improve: {bg:"bg-blue-500/15",   text:"text-blue-400",      dot:"bg-blue-400",    label:"Ulepszenie"},
+  };
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="max-w-3xl mx-auto px-4 sm:px-8 py-8 space-y-2">
+
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+            <ScrollText size={18} className="text-primary"/>
+          </div>
+          <div>
+            <h1 className="text-lg font-bold">Historia zmian</h1>
+            <p className="text-xs text-muted-foreground">Wszystkie aktualizacje od początku tworzenia W&amp;G DOM</p>
+          </div>
+          <div className="ml-auto flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-full px-3 py-1.5">
+            <Sparkles size={12} className="text-primary"/>
+            <span className="text-xs font-semibold text-primary">v{CHANGELOG[0].version}</span>
+          </div>
+        </div>
+
+        {/* Timeline */}
+        <div className="relative">
+          {/* Vertical line */}
+          <div className="absolute left-[19px] top-3 bottom-3 w-px bg-border hidden sm:block"/>
+
+          <div className="space-y-8">
+            {CHANGELOG.map((release, ri)=>(
+              <div key={ri} className="relative sm:pl-12">
+                {/* Circle on timeline */}
+                <div className={`hidden sm:flex absolute left-0 top-3 w-10 h-10 rounded-full items-center justify-center border-2 z-10 shrink-0 ${ri===0?"border-primary bg-primary/15":"border-border bg-card"}`}>
+                  <span className="text-[10px] font-bold" style={{color: ri===0?"var(--primary)":"var(--muted-foreground)"}}>{release.version}</span>
+                </div>
+
+                <div className="bg-card border border-border rounded-2xl overflow-hidden">
+                  {/* Release header */}
+                  <div className={`px-5 py-4 flex items-center justify-between gap-3 ${ri===0?"bg-primary/5 border-b border-primary/20":"border-b border-border"}`}>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="sm:hidden flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0">
+                        <span className="text-[10px] font-bold text-muted-foreground">{release.version}</span>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm font-bold ${ri===0?"text-primary":"text-foreground"}`}>{release.label}</span>
+                          {ri===0&&<span className="text-[10px] font-semibold bg-primary text-primary-foreground px-2 py-0.5 rounded-full">Najnowsza</span>}
+                        </div>
+                        <span className="text-xs text-muted-foreground">{fmtDate(release.date)}</span>
+                      </div>
+                    </div>
+                    <span className="text-xs text-muted-foreground shrink-0 font-mono">v{release.version}</span>
+                  </div>
+
+                  {/* Items */}
+                  <div className="px-5 py-4 space-y-2.5">
+                    {release.items.map((item, ii)=>{
+                      const s = TYPE_STYLE[item.type];
+                      return (
+                        <div key={ii} className="flex items-start gap-3">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${s.bg} ${s.text}`}>{s.label}</span>
+                          <p className="text-sm text-foreground/90 leading-relaxed">{item.text}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Stats footer */}
+                  <div className="px-5 py-2.5 bg-secondary/30 border-t border-border flex items-center gap-4">
+                    {(["new","improve","fix"] as const).map(t=>{
+                      const count = release.items.filter(i=>i.type===t).length;
+                      if(!count) return null;
+                      const s = TYPE_STYLE[t];
+                      return <span key={t} className={`text-xs ${s.text}`}>{count}× {s.label.toLowerCase()}</span>;
+                    })}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <p className="text-xs text-muted-foreground text-center pt-4 pb-2">W&G DOM — zarządzanie pracą na budowie · Zbudowane z Claude AI</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Root App ─────────────────────────────────────────────────────────────────
+
+type View = "dashboard" | "payroll" | "schedule" | "directory" | "archive" | "jobs" | "changelog" | "help";
+
+function CloudLoader({children}: {children: React.ReactNode}) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const keys = [...DATA_KEYS];
+    const fallback = setTimeout(() => setReady(true), 5000);
+
+    fetchKeysFromCloud(keys)
+      .then((values) => {
+        keys.forEach((key, i) => {
+          const v = values[i];
+          const hasRealData = v != null && !(Array.isArray(v) && v.length === 0);
+          if (hasRealData) localStorage.setItem(key, JSON.stringify(v));
+        });
+      })
+      .catch(() => {})
+      .finally(() => { clearTimeout(fallback); setReady(true); });
+  }, []);
+
+  if (!ready) return (
+    <div style={{fontFamily:"'Inter',sans-serif", height:"100dvh"}} className="flex bg-background text-foreground items-center justify-center flex-col gap-4">
+      <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-10 w-auto object-contain"/>
+      <div className="flex items-center gap-2 text-muted-foreground text-sm">
+        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+        Ładowanie danych...
+      </div>
+    </div>
+  );
+
+  return <>{children}</>;
+}
+
+function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePassword?: ()=>void}) {
+  const week = getWeekRange();
+  const [directory, setDirectory] = useLocalStorage<DirectoryEmployee[]>("kw-directory", []);
+  const [weekEmployees, setWeekEmployees] = useLocalStorage<WeekEmployee[]>("kw-week-employees", []);
+  const [savedWeeks, setSavedWeeks] = useLocalStorage<WeekSnapshot[]>("kw-archive", []);
+  const [weekFrom, setWeekFrom] = useLocalStorage("kw-weekFrom", week.from);
+  const [weekTo, setWeekTo] = useLocalStorage("kw-weekTo", week.to);
+  const [jobs, setJobs] = useLocalStorage<Job[]>("kw-jobs", []);
+  const [view, setView] = useState<View>("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [globalSearch, setGlobalSearch] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<"idle"|"saving"|"saved"|"error">("idle");
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
+  const initialSyncDone = useRef(false);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+
+  const pushToCloud = pushAllDataToCloud;
+
+  // On mount: push existing local data to cloud (first-time sync from laptop)
+  useEffect(() => {
+    const hasData = directory.length>0 || jobs.length>0 || weekEmployees.length>0 || savedWeeks.length>0;
+    if (!hasData) { initialSyncDone.current = true; return; }
+    setSyncStatus("saving");
+    pushToCloud([directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs])
+      .then(()=>{ setSyncStatus("saved"); setTimeout(()=>setSyncStatus("idle"),2500); })
+      .catch(()=>setSyncStatus("error"))
+      .finally(()=>{ initialSyncDone.current = true; });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-save to cloud on any data change (debounced 2s, only after initial sync)
+  useEffect(() => {
+    if (!initialSyncDone.current) return;
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    setSyncStatus("saving");
+    syncTimerRef.current = setTimeout(async () => {
+      try {
+        await pushToCloud([directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs]);
+        setSyncStatus("saved");
+        setTimeout(() => setSyncStatus("idle"), 2500);
+      } catch {
+        setSyncStatus("error");
+      }
+    }, 2000);
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs]);
+
+  // Backup
+  const exportBackup = () => {
+    const data: Record<string,unknown> = {};
+    [...DATA_KEYS].forEach(k=>{
+      const v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v);
+    });
+    saveAs(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),`backup-${new Date().toISOString().slice(0,10)}.json`);
+  };
+  const importBackup = (file: File) => {
+    const reader=new FileReader();
+    reader.onload=async (e)=>{
+      try {
+        const data=JSON.parse(e.target?.result as string);
+        Object.entries(data).forEach(([k,v])=>localStorage.setItem(k,JSON.stringify(v)));
+        // Also push restored data to cloud so all devices get it
+        const keys = [...DATA_KEYS].filter(k => data[k] != null);
+        if (keys.length > 0) {
+          await pushKeysToCloud(keys, keys.map((k) => data[k])).catch(() => {});
+        }
+        window.location.reload();
+      } catch { alert("Błąd importu pliku."); }
+    };
+    reader.readAsText(file);
+  };
+
+  // Auto-backup every Monday — wysyła email z backupem
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const isMonday = new Date().getDay() === 1;
+    const lastBackup = localStorage.getItem("kw-last-backup");
+    if (isMonday && lastBackup !== today && (directory.length > 0 || jobs.length > 0)) {
+      localStorage.setItem("kw-last-backup", today);
+      const data: Record<string,unknown> = {};
+      [...DATA_KEYS].forEach(k => { const v = localStorage.getItem(k); if(v) data[k] = JSON.parse(v); });
+      fetch(`${API_BASE}/send-backup-email`, {
+        method: "POST",
+        headers: API_HEADERS,
+        body: JSON.stringify({ data, date: today }),
+      }).catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Global search results
+  const searchResults = useMemo(()=>{
+    if(!globalSearch.trim()) return {employees:[],jobs:[]};
+    const q=globalSearch.toLowerCase();
+    return {
+      employees: directory.filter(d=>d.name.toLowerCase().includes(q)||d.phone.includes(q)||d.position.toLowerCase().includes(q)),
+      jobs: jobs.filter(j=>j.address.toLowerCase().includes(q)||j.client.toLowerCase().includes(q)||j.flatNumber.toLowerCase().includes(q)),
+    };
+  },[globalSearch,directory,jobs]);
+
+  const addFromDirectory = (ids: string[]) => {
+    const toAdd = directory.filter((d)=>ids.includes(d.id));
+    const newEmps = toAdd.map(weekEmployeeFromDir);
+    setWeekEmployees((prev)=>[...prev,...newEmps]);
+  };
+
+  const removeWeekEmployee = (id:string) => setWeekEmployees((prev)=>prev.filter((e)=>e.id!==id));
+
+  const updateWeekEmployee = useCallback((updated:WeekEmployee)=>{
+    setWeekEmployees((prev)=>prev.map((e)=>e.id===updated.id?updated:e));
+  },[setWeekEmployees]);
+
+  const toggleSettled = (id:string) => setWeekEmployees((prev)=>prev.map((e)=>e.id===id?{...e,settled:!e.settled}:e));
+
+  const doSaveWeek = useCallback(() => {
+    if (weekEmployees.length === 0) return;
+    const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+    const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing);
+    if (existing) setSavedWeeks((prev) => prev.map((w) => (w.id === existing.id ? snapshot : w)));
+    else setSavedWeeks((prev) => [...prev, snapshot]);
+    setShowSaveConfirm(false);
+  }, [weekFrom, weekTo, weekEmployees, jobs, savedWeeks, setSavedWeeks]);
+
+  const saveWeek = () => {
+    if (weekEmployees.length === 0) return;
+    const alreadyExists = savedWeeks.some((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+    if (alreadyExists) { setShowSaveConfirm(true); return; }
+    doSaveWeek();
+  };
+
+  const autoArchiveAndAdvance = useCallback((targetFrom: string, targetTo: string) => {
+    if (weekEmployees.length > 0) {
+      const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+      const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing);
+      if (existing) setSavedWeeks((prev) => prev.map((w) => (w.id === existing.id ? snapshot : w)));
+      else setSavedWeeks((prev) => [...prev, snapshot]);
+    }
+    setWeekFrom(targetFrom);
+    setWeekTo(targetTo);
+    setWeekEmployees([]);
+  }, [weekEmployees, weekFrom, weekTo, savedWeeks, jobs, setSavedWeeks, setWeekFrom, setWeekTo, setWeekEmployees]);
+
+  const goToCurrent = useCallback(() => {
+    const c = getWeekRange();
+    if(weekFrom === c.from) return;
+    autoArchiveAndAdvance(c.from, c.to);
+  }, [weekFrom, autoArchiveAndAdvance]);
+
+  // Auto-advance: on mount, if stored week is in the past → archive it, reset to current week
+  const autoAdvancedRef = useRef(false);
+  useEffect(()=>{
+    if(autoAdvancedRef.current) return;
+    autoAdvancedRef.current = true;
+    const current = getWeekRange();
+    if(weekFrom === current.from) return;
+    autoArchiveAndAdvance(current.from, current.to);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[]);
+
+  // Auto-archiwum w sobotę — pełny zapis tygodnia (lista płac + grafik)
+  useEffect(() => {
+    const today = localIsoDate();
+    const isSaturday = new Date().getDay() === 6;
+    const lastAuto = localStorage.getItem("kw-last-week-auto-archive");
+    const current = getWeekRange();
+    if (
+      isSaturday &&
+      lastAuto !== today &&
+      weekFrom === current.from &&
+      weekEmployees.length > 0
+    ) {
+      localStorage.setItem("kw-last-week-auto-archive", today);
+      const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+      const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing);
+      if (existing) setSavedWeeks((prev) => prev.map((w) => (w.id === existing.id ? snapshot : w)));
+      else setSavedWeeks((prev) => [...prev, snapshot]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // One-time migration: fix 08:00 → 07:00 for existing week employees
+  useEffect(()=>{
+    const needs = weekEmployees.some(e=>DAYS.some(d=>e.days[d].from==="08:00"));
+    if(!needs) return;
+    setWeekEmployees(prev=>prev.map(e=>({
+      ...e,
+      days: Object.fromEntries(DAYS.map(d=>[d,{...e.days[d],from:e.days[d].from==="08:00"?"07:00":e.days[d].from}])) as Record<DayKey,DayData>,
+    })));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[]);
+
+  const navItems: {key:View;label:string;icon:React.ElementType;badge?:number}[] = [
+    {key:"dashboard", label:"Pulpit", icon:LayoutDashboard},
+    {key:"payroll", label:"Lista Płac", icon:FileText},
+    {key:"schedule", label:"Grafik", icon:CalendarDays, badge:weekEmployees.length || undefined},
+    {key:"directory", label:"Pracownicy", icon:Users, badge:directory.filter(d=>d.active).length},
+    {key:"archive", label:"Archiwum", icon:Archive, badge:savedWeeks.length||undefined},
+    {key:"jobs", label:"Roboty", icon:MapPin, badge:(()=>{ const pend=jobs.reduce((s,j)=>s+(j.photos||[]).filter(p=>p.status==="pending").length,0); return pend>0?pend:jobs.filter(j=>j.status==="in_progress").length||undefined; })()},
+    {key:"changelog", label:"Zmiany", icon:ScrollText},
+    {key:"help", label:"Instrukcja", icon:BookOpen},
+  ];
+
+  const totalNet = weekEmployees.reduce((s,e)=>s+calcWeekEmployee(e).netPay,0);
+
+  return (
+    <div className="flex bg-background text-foreground overflow-hidden" style={{fontFamily:"'Inter', sans-serif", height:"100dvh"}}>
+
+      {/* Sidebar — desktop only */}
+      <aside className={`hidden sm:flex flex-col border-r border-border bg-card transition-all duration-300 shrink-0 ${sidebarOpen?"w-56":"w-0 overflow-hidden"}`}>
+        {/* Logo */}
+        <div className="flex flex-col gap-1.5 px-4 py-4 border-b border-border">
+          <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-8 w-auto object-contain object-left"/>
+          <p className="text-xs text-muted-foreground font-medium tracking-wide">Zarządzanie Pracą</p>
+        </div>
+
+        {/* Nav */}
+        <nav className="px-3 py-4 space-y-1 border-b border-border">
+          {navItems.map(({key,label,icon:Icon,badge})=>(
+            <button key={key} onClick={()=>setView(key)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
+              <Icon size={15}/>
+              <span className="flex-1 text-left">{label}</span>
+              {badge!==undefined&&badge>0&&<span className={`text-xs px-1.5 py-0.5 rounded-full ${view===key?"bg-primary/20 text-primary":"bg-secondary text-muted-foreground"}`}>{badge}</span>}
+            </button>
+          ))}
+        </nav>
+
+        {/* Week summary */}
+        <div className="px-4 py-4 flex-1">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Bieżący tydzień</p>
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Pracownicy</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{weekEmployees.length}</span></div>
+            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Okres</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtDate(weekFrom).slice(0,5)}–{fmtDate(weekTo).slice(0,5)}</span></div>
+            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Rozliczeni</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{weekEmployees.filter(e=>e.settled).length}/{weekEmployees.length}</span></div>
+            <div className="pt-2 mt-2 border-t border-border">
+              <p className="text-xs text-muted-foreground mb-0.5">Do wypłaty</p>
+              <p className="text-lg font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Backup */}
+        <div className="px-3 pb-4 space-y-1.5 border-t border-border pt-3">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider px-1 mb-2">Dane</p>
+          <button onClick={exportBackup} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+            <Download size={13}/>Eksportuj backup
+          </button>
+          <label className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer">
+            <Upload size={13}/>Importuj backup
+            <input type="file" accept=".json" className="hidden" onChange={e=>e.target.files?.[0]&&importBackup(e.target.files[0])}/>
+          </label>
+        </div>
+      </aside>
+
+      {/* Main */}
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        {/* Topbar */}
+        <div className="flex items-center gap-2 px-3 sm:px-5 py-3 sm:py-3.5 border-b border-border bg-card shrink-0" style={{paddingTop:"max(0.75rem, env(safe-area-inset-top))"}}>
+          {/* Desktop: sidebar toggle */}
+          <button onClick={()=>setSidebarOpen(v=>!v)} className="hidden sm:flex p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+            <Users size={15}/>
+          </button>
+          {/* Mobile: logo */}
+          <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-6 w-auto object-contain sm:hidden"/>
+          {/* Desktop: collapsed nav */}
+          {!sidebarOpen&&<div className="hidden sm:flex gap-1">
+            {navItems.map(({key,label,icon:Icon})=>(
+              <button key={key} onClick={()=>setView(key)} className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:bg-secondary"}`}><Icon size={12}/>{label}</button>
+            ))}
+          </div>}
+          <ChevronRight size={13} className="text-muted-foreground/40 hidden sm:block"/>
+          <h2 className="text-sm font-semibold">{navItems.find(n=>n.key===view)?.label}</h2>
+          <div className="ml-auto flex items-center gap-2">
+            {view==="payroll"&&<span className="text-xs text-muted-foreground hidden sm:block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN · {weekEmployees.length} prac.</span>}
+            {view==="schedule"&&<span className="text-xs text-muted-foreground hidden sm:block">{fmtDate(weekFrom)} – {fmtDate(weekTo)} · {weekEmployees.length} prac.</span>}
+            {view==="jobs"&&<span className="text-xs text-muted-foreground hidden sm:block">{jobs.filter(j=>j.status==="in_progress").length} aktywne · {jobs.filter(j=>j.status==="completed").length} zdane</span>}
+            {/* Sync indicator */}
+            <div className="p-1.5 rounded-lg" title={syncStatus==="saving"?"Zapisywanie...":syncStatus==="saved"?"Zsynchronizowano":syncStatus==="error"?"Błąd synchronizacji":"Zsynchronizowano"}>
+              {syncStatus==="saving"&&<CloudUpload size={15} className="text-muted-foreground animate-pulse"/>}
+              {syncStatus==="saved"&&<Cloud size={15} className="text-green-500"/>}
+              {syncStatus==="error"&&<CloudOff size={15} className="text-destructive"/>}
+              {syncStatus==="idle"&&<Cloud size={15} className="text-muted-foreground/40"/>}
+            </div>
+            <button onClick={()=>setShowSearch(v=>!v)} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+              <Search size={16}/>
+            </button>
+            {onChangePassword && (
+              <button onClick={onChangePassword} title="Zmień hasło" className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+                <KeyRound size={16}/>
+              </button>
+            )}
+            {onLogout && (
+              <button onClick={onLogout} title="Wyloguj" className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+                <LogOut size={16}/>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Global search panel */}
+        {showSearch && (
+          <div className="border-b border-border bg-card px-4 py-3 space-y-2">
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
+              <input autoFocus type="text" placeholder="Szukaj pracownika, adresu, klienta..." value={globalSearch}
+                onChange={e=>setGlobalSearch(e.target.value)}
+                onKeyDown={e=>e.key==="Escape"&&(setShowSearch(false),setGlobalSearch(""))}
+                className="w-full bg-secondary rounded-lg pl-8 pr-10 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"/>
+              <button onClick={()=>{setShowSearch(false);setGlobalSearch("");}} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X size={14}/></button>
+            </div>
+            {globalSearch.trim() && (
+              <div className="bg-background rounded-xl border border-border overflow-hidden max-h-64 overflow-y-auto">
+                {searchResults.employees.length===0&&searchResults.jobs.length===0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">Brak wyników</p>
+                ) : (
+                  <>
+                    {searchResults.employees.length>0&&(<>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider px-4 py-2 border-b border-border bg-card">Pracownicy</p>
+                      {searchResults.employees.map(e=>(
+                        <button key={e.id} onClick={()=>{setView("directory");setShowSearch(false);setGlobalSearch("");}} className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-secondary transition-colors border-b border-border/50">
+                          <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center text-xs font-bold text-primary shrink-0">{e.name?e.name[0].toUpperCase():"?"}</div>
+                          <div><p className="text-sm font-medium">{e.name}</p><p className="text-xs text-muted-foreground">{e.position||"—"} · {e.phone||"—"}</p></div>
+                        </button>
+                      ))}
+                    </>)}
+                    {searchResults.jobs.length>0&&(<>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider px-4 py-2 border-b border-border bg-card">Roboty</p>
+                      {searchResults.jobs.map(j=>(
+                        <button key={j.id} onClick={()=>{setView("jobs");setShowSearch(false);setGlobalSearch("");}} className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-secondary transition-colors border-b border-border/50">
+                          <MapPin size={14} className="text-muted-foreground shrink-0"/>
+                          <div><p className="text-sm font-medium">{j.address||"Bez adresu"}{j.flatNumber&&` m.${j.flatNumber}`}</p><p className="text-xs text-muted-foreground">{j.client||"—"} · {j.status==="completed"?"Zdane":"W trakcie"}</p></div>
+                        </button>
+                      ))}
+                    </>)}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="flex flex-1 min-h-0 overflow-hidden pb-16 sm:pb-0">
+          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={setView}/>}
+          {view==="payroll"&&<PayrollView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent}/>}
+          {view==="schedule"&&<ScheduleView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
+          {view==="directory"&&<DirectoryView directory={directory} onChange={setDirectory}/>}
+          {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>setSavedWeeks(prev=>prev.filter(w=>w.id!==id))} jobs={jobs} directory={directory}/>}
+          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory}/>}
+          {view==="changelog"&&<ChangelogView/>}
+          {view==="help"&&<HelpView/>}
+        </div>
+
+        {/* Mobile bottom nav */}
+        <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex z-40" style={{paddingBottom:"env(safe-area-inset-bottom)"}}>
+          {navItems.map(({key,icon:Icon,badge})=>(
+            <button key={key} onClick={()=>setView(key)} className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 relative transition-colors ${view===key?"text-primary":"text-muted-foreground"}`}>
+              <div className="relative">
+                <Icon size={20}/>
+                {badge!==undefined&&badge>0&&<span className="absolute -top-1 -right-1.5 min-w-4 h-4 flex items-center justify-center text-[9px] font-bold rounded-full bg-primary text-primary-foreground px-0.5">{badge}</span>}
+              </div>
+              {view===key&&<span className="w-1 h-1 rounded-full bg-primary absolute top-1.5"/>}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Overwrite archive confirm */}
+      {showSaveConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:"rgba(0,0,0,0.7)"}}>
+          <div className="bg-card rounded-2xl border border-border w-full max-w-sm shadow-2xl p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-yellow-500/15 flex items-center justify-center shrink-0">
+                <AlertTriangle size={18} className="text-yellow-400"/>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Nadpisać zapisany tydzień?</p>
+                <p className="text-xs text-muted-foreground mt-1">Ten tydzień ({fmtDate(weekFrom)}–{fmtDate(weekTo)}) jest już zapisany w archiwum. Dane zostaną nadpisane aktualnymi wartościami.</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={doSaveWeek} className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+                Tak, nadpisz
+              </button>
+              <button onClick={()=>setShowSaveConfirm(false)} className="flex-1 py-2.5 rounded-xl bg-secondary text-muted-foreground text-sm font-medium hover:text-foreground transition-colors">
+                Anuluj
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Auth helpers ─────────────────────────────────────────────────────────────
+
+async function sha256(text: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+async function saveAdminHash(password: string): Promise<void> {
+  const hash = await sha256(password);
+  await pushKeysToCloud([ADMIN_HASH_KEY], [hash]).catch(() => {});
+  // Cache locally as fallback
+  localStorage.setItem(ADMIN_HASH_KEY, hash);
+}
+
+async function verifyAdminPassword(password: string): Promise<boolean> {
+  const hash = await sha256(password);
+  try {
+    const values = await fetchKeysFromCloud([ADMIN_HASH_KEY]);
+    if (values[0]) {
+      const stored = String(values[0]);
+      localStorage.setItem(ADMIN_HASH_KEY, stored);
+      return hash === stored;
+    }
+  } catch { /* offline — local cache */ }
+  const local = localStorage.getItem(ADMIN_HASH_KEY);
+  return !!local && hash === local;
+}
+
+async function adminPasswordExists(): Promise<boolean> {
+  if (localStorage.getItem(ADMIN_HASH_KEY)) return true;
+  try {
+    const values = await fetchKeysFromCloud([ADMIN_HASH_KEY]);
+    if (values[0]) {
+      localStorage.setItem(ADMIN_HASH_KEY, String(values[0]));
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
+// ─── Auth: Login Screen ───────────────────────────────────────────────────────
+
+function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:DirectoryEmployee)=>void}) {
+  const [mode, setMode] = useState<"pick"|"admin"|"worker"|"setup">("pick");
+  const [checking, setChecking] = useState(true);
+  const [hasPassword, setHasPassword] = useState(false);
+
+  const [password, setPassword] = useState("");
+  const [passShow, setPassShow] = useState(false);
+  const [passError, setPassError] = useState("");
+  const [passLoading, setPassLoading] = useState(false);
+
+  const [pass1, setPass1] = useState("");
+  const [pass2, setPass2] = useState("");
+  const [pass1Show, setPass1Show] = useState(false);
+  const [pass2Show, setPass2Show] = useState(false);
+  const [setupError, setSetupError] = useState("");
+  const [setupLoading, setSetupLoading] = useState(false);
+
+  const [directory, setDirectory] = useState<DirectoryEmployee[]>([]);
+  const [dirLoading, setDirLoading] = useState(false);
+  const [workerSearch, setWorkerSearch] = useState("");
+  const [selectedWorkerId, setSelectedWorkerId] = useState("");
+  const [phonePin, setPhonePin] = useState("");
+  const [workerError, setWorkerError] = useState("");
+
+  useEffect(() => {
+    adminPasswordExists().then(exists => {
+      setHasPassword(exists);
+      setChecking(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (mode !== "worker") return;
+    setDirLoading(true);
+    setWorkerError("");
+    fetchKeysFromCloud(["kw-directory"])
+      .then((values) => {
+        const cloud = values[0];
+        if (Array.isArray(cloud)) {
+          setDirectory(cloud);
+          try { localStorage.setItem("kw-directory", JSON.stringify(cloud)); } catch { /* ignore */ }
+        } else {
+          try {
+            const local = localStorage.getItem("kw-directory");
+            if (local) setDirectory(JSON.parse(local));
+          } catch { /* ignore */ }
+        }
+      })
+      .catch(() => {
+        try {
+          const local = localStorage.getItem("kw-directory");
+          if (local) setDirectory(JSON.parse(local));
+        } catch { /* ignore */ }
+      })
+      .finally(() => setDirLoading(false));
+  }, [mode]);
+
+  const handleAdminLogin = async () => {
+    if (!password) { setPassError("Wpisz hasło"); return; }
+    setPassLoading(true);
+    const ok = await verifyAdminPassword(password);
+    setPassLoading(false);
+    if (ok) { onAdmin(); }
+    else { setPassError("Błędne hasło"); setPassword(""); }
+  };
+
+  const handleSetupSubmit = async () => {
+    if (pass1.length < 4) { setSetupError("Hasło musi mieć co najmniej 4 znaki"); return; }
+    if (pass1 !== pass2) { setSetupError("Hasła nie pasują do siebie"); setPass2(""); return; }
+    setSetupLoading(true);
+    await saveAdminHash(pass1);
+    setSetupLoading(false);
+    onAdmin();
+  };
+
+  const activeWorkers = useMemo(() => {
+    const q = workerSearch.trim().toLowerCase();
+    return directory
+      .filter((d) => d.active)
+      .filter((d) => !q || d.name.toLowerCase().includes(q) || d.position.toLowerCase().includes(q))
+      .sort((a, b) => a.name.localeCompare(b.name, "pl"));
+  }, [directory, workerSearch]);
+
+  const selectedWorker = directory.find((d) => d.id === selectedWorkerId) || null;
+
+  const handleWorkerSubmit = () => {
+    setWorkerError("");
+    if (!selectedWorker) { setWorkerError("Wybierz siebie z listy"); return; }
+    if (!workerHasPhonePin(selectedWorker)) {
+      setWorkerError("Brak numeru w kartotece — poproś administratora o wpisanie telefonu (+48…).");
+      return;
+    }
+    const pin = phonePin.replace(/\D/g, "");
+    if (pin.length !== 9) { setWorkerError("Wpisz 9 cyfr telefonu (bez +48)"); return; }
+    if (!workerPhonePinValid(selectedWorker, pin)) {
+      setWorkerError("Błędny numer — wpisz 9 ostatnich cyfr swojego telefonu");
+      setPhonePin("");
+      return;
+    }
+    onWorker(selectedWorker);
+  };
+
+  const PasswordField = ({value, show, onToggle, onChange, onEnter, placeholder, autoFocus}: {
+    value:string; show:boolean; onToggle:()=>void; onChange:(v:string)=>void;
+    onEnter?:()=>void; placeholder?:string; autoFocus?:boolean;
+  }) => (
+    <div className="relative">
+      <input type={show?"text":"password"} placeholder={placeholder||"Wpisz hasło..."} value={value} autoFocus={autoFocus}
+        onChange={e=>onChange(e.target.value)}
+        onKeyDown={e=>e.key==="Enter"&&onEnter?.()}
+        className="w-full bg-secondary rounded-xl px-4 py-3 pr-10 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+      <button type="button" onClick={onToggle} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+        <Eye size={15}/>
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-8" style={{fontFamily:"'Inter',sans-serif"}}>
+      <div className="w-full max-w-sm space-y-8">
+
+        {/* Logo */}
+        <div className="text-center space-y-2">
+          <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-10 w-auto object-contain mx-auto"/>
+          <p className="text-xs text-muted-foreground">System zarządzania robotami</p>
+        </div>
+
+        {/* Mode: pick */}
+        {mode === "pick" && (
+          <div className="space-y-3">
+            {checking ? (
+              <div className="flex justify-center py-6">
+                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+              </div>
+            ) : (
+              <>
+                <button onClick={()=>setMode(hasPassword ? "admin" : "setup")}
+                  className="w-full bg-primary text-primary-foreground rounded-2xl px-6 py-5 flex items-center gap-4 hover:bg-primary/90 active:scale-[0.98] transition-all">
+                  <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center shrink-0"><ShieldCheck size={22}/></div>
+                  <div className="text-left">
+                    <p className="font-semibold text-base">Administrator</p>
+                    <p className="text-xs opacity-70 mt-0.5">Pełny dostęp — wymagane hasło</p>
+                  </div>
+                </button>
+                <button onClick={()=>setMode("worker")}
+                  className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-4 hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98] transition-all">
+                  <div className="w-11 h-11 rounded-xl bg-secondary flex items-center justify-center shrink-0"><HardHat size={22} className="text-muted-foreground"/></div>
+                  <div className="text-left">
+                    <p className="font-semibold text-base">Pracownik</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Lista + PIN (9 cyfr tel.)</p>
+                  </div>
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Mode: admin login */}
+        {mode === "admin" && (
+          <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
+            <div className="flex items-center gap-3">
+              <button onClick={()=>{setMode("pick");setPassword("");setPassError("");}} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><ArrowLeft size={16}/></button>
+              <div className="flex items-center gap-2"><Lock size={14} className="text-primary"/><span className="text-sm font-semibold">Logowanie administratora</span></div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Hasło</label>
+              <PasswordField value={password} show={passShow} onToggle={()=>setPassShow(v=>!v)}
+                onChange={v=>{setPassword(v);setPassError("");}} onEnter={handleAdminLogin} autoFocus/>
+              {passError && <p className="text-xs text-destructive">{passError}</p>}
+            </div>
+            <button onClick={handleAdminLogin} disabled={passLoading}
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+              {passLoading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>}
+              Zaloguj
+            </button>
+          </div>
+        )}
+
+        {/* Mode: first-time setup */}
+        {mode === "setup" && (
+          <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
+            <div className="flex items-center gap-3">
+              <button onClick={()=>{setMode("pick");setPass1("");setPass2("");setSetupError("");}} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><ArrowLeft size={16}/></button>
+              <div>
+                <p className="text-sm font-semibold">Ustaw hasło administratora</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Hasło będzie zaszyfrowane w chmurze (SHA-256)</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground">Nowe hasło (min. 4 znaki)</label>
+                <PasswordField value={pass1} show={pass1Show} onToggle={()=>setPass1Show(v=>!v)}
+                  onChange={v=>{setPass1(v);setSetupError("");}} autoFocus/>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground">Powtórz hasło</label>
+                <PasswordField value={pass2} show={pass2Show} onToggle={()=>setPass2Show(v=>!v)}
+                  onChange={v=>{setPass2(v);setSetupError("");}} onEnter={handleSetupSubmit}/>
+              </div>
+              {setupError && <p className="text-xs text-destructive">{setupError}</p>}
+            </div>
+            <button onClick={handleSetupSubmit} disabled={setupLoading}
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+              {setupLoading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>}
+              Zapisz hasło i wejdź
+            </button>
+          </div>
+        )}
+
+        {/* Mode: worker */}
+        {mode === "worker" && (
+          <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
+            <div className="flex items-center gap-3">
+              <button onClick={()=>{setMode("pick");setSelectedWorkerId("");setPhonePin("");setWorkerSearch("");setWorkerError("");}} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><ArrowLeft size={16}/></button>
+              <div className="flex items-center gap-2"><HardHat size={14} className="text-muted-foreground"/><span className="text-sm font-semibold">Logowanie pracownika</span></div>
+            </div>
+
+            {dirLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Wybierz siebie z listy</label>
+                  <div className="relative">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
+                    <input type="search" placeholder="Szukaj imienia..." value={workerSearch}
+                      onChange={e=>{setWorkerSearch(e.target.value);setWorkerError("");}}
+                      className="w-full bg-secondary rounded-xl pl-9 pr-4 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"/>
+                  </div>
+                  <div className="max-h-44 overflow-y-auto rounded-xl border border-border divide-y divide-border">
+                    {activeWorkers.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-6">Brak aktywnych pracowników w kartotece.</p>
+                    ) : activeWorkers.map((emp) => {
+                      const hasPin = workerHasPhonePin(emp);
+                      const sel = selectedWorkerId === emp.id;
+                      return (
+                        <button key={emp.id} type="button" disabled={!hasPin}
+                          onClick={()=>{setSelectedWorkerId(emp.id);setWorkerError("");}}
+                          className={`w-full px-4 py-3 text-left transition-colors ${sel?"bg-primary/10":"hover:bg-secondary/50"} ${!hasPin?"opacity-50 cursor-not-allowed":""}`}>
+                          <p className="text-sm font-medium">{emp.name||"Bez nazwy"}</p>
+                          <p className="text-xs text-muted-foreground">{emp.position||"—"}</p>
+                          {!hasPin && <p className="text-[10px] text-amber-400 mt-0.5">Brak numeru — poproś admina</p>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {selectedWorker && workerHasPhonePin(selectedWorker) && (
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Hasło — 9 cyfr telefonu (bez +48)</label>
+                    <input type="tel" inputMode="numeric" autoComplete="off" maxLength={11}
+                      placeholder="np. 501234567" value={phonePin}
+                      onChange={e=>{setPhonePin(e.target.value.replace(/\D/g,"").slice(0,9));setWorkerError("");}}
+                      onKeyDown={e=>e.key==="Enter"&&handleWorkerSubmit()}
+                      className="w-full bg-secondary rounded-xl px-4 py-3 text-sm tracking-widest border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                    <p className="text-[10px] text-muted-foreground">Ostatnie 9 cyfr numeru z kartoteki pracowników.</p>
+                  </div>
+                )}
+
+                {workerError && <p className="text-xs text-destructive">{workerError}</p>}
+
+                <button onClick={handleWorkerSubmit} disabled={!selectedWorker || !workerHasPhonePin(selectedWorker!) || phonePin.replace(/\D/g,"").length !== 9}
+                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50">
+                  Zaloguj i dodaj zdjęcia
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+// ─── Worker Photo View ────────────────────────────────────────────────────────
+
+function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()=>void}) {
+  const [jobs, setJobsLocal] = useLocalStorage<Job[]>("kw-jobs", []);
+  const [jobsLoading, setJobsLoading] = useState(true);
+  const [selectedJobId, setSelectedJobId] = useState<string|null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedCount, setUploadedCount] = useState(0);
+  const [uploadTotal, setUploadTotal] = useState(0);
+  const [uploadError, setUploadError] = useState("");
+  const [search, setSearch] = useState("");
+  const [galleryLabel, setGalleryLabel] = useState<PhotoEntry["label"]>("progress");
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+
+  useEffect(() => {
+    return () => { galleryPreviews.forEach((u) => URL.revokeObjectURL(u)); };
+  }, [galleryPreviews]);
+
+  useEffect(() => {
+    fetchKeysFromCloud(["kw-jobs"])
+      .then((values) => {
+        const cloud = values[0];
+        if (Array.isArray(cloud)) {
+          setJobsLocal(cloud);
+          try { localStorage.setItem("kw-jobs", JSON.stringify(cloud)); } catch { /* ignore */ }
+        }
+      })
+      .catch(() => {})
+      .finally(() => setJobsLoading(false));
+  }, [setJobsLocal]);
+
+  const activeJobs = jobs
+    .filter(j => j.status === "in_progress")
+    .filter(j => !search.trim() || j.address.toLowerCase().includes(search.toLowerCase()) || (j.client||"").toLowerCase().includes(search.toLowerCase()))
+    .sort((a,b) => b.startDate.localeCompare(a.startDate));
+
+  const selectedJob = jobs.find(j => j.id === selectedJobId) || null;
+
+  const LABELS: {value: PhotoEntry["label"]; icon: React.ElementType; title: string; desc: string; color: string}[] = [
+    {value:"before", icon:Camera,    title:"Przed remontem", desc:"Stan mieszkania przed rozpoczęciem prac",  color:"bg-blue-500/10 border-blue-500/25 text-blue-400"},
+    {value:"after",  icon:Eye,       title:"Po remoncie",    desc:"Stan mieszkania po zakończeniu prac",       color:"bg-green-500/10 border-green-500/25 text-green-400"},
+    {value:"progress",icon:ImagePlus,title:"W trakcie prac", desc:"Postęp prac — można wgrać wiele zdjęć",    color:"bg-yellow-500/10 border-yellow-500/20 text-yellow-400"},
+  ];
+
+  const uploadFilesBatch = async (files: File[], label: PhotoEntry["label"]) => {
+    if (!selectedJob || files.length === 0) return;
+    setUploading(true);
+    setUploadError("");
+    setUploadedCount(0);
+    setUploadTotal(files.length);
+    const newPhotos: PhotoEntry[] = [];
+    let failMsg = "";
+    for (const file of files) {
+      const { entry, error } = await uploadPhoto(selectedJob.id, file, label, workerName);
+      if (entry) {
+        newPhotos.push(entry);
+        setUploadedCount((p) => p + 1);
+      } else {
+        failMsg = error || "Nie udało się wgrać zdjęcia.";
+      }
+    }
+    if (newPhotos.length > 0) {
+      setJobsLocal((prev) => {
+        const updated = prev.map((j) =>
+          j.id === selectedJobId ? { ...j, photos: [...(j.photos || []), ...newPhotos] } : j,
+        );
+        pushKeysToCloud(["kw-jobs"], [updated]).catch(() => {});
+        return updated;
+      });
+    }
+    if (failMsg) {
+      setUploadError(
+        newPhotos.length > 0
+          ? `Wgrano ${newPhotos.length} z ${files.length}. ${failMsg}`
+          : failMsg,
+      );
+    }
+    setUploading(false);
+    setUploadTotal(0);
+  };
+
+  const handleFiles = async (files: FileList | null, label: PhotoEntry["label"]) => {
+    if (!files?.length) return;
+    await uploadFilesBatch(Array.from(files), label);
+  };
+
+  const onGalleryPick = (files: FileList | null) => {
+    if (!files?.length) return;
+    galleryPreviews.forEach((u) => URL.revokeObjectURL(u));
+    const list = Array.from(files);
+    setGalleryFiles(list);
+    setGalleryPreviews(list.map((f) => URL.createObjectURL(f)));
+    setUploadError("");
+  };
+
+  const clearGallery = () => {
+    galleryPreviews.forEach((u) => URL.revokeObjectURL(u));
+    setGalleryFiles([]);
+    setGalleryPreviews([]);
+  };
+
+  const submitGallery = async () => {
+    if (galleryFiles.length === 0) return;
+    await uploadFilesBatch(galleryFiles, galleryLabel);
+    clearGallery();
+  };
+
+  const myPhotos = selectedJob ? (selectedJob.photos||[]).filter(p=>p.uploadedBy===workerName) : [];
+
+  return (
+    <div className="flex flex-col bg-background text-foreground" style={{fontFamily:"'Inter',sans-serif", height:"100dvh"}}>
+      <div className="flex items-center justify-between px-4 py-4 border-b border-border bg-card shrink-0" style={{paddingTop:"max(1rem,env(safe-area-inset-top))"}}>
+        <div className="flex items-center gap-3">
+          <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-7 w-auto object-contain"/>
+          <div className="w-px h-5 bg-border"/>
+          <div>
+            <p className="text-xs font-semibold">{workerName}</p>
+            <p className="text-[10px] text-muted-foreground">Tryb pracownika</p>
+          </div>
+        </div>
+        <button onClick={onLogout} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-3 py-2 rounded-lg hover:bg-secondary transition-colors">
+          <LogOut size={13}/>Wyloguj
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto pb-8">
+        {!selectedJob ? (
+          <div className="max-w-lg mx-auto px-4 pt-6 space-y-4">
+            <div>
+              <p className="text-lg font-bold mb-0.5">Wybierz robotę</p>
+              <p className="text-xs text-muted-foreground">Roboty w trakcie — wybierz żeby wgrać zdjęcia</p>
+            </div>
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
+              <input type="text" placeholder="Szukaj adresu lub klienta..." value={search} onChange={e=>setSearch(e.target.value)}
+                className="w-full bg-secondary rounded-xl pl-9 pr-4 py-3 text-sm border border-transparent focus:border-primary focus:outline-none"/>
+            </div>
+            {jobsLoading ? (
+              <div className="flex justify-center py-16">
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+              </div>
+            ) : activeJobs.length === 0 ? (
+              <div className="text-center py-16 text-muted-foreground">
+                <MapPin size={40} className="mx-auto opacity-20 mb-3"/>
+                <p className="text-sm">Brak aktywnych robót</p>
+                <p className="text-xs mt-2 max-w-xs mx-auto">Administrator musi dodać robotę ze statusem „w trakcie” w panelu.</p>
+              </div>
+            ) : null}
+            <div className="space-y-2">
+              {activeJobs.map(job => {
+                const pending = (job.photos||[]).filter(p=>p.status==="pending").length;
+                return (
+                  <button key={job.id} onClick={()=>{setSelectedJobId(job.id);setUploadedCount(0);setUploadError("");}}
+                    className="w-full bg-card border border-border rounded-2xl px-5 py-4 text-left hover:border-primary/40 hover:bg-primary/5 transition-all">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold">{job.address||"Bez adresu"}{job.flatNumber&&<span className="text-muted-foreground"> m.{job.flatNumber}</span>}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{job.client||"—"}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        <span className="text-[10px] bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded-full font-medium">W trakcie</span>
+                        {pending > 0 && <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full">{pending} oczekuje</span>}
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">Rozpoczęto: {fmtDate(job.startDate)}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className="max-w-lg mx-auto px-4 pt-5 space-y-5">
+            <button onClick={()=>setSelectedJobId(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft size={15}/>Zmień robotę
+            </button>
+
+            <div className="bg-card border border-border rounded-2xl px-5 py-4">
+              <p className="text-base font-bold">{selectedJob.address||"Bez adresu"}{selectedJob.flatNumber&&` m.${selectedJob.flatNumber}`}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{selectedJob.client||"—"} · Rozpoczęto {fmtDate(selectedJob.startDate)}</p>
+            </div>
+
+            {uploading && (
+              <div className="bg-primary/10 border border-primary/20 rounded-xl px-4 py-3 flex items-center gap-3">
+                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0"/>
+                <p className="text-sm text-primary">
+                  Wgrywanie… {uploadedCount}{uploadTotal > 0 ? ` / ${uploadTotal}` : ""} zdjęć
+                </p>
+              </div>
+            )}
+            {uploadError && <p className="text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2">{uploadError}</p>}
+
+            <div className="bg-card border border-primary/25 rounded-2xl p-4 space-y-4">
+              <div>
+                <p className="text-sm font-semibold flex items-center gap-2"><ImagePlus size={16} className="text-primary"/>Galeria — wiele zdjęć</p>
+                <p className="text-xs text-muted-foreground mt-1">Zaznacz wiele zdjęć z telefonu naraz, podejrzyj i wyślij jednym kliknięciem.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {LABELS.map((lbl) => (
+                  <button key={lbl.value} type="button" onClick={() => setGalleryLabel(lbl.value)}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${galleryLabel === lbl.value ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}>
+                    {lbl.title}
+                  </button>
+                ))}
+              </div>
+              <label className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold cursor-pointer hover:bg-primary/90 active:scale-[0.98] transition-all">
+                <ImagePlus size={18}/>
+                Wybierz z galerii ({galleryFiles.length || "wiele"})
+                <input type="file" accept="image/*" multiple className="sr-only"
+                  onChange={(e) => { onGalleryPick(e.target.files); e.target.value = ""; }}/>
+              </label>
+              {galleryPreviews.length > 0 && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {galleryPreviews.map((url, i) => (
+                      <div key={url} className="aspect-square rounded-lg overflow-hidden bg-secondary border border-border">
+                        <img src={url} alt="" className="w-full h-full object-cover"/>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={submitGallery} disabled={uploading}
+                      className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50">
+                      Wyślij {galleryFiles.length} zdjęć
+                    </button>
+                    <button type="button" onClick={clearGallery} disabled={uploading}
+                      className="px-4 py-3 rounded-xl border border-border text-sm text-muted-foreground hover:bg-secondary">
+                      Anuluj
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Szybki aparat (pojedynczo)</p>
+              <div className="space-y-2">
+                {LABELS.map(lbl => (
+                  <label key={lbl.value} className={`flex items-center gap-4 px-4 py-3 rounded-xl border cursor-pointer transition-all hover:opacity-90 active:scale-[0.98] ${lbl.color}`}>
+                    <lbl.icon size={18} className="shrink-0"/>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">{lbl.title}</p>
+                    </div>
+                    <input type="file" accept="image/*" multiple capture="environment" className="sr-only"
+                      onChange={e=>{handleFiles(e.target.files, lbl.value); e.target.value = "";}}/>
+                    <Camera size={16} className="shrink-0 opacity-60"/>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {myPhotos.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold mb-3">Twoje wgrane zdjęcia ({myPhotos.length})</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {myPhotos.map(p=>(
+                    <div key={p.id} className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
+                      <img src={p.publicUrl} alt={p.label} className="w-full h-full object-cover"/>
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1.5 py-1">
+                        <p className="text-[9px] text-white font-medium">{p.label==="before"?"Przed":p.label==="after"?"Po":"W trakcie"}</p>
+                      </div>
+                      <div className={`absolute top-1 right-1 rounded-full px-1.5 py-0.5 text-[8px] font-bold ${p.status==="approved"?"bg-green-500 text-white":p.status==="rejected"?"bg-red-500 text-white":"bg-yellow-500 text-black"}`}>
+                        {p.status==="approved"?"✓":p.status==="rejected"?"✗":"?"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Admin Photo Gallery ───────────────────────────────────────────────────────
+
+function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photos:PhotoEntry[])=>void}) {
+  const [lightbox, setLightbox] = useState<PhotoEntry|null>(null);
+
+  const pending  = photos.filter(p=>p.status==="pending");
+  const approved = photos.filter(p=>p.status==="approved");
+  const rejected = photos.filter(p=>p.status==="rejected");
+
+  const approve = (id: string) => onUpdate(photos.map(p=>p.id===id?{...p,status:"approved"}:p));
+  const reject  = (id: string) => onUpdate(photos.map(p=>p.id===id?{...p,status:"rejected"}:p));
+  const remove  = (id: string) => onUpdate(photos.filter(p=>p.id!==id));
+
+  if (photos.length === 0) return (
+    <div className="text-center py-10 text-muted-foreground">
+      <Camera size={36} className="mx-auto opacity-20 mb-2"/>
+      <p className="text-sm">Brak zdjęć</p>
+      <p className="text-xs mt-1">Pracownicy mogą dodawać zdjęcia w trybie pracownika</p>
+    </div>
+  );
+
+  const LABEL_NAMES: Record<string,string> = {before:"Przed remontem", after:"Po remoncie", progress:"W trakcie"};
+
+  const PhotoGrid = ({items, showActions}:{items:PhotoEntry[]; showActions?:boolean}) => (
+    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+      {items.map(p=>(
+        <div key={p.id} className="group relative aspect-square rounded-xl overflow-hidden bg-secondary cursor-pointer" onClick={()=>setLightbox(p)}>
+          <img src={p.publicUrl} alt={p.label} className="w-full h-full object-cover"/>
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+            <Eye size={20} className="text-white"/>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
+            <p className="text-[9px] text-white font-medium truncate">{LABEL_NAMES[p.label]||p.label}</p>
+            <p className="text-[8px] text-white/70 truncate">{p.uploadedBy}</p>
+          </div>
+          {showActions && (
+            <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-all" onClick={e=>e.stopPropagation()}>
+              <button onClick={()=>approve(p.id)} title="Akceptuj"
+                className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-400 transition-colors">
+                <ThumbsUp size={10} className="text-white"/>
+              </button>
+              <button onClick={()=>reject(p.id)} title="Odrzuć"
+                className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center hover:bg-red-400 transition-colors">
+                <ThumbsDown size={10} className="text-white"/>
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="space-y-5">
+      {pending.length > 0 && (
+        <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-yellow-500/20 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock3 size={13} className="text-yellow-400"/>
+              <span className="text-xs font-semibold text-yellow-400 uppercase tracking-wider">Oczekuje na akceptację</span>
+              <span className="bg-yellow-500/20 text-yellow-400 text-[10px] font-bold px-2 py-0.5 rounded-full">{pending.length}</span>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={()=>onUpdate(photos.map(p=>p.status==="pending"?{...p,status:"approved"}:p))}
+                className="text-xs text-green-400 hover:text-green-300 transition-colors px-2 py-1 rounded-lg hover:bg-green-500/10">
+                Akceptuj wszystkie
+              </button>
+            </div>
+          </div>
+          <div className="p-3">
+            <PhotoGrid items={pending} showActions/>
+          </div>
+        </div>
+      )}
+
+      {approved.length > 0 && (
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+            <CheckCircle2 size={13} className="text-green-400"/>
+            <span className="text-xs font-semibold text-green-400 uppercase tracking-wider">Zaakceptowane</span>
+            <span className="bg-green-500/15 text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full">{approved.length}</span>
+          </div>
+          <div className="p-3 space-y-3">
+            <PhotoGrid items={approved}/>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {approved.map(p=>(
+                <div key={`del-${p.id}`} className="flex items-center justify-between px-2 py-1 bg-secondary/50 rounded-lg">
+                  <p className="text-[9px] text-muted-foreground truncate max-w-[70%]">{LABEL_NAMES[p.label]||p.label}</p>
+                  <button onClick={()=>remove(p.id)} className="text-muted-foreground hover:text-destructive transition-colors"><X size={10}/></button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {rejected.length > 0 && (
+        <div className="bg-card border border-border rounded-xl overflow-hidden opacity-60">
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <X size={13} className="text-muted-foreground"/>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Odrzucone</span>
+              <span className="bg-secondary text-muted-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">{rejected.length}</span>
+            </div>
+            <button onClick={()=>onUpdate(photos.filter(p=>p.status!=="rejected"))} className="text-xs text-muted-foreground hover:text-destructive transition-colors">
+              Usuń odrzucone
+            </button>
+          </div>
+          <div className="p-3">
+            <PhotoGrid items={rejected}/>
+          </div>
+        </div>
+      )}
+
+      {lightbox && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90" onClick={()=>setLightbox(null)}>
+          <button className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-2"><X size={24}/></button>
+          <img src={lightbox.publicUrl} alt={lightbox.label} className="max-w-full max-h-[90vh] rounded-xl object-contain" onClick={e=>e.stopPropagation()}/>
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center">
+            <p className="text-white/90 text-sm font-medium">{LABEL_NAMES[lightbox.label]||lightbox.label}</p>
+            <p className="text-white/50 text-xs mt-0.5">{lightbox.uploadedBy} · {new Date(lightbox.uploadedAt).toLocaleDateString("pl-PL")}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Change Password Modal ────────────────────────────────────────────────────
+
+function ChangePasswordModal({onClose}: {onClose:()=>void}) {
+  const [current, setCurrent] = useState("");
+  const [currentShow, setCurrentShow] = useState(false);
+  const [pass1, setPass1] = useState("");
+  const [pass1Show, setPass1Show] = useState(false);
+  const [pass2, setPass2] = useState("");
+  const [pass2Show, setPass2Show] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!current) { setError("Wpisz aktualne hasło"); return; }
+    if (pass1.length < 4) { setError("Nowe hasło musi mieć co najmniej 4 znaki"); return; }
+    if (pass1 !== pass2) { setError("Nowe hasła nie pasują do siebie"); setPass2(""); return; }
+    setLoading(true); setError("");
+    const ok = await verifyAdminPassword(current);
+    if (!ok) { setError("Aktualne hasło jest błędne"); setLoading(false); setCurrent(""); return; }
+    await saveAdminHash(pass1);
+    setLoading(false);
+    setSuccess(true);
+    setTimeout(onClose, 1500);
+  };
+
+  const Field = ({label, value, show, onToggle, onChange, placeholder}: {
+    label:string; value:string; show:boolean; onToggle:()=>void;
+    onChange:(v:string)=>void; placeholder?:string;
+  }) => (
+    <div className="space-y-1.5">
+      <label className="text-xs text-muted-foreground">{label}</label>
+      <div className="relative">
+        <input type={show?"text":"password"} placeholder={placeholder||"Wpisz hasło..."} value={value}
+          onChange={e=>{onChange(e.target.value);setError("");}}
+          onKeyDown={e=>e.key==="Enter"&&handleSubmit()}
+          className="w-full bg-secondary rounded-xl px-4 py-3 pr-10 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+        <button type="button" onClick={onToggle} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"><Eye size={15}/></button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:"rgba(0,0,0,0.7)"}}>
+      <div className="bg-card rounded-2xl border border-border w-full max-w-sm shadow-2xl p-6 space-y-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2"><KeyRound size={15} className="text-primary"/><span className="text-sm font-semibold">Zmiana hasła administratora</span></div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><X size={15}/></button>
+        </div>
+
+        {success ? (
+          <div className="flex flex-col items-center gap-3 py-4">
+            <div className="w-12 h-12 rounded-full bg-green-500/15 flex items-center justify-center"><CheckCircle2 size={24} className="text-green-400"/></div>
+            <p className="text-sm font-medium">Hasło zostało zmienione</p>
+            <p className="text-xs text-muted-foreground">Nowe hasło zapisane w chmurze</p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-3">
+              <Field label="Aktualne hasło" value={current} show={currentShow}
+                onToggle={()=>setCurrentShow(v=>!v)} onChange={setCurrent}/>
+              <div className="border-t border-border/50 pt-3 space-y-3">
+                <Field label="Nowe hasło (min. 4 znaki)" value={pass1} show={pass1Show}
+                  onToggle={()=>setPass1Show(v=>!v)} onChange={setPass1}/>
+                <Field label="Powtórz nowe hasło" value={pass2} show={pass2Show}
+                  onToggle={()=>setPass2Show(v=>!v)} onChange={setPass2}/>
+              </div>
+              {error && <p className="text-xs text-destructive">{error}</p>}
+            </div>
+            <button onClick={handleSubmit} disabled={loading}
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+              {loading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>}
+              Zmień hasło
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── App with auth ─────────────────────────────────────────────────────────────
+
+const DEFAULT_ADMIN_PASSWORD = "wgdom1990@";
+
+function AppInnerWithAuth() {
+  const [appMode, setAppMode] = useState<"login"|"admin"|"worker">(() => {
+    const s = sessionStorage.getItem("wg-session-mode");
+    return (s as "admin"|"worker"|null) || "login";
+  });
+  const [workerName, setWorkerName] = useState(() => sessionStorage.getItem("wg-worker-name") || "");
+  const [showChangePass, setShowChangePass] = useState(false);
+
+  // Set default password on first ever launch
+  useEffect(() => {
+    adminPasswordExists().then(exists => {
+      if (!exists) saveAdminHash(DEFAULT_ADMIN_PASSWORD);
+    });
+  }, []);
+
+  const enterAdmin = () => { sessionStorage.setItem("wg-session-mode","admin"); setAppMode("admin"); };
+  const enterWorker = (emp: DirectoryEmployee) => {
+    sessionStorage.setItem("wg-session-mode","worker");
+    sessionStorage.setItem("wg-worker-name", emp.name);
+    sessionStorage.setItem("wg-worker-id", emp.id);
+    setWorkerName(emp.name);
+    setAppMode("worker");
+  };
+  const logout = () => {
+    sessionStorage.removeItem("wg-session-mode");
+    sessionStorage.removeItem("wg-worker-name");
+    sessionStorage.removeItem("wg-worker-id");
+    setAppMode("login"); setWorkerName("");
+  };
+
+  if (appMode === "login") return <LoginScreen onAdmin={enterAdmin} onWorker={enterWorker}/>;
+  if (appMode === "worker") return <WorkerPhotoView workerName={workerName} onLogout={logout}/>;
+  return (
+    <>
+      <AppInner onLogout={logout} onChangePassword={()=>setShowChangePass(true)}/>
+      {showChangePass && <ChangePasswordModal onClose={()=>setShowChangePass(false)}/>}
+    </>
+  );
+}
+
+export default function App() {
+  return <CloudLoader><AppInnerWithAuth/></CloudLoader>;
+}

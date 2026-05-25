@@ -1,0 +1,45 @@
+---
+description: Zasady rozwoju aplikacji W&G DOM — chmura, zmiany, instrukcja
+globs: "**/WGDOM1/**"
+alwaysApply: false
+---
+
+# W&G DOM — zasady przy każdej zmianie
+
+Komunikuj się z użytkownikiem po **polsku**.
+
+## 1. Chmura (Supabase) — obowiązkowo
+
+Każde dane, które mają **przetrwać** po odświeżeniu / na innym urządzeniu, muszą trafiać do chmury.
+
+- Używaj `src/lib/cloud-sync.ts`: `DATA_KEYS`, `pushKeysToCloud`, `pushAllDataToCloud`, `persistKey`.
+- **Nowy typ danych** → dodaj klucz do `DATA_KEYS` w `cloud-sync.ts` i podłącz stan w `App.tsx` (jak pozostałe pola).
+- Nie zapisuj trwałych danych tylko w `localStorage` bez synchronizacji.
+- Wyjątki bez chmury: tymczasowe flagi UI, `kw-last-backup` (data ostatniego maila).
+- Hasło admina: klucz `ADMIN_HASH_KEY` — zawsze przez `saveAdminHash` / `persistKey`.
+- Po imporcie backupu JSON: zawsze `batch-set` do chmury (już jest w `importBackup`).
+
+## 2. Zakładka „Zmiany” (CHANGELOG)
+
+Przy każdej widocznej zmianie dla użytkownika:
+
+- Dodaj **nowy wpis na górze** tablicy `CHANGELOG` w `src/app/App.tsx` (nie edytuj starych wersji).
+- Format: `date`, `version` (patch +0.1), `label`, `items[]` z typem `new` | `fix` | `improve`.
+- Aktualna wersja w UI = `CHANGELOG[0].version`.
+
+## 3. Instrukcja obsługi (HelpView)
+
+Nowa opcja / przycisk / ekran → zaktualizuj `HelpView` w `App.tsx`:
+
+- Sekcja pasująca tematycznie (Lista Płac, Roboty, …) lub nowa sekcja.
+- Forma: pytanie + odpowiedź (FAQ) lub kafelek w „Przydatne sztuczki”.
+- Wspomnij synchronizację/chmurkę, jeśli dotyczy zapisu danych.
+
+## 4. Kolejność pracy
+
+1. Implementacja + chmura  
+2. Wpis w CHANGELOG  
+3. Aktualizacja instrukcji  
+4. Krótkie podsumowanie po polsku dla użytkownika  
+
+Szczegóły: `guidelines/ROZWOJ.md`.
