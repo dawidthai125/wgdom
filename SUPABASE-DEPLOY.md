@@ -1,6 +1,10 @@
 # Supabase — wdrożenie backendu (krok po kroku)
 
-Backend W&G DOM to **jedna Edge Function** na Supabase. Frontend (Vercel) tylko do niej woła — bez deployu Supabase email z roboty **nie zadziała**.
+Backend W&G DOM to **jedna Edge Function** na Supabase. Frontend (Vercel) tylko do niej woła — bez deployu Supabase **nie zadziałają** m.in.:
+
+- email z roboty,
+- wgrywanie zdjęć,
+- **link podglądu dla klienta** (v2.5).
 
 **Twój projekt:** `kchwyjlnkdlymwvsnfiu`  
 **Nazwa funkcji:** `make-server-0afb8820`  
@@ -17,6 +21,7 @@ Backend W&G DOM to **jedna Edge Function** na Supabase. Frontend (Vercel) tylko 
 5. [Test czy działa](#5-test-czy-działa)
 6. [Opcja: deploy przez CLI](#6-opcja-deploy-przez-cli)
 7. [Rozwiązywanie problemów](#7-rozwiązywanie-problemów)
+8. [Odpowiedzi na maile (Reply-To)](#8-odpowiedzi-na-maile-reply-to-vs-skrzynka-birowgdomfun)
 
 ---
 
@@ -50,7 +55,7 @@ Funkcja składa się z **dwóch plików**. Oba muszą być na serwerze.
    ```
    supabase/functions/server/index.tsx
    ```
-   (z repozytorium GitHub po pushu albo lokalnie z folderu WGDOM1)
+   (z GitHub po pushu albo lokalnie z folderu WGDOM1 — commit `1dd9247` lub nowszy dla v2.5)
 5. Wklej do edytora Supabase
 
 ### 3b. Plik pomocniczy `kv_store.tsx`
@@ -67,11 +72,18 @@ Funkcja składa się z **dwóch plików**. Oba muszą być na serwerze.
 
 1. Kliknij **Deploy** (lub **Save and deploy**)
 2. Poczekaj, aż status będzie **Active** / zielony (zwykle 30–60 s)
-3. Po deployu funkcja ma m.in. nowy endpoint:
-   ```
-   POST .../send-job-email
-   ```
-   (oprócz starych: `batch-get`, `batch-set`, `storage-upload`, `send-backup-email`)
+3. Po deployu funkcja obsługuje m.in.:
+
+| Metoda | Endpoint | Do czego (wersja) |
+|--------|----------|-------------------|
+| GET | `/health` | Test serwera |
+| POST | `/batch-get`, `/batch-set`, `/batch-del` | Synchronizacja danych |
+| POST | `/storage-upload` | Zdjęcia z telefonu |
+| POST | `/send-backup-email` | Auto-backup w poniedziałek |
+| POST | `/send-job-email` | Email z roboty (v2.4) |
+| **GET** | **`/client-share?token=...`** | **Link podglądu dla klienta (v2.5)** |
+
+> **v2.5 — co NIE wymaga Supabase:** PWA, kolejka offline, watermark, historia roboty, klik z pulpitu — to działa tylko w frontendzie (Vercel). **Link klienta** wymaga nowego endpointu `client-share` na Supabase.
 
 ---
 
@@ -142,23 +154,61 @@ status
 ok
 ```
 
-**Alternatywa:** w aplikacji [wgdom.vercel.app](https://wgdom.vercel.app) sprawdź ikonę chmurki u góry — jeśli synchronizacja działa (szara/zielona chmurka), backend jest OK i health w przeglądarce możesz pominąć.
+**Alternatywa:** w aplikacji [wgdom.fun](https://wgdom.fun) sprawdź ikonę chmurki u góry — jeśli synchronizacja działa (szara/zielona chmurka), backend jest OK i health w przeglądarce możesz pominąć.
+
+---
 
 ### Test B — email z aplikacji
 
-1. Wejdź na [https://wgdom.vercel.app](https://wgdom.vercel.app) (po deployu Vercel z v2.4)
-2. **Kontakty** → dodaj kontakt z **prawdziwym emailem** (możesz swój)
+1. Wejdź na [https://wgdom.fun](https://wgdom.fun) (lub wgdom.vercel.app)
+2. **Kontakty** → dodaj kontakt z **prawdziwym emailem**
 3. **Roboty** → wybierz robotę ze zdjęciami lub raportem
 4. **Email** → wybierz odbiorcę, zaznacz pozycje → **Wyślij**
 5. Sprawdź skrzynkę (i folder **Spam**)
 
-### Test C — logi błędów
+---
+
+### Test C — link podglądu dla klienta (v2.5)
+
+**W aplikacji (admin):**
+
+1. **Roboty** → wybierz robotę
+2. Sekcja **„Podgląd dla klienta”** → **Utwórz link podglądu** → **Kopiuj**
+3. Link wygląda np. tak:
+   ```
+   https://wgdom.fun/?podglad=abc123def456...
+   ```
+4. Otwórz link w **trybie incognito** albo wyślij komuś — **bez logowania**
+5. Powinieneś zobaczyć adres, zaakceptowane zdjęcia i raporty (bez kosztów, notatek wewnętrznych)
+
+**Co klient NIE zobaczy:**
+
+- zdjęć oczekujących na akceptację (`pending`),
+- odrzuconych zdjęć,
+- kosztów pracy i materiałów,
+- notatek admina.
+
+**Test techniczny (PowerShell)** — zamień `TOKEN` i `TWOJ_ANON_KEY`:
+
+```powershell
+$anon = "TWOJ_ANON_KEY"
+$token = "TOKEN_Z_LINKU"
+Invoke-RestMethod -Uri "https://kchwyjlnkdlymwvsnfiu.supabase.co/functions/v1/make-server-0afb8820/client-share?token=$token" -Headers @{ Authorization = "Bearer $anon" }
+```
+
+Oczekiwany wynik: `ok : True` oraz obiekt `job` z adresem i tablicą `photos`.
+
+Jeśli `Link nieaktywny` — w aplikacji włącz link ponownie albo sprawdź, czy synchronizacja zapisała `clientShare` w chmurze (chmurka zielona).
+
+---
+
+### Test D — logi błędów
 
 Jeśli coś nie działa:
 
 1. Supabase → **Edge Functions** → **`make-server-0afb8820`**
 2. Zakładka **Logs** / **Invocations**
-3. Szukaj czerwonych wpisów przy kliknięciu „Wyślij” w aplikacji
+3. Szukaj czerwonych wpisów przy wysyłce emaila, wgrywaniu zdjęć lub otwarciu linku klienta
 
 ---
 
@@ -166,7 +216,7 @@ Jeśli coś nie działa:
 
 Tylko jeśli masz zainstalowane [Supabase CLI](https://supabase.com/docs/guides/cli).
 
-```bash
+```powershell
 # W folderze projektu WGDOM1
 npm i -g supabase
 
@@ -179,7 +229,7 @@ supabase link --project-ref kchwyjlnkdlymwvsnfiu
 # Sekret (jednorazowo)
 supabase secrets set RESEND_API_KEY=re_twoj_klucz
 
-# Deploy funkcji (ścieżka zależy od struktury — w tym projekcie pliki są w server/)
+# Deploy funkcji
 supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfiu
 ```
 
@@ -194,34 +244,47 @@ supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfi
 | `UNAUTHORIZED_NO_AUTH_HEADER` | Otworzyłeś URL funkcji w przeglądarce bez klucza — użyj testu A (PowerShell) albo testuj z aplikacji |
 | `RESEND_API_KEY not set` | Dodaj sekret w kroku 4, redeploy funkcji |
 | `404` na `/send-job-email` | Stary kod na Supabase — powtórz krok 3 (wklej nowy `index.tsx`) |
-| Email nie dochodzi | Sprawdź spam; na Resend free domain `onboarding@resend.dev` może trafiać do spamu |
-| Resend: „only send testing emails to your own email” | Zweryfikuj domenę `wgdom.fun` w Resend (już zrobione) i wdróż nowy `index.tsx` |
+| `404` na `/client-share` | Brak v2.5 na Supabase — wklej nowy `index.tsx` z commitem `1dd9247+` i Deploy |
+| Link klienta: „Link nieaktywny” | W Roboty → włącz link; upewnij się, że chmurka zsynchronizowała dane (`clientShare.enabled = true`) |
+| Link klienta: pusty ekran / błąd | Otwórz link z **wgdom.fun** (Vercel v2.5); stary frontend nie ma widoku `?podglad=` |
+| Link klienta: brak zdjęć | Klient widzi tylko **zaakceptowane** zdjęcia — w Roboty kliknij ✓ przy zdjęciach |
+| Email nie dochodzi | Sprawdź spam; domena `wgdom.fun` musi być zweryfikowana w Resend |
 | Backup nie przychodzi w poniedziałek | Wdróż nowy `index.tsx`; backup idzie na `dawid.thai@int.pl` |
-| Klient odpisuje, nic nie przychodzi | Resend **nie odbiera** poczty na `biuro@wgdom.fun` — używamy Reply-To (patrz sekcja 8) |
-| Resend: „validation error” | Adres odbiorcy musi być poprawny (`name@domena.pl`) |
-| `Brak treści do wysłania` | W modalu zaznacz co najmniej jedno zdjęcie lub element raportu |
+| Klient odpisuje, nic nie przychodzi | Resend **nie odbiera** poczty na `biuro@wgdom.fun` — Reply-To (sekcja 8) |
+| `Brak treści do wysłania` | W modalu email zaznacz co najmniej jedno zdjęcie lub element raportu |
 | Czerwona chmurka w app | Internet / Supabase — sprawdź health (test A) |
 | Zdjęcia w mailu puste | Bucket `make-0afb8820-photos` musi być publiczny (ustawiane automatycznie przez funkcję) |
+| Kolejka offline nie wysyła | To frontend (IndexedDB) — nie Supabase; wróć sieć i kliknij „Wyślij teraz” w trybie pracownika |
 
 ---
 
-## Co wdrożyć po każdej aktualizacji backendu?
+## Co wdrożyć po każdej aktualizacji?
 
 | Zmiana w kodzie | Gdzie deploy |
 |-----------------|--------------|
-| Tylko `src/` (React, UI) | **Git push** → Vercel sam zbuduje |
+| Tylko `src/`, `public/` (React, PWA, UI) | **Git push** → Vercel sam zbuduje |
 | `supabase/functions/server/*` | **Supabase** (ten dokument, krok 3) |
 | Nowy sekret (np. nowy klucz Resend) | Supabase → Secrets (krok 4) |
 
 ---
 
+## Szybka checklista v2.5
+
+- [ ] Edge Function `make-server-0afb8820` — wdrożony **nowy** `index.tsx` (z endpointem `GET /client-share`) + `kv_store.tsx`
+- [ ] Sekret `RESEND_API_KEY` ustawiony (jeśli używasz emaili)
+- [ ] Health przetestowany (test A) **albo** synchronizacja w app działa
+- [ ] Vercel ma **v2.5** (commit `1dd9247` lub nowszy — PWA, link klienta, kolejka offline)
+- [ ] Test linku klienta (test C) — podgląd w incognito działa
+- [ ] Test email z roboty (test B) — opcjonalnie, jeśli wysyłasz maile
+
+---
+
 ## Szybka checklista v2.4 (email z roboty)
 
-- [ ] Edge Function `make-server-0afb8820` — wdrożony nowy `index.tsx` + `kv_store.tsx`
+- [ ] Edge Function — wdrożony `index.tsx` z `send-job-email`
 - [ ] Sekret `RESEND_API_KEY` ustawiony
-- [ ] Health przetestowany przez PowerShell **albo** synchronizacja w app działa
-- [ ] Vercel ma v2.4 (frontend z zakładką Kontakty i przyciskiem Email)
-- [ ] Test wysyłki z aplikacji — mail dotarł
+- [ ] Vercel ma v2.4+ (Kontakty + przycisk Email)
+- [ ] Test wysyłki — mail dotarł
 
 ---
 

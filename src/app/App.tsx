@@ -5825,7 +5825,9 @@ function ClientShareView({ token }: { token: string }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`${API_BASE}/client-share?token=${encodeURIComponent(token)}`)
+    fetch(`${API_BASE}/client-share?token=${encodeURIComponent(token)}`, {
+      headers: { Authorization: API_HEADERS.Authorization },
+    })
       .then((r) => r.json())
       .then((data) => {
         if (!data.ok) throw new Error(data.error || "Nie udało się wczytać");
