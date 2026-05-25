@@ -92,7 +92,8 @@ Bez tego klucza wysyłka emaili zwróci błąd *„RESEND_API_KEY not set”*.
 3. **Add new secret**
    - **Name:** `RESEND_API_KEY`
    - **Value:** wklej klucz `re_...`
-4. Zapisz
+4. *(Opcjonalnie)* **BACKUP_EMAIL** — adres na auto-backup w poniedziałek (domyślnie `dawid.thai@icloud.com`). Ustaw `dawid.thai@int.pl` dopiero po weryfikacji domeny w Resend.
+5. Zapisz
 
 > **Nie dodawaj** `RESEND_API_KEY` do Vercel — to sekret tylko dla serwera Supabase.
 
@@ -187,6 +188,8 @@ supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfi
 | `RESEND_API_KEY not set` | Dodaj sekret w kroku 4, redeploy funkcji |
 | `404` na `/send-job-email` | Stary kod na Supabase — powtórz krok 3 (wklej nowy `index.tsx`) |
 | Email nie dochodzi | Sprawdź spam; na Resend free domain `onboarding@resend.dev` może trafiać do spamu |
+| Resend: „only send testing emails to your own email” | Darmowy Resend wysyła tylko na email właściciela konta (np. `@icloud.com`). Do `@int.pl` i klientów — zweryfikuj domenę w [resend.com/domains](https://resend.com/domains) |
+| Backup nie przychodzi w poniedziałek | Wdróż nowy `index.tsx` (BACKUP_EMAIL); bez weryfikacji domeny backup idzie na `@icloud.com`, nie `@int.pl` |
 | Resend: „validation error” | Adres odbiorcy musi być poprawny (`name@domena.pl`) |
 | `Brak treści do wysłania` | W modalu zaznacz co najmniej jedno zdjęcie lub element raportu |
 | Czerwona chmurka w app | Internet / Supabase — sprawdź health (test A) |

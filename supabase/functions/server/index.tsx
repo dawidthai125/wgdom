@@ -140,6 +140,9 @@ app.post("/make-server-0afb8820/send-backup-email", async (c) => {
   if (!resendKey) return c.json({ ok: false, error: "RESEND_API_KEY not set" }, 500);
 
   const { data, date } = await c.req.json();
+  // Resend w trybie testowym wysyła tylko na email właściciela konta.
+  // Po weryfikacji domeny ustaw BACKUP_EMAIL=dawid.thai@int.pl w sekretach Supabase.
+  const backupTo = Deno.env.get("BACKUP_EMAIL") || "dawid.thai@icloud.com";
 
   const json = JSON.stringify(data, null, 2);
   // Base64 encode for attachment
@@ -155,7 +158,7 @@ app.post("/make-server-0afb8820/send-backup-email", async (c) => {
     },
     body: JSON.stringify({
       from: "W&G DOM <onboarding@resend.dev>",
-      to: ["dawid.thai@int.pl"],
+      to: [backupTo],
       subject: `Auto-backup W&G DOM — ${date}`,
       html: `<p>Automatyczny backup danych W&amp;G DOM z dnia <strong>${date}</strong>.</p><p>Backup jest dołączony jako plik JSON. Możesz go zaimportować w aplikacji w sekcji <em>Eksportuj / Importuj backup</em>.</p>`,
       attachments: [

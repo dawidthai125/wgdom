@@ -3828,7 +3828,7 @@ function HelpView() {
               {q:"Czy dane mogą zniknąć?", a:"Dane są przechowywane w dwóch miejscach: lokalnie w przeglądarce i w chmurze Supabase. Nawet jeśli wyczyścisz przeglądarkę — przy następnym otwarciu aplikacja pobierze dane z chmury."},
               {q:"Co oznaczają ikonki chmurki w prawym górnym rogu?", a:"Szara chmurka = wszystko zsynchronizowane. Animowana chmurka ze strzałką = trwa zapis. Zielona chmurka = właśnie zapisano. Czerwona chmurka z X = błąd połączenia (sprawdź internet)."},
               {q:"Co to jest backup i jak go zrobić?", a:'W lewym menu (na komputerze) na dole jest "Eksportuj backup". Kliknij — pobierze się plik .json ze wszystkimi danymi. Trzymaj go w bezpiecznym miejscu (dysk zewnętrzny, Google Drive). Żeby przywrócić dane — kliknij "Importuj backup" i wybierz ten plik.'},
-              {q:"Automatyczny backup emailem", a:"Co poniedziałek aplikacja automatycznie wysyła kopię zapasową na adres dawid.thai@int.pl jako załącznik. Jeśli coś pójdzie nie tak — jest tam zawsze aktualna kopia z poprzedniego tygodnia."},
+              {q:"Automatyczny backup emailem", a:"Co poniedziałek (gdy otworzysz aplikację) wysyłana jest kopia JSON na email skonfigurowany w Supabase (domyślnie dawid.thai@icloud.com). Aby wysyłać na inny adres (np. dawid.thai@int.pl), zweryfikuj domenę w Resend i ustaw sekret BACKUP_EMAIL w Supabase."},
               {q:"Używam dwóch urządzeń — które dane są właściwe?", a:"Zawsze wygrywa urządzenie które ma dane. Jeśli otworzysz aplikację na telefonie po raz pierwszy — pobierze wszystko z chmury. Jeśli masz dane na laptopie — przy starcie wyśle je do chmury i telefon je pobierze."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
@@ -3860,7 +3860,7 @@ function HelpView() {
             {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"U góry: skróty do Grafiku, Listy płac i Robót. „Wymaga uwagi” zbiera zdjęcia do akceptacji, raporty pracowników i brakujące dokumenty. „Pracuje dziś” pokazuje tylko zaplanowanych — z adresem z wpisu na robocie."},
             {icon:Users, title:"Filtrowanie robót po pracowniku", desc:"W zakładce Roboty jest rozwijana lista pracowników. Wybierz kogoś — zobaczysz tylko roboty na których ten pracownik miał wpisy czasu pracy."},
             {icon:FileDown, title:"PDF z roboty do wysłania klientowi", desc:"Każda robota ma przycisk PDF w nagłówku. Generuje profesjonalny dokument z listą dokumentów, czasem pracy i kosztami — można go od razu wysłać mailowo."},
-            {icon:Mail, title:"Email z roboty — zdjęcia i raporty", desc:"W Kontaktach dodaj odbiorców (email klienta). Przy robocie: Email → wybierz osobę, zaznacz zdjęcia / zakres / wymiary / rysunek (wszystko lub pojedyncze pozycje) i wyślij. Pusty mail nie przejdzie."},
+            {icon:Mail, title:"Email z roboty — zdjęcia i raporty", desc:"W Kontaktach dodaj odbiorców. Przy robocie: Email → wybierz osobę, zaznacz zdjęcia / zakres / wymiary i wyślij. Na Resend (darmowy plan) maile idą tylko na adres właściciela konta — do wysyłki klientom zweryfikuj domenę w resend.com/domains."},
           ].map((tip,i)=>(
             <div key={i} className="flex gap-4 bg-secondary/40 rounded-xl p-4 border border-border">
               <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
