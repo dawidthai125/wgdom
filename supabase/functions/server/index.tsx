@@ -370,7 +370,8 @@ app.get("/make-server-0afb8820/client-share", async (c) => {
     const token = String(c.req.query("token") || "").trim();
     if (!token) return c.json({ ok: false, error: "Brak tokenu" }, 400);
 
-    const jobs = (await kv.get("kw-jobs")) as Array<{
+    const raw = await kv.get("kw-jobs");
+    const jobs = (Array.isArray(raw) ? raw : raw && typeof raw === "object" ? [raw] : []) as Array<{
       address?: string;
       flatNumber?: string;
       client?: string;
@@ -382,7 +383,7 @@ app.get("/make-server-0afb8820/client-share", async (c) => {
       workerReports?: unknown[];
     }> | null;
 
-    if (!Array.isArray(jobs)) {
+    if (jobs.length === 0) {
       return c.json({ ok: false, error: "Brak danych" }, 404);
     }
 
