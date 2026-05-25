@@ -1,0 +1,16 @@
+{
+  "name": "W&G DOM — Zarządzanie Pracą",
+  "short_name": "W&G DOM",
+  "description": "Zarządzanie robotami budowlanymi, zdjęcia i raporty z budowy",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f1419",
+  "theme_color": "#344254",
+  "lang": "pl",
+  "icons": [
+    { "src": "/favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

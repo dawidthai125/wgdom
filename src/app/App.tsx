@@ -25,6 +25,9 @@ import {
 } from "@/lib/cloud-sync";
 import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
+import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
+import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } from "@/lib/photo-queue";
+import { usePwaInstall } from "@/lib/pwa-install";
 
 /** pdfmake ~1 MB — ładuj dopiero przy eksporcie PDF (szybszy start na telefonie). */
 async function loadPdfMake() {
@@ -189,6 +192,35 @@ interface WorkerJobReport {
   sketch?: { path: string; publicUrl: string } | null;
 }
 
+interface ClientShareLink {
+  token: string;
+  createdAt: string;
+  enabled: boolean;
+}
+
+type JobActivityType =
+  | "photo_upload"
+  | "photo_approved"
+  | "photo_rejected"
+  | "report_add"
+  | "report_edit"
+  | "report_delete"
+  | "status_change"
+  | "document"
+  | "note"
+  | "share_link"
+  | "email_sent"
+  | "material"
+  | "work_entry";
+
+interface JobActivity {
+  id: string;
+  at: string;
+  actor: string;
+  type: JobActivityType;
+  text: string;
+}
+
 interface Job {
   id: string;
   address: string;
@@ -207,6 +239,8 @@ interface Job {
   invoiceAmount: string;
   photos: PhotoEntry[];
   workerReports?: WorkerJobReport[];
+  activityLog?: JobActivity[];
+  clientShare?: ClientShareLink;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -269,7 +303,68 @@ function defaultJob(): Job {
     invoiceAmount: "",
     photos: [],
     workerReports: [],
+    activityLog: [],
   };
+}
+
+function normalizeJob(job: Job): Job {
+  return {
+    ...job,
+    photos: job.photos || [],
+    workerReports: job.workerReports || [],
+    activityLog: job.activityLog || [],
+    materials: job.materials || [],
+  };
+}
+
+function appendJobActivity(job: Job, type: JobActivityType, text: string, actor: string): Job {
+  const entry: JobActivity = {
+    id: crypto.randomUUID(),
+    at: new Date().toISOString(),
+    actor,
+    type,
+    text,
+  };
+  return { ...job, activityLog: [entry, ...(job.activityLog || [])].slice(0, 200) };
+}
+
+function clientShareToken(): string {
+  return crypto.randomUUID().replace(/-/g, "").slice(0, 24);
+}
+
+function clientShareUrl(token: string): string {
+  const base = typeof window !== "undefined" ? window.location.origin : "";
+  return `${base}/?podglad=${token}`;
+}
+
+async function prepareWatermarkedPhoto(job: Job, file: File): Promise<File> {
+  return watermarkedFile(file, jobWatermarkLines(job.address, job.flatNumber));
+}
+
+const ACTIVITY_LABELS: Record<JobActivityType, string> = {
+  photo_upload: "Zdjęcie",
+  photo_approved: "Akceptacja zdjęcia",
+  photo_rejected: "Odrzucenie zdjęcia",
+  report_add: "Raport",
+  report_edit: "Edycja raportu",
+  report_delete: "Usunięcie raportu",
+  status_change: "Status",
+  document: "Dokument",
+  note: "Notatka",
+  share_link: "Link klienta",
+  email_sent: "Email",
+  material: "Materiał",
+  work_entry: "Czas pracy",
+};
+
+function jobMissingRequiredDocs(job: Job): DocType[] {
+  return REQUIRED_DOCS.filter((d) => !job.documents[d]);
+}
+
+function jobDaysSinceStart(job: Job): number {
+  const start = new Date(job.startDate);
+  if (Number.isNaN(start.getTime())) return 0;
+  return Math.max(0, Math.round((Date.now() - start.getTime()) / (1000 * 60 * 60 * 24)));
 }
 
 function jobWorkerReports(job: Job): WorkerJobReport[] {
@@ -1947,11 +2042,13 @@ function JobEmailModal({
   contacts,
   onClose,
   onManageContacts,
+  onSent,
 }: {
   job: Job;
   contacts: EmailContact[];
   onClose: () => void;
   onManageContacts: () => void;
+  onSent?: (to: string) => void;
 }) {
   const allKeys = useMemo(() => collectJobEmailSelectableKeys(job), [job]);
   const [selected, setSelected] = useState<Set<EmailSelectKey>>(() => new Set(allKeys));
@@ -2023,6 +2120,7 @@ function JobEmailModal({
         throw new Error(data.error || `Błąd wysyłki (${res.status})`);
       }
       setSuccess(true);
+      onSent?.(recipientEmail);
       setTimeout(onClose, 1800);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Nie udało się wysłać emaila.");
@@ -2229,12 +2327,16 @@ function JobsView({
   directory,
   contacts,
   onManageContacts,
+  initialJobId,
+  onInitialJobConsumed,
 }: {
   jobs: Job[];
   setJobs: (v: Job[] | ((p: Job[]) => Job[])) => void;
   directory: DirectoryEmployee[];
   contacts: EmailContact[];
   onManageContacts: () => void;
+  initialJobId?: string | null;
+  onInitialJobConsumed?: () => void;
 }) {
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -2251,18 +2353,30 @@ function JobsView({
   const [entryRate, setEntryRate] = useState("");
 
   const [statusWarning, setStatusWarning] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  useEffect(() => {
+    if (!initialJobId) return;
+    if (jobs.some((j) => j.id === initialJobId)) {
+      setSelectedJobId(initialJobId);
+    }
+    onInitialJobConsumed?.();
+  }, [initialJobId, jobs, onInitialJobConsumed]);
 
   const selectedJob = jobs.find(j=>j.id===selectedJobId)||null;
 
   const docsCount = (job: Job) => DOCUMENT_TYPES.filter(d=>job.documents[d]).length;
   const allDocsDone = (job: Job) => REQUIRED_DOCS.every(d=>job.documents[d]);
 
-  const updateJob = (updated: Job) => {
-    // auto-complete when all docs checked
-    const wasAllDone = allDocsDone(updated);
-    const withStatus = wasAllDone && updated.status === "in_progress"
-      ? { ...updated, status: "completed" as const }
+  const updateJob = (updated: Job, activity?: { type: JobActivityType; text: string; actor?: string }) => {
+    let next = activity
+      ? appendJobActivity(updated, activity.type, activity.text, activity.actor || "Administrator")
       : updated;
+    const wasAllDone = allDocsDone(next);
+    const withStatus = wasAllDone && next.status === "in_progress"
+      ? appendJobActivity({ ...next, status: "completed" as const }, "status_change", "Automatycznie oznaczono jako zdane (komplet dokumentów)", "System")
+      : next;
     setJobs(prev=>prev.map(j=>j.id===withStatus.id?withStatus:j));
   };
 
@@ -2273,7 +2387,11 @@ function JobsView({
       return;
     }
     setStatusWarning(false);
-    updateJob({ ...job, status: job.status === "in_progress" ? "completed" : "in_progress" });
+    const nextStatus = job.status === "in_progress" ? "completed" as const : "in_progress" as const;
+    updateJob(
+      { ...job, status: nextStatus },
+      { type: "status_change", text: nextStatus === "completed" ? "Oznaczono jako zdane" : "Przywrócono status „w trakcie”" },
+    );
   };
 
   const addJob = () => {
@@ -2627,7 +2745,26 @@ function JobsView({
                     </span>
                   </div>
                 )}
+                {!allDocsDone(selectedJob) && selectedJob.status === "in_progress" && jobDaysSinceStart(selectedJob) >= 7 && (
+                  <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 rounded-lg px-4 py-3 text-sm">
+                    <Bell size={14} className="text-amber-400 shrink-0 mt-0.5"/>
+                    <div>
+                      <p className="font-medium text-amber-400">Przypomnienie — brakujące dokumenty</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Robota trwa już {jobDaysSinceStart(selectedJob)} dni. Brakuje:{" "}
+                        {jobMissingRequiredDocs(selectedJob).map((d) => DOC_LABELS[d]).join(", ")}.
+                      </p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 justify-end flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setShowHistory((v) => !v)}
+                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg font-medium transition-colors"
+                  >
+                    <ScrollText size={12}/>{showHistory ? "Ukryj historię" : "Historia"}
+                  </button>
                   <button
                     type="button"
                     onClick={() => setShowEmailModal(true)}
@@ -2662,7 +2799,103 @@ function JobsView({
                 </div>
                 <textarea value={selectedJob.notes} onChange={e=>updateJob({...selectedJob,notes:e.target.value})} placeholder="Uwagi, informacje dodatkowe..." rows={3} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors resize-none"/>
               </div>
+
+              {/* Link podglądu dla klienta */}
+              <div className="bg-secondary/30 rounded-xl border border-border p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Eye size={13} className="text-primary"/>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Podgląd dla klienta</p>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Klient zobaczy tylko zaakceptowane zdjęcia i raporty — bez kosztów ani notatek wewnętrznych.
+                </p>
+                {selectedJob.clientShare?.enabled ? (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        readOnly
+                        value={clientShareUrl(selectedJob.clientShare.token)}
+                        className="flex-1 bg-background rounded-lg px-3 py-2 text-xs border border-border font-mono truncate"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(clientShareUrl(selectedJob.clientShare!.token)).catch(() => {});
+                          setShareCopied(true);
+                          setTimeout(() => setShareCopied(false), 2000);
+                        }}
+                        className="flex items-center gap-1.5 text-xs px-3 py-2 bg-primary text-primary-foreground rounded-lg font-medium shrink-0"
+                      >
+                        <Copy size={12}/>{shareCopied ? "Skopiowano" : "Kopiuj"}
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => updateJob(
+                        { ...selectedJob, clientShare: { ...selectedJob.clientShare!, enabled: false } },
+                        { type: "share_link", text: "Wyłączono link podglądu dla klienta" },
+                      )}
+                      className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      Wyłącz link
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const token = selectedJob.clientShare?.token || clientShareToken();
+                      updateJob(
+                        {
+                          ...selectedJob,
+                          clientShare: {
+                            token,
+                            createdAt: selectedJob.clientShare?.createdAt || new Date().toISOString(),
+                            enabled: true,
+                          },
+                        },
+                        { type: "share_link", text: "Wygenerowano link podglądu dla klienta" },
+                      );
+                    }}
+                    className="flex items-center gap-1.5 text-xs px-3 py-2 bg-primary/90 hover:bg-primary text-primary-foreground rounded-lg font-medium"
+                  >
+                    <Eye size={12}/>Utwórz link podglądu
+                  </button>
+                )}
+              </div>
             </div>
+
+            {showHistory && (
+              <div className="bg-card rounded-xl border border-border overflow-hidden">
+                <div className="px-5 py-4 border-b border-border flex items-center gap-2">
+                  <ScrollText size={13} className="text-muted-foreground"/>
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Historia roboty</span>
+                  <span className="text-[10px] bg-secondary text-muted-foreground px-1.5 py-0.5 rounded-full">
+                    {(selectedJob.activityLog || []).length}
+                  </span>
+                </div>
+                <div className="max-h-72 overflow-y-auto divide-y divide-border">
+                  {(selectedJob.activityLog || []).length === 0 ? (
+                    <p className="px-5 py-8 text-sm text-muted-foreground text-center">Brak wpisów — aktywność pojawi się po zmianach na robocie.</p>
+                  ) : (
+                    (selectedJob.activityLog || []).map((ev) => (
+                      <div key={ev.id} className="px-5 py-3 flex gap-3">
+                        <div className="shrink-0 w-16 text-[10px] text-muted-foreground pt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                          {new Date(ev.at).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs">
+                            <span className="text-primary font-medium">{ACTIVITY_LABELS[ev.type]}</span>
+                            <span className="text-muted-foreground"> · {ev.actor}</span>
+                          </p>
+                          <p className="text-xs text-foreground/90 mt-0.5">{ev.text}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Documents card */}
             <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -2680,7 +2913,13 @@ function JobsView({
                   const checked = selectedJob.documents[doc];
                   const optional = doc === "zdjecia";
                   return (
-                    <button key={doc} onClick={()=>updateJob({...selectedJob,documents:{...selectedJob.documents,[doc]:!checked}})}
+                    <button key={doc} onClick={()=>{
+                      const next = !checked;
+                      updateJob(
+                        {...selectedJob,documents:{...selectedJob.documents,[doc]:next}},
+                        { type: "document", text: `${next ? "Zaznaczono" : "Odznaczono"}: ${DOC_LABELS[doc]}` },
+                      );
+                    }}
                       className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all ${checked?"bg-green-500/10 border-green-500/20":optional?"bg-secondary border-dashed border-border hover:border-muted-foreground/30":"bg-secondary border-border hover:border-muted-foreground/30"}`}>
                       {checked
                         ? <CheckCircle2 size={15} className="text-green-400 shrink-0"/>
@@ -2894,11 +3133,11 @@ function JobsView({
               onAddReport={(report) => updateJob({
                 ...selectedJob,
                 workerReports: [...jobWorkerReports(selectedJob), report],
-              })}
+              }, { type: "report_add", text: `Dodano raport (${report.workItems.length} punktów)` })}
               onDelete={(reportId) => updateJob({
                 ...selectedJob,
                 workerReports: jobWorkerReports(selectedJob).filter(r => r.id !== reportId),
-              })}
+              }, { type: "report_delete", text: "Usunięto raport" })}
             />
 
             {/* Photos */}
@@ -2920,16 +3159,26 @@ function JobsView({
                       const files = e.target.files;
                       if (!files) return;
                       for (const file of Array.from(files)) {
-                        const { entry } = await uploadPhoto(selectedJob.id, file, "progress", "admin");
-                        if (entry) updateJob({...selectedJob, photos:[...(selectedJob.photos||[]), {...entry, status:"approved"}]});
+                        const wm = await prepareWatermarkedPhoto(selectedJob, file);
+                        const { entry } = await uploadPhoto(selectedJob.id, wm, "progress", "admin");
+                        if (entry) {
+                          updateJob({
+                            ...selectedJob,
+                            photos:[...(selectedJob.photos||[]), {...entry, status:"approved"}],
+                          }, { type: "photo_upload", text: `Admin dodał zdjęcie (${entry.label})` });
+                        }
                       }
+                      e.target.value = "";
                     }}/>
                 </label>
               </div>
               <div className="p-4">
                 <PhotoGallery
                   photos={selectedJob.photos||[]}
-                  onUpdate={photos=>updateJob({...selectedJob, photos})}
+                  onUpdate={(photos, activity) => {
+                    const prev = selectedJob.photos || [];
+                    updateJob({ ...selectedJob, photos }, activity);
+                  }}
                 />
               </div>
             </div>
@@ -2949,6 +3198,7 @@ function JobsView({
           contacts={contacts}
           onClose={() => setShowEmailModal(false)}
           onManageContacts={() => { setShowEmailModal(false); onManageContacts(); }}
+          onSent={(to) => updateJob(selectedJob, { type: "email_sent", text: `Wysłano materiały na ${to}` })}
         />
       )}
     </div>
@@ -3110,7 +3360,7 @@ function DashboardView({
   weekEmployees: WeekEmployee[];
   weekFrom: string; weekTo: string;
   savedWeeks: WeekSnapshot[];
-  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule") => void;
+  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string) => void;
 }) {
   const todayKey = todayDayKey();
   const todayIso = todayIsoDate();
@@ -3120,8 +3370,9 @@ function DashboardView({
   const activeJobs = jobs.filter((j) => j.status === "in_progress");
   const completedJobs = jobs.filter((j) => j.status === "completed");
   const jobsMissingDocs = jobs.filter(
-    (j) => j.status === "in_progress" && DOCUMENT_TYPES.some((d) => !j.documents[d]),
+    (j) => j.status === "in_progress" && jobMissingRequiredDocs(j).length > 0,
   );
+  const staleDocsJobs = jobsMissingDocs.filter((j) => jobDaysSinceStart(j) >= 7);
   const jobsReadyToClose = jobs.filter(
     (j) => j.status === "in_progress" && DOCUMENT_TYPES.every((d) => j.documents[d]),
   );
@@ -3294,10 +3545,15 @@ function DashboardView({
                   </div>
                   <div className="space-y-1.5">
                     {pendingPhotos.slice(0, 3).map(({ photo, job }) => (
-                      <p key={photo.id} className="text-xs text-muted-foreground truncate">
+                      <button
+                        key={photo.id}
+                        type="button"
+                        onClick={() => onNavigate("jobs", job.id)}
+                        className="w-full text-left text-xs text-muted-foreground truncate hover:text-foreground transition-colors"
+                      >
                         <span className="text-foreground">{job.address || "Bez adresu"}</span>
                         {photo.caption ? ` — ${photo.caption}` : ` · ${photo.uploadedBy}`}
-                      </p>
+                      </button>
                     ))}
                     {pendingPhotos.length > 3 && (
                       <p className="text-[10px] text-muted-foreground">+ {pendingPhotos.length - 3} więcej</p>
@@ -3321,12 +3577,17 @@ function DashboardView({
                   </div>
                   <div className="space-y-1.5">
                     {recentReports.map(({ report, job }) => (
-                      <p key={report.id} className="text-xs text-muted-foreground truncate">
+                      <button
+                        key={report.id}
+                        type="button"
+                        onClick={() => onNavigate("jobs", job.id)}
+                        className="w-full text-left text-xs text-muted-foreground truncate hover:text-foreground transition-colors"
+                      >
                         <span className="text-foreground">{report.workerName}</span>
                         {" · "}
                         {job.address || "Bez adresu"}
                         {report.workItems[0]?.text && ` — ${report.workItems[0].text}`}
-                      </p>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -3347,15 +3608,29 @@ function DashboardView({
                   </div>
                   <div className="space-y-1.5">
                     {jobsMissingDocs.slice(0, 4).map((job) => {
-                      const missing = DOCUMENT_TYPES.filter((d) => !job.documents[d]);
+                      const missing = jobMissingRequiredDocs(job);
+                      const days = jobDaysSinceStart(job);
                       return (
-                        <p key={job.id} className="text-xs">
+                        <button
+                          key={job.id}
+                          type="button"
+                          onClick={() => onNavigate("jobs", job.id)}
+                          className="w-full text-left text-xs hover:text-foreground transition-colors"
+                        >
                           <span className="font-medium">{job.address || "Bez adresu"}</span>
-                          <span className="text-muted-foreground"> — brak: {missing.slice(0, 3).map((d) => DOC_LABELS[d]).join(", ")}{missing.length > 3 ? "…" : ""}</span>
-                        </p>
+                          <span className="text-muted-foreground">
+                            {" "}— brak: {missing.slice(0, 3).map((d) => DOC_LABELS[d]).join(", ")}{missing.length > 3 ? "…" : ""}
+                            {days >= 7 && <span className="text-amber-400"> · {days} dni</span>}
+                          </span>
+                        </button>
                       );
                     })}
                   </div>
+                  {staleDocsJobs.length > 0 && (
+                    <p className="text-[10px] text-amber-400 mt-2 flex items-center gap-1">
+                      <Bell size={10}/>{staleDocsJobs.length} robót &gt;7 dni bez kompletu dokumentów
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -3459,7 +3734,12 @@ function DashboardView({
                   const reportsN = jobWorkerReports(job).length;
                   const pendingN = (job.photos || []).filter((p) => p.status === "pending").length;
                   return (
-                    <div key={job.id} className="px-5 py-3.5 flex items-center gap-4 hover:bg-secondary/20 transition-colors">
+                    <button
+                      key={job.id}
+                      type="button"
+                      onClick={() => onNavigate("jobs", job.id)}
+                      className="w-full px-5 py-3.5 flex items-center gap-4 hover:bg-secondary/20 transition-colors text-left"
+                    >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm font-semibold truncate">
@@ -3489,7 +3769,7 @@ function DashboardView({
                           </p>
                         )}
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -3670,6 +3950,9 @@ function HelpView() {
               {q:"Jak dodać raport (zakres + wymiary)?", a:'Sekcja „Raporty — zakres i wymiary” na karcie roboty: u góry formularz (taki sam jak u pracownika), na dole lista wysłanych raportów. Możesz też poprosić pracownika o wysłanie z telefonu.'},
               {q:"Jak wyeksportować kartę roboty do PDF?", a:'Kliknij czerwony przycisk "PDF" w nagłówku roboty. Wygeneruje się dokument z dokumentami, pracownikami, materiałami i podsumowaniem kosztów.'},
               {q:"Raporty pracowników — gdzie?", a:"Roboty → wybierz robotę → „Raporty — zakres i wymiary”. Rozwiń wpis — widać punkty, tabelę pomieszczeń i rysunek."},
+              {q:"Link podglądu dla klienta", a:"W karcie roboty: sekcja „Podgląd dla klienta” → Utwórz link → Kopiuj. Klient otwiera link bez logowania — widzi tylko zaakceptowane zdjęcia i raporty (bez kosztów). Wyłącz link gdy nie jest już potrzebny."},
+              {q:"Historia roboty", a:"Przycisk „Historia” na karcie roboty — log zdarzeń: zdjęcia, dokumenty, emaile, link klienta, zmiany statusu."},
+              {q:"Pulpit — szybki dostęp do roboty", a:"W sekcji „Wymaga uwagi” i „Roboty w trakcie” kliknij wiersz — aplikacja otworzy od razu tę robotę w zakładce Roboty."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-secondary/30">
@@ -3696,6 +3979,9 @@ function HelpView() {
             {[
               {q:"Jak dodać nowego pracownika?", a:'Kliknij "Nowy pracownik". Wpisz imię i nazwisko, telefon, stanowisko (np. Murarz, Elektryk, Kierowca) i domyślną stawkę godzinową. Data zatrudnienia jest opcjonalna.'},
               {q:"Telefon a logowanie pracownika", a:"Numer w kartotece (np. +48 501 234 567) to hasło pracownika — wpisuje 9 ostatnich cyfr: 501234567. Bez telefonu nie zaloguje się do wgrywania zdjęć."},
+              {q:"Aplikacja na ekranie telefonu (PWA)", a:"Po wejściu jako pracownik pojawi się baner „Dodaj na ekran”. Na Androidzie — Zainstaluj. Na iPhone (Safari) — Udostępnij → Dodaj do ekranu początkowego. Działa szybciej i trzyma zdjęcia w kolejce offline gdy brak sieci."},
+              {q:"Zdjęcia offline i znak wodny", a:"Bez internetu zdjęcia trafiają do kolejki i wysyłają się same po powrocie sieci. Każde zdjęcie ma znak wodny: adres, data i W&G DOM."},
+              {q:"Notatka głosowa w raporcie", a:"Przy dodawaniu raportu (zakres prac, wiadomość dla admina) — ikona mikrofonu. Działa w Chrome/Edge na telefonie i komputerze."},
               {q:"Co to jest domyślna stawka?", a:"To stawka PLN za godzinę, którą ten pracownik zwykle zarabia. Będzie się automatycznie podpowiadać w Liście Płac i w Robotach. Możesz ją zmienić dla konkretnego tygodnia lub roboty — bez zmiany tej domyślnej."},
               {q:"Jak oznaczyć pracownika jako nieaktywnego?", a:"Kliknij okrągły przycisk przy pracowniku (po prawej). Zmieni status na Nieaktywny — pracownik zniknie z list przy dodawaniu do tygodnia, ale jego historia zostanie. Żeby przywrócić — kliknij ponownie."},
             ].map((item,i)=>(
@@ -3935,6 +4221,19 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.5", label:"Pulpit → robota, link klienta, PWA, offline, historia",
+    items:[
+      {type:"new", text:"Klik z pulpitu otwiera konkretną robotę (zdjęcia, raporty, brak dokumentów, lista aktywnych)"},
+      {type:"new", text:"Link podglądu dla klienta — tylko zaakceptowane zdjęcia i raporty (?podglad=TOKEN)"},
+      {type:"new", text:"PWA „Dodaj na ekran” — baner instalacji dla pracowników (Android + instrukcja iOS)"},
+      {type:"new", text:"Kolejka zdjęć offline — pracownik bez sieci; auto-wysyłka po powrocie internetu"},
+      {type:"new", text:"Historia roboty — log zdarzeń (zdjęcia, dokumenty, email, link, status)"},
+      {type:"new", text:"Przypomnienie o brakujących dokumentach po 7+ dniach (pulpit i karta roboty)"},
+      {type:"new", text:"Notatka głosowa w raporcie pracownika — zakres prac i wiadomość dla admina"},
+      {type:"new", text:"Watermark na zdjęciach — adres, data i W&G DOM przed wysłaniem"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.4", label:"Email z roboty + lista kontaktów",
     items:[
@@ -4220,6 +4519,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
   const [jobs, setJobs] = useLocalStorage<Job[]>("kw-jobs", []);
   const [contacts, setContacts] = useLocalStorage<EmailContact[]>("kw-contacts", []);
   const [view, setView] = useState<View>("dashboard");
+  const [pendingJobId, setPendingJobId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [globalSearch, setGlobalSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -4422,6 +4722,11 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
 
   const totalNet = weekEmployees.reduce((s,e)=>s+calcWeekEmployee(e).netPay,0);
 
+  const handleNavigate = useCallback((v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string) => {
+    if (jobId) setPendingJobId(jobId);
+    setView(v as View);
+  }, []);
+
   return (
     <div className="flex bg-background text-foreground overflow-hidden" style={{fontFamily:"'Inter', sans-serif", height:"100dvh"}}>
 
@@ -4580,13 +4885,13 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
 
         {/* Content */}
         <div className="flex flex-1 min-h-0 overflow-hidden pb-16 sm:pb-0">
-          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={setView}/>}
+          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate}/>}
           {view==="payroll"&&<PayrollView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} onChange={setDirectory}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>setSavedWeeks(prev=>prev.filter(w=>w.id!==id))} jobs={jobs} directory={directory}/>}
-          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")}/>}
+          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)}/>}
           {view==="changelog"&&<ChangelogView/>}
           {view==="help"&&<HelpView/>}
         </div>
@@ -4948,6 +5253,7 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
           </div>
         )}
 
+        <PwaInstallBanner/>
       </div>
     </div>
   );
@@ -5164,6 +5470,7 @@ function JobReportForm({
             placeholder="np. Położono płytki w łazience..."
             className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
           />
+          <VoiceNoteButton onResult={(text) => setNewItemText((p) => (p ? `${p} ${text}` : text))}/>
           <button type="button" onClick={addReportItem} className="px-4 py-2.5 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 shrink-0">
             <Plus size={16}/>
           </button>
@@ -5265,9 +5572,12 @@ function JobReportForm({
       </div>
 
       <div>
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <StickyNote size={12}/>Wiadomość dla admina
-        </p>
+        <div className="flex items-center gap-2 mb-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 flex-1">
+            <StickyNote size={12}/>Wiadomość dla admina
+          </p>
+          <VoiceNoteButton onResult={(text) => setGeneralNote((p) => (p ? `${p} ${text}` : text))}/>
+        </div>
         <textarea
           value={generalNote}
           onChange={(e) => setGeneralNote(e.target.value)}
@@ -5459,6 +5769,147 @@ function JobWorkerReportsPanel({
   );
 }
 
+// ─── PWA install banner ───────────────────────────────────────────────────────
+
+function PwaInstallBanner({ compact = false }: { compact?: boolean }) {
+  const { canInstall, installed, promptInstall, isIos } = usePwaInstall();
+  const [dismissed, setDismissed] = useState(() => sessionStorage.getItem("wg-pwa-dismiss") === "1");
+
+  if (installed || dismissed) return null;
+  if (!canInstall && !isIos) return null;
+
+  const dismiss = () => {
+    sessionStorage.setItem("wg-pwa-dismiss", "1");
+    setDismissed(true);
+  };
+
+  return (
+    <div className={`${compact ? "mx-4 mb-3" : "mx-4 mt-3"} bg-primary/10 border border-primary/25 rounded-xl px-4 py-3 flex items-start gap-3`}>
+      <Smartphone size={16} className="text-primary shrink-0 mt-0.5"/>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-semibold text-primary">Dodaj na ekran główny</p>
+        <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+          {isIos && !canInstall
+            ? "Safari → Udostępnij → „Dodaj do ekranu początkowego” — szybszy dostęp na budowie."
+            : "Zainstaluj aplikację jak skrót — działa offline i szybciej się uruchamia."}
+        </p>
+        {canInstall && (
+          <button type="button" onClick={() => promptInstall()} className="mt-2 text-xs font-medium text-primary hover:underline">
+            Zainstaluj teraz
+          </button>
+        )}
+      </div>
+      <button type="button" onClick={dismiss} className="text-muted-foreground hover:text-foreground shrink-0 p-1">
+        <X size={14}/>
+      </button>
+    </div>
+  );
+}
+
+// ─── Client share view (public) ───────────────────────────────────────────────
+
+interface ClientShareJob {
+  address: string;
+  flatNumber: string;
+  client: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+  photos: { publicUrl: string; label: string; caption: string; uploadedAt: string }[];
+  workerReports: WorkerJobReport[];
+}
+
+function ClientShareView({ token }: { token: string }) {
+  const [job, setJob] = useState<ClientShareJob | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetch(`${API_BASE}/client-share?token=${encodeURIComponent(token)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.ok) throw new Error(data.error || "Nie udało się wczytać");
+        setJob(data.job);
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : "Błąd połączenia"))
+      .finally(() => setLoading(false));
+  }, [token]);
+
+  const LABEL_NAMES: Record<string, string> = { before: "Przed remontem", after: "Po remoncie", progress: "W trakcie", sketch: "Rysunek" };
+
+  return (
+    <div className="min-h-[100dvh] bg-background text-foreground flex flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <div className="px-4 py-4 border-b border-border bg-card flex items-center gap-3" style={{ paddingTop: "max(1rem, env(safe-area-inset-top))" }}>
+        <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-8 w-auto object-contain"/>
+        <div>
+          <p className="text-sm font-semibold">Podgląd remontu</p>
+          <p className="text-[10px] text-muted-foreground">W&G DOM — tylko do odczytu</p>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 py-6 max-w-2xl mx-auto w-full space-y-6" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>
+        {loading && <p className="text-sm text-muted-foreground text-center py-12">Ładowanie…</p>}
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-6 text-center">
+            <p className="text-sm text-destructive">{error}</p>
+          </div>
+        )}
+        {job && (
+          <>
+            <div>
+              <h1 className="text-xl font-bold">{job.address || "Robota"}{job.flatNumber && <span className="text-muted-foreground font-normal"> m.{job.flatNumber}</span>}</h1>
+              <p className="text-sm text-muted-foreground mt-1">{job.client || "—"}</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                {job.startDate && `Od ${fmtDate(job.startDate)}`}
+                {job.endDate && ` · do ${fmtDate(job.endDate)}`}
+                {" · "}{job.status === "completed" ? "Zakończono" : "W trakcie"}
+              </p>
+            </div>
+            {job.photos.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Zdjęcia</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {job.photos.map((p, i) => (
+                    <div key={i} className="aspect-square rounded-xl overflow-hidden bg-secondary relative">
+                      <img src={p.publicUrl} alt="" className="w-full h-full object-cover"/>
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
+                        <p className="text-[9px] text-white">{LABEL_NAMES[p.label] || p.label}</p>
+                        {p.caption && <p className="text-[8px] text-white/80 truncate">{p.caption}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {job.workerReports.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Raporty z budowy</p>
+                {job.workerReports.map((r) => {
+                  const norm = normalizeWorkerReport(r);
+                  return (
+                    <div key={r.id || norm.submittedAt} className="bg-card border border-border rounded-xl p-4 space-y-2">
+                      <p className="text-xs text-muted-foreground">{fmtDate(norm.submittedAt.slice(0, 10))} · {norm.workerName}</p>
+                      {norm.workItems.filter(workItemHasContent).map((item) => (
+                        <p key={item.id} className="text-sm">• {item.text}{item.note && <span className="text-muted-foreground text-xs block ml-3">{item.note}</span>}</p>
+                      ))}
+                      {norm.generalNote && <p className="text-xs text-muted-foreground italic border-t border-border pt-2">{norm.generalNote}</p>}
+                      {norm.sketch?.publicUrl && (
+                        <img src={norm.sketch.publicUrl} alt="Rysunek" className="rounded-lg border border-border max-h-48 object-contain w-full bg-secondary"/>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {job.photos.length === 0 && job.workerReports.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-8">Brak opublikowanych materiałów — administrator jeszcze nie udostępnił zdjęć ani raportów.</p>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Worker Photo View ────────────────────────────────────────────────────────
 
 function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()=>void}) {
@@ -5474,10 +5925,66 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
   const [galleryPicks, setGalleryPicks] = useState<{ file: File; preview: string; caption: string }[]>([]);
   const [quickPhotoCaption, setQuickPhotoCaption] = useState("");
   const [editingReport, setEditingReport] = useState<WorkerJobReport | null>(null);
+  const [queueCount, setQueueCount] = useState(0);
+  const [flushingQueue, setFlushingQueue] = useState(false);
 
   useEffect(() => {
     return () => { galleryPicks.forEach((p) => URL.revokeObjectURL(p.preview)); };
   }, [galleryPicks]);
+
+  const refreshQueueCount = useCallback(() => {
+    queuedPhotoCount().then(setQueueCount).catch(() => {});
+  }, []);
+
+  useEffect(() => { refreshQueueCount(); }, [refreshQueueCount]);
+
+  const flushQueue = useCallback(async () => {
+    if (!navigator.onLine || flushingQueue) return;
+    setFlushingQueue(true);
+    try {
+      const items = await listQueuedPhotos();
+      for (const item of items) {
+        const job = jobs.find((j) => j.id === item.jobId);
+        if (!job) {
+          await removeQueuedPhoto(item.id);
+          continue;
+        }
+        const file = new File([item.blob], item.filename, { type: item.blob.type || "image/jpeg" });
+        const wm = await prepareWatermarkedPhoto(job, file);
+        const { entry, error } = await uploadPhoto(item.jobId, wm, item.label as PhotoEntry["label"], item.uploadedBy, item.caption);
+        if (entry) {
+          setJobsLocal((prev) => {
+            const updated = prev.map((j) =>
+              j.id === item.jobId
+                ? appendJobActivity(
+                    { ...j, photos: [...(j.photos || []), entry] },
+                    "photo_upload",
+                    `${item.uploadedBy} wgrał zdjęcie z kolejki (${item.label})`,
+                    item.uploadedBy,
+                  )
+                : j,
+            );
+            pushKeysToCloud(["kw-jobs"], [updated]).catch(() => {});
+            try { localStorage.setItem("kw-jobs", JSON.stringify(updated)); } catch { /* ignore */ }
+            return updated;
+          });
+          await removeQueuedPhoto(item.id);
+        } else if (error?.includes("internet")) {
+          break;
+        }
+      }
+    } finally {
+      setFlushingQueue(false);
+      refreshQueueCount();
+    }
+  }, [jobs, flushingQueue, refreshQueueCount, setJobsLocal]);
+
+  useEffect(() => {
+    const onOnline = () => { flushQueue(); };
+    window.addEventListener("online", onOnline);
+    if (navigator.onLine) flushQueue();
+    return () => window.removeEventListener("online", onOnline);
+  }, [flushQueue]);
 
   useEffect(() => {
     fetchKeysFromCloud(["kw-jobs"])
@@ -5523,28 +6030,52 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
     setUploadedCount(0);
     setUploadTotal(picks.length);
     const newPhotos: PhotoEntry[] = [];
+    let queued = 0;
     let failMsg = "";
     for (const pick of picks) {
-      const { entry, error } = await uploadPhoto(selectedJob.id, pick.file, label, workerName, pick.caption);
+      const wm = await prepareWatermarkedPhoto(selectedJob, pick.file);
+      const { entry, error } = await uploadPhoto(selectedJob.id, wm, label, workerName, pick.caption);
       if (entry) {
         newPhotos.push(entry);
         setUploadedCount((p) => p + 1);
       } else {
-        failMsg = error || "Nie udało się wgrać zdjęcia.";
+        try {
+          await queuePhoto({
+            jobId: selectedJob.id,
+            label,
+            caption: pick.caption,
+            uploadedBy: workerName,
+            blob: wm,
+            filename: wm.name,
+          });
+          queued += 1;
+          refreshQueueCount();
+        } catch {
+          failMsg = error || "Nie udało się wgrać zdjęcia.";
+        }
+        if (!failMsg) failMsg = error || "Brak sieci — zdjęcie zapisane w kolejce offline.";
       }
     }
     if (newPhotos.length > 0) {
       syncJobs((prev) =>
         prev.map((j) =>
-          j.id === selectedJobId ? { ...j, photos: [...(j.photos || []), ...newPhotos] } : j,
+          j.id === selectedJobId
+            ? appendJobActivity(
+                { ...j, photos: [...(j.photos || []), ...newPhotos] },
+                "photo_upload",
+                `${workerName} wgrał ${newPhotos.length} zdjęć (${label})`,
+                workerName,
+              )
+            : j,
         ),
       );
     }
-    if (failMsg) {
+    if (failMsg || queued > 0) {
       setUploadError(
-        newPhotos.length > 0
-          ? `Wgrano ${newPhotos.length} z ${picks.length}. ${failMsg}`
-          : failMsg,
+        [
+          newPhotos.length > 0 ? `Wgrano ${newPhotos.length} z ${picks.length}.` : "",
+          queued > 0 ? `${queued} w kolejce offline — wyśle się po powrocie sieci.` : failMsg,
+        ].filter(Boolean).join(" "),
       );
     }
     setUploading(false);
@@ -5653,6 +6184,22 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
           <LogOut size={13}/>Wyloguj
         </button>
       </div>
+
+      <PwaInstallBanner compact/>
+
+      {(queueCount > 0 || flushingQueue) && (
+        <div className="mx-4 mb-2 flex items-center gap-2 bg-amber-500/10 border border-amber-500/25 rounded-xl px-3 py-2 text-xs">
+          <CloudOff size={13} className="text-amber-400 shrink-0"/>
+          <span className="text-amber-400 font-medium">
+            {flushingQueue ? "Wysyłanie kolejki…" : `${queueCount} zdjęć w kolejce offline`}
+          </span>
+          {!flushingQueue && navigator.onLine && (
+            <button type="button" onClick={() => flushQueue()} className="ml-auto text-primary hover:underline shrink-0">
+              Wyślij teraz
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto pb-8" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>
         {!selectedJob ? (
@@ -5895,15 +6442,27 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
 
 // ─── Admin Photo Gallery ───────────────────────────────────────────────────────
 
-function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photos:PhotoEntry[])=>void}) {
+function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photos:PhotoEntry[], activity?: {type: JobActivityType; text: string})=>void}) {
   const [lightbox, setLightbox] = useState<PhotoEntry|null>(null);
 
   const pending  = photos.filter(p=>p.status==="pending");
   const approved = photos.filter(p=>p.status==="approved");
   const rejected = photos.filter(p=>p.status==="rejected");
 
-  const approve = (id: string) => onUpdate(photos.map(p=>p.id===id?{...p,status:"approved"}:p));
-  const reject  = (id: string) => onUpdate(photos.map(p=>p.id===id?{...p,status:"rejected"}:p));
+  const approve = (id: string) => {
+    const p = photos.find(x => x.id === id);
+    onUpdate(
+      photos.map(x=>x.id===id?{...x,status:"approved"}:x),
+      p ? { type: "photo_approved", text: `Zaakceptowano zdjęcie (${p.label})${p.caption ? `: ${p.caption}` : ""}` } : undefined,
+    );
+  };
+  const reject  = (id: string) => {
+    const p = photos.find(x => x.id === id);
+    onUpdate(
+      photos.map(x=>x.id===id?{...x,status:"rejected"}:x),
+      p ? { type: "photo_rejected", text: `Odrzucono zdjęcie (${p.label})` } : undefined,
+    );
+  };
   const remove  = (id: string) => onUpdate(photos.filter(p=>p.id!==id));
 
   if (photos.length === 0) return (
@@ -5957,7 +6516,10 @@ function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photo
               <span className="bg-yellow-500/20 text-yellow-400 text-[10px] font-bold px-2 py-0.5 rounded-full">{pending.length}</span>
             </div>
             <div className="flex gap-2">
-              <button onClick={()=>onUpdate(photos.map(p=>p.status==="pending"?{...p,status:"approved"}:p))}
+              <button onClick={()=>onUpdate(
+                photos.map(p=>p.status==="pending"?{...p,status:"approved"}:p),
+                pending.length > 0 ? { type: "photo_approved", text: `Zaakceptowano wszystkie (${pending.length})` } : undefined,
+              )}
                 className="text-xs text-green-400 hover:text-green-300 transition-colors px-2 py-1 rounded-lg hover:bg-green-500/10">
                 Akceptuj wszystkie
               </button>
@@ -6109,6 +6671,11 @@ function ChangePasswordModal({onClose}: {onClose:()=>void}) {
 const DEFAULT_ADMIN_PASSWORD = "wgdom1990@";
 
 function AppInnerWithAuth() {
+  const shareToken = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("podglad")?.trim() || "";
+  }, []);
+
   const [appMode, setAppMode] = useState<"login"|"admin"|"worker">(() => {
     const s = sessionStorage.getItem("wg-session-mode");
     return (s as "admin"|"worker"|null) || "login";
@@ -6138,6 +6705,7 @@ function AppInnerWithAuth() {
     setAppMode("login"); setWorkerName("");
   };
 
+  if (shareToken) return <ClientShareView token={shareToken}/>;
   if (appMode === "login") return <LoginScreen onAdmin={enterAdmin} onWorker={enterWorker}/>;
   if (appMode === "worker") return <WorkerPhotoView workerName={workerName} onLogout={logout}/>;
   return (

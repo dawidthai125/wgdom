@@ -364,4 +364,72 @@ app.post("/make-server-0afb8820/send-job-email", async (c) => {
   return c.json({ ok: true });
 });
 
+/** Publiczny podgląd roboty dla klienta (?podglad=TOKEN) — tylko odczyt, bez auth. */
+app.get("/make-server-0afb8820/client-share", async (c) => {
+  try {
+    const token = String(c.req.query("token") || "").trim();
+    if (!token) return c.json({ ok: false, error: "Brak tokenu" }, 400);
+
+    const jobs = (await kv.get("kw-jobs")) as Array<{
+      address?: string;
+      flatNumber?: string;
+      client?: string;
+      startDate?: string;
+      endDate?: string;
+      status?: string;
+      clientShare?: { token: string; enabled: boolean };
+      photos?: Array<{ status: string; publicUrl: string; label: string; caption?: string; uploadedAt: string }>;
+      workerReports?: unknown[];
+    }> | null;
+
+    if (!Array.isArray(jobs)) {
+      return c.json({ ok: false, error: "Brak danych" }, 404);
+    }
+
+    const job = jobs.find((j) => j.clientShare?.enabled && j.clientShare.token === token);
+    if (!job) {
+      return c.json({ ok: false, error: "Link nieaktywny lub nieprawidłowy" }, 404);
+    }
+
+    const photos = (job.photos || [])
+      .filter((p) => p.status === "approved")
+      .map((p) => ({
+        publicUrl: p.publicUrl,
+        label: p.label,
+        caption: p.caption || "",
+        uploadedAt: p.uploadedAt,
+      }));
+
+    const workerReports = (job.workerReports || []).map((raw) => {
+      const r = raw as Record<string, unknown>;
+      return {
+        workerName: String(r.workerName || ""),
+        submittedAt: String(r.submittedAt || ""),
+        workItems: r.workItems || [],
+        rooms: r.rooms || [],
+        generalNote: String(r.generalNote || ""),
+        sketchNote: String(r.sketchNote || ""),
+        sketch: r.sketch || null,
+      };
+    });
+
+    return c.json({
+      ok: true,
+      job: {
+        address: job.address || "",
+        flatNumber: job.flatNumber || "",
+        client: job.client || "",
+        startDate: job.startDate || "",
+        endDate: job.endDate || "",
+        status: job.status || "in_progress",
+        photos,
+        workerReports,
+      },
+    });
+  } catch (e) {
+    console.error("client-share:", e);
+    return c.json({ ok: false, error: String(e) }, 500);
+  }
+});
+
 Deno.serve(app.fetch);
