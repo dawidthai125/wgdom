@@ -294,6 +294,70 @@ function calcWeekEmployee(emp: WeekEmployee) {
 
 // ─── Jobs Helpers ─────────────────────────────────────────────────────────────
 
+const DEFAULT_JOB_ENTRY_HOURS = 9;
+
+function previousIsoDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() - 1);
+  return localIsoDate(dt);
+}
+
+function dayKeyForIsoInWeek(iso: string, weekFrom: string): DayKey | null {
+  return weekDayColumns(weekFrom).find((c) => c.iso === iso)?.key ?? null;
+}
+
+function hoursFromPayrollDay(day: DayData): number {
+  if (!day.active) return DEFAULT_JOB_ENTRY_HOURS;
+  return hoursWorked(day.from, day.to);
+}
+
+function duplicateWorkEntry(entry: WorkEntry, date: string): WorkEntry {
+  return { ...entry, id: crypto.randomUUID(), date };
+}
+
+function collectEntriesFromYesterday(job: Job, targetDate: string): WorkEntry[] {
+  const yesterday = previousIsoDate(targetDate);
+  const existingToday = new Set(
+    job.workEntries
+      .filter((e) => e.date === targetDate)
+      .map((e) => e.directoryId || e.employeeName),
+  );
+  return job.workEntries
+    .filter((e) => e.date === yesterday)
+    .filter((e) => !existingToday.has(e.directoryId || e.employeeName))
+    .map((e) => duplicateWorkEntry(e, targetDate));
+}
+
+function workEntriesFromPayrollForDate(
+  job: Job,
+  weekEmployees: WeekEmployee[],
+  weekFrom: string,
+  targetDate: string,
+): WorkEntry[] {
+  const dayKey = dayKeyForIsoInWeek(targetDate, weekFrom);
+  if (!dayKey) return [];
+  const existingToday = new Set(
+    job.workEntries.filter((e) => e.date === targetDate).map((e) => e.directoryId),
+  );
+  const out: WorkEntry[] = [];
+  for (const emp of weekEmployees) {
+    const day = emp.days[dayKey];
+    if (!day?.active || !emp.directoryId) continue;
+    if (existingToday.has(emp.directoryId)) continue;
+    out.push({
+      id: crypto.randomUUID(),
+      directoryId: emp.directoryId,
+      employeeName: emp.name,
+      date: targetDate,
+      hours: hoursFromPayrollDay(day),
+      rate: parseFloat(emp.rate) || 0,
+      notes: "",
+    });
+  }
+  return out;
+}
+
 function defaultJob(): Job {
   return {
     id: crypto.randomUUID(), address: "", flatNumber: "", client: "Wrocławskie Mieszkania",
@@ -2315,6 +2379,8 @@ function JobsView({
   onManageContacts,
   initialJobId,
   onInitialJobConsumed,
+  weekEmployees,
+  weekFrom,
 }: {
   jobs: Job[];
   setJobs: (v: Job[] | ((p: Job[]) => Job[])) => void;
@@ -2323,6 +2389,8 @@ function JobsView({
   onManageContacts: () => void;
   initialJobId?: string | null;
   onInitialJobConsumed?: () => void;
+  weekEmployees: WeekEmployee[];
+  weekFrom: string;
 }) {
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -2335,7 +2403,7 @@ function JobsView({
   const [showAddEntry, setShowAddEntry] = useState(false);
   const [entryDirId, setEntryDirId] = useState("");
   const [entryDate, setEntryDate] = useState(localIsoDate());
-  const [entryHours, setEntryHours] = useState("8");
+  const [entryHours, setEntryHours] = useState(String(DEFAULT_JOB_ENTRY_HOURS));
   const [entryRate, setEntryRate] = useState("");
 
   const [statusWarning, setStatusWarning] = useState(false);
@@ -2351,6 +2419,17 @@ function JobsView({
   }, [initialJobId, jobs, onInitialJobConsumed]);
 
   const selectedJob = jobs.find(j=>j.id===selectedJobId)||null;
+  const todayIso = localIsoDate();
+
+  const yesterdayEntriesToCopy = useMemo(
+    () => (selectedJob ? collectEntriesFromYesterday(selectedJob, todayIso) : []),
+    [selectedJob, todayIso],
+  );
+
+  const payrollEntriesForToday = useMemo(
+    () => (selectedJob ? workEntriesFromPayrollForDate(selectedJob, weekEmployees, weekFrom, todayIso) : []),
+    [selectedJob, weekEmployees, weekFrom, todayIso],
+  );
 
   const docsCount = (job: Job) => DOCUMENT_TYPES.filter(d=>job.documents[d]).length;
   const allDocsDone = (job: Job) => REQUIRED_DOCS.every(d=>job.documents[d]);
@@ -2551,17 +2630,53 @@ function JobsView({
       rate: parseFloat(entryRate)||parseFloat(emp?.defaultRate||"0")||0,
       notes: "",
     };
-    updateJob({...selectedJob, workEntries:[...selectedJob.workEntries,entry]});
+    updateJob(
+      {...selectedJob, workEntries:[...selectedJob.workEntries,entry]},
+      { type: "work_entry", text: `${entry.employeeName} — ${fmtDate(entry.date)}, ${fmtH(entry.hours)}` },
+    );
     setShowAddEntry(false);
     setEntryDirId("");
-    setEntryHours("8");
+    setEntryHours(String(DEFAULT_JOB_ENTRY_HOURS));
     setEntryRate("");
+  };
+
+  const appendWorkEntries = (newEntries: WorkEntry[], label: string) => {
+    if (!selectedJob || newEntries.length === 0) return;
+    updateJob(
+      { ...selectedJob, workEntries: [...selectedJob.workEntries, ...newEntries] },
+      { type: "work_entry", text: label },
+    );
+  };
+
+  const copyYesterdayToToday = () => {
+    appendWorkEntries(
+      yesterdayEntriesToCopy,
+      `Skopiowano wczoraj → dziś (${yesterdayEntriesToCopy.length} os.)`,
+    );
+  };
+
+  const fillTodayFromPayroll = () => {
+    appendWorkEntries(
+      payrollEntriesForToday,
+      `Z listy płac na dziś (${payrollEntriesForToday.length} os.)`,
+    );
+  };
+
+  const copyEntryToToday = (entry: WorkEntry) => {
+    if (!selectedJob) return;
+    if (selectedJob.workEntries.some(
+      (e) => e.date === todayIso && (e.directoryId === entry.directoryId || e.employeeName === entry.employeeName),
+    )) return;
+    appendWorkEntries(
+      [duplicateWorkEntry(entry, todayIso)],
+      `${entry.employeeName} skopiowany na ${fmtDate(todayIso)}`,
+    );
   };
 
   const openAddEntry = () => {
     setEntryDirId("");
-    setEntryDate(localIsoDate());
-    setEntryHours("8");
+    setEntryDate(todayIso);
+    setEntryHours(String(DEFAULT_JOB_ENTRY_HOURS));
     setEntryRate("");
     setShowAddEntry(true);
   };
@@ -2923,14 +3038,36 @@ function JobsView({
 
             {/* Workers & Cost card */}
             <div className="bg-card rounded-xl border border-border overflow-hidden">
-              <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+              <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Users size={13} className="text-muted-foreground"/>
                   <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pracownicy na robocie</span>
                 </div>
-                <button onClick={openAddEntry} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg font-medium transition-colors">
-                  <Plus size={12}/>Dodaj wpis
-                </button>
+                <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                  {yesterdayEntriesToCopy.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={copyYesterdayToToday}
+                      title="Skopiuj wszystkich z wczoraj na dziś (9 h / te same stawki)"
+                      className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 rounded-lg font-medium transition-colors"
+                    >
+                      <Copy size={11}/>Wczoraj → dziś ({yesterdayEntriesToCopy.length})
+                    </button>
+                  )}
+                  {payrollEntriesForToday.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={fillTodayFromPayroll}
+                      title="Dodaj pracowników zaznaczonych dziś w liście płac"
+                      className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg font-medium transition-colors"
+                    >
+                      <CalendarDays size={11}/>Z listy płac ({payrollEntriesForToday.length})
+                    </button>
+                  )}
+                  <button onClick={openAddEntry} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg font-medium transition-colors">
+                    <Plus size={12}/>Dodaj wpis
+                  </button>
+                </div>
               </div>
 
               {/* Add entry form */}
@@ -2995,11 +3132,15 @@ function JobsView({
                         <th className="px-3 py-2.5 text-right">Godziny</th>
                         <th className="px-3 py-2.5 text-right">Stawka</th>
                         <th className="px-3 py-2.5 text-right">Koszt</th>
-                        <th className="px-3 py-2.5 w-8"/>
+                        <th className="px-3 py-2.5 w-16"/>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {selectedJob.workEntries.map(entry=>(
+                      {selectedJob.workEntries.map(entry=>{
+                        const canCopyToday = entry.date !== todayIso && !selectedJob.workEntries.some(
+                          (e) => e.date === todayIso && (e.directoryId === entry.directoryId || e.employeeName === entry.employeeName),
+                        );
+                        return (
                         <tr key={entry.id} className="hover:bg-secondary/20">
                           <td className="px-5 py-3 text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtDate(entry.date)}</td>
                           <td className="px-3 py-3">
@@ -3017,12 +3158,25 @@ function JobsView({
                           <td className="px-3 py-3 text-right text-muted-foreground text-xs" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(entry.rate)} PLN/h</td>
                           <td className="px-3 py-3 text-right font-semibold text-primary text-sm" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(entry.hours*entry.rate)}</td>
                           <td className="px-3 py-3">
-                            <button onClick={()=>updateJob({...selectedJob,workEntries:selectedJob.workEntries.filter(e=>e.id!==entry.id)})} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded">
-                              <Trash2 size={12}/>
-                            </button>
+                            <div className="flex items-center justify-end gap-0.5">
+                              {canCopyToday && (
+                                <button
+                                  type="button"
+                                  onClick={() => copyEntryToToday(entry)}
+                                  title="Kopiuj na dziś"
+                                  className="p-1 text-primary hover:text-primary/80 transition-colors rounded"
+                                >
+                                  <Copy size={12}/>
+                                </button>
+                              )}
+                              <button onClick={()=>updateJob({...selectedJob,workEntries:selectedJob.workEntries.filter(e=>e.id!==entry.id)})} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded">
+                                <Trash2 size={12}/>
+                              </button>
+                            </div>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                     <tfoot>
                       <tr className="border-t-2 border-border bg-secondary/30">
@@ -3931,7 +4085,7 @@ function HelpView() {
               {q:"Jak założyć nową robotę?", a:'Kliknij "Nowa robota" w lewym górnym rogu. Wpisz adres, numer mieszkania i klienta (domyślnie Wrocławskie Mieszkania). Możesz też wpisać daty rozpoczęcia i zakończenia.'},
               {q:"Dokumenty do odbioru — co to jest?", a:"To lista dokumentów które trzeba zebrać żeby zdać robotę. Zaznaczaj je gdy je masz: Zlecenie, Zakres robót, Kosztorys, Kominiarz, Pomiary, Oświadczenia, Gwarancje, Rysunek/Plan. Zdjęcia są opcjonalne. Pasek postępu na liście robót pokazuje ile dokumentów masz już skompletowanych."},
               {q:"Kiedy robota zmienia status na Zdana?", a:"Automatycznie gdy zaznaczysz wszystkie wymagane dokumenty (bez zdjęć). Możesz też kliknąć przycisk statusu ręcznie — ale jeśli brakuje dokumentów, aplikacja ostrzeże i powie czego brakuje."},
-              {q:"Jak dodać czas pracy na robocie?", a:'Roboty → wybierz robotę → sekcja „Pracownicy na robocie” → „Dodaj wpis”. Wybierz pracownika, ustaw datę (np. dziś 26.05), godziny i stawkę. Dopiero ten wpis pokazuje adres na Pulpicie i w Grafiku na dany dzień. Lista Płac (zaznaczone dni) to osobna rzecz — tylko wypłata tygodnia.'},
+              {q:"Jak dodać czas pracy na robocie?", a:'Roboty → wybierz robotę → „Pracownicy na robocie”. Najszybciej: „Wczoraj → dziś” (ta sama ekipa co wczoraj) lub „Z listy płac” (osoby zaznaczone dziś w liście płac). Ręcznie: „Dodaj wpis” — pracownik, data (domyślnie dziś), 9 h, stawka. Wpis pokazuje adres na Pulpicie i w Grafiku.'},
               {q:"Jak dodać koszty materiałów?", a:'Przewiń do sekcji "Materiały" → kliknij "Dodaj". Wpisz opis i koszt. Materiały sumują się z kosztem pracy i tworzą łączny koszt remontu.'},
               {q:"Jak dodać raport (zakres + wymiary)?", a:'Sekcja „Raporty — zakres i wymiary” na karcie roboty: u góry formularz (taki sam jak u pracownika), na dole lista wysłanych raportów. Możesz też poprosić pracownika o wysłanie z telefonu.'},
               {q:"Jak wyeksportować kartę roboty do PDF?", a:'Kliknij czerwony przycisk "PDF" w nagłówku roboty. Wygeneruje się dokument z dokumentami, pracownikami, materiałami i podsumowaniem kosztów.'},
@@ -4208,6 +4362,21 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.5.3", label:"Szybsze wpisy pracowników na robocie",
+    items:[
+      {type:"improve", text:"Domyślnie 9 godzin przy dodawaniu wpisu (zamiast 8)"},
+      {type:"new", text:"„Wczoraj → dziś” — jednym kliknięciem skopiuj wszystkich z wczoraj na dziś (te same stawki i godziny)"},
+      {type:"new", text:"Ikona kopiowania przy wierszu — przenieś jednego pracownika na dziś"},
+      {type:"new", text:"„Z listy płac” — dodaj na robocie wszystkich zaznaczonych dziś w liście płac (godziny z grafiku lub 9 h)"},
+    ],
+  },
+  {
+    date:"2026-05-26", version:"2.5.2", label:"Pulpit — adres tylko z dzisiejszego wpisu",
+    items:[
+      {type:"fix", text:"„Pracuje dziś” nie pokazuje adresu z innych dni tygodnia — tylko wpis z datą dzisiejszą"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.5.1", label:"Ochrona przed utratą robót",
     items:[
@@ -4969,7 +5138,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
           {view==="directory"&&<DirectoryView directory={directory} onChange={setDirectory}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>setSavedWeeks(prev=>prev.filter(w=>w.id!==id))} jobs={jobs} directory={directory}/>}
-          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)}/>}
+          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={weekEmployees} weekFrom={weekFrom}/>}
           {view==="changelog"&&<ChangelogView/>}
           {view==="help"&&<HelpView/>}
         </div>
