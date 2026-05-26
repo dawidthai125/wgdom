@@ -133,14 +133,54 @@ function shortJobAddressLabel(addr: string, max = 18): string {
   return t.length > max ? `${t.slice(0, max - 1)}…` : t;
 }
 
+function payrollJobWorkLineKey(line: PayrollJobWorkLine): string {
+  return `${line.name}|${line.dateIso}|${line.jobAddress}`;
+}
+
+/** Scala zduplikowane wpisy (ten sam pracownik, dzień i adres) przed eksportem PDF. */
+export function consolidatePayrollJobWorkLines(lines: PayrollJobWorkLine[]): PayrollJobWorkLine[] {
+  const map = new Map<string, PayrollJobWorkLine>();
+  for (const line of lines) {
+    const key = payrollJobWorkLineKey(line);
+    const existing = map.get(key);
+    if (!existing) {
+      map.set(key, { ...line });
+      continue;
+    }
+    existing.hours += line.hours;
+    existing.cost = +(existing.cost + line.cost).toFixed(2);
+    if (line.notes && !existing.notes.includes(line.notes)) {
+      existing.notes = existing.notes ? `${existing.notes}; ${line.notes}` : line.notes;
+    }
+  }
+  return [...map.values()].sort(
+    (a, b) => a.dateIso.localeCompare(b.dateIso) || a.name.localeCompare(b.name, "pl") || a.jobAddress.localeCompare(b.jobAddress, "pl"),
+  );
+}
+
+function formatJobWorkDayCell(dayLines: PayrollJobWorkLine[]): string {
+  if (dayLines.length === 0) return "—";
+  const byAddress = new Map<string, { hours: number }>();
+  for (const line of dayLines) {
+    const addr = line.jobAddress.trim() || "—";
+    const prev = byAddress.get(addr);
+    if (prev) prev.hours += line.hours;
+    else byAddress.set(addr, { hours: line.hours });
+  }
+  return [...byAddress.entries()]
+    .map(([addr, { hours }]) => `${shortJobAddressLabel(addr, 16)}\n${fmtH(hours)}`)
+    .join("\n");
+}
+
 /** Buduje siatkę tygodniową z płaskiej listy wpisów robót. */
 export function buildPayrollJobWorkGrid(lines: PayrollJobWorkLine[], weekFrom: string): PayrollJobWorkGrid | null {
-  if (lines.length === 0) return null;
+  const consolidated = consolidatePayrollJobWorkLines(lines);
+  if (consolidated.length === 0) return null;
   const cols = weekDayIsosForJobWork(weekFrom);
   const dayHeaders = cols.map((c) => c.header);
 
   const byName = new Map<string, PayrollJobWorkLine[]>();
-  for (const line of lines) {
+  for (const line of consolidated) {
     const list = byName.get(line.name) ?? [];
     list.push(line);
     byName.set(line.name, list);
@@ -148,11 +188,7 @@ export function buildPayrollJobWorkGrid(lines: PayrollJobWorkLine[], weekFrom: s
 
   const rows = [...byName.entries()]
     .map(([name, empLines]) => {
-      const dayCells = cols.map((col) => {
-        const dayLines = empLines.filter((l) => l.dateIso === col.iso);
-        if (dayLines.length === 0) return "—";
-        return dayLines.map((l) => `${shortJobAddressLabel(l.jobAddress, 16)}\n${fmtH(l.hours)}`).join("\n");
-      });
+      const dayCells = cols.map((col) => formatJobWorkDayCell(empLines.filter((l) => l.dateIso === col.iso)));
       const weekHours = empLines.reduce((s, l) => s + l.hours, 0);
       const weekCost = empLines.reduce((s, l) => s + l.cost, 0);
       return { name, dayCells, weekHours, weekCost };
@@ -728,12 +764,10 @@ export async function generatePayrollPdfBlob(
         ]
       : [];
 
-  const jobWorkGrid = buildPayrollJobWorkGrid(jobWorkLines, weekFrom);
-  const jobWorkNotesLines = jobWorkLines.filter((l) => l.notes.trim());
-  const totalJobWorkHours = jobWorkLines.reduce((s, l) => s + l.hours, 0);
-  const totalJobWorkCost = jobWorkLines.reduce((s, l) => s + l.cost, 0);
-  const jobWorkFitsOnePage =
-    jobWorkGrid != null && jobWorkGrid.rows.length <= 14 && jobWorkNotesLines.length <= 4;
+  const consolidatedJobWorkLines = consolidatePayrollJobWorkLines(jobWorkLines);
+  const jobWorkGrid = buildPayrollJobWorkGrid(consolidatedJobWorkLines, weekFrom);
+  const totalJobWorkHours = consolidatedJobWorkLines.reduce((s, l) => s + l.hours, 0);
+  const totalJobWorkCost = consolidatedJobWorkLines.reduce((s, l) => s + l.cost, 0);
 
   const jobWorkAppendixPdfBlock =
     jobWorkGrid && jobWorkGrid.rows.length > 0
@@ -794,45 +828,9 @@ export async function generatePayrollPdfBlob(
                 },
                 layout: pdfTableLayout,
               },
-              ...(jobWorkNotesLines.length > 0
-                ? [
-                    {
-                      text: "Uwagi do wpisów",
-                      bold: true,
-                      fontSize: 10,
-                      color: C.navy,
-                      margin: [0, 10, 0, 4] as [number, number, number, number],
-                    },
-                    {
-                      table: {
-                        headerRows: 1,
-                        widths: [72, 36, "*"],
-                        body: [
-                          ["Pracownik", "Dzień", "Uwaga"].map((t) => ({
-                            text: t,
-                            bold: true,
-                            color: C.white,
-                            fillColor: C.navy,
-                            fontSize: 8.5,
-                            alignment: "center" as const,
-                          })),
-                          ...jobWorkNotesLines.map((line, i) => {
-                            const bg = i % 2 === 0 ? C.white : C.lightGray;
-                            return [
-                              { text: line.name, fillColor: bg, fontSize: 8.5 },
-                              { text: line.dayLabel, fillColor: bg, fontSize: 8.5, alignment: "center" as const },
-                              { text: line.notes, fillColor: bg, fontSize: 8.5, color: C.muted },
-                            ];
-                          }),
-                        ],
-                      },
-                      layout: pdfTableLayout,
-                    },
-                  ]
-                : []),
             ],
             pageBreak: "before" as const,
-            unbreakable: jobWorkFitsOnePage,
+            unbreakable: false,
           },
         ]
       : [];

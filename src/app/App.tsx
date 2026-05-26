@@ -1582,6 +1582,13 @@ function formatJobStreet(job: Job): string {
   return job.flatNumber ? `${street} m.${job.flatNumber}` : street;
 }
 
+function jobAddressKey(job: Job): string {
+  const addr = job.address.trim().toLowerCase().replace(/\s+/g, " ");
+  const flat = job.flatNumber.trim().toLowerCase();
+  if (!addr) return "";
+  return flat ? `${addr}|${flat}` : addr;
+}
+
 /** 9 cyfr numeru PL (bez +48) — do logowania pracownika. */
 function normalizePhone9(phone: string): string | null {
   const d = phone.replace(/\D/g, "");
@@ -4182,6 +4189,7 @@ function JobsView({
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "in_progress" | "completed">("all");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteConfirmListId, setDeleteConfirmListId] = useState<string | null>(null);
   const [workerFilter, setWorkerFilter] = useState<string>("");
   const [showEmailModal, setShowEmailModal] = useState(false);
 
@@ -4223,6 +4231,18 @@ function JobsView({
     () => groupWorkEntriesByEmployee(selectedJob?.workEntries ?? []),
     [selectedJob?.workEntries],
   );
+
+  const duplicateJobAddressKeys = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const j of jobs) {
+      const key = jobAddressKey(j);
+      if (!key) continue;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return new Set([...counts.entries()].filter(([, n]) => n > 1).map(([k]) => k));
+  }, [jobs]);
+
+  const isDuplicateJob = (job: Job) => duplicateJobAddressKeys.has(jobAddressKey(job));
 
   useEffect(() => {
     setExpandedWorkerKeys(new Set());
@@ -4275,6 +4295,7 @@ function JobsView({
     setJobs(prev=>prev.filter(j=>j.id!==id));
     if(selectedJobId===id) setSelectedJobId(null);
     setDeleteConfirmId(null);
+    setDeleteConfirmListId(null);
   };
 
   const exportJobPDF = async (job: Job) => {
@@ -4554,35 +4575,66 @@ function JobsView({
                 const docsCount = DOCUMENT_TYPES.filter(d=>job.documents[d]).length;
                 const cost = jobCost(job);
                 const isSelected = job.id===selectedJobId;
+                const isDupe = isDuplicateJob(job);
+                const workerCount = new Set(job.workEntries.map((e) => e.directoryId || e.employeeName)).size;
                 return (
-                  <button key={job.id} onClick={()=>setSelectedJobId(job.id)} className={`w-full text-left px-4 py-3.5 border-b border-border transition-colors hover:bg-secondary/40 ${isSelected?"bg-primary/8 border-l-2 border-l-primary":""}`}>
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold truncate leading-tight">{job.address||<span className="italic text-muted-foreground">Bez adresu</span>}{job.flatNumber&&<span className="text-muted-foreground"> m.{job.flatNumber}</span>}</p>
-                        <p className="text-xs text-muted-foreground truncate">{job.client||"—"}</p>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {job.keysHandedOver && <span title="Klucze zdane"><KeyRound size={12} className="text-blue-400"/></span>}
-                        {jobWorkerReports(job).length > 0 && (
-                          <span title="Raporty pracowników" className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">
-                            {jobWorkerReports(job).length} rap.
-                          </span>
-                        )}
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${job.status==="completed"?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>
-                          {job.status==="completed"?"Zdane":"W trakcie"}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 mt-2">
-                      <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                        <div className="flex-1 bg-border rounded-full h-1 overflow-hidden">
-                          <div className="bg-primary h-1 rounded-full transition-all" style={{width:`${(docsCount/REQUIRED_DOCS.length)*100}%`}}/>
+                  <div key={job.id} className={`flex items-stretch border-b border-border transition-colors ${isSelected?"bg-primary/8 border-l-2 border-l-primary":""} ${isDupe?"bg-amber-500/5":""}`}>
+                    <button onClick={()=>setSelectedJobId(job.id)} className={`flex-1 min-w-0 text-left px-4 py-3.5 hover:bg-secondary/40 transition-colors ${isSelected?"":"hover:bg-secondary/40"}`}>
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold truncate leading-tight">{job.address||<span className="italic text-muted-foreground">Bez adresu</span>}{job.flatNumber&&<span className="text-muted-foreground"> m.{job.flatNumber}</span>}</p>
+                          <p className="text-xs text-muted-foreground truncate">{job.client||"—"}</p>
+                          {(isDupe || job.workEntries.length > 0) && (
+                            <p className="text-[10px] text-muted-foreground/80 mt-0.5">
+                              {isDupe && <span className="text-amber-600 dark:text-amber-400 font-medium">Duplikat adresu · </span>}
+                              {job.workEntries.length > 0 && `${workerCount} os. · ${fmtH(jobTotalHours(job))}`}
+                              {job.workEntries.length === 0 && isDupe && "brak wpisów — kandydat do usunięcia"}
+                            </p>
+                          )}
                         </div>
-                        <span className="text-xs text-muted-foreground shrink-0">{docsCount}/{REQUIRED_DOCS.length}</span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {job.keysHandedOver && <span title="Klucze zdane"><KeyRound size={12} className="text-blue-400"/></span>}
+                          {jobWorkerReports(job).length > 0 && (
+                            <span title="Raporty pracowników" className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">
+                              {jobWorkerReports(job).length} rap.
+                            </span>
+                          )}
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${job.status==="completed"?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>
+                            {job.status==="completed"?"Zdane":"W trakcie"}
+                          </span>
+                        </div>
                       </div>
-                      {cost>0&&<span className="text-xs font-semibold text-primary shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cost)} PLN</span>}
+                      <div className="flex items-center justify-between gap-2 mt-2">
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          <div className="flex-1 bg-border rounded-full h-1 overflow-hidden">
+                            <div className="bg-primary h-1 rounded-full transition-all" style={{width:`${(docsCount/REQUIRED_DOCS.length)*100}%`}}/>
+                          </div>
+                          <span className="text-xs text-muted-foreground shrink-0">{docsCount}/{REQUIRED_DOCS.length}</span>
+                        </div>
+                        {cost>0&&<span className="text-xs font-semibold text-primary shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cost)} PLN</span>}
+                      </div>
+                    </button>
+                    <div className="flex items-center pr-2 shrink-0">
+                      {deleteConfirmListId===job.id ? (
+                        <div className="flex flex-col items-end gap-1 py-2" onClick={(e) => e.stopPropagation()}>
+                          <span className="text-[10px] text-muted-foreground text-right leading-tight max-w-[72px]">Usunąć całą robotę?</span>
+                          <div className="flex items-center gap-1">
+                            <button type="button" onClick={() => deleteJob(job.id)} className="text-[10px] bg-destructive text-white px-2 py-1 rounded font-medium">Tak</button>
+                            <button type="button" onClick={() => setDeleteConfirmListId(null)} className="text-[10px] text-muted-foreground px-1"><X size={12}/></button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setDeleteConfirmListId(job.id); setDeleteConfirmId(null); }}
+                          title="Usuń całą robotę"
+                          className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={14}/>
+                        </button>
+                      )}
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -4671,6 +4723,17 @@ function JobsView({
                     </span>
                   </div>
                 )}
+                {isDuplicateJob(selectedJob) && (
+                  <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 rounded-lg px-4 py-2.5 text-sm">
+                    <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5"/>
+                    <div>
+                      <p className="font-medium text-amber-700 dark:text-amber-300">Ten adres jest zdublowany</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Masz więcej niż jedną robotę pod tym samym adresem. Usuń pustą lub niepotrzebną kopię — kosz „Usuń robotę” u góry albo kosz na liście po lewej.
+                      </p>
+                    </div>
+                  </div>
+                )}
                 {!allDocsDone(selectedJob) && selectedJob.status === "in_progress" && jobDaysSinceStart(selectedJob) >= 7 && (
                   <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 rounded-lg px-4 py-3 text-sm">
                     <Bell size={14} className="text-amber-400 shrink-0 mt-0.5"/>
@@ -4705,12 +4768,12 @@ function JobsView({
                   </button>
                   {deleteConfirmId===selectedJob.id?(
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Na pewno usunąć?</span>
-                      <button onClick={()=>deleteJob(selectedJob.id)} className="text-xs bg-destructive text-white px-3 py-1 rounded-lg font-medium">Usuń</button>
+                      <span className="text-xs text-muted-foreground">Usunąć całą robotę?</span>
+                      <button onClick={()=>deleteJob(selectedJob.id)} className="text-xs bg-destructive text-white px-3 py-1.5 rounded-lg font-medium">Tak, usuń</button>
                       <button onClick={()=>setDeleteConfirmId(null)} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg"><X size={12}/></button>
                     </div>
                   ):(
-                    <button onClick={()=>setDeleteConfirmId(selectedJob.id)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition-colors px-2 py-1 rounded-lg hover:bg-secondary">
+                    <button onClick={()=>{ setDeleteConfirmId(selectedJob.id); setDeleteConfirmListId(null); }} className="flex items-center gap-1.5 text-xs px-3 py-1.5 text-destructive hover:bg-destructive/10 border border-destructive/30 rounded-lg font-medium transition-colors">
                       <Trash2 size={12}/>Usuń robotę
                     </button>
                   )}
@@ -6464,6 +6527,13 @@ const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"
     date:"2026-05-26", version:"2.9.3", label:"Logistyka — bez alertów spójności",
     items:[
       {type:"improve", text:"Pracownik z „Wiele robót dziennie” nie pojawia się w alertach spójności na Pulpicie — wystarczy lista płac"},
+    ],
+  },
+  {
+    date:"2026-05-26", version:"2.9.9", label:"Roboty — usuwanie duplikatów",
+    items:[
+      {type:"fix", text:"PDF listy płac — scalanie zduplikowanych wpisów tego samego adresu w siatce robót"},
+      {type:"improve", text:"Roboty — kosz na liście do usunięcia całej roboty; oznaczenie „Duplikat adresu” gdy ten sam adres jest dwa razy"},
     ],
   },
   {
