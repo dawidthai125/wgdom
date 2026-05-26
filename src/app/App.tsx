@@ -1744,6 +1744,26 @@ function StatCard({label,value,sub,icon:Icon,accent=false}:{label:string;value:s
   </div>;
 }
 
+function NavItemWithHint({
+  hint,
+  children,
+}: {
+  hint: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative group/navhint">
+      {children}
+      <div
+        role="tooltip"
+        className="absolute left-[calc(100%+6px)] top-1/2 -translate-y-1/2 z-[100] w-max max-w-[240px] px-3 py-2 rounded-lg text-[11px] leading-snug text-foreground/90 bg-card/95 backdrop-blur-sm border border-border/80 shadow-lg opacity-0 invisible group-hover/navhint:opacity-100 group-hover/navhint:visible transition-all duration-200 delay-300 group-hover/navhint:delay-500 pointer-events-none"
+      >
+        {hint}
+      </div>
+    </div>
+  );
+}
+
 type SpeechRecognitionCtor = new() => {
   lang: string;
   interimResults: boolean;
@@ -6882,6 +6902,12 @@ const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"
     ],
   },
   {
+    date:"2026-05-26", version:"2.9.12", label:"Menu — podpowiedzi",
+    items:[
+      {type:"improve", text:"Lewe menu — po najechaniu delikatny dymek z opisem każdej zakładki"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.9.11", label:"Galeria zdjęć z robot",
     items:[
       {type:"new", text:"Menu „Zdjęcia” — galeria zaakceptowanych zdjęć pogrupowanych po robotach (Przed / W trakcie / Po)"},
@@ -7896,17 +7922,17 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[]);
 
-  const navItems: {key:View;label:string;icon:React.ElementType;badge?:number}[] = [
-    {key:"dashboard", label:"Pulpit", icon:LayoutDashboard},
-    {key:"payroll", label:"Lista Płac", icon:FileText},
-    {key:"schedule", label:"Grafik", icon:CalendarDays, badge:weekEmployees.length || undefined},
-    {key:"directory", label:"Pracownicy", icon:Users, badge:directory.filter(d=>d.active).length},
-    {key:"contacts", label:"Kontakty", icon:Mail, badge:contacts.filter(c=>c.email.trim()).length||undefined},
-    {key:"archive", label:"Archiwum", icon:Archive, badge:savedWeeks.length||undefined},
-    {key:"jobs", label:"Roboty", icon:MapPin, badge:(()=>{ const pend=jobs.reduce((s,j)=>s+(j.photos||[]).filter(p=>p.status==="pending").length,0); return pend>0?pend:jobs.filter(j=>j.status==="in_progress").length||undefined; })()},
-    {key:"photos", label:"Zdjęcia", icon:Images, badge:(()=>{ const n=jobs.reduce((s,j)=>{ const b=jobGalleryBucket(j); return b==="active"||b==="grace"?s+jobApprovedPhotos(j).length:s;},0); return n||undefined; })()},
-    {key:"changelog", label:"Zmiany", icon:ScrollText},
-    {key:"help", label:"Instrukcja", icon:BookOpen},
+  const navItems: {key:View;label:string;hint:string;icon:React.ElementType;badge?:number}[] = [
+    {key:"dashboard", label:"Pulpit", hint:"Podsumowanie tygodnia, alerty (spójność, dokumenty, zdjęcia) i szybkie skróty.", icon:LayoutDashboard},
+    {key:"payroll", label:"Lista Płac", hint:"Godziny, stawki, zaliczki i wypłaty za bieżący tydzień. Eksport PDF i Word.", icon:FileText},
+    {key:"schedule", label:"Grafik", hint:"Kto pracuje którego dnia — widok Pn–So na podstawie listy płac.", icon:CalendarDays, badge:weekEmployees.length || undefined},
+    {key:"directory", label:"Pracownicy", hint:"Kartoteka: dane, stawki, telefony, archiwum roczne każdego pracownika.", icon:Users, badge:directory.filter(d=>d.active).length},
+    {key:"contacts", label:"Kontakty", hint:"Adresy e-mail klientów i współpracowników — do wysyłki z robot.", icon:Mail, badge:contacts.filter(c=>c.email.trim()).length||undefined},
+    {key:"archive", label:"Archiwum", hint:"Zapisane tygodnie list płac, raporty miesięczne i podsumowania roczne.", icon:Archive, badge:savedWeeks.length||undefined},
+    {key:"jobs", label:"Roboty", hint:"Adresy remontów: dokumenty, czas pracy, materiały, zdjęcia i raporty.", icon:MapPin, badge:(()=>{ const pend=jobs.reduce((s,j)=>s+(j.photos||[]).filter(p=>p.status==="pending").length,0); return pend>0?pend:jobs.filter(j=>j.status==="in_progress").length||undefined; })()},
+    {key:"photos", label:"Zdjęcia", hint:"Zaakceptowane zdjęcia z robot — galeria i archiwum po 30 dniach od zdania.", icon:Images, badge:(()=>{ const n=jobs.reduce((s,j)=>{ const b=jobGalleryBucket(j); return b==="active"||b==="grace"?s+jobApprovedPhotos(j).length:s;},0); return n||undefined; })()},
+    {key:"changelog", label:"Zmiany", hint:"Co nowego w aplikacji — historia wersji i poprawek.", icon:ScrollText},
+    {key:"help", label:"Instrukcja", hint:"Pomoc krok po kroku: lista płac, roboty, grafik i typowe pytania.", icon:BookOpen},
   ];
 
   const totalNet = weekEmployees.reduce((s,e)=>s+calcWeekEmployee(e).netPay,0);
@@ -7929,12 +7955,14 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
 
         {/* Nav */}
         <nav className="px-3 py-4 space-y-1 border-b border-border">
-          {navItems.map(({key,label,icon:Icon,badge})=>(
-            <button key={key} onClick={()=>setView(key)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
-              <Icon size={15}/>
-              <span className="flex-1 text-left">{label}</span>
-              {badge!==undefined&&badge>0&&<span className={`text-xs px-1.5 py-0.5 rounded-full ${view===key?"bg-primary/20 text-primary":"bg-secondary text-muted-foreground"}`}>{badge}</span>}
-            </button>
+          {navItems.map(({key,label,hint,icon:Icon,badge})=>(
+            <NavItemWithHint key={key} hint={hint}>
+              <button onClick={()=>setView(key)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
+                <Icon size={15}/>
+                <span className="flex-1 text-left">{label}</span>
+                {badge!==undefined&&badge>0&&<span className={`text-xs px-1.5 py-0.5 rounded-full ${view===key?"bg-primary/20 text-primary":"bg-secondary text-muted-foreground"}`}>{badge}</span>}
+              </button>
+            </NavItemWithHint>
           ))}
         </nav>
 
