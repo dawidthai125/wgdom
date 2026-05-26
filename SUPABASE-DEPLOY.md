@@ -51,9 +51,24 @@ Po jednorazowej konfiguracji **nie musisz** wklejać kodu w Dashboard — deploy
 
 1. Wejdź na [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens) → **Generate new token** (np. nazwa: `GitHub Actions`)
 2. Skopiuj token (`sbp_...`) — pokazuje się **tylko raz**
-3. GitHub → repo **wgdom** → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
-4. Nazwa: **`SUPABASE_ACCESS_TOKEN`**
-5. Wklej token → **Add secret**
+3. GitHub → repo **wgdom** → **Settings** → **Secrets and variables** → **Actions**
+4. Zakładka **Secrets** (nie Variables!) → **New repository secret**
+5. Nazwa **dokładnie:** `SUPABASE_ACCESS_TOKEN` (wielkość liter ma znaczenie)
+6. Wklej token → **Add secret**
+
+> **Variables ≠ Secrets.** Workflow czyta `Secrets`. Jeśli wkleiłeś token tylko w Variables — skopiuj go też do **Secrets** albo uruchom workflow po aktualizacji (obsługuje oba).
+
+### 3a2. Włącz Actions (jeśli zakładka Actions jest pusta)
+
+1. GitHub → repo **wgdom** → **Settings** → **Actions** → **General**
+2. **Allow all actions and reusable workflows**
+3. Zapisz
+
+### 3a3. Ręczne uruchomienie (gdy dodałeś token po pushu)
+
+1. GitHub → **Actions** → **Deploy Supabase Edge Functions**
+2. **Run workflow** → branch **main** → **Run workflow**
+3. Po dodaniu sekretu możesz też **Re-run failed jobs** przy czerwonym runie
 
 ### 3b. Jak to działa
 

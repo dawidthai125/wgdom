@@ -1,4 +1,6 @@
 ﻿project_id = "kchwyjlnkdlymwvsnfiu"
 
+# CI: deploy via .github/workflows/deploy-supabase.yml
+
 [functions.make-server-0afb8820]
 verify_jwt = false
