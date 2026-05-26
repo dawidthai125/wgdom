@@ -1865,7 +1865,7 @@ function PayrollView({
       {/* Main list */}
       <div className={`flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-300 ${selectedEmp?"sm:flex-[0_0_38%] lg:flex-[0_0_34%]":"w-full"}`}>
         <div className="flex-1 overflow-y-auto">
-          <div className={`mx-auto px-4 sm:px-8 py-8 space-y-6 ${selectedEmp?"max-w-none":"max-w-4xl"}`}>
+          <div className={`mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 w-full max-w-none`}>
 
             {/* Saturday reminder */}
             {isSaturday && !satDismissed && (
@@ -1912,7 +1912,7 @@ function PayrollView({
             </div>
 
             {/* Table */}
-            <div className="bg-card rounded-xl border border-border overflow-hidden">
+            <div className="bg-card rounded-xl border border-border">
               <div className="px-5 py-4 border-b border-border flex items-center gap-2">
                 <FileText size={13} className="text-muted-foreground"/>
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Lista Płac — {fmtDate(weekFrom)} – {fmtDate(weekTo)}</span>
@@ -1929,48 +1929,48 @@ function PayrollView({
                 </div>
               ) : (
                 <>
-                  <div className="hidden sm:block overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead><tr className="border-b border-border text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>
-                        <th className="px-4 py-3 text-left w-7">Lp.</th>
-                        <th className="px-3 py-3 text-left">Pracownik</th>
-                        <th className="px-3 py-3 text-right" title="Pn–So bieżącego tygodnia">Tydzień</th>
-                        <th className="px-3 py-3 text-right" title="Sobota poprzedniego tygodnia">Sob.pr.</th>
-                        <th className="px-3 py-3 text-right">Razem h</th>
-                        <th className="px-3 py-3 text-right">Brutto</th>
-                        <th className="px-3 py-3 text-right">Zaliczki</th>
-                        <th className="px-3 py-3 text-right">Koszty</th>
-                        <th className="px-3 py-3 text-right">Do wypłaty</th>
-                        <th className="px-3 py-3 text-center whitespace-nowrap min-w-[7.75rem]">Status</th>
-                        <th className="px-3 py-3 w-8"/>
+                  <div className="hidden sm:block overflow-x-auto overscroll-x-contain">
+                    <table className="w-full min-w-[1040px] text-sm">
+                      <thead><tr className="border-b border-border text-xs text-muted-foreground group/head" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                        <th className="px-3 py-3 text-left w-8">Lp.</th>
+                        <th className="px-3 py-3 text-left min-w-[140px]">Pracownik</th>
+                        <th className="px-2 py-3 text-right w-14" title="Pn–So bieżącego tygodnia">Tydzień</th>
+                        <th className="px-2 py-3 text-right w-14" title="Sobota poprzedniego tygodnia">Sob.pr.</th>
+                        <th className="px-2 py-3 text-right w-16">Razem h</th>
+                        <th className="px-2 py-3 text-right w-20">Brutto</th>
+                        <th className="px-2 py-3 text-right w-20">Zaliczki</th>
+                        <th className="px-2 py-3 text-right w-16">Koszty</th>
+                        <th className="px-2 py-3 text-right w-24 whitespace-nowrap">Do wypłaty</th>
+                        <th className="sticky right-9 z-20 px-2 py-3 text-center whitespace-nowrap w-[7.75rem] bg-card shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)]">Status</th>
+                        <th className="sticky right-0 z-20 px-2 py-3 w-9 bg-card"/>
                       </tr></thead>
                       <tbody className="divide-y divide-border">
                         {rows.map((r,i)=>(
                           <tr key={r.emp.id} onClick={()=>setSelectedEmpId(r.emp.id===selectedEmpId?null:r.emp.id)}
-                            className={`cursor-pointer transition-colors hover:bg-secondary/30 ${r.emp.settled?"opacity-60":""} ${r.emp.id===selectedEmpId?"bg-primary/5 border-l-2 border-primary":""}`}>
-                            <td className="px-4 py-3.5 text-muted-foreground text-xs" style={{fontFamily:"'JetBrains Mono', monospace"}}>{i+1}</td>
-                            <td className="px-3 py-3.5">
+                            className={`group cursor-pointer transition-colors hover:bg-secondary/30 ${r.emp.settled?"opacity-60":""} ${r.emp.id===selectedEmpId?"bg-primary/5 border-l-2 border-primary":""}`}>
+                            <td className="px-3 py-3.5 text-muted-foreground text-xs" style={{fontFamily:"'JetBrains Mono', monospace"}}>{i+1}</td>
+                            <td className="px-3 py-3.5 min-w-[140px]">
                               <div className="flex items-center gap-2.5">
                                 <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{r.emp.name?r.emp.name[0].toUpperCase():"?"}</div>
-                                <div>
-                                  <p className="font-medium leading-tight">{r.emp.name||<span className="italic text-muted-foreground">Bez nazwy</span>}</p>
-                                  <p className="text-xs text-muted-foreground">{r.emp.position||"—"} · {fmt(r.rateNum)} PLN/h</p>
+                                <div className="min-w-0">
+                                  <p className="font-medium leading-tight truncate">{r.emp.name||<span className="italic text-muted-foreground">Bez nazwy</span>}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{r.emp.position||"—"} · {fmt(r.rateNum)} PLN/h</p>
                                 </div>
                               </div>
                             </td>
-                            <td className="px-3 py-3.5 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.weekHours>0?fmtH(r.weekHours):<span className="text-muted-foreground/40">—</span>}</td>
-                            <td className="px-3 py-3.5 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.prevSatHours>0?<span className="text-amber-500">{fmtH(r.prevSatHours)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
-                            <td className="px-3 py-3.5 text-right font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalHours>0?fmtH(r.totalHours):<span className="text-muted-foreground/40">—</span>}</td>
-                            <td className="px-3 py-3.5 text-right text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.grossPay)}</td>
-                            <td className="px-3 py-3.5 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalZaliczka>0?<span className="text-destructive">−{fmt(r.totalZaliczka)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
-                            <td className="px-3 py-3.5 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalExtraCosts>0?<span className="text-green-500">+{fmt(r.totalExtraCosts)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
-                            <td className="px-3 py-3.5 text-right font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.netPay)} <span className="text-xs font-normal">PLN</span></td>
-                            <td className="px-3 py-3.5 whitespace-nowrap" onClick={(e)=>e.stopPropagation()}>
-                              <button onClick={()=>onToggleSettled(r.emp.id)} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${r.emp.settled?"bg-green-500/15 text-green-400 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}>
-                                {r.emp.settled?<><CheckCircle2 size={11}/>Rozliczony</>:<><Circle size={11}/>Oczekuje</>}
+                            <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.weekHours>0?fmtH(r.weekHours):<span className="text-muted-foreground/40">—</span>}</td>
+                            <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.prevSatHours>0?<span className="text-amber-500">{fmtH(r.prevSatHours)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
+                            <td className="px-2 py-3.5 text-right font-medium whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalHours>0?fmtH(r.totalHours):<span className="text-muted-foreground/40">—</span>}</td>
+                            <td className="px-2 py-3.5 text-right text-muted-foreground whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.grossPay)}</td>
+                            <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalZaliczka>0?<span className="text-destructive">−{fmt(r.totalZaliczka)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
+                            <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalExtraCosts>0?<span className="text-green-500">+{fmt(r.totalExtraCosts)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
+                            <td className="px-2 py-3.5 text-right font-bold text-primary whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.netPay)} <span className="text-[10px] font-normal text-primary/70">zł</span></td>
+                            <td className={`sticky right-9 z-10 px-2 py-3.5 whitespace-nowrap shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)] ${r.emp.id===selectedEmpId?"bg-primary/5":"bg-card group-hover:bg-secondary/30"}`} onClick={(e)=>e.stopPropagation()}>
+                              <button onClick={()=>onToggleSettled(r.emp.id)} title={r.emp.settled?"Rozliczony — kliknij aby cofnąć":"Oczekuje — kliknij po wypłacie"} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all ${r.emp.settled?"bg-green-500/15 text-green-400 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}>
+                                {r.emp.settled?<><CheckCircle2 size={11} className="shrink-0"/>Rozliczony</>:<><Circle size={11} className="shrink-0"/>Oczekuje</>}
                               </button>
                             </td>
-                            <td className="px-3 py-3.5" onClick={(e)=>e.stopPropagation()}>
+                            <td className={`sticky right-0 z-10 px-2 py-3.5 ${r.emp.id===selectedEmpId?"bg-primary/5":"bg-card group-hover:bg-secondary/30"}`} onClick={(e)=>e.stopPropagation()}>
                               {deleteConfirm===r.emp.id?(
                                 <div className="flex items-center gap-1">
                                   <button onClick={()=>{onRemoveWeekEmployee(r.emp.id);setDeleteConfirm(null);}} className="text-xs bg-destructive text-white px-2 py-0.5 rounded">Usuń</button>
@@ -2012,8 +2012,9 @@ function PayrollView({
                           <td className="px-3 py-3 text-right font-bold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalGross)}</td>
                           <td className="px-3 py-3 text-right font-bold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>{totalZaliczkaSum>0?`−${fmt(totalZaliczkaSum)}`:"—"}</td>
                           <td className="px-3 py-3 text-right font-bold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{totalExtraCostsSum>0?`+${fmt(totalExtraCostsSum)}`:"—"}</td>
-                          <td className="px-3 py-3 text-right font-bold text-primary text-base" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} <span className="text-xs font-normal">PLN</span></td>
-                          <td colSpan={2}/>
+                          <td className="px-3 py-3 text-right font-bold text-primary text-base whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} <span className="text-[10px] font-normal text-primary/70">zł</span></td>
+                          <td className="sticky right-9 z-10 bg-secondary/30 shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)]"/>
+                          <td className="sticky right-0 z-10 bg-secondary/30"/>
                         </tr>
                       </tfoot>
                     </table>
