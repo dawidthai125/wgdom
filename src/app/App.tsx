@@ -72,7 +72,22 @@ interface EmailContact {
   notes: string;
 }
 
-interface DayData { active: boolean; from: string; to: string; zaliczka: string; }
+interface DayData {
+  active: boolean;
+  from: string;
+  to: string;
+  zaliczka: string;
+  /** Dodatkowe godziny ponad podstawowy wpis dnia (np. wieczorem, w innym miejscu) */
+  extraHours?: DayExtraHour[];
+}
+
+/** Dodatkowy blok godzin w danym dniu tygodnia */
+interface DayExtraHour {
+  id: string;
+  description: string;
+  from: string;
+  to: string;
+}
 
 /** Koszt pracownika do zwrotu w wypłacie (chemia, paliwo, zakupy na budowę) */
 interface EmployeeExtraCost {
@@ -282,6 +297,34 @@ function weekEmployeeFromDir(dir: DirectoryEmployee): WeekEmployee {
 
 function parseTime(t: string) { const [h, m] = t.split(":").map(Number); return isNaN(h)||isNaN(m) ? 0 : h+m/60; }
 function hoursWorked(from: string, to: string) { const d = parseTime(to)-parseTime(from); return d>0 ? +d.toFixed(2) : 0; }
+function dayTotalHours(day: DayData): number {
+  const base = day.active ? hoursWorked(day.from, day.to) : 0;
+  const extra = (day.extraHours ?? []).reduce((s, e) => s + hoursWorked(e.from, e.to), 0);
+  return +(base + extra).toFixed(2);
+}
+function dayExtraHoursOnly(day: DayData): number {
+  return +(day.extraHours ?? []).reduce((s, e) => s + hoursWorked(e.from, e.to), 0).toFixed(2);
+}
+
+function payrollExtraHourLines(employees: WeekEmployee[]) {
+  const lines: { name: string; day: string; desc: string; range: string; hours: number }[] = [];
+  for (const emp of employees) {
+    for (const key of DAYS) {
+      for (const ex of emp.days[key].extraHours ?? []) {
+        const h = hoursWorked(ex.from, ex.to);
+        if (h <= 0) continue;
+        lines.push({
+          name: emp.name || "—",
+          day: DAY_LABELS[key],
+          desc: ex.description.trim() || "—",
+          range: `${ex.from}–${ex.to}`,
+          hours: h,
+        });
+      }
+    }
+  }
+  return lines;
+}
 function fmt(n: number) { return n.toLocaleString("pl-PL",{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtH(n: number) { const h=Math.floor(n),m=Math.round((n-h)*60); return m===0?`${h}h`:`${h}h ${m}m`; }
 function fmtDate(iso: string) { if(!iso) return ""; const [y,mo,d]=iso.split("-"); return `${d}.${mo}.${y}`; }
@@ -293,13 +336,14 @@ function getWeekRange() {
   return {from:iso(mon),to:iso(sat)};
 }
 function calcWeekEmployee(emp: WeekEmployee) {
-  const totalHours = DAYS.reduce((s,d)=>s+(emp.days[d].active ? hoursWorked(emp.days[d].from,emp.days[d].to) : 0), 0);
+  const totalHours = DAYS.reduce((s,d)=>s+dayTotalHours(emp.days[d]), 0);
+  const totalExtraHours = DAYS.reduce((s,d)=>s+dayExtraHoursOnly(emp.days[d]), 0);
   const totalZaliczka = DAYS.reduce((s,d)=>s+(parseFloat(emp.days[d].zaliczka)||0), 0);
   const totalExtraCosts = (emp.extraCosts ?? []).reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
   const rateNum = parseFloat(emp.rate)||0;
   const grossPay = +(totalHours*rateNum).toFixed(2);
   const netPay = +(grossPay - totalZaliczka + totalExtraCosts).toFixed(2);
-  return {totalHours,totalZaliczka,totalExtraCosts,grossPay,netPay,rateNum};
+  return {totalHours,totalExtraHours,totalZaliczka,totalExtraCosts,grossPay,netPay,rateNum};
 }
 
 // ─── Jobs Helpers ─────────────────────────────────────────────────────────────
@@ -318,8 +362,10 @@ function dayKeyForIsoInWeek(iso: string, weekFrom: string): DayKey | null {
 }
 
 function hoursFromPayrollDay(day: DayData): number {
+  const total = dayTotalHours(day);
+  if (total > 0) return total;
   if (!day.active) return DEFAULT_JOB_ENTRY_HOURS;
-  return hoursWorked(day.from, day.to);
+  return 0;
 }
 
 function duplicateWorkEntry(entry: WorkEntry, date: string): WorkEntry {
@@ -390,16 +436,22 @@ function workEntriesFromPayrollForDate(
   const out: WorkEntry[] = [];
   for (const emp of weekEmployees) {
     const day = emp.days[dayKey];
-    if (!day?.active || !emp.directoryId) continue;
+    if (!day || !emp.directoryId) continue;
+    const hours = dayTotalHours(day);
+    if (hours <= 0) continue;
     if (existingToday.has(emp.directoryId)) continue;
+    const extraNotes = (day.extraHours ?? [])
+      .filter((e) => hoursWorked(e.from, e.to) > 0)
+      .map((e) => `${e.from}–${e.to}${e.description.trim() ? `: ${e.description.trim()}` : ""}`)
+      .join("; ");
     out.push({
       id: crypto.randomUUID(),
       directoryId: emp.directoryId,
       employeeName: emp.name,
       date: targetDate,
-      hours: hoursFromPayrollDay(day),
+      hours,
       rate: parseFloat(emp.rate) || 0,
-      notes: "",
+      notes: extraNotes ? `Dodatkowe: ${extraNotes}` : "",
     });
   }
   return out;
@@ -728,11 +780,18 @@ function scheduleCellFor(
   const activeJobs = jobs.filter((j) => j.status === "in_progress");
   const jobList = jobsForEmployeeOnIsoDate(emp, activeJobs, dateIso, directory);
   const locations = jobList.map(shortJobAddress);
-  const working = day.active || locations.length > 0;
+  const extraList = day.extraHours ?? [];
+  const totalH = dayTotalHours(day);
+  const working = day.active || extraList.length > 0 || locations.length > 0;
+  const timeParts: string[] = [];
+  if (day.active) timeParts.push(`${day.from}–${day.to}`);
+  for (const ex of extraList) {
+    if (hoursWorked(ex.from, ex.to) > 0) timeParts.push(`${ex.from}–${ex.to}`);
+  }
   return {
     working,
-    timeRange: day.active ? `${day.from}–${day.to}` : "",
-    hoursLabel: day.active ? fmtH(hoursWorked(day.from, day.to)) : "",
+    timeRange: timeParts.join(" + "),
+    hoursLabel: totalH > 0 ? fmtH(totalH) : "",
     locations,
   };
 }
@@ -828,11 +887,18 @@ function scheduleCellFromArchive(
     const base = a.length > 24 ? `${a.slice(0, 22)}…` : a;
     return we.flatNumber ? `${base} m.${we.flatNumber}` : base;
   }))];
-  const working = day.active || locations.length > 0;
+  const extraList = day.extraHours ?? [];
+  const totalH = dayTotalHours(day);
+  const working = day.active || extraList.length > 0 || locations.length > 0;
+  const timeParts: string[] = [];
+  if (day.active) timeParts.push(`${day.from}–${day.to}`);
+  for (const ex of extraList) {
+    if (hoursWorked(ex.from, ex.to) > 0) timeParts.push(`${ex.from}–${ex.to}`);
+  }
   return {
     working,
-    timeRange: day.active ? `${day.from}–${day.to}` : "",
-    hoursLabel: day.active ? fmtH(hoursWorked(day.from, day.to)) : "",
+    timeRange: timeParts.join(" + "),
+    hoursLabel: totalH > 0 ? fmtH(totalH) : "",
     locations,
   };
 }
@@ -1116,6 +1182,14 @@ function WeekEmployeeDetail({emp, onChange, onClose}:{emp:WeekEmployee; onChange
   const updateDay = useCallback((key:DayKey,field:keyof DayData,value:string|boolean)=>{
     onChange({...emp, days:{...emp.days,[key]:{...emp.days[key],[field]:value}}});
   },[emp,onChange]);
+  const updateDayExtraHours = useCallback((key: DayKey, next: DayExtraHour[]) => {
+    onChange({ ...emp, days: { ...emp.days, [key]: { ...emp.days[key], extraHours: next } } });
+  }, [emp, onChange]);
+  const addDayExtraHour = (key: DayKey) => {
+    const day = emp.days[key];
+    const list = day.extraHours ?? [];
+    updateDayExtraHours(key, [...list, { id: crypto.randomUUID(), description: "", from: "16:00", to: "18:00" }]);
+  };
   const extraCosts = emp.extraCosts ?? [];
   const updateExtraCosts = useCallback((next: EmployeeExtraCost[]) => {
     onChange({ ...emp, extraCosts: next });
@@ -1123,7 +1197,7 @@ function WeekEmployeeDetail({emp, onChange, onClose}:{emp:WeekEmployee; onChange
   const addExtraCost = () => {
     updateExtraCosts([...extraCosts, { id: crypto.randomUUID(), description: "", amount: "" }]);
   };
-  const {totalHours,totalZaliczka,totalExtraCosts,grossPay,netPay,rateNum}=calcWeekEmployee(emp);
+  const {totalHours,totalExtraHours,totalZaliczka,totalExtraCosts,grossPay,netPay,rateNum}=calcWeekEmployee(emp);
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -1155,12 +1229,17 @@ function WeekEmployeeDetail({emp, onChange, onClose}:{emp:WeekEmployee; onChange
               </div>
               <div className="divide-y divide-border">
                 {DAYS.map((key)=>{
-                  const day=emp.days[key]; const h=day.active?hoursWorked(day.from,day.to):0;
-                  return <div key={key} className={`px-4 py-3 transition-opacity ${day.active?"":"opacity-50"}`}>
+                  const day=emp.days[key];
+                  const baseH=day.active?hoursWorked(day.from,day.to):0;
+                  const extraH=dayExtraHoursOnly(day);
+                  const totalDayH=dayTotalHours(day);
+                  const extraList=day.extraHours??[];
+                  return <div key={key} className={`transition-opacity ${day.active||extraList.length>0?"":"opacity-50"}`}>
+                    <div className={`px-4 py-3 ${extraList.length>0?"pb-2":""}`}>
                     <div className="sm:hidden space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5"><Checkbox checked={day.active} onChange={(v)=>updateDay(key,"active",v)}/><span className={`text-sm font-medium ${key==="So"?"text-primary":""}`}>{DAY_LABELS[key]}</span></div>
-                        {day.active&&h>0&&<span className="text-xs font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(h)}</span>}
+                        {totalDayH>0&&<span className="text-xs font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalDayH)}{extraH>0&&baseH>0?` (+${fmtH(extraH)})`:""}</span>}
                       </div>
                       {day.active&&<div className="grid grid-cols-3 gap-2 pl-8">
                         <div><label className="text-xs text-muted-foreground block mb-1">Od</label><input type="time" value={day.from} onChange={(e)=>updateDay(key,"from",e.target.value)} className="w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none" style={{fontFamily:"'JetBrains Mono', monospace"}}/></div>
@@ -1172,8 +1251,39 @@ function WeekEmployeeDetail({emp, onChange, onClose}:{emp:WeekEmployee; onChange
                       <div className="flex items-center gap-3 min-w-0"><Checkbox checked={day.active} onChange={(v)=>updateDay(key,"active",v)}/><span className={`text-sm font-medium truncate ${key==="So"?"text-primary":""}`}>{DAY_LABELS[key]}</span></div>
                       <input type="time" value={day.from} disabled={!day.active} onChange={(e)=>updateDay(key,"from",e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
                       <input type="time" value={day.to} disabled={!day.active} onChange={(e)=>updateDay(key,"to",e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
-                      <div className="text-center"><span className={`text-sm font-semibold ${day.active&&h>0?"text-primary":"text-muted-foreground/25"}`} style={{fontFamily:"'JetBrains Mono', monospace"}}>{day.active&&h>0?fmtH(h):"—"}</span></div>
+                      <div className="text-center"><span className={`text-sm font-semibold ${totalDayH>0?"text-primary":"text-muted-foreground/25"}`} style={{fontFamily:"'JetBrains Mono', monospace"}} title={extraH>0?`w tym ${fmtH(extraH)} dodatkowych`:undefined}>{totalDayH>0?fmtH(totalDayH):"—"}</span></div>
                       <input type="number" min="0" step="10" placeholder="0" value={day.zaliczka} disabled={!day.active} onChange={(e)=>updateDay(key,"zaliczka",e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed placeholder:text-muted-foreground/30" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                    </div>
+                    </div>
+                    <div className="px-4 pb-3 sm:pl-10 space-y-2">
+                      {extraList.map((ex) => {
+                        const exH = hoursWorked(ex.from, ex.to);
+                        return (
+                          <div key={ex.id} className="rounded-lg border border-primary/20 bg-primary/5 p-2.5 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Clock size={12} className="text-primary shrink-0"/>
+                              <span className="text-[10px] font-semibold uppercase tracking-wider text-primary/80">Dodatkowe godziny</span>
+                              {exH > 0 && <span className="ml-auto text-xs font-semibold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtH(exH)}</span>}
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Opis (np. dogrywka na budowie, transport)"
+                              value={ex.description}
+                              onChange={(e) => updateDayExtraHours(key, extraList.map((item) => item.id === ex.id ? { ...item, description: e.target.value } : item))}
+                              className="w-full bg-background rounded-lg px-2.5 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none"
+                            />
+                            <div className="flex items-center gap-2">
+                              <input type="time" value={ex.from} onChange={(e) => updateDayExtraHours(key, extraList.map((item) => item.id === ex.id ? { ...item, from: e.target.value } : item))} className="flex-1 bg-background rounded-lg px-2 py-1.5 text-xs text-center border border-transparent focus:border-primary focus:outline-none" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
+                              <span className="text-xs text-muted-foreground">–</span>
+                              <input type="time" value={ex.to} onChange={(e) => updateDayExtraHours(key, extraList.map((item) => item.id === ex.id ? { ...item, to: e.target.value } : item))} className="flex-1 bg-background rounded-lg px-2 py-1.5 text-xs text-center border border-transparent focus:border-primary focus:outline-none" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
+                              <button type="button" onClick={() => updateDayExtraHours(key, extraList.filter((item) => item.id !== ex.id))} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors shrink-0"><Trash2 size={13}/></button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <button type="button" onClick={() => addDayExtraHour(key)} className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                        <Plus size={12}/> Dodatkowe godziny w {DAY_LABELS[key]}
+                      </button>
                     </div>
                   </div>;
                 })}
@@ -1234,6 +1344,7 @@ function WeekEmployeeDetail({emp, onChange, onClose}:{emp:WeekEmployee; onChange
         {/* Mini summary */}
         <div className="space-y-2">
           <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Łącznie</span><span className="font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalHours)}</span></div>
+          {totalExtraHours>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">w tym dodatkowe</span><span className="font-semibold text-primary/80" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalExtraHours)}</span></div>}
           <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto</span><span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(grossPay)} PLN</span></div>
           {totalZaliczka>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Zaliczki</span><span className="font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>−{fmt(totalZaliczka)} PLN</span></div>}
           {totalExtraCosts>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Koszty do zwrotu</span><span className="font-semibold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>+{fmt(totalExtraCosts)} PLN</span></div>}
@@ -1345,6 +1456,43 @@ function PayrollView({
       {text:"", fillColor:C.lightNavy},
     ];
 
+    const extraHourLines = payrollExtraHourLines(rows.map((r) => r.emp));
+    const extraHourPdfBlock = extraHourLines.length > 0
+      ? [
+          { text: "Dodatkowe godziny pracy", bold: true, fontSize: 10, color: C.navy, margin: [0, 16, 0, 6] as [number, number, number, number] },
+          {
+            table: {
+              headerRows: 1,
+              widths: ["*", 48, "*", 56, 36],
+              body: [
+                ["Pracownik", "Dzień", "Opis", "Godziny", "Suma"].map((t) => ({
+                  text: t, bold: true, color: C.white, fillColor: C.navy, fontSize: 8, alignment: "center" as const,
+                })),
+                ...extraHourLines.map((line, i) => {
+                  const bg = i % 2 === 0 ? C.white : C.lightGray;
+                  return [
+                    { text: line.name, fillColor: bg },
+                    { text: line.day, fillColor: bg, alignment: "center" as const },
+                    { text: line.desc, fillColor: bg, color: C.muted },
+                    { text: line.range, fillColor: bg, alignment: "center" as const, fontSize: 8 },
+                    { text: fmtH(line.hours), fillColor: bg, alignment: "right" as const, bold: true },
+                  ];
+                }),
+              ],
+            },
+            layout: {
+              hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
+              vLineWidth: () => 0,
+              hLineColor: () => "#DDE3EA",
+              paddingLeft: () => 5,
+              paddingRight: () => 5,
+              paddingTop: () => 4,
+              paddingBottom: () => 4,
+            },
+          },
+        ]
+      : [];
+
     const docDef: any = {
       pageSize:"A4", pageOrientation:"landscape", pageMargins:[25,68,25,32],
       header:()=>({
@@ -1383,6 +1531,7 @@ function PayrollView({
           hLineColor:()=>"#DDE3EA",
           paddingLeft:()=>5, paddingRight:()=>5, paddingTop:()=>4, paddingBottom:()=>4,
         }},
+        ...extraHourPdfBlock,
       ],
       defaultStyle:{font:"Roboto", fontSize:9, color:C.navy},
     };
@@ -1392,6 +1541,7 @@ function PayrollView({
 
   const exportWord = async () => {
     const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle } = await import("docx");
+    const extraHourLines = payrollExtraHourLines(rows.map((r) => r.emp));
     const bNone={style:BorderStyle.NONE,size:0,color:"FFFFFF"};
     const bThin={style:BorderStyle.SINGLE,size:2,color:"DDE3EA"};
     const mkCell=(txt:string,opts:{bold?:boolean;fill?:string;align?:typeof AlignmentType[keyof typeof AlignmentType];color?:string;size?:number}={})=>
@@ -1456,6 +1606,36 @@ function PayrollView({
               ]}),
             ],
           }),
+          ...(extraHourLines.length > 0
+            ? [
+                new Paragraph({
+                  spacing: { before: 360, after: 160 },
+                  children: [new TextRun({ text: "Dodatkowe godziny pracy", bold: true, size: 22, color: "344254", font: "Calibri" })],
+                }),
+                new Table({
+                  width: { size: 100, type: WidthType.PERCENTAGE },
+                  rows: [
+                    new TableRow({
+                      children: ["Pracownik", "Dzień", "Opis", "Godziny", "Suma"].map((h) =>
+                        mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 16 }),
+                      ),
+                      tableHeader: true,
+                    }),
+                    ...extraHourLines.map((line, i) =>
+                      new TableRow({
+                        children: [
+                          mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6" }),
+                          mkCell(line.day, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6" }),
+                          mkCell(line.desc, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D" }),
+                          mkCell(line.range, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
+                          mkCell(fmtH(line.hours), { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6" }),
+                        ],
+                      }),
+                    ),
+                  ],
+                }),
+              ]
+            : []),
           new Paragraph({spacing:{before:360},children:[new TextRun({text:`Wygenerowano: ${new Date().toLocaleDateString("pl-PL")}`,size:16,color:"8A9BB0",font:"Calibri"})]}),
         ],
       }],
@@ -1950,6 +2130,9 @@ function ArchiveScheduleGrid({
                           <span className="text-[10px] font-semibold text-green-400/90 bg-green-500/10 px-1.5 py-0.5 rounded font-mono whitespace-nowrap">
                             {cell.timeRange}
                           </span>
+                        )}
+                        {cell.hoursLabel && (
+                          <span className="text-[9px] text-muted-foreground">{cell.hoursLabel}</span>
                         )}
                         {cell.locations.map((loc, i) => (
                           <span key={i} className="text-[9px] text-primary flex items-start gap-0.5 max-w-[88px]">
@@ -3926,8 +4109,8 @@ function DashboardView({
 }) {
   const todayKey = todayDayKey();
   const todayIso = todayIsoDate();
-  const workingToday = weekEmployees.filter((e) => todayKey && e.days[todayKey]?.active);
-  const offToday = weekEmployees.filter((e) => !(todayKey && e.days[todayKey]?.active));
+  const workingToday = weekEmployees.filter((e) => todayKey && dayTotalHours(e.days[todayKey]) > 0);
+  const offToday = weekEmployees.filter((e) => !(todayKey && dayTotalHours(e.days[todayKey]) > 0));
 
   const activeJobs = jobs.filter((j) => j.status === "in_progress");
   const completedJobs = jobs.filter((j) => j.status === "completed");
@@ -4229,7 +4412,13 @@ function DashboardView({
               <div className="divide-y divide-border max-h-[420px] overflow-y-auto">
                 {workingToday.map((emp) => {
                   const { netPay } = calcWeekEmployee(emp);
-                  const todayH = todayKey ? hoursWorked(emp.days[todayKey].from, emp.days[todayKey].to) : 0;
+                  const todayDay = todayKey ? emp.days[todayKey] : null;
+                  const todayTimeParts: string[] = [];
+                  if (todayDay?.active) todayTimeParts.push(`${todayDay.from}–${todayDay.to}`);
+                  for (const ex of todayDay?.extraHours ?? []) {
+                    if (hoursWorked(ex.from, ex.to) > 0) todayTimeParts.push(`${ex.from}–${ex.to}`);
+                  }
+                  const todayH = todayKey ? dayTotalHours(emp.days[todayKey]) : 0;
                   const todayJobs = jobsForEmployeeOnDashboard(emp, jobs, todayIso, weekFrom, weekTo, directory);
                   const streets = todayJobs.map(formatJobStreet);
                   return (
@@ -4245,7 +4434,7 @@ function DashboardView({
                           </p>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {todayKey && `${emp.days[todayKey].from}–${emp.days[todayKey].to}`}
+                          {todayTimeParts.length > 0 ? todayTimeParts.join(" + ") : "—"}
                           {emp.position ? ` · ${emp.position}` : ""}
                         </p>
                         {streets.length > 0 ? (
@@ -4469,6 +4658,7 @@ function HelpView() {
             {[
               {q:"Jak dodać pracownika do tygodnia?", a:'Kliknij "Dodaj pracownika" → zaznacz jednego lub kilku pracowników z listy (lub "Zaznacz wszystkich") → kliknij "Dodaj zaznaczonych". Jeśli tydzień jest pusty, pojawi się też przycisk "Kopiuj z poprzedniego tygodnia" — kliknij go, żeby od razu dodać tych samych co ostatnio.'},
               {q:"Jak wpisać godziny pracy?", a:"Kliknij na pracownika na liście — otworzy się panel z dniami tygodnia. Zaznacz dni kiedy pracował i wpisz godziny od–do. Aplikacja sama policzy ile godzin i ile się należy."},
+              {q:"Jak dodać dodatkowe godziny w danym dniu?", a:"W panelu pracownika, pod wybranym dniem kliknij „Dodatkowe godziny w …”. Wpisz opis (np. dogrywka wieczorem, transport), godziny od–do i zapisz. Godziny dodają się do sumy dnia i całego tygodnia — w PDF/Word pojawi się osobna tabelka ze szczegółami."},
               {q:"Co to jest zaliczka?", a:"Jeśli pracownik wziął od Ciebie gotówkę z góry (np. na wypłatę w trakcie tygodnia), wpisz kwotę jako zaliczkę w danym dniu. Zostanie odjęta od kwoty do wypłaty."},
               {q:"Co to są koszty do zwrotu?", a:"W panelu pracownika (pod dniami tygodnia) możesz dodać wydatki, które pracownik zapłacił z własnej kieszeni i które mu należy zwrócić — np. chemia, paliwo, zakupy na budowę. Te kwoty są doliczane do wypłaty (w przeciwieństwie do zaliczki, która jest odejmowana)."},
               {q:"Co oznacza status Rozliczony / Oczekuje?", a:'Kiedy wypłacisz pracownikowi należną kwotę, kliknij przycisk "Oczekuje" — zmieni się na zielony "Rozliczony". To tylko znacznik dla Ciebie, żebyś wiedział komu już zapłaciłeś.'},
@@ -4785,6 +4975,13 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.6.4", label:"Dodatkowe godziny w dniu",
+    items:[
+      {type:"new", text:"Lista płac — dodatkowe godziny przypisane do konkretnego dnia (opis + godziny od–do), wliczane do wypłaty"},
+      {type:"improve", text:"Grafik i sumy godzin uwzględniają dodatkowe bloki; PDF/Word — tabela szczegółów pod listą płac"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.6.3", label:"Backup w sobotę + koszty do zwrotu",
     items:[
