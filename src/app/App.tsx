@@ -5813,9 +5813,9 @@ function DashboardView({
                         {jobsMissingDocs.length}
                       </span>
                     </p>
-                    {jobsReadyToClose.length > 0 && (
-                      <span className="text-[10px] text-green-400">{jobsReadyToClose.length} got. do zdania</span>
-                    )}
+                    <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline shrink-0">
+                      Roboty →
+                    </button>
                   </div>
                   <div className="space-y-1.5">
                     {jobsMissingDocs.slice(0, 4).map((job) => {
@@ -5837,6 +5837,9 @@ function DashboardView({
                       );
                     })}
                   </div>
+                  {jobsReadyToClose.length > 0 && (
+                    <p className="text-[10px] text-green-400 mt-2">{jobsReadyToClose.length} robót gotowych do zdania</p>
+                  )}
                   {staleDocsJobs.length > 0 && (
                     <p className="text-[10px] text-amber-400 mt-2 flex items-center gap-1">
                       <Bell size={10}/>{staleDocsJobs.length} robót &gt;7 dni bez kompletu dokumentów
@@ -6461,6 +6464,12 @@ const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"
     date:"2026-05-26", version:"2.9.3", label:"Logistyka — bez alertów spójności",
     items:[
       {type:"improve", text:"Pracownik z „Wiele robót dziennie” nie pojawia się w alertach spójności na Pulpicie — wystarczy lista płac"},
+    ],
+  },
+  {
+    date:"2026-05-26", version:"2.9.5", label:"Pulpit — link do robot",
+    items:[
+      {type:"improve", text:"Pulpit — alert „Brak dokumentów”: link „Roboty →” jak przy innych alertach w sekcji Uwaga dziś"},
     ],
   },
   {
