@@ -42,8 +42,55 @@ function jobMergeScore(j: { workEntries?: unknown[]; photos?: unknown[] }): numb
   return (j.workEntries?.length ?? 0) + (j.photos?.length ?? 0);
 }
 
+export const JOBS_DELETED_IDS_KEY = "kw-jobs-deleted-ids";
+
+function jobIdOf(j: unknown): string | undefined {
+  if (!j || typeof j !== "object" || !("id" in j)) return undefined;
+  return String((j as { id: string }).id);
+}
+
+export function normalizeDeletedJobIds(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((id): id is string => typeof id === "string" && id.length > 0);
+}
+
+export function getDeletedJobIds(): string[] {
+  try {
+    const raw = localStorage.getItem(JOBS_DELETED_IDS_KEY);
+    if (!raw) return [];
+    return normalizeDeletedJobIds(JSON.parse(raw));
+  } catch {
+    return [];
+  }
+}
+
+export function saveDeletedJobIds(ids: string[]): void {
+  try {
+    localStorage.setItem(JOBS_DELETED_IDS_KEY, JSON.stringify([...new Set(ids)].slice(-500)));
+  } catch { /* ignore */ }
+}
+
+export function addDeletedJobId(id: string): string[] {
+  const next = [...new Set([...getDeletedJobIds(), id])].slice(-500);
+  saveDeletedJobIds(next);
+  return next;
+}
+
+export function mergeDeletedJobIds(local: string[], cloud: string[]): string[] {
+  return [...new Set([...local, ...cloud])].slice(-500);
+}
+
+function filterDeletedJobs(list: unknown[], deletedIds: string[]): unknown[] {
+  if (deletedIds.length === 0) return list;
+  const deleted = new Set(deletedIds);
+  return list.filter((j) => {
+    const id = jobIdOf(j);
+    return id && !deleted.has(id);
+  });
+}
+
 /** Scal roboty po id — nie gub starszych wpisów gdy chmura ma mniej danych. */
-export function mergeJobsById(local: unknown[], cloud: unknown[]): unknown[] {
+export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds: string[] = []): unknown[] {
   type J = { id?: string; workEntries?: unknown[]; photos?: unknown[]; startDate?: string };
   const map = new Map<string, J>();
   const ingest = (list: unknown[]) => {
@@ -59,8 +106,8 @@ export function mergeJobsById(local: unknown[], cloud: unknown[]): unknown[] {
       map.set(j.id, pick);
     }
   };
-  ingest(cloud);
-  ingest(local);
+  ingest(filterDeletedJobs(cloud, deletedJobIds));
+  ingest(filterDeletedJobs(local, deletedJobIds));
   return [...map.values()].sort((a, b) => (b.startDate || "").localeCompare(a.startDate || ""));
 }
 
@@ -229,10 +276,15 @@ function pickWeekRange(localFrom: unknown, localTo: unknown, cloudFrom: unknown,
 }
 
 /** Scal local + chmura dla jednego klucza danych. */
-export function mergeDataKey(key: DataKey, local: unknown, cloud: unknown): unknown {
+export function mergeDataKey(
+  key: DataKey,
+  local: unknown,
+  cloud: unknown,
+  deletedJobIds: string[] = getDeletedJobIds(),
+): unknown {
   switch (key) {
     case "kw-jobs":
-      return mergeJobsById(normalizeJobsValue(local ?? []), normalizeJobsValue(cloud));
+      return mergeJobsById(normalizeJobsValue(local ?? []), normalizeJobsValue(cloud), deletedJobIds);
     case "kw-week-employees":
       return mergeWeekEmployees(normalizeArrayValue(local), normalizeArrayValue(cloud));
     case "kw-archive":
@@ -253,8 +305,9 @@ export function mergeDataKey(key: DataKey, local: unknown, cloud: unknown): unkn
 export function mergeAllDataKeys(
   localValues: unknown[],
   cloudValues: unknown[],
+  deletedJobIds: string[] = getDeletedJobIds(),
 ): unknown[] {
-  return DATA_KEYS.map((key, i) => mergeDataKey(key, localValues[i], cloudValues[i]));
+  return DATA_KEYS.map((key, i) => mergeDataKey(key, localValues[i], cloudValues[i], deletedJobIds));
 }
 
 /** Po merge weekFrom/weekTo — dopasuj do tygodnia z bogatszą listą płac. */
@@ -298,6 +351,7 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
 export async function pushKeysToCloud(
   keys: string[],
   values: unknown[],
+  options?: { replaceJobsKeys?: string[] },
 ): Promise<void> {
   if (!isSupabaseConfigured() || !API_BASE) {
     throw new Error("Brak konfiguracji Supabase (VITE_SUPABASE_*)");
@@ -306,12 +360,33 @@ export async function pushKeysToCloud(
   const res = await fetch(`${API_BASE}/batch-set`, {
     method: "POST",
     headers: API_HEADERS,
-    body: JSON.stringify({ keys, values: safeValues }),
+    body: JSON.stringify({
+      keys,
+      values: safeValues,
+      replaceJobsKeys: options?.replaceJobsKeys ?? [],
+    }),
   });
   if (!res.ok) {
     const errText = await res.text().catch(() => "");
     throw new Error(`batch-set ${res.status}${errText ? `: ${errText.slice(0, 120)}` : ""}`);
   }
+}
+
+/** Natychmiastowy zapis po usunięciu roboty — z listą skasowanych id (tombstones). */
+export async function pushJobsAfterDelete(jobs: unknown[], deletedIds: string[]): Promise<void> {
+  if (!isSupabaseConfigured() || !API_BASE) return;
+  let cloudDeleted: string[] = [];
+  try {
+    const [raw] = await fetchKeysFromCloud([JOBS_DELETED_IDS_KEY]);
+    cloudDeleted = normalizeDeletedJobIds(raw);
+  } catch { /* offline */ }
+  const mergedDeleted = mergeDeletedJobIds(deletedIds, cloudDeleted);
+  saveDeletedJobIds(mergedDeleted);
+  await pushKeysToCloud(
+    ["kw-jobs", JOBS_DELETED_IDS_KEY],
+    [jobs, mergedDeleted],
+    { replaceJobsKeys: ["kw-jobs"] },
+  );
 }
 
 /** Wszystkie dane aplikacji naraz (kolejność jak DATA_KEYS). */
@@ -326,12 +401,17 @@ export async function pushAllDataToCloud(values: unknown[]): Promise<void> {
 export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
   const keys = [...DATA_KEYS];
   let cloudValues: unknown[] = keys.map(() => null);
+  let cloudDeleted: string[] = [];
   try {
-    cloudValues = await fetchKeysFromCloud(keys);
+    const fetched = await fetchKeysFromCloud([...keys, JOBS_DELETED_IDS_KEY]);
+    cloudValues = fetched.slice(0, keys.length);
+    cloudDeleted = normalizeDeletedJobIds(fetched[keys.length]);
   } catch {
     /* offline */
   }
-  let merged = mergeAllDataKeys(values, cloudValues);
+  const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), cloudDeleted);
+  saveDeletedJobIds(mergedDeleted);
+  let merged = mergeAllDataKeys(values, cloudValues, mergedDeleted);
   merged = alignWeekRangeInMerged(merged);
 
   const empIdx = DATA_KEYS.indexOf("kw-week-employees");
@@ -347,7 +427,9 @@ export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
     merged[empIdx] = [];
   }
 
-  await pushKeysToCloud(keys, merged);
+  await pushKeysToCloud([...keys, JOBS_DELETED_IDS_KEY], [...merged, mergedDeleted], {
+    replaceJobsKeys: ["kw-jobs"],
+  });
 }
 
 /** Zapis wielu kluczy z merge względem chmury. */

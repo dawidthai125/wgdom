@@ -36,6 +36,13 @@ import {
   restoreCloudPayrollBackup,
   fetchFullDataBackupStatus,
   restoreAllCloudDataBackup,
+  addDeletedJobId,
+  pushJobsAfterDelete,
+  getDeletedJobIds,
+  mergeDeletedJobIds,
+  saveDeletedJobIds,
+  normalizeDeletedJobIds,
+  JOBS_DELETED_IDS_KEY,
 } from "@/lib/cloud-sync";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
@@ -4292,8 +4299,13 @@ function JobsView({
   };
 
   const deleteJob = (id: string) => {
-    setJobs(prev=>prev.filter(j=>j.id!==id));
-    if(selectedJobId===id) setSelectedJobId(null);
+    const deletedIds = addDeletedJobId(id);
+    setJobs((prev) => {
+      const updated = prev.filter((j) => j.id !== id);
+      pushJobsAfterDelete(updated, deletedIds).catch(() => {});
+      return updated;
+    });
+    if (selectedJobId === id) setSelectedJobId(null);
     setDeleteConfirmId(null);
     setDeleteConfirmListId(null);
   };
@@ -6530,6 +6542,12 @@ const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"
     ],
   },
   {
+    date:"2026-05-26", version:"2.9.10", label:"Roboty — trwałe usuwanie",
+    items:[
+      {type:"fix", text:"Usunięte roboty nie wracają po odświeżeniu — zapis do chmury z listą skasowanych id (wymaga deploy funkcji Supabase)"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.9.9", label:"Roboty — usuwanie duplikatów",
     items:[
       {type:"fix", text:"PDF listy płac — scalanie zduplikowanych wpisów tego samego adresu w siatce robót"},
@@ -7127,8 +7145,13 @@ function CloudLoader({children}: {children: React.ReactNode}) {
     const keys = [...DATA_KEYS];
     const fallback = setTimeout(() => setReady(true), 5000);
 
-    fetchKeysFromCloud(keys)
-      .then((values) => {
+    fetchKeysFromCloud([...keys, JOBS_DELETED_IDS_KEY])
+      .then((allValues) => {
+        const values = allValues.slice(0, keys.length);
+        const cloudDeleted = normalizeDeletedJobIds(allValues[keys.length]);
+        const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), cloudDeleted);
+        saveDeletedJobIds(mergedDeleted);
+
         const pushKeys: string[] = [];
         const pushValues: unknown[] = [];
 
@@ -7140,7 +7163,7 @@ function CloudLoader({children}: {children: React.ReactNode}) {
             if (raw) localVal = JSON.parse(raw);
           } catch { /* ignore */ }
 
-          const merged = mergeDataKey(key, localVal, cloudVal);
+          const merged = mergeDataKey(key, localVal, cloudVal, mergedDeleted);
           const hasRealData = merged != null && !(Array.isArray(merged) && merged.length === 0) && merged !== "";
           if (hasRealData || (key === "kw-weekFrom" || key === "kw-weekTo") && merged) {
             localStorage.setItem(key, JSON.stringify(merged));
@@ -7167,7 +7190,11 @@ function CloudLoader({children}: {children: React.ReactNode}) {
           }
         });
 
-        if (pushKeys.length > 0) pushKeysToCloud(pushKeys, pushValues).catch(() => {});
+        if (pushKeys.length > 0) {
+          pushKeysToCloud([...pushKeys, JOBS_DELETED_IDS_KEY], [...pushValues, mergedDeleted], {
+            replaceJobsKeys: pushKeys.includes("kw-jobs") ? ["kw-jobs"] : [],
+          }).catch(() => {});
+        }
       })
       .catch(() => {})
       .finally(() => { clearTimeout(fallback); setReady(true); });
@@ -7307,10 +7334,10 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
     try {
       const { count } = await restoreCloudJobsBackup(source);
       const [cloudJobs] = await fetchKeysFromCloud(["kw-jobs"]);
-      const merged = mergeJobsById(jobs, normalizeJobsValue(cloudJobs)) as Job[];
+      const merged = mergeJobsById(jobs, normalizeJobsValue(cloudJobs), getDeletedJobIds()) as Job[];
       localStorage.setItem("kw-jobs", JSON.stringify(merged));
       setJobs(merged);
-      await pushKeysToCloud(["kw-jobs"], [merged]);
+      await pushKeysToCloud(["kw-jobs"], [merged], { replaceJobsKeys: ["kw-jobs"] });
       alert(`Przywrócono ${count} robót z kopii chmurowej. Łącznie w aplikacji: ${merged.length}.`);
       fetchJobsBackupStatus().then(setJobsBackupStatus).catch(() => {});
     } catch (err) {
@@ -7331,9 +7358,9 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
     if (!window.confirm(`Przywrócić ${latest.jobs.length} robót z lokalnej kopii (${when})?`)) return;
     const restored = restoreLocalJobsSnapshot(0);
     if (!restored) { alert("Błąd odczytu lokalnej kopii."); return; }
-    const merged = mergeJobsById(jobs, restored) as Job[];
+    const merged = mergeJobsById(jobs, restored, getDeletedJobIds()) as Job[];
     setJobs(merged);
-    pushKeysToCloud(["kw-jobs"], [merged]).catch(() => {});
+    pushKeysToCloud(["kw-jobs"], [merged], { replaceJobsKeys: ["kw-jobs"] }).catch(() => {});
     alert(`Przywrócono lokalną kopię. Łącznie robot: ${merged.length}.`);
   };
 
@@ -9030,16 +9057,18 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
       }
     };
 
-    fetchKeysFromCloud(["kw-jobs", "kw-week-employees", "kw-archive", "kw-weekFrom", "kw-weekTo"])
+    fetchKeysFromCloud(["kw-jobs", JOBS_DELETED_IDS_KEY, "kw-week-employees", "kw-archive", "kw-weekFrom", "kw-weekTo"])
       .then((values) => {
-        const [cloudJobs, cloudWeekEmps, cloudArchive, cloudFrom, cloudTo] = values;
+        const [cloudJobs, cloudDeletedRaw, cloudWeekEmps, cloudArchive, cloudFrom, cloudTo] = values;
+        const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), normalizeDeletedJobIds(cloudDeletedRaw));
+        saveDeletedJobIds(mergedDeleted);
         if (cloudJobs != null) {
           let localJobs: Job[] = [];
           try {
             localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")) as Job[];
           } catch { /* ignore */ }
           const cloudJobsNorm = normalizeJobsValue(cloudJobs) as Job[];
-          const merged = mergeJobsById(localJobs, cloudJobsNorm) as Job[];
+          const merged = mergeJobsById(localJobs, cloudJobsNorm, mergedDeleted) as Job[];
           setJobsLocal(merged);
           try { localStorage.setItem("kw-jobs", JSON.stringify(merged)); } catch { /* ignore */ }
         }

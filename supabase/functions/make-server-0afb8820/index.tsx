@@ -77,12 +77,34 @@ function mergeJobsUnion(prev: unknown[], next: unknown[]): unknown[] {
   });
 }
 
-/** Podejrzane nadpisanie — np. z wielu robót zostaje jedna. */
+/** Podejrzane nadpisanie — np. z wielu robót zostaje jedna bez jawnego usunięcia. */
 function isSuspiciousJobsShrink(prev: unknown[], next: unknown[]): boolean {
   if (next.length === 0 && prev.length > 0) return true;
   if (prev.length >= 2 && next.length === 1) return true;
   if (prev.length >= 3 && next.length < Math.ceil(prev.length / 2)) return true;
   return false;
+}
+
+function normalizeDeletedIdsKv(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((id): id is string => typeof id === "string" && id.length > 0);
+}
+
+function filterJobsNotDeleted(list: unknown[], deleted: Set<string>): unknown[] {
+  return list.filter((j) => {
+    const id = jobId(j);
+    return id && !deleted.has(id);
+  });
+}
+
+/** Usunięcie dozwolone, gdy każde zniknięte id jest na liście tombstones. */
+function isIntentionalJobsDelete(prev: unknown[], next: unknown[], deleted: Set<string>): boolean {
+  const nextIds = new Set(next.map(jobId).filter(Boolean) as string[]);
+  for (const j of prev) {
+    const id = jobId(j);
+    if (id && !nextIds.has(id) && !deleted.has(id)) return false;
+  }
+  return true;
 }
 
 function dayRichness(d: unknown): number {
@@ -313,23 +335,32 @@ async function saveDailyFullBackup(keys: string[], values: unknown[]): Promise<v
 
 // Batch set multiple keys at once
 app.post("/make-server-0afb8820/batch-set", async (c) => {
-  const { keys, values } = await c.req.json();
+  const { keys, values, replaceJobsKeys = [] } = await c.req.json();
   const safeValues = [...values];
   const archBatchIdx = keys.indexOf("kw-archive");
   const archiveInBatch = archBatchIdx >= 0 ? normalizeArrayKv(values[archBatchIdx]) : [];
+  const deletedBatchIdx = keys.indexOf("kw-jobs-deleted-ids");
+  const deletedFromBatch = deletedBatchIdx >= 0 ? normalizeDeletedIdsKv(values[deletedBatchIdx]) : [];
+  const storedDeleted = normalizeDeletedIdsKv(await kv.get("kw-jobs-deleted-ids"));
+  const allDeletedIds = new Set([...storedDeleted, ...deletedFromBatch]);
+  const forceReplaceJobs = Array.isArray(replaceJobsKeys) && replaceJobsKeys.includes("kw-jobs");
 
   for (let i = 0; i < keys.length; i++) {
-    if (keys[i] === "kw-jobs") {
+    if (keys[i] === "kw-jobs-deleted-ids") {
+      safeValues[i] = [...allDeletedIds].slice(-500);
+    } else if (keys[i] === "kw-jobs") {
       const prev = await kv.get("kw-jobs");
-      let nextNorm = normalizeJobsKvValue(values[i]);
+      let nextNorm = filterJobsNotDeleted(normalizeJobsKvValue(values[i]), allDeletedIds);
       if (prev != null) {
         await rotateJobsBackups(prev);
-        const prevNorm = normalizeJobsKvValue(prev);
-        if (isSuspiciousJobsShrink(prevNorm, nextNorm)) {
+        const prevNorm = filterJobsNotDeleted(normalizeJobsKvValue(prev), allDeletedIds);
+        const intentionalDelete =
+          forceReplaceJobs || isIntentionalJobsDelete(prevNorm, nextNorm, allDeletedIds);
+        if (isSuspiciousJobsShrink(prevNorm, nextNorm) && !intentionalDelete) {
           console.log(
             `kw-jobs: blocked suspicious shrink ${prevNorm.length} → ${nextNorm.length}, merging`,
           );
-          nextNorm = mergeJobsUnion(prevNorm, nextNorm);
+          nextNorm = filterJobsNotDeleted(mergeJobsUnion(prevNorm, nextNorm), allDeletedIds);
         }
       }
       safeValues[i] = nextNorm;
