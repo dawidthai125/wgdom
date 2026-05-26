@@ -352,13 +352,37 @@ function payrollExtraHourLines(employees: WeekEmployee[]) {
   }
   return lines;
 }
-function payrollPrevSatNoteLines(employees: WeekEmployee[]) {
-  const lines: { name: string; text: string }[] = [];
+function payrollPrevSatDetailLines(employees: WeekEmployee[], weekFrom: string) {
+  const dateLabel = fmtDate(previousSaturdayIso(weekFrom));
+  const lines: {
+    name: string;
+    position: string;
+    dateLabel: string;
+    timeRange: string;
+    hours: number;
+    zaliczka: number;
+    gross: number;
+    notesText: string;
+  }[] = [];
   for (const emp of employees) {
-    for (const note of getPrevSaturday(emp).notes ?? []) {
-      if (!note.text.trim()) continue;
-      lines.push({ name: emp.name || "—", text: note.text.trim() });
-    }
+    const day = getPrevSaturday(emp);
+    const hours = prevSatBaseHours(day);
+    const zaliczka = parseFloat(day.zaliczka) || 0;
+    const rate = parseFloat(emp.rate) || 0;
+    const gross = +(hours * rate).toFixed(2);
+    const notes = (day.notes ?? []).map((n) => n.text.trim()).filter(Boolean);
+    const notesText = notes.map((n) => (notes.length > 1 ? `• ${n}` : n)).join("\n");
+    if (hours <= 0 && zaliczka <= 0 && notes.length === 0) continue;
+    lines.push({
+      name: emp.name || "—",
+      position: emp.position || "—",
+      dateLabel,
+      timeRange: day.active ? `${day.from}–${day.to}` : "—",
+      hours,
+      zaliczka,
+      gross,
+      notesText: notesText || "—",
+    });
   }
   return lines;
 }
@@ -1603,7 +1627,8 @@ function PayrollView({
     ];
 
     const extraHourLines = payrollExtraHourLines(rows.map((r) => r.emp));
-    const prevSatNoteLines = payrollPrevSatNoteLines(rows.map((r) => r.emp));
+    const prevSatDetails = payrollPrevSatDetailLines(rows.map((r) => r.emp), weekFrom);
+    const prevSatIso = previousSaturdayIso(weekFrom);
     const extraHourPdfBlock = extraHourLines.length > 0
       ? [
           { text: "Dodatkowe godziny pracy", bold: true, fontSize: 10, color: C.navy, margin: [0, 16, 0, 6] as [number, number, number, number] },
@@ -1640,37 +1665,65 @@ function PayrollView({
         ]
       : [];
 
-    const prevSatNotePdfBlock = prevSatNoteLines.length > 0
-      ? [
-          { text: `Opisy — ${PREV_SAT_SHORT}`, bold: true, fontSize: 10, color: C.navy, margin: [0, 16, 0, 6] as [number, number, number, number] },
-          {
-            table: {
-              headerRows: 1,
-              widths: [120, "*"],
-              body: [
-                ["Pracownik", "Opis"].map((t) => ({
-                  text: t, bold: true, color: C.white, fillColor: C.navy, fontSize: 8, alignment: "center" as const,
-                })),
-                ...prevSatNoteLines.map((line, i) => {
-                  const bg = i % 2 === 0 ? C.white : C.lightGray;
-                  return [
-                    { text: line.name, fillColor: bg },
-                    { text: line.text, fillColor: bg, color: C.muted },
-                  ];
-                }),
-              ],
+    const prevSatAppendixPdfBlock = prevSatDetails.length > 0
+      ? [{
+          stack: [
+            {
+              text: "Sobota poprzedniego tygodnia — szczegóły",
+              bold: true,
+              fontSize: 11,
+              color: C.navy,
+              margin: [0, 0, 0, 4] as [number, number, number, number],
             },
-            layout: {
-              hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
-              vLineWidth: () => 0,
-              hLineColor: () => "#DDE3EA",
-              paddingLeft: () => 5,
-              paddingRight: () => 5,
-              paddingTop: () => 4,
-              paddingBottom: () => 4,
+            {
+              text: `Data: ${fmtDate(prevSatIso)} · wypłata w tygodniu ${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`,
+              fontSize: 8,
+              color: C.gold,
+              margin: [0, 0, 0, 10] as [number, number, number, number],
             },
-          },
-        ]
+            {
+              table: {
+                headerRows: 1,
+                dontBreakRows: true,
+                widths: [72, 58, 44, 50, 34, 40, 40, "*"],
+                body: [
+                  ["Pracownik", "Stanowisko", "Data", "Od–Do", "Godz.", "Zaliczka", "Brutto", "Opisy / uwagi"].map((t) => ({
+                    text: t,
+                    bold: true,
+                    color: C.white,
+                    fillColor: C.navy,
+                    fontSize: 7,
+                    alignment: "center" as const,
+                  })),
+                  ...prevSatDetails.map((line, i) => {
+                    const bg = i % 2 === 0 ? C.white : C.lightGray;
+                    return [
+                      { text: line.name, fillColor: bg, fontSize: 8 },
+                      { text: line.position, fillColor: bg, color: C.muted, fontSize: 7 },
+                      { text: line.dateLabel, fillColor: bg, alignment: "center" as const, fontSize: 7, color: C.gold },
+                      { text: line.timeRange, fillColor: bg, alignment: "center" as const, fontSize: 7 },
+                      { text: line.hours > 0 ? fmtH(line.hours) : "—", fillColor: bg, alignment: "right" as const, fontSize: 8, bold: line.hours > 0 },
+                      { text: line.zaliczka > 0 ? fmt(line.zaliczka) : "—", fillColor: bg, alignment: "right" as const, fontSize: 7, color: line.zaliczka > 0 ? C.red : C.muted },
+                      { text: line.gross > 0 ? fmt(line.gross) : "—", fillColor: bg, alignment: "right" as const, fontSize: 7, color: line.gross > 0 ? C.muted : C.muted },
+                      { text: line.notesText, fillColor: bg, color: C.muted, fontSize: 7, alignment: "left" as const },
+                    ];
+                  }),
+                ],
+              },
+              layout: {
+                hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
+                vLineWidth: () => 0,
+                hLineColor: () => "#DDE3EA",
+                paddingLeft: () => 5,
+                paddingRight: () => 5,
+                paddingTop: () => 4,
+                paddingBottom: () => 4,
+              },
+            },
+          ],
+          pageBreak: "before" as const,
+          unbreakable: false,
+        }]
       : [];
 
     const docDef: any = {
@@ -1712,7 +1765,7 @@ function PayrollView({
           paddingLeft:()=>5, paddingRight:()=>5, paddingTop:()=>4, paddingBottom:()=>4,
         }},
         ...extraHourPdfBlock,
-        ...prevSatNotePdfBlock,
+        ...prevSatAppendixPdfBlock,
       ],
       defaultStyle:{font:"Roboto", fontSize:9, color:C.navy},
     };
@@ -1721,9 +1774,10 @@ function PayrollView({
   };
 
   const exportWord = async () => {
-    const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle } = await import("docx");
+    const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle, PageBreak } = await import("docx");
     const extraHourLines = payrollExtraHourLines(rows.map((r) => r.emp));
-    const prevSatNoteLines = payrollPrevSatNoteLines(rows.map((r) => r.emp));
+    const prevSatDetails = payrollPrevSatDetailLines(rows.map((r) => r.emp), weekFrom);
+    const prevSatIso = previousSaturdayIso(weekFrom);
     const bNone={style:BorderStyle.NONE,size:0,color:"FFFFFF"};
     const bThin={style:BorderStyle.SINGLE,size:2,color:"DDE3EA"};
     const mkCell=(txt:string,opts:{bold?:boolean;fill?:string;align?:typeof AlignmentType[keyof typeof AlignmentType];color?:string;size?:number}={})=>
@@ -1732,6 +1786,16 @@ function PayrollView({
           children:[new TextRun({text:txt,bold:opts.bold??false,size:opts.size??18,color:opts.color??"344254",font:"Calibri"})],
           alignment:opts.align??AlignmentType.CENTER,
         })],
+        shading:opts.fill?{fill:opts.fill,color:opts.fill}:undefined,
+        margins:{top:90,bottom:90,left:120,right:120},
+        borders:{top:bThin,bottom:bThin,left:bNone,right:bNone},
+      });
+    const mkCellMultiline=(txt:string,opts:{fill?:string;align?:typeof AlignmentType[keyof typeof AlignmentType];color?:string;size?:number}={})=>
+      new TableCell({
+        children:(txt||"—").split("\n").map((line)=>new Paragraph({
+          children:[new TextRun({text:line,size:opts.size??16,color:opts.color??"6B7A8D",font:"Calibri"})],
+          alignment:opts.align??AlignmentType.LEFT,
+        })),
         shading:opts.fill?{fill:opts.fill,color:opts.fill}:undefined,
         margins:{top:90,bottom:90,left:120,right:120},
         borders:{top:bThin,bottom:bThin,left:bNone,right:bNone},
@@ -1826,26 +1890,42 @@ function PayrollView({
                 }),
               ]
             : []),
-          ...(prevSatNoteLines.length > 0
+          ...(prevSatDetails.length > 0
             ? [
+                new Paragraph({ children: [new PageBreak()] }),
                 new Paragraph({
-                  spacing: { before: 360, after: 160 },
-                  children: [new TextRun({ text: `Opisy — ${PREV_SAT_SHORT}`, bold: true, size: 22, color: "344254", font: "Calibri" })],
+                  spacing: { after: 100 },
+                  children: [new TextRun({ text: "Sobota poprzedniego tygodnia — szczegóły", bold: true, size: 24, color: "344254", font: "Calibri" })],
+                }),
+                new Paragraph({
+                  spacing: { after: 220 },
+                  children: [new TextRun({
+                    text: `Data: ${fmtDate(prevSatIso)} · wypłata w tygodniu ${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`,
+                    size: 18,
+                    color: "7B5800",
+                    font: "Calibri",
+                  })],
                 }),
                 new Table({
                   width: { size: 100, type: WidthType.PERCENTAGE },
                   rows: [
                     new TableRow({
-                      children: ["Pracownik", "Opis"].map((h) =>
-                        mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 16 }),
+                      children: ["Pracownik", "Stanowisko", "Data", "Od–Do", "Godz.", "Zaliczka", "Brutto", "Opisy / uwagi"].map((h) =>
+                        mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 14 }),
                       ),
                       tableHeader: true,
                     }),
-                    ...prevSatNoteLines.map((line, i) =>
+                    ...prevSatDetails.map((line, i) =>
                       new TableRow({
                         children: [
-                          mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6" }),
-                          mkCell(line.text, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D" }),
+                          mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
+                          mkCell(line.position, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
+                          mkCell(line.dateLabel, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "7B5800", size: 14 }),
+                          mkCell(line.timeRange, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 14 }),
+                          mkCell(line.hours > 0 ? fmtH(line.hours) : "—", { bold: line.hours > 0, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
+                          mkCell(line.zaliczka > 0 ? `${fmt(line.zaliczka)} PLN` : "—", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: line.zaliczka > 0 ? "C0392B" : "6B7A8D", size: 14 }),
+                          mkCell(line.gross > 0 ? `${fmt(line.gross)} PLN` : "—", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
+                          mkCellMultiline(line.notesText, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
                         ],
                       }),
                     ),
