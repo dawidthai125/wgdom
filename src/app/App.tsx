@@ -5535,6 +5535,12 @@ function HelpView() {
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-26", version:"2.8.1", label:"PDF — siatka pracy na robotach",
+    items:[
+      {type:"improve", text:"Lista płac PDF — ostatnia strona: siatka tygodniowa (pracownik × dni Pn–So) zamiast długiej listy wiersz po wierszu; uwagi osobno na dole"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.8.0", label:"PDF — praca na robotach",
     items:[
       {type:"new", text:"Lista płac PDF — ostatnia strona: kto, na jakiej robocie, ile godzin i koszt (z wpisów w kartach robót)"},

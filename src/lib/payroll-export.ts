@@ -93,6 +93,75 @@ export interface PayrollJobWorkLine {
   notes: string;
 }
 
+/** Siatka tygodniowa pracy na robotach — pracownicy × dni Pn–So. */
+export interface PayrollJobWorkGridRow {
+  name: string;
+  dayCells: string[];
+  weekHours: number;
+  weekCost: number;
+}
+
+export interface PayrollJobWorkGrid {
+  dayHeaders: string[];
+  rows: PayrollJobWorkGridRow[];
+}
+
+const JOB_WORK_DAY_KEYS = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"] as const;
+const JOB_WORK_DAY_SHORT: Record<(typeof JOB_WORK_DAY_KEYS)[number], string> = {
+  Pn: "Pn",
+  Wt: "Wt",
+  Sr: "Śr",
+  Cz: "Cz",
+  Pt: "Pt",
+  So: "So",
+};
+
+function weekDayIsosForJobWork(weekFrom: string): { iso: string; header: string }[] {
+  const [y, m, d] = weekFrom.split("-").map(Number);
+  const mon = new Date(y, m - 1, d);
+  return JOB_WORK_DAY_KEYS.map((key, i) => {
+    const dt = new Date(mon);
+    dt.setDate(mon.getDate() + i);
+    const iso = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+    const [, mo, day] = iso.split("-");
+    return { iso, header: `${JOB_WORK_DAY_SHORT[key]}\n${day}.${mo}` };
+  });
+}
+
+function shortJobAddressLabel(addr: string, max = 18): string {
+  const t = addr.trim() || "—";
+  return t.length > max ? `${t.slice(0, max - 1)}…` : t;
+}
+
+/** Buduje siatkę tygodniową z płaskiej listy wpisów robót. */
+export function buildPayrollJobWorkGrid(lines: PayrollJobWorkLine[], weekFrom: string): PayrollJobWorkGrid | null {
+  if (lines.length === 0) return null;
+  const cols = weekDayIsosForJobWork(weekFrom);
+  const dayHeaders = cols.map((c) => c.header);
+
+  const byName = new Map<string, PayrollJobWorkLine[]>();
+  for (const line of lines) {
+    const list = byName.get(line.name) ?? [];
+    list.push(line);
+    byName.set(line.name, list);
+  }
+
+  const rows = [...byName.entries()]
+    .map(([name, empLines]) => {
+      const dayCells = cols.map((col) => {
+        const dayLines = empLines.filter((l) => l.dateIso === col.iso);
+        if (dayLines.length === 0) return "—";
+        return dayLines.map((l) => `${shortJobAddressLabel(l.jobAddress, 16)}\n${fmtH(l.hours)}`).join("\n");
+      });
+      const weekHours = empLines.reduce((s, l) => s + l.hours, 0);
+      const weekCost = empLines.reduce((s, l) => s + l.cost, 0);
+      return { name, dayCells, weekHours, weekCost };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, "pl"));
+
+  return { dayHeaders, rows };
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmt(n: number) {
@@ -659,11 +728,15 @@ export async function generatePayrollPdfBlob(
         ]
       : [];
 
+  const jobWorkGrid = buildPayrollJobWorkGrid(jobWorkLines, weekFrom);
+  const jobWorkNotesLines = jobWorkLines.filter((l) => l.notes.trim());
   const totalJobWorkHours = jobWorkLines.reduce((s, l) => s + l.hours, 0);
   const totalJobWorkCost = jobWorkLines.reduce((s, l) => s + l.cost, 0);
+  const jobWorkFitsOnePage =
+    jobWorkGrid != null && jobWorkGrid.rows.length <= 14 && jobWorkNotesLines.length <= 4;
 
   const jobWorkAppendixPdfBlock =
-    jobWorkLines.length > 0
+    jobWorkGrid && jobWorkGrid.rows.length > 0
       ? [
           {
             stack: [
@@ -675,7 +748,7 @@ export async function generatePayrollPdfBlob(
                 margin: [0, 0, 0, 4] as [number, number, number, number],
               },
               {
-                text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · kto, gdzie i ile godzin na jakiej robocie (z kart robót)`,
+                text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · siatka tygodniowa — adres robocy i godziny w kolumnach dni (z kart robót)`,
                 fontSize: 8,
                 color: C.muted,
                 margin: [0, 0, 0, 10] as [number, number, number, number],
@@ -683,53 +756,83 @@ export async function generatePayrollPdfBlob(
               {
                 table: {
                   headerRows: 1,
-                  dontBreakRows: true,
-                  widths: [68, 36, "*", 32, 36, 40, 72],
+                  widths: [72, ...jobWorkGrid.dayHeaders.map(() => "*"), 34, 40],
                   body: [
-                    ["Pracownik", "Dzień", "Robota / adres", "Godz.", "Stawka", "Koszt", "Uwagi"].map((t) => ({
-                      text: t,
-                      bold: true,
-                      color: C.white,
-                      fillColor: C.navy,
-                      fontSize: 7,
-                      alignment: "center" as const,
-                    })),
-                    ...jobWorkLines.map((line, i) => {
+                    [
+                      pdfHdr("Pracownik"),
+                      ...jobWorkGrid.dayHeaders.map((h) => pdfHdr(h)),
+                      pdfHdr("Razem"),
+                      pdfHdr("Koszt"),
+                    ],
+                    ...jobWorkGrid.rows.map((row, i) => {
                       const bg = i % 2 === 0 ? C.white : C.lightGray;
                       return [
-                        { text: line.name, fillColor: bg, fontSize: 7.5, alignment: "left" as const },
-                        { text: line.dayLabel, fillColor: bg, fontSize: 7, alignment: "center" as const, lineHeight: 1.15 },
-                        { text: line.jobAddress, fillColor: bg, fontSize: 7, alignment: "left" as const },
-                        { text: line.hours > 0 ? fmtH(line.hours) : "—", fillColor: bg, fontSize: 7.5, bold: line.hours > 0, alignment: "right" as const },
-                        { text: line.rate > 0 ? `${fmt(line.rate)}` : "—", fillColor: bg, fontSize: 7, color: C.muted, alignment: "right" as const },
-                        { text: line.cost > 0 ? `${fmt(line.cost)}` : "—", fillColor: bg, fontSize: 7, alignment: "right" as const },
-                        { text: line.notes || "—", fillColor: bg, fontSize: 6.5, color: C.muted, alignment: "left" as const },
+                        { text: row.name, fillColor: bg, fontSize: 7, alignment: "left" as const },
+                        ...row.dayCells.map((cell) => pdfDayCell(cell, bg)),
+                        {
+                          text: row.weekHours > 0 ? fmtH(row.weekHours) : "—",
+                          fillColor: bg,
+                          fontSize: 7,
+                          bold: true,
+                          alignment: "right" as const,
+                        },
+                        {
+                          text: row.weekCost > 0 ? fmt(row.weekCost) : "—",
+                          fillColor: bg,
+                          fontSize: 6.5,
+                          alignment: "right" as const,
+                        },
                       ];
                     }),
                     [
-                      { text: "Razem", bold: true, colSpan: 3, fillColor: C.lightNavy, fontSize: 7, alignment: "right" as const },
-                      {},
-                      {},
-                      { text: fmtH(totalJobWorkHours), bold: true, fillColor: C.lightNavy, fontSize: 8, alignment: "right" as const },
-                      { text: "", fillColor: C.lightNavy },
-                      { text: `${fmt(totalJobWorkCost)}`, bold: true, fillColor: C.lightNavy, fontSize: 8, alignment: "right" as const },
-                      { text: "", fillColor: C.lightNavy },
+                      { text: "Razem", bold: true, colSpan: jobWorkGrid.dayHeaders.length + 1, fillColor: C.lightNavy, fontSize: 7, alignment: "right" as const },
+                      ...Array.from({ length: jobWorkGrid.dayHeaders.length }, () => ({})),
+                      { text: fmtH(totalJobWorkHours), bold: true, fillColor: C.lightNavy, fontSize: 7, alignment: "right" as const },
+                      { text: fmt(totalJobWorkCost), bold: true, fillColor: C.lightNavy, fontSize: 7, alignment: "right" as const },
                     ],
                   ],
                 },
-                layout: {
-                  hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
-                  vLineWidth: () => 0,
-                  hLineColor: () => "#DDE3EA",
-                  paddingLeft: () => 5,
-                  paddingRight: () => 5,
-                  paddingTop: () => 4,
-                  paddingBottom: () => 4,
-                },
+                layout: pdfTableLayout,
               },
+              ...(jobWorkNotesLines.length > 0
+                ? [
+                    {
+                      text: "Uwagi do wpisów",
+                      bold: true,
+                      fontSize: 8,
+                      color: C.navy,
+                      margin: [0, 10, 0, 4] as [number, number, number, number],
+                    },
+                    {
+                      table: {
+                        headerRows: 1,
+                        widths: [72, 36, "*"],
+                        body: [
+                          ["Pracownik", "Dzień", "Uwaga"].map((t) => ({
+                            text: t,
+                            bold: true,
+                            color: C.white,
+                            fillColor: C.navy,
+                            fontSize: 6.5,
+                            alignment: "center" as const,
+                          })),
+                          ...jobWorkNotesLines.map((line, i) => {
+                            const bg = i % 2 === 0 ? C.white : C.lightGray;
+                            return [
+                              { text: line.name, fillColor: bg, fontSize: 6.5 },
+                              { text: line.dayLabel, fillColor: bg, fontSize: 6.5, alignment: "center" as const },
+                              { text: line.notes, fillColor: bg, fontSize: 6.5, color: C.muted },
+                            ];
+                          }),
+                        ],
+                      },
+                      layout: pdfTableLayout,
+                    },
+                  ]
+                : []),
             ],
             pageBreak: "before" as const,
-            unbreakable: false,
+            unbreakable: jobWorkFitsOnePage,
           },
         ]
       : [];
