@@ -4506,6 +4506,13 @@ function HelpView() {
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-26", version:"2.5.5", label:"Galeria zdjęć na robocie",
+    items:[
+      {type:"improve", text:"Zdjęcia pogrupowane: Przed remontem · Po remoncie · W trakcie"},
+      {type:"improve", text:"Usuwanie zdjęcia — przycisk ✕ na miniaturze zamiast listy pod spodem"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.5.4", label:"Pracownicy na robocie — grupowanie",
     items:[
       {type:"improve", text:"Wpisy pracy grupowane po pracowniku — jeden wiersz z sumą zamiast długiej listy"},
@@ -6848,6 +6855,14 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
 
 // ─── Admin Photo Gallery ───────────────────────────────────────────────────────
 
+const PHOTO_LABEL_ORDER: PhotoEntry["label"][] = ["before", "after", "progress"];
+
+const PHOTO_LABEL_SECTION: Record<PhotoEntry["label"], { icon: typeof Camera; accent: string; border: string }> = {
+  before: { icon: Camera, accent: "text-blue-400", border: "border-blue-500/20" },
+  after: { icon: Eye, accent: "text-green-400", border: "border-green-500/20" },
+  progress: { icon: ImagePlus, accent: "text-yellow-400", border: "border-yellow-500/20" },
+};
+
 function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photos:PhotoEntry[], activity?: {type: JobActivityType; text: string})=>void}) {
   const [lightbox, setLightbox] = useState<PhotoEntry|null>(null);
 
@@ -6879,31 +6894,56 @@ function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photo
     </div>
   );
 
-  const LABEL_NAMES: Record<string,string> = {before:"Przed remontem", after:"Po remoncie", progress:"W trakcie"};
-
-  const PhotoGrid = ({items, showActions}:{items:PhotoEntry[]; showActions?:boolean}) => (
+  const PhotoGrid = ({
+    items,
+    showActions,
+    showDelete,
+    showLabel,
+  }: {
+    items: PhotoEntry[];
+    showActions?: boolean;
+    showDelete?: boolean;
+    showLabel?: boolean;
+  }) => (
     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-      {items.map(p=>(
-        <div key={p.id} className="group relative aspect-square rounded-xl overflow-hidden bg-secondary cursor-pointer" onClick={()=>setLightbox(p)}>
+      {items.map((p) => (
+        <div key={p.id} className="group relative aspect-square rounded-xl overflow-hidden bg-secondary cursor-pointer" onClick={() => setLightbox(p)}>
           <img src={p.publicUrl} alt={p.label} className="w-full h-full object-cover"/>
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <Eye size={20} className="text-white"/>
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
+            <Eye size={20} className="text-white drop-shadow"/>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
-            <p className="text-[9px] text-white font-medium truncate">{LABEL_NAMES[p.label]||p.label}</p>
-            {p.caption && <p className="text-[8px] text-white/90 truncate italic">{p.caption}</p>}
-            <p className="text-[8px] text-white/70 truncate">{p.uploadedBy}</p>
-          </div>
-          {showActions && (
-            <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-all" onClick={e=>e.stopPropagation()}>
-              <button onClick={()=>approve(p.id)} title="Akceptuj"
-                className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-400 transition-colors">
-                <ThumbsUp size={10} className="text-white"/>
-              </button>
-              <button onClick={()=>reject(p.id)} title="Odrzuć"
-                className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center hover:bg-red-400 transition-colors">
-                <ThumbsDown size={10} className="text-white"/>
-              </button>
+          {(showDelete || showActions) && (
+            <div className="absolute top-1.5 right-1.5 flex gap-1 z-10" onClick={(e) => e.stopPropagation()}>
+              {showActions && (
+                <>
+                  <button onClick={() => approve(p.id)} title="Akceptuj"
+                    className="w-6 h-6 rounded-full bg-green-500/90 flex items-center justify-center hover:bg-green-400 transition-colors shadow-sm">
+                    <ThumbsUp size={10} className="text-white"/>
+                  </button>
+                  <button onClick={() => reject(p.id)} title="Odrzuć"
+                    className="w-6 h-6 rounded-full bg-red-500/90 flex items-center justify-center hover:bg-red-400 transition-colors shadow-sm">
+                    <ThumbsDown size={10} className="text-white"/>
+                  </button>
+                </>
+              )}
+              {showDelete && (
+                <button
+                  onClick={() => remove(p.id)}
+                  title="Usuń zdjęcie"
+                  className="w-6 h-6 rounded-full bg-black/65 hover:bg-destructive flex items-center justify-center transition-colors shadow-sm"
+                >
+                  <X size={12} className="text-white"/>
+                </button>
+              )}
+            </div>
+          )}
+          {(showLabel || p.caption || p.uploadedBy) && (
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/75 to-transparent px-2 py-1.5 pointer-events-none">
+              {showLabel && (
+                <p className="text-[9px] text-white font-medium truncate">{PHOTO_LABEL_NAMES[p.label]}</p>
+              )}
+              {p.caption && <p className="text-[8px] text-white/90 truncate italic">{p.caption}</p>}
+              {p.uploadedBy && <p className="text-[8px] text-white/70 truncate">{p.uploadedBy}</p>}
             </div>
           )}
         </div>
@@ -6911,28 +6951,61 @@ function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photo
     </div>
   );
 
+  const CategorySections = ({
+    items,
+    showActions,
+    showDelete,
+  }: {
+    items: PhotoEntry[];
+    showActions?: boolean;
+    showDelete?: boolean;
+  }) => (
+    <div className="space-y-4">
+      {PHOTO_LABEL_ORDER.map((label) => {
+        const group = items.filter((p) => p.label === label);
+        if (group.length === 0) return null;
+        const meta = PHOTO_LABEL_SECTION[label];
+        const Icon = meta.icon;
+        return (
+          <div key={label}>
+            <div className={`flex items-center gap-2 mb-2 pb-2 border-b ${meta.border}`}>
+              <Icon size={13} className={meta.accent}/>
+              <span className={`text-xs font-semibold uppercase tracking-wider ${meta.accent}`}>
+                {PHOTO_LABEL_NAMES[label]}
+              </span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary ${meta.accent}`}>
+                {group.length}
+              </span>
+            </div>
+            <PhotoGrid items={group} showActions={showActions} showDelete={showDelete} showLabel={false}/>
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div className="space-y-5">
       {pending.length > 0 && (
         <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-yellow-500/20 flex items-center justify-between">
+          <div className="px-4 py-3 border-b border-yellow-500/20 flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2">
               <Clock3 size={13} className="text-yellow-400"/>
               <span className="text-xs font-semibold text-yellow-400 uppercase tracking-wider">Oczekuje na akceptację</span>
               <span className="bg-yellow-500/20 text-yellow-400 text-[10px] font-bold px-2 py-0.5 rounded-full">{pending.length}</span>
             </div>
-            <div className="flex gap-2">
-              <button onClick={()=>onUpdate(
-                photos.map(p=>p.status==="pending"?{...p,status:"approved"}:p),
+            <button
+              onClick={() => onUpdate(
+                photos.map((p) => p.status === "pending" ? { ...p, status: "approved" as const } : p),
                 pending.length > 0 ? { type: "photo_approved", text: `Zaakceptowano wszystkie (${pending.length})` } : undefined,
               )}
-                className="text-xs text-green-400 hover:text-green-300 transition-colors px-2 py-1 rounded-lg hover:bg-green-500/10">
-                Akceptuj wszystkie
-              </button>
-            </div>
+              className="text-xs text-green-400 hover:text-green-300 transition-colors px-2 py-1 rounded-lg hover:bg-green-500/10"
+            >
+              Akceptuj wszystkie
+            </button>
           </div>
           <div className="p-3">
-            <PhotoGrid items={pending} showActions/>
+            <CategorySections items={pending} showActions/>
           </div>
         </div>
       )}
@@ -6944,34 +7017,26 @@ function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photo
             <span className="text-xs font-semibold text-green-400 uppercase tracking-wider">Zaakceptowane</span>
             <span className="bg-green-500/15 text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full">{approved.length}</span>
           </div>
-          <div className="p-3 space-y-3">
-            <PhotoGrid items={approved}/>
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-              {approved.map(p=>(
-                <div key={`del-${p.id}`} className="flex items-center justify-between px-2 py-1 bg-secondary/50 rounded-lg">
-                  <p className="text-[9px] text-muted-foreground truncate max-w-[70%]">{LABEL_NAMES[p.label]||p.label}</p>
-                  <button onClick={()=>remove(p.id)} className="text-muted-foreground hover:text-destructive transition-colors"><X size={10}/></button>
-                </div>
-              ))}
-            </div>
+          <div className="p-3">
+            <CategorySections items={approved} showDelete/>
           </div>
         </div>
       )}
 
       {rejected.length > 0 && (
         <div className="bg-card border border-border rounded-xl overflow-hidden opacity-60">
-          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <X size={13} className="text-muted-foreground"/>
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Odrzucone</span>
               <span className="bg-secondary text-muted-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">{rejected.length}</span>
             </div>
-            <button onClick={()=>onUpdate(photos.filter(p=>p.status!=="rejected"))} className="text-xs text-muted-foreground hover:text-destructive transition-colors">
-              Usuń odrzucone
+            <button onClick={() => onUpdate(photos.filter((p) => p.status !== "rejected"))} className="text-xs text-muted-foreground hover:text-destructive transition-colors">
+              Usuń wszystkie odrzucone
             </button>
           </div>
           <div className="p-3">
-            <PhotoGrid items={rejected}/>
+            <CategorySections items={rejected} showDelete/>
           </div>
         </div>
       )}
@@ -6981,7 +7046,7 @@ function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photo
           <button className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-2"><X size={24}/></button>
           <img src={lightbox.publicUrl} alt={lightbox.label} className="max-w-full max-h-[90vh] rounded-xl object-contain" onClick={e=>e.stopPropagation()}/>
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center">
-            <p className="text-white/90 text-sm font-medium">{LABEL_NAMES[lightbox.label]||lightbox.label}</p>
+            <p className="text-white/90 text-sm font-medium">{PHOTO_LABEL_NAMES[lightbox.label]}</p>
             {lightbox.caption && <p className="text-white/80 text-xs mt-1 italic">{lightbox.caption}</p>}
             <p className="text-white/50 text-xs mt-0.5">{lightbox.uploadedBy} · {new Date(lightbox.uploadedAt).toLocaleDateString("pl-PL")}</p>
           </div>
