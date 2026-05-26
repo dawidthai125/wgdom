@@ -100,6 +100,8 @@ interface DirectoryEmployee {
   notes: string;
   /** Logistyka / dostawy — ten sam dzień na wielu robotach (suma godzin, nie jedna robota) */
   multiSiteDaily?: boolean;
+  /** SHA-256 hash osobistego kodu 4-cyfrowego (logowanie pracownika) */
+  workerPinHash?: string;
 }
 
 interface DayData {
@@ -1670,6 +1672,28 @@ function workerPhonePinValid(emp: DirectoryEmployee, pinInput: string): boolean 
   return stored === entered;
 }
 
+function workerHasPersonalPin(emp: DirectoryEmployee): boolean {
+  return !!(emp.workerPinHash && emp.workerPinHash.length > 0);
+}
+
+async function hashWorkerPin(pin: string): Promise<string> {
+  return sha256(`wgdom-worker-pin-v1:${pin}`);
+}
+
+async function verifyWorkerPin(emp: DirectoryEmployee, pin: string): Promise<boolean> {
+  if (!workerHasPersonalPin(emp)) return false;
+  const hash = await hashWorkerPin(pin.replace(/\D/g, "").slice(0, 4));
+  return hash === emp.workerPinHash;
+}
+
+function workerPinTooWeak(emp: DirectoryEmployee, pin: string): boolean {
+  const digits = pin.replace(/\D/g, "").slice(0, 4);
+  if (digits.length !== 4) return true;
+  const phone9 = normalizePhone9(emp.phone);
+  if (phone9 && digits === phone9.slice(-4)) return true;
+  return false;
+}
+
 const ADMIN_PIN_KEY = "kw-admin-pin";
 
 async function uploadPhoto(
@@ -1760,6 +1784,28 @@ function NavItemWithHint({
         className="absolute left-[calc(100%+6px)] top-1/2 -translate-y-1/2 z-[100] w-max max-w-[240px] px-3 py-2 rounded-lg text-[11px] leading-snug text-foreground/90 bg-card/95 backdrop-blur-sm border border-border/80 shadow-lg opacity-0 invisible group-hover/navhint:opacity-100 group-hover/navhint:visible transition-all duration-200 delay-300 group-hover/navhint:delay-500 pointer-events-none"
       >
         {hint}
+      </div>
+    </div>
+  );
+}
+
+/** Dymek przy polu formularza — używaj przy nowych opcjach w panelu admina. */
+function LabelWithHint({ label, hint, htmlFor }: { label: string; hint: string; htmlFor?: string }) {
+  return (
+    <div className="flex items-center gap-1.5 mb-1">
+      {htmlFor ? (
+        <label htmlFor={htmlFor} className="text-xs text-muted-foreground">{label}</label>
+      ) : (
+        <span className="text-xs text-muted-foreground">{label}</span>
+      )}
+      <div className="relative group/fieldhint shrink-0">
+        <HelpCircle size={12} className="text-muted-foreground/55 hover:text-muted-foreground cursor-help" aria-hidden />
+        <div
+          role="tooltip"
+          className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+6px)] z-[100] w-max max-w-[260px] px-3 py-2 rounded-lg text-[11px] leading-snug text-foreground/90 bg-card/98 backdrop-blur-sm border border-border/80 shadow-lg opacity-0 invisible group-hover/fieldhint:opacity-100 group-hover/fieldhint:visible transition-all duration-200 pointer-events-none"
+        >
+          {hint}
+        </div>
       </div>
     </div>
   );
@@ -3065,6 +3111,9 @@ function DirectoryView({directory, savedWeeks, onChange}:{directory:DirectoryEmp
   const [archiveEmpId, setArchiveEmpId] = useState<string|null>(null);
   const [search, setSearch] = useState("");
   const [showInactive, setShowInactive] = useState(false);
+  const [adminPinInput, setAdminPinInput] = useState("");
+  const [adminPinBusy, setAdminPinBusy] = useState(false);
+  const [adminPinMsg, setAdminPinMsg] = useState("");
 
   const filtered = directory.filter((d)=>{
     if(!showInactive&&!d.active) return false;
@@ -3083,6 +3132,37 @@ function DirectoryView({directory, savedWeeks, onChange}:{directory:DirectoryEmp
 
   const editEmp = directory.find((d)=>d.id===editId)||null;
   const archiveEmp = directory.find((d)=>d.id===archiveEmpId)||null;
+
+  const applyAdminWorkerPin = async (pin: string) => {
+    if (!editEmp) return;
+    const digits = pin.replace(/\D/g, "").slice(0, 4);
+    if (digits.length !== 4) { setAdminPinMsg("Kod musi mieć 4 cyfry"); return; }
+    if (workerPinTooWeak(editEmp, digits)) { setAdminPinMsg("Kod nie może być ostatnimi 4 cyframi telefonu"); return; }
+    setAdminPinBusy(true);
+    setAdminPinMsg("");
+    try {
+      const hash = await hashWorkerPin(digits);
+      update({ ...editEmp, workerPinHash: hash });
+      setAdminPinInput("");
+      setAdminPinMsg("Kod zapisany — pracownik może logować się telefonem + tym kodem.");
+    } finally {
+      setAdminPinBusy(false);
+    }
+  };
+
+  const resetAdminWorkerPin = () => {
+    if (!editEmp) return;
+    const next = { ...editEmp };
+    delete next.workerPinHash;
+    update(next);
+    setAdminPinInput("");
+    setAdminPinMsg("Kod usunięty — pracownik ustawi nowy przy następnym logowaniu.");
+  };
+
+  useEffect(() => {
+    setAdminPinInput("");
+    setAdminPinMsg("");
+  }, [editId]);
 
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden">
@@ -3126,12 +3206,78 @@ function DirectoryView({directory, savedWeeks, onChange}:{directory:DirectoryEmp
                 {editId===emp.id&&editEmp ? (
                   <div className="p-5 space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div><label className="text-xs text-muted-foreground block mb-1">Imię i nazwisko *</label><input type="text" value={editEmp.name} onChange={(e)=>update({...editEmp,name:e.target.value})} placeholder="Jan Kowalski" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
-                      <div><label className="text-xs text-muted-foreground block mb-1">Stanowisko</label><input type="text" value={editEmp.position} onChange={(e)=>update({...editEmp,position:e.target.value})} placeholder="np. Murarz, Kierowca..." className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
-                      <div><label className="text-xs text-muted-foreground block mb-1">Telefon</label><input type="tel" value={editEmp.phone} onChange={(e)=>update({...editEmp,phone:e.target.value})} placeholder="+48 000 000 000" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
-                      <div><label className="text-xs text-muted-foreground block mb-1">Domyślna stawka (PLN/h)</label><input type="number" min="0" step="0.5" value={editEmp.defaultRate} onChange={(e)=>update({...editEmp,defaultRate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/></div>
-                      <div><label className="text-xs text-muted-foreground block mb-1">Data zatrudnienia</label><input type="date" value={editEmp.startDate} onChange={(e)=>update({...editEmp,startDate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/></div>
-                      <div><label className="text-xs text-muted-foreground block mb-1">Uwagi</label><input type="text" value={editEmp.notes} onChange={(e)=>update({...editEmp,notes:e.target.value})} placeholder="Dodatkowe informacje..." className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
+                      <div>
+                        <LabelWithHint label="Imię i nazwisko *" hint="Pełne imię i nazwisko — widoczne na liście płac, grafiku i w trybie pracownika." htmlFor={`dir-name-${editEmp.id}`}/>
+                        <input id={`dir-name-${editEmp.id}`} type="text" value={editEmp.name} onChange={(e)=>update({...editEmp,name:e.target.value})} placeholder="Jan Kowalski" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                      </div>
+                      <div>
+                        <LabelWithHint label="Stanowisko" hint="Np. Murarz, Elektryk — informacyjnie w kartotece (nie na liście logowania pracownika)." htmlFor={`dir-pos-${editEmp.id}`}/>
+                        <input id={`dir-pos-${editEmp.id}`} type="text" value={editEmp.position} onChange={(e)=>update({...editEmp,position:e.target.value})} placeholder="np. Murarz, Kierowca..." className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                      </div>
+                      <div>
+                        <LabelWithHint label="Telefon" hint="Numer do logowania pracownika — wpisuje 9 ostatnich cyfr (bez +48). Wymagany do trybu pracownika." htmlFor={`dir-phone-${editEmp.id}`}/>
+                        <input id={`dir-phone-${editEmp.id}`} type="tel" value={editEmp.phone} onChange={(e)=>update({...editEmp,phone:e.target.value})} placeholder="+48 000 000 000" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                      </div>
+                      <div>
+                        <LabelWithHint label="Domyślna stawka (PLN/h)" hint="Podpowiada się w liście płac i na robotach. Można zmienić na konkretny tydzień bez edycji kartoteki." htmlFor={`dir-rate-${editEmp.id}`}/>
+                        <input id={`dir-rate-${editEmp.id}`} type="number" min="0" step="0.5" value={editEmp.defaultRate} onChange={(e)=>update({...editEmp,defaultRate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                      </div>
+                      <div>
+                        <LabelWithHint label="Data zatrudnienia" hint="Opcjonalnie — do informacji w kartotece i archiwum rocznym." htmlFor={`dir-start-${editEmp.id}`}/>
+                        <input id={`dir-start-${editEmp.id}`} type="date" value={editEmp.startDate} onChange={(e)=>update({...editEmp,startDate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                      </div>
+                      <div>
+                        <LabelWithHint label="Uwagi" hint="Notatki wewnętrne — widzi tylko administrator." htmlFor={`dir-notes-${editEmp.id}`}/>
+                        <input id={`dir-notes-${editEmp.id}`} type="text" value={editEmp.notes} onChange={(e)=>update({...editEmp,notes:e.target.value})} placeholder="Dodatkowe informacje..." className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                      </div>
+                    </div>
+                    <div className="bg-secondary/40 rounded-xl p-4 border border-border space-y-3">
+                      <LabelWithHint
+                        label="Kod pracownika (4 cyfry)"
+                        hint="Osobisty PIN oprócz telefonu — chroni wypłatę przed podglądem przez innych. Pracownik ustawia sam przy pierwszym logowaniu albo Ty wpisujesz kod tutaj. Reset usuwa kod — przy logowaniu ustawi nowy."
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        {workerHasPersonalPin(editEmp) ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-green-400 bg-green-500/10 px-2.5 py-1 rounded-full">
+                            <ShieldCheck size={12}/> Kod ustawiony
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full">
+                            <KeyRound size={12}/> Brak kodu — ustawi przy logowaniu
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <input
+                          type="tel"
+                          inputMode="numeric"
+                          autoComplete="off"
+                          maxLength={4}
+                          placeholder="Nowy kod 4 cyfry"
+                          value={adminPinInput}
+                          onChange={(e)=>{ setAdminPinInput(e.target.value.replace(/\D/g,"").slice(0,4)); setAdminPinMsg(""); }}
+                          onKeyDown={(e)=>e.key==="Enter"&&applyAdminWorkerPin(adminPinInput)}
+                          className="w-36 bg-secondary rounded-lg px-3 py-2 text-sm tracking-widest border border-transparent focus:border-primary focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          disabled={adminPinBusy || adminPinInput.length !== 4}
+                          onClick={()=>applyAdminWorkerPin(adminPinInput)}
+                          className="px-3 py-2 rounded-lg bg-primary/15 text-primary text-xs font-medium hover:bg-primary/25 disabled:opacity-40 transition-colors"
+                        >
+                          {adminPinBusy ? "…" : "Ustaw kod"}
+                        </button>
+                        {workerHasPersonalPin(editEmp) && (
+                          <button
+                            type="button"
+                            onClick={resetAdminWorkerPin}
+                            className="px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          >
+                            Resetuj kod
+                          </button>
+                        )}
+                      </div>
+                      {adminPinMsg && <p className="text-[11px] text-muted-foreground">{adminPinMsg}</p>}
                     </div>
                     <label className="flex items-start gap-3 cursor-pointer bg-secondary/50 rounded-xl p-3 border border-border">
                       <input
@@ -3162,6 +3308,11 @@ function DirectoryView({directory, savedWeeks, onChange}:{directory:DirectoryEmp
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Phone size={11} className="shrink-0"/>{emp.phone||"—"}
+                        {workerHasPersonalPin(emp) && (
+                          <span title="Kod pracownika ustawiony" className="inline-flex items-center gap-0.5 text-[10px] text-green-400/90 ml-1">
+                            <Lock size={10}/> kod
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         <span style={{fontFamily:"'JetBrains Mono', monospace"}}>{emp.defaultRate} PLN/h</span>
@@ -6640,7 +6791,8 @@ function HelpView() {
           <div className="space-y-3">
             {[
               {q:"Jak dodać nowego pracownika?", a:'Kliknij "Nowy pracownik". Wpisz imię i nazwisko, telefon, stanowisko (np. Murarz, Elektryk, Kierowca) i domyślną stawkę godzinową. Data zatrudnienia jest opcjonalna.'},
-              {q:"Telefon a logowanie pracownika", a:"Numer w kartotece (np. +48 501 234 567) to hasło pracownika — wpisuje 9 ostatnich cyfr: 501234567. Bez telefonu nie zaloguje się do wgrywania zdjęć."},
+              {q:"Telefon i kod pracownika", a:"Numer w kartotece (np. +48 501 234 567) — pracownik wpisuje 9 ostatnich cyfr przy logowaniu. Dodatkowo ustawia osobisty kod 4 cyfry (jak PIN do karty) przy pierwszym logowaniu — chroni wypłatę przed podglądem przez kolegów. Administrator może ustawić lub zresetować kod w edycji pracownika."},
+              {q:"Reset kodu pracownika", a:"Pracownicy → edytuj → sekcja „Kod pracownika” → Resetuj kod. Pracownik ustawi nowy kod przy następnym logowaniu (telefon zostaje bez zmian)."},
               {q:"Aplikacja na ekranie telefonu (PWA)", a:"Po wejściu jako pracownik pojawi się baner „Dodaj na ekran”. Na Androidzie — Zainstaluj. Na iPhone (Safari) — Udostępnij → Dodaj do ekranu początkowego. Działa szybciej i trzyma zdjęcia w kolejce offline gdy brak sieci."},
               {q:"Zdjęcia offline i znak wodny", a:"Bez internetu zdjęcia trafiają do kolejki i wysyłają się same po powrocie sieci. Każde zdjęcie ma znak wodny: adres, data i W&G DOM."},
               {q:"Notatka głosowa w raporcie", a:"Przy dodawaniu raportu (zakres prac, wiadomość dla admina) — ikona mikrofonu. Działa w Chrome/Edge na telefonie i komputerze."},
@@ -6698,12 +6850,14 @@ function HelpView() {
       subtitle:"Zdjęcia, raporty z budowy i wymiary",
       content:(
         <div className="space-y-4">
-          <p className="text-sm text-foreground/90 leading-relaxed">Na ekranie startowym wybierz <strong>Pracownik</strong> → znajdź się na liście → wpisz <strong>9 ostatnich cyfr telefonu</strong> (bez +48). Potem wybierz robotę i dodaj zdjęcia lub raport.</p>
+          <p className="text-sm text-foreground/90 leading-relaxed">Na ekranie startowym wybierz <strong>Pracownik</strong> → znajdź się na liście → wpisz <strong>9 ostatnich cyfr telefonu</strong> (bez +48) oraz <strong>swój kod 4 cyfry</strong>. Przy pierwszym logowaniu ustawisz kod sam. Potem wybierz robotę — zdjęcia, raport lub sprawdź wypłatę.</p>
           <div className="space-y-3">
             {[
-              {q:"Zakładka Wypłata u pracownika", a:"Po zalogowaniu pracownik widzi zakładkę „Wypłata”: kwotę do wypłaty w najbliższy piątek, godziny bieżącego tygodnia, zaliczki i koszty do zwrotu (jeśli wpisane). Niżej — archiwum wypłat z zapisanych tygodni. Administrator musi najpierw dodać pracownika do listy płac w danym tygodniu."},
-              {q:"Ochrona danych wypłat", a:"Kwota wypłaty ukrywa się gdy pracownik przełączy aplikację (Alt+Tab). Kopiowanie tekstu jest zablokowane — to świadomy kompromis między wygodą a prywatnością na współdzielonym telefonie."},
-              {q:"Jak się zalogować?", a:"Administrator musi wpisać Twój numer w kartotece Pracownicy (np. +48 501 234 567). Logujesz się 9 cyframi: 501234567. Wybierz swoje imię z listy, nie wpisuj ręcznie."},
+              {q:"Logowanie — telefon + kod", a:"Telefon potwierdza kim jesteś (9 cyfr z kartoteki). Kod 4 cyfry to Twój osobisty PIN — ustawiasz przy pierwszym logowaniu. Nie podawaj go kolegom. Zapomniałeś? Administrator resetuje kod w kartotece Pracownicy."},
+              {q:"Zakładka Roboty", a:"Lista aktywnych remontów. Wybierz robotę → wgrywaj zdjęcia (przed / w trakcie / po), wysyłaj raport z zakresem prac i wymiarami. Bez internetu zdjęcia czekają w kolejce i wyślą się same."},
+              {q:"Zakładka Wypłata u pracownika", a:"Kwota do wypłaty w najbliższy piątek, godziny bieżącego tygodnia, zaliczki i koszty do zwrotu (jeśli wpisane). Niżej — archiwum wypłat z zapisanych tygodni. Administrator musi najpierw dodać Cię do listy płac w danym tygodniu."},
+              {q:"Ochrona danych wypłat", a:"Logowanie wymaga telefonu i osobistego kodu — kolega nie wejdzie na Twój profil samym numerem. Kwota ukrywa się też gdy przełączysz aplikację (Alt+Tab). Kopiowanie tekstu jest zablokowane."},
+              {q:"Jak się zalogować?", a:"Administrator musi wpisać Twój numer w kartotece Pracownicy. Wybierz swoje imię z listy, wpisz telefon i kod. Nie wpisuj ręcznie cudzego imienia."},
               {q:"Jak dodać wiele zdjęć?", a:"W robocie użyj sekcji „Galeria — wiele zdjęć”: wybierz typ (przed/w trakcie/po), kliknij „Wybierz z galerii”, zaznacz wiele zdjęć, podejrzyj miniaturki i „Wyślij”."},
               {q:"Jak wysłać raport z budowy?", a:"Sekcja „Raport z budowy”: punkty zakresu (z opisem do każdego), wymiary z opisem pomieszczenia lub foto rysunku z opisem, na dole „Wiadomość dla admina”. Po wysłaniu możesz edytować lub usunąć raport w „Twoje raporty”."},
               {q:"Opisy zdjęć?", a:"Przy galerii — opis pod każdym zdjęciem przed wysłaniem. Przy aparacie — pole „Opis do następnych zdjęć”. Po wgraniu — edytuj opis lub usuń zdjęcie w „Twoje wgrane zdjęcia”."},
@@ -6759,7 +6913,7 @@ function HelpView() {
         <div className="space-y-4">
           <p className="text-sm text-foreground/90 leading-relaxed">Wszystko co dodajesz w aplikacji jako dane firmy zapisuje się <strong>lokalnie i w chmurze</strong>. Nie musisz klikać „Zapisz do chmury” — dzieje się to samo po każdej zmianie (ikona chmurki u góry).</p>
           <ul className="text-sm text-muted-foreground space-y-2 list-disc pl-5 leading-relaxed">
-            <li><strong>Pracownicy</strong> — kartoteka, stawki, telefony</li>
+            <li><strong>Pracownicy</strong> — kartoteka, stawki, telefony, hash kodu pracownika (nie widać kodu — tylko zapisany)</li>
             <li><strong>Kontakty</strong> — odbiorcy email z uprawnieniami: Roboty (materiały z budowy) lub Lista płac</li>
             <li><strong>Lista płac</strong> — godziny (w tym dodatkowe), zaliczki, koszty do zwrotu, rozliczenia; eksport PDF/Word i wysyłka emailem</li>
             <li><strong>Archiwum</strong> — zapisane tygodnie</li>
@@ -6895,7 +7049,17 @@ function HelpView() {
 
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
+/** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.9.14", label:"Kod pracownika 4 cyfry",
+    items:[
+      {type:"new", text:"Logowanie pracownika — telefon + osobisty kod 4 cyfry; pierwsze logowanie: pracownik ustawia kod sam"},
+      {type:"new", text:"Kartoteka — admin ustawia lub resetuje kod pracownika; dymki pomocnicze przy polach"},
+      {type:"improve", text:"Instrukcja — opis logowania, kodu, resetu i funkcji trybu pracownika (Roboty / Wypłata)"},
+      {type:"fix", text:"Odtwarzacz hymnów — panel nie jest przycinany (portal fixed)"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.9.3", label:"Logistyka — bez alertów spójności",
     items:[
@@ -7933,7 +8097,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
     {key:"dashboard", label:"Pulpit", hint:"Podsumowanie tygodnia, alerty (spójność, dokumenty, zdjęcia) i szybkie skróty.", icon:LayoutDashboard},
     {key:"payroll", label:"Lista Płac", hint:"Godziny, stawki, zaliczki i wypłaty za bieżący tydzień. Eksport PDF i Word.", icon:FileText},
     {key:"schedule", label:"Grafik", hint:"Kto pracuje którego dnia — widok Pn–So na podstawie listy płac.", icon:CalendarDays, badge:weekEmployees.length || undefined},
-    {key:"directory", label:"Pracownicy", hint:"Kartoteka: dane, stawki, telefony, archiwum roczne każdego pracownika.", icon:Users, badge:directory.filter(d=>d.active).length},
+    {key:"directory", label:"Pracownicy", hint:"Kartoteka: dane, stawki, telefony, kod 4-cyfrowy pracownika, archiwum roczne.", icon:Users, badge:directory.filter(d=>d.active).length},
     {key:"contacts", label:"Kontakty", hint:"Adresy e-mail klientów i współpracowników — do wysyłki z robot.", icon:Mail, badge:contacts.filter(c=>c.email.trim()).length||undefined},
     {key:"archive", label:"Archiwum", hint:"Zapisane tygodnie list płac, raporty miesięczne i podsumowania roczne.", icon:Archive, badge:savedWeeks.length||undefined},
     {key:"jobs", label:"Roboty", hint:"Adresy remontów: dokumenty, czas pracy, materiały, zdjęcia i raporty.", icon:MapPin, badge:(()=>{ const pend=jobs.reduce((s,j)=>s+(j.photos||[]).filter(p=>p.status==="pending").length,0); return pend>0?pend:jobs.filter(j=>j.status==="in_progress").length||undefined; })()},
@@ -8356,6 +8520,11 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
   const [workerSearch, setWorkerSearch] = useState("");
   const [selectedWorkerId, setSelectedWorkerId] = useState("");
   const [phonePin, setPhonePin] = useState("");
+  const [workerCode, setWorkerCode] = useState("");
+  const [workerStep, setWorkerStep] = useState<"login" | "setup-pin">("login");
+  const [setupPin1, setSetupPin1] = useState("");
+  const [setupPin2, setSetupPin2] = useState("");
+  const [setupPinLoading, setSetupPinLoading] = useState(false);
   const [workerError, setWorkerError] = useState("");
 
   useEffect(() => {
@@ -8437,7 +8606,7 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
 
   const selectedWorker = directory.find((d) => d.id === selectedWorkerId) || null;
 
-  const handleWorkerSubmit = () => {
+  const handleWorkerSubmit = async () => {
     setWorkerError("");
     if (!selectedWorker) { setWorkerError("Wybierz siebie z listy"); return; }
     if (!workerHasPhonePin(selectedWorker)) {
@@ -8451,7 +8620,64 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
       setPhonePin("");
       return;
     }
-    onWorker(selectedWorker);
+
+    const emp = directory.find((d) => d.id === selectedWorkerId) || selectedWorker;
+
+    if (!workerHasPersonalPin(emp)) {
+      setWorkerStep("setup-pin");
+      setSetupPin1("");
+      setSetupPin2("");
+      return;
+    }
+
+    const code = workerCode.replace(/\D/g, "");
+    if (code.length !== 4) { setWorkerError("Wpisz swój 4-cyfrowy kod"); return; }
+    const ok = await verifyWorkerPin(emp, code);
+    if (!ok) {
+      setWorkerError("Błędny kod pracownika");
+      setWorkerCode("");
+      return;
+    }
+    onWorker(emp);
+  };
+
+  const handleWorkerSetupPin = async () => {
+    setWorkerError("");
+    const emp = directory.find((d) => d.id === selectedWorkerId);
+    if (!emp) { setWorkerError("Wybierz siebie z listy"); return; }
+    const c1 = setupPin1.replace(/\D/g, "").slice(0, 4);
+    const c2 = setupPin2.replace(/\D/g, "").slice(0, 4);
+    if (c1.length !== 4) { setWorkerError("Kod musi mieć 4 cyfry"); return; }
+    if (c1 !== c2) { setWorkerError("Kody nie pasują — wpisz ponownie"); setSetupPin2(""); return; }
+    if (workerPinTooWeak(emp, c1)) {
+      setWorkerError("Kod nie może być ostatnimi 4 cyframi telefonu — wybierz inny");
+      return;
+    }
+    setSetupPinLoading(true);
+    try {
+      const hash = await hashWorkerPin(c1);
+      const updated = directory.map((d) => (d.id === emp.id ? { ...d, workerPinHash: hash } : d));
+      setDirectory(updated);
+      try {
+        localStorage.setItem("kw-directory", JSON.stringify(updated));
+        await pushKeysToCloud(["kw-directory"], [updated]);
+      } catch { /* offline — zapis lokalny */ }
+      onWorker(updated.find((d) => d.id === emp.id)!);
+    } finally {
+      setSetupPinLoading(false);
+    }
+  };
+
+  const resetWorkerLogin = () => {
+    setMode("pick");
+    setSelectedWorkerId("");
+    setPhonePin("");
+    setWorkerCode("");
+    setWorkerStep("login");
+    setSetupPin1("");
+    setSetupPin2("");
+    setWorkerSearch("");
+    setWorkerError("");
   };
 
   const PasswordField = ({value, show, onToggle, onChange, onEnter, placeholder, autoFocus}: {
@@ -8501,7 +8727,7 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
                   <div className="w-11 h-11 rounded-xl bg-secondary flex items-center justify-center shrink-0"><HardHat size={22} className="text-muted-foreground"/></div>
                   <div className="text-left">
                     <p className="font-semibold text-base">Pracownik</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Zdjęcia, raport, wymiary · PIN (9 cyfr)</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Zdjęcia, raport · telefon + kod 4 cyfry</p>
                   </div>
                 </button>
               </>
@@ -8577,14 +8803,48 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
         {mode === "worker" && (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
             <div className="flex items-center gap-3">
-              <button onClick={()=>{setMode("pick");setSelectedWorkerId("");setPhonePin("");setWorkerSearch("");setWorkerError("");}} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><ArrowLeft size={16}/></button>
-              <div className="flex items-center gap-2"><HardHat size={14} className="text-muted-foreground"/><span className="text-sm font-semibold">Logowanie pracownika</span></div>
+              <button onClick={resetWorkerLogin} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><ArrowLeft size={16}/></button>
+              <div className="flex items-center gap-2"><HardHat size={14} className="text-muted-foreground"/><span className="text-sm font-semibold">{workerStep === "setup-pin" ? "Ustaw kod pracownika" : "Logowanie pracownika"}</span></div>
             </div>
 
             {dirLoading ? (
               <div className="flex justify-center py-8">
                 <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
               </div>
+            ) : workerStep === "setup-pin" && selectedWorker ? (
+              <>
+                <div className="bg-primary/10 border border-primary/20 rounded-xl px-4 py-3 space-y-1">
+                  <p className="text-sm font-semibold">{selectedWorker.name}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    To pierwsze logowanie — ustaw <strong>osobisty kod 4 cyfry</strong> (jak PIN do karty). Zapamiętaj go — chroni Twoją wypłatę przed podglądem przez innych. Nie podawaj kodu kolegom.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Nowy kod (4 cyfry)</label>
+                    <input type="tel" inputMode="numeric" autoComplete="off" maxLength={4} placeholder="••••" value={setupPin1}
+                      onChange={e=>{setSetupPin1(e.target.value.replace(/\D/g,"").slice(0,4));setWorkerError("");}}
+                      className="w-full bg-secondary rounded-xl px-4 py-3 text-sm tracking-[0.4em] text-center border border-transparent focus:border-primary focus:outline-none transition-colors" autoFocus/>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Powtórz kod</label>
+                    <input type="tel" inputMode="numeric" autoComplete="off" maxLength={4} placeholder="••••" value={setupPin2}
+                      onChange={e=>{setSetupPin2(e.target.value.replace(/\D/g,"").slice(0,4));setWorkerError("");}}
+                      onKeyDown={e=>e.key==="Enter"&&handleWorkerSetupPin()}
+                      className="w-full bg-secondary rounded-xl px-4 py-3 text-sm tracking-[0.4em] text-center border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                  </div>
+                </div>
+                {workerError && <p className="text-xs text-destructive">{workerError}</p>}
+                <button onClick={handleWorkerSetupPin} disabled={setupPinLoading || setupPin1.length !== 4 || setupPin2.length !== 4}
+                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  {setupPinLoading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>}
+                  Zapisz kod i wejdź
+                </button>
+                <button type="button" onClick={()=>{setWorkerStep("login");setSetupPin1("");setSetupPin2("");setWorkerError("");}}
+                  className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors">
+                  Wróć
+                </button>
+              </>
             ) : (
               <>
                 <div className="space-y-2">
@@ -8603,7 +8863,7 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
                       const sel = selectedWorkerId === emp.id;
                       return (
                         <button key={emp.id} type="button" disabled={!hasPin}
-                          onClick={()=>{setSelectedWorkerId(emp.id);setWorkerError("");}}
+                          onClick={()=>{setSelectedWorkerId(emp.id);setWorkerError("");setWorkerCode("");}}
                           className={`w-full px-4 py-3 text-left transition-colors ${sel?"bg-primary/10":"hover:bg-secondary/50"} ${!hasPin?"opacity-50 cursor-not-allowed":""}`}>
                           <p className="text-sm font-medium">{emp.name||"Bez nazwy"}</p>
                           {!hasPin && <p className="text-[10px] text-amber-400 mt-0.5">Brak numeru — poproś admina</p>}
@@ -8614,22 +8874,39 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
                 </div>
 
                 {selectedWorker && workerHasPhonePin(selectedWorker) && (
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground">Hasło — 9 cyfr telefonu (bez +48)</label>
-                    <input type="tel" inputMode="numeric" autoComplete="off" maxLength={11}
-                      placeholder="np. 501234567" value={phonePin}
-                      onChange={e=>{setPhonePin(e.target.value.replace(/\D/g,"").slice(0,9));setWorkerError("");}}
-                      onKeyDown={e=>e.key==="Enter"&&handleWorkerSubmit()}
-                      className="w-full bg-secondary rounded-xl px-4 py-3 text-sm tracking-widest border border-transparent focus:border-primary focus:outline-none transition-colors"/>
-                    <p className="text-[10px] text-muted-foreground">Ostatnie 9 cyfr numeru z kartoteki pracowników.</p>
-                  </div>
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground">Telefon — 9 cyfr (bez +48)</label>
+                      <input type="tel" inputMode="numeric" autoComplete="off" maxLength={11}
+                        placeholder="np. 501234567" value={phonePin}
+                        onChange={e=>{setPhonePin(e.target.value.replace(/\D/g,"").slice(0,9));setWorkerError("");}}
+                        className="w-full bg-secondary rounded-xl px-4 py-3 text-sm tracking-widest border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                    </div>
+                    {workerHasPersonalPin(selectedWorker) && (
+                      <div className="space-y-2">
+                        <label className="text-xs text-muted-foreground">Twój kod pracownika (4 cyfry)</label>
+                        <input type="tel" inputMode="numeric" autoComplete="off" maxLength={4}
+                          placeholder="••••" value={workerCode}
+                          onChange={e=>{setWorkerCode(e.target.value.replace(/\D/g,"").slice(0,4));setWorkerError("");}}
+                          onKeyDown={e=>e.key==="Enter"&&handleWorkerSubmit()}
+                          className="w-full bg-secondary rounded-xl px-4 py-3 text-sm tracking-[0.4em] text-center border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+                        <p className="text-[10px] text-muted-foreground">Osobisty kod — nie taki sam jak u kolegów. Zapomniałeś? Poproś administratora o reset w kartotece.</p>
+                      </div>
+                    )}
+                    {!workerHasPersonalPin(selectedWorker) && phonePin.replace(/\D/g,"").length === 9 && workerPhonePinValid(selectedWorker, phonePin) && (
+                      <p className="text-[11px] text-primary/90 bg-primary/10 border border-primary/20 rounded-lg px-3 py-2">
+                        Pierwsze logowanie — po potwierdzeniu telefonu ustawisz osobisty kod 4 cyfry.
+                      </p>
+                    )}
+                  </>
                 )}
 
                 {workerError && <p className="text-xs text-destructive">{workerError}</p>}
 
-                <button onClick={handleWorkerSubmit} disabled={!selectedWorker || !workerHasPhonePin(selectedWorker!) || phonePin.replace(/\D/g,"").length !== 9}
+                <button onClick={handleWorkerSubmit}
+                  disabled={!selectedWorker || !workerHasPhonePin(selectedWorker!) || phonePin.replace(/\D/g,"").length !== 9 || (workerHasPersonalPin(selectedWorker!) && workerCode.length !== 4)}
                   className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50">
-                  Zaloguj i dodaj zdjęcia
+                  {selectedWorker && workerHasPersonalPin(selectedWorker) ? "Zaloguj" : "Dalej — ustaw kod"}
                 </button>
               </>
             )}
@@ -9358,6 +9635,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
   const [payrollLoading, setPayrollLoading] = useState(true);
   const [showPayHistory, setShowPayHistory] = useState(false);
   const [workerTab, setWorkerTab] = useState<"jobs" | "pay">("jobs");
+  const [workerHelpOpen, setWorkerHelpOpen] = useState(false);
   const privacyShield = useWorkerPrivacyShield(true);
 
   const currentWeekEmp = useMemo(
@@ -9675,6 +9953,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
           <button
             type="button"
             onClick={() => setWorkerTab("jobs")}
+            title="Wybierz robotę, wgrywaj zdjęcia i raporty z budowy"
             className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "jobs" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
           >
             <MapPin size={14}/>Roboty
@@ -9682,10 +9961,31 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
           <button
             type="button"
             onClick={() => setWorkerTab("pay")}
+            title="Twoja wypłata w piątek — tylko po logowaniu telefonem i kodem"
             className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "pay" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
           >
             <Wallet size={14}/>Wypłata
           </button>
+        </div>
+      )}
+
+      {!selectedJob && (
+        <div className="mx-4 mt-3 shrink-0">
+          <button
+            type="button"
+            onClick={() => setWorkerHelpOpen((v) => !v)}
+            className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl border border-border bg-secondary/30 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <span className="flex items-center gap-1.5"><HelpCircle size={13} className="text-primary shrink-0"/>Co mogę tu zrobić?</span>
+            {workerHelpOpen ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
+          </button>
+          {workerHelpOpen && (
+            <div className="mt-1.5 px-3 py-2.5 rounded-xl border border-border bg-card text-[11px] text-muted-foreground leading-relaxed space-y-1.5">
+              <p><strong className="text-foreground/90">Roboty</strong> — wybierz aktywną robotę, dodaj zdjęcia (galeria lub aparat), wyślij raport z wymiarami.</p>
+              <p><strong className="text-foreground/90">Wypłata</strong> — kwota na piątek i archiwum (tylko Twoje dane, chronione kodem).</p>
+              <p><strong className="text-foreground/90">Offline</strong> — zdjęcia bez sieci trafiają do kolejki i wysyłają się po powrocie zasięgu.</p>
+            </div>
+          )}
         </div>
       )}
 
