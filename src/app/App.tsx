@@ -564,6 +564,71 @@ function personNamesMatch(a: string, b: string): boolean {
   return fa.length > 2 && fa === fb;
 }
 
+function fridayIsoOfWeek(weekFrom: string): string {
+  const [y, m, d] = weekFrom.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + 4);
+  return localIsoDate(dt);
+}
+
+function findWeekEmployeeForWorker(
+  weekEmployees: WeekEmployee[],
+  workerId: string,
+  workerName: string,
+): WeekEmployee | null {
+  if (workerId) {
+    const byId = weekEmployees.find((e) => e.directoryId === workerId);
+    if (byId) return byId;
+  }
+  return weekEmployees.find((e) => personNamesMatch(e.name, workerName)) ?? null;
+}
+
+interface WorkerPayoutRow {
+  weekFrom: string;
+  weekTo: string;
+  savedAt: string;
+  netPay: number;
+  totalHours: number;
+  settled: boolean;
+}
+
+function workerPayoutHistory(
+  savedWeeks: WeekSnapshot[],
+  workerId: string,
+  workerName: string,
+): WorkerPayoutRow[] {
+  const rows: WorkerPayoutRow[] = [];
+  for (const week of savedWeeks) {
+    const fromDetail = week.weekEmployees?.find(
+      (e) => (workerId && e.directoryId === workerId) || personNamesMatch(e.name, workerName),
+    );
+    if (fromDetail) {
+      const calc = calcWeekEmployee(fromDetail);
+      rows.push({
+        weekFrom: week.weekFrom,
+        weekTo: week.weekTo,
+        savedAt: week.savedAt,
+        netPay: calc.netPay,
+        totalHours: calc.totalHours,
+        settled: fromDetail.settled,
+      });
+      continue;
+    }
+    const snap = week.employees.find((e) => personNamesMatch(e.name, workerName));
+    if (snap) {
+      rows.push({
+        weekFrom: week.weekFrom,
+        weekTo: week.weekTo,
+        savedAt: week.savedAt,
+        netPay: snap.netPay,
+        totalHours: snap.totalHours,
+        settled: snap.settled,
+      });
+    }
+  }
+  return rows.sort((a, b) => b.weekFrom.localeCompare(a.weekFrom));
+}
+
 function employeeMatchesWorkEntry(
   emp: WeekEmployee,
   we: WorkEntry,
@@ -4593,6 +4658,14 @@ function HelpView() {
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-26", version:"2.6.0", label:"Profil wypłaty pracownika",
+    items:[
+      {type:"new", text:"Zakładka Wypłata u pracownika — kwota do wypłaty w piątek, godziny i tydzień"},
+      {type:"new", text:"Archiwum wypłat pracownika — historia zapisanych tygodni z listy płac"},
+      {type:"new", text:"Ochrona danych wypłat — ukrywanie przy przełączeniu aplikacji, zakaz kopiowania, komunikat o zrzutach ekranu"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.5.6", label:"Pracownik — głos i rysunek z galerii",
     items:[
       {type:"fix", text:"iPhone: mikrofon nie zawiesza strony — dyktowanie przez 🎤 na klawiaturze (Web Speech API wyłączone na iOS)"},
@@ -6427,7 +6500,31 @@ function ClientShareView({ token }: { token: string }) {
 
 // ─── Worker Photo View ────────────────────────────────────────────────────────
 
-function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()=>void}) {
+function useWorkerPrivacyShield(enabled: boolean) {
+  const [shield, setShield] = useState(false);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const onVis = () => setShield(document.hidden);
+    const onBlur = () => setShield(true);
+    const onFocus = () => setShield(false);
+    const blockCtx = (e: Event) => e.preventDefault();
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("contextmenu", blockCtx);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("contextmenu", blockCtx);
+    };
+  }, [enabled]);
+
+  return shield;
+}
+
+function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: string; workerId: string; onLogout: () => void }) {
   const [jobs, setJobsLocal] = useLocalStorage<Job[]>("kw-jobs", []);
   const [jobsLoading, setJobsLoading] = useState(true);
   const [selectedJobId, setSelectedJobId] = useState<string|null>(null);
@@ -6442,6 +6539,28 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
   const [editingReport, setEditingReport] = useState<WorkerJobReport | null>(null);
   const [queueCount, setQueueCount] = useState(0);
   const [flushingQueue, setFlushingQueue] = useState(false);
+  const [weekEmployees, setWeekEmployees] = useState<WeekEmployee[]>([]);
+  const [savedWeeks, setSavedWeeks] = useState<WeekSnapshot[]>([]);
+  const [weekFrom, setWeekFrom] = useState("");
+  const [weekTo, setWeekTo] = useState("");
+  const [payrollLoading, setPayrollLoading] = useState(true);
+  const [showPayHistory, setShowPayHistory] = useState(false);
+  const [workerTab, setWorkerTab] = useState<"jobs" | "pay">("jobs");
+  const privacyShield = useWorkerPrivacyShield(true);
+
+  const currentWeekEmp = useMemo(
+    () => findWeekEmployeeForWorker(weekEmployees, workerId, workerName),
+    [weekEmployees, workerId, workerName],
+  );
+  const currentPay = useMemo(
+    () => (currentWeekEmp ? calcWeekEmployee(currentWeekEmp) : null),
+    [currentWeekEmp],
+  );
+  const payHistory = useMemo(
+    () => workerPayoutHistory(savedWeeks, workerId, workerName).filter((row) => row.weekFrom !== weekFrom),
+    [savedWeeks, workerId, workerName, weekFrom],
+  );
+  const fridayPayDate = weekFrom ? fridayIsoOfWeek(weekFrom) : "";
 
   useEffect(() => {
     return () => { galleryPicks.forEach((p) => URL.revokeObjectURL(p.preview)); };
@@ -6502,22 +6621,49 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
   }, [flushQueue]);
 
   useEffect(() => {
-    fetchKeysFromCloud(["kw-jobs"])
+    const loadLocal = <T,>(key: string, fallback: T): T => {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? (JSON.parse(raw) as T) : fallback;
+      } catch {
+        return fallback;
+      }
+    };
+
+    fetchKeysFromCloud(["kw-jobs", "kw-week-employees", "kw-archive", "kw-weekFrom", "kw-weekTo"])
       .then((values) => {
-        const cloud = values[0];
-        if (cloud != null) {
+        const [cloudJobs, cloudWeekEmps, cloudArchive, cloudFrom, cloudTo] = values;
+        if (cloudJobs != null) {
           let localJobs: Job[] = [];
           try {
             localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")) as Job[];
           } catch { /* ignore */ }
-          const cloudJobs = normalizeJobsValue(cloud) as Job[];
-          const merged = mergeJobsById(localJobs, cloudJobs) as Job[];
+          const cloudJobsNorm = normalizeJobsValue(cloudJobs) as Job[];
+          const merged = mergeJobsById(localJobs, cloudJobsNorm) as Job[];
           setJobsLocal(merged);
           try { localStorage.setItem("kw-jobs", JSON.stringify(merged)); } catch { /* ignore */ }
         }
+        setWeekEmployees(
+          (cloudWeekEmps as WeekEmployee[] | null) ?? loadLocal<WeekEmployee[]>("kw-week-employees", []),
+        );
+        setSavedWeeks(
+          (cloudArchive as WeekSnapshot[] | null) ?? loadLocal<WeekSnapshot[]>("kw-archive", []),
+        );
+        const week = getWeekRange();
+        setWeekFrom(typeof cloudFrom === "string" && cloudFrom ? cloudFrom : loadLocal("kw-weekFrom", week.from));
+        setWeekTo(typeof cloudTo === "string" && cloudTo ? cloudTo : loadLocal("kw-weekTo", week.to));
       })
-      .catch(() => {})
-      .finally(() => setJobsLoading(false));
+      .catch(() => {
+        setWeekEmployees(loadLocal<WeekEmployee[]>("kw-week-employees", []));
+        setSavedWeeks(loadLocal<WeekSnapshot[]>("kw-archive", []));
+        const week = getWeekRange();
+        setWeekFrom(loadLocal("kw-weekFrom", week.from));
+        setWeekTo(loadLocal("kw-weekTo", week.to));
+      })
+      .finally(() => {
+        setJobsLoading(false);
+        setPayrollLoading(false);
+      });
   }, [setJobsLocal]);
 
   const activeJobs = jobs
@@ -6692,7 +6838,10 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
   const myReports = selectedJob ? jobWorkerReports(selectedJob).filter(r => r.workerName === workerName) : [];
 
   return (
-    <div className="flex flex-col bg-background text-foreground" style={{fontFamily:"'Inter',sans-serif", height:"100dvh"}}>
+    <div
+      className="flex flex-col bg-background text-foreground select-none [-webkit-touch-callout:none]"
+      style={{ fontFamily: "'Inter',sans-serif", height: "100dvh" }}
+    >
       <div className="flex items-center justify-between px-4 py-4 border-b border-border bg-card shrink-0" style={{paddingTop:"max(1rem,env(safe-area-inset-top))"}}>
         <div className="flex items-center gap-3">
           <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-7 w-auto object-contain"/>
@@ -6706,6 +6855,25 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
           <LogOut size={13}/>Wyloguj
         </button>
       </div>
+
+      {!selectedJob && (
+        <div className="flex border-b border-border bg-card shrink-0">
+          <button
+            type="button"
+            onClick={() => setWorkerTab("jobs")}
+            className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "jobs" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
+          >
+            <MapPin size={14}/>Roboty
+          </button>
+          <button
+            type="button"
+            onClick={() => setWorkerTab("pay")}
+            className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "pay" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
+          >
+            <Wallet size={14}/>Wypłata
+          </button>
+        </div>
+      )}
 
       <PwaInstallBanner compact/>
 
@@ -6724,7 +6892,98 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
       )}
 
       <div className="flex-1 overflow-y-auto pb-8" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>
-        {!selectedJob ? (
+        {!selectedJob && workerTab === "pay" ? (
+          <div className="max-w-lg mx-auto px-4 pt-6 space-y-4 worker-pay-sensitive">
+            <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 rounded-xl px-3 py-2.5">
+              <Lock size={14} className="text-amber-400 shrink-0 mt-0.5"/>
+              <p className="text-[11px] text-amber-400/90 leading-relaxed">
+                Kwoty wypłat są poufne. Zakaz zrzutów ekranu i udostępniania. Przy przełączeniu aplikacji dane są ukrywane.
+              </p>
+            </div>
+
+            {payrollLoading ? (
+              <div className="flex justify-center py-16">
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+              </div>
+            ) : (
+              <>
+                <div className="bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/25 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Wallet size={16} className="text-primary"/>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-primary">Ten tydzień</span>
+                  </div>
+                  {currentPay && weekFrom ? (
+                    <>
+                      <p className="text-3xl font-bold text-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                        {fmt(currentPay.netPay)} <span className="text-lg font-normal text-muted-foreground">PLN</span>
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Wypłata w piątek · <span className="font-medium text-foreground">{fmtDate(fridayPayDate)}</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Tydzień {fmtDate(weekFrom)} – {fmtDate(weekTo)} · {fmtH(currentPay.totalHours)}
+                        {currentPay.rateNum > 0 && ` · ${fmt(currentPay.rateNum)} PLN/h`}
+                      </p>
+                      {currentPay.totalZaliczka > 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Zaliczki: −{fmt(currentPay.totalZaliczka)} PLN · brutto {fmt(currentPay.grossPay)} PLN
+                        </p>
+                      )}
+                      {currentWeekEmp?.settled && (
+                        <span className="inline-flex items-center gap-1 mt-3 text-[10px] font-bold px-2 py-1 rounded-full bg-green-500/15 text-green-400">
+                          <CheckCircle2 size={11}/> Rozliczone
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Nie ma Cię jeszcze na liście płac w tym tygodniu. Administrator musi dodać Cię w panelu — wtedy kwota pojawi się tutaj automatycznie.
+                    </p>
+                  )}
+                </div>
+
+                <div className="bg-card border border-border rounded-2xl overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowPayHistory((v) => !v)}
+                    className="w-full px-4 py-3.5 flex items-center justify-between hover:bg-secondary/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Archive size={14} className="text-muted-foreground"/>
+                      <span className="text-sm font-semibold">Archiwum wypłat</span>
+                      {payHistory.length > 0 && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">{payHistory.length}</span>
+                      )}
+                    </div>
+                    {showPayHistory ? <ChevronUp size={16} className="text-muted-foreground"/> : <ChevronDown size={16} className="text-muted-foreground"/>}
+                  </button>
+                  {showPayHistory && (
+                    <div className="border-t border-border divide-y divide-border">
+                      {payHistory.length === 0 ? (
+                        <p className="px-4 py-6 text-xs text-muted-foreground text-center">Brak zapisanych tygodni w archiwum.</p>
+                      ) : (
+                        payHistory.map((row) => (
+                          <div key={row.weekFrom} className="px-4 py-3 flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-xs font-medium">{fmtDate(row.weekFrom)} – {fmtDate(row.weekTo)}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">
+                                Piątek {fmtDate(fridayIsoOfWeek(row.weekFrom))} · {fmtH(row.totalHours)}
+                                {row.settled && " · rozliczone"}
+                              </p>
+                            </div>
+                            <p className="text-sm font-bold text-primary shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                              {fmt(row.netPay)} PLN
+                            </p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        ) : !selectedJob ? (
           <div className="max-w-lg mx-auto px-4 pt-6 space-y-4">
             <div>
               <p className="text-lg font-bold mb-0.5">Wybierz robotę</p>
@@ -6958,6 +7217,14 @@ function WorkerPhotoView({workerName, onLogout}: {workerName:string; onLogout:()
           </div>
         )}
       </div>
+
+      {privacyShield && (
+        <div className="fixed inset-0 z-[200] bg-background flex flex-col items-center justify-center px-6" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+          <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-12 w-auto object-contain opacity-40"/>
+          <p className="text-sm text-muted-foreground mt-4 text-center">W&G DOM</p>
+          <p className="text-xs text-muted-foreground/60 mt-2 text-center">Dane wypłat ukryte</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -7261,6 +7528,7 @@ function AppInnerWithAuth() {
     return (s as "admin"|"worker"|null) || "login";
   });
   const [workerName, setWorkerName] = useState(() => sessionStorage.getItem("wg-worker-name") || "");
+  const [workerId, setWorkerId] = useState(() => sessionStorage.getItem("wg-worker-id") || "");
   const [showChangePass, setShowChangePass] = useState(false);
 
   // Set default password on first ever launch
@@ -7276,18 +7544,19 @@ function AppInnerWithAuth() {
     sessionStorage.setItem("wg-worker-name", emp.name);
     sessionStorage.setItem("wg-worker-id", emp.id);
     setWorkerName(emp.name);
+    setWorkerId(emp.id);
     setAppMode("worker");
   };
   const logout = () => {
     sessionStorage.removeItem("wg-session-mode");
     sessionStorage.removeItem("wg-worker-name");
     sessionStorage.removeItem("wg-worker-id");
-    setAppMode("login"); setWorkerName("");
+    setAppMode("login"); setWorkerName(""); setWorkerId("");
   };
 
   if (shareToken) return <ClientShareView token={shareToken}/>;
   if (appMode === "login") return <LoginScreen onAdmin={enterAdmin} onWorker={enterWorker}/>;
-  if (appMode === "worker") return <WorkerPhotoView workerName={workerName} onLogout={logout}/>;
+  if (appMode === "worker") return <WorkerPhotoView workerName={workerName} workerId={workerId} onLogout={logout}/>;
   return (
     <>
       <AppInner onLogout={logout} onChangePassword={()=>setShowChangePass(true)}/>
