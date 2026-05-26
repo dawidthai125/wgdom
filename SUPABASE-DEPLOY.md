@@ -82,6 +82,8 @@ Funkcja składa się z **dwóch plików**. Oba muszą być na serwerze.
 | POST | `/send-backup-email` | Auto-backup w poniedziałek |
 | POST | `/send-job-email` | Email z roboty (v2.4) |
 | POST | `/send-payroll-email` | Email listy płac — PDF/Word + HTML (v2.7) |
+| GET | `/payroll-backup-status` | Kopie listy płac / archiwum (v2.7.1) |
+| POST | `/restore-payroll-backup` | Przywróć listę płac z kopii chmurowej (v2.7.1) |
 | **GET** | **`/client-share?token=...`** | **Link podglądu dla klienta (v2.5)** |
 
 | **GET** | **`/jobs-backup-status`** | **Ile robót w kopii prev/prev2 (v2.5.1)** |

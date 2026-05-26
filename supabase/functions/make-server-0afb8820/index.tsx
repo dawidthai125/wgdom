@@ -85,6 +85,107 @@ function isSuspiciousJobsShrink(prev: unknown[], next: unknown[]): boolean {
   return false;
 }
 
+function dayRichness(d: unknown): number {
+  if (!d || typeof d !== "object") return 0;
+  const day = d as Record<string, unknown>;
+  let s = 0;
+  if (day.active) s += 2;
+  if (day.from || day.to) s += 1;
+  s += (Array.isArray(day.extraHours) ? day.extraHours.length : 0) * 8;
+  s += (Array.isArray(day.notes) ? day.notes.length : 0) * 4;
+  if (parseFloat(String(day.zaliczka || "")) > 0) s += 1;
+  return s;
+}
+
+function weekEmployeeRichness(emp: unknown): number {
+  if (!emp || typeof emp !== "object") return 0;
+  const e = emp as Record<string, unknown>;
+  let s = 0;
+  const days = e.days as Record<string, unknown> | undefined;
+  if (days) for (const d of Object.values(days)) s += dayRichness(d);
+  s += dayRichness(e.prevSaturday);
+  s += (Array.isArray(e.extraCosts) ? e.extraCosts.length : 0) * 3;
+  return s;
+}
+
+function weekEmployeesRichness(list: unknown[]): number {
+  return list.reduce((sum, e) => sum + weekEmployeeRichness(e), 0);
+}
+
+function mergeWeekEmployeesUnion(prev: unknown[], next: unknown[]): unknown[] {
+  const map = new Map<string, unknown>();
+  const ingest = (list: unknown[]) => {
+    for (const item of list) {
+      if (!item || typeof item !== "object") continue;
+      const id = String((item as { id?: string }).id || "");
+      if (!id) continue;
+      const existing = map.get(id);
+      if (!existing || weekEmployeeRichness(item) >= weekEmployeeRichness(existing)) {
+        map.set(id, item);
+      }
+    }
+  };
+  ingest(prev);
+  ingest(next);
+  return [...map.values()];
+}
+
+function archiveWeekScore(w: unknown): number {
+  if (!w || typeof w !== "object") return 0;
+  const snap = w as { weekEmployees?: unknown[] };
+  const we = Array.isArray(snap.weekEmployees) ? snap.weekEmployees : [];
+  return weekEmployeesRichness(we) + we.length * 5;
+}
+
+function mergeArchiveUnion(prev: unknown[], next: unknown[]): unknown[] {
+  const map = new Map<string, unknown>();
+  const keyOf = (w: { id?: string; weekFrom?: string; weekTo?: string }) =>
+    w.id || `${w.weekFrom}|${w.weekTo}`;
+  const ingest = (list: unknown[]) => {
+    for (const item of list) {
+      if (!item || typeof item !== "object") continue;
+      const w = item as { id?: string; weekFrom?: string; weekTo?: string; weekEmployees?: unknown[] };
+      if (!w.weekFrom) continue;
+      const k = keyOf(w);
+      const existing = map.get(k);
+      if (!existing || archiveWeekScore(item) >= archiveWeekScore(existing)) {
+        map.set(k, item);
+      }
+    }
+  };
+  ingest(prev);
+  ingest(next);
+  return [...map.values()];
+}
+
+function isSuspiciousPayrollShrink(prev: unknown[], next: unknown[]): boolean {
+  if (next.length === 0 && prev.length > 0) return true;
+  const prevR = weekEmployeesRichness(prev);
+  const nextR = weekEmployeesRichness(next);
+  if (prevR >= 8 && nextR < prevR * 0.45) return true;
+  return false;
+}
+
+function isSuspiciousArchiveShrink(prev: unknown[], next: unknown[]): boolean {
+  if (next.length === 0 && prev.length > 0) return true;
+  const prevScore = prev.reduce((s, w) => s + archiveWeekScore(w), 0);
+  const nextScore = next.reduce((s, w) => s + archiveWeekScore(w), 0);
+  if (prevScore >= 10 && nextScore < prevScore * 0.45) return true;
+  return false;
+}
+
+function normalizeArrayKv(raw: unknown): unknown[] {
+  return Array.isArray(raw) ? raw : [];
+}
+
+async function rotateKvBackups(baseKey: string): Promise<void> {
+  const prev = await kv.get(baseKey);
+  if (prev == null) return;
+  const prev2 = await kv.get(`${baseKey}-prev`);
+  if (prev2 != null) await kv.set(`${baseKey}-prev2`, prev2);
+  await kv.set(`${baseKey}-prev`, prev);
+}
+
 async function rotateJobsBackups(prev: unknown): Promise<void> {
   const prev2 = await kv.get("kw-jobs-prev");
   if (prev2 != null) await kv.set("kw-jobs-prev2", prev2);
@@ -109,6 +210,32 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
             `kw-jobs: blocked suspicious shrink ${prevNorm.length} → ${nextNorm.length}, merging`,
           );
           nextNorm = mergeJobsUnion(prevNorm, nextNorm);
+        }
+      }
+      safeValues[i] = nextNorm;
+    } else if (keys[i] === "kw-week-employees") {
+      const prev = await kv.get("kw-week-employees");
+      let nextNorm = normalizeArrayKv(values[i]);
+      if (prev != null) {
+        await rotateKvBackups("kw-week-employees");
+        const prevNorm = normalizeArrayKv(prev);
+        if (isSuspiciousPayrollShrink(prevNorm, nextNorm)) {
+          console.log(
+            `kw-week-employees: blocked shrink richness ${weekEmployeesRichness(prevNorm)} → ${weekEmployeesRichness(nextNorm)}, merging`,
+          );
+          nextNorm = mergeWeekEmployeesUnion(prevNorm, nextNorm);
+        }
+      }
+      safeValues[i] = nextNorm;
+    } else if (keys[i] === "kw-archive") {
+      const prev = await kv.get("kw-archive");
+      let nextNorm = normalizeArrayKv(values[i]);
+      if (prev != null) {
+        await rotateKvBackups("kw-archive");
+        const prevNorm = normalizeArrayKv(prev);
+        if (isSuspiciousArchiveShrink(prevNorm, nextNorm)) {
+          console.log(`kw-archive: blocked suspicious shrink, merging`);
+          nextNorm = mergeArchiveUnion(prevNorm, nextNorm);
         }
       }
       safeValues[i] = nextNorm;
@@ -167,6 +294,77 @@ app.post("/make-server-0afb8820/restore-jobs-backup", async (c) => {
     return c.json({ ok: true, count: jobs.length, source });
   } catch (e) {
     console.error("restore-jobs-backup:", e);
+    return c.json({ ok: false, error: String(e) }, 500);
+  }
+});
+
+/** Status kopii listy płac / archiwum w chmurze. */
+app.get("/make-server-0afb8820/payroll-backup-status", async (c) => {
+  try {
+    const employees = normalizeArrayKv(await kv.get("kw-week-employees"));
+    const employeesPrev = normalizeArrayKv(await kv.get("kw-week-employees-prev"));
+    const employeesPrev2 = normalizeArrayKv(await kv.get("kw-week-employees-prev2"));
+    const archiveWeeks = normalizeArrayKv(await kv.get("kw-archive"));
+    const archivePrev = normalizeArrayKv(await kv.get("kw-archive-prev"));
+    const archivePrev2 = normalizeArrayKv(await kv.get("kw-archive-prev2"));
+    return c.json({
+      ok: true,
+      employees: employees.length,
+      employeesPrev: employeesPrev.length,
+      employeesPrev2: employeesPrev2.length,
+      archiveWeeks: archiveWeeks.length,
+      archivePrev: archivePrev.length,
+      archivePrev2: archivePrev2.length,
+      employeesPrevRichness: weekEmployeesRichness(employeesPrev),
+      employeesPrev2Richness: weekEmployeesRichness(employeesPrev2),
+    });
+  } catch (e) {
+    return c.json({ ok: false, error: String(e) }, 500);
+  }
+});
+
+/** Przywróć listę płac i archiwum z kopii chmurowej. */
+app.post("/make-server-0afb8820/restore-payroll-backup", async (c) => {
+  try {
+    let body: { source?: string } = {};
+    try {
+      body = await c.req.json();
+    } catch {
+      body = {};
+    }
+    const source = body.source || "prev";
+    const empKey = source === "prev2" ? "kw-week-employees-prev2" : "kw-week-employees-prev";
+    const archKey = source === "prev2" ? "kw-archive-prev2" : "kw-archive-prev";
+
+    const prevEmps = normalizeArrayKv(await kv.get(empKey));
+    const prevArch = normalizeArrayKv(await kv.get(archKey));
+    if (prevEmps.length === 0 && prevArch.length === 0) {
+      return c.json({ ok: false, error: "Brak kopii listy płac w chmurze" }, 404);
+    }
+
+    const currentEmps = normalizeArrayKv(await kv.get("kw-week-employees"));
+    const currentArch = normalizeArrayKv(await kv.get("kw-archive"));
+    if (currentEmps.length > 0) await rotateKvBackups("kw-week-employees");
+    if (currentArch.length > 0) await rotateKvBackups("kw-archive");
+
+    const mergedEmps = prevEmps.length > 0
+      ? mergeWeekEmployeesUnion(currentEmps, prevEmps)
+      : currentEmps;
+    const mergedArch = prevArch.length > 0
+      ? mergeArchiveUnion(currentArch, prevArch)
+      : currentArch;
+
+    if (prevEmps.length > 0) await kv.set("kw-week-employees", mergedEmps);
+    if (prevArch.length > 0) await kv.set("kw-archive", mergedArch);
+
+    return c.json({
+      ok: true,
+      source,
+      employees: mergedEmps.length,
+      archiveWeeks: mergedArch.length,
+    });
+  } catch (e) {
+    console.error("restore-payroll-backup:", e);
     return c.json({ ok: false, error: String(e) }, 500);
   }
 });

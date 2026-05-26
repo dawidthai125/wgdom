@@ -64,8 +64,95 @@ export function mergeJobsById(local: unknown[], cloud: unknown[]): unknown[] {
   return [...map.values()].sort((a, b) => (b.startDate || "").localeCompare(a.startDate || ""));
 }
 
+type DayLike = {
+  active?: boolean;
+  from?: string;
+  to?: string;
+  extraHours?: unknown[];
+  notes?: unknown[];
+  zaliczka?: string;
+};
+
+function dayRichness(d: DayLike | undefined): number {
+  if (!d) return 0;
+  let s = 0;
+  if (d.active) s += 2;
+  if (d.from || d.to) s += 1;
+  s += (d.extraHours?.length ?? 0) * 8;
+  s += (d.notes?.length ?? 0) * 4;
+  if (parseFloat(String(d.zaliczka || "")) > 0) s += 1;
+  return s;
+}
+
+/** Im wyżej, tym więcej godzin / Sob.pr. / dodatkowych wpisów. */
+export function weekEmployeeRichness(emp: unknown): number {
+  if (!emp || typeof emp !== "object") return 0;
+  const e = emp as Record<string, unknown>;
+  let s = 0;
+  const days = e.days as Record<string, DayLike> | undefined;
+  if (days) {
+    for (const d of Object.values(days)) s += dayRichness(d);
+  }
+  s += dayRichness(e.prevSaturday as DayLike);
+  s += ((e.extraCosts as unknown[])?.length ?? 0) * 3;
+  return s;
+}
+
+export function weekEmployeesListRichness(list: unknown): number {
+  if (!Array.isArray(list)) return 0;
+  return list.reduce((sum, e) => sum + weekEmployeeRichness(e), 0);
+}
+
+/** Scal listę płac tygodnia — po id pracownika, zachowaj bogatszą wersję. */
+export function mergeWeekEmployees(local: unknown[], cloud: unknown[]): unknown[] {
+  const map = new Map<string, unknown>();
+  const ingest = (list: unknown[]) => {
+    for (const item of list) {
+      if (!item || typeof item !== "object") continue;
+      const id = String((item as { id?: string }).id || "");
+      if (!id) continue;
+      const prev = map.get(id);
+      if (!prev || weekEmployeeRichness(item) >= weekEmployeeRichness(prev)) {
+        map.set(id, item);
+      }
+    }
+  };
+  ingest(Array.isArray(local) ? local : []);
+  ingest(Array.isArray(cloud) ? cloud : []);
+  return [...map.values()];
+}
+
+/** Scal archiwum tygodni — po id lub weekFrom|weekTo, zachowaj pełniejszy snapshot. */
+export function mergeArchive(local: unknown[], cloud: unknown[]): unknown[] {
+  type W = { id?: string; weekFrom?: string; weekTo?: string; weekEmployees?: unknown[] };
+  const map = new Map<string, W>();
+  const keyOf = (w: W) => (w.id ? w.id : `${w.weekFrom}|${w.weekTo}`);
+  const score = (w: W) => {
+    const we = w.weekEmployees;
+    const richness = Array.isArray(we) ? weekEmployeesListRichness(we) : 0;
+    return richness + (Array.isArray(we) ? we.length * 5 : 0);
+  };
+  const ingest = (list: unknown[]) => {
+    for (const item of list) {
+      const w = item as W;
+      if (!w?.weekFrom) continue;
+      const k = keyOf(w);
+      const prev = map.get(k);
+      if (!prev || score(w) >= score(prev)) map.set(k, w);
+    }
+  };
+  ingest(Array.isArray(local) ? local : []);
+  ingest(Array.isArray(cloud) ? cloud : []);
+  return [...map.values()].sort((a, b) => (b.weekFrom || "").localeCompare(a.weekFrom || ""));
+}
+
+export function normalizeArrayValue(raw: unknown): unknown[] {
+  return Array.isArray(raw) ? raw : [];
+}
+
 function sanitizeValueForCloud(key: string, value: unknown): unknown {
   if (key === "kw-jobs") return normalizeJobsValue(value);
+  if (key === "kw-week-employees" || key === "kw-archive") return normalizeArrayValue(value);
   return value;
 }
 
@@ -143,6 +230,50 @@ export async function restoreCloudJobsBackup(
     throw new Error(data.error || `restore failed (${res.status})`);
   }
   return { count: data.count as number };
+}
+
+/** Przywróć listę płac / archiwum z kopii chmurowej (prev / prev2). */
+export async function restoreCloudPayrollBackup(
+  source: "prev" | "prev2" = "prev",
+): Promise<{ employees: number; archiveWeeks: number }> {
+  if (!isSupabaseConfigured() || !API_BASE) {
+    throw new Error("Brak konfiguracji Supabase");
+  }
+  const res = await fetch(`${API_BASE}/restore-payroll-backup`, {
+    method: "POST",
+    headers: API_HEADERS,
+    body: JSON.stringify({ source }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok) {
+    throw new Error(data.error || `restore payroll failed (${res.status})`);
+  }
+  return { employees: data.employees as number, archiveWeeks: data.archiveWeeks as number };
+}
+
+export interface PayrollBackupStatus {
+  employees: number;
+  employeesPrev: number;
+  employeesPrev2: number;
+  archiveWeeks: number;
+  archivePrev: number;
+  archivePrev2: number;
+}
+
+export async function fetchPayrollBackupStatus(): Promise<PayrollBackupStatus | null> {
+  if (!isSupabaseConfigured() || !API_BASE) return null;
+  const res = await fetch(`${API_BASE}/payroll-backup-status`, { headers: API_HEADERS });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!data.ok) return null;
+  return {
+    employees: data.employees,
+    employeesPrev: data.employeesPrev,
+    employeesPrev2: data.employeesPrev2,
+    archiveWeeks: data.archiveWeeks,
+    archivePrev: data.archivePrev,
+    archivePrev2: data.archivePrev2,
+  };
 }
 
 /** Zapis jednego klucza — używaj przy pilnych zmianach (np. zdjęcia pracownika). */

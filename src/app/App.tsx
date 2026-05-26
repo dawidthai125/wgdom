@@ -20,12 +20,18 @@ import {
   DATA_KEYS,
   ADMIN_HASH_KEY,
   pushKeysToCloud,
+  pushKeysToCloud,
   pushAllDataToCloud,
   fetchKeysFromCloud,
   normalizeJobsValue,
   mergeJobsById,
   fetchJobsBackupStatus,
   restoreCloudJobsBackup,
+  mergeWeekEmployees,
+  mergeArchive,
+  weekEmployeesListRichness,
+  fetchPayrollBackupStatus,
+  restoreCloudPayrollBackup,
 } from "@/lib/cloud-sync";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
 import { isSupabaseConfigured } from "@/config/supabase";
@@ -1727,8 +1733,9 @@ function PayrollEmailModal({
 function PayrollView({
   weekEmployees, weekFrom, weekTo, directory, contacts,
   onWeekChange, onToggleSettled, onSaveWeek, savedWeeks,
-  onAddFromDirectory, onRemoveWeekEmployee, onUpdateWeekEmployee, onGoToCurrent,
+  onAddFromDirectory, onRemoveWeekEmployee, onUpdateWeekEmployee,   onGoToCurrent,
   onManageContacts,
+  onRestoreFromArchive,
 }:{
   weekEmployees: WeekEmployee[]; weekFrom:string; weekTo:string;
   directory: DirectoryEmployee[];
@@ -1742,6 +1749,7 @@ function PayrollView({
   onUpdateWeekEmployee:(emp:WeekEmployee)=>void;
   onGoToCurrent:()=>void;
   onManageContacts:()=>void;
+  onRestoreFromArchive?:()=>void;
 }) {
   const [selectedEmpId, setSelectedEmpId] = useState<string|null>(null);
   const [showPicker, setShowPicker] = useState(false);
@@ -1779,6 +1787,10 @@ function PayrollView({
   const totalNet = rows.reduce((s,r)=>s+r.netPay,0);
 
   const alreadySaved = savedWeeks.some((w)=>w.weekFrom===weekFrom&&w.weekTo===weekTo);
+  const archivedForWeek = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+  const archiveRichness = archivedForWeek?.weekEmployees ? weekEmployeesListRichness(archivedForWeek.weekEmployees) : 0;
+  const currentRichness = weekEmployeesListRichness(weekEmployees);
+  const showRestoreBanner = Boolean(onRestoreFromArchive && archivedForWeek?.weekEmployees?.length && archiveRichness > currentRichness + 1);
 
   // Directory employees not yet in this week
   const assignedDirIds = new Set(weekEmployees.map((e)=>e.directoryId).filter(Boolean));
@@ -1842,6 +1854,19 @@ function PayrollView({
                   <p className="text-xs text-muted-foreground">Kliknij „Zapisz tydzień”, aby zarchiwizować listę płac. W sobotę wysyłany jest też jeden backup emailem (raz na tydzień).</p>
                 </div>
                 <button onClick={()=>setSatDismissed(true)} className="p-1 text-muted-foreground hover:text-foreground transition-colors shrink-0"><X size={14}/></button>
+              </div>
+            )}
+
+            {showRestoreBanner && (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-amber-500/10 border border-amber-500/25 rounded-xl px-4 py-3">
+                <AlertTriangle size={15} className="text-amber-400 shrink-0 hidden sm:block"/>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-amber-400">W archiwum jest pełniejsza wersja tego tygodnia</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Brakuje godzin Sob.pr. lub dodatkowych wpisów? Przywróć z zapisanego archiwum.</p>
+                </div>
+                <button type="button" onClick={onRestoreFromArchive} className="shrink-0 px-4 py-2 rounded-lg bg-amber-500/20 text-amber-300 text-sm font-medium hover:bg-amber-500/30 transition-colors">
+                  Przywróć z archiwum
+                </button>
               </div>
             )}
 
@@ -5630,23 +5655,66 @@ function CloudLoader({children}: {children: React.ReactNode}) {
 
     fetchKeysFromCloud(keys)
       .then((values) => {
+        const pushKeys: string[] = [];
+        const pushValues: unknown[] = [];
+
         keys.forEach((key, i) => {
-          let v = values[i];
+          let cloudVal = values[i];
+          let localVal: unknown = null;
+          try {
+            const raw = localStorage.getItem(key);
+            if (raw) localVal = JSON.parse(raw);
+          } catch { /* ignore */ }
+
+          let merged: unknown = cloudVal;
+
           if (key === "kw-jobs") {
-            let localJobs: unknown[] = [];
-            try {
-              localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]"));
-            } catch { /* ignore */ }
-            const cloudJobs = normalizeJobsValue(v);
-            const merged = mergeJobsById(localJobs, cloudJobs);
-            v = merged;
-            if (merged.length > cloudJobs.length && isSupabaseConfigured()) {
-              pushKeysToCloud(["kw-jobs"], [merged]).catch(() => {});
-            }
+            merged = mergeJobsById(
+              normalizeJobsValue(localVal ?? []),
+              normalizeJobsValue(cloudVal),
+            );
+          } else if (key === "kw-week-employees") {
+            merged = mergeWeekEmployees(
+              Array.isArray(localVal) ? localVal : [],
+              Array.isArray(cloudVal) ? cloudVal : [],
+            );
+          } else if (key === "kw-archive") {
+            merged = mergeArchive(
+              Array.isArray(localVal) ? localVal : [],
+              Array.isArray(cloudVal) ? cloudVal : [],
+            );
+          } else if (key === "kw-weekFrom" || key === "kw-weekTo") {
+            merged = typeof cloudVal === "string" && cloudVal ? cloudVal : (localVal ?? cloudVal);
+          } else if (localVal != null && (cloudVal == null || (Array.isArray(cloudVal) && cloudVal.length === 0))) {
+            merged = localVal;
           }
-          const hasRealData = v != null && !(Array.isArray(v) && v.length === 0);
-          if (hasRealData) localStorage.setItem(key, JSON.stringify(v));
+
+          const hasRealData = merged != null && !(Array.isArray(merged) && merged.length === 0);
+          if (hasRealData) localStorage.setItem(key, JSON.stringify(merged));
+
+          if (!isSupabaseConfigured()) return;
+
+          const cloudEmpty = cloudVal == null || (Array.isArray(cloudVal) && cloudVal.length === 0);
+          let shouldPush = cloudEmpty && hasRealData;
+          if (key === "kw-week-employees") {
+            shouldPush = shouldPush || weekEmployeesListRichness(merged) > weekEmployeesListRichness(cloudVal) + 1;
+          } else if (key === "kw-jobs") {
+            shouldPush = shouldPush || normalizeJobsValue(merged).length > normalizeJobsValue(cloudVal).length;
+          } else if (key === "kw-archive") {
+            const mLen = Array.isArray(merged) ? merged.length : 0;
+            const cLen = Array.isArray(cloudVal) ? cloudVal.length : 0;
+            shouldPush = shouldPush || mLen > cLen;
+          } else if (key !== "kw-weekFrom" && key !== "kw-weekTo" && hasRealData && JSON.stringify(merged) !== JSON.stringify(cloudVal)) {
+            shouldPush = true;
+          }
+
+          if (shouldPush && key !== "kw-weekFrom" && key !== "kw-weekTo") {
+            pushKeys.push(key);
+            pushValues.push(merged);
+          }
         });
+
+        if (pushKeys.length > 0) pushKeysToCloud(pushKeys, pushValues).catch(() => {});
       })
       .catch(() => {})
       .finally(() => { clearTimeout(fallback); setReady(true); });
@@ -5685,11 +5753,15 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
   const initialSyncDone = useRef(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [jobsBackupStatus, setJobsBackupStatus] = useState<{ current: number; prev: number; prev2: number; today: number } | null>(null);
+  const [payrollBackupStatus, setPayrollBackupStatus] = useState<{ employeesPrev: number; employeesPrev2: number; archivePrev: number } | null>(null);
   const [restoreBusy, setRestoreBusy] = useState(false);
 
   useEffect(() => {
     fetchJobsBackupStatus().then(setJobsBackupStatus).catch(() => {});
-  }, [jobs.length]);
+    fetchPayrollBackupStatus().then((s) => {
+      if (s) setPayrollBackupStatus({ employeesPrev: s.employeesPrev, employeesPrev2: s.employeesPrev2, archivePrev: s.archivePrev });
+    }).catch(() => {});
+  }, [jobs.length, weekEmployees.length, savedWeeks.length]);
 
   const pushToCloud = pushAllDataToCloud;
 
@@ -5712,12 +5784,9 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
     }
   }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts]);
 
-  // On mount: push existing local data to cloud (first-time sync from laptop)
+  // Po CloudLoader (merge chmura↔local) — zapis tylko przy zmianach użytkownika
   useEffect(() => {
-    const hasData = directory.length>0 || jobs.length>0 || weekEmployees.length>0 || savedWeeks.length>0;
-    if (!hasData) { initialSyncDone.current = true; return; }
-    runCloudSync().finally(() => { initialSyncDone.current = true; });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    initialSyncDone.current = true;
   }, []);
 
   // Auto-save to cloud on any data change (debounced 2s, only after initial sync)
@@ -5743,6 +5812,14 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
         if (data["kw-jobs"] != null) {
           const local = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]"));
           data["kw-jobs"] = mergeJobsById(local, normalizeJobsValue(data["kw-jobs"]));
+        }
+        if (data["kw-week-employees"] != null) {
+          const local = JSON.parse(localStorage.getItem("kw-week-employees") || "[]");
+          data["kw-week-employees"] = mergeWeekEmployees(local, data["kw-week-employees"]);
+        }
+        if (data["kw-archive"] != null) {
+          const local = JSON.parse(localStorage.getItem("kw-archive") || "[]");
+          data["kw-archive"] = mergeArchive(local, data["kw-archive"]);
         }
         Object.entries(data).forEach(([k,v])=>localStorage.setItem(k,JSON.stringify(v)));
         const keys = [...DATA_KEYS].filter(k => data[k] != null);
@@ -5791,6 +5868,41 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
     pushKeysToCloud(["kw-jobs"], [merged]).catch(() => {});
     alert(`Przywrócono lokalną kopię. Łącznie robot: ${merged.length}.`);
   };
+
+  const restorePayrollFromCloud = async (source: "prev" | "prev2" = "prev") => {
+    const label = source === "prev2" ? "starszą kopię" : "poprzedni zapis";
+    if (!window.confirm(`Przywrócić listę płac i archiwum z chmury (${label})? Połączy z obecnymi danymi — bogatsze wpisy wygrywają.`)) return;
+    setRestoreBusy(true);
+    try {
+      await restoreCloudPayrollBackup(source);
+      const [cloudEmps, cloudArch] = await fetchKeysFromCloud(["kw-week-employees", "kw-archive"]);
+      const mergedEmps = mergeWeekEmployees(weekEmployees, cloudEmps ?? []) as WeekEmployee[];
+      const mergedArch = mergeArchive(savedWeeks, cloudArch ?? []) as WeekSnapshot[];
+      localStorage.setItem("kw-week-employees", JSON.stringify(mergedEmps));
+      localStorage.setItem("kw-archive", JSON.stringify(mergedArch));
+      setWeekEmployees(mergedEmps);
+      setSavedWeeks(mergedArch);
+      await pushKeysToCloud(["kw-week-employees", "kw-archive"], [mergedEmps, mergedArch]);
+      alert(`Przywrócono listę płac (${mergedEmps.length} prac.) i archiwum (${mergedArch.length} tyg.).`);
+      fetchPayrollBackupStatus().then((s) => {
+        if (s) setPayrollBackupStatus({ employeesPrev: s.employeesPrev, employeesPrev2: s.employeesPrev2, archivePrev: s.archivePrev });
+      }).catch(() => {});
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Nie udało się przywrócić listy płac z chmury.");
+    } finally {
+      setRestoreBusy(false);
+    }
+  };
+
+  const restoreWeekFromArchive = useCallback(() => {
+    const snap = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+    if (!snap?.weekEmployees?.length) {
+      alert("Brak pełnego archiwum dla tego tygodnia. Sprawdź zakładkę Archiwum lub import backup JSON (menu Dane).");
+      return;
+    }
+    if (!window.confirm(`Przywrócić godziny, Sob.pr. i dodatkowe wpisy z archiwum (${fmtDate(weekFrom)} – ${fmtDate(weekTo)})?`)) return;
+    setWeekEmployees(JSON.parse(JSON.stringify(snap.weekEmployees)) as WeekEmployee[]);
+  }, [savedWeeks, weekFrom, weekTo, setWeekEmployees]);
 
   // Auto-backup email — tylko w sobotę, po zapisie tygodnia do archiwum (patrz triggerWeeklyBackupEmail)
 
@@ -5979,6 +6091,14 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
           )}
           <button
             type="button"
+            disabled={restoreBusy || !payrollBackupStatus?.employeesPrev}
+            onClick={() => restorePayrollFromCloud("prev")}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10 transition-colors disabled:opacity-40"
+          >
+            <RotateCcw size={13}/>Przywróć listę płac (chmura)
+          </button>
+          <button
+            type="button"
             disabled={restoreBusy || !jobsBackupStatus?.prev}
             onClick={() => restoreJobsFromCloud("prev")}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10 transition-colors disabled:opacity-40"
@@ -6106,7 +6226,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
         {/* Content */}
         <div className="flex flex-1 min-h-0 overflow-hidden pb-16 sm:pb-0">
           {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate}/>}
-          {view==="payroll"&&<PayrollView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")}/>}
+          {view==="payroll"&&<PayrollView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} onChange={setDirectory}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
