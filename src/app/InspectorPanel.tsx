@@ -5,7 +5,7 @@ import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   MapPin, LogOut, Search, ArrowLeft, FileText, ClipboardList, Ruler,
   CheckCircle2, Circle, ImagePlus, Download, Upload, Phone, Users,
-  ChevronDown, ChevronUp, Eye, Camera, X, FileCheck, AlertCircle,
+  ChevronDown, ChevronUp, Eye, Camera, X, FileCheck, AlertCircle, BookOpen,
 } from "lucide-react";
 import {
   fetchKeysFromCloud,
@@ -36,6 +36,8 @@ import {
   inspectorFileUploadText,
   type JobActivity,
 } from "@/lib/job-activity";
+import { recordInspectorEvent } from "@/lib/inspector-stats";
+import { InspectorHelpBanner, InspectorHelpModal, InspectorHint } from "@/app/InspectorHelp";
 
 type JobStatus = "in_progress" | "completed";
 
@@ -156,9 +158,11 @@ async function downloadUrlAsFile(url: string, filename: string) {
 }
 
 export function InspectorPanel({
+  inspectorId,
   displayName,
   onLogout,
 }: {
+  inspectorId: string;
   displayName: string;
   onLogout: () => void;
 }) {
@@ -172,6 +176,7 @@ export function InspectorPanel({
   const [msg, setMsg] = useState("");
   const [openReportId, setOpenReportId] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; label: string } | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const persistJobs = useCallback((next: InspectorJob[]) => {
     setJobs(next);
@@ -188,6 +193,12 @@ export function InspectorPanel({
       return next;
     });
   }, [persistJobs]);
+
+  useEffect(() => {
+    if (sessionStorage.getItem("wg-inspector-visit-recorded") === inspectorId) return;
+    sessionStorage.setItem("wg-inspector-visit-recorded", inspectorId);
+    recordInspectorEvent(inspectorId, displayName, "visit").catch(() => {});
+  }, [inspectorId, displayName]);
 
   useEffect(() => {
     fetchKeysFromCloud(["kw-jobs", "kw-directory", JOBS_DELETED_IDS_KEY])
@@ -299,10 +310,23 @@ export function InspectorPanel({
             <p className="text-[10px] text-muted-foreground truncate">Inspektor · Wrocławskie Mieszkania</p>
           </div>
         </div>
-        <button type="button" onClick={onLogout} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-3 py-2.5 min-h-[44px] rounded-lg hover:bg-secondary shrink-0">
-          <LogOut size={14}/>Wyloguj
-        </button>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => setHelpOpen(true)}
+            className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 px-3 py-2.5 min-h-[44px] rounded-lg"
+            title="Instrukcja"
+          >
+            <BookOpen size={14}/><span className="hidden sm:inline">Pomoc</span>
+          </button>
+          <button type="button" onClick={onLogout} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-3 py-2.5 min-h-[44px] rounded-lg hover:bg-secondary">
+            <LogOut size={14}/>Wyloguj
+          </button>
+        </div>
       </header>
+
+      <InspectorHelpBanner onOpenHelp={() => setHelpOpen(true)}/>
+      <InspectorHelpModal open={helpOpen} onClose={() => setHelpOpen(false)}/>
 
       {!selectedJob ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -316,7 +340,10 @@ export function InspectorPanel({
                 className="w-full bg-secondary rounded-xl pl-9 pr-3 py-2.5 border border-transparent focus:border-primary focus:outline-none"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              <span className="text-[10px] text-muted-foreground shrink-0 hidden sm:inline">
+                Filtr<InspectorHint text="Aktywne = remont trwa. Zdane = klucze oddane. Wszystkie = pełna lista."/>
+              </span>
               {(["active", "completed", "all"] as const).map((f) => (
                 <button
                   key={f}
@@ -410,13 +437,16 @@ export function InspectorPanel({
             <div className="grid sm:grid-cols-2 gap-3">
               {(["zlecenie", "kosztorys"] as const).map((kind) => {
                 const label = kind === "zlecenie" ? "Zlecenie (PDF)" : "Kosztorys (NORMA/PDF)";
+                const hint = kind === "zlecenie"
+                  ? "Zaznacz „Jest” gdy wystawiłeś zlecenie (np. mailem). Wgraj PDF — firma zobaczy go w Robotach."
+                  : "Kosztorys z programu NORMA. Wgraj plik (PDF, NOR, XML…) — admin też go pobierze z Roboty.";
                 const accept = kind === "zlecenie" ? ZLECENIE_ACCEPT : KOSZTORYS_ACCEPT;
                 const file = latestJobFile(selectedJob, kind);
                 const checked = selectedJob.documents[kind];
                 return (
                   <div key={kind} className={`rounded-2xl border p-4 space-y-3 ${checked ? "border-green-500/30 bg-green-500/5" : "border-border bg-card"}`}>
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-semibold">{label}</p>
+                      <p className="text-sm font-semibold flex items-center">{label}<InspectorHint text={hint}/></p>
                       <button
                         type="button"
                         onClick={() => toggleDoc(selectedJob, kind)}
@@ -457,6 +487,7 @@ export function InspectorPanel({
             <div className="bg-card border border-border rounded-2xl p-4">
               <p className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <ClipboardList size={15}/> Dokumentacja robót
+                <InspectorHint text="Kliknij pole — zaznaczasz że mamy ten dokument. Żółte = wymagane przy odbiorze. Admin widzi to samo w Robotach."/>
               </p>
               <div className="grid grid-cols-2 gap-2">
                 {DOCUMENT_TYPES.map((doc) => {
@@ -485,7 +516,10 @@ export function InspectorPanel({
 
             {/* Pracownicy */}
             <div className="bg-card border border-border rounded-2xl p-4">
-              <p className="text-sm font-semibold mb-3 flex items-center gap-2"><Users size={15}/> Pracownicy na robocie</p>
+              <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Users size={15}/> Pracownicy na robocie
+                <InspectorHint text="Kto był przypisany do tego adresu — możesz zadzwonić. Bez wypłat i stawek."/>
+              </p>
               {uniqueWorkersOnJob(selectedJob, directory).length === 0 ? (
                 <p className="text-xs text-muted-foreground">Brak wpisów czasu pracy</p>
               ) : (
@@ -510,7 +544,10 @@ export function InspectorPanel({
             {/* Raporty — zakres i wymiary */}
             <div className="bg-card border border-border rounded-2xl overflow-hidden">
               <div className="px-4 py-3 border-b border-border">
-                <p className="text-sm font-semibold flex items-center gap-2"><Ruler size={15}/> Zakresy i wymiary</p>
+                <p className="text-sm font-semibold flex items-center gap-2">
+                  <Ruler size={15}/> Zakresy i wymiary
+                  <InspectorHint text="Raporty ekipy z budowy — zakres prac, metraże, zdjęcia rysunków. Rozwiń strzałką. Ważne przy odbiorze WM."/>
+                </p>
               </div>
               {(selectedJob.workerReports || []).length === 0 ? (
                 <p className="px-4 py-6 text-xs text-muted-foreground text-center">Brak raportów od pracowników</p>
@@ -590,7 +627,10 @@ export function InspectorPanel({
             {/* Galeria zdjęć */}
             <div className="bg-card border border-border rounded-2xl p-4">
               <div className="flex items-center justify-between gap-2 mb-3">
-                <p className="text-sm font-semibold flex items-center gap-2"><ImagePlus size={15}/> Galeria zdjęć</p>
+                <p className="text-sm font-semibold flex items-center gap-2">
+                  <ImagePlus size={15}/> Galeria zdjęć
+                  <InspectorHint text="Tylko zdjęcia zaakceptowane przez firmę. Pobierz pojedynczo lub wszystkie — np. do odbioru lub dokumentacji WM."/>
+                </p>
                 {(selectedJob.photos || []).filter((p) => p.status === "approved").length > 0 && (
                   <button type="button" onClick={() => downloadAllPhotos(selectedJob)} className="text-xs text-primary flex items-center gap-1 hover:underline">
                     <Download size={12}/> Pobierz wszystkie

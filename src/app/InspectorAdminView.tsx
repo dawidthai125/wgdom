@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   ClipboardCheck, Search, MapPin, FileText, CheckCircle2, Upload,
-  ExternalLink, ChevronRight, Filter,
+  ExternalLink, ChevronRight, Filter, LogIn, Eye,
 } from "lucide-react";
 import {
   collectInspectorFeed,
@@ -9,6 +9,12 @@ import {
   type InspectorActivityType,
   type JobWithActivity,
 } from "@/lib/job-activity";
+import {
+  syncInspectorStatsFromCloud,
+  summarizeInspectorStats,
+  fmtInspectorStatsTime,
+  type InspectorStatsStore,
+} from "@/lib/inspector-stats";
 
 type FilterKind = "all" | InspectorActivityType;
 
@@ -114,6 +120,16 @@ export function InspectorAdminView({
 }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterKind>("all");
+  const [statsStore, setStatsStore] = useState<InspectorStatsStore | null>(null);
+
+  useEffect(() => {
+    syncInspectorStatsFromCloud().then(setStatsStore).catch(() => setStatsStore(null));
+  }, []);
+
+  const loginStats = useMemo(
+    () => (statsStore ? summarizeInspectorStats(statsStore) : null),
+    [statsStore],
+  );
 
   const feed = useMemo(() => collectInspectorFeed(jobs), [jobs]);
 
@@ -168,6 +184,42 @@ export function InspectorAdminView({
             </div>
           ))}
         </div>
+
+        {loginStats && (
+          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+              <LogIn size={12}/> Statystyki logowań i wejść
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center sm:text-left">
+              <div>
+                <p className="text-[10px] text-muted-foreground">Logowania (7 dni)</p>
+                <p className="text-base font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{loginStats.loginsLast7Days}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground">Wejścia (7 dni)</p>
+                <p className="text-base font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{loginStats.visitsLast7Days}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground">Ostatnie logowanie</p>
+                <p className="text-[11px] font-medium mt-0.5">{fmtInspectorStatsTime(loginStats.lastLoginAt)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground">Ostatnie wejście</p>
+                <p className="text-[11px] font-medium mt-0.5">{fmtInspectorStatsTime(loginStats.lastVisitAt)}</p>
+              </div>
+            </div>
+            {loginStats.byUser.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-1 border-t border-emerald-500/10">
+                {loginStats.byUser.map((u) => (
+                  <span key={u.userId} className="text-[10px] bg-secondary px-2 py-1 rounded-full text-muted-foreground">
+                    <Eye size={9} className="inline mr-0.5 -mt-px"/>
+                    {u.displayName}: {u.logins} log. / {u.visits} wej.
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">

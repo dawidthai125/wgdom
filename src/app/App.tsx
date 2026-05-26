@@ -95,6 +95,11 @@ import {
   syncJobDocumentsFromFiles,
   type InspectorJobFileKind,
 } from "@/lib/job-documents";
+import {
+  recordInspectorEvent,
+  markInspectorFeedSeen,
+  getUnseenInspectorFeed,
+} from "@/lib/inspector-stats";
 import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
@@ -6438,9 +6443,10 @@ function DashboardView({
   weekEmployees: WeekEmployee[];
   weekFrom: string; weekTo: string;
   savedWeeks: WeekSnapshot[];
-  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string, payrollEmpId?: string) => void;
+  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule" | "inspector", jobId?: string, payrollEmpId?: string) => void;
   onFixJobs: (updater: (prev: Job[]) => Job[]) => void;
 }) {
+  const [inspectorSeenTick, setInspectorSeenTick] = useState(0);
   const todayKey = todayDayKey();
   const todayIso = todayIsoDate();
   const workingToday = weekEmployees.filter((e) => todayKey && dayTotalHours(e.days[todayKey]) > 0);
@@ -6518,6 +6524,16 @@ function DashboardView({
     [weekEmployees, jobs, weekFrom, weekTo, directory],
   );
 
+  const unseenInspectorFeed = useMemo(
+    () => getUnseenInspectorFeed(jobs),
+    [jobs, inspectorSeenTick],
+  );
+
+  const markInspectorAlertsSeen = () => {
+    markInspectorFeedSeen();
+    setInspectorSeenTick((t) => t + 1);
+  };
+
   const currentWeekRange = getWeekRange();
   const isCurrentPayrollWeek = weekFrom === currentWeekRange.from && weekTo === currentWeekRange.to;
   const weekSaved = savedWeeks.some((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
@@ -6541,7 +6557,8 @@ function DashboardView({
     jobsMissingDocs.length +
     pendingPhotos.length +
     pendingReceipts.length +
-    pendingReports.length;
+    pendingReports.length +
+    unseenInspectorFeed.length;
 
   const handleFixConsistency = (alert: PayrollJobConsistencyAlert) => {
     onFixJobs((prev) => fixJobsForConsistencyAlert(prev, alert, weekEmployees, weekFrom, weekTo, directory));
@@ -6894,6 +6911,48 @@ function DashboardView({
                     ))}
                     {pendingReports.length > 5 && (
                       <p className="text-[10px] text-muted-foreground">+ {pendingReports.length - 5} więcej</p>
+                    )}
+                  </div>
+                </div>
+              )}
+              {unseenInspectorFeed.length > 0 && (
+                <div className="px-5 py-3.5">
+                  <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                    <p className="text-sm font-medium flex items-center gap-2">
+                      <ClipboardCheck size={14} className="text-emerald-500"/>
+                      Inspektor — nowe zmiany
+                      <span className="text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full font-bold">
+                        {unseenInspectorFeed.length}
+                      </span>
+                    </p>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button type="button" onClick={markInspectorAlertsSeen} className="text-[10px] text-muted-foreground hover:text-foreground">
+                        Oznacz przeczytane
+                      </button>
+                      <button type="button" onClick={() => onNavigate("inspector")} className="text-xs text-primary hover:underline">
+                        Inspektor →
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    {unseenInspectorFeed.slice(0, 6).map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => onNavigate("jobs", item.jobId)}
+                        className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">{item.actor}</span>
+                        {" · "}
+                        <span className="text-foreground/90">{item.text}</span>
+                        {" · "}
+                        <span className="text-foreground">{item.jobAddress || "Bez adresu"}</span>
+                        {" · "}
+                        {fmtDate(item.at.slice(0, 10))}
+                      </button>
+                    ))}
+                    {unseenInspectorFeed.length > 6 && (
+                      <p className="text-[10px] text-muted-foreground">+ {unseenInspectorFeed.length - 6} więcej w zakładce Inspektor</p>
                     )}
                   </div>
                 </div>
@@ -7401,7 +7460,8 @@ function HelpView() {
               {q:"Dokumenty i zakresy", a:"Checklista dokumentów (zlecenie, zakres, kominiarz, pomiary…). Sekcja raportów pracowników: zakres prac, wymiary pomieszczeń, zdjęcia rysunków z opisami."},
               {q:"Galeria zdjęć", a:"Tylko zdjęcia zaakceptowane przez admina. Pobierz pojedyncze lub „Pobierz wszystkie” z danej roboty."},
               {q:"Kto zarządza kontem inspektora?", a:"Super Administrator (Dawid) w panelu ⚙ — zmiana hasła, dodawanie kolejnych inspektorów. Hasła sync w chmurze jak u adminów."},
-              {q:"Gdzie admin widzi zmiany inspektora?", a:"Zakładka Inspektor — oś czasu wszystkich zmian. W Robotach ta sama robota ma sekcję Zlecenie · Kosztorys (ptaszki i pliki na żywo) oraz zielone ptaszki w siatce dokumentów. Lista robót pokazuje skrót Zlec./Kosz."},
+              {q:"Gdzie admin widzi zmiany inspektora?", a:"Pulpit → „Uwaga dziś” (nowe zmiany od ostatniego przeczytania) oraz zakładka Inspektor — oś czasu + statystyki logowań. W Robotach sekcja Zlecenie · Kosztorys na żywo."},
+              {q:"Instrukcja dla inspektora", a:"W panelu inspektora: przycisk Pomoc / baner przy pierwszym wejściu. Dymki ? przy sekcjach wyjaśniają co kliknąć. Instrukcja opisuje zlecenia, kosztorysy NORMA, dokumenty, zdjęcia i raporty."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-secondary/30">
@@ -7516,7 +7576,7 @@ function HelpView() {
             {icon:Scale, title:"Spójność listy płac ↔ roboty", desc:"Porównywana jest suma godzin z listy płac z wpisami na robotach. Pracownik z „Wiele robót dziennie” w kartotece jest pomijany (logistyka, kierowca)."},
             {icon:BarChart3, title:"Karta pracownika z archiwum", desc:"Pracownicy → ikona wykresu przy osobie: roczne godziny, wypłaty, słupki miesięczne i lista tygodni z archiwum."},
             {icon:FileDown, title:"Raport roczny PDF", desc:"Archiwum → wybierz rok → „Raport roczny PDF”: wypłaty × 12 miesięcy, roboty zdane, średni koszt roboczogodziny."},
-            {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"Sekcja „Uwaga dziś”: zdjęcia do akceptacji, nowe raporty od pracowników, paragony, nierozliczeni (piątek), spójność godzin, dokumenty. Klik w wiersz → otwiera robotę lub listę płac."},
+            {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"Sekcja „Uwaga dziś”: zdjęcia, raporty, paragony, inspektor (nowe zmiany), spójność godzin, dokumenty. Klik w wiersz → otwiera robotę, listę płac lub Inspektora."},
             {icon:CalendarDays, title:"Grafik tygodniowy", desc:"Menu Grafik — cały tydzień na jednym ekranie. Godziny z listy płac (łącznie z dodatkowymi blokami), adres z wpisu na robocie."},
             {icon:Wallet, title:"Koszty do zwrotu vs zaliczka", desc:"Zaliczka = pieniądze wzięte z góry (odejmowane). Koszty do zwrotu = pracownik zapłacił z własnej kieszeni (doliczane). Oba wpisujesz w panelu pracownika w Liście Płac."},
             {icon:Clock, title:"Dodatkowe godziny w dniu", desc:"Pod każdym dniem w panelu pracownika: „Dodatkowe godziny w …” → opis + od–do. Wliczają się do wypłaty, grafiku i PDF."},
@@ -7591,6 +7651,15 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.10.3", label:"Inspektor — statystyki, alerty, instrukcja",
+    items:[
+      {type:"new", text:"Admin → Inspektor: statystyki logowań i wejść (7 dni, ostatnie logowanie, per użytkownik)"},
+      {type:"new", text:"Pulpit „Uwaga dziś” — alerty gdy inspektor coś zmienił/wgrał (link do roboty i zakładki Inspektor)"},
+      {type:"new", text:"Panel inspektora — instrukcja krok po kroku, baner pierwszego wejścia, dymki ? przy sekcjach"},
+      {type:"improve", text:"Liczenie logowań/wejść sync w chmurze (kw-inspector-stats)"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.10.2", label:"Roboty ↔ Inspektor — wspólne dane",
     items:[
@@ -8774,6 +8843,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     () => filterProductionWeekEmployees(weekEmployees, directory),
     [weekEmployees, directory],
   );
+
+  useEffect(() => {
+    if (view === "inspector") markInspectorFeedSeen();
+  }, [view]);
 
   useEffect(() => {
     const normalized = normalizeDirectoryTestFlags(directory);
@@ -11884,7 +11957,9 @@ function AppInnerWithAuth() {
     setInspectorSession(session);
     setAdminSession(null);
     sessionStorage.setItem("wg-session-mode", "inspector");
+    sessionStorage.removeItem("wg-inspector-visit-recorded");
     setAppMode("inspector");
+    recordInspectorEvent(session.id, session.displayName, "login").catch(() => {});
   };
   const enterWorker = (emp: DirectoryEmployee) => {
     sessionStorage.setItem("wg-session-mode","worker");
@@ -11898,6 +11973,7 @@ function AppInnerWithAuth() {
     sessionStorage.removeItem("wg-session-mode");
     sessionStorage.removeItem("wg-worker-name");
     sessionStorage.removeItem("wg-worker-id");
+    sessionStorage.removeItem("wg-inspector-visit-recorded");
     saveAdminSessionToStorage(null);
     setAdminSession(null);
     setInspectorSession(null);
@@ -11908,7 +11984,7 @@ function AppInnerWithAuth() {
   if (appMode === "login") return <LoginScreen onAdmin={enterAdmin} onInspector={enterInspector} onWorker={enterWorker}/>;
   if (appMode === "worker") return <WorkerPhotoView workerName={workerName} workerId={workerId} onLogout={logout}/>;
   if (appMode === "inspector" && inspectorSession) {
-    return <InspectorPanel displayName={inspectorSession.displayName} onLogout={logout}/>;
+    return <InspectorPanel inspectorId={inspectorSession.id} displayName={inspectorSession.displayName} onLogout={logout}/>;
   }
   if (!adminSession) return <LoginScreen onAdmin={enterAdmin} onInspector={enterInspector} onWorker={enterWorker}/>;
   return (
