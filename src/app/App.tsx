@@ -9285,7 +9285,7 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:(session: AdminSession)=>void
               >
                 {adminUsers.map((u) => (
                   <option key={u.id} value={u.id}>
-                    {u.displayName} — {adminRoleLabel(u.role)}
+                    {u.displayName}
                   </option>
                 ))}
               </select>
@@ -9295,11 +9295,6 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:(session: AdminSession)=>void
               <PasswordField value={password} show={passShow} onToggle={()=>setPassShow(v=>!v)}
                 onChange={v=>{setPassword(v);setPassError("");}} onEnter={handleAdminLogin} autoFocus/>
               {passError && <p className="text-xs text-destructive">{passError}</p>}
-              {selectedAdmin?.role === "moderator" && (
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Moderator — bez podglądu stawek godzinowych (PLN/h). Godziny, roboty i grafik bez zmian.
-                </p>
-              )}
               <label className="flex items-start gap-2.5 cursor-pointer select-none pt-1">
                 <input
                   type="checkbox"
