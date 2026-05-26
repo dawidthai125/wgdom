@@ -1686,7 +1686,7 @@ function PayrollEmailModal({
         setSendStage("Koduję Word…");
         attachments.push({ filename: `lista-plac-${weekFrom}.docx`, content: await blobToBase64(wordBlob) });
       }
-      const html = buildPayrollEmailHtml(weekFrom, weekTo, calcRows, totals, introMessage);
+      const html = await buildPayrollEmailHtml(weekFrom, weekTo, calcRows, totals, introMessage);
       setSendStage("Wysyłam email…");
       const controller = new AbortController();
       const timeoutId = window.setTimeout(() => controller.abort(), 120_000);
@@ -5343,6 +5343,12 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.7.8", label:"Lista płac — logo w eksporcie",
+    items:[
+      {type:"improve", text:"PDF, Word i email listy płac — logo W&G DOM obok tytułu „Lista płac”"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.7.7", label:"Historia zmian — paginacja",
     items:[

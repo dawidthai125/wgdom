@@ -1,5 +1,7 @@
 /** Lista płac — eksport PDF/Word i HTML email (wydzielone z PayrollView). */
 
+import logoAsset from "@/imports/logo-wg-new-poziom.eb09de3e.png";
+
 export const PREV_SAT_SHORT = "Sob. poprz.";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -128,15 +130,87 @@ const C = {
 
 const PW = 841.89; // A4 landscape width in points
 
+let _logoDataUrl: string | null = null;
+
+/** Logo W&G DOM jako data URL (cache w pamięci). */
+export async function getCompanyLogoDataUrl(): Promise<string> {
+  if (_logoDataUrl) return _logoDataUrl;
+  const res = await fetch(logoAsset);
+  const blob = await res.blob();
+  const b64 = await blobToBase64(blob);
+  _logoDataUrl = `data:image/png;base64,${b64}`;
+  return _logoDataUrl;
+}
+
+function logoBytesFromDataUrl(dataUrl: string): Uint8Array {
+  const b64 = dataUrl.includes(",") ? dataUrl.split(",")[1]! : dataUrl;
+  const binary = atob(b64);
+  const out = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
+  return out;
+}
+
+function pdfPayrollHeader(logoDataUrl: string, weekFrom: string, weekTo: string) {
+  return {
+    stack: [
+      {
+        canvas: [
+          { type: "rect" as const, x: 0, y: 0, w: PW, h: 50, color: C.navy },
+          { type: "rect" as const, x: 0, y: 50, w: PW, h: 3, color: C.red },
+        ],
+      },
+      {
+        columns: [
+          {
+            width: 98,
+            table: {
+              body: [[{ image: logoDataUrl, width: 86, margin: [4, 4, 4, 4] as [number, number, number, number], fillColor: C.white }]],
+            },
+            layout: {
+              hLineWidth: () => 0,
+              vLineWidth: () => 0,
+              paddingLeft: () => 0,
+              paddingRight: () => 0,
+              paddingTop: () => 0,
+              paddingBottom: () => 0,
+            },
+          },
+          {
+            text: "LISTA PŁAC",
+            fontSize: 18,
+            bold: true,
+            color: C.white,
+            margin: [10, 11, 0, 0] as [number, number, number, number],
+            width: "*",
+          },
+          {
+            text: `${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`,
+            fontSize: 9,
+            color: C.white,
+            alignment: "right" as const,
+            margin: [0, 14, 0, 0] as [number, number, number, number],
+            width: 120,
+          },
+        ],
+        columnGap: 8,
+        absolutePosition: { x: 25, y: 8 },
+        width: PW - 50,
+      },
+    ],
+  };
+}
+
 // ─── HTML email ───────────────────────────────────────────────────────────────
 
-export function buildPayrollEmailHtml(
+export async function buildPayrollEmailHtml(
   weekFrom: string,
   weekTo: string,
   rows: PayrollCalcRow[],
   totals: PayrollExportTotals,
   introMessage?: string,
-): string {
+): Promise<string> {
+  const logoDataUrl = await getCompanyLogoDataUrl();
+
   const th = (t: string) =>
     `<th style="padding:6px 4px;background:${C.navy};color:${C.white};font-size:11px;text-align:center;font-weight:600;border:none">${escapeHtml(t)}</th>`;
 
@@ -242,10 +316,15 @@ export function buildPayrollEmailHtml(
 <head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
 <body style="margin:0;padding:0;background:#f0f2f5;font-family:Calibri,'Segoe UI',Arial,sans-serif;color:${C.navy}">
   <div style="max-width:960px;margin:0 auto;padding:16px">
-    <div style="background:${C.navy};padding:16px 20px 14px;border-bottom:3px solid ${C.red}">
+    <div style="background:${C.navy};padding:14px 20px 12px;border-bottom:3px solid ${C.red}">
       <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-        <td style="font-size:22px;font-weight:700;color:${C.white};letter-spacing:0.02em">LISTA PŁAC</td>
-        <td align="right" style="font-size:13px;color:${C.white};opacity:0.95">W&amp;G DOM</td>
+        <td style="width:1%;white-space:nowrap;vertical-align:middle;padding-right:14px">
+          <div style="display:inline-block;background:#fff;border-radius:6px;padding:4px 10px;line-height:0">
+            <img src="${logoDataUrl}" alt="W&amp;G DOM" width="120" style="height:36px;width:auto;max-width:120px;display:block"/>
+          </div>
+        </td>
+        <td style="font-size:22px;font-weight:700;color:${C.white};letter-spacing:0.02em;vertical-align:middle">LISTA PŁAC</td>
+        <td align="right" style="font-size:12px;color:${C.white};opacity:0.95;vertical-align:middle;white-space:nowrap">${escapeHtml(fmtDate(weekFrom))} – ${escapeHtml(fmtDate(weekTo))}</td>
       </tr></table>
     </div>
     <div style="background:${C.white};padding:20px;border:1px solid #DDE3EA;border-top:none">
@@ -293,6 +372,7 @@ export async function generatePayrollPdfBlob(
   prevSatIso: string,
 ): Promise<Blob> {
   const pdfMake = await loadPdfMake();
+  const logoDataUrl = await getCompanyLogoDataUrl();
 
   const hdrRow = ["Lp.", "Pracownik", "Stawka (PLN/h)", "Tydzień", "Sob.pr.", "Razem h", "Brutto (PLN)", "Zaliczki (PLN)", "Koszty (PLN)", "Do wypłaty (PLN)", "Status"].map((t) => ({
     text: t,
@@ -570,18 +650,7 @@ export async function generatePayrollPdfBlob(
     pageSize: "A4",
     pageOrientation: "landscape",
     pageMargins: [25, 68, 25, 32],
-    header: () => ({
-      stack: [
-        {
-          canvas: [
-            { type: "rect", x: 0, y: 0, w: PW, h: 50, color: C.navy },
-            { type: "rect", x: 0, y: 50, w: PW, h: 3, color: C.red },
-          ],
-        },
-        { text: "LISTA PŁAC", fontSize: 18, bold: true, color: C.white, absolutePosition: { x: 25, y: 15 } },
-        { text: "W&G DOM", fontSize: 9, color: C.white, absolutePosition: { x: PW - 80, y: 20 } },
-      ],
-    }),
+    header: () => pdfPayrollHeader(logoDataUrl, weekFrom, weekTo),
     footer: (cur: number, total: number) => ({
       stack: [
         { canvas: [{ type: "rect", x: 0, y: 0, w: PW, h: 22, color: C.lightNavy }] },
@@ -645,8 +714,10 @@ export async function generatePayrollWordBlob(
   prevSatDetails: PrevSatDetailLine[],
   prevSatIso: string,
 ): Promise<Blob> {
-  const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle, PageBreak } = await import("docx");
+  const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, ImageRun, WidthType, AlignmentType, BorderStyle, PageBreak, VerticalAlign } = await import("docx");
 
+  const logoDataUrl = await getCompanyLogoDataUrl();
+  const logoBytes = logoBytesFromDataUrl(logoDataUrl);
   const totalExtraHourSum = extraHourLines.reduce((s, l) => s + l.hours, 0);
   const bNone = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
   const bThin = { style: BorderStyle.SINGLE, size: 2, color: "DDE3EA" };
@@ -698,8 +769,43 @@ export async function generatePayrollWordBlob(
       {
         properties: { page: { margin: { top: 800, bottom: 800, left: 1000, right: 1000 } } },
         children: [
-          new Paragraph({ children: [new TextRun({ text: "W&G DOM", bold: true, size: 32, color: "344254", font: "Calibri" })], alignment: AlignmentType.LEFT, spacing: { after: 80 } }),
-          new Paragraph({ children: [new TextRun({ text: "LISTA PLAC", bold: true, size: 52, color: "C0392B", font: "Calibri" })], alignment: AlignmentType.LEFT, spacing: { after: 80 } }),
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({
+                    width: { size: 28, type: WidthType.PERCENTAGE },
+                    verticalAlign: VerticalAlign.CENTER,
+                    borders: { top: bNone, bottom: bNone, left: bNone, right: bNone },
+                    margins: { top: 0, bottom: 120, left: 0, right: 160 },
+                    children: [
+                      new Paragraph({
+                        children: [
+                          new ImageRun({
+                            data: logoBytes,
+                            transformation: { width: 150, height: 44 },
+                            type: "png",
+                          }),
+                        ],
+                      }),
+                    ],
+                  }),
+                  new TableCell({
+                    verticalAlign: VerticalAlign.CENTER,
+                    borders: { top: bNone, bottom: bNone, left: bNone, right: bNone },
+                    margins: { top: 0, bottom: 120, left: 0, right: 0 },
+                    children: [
+                      new Paragraph({
+                        children: [new TextRun({ text: "LISTA PŁAC", bold: true, size: 52, color: "C0392B", font: "Calibri" })],
+                        alignment: AlignmentType.LEFT,
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          }),
           new Paragraph({
             children: [
               new TextRun({ text: "Okres: ", bold: true, size: 20, color: "344254", font: "Calibri" }),
