@@ -43,4 +43,4 @@ jobs:
             exit 1
           fi
           echo "Token OK (długość ${#SUPABASE_ACCESS_TOKEN} znaków)"
-          supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfiu
+          supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfiu --use-api
