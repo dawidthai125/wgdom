@@ -90,6 +90,8 @@ interface DirectoryEmployee {
   startDate: string;   // data zatrudnienia ISO
   active: boolean;     // czy aktualnie pracuje
   notes: string;
+  /** Logistyka / dostawy — ten sam dzień na wielu robotach (suma godzin, nie jedna robota) */
+  multiSiteDaily?: boolean;
 }
 
 interface DayData {
@@ -436,6 +438,50 @@ interface PayrollJobConsistencyAlert {
   payrollHours: number;
   jobHours: number;
   kind: "mismatch" | "payroll_only" | "job_only";
+  multiSite?: boolean;
+  jobSiteCount?: number;
+  jobSiteSummary?: string;
+}
+
+function directoryEmployeeForRef(
+  empRef: Pick<WeekEmployee, "directoryId" | "name">,
+  directory: DirectoryEmployee[],
+): DirectoryEmployee | undefined {
+  if (empRef.directoryId) return directory.find((d) => d.id === empRef.directoryId);
+  return directory.find((d) => normalizeEmpName(d.name) === normalizeEmpName(empRef.name));
+}
+
+function isMultiSiteEmployee(
+  empRef: Pick<WeekEmployee, "directoryId" | "name">,
+  directory: DirectoryEmployee[],
+): boolean {
+  return directoryEmployeeForRef(empRef, directory)?.multiSiteDaily === true;
+}
+
+function jobSitesForEmployeeOnDate(
+  empRef: Pick<WeekEmployee, "directoryId" | "name">,
+  jobs: Job[],
+  dateIso: string,
+  directory: DirectoryEmployee[],
+): { jobId: string; entryId: string; label: string; hours: number }[] {
+  const sites: { jobId: string; entryId: string; label: string; hours: number }[] = [];
+  for (const job of jobs) {
+    for (const we of job.workEntries) {
+      if (we.date !== dateIso || we.hours <= 0) continue;
+      if (!workEntryMatchesEmployee(empRef, we, directory)) continue;
+      const addr = job.address?.trim() || "Bez adresu";
+      const label = addr.length > 22 ? `${addr.slice(0, 20)}…` : addr;
+      sites.push({ jobId: job.id, entryId: we.id, label, hours: we.hours });
+    }
+  }
+  return sites;
+}
+
+function summarizeJobSites(sites: { label: string }[]): string {
+  if (sites.length === 0) return "";
+  const uniq = [...new Set(sites.map((s) => s.label))];
+  const shown = uniq.slice(0, 3).join(", ");
+  return uniq.length > 3 ? `${shown}…` : shown;
 }
 
 function payrollJobConsistencyAlerts(
@@ -454,6 +500,7 @@ function payrollJobConsistencyAlerts(
     col: { key: DayKey; iso: string; dateLabel: string },
     payrollHours: number,
     jobHours: number,
+    empRef: Pick<WeekEmployee, "directoryId" | "name">,
   ) => {
     const pay = +payrollHours.toFixed(2);
     const job = +jobHours.toFixed(2);
@@ -463,6 +510,8 @@ function payrollJobConsistencyAlerts(
     else if (pay > TOLERANCE && job <= TOLERANCE) kind = "payroll_only";
     else if (job > TOLERANCE && pay <= TOLERANCE) kind = "job_only";
     else return;
+    const multiSite = isMultiSiteEmployee(empRef, directory);
+    const sites = job > 0 ? jobSitesForEmployeeOnDate(empRef, jobs, col.iso, directory) : [];
     alerts.push({
       name,
       dayLabel: `${DAY_LABELS[col.key]} (${col.dateLabel})`,
@@ -471,6 +520,9 @@ function payrollJobConsistencyAlerts(
       payrollHours: pay,
       jobHours: job,
       kind,
+      multiSite,
+      jobSiteCount: sites.length,
+      jobSiteSummary: sites.length > 0 ? summarizeJobSites(sites) : undefined,
     });
   };
 
@@ -481,11 +533,12 @@ function payrollJobConsistencyAlerts(
         col,
         dayTotalHours(emp.days[col.key]),
         jobHoursForEmployeeOnDate(emp, jobs, col.iso, directory),
+        emp,
       );
     }
   }
 
-  const externalByKeyDate = new Map<string, { name: string; col: (typeof cols)[0]; hours: number }>();
+  const externalByKeyDate = new Map<string, { name: string; col: (typeof cols)[0]; hours: number; directoryId: string }>();
   for (const job of jobs) {
     for (const we of job.workEntries) {
       if (we.date < weekFrom || we.date > weekTo || we.hours <= 0) continue;
@@ -495,11 +548,18 @@ function payrollJobConsistencyAlerts(
       const key = `${we.directoryId || normalizeEmpName(we.employeeName)}|${we.date}`;
       const prev = externalByKeyDate.get(key);
       if (prev) prev.hours += we.hours;
-      else externalByKeyDate.set(key, { name: we.employeeName?.trim() || "—", col, hours: we.hours });
+      else {
+        externalByKeyDate.set(key, {
+          name: we.employeeName?.trim() || "—",
+          col,
+          hours: we.hours,
+          directoryId: we.directoryId,
+        });
+      }
     }
   }
-  for (const { name, col, hours } of externalByKeyDate.values()) {
-    pushAlert(name, col, 0, hours);
+  for (const { name, col, hours, directoryId } of externalByKeyDate.values()) {
+    pushAlert(name, col, 0, hours, { directoryId, name });
   }
 
   return alerts.sort(
@@ -556,13 +616,19 @@ function buildEmployeeArchiveStats(dirId: string, name: string, savedWeeks: Week
 }
 
 function consistencyAlertMessage(a: PayrollJobConsistencyAlert): string {
+  const siteInfo =
+    a.multiSite && a.jobSiteCount && a.jobSiteCount > 0
+      ? ` na ${a.jobSiteCount} ${a.jobSiteCount === 1 ? "robocie" : "robotach"}${a.jobSiteSummary ? ` (${a.jobSiteSummary})` : ""}`
+      : a.multiSite
+        ? " (wiele robót dziennie)"
+        : "";
   if (a.kind === "mismatch") {
-    return `${a.name}: ${fmtH(a.payrollHours)} w liście płac, ${fmtH(a.jobHours)} na robocie — ${a.dayLabel}`;
+    return `${a.name}: ${fmtH(a.payrollHours)} w liście płac, ${fmtH(a.jobHours)}${siteInfo} — ${a.dayLabel}`;
   }
   if (a.kind === "payroll_only") {
-    return `${a.name}: ${fmtH(a.payrollHours)} w liście płac, brak wpisu na robocie — ${a.dayLabel}`;
+    return `${a.name}: ${fmtH(a.payrollHours)} w liście płac, brak wpisu${a.multiSite ? " na robotach" : " na robocie"} — ${a.dayLabel}`;
   }
-  return `${a.name}: ${fmtH(a.jobHours)} na robocie, brak w liście płac — ${a.dayLabel}`;
+  return `${a.name}: ${fmtH(a.jobHours)}${siteInfo}, brak w liście płac — ${a.dayLabel}`;
 }
 
 function payrollPrevSatDetailLines(employees: WeekEmployee[], weekFrom: string) {
@@ -675,6 +741,8 @@ function calcWeekEmployee(emp: WeekEmployee) {
 // ─── Jobs Helpers ─────────────────────────────────────────────────────────────
 
 const DEFAULT_JOB_ENTRY_HOURS = 9;
+/** Krótki wpis na jednej robocie (logistyka — Jarosław itd.) */
+const DEFAULT_MULTI_SITE_VISIT_HOURS = 2;
 
 function previousIsoDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
@@ -704,8 +772,16 @@ function duplicateWorkEntryWithPayrollHours(
   targetDate: string,
   weekEmployees: WeekEmployee[],
   weekFrom: string,
+  directory: DirectoryEmployee[] = [],
 ): WorkEntry {
   const base = duplicateWorkEntry(entry, targetDate);
+  const dirEmp = entry.directoryId ? directory.find((d) => d.id === entry.directoryId) : undefined;
+  if (dirEmp?.multiSiteDaily) {
+    return {
+      ...base,
+      hours: entry.hours > 0 ? entry.hours : DEFAULT_MULTI_SITE_VISIT_HOURS,
+    };
+  }
   const emp = weekEmployees.find(
     (e) =>
       (entry.directoryId && e.directoryId === entry.directoryId) ||
@@ -753,6 +829,74 @@ function pickJobForConsistencyFix(
   return jobs.find((j) => j.status === "in_progress") ?? null;
 }
 
+function jobsForMultiSiteSplit(
+  empRef: Pick<WeekEmployee, "directoryId" | "name">,
+  jobs: Job[],
+  dateIso: string,
+  weekFrom: string,
+  weekTo: string,
+  directory: DirectoryEmployee[],
+): Job[] {
+  const yesterday = previousIsoDate(dateIso);
+  const yesterdayIds = new Set(
+    jobs
+      .filter((job) =>
+        job.status === "in_progress" &&
+        job.workEntries.some(
+          (e) => e.date === yesterday && workEntryMatchesEmployee(empRef, e, directory),
+        ),
+      )
+      .map((j) => j.id),
+  );
+  if (yesterdayIds.size > 0) return jobs.filter((j) => yesterdayIds.has(j.id));
+
+  const weekIds = new Set(
+    jobs
+      .filter((job) =>
+        job.status === "in_progress" &&
+        job.workEntries.some(
+          (e) =>
+            e.date >= weekFrom &&
+            e.date <= weekTo &&
+            workEntryMatchesEmployee(empRef, e, directory),
+        ),
+      )
+      .map((j) => j.id),
+  );
+  if (weekIds.size > 0) return jobs.filter((j) => weekIds.has(j.id));
+
+  return jobs.filter((j) => j.status === "in_progress");
+}
+
+function distributeHoursAcrossEntries(
+  allMatches: { jobId: string; entryId: string; hours: number }[],
+  targetHours: number,
+): Map<string, number> {
+  const hourByEntryId = new Map<string, number>();
+  if (allMatches.length === 0) return hourByEntryId;
+  if (allMatches.length === 1) {
+    hourByEntryId.set(allMatches[0].entryId, targetHours);
+    return hourByEntryId;
+  }
+  const currentTotal = allMatches.reduce((s, m) => s + m.hours, 0);
+  let assigned = 0;
+  for (let i = 0; i < allMatches.length; i++) {
+    const m = allMatches[i];
+    if (i === allMatches.length - 1) {
+      hourByEntryId.set(m.entryId, +(targetHours - assigned).toFixed(2));
+    } else {
+      const share =
+        currentTotal > 0
+          ? (m.hours / currentTotal) * targetHours
+          : targetHours / allMatches.length;
+      const h = +share.toFixed(2);
+      hourByEntryId.set(m.entryId, h);
+      assigned += h;
+    }
+  }
+  return hourByEntryId;
+}
+
 /** Dopasowuje wpisy na robotach do godzin z listy płac (lista płac ma pierwszeństwo). */
 function fixJobsForConsistencyAlert(
   jobs: Job[],
@@ -763,11 +907,25 @@ function fixJobsForConsistencyAlert(
   directory: DirectoryEmployee[],
 ): Job[] {
   const empRef = employeeRefForAlert(alert, weekEmployees, directory);
+  const multiSite = alert.multiSite ?? isMultiSiteEmployee(empRef, directory);
   const targetHours = alert.payrollHours;
   const matchesEntry = (we: WorkEntry) =>
     we.date === alert.dateIso && workEntryMatchesEmployee(empRef, we, directory);
 
-  const hasEntries = jobs.some((j) => j.workEntries.some(matchesEntry));
+  const allMatches = jobs.flatMap((j) =>
+    j.workEntries
+      .filter(matchesEntry)
+      .map((we) => ({ jobId: j.id, entryId: we.id, hours: we.hours })),
+  );
+  const hasEntries = allMatches.length > 0;
+
+  const weekEmp = weekEmployees.find(
+    (e) =>
+      (empRef.directoryId && e.directoryId === empRef.directoryId) ||
+      normalizeEmpName(e.name) === normalizeEmpName(empRef.name),
+  );
+  const dirEmp = directoryEmployeeForRef(empRef, directory);
+  const rate = weekEmp ? parseFloat(weekEmp.rate) || 0 : parseFloat(dirEmp?.defaultRate || "0") || 0;
 
   if (targetHours <= 0.01) {
     return jobs.map((job) => {
@@ -782,17 +940,38 @@ function fixJobsForConsistencyAlert(
   }
 
   if (!hasEntries) {
+    if (multiSite) {
+      const targetJobs = jobsForMultiSiteSplit(empRef, jobs, alert.dateIso, weekFrom, weekTo, directory);
+      if (targetJobs.length === 0) return jobs;
+      const perJob = +(targetHours / targetJobs.length).toFixed(2);
+      let remainder = targetHours;
+      return jobs.map((job, _ji) => {
+        const idx = targetJobs.findIndex((tj) => tj.id === job.id);
+        if (idx < 0) return job;
+        const h =
+          idx === targetJobs.length - 1
+            ? +remainder.toFixed(2)
+            : perJob;
+        remainder -= h;
+        const newEntry: WorkEntry = {
+          id: crypto.randomUUID(),
+          directoryId: empRef.directoryId || dirEmp?.id || "",
+          employeeName: empRef.name,
+          date: alert.dateIso,
+          hours: h,
+          rate,
+          notes: "Logistyka — z listy płac",
+        };
+        return appendJobActivity(
+          { ...job, workEntries: [...job.workEntries, newEntry] },
+          "work_entry",
+          `${alert.name}: ${fmtH(h)} — ${alert.dayLabel} (${formatJobStreet(job)})`,
+          "Pulpit",
+        );
+      });
+    }
     const targetJob = pickJobForConsistencyFix(empRef, jobs, weekFrom, weekTo, directory);
     if (!targetJob) return jobs;
-    const weekEmp = weekEmployees.find(
-      (e) =>
-        (empRef.directoryId && e.directoryId === empRef.directoryId) ||
-        normalizeEmpName(e.name) === normalizeEmpName(empRef.name),
-    );
-    const dirEmp = directory.find(
-      (d) => d.id === empRef.directoryId || normalizeEmpName(d.name) === normalizeEmpName(empRef.name),
-    );
-    const rate = weekEmp ? parseFloat(weekEmp.rate) || 0 : parseFloat(dirEmp?.defaultRate || "0") || 0;
     const newEntry: WorkEntry = {
       id: crypto.randomUUID(),
       directoryId: empRef.directoryId || dirEmp?.id || "",
@@ -814,24 +993,17 @@ function fixJobsForConsistencyAlert(
     );
   }
 
-  const firstMatch = jobs.flatMap((j) =>
-    j.workEntries.filter(matchesEntry).map((we) => ({ jobId: j.id, entryId: we.id })),
-  )[0];
-  if (!firstMatch) return jobs;
+  const hourByEntryId = distributeHoursAcrossEntries(allMatches, targetHours);
+  const fixLabel = multiSite && allMatches.length > 1
+    ? `${alert.name}: ${fmtH(targetHours)} — ${alert.dayLabel} (rozdzielono na ${allMatches.length} roboty)`
+    : `${alert.name}: ${fmtH(targetHours)} — ${alert.dayLabel} (dopasowano do listy płac)`;
 
   return jobs.map((job) => {
-    if (!job.workEntries.some(matchesEntry)) return job;
-    const nextEntries = job.workEntries.flatMap((we) => {
-      if (!matchesEntry(we)) return [we];
-      if (we.id === firstMatch.entryId) return [{ ...we, hours: targetHours }];
-      return [];
-    });
-    return appendJobActivity(
-      { ...job, workEntries: nextEntries },
-      "work_entry",
-      `${alert.name}: ${fmtH(targetHours)} — ${alert.dayLabel} (dopasowano do listy płac)`,
-      "Pulpit",
+    if (!job.workEntries.some((we) => hourByEntryId.has(we.id))) return job;
+    const nextEntries = job.workEntries.map((we) =>
+      hourByEntryId.has(we.id) ? { ...we, hours: hourByEntryId.get(we.id)! } : we,
     );
+    return appendJobActivity({ ...job, workEntries: nextEntries }, "work_entry", fixLabel, "Pulpit");
   });
 }
 
@@ -889,6 +1061,7 @@ function collectEntriesFromYesterday(
   targetDate: string,
   weekEmployees: WeekEmployee[],
   weekFrom: string,
+  directory: DirectoryEmployee[],
 ): WorkEntry[] {
   const yesterday = previousIsoDate(targetDate);
   const existingToday = new Set(
@@ -899,7 +1072,7 @@ function collectEntriesFromYesterday(
   return job.workEntries
     .filter((e) => e.date === yesterday)
     .filter((e) => !existingToday.has(e.directoryId || e.employeeName))
-    .map((e) => duplicateWorkEntryWithPayrollHours(e, targetDate, weekEmployees, weekFrom));
+    .map((e) => duplicateWorkEntryWithPayrollHours(e, targetDate, weekEmployees, weekFrom, directory));
 }
 
 function workEntriesFromPayrollForDate(
@@ -2869,6 +3042,18 @@ function DirectoryView({directory, savedWeeks, onChange}:{directory:DirectoryEmp
                       <div><label className="text-xs text-muted-foreground block mb-1">Data zatrudnienia</label><input type="date" value={editEmp.startDate} onChange={(e)=>update({...editEmp,startDate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/></div>
                       <div><label className="text-xs text-muted-foreground block mb-1">Uwagi</label><input type="text" value={editEmp.notes} onChange={(e)=>update({...editEmp,notes:e.target.value})} placeholder="Dodatkowe informacje..." className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
                     </div>
+                    <label className="flex items-start gap-3 cursor-pointer bg-secondary/50 rounded-xl p-3 border border-border">
+                      <input
+                        type="checkbox"
+                        checked={editEmp.multiSiteDaily === true}
+                        onChange={(e) => update({ ...editEmp, multiSiteDaily: e.target.checked })}
+                        className="mt-0.5"
+                      />
+                      <span>
+                        <span className="text-sm font-medium block">Wiele robót dziennie (logistyka / dostawy)</span>
+                        <span className="text-xs text-muted-foreground leading-relaxed">Np. kierowca rozwożący towar — ten sam dzień na wielu adresach. Spójność liczy sumę godzin; „Popraw” rozdziela je między roboty.</span>
+                      </span>
+                    </label>
                     <div className="flex items-center gap-2 pt-2">
                       <button onClick={()=>setEditId(null)} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"><Check size={13}/>Zapisz</button>
                       <button onClick={()=>setEditId(null)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Anuluj</button>
@@ -2882,7 +3067,7 @@ function DirectoryView({directory, savedWeeks, onChange}:{directory:DirectoryEmp
                     <div className="min-w-0 flex-1 grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-0.5">
                       <div>
                         <p className="text-sm font-semibold leading-tight">{emp.name||<span className="italic text-muted-foreground">Bez nazwy</span>}</p>
-                        <p className="text-xs text-muted-foreground">{emp.position||<span className="italic">brak stanowiska</span>}</p>
+                        <p className="text-xs text-muted-foreground">{emp.position||<span className="italic">brak stanowiska</span>}{emp.multiSiteDaily && <span className="ml-2 text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full">wiele robót/dzień</span>}</p>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Phone size={11} className="shrink-0"/>{emp.phone||"—"}
@@ -4024,8 +4209,8 @@ function JobsView({
   const todayIso = localIsoDate();
 
   const yesterdayEntriesToCopy = useMemo(
-    () => (selectedJob ? collectEntriesFromYesterday(selectedJob, todayIso, weekEmployees, weekFrom) : []),
-    [selectedJob, todayIso, weekEmployees, weekFrom],
+    () => (selectedJob ? collectEntriesFromYesterday(selectedJob, todayIso, weekEmployees, weekFrom, directory) : []),
+    [selectedJob, todayIso, weekEmployees, weekFrom, directory],
   );
 
   const payrollEntriesForToday = useMemo(
@@ -4283,9 +4468,15 @@ function JobsView({
   };
 
   const syncEntryHoursFromPayroll = (dirId: string, dateIso: string) => {
-    const payH = payrollHoursForDirectoryOnDate(dirId, dateIso, weekEmployees, weekFrom);
-    const weekEmp = weekEmployees.find((e) => e.directoryId === dirId);
     const dirEmp = directory.find((d) => d.id === dirId);
+    const weekEmp = weekEmployees.find((e) => e.directoryId === dirId);
+    if (dirEmp?.multiSiteDaily) {
+      setEntryHours(String(DEFAULT_MULTI_SITE_VISIT_HOURS));
+      if (weekEmp?.rate) setEntryRate(weekEmp.rate);
+      else if (dirEmp.defaultRate) setEntryRate(dirEmp.defaultRate);
+      return;
+    }
+    const payH = payrollHoursForDirectoryOnDate(dirId, dateIso, weekEmployees, weekFrom);
     if (payH > 0) {
       setEntryHours(String(payH));
       if (weekEmp?.rate) setEntryRate(weekEmp.rate);
@@ -4301,7 +4492,7 @@ function JobsView({
       (e) => e.date === todayIso && (e.directoryId === entry.directoryId || e.employeeName === entry.employeeName),
     )) return;
     appendWorkEntries(
-      [duplicateWorkEntryWithPayrollHours(entry, todayIso, weekEmployees, weekFrom)],
+      [duplicateWorkEntryWithPayrollHours(entry, todayIso, weekEmployees, weekFrom, directory)],
       `${entry.employeeName} skopiowany na ${fmtDate(todayIso)}`,
     );
   };
@@ -4732,7 +4923,14 @@ function JobsView({
                       }} className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground block mb-1">Godziny <span className="text-muted-foreground/70">(domyślnie 9 h lub z listy płac)</span></label>
+                      <label className="text-xs text-muted-foreground block mb-1">
+                        Godziny{" "}
+                        <span className="text-muted-foreground/70">
+                          {selectedDirEmp?.multiSiteDaily
+                            ? "(na tej robocie, nie cały dzień)"
+                            : "(domyślnie 9 h lub z listy płac)"}
+                        </span>
+                      </label>
                       <input type="number" min="0.5" step="0.5" value={entryHours} onChange={e=>setEntryHours(e.target.value)} className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
                     </div>
                     <div>
@@ -5512,7 +5710,9 @@ function DashboardView({
                             disabled={!canFix}
                             title={
                               canFix
-                                ? "Dopasuj roboty do godzin z listy płac"
+                                ? a.multiSite
+                                  ? "Dopasuj sumę godzin — rozdziel między roboty (lista płac ma pierwszeństwo)"
+                                  : "Dopasuj roboty do godzin z listy płac"
                                 : "Brak aktywnej roboty — dodaj wpis ręcznie w Roboty"
                             }
                             onClick={() => handleFixConsistency(a)}
@@ -5995,6 +6195,7 @@ function HelpView() {
               {q:"Zdjęcia offline i znak wodny", a:"Bez internetu zdjęcia trafiają do kolejki i wysyłają się same po powrocie sieci. Każde zdjęcie ma znak wodny: adres, data i W&G DOM."},
               {q:"Notatka głosowa w raporcie", a:"Przy dodawaniu raportu (zakres prac, wiadomość dla admina) — ikona mikrofonu. Działa w Chrome/Edge na telefonie i komputerze."},
               {q:"Co to jest domyślna stawka?", a:"To stawka PLN za godzinę, którą ten pracownik zwykle zarabia. Będzie się automatycznie podpowiadać w Liście Płac i w Robotach. Możesz ją zmienić dla konkretnego tygodnia lub roboty — bez zmiany tej domyślnej."},
+              {q:"Wiele robót dziennie — kiedy włączyć?", a:"Dla kierowcy, logistyka, kogoś kto jeździ po mieście i ma krótkie wpisy na wielu adresach tego samego dnia (np. Jarosław). W kartotece zaznacz „Wiele robót dziennie”. Spójność liczy sumę ze wszystkich robót; na każdej robocie wpisujesz tylko czas na tym adresie (np. 2 h), nie cały dzień."},
               {q:"Karta z archiwum pracownika", a:"Przy pracowniku kliknij ikonę wykresu (📊). Zobaczysz sumę godzin i wypłat w roku, wykres miesięczny oraz listę zapisanych tygodni z archiwum listy płac."},
               {q:"Jak oznaczyć pracownika jako nieaktywnego?", a:"Kliknij okrągły przycisk przy pracowniku (po prawej). Zmieni status na Nieaktywny — pracownik zniknie z list przy dodawaniu do tygodnia, ale jego historia zostanie. Żeby przywrócić — kliknij ponownie."},
             ].map((item,i)=>(
@@ -6168,7 +6369,7 @@ function HelpView() {
             {icon:Copy, title:"Kopiuj pracowników z zeszłego tygodnia", desc:"W Liście Płac, gdy tydzień jest pusty, pojawia się przycisk \"Kopiuj z poprzedniego tygodnia\". Kliknij — od razu doda tych samych pracowników co w poprzednim tygodniu. Oszczędzasz czas."},
             {icon:Mic, title:"Dyktowanie notatek głosem", desc:"Przy polu Notatki w robotach jest ikona mikrofonu. Kliknij, powiedz co chcesz wpisać — aplikacja zamieni mowę na tekst. Działa w przeglądarce Chrome na telefonie i komputerze."},
             {icon:Bell, title:"Reminder w sobotę", desc:"W sobotę na Pulpicie pojawia się niebieski baner: zapisz tydzień i rozlicz pracowników. W Liście Płac też jest żółty baner. Po „Zapisz tydzień” wysyłany jest backup emailem (raz na tydzień)."},
-            {icon:Scale, title:"Spójność listy płac ↔ roboty", desc:"Pulpit → „Uwaga dziś” ostrzega gdy godziny się nie zgadzają. Kliknij „Popraw” — roboty dopasują się do listy płac. Nowe wpisy na robocie: 9 h lub godziny z listy płac."},
+            {icon:Scale, title:"Spójność listy płac ↔ roboty", desc:"Porównywana jest suma godzin z listy płac z sumą wpisów na wszystkich robotach. Dla kierowcy/logistyki włącz w kartotece „Wiele robót dziennie” — „Popraw” rozdzieli godziny między adresy."},
             {icon:BarChart3, title:"Karta pracownika z archiwum", desc:"Pracownicy → ikona wykresu przy osobie: roczne godziny, wypłaty, słupki miesięczne i lista tygodni z archiwum."},
             {icon:FileDown, title:"Raport roczny PDF", desc:"Archiwum → wybierz rok → „Raport roczny PDF”: wypłaty × 12 miesięcy, roboty zdane, średni koszt roboczogodziny."},
             {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"Sekcja „Uwaga dziś” zbiera: niezapisany tydzień, nierozliczonych, rozbieżności godzin, brakujące dokumenty i zdjęcia do akceptacji. „Pracuje dziś” — godziny z listy płac; adres po wpisie na robocie."},
@@ -6245,6 +6446,14 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.9.2", label:"Logistyka — wiele robót dziennie",
+    items:[
+      {type:"new", text:"Pracownicy — opcja „Wiele robót dziennie” (kierowca, dostawy): spójność liczy sumę ze wszystkich adresów"},
+      {type:"improve", text:"„Popraw” przy spójności — dla logistyki rozdziela godziny z listy płac między roboty (nie jedna robota)"},
+      {type:"improve", text:"Roboty — krótki wpis na robocie (domyślnie 2 h) dla pracownika z wieloma robotami dziennie"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.9.1", label:"Spójność — Popraw + 9 h",
     items:[
