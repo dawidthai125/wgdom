@@ -698,6 +698,155 @@ function duplicateWorkEntry(entry: WorkEntry, date: string): WorkEntry {
   return { ...entry, id: crypto.randomUUID(), date };
 }
 
+/** Godziny wpisu na robocie — z listy płac na dany dzień, inaczej 9 h standard. */
+function duplicateWorkEntryWithPayrollHours(
+  entry: WorkEntry,
+  targetDate: string,
+  weekEmployees: WeekEmployee[],
+  weekFrom: string,
+): WorkEntry {
+  const base = duplicateWorkEntry(entry, targetDate);
+  const emp = weekEmployees.find(
+    (e) =>
+      (entry.directoryId && e.directoryId === entry.directoryId) ||
+      normalizeEmpName(e.name) === normalizeEmpName(entry.employeeName),
+  );
+  const dayKey = dayKeyForIsoInWeek(targetDate, weekFrom);
+  if (emp && dayKey) {
+    const payHours = dayTotalHours(emp.days[dayKey]);
+    if (payHours > 0) return { ...base, hours: payHours };
+  }
+  return { ...base, hours: DEFAULT_JOB_ENTRY_HOURS };
+}
+
+function employeeRefForAlert(
+  alert: PayrollJobConsistencyAlert,
+  weekEmployees: WeekEmployee[],
+  directory: DirectoryEmployee[],
+): Pick<WeekEmployee, "directoryId" | "name"> {
+  const weekEmp = weekEmployees.find((e) => normalizeEmpName(e.name) === normalizeEmpName(alert.name));
+  if (weekEmp) return weekEmp;
+  const dir = directory.find((d) => normalizeEmpName(d.name) === normalizeEmpName(alert.name));
+  return { directoryId: dir?.id || "", name: alert.name };
+}
+
+function pickJobForConsistencyFix(
+  empRef: Pick<WeekEmployee, "directoryId" | "name">,
+  jobs: Job[],
+  weekFrom: string,
+  weekTo: string,
+  directory: DirectoryEmployee[],
+): Job | null {
+  const inWeek = (d: string) => d >= weekFrom && d <= weekTo;
+  const scores = new Map<string, number>();
+  for (const job of jobs) {
+    if (job.status !== "in_progress") continue;
+    const count = job.workEntries.filter(
+      (e) => inWeek(e.date) && workEntryMatchesEmployee(empRef, e, directory),
+    ).length;
+    if (count > 0) scores.set(job.id, count);
+  }
+  if (scores.size > 0) {
+    const bestId = [...scores.entries()].sort((a, b) => b[1] - a[1])[0][0];
+    return jobs.find((j) => j.id === bestId) ?? null;
+  }
+  return jobs.find((j) => j.status === "in_progress") ?? null;
+}
+
+/** Dopasowuje wpisy na robotach do godzin z listy płac (lista płac ma pierwszeństwo). */
+function fixJobsForConsistencyAlert(
+  jobs: Job[],
+  alert: PayrollJobConsistencyAlert,
+  weekEmployees: WeekEmployee[],
+  weekFrom: string,
+  weekTo: string,
+  directory: DirectoryEmployee[],
+): Job[] {
+  const empRef = employeeRefForAlert(alert, weekEmployees, directory);
+  const targetHours = alert.payrollHours;
+  const matchesEntry = (we: WorkEntry) =>
+    we.date === alert.dateIso && workEntryMatchesEmployee(empRef, we, directory);
+
+  const hasEntries = jobs.some((j) => j.workEntries.some(matchesEntry));
+
+  if (targetHours <= 0.01) {
+    return jobs.map((job) => {
+      if (!job.workEntries.some(matchesEntry)) return job;
+      return appendJobActivity(
+        { ...job, workEntries: job.workEntries.filter((we) => !matchesEntry(we)) },
+        "work_entry",
+        `${alert.name}: usunięto wpis ${alert.dayLabel} (brak w liście płac)`,
+        "Pulpit",
+      );
+    });
+  }
+
+  if (!hasEntries) {
+    const targetJob = pickJobForConsistencyFix(empRef, jobs, weekFrom, weekTo, directory);
+    if (!targetJob) return jobs;
+    const weekEmp = weekEmployees.find(
+      (e) =>
+        (empRef.directoryId && e.directoryId === empRef.directoryId) ||
+        normalizeEmpName(e.name) === normalizeEmpName(empRef.name),
+    );
+    const dirEmp = directory.find(
+      (d) => d.id === empRef.directoryId || normalizeEmpName(d.name) === normalizeEmpName(empRef.name),
+    );
+    const rate = weekEmp ? parseFloat(weekEmp.rate) || 0 : parseFloat(dirEmp?.defaultRate || "0") || 0;
+    const newEntry: WorkEntry = {
+      id: crypto.randomUUID(),
+      directoryId: empRef.directoryId || dirEmp?.id || "",
+      employeeName: empRef.name,
+      date: alert.dateIso,
+      hours: targetHours,
+      rate,
+      notes: "Uzupełnione z listy płac",
+    };
+    return jobs.map((job) =>
+      job.id !== targetJob.id
+        ? job
+        : appendJobActivity(
+            { ...job, workEntries: [...job.workEntries, newEntry] },
+            "work_entry",
+            `${alert.name}: ${fmtH(targetHours)} — ${alert.dayLabel} (z listy płac)`,
+            "Pulpit",
+          ),
+    );
+  }
+
+  const firstMatch = jobs.flatMap((j) =>
+    j.workEntries.filter(matchesEntry).map((we) => ({ jobId: j.id, entryId: we.id })),
+  )[0];
+  if (!firstMatch) return jobs;
+
+  return jobs.map((job) => {
+    if (!job.workEntries.some(matchesEntry)) return job;
+    const nextEntries = job.workEntries.flatMap((we) => {
+      if (!matchesEntry(we)) return [we];
+      if (we.id === firstMatch.entryId) return [{ ...we, hours: targetHours }];
+      return [];
+    });
+    return appendJobActivity(
+      { ...job, workEntries: nextEntries },
+      "work_entry",
+      `${alert.name}: ${fmtH(targetHours)} — ${alert.dayLabel} (dopasowano do listy płac)`,
+      "Pulpit",
+    );
+  });
+}
+
+function payrollHoursForDirectoryOnDate(
+  dirId: string,
+  dateIso: string,
+  weekEmployees: WeekEmployee[],
+  weekFrom: string,
+): number {
+  const emp = weekEmployees.find((e) => e.directoryId === dirId);
+  const dayKey = dayKeyForIsoInWeek(dateIso, weekFrom);
+  if (!emp || !dayKey) return 0;
+  return dayTotalHours(emp.days[dayKey]);
+}
+
 function workEntryGroupKey(entry: WorkEntry): string {
   return entry.directoryId || `name:${entry.employeeName}`;
 }
@@ -735,7 +884,12 @@ function groupWorkEntriesByEmployee(entries: WorkEntry[]): WorkEntryGroup[] {
     .sort((a, b) => a.employeeName.localeCompare(b.employeeName, "pl"));
 }
 
-function collectEntriesFromYesterday(job: Job, targetDate: string): WorkEntry[] {
+function collectEntriesFromYesterday(
+  job: Job,
+  targetDate: string,
+  weekEmployees: WeekEmployee[],
+  weekFrom: string,
+): WorkEntry[] {
   const yesterday = previousIsoDate(targetDate);
   const existingToday = new Set(
     job.workEntries
@@ -745,7 +899,7 @@ function collectEntriesFromYesterday(job: Job, targetDate: string): WorkEntry[] 
   return job.workEntries
     .filter((e) => e.date === yesterday)
     .filter((e) => !existingToday.has(e.directoryId || e.employeeName))
-    .map((e) => duplicateWorkEntry(e, targetDate));
+    .map((e) => duplicateWorkEntryWithPayrollHours(e, targetDate, weekEmployees, weekFrom));
 }
 
 function workEntriesFromPayrollForDate(
@@ -3870,8 +4024,8 @@ function JobsView({
   const todayIso = localIsoDate();
 
   const yesterdayEntriesToCopy = useMemo(
-    () => (selectedJob ? collectEntriesFromYesterday(selectedJob, todayIso) : []),
-    [selectedJob, todayIso],
+    () => (selectedJob ? collectEntriesFromYesterday(selectedJob, todayIso, weekEmployees, weekFrom) : []),
+    [selectedJob, todayIso, weekEmployees, weekFrom],
   );
 
   const payrollEntriesForToday = useMemo(
@@ -4128,13 +4282,26 @@ function JobsView({
     );
   };
 
+  const syncEntryHoursFromPayroll = (dirId: string, dateIso: string) => {
+    const payH = payrollHoursForDirectoryOnDate(dirId, dateIso, weekEmployees, weekFrom);
+    const weekEmp = weekEmployees.find((e) => e.directoryId === dirId);
+    const dirEmp = directory.find((d) => d.id === dirId);
+    if (payH > 0) {
+      setEntryHours(String(payH));
+      if (weekEmp?.rate) setEntryRate(weekEmp.rate);
+      else if (dirEmp?.defaultRate) setEntryRate(dirEmp.defaultRate);
+    } else {
+      setEntryHours(String(DEFAULT_JOB_ENTRY_HOURS));
+    }
+  };
+
   const copyEntryToToday = (entry: WorkEntry) => {
     if (!selectedJob) return;
     if (selectedJob.workEntries.some(
       (e) => e.date === todayIso && (e.directoryId === entry.directoryId || e.employeeName === entry.employeeName),
     )) return;
     appendWorkEntries(
-      [duplicateWorkEntry(entry, todayIso)],
+      [duplicateWorkEntryWithPayrollHours(entry, todayIso, weekEmployees, weekFrom)],
       `${entry.employeeName} skopiowany na ${fmtDate(todayIso)}`,
     );
   };
@@ -4544,9 +4711,11 @@ function JobsView({
                     <div>
                       <label className="text-xs text-muted-foreground block mb-1">Pracownik</label>
                       <select value={entryDirId} onChange={e=>{
-                        setEntryDirId(e.target.value);
-                        const emp=directory.find(d=>d.id===e.target.value);
+                        const id = e.target.value;
+                        setEntryDirId(id);
+                        const emp=directory.find(d=>d.id===id);
                         if(emp) setEntryRate(emp.defaultRate);
+                        if(id) syncEntryHoursFromPayroll(id, entryDate);
                       }} className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors">
                         <option value="">Wybierz pracownika...</option>
                         {directory.filter(d=>d.active).map(d=>(
@@ -4556,10 +4725,14 @@ function JobsView({
                     </div>
                     <div>
                       <label className="text-xs text-muted-foreground block mb-1">Data</label>
-                      <input type="date" value={entryDate} onChange={e=>setEntryDate(e.target.value)} className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
+                      <input type="date" value={entryDate} onChange={e=>{
+                        const d = e.target.value;
+                        setEntryDate(d);
+                        if(entryDirId) syncEntryHoursFromPayroll(entryDirId, d);
+                      }} className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground block mb-1">Godziny</label>
+                      <label className="text-xs text-muted-foreground block mb-1">Godziny <span className="text-muted-foreground/70">(domyślnie 9 h lub z listy płac)</span></label>
                       <input type="number" min="0.5" step="0.5" value={entryHours} onChange={e=>setEntryHours(e.target.value)} className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
                     </div>
                     <div>
@@ -5046,7 +5219,7 @@ function ScheduleView({
 
 function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
-  onNavigate,
+  onNavigate, onFixJobs,
 }: {
   jobs: Job[];
   directory: DirectoryEmployee[];
@@ -5054,6 +5227,7 @@ function DashboardView({
   weekFrom: string; weekTo: string;
   savedWeeks: WeekSnapshot[];
   onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string) => void;
+  onFixJobs: (updater: (prev: Job[]) => Job[]) => void;
 }) {
   const todayKey = todayDayKey();
   const todayIso = todayIsoDate();
@@ -5137,6 +5311,10 @@ function DashboardView({
     jobsMissingDocs.length +
     pendingPhotos.length +
     recentReports.length;
+
+  const handleFixConsistency = (alert: PayrollJobConsistencyAlert) => {
+    onFixJobs((prev) => fixJobsForConsistencyAlert(prev, alert, weekEmployees, weekFrom, weekTo, directory));
+  };
 
   const todayLabel = new Date().toLocaleDateString("pl-PL", {
     weekday: "long",
@@ -5319,14 +5497,34 @@ function DashboardView({
                       Lista płac →
                     </button>
                   </div>
-                  <div className="space-y-1.5">
-                    {consistencyAlerts.slice(0, 5).map((a, i) => (
-                      <p key={`${a.name}-${a.dateIso}-${i}`} className="text-xs text-muted-foreground leading-relaxed">
-                        {consistencyAlertMessage(a)}
-                      </p>
-                    ))}
-                    {consistencyAlerts.length > 5 && (
-                      <p className="text-[10px] text-muted-foreground">+ {consistencyAlerts.length - 5} więcej rozbieżności</p>
+                  <div className="space-y-2">
+                    {consistencyAlerts.slice(0, 8).map((a, i) => {
+                      const canFix =
+                        a.kind !== "payroll_only" ||
+                        jobs.some((j) => j.status === "in_progress");
+                      return (
+                        <div key={`${a.name}-${a.dateIso}-${i}`} className="flex items-start justify-between gap-3">
+                          <p className="text-xs text-muted-foreground leading-relaxed min-w-0 flex-1">
+                            {consistencyAlertMessage(a)}
+                          </p>
+                          <button
+                            type="button"
+                            disabled={!canFix}
+                            title={
+                              canFix
+                                ? "Dopasuj roboty do godzin z listy płac"
+                                : "Brak aktywnej roboty — dodaj wpis ręcznie w Roboty"
+                            }
+                            onClick={() => handleFixConsistency(a)}
+                            className="shrink-0 text-[10px] px-2.5 py-1 rounded-lg bg-primary/15 text-primary hover:bg-primary/25 font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            Popraw
+                          </button>
+                        </div>
+                      );
+                    })}
+                    {consistencyAlerts.length > 8 && (
+                      <p className="text-[10px] text-muted-foreground">+ {consistencyAlerts.length - 8} więcej rozbieżności</p>
                     )}
                   </div>
                 </div>
@@ -5970,7 +6168,7 @@ function HelpView() {
             {icon:Copy, title:"Kopiuj pracowników z zeszłego tygodnia", desc:"W Liście Płac, gdy tydzień jest pusty, pojawia się przycisk \"Kopiuj z poprzedniego tygodnia\". Kliknij — od razu doda tych samych pracowników co w poprzednim tygodniu. Oszczędzasz czas."},
             {icon:Mic, title:"Dyktowanie notatek głosem", desc:"Przy polu Notatki w robotach jest ikona mikrofonu. Kliknij, powiedz co chcesz wpisać — aplikacja zamieni mowę na tekst. Działa w przeglądarce Chrome na telefonie i komputerze."},
             {icon:Bell, title:"Reminder w sobotę", desc:"W sobotę na Pulpicie pojawia się niebieski baner: zapisz tydzień i rozlicz pracowników. W Liście Płac też jest żółty baner. Po „Zapisz tydzień” wysyłany jest backup emailem (raz na tydzień)."},
-            {icon:Scale, title:"Spójność listy płac ↔ roboty", desc:"Pulpit → „Uwaga dziś” ostrzega gdy godziny w liście płac nie zgadzają się z wpisami na robotach (np. 8 h w liście, 6 h na robocie)."},
+            {icon:Scale, title:"Spójność listy płac ↔ roboty", desc:"Pulpit → „Uwaga dziś” ostrzega gdy godziny się nie zgadzają. Kliknij „Popraw” — roboty dopasują się do listy płac. Nowe wpisy na robocie: 9 h lub godziny z listy płac."},
             {icon:BarChart3, title:"Karta pracownika z archiwum", desc:"Pracownicy → ikona wykresu przy osobie: roczne godziny, wypłaty, słupki miesięczne i lista tygodni z archiwum."},
             {icon:FileDown, title:"Raport roczny PDF", desc:"Archiwum → wybierz rok → „Raport roczny PDF”: wypłaty × 12 miesięcy, roboty zdane, średni koszt roboczogodziny."},
             {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"Sekcja „Uwaga dziś” zbiera: niezapisany tydzień, nierozliczonych, rozbieżności godzin, brakujące dokumenty i zdjęcia do akceptacji. „Pracuje dziś” — godziny z listy płac; adres po wpisie na robocie."},
@@ -6047,6 +6245,13 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.9.1", label:"Spójność — Popraw + 9 h",
+    items:[
+      {type:"new", text:"Pulpit — przy rozbieżności godzin przycisk „Popraw”: dopasowuje roboty do listy płac (lista płac ma pierwszeństwo)"},
+      {type:"improve", text:"Roboty — domyślnie 9 h przy dodawaniu wpisu; „Wczoraj → dziś” i ręczny wpis biorą godziny z listy płac gdy są"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.9.0", label:"Pulpit, kartoteka, archiwum",
     items:[
@@ -7214,7 +7419,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
 
         {/* Content */}
         <div className="flex flex-1 min-h-0 overflow-hidden pb-16 sm:pb-0">
-          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate}/>}
+          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs}/>}
           {view==="payroll"&&<PayrollView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory}/>}
