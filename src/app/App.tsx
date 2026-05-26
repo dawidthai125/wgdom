@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useRef, Fragment } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef, Fragment, type RefObject } from "react";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
@@ -860,47 +860,133 @@ function StatCard({label,value,sub,icon:Icon,accent=false}:{label:string;value:s
 }
 
 type SpeechRecognitionCtor = new() => {
-  lang: string; interimResults: boolean;
-  onresult: ((e: {results: {[i: number]: {[i: number]: {transcript: string}}}}) => void) | null;
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  onresult: ((e: { results: { length: number; [i: number]: { isFinal?: boolean; [i: number]: { transcript: string } } } }) => void) | null;
   onend: (() => void) | null;
-  onerror: (() => void) | null;
-  start(): void; stop(): void;
+  onerror: ((e: { error?: string }) => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
 };
 
-function VoiceNoteButton({onResult}: {onResult:(text:string)=>void}) {
+function speechRecognitionAvailable(): SpeechRecognitionCtor | undefined {
+  const w = window as unknown as Record<string, unknown>;
+  return (w.SpeechRecognition || w.webkitSpeechRecognition) as SpeechRecognitionCtor | undefined;
+}
+
+function isIosDevice(): boolean {
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function VoiceNoteButton({
+  onResult,
+  hintClassName,
+  focusRef,
+}: {
+  onResult: (text: string) => void;
+  hintClassName?: string;
+  focusRef?: RefObject<HTMLInputElement | HTMLTextAreaElement | null>;
+}) {
   const [listening, setListening] = useState(false);
-  const recRef = useRef<ReturnType<SpeechRecognitionCtor>|null>(null);
+  const [hint, setHint] = useState("");
+  const recRef = useRef<InstanceType<SpeechRecognitionCtor> | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ios = isIosDevice();
 
-  const w = window as unknown as Record<string,unknown>;
-  const SR = (w.SpeechRecognition || w.webkitSpeechRecognition) as SpeechRecognitionCtor | undefined;
+  const clearWatchdog = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
 
-  if (!SR) return null;
+  const cleanupRec = () => {
+    clearWatchdog();
+    try { recRef.current?.abort(); } catch { /* ignore */ }
+    recRef.current = null;
+    setListening(false);
+  };
 
-  const toggle = () => {
-    if (listening) {
-      recRef.current?.stop();
-      setListening(false);
+  useEffect(() => () => cleanupRec(), []);
+
+  const iosKeyboardHint = "Na iPhone: kliknij 🎤 na klawiaturze przy polu tekstowym — to bezpieczne dyktowanie (przycisk w aplikacji zawiesza Safari).";
+
+  const handleClick = () => {
+    if (ios) {
+      setHint(iosKeyboardHint);
+      focusRef?.current?.focus();
       return;
     }
+
+    const SR = speechRecognitionAvailable();
+    if (!SR) {
+      setHint("Dyktowanie niedostępne — wpisz tekstem.");
+      focusRef?.current?.focus();
+      return;
+    }
+
+    if (listening) {
+      cleanupRec();
+      return;
+    }
+
+    setHint("");
     const rec = new SR();
     rec.lang = "pl-PL";
     rec.interimResults = false;
+    rec.continuous = false;
+
     rec.onresult = (e) => {
-      const text = e.results[0][0].transcript;
-      onResult(text);
+      const text = e.results[0]?.[0]?.transcript?.trim();
+      if (text) onResult(text);
     };
-    rec.onend = () => setListening(false);
-    rec.onerror = () => setListening(false);
-    rec.start();
-    recRef.current = rec;
-    setListening(true);
+
+    rec.onend = () => {
+      clearWatchdog();
+      recRef.current = null;
+      setListening(false);
+    };
+
+    rec.onerror = (ev) => {
+      cleanupRec();
+      const code = ev.error;
+      if (code === "not-allowed") setHint("Brak dostępu do mikrofonu — zezwól w ustawieniach.");
+      else if (code !== "aborted") setHint("Nie udało się nagrać — spróbuj ponownie.");
+    };
+
+    try {
+      rec.start();
+      recRef.current = rec;
+      setListening(true);
+      timeoutRef.current = setTimeout(() => {
+        cleanupRec();
+        setHint("Koniec czasu nagrywania — spróbuj ponownie.");
+      }, 15000);
+    } catch {
+      cleanupRec();
+      setHint("Nie udało się uruchomić nagrywania.");
+    }
   };
 
   return (
-    <button type="button" onClick={toggle} title={listening ? "Zatrzymaj nagrywanie" : "Dyktuj notatkę głosową"}
-      className={`p-1.5 rounded-lg transition-colors shrink-0 ${listening ? "text-destructive animate-pulse bg-destructive/10" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
-      {listening ? <MicOff size={14}/> : <Mic size={14}/>}
-    </button>
+    <div className="shrink-0 flex flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={handleClick}
+        title={ios ? "Dyktuj klawiaturą iPhone (🎤)" : listening ? "Zatrzymaj" : "Dyktuj notatkę głosową"}
+        className={`p-1.5 rounded-lg transition-colors shrink-0 touch-manipulation ${listening ? "text-destructive animate-pulse bg-destructive/10" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}
+      >
+        {listening ? <MicOff size={14}/> : <Mic size={14}/>}
+      </button>
+      {hint && (
+        <p className={`text-[10px] text-amber-400/90 leading-snug max-w-[220px] text-right ${hintClassName || ""}`}>
+          {hint}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -2447,6 +2533,7 @@ function JobsView({
   const [shareCopied, setShareCopied] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [expandedWorkerKeys, setExpandedWorkerKeys] = useState<Set<string>>(new Set());
+  const jobNotesRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!initialJobId) return;
@@ -2952,9 +3039,9 @@ function JobsView({
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <label className="text-xs text-muted-foreground flex-1">Notatki</label>
-                  <VoiceNoteButton onResult={text=>updateJob({...selectedJob,notes:(selectedJob.notes?selectedJob.notes+" ":"")+text})}/>
+                  <VoiceNoteButton focusRef={jobNotesRef} onResult={text=>updateJob({...selectedJob,notes:(selectedJob.notes?selectedJob.notes+" ":"")+text})}/>
                 </div>
-                <textarea value={selectedJob.notes} onChange={e=>updateJob({...selectedJob,notes:e.target.value})} placeholder="Uwagi, informacje dodatkowe..." rows={3} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors resize-none"/>
+                <textarea ref={jobNotesRef} value={selectedJob.notes} onChange={e=>updateJob({...selectedJob,notes:e.target.value})} placeholder="Uwagi, informacje dodatkowe..." rows={3} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors resize-none"/>
               </div>
 
               {/* Link podglądu dla klienta */}
@@ -4506,6 +4593,13 @@ function HelpView() {
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-26", version:"2.5.6", label:"Pracownik — głos i rysunek z galerii",
+    items:[
+      {type:"fix", text:"iPhone: mikrofon nie zawiesza strony — dyktowanie przez 🎤 na klawiaturze (Web Speech API wyłączone na iOS)"},
+      {type:"new", text:"Rysunek w raporcie — wybór: zrób zdjęcie aparatem albo wrzuć wcześniejsze z galerii"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.5.5", label:"Galeria zdjęć na robocie",
     items:[
       {type:"improve", text:"Zdjęcia pogrupowane: Przed remontem · Po remoncie · W trakcie"},
@@ -5697,6 +5791,8 @@ function JobReportForm({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const pokojCountRef = useRef(0);
+  const newItemInputRef = useRef<HTMLInputElement>(null);
+  const generalNoteRef = useRef<HTMLTextAreaElement>(null);
   const isEdit = Boolean(editReport);
 
   useEffect(() => {
@@ -5865,8 +5961,9 @@ function JobReportForm({
             ))}
           </ul>
         )}
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-start">
           <input
+            ref={newItemInputRef}
             type="text"
             value={newItemText}
             onChange={(e) => setNewItemText(e.target.value)}
@@ -5874,7 +5971,7 @@ function JobReportForm({
             placeholder="np. Położono płytki w łazience..."
             className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
           />
-          <VoiceNoteButton onResult={(text) => setNewItemText((p) => (p ? `${p} ${text}` : text))}/>
+          <VoiceNoteButton focusRef={newItemInputRef} hintClassName="sm:max-w-[280px]" onResult={(text) => setNewItemText((p) => (p ? `${p} ${text}` : text))}/>
           <button type="button" onClick={addReportItem} className="px-4 py-2.5 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 shrink-0">
             <Plus size={16}/>
           </button>
@@ -5955,12 +6052,23 @@ function JobReportForm({
           </div>
         ) : (
           <div className="space-y-3">
-            <label className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl border border-dashed border-border text-sm text-muted-foreground cursor-pointer hover:border-primary/40 hover:text-foreground transition-colors">
-              <ImagePlus size={16}/>
-              {sketchFile ? sketchFile.name : existingSketch ? "Zmień rysunek" : "Wybierz zdjęcie rysunku z wymiarami"}
-              <input type="file" accept="image/*" capture="environment" className="sr-only"
-                onChange={(e) => { onSketchPick(e.target.files); e.target.value = ""; }}/>
-            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-xl border border-dashed border-border text-sm text-muted-foreground cursor-pointer hover:border-primary/40 hover:text-foreground transition-colors touch-manipulation">
+                <Camera size={18}/>
+                <span className="text-xs font-medium">Zrób zdjęcie</span>
+                <input type="file" accept="image/*" capture="environment" className="sr-only"
+                  onChange={(e) => { onSketchPick(e.target.files); e.target.value = ""; }}/>
+              </label>
+              <label className="flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-xl border border-dashed border-border text-sm text-muted-foreground cursor-pointer hover:border-primary/40 hover:text-foreground transition-colors touch-manipulation">
+                <ImagePlus size={18}/>
+                <span className="text-xs font-medium">Z galerii</span>
+                <input type="file" accept="image/*" className="sr-only"
+                  onChange={(e) => { onSketchPick(e.target.files); e.target.value = ""; }}/>
+              </label>
+            </div>
+            {sketchFile && (
+              <p className="text-[11px] text-muted-foreground text-center truncate px-2">{sketchFile.name}</p>
+            )}
             {sketchPreview && (
               <img src={sketchPreview} alt="Podgląd rysunku" className="rounded-xl border border-border max-h-48 w-full object-contain bg-secondary"/>
             )}
@@ -5976,13 +6084,14 @@ function JobReportForm({
       </div>
 
       <div>
-        <div className="flex items-center gap-2 mb-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 flex-1">
+        <div className="flex items-start gap-2 mb-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 flex-1 pt-1.5">
             <StickyNote size={12}/>Wiadomość dla admina
           </p>
-          <VoiceNoteButton onResult={(text) => setGeneralNote((p) => (p ? `${p} ${text}` : text))}/>
+          <VoiceNoteButton focusRef={generalNoteRef} hintClassName="max-w-[min(100vw-2rem,280px)]" onResult={(text) => setGeneralNote((p) => (p ? `${p} ${text}` : text))}/>
         </div>
         <textarea
+          ref={generalNoteRef}
           value={generalNote}
           onChange={(e) => setGeneralNote(e.target.value)}
           placeholder="Coś ważnego do przekazania — opcjonalnie"
