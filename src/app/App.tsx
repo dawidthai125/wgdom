@@ -102,6 +102,8 @@ interface DirectoryEmployee {
   multiSiteDaily?: boolean;
   /** SHA-256 hash osobistego kodu 4-cyfrowego (logowanie pracownika) */
   workerPinHash?: string;
+  /** Konto testowe — tylko logowanie pracownika, bez listy płac, grafiku i raportów */
+  testAccount?: boolean;
 }
 
 interface DayData {
@@ -322,6 +324,59 @@ function defaultDays(): Record<DayKey, DayData> { return Object.fromEntries(DAYS
 
 function defaultDirEmployee(): DirectoryEmployee {
   return { id: crypto.randomUUID(), name: "", phone: "", position: "", defaultRate: "25.00", startDate: new Date().toISOString().slice(0,10), active: true, notes: "" };
+}
+
+/** Heurystyka: znane konto testowe (np. test + 000000000). */
+function inferTestAccountHeuristic(emp: DirectoryEmployee): boolean {
+  const name = emp.name.trim().toLowerCase();
+  const phone9 = normalizePhone9(emp.phone);
+  return name === "test" || phone9 === "000000000";
+}
+
+function isTestDirectoryEmployee(emp: DirectoryEmployee | undefined | null): boolean {
+  if (!emp) return false;
+  if (emp.testAccount === false) return false;
+  if (emp.testAccount === true) return true;
+  return inferTestAccountHeuristic(emp);
+}
+
+function isProductionDirectoryEmployee(emp: DirectoryEmployee): boolean {
+  return !isTestDirectoryEmployee(emp);
+}
+
+function isProductionActiveDirectoryEmployee(emp: DirectoryEmployee): boolean {
+  return emp.active && isProductionDirectoryEmployee(emp);
+}
+
+function filterProductionDirectory(directory: DirectoryEmployee[]): DirectoryEmployee[] {
+  return directory.filter(isProductionDirectoryEmployee);
+}
+
+function filterProductionActiveDirectory(directory: DirectoryEmployee[]): DirectoryEmployee[] {
+  return directory.filter(isProductionActiveDirectoryEmployee);
+}
+
+function isTestWeekEmployee(emp: WeekEmployee, directory: DirectoryEmployee[]): boolean {
+  if (!emp.directoryId) return false;
+  const dir = directory.find((d) => d.id === emp.directoryId);
+  return isTestDirectoryEmployee(dir);
+}
+
+function filterProductionWeekEmployees(weekEmployees: WeekEmployee[], directory: DirectoryEmployee[]): WeekEmployee[] {
+  return weekEmployees.filter((e) => !isTestWeekEmployee(e, directory));
+}
+
+function normalizeDirectoryTestFlags(list: DirectoryEmployee[]): DirectoryEmployee[] {
+  let changed = false;
+  const next = list.map((d) => {
+    if (d.testAccount === false) return d;
+    if (isTestDirectoryEmployee(d) && d.testAccount !== true) {
+      changed = true;
+      return { ...d, testAccount: true };
+    }
+    return d;
+  });
+  return changed ? next : list;
 }
 
 const PHOTO_LABEL_NAMES: Record<PhotoEntry["label"], string> = {
@@ -546,6 +601,7 @@ function payrollJobConsistencyAlerts(
   };
 
   for (const emp of weekEmployees) {
+    if (isTestWeekEmployee(emp, directory)) continue;
     for (const col of cols) {
       pushAlert(
         emp.name || "—",
@@ -561,6 +617,7 @@ function payrollJobConsistencyAlerts(
   for (const job of jobs) {
     for (const we of job.workEntries) {
       if (we.date < weekFrom || we.date > weekTo || we.hours <= 0) continue;
+      if (we.directoryId && isTestDirectoryEmployee(directory.find((d) => d.id === we.directoryId))) continue;
       if (weekEmployees.some((e) => workEntryMatchesEmployee(e, we, directory))) continue;
       const col = cols.find((c) => c.iso === we.date);
       if (!col) continue;
@@ -2622,7 +2679,7 @@ function PayrollView({
     if (!lastSavedWeek) return;
     const lastNames = new Set(lastSavedWeek.employees.map(e => e.name));
     const alreadyAssigned = new Set(weekEmployees.map(e => e.directoryId).filter(Boolean));
-    const toAdd = directory.filter(d => d.active && lastNames.has(d.name) && !alreadyAssigned.has(d.id));
+    const toAdd = directory.filter((d) => d.active && isProductionDirectoryEmployee(d) && lastNames.has(d.name) && !alreadyAssigned.has(d.id));
     if (toAdd.length > 0) onAddFromDirectory(toAdd.map(d => d.id));
   };
 
@@ -2647,7 +2704,7 @@ function PayrollView({
 
   // Directory employees not yet in this week
   const assignedDirIds = new Set(weekEmployees.map((e)=>e.directoryId).filter(Boolean));
-  const availableFromDir = directory.filter((d)=>d.active&&!assignedDirIds.has(d.id));
+  const availableFromDir = filterProductionActiveDirectory(directory).filter((d) => !assignedDirIds.has(d.id));
   const filteredAvailable = availableFromDir.filter((d)=>
     d.name.toLowerCase().includes(pickerSearch.toLowerCase()) ||
     d.position.toLowerCase().includes(pickerSearch.toLowerCase())
@@ -3189,8 +3246,8 @@ function DirectoryView({directory, savedWeeks, onChange}:{directory:DirectoryEmp
 
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-4">
-            <StatCard label="Aktywni" value={String(directory.filter(d=>d.active).length)} icon={Users} accent/>
-            <StatCard label="Nieaktywni" value={String(directory.filter(d=>!d.active).length)} icon={User}/>
+            <StatCard label="Aktywni" value={String(directory.filter((d) => d.active && isProductionDirectoryEmployee(d)).length)} icon={Users} accent/>
+            <StatCard label="Konta test" value={String(directory.filter((d) => isTestDirectoryEmployee(d)).length)} icon={HardHat}/>
             <StatCard label="Łącznie" value={String(directory.length)} icon={Building2}/>
           </div>
 
@@ -3291,6 +3348,23 @@ function DirectoryView({directory, savedWeeks, onChange}:{directory:DirectoryEmp
                         <span className="text-xs text-muted-foreground leading-relaxed">Np. kierowca rozwożący towar — nie sprawdzamy spójności godzin z robotami (wystarczy lista płac).</span>
                       </span>
                     </label>
+                    <label className="flex items-start gap-3 cursor-pointer bg-violet-500/5 rounded-xl p-3 border border-violet-500/20">
+                      <input
+                        type="checkbox"
+                        checked={isTestDirectoryEmployee(editEmp)}
+                        onChange={(e) => update({ ...editEmp, testAccount: e.target.checked ? true : false })}
+                        className="mt-0.5"
+                      />
+                      <span>
+                        <span className="text-sm font-medium block flex items-center gap-2">
+                          Konto testowe
+                          <span className="text-[10px] font-normal text-violet-400 bg-violet-500/10 px-1.5 py-0.5 rounded-full">TEST</span>
+                        </span>
+                        <span className="text-xs text-muted-foreground leading-relaxed">
+                          Tylko logowanie w trybie pracownika (zdjęcia, raporty). Nie trafia na listę płac, grafik, pulpit ani roboty. Auto-wykrywane dla imienia „test” i numeru +48 000 000 000.
+                        </span>
+                      </span>
+                    </label>
                     <div className="flex items-center gap-2 pt-2">
                       <button onClick={()=>setEditId(null)} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"><Check size={13}/>Zapisz</button>
                       <button onClick={()=>setEditId(null)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Anuluj</button>
@@ -3304,7 +3378,10 @@ function DirectoryView({directory, savedWeeks, onChange}:{directory:DirectoryEmp
                     <div className="min-w-0 flex-1 grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-0.5">
                       <div>
                         <p className="text-sm font-semibold leading-tight">{emp.name||<span className="italic text-muted-foreground">Bez nazwy</span>}</p>
-                        <p className="text-xs text-muted-foreground">{emp.position||<span className="italic">brak stanowiska</span>}{emp.multiSiteDaily && <span className="ml-2 text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full">wiele robót/dzień</span>}</p>
+                        <p className="text-xs text-muted-foreground">{emp.position||<span className="italic">brak stanowiska</span>}
+                          {emp.multiSiteDaily && <span className="ml-2 text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full">wiele robót/dzień</span>}
+                          {isTestDirectoryEmployee(emp) && <span className="ml-2 text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full">TEST</span>}
+                        </p>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Phone size={11} className="shrink-0"/>{emp.phone||"—"}
@@ -5071,11 +5148,11 @@ function JobsView({
               </button>
             ))}
           </div>
-          {directory.filter(d=>d.active).length>0&&(
+          {filterProductionActiveDirectory(directory).length>0&&(
             <select value={workerFilter} onChange={e=>setWorkerFilter(e.target.value)}
               className="w-full bg-secondary rounded-lg px-3 py-2 text-xs border border-transparent focus:border-primary focus:outline-none text-muted-foreground">
               <option value="">Wszyscy pracownicy</option>
-              {directory.filter(d=>d.active).map(d=>(
+              {filterProductionActiveDirectory(directory).map(d=>(
                 <option key={d.id} value={d.id}>{d.name}{d.position?` — ${d.position}`:""}</option>
               ))}
             </select>
@@ -5497,7 +5574,7 @@ function JobsView({
                         if(id) syncEntryHoursFromPayroll(id, entryDate);
                       }} className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors">
                         <option value="">Wybierz pracownika...</option>
-                        {directory.filter(d=>d.active).map(d=>(
+                        {filterProductionActiveDirectory(directory).map(d=>(
                           <option key={d.id} value={d.id}>{d.name} — {d.position}</option>
                         ))}
                       </select>
@@ -6206,7 +6283,7 @@ function DashboardView({
               {workingToday.length}
             </p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              {weekEmployees.length > 0 ? `${offToday.length} wolne · ${directory.filter((d) => d.active).length} w kartotece` : "brak w liście płac"}
+              {weekEmployees.length > 0 ? `${offToday.length} wolne · ${filterProductionActiveDirectory(directory).length} w kartotece` : "brak w liście płac"}
             </p>
           </button>
           <div
@@ -6793,6 +6870,7 @@ function HelpView() {
               {q:"Jak dodać nowego pracownika?", a:'Kliknij "Nowy pracownik". Wpisz imię i nazwisko, telefon, stanowisko (np. Murarz, Elektryk, Kierowca) i domyślną stawkę godzinową. Data zatrudnienia jest opcjonalna.'},
               {q:"Telefon i kod pracownika", a:"Numer w kartotece (np. +48 501 234 567) — pracownik wpisuje 9 ostatnich cyfr przy logowaniu. Dodatkowo ustawia osobisty kod 4 cyfry (jak PIN do karty) przy pierwszym logowaniu — chroni wypłatę przed podglądem przez kolegów. Administrator może ustawić lub zresetować kod w edycji pracownika."},
               {q:"Reset kodu pracownika", a:"Pracownicy → edytuj → sekcja „Kod pracownika” → Resetuj kod. Pracownik ustawi nowy kod przy następnym logowaniu (telefon zostaje bez zmian)."},
+              {q:"Konto testowe (np. do sprawdzania panelu pracownika)", a:"W edycji pracownika zaznacz „Konto testowe”. Takie konto może się logować jako pracownik (zdjęcia, raporty), ale nie pojawia się na liście płac, grafiku, pulpicie ani w wyborze pracownika na robocie. Auto-wykrywane dla imienia „test” i numeru +48 000 000 000."},
               {q:"Aplikacja na ekranie telefonu (PWA)", a:"Po wejściu jako pracownik pojawi się baner „Dodaj na ekran”. Na Androidzie — Zainstaluj. Na iPhone (Safari) — Udostępnij → Dodaj do ekranu początkowego. Działa szybciej i trzyma zdjęcia w kolejce offline gdy brak sieci."},
               {q:"Zdjęcia offline i znak wodny", a:"Bez internetu zdjęcia trafiają do kolejki i wysyłają się same po powrocie sieci. Każde zdjęcie ma znak wodny: adres, data i W&G DOM."},
               {q:"Notatka głosowa w raporcie", a:"Przy dodawaniu raportu (zakres prac, wiadomość dla admina) — ikona mikrofonu. Działa w Chrome/Edge na telefonie i komputerze."},
@@ -7051,6 +7129,14 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.9.15", label:"Konto testowe pracownika",
+    items:[
+      {type:"new", text:"Kartoteka — „Konto testowe”: tylko tryb pracownika (zdjęcia, raporty), bez listy płac, grafiku, pulpitu i wpisów na robotach"},
+      {type:"improve", text:"Auto-wykrywanie konta test (imię „test”, telefon +48 000 000 000) — oznaczenie TEST w kartotece"},
+      {type:"improve", text:"Istniejący wpis test na liście płac jest automatycznie usuwany po odświeżeniu"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.9.14", label:"Kod pracownika 4 cyfry",
     items:[
@@ -7781,6 +7867,23 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
   const [fullDataBackupStatus, setFullDataBackupStatus] = useState<{ dailyBackupDate: string | null; hasPrev: boolean } | null>(null);
   const [restoreBusy, setRestoreBusy] = useState(false);
 
+  const productionWeekEmployees = useMemo(
+    () => filterProductionWeekEmployees(weekEmployees, directory),
+    [weekEmployees, directory],
+  );
+
+  useEffect(() => {
+    const normalized = normalizeDirectoryTestFlags(directory);
+    if (normalized !== directory) setDirectory(normalized);
+  }, [directory, setDirectory]);
+
+  useEffect(() => {
+    setWeekEmployees((prev) => {
+      const next = filterProductionWeekEmployees(prev, directory);
+      return next.length === prev.length ? prev : next;
+    });
+  }, [directory, setWeekEmployees]);
+
   useEffect(() => {
     fetchJobsBackupStatus().then(setJobsBackupStatus).catch(() => {});
     fetchPayrollBackupStatus().then((s) => {
@@ -7985,13 +8088,13 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
     if(!globalSearch.trim()) return {employees:[],jobs:[]};
     const q=globalSearch.toLowerCase();
     return {
-      employees: directory.filter(d=>d.name.toLowerCase().includes(q)||d.phone.includes(q)||d.position.toLowerCase().includes(q)),
+      employees: filterProductionDirectory(directory).filter((d)=>d.name.toLowerCase().includes(q)||d.phone.includes(q)||d.position.toLowerCase().includes(q)),
       jobs: jobs.filter(j=>j.address.toLowerCase().includes(q)||j.client.toLowerCase().includes(q)||j.flatNumber.toLowerCase().includes(q)),
     };
   },[globalSearch,directory,jobs]);
 
   const addFromDirectory = (ids: string[]) => {
-    const toAdd = directory.filter((d)=>ids.includes(d.id));
+    const toAdd = directory.filter((d) => ids.includes(d.id) && isProductionDirectoryEmployee(d));
     const newEmps = toAdd.map(weekEmployeeFromDir);
     setWeekEmployees((prev)=>[...prev,...newEmps]);
   };
@@ -8096,8 +8199,8 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
   const navItems: {key:View;label:string;hint:string;icon:React.ElementType;badge?:number}[] = [
     {key:"dashboard", label:"Pulpit", hint:"Podsumowanie tygodnia, alerty (spójność, dokumenty, zdjęcia) i szybkie skróty.", icon:LayoutDashboard},
     {key:"payroll", label:"Lista Płac", hint:"Godziny, stawki, zaliczki i wypłaty za bieżący tydzień. Eksport PDF i Word.", icon:FileText},
-    {key:"schedule", label:"Grafik", hint:"Kto pracuje którego dnia — widok Pn–So na podstawie listy płac.", icon:CalendarDays, badge:weekEmployees.length || undefined},
-    {key:"directory", label:"Pracownicy", hint:"Kartoteka: dane, stawki, telefony, kod 4-cyfrowy pracownika, archiwum roczne.", icon:Users, badge:directory.filter(d=>d.active).length},
+    {key:"schedule", label:"Grafik", hint:"Kto pracuje którego dnia — widok Pn–So na podstawie listy płac.", icon:CalendarDays, badge:productionWeekEmployees.length || undefined},
+    {key:"directory", label:"Pracownicy", hint:"Kartoteka: dane, stawki, telefony, kod 4-cyfrowy, konto testowe, archiwum.", icon:Users, badge:filterProductionActiveDirectory(directory).length},
     {key:"contacts", label:"Kontakty", hint:"Adresy e-mail klientów i współpracowników — do wysyłki z robot.", icon:Mail, badge:contacts.filter(c=>c.email.trim()).length||undefined},
     {key:"archive", label:"Archiwum", hint:"Zapisane tygodnie list płac, raporty miesięczne i podsumowania roczne.", icon:Archive, badge:savedWeeks.length||undefined},
     {key:"jobs", label:"Roboty", hint:"Adresy remontów: dokumenty, czas pracy, materiały, zdjęcia i raporty.", icon:MapPin, badge:(()=>{ const pend=jobs.reduce((s,j)=>s+(j.photos||[]).filter(p=>p.status==="pending").length,0); return pend>0?pend:jobs.filter(j=>j.status==="in_progress").length||undefined; })()},
@@ -8106,7 +8209,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
     {key:"help", label:"Instrukcja", hint:"Pomoc krok po kroku: lista płac, roboty, grafik i typowe pytania.", icon:BookOpen},
   ];
 
-  const totalNet = weekEmployees.reduce((s,e)=>s+calcWeekEmployee(e).netPay,0);
+  const totalNet = productionWeekEmployees.reduce((s,e)=>s+calcWeekEmployee(e).netPay,0);
 
   const handleNavigate = useCallback((v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string) => {
     if (jobId) setPendingJobId(jobId);
@@ -8141,9 +8244,9 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
         <div className="px-4 py-4 flex-1">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Bieżący tydzień</p>
           <div className="space-y-2">
-            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Pracownicy</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{weekEmployees.length}</span></div>
+            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Pracownicy</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{productionWeekEmployees.length}</span></div>
             <div className="flex justify-between text-xs"><span className="text-muted-foreground">Okres</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtDate(weekFrom).slice(0,5)}–{fmtDate(weekTo).slice(0,5)}</span></div>
-            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Rozliczeni</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{weekEmployees.filter(e=>e.settled).length}/{weekEmployees.length}</span></div>
+            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Rozliczeni</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{productionWeekEmployees.filter(e=>e.settled).length}/{productionWeekEmployees.length}</span></div>
             <div className="pt-2 mt-2 border-t border-border">
               <p className="text-xs text-muted-foreground mb-0.5">Do wypłaty</p>
               <p className="text-lg font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN</p>
@@ -8235,8 +8338,8 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
           <h2 className="text-sm font-semibold">{navItems.find(n=>n.key===view)?.label}</h2>
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
             <CompanyMusicPlayer />
-            {view==="payroll"&&<span className="text-xs text-muted-foreground hidden sm:block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN · {weekEmployees.length} prac.</span>}
-            {view==="schedule"&&<span className="text-xs text-muted-foreground hidden sm:block">{fmtDate(weekFrom)} – {fmtDate(weekTo)} · {weekEmployees.length} prac.</span>}
+            {view==="payroll"&&<span className="text-xs text-muted-foreground hidden sm:block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN · {productionWeekEmployees.length} prac.</span>}
+            {view==="schedule"&&<span className="text-xs text-muted-foreground hidden sm:block">{fmtDate(weekFrom)} – {fmtDate(weekTo)} · {productionWeekEmployees.length} prac.</span>}
             {view==="jobs"&&<span className="text-xs text-muted-foreground hidden sm:block">{jobs.filter(j=>j.status==="in_progress").length} aktywne · {jobs.filter(j=>j.status==="completed").length} zdane</span>}
             {/* Backup na mobile (na desktopie jest w sidebarze) */}
             <button type="button" onClick={exportBackup} title="Eksportuj backup" className="sm:hidden p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
@@ -8325,13 +8428,13 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
 
         {/* Content */}
         <div className="flex flex-1 min-h-0 overflow-hidden pb-16 sm:pb-0">
-          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs}/>}
-          {view==="payroll"&&<PayrollView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive}/>}
-          {view==="schedule"&&<ScheduleView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
+          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs}/>}
+          {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive}/>}
+          {view==="schedule"&&<ScheduleView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>setSavedWeeks(prev=>prev.filter(w=>w.id!==id))} jobs={jobs} directory={directory}/>}
-          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={weekEmployees} weekFrom={weekFrom}/>}
+          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom}/>}
           {view==="photos"&&<JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="changelog"&&<ChangelogView/>}
           {view==="help"&&<HelpView/>}
