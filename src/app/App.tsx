@@ -102,7 +102,16 @@ import {
   getJobNotesSeenAt,
   markJobNotesSeen,
 } from "@/lib/inspector-stats";
-import { normalizeJobWmFields, jobsWithInspectorNotesNeedingAdmin, isWmClient } from "@/lib/job-wm";
+import {
+  normalizeJobWmFields,
+  jobsWithInspectorNotesNeedingAdmin,
+  isWmClient,
+  wmJobsWithOverduePlanned,
+  wmJobsPlannedThisWeek,
+  fmtPlannedHandover,
+  HANDOVER_STAGE_LABELS,
+  inferHandoverStage,
+} from "@/lib/job-wm";
 import { JobWmPanel, JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
@@ -5111,14 +5120,26 @@ function JobsView({
     let next = activity
       ? appendJobActivity(updated, activity.type, activity.text, activity.actor || "Administrator")
       : updated;
+
+    if (isWmClient(next.client)) {
+      next = normalizeJobWmFields(next);
+      setJobs((prev) => prev.map((j) => (j.id === next.id ? next : j)));
+      return;
+    }
+
     const wasAllDone = allDocsDone(next);
     const withStatus = wasAllDone && next.status === "in_progress"
       ? appendJobActivity({ ...next, status: "completed" as const }, "status_change", "Automatycznie oznaczono jako zdane (komplet dokumentów)", "System")
       : next;
-    setJobs(prev=>prev.map(j=>j.id===withStatus.id?withStatus:j));
+    setJobs((prev) => prev.map((j) => (j.id === withStatus.id ? withStatus : j)));
   };
 
   const tryToggleStatus = (job: Job) => {
+    if (isWmClient(job.client)) {
+      setStatusWarning(true);
+      setTimeout(() => setStatusWarning(false), 4000);
+      return;
+    }
     if (job.status === "in_progress" && !allDocsDone(job)) {
       setStatusWarning(true);
       setTimeout(() => setStatusWarning(false), 4000);
@@ -5569,32 +5590,55 @@ function JobsView({
               {/* Status row */}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <button
-                    onClick={()=>tryToggleStatus(selectedJob)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${selectedJob.status==="completed"?"bg-green-500/15 text-green-400 border-green-500/20 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 border-yellow-500/20 hover:bg-yellow-500/20"}`}>
-                    {selectedJob.status==="completed"?<><CheckCircle2 size={13}/>Zdane</>:<><Circle size={13}/>W trakcie</>}
-                  </button>
-                  <button
-                    onClick={()=>updateJob({...selectedJob, keysHandedOver:!selectedJob.keysHandedOver})}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${selectedJob.keysHandedOver?"bg-blue-500/15 text-blue-400 border-blue-500/20 hover:bg-blue-500/25":"bg-secondary text-muted-foreground border-border hover:text-foreground hover:bg-secondary/70"}`}>
-                    {selectedJob.keysHandedOver?<><CheckCircle2 size={13}/>Klucze zdane</>:<><Circle size={13}/>Klucze</>}
-                  </button>
+                  {isWmClient(selectedJob.client) ? (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <JobWmStageBadge job={selectedJob}/>
+                      {selectedJob.plannedHandoverDate && <JobWmPlannedBadge job={selectedJob}/>}
+                      <span className="text-xs text-muted-foreground">
+                        Status WM ustawiasz w sekcji <strong className="text-foreground/80">Odbiór WM</strong> poniżej
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={()=>tryToggleStatus(selectedJob)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${selectedJob.status==="completed"?"bg-green-500/15 text-green-400 border-green-500/20 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 border-yellow-500/20 hover:bg-yellow-500/20"}`}>
+                        {selectedJob.status==="completed"?<><CheckCircle2 size={13}/>Zdane</>:<><Circle size={13}/>W trakcie</>}
+                      </button>
+                      <button
+                        onClick={()=>updateJob({...selectedJob, keysHandedOver:!selectedJob.keysHandedOver})}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${selectedJob.keysHandedOver?"bg-blue-500/15 text-blue-400 border-blue-500/20 hover:bg-blue-500/25":"bg-secondary text-muted-foreground border-border hover:text-foreground hover:bg-secondary/70"}`}>
+                        {selectedJob.keysHandedOver?<><CheckCircle2 size={13}/>Klucze zdane</>:<><Circle size={13}/>Klucze</>}
+                      </button>
+                    </>
+                  )}
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock size={13}/>
                     <span>Czas remontu: <span className="font-semibold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{jobDuration(selectedJob)} dni</span></span>
                   </div>
-                  {!allDocsDone(selectedJob) && selectedJob.status === "in_progress" && (
+                  {!isWmClient(selectedJob.client) && !allDocsDone(selectedJob) && selectedJob.status === "in_progress" && (
                     <span className="text-xs text-muted-foreground ml-auto">
                       Brakuje <span className="font-semibold text-yellow-400">{REQUIRED_DOCS.filter(d=>!selectedJob.documents[d]).length}</span> z {REQUIRED_DOCS.length} wymaganych dokumentów
                     </span>
                   )}
-                  {allDocsDone(selectedJob) && selectedJob.status === "in_progress" && (
+                  {!isWmClient(selectedJob.client) && allDocsDone(selectedJob) && selectedJob.status === "in_progress" && (
                     <span className="text-xs text-green-400 ml-auto flex items-center gap-1">
                       <CheckCircle2 size={11}/>Wszystkie dokumenty skompletowane — można zdać
                     </span>
                   )}
+                  {isWmClient(selectedJob.client) && allDocsDone(selectedJob) && inferHandoverStage(selectedJob) !== "handed_over" && (
+                    <span className="text-xs text-emerald-400 ml-auto flex items-center gap-1">
+                      <CheckCircle2 size={11}/>Dokumenty kompletne — ustaw etap „Gotowa do odbioru WM”
+                    </span>
+                  )}
                 </div>
-                {statusWarning && (
+                {statusWarning && isWmClient(selectedJob.client) && (
+                  <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/25 rounded-lg px-4 py-2.5 text-sm text-amber-700 dark:text-amber-300">
+                    <AlertTriangle size={14} className="shrink-0"/>
+                    <span>Roboty WM — status zmieniasz w sekcji <strong>Odbiór WM</strong> (etap odbioru), nie przyciskiem „Zdane”.</span>
+                  </div>
+                )}
+                {statusWarning && !isWmClient(selectedJob.client) && (
                   <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-lg px-4 py-2.5 text-sm text-destructive">
                     <X size={14} className="shrink-0"/>
                     <span>
@@ -6558,6 +6602,9 @@ function DashboardView({
     [jobs, inspectorSeenTick],
   );
 
+  const wmOverdueJobs = useMemo(() => wmJobsWithOverduePlanned(jobs), [jobs]);
+  const wmThisWeekJobs = useMemo(() => wmJobsPlannedThisWeek(jobs), [jobs]);
+
   const markInspectorAlertsSeen = () => {
     markInspectorFeedSeen();
     markJobNotesSeen();
@@ -6589,7 +6636,9 @@ function DashboardView({
     pendingReceipts.length +
     pendingReports.length +
     unseenInspectorFeed.length +
-    inspectorNotesPending.length;
+    inspectorNotesPending.length +
+    wmOverdueJobs.length +
+    wmThisWeekJobs.length;
 
   const handleFixConsistency = (alert: PayrollJobConsistencyAlert) => {
     onFixJobs((prev) => fixJobsForConsistencyAlert(prev, alert, weekEmployees, weekFrom, weekTo, directory));
@@ -6984,6 +7033,78 @@ function DashboardView({
                     ))}
                     {unseenInspectorFeed.length > 6 && (
                       <p className="text-[10px] text-muted-foreground">+ {unseenInspectorFeed.length - 6} więcej w zakładce Inspektor</p>
+                    )}
+                  </div>
+                </div>
+              )}
+              {wmOverdueJobs.length > 0 && (
+                <div className="px-5 py-3.5">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-sm font-medium flex items-center gap-2">
+                      <Calendar size={14} className="text-red-400"/>
+                      WM — termin odbioru minął
+                      <span className="text-[10px] bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded-full font-bold">
+                        {wmOverdueJobs.length}
+                      </span>
+                    </p>
+                    <button type="button" onClick={() => onNavigate("inspector")} className="text-xs text-primary hover:underline shrink-0">
+                      Portfolio WM →
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    {wmOverdueJobs.slice(0, 5).map((job) => (
+                      <button
+                        key={job.id}
+                        type="button"
+                        onClick={() => onNavigate("jobs", job.id)}
+                        className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <span className="text-foreground">{job.address || "Bez adresu"}</span>
+                        {job.flatNumber ? ` m.${job.flatNumber}` : ""}
+                        {" · "}
+                        <span className="text-red-400">{fmtPlannedHandover(job.plannedHandoverDate || "")}</span>
+                        {" · "}
+                        {HANDOVER_STAGE_LABELS[inferHandoverStage(job)]}
+                      </button>
+                    ))}
+                    {wmOverdueJobs.length > 5 && (
+                      <p className="text-[10px] text-muted-foreground">+ {wmOverdueJobs.length - 5} więcej</p>
+                    )}
+                  </div>
+                </div>
+              )}
+              {wmThisWeekJobs.length > 0 && (
+                <div className="px-5 py-3.5">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-sm font-medium flex items-center gap-2">
+                      <CalendarDays size={14} className="text-amber-400"/>
+                      WM — odbiór w tym tygodniu
+                      <span className="text-[10px] bg-amber-500/15 text-amber-400 px-1.5 py-0.5 rounded-full font-bold">
+                        {wmThisWeekJobs.length}
+                      </span>
+                    </p>
+                    <button type="button" onClick={() => onNavigate("inspector")} className="text-xs text-primary hover:underline shrink-0">
+                      Portfolio WM →
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    {wmThisWeekJobs.slice(0, 5).map((job) => (
+                      <button
+                        key={job.id}
+                        type="button"
+                        onClick={() => onNavigate("jobs", job.id)}
+                        className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <span className="text-foreground">{job.address || "Bez adresu"}</span>
+                        {job.flatNumber ? ` m.${job.flatNumber}` : ""}
+                        {" · "}
+                        <span className="text-amber-400">{fmtPlannedHandover(job.plannedHandoverDate || "")}</span>
+                        {" · "}
+                        {HANDOVER_STAGE_LABELS[inferHandoverStage(job)]}
+                      </button>
+                    ))}
+                    {wmThisWeekJobs.length > 5 && (
+                      <p className="text-[10px] text-muted-foreground">+ {wmThisWeekJobs.length - 5} więcej</p>
                     )}
                   </div>
                 </div>
@@ -7723,6 +7844,14 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.12.0", label:"WM — Pulpit alerty, live sync, spójność statusów",
+    items:[
+      {type:"new", text:"Pulpit „Uwaga dziś” — alerty WM: termin odbioru minął + odbiór w tym tygodniu (link do roboty i Portfolio WM)"},
+      {type:"new", text:"Panel inspektora — live sync: odświeżanie przy powrocie do karty, co 45 s, przycisk Odśwież"},
+      {type:"improve", text:"Roboty WM — etap odbioru jako jedyne źródło statusu (bez auto-zdania przy dokumentach); naprawa niespójności przy ładowaniu"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.11.0", label:"WM — etapy odbioru, notatki, portfolio",
     items:[

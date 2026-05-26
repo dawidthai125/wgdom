@@ -5,7 +5,7 @@ import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   MapPin, LogOut, Search, ArrowLeft, FileText, ClipboardList, Ruler,
   CheckCircle2, Circle, ImagePlus, Download, Upload, Phone, Users,
-  ChevronDown, ChevronUp, Eye, Camera, X, FileCheck, AlertCircle, BookOpen, LayoutGrid,
+  ChevronDown, ChevronUp, Eye, Camera, X, FileCheck, AlertCircle, BookOpen, LayoutGrid, RefreshCw,
 } from "lucide-react";
 import {
   fetchKeysFromCloud,
@@ -173,6 +173,8 @@ export function InspectorPanel({
   const [openReportId, setOpenReportId] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; label: string } | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
 
   const persistJobs = useCallback((next: InspectorJob[]) => {
     setJobs(next);
@@ -183,8 +185,9 @@ export function InspectorPanel({
   }, []);
 
   const updateJob = useCallback((updated: InspectorJob) => {
+    const normalized = normalizeJob(updated);
     setJobs((prev) => {
-      const next = prev.map((j) => (j.id === updated.id ? updated : j));
+      const next = prev.map((j) => (j.id === normalized.id ? normalized : j));
       persistJobs(next);
       return next;
     });
@@ -196,34 +199,57 @@ export function InspectorPanel({
     recordInspectorEvent(inspectorId, displayName, "visit").catch(() => {});
   }, [inspectorId, displayName]);
 
-  useEffect(() => {
-    fetchKeysFromCloud(["kw-jobs", "kw-directory", JOBS_DELETED_IDS_KEY])
-      .then(([cloudJobs, cloudDir, cloudDeletedRaw]) => {
-        const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), normalizeDeletedJobIds(cloudDeletedRaw));
-        saveDeletedJobIds(mergedDeleted);
-        let localJobs: InspectorJob[] = [];
+  const refreshFromCloud = useCallback(async (silent = false) => {
+    if (!silent) setSyncing(true);
+    try {
+      const [cloudJobs, cloudDir, cloudDeletedRaw] = await fetchKeysFromCloud(["kw-jobs", "kw-directory", JOBS_DELETED_IDS_KEY]);
+      const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), normalizeDeletedJobIds(cloudDeletedRaw));
+      saveDeletedJobIds(mergedDeleted);
+      let localJobs: InspectorJob[] = [];
+      try {
+        localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")) as InspectorJob[];
+      } catch { /* ignore */ }
+      const merged = mergeJobsById(localJobs, normalizeJobsValue(cloudJobs), mergedDeleted) as InspectorJob[];
+      const normalized = merged.map(normalizeJob);
+      setJobs(normalized);
+      try { localStorage.setItem("kw-jobs", JSON.stringify(normalized)); } catch { /* ignore */ }
+      if (cloudDir && Array.isArray(cloudDir)) setDirectory(cloudDir as DirectoryEmployee[]);
+      else {
         try {
-          localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")) as InspectorJob[];
-        } catch { /* ignore */ }
-        const merged = mergeJobsById(localJobs, normalizeJobsValue(cloudJobs), mergedDeleted) as InspectorJob[];
-        const normalized = merged.map(normalizeJob);
-        setJobs(normalized);
-        try { localStorage.setItem("kw-jobs", JSON.stringify(normalized)); } catch { /* ignore */ }
-        if (cloudDir && Array.isArray(cloudDir)) setDirectory(cloudDir as DirectoryEmployee[]);
-        else {
-          try {
-            setDirectory(JSON.parse(localStorage.getItem("kw-directory") || "[]"));
-          } catch { setDirectory([]); }
-        }
-      })
-      .catch(() => {
-        try {
-          setJobs(normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")).map(normalizeJob));
           setDirectory(JSON.parse(localStorage.getItem("kw-directory") || "[]"));
-        } catch { /* ignore */ }
-      })
-      .finally(() => setLoading(false));
+        } catch { setDirectory([]); }
+      }
+      setLastSyncedAt(new Date());
+    } catch {
+      try {
+        setJobs(normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")).map(normalizeJob));
+        setDirectory(JSON.parse(localStorage.getItem("kw-directory") || "[]"));
+      } catch { /* ignore */ }
+      if (!silent) setMsg("Nie udało się odświeżyć danych");
+    } finally {
+      if (!silent) setSyncing(false);
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    refreshFromCloud(true);
+  }, [refreshFromCloud]);
+
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === "visible") refreshFromCloud(true);
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [refreshFromCloud]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (document.visibilityState === "visible") refreshFromCloud(true);
+    }, 45000);
+    return () => window.clearInterval(id);
+  }, [refreshFromCloud]);
 
   const filteredJobs = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -307,6 +333,16 @@ export function InspectorPanel({
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => refreshFromCloud(false)}
+            disabled={syncing}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-3 py-2.5 min-h-[44px] rounded-lg hover:bg-secondary disabled:opacity-50"
+            title={lastSyncedAt ? `Ostatnio: ${lastSyncedAt.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}` : "Odśwież dane z chmury"}
+          >
+            <RefreshCw size={14} className={syncing ? "animate-spin" : ""}/>
+            <span className="hidden sm:inline">{syncing ? "…" : "Odśwież"}</span>
+          </button>
           <button
             type="button"
             onClick={() => setHelpOpen(true)}

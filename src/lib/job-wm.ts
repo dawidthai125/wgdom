@@ -81,14 +81,15 @@ export function inferHandoverStage(job: JobWmJob): JobHandoverStage {
 }
 
 export function normalizeJobWmFields<T extends JobWmJob>(job: T): T {
-  const stage = inferHandoverStage(job);
-  return {
+  const base = {
     ...job,
-    handoverStage: stage,
     plannedHandoverDate: job.plannedHandoverDate || "",
     jobNotes: job.jobNotes || [],
     inspectorPhotos: job.inspectorPhotos || [],
   };
+  if (!isWmClient(base.client)) return base;
+  const stage = inferHandoverStage(base);
+  return applyHandoverStageToJob({ ...base, handoverStage: stage }, stage);
 }
 
 /** Po zmianie etapu — spójność ze statusem roboty. */
@@ -227,6 +228,46 @@ export function fmtPlannedHandover(iso: string): string {
   if (!iso) return "—";
   const [y, m, d] = iso.split("-");
   return `${d}.${m}.${y}`;
+}
+
+function wmPlannedDate(job: JobWmJob): Date | null {
+  if (!job.plannedHandoverDate) return null;
+  const p = new Date(job.plannedHandoverDate);
+  return Number.isNaN(p.getTime()) ? null : p;
+}
+
+function wmTodayStart(): Date {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+}
+
+/** Aktywne roboty WM z planowaną datą odbioru w przeszłości (etap ≠ odebrana). */
+export function wmJobsWithOverduePlanned(jobs: JobWmJob[]): JobWmJob[] {
+  const today = wmTodayStart();
+  return jobs
+    .filter((j) => isWmClient(j.client))
+    .filter((j) => {
+      if (inferHandoverStage(j) === "handed_over") return false;
+      const p = wmPlannedDate(j);
+      return p !== null && p < today;
+    })
+    .sort((a, b) => (a.plannedHandoverDate || "").localeCompare(b.plannedHandoverDate || ""));
+}
+
+/** Aktywne roboty WM z planowanym odbiorem w ciągu 7 dni (włącznie z dziś). */
+export function wmJobsPlannedThisWeek(jobs: JobWmJob[]): JobWmJob[] {
+  const today = wmTodayStart();
+  const weekEnd = new Date(today);
+  weekEnd.setDate(weekEnd.getDate() + 7);
+  return jobs
+    .filter((j) => isWmClient(j.client))
+    .filter((j) => {
+      if (inferHandoverStage(j) === "handed_over") return false;
+      const p = wmPlannedDate(j);
+      return p !== null && p >= today && p <= weekEnd;
+    })
+    .sort((a, b) => (a.plannedHandoverDate || "").localeCompare(b.plannedHandoverDate || ""));
 }
 
 export function plannedHandoverStatus(iso: string, stage: JobHandoverStage): "ok" | "soon" | "overdue" | "none" {
