@@ -66,6 +66,19 @@ export interface PrevSatDetailLine {
   notesText: string;
 }
 
+/** Jedna linia czasu w rozpisie dziennym (strona 2 PDF/Word). */
+export interface PayrollDailyDetailLine {
+  name: string;
+  position: string;
+  dayLabel: string;
+  sortDate: string;
+  kind: string;
+  timeRange: string;
+  hours: number;
+  zaliczka: number;
+  notes: string;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmt(n: number) {
@@ -258,7 +271,7 @@ export function buildPayrollEmailHtml(
       </div>
       <p style="margin:20px 0 0;padding:12px 14px;background:${C.lightNavy};border-left:3px solid ${C.red};font-size:13px;line-height:1.5;color:${C.muted}">
         W załącznikach znajdują się pełne dokumenty <strong>PDF</strong> i <strong>Word</strong> z listą płac
-        (w tym ewentualne dodatkowe godziny i szczegóły soboty poprzedniego tygodnia).
+        (strona 2: szczegółowy rozpis po dniach od–do; ewentualne dodatkowe godziny i Sob. poprz.).
       </p>
       <p style="margin:12px 0 0;font-size:11px;color:#8A9BB0">
         W&amp;G DOM — wygenerowano ${escapeHtml(new Date().toLocaleDateString("pl-PL"))}
@@ -276,6 +289,7 @@ export async function generatePayrollPdfBlob(
   weekTo: string,
   rows: PayrollCalcRow[],
   totals: PayrollExportTotals,
+  dailyDetailLines: PayrollDailyDetailLine[],
   extraHourLines: WeekExtraHourLine[],
   prevSatDetails: PrevSatDetailLine[],
   prevSatIso: string,
@@ -341,6 +355,82 @@ export async function generatePayrollPdfBlob(
   ];
 
   const totalExtraHourSum = extraHourLines.reduce((s, l) => s + l.hours, 0);
+  const totalDailyHours = dailyDetailLines.reduce((s, l) => s + l.hours, 0);
+
+  const dailyDetailPdfBlock =
+    dailyDetailLines.length > 0
+      ? [
+          {
+            stack: [
+              {
+                text: "Szczegółowa lista płac — rozpis po dniach",
+                bold: true,
+                fontSize: 11,
+                color: C.navy,
+                margin: [0, 0, 0, 4] as [number, number, number, number],
+              },
+              {
+                text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · kto, w który dzień i w jakich godzinach pracował`,
+                fontSize: 8,
+                color: C.muted,
+                margin: [0, 0, 0, 10] as [number, number, number, number],
+              },
+              {
+                table: {
+                  headerRows: 1,
+                  dontBreakRows: true,
+                  widths: [68, 52, 72, 44, 50, 32, 38, "*"],
+                  body: [
+                    ["Pracownik", "Stanowisko", "Dzień", "Rodzaj", "Od–Do", "Godz.", "Zaliczka", "Uwagi"].map((t) => ({
+                      text: t,
+                      bold: true,
+                      color: C.white,
+                      fillColor: C.navy,
+                      fontSize: 7,
+                      alignment: "center" as const,
+                    })),
+                    ...dailyDetailLines.map((line, i) => {
+                      const bg = i % 2 === 0 ? C.white : C.lightGray;
+                      return [
+                        { text: line.name, fillColor: bg, fontSize: 8 },
+                        { text: line.position, fillColor: bg, color: C.muted, fontSize: 7 },
+                        { text: line.dayLabel, fillColor: bg, alignment: "center" as const, fontSize: 7 },
+                        { text: line.kind, fillColor: bg, alignment: "center" as const, fontSize: 7, color: line.kind === "Dodatkowo" ? C.gold : C.navy },
+                        { text: line.timeRange, fillColor: bg, alignment: "center" as const, fontSize: 7 },
+                        { text: line.hours > 0 ? fmtH(line.hours) : "—", fillColor: bg, alignment: "right" as const, fontSize: 8, bold: line.hours > 0 },
+                        { text: line.zaliczka > 0 ? fmt(line.zaliczka) : "—", fillColor: bg, alignment: "right" as const, fontSize: 7, color: line.zaliczka > 0 ? C.red : C.muted },
+                        { text: line.notes, fillColor: bg, color: C.muted, fontSize: 7, alignment: "left" as const },
+                      ];
+                    }),
+                    [
+                      { text: "", fillColor: C.lightNavy },
+                      { text: "Razem godzin (rozpis)", bold: true, colSpan: 4, fillColor: C.lightNavy, fontSize: 7, alignment: "right" as const },
+                      {},
+                      {},
+                      {},
+                      { text: fmtH(totalDailyHours), bold: true, fillColor: C.lightNavy, alignment: "right" as const, fontSize: 8 },
+                      { text: "", fillColor: C.lightNavy },
+                      { text: "", fillColor: C.lightNavy },
+                    ],
+                  ],
+                },
+                layout: {
+                  hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
+                  vLineWidth: () => 0,
+                  hLineColor: () => "#DDE3EA",
+                  paddingLeft: () => 5,
+                  paddingRight: () => 5,
+                  paddingTop: () => 4,
+                  paddingBottom: () => 4,
+                },
+              },
+            ],
+            pageBreak: "before" as const,
+            unbreakable: false,
+          },
+        ]
+      : [];
+
   const extraHourAppendixPdfBlock =
     extraHourLines.length > 0
       ? [
@@ -539,6 +629,7 @@ export async function generatePayrollPdfBlob(
           paddingBottom: () => 4,
         },
       },
+      ...dailyDetailPdfBlock,
       ...extraHourAppendixPdfBlock,
       ...prevSatAppendixPdfBlock,
     ],
@@ -556,6 +647,7 @@ export async function generatePayrollWordBlob(
   weekTo: string,
   rows: PayrollCalcRow[],
   totals: PayrollExportTotals,
+  dailyDetailLines: PayrollDailyDetailLine[],
   extraHourLines: WeekExtraHourLine[],
   prevSatDetails: PrevSatDetailLine[],
   prevSatIso: string,
@@ -563,6 +655,7 @@ export async function generatePayrollWordBlob(
   const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle, PageBreak } = await import("docx");
 
   const totalExtraHourSum = extraHourLines.reduce((s, l) => s + l.hours, 0);
+  const totalDailyHours = dailyDetailLines.reduce((s, l) => s + l.hours, 0);
   const bNone = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
   const bThin = { style: BorderStyle.SINGLE, size: 2, color: "DDE3EA" };
   const mkCell = (txt: string, opts: { bold?: boolean; fill?: string; align?: (typeof AlignmentType)[keyof typeof AlignmentType]; color?: string; size?: number } = {}) =>
@@ -661,6 +754,63 @@ export async function generatePayrollWordBlob(
               mkWordSum("RAZEM", totals.totalWeekHours, totals.totalPrevSatHours, totals.totalHoursAll, totals.totalGross, totals.totalZaliczkaSum, totals.totalExtraCostsSum, totals.totalNet, true),
             ],
           }),
+          ...(dailyDetailLines.length > 0
+            ? [
+                new Paragraph({ children: [new PageBreak()] }),
+                new Paragraph({
+                  spacing: { after: 100 },
+                  children: [new TextRun({ text: "Szczegółowa lista płac — rozpis po dniach", bold: true, size: 24, color: "344254", font: "Calibri" })],
+                }),
+                new Paragraph({
+                  spacing: { after: 200 },
+                  children: [
+                    new TextRun({
+                      text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · kto, w który dzień i w jakich godzinach pracował`,
+                      size: 18,
+                      color: "6B7A8D",
+                      font: "Calibri",
+                    }),
+                  ],
+                }),
+                new Table({
+                  width: { size: 100, type: WidthType.PERCENTAGE },
+                  rows: [
+                    new TableRow({
+                      children: ["Pracownik", "Stanowisko", "Dzień", "Rodzaj", "Od–Do", "Godz.", "Zaliczka", "Uwagi"].map((h) =>
+                        mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 14 }),
+                      ),
+                      tableHeader: true,
+                    }),
+                    ...dailyDetailLines.map((line, i) =>
+                      new TableRow({
+                        children: [
+                          mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
+                          mkCell(line.position, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
+                          mkCell(line.dayLabel, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 14 }),
+                          mkCell(line.kind, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: line.kind === "Dodatkowo" ? "7B5800" : "344254", size: 14 }),
+                          mkCell(line.timeRange, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 14 }),
+                          mkCell(line.hours > 0 ? fmtH(line.hours) : "—", { bold: line.hours > 0, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
+                          mkCell(line.zaliczka > 0 ? `${fmt(line.zaliczka)} PLN` : "—", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: line.zaliczka > 0 ? "C0392B" : "6B7A8D", size: 14 }),
+                          mkCellMultiline(line.notes, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
+                        ],
+                      }),
+                    ),
+                    new TableRow({
+                      children: [
+                        mkCell("", { fill: "EDF1F6" }),
+                        mkCell("Razem godzin (rozpis)", { bold: true, fill: "EDF1F6", align: AlignmentType.RIGHT, size: 14 }),
+                        mkCell("", { fill: "EDF1F6" }),
+                        mkCell("", { fill: "EDF1F6" }),
+                        mkCell("", { fill: "EDF1F6" }),
+                        mkCell(fmtH(totalDailyHours), { bold: true, fill: "EDF1F6", size: 16 }),
+                        mkCell("", { fill: "EDF1F6" }),
+                        mkCell("", { fill: "EDF1F6" }),
+                      ],
+                    }),
+                  ],
+                }),
+              ]
+            : []),
           ...(extraHourLines.length > 0
             ? [
                 new Paragraph({ children: [new PageBreak()] }),
