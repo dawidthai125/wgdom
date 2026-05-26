@@ -30,19 +30,20 @@ Repozytorium utwórz na [github.com/new](https://github.com/new) (np. nazwa `wgd
 
 Po każdym `git push` na `main` Vercel zbuduje nową wersję (jak teraz localhost, tylko publicznie).
 
-## 3. Supabase (backend — osobno od Vercel)
+## 3. Supabase (backend — auto-deploy przez GitHub)
 
 Frontend na Vercel **tylko** woła API. Edge Function zostaje na Supabase:
 
-- Kod: `supabase/functions/server/index.tsx`
-- Deploy: Supabase Dashboard → Edge Functions → `make-server-0afb8820`
+- Kod: `supabase/functions/make-server-0afb8820/`
+- **Auto-deploy:** po pushu na `main` (GitHub Actions) — jednorazowo dodaj sekret `SUPABASE_ACCESS_TOKEN` w GitHub → Settings → Secrets
+- Ręcznie (gdy trzeba): Supabase Dashboard → Edge Functions → `make-server-0afb8820`
 - Sekrety (Dashboard → Edge Functions → Secrets):
   - `RESEND_API_KEY` — backup email i wysyłka materiałów z robót (opcjonalnie)
   - `SUPABASE_SERVICE_ROLE_KEY` — zwykle ustawiane automatycznie
 
-**Nie wrzucaj** `SERVICE_ROLE_KEY` ani `RESEND_API_KEY` do Vercel — to sekrety serwera.
+**Nie wrzucaj** `SERVICE_ROLE_KEY`, `RESEND_API_KEY` ani `SUPABASE_ACCESS_TOKEN` do Vercel — to sekrety serwera / CI.
 
-Szczegółowa instrukcja wdrożenia backendu (email, Edge Function): **[SUPABASE-DEPLOY.md](./SUPABASE-DEPLOY.md)**.
+Szczegółowa instrukcja: **[SUPABASE-DEPLOY.md](./SUPABASE-DEPLOY.md)** (sekcja 3 — GitHub Actions).
 
 ## 4. Lokalnie
 

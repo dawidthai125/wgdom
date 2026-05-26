@@ -16,12 +16,13 @@ Backend W&G DOM to **jedna Edge Function** na Supabase. Frontend (Vercel) tylko 
 
 1. [Wejście do Supabase](#1-wejście-do-supabase)
 2. [Sprawdzenie Edge Function](#2-sprawdzenie-edge-function)
-3. [Wdrożenie kodu (Dashboard)](#3-wdrożenie-kodu-dashboard)
-4. [Sekret RESEND_API_KEY (email)](#4-sekret-resend_api_key-email)
-5. [Test czy działa](#5-test-czy-działa)
-6. [Opcja: deploy przez CLI](#6-opcja-deploy-przez-cli)
-7. [Rozwiązywanie problemów](#7-rozwiązywanie-problemów)
-8. [Odpowiedzi na maile (Reply-To)](#8-odpowiedzi-na-maile-reply-to-vs-skrzynka-birowgdomfun)
+3. [Auto-deploy GitHub Actions (zalecane)](#3-auto-deploy-github-actions-zalecane)
+4. [Wdrożenie ręczne (Dashboard)](#4-wdrożenie-ręczne-dashboard)
+5. [Sekret RESEND_API_KEY (email)](#5-sekret-resend_api_key-email)
+6. [Test czy działa](#6-test-czy-działa)
+7. [Opcja: deploy przez CLI lokalnie](#7-opcja-deploy-przez-cli-lokalnie)
+8. [Rozwiązywanie problemów](#8-rozwiązywanie-problemów)
+9. [Odpowiedzi na maile (Reply-To)](#9-odpowiedzi-na-maile-reply-to-vs-skrzynka-birowgdomfun)
 
 ---
 
@@ -42,11 +43,41 @@ Backend W&G DOM to **jedna Edge Function** na Supabase. Frontend (Vercel) tylko 
 
 ---
 
-## 3. Wdrożenie kodu (Dashboard)
+## 3. Auto-deploy GitHub Actions (zalecane)
+
+Po jednorazowej konfiguracji **nie musisz** wklejać kodu w Dashboard — deploy leci sam po `git push` na `main`, gdy zmieni się coś w `supabase/functions/`.
+
+### 3a. Jednorazowo: token w GitHub
+
+1. Wejdź na [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens) → **Generate new token** (np. nazwa: `GitHub Actions`)
+2. Skopiuj token (`sbp_...`) — pokazuje się **tylko raz**
+3. GitHub → repo **wgdom** → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+4. Nazwa: **`SUPABASE_ACCESS_TOKEN`**
+5. Wklej token → **Add secret**
+
+### 3b. Jak to działa
+
+- Workflow: `.github/workflows/deploy-supabase.yml`
+- Trigger: push na `main` + zmiana w `supabase/functions/**` lub `supabase/config.toml`
+- Ręczny deploy: GitHub → **Actions** → **Deploy Supabase Edge Functions** → **Run workflow**
+
+### 3c. Sprawdzenie po pushu
+
+1. GitHub → **Actions** — zielony check przy ostatnim runie
+2. Supabase → **Edge Functions** → `make-server-0afb8820` — data deployu świeża
+3. Test `/health` (sekcja 6)
+
+> **Vercel** robi front automatycznie. **GitHub Actions** robi Supabase. Ty tylko `git push`.
+
+---
+
+## 4. Wdrożenie ręczne (Dashboard)
+
+Użyj tylko gdy GitHub Actions nie działa albo nie masz jeszcze sekretu `SUPABASE_ACCESS_TOKEN`.
 
 Funkcja składa się z **dwóch plików**. Oba muszą być na serwerze.
 
-### 3a. Plik główny `index.tsx`
+### 4a. Plik główny `index.tsx`
 
 1. **Edge Functions** → kliknij **`make-server-0afb8820`**
 2. Otwórz edytor kodu (zakładka **Code** / **Edit**)
@@ -58,7 +89,7 @@ Funkcja składa się z **dwóch plików**. Oba muszą być na serwerze.
    (z GitHub po pushu albo lokalnie z folderu WGDOM1 — commit `1dd9247` lub nowszy dla v2.5)
 5. Wklej do edytora Supabase
 
-### 3b. Plik pomocniczy `kv_store.tsx`
+### 4b. Plik pomocniczy `kv_store.tsx`
 
 1. W tym samym edytorze funkcji dodaj **drugi plik** (przycisk **Add file** / **+** obok listy plików)
 2. Nazwa pliku: **`kv_store.tsx`**
@@ -68,7 +99,7 @@ Funkcja składa się z **dwóch plików**. Oba muszą być na serwerze.
    ```
 4. Wklej i zapisz
 
-### 3c. Deploy
+### 4c. Deploy
 
 1. Kliknij **Deploy** (lub **Save and deploy**)
 2. Poczekaj, aż status będzie **Active** / zielony (zwykle 30–60 s)
@@ -97,17 +128,17 @@ Funkcja składa się z **dwóch plików**. Oba muszą być na serwerze.
 
 ---
 
-## 4. Sekret RESEND_API_KEY (email)
+## 5. Sekret RESEND_API_KEY (email)
 
 Bez tego klucza wysyłka emaili zwróci błąd *„RESEND_API_KEY not set”*.
 
-### 4a. Klucz z Resend (jeśli jeszcze nie masz)
+### 5a. Klucz z Resend (jeśli jeszcze nie masz)
 
 1. Wejdź na [https://resend.com](https://resend.com) → załóż konto / zaloguj
 2. **API Keys** → **Create API Key**
 3. Skopiuj klucz (zaczyna się od `re_...`) — **pokazuje się tylko raz**
 
-### 4b. Wklejenie sekretu w Supabase
+### 5b. Wklejenie sekretu w Supabase
 
 1. Supabase Dashboard → **Edge Functions**
 2. Zakładka **Secrets** (czasem: **Manage secrets**)
@@ -122,17 +153,17 @@ Bez tego klucza wysyłka emaili zwróci błąd *„RESEND_API_KEY not set”*.
 | `RESEND_FROM` | `W&G DOM <biuro@wgdom.fun>` | Nadawca maili |
 | `REPLY_TO_EMAILS` | `biuro@wgdom.pl,dawid.thai@int.pl` | Gdzie trafia „Odpowiedz” |
 
-5. Zapisz i **Deploy** funkcji (krok 3c)
+5. Zapisz i **Deploy** funkcji (krok 4c)
 
 > **Nie dodawaj** `RESEND_API_KEY` do Vercel — to sekret tylko dla serwera Supabase.
 
-### 4c. Po zmianie sekretów
+### 5c. Po zmianie sekretów
 
-- Jeśli Supabase prosi o **redeploy** funkcji — zrób Deploy jeszcze raz (krok 3c)
+- Jeśli Supabase prosi o **redeploy** funkcji — zrób Deploy jeszcze raz (krok 4c) albo push na `main` (GitHub Actions)
 
 ---
 
-## 5. Test czy działa
+## 6. Test czy działa
 
 ### Test A — health check (⚠️ nie w zwykłej przeglądarce)
 
@@ -222,7 +253,7 @@ Jeśli coś nie działa:
 
 ---
 
-## 6. Opcja: deploy przez CLI
+## 7. Opcja: deploy przez CLI lokalnie
 
 Tylko jeśli masz zainstalowane [Supabase CLI](https://supabase.com/docs/guides/cli).
 
@@ -247,7 +278,7 @@ supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfi
 
 ---
 
-## 7. Rozwiązywanie problemów
+## 8. Rozwiązywanie problemów
 
 | Objaw | Co zrobić |
 |--------|-----------|
@@ -298,7 +329,7 @@ supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfi
 
 ---
 
-## 8. Odpowiedzi na maile (Reply-To vs skrzynka biuro@wgdom.fun)
+## 9. Odpowiedzi na maile (Reply-To vs skrzynka biuro@wgdom.fun)
 
 **Resend służy tylko do WYSYŁANIA.** Adres `biuro@wgdom.fun` **nie ma skrzynki pocztowej** — jak ktoś napisze bezpośrednio na ten adres, mail **nie dotrze** (chyba że skonfigurujesz przekierowanie DNS).
 
