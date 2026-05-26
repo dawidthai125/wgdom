@@ -19,6 +19,7 @@ export const DATA_KEYS = [
 export type DataKey = (typeof DATA_KEYS)[number];
 
 export const ADMIN_HASH_KEY = "kw-admin-hash";
+export const ADMIN_PASSWORDS_KEY = "kw-admin-passwords";
 
 export const API_BASE = supabaseFunctionsBase;
 
@@ -701,7 +702,7 @@ export async function persistKey(
   }
   const shouldSync =
     options?.cloud !== false &&
-    (isDataKey(key) || key === ADMIN_HASH_KEY);
+    (isDataKey(key) || key === ADMIN_HASH_KEY || key === ADMIN_PASSWORDS_KEY);
   if (shouldSync) {
     await pushKeyToCloud(key, value);
   }

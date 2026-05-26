@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useRef, Fragment, type RefObject } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef, Fragment, createContext, useContext, type RefObject } from "react";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import { CompanyMusicPlayer } from "@/app/components/CompanyMusicPlayer";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
@@ -13,13 +13,12 @@ import {
   Mic, MicOff, Bell, Copy, ScrollText, Sparkles,
   BookOpen, ChevronDown as ChevDown, HelpCircle, Smartphone, Monitor,
   Camera, ImagePlus, Lock, LogOut, Eye, ArrowLeft, ShieldCheck, ThumbsUp, ThumbsDown, Clock3,
-  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale, Images,
+  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale, Images, Settings,
 } from "lucide-react";
 import {
   API_BASE,
   API_HEADERS,
   DATA_KEYS,
-  ADMIN_HASH_KEY,
   pushKeysToCloud,
   pushAllDataToCloud,
   fetchKeysFromCloud,
@@ -51,9 +50,29 @@ import {
   normalizeDeletedDirectoryIds,
   addDeletedDirectoryId,
   pushDirectoryToCloud,
+  ADMIN_PASSWORDS_KEY,
 } from "@/lib/cloud-sync";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
+import {
+  type AdminSession,
+  listAdminUsersForLogin,
+  verifyAdminLogin,
+  adminCanViewRates,
+  adminRoleLabel,
+  adminIsSuperAdmin,
+  loadAdminSessionFromStorage,
+  saveAdminSessionToStorage,
+  adminRememberEnabled,
+  saveRememberedAdminPassword,
+  loadRememberedAdminPassword,
+  clearRememberedAdminPassword,
+  setAdminUserPassword,
+  resetAdminUserPassword,
+  adminPasswordIsCustomized,
+  loadAdminPasswordOverrides,
+  mergeAdminPasswordOverrides,
+} from "@/lib/admin-auth";
 import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
@@ -2276,7 +2295,17 @@ function PayrollDayEditor({
   );
 }
 
+const AdminAccessContext = createContext<{ session: AdminSession | null; canViewRates: boolean }>({
+  session: null,
+  canViewRates: true,
+});
+
+function useAdminAccess() {
+  return useContext(AdminAccessContext);
+}
+
 function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee; weekFrom:string; onChange:(u:WeekEmployee)=>void; onClose:()=>void}) {
+  const { canViewRates } = useAdminAccess();
   const updateDayData = useCallback((key: DayKey, next: DayData) => {
     onChange({ ...emp, days: { ...emp.days, [key]: next } });
   }, [emp, onChange]);
@@ -2303,7 +2332,7 @@ function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee
         <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"><X size={16}/></button>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-5 space-y-5">
-        {/* Rate override */}
+        {canViewRates && (
         <div className="flex items-center gap-3 bg-secondary rounded-xl px-4 py-3">
           <Banknote size={14} className="text-muted-foreground shrink-0"/>
           <span className="text-sm text-muted-foreground flex-1">Stawka w tym tygodniu</span>
@@ -2313,6 +2342,7 @@ function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee
             style={{fontFamily:"'JetBrains Mono', monospace"}}/>
           <span className="text-xs text-muted-foreground">PLN/h</span>
         </div>
+        )}
 
         {/* Days */}
         <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -2819,6 +2849,7 @@ function PayrollView({
   initialEmpId?: string | null;
   onInitialEmpConsumed?: () => void;
 }) {
+  const { canViewRates } = useAdminAccess();
   const [selectedEmpId, setSelectedEmpId] = useState<string|null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [pickerSearch, setPickerSearch] = useState("");
@@ -2982,18 +3013,22 @@ function PayrollView({
                 <button
                   type="button"
                   onClick={() => setShowPdfPreview(true)}
-                  disabled={weekEmployees.length === 0}
+                  disabled={weekEmployees.length === 0 || !canViewRates}
                   className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"
-                  title={weekEmployees.length === 0 ? "Dodaj pracowników do listy" : "Podgląd PDF w oknie aplikacji"}
+                  title={!canViewRates ? "Eksport z stawkami — tylko administrator" : weekEmployees.length === 0 ? "Dodaj pracowników do listy" : "Podgląd PDF w oknie aplikacji"}
                 >
                   <Eye size={14}/>Podgląd PDF
                 </button>
+                {canViewRates && (
+                <>
                 <button onClick={exportPDF} disabled={weekEmployees.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-destructive/80 hover:bg-destructive text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"><FileDown size={14}/>PDF</button>
                 <button onClick={exportWord} className="flex items-center gap-2 px-4 py-2.5 bg-primary/90 hover:bg-primary text-primary-foreground rounded-lg text-sm font-medium transition-colors"><FileDown size={14}/>Word</button>
                 {weekEmployees.length > 0 && (
                   <button onClick={() => setShowEmailModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors">
                     <Send size={14}/>Email
                   </button>
+                )}
+                </>
                 )}
               </div>
             </div>
@@ -3041,7 +3076,7 @@ function PayrollView({
                                 <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{r.emp.name?r.emp.name[0].toUpperCase():"?"}</div>
                                 <div className="min-w-0">
                                   <p className="font-medium leading-tight truncate">{r.emp.name||<span className="italic text-muted-foreground">Bez nazwy</span>}</p>
-                                  <p className="text-xs text-muted-foreground truncate">{r.emp.position||"—"} · {fmt(r.rateNum)} PLN/h</p>
+                                  <p className="text-xs text-muted-foreground truncate">{r.emp.position||"—"}{canViewRates && <> · {fmt(r.rateNum)} PLN/h</>}</p>
                                 </div>
                               </div>
                             </td>
@@ -3176,7 +3211,7 @@ function PayrollView({
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${sel?"bg-primary text-primary-foreground":"bg-secondary text-muted-foreground"}`}>{d.name?d.name[0].toUpperCase():"?"}</div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium">{d.name||<span className="italic text-muted-foreground">Bez nazwy</span>}</p>
-                      <p className="text-xs text-muted-foreground">{d.position||"—"} · {d.defaultRate} PLN/h</p>
+                      <p className="text-xs text-muted-foreground">{d.position||"—"}{canViewRates && <> · {d.defaultRate} PLN/h</>}</p>
                     </div>
                     {sel
                       ? <CheckCircle2 size={16} className="text-primary shrink-0"/>
@@ -3330,6 +3365,7 @@ function EmployeeArchiveModal({
 }
 
 function DirectoryView({directory, savedWeeks, onChange, onCommit}:{directory:DirectoryEmployee[]; savedWeeks: WeekSnapshot[]; onChange:(d:DirectoryEmployee[])=>void; onCommit?:()=>void}) {
+  const { canViewRates } = useAdminAccess();
   const [editId, setEditId] = useState<string|null>(null);
   const [archiveEmpId, setArchiveEmpId] = useState<string|null>(null);
   const [search, setSearch] = useState("");
@@ -3446,10 +3482,12 @@ function DirectoryView({directory, savedWeeks, onChange, onCommit}:{directory:Di
                         <LabelWithHint label="Telefon" hint="Numer do logowania pracownika — wpisuje 9 ostatnich cyfr (bez +48). Wymagany do trybu pracownika." htmlFor={`dir-phone-${editEmp.id}`}/>
                         <input id={`dir-phone-${editEmp.id}`} type="tel" value={editEmp.phone} onChange={(e)=>update({...editEmp,phone:e.target.value})} placeholder="+48 000 000 000" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
                       </div>
+                      {canViewRates && (
                       <div>
                         <LabelWithHint label="Domyślna stawka (PLN/h)" hint="Podpowiada się w liście płac i na robotach. Można zmienić na konkretny tydzień bez edycji kartoteki." htmlFor={`dir-rate-${editEmp.id}`}/>
                         <input id={`dir-rate-${editEmp.id}`} type="number" min="0" step="0.5" value={editEmp.defaultRate} onChange={(e)=>update({...editEmp,defaultRate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
                       </div>
+                      )}
                       <div>
                         <LabelWithHint label="Data zatrudnienia" hint="Opcjonalnie — do informacji w kartotece i archiwum rocznym." htmlFor={`dir-start-${editEmp.id}`}/>
                         <input id={`dir-start-${editEmp.id}`} type="date" value={editEmp.startDate} onChange={(e)=>update({...editEmp,startDate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
@@ -3563,7 +3601,7 @@ function DirectoryView({directory, savedWeeks, onChange, onCommit}:{directory:Di
                         )}
                       </div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span style={{fontFamily:"'JetBrains Mono', monospace"}}>{emp.defaultRate} PLN/h</span>
+                        {canViewRates && <span style={{fontFamily:"'JetBrains Mono', monospace"}}>{emp.defaultRate} PLN/h</span>}
                         {emp.startDate&&<span>od {fmtDate(emp.startDate)}</span>}
                         {!emp.active&&<span className="bg-secondary text-muted-foreground px-2 py-0.5 rounded-full">Nieaktywny</span>}
                       </div>
@@ -4952,6 +4990,7 @@ function JobsView({
   weekEmployees: WeekEmployee[];
   weekFrom: string;
 }) {
+  const { canViewRates } = useAdminAccess();
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "in_progress" | "completed">("all");
@@ -5105,11 +5144,18 @@ function JobsView({
     const C2 = { navy:"#344254", red:"#C0392B", light:"#EDF1F6", white:"#FFFFFF", muted:"#8A9BB0" };
     const title = `${job.address||"Bez adresu"}${job.flatNumber?` m.${job.flatNumber}`:""}`;
     const docsChecked = DOCUMENT_TYPES.filter(d=>job.documents[d]);
-    const workerRows = job.workEntries.map(e=>[
-      {text:fmtDate(e.date),fontSize:9,color:C2.muted},{text:e.employeeName||"—",fontSize:9},
-      {text:fmtH(e.hours),fontSize:9,alignment:"right"},{text:`${fmt(e.rate)} PLN/h`,fontSize:9,color:C2.muted,alignment:"right"},
-      {text:`${fmt(e.hours*e.rate)} PLN`,fontSize:9,bold:true,alignment:"right",color:C2.red},
-    ]);
+    const workerRows = job.workEntries.map(e=> canViewRates
+      ? [
+          {text:fmtDate(e.date),fontSize:9,color:C2.muted},{text:e.employeeName||"—",fontSize:9},
+          {text:fmtH(e.hours),fontSize:9,alignment:"right"},{text:`${fmt(e.rate)} PLN/h`,fontSize:9,color:C2.muted,alignment:"right"},
+          {text:`${fmt(e.hours*e.rate)} PLN`,fontSize:9,bold:true,alignment:"right",color:C2.red},
+        ]
+      : [
+          {text:fmtDate(e.date),fontSize:9,color:C2.muted},{text:e.employeeName||"—",fontSize:9},
+          {text:fmtH(e.hours),fontSize:9,alignment:"right"},
+          {text:`${fmt(e.hours*e.rate)} PLN`,fontSize:9,bold:true,alignment:"right",color:C2.red},
+        ]
+    );
     const matRows = (job.materials||[]).map(m=>[
       {text:m.description||"—",fontSize:9},{text:fmtDate(m.date),fontSize:9,color:C2.muted,alignment:"right"},
       {text:`${fmt(m.cost)} PLN`,fontSize:9,bold:true,alignment:"right",color:C2.red},
@@ -5167,14 +5213,20 @@ function JobsView({
           {
             table:{
               headerRows:1,
-              widths:["auto","*","auto","auto","auto"],
+              widths: canViewRates ? ["auto","*","auto","auto","auto"] : ["auto","*","auto","auto"],
               body:[
-                [{text:"Data",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8},{text:"Pracownik",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8},{text:"Godz.",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8,alignment:"right"},{text:"Stawka",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8,alignment:"right"},{text:"Koszt",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8,alignment:"right"}],
+                canViewRates
+                  ? [{text:"Data",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8},{text:"Pracownik",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8},{text:"Godz.",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8,alignment:"right"},{text:"Stawka",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8,alignment:"right"},{text:"Koszt",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8,alignment:"right"}]
+                  : [{text:"Data",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8},{text:"Pracownik",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8},{text:"Godz.",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8,alignment:"right"},{text:"Koszt",bold:true,fillColor:C2.navy,color:C2.white,fontSize:8,alignment:"right"}],
                 ...workerRows,
-                [{text:"Suma",bold:true,fillColor:C2.light,colSpan:2,fontSize:9},{},
-                 {text:fmtH(jobTotalHours(job)),bold:true,fillColor:C2.light,alignment:"right",fontSize:9},
-                 {text:"",fillColor:C2.light},
-                 {text:`${fmt(jobCost(job))} PLN`,bold:true,fillColor:C2.light,color:C2.red,alignment:"right",fontSize:9}],
+                canViewRates
+                  ? [{text:"Suma",bold:true,fillColor:C2.light,colSpan:2,fontSize:9},{},
+                     {text:fmtH(jobTotalHours(job)),bold:true,fillColor:C2.light,alignment:"right",fontSize:9},
+                     {text:"",fillColor:C2.light},
+                     {text:`${fmt(jobCost(job))} PLN`,bold:true,fillColor:C2.light,color:C2.red,alignment:"right",fontSize:9}]
+                  : [{text:"Suma",bold:true,fillColor:C2.light,colSpan:2,fontSize:9},{},
+                     {text:fmtH(jobTotalHours(job)),bold:true,fillColor:C2.light,alignment:"right",fontSize:9},
+                     {text:`${fmt(jobCost(job))} PLN`,bold:true,fillColor:C2.light,color:C2.red,alignment:"right",fontSize:9}],
               ],
             },
             layout:{hLineColor:()=>"#E5E7EB",vLineColor:()=>"#E5E7EB"},
@@ -5250,13 +5302,14 @@ function JobsView({
   const handleAddEntry = () => {
     if(!selectedJob||!entryDirId||!entryDate||!entryHours) return;
     const emp = directory.find(d=>d.id===entryDirId);
+    const weekEmp = weekEmployees.find((e) => e.directoryId === entryDirId);
     const entry: WorkEntry = {
       id: crypto.randomUUID(),
       directoryId: entryDirId,
       employeeName: emp?.name||"—",
       date: entryDate,
       hours: parseFloat(entryHours)||0,
-      rate: parseFloat(entryRate)||parseFloat(emp?.defaultRate||"0")||0,
+      rate: parseFloat(entryRate) || parseFloat(weekEmp?.rate || "") || parseFloat(emp?.defaultRate||"0")||0,
       notes: "",
     };
     updateJob(
@@ -5308,6 +5361,8 @@ function JobsView({
     } else {
       setEntryHours(String(DEFAULT_JOB_ENTRY_HOURS));
     }
+    if (weekEmp?.rate) setEntryRate(weekEmp.rate);
+    else if (dirEmp?.defaultRate) setEntryRate(dirEmp.defaultRate);
   };
 
   const copyEntryToToday = (entry: WorkEntry) => {
@@ -5799,17 +5854,19 @@ function JobsView({
                       </label>
                       <input type="number" min="0.5" step="0.5" value={entryHours} onChange={e=>setEntryHours(e.target.value)} className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
                     </div>
+                    {canViewRates && (
                     <div>
                       <label className="text-xs text-muted-foreground block mb-1">Stawka (PLN/h)</label>
                       <input type="number" min="0" step="0.5" value={entryRate} onChange={e=>setEntryRate(e.target.value)} placeholder={selectedDirEmp?.defaultRate||"0"} className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
                     </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={handleAddEntry} disabled={!entryDirId||!entryHours} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                       <Check size={13}/>Dodaj
                     </button>
                     <button onClick={()=>setShowAddEntry(false)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Anuluj</button>
-                    {entryDirId&&entryHours&&entryRate&&(
+                    {canViewRates && entryDirId&&entryHours&&entryRate&&(
                       <span className="ml-auto text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>
                         = {fmt((parseFloat(entryHours)||0)*(parseFloat(entryRate)||0))} PLN
                       </span>
@@ -5863,7 +5920,9 @@ function JobsView({
                               <td className="px-3 py-3 text-right text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>1</td>
                               <td className="px-3 py-3 text-right font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(entry.hours)}</td>
                               <td className="px-3 py-3 text-right">
+                                {canViewRates && (
                                 <span className="text-xs text-muted-foreground block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(entry.rate)} PLN/h</span>
+                                )}
                                 <span className="text-sm font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(entry.hours * entry.rate)}</span>
                               </td>
                               <td className="px-3 py-3">
@@ -5943,7 +6002,9 @@ function JobsView({
                                 <td className="px-3 py-2.5 text-right text-[11px] text-muted-foreground">—</td>
                                 <td className="px-3 py-2.5 text-right text-xs" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(entry.hours)}</td>
                                 <td className="px-3 py-2.5 text-right">
+                                  {canViewRates && (
                                   <span className="text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(entry.rate)} PLN/h · </span>
+                                  )}
                                   <span className="text-xs font-medium text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(entry.hours * entry.rate)}</span>
                                 </td>
                                 <td className="px-3 py-2.5">
@@ -7280,7 +7341,7 @@ function HelpView() {
             <li><strong>Archiwum</strong> — zapisane tygodnie</li>
             <li><strong>Roboty</strong> — adresy, dokumenty, materiały, raporty, wpisy czasu pracy</li>
             <li><strong>Zdjęcia</strong> — pliki w chmurze Supabase Storage; informacja o zdjęciu (kto, kiedy, status) w danych roboty</li>
-            <li><strong>Hasło admina</strong> — po zmianie hasła działa na każdym urządzeniu (opcja „Zapamiętaj hasło” jest tylko lokalnie w tej przeglądarce — nie trafia do chmury)</li>
+            <li><strong>Logowanie admina</strong> — trzy konta (Super Administrator / Administrator / Moderator); hasła jako hash SHA-256, sync w chmurze (<code>kw-admin-passwords</code>). Super Admin zmienia hasła w panelu ⚙</li>
           </ul>
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">
             <AlertTriangle size={16} className="text-amber-400 shrink-0 mt-0.5"/>
@@ -7302,7 +7363,8 @@ function HelpView() {
           <p className="text-sm text-foreground/90 leading-relaxed">Dane zapisują się automatycznie w chmurze — nie musisz nic robić. Ale warto wiedzieć jak działa system bezpieczeństwa.</p>
           <div className="space-y-3">
             {[
-              {q:"Logowanie administratora — zapamiętaj hasło", a:"Przy logowaniu jako Administrator możesz zaznaczyć „Zapamiętaj hasło na tym urządzeniu”. Hasło jest szyfrowane lokalnie w przeglądarce — nie wysyła się do chmury. Przy następnym wejściu na tym samym telefonie/komputerze pole hasła wypełni się samo. Wyloguj się ręcznie jeśli korzystasz ze wspólnego urządzenia."},
+              {q:"Logowanie administratora — konta i role", a:"Panel administracyjny → wybierz użytkownika z listy (Dawid — Super Administrator, Stanisław — Administrator, Paweł — Moderator) → wpisz hasło. Moderator nie widzi stawek PLN/h (ani nie może ich zmieniać), ale może wpisywać godziny i pracować z robotami. Super Administrator (Dawid) może zmieniać hasła wszystkich użytkowników — ikona ⚙ w prawym górnym rogu."},
+              {q:"Logowanie administratora — zapamiętaj hasło", a:"Przy logowaniu możesz zaznaczyć „Zapamiętaj hasło na tym urządzeniu”. Hasło jest szyfrowane lokalnie w przeglądarce — nie wysyła się do chmury. Przy następnym wejściu na tym samym telefonie/komputerze pole hasła wypełni się samo (dla wybranego użytkownika). Wyloguj się ręcznie jeśli korzystasz ze wspólnego urządzenia."},
               {q:"Czy dane mogą zniknąć?", a:"Dane są w przeglądarce i w chmurze Supabase. Każdy zapis scala lokalne z chmurowymi — pustsza wersja nie nadpisze bogatszej. Chmura trzyma kopie prev/prev2 i dzienny pełny backup wszystkich kluczy. Przed sync tworzona jest też lokalna kopia na urządzeniu."},
               {q:"Co oznaczają ikonki chmurki w prawym górnym rogu?", a:"Szara chmurka = wszystko zsynchronizowane. Animowana chmurka ze strzałką = trwa zapis. Zielona chmurka = właśnie zapisano. Czerwona chmurka z X = błąd połączenia (sprawdź internet)."},
               {q:"Co to jest backup i jak go zrobić?", a:'W lewym menu (na komputerze) na dole jest "Eksportuj backup". Kliknij — pobierze się plik .json ze wszystkimi danymi. Trzymaj go w bezpiecznym miejscu (dysk zewnętrzny, Google Drive). Żeby przywrócić dane — kliknij "Importuj backup" i wybierz ten plik (import scala z obecnymi danymi).'},
@@ -7412,6 +7474,22 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.9.19", label:"Super Admin — zmiana haseł użytkowników",
+    items:[
+      {type:"new", text:"Ikona ustawień (⚙) w prawym górnym rogu — tylko dla Super Administratora"},
+      {type:"new", text:"Panel haseł: zmiana hasła dla Dawida, Stanisława i Pawła + przywrócenie hasła startowego"},
+      {type:"improve", text:"Hasła adminów sync w chmurze (kw-admin-passwords) — działają na wszystkich urządzeniach"},
+    ],
+  },
+  {
+    date:"2026-05-26", version:"2.9.18", label:"Panel admin — 3 użytkowników i role",
+    items:[
+      {type:"new", text:"Logowanie admina — wybór użytkownika (Dawid / Stanisław / Paweł) + hasło (SHA-256, bez plain text w kodzie)"},
+      {type:"new", text:"Role: Super Administrator, Administrator, Moderator — moderator bez podglądu stawek PLN/h"},
+      {type:"improve", text:"Moderator — ukryte stawki w kartotece, liście płac, robotach; eksport PDF/Word tylko dla adminów"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.9.17", label:"Panel pracownika — grafik, paragony, status zdjęć",
     items:[
@@ -8065,6 +8143,152 @@ function ChangelogView() {
   );
 }
 
+// ─── Ustawienia admina (Super Administrator) ───────────────────────────────────
+
+function AdminSettingsModal({ onClose }: { onClose: () => void }) {
+  const users = listAdminUsersForLogin();
+  const [drafts, setDrafts] = useState<Record<string, { pw: string; pw2: string; show: boolean }>>(() =>
+    Object.fromEntries(users.map((u) => [u.id, { pw: "", pw2: "", show: false }])),
+  );
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ userId: string; text: string; ok: boolean } | null>(null);
+  const [customFlags, setCustomFlags] = useState(() =>
+    Object.fromEntries(users.map((u) => [u.id, adminPasswordIsCustomized(u.id)])),
+  );
+
+  const updateDraft = (userId: string, patch: Partial<{ pw: string; pw2: string; show: boolean }>) => {
+    setDrafts((prev) => ({ ...prev, [userId]: { ...prev[userId], ...patch } }));
+    setMsg(null);
+  };
+
+  const handleSave = async (userId: string) => {
+    const d = drafts[userId];
+    if (!d) return;
+    if (d.pw.length < 6) {
+      setMsg({ userId, text: "Hasło musi mieć co najmniej 6 znaków", ok: false });
+      return;
+    }
+    if (d.pw !== d.pw2) {
+      setMsg({ userId, text: "Hasła nie pasują", ok: false });
+      return;
+    }
+    setBusyId(userId);
+    setMsg(null);
+    try {
+      await setAdminUserPassword(userId, d.pw);
+      setCustomFlags((prev) => ({ ...prev, [userId]: true }));
+      setDrafts((prev) => ({ ...prev, [userId]: { pw: "", pw2: "", show: false } }));
+      setMsg({ userId, text: "Hasło zmienione — działa na wszystkich urządzeniach po sync", ok: true });
+    } catch (err) {
+      setMsg({ userId, text: err instanceof Error ? err.message : "Nie udało się zapisać", ok: false });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleReset = async (userId: string) => {
+    if (!window.confirm("Przywrócić hasło fabryczne (startowe) dla tego użytkownika?")) return;
+    setBusyId(userId);
+    setMsg(null);
+    try {
+      await resetAdminUserPassword(userId);
+      setCustomFlags((prev) => ({ ...prev, [userId]: false }));
+      setDrafts((prev) => ({ ...prev, [userId]: { pw: "", pw2: "", show: false } }));
+      setMsg({ userId, text: "Przywrócono hasło startowe", ok: true });
+    } catch (err) {
+      setMsg({ userId, text: err instanceof Error ? err.message : "Nie udało się przywrócić", ok: false });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div className="bg-card rounded-2xl border border-border w-full max-w-lg shadow-2xl max-h-[90dvh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+          <div className="flex items-center gap-2">
+            <Settings size={16} className="text-primary"/>
+            <span className="text-sm font-semibold">Ustawienia administratorów</span>
+          </div>
+          <button type="button" onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
+            <X size={16}/>
+          </button>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-4 space-y-4">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Tylko Super Administrator. Hasła zapisywane jako hash SHA-256 i synchronizowane w chmurze — obowiązują na telefonie i komputerze.
+          </p>
+          {users.map((u) => {
+            const d = drafts[u.id] ?? { pw: "", pw2: "", show: false };
+            const isBusy = busyId === u.id;
+            const userMsg = msg?.userId === u.id ? msg : null;
+            return (
+              <div key={u.id} className="bg-secondary/40 rounded-xl border border-border p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold">{u.displayName}</p>
+                    <p className="text-xs text-muted-foreground">{adminRoleLabel(u.role)} · login: {u.login}</p>
+                  </div>
+                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${customFlags[u.id] ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
+                    {customFlags[u.id] ? "Hasło zmienione" : "Hasło startowe"}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Nowe hasło</label>
+                  <div className="relative">
+                    <input
+                      type={d.show ? "text" : "password"}
+                      value={d.pw}
+                      onChange={(e) => updateDraft(u.id, { pw: e.target.value })}
+                      placeholder="Min. 6 znaków"
+                      className="w-full bg-background rounded-lg px-3 py-2.5 pr-10 text-sm border border-border focus:border-primary focus:outline-none"
+                    />
+                    <button type="button" onClick={() => updateDraft(u.id, { show: !d.show })} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                      <Eye size={14}/>
+                    </button>
+                  </div>
+                  <label className="text-xs text-muted-foreground">Potwierdź hasło</label>
+                  <input
+                    type={d.show ? "text" : "password"}
+                    value={d.pw2}
+                    onChange={(e) => updateDraft(u.id, { pw2: e.target.value })}
+                    onKeyDown={(e) => e.key === "Enter" && handleSave(u.id)}
+                    placeholder="Powtórz hasło"
+                    className="w-full bg-background rounded-lg px-3 py-2.5 text-sm border border-border focus:border-primary focus:outline-none"
+                  />
+                </div>
+                {userMsg && (
+                  <p className={`text-xs ${userMsg.ok ? "text-green-500" : "text-destructive"}`}>{userMsg.text}</p>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={isBusy || !d.pw || !d.pw2}
+                    onClick={() => handleSave(u.id)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-40 transition-colors"
+                  >
+                    {isBusy ? "…" : <><Lock size={12}/> Zmień hasło</>}
+                  </button>
+                  {customFlags[u.id] && (
+                    <button
+                      type="button"
+                      disabled={isBusy}
+                      onClick={() => handleReset(u.id)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
+                    >
+                      <RotateCcw size={12}/> Przywróć startowe
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Root App ─────────────────────────────────────────────────────────────────
 
 type View = "dashboard" | "payroll" | "schedule" | "directory" | "contacts" | "archive" | "jobs" | "photos" | "changelog" | "help";
@@ -8076,18 +8300,32 @@ function CloudLoader({children}: {children: React.ReactNode}) {
     const keys = [...DATA_KEYS];
     const fallback = setTimeout(() => setReady(true), 5000);
 
-    fetchKeysFromCloud([...keys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY])
+    fetchKeysFromCloud([...keys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, ADMIN_PASSWORDS_KEY])
       .then((allValues) => {
         const values = allValues.slice(0, keys.length);
         const cloudDeleted = normalizeDeletedJobIds(allValues[keys.length]);
         const cloudDirDeleted = normalizeDeletedDirectoryIds(allValues[keys.length + 1]);
+        const cloudAdminPw = allValues[keys.length + 2];
         const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), cloudDeleted);
         saveDeletedJobIds(mergedDeleted);
         const mergedDirDeleted = mergeDeletedDirectoryIds(getDeletedDirectoryIds(), cloudDirDeleted);
         saveDeletedDirectoryIds(mergedDirDeleted);
 
+        const localAdminPw = loadAdminPasswordOverrides();
+        const mergedAdminPw = mergeAdminPasswordOverrides(localAdminPw, cloudAdminPw);
+        if (Object.keys(mergedAdminPw).length > 0) {
+          localStorage.setItem(ADMIN_PASSWORDS_KEY, JSON.stringify(mergedAdminPw));
+        } else if (cloudAdminPw == null && Object.keys(localAdminPw).length > 0) {
+          localStorage.setItem(ADMIN_PASSWORDS_KEY, JSON.stringify(localAdminPw));
+        }
+
         const pushKeys: string[] = [];
         const pushValues: unknown[] = [];
+
+        if (isSupabaseConfigured() && Object.keys(localAdminPw).length > 0 && JSON.stringify(mergedAdminPw) !== JSON.stringify(cloudAdminPw ?? {})) {
+          pushKeys.push(ADMIN_PASSWORDS_KEY);
+          pushValues.push(mergedAdminPw);
+        }
 
         keys.forEach((key, i) => {
           let cloudVal = values[i];
@@ -8152,7 +8390,8 @@ function CloudLoader({children}: {children: React.ReactNode}) {
   return <>{children}</>;
 }
 
-function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePassword?: ()=>void}) {
+function AppInner({onLogout}: {onLogout?: ()=>void}) {
+  const { session: adminSession, canViewRates } = useAdminAccess();
   const week = getWeekRange();
   const [directory, setDirectory] = useLocalStorage<DirectoryEmployee[]>("kw-directory", []);
   const [weekEmployees, setWeekEmployees] = useLocalStorage<WeekEmployee[]>("kw-week-employees", []);
@@ -8167,6 +8406,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [globalSearch, setGlobalSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [showAdminSettings, setShowAdminSettings] = useState(false);
   const [syncStatus, setSyncStatus] = useState<"idle"|"saving"|"saved"|"error"|"offline">("idle");
   const [syncError, setSyncError] = useState("");
   const syncTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
@@ -8247,7 +8487,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
   // Backup
   const exportBackup = () => {
     const data: Record<string,unknown> = {};
-    [...DATA_KEYS].forEach(k=>{
+    [...DATA_KEYS, ADMIN_PASSWORDS_KEY].forEach(k=>{
       const v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v);
     });
     saveAs(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),`backup-${new Date().toISOString().slice(0,10)}.json`);
@@ -8278,7 +8518,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
           data["kw-contacts"] = mergeContacts(local, data["kw-contacts"]);
         }
         Object.entries(data).forEach(([k,v])=>localStorage.setItem(k,JSON.stringify(v)));
-        const keys = [...DATA_KEYS].filter(k => data[k] != null);
+        const keys = [...DATA_KEYS, ADMIN_PASSWORDS_KEY].filter(k => data[k] != null);
         if (keys.length > 0) {
           await pushKeysToCloud(keys, keys.map((k) => data[k])).catch(() => {});
         }
@@ -8651,9 +8891,14 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
           </div>}
           <ChevronRight size={13} className="text-muted-foreground/40 hidden sm:block"/>
           <h2 className="text-sm font-semibold">{navItems.find(n=>n.key===view)?.label}</h2>
+          {adminSession && (
+            <span className="hidden md:inline text-[10px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full truncate max-w-[180px]" title={adminRoleLabel(adminSession.role)}>
+              {adminSession.displayName}
+            </span>
+          )}
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
             <CompanyMusicPlayer />
-            {view==="payroll"&&<span className="text-xs text-muted-foreground hidden sm:block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN · {productionWeekEmployees.length} prac.</span>}
+            {view==="payroll"&&canViewRates&&<span className="text-xs text-muted-foreground hidden sm:block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN · {productionWeekEmployees.length} prac.</span>}
             {view==="schedule"&&<span className="text-xs text-muted-foreground hidden sm:block">{fmtDate(weekFrom)} – {fmtDate(weekTo)} · {productionWeekEmployees.length} prac.</span>}
             {view==="jobs"&&<span className="text-xs text-muted-foreground hidden sm:block">{jobs.filter(j=>j.status==="in_progress").length} aktywne · {jobs.filter(j=>j.status==="completed").length} zdane</span>}
             {/* Backup na mobile (na desktopie jest w sidebarze) */}
@@ -8686,9 +8931,9 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
             <button onClick={()=>setShowSearch(v=>!v)} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
               <Search size={16}/>
             </button>
-            {onChangePassword && (
-              <button onClick={onChangePassword} title="Zmień hasło" className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
-                <KeyRound size={16}/>
+            {adminSession && adminIsSuperAdmin(adminSession.role) && (
+              <button onClick={()=>setShowAdminSettings(true)} title="Ustawienia administratorów" className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+                <Settings size={16}/>
               </button>
             )}
             {onLogout && (
@@ -8770,6 +9015,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
       </div>
 
       {/* Overwrite archive confirm */}
+      {showAdminSettings && <AdminSettingsModal onClose={()=>setShowAdminSettings(false)}/>}
       {showSaveConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:"rgba(0,0,0,0.7)"}}>
           <div className="bg-card rounded-2xl border border-border w-full max-w-sm shadow-2xl p-6 space-y-4">
@@ -8797,141 +9043,18 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
   );
 }
 
-// ─── Auth helpers ─────────────────────────────────────────────────────────────
-
-async function sha256(text: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
-}
-
-async function saveAdminHash(password: string): Promise<void> {
-  const hash = await sha256(password);
-  await pushKeysToCloud([ADMIN_HASH_KEY], [hash]).catch(() => {});
-  // Cache locally as fallback
-  localStorage.setItem(ADMIN_HASH_KEY, hash);
-}
-
-async function verifyAdminPassword(password: string): Promise<boolean> {
-  const hash = await sha256(password);
-  try {
-    const values = await fetchKeysFromCloud([ADMIN_HASH_KEY]);
-    if (values[0]) {
-      const stored = String(values[0]);
-      localStorage.setItem(ADMIN_HASH_KEY, stored);
-      return hash === stored;
-    }
-  } catch { /* offline — local cache */ }
-  const local = localStorage.getItem(ADMIN_HASH_KEY);
-  return !!local && hash === local;
-}
-
-async function adminPasswordExists(): Promise<boolean> {
-  if (localStorage.getItem(ADMIN_HASH_KEY)) return true;
-  try {
-    const values = await fetchKeysFromCloud([ADMIN_HASH_KEY]);
-    if (values[0]) {
-      localStorage.setItem(ADMIN_HASH_KEY, String(values[0]));
-      return true;
-    }
-  } catch {}
-  return false;
-}
-
-const ADMIN_REMEMBER_FLAG_KEY = "kw-admin-remember-on";
-const ADMIN_REMEMBER_DATA_KEY = "kw-admin-remember-pw";
-const ADMIN_REMEMBER_SALT_KEY = "kw-admin-remember-salt";
-
-function adminRememberEnabled(): boolean {
-  return localStorage.getItem(ADMIN_REMEMBER_FLAG_KEY) === "1";
-}
-
-async function deriveRememberKey(salt: Uint8Array): Promise<CryptoKey> {
-  const baseKey = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode("wgdom-admin-local-v1"),
-    "PBKDF2",
-    false,
-    ["deriveKey"],
-  );
-  return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt, iterations: 100_000, hash: "SHA-256" },
-    baseKey,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt", "decrypt"],
-  );
-}
-
-function getOrCreateRememberSalt(): Uint8Array {
-  let saltStr = localStorage.getItem(ADMIN_REMEMBER_SALT_KEY);
-  if (!saltStr) {
-    saltStr = `${crypto.randomUUID()}${crypto.randomUUID()}`;
-    localStorage.setItem(ADMIN_REMEMBER_SALT_KEY, saltStr);
-  }
-  return new TextEncoder().encode(saltStr);
-}
-
-async function saveRememberedAdminPassword(password: string): Promise<void> {
-  const salt = getOrCreateRememberSalt();
-  const key = await deriveRememberKey(salt);
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
-    key,
-    new TextEncoder().encode(password),
-  );
-  localStorage.setItem(
-    ADMIN_REMEMBER_DATA_KEY,
-    JSON.stringify({ iv: [...iv], data: [...new Uint8Array(encrypted)] }),
-  );
-  localStorage.setItem(ADMIN_REMEMBER_FLAG_KEY, "1");
-}
-
-async function loadRememberedAdminPassword(): Promise<string | null> {
-  if (!adminRememberEnabled()) return null;
-  const raw = localStorage.getItem(ADMIN_REMEMBER_DATA_KEY);
-  if (!raw) return null;
-  try {
-    const payload = JSON.parse(raw) as { iv: number[]; data: number[] };
-    const saltStr = localStorage.getItem(ADMIN_REMEMBER_SALT_KEY);
-    if (!saltStr) return null;
-    const key = await deriveRememberKey(new TextEncoder().encode(saltStr));
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: new Uint8Array(payload.iv) },
-      key,
-      new Uint8Array(payload.data),
-    );
-    return new TextDecoder().decode(decrypted);
-  } catch {
-    clearRememberedAdminPassword();
-    return null;
-  }
-}
-
-function clearRememberedAdminPassword(): void {
-  localStorage.removeItem(ADMIN_REMEMBER_DATA_KEY);
-  localStorage.removeItem(ADMIN_REMEMBER_FLAG_KEY);
-}
-
 // ─── Auth: Login Screen ───────────────────────────────────────────────────────
 
-function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:DirectoryEmployee)=>void}) {
-  const [mode, setMode] = useState<"pick"|"admin"|"worker"|"setup">("pick");
-  const [checking, setChecking] = useState(true);
-  const [hasPassword, setHasPassword] = useState(false);
+function LoginScreen({onAdmin, onWorker}: {onAdmin:(session: AdminSession)=>void; onWorker:(emp:DirectoryEmployee)=>void}) {
+  const adminUsers = useMemo(() => listAdminUsersForLogin(), []);
+  const [mode, setMode] = useState<"pick"|"admin"|"worker">("pick");
 
+  const [selectedAdminId, setSelectedAdminId] = useState(adminUsers[0]?.id ?? "");
   const [password, setPassword] = useState("");
   const [passShow, setPassShow] = useState(false);
   const [passError, setPassError] = useState("");
   const [passLoading, setPassLoading] = useState(false);
   const [rememberPassword, setRememberPassword] = useState(false);
-
-  const [pass1, setPass1] = useState("");
-  const [pass2, setPass2] = useState("");
-  const [pass1Show, setPass1Show] = useState(false);
-  const [pass2Show, setPass2Show] = useState(false);
-  const [setupError, setSetupError] = useState("");
-  const [setupLoading, setSetupLoading] = useState(false);
 
   const [directory, setDirectory] = useState<DirectoryEmployee[]>([]);
   const [dirLoading, setDirLoading] = useState(false);
@@ -8945,12 +9068,38 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
   const [setupPinLoading, setSetupPinLoading] = useState(false);
   const [workerError, setWorkerError] = useState("");
 
+  const selectedAdmin = adminUsers.find((u) => u.id === selectedAdminId) ?? adminUsers[0] ?? null;
+
   useEffect(() => {
-    adminPasswordExists().then(exists => {
-      setHasPassword(exists);
-      setChecking(false);
-    });
-  }, []);
+    if (mode !== "admin" || !selectedAdminId) return;
+    let cancelled = false;
+    (async () => {
+      const enabled = adminRememberEnabled();
+      if (!cancelled) setRememberPassword(enabled);
+      if (enabled) {
+        const saved = await loadRememberedAdminPassword(selectedAdminId);
+        if (!cancelled && saved) setPassword(saved);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [mode, selectedAdminId]);
+
+  const handleAdminLogin = async () => {
+    if (!selectedAdmin) { setPassError("Brak kont administratora"); return; }
+    if (!password) { setPassError("Wpisz hasło"); return; }
+    setPassLoading(true);
+    const session = await verifyAdminLogin(selectedAdmin.login, password);
+    if (session) {
+      if (rememberPassword) await saveRememberedAdminPassword(selectedAdmin.id, password);
+      else clearRememberedAdminPassword();
+      setPassLoading(false);
+      onAdmin(session);
+      return;
+    }
+    setPassLoading(false);
+    setPassError("Błędne hasło");
+    setPassword("");
+  };
 
   useEffect(() => {
     if (mode !== "worker") return;
@@ -8984,42 +9133,6 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
       })
       .finally(() => setDirLoading(false));
   }, [mode]);
-
-  useEffect(() => {
-    if (mode !== "admin") return;
-    let cancelled = false;
-    (async () => {
-      const enabled = adminRememberEnabled();
-      if (!cancelled) setRememberPassword(enabled);
-      if (enabled) {
-        const saved = await loadRememberedAdminPassword();
-        if (!cancelled && saved) setPassword(saved);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [mode]);
-
-  const handleAdminLogin = async () => {
-    if (!password) { setPassError("Wpisz hasło"); return; }
-    setPassLoading(true);
-    const ok = await verifyAdminPassword(password);
-    if (ok) {
-      if (rememberPassword) await saveRememberedAdminPassword(password);
-      else clearRememberedAdminPassword();
-    }
-    setPassLoading(false);
-    if (ok) { onAdmin(); }
-    else { setPassError("Błędne hasło"); setPassword(""); }
-  };
-
-  const handleSetupSubmit = async () => {
-    if (pass1.length < 4) { setSetupError("Hasło musi mieć co najmniej 4 znaki"); return; }
-    if (pass1 !== pass2) { setSetupError("Hasła nie pasują do siebie"); setPass2(""); return; }
-    setSetupLoading(true);
-    await saveAdminHash(pass1);
-    setSetupLoading(false);
-    onAdmin();
-  };
 
   const activeWorkers = useMemo(() => {
     const q = workerSearch.trim().toLowerCase();
@@ -9133,30 +9246,22 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
         {/* Mode: pick */}
         {mode === "pick" && (
           <div className="space-y-3">
-            {checking ? (
-              <div className="flex justify-center py-6">
-                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+            <button onClick={()=>setMode("admin")}
+              className="w-full bg-primary text-primary-foreground rounded-2xl px-6 py-5 flex items-center gap-4 hover:bg-primary/90 active:scale-[0.98] transition-all">
+              <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center shrink-0"><ShieldCheck size={22}/></div>
+              <div className="text-left">
+                <p className="font-semibold text-base">Panel administracyjny</p>
+                <p className="text-xs opacity-70 mt-0.5">Wybierz użytkownika i wpisz hasło</p>
               </div>
-            ) : (
-              <>
-                <button onClick={()=>setMode(hasPassword ? "admin" : "setup")}
-                  className="w-full bg-primary text-primary-foreground rounded-2xl px-6 py-5 flex items-center gap-4 hover:bg-primary/90 active:scale-[0.98] transition-all">
-                  <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center shrink-0"><ShieldCheck size={22}/></div>
-                  <div className="text-left">
-                    <p className="font-semibold text-base">Administrator</p>
-                    <p className="text-xs opacity-70 mt-0.5">Pełny dostęp — wymagane hasło</p>
-                  </div>
-                </button>
-                <button onClick={()=>setMode("worker")}
-                  className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-4 hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98] transition-all">
-                  <div className="w-11 h-11 rounded-xl bg-secondary flex items-center justify-center shrink-0"><HardHat size={22} className="text-muted-foreground"/></div>
-                  <div className="text-left">
-                    <p className="font-semibold text-base">Pracownik</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Zdjęcia, raport · telefon + kod 4 cyfry</p>
-                  </div>
-                </button>
-              </>
-            )}
+            </button>
+            <button onClick={()=>setMode("worker")}
+              className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-4 hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98] transition-all">
+              <div className="w-11 h-11 rounded-xl bg-secondary flex items-center justify-center shrink-0"><HardHat size={22} className="text-muted-foreground"/></div>
+              <div className="text-left">
+                <p className="font-semibold text-base">Pracownik</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Zdjęcia, raport · telefon + kod 4 cyfry</p>
+              </div>
+            </button>
           </div>
         )}
 
@@ -9168,10 +9273,33 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
               <div className="flex items-center gap-2"><Lock size={14} className="text-primary"/><span className="text-sm font-semibold">Logowanie administratora</span></div>
             </div>
             <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Użytkownik</label>
+              <select
+                value={selectedAdminId}
+                onChange={(e) => {
+                  setSelectedAdminId(e.target.value);
+                  setPassword("");
+                  setPassError("");
+                }}
+                className="w-full bg-secondary rounded-xl px-4 py-3 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"
+              >
+                {adminUsers.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.displayName} — {adminRoleLabel(u.role)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
               <label className="text-xs text-muted-foreground">Hasło</label>
               <PasswordField value={password} show={passShow} onToggle={()=>setPassShow(v=>!v)}
                 onChange={v=>{setPassword(v);setPassError("");}} onEnter={handleAdminLogin} autoFocus/>
               {passError && <p className="text-xs text-destructive">{passError}</p>}
+              {selectedAdmin?.role === "moderator" && (
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Moderator — bez podglądu stawek godzinowych (PLN/h). Godziny, roboty i grafik bez zmian.
+                </p>
+              )}
               <label className="flex items-start gap-2.5 cursor-pointer select-none pt-1">
                 <input
                   type="checkbox"
@@ -9189,37 +9317,6 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
               className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
               {passLoading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>}
               Zaloguj
-            </button>
-          </div>
-        )}
-
-        {/* Mode: first-time setup */}
-        {mode === "setup" && (
-          <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
-            <div className="flex items-center gap-3">
-              <button onClick={()=>{setMode("pick");setPass1("");setPass2("");setSetupError("");}} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><ArrowLeft size={16}/></button>
-              <div>
-                <p className="text-sm font-semibold">Ustaw hasło administratora</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Hasło będzie zaszyfrowane w chmurze (SHA-256)</p>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div className="space-y-1.5">
-                <label className="text-xs text-muted-foreground">Nowe hasło (min. 4 znaki)</label>
-                <PasswordField value={pass1} show={pass1Show} onToggle={()=>setPass1Show(v=>!v)}
-                  onChange={v=>{setPass1(v);setSetupError("");}} autoFocus/>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs text-muted-foreground">Powtórz hasło</label>
-                <PasswordField value={pass2} show={pass2Show} onToggle={()=>setPass2Show(v=>!v)}
-                  onChange={v=>{setPass2(v);setSetupError("");}} onEnter={handleSetupSubmit}/>
-              </div>
-              {setupError && <p className="text-xs text-destructive">{setupError}</p>}
-            </div>
-            <button onClick={handleSetupSubmit} disabled={setupLoading}
-              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
-              {setupLoading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>}
-              Zapisz hasło i wejdź
             </button>
           </div>
         )}
@@ -11255,92 +11352,7 @@ function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photo
   );
 }
 
-// ─── Change Password Modal ────────────────────────────────────────────────────
-
-function ChangePasswordModal({onClose}: {onClose:()=>void}) {
-  const [current, setCurrent] = useState("");
-  const [currentShow, setCurrentShow] = useState(false);
-  const [pass1, setPass1] = useState("");
-  const [pass1Show, setPass1Show] = useState(false);
-  const [pass2, setPass2] = useState("");
-  const [pass2Show, setPass2Show] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  const handleSubmit = async () => {
-    if (!current) { setError("Wpisz aktualne hasło"); return; }
-    if (pass1.length < 4) { setError("Nowe hasło musi mieć co najmniej 4 znaki"); return; }
-    if (pass1 !== pass2) { setError("Nowe hasła nie pasują do siebie"); setPass2(""); return; }
-    setLoading(true); setError("");
-    const ok = await verifyAdminPassword(current);
-    if (!ok) { setError("Aktualne hasło jest błędne"); setLoading(false); setCurrent(""); return; }
-    await saveAdminHash(pass1);
-    if (adminRememberEnabled()) await saveRememberedAdminPassword(pass1);
-    else clearRememberedAdminPassword();
-    setLoading(false);
-    setSuccess(true);
-    setTimeout(onClose, 1500);
-  };
-
-  const Field = ({label, value, show, onToggle, onChange, placeholder}: {
-    label:string; value:string; show:boolean; onToggle:()=>void;
-    onChange:(v:string)=>void; placeholder?:string;
-  }) => (
-    <div className="space-y-1.5">
-      <label className="text-xs text-muted-foreground">{label}</label>
-      <div className="relative">
-        <input type={show?"text":"password"} placeholder={placeholder||"Wpisz hasło..."} value={value}
-          onChange={e=>{onChange(e.target.value);setError("");}}
-          onKeyDown={e=>e.key==="Enter"&&handleSubmit()}
-          className="w-full bg-secondary rounded-xl px-4 py-3 pr-10 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
-        <button type="button" onClick={onToggle} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"><Eye size={15}/></button>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:"rgba(0,0,0,0.7)"}}>
-      <div className="bg-card rounded-2xl border border-border w-full max-w-sm shadow-2xl p-6 space-y-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2"><KeyRound size={15} className="text-primary"/><span className="text-sm font-semibold">Zmiana hasła administratora</span></div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><X size={15}/></button>
-        </div>
-
-        {success ? (
-          <div className="flex flex-col items-center gap-3 py-4">
-            <div className="w-12 h-12 rounded-full bg-green-500/15 flex items-center justify-center"><CheckCircle2 size={24} className="text-green-400"/></div>
-            <p className="text-sm font-medium">Hasło zostało zmienione</p>
-            <p className="text-xs text-muted-foreground">Nowe hasło zapisane w chmurze</p>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-3">
-              <Field label="Aktualne hasło" value={current} show={currentShow}
-                onToggle={()=>setCurrentShow(v=>!v)} onChange={setCurrent}/>
-              <div className="border-t border-border/50 pt-3 space-y-3">
-                <Field label="Nowe hasło (min. 4 znaki)" value={pass1} show={pass1Show}
-                  onToggle={()=>setPass1Show(v=>!v)} onChange={setPass1}/>
-                <Field label="Powtórz nowe hasło" value={pass2} show={pass2Show}
-                  onToggle={()=>setPass2Show(v=>!v)} onChange={setPass2}/>
-              </div>
-              {error && <p className="text-xs text-destructive">{error}</p>}
-            </div>
-            <button onClick={handleSubmit} disabled={loading}
-              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
-              {loading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>}
-              Zmień hasło
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ─── App with auth ─────────────────────────────────────────────────────────────
-
-const DEFAULT_ADMIN_PASSWORD = "wgdom1990@";
 
 function AppInnerWithAuth() {
   const shareToken = useMemo(() => {
@@ -11348,22 +11360,34 @@ function AppInnerWithAuth() {
     return new URLSearchParams(window.location.search).get("podglad")?.trim() || "";
   }, []);
 
+  const [adminSession, setAdminSession] = useState<AdminSession | null>(() => {
+    const mode = sessionStorage.getItem("wg-session-mode");
+    return mode === "admin" ? loadAdminSessionFromStorage() : null;
+  });
+
   const [appMode, setAppMode] = useState<"login"|"admin"|"worker">(() => {
     const s = sessionStorage.getItem("wg-session-mode");
-    return (s as "admin"|"worker"|null) || "login";
+    if (s === "admin" && loadAdminSessionFromStorage()) return "admin";
+    if (s === "worker") return "worker";
+    return "login";
   });
   const [workerName, setWorkerName] = useState(() => sessionStorage.getItem("wg-worker-name") || "");
   const [workerId, setWorkerId] = useState(() => sessionStorage.getItem("wg-worker-id") || "");
-  const [showChangePass, setShowChangePass] = useState(false);
 
-  // Set default password on first ever launch
-  useEffect(() => {
-    adminPasswordExists().then(exists => {
-      if (!exists) saveAdminHash(DEFAULT_ADMIN_PASSWORD);
-    });
-  }, []);
+  const adminAccess = useMemo(
+    () => ({
+      session: adminSession,
+      canViewRates: adminSession ? adminCanViewRates(adminSession.role) : true,
+    }),
+    [adminSession],
+  );
 
-  const enterAdmin = () => { sessionStorage.setItem("wg-session-mode","admin"); setAppMode("admin"); };
+  const enterAdmin = (session: AdminSession) => {
+    saveAdminSessionToStorage(session);
+    setAdminSession(session);
+    sessionStorage.setItem("wg-session-mode", "admin");
+    setAppMode("admin");
+  };
   const enterWorker = (emp: DirectoryEmployee) => {
     sessionStorage.setItem("wg-session-mode","worker");
     sessionStorage.setItem("wg-worker-name", emp.name);
@@ -11376,17 +11400,19 @@ function AppInnerWithAuth() {
     sessionStorage.removeItem("wg-session-mode");
     sessionStorage.removeItem("wg-worker-name");
     sessionStorage.removeItem("wg-worker-id");
+    saveAdminSessionToStorage(null);
+    setAdminSession(null);
     setAppMode("login"); setWorkerName(""); setWorkerId("");
   };
 
   if (shareToken) return <ClientShareView token={shareToken}/>;
   if (appMode === "login") return <LoginScreen onAdmin={enterAdmin} onWorker={enterWorker}/>;
   if (appMode === "worker") return <WorkerPhotoView workerName={workerName} workerId={workerId} onLogout={logout}/>;
+  if (!adminSession) return <LoginScreen onAdmin={enterAdmin} onWorker={enterWorker}/>;
   return (
-    <>
-      <AppInner onLogout={logout} onChangePassword={()=>setShowChangePass(true)}/>
-      {showChangePass && <ChangePasswordModal onClose={()=>setShowChangePass(false)}/>}
-    </>
+    <AdminAccessContext.Provider value={adminAccess}>
+      <AppInner onLogout={logout}/>
+    </AdminAccessContext.Provider>
   );
 }
 

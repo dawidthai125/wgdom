@@ -1,0 +1,92 @@
+---
+description: Hasło «kontynuuj WGDOM» — pełny kontekst projektu, ostatnie wersje i ustalenia z rozmów
+alwaysApply: true
+---
+
+# W&G DOM — pamięć projektu (hasło: **kontynuuj WGDOM**)
+
+Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM** — traktuj poniższe jako wiążący kontekst sesji. Odpowiadaj po polsku.
+
+## Projekt
+
+- **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
+- **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
+- **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
+- **Aktualna wersja:** `2.9.19` (CHANGELOG[0] w App.tsx)
+- **Ostatni push:** `297e410` — panel pracownika + alerty Pulpitu (v2.9.17); v2.9.18–2.9.19 **nie pushnięte**
+- **Testy użytkownika:** głównie **Vercel**, nie localhost
+- **Konto testowe pracownika:** imię `test`, tel. `+48 000 000 000` — tylko tryb pracownika, bez listy płac/grafiku/pulpitu
+
+## v2.9.19 — Super Admin: zmiana haseł
+
+- Ikona **⚙** w topbarze — tylko `super_admin` (Dawid)
+- Panel: zmiana hasła dla każdego konta + „Przywróć startowe”
+- Sync chmura: `kw-admin-passwords` (hash SHA-256 per userId)
+
+## v2.9.18 — logowanie admina (3 konta, role)
+
+Plik: `src/lib/admin-auth.ts`
+
+| Login | Rola | Uprawnienia |
+|-------|------|-------------|
+| Dawid | Super Administrator | pełny dostęp |
+| Stanislaw | Administrator | na razie pełny (później ograniczenia) |
+| Pawel | Moderator | bez widoku/edycji stawek PLN/h |
+
+- UI: wybór użytkownika z listy + hasło (SHA-256, nie plain text)
+- Sesja: `wg-admin-session` (sessionStorage)
+- `adminCanViewRates(role)` — moderator `false`
+- Ukryte dla moderatora: stawki w kartotece, liście płac, robotach, PDF robót; eksport PDF/Word listy płac tylko dla adminów
+- Zmiana haseł: panel ⚙ (Super Admin) lub hasła startowe w `admin-auth.ts`
+
+## v2.9.17 — panel pracownika (WorkerPhotoView)
+
+Zakładki: **Roboty | Grafik | Wypłata**
+
+1. **Status zdjęć** — `PhotoEntry.rejectReason`; worker widzi pending/approved/rejected + powód; admin odrzuca z promptem
+2. **Skan paragonu/faktury** — `EmployeeExtraCost` rozszerzony (`receiptUrl`, `status`, `submittedBy`, `rejectReason`); upload przez `uploadReceipt()` → storage-upload; tylko `approved` liczy się w `calcWeekEmployee`; admin akceptuje w Liście Płac → szczegóły pracownika
+3. **Grafik** — własny tydzień Pn–So (`scheduleCellFor`, zakładka `schedule`)
+4. **„Gdzie dziś pracuję?”** — banner na Roboty (`workerTodayWorkInfo`)
+
+Worker sync: `syncWeekEmployees` → `pushKeysToCloud(["kw-week-employees"])`
+
+## Pulpit admina — „Uwaga dziś”
+
+Alerty (liczone w **Do ogarnięcia**):
+
+| Typ | Warunek | Akcja |
+|-----|---------|-------|
+| Zdjęcia | `PhotoEntry.status === "pending"` | Klik → Roboty (konkretna robota) |
+| Raporty | `reportNeedsAdminAttention(r)` — brak `adminReviewedAt` lub `updatedAt` > `adminReviewedAt` | Klik → Roboty; znikanie po obejrzeniu |
+| Paragony | `EmployeeExtraCost.status === "pending"` | Klik → Lista płac (otwiera pracownika) |
+
+## Wcześniejsze ważne wersje
+
+- **2.9.16** — kartoteka: tombstones `kw-directory-deleted-ids`, `pushDirectoryToCloud`, fix sync na Vercel
+- **2.9.15** — konto testowe (`testAccount`)
+- **2.9.14** — logowanie pracownika: telefon + PIN 4 cyfry (`workerPinHash`)
+- **2.9.13** — odtwarzacz hymnów; **2.9.11** — galeria zdjęć; **2.9.10** — trwałe usuwanie robotów
+
+## Kluczowe pliki
+
+| Plik | Rola |
+|------|------|
+| `src/app/App.tsx` | UI, WorkerPhotoView, DashboardView, PhotoGallery, PayrollView |
+| `src/lib/admin-auth.ts` | Konta admina, role, weryfikacja hasła, sesja |
+| `src/lib/cloud-sync.ts` | Sync, merge, tombstones |
+| `supabase/functions/make-server-0afb8820/index.tsx` | Backend KV, storage-upload, batch-set |
+
+## Deploy
+
+- **Frontend:** push → Vercel auto-deploy
+- **Supabase:** tylko gdy zmienia się `index.tsx` serwera (GitHub Actions / SUPABASE-DEPLOY.md)
+- v2.9.18 **nie wymaga** deploy Supabase (tylko frontend)
+
+## Nie commitować (celowo)
+
+- `music/` (duplikat)
+- `restore-lista-plac-2026-05-25.json`
+
+## Przy kolejnych zmianach
+
+Stosuj `.cursor/rules/wgdom-development.mdc`: chmura, CHANGELOG, instrukcja HelpView, komunikacja po polsku.
