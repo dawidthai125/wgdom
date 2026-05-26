@@ -81,6 +81,18 @@ export interface PayrollWeeklyGrid {
   rows: PayrollWeeklyGridRow[];
 }
 
+/** Wpis czasu pracownika na konkretnej robocie (tydzień Pn–So). */
+export interface PayrollJobWorkLine {
+  name: string;
+  dateIso: string;
+  dayLabel: string;
+  jobAddress: string;
+  hours: number;
+  rate: number;
+  cost: number;
+  notes: string;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmt(n: number) {
@@ -370,6 +382,7 @@ export async function generatePayrollPdfBlob(
   extraHourLines: WeekExtraHourLine[],
   prevSatDetails: PrevSatDetailLine[],
   prevSatIso: string,
+  jobWorkLines: PayrollJobWorkLine[] = [],
 ): Promise<Blob> {
   const pdfMake = await loadPdfMake();
   const logoDataUrl = await getCompanyLogoDataUrl();
@@ -646,6 +659,81 @@ export async function generatePayrollPdfBlob(
         ]
       : [];
 
+  const totalJobWorkHours = jobWorkLines.reduce((s, l) => s + l.hours, 0);
+  const totalJobWorkCost = jobWorkLines.reduce((s, l) => s + l.cost, 0);
+
+  const jobWorkAppendixPdfBlock =
+    jobWorkLines.length > 0
+      ? [
+          {
+            stack: [
+              {
+                text: "Praca na robotach — szczegóły tygodnia",
+                bold: true,
+                fontSize: 11,
+                color: C.navy,
+                margin: [0, 0, 0, 4] as [number, number, number, number],
+              },
+              {
+                text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · kto, gdzie i ile godzin na jakiej robocie (z kart robót)`,
+                fontSize: 8,
+                color: C.muted,
+                margin: [0, 0, 0, 10] as [number, number, number, number],
+              },
+              {
+                table: {
+                  headerRows: 1,
+                  dontBreakRows: true,
+                  widths: [68, 36, "*", 32, 36, 40, 72],
+                  body: [
+                    ["Pracownik", "Dzień", "Robota / adres", "Godz.", "Stawka", "Koszt", "Uwagi"].map((t) => ({
+                      text: t,
+                      bold: true,
+                      color: C.white,
+                      fillColor: C.navy,
+                      fontSize: 7,
+                      alignment: "center" as const,
+                    })),
+                    ...jobWorkLines.map((line, i) => {
+                      const bg = i % 2 === 0 ? C.white : C.lightGray;
+                      return [
+                        { text: line.name, fillColor: bg, fontSize: 7.5, alignment: "left" as const },
+                        { text: line.dayLabel, fillColor: bg, fontSize: 7, alignment: "center" as const, lineHeight: 1.15 },
+                        { text: line.jobAddress, fillColor: bg, fontSize: 7, alignment: "left" as const },
+                        { text: line.hours > 0 ? fmtH(line.hours) : "—", fillColor: bg, fontSize: 7.5, bold: line.hours > 0, alignment: "right" as const },
+                        { text: line.rate > 0 ? `${fmt(line.rate)}` : "—", fillColor: bg, fontSize: 7, color: C.muted, alignment: "right" as const },
+                        { text: line.cost > 0 ? `${fmt(line.cost)}` : "—", fillColor: bg, fontSize: 7, alignment: "right" as const },
+                        { text: line.notes || "—", fillColor: bg, fontSize: 6.5, color: C.muted, alignment: "left" as const },
+                      ];
+                    }),
+                    [
+                      { text: "Razem", bold: true, colSpan: 3, fillColor: C.lightNavy, fontSize: 7, alignment: "right" as const },
+                      {},
+                      {},
+                      { text: fmtH(totalJobWorkHours), bold: true, fillColor: C.lightNavy, fontSize: 8, alignment: "right" as const },
+                      { text: "", fillColor: C.lightNavy },
+                      { text: `${fmt(totalJobWorkCost)}`, bold: true, fillColor: C.lightNavy, fontSize: 8, alignment: "right" as const },
+                      { text: "", fillColor: C.lightNavy },
+                    ],
+                  ],
+                },
+                layout: {
+                  hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
+                  vLineWidth: () => 0,
+                  hLineColor: () => "#DDE3EA",
+                  paddingLeft: () => 5,
+                  paddingRight: () => 5,
+                  paddingTop: () => 4,
+                  paddingBottom: () => 4,
+                },
+              },
+            ],
+            pageBreak: "before" as const,
+            unbreakable: false,
+          },
+        ]
+      : [];
+
   const docDef: PdfDocDef = {
     pageSize: "A4",
     pageOrientation: "landscape",
@@ -694,6 +782,7 @@ export async function generatePayrollPdfBlob(
       ...dailyDetailPdfBlock,
       ...extraHourAppendixPdfBlock,
       ...prevSatAppendixPdfBlock,
+      ...jobWorkAppendixPdfBlock,
     ],
     defaultStyle: { font: "Roboto", fontSize: 9, color: C.navy },
   };

@@ -59,6 +59,7 @@ import {
   buildPayrollEmailHtml,
   generatePayrollPdfBlob,
   generatePayrollWordBlob,
+  type PayrollJobWorkLine,
   blobToBase64,
 } from "@/lib/payroll-export";
 
@@ -380,6 +381,33 @@ function payrollWeekExtraHourLines(employees: WeekEmployee[]) {
   }
   return lines;
 }
+
+function payrollJobWorkLines(jobs: Job[], weekFrom: string, weekTo: string): PayrollJobWorkLine[] {
+  const lines: PayrollJobWorkLine[] = [];
+  for (const job of jobs) {
+    const jobAddress = formatJobStreet(job);
+    for (const we of job.workEntries) {
+      if (we.date < weekFrom || we.date > weekTo || we.hours <= 0) continue;
+      const dk = dayKeyForIsoInWeek(we.date, weekFrom);
+      const parts = we.date.split("-");
+      const dayLabel = dk && parts.length === 3 ? `${dk}\n${parts[2]}.${parts[1]}` : fmtDate(we.date);
+      lines.push({
+        name: we.employeeName?.trim() || "—",
+        dateIso: we.date,
+        dayLabel,
+        jobAddress,
+        hours: we.hours,
+        rate: we.rate,
+        cost: +(we.hours * we.rate).toFixed(2),
+        notes: we.notes?.trim() || "",
+      });
+    }
+  }
+  return lines.sort(
+    (a, b) => a.dateIso.localeCompare(b.dateIso) || a.name.localeCompare(b.name, "pl") || a.jobAddress.localeCompare(b.jobAddress, "pl"),
+  );
+}
+
 function payrollPrevSatDetailLines(employees: WeekEmployee[], weekFrom: string) {
   const dateLabel = fmtDate(previousSaturdayIso(weekFrom));
   const lines: {
@@ -1627,6 +1655,7 @@ function PayrollEmailModal({
   rows,
   totals,
   contacts,
+  jobs,
   onClose,
   onManageContacts,
 }: {
@@ -1635,6 +1664,7 @@ function PayrollEmailModal({
   rows: ({ emp: WeekEmployee } & ReturnType<typeof calcWeekEmployee>)[];
   totals: PayrollExportTotals;
   contacts: EmailContact[];
+  jobs: Job[];
   onClose: () => void;
   onManageContacts: () => void;
 }) {
@@ -1673,10 +1703,11 @@ function PayrollEmailModal({
       const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
       const prevSatDetails = payrollPrevSatDetailLines(rows.map((r) => r.emp), weekFrom);
       const prevSatIso = previousSaturdayIso(weekFrom);
+      const jobWorkLines = payrollJobWorkLines(jobs, weekFrom, weekTo);
       const attachments: { filename: string; content: string }[] = [];
       if (attachPdf) {
         setSendStage("Ładuję generator PDF…");
-        const pdfBlob = await generatePayrollPdfBlob(weekFrom, weekTo, calcRows, totals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso);
+        const pdfBlob = await generatePayrollPdfBlob(weekFrom, weekTo, calcRows, totals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso, jobWorkLines);
         setSendStage("Koduję PDF…");
         attachments.push({ filename: `lista-plac-${weekFrom}.pdf`, content: await blobToBase64(pdfBlob) });
       }
@@ -1930,7 +1961,7 @@ function PayrollPdfPreviewModal({
 // ─── Lista Płac (current week) ────────────────────────────────────────────────
 
 function PayrollView({
-  weekEmployees, weekFrom, weekTo, directory, contacts,
+  weekEmployees, weekFrom, weekTo, directory, contacts, jobs,
   onWeekChange, onToggleSettled, onSaveWeek, savedWeeks,
   onAddFromDirectory, onRemoveWeekEmployee, onUpdateWeekEmployee,   onGoToCurrent,
   onManageContacts,
@@ -1939,6 +1970,7 @@ function PayrollView({
   weekEmployees: WeekEmployee[]; weekFrom:string; weekTo:string;
   directory: DirectoryEmployee[];
   contacts: EmailContact[];
+  jobs: Job[];
   onWeekChange:(f:string,t:string)=>void;
   onToggleSettled:(id:string)=>void;
   onSaveWeek:()=>void;
@@ -2024,13 +2056,14 @@ function PayrollView({
     const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
     const prevSatDetails = payrollPrevSatDetailLines(rows.map((r) => r.emp), weekFrom);
     const prevSatIso = previousSaturdayIso(weekFrom);
-    return { calcRows, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso };
+    const jobWorkLines = payrollJobWorkLines(jobs, weekFrom, weekTo);
+    return { calcRows, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso, jobWorkLines };
   };
 
   const buildPayrollPdfBlob = useCallback(async () => {
-    const { calcRows, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso } = payrollExportArgs();
-    return generatePayrollPdfBlob(weekFrom, weekTo, calcRows, exportTotals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso);
-  }, [weekFrom, weekTo, rows, exportTotals]);
+    const { calcRows, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso, jobWorkLines } = payrollExportArgs();
+    return generatePayrollPdfBlob(weekFrom, weekTo, calcRows, exportTotals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso, jobWorkLines);
+  }, [weekFrom, weekTo, rows, exportTotals, jobs]);
 
   const exportPDF = async () => {
     const blob = await buildPayrollPdfBlob();
@@ -2338,6 +2371,7 @@ function PayrollView({
           rows={rows}
           totals={exportTotals}
           contacts={contacts}
+          jobs={jobs}
           onClose={() => setShowEmailModal(false)}
           onManageContacts={() => { setShowEmailModal(false); onManageContacts(); }}
         />
@@ -5197,7 +5231,7 @@ function HelpView() {
             <FileDown size={16} className="text-primary shrink-0 mt-0.5"/>
             <div>
               <p className="text-sm font-medium text-primary mb-1">Eksport do PDF i Word</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">Przycisk „Podgląd PDF” otwiera dokument w oknie aplikacji (przewijanie stron, pobieranie). „PDF” zapisuje plik na dysk; „Word” generuje dokument .docx. Kolumny: godziny, brutto, zaliczki, koszty do zwrotu, do wypłaty. Dodatkowe godziny — osobna sekcja w eksporcie.</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">Przycisk „Podgląd PDF” otwiera dokument w oknie aplikacji. PDF zawiera też ostatnią stronę z przypisaniami do robót (wpisy z kart robót w danym tygodniu). „PDF” zapisuje plik; „Word” generuje .docx.</p>
             </div>
           </div>
         </div>
@@ -5500,6 +5534,12 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.8.0", label:"PDF — praca na robotach",
+    items:[
+      {type:"new", text:"Lista płac PDF — ostatnia strona: kto, na jakiej robocie, ile godzin i koszt (z wpisów w kartach robót)"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.7.9", label:"Lista płac — podgląd PDF",
     items:[
@@ -6646,7 +6686,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
         {/* Content */}
         <div className="flex flex-1 min-h-0 overflow-hidden pb-16 sm:pb-0">
           {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate}/>}
-          {view==="payroll"&&<PayrollView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive}/>}
+          {view==="payroll"&&<PayrollView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} onChange={setDirectory}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
