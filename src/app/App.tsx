@@ -55,7 +55,7 @@ import {
 import {
   type PayrollCalcRow,
   type PayrollExportTotals,
-  type PayrollDailyDetailLine,
+  type PayrollWeeklyGrid,
   buildPayrollEmailHtml,
   generatePayrollPdfBlob,
   generatePayrollWordBlob,
@@ -415,50 +415,43 @@ function payrollPrevSatDetailLines(employees: WeekEmployee[], weekFrom: string) 
   return lines;
 }
 
-function payrollDailyDetailLines(employees: WeekEmployee[], weekFrom: string): PayrollDailyDetailLine[] {
-  const lines: PayrollDailyDetailLine[] = [];
-  for (const col of weekDayColumns(weekFrom)) {
-    for (const emp of employees) {
-      const day = emp.days[col.key];
-      const dayLabel = `${DAY_LABELS[col.key]} ${col.dateLabel}`;
-      if (day.active) {
-        const h = hoursWorked(day.from, day.to);
-        const zal = parseFloat(day.zaliczka) || 0;
-        if (h > 0 || zal > 0) {
-          lines.push({
-            name: emp.name || "—",
-            position: emp.position || "—",
-            dayLabel,
-            sortDate: col.iso,
-            kind: "Podstawa",
-            timeRange: `${day.from}–${day.to}`,
-            hours: h,
-            zaliczka: zal,
-            notes: "—",
-          });
-        }
-      }
-      for (const ex of day.extraHours ?? []) {
-        const h = hoursWorked(ex.from, ex.to);
-        const desc = ex.description.trim();
-        if (h <= 0 && !desc) continue;
-        lines.push({
-          name: emp.name || "—",
-          position: emp.position || "—",
-          dayLabel,
-          sortDate: col.iso,
-          kind: "Dodatkowo",
-          timeRange: h > 0 ? `${ex.from}–${ex.to}` : "—",
-          hours: h,
-          zaliczka: 0,
-          notes: desc || "—",
-        });
-      }
+function formatPayrollDayCell(day: DayData): string {
+  const parts: string[] = [];
+  let total = 0;
+  if (day.active) {
+    const h = hoursWorked(day.from, day.to);
+    if (h > 0 || day.from || day.to) {
+      parts.push(`${day.from}–${day.to}`);
+      total += h;
     }
+    const zal = parseFloat(day.zaliczka) || 0;
+    if (zal > 0) parts.push(`zal. ${fmt(zal)}`);
   }
-  return lines.sort(
-    (a, b) => a.sortDate.localeCompare(b.sortDate) || a.name.localeCompare(b.name, "pl") || a.kind.localeCompare(b.kind, "pl"),
-  );
+  for (const ex of day.extraHours ?? []) {
+    const h = hoursWorked(ex.from, ex.to);
+    const desc = ex.description.trim();
+    if (h <= 0 && !desc) continue;
+    if (h > 0) parts.push(`+${ex.from}–${ex.to}`);
+    else parts.push(`+${desc}`);
+    total += h;
+  }
+  if (parts.length === 0) return "—";
+  if (total > 0) parts.push(fmtH(total));
+  return parts.join("\n");
+}
+
+function payrollWeeklyGrid(employees: WeekEmployee[], weekFrom: string): PayrollWeeklyGrid {
+  const cols = weekDayColumns(weekFrom);
+  const dayHeaders = cols.map((c) => `${DAY_LABELS[c.key]}\n${c.dateLabel}`);
+  const rows = employees
+    .map((emp) => ({
+      name: emp.name || "—",
+      position: emp.position || "—",
+      dayCells: cols.map((c) => formatPayrollDayCell(emp.days[c.key])),
+      weekHours: +DAYS.reduce((s, d) => s + dayTotalHours(emp.days[d]), 0).toFixed(2),
+    }))
+    .filter((row) => row.weekHours > 0 || row.dayCells.some((c) => c !== "—"));
+  return { dayHeaders, rows };
 }
 
 function fmt(n: number) { return n.toLocaleString("pl-PL",{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -1676,20 +1669,20 @@ function PayrollEmailModal({
     setSending(true);
     setSendStage("Przygotowanie…");
     try {
-      const dailyDetailLines = payrollDailyDetailLines(rows.map((r) => r.emp), weekFrom);
+      const weeklyGrid = payrollWeeklyGrid(rows.map((r) => r.emp), weekFrom);
       const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
       const prevSatDetails = payrollPrevSatDetailLines(rows.map((r) => r.emp), weekFrom);
       const prevSatIso = previousSaturdayIso(weekFrom);
       const attachments: { filename: string; content: string }[] = [];
       if (attachPdf) {
         setSendStage("Ładuję generator PDF…");
-        const pdfBlob = await generatePayrollPdfBlob(weekFrom, weekTo, calcRows, totals, dailyDetailLines, extraHourLines, prevSatDetails, prevSatIso);
+        const pdfBlob = await generatePayrollPdfBlob(weekFrom, weekTo, calcRows, totals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso);
         setSendStage("Koduję PDF…");
         attachments.push({ filename: `lista-plac-${weekFrom}.pdf`, content: await blobToBase64(pdfBlob) });
       }
       if (attachWord) {
         setSendStage("Generuję Word…");
-        const wordBlob = await generatePayrollWordBlob(weekFrom, weekTo, calcRows, totals, dailyDetailLines, extraHourLines, prevSatDetails, prevSatIso);
+        const wordBlob = await generatePayrollWordBlob(weekFrom, weekTo, calcRows, totals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso);
         setSendStage("Koduję Word…");
         attachments.push({ filename: `lista-plac-${weekFrom}.docx`, content: await blobToBase64(wordBlob) });
       }
@@ -1892,22 +1885,22 @@ function PayrollView({
 
   const payrollExportArgs = () => {
     const calcRows = toPayrollCalcRows(rows);
-    const dailyDetailLines = payrollDailyDetailLines(rows.map((r) => r.emp), weekFrom);
+    const weeklyGrid = payrollWeeklyGrid(rows.map((r) => r.emp), weekFrom);
     const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
     const prevSatDetails = payrollPrevSatDetailLines(rows.map((r) => r.emp), weekFrom);
     const prevSatIso = previousSaturdayIso(weekFrom);
-    return { calcRows, dailyDetailLines, extraHourLines, prevSatDetails, prevSatIso };
+    return { calcRows, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso };
   };
 
   const exportPDF = async () => {
-    const { calcRows, dailyDetailLines, extraHourLines, prevSatDetails, prevSatIso } = payrollExportArgs();
-    const blob = await generatePayrollPdfBlob(weekFrom, weekTo, calcRows, exportTotals, dailyDetailLines, extraHourLines, prevSatDetails, prevSatIso);
+    const { calcRows, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso } = payrollExportArgs();
+    const blob = await generatePayrollPdfBlob(weekFrom, weekTo, calcRows, exportTotals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso);
     saveAs(blob, `lista-plac-${weekFrom}.pdf`);
   };
 
   const exportWord = async () => {
-    const { calcRows, dailyDetailLines, extraHourLines, prevSatDetails, prevSatIso } = payrollExportArgs();
-    const blob = await generatePayrollWordBlob(weekFrom, weekTo, calcRows, exportTotals, dailyDetailLines, extraHourLines, prevSatDetails, prevSatIso);
+    const { calcRows, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso } = payrollExportArgs();
+    const blob = await generatePayrollWordBlob(weekFrom, weekTo, calcRows, exportTotals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso);
     saveAs(blob, `lista-plac-${weekFrom}.docx`);
   };
 
@@ -5350,6 +5343,12 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.7.5", label:"PDF/Word — tabela tygodniowa",
+    items:[
+      {type:"improve", text:"Strona 2 listy płac — jedna tabela: pracownicy w wierszach, dni Pn–So w kolumnach (od–do, dodatkowe, suma dnia)"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.7.4", label:"PDF/Word — rozpis po dniach",
     items:[
