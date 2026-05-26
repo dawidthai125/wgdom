@@ -30,7 +30,10 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2
         with:
-          version: latest
+          # Pinned — "latest" trafia w rate limit GitHub API w CI
+          version: 2.101.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Deploy make-server-0afb8820
         env:
