@@ -6467,6 +6467,19 @@ const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"
     ],
   },
   {
+    date:"2026-05-26", version:"2.9.7", label:"PDF — roboty i łamanie stron",
+    items:[
+      {type:"fix", text:"PDF listy płac — przywrócona tabela „Praca na robotach” (kto, gdzie, godziny) + siatka tygodniowa"},
+      {type:"fix", text:"PDF — moduły nie ucinają się przy większej czcionce; nagłówek sekcji osobno, tabela łamie wiersze między stronami"},
+    ],
+  },
+  {
+    date:"2026-05-26", version:"2.9.6", label:"PDF/Word — większa czcionka",
+    items:[
+      {type:"improve", text:"Lista płac PDF i Word — powiększone czcionki w tabelach i załącznikach (lepsza czytelność na wydruku)"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.9.5", label:"Pulpit — link do robot",
     items:[
       {type:"improve", text:"Pulpit — alert „Brak dokumentów”: link „Roboty →” jak przy innych alertach w sekcji Uwaga dziś"},
