@@ -502,6 +502,7 @@ function payrollJobConsistencyAlerts(
     jobHours: number,
     empRef: Pick<WeekEmployee, "directoryId" | "name">,
   ) => {
+    if (isMultiSiteEmployee(empRef, directory)) return;
     const pay = +payrollHours.toFixed(2);
     const job = +jobHours.toFixed(2);
     if (pay <= TOLERANCE && job <= TOLERANCE) return;
@@ -3051,7 +3052,7 @@ function DirectoryView({directory, savedWeeks, onChange}:{directory:DirectoryEmp
                       />
                       <span>
                         <span className="text-sm font-medium block">Wiele robót dziennie (logistyka / dostawy)</span>
-                        <span className="text-xs text-muted-foreground leading-relaxed">Np. kierowca rozwożący towar — ten sam dzień na wielu adresach. Spójność liczy sumę godzin; „Popraw” rozdziela je między roboty.</span>
+                        <span className="text-xs text-muted-foreground leading-relaxed">Np. kierowca rozwożący towar — nie sprawdzamy spójności godzin z robotami (wystarczy lista płac).</span>
                       </span>
                     </label>
                     <div className="flex items-center gap-2 pt-2">
@@ -6195,7 +6196,7 @@ function HelpView() {
               {q:"Zdjęcia offline i znak wodny", a:"Bez internetu zdjęcia trafiają do kolejki i wysyłają się same po powrocie sieci. Każde zdjęcie ma znak wodny: adres, data i W&G DOM."},
               {q:"Notatka głosowa w raporcie", a:"Przy dodawaniu raportu (zakres prac, wiadomość dla admina) — ikona mikrofonu. Działa w Chrome/Edge na telefonie i komputerze."},
               {q:"Co to jest domyślna stawka?", a:"To stawka PLN za godzinę, którą ten pracownik zwykle zarabia. Będzie się automatycznie podpowiadać w Liście Płac i w Robotach. Możesz ją zmienić dla konkretnego tygodnia lub roboty — bez zmiany tej domyślnej."},
-              {q:"Wiele robót dziennie — kiedy włączyć?", a:"Dla kierowcy, logistyka, kogoś kto jeździ po mieście i ma krótkie wpisy na wielu adresach tego samego dnia (np. Jarosław). W kartotece zaznacz „Wiele robót dziennie”. Spójność liczy sumę ze wszystkich robót; na każdej robocie wpisujesz tylko czas na tym adresie (np. 2 h), nie cały dzień."},
+              {q:"Wiele robót dziennie — kiedy włączyć?", a:"Dla kierowcy, logistyki — kogoś kto jeździ po mieście i nie da się wpisać dokładnych godzin na każdej robocie (np. Jarosław). W kartotece zaznacz „Wiele robót dziennie” — wtedy nie pojawia się w alertach spójności na Pulpicie. Godziny liczysz tylko w liście płac."},
               {q:"Karta z archiwum pracownika", a:"Przy pracowniku kliknij ikonę wykresu (📊). Zobaczysz sumę godzin i wypłat w roku, wykres miesięczny oraz listę zapisanych tygodni z archiwum listy płac."},
               {q:"Jak oznaczyć pracownika jako nieaktywnego?", a:"Kliknij okrągły przycisk przy pracowniku (po prawej). Zmieni status na Nieaktywny — pracownik zniknie z list przy dodawaniu do tygodnia, ale jego historia zostanie. Żeby przywrócić — kliknij ponownie."},
             ].map((item,i)=>(
@@ -6369,7 +6370,7 @@ function HelpView() {
             {icon:Copy, title:"Kopiuj pracowników z zeszłego tygodnia", desc:"W Liście Płac, gdy tydzień jest pusty, pojawia się przycisk \"Kopiuj z poprzedniego tygodnia\". Kliknij — od razu doda tych samych pracowników co w poprzednim tygodniu. Oszczędzasz czas."},
             {icon:Mic, title:"Dyktowanie notatek głosem", desc:"Przy polu Notatki w robotach jest ikona mikrofonu. Kliknij, powiedz co chcesz wpisać — aplikacja zamieni mowę na tekst. Działa w przeglądarce Chrome na telefonie i komputerze."},
             {icon:Bell, title:"Reminder w sobotę", desc:"W sobotę na Pulpicie pojawia się niebieski baner: zapisz tydzień i rozlicz pracowników. W Liście Płac też jest żółty baner. Po „Zapisz tydzień” wysyłany jest backup emailem (raz na tydzień)."},
-            {icon:Scale, title:"Spójność listy płac ↔ roboty", desc:"Porównywana jest suma godzin z listy płac z sumą wpisów na wszystkich robotach. Dla kierowcy/logistyki włącz w kartotece „Wiele robót dziennie” — „Popraw” rozdzieli godziny między adresy."},
+            {icon:Scale, title:"Spójność listy płac ↔ roboty", desc:"Porównywana jest suma godzin z listy płac z wpisami na robotach. Pracownik z „Wiele robót dziennie” w kartotece jest pomijany (logistyka, kierowca)."},
             {icon:BarChart3, title:"Karta pracownika z archiwum", desc:"Pracownicy → ikona wykresu przy osobie: roczne godziny, wypłaty, słupki miesięczne i lista tygodni z archiwum."},
             {icon:FileDown, title:"Raport roczny PDF", desc:"Archiwum → wybierz rok → „Raport roczny PDF”: wypłaty × 12 miesięcy, roboty zdane, średni koszt roboczogodziny."},
             {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"Sekcja „Uwaga dziś” zbiera: niezapisany tydzień, nierozliczonych, rozbieżności godzin, brakujące dokumenty i zdjęcia do akceptacji. „Pracuje dziś” — godziny z listy płac; adres po wpisie na robocie."},
@@ -6446,6 +6447,12 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.9.3", label:"Logistyka — bez alertów spójności",
+    items:[
+      {type:"improve", text:"Pracownik z „Wiele robót dziennie” nie pojawia się w alertach spójności na Pulpicie — wystarczy lista płac"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.9.2", label:"Logistyka — wiele robót dziennie",
     items:[
