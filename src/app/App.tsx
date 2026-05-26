@@ -5496,12 +5496,17 @@ function DashboardView({
   const isCurrentPayrollWeek = weekFrom === currentWeekRange.from && weekTo === currentWeekRange.to;
   const weekSaved = savedWeeks.some((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
   const unsettledEmployees = weekEmployees.filter((e) => !e.settled);
-  const isSaturday = new Date().getDay() === 6;
+  const dayOfWeek = new Date().getDay();
+  const isFriday = dayOfWeek === 5;
+  const isSaturday = dayOfWeek === 6;
   const showSaturdayBanner =
     isSaturday && isCurrentPayrollWeek && weekEmployees.length > 0 && (!weekSaved || unsettledEmployees.length > 0);
 
-  const needsUnsavedWeekAlert = weekEmployees.length > 0 && !weekSaved && isCurrentPayrollWeek;
-  const needsUnsettledAlert = unsettledEmployees.length > 0 && isCurrentPayrollWeek;
+  // Tydzień zapisuje się automatycznie w sobotę (AppInner) — alert tylko w sobotę, gdy auto-zapis nie zadziałał
+  const needsUnsavedWeekAlert =
+    weekEmployees.length > 0 && !weekSaved && isCurrentPayrollWeek && isSaturday;
+  // Rozliczenia w piątek — bez sensu świecić alertem cały tydzień
+  const needsUnsettledAlert = unsettledEmployees.length > 0 && isCurrentPayrollWeek && isFriday;
 
   const attentionCount =
     (needsUnsavedWeekAlert ? 1 : 0) +
@@ -5562,7 +5567,7 @@ function DashboardView({
               <div>
                 <p className="text-sm font-semibold text-primary">Sobota — czas zamknąć tydzień</p>
                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  {!weekSaved && "Tydzień nie jest jeszcze zapisany w archiwum. "}
+                  {!weekSaved && "Tydzień zapisze się automatycznie dziś przy otwarciu aplikacji — możesz też zapisać ręcznie. "}
                   {unsettledEmployees.length > 0 && (
                     <>{unsettledEmployees.length} {unsettledEmployees.length === 1 ? "osoba oczekuje" : "osób oczekuje"} na rozliczenie: {unsettledEmployees.slice(0, 4).map((e) => e.name.split(" ")[0]).join(", ")}{unsettledEmployees.length > 4 ? "…" : ""}.</>
                   )}
@@ -5648,11 +5653,16 @@ function DashboardView({
             <div className="divide-y divide-border">
               {needsUnsavedWeekAlert && (
                 <div className="px-5 py-3.5 flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium flex items-center gap-2">
-                    <Archive size={14} className="text-primary"/>
-                    Tydzień niezapisany w archiwum
-                    <span className="text-xs text-muted-foreground font-normal">({fmtDate(weekFrom)} – {fmtDate(weekTo)})</span>
-                  </p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium flex items-center gap-2 flex-wrap">
+                      <Archive size={14} className="text-primary shrink-0"/>
+                      Tydzień niezapisany w archiwum
+                      <span className="text-xs text-muted-foreground font-normal">({fmtDate(weekFrom)} – {fmtDate(weekTo)})</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                      W sobotę tydzień zapisuje się automatycznie przy otwarciu aplikacji — zapisz ręcznie, jeśli auto-zapis nie zadziałał.
+                    </p>
+                  </div>
                   <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline shrink-0">
                     Zapisz tydzień →
                   </button>
@@ -6373,7 +6383,7 @@ function HelpView() {
             {icon:Scale, title:"Spójność listy płac ↔ roboty", desc:"Porównywana jest suma godzin z listy płac z wpisami na robotach. Pracownik z „Wiele robót dziennie” w kartotece jest pomijany (logistyka, kierowca)."},
             {icon:BarChart3, title:"Karta pracownika z archiwum", desc:"Pracownicy → ikona wykresu przy osobie: roczne godziny, wypłaty, słupki miesięczne i lista tygodni z archiwum."},
             {icon:FileDown, title:"Raport roczny PDF", desc:"Archiwum → wybierz rok → „Raport roczny PDF”: wypłaty × 12 miesięcy, roboty zdane, średni koszt roboczogodziny."},
-            {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"Sekcja „Uwaga dziś” zbiera: niezapisany tydzień, nierozliczonych, rozbieżności godzin, brakujące dokumenty i zdjęcia do akceptacji. „Pracuje dziś” — godziny z listy płac; adres po wpisie na robocie."},
+            {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"Sekcja „Uwaga dziś”: nierozliczeni (piątek), niezapisany tydzień (sobota, gdy auto-zapis nie zadziałał — w sobotę zapisuje się automatycznie), spójność godzin, dokumenty, zdjęcia. „Pracuje dziś” — godziny z listy płac; adres po wpisie na robocie."},
             {icon:CalendarDays, title:"Grafik tygodniowy", desc:"Menu Grafik — cały tydzień na jednym ekranie. Godziny z listy płac (łącznie z dodatkowymi blokami), adres z wpisu na robocie."},
             {icon:Wallet, title:"Koszty do zwrotu vs zaliczka", desc:"Zaliczka = pieniądze wzięte z góry (odejmowane). Koszty do zwrotu = pracownik zapłacił z własnej kieszeni (doliczane). Oba wpisujesz w panelu pracownika w Liście Płac."},
             {icon:Clock, title:"Dodatkowe godziny w dniu", desc:"Pod każdym dniem w panelu pracownika: „Dodatkowe godziny w …” → opis + od–do. Wliczają się do wypłaty, grafiku i PDF."},
@@ -6451,6 +6461,13 @@ const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"
     date:"2026-05-26", version:"2.9.3", label:"Logistyka — bez alertów spójności",
     items:[
       {type:"improve", text:"Pracownik z „Wiele robót dziennie” nie pojawia się w alertach spójności na Pulpicie — wystarczy lista płac"},
+    ],
+  },
+  {
+    date:"2026-05-26", version:"2.9.4", label:"Alerty — piątek i sobota",
+    items:[
+      {type:"improve", text:"Pulpit — alert „Tydzień niezapisany” tylko w sobotę (Pn–Pt tydzień zapisuje się automatycznie w sobotę)"},
+      {type:"improve", text:"Pulpit — alert „Nierozliczeni pracownicy” tylko w piątek (dzień rozliczeń)"},
     ],
   },
   {
