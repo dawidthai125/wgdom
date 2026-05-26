@@ -105,12 +105,15 @@ interface WeekEmployee {
   position: string;
   rate: string;           // stawka na ten tydzień (może różnić się od domyślnej)
   days: Record<DayKey, DayData>;
+  /** Sobota poprzedniego tygodnia — wypłacana w bieżącym tygodniu */
+  prevSaturday?: DayData;
   extraCosts?: EmployeeExtraCost[];
   settled: boolean;
 }
 
 interface EmployeeSnapshot {
   name: string; position: string; rate: number;
+  weekHours?: number; prevSatHours?: number;
   totalHours: number; grossPay: number; totalZaliczka: number; totalExtraCosts: number;
   netPay: number;
   settled: boolean;
@@ -291,8 +294,21 @@ const PHOTO_LABEL_NAMES: Record<PhotoEntry["label"], string> = {
   progress: "W trakcie",
 };
 
+const PREV_SAT_SHORT = "Sob. poprz.";
+
+function getPrevSaturday(emp: WeekEmployee): DayData {
+  return emp.prevSaturday ?? defaultDay();
+}
+
+function previousSaturdayIso(weekFrom: string): string {
+  const [y, m, d] = weekFrom.split("-").map(Number);
+  const mon = new Date(y, m - 1, d);
+  mon.setDate(mon.getDate() - 2);
+  return mon.toISOString().slice(0, 10);
+}
+
 function weekEmployeeFromDir(dir: DirectoryEmployee): WeekEmployee {
-  return { id: crypto.randomUUID(), directoryId: dir.id, name: dir.name, phone: dir.phone, position: dir.position, rate: dir.defaultRate, days: defaultDays(), extraCosts: [], settled: false };
+  return { id: crypto.randomUUID(), directoryId: dir.id, name: dir.name, phone: dir.phone, position: dir.position, rate: dir.defaultRate, days: defaultDays(), prevSaturday: defaultDay(), extraCosts: [], settled: false };
 }
 
 function parseTime(t: string) { const [h, m] = t.split(":").map(Number); return isNaN(h)||isNaN(m) ? 0 : h+m/60; }
@@ -309,6 +325,18 @@ function dayExtraHoursOnly(day: DayData): number {
 function payrollExtraHourLines(employees: WeekEmployee[]) {
   const lines: { name: string; day: string; desc: string; range: string; hours: number }[] = [];
   for (const emp of employees) {
+    const prev = getPrevSaturday(emp);
+    for (const ex of prev.extraHours ?? []) {
+      const h = hoursWorked(ex.from, ex.to);
+      if (h <= 0) continue;
+      lines.push({
+        name: emp.name || "—",
+        day: PREV_SAT_SHORT,
+        desc: ex.description.trim() || "—",
+        range: `${ex.from}–${ex.to}`,
+        hours: h,
+      });
+    }
     for (const key of DAYS) {
       for (const ex of emp.days[key].extraHours ?? []) {
         const h = hoursWorked(ex.from, ex.to);
@@ -336,14 +364,27 @@ function getWeekRange() {
   return {from:iso(mon),to:iso(sat)};
 }
 function calcWeekEmployee(emp: WeekEmployee) {
-  const totalHours = DAYS.reduce((s,d)=>s+dayTotalHours(emp.days[d]), 0);
-  const totalExtraHours = DAYS.reduce((s,d)=>s+dayExtraHoursOnly(emp.days[d]), 0);
-  const totalZaliczka = DAYS.reduce((s,d)=>s+(parseFloat(emp.days[d].zaliczka)||0), 0);
+  const weekHours = +(DAYS.reduce((s, d) => s + dayTotalHours(emp.days[d]), 0)).toFixed(2);
+  const prevSatHours = dayTotalHours(getPrevSaturday(emp));
+  const totalHours = +(weekHours + prevSatHours).toFixed(2);
+  const weekExtraHours = DAYS.reduce((s, d) => s + dayExtraHoursOnly(emp.days[d]), 0);
+  const totalExtraHours = +(weekExtraHours + dayExtraHoursOnly(getPrevSaturday(emp))).toFixed(2);
+  const weekZaliczka = DAYS.reduce((s, d) => s + (parseFloat(emp.days[d].zaliczka) || 0), 0);
+  const prevSatZaliczka = parseFloat(getPrevSaturday(emp).zaliczka) || 0;
+  const totalZaliczka = weekZaliczka + prevSatZaliczka;
   const totalExtraCosts = (emp.extraCosts ?? []).reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
-  const rateNum = parseFloat(emp.rate)||0;
-  const grossPay = +(totalHours*rateNum).toFixed(2);
+  const rateNum = parseFloat(emp.rate) || 0;
+  const weekGross = +(weekHours * rateNum).toFixed(2);
+  const prevSatGross = +(prevSatHours * rateNum).toFixed(2);
+  const grossPay = +(weekGross + prevSatGross).toFixed(2);
+  const weekNet = +(weekGross - weekZaliczka).toFixed(2);
+  const prevSatNet = +(prevSatGross - prevSatZaliczka).toFixed(2);
   const netPay = +(grossPay - totalZaliczka + totalExtraCosts).toFixed(2);
-  return {totalHours,totalExtraHours,totalZaliczka,totalExtraCosts,grossPay,netPay,rateNum};
+  return {
+    weekHours, prevSatHours, totalHours, totalExtraHours,
+    weekZaliczka, prevSatZaliczka, totalZaliczka, totalExtraCosts,
+    weekGross, prevSatGross, grossPay, weekNet, prevSatNet, netPay, rateNum,
+  };
 }
 
 // ─── Jobs Helpers ─────────────────────────────────────────────────────────────
@@ -825,16 +866,18 @@ function buildWeekSnapshot(
   existing?: WeekSnapshot,
 ): WeekSnapshot {
   const employees = weekEmployees.map((emp) => {
-    const { totalHours, totalZaliczka, totalExtraCosts, grossPay, netPay, rateNum } = calcWeekEmployee(emp);
+    const c = calcWeekEmployee(emp);
     return {
       name: emp.name,
       position: emp.position,
-      rate: rateNum,
-      totalHours,
-      grossPay,
-      totalZaliczka,
-      totalExtraCosts,
-      netPay,
+      rate: c.rateNum,
+      weekHours: c.weekHours,
+      prevSatHours: c.prevSatHours,
+      totalHours: c.totalHours,
+      grossPay: c.grossPay,
+      totalZaliczka: c.totalZaliczka,
+      totalExtraCosts: c.totalExtraCosts,
+      netPay: c.netPay,
       settled: emp.settled,
     };
   });
@@ -1178,18 +1221,107 @@ function triggerWeeklyBackupEmail(
 
 // ─── Employee Calculator (weekly hours detail) ────────────────────────────────
 
-function WeekEmployeeDetail({emp, onChange, onClose}:{emp:WeekEmployee; onChange:(u:WeekEmployee)=>void; onClose:()=>void}) {
-  const updateDay = useCallback((key:DayKey,field:keyof DayData,value:string|boolean)=>{
-    onChange({...emp, days:{...emp.days,[key]:{...emp.days[key],[field]:value}}});
-  },[emp,onChange]);
-  const updateDayExtraHours = useCallback((key: DayKey, next: DayExtraHour[]) => {
-    onChange({ ...emp, days: { ...emp.days, [key]: { ...emp.days[key], extraHours: next } } });
-  }, [emp, onChange]);
-  const addDayExtraHour = (key: DayKey) => {
-    const day = emp.days[key];
-    const list = day.extraHours ?? [];
-    updateDayExtraHours(key, [...list, { id: crypto.randomUUID(), description: "", from: "16:00", to: "18:00" }]);
+// ─── Employee Calculator (weekly hours detail) ────────────────────────────────
+
+function PayrollDayEditor({
+  day,
+  title,
+  hint,
+  titleClass = "",
+  onUpdate,
+}: {
+  day: DayData;
+  title: string;
+  hint?: string;
+  titleClass?: string;
+  onUpdate: (next: DayData) => void;
+}) {
+  const updateField = (field: keyof DayData, value: string | boolean) => {
+    onUpdate({ ...day, [field]: value });
   };
+  const extraList = day.extraHours ?? [];
+  const updateExtra = (next: DayExtraHour[]) => onUpdate({ ...day, extraHours: next });
+  const baseH = day.active ? hoursWorked(day.from, day.to) : 0;
+  const extraH = dayExtraHoursOnly(day);
+  const totalDayH = dayTotalHours(day);
+
+  return (
+    <div className={`transition-opacity ${day.active || extraList.length > 0 ? "" : "opacity-50"}`}>
+      <div className={`px-4 py-3 ${extraList.length > 0 ? "pb-2" : ""}`}>
+        <div className="sm:hidden space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Checkbox checked={day.active} onChange={(v) => updateField("active", v)}/>
+              <div className="min-w-0">
+                <span className={`text-sm font-medium block truncate ${titleClass}`}>{title}</span>
+                {hint && <span className="text-[10px] text-muted-foreground block truncate">{hint}</span>}
+              </div>
+            </div>
+            {totalDayH > 0 && (
+              <span className="text-xs font-semibold text-primary shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                {fmtH(totalDayH)}{extraH > 0 && baseH > 0 ? ` (+${fmtH(extraH)})` : ""}
+              </span>
+            )}
+          </div>
+          {day.active && (
+            <div className="grid grid-cols-3 gap-2 pl-8">
+              <div><label className="text-xs text-muted-foreground block mb-1">Od</label><input type="time" value={day.from} onChange={(e) => updateField("from", e.target.value)} className="w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none" style={{ fontFamily: "'JetBrains Mono', monospace" }}/></div>
+              <div><label className="text-xs text-muted-foreground block mb-1">Do</label><input type="time" value={day.to} onChange={(e) => updateField("to", e.target.value)} className="w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none" style={{ fontFamily: "'JetBrains Mono', monospace" }}/></div>
+              <div><label className="text-xs text-muted-foreground block mb-1">Zaliczka</label><input type="number" min="0" step="10" placeholder="0" value={day.zaliczka} onChange={(e) => updateField("zaliczka", e.target.value)} className="w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none placeholder:text-muted-foreground/40" style={{ fontFamily: "'JetBrains Mono', monospace" }}/></div>
+            </div>
+          )}
+        </div>
+        <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <Checkbox checked={day.active} onChange={(v) => updateField("active", v)}/>
+            <div className="min-w-0">
+              <span className={`text-sm font-medium block truncate ${titleClass}`}>{title}</span>
+              {hint && <span className="text-[10px] text-muted-foreground block truncate">{hint}</span>}
+            </div>
+          </div>
+          <input type="time" value={day.from} disabled={!day.active} onChange={(e) => updateField("from", e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
+          <input type="time" value={day.to} disabled={!day.active} onChange={(e) => updateField("to", e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
+          <div className="text-center">
+            <span className={`text-sm font-semibold ${totalDayH > 0 ? "text-primary" : "text-muted-foreground/25"}`} style={{ fontFamily: "'JetBrains Mono', monospace" }} title={extraH > 0 ? `w tym ${fmtH(extraH)} dodatkowych` : undefined}>
+              {totalDayH > 0 ? fmtH(totalDayH) : "—"}
+            </span>
+          </div>
+          <input type="number" min="0" step="10" placeholder="0" value={day.zaliczka} disabled={!day.active} onChange={(e) => updateField("zaliczka", e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed placeholder:text-muted-foreground/30" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
+        </div>
+      </div>
+      <div className="px-4 pb-3 sm:pl-10 space-y-2">
+        {extraList.map((ex) => {
+          const exH = hoursWorked(ex.from, ex.to);
+          return (
+            <div key={ex.id} className="rounded-lg border border-primary/20 bg-primary/5 p-2.5 space-y-2">
+              <div className="flex items-center gap-2">
+                <Clock size={12} className="text-primary shrink-0"/>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-primary/80">Dodatkowe godziny</span>
+                {exH > 0 && <span className="ml-auto text-xs font-semibold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtH(exH)}</span>}
+              </div>
+              <input type="text" placeholder="Opis (np. dogrywka, transport)" value={ex.description} onChange={(e) => updateExtra(extraList.map((item) => item.id === ex.id ? { ...item, description: e.target.value } : item))} className="w-full bg-background rounded-lg px-2.5 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none"/>
+              <div className="flex items-center gap-2">
+                <input type="time" value={ex.from} onChange={(e) => updateExtra(extraList.map((item) => item.id === ex.id ? { ...item, from: e.target.value } : item))} className="flex-1 bg-background rounded-lg px-2 py-1.5 text-xs text-center border border-transparent focus:border-primary focus:outline-none" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
+                <span className="text-xs text-muted-foreground">–</span>
+                <input type="time" value={ex.to} onChange={(e) => updateExtra(extraList.map((item) => item.id === ex.id ? { ...item, to: e.target.value } : item))} className="flex-1 bg-background rounded-lg px-2 py-1.5 text-xs text-center border border-transparent focus:border-primary focus:outline-none" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
+                <button type="button" onClick={() => updateExtra(extraList.filter((item) => item.id !== ex.id))} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors shrink-0"><Trash2 size={13}/></button>
+              </div>
+            </div>
+          );
+        })}
+        <button type="button" onClick={() => updateExtra([...extraList, { id: crypto.randomUUID(), description: "", from: "16:00", to: "18:00" }])} className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+          <Plus size={12}/> Dodatkowe godziny — {title}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee; weekFrom:string; onChange:(u:WeekEmployee)=>void; onClose:()=>void}) {
+  const updateDayData = useCallback((key: DayKey, next: DayData) => {
+    onChange({ ...emp, days: { ...emp.days, [key]: next } });
+  }, [emp, onChange]);
+  const prevSatIso = previousSaturdayIso(weekFrom);
   const extraCosts = emp.extraCosts ?? [];
   const updateExtraCosts = useCallback((next: EmployeeExtraCost[]) => {
     onChange({ ...emp, extraCosts: next });
@@ -1197,7 +1329,10 @@ function WeekEmployeeDetail({emp, onChange, onClose}:{emp:WeekEmployee; onChange
   const addExtraCost = () => {
     updateExtraCosts([...extraCosts, { id: crypto.randomUUID(), description: "", amount: "" }]);
   };
-  const {totalHours,totalExtraHours,totalZaliczka,totalExtraCosts,grossPay,netPay,rateNum}=calcWeekEmployee(emp);
+  const {
+    weekHours, prevSatHours, totalHours, totalExtraHours,
+    totalZaliczka, totalExtraCosts, grossPay, weekGross, prevSatGross, netPay, rateNum,
+  } = calcWeekEmployee(emp);
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -1228,69 +1363,29 @@ function WeekEmployeeDetail({emp, onChange, onClose}:{emp:WeekEmployee; onChange
                 <span>Dzień</span><span className="text-center">Od</span><span className="text-center">Do</span><span className="text-center">Godziny</span><span className="text-center">Zaliczka</span>
               </div>
               <div className="divide-y divide-border">
-                {DAYS.map((key)=>{
-                  const day=emp.days[key];
-                  const baseH=day.active?hoursWorked(day.from,day.to):0;
-                  const extraH=dayExtraHoursOnly(day);
-                  const totalDayH=dayTotalHours(day);
-                  const extraList=day.extraHours??[];
-                  return <div key={key} className={`transition-opacity ${day.active||extraList.length>0?"":"opacity-50"}`}>
-                    <div className={`px-4 py-3 ${extraList.length>0?"pb-2":""}`}>
-                    <div className="sm:hidden space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5"><Checkbox checked={day.active} onChange={(v)=>updateDay(key,"active",v)}/><span className={`text-sm font-medium ${key==="So"?"text-primary":""}`}>{DAY_LABELS[key]}</span></div>
-                        {totalDayH>0&&<span className="text-xs font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalDayH)}{extraH>0&&baseH>0?` (+${fmtH(extraH)})`:""}</span>}
-                      </div>
-                      {day.active&&<div className="grid grid-cols-3 gap-2 pl-8">
-                        <div><label className="text-xs text-muted-foreground block mb-1">Od</label><input type="time" value={day.from} onChange={(e)=>updateDay(key,"from",e.target.value)} className="w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none" style={{fontFamily:"'JetBrains Mono', monospace"}}/></div>
-                        <div><label className="text-xs text-muted-foreground block mb-1">Do</label><input type="time" value={day.to} onChange={(e)=>updateDay(key,"to",e.target.value)} className="w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none" style={{fontFamily:"'JetBrains Mono', monospace"}}/></div>
-                        <div><label className="text-xs text-muted-foreground block mb-1">Zaliczka</label><input type="number" min="0" step="10" placeholder="0" value={day.zaliczka} onChange={(e)=>updateDay(key,"zaliczka",e.target.value)} className="w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none placeholder:text-muted-foreground/40" style={{fontFamily:"'JetBrains Mono', monospace"}}/></div>
-                      </div>}
-                    </div>
-                    <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center gap-3">
-                      <div className="flex items-center gap-3 min-w-0"><Checkbox checked={day.active} onChange={(v)=>updateDay(key,"active",v)}/><span className={`text-sm font-medium truncate ${key==="So"?"text-primary":""}`}>{DAY_LABELS[key]}</span></div>
-                      <input type="time" value={day.from} disabled={!day.active} onChange={(e)=>updateDay(key,"from",e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
-                      <input type="time" value={day.to} disabled={!day.active} onChange={(e)=>updateDay(key,"to",e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
-                      <div className="text-center"><span className={`text-sm font-semibold ${totalDayH>0?"text-primary":"text-muted-foreground/25"}`} style={{fontFamily:"'JetBrains Mono', monospace"}} title={extraH>0?`w tym ${fmtH(extraH)} dodatkowych`:undefined}>{totalDayH>0?fmtH(totalDayH):"—"}</span></div>
-                      <input type="number" min="0" step="10" placeholder="0" value={day.zaliczka} disabled={!day.active} onChange={(e)=>updateDay(key,"zaliczka",e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed placeholder:text-muted-foreground/30" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
-                    </div>
-                    </div>
-                    <div className="px-4 pb-3 sm:pl-10 space-y-2">
-                      {extraList.map((ex) => {
-                        const exH = hoursWorked(ex.from, ex.to);
-                        return (
-                          <div key={ex.id} className="rounded-lg border border-primary/20 bg-primary/5 p-2.5 space-y-2">
-                            <div className="flex items-center gap-2">
-                              <Clock size={12} className="text-primary shrink-0"/>
-                              <span className="text-[10px] font-semibold uppercase tracking-wider text-primary/80">Dodatkowe godziny</span>
-                              {exH > 0 && <span className="ml-auto text-xs font-semibold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtH(exH)}</span>}
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Opis (np. dogrywka na budowie, transport)"
-                              value={ex.description}
-                              onChange={(e) => updateDayExtraHours(key, extraList.map((item) => item.id === ex.id ? { ...item, description: e.target.value } : item))}
-                              className="w-full bg-background rounded-lg px-2.5 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none"
-                            />
-                            <div className="flex items-center gap-2">
-                              <input type="time" value={ex.from} onChange={(e) => updateDayExtraHours(key, extraList.map((item) => item.id === ex.id ? { ...item, from: e.target.value } : item))} className="flex-1 bg-background rounded-lg px-2 py-1.5 text-xs text-center border border-transparent focus:border-primary focus:outline-none" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
-                              <span className="text-xs text-muted-foreground">–</span>
-                              <input type="time" value={ex.to} onChange={(e) => updateDayExtraHours(key, extraList.map((item) => item.id === ex.id ? { ...item, to: e.target.value } : item))} className="flex-1 bg-background rounded-lg px-2 py-1.5 text-xs text-center border border-transparent focus:border-primary focus:outline-none" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
-                              <button type="button" onClick={() => updateDayExtraHours(key, extraList.filter((item) => item.id !== ex.id))} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors shrink-0"><Trash2 size={13}/></button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                      <button type="button" onClick={() => addDayExtraHour(key)} className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors">
-                        <Plus size={12}/> Dodatkowe godziny w {DAY_LABELS[key]}
-                      </button>
-                    </div>
-                  </div>;
-                })}
+                <div className="bg-amber-500/5 border-b border-amber-500/15">
+                  <PayrollDayEditor
+                    day={getPrevSaturday(emp)}
+                    title={PREV_SAT_SHORT}
+                    hint={`${fmtDate(prevSatIso)} · wypłata w tym tygodniu`}
+                    titleClass="text-amber-500"
+                    onUpdate={(next) => onChange({ ...emp, prevSaturday: next })}
+                  />
+                </div>
+                {DAYS.map((key) => (
+                  <PayrollDayEditor
+                    key={key}
+                    day={emp.days[key]}
+                    title={DAY_LABELS[key]}
+                    titleClass={key === "So" ? "text-primary" : ""}
+                    hint={key === "So" ? "Bieżąca sobota — czasem wypłata w sobotę" : undefined}
+                    onUpdate={(next) => updateDayData(key, next)}
+                  />
+                ))}
               </div>
             </div>
           </div>
-          <p className="hidden sm:block px-4 py-2 text-[10px] text-muted-foreground/60 border-t border-border/50">Przesuń w poziomie, jeśli nie widać kolumny Zaliczka</p>
+          <p className="hidden sm:block px-4 py-2 text-[10px] text-muted-foreground/60 border-t border-border/50">Sob. poprz. = sobota z poprzedniego tygodnia (płatna teraz). Bieżąca sobota = ostatni dzień tygodnia Pn–So.</p>
         </div>
 
         {/* Koszty do zwrotu */}
@@ -1343,9 +1438,13 @@ function WeekEmployeeDetail({emp, onChange, onClose}:{emp:WeekEmployee; onChange
 
         {/* Mini summary */}
         <div className="space-y-2">
-          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Łącznie</span><span className="font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalHours)}</span></div>
+          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Tydzień Pn–So</span><span className="font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(weekHours)}</span></div>
+          {prevSatHours>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">{PREV_SAT_SHORT}</span><span className="font-semibold text-amber-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(prevSatHours)}</span></div>}
+          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Razem godzin</span><span className="font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalHours)}</span></div>
           {totalExtraHours>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">w tym dodatkowe</span><span className="font-semibold text-primary/80" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalExtraHours)}</span></div>}
-          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto</span><span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(grossPay)} PLN</span></div>
+          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto tydzień</span><span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(weekGross)} PLN</span></div>
+          {prevSatGross>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto {PREV_SAT_SHORT}</span><span className="font-semibold text-amber-500/90" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(prevSatGross)} PLN</span></div>}
+          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto razem</span><span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(grossPay)} PLN</span></div>
           {totalZaliczka>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Zaliczki</span><span className="font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>−{fmt(totalZaliczka)} PLN</span></div>}
           {totalExtraCosts>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Koszty do zwrotu</span><span className="font-semibold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>+{fmt(totalExtraCosts)} PLN</span></div>}
           <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-xl px-4 py-3">
@@ -1398,11 +1497,17 @@ function PayrollView({
   };
 
   const rows = weekEmployees.map((emp)=>({emp,...calcWeekEmployee(emp)}));
+  const totalWeekHours = rows.reduce((s,r)=>s+r.weekHours,0);
+  const totalPrevSatHours = rows.reduce((s,r)=>s+r.prevSatHours,0);
+  const totalHoursAll = rows.reduce((s,r)=>s+r.totalHours,0);
+  const totalWeekGross = rows.reduce((s,r)=>s+r.weekGross,0);
+  const totalPrevSatGross = rows.reduce((s,r)=>s+r.prevSatGross,0);
   const totalGross = rows.reduce((s,r)=>s+r.grossPay,0);
+  const totalWeekZaliczka = rows.reduce((s,r)=>s+r.weekZaliczka,0);
+  const totalPrevSatZaliczka = rows.reduce((s,r)=>s+r.prevSatZaliczka,0);
   const totalZaliczkaSum = rows.reduce((s,r)=>s+r.totalZaliczka,0);
   const totalExtraCostsSum = rows.reduce((s,r)=>s+r.totalExtraCosts,0);
   const totalNet = rows.reduce((s,r)=>s+r.netPay,0);
-  const totalHoursAll = rows.reduce((s,r)=>s+r.totalHours,0);
 
   const alreadySaved = savedWeeks.some((w)=>w.weekFrom===weekFrom&&w.weekTo===weekTo);
 
@@ -1423,37 +1528,47 @@ function PayrollView({
     const pdfMake = await loadPdfMake();
     const settled = rows.filter(r=>r.emp.settled).length;
 
-    const hdrRow = ["Lp.","Pracownik","Stanowisko","Stawka (PLN/h)","Godziny","Brutto (PLN)","Zaliczki (PLN)","Koszty (PLN)","Do wypłaty (PLN)","Status"].map(t=>({
-      text:t, bold:true, color:C.white, fillColor:C.navy, fontSize:8, alignment:"center" as const, margin:[2,4,2,4] as [number,number,number,number],
+    const hdrRow = ["Lp.","Pracownik","Stanowisko","Stawka (PLN/h)","Tydzień","Sob.pr.","Razem h","Brutto (PLN)","Zaliczki (PLN)","Koszty (PLN)","Do wypłaty (PLN)","Status"].map(t=>({
+      text:t, bold:true, color:C.white, fillColor:C.navy, fontSize:7, alignment:"center" as const, margin:[2,3,2,3] as [number,number,number,number],
     }));
 
     const dataRows = rows.map((r,i)=>{
       const bg = i%2===0?C.white:C.lightGray;
       return [
-        {text:String(i+1), alignment:"center" as const, fillColor:bg, bold:true},
-        {text:r.emp.name||"—", fillColor:bg},
-        {text:r.emp.position||"—", fillColor:bg, color:C.muted},
-        {text:`${fmt(r.rateNum)} PLN/h`, alignment:"right" as const, fillColor:bg, color:C.muted},
-        {text:fmtH(r.totalHours), alignment:"right" as const, fillColor:bg},
-        {text:`${fmt(r.grossPay)} PLN`, alignment:"right" as const, fillColor:bg, color:C.muted},
-        {text:r.totalZaliczka>0?`${fmt(r.totalZaliczka)} PLN`:"—", alignment:"right" as const, fillColor:bg},
-        {text:r.totalExtraCosts>0?`${fmt(r.totalExtraCosts)} PLN`:"—", alignment:"right" as const, fillColor:bg, color:C.green},
-        {text:`${fmt(r.netPay)} PLN`, bold:true, color:C.red, alignment:"right" as const, fillColor:bg},
-        {text:r.emp.settled?"Rozliczony":"Oczekuje", alignment:"center" as const, color:r.emp.settled?C.green:C.gold, bold:r.emp.settled, fillColor:bg},
+        {text:String(i+1), alignment:"center" as const, fillColor:bg, bold:true, fontSize:8},
+        {text:r.emp.name||"—", fillColor:bg, fontSize:8},
+        {text:r.emp.position||"—", fillColor:bg, color:C.muted, fontSize:8},
+        {text:`${fmt(r.rateNum)}`, alignment:"right" as const, fillColor:bg, color:C.muted, fontSize:8},
+        {text:r.weekHours>0?fmtH(r.weekHours):"—", alignment:"right" as const, fillColor:bg, fontSize:8},
+        {text:r.prevSatHours>0?fmtH(r.prevSatHours):"—", alignment:"right" as const, fillColor:bg, color:C.gold, fontSize:8},
+        {text:fmtH(r.totalHours), alignment:"right" as const, fillColor:bg, bold:true, fontSize:8},
+        {text:`${fmt(r.grossPay)}`, alignment:"right" as const, fillColor:bg, color:C.muted, fontSize:8},
+        {text:r.totalZaliczka>0?`${fmt(r.totalZaliczka)}`:"—", alignment:"right" as const, fillColor:bg, fontSize:8},
+        {text:r.totalExtraCosts>0?`${fmt(r.totalExtraCosts)}`:"—", alignment:"right" as const, fillColor:bg, color:C.green, fontSize:8},
+        {text:`${fmt(r.netPay)}`, bold:true, color:C.red, alignment:"right" as const, fillColor:bg, fontSize:8},
+        {text:r.emp.settled?"Rozl.":"Oczek.", alignment:"center" as const, color:r.emp.settled?C.green:C.gold, bold:r.emp.settled, fillColor:bg, fontSize:7},
       ];
     });
 
-    const sumRow = [
+    const mkSum = (label: string, weekH: number, prevH: number, totH: number, gross: number, zal: number, extra: number, net: number, bold = false) => [
       {text:"", fillColor:C.lightNavy},
-      {text:"SUMA", bold:true, fillColor:C.lightNavy},
+      {text:label, bold:true, fillColor:C.lightNavy, fontSize:7},
       {text:"", fillColor:C.lightNavy},
       {text:"", fillColor:C.lightNavy},
-      {text:fmtH(totalHoursAll), bold:true, alignment:"right" as const, fillColor:C.lightNavy},
-      {text:`${fmt(totalGross)} PLN`, bold:true, alignment:"right" as const, fillColor:C.lightNavy, color:C.muted},
-      {text:totalZaliczkaSum>0?`${fmt(totalZaliczkaSum)} PLN`:"—", bold:true, alignment:"right" as const, fillColor:C.lightNavy},
-      {text:totalExtraCostsSum>0?`${fmt(totalExtraCostsSum)} PLN`:"—", bold:true, alignment:"right" as const, fillColor:C.lightNavy, color:C.green},
-      {text:`${fmt(totalNet)} PLN`, bold:true, color:C.red, alignment:"right" as const, fillColor:C.lightNavy, fontSize:10},
+      {text:weekH>0?fmtH(weekH):"—", bold, alignment:"right" as const, fillColor:C.lightNavy, fontSize:8},
+      {text:prevH>0?fmtH(prevH):"—", bold, alignment:"right" as const, fillColor:C.lightNavy, color:C.gold, fontSize:8},
+      {text:fmtH(totH), bold:true, alignment:"right" as const, fillColor:C.lightNavy, fontSize:8},
+      {text:`${fmt(gross)}`, bold, alignment:"right" as const, fillColor:C.lightNavy, color:C.muted, fontSize:8},
+      {text:zal>0?`${fmt(zal)}`:"—", bold, alignment:"right" as const, fillColor:C.lightNavy, fontSize:8},
+      {text:extra>0?`${fmt(extra)}`:"—", bold, alignment:"right" as const, fillColor:C.lightNavy, color:C.green, fontSize:8},
+      {text:net>0||bold?`${fmt(net)}`:"—", bold:true, color:C.red, alignment:"right" as const, fillColor:C.lightNavy, fontSize:9},
       {text:"", fillColor:C.lightNavy},
+    ];
+
+    const sumRows = [
+      mkSum("Tydzień Pn–So", totalWeekHours, 0, totalWeekHours, totalWeekGross, totalWeekZaliczka, 0, totalWeekGross - totalWeekZaliczka),
+      ...(totalPrevSatHours > 0 ? [mkSum(PREV_SAT_SHORT, 0, totalPrevSatHours, totalPrevSatHours, totalPrevSatGross, totalPrevSatZaliczka, 0, totalPrevSatGross - totalPrevSatZaliczka)] : []),
+      mkSum("RAZEM", totalWeekHours, totalPrevSatHours, totalHoursAll, totalGross, totalZaliczkaSum, totalExtraCostsSum, totalNet, true),
     ];
 
     const extraHourLines = payrollExtraHourLines(rows.map((r) => r.emp));
@@ -1523,8 +1638,8 @@ function PayrollView({
         ], fontSize:9, margin:[0,0,0,14]},
         {table:{
           headerRows:1,
-          widths:[18,"*",72,52,38,48,48,48,58,48],
-          body:[hdrRow,...dataRows,sumRow],
+          widths:[16,"*",58,40,36,36,38,44,44,44,50,40],
+          body:[hdrRow,...dataRows,...sumRows],
         }, layout:{
           hLineWidth:(i:number,node:any)=>(i===0||i===node.table.body.length)?0:0.5,
           vLineWidth:()=>0,
@@ -1554,8 +1669,23 @@ function PayrollView({
         margins:{top:90,bottom:90,left:120,right:120},
         borders:{top:bThin,bottom:bThin,left:bNone,right:bNone},
       });
-    const colHeaders=["Lp.","Pracownik","Stanowisko","Stawka\n(PLN/h)","Godziny","Brutto\n(PLN)","Zaliczki\n(PLN)","Koszty\n(PLN)","Do wyplaty\n(PLN)","Status"];
+    const colHeaders=["Lp.","Pracownik","Stanowisko","Stawka","Tydz.","Sob.pr.","Razem h","Brutto","Zaliczki","Koszty","Do wyplaty","Status"];
     const settled=rows.filter(r=>r.emp.settled).length;
+    const mkWordSum = (label: string, weekH: number, prevH: number, totH: number, gross: number, zal: number, extra: number, net: number, bold = false) =>
+      new TableRow({children:[
+        mkCell("",{fill:"EDF1F6"}),
+        mkCell(label,{bold:true,fill:"EDF1F6",align:AlignmentType.LEFT,size:bold?18:16}),
+        mkCell("",{fill:"EDF1F6"}),
+        mkCell("",{fill:"EDF1F6"}),
+        mkCell(weekH>0?fmtH(weekH):"-",{bold,fill:"EDF1F6",size:16}),
+        mkCell(prevH>0?fmtH(prevH):"-",{bold,fill:"EDF1F6",color:prevH>0?"7B5800":"6B7A8D",size:16}),
+        mkCell(fmtH(totH),{bold:true,fill:"EDF1F6",size:16}),
+        mkCell(`${fmt(gross)} PLN`,{bold,fill:"EDF1F6",color:"6B7A8D",size:16}),
+        mkCell(zal>0?`${fmt(zal)} PLN`:"-",{bold,fill:"EDF1F6",color:"C0392B",size:16}),
+        mkCell(extra>0?`${fmt(extra)} PLN`:"-",{bold,fill:"EDF1F6",color:extra>0?"1E7E34":"6B7A8D",size:16}),
+        mkCell(`${fmt(net)} PLN`,{bold:true,fill:"EDF1F6",color:"C0392B",size:bold?22:18}),
+        mkCell("",{fill:"EDF1F6"}),
+      ]});
     const doc=new Document({
       styles:{default:{document:{run:{font:"Calibri"}}}},
       sections:[{
@@ -1581,29 +1711,22 @@ function PayrollView({
                 tableHeader:true,
               }),
               ...rows.map((r,i)=>new TableRow({children:[
-                mkCell(String(i+1),{bold:true,fill:i%2===0?"FFFFFF":"EDF1F6"}),
-                mkCell(r.emp.name||"-",{align:AlignmentType.LEFT,fill:i%2===0?"FFFFFF":"EDF1F6"}),
-                mkCell(r.emp.position||"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:"6B7A8D"}),
-                mkCell(`${fmt(r.rateNum)} PLN/h`,{fill:i%2===0?"FFFFFF":"EDF1F6",color:"6B7A8D"}),
-                mkCell(fmtH(r.totalHours),{fill:i%2===0?"FFFFFF":"EDF1F6"}),
-                mkCell(`${fmt(r.grossPay)} PLN`,{fill:i%2===0?"FFFFFF":"EDF1F6",color:"6B7A8D"}),
-                mkCell(r.totalZaliczka>0?`${fmt(r.totalZaliczka)} PLN`:"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.totalZaliczka>0?"C0392B":"6B7A8D"}),
-                mkCell(r.totalExtraCosts>0?`${fmt(r.totalExtraCosts)} PLN`:"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.totalExtraCosts>0?"1E7E34":"6B7A8D"}),
-                mkCell(`${fmt(r.netPay)} PLN`,{bold:true,fill:i%2===0?"FFFFFF":"EDF1F6",color:"C0392B"}),
-                mkCell(r.emp.settled?"Rozliczony":"Oczekuje",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.emp.settled?"1E7E34":"7B5800",bold:r.emp.settled}),
+                mkCell(String(i+1),{bold:true,fill:i%2===0?"FFFFFF":"EDF1F6",size:16}),
+                mkCell(r.emp.name||"-",{align:AlignmentType.LEFT,fill:i%2===0?"FFFFFF":"EDF1F6",size:16}),
+                mkCell(r.emp.position||"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:"6B7A8D",size:16}),
+                mkCell(`${fmt(r.rateNum)}`,{fill:i%2===0?"FFFFFF":"EDF1F6",color:"6B7A8D",size:16}),
+                mkCell(r.weekHours>0?fmtH(r.weekHours):"-",{fill:i%2===0?"FFFFFF":"EDF1F6",size:16}),
+                mkCell(r.prevSatHours>0?fmtH(r.prevSatHours):"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.prevSatHours>0?"7B5800":"6B7A8D",size:16}),
+                mkCell(fmtH(r.totalHours),{bold:true,fill:i%2===0?"FFFFFF":"EDF1F6",size:16}),
+                mkCell(`${fmt(r.grossPay)} PLN`,{fill:i%2===0?"FFFFFF":"EDF1F6",color:"6B7A8D",size:16}),
+                mkCell(r.totalZaliczka>0?`${fmt(r.totalZaliczka)} PLN`:"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.totalZaliczka>0?"C0392B":"6B7A8D",size:16}),
+                mkCell(r.totalExtraCosts>0?`${fmt(r.totalExtraCosts)} PLN`:"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.totalExtraCosts>0?"1E7E34":"6B7A8D",size:16}),
+                mkCell(`${fmt(r.netPay)} PLN`,{bold:true,fill:i%2===0?"FFFFFF":"EDF1F6",color:"C0392B",size:16}),
+                mkCell(r.emp.settled?"Rozl.":"Oczek.",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.emp.settled?"1E7E34":"7B5800",bold:r.emp.settled,size:16}),
               ]})),
-              new TableRow({children:[
-                mkCell("",{fill:"EDF1F6"}),
-                mkCell("SUMA",{bold:true,fill:"EDF1F6",align:AlignmentType.LEFT}),
-                mkCell("",{fill:"EDF1F6"}),
-                mkCell("",{fill:"EDF1F6"}),
-                mkCell(fmtH(totalHoursAll),{bold:true,fill:"EDF1F6"}),
-                mkCell(`${fmt(totalGross)} PLN`,{bold:true,fill:"EDF1F6",color:"6B7A8D"}),
-                mkCell(totalZaliczkaSum>0?`${fmt(totalZaliczkaSum)} PLN`:"-",{bold:true,fill:"EDF1F6",color:"C0392B"}),
-                mkCell(totalExtraCostsSum>0?`${fmt(totalExtraCostsSum)} PLN`:"-",{bold:true,fill:"EDF1F6",color:"1E7E34"}),
-                mkCell(`${fmt(totalNet)} PLN`,{bold:true,fill:"EDF1F6",color:"C0392B",size:22}),
-                mkCell("",{fill:"EDF1F6"}),
-              ]}),
+              mkWordSum("Tydzien Pn-So", totalWeekHours, 0, totalWeekHours, totalWeekGross, totalWeekZaliczka, 0, totalWeekGross - totalWeekZaliczka),
+              ...(totalPrevSatHours > 0 ? [mkWordSum(PREV_SAT_SHORT, 0, totalPrevSatHours, totalPrevSatHours, totalPrevSatGross, totalPrevSatZaliczka, 0, totalPrevSatGross - totalPrevSatZaliczka)] : []),
+              mkWordSum("RAZEM", totalWeekHours, totalPrevSatHours, totalHoursAll, totalGross, totalZaliczkaSum, totalExtraCostsSum, totalNet, true),
             ],
           }),
           ...(extraHourLines.length > 0
@@ -1717,7 +1840,9 @@ function PayrollView({
                       <thead><tr className="border-b border-border text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>
                         <th className="px-4 py-3 text-left w-7">Lp.</th>
                         <th className="px-3 py-3 text-left">Pracownik</th>
-                        <th className="px-3 py-3 text-right">Godziny</th>
+                        <th className="px-3 py-3 text-right" title="Pn–So bieżącego tygodnia">Tydzień</th>
+                        <th className="px-3 py-3 text-right" title="Sobota poprzedniego tygodnia">Sob.pr.</th>
+                        <th className="px-3 py-3 text-right">Razem h</th>
                         <th className="px-3 py-3 text-right">Brutto</th>
                         <th className="px-3 py-3 text-right">Zaliczki</th>
                         <th className="px-3 py-3 text-right">Koszty</th>
@@ -1739,7 +1864,9 @@ function PayrollView({
                                 </div>
                               </div>
                             </td>
-                            <td className="px-3 py-3.5 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalHours>0?fmtH(r.totalHours):<span className="text-muted-foreground/40">—</span>}</td>
+                            <td className="px-3 py-3.5 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.weekHours>0?fmtH(r.weekHours):<span className="text-muted-foreground/40">—</span>}</td>
+                            <td className="px-3 py-3.5 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.prevSatHours>0?<span className="text-amber-500">{fmtH(r.prevSatHours)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
+                            <td className="px-3 py-3.5 text-right font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalHours>0?fmtH(r.totalHours):<span className="text-muted-foreground/40">—</span>}</td>
                             <td className="px-3 py-3.5 text-right text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.grossPay)}</td>
                             <td className="px-3 py-3.5 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalZaliczka>0?<span className="text-destructive">−{fmt(r.totalZaliczka)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
                             <td className="px-3 py-3.5 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalExtraCosts>0?<span className="text-green-500">+{fmt(r.totalExtraCosts)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
@@ -1762,15 +1889,39 @@ function PayrollView({
                           </tr>
                         ))}
                       </tbody>
-                      <tfoot><tr className="border-t-2 border-border bg-secondary/30">
-                        <td colSpan={2} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Suma</td>
-                        <td className="px-3 py-3 text-right font-bold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalHoursAll)}</td>
-                        <td className="px-3 py-3 text-right font-bold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalGross)}</td>
-                        <td className="px-3 py-3 text-right font-bold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>{totalZaliczkaSum>0?`−${fmt(totalZaliczkaSum)}`:"—"}</td>
-                        <td className="px-3 py-3 text-right font-bold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{totalExtraCostsSum>0?`+${fmt(totalExtraCostsSum)}`:"—"}</td>
-                        <td className="px-3 py-3 text-right font-bold text-primary text-base" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} <span className="text-xs font-normal">PLN</span></td>
-                        <td colSpan={2}/>
-                      </tr></tfoot>
+                      <tfoot>
+                        <tr className="border-t border-border bg-secondary/20">
+                          <td colSpan={2} className="px-4 py-2 text-xs font-semibold text-muted-foreground">Tydzień Pn–So</td>
+                          <td className="px-3 py-2 text-right text-xs font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalWeekHours)}</td>
+                          <td className="px-3 py-2 text-right text-xs text-muted-foreground/40">—</td>
+                          <td className="px-3 py-2 text-right text-xs font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalWeekHours)}</td>
+                          <td className="px-3 py-2 text-right text-xs font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalWeekGross)}</td>
+                          <td className="px-3 py-2 text-right text-xs font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>{totalWeekZaliczka>0?`−${fmt(totalWeekZaliczka)}`:"—"}</td>
+                          <td colSpan={2}/>
+                          <td colSpan={2}/>
+                        </tr>
+                        {totalPrevSatHours>0&&<tr className="bg-secondary/20">
+                          <td colSpan={2} className="px-4 py-2 text-xs font-semibold text-amber-500">{PREV_SAT_SHORT}</td>
+                          <td className="px-3 py-2 text-right text-xs text-muted-foreground/40">—</td>
+                          <td className="px-3 py-2 text-right text-xs font-semibold text-amber-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalPrevSatHours)}</td>
+                          <td className="px-3 py-2 text-right text-xs font-semibold text-amber-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalPrevSatHours)}</td>
+                          <td className="px-3 py-2 text-right text-xs font-semibold text-amber-500/80" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalPrevSatGross)}</td>
+                          <td className="px-3 py-2 text-right text-xs font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>{totalPrevSatZaliczka>0?`−${fmt(totalPrevSatZaliczka)}`:"—"}</td>
+                          <td colSpan={2}/>
+                          <td colSpan={2}/>
+                        </tr>}
+                        <tr className="border-t-2 border-border bg-secondary/30">
+                          <td colSpan={2} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Razem</td>
+                          <td className="px-3 py-3 text-right font-bold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalWeekHours)}</td>
+                          <td className="px-3 py-3 text-right font-bold text-amber-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{totalPrevSatHours>0?fmtH(totalPrevSatHours):"—"}</td>
+                          <td className="px-3 py-3 text-right font-bold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalHoursAll)}</td>
+                          <td className="px-3 py-3 text-right font-bold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalGross)}</td>
+                          <td className="px-3 py-3 text-right font-bold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>{totalZaliczkaSum>0?`−${fmt(totalZaliczkaSum)}`:"—"}</td>
+                          <td className="px-3 py-3 text-right font-bold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{totalExtraCostsSum>0?`+${fmt(totalExtraCostsSum)}`:"—"}</td>
+                          <td className="px-3 py-3 text-right font-bold text-primary text-base" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} <span className="text-xs font-normal">PLN</span></td>
+                          <td colSpan={2}/>
+                        </tr>
+                      </tfoot>
                     </table>
                   </div>
                   {/* Mobile */}
@@ -1786,11 +1937,12 @@ function PayrollView({
                             {r.emp.settled?<><CheckCircle2 size={11}/>OK</>:<><Circle size={11}/>Oczek.</>}
                           </button>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-                          <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Godz.</p><p className="text-sm font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalHours>0?fmtH(r.totalHours):"—"}</p></div>
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
+                          <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Tydzień</p><p className="text-sm font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.weekHours>0?fmtH(r.weekHours):"—"}</p></div>
+                          <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Sob.pr.</p><p className="text-sm font-semibold text-amber-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.prevSatHours>0?fmtH(r.prevSatHours):"—"}</p></div>
                           <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Zaliczki</p><p className="text-sm font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalZaliczka>0?`−${fmt(r.totalZaliczka)}`:"—"}</p></div>
                           <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Koszty</p><p className="text-sm font-semibold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalExtraCosts>0?`+${fmt(r.totalExtraCosts)}`:"—"}</p></div>
-                          <div className="bg-primary/10 rounded-lg px-2 py-2"><p className="text-xs text-primary/70">Do wypłaty</p><p className="text-sm font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.netPay)}</p></div>
+                          <div className="bg-primary/10 rounded-lg px-2 py-2 col-span-2 sm:col-span-1"><p className="text-xs text-primary/70">Do wypłaty</p><p className="text-sm font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.netPay)}</p></div>
                         </div>
                       </div>
                     ))}
@@ -1809,7 +1961,7 @@ function PayrollView({
       {/* Detail panel */}
       {selectedEmp && (
         <div className="w-full sm:w-[420px] lg:w-[460px] border-l border-border bg-card shrink-0 flex flex-col min-h-0 h-full overflow-hidden absolute sm:relative inset-0 sm:inset-auto z-10 sm:z-auto">
-          <WeekEmployeeDetail emp={selectedEmp} onChange={onUpdateWeekEmployee} onClose={()=>setSelectedEmpId(null)}/>
+          <WeekEmployeeDetail emp={selectedEmp} weekFrom={weekFrom} onChange={onUpdateWeekEmployee} onClose={()=>setSelectedEmpId(null)}/>
         </div>
       )}
 
@@ -2425,23 +2577,37 @@ function ArchiveView({savedWeeks, onDelete, jobs, directory}:{savedWeeks:WeekSna
               <table className="w-full text-sm">
                 <thead><tr className="text-xs text-muted-foreground border-b border-border" style={{fontFamily:"'JetBrains Mono', monospace"}}>
                   <th className="px-5 py-2.5 text-left">Pracownik</th><th className="px-3 py-2.5 text-left hidden sm:table-cell">Stanowisko</th>
-                  <th className="px-3 py-2.5 text-right">Godziny</th><th className="px-3 py-2.5 text-right">Brutto</th>
+                  <th className="px-3 py-2.5 text-right">Tydzień</th><th className="px-3 py-2.5 text-right">Sob.pr.</th><th className="px-3 py-2.5 text-right">Razem h</th><th className="px-3 py-2.5 text-right">Brutto</th>
                   <th className="px-3 py-2.5 text-right">Zaliczki</th><th className="px-3 py-2.5 text-right">Koszty</th><th className="px-3 py-2.5 text-right">Wypłata</th>
                   <th className="px-5 py-2.5 text-center">Status</th>
                 </tr></thead>
                 <tbody className="divide-y divide-border">
-                  {week.employees.map((emp,i)=>(
+                  {week.employees.map((emp,i)=>{
+                    const full = week.weekEmployees?.find((we) => we.name === emp.name && we.position === emp.position);
+                    const c = full ? calcWeekEmployee(full) : {
+                      weekHours: emp.weekHours ?? emp.totalHours,
+                      prevSatHours: emp.prevSatHours ?? 0,
+                      totalHours: emp.totalHours,
+                      grossPay: emp.grossPay,
+                      totalZaliczka: emp.totalZaliczka,
+                      totalExtraCosts: emp.totalExtraCosts ?? 0,
+                      netPay: emp.netPay,
+                    };
+                    return (
                     <tr key={i} className={`hover:bg-secondary/20 ${emp.settled?"opacity-60":""}`}>
                       <td className="px-5 py-3"><div className="flex items-center gap-2"><div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{emp.name?emp.name[0].toUpperCase():"?"}</div><span className="font-medium">{emp.name||"—"}</span></div></td>
                       <td className="px-3 py-3 text-muted-foreground text-xs hidden sm:table-cell">{emp.position||"—"}</td>
-                      <td className="px-3 py-3 text-right text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(emp.totalHours)}</td>
-                      <td className="px-3 py-3 text-right text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(emp.grossPay)}</td>
+                      <td className="px-3 py-3 text-right text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{c.weekHours>0?fmtH(c.weekHours):"—"}</td>
+                      <td className="px-3 py-3 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{c.prevSatHours>0?<span className="text-amber-500">{fmtH(c.prevSatHours)}</span>:"—"}</td>
+                      <td className="px-3 py-3 text-right font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(c.totalHours)}</td>
+                      <td className="px-3 py-3 text-right text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(c.grossPay)}</td>
                       <td className="px-3 py-3 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{emp.totalZaliczka>0?<span className="text-destructive">−{fmt(emp.totalZaliczka)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
-                      <td className="px-3 py-3 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{(emp.totalExtraCosts ?? 0)>0?<span className="text-green-500">+{fmt(emp.totalExtraCosts ?? 0)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
-                      <td className="px-3 py-3 text-right font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(emp.netPay)} PLN</td>
+                      <td className="px-3 py-3 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{c.totalExtraCosts>0?<span className="text-green-500">+{fmt(c.totalExtraCosts)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
+                      <td className="px-3 py-3 text-right font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(c.netPay)} PLN</td>
                       <td className="px-5 py-3 text-center"><span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${emp.settled?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>{emp.settled?<><CheckCircle2 size={10}/>Rozliczony</>:<><Circle size={10}/>Oczekuje</>}</span></td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
                 <tfoot><tr className="border-t border-border bg-secondary/20">
                   <td className="px-5 py-2.5 text-xs font-bold text-muted-foreground uppercase" colSpan={2}>Suma</td>
@@ -4660,6 +4826,8 @@ function HelpView() {
               {q:"Jak dodać pracownika do tygodnia?", a:'Kliknij "Dodaj pracownika" → zaznacz jednego lub kilku pracowników z listy (lub "Zaznacz wszystkich") → kliknij "Dodaj zaznaczonych". Jeśli tydzień jest pusty, pojawi się też przycisk "Kopiuj z poprzedniego tygodnia" — kliknij go, żeby od razu dodać tych samych co ostatnio.'},
               {q:"Jak wpisać godziny pracy?", a:"Kliknij na pracownika na liście — otworzy się panel z dniami tygodnia. Zaznacz dni kiedy pracował i wpisz godziny od–do. Aplikacja sama policzy ile godzin i ile się należy."},
               {q:"Jak dodać dodatkowe godziny w danym dniu?", a:"W panelu pracownika, pod wybranym dniem kliknij „Dodatkowe godziny w …”. Wpisz opis (np. dogrywka wieczorem, transport), godziny od–do i zapisz. Godziny dodają się do sumy dnia i całego tygodnia — w PDF/Word pojawi się osobna tabelka ze szczegółami."},
+              {q:"Co to jest Sob. poprz.?", a:"Sobota poprzedniego tygodnia — wypłacana w bieżącym tygodniu (bo za sobotę płacisz dopiero w następnym). U góry panelu pracownika, na żółtym tle. Ma te same pola co zwykły dzień: godziny, zaliczka i dodatkowe godziny z opisem. Bieżąca sobota (ostatni wiersz Pn–So) to praca w tym tygodniu — czasem wypłata w sobotę zamiast w piątek."},
+              {q:"Jak czytać sumy na liście płac?", a:"Kolumna Tydzień = godziny Pn–So bieżącego tygodnia (bez sob. poprz.). Sob.pr. = tylko sobota z poprzedniego tygodnia. Razem h = obie sumy. Na dole tabeli są trzy wiersze: Tydzień Pn–So, Sob. poprz. (jeśli jest) i RAZEM z do wypłaty."},
               {q:"Co to jest zaliczka?", a:"Jeśli pracownik wziął od Ciebie gotówkę z góry (np. na wypłatę w trakcie tygodnia), wpisz kwotę jako zaliczkę w danym dniu. Zostanie odjęta od kwoty do wypłaty."},
               {q:"Co to są koszty do zwrotu?", a:"W panelu pracownika (sekcja pod dniami tygodnia) kliknij „Dodaj” przy „Koszty do zwrotu”. Wpisz opis (chemia, paliwo, zakupy) i kwotę. Te koszty są doliczane do wypłaty — w przeciwieństwie do zaliczki, która jest odejmowana. Wzór: do wypłaty = brutto − zaliczki + koszty do zwrotu."},
               {q:"Jak liczy się wypłata?", a:"Brutto = łączne godziny (w tym dodatkowe) × stawka. Do wypłaty = brutto − suma zaliczek + suma kosztów do zwrotu. Kolumny w tabeli, PDF i Word pokazują te składniki osobno."},
@@ -4983,6 +5151,14 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.6.6", label:"Sobota poprzedniego tygodnia (Sob.pr.)",
+    items:[
+      {type:"new", text:"Lista płac — pole Sob. poprz. (sobota z poprzedniego tygodnia, wypłata w bieżącym) z dodatkowymi godzinami i opisem"},
+      {type:"new", text:"Osobne sumy: tydzień Pn–So, Sob.pr. i razem — w tabeli, panelu, PDF i Word"},
+      {type:"improve", text:"Bieżąca sobota (So) pozostaje w tygodniu — dla wypłat w sobotę zamiast w piątek"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.6.5", label:"Instrukcja — pełna aktualizacja",
     items:[
