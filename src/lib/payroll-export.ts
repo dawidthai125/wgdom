@@ -95,8 +95,8 @@ function escapeHtml(s: string): string {
 /** pdfmake ~1 MB — ładuj dopiero przy eksporcie PDF. */
 async function loadPdfMake() {
   const pdfMake = (await import("pdfmake/build/pdfmake")).default;
-  const pdfFonts = await import("pdfmake/build/vfs_fonts");
-  pdfMake.vfs = pdfFonts as typeof pdfMake.vfs;
+  const pdfFontsModule = await import("pdfmake/build/vfs_fonts");
+  pdfMake.vfs = (pdfFontsModule.default ?? pdfFontsModule) as typeof pdfMake.vfs;
   return pdfMake;
 }
 
@@ -545,13 +545,8 @@ export async function generatePayrollPdfBlob(
     defaultStyle: { font: "Roboto", fontSize: 9, color: C.navy },
   };
 
-  return new Promise((resolve, reject) => {
-    try {
-      pdfMake.createPdf(docDef).getBlob((blob: Blob) => resolve(blob));
-    } catch (e) {
-      reject(e);
-    }
-  });
+  // pdfmake 0.3.x — getBlob() zwraca Promise (stary callback już nie działa)
+  return pdfMake.createPdf(docDef).getBlob();
 }
 
 // ─── Word ─────────────────────────────────────────────────────────────────────

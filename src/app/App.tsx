@@ -53,8 +53,8 @@ import {
 /** pdfmake ~1 MB — ładuj dopiero przy eksporcie PDF (szybszy start na telefonie). */
 async function loadPdfMake() {
   const pdfMake = (await import("pdfmake/build/pdfmake")).default;
-  const pdfFonts = await import("pdfmake/build/vfs_fonts");
-  pdfMake.vfs = pdfFonts as any;
+  const pdfFontsModule = await import("pdfmake/build/vfs_fonts");
+  pdfMake.vfs = (pdfFontsModule.default ?? pdfFontsModule) as any;
   return pdfMake;
 }
 
@@ -1604,7 +1604,7 @@ function PayrollEmailModal({
       const prevSatIso = previousSaturdayIso(weekFrom);
       const attachments: { filename: string; content: string }[] = [];
       if (attachPdf) {
-        setSendStage("Generuję PDF…");
+        setSendStage("Ładuję generator PDF…");
         const pdfBlob = await generatePayrollPdfBlob(weekFrom, weekTo, calcRows, totals, extraHourLines, prevSatDetails, prevSatIso);
         setSendStage("Koduję PDF…");
         attachments.push({ filename: `lista-plac-${weekFrom}.pdf`, content: await blobToBase64(pdfBlob) });
