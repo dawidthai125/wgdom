@@ -1576,6 +1576,7 @@ function PayrollEmailModal({
   const [subject, setSubject] = useState(`Lista płac W&G DOM — ${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`);
   const [introMessage, setIntroMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [sendStage, setSendStage] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -1596,23 +1597,32 @@ function PayrollEmailModal({
       return;
     }
     setSending(true);
+    setSendStage("Przygotowanie…");
     try {
       const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
       const prevSatDetails = payrollPrevSatDetailLines(rows.map((r) => r.emp), weekFrom);
       const prevSatIso = previousSaturdayIso(weekFrom);
       const attachments: { filename: string; content: string }[] = [];
       if (attachPdf) {
+        setSendStage("Generuję PDF…");
         const pdfBlob = await generatePayrollPdfBlob(weekFrom, weekTo, calcRows, totals, extraHourLines, prevSatDetails, prevSatIso);
+        setSendStage("Koduję PDF…");
         attachments.push({ filename: `lista-plac-${weekFrom}.pdf`, content: await blobToBase64(pdfBlob) });
       }
       if (attachWord) {
+        setSendStage("Generuję Word…");
         const wordBlob = await generatePayrollWordBlob(weekFrom, weekTo, calcRows, totals, extraHourLines, prevSatDetails, prevSatIso);
+        setSendStage("Koduję Word…");
         attachments.push({ filename: `lista-plac-${weekFrom}.docx`, content: await blobToBase64(wordBlob) });
       }
       const html = buildPayrollEmailHtml(weekFrom, weekTo, calcRows, totals, introMessage);
+      setSendStage("Wysyłam email…");
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), 120_000);
       const res = await fetch(`${API_BASE}/send-payroll-email`, {
         method: "POST",
         headers: API_HEADERS,
+        signal: controller.signal,
         body: JSON.stringify({
           to: recipientEmail,
           toName: selectedContact?.name || "",
@@ -1621,14 +1631,20 @@ function PayrollEmailModal({
           attachments,
         }),
       });
+      window.clearTimeout(timeoutId);
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) throw new Error(data.error || `Błąd wysyłki (${res.status})`);
       setSuccess(true);
       setTimeout(onClose, 1800);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Nie udało się wysłać emaila.");
+      if (e instanceof DOMException && e.name === "AbortError") {
+        setError("Przekroczono czas oczekiwania (2 min). Spróbuj wysłać tylko PDF albo tylko Word.");
+      } else {
+        setError(e instanceof Error ? e.message : "Nie udało się wysłać emaila.");
+      }
     } finally {
       setSending(false);
+      setSendStage("");
     }
   };
 
@@ -1697,7 +1713,7 @@ function PayrollEmailModal({
             <button type="button" onClick={onManageContacts} className="text-xs text-primary hover:underline text-left sm:mr-auto py-2">Zarządzaj kontaktami →</button>
             <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">Anuluj</button>
             <button type="button" onClick={handleSend} disabled={!canSend} className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
-              {sending ? <><CloudUpload size={14} className="animate-pulse"/>Wysyłanie...</> : <><Send size={14}/>Wyślij</>}
+              {sending ? <><CloudUpload size={14} className="animate-pulse"/>{sendStage || "Wysyłanie…"}</> : <><Send size={14}/>Wyślij</>}
             </button>
           </div>
         )}

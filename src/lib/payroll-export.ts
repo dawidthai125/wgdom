@@ -790,12 +790,19 @@ export async function generatePayrollWordBlob(
 
 // ─── Base64 ───────────────────────────────────────────────────────────────────
 
-export async function blobToBase64(blob: Blob): Promise<string> {
-  const buffer = await blob.arrayBuffer();
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
+export function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      if (typeof dataUrl !== "string") {
+        reject(new Error("Nie udało się zakodować załącznika"));
+        return;
+      }
+      const comma = dataUrl.indexOf(",");
+      resolve(comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl);
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("Nie udało się zakodować załącznika"));
+    reader.readAsDataURL(blob);
+  });
 }
