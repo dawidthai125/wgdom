@@ -44,6 +44,13 @@ import {
   saveDeletedJobIds,
   normalizeDeletedJobIds,
   JOBS_DELETED_IDS_KEY,
+  DIRECTORY_DELETED_IDS_KEY,
+  getDeletedDirectoryIds,
+  saveDeletedDirectoryIds,
+  mergeDeletedDirectoryIds,
+  normalizeDeletedDirectoryIds,
+  addDeletedDirectoryId,
+  pushDirectoryToCloud,
 } from "@/lib/cloud-sync";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
@@ -3163,7 +3170,7 @@ function EmployeeArchiveModal({
   );
 }
 
-function DirectoryView({directory, savedWeeks, onChange}:{directory:DirectoryEmployee[]; savedWeeks: WeekSnapshot[]; onChange:(d:DirectoryEmployee[])=>void}) {
+function DirectoryView({directory, savedWeeks, onChange, onCommit}:{directory:DirectoryEmployee[]; savedWeeks: WeekSnapshot[]; onChange:(d:DirectoryEmployee[])=>void; onCommit?:()=>void}) {
   const [editId, setEditId] = useState<string|null>(null);
   const [archiveEmpId, setArchiveEmpId] = useState<string|null>(null);
   const [search, setSearch] = useState("");
@@ -3184,7 +3191,12 @@ function DirectoryView({directory, savedWeeks, onChange}:{directory:DirectoryEmp
   };
 
   const update = (updated:DirectoryEmployee) => onChange(directory.map((d)=>d.id===updated.id?updated:d));
-  const remove = (id:string) => onChange(directory.filter((d)=>d.id!==id));
+  const remove = (id:string) => {
+    addDeletedDirectoryId(id);
+    const next = directory.filter((d)=>d.id!==id);
+    onChange(next);
+    pushDirectoryToCloud(next).catch(() => {});
+  };
   const toggleActive = (id:string) => update({...directory.find((d)=>d.id===id)!, active:!directory.find((d)=>d.id===id)!.active});
 
   const editEmp = directory.find((d)=>d.id===editId)||null;
@@ -3366,7 +3378,7 @@ function DirectoryView({directory, savedWeeks, onChange}:{directory:DirectoryEmp
                       </span>
                     </label>
                     <div className="flex items-center gap-2 pt-2">
-                      <button onClick={()=>setEditId(null)} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"><Check size={13}/>Zapisz</button>
+                      <button onClick={()=>{ setEditId(null); onCommit?.(); }} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"><Check size={13}/>Zapisz</button>
                       <button onClick={()=>setEditId(null)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Anuluj</button>
                     </div>
                   </div>
@@ -7130,6 +7142,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-26", version:"2.9.16", label:"Kartoteka — trwałe usuwanie i sync",
+    items:[
+      {type:"fix", text:"Usunięcie pracownika z kartoteki nie wraca po wylogowaniu — tombstones kw-directory-deleted-ids (jak przy robotach)"},
+      {type:"fix", text:"Edycja telefonu / danych pracownika — zapis od razu po „Zapisz”, logowanie pracownika scala z lokalnym stanem"},
+      {type:"fix", text:"Serwer Supabase — akceptuje celowe skrócenie kartoteki z listą usuniętych id"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.9.15", label:"Konto testowe pracownika",
     items:[
       {type:"new", text:"Kartoteka — „Konto testowe”: tylko tryb pracownika (zdjęcia, raporty), bez listy płac, grafiku, pulpitu i wpisów na robotach"},
@@ -7775,12 +7795,15 @@ function CloudLoader({children}: {children: React.ReactNode}) {
     const keys = [...DATA_KEYS];
     const fallback = setTimeout(() => setReady(true), 5000);
 
-    fetchKeysFromCloud([...keys, JOBS_DELETED_IDS_KEY])
+    fetchKeysFromCloud([...keys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY])
       .then((allValues) => {
         const values = allValues.slice(0, keys.length);
         const cloudDeleted = normalizeDeletedJobIds(allValues[keys.length]);
+        const cloudDirDeleted = normalizeDeletedDirectoryIds(allValues[keys.length + 1]);
         const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), cloudDeleted);
         saveDeletedJobIds(mergedDeleted);
+        const mergedDirDeleted = mergeDeletedDirectoryIds(getDeletedDirectoryIds(), cloudDirDeleted);
+        saveDeletedDirectoryIds(mergedDirDeleted);
 
         const pushKeys: string[] = [];
         const pushValues: unknown[] = [];
@@ -7793,7 +7816,7 @@ function CloudLoader({children}: {children: React.ReactNode}) {
             if (raw) localVal = JSON.parse(raw);
           } catch { /* ignore */ }
 
-          const merged = mergeDataKey(key, localVal, cloudVal, mergedDeleted);
+          const merged = mergeDataKey(key, localVal, cloudVal, mergedDeleted, mergedDirDeleted);
           const hasRealData = merged != null && !(Array.isArray(merged) && merged.length === 0) && merged !== "";
           if (hasRealData || (key === "kw-weekFrom" || key === "kw-weekTo") && merged) {
             localStorage.setItem(key, JSON.stringify(merged));
@@ -7821,9 +7844,14 @@ function CloudLoader({children}: {children: React.ReactNode}) {
         });
 
         if (pushKeys.length > 0) {
-          pushKeysToCloud([...pushKeys, JOBS_DELETED_IDS_KEY], [...pushValues, mergedDeleted], {
-            replaceJobsKeys: pushKeys.includes("kw-jobs") ? ["kw-jobs"] : [],
-          }).catch(() => {});
+          pushKeysToCloud(
+            [...pushKeys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY],
+            [...pushValues, mergedDeleted, mergedDirDeleted],
+            {
+              replaceJobsKeys: pushKeys.includes("kw-jobs") ? ["kw-jobs"] : [],
+              replaceDirectoryKeys: pushKeys.includes("kw-directory") ? ["kw-directory"] : [],
+            },
+          ).catch(() => {});
         }
       })
       .catch(() => {})
@@ -7895,6 +7923,10 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
       setFullDataBackupStatus({ dailyBackupDate: s.dailyBackupDate, hasPrev });
     }).catch(() => {});
   }, [jobs.length, weekEmployees.length, savedWeeks.length, directory.length, contacts.length]);
+
+  const commitDirectory = useCallback(() => {
+    pushDirectoryToCloud(directory).catch(() => {});
+  }, [directory]);
 
   const pushToCloud = pushAllDataToCloud;
 
@@ -8431,7 +8463,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
           {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs}/>}
           {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
-          {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory}/>}
+          {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>setSavedWeeks(prev=>prev.filter(w=>w.id!==id))} jobs={jobs} directory={directory}/>}
           {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom}/>}
@@ -8641,12 +8673,19 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
     if (mode !== "worker") return;
     setDirLoading(true);
     setWorkerError("");
-    fetchKeysFromCloud(["kw-directory"])
+    fetchKeysFromCloud(["kw-directory", DIRECTORY_DELETED_IDS_KEY])
       .then((values) => {
-        const cloud = values[0];
-        if (Array.isArray(cloud)) {
-          setDirectory(cloud);
-          try { localStorage.setItem("kw-directory", JSON.stringify(cloud)); } catch { /* ignore */ }
+        const [cloudRaw, cloudDeletedRaw] = values;
+        const mergedDirDeleted = mergeDeletedDirectoryIds(getDeletedDirectoryIds(), normalizeDeletedDirectoryIds(cloudDeletedRaw));
+        saveDeletedDirectoryIds(mergedDirDeleted);
+        if (Array.isArray(cloudRaw)) {
+          let local: DirectoryEmployee[] = [];
+          try {
+            local = JSON.parse(localStorage.getItem("kw-directory") || "[]");
+          } catch { /* ignore */ }
+          const merged = mergeDirectory(local, cloudRaw, mergedDirDeleted) as DirectoryEmployee[];
+          setDirectory(merged);
+          try { localStorage.setItem("kw-directory", JSON.stringify(merged)); } catch { /* ignore */ }
         } else {
           try {
             const local = localStorage.getItem("kw-directory");
@@ -8763,7 +8802,7 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
       setDirectory(updated);
       try {
         localStorage.setItem("kw-directory", JSON.stringify(updated));
-        await pushKeysToCloud(["kw-directory"], [updated]);
+        await pushDirectoryToCloud(updated);
       } catch { /* offline — zapis lokalny */ }
       onWorker(updated.find((d) => d.id === emp.id)!);
     } finally {

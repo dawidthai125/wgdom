@@ -1,4 +1,4 @@
-/** W&G DOM Edge Function — v2.9.10 trwałe usuwanie robot */
+/** W&G DOM Edge Function — v2.9.16 trwałe usuwanie z kartoteki */
 import { Hono } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
@@ -96,6 +96,27 @@ function filterJobsNotDeleted(list: unknown[], deleted: Set<string>): unknown[] 
     const id = jobId(j);
     return id && !deleted.has(id);
   });
+}
+
+function dirId(item: unknown): string | undefined {
+  if (!item || typeof item !== "object" || !("id" in item)) return undefined;
+  return String((item as { id: string }).id);
+}
+
+function filterDirectoryNotDeleted(list: unknown[], deleted: Set<string>): unknown[] {
+  return list.filter((d) => {
+    const id = dirId(d);
+    return id && !deleted.has(id);
+  });
+}
+
+function isIntentionalDirectoryDelete(prev: unknown[], next: unknown[], deleted: Set<string>): boolean {
+  const nextIds = new Set(next.map(dirId).filter(Boolean) as string[]);
+  for (const d of prev) {
+    const id = dirId(d);
+    if (id && !nextIds.has(id) && !deleted.has(id)) return false;
+  }
+  return true;
 }
 
 /** Usunięcie dozwolone, gdy każde zniknięte id jest na liście tombstones. */
@@ -336,7 +357,7 @@ async function saveDailyFullBackup(keys: string[], values: unknown[]): Promise<v
 
 // Batch set multiple keys at once
 app.post("/make-server-0afb8820/batch-set", async (c) => {
-  const { keys, values, replaceJobsKeys = [] } = await c.req.json();
+  const { keys, values, replaceJobsKeys = [], replaceDirectoryKeys = [] } = await c.req.json();
   const safeValues = [...values];
   const archBatchIdx = keys.indexOf("kw-archive");
   const archiveInBatch = archBatchIdx >= 0 ? normalizeArrayKv(values[archBatchIdx]) : [];
@@ -344,11 +365,18 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   const deletedFromBatch = deletedBatchIdx >= 0 ? normalizeDeletedIdsKv(values[deletedBatchIdx]) : [];
   const storedDeleted = normalizeDeletedIdsKv(await kv.get("kw-jobs-deleted-ids"));
   const allDeletedIds = new Set([...storedDeleted, ...deletedFromBatch]);
+  const dirDeletedBatchIdx = keys.indexOf("kw-directory-deleted-ids");
+  const dirDeletedFromBatch = dirDeletedBatchIdx >= 0 ? normalizeDeletedIdsKv(values[dirDeletedBatchIdx]) : [];
+  const storedDirDeleted = normalizeDeletedIdsKv(await kv.get("kw-directory-deleted-ids"));
+  const allDirDeletedIds = new Set([...storedDirDeleted, ...dirDeletedFromBatch]);
   const forceReplaceJobs = Array.isArray(replaceJobsKeys) && replaceJobsKeys.includes("kw-jobs");
+  const forceReplaceDirectory = Array.isArray(replaceDirectoryKeys) && replaceDirectoryKeys.includes("kw-directory");
 
   for (let i = 0; i < keys.length; i++) {
     if (keys[i] === "kw-jobs-deleted-ids") {
       safeValues[i] = [...allDeletedIds].slice(-500);
+    } else if (keys[i] === "kw-directory-deleted-ids") {
+      safeValues[i] = [...allDirDeletedIds].slice(-500);
     } else if (keys[i] === "kw-jobs") {
       const prev = await kv.get("kw-jobs");
       let nextNorm = filterJobsNotDeleted(normalizeJobsKvValue(values[i]), allDeletedIds);
@@ -393,12 +421,21 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
       }
       safeValues[i] = nextNorm;
     } else if (keys[i] === "kw-directory") {
-      safeValues[i] = await protectArrayKey(
-        "kw-directory",
-        values[i],
-        mergeRecordsByIdUnion,
-        isSuspiciousArrayShrink,
-      );
+      const prev = await kv.get("kw-directory");
+      let nextNorm = filterDirectoryNotDeleted(normalizeArrayKv(values[i]), allDirDeletedIds);
+      if (prev != null) {
+        await rotateKvBackups("kw-directory");
+        const prevNorm = filterDirectoryNotDeleted(normalizeArrayKv(prev), allDirDeletedIds);
+        const intentionalDelete =
+          forceReplaceDirectory || isIntentionalDirectoryDelete(prevNorm, nextNorm, allDirDeletedIds);
+        if (isSuspiciousArrayShrink(prevNorm, nextNorm) && !intentionalDelete) {
+          console.log(
+            `kw-directory: blocked suspicious shrink ${prevNorm.length} → ${nextNorm.length}, merging`,
+          );
+          nextNorm = filterDirectoryNotDeleted(mergeRecordsByIdUnion(prevNorm, nextNorm), allDirDeletedIds);
+        }
+      }
+      safeValues[i] = nextNorm;
     } else if (keys[i] === "kw-contacts") {
       safeValues[i] = await protectArrayKey(
         "kw-contacts",
