@@ -79,6 +79,8 @@ interface DayData {
   zaliczka: string;
   /** Dodatkowe godziny ponad podstawowy wpis dnia (np. wieczorem, w innym miejscu) */
   extraHours?: DayExtraHour[];
+  /** Notatki tekstowe (głównie Sob. poprz.) */
+  notes?: DayNote[];
 }
 
 /** Dodatkowy blok godzin w danym dniu tygodnia */
@@ -87,6 +89,12 @@ interface DayExtraHour {
   description: string;
   from: string;
   to: string;
+}
+
+/** Krótki opis (Sob. poprz. — co robiono, wynajęci pracownicy, kwoty do rozliczenia) */
+interface DayNote {
+  id: string;
+  text: string;
 }
 
 /** Koszt pracownika do zwrotu w wypłacie (chemia, paliwo, zakupy na budowę) */
@@ -321,22 +329,13 @@ function dayTotalHours(day: DayData): number {
 function dayExtraHoursOnly(day: DayData): number {
   return +(day.extraHours ?? []).reduce((s, e) => s + hoursWorked(e.from, e.to), 0).toFixed(2);
 }
+function prevSatBaseHours(day: DayData): number {
+  return day.active ? hoursWorked(day.from, day.to) : 0;
+}
 
 function payrollExtraHourLines(employees: WeekEmployee[]) {
   const lines: { name: string; day: string; desc: string; range: string; hours: number }[] = [];
   for (const emp of employees) {
-    const prev = getPrevSaturday(emp);
-    for (const ex of prev.extraHours ?? []) {
-      const h = hoursWorked(ex.from, ex.to);
-      if (h <= 0) continue;
-      lines.push({
-        name: emp.name || "—",
-        day: PREV_SAT_SHORT,
-        desc: ex.description.trim() || "—",
-        range: `${ex.from}–${ex.to}`,
-        hours: h,
-      });
-    }
     for (const key of DAYS) {
       for (const ex of emp.days[key].extraHours ?? []) {
         const h = hoursWorked(ex.from, ex.to);
@@ -353,6 +352,16 @@ function payrollExtraHourLines(employees: WeekEmployee[]) {
   }
   return lines;
 }
+function payrollPrevSatNoteLines(employees: WeekEmployee[]) {
+  const lines: { name: string; text: string }[] = [];
+  for (const emp of employees) {
+    for (const note of getPrevSaturday(emp).notes ?? []) {
+      if (!note.text.trim()) continue;
+      lines.push({ name: emp.name || "—", text: note.text.trim() });
+    }
+  }
+  return lines;
+}
 function fmt(n: number) { return n.toLocaleString("pl-PL",{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtH(n: number) { const h=Math.floor(n),m=Math.round((n-h)*60); return m===0?`${h}h`:`${h}h ${m}m`; }
 function fmtDate(iso: string) { if(!iso) return ""; const [y,mo,d]=iso.split("-"); return `${d}.${mo}.${y}`; }
@@ -365,10 +374,9 @@ function getWeekRange() {
 }
 function calcWeekEmployee(emp: WeekEmployee) {
   const weekHours = +(DAYS.reduce((s, d) => s + dayTotalHours(emp.days[d]), 0)).toFixed(2);
-  const prevSatHours = dayTotalHours(getPrevSaturday(emp));
+  const prevSatHours = +prevSatBaseHours(getPrevSaturday(emp)).toFixed(2);
   const totalHours = +(weekHours + prevSatHours).toFixed(2);
-  const weekExtraHours = DAYS.reduce((s, d) => s + dayExtraHoursOnly(emp.days[d]), 0);
-  const totalExtraHours = +(weekExtraHours + dayExtraHoursOnly(getPrevSaturday(emp))).toFixed(2);
+  const totalExtraHours = +DAYS.reduce((s, d) => s + dayExtraHoursOnly(emp.days[d]), 0).toFixed(2);
   const weekZaliczka = DAYS.reduce((s, d) => s + (parseFloat(emp.days[d].zaliczka) || 0), 0);
   const prevSatZaliczka = parseFloat(getPrevSaturday(emp).zaliczka) || 0;
   const totalZaliczka = weekZaliczka + prevSatZaliczka;
@@ -1228,26 +1236,31 @@ function PayrollDayEditor({
   title,
   hint,
   titleClass = "",
+  variant = "day",
   onUpdate,
 }: {
   day: DayData;
   title: string;
   hint?: string;
   titleClass?: string;
+  variant?: "day" | "prevSaturday";
   onUpdate: (next: DayData) => void;
 }) {
   const updateField = (field: keyof DayData, value: string | boolean) => {
     onUpdate({ ...day, [field]: value });
   };
   const extraList = day.extraHours ?? [];
+  const notesList = day.notes ?? [];
   const updateExtra = (next: DayExtraHour[]) => onUpdate({ ...day, extraHours: next });
+  const updateNotes = (next: DayNote[]) => onUpdate({ ...day, notes: next, extraHours: variant === "prevSaturday" ? undefined : day.extraHours });
   const baseH = day.active ? hoursWorked(day.from, day.to) : 0;
-  const extraH = dayExtraHoursOnly(day);
-  const totalDayH = dayTotalHours(day);
+  const extraH = variant === "prevSaturday" ? 0 : dayExtraHoursOnly(day);
+  const totalDayH = variant === "prevSaturday" ? baseH : dayTotalHours(day);
+  const hasContent = variant === "prevSaturday" ? day.active || notesList.length > 0 : day.active || extraList.length > 0;
 
   return (
-    <div className={`transition-opacity ${day.active || extraList.length > 0 ? "" : "opacity-50"}`}>
-      <div className={`px-4 py-3 ${extraList.length > 0 ? "pb-2" : ""}`}>
+    <div className={`transition-opacity ${hasContent ? "" : "opacity-50"}`}>
+      <div className={`px-4 py-3 ${(variant === "prevSaturday" ? notesList.length : extraList.length) > 0 ? "pb-2" : ""}`}>
         <div className="sm:hidden space-y-2">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2.5 min-w-0">
@@ -1271,48 +1284,69 @@ function PayrollDayEditor({
             </div>
           )}
         </div>
-        <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center gap-3">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="hidden sm:grid grid-cols-[minmax(0,1.4fr)_minmax(0,0.95fr)_minmax(0,0.95fr)_minmax(0,0.75fr)_minmax(0,0.95fr)] items-center gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
             <Checkbox checked={day.active} onChange={(v) => updateField("active", v)}/>
             <div className="min-w-0">
               <span className={`text-sm font-medium block truncate ${titleClass}`}>{title}</span>
               {hint && <span className="text-[10px] text-muted-foreground block truncate">{hint}</span>}
             </div>
           </div>
-          <input type="time" value={day.from} disabled={!day.active} onChange={(e) => updateField("from", e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
-          <input type="time" value={day.to} disabled={!day.active} onChange={(e) => updateField("to", e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
+          <input type="time" value={day.from} disabled={!day.active} onChange={(e) => updateField("from", e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-1.5 py-1.5 text-xs text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
+          <input type="time" value={day.to} disabled={!day.active} onChange={(e) => updateField("to", e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-1.5 py-1.5 text-xs text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
           <div className="text-center">
-            <span className={`text-sm font-semibold ${totalDayH > 0 ? "text-primary" : "text-muted-foreground/25"}`} style={{ fontFamily: "'JetBrains Mono', monospace" }} title={extraH > 0 ? `w tym ${fmtH(extraH)} dodatkowych` : undefined}>
+            <span className={`text-xs font-semibold ${totalDayH > 0 ? "text-primary" : "text-muted-foreground/25"}`} style={{ fontFamily: "'JetBrains Mono', monospace" }} title={extraH > 0 ? `w tym ${fmtH(extraH)} dodatkowych` : undefined}>
               {totalDayH > 0 ? fmtH(totalDayH) : "—"}
             </span>
           </div>
-          <input type="number" min="0" step="10" placeholder="0" value={day.zaliczka} disabled={!day.active} onChange={(e) => updateField("zaliczka", e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-2 py-2 text-sm text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed placeholder:text-muted-foreground/30" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
+          <input type="number" min="0" step="10" placeholder="0" value={day.zaliczka} disabled={!day.active} onChange={(e) => updateField("zaliczka", e.target.value)} className="w-full min-w-0 bg-secondary rounded-lg px-1.5 py-1.5 text-xs text-center border border-transparent focus:border-primary focus:outline-none disabled:cursor-not-allowed placeholder:text-muted-foreground/30" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
         </div>
       </div>
-      <div className="px-4 pb-3 sm:pl-10 space-y-2">
-        {extraList.map((ex) => {
-          const exH = hoursWorked(ex.from, ex.to);
-          return (
-            <div key={ex.id} className="rounded-lg border border-primary/20 bg-primary/5 p-2.5 space-y-2">
-              <div className="flex items-center gap-2">
-                <Clock size={12} className="text-primary shrink-0"/>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-primary/80">Dodatkowe godziny</span>
-                {exH > 0 && <span className="ml-auto text-xs font-semibold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtH(exH)}</span>}
-              </div>
-              <input type="text" placeholder="Opis (np. dogrywka, transport)" value={ex.description} onChange={(e) => updateExtra(extraList.map((item) => item.id === ex.id ? { ...item, description: e.target.value } : item))} className="w-full bg-background rounded-lg px-2.5 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none"/>
-              <div className="flex items-center gap-2">
-                <input type="time" value={ex.from} onChange={(e) => updateExtra(extraList.map((item) => item.id === ex.id ? { ...item, from: e.target.value } : item))} className="flex-1 bg-background rounded-lg px-2 py-1.5 text-xs text-center border border-transparent focus:border-primary focus:outline-none" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
-                <span className="text-xs text-muted-foreground">–</span>
-                <input type="time" value={ex.to} onChange={(e) => updateExtra(extraList.map((item) => item.id === ex.id ? { ...item, to: e.target.value } : item))} className="flex-1 bg-background rounded-lg px-2 py-1.5 text-xs text-center border border-transparent focus:border-primary focus:outline-none" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
-                <button type="button" onClick={() => updateExtra(extraList.filter((item) => item.id !== ex.id))} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors shrink-0"><Trash2 size={13}/></button>
-              </div>
+      {variant === "prevSaturday" ? (
+        <div className="px-4 pb-3 sm:pl-10 space-y-2">
+          {notesList.map((note) => (
+            <div key={note.id} className="rounded-lg border border-amber-500/25 bg-amber-500/5 p-2.5 flex items-start gap-2">
+              <FileText size={12} className="text-amber-500 shrink-0 mt-1"/>
+              <textarea
+                rows={2}
+                placeholder="Opis (np. co robiono, ilu pracowników wypożyczono, kwota do rozliczenia)"
+                value={note.text}
+                onChange={(e) => updateNotes(notesList.map((item) => item.id === note.id ? { ...item, text: e.target.value } : item))}
+                className="flex-1 min-w-0 bg-background rounded-lg px-2.5 py-1.5 text-xs border border-transparent focus:border-amber-500/40 focus:outline-none resize-y min-h-[2.5rem]"
+              />
+              <button type="button" onClick={() => updateNotes(notesList.filter((item) => item.id !== note.id))} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors shrink-0"><Trash2 size={13}/></button>
             </div>
-          );
-        })}
-        <button type="button" onClick={() => updateExtra([...extraList, { id: crypto.randomUUID(), description: "", from: "16:00", to: "18:00" }])} className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors">
-          <Plus size={12}/> Dodatkowe godziny — {title}
-        </button>
-      </div>
+          ))}
+          <button type="button" onClick={() => updateNotes([...notesList, { id: crypto.randomUUID(), text: "" }])} className="flex items-center gap-1 text-xs font-medium text-amber-600 hover:text-amber-500 transition-colors">
+            <Plus size={12}/> Opis
+          </button>
+        </div>
+      ) : (
+        <div className="px-4 pb-3 sm:pl-10 space-y-2">
+          {extraList.map((ex) => {
+            const exH = hoursWorked(ex.from, ex.to);
+            return (
+              <div key={ex.id} className="rounded-lg border border-primary/20 bg-primary/5 p-2.5 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Clock size={12} className="text-primary shrink-0"/>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-primary/80">Dodatkowe godziny</span>
+                  {exH > 0 && <span className="ml-auto text-xs font-semibold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtH(exH)}</span>}
+                </div>
+                <input type="text" placeholder="Opis (np. dogrywka, transport)" value={ex.description} onChange={(e) => updateExtra(extraList.map((item) => item.id === ex.id ? { ...item, description: e.target.value } : item))} className="w-full bg-background rounded-lg px-2.5 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none"/>
+                <div className="flex items-center gap-2">
+                  <input type="time" value={ex.from} onChange={(e) => updateExtra(extraList.map((item) => item.id === ex.id ? { ...item, from: e.target.value } : item))} className="flex-1 bg-background rounded-lg px-2 py-1.5 text-xs text-center border border-transparent focus:border-primary focus:outline-none" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
+                  <span className="text-xs text-muted-foreground">–</span>
+                  <input type="time" value={ex.to} onChange={(e) => updateExtra(extraList.map((item) => item.id === ex.id ? { ...item, to: e.target.value } : item))} className="flex-1 bg-background rounded-lg px-2 py-1.5 text-xs text-center border border-transparent focus:border-primary focus:outline-none" style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
+                  <button type="button" onClick={() => updateExtra(extraList.filter((item) => item.id !== ex.id))} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors shrink-0"><Trash2 size={13}/></button>
+                </div>
+              </div>
+            );
+          })}
+          <button type="button" onClick={() => updateExtra([...extraList, { id: crypto.randomUUID(), description: "", from: "16:00", to: "18:00" }])} className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+            <Plus size={12}/> Dodatkowe godziny — {title}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -1357,33 +1391,30 @@ function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee
 
         {/* Days */}
         <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <div className="overflow-x-auto overscroll-x-contain">
-            <div className="min-w-[520px]">
-              <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] px-4 py-2 text-xs text-muted-foreground border-b border-border" style={{fontFamily:"'JetBrains Mono', monospace"}}>
-                <span>Dzień</span><span className="text-center">Od</span><span className="text-center">Do</span><span className="text-center">Godziny</span><span className="text-center">Zaliczka</span>
-              </div>
-              <div className="divide-y divide-border">
-                <div className="bg-amber-500/5 border-b border-amber-500/15">
-                  <PayrollDayEditor
-                    day={getPrevSaturday(emp)}
-                    title={PREV_SAT_SHORT}
-                    hint={`${fmtDate(prevSatIso)} · wypłata w tym tygodniu`}
-                    titleClass="text-amber-500"
-                    onUpdate={(next) => onChange({ ...emp, prevSaturday: next })}
-                  />
-                </div>
-                {DAYS.map((key) => (
-                  <PayrollDayEditor
-                    key={key}
-                    day={emp.days[key]}
-                    title={DAY_LABELS[key]}
-                    titleClass={key === "So" ? "text-primary" : ""}
-                    hint={key === "So" ? "Bieżąca sobota — czasem wypłata w sobotę" : undefined}
-                    onUpdate={(next) => updateDayData(key, next)}
-                  />
-                ))}
-              </div>
+          <div className="hidden sm:grid grid-cols-[minmax(0,1.4fr)_minmax(0,0.95fr)_minmax(0,0.95fr)_minmax(0,0.75fr)_minmax(0,0.95fr)] px-4 py-2 text-xs text-muted-foreground border-b border-border gap-2" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+            <span>Dzień</span><span className="text-center">Od</span><span className="text-center">Do</span><span className="text-center">Godziny</span><span className="text-center">Zaliczka</span>
+          </div>
+          <div className="divide-y divide-border">
+            <div className="bg-amber-500/5 border-b border-amber-500/15">
+              <PayrollDayEditor
+                day={getPrevSaturday(emp)}
+                title={PREV_SAT_SHORT}
+                hint={`${fmtDate(prevSatIso)} · wypłata w tym tygodniu`}
+                titleClass="text-amber-500"
+                variant="prevSaturday"
+                onUpdate={(next) => onChange({ ...emp, prevSaturday: { ...next, extraHours: undefined } })}
+              />
             </div>
+            {DAYS.map((key) => (
+              <PayrollDayEditor
+                key={key}
+                day={emp.days[key]}
+                title={DAY_LABELS[key]}
+                titleClass={key === "So" ? "text-primary" : ""}
+                hint={key === "So" ? "Bieżąca sobota — czasem wypłata w sobotę" : undefined}
+                onUpdate={(next) => updateDayData(key, next)}
+              />
+            ))}
           </div>
           <p className="hidden sm:block px-4 py-2 text-[10px] text-muted-foreground/60 border-t border-border/50">Sob. poprz. = sobota z poprzedniego tygodnia (płatna teraz). Bieżąca sobota = ostatni dzień tygodnia Pn–So.</p>
         </div>
@@ -1546,7 +1577,7 @@ function PayrollView({
         {text:r.totalZaliczka>0?`${fmt(r.totalZaliczka)}`:"—", alignment:"right" as const, fillColor:bg, fontSize:8},
         {text:r.totalExtraCosts>0?`${fmt(r.totalExtraCosts)}`:"—", alignment:"right" as const, fillColor:bg, color:C.green, fontSize:8},
         {text:`${fmt(r.netPay)}`, bold:true, color:C.red, alignment:"right" as const, fillColor:bg, fontSize:8},
-        {text:r.emp.settled?"Rozl.":"Oczek.", alignment:"center" as const, color:r.emp.settled?C.green:C.gold, bold:r.emp.settled, fillColor:bg, fontSize:7},
+        {text:r.emp.settled?"Rozliczony":"Oczekuje", alignment:"center" as const, color:r.emp.settled?C.green:C.gold, bold:r.emp.settled, fillColor:bg, fontSize:7},
       ];
     });
 
@@ -1572,6 +1603,7 @@ function PayrollView({
     ];
 
     const extraHourLines = payrollExtraHourLines(rows.map((r) => r.emp));
+    const prevSatNoteLines = payrollPrevSatNoteLines(rows.map((r) => r.emp));
     const extraHourPdfBlock = extraHourLines.length > 0
       ? [
           { text: "Dodatkowe godziny pracy", bold: true, fontSize: 10, color: C.navy, margin: [0, 16, 0, 6] as [number, number, number, number] },
@@ -1591,6 +1623,39 @@ function PayrollView({
                     { text: line.desc, fillColor: bg, color: C.muted },
                     { text: line.range, fillColor: bg, alignment: "center" as const, fontSize: 8 },
                     { text: fmtH(line.hours), fillColor: bg, alignment: "right" as const, bold: true },
+                  ];
+                }),
+              ],
+            },
+            layout: {
+              hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
+              vLineWidth: () => 0,
+              hLineColor: () => "#DDE3EA",
+              paddingLeft: () => 5,
+              paddingRight: () => 5,
+              paddingTop: () => 4,
+              paddingBottom: () => 4,
+            },
+          },
+        ]
+      : [];
+
+    const prevSatNotePdfBlock = prevSatNoteLines.length > 0
+      ? [
+          { text: `Opisy — ${PREV_SAT_SHORT}`, bold: true, fontSize: 10, color: C.navy, margin: [0, 16, 0, 6] as [number, number, number, number] },
+          {
+            table: {
+              headerRows: 1,
+              widths: [120, "*"],
+              body: [
+                ["Pracownik", "Opis"].map((t) => ({
+                  text: t, bold: true, color: C.white, fillColor: C.navy, fontSize: 8, alignment: "center" as const,
+                })),
+                ...prevSatNoteLines.map((line, i) => {
+                  const bg = i % 2 === 0 ? C.white : C.lightGray;
+                  return [
+                    { text: line.name, fillColor: bg },
+                    { text: line.text, fillColor: bg, color: C.muted },
                   ];
                 }),
               ],
@@ -1647,6 +1712,7 @@ function PayrollView({
           paddingLeft:()=>5, paddingRight:()=>5, paddingTop:()=>4, paddingBottom:()=>4,
         }},
         ...extraHourPdfBlock,
+        ...prevSatNotePdfBlock,
       ],
       defaultStyle:{font:"Roboto", fontSize:9, color:C.navy},
     };
@@ -1657,6 +1723,7 @@ function PayrollView({
   const exportWord = async () => {
     const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle } = await import("docx");
     const extraHourLines = payrollExtraHourLines(rows.map((r) => r.emp));
+    const prevSatNoteLines = payrollPrevSatNoteLines(rows.map((r) => r.emp));
     const bNone={style:BorderStyle.NONE,size:0,color:"FFFFFF"};
     const bThin={style:BorderStyle.SINGLE,size:2,color:"DDE3EA"};
     const mkCell=(txt:string,opts:{bold?:boolean;fill?:string;align?:typeof AlignmentType[keyof typeof AlignmentType];color?:string;size?:number}={})=>
@@ -1722,7 +1789,7 @@ function PayrollView({
                 mkCell(r.totalZaliczka>0?`${fmt(r.totalZaliczka)} PLN`:"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.totalZaliczka>0?"C0392B":"6B7A8D",size:16}),
                 mkCell(r.totalExtraCosts>0?`${fmt(r.totalExtraCosts)} PLN`:"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.totalExtraCosts>0?"1E7E34":"6B7A8D",size:16}),
                 mkCell(`${fmt(r.netPay)} PLN`,{bold:true,fill:i%2===0?"FFFFFF":"EDF1F6",color:"C0392B",size:16}),
-                mkCell(r.emp.settled?"Rozl.":"Oczek.",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.emp.settled?"1E7E34":"7B5800",bold:r.emp.settled,size:16}),
+                mkCell(r.emp.settled?"Rozliczony":"Oczekuje",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.emp.settled?"1E7E34":"7B5800",bold:r.emp.settled,size:15}),
               ]})),
               mkWordSum("Tydzien Pn-So", totalWeekHours, 0, totalWeekHours, totalWeekGross, totalWeekZaliczka, 0, totalWeekGross - totalWeekZaliczka),
               ...(totalPrevSatHours > 0 ? [mkWordSum(PREV_SAT_SHORT, 0, totalPrevSatHours, totalPrevSatHours, totalPrevSatGross, totalPrevSatZaliczka, 0, totalPrevSatGross - totalPrevSatZaliczka)] : []),
@@ -1759,6 +1826,33 @@ function PayrollView({
                 }),
               ]
             : []),
+          ...(prevSatNoteLines.length > 0
+            ? [
+                new Paragraph({
+                  spacing: { before: 360, after: 160 },
+                  children: [new TextRun({ text: `Opisy — ${PREV_SAT_SHORT}`, bold: true, size: 22, color: "344254", font: "Calibri" })],
+                }),
+                new Table({
+                  width: { size: 100, type: WidthType.PERCENTAGE },
+                  rows: [
+                    new TableRow({
+                      children: ["Pracownik", "Opis"].map((h) =>
+                        mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 16 }),
+                      ),
+                      tableHeader: true,
+                    }),
+                    ...prevSatNoteLines.map((line, i) =>
+                      new TableRow({
+                        children: [
+                          mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6" }),
+                          mkCell(line.text, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D" }),
+                        ],
+                      }),
+                    ),
+                  ],
+                }),
+              ]
+            : []),
           new Paragraph({spacing:{before:360},children:[new TextRun({text:`Wygenerowano: ${new Date().toLocaleDateString("pl-PL")}`,size:16,color:"8A9BB0",font:"Calibri"})]}),
         ],
       }],
@@ -1769,9 +1863,9 @@ function PayrollView({
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden">
       {/* Main list */}
-      <div className={`flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-300 ${selectedEmp?"sm:w-1/2":"w-full"}`}>
+      <div className={`flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-300 ${selectedEmp?"sm:flex-[0_0_38%] lg:flex-[0_0_34%]":"w-full"}`}>
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8 space-y-6">
+          <div className={`mx-auto px-4 sm:px-8 py-8 space-y-6 ${selectedEmp?"max-w-none":"max-w-4xl"}`}>
 
             {/* Saturday reminder */}
             {isSaturday && !satDismissed && (
@@ -1847,7 +1941,7 @@ function PayrollView({
                         <th className="px-3 py-3 text-right">Zaliczki</th>
                         <th className="px-3 py-3 text-right">Koszty</th>
                         <th className="px-3 py-3 text-right">Do wypłaty</th>
-                        <th className="px-4 py-3 text-center">Status</th>
+                        <th className="px-3 py-3 text-center whitespace-nowrap min-w-[7.75rem]">Status</th>
                         <th className="px-3 py-3 w-8"/>
                       </tr></thead>
                       <tbody className="divide-y divide-border">
@@ -1871,9 +1965,9 @@ function PayrollView({
                             <td className="px-3 py-3.5 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalZaliczka>0?<span className="text-destructive">−{fmt(r.totalZaliczka)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
                             <td className="px-3 py-3.5 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalExtraCosts>0?<span className="text-green-500">+{fmt(r.totalExtraCosts)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
                             <td className="px-3 py-3.5 text-right font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.netPay)} <span className="text-xs font-normal">PLN</span></td>
-                            <td className="px-4 py-3.5" onClick={(e)=>e.stopPropagation()}>
-                              <button onClick={()=>onToggleSettled(r.emp.id)} className={`mx-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${r.emp.settled?"bg-green-500/15 text-green-400 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}>
-                                {r.emp.settled?<><CheckCircle2 size={11}/>Rozl.</>:<><Circle size={11}/>Oczek.</>}
+                            <td className="px-3 py-3.5 whitespace-nowrap" onClick={(e)=>e.stopPropagation()}>
+                              <button onClick={()=>onToggleSettled(r.emp.id)} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${r.emp.settled?"bg-green-500/15 text-green-400 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}>
+                                {r.emp.settled?<><CheckCircle2 size={11}/>Rozliczony</>:<><Circle size={11}/>Oczekuje</>}
                               </button>
                             </td>
                             <td className="px-3 py-3.5" onClick={(e)=>e.stopPropagation()}>
@@ -1933,8 +2027,8 @@ function PayrollView({
                             <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground">{r.emp.name?r.emp.name[0].toUpperCase():"?"}</div>
                             <div><p className="text-sm font-medium">{r.emp.name||"—"}</p><p className="text-xs text-muted-foreground">{r.emp.position||"—"}</p></div>
                           </div>
-                          <button onClick={(e)=>{e.stopPropagation();onToggleSettled(r.emp.id);}} className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${r.emp.settled?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>
-                            {r.emp.settled?<><CheckCircle2 size={11}/>OK</>:<><Circle size={11}/>Oczek.</>}
+                          <button onClick={(e)=>{e.stopPropagation();onToggleSettled(r.emp.id);}} className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap shrink-0 ${r.emp.settled?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>
+                            {r.emp.settled?<><CheckCircle2 size={11}/>Rozliczony</>:<><Circle size={11}/>Oczekuje</>}
                           </button>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
@@ -1960,7 +2054,7 @@ function PayrollView({
 
       {/* Detail panel */}
       {selectedEmp && (
-        <div className="w-full sm:w-[420px] lg:w-[460px] border-l border-border bg-card shrink-0 flex flex-col min-h-0 h-full overflow-hidden absolute sm:relative inset-0 sm:inset-auto z-10 sm:z-auto">
+        <div className="w-full sm:flex-1 sm:min-w-[400px] lg:min-w-[480px] border-l border-border bg-card shrink-0 flex flex-col min-h-0 h-full overflow-hidden absolute sm:relative inset-0 sm:inset-auto z-10 sm:z-auto">
           <WeekEmployeeDetail emp={selectedEmp} weekFrom={weekFrom} onChange={onUpdateWeekEmployee} onClose={()=>setSelectedEmpId(null)}/>
         </div>
       )}
@@ -4826,7 +4920,7 @@ function HelpView() {
               {q:"Jak dodać pracownika do tygodnia?", a:'Kliknij "Dodaj pracownika" → zaznacz jednego lub kilku pracowników z listy (lub "Zaznacz wszystkich") → kliknij "Dodaj zaznaczonych". Jeśli tydzień jest pusty, pojawi się też przycisk "Kopiuj z poprzedniego tygodnia" — kliknij go, żeby od razu dodać tych samych co ostatnio.'},
               {q:"Jak wpisać godziny pracy?", a:"Kliknij na pracownika na liście — otworzy się panel z dniami tygodnia. Zaznacz dni kiedy pracował i wpisz godziny od–do. Aplikacja sama policzy ile godzin i ile się należy."},
               {q:"Jak dodać dodatkowe godziny w danym dniu?", a:"W panelu pracownika, pod wybranym dniem kliknij „Dodatkowe godziny w …”. Wpisz opis (np. dogrywka wieczorem, transport), godziny od–do i zapisz. Godziny dodają się do sumy dnia i całego tygodnia — w PDF/Word pojawi się osobna tabelka ze szczegółami."},
-              {q:"Co to jest Sob. poprz.?", a:"Sobota poprzedniego tygodnia — wypłacana w bieżącym tygodniu (bo za sobotę płacisz dopiero w następnym). U góry panelu pracownika, na żółtym tle. Ma te same pola co zwykły dzień: godziny, zaliczka i dodatkowe godziny z opisem. Bieżąca sobota (ostatni wiersz Pn–So) to praca w tym tygodniu — czasem wypłata w sobotę zamiast w piątek."},
+              {q:"Co to jest Sob. poprz.?", a:"Sobota poprzedniego tygodnia — wypłacana w bieżącym tygodniu (bo za sobotę płacisz dopiero w następnym). U góry panelu pracownika, na żółtym tle: godziny, zaliczka i przycisk „+ Opis” (np. co robiono albo ilu pracowników wypożyczono innym). Bieżąca sobota (ostatni wiersz Pn–So) to praca w tym tygodniu — czasem wypłata w sobotę zamiast w piątek."},
               {q:"Jak czytać sumy na liście płac?", a:"Kolumna Tydzień = godziny Pn–So bieżącego tygodnia (bez sob. poprz.). Sob.pr. = tylko sobota z poprzedniego tygodnia. Razem h = obie sumy. Na dole tabeli są trzy wiersze: Tydzień Pn–So, Sob. poprz. (jeśli jest) i RAZEM z do wypłaty."},
               {q:"Co to jest zaliczka?", a:"Jeśli pracownik wziął od Ciebie gotówkę z góry (np. na wypłatę w trakcie tygodnia), wpisz kwotę jako zaliczkę w danym dniu. Zostanie odjęta od kwoty do wypłaty."},
               {q:"Co to są koszty do zwrotu?", a:"W panelu pracownika (sekcja pod dniami tygodnia) kliknij „Dodaj” przy „Koszty do zwrotu”. Wpisz opis (chemia, paliwo, zakupy) i kwotę. Te koszty są doliczane do wypłaty — w przeciwieństwie do zaliczki, która jest odejmowana. Wzór: do wypłaty = brutto − zaliczki + koszty do zwrotu."},
@@ -5151,6 +5245,15 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.6.7", label:"Lista płac — poprawki UI",
+    items:[
+      {type:"fix", text:"Status Rozliczony / Oczekuje — pełny napis, bez przycinania w tabeli"},
+      {type:"new", text:"Sob. poprz. — „+ Opis” zamiast dodatkowych godzin (notatka o pracy lub wypożyczonych ludziach)"},
+      {type:"improve", text:"Panel edycji godzin szerszy — lista płac zwęża się po kliknięciu pracownika; bez poziomego przewijania"},
+      {type:"new", text:"Opisy Sob. poprz. w eksporcie PDF i Word"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.6.6", label:"Sobota poprzedniego tygodnia (Sob.pr.)",
     items:[

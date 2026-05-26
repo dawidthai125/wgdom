@@ -8,7 +8,7 @@ Backend W&G DOM to **jedna Edge Function** na Supabase. Frontend (Vercel) tylko 
 
 **Twój projekt:** `kchwyjlnkdlymwvsnfiu`  
 **Nazwa funkcji:** `make-server-0afb8820`  
-**Pliki w repozytorium:** `supabase/functions/server/index.tsx` + `kv_store.tsx`
+**Pliki w repozytorium:** `supabase/functions/make-server-0afb8820/index.tsx` + `kv_store.tsx`
 
 ---
 
@@ -53,7 +53,7 @@ Funkcja składa się z **dwóch plików**. Oba muszą być na serwerze.
 3. **Usuń całą starą zawartość** pliku głównego
 4. Skopiuj **cały** plik z komputera:
    ```
-   supabase/functions/server/index.tsx
+   supabase/functions/make-server-0afb8820/index.tsx
    ```
    (z GitHub po pushu albo lokalnie z folderu WGDOM1 — commit `1dd9247` lub nowszy dla v2.5)
 5. Wklej do edytora Supabase
@@ -64,7 +64,7 @@ Funkcja składa się z **dwóch plików**. Oba muszą być na serwerze.
 2. Nazwa pliku: **`kv_store.tsx`**
 3. Skopiuj zawartość z:
    ```
-   supabase/functions/server/kv_store.tsx
+   supabase/functions/make-server-0afb8820/kv_store.tsx
    ```
 4. Wklej i zapisz
 
@@ -266,7 +266,7 @@ supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfi
 | Zmiana w kodzie | Gdzie deploy |
 |-----------------|--------------|
 | Tylko `src/`, `public/` (React, PWA, UI) | **Git push** → Vercel sam zbuduje |
-| `supabase/functions/server/*` | **Supabase** (ten dokument, krok 3) |
+| `supabase/functions/make-server-0afb8820/*` | **Supabase** (ten dokument, krok 3) |
 | Nowy sekret (np. nowy klucz Resend) | Supabase → Secrets (krok 4) |
 
 ---
