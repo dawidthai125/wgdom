@@ -33,6 +33,22 @@ import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
 import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } from "@/lib/photo-queue";
 import { usePwaInstall } from "@/lib/pwa-install";
+import {
+  type EmailContact,
+  defaultEmailContact,
+  contactsForJobs,
+  contactsForPayroll,
+  contactAllowsJobs,
+  contactAllowsPayroll,
+} from "@/lib/email-contacts";
+import {
+  type PayrollCalcRow,
+  type PayrollExportTotals,
+  buildPayrollEmailHtml,
+  generatePayrollPdfBlob,
+  generatePayrollWordBlob,
+  blobToBase64,
+} from "@/lib/payroll-export";
 
 /** pdfmake ~1 MB — ładuj dopiero przy eksporcie PDF (szybszy start na telefonie). */
 async function loadPdfMake() {
@@ -60,15 +76,6 @@ interface DirectoryEmployee {
   defaultRate: string; // domyślna stawka PLN/h
   startDate: string;   // data zatrudnienia ISO
   active: boolean;     // czy aktualnie pracuje
-  notes: string;
-}
-
-/** Kontakt email — odbiorcy materiałów z robót */
-interface EmailContact {
-  id: string;
-  name: string;
-  email: string;
-  company: string;
   notes: string;
 }
 
@@ -290,10 +297,6 @@ function defaultDays(): Record<DayKey, DayData> { return Object.fromEntries(DAYS
 
 function defaultDirEmployee(): DirectoryEmployee {
   return { id: crypto.randomUUID(), name: "", phone: "", position: "", defaultRate: "25.00", startDate: new Date().toISOString().slice(0,10), active: true, notes: "" };
-}
-
-function defaultEmailContact(): EmailContact {
-  return { id: crypto.randomUUID(), name: "", email: "", company: "", notes: "" };
 }
 
 const PHOTO_LABEL_NAMES: Record<PhotoEntry["label"], string> = {
@@ -1525,15 +1528,195 @@ function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee
   );
 }
 
+// ─── Lista Płac — eksport / email ─────────────────────────────────────────────
+
+function toPayrollCalcRows(rows: ({ emp: WeekEmployee } & ReturnType<typeof calcWeekEmployee>)[]): PayrollCalcRow[] {
+  return rows.map((r) => ({
+    emp: { name: r.emp.name, position: r.emp.position, settled: r.emp.settled },
+    weekHours: r.weekHours,
+    prevSatHours: r.prevSatHours,
+    totalHours: r.totalHours,
+    totalExtraHours: r.totalExtraHours,
+    weekZaliczka: r.weekZaliczka,
+    prevSatZaliczka: r.prevSatZaliczka,
+    totalZaliczka: r.totalZaliczka,
+    totalExtraCosts: r.totalExtraCosts,
+    weekGross: r.weekGross,
+    prevSatGross: r.prevSatGross,
+    grossPay: r.grossPay,
+    weekNet: r.weekNet,
+    prevSatNet: r.prevSatNet,
+    netPay: r.netPay,
+    rateNum: r.rateNum,
+  }));
+}
+
+function PayrollEmailModal({
+  weekFrom,
+  weekTo,
+  rows,
+  totals,
+  contacts,
+  onClose,
+  onManageContacts,
+}: {
+  weekFrom: string;
+  weekTo: string;
+  rows: ({ emp: WeekEmployee } & ReturnType<typeof calcWeekEmployee>)[];
+  totals: PayrollExportTotals;
+  contacts: EmailContact[];
+  onClose: () => void;
+  onManageContacts: () => void;
+}) {
+  const payrollContacts = contactsForPayroll(contacts);
+  const [contactId, setContactId] = useState("");
+  const [manualEmail, setManualEmail] = useState("");
+  const [attachPdf, setAttachPdf] = useState(true);
+  const [attachWord, setAttachWord] = useState(true);
+  const [subject, setSubject] = useState(`Lista płac W&G DOM — ${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`);
+  const [introMessage, setIntroMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const useManual = contactId === "__manual__" || payrollContacts.length === 0;
+  const selectedContact = payrollContacts.find((c) => c.id === contactId) || null;
+  const recipientEmail = useManual ? manualEmail.trim() : (selectedContact?.email.trim() || "");
+  const calcRows = useMemo(() => toPayrollCalcRows(rows), [rows]);
+  const canSend = Boolean(recipientEmail) && (attachPdf || attachWord) && !sending;
+
+  const handleSend = async () => {
+    setError("");
+    if (!recipientEmail) {
+      setError("Wybierz odbiorcę z uprawnieniem „Lista płac” lub wpisz email ręcznie.");
+      return;
+    }
+    if (!attachPdf && !attachWord) {
+      setError("Zaznacz co najmniej jeden załącznik (PDF lub Word).");
+      return;
+    }
+    setSending(true);
+    try {
+      const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
+      const prevSatDetails = payrollPrevSatDetailLines(rows.map((r) => r.emp), weekFrom);
+      const prevSatIso = previousSaturdayIso(weekFrom);
+      const attachments: { filename: string; content: string }[] = [];
+      if (attachPdf) {
+        const pdfBlob = await generatePayrollPdfBlob(weekFrom, weekTo, calcRows, totals, extraHourLines, prevSatDetails, prevSatIso);
+        attachments.push({ filename: `lista-plac-${weekFrom}.pdf`, content: await blobToBase64(pdfBlob) });
+      }
+      if (attachWord) {
+        const wordBlob = await generatePayrollWordBlob(weekFrom, weekTo, calcRows, totals, extraHourLines, prevSatDetails, prevSatIso);
+        attachments.push({ filename: `lista-plac-${weekFrom}.docx`, content: await blobToBase64(wordBlob) });
+      }
+      const html = buildPayrollEmailHtml(weekFrom, weekTo, calcRows, totals, introMessage);
+      const res = await fetch(`${API_BASE}/send-payroll-email`, {
+        method: "POST",
+        headers: API_HEADERS,
+        body: JSON.stringify({
+          to: recipientEmail,
+          toName: selectedContact?.name || "",
+          subject: subject.trim() || `Lista płac W&G DOM — ${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`,
+          html,
+          attachments,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error || `Błąd wysyłki (${res.status})`);
+      setSuccess(true);
+      setTimeout(onClose, 1800);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Nie udało się wysłać emaila.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div className="bg-card rounded-t-2xl sm:rounded-2xl border border-border w-full max-w-lg shadow-2xl max-h-[92dvh] flex flex-col">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between shrink-0">
+          <div>
+            <p className="text-sm font-semibold">Wyślij listę płac emailem</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{fmtDate(weekFrom)} – {fmtDate(weekTo)}</p>
+          </div>
+          <button type="button" onClick={onClose} className="p-1 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          {success ? (
+            <div className="flex items-center gap-2 text-green-400 text-sm py-8 justify-center"><CheckCircle2 size={18}/>Wysłano pomyślnie</div>
+          ) : (
+            <>
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1.5">Odbiorca (tylko kontakty z uprawnieniem Lista płac)</label>
+                {payrollContacts.length === 0 ? (
+                  <p className="text-xs text-amber-500 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 mb-2">
+                    Brak kontaktów z uprawnieniem „Lista płac”. Włącz je w zakładce Kontakty lub wpisz adres ręcznie poniżej.
+                  </p>
+                ) : (
+                  <select value={contactId} onChange={(e) => setContactId(e.target.value)} className="w-full bg-secondary rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none mb-2">
+                    <option value="">— Wybierz kontakt —</option>
+                    {payrollContacts.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name || c.email}{c.company ? ` · ${c.company}` : ""} ({c.email})</option>
+                    ))}
+                    <option value="__manual__">Inny adres (wpisz ręcznie)</option>
+                  </select>
+                )}
+                {(useManual || payrollContacts.length === 0) && (
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1.5">Email odbiorcy</label>
+                    <input type="email" value={manualEmail} onChange={(e) => setManualEmail(e.target.value)} placeholder="odbiorca@example.com" className="w-full bg-secondary rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"/>
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1.5">Temat</label>
+                <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full bg-secondary rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"/>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1.5">Wiadomość (w treści maila — podgląd tabeli jak w PDF)</label>
+                <textarea rows={3} value={introMessage} onChange={(e) => setIntroMessage(e.target.value)} placeholder="Opcjonalnie: krótki opis dla odbiorcy..." className="w-full bg-secondary rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none resize-y"/>
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Załączniki</p>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="checkbox" checked={attachPdf} onChange={(e) => setAttachPdf(e.target.checked)} className="rounded"/>
+                  PDF (pełna lista + załączniki)
+                </label>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="checkbox" checked={attachWord} onChange={(e) => setAttachWord(e.target.checked)} className="rounded"/>
+                  Word (.docx)
+                </label>
+              </div>
+              {error && <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">{error}</p>}
+            </>
+          )}
+        </div>
+        {!success && (
+          <div className="px-5 py-4 border-t border-border flex flex-col sm:flex-row gap-2 shrink-0">
+            <button type="button" onClick={onManageContacts} className="text-xs text-primary hover:underline text-left sm:mr-auto py-2">Zarządzaj kontaktami →</button>
+            <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">Anuluj</button>
+            <button type="button" onClick={handleSend} disabled={!canSend} className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+              {sending ? <><CloudUpload size={14} className="animate-pulse"/>Wysyłanie...</> : <><Send size={14}/>Wyślij</>}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Lista Płac (current week) ────────────────────────────────────────────────
 
 function PayrollView({
-  weekEmployees, weekFrom, weekTo, directory,
+  weekEmployees, weekFrom, weekTo, directory, contacts,
   onWeekChange, onToggleSettled, onSaveWeek, savedWeeks,
   onAddFromDirectory, onRemoveWeekEmployee, onUpdateWeekEmployee, onGoToCurrent,
+  onManageContacts,
 }:{
   weekEmployees: WeekEmployee[]; weekFrom:string; weekTo:string;
   directory: DirectoryEmployee[];
+  contacts: EmailContact[];
   onWeekChange:(f:string,t:string)=>void;
   onToggleSettled:(id:string)=>void;
   onSaveWeek:()=>void;
@@ -1542,6 +1725,7 @@ function PayrollView({
   onRemoveWeekEmployee:(id:string)=>void;
   onUpdateWeekEmployee:(emp:WeekEmployee)=>void;
   onGoToCurrent:()=>void;
+  onManageContacts:()=>void;
 }) {
   const [selectedEmpId, setSelectedEmpId] = useState<string|null>(null);
   const [showPicker, setShowPicker] = useState(false);
@@ -1549,6 +1733,7 @@ function PayrollView({
   const [pickerSelected, setPickerSelected] = useState<Set<string>>(new Set());
   const [deleteConfirm, setDeleteConfirm] = useState<string|null>(null);
   const [satDismissed, setSatDismissed] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   const isSaturday = new Date().getDay() === 6;
 
@@ -1589,439 +1774,40 @@ function PayrollView({
 
   const selectedEmp = weekEmployees.find((e)=>e.id===selectedEmpId)||null;
 
-  const C = { navy:"#344254", red:"#C0392B", lightNavy:"#EDF1F6", white:"#FFFFFF", lightGray:"#F8F9FB", muted:"#6B7A8D", green:"#1E7E34", gold:"#7B5800" };
-  const PW = 841.89; // A4 landscape width in points
+  const exportTotals: PayrollExportTotals = {
+    totalWeekHours,
+    totalPrevSatHours,
+    totalHoursAll,
+    totalWeekGross,
+    totalPrevSatGross,
+    totalGross,
+    totalWeekZaliczka,
+    totalPrevSatZaliczka,
+    totalZaliczkaSum,
+    totalExtraCostsSum,
+    totalNet,
+    settledCount: rows.filter((r) => r.emp.settled).length,
+    employeeCount: rows.length,
+  };
 
-  const exportPDF = async () => {
-    const pdfMake = await loadPdfMake();
-    const settled = rows.filter(r=>r.emp.settled).length;
-
-    const hdrRow = ["Lp.","Pracownik","Stanowisko","Stawka (PLN/h)","Tydzień","Sob.pr.","Razem h","Brutto (PLN)","Zaliczki (PLN)","Koszty (PLN)","Do wypłaty (PLN)","Status"].map(t=>({
-      text:t, bold:true, color:C.white, fillColor:C.navy, fontSize:7, alignment:"center" as const, margin:[2,3,2,3] as [number,number,number,number],
-    }));
-
-    const dataRows = rows.map((r,i)=>{
-      const bg = i%2===0?C.white:C.lightGray;
-      return [
-        {text:String(i+1), alignment:"center" as const, fillColor:bg, bold:true, fontSize:8},
-        {text:r.emp.name||"—", fillColor:bg, fontSize:8},
-        {text:r.emp.position||"—", fillColor:bg, color:C.muted, fontSize:8},
-        {text:`${fmt(r.rateNum)}`, alignment:"right" as const, fillColor:bg, color:C.muted, fontSize:8},
-        {text:r.weekHours>0?fmtH(r.weekHours):"—", alignment:"right" as const, fillColor:bg, fontSize:8},
-        {text:r.prevSatHours>0?fmtH(r.prevSatHours):"—", alignment:"right" as const, fillColor:bg, color:C.gold, fontSize:8},
-        {text:fmtH(r.totalHours), alignment:"right" as const, fillColor:bg, bold:true, fontSize:8},
-        {text:`${fmt(r.grossPay)}`, alignment:"right" as const, fillColor:bg, color:C.muted, fontSize:8},
-        {text:r.totalZaliczka>0?`${fmt(r.totalZaliczka)}`:"—", alignment:"right" as const, fillColor:bg, fontSize:8},
-        {text:r.totalExtraCosts>0?`${fmt(r.totalExtraCosts)}`:"—", alignment:"right" as const, fillColor:bg, color:C.green, fontSize:8},
-        {text:`${fmt(r.netPay)}`, bold:true, color:C.red, alignment:"right" as const, fillColor:bg, fontSize:8},
-        {text:r.emp.settled?"Rozliczony":"Oczekuje", alignment:"center" as const, color:r.emp.settled?C.green:C.gold, bold:r.emp.settled, fillColor:bg, fontSize:7},
-      ];
-    });
-
-    const mkSum = (label: string, weekH: number, prevH: number, totH: number, gross: number, zal: number, extra: number, net: number, bold = false) => [
-      {text:"", fillColor:C.lightNavy},
-      {text:label, bold:true, fillColor:C.lightNavy, fontSize:7},
-      {text:"", fillColor:C.lightNavy},
-      {text:"", fillColor:C.lightNavy},
-      {text:weekH>0?fmtH(weekH):"—", bold, alignment:"right" as const, fillColor:C.lightNavy, fontSize:8},
-      {text:prevH>0?fmtH(prevH):"—", bold, alignment:"right" as const, fillColor:C.lightNavy, color:C.gold, fontSize:8},
-      {text:fmtH(totH), bold:true, alignment:"right" as const, fillColor:C.lightNavy, fontSize:8},
-      {text:`${fmt(gross)}`, bold, alignment:"right" as const, fillColor:C.lightNavy, color:C.muted, fontSize:8},
-      {text:zal>0?`${fmt(zal)}`:"—", bold, alignment:"right" as const, fillColor:C.lightNavy, fontSize:8},
-      {text:extra>0?`${fmt(extra)}`:"—", bold, alignment:"right" as const, fillColor:C.lightNavy, color:C.green, fontSize:8},
-      {text:net>0||bold?`${fmt(net)}`:"—", bold:true, color:C.red, alignment:"right" as const, fillColor:C.lightNavy, fontSize:9},
-      {text:"", fillColor:C.lightNavy},
-    ];
-
-    const sumRows = [
-      mkSum("Tydzień Pn–So", totalWeekHours, 0, totalWeekHours, totalWeekGross, totalWeekZaliczka, 0, totalWeekGross - totalWeekZaliczka),
-      ...(totalPrevSatHours > 0 ? [mkSum(PREV_SAT_SHORT, 0, totalPrevSatHours, totalPrevSatHours, totalPrevSatGross, totalPrevSatZaliczka, 0, totalPrevSatGross - totalPrevSatZaliczka)] : []),
-      mkSum("RAZEM", totalWeekHours, totalPrevSatHours, totalHoursAll, totalGross, totalZaliczkaSum, totalExtraCostsSum, totalNet, true),
-    ];
-
+  const payrollExportArgs = () => {
+    const calcRows = toPayrollCalcRows(rows);
     const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
     const prevSatDetails = payrollPrevSatDetailLines(rows.map((r) => r.emp), weekFrom);
     const prevSatIso = previousSaturdayIso(weekFrom);
-    const totalExtraHourSum = extraHourLines.reduce((s, l) => s + l.hours, 0);
-    const extraHourAppendixPdfBlock = extraHourLines.length > 0
-      ? [{
-          stack: [
-            {
-              text: "Dodatkowe godziny w tygodniu Pn–So",
-              bold: true,
-              fontSize: 11,
-              color: C.navy,
-              margin: [0, 0, 0, 4] as [number, number, number, number],
-            },
-            {
-              text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · godziny ponad standardową zmianę dzienną`,
-              fontSize: 8,
-              color: C.muted,
-              margin: [0, 0, 0, 4] as [number, number, number, number],
-            },
-            {
-              text: "Kolumna „Powód / opis” — uzasadnienie dodatkowej pracy (np. dogrywka, transport, inna robot).",
-              fontSize: 7,
-              color: C.gold,
-              margin: [0, 0, 0, 10] as [number, number, number, number],
-            },
-            {
-              table: {
-                headerRows: 1,
-                dontBreakRows: true,
-                widths: [68, 54, 34, 50, 50, 32, "*"],
-                body: [
-                  ["Pracownik", "Stanowisko", "Dzień", "Zmiana podst.", "Dodatkowo", "Godz.", "Powód / opis"].map((t) => ({
-                    text: t,
-                    bold: true,
-                    color: C.white,
-                    fillColor: C.navy,
-                    fontSize: 7,
-                    alignment: "center" as const,
-                  })),
-                  ...extraHourLines.map((line, i) => {
-                    const bg = i % 2 === 0 ? C.white : C.lightGray;
-                    return [
-                      { text: line.name, fillColor: bg, fontSize: 8 },
-                      { text: line.position, fillColor: bg, color: C.muted, fontSize: 7 },
-                      { text: line.day, fillColor: bg, alignment: "center" as const, fontSize: 7 },
-                      { text: line.baseShift, fillColor: bg, alignment: "center" as const, fontSize: 7, color: C.muted },
-                      { text: line.extraRange, fillColor: bg, alignment: "center" as const, fontSize: 7 },
-                      { text: line.hours > 0 ? fmtH(line.hours) : "—", fillColor: bg, alignment: "right" as const, fontSize: 8, bold: line.hours > 0 },
-                      { text: line.reason, fillColor: bg, color: C.muted, fontSize: 7, alignment: "left" as const },
-                    ];
-                  }),
-                  [
-                    { text: "", fillColor: C.lightNavy },
-                    { text: "Razem dodatkowe", bold: true, colSpan: 4, fillColor: C.lightNavy, fontSize: 7, alignment: "right" as const },
-                    {}, {}, {},
-                    { text: fmtH(totalExtraHourSum), bold: true, fillColor: C.lightNavy, alignment: "right" as const, fontSize: 8 },
-                    { text: "", fillColor: C.lightNavy },
-                  ],
-                ],
-              },
-              layout: {
-                hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
-                vLineWidth: () => 0,
-                hLineColor: () => "#DDE3EA",
-                paddingLeft: () => 5,
-                paddingRight: () => 5,
-                paddingTop: () => 4,
-                paddingBottom: () => 4,
-              },
-            },
-          ],
-          pageBreak: "before" as const,
-          unbreakable: false,
-        }]
-      : [];
+    return { calcRows, extraHourLines, prevSatDetails, prevSatIso };
+  };
 
-    const prevSatAppendixPdfBlock = prevSatDetails.length > 0
-      ? [{
-          stack: [
-            {
-              text: "Sobota poprzedniego tygodnia — szczegóły",
-              bold: true,
-              fontSize: 11,
-              color: C.navy,
-              margin: [0, 0, 0, 4] as [number, number, number, number],
-            },
-            {
-              text: `Data: ${fmtDate(prevSatIso)} · wypłata w tygodniu ${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`,
-              fontSize: 8,
-              color: C.gold,
-              margin: [0, 0, 0, 10] as [number, number, number, number],
-            },
-            {
-              table: {
-                headerRows: 1,
-                dontBreakRows: true,
-                widths: [72, 58, 44, 50, 34, 40, 40, "*"],
-                body: [
-                  ["Pracownik", "Stanowisko", "Data", "Od–Do", "Godz.", "Zaliczka", "Brutto", "Opisy / uwagi"].map((t) => ({
-                    text: t,
-                    bold: true,
-                    color: C.white,
-                    fillColor: C.navy,
-                    fontSize: 7,
-                    alignment: "center" as const,
-                  })),
-                  ...prevSatDetails.map((line, i) => {
-                    const bg = i % 2 === 0 ? C.white : C.lightGray;
-                    return [
-                      { text: line.name, fillColor: bg, fontSize: 8 },
-                      { text: line.position, fillColor: bg, color: C.muted, fontSize: 7 },
-                      { text: line.dateLabel, fillColor: bg, alignment: "center" as const, fontSize: 7, color: C.gold },
-                      { text: line.timeRange, fillColor: bg, alignment: "center" as const, fontSize: 7 },
-                      { text: line.hours > 0 ? fmtH(line.hours) : "—", fillColor: bg, alignment: "right" as const, fontSize: 8, bold: line.hours > 0 },
-                      { text: line.zaliczka > 0 ? fmt(line.zaliczka) : "—", fillColor: bg, alignment: "right" as const, fontSize: 7, color: line.zaliczka > 0 ? C.red : C.muted },
-                      { text: line.gross > 0 ? fmt(line.gross) : "—", fillColor: bg, alignment: "right" as const, fontSize: 7, color: line.gross > 0 ? C.muted : C.muted },
-                      { text: line.notesText, fillColor: bg, color: C.muted, fontSize: 7, alignment: "left" as const },
-                    ];
-                  }),
-                ],
-              },
-              layout: {
-                hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
-                vLineWidth: () => 0,
-                hLineColor: () => "#DDE3EA",
-                paddingLeft: () => 5,
-                paddingRight: () => 5,
-                paddingTop: () => 4,
-                paddingBottom: () => 4,
-              },
-            },
-          ],
-          pageBreak: "before" as const,
-          unbreakable: false,
-        }]
-      : [];
-
-    const docDef: any = {
-      pageSize:"A4", pageOrientation:"landscape", pageMargins:[25,68,25,32],
-      header:()=>({
-        stack:[
-          {canvas:[
-            {type:"rect",x:0,y:0,w:PW,h:50,color:C.navy},
-            {type:"rect",x:0,y:50,w:PW,h:3,color:C.red},
-          ]},
-          {text:"LISTA PŁAC", fontSize:18, bold:true, color:C.white, absolutePosition:{x:25,y:15}},
-          {text:"W&G DOM", fontSize:9, color:C.white, absolutePosition:{x:PW-80,y:20}},
-        ]
-      }),
-      footer:(cur:number,total:number)=>({
-        stack:[
-          {canvas:[{type:"rect",x:0,y:0,w:PW,h:22,color:C.lightNavy}]},
-          {columns:[
-            {text:`W&G DOM — Lista Płac — wygenerowano ${new Date().toLocaleDateString("pl-PL")}`, fontSize:7, color:C.navy},
-            {text:`Strona ${cur}/${total}`, fontSize:7, color:C.navy, alignment:"right"},
-          ], absolutePosition:{x:25,y:5}, width:PW-50},
-        ]
-      }),
-      content:[
-        {columns:[
-          {text:[{text:"Okres: ",bold:true,color:C.navy},{text:`${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`,color:C.navy}]},
-          {text:[{text:"Pracownicy: ",bold:true,color:C.navy},{text:String(rows.length),color:C.navy}]},
-          {text:[{text:"Rozliczeni: ",bold:true,color:C.navy},{text:`${settled}/${rows.length}`,color:C.navy}]},
-          {text:[{text:"Do wypłaty: ",bold:true,color:C.navy},{text:`${fmt(totalNet)} PLN`,bold:true,color:C.red}], alignment:"right"},
-        ], fontSize:9, margin:[0,0,0,14]},
-        {table:{
-          headerRows:1,
-          widths:[16,"*",58,40,36,36,38,44,44,44,50,40],
-          body:[hdrRow,...dataRows,...sumRows],
-        }, layout:{
-          hLineWidth:(i:number,node:any)=>(i===0||i===node.table.body.length)?0:0.5,
-          vLineWidth:()=>0,
-          hLineColor:()=>"#DDE3EA",
-          paddingLeft:()=>5, paddingRight:()=>5, paddingTop:()=>4, paddingBottom:()=>4,
-        }},
-        ...extraHourAppendixPdfBlock,
-        ...prevSatAppendixPdfBlock,
-      ],
-      defaultStyle:{font:"Roboto", fontSize:9, color:C.navy},
-    };
-
-    pdfMake.createPdf(docDef).download(`lista-plac-${weekFrom}.pdf`);
+  const exportPDF = async () => {
+    const { calcRows, extraHourLines, prevSatDetails, prevSatIso } = payrollExportArgs();
+    const blob = await generatePayrollPdfBlob(weekFrom, weekTo, calcRows, exportTotals, extraHourLines, prevSatDetails, prevSatIso);
+    saveAs(blob, `lista-plac-${weekFrom}.pdf`);
   };
 
   const exportWord = async () => {
-    const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle, PageBreak } = await import("docx");
-    const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
-    const prevSatDetails = payrollPrevSatDetailLines(rows.map((r) => r.emp), weekFrom);
-    const prevSatIso = previousSaturdayIso(weekFrom);
-    const totalExtraHourSum = extraHourLines.reduce((s, l) => s + l.hours, 0);
-    const bNone={style:BorderStyle.NONE,size:0,color:"FFFFFF"};
-    const bThin={style:BorderStyle.SINGLE,size:2,color:"DDE3EA"};
-    const mkCell=(txt:string,opts:{bold?:boolean;fill?:string;align?:typeof AlignmentType[keyof typeof AlignmentType];color?:string;size?:number}={})=>
-      new TableCell({
-        children:[new Paragraph({
-          children:[new TextRun({text:txt,bold:opts.bold??false,size:opts.size??18,color:opts.color??"344254",font:"Calibri"})],
-          alignment:opts.align??AlignmentType.CENTER,
-        })],
-        shading:opts.fill?{fill:opts.fill,color:opts.fill}:undefined,
-        margins:{top:90,bottom:90,left:120,right:120},
-        borders:{top:bThin,bottom:bThin,left:bNone,right:bNone},
-      });
-    const mkCellMultiline=(txt:string,opts:{fill?:string;align?:typeof AlignmentType[keyof typeof AlignmentType];color?:string;size?:number}={})=>
-      new TableCell({
-        children:(txt||"—").split("\n").map((line)=>new Paragraph({
-          children:[new TextRun({text:line,size:opts.size??16,color:opts.color??"6B7A8D",font:"Calibri"})],
-          alignment:opts.align??AlignmentType.LEFT,
-        })),
-        shading:opts.fill?{fill:opts.fill,color:opts.fill}:undefined,
-        margins:{top:90,bottom:90,left:120,right:120},
-        borders:{top:bThin,bottom:bThin,left:bNone,right:bNone},
-      });
-    const colHeaders=["Lp.","Pracownik","Stanowisko","Stawka","Tydz.","Sob.pr.","Razem h","Brutto","Zaliczki","Koszty","Do wyplaty","Status"];
-    const settled=rows.filter(r=>r.emp.settled).length;
-    const mkWordSum = (label: string, weekH: number, prevH: number, totH: number, gross: number, zal: number, extra: number, net: number, bold = false) =>
-      new TableRow({children:[
-        mkCell("",{fill:"EDF1F6"}),
-        mkCell(label,{bold:true,fill:"EDF1F6",align:AlignmentType.LEFT,size:bold?18:16}),
-        mkCell("",{fill:"EDF1F6"}),
-        mkCell("",{fill:"EDF1F6"}),
-        mkCell(weekH>0?fmtH(weekH):"-",{bold,fill:"EDF1F6",size:16}),
-        mkCell(prevH>0?fmtH(prevH):"-",{bold,fill:"EDF1F6",color:prevH>0?"7B5800":"6B7A8D",size:16}),
-        mkCell(fmtH(totH),{bold:true,fill:"EDF1F6",size:16}),
-        mkCell(`${fmt(gross)} PLN`,{bold,fill:"EDF1F6",color:"6B7A8D",size:16}),
-        mkCell(zal>0?`${fmt(zal)} PLN`:"-",{bold,fill:"EDF1F6",color:"C0392B",size:16}),
-        mkCell(extra>0?`${fmt(extra)} PLN`:"-",{bold,fill:"EDF1F6",color:extra>0?"1E7E34":"6B7A8D",size:16}),
-        mkCell(`${fmt(net)} PLN`,{bold:true,fill:"EDF1F6",color:"C0392B",size:bold?22:18}),
-        mkCell("",{fill:"EDF1F6"}),
-      ]});
-    const doc=new Document({
-      styles:{default:{document:{run:{font:"Calibri"}}}},
-      sections:[{
-        properties:{page:{margin:{top:800,bottom:800,left:1000,right:1000}}},
-        children:[
-          new Paragraph({children:[new TextRun({text:"W&G DOM",bold:true,size:32,color:"344254",font:"Calibri"})],alignment:AlignmentType.LEFT,spacing:{after:80}}),
-          new Paragraph({children:[new TextRun({text:"LISTA PLAC",bold:true,size:52,color:"C0392B",font:"Calibri"})],alignment:AlignmentType.LEFT,spacing:{after:80}}),
-          new Paragraph({children:[
-            new TextRun({text:"Okres: ",bold:true,size:20,color:"344254",font:"Calibri"}),
-            new TextRun({text:`${fmtDate(weekFrom)} - ${fmtDate(weekTo)}   `,size:20,color:"344254",font:"Calibri"}),
-            new TextRun({text:"Pracownicy: ",bold:true,size:20,color:"344254",font:"Calibri"}),
-            new TextRun({text:`${rows.length}   `,size:20,color:"344254",font:"Calibri"}),
-            new TextRun({text:"Rozliczeni: ",bold:true,size:20,color:"344254",font:"Calibri"}),
-            new TextRun({text:`${settled}/${rows.length}   `,size:20,color:"344254",font:"Calibri"}),
-            new TextRun({text:"Do wyplaty: ",bold:true,size:20,color:"344254",font:"Calibri"}),
-            new TextRun({text:`${fmt(totalNet)} PLN`,bold:true,size:20,color:"C0392B",font:"Calibri"}),
-          ],spacing:{after:280}}),
-          new Table({
-            width:{size:100,type:WidthType.PERCENTAGE},
-            rows:[
-              new TableRow({
-                children:colHeaders.map(h=>mkCell(h,{bold:true,fill:"344254",color:"FFFFFF",size:16})),
-                tableHeader:true,
-              }),
-              ...rows.map((r,i)=>new TableRow({children:[
-                mkCell(String(i+1),{bold:true,fill:i%2===0?"FFFFFF":"EDF1F6",size:16}),
-                mkCell(r.emp.name||"-",{align:AlignmentType.LEFT,fill:i%2===0?"FFFFFF":"EDF1F6",size:16}),
-                mkCell(r.emp.position||"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:"6B7A8D",size:16}),
-                mkCell(`${fmt(r.rateNum)}`,{fill:i%2===0?"FFFFFF":"EDF1F6",color:"6B7A8D",size:16}),
-                mkCell(r.weekHours>0?fmtH(r.weekHours):"-",{fill:i%2===0?"FFFFFF":"EDF1F6",size:16}),
-                mkCell(r.prevSatHours>0?fmtH(r.prevSatHours):"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.prevSatHours>0?"7B5800":"6B7A8D",size:16}),
-                mkCell(fmtH(r.totalHours),{bold:true,fill:i%2===0?"FFFFFF":"EDF1F6",size:16}),
-                mkCell(`${fmt(r.grossPay)} PLN`,{fill:i%2===0?"FFFFFF":"EDF1F6",color:"6B7A8D",size:16}),
-                mkCell(r.totalZaliczka>0?`${fmt(r.totalZaliczka)} PLN`:"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.totalZaliczka>0?"C0392B":"6B7A8D",size:16}),
-                mkCell(r.totalExtraCosts>0?`${fmt(r.totalExtraCosts)} PLN`:"-",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.totalExtraCosts>0?"1E7E34":"6B7A8D",size:16}),
-                mkCell(`${fmt(r.netPay)} PLN`,{bold:true,fill:i%2===0?"FFFFFF":"EDF1F6",color:"C0392B",size:16}),
-                mkCell(r.emp.settled?"Rozliczony":"Oczekuje",{fill:i%2===0?"FFFFFF":"EDF1F6",color:r.emp.settled?"1E7E34":"7B5800",bold:r.emp.settled,size:15}),
-              ]})),
-              mkWordSum("Tydzien Pn-So", totalWeekHours, 0, totalWeekHours, totalWeekGross, totalWeekZaliczka, 0, totalWeekGross - totalWeekZaliczka),
-              ...(totalPrevSatHours > 0 ? [mkWordSum(PREV_SAT_SHORT, 0, totalPrevSatHours, totalPrevSatHours, totalPrevSatGross, totalPrevSatZaliczka, 0, totalPrevSatGross - totalPrevSatZaliczka)] : []),
-              mkWordSum("RAZEM", totalWeekHours, totalPrevSatHours, totalHoursAll, totalGross, totalZaliczkaSum, totalExtraCostsSum, totalNet, true),
-            ],
-          }),
-          ...(extraHourLines.length > 0
-            ? [
-                new Paragraph({ children: [new PageBreak()] }),
-                new Paragraph({
-                  spacing: { after: 100 },
-                  children: [new TextRun({ text: "Dodatkowe godziny w tygodniu Pn–So", bold: true, size: 24, color: "344254", font: "Calibri" })],
-                }),
-                new Paragraph({
-                  spacing: { after: 80 },
-                  children: [new TextRun({
-                    text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · godziny ponad standardową zmianę dzienną`,
-                    size: 18,
-                    color: "6B7A8D",
-                    font: "Calibri",
-                  })],
-                }),
-                new Paragraph({
-                  spacing: { after: 200 },
-                  children: [new TextRun({
-                    text: "Kolumna „Powód / opis” — uzasadnienie dodatkowej pracy (np. dogrywka, transport, inna robot).",
-                    size: 16,
-                    color: "7B5800",
-                    font: "Calibri",
-                  })],
-                }),
-                new Table({
-                  width: { size: 100, type: WidthType.PERCENTAGE },
-                  rows: [
-                    new TableRow({
-                      children: ["Pracownik", "Stanowisko", "Dzień", "Zmiana podst.", "Dodatkowo", "Godz.", "Powód / opis"].map((h) =>
-                        mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 14 }),
-                      ),
-                      tableHeader: true,
-                    }),
-                    ...extraHourLines.map((line, i) =>
-                      new TableRow({
-                        children: [
-                          mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
-                          mkCell(line.position, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
-                          mkCell(line.day, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 14 }),
-                          mkCell(line.baseShift, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
-                          mkCell(line.extraRange, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 14 }),
-                          mkCell(line.hours > 0 ? fmtH(line.hours) : "—", { bold: line.hours > 0, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
-                          mkCellMultiline(line.reason, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
-                        ],
-                      }),
-                    ),
-                    new TableRow({
-                      children: [
-                        mkCell("", { fill: "EDF1F6" }),
-                        mkCell("Razem dodatkowe", { bold: true, fill: "EDF1F6", align: AlignmentType.RIGHT, size: 14 }),
-                        mkCell("", { fill: "EDF1F6" }),
-                        mkCell("", { fill: "EDF1F6" }),
-                        mkCell("", { fill: "EDF1F6" }),
-                        mkCell(fmtH(totalExtraHourSum), { bold: true, fill: "EDF1F6", size: 16 }),
-                        mkCell("", { fill: "EDF1F6" }),
-                      ],
-                    }),
-                  ],
-                }),
-              ]
-            : []),
-          ...(prevSatDetails.length > 0
-            ? [
-                new Paragraph({ children: [new PageBreak()] }),
-                new Paragraph({
-                  spacing: { after: 100 },
-                  children: [new TextRun({ text: "Sobota poprzedniego tygodnia — szczegóły", bold: true, size: 24, color: "344254", font: "Calibri" })],
-                }),
-                new Paragraph({
-                  spacing: { after: 220 },
-                  children: [new TextRun({
-                    text: `Data: ${fmtDate(prevSatIso)} · wypłata w tygodniu ${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`,
-                    size: 18,
-                    color: "7B5800",
-                    font: "Calibri",
-                  })],
-                }),
-                new Table({
-                  width: { size: 100, type: WidthType.PERCENTAGE },
-                  rows: [
-                    new TableRow({
-                      children: ["Pracownik", "Stanowisko", "Data", "Od–Do", "Godz.", "Zaliczka", "Brutto", "Opisy / uwagi"].map((h) =>
-                        mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 14 }),
-                      ),
-                      tableHeader: true,
-                    }),
-                    ...prevSatDetails.map((line, i) =>
-                      new TableRow({
-                        children: [
-                          mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
-                          mkCell(line.position, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
-                          mkCell(line.dateLabel, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "7B5800", size: 14 }),
-                          mkCell(line.timeRange, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 14 }),
-                          mkCell(line.hours > 0 ? fmtH(line.hours) : "—", { bold: line.hours > 0, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
-                          mkCell(line.zaliczka > 0 ? `${fmt(line.zaliczka)} PLN` : "—", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: line.zaliczka > 0 ? "C0392B" : "6B7A8D", size: 14 }),
-                          mkCell(line.gross > 0 ? `${fmt(line.gross)} PLN` : "—", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
-                          mkCellMultiline(line.notesText, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
-                        ],
-                      }),
-                    ),
-                  ],
-                }),
-              ]
-            : []),
-          new Paragraph({spacing:{before:360},children:[new TextRun({text:`Wygenerowano: ${new Date().toLocaleDateString("pl-PL")}`,size:16,color:"8A9BB0",font:"Calibri"})]}),
-        ],
-      }],
-    });
-    saveAs(await Packer.toBlob(doc),`lista-plac-${weekFrom}.docx`);
+    const { calcRows, extraHourLines, prevSatDetails, prevSatIso } = payrollExportArgs();
+    const blob = await generatePayrollWordBlob(weekFrom, weekTo, calcRows, exportTotals, extraHourLines, prevSatDetails, prevSatIso);
+    saveAs(blob, `lista-plac-${weekFrom}.docx`);
   };
 
   return (
@@ -2072,6 +1858,11 @@ function PayrollView({
                 </button>
                 <button onClick={exportPDF} className="flex items-center gap-2 px-4 py-2.5 bg-destructive/80 hover:bg-destructive text-white rounded-lg text-sm font-medium transition-colors"><FileDown size={14}/>PDF</button>
                 <button onClick={exportWord} className="flex items-center gap-2 px-4 py-2.5 bg-primary/90 hover:bg-primary text-primary-foreground rounded-lg text-sm font-medium transition-colors"><FileDown size={14}/>Word</button>
+                {weekEmployees.length > 0 && (
+                  <button onClick={() => setShowEmailModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors">
+                    <Send size={14}/>Email
+                  </button>
+                )}
               </div>
             </div>
 
@@ -2275,11 +2066,21 @@ function PayrollView({
           </div>
         </div>
       )}
+
+      {showEmailModal && (
+        <PayrollEmailModal
+          weekFrom={weekFrom}
+          weekTo={weekTo}
+          rows={rows}
+          totals={exportTotals}
+          contacts={contacts}
+          onClose={() => setShowEmailModal(false)}
+          onManageContacts={() => { setShowEmailModal(false); onManageContacts(); }}
+        />
+      )}
     </div>
   );
 }
-
-// ─── Kartoteka pracowników ────────────────────────────────────────────────────
 
 function DirectoryView({directory, onChange}:{directory:DirectoryEmployee[]; onChange:(d:DirectoryEmployee[])=>void}) {
   const [editId, setEditId] = useState<string|null>(null);
@@ -2427,12 +2228,14 @@ function ContactsView({ contacts, onChange }: { contacts: EmailContact[]; onChan
           </div>
 
           <p className="text-sm text-muted-foreground">
-            Lista odbiorców materiałów z robót (zdjęcia, zakres prac, wymiary). Wybierzesz je przy wysyłce email z karty roboty.
+            Odbiorcy emaili z aplikacji. Uprawnienia decydują, gdzie kontakt pojawi się na liście wyboru: materiały z robót (zdjęcia, raporty) albo lista płac (PDF/Word).
           </p>
 
-          <div className="grid grid-cols-2 gap-4 max-w-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <StatCard label="Kontakty" value={String(contacts.length)} icon={Mail} accent/>
             <StatCard label="Z emailem" value={String(contacts.filter((c) => c.email.trim()).length)} icon={Send}/>
+            <StatCard label="Roboty" value={String(contactsForJobs(contacts).length)} icon={HardHat}/>
+            <StatCard label="Lista płac" value={String(contactsForPayroll(contacts).length)} icon={Receipt}/>
           </div>
 
           <div className="space-y-2">
@@ -2451,6 +2254,17 @@ function ContactsView({ contacts, onChange }: { contacts: EmailContact[]; onChan
                       <div><label className="text-xs text-muted-foreground block mb-1">Firma / rola</label><input type="text" value={editContact.company} onChange={(e) => update({ ...editContact, company: e.target.value })} placeholder="np. Zleceniodawca, Inwestor..." className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
                       <div><label className="text-xs text-muted-foreground block mb-1">Uwagi</label><input type="text" value={editContact.notes} onChange={(e) => update({ ...editContact, notes: e.target.value })} placeholder="Opcjonalnie..." className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/></div>
                     </div>
+                    <div className="space-y-2 pt-1">
+                      <p className="text-xs text-muted-foreground font-medium">Uprawnienia wysyłki</p>
+                      <label className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" checked={contactAllowsJobs(editContact)} onChange={(e) => update({ ...editContact, allowJobs: e.target.checked })} className="rounded"/>
+                        Roboty — zdjęcia, raporty, wymiary
+                      </label>
+                      <label className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" checked={contactAllowsPayroll(editContact)} onChange={(e) => update({ ...editContact, allowPayroll: e.target.checked })} className="rounded"/>
+                        Lista płac — PDF i Word
+                      </label>
+                    </div>
                     <div className="flex items-center gap-2 pt-2">
                       <button type="button" onClick={() => setEditId(null)} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"><Check size={13}/>Zapisz</button>
                       <button type="button" onClick={() => setEditId(null)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Anuluj</button>
@@ -2468,6 +2282,17 @@ function ContactsView({ contacts, onChange }: { contacts: EmailContact[]; onChan
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
                         <Mail size={11} className="shrink-0"/>{contact.email || <span className="italic">brak email</span>}
+                      </div>
+                      <div className="flex flex-wrap gap-1 sm:col-span-2">
+                        {contactAllowsJobs(contact) && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">Roboty</span>
+                        )}
+                        {contactAllowsPayroll(contact) && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 font-medium">Lista płac</span>
+                        )}
+                        {!contactAllowsJobs(contact) && !contactAllowsPayroll(contact) && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">Brak uprawnień</span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
@@ -3033,7 +2858,7 @@ function JobEmailModal({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const validContacts = contacts.filter((c) => c.email.trim());
+  const validContacts = contactsForJobs(contacts);
   const useManual = contactId === "__manual__";
   const selectedContact = validContacts.find((c) => c.id === contactId) || null;
   const recipientEmail = useManual ? manualEmail.trim() : (selectedContact?.email.trim() || "");
@@ -3142,10 +2967,10 @@ function JobEmailModal({
           ) : (
             <>
               <div className="space-y-2">
-                <label className="text-xs text-muted-foreground block">Odbiorca</label>
+                <label className="text-xs text-muted-foreground block">Odbiorca (kontakty z uprawnieniem Roboty)</label>
                 {validContacts.length === 0 ? (
                   <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-4 py-3 text-xs text-yellow-400/90">
-                    Brak kontaktów z emailem.{" "}
+                    Brak kontaktów z uprawnieniem „Roboty”.{" "}
                     <button type="button" onClick={onManageContacts} className="underline font-medium hover:text-yellow-300">Dodaj w Kontaktach</button>
                   </div>
                 ) : (
@@ -5278,8 +5103,8 @@ function HelpView() {
           <p className="text-sm text-foreground/90 leading-relaxed">Wszystko co dodajesz w aplikacji jako dane firmy zapisuje się <strong>lokalnie i w chmurze</strong>. Nie musisz klikać „Zapisz do chmury” — dzieje się to samo po każdej zmianie (ikona chmurki u góry).</p>
           <ul className="text-sm text-muted-foreground space-y-2 list-disc pl-5 leading-relaxed">
             <li><strong>Pracownicy</strong> — kartoteka, stawki, telefony</li>
-            <li><strong>Kontakty</strong> — odbiorcy email (klient, inwestor itd.)</li>
-            <li><strong>Lista płac</strong> — godziny (w tym dodatkowe), zaliczki, koszty do zwrotu, rozliczenia</li>
+            <li><strong>Kontakty</strong> — odbiorcy email z uprawnieniami: Roboty (materiały z budowy) lub Lista płac</li>
+            <li><strong>Lista płac</strong> — godziny (w tym dodatkowe), zaliczki, koszty do zwrotu, rozliczenia; eksport PDF/Word i wysyłka emailem</li>
             <li><strong>Archiwum</strong> — zapisane tygodnie</li>
             <li><strong>Roboty</strong> — adresy, dokumenty, materiały, raporty, wpisy czasu pracy</li>
             <li><strong>Zdjęcia</strong> — pliki w chmurze Supabase Storage; informacja o zdjęciu (kto, kiedy, status) w danych roboty</li>
@@ -5345,7 +5170,8 @@ function HelpView() {
             {icon:Users, title:"Filtrowanie robót po pracowniku", desc:"W zakładce Roboty jest rozwijana lista pracowników. Wybierz kogoś — zobaczysz tylko roboty na których ten pracownik miał wpisy czasu pracy."},
             {icon:KeyRound, title:"Zapamiętaj hasło admina", desc:"Przy logowaniu administratora zaznacz „Zapamiętaj hasło na tym urządzeniu” — hasło zostaje zaszyfrowane lokalnie (nie w chmurze). Nie używaj na wspólnym komputerze."},
             {icon:FileDown, title:"PDF z roboty do wysłania klientowi", desc:"Każda robota ma przycisk PDF w nagłówku. Generuje profesjonalny dokument z listą dokumentów, czasem pracy i kosztami — można go od razu wysłać mailowo."},
-            {icon:Mail, title:"Email z roboty — zdjęcia i raporty", desc:"Maile wysyłane są z biuro@wgdom.fun (domena zweryfikowana). Odbiorca może odpowiedzieć — Reply trafia na biuro@wgdom.pl i dawid.thai@int.pl. W Kontaktach dodaj klienta, przy robocie Email → wybierz treść i wyślij."},
+            {icon:Mail, title:"Email z roboty — zdjęcia i raporty", desc:"Maile z biuro@wgdom.fun. W Kontaktach włącz uprawnienie „Roboty” — tylko te adresy pojawią się przy wysyłce z karty roboty. Wybierz treść (zdjęcia, raport) i wyślij."},
+            {icon:Wallet, title:"Email listy płac — PDF i Word", desc:"W Liście płac: Email → wybierz odbiorcę z uprawnieniem „Lista płac” (ustawiasz w Kontaktach). Dołącz PDF i/lub Word; w treści maila tabela jak w PDF."},
           ].map((tip,i)=>(
             <div key={i} className="flex gap-4 bg-secondary/40 rounded-xl p-4 border border-border">
               <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
@@ -5410,6 +5236,14 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.7.0", label:"Email listy płac + uprawnienia kontaktów",
+    items:[
+      {type:"new", text:"Lista płac — przycisk Email: wyślij PDF i/lub Word jako załączniki, treść maila z tabelą jak w PDF"},
+      {type:"new", text:"Kontakty — uprawnienia Roboty / Lista płac (osobne listy odbiorców przy wysyłce)"},
+      {type:"improve", text:"Eksport PDF/Word listy płac — wspólny moduł (ten sam układ co w emailu)"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.6.7", label:"Lista płac — poprawki UI",
     items:[
@@ -6256,7 +6090,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
         {/* Content */}
         <div className="flex flex-1 min-h-0 overflow-hidden pb-16 sm:pb-0">
           {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate}/>}
-          {view==="payroll"&&<PayrollView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent}/>}
+          {view==="payroll"&&<PayrollView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} onChange={setDirectory}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}

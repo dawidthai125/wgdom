@@ -480,6 +480,64 @@ app.post("/make-server-0afb8820/send-job-email", async (c) => {
   return c.json({ ok: true });
 });
 
+type PayrollEmailAttachment = { filename: string; content: string };
+
+// Wyślij listę płac emailem (HTML + załączniki PDF/Word w base64)
+app.post("/make-server-0afb8820/send-payroll-email", async (c) => {
+  const resendKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendKey) return c.json({ ok: false, error: "RESEND_API_KEY not set" }, 500);
+
+  let body: {
+    to?: string;
+    toName?: string;
+    subject?: string;
+    html?: string;
+    attachments?: PayrollEmailAttachment[];
+  };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ ok: false, error: "Nieprawidłowe dane" }, 400);
+  }
+
+  const to = String(body.to || "").trim();
+  if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+    return c.json({ ok: false, error: "Podaj prawidłowy adres email odbiorcy" }, 400);
+  }
+
+  const attachments = Array.isArray(body.attachments)
+    ? body.attachments.filter((a) => a && typeof a.filename === "string" && typeof a.content === "string" && a.content.length > 0)
+    : [];
+  if (attachments.length === 0) {
+    return c.json({ ok: false, error: "Brak załączników — zaznacz PDF lub Word" }, 400);
+  }
+
+  const subject = String(body.subject || "W&G DOM — lista płac").trim();
+  const html = String(body.html || "").trim();
+  if (!html) {
+    return c.json({ ok: false, error: "Brak treści HTML wiadomości" }, 400);
+  }
+
+  const res = await sendViaResend({
+    from: resendFrom(),
+    reply_to: resendReplyTo(),
+    to: [to],
+    subject,
+    html,
+    attachments: attachments.map((a) => ({
+      filename: a.filename,
+      content: a.content,
+    })),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    return c.json({ ok: false, error: err }, 500);
+  }
+
+  return c.json({ ok: true });
+});
+
 /** Publiczny podgląd roboty dla klienta (?podglad=TOKEN) — tylko odczyt, bez auth. */
 app.get("/make-server-0afb8820/client-share", async (c) => {
   try {
