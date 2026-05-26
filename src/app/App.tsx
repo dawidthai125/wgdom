@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef, Fragment, type RefObject } from "react";
-import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
+import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   Calculator, Clock, Banknote, User, Plus, Trash2,
