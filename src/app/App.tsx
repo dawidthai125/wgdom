@@ -13,7 +13,7 @@ import {
   Mic, MicOff, Bell, Copy, ScrollText, Sparkles,
   BookOpen, ChevronDown as ChevDown, HelpCircle, Smartphone, Monitor,
   Camera, ImagePlus, Lock, LogOut, Eye, ArrowLeft, ShieldCheck, ThumbsUp, ThumbsDown, Clock3,
-  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale, Images, Settings,
+  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale, Images, Settings, Menu,
 } from "lucide-react";
 import {
   API_BASE,
@@ -3289,7 +3289,7 @@ function EmployeeArchiveModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60" onClick={onClose}>
       <div
-        className="bg-card border border-border rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl"
+        className="bg-card border border-border rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[92dvh] overflow-y-auto shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-card border-b border-border px-5 py-4 flex items-center justify-between gap-3">
@@ -7482,6 +7482,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-26", version:"2.9.21", label:"Mobile iOS/Android — pracownik i admin",
+    items:[
+      {type:"improve", text:"Pracownik — sticky powrót z roboty, większe przyciski (44px), zakładki 48px, fix podwójnego znaku wodnego w kolejce offline"},
+      {type:"improve", text:"Admin mobile — dolne menu: Pulpit / Lista / Grafik / Roboty + Więcej (6 pozycji); ustawienia ⚙ jako sheet od dołu"},
+      {type:"fix", text:"iOS — 100dvh + safe-area na logowaniu, font 16px w polach (bez zoom przy focus)"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.9.20", label:"Super Admin — role i nowi użytkownicy",
     items:[
       {type:"new", text:"Ustawienia ⚙ — zmiana roli Administrator ↔ Moderator (Stanisław, Paweł, dodani użytkownicy)"},
@@ -8294,8 +8302,8 @@ function AdminSettingsModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
-      <div className="bg-card rounded-2xl border border-border w-full max-w-lg shadow-2xl max-h-[90dvh] flex flex-col">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div className="bg-card rounded-t-2xl sm:rounded-2xl border border-border w-full max-w-lg shadow-2xl max-h-[92dvh] flex flex-col" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
             <Settings size={16} className="text-primary"/>
@@ -8611,6 +8619,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [globalSearch, setGlobalSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [showAdminSettings, setShowAdminSettings] = useState(false);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState<"idle"|"saving"|"saved"|"error"|"offline">("idle");
   const [syncError, setSyncError] = useState("");
   const syncTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
@@ -8967,12 +8976,18 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     {key:"help", label:"Instrukcja", hint:"Pomoc krok po kroku: lista płac, roboty, grafik i typowe pytania.", icon:BookOpen},
   ];
 
+  const MOBILE_NAV_PRIMARY: View[] = ["dashboard", "payroll", "schedule", "jobs"];
+  const mobileNavPrimary = navItems.filter((n) => MOBILE_NAV_PRIMARY.includes(n.key));
+  const mobileNavMore = navItems.filter((n) => !MOBILE_NAV_PRIMARY.includes(n.key));
+  const mobileMoreActive = mobileNavMore.some((n) => n.key === view);
+
   const totalNet = productionWeekEmployees.reduce((s,e)=>s+calcWeekEmployee(e).netPay,0);
 
   const handleNavigate = useCallback((v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string, payrollEmpId?: string) => {
     if (jobId) setPendingJobId(jobId);
     if (payrollEmpId) setPendingPayrollEmpId(payrollEmpId);
     setView(v as View);
+    setMobileMoreOpen(false);
   }, []);
 
   return (
@@ -9094,22 +9109,22 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             ))}
           </div>}
           <ChevronRight size={13} className="text-muted-foreground/40 hidden sm:block"/>
-          <h2 className="text-sm font-semibold">{navItems.find(n=>n.key===view)?.label}</h2>
+          <h2 className="text-sm font-semibold truncate min-w-0">{navItems.find(n=>n.key===view)?.label}</h2>
           {adminSession && (
             <span className="hidden md:inline text-[10px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full truncate max-w-[180px]" title={adminRoleLabel(adminSession.role)}>
               {adminSession.displayName}
             </span>
           )}
-          <div className="ml-auto flex items-center gap-1 sm:gap-2">
-            <CompanyMusicPlayer />
+          <div className="ml-auto flex items-center gap-0.5 sm:gap-2 shrink-0">
+            <div className="hidden sm:block"><CompanyMusicPlayer /></div>
             {view==="payroll"&&canViewRates&&<span className="text-xs text-muted-foreground hidden sm:block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN · {productionWeekEmployees.length} prac.</span>}
             {view==="schedule"&&<span className="text-xs text-muted-foreground hidden sm:block">{fmtDate(weekFrom)} – {fmtDate(weekTo)} · {productionWeekEmployees.length} prac.</span>}
             {view==="jobs"&&<span className="text-xs text-muted-foreground hidden sm:block">{jobs.filter(j=>j.status==="in_progress").length} aktywne · {jobs.filter(j=>j.status==="completed").length} zdane</span>}
             {/* Backup na mobile (na desktopie jest w sidebarze) */}
-            <button type="button" onClick={exportBackup} title="Eksportuj backup" className="sm:hidden p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+            <button type="button" onClick={exportBackup} title="Eksportuj backup" className="sm:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
               <Download size={16}/>
             </button>
-            <label title="Importuj backup" className="sm:hidden p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground cursor-pointer">
+            <label title="Importuj backup" className="sm:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground cursor-pointer">
               <Upload size={16}/>
               <input type="file" accept=".json" className="hidden" onChange={e=>e.target.files?.[0]&&importBackup(e.target.files[0])}/>
             </label>
@@ -9117,7 +9132,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             <button
               type="button"
               onClick={() => (syncStatus === "error" || syncStatus === "offline") && runCloudSync()}
-              className={`p-1.5 rounded-lg ${syncStatus === "error" || syncStatus === "offline" ? "hover:bg-secondary cursor-pointer" : "cursor-default"}`}
+              className={`p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg ${syncStatus === "error" || syncStatus === "offline" ? "hover:bg-secondary cursor-pointer" : "cursor-default"}`}
               title={
                 syncStatus === "saving" ? "Zapisywanie..."
                 : syncStatus === "saved" ? "Zsynchronizowano"
@@ -9132,16 +9147,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
               {syncStatus==="offline"&&<CloudOff size={15} className="text-yellow-500"/>}
               {syncStatus==="idle"&&<Cloud size={15} className="text-muted-foreground/40"/>}
             </button>
-            <button onClick={()=>setShowSearch(v=>!v)} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+            <button onClick={()=>setShowSearch(v=>!v)} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
               <Search size={16}/>
             </button>
             {adminSession && adminIsSuperAdmin(adminSession.role) && (
-              <button onClick={()=>setShowAdminSettings(true)} title="Ustawienia administratorów" className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+              <button onClick={()=>setShowAdminSettings(true)} title="Ustawienia administratorów" className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
                 <Settings size={16}/>
               </button>
             )}
             {onLogout && (
-              <button onClick={onLogout} title="Wyloguj" className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+              <button onClick={onLogout} title="Wyloguj" className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
                 <LogOut size={16}/>
               </button>
             )}
@@ -9191,7 +9206,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         )}
 
         {/* Content */}
-        <div className="flex flex-1 min-h-0 overflow-hidden pb-16 sm:pb-0">
+        <div className="flex flex-1 min-h-0 overflow-hidden pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:pb-0">
           {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs}/>}
           {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive} initialEmpId={pendingPayrollEmpId} onInitialEmpConsumed={()=>setPendingPayrollEmpId(null)}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
@@ -9204,18 +9219,55 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           {view==="help"&&<HelpView/>}
         </div>
 
-        {/* Mobile bottom nav */}
+        {/* Mobile bottom nav — 4 główne + Menu (iOS/Android) */}
         <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex z-40" style={{paddingBottom:"env(safe-area-inset-bottom)"}}>
-          {navItems.map(({key,icon:Icon,badge})=>(
-            <button key={key} onClick={()=>setView(key)} className={`flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[48px] py-2 relative transition-colors ${view===key?"text-primary":"text-muted-foreground"}`}>
+          {mobileNavPrimary.map(({key,icon:Icon,badge})=>(
+            <button key={key} onClick={()=>{setView(key);setMobileMoreOpen(false);}} className={`flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[52px] py-2 relative transition-colors ${view===key?"text-primary":"text-muted-foreground"}`}>
               <div className="relative">
-                <Icon size={20}/>
-                {badge!==undefined&&badge>0&&<span className="absolute -top-1 -right-1.5 min-w-4 h-4 flex items-center justify-center text-[9px] font-bold rounded-full bg-primary text-primary-foreground px-0.5">{badge}</span>}
+                <Icon size={22}/>
+                {badge!==undefined&&badge>0&&<span className="absolute -top-1 -right-1.5 min-w-4 h-4 flex items-center justify-center text-[9px] font-bold rounded-full bg-primary text-primary-foreground px-0.5">{badge>99?"99+":badge}</span>}
               </div>
-              {view===key&&<span className="w-1 h-1 rounded-full bg-primary absolute top-1.5"/>}
+              <span className="text-[10px] font-medium leading-none">{navItems.find(n=>n.key===key)?.label.split(" ")[0]}</span>
             </button>
           ))}
+          <button type="button" onClick={()=>setMobileMoreOpen(true)} className={`flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[52px] py-2 relative transition-colors ${mobileMoreActive?"text-primary":"text-muted-foreground"}`}>
+            <Menu size={22}/>
+            <span className="text-[10px] font-medium leading-none">Więcej</span>
+          </button>
         </nav>
+
+        {mobileMoreOpen && (
+          <div className="sm:hidden fixed inset-0 z-50" style={{background:"rgba(0,0,0,0.55)"}} onClick={()=>setMobileMoreOpen(false)}>
+            <div
+              className="absolute bottom-0 left-0 right-0 bg-card border-t border-border rounded-t-2xl px-4 pt-4 pb-2 max-h-[70dvh] overflow-y-auto"
+              style={{paddingBottom:"max(1rem, env(safe-area-inset-bottom))"}}
+              onClick={(e)=>e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-semibold">Menu</p>
+                <button type="button" onClick={()=>setMobileMoreOpen(false)} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground">
+                  <X size={18}/>
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {mobileNavMore.map(({key,label,icon:Icon,badge})=>(
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={()=>{setView(key);setMobileMoreOpen(false);}}
+                    className={`flex flex-col items-center justify-center gap-1.5 min-h-[72px] rounded-xl border transition-colors ${view===key?"bg-primary/15 border-primary/40 text-primary":"bg-secondary/40 border-border text-muted-foreground hover:text-foreground"}`}
+                  >
+                    <div className="relative">
+                      <Icon size={20}/>
+                      {badge!==undefined&&badge>0&&<span className="absolute -top-1.5 -right-2 min-w-4 h-4 flex items-center justify-center text-[9px] font-bold rounded-full bg-primary text-primary-foreground px-0.5">{badge>99?"99+":badge}</span>}
+                    </div>
+                    <span className="text-[10px] font-medium text-center leading-tight px-1">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Overwrite archive confirm */}
@@ -9430,7 +9482,7 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:(session: AdminSession)=>void
       <input type={show?"text":"password"} placeholder={placeholder||"Wpisz hasło..."} value={value} autoFocus={autoFocus}
         onChange={e=>onChange(e.target.value)}
         onKeyDown={e=>e.key==="Enter"&&onEnter?.()}
-        className="w-full bg-secondary rounded-xl px-4 py-3 pr-10 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
+        className="w-full bg-secondary rounded-xl px-4 py-3 pr-10 text-base border border-transparent focus:border-primary focus:outline-none transition-colors"/>
       <button type="button" onClick={onToggle} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
         <Eye size={15}/>
       </button>
@@ -9438,7 +9490,7 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:(session: AdminSession)=>void
   );
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-8" style={{fontFamily:"'Inter',sans-serif"}}>
+    <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center px-4 py-8 overflow-y-auto" style={{fontFamily:"'Inter',sans-serif", paddingTop:"max(2rem, env(safe-area-inset-top))", paddingBottom:"max(2rem, env(safe-area-inset-bottom))"}}>
       <div className="w-full max-w-sm space-y-8">
 
         {/* Logo */}
@@ -9473,7 +9525,7 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:(session: AdminSession)=>void
         {mode === "admin" && (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
             <div className="flex items-center gap-3">
-              <button onClick={()=>{setMode("pick");setPassword("");setPassError("");}} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><ArrowLeft size={16}/></button>
+              <button onClick={()=>{setMode("pick");setPassword("");setPassError("");}} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><ArrowLeft size={16}/></button>
               <div className="flex items-center gap-2"><Lock size={14} className="text-primary"/><span className="text-sm font-semibold">Logowanie administratora</span></div>
             </div>
             <div className="space-y-2">
@@ -9524,7 +9576,7 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:(session: AdminSession)=>void
         {mode === "worker" && (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
             <div className="flex items-center gap-3">
-              <button onClick={resetWorkerLogin} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><ArrowLeft size={16}/></button>
+              <button onClick={resetWorkerLogin} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><ArrowLeft size={16}/></button>
               <div className="flex items-center gap-2"><HardHat size={14} className="text-muted-foreground"/><span className="text-sm font-semibold">{workerStep === "setup-pin" ? "Ustaw kod pracownika" : "Logowanie pracownika"}</span></div>
             </div>
 
@@ -10195,8 +10247,8 @@ function PwaInstallBanner({ compact = false }: { compact?: boolean }) {
           </button>
         )}
       </div>
-      <button type="button" onClick={dismiss} className="text-muted-foreground hover:text-foreground shrink-0 p-1">
-        <X size={14}/>
+      <button type="button" onClick={dismiss} className="text-muted-foreground hover:text-foreground shrink-0 p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center -mr-1">
+        <X size={16}/>
       </button>
     </div>
   );
@@ -10408,8 +10460,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
           continue;
         }
         const file = new File([item.blob], item.filename, { type: item.blob.type || "image/jpeg" });
-        const wm = await prepareWatermarkedPhoto(job, file);
-        const { entry, error } = await uploadPhoto(item.jobId, wm, item.label as PhotoEntry["label"], item.uploadedBy, item.caption);
+        const { entry, error } = await uploadPhoto(item.jobId, file, item.label as PhotoEntry["label"], item.uploadedBy, item.caption);
         if (entry) {
           setJobsLocal((prev) => {
             const updated = prev.map((j) =>
@@ -10737,7 +10788,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
             <p className="text-[10px] text-muted-foreground">Tryb pracownika</p>
           </div>
         </div>
-        <button onClick={onLogout} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-3 py-2 rounded-lg hover:bg-secondary transition-colors">
+        <button onClick={onLogout} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-3 py-2.5 min-h-[44px] rounded-lg hover:bg-secondary transition-colors">
           <LogOut size={13}/>Wyloguj
         </button>
       </div>
@@ -10748,7 +10799,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
             type="button"
             onClick={() => setWorkerTab("jobs")}
             title="Wybierz robotę, wgrywaj zdjęcia i raporty z budowy"
-            className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "jobs" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
+            className={`flex-1 min-h-[48px] py-3.5 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "jobs" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
           >
             <MapPin size={14}/>Roboty
           </button>
@@ -10756,7 +10807,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
             type="button"
             onClick={() => setWorkerTab("schedule")}
             title="Twój grafik na ten tydzień — godziny i adresy robót"
-            className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "schedule" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
+            className={`flex-1 min-h-[48px] py-3.5 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "schedule" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
           >
             <CalendarDays size={14}/>Grafik
           </button>
@@ -10764,7 +10815,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
             type="button"
             onClick={() => setWorkerTab("pay")}
             title="Twoja wypłata w piątek — tylko po logowaniu telefonem i kodem"
-            className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "pay" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
+            className={`flex-1 min-h-[48px] py-3.5 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "pay" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
           >
             <Wallet size={14}/>Wypłata
           </button>
@@ -10808,7 +10859,14 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto pb-8" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>
+      <div className="flex-1 overflow-y-auto overscroll-contain" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+        {selectedJob && (
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-2.5">
+            <button type="button" onClick={() => setSelectedJobId(null)} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px] px-1 -ml-1">
+              <ArrowLeft size={16}/>Roboty · Grafik · Wypłata
+            </button>
+          </div>
+        )}
         {!selectedJob && workerTab === "schedule" ? (
           <div className="max-w-lg mx-auto px-4 pt-6 space-y-4">
             <div>
@@ -11144,11 +11202,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
             </div>
           </div>
         ) : (
-          <div className="max-w-lg mx-auto px-4 pt-5 space-y-5">
-            <button onClick={()=>setSelectedJobId(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft size={15}/>Zmień robotę
-            </button>
-
+          <div className="max-w-lg mx-auto px-4 pt-4 space-y-5">
             <div className="bg-card border border-border rounded-2xl px-5 py-4">
               <p className="text-base font-bold">{selectedJob.address||"Bez adresu"}{selectedJob.flatNumber&&` m.${selectedJob.flatNumber}`}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{selectedJob.client||"—"} · Rozpoczęto {fmtDate(selectedJob.startDate)}</p>
@@ -11172,7 +11226,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
               <div className="flex flex-wrap gap-2">
                 {LABELS.map((lbl) => (
                   <button key={lbl.value} type="button" onClick={() => setGalleryLabel(lbl.value)}
-                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${galleryLabel === lbl.value ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}>
+                    className={`text-sm px-3 py-2 rounded-full border transition-colors ${galleryLabel === lbl.value ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}>
                     {lbl.title}
                   </button>
                 ))}
@@ -11235,12 +11289,12 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
                         </div>
                         <div className="flex gap-1 shrink-0">
                           <button type="button" onClick={() => setEditingReport(normalizeWorkerReport(r))}
-                            className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10" title="Edytuj">
-                            <Edit2 size={14}/>
+                            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10" title="Edytuj">
+                            <Edit2 size={16}/>
                           </button>
                           <button type="button" onClick={() => deleteMyReport(r.id)}
-                            className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10" title="Usuń">
-                            <Trash2 size={14}/>
+                            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10" title="Usuń">
+                            <Trash2 size={16}/>
                           </button>
                         </div>
                       </div>
@@ -11328,8 +11382,8 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
                           className="w-full bg-secondary rounded-lg px-2.5 py-1.5 text-xs border border-transparent focus:border-primary focus:outline-none"
                         />
                         <button type="button" onClick={() => deleteMyPhoto(p.id)}
-                          className="text-[10px] text-muted-foreground hover:text-destructive flex items-center gap-1">
-                          <Trash2 size={11}/>Usuń zdjęcie
+                          className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1.5 min-h-[44px] px-1 -ml-1">
+                          <Trash2 size={14}/>Usuń zdjęcie
                         </button>
                       </div>
                     </div>
@@ -11342,7 +11396,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
       </div>
 
       {privacyShield && (
-        <div className="fixed inset-0 z-[200] bg-background flex flex-col items-center justify-center px-6" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+        <div className="fixed inset-0 z-[200] bg-background flex flex-col items-center justify-center px-6" style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}>
           <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-12 w-auto object-contain opacity-40"/>
           <p className="text-sm text-muted-foreground mt-4 text-center">W&G DOM</p>
           <p className="text-xs text-muted-foreground/60 mt-2 text-center">Dane wypłat ukryte</p>
@@ -11536,7 +11590,7 @@ function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photo
       {lightbox && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90" onClick={()=>setLightbox(null)}>
           <button className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-2"><X size={24}/></button>
-          <img src={lightbox.publicUrl} alt={lightbox.label} className="max-w-full max-h-[90vh] rounded-xl object-contain" onClick={e=>e.stopPropagation()}/>
+          <img src={lightbox.publicUrl} alt={lightbox.label} className="max-w-full max-h-[90dvh] rounded-xl object-contain" onClick={e=>e.stopPropagation()}/>
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center">
             <p className="text-white/90 text-sm font-medium">{PHOTO_LABEL_NAMES[lightbox.label]}</p>
             {lightbox.caption && <p className="text-white/80 text-xs mt-1 italic">{lightbox.caption}</p>}
