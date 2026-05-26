@@ -138,11 +138,19 @@ interface DayNote {
   text: string;
 }
 
+type ExtraCostStatus = "pending" | "approved" | "rejected";
+
 /** Koszt pracownika do zwrotu w wypłacie (chemia, paliwo, zakupy na budowę) */
 interface EmployeeExtraCost {
   id: string;
   description: string;
   amount: string;
+  /** Skan paragonu / faktury (URL z storage) */
+  receiptUrl?: string;
+  status?: ExtraCostStatus;
+  rejectReason?: string;
+  submittedAt?: string;
+  submittedBy?: string;
 }
 
 /** Pracownik przypisany do konkretnego tygodnia — snapshot danych z kartoteki */
@@ -230,6 +238,8 @@ interface PhotoEntry {
   uploadedAt: string;
   status: "pending" | "approved" | "rejected";
   caption?: string;
+  /** Powód odrzucenia przez admina */
+  rejectReason?: string;
 }
 
 type RoomTypeKey = "salon" | "pokoj" | "kuchnia" | "korytarz" | "lazienka" | "toaleta" | "inne";
@@ -266,6 +276,8 @@ interface WorkerJobReport {
   workerName: string;
   submittedAt: string;
   updatedAt?: string;
+  /** Kiedy admin obejrzał raport — znika z „Uwaga dziś” (ponownie po edycji przez pracownika) */
+  adminReviewedAt?: string;
   workItems: WorkReportItem[];
   rooms: RoomDimension[];
   generalNote?: string;
@@ -806,7 +818,7 @@ function calcWeekEmployee(emp: WeekEmployee) {
   const weekZaliczka = DAYS.reduce((s, d) => s + (parseFloat(emp.days[d].zaliczka) || 0), 0);
   const prevSatZaliczka = parseFloat(getPrevSaturday(emp).zaliczka) || 0;
   const totalZaliczka = weekZaliczka + prevSatZaliczka;
-  const totalExtraCosts = (emp.extraCosts ?? []).reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
+  const totalExtraCosts = (emp.extraCosts ?? []).reduce((s, c) => s + approvedExtraCostAmount(c), 0);
   const rateNum = parseFloat(emp.rate) || 0;
   const weekGross = +(weekHours * rateNum).toFixed(2);
   const prevSatGross = +(prevSatHours * rateNum).toFixed(2);
@@ -819,6 +831,54 @@ function calcWeekEmployee(emp: WeekEmployee) {
     weekZaliczka, prevSatZaliczka, totalZaliczka, totalExtraCosts,
     weekGross, prevSatGross, grossPay, weekNet, prevSatNet, netPay, rateNum,
   };
+}
+
+function extraCostStatus(c: EmployeeExtraCost): ExtraCostStatus {
+  return c.status ?? "approved";
+}
+
+function approvedExtraCostAmount(c: EmployeeExtraCost): number {
+  if (extraCostStatus(c) !== "approved") return 0;
+  return parseFloat(c.amount) || 0;
+}
+
+const PHOTO_STATUS_LABELS: Record<PhotoEntry["status"], string> = {
+  pending: "Oczekuje na akceptację",
+  approved: "Zaakceptowane",
+  rejected: "Odrzucone",
+};
+
+const EXTRA_COST_STATUS_LABELS: Record<ExtraCostStatus, string> = {
+  pending: "Oczekuje na akceptację",
+  approved: "Zaakceptowane",
+  rejected: "Odrzucone",
+};
+
+function workerTodayWorkInfo(
+  emp: WeekEmployee | null,
+  jobs: Job[],
+  weekFrom: string,
+  weekTo: string,
+): { working: boolean; locations: string[]; timeRange: string; hoursLabel: string } {
+  if (!emp) return { working: false, locations: [], timeRange: "", hoursLabel: "" };
+  const todayIso = todayIsoDate();
+  const todayKey = todayDayKey();
+  if (todayKey) {
+    const cell = scheduleCellFor(emp, todayKey, todayIso, jobs, []);
+    if (cell.working) {
+      return { working: true, locations: cell.locations, timeRange: cell.timeRange, hoursLabel: cell.hoursLabel };
+    }
+  }
+  const dashJobs = jobsForEmployeeOnDashboard(emp, jobs, todayIso, weekFrom, weekTo, []);
+  if (dashJobs.length > 0) {
+    return {
+      working: true,
+      locations: dashJobs.map(formatJobStreet),
+      timeRange: "",
+      hoursLabel: "",
+    };
+  }
+  return { working: false, locations: [], timeRange: "", hoursLabel: "" };
 }
 
 // ─── Jobs Helpers ─────────────────────────────────────────────────────────────
@@ -1273,6 +1333,12 @@ function jobDaysSinceStart(job: Job): number {
 
 function jobWorkerReports(job: Job): WorkerJobReport[] {
   return (job.workerReports || []).map(normalizeWorkerReport);
+}
+
+function reportNeedsAdminAttention(r: WorkerJobReport): boolean {
+  if (!r.adminReviewedAt) return true;
+  if (r.updatedAt && r.updatedAt > r.adminReviewedAt) return true;
+  return false;
 }
 
 function normalizeWorkItem(raw: unknown): WorkReportItem {
@@ -1809,6 +1875,42 @@ async function uploadPhoto(
   }
 }
 
+async function uploadReceipt(
+  workerKey: string,
+  file: File,
+): Promise<{ publicUrl: string | null; error?: string }> {
+  const ext = file.name.split(".").pop() || "jpg";
+  const filename = `receipt-${Date.now()}.${ext}`;
+  const jobId = `receipts-${workerKey.replace(/[^a-zA-Z0-9_-]/g, "_") || "worker"}`;
+
+  try {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("jobId", jobId);
+    form.append("filename", filename);
+
+    const res = await fetch(`${API_BASE}/storage-upload`, {
+      method: "POST",
+      headers: { Authorization: API_HEADERS.Authorization },
+      body: form,
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      return {
+        publicUrl: null,
+        error: data.error || (res.status === 404
+          ? "Serwer zdjęć nie jest wdrożony — zaktualizuj funkcję Supabase (storage-upload)"
+          : `Błąd serwera (${res.status})`),
+      };
+    }
+
+    return { publicUrl: data.publicUrl as string };
+  } catch {
+    return { publicUrl: null, error: "Brak połączenia z internetem" };
+  }
+}
+
 function useLocalStorage<T>(key: string, initial: T): [T, (v: T|((p:T)=>T))=>void] {
   const [state, setState] = useState<T>(()=>{ try{ const s=localStorage.getItem(key); return s?JSON.parse(s):initial; }catch{ return initial; } });
   const set = useCallback((v: T|((p:T)=>T))=>{
@@ -2257,35 +2359,81 @@ function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee
             <p className="px-4 py-4 text-xs text-muted-foreground text-center">Brak kosztów w tym tygodniu</p>
           ) : (
             <div className="divide-y divide-border">
-              {extraCosts.map((cost) => (
-                <div key={cost.id} className="px-4 py-3 flex items-start gap-2">
-                  <input
-                    type="text"
-                    placeholder="Opis (np. chemia, paliwo)"
-                    value={cost.description}
-                    onChange={(e) => updateExtraCosts(extraCosts.map((c) => c.id === cost.id ? { ...c, description: e.target.value } : c))}
-                    className="flex-1 min-w-0 bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"
-                  />
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    placeholder="0"
-                    value={cost.amount}
-                    onChange={(e) => updateExtraCosts(extraCosts.map((c) => c.id === cost.id ? { ...c, amount: e.target.value } : c))}
-                    className="w-24 shrink-0 bg-secondary rounded-lg px-2 py-2 text-sm text-right border border-transparent focus:border-primary focus:outline-none"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  />
-                  <span className="text-xs text-muted-foreground pt-2.5 shrink-0">PLN</span>
-                  <button
-                    type="button"
-                    onClick={() => updateExtraCosts(extraCosts.filter((c) => c.id !== cost.id))}
-                    className="p-2 text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                  >
-                    <Trash2 size={14}/>
-                  </button>
+              {extraCosts.map((cost) => {
+                const st = extraCostStatus(cost);
+                return (
+                <div key={cost.id} className="px-4 py-3 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <input
+                      type="text"
+                      placeholder="Opis (np. chemia, paliwo)"
+                      value={cost.description}
+                      onChange={(e) => updateExtraCosts(extraCosts.map((c) => c.id === cost.id ? { ...c, description: e.target.value } : c))}
+                      className="flex-1 min-w-0 bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="0"
+                      value={cost.amount}
+                      onChange={(e) => updateExtraCosts(extraCosts.map((c) => c.id === cost.id ? { ...c, amount: e.target.value } : c))}
+                      className="w-24 shrink-0 bg-secondary rounded-lg px-2 py-2 text-sm text-right border border-transparent focus:border-primary focus:outline-none"
+                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                    />
+                    <span className="text-xs text-muted-foreground pt-2.5 shrink-0">PLN</span>
+                    <button
+                      type="button"
+                      onClick={() => updateExtraCosts(extraCosts.filter((c) => c.id !== cost.id))}
+                      className="p-2 text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                    >
+                      <Trash2 size={14}/>
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 pl-0.5">
+                    {st !== "approved" && (
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        st === "pending" ? "bg-yellow-500/15 text-yellow-400" : "bg-red-500/15 text-red-400"
+                      }`}>
+                        {EXTRA_COST_STATUS_LABELS[st]}
+                      </span>
+                    )}
+                    {cost.submittedBy && (
+                      <span className="text-[10px] text-muted-foreground">od {cost.submittedBy}</span>
+                    )}
+                    {cost.receiptUrl && (
+                      <a href={cost.receiptUrl} target="_blank" rel="noopener noreferrer"
+                        className="text-[10px] text-primary hover:underline flex items-center gap-1">
+                        <Receipt size={10}/> Paragon / faktura
+                      </a>
+                    )}
+                    {st === "rejected" && cost.rejectReason && (
+                      <span className="text-[10px] text-red-400/90 italic">Powód: {cost.rejectReason}</span>
+                    )}
+                    {st === "pending" && (
+                      <>
+                        <button type="button"
+                          onClick={() => updateExtraCosts(extraCosts.map((c) => c.id === cost.id ? { ...c, status: "approved" as const, rejectReason: undefined } : c))}
+                          className="text-[10px] px-2 py-1 rounded-lg bg-green-500/15 text-green-400 hover:bg-green-500/25 font-medium flex items-center gap-1">
+                          <ThumbsUp size={10}/> Akceptuj
+                        </button>
+                        <button type="button"
+                          onClick={() => {
+                            const reason = window.prompt("Powód odrzucenia (opcjonalnie):", "") ?? "";
+                            updateExtraCosts(extraCosts.map((c) => c.id === cost.id ? {
+                              ...c,
+                              status: "rejected" as const,
+                              rejectReason: reason.trim() || undefined,
+                            } : c));
+                          }}
+                          className="text-[10px] px-2 py-1 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 font-medium flex items-center gap-1">
+                          <ThumbsDown size={10}/> Odrzuć
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              ))}
+              );})}
             </div>
           )}
         </div>
@@ -2651,6 +2799,8 @@ function PayrollView({
   onAddFromDirectory, onRemoveWeekEmployee, onUpdateWeekEmployee,   onGoToCurrent,
   onManageContacts,
   onRestoreFromArchive,
+  initialEmpId,
+  onInitialEmpConsumed,
 }:{
   weekEmployees: WeekEmployee[]; weekFrom:string; weekTo:string;
   directory: DirectoryEmployee[];
@@ -2666,6 +2816,8 @@ function PayrollView({
   onGoToCurrent:()=>void;
   onManageContacts:()=>void;
   onRestoreFromArchive?:()=>void;
+  initialEmpId?: string | null;
+  onInitialEmpConsumed?: () => void;
 }) {
   const [selectedEmpId, setSelectedEmpId] = useState<string|null>(null);
   const [showPicker, setShowPicker] = useState(false);
@@ -2675,6 +2827,13 @@ function PayrollView({
   const [satDismissed, setSatDismissed] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
+
+  useEffect(() => {
+    if (initialEmpId && weekEmployees.some((e) => e.id === initialEmpId)) {
+      setSelectedEmpId(initialEmpId);
+      onInitialEmpConsumed?.();
+    }
+  }, [initialEmpId, weekEmployees, onInitialEmpConsumed]);
 
   const isSaturday = new Date().getDay() === 6;
 
@@ -4856,6 +5015,36 @@ function JobsView({
     setExpandedWorkerKeys(new Set());
   }, [selectedJobId]);
 
+  const markedReportsForJobRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!selectedJobId) {
+      markedReportsForJobRef.current = null;
+      return;
+    }
+    if (markedReportsForJobRef.current === selectedJobId) return;
+    setJobs((prev) => {
+      const job = prev.find((j) => j.id === selectedJobId);
+      if (!job) return prev;
+      const unreviewed = jobWorkerReports(job).filter(reportNeedsAdminAttention);
+      if (unreviewed.length === 0) {
+        markedReportsForJobRef.current = selectedJobId;
+        return prev;
+      }
+      markedReportsForJobRef.current = selectedJobId;
+      const now = new Date().toISOString();
+      return prev.map((j) =>
+        j.id !== selectedJobId
+          ? j
+          : {
+              ...j,
+              workerReports: jobWorkerReports(j).map((r) =>
+                reportNeedsAdminAttention(r) ? { ...r, adminReviewedAt: now } : r,
+              ),
+            },
+      );
+    });
+  }, [selectedJobId, setJobs]);
+
   const toggleWorkerGroup = (key: string) => {
     setExpandedWorkerKeys((prev) => {
       const next = new Set(prev);
@@ -6101,7 +6290,7 @@ function DashboardView({
   weekEmployees: WeekEmployee[];
   weekFrom: string; weekTo: string;
   savedWeeks: WeekSnapshot[];
-  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string) => void;
+  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string, payrollEmpId?: string) => void;
   onFixJobs: (updater: (prev: Job[]) => Job[]) => void;
 }) {
   const todayKey = todayDayKey();
@@ -6134,29 +6323,42 @@ function DashboardView({
 
   const pendingPhotos = useMemo(
     () =>
-      jobs.flatMap((j) =>
-        (j.photos || [])
-          .filter((p) => p.status === "pending")
-          .map((p) => ({ photo: p, job: j })),
-      ),
+      jobs
+        .flatMap((j) =>
+          (j.photos || [])
+            .filter((p) => p.status === "pending")
+            .map((p) => ({ photo: p, job: j })),
+        )
+        .sort((a, b) => b.photo.uploadedAt.localeCompare(a.photo.uploadedAt)),
     [jobs],
   );
 
-  const recentReports = useMemo(() => {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 14);
-    const cutoffIso = cutoff.toISOString();
-    return jobs
-      .filter((j) => j.status === "in_progress")
-      .flatMap((j) => jobWorkerReports(j).map((r) => ({ report: r, job: j })))
-      .filter(({ report: r }) => r.submittedAt >= cutoffIso || (r.updatedAt && r.updatedAt >= cutoffIso))
-      .sort((a, b) =>
-        (b.report.updatedAt || b.report.submittedAt).localeCompare(
-          a.report.updatedAt || a.report.submittedAt,
+  const pendingReceipts = useMemo(
+    () =>
+      weekEmployees.flatMap((emp) =>
+        (emp.extraCosts ?? [])
+          .filter((c) => extraCostStatus(c) === "pending")
+          .map((cost) => ({ cost, emp })),
+      ),
+    [weekEmployees],
+  );
+
+  const pendingReports = useMemo(
+    () =>
+      jobs
+        .filter((j) => j.status === "in_progress")
+        .flatMap((j) =>
+          jobWorkerReports(j)
+            .filter((r) => reportNeedsAdminAttention(r))
+            .map((report) => ({ report, job: j })),
+        )
+        .sort((a, b) =>
+          (b.report.updatedAt || b.report.submittedAt).localeCompare(
+            a.report.updatedAt || a.report.submittedAt,
+          ),
         ),
-      )
-      .slice(0, 5);
-  }, [jobs]);
+    [jobs],
+  );
 
   const totalReportsActive = useMemo(
     () => activeJobs.reduce((s, j) => s + jobWorkerReports(j).length, 0),
@@ -6190,10 +6392,27 @@ function DashboardView({
     consistencyAlerts.length +
     jobsMissingDocs.length +
     pendingPhotos.length +
-    recentReports.length;
+    pendingReceipts.length +
+    pendingReports.length;
 
   const handleFixConsistency = (alert: PayrollJobConsistencyAlert) => {
     onFixJobs((prev) => fixJobsForConsistencyAlert(prev, alert, weekEmployees, weekFrom, weekTo, directory));
+  };
+
+  const acknowledgeReport = (jobId: string, reportId: string) => {
+    const now = new Date().toISOString();
+    onFixJobs((prev) =>
+      prev.map((j) =>
+        j.id !== jobId
+          ? j
+          : {
+              ...j,
+              workerReports: jobWorkerReports(j).map((r) =>
+                r.id === reportId ? { ...r, adminReviewedAt: now } : r,
+              ),
+            },
+      ),
+    );
   };
 
   const todayLabel = new Date().toLocaleDateString("pl-PL", {
@@ -6421,7 +6640,7 @@ function DashboardView({
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-sm font-medium flex items-center gap-2">
                       <Camera size={14} className="text-yellow-400"/>
-                      Zdjęcia do akceptacji
+                      Zdjęcia od pracowników — do akceptacji
                       <span className="text-[10px] bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded-full font-bold">
                         {pendingPhotos.length}
                       </span>
@@ -6431,7 +6650,7 @@ function DashboardView({
                     </button>
                   </div>
                   <div className="space-y-1.5">
-                    {pendingPhotos.slice(0, 3).map(({ photo, job }) => (
+                    {pendingPhotos.slice(0, 5).map(({ photo, job }) => (
                       <button
                         key={photo.id}
                         type="button"
@@ -6439,23 +6658,64 @@ function DashboardView({
                         className="w-full text-left text-xs text-muted-foreground truncate hover:text-foreground transition-colors"
                       >
                         <span className="text-foreground">{job.address || "Bez adresu"}</span>
-                        {photo.caption ? ` — ${photo.caption}` : ` · ${photo.uploadedBy}`}
+                        {" · "}
+                        <span className="text-foreground/90">{photo.uploadedBy}</span>
+                        {photo.caption ? ` — ${photo.caption}` : ""}
+                        {" · "}
+                        {fmtDate(photo.uploadedAt.slice(0, 10))}
                       </button>
                     ))}
-                    {pendingPhotos.length > 3 && (
-                      <p className="text-[10px] text-muted-foreground">+ {pendingPhotos.length - 3} więcej</p>
+                    {pendingPhotos.length > 5 && (
+                      <p className="text-[10px] text-muted-foreground">+ {pendingPhotos.length - 5} więcej</p>
                     )}
                   </div>
                 </div>
               )}
-              {recentReports.length > 0 && (
+              {pendingReceipts.length > 0 && (
+                <div className="px-5 py-3.5">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-sm font-medium flex items-center gap-2">
+                      <Receipt size={14} className="text-emerald-400"/>
+                      Paragony / faktury do akceptacji
+                      <span className="text-[10px] bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded-full font-bold">
+                        {pendingReceipts.length}
+                      </span>
+                    </p>
+                    <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline">
+                      Lista płac →
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    {pendingReceipts.slice(0, 5).map(({ cost, emp }) => (
+                      <button
+                        key={cost.id}
+                        type="button"
+                        onClick={() => onNavigate("payroll", undefined, emp.id)}
+                        className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <span className="text-foreground">{emp.name || "—"}</span>
+                        {cost.description ? ` — ${cost.description}` : ""}
+                        {" · "}
+                        <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(parseFloat(cost.amount) || 0)} PLN</span>
+                        {cost.submittedBy && cost.submittedBy !== emp.name && (
+                          <span className="text-muted-foreground"> · od {cost.submittedBy}</span>
+                        )}
+                      </button>
+                    ))}
+                    {pendingReceipts.length > 5 && (
+                      <p className="text-[10px] text-muted-foreground">+ {pendingReceipts.length - 5} więcej</p>
+                    )}
+                  </div>
+                </div>
+              )}
+              {pendingReports.length > 0 && (
                 <div className="px-5 py-3.5">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-sm font-medium flex items-center gap-2">
                       <ClipboardList size={14} className="text-violet-400"/>
-                      Raporty z budowy (14 dni)
+                      Nowe raporty od pracowników
                       <span className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full font-bold">
-                        {recentReports.length}
+                        {pendingReports.length}
                       </span>
                     </p>
                     <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline">
@@ -6463,19 +6723,30 @@ function DashboardView({
                     </button>
                   </div>
                   <div className="space-y-1.5">
-                    {recentReports.map(({ report, job }) => (
+                    {pendingReports.slice(0, 5).map(({ report, job }) => (
                       <button
                         key={report.id}
                         type="button"
-                        onClick={() => onNavigate("jobs", job.id)}
+                        onClick={() => {
+                          acknowledgeReport(job.id, report.id);
+                          onNavigate("jobs", job.id);
+                        }}
                         className="w-full text-left text-xs text-muted-foreground truncate hover:text-foreground transition-colors"
                       >
                         <span className="text-foreground">{report.workerName}</span>
                         {" · "}
                         {job.address || "Bez adresu"}
                         {report.workItems[0]?.text && ` — ${report.workItems[0].text}`}
+                        {" · "}
+                        {fmtDate((report.updatedAt || report.submittedAt).slice(0, 10))}
+                        {report.updatedAt && report.adminReviewedAt && report.updatedAt > report.adminReviewedAt && (
+                          <span className="text-violet-400"> · edyt.</span>
+                        )}
                       </button>
                     ))}
+                    {pendingReports.length > 5 && (
+                      <p className="text-[10px] text-muted-foreground">+ {pendingReports.length - 5} więcej</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -7066,7 +7337,7 @@ function HelpView() {
             {icon:Scale, title:"Spójność listy płac ↔ roboty", desc:"Porównywana jest suma godzin z listy płac z wpisami na robotach. Pracownik z „Wiele robót dziennie” w kartotece jest pomijany (logistyka, kierowca)."},
             {icon:BarChart3, title:"Karta pracownika z archiwum", desc:"Pracownicy → ikona wykresu przy osobie: roczne godziny, wypłaty, słupki miesięczne i lista tygodni z archiwum."},
             {icon:FileDown, title:"Raport roczny PDF", desc:"Archiwum → wybierz rok → „Raport roczny PDF”: wypłaty × 12 miesięcy, roboty zdane, średni koszt roboczogodziny."},
-            {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"Sekcja „Uwaga dziś”: nierozliczeni (piątek), niezapisany tydzień (sobota, gdy auto-zapis nie zadziałał — w sobotę zapisuje się automatycznie), spójność godzin, dokumenty, zdjęcia. „Pracuje dziś” — godziny z listy płac; adres po wpisie na robocie."},
+            {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"Sekcja „Uwaga dziś”: zdjęcia do akceptacji, nowe raporty od pracowników, paragony, nierozliczeni (piątek), spójność godzin, dokumenty. Klik w wiersz → otwiera robotę lub listę płac."},
             {icon:CalendarDays, title:"Grafik tygodniowy", desc:"Menu Grafik — cały tydzień na jednym ekranie. Godziny z listy płac (łącznie z dodatkowymi blokami), adres z wpisu na robocie."},
             {icon:Wallet, title:"Koszty do zwrotu vs zaliczka", desc:"Zaliczka = pieniądze wzięte z góry (odejmowane). Koszty do zwrotu = pracownik zapłacił z własnej kieszeni (doliczane). Oba wpisujesz w panelu pracownika w Liście Płac."},
             {icon:Clock, title:"Dodatkowe godziny w dniu", desc:"Pod każdym dniem w panelu pracownika: „Dodatkowe godziny w …” → opis + od–do. Wliczają się do wypłaty, grafiku i PDF."},
@@ -7141,6 +7412,16 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.9.17", label:"Panel pracownika — grafik, paragony, status zdjęć",
+    items:[
+      {type:"new", text:"Tryb pracownika — „Gdzie dziś pracuję?”: adres i godziny z grafiku / wpisu na robocie"},
+      {type:"new", text:"Zakładka Grafik — własny tydzień Pn–So (godziny + adresy robót)"},
+      {type:"new", text:"Skan paragonu (chemia, paliwo) → koszty do zwrotu u admina po akceptacji"},
+      {type:"improve", text:"Pulpit „Uwaga dziś” — alerty: zdjęcia do akceptacji, nowe raporty od pracowników, paragony/faktury"},
+      {type:"improve", text:"Status zdjęć z opisem (oczekuje / zaakceptowane / odrzucone) + powód odrzucenia od admina"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.9.16", label:"Kartoteka — trwałe usuwanie i sync",
     items:[
@@ -7882,6 +8163,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
   const [contacts, setContacts] = useLocalStorage<EmailContact[]>("kw-contacts", []);
   const [view, setView] = useState<View>("dashboard");
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
+  const [pendingPayrollEmpId, setPendingPayrollEmpId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [globalSearch, setGlobalSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -8243,8 +8525,9 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
 
   const totalNet = productionWeekEmployees.reduce((s,e)=>s+calcWeekEmployee(e).netPay,0);
 
-  const handleNavigate = useCallback((v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string) => {
+  const handleNavigate = useCallback((v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string, payrollEmpId?: string) => {
     if (jobId) setPendingJobId(jobId);
+    if (payrollEmpId) setPendingPayrollEmpId(payrollEmpId);
     setView(v as View);
   }, []);
 
@@ -8461,7 +8744,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
         {/* Content */}
         <div className="flex flex-1 min-h-0 overflow-hidden pb-16 sm:pb-0">
           {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs}/>}
-          {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive}/>}
+          {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive} initialEmpId={pendingPayrollEmpId} onInitialEmpConsumed={()=>setPendingPayrollEmpId(null)}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
@@ -9776,8 +10059,12 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
   const [weekTo, setWeekTo] = useState("");
   const [payrollLoading, setPayrollLoading] = useState(true);
   const [showPayHistory, setShowPayHistory] = useState(false);
-  const [workerTab, setWorkerTab] = useState<"jobs" | "pay">("jobs");
+  const [workerTab, setWorkerTab] = useState<"jobs" | "pay" | "schedule">("jobs");
   const [workerHelpOpen, setWorkerHelpOpen] = useState(false);
+  const [receiptDesc, setReceiptDesc] = useState("");
+  const [receiptAmount, setReceiptAmount] = useState("");
+  const [receiptUploading, setReceiptUploading] = useState(false);
+  const [receiptError, setReceiptError] = useState("");
   const privacyShield = useWorkerPrivacyShield(true);
 
   const currentWeekEmp = useMemo(
@@ -9793,6 +10080,15 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
     [savedWeeks, workerId, workerName, weekFrom],
   );
   const fridayPayDate = weekFrom ? fridayIsoOfWeek(weekFrom) : "";
+  const todayWork = useMemo(
+    () => workerTodayWorkInfo(currentWeekEmp, jobs, weekFrom, weekTo),
+    [currentWeekEmp, jobs, weekFrom, weekTo],
+  );
+  const scheduleColumns = useMemo(() => (weekFrom ? weekDayColumns(weekFrom) : []), [weekFrom]);
+  const myExtraCosts = currentWeekEmp?.extraCosts ?? [];
+  const pendingExtraCosts = myExtraCosts.filter((c) => extraCostStatus(c) === "pending");
+  const approvedExtraCosts = myExtraCosts.filter((c) => extraCostStatus(c) === "approved");
+  const rejectedExtraCosts = myExtraCosts.filter((c) => extraCostStatus(c) === "rejected");
 
   useEffect(() => {
     return () => { galleryPicks.forEach((p) => URL.revokeObjectURL(p.preview)); };
@@ -9920,6 +10216,66 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
       pushKeysToCloud(["kw-jobs"], [updated]).catch(() => {});
       return updated;
     });
+  };
+
+  const syncWeekEmployees = (updater: (prev: WeekEmployee[]) => WeekEmployee[]) => {
+    setWeekEmployees((prev) => {
+      const updated = updater(prev);
+      try { localStorage.setItem("kw-week-employees", JSON.stringify(updated)); } catch { /* ignore */ }
+      pushKeysToCloud(["kw-week-employees"], [updated]).catch(() => {});
+      return updated;
+    });
+  };
+
+  const submitReceipt = async (file: File) => {
+    if (!currentWeekEmp) {
+      setReceiptError("Nie ma Cię na liście płac w tym tygodniu — poproś admina o dodanie.");
+      return;
+    }
+    const desc = receiptDesc.trim();
+    const amount = receiptAmount.trim();
+    if (!desc || !amount || !(parseFloat(amount) > 0)) {
+      setReceiptError("Podaj opis i kwotę większą od zera.");
+      return;
+    }
+    setReceiptUploading(true);
+    setReceiptError("");
+    const { publicUrl, error } = await uploadReceipt(workerId || workerName, file);
+    if (!publicUrl) {
+      setReceiptError(error || "Nie udało się wgrać paragonu.");
+      setReceiptUploading(false);
+      return;
+    }
+    const newCost: EmployeeExtraCost = {
+      id: crypto.randomUUID(),
+      description: desc,
+      amount,
+      receiptUrl: publicUrl,
+      status: "pending",
+      submittedAt: new Date().toISOString(),
+      submittedBy: workerName,
+    };
+    syncWeekEmployees((prev) =>
+      prev.map((e) =>
+        e.id === currentWeekEmp.id
+          ? { ...e, extraCosts: [...(e.extraCosts ?? []), newCost] }
+          : e,
+      ),
+    );
+    setReceiptDesc("");
+    setReceiptAmount("");
+    setReceiptUploading(false);
+  };
+
+  const removeMyExtraCost = (costId: string) => {
+    if (!currentWeekEmp || !window.confirm("Usunąć ten koszt?")) return;
+    syncWeekEmployees((prev) =>
+      prev.map((e) =>
+        e.id === currentWeekEmp.id
+          ? { ...e, extraCosts: (e.extraCosts ?? []).filter((c) => c.id !== costId) }
+          : e,
+      ),
+    );
   };
 
   const uploadFilesBatch = async (
@@ -10102,6 +10458,14 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
           </button>
           <button
             type="button"
+            onClick={() => setWorkerTab("schedule")}
+            title="Twój grafik na ten tydzień — godziny i adresy robót"
+            className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "schedule" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
+          >
+            <CalendarDays size={14}/>Grafik
+          </button>
+          <button
+            type="button"
             onClick={() => setWorkerTab("pay")}
             title="Twoja wypłata w piątek — tylko po logowaniu telefonem i kodem"
             className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "pay" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
@@ -10123,8 +10487,9 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
           </button>
           {workerHelpOpen && (
             <div className="mt-1.5 px-3 py-2.5 rounded-xl border border-border bg-card text-[11px] text-muted-foreground leading-relaxed space-y-1.5">
-              <p><strong className="text-foreground/90">Roboty</strong> — wybierz aktywną robotę, dodaj zdjęcia (galeria lub aparat), wyślij raport z wymiarami.</p>
-              <p><strong className="text-foreground/90">Wypłata</strong> — kwota na piątek i archiwum (tylko Twoje dane, chronione kodem).</p>
+              <p><strong className="text-foreground/90">Roboty</strong> — wybierz aktywną robotę, dodaj zdjęcia (galeria lub aparat), wyślij raport z wymiarami. Status zdjęć i powód odrzucenia widać przy każdym zdjęciu.</p>
+              <p><strong className="text-foreground/90">Grafik</strong> — Twój tydzień Pn–So: godziny z listy płac i adresy z wpisów na robotach.</p>
+              <p><strong className="text-foreground/90">Wypłata</strong> — kwota na piątek, skan paragonu (chemia, paliwo) trafia do kosztów do zwrotu po akceptacji admina.</p>
               <p><strong className="text-foreground/90">Offline</strong> — zdjęcia bez sieci trafiają do kolejki i wysyłają się po powrocie zasięgu.</p>
             </div>
           )}
@@ -10148,7 +10513,71 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
       )}
 
       <div className="flex-1 overflow-y-auto pb-8" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>
-        {!selectedJob && workerTab === "pay" ? (
+        {!selectedJob && workerTab === "schedule" ? (
+          <div className="max-w-lg mx-auto px-4 pt-6 space-y-4">
+            <div>
+              <p className="text-lg font-bold mb-0.5">Twój grafik</p>
+              <p className="text-xs text-muted-foreground">
+                {weekFrom ? `Tydzień ${fmtDate(weekFrom)} – ${fmtDate(weekTo)}` : "Ładowanie…"}
+              </p>
+            </div>
+            {payrollLoading ? (
+              <div className="flex justify-center py-16">
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+              </div>
+            ) : !currentWeekEmp ? (
+              <div className="text-center py-12 text-muted-foreground bg-card border border-border rounded-2xl px-4">
+                <CalendarDays size={36} className="mx-auto opacity-20 mb-2"/>
+                <p className="text-sm">Brak wpisu w tym tygodniu</p>
+                <p className="text-xs mt-2">Administrator musi dodać Cię do listy płac — wtedy grafik pojawi się tutaj.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {scheduleColumns.map((col) => {
+                  const cell = scheduleCellFor(currentWeekEmp, col.key, col.iso, jobs, []);
+                  const isToday = col.iso === todayIsoDate();
+                  return (
+                    <div
+                      key={col.key}
+                      className={`rounded-2xl border px-4 py-3.5 ${isToday ? "border-primary/40 bg-primary/5" : "border-border bg-card"} ${cell.working ? "" : "opacity-50"}`}
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className={`text-sm font-semibold ${isToday ? "text-primary" : ""}`}>
+                          {col.shortLabel} · {col.dateLabel}
+                          {isToday && <span className="ml-1.5 text-[10px] font-bold text-primary">DZIŚ</span>}
+                        </span>
+                        {cell.hoursLabel && (
+                          <span className="text-xs font-semibold text-muted-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                            {cell.hoursLabel}
+                          </span>
+                        )}
+                      </div>
+                      {cell.working ? (
+                        <div className="space-y-1">
+                          {cell.timeRange && (
+                            <p className="text-xs text-green-400/90 font-medium">{cell.timeRange}</p>
+                          )}
+                          {cell.locations.length > 0 ? (
+                            cell.locations.map((loc, i) => (
+                              <p key={i} className="text-xs text-primary flex items-start gap-1">
+                                <MapPin size={11} className="shrink-0 mt-0.5"/>
+                                {loc}
+                              </p>
+                            ))
+                          ) : cell.timeRange ? (
+                            <p className="text-[11px] text-muted-foreground italic">Godziny z listy płac — bez przypisanej roboty</p>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">Wolne</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : !selectedJob && workerTab === "pay" ? (
           <div className="max-w-lg mx-auto px-4 pt-6 space-y-4 worker-pay-sensitive">
             <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 rounded-xl px-3 py-2.5">
               <Lock size={14} className="text-amber-400 shrink-0 mt-0.5"/>
@@ -10187,7 +10616,12 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
                       )}
                       {currentPay.totalExtraCosts > 0 && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          Koszty do zwrotu: +{fmt(currentPay.totalExtraCosts)} PLN
+                          Koszty do zwrotu (zaakceptowane): +{fmt(currentPay.totalExtraCosts)} PLN
+                        </p>
+                      )}
+                      {pendingExtraCosts.length > 0 && (
+                        <p className="text-xs text-yellow-400/90 mt-1">
+                          Oczekuje na akceptację: {pendingExtraCosts.length} paragon(ów)
                         </p>
                       )}
                       {currentWeekEmp?.settled && (
@@ -10201,6 +10635,110 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
                       Nie ma Cię jeszcze na liście płac w tym tygodniu. Administrator musi dodać Cię w panelu — wtedy kwota pojawi się tutaj automatycznie.
                     </p>
                   )}
+                </div>
+
+                <div className="bg-card border border-border rounded-2xl overflow-hidden">
+                  <div className="px-4 py-3.5 border-b border-border">
+                    <p className="text-sm font-semibold flex items-center gap-2">
+                      <Receipt size={15} className="text-primary"/>
+                      Paragon / faktura — koszt do zwrotu
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Chemia, paliwo, zakupy na budowę — zdjęcie paragonu trafia do admina. Kwota w wypłacie po akceptacji.
+                    </p>
+                  </div>
+                  <div className="px-4 py-4 space-y-3">
+                    {!currentWeekEmp ? (
+                      <p className="text-xs text-muted-foreground">Najpierw admin musi dodać Cię do listy płac w tym tygodniu.</p>
+                    ) : (
+                      <>
+                        <input
+                          type="text"
+                          value={receiptDesc}
+                          onChange={(e) => setReceiptDesc(e.target.value)}
+                          placeholder="Opis (np. chemia, paliwo)"
+                          className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
+                        />
+                        <div className="flex gap-2">
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={receiptAmount}
+                            onChange={(e) => setReceiptAmount(e.target.value)}
+                            placeholder="Kwota PLN"
+                            className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
+                            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                          />
+                          <label className={`flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold cursor-pointer shrink-0 ${receiptUploading ? "opacity-50 pointer-events-none" : "hover:bg-primary/90"}`}>
+                            {receiptUploading ? (
+                              <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"/>
+                            ) : (
+                              <Camera size={16}/>
+                            )}
+                            Skan
+                            <input
+                              type="file"
+                              accept="image/*,application/pdf"
+                              capture="environment"
+                              className="sr-only"
+                              disabled={receiptUploading}
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) submitReceipt(f);
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                        </div>
+                        {receiptError && (
+                          <p className="text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2">{receiptError}</p>
+                        )}
+                      </>
+                    )}
+                    {myExtraCosts.length > 0 && (
+                      <div className="divide-y divide-border border border-border rounded-xl overflow-hidden">
+                        {[...approvedExtraCosts, ...pendingExtraCosts, ...rejectedExtraCosts].map((cost) => {
+                          const st = extraCostStatus(cost);
+                          return (
+                            <div key={cost.id} className="px-3 py-2.5 flex items-start gap-2">
+                              {cost.receiptUrl && (
+                                <a href={cost.receiptUrl} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-lg overflow-hidden bg-secondary shrink-0 border border-border flex items-center justify-center">
+                                  {/\.pdf(\?|$)/i.test(cost.receiptUrl) ? (
+                                    <Receipt size={18} className="text-primary"/>
+                                  ) : (
+                                    <img src={cost.receiptUrl} alt="" className="w-full h-full object-cover"/>
+                                  )}
+                                </a>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium truncate">{cost.description || "—"}</p>
+                                <p className="text-sm font-bold text-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                                  {fmt(parseFloat(cost.amount) || 0)} PLN
+                                </p>
+                                <span className={`inline-block mt-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                                  st === "approved" ? "bg-green-500/15 text-green-400"
+                                  : st === "pending" ? "bg-yellow-500/15 text-yellow-400"
+                                  : "bg-red-500/15 text-red-400"
+                                }`}>
+                                  {EXTRA_COST_STATUS_LABELS[st]}
+                                </span>
+                                {st === "rejected" && cost.rejectReason && (
+                                  <p className="text-[10px] text-red-400/90 mt-1 italic">Powód: {cost.rejectReason}</p>
+                                )}
+                              </div>
+                              {(st === "pending" || st === "rejected") && (
+                                <button type="button" onClick={() => removeMyExtraCost(cost.id)}
+                                  className="p-1.5 text-muted-foreground hover:text-destructive shrink-0">
+                                  <Trash2 size={13}/>
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="bg-card border border-border rounded-2xl overflow-hidden">
@@ -10246,6 +10784,27 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
           </div>
         ) : !selectedJob ? (
           <div className="max-w-lg mx-auto px-4 pt-6 space-y-4">
+            {todayWork.working ? (
+              <div className="bg-primary/10 border border-primary/25 rounded-2xl px-4 py-3.5 space-y-1.5">
+                <p className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                  <MapPin size={13}/> Gdzie dziś pracuję?
+                </p>
+                {todayWork.timeRange && (
+                  <p className="text-sm font-medium text-green-400/90">{todayWork.timeRange}{todayWork.hoursLabel ? ` · ${todayWork.hoursLabel}` : ""}</p>
+                )}
+                {todayWork.locations.length > 0 ? (
+                  todayWork.locations.map((loc, i) => (
+                    <p key={i} className="text-sm font-semibold text-foreground">{loc}</p>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">Masz wpis w grafiku — adres pojawi się po przypisaniu do roboty</p>
+                )}
+              </div>
+            ) : currentWeekEmp && (
+              <div className="bg-secondary/40 border border-border rounded-2xl px-4 py-3 text-xs text-muted-foreground">
+                <span className="font-medium text-foreground/80">Gdzie dziś pracuję?</span> — brak wpisu na dziś w grafiku i na robotach.
+              </div>
+            )}
             <div>
               <p className="text-lg font-bold mb-0.5">Wybierz robotę</p>
               <p className="text-xs text-muted-foreground">Zdjęcia, zakres prac i wymiary mieszkania</p>
@@ -10451,10 +11010,17 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
                           <span className="text-[10px] text-muted-foreground">
                             {p.label==="before"?"Przed":p.label==="after"?"Po":"W trakcie"} · {fmtDate(p.uploadedAt.slice(0,10))}
                           </span>
-                          <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${p.status==="approved"?"bg-green-500 text-white":p.status==="rejected"?"bg-red-500 text-white":"bg-yellow-500 text-black"}`}>
-                            {p.status==="approved"?"✓":p.status==="rejected"?"✗":"?"}
+                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                            p.status==="approved"?"bg-green-500/15 text-green-400"
+                            :p.status==="rejected"?"bg-red-500/15 text-red-400"
+                            :"bg-yellow-500/15 text-yellow-400"
+                          }`}>
+                            {PHOTO_STATUS_LABELS[p.status]}
                           </span>
                         </div>
+                        {p.status==="rejected" && p.rejectReason && (
+                          <p className="text-[10px] text-red-400/90 italic leading-snug">Powód odrzucenia: {p.rejectReason}</p>
+                        )}
                         <input
                           type="text"
                           defaultValue={p.caption || ""}
@@ -10508,9 +11074,10 @@ function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photo
   };
   const reject  = (id: string) => {
     const p = photos.find(x => x.id === id);
+    const reason = window.prompt("Powód odrzucenia (opcjonalnie):", "") ?? "";
     onUpdate(
-      photos.map(x=>x.id===id?{...x,status:"rejected"}:x),
-      p ? { type: "photo_rejected", text: `Odrzucono zdjęcie (${p.label})` } : undefined,
+      photos.map(x=>x.id===id?{...x,status:"rejected",rejectReason: reason.trim() || undefined}:x),
+      p ? { type: "photo_rejected", text: `Odrzucono zdjęcie (${p.label})${reason.trim() ? `: ${reason.trim()}` : ""}` } : undefined,
     );
   };
   const remove  = (id: string) => onUpdate(photos.filter(p=>p.id!==id));
@@ -10678,6 +11245,9 @@ function PhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photo
             <p className="text-white/90 text-sm font-medium">{PHOTO_LABEL_NAMES[lightbox.label]}</p>
             {lightbox.caption && <p className="text-white/80 text-xs mt-1 italic">{lightbox.caption}</p>}
             <p className="text-white/50 text-xs mt-0.5">{lightbox.uploadedBy} · {new Date(lightbox.uploadedAt).toLocaleDateString("pl-PL")}</p>
+            {lightbox.status === "rejected" && lightbox.rejectReason && (
+              <p className="text-red-300 text-xs mt-1">Powód odrzucenia: {lightbox.rejectReason}</p>
+            )}
           </div>
         </div>
       )}
