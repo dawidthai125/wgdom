@@ -12,7 +12,7 @@ import {
   Mic, MicOff, Bell, Copy, ScrollText, Sparkles,
   BookOpen, ChevronDown as ChevDown, HelpCircle, Smartphone, Monitor,
   Camera, ImagePlus, Lock, LogOut, Eye, ArrowLeft, ShieldCheck, ThumbsUp, ThumbsDown, Clock3,
-  ClipboardList, Ruler, Mail, Send, RotateCcw,
+  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale,
 } from "lucide-react";
 import {
   API_BASE,
@@ -406,6 +406,163 @@ function payrollJobWorkLines(jobs: Job[], weekFrom: string, weekTo: string): Pay
   return lines.sort(
     (a, b) => a.dateIso.localeCompare(b.dateIso) || a.name.localeCompare(b.name, "pl") || a.jobAddress.localeCompare(b.jobAddress, "pl"),
   );
+}
+
+function normalizeEmpName(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function jobHoursForEmployeeOnDate(
+  emp: Pick<WeekEmployee, "directoryId" | "name">,
+  jobs: Job[],
+  dateIso: string,
+  directory: DirectoryEmployee[],
+): number {
+  let total = 0;
+  for (const job of jobs) {
+    for (const we of job.workEntries) {
+      if (we.date !== dateIso || we.hours <= 0) continue;
+      if (workEntryMatchesEmployee(emp, we, directory)) total += we.hours;
+    }
+  }
+  return +total.toFixed(2);
+}
+
+interface PayrollJobConsistencyAlert {
+  name: string;
+  dayLabel: string;
+  dayKey: DayKey;
+  dateIso: string;
+  payrollHours: number;
+  jobHours: number;
+  kind: "mismatch" | "payroll_only" | "job_only";
+}
+
+function payrollJobConsistencyAlerts(
+  weekEmployees: WeekEmployee[],
+  jobs: Job[],
+  weekFrom: string,
+  weekTo: string,
+  directory: DirectoryEmployee[],
+): PayrollJobConsistencyAlert[] {
+  const alerts: PayrollJobConsistencyAlert[] = [];
+  const cols = weekDayColumns(weekFrom);
+  const TOLERANCE = 0.01;
+
+  const pushAlert = (
+    name: string,
+    col: { key: DayKey; iso: string; dateLabel: string },
+    payrollHours: number,
+    jobHours: number,
+  ) => {
+    const pay = +payrollHours.toFixed(2);
+    const job = +jobHours.toFixed(2);
+    if (pay <= TOLERANCE && job <= TOLERANCE) return;
+    let kind: PayrollJobConsistencyAlert["kind"];
+    if (pay > TOLERANCE && job > TOLERANCE && Math.abs(pay - job) > TOLERANCE) kind = "mismatch";
+    else if (pay > TOLERANCE && job <= TOLERANCE) kind = "payroll_only";
+    else if (job > TOLERANCE && pay <= TOLERANCE) kind = "job_only";
+    else return;
+    alerts.push({
+      name,
+      dayLabel: `${DAY_LABELS[col.key]} (${col.dateLabel})`,
+      dayKey: col.key,
+      dateIso: col.iso,
+      payrollHours: pay,
+      jobHours: job,
+      kind,
+    });
+  };
+
+  for (const emp of weekEmployees) {
+    for (const col of cols) {
+      pushAlert(
+        emp.name || "—",
+        col,
+        dayTotalHours(emp.days[col.key]),
+        jobHoursForEmployeeOnDate(emp, jobs, col.iso, directory),
+      );
+    }
+  }
+
+  const externalByKeyDate = new Map<string, { name: string; col: (typeof cols)[0]; hours: number }>();
+  for (const job of jobs) {
+    for (const we of job.workEntries) {
+      if (we.date < weekFrom || we.date > weekTo || we.hours <= 0) continue;
+      if (weekEmployees.some((e) => workEntryMatchesEmployee(e, we, directory))) continue;
+      const col = cols.find((c) => c.iso === we.date);
+      if (!col) continue;
+      const key = `${we.directoryId || normalizeEmpName(we.employeeName)}|${we.date}`;
+      const prev = externalByKeyDate.get(key);
+      if (prev) prev.hours += we.hours;
+      else externalByKeyDate.set(key, { name: we.employeeName?.trim() || "—", col, hours: we.hours });
+    }
+  }
+  for (const { name, col, hours } of externalByKeyDate.values()) {
+    pushAlert(name, col, 0, hours);
+  }
+
+  return alerts.sort(
+    (a, b) => a.dateIso.localeCompare(b.dateIso) || a.name.localeCompare(b.name, "pl"),
+  );
+}
+
+function findEmployeeWeekStats(snap: WeekSnapshot, dirId: string, name: string): { hours: number; netPay: number } | null {
+  if (snap.weekEmployees?.length) {
+    const we = snap.weekEmployees.find(
+      (e) => (dirId && e.directoryId === dirId) || normalizeEmpName(e.name) === normalizeEmpName(name),
+    );
+    if (we) {
+      const c = calcWeekEmployee(we);
+      return { hours: c.totalHours, netPay: c.netPay };
+    }
+  }
+  const es = snap.employees.find((e) => normalizeEmpName(e.name) === normalizeEmpName(name));
+  if (es) return { hours: es.totalHours, netPay: es.netPay };
+  return null;
+}
+
+interface EmployeeArchiveStats {
+  year: number;
+  totalHours: number;
+  totalNet: number;
+  weekCount: number;
+  monthlyHours: number[];
+  monthlyNet: number[];
+  weeks: { weekFrom: string; weekTo: string; hours: number; netPay: number }[];
+}
+
+function buildEmployeeArchiveStats(dirId: string, name: string, savedWeeks: WeekSnapshot[], year: number): EmployeeArchiveStats {
+  const monthlyHours = Array.from({ length: 12 }, () => 0);
+  const monthlyNet = Array.from({ length: 12 }, () => 0);
+  const weeks: EmployeeArchiveStats["weeks"] = [];
+  let totalHours = 0;
+  let totalNet = 0;
+
+  for (const snap of savedWeeks) {
+    if (new Date(snap.weekFrom).getFullYear() !== year) continue;
+    const stats = findEmployeeWeekStats(snap, dirId, name);
+    if (!stats) continue;
+    totalHours += stats.hours;
+    totalNet += stats.netPay;
+    const m = new Date(snap.weekFrom).getMonth();
+    monthlyHours[m] += stats.hours;
+    monthlyNet[m] += stats.netPay;
+    weeks.push({ weekFrom: snap.weekFrom, weekTo: snap.weekTo, hours: stats.hours, netPay: stats.netPay });
+  }
+  weeks.sort((a, b) => b.weekFrom.localeCompare(a.weekFrom));
+
+  return { year, totalHours, totalNet, weekCount: weeks.length, monthlyHours, monthlyNet, weeks };
+}
+
+function consistencyAlertMessage(a: PayrollJobConsistencyAlert): string {
+  if (a.kind === "mismatch") {
+    return `${a.name}: ${fmtH(a.payrollHours)} w liście płac, ${fmtH(a.jobHours)} na robocie — ${a.dayLabel}`;
+  }
+  if (a.kind === "payroll_only") {
+    return `${a.name}: ${fmtH(a.payrollHours)} w liście płac, brak wpisu na robocie — ${a.dayLabel}`;
+  }
+  return `${a.name}: ${fmtH(a.jobHours)} na robocie, brak w liście płac — ${a.dayLabel}`;
 }
 
 function payrollPrevSatDetailLines(employees: WeekEmployee[], weekFrom: string) {
@@ -2380,8 +2537,114 @@ function PayrollView({
   );
 }
 
-function DirectoryView({directory, onChange}:{directory:DirectoryEmployee[]; onChange:(d:DirectoryEmployee[])=>void}) {
+function EmployeeArchiveModal({
+  employee,
+  savedWeeks,
+  onClose,
+}: {
+  employee: DirectoryEmployee;
+  savedWeeks: WeekSnapshot[];
+  onClose: () => void;
+}) {
+  const years = useMemo(
+    () => Array.from(new Set(savedWeeks.map((w) => new Date(w.weekFrom).getFullYear()))).sort((a, b) => b - a),
+    [savedWeeks],
+  );
+  const [year, setYear] = useState(years[0] ?? new Date().getFullYear());
+  const stats = useMemo(
+    () => buildEmployeeArchiveStats(employee.id, employee.name, savedWeeks, year),
+    [employee.id, employee.name, savedWeeks, year],
+  );
+  const maxMonthlyNet = Math.max(...stats.monthlyNet, 1);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60" onClick={onClose}>
+      <div
+        className="bg-card border border-border rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 bg-card border-b border-border px-5 py-4 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold truncate">{employee.name || "Pracownik"}</p>
+            <p className="text-xs text-muted-foreground">Karta z archiwum listy płac</p>
+          </div>
+          <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
+        </div>
+        <div className="p-5 space-y-5">
+          {years.length > 1 && (
+            <div className="flex gap-2 flex-wrap">
+              {years.map((y) => (
+                <button
+                  key={y}
+                  type="button"
+                  onClick={() => setYear(y)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${year === y ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
+                >
+                  {y}
+                </button>
+              ))}
+            </div>
+          )}
+          {stats.weekCount === 0 ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              Brak zapisanych tygodni z tym pracownikiem w {year} r.
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-secondary/50 rounded-xl p-3 text-center">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Godziny</p>
+                  <p className="text-base font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtH(stats.totalHours)}</p>
+                </div>
+                <div className="bg-secondary/50 rounded-xl p-3 text-center">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Wypłaty</p>
+                  <p className="text-base font-bold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(stats.totalNet)}</p>
+                </div>
+                <div className="bg-secondary/50 rounded-xl p-3 text-center">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Tygodni</p>
+                  <p className="text-base font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{stats.weekCount}</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">Wypłaty miesięczne · {year}</p>
+                <div className="flex items-end gap-1 h-24">
+                  {stats.monthlyNet.map((net, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1 min-w-0">
+                      <div
+                        className={`w-full rounded-t transition-all ${net > 0 ? "bg-primary/70" : "bg-border/40"}`}
+                        style={{ height: net > 0 ? `${Math.max(8, (net / maxMonthlyNet) * 72)}px` : "4px" }}
+                        title={net > 0 ? `${MONTH_NAMES[i]}: ${fmt(net)} PLN` : MONTH_NAMES[i]}
+                      />
+                      <span className="text-[8px] text-muted-foreground truncate w-full text-center">{MONTH_NAMES[i].slice(0, 3)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Tygodnie ({stats.weekCount})</p>
+                <div className="space-y-1 max-h-48 overflow-y-auto border border-border rounded-xl divide-y divide-border">
+                  {stats.weeks.map((w) => (
+                    <div key={w.weekFrom} className="px-3 py-2 flex items-center justify-between gap-2 text-xs">
+                      <span className="text-muted-foreground">{fmtDate(w.weekFrom)} – {fmtDate(w.weekTo)}</span>
+                      <span className="shrink-0 flex items-center gap-3" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                        <span>{fmtH(w.hours)}</span>
+                        <span className="font-semibold text-primary">{fmt(w.netPay)} PLN</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DirectoryView({directory, savedWeeks, onChange}:{directory:DirectoryEmployee[]; savedWeeks: WeekSnapshot[]; onChange:(d:DirectoryEmployee[])=>void}) {
   const [editId, setEditId] = useState<string|null>(null);
+  const [archiveEmpId, setArchiveEmpId] = useState<string|null>(null);
   const [search, setSearch] = useState("");
   const [showInactive, setShowInactive] = useState(false);
 
@@ -2401,9 +2664,13 @@ function DirectoryView({directory, onChange}:{directory:DirectoryEmployee[]; onC
   const toggleActive = (id:string) => update({...directory.find((d)=>d.id===id)!, active:!directory.find((d)=>d.id===id)!.active});
 
   const editEmp = directory.find((d)=>d.id===editId)||null;
+  const archiveEmp = directory.find((d)=>d.id===archiveEmpId)||null;
 
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden">
+      {archiveEmp && (
+        <EmployeeArchiveModal employee={archiveEmp} savedWeeks={savedWeeks} onClose={() => setArchiveEmpId(null)}/>
+      )}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8 space-y-6">
           {/* Top bar */}
@@ -2473,6 +2740,7 @@ function DirectoryView({directory, onChange}:{directory:DirectoryEmployee[]; onC
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={()=>setArchiveEmpId(emp.id)} title="Karta z archiwum" className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"><BarChart3 size={13}/></button>
                       <button onClick={()=>setEditId(emp.id)} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"><Edit2 size={13}/></button>
                       <button onClick={()=>toggleActive(emp.id)} title={emp.active?"Oznacz jako nieaktywny":"Przywróć"} className={`p-1.5 rounded-lg transition-colors ${emp.active?"hover:bg-secondary text-muted-foreground hover:text-yellow-400":"text-green-400 hover:bg-green-400/10"}`}>
                         {emp.active?<Circle size={13}/>:<CheckCircle2 size={13}/>}
@@ -2893,6 +3161,135 @@ function ArchiveView({savedWeeks, onDelete, jobs, directory}:{savedWeeks:WeekSna
     pdfMake.createPdf(dd).download(filename);
   };
 
+  const exportYearlyReport = async () => {
+    const pdfMake = await loadPdfMake();
+    const C = { navy:"#344254", red:"#C0392B", light:"#EDF1F6", white:"#FFFFFF", muted:"#8A9BB0", green:"#1E7E34" };
+    const filename = `raport-roczny-${activeYear}.pdf`;
+    const yearlyGross = yearlyWeeks.reduce((s, w) => s + w.totalGross, 0);
+    const avgLaborHour = yearlyHours > 0 ? yearlyGross / yearlyHours : 0;
+
+    const monthlyPayouts = Array.from({ length: 12 }, () => 0);
+    const monthlyHoursArr = Array.from({ length: 12 }, () => 0);
+    const monthlyWeekCounts = Array.from({ length: 12 }, () => 0);
+    for (const w of yearlyWeeks) {
+      const m = new Date(w.weekFrom).getMonth();
+      monthlyPayouts[m] += w.totalNet;
+      monthlyHoursArr[m] += w.totalHours;
+      monthlyWeekCounts[m] += 1;
+    }
+
+    const yearJobsList = jobs.filter((j) => new Date(j.startDate).getFullYear() === activeYear);
+    const completedInYear = jobs.filter(
+      (j) =>
+        j.status === "completed" &&
+        (j.endDate ? new Date(j.endDate).getFullYear() === activeYear : new Date(j.startDate).getFullYear() === activeYear),
+    );
+    const yearLaborCost = yearJobsList.reduce((s, j) => s + jobCost(j), 0);
+    const yearMatCost = yearJobsList.reduce((s, j) => s + jobMaterialsCost(j), 0);
+    const yearInvoiced = yearJobsList.reduce((s, j) => s + (parseFloat(j.invoiceAmount) || 0), 0);
+
+    const monthRows = MONTH_NAMES.map((name, i) => [
+      { text: name, fontSize: 8, fillColor: i % 2 === 0 ? C.white : C.light },
+      { text: monthlyWeekCounts[i] > 0 ? String(monthlyWeekCounts[i]) : "—", fontSize: 8, alignment: "center" as const, fillColor: i % 2 === 0 ? C.white : C.light, color: C.muted },
+      { text: monthlyHoursArr[i] > 0 ? fmtH(monthlyHoursArr[i]) : "—", fontSize: 8, alignment: "right" as const, fillColor: i % 2 === 0 ? C.white : C.light },
+      { text: monthlyPayouts[i] > 0 ? `${fmt(monthlyPayouts[i])} PLN` : "—", fontSize: 8, bold: monthlyPayouts[i] > 0, alignment: "right" as const, color: monthlyPayouts[i] > 0 ? C.red : C.muted, fillColor: i % 2 === 0 ? C.white : C.light },
+    ]);
+
+    const dd: PdfDocDef = {
+      pageSize: "A4",
+      pageOrientation: "landscape",
+      pageMargins: [40, 60, 40, 60],
+      defaultStyle: { font: "Roboto", fontSize: 10, lineHeight: 1.3 },
+      content: [
+        { canvas: [{ type: "rect", x: 0, y: 0, w: 762, h: 55, color: C.navy }] },
+        { text: "W&G DOM", fontSize: 26, bold: true, color: C.white, absolutePosition: { x: 40, y: 18 } },
+        { text: "Raport Roczny", fontSize: 12, color: C.red, absolutePosition: { x: 40, y: 46 } },
+        { text: String(activeYear), fontSize: 20, bold: true, color: C.white, absolutePosition: { x: 500, y: 22 } },
+        { text: `Wygenerowano: ${new Date().toLocaleDateString("pl-PL")}`, fontSize: 8, color: C.muted, absolutePosition: { x: 500, y: 50 } },
+        { text: " ", fontSize: 6, margin: [0, 20, 0, 0] },
+        {
+          columns: [
+            { stack: [
+              { canvas: [{ type: "rect", x: 0, y: 0, w: 170, h: 55, color: "#1A2332", r: 6 }] },
+              { text: "WYPŁATY NETTO", fontSize: 7, bold: true, color: C.muted, absolutePosition: { x: 10, y: 8 } },
+              { text: `${fmt(yearlyNet)} PLN`, fontSize: 16, bold: true, color: C.red, absolutePosition: { x: 10, y: 22 } },
+              { text: `${fmtH(yearlyHours)} · ${yearlyWeeks.length} tyg.`, fontSize: 7, color: C.muted, absolutePosition: { x: 10, y: 46 } },
+            ], width: 180 },
+            { stack: [
+              { canvas: [{ type: "rect", x: 0, y: 0, w: 170, h: 55, color: "#1A2332", r: 6 }] },
+              { text: "ŚR. KOSZT GODZ.", fontSize: 7, bold: true, color: C.muted, absolutePosition: { x: 10, y: 8 } },
+              { text: avgLaborHour > 0 ? `${fmt(avgLaborHour)} PLN/h` : "—", fontSize: 16, bold: true, color: C.white, absolutePosition: { x: 10, y: 22 } },
+              { text: `brutto ${fmt(yearlyGross)} PLN`, fontSize: 7, color: C.muted, absolutePosition: { x: 10, y: 46 } },
+            ], width: 180 },
+            { stack: [
+              { canvas: [{ type: "rect", x: 0, y: 0, w: 170, h: 55, color: "#1A2332", r: 6 }] },
+              { text: "ROBOTY ZDANE", fontSize: 7, bold: true, color: C.muted, absolutePosition: { x: 10, y: 8 } },
+              { text: String(completedInYear.length), fontSize: 16, bold: true, color: C.green, absolutePosition: { x: 10, y: 22 } },
+              { text: `${yearJobsList.length} rozpoczętych w ${activeYear}`, fontSize: 7, color: C.muted, absolutePosition: { x: 10, y: 46 } },
+            ], width: 180 },
+            { stack: [
+              { canvas: [{ type: "rect", x: 0, y: 0, w: 170, h: 55, color: "#1A2332", r: 6 }] },
+              { text: "FAKTUROWANIE", fontSize: 7, bold: true, color: C.muted, absolutePosition: { x: 10, y: 8 } },
+              { text: `${fmt(yearInvoiced)} PLN`, fontSize: 16, bold: true, color: yearInvoiced > 0 ? C.green : C.muted, absolutePosition: { x: 10, y: 22 } },
+              { text: `koszt robót: ${fmt(yearLaborCost + yearMatCost)} PLN`, fontSize: 7, color: C.muted, absolutePosition: { x: 10, y: 46 } },
+            ], width: 180 },
+          ],
+          margin: [0, 0, 0, 16],
+        },
+        { text: "Wypłaty i godziny — podział miesięczny", fontSize: 10, bold: true, color: C.navy, margin: [0, 0, 0, 6] },
+        {
+          table: {
+            headerRows: 1,
+            widths: ["*", 50, 70, 90],
+            body: [
+              [
+                { text: "Miesiąc", bold: true, fillColor: C.navy, color: C.white, fontSize: 8 },
+                { text: "Tyg.", bold: true, fillColor: C.navy, color: C.white, fontSize: 8, alignment: "center" as const },
+                { text: "Godziny", bold: true, fillColor: C.navy, color: C.white, fontSize: 8, alignment: "right" as const },
+                { text: "Wypłaty netto", bold: true, fillColor: C.navy, color: C.white, fontSize: 8, alignment: "right" as const },
+              ],
+              ...monthRows,
+              [
+                { text: "RAZEM", bold: true, fillColor: C.light, fontSize: 8 },
+                { text: String(yearlyWeeks.length), bold: true, fillColor: C.light, fontSize: 8, alignment: "center" as const },
+                { text: fmtH(yearlyHours), bold: true, fillColor: C.light, fontSize: 8, alignment: "right" as const },
+                { text: `${fmt(yearlyNet)} PLN`, bold: true, fillColor: C.light, fontSize: 8, color: C.red, alignment: "right" as const },
+              ],
+            ],
+          },
+          layout: { hLineColor: () => "#E5E7EB", vLineColor: () => "#E5E7EB" },
+        },
+        { text: "Roboty zakończone w roku", fontSize: 10, bold: true, color: C.navy, margin: [0, 14, 0, 6] },
+        completedInYear.length === 0
+          ? { text: "Brak zdanych robót w tym roku.", fontSize: 8, color: C.muted }
+          : {
+              table: {
+                headerRows: 1,
+                widths: ["*", 80, 60, 70, 70],
+                body: [
+                  [
+                    { text: "Adres", bold: true, fillColor: C.navy, color: C.white, fontSize: 7 },
+                    { text: "Klient", bold: true, fillColor: C.navy, color: C.white, fontSize: 7 },
+                    { text: "Zdane", bold: true, fillColor: C.navy, color: C.white, fontSize: 7, alignment: "center" as const },
+                    { text: "Koszt", bold: true, fillColor: C.navy, color: C.white, fontSize: 7, alignment: "right" as const },
+                    { text: "FV", bold: true, fillColor: C.navy, color: C.white, fontSize: 7, alignment: "right" as const },
+                  ],
+                  ...completedInYear.slice(0, 40).map((j, i) => [
+                    { text: (j.address || "—") + (j.flatNumber ? ` m.${j.flatNumber}` : ""), fontSize: 7, fillColor: i % 2 === 0 ? C.white : C.light },
+                    { text: j.client || "—", fontSize: 7, color: C.muted, fillColor: i % 2 === 0 ? C.white : C.light },
+                    { text: j.endDate ? fmtDate(j.endDate) : fmtDate(j.startDate), fontSize: 7, alignment: "center" as const, fillColor: i % 2 === 0 ? C.white : C.light },
+                    { text: jobTotalCost(j) > 0 ? `${fmt(jobTotalCost(j))}` : "—", fontSize: 7, alignment: "right" as const, fillColor: i % 2 === 0 ? C.white : C.light },
+                    { text: parseFloat(j.invoiceAmount || "0") > 0 ? `${fmt(parseFloat(j.invoiceAmount))}` : "—", fontSize: 7, alignment: "right" as const, fillColor: i % 2 === 0 ? C.white : C.light },
+                  ]),
+                ],
+              },
+              layout: { hLineColor: () => "#E5E7EB", vLineColor: () => "#E5E7EB" },
+            },
+      ],
+    };
+    pdfMake.createPdf(dd).download(filename);
+  };
+
   if(savedWeeks.length===0) return <div className="flex-1 flex flex-col items-center justify-center gap-4 text-muted-foreground"><Archive size={48} className="opacity-15"/><p className="text-sm font-medium">Brak zapisanych tygodni</p><p className="text-xs text-center max-w-xs">Przejdź do Listy Płac i kliknij "Zapisz tydzień".</p></div>;
 
   return (
@@ -2900,6 +3297,9 @@ function ArchiveView({savedWeeks, onDelete, jobs, directory}:{savedWeeks:WeekSna
       <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 space-y-6">
         <div className="flex items-center gap-2 flex-wrap">
           {years.map((y)=><button key={y} onClick={()=>{setSelectedYear(y);setSelectedMonth(null);}} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeYear===y?"bg-primary text-primary-foreground":"bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>{y}</button>)}
+          <button onClick={exportYearlyReport} className="ml-auto flex items-center gap-2 px-4 py-2 bg-primary/90 hover:bg-primary text-primary-foreground rounded-xl text-sm font-medium transition-colors shrink-0">
+            <FileDown size={14}/>Raport roczny PDF
+          </button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <StatCard label="Wypłaty rok" value={`${fmt(yearlyNet)} PLN`} sub={`${yearlyWeeks.length} tygodni`} icon={TrendingUp} accent/>
@@ -4714,8 +5114,29 @@ function DashboardView({
     [activeJobs],
   );
 
+  const consistencyAlerts = useMemo(
+    () => payrollJobConsistencyAlerts(weekEmployees, jobs, weekFrom, weekTo, directory),
+    [weekEmployees, jobs, weekFrom, weekTo, directory],
+  );
+
+  const currentWeekRange = getWeekRange();
+  const isCurrentPayrollWeek = weekFrom === currentWeekRange.from && weekTo === currentWeekRange.to;
+  const weekSaved = savedWeeks.some((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+  const unsettledEmployees = weekEmployees.filter((e) => !e.settled);
+  const isSaturday = new Date().getDay() === 6;
+  const showSaturdayBanner =
+    isSaturday && isCurrentPayrollWeek && weekEmployees.length > 0 && (!weekSaved || unsettledEmployees.length > 0);
+
+  const needsUnsavedWeekAlert = weekEmployees.length > 0 && !weekSaved && isCurrentPayrollWeek;
+  const needsUnsettledAlert = unsettledEmployees.length > 0 && isCurrentPayrollWeek;
+
   const attentionCount =
-    jobsMissingDocs.length + pendingPhotos.length + recentReports.length;
+    (needsUnsavedWeekAlert ? 1 : 0) +
+    (needsUnsettledAlert ? unsettledEmployees.length : 0) +
+    consistencyAlerts.length +
+    jobsMissingDocs.length +
+    pendingPhotos.length +
+    recentReports.length;
 
   const todayLabel = new Date().toLocaleDateString("pl-PL", {
     weekday: "long",
@@ -4756,6 +5177,31 @@ function DashboardView({
             ))}
           </div>
         </div>
+
+        {showSaturdayBanner && (
+          <div className="bg-primary/10 border border-primary/30 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-start gap-3 flex-1 min-w-0">
+              <Bell size={18} className="text-primary shrink-0 mt-0.5"/>
+              <div>
+                <p className="text-sm font-semibold text-primary">Sobota — czas zamknąć tydzień</p>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  {!weekSaved && "Tydzień nie jest jeszcze zapisany w archiwum. "}
+                  {unsettledEmployees.length > 0 && (
+                    <>{unsettledEmployees.length} {unsettledEmployees.length === 1 ? "osoba oczekuje" : "osób oczekuje"} na rozliczenie: {unsettledEmployees.slice(0, 4).map((e) => e.name.split(" ")[0]).join(", ")}{unsettledEmployees.length > 4 ? "…" : ""}.</>
+                  )}
+                  {weekSaved && unsettledEmployees.length === 0 && "Tydzień zapisany — sprawdź, czy wszyscy mają status Rozliczony."}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onNavigate("payroll")}
+              className="shrink-0 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              {!weekSaved ? "Zapisz tydzień →" : "Lista płac →"}
+            </button>
+          </div>
+        )}
 
         {/* Skróty liczbowe */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -4814,14 +5260,77 @@ function DashboardView({
           </div>
         </div>
 
-        {/* Wymaga uwagi */}
+        {/* Uwaga dziś */}
         {attentionCount > 0 && (
           <div className="bg-card border border-amber-500/20 rounded-xl overflow-hidden">
             <div className="px-5 py-3.5 border-b border-amber-500/15 flex items-center gap-2 bg-amber-500/5">
               <AlertTriangle size={14} className="text-amber-400 shrink-0"/>
-              <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">Wymaga uwagi</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">Uwaga dziś</span>
+              <span className="text-[10px] bg-amber-500/15 text-amber-400 px-1.5 py-0.5 rounded-full font-bold ml-auto">{attentionCount}</span>
             </div>
             <div className="divide-y divide-border">
+              {needsUnsavedWeekAlert && (
+                <div className="px-5 py-3.5 flex items-center justify-between gap-3">
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    <Archive size={14} className="text-primary"/>
+                    Tydzień niezapisany w archiwum
+                    <span className="text-xs text-muted-foreground font-normal">({fmtDate(weekFrom)} – {fmtDate(weekTo)})</span>
+                  </p>
+                  <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline shrink-0">
+                    Zapisz tydzień →
+                  </button>
+                </div>
+              )}
+              {needsUnsettledAlert && (
+                <div className="px-5 py-3.5">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-sm font-medium flex items-center gap-2">
+                      <Wallet size={14} className="text-yellow-400"/>
+                      Nierozliczeni pracownicy
+                      <span className="text-[10px] bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded-full font-bold">
+                        {unsettledEmployees.length}
+                      </span>
+                    </p>
+                    <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline">
+                      Lista płac →
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {unsettledEmployees.slice(0, 8).map((e) => (
+                      <span key={e.id} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-muted-foreground">{e.name || "—"}</span>
+                    ))}
+                    {unsettledEmployees.length > 8 && (
+                      <span className="text-[10px] text-muted-foreground">+ {unsettledEmployees.length - 8}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+              {consistencyAlerts.length > 0 && (
+                <div className="px-5 py-3.5">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-sm font-medium flex items-center gap-2">
+                      <Scale size={14} className="text-orange-400"/>
+                      Spójność listy płac ↔ roboty
+                      <span className="text-[10px] bg-orange-500/15 text-orange-400 px-1.5 py-0.5 rounded-full font-bold">
+                        {consistencyAlerts.length}
+                      </span>
+                    </p>
+                    <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline">
+                      Lista płac →
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    {consistencyAlerts.slice(0, 5).map((a, i) => (
+                      <p key={`${a.name}-${a.dateIso}-${i}`} className="text-xs text-muted-foreground leading-relaxed">
+                        {consistencyAlertMessage(a)}
+                      </p>
+                    ))}
+                    {consistencyAlerts.length > 5 && (
+                      <p className="text-[10px] text-muted-foreground">+ {consistencyAlerts.length - 5} więcej rozbieżności</p>
+                    )}
+                  </div>
+                </div>
+              )}
               {pendingPhotos.length > 0 && (
                 <div className="px-5 py-3.5">
                   <div className="flex items-center justify-between gap-2 mb-2">
@@ -5257,7 +5766,7 @@ function HelpView() {
               {q:"Raporty pracowników — gdzie?", a:"Roboty → wybierz robotę → „Raporty — zakres i wymiary”. Rozwiń wpis — widać punkty, tabelę pomieszczeń i rysunek."},
               {q:"Link podglądu dla klienta", a:"W karcie roboty: sekcja „Podgląd dla klienta” → Utwórz link → Kopiuj. Klient otwiera link bez logowania — widzi tylko zaakceptowane zdjęcia i raporty (bez kosztów). Wyłącz link gdy nie jest już potrzebny."},
               {q:"Historia roboty", a:"Przycisk „Historia” na karcie roboty — log zdarzeń: zdjęcia, dokumenty, emaile, link klienta, zmiany statusu."},
-              {q:"Pulpit — szybki dostęp do roboty", a:"W sekcji „Wymaga uwagi” i „Roboty w trakcie” kliknij wiersz — aplikacja otworzy od razu tę robotę w zakładce Roboty."},
+              {q:"Pulpit — szybki dostęp do roboty", a:"W sekcji „Uwaga dziś” i „Roboty w trakcie” kliknij wiersz — aplikacja otworzy od razu tę robotę w zakładce Roboty."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-secondary/30">
@@ -5288,6 +5797,7 @@ function HelpView() {
               {q:"Zdjęcia offline i znak wodny", a:"Bez internetu zdjęcia trafiają do kolejki i wysyłają się same po powrocie sieci. Każde zdjęcie ma znak wodny: adres, data i W&G DOM."},
               {q:"Notatka głosowa w raporcie", a:"Przy dodawaniu raportu (zakres prac, wiadomość dla admina) — ikona mikrofonu. Działa w Chrome/Edge na telefonie i komputerze."},
               {q:"Co to jest domyślna stawka?", a:"To stawka PLN za godzinę, którą ten pracownik zwykle zarabia. Będzie się automatycznie podpowiadać w Liście Płac i w Robotach. Możesz ją zmienić dla konkretnego tygodnia lub roboty — bez zmiany tej domyślnej."},
+              {q:"Karta z archiwum pracownika", a:"Przy pracowniku kliknij ikonę wykresu (📊). Zobaczysz sumę godzin i wypłat w roku, wykres miesięczny oraz listę zapisanych tygodni z archiwum listy płac."},
               {q:"Jak oznaczyć pracownika jako nieaktywnego?", a:"Kliknij okrągły przycisk przy pracowniku (po prawej). Zmieni status na Nieaktywny — pracownik zniknie z list przy dodawaniu do tygodnia, ale jego historia zostanie. Żeby przywrócić — kliknij ponownie."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
@@ -5459,11 +5969,14 @@ function HelpView() {
           {[
             {icon:Copy, title:"Kopiuj pracowników z zeszłego tygodnia", desc:"W Liście Płac, gdy tydzień jest pusty, pojawia się przycisk \"Kopiuj z poprzedniego tygodnia\". Kliknij — od razu doda tych samych pracowników co w poprzednim tygodniu. Oszczędzasz czas."},
             {icon:Mic, title:"Dyktowanie notatek głosem", desc:"Przy polu Notatki w robotach jest ikona mikrofonu. Kliknij, powiedz co chcesz wpisać — aplikacja zamieni mowę na tekst. Działa w przeglądarce Chrome na telefonie i komputerze."},
-            {icon:Bell, title:"Reminder w sobotę", desc:"Co sobotę w Liście Płac pojawia się żółty baner o zamknięciu tygodnia. Po „Zapisz tydzień” wysyłany jest też jeden backup emailem (raz na tydzień, nie codziennie)."},
+            {icon:Bell, title:"Reminder w sobotę", desc:"W sobotę na Pulpicie pojawia się niebieski baner: zapisz tydzień i rozlicz pracowników. W Liście Płac też jest żółty baner. Po „Zapisz tydzień” wysyłany jest backup emailem (raz na tydzień)."},
+            {icon:Scale, title:"Spójność listy płac ↔ roboty", desc:"Pulpit → „Uwaga dziś” ostrzega gdy godziny w liście płac nie zgadzają się z wpisami na robotach (np. 8 h w liście, 6 h na robocie)."},
+            {icon:BarChart3, title:"Karta pracownika z archiwum", desc:"Pracownicy → ikona wykresu przy osobie: roczne godziny, wypłaty, słupki miesięczne i lista tygodni z archiwum."},
+            {icon:FileDown, title:"Raport roczny PDF", desc:"Archiwum → wybierz rok → „Raport roczny PDF”: wypłaty × 12 miesięcy, roboty zdane, średni koszt roboczogodziny."},
+            {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"Sekcja „Uwaga dziś” zbiera: niezapisany tydzień, nierozliczonych, rozbieżności godzin, brakujące dokumenty i zdjęcia do akceptacji. „Pracuje dziś” — godziny z listy płac; adres po wpisie na robocie."},
             {icon:CalendarDays, title:"Grafik tygodniowy", desc:"Menu Grafik — cały tydzień na jednym ekranie. Godziny z listy płac (łącznie z dodatkowymi blokami), adres z wpisu na robocie."},
             {icon:Wallet, title:"Koszty do zwrotu vs zaliczka", desc:"Zaliczka = pieniądze wzięte z góry (odejmowane). Koszty do zwrotu = pracownik zapłacił z własnej kieszeni (doliczane). Oba wpisujesz w panelu pracownika w Liście Płac."},
             {icon:Clock, title:"Dodatkowe godziny w dniu", desc:"Pod każdym dniem w panelu pracownika: „Dodatkowe godziny w …” → opis + od–do. Wliczają się do wypłaty, grafiku i PDF."},
-            {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"„Pracuje dziś” pokazuje łączne godziny z Listy Płac (w tym dodatkowe). Adres pod imieniem pojawia się dopiero gdy w Robotach dodasz wpis pracy na dzisiejszą datę."},
             {icon:Search, title:"Globalne wyszukiwanie", desc:"Ikona lupy w prawym górnym rogu. Wpisz imię pracownika lub adres roboty — aplikacja znajdzie to w całej bazie danych."},
             {icon:Users, title:"Filtrowanie robót po pracowniku", desc:"W zakładce Roboty jest rozwijana lista pracowników. Wybierz kogoś — zobaczysz tylko roboty na których ten pracownik miał wpisy czasu pracy."},
             {icon:KeyRound, title:"Zapamiętaj hasło admina", desc:"Przy logowaniu administratora zaznacz „Zapamiętaj hasło na tym urządzeniu” — hasło zostaje zaszyfrowane lokalnie (nie w chmurze). Nie używaj na wspólnym komputerze."},
@@ -5534,6 +6047,16 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.9.0", label:"Pulpit, kartoteka, archiwum",
+    items:[
+      {type:"new", text:"Pulpit — sekcja „Uwaga dziś”: niezapisany tydzień, nierozliczeni, spójność listy płac ↔ roboty, dokumenty, zdjęcia"},
+      {type:"new", text:"Pulpit — alerty rozbieżności godzin (lista płac vs wpisy na robotach)"},
+      {type:"new", text:"Pulpit — banner w sobotę: przypomnienie o zapisaniu tygodnia i rozliczeniu pracowników"},
+      {type:"new", text:"Pracownicy — karta z archiwum: roczne godziny, wypłaty, wykres miesięczny, lista tygodni"},
+      {type:"new", text:"Archiwum — raport roczny PDF: wypłaty × 12 miesięcy, roboty zdane, średni koszt roboczogodziny"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.8.1", label:"PDF — siatka pracy na robotach",
     items:[
@@ -6694,7 +7217,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
           {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate}/>}
           {view==="payroll"&&<PayrollView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={weekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
-          {view==="directory"&&<DirectoryView directory={directory} onChange={setDirectory}/>}
+          {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>setSavedWeeks(prev=>prev.filter(w=>w.id!==id))} jobs={jobs} directory={directory}/>}
           {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={weekEmployees} weekFrom={weekFrom}/>}
