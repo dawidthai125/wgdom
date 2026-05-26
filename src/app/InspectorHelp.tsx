@@ -1,10 +1,10 @@
 import { useState } from "react";
 import {
   HelpCircle, X, BookOpen, List, FileText, ClipboardList, Users, Ruler,
-  ImagePlus, CheckCircle2, ChevronDown, ChevronUp,
+  ImagePlus, CheckCircle2, ChevronDown, ChevronUp, MessageSquare, Calendar, LayoutGrid, Camera,
 } from "lucide-react";
 
-/** Dymek pomocy — najedź / dotknij (mobile) */
+/** Dymek pomocy — hover (desktop) lub tap (mobile) */
 export function InspectorHint({
   text,
   label,
@@ -12,18 +12,21 @@ export function InspectorHint({
   text: string;
   label?: string;
 }) {
+  const [open, setOpen] = useState(false);
   return (
     <span className="relative inline-flex group/hint align-middle ml-1">
       <button
         type="button"
         aria-label={label || "Pomoc"}
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
         className="p-0.5 rounded-full text-muted-foreground hover:text-primary transition-colors"
       >
         <HelpCircle size={13}/>
       </button>
       <span
         role="tooltip"
-        className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+6px)] z-[80] w-max max-w-[min(280px,calc(100vw-2rem))] px-3 py-2 rounded-lg text-[11px] leading-snug text-foreground/95 bg-card border border-border shadow-lg opacity-0 invisible group-hover/hint:opacity-100 group-hover/hint:visible group-focus-within/hint:opacity-100 group-focus-within/hint:visible transition-opacity pointer-events-none"
+        className={`absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+6px)] z-[80] w-max max-w-[min(280px,calc(100vw-2rem))] px-3 py-2 rounded-lg text-[11px] leading-snug text-foreground/95 bg-card border border-border shadow-lg transition-opacity pointer-events-none ${open ? "opacity-100 visible" : "opacity-0 invisible group-hover/hint:opacity-100 group-hover/hint:visible group-focus-within/hint:opacity-100 group-focus-within/hint:visible"}`}
       >
         {text}
       </span>
@@ -77,8 +80,38 @@ const SECTIONS = [
   {
     id: "photos",
     icon: ImagePlus,
-    title: "Galeria zdjęć",
+    title: "Galeria zdjęć ekipy",
     body: "Tylko zdjęcia zaakceptowane przez admina. Kliknij miniaturę — powiększenie. Strzałka pobierania — zapisz na telefon. „Pobierz wszystkie” — paczka z całej roboty.",
+  },
+  {
+    id: "stage",
+    icon: Calendar,
+    title: "Etap odbioru WM",
+    body: "Wspólny status z adminem: Czeka na zlecenie → W realizacji → Dokumenty do odbioru → Gotowa do odbioru WM → Odebrana. Wybierz etap — firma widzi to samo w Robotach. „Odebrana” oznacza klucze zdane.",
+  },
+  {
+    id: "planned",
+    icon: Calendar,
+    title: "Planowana data odbioru",
+    body: "Ustaw datę planowanego odbioru przez WM. Admin dostaje alert na Pulpicie gdy termin się zbliża lub minie. Data widać na liście robót.",
+  },
+  {
+    id: "notes",
+    icon: MessageSquare,
+    title: "Notatki z adminem",
+    body: "Wątek notatek przy robocie — Ty i admin możecie pisać uwagi, pytania, ustalenia. Nowa odpowiedź admina podświetla się u góry listy. Admin dostaje alert na Pulpicie.",
+  },
+  {
+    id: "inspector-photos",
+    icon: Camera,
+    title: "Zdjęcia inspektora",
+    body: "Osobna galeria — usterki, stan przed/po odbiorze, detale. Oddzielnie od zdjęć ekipy. Wgraj z telefonu, opcjonalnie dodaj opis.",
+  },
+  {
+    id: "portfolio",
+    icon: LayoutGrid,
+    title: "Portfolio WM",
+    body: "Widok zbiorczy wszystkich robót WM: ile na jakim etapie, braki dokumentów, terminy odbioru. Przełącznik „Portfolio WM” na liście robót.",
   },
 ];
 

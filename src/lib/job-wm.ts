@@ -212,7 +212,43 @@ export function jobsWithInspectorNotesNeedingAdmin(jobs: JobWmJob[], seenAt: str
   });
 }
 
-export function mergeHandoverStage(a?: JobHandoverStage, b?: JobHandoverStage): JobHandoverStage | undefined {
+export function jobsWithAdminNotesNeedingInspector(jobs: JobWmJob[], seenAt: string): JobWmJob[] {
+  return jobs.filter((job) => {
+    const notes = job.jobNotes || [];
+    if (notes.length === 0) return false;
+    const last = notes[0];
+    if (last.authorRole !== "admin") return false;
+    if (!seenAt) return true;
+    return last.at > seenAt;
+  });
+}
+
+export function parseStageFromActivityText(text: string): JobHandoverStage | undefined {
+  for (const stage of HANDOVER_STAGES) {
+    if (text.includes(HANDOVER_STAGE_LABELS[stage])) return stage;
+  }
+  return undefined;
+}
+
+export function latestHandoverStageFromLogs(
+  logs: { type: string; at: string; text: string }[] | undefined,
+): JobHandoverStage | undefined {
+  if (!logs) return undefined;
+  for (const ev of logs) {
+    if (ev.type !== "inspector_stage") continue;
+    const stage = parseStageFromActivityText(ev.text);
+    if (stage) return stage;
+  }
+  return undefined;
+}
+
+export function mergeHandoverStage(
+  a?: JobHandoverStage,
+  b?: JobHandoverStage,
+  logs?: { type: string; at: string; text: string }[],
+): JobHandoverStage | undefined {
+  const fromLogs = latestHandoverStageFromLogs(logs);
+  if (fromLogs) return fromLogs;
   if (!a) return b;
   if (!b) return a;
   return HANDOVER_STAGES.indexOf(a) >= HANDOVER_STAGES.indexOf(b) ? a : b;

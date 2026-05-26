@@ -13,7 +13,7 @@ import {
   Mic, MicOff, Bell, Copy, ScrollText, Sparkles,
   BookOpen, ChevronDown as ChevDown, HelpCircle, Smartphone, Monitor,
   Camera, ImagePlus, Lock, LogOut, Eye, ArrowLeft, ShieldCheck, ThumbsUp, ThumbsDown, Clock3,
-  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale, Images, Settings, Menu, ClipboardCheck, MessageSquare,
+  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale, Images, Settings, Menu, ClipboardCheck, MessageSquare, LayoutGrid,
 } from "lucide-react";
 import {
   API_BASE,
@@ -95,12 +95,19 @@ import {
   syncJobDocumentsFromFiles,
   type InspectorJobFileKind,
 } from "@/lib/job-documents";
+import { uploadJobFile } from "@/lib/job-file-upload";
+import {
+  ZLECENIE_ACCEPT,
+  KOSZTORYS_ACCEPT,
+} from "@/lib/job-documents";
 import {
   recordInspectorEvent,
   markInspectorFeedSeen,
+  markAdminJobNotesSeen,
   getUnseenInspectorFeed,
-  getJobNotesSeenAt,
-  markJobNotesSeen,
+  getAdminJobNotesSeenAt,
+  syncAlertsSeenFromCloud,
+  countUnseenInspectorAlerts,
 } from "@/lib/inspector-stats";
 import {
   normalizeJobWmFields,
@@ -111,6 +118,8 @@ import {
   fmtPlannedHandover,
   HANDOVER_STAGE_LABELS,
   inferHandoverStage,
+  computeWmPortfolioStats,
+  applyHandoverStageToJob,
 } from "@/lib/job-wm";
 import { JobWmPanel, JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { isSupabaseConfigured } from "@/config/supabase";
@@ -5029,6 +5038,8 @@ function JobsView({
   const [statusWarning, setStatusWarning] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [uploadBusy, setUploadBusy] = useState<string | null>(null);
+  const [stageSuggestion, setStageSuggestion] = useState<import("@/lib/job-wm").JobHandoverStage | null>(null);
   const [expandedWorkerKeys, setExpandedWorkerKeys] = useState<Set<string>>(new Set());
   const jobNotesRef = useRef<HTMLTextAreaElement>(null);
 
@@ -5157,6 +5168,32 @@ function JobsView({
     const j = defaultJob();
     setJobs(prev=>[j,...prev]);
     setSelectedJobId(j.id);
+  };
+
+  const handleAdminFileUpload = async (job: Job, kind: "zlecenie" | "kosztorys", file: File) => {
+    setUploadBusy(kind);
+    const actor = adminSession?.displayName || "Administrator";
+    const { attachment, error } = await uploadJobFile(job.id, file, kind, actor);
+    if (!attachment) {
+      setUploadBusy(null);
+      return;
+    }
+    updateJob(
+      appendJobActivity(
+        {
+          ...job,
+          jobFiles: [...(job.jobFiles || []).filter((f) => f.kind !== kind), attachment],
+          documents: { ...job.documents, [kind]: true },
+        },
+        "inspector_file",
+        `Admin wgrał ${kind === "zlecenie" ? "zlecenie PDF" : "kosztorys"}: ${file.name}`,
+        actor,
+      ),
+    );
+    if (kind === "zlecenie" && isWmClient(job.client) && inferHandoverStage(job) === "awaiting_order") {
+      setStageSuggestion("in_progress");
+    }
+    setUploadBusy(null);
   };
 
   const deleteJob = (id: string) => {
@@ -5856,6 +5893,7 @@ function JobsView({
                   const checked = selectedJob.documents[kind];
                   const file = latestJobFile(selectedJob, kind);
                   const label = kind === "zlecenie" ? "Zlecenie" : "Kosztorys";
+                  const accept = kind === "zlecenie" ? ZLECENIE_ACCEPT : KOSZTORYS_ACCEPT;
                   return (
                     <div
                       key={kind}
@@ -5887,12 +5925,55 @@ function JobsView({
                           <p className="text-[10px] text-muted-foreground">Wgrane: {file.uploadedBy} · {new Date(file.uploadedAt).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</p>
                         </>
                       ) : (
-                        <p className="text-xs text-muted-foreground">Brak pliku — inspektor może wgrać w swoim panelu</p>
+                        <p className="text-xs text-muted-foreground">Brak pliku — wgraj poniżej lub poczekaj na inspektora</p>
                       )}
+                      <label className={`flex items-center justify-center gap-2 w-full py-2 rounded-xl text-xs font-medium cursor-pointer transition-colors ${uploadBusy === kind ? "opacity-50 pointer-events-none" : "bg-primary/90 text-primary-foreground hover:bg-primary"}`}>
+                        <Upload size={13}/>
+                        {uploadBusy === kind ? "Wgrywanie…" : file ? "Wgraj nową wersję" : "Wgraj plik"}
+                        <input
+                          type="file"
+                          accept={accept}
+                          className="sr-only"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) handleAdminFileUpload(selectedJob, kind, f);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
                     </div>
                   );
                 })}
               </div>
+              {stageSuggestion && isWmClient(selectedJob.client) && (
+                <div className="mx-4 mb-4 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                  <p className="text-xs text-emerald-700 dark:text-emerald-300 flex-1">
+                    Zlecenie wgrane — zmienić etap na <strong>{HANDOVER_STAGE_LABELS[stageSuggestion]}</strong>?
+                  </p>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateJob(
+                          appendJobActivity(
+                            applyHandoverStageToJob(selectedJob, stageSuggestion),
+                            "inspector_stage",
+                            `Etap: ${HANDOVER_STAGE_LABELS[stageSuggestion]}`,
+                            adminSession?.displayName || "Administrator",
+                          ),
+                        );
+                        setStageSuggestion(null);
+                      }}
+                      className="px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-medium"
+                    >
+                      Tak, ustaw
+                    </button>
+                    <button type="button" onClick={() => setStageSuggestion(null)} className="px-3 py-2 rounded-lg bg-secondary text-xs text-muted-foreground">
+                      Później
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Documents card */}
@@ -6504,17 +6585,19 @@ function ScheduleView({
 
 function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
-  onNavigate, onFixJobs,
+  onNavigate, onFixJobs, adminUserId, alertsSeenTick, onAlertsSeen,
 }: {
   jobs: Job[];
   directory: DirectoryEmployee[];
   weekEmployees: WeekEmployee[];
   weekFrom: string; weekTo: string;
   savedWeeks: WeekSnapshot[];
-  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule" | "inspector", jobId?: string, payrollEmpId?: string) => void;
+  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule" | "inspector", jobId?: string, payrollEmpId?: string, inspectorTab?: "activity" | "portfolio") => void;
   onFixJobs: (updater: (prev: Job[]) => Job[]) => void;
+  adminUserId?: string;
+  alertsSeenTick: number;
+  onAlertsSeen: () => void;
 }) {
-  const [inspectorSeenTick, setInspectorSeenTick] = useState(0);
   const todayKey = todayDayKey();
   const todayIso = todayIsoDate();
   const workingToday = weekEmployees.filter((e) => todayKey && dayTotalHours(e.days[todayKey]) > 0);
@@ -6593,22 +6676,28 @@ function DashboardView({
   );
 
   const unseenInspectorFeed = useMemo(
-    () => getUnseenInspectorFeed(jobs),
-    [jobs, inspectorSeenTick],
+    () => getUnseenInspectorFeed(jobs, undefined, adminUserId),
+    [jobs, adminUserId, alertsSeenTick],
   );
 
   const inspectorNotesPending = useMemo(
-    () => jobsWithInspectorNotesNeedingAdmin(jobs, getJobNotesSeenAt()),
-    [jobs, inspectorSeenTick],
+    () => jobsWithInspectorNotesNeedingAdmin(jobs, getAdminJobNotesSeenAt(adminUserId)),
+    [jobs, adminUserId, alertsSeenTick],
+  );
+
+  const wmPortfolioStats = useMemo(
+    () => computeWmPortfolioStats(jobs, { notesNeedingAdminAttention: inspectorNotesPending.length }),
+    [jobs, inspectorNotesPending.length],
   );
 
   const wmOverdueJobs = useMemo(() => wmJobsWithOverduePlanned(jobs), [jobs]);
   const wmThisWeekJobs = useMemo(() => wmJobsPlannedThisWeek(jobs), [jobs]);
 
   const markInspectorAlertsSeen = () => {
-    markInspectorFeedSeen();
-    markJobNotesSeen();
-    setInspectorSeenTick((t) => t + 1);
+    const ts = new Date().toISOString();
+    markInspectorFeedSeen(adminUserId, ts).catch(() => {});
+    markAdminJobNotesSeen(adminUserId, ts).catch(() => {});
+    onAlertsSeen();
   };
 
   const currentWeekRange = getWeekRange();
@@ -6726,7 +6815,7 @@ function DashboardView({
         )}
 
         {/* Skróty liczbowe */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           <button
             type="button"
             onClick={() => onNavigate("jobs")}
@@ -6760,6 +6849,21 @@ function DashboardView({
             </p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
               {weekEmployees.length > 0 ? `${offToday.length} wolne · ${filterProductionActiveDirectory(directory).length} w kartotece` : "brak w liście płac"}
+            </p>
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate("inspector", undefined, undefined, "portfolio")}
+            className="bg-card border border-emerald-500/20 rounded-xl px-4 py-3 text-left hover:border-emerald-500/40 transition-colors"
+          >
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
+              <LayoutGrid size={10} className="text-emerald-500"/> Aktywne WM
+            </p>
+            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              {wmPortfolioStats.total}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {wmPortfolioStats.overduePlanned > 0 ? `${wmPortfolioStats.overduePlanned} po terminie` : "Portfolio WM →"}
             </p>
           </button>
           <div
@@ -7047,7 +7151,7 @@ function DashboardView({
                         {wmOverdueJobs.length}
                       </span>
                     </p>
-                    <button type="button" onClick={() => onNavigate("inspector")} className="text-xs text-primary hover:underline shrink-0">
+                    <button type="button" onClick={() => onNavigate("inspector", undefined, undefined, "portfolio")} className="text-xs text-primary hover:underline shrink-0">
                       Portfolio WM →
                     </button>
                   </div>
@@ -7083,7 +7187,7 @@ function DashboardView({
                         {wmThisWeekJobs.length}
                       </span>
                     </p>
-                    <button type="button" onClick={() => onNavigate("inspector")} className="text-xs text-primary hover:underline shrink-0">
+                    <button type="button" onClick={() => onNavigate("inspector", undefined, undefined, "portfolio")} className="text-xs text-primary hover:underline shrink-0">
                       Portfolio WM →
                     </button>
                   </div>
@@ -7844,6 +7948,19 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.13.0", label:"Inspektor — komunikacja, feed, upload admina",
+    items:[
+      {type:"new", text:"Inspektor — alert gdy admin odpowie w notatkach + mini-historia zmian na karcie roboty"},
+      {type:"new", text:"Admin może wgrać zlecenie/kosztorys w Robotach; sugestia etapu po uploadzie zlecenia"},
+      {type:"new", text:"Pulpit — kafelek „Aktywne WM” → Portfolio WM"},
+      {type:"improve", text:"Badge Inspektor = nieprzeczytane (feed + notatki), nie cała historia"},
+      {type:"improve", text:"Feed Inspektor: filtry Etapy/Notatki/Zdjęcia; „Oznacz przeczytane” zamiast auto przy wejściu"},
+      {type:"improve", text:"Instrukcja inspektora v2.11 (etapy, notatki, portfolio, zdjęcia); dymki ? na tap mobile"},
+      {type:"improve", text:"„Przeczytane” alertów sync w chmurze per admin/inspektor; merge etapów = ostatnia zmiana w activityLog"},
+      {type:"improve", text:"Statystyki logowań inspektora — przycisk Odśwież w zakładce Inspektor"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.12.0", label:"WM — Pulpit alerty, live sync, spójność statusów",
     items:[
@@ -9033,6 +9150,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [contacts, setContacts] = useLocalStorage<EmailContact[]>("kw-contacts", []);
   const [view, setView] = useState<View>("dashboard");
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
+  const [inspectorInitialTab, setInspectorInitialTab] = useState<"activity" | "portfolio">("activity");
+  const [alertsSeenTick, setAlertsSeenTick] = useState(0);
   const [pendingPayrollEmpId, setPendingPayrollEmpId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [globalSearch, setGlobalSearch] = useState("");
@@ -9055,11 +9174,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   );
 
   useEffect(() => {
-    if (view === "inspector") {
-      markInspectorFeedSeen();
-      markJobNotesSeen();
-    }
-  }, [view]);
+    syncAlertsSeenFromCloud().catch(() => {});
+  }, []);
 
   useEffect(() => {
     const normalized = normalizeDirectoryTestFlags(directory);
@@ -9397,7 +9513,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     {key:"contacts", label:"Kontakty", hint:"Adresy e-mail klientów i współpracowników — do wysyłki z robot.", icon:Mail, badge:contacts.filter(c=>c.email.trim()).length||undefined},
     {key:"archive", label:"Archiwum", hint:"Zapisane tygodnie list płac, raporty miesięczne i podsumowania roczne.", icon:Archive, badge:savedWeeks.length||undefined},
     {key:"jobs", label:"Roboty", hint:"Adresy remontów: dokumenty, czas pracy, materiały, zdjęcia i raporty.", icon:MapPin, badge:(()=>{ const pend=jobs.reduce((s,j)=>s+(j.photos||[]).filter(p=>p.status==="pending").length,0); return pend>0?pend:jobs.filter(j=>j.status==="in_progress").length||undefined; })()},
-    {key:"inspector", label:"Inspektor", hint:"Zmiany inspektora: dokumenty, zlecenia PDF i kosztorysy — osobno od kart robót.", icon:ClipboardCheck, badge:(()=>{ const n=collectInspectorFeed(jobs).length; return n>0?n:undefined; })()},
+    {key:"inspector", label:"Inspektor", hint:"Zmiany inspektora: dokumenty, zlecenia PDF i kosztorysy — osobno od kart robót.", icon:ClipboardCheck, badge:(()=>{ const notes=jobsWithInspectorNotesNeedingAdmin(jobs,getAdminJobNotesSeenAt(adminSession?.id)); const n=countUnseenInspectorAlerts(jobs,adminSession?.id,notes.length); return n>0?n:undefined; })()},
     {key:"photos", label:"Zdjęcia", hint:"Zaakceptowane zdjęcia z robot — galeria i archiwum po 30 dniach od zdania.", icon:Images, badge:(()=>{ const n=jobs.reduce((s,j)=>{ const b=jobGalleryBucket(j); return b==="active"||b==="grace"?s+jobApprovedPhotos(j).length:s;},0); return n||undefined; })()},
     {key:"changelog", label:"Zmiany", hint:"Co nowego w aplikacji — historia wersji i poprawek.", icon:ScrollText},
     {key:"help", label:"Instrukcja", hint:"Pomoc krok po kroku: lista płac, roboty, grafik i typowe pytania.", icon:BookOpen},
@@ -9410,9 +9526,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const totalNet = productionWeekEmployees.reduce((s,e)=>s+calcWeekEmployee(e).netPay,0);
 
-  const handleNavigate = useCallback((v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string, payrollEmpId?: string) => {
+  const handleNavigate = useCallback((v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string, payrollEmpId?: string, inspectorTab?: "activity" | "portfolio") => {
     if (jobId) setPendingJobId(jobId);
     if (payrollEmpId) setPendingPayrollEmpId(payrollEmpId);
+    if (inspectorTab) setInspectorInitialTab(inspectorTab);
+    else if (v !== "inspector") setInspectorInitialTab("activity");
     setView(v as View);
     setMobileMoreOpen(false);
   }, []);
@@ -9634,14 +9752,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
         {/* Content */}
         <div className="flex flex-1 min-h-0 overflow-hidden pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:pb-0">
-          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs}/>}
+          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs} adminUserId={adminSession?.id} alertsSeenTick={alertsSeenTick} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)}/>}
           {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive} initialEmpId={pendingPayrollEmpId} onInitialEmpConsumed={()=>setPendingPayrollEmpId(null)}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>setSavedWeeks(prev=>prev.filter(w=>w.id!==id))} jobs={jobs} directory={directory}/>}
           {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={()=>setView("inspector")}/>}
-          {view==="inspector"&&<InspectorAdminView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
+          {view==="inspector"&&<InspectorAdminView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }} adminUserId={adminSession?.id} initialTab={inspectorInitialTab} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)}/>}
           {view==="photos"&&<JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="changelog"&&<ChangelogView/>}
           {view==="help"&&<HelpView/>}

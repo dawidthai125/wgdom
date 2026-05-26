@@ -5,7 +5,7 @@ import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   MapPin, LogOut, Search, ArrowLeft, FileText, ClipboardList, Ruler,
   CheckCircle2, Circle, ImagePlus, Download, Upload, Phone, Users,
-  ChevronDown, ChevronUp, Eye, Camera, X, FileCheck, AlertCircle, BookOpen, LayoutGrid, RefreshCw,
+  ChevronDown, ChevronUp, Eye, Camera, X, FileCheck, AlertCircle, BookOpen, LayoutGrid, RefreshCw, MessageSquare, ScrollText,
 } from "lucide-react";
 import {
   fetchKeysFromCloud,
@@ -34,11 +34,12 @@ import {
   appendJobActivity,
   inspectorDocToggleText,
   inspectorFileUploadText,
+  isInspectorActivityType,
   type JobActivity,
 } from "@/lib/job-activity";
-import { recordInspectorEvent } from "@/lib/inspector-stats";
+import { recordInspectorEvent, getInspectorJobNotesSeenAt, markInspectorJobNotesSeen, syncAlertsSeenFromCloud } from "@/lib/inspector-stats";
 import { InspectorHelpBanner, InspectorHelpModal, InspectorHint } from "@/app/InspectorHelp";
-import { normalizeJobWmFields, type JobWmJob } from "@/lib/job-wm";
+import { normalizeJobWmFields, jobsWithAdminNotesNeedingInspector, applyHandoverStageToJob, inferHandoverStage, HANDOVER_STAGE_LABELS, type JobHandoverStage, type JobWmJob } from "@/lib/job-wm";
 import { WmPortfolioView } from "@/app/WmPortfolioView";
 import { JobWmPanel, JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 
@@ -175,6 +176,8 @@ export function InspectorPanel({
   const [helpOpen, setHelpOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+  const [notesSeenTick, setNotesSeenTick] = useState(0);
+  const [stageSuggestion, setStageSuggestion] = useState<{ jobId: string; stage: JobHandoverStage } | null>(null);
 
   const persistJobs = useCallback((next: InspectorJob[]) => {
     setJobs(next);
@@ -198,6 +201,23 @@ export function InspectorPanel({
     sessionStorage.setItem("wg-inspector-visit-recorded", inspectorId);
     recordInspectorEvent(inspectorId, displayName, "visit").catch(() => {});
   }, [inspectorId, displayName]);
+
+  useEffect(() => {
+    syncAlertsSeenFromCloud().catch(() => {});
+  }, []);
+
+  const adminNotesPending = useMemo(
+    () => jobsWithAdminNotesNeedingInspector(jobs, getInspectorJobNotesSeenAt(inspectorId)),
+    [jobs, inspectorId, notesSeenTick],
+  );
+
+  const markAdminNotesSeen = () => {
+    markInspectorJobNotesSeen(inspectorId).then(() => setNotesSeenTick((t) => t + 1)).catch(() => {});
+  };
+
+  const jobInspectorHistory = useCallback((job: InspectorJob, limit = 5): JobActivity[] => {
+    return (job.activityLog || []).filter((ev) => isInspectorActivityType(ev.type)).slice(0, limit);
+  }, []);
 
   const refreshFromCloud = useCallback(async (silent = false) => {
     if (!silent) setSyncing(true);
@@ -304,6 +324,9 @@ export function InspectorPanel({
       ),
     );
     setMsg(kind === "zlecenie" ? "Zlecenie wgrane" : "Kosztorys wgrany");
+    if (kind === "zlecenie" && inferHandoverStage(job) === "awaiting_order") {
+      setStageSuggestion({ jobId: job.id, stage: "in_progress" });
+    }
     setUploadBusy(null);
   };
 
@@ -359,6 +382,32 @@ export function InspectorPanel({
 
       <InspectorHelpBanner onOpenHelp={() => setHelpOpen(true)}/>
       <InspectorHelpModal open={helpOpen} onClose={() => setHelpOpen(false)}/>
+
+      {adminNotesPending.length > 0 && !selectedJob && (
+        <div className="mx-4 mt-2 mb-1 bg-violet-500/10 border border-violet-500/25 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
+              <MessageSquare size={14}/> Odpowiedź od admina ({adminNotesPending.length})
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">
+              {adminNotesPending.slice(0, 2).map((j) => j.address || "Bez adresu").join(" · ")}
+              {adminNotesPending.length > 2 ? "…" : ""}
+            </p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => { setSelectedId(adminNotesPending[0].id); setMsg(""); markAdminNotesSeen(); }}
+              className="px-3 py-2 rounded-lg bg-violet-600 text-white text-xs font-medium"
+            >
+              Otwórz
+            </button>
+            <button type="button" onClick={markAdminNotesSeen} className="px-3 py-2 rounded-lg bg-secondary text-xs text-muted-foreground">
+              OK
+            </button>
+          </div>
+        </div>
+      )}
 
       {!selectedJob && listScreen === "portfolio" ? (
         <WmPortfolioView jobs={jobs} onOpenJob={(id) => { setSelectedId(id); setListScreen("list"); setMsg(""); }}/>
@@ -467,6 +516,36 @@ export function InspectorPanel({
           <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-5 max-w-2xl mx-auto w-full" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
             {msg && <p className="text-xs text-primary bg-primary/10 rounded-lg px-3 py-2">{msg}</p>}
 
+            {stageSuggestion?.jobId === selectedJob.id && (
+              <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                <p className="text-xs text-emerald-700 dark:text-emerald-300 flex-1">
+                  Zlecenie wgrane — zmienić etap na <strong>{HANDOVER_STAGE_LABELS[stageSuggestion.stage]}</strong>?
+                </p>
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = appendJobActivity(
+                        applyHandoverStageToJob(selectedJob, stageSuggestion.stage),
+                        "inspector_stage",
+                        `Etap: ${HANDOVER_STAGE_LABELS[stageSuggestion.stage]}`,
+                        displayName,
+                      );
+                      updateJob(updated);
+                      setStageSuggestion(null);
+                      setMsg("Etap zaktualizowany");
+                    }}
+                    className="px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-medium"
+                  >
+                    Tak, ustaw
+                  </button>
+                  <button type="button" onClick={() => setStageSuggestion(null)} className="px-3 py-2 rounded-lg bg-secondary text-xs text-muted-foreground">
+                    Później
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="bg-card border border-border rounded-2xl p-4">
               <h1 className="text-lg font-bold leading-snug">
                 {selectedJob.address || "Bez adresu"}{selectedJob.flatNumber && ` m.${selectedJob.flatNumber}`}
@@ -484,6 +563,25 @@ export function InspectorPanel({
               actorName={displayName}
               actorRole="inspector"
             />
+
+            {jobInspectorHistory(selectedJob).length > 0 && (
+              <div className="bg-card border border-border rounded-2xl p-4">
+                <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <ScrollText size={15}/> Ostatnie zmiany
+                </p>
+                <div className="space-y-2">
+                  {jobInspectorHistory(selectedJob).map((ev) => (
+                    <div key={ev.id} className="text-xs text-muted-foreground border-l-2 border-primary/30 pl-3 py-0.5">
+                      <span className="text-foreground/90 font-medium">{ev.actor}</span>
+                      {" · "}
+                      {ev.text}
+                      {" · "}
+                      {new Date(ev.at).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Zlecenie + Kosztorys */}
             <div className="grid sm:grid-cols-2 gap-3">

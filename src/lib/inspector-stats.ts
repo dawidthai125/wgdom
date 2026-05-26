@@ -5,6 +5,8 @@ import { collectInspectorFeed, type InspectorFeedItem, type JobWithActivity } fr
 
 export { INSPECTOR_STATS_KEY };
 export const INSPECTOR_FEED_SEEN_KEY = "kw-inspector-feed-seen-at";
+export const JOB_NOTES_SEEN_KEY = "kw-job-notes-seen-at";
+export const ALERTS_SEEN_KEY = "kw-inspector-alerts-seen";
 
 export type InspectorEventType = "login" | "visit";
 
@@ -20,10 +22,172 @@ export interface InspectorStatsStore {
   events: InspectorStatsEvent[];
 }
 
+export interface UserAlertsSeen {
+  feedSeenAt?: string;
+  adminNotesSeenAt?: string;
+  inspectorNotesSeenAt?: string;
+}
+
+export interface AlertsSeenStore {
+  users: Record<string, UserAlertsSeen>;
+}
+
 const MAX_EVENTS = 300;
 
 export function defaultInspectorStats(): InspectorStatsStore {
   return { events: [] };
+}
+
+export function defaultAlertsSeen(): AlertsSeenStore {
+  return { users: {} };
+}
+
+function maxIso(a?: string, b?: string): string {
+  if (!a) return b || "";
+  if (!b) return a;
+  return a >= b ? a : b;
+}
+
+function mergeUserAlertsSeen(a: UserAlertsSeen, b: UserAlertsSeen): UserAlertsSeen {
+  return {
+    feedSeenAt: maxIso(a.feedSeenAt, b.feedSeenAt),
+    adminNotesSeenAt: maxIso(a.adminNotesSeenAt, b.adminNotesSeenAt),
+    inspectorNotesSeenAt: maxIso(a.inspectorNotesSeenAt, b.inspectorNotesSeenAt),
+  };
+}
+
+export function mergeAlertsSeenStores(a: AlertsSeenStore, b: AlertsSeenStore): AlertsSeenStore {
+  const users = { ...a.users };
+  for (const [userId, row] of Object.entries(b.users)) {
+    users[userId] = mergeUserAlertsSeen(users[userId] || {}, row);
+  }
+  return { users };
+}
+
+export function loadAlertsSeenLocal(): AlertsSeenStore {
+  try {
+    const raw = localStorage.getItem(ALERTS_SEEN_KEY);
+    if (!raw) return migrateLegacyAlertsSeen(defaultAlertsSeen());
+    const parsed = JSON.parse(raw) as AlertsSeenStore;
+    if (!parsed.users || typeof parsed.users !== "object") return migrateLegacyAlertsSeen(defaultAlertsSeen());
+    return parsed;
+  } catch {
+    return migrateLegacyAlertsSeen(defaultAlertsSeen());
+  }
+}
+
+function saveAlertsSeenLocal(store: AlertsSeenStore): void {
+  try {
+    localStorage.setItem(ALERTS_SEEN_KEY, JSON.stringify(store));
+  } catch { /* ignore */ }
+}
+
+function migrateLegacyAlertsSeen(store: AlertsSeenStore): AlertsSeenStore {
+  try {
+    const feed = localStorage.getItem(INSPECTOR_FEED_SEEN_KEY) || "";
+    const notes = localStorage.getItem(JOB_NOTES_SEEN_KEY) || "";
+    if (!feed && !notes) return store;
+    const legacy = store.users._legacy || {};
+    store.users._legacy = {
+      feedSeenAt: maxIso(legacy.feedSeenAt, feed),
+      adminNotesSeenAt: maxIso(legacy.adminNotesSeenAt, notes),
+      inspectorNotesSeenAt: legacy.inspectorNotesSeenAt || "",
+    };
+    saveAlertsSeenLocal(store);
+  } catch { /* ignore */ }
+  return store;
+}
+
+export async function syncAlertsSeenFromCloud(): Promise<AlertsSeenStore> {
+  try {
+    const [cloud] = await fetchKeysFromCloud([ALERTS_SEEN_KEY]);
+    const local = loadAlertsSeenLocal();
+    if (!cloud || typeof cloud !== "object" || !(cloud as AlertsSeenStore).users) {
+      return local;
+    }
+    const merged = mergeAlertsSeenStores(local, cloud as AlertsSeenStore);
+    saveAlertsSeenLocal(merged);
+    return merged;
+  } catch {
+    return loadAlertsSeenLocal();
+  }
+}
+
+async function persistAlertsSeen(store: AlertsSeenStore): Promise<void> {
+  saveAlertsSeenLocal(store);
+  await persistKey(ALERTS_SEEN_KEY, store);
+}
+
+export function getFeedSeenAt(userId?: string): string {
+  if (userId) {
+    return loadAlertsSeenLocal().users[userId]?.feedSeenAt || "";
+  }
+  try {
+    return localStorage.getItem(INSPECTOR_FEED_SEEN_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+export function getAdminJobNotesSeenAt(userId?: string): string {
+  if (userId) {
+    return loadAlertsSeenLocal().users[userId]?.adminNotesSeenAt || "";
+  }
+  try {
+    return localStorage.getItem(JOB_NOTES_SEEN_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+export function getInspectorJobNotesSeenAt(userId: string): string {
+  return loadAlertsSeenLocal().users[userId]?.inspectorNotesSeenAt || "";
+}
+
+export async function markInspectorFeedSeen(userId?: string, at?: string): Promise<void> {
+  const ts = at || new Date().toISOString();
+  if (userId) {
+    const store = loadAlertsSeenLocal();
+    store.users[userId] = { ...store.users[userId], feedSeenAt: ts };
+    await persistAlertsSeen(store);
+  }
+  try {
+    localStorage.setItem(INSPECTOR_FEED_SEEN_KEY, ts);
+  } catch { /* ignore */ }
+}
+
+export async function markAdminJobNotesSeen(userId?: string, at?: string): Promise<void> {
+  const ts = at || new Date().toISOString();
+  if (userId) {
+    const store = loadAlertsSeenLocal();
+    store.users[userId] = { ...store.users[userId], adminNotesSeenAt: ts };
+    await persistAlertsSeen(store);
+  }
+  try {
+    localStorage.setItem(JOB_NOTES_SEEN_KEY, ts);
+  } catch { /* ignore */ }
+}
+
+export async function markInspectorJobNotesSeen(userId: string, at?: string): Promise<void> {
+  const ts = at || new Date().toISOString();
+  const store = loadAlertsSeenLocal();
+  store.users[userId] = { ...store.users[userId], inspectorNotesSeenAt: ts };
+  await persistAlertsSeen(store);
+}
+
+/** @deprecated use markInspectorFeedSeen */
+export function markInspectorFeedSeenSync(at?: string): void {
+  markInspectorFeedSeen(undefined, at).catch(() => {});
+}
+
+/** @deprecated use markAdminJobNotesSeen */
+export function markJobNotesSeen(at?: string): void {
+  markAdminJobNotesSeen(undefined, at).catch(() => {});
+}
+
+/** @deprecated use getAdminJobNotesSeenAt */
+export function getJobNotesSeenAt(): string {
+  return getAdminJobNotesSeenAt();
 }
 
 export function loadInspectorStatsLocal(): InspectorStatsStore {
@@ -128,42 +292,21 @@ export function summarizeInspectorStats(store: InspectorStatsStore): InspectorSt
   };
 }
 
-export function getInspectorFeedSeenAt(): string {
-  try {
-    return localStorage.getItem(INSPECTOR_FEED_SEEN_KEY) || "";
-  } catch {
-    return "";
-  }
-}
-
-export function markInspectorFeedSeen(at?: string): void {
-  const ts = at || new Date().toISOString();
-  try {
-    localStorage.setItem(INSPECTOR_FEED_SEEN_KEY, ts);
-  } catch { /* ignore */ }
-}
-
-export function getUnseenInspectorFeed(jobs: JobWithActivity[], seenAt?: string): InspectorFeedItem[] {
-  const watermark = seenAt ?? getInspectorFeedSeenAt();
+export function getUnseenInspectorFeed(jobs: JobWithActivity[], seenAt?: string, userId?: string): InspectorFeedItem[] {
+  const watermark = seenAt ?? getFeedSeenAt(userId);
   const feed = collectInspectorFeed(jobs);
   if (!watermark) return feed.slice(0, 15);
   return feed.filter((item) => item.at > watermark).slice(0, 15);
 }
 
-export const JOB_NOTES_SEEN_KEY = "kw-job-notes-seen-at";
-
-export function getJobNotesSeenAt(): string {
-  try {
-    return localStorage.getItem(JOB_NOTES_SEEN_KEY) || "";
-  } catch {
-    return "";
-  }
-}
-
-export function markJobNotesSeen(at?: string): void {
-  try {
-    localStorage.setItem(JOB_NOTES_SEEN_KEY, at || new Date().toISOString());
-  } catch { /* ignore */ }
+export function countUnseenInspectorAlerts(
+  jobs: JobWithActivity[],
+  adminUserId?: string,
+  notesNeedingAdmin?: number,
+): number {
+  const unseenFeed = getUnseenInspectorFeed(jobs, undefined, adminUserId).length;
+  const notes = notesNeedingAdmin ?? 0;
+  return unseenFeed + notes;
 }
 
 export function fmtInspectorStatsTime(iso: string | null): string {

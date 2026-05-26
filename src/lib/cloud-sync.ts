@@ -193,17 +193,19 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
       }
       const winnerFirst = jobMergeScore(j) >= jobMergeScore(prev);
       const pick = winnerFirst ? { ...prev, ...j } : { ...j, ...prev };
+      const mergedLogs = mergeActivityLogs(prev.activityLog, j.activityLog);
       map.set(j.id, {
         ...pick,
         documents: mergeJobDocuments(prev.documents, j.documents),
         jobFiles: mergeJobFiles(prev.jobFiles, j.jobFiles),
-        activityLog: mergeActivityLogs(prev.activityLog, j.activityLog),
+        activityLog: mergedLogs,
         jobNotes: mergeJobNotes(prev.jobNotes, j.jobNotes),
         inspectorPhotos: mergeInspectorPhotos(prev.inspectorPhotos, j.inspectorPhotos),
         plannedHandoverDate: mergePlannedHandoverDate(prev.plannedHandoverDate, j.plannedHandoverDate),
         handoverStage: mergeHandoverStage(
           prev.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,
           j.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,
+          mergedLogs as { type: string; at: string; text: string }[],
         ) || pick.handoverStage,
       });
     }

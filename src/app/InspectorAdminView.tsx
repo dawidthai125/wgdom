@@ -1,7 +1,8 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import {
   ClipboardCheck, Search, MapPin, FileText, CheckCircle2, Upload,
   ExternalLink, ChevronRight, Filter, LogIn, Eye, LayoutGrid,
+  MessageSquare, Camera, Calendar, RefreshCw,
 } from "lucide-react";
 import {
   collectInspectorFeed,
@@ -14,7 +15,10 @@ import {
   summarizeInspectorStats,
   fmtInspectorStatsTime,
   type InspectorStatsStore,
-  getJobNotesSeenAt,
+  getAdminJobNotesSeenAt,
+  markInspectorFeedSeen,
+  markAdminJobNotesSeen,
+  getUnseenInspectorFeed,
 } from "@/lib/inspector-stats";
 import { jobsWithInspectorNotesNeedingAdmin } from "@/lib/job-wm";
 import { WmPortfolioView } from "@/app/WmPortfolioView";
@@ -58,6 +62,21 @@ function groupByDay(items: InspectorFeedItem[]): { label: string; items: Inspect
   }));
 }
 
+function feedTypeIcon(type: InspectorActivityType) {
+  switch (type) {
+    case "inspector_file":
+      return { Icon: Upload, cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" };
+    case "inspector_stage":
+      return { Icon: Calendar, cls: "bg-violet-500/10 text-violet-500" };
+    case "inspector_note":
+      return { Icon: MessageSquare, cls: "bg-blue-500/10 text-blue-500" };
+    case "inspector_photo":
+      return { Icon: Camera, cls: "bg-amber-500/10 text-amber-500" };
+    default:
+      return { Icon: CheckCircle2, cls: "bg-blue-500/10 text-blue-500" };
+  }
+}
+
 function FeedCard({
   item,
   onOpenJob,
@@ -65,12 +84,12 @@ function FeedCard({
   item: InspectorFeedItem;
   onOpenJob: (jobId: string) => void;
 }) {
-  const isFile = item.type === "inspector_file";
+  const { Icon, cls } = feedTypeIcon(item.type);
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden">
       <div className="px-4 py-3 flex items-start gap-3">
-        <div className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${isFile ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-blue-500/10 text-blue-500"}`}>
-          {isFile ? <Upload size={16}/> : <CheckCircle2 size={16}/>}
+        <div className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${cls}`}>
+          <Icon size={16}/>
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium leading-snug">{item.text}</p>
@@ -118,23 +137,51 @@ function FeedCard({
 export function InspectorAdminView({
   jobs,
   onOpenJob,
+  adminUserId,
+  initialTab = "activity",
+  onAlertsSeen,
 }: {
   jobs: JobWithActivity[];
   onOpenJob: (jobId: string) => void;
+  adminUserId?: string;
+  initialTab?: "activity" | "portfolio";
+  onAlertsSeen?: () => void;
 }) {
-  const [tab, setTab] = useState<"activity" | "portfolio">("activity");
+  const [tab, setTab] = useState<"activity" | "portfolio">(initialTab);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterKind>("all");
   const [statsStore, setStatsStore] = useState<InspectorStatsStore | null>(null);
-
-  const notesNeedingAdmin = useMemo(
-    () => jobsWithInspectorNotesNeedingAdmin(jobs as JobWmJob[], getJobNotesSeenAt()).length,
-    [jobs],
-  );
+  const [statsRefreshing, setStatsRefreshing] = useState(false);
 
   useEffect(() => {
-    syncInspectorStatsFromCloud().then(setStatsStore).catch(() => setStatsStore(null));
+    setTab(initialTab);
+  }, [initialTab]);
+
+  const notesNeedingAdmin = useMemo(
+    () => jobsWithInspectorNotesNeedingAdmin(jobs as JobWmJob[], getAdminJobNotesSeenAt(adminUserId)).length,
+    [jobs, adminUserId],
+  );
+
+  const unseenCount = useMemo(
+    () => getUnseenInspectorFeed(jobs, undefined, adminUserId).length + notesNeedingAdmin,
+    [jobs, adminUserId, notesNeedingAdmin],
+  );
+
+  const refreshStats = useCallback(async () => {
+    setStatsRefreshing(true);
+    try {
+      const store = await syncInspectorStatsFromCloud();
+      setStatsStore(store);
+    } catch {
+      setStatsStore(null);
+    } finally {
+      setStatsRefreshing(false);
+    }
   }, []);
+
+  useEffect(() => {
+    refreshStats();
+  }, [refreshStats]);
 
   const loginStats = useMemo(
     () => (statsStore ? summarizeInspectorStats(statsStore) : null),
@@ -163,8 +210,27 @@ export function InspectorAdminView({
     total: feed.length,
     docs: feed.filter((i) => i.type === "inspector_document").length,
     files: feed.filter((i) => i.type === "inspector_file").length,
+    stages: feed.filter((i) => i.type === "inspector_stage").length,
+    notes: feed.filter((i) => i.type === "inspector_note").length,
+    photos: feed.filter((i) => i.type === "inspector_photo").length,
     jobs: new Set(feed.map((i) => i.jobId)).size,
   }), [feed]);
+
+  const handleMarkSeen = async () => {
+    const ts = new Date().toISOString();
+    await markInspectorFeedSeen(adminUserId, ts);
+    await markAdminJobNotesSeen(adminUserId, ts);
+    onAlertsSeen?.();
+  };
+
+  const filterButtons: { key: FilterKind; label: string }[] = [
+    { key: "all", label: "Wszystko" },
+    { key: "inspector_document", label: "Dokumenty" },
+    { key: "inspector_file", label: "Pliki" },
+    { key: "inspector_stage", label: "Etapy" },
+    { key: "inspector_note", label: "Notatki" },
+    { key: "inspector_photo", label: "Zdjęcia" },
+  ];
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -175,6 +241,9 @@ export function InspectorAdminView({
           className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium ${tab === "activity" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
         >
           <ClipboardCheck size={13}/> Aktywność
+          {unseenCount > 0 && tab !== "activity" && (
+            <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-bold">{unseenCount}</span>
+          )}
         </button>
         <button
           type="button"
@@ -190,16 +259,27 @@ export function InspectorAdminView({
       ) : (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="px-4 sm:px-6 py-4 border-b border-border bg-card/50 shrink-0 space-y-4">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
-            <ClipboardCheck size={20} className="text-emerald-600 dark:text-emerald-400"/>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+              <ClipboardCheck size={20} className="text-emerald-600 dark:text-emerald-400"/>
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold">Aktywność inspektora</h2>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                Dokumenty, etapy, notatki i pliki — osobno od zakładki Roboty.
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h2 className="text-base font-semibold">Aktywność inspektora</h2>
-            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-              Dokumenty, zlecenia i kosztorysy dodane przez inspektora — osobno od zakładki Roboty.
-            </p>
-          </div>
+          {unseenCount > 0 && (
+            <button
+              type="button"
+              onClick={handleMarkSeen}
+              className="shrink-0 text-[11px] px-3 py-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 font-medium"
+            >
+              Oznacz przeczytane ({unseenCount})
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -218,9 +298,20 @@ export function InspectorAdminView({
 
         {loginStats && (
           <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
-              <LogIn size={12}/> Statystyki logowań i wejść
-            </p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                <LogIn size={12}/> Statystyki logowań i wejść
+              </p>
+              <button
+                type="button"
+                onClick={refreshStats}
+                disabled={statsRefreshing}
+                className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg hover:bg-secondary disabled:opacity-50"
+              >
+                <RefreshCw size={11} className={statsRefreshing ? "animate-spin" : ""}/>
+                Odśwież
+              </button>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center sm:text-left">
               <div>
                 <p className="text-[10px] text-muted-foreground">Logowania (7 dni)</p>
@@ -252,8 +343,8 @@ export function InspectorAdminView({
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="relative flex-1">
+        <div className="flex flex-col gap-2">
+          <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
             <input
               value={search}
@@ -262,17 +353,13 @@ export function InspectorAdminView({
               className="w-full bg-secondary rounded-xl pl-9 pr-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
             />
           </div>
-          <div className="flex gap-1.5 shrink-0">
-            {([
-              { key: "all" as const, label: "Wszystko" },
-              { key: "inspector_document" as const, label: "Dokumenty" },
-              { key: "inspector_file" as const, label: "Pliki" },
-            ]).map((f) => (
+          <div className="flex gap-1.5 flex-wrap">
+            {filterButtons.map((f) => (
               <button
                 key={f.key}
                 type="button"
                 onClick={() => setFilter(f.key)}
-                className={`flex items-center gap-1 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors ${filter === f.key ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
+                className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${filter === f.key ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
               >
                 {f.key !== "all" && <Filter size={11}/>}
                 {f.label}
