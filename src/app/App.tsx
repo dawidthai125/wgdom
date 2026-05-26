@@ -6467,6 +6467,12 @@ const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"
     ],
   },
   {
+    date:"2026-05-26", version:"2.9.8", label:"PDF — przywrócony układ",
+    items:[
+      {type:"fix", text:"PDF/Word — cofnięty eksperymentalny układ z v2.9.7; z powrotem ten sam układ co wcześniej, tylko +2 pt czcionki"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.9.7", label:"PDF — roboty i łamanie stron",
     items:[
       {type:"fix", text:"PDF listy płac — przywrócona tabela „Praca na robotach” (kto, gdzie, godziny) + siatka tygodniowa"},

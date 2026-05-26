@@ -209,35 +209,6 @@ const C = {
   gold: "#7B5800",
 };
 
-/** Czcionki eksportu — powiększone pod czytelność na wydruku / słabszy wzrok */
-const EXP = {
-  pdfHdr: 9,
-  pdfBody: 10,
-  pdfBodySm: 9,
-  pdfDayCell: 7.5,
-  pdfDayName: 8.5,
-  pdfSection: 12,
-  pdfHint: 9.5,
-  pdfMeta: 11,
-  pdfFooter: 9,
-  pdfSumNet: 11,
-  pdfTitle: 20,
-  pdfPeriod: 11,
-
-  wordHdr: 22,
-  wordBody: 24,
-  wordBodySm: 22,
-  wordGridHdr: 20,
-  wordGridCell: 20,
-  wordGridName: 22,
-  wordMeta: 26,
-  wordSection: 30,
-  wordHint: 22,
-  wordFooter: 22,
-  wordSumNet: 28,
-  wordTitle: 56,
-};
-
 const PW = 841.89; // A4 landscape width in points
 
 let _logoDataUrl: string | null = null;
@@ -287,7 +258,7 @@ function pdfPayrollHeader(logoDataUrl: string, weekFrom: string, weekTo: string)
           },
           {
             text: "LISTA PŁAC",
-            fontSize: EXP.pdfTitle,
+            fontSize: 20,
             bold: true,
             color: C.white,
             margin: [10, 11, 0, 0] as [number, number, number, number],
@@ -295,7 +266,7 @@ function pdfPayrollHeader(logoDataUrl: string, weekFrom: string, weekTo: string)
           },
           {
             text: `${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`,
-            fontSize: EXP.pdfPeriod,
+            fontSize: 11,
             color: C.white,
             alignment: "right" as const,
             margin: [0, 14, 0, 0] as [number, number, number, number],
@@ -322,10 +293,10 @@ export async function buildPayrollEmailHtml(
   const logoDataUrl = await getCompanyLogoDataUrl();
 
   const th = (t: string) =>
-    `<th style="padding:8px 5px;background:${C.navy};color:${C.white};font-size:13px;text-align:center;font-weight:600;border:none">${escapeHtml(t)}</th>`;
+    `<th style="padding:6px 4px;background:${C.navy};color:${C.white};font-size:13px;text-align:center;font-weight:600;border:none">${escapeHtml(t)}</th>`;
 
   const td = (t: string, opts: { align?: string; color?: string; bold?: boolean; bg?: string } = {}) =>
-    `<td style="padding:7px 5px;font-size:14px;text-align:${opts.align ?? "left"};color:${opts.color ?? C.navy};font-weight:${opts.bold ? "700" : "400"};background:${opts.bg ?? C.white};border-bottom:1px solid #DDE3EA">${t}</td>`;
+    `<td style="padding:5px 4px;font-size:14px;text-align:${opts.align ?? "left"};color:${opts.color ?? C.navy};font-weight:${opts.bold ? "700" : "400"};background:${opts.bg ?? C.white};border-bottom:1px solid #DDE3EA">${t}</td>`;
 
   const dataRows = rows
     .map((r, i) => {
@@ -418,7 +389,7 @@ export async function buildPayrollEmailHtml(
 
   const introBlock =
     introMessage?.trim()
-      ? `<p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:${C.navy};white-space:pre-wrap">${escapeHtml(introMessage.trim())}</p>`
+      ? `<p style="margin:0 0 16px;font-size:14px;line-height:1.5;color:${C.navy};white-space:pre-wrap">${escapeHtml(introMessage.trim())}</p>`
       : "";
 
   return `<!DOCTYPE html>
@@ -434,12 +405,12 @@ export async function buildPayrollEmailHtml(
           </div>
         </td>
         <td style="font-size:22px;font-weight:700;color:${C.white};letter-spacing:0.02em;vertical-align:middle">LISTA PŁAC</td>
-        <td align="right" style="font-size:12px;color:${C.white};opacity:0.95;vertical-align:middle;white-space:nowrap">${escapeHtml(fmtDate(weekFrom))} – ${escapeHtml(fmtDate(weekTo))}</td>
+        <td align="right" style="font-size:14px;color:${C.white};opacity:0.95;vertical-align:middle;white-space:nowrap">${escapeHtml(fmtDate(weekFrom))} – ${escapeHtml(fmtDate(weekTo))}</td>
       </tr></table>
     </div>
     <div style="background:${C.white};padding:20px;border:1px solid #DDE3EA;border-top:none">
       ${introBlock}
-      <p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:${C.navy}">
+      <p style="margin:0 0 14px;font-size:13px;line-height:1.6;color:${C.navy}">
         <strong>Okres:</strong> ${escapeHtml(fmtDate(weekFrom))} – ${escapeHtml(fmtDate(weekTo))}
         &nbsp;&nbsp;|&nbsp;&nbsp;
         <strong>Pracownicy:</strong> ${totals.employeeCount}
@@ -456,11 +427,11 @@ export async function buildPayrollEmailHtml(
           <tbody>${dataRows}${sumRows}</tbody>
         </table>
       </div>
-      <p style="margin:20px 0 0;padding:12px 14px;background:${C.lightNavy};border-left:3px solid ${C.red};font-size:15px;line-height:1.5;color:${C.muted}">
+      <p style="margin:20px 0 0;padding:12px 14px;background:${C.lightNavy};border-left:3px solid ${C.red};font-size:13px;line-height:1.5;color:${C.muted}">
         W załącznikach znajdują się pełne dokumenty <strong>PDF</strong> i <strong>Word</strong> z listą płac
         (strona 2: tabela tygodniowa od–do; ewentualne dodatkowe godziny i Sob. poprz.).
       </p>
-      <p style="margin:12px 0 0;font-size:11px;color:#8A9BB0">
+      <p style="margin:12px 0 0;font-size:13px;color:#8A9BB0">
         W&amp;G DOM — wygenerowano ${escapeHtml(new Date().toLocaleDateString("pl-PL"))}
       </p>
     </div>
@@ -490,46 +461,46 @@ export async function generatePayrollPdfBlob(
     bold: true,
     color: C.white,
     fillColor: C.navy,
-    fontSize: EXP.pdfHdr,
+    fontSize: 9,
     alignment: "center" as const,
-    margin: [2, 4, 2, 4] as [number, number, number, number],
+    margin: [2, 3, 2, 3] as [number, number, number, number],
   }));
 
   const dataRows = rows.map((r, i) => {
     const bg = i % 2 === 0 ? C.white : C.lightGray;
     return [
-      { text: String(i + 1), alignment: "center" as const, fillColor: bg, bold: true, fontSize: EXP.pdfBody },
-      { text: r.emp.name || "—", fillColor: bg, fontSize: EXP.pdfBody },
-      { text: `${fmt(r.rateNum)}`, alignment: "right" as const, fillColor: bg, color: C.muted, fontSize: EXP.pdfBody },
-      { text: r.weekHours > 0 ? fmtH(r.weekHours) : "—", alignment: "right" as const, fillColor: bg, fontSize: EXP.pdfBody },
-      { text: r.prevSatHours > 0 ? fmtH(r.prevSatHours) : "—", alignment: "right" as const, fillColor: bg, color: C.gold, fontSize: EXP.pdfBody },
-      { text: fmtH(r.totalHours), alignment: "right" as const, fillColor: bg, bold: true, fontSize: EXP.pdfBody },
-      { text: `${fmt(r.grossPay)}`, alignment: "right" as const, fillColor: bg, color: C.muted, fontSize: EXP.pdfBody },
-      { text: r.totalZaliczka > 0 ? `${fmt(r.totalZaliczka)}` : "—", alignment: "right" as const, fillColor: bg, fontSize: EXP.pdfBody },
-      { text: r.totalExtraCosts > 0 ? `${fmt(r.totalExtraCosts)}` : "—", alignment: "right" as const, fillColor: bg, color: C.green, fontSize: EXP.pdfBody },
-      { text: `${fmt(r.netPay)}`, bold: true, color: C.red, alignment: "right" as const, fillColor: bg, fontSize: EXP.pdfBody },
+      { text: String(i + 1), alignment: "center" as const, fillColor: bg, bold: true, fontSize: 10 },
+      { text: r.emp.name || "—", fillColor: bg, fontSize: 10 },
+      { text: `${fmt(r.rateNum)}`, alignment: "right" as const, fillColor: bg, color: C.muted, fontSize: 10 },
+      { text: r.weekHours > 0 ? fmtH(r.weekHours) : "—", alignment: "right" as const, fillColor: bg, fontSize: 10 },
+      { text: r.prevSatHours > 0 ? fmtH(r.prevSatHours) : "—", alignment: "right" as const, fillColor: bg, color: C.gold, fontSize: 10 },
+      { text: fmtH(r.totalHours), alignment: "right" as const, fillColor: bg, bold: true, fontSize: 10 },
+      { text: `${fmt(r.grossPay)}`, alignment: "right" as const, fillColor: bg, color: C.muted, fontSize: 10 },
+      { text: r.totalZaliczka > 0 ? `${fmt(r.totalZaliczka)}` : "—", alignment: "right" as const, fillColor: bg, fontSize: 10 },
+      { text: r.totalExtraCosts > 0 ? `${fmt(r.totalExtraCosts)}` : "—", alignment: "right" as const, fillColor: bg, color: C.green, fontSize: 10 },
+      { text: `${fmt(r.netPay)}`, bold: true, color: C.red, alignment: "right" as const, fillColor: bg, fontSize: 10 },
       {
         text: r.emp.settled ? "Rozliczony" : "Oczekuje",
         alignment: "center" as const,
         color: r.emp.settled ? C.green : C.gold,
         bold: r.emp.settled,
         fillColor: bg,
-        fontSize: EXP.pdfBodySm,
+        fontSize: 9,
       },
     ];
   });
 
   const mkSum = (label: string, weekH: number, prevH: number, totH: number, gross: number, zal: number, extra: number, net: number, bold = false) => [
     { text: "", fillColor: C.lightNavy },
-    { text: label, bold: true, fillColor: C.lightNavy, fontSize: EXP.pdfBodySm },
+    { text: label, bold: true, fillColor: C.lightNavy, fontSize: 9 },
     { text: "", fillColor: C.lightNavy },
-    { text: weekH > 0 ? fmtH(weekH) : "—", bold, alignment: "right" as const, fillColor: C.lightNavy, fontSize: EXP.pdfBody },
-    { text: prevH > 0 ? fmtH(prevH) : "—", bold, alignment: "right" as const, fillColor: C.lightNavy, color: C.gold, fontSize: EXP.pdfBody },
-    { text: fmtH(totH), bold: true, alignment: "right" as const, fillColor: C.lightNavy, fontSize: EXP.pdfBody },
-    { text: `${fmt(gross)}`, bold, alignment: "right" as const, fillColor: C.lightNavy, color: C.muted, fontSize: EXP.pdfBody },
-    { text: zal > 0 ? `${fmt(zal)}` : "—", bold, alignment: "right" as const, fillColor: C.lightNavy, fontSize: EXP.pdfBody },
-    { text: extra > 0 ? `${fmt(extra)}` : "—", bold, alignment: "right" as const, fillColor: C.lightNavy, color: C.green, fontSize: EXP.pdfBody },
-    { text: net > 0 || bold ? `${fmt(net)}` : "—", bold: true, color: C.red, alignment: "right" as const, fillColor: C.lightNavy, fontSize: EXP.pdfSumNet },
+    { text: weekH > 0 ? fmtH(weekH) : "—", bold, alignment: "right" as const, fillColor: C.lightNavy, fontSize: 10 },
+    { text: prevH > 0 ? fmtH(prevH) : "—", bold, alignment: "right" as const, fillColor: C.lightNavy, color: C.gold, fontSize: 10 },
+    { text: fmtH(totH), bold: true, alignment: "right" as const, fillColor: C.lightNavy, fontSize: 10 },
+    { text: `${fmt(gross)}`, bold, alignment: "right" as const, fillColor: C.lightNavy, color: C.muted, fontSize: 10 },
+    { text: zal > 0 ? `${fmt(zal)}` : "—", bold, alignment: "right" as const, fillColor: C.lightNavy, fontSize: 10 },
+    { text: extra > 0 ? `${fmt(extra)}` : "—", bold, alignment: "right" as const, fillColor: C.lightNavy, color: C.green, fontSize: 10 },
+    { text: net > 0 || bold ? `${fmt(net)}` : "—", bold: true, color: C.red, alignment: "right" as const, fillColor: C.lightNavy, fontSize: 11 },
     { text: "", fillColor: C.lightNavy },
   ];
 
@@ -547,322 +518,321 @@ export async function generatePayrollPdfBlob(
     hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
     vLineWidth: () => 0,
     hLineColor: () => "#DDE3EA",
-    paddingLeft: () => 5,
-    paddingRight: () => 5,
+    paddingLeft: () => 4,
+    paddingRight: () => 4,
     paddingTop: () => 4,
     paddingBottom: () => 4,
   };
-
-  /** Nagłówek modułu (razem na stronie) + tabela z powtarzanym nagłówkiem przy łamaniu stron */
-  const pdfAppendixPage = (
-    title: string,
-    subtitle: string,
-    table: { widths: unknown[]; body: unknown[][] },
-    extras: Record<string, unknown>[] = [],
-    opts?: { hint?: string; subtitleColor?: string },
-  ) => ({
-    pageBreak: "before" as const,
-    stack: [
-      {
-        unbreakable: true,
-        stack: [
-          {
-            text: title,
-            bold: true,
-            fontSize: EXP.pdfSection,
-            color: C.navy,
-            margin: [0, 0, 0, 4] as [number, number, number, number],
-          },
-          {
-            text: subtitle,
-            fontSize: EXP.pdfHint,
-            color: opts?.subtitleColor ?? C.muted,
-            margin: [0, 0, 0, opts?.hint ? 4 : 10] as [number, number, number, number],
-          },
-          ...(opts?.hint
-            ? [
-                {
-                  text: opts.hint,
-                  fontSize: EXP.pdfBodySm,
-                  color: C.gold,
-                  margin: [0, 0, 0, 10] as [number, number, number, number],
-                },
-              ]
-            : []),
-        ],
-      },
-      {
-        table: { headerRows: 1, dontBreakRows: true, widths: table.widths, body: table.body },
-        layout: pdfTableLayout,
-      },
-      ...extras,
-    ],
-  });
 
   const pdfHdr = (t: string) => ({
     text: t,
     bold: true,
     color: C.white,
     fillColor: C.navy,
-    fontSize: EXP.pdfHdr,
+    fontSize: 9,
     alignment: "center" as const,
-    margin: [1, 4, 1, 4] as [number, number, number, number],
+    margin: [1, 3, 1, 3] as [number, number, number, number],
   });
 
   const pdfDayCell = (text: string, bg: string) => ({
     text,
     fillColor: bg,
-    fontSize: EXP.pdfDayCell,
+    fontSize: 8.5,
     alignment: "center" as const,
-    lineHeight: 1.2,
+    lineHeight: 1.15,
   });
 
   const dailyDetailPdfBlock =
     weeklyGrid && weeklyGrid.rows.length > 0
       ? [
-          pdfAppendixPage(
-            "Szczegółowa lista płac — rozpis tygodniowy",
-            `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · godziny od–do w kolumnach dni`,
-            {
-              widths: [84, ...weeklyGrid.dayHeaders.map(() => "*"), 36],
-              body: [
-                [
-                  pdfHdr("Pracownik"),
-                  ...weeklyGrid.dayHeaders.map((h) => pdfHdr(h)),
-                  pdfHdr("Razem"),
-                ],
-                ...weeklyGrid.rows.map((row, i) => {
-                  const bg = i % 2 === 0 ? C.white : C.lightGray;
-                  return [
-                    { text: row.name, fillColor: bg, fontSize: EXP.pdfDayName, alignment: "left" as const },
-                    ...row.dayCells.map((cell) => pdfDayCell(cell, bg)),
-                    { text: row.weekHours > 0 ? fmtH(row.weekHours) : "—", fillColor: bg, fontSize: EXP.pdfDayName, bold: true, alignment: "right" as const },
-                  ];
-                }),
-              ],
-            },
-          ),
+          {
+            stack: [
+              {
+                text: "Szczegółowa lista płac — rozpis tygodniowy",
+                bold: true,
+                fontSize: 13,
+                color: C.navy,
+                margin: [0, 0, 0, 4] as [number, number, number, number],
+              },
+              {
+                text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · godziny od–do w kolumnach dni`,
+                fontSize: 10,
+                color: C.muted,
+                margin: [0, 0, 0, 10] as [number, number, number, number],
+              },
+              {
+                table: {
+                  headerRows: 1,
+                  widths: [80, ...weeklyGrid.dayHeaders.map(() => "*"), 34],
+                  body: [
+                    [
+                      pdfHdr("Pracownik"),
+                      ...weeklyGrid.dayHeaders.map((h) => pdfHdr(h)),
+                      pdfHdr("Razem"),
+                    ],
+                    ...weeklyGrid.rows.map((row, i) => {
+                      const bg = i % 2 === 0 ? C.white : C.lightGray;
+                      return [
+                        { text: row.name, fillColor: bg, fontSize: 9.5, alignment: "left" as const },
+                        ...row.dayCells.map((cell) => pdfDayCell(cell, bg)),
+                        { text: row.weekHours > 0 ? fmtH(row.weekHours) : "—", fillColor: bg, fontSize: 9.5, bold: true, alignment: "right" as const },
+                      ];
+                    }),
+                  ],
+                },
+                layout: pdfTableLayout,
+              },
+            ],
+            pageBreak: "before" as const,
+            unbreakable: false,
+          },
         ]
       : [];
 
   const extraHourAppendixPdfBlock =
     extraHourLines.length > 0
       ? [
-          pdfAppendixPage(
-            "Dodatkowe godziny w tygodniu Pn–So",
-            `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · godziny ponad standardową zmianę dzienną`,
-            {
-              widths: [72, 38, 52, 52, 34, "*"],
-              body: [
-                ["Pracownik", "Dzień", "Zmiana podst.", "Dodatkowo", "Godz.", "Powód / opis"].map((t) => ({
-                  text: t,
-                  bold: true,
-                  color: C.white,
-                  fillColor: C.navy,
-                  fontSize: EXP.pdfHdr,
-                  alignment: "center" as const,
-                })),
-                ...extraHourLines.map((line, i) => {
-                  const bg = i % 2 === 0 ? C.white : C.lightGray;
-                  return [
-                    { text: line.name, fillColor: bg, fontSize: EXP.pdfBody },
-                    { text: line.day, fillColor: bg, alignment: "center" as const, fontSize: EXP.pdfBodySm },
-                    { text: line.baseShift, fillColor: bg, alignment: "center" as const, fontSize: EXP.pdfBodySm, color: C.muted },
-                    { text: line.extraRange, fillColor: bg, alignment: "center" as const, fontSize: EXP.pdfBodySm },
-                    { text: line.hours > 0 ? fmtH(line.hours) : "—", fillColor: bg, alignment: "right" as const, fontSize: EXP.pdfBody, bold: line.hours > 0 },
-                    { text: line.reason, fillColor: bg, color: C.muted, fontSize: EXP.pdfBodySm, alignment: "left" as const },
-                  ];
-                }),
-                [
-                  { text: "", fillColor: C.lightNavy },
-                  { text: "Razem dodatkowe", bold: true, colSpan: 3, fillColor: C.lightNavy, fontSize: EXP.pdfBodySm, alignment: "right" as const },
-                  {},
-                  {},
-                  { text: fmtH(totalExtraHourSum), bold: true, fillColor: C.lightNavy, alignment: "right" as const, fontSize: EXP.pdfBody },
-                  { text: "", fillColor: C.lightNavy },
-                ],
-              ],
-            },
-            [],
-            {
-              hint: "Kolumna „Powód / opis” — uzasadnienie dodatkowej pracy (np. dogrywka, transport, inna robot).",
-            },
-          ),
+          {
+            stack: [
+              {
+                text: "Dodatkowe godziny w tygodniu Pn–So",
+                bold: true,
+                fontSize: 13,
+                color: C.navy,
+                margin: [0, 0, 0, 4] as [number, number, number, number],
+              },
+              {
+                text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · godziny ponad standardową zmianę dzienną`,
+                fontSize: 10,
+                color: C.muted,
+                margin: [0, 0, 0, 4] as [number, number, number, number],
+              },
+              {
+                text: "Kolumna „Powód / opis” — uzasadnienie dodatkowej pracy (np. dogrywka, transport, inna robot).",
+                fontSize: 9,
+                color: C.gold,
+                margin: [0, 0, 0, 10] as [number, number, number, number],
+              },
+              {
+                table: {
+                  headerRows: 1,
+                  dontBreakRows: true,
+                  widths: [68, 34, 50, 50, 32, "*"],
+                  body: [
+                    ["Pracownik", "Dzień", "Zmiana podst.", "Dodatkowo", "Godz.", "Powód / opis"].map((t) => ({
+                      text: t,
+                      bold: true,
+                      color: C.white,
+                      fillColor: C.navy,
+                      fontSize: 9,
+                      alignment: "center" as const,
+                    })),
+                    ...extraHourLines.map((line, i) => {
+                      const bg = i % 2 === 0 ? C.white : C.lightGray;
+                      return [
+                        { text: line.name, fillColor: bg, fontSize: 10 },
+                        { text: line.day, fillColor: bg, alignment: "center" as const, fontSize: 9 },
+                        { text: line.baseShift, fillColor: bg, alignment: "center" as const, fontSize: 9, color: C.muted },
+                        { text: line.extraRange, fillColor: bg, alignment: "center" as const, fontSize: 9 },
+                        { text: line.hours > 0 ? fmtH(line.hours) : "—", fillColor: bg, alignment: "right" as const, fontSize: 10, bold: line.hours > 0 },
+                        { text: line.reason, fillColor: bg, color: C.muted, fontSize: 9, alignment: "left" as const },
+                      ];
+                    }),
+                    [
+                      { text: "", fillColor: C.lightNavy },
+                      { text: "Razem dodatkowe", bold: true, colSpan: 3, fillColor: C.lightNavy, fontSize: 9, alignment: "right" as const },
+                      {},
+                      {},
+                      { text: fmtH(totalExtraHourSum), bold: true, fillColor: C.lightNavy, alignment: "right" as const, fontSize: 10 },
+                      { text: "", fillColor: C.lightNavy },
+                    ],
+                  ],
+                },
+                layout: {
+                  hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
+                  vLineWidth: () => 0,
+                  hLineColor: () => "#DDE3EA",
+                  paddingLeft: () => 5,
+                  paddingRight: () => 5,
+                  paddingTop: () => 4,
+                  paddingBottom: () => 4,
+                },
+              },
+            ],
+            pageBreak: "before" as const,
+            unbreakable: false,
+          },
         ]
       : [];
 
   const prevSatAppendixPdfBlock =
     prevSatDetails.length > 0
       ? [
-          pdfAppendixPage(
-            "Sobota poprzedniego tygodnia — szczegóły",
-            `Data: ${fmtDate(prevSatIso)} · wypłata w tygodniu ${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`,
-            {
-              widths: [76, 46, 52, 36, 42, 42, "*"],
-              body: [
-                ["Pracownik", "Data", "Od–Do", "Godz.", "Zaliczka", "Brutto", "Opisy / uwagi"].map((t) => ({
-                  text: t,
-                  bold: true,
-                  color: C.white,
-                  fillColor: C.navy,
-                  fontSize: EXP.pdfHdr,
-                  alignment: "center" as const,
-                })),
-                ...prevSatDetails.map((line, i) => {
-                  const bg = i % 2 === 0 ? C.white : C.lightGray;
-                  return [
-                    { text: line.name, fillColor: bg, fontSize: EXP.pdfBody },
-                    { text: line.dateLabel, fillColor: bg, alignment: "center" as const, fontSize: EXP.pdfBodySm, color: C.gold },
-                    { text: line.timeRange, fillColor: bg, alignment: "center" as const, fontSize: EXP.pdfBodySm },
-                    { text: line.hours > 0 ? fmtH(line.hours) : "—", fillColor: bg, alignment: "right" as const, fontSize: EXP.pdfBody, bold: line.hours > 0 },
-                    { text: line.zaliczka > 0 ? fmt(line.zaliczka) : "—", fillColor: bg, alignment: "right" as const, fontSize: EXP.pdfBodySm, color: line.zaliczka > 0 ? C.red : C.muted },
-                    { text: line.gross > 0 ? fmt(line.gross) : "—", fillColor: bg, alignment: "right" as const, fontSize: EXP.pdfBodySm, color: C.muted },
-                    { text: line.notesText, fillColor: bg, color: C.muted, fontSize: EXP.pdfBodySm, alignment: "left" as const },
-                  ];
-                }),
-              ],
-            },
-            [],
-            { subtitleColor: C.gold },
-          ),
-        ]
-      : [];
-
-  const jobWorkGrid = buildPayrollJobWorkGrid(jobWorkLines, weekFrom);
-  const totalJobWorkHours = jobWorkLines.reduce((s, l) => s + l.hours, 0);
-  const totalJobWorkCost = jobWorkLines.reduce((s, l) => s + l.cost, 0);
-
-  const jobWorkGridExtra =
-    jobWorkGrid && jobWorkGrid.rows.length > 0
-      ? [
           {
-            text: "Siatka tygodniowa — adres robocy i godziny w kolumnach dni",
-            bold: true,
-            fontSize: EXP.pdfHint,
-            color: C.navy,
-            margin: [0, 14, 0, 6] as [number, number, number, number],
-          },
-          {
-            table: {
-              headerRows: 1,
-              dontBreakRows: true,
-              widths: [74, ...jobWorkGrid.dayHeaders.map(() => "*"), 34, 40],
-              body: [
-                [
-                  pdfHdr("Pracownik"),
-                  ...jobWorkGrid.dayHeaders.map((h) => pdfHdr(h)),
-                  pdfHdr("Razem"),
-                  pdfHdr("Koszt"),
-                ],
-                ...jobWorkGrid.rows.map((row, i) => {
-                  const bg = i % 2 === 0 ? C.white : C.lightGray;
-                  return [
-                    { text: row.name, fillColor: bg, fontSize: EXP.pdfDayName, alignment: "left" as const },
-                    ...row.dayCells.map((cell) => pdfDayCell(cell, bg)),
-                    {
-                      text: row.weekHours > 0 ? fmtH(row.weekHours) : "—",
-                      fillColor: bg,
-                      fontSize: EXP.pdfDayName,
-                      bold: true,
-                      alignment: "right" as const,
-                    },
-                    {
-                      text: row.weekCost > 0 ? fmt(row.weekCost) : "—",
-                      fillColor: bg,
-                      fontSize: EXP.pdfDayCell,
-                      alignment: "right" as const,
-                    },
-                  ];
-                }),
-                [
-                  { text: "Razem", bold: true, colSpan: jobWorkGrid.dayHeaders.length + 1, fillColor: C.lightNavy, fontSize: EXP.pdfBodySm, alignment: "right" as const },
-                  ...Array.from({ length: jobWorkGrid.dayHeaders.length }, () => ({})),
-                  { text: fmtH(totalJobWorkHours), bold: true, fillColor: C.lightNavy, fontSize: EXP.pdfBodySm, alignment: "right" as const },
-                  { text: fmt(totalJobWorkCost), bold: true, fillColor: C.lightNavy, fontSize: EXP.pdfBodySm, alignment: "right" as const },
-                ],
-              ],
-            },
-            layout: pdfTableLayout,
-          },
-        ]
-      : [];
-
-  const jobWorkAppendixPdfBlock =
-    jobWorkLines.length > 0
-      ? [
-          {
-            pageBreak: "before" as const,
             stack: [
               {
-                unbreakable: true,
-                stack: [
-                  {
-                    text: "Praca na robotach — szczegóły tygodnia",
-                    bold: true,
-                    fontSize: EXP.pdfSection,
-                    color: C.navy,
-                    margin: [0, 0, 0, 4] as [number, number, number, number],
-                  },
-                  {
-                    text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · kto, gdzie i ile godzin na jakiej robocie (z kart robót)`,
-                    fontSize: EXP.pdfHint,
-                    color: C.muted,
-                    margin: [0, 0, 0, 10] as [number, number, number, number],
-                  },
-                ],
+                text: "Sobota poprzedniego tygodnia — szczegóły",
+                bold: true,
+                fontSize: 13,
+                color: C.navy,
+                margin: [0, 0, 0, 4] as [number, number, number, number],
               },
-              ...jobWorkGridExtra,
-              ...(jobWorkGridExtra.length > 0
-                ? [
-                    {
-                      text: "Szczegółowe wpisy",
-                      bold: true,
-                      fontSize: EXP.pdfHint,
-                      color: C.navy,
-                      margin: [0, 10, 0, 6] as [number, number, number, number],
-                    },
-                  ]
-                : []),
+              {
+                text: `Data: ${fmtDate(prevSatIso)} · wypłata w tygodniu ${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`,
+                fontSize: 10,
+                color: C.gold,
+                margin: [0, 0, 0, 10] as [number, number, number, number],
+              },
               {
                 table: {
                   headerRows: 1,
                   dontBreakRows: true,
-                  widths: [70, 36, "*", 32, 36, 40, 64],
+                  widths: [72, 44, 50, 34, 40, 40, "*"],
                   body: [
-                    ["Pracownik", "Dzień", "Robota / adres", "Godz.", "Stawka", "Koszt", "Uwagi"].map((t) => ({
+                    ["Pracownik", "Data", "Od–Do", "Godz.", "Zaliczka", "Brutto", "Opisy / uwagi"].map((t) => ({
                       text: t,
                       bold: true,
                       color: C.white,
                       fillColor: C.navy,
-                      fontSize: EXP.pdfHdr,
+                      fontSize: 9,
                       alignment: "center" as const,
                     })),
-                    ...jobWorkLines.map((line, i) => {
+                    ...prevSatDetails.map((line, i) => {
                       const bg = i % 2 === 0 ? C.white : C.lightGray;
                       return [
-                        { text: line.name, fillColor: bg, fontSize: EXP.pdfBodySm, alignment: "left" as const },
-                        { text: line.dayLabel.replace("\n", " "), fillColor: bg, fontSize: EXP.pdfBodySm, alignment: "center" as const },
-                        { text: line.jobAddress, fillColor: bg, fontSize: EXP.pdfBodySm, alignment: "left" as const },
-                        { text: line.hours > 0 ? fmtH(line.hours) : "—", fillColor: bg, fontSize: EXP.pdfBodySm, bold: line.hours > 0, alignment: "right" as const },
-                        { text: line.rate > 0 ? fmt(line.rate) : "—", fillColor: bg, fontSize: EXP.pdfBodySm, color: C.muted, alignment: "right" as const },
-                        { text: line.cost > 0 ? fmt(line.cost) : "—", fillColor: bg, fontSize: EXP.pdfBodySm, alignment: "right" as const },
-                        { text: line.notes || "—", fillColor: bg, fontSize: EXP.pdfDayCell, color: C.muted, alignment: "left" as const },
+                        { text: line.name, fillColor: bg, fontSize: 10 },
+                        { text: line.dateLabel, fillColor: bg, alignment: "center" as const, fontSize: 9, color: C.gold },
+                        { text: line.timeRange, fillColor: bg, alignment: "center" as const, fontSize: 9 },
+                        { text: line.hours > 0 ? fmtH(line.hours) : "—", fillColor: bg, alignment: "right" as const, fontSize: 10, bold: line.hours > 0 },
+                        { text: line.zaliczka > 0 ? fmt(line.zaliczka) : "—", fillColor: bg, alignment: "right" as const, fontSize: 9, color: line.zaliczka > 0 ? C.red : C.muted },
+                        { text: line.gross > 0 ? fmt(line.gross) : "—", fillColor: bg, alignment: "right" as const, fontSize: 9, color: C.muted },
+                        { text: line.notesText, fillColor: bg, color: C.muted, fontSize: 9, alignment: "left" as const },
+                      ];
+                    }),
+                  ],
+                },
+                layout: {
+                  hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
+                  vLineWidth: () => 0,
+                  hLineColor: () => "#DDE3EA",
+                  paddingLeft: () => 5,
+                  paddingRight: () => 5,
+                  paddingTop: () => 4,
+                  paddingBottom: () => 4,
+                },
+              },
+            ],
+            pageBreak: "before" as const,
+            unbreakable: false,
+          },
+        ]
+      : [];
+
+  const jobWorkGrid = buildPayrollJobWorkGrid(jobWorkLines, weekFrom);
+  const jobWorkNotesLines = jobWorkLines.filter((l) => l.notes.trim());
+  const totalJobWorkHours = jobWorkLines.reduce((s, l) => s + l.hours, 0);
+  const totalJobWorkCost = jobWorkLines.reduce((s, l) => s + l.cost, 0);
+  const jobWorkFitsOnePage =
+    jobWorkGrid != null && jobWorkGrid.rows.length <= 14 && jobWorkNotesLines.length <= 4;
+
+  const jobWorkAppendixPdfBlock =
+    jobWorkGrid && jobWorkGrid.rows.length > 0
+      ? [
+          {
+            stack: [
+              {
+                text: "Praca na robotach — szczegóły tygodnia",
+                bold: true,
+                fontSize: 13,
+                color: C.navy,
+                margin: [0, 0, 0, 4] as [number, number, number, number],
+              },
+              {
+                text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · siatka tygodniowa — adres robocy i godziny w kolumnach dni (z kart robót)`,
+                fontSize: 10,
+                color: C.muted,
+                margin: [0, 0, 0, 10] as [number, number, number, number],
+              },
+              {
+                table: {
+                  headerRows: 1,
+                  widths: [72, ...jobWorkGrid.dayHeaders.map(() => "*"), 34, 40],
+                  body: [
+                    [
+                      pdfHdr("Pracownik"),
+                      ...jobWorkGrid.dayHeaders.map((h) => pdfHdr(h)),
+                      pdfHdr("Razem"),
+                      pdfHdr("Koszt"),
+                    ],
+                    ...jobWorkGrid.rows.map((row, i) => {
+                      const bg = i % 2 === 0 ? C.white : C.lightGray;
+                      return [
+                        { text: row.name, fillColor: bg, fontSize: 9, alignment: "left" as const },
+                        ...row.dayCells.map((cell) => pdfDayCell(cell, bg)),
+                        {
+                          text: row.weekHours > 0 ? fmtH(row.weekHours) : "—",
+                          fillColor: bg,
+                          fontSize: 9,
+                          bold: true,
+                          alignment: "right" as const,
+                        },
+                        {
+                          text: row.weekCost > 0 ? fmt(row.weekCost) : "—",
+                          fillColor: bg,
+                          fontSize: 8.5,
+                          alignment: "right" as const,
+                        },
                       ];
                     }),
                     [
-                      { text: "Razem", bold: true, colSpan: 3, fillColor: C.lightNavy, fontSize: EXP.pdfBodySm, alignment: "right" as const },
-                      {},
-                      {},
-                      { text: fmtH(totalJobWorkHours), bold: true, fillColor: C.lightNavy, fontSize: EXP.pdfBodySm, alignment: "right" as const },
-                      { text: "", fillColor: C.lightNavy },
-                      { text: fmt(totalJobWorkCost), bold: true, fillColor: C.lightNavy, fontSize: EXP.pdfBodySm, alignment: "right" as const },
-                      { text: "", fillColor: C.lightNavy },
+                      { text: "Razem", bold: true, colSpan: jobWorkGrid.dayHeaders.length + 1, fillColor: C.lightNavy, fontSize: 9, alignment: "right" as const },
+                      ...Array.from({ length: jobWorkGrid.dayHeaders.length }, () => ({})),
+                      { text: fmtH(totalJobWorkHours), bold: true, fillColor: C.lightNavy, fontSize: 9, alignment: "right" as const },
+                      { text: fmt(totalJobWorkCost), bold: true, fillColor: C.lightNavy, fontSize: 9, alignment: "right" as const },
                     ],
                   ],
                 },
                 layout: pdfTableLayout,
               },
+              ...(jobWorkNotesLines.length > 0
+                ? [
+                    {
+                      text: "Uwagi do wpisów",
+                      bold: true,
+                      fontSize: 10,
+                      color: C.navy,
+                      margin: [0, 10, 0, 4] as [number, number, number, number],
+                    },
+                    {
+                      table: {
+                        headerRows: 1,
+                        widths: [72, 36, "*"],
+                        body: [
+                          ["Pracownik", "Dzień", "Uwaga"].map((t) => ({
+                            text: t,
+                            bold: true,
+                            color: C.white,
+                            fillColor: C.navy,
+                            fontSize: 8.5,
+                            alignment: "center" as const,
+                          })),
+                          ...jobWorkNotesLines.map((line, i) => {
+                            const bg = i % 2 === 0 ? C.white : C.lightGray;
+                            return [
+                              { text: line.name, fillColor: bg, fontSize: 8.5 },
+                              { text: line.dayLabel, fillColor: bg, fontSize: 8.5, alignment: "center" as const },
+                              { text: line.notes, fillColor: bg, fontSize: 8.5, color: C.muted },
+                            ];
+                          }),
+                        ],
+                      },
+                      layout: pdfTableLayout,
+                    },
+                  ]
+                : []),
             ],
+            pageBreak: "before" as const,
+            unbreakable: jobWorkFitsOnePage,
           },
         ]
       : [];
@@ -877,8 +847,8 @@ export async function generatePayrollPdfBlob(
         { canvas: [{ type: "rect", x: 0, y: 0, w: PW, h: 22, color: C.lightNavy }] },
         {
           columns: [
-            { text: `W&G DOM — Lista Płac — wygenerowano ${new Date().toLocaleDateString("pl-PL")}`, fontSize: EXP.pdfFooter, color: C.navy },
-            { text: `Strona ${cur}/${total}`, fontSize: EXP.pdfFooter, color: C.navy, alignment: "right" },
+            { text: `W&G DOM — Lista Płac — wygenerowano ${new Date().toLocaleDateString("pl-PL")}`, fontSize: 9, color: C.navy },
+            { text: `Strona ${cur}/${total}`, fontSize: 9, color: C.navy, alignment: "right" },
           ],
           absolutePosition: { x: 25, y: 5 },
           width: PW - 50,
@@ -893,13 +863,13 @@ export async function generatePayrollPdfBlob(
           { text: [{ text: "Rozliczeni: ", bold: true, color: C.navy }, { text: `${totals.settledCount}/${totals.employeeCount}`, color: C.navy }] },
           { text: [{ text: "Do wypłaty: ", bold: true, color: C.navy }, { text: `${fmt(totals.totalNet)} PLN`, bold: true, color: C.red }], alignment: "right" },
         ],
-        fontSize: EXP.pdfMeta,
+        fontSize: 11,
         margin: [0, 0, 0, 14],
       },
       {
         table: {
           headerRows: 1,
-          widths: [18, "*", 44, 40, 40, 42, 48, 48, 48, 54, 44],
+          widths: [16, "*", 40, 36, 36, 38, 44, 44, 44, 50, 40],
           body: [hdrRow, ...dataRows, ...sumRows],
         },
         layout: {
@@ -908,8 +878,8 @@ export async function generatePayrollPdfBlob(
           hLineColor: () => "#DDE3EA",
           paddingLeft: () => 5,
           paddingRight: () => 5,
-          paddingTop: () => 5,
-          paddingBottom: () => 5,
+          paddingTop: () => 4,
+          paddingBottom: () => 4,
         },
       },
       ...dailyDetailPdfBlock,
@@ -917,7 +887,7 @@ export async function generatePayrollPdfBlob(
       ...prevSatAppendixPdfBlock,
       ...jobWorkAppendixPdfBlock,
     ],
-    defaultStyle: { font: "Roboto", fontSize: EXP.pdfMeta, color: C.navy },
+    defaultStyle: { font: "Roboto", fontSize: 11, color: C.navy },
   };
 
   // pdfmake 0.3.x — getBlob() zwraca Promise (stary callback już nie działa)
@@ -947,12 +917,12 @@ export async function generatePayrollWordBlob(
     new TableCell({
       children: [
         new Paragraph({
-          children: [new TextRun({ text: txt, bold: opts.bold ?? false, size: opts.size ?? EXP.wordBody, color: opts.color ?? "344254", font: "Calibri" })],
+          children: [new TextRun({ text: txt, bold: opts.bold ?? false, size: opts.size ?? 18, color: opts.color ?? "344254", font: "Calibri" })],
           alignment: opts.align ?? AlignmentType.CENTER,
         }),
       ],
       shading: opts.fill ? { fill: opts.fill, color: opts.fill } : undefined,
-      margins: { top: 100, bottom: 100, left: 130, right: 130 },
+      margins: { top: 90, bottom: 90, left: 120, right: 120 },
       borders: { top: bThin, bottom: bThin, left: bNone, right: bNone },
     });
   const mkCellMultiline = (txt: string, opts: { fill?: string; align?: (typeof AlignmentType)[keyof typeof AlignmentType]; color?: string; size?: number } = {}) =>
@@ -960,12 +930,12 @@ export async function generatePayrollWordBlob(
       children: (txt || "—").split("\n").map(
         (line) =>
           new Paragraph({
-            children: [new TextRun({ text: line, size: opts.size ?? EXP.wordGridCell, color: opts.color ?? "6B7A8D", font: "Calibri" })],
+            children: [new TextRun({ text: line, size: opts.size ?? 16, color: opts.color ?? "6B7A8D", font: "Calibri" })],
             alignment: opts.align ?? AlignmentType.LEFT,
           }),
       ),
       shading: opts.fill ? { fill: opts.fill, color: opts.fill } : undefined,
-      margins: { top: 100, bottom: 100, left: 130, right: 130 },
+      margins: { top: 90, bottom: 90, left: 120, right: 120 },
       borders: { top: bThin, bottom: bThin, left: bNone, right: bNone },
     });
   const colHeaders = ["Lp.", "Pracownik", "Stawka", "Tydz.", "Sob.pr.", "Razem h", "Brutto", "Zaliczki", "Koszty", "Do wyplaty", "Status"];
@@ -973,15 +943,15 @@ export async function generatePayrollWordBlob(
     new TableRow({
       children: [
         mkCell("", { fill: "EDF1F6" }),
-        mkCell(label, { bold: true, fill: "EDF1F6", align: AlignmentType.LEFT, size: bold ? EXP.wordBody : EXP.wordBodySm }),
+        mkCell(label, { bold: true, fill: "EDF1F6", align: AlignmentType.LEFT, size: bold ? 18 : 16 }),
         mkCell("", { fill: "EDF1F6" }),
-        mkCell(weekH > 0 ? fmtH(weekH) : "-", { bold, fill: "EDF1F6", size: EXP.wordBodySm }),
-        mkCell(prevH > 0 ? fmtH(prevH) : "-", { bold, fill: "EDF1F6", color: prevH > 0 ? "7B5800" : "6B7A8D", size: EXP.wordBodySm }),
-        mkCell(fmtH(totH), { bold: true, fill: "EDF1F6", size: EXP.wordBodySm }),
-        mkCell(`${fmt(gross)} PLN`, { bold, fill: "EDF1F6", color: "6B7A8D", size: EXP.wordBodySm }),
-        mkCell(zal > 0 ? `${fmt(zal)} PLN` : "-", { bold, fill: "EDF1F6", color: "C0392B", size: EXP.wordBodySm }),
-        mkCell(extra > 0 ? `${fmt(extra)} PLN` : "-", { bold, fill: "EDF1F6", color: extra > 0 ? "1E7E34" : "6B7A8D", size: EXP.wordBodySm }),
-        mkCell(`${fmt(net)} PLN`, { bold: true, fill: "EDF1F6", color: "C0392B", size: bold ? EXP.wordSumNet : EXP.wordBody }),
+        mkCell(weekH > 0 ? fmtH(weekH) : "-", { bold, fill: "EDF1F6", size: 20 }),
+        mkCell(prevH > 0 ? fmtH(prevH) : "-", { bold, fill: "EDF1F6", color: prevH > 0 ? "7B5800" : "6B7A8D", size: 20 }),
+        mkCell(fmtH(totH), { bold: true, fill: "EDF1F6", size: 20 }),
+        mkCell(`${fmt(gross)} PLN`, { bold, fill: "EDF1F6", color: "6B7A8D", size: 20 }),
+        mkCell(zal > 0 ? `${fmt(zal)} PLN` : "-", { bold, fill: "EDF1F6", color: "C0392B", size: 20 }),
+        mkCell(extra > 0 ? `${fmt(extra)} PLN` : "-", { bold, fill: "EDF1F6", color: extra > 0 ? "1E7E34" : "6B7A8D", size: 20 }),
+        mkCell(`${fmt(net)} PLN`, { bold: true, fill: "EDF1F6", color: "C0392B", size: bold ? 22 : 18 }),
         mkCell("", { fill: "EDF1F6" }),
       ],
     });
@@ -1019,7 +989,7 @@ export async function generatePayrollWordBlob(
                     margins: { top: 0, bottom: 120, left: 0, right: 0 },
                     children: [
                       new Paragraph({
-                        children: [new TextRun({ text: "LISTA PŁAC", bold: true, size: EXP.wordTitle, color: "C0392B", font: "Calibri" })],
+                        children: [new TextRun({ text: "LISTA PŁAC", bold: true, size: 56, color: "C0392B", font: "Calibri" })],
                         alignment: AlignmentType.LEFT,
                       }),
                     ],
@@ -1030,14 +1000,14 @@ export async function generatePayrollWordBlob(
           }),
           new Paragraph({
             children: [
-              new TextRun({ text: "Okres: ", bold: true, size: EXP.wordMeta, color: "344254", font: "Calibri" }),
-              new TextRun({ text: `${fmtDate(weekFrom)} - ${fmtDate(weekTo)}   `, size: EXP.wordMeta, color: "344254", font: "Calibri" }),
-              new TextRun({ text: "Pracownicy: ", bold: true, size: EXP.wordMeta, color: "344254", font: "Calibri" }),
-              new TextRun({ text: `${totals.employeeCount}   `, size: EXP.wordMeta, color: "344254", font: "Calibri" }),
-              new TextRun({ text: "Rozliczeni: ", bold: true, size: EXP.wordMeta, color: "344254", font: "Calibri" }),
-              new TextRun({ text: `${totals.settledCount}/${totals.employeeCount}   `, size: EXP.wordMeta, color: "344254", font: "Calibri" }),
-              new TextRun({ text: "Do wyplaty: ", bold: true, size: EXP.wordMeta, color: "344254", font: "Calibri" }),
-              new TextRun({ text: `${fmt(totals.totalNet)} PLN`, bold: true, size: EXP.wordMeta, color: "C0392B", font: "Calibri" }),
+              new TextRun({ text: "Okres: ", bold: true, size: 24, color: "344254", font: "Calibri" }),
+              new TextRun({ text: `${fmtDate(weekFrom)} - ${fmtDate(weekTo)}   `, size: 24, color: "344254", font: "Calibri" }),
+              new TextRun({ text: "Pracownicy: ", bold: true, size: 24, color: "344254", font: "Calibri" }),
+              new TextRun({ text: `${totals.employeeCount}   `, size: 24, color: "344254", font: "Calibri" }),
+              new TextRun({ text: "Rozliczeni: ", bold: true, size: 24, color: "344254", font: "Calibri" }),
+              new TextRun({ text: `${totals.settledCount}/${totals.employeeCount}   `, size: 24, color: "344254", font: "Calibri" }),
+              new TextRun({ text: "Do wyplaty: ", bold: true, size: 24, color: "344254", font: "Calibri" }),
+              new TextRun({ text: `${fmt(totals.totalNet)} PLN`, bold: true, size: 24, color: "C0392B", font: "Calibri" }),
             ],
             spacing: { after: 280 },
           }),
@@ -1045,23 +1015,23 @@ export async function generatePayrollWordBlob(
             width: { size: 100, type: WidthType.PERCENTAGE },
             rows: [
               new TableRow({
-                children: colHeaders.map((h) => mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: EXP.wordHdr })),
+                children: colHeaders.map((h) => mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 20 })),
                 tableHeader: true,
               }),
               ...rows.map((r, i) =>
                 new TableRow({
                   children: [
-                    mkCell(String(i + 1), { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: EXP.wordBodySm }),
-                    mkCell(r.emp.name || "-", { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: EXP.wordBody }),
-                    mkCell(`${fmt(r.rateNum)}`, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: EXP.wordBodySm }),
-                    mkCell(r.weekHours > 0 ? fmtH(r.weekHours) : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: EXP.wordBodySm }),
-                    mkCell(r.prevSatHours > 0 ? fmtH(r.prevSatHours) : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.prevSatHours > 0 ? "7B5800" : "6B7A8D", size: EXP.wordBodySm }),
-                    mkCell(fmtH(r.totalHours), { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: EXP.wordBodySm }),
-                    mkCell(`${fmt(r.grossPay)} PLN`, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: EXP.wordBodySm }),
-                    mkCell(r.totalZaliczka > 0 ? `${fmt(r.totalZaliczka)} PLN` : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.totalZaliczka > 0 ? "C0392B" : "6B7A8D", size: EXP.wordBodySm }),
-                    mkCell(r.totalExtraCosts > 0 ? `${fmt(r.totalExtraCosts)} PLN` : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.totalExtraCosts > 0 ? "1E7E34" : "6B7A8D", size: EXP.wordBodySm }),
-                    mkCell(`${fmt(r.netPay)} PLN`, { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "C0392B", size: EXP.wordBody }),
-                    mkCell(r.emp.settled ? "Rozliczony" : "Oczekuje", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.emp.settled ? "1E7E34" : "7B5800", bold: r.emp.settled, size: EXP.wordBodySm }),
+                    mkCell(String(i + 1), { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 20 }),
+                    mkCell(r.emp.name || "-", { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 20 }),
+                    mkCell(`${fmt(r.rateNum)}`, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 20 }),
+                    mkCell(r.weekHours > 0 ? fmtH(r.weekHours) : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 20 }),
+                    mkCell(r.prevSatHours > 0 ? fmtH(r.prevSatHours) : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.prevSatHours > 0 ? "7B5800" : "6B7A8D", size: 20 }),
+                    mkCell(fmtH(r.totalHours), { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 20 }),
+                    mkCell(`${fmt(r.grossPay)} PLN`, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 20 }),
+                    mkCell(r.totalZaliczka > 0 ? `${fmt(r.totalZaliczka)} PLN` : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.totalZaliczka > 0 ? "C0392B" : "6B7A8D", size: 20 }),
+                    mkCell(r.totalExtraCosts > 0 ? `${fmt(r.totalExtraCosts)} PLN` : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.totalExtraCosts > 0 ? "1E7E34" : "6B7A8D", size: 20 }),
+                    mkCell(`${fmt(r.netPay)} PLN`, { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "C0392B", size: 20 }),
+                    mkCell(r.emp.settled ? "Rozliczony" : "Oczekuje", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.emp.settled ? "1E7E34" : "7B5800", bold: r.emp.settled, size: 19 }),
                   ],
                 }),
               ),
@@ -1077,14 +1047,14 @@ export async function generatePayrollWordBlob(
                 new Paragraph({ children: [new PageBreak()] }),
                 new Paragraph({
                   spacing: { after: 100 },
-                  children: [new TextRun({ text: "Szczegółowa lista płac — rozpis tygodniowy", bold: true, size: EXP.wordSection, color: "344254", font: "Calibri" })],
+                  children: [new TextRun({ text: "Szczegółowa lista płac — rozpis tygodniowy", bold: true, size: 28, color: "344254", font: "Calibri" })],
                 }),
                 new Paragraph({
                   spacing: { after: 200 },
                   children: [
                     new TextRun({
                       text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · godziny od–do w kolumnach dni`,
-                      size: EXP.wordHint,
+                      size: 22,
                       color: "6B7A8D",
                       font: "Calibri",
                     }),
@@ -1095,18 +1065,18 @@ export async function generatePayrollWordBlob(
                   rows: [
                     new TableRow({
                       children: ["Pracownik", ...weeklyGrid.dayHeaders, "Razem"].map((h) =>
-                        mkCell(h.replace("\n", " "), { bold: true, fill: "344254", color: "FFFFFF", size: EXP.wordGridHdr }),
+                        mkCell(h.replace("\n", " "), { bold: true, fill: "344254", color: "FFFFFF", size: 17 }),
                       ),
                       tableHeader: true,
                     }),
                     ...weeklyGrid.rows.map((row, i) =>
                       new TableRow({
                         children: [
-                          mkCell(row.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: EXP.wordGridName }),
+                          mkCell(row.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 19 }),
                           ...row.dayCells.map((cell) =>
-                            mkCellMultiline(cell, { align: AlignmentType.CENTER, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: EXP.wordGridCell }),
+                            mkCellMultiline(cell, { align: AlignmentType.CENTER, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
                           ),
-                          mkCell(row.weekHours > 0 ? fmtH(row.weekHours) : "—", { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: EXP.wordGridName }),
+                          mkCell(row.weekHours > 0 ? fmtH(row.weekHours) : "—", { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 19 }),
                         ],
                       }),
                     ),
@@ -1119,14 +1089,14 @@ export async function generatePayrollWordBlob(
                 new Paragraph({ children: [new PageBreak()] }),
                 new Paragraph({
                   spacing: { after: 100 },
-                  children: [new TextRun({ text: "Dodatkowe godziny w tygodniu Pn–So", bold: true, size: EXP.wordSection, color: "344254", font: "Calibri" })],
+                  children: [new TextRun({ text: "Dodatkowe godziny w tygodniu Pn–So", bold: true, size: 28, color: "344254", font: "Calibri" })],
                 }),
                 new Paragraph({
                   spacing: { after: 80 },
                   children: [
                     new TextRun({
                       text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · godziny ponad standardową zmianę dzienną`,
-                      size: EXP.wordHint,
+                      size: 22,
                       color: "6B7A8D",
                       font: "Calibri",
                     }),
@@ -1137,7 +1107,7 @@ export async function generatePayrollWordBlob(
                   children: [
                     new TextRun({
                       text: "Kolumna „Powód / opis” — uzasadnienie dodatkowej pracy (np. dogrywka, transport, inna robot).",
-                      size: EXP.wordBodySm,
+                      size: 20,
                       color: "7B5800",
                       font: "Calibri",
                     }),
@@ -1148,29 +1118,29 @@ export async function generatePayrollWordBlob(
                   rows: [
                     new TableRow({
                       children: ["Pracownik", "Dzień", "Zmiana podst.", "Dodatkowo", "Godz.", "Powód / opis"].map((h) =>
-                        mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: EXP.wordGridHdr }),
+                        mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 18 }),
                       ),
                       tableHeader: true,
                     }),
                     ...extraHourLines.map((line, i) =>
                       new TableRow({
                         children: [
-                          mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: EXP.wordBody }),
-                          mkCell(line.day, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: EXP.wordBodySm }),
-                          mkCell(line.baseShift, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: EXP.wordBodySm }),
-                          mkCell(line.extraRange, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: EXP.wordBodySm }),
-                          mkCell(line.hours > 0 ? fmtH(line.hours) : "—", { bold: line.hours > 0, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: EXP.wordBody }),
-                          mkCellMultiline(line.reason, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: EXP.wordBodySm }),
+                          mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 20 }),
+                          mkCell(line.day, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 18 }),
+                          mkCell(line.baseShift, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 18 }),
+                          mkCell(line.extraRange, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 18 }),
+                          mkCell(line.hours > 0 ? fmtH(line.hours) : "—", { bold: line.hours > 0, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 20 }),
+                          mkCellMultiline(line.reason, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 18 }),
                         ],
                       }),
                     ),
                     new TableRow({
                       children: [
                         mkCell("", { fill: "EDF1F6" }),
-                        mkCell("Razem dodatkowe", { bold: true, fill: "EDF1F6", align: AlignmentType.RIGHT, size: EXP.wordBodySm }),
+                        mkCell("Razem dodatkowe", { bold: true, fill: "EDF1F6", align: AlignmentType.RIGHT, size: 18 }),
                         mkCell("", { fill: "EDF1F6" }),
                         mkCell("", { fill: "EDF1F6" }),
-                        mkCell(fmtH(totalExtraHourSum), { bold: true, fill: "EDF1F6", size: EXP.wordBody }),
+                        mkCell(fmtH(totalExtraHourSum), { bold: true, fill: "EDF1F6", size: 20 }),
                         mkCell("", { fill: "EDF1F6" }),
                       ],
                     }),
@@ -1183,14 +1153,14 @@ export async function generatePayrollWordBlob(
                 new Paragraph({ children: [new PageBreak()] }),
                 new Paragraph({
                   spacing: { after: 100 },
-                  children: [new TextRun({ text: "Sobota poprzedniego tygodnia — szczegóły", bold: true, size: EXP.wordSection, color: "344254", font: "Calibri" })],
+                  children: [new TextRun({ text: "Sobota poprzedniego tygodnia — szczegóły", bold: true, size: 28, color: "344254", font: "Calibri" })],
                 }),
                 new Paragraph({
                   spacing: { after: 220 },
                   children: [
                     new TextRun({
                       text: `Data: ${fmtDate(prevSatIso)} · wypłata w tygodniu ${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`,
-                      size: EXP.wordHint,
+                      size: 22,
                       color: "7B5800",
                       font: "Calibri",
                     }),
@@ -1201,20 +1171,20 @@ export async function generatePayrollWordBlob(
                   rows: [
                     new TableRow({
                       children: ["Pracownik", "Data", "Od–Do", "Godz.", "Zaliczka", "Brutto", "Opisy / uwagi"].map((h) =>
-                        mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: EXP.wordGridHdr }),
+                        mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 18 }),
                       ),
                       tableHeader: true,
                     }),
                     ...prevSatDetails.map((line, i) =>
                       new TableRow({
                         children: [
-                          mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: EXP.wordBody }),
-                          mkCell(line.dateLabel, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "7B5800", size: EXP.wordBodySm }),
-                          mkCell(line.timeRange, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: EXP.wordBodySm }),
-                          mkCell(line.hours > 0 ? fmtH(line.hours) : "—", { bold: line.hours > 0, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: EXP.wordBody }),
-                          mkCell(line.zaliczka > 0 ? `${fmt(line.zaliczka)} PLN` : "—", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: line.zaliczka > 0 ? "C0392B" : "6B7A8D", size: EXP.wordBodySm }),
-                          mkCell(line.gross > 0 ? `${fmt(line.gross)} PLN` : "—", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: EXP.wordBodySm }),
-                          mkCellMultiline(line.notesText, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: EXP.wordBodySm }),
+                          mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 20 }),
+                          mkCell(line.dateLabel, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "7B5800", size: 18 }),
+                          mkCell(line.timeRange, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 18 }),
+                          mkCell(line.hours > 0 ? fmtH(line.hours) : "—", { bold: line.hours > 0, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 20 }),
+                          mkCell(line.zaliczka > 0 ? `${fmt(line.zaliczka)} PLN` : "—", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: line.zaliczka > 0 ? "C0392B" : "6B7A8D", size: 18 }),
+                          mkCell(line.gross > 0 ? `${fmt(line.gross)} PLN` : "—", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 18 }),
+                          mkCellMultiline(line.notesText, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 18 }),
                         ],
                       }),
                     ),
@@ -1224,7 +1194,7 @@ export async function generatePayrollWordBlob(
             : []),
           new Paragraph({
             spacing: { before: 360 },
-            children: [new TextRun({ text: `Wygenerowano: ${new Date().toLocaleDateString("pl-PL")}`, size: EXP.wordFooter, color: "8A9BB0", font: "Calibri" })],
+            children: [new TextRun({ text: `Wygenerowano: ${new Date().toLocaleDateString("pl-PL")}`, size: 20, color: "8A9BB0", font: "Calibri" })],
           }),
         ],
       },
