@@ -5836,7 +5836,7 @@ function ChangelogView() {
           )}
         </div>
 
-        <p className="text-xs text-muted-foreground text-center pt-4 pb-2">W&G DOM — zarządzanie pracą na budowie · Zbudowane z Claude AI</p>
+        <p className="text-xs text-muted-foreground text-center pt-4 pb-2">W&amp;G DOM — zarządzanie pracą na budowie · Zbudowane przez Dawid T.T. 😊</p>
       </div>
     </div>
   );
