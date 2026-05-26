@@ -4597,7 +4597,7 @@ function HelpView() {
             {[
               {num:"1", title:"Dodaj pracowników", desc:'Kliknij "Pracownicy" w menu → "Nowy pracownik". Wpisz imię, nazwisko, telefon, stanowisko i stawkę godzinową. To trzeba zrobić tylko raz — potem ta lista będzie dostępna w całej aplikacji.'},
               {num:"2", title:"Otwórz nową robotę", desc:'Kliknij "Roboty" w menu → "Nowa robota". Wpisz adres, klienta i datę rozpoczęcia. Możesz od razu zacząć zaznaczać dokumenty i dodawać pracowników.'},
-              {num:"3", title:"Uzupełniaj listę płac w tygodniu", desc:'Kliknij "Lista Płac" w menu → "Dodaj pracownika". Zaznacz dni pracy, godziny i ewentualne zaliczki. Pod koniec tygodnia kliknij "Zapisz tydzień".'},
+              {num:"3", title:"Uzupełniaj listę płac w tygodniu", desc:'Kliknij "Lista Płac" → "Dodaj pracownika". Zaznacz dni, godziny, ewentualne zaliczki, koszty do zwrotu (chemia, paliwo) i dodatkowe godziny (np. dogrywka wieczorem). Pod koniec tygodnia kliknij "Zapisz tydzień".'},
             ].map(s=>(
               <div key={s.num} className="flex gap-4 bg-secondary/50 rounded-xl p-4">
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">{s.num}</div>
@@ -4628,7 +4628,8 @@ function HelpView() {
           <p className="text-sm text-foreground/90 leading-relaxed">W menu <strong>Grafik</strong> widzisz tabelę: wiersze to pracownicy z bieżącego tygodnia listy płac, kolumny to dni (Pn–So) z datami.</p>
           <div className="space-y-3">
             {[
-              {q:"Skąd biorą się godziny?", a:"Z Listy Płac — zaznaczone dni i godziny od–do (zielony pasek w komórce). Jeśli dzień nie jest zaznaczony w liście płac, komórka jest pusta (—), chyba że jest wpis na robocie."},
+              {q:"Skąd biorą się godziny?", a:"Z Listy Płac — podstawowa zmiana (zaznaczony dzień, od–do) plus ewentualne „Dodatkowe godziny” pod dniem. W komórce widać łączną sumę i zakresy, np. 07:00–16:00 + 16:00–18:00. Jeśli nie ma godzin w liście płac, komórka jest pusta (—), chyba że jest wpis na robocie."},
+              {q:"Czy grafik pokazuje dodatkowe godziny?", a:"Tak — grafik (bieżący i w Archiwum) sumuje podstawową zmianę i wszystkie bloki dodatkowych godzin z listy płac. Opis dodatkowych godzin (np. „transport”) widać w panelu pracownika i w PDF/Word, nie w siatce grafiku."},
               {q:"Skąd bierze się adres?", a:"Z Roboty → Pracownicy na robocie → Dodaj wpis z datą tego dnia. Adres pojawia się pod godzinami z ikoną pinezki."},
               {q:"Czy grafik zmienia dane?", a:"Nie — tylko podgląd. Edycja godzin: Lista Płac. Edycja miejsca pracy: Roboty."},
               {q:"Inny tydzień?", a:"Zmień daty u góry (tak jak w Liście Płac) lub kliknij „Bieżący tydzień”."},
@@ -4660,7 +4661,8 @@ function HelpView() {
               {q:"Jak wpisać godziny pracy?", a:"Kliknij na pracownika na liście — otworzy się panel z dniami tygodnia. Zaznacz dni kiedy pracował i wpisz godziny od–do. Aplikacja sama policzy ile godzin i ile się należy."},
               {q:"Jak dodać dodatkowe godziny w danym dniu?", a:"W panelu pracownika, pod wybranym dniem kliknij „Dodatkowe godziny w …”. Wpisz opis (np. dogrywka wieczorem, transport), godziny od–do i zapisz. Godziny dodają się do sumy dnia i całego tygodnia — w PDF/Word pojawi się osobna tabelka ze szczegółami."},
               {q:"Co to jest zaliczka?", a:"Jeśli pracownik wziął od Ciebie gotówkę z góry (np. na wypłatę w trakcie tygodnia), wpisz kwotę jako zaliczkę w danym dniu. Zostanie odjęta od kwoty do wypłaty."},
-              {q:"Co to są koszty do zwrotu?", a:"W panelu pracownika (pod dniami tygodnia) możesz dodać wydatki, które pracownik zapłacił z własnej kieszeni i które mu należy zwrócić — np. chemia, paliwo, zakupy na budowę. Te kwoty są doliczane do wypłaty (w przeciwieństwie do zaliczki, która jest odejmowana)."},
+              {q:"Co to są koszty do zwrotu?", a:"W panelu pracownika (sekcja pod dniami tygodnia) kliknij „Dodaj” przy „Koszty do zwrotu”. Wpisz opis (chemia, paliwo, zakupy) i kwotę. Te koszty są doliczane do wypłaty — w przeciwieństwie do zaliczki, która jest odejmowana. Wzór: do wypłaty = brutto − zaliczki + koszty do zwrotu."},
+              {q:"Jak liczy się wypłata?", a:"Brutto = łączne godziny (w tym dodatkowe) × stawka. Do wypłaty = brutto − suma zaliczek + suma kosztów do zwrotu. Kolumny w tabeli, PDF i Word pokazują te składniki osobno."},
               {q:"Co oznacza status Rozliczony / Oczekuje?", a:'Kiedy wypłacisz pracownikowi należną kwotę, kliknij przycisk "Oczekuje" — zmieni się na zielony "Rozliczony". To tylko znacznik dla Ciebie, żebyś wiedział komu już zapłaciłeś.'},
               {q:"Jak zapisać tydzień do archiwum?", a:'Kliknij "Zapisz tydzień". Dane trafią do Archiwum gdzie możesz je zawsze sprawdzić. W sobotę aplikacja przypomni żebyś nie zapomniał. Jeśli zapis już istnieje, zapyta czy nadpisać.'},
               {q:"Jak przejść do innego tygodnia?", a:'Zmień daty ręcznie lub kliknij "Bieżący tydzień" żeby wrócić do aktualnego. Aplikacja automatycznie archiwizuje poprzedni tydzień przy przejściu.'},
@@ -4679,7 +4681,7 @@ function HelpView() {
             <FileDown size={16} className="text-primary shrink-0 mt-0.5"/>
             <div>
               <p className="text-sm font-medium text-primary mb-1">Eksport do PDF i Word</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">Przycisk "PDF" generuje gotowy dokument z listą płac z polskimi znakami. Przycisk "Word" tworzy plik .docx który możesz edytować w Microsoft Word.</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">Przyciski „PDF” i „Word” generują listę płac z kolumnami: godziny, brutto, zaliczki, koszty do zwrotu, do wypłaty. Jeśli ktoś ma dodatkowe godziny — pod tabelą pojawi się osobna sekcja ze szczegółami (dzień, opis, godziny).</p>
             </div>
           </div>
         </div>
@@ -4764,7 +4766,7 @@ function HelpView() {
               {q:"Jak przeglądać archiwum?", a:"U góry wybierz rok, potem miesiąc. Zobaczysz wszystkie tygodnie z tego okresu z podsumowaniem godzin i wypłat. Kliknij tydzień żeby rozwinąć szczegółową listę pracowników."},
               {q:"Jak wygenerować raport miesięczny?", a:'Wybierz miesiąc, potem kliknij czerwony przycisk "Raport miesięczny PDF". Dostaniesz dokument A4 poziomy z: podsumowaniem finansowym (wypłaty, koszty robót, materiały, faktury), tabelą wszystkich robót z tego miesiąca i szczegółowymi listami płac z każdego tygodnia.'},
               {q:"Jak usunąć zapisany tydzień?", a:"Przy każdym tygodniu jest ikona kosza. Kliknij ją → potwierdź. Uwaga: tej operacji nie można cofnąć."},
-              {q:"Co jest w archiwum od wersji 1.9?", a:"Pełny tydzień: podsumowanie wypłat, szczegóły listy płac (dni i godziny) oraz zapisany grafik z adresami robót. W sobotę aplikacja robi auto-zapis bieżącego tygodnia."},
+              {q:"Co jest w archiwum od wersji 1.9?", a:"Pełny tydzień: podsumowanie wypłat (z kolumną kosztów do zwrotu), szczegóły listy płac (dni, godziny, dodatkowe bloki, zaliczki) oraz zapisany grafik z adresami robót. W sobotę aplikacja robi auto-zapis bieżącego tygodnia."},
               {q:"Gdzie zobaczyć stary grafik?", a:"Archiwum → rozwiń tydzień → zakładka Grafik. Starsze wpisy (sprzed 1.9) mają tylko listę płac bez grafiku."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
@@ -4790,6 +4792,8 @@ function HelpView() {
           <p className="text-sm text-foreground/90 leading-relaxed">Na ekranie startowym wybierz <strong>Pracownik</strong> → znajdź się na liście → wpisz <strong>9 ostatnich cyfr telefonu</strong> (bez +48). Potem wybierz robotę i dodaj zdjęcia lub raport.</p>
           <div className="space-y-3">
             {[
+              {q:"Zakładka Wypłata u pracownika", a:"Po zalogowaniu pracownik widzi zakładkę „Wypłata”: kwotę do wypłaty w najbliższy piątek, godziny bieżącego tygodnia, zaliczki i koszty do zwrotu (jeśli wpisane). Niżej — archiwum wypłat z zapisanych tygodni. Administrator musi najpierw dodać pracownika do listy płac w danym tygodniu."},
+              {q:"Ochrona danych wypłat", a:"Kwota wypłaty ukrywa się gdy pracownik przełączy aplikację (Alt+Tab). Kopiowanie tekstu jest zablokowane — to świadomy kompromis między wygodą a prywatnością na współdzielonym telefonie."},
               {q:"Jak się zalogować?", a:"Administrator musi wpisać Twój numer w kartotece Pracownicy (np. +48 501 234 567). Logujesz się 9 cyframi: 501234567. Wybierz swoje imię z listy, nie wpisuj ręcznie."},
               {q:"Jak dodać wiele zdjęć?", a:"W robocie użyj sekcji „Galeria — wiele zdjęć”: wybierz typ (przed/w trakcie/po), kliknij „Wybierz z galerii”, zaznacz wiele zdjęć, podejrzyj miniaturki i „Wyślij”."},
               {q:"Jak wysłać raport z budowy?", a:"Sekcja „Raport z budowy”: punkty zakresu (z opisem do każdego), wymiary z opisem pomieszczenia lub foto rysunku z opisem, na dole „Wiadomość dla admina”. Po wysłaniu możesz edytować lub usunąć raport w „Twoje raporty”."},
@@ -4848,11 +4852,11 @@ function HelpView() {
           <ul className="text-sm text-muted-foreground space-y-2 list-disc pl-5 leading-relaxed">
             <li><strong>Pracownicy</strong> — kartoteka, stawki, telefony</li>
             <li><strong>Kontakty</strong> — odbiorcy email (klient, inwestor itd.)</li>
-            <li><strong>Lista płac</strong> — godziny, zaliczki, rozliczenia w bieżącym tygodniu</li>
+            <li><strong>Lista płac</strong> — godziny (w tym dodatkowe), zaliczki, koszty do zwrotu, rozliczenia</li>
             <li><strong>Archiwum</strong> — zapisane tygodnie</li>
             <li><strong>Roboty</strong> — adresy, dokumenty, materiały, raporty, wpisy czasu pracy</li>
             <li><strong>Zdjęcia</strong> — pliki w chmurze Supabase Storage; informacja o zdjęciu (kto, kiedy, status) w danych roboty</li>
-            <li><strong>Hasło admina</strong> — po zmianie hasła działa na każdym urządzeniu</li>
+            <li><strong>Hasło admina</strong> — po zmianie hasła działa na każdym urządzeniu (opcja „Zapamiętaj hasło” jest tylko lokalnie w tej przeglądarce — nie trafia do chmury)</li>
           </ul>
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">
             <AlertTriangle size={16} className="text-amber-400 shrink-0 mt-0.5"/>
@@ -4874,6 +4878,7 @@ function HelpView() {
           <p className="text-sm text-foreground/90 leading-relaxed">Dane zapisują się automatycznie w chmurze — nie musisz nic robić. Ale warto wiedzieć jak działa system bezpieczeństwa.</p>
           <div className="space-y-3">
             {[
+              {q:"Logowanie administratora — zapamiętaj hasło", a:"Przy logowaniu jako Administrator możesz zaznaczyć „Zapamiętaj hasło na tym urządzeniu”. Hasło jest szyfrowane lokalnie w przeglądarce — nie wysyła się do chmury. Przy następnym wejściu na tym samym telefonie/komputerze pole hasła wypełni się samo. Wyloguj się ręcznie jeśli korzystasz ze wspólnego urządzenia."},
               {q:"Czy dane mogą zniknąć?", a:"Dane są przechowywane w dwóch miejscach: lokalnie w przeglądarce i w chmurze Supabase. Nawet jeśli wyczyścisz przeglądarkę — przy następnym otwarciu aplikacja pobierze dane z chmury."},
               {q:"Co oznaczają ikonki chmurki w prawym górnym rogu?", a:"Szara chmurka = wszystko zsynchronizowane. Animowana chmurka ze strzałką = trwa zapis. Zielona chmurka = właśnie zapisano. Czerwona chmurka z X = błąd połączenia (sprawdź internet)."},
               {q:"Co to jest backup i jak go zrobić?", a:'W lewym menu (na komputerze) na dole jest "Eksportuj backup". Kliknij — pobierze się plik .json ze wszystkimi danymi. Trzymaj go w bezpiecznym miejscu (dysk zewnętrzny, Google Drive). Żeby przywrócić dane — kliknij "Importuj backup" i wybierz ten plik.'},
@@ -4904,11 +4909,14 @@ function HelpView() {
           {[
             {icon:Copy, title:"Kopiuj pracowników z zeszłego tygodnia", desc:"W Liście Płac, gdy tydzień jest pusty, pojawia się przycisk \"Kopiuj z poprzedniego tygodnia\". Kliknij — od razu doda tych samych pracowników co w poprzednim tygodniu. Oszczędzasz czas."},
             {icon:Mic, title:"Dyktowanie notatek głosem", desc:"Przy polu Notatki w robotach jest ikona mikrofonu. Kliknij, powiedz co chcesz wpisać — aplikacja zamieni mowę na tekst. Działa w przeglądarce Chrome na telefonie i komputerze."},
-            {icon:Bell, title:"Reminder w sobotę", desc:"Co sobotę w Liście Płac pojawia się żółty baner przypominający o zamknięciu tygodnia. Kliknij \"Zapisz tydzień\" zanim zapomnisz."},
+            {icon:Bell, title:"Reminder w sobotę", desc:"Co sobotę w Liście Płac pojawia się żółty baner o zamknięciu tygodnia. Po „Zapisz tydzień” wysyłany jest też jeden backup emailem (raz na tydzień, nie codziennie)."},
+            {icon:CalendarDays, title:"Grafik tygodniowy", desc:"Menu Grafik — cały tydzień na jednym ekranie. Godziny z listy płac (łącznie z dodatkowymi blokami), adres z wpisu na robocie."},
+            {icon:Wallet, title:"Koszty do zwrotu vs zaliczka", desc:"Zaliczka = pieniądze wzięte z góry (odejmowane). Koszty do zwrotu = pracownik zapłacił z własnej kieszeni (doliczane). Oba wpisujesz w panelu pracownika w Liście Płac."},
+            {icon:Clock, title:"Dodatkowe godziny w dniu", desc:"Pod każdym dniem w panelu pracownika: „Dodatkowe godziny w …” → opis + od–do. Wliczają się do wypłaty, grafiku i PDF."},
+            {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"„Pracuje dziś” pokazuje łączne godziny z Listy Płac (w tym dodatkowe). Adres pod imieniem pojawia się dopiero gdy w Robotach dodasz wpis pracy na dzisiejszą datę."},
             {icon:Search, title:"Globalne wyszukiwanie", desc:"Ikona lupy w prawym górnym rogu. Wpisz imię pracownika lub adres roboty — aplikacja znajdzie to w całej bazie danych."},
-            {icon:CalendarDays, title:"Grafik tygodniowy", desc:"Menu Grafik — cały tydzień na jednym ekranie: wiersz = pracownik, kolumna = dzień. Godziny z listy płac, adres z wpisu na robocie."},
-            {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"„Pracuje dziś” pokazuje godziny z Listy Płac. Adres pod imieniem pojawia się dopiero gdy w Robotach dodasz wpis pracy na dzisiejszą datę (Pracownicy na robocie → Dodaj wpis → data = dziś). Samo zaznaczenie dnia w liście płac nie przypisuje adresu."},
             {icon:Users, title:"Filtrowanie robót po pracowniku", desc:"W zakładce Roboty jest rozwijana lista pracowników. Wybierz kogoś — zobaczysz tylko roboty na których ten pracownik miał wpisy czasu pracy."},
+            {icon:KeyRound, title:"Zapamiętaj hasło admina", desc:"Przy logowaniu administratora zaznacz „Zapamiętaj hasło na tym urządzeniu” — hasło zostaje zaszyfrowane lokalnie (nie w chmurze). Nie używaj na wspólnym komputerze."},
             {icon:FileDown, title:"PDF z roboty do wysłania klientowi", desc:"Każda robota ma przycisk PDF w nagłówku. Generuje profesjonalny dokument z listą dokumentów, czasem pracy i kosztami — można go od razu wysłać mailowo."},
             {icon:Mail, title:"Email z roboty — zdjęcia i raporty", desc:"Maile wysyłane są z biuro@wgdom.fun (domena zweryfikowana). Odbiorca może odpowiedzieć — Reply trafia na biuro@wgdom.pl i dawid.thai@int.pl. W Kontaktach dodaj klienta, przy robocie Email → wybierz treść i wyślij."},
           ].map((tip,i)=>(
@@ -4975,6 +4983,12 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.6.5", label:"Instrukcja — pełna aktualizacja",
+    items:[
+      {type:"improve", text:"Instrukcja obsługi uzupełniona o wszystkie funkcje z v2.6.0–2.6.4: wypłata pracownika, koszty, dodatkowe godziny, backup w sobotę, zapamiętaj hasło"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.6.4", label:"Dodatkowe godziny w dniu",
     items:[
