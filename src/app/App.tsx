@@ -13,7 +13,7 @@ import {
   Mic, MicOff, Bell, Copy, ScrollText, Sparkles,
   BookOpen, ChevronDown as ChevDown, HelpCircle, Smartphone, Monitor,
   Camera, ImagePlus, Lock, LogOut, Eye, ArrowLeft, ShieldCheck, ThumbsUp, ThumbsDown, Clock3,
-  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale, Images, Settings, Menu,
+  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale, Images, Settings, Menu, ClipboardCheck,
 } from "lucide-react";
 import {
   API_BASE,
@@ -58,6 +58,7 @@ import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots
 import {
   type AdminSession,
   listAdminUsersForLogin,
+  listInspectorUsersForLogin,
   verifyAdminLogin,
   adminCanViewRates,
   adminRoleLabel,
@@ -80,6 +81,20 @@ import {
   deleteAdminUser,
   type AdminAssignableRole,
 } from "@/lib/admin-auth";
+import { InspectorPanel } from "@/app/InspectorPanel";
+import { InspectorAdminView } from "@/app/InspectorAdminView";
+import {
+  appendJobActivity,
+  collectInspectorFeed,
+  isInspectorActivityType,
+  type JobActivity,
+  type JobActivityType,
+} from "@/lib/job-activity";
+import {
+  latestJobFile,
+  syncJobDocumentsFromFiles,
+  type InspectorJobFileKind,
+} from "@/lib/job-documents";
 import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
@@ -317,28 +332,6 @@ interface ClientShareLink {
   enabled: boolean;
 }
 
-type JobActivityType =
-  | "photo_upload"
-  | "photo_approved"
-  | "photo_rejected"
-  | "report_add"
-  | "report_edit"
-  | "report_delete"
-  | "status_change"
-  | "document"
-  | "note"
-  | "share_link"
-  | "email_sent"
-  | "material"
-  | "work_entry";
-
-interface JobActivity {
-  id: string;
-  at: string;
-  actor: string;
-  type: JobActivityType;
-  text: string;
-}
 
 interface Job {
   id: string;
@@ -360,6 +353,7 @@ interface Job {
   workerReports?: WorkerJobReport[];
   activityLog?: JobActivity[];
   clientShare?: ClientShareLink;
+  jobFiles?: import("@/lib/job-documents").JobFileAttachment[];
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -1298,24 +1292,14 @@ function defaultJob(): Job {
 }
 
 function normalizeJob(job: Job): Job {
-  return {
+  return syncJobDocumentsFromFiles({
     ...job,
     photos: job.photos || [],
     workerReports: job.workerReports || [],
     activityLog: job.activityLog || [],
     materials: job.materials || [],
-  };
-}
-
-function appendJobActivity(job: Job, type: JobActivityType, text: string, actor: string): Job {
-  const entry: JobActivity = {
-    id: crypto.randomUUID(),
-    at: new Date().toISOString(),
-    actor,
-    type,
-    text,
-  };
-  return { ...job, activityLog: [entry, ...(job.activityLog || [])].slice(0, 200) };
+    jobFiles: job.jobFiles || [],
+  });
 }
 
 function clientShareToken(): string {
@@ -1345,6 +1329,8 @@ const ACTIVITY_LABELS: Record<JobActivityType, string> = {
   email_sent: "Email",
   material: "Materiał",
   work_entry: "Czas pracy",
+  inspector_document: "Inspektor · dokument",
+  inspector_file: "Inspektor · plik",
 };
 
 function jobMissingRequiredDocs(job: Job): DocType[] {
@@ -4986,6 +4972,7 @@ function JobsView({
   onInitialJobConsumed,
   weekEmployees,
   weekFrom,
+  onGoToInspector,
 }: {
   jobs: Job[];
   setJobs: (v: Job[] | ((p: Job[]) => Job[])) => void;
@@ -4996,6 +4983,7 @@ function JobsView({
   onInitialJobConsumed?: () => void;
   weekEmployees: WeekEmployee[];
   weekFrom: string;
+  onGoToInspector?: () => void;
 }) {
   const { canViewRates } = useAdminAccess();
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -5477,6 +5465,14 @@ function JobsView({
                         </div>
                         {cost>0&&<span className="text-xs font-semibold text-primary shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cost)} PLN</span>}
                       </div>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        <span className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${job.documents.zlecenie ? "bg-green-500/15 text-green-400" : "bg-secondary text-muted-foreground"}`}>
+                          <FileText size={9}/> Zlec. {job.documents.zlecenie ? "✓" : "—"}
+                        </span>
+                        <span className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${job.documents.kosztorys ? "bg-green-500/15 text-green-400" : "bg-secondary text-muted-foreground"}`}>
+                          <ClipboardList size={9}/> Kosz. {job.documents.kosztorys ? "✓" : "—"}
+                        </span>
+                      </div>
                     </button>
                     <div className="flex items-center pr-2 shrink-0">
                       {deleteConfirmListId===job.id ? (
@@ -5720,18 +5716,32 @@ function JobsView({
 
             {showHistory && (
               <div className="bg-card rounded-xl border border-border overflow-hidden">
-                <div className="px-5 py-4 border-b border-border flex items-center gap-2">
+                <div className="px-5 py-4 border-b border-border flex items-center gap-2 flex-wrap">
                   <ScrollText size={13} className="text-muted-foreground"/>
                   <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Historia roboty</span>
                   <span className="text-[10px] bg-secondary text-muted-foreground px-1.5 py-0.5 rounded-full">
-                    {(selectedJob.activityLog || []).length}
+                    {(selectedJob.activityLog || []).filter((ev) => !isInspectorActivityType(ev.type)).length}
                   </span>
+                  {(() => {
+                    const inspectorCount = collectInspectorFeed([selectedJob]).length;
+                    if (inspectorCount === 0 || !onGoToInspector) return null;
+                    return (
+                      <button
+                        type="button"
+                        onClick={onGoToInspector}
+                        className="ml-auto text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                      >
+                        <ClipboardCheck size={11}/>
+                        {inspectorCount} zmian inspektora → zakładka Inspektor
+                      </button>
+                    );
+                  })()}
                 </div>
                 <div className="max-h-72 overflow-y-auto divide-y divide-border">
-                  {(selectedJob.activityLog || []).length === 0 ? (
+                  {(selectedJob.activityLog || []).filter((ev) => !isInspectorActivityType(ev.type)).length === 0 ? (
                     <p className="px-5 py-8 text-sm text-muted-foreground text-center">Brak wpisów — aktywność pojawi się po zmianach na robocie.</p>
                   ) : (
-                    (selectedJob.activityLog || []).map((ev) => (
+                    (selectedJob.activityLog || []).filter((ev) => !isInspectorActivityType(ev.type)).map((ev) => (
                       <div key={ev.id} className="px-5 py-3 flex gap-3">
                         <div className="shrink-0 w-16 text-[10px] text-muted-foreground pt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                           {new Date(ev.at).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
@@ -5750,6 +5760,68 @@ function JobsView({
               </div>
             )}
 
+            {/* Zlecenie · Kosztorys — sync z panelem inspektora */}
+            <div className="bg-card rounded-xl border border-emerald-500/25 overflow-hidden">
+              <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <ClipboardCheck size={13} className="text-emerald-600 dark:text-emerald-400"/>
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Zlecenie · Kosztorys</span>
+                  <span className="text-[10px] text-muted-foreground hidden sm:inline">— wspólne z Inspektorem</span>
+                </div>
+                {onGoToInspector && collectInspectorFeed([selectedJob]).length > 0 && (
+                  <button
+                    type="button"
+                    onClick={onGoToInspector}
+                    className="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                  >
+                    Oś inspektora ({collectInspectorFeed([selectedJob]).length}) →
+                  </button>
+                )}
+              </div>
+              <div className="p-4 grid sm:grid-cols-2 gap-3">
+                {(["zlecenie", "kosztorys"] as const).map((kind) => {
+                  const checked = selectedJob.documents[kind];
+                  const file = latestJobFile(selectedJob, kind);
+                  const label = kind === "zlecenie" ? "Zlecenie" : "Kosztorys";
+                  return (
+                    <div
+                      key={kind}
+                      className={`rounded-xl border p-4 space-y-2 ${checked ? "border-green-500/30 bg-green-500/5" : "border-border bg-secondary/20"}`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold">{label}</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = !checked;
+                            updateJob(
+                              { ...selectedJob, documents: { ...selectedJob.documents, [kind]: next } },
+                              { type: "document", text: `${next ? "Zaznaczono" : "Odznaczono"}: ${DOC_LABELS[kind]}` },
+                            );
+                          }}
+                          className={`flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-full transition-colors ${checked ? "bg-green-500/15 text-green-400" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
+                          title={checked ? "Oznacz jako brak" : "Oznacz jako jest"}
+                        >
+                          {checked ? <CheckCircle2 size={12}/> : <Circle size={12}/>}
+                          {checked ? "Jest" : "Brak"}
+                        </button>
+                      </div>
+                      {file ? (
+                        <>
+                          <a href={file.publicUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 truncate">
+                            <FileText size={12} className="shrink-0"/>{file.filename}
+                          </a>
+                          <p className="text-[10px] text-muted-foreground">Wgrane: {file.uploadedBy} · {new Date(file.uploadedAt).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</p>
+                        </>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">Brak pliku — inspektor może wgrać w swoim panelu</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Documents card */}
             <div className="bg-card rounded-xl border border-border overflow-hidden">
               <div className="px-5 py-4 border-b border-border flex items-center justify-between">
@@ -5765,6 +5837,9 @@ function JobsView({
                 {DOCUMENT_TYPES.map(doc=>{
                   const checked = selectedJob.documents[doc];
                   const optional = doc === "zdjecia";
+                  const inspectorFile = (doc === "zlecenie" || doc === "kosztorys")
+                    ? latestJobFile(selectedJob, doc as InspectorJobFileKind)
+                    : undefined;
                   return (
                     <button key={doc} onClick={()=>{
                       const next = !checked;
@@ -5781,6 +5856,11 @@ function JobsView({
                       <div className="min-w-0">
                         <span className={`text-xs font-medium leading-tight ${checked?"text-green-400":"text-muted-foreground"}`}>{DOC_LABELS[doc]}</span>
                         {optional&&<p className="text-[10px] text-muted-foreground/50 leading-none mt-0.5">opcjonalne</p>}
+                        {inspectorFile && (
+                          <p className="text-[10px] text-primary/80 leading-tight mt-0.5 truncate flex items-center gap-0.5" title={inspectorFile.filename}>
+                            <FileText size={9} className="shrink-0"/>{inspectorFile.filename}
+                          </p>
+                        )}
                       </div>
                     </button>
                   );
@@ -7307,6 +7387,36 @@ function HelpView() {
       ),
     },
     {
+      id:"inspector",
+      icon:ClipboardCheck,
+      title:"Panel Inspektora",
+      subtitle:"Wrocławskie Mieszkania — podgląd robót bez stawek",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">Na ekranie startowym wybierz <strong>Inspektor</strong> → użytkownik (np. Szymon Szóstak) → hasło. Inspektor widzi wszystkie roboty, ale <strong>bez stawek PLN/h</strong> pracowników. Widzi natomiast kto jest przypisany do roboty i numer telefonu z kartoteki.</p>
+          <div className="space-y-3">
+            {[
+              {q:"Co widać na liście robót?", a:"Adres, klient, status, ikony: czy jest zlecenie PDF, kosztorys NORMA, ile dokumentów zebranych, ile zdjęć zaakceptowanych. Filtry: aktywne / zdane / wszystkie + wyszukiwarka."},
+              {q:"Zlecenie i kosztorys", a:"Przy robocie możesz zaznaczyć checkbox „mam zlecenie” / „mam kosztorys” oraz wrzucić plik (zlecenie: PDF; kosztorys: PDF, NOR, XML, DOC z programu NORMA). Status widać na liście — nie musisz pamiętać czy już wysłałeś email."},
+              {q:"Dokumenty i zakresy", a:"Checklista dokumentów (zlecenie, zakres, kominiarz, pomiary…). Sekcja raportów pracowników: zakres prac, wymiary pomieszczeń, zdjęcia rysunków z opisami."},
+              {q:"Galeria zdjęć", a:"Tylko zdjęcia zaakceptowane przez admina. Pobierz pojedyncze lub „Pobierz wszystkie” z danej roboty."},
+              {q:"Kto zarządza kontem inspektora?", a:"Super Administrator (Dawid) w panelu ⚙ — zmiana hasła, dodawanie kolejnych inspektorów. Hasła sync w chmurze jak u adminów."},
+              {q:"Gdzie admin widzi zmiany inspektora?", a:"Zakładka Inspektor — oś czasu wszystkich zmian. W Robotach ta sama robota ma sekcję Zlecenie · Kosztorys (ptaszki i pliki na żywo) oraz zielone ptaszki w siatce dokumentów. Lista robót pokazuje skrót Zlec./Kosz."},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
       id:"changelog",
       icon:ScrollText,
       title:"Historia zmian",
@@ -7348,7 +7458,7 @@ function HelpView() {
             <li><strong>Archiwum</strong> — zapisane tygodnie</li>
             <li><strong>Roboty</strong> — adresy, dokumenty, materiały, raporty, wpisy czasu pracy</li>
             <li><strong>Zdjęcia</strong> — pliki w chmurze Supabase Storage; informacja o zdjęciu (kto, kiedy, status) w danych roboty</li>
-            <li><strong>Logowanie admina</strong> — trzy konta (Super Administrator / Administrator / Moderator); hasła jako hash SHA-256, sync w chmurze (<code>kw-admin-passwords</code>). Super Admin zmienia hasła w panelu ⚙</li>
+            <li><strong>Logowanie admina / inspektora</strong> — konta z hasłami jako hash SHA-256, sync w chmurze (<code>kw-admin-passwords</code>). Super Admin zmienia hasła w panelu ⚙. Pliki zlecenia/kosztorysu inspektora zapisują się przy robocie (<code>jobFiles</code>)</li>
           </ul>
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">
             <AlertTriangle size={16} className="text-amber-400 shrink-0 mt-0.5"/>
@@ -7370,7 +7480,7 @@ function HelpView() {
           <p className="text-sm text-foreground/90 leading-relaxed">Dane zapisują się automatycznie w chmurze — nie musisz nic robić. Ale warto wiedzieć jak działa system bezpieczeństwa.</p>
           <div className="space-y-3">
             {[
-              {q:"Logowanie administratora — konta i role", a:"Panel administracyjny → wybierz użytkownika z listy → wpisz hasło. Super Administrator (Dawid) w ikonie ⚙ może: zmieniać hasła, przełączać rolę Administrator ↔ Moderator oraz dodawać nowych użytkowników (login + hasło + poziom). Moderator nie widzi stawek PLN/h."},
+              {q:"Logowanie administratora — konta i role", a:"Panel administracyjny → wybierz użytkownika z listy → wpisz hasło. Super Administrator (Dawid) w ikonie ⚙ może: zmieniać hasła, przełączać rolę Administrator ↔ Moderator oraz dodawać nowych użytkowników (login + hasło + poziom: Admin, Moderator lub Inspektor). Moderator nie widzi stawek PLN/h. Inspektor loguje się osobnym przyciskiem na ekranie startowym."},
               {q:"Logowanie administratora — zapamiętaj hasło", a:"Przy logowaniu możesz zaznaczyć „Zapamiętaj hasło na tym urządzeniu”. Hasło jest szyfrowane lokalnie w przeglądarce — nie wysyła się do chmury. Przy następnym wejściu na tym samym telefonie/komputerze pole hasła wypełni się samo (dla wybranego użytkownika). Wyloguj się ręcznie jeśli korzystasz ze wspólnego urządzenia."},
               {q:"Czy dane mogą zniknąć?", a:"Dane są w przeglądarce i w chmurze Supabase. Każdy zapis scala lokalne z chmurowymi — pustsza wersja nie nadpisze bogatszej. Chmura trzyma kopie prev/prev2 i dzienny pełny backup wszystkich kluczy. Przed sync tworzona jest też lokalna kopia na urządzeniu."},
               {q:"Co oznaczają ikonki chmurki w prawym górnym rogu?", a:"Szara chmurka = wszystko zsynchronizowane. Animowana chmurka ze strzałką = trwa zapis. Zielona chmurka = właśnie zapisano. Czerwona chmurka z X = błąd połączenia (sprawdź internet)."},
@@ -7481,6 +7591,31 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.10.2", label:"Roboty ↔ Inspektor — wspólne dane",
+    items:[
+      {type:"improve", text:"Roboty — sekcja Zlecenie · Kosztorys (ptaszki, pliki inspektora, link do osi Inspektor); ta sama siatka dokumentów też się aktualizuje"},
+      {type:"improve", text:"Lista robót — badge Zlec./Kosz. na każdej karcie (zielony ptaszek gdy inspektor zaznaczy lub wgra plik)"},
+      {type:"fix", text:"Sync chmury — merge dokumentów (OR) i jobFiles między adminem a inspektorem; wgrany plik auto-zaznacza dokument"},
+    ],
+  },
+  {
+    date:"2026-05-26", version:"2.10.1", label:"Admin — zakładka Inspektor",
+    items:[
+      {type:"new", text:"Menu Inspektor — oś czasu zmian inspektora (dokumenty, zlecenia PDF, kosztorysy) z linkiem do roboty"},
+      {type:"improve", text:"Historia w Robotach — bez wpisów inspektora; skrót „X zmian inspektora → zakładka Inspektor”"},
+      {type:"improve", text:"Inspektor przy zapisie loguje aktywność do activityLog (sync w chmurze z robotą)"},
+    ],
+  },
+  {
+    date:"2026-05-26", version:"2.10.0", label:"Panel Inspektora — Wrocławskie Mieszkania",
+    items:[
+      {type:"new", text:"Logowanie Inspektor — osobny panel dla Szymona Szóstaka (bez stawek pracowników, z telefonami na robocie)"},
+      {type:"new", text:"Inspektor — lista robót, galeria zdjęć z pobieraniem, checklista dokumentów, zakresy i wymiary z raportów"},
+      {type:"new", text:"Zlecenie PDF — checkbox + upload; kosztorys NORMA/PDF — ikona statusu i wrzucanie pliku przy robocie"},
+      {type:"new", text:"Rola Inspektor w ustawieniach ⚙ — Super Admin może dodać kolejnych inspektorów (hasło sync w chmurze)"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.9.21", label:"Mobile iOS/Android — pracownik i admin",
     items:[
@@ -8348,6 +8483,7 @@ function AdminSettingsModal({ onClose }: { onClose: () => void }) {
                   >
                     <option value="admin">Administrator</option>
                     <option value="moderator">Moderator</option>
+                    <option value="inspector">Inspektor</option>
                   </select>
                 </div>
                 <div className="space-y-2">
@@ -8400,6 +8536,10 @@ function AdminSettingsModal({ onClose }: { onClose: () => void }) {
                   {u.role === "super_admin" ? (
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 bg-primary/15 text-primary">
                       Super Admin
+                    </span>
+                  ) : u.role === "inspector" ? (
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                      Inspektor
                     </span>
                   ) : (
                     <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${u.passwordCustomized ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
@@ -8494,7 +8634,7 @@ function AdminSettingsModal({ onClose }: { onClose: () => void }) {
 
 // ─── Root App ─────────────────────────────────────────────────────────────────
 
-type View = "dashboard" | "payroll" | "schedule" | "directory" | "contacts" | "archive" | "jobs" | "photos" | "changelog" | "help";
+type View = "dashboard" | "payroll" | "schedule" | "directory" | "contacts" | "archive" | "jobs" | "inspector" | "photos" | "changelog" | "help";
 
 function CloudLoader({children}: {children: React.ReactNode}) {
   const [ready, setReady] = useState(false);
@@ -8971,6 +9111,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     {key:"contacts", label:"Kontakty", hint:"Adresy e-mail klientów i współpracowników — do wysyłki z robot.", icon:Mail, badge:contacts.filter(c=>c.email.trim()).length||undefined},
     {key:"archive", label:"Archiwum", hint:"Zapisane tygodnie list płac, raporty miesięczne i podsumowania roczne.", icon:Archive, badge:savedWeeks.length||undefined},
     {key:"jobs", label:"Roboty", hint:"Adresy remontów: dokumenty, czas pracy, materiały, zdjęcia i raporty.", icon:MapPin, badge:(()=>{ const pend=jobs.reduce((s,j)=>s+(j.photos||[]).filter(p=>p.status==="pending").length,0); return pend>0?pend:jobs.filter(j=>j.status==="in_progress").length||undefined; })()},
+    {key:"inspector", label:"Inspektor", hint:"Zmiany inspektora: dokumenty, zlecenia PDF i kosztorysy — osobno od kart robót.", icon:ClipboardCheck, badge:(()=>{ const n=collectInspectorFeed(jobs).length; return n>0?n:undefined; })()},
     {key:"photos", label:"Zdjęcia", hint:"Zaakceptowane zdjęcia z robot — galeria i archiwum po 30 dniach od zdania.", icon:Images, badge:(()=>{ const n=jobs.reduce((s,j)=>{ const b=jobGalleryBucket(j); return b==="active"||b==="grace"?s+jobApprovedPhotos(j).length:s;},0); return n||undefined; })()},
     {key:"changelog", label:"Zmiany", hint:"Co nowego w aplikacji — historia wersji i poprawek.", icon:ScrollText},
     {key:"help", label:"Instrukcja", hint:"Pomoc krok po kroku: lista płac, roboty, grafik i typowe pytania.", icon:BookOpen},
@@ -9213,7 +9354,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>setSavedWeeks(prev=>prev.filter(w=>w.id!==id))} jobs={jobs} directory={directory}/>}
-          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom}/>}
+          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={()=>setView("inspector")}/>}
+          {view==="inspector"&&<InspectorAdminView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="photos"&&<JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="changelog"&&<ChangelogView/>}
           {view==="help"&&<HelpView/>}
@@ -9301,11 +9443,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
 // ─── Auth: Login Screen ───────────────────────────────────────────────────────
 
-function LoginScreen({onAdmin, onWorker}: {onAdmin:(session: AdminSession)=>void; onWorker:(emp:DirectoryEmployee)=>void}) {
+function LoginScreen({onAdmin, onInspector, onWorker}: {onAdmin:(session: AdminSession)=>void; onInspector:(session: AdminSession)=>void; onWorker:(emp:DirectoryEmployee)=>void}) {
   const adminUsers = useMemo(() => listAdminUsersForLogin(), []);
-  const [mode, setMode] = useState<"pick"|"admin"|"worker">("pick");
+  const inspectorUsers = useMemo(() => listInspectorUsersForLogin(), []);
+  const [mode, setMode] = useState<"pick"|"admin"|"worker"|"inspector">("pick");
 
   const [selectedAdminId, setSelectedAdminId] = useState(adminUsers[0]?.id ?? "");
+  const [selectedInspectorId, setSelectedInspectorId] = useState(inspectorUsers[0]?.id ?? "");
   const [password, setPassword] = useState("");
   const [passShow, setPassShow] = useState(false);
   const [passError, setPassError] = useState("");
@@ -9325,20 +9469,23 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:(session: AdminSession)=>void
   const [workerError, setWorkerError] = useState("");
 
   const selectedAdmin = adminUsers.find((u) => u.id === selectedAdminId) ?? adminUsers[0] ?? null;
+  const selectedInspector = inspectorUsers.find((u) => u.id === selectedInspectorId) ?? inspectorUsers[0] ?? null;
+  const activeLoginUserId = mode === "inspector" ? selectedInspectorId : selectedAdminId;
 
   useEffect(() => {
-    if (mode !== "admin" || !selectedAdminId) return;
+    if (mode !== "admin" && mode !== "inspector") return;
+    if (!activeLoginUserId) return;
     let cancelled = false;
     (async () => {
       const enabled = adminRememberEnabled();
       if (!cancelled) setRememberPassword(enabled);
       if (enabled) {
-        const saved = await loadRememberedAdminPassword(selectedAdminId);
+        const saved = await loadRememberedAdminPassword(activeLoginUserId);
         if (!cancelled && saved) setPassword(saved);
       }
     })();
     return () => { cancelled = true; };
-  }, [mode, selectedAdminId]);
+  }, [mode, activeLoginUserId]);
 
   const handleAdminLogin = async () => {
     if (!selectedAdmin) { setPassError("Brak kont administratora"); return; }
@@ -9346,10 +9493,28 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:(session: AdminSession)=>void
     setPassLoading(true);
     const session = await verifyAdminLogin(selectedAdmin.login, password);
     if (session) {
+      if (session.role === "inspector") { setPassLoading(false); setPassError("Użyj logowania Inspektor"); setPassword(""); return; }
       if (rememberPassword) await saveRememberedAdminPassword(selectedAdmin.id, password);
       else clearRememberedAdminPassword();
       setPassLoading(false);
       onAdmin(session);
+      return;
+    }
+    setPassLoading(false);
+    setPassError("Błędne hasło");
+    setPassword("");
+  };
+
+  const handleInspectorLogin = async () => {
+    if (!selectedInspector) { setPassError("Brak kont inspektorów"); return; }
+    if (!password) { setPassError("Wpisz hasło"); return; }
+    setPassLoading(true);
+    const session = await verifyAdminLogin(selectedInspector.login, password);
+    if (session && session.role === "inspector") {
+      if (rememberPassword) await saveRememberedAdminPassword(selectedInspector.id, password);
+      else clearRememberedAdminPassword();
+      setPassLoading(false);
+      onInspector(session);
       return;
     }
     setPassLoading(false);
@@ -9510,6 +9675,14 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:(session: AdminSession)=>void
                 <p className="text-xs opacity-70 mt-0.5">Wybierz użytkownika i wpisz hasło</p>
               </div>
             </button>
+            <button onClick={()=>setMode("inspector")}
+              className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-4 hover:border-emerald-500/40 hover:bg-emerald-500/5 active:scale-[0.98] transition-all">
+              <div className="w-11 h-11 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0"><ClipboardCheck size={22} className="text-emerald-600 dark:text-emerald-400"/></div>
+              <div className="text-left">
+                <p className="font-semibold text-base">Inspektor</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Roboty, dokumenty, zlecenia — Wrocławskie Mieszkania</p>
+              </div>
+            </button>
             <button onClick={()=>setMode("worker")}
               className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-4 hover:border-primary/40 hover:bg-primary/5 active:scale-[0.98] transition-all">
               <div className="w-11 h-11 rounded-xl bg-secondary flex items-center justify-center shrink-0"><HardHat size={22} className="text-muted-foreground"/></div>
@@ -9568,6 +9741,57 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:(session: AdminSession)=>void
               className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
               {passLoading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>}
               Zaloguj
+            </button>
+          </div>
+        )}
+
+        {/* Mode: inspector login */}
+        {mode === "inspector" && (
+          <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
+            <div className="flex items-center gap-3">
+              <button onClick={()=>{setMode("pick");setPassword("");setPassError("");}} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground transition-colors"><ArrowLeft size={16}/></button>
+              <div className="flex items-center gap-2"><ClipboardCheck size={14} className="text-emerald-600 dark:text-emerald-400"/><span className="text-sm font-semibold">Logowanie inspektora</span></div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Użytkownik</label>
+              <select
+                value={selectedInspectorId}
+                onChange={(e) => {
+                  setSelectedInspectorId(e.target.value);
+                  setPassword("");
+                  setPassError("");
+                }}
+                className="w-full bg-secondary rounded-xl px-4 py-3 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"
+              >
+                {inspectorUsers.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.displayName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Hasło</label>
+              <PasswordField value={password} show={passShow} onToggle={()=>setPassShow(v=>!v)}
+                onChange={v=>{setPassword(v);setPassError("");}} onEnter={handleInspectorLogin} autoFocus/>
+              {passError && <p className="text-xs text-destructive">{passError}</p>}
+              <label className="flex items-start gap-2.5 cursor-pointer select-none pt-1">
+                <input
+                  type="checkbox"
+                  checked={rememberPassword}
+                  onChange={(e) => setRememberPassword(e.target.checked)}
+                  className="mt-0.5 rounded border-border accent-primary shrink-0"
+                />
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  Zapamiętaj hasło na tym urządzeniu
+                  <span className="block text-[10px] text-muted-foreground/60 mt-0.5">Tylko lokalnie w przeglądarce — nie trafia do chmury</span>
+                </span>
+              </label>
+            </div>
+            <button onClick={handleInspectorLogin} disabled={passLoading}
+              className="w-full py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-600/90 active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+              {passLoading && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>}
+              Wejdź do panelu
             </button>
           </div>
         )}
@@ -11615,12 +11839,23 @@ function AppInnerWithAuth() {
 
   const [adminSession, setAdminSession] = useState<AdminSession | null>(() => {
     const mode = sessionStorage.getItem("wg-session-mode");
-    return mode === "admin" ? loadAdminSessionFromStorage() : null;
+    if (mode !== "admin") return null;
+    const s = loadAdminSessionFromStorage();
+    return s && s.role !== "inspector" ? s : null;
   });
 
-  const [appMode, setAppMode] = useState<"login"|"admin"|"worker">(() => {
+  const [inspectorSession, setInspectorSession] = useState<AdminSession | null>(() => {
+    const mode = sessionStorage.getItem("wg-session-mode");
+    if (mode !== "inspector") return null;
+    const s = loadAdminSessionFromStorage();
+    return s?.role === "inspector" ? s : null;
+  });
+
+  const [appMode, setAppMode] = useState<"login"|"admin"|"worker"|"inspector">(() => {
     const s = sessionStorage.getItem("wg-session-mode");
-    if (s === "admin" && loadAdminSessionFromStorage()) return "admin";
+    const stored = loadAdminSessionFromStorage();
+    if (s === "admin" && stored && stored.role !== "inspector") return "admin";
+    if (s === "inspector" && stored?.role === "inspector") return "inspector";
     if (s === "worker") return "worker";
     return "login";
   });
@@ -11636,10 +11871,20 @@ function AppInnerWithAuth() {
   );
 
   const enterAdmin = (session: AdminSession) => {
+    if (session.role === "inspector") return;
     saveAdminSessionToStorage(session);
     setAdminSession(session);
+    setInspectorSession(null);
     sessionStorage.setItem("wg-session-mode", "admin");
     setAppMode("admin");
+  };
+  const enterInspector = (session: AdminSession) => {
+    if (session.role !== "inspector") return;
+    saveAdminSessionToStorage(session);
+    setInspectorSession(session);
+    setAdminSession(null);
+    sessionStorage.setItem("wg-session-mode", "inspector");
+    setAppMode("inspector");
   };
   const enterWorker = (emp: DirectoryEmployee) => {
     sessionStorage.setItem("wg-session-mode","worker");
@@ -11655,13 +11900,17 @@ function AppInnerWithAuth() {
     sessionStorage.removeItem("wg-worker-id");
     saveAdminSessionToStorage(null);
     setAdminSession(null);
+    setInspectorSession(null);
     setAppMode("login"); setWorkerName(""); setWorkerId("");
   };
 
   if (shareToken) return <ClientShareView token={shareToken}/>;
-  if (appMode === "login") return <LoginScreen onAdmin={enterAdmin} onWorker={enterWorker}/>;
+  if (appMode === "login") return <LoginScreen onAdmin={enterAdmin} onInspector={enterInspector} onWorker={enterWorker}/>;
   if (appMode === "worker") return <WorkerPhotoView workerName={workerName} workerId={workerId} onLogout={logout}/>;
-  if (!adminSession) return <LoginScreen onAdmin={enterAdmin} onWorker={enterWorker}/>;
+  if (appMode === "inspector" && inspectorSession) {
+    return <InspectorPanel displayName={inspectorSession.displayName} onLogout={logout}/>;
+  }
+  if (!adminSession) return <LoginScreen onAdmin={enterAdmin} onInspector={enterInspector} onWorker={enterWorker}/>;
   return (
     <AdminAccessContext.Provider value={adminAccess}>
       <AppInner onLogout={logout}/>

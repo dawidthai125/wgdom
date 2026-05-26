@@ -6,9 +6,9 @@ import { ADMIN_PASSWORDS_KEY, ADMIN_USERS_CONFIG_KEY, persistKey } from "@/lib/c
 
 
 
-export type AdminRole = "super_admin" | "admin" | "moderator";
+export type AdminRole = "super_admin" | "admin" | "moderator" | "inspector";
 
-export type AdminAssignableRole = "admin" | "moderator";
+export type AdminAssignableRole = "admin" | "moderator" | "inspector";
 
 
 
@@ -130,6 +130,20 @@ const BUILTIN_ADMIN_ACCOUNTS: Omit<AdminAccount, "isBuiltin" | "isCustom">[] = [
 
   },
 
+  {
+
+    id: "szymon",
+
+    login: "Szymon",
+
+    displayName: "Szymon Szóstak",
+
+    role: "inspector",
+
+    passwordHash: "90bc6005a8749ac3f55561410ca37d702295b206a56de26aff10fbb51c9b0559",
+
+  },
+
 ];
 
 
@@ -162,7 +176,7 @@ async function hashAdminPassword(login: string, password: string): Promise<strin
 
 function isAssignableRole(v: unknown): v is AdminAssignableRole {
 
-  return v === "admin" || v === "moderator";
+  return v === "admin" || v === "moderator" || v === "inspector";
 
 }
 
@@ -204,7 +218,7 @@ function normalizeUsersConfig(raw: unknown): AdminUsersConfig {
 
     for (const [id, role] of Object.entries(o.roleOverrides)) {
 
-      if (isAssignableRole(role) && id !== "dawid") roleOverrides[id] = role;
+      if (isAssignableRole(role) && id !== "dawid" && id !== "szymon") roleOverrides[id] = role;
 
     }
 
@@ -288,6 +302,8 @@ function effectiveBuiltinRole(id: string, config: AdminUsersConfig): AdminRole {
 
   if (id === "dawid") return "super_admin";
 
+  if (id === "szymon") return "inspector";
+
   const override = config.roleOverrides[id];
 
   if (isAssignableRole(override)) return override;
@@ -368,7 +384,23 @@ function findAdminAccountById(id: string): AdminAccount | undefined {
 
 export function listAdminUsersForLogin(): AdminSession[] {
 
-  return getAllAdminAccounts().map(({ passwordHash: _h, isBuiltin: _b, isCustom: _c, ...pub }) => pub);
+  return getAllAdminAccounts()
+
+    .filter((a) => a.role !== "inspector")
+
+    .map(({ passwordHash: _h, isBuiltin: _b, isCustom: _c, ...pub }) => pub);
+
+}
+
+
+
+export function listInspectorUsersForLogin(): AdminSession[] {
+
+  return getAllAdminAccounts()
+
+    .filter((a) => a.role === "inspector")
+
+    .map(({ passwordHash: _h, isBuiltin: _b, isCustom: _c, ...pub }) => pub);
 
 }
 
@@ -392,7 +424,7 @@ export function listAdminUsersForManagement(): AdminUserManagementRow[] {
 
     isCustom: a.isCustom,
 
-    canChangeRole: a.role !== "super_admin",
+    canChangeRole: a.role !== "super_admin" && a.role !== "inspector",
 
     canDelete: a.isCustom,
 
@@ -556,7 +588,7 @@ export async function setAdminUserRole(userId: string, role: AdminAssignableRole
 
   if (!account) throw new Error("Nieznany użytkownik");
 
-  if (account.role === "super_admin") throw new Error("Nie można zmienić roli Super Administratora");
+  if (account.role === "super_admin" || account.role === "inspector") throw new Error("Nie można zmienić tej roli");
 
   const config = loadAdminUsersConfig();
 
@@ -654,7 +686,15 @@ export async function deleteAdminUser(userId: string): Promise<void> {
 
 export function adminCanViewRates(role: AdminRole): boolean {
 
-  return role !== "moderator";
+  return role !== "moderator" && role !== "inspector";
+
+}
+
+
+
+export function adminIsInspector(role: AdminRole): boolean {
+
+  return role === "inspector";
 
 }
 
@@ -683,6 +723,10 @@ export function adminRoleLabel(role: AdminRole): string {
     case "moderator":
 
       return "Moderator";
+
+    case "inspector":
+
+      return "Inspektor";
 
   }
 

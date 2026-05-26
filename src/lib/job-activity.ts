@@ -1,0 +1,135 @@
+/** Aktywność na robocie — wspólne typy dla admina i inspektora. */
+
+import { DOC_LABELS, type DocType, type JobFileAttachment } from "@/lib/job-documents";
+
+export type InspectorActivityType = "inspector_document" | "inspector_file";
+
+export type JobActivityType =
+  | "photo_upload"
+  | "photo_approved"
+  | "photo_rejected"
+  | "report_add"
+  | "report_edit"
+  | "report_delete"
+  | "status_change"
+  | "document"
+  | "note"
+  | "share_link"
+  | "email_sent"
+  | "material"
+  | "work_entry"
+  | InspectorActivityType;
+
+export interface JobActivity {
+  id: string;
+  at: string;
+  actor: string;
+  type: JobActivityType;
+  text: string;
+}
+
+export interface JobWithActivity {
+  id: string;
+  address: string;
+  flatNumber: string;
+  client: string;
+  status: "in_progress" | "completed";
+  activityLog?: JobActivity[];
+  jobFiles?: JobFileAttachment[];
+}
+
+export interface InspectorFeedItem {
+  id: string;
+  at: string;
+  jobId: string;
+  jobAddress: string;
+  jobFlat: string;
+  jobClient: string;
+  jobStatus: "in_progress" | "completed";
+  actor: string;
+  type: InspectorActivityType;
+  text: string;
+  fileUrl?: string;
+  fileName?: string;
+}
+
+export function isInspectorActivityType(type: JobActivityType): boolean {
+  return type === "inspector_document" || type === "inspector_file";
+}
+
+export function appendJobActivity<T extends { activityLog?: JobActivity[] }>(
+  job: T,
+  type: JobActivityType,
+  text: string,
+  actor: string,
+): T & { activityLog: JobActivity[] } {
+  const entry: JobActivity = {
+    id: crypto.randomUUID(),
+    at: new Date().toISOString(),
+    actor,
+    type,
+    text,
+  };
+  return {
+    ...job,
+    activityLog: [entry, ...(job.activityLog || [])].slice(0, 200),
+  };
+}
+
+export function collectInspectorFeed(jobs: JobWithActivity[]): InspectorFeedItem[] {
+  const items: InspectorFeedItem[] = [];
+
+  for (const job of jobs) {
+    for (const ev of job.activityLog || []) {
+      if (!isInspectorActivityType(ev.type)) continue;
+      const file = ev.type === "inspector_file"
+        ? (job.jobFiles || []).find((f) => ev.text.includes(f.filename))
+        : undefined;
+      items.push({
+        id: ev.id,
+        at: ev.at,
+        jobId: job.id,
+        jobAddress: job.address,
+        jobFlat: job.flatNumber,
+        jobClient: job.client,
+        jobStatus: job.status,
+        actor: ev.actor,
+        type: ev.type,
+        text: ev.text,
+        fileUrl: file?.publicUrl,
+        fileName: file?.filename,
+      });
+    }
+
+    for (const f of job.jobFiles || []) {
+      const logged = (job.activityLog || []).some(
+        (ev) => ev.type === "inspector_file" && ev.text.includes(f.filename),
+      );
+      if (logged) continue;
+      items.push({
+        id: `file-${f.id}`,
+        at: f.uploadedAt,
+        jobId: job.id,
+        jobAddress: job.address,
+        jobFlat: job.flatNumber,
+        jobClient: job.client,
+        jobStatus: job.status,
+        actor: f.uploadedBy,
+        type: "inspector_file",
+        text: `Wgrano ${f.kind === "zlecenie" ? "zlecenie" : "kosztorys"}: ${f.filename}`,
+        fileUrl: f.publicUrl,
+        fileName: f.filename,
+      });
+    }
+  }
+
+  return items.sort((a, b) => b.at.localeCompare(a.at));
+}
+
+export function inspectorDocToggleText(doc: DocType, checked: boolean): string {
+  return `${checked ? "Zaznaczono" : "Odznaczono"}: ${DOC_LABELS[doc]}`;
+}
+
+export function inspectorFileUploadText(kind: JobFileAttachment["kind"], filename: string): string {
+  return `Wgrano ${kind === "zlecenie" ? "zlecenie PDF" : "kosztorys"}: ${filename}`;
+}

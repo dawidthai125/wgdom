@@ -12,10 +12,26 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja:** `2.9.19` (CHANGELOG[0] w App.tsx)
-- **Ostatni push:** `297e410` — panel pracownika + alerty Pulpitu (v2.9.17); v2.9.18–2.9.19 **nie pushnięte**
+- **Aktualna wersja:** `2.10.1` (CHANGELOG[0] w App.tsx)
+- **Ostatni push:** `a5ff434` — v2.9.21 mobile; v2.10.0 **panel Inspektora — nie pushnięte**
 - **Testy użytkownika:** głównie **Vercel**, nie localhost
 - **Konto testowe pracownika:** imię `test`, tel. `+48 000 000 000` — tylko tryb pracownika, bez listy płac/grafiku/pulpitu
+
+## v2.10.1 — Admin: zakładka Inspektor
+
+- Menu **Inspektor** — oś czasu zmian (dokumenty, pliki PDF/NORMA)
+- `src/lib/job-activity.ts` — typy aktywności, `collectInspectorFeed`
+- `src/app/InspectorAdminView.tsx` — widok admina
+- Historia w Robotach bez wpisów inspektora
+
+## v2.10.0 — Panel Inspektora (Wrocławskie Mieszkania)
+
+- Osobne logowanie: przycisk **Inspektor** na ekranie startowym
+- Konto wbudowane: **Szymon Szóstak** (login `Szymon`, hasło startowe `Inspektor2026!`)
+- Pliki: `src/app/InspectorPanel.tsx`, `src/lib/job-documents.ts`, `src/lib/job-file-upload.ts`
+- Inspektor: roboty bez stawek, pracownicy + telefony, galeria zdjęć, checklista dokumentów, zakresy/wymiary, upload zlecenia PDF i kosztorysu NORMA
+- Rola `inspector` w `admin-auth.ts`; Super Admin może dodać inspektorów w panelu ⚙
+- Dane: `jobFiles[]` przy robocie + checkboxy `documents.zlecenie/kosztorys`
 
 ## v2.9.19 — Super Admin: zmiana haseł
 
@@ -72,7 +88,10 @@ Alerty (liczone w **Do ogarnięcia**):
 | Plik | Rola |
 |------|------|
 | `src/app/App.tsx` | UI, WorkerPhotoView, DashboardView, PhotoGallery, PayrollView |
-| `src/lib/admin-auth.ts` | Konta admina, role, weryfikacja hasła, sesja |
+| `src/app/InspectorPanel.tsx` | Panel inspektora — roboty, dokumenty, pliki |
+| `src/lib/job-documents.ts` | Typy dokumentów, jobFiles, accept MIME |
+| `src/lib/job-file-upload.ts` | Upload zlecenia/kosztorysu → storage-upload |
+| `src/lib/admin-auth.ts` | Konta admina + inspektor, role, weryfikacja hasła, sesja |
 | `src/lib/cloud-sync.ts` | Sync, merge, tombstones |
 | `supabase/functions/make-server-0afb8820/index.tsx` | Backend KV, storage-upload, batch-set |
 

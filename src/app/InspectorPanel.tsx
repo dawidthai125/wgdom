@@ -1,0 +1,655 @@
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { saveAs } from "file-saver";
+import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
+import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
+import {
+  MapPin, LogOut, Search, ArrowLeft, FileText, ClipboardList, Ruler,
+  CheckCircle2, Circle, ImagePlus, Download, Upload, Phone, Users,
+  ChevronDown, ChevronUp, Eye, Camera, X, FileCheck, AlertCircle,
+} from "lucide-react";
+import {
+  fetchKeysFromCloud,
+  pushKeysToCloud,
+  normalizeJobsValue,
+  mergeJobsById,
+  getDeletedJobIds,
+  mergeDeletedJobIds,
+  saveDeletedJobIds,
+  normalizeDeletedJobIds,
+  JOBS_DELETED_IDS_KEY,
+} from "@/lib/cloud-sync";
+import {
+  DOCUMENT_TYPES,
+  DOC_LABELS,
+  REQUIRED_DOCS,
+  type DocType,
+  type JobFileAttachment,
+  KOSZTORYS_ACCEPT,
+  ZLECENIE_ACCEPT,
+  latestJobFile,
+  syncJobDocumentsFromFiles,
+} from "@/lib/job-documents";
+import { uploadJobFile } from "@/lib/job-file-upload";
+import {
+  appendJobActivity,
+  inspectorDocToggleText,
+  inspectorFileUploadText,
+  type JobActivity,
+} from "@/lib/job-activity";
+
+type JobStatus = "in_progress" | "completed";
+
+interface DirectoryEmployee {
+  id: string;
+  name: string;
+  phone: string;
+  position: string;
+}
+
+interface WorkReportItem {
+  id: string;
+  text: string;
+  note: string;
+}
+
+interface RoomDimension {
+  id: string;
+  roomType: string;
+  customLabel: string;
+  length: string;
+  width: string;
+  height: string;
+  note?: string;
+}
+
+interface WorkerJobReport {
+  id: string;
+  workerName: string;
+  submittedAt: string;
+  updatedAt?: string;
+  workItems: WorkReportItem[];
+  rooms: RoomDimension[];
+  generalNote?: string;
+  sketchNote?: string;
+  sketch?: { path: string; publicUrl: string } | null;
+}
+
+interface PhotoEntry {
+  id: string;
+  publicUrl: string;
+  label: "before" | "after" | "progress";
+  uploadedBy: string;
+  uploadedAt: string;
+  status: "pending" | "approved" | "rejected";
+  caption?: string;
+}
+
+interface WorkEntry {
+  id: string;
+  directoryId: string;
+  employeeName: string;
+  date: string;
+  hours: number;
+}
+
+interface InspectorJob {
+  id: string;
+  address: string;
+  flatNumber: string;
+  client: string;
+  startDate: string;
+  endDate: string;
+  status: JobStatus;
+  notes: string;
+  documents: Record<DocType, boolean>;
+  workEntries: WorkEntry[];
+  photos: PhotoEntry[];
+  workerReports?: WorkerJobReport[];
+  jobFiles?: JobFileAttachment[];
+  activityLog?: JobActivity[];
+}
+
+const PHOTO_LABELS: Record<PhotoEntry["label"], string> = {
+  before: "Przed",
+  after: "Po",
+  progress: "W trakcie",
+};
+
+function fmtDate(iso: string): string {
+  if (!iso) return "—";
+  const [y, m, d] = iso.split("-");
+  return `${d}.${m}.${y}`;
+}
+
+function normalizeJob(raw: InspectorJob): InspectorJob {
+  return syncJobDocumentsFromFiles({
+    ...raw,
+    photos: raw.photos || [],
+    workerReports: raw.workerReports || [],
+    workEntries: raw.workEntries || [],
+    jobFiles: raw.jobFiles || [],
+    activityLog: raw.activityLog || [],
+  });
+}
+
+function uniqueWorkersOnJob(job: InspectorJob, directory: DirectoryEmployee[]): { name: string; phone: string; position: string }[] {
+  const seen = new Set<string>();
+  const out: { name: string; phone: string; position: string }[] = [];
+  for (const e of job.workEntries) {
+    const key = e.directoryId || e.employeeName;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const dir = directory.find((d) => d.id === e.directoryId);
+    out.push({
+      name: e.employeeName || dir?.name || "—",
+      phone: dir?.phone || "—",
+      position: dir?.position || "—",
+    });
+  }
+  return out.sort((a, b) => a.name.localeCompare(b.name, "pl"));
+}
+
+async function downloadUrlAsFile(url: string, filename: string) {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  saveAs(blob, filename);
+}
+
+export function InspectorPanel({
+  displayName,
+  onLogout,
+}: {
+  displayName: string;
+  onLogout: () => void;
+}) {
+  const [jobs, setJobs] = useState<InspectorJob[]>([]);
+  const [directory, setDirectory] = useState<DirectoryEmployee[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"all" | "active" | "completed">("active");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [uploadBusy, setUploadBusy] = useState<string | null>(null);
+  const [msg, setMsg] = useState("");
+  const [openReportId, setOpenReportId] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<{ url: string; label: string } | null>(null);
+
+  const persistJobs = useCallback((next: InspectorJob[]) => {
+    setJobs(next);
+    try {
+      localStorage.setItem("kw-jobs", JSON.stringify(next));
+    } catch { /* ignore */ }
+    pushKeysToCloud(["kw-jobs"], [next]).catch(() => {});
+  }, []);
+
+  const updateJob = useCallback((updated: InspectorJob) => {
+    setJobs((prev) => {
+      const next = prev.map((j) => (j.id === updated.id ? updated : j));
+      persistJobs(next);
+      return next;
+    });
+  }, [persistJobs]);
+
+  useEffect(() => {
+    fetchKeysFromCloud(["kw-jobs", "kw-directory", JOBS_DELETED_IDS_KEY])
+      .then(([cloudJobs, cloudDir, cloudDeletedRaw]) => {
+        const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), normalizeDeletedJobIds(cloudDeletedRaw));
+        saveDeletedJobIds(mergedDeleted);
+        let localJobs: InspectorJob[] = [];
+        try {
+          localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")) as InspectorJob[];
+        } catch { /* ignore */ }
+        const merged = mergeJobsById(localJobs, normalizeJobsValue(cloudJobs), mergedDeleted) as InspectorJob[];
+        const normalized = merged.map(normalizeJob);
+        setJobs(normalized);
+        try { localStorage.setItem("kw-jobs", JSON.stringify(normalized)); } catch { /* ignore */ }
+        if (cloudDir && Array.isArray(cloudDir)) setDirectory(cloudDir as DirectoryEmployee[]);
+        else {
+          try {
+            setDirectory(JSON.parse(localStorage.getItem("kw-directory") || "[]"));
+          } catch { setDirectory([]); }
+        }
+      })
+      .catch(() => {
+        try {
+          setJobs(normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")).map(normalizeJob));
+          setDirectory(JSON.parse(localStorage.getItem("kw-directory") || "[]"));
+        } catch { /* ignore */ }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filteredJobs = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return jobs
+      .filter((j) => {
+        if (filter === "active" && j.status !== "in_progress") return false;
+        if (filter === "completed" && j.status !== "completed") return false;
+        if (!q) return true;
+        return (
+          j.address.toLowerCase().includes(q)
+          || j.client.toLowerCase().includes(q)
+          || (j.flatNumber || "").toLowerCase().includes(q)
+        );
+      })
+      .sort((a, b) => b.startDate.localeCompare(a.startDate));
+  }, [jobs, search, filter]);
+
+  const selectedJob = jobs.find((j) => j.id === selectedId) || null;
+
+  const toggleDoc = (job: InspectorJob, doc: DocType) => {
+    const next = !job.documents[doc];
+    updateJob(
+      appendJobActivity(
+        { ...job, documents: { ...job.documents, [doc]: next } },
+        "inspector_document",
+        inspectorDocToggleText(doc, next),
+        displayName,
+      ),
+    );
+  };
+
+  const handleFileUpload = async (job: InspectorJob, kind: JobFileAttachment["kind"], file: File) => {
+    setUploadBusy(kind);
+    setMsg("");
+    const { attachment, error } = await uploadJobFile(job.id, file, kind, displayName);
+    if (!attachment) {
+      setMsg(error || "Nie udało się wgrać pliku");
+      setUploadBusy(null);
+      return;
+    }
+    const docKey = kind as DocType;
+    updateJob(
+      appendJobActivity(
+        {
+          ...job,
+          jobFiles: [...(job.jobFiles || []).filter((f) => f.kind !== kind), attachment],
+          documents: { ...job.documents, [docKey]: true },
+        },
+        "inspector_file",
+        inspectorFileUploadText(kind, file.name),
+        displayName,
+      ),
+    );
+    setMsg(kind === "zlecenie" ? "Zlecenie wgrane" : "Kosztorys wgrany");
+    setUploadBusy(null);
+  };
+
+  const downloadAllPhotos = async (job: InspectorJob) => {
+    const photos = (job.photos || []).filter((p) => p.publicUrl && p.status === "approved");
+    if (photos.length === 0) {
+      setMsg("Brak zaakceptowanych zdjęć do pobrania");
+      return;
+    }
+    setMsg(`Pobieranie ${photos.length} zdjęć…`);
+    for (let i = 0; i < photos.length; i++) {
+      const p = photos[i];
+      const ext = p.publicUrl.split(".").pop()?.split("?")[0] || "jpg";
+      await downloadUrlAsFile(p.publicUrl, `${job.address || "robota"}-${i + 1}-${p.label}.${ext}`);
+    }
+    setMsg(`Pobrano ${photos.length} zdjęć`);
+  };
+
+  return (
+    <div className="flex flex-col bg-background text-foreground" style={{ fontFamily: "'Inter', sans-serif", height: "100dvh" }}>
+      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card shrink-0 gap-2" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
+        <div className="flex items-center gap-2 min-w-0">
+          <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-7 w-auto shrink-0"/>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold truncate">{displayName}</p>
+            <p className="text-[10px] text-muted-foreground truncate">Inspektor · Wrocławskie Mieszkania</p>
+          </div>
+        </div>
+        <button type="button" onClick={onLogout} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-3 py-2.5 min-h-[44px] rounded-lg hover:bg-secondary shrink-0">
+          <LogOut size={14}/>Wyloguj
+        </button>
+      </header>
+
+      {!selectedJob ? (
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <div className="px-4 py-3 space-y-3 border-b border-border bg-card/50 shrink-0">
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Szukaj adresu, klienta…"
+                className="w-full bg-secondary rounded-xl pl-9 pr-3 py-2.5 border border-transparent focus:border-primary focus:outline-none"
+              />
+            </div>
+            <div className="flex gap-2">
+              {(["active", "completed", "all"] as const).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setFilter(f)}
+                  className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors ${filter === f ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+                >
+                  {f === "active" ? "Aktywne" : f === "completed" ? "Zdane" : "Wszystkie"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 space-y-3" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+            {loading ? (
+              <div className="flex justify-center py-16">
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+              </div>
+            ) : filteredJobs.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-12">Brak robót</p>
+            ) : (
+              filteredJobs.map((job) => {
+                const reqDone = REQUIRED_DOCS.filter((d) => job.documents[d]).length;
+                const hasZlecenie = job.documents.zlecenie;
+                const hasKosztorys = job.documents.kosztorys;
+                const photoCount = (job.photos || []).filter((p) => p.status === "approved").length;
+                return (
+                  <button
+                    key={job.id}
+                    type="button"
+                    onClick={() => { setSelectedId(job.id); setMsg(""); setOpenReportId(null); }}
+                    className="w-full text-left bg-card border border-border rounded-2xl p-4 hover:border-primary/40 transition-colors active:scale-[0.99]"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm truncate">
+                          {job.address || "Bez adresu"}{job.flatNumber && <span className="text-muted-foreground"> m.{job.flatNumber}</span>}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{job.client || "—"}</p>
+                      </div>
+                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${job.status === "completed" ? "bg-green-500/15 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
+                        {job.status === "completed" ? "Zdana" : "W trakcie"}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-2">Start: {fmtDate(job.startDate)}</p>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full ${hasZlecenie ? "bg-green-500/15 text-green-400" : "bg-red-500/10 text-red-400"}`}>
+                        <FileText size={10}/> Zlecenie {hasZlecenie ? "✓" : "—"}
+                      </span>
+                      <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full ${hasKosztorys ? "bg-green-500/15 text-green-400" : "bg-red-500/10 text-red-400"}`}>
+                        <FileCheck size={10}/> Kosztorys {hasKosztorys ? "✓" : "—"}
+                      </span>
+                      <span className="text-[10px] px-2 py-1 rounded-full bg-secondary text-muted-foreground">
+                        Dok. {reqDone}/{REQUIRED_DOCS.length}
+                      </span>
+                      {photoCount > 0 && (
+                        <span className="text-[10px] px-2 py-1 rounded-full bg-secondary text-muted-foreground">
+                          {photoCount} zdjęć
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 py-2 shrink-0">
+            <button type="button" onClick={() => setSelectedId(null)} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px]">
+              <ArrowLeft size={16}/>Lista robót
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-5 max-w-2xl mx-auto w-full" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
+            {msg && <p className="text-xs text-primary bg-primary/10 rounded-lg px-3 py-2">{msg}</p>}
+
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <h1 className="text-lg font-bold leading-snug">
+                {selectedJob.address || "Bez adresu"}{selectedJob.flatNumber && ` m.${selectedJob.flatNumber}`}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">{selectedJob.client || "—"}</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                {fmtDate(selectedJob.startDate)}{selectedJob.endDate && ` → ${fmtDate(selectedJob.endDate)}`}
+                {" · "}{selectedJob.status === "completed" ? "Zdana" : "W trakcie"}
+              </p>
+            </div>
+
+            {/* Zlecenie + Kosztorys */}
+            <div className="grid sm:grid-cols-2 gap-3">
+              {(["zlecenie", "kosztorys"] as const).map((kind) => {
+                const label = kind === "zlecenie" ? "Zlecenie (PDF)" : "Kosztorys (NORMA/PDF)";
+                const accept = kind === "zlecenie" ? ZLECENIE_ACCEPT : KOSZTORYS_ACCEPT;
+                const file = latestJobFile(selectedJob, kind);
+                const checked = selectedJob.documents[kind];
+                return (
+                  <div key={kind} className={`rounded-2xl border p-4 space-y-3 ${checked ? "border-green-500/30 bg-green-500/5" : "border-border bg-card"}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold">{label}</p>
+                      <button
+                        type="button"
+                        onClick={() => toggleDoc(selectedJob, kind)}
+                        className={`flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-full ${checked ? "bg-green-500/15 text-green-400" : "bg-secondary text-muted-foreground"}`}
+                        title={checked ? "Oznacz jako brak" : "Oznacz jako jest"}
+                      >
+                        {checked ? <CheckCircle2 size={12}/> : <Circle size={12}/>}
+                        {checked ? "Jest" : "Brak"}
+                      </button>
+                    </div>
+                    {file ? (
+                      <a href={file.publicUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 truncate">
+                        <FileText size={12}/>{file.filename}
+                      </a>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Brak pliku — wgraj poniżej</p>
+                    )}
+                    <label className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-medium cursor-pointer transition-colors ${uploadBusy === kind ? "opacity-50 pointer-events-none" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}>
+                      <Upload size={14}/>
+                      {uploadBusy === kind ? "Wgrywanie…" : file ? "Wgraj nową wersję" : "Wgraj plik"}
+                      <input
+                        type="file"
+                        accept={accept}
+                        className="sr-only"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleFileUpload(selectedJob, kind, f);
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Pozostałe dokumenty */}
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <ClipboardList size={15}/> Dokumentacja robót
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {DOCUMENT_TYPES.map((doc) => {
+                  const checked = selectedJob.documents[doc];
+                  const required = (REQUIRED_DOCS as readonly string[]).includes(doc);
+                  return (
+                    <button
+                      key={doc}
+                      type="button"
+                      onClick={() => toggleDoc(selectedJob, doc)}
+                      className={`flex items-center gap-2 text-left text-xs px-3 py-2.5 rounded-xl border transition-colors min-h-[44px] ${checked ? "border-green-500/30 bg-green-500/10 text-green-400" : required ? "border-amber-500/20 bg-amber-500/5 text-muted-foreground" : "border-border bg-secondary/30 text-muted-foreground"}`}
+                    >
+                      {checked ? <CheckCircle2 size={14} className="shrink-0"/> : <Circle size={14} className="shrink-0"/>}
+                      <span className="leading-tight">{DOC_LABELS[doc]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {REQUIRED_DOCS.filter((d) => !selectedJob.documents[d]).length > 0 && (
+                <p className="text-[11px] text-amber-400/90 mt-3 flex items-start gap-1.5">
+                  <AlertCircle size={12} className="shrink-0 mt-0.5"/>
+                  Brakuje: {REQUIRED_DOCS.filter((d) => !selectedJob.documents[d]).map((d) => DOC_LABELS[d]).join(", ")}
+                </p>
+              )}
+            </div>
+
+            {/* Pracownicy */}
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <p className="text-sm font-semibold mb-3 flex items-center gap-2"><Users size={15}/> Pracownicy na robocie</p>
+              {uniqueWorkersOnJob(selectedJob, directory).length === 0 ? (
+                <p className="text-xs text-muted-foreground">Brak wpisów czasu pracy</p>
+              ) : (
+                <div className="space-y-2">
+                  {uniqueWorkersOnJob(selectedJob, directory).map((w) => (
+                    <div key={w.name + w.phone} className="flex items-center justify-between gap-3 bg-secondary/40 rounded-xl px-3 py-2.5">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{w.name}</p>
+                        <p className="text-[11px] text-muted-foreground">{w.position}</p>
+                      </div>
+                      {w.phone && w.phone !== "—" && (
+                        <a href={`tel:${w.phone.replace(/\s/g, "")}`} className="flex items-center gap-1 text-xs text-primary shrink-0">
+                          <Phone size={12}/>{w.phone}
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Raporty — zakres i wymiary */}
+            <div className="bg-card border border-border rounded-2xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-border">
+                <p className="text-sm font-semibold flex items-center gap-2"><Ruler size={15}/> Zakresy i wymiary</p>
+              </div>
+              {(selectedJob.workerReports || []).length === 0 ? (
+                <p className="px-4 py-6 text-xs text-muted-foreground text-center">Brak raportów od pracowników</p>
+              ) : (
+                <div className="divide-y divide-border">
+                  {[...(selectedJob.workerReports || [])].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt)).map((report) => {
+                    const open = openReportId === report.id;
+                    return (
+                      <div key={report.id}>
+                        <button type="button" onClick={() => setOpenReportId(open ? null : report.id)} className="w-full px-4 py-3 flex items-center justify-between gap-2 hover:bg-secondary/30 text-left">
+                          <div>
+                            <p className="text-sm font-medium">{report.workerName}</p>
+                            <p className="text-[11px] text-muted-foreground">{fmtDate(report.submittedAt.slice(0, 10))} · {report.workItems.length} pkt · {report.rooms.length} pom.</p>
+                          </div>
+                          {open ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
+                        </button>
+                        {open && (
+                          <div className="px-4 pb-4 space-y-4 bg-secondary/10">
+                            {report.workItems.length > 0 && (
+                              <div>
+                                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Zakres wykonanych prac</p>
+                                <ul className="space-y-1.5">
+                                  {report.workItems.map((item) => (
+                                    <li key={item.id} className="text-sm">
+                                      <span className="text-primary">• </span>{item.text}
+                                      {item.note && <p className="text-xs text-muted-foreground ml-3 italic">{item.note}</p>}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {report.rooms.length > 0 && (
+                              <div className="overflow-x-auto rounded-lg border border-border">
+                                <table className="w-full text-xs">
+                                  <thead>
+                                    <tr className="bg-secondary/50 text-muted-foreground">
+                                      <th className="px-2 py-1.5 text-left">Pomieszczenie</th>
+                                      <th className="px-2 py-1.5 text-right">Dł.</th>
+                                      <th className="px-2 py-1.5 text-right">Szer.</th>
+                                      <th className="px-2 py-1.5 text-right">Wys.</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-border">
+                                    {report.rooms.map((room) => (
+                                      <tr key={room.id}>
+                                        <td className="px-2 py-1.5">{room.customLabel || room.roomType}</td>
+                                        <td className="px-2 py-1.5 text-right font-mono">{room.length || "—"}</td>
+                                        <td className="px-2 py-1.5 text-right font-mono">{room.width || "—"}</td>
+                                        <td className="px-2 py-1.5 text-right font-mono">{room.height || "—"}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                            {report.sketch?.publicUrl && (
+                              <div>
+                                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Rysunek / wymiary (foto)</p>
+                                <button type="button" onClick={() => setLightbox({ url: report.sketch!.publicUrl, label: "Rysunek" })} className="block w-full max-w-xs rounded-xl overflow-hidden border border-border">
+                                  <img src={report.sketch.publicUrl} alt="Rysunek" className="w-full h-auto object-cover"/>
+                                </button>
+                                {report.sketchNote && <p className="text-xs text-muted-foreground mt-1 italic">{report.sketchNote}</p>}
+                              </div>
+                            )}
+                            {report.generalNote && (
+                              <p className="text-xs bg-primary/5 border border-primary/15 rounded-lg px-3 py-2">{report.generalNote}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Galeria zdjęć */}
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <p className="text-sm font-semibold flex items-center gap-2"><ImagePlus size={15}/> Galeria zdjęć</p>
+                {(selectedJob.photos || []).filter((p) => p.status === "approved").length > 0 && (
+                  <button type="button" onClick={() => downloadAllPhotos(selectedJob)} className="text-xs text-primary flex items-center gap-1 hover:underline">
+                    <Download size={12}/> Pobierz wszystkie
+                  </button>
+                )}
+              </div>
+              {(["before", "after", "progress"] as const).map((label) => {
+                const photos = (selectedJob.photos || []).filter((p) => p.label === label && p.status === "approved" && p.publicUrl);
+                if (photos.length === 0) return null;
+                return (
+                  <div key={label} className="mb-4 last:mb-0">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
+                      {label === "before" ? <Camera size={11}/> : label === "after" ? <Eye size={11}/> : <ImagePlus size={11}/>}
+                      {PHOTO_LABELS[label]} ({photos.length})
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {photos.map((p) => (
+                        <div key={p.id} className="relative group">
+                          <button type="button" onClick={() => setLightbox({ url: p.publicUrl, label: PHOTO_LABELS[p.label] })} className="block w-full aspect-square rounded-lg overflow-hidden bg-secondary border border-border">
+                            <img src={p.publicUrl} alt="" className="w-full h-full object-cover"/>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => downloadUrlAsFile(p.publicUrl, `${selectedJob.address}-${p.label}-${p.id.slice(0, 6)}.jpg`)}
+                            className="absolute bottom-1 right-1 p-1.5 rounded-md bg-black/60 text-white opacity-90"
+                            title="Pobierz"
+                          >
+                            <Download size={12}/>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              {(selectedJob.photos || []).filter((p) => p.status === "approved").length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-4">Brak zaakceptowanych zdjęć</p>
+              )}
+            </div>
+
+            {selectedJob.notes && (
+              <div className="bg-card border border-border rounded-2xl p-4">
+                <p className="text-xs font-medium text-muted-foreground mb-1">Notatki</p>
+                <p className="text-sm whitespace-pre-wrap">{selectedJob.notes}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {lightbox && (
+        <div className="fixed inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center p-4" onClick={() => setLightbox(null)}>
+          <button type="button" className="absolute top-4 right-4 p-2 text-white" style={{ top: "max(1rem, env(safe-area-inset-top))" }} onClick={() => setLightbox(null)}>
+            <X size={24}/>
+          </button>
+          <p className="text-white text-sm mb-3">{lightbox.label}</p>
+          <img src={lightbox.url} alt={lightbox.label} className="max-w-full max-h-[85dvh] object-contain rounded-lg" onClick={(e) => e.stopPropagation()}/>
+        </div>
+      )}
+    </div>
+  );
+}

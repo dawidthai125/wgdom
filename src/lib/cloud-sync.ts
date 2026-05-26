@@ -4,6 +4,7 @@ import {
   supabaseFunctionsBase,
   isSupabaseConfigured,
 } from "@/config/supabase";
+import { mergeJobDocuments, mergeJobFiles } from "@/lib/job-documents";
 
 /** Klucze danych biznesowych — każdy nowy typ zapisu MUSI być tutaj. */
 export const DATA_KEYS = [
@@ -40,8 +41,31 @@ export function normalizeJobsValue(raw: unknown): unknown[] {
   return [];
 }
 
-function jobMergeScore(j: { workEntries?: unknown[]; photos?: unknown[] }): number {
-  return (j.workEntries?.length ?? 0) + (j.photos?.length ?? 0);
+function jobMergeScore(j: {
+  workEntries?: unknown[];
+  photos?: unknown[];
+  jobFiles?: unknown[];
+  activityLog?: unknown[];
+}): number {
+  return (
+    (j.workEntries?.length ?? 0)
+    + (j.photos?.length ?? 0)
+    + (j.jobFiles?.length ?? 0) * 4
+    + (j.activityLog?.length ?? 0)
+  );
+}
+
+function mergeActivityLogs(
+  a: { id: string; at: string }[] | undefined,
+  b: { id: string; at: string }[] | undefined,
+): { id: string; at: string }[] {
+  const map = new Map<string, { id: string; at: string }>();
+  for (const ev of [...(a || []), ...(b || [])]) {
+    if (ev?.id) map.set(ev.id, ev);
+  }
+  return [...map.values()]
+    .sort((x, y) => y.at.localeCompare(x.at))
+    .slice(0, 200);
 }
 
 export const JOBS_DELETED_IDS_KEY = "kw-jobs-deleted-ids";
@@ -138,7 +162,15 @@ function filterDeletedJobs(list: unknown[], deletedIds: string[]): unknown[] {
 
 /** Scal roboty po id — nie gub starszych wpisów gdy chmura ma mniej danych. */
 export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds: string[] = []): unknown[] {
-  type J = { id?: string; workEntries?: unknown[]; photos?: unknown[]; startDate?: string };
+  type J = {
+    id?: string;
+    workEntries?: unknown[];
+    photos?: unknown[];
+    startDate?: string;
+    documents?: Record<string, boolean>;
+    jobFiles?: import("@/lib/job-documents").JobFileAttachment[];
+    activityLog?: { id: string; at: string }[];
+  };
   const map = new Map<string, J>();
   const ingest = (list: unknown[]) => {
     for (const item of list) {
@@ -149,8 +181,14 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
         map.set(j.id, j);
         continue;
       }
-      const pick = jobMergeScore(j) >= jobMergeScore(prev) ? { ...prev, ...j } : prev;
-      map.set(j.id, pick);
+      const winnerFirst = jobMergeScore(j) >= jobMergeScore(prev);
+      const pick = winnerFirst ? { ...prev, ...j } : { ...j, ...prev };
+      map.set(j.id, {
+        ...pick,
+        documents: mergeJobDocuments(prev.documents, j.documents),
+        jobFiles: mergeJobFiles(prev.jobFiles, j.jobFiles),
+        activityLog: mergeActivityLogs(prev.activityLog, j.activityLog),
+      });
     }
   };
   ingest(filterDeletedJobs(cloud, deletedJobIds));
