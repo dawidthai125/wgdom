@@ -51,6 +51,7 @@ import {
   addDeletedDirectoryId,
   pushDirectoryToCloud,
   ADMIN_PASSWORDS_KEY,
+  ADMIN_USERS_CONFIG_KEY,
 } from "@/lib/cloud-sync";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
@@ -69,9 +70,15 @@ import {
   clearRememberedAdminPassword,
   setAdminUserPassword,
   resetAdminUserPassword,
-  adminPasswordIsCustomized,
   loadAdminPasswordOverrides,
   mergeAdminPasswordOverrides,
+  loadAdminUsersConfig,
+  mergeAdminUsersConfig,
+  listAdminUsersForManagement,
+  setAdminUserRole,
+  createAdminUser,
+  deleteAdminUser,
+  type AdminAssignableRole,
 } from "@/lib/admin-auth";
 import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
@@ -7363,7 +7370,7 @@ function HelpView() {
           <p className="text-sm text-foreground/90 leading-relaxed">Dane zapisują się automatycznie w chmurze — nie musisz nic robić. Ale warto wiedzieć jak działa system bezpieczeństwa.</p>
           <div className="space-y-3">
             {[
-              {q:"Logowanie administratora — konta i role", a:"Panel administracyjny → wybierz użytkownika z listy (Dawid — Super Administrator, Stanisław — Administrator, Paweł — Moderator) → wpisz hasło. Moderator nie widzi stawek PLN/h (ani nie może ich zmieniać), ale może wpisywać godziny i pracować z robotami. Super Administrator (Dawid) może zmieniać hasła wszystkich użytkowników — ikona ⚙ w prawym górnym rogu."},
+              {q:"Logowanie administratora — konta i role", a:"Panel administracyjny → wybierz użytkownika z listy → wpisz hasło. Super Administrator (Dawid) w ikonie ⚙ może: zmieniać hasła, przełączać rolę Administrator ↔ Moderator oraz dodawać nowych użytkowników (login + hasło + poziom). Moderator nie widzi stawek PLN/h."},
               {q:"Logowanie administratora — zapamiętaj hasło", a:"Przy logowaniu możesz zaznaczyć „Zapamiętaj hasło na tym urządzeniu”. Hasło jest szyfrowane lokalnie w przeglądarce — nie wysyła się do chmury. Przy następnym wejściu na tym samym telefonie/komputerze pole hasła wypełni się samo (dla wybranego użytkownika). Wyloguj się ręcznie jeśli korzystasz ze wspólnego urządzenia."},
               {q:"Czy dane mogą zniknąć?", a:"Dane są w przeglądarce i w chmurze Supabase. Każdy zapis scala lokalne z chmurowymi — pustsza wersja nie nadpisze bogatszej. Chmura trzyma kopie prev/prev2 i dzienny pełny backup wszystkich kluczy. Przed sync tworzona jest też lokalna kopia na urządzeniu."},
               {q:"Co oznaczają ikonki chmurki w prawym górnym rogu?", a:"Szara chmurka = wszystko zsynchronizowane. Animowana chmurka ze strzałką = trwa zapis. Zielona chmurka = właśnie zapisano. Czerwona chmurka z X = błąd połączenia (sprawdź internet)."},
@@ -7474,6 +7481,14 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.9.20", label:"Super Admin — role i nowi użytkownicy",
+    items:[
+      {type:"new", text:"Ustawienia ⚙ — zmiana roli Administrator ↔ Moderator (Stanisław, Paweł, dodani użytkownicy)"},
+      {type:"new", text:"Kreator konta — login, hasło, poziom (Administrator lub Moderator)"},
+      {type:"improve", text:"Nowi użytkownicy i role sync w chmurze (kw-admin-users-config)"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.9.19", label:"Super Admin — zmiana haseł użytkowników",
     items:[
@@ -8146,19 +8161,49 @@ function ChangelogView() {
 // ─── Ustawienia admina (Super Administrator) ───────────────────────────────────
 
 function AdminSettingsModal({ onClose }: { onClose: () => void }) {
-  const users = listAdminUsersForLogin();
-  const [drafts, setDrafts] = useState<Record<string, { pw: string; pw2: string; show: boolean }>>(() =>
-    Object.fromEntries(users.map((u) => [u.id, { pw: "", pw2: "", show: false }])),
-  );
+  const [refreshKey, setRefreshKey] = useState(0);
+  const users = useMemo(() => listAdminUsersForManagement(), [refreshKey]);
+  const [drafts, setDrafts] = useState<Record<string, { pw: string; pw2: string; show: boolean }>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ userId: string; text: string; ok: boolean } | null>(null);
-  const [customFlags, setCustomFlags] = useState(() =>
-    Object.fromEntries(users.map((u) => [u.id, adminPasswordIsCustomized(u.id)])),
-  );
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newLogin, setNewLogin] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [newPw2, setNewPw2] = useState("");
+  const [newRole, setNewRole] = useState<AdminAssignableRole>("moderator");
+  const [newShow, setNewShow] = useState(false);
+  const [addBusy, setAddBusy] = useState(false);
+  const [addMsg, setAddMsg] = useState<{ text: string; ok: boolean } | null>(null);
+
+  useEffect(() => {
+    setDrafts((prev) => {
+      const next = { ...prev };
+      for (const u of users) {
+        if (!next[u.id]) next[u.id] = { pw: "", pw2: "", show: false };
+      }
+      return next;
+    });
+  }, [users]);
+
+  const reload = () => setRefreshKey((k) => k + 1);
 
   const updateDraft = (userId: string, patch: Partial<{ pw: string; pw2: string; show: boolean }>) => {
     setDrafts((prev) => ({ ...prev, [userId]: { ...prev[userId], ...patch } }));
     setMsg(null);
+  };
+
+  const handleRoleChange = async (userId: string, role: AdminAssignableRole) => {
+    setBusyId(userId);
+    setMsg(null);
+    try {
+      await setAdminUserRole(userId, role);
+      reload();
+      setMsg({ userId, text: `Rola zmieniona na ${adminRoleLabel(role)}`, ok: true });
+    } catch (err) {
+      setMsg({ userId, text: err instanceof Error ? err.message : "Nie udało się zmienić roli", ok: false });
+    } finally {
+      setBusyId(null);
+    }
   };
 
   const handleSave = async (userId: string) => {
@@ -8176,8 +8221,8 @@ function AdminSettingsModal({ onClose }: { onClose: () => void }) {
     setMsg(null);
     try {
       await setAdminUserPassword(userId, d.pw);
-      setCustomFlags((prev) => ({ ...prev, [userId]: true }));
       setDrafts((prev) => ({ ...prev, [userId]: { pw: "", pw2: "", show: false } }));
+      reload();
       setMsg({ userId, text: "Hasło zmienione — działa na wszystkich urządzeniach po sync", ok: true });
     } catch (err) {
       setMsg({ userId, text: err instanceof Error ? err.message : "Nie udało się zapisać", ok: false });
@@ -8192,13 +8237,59 @@ function AdminSettingsModal({ onClose }: { onClose: () => void }) {
     setMsg(null);
     try {
       await resetAdminUserPassword(userId);
-      setCustomFlags((prev) => ({ ...prev, [userId]: false }));
       setDrafts((prev) => ({ ...prev, [userId]: { pw: "", pw2: "", show: false } }));
+      reload();
       setMsg({ userId, text: "Przywrócono hasło startowe", ok: true });
     } catch (err) {
       setMsg({ userId, text: err instanceof Error ? err.message : "Nie udało się przywrócić", ok: false });
     } finally {
       setBusyId(null);
+    }
+  };
+
+  const handleDelete = async (userId: string, displayName: string) => {
+    if (!window.confirm(`Usunąć użytkownika ${displayName}?`)) return;
+    setBusyId(userId);
+    setMsg(null);
+    try {
+      await deleteAdminUser(userId);
+      reload();
+      setMsg(null);
+    } catch (err) {
+      setMsg({ userId, text: err instanceof Error ? err.message : "Nie udało się usunąć", ok: false });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleAddUser = async () => {
+    setAddMsg(null);
+    if (newLogin.trim().length < 2) {
+      setAddMsg({ text: "Login musi mieć co najmniej 2 znaki", ok: false });
+      return;
+    }
+    if (newPw.length < 6) {
+      setAddMsg({ text: "Hasło musi mieć co najmniej 6 znaków", ok: false });
+      return;
+    }
+    if (newPw !== newPw2) {
+      setAddMsg({ text: "Hasła nie pasują", ok: false });
+      return;
+    }
+    setAddBusy(true);
+    try {
+      await createAdminUser({ login: newLogin.trim(), password: newPw, role: newRole });
+      setNewLogin("");
+      setNewPw("");
+      setNewPw2("");
+      setNewRole("moderator");
+      setShowAddForm(false);
+      reload();
+      setAddMsg({ text: "Użytkownik dodany", ok: true });
+    } catch (err) {
+      setAddMsg({ text: err instanceof Error ? err.message : "Nie udało się dodać użytkownika", ok: false });
+    } finally {
+      setAddBusy(false);
     }
   };
 
@@ -8216,8 +8307,77 @@ function AdminSettingsModal({ onClose }: { onClose: () => void }) {
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-4 space-y-4">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Tylko Super Administrator. Hasła zapisywane jako hash SHA-256 i synchronizowane w chmurze — obowiązują na telefonie i komputerze.
+            Tylko Super Administrator. Hasła i role synchronizowane w chmurze — obowiązują na telefonie i komputerze.
           </p>
+
+          {/* Kreator — nowy użytkownik */}
+          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-3">
+            <button
+              type="button"
+              onClick={() => { setShowAddForm((v) => !v); setAddMsg(null); }}
+              className="w-full flex items-center justify-between gap-2 text-sm font-semibold text-primary"
+            >
+              <span className="flex items-center gap-2"><UserPlus size={15}/> Dodaj użytkownika</span>
+              <ChevronDown size={14} className={`transition-transform ${showAddForm ? "rotate-180" : ""}`}/>
+            </button>
+            {showAddForm && (
+              <div className="space-y-3 pt-1 border-t border-primary/10">
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Login (wyświetlany przy logowaniu)</label>
+                  <input
+                    value={newLogin}
+                    onChange={(e) => setNewLogin(e.target.value)}
+                    placeholder="np. Jan"
+                    className="w-full bg-background rounded-lg px-3 py-2.5 text-sm border border-border focus:border-primary focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Poziom dostępu</label>
+                  <select
+                    value={newRole}
+                    onChange={(e) => setNewRole(e.target.value as AdminAssignableRole)}
+                    className="w-full bg-background rounded-lg px-3 py-2.5 text-sm border border-border focus:border-primary focus:outline-none"
+                  >
+                    <option value="admin">Administrator</option>
+                    <option value="moderator">Moderator</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Hasło</label>
+                  <div className="relative">
+                    <input
+                      type={newShow ? "text" : "password"}
+                      value={newPw}
+                      onChange={(e) => setNewPw(e.target.value)}
+                      placeholder="Min. 6 znaków"
+                      className="w-full bg-background rounded-lg px-3 py-2.5 pr-10 text-sm border border-border focus:border-primary focus:outline-none"
+                    />
+                    <button type="button" onClick={() => setNewShow((v) => !v)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                      <Eye size={14}/>
+                    </button>
+                  </div>
+                  <input
+                    type={newShow ? "text" : "password"}
+                    value={newPw2}
+                    onChange={(e) => setNewPw2(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddUser()}
+                    placeholder="Powtórz hasło"
+                    className="w-full bg-background rounded-lg px-3 py-2.5 text-sm border border-border focus:border-primary focus:outline-none"
+                  />
+                </div>
+                {addMsg && <p className={`text-xs ${addMsg.ok ? "text-green-500" : "text-destructive"}`}>{addMsg.text}</p>}
+                <button
+                  type="button"
+                  disabled={addBusy || !newLogin.trim() || !newPw || !newPw2}
+                  onClick={handleAddUser}
+                  className="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-40 transition-colors"
+                >
+                  {addBusy ? "…" : <><Plus size={12}/> Utwórz konto</>}
+                </button>
+              </div>
+            )}
+          </div>
+
           {users.map((u) => {
             const d = drafts[u.id] ?? { pw: "", pw2: "", show: false };
             const isBusy = busyId === u.id;
@@ -8225,14 +8385,39 @@ function AdminSettingsModal({ onClose }: { onClose: () => void }) {
             return (
               <div key={u.id} className="bg-secondary/40 rounded-xl border border-border p-4 space-y-3">
                 <div className="flex items-start justify-between gap-2">
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-semibold">{u.displayName}</p>
-                    <p className="text-xs text-muted-foreground">{adminRoleLabel(u.role)} · login: {u.login}</p>
+                    <p className="text-xs text-muted-foreground truncate">login: {u.login}{u.isCustom && " · dodany"}</p>
                   </div>
-                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${customFlags[u.id] ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
-                    {customFlags[u.id] ? "Hasło zmienione" : "Hasło startowe"}
-                  </span>
+                  {u.role === "super_admin" ? (
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 bg-primary/15 text-primary">
+                      Super Admin
+                    </span>
+                  ) : (
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${u.passwordCustomized ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
+                      {u.passwordCustomized ? "Hasło zmienione" : "Hasło startowe"}
+                    </span>
+                  )}
                 </div>
+
+                {u.canChangeRole && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-muted-foreground">Poziom dostępu</label>
+                    <select
+                      value={u.role === "super_admin" ? "admin" : u.role}
+                      disabled={isBusy}
+                      onChange={(e) => handleRoleChange(u.id, e.target.value as AdminAssignableRole)}
+                      className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none disabled:opacity-50"
+                    >
+                      <option value="admin">Administrator</option>
+                      <option value="moderator">Moderator</option>
+                    </select>
+                    <p className="text-[10px] text-muted-foreground">
+                      Moderator — bez stawek PLN/h. Administrator — pełny dostęp (na razie).
+                    </p>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <label className="text-xs text-muted-foreground">Nowe hasło</label>
                   <div className="relative">
@@ -8269,7 +8454,7 @@ function AdminSettingsModal({ onClose }: { onClose: () => void }) {
                   >
                     {isBusy ? "…" : <><Lock size={12}/> Zmień hasło</>}
                   </button>
-                  {customFlags[u.id] && (
+                  {u.isBuiltin && u.passwordCustomized && (
                     <button
                       type="button"
                       disabled={isBusy}
@@ -8277,6 +8462,16 @@ function AdminSettingsModal({ onClose }: { onClose: () => void }) {
                       className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
                     >
                       <RotateCcw size={12}/> Przywróć startowe
+                    </button>
+                  )}
+                  {u.canDelete && (
+                    <button
+                      type="button"
+                      disabled={isBusy}
+                      onClick={() => handleDelete(u.id, u.displayName)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 text-xs font-medium text-destructive disabled:opacity-40 transition-colors"
+                    >
+                      <Trash2 size={12}/> Usuń
                     </button>
                   )}
                 </div>
@@ -8300,12 +8495,13 @@ function CloudLoader({children}: {children: React.ReactNode}) {
     const keys = [...DATA_KEYS];
     const fallback = setTimeout(() => setReady(true), 5000);
 
-    fetchKeysFromCloud([...keys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, ADMIN_PASSWORDS_KEY])
+    fetchKeysFromCloud([...keys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, ADMIN_PASSWORDS_KEY, ADMIN_USERS_CONFIG_KEY])
       .then((allValues) => {
         const values = allValues.slice(0, keys.length);
         const cloudDeleted = normalizeDeletedJobIds(allValues[keys.length]);
         const cloudDirDeleted = normalizeDeletedDirectoryIds(allValues[keys.length + 1]);
         const cloudAdminPw = allValues[keys.length + 2];
+        const cloudAdminUsers = allValues[keys.length + 3];
         const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), cloudDeleted);
         saveDeletedJobIds(mergedDeleted);
         const mergedDirDeleted = mergeDeletedDirectoryIds(getDeletedDirectoryIds(), cloudDirDeleted);
@@ -8319,12 +8515,20 @@ function CloudLoader({children}: {children: React.ReactNode}) {
           localStorage.setItem(ADMIN_PASSWORDS_KEY, JSON.stringify(localAdminPw));
         }
 
+        const localAdminUsers = loadAdminUsersConfig();
+        const mergedAdminUsers = mergeAdminUsersConfig(localAdminUsers, cloudAdminUsers);
+        localStorage.setItem(ADMIN_USERS_CONFIG_KEY, JSON.stringify(mergedAdminUsers));
+
         const pushKeys: string[] = [];
         const pushValues: unknown[] = [];
 
         if (isSupabaseConfigured() && Object.keys(localAdminPw).length > 0 && JSON.stringify(mergedAdminPw) !== JSON.stringify(cloudAdminPw ?? {})) {
           pushKeys.push(ADMIN_PASSWORDS_KEY);
           pushValues.push(mergedAdminPw);
+        }
+        if (isSupabaseConfigured() && JSON.stringify(mergedAdminUsers) !== JSON.stringify(cloudAdminUsers ?? { roleOverrides: {}, customUsers: [] })) {
+          pushKeys.push(ADMIN_USERS_CONFIG_KEY);
+          pushValues.push(mergedAdminUsers);
         }
 
         keys.forEach((key, i) => {
@@ -8487,7 +8691,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   // Backup
   const exportBackup = () => {
     const data: Record<string,unknown> = {};
-    [...DATA_KEYS, ADMIN_PASSWORDS_KEY].forEach(k=>{
+    [...DATA_KEYS, ADMIN_PASSWORDS_KEY, ADMIN_USERS_CONFIG_KEY].forEach(k=>{
       const v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v);
     });
     saveAs(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),`backup-${new Date().toISOString().slice(0,10)}.json`);
@@ -8518,7 +8722,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           data["kw-contacts"] = mergeContacts(local, data["kw-contacts"]);
         }
         Object.entries(data).forEach(([k,v])=>localStorage.setItem(k,JSON.stringify(v)));
-        const keys = [...DATA_KEYS, ADMIN_PASSWORDS_KEY].filter(k => data[k] != null);
+        const keys = [...DATA_KEYS, ADMIN_PASSWORDS_KEY, ADMIN_USERS_CONFIG_KEY].filter(k => data[k] != null);
         if (keys.length > 0) {
           await pushKeysToCloud(keys, keys.map((k) => data[k])).catch(() => {});
         }
