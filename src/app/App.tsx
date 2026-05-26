@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef, Fragment, type RefObject } from "react";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
+import { CompanyMusicPlayer } from "@/app/components/CompanyMusicPlayer";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   Calculator, Clock, Banknote, User, Plus, Trash2,
@@ -6902,6 +6903,12 @@ const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"
     ],
   },
   {
+    date:"2026-05-26", version:"2.9.13", label:"Odtwarzacz hymnow",
+    items:[
+      {type:"new", text:"Pasek górny — dyskretny odtwarzacz 4 hymnow firmowych (play, lista, głośność); muzyka w public/music"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.9.12", label:"Menu — podpowiedzi",
     items:[
       {type:"improve", text:"Lewe menu — po najechaniu delikatny dymek z opisem każdej zakładki"},
@@ -8063,6 +8070,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
           <ChevronRight size={13} className="text-muted-foreground/40 hidden sm:block"/>
           <h2 className="text-sm font-semibold">{navItems.find(n=>n.key===view)?.label}</h2>
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
+            <CompanyMusicPlayer />
             {view==="payroll"&&<span className="text-xs text-muted-foreground hidden sm:block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN · {weekEmployees.length} prac.</span>}
             {view==="schedule"&&<span className="text-xs text-muted-foreground hidden sm:block">{fmtDate(weekFrom)} – {fmtDate(weekTo)} · {weekEmployees.length} prac.</span>}
             {view==="jobs"&&<span className="text-xs text-muted-foreground hidden sm:block">{jobs.filter(j=>j.status==="in_progress").length} aktywne · {jobs.filter(j=>j.status==="completed").length} zdane</span>}
