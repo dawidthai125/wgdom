@@ -3,7 +3,7 @@ import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   Calculator, Clock, Banknote, User, Plus, Trash2,
-  ChevronRight, Users, FileText, FileDown, CheckCircle2,
+  ChevronRight, ChevronLeft, Users, FileText, FileDown, CheckCircle2,
   Circle, Archive, ChevronDown, ChevronUp,
   Calendar, CalendarDays, TrendingUp, Wallet, X, Phone,
   UserPlus, Edit2, Check, Search, Building2, MapPin, KeyRound,
@@ -5180,7 +5180,7 @@ function HelpView() {
       subtitle:"Co nowego w aplikacji",
       content:(
         <div className="space-y-4">
-          <p className="text-sm text-foreground/90 leading-relaxed">W menu po lewej (lub na dole na telefonie) jest zakładka <strong>Zmiany</strong>. Tam znajdziesz chronologiczną listę wszystkich aktualizacji — od pierwszej wersji po najnowszą.</p>
+          <p className="text-sm text-foreground/90 leading-relaxed">W menu po lewej (lub na dole na telefonie) jest zakładka <strong>Zmiany</strong>. Tam znajdziesz chronologiczną listę aktualizacji — od najnowszej wersji w dół. Domyślnie widać 10 wpisów; na dole możesz przełączać strony albo ustawić 20 lub 50 wpisów na stronie.</p>
           <div className="space-y-3">
             {[
               {q:"Po co jest ta zakładka?", a:"Żebyś wiedział co się zmieniło po aktualizacji — nowe funkcje, poprawki i ulepszenia. Najnowsza wersja jest na górze z zieloną etykietą „Najnowsza”."},
@@ -5343,6 +5343,12 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.7.7", label:"Historia zmian — paginacja",
+    items:[
+      {type:"improve", text:"Zakładka Zmiany — domyślnie 10 wpisów na stronie, przełączanie stron na dole, wybór 10 / 20 / 50 wpisów"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.7.6", label:"Lista płac — bez stanowiska",
     items:[
@@ -5653,6 +5659,9 @@ const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"
   },
 ];
 
+const CHANGELOG_PAGE_SIZES = [10, 20, 50] as const;
+type ChangelogPageSize = (typeof CHANGELOG_PAGE_SIZES)[number];
+
 function ChangelogView() {
   const TYPE_STYLE = {
     new:     {bg:"bg-primary/15",    text:"text-primary",       dot:"bg-primary",     label:"Nowość"},
@@ -5660,8 +5669,33 @@ function ChangelogView() {
     improve: {bg:"bg-blue-500/15",   text:"text-blue-400",      dot:"bg-blue-400",    label:"Ulepszenie"},
   };
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState<ChangelogPageSize>(10);
+
+  const total = CHANGELOG.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages - 1);
+  const rangeFrom = safePage * pageSize + 1;
+  const rangeTo = Math.min((safePage + 1) * pageSize, total);
+
+  const visibleReleases = useMemo(
+    () => CHANGELOG.slice(safePage * pageSize, safePage * pageSize + pageSize),
+    [safePage, pageSize],
+  );
+
+  useEffect(() => {
+    if (page >= totalPages) setPage(Math.max(0, totalPages - 1));
+  }, [page, totalPages]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [safePage, pageSize]);
+
+  const goToPage = (next: number) => setPage(Math.max(0, Math.min(totalPages - 1, next)));
+
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div ref={scrollRef} className="flex-1 overflow-y-auto">
       <div className="max-w-3xl mx-auto px-4 sm:px-8 py-8 space-y-2">
 
         {/* Header */}
@@ -5671,7 +5705,9 @@ function ChangelogView() {
           </div>
           <div>
             <h1 className="text-lg font-bold">Historia zmian</h1>
-            <p className="text-xs text-muted-foreground">Wszystkie aktualizacje od początku tworzenia W&amp;G DOM</p>
+            <p className="text-xs text-muted-foreground">
+              {total} wersji · wyświetlane {rangeFrom}–{rangeTo}
+            </p>
           </div>
           <div className="ml-auto flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-full px-3 py-1.5">
             <Sparkles size={12} className="text-primary"/>
@@ -5685,24 +5721,27 @@ function ChangelogView() {
           <div className="absolute left-[19px] top-3 bottom-3 w-px bg-border hidden sm:block"/>
 
           <div className="space-y-8">
-            {CHANGELOG.map((release, ri)=>(
-              <div key={ri} className="relative sm:pl-12">
+            {visibleReleases.map((release, ri)=>{
+              const globalIndex = safePage * pageSize + ri;
+              const isLatest = globalIndex === 0;
+              return (
+              <div key={`${release.version}-${release.date}`} className="relative sm:pl-12">
                 {/* Circle on timeline */}
-                <div className={`hidden sm:flex absolute left-0 top-3 w-10 h-10 rounded-full items-center justify-center border-2 z-10 shrink-0 ${ri===0?"border-primary bg-primary/15":"border-border bg-card"}`}>
-                  <span className="text-[10px] font-bold" style={{color: ri===0?"var(--primary)":"var(--muted-foreground)"}}>{release.version}</span>
+                <div className={`hidden sm:flex absolute left-0 top-3 w-10 h-10 rounded-full items-center justify-center border-2 z-10 shrink-0 ${isLatest?"border-primary bg-primary/15":"border-border bg-card"}`}>
+                  <span className="text-[10px] font-bold" style={{color: isLatest?"var(--primary)":"var(--muted-foreground)"}}>{release.version}</span>
                 </div>
 
                 <div className="bg-card border border-border rounded-2xl overflow-hidden">
                   {/* Release header */}
-                  <div className={`px-5 py-4 flex items-center justify-between gap-3 ${ri===0?"bg-primary/5 border-b border-primary/20":"border-b border-border"}`}>
+                  <div className={`px-5 py-4 flex items-center justify-between gap-3 ${isLatest?"bg-primary/5 border-b border-primary/20":"border-b border-border"}`}>
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="sm:hidden flex items-center justify-center w-8 h-8 rounded-full bg-secondary shrink-0">
                         <span className="text-[10px] font-bold text-muted-foreground">{release.version}</span>
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className={`text-sm font-bold ${ri===0?"text-primary":"text-foreground"}`}>{release.label}</span>
-                          {ri===0&&<span className="text-[10px] font-semibold bg-primary text-primary-foreground px-2 py-0.5 rounded-full">Najnowsza</span>}
+                          <span className={`text-sm font-bold ${isLatest?"text-primary":"text-foreground"}`}>{release.label}</span>
+                          {isLatest&&<span className="text-[10px] font-semibold bg-primary text-primary-foreground px-2 py-0.5 rounded-full">Najnowsza</span>}
                         </div>
                         <span className="text-xs text-muted-foreground">{fmtDate(release.date)}</span>
                       </div>
@@ -5734,8 +5773,67 @@ function ChangelogView() {
                   </div>
                 </div>
               </div>
-            ))}
+            );})}
           </div>
+        </div>
+
+        {/* Pagination */}
+        <div className="mt-8 pt-6 border-t border-border space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            {totalPages > 1 ? (
+              <p className="text-xs text-muted-foreground">
+                Strona <span className="font-semibold text-foreground">{safePage + 1}</span> z {totalPages}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">Wszystkie wpisy na jednej stronie</p>
+            )}
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="shrink-0">Wpisy na stronie</span>
+              <select
+                value={pageSize}
+                onChange={(e) => { setPageSize(Number(e.target.value) as ChangelogPageSize); setPage(0); }}
+                className="bg-secondary border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none"
+              >
+                {CHANGELOG_PAGE_SIZES.map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => goToPage(safePage - 1)}
+                disabled={safePage === 0}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border border-border bg-card hover:bg-secondary disabled:opacity-40 disabled:pointer-events-none transition-colors"
+              >
+                <ChevronLeft size={14}/>
+                Poprzednia
+              </button>
+              <div className="hidden sm:flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i).map((i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => goToPage(i)}
+                    className={`min-w-[2rem] h-8 rounded-lg text-xs font-medium transition-colors ${i === safePage ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => goToPage(safePage + 1)}
+                disabled={safePage >= totalPages - 1}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border border-border bg-card hover:bg-secondary disabled:opacity-40 disabled:pointer-events-none transition-colors"
+              >
+                Następna
+                <ChevronRight size={14}/>
+              </button>
+            </div>
+          )}
         </div>
 
         <p className="text-xs text-muted-foreground text-center pt-4 pb-2">W&G DOM — zarządzanie pracą na budowie · Zbudowane z Claude AI</p>
