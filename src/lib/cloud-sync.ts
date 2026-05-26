@@ -5,6 +5,7 @@ import {
   isSupabaseConfigured,
 } from "@/config/supabase";
 import { mergeJobDocuments, mergeJobFiles } from "@/lib/job-documents";
+import { mergeJobNotes, mergeInspectorPhotos, mergeHandoverStage, mergePlannedHandoverDate } from "@/lib/job-wm";
 
 /** Klucze danych biznesowych — każdy nowy typ zapisu MUSI być tutaj. */
 export const DATA_KEYS = [
@@ -47,12 +48,16 @@ function jobMergeScore(j: {
   photos?: unknown[];
   jobFiles?: unknown[];
   activityLog?: unknown[];
+  jobNotes?: unknown[];
+  inspectorPhotos?: unknown[];
 }): number {
   return (
     (j.workEntries?.length ?? 0)
     + (j.photos?.length ?? 0)
     + (j.jobFiles?.length ?? 0) * 4
     + (j.activityLog?.length ?? 0)
+    + (j.jobNotes?.length ?? 0) * 2
+    + (j.inspectorPhotos?.length ?? 0) * 2
   );
 }
 
@@ -171,6 +176,10 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
     documents?: Record<string, boolean>;
     jobFiles?: import("@/lib/job-documents").JobFileAttachment[];
     activityLog?: { id: string; at: string }[];
+    jobNotes?: import("@/lib/job-wm").JobNote[];
+    inspectorPhotos?: import("@/lib/job-wm").InspectorPhotoEntry[];
+    handoverStage?: string;
+    plannedHandoverDate?: string;
   };
   const map = new Map<string, J>();
   const ingest = (list: unknown[]) => {
@@ -189,6 +198,13 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
         documents: mergeJobDocuments(prev.documents, j.documents),
         jobFiles: mergeJobFiles(prev.jobFiles, j.jobFiles),
         activityLog: mergeActivityLogs(prev.activityLog, j.activityLog),
+        jobNotes: mergeJobNotes(prev.jobNotes, j.jobNotes),
+        inspectorPhotos: mergeInspectorPhotos(prev.inspectorPhotos, j.inspectorPhotos),
+        plannedHandoverDate: mergePlannedHandoverDate(prev.plannedHandoverDate, j.plannedHandoverDate),
+        handoverStage: mergeHandoverStage(
+          prev.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,
+          j.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,
+        ) || pick.handoverStage,
       });
     }
   };

@@ -150,6 +150,22 @@ export function getUnseenInspectorFeed(jobs: JobWithActivity[], seenAt?: string)
   return feed.filter((item) => item.at > watermark).slice(0, 15);
 }
 
+export const JOB_NOTES_SEEN_KEY = "kw-job-notes-seen-at";
+
+export function getJobNotesSeenAt(): string {
+  try {
+    return localStorage.getItem(JOB_NOTES_SEEN_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+export function markJobNotesSeen(at?: string): void {
+  try {
+    localStorage.setItem(JOB_NOTES_SEEN_KEY, at || new Date().toISOString());
+  } catch { /* ignore */ }
+}
+
 export function fmtInspectorStatsTime(iso: string | null): string {
   if (!iso) return "—";
   const d = new Date(iso);

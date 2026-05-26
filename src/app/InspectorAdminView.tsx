@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import {
   ClipboardCheck, Search, MapPin, FileText, CheckCircle2, Upload,
-  ExternalLink, ChevronRight, Filter, LogIn, Eye,
+  ExternalLink, ChevronRight, Filter, LogIn, Eye, LayoutGrid,
 } from "lucide-react";
 import {
   collectInspectorFeed,
@@ -14,7 +14,11 @@ import {
   summarizeInspectorStats,
   fmtInspectorStatsTime,
   type InspectorStatsStore,
+  getJobNotesSeenAt,
 } from "@/lib/inspector-stats";
+import { jobsWithInspectorNotesNeedingAdmin } from "@/lib/job-wm";
+import { WmPortfolioView } from "@/app/WmPortfolioView";
+import type { JobWmJob } from "@/lib/job-wm";
 
 type FilterKind = "all" | InspectorActivityType;
 
@@ -118,9 +122,15 @@ export function InspectorAdminView({
   jobs: JobWithActivity[];
   onOpenJob: (jobId: string) => void;
 }) {
+  const [tab, setTab] = useState<"activity" | "portfolio">("activity");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterKind>("all");
   const [statsStore, setStatsStore] = useState<InspectorStatsStore | null>(null);
+
+  const notesNeedingAdmin = useMemo(
+    () => jobsWithInspectorNotesNeedingAdmin(jobs as JobWmJob[], getJobNotesSeenAt()).length,
+    [jobs],
+  );
 
   useEffect(() => {
     syncInspectorStatsFromCloud().then(setStatsStore).catch(() => setStatsStore(null));
@@ -158,6 +168,27 @@ export function InspectorAdminView({
 
   return (
     <div className="flex flex-col h-full min-h-0">
+      <div className="px-4 sm:px-6 py-3 border-b border-border bg-card/50 shrink-0 flex gap-2">
+        <button
+          type="button"
+          onClick={() => setTab("activity")}
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium ${tab === "activity" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+        >
+          <ClipboardCheck size={13}/> Aktywność
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("portfolio")}
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium ${tab === "portfolio" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+        >
+          <LayoutGrid size={13}/> Portfolio WM
+        </button>
+      </div>
+
+      {tab === "portfolio" ? (
+        <WmPortfolioView jobs={jobs as JobWmJob[]} onOpenJob={onOpenJob} notesNeedingAdmin={notesNeedingAdmin}/>
+      ) : (
+    <div className="flex flex-col flex-1 min-h-0">
       <div className="px-4 sm:px-6 py-4 border-b border-border bg-card/50 shrink-0 space-y-4">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
@@ -274,6 +305,8 @@ export function InspectorAdminView({
           ))
         )}
       </div>
+    </div>
+      )}
     </div>
   );
 }

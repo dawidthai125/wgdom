@@ -5,7 +5,7 @@ import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   MapPin, LogOut, Search, ArrowLeft, FileText, ClipboardList, Ruler,
   CheckCircle2, Circle, ImagePlus, Download, Upload, Phone, Users,
-  ChevronDown, ChevronUp, Eye, Camera, X, FileCheck, AlertCircle, BookOpen,
+  ChevronDown, ChevronUp, Eye, Camera, X, FileCheck, AlertCircle, BookOpen, LayoutGrid,
 } from "lucide-react";
 import {
   fetchKeysFromCloud,
@@ -38,6 +38,9 @@ import {
 } from "@/lib/job-activity";
 import { recordInspectorEvent } from "@/lib/inspector-stats";
 import { InspectorHelpBanner, InspectorHelpModal, InspectorHint } from "@/app/InspectorHelp";
+import { normalizeJobWmFields, type JobWmJob } from "@/lib/job-wm";
+import { WmPortfolioView } from "@/app/WmPortfolioView";
+import { JobWmPanel, JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 
 type JobStatus = "in_progress" | "completed";
 
@@ -94,16 +97,8 @@ interface WorkEntry {
   hours: number;
 }
 
-interface InspectorJob {
-  id: string;
-  address: string;
-  flatNumber: string;
-  client: string;
-  startDate: string;
+interface InspectorJob extends JobWmJob {
   endDate: string;
-  status: JobStatus;
-  notes: string;
-  documents: Record<DocType, boolean>;
   workEntries: WorkEntry[];
   photos: PhotoEntry[];
   workerReports?: WorkerJobReport[];
@@ -124,14 +119,14 @@ function fmtDate(iso: string): string {
 }
 
 function normalizeJob(raw: InspectorJob): InspectorJob {
-  return syncJobDocumentsFromFiles({
+  return normalizeJobWmFields(syncJobDocumentsFromFiles({
     ...raw,
     photos: raw.photos || [],
     workerReports: raw.workerReports || [],
     workEntries: raw.workEntries || [],
     jobFiles: raw.jobFiles || [],
     activityLog: raw.activityLog || [],
-  });
+  }));
 }
 
 function uniqueWorkersOnJob(job: InspectorJob, directory: DirectoryEmployee[]): { name: string; phone: string; position: string }[] {
@@ -171,6 +166,7 @@ export function InspectorPanel({
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "completed">("active");
+  const [listScreen, setListScreen] = useState<"list" | "portfolio">("list");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
@@ -328,7 +324,9 @@ export function InspectorPanel({
       <InspectorHelpBanner onOpenHelp={() => setHelpOpen(true)}/>
       <InspectorHelpModal open={helpOpen} onClose={() => setHelpOpen(false)}/>
 
-      {!selectedJob ? (
+      {!selectedJob && listScreen === "portfolio" ? (
+        <WmPortfolioView jobs={jobs} onOpenJob={(id) => { setSelectedId(id); setListScreen("list"); setMsg(""); }}/>
+      ) : !selectedJob ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <div className="px-4 py-3 space-y-3 border-b border-border bg-card/50 shrink-0">
             <div className="relative">
@@ -341,6 +339,13 @@ export function InspectorPanel({
               />
             </div>
             <div className="flex gap-2 items-center">
+              <button
+                type="button"
+                onClick={() => setListScreen(listScreen === "portfolio" ? "list" : "portfolio")}
+                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium shrink-0 ${listScreen === "portfolio" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+              >
+                <LayoutGrid size={12}/> Portfolio WM
+              </button>
               <span className="text-[10px] text-muted-foreground shrink-0 hidden sm:inline">
                 Filtr<InspectorHint text="Aktywne = remont trwa. Zdane = klucze oddane. Wszystkie = pełna lista."/>
               </span>
@@ -389,7 +394,11 @@ export function InspectorPanel({
                       </span>
                     </div>
                     <p className="text-[11px] text-muted-foreground mt-2">Start: {fmtDate(job.startDate)}</p>
-                    <div className="flex flex-wrap gap-2 mt-3">
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      <JobWmStageBadge job={job}/>
+                      <JobWmPlannedBadge job={job}/>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-2">
                       <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full ${hasZlecenie ? "bg-green-500/15 text-green-400" : "bg-red-500/10 text-red-400"}`}>
                         <FileText size={10}/> Zlecenie {hasZlecenie ? "✓" : "—"}
                       </span>
@@ -432,6 +441,13 @@ export function InspectorPanel({
                 {" · "}{selectedJob.status === "completed" ? "Zdana" : "W trakcie"}
               </p>
             </div>
+
+            <JobWmPanel
+              job={selectedJob}
+              onUpdate={updateJob}
+              actorName={displayName}
+              actorRole="inspector"
+            />
 
             {/* Zlecenie + Kosztorys */}
             <div className="grid sm:grid-cols-2 gap-3">

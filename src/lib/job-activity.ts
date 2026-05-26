@@ -2,7 +2,12 @@
 
 import { DOC_LABELS, type DocType, type JobFileAttachment } from "@/lib/job-documents";
 
-export type InspectorActivityType = "inspector_document" | "inspector_file";
+export type InspectorActivityType =
+  | "inspector_document"
+  | "inspector_file"
+  | "inspector_stage"
+  | "inspector_note"
+  | "inspector_photo";
 
 export type JobActivityType =
   | "photo_upload"
@@ -18,7 +23,10 @@ export type JobActivityType =
   | "email_sent"
   | "material"
   | "work_entry"
-  | InspectorActivityType;
+  | InspectorActivityType
+  | "inspector_stage"
+  | "inspector_note"
+  | "inspector_photo";
 
 export interface JobActivity {
   id: string;
@@ -54,7 +62,11 @@ export interface InspectorFeedItem {
 }
 
 export function isInspectorActivityType(type: JobActivityType): boolean {
-  return type === "inspector_document" || type === "inspector_file";
+  return type === "inspector_document"
+    || type === "inspector_file"
+    || type === "inspector_stage"
+    || type === "inspector_note"
+    || type === "inspector_photo";
 }
 
 export function appendJobActivity<T extends { activityLog?: JobActivity[] }>(
@@ -94,7 +106,7 @@ export function collectInspectorFeed(jobs: JobWithActivity[]): InspectorFeedItem
         jobClient: job.client,
         jobStatus: job.status,
         actor: ev.actor,
-        type: ev.type,
+        type: ev.type as InspectorActivityType,
         text: ev.text,
         fileUrl: file?.publicUrl,
         fileName: file?.filename,

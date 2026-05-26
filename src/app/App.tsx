@@ -13,7 +13,7 @@ import {
   Mic, MicOff, Bell, Copy, ScrollText, Sparkles,
   BookOpen, ChevronDown as ChevDown, HelpCircle, Smartphone, Monitor,
   Camera, ImagePlus, Lock, LogOut, Eye, ArrowLeft, ShieldCheck, ThumbsUp, ThumbsDown, Clock3,
-  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale, Images, Settings, Menu, ClipboardCheck,
+  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale, Images, Settings, Menu, ClipboardCheck, MessageSquare,
 } from "lucide-react";
 import {
   API_BASE,
@@ -99,7 +99,11 @@ import {
   recordInspectorEvent,
   markInspectorFeedSeen,
   getUnseenInspectorFeed,
+  getJobNotesSeenAt,
+  markJobNotesSeen,
 } from "@/lib/inspector-stats";
+import { normalizeJobWmFields, jobsWithInspectorNotesNeedingAdmin, isWmClient } from "@/lib/job-wm";
+import { JobWmPanel, JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
@@ -359,6 +363,10 @@ interface Job {
   activityLog?: JobActivity[];
   clientShare?: ClientShareLink;
   jobFiles?: import("@/lib/job-documents").JobFileAttachment[];
+  handoverStage?: import("@/lib/job-wm").JobHandoverStage;
+  plannedHandoverDate?: string;
+  jobNotes?: import("@/lib/job-wm").JobNote[];
+  inspectorPhotos?: import("@/lib/job-wm").InspectorPhotoEntry[];
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -1297,14 +1305,14 @@ function defaultJob(): Job {
 }
 
 function normalizeJob(job: Job): Job {
-  return syncJobDocumentsFromFiles({
+  return normalizeJobWmFields(syncJobDocumentsFromFiles({
     ...job,
     photos: job.photos || [],
     workerReports: job.workerReports || [],
     activityLog: job.activityLog || [],
     materials: job.materials || [],
     jobFiles: job.jobFiles || [],
-  });
+  }));
 }
 
 function clientShareToken(): string {
@@ -1336,6 +1344,9 @@ const ACTIVITY_LABELS: Record<JobActivityType, string> = {
   work_entry: "Czas pracy",
   inspector_document: "Inspektor · dokument",
   inspector_file: "Inspektor · plik",
+  inspector_stage: "Inspektor · etap",
+  inspector_note: "Inspektor · notatka",
+  inspector_photo: "Inspektor · zdjęcie",
 };
 
 function jobMissingRequiredDocs(job: Job): DocType[] {
@@ -4990,7 +5001,7 @@ function JobsView({
   weekFrom: string;
   onGoToInspector?: () => void;
 }) {
-  const { canViewRates } = useAdminAccess();
+  const { canViewRates, session: adminSession } = useAdminAccess();
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "in_progress" | "completed">("all");
@@ -5471,6 +5482,10 @@ function JobsView({
                         {cost>0&&<span className="text-xs font-semibold text-primary shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cost)} PLN</span>}
                       </div>
                       <div className="flex flex-wrap gap-1.5 mt-2">
+                        <JobWmStageBadge job={job}/>
+                        <JobWmPlannedBadge job={job}/>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
                         <span className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${job.documents.zlecenie ? "bg-green-500/15 text-green-400" : "bg-secondary text-muted-foreground"}`}>
                           <FileText size={9}/> Zlec. {job.documents.zlecenie ? "✓" : "—"}
                         </span>
@@ -5763,6 +5778,15 @@ function JobsView({
                   )}
                 </div>
               </div>
+            )}
+
+            {selectedJob && isWmClient(selectedJob.client) && (
+              <JobWmPanel
+                job={selectedJob}
+                onUpdate={(updated) => updateJob(updated, undefined)}
+                actorName={adminSession?.displayName || "Administrator"}
+                actorRole="admin"
+              />
             )}
 
             {/* Zlecenie · Kosztorys — sync z panelem inspektora */}
@@ -6529,8 +6553,14 @@ function DashboardView({
     [jobs, inspectorSeenTick],
   );
 
+  const inspectorNotesPending = useMemo(
+    () => jobsWithInspectorNotesNeedingAdmin(jobs, getJobNotesSeenAt()),
+    [jobs, inspectorSeenTick],
+  );
+
   const markInspectorAlertsSeen = () => {
     markInspectorFeedSeen();
+    markJobNotesSeen();
     setInspectorSeenTick((t) => t + 1);
   };
 
@@ -6558,7 +6588,8 @@ function DashboardView({
     pendingPhotos.length +
     pendingReceipts.length +
     pendingReports.length +
-    unseenInspectorFeed.length;
+    unseenInspectorFeed.length +
+    inspectorNotesPending.length;
 
   const handleFixConsistency = (alert: PayrollJobConsistencyAlert) => {
     onFixJobs((prev) => fixJobsForConsistencyAlert(prev, alert, weekEmployees, weekFrom, weekTo, directory));
@@ -6954,6 +6985,47 @@ function DashboardView({
                     {unseenInspectorFeed.length > 6 && (
                       <p className="text-[10px] text-muted-foreground">+ {unseenInspectorFeed.length - 6} więcej w zakładce Inspektor</p>
                     )}
+                  </div>
+                </div>
+              )}
+              {inspectorNotesPending.length > 0 && (
+                <div className="px-5 py-3.5">
+                  <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                    <p className="text-sm font-medium flex items-center gap-2">
+                      <MessageSquare size={14} className="text-violet-400"/>
+                      Notatki od inspektora
+                      <span className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full font-bold">
+                        {inspectorNotesPending.length}
+                      </span>
+                    </p>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button type="button" onClick={markInspectorAlertsSeen} className="text-[10px] text-muted-foreground hover:text-foreground">
+                        Oznacz przeczytane
+                      </button>
+                      <button type="button" onClick={() => onNavigate("inspector")} className="text-xs text-primary hover:underline">
+                        Inspektor →
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    {inspectorNotesPending.slice(0, 5).map((job) => {
+                      const last = (job.jobNotes || [])[0];
+                      if (!last) return null;
+                      return (
+                        <button
+                          key={job.id}
+                          type="button"
+                          onClick={() => onNavigate("jobs", job.id)}
+                          className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <span className="text-foreground">{job.address || "Bez adresu"}</span>
+                          {" · "}
+                          <span className="text-emerald-600 dark:text-emerald-400">{last.author}</span>
+                          {": "}
+                          {last.text.length > 60 ? `${last.text.slice(0, 60)}…` : last.text}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -7651,6 +7723,15 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.11.0", label:"WM — etapy odbioru, notatki, portfolio",
+    items:[
+      {type:"new", text:"Etap odbioru WM — wspólny status (zlecenie → realizacja → dokumenty → gotowa → odebrana) dla inspektora i admina"},
+      {type:"new", text:"Notatki Inspektor ↔ Admin przy robocie + alert na Pulpicie"},
+      {type:"new", text:"Planowana data odbioru WM + Portfolio WM (zbiorczy widok braków i terminów)"},
+      {type:"new", text:"Zdjęcia inspektora — osobna galeria (usterki, odbiór), upload z telefonu"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.10.3", label:"Inspektor — statystyki, alerty, instrukcja",
     items:[
@@ -8845,7 +8926,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   );
 
   useEffect(() => {
-    if (view === "inspector") markInspectorFeedSeen();
+    if (view === "inspector") {
+      markInspectorFeedSeen();
+      markJobNotesSeen();
+    }
   }, [view]);
 
   useEffect(() => {
