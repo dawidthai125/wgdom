@@ -1793,6 +1793,140 @@ function PayrollEmailModal({
   );
 }
 
+function PayrollPdfPreviewModal({
+  weekFrom,
+  weekTo,
+  generateBlob,
+  onClose,
+}: {
+  weekFrom: string;
+  weekTo: string;
+  generateBlob: () => Promise<Blob>;
+  onClose: () => void;
+}) {
+  const blobRef = useRef<Blob | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let objectUrl: string | null = null;
+    let cancelled = false;
+    setLoading(true);
+    setReady(false);
+    setError("");
+    setPdfUrl(null);
+    blobRef.current = null;
+
+    generateBlob()
+      .then((blob) => {
+        if (cancelled) return;
+        blobRef.current = blob;
+        objectUrl = URL.createObjectURL(blob);
+        setPdfUrl(objectUrl);
+        setReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) setError("Nie udało się wygenerować podglądu PDF.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [generateBlob]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const handleDownload = () => {
+    const blob = blobRef.current;
+    if (blob) saveAs(blob, `lista-plac-${weekFrom}.pdf`);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-5"
+      style={{ background: "rgba(0,0,0,0.78)" }}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="payroll-pdf-preview-title"
+    >
+      <div
+        className="bg-card rounded-t-2xl sm:rounded-2xl border border-border shadow-2xl w-full max-w-6xl h-[94dvh] sm:h-[90dvh] flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-4 sm:px-5 py-3.5 border-b border-border flex items-center gap-3 shrink-0 bg-gradient-to-r from-primary/10 via-card to-card">
+          <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+            <Eye size={16} className="text-primary"/>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p id="payroll-pdf-preview-title" className="text-sm font-semibold truncate">Lista płac — podgląd PDF</p>
+            <p className="text-xs text-muted-foreground">{fmtDate(weekFrom)} – {fmtDate(weekTo)}</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={loading || !ready}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-destructive/90 hover:bg-destructive text-white text-xs font-medium transition-colors disabled:opacity-40"
+          >
+            <FileDown size={13}/>Pobierz
+          </button>
+          <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" aria-label="Zamknij">
+            <X size={18}/>
+          </button>
+        </div>
+
+        <div className="flex-1 min-h-0 relative bg-[#525659]">
+          {loading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-card/95 z-10">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+              <p className="text-sm text-muted-foreground">Generuję dokument PDF…</p>
+              <p className="text-xs text-muted-foreground/70">Pierwsze otwarcie może potrwać kilka sekund</p>
+            </div>
+          )}
+          {error && !loading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
+              <AlertTriangle size={28} className="text-destructive"/>
+              <p className="text-sm text-destructive">{error}</p>
+              <button type="button" onClick={onClose} className="text-xs px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">Zamknij</button>
+            </div>
+          )}
+          {pdfUrl && !loading && (
+            <iframe
+              src={pdfUrl}
+              title={`Lista płac ${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`}
+              className="w-full h-full border-0 bg-white"
+            />
+          )}
+        </div>
+
+        <div className="px-4 py-2.5 border-t border-border flex items-center justify-between gap-3 shrink-0 bg-secondary/20">
+          <p className="text-[11px] text-muted-foreground hidden sm:block">Esc lub klik poza oknem — zamknij · przewijaj strony w podglądzie</p>
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={loading || !ready}
+            className="sm:hidden flex items-center gap-1.5 px-3 py-2 rounded-lg bg-destructive/90 text-white text-xs font-medium disabled:opacity-40"
+          >
+            <FileDown size={13}/>Pobierz PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Lista Płac (current week) ────────────────────────────────────────────────
 
 function PayrollView({
@@ -1823,6 +1957,7 @@ function PayrollView({
   const [deleteConfirm, setDeleteConfirm] = useState<string|null>(null);
   const [satDismissed, setSatDismissed] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
 
   const isSaturday = new Date().getDay() === 6;
 
@@ -1892,9 +2027,13 @@ function PayrollView({
     return { calcRows, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso };
   };
 
-  const exportPDF = async () => {
+  const buildPayrollPdfBlob = useCallback(async () => {
     const { calcRows, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso } = payrollExportArgs();
-    const blob = await generatePayrollPdfBlob(weekFrom, weekTo, calcRows, exportTotals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso);
+    return generatePayrollPdfBlob(weekFrom, weekTo, calcRows, exportTotals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso);
+  }, [weekFrom, weekTo, rows, exportTotals]);
+
+  const exportPDF = async () => {
+    const blob = await buildPayrollPdfBlob();
     saveAs(blob, `lista-plac-${weekFrom}.pdf`);
   };
 
@@ -1963,7 +2102,16 @@ function PayrollView({
                 <button onClick={onSaveWeek} className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${alreadySaved?"bg-green-500/15 text-green-400 border border-green-500/20":"bg-secondary hover:bg-secondary/70 border border-border"}`}>
                   <Archive size={14}/>{alreadySaved?"Zapisany ✓":"Zapisz tydzień"}
                 </button>
-                <button onClick={exportPDF} className="flex items-center gap-2 px-4 py-2.5 bg-destructive/80 hover:bg-destructive text-white rounded-lg text-sm font-medium transition-colors"><FileDown size={14}/>PDF</button>
+                <button
+                  type="button"
+                  onClick={() => setShowPdfPreview(true)}
+                  disabled={weekEmployees.length === 0}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                  title={weekEmployees.length === 0 ? "Dodaj pracowników do listy" : "Podgląd PDF w oknie aplikacji"}
+                >
+                  <Eye size={14}/>Podgląd PDF
+                </button>
+                <button onClick={exportPDF} disabled={weekEmployees.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-destructive/80 hover:bg-destructive text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"><FileDown size={14}/>PDF</button>
                 <button onClick={exportWord} className="flex items-center gap-2 px-4 py-2.5 bg-primary/90 hover:bg-primary text-primary-foreground rounded-lg text-sm font-medium transition-colors"><FileDown size={14}/>Word</button>
                 {weekEmployees.length > 0 && (
                   <button onClick={() => setShowEmailModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors">
@@ -2172,6 +2320,15 @@ function PayrollView({
             </div>
           </div>
         </div>
+      )}
+
+      {showPdfPreview && (
+        <PayrollPdfPreviewModal
+          weekFrom={weekFrom}
+          weekTo={weekTo}
+          generateBlob={buildPayrollPdfBlob}
+          onClose={() => setShowPdfPreview(false)}
+        />
       )}
 
       {showEmailModal && (
@@ -5040,7 +5197,7 @@ function HelpView() {
             <FileDown size={16} className="text-primary shrink-0 mt-0.5"/>
             <div>
               <p className="text-sm font-medium text-primary mb-1">Eksport do PDF i Word</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">Przyciski „PDF” i „Word” generują listę płac z kolumnami: godziny, brutto, zaliczki, koszty do zwrotu, do wypłaty. Jeśli ktoś ma dodatkowe godziny — pod tabelą pojawi się osobna sekcja ze szczegółami (dzień, opis, godziny).</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">Przycisk „Podgląd PDF” otwiera dokument w oknie aplikacji (przewijanie stron, pobieranie). „PDF” zapisuje plik na dysk; „Word” generuje dokument .docx. Kolumny: godziny, brutto, zaliczki, koszty do zwrotu, do wypłaty. Dodatkowe godziny — osobna sekcja w eksporcie.</p>
             </div>
           </div>
         </div>
@@ -5343,6 +5500,12 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.7.9", label:"Lista płac — podgląd PDF",
+    items:[
+      {type:"new", text:"Lista płac — „Podgląd PDF” w dużym oknie aplikacji (przewijanie, pobieranie z podglądu)"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.7.8", label:"Lista płac — logo w eksporcie",
     items:[
