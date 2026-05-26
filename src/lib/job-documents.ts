@@ -37,7 +37,7 @@ export interface JobFileAttachment {
 }
 
 /** Rozszerzenia kosztorysu NORMA + PDF. */
-export const KOSZTORYS_ACCEPT = ".pdf,.PDF,.nor,.NOR,.xml,.XML,.doc,.docx,.xls,.xlsx";
+export const KOSZTORYS_ACCEPT = ".pdf,.PDF,.nor,.NOR,.xml,.XML,.ath,.ATH,.doc,.docx,.xls,.xlsx";
 export const ZLECENIE_ACCEPT = ".pdf,.PDF";
 
 export const INSPECTOR_FILE_KINDS = ["zlecenie", "kosztorys"] as const;

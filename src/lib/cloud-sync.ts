@@ -24,6 +24,7 @@ export const ADMIN_HASH_KEY = "kw-admin-hash";
 export const ADMIN_PASSWORDS_KEY = "kw-admin-passwords";
 export const ADMIN_USERS_CONFIG_KEY = "kw-admin-users-config";
 export const INSPECTOR_STATS_KEY = "kw-inspector-stats";
+export const APP_SETTINGS_KEY = "kw-app-settings";
 
 export const API_BASE = supabaseFunctionsBase;
 
@@ -760,7 +761,7 @@ export async function persistKey(
   }
   const shouldSync =
     options?.cloud !== false &&
-    (isDataKey(key) || key === ADMIN_HASH_KEY || key === ADMIN_PASSWORDS_KEY || key === ADMIN_USERS_CONFIG_KEY || key === INSPECTOR_STATS_KEY);
+    (isDataKey(key) || key === ADMIN_HASH_KEY || key === ADMIN_PASSWORDS_KEY || key === ADMIN_USERS_CONFIG_KEY || key === INSPECTOR_STATS_KEY || key === APP_SETTINGS_KEY);
   if (shouldSync) {
     await pushKeyToCloud(key, value);
   }

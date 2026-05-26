@@ -52,6 +52,7 @@ import {
   pushDirectoryToCloud,
   ADMIN_PASSWORDS_KEY,
   ADMIN_USERS_CONFIG_KEY,
+  APP_SETTINGS_KEY,
 } from "@/lib/cloud-sync";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
@@ -122,6 +123,8 @@ import {
   applyHandoverStageToJob,
 } from "@/lib/job-wm";
 import { JobWmPanel, JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
+import { JobInspectorFilesPanel } from "@/app/JobInspectorFilesPanel";
+import { syncAppSettingsFromCloud, saveAppSettings, loadAppSettingsLocal, type AppSettings } from "@/lib/app-settings";
 import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
@@ -5007,6 +5010,7 @@ function JobsView({
   weekEmployees,
   weekFrom,
   onGoToInspector,
+  athPreviewEnabled,
 }: {
   jobs: Job[];
   setJobs: (v: Job[] | ((p: Job[]) => Job[])) => void;
@@ -5018,6 +5022,7 @@ function JobsView({
   weekEmployees: WeekEmployee[];
   weekFrom: string;
   onGoToInspector?: () => void;
+  athPreviewEnabled: boolean;
 }) {
   const { canViewRates, session: adminSession } = useAdminAccess();
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -5975,6 +5980,19 @@ function JobsView({
                 </div>
               )}
             </div>
+
+            {selectedJob && (
+              <JobInspectorFilesPanel
+                jobId={selectedJob.id}
+                jobAddress={selectedJob.address}
+                jobFlat={selectedJob.flatNumber}
+                jobFiles={selectedJob.jobFiles || []}
+                inspectorPhotos={selectedJob.inspectorPhotos || []}
+                athPreviewEnabled={athPreviewEnabled}
+                contacts={contacts}
+                onEmailSent={(to) => updateJob(selectedJob, { type: "email_sent", text: `Wysłano pliki inspektora na ${to}` })}
+              />
+            )}
 
             {/* Documents card */}
             <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -7949,6 +7967,15 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-26", version:"2.14.0", label:"Pliki inspektora — podgląd, pobieranie, email ATH",
+    items:[
+      {type:"new", text:"Roboty — sekcja „Pliki inspektora”: pobierz, podgląd PDF, wyślij na email (pojedynczo lub zaznaczone)"},
+      {type:"new", text:"Podgląd kosztorysów ATH/NOR/XML (best-effort) — włączany w ⚙ Super Admin (domyślnie wył.)"},
+      {type:"new", text:"Email z załącznikami plików inspektora (zlecenie, kosztorys, zdjęcia) — endpoint send-job-files-email"},
+      {type:"improve", text:"Upload kosztorysu — akceptuje pliki .ath (NORMA)"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.13.0", label:"Inspektor — komunikacja, feed, upload admina",
     items:[
       {type:"new", text:"Inspektor — alert gdy admin odpowie w notatkach + mini-historia zmian na karcie roboty"},
@@ -8699,7 +8726,15 @@ function ChangelogView() {
 
 // ─── Ustawienia admina (Super Administrator) ───────────────────────────────────
 
-function AdminSettingsModal({ onClose }: { onClose: () => void }) {
+function AdminSettingsModal({
+  onClose,
+  appSettings,
+  onAppSettingsChange,
+}: {
+  onClose: () => void;
+  appSettings: AppSettings;
+  onAppSettingsChange: (next: AppSettings) => void;
+}) {
   const [refreshKey, setRefreshKey] = useState(0);
   const users = useMemo(() => listAdminUsersForManagement(), [refreshKey]);
   const [drafts, setDrafts] = useState<Record<string, { pw: string; pw2: string; show: boolean }>>({});
@@ -8848,6 +8883,31 @@ function AdminSettingsModal({ onClose }: { onClose: () => void }) {
           <p className="text-xs text-muted-foreground leading-relaxed">
             Tylko Super Administrator. Hasła i role synchronizowane w chmurze — obowiązują na telefonie i komputerze.
           </p>
+
+          <div className="bg-violet-500/5 border border-violet-500/20 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-violet-700 dark:text-violet-300">
+              Funkcje aplikacji
+            </p>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.athPreviewEnabled}
+                onChange={async (e) => {
+                  const next = { ...appSettings, athPreviewEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+              />
+              <div>
+                <p className="text-sm font-medium">Podgląd kosztorysów ATH/NOR w przeglądarce</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Wyłączone domyślnie. Włącz po testach z przykładowym plikiem .ath od inspektora.
+                  PDF zawsze można podglądać; pobieranie i email działają niezależnie od tego przełącznika.
+                </p>
+              </div>
+            </label>
+          </div>
 
           {/* Kreator — nowy użytkownik */}
           <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-3">
@@ -9039,7 +9099,7 @@ function CloudLoader({children}: {children: React.ReactNode}) {
     const keys = [...DATA_KEYS];
     const fallback = setTimeout(() => setReady(true), 5000);
 
-    fetchKeysFromCloud([...keys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, ADMIN_PASSWORDS_KEY, ADMIN_USERS_CONFIG_KEY])
+    fetchKeysFromCloud([...keys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, ADMIN_PASSWORDS_KEY, ADMIN_USERS_CONFIG_KEY, APP_SETTINGS_KEY])
       .then((allValues) => {
         const values = allValues.slice(0, keys.length);
         const cloudDeleted = normalizeDeletedJobIds(allValues[keys.length]);
@@ -9062,6 +9122,17 @@ function CloudLoader({children}: {children: React.ReactNode}) {
         const localAdminUsers = loadAdminUsersConfig();
         const mergedAdminUsers = mergeAdminUsersConfig(localAdminUsers, cloudAdminUsers);
         localStorage.setItem(ADMIN_USERS_CONFIG_KEY, JSON.stringify(mergedAdminUsers));
+
+        const cloudAppSettings = allValues[keys.length + 4];
+        if (cloudAppSettings && typeof cloudAppSettings === "object") {
+          const localSettings = loadAppSettingsLocal();
+          const mergedSettings = {
+            athPreviewEnabled:
+              (cloudAppSettings as AppSettings).athPreviewEnabled === true
+              || localSettings.athPreviewEnabled,
+          };
+          localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(mergedSettings));
+        }
 
         const pushKeys: string[] = [];
         const pushValues: unknown[] = [];
@@ -9157,6 +9228,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [globalSearch, setGlobalSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [showAdminSettings, setShowAdminSettings] = useState(false);
+  const [appSettings, setAppSettings] = useState<AppSettings>(() => loadAppSettingsLocal());
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState<"idle"|"saving"|"saved"|"error"|"offline">("idle");
   const [syncError, setSyncError] = useState("");
@@ -9175,6 +9247,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   useEffect(() => {
     syncAlertsSeenFromCloud().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    syncAppSettingsFromCloud().then(setAppSettings).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -9758,7 +9834,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>setSavedWeeks(prev=>prev.filter(w=>w.id!==id))} jobs={jobs} directory={directory}/>}
-          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={()=>setView("inspector")}/>}
+          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={()=>setView("inspector")} athPreviewEnabled={appSettings.athPreviewEnabled}/>}
           {view==="inspector"&&<InspectorAdminView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }} adminUserId={adminSession?.id} initialTab={inspectorInitialTab} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)}/>}
           {view==="photos"&&<JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="changelog"&&<ChangelogView/>}
@@ -9817,7 +9893,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       </div>
 
       {/* Overwrite archive confirm */}
-      {showAdminSettings && <AdminSettingsModal onClose={()=>setShowAdminSettings(false)}/>}
+      {showAdminSettings && (
+        <AdminSettingsModal
+          onClose={() => setShowAdminSettings(false)}
+          appSettings={appSettings}
+          onAppSettingsChange={setAppSettings}
+        />
+      )}
       {showSaveConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:"rgba(0,0,0,0.7)"}}>
           <div className="bg-card rounded-2xl border border-border w-full max-w-sm shadow-2xl p-6 space-y-4">

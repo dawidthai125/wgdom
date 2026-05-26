@@ -57,7 +57,7 @@ const SECTIONS = [
     id: "kosztorys",
     icon: ClipboardList,
     title: "Kosztorys NORMA",
-    body: "To samo co zlecenie, ale dla kosztorysu z programu NORMA. Akceptowane: PDF, NOR, XML, DOC. Ikona na liście robót pokaże czy już jest.",
+    body: "To samo co zlecenie, ale dla kosztorysu z programu NORMA. Akceptowane: PDF, ATH, NOR, XML, DOC. PDF można podglądać w aplikacji; ATH — po włączeniu przez Super Admina w ⚙.",
   },
   {
     id: "docs",
