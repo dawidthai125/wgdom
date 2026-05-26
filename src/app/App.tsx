@@ -5344,6 +5344,13 @@ function HelpView() {
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-26", version:"2.7.6", label:"Lista płac — bez stanowiska",
+    items:[
+      {type:"improve", text:"Logowanie pracownika — na liście widać tylko imię, bez stanowiska"},
+      {type:"improve", text:"PDF, Word i e-mail listy płac — usunięto kolumnę Stanowisko ze wszystkich tabel"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.7.5", label:"PDF/Word — tabela tygodniowa",
     items:[
       {type:"improve", text:"Strona 2 listy płac — jedna tabela: pracownicy w wierszach, dni Pn–So w kolumnach (od–do, dodatkowe, suma dnia)"},
@@ -6815,7 +6822,6 @@ function LoginScreen({onAdmin, onWorker}: {onAdmin:()=>void; onWorker:(emp:Direc
                           onClick={()=>{setSelectedWorkerId(emp.id);setWorkerError("");}}
                           className={`w-full px-4 py-3 text-left transition-colors ${sel?"bg-primary/10":"hover:bg-secondary/50"} ${!hasPin?"opacity-50 cursor-not-allowed":""}`}>
                           <p className="text-sm font-medium">{emp.name||"Bez nazwy"}</p>
-                          <p className="text-xs text-muted-foreground">{emp.position||"—"}</p>
                           {!hasPin && <p className="text-[10px] text-amber-400 mt-0.5">Brak numeru — poproś admina</p>}
                         </button>
                       );

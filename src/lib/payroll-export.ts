@@ -149,7 +149,6 @@ export function buildPayrollEmailHtml(
       return `<tr>
         ${td(escapeHtml(String(i + 1)), { align: "center", bold: true, bg })}
         ${td(escapeHtml(r.emp.name || "—"), { bg })}
-        ${td(escapeHtml(r.emp.position || "—"), { color: C.muted, bg })}
         ${td(escapeHtml(fmt(r.rateNum)), { align: "right", color: C.muted, bg })}
         ${td(r.weekHours > 0 ? escapeHtml(fmtH(r.weekHours)) : "—", { align: "right", bg })}
         ${td(r.prevSatHours > 0 ? escapeHtml(fmtH(r.prevSatHours)) : "—", { align: "right", color: C.gold, bg })}
@@ -183,7 +182,6 @@ export function buildPayrollEmailHtml(
     return `<tr style="background:${bg}">
       ${td("", { bg })}
       ${td(escapeHtml(label), { bold: true, bg })}
-      ${td("", { bg })}
       ${td("", { bg })}
       ${td(weekH > 0 ? escapeHtml(fmtH(weekH)) : "—", { align: "right", bold, bg })}
       ${td(prevH > 0 ? escapeHtml(fmtH(prevH)) : "—", { align: "right", bold, color: C.gold, bg })}
@@ -264,7 +262,7 @@ export function buildPayrollEmailHtml(
       <div style="overflow-x:auto">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;min-width:720px">
           <thead><tr>
-            ${th("Lp.")}${th("Pracownik")}${th("Stanowisko")}${th("Stawka")}${th("Tydzień")}${th("Sob.pr.")}${th("Razem h")}${th("Brutto")}${th("Zaliczki")}${th("Koszty")}${th("Do wypłaty")}${th("Status")}
+            ${th("Lp.")}${th("Pracownik")}${th("Stawka")}${th("Tydzień")}${th("Sob.pr.")}${th("Razem h")}${th("Brutto")}${th("Zaliczki")}${th("Koszty")}${th("Do wypłaty")}${th("Status")}
           </tr></thead>
           <tbody>${dataRows}${sumRows}</tbody>
         </table>
@@ -296,7 +294,7 @@ export async function generatePayrollPdfBlob(
 ): Promise<Blob> {
   const pdfMake = await loadPdfMake();
 
-  const hdrRow = ["Lp.", "Pracownik", "Stanowisko", "Stawka (PLN/h)", "Tydzień", "Sob.pr.", "Razem h", "Brutto (PLN)", "Zaliczki (PLN)", "Koszty (PLN)", "Do wypłaty (PLN)", "Status"].map((t) => ({
+  const hdrRow = ["Lp.", "Pracownik", "Stawka (PLN/h)", "Tydzień", "Sob.pr.", "Razem h", "Brutto (PLN)", "Zaliczki (PLN)", "Koszty (PLN)", "Do wypłaty (PLN)", "Status"].map((t) => ({
     text: t,
     bold: true,
     color: C.white,
@@ -311,7 +309,6 @@ export async function generatePayrollPdfBlob(
     return [
       { text: String(i + 1), alignment: "center" as const, fillColor: bg, bold: true, fontSize: 8 },
       { text: r.emp.name || "—", fillColor: bg, fontSize: 8 },
-      { text: r.emp.position || "—", fillColor: bg, color: C.muted, fontSize: 8 },
       { text: `${fmt(r.rateNum)}`, alignment: "right" as const, fillColor: bg, color: C.muted, fontSize: 8 },
       { text: r.weekHours > 0 ? fmtH(r.weekHours) : "—", alignment: "right" as const, fillColor: bg, fontSize: 8 },
       { text: r.prevSatHours > 0 ? fmtH(r.prevSatHours) : "—", alignment: "right" as const, fillColor: bg, color: C.gold, fontSize: 8 },
@@ -334,7 +331,6 @@ export async function generatePayrollPdfBlob(
   const mkSum = (label: string, weekH: number, prevH: number, totH: number, gross: number, zal: number, extra: number, net: number, bold = false) => [
     { text: "", fillColor: C.lightNavy },
     { text: label, bold: true, fillColor: C.lightNavy, fontSize: 7 },
-    { text: "", fillColor: C.lightNavy },
     { text: "", fillColor: C.lightNavy },
     { text: weekH > 0 ? fmtH(weekH) : "—", bold, alignment: "right" as const, fillColor: C.lightNavy, fontSize: 8 },
     { text: prevH > 0 ? fmtH(prevH) : "—", bold, alignment: "right" as const, fillColor: C.lightNavy, color: C.gold, fontSize: 8 },
@@ -405,11 +401,10 @@ export async function generatePayrollPdfBlob(
               {
                 table: {
                   headerRows: 1,
-                  widths: [72, 48, ...weeklyGrid.dayHeaders.map(() => "*"), 34],
+                  widths: [80, ...weeklyGrid.dayHeaders.map(() => "*"), 34],
                   body: [
                     [
                       pdfHdr("Pracownik"),
-                      pdfHdr("Stan."),
                       ...weeklyGrid.dayHeaders.map((h) => pdfHdr(h)),
                       pdfHdr("Razem"),
                     ],
@@ -417,7 +412,6 @@ export async function generatePayrollPdfBlob(
                       const bg = i % 2 === 0 ? C.white : C.lightGray;
                       return [
                         { text: row.name, fillColor: bg, fontSize: 7.5, alignment: "left" as const },
-                        { text: row.position, fillColor: bg, color: C.muted, fontSize: 6.5, alignment: "left" as const },
                         ...row.dayCells.map((cell) => pdfDayCell(cell, bg)),
                         { text: row.weekHours > 0 ? fmtH(row.weekHours) : "—", fillColor: bg, fontSize: 7.5, bold: true, alignment: "right" as const },
                       ];
@@ -461,9 +455,9 @@ export async function generatePayrollPdfBlob(
                 table: {
                   headerRows: 1,
                   dontBreakRows: true,
-                  widths: [68, 54, 34, 50, 50, 32, "*"],
+                  widths: [68, 34, 50, 50, 32, "*"],
                   body: [
-                    ["Pracownik", "Stanowisko", "Dzień", "Zmiana podst.", "Dodatkowo", "Godz.", "Powód / opis"].map((t) => ({
+                    ["Pracownik", "Dzień", "Zmiana podst.", "Dodatkowo", "Godz.", "Powód / opis"].map((t) => ({
                       text: t,
                       bold: true,
                       color: C.white,
@@ -475,7 +469,6 @@ export async function generatePayrollPdfBlob(
                       const bg = i % 2 === 0 ? C.white : C.lightGray;
                       return [
                         { text: line.name, fillColor: bg, fontSize: 8 },
-                        { text: line.position, fillColor: bg, color: C.muted, fontSize: 7 },
                         { text: line.day, fillColor: bg, alignment: "center" as const, fontSize: 7 },
                         { text: line.baseShift, fillColor: bg, alignment: "center" as const, fontSize: 7, color: C.muted },
                         { text: line.extraRange, fillColor: bg, alignment: "center" as const, fontSize: 7 },
@@ -485,8 +478,7 @@ export async function generatePayrollPdfBlob(
                     }),
                     [
                       { text: "", fillColor: C.lightNavy },
-                      { text: "Razem dodatkowe", bold: true, colSpan: 4, fillColor: C.lightNavy, fontSize: 7, alignment: "right" as const },
-                      {},
+                      { text: "Razem dodatkowe", bold: true, colSpan: 3, fillColor: C.lightNavy, fontSize: 7, alignment: "right" as const },
                       {},
                       {},
                       { text: fmtH(totalExtraHourSum), bold: true, fillColor: C.lightNavy, alignment: "right" as const, fontSize: 8 },
@@ -533,9 +525,9 @@ export async function generatePayrollPdfBlob(
                 table: {
                   headerRows: 1,
                   dontBreakRows: true,
-                  widths: [72, 58, 44, 50, 34, 40, 40, "*"],
+                  widths: [72, 44, 50, 34, 40, 40, "*"],
                   body: [
-                    ["Pracownik", "Stanowisko", "Data", "Od–Do", "Godz.", "Zaliczka", "Brutto", "Opisy / uwagi"].map((t) => ({
+                    ["Pracownik", "Data", "Od–Do", "Godz.", "Zaliczka", "Brutto", "Opisy / uwagi"].map((t) => ({
                       text: t,
                       bold: true,
                       color: C.white,
@@ -547,7 +539,6 @@ export async function generatePayrollPdfBlob(
                       const bg = i % 2 === 0 ? C.white : C.lightGray;
                       return [
                         { text: line.name, fillColor: bg, fontSize: 8 },
-                        { text: line.position, fillColor: bg, color: C.muted, fontSize: 7 },
                         { text: line.dateLabel, fillColor: bg, alignment: "center" as const, fontSize: 7, color: C.gold },
                         { text: line.timeRange, fillColor: bg, alignment: "center" as const, fontSize: 7 },
                         { text: line.hours > 0 ? fmtH(line.hours) : "—", fillColor: bg, alignment: "right" as const, fontSize: 8, bold: line.hours > 0 },
@@ -618,7 +609,7 @@ export async function generatePayrollPdfBlob(
       {
         table: {
           headerRows: 1,
-          widths: [16, "*", 58, 40, 36, 36, 38, 44, 44, 44, 50, 40],
+          widths: [16, "*", 40, 36, 36, 38, 44, 44, 44, 50, 40],
           body: [hdrRow, ...dataRows, ...sumRows],
         },
         layout: {
@@ -684,13 +675,12 @@ export async function generatePayrollWordBlob(
       margins: { top: 90, bottom: 90, left: 120, right: 120 },
       borders: { top: bThin, bottom: bThin, left: bNone, right: bNone },
     });
-  const colHeaders = ["Lp.", "Pracownik", "Stanowisko", "Stawka", "Tydz.", "Sob.pr.", "Razem h", "Brutto", "Zaliczki", "Koszty", "Do wyplaty", "Status"];
+  const colHeaders = ["Lp.", "Pracownik", "Stawka", "Tydz.", "Sob.pr.", "Razem h", "Brutto", "Zaliczki", "Koszty", "Do wyplaty", "Status"];
   const mkWordSum = (label: string, weekH: number, prevH: number, totH: number, gross: number, zal: number, extra: number, net: number, bold = false) =>
     new TableRow({
       children: [
         mkCell("", { fill: "EDF1F6" }),
         mkCell(label, { bold: true, fill: "EDF1F6", align: AlignmentType.LEFT, size: bold ? 18 : 16 }),
-        mkCell("", { fill: "EDF1F6" }),
         mkCell("", { fill: "EDF1F6" }),
         mkCell(weekH > 0 ? fmtH(weekH) : "-", { bold, fill: "EDF1F6", size: 16 }),
         mkCell(prevH > 0 ? fmtH(prevH) : "-", { bold, fill: "EDF1F6", color: prevH > 0 ? "7B5800" : "6B7A8D", size: 16 }),
@@ -735,7 +725,6 @@ export async function generatePayrollWordBlob(
                   children: [
                     mkCell(String(i + 1), { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
                     mkCell(r.emp.name || "-", { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
-                    mkCell(r.emp.position || "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 16 }),
                     mkCell(`${fmt(r.rateNum)}`, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 16 }),
                     mkCell(r.weekHours > 0 ? fmtH(r.weekHours) : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
                     mkCell(r.prevSatHours > 0 ? fmtH(r.prevSatHours) : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.prevSatHours > 0 ? "7B5800" : "6B7A8D", size: 16 }),
@@ -777,7 +766,7 @@ export async function generatePayrollWordBlob(
                   width: { size: 100, type: WidthType.PERCENTAGE },
                   rows: [
                     new TableRow({
-                      children: ["Pracownik", "Stanowisko", ...weeklyGrid.dayHeaders, "Razem"].map((h) =>
+                      children: ["Pracownik", ...weeklyGrid.dayHeaders, "Razem"].map((h) =>
                         mkCell(h.replace("\n", " "), { bold: true, fill: "344254", color: "FFFFFF", size: 13 }),
                       ),
                       tableHeader: true,
@@ -786,7 +775,6 @@ export async function generatePayrollWordBlob(
                       new TableRow({
                         children: [
                           mkCell(row.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 15 }),
-                          mkCell(row.position, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 13 }),
                           ...row.dayCells.map((cell) =>
                             mkCellMultiline(cell, { align: AlignmentType.CENTER, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 12 }),
                           ),
@@ -831,7 +819,7 @@ export async function generatePayrollWordBlob(
                   width: { size: 100, type: WidthType.PERCENTAGE },
                   rows: [
                     new TableRow({
-                      children: ["Pracownik", "Stanowisko", "Dzień", "Zmiana podst.", "Dodatkowo", "Godz.", "Powód / opis"].map((h) =>
+                      children: ["Pracownik", "Dzień", "Zmiana podst.", "Dodatkowo", "Godz.", "Powód / opis"].map((h) =>
                         mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 14 }),
                       ),
                       tableHeader: true,
@@ -840,7 +828,6 @@ export async function generatePayrollWordBlob(
                       new TableRow({
                         children: [
                           mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
-                          mkCell(line.position, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
                           mkCell(line.day, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 14 }),
                           mkCell(line.baseShift, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
                           mkCell(line.extraRange, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 14 }),
@@ -853,7 +840,6 @@ export async function generatePayrollWordBlob(
                       children: [
                         mkCell("", { fill: "EDF1F6" }),
                         mkCell("Razem dodatkowe", { bold: true, fill: "EDF1F6", align: AlignmentType.RIGHT, size: 14 }),
-                        mkCell("", { fill: "EDF1F6" }),
                         mkCell("", { fill: "EDF1F6" }),
                         mkCell("", { fill: "EDF1F6" }),
                         mkCell(fmtH(totalExtraHourSum), { bold: true, fill: "EDF1F6", size: 16 }),
@@ -886,7 +872,7 @@ export async function generatePayrollWordBlob(
                   width: { size: 100, type: WidthType.PERCENTAGE },
                   rows: [
                     new TableRow({
-                      children: ["Pracownik", "Stanowisko", "Data", "Od–Do", "Godz.", "Zaliczka", "Brutto", "Opisy / uwagi"].map((h) =>
+                      children: ["Pracownik", "Data", "Od–Do", "Godz.", "Zaliczka", "Brutto", "Opisy / uwagi"].map((h) =>
                         mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 14 }),
                       ),
                       tableHeader: true,
@@ -895,7 +881,6 @@ export async function generatePayrollWordBlob(
                       new TableRow({
                         children: [
                           mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
-                          mkCell(line.position, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
                           mkCell(line.dateLabel, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "7B5800", size: 14 }),
                           mkCell(line.timeRange, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 14 }),
                           mkCell(line.hours > 0 ? fmtH(line.hours) : "—", { bold: line.hours > 0, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
