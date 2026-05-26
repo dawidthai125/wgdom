@@ -282,8 +282,9 @@ app.post("/make-server-0afb8820/send-backup-email", async (c) => {
   const resendKey = Deno.env.get("RESEND_API_KEY");
   if (!resendKey) return c.json({ ok: false, error: "RESEND_API_KEY not set" }, 500);
 
-  const { data, date } = await c.req.json();
+  const { data, date, weekFrom, weekTo } = await c.req.json();
   const backupTo = backupEmailTo();
+  const periodLabel = weekFrom && weekTo ? ` (tydzień ${weekFrom} – ${weekTo})` : "";
 
   const json = JSON.stringify(data, null, 2);
   // Base64 encode for attachment
@@ -295,8 +296,8 @@ app.post("/make-server-0afb8820/send-backup-email", async (c) => {
     from: resendFrom(),
     reply_to: resendReplyTo(),
     to: [backupTo],
-    subject: `Auto-backup W&G DOM — ${date}`,
-    html: `<p>Automatyczny backup danych W&amp;G DOM z dnia <strong>${date}</strong>.</p><p>Backup jest dołączony jako plik JSON. Możesz go zaimportować w aplikacji w sekcji <em>Eksportuj / Importuj backup</em>.</p>`,
+    subject: `Backup tygodniowy W&G DOM — ${date}${periodLabel}`,
+    html: `<p>Tygodniowy backup danych W&amp;G DOM z dnia <strong>${date}</strong>${weekFrom && weekTo ? ` — po zamknięciu tygodnia <strong>${weekFrom}</strong> – <strong>${weekTo}</strong>` : ""}.</p><p>Backup jest dołączony jako plik JSON. Możesz go zaimportować w aplikacji w sekcji <em>Eksportuj / Importuj backup</em>.</p>`,
     attachments: [
       {
         filename: `backup-${date}.json`,
