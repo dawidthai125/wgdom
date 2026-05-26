@@ -726,6 +726,42 @@ function personNamesMatch(a: string, b: string): boolean {
   return fa.length > 2 && fa === fb;
 }
 
+/** Dopasowanie wpisu na robocie — bez mylenia np. „Tomek od Mikołaja” z innym „Tomekiem”. */
+function workEntryNamesMatch(a: string, b: string): boolean {
+  const na = a.trim().toLowerCase().replace(/\s+/g, " ");
+  const nb = b.trim().toLowerCase().replace(/\s+/g, " ");
+  if (!na || !nb) return false;
+  if (na === nb) return true;
+  if (na.includes(" od ") || nb.includes(" od ")) return false;
+  const partsA = na.split(" ");
+  const partsB = nb.split(" ");
+  if (partsA.length === 1 && partsB.length === 1 && partsA[0].length > 2) {
+    return partsA[0] === partsB[0];
+  }
+  return false;
+}
+
+function workEntryMatchesEmployee(
+  emp: Pick<WeekEmployee, "directoryId" | "name">,
+  we: Pick<WorkEntry, "directoryId" | "employeeName">,
+  directory: DirectoryEmployee[],
+): boolean {
+  if (emp.directoryId && we.directoryId) {
+    return emp.directoryId === we.directoryId;
+  }
+  if (we.directoryId) {
+    const dir = directory.find((d) => d.id === we.directoryId);
+    if (emp.directoryId) return false;
+    if (dir && workEntryNamesMatch(emp.name, dir.name)) return true;
+  }
+  if (emp.directoryId) {
+    const dir = directory.find((d) => d.id === emp.directoryId);
+    if (we.directoryId) return false;
+    if (dir && workEntryNamesMatch(dir.name, we.employeeName)) return true;
+  }
+  return workEntryNamesMatch(emp.name, we.employeeName);
+}
+
 function fridayIsoOfWeek(weekFrom: string): string {
   const [y, m, d] = weekFrom.split("-").map(Number);
   const dt = new Date(y, m - 1, d);
@@ -796,16 +832,7 @@ function employeeMatchesWorkEntry(
   we: WorkEntry,
   directory: DirectoryEmployee[],
 ): boolean {
-  if (emp.directoryId && we.directoryId && emp.directoryId === we.directoryId) return true;
-  if (we.directoryId) {
-    const dir = directory.find((d) => d.id === we.directoryId);
-    if (dir && personNamesMatch(emp.name, dir.name)) return true;
-  }
-  if (emp.directoryId) {
-    const dir = directory.find((d) => d.id === emp.directoryId);
-    if (dir && personNamesMatch(dir.name, we.employeeName)) return true;
-  }
-  return personNamesMatch(emp.name, we.employeeName);
+  return workEntryMatchesEmployee(emp, we, directory);
 }
 
 function sortJobsActiveFirst(jobs: Job[]): Job[] {
@@ -961,16 +988,7 @@ function archivedWorkEntryMatches(
   we: ArchivedWorkEntry,
   directory: DirectoryEmployee[],
 ): boolean {
-  if (emp.directoryId && we.directoryId && emp.directoryId === we.directoryId) return true;
-  if (we.directoryId) {
-    const dir = directory.find((d) => d.id === we.directoryId);
-    if (dir && personNamesMatch(emp.name, dir.name)) return true;
-  }
-  if (emp.directoryId) {
-    const dir = directory.find((d) => d.id === emp.directoryId);
-    if (dir && personNamesMatch(dir.name, we.employeeName)) return true;
-  }
-  return personNamesMatch(emp.name, we.employeeName);
+  return workEntryMatchesEmployee(emp, we, directory);
 }
 
 function scheduleCellFromArchive(
@@ -5282,6 +5300,12 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.7.3", label:"Pulpit — poprawne adresy pracowników",
+    items:[
+      {type:"fix", text:"„Pracuje dziś” nie myli np. „Tomek od Mikołaja” z innym Tomkiem — dopasowanie po ID kartoteki, nie samym imieniu"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.7.2", label:"Pełna ochrona danych w chmurze",
     items:[
