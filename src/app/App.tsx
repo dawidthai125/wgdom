@@ -333,19 +333,32 @@ function prevSatBaseHours(day: DayData): number {
   return day.active ? hoursWorked(day.from, day.to) : 0;
 }
 
-function payrollExtraHourLines(employees: WeekEmployee[]) {
-  const lines: { name: string; day: string; desc: string; range: string; hours: number }[] = [];
+function payrollWeekExtraHourLines(employees: WeekEmployee[]) {
+  const lines: {
+    name: string;
+    position: string;
+    day: string;
+    baseShift: string;
+    extraRange: string;
+    hours: number;
+    reason: string;
+  }[] = [];
   for (const emp of employees) {
     for (const key of DAYS) {
-      for (const ex of emp.days[key].extraHours ?? []) {
+      const day = emp.days[key];
+      const baseShift = day.active ? `${day.from}–${day.to}` : "—";
+      for (const ex of day.extraHours ?? []) {
         const h = hoursWorked(ex.from, ex.to);
-        if (h <= 0) continue;
+        const reason = ex.description.trim();
+        if (h <= 0 && !reason) continue;
         lines.push({
           name: emp.name || "—",
+          position: emp.position || "—",
           day: DAY_LABELS[key],
-          desc: ex.description.trim() || "—",
-          range: `${ex.from}–${ex.to}`,
+          baseShift,
+          extraRange: h > 0 ? `${ex.from}–${ex.to}` : "—",
           hours: h,
+          reason: reason || "—",
         });
       }
     }
@@ -1626,43 +1639,81 @@ function PayrollView({
       mkSum("RAZEM", totalWeekHours, totalPrevSatHours, totalHoursAll, totalGross, totalZaliczkaSum, totalExtraCostsSum, totalNet, true),
     ];
 
-    const extraHourLines = payrollExtraHourLines(rows.map((r) => r.emp));
+    const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
     const prevSatDetails = payrollPrevSatDetailLines(rows.map((r) => r.emp), weekFrom);
     const prevSatIso = previousSaturdayIso(weekFrom);
-    const extraHourPdfBlock = extraHourLines.length > 0
-      ? [
-          { text: "Dodatkowe godziny pracy", bold: true, fontSize: 10, color: C.navy, margin: [0, 16, 0, 6] as [number, number, number, number] },
-          {
-            table: {
-              headerRows: 1,
-              widths: ["*", 48, "*", 56, 36],
-              body: [
-                ["Pracownik", "Dzień", "Opis", "Godziny", "Suma"].map((t) => ({
-                  text: t, bold: true, color: C.white, fillColor: C.navy, fontSize: 8, alignment: "center" as const,
-                })),
-                ...extraHourLines.map((line, i) => {
-                  const bg = i % 2 === 0 ? C.white : C.lightGray;
-                  return [
-                    { text: line.name, fillColor: bg },
-                    { text: line.day, fillColor: bg, alignment: "center" as const },
-                    { text: line.desc, fillColor: bg, color: C.muted },
-                    { text: line.range, fillColor: bg, alignment: "center" as const, fontSize: 8 },
-                    { text: fmtH(line.hours), fillColor: bg, alignment: "right" as const, bold: true },
-                  ];
-                }),
-              ],
+    const totalExtraHourSum = extraHourLines.reduce((s, l) => s + l.hours, 0);
+    const extraHourAppendixPdfBlock = extraHourLines.length > 0
+      ? [{
+          stack: [
+            {
+              text: "Dodatkowe godziny w tygodniu Pn–So",
+              bold: true,
+              fontSize: 11,
+              color: C.navy,
+              margin: [0, 0, 0, 4] as [number, number, number, number],
             },
-            layout: {
-              hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
-              vLineWidth: () => 0,
-              hLineColor: () => "#DDE3EA",
-              paddingLeft: () => 5,
-              paddingRight: () => 5,
-              paddingTop: () => 4,
-              paddingBottom: () => 4,
+            {
+              text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · godziny ponad standardową zmianę dzienną`,
+              fontSize: 8,
+              color: C.muted,
+              margin: [0, 0, 0, 4] as [number, number, number, number],
             },
-          },
-        ]
+            {
+              text: "Kolumna „Powód / opis” — uzasadnienie dodatkowej pracy (np. dogrywka, transport, inna robot).",
+              fontSize: 7,
+              color: C.gold,
+              margin: [0, 0, 0, 10] as [number, number, number, number],
+            },
+            {
+              table: {
+                headerRows: 1,
+                dontBreakRows: true,
+                widths: [68, 54, 34, 50, 50, 32, "*"],
+                body: [
+                  ["Pracownik", "Stanowisko", "Dzień", "Zmiana podst.", "Dodatkowo", "Godz.", "Powód / opis"].map((t) => ({
+                    text: t,
+                    bold: true,
+                    color: C.white,
+                    fillColor: C.navy,
+                    fontSize: 7,
+                    alignment: "center" as const,
+                  })),
+                  ...extraHourLines.map((line, i) => {
+                    const bg = i % 2 === 0 ? C.white : C.lightGray;
+                    return [
+                      { text: line.name, fillColor: bg, fontSize: 8 },
+                      { text: line.position, fillColor: bg, color: C.muted, fontSize: 7 },
+                      { text: line.day, fillColor: bg, alignment: "center" as const, fontSize: 7 },
+                      { text: line.baseShift, fillColor: bg, alignment: "center" as const, fontSize: 7, color: C.muted },
+                      { text: line.extraRange, fillColor: bg, alignment: "center" as const, fontSize: 7 },
+                      { text: line.hours > 0 ? fmtH(line.hours) : "—", fillColor: bg, alignment: "right" as const, fontSize: 8, bold: line.hours > 0 },
+                      { text: line.reason, fillColor: bg, color: C.muted, fontSize: 7, alignment: "left" as const },
+                    ];
+                  }),
+                  [
+                    { text: "", fillColor: C.lightNavy },
+                    { text: "Razem dodatkowe", bold: true, colSpan: 4, fillColor: C.lightNavy, fontSize: 7, alignment: "right" as const },
+                    {}, {}, {},
+                    { text: fmtH(totalExtraHourSum), bold: true, fillColor: C.lightNavy, alignment: "right" as const, fontSize: 8 },
+                    { text: "", fillColor: C.lightNavy },
+                  ],
+                ],
+              },
+              layout: {
+                hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
+                vLineWidth: () => 0,
+                hLineColor: () => "#DDE3EA",
+                paddingLeft: () => 5,
+                paddingRight: () => 5,
+                paddingTop: () => 4,
+                paddingBottom: () => 4,
+              },
+            },
+          ],
+          pageBreak: "before" as const,
+          unbreakable: false,
+        }]
       : [];
 
     const prevSatAppendixPdfBlock = prevSatDetails.length > 0
@@ -1764,7 +1815,7 @@ function PayrollView({
           hLineColor:()=>"#DDE3EA",
           paddingLeft:()=>5, paddingRight:()=>5, paddingTop:()=>4, paddingBottom:()=>4,
         }},
-        ...extraHourPdfBlock,
+        ...extraHourAppendixPdfBlock,
         ...prevSatAppendixPdfBlock,
       ],
       defaultStyle:{font:"Roboto", fontSize:9, color:C.navy},
@@ -1775,9 +1826,10 @@ function PayrollView({
 
   const exportWord = async () => {
     const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle, PageBreak } = await import("docx");
-    const extraHourLines = payrollExtraHourLines(rows.map((r) => r.emp));
+    const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
     const prevSatDetails = payrollPrevSatDetailLines(rows.map((r) => r.emp), weekFrom);
     const prevSatIso = previousSaturdayIso(weekFrom);
+    const totalExtraHourSum = extraHourLines.reduce((s, l) => s + l.hours, 0);
     const bNone={style:BorderStyle.NONE,size:0,color:"FFFFFF"};
     const bThin={style:BorderStyle.SINGLE,size:2,color:"DDE3EA"};
     const mkCell=(txt:string,opts:{bold?:boolean;fill?:string;align?:typeof AlignmentType[keyof typeof AlignmentType];color?:string;size?:number}={})=>
@@ -1862,30 +1914,62 @@ function PayrollView({
           }),
           ...(extraHourLines.length > 0
             ? [
+                new Paragraph({ children: [new PageBreak()] }),
                 new Paragraph({
-                  spacing: { before: 360, after: 160 },
-                  children: [new TextRun({ text: "Dodatkowe godziny pracy", bold: true, size: 22, color: "344254", font: "Calibri" })],
+                  spacing: { after: 100 },
+                  children: [new TextRun({ text: "Dodatkowe godziny w tygodniu Pn–So", bold: true, size: 24, color: "344254", font: "Calibri" })],
+                }),
+                new Paragraph({
+                  spacing: { after: 80 },
+                  children: [new TextRun({
+                    text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · godziny ponad standardową zmianę dzienną`,
+                    size: 18,
+                    color: "6B7A8D",
+                    font: "Calibri",
+                  })],
+                }),
+                new Paragraph({
+                  spacing: { after: 200 },
+                  children: [new TextRun({
+                    text: "Kolumna „Powód / opis” — uzasadnienie dodatkowej pracy (np. dogrywka, transport, inna robot).",
+                    size: 16,
+                    color: "7B5800",
+                    font: "Calibri",
+                  })],
                 }),
                 new Table({
                   width: { size: 100, type: WidthType.PERCENTAGE },
                   rows: [
                     new TableRow({
-                      children: ["Pracownik", "Dzień", "Opis", "Godziny", "Suma"].map((h) =>
-                        mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 16 }),
+                      children: ["Pracownik", "Stanowisko", "Dzień", "Zmiana podst.", "Dodatkowo", "Godz.", "Powód / opis"].map((h) =>
+                        mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 14 }),
                       ),
                       tableHeader: true,
                     }),
                     ...extraHourLines.map((line, i) =>
                       new TableRow({
                         children: [
-                          mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6" }),
-                          mkCell(line.day, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6" }),
-                          mkCell(line.desc, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D" }),
-                          mkCell(line.range, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
-                          mkCell(fmtH(line.hours), { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6" }),
+                          mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
+                          mkCell(line.position, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
+                          mkCell(line.day, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 14 }),
+                          mkCell(line.baseShift, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
+                          mkCell(line.extraRange, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 14 }),
+                          mkCell(line.hours > 0 ? fmtH(line.hours) : "—", { bold: line.hours > 0, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
+                          mkCellMultiline(line.reason, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 14 }),
                         ],
                       }),
                     ),
+                    new TableRow({
+                      children: [
+                        mkCell("", { fill: "EDF1F6" }),
+                        mkCell("Razem dodatkowe", { bold: true, fill: "EDF1F6", align: AlignmentType.RIGHT, size: 14 }),
+                        mkCell("", { fill: "EDF1F6" }),
+                        mkCell("", { fill: "EDF1F6" }),
+                        mkCell("", { fill: "EDF1F6" }),
+                        mkCell(fmtH(totalExtraHourSum), { bold: true, fill: "EDF1F6", size: 16 }),
+                        mkCell("", { fill: "EDF1F6" }),
+                      ],
+                    }),
                   ],
                 }),
               ]
