@@ -488,42 +488,23 @@ function sortJobsActiveFirst(jobs: Job[]): Job[] {
   });
 }
 
-/** Pulpit: adres roboty — wpis na dziś, albo w bieżącym tygodniu listy płac. */
+/** Pulpit: adres roboty — tylko wpis czasu pracy z dzisiejszą datą (Roboty → Dodaj wpis). */
 function jobsForEmployeeOnDashboard(
   emp: WeekEmployee,
   jobs: Job[],
   dateIso: string,
-  weekFrom: string,
-  weekTo: string,
+  _weekFrom: string,
+  _weekTo: string,
   directory: DirectoryEmployee[],
 ): Job[] {
   const active = jobs.filter((j) => j.status === "in_progress");
-  const onToday = sortJobsActiveFirst(
+  return sortJobsActiveFirst(
     active.filter((job) =>
       job.workEntries.some(
         (we) => we.date === dateIso && employeeMatchesWorkEntry(emp, we, directory),
       ),
     ),
   );
-  if (onToday.length) return onToday;
-
-  const seen = new Set<string>();
-  const inWeek: Job[] = [];
-  for (const job of sortJobsActiveFirst(active)) {
-    if (
-      job.workEntries.some(
-        (we) =>
-          we.date >= weekFrom &&
-          we.date <= weekTo &&
-          employeeMatchesWorkEntry(emp, we, directory),
-      ) &&
-      !seen.has(job.id)
-    ) {
-      seen.add(job.id);
-      inWeek.push(job);
-    }
-  }
-  return inWeek;
 }
 
 function weekDayColumns(weekFrom: string): { key: DayKey; iso: string; shortLabel: string; dateLabel: string }[] {
@@ -3950,7 +3931,7 @@ function HelpView() {
               {q:"Jak założyć nową robotę?", a:'Kliknij "Nowa robota" w lewym górnym rogu. Wpisz adres, numer mieszkania i klienta (domyślnie Wrocławskie Mieszkania). Możesz też wpisać daty rozpoczęcia i zakończenia.'},
               {q:"Dokumenty do odbioru — co to jest?", a:"To lista dokumentów które trzeba zebrać żeby zdać robotę. Zaznaczaj je gdy je masz: Zlecenie, Zakres robót, Kosztorys, Kominiarz, Pomiary, Oświadczenia, Gwarancje, Rysunek/Plan. Zdjęcia są opcjonalne. Pasek postępu na liście robót pokazuje ile dokumentów masz już skompletowanych."},
               {q:"Kiedy robota zmienia status na Zdana?", a:"Automatycznie gdy zaznaczysz wszystkie wymagane dokumenty (bez zdjęć). Możesz też kliknąć przycisk statusu ręcznie — ale jeśli brakuje dokumentów, aplikacja ostrzeże i powie czego brakuje."},
-              {q:"Jak dodać czas pracy na robocie?", a:'Przewiń do sekcji "Pracownicy na robocie" → kliknij "Dodaj wpis". Wybierz pracownika, datę, ile godzin pracował i stawkę. Aplikacja liczy koszt automatycznie.'},
+              {q:"Jak dodać czas pracy na robocie?", a:'Roboty → wybierz robotę → sekcja „Pracownicy na robocie” → „Dodaj wpis”. Wybierz pracownika, ustaw datę (np. dziś 26.05), godziny i stawkę. Dopiero ten wpis pokazuje adres na Pulpicie i w Grafiku na dany dzień. Lista Płac (zaznaczone dni) to osobna rzecz — tylko wypłata tygodnia.'},
               {q:"Jak dodać koszty materiałów?", a:'Przewiń do sekcji "Materiały" → kliknij "Dodaj". Wpisz opis i koszt. Materiały sumują się z kosztem pracy i tworzą łączny koszt remontu.'},
               {q:"Jak dodać raport (zakres + wymiary)?", a:'Sekcja „Raporty — zakres i wymiary” na karcie roboty: u góry formularz (taki sam jak u pracownika), na dole lista wysłanych raportów. Możesz też poprosić pracownika o wysłanie z telefonu.'},
               {q:"Jak wyeksportować kartę roboty do PDF?", a:'Kliknij czerwony przycisk "PDF" w nagłówku roboty. Wygeneruje się dokument z dokumentami, pracownikami, materiałami i podsumowaniem kosztów.'},
@@ -4159,7 +4140,7 @@ function HelpView() {
             {icon:Bell, title:"Reminder w sobotę", desc:"Co sobotę w Liście Płac pojawia się żółty baner przypominający o zamknięciu tygodnia. Kliknij \"Zapisz tydzień\" zanim zapomnisz."},
             {icon:Search, title:"Globalne wyszukiwanie", desc:"Ikona lupy w prawym górnym rogu. Wpisz imię pracownika lub adres roboty — aplikacja znajdzie to w całej bazie danych."},
             {icon:CalendarDays, title:"Grafik tygodniowy", desc:"Menu Grafik — cały tydzień na jednym ekranie: wiersz = pracownik, kolumna = dzień. Godziny z listy płac, adres z wpisu na robocie."},
-            {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"U góry: skróty do Grafiku, Listy płac i Robót. „Wymaga uwagi” zbiera zdjęcia do akceptacji, raporty pracowników i brakujące dokumenty. „Pracuje dziś” pokazuje tylko zaplanowanych — z adresem z wpisu na robocie."},
+            {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"„Pracuje dziś” pokazuje godziny z Listy Płac. Adres pod imieniem pojawia się dopiero gdy w Robotach dodasz wpis pracy na dzisiejszą datę (Pracownicy na robocie → Dodaj wpis → data = dziś). Samo zaznaczenie dnia w liście płac nie przypisuje adresu."},
             {icon:Users, title:"Filtrowanie robót po pracowniku", desc:"W zakładce Roboty jest rozwijana lista pracowników. Wybierz kogoś — zobaczysz tylko roboty na których ten pracownik miał wpisy czasu pracy."},
             {icon:FileDown, title:"PDF z roboty do wysłania klientowi", desc:"Każda robota ma przycisk PDF w nagłówku. Generuje profesjonalny dokument z listą dokumentów, czasem pracy i kosztami — można go od razu wysłać mailowo."},
             {icon:Mail, title:"Email z roboty — zdjęcia i raporty", desc:"Maile wysyłane są z biuro@wgdom.fun (domena zweryfikowana). Odbiorca może odpowiedzieć — Reply trafia na biuro@wgdom.pl i dawid.thai@int.pl. W Kontaktach dodaj klienta, przy robocie Email → wybierz treść i wyślij."},
