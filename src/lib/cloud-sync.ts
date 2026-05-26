@@ -150,9 +150,147 @@ export function normalizeArrayValue(raw: unknown): unknown[] {
   return Array.isArray(raw) ? raw : [];
 }
 
+function recordRichness(obj: unknown): number {
+  if (!obj || typeof obj !== "object") return 0;
+  let s = 0;
+  for (const v of Object.values(obj as Record<string, unknown>)) {
+    if (v == null || v === "") continue;
+    if (typeof v === "string" && v.trim()) s += 1;
+    if (typeof v === "number") s += 1;
+    if (typeof v === "boolean") s += 0.5;
+    if (Array.isArray(v)) s += v.length * 2;
+    if (typeof v === "object") s += recordRichness(v) * 0.25;
+  }
+  return s;
+}
+
+/** Scal tablice obiektów po id — bogatszy wpis wygrywa. */
+export function mergeRecordsById(local: unknown[], cloud: unknown[]): unknown[] {
+  const map = new Map<string, unknown>();
+  const ingest = (list: unknown[]) => {
+    for (const item of list) {
+      if (!item || typeof item !== "object") continue;
+      const id = String((item as { id?: string }).id || "");
+      if (!id) continue;
+      const prev = map.get(id);
+      if (!prev || recordRichness(item) >= recordRichness(prev)) {
+        map.set(id, item);
+      }
+    }
+  };
+  ingest(Array.isArray(local) ? local : []);
+  ingest(Array.isArray(cloud) ? cloud : []);
+  return [...map.values()];
+}
+
+/** Kontakty — scal + zachowaj uprawnienia (OR). */
+export function mergeContacts(local: unknown[], cloud: unknown[]): unknown[] {
+  const map = new Map<string, Record<string, unknown>>();
+  const ingest = (list: unknown[]) => {
+    for (const item of list) {
+      if (!item || typeof item !== "object") continue;
+      const c = item as Record<string, unknown> & { id?: string; allowJobs?: boolean; allowPayroll?: boolean };
+      const id = String(c.id || "");
+      if (!id) continue;
+      const prev = map.get(id);
+      if (!prev) {
+        map.set(id, { ...c });
+        continue;
+      }
+      const pick = recordRichness(c) >= recordRichness(prev) ? c : prev;
+      map.set(id, {
+        ...prev,
+        ...pick,
+        allowJobs: c.allowJobs !== false || prev.allowJobs !== false,
+        allowPayroll: c.allowPayroll === true || prev.allowPayroll === true,
+      });
+    }
+  };
+  ingest(Array.isArray(local) ? local : []);
+  ingest(Array.isArray(cloud) ? cloud : []);
+  return [...map.values()];
+}
+
+export function mergeDirectory(local: unknown[], cloud: unknown[]): unknown[] {
+  return mergeRecordsById(local, cloud);
+}
+
+function pickWeekRange(localFrom: unknown, localTo: unknown, cloudFrom: unknown, cloudTo: unknown, localEmps: unknown, cloudEmps: unknown): { from: string; to: string } {
+  const lf = typeof localFrom === "string" ? localFrom : "";
+  const cf = typeof cloudFrom === "string" ? cloudFrom : "";
+  const lt = typeof localTo === "string" ? localTo : "";
+  const ct = typeof cloudTo === "string" ? cloudTo : "";
+  const localR = weekEmployeesListRichness(localEmps);
+  const cloudR = weekEmployeesListRichness(cloudEmps);
+  if (localR > cloudR + 1 && lf && lt) return { from: lf, to: lt };
+  if (cloudR > localR + 1 && cf && ct) return { from: cf, to: ct };
+  if (lf && lt) return { from: lf, to: lt };
+  return { from: cf || lf, to: ct || lt };
+}
+
+/** Scal local + chmura dla jednego klucza danych. */
+export function mergeDataKey(key: DataKey, local: unknown, cloud: unknown): unknown {
+  switch (key) {
+    case "kw-jobs":
+      return mergeJobsById(normalizeJobsValue(local ?? []), normalizeJobsValue(cloud));
+    case "kw-week-employees":
+      return mergeWeekEmployees(normalizeArrayValue(local), normalizeArrayValue(cloud));
+    case "kw-archive":
+      return mergeArchive(normalizeArrayValue(local), normalizeArrayValue(cloud));
+    case "kw-directory":
+      return mergeDirectory(normalizeArrayValue(local), normalizeArrayValue(cloud));
+    case "kw-contacts":
+      return mergeContacts(normalizeArrayValue(local), normalizeArrayValue(cloud));
+    case "kw-weekFrom":
+    case "kw-weekTo":
+      return typeof local === "string" && local ? local : (typeof cloud === "string" && cloud ? cloud : local ?? cloud);
+    default:
+      return local ?? cloud;
+  }
+}
+
+/** Scal wszystkie klucze naraz (np. przed zapisem do chmury). */
+export function mergeAllDataKeys(
+  localValues: unknown[],
+  cloudValues: unknown[],
+): unknown[] {
+  return DATA_KEYS.map((key, i) => mergeDataKey(key, localValues[i], cloudValues[i]));
+}
+
+/** Po merge weekFrom/weekTo — dopasuj do tygodnia z bogatszą listą płac. */
+export function alignWeekRangeInMerged(merged: unknown[]): unknown[] {
+  const out = [...merged];
+  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
+  const fromIdx = DATA_KEYS.indexOf("kw-weekFrom");
+  const toIdx = DATA_KEYS.indexOf("kw-weekTo");
+  if (empIdx < 0 || fromIdx < 0 || toIdx < 0) return out;
+  const range = pickWeekRange(out[fromIdx], out[toIdx], out[fromIdx], out[toIdx], out[empIdx], out[empIdx]);
+  if (range.from) out[fromIdx] = range.from;
+  if (range.to) out[toIdx] = range.to;
+  return out;
+}
+
+export function dataKeyRichness(key: DataKey, value: unknown): number {
+  switch (key) {
+    case "kw-jobs":
+      return normalizeJobsValue(value).reduce((s, j) => s + jobMergeScore(j as { workEntries?: unknown[]; photos?: unknown[] }), 0) + normalizeJobsValue(value).length * 3;
+    case "kw-week-employees":
+      return weekEmployeesListRichness(value);
+    case "kw-archive":
+      return normalizeArrayValue(value).reduce((s, w) => s + recordRichness(w) + weekEmployeesListRichness((w as { weekEmployees?: unknown[] })?.weekEmployees), 0);
+    case "kw-directory":
+    case "kw-contacts":
+      return normalizeArrayValue(value).reduce((s, e) => s + recordRichness(e), 0);
+    default:
+      return value != null && value !== "" ? 1 : 0;
+  }
+}
+
 function sanitizeValueForCloud(key: string, value: unknown): unknown {
   if (key === "kw-jobs") return normalizeJobsValue(value);
-  if (key === "kw-week-employees" || key === "kw-archive") return normalizeArrayValue(value);
+  if (key === "kw-week-employees" || key === "kw-archive" || key === "kw-directory" || key === "kw-contacts") {
+    return normalizeArrayValue(value);
+  }
   return value;
 }
 
@@ -178,7 +316,50 @@ export async function pushKeysToCloud(
 
 /** Wszystkie dane aplikacji naraz (kolejność jak DATA_KEYS). */
 export async function pushAllDataToCloud(values: unknown[]): Promise<void> {
-  await pushKeysToCloud([...DATA_KEYS], values);
+  await pushAllDataToCloudSafe(values);
+}
+
+/**
+ * Bezpieczny zapis: pobierz chmurę → scal z lokalnym → zapisz scalone.
+ * Chroni przed nadpisaniem pustszą wersją z innej karty / urządzenia.
+ */
+export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
+  const keys = [...DATA_KEYS];
+  let cloudValues: unknown[] = keys.map(() => null);
+  try {
+    cloudValues = await fetchKeysFromCloud(keys);
+  } catch {
+    /* offline */
+  }
+  let merged = mergeAllDataKeys(values, cloudValues);
+  merged = alignWeekRangeInMerged(merged);
+
+  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
+  const archIdx = DATA_KEYS.indexOf("kw-archive");
+  if (
+    empIdx >= 0 &&
+    archIdx >= 0 &&
+    normalizeArrayValue(values[empIdx]).length === 0 &&
+    normalizeArrayValue(values[archIdx]).some(
+      (w) => weekEmployeesListRichness((w as { weekEmployees?: unknown[] })?.weekEmployees) >= 8,
+    )
+  ) {
+    merged[empIdx] = [];
+  }
+
+  await pushKeysToCloud(keys, merged);
+}
+
+/** Zapis wielu kluczy z merge względem chmury. */
+export async function pushKeysToCloudSafe(keys: string[], values: unknown[]): Promise<void> {
+  let cloudValues: unknown[] = keys.map(() => null);
+  try {
+    cloudValues = await fetchKeysFromCloud(keys);
+  } catch { /* ignore */ }
+  const merged = keys.map((key, i) =>
+    isDataKey(key) ? mergeDataKey(key, values[i], cloudValues[i]) : values[i],
+  );
+  await pushKeysToCloud(keys, merged);
 }
 
 /** Pobranie wielu kluczy z chmury. */
@@ -274,6 +455,40 @@ export async function fetchPayrollBackupStatus(): Promise<PayrollBackupStatus | 
     archivePrev: data.archivePrev,
     archivePrev2: data.archivePrev2,
   };
+}
+
+export interface FullDataBackupStatus {
+  ok: boolean;
+  keys: Record<string, { current: number; prev: number; prev2: number; richness: number }>;
+  dailyBackupDate: string | null;
+}
+
+export async function fetchFullDataBackupStatus(): Promise<FullDataBackupStatus | null> {
+  if (!isSupabaseConfigured() || !API_BASE) return null;
+  const res = await fetch(`${API_BASE}/data-backup-status`, { headers: API_HEADERS });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!data.ok) return null;
+  return data as FullDataBackupStatus;
+}
+
+/** Przywróć wszystkie dane firmy z kopii chmurowej (prev / prev2 / dziś). */
+export async function restoreAllCloudDataBackup(
+  source: "prev" | "prev2" | "today" = "prev",
+): Promise<{ restoredKeys: string[] }> {
+  if (!isSupabaseConfigured() || !API_BASE) {
+    throw new Error("Brak konfiguracji Supabase");
+  }
+  const res = await fetch(`${API_BASE}/restore-data-backup`, {
+    method: "POST",
+    headers: API_HEADERS,
+    body: JSON.stringify({ source }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok) {
+    throw new Error(data.error || `restore failed (${res.status})`);
+  }
+  return { restoredKeys: (data.restoredKeys as string[]) || [] };
 }
 
 /** Zapis jednego klucza — używaj przy pilnych zmianach (np. zdjęcia pracownika). */

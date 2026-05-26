@@ -84,12 +84,16 @@ Funkcja składa się z **dwóch plików**. Oba muszą być na serwerze.
 | POST | `/send-payroll-email` | Email listy płac — PDF/Word + HTML (v2.7) |
 | GET | `/payroll-backup-status` | Kopie listy płac / archiwum (v2.7.1) |
 | POST | `/restore-payroll-backup` | Przywróć listę płac z kopii chmurowej (v2.7.1) |
+| GET | `/data-backup-status` | Status kopii wszystkich kluczy + dzienny backup (v2.7.2) |
+| POST | `/restore-data-backup` | Przywróć wszystkie dane z kopii chmurowej (v2.7.2) |
 | **GET** | **`/client-share?token=...`** | **Link podglądu dla klienta (v2.5)** |
 
 | **GET** | **`/jobs-backup-status`** | **Ile robót w kopii prev/prev2 (v2.5.1)** |
 | **POST** | **`/restore-jobs-backup`** | **Przywróć roboty z kopii chmurowej (v2.5.1)** |
 
 > **v2.5.1 — ochrona robót:** przy każdym zapisie `kw-jobs` serwer robi kopię (`prev`, `prev2`, dzienna). Gdy zapis wygląda podejrzanie (np. z 6 robót zostaje 1), **scala** zamiast nadpisywać.
+
+> **v2.7.2 — pełna ochrona:** to samo dla listy płac, archiwum, pracowników (`kw-directory`) i kontaktów. Przy każdym `batch-set` zapisywany jest też dzienny pełny backup `kw-full-day-YYYY-MM-DD`. Klient przed zapisem scala dane lokalne z chmurowymi.
 
 ---
 

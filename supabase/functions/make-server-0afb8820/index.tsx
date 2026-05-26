@@ -158,6 +158,78 @@ function mergeArchiveUnion(prev: unknown[], next: unknown[]): unknown[] {
   return [...map.values()];
 }
 
+function recordRichness(obj: unknown): number {
+  if (!obj || typeof obj !== "object") return 0;
+  let s = 0;
+  for (const v of Object.values(obj as Record<string, unknown>)) {
+    if (v == null || v === "") continue;
+    if (typeof v === "string" && v.trim()) s += 1;
+    if (typeof v === "number") s += 1;
+    if (typeof v === "boolean") s += 0.5;
+    if (Array.isArray(v)) s += v.length * 2;
+  }
+  return s;
+}
+
+function mergeRecordsByIdUnion(prev: unknown[], next: unknown[]): unknown[] {
+  const map = new Map<string, unknown>();
+  const ingest = (list: unknown[]) => {
+    for (const item of list) {
+      if (!item || typeof item !== "object") continue;
+      const id = String((item as { id?: string }).id || "");
+      if (!id) continue;
+      const existing = map.get(id);
+      if (!existing || recordRichness(item) >= recordRichness(existing)) {
+        map.set(id, item);
+      }
+    }
+  };
+  ingest(prev);
+  ingest(next);
+  return [...map.values()];
+}
+
+function mergeContactsUnion(prev: unknown[], next: unknown[]): unknown[] {
+  const map = new Map<string, Record<string, unknown>>();
+  const ingest = (list: unknown[]) => {
+    for (const item of list) {
+      if (!item || typeof item !== "object") continue;
+      const c = item as Record<string, unknown> & { id?: string; allowJobs?: boolean; allowPayroll?: boolean };
+      const id = String(c.id || "");
+      if (!id) continue;
+      const existing = map.get(id);
+      if (!existing) {
+        map.set(id, { ...c });
+        continue;
+      }
+      const pick = recordRichness(c) >= recordRichness(existing) ? c : existing;
+      map.set(id, {
+        ...existing,
+        ...pick,
+        allowJobs: c.allowJobs !== false || existing.allowJobs !== false,
+        allowPayroll: c.allowPayroll === true || existing.allowPayroll === true,
+      });
+    }
+  };
+  ingest(prev);
+  ingest(next);
+  return [...map.values()];
+}
+
+function isSuspiciousArrayShrink(prev: unknown[], next: unknown[]): boolean {
+  if (next.length === 0 && prev.length > 0) return true;
+  if (prev.length >= 2 && next.length < Math.ceil(prev.length / 2)) return true;
+  const prevR = prev.reduce((s, e) => s + recordRichness(e), 0);
+  const nextR = next.reduce((s, e) => s + recordRichness(e), 0);
+  if (prevR >= 6 && nextR < prevR * 0.45) return true;
+  return false;
+}
+
+function isIntentionalWeekClear(nextEmps: unknown[], archiveInBatch: unknown[]): boolean {
+  if (nextEmps.length > 0) return false;
+  return archiveInBatch.some((w) => archiveWeekScore(w) >= 8);
+}
+
 function isSuspiciousPayrollShrink(prev: unknown[], next: unknown[]): boolean {
   if (next.length === 0 && prev.length > 0) return true;
   const prevR = weekEmployeesRichness(prev);
@@ -194,10 +266,58 @@ async function rotateJobsBackups(prev: unknown): Promise<void> {
   await kv.set(`kw-jobs-day-${day}`, prev);
 }
 
+async function protectArrayKey(
+  key: string,
+  nextRaw: unknown,
+  mergeFn: (prev: unknown[], next: unknown[]) => unknown[],
+  isShrink: (prev: unknown[], next: unknown[]) => boolean,
+): Promise<unknown> {
+  const prev = await kv.get(key);
+  let nextNorm = normalizeArrayKv(nextRaw);
+  if (prev != null) {
+    await rotateKvBackups(key);
+    const prevNorm = normalizeArrayKv(prev);
+    if (isShrink(prevNorm, nextNorm)) {
+      console.log(`${key}: blocked suspicious shrink ${prevNorm.length} → ${nextNorm.length}, merging`);
+      nextNorm = mergeFn(prevNorm, nextNorm);
+    }
+  }
+  return nextNorm;
+}
+
+async function saveDailyFullBackup(keys: string[], values: unknown[]): Promise<void> {
+  const day = new Date().toISOString().slice(0, 10);
+  const bundleKey = `kw-full-day-${day}`;
+  const bundle: Record<string, unknown> = {};
+  for (let i = 0; i < keys.length; i++) {
+    if (keys[i].startsWith("kw-") && !keys[i].includes("-prev")) {
+      bundle[keys[i]] = values[i];
+    }
+  }
+  const existing = await kv.get(bundleKey);
+  const score = (b: Record<string, unknown> | null) => {
+    if (!b) return 0;
+    let s = 0;
+    for (const v of Object.values(b)) {
+      if (Array.isArray(v)) s += v.length * 5 + v.reduce((a, e) => a + recordRichness(e), 0);
+    }
+    return s;
+  };
+  const existingBundle = existing && typeof existing === "object" && "keys" in (existing as object)
+    ? (existing as { keys: Record<string, unknown> }).keys
+    : null;
+  if (score(bundle) >= score(existingBundle)) {
+    await kv.set(bundleKey, { savedAt: new Date().toISOString(), date: day, keys: bundle });
+  }
+}
+
 // Batch set multiple keys at once
 app.post("/make-server-0afb8820/batch-set", async (c) => {
   const { keys, values } = await c.req.json();
   const safeValues = [...values];
+  const archBatchIdx = keys.indexOf("kw-archive");
+  const archiveInBatch = archBatchIdx >= 0 ? normalizeArrayKv(values[archBatchIdx]) : [];
+
   for (let i = 0; i < keys.length; i++) {
     if (keys[i] === "kw-jobs") {
       const prev = await kv.get("kw-jobs");
@@ -219,7 +339,8 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
       if (prev != null) {
         await rotateKvBackups("kw-week-employees");
         const prevNorm = normalizeArrayKv(prev);
-        if (isSuspiciousPayrollShrink(prevNorm, nextNorm)) {
+        const intentionalClear = isIntentionalWeekClear(nextNorm, archiveInBatch);
+        if (!intentionalClear && isSuspiciousPayrollShrink(prevNorm, nextNorm)) {
           console.log(
             `kw-week-employees: blocked shrink richness ${weekEmployeesRichness(prevNorm)} → ${weekEmployeesRichness(nextNorm)}, merging`,
           );
@@ -239,9 +360,28 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
         }
       }
       safeValues[i] = nextNorm;
+    } else if (keys[i] === "kw-directory") {
+      safeValues[i] = await protectArrayKey(
+        "kw-directory",
+        values[i],
+        mergeRecordsByIdUnion,
+        isSuspiciousArrayShrink,
+      );
+    } else if (keys[i] === "kw-contacts") {
+      safeValues[i] = await protectArrayKey(
+        "kw-contacts",
+        values[i],
+        mergeContactsUnion,
+        isSuspiciousArrayShrink,
+      );
     }
   }
   await kv.mset(keys, safeValues);
+  try {
+    await saveDailyFullBackup(keys, safeValues);
+  } catch (e) {
+    console.log("daily full backup:", e);
+  }
   return c.json({ ok: true });
 });
 
@@ -365,6 +505,117 @@ app.post("/make-server-0afb8820/restore-payroll-backup", async (c) => {
     });
   } catch (e) {
     console.error("restore-payroll-backup:", e);
+    return c.json({ ok: false, error: String(e) }, 500);
+  }
+});
+
+const MONITORED_DATA_KEYS = [
+  "kw-jobs",
+  "kw-week-employees",
+  "kw-archive",
+  "kw-directory",
+  "kw-contacts",
+];
+
+function keyRichnessSummary(key: string, raw: unknown): number {
+  const arr = key === "kw-jobs" ? normalizeJobsKvValue(raw) : normalizeArrayKv(raw);
+  if (key === "kw-week-employees") return weekEmployeesRichness(arr);
+  if (key === "kw-archive") return arr.reduce((s, w) => s + archiveWeekScore(w), 0);
+  return arr.reduce((s, e) => s + recordRichness(e), 0);
+}
+
+/** Status kopii wszystkich danych firmy w chmurze. */
+app.get("/make-server-0afb8820/data-backup-status", async (c) => {
+  try {
+    const keys: Record<string, { current: number; prev: number; prev2: number; richness: number }> = {};
+    for (const key of MONITORED_DATA_KEYS) {
+      const current = key === "kw-jobs"
+        ? normalizeJobsKvValue(await kv.get(key))
+        : normalizeArrayKv(await kv.get(key));
+      const prev = key === "kw-jobs"
+        ? normalizeJobsKvValue(await kv.get(`${key}-prev`))
+        : normalizeArrayKv(await kv.get(`${key}-prev`));
+      const prev2 = key === "kw-jobs"
+        ? normalizeJobsKvValue(await kv.get(`${key}-prev2`))
+        : normalizeArrayKv(await kv.get(`${key}-prev2`));
+      keys[key] = {
+        current: current.length,
+        prev: prev.length,
+        prev2: prev2.length,
+        richness: keyRichnessSummary(key, current),
+      };
+    }
+    const day = new Date().toISOString().slice(0, 10);
+    const daily = await kv.get(`kw-full-day-${day}`);
+    return c.json({
+      ok: true,
+      keys,
+      dailyBackupDate: daily ? day : null,
+    });
+  } catch (e) {
+    return c.json({ ok: false, error: String(e) }, 500);
+  }
+});
+
+/** Przywróć wszystkie dane firmy z kopii chmurowej. */
+app.post("/make-server-0afb8820/restore-data-backup", async (c) => {
+  try {
+    let body: { source?: string } = {};
+    try {
+      body = await c.req.json();
+    } catch {
+      body = {};
+    }
+    const source = body.source || "prev";
+    const restoredKeys: string[] = [];
+
+    const readBackup = async (baseKey: string): Promise<unknown> => {
+      if (source === "today") {
+        const day = new Date().toISOString().slice(0, 10);
+        const full = await kv.get(`kw-full-day-${day}`) as { keys?: Record<string, unknown> } | null;
+        if (full?.keys?.[baseKey] != null) return full.keys[baseKey];
+      }
+      const suffix = source === "prev2" ? "-prev2" : "-prev";
+      if (baseKey === "kw-jobs" && source === "today") {
+        return (await kv.get(`kw-jobs-day-${new Date().toISOString().slice(0, 10)}`)) ??
+          (await kv.get("kw-jobs-prev"));
+      }
+      return await kv.get(`${baseKey}${suffix}`);
+    };
+
+    for (const key of MONITORED_DATA_KEYS) {
+      const backupRaw = await readBackup(key);
+      if (backupRaw == null) continue;
+
+      const currentRaw = await kv.get(key);
+      if (currentRaw != null) {
+        if (key === "kw-jobs") await rotateJobsBackups(currentRaw);
+        else await rotateKvBackups(key);
+      }
+
+      const current = key === "kw-jobs" ? normalizeJobsKvValue(currentRaw) : normalizeArrayKv(currentRaw);
+      const backup = key === "kw-jobs" ? normalizeJobsKvValue(backupRaw) : normalizeArrayKv(backupRaw);
+      if (backup.length === 0 && keyRichnessSummary(key, backupRaw) === 0) continue;
+
+      let merged: unknown;
+      if (key === "kw-jobs") merged = mergeJobsUnion(current, backup);
+      else if (key === "kw-week-employees") merged = mergeWeekEmployeesUnion(current, backup);
+      else if (key === "kw-archive") merged = mergeArchiveUnion(current, backup);
+      else if (key === "kw-directory") merged = mergeRecordsByIdUnion(current, backup);
+      else if (key === "kw-contacts") merged = mergeContactsUnion(current, backup);
+      else merged = backup;
+
+      await kv.set(key, merged);
+      restoredKeys.push(key);
+    }
+
+    if (restoredKeys.length === 0) {
+      return c.json({ ok: false, error: "Brak kopii danych w chmurze" }, 404);
+    }
+
+    return c.json({ ok: true, source, restoredKeys });
+  } catch (e) {
+    console.error("restore-data-backup:", e);
     return c.json({ ok: false, error: String(e) }, 500);
   }
 });

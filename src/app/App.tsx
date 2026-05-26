@@ -20,7 +20,6 @@ import {
   DATA_KEYS,
   ADMIN_HASH_KEY,
   pushKeysToCloud,
-  pushKeysToCloud,
   pushAllDataToCloud,
   fetchKeysFromCloud,
   normalizeJobsValue,
@@ -29,10 +28,16 @@ import {
   restoreCloudJobsBackup,
   mergeWeekEmployees,
   mergeArchive,
+  mergeDirectory,
+  mergeContacts,
+  mergeDataKey,
   weekEmployeesListRichness,
   fetchPayrollBackupStatus,
   restoreCloudPayrollBackup,
+  fetchFullDataBackupStatus,
+  restoreAllCloudDataBackup,
 } from "@/lib/cloud-sync";
+import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
 import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
@@ -5172,12 +5177,12 @@ function HelpView() {
           <div className="space-y-3">
             {[
               {q:"Logowanie administratora — zapamiętaj hasło", a:"Przy logowaniu jako Administrator możesz zaznaczyć „Zapamiętaj hasło na tym urządzeniu”. Hasło jest szyfrowane lokalnie w przeglądarce — nie wysyła się do chmury. Przy następnym wejściu na tym samym telefonie/komputerze pole hasła wypełni się samo. Wyloguj się ręcznie jeśli korzystasz ze wspólnego urządzenia."},
-              {q:"Czy dane mogą zniknąć?", a:"Dane są przechowywane w dwóch miejscach: lokalnie w przeglądarce i w chmurze Supabase. Nawet jeśli wyczyścisz przeglądarkę — przy następnym otwarciu aplikacja pobierze dane z chmury."},
+              {q:"Czy dane mogą zniknąć?", a:"Dane są w przeglądarce i w chmurze Supabase. Każdy zapis scala lokalne z chmurowymi — pustsza wersja nie nadpisze bogatszej. Chmura trzyma kopie prev/prev2 i dzienny pełny backup wszystkich kluczy. Przed sync tworzona jest też lokalna kopia na urządzeniu."},
               {q:"Co oznaczają ikonki chmurki w prawym górnym rogu?", a:"Szara chmurka = wszystko zsynchronizowane. Animowana chmurka ze strzałką = trwa zapis. Zielona chmurka = właśnie zapisano. Czerwona chmurka z X = błąd połączenia (sprawdź internet)."},
-              {q:"Co to jest backup i jak go zrobić?", a:'W lewym menu (na komputerze) na dole jest "Eksportuj backup". Kliknij — pobierze się plik .json ze wszystkimi danymi. Trzymaj go w bezpiecznym miejscu (dysk zewnętrzny, Google Drive). Żeby przywrócić dane — kliknij "Importuj backup" i wybierz ten plik.'},
-              {q:"Automatyczny backup emailem", a:"Raz w tygodniu — w sobotę, po zapisaniu tygodnia do archiwum (przycisk „Zapisz tydzień” lub automatyczny zapis w sobotę). Wysyłana jest jedna kopia JSON na adres z ustawień (domyślnie dawid.thai@int.pl). Nie ma już codziennych maili przy każdym wejściu w aplikację. Dodatkowo każdy zapis do chmury tworzy kopie robót w Supabase (prev / prev2 / dzienna)."},
-              {q:"Utrata robót — co robić?", a:"Menu Dane → „Przywróć roboty (chmura)” lub „(lokalnie)”. Chmura trzyma poprzednie wersje od pierwszego zapisu po aktualizacji. Regularnie rób też Eksport backup na dysk."},
-              {q:"Używam dwóch urządzeń — które dane są właściwe?", a:"Zawsze wygrywa urządzenie które ma dane. Jeśli otworzysz aplikację na telefonie po raz pierwszy — pobierze wszystko z chmury. Jeśli masz dane na laptopie — przy starcie wyśle je do chmury i telefon je pobierze."},
+              {q:"Co to jest backup i jak go zrobić?", a:'W lewym menu (na komputerze) na dole jest "Eksportuj backup". Kliknij — pobierze się plik .json ze wszystkimi danymi. Trzymaj go w bezpiecznym miejscu (dysk zewnętrzny, Google Drive). Żeby przywrócić dane — kliknij "Importuj backup" i wybierz ten plik (import scala z obecnymi danymi).'},
+              {q:"Automatyczny backup emailem", a:"Raz w tygodniu — w sobotę, po zapisaniu tygodnia do archiwum (przycisk „Zapisz tydzień” lub automatyczny zapis w sobotę). Wysyłana jest jedna kopia JSON na adres z ustawień (domyślnie dawid.thai@int.pl). Nie ma już codziennych maili przy każdym wejściu w aplikację. Dodatkowo każdy zapis do chmury tworzy kopie w Supabase (prev / prev2 / dzienna) dla listy płac, archiwum, robót, pracowników i kontaktów."},
+              {q:"Utrata danych — co robić?", a:"Menu Dane → „Przywróć wszystkie dane (chmura)” lub „(lokalnie)”. Dla pojedynczych typów: lista płac lub roboty osobno. W Liście płac: „Przywróć z archiwum” dla bieżącego tygodnia. Regularnie rób też Eksport backup na dysk."},
+              {q:"Używam dwóch urządzeń — które dane są właściwe?", a:"Przy każdym zapisie aplikacja scala dane z obu źródeł — bogatsze wpisy wygrywają. Stara karta z pustą listą nie nadpisze chmury. Przy pierwszym wejściu na nowym urządzeniu dane pobierają się z chmury i łączą z lokalnymi."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-secondary/30">
@@ -5277,6 +5282,17 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.7.2", label:"Pełna ochrona danych w chmurze",
+    items:[
+      {type:"fix", text:"Każdy zapis do chmury scala dane — pustsza wersja z innej karty nie nadpisze listy płac, archiwum, pracowników ani kontaktów"},
+      {type:"new", text:"Kopie prev/prev2 w Supabase dla wszystkich kluczy + dzienny pełny backup (kw-full-day)"},
+      {type:"new", text:"Lokalna kopia wszystkich danych przed synchronizacją (to urządzenie)"},
+      {type:"new", text:"Menu Dane → „Przywróć wszystkie dane (chmura / lokalnie)”"},
+      {type:"improve", text:"Import backup JSON scala pracowników i kontakty z obecnymi danymi"},
+      {type:"improve", text:"Start aplikacji (CloudLoader) scala wszystkie typy danych, nie tylko roboty"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.7.0", label:"Email listy płac + uprawnienia kontaktów",
     items:[
@@ -5666,49 +5682,28 @@ function CloudLoader({children}: {children: React.ReactNode}) {
             if (raw) localVal = JSON.parse(raw);
           } catch { /* ignore */ }
 
-          let merged: unknown = cloudVal;
-
-          if (key === "kw-jobs") {
-            merged = mergeJobsById(
-              normalizeJobsValue(localVal ?? []),
-              normalizeJobsValue(cloudVal),
-            );
-          } else if (key === "kw-week-employees") {
-            merged = mergeWeekEmployees(
-              Array.isArray(localVal) ? localVal : [],
-              Array.isArray(cloudVal) ? cloudVal : [],
-            );
-          } else if (key === "kw-archive") {
-            merged = mergeArchive(
-              Array.isArray(localVal) ? localVal : [],
-              Array.isArray(cloudVal) ? cloudVal : [],
-            );
-          } else if (key === "kw-weekFrom" || key === "kw-weekTo") {
-            merged = typeof cloudVal === "string" && cloudVal ? cloudVal : (localVal ?? cloudVal);
-          } else if (localVal != null && (cloudVal == null || (Array.isArray(cloudVal) && cloudVal.length === 0))) {
-            merged = localVal;
+          const merged = mergeDataKey(key, localVal, cloudVal);
+          const hasRealData = merged != null && !(Array.isArray(merged) && merged.length === 0) && merged !== "";
+          if (hasRealData || (key === "kw-weekFrom" || key === "kw-weekTo") && merged) {
+            localStorage.setItem(key, JSON.stringify(merged));
           }
-
-          const hasRealData = merged != null && !(Array.isArray(merged) && merged.length === 0);
-          if (hasRealData) localStorage.setItem(key, JSON.stringify(merged));
 
           if (!isSupabaseConfigured()) return;
 
           const cloudEmpty = cloudVal == null || (Array.isArray(cloudVal) && cloudVal.length === 0);
-          let shouldPush = cloudEmpty && hasRealData;
-          if (key === "kw-week-employees") {
-            shouldPush = shouldPush || weekEmployeesListRichness(merged) > weekEmployeesListRichness(cloudVal) + 1;
-          } else if (key === "kw-jobs") {
-            shouldPush = shouldPush || normalizeJobsValue(merged).length > normalizeJobsValue(cloudVal).length;
-          } else if (key === "kw-archive") {
-            const mLen = Array.isArray(merged) ? merged.length : 0;
-            const cLen = Array.isArray(cloudVal) ? cloudVal.length : 0;
-            shouldPush = shouldPush || mLen > cLen;
-          } else if (key !== "kw-weekFrom" && key !== "kw-weekTo" && hasRealData && JSON.stringify(merged) !== JSON.stringify(cloudVal)) {
-            shouldPush = true;
-          }
+          const richnessIncreased =
+            key === "kw-week-employees"
+              ? weekEmployeesListRichness(merged) > weekEmployeesListRichness(cloudVal) + 1
+              : key === "kw-jobs"
+                ? normalizeJobsValue(merged).length > normalizeJobsValue(cloudVal).length
+                : Array.isArray(merged) && Array.isArray(cloudVal) && merged.length > cloudVal.length;
 
-          if (shouldPush && key !== "kw-weekFrom" && key !== "kw-weekTo") {
+          const shouldPush =
+            (cloudEmpty && hasRealData) ||
+            richnessIncreased ||
+            (hasRealData && JSON.stringify(merged) !== JSON.stringify(cloudVal));
+
+          if (shouldPush) {
             pushKeys.push(key);
             pushValues.push(merged);
           }
@@ -5754,6 +5749,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [jobsBackupStatus, setJobsBackupStatus] = useState<{ current: number; prev: number; prev2: number; today: number } | null>(null);
   const [payrollBackupStatus, setPayrollBackupStatus] = useState<{ employeesPrev: number; employeesPrev2: number; archivePrev: number } | null>(null);
+  const [fullDataBackupStatus, setFullDataBackupStatus] = useState<{ dailyBackupDate: string | null; hasPrev: boolean } | null>(null);
   const [restoreBusy, setRestoreBusy] = useState(false);
 
   useEffect(() => {
@@ -5761,7 +5757,12 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
     fetchPayrollBackupStatus().then((s) => {
       if (s) setPayrollBackupStatus({ employeesPrev: s.employeesPrev, employeesPrev2: s.employeesPrev2, archivePrev: s.archivePrev });
     }).catch(() => {});
-  }, [jobs.length, weekEmployees.length, savedWeeks.length]);
+    fetchFullDataBackupStatus().then((s) => {
+      if (!s?.keys) return;
+      const hasPrev = Object.values(s.keys).some((k) => k.prev > 0 || k.prev2 > 0);
+      setFullDataBackupStatus({ dailyBackupDate: s.dailyBackupDate, hasPrev });
+    }).catch(() => {});
+  }, [jobs.length, weekEmployees.length, savedWeeks.length, directory.length, contacts.length]);
 
   const pushToCloud = pushAllDataToCloud;
 
@@ -5772,6 +5773,7 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
       return;
     }
     if (jobs.length > 0) saveLocalJobsSnapshot(jobs);
+    saveLocalDataSnapshot();
     setSyncStatus("saving");
     setSyncError("");
     try {
@@ -5820,6 +5822,14 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
         if (data["kw-archive"] != null) {
           const local = JSON.parse(localStorage.getItem("kw-archive") || "[]");
           data["kw-archive"] = mergeArchive(local, data["kw-archive"]);
+        }
+        if (data["kw-directory"] != null) {
+          const local = JSON.parse(localStorage.getItem("kw-directory") || "[]");
+          data["kw-directory"] = mergeDirectory(local, data["kw-directory"]);
+        }
+        if (data["kw-contacts"] != null) {
+          const local = JSON.parse(localStorage.getItem("kw-contacts") || "[]");
+          data["kw-contacts"] = mergeContacts(local, data["kw-contacts"]);
         }
         Object.entries(data).forEach(([k,v])=>localStorage.setItem(k,JSON.stringify(v)));
         const keys = [...DATA_KEYS].filter(k => data[k] != null);
@@ -5903,6 +5913,41 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
     if (!window.confirm(`Przywrócić godziny, Sob.pr. i dodatkowe wpisy z archiwum (${fmtDate(weekFrom)} – ${fmtDate(weekTo)})?`)) return;
     setWeekEmployees(JSON.parse(JSON.stringify(snap.weekEmployees)) as WeekEmployee[]);
   }, [savedWeeks, weekFrom, weekTo, setWeekEmployees]);
+
+  const restoreAllDataFromCloud = async (source: "prev" | "prev2" | "today" = "prev") => {
+    const labels = { prev: "poprzedni zapis", prev2: "starszą kopię", today: "zapis z dziś" };
+    if (!window.confirm(`Przywrócić WSZYSTKIE dane firmy z chmury (${labels[source]})? Scalą się z obecnymi — bogatsze wpisy wygrywają.`)) return;
+    setRestoreBusy(true);
+    try {
+      saveLocalDataSnapshot();
+      const { restoredKeys } = await restoreAllCloudDataBackup(source);
+      const cloudValues = await fetchKeysFromCloud([...DATA_KEYS]);
+      const localBundle = readLocalDataBundle();
+      const merged = DATA_KEYS.map((key, i) => mergeDataKey(key, localBundle[key], cloudValues[i]));
+      for (let i = 0; i < DATA_KEYS.length; i++) {
+        localStorage.setItem(DATA_KEYS[i], JSON.stringify(merged[i]));
+      }
+      await pushAllDataToCloud(merged);
+      alert(`Przywrócono z chmury: ${restoredKeys.join(", ")}. Strona się odświeży.`);
+      window.location.reload();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Nie udało się przywrócić danych z chmury.");
+    } finally {
+      setRestoreBusy(false);
+    }
+  };
+
+  const restoreAllDataFromLocal = (usePrev = false) => {
+    const snaps = listLocalDataSnapshots();
+    const pick = snaps.find((s) => s.usePrev === usePrev) ?? snaps[0];
+    if (!pick) {
+      alert("Brak lokalnej kopii danych na tym urządzeniu.");
+      return;
+    }
+    if (!window.confirm(`Przywrócić dane z kopii lokalnej (${new Date(pick.at).toLocaleString("pl-PL")})?`)) return;
+    restoreLocalDataSnapshot(pick.usePrev);
+    window.location.reload();
+  };
 
   // Auto-backup email — tylko w sobotę, po zapisie tygodnia do archiwum (patrz triggerWeeklyBackupEmail)
 
@@ -6087,8 +6132,30 @@ function AppInner({onLogout, onChangePassword}: {onLogout?: ()=>void; onChangePa
           {jobsBackupStatus && (jobsBackupStatus.prev > 0 || jobsBackupStatus.prev2 > 0) && (
             <p className="text-[10px] text-muted-foreground px-1 leading-snug">
               Kopie chmury: {jobsBackupStatus.prev} / {jobsBackupStatus.prev2} rob.
+              {fullDataBackupStatus?.dailyBackupDate ? ` · dzienna ${fullDataBackupStatus.dailyBackupDate}` : ""}
             </p>
           )}
+          {listLocalDataSnapshots().length > 0 && (
+            <p className="text-[10px] text-muted-foreground px-1 leading-snug">
+              Lokalna kopia: {new Date(listLocalDataSnapshots()[0].at).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" })}
+            </p>
+          )}
+          <button
+            type="button"
+            disabled={restoreBusy || !fullDataBackupStatus?.hasPrev}
+            onClick={() => restoreAllDataFromCloud("prev")}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10 transition-colors disabled:opacity-40"
+          >
+            <RotateCcw size={13}/>Przywróć wszystkie dane (chmura)
+          </button>
+          <button
+            type="button"
+            disabled={restoreBusy || listLocalDataSnapshots().length === 0}
+            onClick={() => restoreAllDataFromLocal(false)}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-40"
+          >
+            <RotateCcw size={13}/>Przywróć wszystkie dane (lokalnie)
+          </button>
           <button
             type="button"
             disabled={restoreBusy || !payrollBackupStatus?.employeesPrev}
