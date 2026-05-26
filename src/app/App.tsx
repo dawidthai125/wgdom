@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef, Fragment } from "react";
 import { ImageWithFallback } from "@/app/components/figma/ImageWithFallback";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
@@ -314,6 +314,43 @@ function hoursFromPayrollDay(day: DayData): number {
 
 function duplicateWorkEntry(entry: WorkEntry, date: string): WorkEntry {
   return { ...entry, id: crypto.randomUUID(), date };
+}
+
+function workEntryGroupKey(entry: WorkEntry): string {
+  return entry.directoryId || `name:${entry.employeeName}`;
+}
+
+interface WorkEntryGroup {
+  key: string;
+  directoryId: string;
+  employeeName: string;
+  entries: WorkEntry[];
+  totalHours: number;
+  totalCost: number;
+  dayCount: number;
+}
+
+function groupWorkEntriesByEmployee(entries: WorkEntry[]): WorkEntryGroup[] {
+  const map = new Map<string, WorkEntry[]>();
+  for (const e of entries) {
+    const k = workEntryGroupKey(e);
+    if (!map.has(k)) map.set(k, []);
+    map.get(k)!.push(e);
+  }
+  return [...map.entries()]
+    .map(([key, ents]) => {
+      const sorted = [...ents].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+      return {
+        key,
+        directoryId: sorted[0].directoryId,
+        employeeName: sorted[0].employeeName,
+        entries: sorted,
+        totalHours: sorted.reduce((s, e) => s + e.hours, 0),
+        totalCost: sorted.reduce((s, e) => s + e.hours * e.rate, 0),
+        dayCount: new Set(sorted.map((e) => e.date)).size,
+      };
+    })
+    .sort((a, b) => a.employeeName.localeCompare(b.employeeName, "pl"));
 }
 
 function collectEntriesFromYesterday(job: Job, targetDate: string): WorkEntry[] {
@@ -2409,6 +2446,7 @@ function JobsView({
   const [statusWarning, setStatusWarning] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [expandedWorkerKeys, setExpandedWorkerKeys] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!initialJobId) return;
@@ -2430,6 +2468,24 @@ function JobsView({
     () => (selectedJob ? workEntriesFromPayrollForDate(selectedJob, weekEmployees, weekFrom, todayIso) : []),
     [selectedJob, weekEmployees, weekFrom, todayIso],
   );
+
+  const workerGroups = useMemo(
+    () => groupWorkEntriesByEmployee(selectedJob?.workEntries ?? []),
+    [selectedJob?.workEntries],
+  );
+
+  useEffect(() => {
+    setExpandedWorkerKeys(new Set());
+  }, [selectedJobId]);
+
+  const toggleWorkerGroup = (key: string) => {
+    setExpandedWorkerKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
 
   const docsCount = (job: Job) => DOCUMENT_TYPES.filter(d=>job.documents[d]).length;
   const allDocsDone = (job: Job) => REQUIRED_DOCS.every(d=>job.documents[d]);
@@ -3126,65 +3182,152 @@ function JobsView({
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-xs text-muted-foreground border-b border-border" style={{fontFamily:"'JetBrains Mono', monospace"}}>
-                        <th className="px-5 py-2.5 text-left">Data</th>
-                        <th className="px-3 py-2.5 text-left">Pracownik</th>
-                        <th className="px-3 py-2.5 text-left hidden lg:table-cell">Notatka</th>
+                        <th className="px-5 py-2.5 text-left">Pracownik</th>
+                        <th className="px-3 py-2.5 text-right">Dni</th>
                         <th className="px-3 py-2.5 text-right">Godziny</th>
-                        <th className="px-3 py-2.5 text-right">Stawka</th>
                         <th className="px-3 py-2.5 text-right">Koszt</th>
                         <th className="px-3 py-2.5 w-16"/>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {selectedJob.workEntries.map(entry=>{
-                        const canCopyToday = entry.date !== todayIso && !selectedJob.workEntries.some(
-                          (e) => e.date === todayIso && (e.directoryId === entry.directoryId || e.employeeName === entry.employeeName),
-                        );
+                      {workerGroups.map((group) => {
+                        const isMulti = group.entries.length > 1;
+                        const isExpanded = isMulti && expandedWorkerKeys.has(group.key);
+                        const canCopyToday = !selectedJob.workEntries.some(
+                          (e) => e.date === todayIso && (e.directoryId === group.directoryId || e.employeeName === group.employeeName),
+                        ) && group.entries.some((e) => e.date !== todayIso);
+
+                        if (!isMulti) {
+                          const entry = group.entries[0];
+                          return (
+                            <tr key={group.key} className="hover:bg-secondary/20">
+                              <td className="px-5 py-3">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className="w-3.5 shrink-0"/>
+                                  <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
+                                    {group.employeeName ? group.employeeName[0].toUpperCase() : "?"}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <span className="text-sm font-medium block truncate">{group.employeeName || "—"}</span>
+                                    <span className="text-[11px] text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtDate(entry.date)}</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-3 py-3 text-right text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>1</td>
+                              <td className="px-3 py-3 text-right font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(entry.hours)}</td>
+                              <td className="px-3 py-3 text-right">
+                                <span className="text-xs text-muted-foreground block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(entry.rate)} PLN/h</span>
+                                <span className="text-sm font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(entry.hours * entry.rate)}</span>
+                              </td>
+                              <td className="px-3 py-3">
+                                <div className="flex items-center justify-end gap-0.5">
+                                  {canCopyToday && (
+                                    <button type="button" onClick={() => copyEntryToToday(entry)} title="Kopiuj na dziś" className="p-1 text-primary hover:text-primary/80 transition-colors rounded">
+                                      <Copy size={12}/>
+                                    </button>
+                                  )}
+                                  <button onClick={() => updateJob({ ...selectedJob, workEntries: selectedJob.workEntries.filter((e) => e.id !== entry.id) })} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded">
+                                    <Trash2 size={12}/>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        }
+
                         return (
-                        <tr key={entry.id} className="hover:bg-secondary/20">
-                          <td className="px-5 py-3 text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtDate(entry.date)}</td>
-                          <td className="px-3 py-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{entry.employeeName?entry.employeeName[0].toUpperCase():"?"}</div>
-                              <span className="text-sm font-medium">{entry.employeeName||"—"}</span>
-                            </div>
-                          </td>
-                          <td className="px-3 py-3 hidden lg:table-cell">
-                            <input type="text" placeholder="np. łazienka, elektryka..." value={entry.notes||""}
-                              onChange={e=>updateJob({...selectedJob,workEntries:selectedJob.workEntries.map(we=>we.id===entry.id?{...we,notes:e.target.value}:we)})}
-                              className="w-full bg-transparent text-xs text-muted-foreground placeholder:text-muted-foreground/30 border-b border-transparent hover:border-border focus:border-primary focus:outline-none transition-colors py-1"/>
-                          </td>
-                          <td className="px-3 py-3 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(entry.hours)}</td>
-                          <td className="px-3 py-3 text-right text-muted-foreground text-xs" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(entry.rate)} PLN/h</td>
-                          <td className="px-3 py-3 text-right font-semibold text-primary text-sm" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(entry.hours*entry.rate)}</td>
-                          <td className="px-3 py-3">
-                            <div className="flex items-center justify-end gap-0.5">
-                              {canCopyToday && (
-                                <button
-                                  type="button"
-                                  onClick={() => copyEntryToToday(entry)}
-                                  title="Kopiuj na dziś"
-                                  className="p-1 text-primary hover:text-primary/80 transition-colors rounded"
-                                >
-                                  <Copy size={12}/>
-                                </button>
-                              )}
-                              <button onClick={()=>updateJob({...selectedJob,workEntries:selectedJob.workEntries.filter(e=>e.id!==entry.id)})} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded">
-                                <Trash2 size={12}/>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
+                          <Fragment key={group.key}>
+                            <tr
+                              className={`cursor-pointer hover:bg-secondary/30 ${isExpanded ? "bg-secondary/15" : ""}`}
+                              onClick={() => toggleWorkerGroup(group.key)}
+                            >
+                              <td className="px-5 py-3">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  {isExpanded
+                                    ? <ChevronDown size={14} className="text-muted-foreground shrink-0"/>
+                                    : <ChevronRight size={14} className="text-muted-foreground shrink-0"/>}
+                                  <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
+                                    {group.employeeName ? group.employeeName[0].toUpperCase() : "?"}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <span className="text-sm font-medium block truncate">{group.employeeName || "—"}</span>
+                                    <span className="text-[10px] text-muted-foreground/70">
+                                      {group.entries.length} wpis{group.entries.length < 5 ? "y" : "ów"} · kliknij aby rozwinąć
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-3 py-3 text-right text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{group.dayCount}</td>
+                              <td className="px-3 py-3 text-right font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(group.totalHours)}</td>
+                              <td className="px-3 py-3 text-right font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(group.totalCost)}</td>
+                              <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                                {canCopyToday && (
+                                  <div className="flex items-center justify-end">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const last = group.entries.find((e) => e.date !== todayIso);
+                                        if (last) copyEntryToToday(last);
+                                      }}
+                                      title="Kopiuj ostatni wpis na dziś"
+                                      className="p-1 text-primary hover:text-primary/80 transition-colors rounded"
+                                    >
+                                      <Copy size={12}/>
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                            {isExpanded && group.entries.map((entry) => (
+                              <tr key={entry.id} className="bg-secondary/10 hover:bg-secondary/20 border-t border-border/50">
+                                <td className="pl-12 pr-3 py-2.5">
+                                  <span className="text-xs text-muted-foreground block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtDate(entry.date)}</span>
+                                  <input
+                                    type="text"
+                                    placeholder="Notatka..."
+                                    value={entry.notes || ""}
+                                    onChange={(e) => updateJob({
+                                      ...selectedJob,
+                                      workEntries: selectedJob.workEntries.map((we) => we.id === entry.id ? { ...we, notes: e.target.value } : we),
+                                    })}
+                                    className="w-full mt-1 bg-transparent text-[11px] text-muted-foreground placeholder:text-muted-foreground/30 border-b border-transparent hover:border-border focus:border-primary focus:outline-none transition-colors py-0.5"
+                                  />
+                                </td>
+                                <td className="px-3 py-2.5 text-right text-[11px] text-muted-foreground">—</td>
+                                <td className="px-3 py-2.5 text-right text-xs" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(entry.hours)}</td>
+                                <td className="px-3 py-2.5 text-right">
+                                  <span className="text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(entry.rate)} PLN/h · </span>
+                                  <span className="text-xs font-medium text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(entry.hours * entry.rate)}</span>
+                                </td>
+                                <td className="px-3 py-2.5">
+                                  <div className="flex items-center justify-end gap-0.5">
+                                    {entry.date !== todayIso && !selectedJob.workEntries.some(
+                                      (e) => e.date === todayIso && (e.directoryId === entry.directoryId || e.employeeName === entry.employeeName),
+                                    ) && (
+                                      <button type="button" onClick={() => copyEntryToToday(entry)} title="Kopiuj na dziś" className="p-1 text-primary hover:text-primary/80 transition-colors rounded">
+                                        <Copy size={11}/>
+                                      </button>
+                                    )}
+                                    <button onClick={() => updateJob({ ...selectedJob, workEntries: selectedJob.workEntries.filter((e) => e.id !== entry.id) })} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded">
+                                      <Trash2 size={11}/>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </Fragment>
                         );
                       })}
                     </tbody>
                     <tfoot>
                       <tr className="border-t-2 border-border bg-secondary/30">
-                        <td colSpan={2} className="px-5 py-2.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">Suma</td>
-                        <td className="px-3 py-2.5 text-right text-xs font-bold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(jobTotalHours(selectedJob))}</td>
-                        <td className="px-3 py-2.5 text-right text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>
-                          {new Set(selectedJob.workEntries.map(e=>e.date)).size} dni
+                        <td className="px-5 py-2.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                          Suma · {workerGroups.length} os.
                         </td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                          {new Set(selectedJob.workEntries.map((e) => e.date)).size}
+                        </td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(jobTotalHours(selectedJob))}</td>
                         <td className="px-3 py-2.5 text-right text-sm font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(jobCost(selectedJob))}</td>
                         <td/>
                       </tr>
@@ -4362,6 +4505,13 @@ function HelpView() {
 // ─── Changelog ───────────────────────────────────────────────────────────────
 
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.5.4", label:"Pracownicy na robocie — grupowanie",
+    items:[
+      {type:"improve", text:"Wpisy pracy grupowane po pracowniku — jeden wiersz z sumą zamiast długiej listy"},
+      {type:"new", text:"Rozwijana lista dni — kliknij pracownika z wieloma wpisami, aby zobaczyć daty, godziny i stawki"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.5.3", label:"Szybsze wpisy pracowników na robocie",
     items:[
