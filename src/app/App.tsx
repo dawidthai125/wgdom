@@ -7898,6 +7898,12 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-26", version:"2.19.4", label:"SMS — komunikat trybu testowego SMSAPI",
+    items:[
+      {type:"improve", text:"SMS pilne — wyraźniejszy błąd gdy konto SMSAPI jest testowe (tylko numer z rejestracji)"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.19.3", label:"SMS — zespół + poprawka zaznaczania",
     items:[
       {type:"improve", text:"SMS pilne — lista obejmuje też adminów, moderatorów, super admina i inspektorów (numery z ⚙ Super Admin)"},

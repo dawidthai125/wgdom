@@ -159,7 +159,10 @@ export function EmployeeSmsModal({
         errors?: string[];
       };
       if (!res.ok || !data.ok) {
-        setError(data.error || "Wysyłka nie powiodła się");
+        const detail = data.errors?.length
+          ? data.errors.join("\n")
+          : data.error || "Wysyłka nie powiodła się";
+        setError(detail);
         return;
       }
       setResult({
@@ -167,6 +170,9 @@ export function EmployeeSmsModal({
         failed: data.failed ?? 0,
         errors: data.errors ?? [],
       });
+      if ((data.failed ?? 0) > 0 && data.errors?.length) {
+        setError(`Wysłano ${data.sent ?? 0}, nie udało się ${data.failed}: ${data.errors.slice(0, 3).join(" · ")}`);
+      }
       setMessage("");
       setSelected(new Set(eligible.map((r) => r.id)));
     } catch {
@@ -296,6 +302,14 @@ export function EmployeeSmsModal({
                     </>
                   )}
                 </div>
+              </div>
+
+              <div className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/25 rounded-xl px-3 py-2.5">
+                <AlertTriangle size={14} className="text-blue-500 shrink-0 mt-0.5"/>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground/90">Nowe konto SMSAPI</strong> wysyła SMS tylko na numer z rejestracji (ten z formularza smsapi.pl).
+                  Do wysyłki do całej ekipy: doładuj konto, uzupełnij dane firmy i poczekaj na aktywację w panelu SMSAPI.
+                </p>
               </div>
 
               <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 rounded-xl px-3 py-2.5">

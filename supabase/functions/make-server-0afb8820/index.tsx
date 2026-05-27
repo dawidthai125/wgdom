@@ -1214,7 +1214,11 @@ async function sendViaSmsApi(to: string, message: string): Promise<{ ok: boolean
         return { ok: false, error: "Nieprawidłowe pole nadawcy (SMSAPI_FROM) — usuń sekret albo ustaw zatwierdzoną nazwę z panelu SMSAPI", invalidFrom: true };
       }
       if (json.error === 98) {
-        return { ok: false, error: "Konto testowe SMSAPI — wyślij tylko na numer podany przy rejestracji" };
+        return {
+          ok: false,
+          error: "Konto SMSAPI w trybie testowym — SMS można wysłać tylko na numer podany przy rejestracji w smsapi.pl. Aby wysyłać do pracowników: doładuj konto i zweryfikuj firmę w panelu SMSAPI (Ustawienia → Dane firmy).",
+          testAccount: true,
+        };
       }
       if (json.error && json.error !== 0) {
         return { ok: false, error: json.message || `SMSAPI error ${json.error}` };
