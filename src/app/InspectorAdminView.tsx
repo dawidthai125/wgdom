@@ -20,9 +20,11 @@ import {
   markAdminJobNotesSeen,
   getUnseenInspectorFeed,
 } from "@/lib/inspector-stats";
-import { jobsWithInspectorNotesNeedingAdmin } from "@/lib/job-wm";
+import { jobsWithInspectorNotesNeedingAdmin, normalizeJobWmFields } from "@/lib/job-wm";
 import { WmPortfolioView } from "@/app/WmPortfolioView";
+import { InspectorAdminJobDetail } from "@/app/InspectorAdminJobDetail";
 import type { JobWmJob } from "@/lib/job-wm";
+import type { EmailContact } from "@/lib/email-contacts";
 
 type FilterKind = "all" | InspectorActivityType;
 
@@ -136,18 +138,29 @@ function FeedCard({
 
 export function InspectorAdminView({
   jobs,
-  onOpenJob,
+  setJobs,
   adminUserId,
+  adminDisplayName = "Administrator",
   initialTab = "activity",
+  initialJobId,
+  onInitialJobConsumed,
+  contacts,
+  athPreviewEnabled,
   onAlertsSeen,
 }: {
   jobs: JobWithActivity[];
-  onOpenJob: (jobId: string) => void;
+  setJobs: (v: JobWithActivity[] | ((p: JobWithActivity[]) => JobWithActivity[])) => void;
   adminUserId?: string;
+  adminDisplayName?: string;
   initialTab?: "activity" | "portfolio";
+  initialJobId?: string | null;
+  onInitialJobConsumed?: () => void;
+  contacts: EmailContact[];
+  athPreviewEnabled: boolean;
   onAlertsSeen?: () => void;
 }) {
   const [tab, setTab] = useState<"activity" | "portfolio">(initialTab);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterKind>("all");
   const [statsStore, setStatsStore] = useState<InspectorStatsStore | null>(null);
@@ -156,6 +169,23 @@ export function InspectorAdminView({
   useEffect(() => {
     setTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    if (!initialJobId) return;
+    if (jobs.some((j) => j.id === initialJobId)) {
+      setSelectedJobId(initialJobId);
+    }
+    onInitialJobConsumed?.();
+  }, [initialJobId, jobs, onInitialJobConsumed]);
+
+  const openJob = (jobId: string) => setSelectedJobId(jobId);
+
+  const selectedJob = jobs.find((j) => j.id === selectedJobId) ?? null;
+
+  const updateJob = (updated: JobWithActivity) => {
+    const next = normalizeJobWmFields(updated) as JobWithActivity;
+    setJobs((prev) => prev.map((j) => (j.id === next.id ? next : j)));
+  };
 
   const notesNeedingAdmin = useMemo(
     () => jobsWithInspectorNotesNeedingAdmin(jobs as JobWmJob[], getAdminJobNotesSeenAt(adminUserId)).length,
@@ -232,6 +262,19 @@ export function InspectorAdminView({
     { key: "inspector_photo", label: "Zdjęcia" },
   ];
 
+  if (selectedJob) {
+    return (
+      <InspectorAdminJobDetail
+        job={selectedJob}
+        onUpdate={updateJob}
+        onBack={() => setSelectedJobId(null)}
+        actorName={adminDisplayName}
+        contacts={contacts}
+        athPreviewEnabled={athPreviewEnabled}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="px-4 sm:px-6 py-3 border-b border-border bg-card/50 shrink-0 flex gap-2">
@@ -255,7 +298,7 @@ export function InspectorAdminView({
       </div>
 
       {tab === "portfolio" ? (
-        <WmPortfolioView jobs={jobs as JobWmJob[]} onOpenJob={onOpenJob} notesNeedingAdmin={notesNeedingAdmin}/>
+        <WmPortfolioView jobs={jobs as JobWmJob[]} onOpenJob={openJob} notesNeedingAdmin={notesNeedingAdmin}/>
       ) : (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="px-4 sm:px-6 py-4 border-b border-border bg-card/50 shrink-0 space-y-4">
@@ -385,7 +428,7 @@ export function InspectorAdminView({
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-1">{group.label}</p>
               <div className="space-y-2">
                 {group.items.map((item) => (
-                  <FeedCard key={item.id} item={item} onOpenJob={onOpenJob}/>
+                  <FeedCard key={item.id} item={item} onOpenJob={openJob}/>
                 ))}
               </div>
             </div>
