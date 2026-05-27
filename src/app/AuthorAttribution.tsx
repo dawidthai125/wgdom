@@ -1,13 +1,11 @@
 import { Phone } from "lucide-react";
 import type { AdminRole } from "@/lib/admin-auth";
 import { resolveAuthorContact } from "@/lib/content-author-contact";
-import type { RoleContactPhones } from "@/lib/app-settings";
 import type { JobNoteAuthorRole } from "@/lib/job-wm";
 
 export function AuthorAttribution({
   name,
   directory,
-  roleContactPhones,
   noteRole,
   reportAdminRole,
   className = "",
@@ -15,7 +13,6 @@ export function AuthorAttribution({
 }: {
   name: string;
   directory: { name: string; phone: string }[];
-  roleContactPhones: RoleContactPhones;
   noteRole?: JobNoteAuthorRole;
   reportAdminRole?: AdminRole | "worker";
   className?: string;
@@ -23,7 +20,6 @@ export function AuthorAttribution({
 }) {
   const resolved = resolveAuthorContact(name, {
     directory,
-    roleContactPhones,
     noteRole,
     reportAdminRole,
   });

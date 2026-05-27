@@ -19,7 +19,6 @@ import {
   type JobWmJob,
   type InspectorPhotoEntry,
 } from "@/lib/job-wm";
-import type { RoleContactPhones } from "@/lib/app-settings";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
 
 export type JobWmJobMutable = JobWmJob & {
@@ -36,7 +35,6 @@ type JobWmPanelProps = {
   canAddNotes?: boolean;
   canUploadPhotos?: boolean;
   directory?: { name: string; phone: string }[];
-  roleContactPhones?: RoleContactPhones;
 };
 
 export function JobWmPanel({
@@ -49,7 +47,6 @@ export function JobWmPanel({
   canAddNotes = true,
   canUploadPhotos = true,
   directory = [],
-  roleContactPhones,
 }: JobWmPanelProps) {
   const [noteText, setNoteText] = useState("");
   const [photoCaption, setPhotoCaption] = useState("");
@@ -195,7 +192,6 @@ export function JobWmPanel({
                     name={n.author}
                     noteRole={n.authorRole}
                     directory={directory}
-                    roleContactPhones={roleContactPhones || { super_admin: "", admin: "", moderator: "" }}
                     accentClass={n.authorRole === "inspector" ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-primary font-medium"}
                   />
                   <span className="text-muted-foreground">
@@ -251,17 +247,14 @@ export function JobWmPanel({
                     <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[9px] px-1 py-0.5 truncate">{p.caption}</span>
                   )}
                 </a>
-                {roleContactPhones && (
-                  <p className="text-[9px] text-muted-foreground truncate px-0.5">
-                    <AuthorAttribution
-                      name={p.uploadedBy}
-                      noteRole="inspector"
-                      directory={directory}
-                      roleContactPhones={roleContactPhones}
-                      accentClass="text-muted-foreground font-medium"
-                    />
-                  </p>
-                )}
+                <p className="text-[9px] text-muted-foreground truncate px-0.5">
+                  <AuthorAttribution
+                    name={p.uploadedBy}
+                    noteRole="inspector"
+                    directory={directory}
+                    accentClass="text-muted-foreground font-medium"
+                  />
+                </p>
               </div>
             ))}
           </div>

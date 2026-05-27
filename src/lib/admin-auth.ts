@@ -60,6 +60,9 @@ export interface AdminUsersConfig {
 
   customUsers: AdminCustomUser[];
 
+  /** userId → numer telefonu (widoczny dla inspektora po najechaniu na autora) */
+  contactPhones?: Record<string, string>;
+
 }
 
 
@@ -75,6 +78,8 @@ export interface AdminUserManagementRow extends AdminSession {
   canDelete: boolean;
 
   passwordCustomized: boolean;
+
+  phone: string;
 
 }
 
@@ -152,7 +157,7 @@ export const ADMIN_SESSION_KEY = "wg-admin-session";
 
 
 
-const EMPTY_USERS_CONFIG: AdminUsersConfig = { roleOverrides: {}, customUsers: [] };
+const EMPTY_USERS_CONFIG: AdminUsersConfig = { roleOverrides: {}, customUsers: [], contactPhones: {} };
 
 
 
@@ -230,7 +235,19 @@ function normalizeUsersConfig(raw: unknown): AdminUsersConfig {
 
     : [];
 
-  return { roleOverrides, customUsers };
+  const contactPhones: Record<string, string> = {};
+
+  if (o.contactPhones && typeof o.contactPhones === "object" && !Array.isArray(o.contactPhones)) {
+
+    for (const [id, phone] of Object.entries(o.contactPhones)) {
+
+      if (typeof phone === "string") contactPhones[id] = phone;
+
+    }
+
+  }
+
+  return { roleOverrides, customUsers, contactPhones };
 
 }
 
@@ -273,6 +290,8 @@ export function mergeAdminUsersConfig(local: AdminUsersConfig, cloud: unknown): 
     roleOverrides: { ...l.roleOverrides, ...c.roleOverrides },
 
     customUsers: [...customById.values()],
+
+    contactPhones: { ...l.contactPhones, ...c.contactPhones },
 
   };
 
@@ -410,6 +429,8 @@ export function listAdminUsersForManagement(): AdminUserManagementRow[] {
 
   const overrides = loadAdminPasswordOverrides();
 
+  const contactPhones = loadAdminUsersConfig().contactPhones ?? {};
+
   return getAllAdminAccounts().map((a) => ({
 
     id: a.id,
@@ -430,7 +451,23 @@ export function listAdminUsersForManagement(): AdminUserManagementRow[] {
 
     passwordCustomized: a.isBuiltin ? a.id in overrides : true,
 
+    phone: contactPhones[a.id] ?? "",
+
   }));
+
+}
+
+
+
+export async function setAdminUserPhone(userId: string, phone: string): Promise<void> {
+
+  if (!findAdminAccountById(userId)) throw new Error("Nie znaleziono użytkownika");
+
+  const config = loadAdminUsersConfig();
+
+  const contactPhones = { ...(config.contactPhones ?? {}), [userId]: phone.trim() };
+
+  await persistAdminUsersConfig({ ...config, contactPhones });
 
 }
 

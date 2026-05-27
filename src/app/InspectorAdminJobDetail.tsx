@@ -25,7 +25,6 @@ import {
   type JobHandoverStage,
 } from "@/lib/job-wm";
 import type { EmailContact } from "@/lib/email-contacts";
-import type { RoleContactPhones } from "@/lib/app-settings";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
 import type { AdminRole } from "@/lib/admin-auth";
 
@@ -45,7 +44,6 @@ export function InspectorAdminJobDetail({
   contacts,
   athPreviewEnabled,
   directory,
-  roleContactPhones,
 }: {
   job: JobWithActivity & JobWmJobMutable;
   onUpdate: (job: JobWithActivity & JobWmJobMutable) => void;
@@ -55,7 +53,6 @@ export function InspectorAdminJobDetail({
   contacts: EmailContact[];
   athPreviewEnabled: boolean;
   directory: { name: string; phone: string }[];
-  roleContactPhones: RoleContactPhones;
 }) {
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
   const [stageSuggestion, setStageSuggestion] = useState<JobHandoverStage | null>(null);
@@ -154,7 +151,6 @@ export function InspectorAdminJobDetail({
           actorName={actorName}
           actorRole="admin"
           directory={directory}
-          roleContactPhones={roleContactPhones}
         />
 
         <div className="bg-card rounded-xl border border-emerald-500/25 overflow-hidden">
@@ -200,7 +196,6 @@ export function InspectorAdminJobDetail({
                         <AuthorAttribution
                           name={file.uploadedBy}
                           directory={directory}
-                          roleContactPhones={roleContactPhones}
                           accentClass="text-muted-foreground font-medium"
                         />
                         {" · "}
@@ -253,7 +248,6 @@ export function InspectorAdminJobDetail({
                     <AuthorAttribution
                       name={ev.actor}
                       directory={directory}
-                      roleContactPhones={roleContactPhones}
                       accentClass="text-foreground/90 font-medium"
                     />
                   </span>

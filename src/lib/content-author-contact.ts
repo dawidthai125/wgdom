@@ -1,8 +1,7 @@
-/** Dopasowanie autora treści → telefon (pracownik z kartoteki lub rola admina). */
+/** Dopasowanie autora treści → telefon (pracownik z kartoteki lub konto admina). */
 
 import type { AdminRole } from "@/lib/admin-auth";
-import { getAllAdminAccounts } from "@/lib/admin-auth";
-import type { RoleContactPhones } from "@/lib/app-settings";
+import { getAllAdminAccounts, loadAdminUsersConfig } from "@/lib/admin-auth";
 import type { JobNoteAuthorRole } from "@/lib/job-wm";
 
 export function personNamesMatch(a: string, b: string): boolean {
@@ -26,13 +25,6 @@ export interface ResolvedAuthor {
   roleLabel: string | null;
 }
 
-function rolePhone(role: AdminRole, phones: RoleContactPhones): string | null {
-  if (role === "super_admin") return phones.super_admin.trim() || null;
-  if (role === "admin") return phones.admin.trim() || null;
-  if (role === "moderator") return phones.moderator.trim() || null;
-  return null;
-}
-
 function adminRoleLabelShort(role: AdminRole): string {
   switch (role) {
     case "super_admin": return "Super Admin";
@@ -43,12 +35,17 @@ function adminRoleLabelShort(role: AdminRole): string {
   }
 }
 
-function findAdminByName(name: string): { role: AdminRole; displayName: string } | null {
+function adminPhoneById(id: string): string | null {
+  const ph = (loadAdminUsersConfig().contactPhones?.[id] ?? "").trim();
+  return ph || null;
+}
+
+function findAdminByName(name: string): { id: string; role: AdminRole; displayName: string } | null {
   const n = name.trim();
   if (!n) return null;
   for (const a of getAllAdminAccounts()) {
     if (personNamesMatch(n, a.displayName) || personNamesMatch(n, a.login)) {
-      return { role: a.role, displayName: a.displayName };
+      return { id: a.id, role: a.role, displayName: a.displayName };
     }
   }
   return null;
@@ -70,7 +67,6 @@ export function resolveAuthorContact(
   name: string,
   opts: {
     directory: { name: string; phone: string }[];
-    roleContactPhones: RoleContactPhones;
     noteRole?: JobNoteAuthorRole;
     reportAdminRole?: AdminRole | "worker";
   },
@@ -86,7 +82,7 @@ export function resolveAuthorContact(
     const admin = findAdminByName(raw);
     return {
       name: admin?.displayName || raw,
-      phone: admin?.role === "inspector" ? findWorkerPhone(raw, opts.directory) : null,
+      phone: admin ? adminPhoneById(admin.id) : findWorkerPhone(raw, opts.directory),
       kind: "inspector",
       roleLabel: "Inspektor",
     };
@@ -107,7 +103,7 @@ export function resolveAuthorContact(
     if (role !== "inspector") {
       return {
         name: admin?.displayName || raw,
-        phone: rolePhone(role, opts.roleContactPhones),
+        phone: admin ? adminPhoneById(admin.id) : null,
         kind: "admin",
         roleLabel: adminRoleLabelShort(role),
       };
@@ -115,19 +111,14 @@ export function resolveAuthorContact(
   }
 
   if (lower === "administrator") {
-    return {
-      name: raw,
-      phone: rolePhone("admin", opts.roleContactPhones),
-      kind: "admin",
-      roleLabel: "Administrator",
-    };
+    return { name: raw, phone: null, kind: "admin", roleLabel: "Administrator" };
   }
 
   const admin = findAdminByName(raw);
   if (admin && admin.role !== "inspector") {
     return {
       name: admin.displayName,
-      phone: rolePhone(admin.role, opts.roleContactPhones),
+      phone: adminPhoneById(admin.id),
       kind: "admin",
       roleLabel: adminRoleLabelShort(admin.role),
     };
@@ -136,7 +127,7 @@ export function resolveAuthorContact(
   if (admin?.role === "inspector") {
     return {
       name: admin.displayName,
-      phone: findWorkerPhone(raw, opts.directory),
+      phone: adminPhoneById(admin.id) || findWorkerPhone(raw, opts.directory),
       kind: "inspector",
       roleLabel: "Inspektor",
     };
@@ -148,9 +139,10 @@ export function resolveAuthorContact(
   }
 
   if (opts.noteRole === "admin") {
+    const noteAdmin = findAdminByName(raw);
     return {
-      name: raw,
-      phone: rolePhone("admin", opts.roleContactPhones),
+      name: noteAdmin?.displayName || raw,
+      phone: noteAdmin ? adminPhoneById(noteAdmin.id) : null,
       kind: "admin",
       roleLabel: "Administrator",
     };

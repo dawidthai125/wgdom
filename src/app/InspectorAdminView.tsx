@@ -25,7 +25,6 @@ import { WmPortfolioView } from "@/app/WmPortfolioView";
 import { InspectorAdminJobDetail } from "@/app/InspectorAdminJobDetail";
 import type { JobWmJob } from "@/lib/job-wm";
 import type { EmailContact } from "@/lib/email-contacts";
-import type { RoleContactPhones } from "@/lib/app-settings";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
 
 type FilterKind = "all" | InspectorActivityType;
@@ -85,12 +84,10 @@ function FeedCard({
   item,
   onOpenJob,
   directoryContacts,
-  roleContactPhones,
 }: {
   item: InspectorFeedItem;
   onOpenJob: (jobId: string) => void;
   directoryContacts: { name: string; phone: string }[];
-  roleContactPhones: RoleContactPhones;
 }) {
   const { Icon, cls } = feedTypeIcon(item.type);
   return (
@@ -105,7 +102,6 @@ function FeedCard({
             <AuthorAttribution
               name={item.actor}
               directory={directoryContacts}
-              roleContactPhones={roleContactPhones}
               accentClass="text-foreground/80 font-medium"
             />
             {" · "}
@@ -159,7 +155,6 @@ export function InspectorAdminView({
   onInitialJobConsumed,
   contacts,
   athPreviewEnabled,
-  roleContactPhones,
   onAlertsSeen,
 }: {
   jobs: JobWithActivity[];
@@ -173,7 +168,6 @@ export function InspectorAdminView({
   onInitialJobConsumed?: () => void;
   contacts: EmailContact[];
   athPreviewEnabled: boolean;
-  roleContactPhones: RoleContactPhones;
   onAlertsSeen?: () => void;
 }) {
   const [tab, setTab] = useState<"activity" | "portfolio">(initialTab);
@@ -296,7 +290,6 @@ export function InspectorAdminView({
           contacts={contacts}
           athPreviewEnabled={athPreviewEnabled}
           directory={directoryContacts}
-          roleContactPhones={roleContactPhones}
         />
       </div>
     );
@@ -457,7 +450,7 @@ export function InspectorAdminView({
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-1">{group.label}</p>
                   <div className="space-y-2">
                     {group.items.map((item) => (
-                      <FeedCard key={item.id} item={item} onOpenJob={openJob} directoryContacts={directoryContacts} roleContactPhones={roleContactPhones}/>
+                      <FeedCard key={item.id} item={item} onOpenJob={openJob} directoryContacts={directoryContacts}/>
                     ))}
                   </div>
                 </div>

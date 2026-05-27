@@ -17,6 +17,7 @@ import {
   saveDeletedJobIds,
   normalizeDeletedJobIds,
   JOBS_DELETED_IDS_KEY,
+  ADMIN_USERS_CONFIG_KEY,
 } from "@/lib/cloud-sync";
 import {
   DOCUMENT_TYPES,
@@ -42,8 +43,8 @@ import { InspectorHelpBanner, InspectorHelpModal, InspectorHint } from "@/app/In
 import { normalizeJobWmFields, jobsWithAdminNotesNeedingInspector, applyHandoverStageToJob, inferHandoverStage, HANDOVER_STAGE_LABELS, type JobHandoverStage, type JobWmJob } from "@/lib/job-wm";
 import { WmPortfolioView } from "@/app/WmPortfolioView";
 import { JobWmPanel, JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
-import { syncAppSettingsFromCloud, loadAppSettingsLocal, defaultRoleContactPhones, type AppSettings } from "@/lib/app-settings";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
+import { mergeAdminUsersConfig, loadAdminUsersConfig } from "@/lib/admin-auth";
 
 type JobStatus = "in_progress" | "completed";
 
@@ -181,9 +182,7 @@ export function InspectorPanel({
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const [notesSeenTick, setNotesSeenTick] = useState(0);
   const [stageSuggestion, setStageSuggestion] = useState<{ jobId: string; stage: JobHandoverStage } | null>(null);
-  const [appSettings, setAppSettings] = useState<AppSettings>(() => loadAppSettingsLocal());
 
-  const roleContactPhones = appSettings.roleContactPhones || defaultRoleContactPhones();
   const directoryContacts = useMemo(
     () => directory.map((d) => ({ name: d.name, phone: d.phone })),
     [directory],
@@ -250,7 +249,9 @@ export function InspectorPanel({
         } catch { setDirectory([]); }
       }
       setLastSyncedAt(new Date());
-      syncAppSettingsFromCloud().then(setAppSettings).catch(() => {});
+      const [cloudAdminUsers] = await fetchKeysFromCloud([ADMIN_USERS_CONFIG_KEY]);
+      const mergedAdminUsers = mergeAdminUsersConfig(loadAdminUsersConfig(), cloudAdminUsers);
+      try { localStorage.setItem(ADMIN_USERS_CONFIG_KEY, JSON.stringify(mergedAdminUsers)); } catch { /* ignore */ }
     } catch {
       try {
         setJobs(normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")).map(normalizeJob));
@@ -574,7 +575,6 @@ export function InspectorPanel({
               actorName={displayName}
               actorRole="inspector"
               directory={directoryContacts}
-              roleContactPhones={roleContactPhones}
             />
 
             {jobInspectorHistory(selectedJob).length > 0 && (
@@ -588,7 +588,6 @@ export function InspectorPanel({
                       <AuthorAttribution
                         name={ev.actor}
                         directory={directoryContacts}
-                        roleContactPhones={roleContactPhones}
                         accentClass="text-foreground/90 font-medium"
                       />
                       {" · "}
@@ -635,7 +634,6 @@ export function InspectorPanel({
                           <AuthorAttribution
                             name={file.uploadedBy}
                             directory={directoryContacts}
-                            roleContactPhones={roleContactPhones}
                             accentClass="text-muted-foreground font-medium"
                           />
                           {" · "}
@@ -745,7 +743,6 @@ export function InspectorPanel({
                                 name={report.workerName}
                                 reportAdminRole={report.authorAdminRole || "worker"}
                                 directory={directoryContacts}
-                                roleContactPhones={roleContactPhones}
                                 accentClass="text-sm font-medium text-foreground"
                               />
                             </p>
@@ -854,7 +851,6 @@ export function InspectorPanel({
                               name={p.uploadedBy}
                               reportAdminRole="worker"
                               directory={directoryContacts}
-                              roleContactPhones={roleContactPhones}
                               accentClass="text-muted-foreground font-medium"
                             />
                           </p>

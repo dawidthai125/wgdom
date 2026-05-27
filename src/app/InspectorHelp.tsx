@@ -111,7 +111,7 @@ const SECTIONS = [
     id: "author",
     icon: Phone,
     title: "Kto dodał treść?",
-    body: "Przy raportach, zdjęciach, plikach i notatkach widać imię autora. Najedź palcem lub kursorem — pojawi się numer telefonu, żebyś wiedział do kogo zadzwonić przy błędzie.",
+    body: "Przy raportach, zdjęciach, plikach i notatkach widać imię autora. Najedź palcem lub kursorem — pojawi się jego numer telefonu (wpisany przez Super Admina przy koncie), żebyś wiedział do kogo zadzwonić przy błędzie.",
   },
   {
     id: "portfolio",
