@@ -60,57 +60,57 @@ export function WmPortfolioView({
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="px-4 sm:px-6 py-4 border-b border-border bg-card/50 shrink-0 space-y-4">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <LayoutGrid size={20} className="text-primary"/>
-          </div>
-          <div>
-            <h2 className="text-base font-semibold">Portfolio WM</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Wrocławskie Mieszkania — zbiorczy widok remontów pustostanów</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <StatBox label="Aktywne WM" value={stats.total}/>
-          <StatBox label="Gotowe do odbioru" value={stats.readyForHandover} accent="emerald"/>
-          <StatBox label="Bez zlecenia" value={stats.missingZlecenie} accent="red"/>
-          <StatBox label="Termin minął" value={stats.overduePlanned} accent="amber"/>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {HANDOVER_STAGES.filter((s) => s !== "handed_over").map((s) => (
-            stats.byStage[s] > 0 ? (
-              <span key={s} className={`text-[10px] px-2 py-1 rounded-full font-medium ${stageBadgeClass(s)}`}>
-                {HANDOVER_STAGE_LABELS[s]}: {stats.byStage[s]}
-              </span>
-            ) : null
-          ))}
-        </div>
-
-        {stats.missingAnyDoc > 0 && (
-          <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 space-y-2">
-            <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-              <AlertTriangle size={12}/> Braki dokumentów (ile robót)
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {REQUIRED_DOCS.map((d) => (
-                (missingByDoc[d] ?? 0) > 0 ? (
-                  <span key={d} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-muted-foreground">
-                    {DOC_LABELS[d]}: {missingByDoc[d]}
-                  </span>
-                ) : null
-              ))}
+      <div className="flex-1 overflow-y-auto overscroll-contain">
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 py-6 space-y-6" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <LayoutGrid size={20} className="text-primary"/>
+            </div>
+            <div>
+              <h2 className="text-base font-semibold">Portfolio WM</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Wrocławskie Mieszkania — zbiorczy widok remontów pustostanów</p>
             </div>
           </div>
-        )}
-      </div>
 
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 space-y-2">
-        {sorted.length === 0 ? (
-          <p className="text-center text-sm text-muted-foreground py-12">Brak aktywnych robót WM</p>
-        ) : (
-          sorted.map((job) => {
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <StatBox label="Aktywne WM" value={stats.total}/>
+            <StatBox label="Gotowe do odbioru" value={stats.readyForHandover} accent="emerald"/>
+            <StatBox label="Bez zlecenia" value={stats.missingZlecenie} accent="red"/>
+            <StatBox label="Termin minął" value={stats.overduePlanned} accent="amber"/>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {HANDOVER_STAGES.filter((s) => s !== "handed_over").map((s) => (
+              stats.byStage[s] > 0 ? (
+                <span key={s} className={`text-[10px] px-2 py-1 rounded-full font-medium ${stageBadgeClass(s)}`}>
+                  {HANDOVER_STAGE_LABELS[s]}: {stats.byStage[s]}
+                </span>
+              ) : null
+            ))}
+          </div>
+
+          {stats.missingAnyDoc > 0 && (
+            <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 space-y-2">
+              <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                <AlertTriangle size={12}/> Braki dokumentów (ile robót)
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {REQUIRED_DOCS.map((d) => (
+                  (missingByDoc[d] ?? 0) > 0 ? (
+                    <span key={d} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-muted-foreground">
+                      {DOC_LABELS[d]}: {missingByDoc[d]}
+                    </span>
+                  ) : null
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            {sorted.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-12">Brak aktywnych robót WM</p>
+            ) : (
+              sorted.map((job) => {
             const stage = inferHandoverStage(job);
             const plan = plannedHandoverStatus(job.plannedHandoverDate || "", stage);
             const missing = REQUIRED_DOCS.filter((d) => !job.documents[d]);
@@ -163,7 +163,9 @@ export function WmPortfolioView({
               </button>
             );
           })
-        )}
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

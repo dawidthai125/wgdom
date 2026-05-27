@@ -91,17 +91,19 @@ export function InspectorAdminJobDetail({
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <div className="px-4 sm:px-6 py-2 border-b border-border bg-card/50 shrink-0">
-        <button type="button" onClick={onBack} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px]">
-          <ArrowLeft size={16}/>
-          {job.address || "Bez adresu"}{job.flatNumber ? ` m.${job.flatNumber}` : ""}
-        </button>
+      <div className="shrink-0 border-b border-border bg-card/50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 py-2">
+          <button type="button" onClick={onBack} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px]">
+            <ArrowLeft size={16}/>Lista inspektora
+          </button>
+        </div>
       </div>
 
       <div
-        className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 space-y-5 max-w-3xl mx-auto w-full"
+        className="flex-1 overflow-y-auto overscroll-contain"
         style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
       >
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 py-6 space-y-5 w-full">
         {stageSuggestion && (
           <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
             <p className="text-xs text-emerald-700 dark:text-emerald-300 flex-1">
@@ -244,6 +246,7 @@ export function InspectorAdminJobDetail({
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

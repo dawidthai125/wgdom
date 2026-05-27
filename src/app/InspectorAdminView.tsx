@@ -277,165 +277,165 @@ export function InspectorAdminView({
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="px-4 sm:px-6 py-3 border-b border-border bg-card/50 shrink-0 flex gap-2">
-        <button
-          type="button"
-          onClick={() => setTab("activity")}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium ${tab === "activity" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
-        >
-          <ClipboardCheck size={13}/> Aktywność
-          {unseenCount > 0 && tab !== "activity" && (
-            <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-bold">{unseenCount}</span>
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("portfolio")}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium ${tab === "portfolio" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
-        >
-          <LayoutGrid size={13}/> Portfolio WM
-        </button>
+      <div className="shrink-0 border-b border-border bg-card/50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 py-3 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setTab("activity")}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium ${tab === "activity" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+          >
+            <ClipboardCheck size={13}/> Aktywność
+            {unseenCount > 0 && tab !== "activity" && (
+              <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-bold">{unseenCount}</span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("portfolio")}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium ${tab === "portfolio" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+          >
+            <LayoutGrid size={13}/> Portfolio WM
+          </button>
+        </div>
       </div>
 
       {tab === "portfolio" ? (
         <WmPortfolioView jobs={jobs as JobWmJob[]} onOpenJob={openJob} notesNeedingAdmin={notesNeedingAdmin}/>
       ) : (
-    <div className="flex flex-col flex-1 min-h-0">
-      <div className="px-4 sm:px-6 py-4 border-b border-border bg-card/50 shrink-0 space-y-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
-              <ClipboardCheck size={20} className="text-emerald-600 dark:text-emerald-400"/>
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+          <div className="max-w-4xl mx-auto px-4 sm:px-8 py-6 space-y-6" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                  <ClipboardCheck size={20} className="text-emerald-600 dark:text-emerald-400"/>
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-base font-semibold">Aktywność inspektora</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                    Dokumenty, etapy, notatki i pliki — osobno od zakładki Roboty.
+                  </p>
+                </div>
+              </div>
+              {unseenCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleMarkSeen}
+                  className="shrink-0 text-[11px] px-3 py-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 font-medium"
+                >
+                  Oznacz przeczytane ({unseenCount})
+                </button>
+              )}
             </div>
-            <div className="min-w-0">
-              <h2 className="text-base font-semibold">Aktywność inspektora</h2>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                Dokumenty, etapy, notatki i pliki — osobno od zakładki Roboty.
-              </p>
-            </div>
-          </div>
-          {unseenCount > 0 && (
-            <button
-              type="button"
-              onClick={handleMarkSeen}
-              className="shrink-0 text-[11px] px-3 py-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 font-medium"
-            >
-              Oznacz przeczytane ({unseenCount})
-            </button>
-          )}
-        </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {[
-            { label: "Wszystkie", value: stats.total },
-            { label: "Dokumenty", value: stats.docs },
-            { label: "Pliki", value: stats.files },
-            { label: "Roboty", value: stats.jobs },
-          ].map((s) => (
-            <div key={s.label} className="bg-secondary/50 rounded-xl px-3 py-2.5 border border-border">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{s.label}</p>
-              <p className="text-lg font-semibold mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{s.value}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { label: "Wszystkie", value: stats.total },
+                { label: "Dokumenty", value: stats.docs },
+                { label: "Pliki", value: stats.files },
+                { label: "Roboty", value: stats.jobs },
+              ].map((s) => (
+                <div key={s.label} className="bg-secondary/50 rounded-xl px-3 py-2.5 border border-border">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{s.label}</p>
+                  <p className="text-lg font-semibold mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{s.value}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {loginStats && (
-          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
-                <LogIn size={12}/> Statystyki logowań i wejść
-              </p>
-              <button
-                type="button"
-                onClick={refreshStats}
-                disabled={statsRefreshing}
-                className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg hover:bg-secondary disabled:opacity-50"
-              >
-                <RefreshCw size={11} className={statsRefreshing ? "animate-spin" : ""}/>
-                Odśwież
-              </button>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center sm:text-left">
-              <div>
-                <p className="text-[10px] text-muted-foreground">Logowania (7 dni)</p>
-                <p className="text-base font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{loginStats.loginsLast7Days}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground">Wejścia (7 dni)</p>
-                <p className="text-base font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{loginStats.visitsLast7Days}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground">Ostatnie logowanie</p>
-                <p className="text-[11px] font-medium mt-0.5">{fmtInspectorStatsTime(loginStats.lastLoginAt)}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground">Ostatnie wejście</p>
-                <p className="text-[11px] font-medium mt-0.5">{fmtInspectorStatsTime(loginStats.lastVisitAt)}</p>
-              </div>
-            </div>
-            {loginStats.byUser.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-1 border-t border-emerald-500/10">
-                {loginStats.byUser.map((u) => (
-                  <span key={u.userId} className="text-[10px] bg-secondary px-2 py-1 rounded-full text-muted-foreground">
-                    <Eye size={9} className="inline mr-0.5 -mt-px"/>
-                    {u.displayName}: {u.logins} log. / {u.visits} wej.
-                  </span>
-                ))}
+            {loginStats && (
+              <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                    <LogIn size={12}/> Statystyki logowań i wejść
+                  </p>
+                  <button
+                    type="button"
+                    onClick={refreshStats}
+                    disabled={statsRefreshing}
+                    className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg hover:bg-secondary disabled:opacity-50"
+                  >
+                    <RefreshCw size={11} className={statsRefreshing ? "animate-spin" : ""}/>
+                    Odśwież
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center sm:text-left">
+                  <div>
+                    <p className="text-[10px] text-muted-foreground">Logowania (7 dni)</p>
+                    <p className="text-base font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{loginStats.loginsLast7Days}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground">Wejścia (7 dni)</p>
+                    <p className="text-base font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{loginStats.visitsLast7Days}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground">Ostatnie logowanie</p>
+                    <p className="text-[11px] font-medium mt-0.5">{fmtInspectorStatsTime(loginStats.lastLoginAt)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground">Ostatnie wejście</p>
+                    <p className="text-[11px] font-medium mt-0.5">{fmtInspectorStatsTime(loginStats.lastVisitAt)}</p>
+                  </div>
+                </div>
+                {loginStats.byUser.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1 border-t border-emerald-500/10">
+                    {loginStats.byUser.map((u) => (
+                      <span key={u.userId} className="text-[10px] bg-secondary px-2 py-1 rounded-full text-muted-foreground">
+                        <Eye size={9} className="inline mr-0.5 -mt-px"/>
+                        {u.displayName}: {u.logins} log. / {u.visits} wej.
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
 
-        <div className="flex flex-col gap-2">
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Szukaj adresu, klienta, inspektora…"
-              className="w-full bg-secondary rounded-xl pl-9 pr-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
-            />
-          </div>
-          <div className="flex gap-1.5 flex-wrap">
-            {filterButtons.map((f) => (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => setFilter(f.key)}
-                className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${filter === f.key ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
-              >
-                {f.key !== "all" && <Filter size={11}/>}
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 space-y-6" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
-        {filtered.length === 0 ? (
-          <div className="text-center py-16 space-y-2">
-            <ClipboardCheck size={32} className="mx-auto text-muted-foreground/30"/>
-            <p className="text-sm text-muted-foreground">
-              {feed.length === 0
-                ? "Inspektor jeszcze nic nie zmienił — wpisy pojawią się po zaznaczeniu dokumentów lub wgraniu plików."
-                : "Brak wyników dla wybranych filtrów."}
-            </p>
-          </div>
-        ) : (
-          grouped.map((group) => (
-            <div key={group.label} className="space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-1">{group.label}</p>
-              <div className="space-y-2">
-                {group.items.map((item) => (
-                  <FeedCard key={item.id} item={item} onOpenJob={openJob}/>
+            <div className="flex flex-col gap-2">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Szukaj adresu, klienta, inspektora…"
+                  className="w-full bg-secondary rounded-xl pl-9 pr-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
+                />
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {filterButtons.map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => setFilter(f.key)}
+                    className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${filter === f.key ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
+                  >
+                    {f.key !== "all" && <Filter size={11}/>}
+                    {f.label}
+                  </button>
                 ))}
               </div>
             </div>
-          ))
-        )}
-      </div>
-    </div>
+
+            {filtered.length === 0 ? (
+              <div className="text-center py-16 space-y-2">
+                <ClipboardCheck size={32} className="mx-auto text-muted-foreground/30"/>
+                <p className="text-sm text-muted-foreground">
+                  {feed.length === 0
+                    ? "Inspektor jeszcze nic nie zmienił — wpisy pojawią się po zaznaczeniu dokumentów lub wgraniu plików."
+                    : "Brak wyników dla wybranych filtrów."}
+                </p>
+              </div>
+            ) : (
+              grouped.map((group) => (
+                <div key={group.label} className="space-y-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-1">{group.label}</p>
+                  <div className="space-y-2">
+                    {group.items.map((item) => (
+                      <FeedCard key={item.id} item={item} onOpenJob={openJob}/>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
