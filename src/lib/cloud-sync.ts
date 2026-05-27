@@ -255,22 +255,75 @@ export function weekEmployeesListRichness(list: unknown): number {
   return list.reduce((sum, e) => sum + weekEmployeeRichness(e), 0);
 }
 
-/** Scal listę płac tygodnia — po id pracownika, zachowaj bogatszą wersję. */
+function mergeExtraCostsById(a: unknown, b: unknown): unknown[] {
+  const map = new Map<string, unknown>();
+  for (const item of [...(Array.isArray(a) ? a : []), ...(Array.isArray(b) ? b : [])]) {
+    if (!item || typeof item !== "object") continue;
+    const id = String((item as { id?: string }).id || "");
+    if (id) map.set(id, item);
+  }
+  return [...map.values()];
+}
+
+function mergeDayRecord(local: DayLike | undefined, cloud: DayLike | undefined): DayLike | undefined {
+  if (!local) return cloud;
+  if (!cloud) return local;
+  return dayRichness(local) >= dayRichness(cloud) ? local : cloud;
+}
+
+/** Scal dwa wpisy tego samego pracownika w tygodniu — godziny z bogatszej wersji, stawka z lokalnej (bieżąca edycja). */
+export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown {
+  const l = local as Record<string, unknown>;
+  const c = cloud as Record<string, unknown>;
+  const lr = weekEmployeeRichness(l);
+  const cr = weekEmployeeRichness(c);
+  const base = lr > cr ? { ...l } : cr > lr ? { ...c } : { ...l };
+
+  const lDays = (l.days as Record<string, DayLike>) || {};
+  const cDays = (c.days as Record<string, DayLike>) || {};
+  const mergedDays: Record<string, DayLike> = {};
+  for (const key of new Set([...Object.keys(lDays), ...Object.keys(cDays)])) {
+    const merged = mergeDayRecord(lDays[key], cDays[key]);
+    if (merged) mergedDays[key] = merged;
+  }
+  base.days = mergedDays;
+
+  const lps = l.prevSaturday as DayLike | undefined;
+  const cps = c.prevSaturday as DayLike | undefined;
+  base.prevSaturday = mergeDayRecord(lps, cps) ?? lps ?? cps;
+
+  base.extraCosts = mergeExtraCostsById(l.extraCosts, c.extraCosts);
+
+  if (l.rate !== undefined && String(l.rate).trim() !== "") base.rate = l.rate;
+  else if (c.rate !== undefined) base.rate = c.rate;
+
+  if (l.settled !== undefined) base.settled = l.settled;
+  if (l.name !== undefined && String(l.name).trim() !== "") base.name = l.name;
+  if (l.phone !== undefined && String(l.phone).trim() !== "") base.phone = l.phone;
+  if (l.position !== undefined && String(l.position).trim() !== "") base.position = l.position;
+  if (l.directoryId !== undefined) base.directoryId = l.directoryId;
+
+  return base;
+}
+
+/** Scal listę płac tygodnia — po id pracownika; nie gubi stawki przy równym „bogactwie” godzin. */
 export function mergeWeekEmployees(local: unknown[], cloud: unknown[]): unknown[] {
   const map = new Map<string, unknown>();
-  const ingest = (list: unknown[]) => {
-    for (const item of list) {
-      if (!item || typeof item !== "object") continue;
-      const id = String((item as { id?: string }).id || "");
-      if (!id) continue;
-      const prev = map.get(id);
-      if (!prev || weekEmployeeRichness(item) >= weekEmployeeRichness(prev)) {
-        map.set(id, item);
-      }
-    }
-  };
-  ingest(Array.isArray(local) ? local : []);
-  ingest(Array.isArray(cloud) ? cloud : []);
+  const localArr = Array.isArray(local) ? local : [];
+  const cloudArr = Array.isArray(cloud) ? cloud : [];
+
+  for (const item of localArr) {
+    if (!item || typeof item !== "object") continue;
+    const id = String((item as { id?: string }).id || "");
+    if (id) map.set(id, item);
+  }
+  for (const item of cloudArr) {
+    if (!item || typeof item !== "object") continue;
+    const id = String((item as { id?: string }).id || "");
+    if (!id) continue;
+    const prev = map.get(id);
+    map.set(id, prev ? mergeWeekEmployeeRecord(prev, item) : item);
+  }
   return [...map.values()];
 }
 

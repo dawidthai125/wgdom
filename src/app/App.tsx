@@ -2883,6 +2883,7 @@ function PayrollView({
   onAddFromDirectory, onRemoveWeekEmployee, onUpdateWeekEmployee,   onGoToCurrent,
   onManageContacts,
   onRestoreFromArchive,
+  onSyncRatesFromDirectory,
   initialEmpId,
   onInitialEmpConsumed,
 }:{
@@ -2900,6 +2901,7 @@ function PayrollView({
   onGoToCurrent:()=>void;
   onManageContacts:()=>void;
   onRestoreFromArchive?:()=>void;
+  onSyncRatesFromDirectory?:()=>void;
   initialEmpId?: string | null;
   onInitialEmpConsumed?: () => void;
 }) {
@@ -3056,6 +3058,16 @@ function PayrollView({
                 <button onClick={()=>setShowPicker(true)} className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors">
                   <UserPlus size={14}/>Dodaj pracownika
                 </button>
+                {canViewRates && onSyncRatesFromDirectory && weekEmployees.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={onSyncRatesFromDirectory}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors"
+                    title="Ustaw stawki w tym tygodniu według domyślnych stawek z kartoteki Pracownicy"
+                  >
+                    <RotateCcw size={14}/>Stawki z kartoteki
+                  </button>
+                )}
                 {lastSavedWeek && weekEmployees.length === 0 && (
                   <button onClick={copyFromLastWeek} className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors" title={`Skopiuj pracowników z ${fmtDate(lastSavedWeek.weekFrom)}–${fmtDate(lastSavedWeek.weekTo)}`}>
                     <Copy size={14}/>Kopiuj z poprzedniego tygodnia
@@ -7929,6 +7941,13 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-27", version:"2.19.9", label:"Lista płac — zapis stawek",
+    items:[
+      {type:"fix", text:"Lista płac — zmiana stawki w tygodniu nie znika po odświeżeniu (sync z chmurą nie nadpisywał stawki przy tych samych godzinach)"},
+      {type:"new", text:"Lista płac — przycisk „Stawki z kartoteki” (wyrównanie stawek tygodnia do domyślnych z Pracownicy)"},
+    ],
+  },
+  {
     date:"2026-05-27", version:"2.19.8", label:"Reset kodów pracowników",
     items:[
       {type:"improve", text:"Jednorazowy reset wszystkich kodów PIN pracowników — przy pierwszym wejściu po aktualizacji każdy ustawia kod od nowa"},
@@ -9646,6 +9665,18 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setWeekEmployees((prev)=>prev.map((e)=>e.id===updated.id?updated:e));
   },[setWeekEmployees]);
 
+  const syncWeekRatesFromDirectory = useCallback(() => {
+    const byId = new Map(directory.map((d) => [d.id, d]));
+    setWeekEmployees((prev) =>
+      prev.map((emp) => {
+        if (!emp.directoryId) return emp;
+        const dir = byId.get(emp.directoryId);
+        if (!dir?.defaultRate) return emp;
+        return { ...emp, rate: dir.defaultRate };
+      }),
+    );
+  }, [directory]);
+
   const toggleSettled = (id:string) => setWeekEmployees((prev)=>prev.map((e)=>e.id===id?{...e,settled:!e.settled}:e));
 
   const doSaveWeek = useCallback(() => {
@@ -9988,7 +10019,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         {/* Content */}
         <div className="flex flex-1 min-h-0 overflow-hidden pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:pb-0">
           {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs} adminUserId={adminSession?.id} alertsSeenTick={alertsSeenTick} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} onOpenSms={()=>setShowSmsModal(true)}/>}
-          {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive} initialEmpId={pendingPayrollEmpId} onInitialEmpConsumed={()=>setPendingPayrollEmpId(null)}/>}
+          {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onSyncRatesFromDirectory={syncWeekRatesFromDirectory} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive} initialEmpId={pendingPayrollEmpId} onInitialEmpConsumed={()=>setPendingPayrollEmpId(null)}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory} onOpenSms={()=>setShowSmsModal(true)}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
