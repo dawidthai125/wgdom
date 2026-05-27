@@ -3,7 +3,9 @@ import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import { CompanyMusicPlayer } from "@/app/components/CompanyMusicPlayer";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { EmployeeSmsModal } from "@/app/EmployeeSmsModal";
+import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { downloadJobDocumentsPack } from "@/lib/job-documents-pack";
+import { isPrivacyShieldSuppressed } from "@/lib/privacy-shield";
 import {
   Calculator, Clock, Banknote, User, Plus, Trash2,
   ChevronRight, ChevronLeft, Users, FileText, FileDown, CheckCircle2,
@@ -6316,25 +6318,29 @@ function JobsView({
                     </span>
                   )}
                 </div>
-                <label className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer px-2 py-1.5 rounded-lg hover:bg-secondary transition-colors">
-                  <ImagePlus size={13}/>Dodaj
-                  <input type="file" accept="image/*" multiple className="sr-only"
-                    onChange={async e=>{
-                      const files = e.target.files;
-                      if (!files) return;
-                      for (const file of Array.from(files)) {
-                        const wm = await prepareWatermarkedPhoto(selectedJob, file);
-                        const { entry } = await uploadPhoto(selectedJob.id, wm, "progress", "admin");
-                        if (entry) {
-                          updateJob({
-                            ...selectedJob,
-                            photos:[...(selectedJob.photos||[]), {...entry, status:"approved"}],
-                          }, { type: "photo_upload", text: `Admin dodał zdjęcie (${entry.label})` });
-                        }
-                      }
-                      e.target.value = "";
-                    }}/>
-                </label>
+                <HiddenFileInput multiple onPick={async (files) => {
+                  if (!files?.length) return;
+                  for (const file of Array.from(files)) {
+                    const wm = await prepareWatermarkedPhoto(selectedJob, file);
+                    const { entry } = await uploadPhoto(selectedJob.id, wm, "progress", "admin");
+                    if (entry) {
+                      updateJob({
+                        ...selectedJob,
+                        photos:[...(selectedJob.photos||[]), {...entry, status:"approved"}],
+                      }, { type: "photo_upload", text: `Admin dodał zdjęcie (${entry.label})` });
+                    }
+                  }
+                }}>
+                  {(open) => (
+                    <button
+                      type="button"
+                      onClick={open}
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 rounded-lg hover:bg-secondary transition-colors"
+                    >
+                      <ImagePlus size={13}/>Dodaj
+                    </button>
+                  )}
+                </HiddenFileInput>
               </div>
               <div className="p-4">
                 <PhotoGallery
@@ -7891,6 +7897,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.19.1", label:"Naprawa wyboru zdjęć z galerii",
+    items:[
+      {type:"fix", text:"Roboty → raport → Foto rysunku / Z galerii — niezawodny wybór pliku na Windows (admin i pracownik)"},
+      {type:"fix", text:"Privacy shield pracownika nie blokuje ekranu podczas systemowego okna wyboru pliku"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.19.0", label:"Pakiet dokumentów + SMS pilne",
     items:[
@@ -10549,7 +10562,10 @@ function JobReportForm({
   };
 
   const onSketchPick = (files: FileList | null) => {
-    if (!files?.[0]) return;
+    if (!files?.[0]) {
+      setError("Nie wybrano pliku — spróbuj ponownie lub użyj innego zdjęcia (JPG/PNG).");
+      return;
+    }
     if (sketchPreview && sketchPreview.startsWith("blob:")) URL.revokeObjectURL(sketchPreview);
     setSketchFile(files[0]);
     setSketchPreview(URL.createObjectURL(files[0]));
@@ -10705,18 +10721,30 @@ function JobReportForm({
         ) : (
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
-              <label className="flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-xl border border-dashed border-border text-sm text-muted-foreground cursor-pointer hover:border-primary/40 hover:text-foreground transition-colors touch-manipulation">
-                <Camera size={18}/>
-                <span className="text-xs font-medium">Zrób zdjęcie</span>
-                <input type="file" accept="image/*" capture="environment" className="sr-only"
-                  onChange={(e) => { onSketchPick(e.target.files); e.target.value = ""; }}/>
-              </label>
-              <label className="flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-xl border border-dashed border-border text-sm text-muted-foreground cursor-pointer hover:border-primary/40 hover:text-foreground transition-colors touch-manipulation">
-                <ImagePlus size={18}/>
-                <span className="text-xs font-medium">Z galerii</span>
-                <input type="file" accept="image/*" className="sr-only"
-                  onChange={(e) => { onSketchPick(e.target.files); e.target.value = ""; }}/>
-              </label>
+              <HiddenFileInput accept="image/*,.heic,.heif" capture="environment" onPick={onSketchPick}>
+                {(open) => (
+                  <button
+                    type="button"
+                    onClick={open}
+                    className="flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-xl border border-dashed border-border text-sm text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors touch-manipulation"
+                  >
+                    <Camera size={18}/>
+                    <span className="text-xs font-medium">Zrób zdjęcie</span>
+                  </button>
+                )}
+              </HiddenFileInput>
+              <HiddenFileInput accept="image/*,.heic,.heif" onPick={onSketchPick}>
+                {(open) => (
+                  <button
+                    type="button"
+                    onClick={open}
+                    className="flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-xl border border-dashed border-border text-sm text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors touch-manipulation"
+                  >
+                    <ImagePlus size={18}/>
+                    <span className="text-xs font-medium">Z galerii</span>
+                  </button>
+                )}
+              </HiddenFileInput>
             </div>
             {sketchFile && (
               <p className="text-[11px] text-muted-foreground text-center truncate px-2">{sketchFile.name}</p>
@@ -11041,9 +11069,18 @@ function useWorkerPrivacyShield(enabled: boolean) {
 
   useEffect(() => {
     if (!enabled) return;
-    const onVis = () => setShield(document.hidden);
-    const onBlur = () => setShield(true);
-    const onFocus = () => setShield(false);
+    const onVis = () => {
+      if (isPrivacyShieldSuppressed()) return;
+      setShield(document.hidden);
+    };
+    const onBlur = () => {
+      if (isPrivacyShieldSuppressed()) return;
+      setShield(true);
+    };
+    const onFocus = () => {
+      if (isPrivacyShieldSuppressed()) return;
+      setShield(false);
+    };
     const blockCtx = (e: Event) => e.preventDefault();
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("blur", onBlur);
@@ -11372,7 +11409,10 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
   };
 
   const onGalleryPick = (files: FileList | null) => {
-    if (!files?.length) return;
+    if (!files?.length) {
+      setUploadError("Nie wybrano zdjęć — spróbuj ponownie.");
+      return;
+    }
     galleryPicks.forEach((p) => URL.revokeObjectURL(p.preview));
     setGalleryPicks(Array.from(files).map((file) => ({
       file,
@@ -11905,12 +11945,18 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
                   </button>
                 ))}
               </div>
-              <label className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold cursor-pointer hover:bg-primary/90 active:scale-[0.98] transition-all">
-                <ImagePlus size={18}/>
-                Wybierz z galerii ({galleryPicks.length || "wiele"})
-                <input type="file" accept="image/*" multiple className="sr-only"
-                  onChange={(e) => { onGalleryPick(e.target.files); e.target.value = ""; }}/>
-              </label>
+              <HiddenFileInput multiple onPick={onGalleryPick}>
+                {(open) => (
+                  <button
+                    type="button"
+                    onClick={open}
+                    className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all"
+                  >
+                    <ImagePlus size={18}/>
+                    Wybierz z galerii ({galleryPicks.length || "wiele"})
+                  </button>
+                )}
+              </HiddenFileInput>
               {galleryPicks.length > 0 && (
                 <div className="space-y-3">
                   <div className="space-y-2">
