@@ -4,13 +4,36 @@ import { fetchKeysFromCloud, persistKey, APP_SETTINGS_KEY } from "@/lib/cloud-sy
 
 export { APP_SETTINGS_KEY };
 
+export interface RoleContactPhones {
+  super_admin: string;
+  admin: string;
+  moderator: string;
+}
+
 export interface AppSettings {
   /** Podgląd kosztorysów ATH/NOR w przeglądarce (parser best-effort). Domyślnie wyłączone. */
   athPreviewEnabled: boolean;
+  /** Numery kontaktowe dla ról admina — inspektor widzi je po najechaniu na autora treści. */
+  roleContactPhones: RoleContactPhones;
+}
+
+export function defaultRoleContactPhones(): RoleContactPhones {
+  return { super_admin: "", admin: "", moderator: "" };
 }
 
 export function defaultAppSettings(): AppSettings {
-  return { athPreviewEnabled: false };
+  return { athPreviewEnabled: false, roleContactPhones: defaultRoleContactPhones() };
+}
+
+function normalizeRoleContactPhones(raw: unknown): RoleContactPhones {
+  const base = defaultRoleContactPhones();
+  if (!raw || typeof raw !== "object") return base;
+  const o = raw as Partial<RoleContactPhones>;
+  return {
+    super_admin: typeof o.super_admin === "string" ? o.super_admin : base.super_admin,
+    admin: typeof o.admin === "string" ? o.admin : base.admin,
+    moderator: typeof o.moderator === "string" ? o.moderator : base.moderator,
+  };
 }
 
 export function loadAppSettingsLocal(): AppSettings {
@@ -20,6 +43,7 @@ export function loadAppSettingsLocal(): AppSettings {
     const parsed = JSON.parse(raw) as Partial<AppSettings>;
     return {
       athPreviewEnabled: parsed.athPreviewEnabled === true,
+      roleContactPhones: normalizeRoleContactPhones(parsed.roleContactPhones),
     };
   } catch {
     return defaultAppSettings();
@@ -40,6 +64,7 @@ export async function syncAppSettingsFromCloud(): Promise<AppSettings> {
     const remote = cloud as Partial<AppSettings>;
     const merged: AppSettings = {
       athPreviewEnabled: remote.athPreviewEnabled === true || local.athPreviewEnabled,
+      roleContactPhones: normalizeRoleContactPhones(remote.roleContactPhones ?? local.roleContactPhones),
     };
     saveAppSettingsLocal(merged);
     return merged;

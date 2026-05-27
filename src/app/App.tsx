@@ -117,7 +117,7 @@ import {
   computeWmPortfolioStats,
 } from "@/lib/job-wm";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
-import { syncAppSettingsFromCloud, saveAppSettings, loadAppSettingsLocal, type AppSettings } from "@/lib/app-settings";
+import { syncAppSettingsFromCloud, saveAppSettings, loadAppSettingsLocal, defaultRoleContactPhones, type AppSettings, type RoleContactPhones } from "@/lib/app-settings";
 import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
@@ -338,6 +338,8 @@ interface WorkReportItem {
 interface WorkerJobReport {
   id: string;
   workerName: string;
+  /** worker = ekipa; super_admin/admin/moderator = kto z admina dodał */
+  authorAdminRole?: import("@/lib/admin-auth").AdminRole | "worker";
   submittedAt: string;
   updatedAt?: string;
   /** Kiedy admin obejrzał raport — znika z „Uwaga dziś” (ponownie po edycji przez pracownika) */
@@ -6237,7 +6239,8 @@ function JobsView({
             {/* Worker reports */}
             <JobWorkerReportsPanel
               jobId={selectedJob.id}
-              authorName="Administrator"
+              authorName={adminSession?.displayName || "Administrator"}
+              authorAdminRole={adminSession?.role && adminSession.role !== "inspector" ? adminSession.role : "admin"}
               reports={jobWorkerReports(selectedJob)}
               onAddReport={(report) => updateJob({
                 ...selectedJob,
@@ -7826,6 +7829,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-26", version:"2.16.0", label:"Inspektor — autor treści + telefon kontaktu",
+    items:[
+      {type:"new", text:"Panel inspektora — przy każdej treści (raport, zdjęcie, plik, notatka) widać kto dodał; najechanie = numer telefonu"},
+      {type:"new", text:"⚙ Super Admin — numery telefonów dla ról Super Admin, Administrator, Moderator (sync w chmurze)"},
+      {type:"improve", text:"Raporty z Roboty — admin zapisuje własne imię i rolę zamiast ogólnego „Administrator”"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.15.2", label:"Inspektor — naprawa wyśrodkowania",
     items:[
       {type:"fix", text:"Zakładka Inspektor — flex-1 w-full jak Kontakty; treść wyśrodkowana w obszarze obok menu, nie przyklejona do sidebara"},
@@ -8788,6 +8799,38 @@ function AdminSettingsModal({
             </label>
           </div>
 
+          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+              Numery kontaktowe ról (Inspektor)
+            </p>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              Inspektor po najechaniu na imię autora treści zobaczy numer telefonu — wie, do kogo dzwonić przy błędzie.
+            </p>
+            {([
+              { key: "super_admin" as const, label: "Super Administrator" },
+              { key: "admin" as const, label: "Administrator" },
+              { key: "moderator" as const, label: "Moderator" },
+            ]).map(({ key, label }) => (
+              <label key={key} className="block space-y-1">
+                <span className="text-xs text-muted-foreground">{label}</span>
+                <input
+                  type="tel"
+                  value={appSettings.roleContactPhones[key]}
+                  onChange={async (e) => {
+                    const next: AppSettings = {
+                      ...appSettings,
+                      roleContactPhones: { ...appSettings.roleContactPhones, [key]: e.target.value },
+                    };
+                    onAppSettingsChange(next);
+                    await saveAppSettings(next);
+                  }}
+                  placeholder="+48 …"
+                  className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"
+                />
+              </label>
+            ))}
+          </div>
+
           {/* Kreator — nowy użytkownik */}
           <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-3">
             <button
@@ -9005,10 +9048,14 @@ function CloudLoader({children}: {children: React.ReactNode}) {
         const cloudAppSettings = allValues[keys.length + 4];
         if (cloudAppSettings && typeof cloudAppSettings === "object") {
           const localSettings = loadAppSettingsLocal();
-          const mergedSettings = {
-            athPreviewEnabled:
-              (cloudAppSettings as AppSettings).athPreviewEnabled === true
-              || localSettings.athPreviewEnabled,
+          const cloudS = cloudAppSettings as AppSettings;
+          const mergedSettings: AppSettings = {
+            athPreviewEnabled: cloudS.athPreviewEnabled === true || localSettings.athPreviewEnabled,
+            roleContactPhones: {
+              super_admin: cloudS.roleContactPhones?.super_admin || localSettings.roleContactPhones.super_admin,
+              admin: cloudS.roleContactPhones?.admin || localSettings.roleContactPhones.admin,
+              moderator: cloudS.roleContactPhones?.moderator || localSettings.roleContactPhones.moderator,
+            },
           };
           localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(mergedSettings));
         }
@@ -9718,7 +9765,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>setSavedWeeks(prev=>prev.filter(w=>w.id!==id))} jobs={jobs} directory={directory}/>}
           {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={(jobId)=>{ if (jobId) setPendingInspectorJobId(jobId); setView("inspector"); }}/>}
-          {view==="inspector"&&<InspectorAdminView jobs={jobs} setJobs={setJobs} adminUserId={adminSession?.id} adminDisplayName={adminSession?.displayName || "Administrator"} initialTab={inspectorInitialTab} initialJobId={pendingInspectorJobId} onInitialJobConsumed={()=>setPendingInspectorJobId(null)} contacts={contacts} athPreviewEnabled={appSettings.athPreviewEnabled} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)}/>}
+          {view==="inspector"&&<InspectorAdminView jobs={jobs} setJobs={setJobs} directory={directory} adminUserId={adminSession?.id} adminDisplayName={adminSession?.displayName || "Administrator"} adminRole={adminSession?.role} initialTab={inspectorInitialTab} initialJobId={pendingInspectorJobId} onInitialJobConsumed={()=>setPendingInspectorJobId(null)} contacts={contacts} athPreviewEnabled={appSettings.athPreviewEnabled} roleContactPhones={appSettings.roleContactPhones} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)}/>}
           {view==="photos"&&<JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="changelog"&&<ChangelogView/>}
           {view==="help"&&<HelpView/>}
@@ -10290,6 +10337,7 @@ function LoginScreen({onAdmin, onInspector, onWorker}: {onAdmin:(session: AdminS
 function JobReportForm({
   jobId,
   authorName,
+  authorAdminRole = "worker",
   onSaved,
   submitLabel = "Zapisz raport",
   description,
@@ -10299,6 +10347,7 @@ function JobReportForm({
 }: {
   jobId: string;
   authorName: string;
+  authorAdminRole?: import("@/lib/admin-auth").AdminRole | "worker";
   onSaved: (report: WorkerJobReport) => void | Promise<void>;
   submitLabel?: string;
   description?: string;
@@ -10428,6 +10477,7 @@ function JobReportForm({
     const report: WorkerJobReport = {
       id: editReport?.id || crypto.randomUUID(),
       workerName: editReport?.workerName || authorName,
+      authorAdminRole: editReport?.authorAdminRole || authorAdminRole,
       submittedAt: editReport?.submittedAt || now,
       updatedAt: isEdit ? now : undefined,
       workItems: items,
@@ -10642,12 +10692,14 @@ function JobWorkerReportsPanel({
   jobId,
   reports,
   authorName,
+  authorAdminRole,
   onAddReport,
   onDelete,
 }: {
   jobId: string;
   reports: WorkerJobReport[];
   authorName: string;
+  authorAdminRole: import("@/lib/admin-auth").AdminRole;
   onAddReport: (report: WorkerJobReport) => void;
   onDelete: (reportId: string) => void;
 }) {
@@ -10688,6 +10740,7 @@ function JobWorkerReportsPanel({
           <JobReportForm
             jobId={jobId}
             authorName={authorName}
+            authorAdminRole={authorAdminRole}
             onSaved={(report) => { onAddReport(report); setOpenId(report.id); }}
             submitLabel="Zapisz raport"
             description="Te same pola co w trybie pracownika — zakres prac, wymiary pomieszczeń lub foto rysunku."

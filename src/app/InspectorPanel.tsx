@@ -42,6 +42,8 @@ import { InspectorHelpBanner, InspectorHelpModal, InspectorHint } from "@/app/In
 import { normalizeJobWmFields, jobsWithAdminNotesNeedingInspector, applyHandoverStageToJob, inferHandoverStage, HANDOVER_STAGE_LABELS, type JobHandoverStage, type JobWmJob } from "@/lib/job-wm";
 import { WmPortfolioView } from "@/app/WmPortfolioView";
 import { JobWmPanel, JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
+import { syncAppSettingsFromCloud, loadAppSettingsLocal, defaultRoleContactPhones, type AppSettings } from "@/lib/app-settings";
+import { AuthorAttribution } from "@/app/AuthorAttribution";
 
 type JobStatus = "in_progress" | "completed";
 
@@ -71,6 +73,7 @@ interface RoomDimension {
 interface WorkerJobReport {
   id: string;
   workerName: string;
+  authorAdminRole?: import("@/lib/admin-auth").AdminRole | "worker";
   submittedAt: string;
   updatedAt?: string;
   workItems: WorkReportItem[];
@@ -178,6 +181,13 @@ export function InspectorPanel({
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const [notesSeenTick, setNotesSeenTick] = useState(0);
   const [stageSuggestion, setStageSuggestion] = useState<{ jobId: string; stage: JobHandoverStage } | null>(null);
+  const [appSettings, setAppSettings] = useState<AppSettings>(() => loadAppSettingsLocal());
+
+  const roleContactPhones = appSettings.roleContactPhones || defaultRoleContactPhones();
+  const directoryContacts = useMemo(
+    () => directory.map((d) => ({ name: d.name, phone: d.phone })),
+    [directory],
+  );
 
   const persistJobs = useCallback((next: InspectorJob[]) => {
     setJobs(next);
@@ -240,6 +250,7 @@ export function InspectorPanel({
         } catch { setDirectory([]); }
       }
       setLastSyncedAt(new Date());
+      syncAppSettingsFromCloud().then(setAppSettings).catch(() => {});
     } catch {
       try {
         setJobs(normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")).map(normalizeJob));
@@ -562,6 +573,8 @@ export function InspectorPanel({
               onUpdate={updateJob}
               actorName={displayName}
               actorRole="inspector"
+              directory={directoryContacts}
+              roleContactPhones={roleContactPhones}
             />
 
             {jobInspectorHistory(selectedJob).length > 0 && (
@@ -572,7 +585,12 @@ export function InspectorPanel({
                 <div className="space-y-2">
                   {jobInspectorHistory(selectedJob).map((ev) => (
                     <div key={ev.id} className="text-xs text-muted-foreground border-l-2 border-primary/30 pl-3 py-0.5">
-                      <span className="text-foreground/90 font-medium">{ev.actor}</span>
+                      <AuthorAttribution
+                        name={ev.actor}
+                        directory={directoryContacts}
+                        roleContactPhones={roleContactPhones}
+                        accentClass="text-foreground/90 font-medium"
+                      />
                       {" · "}
                       {ev.text}
                       {" · "}
@@ -608,9 +626,22 @@ export function InspectorPanel({
                       </button>
                     </div>
                     {file ? (
-                      <a href={file.publicUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 truncate">
-                        <FileText size={12}/>{file.filename}
-                      </a>
+                      <>
+                        <a href={file.publicUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 truncate">
+                          <FileText size={12}/>{file.filename}
+                        </a>
+                        <p className="text-[10px] text-muted-foreground">
+                          Dodał:{" "}
+                          <AuthorAttribution
+                            name={file.uploadedBy}
+                            directory={directoryContacts}
+                            roleContactPhones={roleContactPhones}
+                            accentClass="text-muted-foreground font-medium"
+                          />
+                          {" · "}
+                          {new Date(file.uploadedAt).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                      </>
                     ) : (
                       <p className="text-xs text-muted-foreground">Brak pliku — wgraj poniżej</p>
                     )}
@@ -709,7 +740,15 @@ export function InspectorPanel({
                       <div key={report.id}>
                         <button type="button" onClick={() => setOpenReportId(open ? null : report.id)} className="w-full px-4 py-3 flex items-center justify-between gap-2 hover:bg-secondary/30 text-left">
                           <div>
-                            <p className="text-sm font-medium">{report.workerName}</p>
+                            <p className="text-sm font-medium">
+                              <AuthorAttribution
+                                name={report.workerName}
+                                reportAdminRole={report.authorAdminRole || "worker"}
+                                directory={directoryContacts}
+                                roleContactPhones={roleContactPhones}
+                                accentClass="text-sm font-medium text-foreground"
+                              />
+                            </p>
                             <p className="text-[11px] text-muted-foreground">{fmtDate(report.submittedAt.slice(0, 10))} · {report.workItems.length} pkt · {report.rooms.length} pom.</p>
                           </div>
                           {open ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
@@ -798,18 +837,27 @@ export function InspectorPanel({
                     </p>
                     <div className="grid grid-cols-3 gap-2">
                       {photos.map((p) => (
-                        <div key={p.id} className="relative group">
+                        <div key={p.id} className="relative group space-y-1">
                           <button type="button" onClick={() => setLightbox({ url: p.publicUrl, label: PHOTO_LABELS[p.label] })} className="block w-full aspect-square rounded-lg overflow-hidden bg-secondary border border-border">
                             <img src={p.publicUrl} alt="" className="w-full h-full object-cover"/>
                           </button>
                           <button
                             type="button"
                             onClick={() => downloadUrlAsFile(p.publicUrl, `${selectedJob.address}-${p.label}-${p.id.slice(0, 6)}.jpg`)}
-                            className="absolute bottom-1 right-1 p-1.5 rounded-md bg-black/60 text-white opacity-90"
+                            className="absolute bottom-6 right-1 p-1.5 rounded-md bg-black/60 text-white opacity-90"
                             title="Pobierz"
                           >
                             <Download size={12}/>
                           </button>
+                          <p className="text-[9px] text-muted-foreground truncate px-0.5">
+                            <AuthorAttribution
+                              name={p.uploadedBy}
+                              reportAdminRole="worker"
+                              directory={directoryContacts}
+                              roleContactPhones={roleContactPhones}
+                              accentClass="text-muted-foreground font-medium"
+                            />
+                          </p>
                         </div>
                       ))}
                     </div>

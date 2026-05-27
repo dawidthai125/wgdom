@@ -19,6 +19,8 @@ import {
   type JobWmJob,
   type InspectorPhotoEntry,
 } from "@/lib/job-wm";
+import type { RoleContactPhones } from "@/lib/app-settings";
+import { AuthorAttribution } from "@/app/AuthorAttribution";
 
 export type JobWmJobMutable = JobWmJob & {
   activityLog?: import("@/lib/job-activity").JobActivity[];
@@ -33,6 +35,8 @@ type JobWmPanelProps = {
   canSetPlannedDate?: boolean;
   canAddNotes?: boolean;
   canUploadPhotos?: boolean;
+  directory?: { name: string; phone: string }[];
+  roleContactPhones?: RoleContactPhones;
 };
 
 export function JobWmPanel({
@@ -44,6 +48,8 @@ export function JobWmPanel({
   canSetPlannedDate = true,
   canAddNotes = true,
   canUploadPhotos = true,
+  directory = [],
+  roleContactPhones,
 }: JobWmPanelProps) {
   const [noteText, setNoteText] = useState("");
   const [photoCaption, setPhotoCaption] = useState("");
@@ -185,9 +191,13 @@ export function JobWmPanel({
             (job.jobNotes || []).map((n) => (
               <div key={n.id} className="px-4 py-3">
                 <p className="text-xs">
-                  <span className={n.authorRole === "inspector" ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-primary font-medium"}>
-                    {n.author}
-                  </span>
+                  <AuthorAttribution
+                    name={n.author}
+                    noteRole={n.authorRole}
+                    directory={directory}
+                    roleContactPhones={roleContactPhones || { super_admin: "", admin: "", moderator: "" }}
+                    accentClass={n.authorRole === "inspector" ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-primary font-medium"}
+                  />
                   <span className="text-muted-foreground">
                     {" · "}
                     {new Date(n.at).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
@@ -229,18 +239,30 @@ export function JobWmPanel({
         {(job.inspectorPhotos || []).length > 0 && (
           <div className="grid grid-cols-3 gap-2">
             {(job.inspectorPhotos || []).map((p: InspectorPhotoEntry) => (
-              <a
-                key={p.id}
-                href={p.publicUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block aspect-square rounded-lg overflow-hidden bg-secondary border border-border relative group"
-              >
-                <img src={p.publicUrl} alt="" className="w-full h-full object-cover"/>
-                {p.caption && (
-                  <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[9px] px-1 py-0.5 truncate">{p.caption}</span>
+              <div key={p.id} className="space-y-1">
+                <a
+                  href={p.publicUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block aspect-square rounded-lg overflow-hidden bg-secondary border border-border relative group"
+                >
+                  <img src={p.publicUrl} alt="" className="w-full h-full object-cover"/>
+                  {p.caption && (
+                    <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[9px] px-1 py-0.5 truncate">{p.caption}</span>
+                  )}
+                </a>
+                {roleContactPhones && (
+                  <p className="text-[9px] text-muted-foreground truncate px-0.5">
+                    <AuthorAttribution
+                      name={p.uploadedBy}
+                      noteRole="inspector"
+                      directory={directory}
+                      roleContactPhones={roleContactPhones}
+                      accentClass="text-muted-foreground font-medium"
+                    />
+                  </p>
                 )}
-              </a>
+              </div>
             ))}
           </div>
         )}

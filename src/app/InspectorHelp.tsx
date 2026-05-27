@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   HelpCircle, X, BookOpen, List, FileText, ClipboardList, Users, Ruler,
-  ImagePlus, CheckCircle2, ChevronDown, ChevronUp, MessageSquare, Calendar, LayoutGrid, Camera,
+  ImagePlus, CheckCircle2, ChevronDown, ChevronUp, MessageSquare, Calendar, LayoutGrid, Camera, Phone,
 } from "lucide-react";
 
 /** Dymek pomocy — hover (desktop) lub tap (mobile) */
@@ -106,6 +106,12 @@ const SECTIONS = [
     icon: Camera,
     title: "Zdjęcia inspektora",
     body: "Osobna galeria — usterki, stan przed/po odbiorze, detale. Oddzielnie od zdjęć ekipy. Wgraj z telefonu, opcjonalnie dodaj opis.",
+  },
+  {
+    id: "author",
+    icon: Phone,
+    title: "Kto dodał treść?",
+    body: "Przy raportach, zdjęciach, plikach i notatkach widać imię autora. Najedź palcem lub kursorem — pojawi się numer telefonu, żebyś wiedział do kogo zadzwonić przy błędzie.",
   },
   {
     id: "portfolio",

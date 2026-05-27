@@ -25,6 +25,8 @@ import { WmPortfolioView } from "@/app/WmPortfolioView";
 import { InspectorAdminJobDetail } from "@/app/InspectorAdminJobDetail";
 import type { JobWmJob } from "@/lib/job-wm";
 import type { EmailContact } from "@/lib/email-contacts";
+import type { RoleContactPhones } from "@/lib/app-settings";
+import { AuthorAttribution } from "@/app/AuthorAttribution";
 
 type FilterKind = "all" | InspectorActivityType;
 
@@ -82,9 +84,13 @@ function feedTypeIcon(type: InspectorActivityType) {
 function FeedCard({
   item,
   onOpenJob,
+  directoryContacts,
+  roleContactPhones,
 }: {
   item: InspectorFeedItem;
   onOpenJob: (jobId: string) => void;
+  directoryContacts: { name: string; phone: string }[];
+  roleContactPhones: RoleContactPhones;
 }) {
   const { Icon, cls } = feedTypeIcon(item.type);
   return (
@@ -96,7 +102,12 @@ function FeedCard({
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium leading-snug">{item.text}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            <span className="text-foreground/80 font-medium">{item.actor}</span>
+            <AuthorAttribution
+              name={item.actor}
+              directory={directoryContacts}
+              roleContactPhones={roleContactPhones}
+              accentClass="text-foreground/80 font-medium"
+            />
             {" · "}
             {fmtDateTime(item.at)}
           </p>
@@ -139,24 +150,30 @@ function FeedCard({
 export function InspectorAdminView({
   jobs,
   setJobs,
+  directory,
   adminUserId,
   adminDisplayName = "Administrator",
+  adminRole = "admin",
   initialTab = "activity",
   initialJobId,
   onInitialJobConsumed,
   contacts,
   athPreviewEnabled,
+  roleContactPhones,
   onAlertsSeen,
 }: {
   jobs: JobWithActivity[];
   setJobs: (v: JobWithActivity[] | ((p: JobWithActivity[]) => JobWithActivity[])) => void;
+  directory: { id: string; name: string; phone: string; position?: string }[];
   adminUserId?: string;
   adminDisplayName?: string;
+  adminRole?: import("@/lib/admin-auth").AdminRole;
   initialTab?: "activity" | "portfolio";
   initialJobId?: string | null;
   onInitialJobConsumed?: () => void;
   contacts: EmailContact[];
   athPreviewEnabled: boolean;
+  roleContactPhones: RoleContactPhones;
   onAlertsSeen?: () => void;
 }) {
   const [tab, setTab] = useState<"activity" | "portfolio">(initialTab);
@@ -262,6 +279,11 @@ export function InspectorAdminView({
     { key: "inspector_photo", label: "Zdjęcia" },
   ];
 
+  const directoryContacts = useMemo(
+    () => directory.map((d) => ({ name: d.name, phone: d.phone })),
+    [directory],
+  );
+
   if (selectedJob) {
     return (
       <div className="flex flex-1 min-h-0 w-full overflow-hidden">
@@ -270,8 +292,11 @@ export function InspectorAdminView({
           onUpdate={updateJob}
           onBack={() => setSelectedJobId(null)}
           actorName={adminDisplayName}
+          actorAdminRole={adminRole !== "inspector" ? adminRole : "admin"}
           contacts={contacts}
           athPreviewEnabled={athPreviewEnabled}
+          directory={directoryContacts}
+          roleContactPhones={roleContactPhones}
         />
       </div>
     );
@@ -432,7 +457,7 @@ export function InspectorAdminView({
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-1">{group.label}</p>
                   <div className="space-y-2">
                     {group.items.map((item) => (
-                      <FeedCard key={item.id} item={item} onOpenJob={openJob}/>
+                      <FeedCard key={item.id} item={item} onOpenJob={openJob} directoryContacts={directoryContacts} roleContactPhones={roleContactPhones}/>
                     ))}
                   </div>
                 </div>

@@ -25,7 +25,9 @@ import {
   type JobHandoverStage,
 } from "@/lib/job-wm";
 import type { EmailContact } from "@/lib/email-contacts";
-import type { JobWmJobMutable } from "@/app/JobWmPanel";
+import type { RoleContactPhones } from "@/lib/app-settings";
+import { AuthorAttribution } from "@/app/AuthorAttribution";
+import type { AdminRole } from "@/lib/admin-auth";
 
 function fmtDate(iso: string): string {
   if (!iso) return "—";
@@ -39,15 +41,21 @@ export function InspectorAdminJobDetail({
   onUpdate,
   onBack,
   actorName,
+  actorAdminRole = "admin",
   contacts,
   athPreviewEnabled,
+  directory,
+  roleContactPhones,
 }: {
   job: JobWithActivity & JobWmJobMutable;
   onUpdate: (job: JobWithActivity & JobWmJobMutable) => void;
   onBack: () => void;
   actorName: string;
+  actorAdminRole?: AdminRole;
   contacts: EmailContact[];
   athPreviewEnabled: boolean;
+  directory: { name: string; phone: string }[];
+  roleContactPhones: RoleContactPhones;
 }) {
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
   const [stageSuggestion, setStageSuggestion] = useState<JobHandoverStage | null>(null);
@@ -145,6 +153,8 @@ export function InspectorAdminJobDetail({
           onUpdate={(updated) => updateJob(updated)}
           actorName={actorName}
           actorRole="admin"
+          directory={directory}
+          roleContactPhones={roleContactPhones}
         />
 
         <div className="bg-card rounded-xl border border-emerald-500/25 overflow-hidden">
@@ -186,7 +196,15 @@ export function InspectorAdminJobDetail({
                         <FileText size={12} className="shrink-0"/>{file.filename}
                       </a>
                       <p className="text-[10px] text-muted-foreground">
-                        Wgrane: {file.uploadedBy} · {new Date(file.uploadedAt).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                        Dodał:{" "}
+                        <AuthorAttribution
+                          name={file.uploadedBy}
+                          directory={directory}
+                          roleContactPhones={roleContactPhones}
+                          accentClass="text-muted-foreground font-medium"
+                        />
+                        {" · "}
+                        {new Date(file.uploadedAt).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </>
                   ) : (
@@ -231,7 +249,14 @@ export function InspectorAdminJobDetail({
             <div className="space-y-2">
               {jobInspectorHistory().map((ev) => (
                 <div key={ev.id} className="text-xs text-muted-foreground border-l-2 border-primary/30 pl-3 py-0.5">
-                  <span className="text-foreground/90 font-medium">{ev.actor}</span>
+                  <span className="text-foreground/90 font-medium">
+                    <AuthorAttribution
+                      name={ev.actor}
+                      directory={directory}
+                      roleContactPhones={roleContactPhones}
+                      accentClass="text-foreground/90 font-medium"
+                    />
+                  </span>
                   {" · "}
                   {ev.text}
                   {" · "}
