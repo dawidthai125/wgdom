@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type RefObject } from "react";
 import {
   LayoutGrid, ChevronRight, AlertTriangle, FileText, ClipboardList,
 } from "lucide-react";
@@ -20,12 +20,14 @@ export function WmPortfolioView({
   onOpenJob,
   notesNeedingAdmin = 0,
   embedded = false,
+  scrollRef,
 }: {
   jobs: JobWmJob[];
   onOpenJob: (jobId: string) => void;
   notesNeedingAdmin?: number;
   /** Bez własnego scrolla — treść w środku zakładki Inspektor (admin). */
   embedded?: boolean;
+  scrollRef?: RefObject<HTMLDivElement | null>;
 }) {
   const wmJobs = useMemo(
     () => jobs.filter((j) => isWmClient(j.client) && inferHandoverStage(j) !== "handed_over"),
@@ -175,7 +177,7 @@ export function WmPortfolioView({
 
   return (
     <div className="flex flex-1 flex-col min-h-0 w-full overflow-hidden">
-      <div className="flex-1 w-full overflow-y-auto overscroll-contain">
+      <div ref={scrollRef} className="flex-1 w-full overflow-y-auto overscroll-contain">
         <div
           className="max-w-4xl mx-auto w-full px-4 sm:px-8 py-6 space-y-6"
           style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}

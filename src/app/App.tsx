@@ -132,7 +132,7 @@ import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
 import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } from "@/lib/photo-queue";
-import { usePwaInstall } from "@/lib/pwa-install";
+import { PwaInstallBanner } from "@/app/PwaInstallBanner";
 import {
   type EmailContact,
   defaultEmailContact,
@@ -7857,6 +7857,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-26", version:"2.18.1", label:"Inspektor — mobile UX",
+    items:[
+      {type:"improve", text:"Kapsułki sekcji i szybkie akcje — min. 44 px (wygodny dotyk na iPhone/Android)"},
+      {type:"new", text:"Baner „Dodaj na ekran główny” w panelu inspektora (iOS + Android PWA)"},
+      {type:"new", text:"Pull-to-refresh — ciągnij w dół na liście, w robocie i w Portfolio"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.18.0", label:"Inspektor — nawigacja i sekcje",
     items:[
       {type:"new", text:"Panel inspektora — dolny pasek: Robót | Portfolio | Pomoc (jak aplikacja mobilna)"},
@@ -10865,43 +10873,6 @@ function JobWorkerReportsPanel({
           })}
         </div>
       )}
-    </div>
-  );
-}
-
-// ─── PWA install banner ───────────────────────────────────────────────────────
-
-function PwaInstallBanner({ compact = false }: { compact?: boolean }) {
-  const { canInstall, installed, promptInstall, isIos } = usePwaInstall();
-  const [dismissed, setDismissed] = useState(() => sessionStorage.getItem("wg-pwa-dismiss") === "1");
-
-  if (installed || dismissed) return null;
-  if (!canInstall && !isIos) return null;
-
-  const dismiss = () => {
-    sessionStorage.setItem("wg-pwa-dismiss", "1");
-    setDismissed(true);
-  };
-
-  return (
-    <div className={`${compact ? "mx-4 mb-3" : "mx-4 mt-3"} bg-primary/10 border border-primary/25 rounded-xl px-4 py-3 flex items-start gap-3`}>
-      <Smartphone size={16} className="text-primary shrink-0 mt-0.5"/>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-primary">Dodaj na ekran główny</p>
-        <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
-          {isIos && !canInstall
-            ? "Safari → Udostępnij → „Dodaj do ekranu początkowego” — szybszy dostęp na budowie."
-            : "Zainstaluj aplikację jak skrót — działa offline i szybciej się uruchamia."}
-        </p>
-        {canInstall && (
-          <button type="button" onClick={() => promptInstall()} className="mt-2 text-xs font-medium text-primary hover:underline">
-            Zainstaluj teraz
-          </button>
-        )}
-      </div>
-      <button type="button" onClick={dismiss} className="text-muted-foreground hover:text-foreground shrink-0 p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center -mr-1">
-        <X size={16}/>
-      </button>
     </div>
   );
 }

@@ -39,7 +39,7 @@ const SECTIONS = [
     id: "nav",
     icon: List,
     title: "Nawigacja — dolny pasek",
-    body: "U dołu ekranu: Robót (lista adresów), Portfolio (zbiorczy widok WM), Pomoc (instrukcja). Fioletowa kropka = nowa odpowiedź admina w notatkach.",
+    body: "U dołu: Robót, Portfolio, Pomoc. W robocie — kapsułki sekcji u góry. Ciągnij listę w dół, żeby odświeżyć dane (albo przycisk Odśwież). Baner PWA przypomni o dodaniu skrótu na ekran główny.",
   },
   {
     id: "sections",

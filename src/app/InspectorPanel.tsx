@@ -55,6 +55,8 @@ import {
   type InspectorJobSection,
   type InspectorMainTab,
 } from "@/app/InspectorNavigation";
+import { PwaInstallBanner } from "@/app/PwaInstallBanner";
+import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh";
 
 type JobStatus = "in_progress" | "completed";
 
@@ -193,6 +195,8 @@ export function InspectorPanel({
   const [notesSeenTick, setNotesSeenTick] = useState(0);
   const [stageSuggestion, setStageSuggestion] = useState<{ jobId: string; stage: JobHandoverStage } | null>(null);
   const jobScrollRef = useRef<HTMLDivElement>(null);
+  const listScrollRef = useRef<HTMLDivElement>(null);
+  const portfolioScrollRef = useRef<HTMLDivElement>(null);
 
   const scrollToJobSection = useCallback((id: InspectorJobSection) => {
     document.getElementById(`inspector-section-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -315,6 +319,11 @@ export function InspectorPanel({
   }, [jobs, search, filter]);
 
   const selectedJob = jobs.find((j) => j.id === selectedId) || null;
+
+  const pullRefresh = useCallback(() => refreshFromCloud(false), [refreshFromCloud]);
+  const listPull = usePullToRefresh(listScrollRef, pullRefresh, !selectedId && mainTab === "jobs");
+  const jobPull = usePullToRefresh(jobScrollRef, pullRefresh, Boolean(selectedId));
+  const portfolioPull = usePullToRefresh(portfolioScrollRef, pullRefresh, !selectedId && mainTab === "portfolio");
 
   const activeJobSection = useInspectorSectionSpy(
     ["wm", "files", "docs", "team", "reports", "photos"],
@@ -450,6 +459,10 @@ export function InspectorPanel({
       <InspectorHelpBanner onOpenHelp={() => setHelpOpen(true)}/>
       <InspectorHelpModal open={helpOpen} onClose={() => setHelpOpen(false)}/>
 
+      <div className="px-4 shrink-0">
+        <PwaInstallBanner compact dismissKey="wg-pwa-inspector-dismiss" persist="local" className="mb-0 mt-2"/>
+      </div>
+
       {adminNotesPending.length > 0 && !selectedJob && (
         <div className="mx-4 mt-2 mb-1 bg-violet-500/10 border border-violet-500/25 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
           <div className="flex-1 min-w-0">
@@ -478,7 +491,8 @@ export function InspectorPanel({
 
       {!selectedJob && mainTab === "portfolio" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <WmPortfolioView jobs={jobs} onOpenJob={(id) => { setSelectedId(id); setMainTab("jobs"); setMsg(""); }}/>
+          <PullToRefreshIndicator pull={portfolioPull.pull} refreshing={portfolioPull.refreshing || syncing} ready={portfolioPull.ready}/>
+          <WmPortfolioView jobs={jobs} scrollRef={portfolioScrollRef} onOpenJob={(id) => { setSelectedId(id); setMainTab("jobs"); setMsg(""); }}/>
           <InspectorBottomNav
             active={mainTab}
             alertCount={adminNotesPending.length}
@@ -525,7 +539,8 @@ export function InspectorPanel({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 space-y-3">
+          <div ref={listScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 space-y-3">
+            <PullToRefreshIndicator pull={listPull.pull} refreshing={listPull.refreshing || syncing} ready={listPull.ready}/>
             {loading ? (
               <div className="flex justify-center py-16">
                 <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
@@ -621,6 +636,7 @@ export function InspectorPanel({
           </div>
 
           <div ref={jobScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-5 max-w-2xl mx-auto w-full" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
+            <PullToRefreshIndicator pull={jobPull.pull} refreshing={jobPull.refreshing || syncing} ready={jobPull.ready}/>
             {msg && <p className="text-xs text-primary bg-primary/10 rounded-lg px-3 py-2">{msg}</p>}
 
             {stageSuggestion?.jobId === selectedJob.id && (

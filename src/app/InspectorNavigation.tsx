@@ -53,7 +53,7 @@ export function InspectorBottomNav({
       aria-label="Nawigacja inspektora"
     >
       <div className="flex items-stretch max-w-lg mx-auto">
-        <button type="button" onClick={onJobs} className={tabClass(active === "jobs")} aria-current={active === "jobs" ? "page" : undefined}>
+        <button type="button" onClick={onJobs} className={`${tabClass(active === "jobs")} touch-manipulation`} aria-current={active === "jobs" ? "page" : undefined}>
           <span className="relative">
             <List size={20} strokeWidth={active === "jobs" ? 2.25 : 2}/>
             {alertCount > 0 && (
@@ -64,11 +64,11 @@ export function InspectorBottomNav({
           </span>
           Robót
         </button>
-        <button type="button" onClick={onPortfolio} className={tabClass(active === "portfolio")} aria-current={active === "portfolio" ? "page" : undefined}>
+        <button type="button" onClick={onPortfolio} className={`${tabClass(active === "portfolio")} touch-manipulation`} aria-current={active === "portfolio" ? "page" : undefined}>
           <LayoutGrid size={20} strokeWidth={active === "portfolio" ? 2.25 : 2}/>
           Portfolio
         </button>
-        <button type="button" onClick={onHelp} className={tabClass(false)}>
+        <button type="button" onClick={onHelp} className={`${tabClass(false)} touch-manipulation`}>
           <BookOpen size={20}/>
           Pomoc
         </button>
@@ -98,7 +98,7 @@ export function InspectorJobSectionNav({
               key={id}
               type="button"
               onClick={() => onSelect(id)}
-              className={`relative shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
+              className={`relative shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-full text-xs font-medium transition-colors min-h-[44px] touch-manipulation ${
                 on
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "bg-secondary/80 text-muted-foreground hover:text-foreground hover:bg-secondary"
@@ -171,7 +171,7 @@ export function InspectorQuickActions({
           key={section + label}
           type="button"
           onClick={() => onSelect(section)}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-xs font-medium text-primary hover:bg-primary/15 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-primary/10 border border-primary/20 text-xs font-medium text-primary hover:bg-primary/15 transition-colors min-h-[44px] touch-manipulation"
         >
           <Icon size={13}/>
           {label}
