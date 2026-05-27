@@ -85,6 +85,7 @@ import {
   createAdminUser,
   deleteAdminUser,
   setAdminUserPhone,
+  digestSha256Hex,
   type AdminAssignableRole,
 } from "@/lib/admin-auth";
 import { InspectorPanel } from "@/app/InspectorPanel";
@@ -1877,7 +1878,7 @@ function workerHasPersonalPin(emp: DirectoryEmployee): boolean {
 }
 
 async function hashWorkerPin(pin: string): Promise<string> {
-  return sha256(`wgdom-worker-pin-v1:${pin}`);
+  return digestSha256Hex(`wgdom-worker-pin-v1:${pin}`);
 }
 
 async function verifyWorkerPin(emp: DirectoryEmployee, pin: string): Promise<boolean> {
@@ -7926,6 +7927,13 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-27", version:"2.19.7", label:"Naprawa logowania pracownika",
+    items:[
+      {type:"fix", text:"Logowanie pracownika — naprawiony brakujący hash PIN (przycisk Zaloguj działał jak martwy)"},
+      {type:"improve", text:"Przycisk logowania aktywny po wyborze profilu — walidacja telefonu/kodu z komunikatem"},
+    ],
+  },
+  {
     date:"2026-05-27", version:"2.19.6", label:"Inspektor — paginacja aktywności",
     items:[
       {type:"improve", text:"Admin → Inspektor → Aktywność: 10 wpisów na stronę z numeracją stron"},
@@ -10205,13 +10213,17 @@ function LoginScreen({onAdmin, onInspector, onWorker}: {onAdmin:(session: AdminS
 
     const code = workerCode.replace(/\D/g, "");
     if (code.length !== 4) { setWorkerError("Wpisz swój 4-cyfrowy kod"); return; }
-    const ok = await verifyWorkerPin(emp, code);
-    if (!ok) {
-      setWorkerError("Błędny kod pracownika");
-      setWorkerCode("");
-      return;
+    try {
+      const ok = await verifyWorkerPin(emp, code);
+      if (!ok) {
+        setWorkerError("Błędny kod pracownika");
+        setWorkerCode("");
+        return;
+      }
+      onWorker(emp);
+    } catch {
+      setWorkerError("Błąd logowania — odśwież stronę i spróbuj ponownie");
     }
-    onWorker(emp);
   };
 
   const handleWorkerSetupPin = async () => {
@@ -10236,6 +10248,8 @@ function LoginScreen({onAdmin, onInspector, onWorker}: {onAdmin:(session: AdminS
         await pushDirectoryToCloud(updated);
       } catch { /* offline — zapis lokalny */ }
       onWorker(updated.find((d) => d.id === emp.id)!);
+    } catch {
+      setWorkerError("Nie udało się zapisać kodu — spróbuj ponownie");
     } finally {
       setSetupPinLoading(false);
     }
@@ -10514,9 +10528,18 @@ function LoginScreen({onAdmin, onInspector, onWorker}: {onAdmin:(session: AdminS
 
                 {workerError && <p className="text-xs text-destructive">{workerError}</p>}
 
-                <button onClick={handleWorkerSubmit}
-                  disabled={!selectedWorker || !workerHasPhonePin(selectedWorker!) || phonePin.replace(/\D/g,"").length !== 9 || (workerHasPersonalPin(selectedWorker!) && workerCode.length !== 4)}
-                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50">
+                {selectedWorker && workerHasPhonePin(selectedWorker) && phonePin.replace(/\D/g, "").length !== 9 && (
+                  <p className="text-[11px] text-muted-foreground">Wpisz 9 cyfr telefonu, żeby kontynuować.</p>
+                )}
+                {selectedWorker && workerHasPhonePin(selectedWorker) && workerHasPersonalPin(selectedWorker) && phonePin.replace(/\D/g, "").length === 9 && workerCode.length !== 4 && (
+                  <p className="text-[11px] text-muted-foreground">Wpisz swój 4-cyfrowy kod pracownika.</p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleWorkerSubmit}
+                  disabled={!selectedWorker || !workerHasPhonePin(selectedWorker)}
+                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                   {selectedWorker && workerHasPersonalPin(selectedWorker) ? "Zaloguj" : "Dalej — ustaw kod"}
                 </button>
               </>
