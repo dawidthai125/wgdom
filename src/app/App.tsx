@@ -122,6 +122,8 @@ import {
   computeWmPortfolioStats,
 } from "@/lib/job-wm";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
+import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
+import { normalizeJobMetaFields, isJobHousingSet, HOUSING_TYPE_LABELS, STOVE_TYPE_LABELS_FULL, type HousingType, type StoveType } from "@/lib/job-meta";
 import { syncAppSettingsFromCloud, saveAppSettings, loadAppSettingsLocal, type AppSettings } from "@/lib/app-settings";
 import { WorkScopeEditor, WorkScopeDisplay } from "@/app/WorkScopeEditor";
 import {
@@ -399,6 +401,8 @@ interface Job {
   plannedHandoverDate?: string;
   jobNotes?: import("@/lib/job-wm").JobNote[];
   inspectorPhotos?: import("@/lib/job-wm").InspectorPhotoEntry[];
+  housingType?: HousingType | "";
+  stoveType?: StoveType | "";
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -1337,14 +1341,14 @@ function defaultJob(): Job {
 }
 
 function normalizeJob(job: Job): Job {
-  return normalizeJobWmFields(syncJobDocumentsFromFiles({
+  return normalizeJobMetaFields(normalizeJobWmFields(syncJobDocumentsFromFiles({
     ...job,
     photos: job.photos || [],
     workerReports: job.workerReports || [],
     activityLog: job.activityLog || [],
     materials: job.materials || [],
     jobFiles: job.jobFiles || [],
-  }));
+  })));
 }
 
 function clientShareToken(): string {
@@ -5185,7 +5189,7 @@ function JobsView({
       setTimeout(() => setStatusWarning(false), 4000);
       return;
     }
-    if (job.status === "in_progress" && !allDocsDone(job)) {
+    if (job.status === "in_progress" && (!allDocsDone(job) || !isJobHousingSet(job))) {
       setStatusWarning(true);
       setTimeout(() => setStatusWarning(false), 4000);
       return;
@@ -5267,6 +5271,14 @@ function JobsView({
             {stack:[
               {text:"Klucze", fontSize:8, color:C2.muted},
               {text:job.keysHandedOver?"Zdane":"Nie zdane", fontSize:10, bold:true, color:job.keysHandedOver?"#1E7E34":C2.muted},
+            ]},
+            {stack:[
+              {text:"Lokal", fontSize:8, color:C2.muted},
+              {text:isJobHousingSet(job)?HOUSING_TYPE_LABELS[job.housingType]:"—", fontSize:10, bold:true, color:C2.navy},
+            ]},
+            {stack:[
+              {text:"Kuchenka", fontSize:8, color:C2.muted},
+              {text:job.stoveType?STOVE_TYPE_LABELS_FULL[job.stoveType]:"—", fontSize:10, bold:true, color:C2.navy},
             ]},
           ],
           margin:[0,0,0,14],
@@ -5518,6 +5530,7 @@ function JobsView({
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold truncate leading-tight">{job.address||<span className="italic text-muted-foreground">Bez adresu</span>}{job.flatNumber&&<span className="text-muted-foreground"> m.{job.flatNumber}</span>}</p>
                           <p className="text-xs text-muted-foreground truncate">{job.client||"—"}</p>
+                          <JobMetaBadges job={job}/>
                           {(isDupe || job.workEntries.length > 0) && (
                             <p className="text-[10px] text-muted-foreground/80 mt-0.5">
                               {isDupe && <span className="text-amber-600 dark:text-amber-400 font-medium">Duplikat adresu · </span>}
@@ -5628,6 +5641,14 @@ function JobsView({
                         <input type="date" value={selectedJob.endDate} onChange={e=>updateJob({...selectedJob,endDate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
                       </div>
                     </div>
+                    <div className="sm:col-span-2">
+                      <JobMetaPickers
+                        housingType={selectedJob.housingType}
+                        stoveType={selectedJob.stoveType}
+                        onHousingChange={(v) => updateJob({ ...selectedJob, housingType: v })}
+                        onStoveChange={(v) => updateJob({ ...selectedJob, stoveType: v })}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -5687,8 +5708,14 @@ function JobsView({
                   <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-lg px-4 py-2.5 text-sm text-destructive">
                     <X size={14} className="shrink-0"/>
                     <span>
-                      Nie można oznaczyć jako zdane — brakuje <strong>{REQUIRED_DOCS.filter(d=>!selectedJob.documents[d]).length}</strong> dokumentów:{" "}
-                      {REQUIRED_DOCS.filter(d=>!selectedJob.documents[d]).map(d=>DOC_LABELS[d]).join(", ")}.
+                      Nie można oznaczyć jako zdane —
+                      {!isJobHousingSet(selectedJob) && <> wybierz <strong>typ lokalu</strong></>}
+                      {!isJobHousingSet(selectedJob) && !allDocsDone(selectedJob) && " oraz"}
+                      {!allDocsDone(selectedJob) && (
+                        <> brakuje <strong>{REQUIRED_DOCS.filter(d=>!selectedJob.documents[d]).length}</strong> dokumentów:{" "}
+                        {REQUIRED_DOCS.filter(d=>!selectedJob.documents[d]).map(d=>DOC_LABELS[d]).join(", ")}</>
+                      )}
+                      .
                     </span>
                   </div>
                 )}
@@ -7568,9 +7595,9 @@ function HelpView() {
           <p className="text-sm text-foreground/90 leading-relaxed">W zakładce Roboty prowadzisz ewidencję wszystkich zleceń — od otwarcia do zdania kluczy. Każda robota ma swoją kartę z dokumentami, pracownikami i kosztami.</p>
           <div className="space-y-3">
             {[
-              {q:"Jak założyć nową robotę?", a:'Kliknij "Nowa robota" w lewym górnym rogu. Wpisz adres, numer mieszkania i klienta (domyślnie Wrocławskie Mieszkania). Możesz też wpisać daty rozpoczęcia i zakończenia.'},
+              {q:"Jak założyć nową robotę?", a:'Kliknij "Nowa robota" w lewym górnym rogu. Wpisz adres, numer mieszkania i klienta. Pod polami dat wybierz typ lokalu (Zamienny / Komunalny / Repatrianci — obowiązkowe) oraz kuchenkę (gaz / elektr. / 2 paln.).'},
               {q:"Dokumenty do odbioru — co to jest?", a:"To lista dokumentów które trzeba zebrać żeby zdać robotę. Zaznaczaj je gdy je masz: Zlecenie, Zakres robót, Kosztorys, Kominiarz, Pomiary, Oświadczenia, Gwarancje, Rysunek/Plan. Zdjęcia są opcjonalne. Pasek postępu na liście robót pokazuje ile dokumentów masz już skompletowanych."},
-              {q:"Kiedy robota zmienia status na Zdana?", a:"Automatycznie gdy zaznaczysz wszystkie wymagane dokumenty (bez zdjęć). Możesz też kliknąć przycisk statusu ręcznie — ale jeśli brakuje dokumentów, aplikacja ostrzeże i powie czego brakuje."},
+              {q:"Kiedy robota zmienia status na Zdana?", a:"Gdy zaznaczysz wszystkie wymagane dokumenty (bez zdjęć) i wybierzesz typ lokalu. Przycisk „Zdane” ostrzeje, jeśli brakuje dokumentów albo typu lokalu."},
               {q:"Jak dodać czas pracy na robocie?", a:'Roboty → wybierz robotę → „Pracownicy na robocie”. Najszybciej: „Wczoraj → dziś” (ta sama ekipa co wczoraj) lub „Z listy płac” (osoby zaznaczone dziś w liście płac). Ręcznie: „Dodaj wpis” — pracownik, data (domyślnie dziś), 9 h, stawka. Wpis pokazuje adres na Pulpicie i w Grafiku.'},
               {q:"Jak dodać koszty materiałów?", a:'Przewiń do sekcji "Materiały" → kliknij "Dodaj". Wpisz opis i koszt. Materiały sumują się z kosztem pracy i tworzą łączny koszt remontu.'},
               {q:"Jak dodać raport (zakres + wymiary)?", a:'Sekcja „Raporty — zakres i wymiary” na karcie roboty: u góry formularz (taki sam jak u pracownika), na dole lista wysłanych raportów. Możesz też poprosić pracownika o wysłanie z telefonu.'},
@@ -7897,6 +7924,14 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.19.5", label:"Roboty — lokal i kuchenka",
+    items:[
+      {type:"new", text:"Roboty — typ lokalu (Zamienny / Komunalny / Repatrianci) — obowiązkowy przed zdaniem"},
+      {type:"new", text:"Roboty — kuchenka (gaz / elektr. / 2 paln.) — kompaktowy wybór w karcie roboty"},
+      {type:"improve", text:"Inspektor i Admin → Inspektor — ten sam wybór lokalu i kuchenki; sync z Robotami przez chmurę"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.19.4", label:"SMS — komunikat trybu testowego SMSAPI",
     items:[

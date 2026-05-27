@@ -24,6 +24,8 @@ import {
   normalizeJobWmFields,
   type JobHandoverStage,
 } from "@/lib/job-wm";
+import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
+import { normalizeJobMetaFields } from "@/lib/job-meta";
 import type { EmailContact } from "@/lib/email-contacts";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
 import type { AdminRole } from "@/lib/admin-auth";
@@ -65,7 +67,7 @@ export function InspectorAdminJobDetail({
     let next = activity
       ? appendJobActivity(updated, activity.type, activity.text, actorName)
       : updated;
-    next = normalizeJobWmFields(next) as typeof next;
+    next = normalizeJobMetaFields(normalizeJobWmFields(next) as typeof next);
     onUpdate(next);
   };
 
@@ -139,10 +141,19 @@ export function InspectorAdminJobDetail({
             {job.address || "Bez adresu"}{job.flatNumber && ` m.${job.flatNumber}`}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{job.client || "—"}</p>
+          <JobMetaBadges job={job}/>
           <p className="text-xs text-muted-foreground mt-2">
             {fmtDate(job.startDate)}{job.endDate && ` → ${fmtDate(job.endDate)}`}
             {" · "}{job.status === "completed" ? "Zdana" : "W trakcie"}
           </p>
+          <div className="mt-3">
+            <JobMetaPickers
+              housingType={job.housingType}
+              stoveType={job.stoveType}
+              onHousingChange={(v) => updateJob({ ...job, housingType: v })}
+              onStoveChange={(v) => updateJob({ ...job, stoveType: v })}
+            />
+          </div>
         </div>
 
         <JobWmPanel

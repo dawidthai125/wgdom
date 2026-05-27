@@ -19,9 +19,10 @@ import {
   type JobWmJob,
   type InspectorPhotoEntry,
 } from "@/lib/job-wm";
+import type { JobMetaFields } from "@/lib/job-meta";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
 
-export type JobWmJobMutable = JobWmJob & {
+export type JobWmJobMutable = JobWmJob & JobMetaFields & {
   activityLog?: import("@/lib/job-activity").JobActivity[];
 };
 

@@ -8,6 +8,13 @@ import {
   type JobFileAttachment,
 } from "@/lib/job-documents";
 import type { InspectorPhotoEntry } from "@/lib/job-wm";
+import {
+  HOUSING_TYPE_LABELS,
+  STOVE_TYPE_LABELS_FULL,
+  isJobHousingSet,
+  type HousingType,
+  type StoveType,
+} from "@/lib/job-meta";
 
 export type JobPackSource = {
   id: string;
@@ -19,6 +26,8 @@ export type JobPackSource = {
   status: "in_progress" | "completed";
   keysHandedOver: boolean;
   notes: string;
+  housingType?: HousingType | "";
+  stoveType?: StoveType | "";
   documents: Record<DocType, boolean>;
   jobFiles?: JobFileAttachment[];
   inspectorPhotos?: InspectorPhotoEntry[];
@@ -84,6 +93,8 @@ function buildReadme(job: JobPackSource): string {
     `Data zakończenia: ${job.endDate || "—"}`,
     `Status: ${job.status === "completed" ? "Zdana" : "W trakcie"}`,
     `Klucze: ${job.keysHandedOver ? "Zdane" : "Nie zdane"}`,
+    `Lokal: ${isJobHousingSet(job) ? HOUSING_TYPE_LABELS[job.housingType] : "—"}`,
+    `Kuchenka: ${job.stoveType ? STOVE_TYPE_LABELS_FULL[job.stoveType] : "—"}`,
     "",
     "Checklist dokumentów:",
   ];

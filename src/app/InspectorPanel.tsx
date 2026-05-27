@@ -41,6 +41,8 @@ import {
 import { recordInspectorEvent, getInspectorJobNotesSeenAt, markInspectorJobNotesSeen, syncAlertsSeenFromCloud } from "@/lib/inspector-stats";
 import { InspectorHelpBanner, InspectorHelpModal, InspectorHint } from "@/app/InspectorHelp";
 import { normalizeJobWmFields, jobsWithAdminNotesNeedingInspector, applyHandoverStageToJob, inferHandoverStage, HANDOVER_STAGE_LABELS, type JobHandoverStage, type JobWmJob } from "@/lib/job-wm";
+import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
+import { normalizeJobMetaFields, type HousingType, type StoveType } from "@/lib/job-meta";
 import { WmPortfolioView } from "@/app/WmPortfolioView";
 import { JobWmPanel, JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { WorkScopeDisplay } from "@/app/WorkScopeEditor";
@@ -121,6 +123,8 @@ interface InspectorJob extends JobWmJob {
   workerReports?: WorkerJobReport[];
   jobFiles?: JobFileAttachment[];
   activityLog?: JobActivity[];
+  housingType?: HousingType | "";
+  stoveType?: StoveType | "";
 }
 
 const PHOTO_LABELS: Record<PhotoEntry["label"], string> = {
@@ -136,14 +140,14 @@ function fmtDate(iso: string): string {
 }
 
 function normalizeJob(raw: InspectorJob): InspectorJob {
-  return normalizeJobWmFields(syncJobDocumentsFromFiles({
+  return normalizeJobMetaFields(normalizeJobWmFields(syncJobDocumentsFromFiles({
     ...raw,
     photos: raw.photos || [],
     workerReports: raw.workerReports || [],
     workEntries: raw.workEntries || [],
     jobFiles: raw.jobFiles || [],
     activityLog: raw.activityLog || [],
-  }));
+  })));
 }
 
 function uniqueWorkersOnJob(job: InspectorJob, directory: DirectoryEmployee[]): { name: string; phone: string; position: string }[] {
@@ -571,6 +575,7 @@ export function InspectorPanel({
                           {job.address || "Bez adresu"}{job.flatNumber && <span className="text-muted-foreground"> m.{job.flatNumber}</span>}
                         </p>
                         <p className="text-xs text-muted-foreground mt-0.5 truncate">{job.client || "—"}</p>
+                        <div className="mt-1"><JobMetaBadges job={job}/></div>
                       </div>
                       <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${job.status === "completed" ? "bg-green-500/15 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
                         {job.status === "completed" ? "Zdana" : "W trakcie"}
@@ -627,6 +632,7 @@ export function InspectorPanel({
                 {selectedJob.address || "Bez adresu"}{selectedJob.flatNumber && ` m.${selectedJob.flatNumber}`}
               </p>
               <p className="text-[11px] text-muted-foreground truncate">{selectedJob.client || "—"}</p>
+              <JobMetaBadges job={selectedJob}/>
             </div>
             <InspectorJobSectionNav
               active={activeJobSection}
@@ -680,6 +686,12 @@ export function InspectorPanel({
               <p className="text-xs text-muted-foreground">
                 Start {fmtDate(selectedJob.startDate)}{selectedJob.endDate && ` · koniec ${fmtDate(selectedJob.endDate)}`}
               </p>
+              <JobMetaPickers
+                housingType={selectedJob.housingType}
+                stoveType={selectedJob.stoveType}
+                onHousingChange={(v) => updateJob({ ...selectedJob, housingType: v })}
+                onStoveChange={(v) => updateJob({ ...selectedJob, stoveType: v })}
+              />
               <InspectorQuickActions items={jobQuickActions} onSelect={scrollToJobSection}/>
             </div>
 
