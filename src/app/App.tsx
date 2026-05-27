@@ -2,6 +2,8 @@ import { useState, useCallback, useMemo, useEffect, useRef, Fragment, createCont
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import { CompanyMusicPlayer } from "@/app/components/CompanyMusicPlayer";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
+import { EmployeeSmsModal } from "@/app/EmployeeSmsModal";
+import { downloadJobDocumentsPack } from "@/lib/job-documents-pack";
 import {
   Calculator, Clock, Banknote, User, Plus, Trash2,
   ChevronRight, ChevronLeft, Users, FileText, FileDown, CheckCircle2,
@@ -3406,7 +3408,7 @@ function EmployeeArchiveModal({
   );
 }
 
-function DirectoryView({directory, savedWeeks, onChange, onCommit}:{directory:DirectoryEmployee[]; savedWeeks: WeekSnapshot[]; onChange:(d:DirectoryEmployee[])=>void; onCommit?:()=>void}) {
+function DirectoryView({directory, savedWeeks, onChange, onCommit, onOpenSms}:{directory:DirectoryEmployee[]; savedWeeks: WeekSnapshot[]; onChange:(d:DirectoryEmployee[])=>void; onCommit?:()=>void; onOpenSms?:()=>void}) {
   const { canViewRates } = useAdminAccess();
   const [editId, setEditId] = useState<string|null>(null);
   const [archiveEmpId, setArchiveEmpId] = useState<string|null>(null);
@@ -3483,7 +3485,12 @@ function DirectoryView({directory, savedWeeks, onChange, onCommit}:{directory:Di
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
               <input type="text" placeholder="Szukaj po nazwisku, stanowisku, telefonie..." value={search} onChange={(e)=>setSearch(e.target.value)} className="w-full bg-card border border-border rounded-xl pl-8 pr-3 py-2.5 text-sm focus:border-primary focus:outline-none transition-colors"/>
             </div>
-            <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-3 ml-auto flex-wrap">
+              {onOpenSms && (
+                <button type="button" onClick={onOpenSms} className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200 hover:bg-amber-500/20 transition-colors">
+                  <MessageSquare size={14}/>SMS pilne
+                </button>
+              )}
               <button onClick={()=>setShowInactive(v=>!v)} className={`text-xs px-3 py-2 rounded-lg border transition-colors ${showInactive?"bg-secondary border-border text-foreground":"border-border text-muted-foreground hover:text-foreground"}`}>
                 {showInactive?"Ukryj nieaktywnych":"Pokaż nieaktywnych"}
               </button>
@@ -5053,6 +5060,7 @@ function JobsView({
   const [deleteConfirmListId, setDeleteConfirmListId] = useState<string | null>(null);
   const [workerFilter, setWorkerFilter] = useState<string>("");
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [packBusy, setPackBusy] = useState(false);
 
   // Work entry add form state
   const [showAddEntry, setShowAddEntry] = useState(false);
@@ -5721,6 +5729,22 @@ function JobsView({
                     className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-primary/90 hover:bg-primary text-primary-foreground rounded-lg font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <Mail size={12}/>Email
+                  </button>
+                  <button
+                    type="button"
+                    disabled={packBusy}
+                    title="ZIP: zlecenie, kosztorys, zdjęcia, checklist dokumentów"
+                    onClick={async () => {
+                      setPackBusy(true);
+                      try {
+                        await downloadJobDocumentsPack(selectedJob);
+                      } finally {
+                        setPackBusy(false);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-emerald-600/90 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                  >
+                    <Package size={12}/>{packBusy ? "Pakowanie…" : "Pakiet ZIP"}
                   </button>
                   <button onClick={()=>exportJobPDF(selectedJob)} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-destructive/80 hover:bg-destructive text-white rounded-lg font-medium transition-colors">
                     <FileDown size={12}/>PDF
@@ -6493,7 +6517,7 @@ function ScheduleView({
 
 function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
-  onNavigate, onFixJobs, adminUserId, alertsSeenTick, onAlertsSeen,
+  onNavigate, onFixJobs, adminUserId, alertsSeenTick, onAlertsSeen, onOpenSms,
 }: {
   jobs: Job[];
   directory: DirectoryEmployee[];
@@ -6505,6 +6529,7 @@ function DashboardView({
   adminUserId?: string;
   alertsSeenTick: number;
   onAlertsSeen: () => void;
+  onOpenSms?: () => void;
 }) {
   const todayKey = todayDayKey();
   const todayIso = todayIsoDate();
@@ -6677,6 +6702,16 @@ function DashboardView({
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            {onOpenSms && (
+              <button
+                type="button"
+                onClick={onOpenSms}
+                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200 hover:bg-amber-500/20 transition-colors"
+              >
+                <MessageSquare size={13}/>
+                SMS pilne
+              </button>
+            )}
             {(
               [
                 { v: "schedule" as const, icon: CalendarDays, label: "Grafik" },
@@ -7856,6 +7891,14 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.19.0", label:"Pakiet dokumentów + SMS pilne",
+    items:[
+      {type:"new", text:"Roboty — „Pakiet ZIP” jednym kliknięciem: zlecenie, kosztorys, zdjęcia inspektora i zatwierdzone, checklist w README"},
+      {type:"new", text:"Pulpit i Pracownicy — „SMS pilne”: ogłoszenie do wszystkich aktywnych lub wybranych (SMSAPI / Twilio w Supabase)"},
+      {type:"improve", text:"Endpoint send-sms-bulk — max 50 odbiorców, prefiks SMS_PREFIX opcjonalny"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.18.1", label:"Inspektor — mobile UX",
     items:[
@@ -9227,6 +9270,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [globalSearch, setGlobalSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [showAdminSettings, setShowAdminSettings] = useState(false);
+  const [showSmsModal, setShowSmsModal] = useState(false);
   const [appSettings, setAppSettings] = useState<AppSettings>(() => loadAppSettingsLocal());
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState<"idle"|"saving"|"saved"|"error"|"offline">("idle");
@@ -9830,10 +9874,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
         {/* Content */}
         <div className="flex flex-1 min-h-0 overflow-hidden pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:pb-0">
-          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs} adminUserId={adminSession?.id} alertsSeenTick={alertsSeenTick} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)}/>}
+          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs} adminUserId={adminSession?.id} alertsSeenTick={alertsSeenTick} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} onOpenSms={()=>setShowSmsModal(true)}/>}
           {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive} initialEmpId={pendingPayrollEmpId} onInitialEmpConsumed={()=>setPendingPayrollEmpId(null)}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
-          {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory}/>}
+          {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory} onOpenSms={()=>setShowSmsModal(true)}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>setSavedWeeks(prev=>prev.filter(w=>w.id!==id))} jobs={jobs} directory={directory}/>}
           {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={(jobId)=>{ if (jobId) setPendingInspectorJobId(jobId); setView("inspector"); }}/>}
@@ -9900,6 +9944,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           onClose={() => setShowAdminSettings(false)}
           appSettings={appSettings}
           onAppSettingsChange={setAppSettings}
+        />
+      )}
+      {showSmsModal && (
+        <EmployeeSmsModal
+          open={showSmsModal}
+          onClose={() => setShowSmsModal(false)}
+          directory={directory}
         />
       )}
       {showSaveConfirm && (

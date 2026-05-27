@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-  FileText, Download, Mail, Eye, ClipboardList, Camera, Upload,
+  FileText, Download, Mail, Eye, ClipboardList, Camera, Upload, Package,
 } from "lucide-react";
 import type { JobFileAttachment } from "@/lib/job-documents";
 import type { InspectorPhotoEntry } from "@/lib/job-wm";
@@ -8,6 +8,7 @@ import type { EmailContact } from "@/lib/email-contacts";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { JobFilesEmailModal } from "@/app/JobFilesEmailModal";
+import { downloadJobDocumentsPack, type JobPackSource } from "@/lib/job-documents-pack";
 
 export type InspectorFileItem =
   | { kind: "jobFile"; file: JobFileAttachment }
@@ -35,6 +36,7 @@ export function JobInspectorFilesPanel({
   athPreviewEnabled,
   contacts,
   onEmailSent,
+  packSource,
 }: {
   jobId: string;
   jobAddress: string;
@@ -44,10 +46,12 @@ export function JobInspectorFilesPanel({
   athPreviewEnabled: boolean;
   contacts: EmailContact[];
   onEmailSent?: (to: string) => void;
+  packSource?: JobPackSource;
 }) {
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
   const [emailItems, setEmailItems] = useState<InspectorFileItem[] | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [packBusy, setPackBusy] = useState(false);
 
   const items = useMemo((): InspectorFileItem[] => {
     const list: InspectorFileItem[] = [];
@@ -87,9 +91,28 @@ export function JobInspectorFilesPanel({
   if (items.length === 0) {
     return (
       <div className="bg-card rounded-xl border border-border overflow-hidden">
-        <div className="px-5 py-3 border-b border-border flex items-center gap-2">
-          <Upload size={13} className="text-muted-foreground"/>
-          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pliki inspektora</span>
+        <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Upload size={13} className="text-muted-foreground"/>
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pliki inspektora</span>
+          </div>
+          {packSource && (
+            <button
+              type="button"
+              disabled={packBusy}
+              onClick={async () => {
+                setPackBusy(true);
+                try {
+                  await downloadJobDocumentsPack(packSource);
+                } finally {
+                  setPackBusy(false);
+                }
+              }}
+              className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-lg bg-emerald-600/90 text-white font-medium disabled:opacity-50"
+            >
+              <Package size={12}/>{packBusy ? "Pakowanie…" : "Pakiet ZIP"}
+            </button>
+          )}
         </div>
         <p className="px-5 py-4 text-xs text-muted-foreground">Brak wgranych plików — inspektor może dodać zlecenie, kosztorys lub zdjęcia.</p>
       </div>
@@ -107,15 +130,34 @@ export function JobInspectorFilesPanel({
             <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pliki inspektora</span>
             <span className="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full text-muted-foreground">{items.length}</span>
           </div>
-          {selectedItems.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setEmailItems(selectedItems)}
-              className="flex items-center gap-1 text-[11px] text-primary hover:underline"
-            >
-              <Mail size={12}/> Wyślij zaznaczone ({selectedItems.length})
-            </button>
-          )}
+          <div className="flex items-center gap-2 flex-wrap">
+            {packSource && (
+              <button
+                type="button"
+                disabled={packBusy}
+                onClick={async () => {
+                  setPackBusy(true);
+                  try {
+                    await downloadJobDocumentsPack(packSource);
+                  } finally {
+                    setPackBusy(false);
+                  }
+                }}
+                className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-lg bg-emerald-600/90 text-white font-medium disabled:opacity-50"
+              >
+                <Package size={12}/>{packBusy ? "Pakowanie…" : "Pakiet ZIP"}
+              </button>
+            )}
+            {selectedItems.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setEmailItems(selectedItems)}
+                className="flex items-center gap-1 text-[11px] text-primary hover:underline"
+              >
+                <Mail size={12}/> Wyślij zaznaczone ({selectedItems.length})
+              </button>
+            )}
+          </div>
         </div>
         <div className="divide-y divide-border">
           {items.map((item) => {

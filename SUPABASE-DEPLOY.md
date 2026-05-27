@@ -128,6 +128,8 @@ Funkcja składa się z **dwóch plików**. Oba muszą być na serwerze.
 | POST | `/send-backup-email` | Auto-backup w poniedziałek |
 | POST | `/send-job-email` | Email z roboty (v2.4) |
 | POST | `/send-payroll-email` | Email listy płac — PDF/Word + HTML (v2.7) |
+| POST | `/send-job-files-email` | Email z plikami inspektora (v2.14) |
+| POST | `/send-sms-bulk` | SMS pilne do pracowników (v2.19) |
 | GET | `/payroll-backup-status` | Kopie listy płac / archiwum (v2.7.1) |
 | POST | `/restore-payroll-backup` | Przywróć listę płac z kopii chmurowej (v2.7.1) |
 | GET | `/data-backup-status` | Status kopii wszystkich kluczy + dzienny backup (v2.7.2) |
@@ -171,6 +173,29 @@ Bez tego klucza wysyłka emaili zwróci błąd *„RESEND_API_KEY not set”*.
 5. Zapisz i **Deploy** funkcji (krok 4c)
 
 > **Nie dodawaj** `RESEND_API_KEY` do Vercel — to sekret tylko dla serwera Supabase.
+
+### 5d. Sekrety SMS (v2.19 — ogłoszenia pilne)
+
+Do wysyłki SMS z **Pulpitu** / **Pracownicy** → „SMS pilne” potrzebujesz **jednego** dostawcy:
+
+#### Opcja A — SMSAPI.pl (zalecane w Polsce)
+
+1. Konto na [smsapi.pl](https://www.smsapi.pl) → **API** → token OAuth
+2. Supabase → Edge Functions → **Secrets**:
+   - `SMSAPI_TOKEN` — token Bearer
+   - *(opcjonalnie)* `SMSAPI_FROM` — nadawca (np. nazwa firmy, jeśli masz w panelu)
+   - *(opcjonalnie)* `SMS_PREFIX` — prefiks każdej wiadomości, np. `W&G:`
+
+#### Opcja B — Twilio
+
+| Sekret | Opis |
+|--------|------|
+| `TWILIO_ACCOUNT_SID` | SID konta |
+| `TWILIO_AUTH_TOKEN` | Token auth |
+| `TWILIO_FROM_NUMBER` | Numer nadawcy E.164, np. `+48123456789` |
+| `SMS_PREFIX` | *(opcj.)* prefiks treści |
+
+Po dodaniu sekretów zrób **Deploy** funkcji (GitHub Actions lub Dashboard).
 
 ### 5c. Po zmianie sekretów
 

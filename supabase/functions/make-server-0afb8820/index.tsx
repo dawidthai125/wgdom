@@ -1179,4 +1179,133 @@ app.get("/make-server-0afb8820/client-share", async (c) => {
   }
 });
 
+/** Normalizacja numeru PL → E.164 (+48…) lub null. */
+function normalizePhoneE164(phone: string): string | null {
+  const d = phone.replace(/\D/g, "");
+  if (d.length < 9) return null;
+  return `+48${d.slice(-9)}`;
+}
+
+/** SMSAPI.pl — preferowane w PL (sekret SMSAPI_TOKEN). */
+async function sendViaSmsApi(to: string, message: string): Promise<{ ok: boolean; error?: string }> {
+  const token = Deno.env.get("SMSAPI_TOKEN");
+  if (!token) return { ok: false, error: "SMSAPI_TOKEN not set" };
+
+  const digits = to.replace(/\D/g, "");
+  const body = new URLSearchParams({
+    to: digits.startsWith("48") ? digits : `48${digits.slice(-9)}`,
+    message,
+    encoding: "utf-8",
+    format: "json",
+  });
+  const from = Deno.env.get("SMSAPI_FROM");
+  if (from) body.set("from", from);
+
+  const res = await fetch("https://api.smsapi.pl/sms.do", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: body.toString(),
+  });
+
+  const text = await res.text();
+  if (!res.ok) return { ok: false, error: text || `SMSAPI HTTP ${res.status}` };
+
+  try {
+    const json = JSON.parse(text) as { error?: number; message?: string; list?: { status?: string; error?: string }[] };
+    if (json.error && json.error !== 0) {
+      return { ok: false, error: json.message || `SMSAPI error ${json.error}` };
+    }
+    const first = json.list?.[0];
+    if (first?.status === "ERROR") {
+      return { ok: false, error: first.error || "SMSAPI send error" };
+    }
+  } catch {
+    if (text.includes("ERROR")) return { ok: false, error: text };
+  }
+  return { ok: true };
+}
+
+/** Twilio — alternatywa (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER). */
+async function sendViaTwilio(to: string, message: string): Promise<{ ok: boolean; error?: string }> {
+  const sid = Deno.env.get("TWILIO_ACCOUNT_SID");
+  const auth = Deno.env.get("TWILIO_AUTH_TOKEN");
+  const from = Deno.env.get("TWILIO_FROM_NUMBER");
+  if (!sid || !auth || !from) return { ok: false, error: "Twilio not configured" };
+
+  const body = new URLSearchParams({ To: to, From: from, Body: message });
+  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${btoa(`${sid}:${auth}`)}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: body.toString(),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    return { ok: false, error: err || `Twilio HTTP ${res.status}` };
+  }
+  return { ok: true };
+}
+
+async function sendSingleSms(to: string, message: string): Promise<{ ok: boolean; error?: string }> {
+  if (Deno.env.get("SMSAPI_TOKEN")) return sendViaSmsApi(to, message);
+  if (Deno.env.get("TWILIO_ACCOUNT_SID")) return sendViaTwilio(to, message);
+  return { ok: false, error: "Brak konfiguracji SMS — ustaw SMSAPI_TOKEN lub Twilio w Supabase Secrets" };
+}
+
+// Masowa wysyłka SMS do pracowników (pilne ogłoszenia)
+app.post("/make-server-0afb8820/send-sms-bulk", async (c) => {
+  let body: { message?: string; phones?: string[] };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ ok: false, error: "Nieprawidłowe dane" }, 400);
+  }
+
+  const message = String(body.message || "").trim();
+  if (!message) return c.json({ ok: false, error: "Brak treści wiadomości" }, 400);
+  if (message.length > 640) return c.json({ ok: false, error: "Wiadomość za długa (max 640 znaków)" }, 400);
+
+  const rawPhones = Array.isArray(body.phones) ? body.phones : [];
+  const phones = [...new Set(
+    rawPhones
+      .map((p) => normalizePhoneE164(String(p)))
+      .filter((p): p is string => !!p),
+  )];
+
+  if (phones.length === 0) {
+    return c.json({ ok: false, error: "Brak poprawnych numerów telefonu" }, 400);
+  }
+  if (phones.length > 50) {
+    return c.json({ ok: false, error: "Maksymalnie 50 odbiorców na raz" }, 400);
+  }
+
+  const prefix = Deno.env.get("SMS_PREFIX")?.trim();
+  const fullMessage = prefix ? `${prefix} ${message}` : message;
+
+  let sent = 0;
+  let failed = 0;
+  const errors: string[] = [];
+
+  for (const phone of phones) {
+    const res = await sendSingleSms(phone, fullMessage);
+    if (res.ok) sent++;
+    else {
+      failed++;
+      errors.push(`${phone}: ${res.error || "błąd"}`);
+    }
+  }
+
+  if (sent === 0) {
+    return c.json({ ok: false, error: errors[0] || "Wysyłka nie powiodła się", sent, failed, errors }, 500);
+  }
+
+  return c.json({ ok: true, sent, failed, errors: errors.slice(0, 10) });
+});
+
 Deno.serve(app.fetch);

@@ -233,6 +233,7 @@ export function InspectorAdminJobDetail({
           inspectorPhotos={job.inspectorPhotos || []}
           athPreviewEnabled={athPreviewEnabled}
           contacts={contacts}
+          packSource={job}
           onEmailSent={(to) => updateJob(job, { type: "email_sent", text: `Wysłano pliki inspektora na ${to}` })}
         />
 
