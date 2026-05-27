@@ -54,6 +54,8 @@ import {
   normalizeDeletedDirectoryIds,
   addDeletedDirectoryId,
   pushDirectoryToCloud,
+  stripWorkerPinHashesFromDirectory,
+  WORKER_PINS_RESET_FLAG,
   ADMIN_PASSWORDS_KEY,
   ADMIN_USERS_CONFIG_KEY,
   APP_SETTINGS_KEY,
@@ -7927,6 +7929,12 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-27", version:"2.19.8", label:"Reset kodów pracowników",
+    items:[
+      {type:"improve", text:"Jednorazowy reset wszystkich kodów PIN pracowników — przy pierwszym wejściu po aktualizacji każdy ustawia kod od nowa"},
+    ],
+  },
+  {
     date:"2026-05-27", version:"2.19.7", label:"Naprawa logowania pracownika",
     items:[
       {type:"fix", text:"Logowanie pracownika — naprawiony brakujący hash PIN (przycisk Zaloguj działał jak martwy)"},
@@ -9225,7 +9233,7 @@ function CloudLoader({children}: {children: React.ReactNode}) {
     const fallback = setTimeout(() => setReady(true), 5000);
 
     fetchKeysFromCloud([...keys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, ADMIN_PASSWORDS_KEY, ADMIN_USERS_CONFIG_KEY, APP_SETTINGS_KEY])
-      .then((allValues) => {
+      .then(async (allValues) => {
         const values = allValues.slice(0, keys.length);
         const cloudDeleted = normalizeDeletedJobIds(allValues[keys.length]);
         const cloudDirDeleted = normalizeDeletedDirectoryIds(allValues[keys.length + 1]);
@@ -9305,15 +9313,37 @@ function CloudLoader({children}: {children: React.ReactNode}) {
           }
         });
 
+        if (localStorage.getItem(WORKER_PINS_RESET_FLAG) !== "1") {
+          try {
+            const raw = localStorage.getItem("kw-directory");
+            const parsed = raw ? JSON.parse(raw) : [];
+            const arr = Array.isArray(parsed) ? parsed : [];
+            const { directory: stripped } = stripWorkerPinHashesFromDirectory(arr);
+            localStorage.setItem("kw-directory", JSON.stringify(stripped));
+            if (isSupabaseConfigured()) {
+              await pushKeysToCloud(
+                ["kw-directory", DIRECTORY_DELETED_IDS_KEY],
+                [stripped, mergedDirDeleted],
+                { replaceDirectoryKeys: ["kw-directory"] },
+              );
+            }
+            localStorage.setItem(WORKER_PINS_RESET_FLAG, "1");
+          } catch {
+            /* ponowi przy następnym wejściu */
+          }
+        }
+
         if (pushKeys.length > 0) {
-          pushKeysToCloud(
-            [...pushKeys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY],
-            [...pushValues, mergedDeleted, mergedDirDeleted],
-            {
-              replaceJobsKeys: pushKeys.includes("kw-jobs") ? ["kw-jobs"] : [],
-              replaceDirectoryKeys: pushKeys.includes("kw-directory") ? ["kw-directory"] : [],
-            },
-          ).catch(() => {});
+          try {
+            await pushKeysToCloud(
+              [...pushKeys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY],
+              [...pushValues, mergedDeleted, mergedDirDeleted],
+              {
+                replaceJobsKeys: pushKeys.includes("kw-jobs") ? ["kw-jobs"] : [],
+                replaceDirectoryKeys: pushKeys.includes("kw-directory") ? ["kw-directory"] : [],
+              },
+            );
+          } catch { /* offline */ }
         }
       })
       .catch(() => {})

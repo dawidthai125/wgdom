@@ -766,3 +766,21 @@ export async function persistKey(
     await pushKeyToCloud(key, value);
   }
 }
+
+/** Jednorazowy reset kodów pracownika — flaga w localStorage po udanym zapisie do chmury. */
+export const WORKER_PINS_RESET_FLAG = "wg-worker-pins-reset-v2026-05-27";
+
+export function stripWorkerPinHashesFromDirectory<T extends Record<string, unknown>>(
+  directory: T[],
+): { directory: T[]; cleared: number } {
+  let cleared = 0;
+  const next = directory.map((item) => {
+    if (!item || typeof item !== "object") return item;
+    if (!item.workerPinHash) return item;
+    cleared += 1;
+    const copy = { ...item };
+    delete copy.workerPinHash;
+    return copy;
+  });
+  return { directory: next, cleared };
+}
