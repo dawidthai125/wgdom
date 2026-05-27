@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
-import { X, Send, MessageSquare, Users, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { X, Send, MessageSquare, Users, AlertTriangle, CheckCircle2, Shield, HardHat } from "lucide-react";
 import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
 import { normalizePhoneE164, normalizePhone9 } from "@/lib/phone-normalize";
+import { adminRoleLabel, listAdminUsersForManagement } from "@/lib/admin-auth";
 
 export type SmsDirectoryEmployee = {
   id: string;
@@ -12,10 +13,48 @@ export type SmsDirectoryEmployee = {
   testAccount?: boolean;
 };
 
-function isSmsEligible(emp: SmsDirectoryEmployee): boolean {
+type SmsRecipient = {
+  id: string;
+  name: string;
+  phone: string;
+  subtitle: string;
+  group: "employee" | "team";
+};
+
+function isEmployeeSmsEligible(emp: SmsDirectoryEmployee): boolean {
   if (emp.testAccount) return false;
   if (!emp.active) return false;
   return normalizePhone9(emp.phone) !== null;
+}
+
+function buildRecipients(directory: SmsDirectoryEmployee[]): SmsRecipient[] {
+  const list: SmsRecipient[] = [];
+
+  for (const emp of directory.filter(isEmployeeSmsEligible)) {
+    list.push({
+      id: `emp:${emp.id}`,
+      name: emp.name || "—",
+      phone: emp.phone,
+      subtitle: emp.position || "Pracownik",
+      group: "employee",
+    });
+  }
+
+  for (const user of listAdminUsersForManagement()) {
+    if (!normalizePhone9(user.phone)) continue;
+    list.push({
+      id: `admin:${user.id}`,
+      name: user.displayName,
+      phone: user.phone,
+      subtitle: adminRoleLabel(user.role),
+      group: "team",
+    });
+  }
+
+  return list.sort((a, b) => {
+    if (a.group !== b.group) return a.group === "employee" ? -1 : 1;
+    return a.name.localeCompare(b.name, "pl");
+  });
 }
 
 function smsSegments(text: string): number {
@@ -23,6 +62,18 @@ function smsSegments(text: string): number {
   if (len === 0) return 0;
   if (len <= 160) return 1;
   return Math.ceil(len / 153);
+}
+
+function uniqueByPhone(recipients: SmsRecipient[]): SmsRecipient[] {
+  const seen = new Set<string>();
+  const out: SmsRecipient[] = [];
+  for (const r of recipients) {
+    const key = normalizePhone9(r.phone);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(r);
+  }
+  return out;
 }
 
 export function EmployeeSmsModal({
@@ -34,23 +85,31 @@ export function EmployeeSmsModal({
   onClose: () => void;
   directory: SmsDirectoryEmployee[];
 }) {
-  const eligible = useMemo(() => directory.filter(isSmsEligible), [directory]);
+  const eligible = useMemo(() => buildRecipients(directory), [directory]);
+  const employees = useMemo(() => eligible.filter((r) => r.group === "employee"), [eligible]);
+  const team = useMemo(() => eligible.filter((r) => r.group === "team"), [eligible]);
+
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ sent: number; failed: number; errors: string[] } | null>(null);
   const [error, setError] = useState("");
 
-  const recipients = useMemo(() => {
-    if (selected.size === 0) return eligible;
-    return eligible.filter((e) => selected.has(e.id));
-  }, [eligible, selected]);
+  useEffect(() => {
+    if (!open) return;
+    setSelected(new Set(eligible.map((r) => r.id)));
+    setMessage("");
+    setError("");
+    setResult(null);
+  }, [open, eligible]);
+
+  const recipients = useMemo(
+    () => uniqueByPhone(eligible.filter((r) => selected.has(r.id))),
+    [eligible, selected],
+  );
 
   const toggle = (id: string) => {
     setSelected((prev) => {
-      if (prev.size === 0) {
-        return new Set(eligible.filter((e) => e.id !== id).map((e) => e.id));
-      }
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -58,9 +117,7 @@ export function EmployeeSmsModal({
     });
   };
 
-  const isChecked = (id: string) => selected.size === 0 || selected.has(id);
-
-  const selectAll = () => setSelected(new Set(eligible.map((e) => e.id)));
+  const selectAll = () => setSelected(new Set(eligible.map((r) => r.id)));
   const selectNone = () => setSelected(new Set());
 
   const handleSend = async () => {
@@ -70,7 +127,7 @@ export function EmployeeSmsModal({
       return;
     }
     if (recipients.length === 0) {
-      setError("Brak odbiorców z poprawnym numerem telefonu");
+      setError("Zaznacz co najmniej jednego odbiorcę z numerem telefonu");
       return;
     }
     if (!API_BASE) {
@@ -111,7 +168,7 @@ export function EmployeeSmsModal({
         errors: data.errors ?? [],
       });
       setMessage("");
-      setSelected(new Set());
+      setSelected(new Set(eligible.map((r) => r.id)));
     } catch {
       setError("Błąd połączenia z serwerem");
     } finally {
@@ -123,6 +180,33 @@ export function EmployeeSmsModal({
 
   const segments = smsSegments(message.trim());
 
+  const renderGroup = (title: string, icon: typeof Users, items: SmsRecipient[]) => {
+    if (items.length === 0) return null;
+    const Icon = icon;
+    return (
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-3 py-2 bg-secondary/40 flex items-center gap-1.5">
+          <Icon size={11} className="text-primary"/>
+          {title} ({items.length})
+        </p>
+        {items.map((person) => (
+          <label key={person.id} className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-secondary/50">
+            <input
+              type="checkbox"
+              checked={selected.has(person.id)}
+              onChange={() => toggle(person.id)}
+              className="shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium truncate">{person.name}</p>
+              <p className="text-[10px] text-muted-foreground">{person.subtitle} · {person.phone}</p>
+            </div>
+          </label>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50" onClick={onClose}>
       <div
@@ -133,8 +217,8 @@ export function EmployeeSmsModal({
           <div className="flex items-center gap-2 min-w-0">
             <MessageSquare size={18} className="text-primary shrink-0"/>
             <div className="min-w-0">
-              <h2 className="text-sm font-semibold truncate">SMS do pracowników</h2>
-              <p className="text-[11px] text-muted-foreground">Pilne ogłoszenia — wszyscy lub wybrani</p>
+              <h2 className="text-sm font-semibold truncate">SMS pilne</h2>
+              <p className="text-[11px] text-muted-foreground">Pracownicy + admin, moderator, inspektor</p>
             </div>
           </div>
           <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-secondary shrink-0" aria-label="Zamknij">
@@ -186,36 +270,30 @@ export function EmployeeSmsModal({
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                    <Users size={12}/> Odbiorcy ({recipients.length})
+                    <Users size={12}/> Odbiorcy ({recipients.length}{selected.size !== recipients.length ? ` · ${selected.size} zazn.` : ""})
                   </label>
                   <div className="flex gap-2">
-                    <button type="button" onClick={selectAll} className="text-[10px] text-primary hover:underline">Wszyscy aktywni</button>
+                    <button type="button" onClick={selectAll} className="text-[10px] text-primary hover:underline">Zaznacz wszystkich</button>
                     <button type="button" onClick={selectNone} className="text-[10px] text-muted-foreground hover:underline">Wyczyść wybór</button>
                   </div>
                 </div>
                 <p className="text-[11px] text-muted-foreground mb-2">
                   {selected.size === 0
-                    ? "Nie zaznaczono nikogo — wyśle do wszystkich aktywnych z numerem telefonu."
-                    : `Wybrano ${selected.size} z ${eligible.length} osób.`}
+                    ? "Nikt nie zaznaczony — zaznacz odbiorców albo kliknij „Zaznacz wszystkich”."
+                    : selected.size === eligible.length
+                      ? `Wszyscy z listy (${eligible.length} osób).`
+                      : `Wybrano ${selected.size} z ${eligible.length} osób.`}
                 </p>
-                <div className="max-h-48 overflow-y-auto border border-border rounded-xl divide-y divide-border">
+                <div className="max-h-56 overflow-y-auto border border-border rounded-xl divide-y divide-border">
                   {eligible.length === 0 ? (
-                    <p className="px-3 py-4 text-xs text-muted-foreground text-center">Brak aktywnych pracowników z numerem telefonu w kartotece.</p>
+                    <p className="px-3 py-4 text-xs text-muted-foreground text-center leading-relaxed">
+                      Brak numerów telefonu. Uzupełnij kartotekę pracowników oraz numery w ⚙ Super Admin przy kontach użytkowników.
+                    </p>
                   ) : (
-                    eligible.map((emp) => (
-                      <label key={emp.id} className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-secondary/50">
-                        <input
-                          type="checkbox"
-                          checked={isChecked(emp.id)}
-                          onChange={() => toggle(emp.id)}
-                          className="shrink-0"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium truncate">{emp.name || "—"}</p>
-                          <p className="text-[10px] text-muted-foreground">{emp.position || "—"} · {emp.phone}</p>
-                        </div>
-                      </label>
-                    ))
+                    <>
+                      {renderGroup("Pracownicy", HardHat, employees)}
+                      {renderGroup("Zespół — admin, moderator, inspektor", Shield, team)}
+                    </>
                   )}
                 </div>
               </div>
@@ -223,7 +301,7 @@ export function EmployeeSmsModal({
               <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 rounded-xl px-3 py-2.5">
                 <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5"/>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Wymaga konfiguracji SMSAPI lub Twilio w Supabase (sekrety). Używaj tylko do pilnych komunikatów — koszt zależy od operatora.
+                  Numery inspektorów i adminów ustawiasz w ⚙ Super Admin. Ten sam numer wysyłany jest tylko raz.
                 </p>
               </div>
 

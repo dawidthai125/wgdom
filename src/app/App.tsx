@@ -7898,6 +7898,19 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-26", version:"2.19.3", label:"SMS — zespół + poprawka zaznaczania",
+    items:[
+      {type:"improve", text:"SMS pilne — lista obejmuje też adminów, moderatorów, super admina i inspektorów (numery z ⚙ Super Admin)"},
+      {type:"fix", text:"SMS — „Wyczyść wybór” naprawdę odznacza wszystkich; domyślnie zaznaczeni wszyscy z numerem"},
+    ],
+  },
+  {
+    date:"2026-05-26", version:"2.19.2", label:"SMS — naprawa pola nadawcy SMSAPI",
+    items:[
+      {type:"fix", text:"SMSAPI — retry bez błędnego SMSAPI_FROM; czytelniejsze komunikaty (konto testowe, zły nadawca)"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.19.1", label:"Naprawa wyboru zdjęć z galerii",
     items:[
       {type:"fix", text:"Roboty → raport → Foto rysunku / Z galerii — niezawodny wybór pliku na Windows (admin i pracownik)"},
