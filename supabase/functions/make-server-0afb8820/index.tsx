@@ -1192,40 +1192,60 @@ async function sendViaSmsApi(to: string, message: string): Promise<{ ok: boolean
   if (!token) return { ok: false, error: "SMSAPI_TOKEN not set" };
 
   const digits = to.replace(/\D/g, "");
-  const body = new URLSearchParams({
-    to: digits.startsWith("48") ? digits : `48${digits.slice(-9)}`,
-    message,
-    encoding: "utf-8",
-    format: "json",
-  });
-  const from = Deno.env.get("SMSAPI_FROM");
-  if (from) body.set("from", from);
+  const toParam = digits.startsWith("48") ? digits : `48${digits.slice(-9)}`;
 
-  const res = await fetch("https://api.smsapi.pl/sms.do", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: body.toString(),
-  });
+  const buildBody = (includeFrom: boolean) => {
+    const body = new URLSearchParams({
+      to: toParam,
+      message,
+      encoding: "utf-8",
+      format: "json",
+    });
+    const from = Deno.env.get("SMSAPI_FROM")?.trim();
+    if (includeFrom && from) body.set("from", from);
+    return body;
+  };
 
-  const text = await res.text();
-  if (!res.ok) return { ok: false, error: text || `SMSAPI HTTP ${res.status}` };
-
-  try {
-    const json = JSON.parse(text) as { error?: number; message?: string; list?: { status?: string; error?: string }[] };
-    if (json.error && json.error !== 0) {
-      return { ok: false, error: json.message || `SMSAPI error ${json.error}` };
+  const parseSmsApiResponse = (text: string, resOk: boolean): { ok: boolean; error?: string; invalidFrom?: boolean } => {
+    if (!resOk) return { ok: false, error: text || "SMSAPI HTTP error" };
+    try {
+      const json = JSON.parse(text) as { error?: number; message?: string; list?: { status?: string; error?: string }[] };
+      if (json.error === 14) {
+        return { ok: false, error: "Nieprawidłowe pole nadawcy (SMSAPI_FROM) — usuń sekret albo ustaw zatwierdzoną nazwę z panelu SMSAPI", invalidFrom: true };
+      }
+      if (json.error === 98) {
+        return { ok: false, error: "Konto testowe SMSAPI — wyślij tylko na numer podany przy rejestracji" };
+      }
+      if (json.error && json.error !== 0) {
+        return { ok: false, error: json.message || `SMSAPI error ${json.error}` };
+      }
+      const first = json.list?.[0];
+      if (first?.status === "ERROR") {
+        return { ok: false, error: first.error || "SMSAPI send error" };
+      }
+    } catch {
+      if (text.includes("ERROR")) return { ok: false, error: text };
     }
-    const first = json.list?.[0];
-    if (first?.status === "ERROR") {
-      return { ok: false, error: first.error || "SMSAPI send error" };
-    }
-  } catch {
-    if (text.includes("ERROR")) return { ok: false, error: text };
+    return { ok: true };
+  };
+
+  for (const includeFrom of [true, false] as const) {
+    const res = await fetch("https://api.smsapi.pl/sms.do", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: buildBody(includeFrom).toString(),
+    });
+    const text = await res.text();
+    const parsed = parseSmsApiResponse(text, res.ok);
+    if (parsed.ok) return { ok: true };
+    if (parsed.invalidFrom && includeFrom) continue;
+    return { ok: false, error: parsed.error };
   }
-  return { ok: true };
+
+  return { ok: false, error: "Nie udało się wysłać SMS (SMSAPI)" };
 }
 
 /** Twilio — alternatywa (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER). */
