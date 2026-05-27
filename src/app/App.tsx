@@ -7941,6 +7941,12 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-27", version:"2.19.10", label:"Lista płac — zapis godzin i odznaczanie dni",
+    items:[
+      {type:"fix", text:"Lista płac — odznaczenie dnia (np. czwartek) i zmiana godzin zostają po odświeżeniu; chmura nie przywraca starego wpisu"},
+    ],
+  },
+  {
     date:"2026-05-27", version:"2.19.9", label:"Lista płac — zapis stawek",
     items:[
       {type:"fix", text:"Lista płac — zmiana stawki w tygodniu nie znika po odświeżeniu (sync z chmurą nie nadpisywał stawki przy tych samych godzinach)"},
