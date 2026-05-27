@@ -119,6 +119,15 @@ import {
 } from "@/lib/job-wm";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { syncAppSettingsFromCloud, saveAppSettings, loadAppSettingsLocal, type AppSettings } from "@/lib/app-settings";
+import { WorkScopeEditor, WorkScopeDisplay } from "@/app/WorkScopeEditor";
+import {
+  getReportWorkScopeText,
+  reportHasWorkScope,
+  scopeTextHasContent,
+  scopeTextLineCount,
+  scopeTextToWorkItems,
+  workItemsToScopeText,
+} from "@/lib/work-scope-text";
 import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
@@ -345,6 +354,8 @@ interface WorkerJobReport {
   updatedAt?: string;
   /** Kiedy admin obejrzał raport — znika z „Uwaga dziś” (ponownie po edycji przez pracownika) */
   adminReviewedAt?: string;
+  /** Zakres prac jako tekst z listą (główne pole od v2.17) */
+  workScopeText?: string;
   workItems: WorkReportItem[];
   rooms: RoomDimension[];
   generalNote?: string;
@@ -1400,9 +1411,14 @@ function normalizeWorkItem(raw: unknown): WorkReportItem {
 
 function normalizeWorkerReport(r: WorkerJobReport): WorkerJobReport {
   const items = Array.isArray(r.workItems) ? r.workItems.map(normalizeWorkItem) : [];
+  const workScopeText = r.workScopeText?.trim()
+    ? r.workScopeText
+    : workItemsToScopeText(items);
+  const syncedItems = workScopeText.trim() ? scopeTextToWorkItems(workScopeText) : items;
   return {
     ...r,
-    workItems: items,
+    workScopeText,
+    workItems: syncedItems,
     generalNote: r.generalNote || "",
     sketchNote: r.sketchNote || "",
     rooms: (r.rooms || []).map((room) => ({
@@ -4606,6 +4622,7 @@ function collectJobEmailSelectableKeys(job: Job): EmailSelectKey[] {
     keys.push(`p:${p.id}`);
   }
   for (const report of jobWorkerReports(job)) {
+    if (reportHasWorkScope(report)) keys.push(`ws:${report.id}`);
     for (const item of report.workItems.filter(workItemHasContent)) {
       keys.push(`wi:${report.id}:${item.id}`);
     }
@@ -4648,8 +4665,9 @@ function buildJobEmailPayload(
   }>();
 
   for (const report of jobWorkerReports(job)) {
+    const scopeSelected = selected.has(`ws:${report.id}`);
     const workItems = report.workItems
-      .filter((item) => workItemHasContent(item) && selected.has(`wi:${report.id}:${item.id}`))
+      .filter((item) => workItemHasContent(item) && (scopeSelected || selected.has(`wi:${report.id}:${item.id}`)))
       .map((item) => ({ text: item.text, note: item.note || undefined }));
 
     const rooms: { name: string; length: string; width: string; height: string; note?: string }[] = [];
@@ -4917,7 +4935,16 @@ function JobEmailModal({
                         <p className="text-[10px] text-muted-foreground">{fmtDate(report.submittedAt.slice(0, 10))}</p>
                       </div>
                       <div className="p-2 space-y-1">
-                        {report.workItems.filter(workItemHasContent).map((item) => {
+                        {reportHasWorkScope(report) && (
+                          <label className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer ${selected.has(`ws:${report.id}`) ? "bg-violet-500/10" : "hover:bg-secondary/30"}`}>
+                            <input type="checkbox" checked={selected.has(`ws:${report.id}`)} onChange={() => toggleKey(`ws:${report.id}`)} className="mt-0.5 shrink-0 accent-primary"/>
+                            <div className="min-w-0">
+                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Zakres wykonanych prac</p>
+                              <p className="text-xs line-clamp-4 whitespace-pre-wrap">{getReportWorkScopeText(report)}</p>
+                            </div>
+                          </label>
+                        )}
+                        {!reportHasWorkScope(report) && report.workItems.filter(workItemHasContent).map((item) => {
                           const key = `wi:${report.id}:${item.id}`;
                           return (
                             <label key={item.id} className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer ${selected.has(key) ? "bg-violet-500/10" : "hover:bg-secondary/30"}`}>
@@ -6246,7 +6273,7 @@ function JobsView({
               onAddReport={(report) => updateJob({
                 ...selectedJob,
                 workerReports: [...jobWorkerReports(selectedJob), report],
-              }, { type: "report_add", text: `Dodano raport (${report.workItems.length} punktów)` })}
+              }, { type: "report_add", text: `Dodano raport (${scopeTextLineCount(getReportWorkScopeText(report))} linii)` })}
               onDelete={(reportId) => updateJob({
                 ...selectedJob,
                 workerReports: jobWorkerReports(selectedJob).filter(r => r.id !== reportId),
@@ -6966,7 +6993,7 @@ function DashboardView({
                         <span className="text-foreground">{report.workerName}</span>
                         {" · "}
                         {job.address || "Bez adresu"}
-                        {report.workItems[0]?.text && ` — ${report.workItems[0].text}`}
+                        {getReportWorkScopeText(report).split("\n").find((l) => l.trim()) && ` — ${getReportWorkScopeText(report).split("\n").find((l) => l.trim())!.trim()}`}
                         {" · "}
                         {fmtDate((report.updatedAt || report.submittedAt).slice(0, 10))}
                         {report.updatedAt && report.adminReviewedAt && report.updatedAt > report.adminReviewedAt && (
@@ -7605,7 +7632,7 @@ function HelpView() {
               {q:"Ochrona danych wypłat", a:"Logowanie wymaga telefonu i osobistego kodu — kolega nie wejdzie na Twój profil samym numerem. Kwota ukrywa się też gdy przełączysz aplikację (Alt+Tab). Kopiowanie tekstu jest zablokowane."},
               {q:"Jak się zalogować?", a:"Administrator musi wpisać Twój numer w kartotece Pracownicy. Wybierz swoje imię z listy, wpisz telefon i kod. Nie wpisuj ręcznie cudzego imienia."},
               {q:"Jak dodać wiele zdjęć?", a:"W robocie użyj sekcji „Galeria — wiele zdjęć”: wybierz typ (przed/w trakcie/po), kliknij „Wybierz z galerii”, zaznacz wiele zdjęć, podejrzyj miniaturki i „Wyślij”."},
-              {q:"Jak wysłać raport z budowy?", a:"Sekcja „Raport z budowy”: punkty zakresu (z opisem do każdego), wymiary z opisem pomieszczenia lub foto rysunku z opisem, na dole „Wiadomość dla admina”. Po wysłaniu możesz edytować lub usunąć raport w „Twoje raporty”."},
+              {q:"Jak wysłać raport z budowy?", a:"Sekcja „Raport z budowy”: wpisz zakres w jednym polu (lista — kropki, numery, podpunkty), wymiary z opisem pomieszczenia lub foto rysunku, na dole „Wiadomość dla admina”. Po wysłaniu możesz edytować lub usunąć raport w „Twoje raporty”."},
               {q:"Opisy zdjęć?", a:"Przy galerii — opis pod każdym zdjęciem przed wysłaniem. Przy aparacie — pole „Opis do następnych zdjęć”. Po wgraniu — edytuj opis lub usuń zdjęcie w „Twoje wgrane zdjęcia”."},
               {q:"Gdzie admin widzi raport?", a:"Roboty → wybierz robotę → „Raporty — zakres i wymiary”. Rozwiń wpis — widać punkty z opisami, tabelę wymiarów, rysunek i wiadomość."},
               {q:"Nie widzę żadnej roboty", a:"Administrator musi dodać robotę ze statusem „w trakcie”. Lista ładuje się z chmury."},
@@ -7829,6 +7856,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-26", version:"2.17.0", label:"Raport — zakres jak w notatniku",
+    items:[
+      {type:"improve", text:"Zakres prac — jedno pole tekstowe z listą (kropki, numeracja, podpunkty →); Enter kontynuuje styl listy"},
+      {type:"improve", text:"Wklejanie z Notatek / Worda — enter i listy zostają; kropki i numeracja się porządkują"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.16.1", label:"Telefony — przypisane do osób, nie ról",
     items:[
@@ -10377,8 +10411,7 @@ function JobReportForm({
   editReport?: WorkerJobReport | null;
   onCancelEdit?: () => void;
 }) {
-  const [reportItems, setReportItems] = useState<WorkReportItem[]>([]);
-  const [newItemText, setNewItemText] = useState("");
+  const [scopeText, setScopeText] = useState("");
   const [dimMode, setDimMode] = useState<"manual" | "sketch">("manual");
   const [reportRooms, setReportRooms] = useState<RoomDimension[]>([]);
   const [sketchFile, setSketchFile] = useState<File | null>(null);
@@ -10390,7 +10423,6 @@ function JobReportForm({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const pokojCountRef = useRef(0);
-  const newItemInputRef = useRef<HTMLInputElement>(null);
   const generalNoteRef = useRef<HTMLTextAreaElement>(null);
   const isEdit = Boolean(editReport);
 
@@ -10401,8 +10433,7 @@ function JobReportForm({
   const loadFromReport = (report: WorkerJobReport | null) => {
     if (sketchPreview && sketchPreview.startsWith("blob:")) URL.revokeObjectURL(sketchPreview);
     if (!report) {
-      setReportItems([]);
-      setNewItemText("");
+      setScopeText("");
       setDimMode("manual");
       setReportRooms([]);
       setSketchFile(null);
@@ -10414,7 +10445,7 @@ function JobReportForm({
       return;
     }
     const normalized = normalizeWorkerReport(report);
-    setReportItems(normalized.workItems);
+    setScopeText(getReportWorkScopeText(normalized));
     setReportRooms(normalized.rooms);
     setGeneralNote(normalized.generalNote || "");
     setSketchNote(normalized.sketchNote || "");
@@ -10435,17 +10466,6 @@ function JobReportForm({
   const resetForm = () => {
     loadFromReport(null);
     onCancelEdit?.();
-  };
-
-  const addReportItem = () => {
-    const t = newItemText.trim();
-    if (!t) return;
-    setReportItems((prev) => [...prev, { id: crypto.randomUUID(), text: t, note: "" }]);
-    setNewItemText("");
-  };
-
-  const updateReportItem = (id: string, patch: Partial<WorkReportItem>) => {
-    setReportItems((prev) => prev.map((item) => (item.id === id ? { ...item, ...patch } : item)));
   };
 
   const addRoom = (roomType: RoomTypeKey) => {
@@ -10472,11 +10492,12 @@ function JobReportForm({
   };
 
   const handleSubmit = async () => {
-    const items = reportItems.filter(workItemHasContent);
+    const scope = scopeText.trim();
+    const items = scope ? scopeTextToWorkItems(scope) : [];
     const rooms = reportRooms.filter(roomHasContent);
     const hasSketch = dimMode === "sketch" && (sketchFile || existingSketch);
     const hasGeneral = generalNote.trim().length > 0;
-    if (items.length === 0 && rooms.length === 0 && !hasSketch && !hasGeneral) {
+    if (!scopeTextHasContent(scope) && rooms.length === 0 && !hasSketch && !hasGeneral) {
       setError("Dodaj zakres, wymiary, rysunek lub wiadomość dla admina.");
       return;
     }
@@ -10502,6 +10523,7 @@ function JobReportForm({
       authorAdminRole: editReport?.authorAdminRole || authorAdminRole,
       submittedAt: editReport?.submittedAt || now,
       updatedAt: isEdit ? now : undefined,
+      workScopeText: scope,
       workItems: items,
       rooms,
       generalNote: generalNote.trim(),
@@ -10533,49 +10555,12 @@ function JobReportForm({
 
       <div>
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Zakres wykonanych prac</p>
-        {reportItems.length > 0 && (
-          <ul className="space-y-2 mb-3">
-            {reportItems.map((item) => (
-              <li key={item.id} className="bg-secondary/50 rounded-xl px-3 py-2 space-y-2">
-                <div className="flex items-start gap-2">
-                  <span className="text-primary shrink-0 mt-2">•</span>
-                  <input
-                    type="text"
-                    value={item.text}
-                    onChange={(e) => updateReportItem(item.id, { text: e.target.value })}
-                    placeholder="Co zostało zrobione..."
-                    className="flex-1 bg-background rounded-lg px-2.5 py-1.5 text-sm border border-border focus:border-primary focus:outline-none"
-                  />
-                  <button type="button" onClick={() => setReportItems((p) => p.filter((x) => x.id !== item.id))} className="text-muted-foreground hover:text-destructive shrink-0 mt-1.5">
-                    <X size={14}/>
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  value={item.note}
-                  onChange={(e) => updateReportItem(item.id, { note: e.target.value })}
-                  placeholder="Opis / uwagi do tego punktu (opcjonalnie)"
-                  className="w-full bg-background rounded-lg px-2.5 py-1.5 text-xs border border-border focus:border-primary focus:outline-none ml-5"
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-        <div className="flex gap-2 items-start">
-          <input
-            ref={newItemInputRef}
-            type="text"
-            value={newItemText}
-            onChange={(e) => setNewItemText(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addReportItem(); } }}
-            placeholder="np. Położono płytki w łazience..."
-            className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
-          />
-          <VoiceNoteButton focusRef={newItemInputRef} hintClassName="sm:max-w-[280px]" onResult={(text) => setNewItemText((p) => (p ? `${p} ${text}` : text))}/>
-          <button type="button" onClick={addReportItem} className="px-4 py-2.5 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 shrink-0">
-            <Plus size={16}/>
-          </button>
-        </div>
+        <WorkScopeEditor
+          value={scopeText}
+          onChange={setScopeText}
+          disabled={disabled || saving}
+          VoiceNoteButton={VoiceNoteButton}
+        />
       </div>
 
       <div>
@@ -10789,7 +10774,8 @@ function JobWorkerReportsPanel({
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate">{report.workerName}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {fmtDate(report.submittedAt.slice(0, 10))} · {report.workItems.length} punktów
+                      {fmtDate(report.submittedAt.slice(0, 10))}
+                      {reportHasWorkScope(report) && ` · ${scopeTextLineCount(getReportWorkScopeText(report))} linii`}
                       {report.rooms.length > 0 && ` · ${report.rooms.length} pom.`}
                       {report.sketch && " · rysunek"}
                     </p>
@@ -10798,20 +10784,10 @@ function JobWorkerReportsPanel({
                 </button>
                 {isOpen && (
                   <div className="px-5 pb-5 space-y-4 bg-secondary/10">
-                    {report.workItems.length > 0 && (
+                    {reportHasWorkScope(report) && (
                       <div>
                         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Zakres wykonanych prac</p>
-                        <ul className="space-y-2">
-                          {report.workItems.map((item) => (
-                            <li key={item.id} className="text-sm">
-                              <div className="flex gap-2">
-                                <span className="text-primary shrink-0">•</span>
-                                <span>{item.text}</span>
-                              </div>
-                              {item.note && <p className="text-xs text-muted-foreground ml-4 mt-0.5 italic">{item.note}</p>}
-                            </li>
-                          ))}
-                        </ul>
+                        <WorkScopeDisplay text={getReportWorkScopeText(report)} className="bg-secondary/30 rounded-xl px-3 py-2"/>
                       </div>
                     )}
                     {report.generalNote && (
@@ -11006,9 +10982,9 @@ function ClientShareView({ token }: { token: string }) {
                   return (
                     <div key={r.id || norm.submittedAt} className="bg-card border border-border rounded-xl p-4 space-y-2">
                       <p className="text-xs text-muted-foreground">{fmtDate(norm.submittedAt.slice(0, 10))} · {norm.workerName}</p>
-                      {norm.workItems.filter(workItemHasContent).map((item) => (
-                        <p key={item.id} className="text-sm">• {item.text}{item.note && <span className="text-muted-foreground text-xs block ml-3">{item.note}</span>}</p>
-                      ))}
+                      {reportHasWorkScope(norm) && (
+                        <WorkScopeDisplay text={getReportWorkScopeText(norm)}/>
+                      )}
                       {norm.generalNote && <p className="text-xs text-muted-foreground italic border-t border-border pt-2">{norm.generalNote}</p>}
                       {norm.sketch?.publicUrl && (
                         <img src={norm.sketch.publicUrl} alt="Rysunek" className="rounded-lg border border-border max-h-48 object-contain w-full bg-secondary"/>
@@ -11946,13 +11922,8 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <p className="text-xs text-muted-foreground">{fmtDate(r.submittedAt.slice(0, 10))}{r.updatedAt && " · edyt."}</p>
-                          {r.workItems.length > 0 && (
-                            <ul className="text-xs space-y-0.5 text-foreground/90 mt-1">
-                              {r.workItems.slice(0, 2).map((item) => (
-                                <li key={item.id}>• {item.text}</li>
-                              ))}
-                              {r.workItems.length > 2 && <li className="text-muted-foreground">… +{r.workItems.length - 2} punktów</li>}
-                            </ul>
+                          {reportHasWorkScope(r) && (
+                            <p className="text-xs text-foreground/90 mt-1 line-clamp-3 whitespace-pre-wrap">{getReportWorkScopeText(r)}</p>
                           )}
                         </div>
                         <div className="flex gap-1 shrink-0">

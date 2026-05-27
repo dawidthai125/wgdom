@@ -43,7 +43,9 @@ import { InspectorHelpBanner, InspectorHelpModal, InspectorHint } from "@/app/In
 import { normalizeJobWmFields, jobsWithAdminNotesNeedingInspector, applyHandoverStageToJob, inferHandoverStage, HANDOVER_STAGE_LABELS, type JobHandoverStage, type JobWmJob } from "@/lib/job-wm";
 import { WmPortfolioView } from "@/app/WmPortfolioView";
 import { JobWmPanel, JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
+import { WorkScopeDisplay } from "@/app/WorkScopeEditor";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
+import { getReportWorkScopeText, reportHasWorkScope, scopeTextLineCount } from "@/lib/work-scope-text";
 import { mergeAdminUsersConfig, loadAdminUsersConfig } from "@/lib/admin-auth";
 
 type JobStatus = "in_progress" | "completed";
@@ -746,23 +748,20 @@ export function InspectorPanel({
                                 accentClass="text-sm font-medium text-foreground"
                               />
                             </p>
-                            <p className="text-[11px] text-muted-foreground">{fmtDate(report.submittedAt.slice(0, 10))} · {report.workItems.length} pkt · {report.rooms.length} pom.</p>
+                            <p className="text-[11px] text-muted-foreground">
+                              {fmtDate(report.submittedAt.slice(0, 10))}
+                              {reportHasWorkScope(report) && ` · ${scopeTextLineCount(getReportWorkScopeText(report))} linii`}
+                              {report.rooms.length > 0 && ` · ${report.rooms.length} pom.`}
+                            </p>
                           </div>
                           {open ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
                         </button>
                         {open && (
                           <div className="px-4 pb-4 space-y-4 bg-secondary/10">
-                            {report.workItems.length > 0 && (
+                            {reportHasWorkScope(report) && (
                               <div>
                                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Zakres wykonanych prac</p>
-                                <ul className="space-y-1.5">
-                                  {report.workItems.map((item) => (
-                                    <li key={item.id} className="text-sm">
-                                      <span className="text-primary">• </span>{item.text}
-                                      {item.note && <p className="text-xs text-muted-foreground ml-3 italic">{item.note}</p>}
-                                    </li>
-                                  ))}
-                                </ul>
+                                <WorkScopeDisplay text={getReportWorkScopeText(report)} className="text-sm"/>
                               </div>
                             )}
                             {report.rooms.length > 0 && (

@@ -75,7 +75,7 @@ const SECTIONS = [
     id: "reports",
     icon: Ruler,
     title: "Zakresy i wymiary",
-    body: "Raporty od ekipy z budowy: co zrobiono, wymiary pomieszczeń, zdjęcia rysunków. Rozwiń wpis strzałką. To ważne przy odbiorze i kosztorysie.",
+    body: "Raporty od ekipy z budowy: co zrobiono (lista jak w notatniku), wymiary pomieszczeń, zdjęcia rysunków. Rozwiń wpis strzałką. To ważne przy odbiorze i kosztorysie.",
   },
   {
     id: "photos",
