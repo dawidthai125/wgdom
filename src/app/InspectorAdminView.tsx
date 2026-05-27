@@ -1,11 +1,12 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import {
   ClipboardCheck, Search, MapPin, FileText, CheckCircle2, Upload,
-  ExternalLink, ChevronRight, Filter, LogIn, Eye, LayoutGrid,
-  MessageSquare, Camera, Calendar, RefreshCw,
+  ExternalLink, ChevronRight, ChevronLeft, Filter, LogIn, Eye, LayoutGrid,
+  MessageSquare, Camera, Calendar, RefreshCw, Trash2, X,
 } from "lucide-react";
 import {
   collectInspectorFeed,
+  removeInspectorFeedItem,
   type InspectorFeedItem,
   type InspectorActivityType,
   type JobWithActivity,
@@ -41,30 +42,6 @@ function fmtDateTime(iso: string): string {
   });
 }
 
-function fmtDateShort(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  const now = new Date();
-  const diffDays = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return "Dziś";
-  if (diffDays === 1) return "Wczoraj";
-  if (diffDays < 7) return `${diffDays} dni temu`;
-  return d.toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
-
-function groupByDay(items: InspectorFeedItem[]): { label: string; items: InspectorFeedItem[] }[] {
-  const map = new Map<string, InspectorFeedItem[]>();
-  for (const item of items) {
-    const day = item.at.slice(0, 10);
-    if (!map.has(day)) map.set(day, []);
-    map.get(day)!.push(item);
-  }
-  return [...map.entries()].map(([day, dayItems]) => ({
-    label: fmtDateShort(day + "T12:00:00"),
-    items: dayItems,
-  }));
-}
-
 function feedTypeIcon(type: InspectorActivityType) {
   switch (type) {
     case "inspector_file":
@@ -80,16 +57,27 @@ function feedTypeIcon(type: InspectorActivityType) {
   }
 }
 
+const FEED_PAGE_SIZE = 10;
+
 function FeedCard({
   item,
   onOpenJob,
+  onDelete,
+  deleteConfirmId,
+  onDeleteConfirm,
+  onDeleteCancel,
   directoryContacts,
 }: {
   item: InspectorFeedItem;
   onOpenJob: (jobId: string) => void;
+  onDelete: (item: InspectorFeedItem) => void;
+  deleteConfirmId: string | null;
+  onDeleteConfirm: (id: string) => void;
+  onDeleteCancel: () => void;
   directoryContacts: { name: string; phone: string }[];
 }) {
   const { Icon, cls } = feedTypeIcon(item.type);
+  const confirming = deleteConfirmId === item.id;
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden">
       <div className="px-4 py-3 flex items-start gap-3">
@@ -121,9 +109,34 @@ function FeedCard({
             <ChevronRight size={11} className="shrink-0"/>
           </button>
         </div>
-        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${item.jobStatus === "completed" ? "bg-green-500/15 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
-          {item.jobStatus === "completed" ? "Zdana" : "W trakcie"}
-        </span>
+        <div className="flex flex-col items-end gap-1.5 shrink-0">
+          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${item.jobStatus === "completed" ? "bg-green-500/15 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
+            {item.jobStatus === "completed" ? "Zdana" : "W trakcie"}
+          </span>
+          {confirming ? (
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => onDelete(item)}
+                className="text-[10px] bg-destructive text-white px-2 py-1 rounded-lg font-medium"
+              >
+                Usuń
+              </button>
+              <button type="button" onClick={onDeleteCancel} className="p-1 text-muted-foreground hover:text-foreground">
+                <X size={12}/>
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onDeleteConfirm(item.id)}
+              title="Usuń wpis z listy aktywności"
+              className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+            >
+              <Trash2 size={13}/>
+            </button>
+          )}
+        </div>
       </div>
       {item.fileUrl && (
         <div className="px-4 pb-3 pt-0">
@@ -174,6 +187,8 @@ export function InspectorAdminView({
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterKind>("all");
+  const [feedPage, setFeedPage] = useState(0);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [statsStore, setStatsStore] = useState<InspectorStatsStore | null>(null);
   const [statsRefreshing, setStatsRefreshing] = useState(false);
 
@@ -245,7 +260,24 @@ export function InspectorAdminView({
     });
   }, [feed, search, filter]);
 
-  const grouped = useMemo(() => groupByDay(filtered), [filtered]);
+  useEffect(() => {
+    setFeedPage(0);
+    setDeleteConfirmId(null);
+  }, [search, filter]);
+
+  const feedTotalPages = Math.max(1, Math.ceil(filtered.length / FEED_PAGE_SIZE));
+  const safeFeedPage = Math.min(feedPage, feedTotalPages - 1);
+  const pagedFeed = useMemo(
+    () => filtered.slice(safeFeedPage * FEED_PAGE_SIZE, safeFeedPage * FEED_PAGE_SIZE + FEED_PAGE_SIZE),
+    [filtered, safeFeedPage],
+  );
+  const feedRangeFrom = filtered.length === 0 ? 0 : safeFeedPage * FEED_PAGE_SIZE + 1;
+  const feedRangeTo = Math.min((safeFeedPage + 1) * FEED_PAGE_SIZE, filtered.length);
+
+  const handleDeleteFeedItem = useCallback((item: InspectorFeedItem) => {
+    setJobs((prev) => removeInspectorFeedItem(prev, item));
+    setDeleteConfirmId(null);
+  }, [setJobs]);
 
   const stats = useMemo(() => ({
     total: feed.length,
@@ -445,16 +477,65 @@ export function InspectorAdminView({
                 </p>
               </div>
             ) : (
-              grouped.map((group) => (
-                <div key={group.label} className="space-y-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-1">{group.label}</p>
-                  <div className="space-y-2">
-                    {group.items.map((item) => (
-                      <FeedCard key={item.id} item={item} onOpenJob={openJob} directoryContacts={directoryContacts}/>
-                    ))}
-                  </div>
+              <div className="space-y-3">
+                <p className="text-[11px] text-muted-foreground px-1">
+                  Wpisy {feedRangeFrom}–{feedRangeTo} z {filtered.length}
+                  {filter !== "all" || search.trim() ? " (po filtrze)" : ""}
+                </p>
+                <div className="space-y-2">
+                  {pagedFeed.map((item) => (
+                    <FeedCard
+                      key={item.id}
+                      item={item}
+                      onOpenJob={openJob}
+                      onDelete={handleDeleteFeedItem}
+                      deleteConfirmId={deleteConfirmId}
+                      onDeleteConfirm={setDeleteConfirmId}
+                      onDeleteCancel={() => setDeleteConfirmId(null)}
+                      directoryContacts={directoryContacts}
+                    />
+                  ))}
                 </div>
-              ))
+                {feedTotalPages > 1 && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-border">
+                    <p className="text-xs text-muted-foreground">
+                      Strona <span className="font-semibold text-foreground">{safeFeedPage + 1}</span> z {feedTotalPages}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => { setFeedPage((p) => Math.max(0, p - 1)); setDeleteConfirmId(null); }}
+                        disabled={safeFeedPage === 0}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border border-border bg-card hover:bg-secondary disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                      >
+                        <ChevronLeft size={14}/>
+                        Poprzednia
+                      </button>
+                      <div className="hidden sm:flex items-center gap-1">
+                        {Array.from({ length: feedTotalPages }, (_, i) => i).map((i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => { setFeedPage(i); setDeleteConfirmId(null); }}
+                            className={`min-w-[2rem] h-8 rounded-lg text-xs font-medium transition-colors ${i === safeFeedPage ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}
+                          >
+                            {i + 1}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setFeedPage((p) => Math.min(feedTotalPages - 1, p + 1)); setDeleteConfirmId(null); }}
+                        disabled={safeFeedPage >= feedTotalPages - 1}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border border-border bg-card hover:bg-secondary disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                      >
+                        Następna
+                        <ChevronRight size={14}/>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
             </>
           )}

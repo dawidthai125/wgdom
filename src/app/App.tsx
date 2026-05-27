@@ -401,6 +401,7 @@ interface Job {
   plannedHandoverDate?: string;
   jobNotes?: import("@/lib/job-wm").JobNote[];
   inspectorPhotos?: import("@/lib/job-wm").InspectorPhotoEntry[];
+  hiddenInspectorFeedIds?: string[];
   housingType?: HousingType | "";
   stoveType?: StoveType | "";
 }
@@ -7924,6 +7925,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-27", version:"2.19.6", label:"Inspektor — paginacja aktywności",
+    items:[
+      {type:"improve", text:"Admin → Inspektor → Aktywność: 10 wpisów na stronę z numeracją stron"},
+      {type:"new", text:"Usuwanie pojedynczych wpisów aktywności inspektora (kosz → potwierdź)"},
+    ],
+  },
   {
     date:"2026-05-26", version:"2.19.5", label:"Roboty — lokal i kuchenka",
     items:[

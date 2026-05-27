@@ -44,6 +44,8 @@ export interface JobWithActivity {
   status: "in_progress" | "completed";
   activityLog?: JobActivity[];
   jobFiles?: JobFileAttachment[];
+  /** Ukryte wpisy feedu (np. legacy pliki bez logu) — id jak w InspectorFeedItem */
+  hiddenInspectorFeedIds?: string[];
 }
 
 export interface InspectorFeedItem {
@@ -92,8 +94,10 @@ export function collectInspectorFeed(jobs: JobWithActivity[]): InspectorFeedItem
   const items: InspectorFeedItem[] = [];
 
   for (const job of jobs) {
+    const hidden = new Set(job.hiddenInspectorFeedIds ?? []);
     for (const ev of job.activityLog || []) {
       if (!isInspectorActivityType(ev.type)) continue;
+      if (hidden.has(ev.id)) continue;
       const file = ev.type === "inspector_file"
         ? (job.jobFiles || []).find((f) => ev.text.includes(f.filename))
         : undefined;
@@ -118,8 +122,10 @@ export function collectInspectorFeed(jobs: JobWithActivity[]): InspectorFeedItem
         (ev) => ev.type === "inspector_file" && ev.text.includes(f.filename),
       );
       if (logged) continue;
+      const feedId = `file-${f.id}`;
+      if (hidden.has(feedId)) continue;
       items.push({
-        id: `file-${f.id}`,
+        id: feedId,
         at: f.uploadedAt,
         jobId: job.id,
         jobAddress: job.address,
@@ -136,6 +142,24 @@ export function collectInspectorFeed(jobs: JobWithActivity[]): InspectorFeedItem
   }
 
   return items.sort((a, b) => b.at.localeCompare(a.at));
+}
+
+/** Usuwa wpis z feedu inspektora — z logu aktywności lub ukrywa legacy wpis pliku. */
+export function removeInspectorFeedItem(
+  jobs: JobWithActivity[],
+  item: InspectorFeedItem,
+): JobWithActivity[] {
+  return jobs.map((j) => {
+    if (j.id !== item.jobId) return j;
+    if (item.id.startsWith("file-")) {
+      const prev = j.hiddenInspectorFeedIds ?? [];
+      if (prev.includes(item.id)) return j;
+      return { ...j, hiddenInspectorFeedIds: [...prev, item.id] };
+    }
+    const nextLog = (j.activityLog ?? []).filter((a) => a.id !== item.id);
+    if (nextLog.length === (j.activityLog ?? []).length) return j;
+    return { ...j, activityLog: nextLog };
+  });
 }
 
 export function inspectorDocToggleText(doc: DocType, checked: boolean): string {
