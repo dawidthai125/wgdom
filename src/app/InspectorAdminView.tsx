@@ -264,46 +264,50 @@ export function InspectorAdminView({
 
   if (selectedJob) {
     return (
-      <InspectorAdminJobDetail
-        job={selectedJob}
-        onUpdate={updateJob}
-        onBack={() => setSelectedJobId(null)}
-        actorName={adminDisplayName}
-        contacts={contacts}
-        athPreviewEnabled={athPreviewEnabled}
-      />
+      <div className="flex flex-1 min-h-0 w-full overflow-hidden">
+        <InspectorAdminJobDetail
+          job={selectedJob}
+          onUpdate={updateJob}
+          onBack={() => setSelectedJobId(null)}
+          actorName={adminDisplayName}
+          contacts={contacts}
+          athPreviewEnabled={athPreviewEnabled}
+        />
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="shrink-0 border-b border-border bg-card/50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-8 py-3 flex gap-2">
-          <button
-            type="button"
-            onClick={() => setTab("activity")}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium ${tab === "activity" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
-          >
-            <ClipboardCheck size={13}/> Aktywność
-            {unseenCount > 0 && tab !== "activity" && (
-              <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-bold">{unseenCount}</span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("portfolio")}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium ${tab === "portfolio" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
-          >
-            <LayoutGrid size={13}/> Portfolio WM
-          </button>
-        </div>
-      </div>
+    <div className="flex flex-1 min-h-0 w-full overflow-hidden">
+      <div className="flex-1 w-full overflow-y-auto overscroll-contain">
+        <div
+          className="max-w-4xl mx-auto w-full px-4 sm:px-8 py-8 space-y-6"
+          style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
+        >
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setTab("activity")}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium ${tab === "activity" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+            >
+              <ClipboardCheck size={13}/> Aktywność
+              {unseenCount > 0 && tab !== "activity" && (
+                <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-bold">{unseenCount}</span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("portfolio")}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium ${tab === "portfolio" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+            >
+              <LayoutGrid size={13}/> Portfolio WM
+            </button>
+          </div>
 
-      {tab === "portfolio" ? (
-        <WmPortfolioView jobs={jobs as JobWmJob[]} onOpenJob={openJob} notesNeedingAdmin={notesNeedingAdmin}/>
-      ) : (
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
-          <div className="max-w-4xl mx-auto px-4 sm:px-8 py-6 space-y-6" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
+          {tab === "portfolio" ? (
+            <WmPortfolioView jobs={jobs as JobWmJob[]} onOpenJob={openJob} notesNeedingAdmin={notesNeedingAdmin} embedded/>
+          ) : (
+            <>
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
@@ -434,9 +438,10 @@ export function InspectorAdminView({
                 </div>
               ))
             )}
-          </div>
+            </>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

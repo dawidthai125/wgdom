@@ -90,20 +90,15 @@ export function InspectorAdminJobDetail({
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
-      <div className="shrink-0 border-b border-border bg-card/50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-8 py-2">
-          <button type="button" onClick={onBack} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px]">
+    <div className="flex flex-1 flex-col min-h-0 w-full overflow-hidden">
+      <div className="flex-1 w-full overflow-y-auto overscroll-contain">
+        <div
+          className="max-w-4xl mx-auto w-full px-4 sm:px-8 py-8 space-y-5"
+          style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
+        >
+          <button type="button" onClick={onBack} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px] -ml-1">
             <ArrowLeft size={16}/>Lista inspektora
           </button>
-        </div>
-      </div>
-
-      <div
-        className="flex-1 overflow-y-auto overscroll-contain"
-        style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
-      >
-        <div className="max-w-4xl mx-auto px-4 sm:px-8 py-6 space-y-5 w-full">
         {stageSuggestion && (
           <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
             <p className="text-xs text-emerald-700 dark:text-emerald-300 flex-1">

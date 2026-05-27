@@ -7826,6 +7826,12 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-26", version:"2.15.2", label:"Inspektor — naprawa wyśrodkowania",
+    items:[
+      {type:"fix", text:"Zakładka Inspektor — flex-1 w-full jak Kontakty; treść wyśrodkowana w obszarze obok menu, nie przyklejona do sidebara"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.15.1", label:"Inspektor — wyśrodkowany layout",
     items:[
       {type:"improve", text:"Zakładka Inspektor (Aktywność, Portfolio WM, szczegóły roboty) — zawartość wyśrodkowana jak Kontakty i Zmiany (max-w-4xl)"},
