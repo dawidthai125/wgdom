@@ -7857,6 +7857,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-26", version:"2.18.0", label:"Inspektor — nawigacja i sekcje",
+    items:[
+      {type:"new", text:"Panel inspektora — dolny pasek: Robót | Portfolio | Pomoc (jak aplikacja mobilna)"},
+      {type:"new", text:"Szczegóły roboty — kapsułki sekcji (WM, Pliki, Dok., Ekipa, Raporty, Zdjęcia) z przewijaniem i badge’ami braków"},
+      {type:"improve", text:"Szybkie akcje na robocie (wgraj zlecenie, odpowiedź admina…) + wyróżnienie kart z nową notatką"},
+    ],
+  },
+  {
     date:"2026-05-26", version:"2.17.0", label:"Raport — zakres jak w notatniku",
     items:[
       {type:"improve", text:"Zakres prac — jedno pole tekstowe z listą (kropki, numeracja, podpunkty →); Enter kontynuuje styl listy"},

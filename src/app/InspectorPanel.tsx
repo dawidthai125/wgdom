@@ -1,11 +1,11 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { saveAs } from "file-saver";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   MapPin, LogOut, Search, ArrowLeft, FileText, ClipboardList, Ruler,
   CheckCircle2, Circle, ImagePlus, Download, Upload, Phone, Users,
-  ChevronDown, ChevronUp, Eye, Camera, X, FileCheck, AlertCircle, BookOpen, LayoutGrid, RefreshCw, MessageSquare, ScrollText,
+  ChevronDown, ChevronUp, Eye, Camera, X, FileCheck, AlertCircle, BookOpen, RefreshCw, MessageSquare, ScrollText,
 } from "lucide-react";
 import {
   fetchKeysFromCloud,
@@ -47,6 +47,14 @@ import { WorkScopeDisplay } from "@/app/WorkScopeEditor";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
 import { getReportWorkScopeText, reportHasWorkScope, scopeTextLineCount } from "@/lib/work-scope-text";
 import { mergeAdminUsersConfig, loadAdminUsersConfig } from "@/lib/admin-auth";
+import {
+  InspectorBottomNav,
+  InspectorJobSectionNav,
+  InspectorQuickActions,
+  useInspectorSectionSpy,
+  type InspectorJobSection,
+  type InspectorMainTab,
+} from "@/app/InspectorNavigation";
 
 type JobStatus = "in_progress" | "completed";
 
@@ -173,7 +181,7 @@ export function InspectorPanel({
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "completed">("active");
-  const [listScreen, setListScreen] = useState<"list" | "portfolio">("list");
+  const [mainTab, setMainTab] = useState<InspectorMainTab>("jobs");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
@@ -184,6 +192,11 @@ export function InspectorPanel({
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const [notesSeenTick, setNotesSeenTick] = useState(0);
   const [stageSuggestion, setStageSuggestion] = useState<{ jobId: string; stage: JobHandoverStage } | null>(null);
+  const jobScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollToJobSection = useCallback((id: InspectorJobSection) => {
+    document.getElementById(`inspector-section-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   const directoryContacts = useMemo(
     () => directory.map((d) => ({ name: d.name, phone: d.phone })),
@@ -302,6 +315,46 @@ export function InspectorPanel({
   }, [jobs, search, filter]);
 
   const selectedJob = jobs.find((j) => j.id === selectedId) || null;
+
+  const activeJobSection = useInspectorSectionSpy(
+    ["wm", "files", "docs", "team", "reports", "photos"],
+    jobScrollRef,
+    Boolean(selectedJob),
+  );
+
+  const jobSectionBadges = useMemo((): Partial<Record<InspectorJobSection, number>> => {
+    if (!selectedJob) return {};
+    const badges: Partial<Record<InspectorJobSection, number>> = {};
+    if (adminNotesPending.some((j) => j.id === selectedJob.id)) badges.wm = 1;
+    const missingFiles = (!selectedJob.documents.zlecenie ? 1 : 0) + (!selectedJob.documents.kosztorys ? 1 : 0);
+    if (missingFiles) badges.files = missingFiles;
+    const missingDocs = REQUIRED_DOCS.filter((d) => !selectedJob.documents[d]).length;
+    if (missingDocs) badges.docs = missingDocs;
+    const reportCount = (selectedJob.workerReports || []).length;
+    if (reportCount) badges.reports = reportCount;
+    const photoCount = (selectedJob.photos || []).filter((p) => p.status === "approved").length;
+    if (photoCount) badges.photos = photoCount;
+    return badges;
+  }, [selectedJob, adminNotesPending]);
+
+  const jobQuickActions = useMemo(() => {
+    if (!selectedJob) return [];
+    const out: { section: InspectorJobSection; label: string; icon: typeof MessageSquare }[] = [];
+    if (adminNotesPending.some((j) => j.id === selectedJob.id)) {
+      out.push({ section: "wm", label: "Odpowiedź admina", icon: MessageSquare });
+    }
+    if (!selectedJob.documents.zlecenie) {
+      out.push({ section: "files", label: "Wgraj zlecenie", icon: FileText });
+    }
+    if (!selectedJob.documents.kosztorys) {
+      out.push({ section: "files", label: "Wgraj kosztorys", icon: FileCheck });
+    }
+    const missingDocs = REQUIRED_DOCS.filter((d) => !selectedJob.documents[d]).length;
+    if (missingDocs > 0) {
+      out.push({ section: "docs", label: `Brakuje ${missingDocs} dok.`, icon: ClipboardList });
+    }
+    return out.slice(0, 3);
+  }, [selectedJob, adminNotesPending]);
 
   const toggleDoc = (job: InspectorJob, doc: DocType) => {
     const next = !job.documents[doc];
@@ -423,11 +476,29 @@ export function InspectorPanel({
         </div>
       )}
 
-      {!selectedJob && listScreen === "portfolio" ? (
-        <WmPortfolioView jobs={jobs} onOpenJob={(id) => { setSelectedId(id); setListScreen("list"); setMsg(""); }}/>
+      {!selectedJob && mainTab === "portfolio" ? (
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <WmPortfolioView jobs={jobs} onOpenJob={(id) => { setSelectedId(id); setMainTab("jobs"); setMsg(""); }}/>
+          <InspectorBottomNav
+            active={mainTab}
+            alertCount={adminNotesPending.length}
+            onJobs={() => setMainTab("jobs")}
+            onPortfolio={() => setMainTab("portfolio")}
+            onHelp={() => setHelpOpen(true)}
+          />
+        </div>
       ) : !selectedJob ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <div className="px-4 py-3 space-y-3 border-b border-border bg-card/50 shrink-0">
+            <div className="flex items-end justify-between gap-2">
+              <div>
+                <h2 className="text-base font-semibold">Roboty WM</h2>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {filter === "active" ? "Aktywne remonty" : filter === "completed" ? "Zdane klucze" : "Pełna lista"}
+                  {" · "}{filteredJobs.length} {filteredJobs.length === 1 ? "adres" : "adresów"}
+                </p>
+              </div>
+            </div>
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
               <input
@@ -438,15 +509,8 @@ export function InspectorPanel({
               />
             </div>
             <div className="flex gap-2 items-center">
-              <button
-                type="button"
-                onClick={() => setListScreen(listScreen === "portfolio" ? "list" : "portfolio")}
-                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium shrink-0 ${listScreen === "portfolio" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
-              >
-                <LayoutGrid size={12}/> Portfolio WM
-              </button>
               <span className="text-[10px] text-muted-foreground shrink-0 hidden sm:inline">
-                Filtr<InspectorHint text="Aktywne = remont trwa. Zdane = klucze oddane. Wszystkie = pełna lista."/>
+                Status<InspectorHint text="Aktywne = remont trwa. Zdane = klucze oddane. Wszystkie = pełna lista."/>
               </span>
               {(["active", "completed", "all"] as const).map((f) => (
                 <button
@@ -461,25 +525,30 @@ export function InspectorPanel({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 space-y-3" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+          <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 space-y-3">
             {loading ? (
               <div className="flex justify-center py-16">
                 <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
               </div>
             ) : filteredJobs.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground py-12">Brak robót</p>
+              <div className="text-center py-16 px-4 space-y-2">
+                <MapPin size={28} className="mx-auto text-muted-foreground/40"/>
+                <p className="text-sm font-medium text-muted-foreground">Brak robót w tym filtrze</p>
+                <p className="text-xs text-muted-foreground/80">Zmień filtr na „Wszystkie” lub użyj wyszukiwarki</p>
+              </div>
             ) : (
               filteredJobs.map((job) => {
                 const reqDone = REQUIRED_DOCS.filter((d) => job.documents[d]).length;
                 const hasZlecenie = job.documents.zlecenie;
                 const hasKosztorys = job.documents.kosztorys;
                 const photoCount = (job.photos || []).filter((p) => p.status === "approved").length;
+                const hasAdminReply = adminNotesPending.some((j) => j.id === job.id);
                 return (
                   <button
                     key={job.id}
                     type="button"
-                    onClick={() => { setSelectedId(job.id); setMsg(""); setOpenReportId(null); }}
-                    className="w-full text-left bg-card border border-border rounded-2xl p-4 hover:border-primary/40 transition-colors active:scale-[0.99]"
+                    onClick={() => { setSelectedId(job.id); setMsg(""); setOpenReportId(null); if (hasAdminReply) markAdminNotesSeen(); }}
+                    className={`w-full text-left bg-card border rounded-2xl p-4 hover:border-primary/40 transition-colors active:scale-[0.99] ${hasAdminReply ? "border-violet-500/40 ring-1 ring-violet-500/20" : "border-border"}`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -493,6 +562,11 @@ export function InspectorPanel({
                       </span>
                     </div>
                     <p className="text-[11px] text-muted-foreground mt-2">Start: {fmtDate(job.startDate)}</p>
+                    {hasAdminReply && (
+                      <p className="text-[10px] text-violet-600 dark:text-violet-400 font-medium mt-1.5 flex items-center gap-1">
+                        <MessageSquare size={10}/> Nowa odpowiedź admina — kliknij, aby otworzyć
+                      </p>
+                    )}
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       <JobWmStageBadge job={job}/>
                       <JobWmPlannedBadge job={job}/>
@@ -518,16 +592,35 @@ export function InspectorPanel({
               })
             )}
           </div>
+
+          <InspectorBottomNav
+            active={mainTab}
+            alertCount={adminNotesPending.length}
+            onJobs={() => setMainTab("jobs")}
+            onPortfolio={() => setMainTab("portfolio")}
+            onHelp={() => setHelpOpen(true)}
+          />
         </div>
       ) : (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 py-2 shrink-0">
-            <button type="button" onClick={() => setSelectedId(null)} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px]">
-              <ArrowLeft size={16}/>Lista robót
+          <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-4 py-2 shrink-0 space-y-2">
+            <button type="button" onClick={() => setSelectedId(null)} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[40px]">
+              <ArrowLeft size={16}/>Wróć do listy robót
             </button>
+            <div className="pb-1">
+              <p className="text-sm font-semibold truncate leading-snug">
+                {selectedJob.address || "Bez adresu"}{selectedJob.flatNumber && ` m.${selectedJob.flatNumber}`}
+              </p>
+              <p className="text-[11px] text-muted-foreground truncate">{selectedJob.client || "—"}</p>
+            </div>
+            <InspectorJobSectionNav
+              active={activeJobSection}
+              badges={jobSectionBadges}
+              onSelect={scrollToJobSection}
+            />
           </div>
 
-          <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-5 max-w-2xl mx-auto w-full" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
+          <div ref={jobScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-5 max-w-2xl mx-auto w-full" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
             {msg && <p className="text-xs text-primary bg-primary/10 rounded-lg px-3 py-2">{msg}</p>}
 
             {stageSuggestion?.jobId === selectedJob.id && (
@@ -560,17 +653,22 @@ export function InspectorPanel({
               </div>
             )}
 
-            <div className="bg-card border border-border rounded-2xl p-4">
-              <h1 className="text-lg font-bold leading-snug">
-                {selectedJob.address || "Bez adresu"}{selectedJob.flatNumber && ` m.${selectedJob.flatNumber}`}
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">{selectedJob.client || "—"}</p>
-              <p className="text-xs text-muted-foreground mt-2">
-                {fmtDate(selectedJob.startDate)}{selectedJob.endDate && ` → ${fmtDate(selectedJob.endDate)}`}
-                {" · "}{selectedJob.status === "completed" ? "Zdana" : "W trakcie"}
+            <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <JobWmStageBadge job={selectedJob}/>
+                <JobWmPlannedBadge job={selectedJob}/>
+                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${selectedJob.status === "completed" ? "bg-green-500/15 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
+                  {selectedJob.status === "completed" ? "Zdana" : "W trakcie"}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Start {fmtDate(selectedJob.startDate)}{selectedJob.endDate && ` · koniec ${fmtDate(selectedJob.endDate)}`}
               </p>
+              <InspectorQuickActions items={jobQuickActions} onSelect={scrollToJobSection}/>
             </div>
 
+            <section id="inspector-section-wm" className="scroll-mt-44 space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 px-0.5">Odbiór WM — etap, notatki, zdjęcia</p>
             <JobWmPanel
               job={selectedJob}
               onUpdate={updateJob}
@@ -578,6 +676,7 @@ export function InspectorPanel({
               actorRole="inspector"
               directory={directoryContacts}
             />
+            </section>
 
             {jobInspectorHistory(selectedJob).length > 0 && (
               <div className="bg-card border border-border rounded-2xl p-4">
@@ -602,7 +701,8 @@ export function InspectorPanel({
               </div>
             )}
 
-            {/* Zlecenie + Kosztorys */}
+            <section id="inspector-section-files" className="scroll-mt-44 space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-0.5">Zlecenie i kosztorys</p>
             <div className="grid sm:grid-cols-2 gap-3">
               {(["zlecenie", "kosztorys"] as const).map((kind) => {
                 const label = kind === "zlecenie" ? "Zlecenie (PDF)" : "Kosztorys (NORMA/PDF)";
@@ -663,8 +763,9 @@ export function InspectorPanel({
                 );
               })}
             </div>
+            </section>
 
-            {/* Pozostałe dokumenty */}
+            <section id="inspector-section-docs" className="scroll-mt-44">
             <div className="bg-card border border-border rounded-2xl p-4">
               <p className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <ClipboardList size={15}/> Dokumentacja robót
@@ -694,8 +795,9 @@ export function InspectorPanel({
                 </p>
               )}
             </div>
+            </section>
 
-            {/* Pracownicy */}
+            <section id="inspector-section-team" className="scroll-mt-44">
             <div className="bg-card border border-border rounded-2xl p-4">
               <p className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <Users size={15}/> Pracownicy na robocie
@@ -721,8 +823,9 @@ export function InspectorPanel({
                 </div>
               )}
             </div>
+            </section>
 
-            {/* Raporty — zakres i wymiary */}
+            <section id="inspector-section-reports" className="scroll-mt-44">
             <div className="bg-card border border-border rounded-2xl overflow-hidden">
               <div className="px-4 py-3 border-b border-border">
                 <p className="text-sm font-semibold flex items-center gap-2">
@@ -808,8 +911,9 @@ export function InspectorPanel({
                 </div>
               )}
             </div>
+            </section>
 
-            {/* Galeria zdjęć */}
+            <section id="inspector-section-photos" className="scroll-mt-44">
             <div className="bg-card border border-border rounded-2xl p-4">
               <div className="flex items-center justify-between gap-2 mb-3">
                 <p className="text-sm font-semibold flex items-center gap-2">
@@ -863,6 +967,7 @@ export function InspectorPanel({
                 <p className="text-xs text-muted-foreground text-center py-4">Brak zaakceptowanych zdjęć</p>
               )}
             </div>
+            </section>
 
             {selectedJob.notes && (
               <div className="bg-card border border-border rounded-2xl p-4">

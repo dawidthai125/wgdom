@@ -36,10 +36,22 @@ export function InspectorHint({
 
 const SECTIONS = [
   {
+    id: "nav",
+    icon: List,
+    title: "Nawigacja — dolny pasek",
+    body: "U dołu ekranu: Robót (lista adresów), Portfolio (zbiorczy widok WM), Pomoc (instrukcja). Fioletowa kropka = nowa odpowiedź admina w notatkach.",
+  },
+  {
+    id: "sections",
+    icon: LayoutGrid,
+    title: "Sekcje w robocie",
+    body: "Po wejściu w adres u góry masz kapsułki: WM, Pliki, Dok., Ekipa, Raporty, Zdjęcia — kliknij, żeby od razu przewinąć. Liczby na kapsułkach = braki lub nowe treści.",
+  },
+  {
     id: "start",
     icon: BookOpen,
     title: "Od czego zacząć?",
-    body: "Po zalogowaniu widzisz listę robót Wrocławskich Mieszkań. Kliknij robotę — otworzy się szczegóły. U góry możesz wrócić strzałką. Szukaj adresu w polu wyszukiwania.",
+    body: "Po zalogowaniu widzisz listę robót (dolny pasek → Robót). Kliknij kartę adresu — u góry kapsułki sekcji. Wróć strzałką „Wróć do listy robót”.",
   },
   {
     id: "list",
@@ -117,7 +129,7 @@ const SECTIONS = [
     id: "portfolio",
     icon: LayoutGrid,
     title: "Portfolio WM",
-    body: "Widok zbiorczy wszystkich robót WM: ile na jakim etapie, braki dokumentów, terminy odbioru. Przełącznik „Portfolio WM” na liście robót.",
+    body: "Widok zbiorczy wszystkich robót WM: ile na jakim etapie, braki dokumentów, terminy odbioru. Przełącznik „Portfolio” na dolnym pasku nawigacji.",
   },
 ];
 
