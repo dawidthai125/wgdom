@@ -7088,11 +7088,13 @@ function DashboardView({
     (j) => j.status === "in_progress" && DOCUMENT_TYPES.every((d) => j.documents[d]),
   );
 
-  const weekTotal = useMemo(
-    () => computePayrollCashSplit(weekEmployees, directory, weekFrom, weekTo, savedWeeks, (e) => calcWeekEmployee(e).netPay).totalSaturdayCash,
+  const payrollCash = useMemo(
+    () => computePayrollCashSplit(weekEmployees, directory, weekFrom, weekTo, savedWeeks, (e) => calcWeekEmployee(e).netPay),
     [weekEmployees, directory, weekFrom, weekTo, savedWeeks],
   );
+  const weekTotal = payrollCash.totalSaturdayCash;
   const weekHours = weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).totalHours, 0);
+  const biweeklyCount = weekEmployees.filter((e) => isBiweeklyPayrollEmployee(e, directory)).length;
 
   const yearNow = new Date().getFullYear();
   const yearWeeks = savedWeeks.filter((w) => new Date(w.weekFrom).getFullYear() === yearNow);
@@ -7347,13 +7349,30 @@ function DashboardView({
           <button
             type="button"
             onClick={() => onNavigate("payroll")}
-            className="bg-card border border-border rounded-xl px-4 py-3 text-left hover:border-primary/30 transition-colors"
+            className={`bg-card border rounded-xl px-4 py-3 text-left hover:border-primary/30 transition-colors ${payrollCash.hasBiweeklyEmployees ? "border-sky-500/20" : "border-border"}`}
           >
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Wypłata tyg.</p>
-            <p className="text-lg font-bold text-primary leading-tight" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {fmt(weekTotal)}
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+              {payrollCash.hasBiweeklyEmployees ? "Kasa w sobotę" : "Wypłata tyg."}
             </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">{fmtH(weekHours)} · {weekEmployees.length} os.</p>
+            <p className="text-lg font-bold text-primary leading-tight" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              {fmt(weekTotal)} <span className="text-[10px] font-normal text-muted-foreground">zł</span>
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
+              {fmtH(weekHours)} · {weekEmployees.length} os.
+              {payrollCash.hasBiweeklyEmployees && payrollCash.isAnyBiweeklyPayoutWeek && (
+                <span className="text-sky-400"> · co 2 tyg. {fmt(payrollCash.biweeklyPayoutNet)} zł</span>
+              )}
+            </p>
+            {payrollCash.hasBiweeklyEmployees && !payrollCash.isAnyBiweeklyPayoutWeek && (
+              <p className="text-[10px] text-sky-400/90 mt-0.5 leading-snug">
+                co 2 tyg. ({biweeklyCount}) → {fmtDate(payrollCash.nextBiweeklyPayoutDate).slice(0, 5)}: {fmt(payrollCash.biweeklyAccruedNet)} zł
+              </p>
+            )}
+            {payrollCash.hasBiweeklyEmployees && payrollCash.isAnyBiweeklyPayoutWeek && (
+              <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
+                tygodniówki {fmt(payrollCash.weeklyNet)} zł · {biweeklyCount} os. co 2 tyg.
+              </p>
+            )}
           </button>
           <button
             type="button"
@@ -8563,6 +8582,12 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.21.2", label:"Pulpit — kafelek kasy w sobotę",
+    items:[
+      {type:"improve", text:"Pulpit — przy wypłacie co 2 tyg.: kafelek „Kasa w sobotę” z podziałem tygodniówki / co 2 tyg. i kwotą narastającą na następną sobotę"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.21.1", label:"Archiwum — edycja godzin",
     items:[
