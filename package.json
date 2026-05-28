@@ -1,7 +1,7 @@
 {
   "name": "wgdom",
   "private": true,
-  "version": "2.21.6",
+  "version": "2.21.7",
   "type": "module",
   "scripts": {
     "build": "vite build",
