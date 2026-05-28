@@ -8040,6 +8040,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-28", version:"2.20.0", label:"Aplikacja natywna — Capacitor (Android / iOS)",
+    items:[
+      {type:"new", text:"Szkielet apki mobilnej (Capacitor) — skorupa Android/iOS ładuje UI z wgdom.fun; aktualizacje bez nowej wersji w sklepie"},
+      {type:"improve", text:"Natywny status bar i splash; wyłączenie service workera w WebView (stabilniejsze działanie apki)"},
+      {type:"new", text:"Instrukcja buildu: docs/MOBILE-NATIVE.md (Android Studio, Xcode, publikacja)"},
+    ],
+  },
+  {
     date:"2026-05-28", version:"2.19.17", label:"Edycja danych — wszystkie zakładki",
     items:[
       {type:"fix", text:"Zapis lokalny — edycja w tej karcie nie jest już nadpisywana starym localStorage (lista płac, kartoteka, kontakty, roboty, archiwum)"},

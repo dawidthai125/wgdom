@@ -20,3 +20,13 @@ Thumbs.db
 
 # Vercel
 .vercel
+
+# Capacitor / native (lokalne buildy)
+android/.gradle/
+android/app/build/
+android/local.properties
+ios/App/Pods/
+ios/App/build/
+ios/DerivedData/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
