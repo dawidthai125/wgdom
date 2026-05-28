@@ -6843,13 +6843,14 @@ function DashboardView({
   };
 
   const toggleJobDocumentOnDashboard = (job: Job, doc: DocType) => {
+    const nextChecked = !job.documents[doc];
     onFixJobs((prev) =>
       prev.map((j) => {
         if (j.id !== job.id) return j;
         let next = appendJobActivity(
-          { ...j, documents: { ...j.documents, [doc]: true } },
+          { ...j, documents: { ...j.documents, [doc]: nextChecked } },
           "document",
-          `Zaznaczono: ${DOC_LABELS[doc]}`,
+          `${nextChecked ? "Zaznaczono" : "Odznaczono"}: ${DOC_LABELS[doc]}`,
           "Administrator",
         );
         if (!isWmClient(next.client)) {
@@ -7036,7 +7037,7 @@ function DashboardView({
                         </span>
                       </p>
                       <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                        <span className="text-foreground/90">Kliknij brakujący dokument</span> — od razu oznaczysz jako odebrany (pasek się zaktualizuje).
+                        <span className="text-foreground/90">Kliknij dokument</span> — czerwony = brak, zielony = odebrany (zostaje na liście; klik ponownie = cofnięcie).
                         Kliknij adres robota — pełna karta w Robotach. Wymagane: {REQUIRED_DOCS.length} poz.
                         {staleDocsJobs.length > 0 && (
                           <span className="text-amber-600 dark:text-amber-400 font-medium">
@@ -7112,18 +7113,33 @@ function DashboardView({
                             />
                           </div>
                           <div className="mt-2.5 flex flex-wrap gap-1.5">
-                            {missing.map((doc) => (
-                              <button
-                                key={doc}
-                                type="button"
-                                title={`Oznacz jako odebrane: ${DOC_LABELS[doc]}`}
-                                onClick={() => toggleJobDocumentOnDashboard(job, doc)}
-                                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1.5 min-h-[36px] rounded-md bg-red-500/10 text-red-700 dark:text-red-300 border border-red-500/25 hover:bg-green-500/15 hover:text-green-700 hover:border-green-500/30 dark:hover:text-green-300 active:scale-[0.97] transition-all touch-manipulation"
-                              >
-                                <Circle size={10} className="shrink-0 opacity-70"/>
-                                {DOC_LABELS[doc]}
-                              </button>
-                            ))}
+                            {REQUIRED_DOCS.map((doc) => {
+                              const checked = job.documents[doc];
+                              return (
+                                <button
+                                  key={doc}
+                                  type="button"
+                                  title={
+                                    checked
+                                      ? `${DOC_LABELS[doc]} — odebrane (kliknij, aby odznaczyć)`
+                                      : `Oznacz jako odebrane: ${DOC_LABELS[doc]}`
+                                  }
+                                  onClick={() => toggleJobDocumentOnDashboard(job, doc)}
+                                  className={`inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1.5 min-h-[36px] rounded-md border active:scale-[0.97] transition-all touch-manipulation ${
+                                    checked
+                                      ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 hover:bg-green-500/20"
+                                      : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25 hover:bg-green-500/15 hover:text-green-700 hover:border-green-500/30 dark:hover:text-green-300"
+                                  }`}
+                                >
+                                  {checked ? (
+                                    <CheckCircle2 size={10} className="shrink-0"/>
+                                  ) : (
+                                    <Circle size={10} className="shrink-0 opacity-70"/>
+                                  )}
+                                  {DOC_LABELS[doc]}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
                       );
@@ -8151,6 +8167,12 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-28", version:"2.20.3", label:"Pulpit — dokumenty zostają na kafelku",
+    items:[
+      {type:"improve", text:"Uwaga dziś — odhaczony dokument świeci na zielono i zostaje widoczny (klik ponownie = cofnięcie)"},
+    ],
+  },
   {
     date:"2026-05-28", version:"2.20.2", label:"Pulpit — szybkie oznaczanie dokumentów",
     items:[
