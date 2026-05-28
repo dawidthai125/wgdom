@@ -34,7 +34,8 @@ import {
   KOSZTORYS_ACCEPT,
   ZLECENIE_ACCEPT,
   latestJobFile,
-  syncJobDocumentsFromFiles,
+  syncJobDocuments,
+  isReportSyncedDocLocked,
 } from "@/lib/job-documents";
 import { uploadJobFile } from "@/lib/job-file-upload";
 import {
@@ -146,7 +147,7 @@ function fmtDate(iso: string): string {
 }
 
 function normalizeJob(raw: InspectorJob): InspectorJob {
-  return normalizeJobMetaFields(normalizeJobWmFields(syncJobDocumentsFromFiles({
+  return normalizeJobMetaFields(normalizeJobWmFields(syncJobDocuments({
     ...raw,
     photos: raw.photos || [],
     workerReports: raw.workerReports || [],
@@ -397,6 +398,7 @@ export function InspectorPanel({
 
   const toggleDoc = (job: InspectorJob, doc: DocType) => {
     const next = !job.documents[doc];
+    if (!next && isReportSyncedDocLocked(job, doc)) return;
     updateJob(
       appendJobActivity(
         { ...job, documents: { ...job.documents, [doc]: next } },

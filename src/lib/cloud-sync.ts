@@ -4,7 +4,7 @@ import {
   supabaseFunctionsBase,
   isSupabaseConfigured,
 } from "@/config/supabase";
-import { mergeJobDocuments, mergeJobFiles } from "@/lib/job-documents";
+import { mergeJobFiles, mergeJobsDocumentsOnConflict, mergeReportDocSaOverrideOnConflict } from "@/lib/job-documents";
 import { mergeJobNotes, mergeInspectorPhotos, mergeHandoverStage, mergePlannedHandoverDate } from "@/lib/job-wm";
 import { mergeHiddenInspectorFeedIds } from "@/lib/job-activity";
 
@@ -266,6 +266,7 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
     photos?: unknown[];
     startDate?: string;
     documents?: Record<string, boolean>;
+    reportDocSaOverride?: import("@/lib/job-documents").ReportDocSaOverride;
     jobFiles?: import("@/lib/job-documents").JobFileAttachment[];
     activityLog?: { id: string; at: string }[];
     jobNotes?: import("@/lib/job-wm").JobNote[];
@@ -301,7 +302,8 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
     const latestTs = new Date(Math.max(prevTs, jTs, Date.now())).toISOString();
     return {
       ...pick,
-      documents: mergeJobDocuments(prev.documents, j.documents),
+      documents: mergeJobsDocumentsOnConflict(prev, j),
+      reportDocSaOverride: mergeReportDocSaOverrideOnConflict(prev, j),
       jobFiles: mergeJobFiles(prev.jobFiles, j.jobFiles),
       activityLog: mergedLogs,
       jobNotes: mergeJobNotes(prev.jobNotes, j.jobNotes),

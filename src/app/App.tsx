@@ -115,7 +115,11 @@ import {
 } from "@/lib/job-activity";
 import {
   latestJobFile,
-  syncJobDocumentsFromFiles,
+  syncJobDocuments,
+  isReportSyncedDocLocked,
+  confirmReportSyncedDocUncheck,
+  applyReportDocDocumentToggle,
+  clearReportDocSaOverrideFromReport,
   type InspectorJobFileKind,
 } from "@/lib/job-documents";
 import {
@@ -416,6 +420,8 @@ interface Job {
   invoiceAmount: string;
   photos: PhotoEntry[];
   workerReports?: WorkerJobReport[];
+  /** Super Admin odznaczył zakres/rysunek mimo raportu — bez auto-nadpisywania */
+  reportDocSaOverride?: import("@/lib/job-documents").ReportDocSaOverride;
   activityLog?: JobActivity[];
   clientShare?: ClientShareLink;
   jobFiles?: import("@/lib/job-documents").JobFileAttachment[];
@@ -1366,7 +1372,7 @@ function defaultJob(): Job {
 }
 
 function normalizeJob(job: Job): Job {
-  return normalizeJobMetaFields(normalizeJobWmFields(syncJobDocumentsFromFiles({
+  return normalizeJobMetaFields(normalizeJobWmFields(syncJobDocuments({
     ...job,
     photos: job.photos || [],
     workerReports: job.workerReports || [],
@@ -5174,6 +5180,7 @@ function JobsView({
   onGoToInspector?: (jobId?: string) => void;
 }) {
   const { canViewRates, session: adminSession } = useAdminAccess();
+  const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "in_progress" | "completed">("all");
@@ -5281,9 +5288,10 @@ function JobsView({
   const allDocsDone = (job: Job) => REQUIRED_DOCS.every(d=>job.documents[d]);
 
   const updateJob = (updated: Job, activity?: { type: JobActivityType; text: string; actor?: string }) => {
-    let next = activity
-      ? appendJobActivity(updated, activity.type, activity.text, activity.actor || "Administrator")
-      : updated;
+    let next = syncJobDocuments(updated);
+    next = activity
+      ? appendJobActivity(next, activity.type, activity.text, activity.actor || "Administrator")
+      : next;
 
     if (isWmClient(next.client)) {
       next = normalizeJobWmFields(next);
@@ -6072,12 +6080,13 @@ function JobsView({
                   return (
                     <button key={doc} onClick={()=>{
                       const next = !checked;
+                      if (!next && !confirmReportSyncedDocUncheck(selectedJob, doc, isSuperAdmin)) return;
                       updateJob(
-                        {...selectedJob,documents:{...selectedJob.documents,[doc]:next}},
+                        applyReportDocDocumentToggle(selectedJob, doc, next, isSuperAdmin),
                         { type: "document", text: `${next ? "Zaznaczono" : "Odznaczono"}: ${DOC_LABELS[doc]}` },
                       );
                     }}
-                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all ${checked?"bg-green-500/10 border-green-500/20":optional?"bg-secondary border-dashed border-border hover:border-muted-foreground/30":"bg-secondary border-border hover:border-muted-foreground/30"}`}>
+                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all ${checked?"bg-green-500/10 border-green-500/20":optional?"bg-secondary border-dashed border-border hover:border-muted-foreground/30":"bg-secondary border-border hover:border-muted-foreground/30"} ${checked && isReportSyncedDocLocked(selectedJob, doc) && !isSuperAdmin ? "cursor-default" : ""}`}>
                       {checked
                         ? <CheckCircle2 size={15} className="text-green-400 shrink-0"/>
                         : <Circle size={15} className="text-muted-foreground/40 shrink-0"/>
@@ -6085,6 +6094,11 @@ function JobsView({
                       <div className="min-w-0">
                         <span className={`text-xs font-medium leading-tight ${checked?"text-green-400":"text-muted-foreground"}`}>{DOC_LABELS[doc]}</span>
                         {optional&&<p className="text-[10px] text-muted-foreground/50 leading-none mt-0.5">opcjonalne</p>}
+                        {checked && isReportSyncedDocLocked(selectedJob, doc) && (
+                          <p className="text-[10px] text-green-600/80 dark:text-green-400/80 leading-none mt-0.5">
+                            {isSuperAdmin ? "z raportu · SA może zmienić" : "z raportu"}
+                          </p>
+                        )}
                         {inspectorFile && (
                           <p className="text-[10px] text-primary/80 leading-tight mt-0.5 truncate flex items-center gap-0.5" title={inspectorFile.filename}>
                             <FileText size={9} className="shrink-0"/>{inspectorFile.filename}
@@ -6441,6 +6455,7 @@ function JobsView({
               onAddReport={(report) => updateJob({
                 ...selectedJob,
                 workerReports: [...jobWorkerReports(selectedJob), report],
+                reportDocSaOverride: clearReportDocSaOverrideFromReport(selectedJob.reportDocSaOverride, report),
               }, { type: "report_add", text: `Dodano raport (${scopeTextLineCount(getReportWorkScopeText(report))} linii)` })}
               onDelete={(reportId) => updateJob({
                 ...selectedJob,
@@ -6679,6 +6694,8 @@ function DashboardView({
   onAlertsSeen: () => void;
   onOpenSms?: () => void;
 }) {
+  const { session: adminSession } = useAdminAccess();
+  const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
   const todayKey = todayDayKey();
   const todayIso = todayIsoDate();
   const workingToday = weekEmployees.filter((e) => todayKey && dayTotalHours(e.days[todayKey]) > 0);
@@ -6844,11 +6861,13 @@ function DashboardView({
 
   const toggleJobDocumentOnDashboard = (job: Job, doc: DocType) => {
     const nextChecked = !job.documents[doc];
+    if (!nextChecked && !confirmReportSyncedDocUncheck(job, doc, isSuperAdmin)) return;
     onFixJobs((prev) =>
       prev.map((j) => {
         if (j.id !== job.id) return j;
-        let next = appendJobActivity(
-          { ...j, documents: { ...j.documents, [doc]: nextChecked } },
+        let next = applyReportDocDocumentToggle(j, doc, nextChecked, isSuperAdmin);
+        next = appendJobActivity(
+          next,
           "document",
           `${nextChecked ? "Zaznaczono" : "Odznaczono"}: ${DOC_LABELS[doc]}`,
           "Administrator",
@@ -7037,7 +7056,8 @@ function DashboardView({
                         </span>
                       </p>
                       <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                        <span className="text-foreground/90">Kliknij dokument</span> — czerwony = brak, zielony = odebrany (zostaje na liście; klik ponownie = cofnięcie).
+                        <span className="text-foreground/90">Kliknij dokument</span> — czerwony = brak, zielony = odebrany.
+                        Zakres i rysunek/wymiary z raportu ekipy zaznaczają się same (Super Admin może zmienić po potwierdzeniu).
                         Kliknij adres robota — pełna karta w Robotach. Wymagane: {REQUIRED_DOCS.length} poz.
                         {staleDocsJobs.length > 0 && (
                           <span className="text-amber-600 dark:text-amber-400 font-medium">
@@ -7115,20 +7135,28 @@ function DashboardView({
                           <div className="mt-2.5 flex flex-wrap gap-1.5">
                             {REQUIRED_DOCS.map((doc) => {
                               const checked = job.documents[doc];
+                              const reportLocked = checked && isReportSyncedDocLocked(job, doc);
+                              const locked = reportLocked && !isSuperAdmin;
                               return (
                                 <button
                                   key={doc}
                                   type="button"
                                   title={
-                                    checked
-                                      ? `${DOC_LABELS[doc]} — odebrane (kliknij, aby odznaczyć)`
-                                      : `Oznacz jako odebrane: ${DOC_LABELS[doc]}`
+                                    reportLocked && isSuperAdmin
+                                      ? `${DOC_LABELS[doc]} — z raportu (Super Admin: kliknij, aby zmienić status)`
+                                      : locked
+                                        ? `${DOC_LABELS[doc]} — potwierdzone raportem (nie można odznaczyć)`
+                                        : checked
+                                          ? `${DOC_LABELS[doc]} — odebrane (kliknij, aby odznaczyć)`
+                                          : `Oznacz jako odebrane: ${DOC_LABELS[doc]}`
                                   }
                                   onClick={() => toggleJobDocumentOnDashboard(job, doc)}
-                                  className={`inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1.5 min-h-[36px] rounded-md border active:scale-[0.97] transition-all touch-manipulation ${
-                                    checked
-                                      ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 hover:bg-green-500/20"
-                                      : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25 hover:bg-green-500/15 hover:text-green-700 hover:border-green-500/30 dark:hover:text-green-300"
+                                  className={`inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1.5 min-h-[36px] rounded-md border transition-all touch-manipulation ${
+                                    locked
+                                      ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 cursor-default"
+                                      : checked
+                                        ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 hover:bg-green-500/20 active:scale-[0.97]"
+                                        : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25 hover:bg-green-500/15 hover:text-green-700 hover:border-green-500/30 dark:hover:text-green-300 active:scale-[0.97]"
                                   }`}
                                 >
                                   {checked ? (
@@ -8167,6 +8195,19 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-28", version:"2.20.5", label:"Super Admin — zmiana dokumentów z raportu",
+    items:[
+      {type:"new", text:"Super Admin może odznaczyć Zakres lub Rysunek/Plan mimo raportu ekipy — po potwierdzeniu w oknie dialogowym"},
+      {type:"fix", text:"Zapis dokumentów z pulpitu/Robotów — merge chmura↔local respektuje nowszy updatedAt i override SA (nie ginie po odświeżeniu)"},
+    ],
+  },
+  {
+    date:"2026-05-28", version:"2.20.4", label:"Raport → auto-dokumenty",
+    items:[
+      {type:"new", text:"Zakres z raportu ekipy automatycznie zaznacza „Zakres robót”; rysunek/wymiary — „Rysunek/Plan” (zielony, bez odznaczenia)"},
+    ],
+  },
   {
     date:"2026-05-28", version:"2.20.3", label:"Pulpit — dokumenty zostają na kafelku",
     items:[
@@ -9761,6 +9802,19 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, []);
 
   useEffect(() => {
+    setJobs((prev) => {
+      if (prev.length === 0) return prev;
+      let changed = false;
+      const next = prev.map((j) => {
+        const synced = syncJobDocuments(j);
+        if (synced !== j) changed = true;
+        return synced;
+      });
+      return changed ? next : prev;
+    });
+  }, [setJobs]);
+
+  useEffect(() => {
     syncAppSettingsFromCloud().then(setAppSettings).catch(() => {});
   }, []);
 
@@ -9926,10 +9980,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const { count } = await restoreCloudJobsBackup(source);
       const [cloudJobs] = await fetchKeysFromCloud(["kw-jobs"]);
       const merged = mergeJobsById(jobs, normalizeJobsValue(cloudJobs), getDeletedJobIds()) as Job[];
-      localStorage.setItem("kw-jobs", JSON.stringify(merged));
-      setJobs(merged);
-      await pushKeysToCloud(["kw-jobs"], [merged], { replaceJobsKeys: ["kw-jobs"] });
-      alert(`Przywrócono ${count} robót z kopii chmurowej. Łącznie w aplikacji: ${merged.length}.`);
+      const synced = merged.map((j) => syncJobDocuments(j));
+      localStorage.setItem("kw-jobs", JSON.stringify(synced));
+      setJobs(synced);
+      await pushKeysToCloud(["kw-jobs"], [synced], { replaceJobsKeys: ["kw-jobs"] });
+      alert(`Przywrócono ${count} robót z kopii chmurowej. Łącznie w aplikacji: ${synced.length}.`);
       fetchJobsBackupStatus().then(setJobsBackupStatus).catch(() => {});
     } catch (err) {
       alert(err instanceof Error ? err.message : "Nie udało się przywrócić kopii z chmury.");
@@ -9950,9 +10005,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const restored = restoreLocalJobsSnapshot(0);
     if (!restored) { alert("Błąd odczytu lokalnej kopii."); return; }
     const merged = mergeJobsById(jobs, restored, getDeletedJobIds()) as Job[];
-    setJobs(merged);
-    pushKeysToCloudSafe(["kw-jobs"], [merged]).catch(() => {});
-    alert(`Przywrócono lokalną kopię. Łącznie robot: ${merged.length}.`);
+    const synced = merged.map((j) => syncJobDocuments(j));
+    setJobs(synced);
+    pushKeysToCloudSafe(["kw-jobs"], [synced]).catch(() => {});
+    alert(`Przywrócono lokalną kopię. Łącznie robot: ${synced.length}.`);
   };
 
   const restorePayrollFromCloud = async (source: "prev" | "prev2" = "prev") => {
@@ -11785,8 +11841,9 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
           } catch { /* ignore */ }
           const cloudJobsNorm = normalizeJobsValue(cloudJobs) as Job[];
           const merged = mergeJobsById(localJobs, cloudJobsNorm, mergedDeleted) as Job[];
-          setJobsLocal(merged);
-          try { localStorage.setItem("kw-jobs", JSON.stringify(merged)); } catch { /* ignore */ }
+          const synced = merged.map((j) => syncJobDocuments(j));
+          setJobsLocal(synced);
+          try { localStorage.setItem("kw-jobs", JSON.stringify(synced)); } catch { /* ignore */ }
         }
         setWeekEmployees(
           mergeWeekEmployees(
@@ -12049,7 +12106,11 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
       syncJobs((prev) =>
         prev.map((j) =>
           j.id === selectedJobId
-            ? { ...j, workerReports: jobWorkerReports(j).map((r) => (r.id === report.id ? report : r)) }
+            ? syncJobDocuments({
+                ...j,
+                workerReports: jobWorkerReports(j).map((r) => (r.id === report.id ? report : r)),
+                reportDocSaOverride: clearReportDocSaOverrideFromReport(j.reportDocSaOverride, report),
+              })
             : j,
         ),
       );
@@ -12057,7 +12118,13 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
     } else {
       syncJobs((prev) =>
         prev.map((j) =>
-          j.id === selectedJobId ? { ...j, workerReports: [...jobWorkerReports(j), report] } : j,
+          j.id === selectedJobId
+            ? syncJobDocuments({
+                ...j,
+                workerReports: [...jobWorkerReports(j), report],
+                reportDocSaOverride: clearReportDocSaOverrideFromReport(j.reportDocSaOverride, report),
+              })
+            : j,
         ),
       );
     }
