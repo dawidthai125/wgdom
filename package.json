@@ -1,7 +1,7 @@
 {
   "name": "wgdom",
   "private": true,
-  "version": "2.29.0",
+  "version": "2.30.0",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -12,7 +12,11 @@
     "cap:open:android": "npx cap open android",
     "cap:open:ios": "npx cap open ios",
     "cap:run:android": "npx cap run android",
-    "cap:run:ios": "npx cap run ios"
+    "cap:run:ios": "npx cap run ios",
+    "audit:mobile": "node scripts/mobile-audit.mjs",
+    "test:mobile": "playwright test",
+    "test:mobile:ui": "playwright test --ui",
+    "test:mobile:report": "playwright show-report e2e-report"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
@@ -90,6 +94,7 @@
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
+    "@playwright/test": "^1.52.0",
     "@tailwindcss/vite": "4.1.12",
     "@types/pdfmake": "^0.3.3",
     "@types/react": "^18.3.0",

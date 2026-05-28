@@ -30,3 +30,8 @@ ios/App/build/
 ios/DerivedData/
 *.xcuserstate
 *.xcworkspace/xcuserdata/
+
+# Playwright
+test-results/
+e2e-report/
+playwright-report/

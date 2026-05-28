@@ -69,6 +69,39 @@ npm run cap:open:ios       # Xcode → Run (Mac)
 
 Zmiany w React/Vite **nie wymagają** nowej apki — wystarczy deploy na Vercel.
 
+## Testy mobile (automatyczne)
+
+Po każdej większej zmianie mobilnej uruchom lokalnie:
+
+```bash
+npm run audit:mobile    # audyt statyczny kodu (36+ reguł)
+npm run test:mobile     # Playwright na https://wgdom.fun (iPhone SE + Pixel 7)
+```
+
+Preview lokalny:
+
+```bash
+npm run build && npm run preview
+# w drugim terminalu:
+set PW_BASE_URL=http://127.0.0.1:4173
+npm run test:mobile
+```
+
+GitHub Actions: workflow **Mobile smoke tests** na `main`.
+
+**To nie zastępuje testów na prawdziwym telefonie** — patrz checklist poniżej.
+
+### Checklist na telefonie (~20 min, raz po większej aktualizacji)
+
+| Panel | Co sprawdzić |
+|-------|----------------|
+| **Logowanie** | Admin / Inspektor / Pracownik — brak zoomu w polach, klawiatura nie zasłania przycisku |
+| **Admin** | Dolna nawigacja, lista płac → edytor pełny ekran, grafik (karty), sync (chmurka) |
+| **Inspektor** | PTR w dół, zdjęcie offline → kolejka → wyślij po Wi‑Fi |
+| **Pracownik** | PTR, zdjęcie offline, tarcza wypłaty przy przełączeniu apki |
+| **PWA** | Dodaj do ekranu → pełny ekran, ikona, start bez paska Safari |
+| **APK** | Start bez Wi‑Fi → ekran offline; Wstecz zamyka modale |
+
 ## Dev — lokalny serwer w apce
 
 ```bash
