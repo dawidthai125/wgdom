@@ -178,6 +178,13 @@ import {
   type PayrollJobWorkLine,
   blobToBase64,
 } from "@/lib/payroll-export";
+import {
+  isBiweeklyPayrollEmployee,
+  calcBiweeklyRowDisplay,
+  computePayrollCashSplit,
+  biweeklyMissingPrevWeekArchive,
+  calcWeekNetNoPrevSat,
+} from "@/lib/payroll-cycle";
 
 /** pdfmake ~1 MB — ładuj dopiero przy eksporcie PDF (szybszy start na telefonie). */
 async function loadPdfMake() {
@@ -210,6 +217,10 @@ interface DirectoryEmployee {
   notes: string;
   /** Logistyka / dostawy — ten sam dzień na wielu robotach (suma godzin, nie jedna robota) */
   multiSiteDaily?: boolean;
+  /** Wypłata co 2 tygodnie w sobotę (np. umowa ukraińska) */
+  biweeklyPayroll?: boolean;
+  /** Pierwsza sobota wypłaty w cyklu (ISO), np. 2026-05-30 */
+  biweeklyAnchorDate?: string;
   /** SHA-256 hash osobistego kodu 4-cyfrowego (logowanie pracownika) */
   workerPinHash?: string;
   /** Konto testowe — tylko logowanie pracownika, bez listy płac, grafiku i raportów */
@@ -307,6 +318,9 @@ interface WeekSnapshot {
   weekEmployees?: WeekEmployee[];
   /** Przypisania do robót w tym tygodniu — od v1.9 */
   workEntries?: ArchivedWorkEntry[];
+  /** Zaległa lista płac (np. poprzedni tydzień przed startem aplikacji) */
+  backlog?: boolean;
+  backlogNote?: string;
 }
 
 // ─── Jobs Types ───────────────────────────────────────────────────────────────
@@ -2516,8 +2530,10 @@ function useAdminAccess() {
   return useContext(AdminAccessContext);
 }
 
-function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee; weekFrom:string; onChange:(u:WeekEmployee)=>void; onClose:()=>void}) {
+function WeekEmployeeDetail({emp, weekFrom, weekTo, directory, savedWeeks, onChange, onClose}:{emp:WeekEmployee; weekFrom:string; weekTo:string; directory: DirectoryEmployee[]; savedWeeks: WeekSnapshot[]; onChange:(u:WeekEmployee)=>void; onClose:()=>void}) {
   const { canViewRates } = useAdminAccess();
+  const biweekly = isBiweeklyPayrollEmployee(emp, directory);
+  const biweeklyRow = biweekly ? calcBiweeklyRowDisplay(emp, directory, weekFrom, weekTo, savedWeeks) : null;
   const updateDayData = useCallback((key: DayKey, next: DayData) => {
     onChange({ ...emp, days: { ...emp.days, [key]: next } });
   }, [emp, onChange]);
@@ -2533,6 +2549,7 @@ function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee
     weekHours, prevSatHours, totalHours, totalExtraHours,
     totalZaliczka, totalExtraCosts, grossPay, weekGross, prevSatGross, netPay, rateNum,
   } = calcWeekEmployee(emp);
+  const weekOnly = biweekly ? calcWeekNetNoPrevSat(emp) : null;
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -2556,12 +2573,24 @@ function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee
         </div>
         )}
 
+        {biweekly && biweeklyRow && (
+          <div className="bg-sky-500/10 border border-sky-500/25 rounded-xl px-4 py-3 text-xs text-sky-300 leading-relaxed">
+            <p className="font-semibold text-sky-200 mb-1">Wypłata co 2 tygodnie</p>
+            {biweeklyRow.isPayoutWeek ? (
+              <p>Ten tydzień to sobota wypłaty — łącznie za {fmtDate(biweeklyRow.prevWeekFrom)}–{fmtDate(biweeklyRow.prevWeekTo)} + bieżący tydzień: <strong>{fmt(biweeklyRow.displayNet)} PLN</strong>.</p>
+            ) : (
+              <p>Ten tydzień narasta na wypłatę <strong>{fmtDate(biweeklyRow.nextPayoutDate)}</strong>: {fmt(biweeklyRow.thisWeekNet)} PLN (bez wypłaty w tę sobotę).</p>
+            )}
+          </div>
+        )}
+
         {/* Days */}
         <div className="bg-card rounded-xl border border-border overflow-hidden">
           <div className="hidden sm:grid grid-cols-[minmax(0,1.4fr)_minmax(0,0.95fr)_minmax(0,0.95fr)_minmax(0,0.75fr)_minmax(0,0.95fr)] px-4 py-2 text-xs text-muted-foreground border-b border-border gap-2" style={{fontFamily:"'JetBrains Mono', monospace"}}>
             <span>Dzień</span><span className="text-center">Od</span><span className="text-center">Do</span><span className="text-center">Godziny</span><span className="text-center">Zaliczka</span>
           </div>
           <div className="divide-y divide-border">
+            {!biweekly && (
             <div className="bg-amber-500/5 border-b border-amber-500/15">
               <PayrollDayEditor
                 day={getPrevSaturday(emp)}
@@ -2572,6 +2601,7 @@ function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee
                 onUpdate={(next) => onChange({ ...emp, prevSaturday: { ...next, extraHours: undefined } })}
               />
             </div>
+            )}
             {DAYS.map((key) => (
               <PayrollDayEditor
                 key={key}
@@ -2682,18 +2712,24 @@ function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee
 
         {/* Mini summary */}
         <div className="space-y-2">
-          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Tydzień Pn–So</span><span className="font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(weekHours)}</span></div>
-          {prevSatHours>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">{PREV_SAT_SHORT}</span><span className="font-semibold text-amber-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(prevSatHours)}</span></div>}
-          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Razem godzin</span><span className="font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalHours)}</span></div>
+          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Tydzień Pn–So</span><span className="font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(weekOnly?.weekHours ?? weekHours)}</span></div>
+          {prevSatHours>0&&!biweekly&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">{PREV_SAT_SHORT}</span><span className="font-semibold text-amber-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(prevSatHours)}</span></div>}
+          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Razem godzin</span><span className="font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(weekOnly?.weekHours ?? totalHours)}</span></div>
           {totalExtraHours>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">w tym dodatkowe</span><span className="font-semibold text-primary/80" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalExtraHours)}</span></div>}
-          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto tydzień</span><span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(weekGross)} PLN</span></div>
-          {prevSatGross>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto {PREV_SAT_SHORT}</span><span className="font-semibold text-amber-500/90" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(prevSatGross)} PLN</span></div>}
-          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto razem</span><span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(grossPay)} PLN</span></div>
-          {totalZaliczka>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Zaliczki</span><span className="font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>−{fmt(totalZaliczka)} PLN</span></div>}
+          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto tydzień</span><span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(weekOnly?.grossPay ?? weekGross)} PLN</span></div>
+          {prevSatGross>0&&!biweekly&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto {PREV_SAT_SHORT}</span><span className="font-semibold text-amber-500/90" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(prevSatGross)} PLN</span></div>}
+          {biweekly && biweeklyRow && !biweeklyRow.isPayoutWeek && (
+            <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Na wypłatę {fmtDate(biweeklyRow.nextPayoutDate)}</span><span className="font-semibold text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(biweeklyRow.thisWeekNet)} PLN</span></div>
+          )}
+          {biweekly && biweeklyRow && biweeklyRow.isPayoutWeek && biweeklyRow.prevWeekNet > 0 && (
+            <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Poprzedni tydzień ({fmtDate(biweeklyRow.prevWeekFrom).slice(0,5)}–{fmtDate(biweeklyRow.prevWeekTo).slice(0,5)})</span><span className="font-semibold text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(biweeklyRow.prevWeekNet)} PLN</span></div>
+          )}
+          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto razem</span><span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(weekOnly?.grossPay ?? grossPay)} PLN</span></div>
+          {(weekOnly?.totalZaliczka ?? totalZaliczka)>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Zaliczki</span><span className="font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>−{fmt(weekOnly?.totalZaliczka ?? totalZaliczka)} PLN</span></div>}
           {totalExtraCosts>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Koszty do zwrotu</span><span className="font-semibold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>+{fmt(totalExtraCosts)} PLN</span></div>}
           <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-xl px-4 py-3">
-            <span className="text-sm font-semibold text-primary">Do wypłaty</span>
-            <span className={`text-xl font-bold ${netPay<0?"text-destructive":"text-primary"}`} style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(netPay)} PLN</span>
+            <span className="text-sm font-semibold text-primary">{biweekly && biweeklyRow && !biweeklyRow.isPayoutWeek ? "Ten tydzień (narasta)" : "Do wypłaty"}</span>
+            <span className={`text-xl font-bold ${(biweekly && biweeklyRow ? biweeklyRow.displayNet : netPay)<0?"text-destructive":"text-primary"}`} style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(biweekly && biweeklyRow ? (biweeklyRow.isPayoutWeek ? biweeklyRow.displayNet : biweeklyRow.thisWeekNet) : netPay)} PLN</span>
           </div>
         </div>
       </div>
@@ -2703,25 +2739,43 @@ function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee
 
 // ─── Lista Płac — eksport / email ─────────────────────────────────────────────
 
-function toPayrollCalcRows(rows: ({ emp: WeekEmployee } & ReturnType<typeof calcWeekEmployee>)[]): PayrollCalcRow[] {
-  return rows.map((r) => ({
-    emp: { name: r.emp.name, position: r.emp.position, settled: r.emp.settled },
-    weekHours: r.weekHours,
-    prevSatHours: r.prevSatHours,
-    totalHours: r.totalHours,
-    totalExtraHours: r.totalExtraHours,
-    weekZaliczka: r.weekZaliczka,
-    prevSatZaliczka: r.prevSatZaliczka,
-    totalZaliczka: r.totalZaliczka,
-    totalExtraCosts: r.totalExtraCosts,
-    weekGross: r.weekGross,
-    prevSatGross: r.prevSatGross,
-    grossPay: r.grossPay,
-    weekNet: r.weekNet,
-    prevSatNet: r.prevSatNet,
-    netPay: r.netPay,
-    rateNum: r.rateNum,
-  }));
+function toPayrollCalcRows(
+  rows: ({ emp: WeekEmployee } & ReturnType<typeof calcWeekEmployee>)[],
+  directory: DirectoryEmployee[],
+  weekFrom: string,
+  weekTo: string,
+  savedWeeks: WeekSnapshot[],
+): PayrollCalcRow[] {
+  return rows.map((r) => {
+    const biweekly = isBiweeklyPayrollEmployee(r.emp, directory);
+    const bw = biweekly ? calcBiweeklyRowDisplay(r.emp, directory, weekFrom, weekTo, savedWeeks) : null;
+    return {
+      emp: { name: r.emp.name, position: r.emp.position, settled: r.emp.settled },
+      weekHours: r.weekHours,
+      prevSatHours: biweekly ? 0 : r.prevSatHours,
+      totalHours: biweekly ? r.weekHours : r.totalHours,
+      totalExtraHours: r.totalExtraHours,
+      weekZaliczka: r.weekZaliczka,
+      prevSatZaliczka: biweekly ? 0 : r.prevSatZaliczka,
+      totalZaliczka: biweekly ? r.weekZaliczka : r.totalZaliczka,
+      totalExtraCosts: r.totalExtraCosts,
+      weekGross: r.weekGross,
+      prevSatGross: biweekly ? 0 : r.prevSatGross,
+      grossPay: biweekly ? r.weekGross : r.grossPay,
+      weekNet: r.weekNet,
+      prevSatNet: biweekly ? 0 : r.prevSatNet,
+      netPay: bw ? (bw.isPayoutWeek ? bw.displayNet : bw.thisWeekNet) : r.netPay,
+      rateNum: r.rateNum,
+      biweekly: biweekly || undefined,
+      biweeklyPayoutWeek: bw?.isPayoutWeek,
+      biweeklyAccruedOnly: bw?.accruedOnly,
+      biweeklyNextPayout: bw?.nextPayoutDate,
+      biweeklyThisWeekNet: bw?.thisWeekNet,
+      biweeklyPrevWeekNet: bw?.prevWeekNet,
+      biweeklyPrevWeekLabel: bw ? `${fmtDate(bw.prevWeekFrom)}–${fmtDate(bw.prevWeekTo)}` : undefined,
+      biweeklyDisplayNet: bw?.displayNet,
+    };
+  });
 }
 
 function PayrollEmailModal({
@@ -2731,6 +2785,8 @@ function PayrollEmailModal({
   totals,
   contacts,
   jobs,
+  directory,
+  savedWeeks,
   onClose,
   onManageContacts,
 }: {
@@ -2740,6 +2796,8 @@ function PayrollEmailModal({
   totals: PayrollExportTotals;
   contacts: EmailContact[];
   jobs: Job[];
+  directory: DirectoryEmployee[];
+  savedWeeks: WeekSnapshot[];
   onClose: () => void;
   onManageContacts: () => void;
 }) {
@@ -2758,7 +2816,7 @@ function PayrollEmailModal({
   const useManual = contactId === "__manual__" || payrollContacts.length === 0;
   const selectedContact = payrollContacts.find((c) => c.id === contactId) || null;
   const recipientEmail = useManual ? manualEmail.trim() : (selectedContact?.email.trim() || "");
-  const calcRows = useMemo(() => toPayrollCalcRows(rows), [rows]);
+  const calcRows = useMemo(() => toPayrollCalcRows(rows, directory, weekFrom, weekTo, savedWeeks), [rows, directory, weekFrom, weekTo, savedWeeks]);
   const canSend = Boolean(recipientEmail) && (attachPdf || attachWord) && !sending;
 
   const handleSend = async () => {
@@ -2775,8 +2833,8 @@ function PayrollEmailModal({
     setSendStage("Przygotowanie…");
     try {
       const weeklyGrid = payrollWeeklyGrid(rows.map((r) => r.emp), weekFrom);
-      const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
-      const prevSatDetails = payrollPrevSatDetailLines(rows.map((r) => r.emp), weekFrom);
+      const extraHourLines = payrollWeekExtraHourLines(rows.filter((r) => !isBiweeklyPayrollEmployee(r.emp, directory)).map((r) => r.emp));
+      const prevSatDetails = payrollPrevSatDetailLines(rows.filter((r) => !isBiweeklyPayrollEmployee(r.emp, directory)).map((r) => r.emp), weekFrom);
       const prevSatIso = previousSaturdayIso(weekFrom);
       const jobWorkLines = payrollJobWorkLines(jobs, weekFrom, weekTo);
       const attachments: { filename: string; content: string }[] = [];
@@ -3042,6 +3100,7 @@ function PayrollView({
   onManageContacts,
   onRestoreFromArchive,
   onSyncRatesFromDirectory,
+  onSaveBacklogWeek,
   initialEmpId,
   onInitialEmpConsumed,
 }:{
@@ -3060,6 +3119,7 @@ function PayrollView({
   onManageContacts:()=>void;
   onRestoreFromArchive?:()=>void;
   onSyncRatesFromDirectory?:()=>void;
+  onSaveBacklogWeek?:(weekFrom:string, weekTo:string, employees:WeekEmployee[])=>void;
   initialEmpId?: string | null;
   onInitialEmpConsumed?: () => void;
 }) {
@@ -3072,6 +3132,7 @@ function PayrollView({
   const [satDismissed, setSatDismissed] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [showBacklogModal, setShowBacklogModal] = useState(false);
 
   useEffect(() => {
     if (initialEmpId && weekEmployees.some((e) => e.id === initialEmpId)) {
@@ -3095,6 +3156,27 @@ function PayrollView({
   };
 
   const rows = weekEmployees.map((emp)=>({emp,...calcWeekEmployee(emp)}));
+
+  const cashSplit = useMemo(
+    () => computePayrollCashSplit(weekEmployees, directory, weekFrom, weekTo, savedWeeks, (e) => calcWeekEmployee(e).netPay),
+    [weekEmployees, directory, weekFrom, weekTo, savedWeeks],
+  );
+
+  const backlogCheck = useMemo(
+    () => biweeklyMissingPrevWeekArchive(weekEmployees, directory, weekFrom, weekTo, savedWeeks),
+    [weekEmployees, directory, weekFrom, weekTo, savedWeeks],
+  );
+
+  const biweeklyRowMap = useMemo(() => {
+    const m = new Map<string, ReturnType<typeof calcBiweeklyRowDisplay>>();
+    for (const emp of weekEmployees) {
+      if (isBiweeklyPayrollEmployee(emp, directory)) {
+        m.set(emp.id, calcBiweeklyRowDisplay(emp, directory, weekFrom, weekTo, savedWeeks));
+      }
+    }
+    return m;
+  }, [weekEmployees, directory, weekFrom, weekTo, savedWeeks]);
+
   const totalWeekHours = rows.reduce((s,r)=>s+r.weekHours,0);
   const totalPrevSatHours = rows.reduce((s,r)=>s+r.prevSatHours,0);
   const totalHoursAll = rows.reduce((s,r)=>s+r.totalHours,0);
@@ -3137,13 +3219,20 @@ function PayrollView({
     totalNet,
     settledCount: rows.filter((r) => r.emp.settled).length,
     employeeCount: rows.length,
+    cashWeeklyNet: cashSplit.weeklyNet,
+    cashBiweeklyPayoutNet: cashSplit.biweeklyPayoutNet,
+    cashBiweeklyAccruedNet: cashSplit.biweeklyAccruedNet,
+    cashTotalSaturday: cashSplit.totalSaturdayCash,
+    nextBiweeklyPayoutDate: cashSplit.nextBiweeklyPayoutDate,
+    hasBiweeklyEmployees: cashSplit.hasBiweeklyEmployees,
+    isBiweeklyPayoutWeek: cashSplit.isAnyBiweeklyPayoutWeek,
   };
 
   const payrollExportArgs = () => {
-    const calcRows = toPayrollCalcRows(rows);
+    const calcRows = toPayrollCalcRows(rows, directory, weekFrom, weekTo, savedWeeks);
     const weeklyGrid = payrollWeeklyGrid(rows.map((r) => r.emp), weekFrom);
-    const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
-    const prevSatDetails = payrollPrevSatDetailLines(rows.map((r) => r.emp), weekFrom);
+    const extraHourLines = payrollWeekExtraHourLines(rows.filter((r) => !isBiweeklyPayrollEmployee(r.emp, directory)).map((r) => r.emp));
+    const prevSatDetails = payrollPrevSatDetailLines(rows.filter((r) => !isBiweeklyPayrollEmployee(r.emp, directory)).map((r) => r.emp), weekFrom);
     const prevSatIso = previousSaturdayIso(weekFrom);
     const jobWorkLines = payrollJobWorkLines(jobs, weekFrom, weekTo);
     return { calcRows, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso, jobWorkLines };
@@ -3194,6 +3283,46 @@ function PayrollView({
                 <button type="button" onClick={onRestoreFromArchive} className="shrink-0 px-4 py-2 rounded-lg bg-amber-500/20 text-amber-300 text-sm font-medium hover:bg-amber-500/30 transition-colors">
                   Przywróć z archiwum
                 </button>
+              </div>
+            )}
+
+            {backlogCheck.missing && onSaveBacklogWeek && (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-sky-500/10 border border-sky-500/25 rounded-xl px-4 py-3">
+                <AlertTriangle size={15} className="text-sky-400 shrink-0 hidden sm:block"/>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-sky-300">Brakuje poprzedniego tygodnia w archiwum (wypłata co 2 tyg.)</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Przed wypłatą {fmtDate(weekTo)} potrzebny jest tydzień {fmtDate(backlogCheck.prevRange.from)}–{fmtDate(backlogCheck.prevRange.to)} dla {backlogCheck.biweeklyCount} prac. — utwórz zaległą listę płac.</p>
+                </div>
+                <button type="button" onClick={() => setShowBacklogModal(true)} className="shrink-0 px-4 py-2 rounded-lg bg-sky-500/20 text-sky-200 text-sm font-medium hover:bg-sky-500/30 transition-colors">
+                  Zaległa lista płac
+                </button>
+              </div>
+            )}
+
+            {cashSplit.hasBiweeklyEmployees && canViewRates && (
+              <div className="bg-card border border-border rounded-xl px-5 py-4 space-y-2">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Kasa w sobotę {fmtDate(weekTo)}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                  <div className="bg-secondary/50 rounded-lg px-3 py-2.5">
+                    <p className="text-xs text-muted-foreground mb-0.5">Tygodniówki</p>
+                    <p className="font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.weeklyNet)} PLN</p>
+                  </div>
+                  {cashSplit.isAnyBiweeklyPayoutWeek ? (
+                    <div className="bg-sky-500/10 border border-sky-500/20 rounded-lg px-3 py-2.5">
+                      <p className="text-xs text-sky-300 mb-0.5">Co 2 tyg. (ten tydzień + poprzedni)</p>
+                      <p className="font-bold text-sky-300" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.biweeklyPayoutNet)} PLN</p>
+                    </div>
+                  ) : (
+                    <div className="bg-secondary/50 rounded-lg px-3 py-2.5">
+                      <p className="text-xs text-muted-foreground mb-0.5">Co 2 tyg. → na {fmtDate(cashSplit.nextBiweeklyPayoutDate)}</p>
+                      <p className="font-bold text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.biweeklyAccruedNet)} PLN</p>
+                    </div>
+                  )}
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg px-3 py-2.5">
+                    <p className="text-xs text-primary/80 mb-0.5">Razem w kasie w sobotę</p>
+                    <p className="font-bold text-primary text-lg" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.totalSaturdayCash)} PLN</p>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -3300,17 +3429,30 @@ function PayrollView({
                                 <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{r.emp.name?r.emp.name[0].toUpperCase():"?"}</div>
                                 <div className="min-w-0">
                                   <p className="font-medium leading-tight truncate">{r.emp.name||<span className="italic text-muted-foreground">Bez nazwy</span>}</p>
-                                  <p className="text-xs text-muted-foreground truncate">{r.emp.position||"—"}{canViewRates && <> · {fmt(r.rateNum)} PLN/h</>}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{r.emp.position||"—"}{canViewRates && <> · {fmt(r.rateNum)} PLN/h</>}
+                                    {biweeklyRowMap.has(r.emp.id) && <span className="ml-1 text-[10px] bg-sky-500/15 text-sky-400 px-1 py-0.5 rounded-full">co 2 tyg.</span>}
+                                  </p>
                                 </div>
                               </div>
                             </td>
                             <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.weekHours>0?fmtH(r.weekHours):<span className="text-muted-foreground/40">—</span>}</td>
-                            <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.prevSatHours>0?<span className="text-amber-500">{fmtH(r.prevSatHours)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
-                            <td className="px-2 py-3.5 text-right font-medium whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalHours>0?fmtH(r.totalHours):<span className="text-muted-foreground/40">—</span>}</td>
+                            <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.prevSatHours>0&&!biweeklyRowMap.has(r.emp.id)?<span className="text-amber-500">{fmtH(r.prevSatHours)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
+                            <td className="px-2 py-3.5 text-right font-medium whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{(biweeklyRowMap.has(r.emp.id) ? r.weekHours : r.totalHours)>0?fmtH(biweeklyRowMap.has(r.emp.id) ? r.weekHours : r.totalHours):<span className="text-muted-foreground/40">—</span>}</td>
                             <td className="px-2 py-3.5 text-right text-muted-foreground whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.grossPay)}</td>
                             <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalZaliczka>0?<span className="text-destructive">−{fmt(r.totalZaliczka)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
                             <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalExtraCosts>0?<span className="text-green-500">+{fmt(r.totalExtraCosts)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
-                            <td className="px-2 py-3.5 text-right font-bold text-primary whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.netPay)} <span className="text-[10px] font-normal text-primary/70">zł</span></td>
+                            <td className="px-2 py-3.5 text-right font-bold text-primary whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                              {(() => {
+                                const bw = biweeklyRowMap.get(r.emp.id);
+                                if (bw && !bw.isPayoutWeek) {
+                                  return <span title={`Narasta na ${fmtDate(bw.nextPayoutDate)}`}><span className="text-sky-400">{fmt(bw.thisWeekNet)}</span> <span className="text-[10px] font-normal text-sky-400/70">→ {fmtDate(bw.nextPayoutDate).slice(0,5)}</span></span>;
+                                }
+                                if (bw && bw.isPayoutWeek) {
+                                  return <span title={`2 tyg.: ${fmt(bw.prevWeekNet)} + ${fmt(bw.thisWeekNet)}`}>{fmt(bw.displayNet)} <span className="text-[10px] font-normal text-primary/70">zł</span></span>;
+                                }
+                                return <>{fmt(r.netPay)} <span className="text-[10px] font-normal text-primary/70">zł</span></>;
+                              })()}
+                            </td>
                             <td className={`sticky right-9 z-10 px-2 py-3.5 whitespace-nowrap shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)] ${r.emp.id===selectedEmpId?"bg-primary/5":"bg-card group-hover:bg-secondary/30"}`} onClick={(e)=>e.stopPropagation()}>
                               <button onClick={()=>onToggleSettled(r.emp.id)} title={r.emp.settled?"Rozliczony — kliknij aby cofnąć":"Oczekuje — kliknij po wypłacie"} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all ${r.emp.settled?"bg-green-500/15 text-green-400 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}>
                                 {r.emp.settled?<><CheckCircle2 size={11} className="shrink-0"/>Rozliczony</>:<><Circle size={11} className="shrink-0"/>Oczekuje</>}
@@ -3351,7 +3493,7 @@ function PayrollView({
                           <td colSpan={2}/>
                         </tr>}
                         <tr className="border-t-2 border-border bg-secondary/30">
-                          <td colSpan={2} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Razem</td>
+                          <td colSpan={2} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Razem (tydzień)</td>
                           <td className="px-3 py-3 text-right font-bold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalWeekHours)}</td>
                           <td className="px-3 py-3 text-right font-bold text-amber-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{totalPrevSatHours>0?fmtH(totalPrevSatHours):"—"}</td>
                           <td className="px-3 py-3 text-right font-bold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalHoursAll)}</td>
@@ -3362,6 +3504,13 @@ function PayrollView({
                           <td className="sticky right-9 z-10 bg-secondary/30 shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)]"/>
                           <td className="sticky right-0 z-10 bg-secondary/30"/>
                         </tr>
+                        {cashSplit.hasBiweeklyEmployees && canViewRates && (
+                        <tr className="border-t border-primary/20 bg-primary/5">
+                          <td colSpan={8} className="px-4 py-3 text-xs font-bold text-primary uppercase tracking-wider">Kasa w sobotę {fmtDate(weekTo)}</td>
+                          <td className="px-3 py-3 text-right font-bold text-primary text-base whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.totalSaturdayCash)} <span className="text-[10px] font-normal text-primary/70">zł</span></td>
+                          <td colSpan={2} className="sticky right-0 z-10 bg-primary/5"/>
+                        </tr>
+                        )}
                       </tfoot>
                     </table>
                   </div>
@@ -3402,7 +3551,7 @@ function PayrollView({
       {/* Detail panel */}
       {selectedEmp && (
         <div className="w-full sm:flex-1 sm:min-w-[400px] lg:min-w-[480px] border-l border-border bg-card shrink-0 flex flex-col min-h-0 h-full overflow-hidden absolute sm:relative inset-0 sm:inset-auto z-10 sm:z-auto">
-          <WeekEmployeeDetail emp={selectedEmp} weekFrom={weekFrom} onChange={onUpdateWeekEmployee} onClose={()=>setSelectedEmpId(null)}/>
+          <WeekEmployeeDetail emp={selectedEmp} weekFrom={weekFrom} weekTo={weekTo} directory={directory} savedWeeks={savedWeeks} onChange={onUpdateWeekEmployee} onClose={()=>setSelectedEmpId(null)}/>
         </div>
       )}
 
@@ -3475,9 +3624,53 @@ function PayrollView({
           totals={exportTotals}
           contacts={contacts}
           jobs={jobs}
+          directory={directory}
+          savedWeeks={savedWeeks}
           onClose={() => setShowEmailModal(false)}
           onManageContacts={() => { setShowEmailModal(false); onManageContacts(); }}
         />
+      )}
+
+      {showBacklogModal && onSaveBacklogWeek && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4" style={{background:"rgba(0,0,0,0.7)"}} onClick={() => setShowBacklogModal(false)}>
+          <div className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-lg shadow-2xl flex flex-col max-h-[92dvh] modal-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+              <div>
+                <p className="text-sm font-semibold">Zaległa lista płac (co 2 tyg.)</p>
+                <p className="text-xs text-muted-foreground">{fmtDate(backlogCheck.prevRange.from)} – {fmtDate(backlogCheck.prevRange.to)}</p>
+              </div>
+              <button type="button" onClick={() => setShowBacklogModal(false)} className="touch-target p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
+            </div>
+            <div className="px-5 py-4 space-y-4 overflow-y-auto">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Utworzy wpis w archiwum tylko dla pracowników z wypłatą co 2 tygodnie — z godzinami skopiowanymi z bieżącego tygodnia (możesz potem edytować w Archiwum).
+              </p>
+              <ul className="text-sm space-y-1">
+                {weekEmployees.filter((e) => isBiweeklyPayrollEmployee(e, directory)).map((e) => (
+                  <li key={e.id} className="flex items-center gap-2 text-foreground">
+                    <CheckCircle2 size={14} className="text-sky-400 shrink-0"/>{e.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="px-5 py-4 border-t border-border shrink-0 flex gap-2">
+              <button type="button" onClick={() => setShowBacklogModal(false)} className="flex-1 py-2.5 rounded-xl text-sm text-muted-foreground hover:bg-secondary transition-colors">Anuluj</button>
+              <button
+                type="button"
+                onClick={() => {
+                  const biweeklyEmps = weekEmployees
+                    .filter((e) => isBiweeklyPayrollEmployee(e, directory))
+                    .map((e) => JSON.parse(JSON.stringify({ ...e, id: crypto.randomUUID(), prevSaturday: defaultDay(), settled: false })) as WeekEmployee);
+                  onSaveBacklogWeek(backlogCheck.prevRange.from, backlogCheck.prevRange.to, biweeklyEmps);
+                  setShowBacklogModal(false);
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-sky-500/20 text-sky-200 text-sm font-medium hover:bg-sky-500/30 transition-colors"
+              >
+                Utwórz w archiwum
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -3786,6 +3979,34 @@ function DirectoryView({directory, savedWeeks, onChange, onCommit, onOpenSms}:{d
                         <span className="text-xs text-muted-foreground leading-relaxed">Np. kierowca rozwożący towar — nie sprawdzamy spójności godzin z robotami (wystarczy lista płac).</span>
                       </span>
                     </label>
+                    <label className="flex items-start gap-3 cursor-pointer bg-sky-500/5 rounded-xl p-3 border border-sky-500/20">
+                      <input
+                        type="checkbox"
+                        checked={editEmp.biweeklyPayroll === true}
+                        onChange={(e) => update({
+                          ...editEmp,
+                          biweeklyPayroll: e.target.checked,
+                          biweeklyAnchorDate: e.target.checked ? (editEmp.biweeklyAnchorDate || "2026-05-30") : editEmp.biweeklyAnchorDate,
+                        })}
+                        className="mt-0.5"
+                      />
+                      <span className="flex-1 min-w-0">
+                        <span className="text-sm font-medium block">Wypłata co 2 tygodnie (sobota)</span>
+                        <span className="text-xs text-muted-foreground leading-relaxed">Umowa 2-tygodniowa — wypłata co drugą sobotę za 2 tygodnie Pn–So (bez Sob. poprz.). Można przypisać każdemu pracownikowi z taką umową.</span>
+                        {editEmp.biweeklyPayroll && (
+                          <span className="mt-2 flex flex-col sm:flex-row sm:items-center gap-2">
+                            <span className="text-xs text-muted-foreground shrink-0">Pierwsza sobota wypłaty:</span>
+                            <input
+                              type="date"
+                              value={editEmp.biweeklyAnchorDate ?? ""}
+                              onChange={(e) => update({ ...editEmp, biweeklyAnchorDate: e.target.value })}
+                              className="bg-secondary rounded-lg px-3 py-1.5 text-sm border border-transparent focus:border-primary focus:outline-none"
+                              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                            />
+                          </span>
+                        )}
+                      </span>
+                    </label>
                     <label className="flex items-start gap-3 cursor-pointer bg-violet-500/5 rounded-xl p-3 border border-violet-500/20">
                       <input
                         type="checkbox"
@@ -3818,6 +4039,7 @@ function DirectoryView({directory, savedWeeks, onChange, onCommit, onOpenSms}:{d
                         <p className="text-sm font-semibold leading-tight">{emp.name||<span className="italic text-muted-foreground">Bez nazwy</span>}</p>
                         <p className="text-xs text-muted-foreground">{emp.position||<span className="italic">brak stanowiska</span>}
                           {emp.multiSiteDaily && <span className="ml-2 text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full">wiele robót/dzień</span>}
+                          {emp.biweeklyPayroll && <span className="ml-2 text-[10px] bg-sky-500/15 text-sky-400 px-1.5 py-0.5 rounded-full">co 2 tyg.</span>}
                           {isTestDirectoryEmployee(emp) && <span className="ml-2 text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full">TEST</span>}
                         </p>
                       </div>
@@ -6794,7 +7016,10 @@ function DashboardView({
     (j) => j.status === "in_progress" && DOCUMENT_TYPES.every((d) => j.documents[d]),
   );
 
-  const weekTotal = weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).netPay, 0);
+  const weekTotal = useMemo(
+    () => computePayrollCashSplit(weekEmployees, directory, weekFrom, weekTo, savedWeeks, (e) => calcWeekEmployee(e).netPay).totalSaturdayCash,
+    [weekEmployees, directory, weekFrom, weekTo, savedWeeks],
+  );
   const weekHours = weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).totalHours, 0);
 
   const yearNow = new Date().getFullYear();
@@ -8266,6 +8491,15 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.21.0", label:"Wypłata co 2 tygodnie (sobota)",
+    items:[
+      {type:"new", text:"Kartoteka — opcja „Wypłata co 2 tygodnie” + data pierwszej soboty wypłaty (dla każdego pracownika osobno, nie tylko UK)"},
+      {type:"new", text:"Lista płac i sidebar — podział kasy: tygodniówki w sobotę vs co 2 tyg. (narastające / wypłata za 2 tygodnie)"},
+      {type:"new", text:"Zaległa lista płac — kreator archiwum poprzedniego tygodnia przed pierwszą wypłatą 2-tygodniową"},
+      {type:"improve", text:"PDF, Word i email — oznaczenie pracowników co 2 tyg. i podsumowanie kasy w sobotę"},
+    ],
+  },
   {
     date:"2026-05-28", version:"2.20.8", label:"Logistyka — grafik i statystyka dziś",
     items:[
@@ -10236,6 +10470,18 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const toggleSettled = (id:string) => setWeekEmployees((prev)=>prev.map((e)=>e.id===id?{...e,settled:!e.settled}:e));
 
+  const saveBiweeklyBacklogWeek = useCallback((backlogFrom: string, backlogTo: string, employees: WeekEmployee[]) => {
+    if (employees.length === 0) return;
+    const existing = savedWeeks.find((w) => w.weekFrom === backlogFrom && w.weekTo === backlogTo);
+    const snapshot = buildWeekSnapshot(backlogFrom, backlogTo, employees, jobs, existing);
+    snapshot.backlog = true;
+    snapshot.backlogNote = "Zaległa lista płac — wypłata co 2 tygodnie";
+    const nextArchive = existing
+      ? savedWeeks.map((w) => (w.id === existing.id ? snapshot : w))
+      : [...savedWeeks, snapshot];
+    setSavedWeeks(nextArchive);
+  }, [savedWeeks, jobs, setSavedWeeks]);
+
   const doSaveWeek = useCallback(() => {
     if (weekEmployees.length === 0) return;
     const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
@@ -10344,7 +10590,15 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const mobileNavMore = navItems.filter((n) => !MOBILE_NAV_PRIMARY.includes(n.key));
   const mobileMoreActive = mobileNavMore.some((n) => n.key === view);
 
-  const totalNet = productionWeekEmployees.reduce((s,e)=>s+calcWeekEmployee(e).netPay,0);
+  const totalNet = useMemo(
+    () => computePayrollCashSplit(productionWeekEmployees, directory, weekFrom, weekTo, savedWeeks, (e) => calcWeekEmployee(e).netPay).totalSaturdayCash,
+    [productionWeekEmployees, directory, weekFrom, weekTo, savedWeeks],
+  );
+
+  const payrollCashSplitSidebar = useMemo(
+    () => computePayrollCashSplit(productionWeekEmployees, directory, weekFrom, weekTo, savedWeeks, (e) => calcWeekEmployee(e).netPay),
+    [productionWeekEmployees, directory, weekFrom, weekTo, savedWeeks],
+  );
 
   const todayFieldStats = useMemo(() => {
     const iso = todayIsoDate();
@@ -10411,9 +10665,30 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
                 {todayFieldStats.people} os. · {todayFieldStats.jobs} rob.
               </span>
             </div>
-            <div className="pt-2 mt-2 border-t border-border">
-              <p className="text-xs text-muted-foreground mb-0.5">Do wypłaty</p>
-              <p className="text-lg font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN</p>
+            <div className="pt-2 mt-2 border-t border-border space-y-2">
+              <div>
+                <p className="text-xs text-muted-foreground mb-0.5">Do wypłaty w sobotę</p>
+                <p className="text-lg font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN</p>
+              </div>
+              {payrollCashSplitSidebar.hasBiweeklyEmployees && (
+                <>
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-muted-foreground">Tygodniówki</span>
+                    <span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.weeklyNet)}</span>
+                  </div>
+                  {payrollCashSplitSidebar.isAnyBiweeklyPayoutWeek ? (
+                    <div className="flex justify-between text-[11px]">
+                      <span className="text-sky-400/90">Co 2 tyg.</span>
+                      <span className="font-medium text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.biweeklyPayoutNet)}</span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between text-[11px]">
+                      <span className="text-muted-foreground">Co 2 tyg. → {fmtDate(payrollCashSplitSidebar.nextBiweeklyPayoutDate).slice(0,5)}</span>
+                      <span className="font-medium text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.biweeklyAccruedNet)}</span>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -10598,7 +10873,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         {/* Content */}
         <div className="flex flex-1 min-h-0 overflow-hidden pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
           {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs} adminUserId={adminSession?.id} alertsSeenTick={alertsSeenTick} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} onOpenSms={()=>setShowSmsModal(true)}/>}
-          {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onSyncRatesFromDirectory={syncWeekRatesFromDirectory} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive} initialEmpId={pendingPayrollEmpId} onInitialEmpConsumed={()=>setPendingPayrollEmpId(null)}/>}
+          {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onSyncRatesFromDirectory={syncWeekRatesFromDirectory} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive} onSaveBacklogWeek={saveBiweeklyBacklogWeek} initialEmpId={pendingPayrollEmpId} onInitialEmpConsumed={()=>setPendingPayrollEmpId(null)}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory} onOpenSms={()=>setShowSmsModal(true)}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}

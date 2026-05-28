@@ -29,6 +29,15 @@ export interface PayrollCalcRow {
   prevSatNet: number;
   netPay: number;
   rateNum: number;
+  /** Wypłata co 2 tygodnie */
+  biweekly?: boolean;
+  biweeklyPayoutWeek?: boolean;
+  biweeklyAccruedOnly?: boolean;
+  biweeklyNextPayout?: string;
+  biweeklyThisWeekNet?: number;
+  biweeklyPrevWeekNet?: number;
+  biweeklyPrevWeekLabel?: string;
+  biweeklyDisplayNet?: number;
 }
 
 export interface PayrollExportTotals {
@@ -45,6 +54,17 @@ export interface PayrollExportTotals {
   totalNet: number;
   settledCount: number;
   employeeCount: number;
+  /** Kasa w sobotę — tygodniówki */
+  cashWeeklyNet?: number;
+  /** Kasa w sobotę — co 2 tyg. (w tygodniu wypłaty) */
+  cashBiweeklyPayoutNet?: number;
+  /** Narasta na następną wypłatę co 2 tyg. */
+  cashBiweeklyAccruedNet?: number;
+  /** Razem w kasie w sobotę */
+  cashTotalSaturday?: number;
+  nextBiweeklyPayoutDate?: string;
+  hasBiweeklyEmployees?: boolean;
+  isBiweeklyPayoutWeek?: boolean;
 }
 
 export interface WeekExtraHourLine {
@@ -115,6 +135,31 @@ const JOB_WORK_DAY_SHORT: Record<(typeof JOB_WORK_DAY_KEYS)[number], string> = {
   Pt: "Pt",
   So: "So",
 };
+
+function payrollEmployeeLabel(r: PayrollCalcRow): string {
+  const name = r.emp.name || "—";
+  if (!r.biweekly) return name;
+  if (r.biweeklyAccruedOnly && r.biweeklyNextPayout) {
+    return `${name} [co 2 tyg. → ${fmtDate(r.biweeklyNextPayout)}]`;
+  }
+  if (r.biweeklyPayoutWeek && r.biweeklyPrevWeekLabel) {
+    return `${name} [co 2 tyg. + ${r.biweeklyPrevWeekLabel}]`;
+  }
+  return `${name} [co 2 tyg.]`;
+}
+
+function payrollCashSummaryLines(totals: PayrollExportTotals, weekTo: string): string[] {
+  if (!totals.hasBiweeklyEmployees || totals.cashTotalSaturday == null) return [];
+  const lines = [
+    `Kasa w sobotę ${fmtDate(weekTo)}: ${fmt(totals.cashTotalSaturday)} PLN (tygodniówki: ${fmt(totals.cashWeeklyNet ?? 0)} PLN)`,
+  ];
+  if (totals.isBiweeklyPayoutWeek) {
+    lines.push(`Wypłata co 2 tyg. w tym tygodniu: ${fmt(totals.cashBiweeklyPayoutNet ?? 0)} PLN`);
+  } else if (totals.nextBiweeklyPayoutDate) {
+    lines.push(`Co 2 tyg. narasta na ${fmtDate(totals.nextBiweeklyPayoutDate)}: ${fmt(totals.cashBiweeklyAccruedNet ?? 0)} PLN`);
+  }
+  return lines;
+}
 
 function weekDayIsosForJobWork(weekFrom: string): { iso: string; header: string }[] {
   const [y, m, d] = weekFrom.split("-").map(Number);
@@ -339,7 +384,7 @@ export async function buildPayrollEmailHtml(
       const bg = i % 2 === 0 ? C.white : C.lightGray;
       return `<tr>
         ${td(escapeHtml(String(i + 1)), { align: "center", bold: true, bg })}
-        ${td(escapeHtml(r.emp.name || "—"), { bg })}
+        ${td(escapeHtml(payrollEmployeeLabel(r)), { bg })}
         ${td(escapeHtml(fmt(r.rateNum)), { align: "right", color: C.muted, bg })}
         ${td(r.weekHours > 0 ? escapeHtml(fmtH(r.weekHours)) : "—", { align: "right", bg })}
         ${td(r.prevSatHours > 0 ? escapeHtml(fmtH(r.prevSatHours)) : "—", { align: "right", color: C.gold, bg })}
@@ -453,8 +498,10 @@ export async function buildPayrollEmailHtml(
         &nbsp;&nbsp;|&nbsp;&nbsp;
         <strong>Rozliczeni:</strong> ${totals.settledCount}/${totals.employeeCount}
         &nbsp;&nbsp;|&nbsp;&nbsp;
-        <strong>Do wypłaty:</strong> <span style="color:${C.red};font-weight:700">${escapeHtml(fmt(totals.totalNet))} PLN</span>
+        <strong>Do wypłaty (tydzień):</strong> <span style="color:${C.red};font-weight:700">${escapeHtml(fmt(totals.totalNet))} PLN</span>
+        ${totals.cashTotalSaturday != null && totals.hasBiweeklyEmployees ? ` &nbsp;|&nbsp; <strong>Kasa w sobotę ${escapeHtml(fmtDate(weekTo))}:</strong> <span style="color:${C.red};font-weight:700">${escapeHtml(fmt(totals.cashTotalSaturday))} PLN</span>` : ""}
       </p>
+      ${totals.hasBiweeklyEmployees && totals.cashTotalSaturday != null ? `<p style="margin:0 0 14px;font-size:12px;line-height:1.5;color:${C.muted}">${payrollCashSummaryLines(totals, weekTo).map((l) => escapeHtml(l)).join(" · ")}</p>` : ""}
       <div style="overflow-x:auto">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;min-width:720px">
           <thead><tr>
@@ -506,7 +553,7 @@ export async function generatePayrollPdfBlob(
     const bg = i % 2 === 0 ? C.white : C.lightGray;
     return [
       { text: String(i + 1), alignment: "center" as const, fillColor: bg, bold: true, fontSize: 10 },
-      { text: r.emp.name || "—", fillColor: bg, fontSize: 10 },
+      { text: payrollEmployeeLabel(r), fillColor: bg, fontSize: r.biweekly ? 9 : 10 },
       { text: `${fmt(r.rateNum)}`, alignment: "right" as const, fillColor: bg, color: C.muted, fontSize: 10 },
       { text: r.weekHours > 0 ? fmtH(r.weekHours) : "—", alignment: "right" as const, fillColor: bg, fontSize: 10 },
       { text: r.prevSatHours > 0 ? fmtH(r.prevSatHours) : "—", alignment: "right" as const, fillColor: bg, color: C.gold, fontSize: 10 },
@@ -545,7 +592,10 @@ export async function generatePayrollPdfBlob(
     ...(totals.totalPrevSatHours > 0
       ? [mkSum(PREV_SAT_SHORT, 0, totals.totalPrevSatHours, totals.totalPrevSatHours, totals.totalPrevSatGross, totals.totalPrevSatZaliczka, 0, totals.totalPrevSatGross - totals.totalPrevSatZaliczka)]
       : []),
-    mkSum("RAZEM", totals.totalWeekHours, totals.totalPrevSatHours, totals.totalHoursAll, totals.totalGross, totals.totalZaliczkaSum, totals.totalExtraCostsSum, totals.totalNet, true),
+    mkSum("RAZEM (tydzień)", totals.totalWeekHours, totals.totalPrevSatHours, totals.totalHoursAll, totals.totalGross, totals.totalZaliczkaSum, totals.totalExtraCostsSum, totals.totalNet, true),
+    ...(totals.hasBiweeklyEmployees && totals.cashTotalSaturday != null
+      ? [mkSum(`Kasa w sobotę ${fmtDate(weekTo)}`, 0, 0, 0, 0, 0, 0, totals.cashTotalSaturday, true)]
+      : []),
   ];
 
   const totalExtraHourSum = extraHourLines.reduce((s, l) => s + l.hours, 0);
@@ -859,11 +909,25 @@ export async function generatePayrollPdfBlob(
           { text: [{ text: "Okres: ", bold: true, color: C.navy }, { text: `${fmtDate(weekFrom)} – ${fmtDate(weekTo)}`, color: C.navy }] },
           { text: [{ text: "Pracownicy: ", bold: true, color: C.navy }, { text: String(totals.employeeCount), color: C.navy }] },
           { text: [{ text: "Rozliczeni: ", bold: true, color: C.navy }, { text: `${totals.settledCount}/${totals.employeeCount}`, color: C.navy }] },
-          { text: [{ text: "Do wypłaty: ", bold: true, color: C.navy }, { text: `${fmt(totals.totalNet)} PLN`, bold: true, color: C.red }], alignment: "right" },
+          {
+            text: [
+              { text: totals.hasBiweeklyEmployees && totals.cashTotalSaturday != null ? "Kasa w sobotę: " : "Do wypłaty: ", bold: true, color: C.navy },
+              { text: `${fmt(totals.hasBiweeklyEmployees && totals.cashTotalSaturday != null ? totals.cashTotalSaturday : totals.totalNet)} PLN`, bold: true, color: C.red },
+            ],
+            alignment: "right",
+          },
         ],
         fontSize: 11,
-        margin: [0, 0, 0, 14],
+        margin: [0, 0, 0, 6],
       },
+      ...(totals.hasBiweeklyEmployees && totals.cashTotalSaturday != null
+        ? [{
+            text: payrollCashSummaryLines(totals, weekTo).join("  ·  "),
+            fontSize: 9,
+            color: C.muted,
+            margin: [0, 0, 0, 10] as [number, number, number, number],
+          }]
+        : []),
       {
         table: {
           headerRows: 1,
@@ -1004,11 +1068,26 @@ export async function generatePayrollWordBlob(
               new TextRun({ text: `${totals.employeeCount}   `, size: 24, color: "344254", font: "Calibri" }),
               new TextRun({ text: "Rozliczeni: ", bold: true, size: 24, color: "344254", font: "Calibri" }),
               new TextRun({ text: `${totals.settledCount}/${totals.employeeCount}   `, size: 24, color: "344254", font: "Calibri" }),
-              new TextRun({ text: "Do wyplaty: ", bold: true, size: 24, color: "344254", font: "Calibri" }),
-              new TextRun({ text: `${fmt(totals.totalNet)} PLN`, bold: true, size: 24, color: "C0392B", font: "Calibri" }),
+              new TextRun({ text: totals.hasBiweeklyEmployees && totals.cashTotalSaturday != null ? "Kasa w sobote: " : "Do wyplaty: ", bold: true, size: 24, color: "344254", font: "Calibri" }),
+              new TextRun({ text: `${fmt(totals.hasBiweeklyEmployees && totals.cashTotalSaturday != null ? totals.cashTotalSaturday : totals.totalNet)} PLN`, bold: true, size: 24, color: "C0392B", font: "Calibri" }),
             ],
-            spacing: { after: 280 },
+            spacing: { after: totals.hasBiweeklyEmployees && totals.cashTotalSaturday != null ? 120 : 280 },
           }),
+          ...(totals.hasBiweeklyEmployees && totals.cashTotalSaturday != null
+            ? [
+                new Paragraph({
+                  spacing: { after: 280 },
+                  children: [
+                    new TextRun({
+                      text: payrollCashSummaryLines(totals, weekTo).join("  ·  "),
+                      size: 20,
+                      color: "6B7A8D",
+                      font: "Calibri",
+                    }),
+                  ],
+                }),
+              ]
+            : []),
           new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
             rows: [
@@ -1020,7 +1099,7 @@ export async function generatePayrollWordBlob(
                 new TableRow({
                   children: [
                     mkCell(String(i + 1), { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 20 }),
-                    mkCell(r.emp.name || "-", { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 20 }),
+                    mkCell(payrollEmployeeLabel(r), { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: r.biweekly ? 18 : 20 }),
                     mkCell(`${fmt(r.rateNum)}`, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 20 }),
                     mkCell(r.weekHours > 0 ? fmtH(r.weekHours) : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 20 }),
                     mkCell(r.prevSatHours > 0 ? fmtH(r.prevSatHours) : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.prevSatHours > 0 ? "7B5800" : "6B7A8D", size: 20 }),
@@ -1037,7 +1116,10 @@ export async function generatePayrollWordBlob(
               ...(totals.totalPrevSatHours > 0
                 ? [mkWordSum(PREV_SAT_SHORT, 0, totals.totalPrevSatHours, totals.totalPrevSatHours, totals.totalPrevSatGross, totals.totalPrevSatZaliczka, 0, totals.totalPrevSatGross - totals.totalPrevSatZaliczka)]
                 : []),
-              mkWordSum("RAZEM", totals.totalWeekHours, totals.totalPrevSatHours, totals.totalHoursAll, totals.totalGross, totals.totalZaliczkaSum, totals.totalExtraCostsSum, totals.totalNet, true),
+              mkWordSum("RAZEM (tydzien)", totals.totalWeekHours, totals.totalPrevSatHours, totals.totalHoursAll, totals.totalGross, totals.totalZaliczkaSum, totals.totalExtraCostsSum, totals.totalNet, true),
+              ...(totals.hasBiweeklyEmployees && totals.cashTotalSaturday != null
+                ? [mkWordSum(`Kasa w sobote ${fmtDate(weekTo)}`, 0, 0, 0, 0, 0, 0, totals.cashTotalSaturday, true)]
+                : []),
             ],
           }),
           ...(weeklyGrid && weeklyGrid.rows.length > 0
