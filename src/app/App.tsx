@@ -8604,6 +8604,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.25.1", label:"Inspektor — poprawki mobile iOS/Android",
+    items:[
+      {type:"fix", text:"PDF na iPhone — share sheet / nowa karta zamiast blokowanego download(); toast sukcesu/błędu"},
+      {type:"fix", text:"Toasty pod safe-area (poniżej nagłówka); większe przyciski szybkiego „Jest” i filtrów Pulpicu (44px)"},
+      {type:"improve", text:"Status „Czeka na wysłanie” — dotknij, aby ponowić sync; etapy WM, meta pickery, notatki — lepsze cele dotykowe"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.25.0", label:"Inspektor — pulpit v2 (UX + raporty PDF)",
     items:[
       {type:"new", text:"Pulpit — powitanie z podsumowaniem pilnych spraw, filtry (admin / pliki / dokumenty / terminy)"},
