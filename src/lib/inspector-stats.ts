@@ -1,6 +1,6 @@
 /** Statystyki logowań i wejść inspektora — sync w chmurze (kw-inspector-stats). */
 
-import { fetchKeysFromCloud, persistKey, INSPECTOR_STATS_KEY } from "@/lib/cloud-sync";
+import { fetchKeysFromCloud, persistKey, INSPECTOR_STATS_KEY, pushKeysToCloud } from "@/lib/cloud-sync";
 import { collectInspectorFeed, type InspectorFeedItem, type JobWithActivity } from "@/lib/job-activity";
 
 export { INSPECTOR_STATS_KEY };
@@ -114,8 +114,17 @@ export async function syncAlertsSeenFromCloud(): Promise<AlertsSeenStore> {
 }
 
 async function persistAlertsSeen(store: AlertsSeenStore): Promise<void> {
-  saveAlertsSeenLocal(store);
-  await persistKey(ALERTS_SEEN_KEY, store);
+  let cloudRaw: unknown = null;
+  try {
+    [cloudRaw] = await fetchKeysFromCloud([ALERTS_SEEN_KEY]);
+  } catch { /* offline */ }
+  const cloudStore =
+    cloudRaw && typeof cloudRaw === "object" && (cloudRaw as AlertsSeenStore).users
+      ? (cloudRaw as AlertsSeenStore)
+      : defaultAlertsSeen();
+  const merged = mergeAlertsSeenStores(store, cloudStore);
+  saveAlertsSeenLocal(merged);
+  await pushKeysToCloud([ALERTS_SEEN_KEY], [merged]);
 }
 
 export function getFeedSeenAt(userId?: string): string {

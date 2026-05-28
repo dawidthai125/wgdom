@@ -78,6 +78,8 @@ function mergeActivityLogs(
 
 export const JOBS_DELETED_IDS_KEY = "kw-jobs-deleted-ids";
 export const DIRECTORY_DELETED_IDS_KEY = "kw-directory-deleted-ids";
+export const CONTACTS_DELETED_IDS_KEY = "kw-contacts-deleted-ids";
+export const ARCHIVE_DELETED_IDS_KEY = "kw-archive-deleted-ids";
 
 function jobIdOf(j: unknown): string | undefined {
   if (!j || typeof j !== "object" || !("id" in j)) return undefined;
@@ -155,6 +157,72 @@ function filterDeletedDirectory(list: unknown[], deletedIds: string[]): unknown[
   const deleted = new Set(deletedIds);
   return list.filter((item) => {
     const id = dirIdOf(item);
+    return id && !deleted.has(id);
+  });
+}
+
+function recordIdOf(item: unknown): string | undefined {
+  if (!item || typeof item !== "object" || !("id" in item)) return undefined;
+  return String((item as { id: string }).id);
+}
+
+function getDeletedIdsFromKey(key: string): string[] {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return [];
+    return normalizeDeletedJobIds(JSON.parse(raw));
+  } catch {
+    return [];
+  }
+}
+
+function saveDeletedIdsToKey(key: string, ids: string[]): void {
+  try {
+    localStorage.setItem(key, JSON.stringify([...new Set(ids)].slice(-500)));
+  } catch { /* ignore */ }
+}
+
+export function getDeletedContactsIds(): string[] {
+  return getDeletedIdsFromKey(CONTACTS_DELETED_IDS_KEY);
+}
+
+export function saveDeletedContactsIds(ids: string[]): void {
+  saveDeletedIdsToKey(CONTACTS_DELETED_IDS_KEY, ids);
+}
+
+export function addDeletedContactId(id: string): string[] {
+  const next = [...new Set([...getDeletedContactsIds(), id])].slice(-500);
+  saveDeletedContactsIds(next);
+  return next;
+}
+
+export function mergeDeletedContactsIds(local: string[], cloud: string[]): string[] {
+  return mergeDeletedJobIds(local, cloud);
+}
+
+export function getDeletedArchiveIds(): string[] {
+  return getDeletedIdsFromKey(ARCHIVE_DELETED_IDS_KEY);
+}
+
+export function saveDeletedArchiveIds(ids: string[]): void {
+  saveDeletedIdsToKey(ARCHIVE_DELETED_IDS_KEY, ids);
+}
+
+export function addDeletedArchiveId(id: string): string[] {
+  const next = [...new Set([...getDeletedArchiveIds(), id])].slice(-500);
+  saveDeletedArchiveIds(next);
+  return next;
+}
+
+export function mergeDeletedArchiveIds(local: string[], cloud: string[]): string[] {
+  return mergeDeletedJobIds(local, cloud);
+}
+
+function filterDeletedByRecordId(list: unknown[], deletedIds: string[]): unknown[] {
+  if (deletedIds.length === 0) return list;
+  const deleted = new Set(deletedIds);
+  return list.filter((item) => {
+    const id = recordIdOf(item);
     return id && !deleted.has(id);
   });
 }
@@ -441,42 +509,55 @@ export function mergeWeekEmployees(local: unknown[], cloud: unknown[]): unknown[
   return [...map.values()];
 }
 
-/** Scal archiwum tygodni — po id lub weekFrom|weekTo, zachowaj pełniejszy snapshot. */
-export function mergeArchive(local: unknown[], cloud: unknown[]): unknown[] {
-  type W = { id?: string; weekFrom?: string; weekTo?: string; weekEmployees?: unknown[] };
-  const map = new Map<string, W>();
+/** Scal archiwum tygodni — lokalna lista decyduje o składzie; usunięte tygodnie nie wracają z chmury. */
+export function mergeArchive(
+  local: unknown[],
+  cloud: unknown[],
+  deletedIds: string[] = getDeletedArchiveIds(),
+): unknown[] {
+  type W = { id?: string; weekFrom?: string; weekTo?: string; savedAt?: string; weekEmployees?: unknown[] };
+  const localArr = filterDeletedByRecordId(normalizeArrayValue(local), deletedIds);
+  const cloudArr = filterDeletedByRecordId(normalizeArrayValue(cloud), deletedIds);
   const keyOf = (w: W) => (w.id ? w.id : `${w.weekFrom}|${w.weekTo}`);
   const score = (w: W) => {
     const we = w.weekEmployees;
     const richness = Array.isArray(we) ? weekEmployeesListRichness(we) : 0;
     return richness + (Array.isArray(we) ? we.length * 5 : 0);
   };
-  const ingest = (list: unknown[]) => {
-    for (const item of list) {
-      const w = item as W;
-      if (!w?.weekFrom) continue;
-      const k = keyOf(w);
-      const prev = map.get(k);
-      if (!prev) {
-        map.set(k, w);
-        continue;
-      }
-      const wScore = score(w);
-      const prevScore = score(prev);
-      if (wScore > prevScore) {
-        map.set(k, w);
-      } else if (wScore < prevScore) {
-        /* keep prev */
-      } else {
-        const wSaved = parseRecordTs((w as { savedAt?: string }).savedAt);
-        const prevSaved = parseRecordTs((prev as { savedAt?: string }).savedAt);
-        map.set(k, wSaved >= prevSaved ? w : prev);
-      }
-    }
+  const mergeWeek = (a: W, b: W): W => {
+    const aSaved = parseRecordTs(a.savedAt);
+    const bSaved = parseRecordTs(b.savedAt);
+    const winner = aSaved > bSaved ? a : bSaved > aSaved ? b : score(a) >= score(b) ? a : b;
+    const other = winner === a ? b : a;
+    return {
+      ...other,
+      ...winner,
+      weekEmployees: mergeWeekEmployees(
+        normalizeArrayValue(winner.weekEmployees),
+        normalizeArrayValue(other.weekEmployees),
+      ),
+    };
   };
-  ingest(Array.isArray(local) ? local : []);
-  ingest(Array.isArray(cloud) ? cloud : []);
-  return [...map.values()].sort((a, b) => (b.weekFrom || "").localeCompare(a.weekFrom || ""));
+  const cloudMap = new Map<string, W>();
+  for (const item of cloudArr) {
+    const w = item as W;
+    if (!w?.weekFrom) continue;
+    cloudMap.set(keyOf(w), w);
+  }
+  const localKeys = new Set<string>();
+  const result: W[] = [];
+  for (const item of localArr) {
+    const w = item as W;
+    if (!w?.weekFrom) continue;
+    const k = keyOf(w);
+    localKeys.add(k);
+    const cloudItem = cloudMap.get(k);
+    result.push(cloudItem ? mergeWeek(w, cloudItem) : w);
+  }
+  for (const [k, item] of cloudMap) {
+    if (!localKeys.has(k)) result.push(item);
+  }
+  return result.sort((a, b) => (b.weekFrom || "").localeCompare(a.weekFrom || ""));
 }
 
 export function normalizeArrayValue(raw: unknown): unknown[] {
@@ -516,39 +597,52 @@ export function mergeRecordsById(local: unknown[], cloud: unknown[]): unknown[] 
   return [...map.values()];
 }
 
-/** Kontakty — scal + zachowaj uprawnienia (OR). */
-export function mergeContacts(local: unknown[], cloud: unknown[]): unknown[] {
-  const map = new Map<string, Record<string, unknown>>();
-  const ingest = (list: unknown[]) => {
-    for (const item of list) {
-      if (!item || typeof item !== "object") continue;
-      const c = item as Record<string, unknown> & { id?: string; allowJobs?: boolean; allowPayroll?: boolean };
-      const id = String(c.id || "");
-      if (!id) continue;
-      const prev = map.get(id);
-      if (!prev) {
-        map.set(id, { ...c });
-        continue;
-      }
-      const cTs = parseRecordTs(c.updatedAt);
-      const pTs = parseRecordTs(prev.updatedAt);
-      let pick: Record<string, unknown>;
-      if (cTs && pTs && cTs !== pTs) {
-        pick = cTs > pTs ? c : prev;
-      } else {
-        pick = recordRichness(c) >= recordRichness(prev) ? c : prev;
-      }
-      map.set(id, {
-        ...prev,
-        ...pick,
-        allowJobs: c.allowJobs !== false || prev.allowJobs !== false,
-        allowPayroll: c.allowPayroll === true || prev.allowPayroll === true,
-      });
-    }
+function pickContactRecord(localItem: unknown, cloudItem: unknown | undefined): unknown {
+  if (!cloudItem) return localItem;
+  const l = localItem as Record<string, unknown> & { allowJobs?: boolean; allowPayroll?: boolean };
+  const c = cloudItem as Record<string, unknown> & { allowJobs?: boolean; allowPayroll?: boolean };
+  const lTs = parseRecordTs(l.updatedAt);
+  const cTs = parseRecordTs(c.updatedAt);
+  let pick: Record<string, unknown> & { allowJobs?: boolean; allowPayroll?: boolean };
+  if (lTs && cTs && lTs !== cTs) {
+    pick = lTs > cTs ? l : c;
+  } else {
+    pick = recordRichness(l) >= recordRichness(c) ? l : c;
+  }
+  return {
+    ...l,
+    ...c,
+    ...pick,
+    allowJobs: l.allowJobs !== false || c.allowJobs !== false,
+    allowPayroll: l.allowPayroll === true || c.allowPayroll === true,
   };
-  ingest(Array.isArray(local) ? local : []);
-  ingest(Array.isArray(cloud) ? cloud : []);
-  return [...map.values()];
+}
+
+/** Kontakty — lokalna lista decyduje o składzie; usunięte kontakty nie wracają z chmury. */
+export function mergeContacts(
+  local: unknown[],
+  cloud: unknown[],
+  deletedIds: string[] = getDeletedContactsIds(),
+): unknown[] {
+  const localArr = filterDeletedByRecordId(normalizeArrayValue(local), deletedIds);
+  const cloudArr = filterDeletedByRecordId(normalizeArrayValue(cloud), deletedIds);
+  const cloudMap = new Map<string, unknown>();
+  for (const item of cloudArr) {
+    const id = recordIdOf(item);
+    if (id) cloudMap.set(id, item);
+  }
+  const localIds = new Set<string>();
+  const result: unknown[] = [];
+  for (const item of localArr) {
+    const id = recordIdOf(item);
+    if (!id) continue;
+    localIds.add(id);
+    result.push(pickContactRecord(item, cloudMap.get(id)));
+  }
+  for (const [id, item] of cloudMap) {
+    if (!localIds.has(id)) result.push(item);
+  }
+  return result;
 }
 
 function pickDirectoryRecord(localItem: unknown, cloudItem: unknown | undefined): unknown {
@@ -609,6 +703,8 @@ export function mergeDataKey(
   cloud: unknown,
   deletedJobIds: string[] = getDeletedJobIds(),
   deletedDirectoryIds: string[] = getDeletedDirectoryIds(),
+  deletedContactsIds: string[] = getDeletedContactsIds(),
+  deletedArchiveIds: string[] = getDeletedArchiveIds(),
 ): unknown {
   switch (key) {
     case "kw-jobs":
@@ -616,11 +712,11 @@ export function mergeDataKey(
     case "kw-week-employees":
       return mergeWeekEmployees(normalizeArrayValue(local), normalizeArrayValue(cloud));
     case "kw-archive":
-      return mergeArchive(normalizeArrayValue(local), normalizeArrayValue(cloud));
+      return mergeArchive(normalizeArrayValue(local), normalizeArrayValue(cloud), deletedArchiveIds);
     case "kw-directory":
       return mergeDirectory(normalizeArrayValue(local), normalizeArrayValue(cloud), deletedDirectoryIds);
     case "kw-contacts":
-      return mergeContacts(normalizeArrayValue(local), normalizeArrayValue(cloud));
+      return mergeContacts(normalizeArrayValue(local), normalizeArrayValue(cloud), deletedContactsIds);
     case "kw-weekFrom":
     case "kw-weekTo":
       return typeof local === "string" && local ? local : (typeof cloud === "string" && cloud ? cloud : local ?? cloud);
@@ -635,9 +731,19 @@ export function mergeAllDataKeys(
   cloudValues: unknown[],
   deletedJobIds: string[] = getDeletedJobIds(),
   deletedDirectoryIds: string[] = getDeletedDirectoryIds(),
+  deletedContactsIds: string[] = getDeletedContactsIds(),
+  deletedArchiveIds: string[] = getDeletedArchiveIds(),
 ): unknown[] {
   return DATA_KEYS.map((key, i) =>
-    mergeDataKey(key, localValues[i], cloudValues[i], deletedJobIds, deletedDirectoryIds),
+    mergeDataKey(
+      key,
+      localValues[i],
+      cloudValues[i],
+      deletedJobIds,
+      deletedDirectoryIds,
+      deletedContactsIds,
+      deletedArchiveIds,
+    ),
   );
 }
 
@@ -761,11 +867,21 @@ export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
   let cloudValues: unknown[] = keys.map(() => null);
   let cloudDeleted: string[] = [];
   let cloudDirDeleted: string[] = [];
+  let cloudContactsDeleted: string[] = [];
+  let cloudArchiveDeleted: string[] = [];
   try {
-    const fetched = await fetchKeysFromCloud([...keys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY]);
+    const fetched = await fetchKeysFromCloud([
+      ...keys,
+      JOBS_DELETED_IDS_KEY,
+      DIRECTORY_DELETED_IDS_KEY,
+      CONTACTS_DELETED_IDS_KEY,
+      ARCHIVE_DELETED_IDS_KEY,
+    ]);
     cloudValues = fetched.slice(0, keys.length);
     cloudDeleted = normalizeDeletedJobIds(fetched[keys.length]);
     cloudDirDeleted = normalizeDeletedDirectoryIds(fetched[keys.length + 1]);
+    cloudContactsDeleted = normalizeDeletedJobIds(fetched[keys.length + 2]);
+    cloudArchiveDeleted = normalizeDeletedJobIds(fetched[keys.length + 3]);
   } catch {
     /* offline */
   }
@@ -773,7 +889,18 @@ export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
   saveDeletedJobIds(mergedDeleted);
   const mergedDirDeleted = mergeDeletedDirectoryIds(getDeletedDirectoryIds(), cloudDirDeleted);
   saveDeletedDirectoryIds(mergedDirDeleted);
-  let merged = mergeAllDataKeys(valuesForMerge, cloudValues, mergedDeleted, mergedDirDeleted);
+  const mergedContactsDeleted = mergeDeletedContactsIds(getDeletedContactsIds(), cloudContactsDeleted);
+  saveDeletedContactsIds(mergedContactsDeleted);
+  const mergedArchiveDeleted = mergeDeletedArchiveIds(getDeletedArchiveIds(), cloudArchiveDeleted);
+  saveDeletedArchiveIds(mergedArchiveDeleted);
+  let merged = mergeAllDataKeys(
+    valuesForMerge,
+    cloudValues,
+    mergedDeleted,
+    mergedDirDeleted,
+    mergedContactsDeleted,
+    mergedArchiveDeleted,
+  );
   merged = alignWeekRangeInMerged(merged);
 
   const empIdx = DATA_KEYS.indexOf("kw-week-employees");
@@ -790,8 +917,8 @@ export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
   }
 
   await pushKeysToCloud(
-    [...keys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY],
-    [...merged, mergedDeleted, mergedDirDeleted],
+    [...keys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY],
+    [...merged, mergedDeleted, mergedDirDeleted, mergedContactsDeleted, mergedArchiveDeleted],
     {
       replaceJobsKeys: ["kw-jobs"],
       replaceDirectoryKeys: ["kw-directory"],
@@ -809,7 +936,15 @@ export async function pushKeysToCloudSafe(keys: string[], values: unknown[]): Pr
     if (!isDataKey(key)) return values[i];
     const stored = readLocalStorageDataKey(key);
     const session = stored != null ? mergeIncomingWithStored(key, stored, values[i]) : values[i];
-    return mergeDataKey(key, session, cloudValues[i]);
+    return mergeDataKey(
+      key,
+      session,
+      cloudValues[i],
+      getDeletedJobIds(),
+      getDeletedDirectoryIds(),
+      getDeletedContactsIds(),
+      getDeletedArchiveIds(),
+    );
   });
   await pushKeysToCloud(keys, merged);
 }
@@ -943,11 +1078,15 @@ export async function restoreAllCloudDataBackup(
   return { restoredKeys: (data.restoredKeys as string[]) || [] };
 }
 
-/** Zapis jednego klucza — używaj przy pilnych zmianach (np. zdjęcia pracownika). */
+/** Zapis jednego klucza — z merge dla kluczy danych. */
 export async function pushKeyToCloud(
   key: string,
   value: unknown,
 ): Promise<void> {
+  if (isDataKey(key)) {
+    await pushKeysToCloudSafe([key], [value]);
+    return;
+  }
   await pushKeysToCloud([key], [value]);
 }
 

@@ -12,11 +12,17 @@ import {
   pushKeysToCloudSafe,
   normalizeJobsValue,
   mergeJobsById,
+  mergeDirectory,
   getDeletedJobIds,
+  getDeletedDirectoryIds,
   mergeDeletedJobIds,
+  mergeDeletedDirectoryIds,
   saveDeletedJobIds,
+  saveDeletedDirectoryIds,
   normalizeDeletedJobIds,
+  normalizeDeletedDirectoryIds,
   JOBS_DELETED_IDS_KEY,
+  DIRECTORY_DELETED_IDS_KEY,
   ADMIN_USERS_CONFIG_KEY,
 } from "@/lib/cloud-sync";
 import {
@@ -254,19 +260,33 @@ export function InspectorPanel({
   const refreshFromCloud = useCallback(async (silent = false) => {
     if (!silent) setSyncing(true);
     try {
-      const [cloudJobs, cloudDir, cloudDeletedRaw] = await fetchKeysFromCloud(["kw-jobs", "kw-directory", JOBS_DELETED_IDS_KEY]);
-      const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), normalizeDeletedJobIds(cloudDeletedRaw));
-      saveDeletedJobIds(mergedDeleted);
+      const [cloudJobs, cloudDir, cloudJobsDeletedRaw, cloudDirDeletedRaw] = await fetchKeysFromCloud([
+        "kw-jobs",
+        "kw-directory",
+        JOBS_DELETED_IDS_KEY,
+        DIRECTORY_DELETED_IDS_KEY,
+      ]);
+      const mergedJobsDeleted = mergeDeletedJobIds(getDeletedJobIds(), normalizeDeletedJobIds(cloudJobsDeletedRaw));
+      saveDeletedJobIds(mergedJobsDeleted);
+      const mergedDirDeleted = mergeDeletedDirectoryIds(getDeletedDirectoryIds(), normalizeDeletedDirectoryIds(cloudDirDeletedRaw));
+      saveDeletedDirectoryIds(mergedDirDeleted);
       let localJobs: InspectorJob[] = [];
       try {
         localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")) as InspectorJob[];
       } catch { /* ignore */ }
-      const merged = mergeJobsById(localJobs, normalizeJobsValue(cloudJobs), mergedDeleted) as InspectorJob[];
+      const merged = mergeJobsById(localJobs, normalizeJobsValue(cloudJobs), mergedJobsDeleted) as InspectorJob[];
       const normalized = merged.map(normalizeJob);
       setJobs(normalized);
       try { localStorage.setItem("kw-jobs", JSON.stringify(normalized)); } catch { /* ignore */ }
-      if (cloudDir && Array.isArray(cloudDir)) setDirectory(cloudDir as DirectoryEmployee[]);
-      else {
+      if (cloudDir && Array.isArray(cloudDir)) {
+        let localDir: DirectoryEmployee[] = [];
+        try {
+          localDir = JSON.parse(localStorage.getItem("kw-directory") || "[]");
+        } catch { /* ignore */ }
+        const mergedDir = mergeDirectory(localDir, cloudDir as DirectoryEmployee[], mergedDirDeleted) as DirectoryEmployee[];
+        setDirectory(mergedDir);
+        try { localStorage.setItem("kw-directory", JSON.stringify(mergedDir)); } catch { /* ignore */ }
+      } else {
         try {
           setDirectory(JSON.parse(localStorage.getItem("kw-directory") || "[]"));
         } catch { setDirectory([]); }
@@ -295,11 +315,17 @@ export function InspectorPanel({
     const onVis = () => {
       if (document.visibilityState === "visible") refreshFromCloud(true);
     };
+    const onFocus = () => { refreshFromCloud(true); };
     document.addEventListener("visibilitychange", onVis);
-    return () => document.removeEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", onFocus);
+    };
   }, [refreshFromCloud]);
 
   useEffect(() => {
+    if (document.visibilityState !== "visible") return;
     const id = window.setInterval(() => {
       if (document.visibilityState === "visible") refreshFromCloud(true);
     }, 45000);
