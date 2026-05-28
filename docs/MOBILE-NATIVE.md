@@ -3,7 +3,42 @@
 Apka mobilna to **cienka skorupa** (Android / iOS), która ładuje UI z **https://wgdom.fun**.  
 Aktualizacje funkcji = push na Vercel — **bez** czekania na review w sklepie (zmienia się tylko strona).
 
-## Wymagania
+---
+
+## Bez Android Studio i bez Maca — co masz teraz
+
+### 1. PWA (najprościej, już działa)
+
+Na telefonie: **wgdom.fun** → menu przeglądarki → **Dodaj do ekranu głównego**.
+
+To ta sama aplikacja co na komputerze, pełny ekran, sync z chmurą. **Nie potrzebujesz nic instalować na PC.**
+
+### 2. APK Android z GitHub Actions (bez Android Studio)
+
+Po pushu na `main` (lub ręcznie w Actions) buduje się APK w chmurze:
+
+1. Wejdź na GitHub → repo **wgdom** → zakładka **Actions**
+2. Workflow **Build Android APK** → ostatni run → na dole **Artifacts** → pobierz `wgdom-android-debug-apk`
+3. Wyślij plik `.apk` na telefon (mail, Drive, WhatsApp)
+4. Android: **Zezwól na instalację z nieznanych źródeł** dla tej aplikacji → zainstaluj
+
+To wersja **debug** (do testów w firmie). Google Play wymaga podpisanego AAB — można to zrobić później przez CI lub zlecenie komuś z Android Studio.
+
+### 3. iPhone bez Maca
+
+- **App Store / TestFlight** — technicznie wymaga Maca (lub płatnego CI z certyfikatami Apple, np. Codemagic, MacinCloud).
+- **Na iPhone teraz:** używaj **PWA** (Dodaj do ekranu głównego) — działa jak apka, bez sklepu.
+
+### 4. Publikacja w sklepach (gdy będzie potrzeba)
+
+| Sklep | Co trzeba | Kto może pomóc |
+|-------|-----------|----------------|
+| Google Play | Konto ~25 USD + podpisany AAB | Ty (CI) lub developer z Android Studio |
+| App Store | Konto ~99 USD/rok + Mac/Xcode | Mac w chmurze, agencja, znajomy z Maciem |
+
+---
+
+## Wymagania (tylko jeśli budujesz lokalnie)
 
 | Platforma | Narzędzia |
 |-----------|-----------|
@@ -11,7 +46,7 @@ Aktualizacje funkcji = push na Vercel — **bez** czekania na review w sklepie (
 | **iOS** | Mac + Xcode 15+ (build iOS tylko na macOS) |
 | **Wspólne** | Node.js 20+, npm |
 
-## Pierwszy raz
+## Pierwszy raz (lokalnie — opcjonalnie)
 
 ```bash
 npm install
