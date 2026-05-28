@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Smartphone, X } from "lucide-react";
 import { usePwaInstall } from "@/lib/pwa-install";
+import { isNativeApp } from "@/lib/capacitor-native";
 
 export function PwaInstallBanner({
   compact = false,
@@ -24,6 +25,7 @@ export function PwaInstallBanner({
     }
   });
 
+  if (isNativeApp()) return null;
   if (installed || dismissed) return null;
   if (!canInstall && !isIos) return null;
 

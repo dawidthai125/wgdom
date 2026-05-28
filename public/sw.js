@@ -1,5 +1,5 @@
 const CACHE = "wgdom-shell-v1";
-const PRECACHE = ["/", "/index.html", "/manifest.webmanifest", "/favicon-32.png", "/apple-touch-icon.png"];
+const PRECACHE = ["/", "/index.html", "/manifest.webmanifest", "/favicon-16.png", "/favicon-32.png", "/apple-touch-icon.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));

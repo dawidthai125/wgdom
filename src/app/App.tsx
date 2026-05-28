@@ -160,6 +160,7 @@ import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
 import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } from "@/lib/photo-queue";
 import { PwaInstallBanner } from "@/app/PwaInstallBanner";
+import { Toaster, toast } from "sonner";
 import {
   type EmailContact,
   defaultEmailContact,
@@ -2913,9 +2914,9 @@ function PayrollEmailModal({
             <p className="text-sm font-semibold">Wyślij listę płac emailem</p>
             <p className="text-xs text-muted-foreground mt-0.5">{fmtDate(weekFrom)} – {fmtDate(weekTo)}</p>
           </div>
-          <button type="button" onClick={onClose} className="p-1 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
+          <button type="button" onClick={onClose} className="touch-target p-1 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
         </div>
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-4">
           {success ? (
             <div className="flex items-center gap-2 text-green-400 text-sm py-8 justify-center"><CheckCircle2 size={18}/>Wysłano pomyślnie</div>
           ) : (
@@ -3311,7 +3312,7 @@ function PayrollView({
     <div className="flex flex-1 min-h-0 overflow-hidden">
       {/* Main list */}
       <div className={`flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-300 ${selectedEmp?"sm:flex-[0_0_38%] lg:flex-[0_0_34%]":"w-full"}`}>
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overscroll-contain">
           <div className={`mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 w-full max-w-none`}>
 
             {/* Saturday reminder */}
@@ -3458,7 +3459,7 @@ function PayrollView({
                       role="tab"
                       aria-selected={payrollListMode === "summary"}
                       onClick={() => switchPayrollListMode("summary")}
-                      className={`px-3 py-2 min-h-[36px] rounded-md text-[11px] font-medium transition-colors touch-manipulation ${payrollListMode === "summary" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                      className={`px-3 py-2.5 min-h-[44px] rounded-md text-[11px] font-medium transition-colors touch-manipulation ${payrollListMode === "summary" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                     >
                       Sumy
                     </button>
@@ -3467,7 +3468,7 @@ function PayrollView({
                       role="tab"
                       aria-selected={payrollListMode === "detailed"}
                       onClick={() => switchPayrollListMode("detailed")}
-                      className={`inline-flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-md text-[11px] font-medium transition-colors touch-manipulation ${payrollListMode === "detailed" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                      className={`inline-flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] rounded-md text-[11px] font-medium transition-colors touch-manipulation ${payrollListMode === "detailed" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                     >
                       <LayoutGrid size={12}/>
                       Szczegóły dni
@@ -3537,7 +3538,7 @@ function PayrollView({
                               })()}
                             </td>
                             <td className={`sticky right-9 z-10 px-2 py-3.5 whitespace-nowrap shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)] ${r.emp.id===selectedEmpId?"bg-primary/5":"bg-card group-hover:bg-secondary/30"}`} onClick={(e)=>e.stopPropagation()}>
-                              <button onClick={()=>onToggleSettled(r.emp.id)} title={r.emp.settled?"Rozliczony — kliknij aby cofnąć":"Oczekuje — kliknij po wypłacie"} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all ${r.emp.settled?"bg-green-500/15 text-green-400 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}>
+                              <button onClick={()=>onToggleSettled(r.emp.id)} title={r.emp.settled?"Rozliczony — kliknij aby cofnąć":"Oczekuje — kliknij po wypłacie"} className={`inline-flex items-center gap-1 px-3 py-2 min-h-[44px] rounded-full text-[11px] font-medium whitespace-nowrap transition-all touch-manipulation ${r.emp.settled?"bg-green-500/15 text-green-400 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}>
                                 {r.emp.settled?<><CheckCircle2 size={11} className="shrink-0"/>Rozliczony</>:<><Circle size={11} className="shrink-0"/>Oczekuje</>}
                               </button>
                             </td>
@@ -3766,7 +3767,7 @@ function PayrollView({
 
       {/* Detail panel */}
       {selectedEmp && (
-        <div className="w-full sm:flex-1 sm:min-w-[400px] lg:min-w-[480px] border-l border-border bg-card shrink-0 flex flex-col min-h-0 h-full overflow-hidden absolute sm:relative inset-0 sm:inset-auto z-10 sm:z-auto">
+        <div className="w-full sm:flex-1 sm:min-w-[400px] lg:min-w-[480px] border-l border-border bg-card shrink-0 flex flex-col min-h-0 h-full overflow-hidden absolute sm:relative inset-0 sm:inset-auto z-50 sm:z-auto">
           <WeekEmployeeDetail emp={selectedEmp} weekFrom={weekFrom} weekTo={weekTo} directory={directory} savedWeeks={savedWeeks} onChange={onUpdateWeekEmployee} onClose={()=>setSelectedEmpId(null)}/>
         </div>
       )}
@@ -4066,7 +4067,7 @@ function DirectoryView({directory, savedWeeks, onChange, onCommit, onOpenSms}:{d
       {archiveEmp && (
         <EmployeeArchiveModal employee={archiveEmp} savedWeeks={savedWeeks} onClose={() => setArchiveEmpId(null)}/>
       )}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overscroll-contain">
         <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8 space-y-6">
           {/* Top bar */}
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
@@ -4318,7 +4319,7 @@ function ContactsView({ contacts, onChange }: { contacts: EmailContact[]; onChan
 
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden">
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overscroll-contain">
         <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8 space-y-6">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
             <div className="relative flex-1 max-w-sm">
@@ -4693,7 +4694,7 @@ function JobPhotosGalleryView({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto pb-20 sm:pb-6">
+    <div className="flex-1 overflow-y-auto overscroll-contain pb-20 sm:pb-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-8 py-6 space-y-6">
         <div>
           <h1 className="text-xl font-bold flex items-center gap-2">
@@ -5145,7 +5146,7 @@ function ArchiveView({
   if(savedWeeks.length===0) return <div className="flex-1 flex flex-col items-center justify-center gap-4 text-muted-foreground"><Archive size={48} className="opacity-15"/><p className="text-sm font-medium">Brak zapisanych tygodni</p><p className="text-xs text-center max-w-xs">Przejdź do Listy Płac i kliknij "Zapisz tydzień".</p></div>;
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto overscroll-contain">
       <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 space-y-6">
         <div className="flex items-center gap-2 flex-wrap">
           {years.map((y)=><button key={y} onClick={()=>{setSelectedYear(y);setSelectedMonth(null);}} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeYear===y?"bg-primary text-primary-foreground":"bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>{y}</button>)}
@@ -5542,7 +5543,7 @@ function JobEmailModal({
               <p className="text-sm font-semibold">Wyślij email z roboty</p>
               <p className="text-xs text-muted-foreground mt-1">Na tej robocie nie ma jeszcze zdjęć ani raportów do wysłania.</p>
             </div>
-            <button type="button" onClick={onClose} className="p-1 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
+            <button type="button" onClick={onClose} className="touch-target p-1 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
           </div>
           <button type="button" onClick={onClose} className="w-full py-2.5 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors">Zamknij</button>
         </div>
@@ -5564,7 +5565,7 @@ function JobEmailModal({
           <button type="button" onClick={onClose} className="touch-target p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-4">
           {success ? (
             <div className="flex flex-col items-center gap-3 py-8 text-center">
               <CheckCircle2 size={40} className="text-green-400"/>
@@ -6189,7 +6190,7 @@ function JobsView({
           </div>
           <div className="flex gap-1">
             {(["all","in_progress","completed"] as const).map(f=>(
-              <button key={f} onClick={()=>setFilter(f)} className={`flex-1 text-xs py-1.5 rounded-lg font-medium transition-colors ${filter===f?"bg-secondary text-foreground border border-primary/30":"text-muted-foreground hover:text-foreground hover:bg-secondary/50"}`}>
+              <button key={f} onClick={()=>setFilter(f)} className={`flex-1 text-xs py-2.5 min-h-[44px] rounded-lg font-medium transition-colors touch-manipulation ${filter===f?"bg-secondary text-foreground border border-primary/30":"text-muted-foreground hover:text-foreground hover:bg-secondary/50"}`}>
                 {f==="all"?"Wszystkie":f==="in_progress"?"W trakcie":"Zdane"}
               </button>
             ))}
@@ -6206,7 +6207,7 @@ function JobsView({
         </div>
 
         {/* Job list */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overscroll-contain">
           {jobs.length===0&&(
             <div className="p-8 text-center space-y-2 text-muted-foreground">
               <MapPin size={32} className="mx-auto opacity-20"/>
@@ -6307,7 +6308,7 @@ function JobsView({
 
       {/* Right panel — job detail */}
       {selectedJob ? (
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overscroll-contain">
           <div className="max-w-3xl mx-auto px-4 sm:px-8 py-6 space-y-6">
 
             {/* Back button (mobile) */}
@@ -7484,7 +7485,7 @@ function DashboardView({
   });
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto overscroll-contain">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6">
 
         {/* Nagłówek */}
@@ -7767,7 +7768,7 @@ function DashboardView({
                                           : `Oznacz jako odebrane: ${DOC_LABELS[doc]}`
                                   }
                                   onClick={() => toggleJobDocumentOnDashboard(job, doc)}
-                                  className={`inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1.5 min-h-[36px] rounded-md border transition-all touch-manipulation ${
+                                  className={`inline-flex items-center gap-1 text-[11px] font-medium px-3 py-2.5 min-h-[44px] rounded-md border transition-all touch-manipulation ${
                                     locked
                                       ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 cursor-default"
                                       : checked
@@ -8763,7 +8764,7 @@ function HelpView() {
   ];
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto overscroll-contain">
       <div className="max-w-3xl mx-auto px-4 sm:px-8 py-8 space-y-3">
 
         {/* Header */}
@@ -8811,6 +8812,16 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.27.0", label:"Mobilne UX — Faza A (PWA i natywka)",
+    items:[
+      {type:"improve", text:"Panel pracownika — odświeżanie danych z chmury przy powrocie do aplikacji (focus / widoczność karty)"},
+      {type:"improve", text:"Admin — toasty przy synchronizacji chmury i zapisie tygodnia; baner PWA ukryty w aplikacji Capacitor"},
+      {type:"improve", text:"Mobile — większe obszary dotyku (lista płac, filtry robotów, status rozliczenia); edytor płac nad dolną nawigacją"},
+      {type:"improve", text:"Przewijanie — overscroll-contain na głównych widokach (mniej „gumowania” całej strony na iOS)"},
+      {type:"improve", text:"PWA — precache ikon w service workerze"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.26.0", label:"Lista Płac — przełącznik widoku szczegółowego",
     items:[
@@ -9790,7 +9801,7 @@ function ChangelogView() {
   const goToPage = (next: number) => setPage(Math.max(0, Math.min(totalPages - 1, next)));
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto">
+    <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain">
       <div className="max-w-3xl mx-auto px-4 sm:px-8 py-8 space-y-2">
 
         {/* Header */}
@@ -10672,7 +10683,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const pushToCloud = pushAllDataToCloud;
 
-  const runCloudSync = useCallback(async () => {
+  const runCloudSync = useCallback(async (opts?: { toastSuccess?: boolean }) => {
     if (!tabVisibleRef.current) return;
     if (!isSupabaseConfigured()) {
       setSyncStatus("offline");
@@ -10686,10 +10697,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     try {
       await pushToCloud([directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts]);
       setSyncStatus("saved");
+      if (opts?.toastSuccess) toast.success("Zsynchronizowano z chmurą");
       setTimeout(() => setSyncStatus("idle"), 2500);
     } catch (e) {
+      const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
       setSyncStatus("error");
-      setSyncError(e instanceof Error ? e.message : "Błąd połączenia z chmurą");
+      setSyncError(msg);
+      toast.error("Nie udało się wysłać do chmury", { description: msg, id: "admin-cloud-sync" });
     }
   }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts]);
 
@@ -11009,6 +11023,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       : [...savedWeeks, snapshot];
     setSavedWeeks(nextArchive);
     setShowSaveConfirm(false);
+    toast.success(`Tydzień zapisany · ${fmtDate(weekFrom)}–${fmtDate(weekTo)}`);
     triggerWeeklyBackupEmail(weekFrom, weekTo, jobs, nextArchive);
   }, [weekFrom, weekTo, weekEmployees, jobs, savedWeeks, setSavedWeeks]);
 
@@ -11251,7 +11266,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             {/* Sync indicator — kliknij przy błędzie, aby ponowić */}
             <button
               type="button"
-              onClick={() => (syncStatus === "error" || syncStatus === "offline") && runCloudSync()}
+              onClick={() => (syncStatus === "error" || syncStatus === "offline") && runCloudSync({ toastSuccess: true })}
               className={`p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg ${syncStatus === "error" || syncStatus === "offline" ? "hover:bg-secondary cursor-pointer" : "cursor-default"}`}
               title={
                 syncStatus === "saving" ? "Zapisywanie..."
@@ -11292,7 +11307,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
                 onChange={e=>setGlobalSearch(e.target.value)}
                 onKeyDown={e=>e.key==="Escape"&&(setShowSearch(false),setGlobalSearch(""))}
                 className="w-full bg-secondary rounded-lg pl-8 pr-10 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"/>
-              <button onClick={()=>{setShowSearch(false);setGlobalSearch("");}} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X size={14}/></button>
+              <button onClick={()=>{setShowSearch(false);setGlobalSearch("");}} className="absolute right-1 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground touch-manipulation"><X size={14}/></button>
             </div>
             {globalSearch.trim() && (
               <div className="bg-background rounded-xl border border-border overflow-hidden max-h-64 overflow-y-auto">
@@ -11451,11 +11466,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           </div>
         </div>
       )}
+      <Toaster
+        position="top-center"
+        richColors
+        closeButton
+        duration={4000}
+        style={{ top: "calc(env(safe-area-inset-top, 0px) + 3.5rem)" }}
+      />
     </div>
   );
 }
-
-// ─── Auth: Login Screen ───────────────────────────────────────────────────────
 
 function LoginScreen({onAdmin, onInspector, onWorker}: {onAdmin:(session: AdminSession)=>void; onInspector:(session: AdminSession)=>void; onWorker:(emp:DirectoryEmployee)=>void}) {
   const adminUsers = useMemo(() => listAdminUsersForLogin(), []);
@@ -12683,60 +12703,65 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
     return () => window.removeEventListener("online", onOnline);
   }, [flushQueue]);
 
-  useEffect(() => {
-    const loadLocal = <T,>(key: string, fallback: T): T => {
-      try {
-        const raw = localStorage.getItem(key);
-        return raw ? (JSON.parse(raw) as T) : fallback;
-      } catch {
-        return fallback;
-      }
-    };
+  const loadWorkerLocal = useCallback(<T,>(key: string, fallback: T): T => {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? (JSON.parse(raw) as T) : fallback;
+    } catch {
+      return fallback;
+    }
+  }, []);
 
+  const mergeWorkerCloudPayload = useCallback(
+    (values: unknown[]) => {
+      const [cloudJobs, cloudDeletedRaw, cloudWeekEmps, cloudArchive, cloudFrom, cloudTo] = values;
+      const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), normalizeDeletedJobIds(cloudDeletedRaw));
+      saveDeletedJobIds(mergedDeleted);
+      if (cloudJobs != null) {
+        let localJobs: Job[] = [];
+        try {
+          localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")) as Job[];
+        } catch { /* ignore */ }
+        const cloudJobsNorm = normalizeJobsValue(cloudJobs) as Job[];
+        const merged = mergeJobsById(localJobs, cloudJobsNorm, mergedDeleted) as Job[];
+        const synced = merged.map((j) => syncJobDocuments(j));
+        setJobsLocal(synced);
+        try { localStorage.setItem("kw-jobs", JSON.stringify(synced)); } catch { /* ignore */ }
+      }
+      setWeekEmployees(
+        mergeWeekEmployees(
+          loadWorkerLocal<WeekEmployee[]>("kw-week-employees", []),
+          (cloudWeekEmps as WeekEmployee[] | null) ?? [],
+        ) as WeekEmployee[],
+      );
+      setSavedWeeks(
+        mergeArchive(
+          loadWorkerLocal<WeekSnapshot[]>("kw-archive", []),
+          (cloudArchive as WeekSnapshot[] | null) ?? [],
+        ) as WeekSnapshot[],
+      );
+      const week = getWeekRange();
+      setWeekFrom(typeof cloudFrom === "string" && cloudFrom ? cloudFrom : loadWorkerLocal("kw-weekFrom", week.from));
+      setWeekTo(typeof cloudTo === "string" && cloudTo ? cloudTo : loadWorkerLocal("kw-weekTo", week.to));
+    },
+    [loadWorkerLocal, setJobsLocal],
+  );
+
+  useEffect(() => {
     fetchKeysFromCloud(["kw-jobs", JOBS_DELETED_IDS_KEY, "kw-week-employees", "kw-archive", "kw-weekFrom", "kw-weekTo"])
-      .then((values) => {
-        const [cloudJobs, cloudDeletedRaw, cloudWeekEmps, cloudArchive, cloudFrom, cloudTo] = values;
-        const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), normalizeDeletedJobIds(cloudDeletedRaw));
-        saveDeletedJobIds(mergedDeleted);
-        if (cloudJobs != null) {
-          let localJobs: Job[] = [];
-          try {
-            localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")) as Job[];
-          } catch { /* ignore */ }
-          const cloudJobsNorm = normalizeJobsValue(cloudJobs) as Job[];
-          const merged = mergeJobsById(localJobs, cloudJobsNorm, mergedDeleted) as Job[];
-          const synced = merged.map((j) => syncJobDocuments(j));
-          setJobsLocal(synced);
-          try { localStorage.setItem("kw-jobs", JSON.stringify(synced)); } catch { /* ignore */ }
-        }
-        setWeekEmployees(
-          mergeWeekEmployees(
-            loadLocal<WeekEmployee[]>("kw-week-employees", []),
-            (cloudWeekEmps as WeekEmployee[] | null) ?? [],
-          ) as WeekEmployee[],
-        );
-        setSavedWeeks(
-          mergeArchive(
-            loadLocal<WeekSnapshot[]>("kw-archive", []),
-            (cloudArchive as WeekSnapshot[] | null) ?? [],
-          ) as WeekSnapshot[],
-        );
-        const week = getWeekRange();
-        setWeekFrom(typeof cloudFrom === "string" && cloudFrom ? cloudFrom : loadLocal("kw-weekFrom", week.from));
-        setWeekTo(typeof cloudTo === "string" && cloudTo ? cloudTo : loadLocal("kw-weekTo", week.to));
-      })
+      .then(mergeWorkerCloudPayload)
       .catch(() => {
-        setWeekEmployees(loadLocal<WeekEmployee[]>("kw-week-employees", []));
-        setSavedWeeks(loadLocal<WeekSnapshot[]>("kw-archive", []));
+        setWeekEmployees(loadWorkerLocal<WeekEmployee[]>("kw-week-employees", []));
+        setSavedWeeks(loadWorkerLocal<WeekSnapshot[]>("kw-archive", []));
         const week = getWeekRange();
-        setWeekFrom(loadLocal("kw-weekFrom", week.from));
-        setWeekTo(loadLocal("kw-weekTo", week.to));
+        setWeekFrom(loadWorkerLocal("kw-weekFrom", week.from));
+        setWeekTo(loadWorkerLocal("kw-weekTo", week.to));
       })
       .finally(() => {
         setJobsLoading(false);
         setPayrollLoading(false);
       });
-  }, [setJobsLocal]);
+  }, [mergeWorkerCloudPayload, loadWorkerLocal]);
 
   const activeJobs = jobs
     .filter(j => j.status === "in_progress")
@@ -12785,25 +12810,21 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
   };
 
   const reloadWorkerData = useCallback(() => {
-    const loadLocal = <T,>(key: string, fallback: T): T => {
-      try {
-        const raw = localStorage.getItem(key);
-        return raw ? (JSON.parse(raw) as T) : fallback;
-      } catch {
-        return fallback;
-      }
-    };
-    try {
-      const localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")) as Job[];
-      setJobsLocal(localJobs);
-    } catch { /* ignore */ }
-    setWeekEmployees(loadLocal<WeekEmployee[]>("kw-week-employees", []));
-    setSavedWeeks(loadLocal<WeekSnapshot[]>("kw-archive", []));
-    const wf = loadLocal<string>("kw-weekFrom", "");
-    const wt = loadLocal<string>("kw-weekTo", "");
-    if (wf) setWeekFrom(wf);
-    if (wt) setWeekTo(wt);
-  }, [setJobsLocal]);
+    fetchKeysFromCloud(["kw-jobs", JOBS_DELETED_IDS_KEY, "kw-week-employees", "kw-archive", "kw-weekFrom", "kw-weekTo"])
+      .then(mergeWorkerCloudPayload)
+      .catch(() => {
+        try {
+          const localJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")) as Job[];
+          setJobsLocal(localJobs);
+        } catch { /* ignore */ }
+        setWeekEmployees(loadWorkerLocal<WeekEmployee[]>("kw-week-employees", []));
+        setSavedWeeks(loadWorkerLocal<WeekSnapshot[]>("kw-archive", []));
+        const wf = loadWorkerLocal<string>("kw-weekFrom", "");
+        const wt = loadWorkerLocal<string>("kw-weekTo", "");
+        if (wf) setWeekFrom(wf);
+        if (wt) setWeekTo(wt);
+      });
+  }, [mergeWorkerCloudPayload, loadWorkerLocal, setJobsLocal]);
 
   useEffect(() => {
     const onVis = () => {
