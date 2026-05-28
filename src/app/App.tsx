@@ -31,6 +31,7 @@ import {
   fetchJobsBackupStatus,
   restoreCloudJobsBackup,
   mergeWeekEmployees,
+  mergeWeekEmployeeRecord,
   mergeArchive,
   mergeDirectory,
   mergeContacts,
@@ -244,6 +245,10 @@ interface WeekEmployee {
   phone: string;
   position: string;
   rate: string;           // stawka na ten tydzień (może różnić się od domyślnej)
+  /** Kiedy ostatnio zmieniono stawkę (sync z kartoteki / ręcznie) */
+  rateUpdatedAt?: string;
+  /** Kiedy ostatnio zmieniono godziny / koszty / Sob.pr. */
+  dataUpdatedAt?: string;
   days: Record<DayKey, DayData>;
   /** Sobota poprzedniego tygodnia — wypłacana w bieżącym tygodniu */
   prevSaturday?: DayData;
@@ -7941,6 +7946,13 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-28", version:"2.19.11", label:"Lista płac — trwały zapis stawek z kartoteki",
+    items:[
+      {type:"fix", text:"Lista płac — stawki zsynchronizowane z kartoteki nie wracają po dniu / odświeżeniu (osobny znacznik czasu stawki vs godzin; ochrona przed starą kartą w tle)"},
+      {type:"improve", text:"„Stawki z kartoteki” — natychmiastowy zapis do chmury i aktualizacja archiwum bieżącego tygodnia"},
+    ],
+  },
+  {
     date:"2026-05-27", version:"2.19.10", label:"Lista płac — zapis godzin i odznaczanie dni",
     items:[
       {type:"fix", text:"Lista płac — odznaczenie dnia (np. czwartek) i zmiana godzin zostają po odświeżeniu; chmura nie przywraca starego wpisu"},
@@ -9668,20 +9680,55 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const removeWeekEmployee = (id:string) => setWeekEmployees((prev)=>prev.filter((e)=>e.id!==id));
 
   const updateWeekEmployee = useCallback((updated:WeekEmployee)=>{
-    setWeekEmployees((prev)=>prev.map((e)=>e.id===updated.id?updated:e));
+    setWeekEmployees((prev)=>prev.map((e)=>{
+      if (e.id !== updated.id) return e;
+      let lsEmp: WeekEmployee | undefined;
+      try {
+        const ls = JSON.parse(localStorage.getItem("kw-week-employees") || "[]") as WeekEmployee[];
+        lsEmp = ls.find((x) => x.id === e.id);
+      } catch { /* ignore */ }
+      const merged = (lsEmp
+        ? mergeWeekEmployeeRecord(lsEmp, updated)
+        : updated) as WeekEmployee;
+      const now = new Date().toISOString();
+      const rateChanged = updated.rate !== e.rate;
+      const dataChanged =
+        JSON.stringify({ days: updated.days, prevSaturday: updated.prevSaturday, extraCosts: updated.extraCosts })
+        !== JSON.stringify({ days: e.days, prevSaturday: e.prevSaturday, extraCosts: e.extraCosts });
+      return {
+        ...merged,
+        rateUpdatedAt: rateChanged ? now : merged.rateUpdatedAt ?? e.rateUpdatedAt,
+        dataUpdatedAt: dataChanged ? now : merged.dataUpdatedAt ?? e.dataUpdatedAt,
+      };
+    }));
   },[setWeekEmployees]);
 
   const syncWeekRatesFromDirectory = useCallback(() => {
+    const now = new Date().toISOString();
     const byId = new Map(directory.map((d) => [d.id, d]));
-    setWeekEmployees((prev) =>
-      prev.map((emp) => {
+    setWeekEmployees((prev) => {
+      const next = prev.map((emp) => {
         if (!emp.directoryId) return emp;
         const dir = byId.get(emp.directoryId);
         if (!dir?.defaultRate) return emp;
-        return { ...emp, rate: dir.defaultRate };
-      }),
-    );
-  }, [directory]);
+        return { ...emp, rate: dir.defaultRate, rateUpdatedAt: now };
+      });
+      void (async () => {
+        try {
+          let archive = savedWeeks;
+          const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+          if (existing) {
+            const snapshot = buildWeekSnapshot(weekFrom, weekTo, next, jobs, existing);
+            archive = savedWeeks.map((w) => (w.id === existing.id ? snapshot : w));
+            try { localStorage.setItem("kw-archive", JSON.stringify(archive)); } catch { /* ignore */ }
+            setSavedWeeks(archive);
+          }
+          await pushAllDataToCloud([directory, next, archive, weekFrom, weekTo, jobs, contacts]);
+        } catch { /* auto-sync ponowi */ }
+      })();
+      return next;
+    });
+  }, [directory, savedWeeks, weekFrom, weekTo, jobs, contacts, setWeekEmployees, setSavedWeeks]);
 
   const toggleSettled = (id:string) => setWeekEmployees((prev)=>prev.map((e)=>e.id===id?{...e,settled:!e.settled}:e));
 
@@ -11384,10 +11431,16 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
           try { localStorage.setItem("kw-jobs", JSON.stringify(merged)); } catch { /* ignore */ }
         }
         setWeekEmployees(
-          (cloudWeekEmps as WeekEmployee[] | null) ?? loadLocal<WeekEmployee[]>("kw-week-employees", []),
+          mergeWeekEmployees(
+            loadLocal<WeekEmployee[]>("kw-week-employees", []),
+            (cloudWeekEmps as WeekEmployee[] | null) ?? [],
+          ) as WeekEmployee[],
         );
         setSavedWeeks(
-          (cloudArchive as WeekSnapshot[] | null) ?? loadLocal<WeekSnapshot[]>("kw-archive", []),
+          mergeArchive(
+            loadLocal<WeekSnapshot[]>("kw-archive", []),
+            (cloudArchive as WeekSnapshot[] | null) ?? [],
+          ) as WeekSnapshot[],
         );
         const week = getWeekRange();
         setWeekFrom(typeof cloudFrom === "string" && cloudFrom ? cloudFrom : loadLocal("kw-weekFrom", week.from));

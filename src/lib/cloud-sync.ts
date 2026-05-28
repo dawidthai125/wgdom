@@ -225,6 +225,45 @@ type DayLike = {
   zaliczka?: string;
 };
 
+function parseRecordTs(v: unknown): number {
+  if (typeof v !== "string") return 0;
+  const t = Date.parse(v);
+  return Number.isNaN(t) ? 0 : t;
+}
+
+function pickRateByTimestamps(l: Record<string, unknown>, c: Record<string, unknown>): unknown {
+  const lAt = parseRecordTs(l.rateUpdatedAt);
+  const cAt = parseRecordTs(c.rateUpdatedAt);
+  if (lAt && cAt && lAt !== cAt) return lAt > cAt ? l.rate : c.rate;
+  if (lAt && !cAt) return l.rate;
+  if (cAt && !lAt) return c.rate;
+  if (l.rate !== undefined && String(l.rate).trim() !== "") return l.rate;
+  return c.rate;
+}
+
+function pickDaysByTimestamps(l: Record<string, unknown>, c: Record<string, unknown>): Record<string, DayLike> {
+  const lDays = (l.days as Record<string, DayLike>) || {};
+  const cDays = (c.days as Record<string, DayLike>) || {};
+  const lAt = parseRecordTs(l.dataUpdatedAt);
+  const cAt = parseRecordTs(c.dataUpdatedAt);
+  if (lAt > cAt) return { ...cDays, ...lDays };
+  if (cAt > lAt) return { ...lDays, ...cDays };
+  return { ...cDays, ...lDays };
+}
+
+function pickPrevSaturdayByTimestamps(
+  l: Record<string, unknown>,
+  c: Record<string, unknown>,
+): DayLike | undefined {
+  const lps = l.prevSaturday as DayLike | undefined;
+  const cps = c.prevSaturday as DayLike | undefined;
+  const lAt = parseRecordTs(l.dataUpdatedAt);
+  const cAt = parseRecordTs(c.dataUpdatedAt);
+  if (lAt > cAt) return lps !== undefined ? lps : cps;
+  if (cAt > lAt) return cps !== undefined ? cps : lps;
+  return lps !== undefined ? lps : cps;
+}
+
 function dayRichness(d: DayLike | undefined): number {
   if (!d) return 0;
   let s = 0;
@@ -255,39 +294,51 @@ export function weekEmployeesListRichness(list: unknown): number {
   return list.reduce((sum, e) => sum + weekEmployeeRichness(e), 0);
 }
 
-/** Scal dwa wpisy tego samego pracownika — lokalna edycja (ta karta) ma pierwszeństwo nad chmurą. */
+/** Scal dwa wpisy tego samego pracownika — stawka i godziny osobno (rateUpdatedAt / dataUpdatedAt). */
 export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown {
   const l = local as Record<string, unknown>;
   const c = cloud as Record<string, unknown>;
 
-  const lDays = (l.days as Record<string, DayLike>) || {};
-  const cDays = (c.days as Record<string, DayLike>) || {};
-  const days = { ...cDays, ...lDays };
+  const days = pickDaysByTimestamps(l, c);
+  const prevSaturday = pickPrevSaturdayByTimestamps(l, c);
 
-  const lps = l.prevSaturday as DayLike | undefined;
-  const cps = c.prevSaturday as DayLike | undefined;
-  const prevSaturday = lps !== undefined ? lps : cps;
+  const lAt = parseRecordTs(l.dataUpdatedAt);
+  const cAt = parseRecordTs(c.dataUpdatedAt);
+  const extraCosts =
+    lAt >= cAt
+      ? Array.isArray(l.extraCosts)
+        ? l.extraCosts
+        : Array.isArray(c.extraCosts)
+          ? c.extraCosts
+          : []
+      : Array.isArray(c.extraCosts)
+        ? c.extraCosts
+        : Array.isArray(l.extraCosts)
+          ? l.extraCosts
+          : [];
 
-  const extraCosts = Array.isArray(l.extraCosts)
-    ? l.extraCosts
-    : Array.isArray(c.extraCosts)
-      ? c.extraCosts
-      : [];
-
-  const rate =
-    l.rate !== undefined && String(l.rate).trim() !== ""
-      ? l.rate
-      : c.rate;
+  const rate = pickRateByTimestamps(l, c);
+  const lRateAt = parseRecordTs(l.rateUpdatedAt);
+  const cRateAt = parseRecordTs(c.rateUpdatedAt);
+  const dataWinner = lAt >= cAt ? l : c;
 
   return {
     ...c,
     ...l,
+    ...dataWinner,
     days,
     prevSaturday,
     extraCosts,
     rate,
+    rateUpdatedAt: lRateAt >= cRateAt ? l.rateUpdatedAt ?? c.rateUpdatedAt : c.rateUpdatedAt ?? l.rateUpdatedAt,
+    dataUpdatedAt: lAt >= cAt ? l.dataUpdatedAt ?? c.dataUpdatedAt : c.dataUpdatedAt ?? l.dataUpdatedAt,
     settled: l.settled !== undefined ? l.settled : c.settled,
   };
+}
+
+/** Połącz wpis z localStorage z bieżącym stanem React (chroni przed starą kartą w tle). */
+export function mergeWeekEmployeesWithStored(stored: unknown[], incoming: unknown[]): unknown[] {
+  return mergeWeekEmployees(stored, incoming);
 }
 
 /** Scal listę płac tygodnia — po id; odznaczenie dnia / stawka z bieżącej karty nie wraca z chmury. */
@@ -595,6 +646,25 @@ export async function pushDirectoryToCloud(directory: unknown[]): Promise<void> 
 
 export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
   const keys = [...DATA_KEYS];
+  const valuesForMerge = [...values];
+  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
+  if (empIdx >= 0) {
+    try {
+      const raw = localStorage.getItem("kw-week-employees");
+      if (raw) {
+        const stored = JSON.parse(raw) as unknown[];
+        if (Array.isArray(stored) && stored.length > 0) {
+          valuesForMerge[empIdx] = mergeWeekEmployeesWithStored(
+            stored,
+            normalizeArrayValue(valuesForMerge[empIdx]),
+          );
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
   let cloudValues: unknown[] = keys.map(() => null);
   let cloudDeleted: string[] = [];
   let cloudDirDeleted: string[] = [];
@@ -610,10 +680,9 @@ export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
   saveDeletedJobIds(mergedDeleted);
   const mergedDirDeleted = mergeDeletedDirectoryIds(getDeletedDirectoryIds(), cloudDirDeleted);
   saveDeletedDirectoryIds(mergedDirDeleted);
-  let merged = mergeAllDataKeys(values, cloudValues, mergedDeleted, mergedDirDeleted);
+  let merged = mergeAllDataKeys(valuesForMerge, cloudValues, mergedDeleted, mergedDirDeleted);
   merged = alignWeekRangeInMerged(merged);
 
-  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
   const archIdx = DATA_KEYS.indexOf("kw-archive");
   if (
     empIdx >= 0 &&

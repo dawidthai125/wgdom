@@ -164,14 +164,59 @@ function mergeWeekEmployeesUnion(prev: unknown[], next: unknown[]): unknown[] {
       const id = String((item as { id?: string }).id || "");
       if (!id) continue;
       const existing = map.get(id);
-      if (!existing || weekEmployeeRichness(item) >= weekEmployeeRichness(existing)) {
+      if (!existing) {
         map.set(id, item);
+        continue;
       }
+      const er = weekEmployeeRichness(existing);
+      const ir = weekEmployeeRichness(item);
+      if (ir > er) map.set(id, item);
+      else if (ir < er) { /* keep existing */ }
+      else map.set(id, mergeWeekEmployeeRecordByTimestamps(existing, item));
     }
   };
   ingest(prev);
   ingest(next);
   return [...map.values()];
+}
+
+function parseRecordTs(v: unknown): number {
+  if (typeof v !== "string") return 0;
+  const t = Date.parse(v);
+  return Number.isNaN(t) ? 0 : t;
+}
+
+function pickRateByTimestamps(l: Record<string, unknown>, c: Record<string, unknown>): unknown {
+  const lAt = parseRecordTs(l.rateUpdatedAt);
+  const cAt = parseRecordTs(c.rateUpdatedAt);
+  if (lAt && cAt && lAt !== cAt) return lAt > cAt ? l.rate : c.rate;
+  if (lAt && !cAt) return l.rate;
+  if (cAt && !lAt) return c.rate;
+  if (l.rate !== undefined && String(l.rate).trim() !== "") return l.rate;
+  return c.rate;
+}
+
+function mergeWeekEmployeeRecordByTimestamps(a: unknown, b: unknown): unknown {
+  const l = a as Record<string, unknown>;
+  const c = b as Record<string, unknown>;
+  const lAt = parseRecordTs(l.dataUpdatedAt);
+  const cAt = parseRecordTs(c.dataUpdatedAt);
+  const lDays = (l.days as Record<string, unknown>) || {};
+  const cDays = (c.days as Record<string, unknown>) || {};
+  const days = lAt > cAt ? { ...cDays, ...lDays } : cAt > lAt ? { ...lDays, ...cDays } : { ...cDays, ...lDays };
+  const rate = pickRateByTimestamps(l, c);
+  const lRateAt = parseRecordTs(l.rateUpdatedAt);
+  const cRateAt = parseRecordTs(c.rateUpdatedAt);
+  const dataWinner = lAt >= cAt ? l : c;
+  return {
+    ...c,
+    ...l,
+    ...dataWinner,
+    days,
+    rate,
+    rateUpdatedAt: lRateAt >= cRateAt ? l.rateUpdatedAt ?? c.rateUpdatedAt : c.rateUpdatedAt ?? l.rateUpdatedAt,
+    dataUpdatedAt: lAt >= cAt ? l.dataUpdatedAt ?? c.dataUpdatedAt : c.dataUpdatedAt ?? l.dataUpdatedAt,
+  };
 }
 
 function archiveWeekScore(w: unknown): number {
