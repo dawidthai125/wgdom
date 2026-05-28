@@ -35,7 +35,6 @@ import {
   mergeDirectory,
   mergeContacts,
   mergeDataKey,
-  mergeIncomingWithStored,
   readLocalStorageDataKey,
   isDataKey,
   pushKeysToCloudSafe,
@@ -2022,6 +2021,33 @@ function applyWriteTimestamps(key: string, prev: unknown, next: unknown): unknow
       return item;
     });
   }
+  if (key === "kw-week-employees") {
+    return (next as WeekEmployee[]).map((item) => {
+      if (!item?.id) return item;
+      const old = prevMap.get(String(item.id)) as WeekEmployee | undefined;
+      if (!old) return item;
+      const rateChanged = item.rate !== old.rate;
+      const dataChanged =
+        JSON.stringify({ days: item.days, prevSaturday: item.prevSaturday, extraCosts: item.extraCosts })
+        !== JSON.stringify({ days: old.days, prevSaturday: old.prevSaturday, extraCosts: old.extraCosts });
+      if (!rateChanged && !dataChanged) return item;
+      return {
+        ...item,
+        rateUpdatedAt: rateChanged ? now : item.rateUpdatedAt ?? old.rateUpdatedAt,
+        dataUpdatedAt: dataChanged ? now : item.dataUpdatedAt ?? old.dataUpdatedAt,
+      };
+    });
+  }
+  if (key === "kw-archive") {
+    return (next as { id?: string; savedAt?: string }[]).map((item) => {
+      if (!item?.id) return item;
+      const old = prevMap.get(String(item.id));
+      if (!old || JSON.stringify(old) !== JSON.stringify(item)) {
+        return { ...item, savedAt: now };
+      }
+      return item;
+    });
+  }
   return next;
 }
 
@@ -2034,12 +2060,9 @@ function useLocalStorage<T>(key: string, initial: T): [T, (v: T|((p:T)=>T))=>voi
         try { localStorage.setItem(key, JSON.stringify(incoming)); } catch { /* ignore */ }
         return incoming;
       }
-      const stored = readLocalStorageDataKey(key as DataKey);
-      let next = incoming;
-      if (stored != null) {
-        next = mergeIncomingWithStored(key as DataKey, stored, incoming) as T;
-      }
-      next = applyWriteTimestamps(key, stored ?? prev, next) as T;
+      // Bez merge ze stored — edycja użytkownika w tej karcie jest autorytatywna.
+      // Merge stored↔React przed chmurą: prepareDataBundleForCloudPush / pushKeysToCloudSafe.
+      const next = applyWriteTimestamps(key, prev, incoming) as T;
       try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* ignore */ }
       return next;
     });
@@ -8017,6 +8040,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-28", version:"2.19.17", label:"Edycja danych — wszystkie zakładki",
+    items:[
+      {type:"fix", text:"Zapis lokalny — edycja w tej karcie nie jest już nadpisywana starym localStorage (lista płac, kartoteka, kontakty, roboty, archiwum)"},
+      {type:"fix", text:"Panel pracownika — zmiany listy płac / paragonów bez merge ze starą pamięcią"},
+      {type:"improve", text:"Sync do chmury — merge localStorage↔React tylko przed pushem (ochrona wielu kart), nie przy każdym kliknięciu"},
+    ],
+  },
+  {
     date:"2026-05-28", version:"2.19.16", label:"Lista płac — zaznaczanie dni",
     items:[
       {type:"fix", text:"Lista płac — zaznaczenie dnia (np. czwartek) działa od razu; edycja nie była nadpisywana przez stary wpis z pamięci"},
@@ -11655,12 +11686,22 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
 
   const syncWeekEmployees = (updater: (prev: WeekEmployee[]) => WeekEmployee[]) => {
     setWeekEmployees((prev) => {
-      let stored: WeekEmployee[] = [];
-      try {
-        stored = JSON.parse(localStorage.getItem("kw-week-employees") || "[]") as WeekEmployee[];
-      } catch { /* ignore */ }
+      const now = new Date().toISOString();
       const incoming = updater(prev);
-      const updated = mergeWeekEmployees(stored, incoming) as WeekEmployee[];
+      const updated = incoming.map((emp) => {
+        const old = prev.find((e) => e.id === emp.id);
+        if (!old) return emp;
+        const rateChanged = emp.rate !== old.rate;
+        const dataChanged =
+          JSON.stringify({ days: emp.days, prevSaturday: emp.prevSaturday, extraCosts: emp.extraCosts })
+          !== JSON.stringify({ days: old.days, prevSaturday: old.prevSaturday, extraCosts: old.extraCosts });
+        if (!rateChanged && !dataChanged) return emp;
+        return {
+          ...emp,
+          rateUpdatedAt: rateChanged ? now : emp.rateUpdatedAt ?? old.rateUpdatedAt,
+          dataUpdatedAt: dataChanged ? now : emp.dataUpdatedAt ?? old.dataUpdatedAt,
+        };
+      });
       try { localStorage.setItem("kw-week-employees", JSON.stringify(updated)); } catch { /* ignore */ }
       pushKeysToCloudSafe(["kw-week-employees"], [updated]).catch(() => {});
       return updated;

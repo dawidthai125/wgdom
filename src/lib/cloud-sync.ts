@@ -463,7 +463,7 @@ export function readLocalStorageDataKey(key: DataKey): unknown | null {
   }
 }
 
-/** Scal zapis z pamięci karty z tym, co już jest w localStorage (nowsze wygrywa). */
+/** Przed pushem do chmury — localStorage może być świeższy niż React (inna karta). stored wygrywa nad incoming. */
 export function mergeIncomingWithStored(key: DataKey, stored: unknown, incoming: unknown): unknown {
   if (stored == null) return incoming;
   if (incoming == null) return stored;
@@ -848,11 +848,7 @@ export async function pushDirectoryToCloud(directory: unknown[]): Promise<void> 
   } catch { /* offline */ }
   const mergedDeleted = mergeDeletedDirectoryIds(getDeletedDirectoryIds(), cloudDeleted);
   saveDeletedDirectoryIds(mergedDeleted);
-  const stored = readLocalStorageDataKey("kw-directory");
-  const sessionDir = stored != null
-    ? mergeIncomingWithStored("kw-directory", stored, directory)
-    : directory;
-  const merged = mergeDirectory(sessionDir, cloudDir, mergedDeleted);
+  const merged = mergeDirectory(directory, cloudDir, mergedDeleted);
   await pushKeysToCloud(
     ["kw-directory", DIRECTORY_DELETED_IDS_KEY],
     [merged, mergedDeleted],
@@ -934,11 +930,9 @@ export async function pushKeysToCloudSafe(keys: string[], values: unknown[]): Pr
   } catch { /* ignore */ }
   const merged = keys.map((key, i) => {
     if (!isDataKey(key)) return values[i];
-    const stored = readLocalStorageDataKey(key);
-    const session = stored != null ? mergeIncomingWithStored(key, stored, values[i]) : values[i];
     return mergeDataKey(
       key,
-      session,
+      values[i],
       cloudValues[i],
       getDeletedJobIds(),
       getDeletedDirectoryIds(),
