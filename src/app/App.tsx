@@ -8491,9 +8491,9 @@ function HelpView() {
               {q:"Logowanie administratora — zapamiętaj hasło", a:"Przy logowaniu możesz zaznaczyć „Zapamiętaj hasło na tym urządzeniu”. Hasło jest szyfrowane lokalnie w przeglądarce — nie wysyła się do chmury. Przy następnym wejściu na tym samym telefonie/komputerze pole hasła wypełni się samo (dla wybranego użytkownika). Wyloguj się ręcznie jeśli korzystasz ze wspólnego urządzenia."},
               {q:"Czy dane mogą zniknąć?", a:"Dane są w przeglądarce i w chmurze Supabase. Każdy zapis scala lokalne z chmurowymi — pustsza wersja nie nadpisze bogatszej. Chmura trzyma kopie prev/prev2 i dzienny pełny backup wszystkich kluczy. Przed sync tworzona jest też lokalna kopia na urządzeniu."},
               {q:"Co oznaczają ikonki chmurki w prawym górnym rogu?", a:"Szara chmurka = wszystko zsynchronizowane. Animowana chmurka ze strzałką = trwa zapis. Zielona chmurka = właśnie zapisano. Czerwona chmurka z X = błąd połączenia (sprawdź internet)."},
-              {q:"Co to jest backup i jak go zrobić?", a:'W lewym menu (na komputerze) na dole jest "Eksportuj backup". Kliknij — pobierze się plik .json ze wszystkimi danymi. Trzymaj go w bezpiecznym miejscu (dysk zewnętrzny, Google Drive). Żeby przywrócić dane — kliknij "Importuj backup" i wybierz ten plik (import scala z obecnymi danymi).'},
+              {q:"Co to jest backup i jak go zrobić?", a:'W górnym pasku (ikona pobierania) kliknij „Eksportuj backup” — pobierze się plik .json. Super Admin: pełne przywracanie w ⚙ Ustawienia → Kopie zapasowe. Import scala z obecnymi danymi i zapisuje do chmury.'},
               {q:"Automatyczny backup emailem", a:"Raz w tygodniu — w sobotę, po zapisaniu tygodnia do archiwum (przycisk „Zapisz tydzień” lub automatyczny zapis w sobotę). Wysyłana jest jedna kopia JSON na adres z ustawień (domyślnie dawid.thai@int.pl). Nie ma już codziennych maili przy każdym wejściu w aplikację. Dodatkowo każdy zapis do chmury tworzy kopie w Supabase (prev / prev2 / dzienna) dla listy płac, archiwum, robót, pracowników i kontaktów."},
-              {q:"Utrata danych — co robić?", a:"Menu Dane → „Przywróć wszystkie dane (chmura)” lub „(lokalnie)”. Dla pojedynczych typów: lista płac lub roboty osobno. W Liście płac: „Przywróć z archiwum” dla bieżącego tygodnia. Regularnie rób też Eksport backup na dysk."},
+              {q:"Utrata danych — co robić?", a:"⚙ Ustawienia (Super Admin) → Kopie zapasowe: przywróć wszystko z chmury lub lokalnie. Dla pojedynczych typów: lista płac lub roboty osobno. W Liście płac: „Przywróć z archiwum” dla bieżącego tygodnia. Regularnie rób eksport backup z górnego paska."},
               {q:"Używam dwóch urządzeń — które dane są właściwe?", a:"Przy każdym zapisie aplikacja scala dane z obu źródeł — bogatsze wpisy wygrywają. Stara karta z pustą listą nie nadpisze chmury. Przy pierwszym wejściu na nowym urządzeniu dane pobierają się z chmury i łączą z lokalnymi."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
@@ -8598,6 +8598,14 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.21.8", label:"Sidebar odchudzony — backup w ⚙ i topbarze",
+    items:[
+      {type:"improve", text:"Sidebar — usunięta sekcja „Dane”; menu i „Bieżący tydzień” znów mieszczą się bez ucinania"},
+      {type:"improve", text:"⚙ Super Admin — sekcja „Kopie zapasowe” (przywracanie z chmury / lokalnie, status kopii)"},
+      {type:"improve", text:"Górny pasek — eksport i import backupu dla wszystkich adminów (desktop i mobile)"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.21.7", label:"Sidebar — przywrócony prosty układ",
     items:[
@@ -9657,14 +9665,31 @@ function ChangelogView() {
 
 // ─── Ustawienia admina (Super Administrator) ───────────────────────────────────
 
+interface AdminBackupTools {
+  exportBackup: () => void;
+  importBackup: (file: File) => void;
+  restoreAllDataFromCloud: (source: "prev" | "prev2" | "today") => void;
+  restoreAllDataFromLocal: () => void;
+  restorePayrollFromCloud: (source?: "prev" | "prev2") => void;
+  restoreJobsFromCloud: (source: "prev" | "prev2" | "today") => void;
+  restoreJobsFromLocal: () => void;
+  restoreBusy: boolean;
+  jobsBackupStatus: { current: number; prev: number; prev2: number; today: number } | null;
+  payrollBackupStatus: { employeesPrev: number; employeesPrev2: number; archivePrev: number } | null;
+  fullDataBackupStatus: { dailyBackupDate: string | null; hasPrev: boolean } | null;
+  localDataSnapshotLabel: string | null;
+}
+
 function AdminSettingsModal({
   onClose,
   appSettings,
   onAppSettingsChange,
+  backupTools,
 }: {
   onClose: () => void;
   appSettings: AppSettings;
   onAppSettingsChange: (next: AppSettings) => void;
+  backupTools: AdminBackupTools;
 }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const users = useMemo(() => listAdminUsersForManagement(), [refreshKey]);
@@ -9860,6 +9885,54 @@ function AdminSettingsModal({
                 </p>
               </div>
             </label>
+          </div>
+
+          <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+              Kopie zapasowe
+            </p>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              Przywracanie scala dane z chmurą — bogatsze wpisy wygrywają (jak przy starcie aplikacji). Eksport / import dostępny też w górnym pasku dla wszystkich adminów.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={backupTools.exportBackup} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-xs font-medium transition-colors">
+                <Download size={13}/>Eksportuj backup
+              </button>
+              <label className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-xs font-medium transition-colors cursor-pointer">
+                <Upload size={13}/>Importuj backup
+                <input type="file" accept=".json" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) backupTools.importBackup(f); e.target.value = ""; }}/>
+              </label>
+            </div>
+            {(backupTools.jobsBackupStatus || backupTools.fullDataBackupStatus || backupTools.localDataSnapshotLabel) && (
+              <p className="text-[10px] text-muted-foreground leading-snug">
+                {backupTools.jobsBackupStatus && (backupTools.jobsBackupStatus.prev > 0 || backupTools.jobsBackupStatus.prev2 > 0) && (
+                  <>Kopie chmury (roboty): {backupTools.jobsBackupStatus.prev} / {backupTools.jobsBackupStatus.prev2}</>
+                )}
+                {backupTools.fullDataBackupStatus?.dailyBackupDate && (
+                  <>{backupTools.jobsBackupStatus ? " · " : ""}Kopia dzienna: {backupTools.fullDataBackupStatus.dailyBackupDate}</>
+                )}
+                {backupTools.localDataSnapshotLabel && (
+                  <>{backupTools.jobsBackupStatus || backupTools.fullDataBackupStatus?.dailyBackupDate ? " · " : ""}Lokalnie: {backupTools.localDataSnapshotLabel}</>
+                )}
+              </p>
+            )}
+            <div className="space-y-1.5 pt-1 border-t border-amber-500/15">
+              <button type="button" disabled={backupTools.restoreBusy || !backupTools.fullDataBackupStatus?.hasPrev} onClick={() => backupTools.restoreAllDataFromCloud("prev")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10 transition-colors disabled:opacity-40">
+                <RotateCcw size={13}/>Przywróć wszystkie dane (chmura)
+              </button>
+              <button type="button" disabled={backupTools.restoreBusy || !backupTools.localDataSnapshotLabel} onClick={() => backupTools.restoreAllDataFromLocal()} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-40">
+                <RotateCcw size={13}/>Przywróć wszystkie dane (lokalnie)
+              </button>
+              <button type="button" disabled={backupTools.restoreBusy || !backupTools.payrollBackupStatus?.employeesPrev} onClick={() => backupTools.restorePayrollFromCloud("prev")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10 transition-colors disabled:opacity-40">
+                <RotateCcw size={13}/>Przywróć listę płac (chmura)
+              </button>
+              <button type="button" disabled={backupTools.restoreBusy || !backupTools.jobsBackupStatus?.prev} onClick={() => backupTools.restoreJobsFromCloud("prev")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10 transition-colors disabled:opacity-40">
+                <RotateCcw size={13}/>Przywróć roboty (chmura)
+              </button>
+              <button type="button" disabled={backupTools.restoreBusy || listLocalJobsSnapshots().length === 0} onClick={() => backupTools.restoreJobsFromLocal()} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-40">
+                <RotateCcw size={13}/>Przywróć roboty (lokalnie)
+              </button>
+            </div>
           </div>
 
           <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-2">
@@ -10516,7 +10589,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const restoreWeekFromArchive = useCallback(() => {
     const snap = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
     if (!snap?.weekEmployees?.length) {
-      alert("Brak pełnego archiwum dla tego tygodnia. Sprawdź zakładkę Archiwum lub import backup JSON (menu Dane).");
+      alert("Brak pełnego archiwum dla tego tygodnia. Sprawdź zakładkę Archiwum lub import backup JSON (górny pasek / ⚙ Ustawienia).");
       return;
     }
     if (!window.confirm(`Przywrócić godziny, Sob.pr. i dodatkowe wpisy z archiwum (${fmtDate(weekFrom)} – ${fmtDate(weekTo)})?`)) return;
@@ -10863,69 +10936,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             </div>
           </div>
         </div>
-
-        {/* Backup */}
-        <div className="px-3 pb-4 space-y-1.5 border-t border-border pt-3">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider px-1 mb-2">Dane</p>
-          <button onClick={exportBackup} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
-            <Download size={13}/>Eksportuj backup
-          </button>
-          <label className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer">
-            <Upload size={13}/>Importuj backup
-            <input type="file" accept=".json" className="hidden" onChange={e=>e.target.files?.[0]&&importBackup(e.target.files[0])}/>
-          </label>
-          {jobsBackupStatus && (jobsBackupStatus.prev > 0 || jobsBackupStatus.prev2 > 0) && (
-            <p className="text-[10px] text-muted-foreground px-1 leading-snug">
-              Kopie chmury: {jobsBackupStatus.prev} / {jobsBackupStatus.prev2} rob.
-              {fullDataBackupStatus?.dailyBackupDate ? ` · dzienna ${fullDataBackupStatus.dailyBackupDate}` : ""}
-            </p>
-          )}
-          {listLocalDataSnapshots().length > 0 && (
-            <p className="text-[10px] text-muted-foreground px-1 leading-snug">
-              Lokalna kopia: {new Date(listLocalDataSnapshots()[0].at).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" })}
-            </p>
-          )}
-          <button
-            type="button"
-            disabled={restoreBusy || !fullDataBackupStatus?.hasPrev}
-            onClick={() => restoreAllDataFromCloud("prev")}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10 transition-colors disabled:opacity-40"
-          >
-            <RotateCcw size={13}/>Przywróć wszystkie dane (chmura)
-          </button>
-          <button
-            type="button"
-            disabled={restoreBusy || listLocalDataSnapshots().length === 0}
-            onClick={() => restoreAllDataFromLocal(false)}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-40"
-          >
-            <RotateCcw size={13}/>Przywróć wszystkie dane (lokalnie)
-          </button>
-          <button
-            type="button"
-            disabled={restoreBusy || !payrollBackupStatus?.employeesPrev}
-            onClick={() => restorePayrollFromCloud("prev")}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10 transition-colors disabled:opacity-40"
-          >
-            <RotateCcw size={13}/>Przywróć listę płac (chmura)
-          </button>
-          <button
-            type="button"
-            disabled={restoreBusy || !jobsBackupStatus?.prev}
-            onClick={() => restoreJobsFromCloud("prev")}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10 transition-colors disabled:opacity-40"
-          >
-            <RotateCcw size={13}/>Przywróć roboty (chmura)
-          </button>
-          <button
-            type="button"
-            disabled={restoreBusy || listLocalJobsSnapshots().length === 0}
-            onClick={restoreJobsFromLocal}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-40"
-          >
-            <RotateCcw size={13}/>Przywróć roboty (lokalnie)
-          </button>
-        </div>
       </aside>
 
       {/* Main */}
@@ -10956,11 +10966,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             {view==="payroll"&&canViewRates&&<span className="text-xs text-muted-foreground hidden sm:block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN · {productionWeekEmployees.length} prac.</span>}
             {view==="schedule"&&<span className="text-xs text-muted-foreground hidden sm:block">{fmtDate(weekFrom)} – {fmtDate(weekTo)} · {productionWeekEmployees.length} prac.</span>}
             {view==="jobs"&&<span className="text-xs text-muted-foreground hidden sm:block">{jobs.filter(j=>j.status==="in_progress").length} aktywne · {jobs.filter(j=>j.status==="completed").length} zdane</span>}
-            {/* Backup na mobile (na desktopie jest w sidebarze) */}
-            <button type="button" onClick={exportBackup} title="Eksportuj backup" className="md:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+            {/* Backup — górny pasek (wszyscy admini); przywracanie w ⚙ Super Admin */}
+            <button type="button" onClick={exportBackup} title="Eksportuj backup" className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
               <Download size={16}/>
             </button>
-            <label title="Importuj backup" className="md:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground cursor-pointer">
+            <label title="Importuj backup" className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground cursor-pointer">
               <Upload size={16}/>
               <input type="file" accept=".json" className="hidden" onChange={e=>e.target.files?.[0]&&importBackup(e.target.files[0])}/>
             </label>
@@ -11119,6 +11129,22 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           onClose={() => setShowAdminSettings(false)}
           appSettings={appSettings}
           onAppSettingsChange={setAppSettings}
+          backupTools={{
+            exportBackup,
+            importBackup,
+            restoreAllDataFromCloud,
+            restoreAllDataFromLocal: () => restoreAllDataFromLocal(false),
+            restorePayrollFromCloud,
+            restoreJobsFromCloud,
+            restoreJobsFromLocal,
+            restoreBusy,
+            jobsBackupStatus,
+            payrollBackupStatus,
+            fullDataBackupStatus,
+            localDataSnapshotLabel: listLocalDataSnapshots().length > 0
+              ? new Date(listLocalDataSnapshots()[0].at).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" })
+              : null,
+          }}
         />
       )}
       {showSmsModal && (
