@@ -94,6 +94,15 @@ export function EmployeeSmsModal({
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ sent: number; failed: number; errors: string[] } | null>(null);
   const [error, setError] = useState("");
+  const [smsStatus, setSmsStatus] = useState<{
+    loading: boolean;
+    configured: boolean;
+    provider: "smsapi" | "twilio" | "none";
+    restricted: boolean;
+    points?: number;
+    registrationPhone?: string;
+    statusError?: string;
+  }>({ loading: true, configured: false, provider: "none", restricted: false });
 
   useEffect(() => {
     if (!open) return;
@@ -101,6 +110,50 @@ export function EmployeeSmsModal({
     setMessage("");
     setError("");
     setResult(null);
+    setSmsStatus((s) => ({ ...s, loading: true }));
+    if (!API_BASE) {
+      setSmsStatus({ loading: false, configured: false, provider: "none", restricted: false, statusError: "Brak backendu" });
+      return;
+    }
+    fetch(`${API_BASE}/sms-status`, { headers: API_HEADERS })
+      .then(async (res) => {
+        const data = (await res.json()) as {
+          ok?: boolean;
+          configured?: boolean;
+          provider?: "smsapi" | "twilio" | "none";
+          restricted?: boolean;
+          points?: number;
+          registrationPhone?: string;
+          error?: string;
+        };
+        if (!res.ok || data.ok === false) {
+          setSmsStatus({
+            loading: false,
+            configured: Boolean(data.configured),
+            provider: data.provider || "none",
+            restricted: false,
+            statusError: data.error || "Nie udało się sprawdzić statusu SMS",
+          });
+          return;
+        }
+        setSmsStatus({
+          loading: false,
+          configured: Boolean(data.configured),
+          provider: data.provider || "none",
+          restricted: Boolean(data.restricted),
+          points: data.points,
+          registrationPhone: data.registrationPhone,
+        });
+      })
+      .catch(() => {
+        setSmsStatus({
+          loading: false,
+          configured: false,
+          provider: "none",
+          restricted: false,
+          statusError: "Błąd połączenia — status SMS nieznany",
+        });
+      });
   }, [open, eligible]);
 
   const recipients = useMemo(
@@ -304,13 +357,57 @@ export function EmployeeSmsModal({
                 </div>
               </div>
 
-              <div className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/25 rounded-xl px-3 py-2.5">
-                <AlertTriangle size={14} className="text-blue-500 shrink-0 mt-0.5"/>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  <strong className="text-foreground/90">Nowe konto SMSAPI</strong> wysyła SMS tylko na numer z rejestracji (ten z formularza smsapi.pl).
-                  Do wysyłki do całej ekipy: doładuj konto, uzupełnij dane firmy i poczekaj na aktywację w panelu SMSAPI.
+              {!smsStatus.loading && smsStatus.configured && smsStatus.provider === "smsapi" && !smsStatus.restricted && (
+                <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-3 py-2.5">
+                  <CheckCircle2 size={14} className="text-emerald-600 shrink-0 mt-0.5"/>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    <strong className="text-foreground/90">SMSAPI aktywne</strong>
+                    {typeof smsStatus.points === "number" && (
+                      <> · saldo <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{smsStatus.points.toFixed(2)}</span> pkt</>
+                    )}
+                    {" "}— możesz wysłać do całej zaznaczonej listy.
+                  </p>
+                </div>
+              )}
+
+              {!smsStatus.loading && smsStatus.configured && smsStatus.provider === "smsapi" && smsStatus.restricted && (
+                <div className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/25 rounded-xl px-3 py-2.5">
+                  <AlertTriangle size={14} className="text-blue-500 shrink-0 mt-0.5"/>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    <strong className="text-foreground/90">Konto SMSAPI ograniczone</strong> — SMS można wysłać tylko na numer z rejestracji
+                    {smsStatus.registrationPhone ? ` (${smsStatus.registrationPhone})` : ""}.
+                    Po doładowaniu i aktywacji w panelu smsapi.pl odśwież okno — status sprawdzi się ponownie.
+                  </p>
+                </div>
+              )}
+
+              {!smsStatus.loading && !smsStatus.configured && (
+                <div className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/25 rounded-xl px-3 py-2.5">
+                  <AlertTriangle size={14} className="text-blue-500 shrink-0 mt-0.5"/>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    SMS nie skonfigurowany — ustaw <strong className="text-foreground/90">SMSAPI_TOKEN</strong> w Supabase Secrets.
+                  </p>
+                </div>
+              )}
+
+              {smsStatus.loading && (
+                <p className="text-[11px] text-muted-foreground px-1">Sprawdzanie statusu SMSAPI…</p>
+              )}
+
+              {smsStatus.statusError && !smsStatus.loading && (
+                <p className="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+                  {smsStatus.statusError}
                 </p>
-              </div>
+              )}
+
+              {!smsStatus.loading && smsStatus.configured && smsStatus.provider === "twilio" && (
+                <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-3 py-2.5">
+                  <CheckCircle2 size={14} className="text-emerald-600 shrink-0 mt-0.5"/>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    <strong className="text-foreground/90">Twilio skonfigurowane</strong> — wysyłka do zaznaczonej listy.
+                  </p>
+                </div>
+              )}
 
               <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 rounded-xl px-3 py-2.5">
                 <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5"/>

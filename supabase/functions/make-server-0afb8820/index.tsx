@@ -1249,6 +1249,93 @@ function normalizePhoneE164(phone: string): string | null {
 }
 
 /** SMSAPI.pl — preferowane w PL (sekret SMSAPI_TOKEN). */
+type SmsApiProfile = {
+  points?: number;
+  phone_number?: string;
+  payment_type?: string;
+  name?: string;
+  error?: number | string;
+  message?: string;
+};
+
+async function fetchSmsApiProfile(token: string): Promise<{ ok: true; profile: SmsApiProfile } | { ok: false; error: string }> {
+  const res = await fetch("https://api.smsapi.pl/profile", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const text = await res.text();
+  if (!res.ok) return { ok: false, error: text || "SMSAPI profile HTTP error" };
+  try {
+    const json = JSON.parse(text) as SmsApiProfile;
+    if (json.error) return { ok: false, error: json.message || String(json.error) };
+    return { ok: true, profile: json };
+  } catch {
+    return { ok: false, error: text || "SMSAPI profile parse error" };
+  }
+}
+
+/** test=1 — bez wysyłki; błąd 98 = konto ograniczone (tylko numer z rejestracji). */
+async function probeSmsApiRestricted(token: string, registrationPhone?: string): Promise<boolean> {
+  let probe = "48999000001";
+  const reg9 = registrationPhone?.replace(/\D/g, "").slice(-9) || "";
+  if (reg9 && probe.endsWith(reg9)) probe = "48999000002";
+
+  const body = new URLSearchParams({
+    to: probe,
+    message: "WGDOM status probe",
+    encoding: "utf-8",
+    format: "json",
+    test: "1",
+  });
+  const res = await fetch("https://api.smsapi.pl/sms.do", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: body.toString(),
+  });
+  const text = await res.text();
+  try {
+    const json = JSON.parse(text) as { error?: number };
+    return json.error === 98;
+  } catch {
+    return /(^|\D)98(\D|$)/.test(text) && /ograniczon/i.test(text);
+  }
+}
+
+async function getSmsProviderStatus(): Promise<{
+  ok: boolean;
+  configured: boolean;
+  provider: "smsapi" | "twilio" | "none";
+  restricted?: boolean;
+  points?: number;
+  registrationPhone?: string;
+  paymentType?: string;
+  error?: string;
+}> {
+  const smsapiToken = Deno.env.get("SMSAPI_TOKEN");
+  if (smsapiToken) {
+    const prof = await fetchSmsApiProfile(smsapiToken);
+    if (!prof.ok) {
+      return { ok: false, configured: true, provider: "smsapi", error: prof.error };
+    }
+    const restricted = await probeSmsApiRestricted(smsapiToken, prof.profile.phone_number);
+    return {
+      ok: true,
+      configured: true,
+      provider: "smsapi",
+      restricted,
+      points: typeof prof.profile.points === "number" ? prof.profile.points : undefined,
+      registrationPhone: prof.profile.phone_number,
+      paymentType: prof.profile.payment_type,
+    };
+  }
+  if (Deno.env.get("TWILIO_ACCOUNT_SID")) {
+    return { ok: true, configured: true, provider: "twilio", restricted: false };
+  }
+  return { ok: true, configured: false, provider: "none" };
+}
+
 async function sendViaSmsApi(to: string, message: string): Promise<{ ok: boolean; error?: string }> {
   const token = Deno.env.get("SMSAPI_TOKEN");
   if (!token) return { ok: false, error: "SMSAPI_TOKEN not set" };
@@ -1343,6 +1430,20 @@ async function sendSingleSms(to: string, message: string): Promise<{ ok: boolean
   if (Deno.env.get("TWILIO_ACCOUNT_SID")) return sendViaTwilio(to, message);
   return { ok: false, error: "Brak konfiguracji SMS — ustaw SMSAPI_TOKEN lub Twilio w Supabase Secrets" };
 }
+
+app.get("/make-server-0afb8820/sms-status", async (c) => {
+  try {
+    const status = await getSmsProviderStatus();
+    return c.json(status);
+  } catch (e) {
+    return c.json({
+      ok: false,
+      configured: false,
+      provider: "none",
+      error: e instanceof Error ? e.message : "SMS status error",
+    }, 500);
+  }
+});
 
 // Masowa wysyłka SMS do pracowników (pilne ogłoszenia)
 app.post("/make-server-0afb8820/send-sms-bulk", async (c) => {

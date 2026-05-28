@@ -1692,6 +1692,33 @@ function sortJobsActiveFirst(jobs: Job[]): Job[] {
   });
 }
 
+/** Sidebar / podgląd: ilu pracowników dziś na ilu aktywnych robotach (wpisy czasu pracy). */
+function todayFieldWorkStats(
+  jobs: Job[],
+  dateIso: string,
+  directory: DirectoryEmployee[],
+): { people: number; jobs: number } {
+  const workerKeys = new Set<string>();
+  const jobIds = new Set<string>();
+  for (const job of jobs) {
+    if (job.status !== "in_progress") continue;
+    for (const we of job.workEntries) {
+      if (we.date !== dateIso) continue;
+      if (we.directoryId) {
+        const dir = directory.find((d) => d.id === we.directoryId);
+        if (dir && isTestDirectoryEmployee(dir)) continue;
+        workerKeys.add(`d:${we.directoryId}`);
+      } else if (we.workerName?.trim()) {
+        workerKeys.add(`n:${we.workerName.trim().toLowerCase()}`);
+      } else {
+        continue;
+      }
+      jobIds.add(job.id);
+    }
+  }
+  return { people: workerKeys.size, jobs: jobIds.size };
+}
+
 /** Pulpit: adres roboty — tylko wpis czasu pracy z dzisiejszą datą (Roboty → Dodaj wpis). */
 function jobsForEmployeeOnDashboard(
   emp: WeekEmployee,
@@ -8196,6 +8223,18 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-28", version:"2.20.7", label:"SMS — status konta SMSAPI na żywo",
+    items:[
+      {type:"fix", text:"SMS pilne — niebieski komunikat tylko gdy konto SMSAPI jest nadal ograniczone; po aktywacji zielone „SMSAPI aktywne” z saldem"},
+    ],
+  },
+  {
+    date:"2026-05-28", version:"2.20.6", label:"Sidebar — dziś na budowach",
+    items:[
+      {type:"new", text:"Menu boczne — pod „Bieżący tydzień”: ile osób dziś na ilu robotach (z wpisów czasu pracy)"},
+    ],
+  },
+  {
     date:"2026-05-28", version:"2.20.5", label:"Super Admin — zmiana dokumentów z raportu",
     items:[
       {type:"new", text:"Super Admin może odznaczyć Zakres lub Rysunek/Plan mimo raportu ekipy — po potwierdzeniu w oknie dialogowym"},
@@ -10256,6 +10295,19 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const totalNet = productionWeekEmployees.reduce((s,e)=>s+calcWeekEmployee(e).netPay,0);
 
+  const todayFieldStats = useMemo(() => {
+    const iso = todayIsoDate();
+    return {
+      iso,
+      label: new Date(iso + "T12:00:00").toLocaleDateString("pl-PL", {
+        weekday: "short",
+        day: "numeric",
+        month: "numeric",
+      }),
+      ...todayFieldWorkStats(jobs, iso, directory),
+    };
+  }, [jobs, directory]);
+
   const handleNavigate = useCallback((v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string, payrollEmpId?: string, inspectorTab?: "activity" | "portfolio") => {
     if (jobId) {
       if (v === "inspector") setPendingInspectorJobId(jobId);
@@ -10299,6 +10351,15 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             <div className="flex justify-between text-xs"><span className="text-muted-foreground">Pracownicy</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{productionWeekEmployees.length}</span></div>
             <div className="flex justify-between text-xs"><span className="text-muted-foreground">Okres</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtDate(weekFrom).slice(0,5)}–{fmtDate(weekTo).slice(0,5)}</span></div>
             <div className="flex justify-between text-xs"><span className="text-muted-foreground">Rozliczeni</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{productionWeekEmployees.filter(e=>e.settled).length}/{productionWeekEmployees.length}</span></div>
+            <div className="flex justify-between items-baseline gap-2 text-xs pt-0.5">
+              <span className="text-muted-foreground leading-snug">
+                Dziś
+                <span className="text-muted-foreground/65 normal-case"> ({todayFieldStats.label})</span>
+              </span>
+              <span className="font-medium text-right leading-snug shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}} title="Osoby z wpisem czasu pracy na aktywnej robocie">
+                {todayFieldStats.people} os. · {todayFieldStats.jobs} rob.
+              </span>
+            </div>
             <div className="pt-2 mt-2 border-t border-border">
               <p className="text-xs text-muted-foreground mb-0.5">Do wypłaty</p>
               <p className="text-lg font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN</p>
@@ -10528,6 +10589,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
                   <X size={18}/>
                 </button>
               </div>
+              <p className="text-[11px] text-muted-foreground flex justify-between gap-2 mb-3 pb-3 border-b border-border">
+                <span>Dziś ({todayFieldStats.label})</span>
+                <span className="font-medium shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                  {todayFieldStats.people} os. · {todayFieldStats.jobs} rob.
+                </span>
+              </p>
               <div className="grid grid-cols-3 gap-2">
                 {mobileNavMore.map(({key,label,icon:Icon,badge})=>(
                   <button
