@@ -36,9 +36,9 @@ export function JobFilePreviewModal({
   }, [url, filename, isPdf, isPhoto, athPreviewEnabled]);
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70" onClick={onClose}>
+    <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/70" onClick={onClose}>
       <div
-        className="bg-card rounded-t-2xl sm:rounded-2xl border border-border w-full max-w-4xl max-h-[92dvh] flex flex-col shadow-2xl"
+        className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-4xl max-h-[92dvh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-3 border-b border-border shrink-0">

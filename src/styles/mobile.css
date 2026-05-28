@@ -1,0 +1,35 @@
+/* Mobile / tablet — iOS Safari, Android Chrome, PWA */
+
+@layer utilities {
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Tailwind text-sm/text-xs on inputs overrides index.html — force 16px to prevent iOS zoom */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Scroll containers — momentum scrolling on iOS */
+  .overscroll-contain,
+  [class*="overflow-y-auto"],
+  [class*="overflow-x-auto"] {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Tablet portrait — bottom sheets until md (768px) */
+@media (max-width: 767px) {
+  .modal-sheet {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+    max-height: 92dvh;
+  }
+}

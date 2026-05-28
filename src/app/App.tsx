@@ -2447,7 +2447,7 @@ function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee
           <p className="text-sm font-semibold">{emp.name||"Pracownik"}</p>
           <p className="text-xs text-muted-foreground">{emp.position||"—"}</p>
         </div>
-        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"><X size={16}/></button>
+        <button onClick={onClose} className="touch-target p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"><X size={16}/></button>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-5 space-y-5">
         {canViewRates && (
@@ -2456,7 +2456,7 @@ function WeekEmployeeDetail({emp, weekFrom, onChange, onClose}:{emp:WeekEmployee
           <span className="text-sm text-muted-foreground flex-1">Stawka w tym tygodniu</span>
           <input type="number" min="0" step="0.50" value={emp.rate}
             onChange={(e)=>onChange({...emp,rate:e.target.value})}
-            className="w-24 bg-background rounded-lg px-2 py-1.5 text-sm text-right border border-transparent focus:border-primary focus:outline-none"
+            className="w-24 bg-background rounded-lg px-2 py-2 text-base text-right border border-transparent focus:border-primary focus:outline-none"
             style={{fontFamily:"'JetBrains Mono', monospace"}}/>
           <span className="text-xs text-muted-foreground">PLN/h</span>
         </div>
@@ -2732,8 +2732,8 @@ function PayrollEmailModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
-      <div className="bg-card rounded-t-2xl sm:rounded-2xl border border-border w-full max-w-lg shadow-2xl max-h-[92dvh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-lg shadow-2xl max-h-[92dvh] flex flex-col">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between shrink-0">
           <div>
             <p className="text-sm font-semibold">Wyślij listę płac emailem</p>
@@ -2867,7 +2867,7 @@ function PayrollPdfPreviewModal({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-5"
+      className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-0 md:p-5"
       style={{ background: "rgba(0,0,0,0.78)" }}
       onClick={onClose}
       role="dialog"
@@ -2875,7 +2875,7 @@ function PayrollPdfPreviewModal({
       aria-labelledby="payroll-pdf-preview-title"
     >
       <div
-        className="bg-card rounded-t-2xl sm:rounded-2xl border border-border shadow-2xl w-full max-w-6xl h-[94dvh] sm:h-[90dvh] flex flex-col overflow-hidden"
+        className="bg-card rounded-t-2xl md:rounded-2xl border border-border shadow-2xl w-full max-w-6xl h-[94dvh] md:h-[90dvh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-4 sm:px-5 py-3.5 border-b border-border flex items-center gap-3 shrink-0 bg-gradient-to-r from-primary/10 via-card to-card">
@@ -3314,14 +3314,14 @@ function PayrollView({
 
       {/* Picker modal */}
       {showPicker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:"rgba(0,0,0,0.7)"}}>
-          <div className="bg-card rounded-2xl border border-border w-full max-w-md shadow-2xl flex flex-col max-h-[80vh]">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4" style={{background:"rgba(0,0,0,0.7)"}} onClick={()=>{setShowPicker(false);setPickerSearch("");setPickerSelected(new Set());}}>
+          <div className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-md shadow-2xl flex flex-col max-h-[92dvh] modal-sheet" onClick={(e)=>e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
               <div><p className="text-sm font-semibold">Dodaj pracowników do tygodnia</p><p className="text-xs text-muted-foreground">{fmtDate(weekFrom)} – {fmtDate(weekTo)}</p></div>
-              <button onClick={()=>{setShowPicker(false);setPickerSearch("");setPickerSelected(new Set());}} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
+              <button type="button" onClick={()=>{setShowPicker(false);setPickerSearch("");setPickerSelected(new Set());}} className="touch-target p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
             </div>
-            <div className="px-4 py-3 border-b border-border space-y-2">
-              <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/><input type="text" placeholder="Szukaj..." value={pickerSearch} onChange={(e)=>setPickerSearch(e.target.value)} className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"/></div>
+            <div className="px-4 py-3 border-b border-border space-y-2 shrink-0">
+              <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/><input type="text" placeholder="Szukaj..." value={pickerSearch} onChange={(e)=>setPickerSearch(e.target.value)} className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2.5 text-base border border-transparent focus:border-primary focus:outline-none"/></div>
               {filteredAvailable.length>0&&(
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Zaznaczono: {pickerSelected.size} / {filteredAvailable.length}</span>
@@ -3351,11 +3351,11 @@ function PayrollView({
                 );
               })}
             </div>
-            <div className="px-4 py-3 border-t border-border">
+            <div className="px-4 py-3 border-t border-border shrink-0">
               <button
                 onClick={()=>{if(pickerSelected.size>0){onAddFromDirectory([...pickerSelected]);}setShowPicker(false);setPickerSearch("");setPickerSelected(new Set());}}
                 disabled={pickerSelected.size===0}
-                className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full min-h-[48px] py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {pickerSelected.size>0?`Dodaj zaznaczonych (${pickerSelected.size})`:"Zaznacz pracowników"}
               </button>
@@ -3410,9 +3410,9 @@ function EmployeeArchiveModal({
   const maxMonthlyNet = Math.max(...stats.monthlyNet, 1);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-black/60" onClick={onClose}>
       <div
-        className="bg-card border border-border rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[92dvh] overflow-y-auto shadow-xl"
+        className="bg-card border border-border rounded-t-2xl md:rounded-2xl w-full max-w-lg max-h-[92dvh] overflow-y-auto shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-card border-b border-border px-5 py-4 flex items-center justify-between gap-3">
@@ -4938,14 +4938,14 @@ function JobEmailModal({
   const photos = (job.photos || []).filter((p) => p.status !== "rejected" && p.publicUrl);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
-      <div className="bg-card rounded-t-2xl sm:rounded-2xl border border-border w-full max-w-lg shadow-2xl max-h-[92dvh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-lg shadow-2xl max-h-[92dvh] flex flex-col">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between shrink-0">
           <div>
             <p className="text-sm font-semibold flex items-center gap-2"><Mail size={15} className="text-primary"/>Wyślij email</p>
             <p className="text-xs text-muted-foreground mt-0.5 truncate">{job.address || "Robota"}{job.flatNumber && ` m.${job.flatNumber}`}</p>
           </div>
-          <button type="button" onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
+          <button type="button" onClick={onClose} className="touch-target p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"><X size={16}/></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
@@ -8008,6 +8008,15 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-28", version:"2.19.15", label:"Mobile i tablet — Android / iOS",
+    items:[
+      {type:"improve", text:"Telefon i tablet — dolna nawigacja do 768px; sidebar na większych ekranach (wygodniejsze tablety)"},
+      {type:"fix", text:"iOS — brak zoomu przy focus w polach formularza (16px, ważniejsze niż text-sm z Tailwind)"},
+      {type:"improve", text:"Modale listy płac (dodaj pracownika, nadpisz tydzień) — bottom sheet na mobile; większe przyciski dotykowe (44px)"},
+      {type:"improve", text:"PWA — orientacja dowolna; ikony manifest; safe-area i momentum scroll na iOS"},
+    ],
+  },
+  {
     date:"2026-05-28", version:"2.19.14", label:"Sync — audyt wszystkich zakładek i paneli",
     items:[
       {type:"fix", text:"Kontakty i archiwum — usunięte wpisy nie wracają z chmury (tombstones jak przy kartotece / robotach)"},
@@ -9092,14 +9101,14 @@ function AdminSettingsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
-      <div className="bg-card rounded-t-2xl sm:rounded-2xl border border-border w-full max-w-lg shadow-2xl max-h-[92dvh] flex flex-col" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+    <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-0 md:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-lg shadow-2xl max-h-[92dvh] flex flex-col" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
             <Settings size={16} className="text-primary"/>
             <span className="text-sm font-semibold">Ustawienia administratorów</span>
           </div>
-          <button type="button" onClick={onClose} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
+          <button type="button" onClick={onClose} className="touch-target p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
             <X size={16}/>
           </button>
         </div>
@@ -10013,7 +10022,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     <div className="flex bg-background text-foreground overflow-hidden" style={{fontFamily:"'Inter', sans-serif", height:"100dvh"}}>
 
       {/* Sidebar — desktop only */}
-      <aside className={`hidden sm:flex flex-col border-r border-border bg-card transition-all duration-300 shrink-0 ${sidebarOpen?"w-56":"w-0 overflow-hidden"}`}>
+      <aside className={`hidden md:flex flex-col border-r border-border bg-card transition-all duration-300 shrink-0 ${sidebarOpen?"w-56":"w-0 overflow-hidden"}`}>
         {/* Logo */}
         <div className="flex flex-col gap-1.5 px-4 py-4 border-b border-border">
           <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-8 w-auto object-contain object-left"/>
@@ -10116,13 +10125,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         {/* Topbar */}
         <div className="flex items-center gap-2 px-3 sm:px-5 py-3 sm:py-3.5 border-b border-border bg-card shrink-0" style={{paddingTop:"max(0.75rem, env(safe-area-inset-top))"}}>
           {/* Desktop: sidebar toggle */}
-          <button onClick={()=>setSidebarOpen(v=>!v)} className="hidden sm:flex p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+          <button onClick={()=>setSidebarOpen(v=>!v)} className="hidden md:flex p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
             <Users size={15}/>
           </button>
           {/* Mobile: logo */}
-          <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-6 w-auto object-contain sm:hidden"/>
+          <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-6 w-auto object-contain md:hidden"/>
           {/* Desktop: collapsed nav */}
-          {!sidebarOpen&&<div className="hidden sm:flex gap-1">
+          {!sidebarOpen&&<div className="hidden md:flex gap-1">
             {navItems.map(({key,label,icon:Icon})=>(
               <button key={key} onClick={()=>setView(key)} className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:bg-secondary"}`}><Icon size={12}/>{label}</button>
             ))}
@@ -10140,10 +10149,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             {view==="schedule"&&<span className="text-xs text-muted-foreground hidden sm:block">{fmtDate(weekFrom)} – {fmtDate(weekTo)} · {productionWeekEmployees.length} prac.</span>}
             {view==="jobs"&&<span className="text-xs text-muted-foreground hidden sm:block">{jobs.filter(j=>j.status==="in_progress").length} aktywne · {jobs.filter(j=>j.status==="completed").length} zdane</span>}
             {/* Backup na mobile (na desktopie jest w sidebarze) */}
-            <button type="button" onClick={exportBackup} title="Eksportuj backup" className="sm:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+            <button type="button" onClick={exportBackup} title="Eksportuj backup" className="md:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
               <Download size={16}/>
             </button>
-            <label title="Importuj backup" className="sm:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground cursor-pointer">
+            <label title="Importuj backup" className="md:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground cursor-pointer">
               <Upload size={16}/>
               <input type="file" accept=".json" className="hidden" onChange={e=>e.target.files?.[0]&&importBackup(e.target.files[0])}/>
             </label>
@@ -10225,7 +10234,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         )}
 
         {/* Content */}
-        <div className="flex flex-1 min-h-0 overflow-hidden pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:pb-0">
+        <div className="flex flex-1 min-h-0 overflow-hidden pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
           {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs} adminUserId={adminSession?.id} alertsSeenTick={alertsSeenTick} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} onOpenSms={()=>setShowSmsModal(true)}/>}
           {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onSyncRatesFromDirectory={syncWeekRatesFromDirectory} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive} initialEmpId={pendingPayrollEmpId} onInitialEmpConsumed={()=>setPendingPayrollEmpId(null)}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
@@ -10240,7 +10249,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         </div>
 
         {/* Mobile bottom nav — 4 główne + Menu (iOS/Android) */}
-        <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex z-40" style={{paddingBottom:"env(safe-area-inset-bottom)"}}>
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex z-40" style={{paddingBottom:"env(safe-area-inset-bottom)"}}>
           {mobileNavPrimary.map(({key,icon:Icon,badge})=>(
             <button key={key} onClick={()=>{setView(key);setMobileMoreOpen(false);}} className={`flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[52px] py-2 relative transition-colors ${view===key?"text-primary":"text-muted-foreground"}`}>
               <div className="relative">
@@ -10257,7 +10266,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         </nav>
 
         {mobileMoreOpen && (
-          <div className="sm:hidden fixed inset-0 z-50" style={{background:"rgba(0,0,0,0.55)"}} onClick={()=>setMobileMoreOpen(false)}>
+          <div className="md:hidden fixed inset-0 z-50" style={{background:"rgba(0,0,0,0.55)"}} onClick={()=>setMobileMoreOpen(false)}>
             <div
               className="absolute bottom-0 left-0 right-0 bg-card border-t border-border rounded-t-2xl px-4 pt-4 pb-2 max-h-[70dvh] overflow-y-auto"
               style={{paddingBottom:"max(1rem, env(safe-area-inset-bottom))"}}
@@ -10306,8 +10315,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         />
       )}
       {showSaveConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:"rgba(0,0,0,0.7)"}}>
-          <div className="bg-card rounded-2xl border border-border w-full max-w-sm shadow-2xl p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4" style={{background:"rgba(0,0,0,0.7)"}} onClick={()=>setShowSaveConfirm(false)}>
+          <div className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-sm shadow-2xl p-6 space-y-4 modal-sheet" onClick={(e)=>e.stopPropagation()}>
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-yellow-500/15 flex items-center justify-center shrink-0">
                 <AlertTriangle size={18} className="text-yellow-400"/>
@@ -10317,12 +10326,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
                 <p className="text-xs text-muted-foreground mt-1">Ten tydzień ({fmtDate(weekFrom)}–{fmtDate(weekTo)}) jest już zapisany w archiwum. Dane zostaną nadpisane aktualnymi wartościami.</p>
               </div>
             </div>
-            <div className="flex gap-2">
-              <button onClick={doSaveWeek} className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
-                Tak, nadpisz
-              </button>
-              <button onClick={()=>setShowSaveConfirm(false)} className="flex-1 py-2.5 rounded-xl bg-secondary text-muted-foreground text-sm font-medium hover:text-foreground transition-colors">
+            <div className="flex flex-col-reverse sm:flex-row gap-2">
+              <button onClick={()=>setShowSaveConfirm(false)} className="flex-1 min-h-[48px] py-3 rounded-xl bg-secondary text-muted-foreground text-sm font-medium hover:text-foreground transition-colors">
                 Anuluj
+              </button>
+              <button onClick={doSaveWeek} className="flex-1 min-h-[48px] py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+                Tak, nadpisz
               </button>
             </div>
           </div>
@@ -12338,7 +12347,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
               <div className="flex flex-wrap gap-2">
                 {LABELS.map((lbl) => (
                   <button key={lbl.value} type="button" onClick={() => setGalleryLabel(lbl.value)}
-                    className={`text-sm px-3 py-2 rounded-full border transition-colors ${galleryLabel === lbl.value ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}>
+                    className={`text-sm px-3 py-2.5 min-h-[44px] rounded-full border transition-colors touch-manipulation ${galleryLabel === lbl.value ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}>
                     {lbl.title}
                   </button>
                 ))}

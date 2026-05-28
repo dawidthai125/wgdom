@@ -182,11 +182,11 @@ export function InspectorHelpModal({ open, onClose }: { open: boolean; onClose: 
 
   return (
     <div
-      className="fixed inset-0 z-[90] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60"
+      className="fixed inset-0 z-[90] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/60"
       onClick={onClose}
     >
       <div
-        className="bg-card rounded-t-2xl sm:rounded-2xl border border-border w-full max-w-lg max-h-[92dvh] flex flex-col shadow-2xl"
+        className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-lg max-h-[92dvh] flex flex-col shadow-2xl"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         onClick={(e) => e.stopPropagation()}
       >

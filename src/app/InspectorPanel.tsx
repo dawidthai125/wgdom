@@ -508,11 +508,11 @@ export function InspectorPanel({
             <button
               type="button"
               onClick={() => { setSelectedId(adminNotesPending[0].id); setMsg(""); markAdminNotesSeen(); }}
-              className="px-3 py-2 rounded-lg bg-violet-600 text-white text-xs font-medium"
+              className="px-3 py-2.5 min-h-[44px] rounded-lg bg-violet-600 text-white text-xs font-medium touch-manipulation"
             >
               Otwórz
             </button>
-            <button type="button" onClick={markAdminNotesSeen} className="px-3 py-2 rounded-lg bg-secondary text-xs text-muted-foreground">
+            <button type="button" onClick={markAdminNotesSeen} className="px-3 py-2.5 min-h-[44px] rounded-lg bg-secondary text-xs text-muted-foreground touch-manipulation">
               OK
             </button>
           </div>
@@ -561,7 +561,7 @@ export function InspectorPanel({
                   key={f}
                   type="button"
                   onClick={() => setFilter(f)}
-                  className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors ${filter === f ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+                  className={`flex-1 py-2.5 min-h-[44px] rounded-lg text-xs font-medium transition-colors touch-manipulation ${filter === f ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
                 >
                   {f === "active" ? "Aktywne" : f === "completed" ? "Zdane" : "Wszystkie"}
                 </button>
