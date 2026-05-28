@@ -7349,28 +7349,30 @@ function DashboardView({
           <button
             type="button"
             onClick={() => onNavigate("payroll")}
-            className={`bg-card border rounded-xl px-4 py-3 text-left hover:border-primary/30 transition-colors ${payrollCash.hasBiweeklyEmployees ? "border-sky-500/20" : "border-border"}`}
+            className="bg-card border border-border rounded-xl px-4 py-3 text-left hover:border-primary/30 transition-colors"
           >
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-              {payrollCash.hasBiweeklyEmployees ? "Kasa w sobotę" : "Wypłata tyg."}
+              Wypłata · sob. {fmtDate(weekTo).slice(0, 5)}
             </p>
-            <p className="text-lg font-bold text-primary leading-tight" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {fmt(weekTotal)} <span className="text-[10px] font-normal text-muted-foreground">zł</span>
+            <p className="text-2xl font-bold text-primary leading-tight" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              {fmt(weekTotal)}
             </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
+            <p className="text-[10px] text-muted-foreground mt-0.5">
               {fmtH(weekHours)} · {weekEmployees.length} os.
-              {payrollCash.hasBiweeklyEmployees && payrollCash.isAnyBiweeklyPayoutWeek && (
-                <span className="text-sky-400"> · co 2 tyg. {fmt(payrollCash.biweeklyPayoutNet)} zł</span>
-              )}
             </p>
-            {payrollCash.hasBiweeklyEmployees && !payrollCash.isAnyBiweeklyPayoutWeek && (
-              <p className="text-[10px] text-sky-400/90 mt-0.5 leading-snug">
-                co 2 tyg. ({biweeklyCount}) → {fmtDate(payrollCash.nextBiweeklyPayoutDate).slice(0, 5)}: {fmt(payrollCash.biweeklyAccruedNet)} zł
-              </p>
-            )}
-            {payrollCash.hasBiweeklyEmployees && payrollCash.isAnyBiweeklyPayoutWeek && (
-              <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
-                tygodniówki {fmt(payrollCash.weeklyNet)} zł · {biweeklyCount} os. co 2 tyg.
+            {payrollCash.hasBiweeklyEmployees && (
+              <p className="text-[10px] text-muted-foreground mt-1.5 pt-1.5 border-t border-border/60 leading-snug">
+                {payrollCash.isAnyBiweeklyPayoutWeek ? (
+                  <>
+                    w tym <span className="font-medium text-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(payrollCash.biweeklyPayoutNet)} zł</span>
+                    {" "}za 2 tygodnie ({biweeklyCount} os.)
+                  </>
+                ) : (
+                  <>
+                    + <span className="font-medium text-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(payrollCash.biweeklyAccruedNet)} zł</span>
+                    {" "}za 2 tyg. na sob. {fmtDate(payrollCash.nextBiweeklyPayoutDate).slice(0, 5)}
+                  </>
+                )}
               </p>
             )}
           </button>
@@ -8582,6 +8584,12 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.21.3", label:"Pulpit — czytelniejszy kafelek wypłaty",
+    items:[
+      {type:"improve", text:"Pulpit — kafelek wypłaty: jeden tytuł z datą soboty, większa kwota, jedna linia o wypłacie co 2 tygodnie (bez przeładowania tekstem)"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.21.2", label:"Pulpit — kafelek kasy w sobotę",
     items:[
