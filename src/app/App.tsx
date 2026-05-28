@@ -3183,16 +3183,20 @@ function PayrollView({
   }, [weekEmployees, directory, weekFrom, weekTo, savedWeeks]);
 
   const totalWeekHours = rows.reduce((s,r)=>s+r.weekHours,0);
-  const totalPrevSatHours = rows.reduce((s,r)=>s+r.prevSatHours,0);
-  const totalHoursAll = rows.reduce((s,r)=>s+r.totalHours,0);
+  const totalPrevSatHours = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?0:r.prevSatHours),0);
+  const totalHoursAll = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?r.weekHours:r.totalHours),0);
   const totalWeekGross = rows.reduce((s,r)=>s+r.weekGross,0);
-  const totalPrevSatGross = rows.reduce((s,r)=>s+r.prevSatGross,0);
-  const totalGross = rows.reduce((s,r)=>s+r.grossPay,0);
+  const totalPrevSatGross = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?0:r.prevSatGross),0);
+  const totalGross = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?r.weekGross:r.grossPay),0);
   const totalWeekZaliczka = rows.reduce((s,r)=>s+r.weekZaliczka,0);
-  const totalPrevSatZaliczka = rows.reduce((s,r)=>s+r.prevSatZaliczka,0);
-  const totalZaliczkaSum = rows.reduce((s,r)=>s+r.totalZaliczka,0);
+  const totalPrevSatZaliczka = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?0:r.prevSatZaliczka),0);
+  const totalZaliczkaSum = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?r.weekZaliczka:r.totalZaliczka),0);
   const totalExtraCostsSum = rows.reduce((s,r)=>s+r.totalExtraCosts,0);
-  const totalNet = rows.reduce((s,r)=>s+r.netPay,0);
+  const totalNet = rows.reduce((s,r)=>{
+    const bw = biweeklyRowMap.get(r.emp.id);
+    if (bw) return s+(bw.isPayoutWeek?bw.displayNet:bw.thisWeekNet);
+    return s+r.netPay;
+  },0);
 
   const alreadySaved = savedWeeks.some((w)=>w.weekFrom===weekFrom&&w.weekTo===weekTo);
   const archivedForWeek = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
@@ -3446,8 +3450,8 @@ function PayrollView({
                             <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.weekHours>0?fmtH(r.weekHours):<span className="text-muted-foreground/40">—</span>}</td>
                             <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.prevSatHours>0&&!biweeklyRowMap.has(r.emp.id)?<span className="text-amber-500">{fmtH(r.prevSatHours)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
                             <td className="px-2 py-3.5 text-right font-medium whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{(biweeklyRowMap.has(r.emp.id) ? r.weekHours : r.totalHours)>0?fmtH(biweeklyRowMap.has(r.emp.id) ? r.weekHours : r.totalHours):<span className="text-muted-foreground/40">—</span>}</td>
-                            <td className="px-2 py-3.5 text-right text-muted-foreground whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.grossPay)}</td>
-                            <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalZaliczka>0?<span className="text-destructive">−{fmt(r.totalZaliczka)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
+                            <td className="px-2 py-3.5 text-right text-muted-foreground whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(biweeklyRowMap.has(r.emp.id)?r.weekGross:r.grossPay)}</td>
+                            <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{(biweeklyRowMap.has(r.emp.id)?r.weekZaliczka:r.totalZaliczka)>0?<span className="text-destructive">−{fmt(biweeklyRowMap.has(r.emp.id)?r.weekZaliczka:r.totalZaliczka)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
                             <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalExtraCosts>0?<span className="text-green-500">+{fmt(r.totalExtraCosts)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
                             <td className="px-2 py-3.5 text-right font-bold text-primary whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>
                               {(() => {
@@ -3537,10 +3541,15 @@ function PayrollView({
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
                           <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Tydzień</p><p className="text-sm font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.weekHours>0?fmtH(r.weekHours):"—"}</p></div>
-                          <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Sob.pr.</p><p className="text-sm font-semibold text-amber-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.prevSatHours>0?fmtH(r.prevSatHours):"—"}</p></div>
+                          <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Sob.pr.</p><p className="text-sm font-semibold text-amber-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.prevSatHours>0&&!biweeklyRowMap.has(r.emp.id)?fmtH(r.prevSatHours):"—"}</p></div>
                           <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Zaliczki</p><p className="text-sm font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalZaliczka>0?`−${fmt(r.totalZaliczka)}`:"—"}</p></div>
                           <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Koszty</p><p className="text-sm font-semibold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalExtraCosts>0?`+${fmt(r.totalExtraCosts)}`:"—"}</p></div>
-                          <div className="bg-primary/10 rounded-lg px-2 py-2 col-span-2 sm:col-span-1"><p className="text-xs text-primary/70">Do wypłaty</p><p className="text-sm font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(r.netPay)}</p></div>
+                          <div className="bg-primary/10 rounded-lg px-2 py-2 col-span-2 sm:col-span-1"><p className="text-xs text-primary/70">Do wypłaty</p><p className="text-sm font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{(() => {
+                                const bw = biweeklyRowMap.get(r.emp.id);
+                                if (bw && !bw.isPayoutWeek) return fmt(bw.thisWeekNet);
+                                if (bw && bw.isPayoutWeek) return fmt(bw.displayNet);
+                                return fmt(r.netPay);
+                              })()}</p></div>
                         </div>
                       </div>
                     ))}
@@ -8603,6 +8612,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.25.2", label:"Lista płac — poprawka podsumowania Sob. poprz.",
+    items:[
+      {type:"fix", text:"Podsumowanie „Sob. poprz.” nie wlicza już godzin pracowników z wypłatą co 2 tygodnie (wcześniej w wierszach było „—”, a w sumie zostawały ich godziny)"},
+      {type:"fix", text:"Spójne sumy brutto/zaliczek/netto w stopce listy płac i widoku mobilnym dla pracowników co 2 tyg."},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.25.1", label:"Inspektor — poprawki mobile iOS/Android",
     items:[
