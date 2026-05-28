@@ -4,7 +4,7 @@ import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   MapPin, LogOut, Search, ArrowLeft, FileText, ClipboardList, Ruler,
-  CheckCircle2, Circle, ImagePlus, Download, Upload, Phone, Users,
+  CheckCircle2, Circle, ImagePlus, Download, Phone, Users,
   ChevronDown, ChevronUp, Eye, Camera, X, FileCheck, AlertCircle, BookOpen, RefreshCw, MessageSquare, ScrollText,
 } from "lucide-react";
 import {
@@ -31,12 +31,11 @@ import {
   REQUIRED_DOCS,
   type DocType,
   type JobFileAttachment,
-  KOSZTORYS_ACCEPT,
-  ZLECENIE_ACCEPT,
   latestJobFile,
   syncJobDocuments,
   isReportSyncedDocLocked,
 } from "@/lib/job-documents";
+import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
 import { uploadJobFile } from "@/lib/job-file-upload";
 import {
   appendJobActivity,
@@ -761,11 +760,10 @@ export function InspectorPanel({
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-0.5">Zlecenie i kosztorys</p>
             <div className="grid sm:grid-cols-2 gap-3">
               {(["zlecenie", "kosztorys"] as const).map((kind) => {
-                const label = kind === "zlecenie" ? "Zlecenie (PDF)" : "Kosztorys (NORMA/PDF)";
+                const label = kind === "zlecenie" ? "Zlecenie (PDF)" : "Kosztorys (NORMA/ATH/PDF)";
                 const hint = kind === "zlecenie"
                   ? "Zaznacz „Jest” gdy wystawiłeś zlecenie (np. mailem). Wgraj PDF — firma zobaczy go w Robotach."
-                  : "Kosztorys z programu NORMA. Wgraj plik (PDF, NOR, XML…) — admin też go pobierze z Roboty.";
-                const accept = kind === "zlecenie" ? ZLECENIE_ACCEPT : KOSZTORYS_ACCEPT;
+                  : "Kosztorys z programu NORMA (.ath, .nor, .xml) lub PDF. Przy wyborze pliku użyj „Wszystkie pliki”, jeśli nie widzisz .ath.";
                 const file = latestJobFile(selectedJob, kind);
                 const checked = selectedJob.documents[kind];
                 return (
@@ -801,20 +799,13 @@ export function InspectorPanel({
                     ) : (
                       <p className="text-xs text-muted-foreground">Brak pliku — wgraj poniżej</p>
                     )}
-                    <label className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-medium cursor-pointer transition-colors ${uploadBusy === kind ? "opacity-50 pointer-events-none" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}>
-                      <Upload size={14}/>
-                      {uploadBusy === kind ? "Wgrywanie…" : file ? "Wgraj nową wersję" : "Wgraj plik"}
-                      <input
-                        type="file"
-                        accept={accept}
-                        className="sr-only"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (f) handleFileUpload(selectedJob, kind, f);
-                          e.target.value = "";
-                        }}
-                      />
-                    </label>
+                    <InspectorJobFileUpload
+                      kind={kind}
+                      busy={uploadBusy === kind}
+                      hasFile={!!file}
+                      onPick={(f) => handleFileUpload(selectedJob, kind, f)}
+                      onError={(msg) => setMsg(msg)}
+                    />
                   </div>
                 );
               })}

@@ -25,6 +25,29 @@ async function ensurePhotosBucket() {
   }
 }
 
+function contentTypeForUploadedFile(filename: string, fileType: string): string {
+  if (fileType && fileType !== "application/octet-stream") return fileType;
+  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
+  const map: Record<string, string> = {
+    pdf: "application/pdf",
+    ath: "application/octet-stream",
+    nor: "application/octet-stream",
+    xml: "application/xml",
+    doc: "application/msword",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    xls: "application/vnd.ms-excel",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp",
+    heic: "image/heic",
+    heif: "image/heif",
+    gif: "image/gif",
+  };
+  return map[ext] ?? "application/octet-stream";
+}
+
 const app = new Hono();
 
 app.use('*', logger(console.log));
@@ -812,7 +835,7 @@ app.post("/make-server-0afb8820/storage-upload", async (c) => {
     const bytes = new Uint8Array(await file.arrayBuffer());
 
     const { error } = await supabase.storage.from(PHOTOS_BUCKET).upload(path, bytes, {
-      contentType: file.type || "image/jpeg",
+      contentType: contentTypeForUploadedFile(String(filename), file.type || ""),
       upsert: true,
     });
 

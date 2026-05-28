@@ -39,6 +39,29 @@ export interface JobFileAttachment {
 }
 
 /** Rozszerzenia kosztorysu NORMA + PDF. */
+export const KOSZTORYS_EXTENSIONS = ["pdf", "nor", "xml", "ath", "doc", "docx", "xls", "xlsx"] as const;
+
+export function isKosztorysUploadFilename(filename: string): boolean {
+  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
+  return (KOSZTORYS_EXTENSIONS as readonly string[]).includes(ext);
+}
+
+export function kosztorysUploadError(filename: string): string | null {
+  if (isKosztorysUploadFilename(filename)) return null;
+  return "Dozwolone formaty kosztorysu: PDF, ATH, NOR, XML, DOC, XLS.";
+}
+
+export function isZlecenieUploadFilename(filename: string): boolean {
+  return /\.pdf$/i.test(filename);
+}
+
+export function zlecenieUploadError(filename: string): string | null {
+  if (isZlecenieUploadFilename(filename)) return null;
+  return "Zlecenie musi być w formacie PDF.";
+}
+
+/** Dla input[type=file] — Windows często ukrywa .ath przy liście rozszerzeń; walidacja po wyborze. */
+export const KOSZTORYS_PICKER_ACCEPT = "*/*";
 export const KOSZTORYS_ACCEPT = ".pdf,.PDF,.nor,.NOR,.xml,.XML,.ath,.ATH,.doc,.docx,.xls,.xlsx";
 export const ZLECENIE_ACCEPT = ".pdf,.PDF";
 

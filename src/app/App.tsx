@@ -8408,7 +8408,7 @@ function HelpView() {
           <div className="space-y-3">
             {[
               {q:"Co widać na liście robót?", a:"Adres, klient, status, ikony: czy jest zlecenie PDF, kosztorys NORMA, ile dokumentów zebranych, ile zdjęć zaakceptowanych. Filtry: aktywne / zdane / wszystkie + wyszukiwarka."},
-              {q:"Zlecenie i kosztorys", a:"Przy robocie możesz zaznaczyć checkbox „mam zlecenie” / „mam kosztorys” oraz wrzucić plik (zlecenie: PDF; kosztorys: PDF, NOR, XML, DOC z programu NORMA). Status widać na liście — nie musisz pamiętać czy już wysłałeś email."},
+              {q:"Zlecenie i kosztorys", a:"Przy robocie możesz zaznaczyć checkbox „mam zlecenie” / „mam kosztorys” oraz wrzucić plik (zlecenie: PDF; kosztorys: PDF, ATH, NOR, XML, DOC z programu NORMA). Przy .ath wybierz „Wszystkie pliki”, jeśli nie widać rozszerzenia. Status widać na liście — nie musisz pamiętać czy już wysłałeś email."},
               {q:"Dokumenty i zakresy", a:"Checklista dokumentów (zlecenie, zakres, kominiarz, pomiary…). Sekcja raportów pracowników: zakres prac, wymiary pomieszczeń, zdjęcia rysunków z opisami."},
               {q:"Galeria zdjęć", a:"Tylko zdjęcia zaakceptowane przez admina. Pobierz pojedyncze lub „Pobierz wszystkie” z danej roboty."},
               {q:"Kto zarządza kontem inspektora?", a:"Super Administrator (Dawid) w panelu ⚙ — zmiana hasła, dodawanie kolejnych inspektorów. Hasła sync w chmurze jak u adminów."},
@@ -8603,6 +8603,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.22.0", label:"Upload kosztorysu .ath (NORMA)",
+    items:[
+      {type:"fix", text:"Inspektor i admin — wgrywanie kosztorysów .ath/.nor/.xml: okno plików pokazuje wszystkie pliki (Windows ukrywał .ath przy filtrze rozszerzeń); walidacja po wyborze"},
+      {type:"improve", text:"Upload zlecenia/kosztorysu — niezawodny wybór pliku (HiddenFileInput zamiast ukrytego input w label)"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.21.9", label:"Moderator — raport roczny bez PLN/h",
     items:[

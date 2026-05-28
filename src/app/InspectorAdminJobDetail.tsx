@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import {
-  ArrowLeft, ScrollText, ClipboardCheck, CheckCircle2, Circle, FileText, Upload,
+  ArrowLeft, ScrollText, ClipboardCheck, CheckCircle2, Circle, FileText,
 } from "lucide-react";
 import { JobWmPanel } from "@/app/JobWmPanel";
 import { JobInspectorFilesPanel } from "@/app/JobInspectorFilesPanel";
@@ -10,10 +10,9 @@ import {
   type JobActivity,
   type JobWithActivity,
 } from "@/lib/job-activity";
+import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
 import { uploadJobFile } from "@/lib/job-file-upload";
 import {
-  ZLECENIE_ACCEPT,
-  KOSZTORYS_ACCEPT,
   latestJobFile,
   DOC_LABELS,
 } from "@/lib/job-documents";
@@ -57,6 +56,7 @@ export function InspectorAdminJobDetail({
   directory: { name: string; phone: string }[];
 }) {
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
+  const [uploadMsg, setUploadMsg] = useState("");
   const [stageSuggestion, setStageSuggestion] = useState<JobHandoverStage | null>(null);
 
   const jobInspectorHistory = useCallback((limit = 8): JobActivity[] => {
@@ -72,6 +72,7 @@ export function InspectorAdminJobDetail({
   };
 
   const handleFileUpload = async (kind: "zlecenie" | "kosztorys", file: File) => {
+    setUploadMsg("");
     setUploadBusy(kind);
     const { attachment } = await uploadJobFile(job.id, file, kind, actorName);
     if (!attachment) {
@@ -174,7 +175,6 @@ export function InspectorAdminJobDetail({
               const checked = job.documents[kind];
               const file = latestJobFile(job, kind);
               const label = kind === "zlecenie" ? "Zlecenie" : "Kosztorys";
-              const accept = kind === "zlecenie" ? ZLECENIE_ACCEPT : KOSZTORYS_ACCEPT;
               return (
                 <div
                   key={kind}
@@ -216,24 +216,21 @@ export function InspectorAdminJobDetail({
                   ) : (
                     <p className="text-xs text-muted-foreground">Brak pliku — wgraj poniżej lub poczekaj na inspektora</p>
                   )}
-                  <label className={`flex items-center justify-center gap-2 w-full py-2 rounded-xl text-xs font-medium cursor-pointer transition-colors ${uploadBusy === kind ? "opacity-50 pointer-events-none" : "bg-primary/90 text-primary-foreground hover:bg-primary"}`}>
-                    <Upload size={13}/>
-                    {uploadBusy === kind ? "Wgrywanie…" : file ? "Wgraj nową wersję" : "Wgraj plik"}
-                    <input
-                      type="file"
-                      accept={accept}
-                      className="sr-only"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) handleFileUpload(kind, f);
-                        e.target.value = "";
-                      }}
-                    />
-                  </label>
+                  <InspectorJobFileUpload
+                    kind={kind}
+                    busy={uploadBusy === kind}
+                    hasFile={!!file}
+                    className="py-2"
+                    onPick={(f) => handleFileUpload(kind, f)}
+                    onError={(msg) => setUploadMsg(msg)}
+                  />
                 </div>
               );
             })}
           </div>
+          {uploadMsg && (
+            <p className="px-4 pb-3 text-xs text-destructive">{uploadMsg}</p>
+          )}
         </div>
 
         <JobInspectorFilesPanel
