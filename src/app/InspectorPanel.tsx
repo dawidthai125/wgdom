@@ -5,7 +5,7 @@ import {
   MapPin, LogOut, Search, ArrowLeft, FileText, ClipboardList, Ruler,
   CheckCircle2, Circle, ImagePlus, Phone, Users,
   ChevronDown, ChevronUp, Camera, X, FileCheck, AlertCircle, BookOpen, RefreshCw, MessageSquare, ScrollText,
-  Cloud, CloudOff,
+  Cloud, CloudOff, Eye,
 } from "lucide-react";
 import {
   fetchKeysFromCloud,
@@ -82,6 +82,10 @@ import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } fro
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh";
 import { Toaster, toast } from "sonner";
+import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
+import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
+import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
+import { loadAppSettingsLocal, syncAppSettingsFromCloud } from "@/lib/app-settings";
 
 type JobStatus = "in_progress" | "completed";
 
@@ -219,6 +223,14 @@ export function InspectorPanel({
   const portfolioScrollRef = useRef<HTMLDivElement>(null);
   const [photoQueueCount, setPhotoQueueCount] = useState(0);
   const [flushingPhotoQueue, setFlushingPhotoQueue] = useState(false);
+  const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
+  const [athPreviewEnabled, setAthPreviewEnabled] = useState(() => loadAppSettingsLocal().athPreviewEnabled);
+
+  useEffect(() => {
+    syncAppSettingsFromCloud()
+      .then((s) => setAthPreviewEnabled(s.athPreviewEnabled))
+      .catch(() => {});
+  }, []);
 
   const refreshPhotoQueueCount = useCallback(() => {
     queuedPhotoCount("inspector").then(setPhotoQueueCount).catch(() => {});
@@ -1010,9 +1022,20 @@ export function InspectorPanel({
                     </div>
                     {file ? (
                       <>
-                        <a href={file.publicUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 truncate">
-                          <FileText size={12}/>{file.filename}
-                        </a>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <a href={file.publicUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 truncate min-w-0">
+                            <FileText size={12}/>{file.filename}
+                          </a>
+                          {(isPdfFilename(file.filename) || (athPreviewEnabled && isKosztorysPreviewExt(file.filename))) && (
+                            <button
+                              type="button"
+                              onClick={() => setPreviewItem({ kind: "jobFile", file })}
+                              className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 font-medium shrink-0"
+                            >
+                              <Eye size={12}/> Podgląd
+                            </button>
+                          )}
+                        </div>
                         <p className="text-[10px] text-muted-foreground">
                           Dodał:{" "}
                           <AuthorAttribution
@@ -1218,6 +1241,14 @@ export function InspectorPanel({
           <p className="text-white text-sm mb-3">{lightbox.label}</p>
           <img src={lightbox.url} alt={lightbox.label} className="max-w-full max-h-[85dvh] object-contain rounded-lg" onClick={(e) => e.stopPropagation()}/>
         </div>
+      )}
+
+      {previewItem && (
+        <JobFilePreviewModal
+          item={previewItem}
+          athPreviewEnabled={athPreviewEnabled}
+          onClose={() => setPreviewItem(null)}
+        />
       )}
 
       <Toaster

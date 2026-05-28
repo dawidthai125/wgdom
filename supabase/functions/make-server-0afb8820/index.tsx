@@ -852,6 +852,37 @@ app.post("/make-server-0afb8820/storage-upload", async (c) => {
   }
 });
 
+/** Pobierz kosztorys ze storage (proxy — omija CORS, binarne ATH). */
+app.post("/make-server-0afb8820/kosztorys-preview", async (c) => {
+  try {
+    const { path, filename } = await c.req.json();
+    if (!path || typeof path !== "string") {
+      return c.json({ ok: false, error: "Brak path" }, 400);
+    }
+    await ensurePhotosBucket();
+    const supabase = supabaseAdmin();
+    const { data, error } = await supabase.storage.from(PHOTOS_BUCKET).download(path);
+    if (error || !data) {
+      console.error("kosztorys-preview:", error?.message);
+      return c.json({ ok: false, error: error?.message || "Plik nie istnieje w storage" }, 404);
+    }
+    const bytes = new Uint8Array(await data.arrayBuffer());
+    if (bytes.byteLength > 12 * 1024 * 1024) {
+      return c.json({ ok: false, error: "Plik zbyt duży do podglądu (max 12 MB)" }, 413);
+    }
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    }
+    const base64 = btoa(binary);
+    return c.json({ ok: true, base64, filename: filename || path.split("/").pop() || "kosztorys.ath" });
+  } catch (e) {
+    console.error(e);
+    return c.json({ ok: false, error: String(e) }, 500);
+  }
+});
+
 /** Konfiguracja emaili Resend (sekrety Supabase opcjonalne). */
 function resendFrom(): string {
   return Deno.env.get("RESEND_FROM") || "W&G DOM <biuro@wgdom.fun>";

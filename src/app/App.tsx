@@ -8867,6 +8867,23 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.30.1", label:"Podgląd kosztorysów ATH/NOR",
+    items:[
+      {type:"fix", text:"Podgląd .ath/.nor/.xml — parser binarny, proxy API (omija CORS), domyślnie włączony"},
+      {type:"fix", text:"Przycisk Podgląd w panelu inspektora (teren) i adminie — storagePath do pobrania pliku"},
+      {type:"improve", text:"Modal podglądu: fragmenty tekstu z binarnego ATH gdy brak tabeli pozycji"},
+    ],
+  },
+  {
+    date:"2026-05-25", version:"2.30.0", label:"Testy mobile — audyt + Playwright + CI",
+    items:[
+      {type:"new", text:"npm run audit:mobile — 36 reguł statycznych (PWA, Capacitor, touch, offline, deep linki)"},
+      {type:"new", text:"npm run test:mobile — Playwright smoke na wgdom.fun (iPhone SE + Pixel 7): manifest, SW, ikony, login, touch 44px"},
+      {type:"new", text:"GitHub Actions: workflow Mobile smoke tests na main"},
+      {type:"improve", text:"docs/MOBILE-NATIVE.md — checklist testów na prawdziwym telefonie (~20 min)"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.29.0", label:"Mobilne UX — Faza C (sklep i offline)",
     items:[
       {type:"new", text:"Deep linki wgdom://job/{id} i wgdom://payroll — otwarcie roboty lub listy płac (Android, iOS, web ?open=job&id=…)"},
@@ -10239,7 +10256,7 @@ function AdminSettingsModal({
               <div>
                 <p className="text-sm font-medium">Podgląd kosztorysów ATH/NOR w przeglądarce</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                  Wyłączone domyślnie. Włącz po testach z przykładowym plikiem .ath od inspektora.
+                  Włączone domyślnie (best-effort dla plików .ath z NORMA). Super Admin może wyłączyć.
                   PDF zawsze można podglądać; pobieranie i email działają niezależnie od tego przełącznika.
                 </p>
               </div>
@@ -10557,7 +10574,7 @@ function CloudLoader({children}: {children: React.ReactNode}) {
           const localSettings = loadAppSettingsLocal();
           const cloudS = cloudAppSettings as AppSettings;
           const mergedSettings: AppSettings = {
-            athPreviewEnabled: cloudS.athPreviewEnabled === true || localSettings.athPreviewEnabled,
+            athPreviewEnabled: cloudS.athPreviewEnabled !== false && localSettings.athPreviewEnabled !== false,
           };
           localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(mergedSettings));
         }

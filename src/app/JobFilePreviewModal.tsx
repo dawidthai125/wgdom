@@ -19,6 +19,7 @@ export function JobFilePreviewModal({
 }) {
   const url = item.kind === "jobFile" ? item.file.publicUrl : item.file.publicUrl;
   const filename = item.kind === "jobFile" ? item.file.filename : "zdjecie.jpg";
+  const storagePath = item.kind === "jobFile" ? item.file.path : undefined;
   const isPdf = isPdfFilename(filename);
   const isPhoto = item.kind === "inspectorPhoto";
   const isKosztorys = item.kind === "jobFile" && item.file.kind === "kosztorys";
@@ -30,10 +31,11 @@ export function JobFilePreviewModal({
     if (isPdf || isPhoto) return;
     if (!athPreviewEnabled || !isKosztorysPreviewExt(filename)) return;
     setLoading(true);
-    fetchAndParseKosztorys(url, filename)
+    setParseResult(null);
+    fetchAndParseKosztorys(url, filename, storagePath)
       .then(setParseResult)
       .finally(() => setLoading(false));
-  }, [url, filename, isPdf, isPhoto, athPreviewEnabled]);
+  }, [url, filename, storagePath, isPdf, isPhoto, athPreviewEnabled]);
 
   return (
     <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/70" onClick={onClose}>
@@ -45,7 +47,9 @@ export function JobFilePreviewModal({
           <div className="min-w-0">
             <p className="text-sm font-semibold truncate">Podgląd — {filename}</p>
             {isKosztorys && !isPdf && (
-              <p className="text-[10px] text-muted-foreground">Kosztorys — podgląd uproszczony</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Best-effort — pliki binarne ATH mogą pokazać tylko fragmenty. Pełny widok: NORMA lub PDF.
+                </p>
             )}
           </div>
           <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground">
@@ -73,6 +77,12 @@ export function JobFilePreviewModal({
                   <Loader2 size={20} className="animate-spin"/>
                   <span className="text-sm">Analizuję plik…</span>
                 </div>
+              )}
+
+              {!loading && !parseResult && (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Nie udało się załadować podglądu. Pobierz plik i otwórz w NORMA lub PDF.
+                </p>
               )}
 
               {!loading && parseResult && (

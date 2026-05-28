@@ -5,12 +5,12 @@ import { fetchKeysFromCloud, persistKey, APP_SETTINGS_KEY } from "@/lib/cloud-sy
 export { APP_SETTINGS_KEY };
 
 export interface AppSettings {
-  /** Podgląd kosztorysów ATH/NOR w przeglądarce (parser best-effort). Domyślnie wyłączone. */
+  /** Podgląd kosztorysów ATH/NOR w przeglądarce (parser best-effort). Domyślnie włączone. */
   athPreviewEnabled: boolean;
 }
 
 export function defaultAppSettings(): AppSettings {
-  return { athPreviewEnabled: false };
+  return { athPreviewEnabled: true };
 }
 
 export function loadAppSettingsLocal(): AppSettings {
@@ -19,7 +19,7 @@ export function loadAppSettingsLocal(): AppSettings {
     if (!raw) return defaultAppSettings();
     const parsed = JSON.parse(raw) as Partial<AppSettings>;
     return {
-      athPreviewEnabled: parsed.athPreviewEnabled === true,
+      athPreviewEnabled: parsed.athPreviewEnabled !== false,
     };
   } catch {
     return defaultAppSettings();
@@ -39,7 +39,7 @@ export async function syncAppSettingsFromCloud(): Promise<AppSettings> {
     if (!cloud || typeof cloud !== "object") return local;
     const remote = cloud as Partial<AppSettings>;
     const merged: AppSettings = {
-      athPreviewEnabled: remote.athPreviewEnabled === true || local.athPreviewEnabled,
+      athPreviewEnabled: remote.athPreviewEnabled !== false && local.athPreviewEnabled !== false,
     };
     saveAppSettingsLocal(merged);
     return merged;

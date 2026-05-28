@@ -1,5 +1,7 @@
 /** Best-effort parser kosztorysów ATH / NOR / XML — bez oficjalnej specyfikacji Athenasoft. */
 
+import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
+
 export interface AthPreviewRow {
   lp: string;
   code: string;
@@ -42,6 +44,73 @@ function looksBinary(text: string): boolean {
     }
   }
   return nonPrint / sample.length > 0.08;
+}
+
+function decodeAttempts(bytes: Uint8Array): string[] {
+  const out: string[] = [];
+  try {
+    out.push(new TextDecoder("utf-8", { fatal: false }).decode(bytes));
+  } catch { /* ignore */ }
+  try {
+    out.push(new TextDecoder("windows-1250", { fatal: false }).decode(bytes));
+  } catch { /* ignore */ }
+  try {
+    out.push(new TextDecoder("iso-8859-2", { fatal: false }).decode(bytes));
+  } catch { /* ignore */ }
+
+  let u16 = "";
+  for (let i = 0; i + 1 < bytes.length; i += 2) {
+    const code = bytes[i] | (bytes[i + 1] << 8);
+    if (code < 32 || code === 0xfffd) continue;
+    if (code < 0xd800 || code > 0xdfff) u16 += String.fromCharCode(code);
+  }
+  if (u16.length > 20) out.push(u16);
+
+  return [...new Set(out.filter(Boolean))];
+}
+
+function extractEmbeddedXml(text: string): string | null {
+  const start = text.indexOf("<?xml");
+  if (start >= 0) return text.slice(start);
+  const alt = text.indexOf("<Kosztorys");
+  if (alt >= 0) return text.slice(alt);
+  const alt2 = text.indexOf("<kosztorys");
+  if (alt2 >= 0) return text.slice(alt2);
+  return null;
+}
+
+/** Wyciąga czytelne fragmenty z binarnego ATH (NORMA). */
+function extractStringsFromBinary(bytes: Uint8Array, minLen = 5): string[] {
+  const found: string[] = [];
+  const pushRun = (run: string) => {
+    const t = run.trim();
+    if (t.length >= minLen && /[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ0-9]/.test(t)) found.push(t);
+  };
+
+  let ascii = "";
+  for (let i = 0; i < bytes.length; i += 1) {
+    const b = bytes[i];
+    if (b >= 32 && b <= 126) ascii += String.fromCharCode(b);
+    else if (b >= 0xa0 && b <= 0xff) ascii += String.fromCharCode(b);
+    else {
+      pushRun(ascii);
+      ascii = "";
+    }
+  }
+  pushRun(ascii);
+
+  let u16 = "";
+  for (let i = 0; i + 1 < bytes.length; i += 2) {
+    const code = bytes[i] | (bytes[i + 1] << 8);
+    if (code >= 32 && code < 0xd800) u16 += String.fromCharCode(code);
+    else {
+      pushRun(u16);
+      u16 = "";
+    }
+  }
+  pushRun(u16);
+
+  return [...new Set(found)].slice(0, 400);
 }
 
 function parseNumberLike(s: string): boolean {
@@ -179,19 +248,103 @@ export function parseKosztorysFile(content: string, filename: string): AthPrevie
   };
 }
 
-export async function fetchAndParseKosztorys(url: string, filename: string): Promise<AthPreviewResult> {
+export function parseKosztorysBytes(bytes: Uint8Array, filename: string): AthPreviewResult {
+  const warnings: string[] = [
+    "Format ATH/NOR jest zamknięty — podgląd może być niepełny. Do pełnej weryfikacji użyj NORMA lub PDF.",
+  ];
+
+  for (const text of decodeAttempts(bytes)) {
+    const embedded = extractEmbeddedXml(text);
+    if (embedded) {
+      const xmlResult = parseKosztorysFile(embedded, "export.xml");
+      if (xmlResult.rows.length > 0 || xmlResult.ok) {
+        return { ...xmlResult, warnings: [...warnings, ...xmlResult.warnings] };
+      }
+    }
+    if (!looksBinary(text)) {
+      const parsed = parseKosztorysFile(text, filename);
+      if (parsed.rows.length > 0) return { ...parsed, warnings: [...warnings, ...parsed.warnings] };
+      if (parsed.rawPreview && parsed.format === "text") return { ...parsed, warnings: [...warnings, ...parsed.warnings] };
+    }
+  }
+
+  const strings = extractStringsFromBinary(bytes);
+  if (strings.length > 0) {
+    const joined = strings.join("\n");
+    const tableRows = parseTextTable(normalizeLines(joined));
+    if (tableRows.length > 0) {
+      return {
+        ok: true,
+        format: "text",
+        rows: tableRows,
+        warnings: [...warnings, "Odczytano fragmenty z pliku binarnego ATH."],
+        rawPreview: strings.slice(0, 40).join("\n"),
+      };
+    }
+    const printable = strings.filter((s) => s.length > 8);
+    if (printable.length > 0) {
+      return {
+        ok: true,
+        format: "binary",
+        rows: [],
+        warnings: [...warnings, "Plik binarny ATH — poniżej wyciągnięte opisy pozycji (bez kwot). Otwórz w NORMA lub poproś o PDF."],
+        rawPreview: printable.slice(0, 50).join("\n"),
+      };
+    }
+  }
+
+  return {
+    ok: false,
+    format: "binary",
+    rows: [],
+    warnings: [
+      ...warnings,
+      "Nie udało się odczytać pozycji z pliku ATH. Pobierz plik i otwórz w programie NORMA, lub poproś inspektora o eksport PDF.",
+    ],
+  };
+}
+
+async function fetchBytesViaApi(storagePath: string, filename: string): Promise<Uint8Array | null> {
+  const res = await fetch(`${API_BASE}/kosztorys-preview`, {
+    method: "POST",
+    headers: API_HEADERS,
+    body: JSON.stringify({ path: storagePath, filename }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok || typeof data.base64 !== "string") {
+    throw new Error(data.error || `Nie udało się pobrać pliku (${res.status})`);
+  }
+  const binary = atob(data.base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+export async function fetchAndParseKosztorys(
+  url: string,
+  filename: string,
+  storagePath?: string,
+): Promise<AthPreviewResult> {
   try {
+    if (storagePath) {
+      try {
+        const bytes = await fetchBytesViaApi(storagePath, filename);
+        if (bytes) return parseKosztorysBytes(bytes, filename);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Błąd pobierania przez serwer";
+        /* fallback: direct URL */
+        if (!url) {
+          return { ok: false, format: "unknown", rows: [], warnings: [msg] };
+        }
+      }
+    }
+
     const res = await fetch(url);
     if (!res.ok) {
       return { ok: false, format: "unknown", rows: [], warnings: [`Nie udało się pobrać pliku (${res.status}).`] };
     }
     const buf = await res.arrayBuffer();
-    const bytes = new Uint8Array(buf);
-    let text = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
-    if (looksBinary(text)) {
-      text = new TextDecoder("windows-1250", { fatal: false }).decode(bytes);
-    }
-    return parseKosztorysFile(text, filename);
+    return parseKosztorysBytes(new Uint8Array(buf), filename);
   } catch {
     return { ok: false, format: "unknown", rows: [], warnings: ["Błąd pobierania pliku do podglądu."] };
   }
