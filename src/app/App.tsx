@@ -903,6 +903,25 @@ function formatPayrollDayCell(day: DayData): string {
   return parts.join("\n");
 }
 
+function PayrollDayCellDisplay({ day, accent = "default" }: { day: DayData; accent?: "amber" | "default" }) {
+  const text = formatPayrollDayCell(day);
+  if (text === "—") return <span className="text-muted-foreground/40">—</span>;
+  const parts = text.split("\n");
+  const tone = accent === "amber" ? "text-amber-600 dark:text-amber-400" : "text-foreground";
+  return (
+    <div className={`leading-snug space-y-0.5 ${tone}`}>
+      {parts.map((part, i) => (
+        <div
+          key={i}
+          className={`whitespace-nowrap ${i === parts.length - 1 && parts.length > 1 ? "text-[10px] font-semibold opacity-85" : "text-[11px]"}`}
+        >
+          {part}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function payrollWeeklyGrid(employees: WeekEmployee[], weekFrom: string): PayrollWeeklyGrid {
   const cols = weekDayColumns(weekFrom);
   const dayHeaders = cols.map((c) => `${DAY_LABELS[c.key]}\n${c.dateLabel}`);
@@ -3136,6 +3155,20 @@ function PayrollView({
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [showBacklogModal, setShowBacklogModal] = useState(false);
+  const [payrollListMode, setPayrollListMode] = useState<"summary" | "detailed">(() => {
+    try {
+      return localStorage.getItem("wg-payroll-list-mode") === "detailed" ? "detailed" : "summary";
+    } catch {
+      return "summary";
+    }
+  });
+
+  const switchPayrollListMode = (mode: "summary" | "detailed") => {
+    setPayrollListMode(mode);
+    try {
+      localStorage.setItem("wg-payroll-list-mode", mode);
+    } catch { /* ignore */ }
+  };
 
   useEffect(() => {
     if (initialEmpId && weekEmployees.some((e) => e.id === initialEmpId)) {
@@ -3181,6 +3214,17 @@ function PayrollView({
     }
     return m;
   }, [weekEmployees, directory, weekFrom, weekTo, savedWeeks]);
+
+  const payrollDayColumns = useMemo(() => weekDayColumns(weekFrom), [weekFrom]);
+  const showPrevSatDetailCol = useMemo(
+    () => rows.some((r) => !biweeklyRowMap.has(r.emp.id) && formatPayrollDayCell(getPrevSaturday(r.emp)) !== "—"),
+    [rows, biweeklyRowMap],
+  );
+  const dayColumnTotals = useMemo(
+    () => payrollDayColumns.map((c) => +rows.reduce((s, r) => s + dayTotalHours(r.emp.days[c.key]), 0).toFixed(2)),
+    [rows, payrollDayColumns],
+  );
+  const prevSatDetailIso = previousSaturdayIso(weekFrom);
 
   const totalWeekHours = rows.reduce((s,r)=>s+r.weekHours,0);
   const totalPrevSatHours = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?0:r.prevSatHours),0);
@@ -3400,10 +3444,37 @@ function PayrollView({
 
             {/* Table */}
             <div className="bg-card rounded-xl border border-border">
-              <div className="px-5 py-4 border-b border-border flex items-center gap-2">
-                <FileText size={13} className="text-muted-foreground"/>
-                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Lista Płac — {fmtDate(weekFrom)} – {fmtDate(weekTo)}</span>
-                <span className="ml-auto text-xs text-muted-foreground">{weekEmployees.filter(e=>e.settled).length}/{weekEmployees.length} rozliczonych</span>
+              <div className="px-5 py-4 border-b border-border flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <FileText size={13} className="text-muted-foreground shrink-0"/>
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground truncate">
+                    Lista Płac — {fmtDate(weekFrom)} – {fmtDate(weekTo)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="inline-flex items-center rounded-lg border border-border bg-secondary/60 p-0.5" role="tablist" aria-label="Widok listy płac">
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={payrollListMode === "summary"}
+                      onClick={() => switchPayrollListMode("summary")}
+                      className={`px-3 py-2 min-h-[36px] rounded-md text-[11px] font-medium transition-colors touch-manipulation ${payrollListMode === "summary" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                    >
+                      Sumy
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={payrollListMode === "detailed"}
+                      onClick={() => switchPayrollListMode("detailed")}
+                      className={`inline-flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-md text-[11px] font-medium transition-colors touch-manipulation ${payrollListMode === "detailed" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                    >
+                      <LayoutGrid size={12}/>
+                      Szczegóły dni
+                    </button>
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">{weekEmployees.filter(e=>e.settled).length}/{weekEmployees.length} rozliczonych</span>
+                </div>
               </div>
 
               {weekEmployees.length === 0 ? (
@@ -3414,7 +3485,7 @@ function PayrollView({
                     <UserPlus size={14}/>Dodaj pracowników
                   </button>
                 </div>
-              ) : (
+              ) : payrollListMode === "summary" ? (
                 <>
                   <div className="hidden sm:block overflow-x-auto overscroll-x-contain">
                     <table className="w-full min-w-[1040px] text-sm">
@@ -3557,6 +3628,134 @@ function PayrollView({
                       <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Łącznie</span>
                       <span className="text-lg font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN</span>
                     </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="px-5 py-2 text-[11px] text-muted-foreground border-b border-border/60 hidden sm:block">
+                    Godziny pracy wg dni — zmiany podstawowe, dodatkowe i zaliczki. Kliknij wiersz, aby edytować.
+                  </p>
+                  <div className="hidden sm:block overflow-x-auto overscroll-x-contain">
+                    <table className="w-full min-w-[1180px] text-sm">
+                      <thead>
+                        <tr className="border-b border-border text-xs text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                          <th className="px-3 py-3 text-left w-8">Lp.</th>
+                          <th className="px-3 py-3 text-left min-w-[120px]">Pracownik</th>
+                          {payrollDayColumns.map((col) => (
+                            <th key={col.key} className="px-2 py-3 text-left min-w-[5.5rem]" title={`${DAY_LABELS[col.key]} ${col.dateLabel}`}>
+                              <span className="block">{col.shortLabel}</span>
+                              <span className="block text-[10px] font-normal opacity-70">{col.dateLabel}</span>
+                            </th>
+                          ))}
+                          {showPrevSatDetailCol && (
+                            <th className="px-2 py-3 text-left min-w-[5.5rem] text-amber-600 dark:text-amber-400" title={`${PREV_SAT_SHORT} · ${fmtDate(prevSatDetailIso)}`}>
+                              <span className="block">Sob.pr.</span>
+                              <span className="block text-[10px] font-normal opacity-70">{fmtDate(prevSatDetailIso).slice(0, 5)}</span>
+                            </th>
+                          )}
+                          <th className="px-2 py-3 text-right w-14">Σ h</th>
+                          <th className="sticky right-9 z-20 px-2 py-3 text-center whitespace-nowrap w-[7.75rem] bg-card shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)]">Status</th>
+                          <th className="sticky right-0 z-20 px-2 py-3 w-9 bg-card"/>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {rows.map((r, i) => (
+                          <tr
+                            key={r.emp.id}
+                            onClick={() => setSelectedEmpId(r.emp.id === selectedEmpId ? null : r.emp.id)}
+                            className={`group cursor-pointer transition-colors hover:bg-secondary/30 ${r.emp.settled ? "opacity-60" : ""} ${r.emp.id === selectedEmpId ? "bg-primary/5 border-l-2 border-primary" : ""}`}
+                          >
+                            <td className="px-3 py-3 text-muted-foreground text-xs" style={{fontFamily:"'JetBrains Mono', monospace"}}>{i + 1}</td>
+                            <td className="px-3 py-3 min-w-[120px]">
+                              <p className="font-medium leading-tight truncate">{r.emp.name || <span className="italic text-muted-foreground">Bez nazwy</span>}</p>
+                              <p className="text-[10px] text-muted-foreground truncate">
+                                {r.emp.position || "—"}
+                                {biweeklyRowMap.has(r.emp.id) && <span className="ml-1 text-sky-400">· co 2 tyg.</span>}
+                              </p>
+                            </td>
+                            {payrollDayColumns.map((col) => (
+                              <td key={col.key} className="px-2 py-3 align-top">
+                                <PayrollDayCellDisplay day={r.emp.days[col.key]}/>
+                              </td>
+                            ))}
+                            {showPrevSatDetailCol && (
+                              <td className="px-2 py-3 align-top">
+                                {!biweeklyRowMap.has(r.emp.id)
+                                  ? <PayrollDayCellDisplay day={getPrevSaturday(r.emp)} accent="amber"/>
+                                  : <span className="text-muted-foreground/40">—</span>}
+                              </td>
+                            )}
+                            <td className="px-2 py-3 text-right font-semibold align-top whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                              {r.weekHours > 0 ? fmtH(r.weekHours) : <span className="text-muted-foreground/40">—</span>}
+                            </td>
+                            <td className={`sticky right-9 z-10 px-2 py-3 whitespace-nowrap shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.45)] align-top ${r.emp.id === selectedEmpId ? "bg-primary/5" : "bg-card group-hover:bg-secondary/30"}`} onClick={(e) => e.stopPropagation()}>
+                              <button onClick={() => onToggleSettled(r.emp.id)} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all ${r.emp.settled ? "bg-green-500/15 text-green-400 hover:bg-green-500/25" : "bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}>
+                                {r.emp.settled ? <><CheckCircle2 size={11} className="shrink-0"/>Rozliczony</> : <><Circle size={11} className="shrink-0"/>Oczekuje</>}
+                              </button>
+                            </td>
+                            <td className={`sticky right-0 z-10 px-2 py-3 align-top ${r.emp.id === selectedEmpId ? "bg-primary/5" : "bg-card group-hover:bg-secondary/30"}`} onClick={(e) => e.stopPropagation()}>
+                              {deleteConfirm === r.emp.id ? (
+                                <div className="flex items-center gap-1">
+                                  <button onClick={() => { onRemoveWeekEmployee(r.emp.id); setDeleteConfirm(null); }} className="text-xs bg-destructive text-white px-2 py-0.5 rounded">Usuń</button>
+                                  <button onClick={() => setDeleteConfirm(null)} className="text-xs text-muted-foreground hover:text-foreground px-1"><X size={11}/></button>
+                                </div>
+                              ) : (
+                                <button onClick={() => setDeleteConfirm(r.emp.id)} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded"><Trash2 size={13}/></button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-border bg-secondary/30">
+                          <td colSpan={2} className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Razem godziny</td>
+                          {dayColumnTotals.map((h, idx) => (
+                            <td key={payrollDayColumns[idx].key} className="px-2 py-3 text-[11px] font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                              {h > 0 ? fmtH(h) : <span className="text-muted-foreground/40">—</span>}
+                            </td>
+                          ))}
+                          {showPrevSatDetailCol && (
+                            <td className="px-2 py-3 text-[11px] font-semibold text-amber-600 dark:text-amber-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                              {totalPrevSatHours > 0 ? fmtH(totalPrevSatHours) : "—"}
+                            </td>
+                          )}
+                          <td className="px-2 py-3 text-right font-bold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalWeekHours)}</td>
+                          <td colSpan={2} className="sticky right-0 z-10 bg-secondary/30"/>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  <div className="sm:hidden divide-y divide-border">
+                    {rows.map((r) => (
+                      <div key={r.emp.id} className={`p-4 space-y-3 ${r.emp.settled ? "opacity-60" : ""}`} onClick={() => setSelectedEmpId(r.emp.id === selectedEmpId ? null : r.emp.id)}>
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{r.emp.name || "—"}</p>
+                            <p className="text-xs text-muted-foreground truncate">{r.emp.position || "—"}{biweeklyRowMap.has(r.emp.id) ? " · co 2 tyg." : ""}</p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.weekHours > 0 ? fmtH(r.weekHours) : "—"}</span>
+                            <button onClick={(e) => { e.stopPropagation(); onToggleSettled(r.emp.id); }} className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium ${r.emp.settled ? "bg-green-500/15 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
+                              {r.emp.settled ? "✓" : "○"}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {payrollDayColumns.map((col) => (
+                            <div key={col.key} className="bg-secondary/50 rounded-lg px-2.5 py-2">
+                              <p className="text-[10px] text-muted-foreground mb-1">{col.shortLabel} · {col.dateLabel}</p>
+                              <PayrollDayCellDisplay day={r.emp.days[col.key]}/>
+                            </div>
+                          ))}
+                        </div>
+                        {showPrevSatDetailCol && !biweeklyRowMap.has(r.emp.id) && formatPayrollDayCell(getPrevSaturday(r.emp)) !== "—" && (
+                          <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg px-2.5 py-2">
+                            <p className="text-[10px] text-amber-600 dark:text-amber-400 mb-1">{PREV_SAT_SHORT} · {fmtDate(prevSatDetailIso)}</p>
+                            <PayrollDayCellDisplay day={getPrevSaturday(r.emp)} accent="amber"/>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </>
               )}
