@@ -102,7 +102,7 @@ export function JobWmPanel({
                 type="button"
                 title={HANDOVER_STAGE_HINTS[s]}
                 onClick={() => setStage(s)}
-                className={`text-[11px] px-2.5 py-1.5 rounded-full font-medium transition-colors border ${
+                className={`text-xs px-3 py-2.5 min-h-[44px] rounded-full font-medium transition-colors border touch-manipulation ${
                   stage === s
                     ? `${stageBadgeClass(s)} border-current`
                     : "bg-secondary text-muted-foreground border-border hover:border-primary/30"
@@ -130,7 +130,7 @@ export function JobWmPanel({
             type="date"
             value={job.plannedHandoverDate || ""}
             onChange={(e) => setPlannedDate(e.target.value)}
-            className="w-full sm:w-auto bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
+            className="w-full sm:w-auto bg-secondary rounded-xl px-3 py-2.5 min-h-[44px] text-sm border border-transparent focus:border-primary focus:outline-none"
           />
         ) : (
           <p className="text-sm">{fmtPlannedHandover(job.plannedHandoverDate || "")}</p>
@@ -179,6 +179,7 @@ export function JobWmPanel({
             <textarea
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
+              onFocus={(e) => { window.setTimeout(() => e.target.scrollIntoView({ block: "center", behavior: "smooth" }), 300); }}
               placeholder={actorRole === "inspector" ? "Np. brak dostępu, prośba o kominiarza…" : "Odpowiedź dla inspektora…"}
               rows={2}
               className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none resize-none"
@@ -187,7 +188,7 @@ export function JobWmPanel({
               type="button"
               disabled={!noteText.trim()}
               onClick={addNote}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-medium disabled:opacity-40"
+              className="flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-xl bg-primary text-primary-foreground text-xs font-medium disabled:opacity-40 touch-manipulation"
             >
               <Send size={12}/> Wyślij
             </button>

@@ -40,7 +40,7 @@ function MetaRow<T extends string>({
             type="button"
             title={titleLabels?.[opt] ?? labels[opt]}
             onClick={() => onChange(opt)}
-            className={`text-[11px] px-2 py-1 rounded-md font-medium border transition-colors ${
+            className={`text-xs px-3 py-2 min-h-[44px] rounded-md font-medium border transition-colors touch-manipulation ${
               value === opt
                 ? "bg-primary/15 text-primary border-primary/30"
                 : "bg-secondary/80 text-muted-foreground border-transparent hover:border-border hover:text-foreground"

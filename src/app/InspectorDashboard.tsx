@@ -19,6 +19,7 @@ import { DOC_LABELS } from "@/lib/job-documents";
 import { inferHandoverStage, plannedHandoverStatus } from "@/lib/job-wm";
 import { inspectorGreeting, statsForWeek, MONTH_NAMES_PL } from "@/lib/inspector-activity-stats";
 import { downloadInspectorMonthReportPdf, downloadInspectorYearReportPdf } from "@/lib/inspector-report-pdf";
+import { toast } from "sonner";
 
 function fmtDate(iso: string): string {
   if (!iso) return "—";
@@ -99,6 +100,9 @@ export function InspectorDashboard({
     setPdfBusy("month");
     try {
       await downloadInspectorMonthReportPdf(jobs, displayName, reportYear, reportMonth);
+      toast.success("Raport miesiąca gotowy");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Nie udało się wygenerować PDF");
     } finally {
       setPdfBusy(null);
     }
@@ -108,6 +112,9 @@ export function InspectorDashboard({
     setPdfBusy("year");
     try {
       await downloadInspectorYearReportPdf(jobs, displayName, reportYear);
+      toast.success("Raport roczny gotowy");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Nie udało się wygenerować PDF");
     } finally {
       setPdfBusy(null);
     }
@@ -132,7 +139,7 @@ export function InspectorDashboard({
             key={opt.id}
             type="button"
             onClick={() => setFilter(opt.id)}
-            className={`shrink-0 px-3 py-2 min-h-[36px] rounded-full text-xs font-medium transition-colors touch-manipulation ${
+            className={`shrink-0 px-3 py-2.5 min-h-[44px] rounded-full text-xs font-medium transition-colors touch-manipulation ${
               filter === opt.id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
             }`}
           >
@@ -361,7 +368,7 @@ function QuickBtn({ label, onClick }: { label: string; onClick: () => void }) {
     <button
       type="button"
       onClick={(e) => { e.stopPropagation(); onClick(); }}
-      className="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90 touch-manipulation shrink-0 max-w-[120px] truncate"
+      className="text-xs font-semibold px-3 py-2.5 min-h-[44px] rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90 touch-manipulation shrink-0 max-w-[140px] truncate"
       title={label}
     >
       {label}

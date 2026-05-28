@@ -16,6 +16,44 @@ async function loadPdfMake() {
 
 type PdfDocDef = Parameters<Awaited<ReturnType<typeof loadPdfMake>>["createPdf"]>[0];
 
+function isMobileSafari(): boolean {
+  const ua = navigator.userAgent;
+  return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+/** iOS Safari często blokuje `.download()` — share sheet lub nowa karta. */
+async function deliverPdfBlob(blob: Blob, filename: string): Promise<void> {
+  const file = new File([blob], filename, { type: "application/pdf" });
+  if (typeof navigator.share === "function" && typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+    await navigator.share({ files: [file], title: filename });
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  try {
+    if (isMobileSafari()) {
+      const opened = window.open(url, "_blank");
+      if (!opened) throw new Error("Safari zablokował otwarcie PDF — odblokuj wyskakujące okna");
+      window.setTimeout(() => URL.revokeObjectURL(url), 120_000);
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } finally {
+    if (!isMobileSafari()) URL.revokeObjectURL(url);
+  }
+}
+
+async function savePdf(docDef: PdfDocDef, filename: string): Promise<void> {
+  const pdfMake = await loadPdfMake();
+  const blob = await pdfMake.createPdf(docDef).getBlob();
+  await deliverPdfBlob(blob, filename);
+}
+
 const C = {
   navy: "#344254",
   red: "#C0392B",
@@ -102,7 +140,6 @@ export async function downloadInspectorMonthReportPdf(
   year: number,
   month: number,
 ): Promise<void> {
-  const pdfMake = await loadPdfMake();
   const stats = statsForMonth(jobs, displayName, year, month);
   const label = `${MONTH_NAMES_PL[month]} ${year}`;
   const filename = `inspektor-${displayName.replace(/\s+/g, "-").toLowerCase()}-${year}-${String(month + 1).padStart(2, "0")}.pdf`;
@@ -123,7 +160,7 @@ export async function downloadInspectorMonthReportPdf(
     ],
   };
 
-  pdfMake.createPdf(dd).download(filename);
+  await savePdf(dd, filename);
 }
 
 export async function downloadInspectorYearReportPdf(
@@ -131,7 +168,6 @@ export async function downloadInspectorYearReportPdf(
   displayName: string,
   year: number,
 ): Promise<void> {
-  const pdfMake = await loadPdfMake();
   const yearly = statsForYear(jobs, displayName, year);
   const months = monthlyBreakdownForYear(jobs, displayName, year);
   const filename = `inspektor-${displayName.replace(/\s+/g, "-").toLowerCase()}-roczny-${year}.pdf`;
@@ -178,5 +214,5 @@ export async function downloadInspectorYearReportPdf(
     ],
   };
 
-  pdfMake.createPdf(dd).download(filename);
+  await savePdf(dd, filename);
 }

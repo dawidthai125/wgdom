@@ -44,7 +44,13 @@ import { computeInspectorDashboardStats } from "@/lib/inspector-dashboard";
 import {
   inferHandoverStage,
   plannedHandoverStatus,
+  normalizeJobWmFields,
+  jobsWithAdminNotesNeedingInspector,
+  applyHandoverStageToJob,
+  HANDOVER_STAGE_LABELS,
   type InspectorPhotoLabel,
+  type JobHandoverStage,
+  type JobWmJob,
 } from "@/lib/job-wm";
 import {
   appendJobActivity,
@@ -55,7 +61,6 @@ import {
 } from "@/lib/job-activity";
 import { recordInspectorEvent, getInspectorJobNotesSeenAt, markInspectorJobNotesSeen, syncAlertsSeenFromCloud } from "@/lib/inspector-stats";
 import { InspectorHelpBanner, InspectorHelpModal, InspectorHint } from "@/app/InspectorHelp";
-import { normalizeJobWmFields, jobsWithAdminNotesNeedingInspector, applyHandoverStageToJob, inferHandoverStage, HANDOVER_STAGE_LABELS, type JobHandoverStage, type JobWmJob } from "@/lib/job-wm";
 import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
 import { normalizeJobMetaFields, type HousingType, type StoveType } from "@/lib/job-meta";
 import { WmPortfolioView } from "@/app/WmPortfolioView";
@@ -550,7 +555,7 @@ export function InspectorPanel({
           <div className="min-w-0">
             <p className="text-sm font-semibold truncate">{displayName}</p>
             <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate">Inspektor WM · W&G DOM</p>
-            <SyncStatusBadge syncing={syncing} syncPending={syncPending} pushFailed={pushFailed} lastSyncedAt={lastSyncedAt}/>
+            <SyncStatusBadge syncing={syncing} syncPending={syncPending} pushFailed={pushFailed} lastSyncedAt={lastSyncedAt} onRetry={() => refreshFromCloud(false)}/>
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
@@ -694,8 +699,8 @@ export function InspectorPanel({
             </div>
           </div>
 
+          <PullToRefreshIndicator pull={listPull.pull} refreshing={listPull.refreshing || syncing} ready={listPull.ready}/>
           <div ref={listScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 space-y-3">
-            <PullToRefreshIndicator pull={listPull.pull} refreshing={listPull.refreshing || syncing} ready={listPull.ready}/>
             {loading ? (
               <div className="flex justify-center py-16">
                 <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
@@ -776,7 +781,7 @@ export function InspectorPanel({
       ) : (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-4 py-2 shrink-0 space-y-2">
-            <button type="button" onClick={() => setSelectedId(null)} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[40px]">
+            <button type="button" onClick={() => setSelectedId(null)} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px]">
               <ArrowLeft size={16}/>Wróć do listy robót
             </button>
             <div className="pb-1">
@@ -899,7 +904,7 @@ export function InspectorPanel({
                       <button
                         type="button"
                         onClick={() => toggleDoc(selectedJob, kind)}
-                        className={`flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-full ${checked ? "bg-green-500/15 text-green-400" : "bg-secondary text-muted-foreground"}`}
+                        className={`flex items-center gap-1 text-xs font-medium px-3 py-2 min-h-[44px] rounded-full ${checked ? "bg-green-500/15 text-green-400" : "bg-secondary text-muted-foreground"}`}
                         title={checked ? "Oznacz jako brak" : "Oznacz jako jest"}
                       >
                         {checked ? <CheckCircle2 size={12}/> : <Circle size={12}/>}
@@ -1118,7 +1123,13 @@ export function InspectorPanel({
         </div>
       )}
 
-      <Toaster position="top-center" richColors closeButton duration={4000}/>
+      <Toaster
+        position="top-center"
+        richColors
+        closeButton
+        duration={4000}
+        style={{ top: "calc(env(safe-area-inset-top, 0px) + 4.25rem)" }}
+      />
     </div>
   );
 }
@@ -1128,11 +1139,13 @@ function SyncStatusBadge({
   syncPending,
   pushFailed,
   lastSyncedAt,
+  onRetry,
 }: {
   syncing: boolean;
   syncPending: boolean;
   pushFailed: boolean;
   lastSyncedAt: Date | null;
+  onRetry?: () => void;
 }) {
   if (syncing) {
     return (
@@ -1144,10 +1157,15 @@ function SyncStatusBadge({
   }
   if (pushFailed) {
     return (
-      <p className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5" title="Zmiany zapisane lokalnie — wyśle się po odzyskaniu sieci">
+      <button
+        type="button"
+        onClick={onRetry}
+        className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5 touch-manipulation min-h-[28px]"
+        title="Dotknij, aby ponowić wysłanie do chmury"
+      >
         <CloudOff size={10} className="shrink-0"/>
-        Czeka na wysłanie
-      </p>
+        Czeka na wysłanie — dotknij
+      </button>
     );
   }
   if (syncPending) {
