@@ -1,8 +1,7 @@
 import { useState } from "react";
 import {
-  Calendar, MessageSquare, Camera, Upload, Send, ChevronRight,
+  Calendar, MessageSquare, Send, ChevronRight,
 } from "lucide-react";
-import { uploadInspectorPhoto } from "@/lib/job-photo-upload";
 import { appendJobActivity } from "@/lib/job-activity";
 import { InspectorHint } from "@/app/InspectorHelp";
 import {
@@ -17,7 +16,6 @@ import {
   type JobHandoverStage,
   type JobNoteAuthorRole,
   type JobWmJob,
-  type InspectorPhotoEntry,
 } from "@/lib/job-wm";
 import type { JobMetaFields } from "@/lib/job-meta";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
@@ -34,8 +32,8 @@ type JobWmPanelProps = {
   canEditStage?: boolean;
   canSetPlannedDate?: boolean;
   canAddNotes?: boolean;
-  canUploadPhotos?: boolean;
   directory?: { name: string; phone: string }[];
+  onGoToPhotos?: () => void;
 };
 
 export function JobWmPanel({
@@ -46,13 +44,10 @@ export function JobWmPanel({
   canEditStage = true,
   canSetPlannedDate = true,
   canAddNotes = true,
-  canUploadPhotos = true,
   directory = [],
+  onGoToPhotos,
 }: JobWmPanelProps) {
   const [noteText, setNoteText] = useState("");
-  const [photoCaption, setPhotoCaption] = useState("");
-  const [photoBusy, setPhotoBusy] = useState(false);
-  const [msg, setMsg] = useState("");
 
   const stage = inferHandoverStage(job);
   const planStatus = plannedHandoverStatus(job.plannedHandoverDate || "", stage);
@@ -92,32 +87,8 @@ export function JobWmPanel({
     setNoteText("");
   };
 
-  const handlePhotoUpload = async (file: File) => {
-    setPhotoBusy(true);
-    setMsg("");
-    const { entry, error } = await uploadInspectorPhoto(job.id, file, actorName, photoCaption);
-    if (!entry) {
-      setMsg(error || "Nie udało się wgrać zdjęcia");
-      setPhotoBusy(false);
-      return;
-    }
-    const updated = appendJobActivity(
-      {
-        ...job,
-        inspectorPhotos: [entry, ...(job.inspectorPhotos || [])],
-      },
-      "inspector_photo",
-      `Zdjęcie inspektora${entry.caption ? `: ${entry.caption}` : ""}`,
-      actorName,
-    );
-    onUpdate(updated);
-    setPhotoCaption("");
-    setPhotoBusy(false);
-  };
-
   return (
     <div className="space-y-4">
-      {/* Etap odbioru */}
       <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
         <p className="text-sm font-semibold flex items-center gap-1">
           Etap odbioru WM
@@ -148,12 +119,11 @@ export function JobWmPanel({
         )}
       </div>
 
-      {/* Termin odbioru */}
       <div className="bg-card border border-border rounded-2xl p-4 space-y-2">
         <p className="text-sm font-semibold flex items-center gap-2">
           <Calendar size={14}/>
           Planowany odbiór WM
-          <InspectorHint text="Data planowanego odbioru przez Wrocławskie Mieszkania. Przeterminowane terminy widać na Portfolio i Pulpicie admina."/>
+          <InspectorHint text="Data planowanego odbioru przez Wrocławskie Mieszkania. Przeterminowane terminy widać na Pulpicie inspektora."/>
         </p>
         {canSetPlannedDate ? (
           <input
@@ -173,7 +143,6 @@ export function JobWmPanel({
         )}
       </div>
 
-      {/* Notatki */}
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
         <div className="px-4 py-3 border-b border-border">
           <p className="text-sm font-semibold flex items-center gap-2">
@@ -226,68 +195,16 @@ export function JobWmPanel({
         )}
       </div>
 
-      {/* Zdjęcia inspektora */}
-      <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-        <p className="text-sm font-semibold flex items-center gap-2">
-          <Camera size={14}/>
-          Zdjęcia inspektora
-          <InspectorHint text="Osobno od zdjęć ekipy — usterki, stan przed odbiorem, protokół. Bez akceptacji admina — od razu widoczne."/>
-        </p>
-        {(job.inspectorPhotos || []).length > 0 && (
-          <div className="grid grid-cols-3 gap-2">
-            {(job.inspectorPhotos || []).map((p: InspectorPhotoEntry) => (
-              <div key={p.id} className="space-y-1">
-                <a
-                  href={p.publicUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block aspect-square rounded-lg overflow-hidden bg-secondary border border-border relative group"
-                >
-                  <img src={p.publicUrl} alt="" className="w-full h-full object-cover"/>
-                  {p.caption && (
-                    <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[9px] px-1 py-0.5 truncate">{p.caption}</span>
-                  )}
-                </a>
-                <p className="text-[9px] text-muted-foreground truncate px-0.5">
-                  <AuthorAttribution
-                    name={p.uploadedBy}
-                    noteRole="inspector"
-                    directory={directory}
-                    accentClass="text-muted-foreground font-medium"
-                  />
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-        {canUploadPhotos && (
-          <>
-            <input
-              type="text"
-              value={photoCaption}
-              onChange={(e) => setPhotoCaption(e.target.value)}
-              placeholder="Opis zdjęcia (opcjonalnie)"
-              className="w-full bg-secondary rounded-xl px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"
-            />
-            <label className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-medium cursor-pointer ${photoBusy ? "opacity-50 pointer-events-none bg-secondary" : "bg-emerald-600 text-white hover:bg-emerald-600/90"}`}>
-              <Upload size={14}/>
-              {photoBusy ? "Wgrywanie…" : "Dodaj zdjęcie z telefonu"}
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="sr-only"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) handlePhotoUpload(f);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-          </>
-        )}
-        {msg && <p className="text-xs text-destructive">{msg}</p>}
-      </div>
+      {onGoToPhotos && (
+        <button
+          type="button"
+          onClick={onGoToPhotos}
+          className="w-full flex items-center justify-between gap-2 bg-card border border-emerald-500/25 rounded-2xl p-4 text-xs text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/5 transition-colors text-left"
+        >
+          <span>Zdjęcia inspektora — dodawaj i pobieraj w sekcji <strong>Galeria zdjęć</strong></span>
+          <ChevronRight size={16} className="shrink-0 opacity-70"/>
+        </button>
+      )}
     </div>
   );
 }

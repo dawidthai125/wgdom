@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  List, LayoutGrid, BookOpen, MessageSquare, FileText, ClipboardList,
+  List, LayoutGrid, LayoutDashboard, BookOpen, MessageSquare, FileText, ClipboardList,
   Users, Ruler, ImagePlus, Calendar,
 } from "lucide-react";
 
-export type InspectorMainTab = "jobs" | "portfolio";
+export type InspectorMainTab = "dashboard" | "jobs" | "portfolio";
 
 export type InspectorJobSection =
   | "wm"
@@ -30,12 +30,14 @@ export const JOB_SECTIONS: {
 
 export function InspectorBottomNav({
   active,
+  onDashboard,
   onJobs,
   onPortfolio,
   onHelp,
   alertCount = 0,
 }: {
   active: InspectorMainTab;
+  onDashboard: () => void;
   onJobs: () => void;
   onPortfolio: () => void;
   onHelp: () => void;
@@ -53,16 +55,20 @@ export function InspectorBottomNav({
       aria-label="Nawigacja inspektora"
     >
       <div className="flex items-stretch max-w-lg mx-auto">
-        <button type="button" onClick={onJobs} className={`${tabClass(active === "jobs")} touch-manipulation`} aria-current={active === "jobs" ? "page" : undefined}>
+        <button type="button" onClick={onDashboard} className={`${tabClass(active === "dashboard")} touch-manipulation`} aria-current={active === "dashboard" ? "page" : undefined}>
           <span className="relative">
-            <List size={20} strokeWidth={active === "jobs" ? 2.25 : 2}/>
+            <LayoutDashboard size={20} strokeWidth={active === "dashboard" ? 2.25 : 2}/>
             {alertCount > 0 && (
-              <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-violet-600 text-white text-[9px] font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[9px] font-bold flex items-center justify-center">
                 {alertCount > 9 ? "9+" : alertCount}
               </span>
             )}
           </span>
-          Robót
+          Pulpit
+        </button>
+        <button type="button" onClick={onJobs} className={`${tabClass(active === "jobs")} touch-manipulation`} aria-current={active === "jobs" ? "page" : undefined}>
+          <List size={20} strokeWidth={active === "jobs" ? 2.25 : 2}/>
+          Roboty
         </button>
         <button type="button" onClick={onPortfolio} className={`${tabClass(active === "portfolio")} touch-manipulation`} aria-current={active === "portfolio" ? "page" : undefined}>
           <LayoutGrid size={20} strokeWidth={active === "portfolio" ? 2.25 : 2}/>

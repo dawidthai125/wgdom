@@ -39,7 +39,13 @@ const SECTIONS = [
     id: "nav",
     icon: List,
     title: "Nawigacja — dolny pasek",
-    body: "U dołu: Robót, Portfolio, Pomoc. W robocie — kapsułki sekcji u góry. Ciągnij listę w dół, żeby odświeżyć dane (albo przycisk Odśwież). Baner PWA przypomni o dodaniu skrótu na ekran główny.",
+    body: "U dołu: Pulpit (pilne sprawy), Roboty, Portfolio, Pomoc. Pulpit otwiera się domyślnie. W robocie — kapsułki sekcji u góry. Ciągnij listę w dół, żeby odświeżyć dane.",
+  },
+  {
+    id: "dashboard",
+    icon: LayoutGrid,
+    title: "Pulpit — co pilne",
+    body: "Lista robót bez zlecenia/kosztorysu (każda robota raz), brakujące dokumenty, minąły termin odbioru, gotowe do odbioru bez daty. Przyciski „Zlecenie ✓” / „Kosztorys ✓” oznaczają dostarczenie bez wgrywania pliku. Po zaznaczeniu pozycja znika z pulpitu.",
   },
   {
     id: "sections",
@@ -51,7 +57,7 @@ const SECTIONS = [
     id: "start",
     icon: BookOpen,
     title: "Od czego zacząć?",
-    body: "Po zalogowaniu widzisz listę robót (dolny pasek → Robót). Kliknij kartę adresu — u góry kapsułki sekcji. Wróć strzałką „Wróć do listy robót”.",
+    body: "Po zalogowaniu widzisz Pulpit z pilnymi sprawami. Dolny pasek → Roboty — pełna lista adresów. Kliknij kartę — u góry kapsułki sekcji.",
   },
   {
     id: "list",
@@ -92,8 +98,8 @@ const SECTIONS = [
   {
     id: "photos",
     icon: ImagePlus,
-    title: "Galeria zdjęć ekipy",
-    body: "Tylko zdjęcia zaakceptowane przez admina. Kliknij miniaturę — powiększenie. Strzałka pobierania — zapisz na telefon. „Pobierz wszystkie” — paczka z całej roboty.",
+    title: "Galeria zdjęć",
+    body: "Zdjęcia ekipy (Przed / W realizacji / Po odbiorze) oraz Twoje zdjęcia inspektora (Usterka, W realizacji, Przed/Po odbiorze). Każde ma opis i datę. „ZIP kategorii” lub „ZIP — wszystkie” — jeden plik zamiast wielu pobrań. Dodawanie zdjęć inspektora też tutaj (kategoria + opis). Lightbox: przesuń palcem w bok, Udostępnij / Pobierz.",
   },
   {
     id: "stage",
@@ -116,8 +122,8 @@ const SECTIONS = [
   {
     id: "inspector-photos",
     icon: Camera,
-    title: "Zdjęcia inspektora",
-    body: "Osobna galeria — usterki, stan przed/po odbiorze, detale. Oddzielnie od zdjęć ekipy. Wgraj z telefonu, opcjonalnie dodaj opis.",
+    title: "Zdjęcia inspektora — kategorie",
+    body: "W Galerii zdjęć wybierz kategorię: Usterka, W realizacji, Przed odbiorze, Po odbiorze. Opis pomoże przy pobieraniu (widać w nazwie pliku i ZIP). Sekcja Odbiór WM ma skrót do galerii.",
   },
   {
     id: "author",

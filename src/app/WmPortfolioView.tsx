@@ -75,10 +75,11 @@ export function WmPortfolioView({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             <StatBox label="Aktywne WM" value={stats.total}/>
             <StatBox label="Gotowe do odbioru" value={stats.readyForHandover} accent="emerald"/>
             <StatBox label="Bez zlecenia" value={stats.missingZlecenie} accent="red"/>
+            <StatBox label="Bez kosztorysu" value={stats.missingKosztorys} accent="red"/>
             <StatBox label="Termin minął" value={stats.overduePlanned} accent="amber"/>
           </div>
 

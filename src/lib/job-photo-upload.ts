@@ -1,11 +1,13 @@
 import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
-import type { InspectorPhotoEntry } from "@/lib/job-wm";
+import type { InspectorPhotoEntry, InspectorPhotoLabel } from "@/lib/job-wm";
+import { normalizeInspectorPhotoLabel } from "@/lib/photo-labels";
 
 export async function uploadInspectorPhoto(
   jobId: string,
   file: File,
   uploadedBy: string,
   caption = "",
+  label?: InspectorPhotoLabel,
 ): Promise<{ entry: InspectorPhotoEntry | null; error?: string }> {
   const ext = file.name.split(".").pop() || "jpg";
   const filename = `inspector-${Date.now()}.${ext}`;
@@ -38,6 +40,7 @@ export async function uploadInspectorPhoto(
         uploadedBy,
         uploadedAt: new Date().toISOString(),
         caption: caption.trim() || undefined,
+        label: normalizeInspectorPhotoLabel(label),
       },
     };
   } catch {

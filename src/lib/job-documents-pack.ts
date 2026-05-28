@@ -142,8 +142,12 @@ export function collectJobPackEntries(job: JobPackSource): PackFileEntry[] {
   for (const p of job.inspectorPhotos || []) {
     if (!p.publicUrl) continue;
     const ext = extFromUrl(p.publicUrl, ".jpg");
+    const labelFolder = p.label === "defect" ? "usterka"
+      : p.label === "in_progress" ? "w-realizacji"
+      : p.label === "after_handover" ? "po-odbiorem"
+      : "przed-odbiorem";
     const name = p.caption ? safeFilename(p.caption) : `zdjecie-${inspIdx}${ext}`;
-    add(`pliki/03-zdjecia-inspektor/${name}`, p.publicUrl);
+    add(`pliki/03-zdjecia-inspektor/${labelFolder}/${name}`, p.publicUrl);
     inspIdx++;
   }
 

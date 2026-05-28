@@ -1,11 +1,10 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { saveAs } from "file-saver";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   MapPin, LogOut, Search, ArrowLeft, FileText, ClipboardList, Ruler,
-  CheckCircle2, Circle, ImagePlus, Download, Phone, Users,
-  ChevronDown, ChevronUp, Eye, Camera, X, FileCheck, AlertCircle, BookOpen, RefreshCw, MessageSquare, ScrollText,
+  CheckCircle2, Circle, ImagePlus, Phone, Users,
+  ChevronDown, ChevronUp, Camera, X, FileCheck, AlertCircle, BookOpen, RefreshCw, MessageSquare, ScrollText,
 } from "lucide-react";
 import {
   fetchKeysFromCloud,
@@ -36,7 +35,16 @@ import {
   isReportSyncedDocLocked,
 } from "@/lib/job-documents";
 import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
+import { InspectorDashboard } from "@/app/InspectorDashboard";
+import { InspectorPhotoGallery } from "@/app/InspectorPhotoGallery";
 import { uploadJobFile } from "@/lib/job-file-upload";
+import { uploadInspectorPhoto } from "@/lib/job-photo-upload";
+import { computeInspectorDashboardStats, type QuickMarkDoc } from "@/lib/inspector-dashboard";
+import {
+  inferHandoverStage,
+  plannedHandoverStatus,
+  type InspectorPhotoLabel,
+} from "@/lib/job-wm";
 import {
   appendJobActivity,
   inspectorDocToggleText,
@@ -133,12 +141,6 @@ interface InspectorJob extends JobWmJob {
   stoveType?: StoveType | "";
 }
 
-const PHOTO_LABELS: Record<PhotoEntry["label"], string> = {
-  before: "Przed",
-  after: "Po",
-  progress: "W trakcie",
-};
-
 function fmtDate(iso: string): string {
   if (!iso) return "—";
   const [y, m, d] = iso.split("-");
@@ -173,12 +175,6 @@ function uniqueWorkersOnJob(job: InspectorJob, directory: DirectoryEmployee[]): 
   return out.sort((a, b) => a.name.localeCompare(b.name, "pl"));
 }
 
-async function downloadUrlAsFile(url: string, filename: string) {
-  const res = await fetch(url);
-  const blob = await res.blob();
-  saveAs(blob, filename);
-}
-
 export function InspectorPanel({
   inspectorId,
   displayName,
@@ -193,7 +189,7 @@ export function InspectorPanel({
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "completed">("active");
-  const [mainTab, setMainTab] = useState<InspectorMainTab>("jobs");
+  const [mainTab, setMainTab] = useState<InspectorMainTab>("dashboard");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
@@ -206,6 +202,7 @@ export function InspectorPanel({
   const [stageSuggestion, setStageSuggestion] = useState<{ jobId: string; stage: JobHandoverStage } | null>(null);
   const jobScrollRef = useRef<HTMLDivElement>(null);
   const listScrollRef = useRef<HTMLDivElement>(null);
+  const dashboardScrollRef = useRef<HTMLDivElement>(null);
   const portfolioScrollRef = useRef<HTMLDivElement>(null);
 
   const scrollToJobSection = useCallback((id: InspectorJobSection) => {
@@ -252,6 +249,45 @@ export function InspectorPanel({
   const markAdminNotesSeen = () => {
     markInspectorJobNotesSeen(inspectorId).then(() => setNotesSeenTick((t) => t + 1)).catch(() => {});
   };
+
+  const openJob = useCallback((jobId: string, section?: InspectorJobSection) => {
+    setSelectedId(jobId);
+    setMainTab("jobs");
+    setMsg("");
+    setOpenReportId(null);
+    if (adminNotesPending.some((j) => j.id === jobId)) markAdminNotesSeen();
+    if (section) {
+      window.setTimeout(() => scrollToJobSection(section), 150);
+    }
+  }, [scrollToJobSection, adminNotesPending]);
+
+  const dashboardAlertCount = useMemo(() => {
+    const stats = computeInspectorDashboardStats(jobs, adminNotesPending.length);
+    const ids = new Set<string>();
+    adminNotesPending.forEach((j) => ids.add(j.id));
+    stats.fileAlerts.forEach((a) => ids.add(a.job.id));
+    stats.docAlerts.forEach((a) => ids.add(a.job.id));
+    stats.readyNoDate.forEach((a) => ids.add(a.job.id));
+    for (const j of jobs) {
+      if (j.status !== "in_progress" || !j.plannedHandoverDate) continue;
+      if (plannedHandoverStatus(j.plannedHandoverDate, inferHandoverStage(j)) === "overdue") ids.add(j.id);
+    }
+    return ids.size;
+  }, [jobs, adminNotesPending]);
+
+  const markDocFromDashboard = useCallback((jobId: string, doc: QuickMarkDoc) => {
+    const job = jobs.find((j) => j.id === jobId);
+    if (!job || job.documents[doc]) return;
+    updateJob(
+      appendJobActivity(
+        { ...job, documents: { ...job.documents, [doc]: true } },
+        "inspector_document",
+        inspectorDocToggleText(doc, true),
+        displayName,
+      ),
+    );
+    setMsg(`Oznaczono: ${DOC_LABELS[doc]}`);
+  }, [jobs, updateJob, displayName]);
 
   const jobInspectorHistory = useCallback((job: InspectorJob, limit = 5): JobActivity[] => {
     return (job.activityLog || []).filter((ev) => isInspectorActivityType(ev.type)).slice(0, limit);
@@ -350,7 +386,26 @@ export function InspectorPanel({
 
   const selectedJob = jobs.find((j) => j.id === selectedId) || null;
 
+  const handleInspectorPhotoUpload = useCallback(async (file: File, label: InspectorPhotoLabel, caption: string) => {
+    if (!selectedJob) return false;
+    const { entry, error } = await uploadInspectorPhoto(selectedJob.id, file, displayName, caption, label);
+    if (!entry) {
+      setMsg(error || "Nie udało się wgrać zdjęcia");
+      return false;
+    }
+    updateJob(
+      appendJobActivity(
+        { ...selectedJob, inspectorPhotos: [entry, ...(selectedJob.inspectorPhotos || [])] },
+        "inspector_photo",
+        `Zdjęcie inspektora (${label})${entry.caption ? `: ${entry.caption}` : ""}`,
+        displayName,
+      ),
+    );
+    return true;
+  }, [selectedJob, displayName, updateJob]);
+
   const pullRefresh = useCallback(() => refreshFromCloud(false), [refreshFromCloud]);
+  const dashboardPull = usePullToRefresh(dashboardScrollRef, pullRefresh, !selectedId && mainTab === "dashboard");
   const listPull = usePullToRefresh(listScrollRef, pullRefresh, !selectedId && mainTab === "jobs");
   const jobPull = usePullToRefresh(jobScrollRef, pullRefresh, Boolean(selectedId));
   const portfolioPull = usePullToRefresh(portfolioScrollRef, pullRefresh, !selectedId && mainTab === "portfolio");
@@ -383,10 +438,10 @@ export function InspectorPanel({
       out.push({ section: "wm", label: "Odpowiedź admina", icon: MessageSquare });
     }
     if (!selectedJob.documents.zlecenie) {
-      out.push({ section: "files", label: "Wgraj zlecenie", icon: FileText });
+      out.push({ section: "files", label: "Brak zlecenia — oznacz Jest", icon: FileText });
     }
     if (!selectedJob.documents.kosztorys) {
-      out.push({ section: "files", label: "Wgraj kosztorys", icon: FileCheck });
+      out.push({ section: "files", label: "Brak kosztorysu — oznacz Jest", icon: FileCheck });
     }
     const missingDocs = REQUIRED_DOCS.filter((d) => !selectedJob.documents[d]).length;
     if (missingDocs > 0) {
@@ -435,21 +490,6 @@ export function InspectorPanel({
       setStageSuggestion({ jobId: job.id, stage: "in_progress" });
     }
     setUploadBusy(null);
-  };
-
-  const downloadAllPhotos = async (job: InspectorJob) => {
-    const photos = (job.photos || []).filter((p) => p.publicUrl && p.status === "approved");
-    if (photos.length === 0) {
-      setMsg("Brak zaakceptowanych zdjęć do pobrania");
-      return;
-    }
-    setMsg(`Pobieranie ${photos.length} zdjęć…`);
-    for (let i = 0; i < photos.length; i++) {
-      const p = photos[i];
-      const ext = p.publicUrl.split(".").pop()?.split("?")[0] || "jpg";
-      await downloadUrlAsFile(p.publicUrl, `${job.address || "robota"}-${i + 1}-${p.label}.${ext}`);
-    }
-    setMsg(`Pobrano ${photos.length} zdjęć`);
   };
 
   return (
@@ -520,13 +560,45 @@ export function InspectorPanel({
         </div>
       )}
 
-      {!selectedJob && mainTab === "portfolio" ? (
+      {!selectedJob && mainTab === "dashboard" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <PullToRefreshIndicator pull={portfolioPull.pull} refreshing={portfolioPull.refreshing || syncing} ready={portfolioPull.ready}/>
-          <WmPortfolioView jobs={jobs} scrollRef={portfolioScrollRef} onOpenJob={(id) => { setSelectedId(id); setMainTab("jobs"); setMsg(""); }}/>
+          <PullToRefreshIndicator pull={dashboardPull.pull} refreshing={dashboardPull.refreshing || syncing} ready={dashboardPull.ready}/>
+          <div ref={dashboardScrollRef} className="flex-1 overflow-y-auto overscroll-contain">
+            <div
+              className="max-w-2xl mx-auto w-full px-4 py-4"
+              style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+            >
+              {loading ? (
+                <div className="flex justify-center py-16">
+                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+                </div>
+              ) : (
+                <InspectorDashboard
+                  jobs={jobs}
+                  adminNotesPending={adminNotesPending}
+                  onOpenJob={openJob}
+                  onMarkDoc={markDocFromDashboard}
+                />
+              )}
+            </div>
+          </div>
           <InspectorBottomNav
             active={mainTab}
-            alertCount={adminNotesPending.length}
+            alertCount={dashboardAlertCount}
+            onDashboard={() => setMainTab("dashboard")}
+            onJobs={() => setMainTab("jobs")}
+            onPortfolio={() => setMainTab("portfolio")}
+            onHelp={() => setHelpOpen(true)}
+          />
+        </div>
+      ) : !selectedJob && mainTab === "portfolio" ? (
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <PullToRefreshIndicator pull={portfolioPull.pull} refreshing={portfolioPull.refreshing || syncing} ready={portfolioPull.ready}/>
+          <WmPortfolioView jobs={jobs} scrollRef={portfolioScrollRef} onOpenJob={(id) => openJob(id)}/>
+          <InspectorBottomNav
+            active={mainTab}
+            alertCount={dashboardAlertCount}
+            onDashboard={() => setMainTab("dashboard")}
             onJobs={() => setMainTab("jobs")}
             onPortfolio={() => setMainTab("portfolio")}
             onHelp={() => setHelpOpen(true)}
@@ -642,7 +714,8 @@ export function InspectorPanel({
 
           <InspectorBottomNav
             active={mainTab}
-            alertCount={adminNotesPending.length}
+            alertCount={dashboardAlertCount}
+            onDashboard={() => setMainTab("dashboard")}
             onJobs={() => setMainTab("jobs")}
             onPortfolio={() => setMainTab("portfolio")}
             onHelp={() => setHelpOpen(true)}
@@ -730,6 +803,7 @@ export function InspectorPanel({
               actorName={displayName}
               actorRole="inspector"
               directory={directoryContacts}
+              onGoToPhotos={() => scrollToJobSection("photos")}
             />
             </section>
 
@@ -762,8 +836,8 @@ export function InspectorPanel({
               {(["zlecenie", "kosztorys"] as const).map((kind) => {
                 const label = kind === "zlecenie" ? "Zlecenie (PDF)" : "Kosztorys (NORMA/ATH/PDF)";
                 const hint = kind === "zlecenie"
-                  ? "Zaznacz „Jest” gdy wystawiłeś zlecenie (np. mailem). Wgraj PDF — firma zobaczy go w Robotach."
-                  : "Kosztorys z programu NORMA (.ath, .nor, .xml) lub PDF. Przy wyborze pliku użyj „Wszystkie pliki”, jeśli nie widzisz .ath.";
+                  ? "Zaznacz „Jest” gdy wystawiłeś zlecenie (np. mailem) — plik PDF opcjonalny. Firma zobaczy status w Robotach."
+                  : "Kosztorys NORMA (.ath, .nor, .xml) lub PDF. Zaznacz „Jest” po dostarczeniu — wgrywanie pliku nie jest wymagane.";
                 const file = latestJobFile(selectedJob, kind);
                 const checked = selectedJob.documents[kind];
                 return (
@@ -961,59 +1035,15 @@ export function InspectorPanel({
             </section>
 
             <section id="inspector-section-photos" className="scroll-mt-44">
-            <div className="bg-card border border-border rounded-2xl p-4">
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <p className="text-sm font-semibold flex items-center gap-2">
-                  <ImagePlus size={15}/> Galeria zdjęć
-                  <InspectorHint text="Tylko zdjęcia zaakceptowane przez firmę. Pobierz pojedynczo lub wszystkie — np. do odbioru lub dokumentacji WM."/>
-                </p>
-                {(selectedJob.photos || []).filter((p) => p.status === "approved").length > 0 && (
-                  <button type="button" onClick={() => downloadAllPhotos(selectedJob)} className="text-xs text-primary flex items-center gap-1 hover:underline">
-                    <Download size={12}/> Pobierz wszystkie
-                  </button>
-                )}
-              </div>
-              {(["before", "after", "progress"] as const).map((label) => {
-                const photos = (selectedJob.photos || []).filter((p) => p.label === label && p.status === "approved" && p.publicUrl);
-                if (photos.length === 0) return null;
-                return (
-                  <div key={label} className="mb-4 last:mb-0">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1">
-                      {label === "before" ? <Camera size={11}/> : label === "after" ? <Eye size={11}/> : <ImagePlus size={11}/>}
-                      {PHOTO_LABELS[label]} ({photos.length})
-                    </p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {photos.map((p) => (
-                        <div key={p.id} className="relative group space-y-1">
-                          <button type="button" onClick={() => setLightbox({ url: p.publicUrl, label: PHOTO_LABELS[p.label] })} className="block w-full aspect-square rounded-lg overflow-hidden bg-secondary border border-border">
-                            <img src={p.publicUrl} alt="" className="w-full h-full object-cover"/>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => downloadUrlAsFile(p.publicUrl, `${selectedJob.address}-${p.label}-${p.id.slice(0, 6)}.jpg`)}
-                            className="absolute bottom-6 right-1 p-1.5 rounded-md bg-black/60 text-white opacity-90"
-                            title="Pobierz"
-                          >
-                            <Download size={12}/>
-                          </button>
-                          <p className="text-[9px] text-muted-foreground truncate px-0.5">
-                            <AuthorAttribution
-                              name={p.uploadedBy}
-                              reportAdminRole="worker"
-                              directory={directoryContacts}
-                              accentClass="text-muted-foreground font-medium"
-                            />
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-              {(selectedJob.photos || []).filter((p) => p.status === "approved").length === 0 && (
-                <p className="text-xs text-muted-foreground text-center py-4">Brak zaakceptowanych zdjęć</p>
-              )}
-            </div>
+              <InspectorPhotoGallery
+                jobAddress={selectedJob.address || "robota"}
+                crewPhotos={selectedJob.photos || []}
+                inspectorPhotos={selectedJob.inspectorPhotos || []}
+                directory={directoryContacts}
+                onStatusMessage={setMsg}
+                canUpload
+                onUploadInspectorPhoto={handleInspectorPhotoUpload}
+              />
             </section>
 
             {selectedJob.notes && (

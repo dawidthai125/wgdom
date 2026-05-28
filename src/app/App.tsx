@@ -8604,6 +8604,22 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.24.0", label:"Inspektor — pulpit pro + galeria ZIP",
+    items:[
+      {type:"new", text:"Pulpit — priorytety (termin odbioru), jedna robota na liście zlec/kosz, braki dokumentów, gotowe bez daty, szybkie „Zlecenie ✓” / „Kosztorys ✓”"},
+      {type:"new", text:"Galeria — ZIP całej kategorii lub wszystkich zdjęć; kategorie inspektora (usterka, realizacja, przed/po odbiorze); upload w galerii"},
+      {type:"improve", text:"Lightbox — przesuwanie między zdjęciami, udostępnij/pobierz; instrukcja inspektora uzupełniona o Pulpit"},
+    ],
+  },
+  {
+    date:"2026-05-25", version:"2.23.0", label:"Inspektor — pulpit i galeria zdjęć",
+    items:[
+      {type:"new", text:"Panel inspektora — zakładka Pulpit: roboty bez zlecenia/kosztorysu (znika po zaznaczeniu „Jest”, bez wymogu pliku)"},
+      {type:"new", text:"Galeria zdjęć inspektora jak u admina: kategorie (przed / w realizacji / po odbiorze), opisy, daty wrzucenia, pobieranie całej kategorii"},
+      {type:"improve", text:"Zdjęcia inspektora z sekcji Odbiór WM widoczne w galerii z datą i opisem; nazwy plików przy pobieraniu zawierają datę i opis"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.22.0", label:"Upload kosztorysu .ath (NORMA)",
     items:[
       {type:"fix", text:"Inspektor i admin — wgrywanie kosztorysów .ath/.nor/.xml: okno plików pokazuje wszystkie pliki (Windows ukrywał .ath przy filtrze rozszerzeń); walidacja po wyborze"},

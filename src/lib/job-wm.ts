@@ -38,6 +38,8 @@ export interface JobNote {
   at: string;
 }
 
+export type InspectorPhotoLabel = "defect" | "in_progress" | "before_handover" | "after_handover";
+
 export interface InspectorPhotoEntry {
   id: string;
   path: string;
@@ -45,6 +47,8 @@ export interface InspectorPhotoEntry {
   uploadedBy: string;
   uploadedAt: string;
   caption?: string;
+  /** Kategoria zdjęcia inspektora (domyślnie: przed odbiorem). */
+  label?: InspectorPhotoLabel;
 }
 
 export interface JobWmData {
