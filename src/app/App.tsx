@@ -194,6 +194,8 @@ type PdfDocDef = Parameters<Awaited<ReturnType<typeof loadPdfMake>>["createPdf"]
 type DayKey = "Pn" | "Wt" | "Sr" | "Cz" | "Pt" | "So";
 const DAY_LABELS: Record<DayKey, string> = { Pn: "Poniedziałek", Wt: "Wtorek", Sr: "Środa", Cz: "Czwartek", Pt: "Piątek", So: "Sobota" };
 const DAYS: DayKey[] = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"];
+/** Etykieta w Grafiku dla logistyki (wiele robót/dzień, bez wpisu na robocie). */
+const MULTI_SITE_SCHEDULE_LABEL = "Dowóz mat. / wywóz śm.";
 const MONTH_NAMES = ["Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec","Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"];
 
 /** Trwała kartoteka pracownika */
@@ -1693,10 +1695,19 @@ function sortJobsActiveFirst(jobs: Job[]): Job[] {
 }
 
 /** Sidebar / podgląd: ilu pracowników dziś na ilu aktywnych robotach (wpisy czasu pracy). */
+function weekEmployeeWorkerKey(emp: Pick<WeekEmployee, "directoryId" | "name">): string | null {
+  if (emp.directoryId) return `d:${emp.directoryId}`;
+  const n = emp.name?.trim();
+  return n ? `n:${normalizeEmpName(n)}` : null;
+}
+
+/** Sidebar / podgląd: ilu pracowników dziś na ilu aktywnych robotach (wpisy czasu pracy). */
 function todayFieldWorkStats(
   jobs: Job[],
   dateIso: string,
   directory: DirectoryEmployee[],
+  weekEmployees: WeekEmployee[],
+  weekFrom: string,
 ): { people: number; jobs: number } {
   const workerKeys = new Set<string>();
   const jobIds = new Set<string>();
@@ -1709,13 +1720,25 @@ function todayFieldWorkStats(
         if (dir && isTestDirectoryEmployee(dir)) continue;
         workerKeys.add(`d:${we.directoryId}`);
       } else if (we.workerName?.trim()) {
-        workerKeys.add(`n:${we.workerName.trim().toLowerCase()}`);
+        workerKeys.add(`n:${normalizeEmpName(we.workerName)}`);
       } else {
         continue;
       }
       jobIds.add(job.id);
     }
   }
+
+  const dayKey = dayKeyForIsoInWeek(dateIso, weekFrom);
+  if (dayKey) {
+    for (const emp of weekEmployees) {
+      if (isTestWeekEmployee(emp, directory)) continue;
+      if (!isMultiSiteEmployee(emp, directory)) continue;
+      if (dayTotalHours(emp.days[dayKey]) <= 0) continue;
+      const key = weekEmployeeWorkerKey(emp);
+      if (key) workerKeys.add(key);
+    }
+  }
+
   return { people: workerKeys.size, jobs: jobIds.size };
 }
 
@@ -1778,7 +1801,7 @@ function scheduleCellFor(
   dateIso: string,
   jobs: Job[],
   directory: DirectoryEmployee[],
-): { working: boolean; timeRange: string; hoursLabel: string; locations: string[] } {
+): { working: boolean; timeRange: string; hoursLabel: string; locations: string[]; logisticsOnly: boolean } {
   const day = emp.days[dayKey];
   const activeJobs = jobs.filter((j) => j.status === "in_progress");
   const jobList = jobsForEmployeeOnIsoDate(emp, activeJobs, dateIso, directory);
@@ -1786,6 +1809,8 @@ function scheduleCellFor(
   const extraList = day.extraHours ?? [];
   const totalH = dayTotalHours(day);
   const working = day.active || extraList.length > 0 || locations.length > 0;
+  const multiSite = isMultiSiteEmployee(emp, directory);
+  const logisticsOnly = multiSite && (day.active || extraList.length > 0) && locations.length === 0;
   const timeParts: string[] = [];
   if (day.active) timeParts.push(`${day.from}–${day.to}`);
   for (const ex of extraList) {
@@ -1796,6 +1821,7 @@ function scheduleCellFor(
     timeRange: timeParts.join(" + "),
     hoursLabel: totalH > 0 ? fmtH(totalH) : "",
     locations,
+    logisticsOnly,
   };
 }
 
@@ -1873,7 +1899,7 @@ function scheduleCellFromArchive(
   dateIso: string,
   workEntries: ArchivedWorkEntry[],
   directory: DirectoryEmployee[],
-): { working: boolean; timeRange: string; hoursLabel: string; locations: string[] } {
+): { working: boolean; timeRange: string; hoursLabel: string; locations: string[]; logisticsOnly: boolean } {
   const day = emp.days[dayKey];
   const dayEntries = workEntries.filter(
     (we) => we.date === dateIso && archivedWorkEntryMatches(emp, we, directory),
@@ -1886,6 +1912,8 @@ function scheduleCellFromArchive(
   const extraList = day.extraHours ?? [];
   const totalH = dayTotalHours(day);
   const working = day.active || extraList.length > 0 || locations.length > 0;
+  const multiSite = isMultiSiteEmployee(emp, directory);
+  const logisticsOnly = multiSite && (day.active || extraList.length > 0) && locations.length === 0;
   const timeParts: string[] = [];
   if (day.active) timeParts.push(`${day.from}–${day.to}`);
   for (const ex of extraList) {
@@ -1896,6 +1924,7 @@ function scheduleCellFromArchive(
     timeRange: timeParts.join(" + "),
     hoursLabel: totalH > 0 ? fmtH(totalH) : "",
     locations,
+    logisticsOnly,
   };
 }
 
@@ -4012,6 +4041,15 @@ function ArchiveScheduleGrid({
                             <span className="text-left">{loc}</span>
                           </span>
                         ))}
+                        {cell.timeRange && cell.locations.length === 0 && (
+                          cell.logisticsOnly ? (
+                            <span className="text-[9px] leading-snug text-violet-500/90 italic max-w-[88px] text-center">
+                              {MULTI_SITE_SCHEDULE_LABEL}
+                            </span>
+                          ) : (
+                            <span className="text-[9px] text-muted-foreground italic">bez roboty</span>
+                          )
+                        )}
                         {!cell.timeRange && cell.locations.length === 0 && (
                           <span className="text-[9px] text-muted-foreground italic">robota</span>
                         )}
@@ -6684,7 +6722,13 @@ function ScheduleView({
                                 </span>
                               ))
                             ) : cell.timeRange ? (
-                              <span className="text-[9px] text-muted-foreground italic">bez roboty</span>
+                              cell.logisticsOnly ? (
+                                <span className="text-[9px] leading-snug text-violet-500/90 italic max-w-[96px] text-center">
+                                  {MULTI_SITE_SCHEDULE_LABEL}
+                                </span>
+                              ) : (
+                                <span className="text-[9px] text-muted-foreground italic">bez roboty</span>
+                              )
                             ) : null}
                           </div>
                         ) : (
@@ -8222,6 +8266,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-28", version:"2.20.8", label:"Logistyka — grafik i statystyka dziś",
+    items:[
+      {type:"improve", text:"Sidebar „Dziś” — pracownicy z opcją wiele robót/dzień liczą się w pracy także bez wpisu na robocie (lista płac)"},
+      {type:"improve", text:"Grafik — dla logistyki zamiast „bez roboty”: Dowóz mat. / wywóz śm. (tylko przy zaznaczonej opcji w kartotece)"},
+    ],
+  },
   {
     date:"2026-05-28", version:"2.20.7", label:"SMS — status konta SMSAPI na żywo",
     items:[
@@ -10304,9 +10355,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         day: "numeric",
         month: "numeric",
       }),
-      ...todayFieldWorkStats(jobs, iso, directory),
+      ...todayFieldWorkStats(jobs, iso, directory, productionWeekEmployees, weekFrom),
     };
-  }, [jobs, directory]);
+  }, [jobs, directory, productionWeekEmployees, weekFrom]);
 
   const handleNavigate = useCallback((v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string, payrollEmpId?: string, inspectorTab?: "activity" | "portfolio") => {
     if (jobId) {
