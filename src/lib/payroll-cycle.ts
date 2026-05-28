@@ -294,7 +294,7 @@ export function biweeklyCashContextLine(split: PayrollCashSplit, weekTo: string,
     return `Bez wypłaty co 2 tyg. → sob. ${next}`;
   }
   if (split.isAnyBiweeklyPayoutWeek) {
-    return `W sob. ${sat} wypada wypłata co 2 tygodnie (${split.biweeklyCount} os.) — kasa za ten i poprzedni tydzień`;
+    return `W sob. ${sat} wypada wypłata co 2 tygodnie (${split.biweeklyCount} os.) — wypłata za bieżący i poprzedni tydzień`;
   }
   const next = fmtDateShort(split.nextBiweeklyPayoutDate);
   return `W sob. ${satShort} bez wypłaty co 2 tyg. (${split.biweeklyCount} os.) — kwota przechodzi na sob. ${next.slice(0, 5)}`;

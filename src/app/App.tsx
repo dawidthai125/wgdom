@@ -3306,7 +3306,7 @@ function PayrollView({
 
             {cashSplit.hasBiweeklyEmployees && canViewRates && (
               <div className="bg-card border border-border rounded-xl px-5 py-4 space-y-2">
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Kasa w sobotę {fmtDate(weekTo)}</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Wypłata w sobotę · {fmtDate(weekTo).slice(0, 5)}</p>
                 {payrollCashContext && (
                   <p className="text-xs text-muted-foreground leading-snug">{payrollCashContext}</p>
                 )}
@@ -3317,17 +3317,17 @@ function PayrollView({
                   </div>
                   {cashSplit.isAnyBiweeklyPayoutWeek ? (
                     <div className="bg-sky-500/10 border border-sky-500/20 rounded-lg px-3 py-2.5">
-                      <p className="text-xs text-sky-300 mb-0.5">Co 2 tyg. ({cashSplit.biweeklyCount} os.) — ten + poprzedni tydzień</p>
+                      <p className="text-xs text-sky-300 mb-0.5">Wypłata co 2 tyg. ({cashSplit.biweeklyCount} os.) — bież. i poprzedni tydzień</p>
                       <p className="font-bold text-sky-300" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.biweeklyPayoutNet)} PLN</p>
                     </div>
                   ) : (
                     <div className="bg-secondary/50 rounded-lg px-3 py-2.5">
-                      <p className="text-xs text-muted-foreground mb-0.5">Co 2 tyg. ({cashSplit.biweeklyCount} os.) → {fmtDate(cashSplit.nextBiweeklyPayoutDate)}</p>
+                      <p className="text-xs text-muted-foreground mb-0.5">Narastająco · co 2 tyg. ({cashSplit.biweeklyCount} os.) → {fmtDate(cashSplit.nextBiweeklyPayoutDate).slice(0, 5)}</p>
                       <p className="font-bold text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.biweeklyAccruedNet)} PLN</p>
                     </div>
                   )}
                   <div className="bg-primary/10 border border-primary/20 rounded-lg px-3 py-2.5">
-                    <p className="text-xs text-primary/80 mb-0.5">Razem w kasie w sobotę</p>
+                    <p className="text-xs text-primary/80 mb-0.5">Suma wypłaty w sobotę</p>
                     <p className="font-bold text-primary text-lg" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.totalSaturdayCash)} PLN</p>
                   </div>
                 </div>
@@ -3514,7 +3514,7 @@ function PayrollView({
                         </tr>
                         {cashSplit.hasBiweeklyEmployees && canViewRates && (
                         <tr className="border-t border-primary/20 bg-primary/5">
-                          <td colSpan={8} className="px-4 py-3 text-xs font-bold text-primary uppercase tracking-wider">Kasa w sobotę {fmtDate(weekTo)}</td>
+                          <td colSpan={8} className="px-4 py-3 text-xs font-bold text-primary uppercase tracking-wider">Wypłata w sobotę · {fmtDate(weekTo).slice(0, 5)}</td>
                           <td className="px-3 py-3 text-right font-bold text-primary text-base whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.totalSaturdayCash)} <span className="text-[10px] font-normal text-primary/70">zł</span></td>
                           <td colSpan={2} className="sticky right-0 z-10 bg-primary/5"/>
                         </tr>
@@ -8598,6 +8598,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.21.6", label:"Lista Płac — poprawione sformułowania wypłaty",
+    items:[
+      {type:"improve", text:"Lista Płac — „Kasa w sobotę” i „Razem w kasie” zastąpione profesjonalnymi: „Wypłata w sobotę”, „Suma wypłaty w sobotę”"},
+      {type:"improve", text:"PDF, Word i email — spójna terminologia wypłaty zamiast „kasa”; doprecyzowane etykiety co 2 tyg. (narastająco / bież. i poprzedni tydzień)"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.21.5", label:"Sidebar — przewijanie i krótsze opisy",
     items:[
