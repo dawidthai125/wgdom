@@ -6842,6 +6842,32 @@ function DashboardView({
     );
   };
 
+  const toggleJobDocumentOnDashboard = (job: Job, doc: DocType) => {
+    onFixJobs((prev) =>
+      prev.map((j) => {
+        if (j.id !== job.id) return j;
+        let next = appendJobActivity(
+          { ...j, documents: { ...j.documents, [doc]: true } },
+          "document",
+          `Zaznaczono: ${DOC_LABELS[doc]}`,
+          "Administrator",
+        );
+        if (!isWmClient(next.client)) {
+          const allDone = REQUIRED_DOCS.every((d) => next.documents[d]);
+          if (allDone && next.status === "in_progress") {
+            next = appendJobActivity(
+              { ...next, status: "completed" as const },
+              "status_change",
+              "Automatycznie oznaczono jako zdane (komplet dokumentów)",
+              "System",
+            );
+          }
+        }
+        return next;
+      }),
+    );
+  };
+
   const todayLabel = new Date().toLocaleDateString("pl-PL", {
     weekday: "long",
     day: "numeric",
@@ -7010,7 +7036,8 @@ function DashboardView({
                         </span>
                       </p>
                       <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                        Kliknij robotę — otworzy się karta z checklistą dokumentów. Wymagane: {REQUIRED_DOCS.length} pozycji (bez zdjęć).
+                        <span className="text-foreground/90">Kliknij brakujący dokument</span> — od razu oznaczysz jako odebrany (pasek się zaktualizuje).
+                        Kliknij adres robota — pełna karta w Robotach. Wymagane: {REQUIRED_DOCS.length} poz.
                         {staleDocsJobs.length > 0 && (
                           <span className="text-amber-600 dark:text-amber-400 font-medium">
                             {" "}· {staleDocsJobs.length} {staleDocsJobs.length === 1 ? "trwa" : "trwają"} &gt;7 dni bez kompletu
@@ -7030,62 +7057,75 @@ function DashboardView({
                       const days = jobDaysSinceStart(job);
                       const isStale = days >= 7;
                       return (
-                        <button
+                        <div
                           key={job.id}
-                          type="button"
-                          onClick={() => onNavigate("jobs", job.id)}
-                          className={`w-full text-left rounded-xl border px-3.5 py-3 transition-colors hover:bg-secondary/60 ${
+                          className={`rounded-xl border px-3.5 py-3 transition-colors ${
                             isStale ? "border-amber-500/35 bg-amber-500/5" : "border-border bg-card/80"
                           }`}
                         >
-                          <div className="flex flex-wrap items-start justify-between gap-2 gap-y-1">
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-foreground leading-snug truncate">
-                                {job.address || "Bez adresu"}
-                                {job.flatNumber ? ` · m.${job.flatNumber}` : ""}
-                              </p>
-                              {(job.client || job.startDate) && (
-                                <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                                  {job.client ? job.client : ""}
-                                  {job.client && job.startDate ? " · " : ""}
-                                  {job.startDate ? `od ${fmtDate(job.startDate)}` : ""}
-                                  {isStale && (
-                                    <span className="text-amber-600 dark:text-amber-400 font-medium">
-                                      {" "}· {days} dni w toku
-                                    </span>
-                                  )}
+                          <button
+                            type="button"
+                            onClick={() => onNavigate("jobs", job.id)}
+                            className="w-full text-left hover:opacity-90 transition-opacity"
+                          >
+                            <div className="flex flex-wrap items-start justify-between gap-2 gap-y-1">
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-semibold text-foreground leading-snug truncate">
+                                  {job.address || "Bez adresu"}
+                                  {job.flatNumber ? ` · m.${job.flatNumber}` : ""}
                                 </p>
-                              )}
+                                {(job.client || job.startDate) && (
+                                  <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                                    {job.client ? job.client : ""}
+                                    {job.client && job.startDate ? " · " : ""}
+                                    {job.startDate ? `od ${fmtDate(job.startDate)}` : ""}
+                                    {isStale && (
+                                      <span className="text-amber-600 dark:text-amber-400 font-medium">
+                                        {" "}· {days} dni w toku
+                                      </span>
+                                    )}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="shrink-0 text-right">
+                                <span
+                                  className={`inline-flex items-center text-xs font-bold px-2 py-0.5 rounded-lg ${
+                                    pct === 100
+                                      ? "bg-green-500/15 text-green-600 dark:text-green-400"
+                                      : pct >= 75
+                                        ? "bg-yellow-500/15 text-yellow-700 dark:text-yellow-300"
+                                        : "bg-red-500/15 text-red-600 dark:text-red-400"
+                                  }`}
+                                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                                >
+                                  {done}/{REQUIRED_DOCS.length}
+                                </span>
+                              </div>
                             </div>
-                            <div className="shrink-0 text-right">
-                              <span
-                                className={`inline-flex items-center text-xs font-bold px-2 py-0.5 rounded-lg ${
-                                  pct >= 75 ? "bg-yellow-500/15 text-yellow-700 dark:text-yellow-300" : "bg-red-500/15 text-red-600 dark:text-red-400"
-                                }`}
-                                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                              >
-                                {done}/{REQUIRED_DOCS.length}
-                              </span>
-                            </div>
-                          </div>
+                          </button>
                           <div className="mt-2.5 h-1.5 rounded-full bg-border overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all ${pct >= 75 ? "bg-yellow-500" : "bg-red-500"}`}
+                              className={`h-full rounded-full transition-all duration-300 ${
+                                pct === 100 ? "bg-green-500" : pct >= 75 ? "bg-yellow-500" : "bg-red-500"
+                              }`}
                               style={{ width: `${pct}%` }}
                             />
                           </div>
                           <div className="mt-2.5 flex flex-wrap gap-1.5">
                             {missing.map((doc) => (
-                              <span
+                              <button
                                 key={doc}
-                                className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md bg-red-500/10 text-red-700 dark:text-red-300 border border-red-500/20"
+                                type="button"
+                                title={`Oznacz jako odebrane: ${DOC_LABELS[doc]}`}
+                                onClick={() => toggleJobDocumentOnDashboard(job, doc)}
+                                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1.5 min-h-[36px] rounded-md bg-red-500/10 text-red-700 dark:text-red-300 border border-red-500/25 hover:bg-green-500/15 hover:text-green-700 hover:border-green-500/30 dark:hover:text-green-300 active:scale-[0.97] transition-all touch-manipulation"
                               >
                                 <Circle size={10} className="shrink-0 opacity-70"/>
                                 {DOC_LABELS[doc]}
-                              </span>
+                              </button>
                             ))}
                           </div>
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -8111,6 +8151,12 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-28", version:"2.20.2", label:"Pulpit — szybkie oznaczanie dokumentów",
+    items:[
+      {type:"new", text:"Uwaga dziś — klik w brakujący dokument od razu oznacza jako odebrany (pasek i licznik bez przechodzenia do Robotów)"},
+    ],
+  },
   {
     date:"2026-05-28", version:"2.20.1", label:"Pulpit — braki dokumentów",
     items:[
