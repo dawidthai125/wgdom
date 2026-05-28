@@ -8599,6 +8599,13 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.21.5", label:"Sidebar — przewijanie i krótsze opisy",
+    items:[
+      {type:"fix", text:"Sidebar — menu i „Bieżący tydzień” przewijają się gdy brakuje miejsca; sekcja „Dane” zawsze widoczna na dole"},
+      {type:"improve", text:"Sidebar — krótszy opis wypłaty co 2 tyg. (pełny tekst zostaje na Pulpicie i w Liście Płac)"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.21.4", label:"Kasa w sobotę — liczba osób i opis cyklu",
     items:[
       {type:"improve", text:"Sidebar i Pulpit — przy podziale kasy: Tygodniówki (X os.) i Co 2 tyg. (X os.) oraz linia wyjaśniająca, czy w tę sobotę wypada wypłata co 2 tygodnie, czy kwota przechodzi na następną"},
@@ -10751,7 +10758,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     [productionWeekEmployees, directory, weekFrom, weekTo, savedWeeks],
   );
 
-  const sidebarPayrollContext = biweeklyCashContextLine(payrollCashSplitSidebar, weekTo);
+  const sidebarPayrollContext = biweeklyCashContextLine(payrollCashSplitSidebar, weekTo, true);
 
   const todayFieldStats = useMemo(() => {
     const iso = todayIsoDate();
@@ -10782,75 +10789,80 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     <div className="flex bg-background text-foreground overflow-hidden" style={{fontFamily:"'Inter', sans-serif", height:"100dvh"}}>
 
       {/* Sidebar — desktop only */}
-      <aside className={`hidden md:flex flex-col border-r border-border bg-card transition-all duration-300 shrink-0 ${sidebarOpen?"w-56":"w-0 overflow-hidden"}`}>
+      <aside className={`hidden md:flex flex-col border-r border-border bg-card transition-all duration-300 shrink-0 h-full min-h-0 overflow-hidden ${sidebarOpen?"w-56":"w-0 overflow-hidden"}`}>
         {/* Logo */}
-        <div className="flex flex-col gap-1.5 px-4 py-4 border-b border-border">
+        <div className="flex flex-col gap-1.5 px-4 py-4 border-b border-border shrink-0">
           <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-8 w-auto object-contain object-left"/>
           <p className="text-xs text-muted-foreground font-medium tracking-wide">Zarządzanie Pracą</p>
         </div>
 
-        {/* Nav */}
-        <nav className="px-3 py-4 space-y-1 border-b border-border">
-          {navItems.map(({key,label,hint,icon:Icon,badge})=>(
-            <NavItemWithHint key={key} hint={hint}>
-              <button onClick={()=>setView(key)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
-                <Icon size={15}/>
-                <span className="flex-1 text-left">{label}</span>
-                {badge!==undefined&&badge>0&&<span className={`text-xs px-1.5 py-0.5 rounded-full ${view===key?"bg-primary/20 text-primary":"bg-secondary text-muted-foreground"}`}>{badge}</span>}
-              </button>
-            </NavItemWithHint>
-          ))}
-        </nav>
+        {/* Nav + week summary — scroll when content exceeds viewport */}
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+          <nav className="px-3 py-4 space-y-1 border-b border-border">
+            {navItems.map(({key,label,hint,icon:Icon,badge})=>(
+              <NavItemWithHint key={key} hint={hint}>
+                <button onClick={()=>setView(key)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
+                  <Icon size={15}/>
+                  <span className="flex-1 text-left">{label}</span>
+                  {badge!==undefined&&badge>0&&<span className={`text-xs px-1.5 py-0.5 rounded-full ${view===key?"bg-primary/20 text-primary":"bg-secondary text-muted-foreground"}`}>{badge}</span>}
+                </button>
+              </NavItemWithHint>
+            ))}
+          </nav>
 
-        {/* Week summary */}
-        <div className="px-4 py-4 flex-1">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Bieżący tydzień</p>
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Pracownicy</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{productionWeekEmployees.length}</span></div>
-            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Okres</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtDate(weekFrom).slice(0,5)}–{fmtDate(weekTo).slice(0,5)}</span></div>
-            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Rozliczeni</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{productionWeekEmployees.filter(e=>e.settled).length}/{productionWeekEmployees.length}</span></div>
-            <div className="flex justify-between items-baseline gap-2 text-xs pt-0.5">
-              <span className="text-muted-foreground leading-snug">
-                Dziś
-                <span className="text-muted-foreground/65 normal-case"> ({todayFieldStats.label})</span>
-              </span>
-              <span className="font-medium text-right leading-snug shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}} title="Osoby z wpisem czasu pracy na aktywnej robocie">
-                {todayFieldStats.people} os. · {todayFieldStats.jobs} rob.
-              </span>
-            </div>
-            <div className="pt-2 mt-2 border-t border-border space-y-2">
-              <div>
-                <p className="text-xs text-muted-foreground mb-0.5">Do wypłaty w sobotę</p>
-                <p className="text-lg font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN</p>
+          {/* Week summary */}
+          <div className="px-4 py-4">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Bieżący tydzień</p>
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground">Pracownicy</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{productionWeekEmployees.length}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground">Okres</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtDate(weekFrom).slice(0,5)}–{fmtDate(weekTo).slice(0,5)}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground">Rozliczeni</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{productionWeekEmployees.filter(e=>e.settled).length}/{productionWeekEmployees.length}</span></div>
+              <div className="flex justify-between items-baseline gap-2 text-xs pt-0.5">
+                <span className="text-muted-foreground leading-snug">
+                  Dziś
+                  <span className="text-muted-foreground/65 normal-case"> ({todayFieldStats.label})</span>
+                </span>
+                <span className="font-medium text-right leading-snug shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}} title="Osoby z wpisem czasu pracy na aktywnej robocie">
+                  {todayFieldStats.people} os. · {todayFieldStats.jobs} rob.
+                </span>
               </div>
-              {sidebarPayrollContext && (
-                <p className="text-[10px] text-muted-foreground leading-snug">{sidebarPayrollContext}</p>
-              )}
-              {payrollCashSplitSidebar.hasBiweeklyEmployees && (
-                <>
-                  <div className="flex justify-between text-[11px]">
-                    <span className="text-muted-foreground">Tygodniówki ({payrollCashSplitSidebar.weeklyCount} os.)</span>
-                    <span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.weeklyNet)}</span>
+              <div className="pt-2 mt-2 border-t border-border space-y-2">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">Do wypłaty w sobotę</p>
+                  <p className="text-lg font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN</p>
+                </div>
+                {sidebarPayrollContext && (
+                  <p className="text-[10px] text-muted-foreground leading-snug">{sidebarPayrollContext}</p>
+                )}
+                {payrollCashSplitSidebar.hasBiweeklyEmployees && (
+                  <div className="space-y-1.5">
+                    <div className="text-[11px]">
+                      <div className="flex justify-between gap-1">
+                        <span className="text-muted-foreground">Tygodniówki ({payrollCashSplitSidebar.weeklyCount} os.)</span>
+                        <span className="font-medium shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.weeklyNet)}</span>
+                      </div>
+                    </div>
+                    <div className="text-[11px]">
+                      <div className="flex justify-between gap-1">
+                        <span className="text-muted-foreground min-w-0 leading-snug">
+                          {payrollCashSplitSidebar.isAnyBiweeklyPayoutWeek
+                            ? `Co 2 tyg. (${payrollCashSplitSidebar.biweeklyCount} os.)`
+                            : `Co 2 tyg. (${payrollCashSplitSidebar.biweeklyCount} os.) → ${fmtDate(payrollCashSplitSidebar.nextBiweeklyPayoutDate).slice(0, 5)}`}
+                        </span>
+                        <span className="font-medium shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                          {fmt(payrollCashSplitSidebar.isAnyBiweeklyPayoutWeek ? payrollCashSplitSidebar.biweeklyPayoutNet : payrollCashSplitSidebar.biweeklyAccruedNet)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  {payrollCashSplitSidebar.isAnyBiweeklyPayoutWeek ? (
-                    <div className="flex justify-between text-[11px]">
-                      <span className="text-muted-foreground">Co 2 tyg. ({payrollCashSplitSidebar.biweeklyCount} os.)</span>
-                      <span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.biweeklyPayoutNet)}</span>
-                    </div>
-                  ) : (
-                    <div className="flex justify-between text-[11px]">
-                      <span className="text-muted-foreground">Co 2 tyg. ({payrollCashSplitSidebar.biweeklyCount} os.) → {fmtDate(payrollCashSplitSidebar.nextBiweeklyPayoutDate).slice(0,5)}</span>
-                      <span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.biweeklyAccruedNet)}</span>
-                    </div>
-                  )}
-                </>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Backup */}
-        <div className="px-3 pb-4 space-y-1.5 border-t border-border pt-3">
+        {/* Backup — pinned at bottom */}
+        <div className="px-3 pb-4 space-y-1.5 border-t border-border pt-3 shrink-0 bg-card">
           <p className="text-xs text-muted-foreground uppercase tracking-wider px-1 mb-2">Dane</p>
           <button onClick={exportBackup} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
             <Download size={13}/>Eksportuj backup
