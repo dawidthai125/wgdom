@@ -1895,7 +1895,9 @@ function buildWeekSnapshot(
     totalZaliczka: weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).totalZaliczka, 0),
     totalNet: weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).netPay, 0),
     weekEmployees: JSON.parse(JSON.stringify(weekEmployees)) as WeekEmployee[],
-    workEntries: collectWorkEntriesForWeek(jobs, weekFrom, weekTo),
+    workEntries: existing?.workEntries ?? collectWorkEntriesForWeek(jobs, weekFrom, weekTo),
+    backlog: existing?.backlog,
+    backlogNote: existing?.backlogNote,
   };
 }
 
@@ -4577,12 +4579,28 @@ function JobPhotosGalleryView({
 
 // ─── Archive view ─────────────────────────────────────────────────────────────
 
-function ArchiveView({savedWeeks, onDelete, jobs, directory}:{savedWeeks:WeekSnapshot[]; onDelete:(id:string)=>void; jobs:Job[]; directory:DirectoryEmployee[]}) {
+function ArchiveView({
+  savedWeeks,
+  onDelete,
+  onUpdateWeekEmployee,
+  onToggleArchiveSettled,
+  jobs,
+  directory,
+}: {
+  savedWeeks: WeekSnapshot[];
+  onDelete: (id: string) => void;
+  onUpdateWeekEmployee: (weekId: string, emp: WeekEmployee) => void;
+  onToggleArchiveSettled: (weekId: string, empId: string) => void;
+  jobs: Job[];
+  directory: DirectoryEmployee[];
+}) {
+  const { canViewRates } = useAdminAccess();
   const [selectedYear, setSelectedYear] = useState<number|null>(null);
   const [selectedMonth, setSelectedMonth] = useState<number|null>(null);
   const [expandedWeek, setExpandedWeek] = useState<string|null>(null);
   const [expandedTab, setExpandedTab] = useState<"payroll"|"schedule">("payroll");
   const [deleteConfirm, setDeleteConfirm] = useState<string|null>(null);
+  const [editContext, setEditContext] = useState<{ weekId: string; empId: string } | null>(null);
 
   const years = useMemo(()=>Array.from(new Set(savedWeeks.map((w)=>new Date(w.weekFrom).getFullYear()))).sort((a,b)=>b-a),[savedWeeks]);
   const activeYear = selectedYear??years[0]??new Date().getFullYear();
@@ -4940,13 +4958,16 @@ function ArchiveView({savedWeeks, onDelete, jobs, directory}:{savedWeeks:WeekSna
         {filteredWeeks.map((week)=>{
           const isOpen=expandedWeek===week.id;
           return <div key={week.id} className="bg-card rounded-xl border border-border overflow-hidden">
-            <button onClick={()=>{setExpandedWeek(isOpen?null:week.id);setExpandedTab("payroll");}} className="w-full px-5 py-4 flex items-center gap-4 hover:bg-secondary/20 transition-colors text-left">
+            <button onClick={()=>{setExpandedWeek(isOpen?null:week.id);setExpandedTab("payroll");if(isOpen)setEditContext(null);}} className="w-full px-5 py-4 flex items-center gap-4 hover:bg-secondary/20 transition-colors text-left">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 flex-wrap">
                   <span className="text-sm font-semibold">{fmtDate(week.weekFrom)} – {fmtDate(week.weekTo)}</span>
                   <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">{week.totalEmployees} prac.</span>
                   {week.weekEmployees && week.weekEmployees.length > 0 && (
                     <span className="text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-full">+ grafik</span>
+                  )}
+                  {week.backlog && (
+                    <span className="text-[10px] text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full">zaległość</span>
                   )}
                 </div>
                 <div className="flex items-center gap-4 mt-0.5">
@@ -4970,7 +4991,20 @@ function ArchiveView({savedWeeks, onDelete, jobs, directory}:{savedWeeks:WeekSna
                 </button>
               </div>
               {expandedTab==="payroll" ? (
-              <div className="overflow-x-auto">
+              <div className={`flex flex-col lg:flex-row min-h-0 ${editContext?.weekId === week.id ? "lg:min-h-[420px]" : ""}`}>
+              <div className={`flex-1 min-w-0 overflow-x-auto ${editContext?.weekId === week.id ? "lg:max-w-[50%]" : ""}`}>
+              {!week.weekEmployees?.length ? (
+                <div className="px-5 py-6 text-sm text-muted-foreground">
+                  Brak zapisanych szczegółów godzin — widać tylko podsumowanie. Pełna edycja wymaga tygodnia zapisanego z Listy Płac (od wersji z pełnym archiwum).
+                </div>
+              ) : (
+              <>
+              <div className="px-5 py-2.5 border-b border-border bg-secondary/20 flex items-center justify-between gap-2">
+                <p className="text-xs text-muted-foreground">Kliknij pracownika, aby edytować godziny, zaliczki i koszty.</p>
+                {editContext?.weekId === week.id && (
+                  <button type="button" onClick={() => setEditContext(null)} className="text-xs text-primary hover:underline shrink-0">Zamknij edycję</button>
+                )}
+              </div>
               <table className="w-full text-sm">
                 <thead><tr className="text-xs text-muted-foreground border-b border-border" style={{fontFamily:"'JetBrains Mono', monospace"}}>
                   <th className="px-5 py-2.5 text-left">Pracownik</th><th className="px-3 py-2.5 text-left hidden sm:table-cell">Stanowisko</th>
@@ -4990,32 +5024,70 @@ function ArchiveView({savedWeeks, onDelete, jobs, directory}:{savedWeeks:WeekSna
                       totalExtraCosts: emp.totalExtraCosts ?? 0,
                       netPay: emp.netPay,
                     };
+                    const isEditing = editContext?.weekId === week.id && full && editContext.empId === full.id;
                     return (
-                    <tr key={i} className={`hover:bg-secondary/20 ${emp.settled?"opacity-60":""}`}>
-                      <td className="px-5 py-3"><div className="flex items-center gap-2"><div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{emp.name?emp.name[0].toUpperCase():"?"}</div><span className="font-medium">{emp.name||"—"}</span></div></td>
+                    <tr
+                      key={i}
+                      onClick={() => full && setEditContext({ weekId: week.id, empId: full.id })}
+                      className={`transition-colors ${full ? "cursor-pointer hover:bg-secondary/30" : ""} ${emp.settled?"opacity-60":""} ${isEditing ? "bg-primary/5 border-l-2 border-primary" : ""}`}
+                    >
+                      <td className="px-5 py-3"><div className="flex items-center gap-2"><div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{emp.name?emp.name[0].toUpperCase():"?"}</div><span className="font-medium">{emp.name||"—"}</span>{full && <Edit2 size={11} className="text-muted-foreground/50 shrink-0"/>}</div></td>
                       <td className="px-3 py-3 text-muted-foreground text-xs hidden sm:table-cell">{emp.position||"—"}</td>
                       <td className="px-3 py-3 text-right text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{c.weekHours>0?fmtH(c.weekHours):"—"}</td>
                       <td className="px-3 py-3 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{c.prevSatHours>0?<span className="text-amber-500">{fmtH(c.prevSatHours)}</span>:"—"}</td>
                       <td className="px-3 py-3 text-right font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(c.totalHours)}</td>
-                      <td className="px-3 py-3 text-right text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(c.grossPay)}</td>
+                      <td className="px-3 py-3 text-right text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{canViewRates ? fmt(c.grossPay) : "—"}</td>
                       <td className="px-3 py-3 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{emp.totalZaliczka>0?<span className="text-destructive">−{fmt(emp.totalZaliczka)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
                       <td className="px-3 py-3 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{c.totalExtraCosts>0?<span className="text-green-500">+{fmt(c.totalExtraCosts)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
                       <td className="px-3 py-3 text-right font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(c.netPay)} PLN</td>
-                      <td className="px-5 py-3 text-center"><span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${emp.settled?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>{emp.settled?<><CheckCircle2 size={10}/>Rozliczony</>:<><Circle size={10}/>Oczekuje</>}</span></td>
+                      <td className="px-5 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        {full ? (
+                          <button
+                            type="button"
+                            onClick={() => onToggleArchiveSettled(week.id, full.id)}
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${emp.settled?"bg-green-500/15 text-green-400 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20"}`}
+                          >
+                            {emp.settled?<><CheckCircle2 size={10}/>Rozliczony</>:<><Circle size={10}/>Oczekuje</>}
+                          </button>
+                        ) : (
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${emp.settled?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>{emp.settled?<><CheckCircle2 size={10}/>Rozliczony</>:<><Circle size={10}/>Oczekuje</>}</span>
+                        )}
+                      </td>
                     </tr>
                     );
                   })}
                 </tbody>
                 <tfoot><tr className="border-t border-border bg-secondary/20">
                   <td className="px-5 py-2.5 text-xs font-bold text-muted-foreground uppercase" colSpan={2}>Suma</td>
+                  <td colSpan={2}/>
                   <td className="px-3 py-2.5 text-right text-xs font-bold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(week.totalHours)}</td>
-                  <td className="px-3 py-2.5 text-right text-xs font-bold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(week.totalGross)}</td>
+                  <td className="px-3 py-2.5 text-right text-xs font-bold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{canViewRates ? fmt(week.totalGross) : "—"}</td>
                   <td className="px-3 py-2.5 text-right text-xs font-bold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>{week.totalZaliczka>0?`−${fmt(week.totalZaliczka)}`:"—"}</td>
                   <td className="px-3 py-2.5 text-right text-xs font-bold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{week.employees.some((e) => (e.totalExtraCosts ?? 0) > 0)?`+${fmt(week.employees.reduce((s, e) => s + (e.totalExtraCosts ?? 0), 0))}`:"—"}</td>
                   <td className="px-3 py-2.5 text-right text-sm font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(week.totalNet)} PLN</td>
                   <td/>
                 </tr></tfoot>
               </table>
+              </>
+              )}
+              </div>
+              {editContext?.weekId === week.id && (() => {
+                const editEmp = week.weekEmployees?.find((e) => e.id === editContext.empId);
+                if (!editEmp) return null;
+                return (
+                  <div className="w-full lg:w-1/2 lg:min-w-[360px] border-t lg:border-t-0 lg:border-l border-border bg-card flex flex-col min-h-[320px] lg:min-h-0 shrink-0">
+                    <WeekEmployeeDetail
+                      emp={editEmp}
+                      weekFrom={week.weekFrom}
+                      weekTo={week.weekTo}
+                      directory={directory}
+                      savedWeeks={savedWeeks}
+                      onChange={(updated) => onUpdateWeekEmployee(week.id, updated)}
+                      onClose={() => setEditContext(null)}
+                    />
+                  </div>
+                );
+              })()}
               </div>
               ) : (
                 <ArchiveScheduleGrid week={week} directory={directory}/>
@@ -8492,6 +8564,13 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.21.1", label:"Archiwum — edycja godzin",
+    items:[
+      {type:"new", text:"Archiwum — klik w pracownika otwiera edycję godzin (Pn–So, Sob.pr., zaliczki, koszty) jak w Liście Płac; sumy tygodnia przeliczają się automatycznie"},
+      {type:"improve", text:"Zaległa lista płac w archiwum — badge „zaległość”; flaga backlog zostaje po edycji"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.21.0", label:"Wypłata co 2 tygodnie (sobota)",
     items:[
       {type:"new", text:"Kartoteka — opcja „Wypłata co 2 tygodnie” + data pierwszej soboty wypłaty (dla każdego pracownika osobno, nie tylko UK)"},
@@ -10468,6 +10547,24 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     });
   }, [directory, savedWeeks, weekFrom, weekTo, jobs, contacts, setWeekEmployees, setSavedWeeks]);
 
+  const patchArchiveWeek = useCallback((weekId: string, patchEmployees: (emps: WeekEmployee[]) => WeekEmployee[]) => {
+    setSavedWeeks((prev) => {
+      const week = prev.find((w) => w.id === weekId);
+      if (!week?.weekEmployees?.length) return prev;
+      const nextEmployees = patchEmployees(week.weekEmployees);
+      const snapshot = buildWeekSnapshot(week.weekFrom, week.weekTo, nextEmployees, jobs, week);
+      return prev.map((w) => (w.id === weekId ? snapshot : w));
+    });
+  }, [jobs, setSavedWeeks]);
+
+  const updateArchiveWeekEmployee = useCallback((weekId: string, updatedEmp: WeekEmployee) => {
+    patchArchiveWeek(weekId, (emps) => emps.map((e) => (e.id === updatedEmp.id ? updatedEmp : e)));
+  }, [patchArchiveWeek]);
+
+  const toggleArchiveSettled = useCallback((weekId: string, empId: string) => {
+    patchArchiveWeek(weekId, (emps) => emps.map((e) => (e.id === empId ? { ...e, settled: !e.settled } : e)));
+  }, [patchArchiveWeek]);
+
   const toggleSettled = (id:string) => setWeekEmployees((prev)=>prev.map((e)=>e.id===id?{...e,settled:!e.settled}:e));
 
   const saveBiweeklyBacklogWeek = useCallback((backlogFrom: string, backlogTo: string, employees: WeekEmployee[]) => {
@@ -10577,7 +10674,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     {key:"schedule", label:"Grafik", hint:"Kto pracuje którego dnia — widok Pn–So na podstawie listy płac.", icon:CalendarDays, badge:productionWeekEmployees.length || undefined},
     {key:"directory", label:"Pracownicy", hint:"Kartoteka: dane, stawki, telefony, kod 4-cyfrowy, konto testowe, archiwum.", icon:Users, badge:filterProductionActiveDirectory(directory).length},
     {key:"contacts", label:"Kontakty", hint:"Adresy e-mail klientów i współpracowników — do wysyłki z robot.", icon:Mail, badge:contacts.filter(c=>c.email.trim()).length||undefined},
-    {key:"archive", label:"Archiwum", hint:"Zapisane tygodnie list płac, raporty miesięczne i podsumowania roczne.", icon:Archive, badge:savedWeeks.length||undefined},
+    {key:"archive", label:"Archiwum", hint:"Zapisane tygodnie — edycja godzin, raporty miesięczne i roczne.", icon:Archive, badge:savedWeeks.length||undefined},
     {key:"jobs", label:"Roboty", hint:"Adresy remontów: dokumenty, czas pracy, materiały, zdjęcia i raporty.", icon:MapPin, badge:(()=>{ const pend=jobs.reduce((s,j)=>s+(j.photos||[]).filter(p=>p.status==="pending").length,0); return pend>0?pend:jobs.filter(j=>j.status==="in_progress").length||undefined; })()},
     {key:"inspector", label:"Inspektor", hint:"Zmiany inspektora: dokumenty, zlecenia PDF i kosztorysy — osobno od kart robót.", icon:ClipboardCheck, badge:(()=>{ const notes=jobsWithInspectorNotesNeedingAdmin(jobs,getAdminJobNotesSeenAt(adminSession?.id)); const n=countUnseenInspectorAlerts(jobs,adminSession?.id,notes.length); return n>0?n:undefined; })()},
     {key:"photos", label:"Zdjęcia", hint:"Zaakceptowane zdjęcia z robot — galeria i archiwum po 30 dniach od zdania.", icon:Images, badge:(()=>{ const n=jobs.reduce((s,j)=>{ const b=jobGalleryBucket(j); return b==="active"||b==="grace"?s+jobApprovedPhotos(j).length:s;},0); return n||undefined; })()},
@@ -10877,7 +10974,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           {view==="schedule"&&<ScheduleView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory} onOpenSms={()=>setShowSmsModal(true)}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
-          {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>{ addDeletedArchiveId(id); setSavedWeeks(prev=>prev.filter(w=>w.id!==id)); }} jobs={jobs} directory={directory}/>}
+          {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>{ addDeletedArchiveId(id); setSavedWeeks(prev=>prev.filter(w=>w.id!==id)); }} onUpdateWeekEmployee={updateArchiveWeekEmployee} onToggleArchiveSettled={toggleArchiveSettled} jobs={jobs} directory={directory}/>}
           {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={(jobId)=>{ if (jobId) setPendingInspectorJobId(jobId); setView("inspector"); }}/>}
           {view==="inspector"&&<InspectorAdminView jobs={jobs} setJobs={setJobs} directory={directory} adminUserId={adminSession?.id} adminDisplayName={adminSession?.displayName || "Administrator"} adminRole={adminSession?.role} initialTab={inspectorInitialTab} initialJobId={pendingInspectorJobId} onInitialJobConsumed={()=>setPendingInspectorJobId(null)} contacts={contacts} athPreviewEnabled={appSettings.athPreviewEnabled} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)}/>}
           {view==="photos"&&<JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
