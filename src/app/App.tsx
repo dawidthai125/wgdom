@@ -4834,6 +4834,36 @@ function ArchiveView({
       { text: monthlyPayouts[i] > 0 ? `${fmt(monthlyPayouts[i])} PLN` : "—", fontSize: 8, bold: monthlyPayouts[i] > 0, alignment: "right" as const, color: monthlyPayouts[i] > 0 ? C.red : C.muted, fillColor: i % 2 === 0 ? C.white : C.light },
     ]);
 
+    const cardW = canViewRates ? 180 : 240;
+    const summaryCards = [
+      { stack: [
+        { canvas: [{ type: "rect", x: 0, y: 0, w: 170, h: 55, color: "#1A2332", r: 6 }] },
+        { text: "WYPŁATY NETTO", fontSize: 7, bold: true, color: C.muted, absolutePosition: { x: 10, y: 8 } },
+        { text: `${fmt(yearlyNet)} PLN`, fontSize: 16, bold: true, color: C.red, absolutePosition: { x: 10, y: 22 } },
+        { text: `${fmtH(yearlyHours)} · ${yearlyWeeks.length} tyg.`, fontSize: 7, color: C.muted, absolutePosition: { x: 10, y: 46 } },
+      ], width: cardW },
+      ...(canViewRates ? [{
+        stack: [
+          { canvas: [{ type: "rect", x: 0, y: 0, w: 170, h: 55, color: "#1A2332", r: 6 }] },
+          { text: "ŚR. KOSZT GODZ.", fontSize: 7, bold: true, color: C.muted, absolutePosition: { x: 10, y: 8 } },
+          { text: avgLaborHour > 0 ? `${fmt(avgLaborHour)} PLN/h` : "—", fontSize: 16, bold: true, color: C.white, absolutePosition: { x: 10, y: 22 } },
+          { text: `brutto ${fmt(yearlyGross)} PLN`, fontSize: 7, color: C.muted, absolutePosition: { x: 10, y: 46 } },
+        ], width: cardW,
+      }] : []),
+      { stack: [
+        { canvas: [{ type: "rect", x: 0, y: 0, w: 170, h: 55, color: "#1A2332", r: 6 }] },
+        { text: "ROBOTY ZDANE", fontSize: 7, bold: true, color: C.muted, absolutePosition: { x: 10, y: 8 } },
+        { text: String(completedInYear.length), fontSize: 16, bold: true, color: C.green, absolutePosition: { x: 10, y: 22 } },
+        { text: `${yearJobsList.length} rozpoczętych w ${activeYear}`, fontSize: 7, color: C.muted, absolutePosition: { x: 10, y: 46 } },
+      ], width: cardW },
+      { stack: [
+        { canvas: [{ type: "rect", x: 0, y: 0, w: 170, h: 55, color: "#1A2332", r: 6 }] },
+        { text: "FAKTUROWANIE", fontSize: 7, bold: true, color: C.muted, absolutePosition: { x: 10, y: 8 } },
+        { text: `${fmt(yearInvoiced)} PLN`, fontSize: 16, bold: true, color: yearInvoiced > 0 ? C.green : C.muted, absolutePosition: { x: 10, y: 22 } },
+        { text: `koszt robót: ${fmt(yearLaborCost + yearMatCost)} PLN`, fontSize: 7, color: C.muted, absolutePosition: { x: 10, y: 46 } },
+      ], width: cardW },
+    ];
+
     const dd: PdfDocDef = {
       pageSize: "A4",
       pageOrientation: "landscape",
@@ -4847,32 +4877,7 @@ function ArchiveView({
         { text: `Wygenerowano: ${new Date().toLocaleDateString("pl-PL")}`, fontSize: 8, color: C.muted, absolutePosition: { x: 500, y: 50 } },
         { text: " ", fontSize: 6, margin: [0, 20, 0, 0] },
         {
-          columns: [
-            { stack: [
-              { canvas: [{ type: "rect", x: 0, y: 0, w: 170, h: 55, color: "#1A2332", r: 6 }] },
-              { text: "WYPŁATY NETTO", fontSize: 7, bold: true, color: C.muted, absolutePosition: { x: 10, y: 8 } },
-              { text: `${fmt(yearlyNet)} PLN`, fontSize: 16, bold: true, color: C.red, absolutePosition: { x: 10, y: 22 } },
-              { text: `${fmtH(yearlyHours)} · ${yearlyWeeks.length} tyg.`, fontSize: 7, color: C.muted, absolutePosition: { x: 10, y: 46 } },
-            ], width: 180 },
-            { stack: [
-              { canvas: [{ type: "rect", x: 0, y: 0, w: 170, h: 55, color: "#1A2332", r: 6 }] },
-              { text: "ŚR. KOSZT GODZ.", fontSize: 7, bold: true, color: C.muted, absolutePosition: { x: 10, y: 8 } },
-              { text: avgLaborHour > 0 ? `${fmt(avgLaborHour)} PLN/h` : "—", fontSize: 16, bold: true, color: C.white, absolutePosition: { x: 10, y: 22 } },
-              { text: `brutto ${fmt(yearlyGross)} PLN`, fontSize: 7, color: C.muted, absolutePosition: { x: 10, y: 46 } },
-            ], width: 180 },
-            { stack: [
-              { canvas: [{ type: "rect", x: 0, y: 0, w: 170, h: 55, color: "#1A2332", r: 6 }] },
-              { text: "ROBOTY ZDANE", fontSize: 7, bold: true, color: C.muted, absolutePosition: { x: 10, y: 8 } },
-              { text: String(completedInYear.length), fontSize: 16, bold: true, color: C.green, absolutePosition: { x: 10, y: 22 } },
-              { text: `${yearJobsList.length} rozpoczętych w ${activeYear}`, fontSize: 7, color: C.muted, absolutePosition: { x: 10, y: 46 } },
-            ], width: 180 },
-            { stack: [
-              { canvas: [{ type: "rect", x: 0, y: 0, w: 170, h: 55, color: "#1A2332", r: 6 }] },
-              { text: "FAKTUROWANIE", fontSize: 7, bold: true, color: C.muted, absolutePosition: { x: 10, y: 8 } },
-              { text: `${fmt(yearInvoiced)} PLN`, fontSize: 16, bold: true, color: yearInvoiced > 0 ? C.green : C.muted, absolutePosition: { x: 10, y: 22 } },
-              { text: `koszt robót: ${fmt(yearLaborCost + yearMatCost)} PLN`, fontSize: 7, color: C.muted, absolutePosition: { x: 10, y: 46 } },
-            ], width: 180 },
-          ],
+          columns: summaryCards,
           margin: [0, 0, 0, 16],
         },
         { text: "Wypłaty i godziny — podział miesięczny", fontSize: 10, bold: true, color: C.navy, margin: [0, 0, 0, 6] },
@@ -8598,6 +8603,12 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.21.9", label:"Moderator — raport roczny bez PLN/h",
+    items:[
+      {type:"improve", text:"Archiwum — raport roczny PDF: moderator nie dostaje kafelka „Śr. koszt godz. X PLN/h” (reszta raportu bez zmian)"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.21.8", label:"Sidebar odchudzony — backup w ⚙ i topbarze",
     items:[
