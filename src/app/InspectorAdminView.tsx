@@ -21,6 +21,7 @@ import {
   markAdminJobNotesSeen,
   getUnseenInspectorFeed,
 } from "@/lib/inspector-stats";
+import { pushKeysToCloudSafe } from "@/lib/cloud-sync";
 import { jobsWithInspectorNotesNeedingAdmin, normalizeJobWmFields } from "@/lib/job-wm";
 import { WmPortfolioView } from "@/app/WmPortfolioView";
 import { InspectorAdminJobDetail } from "@/app/InspectorAdminJobDetail";
@@ -275,7 +276,11 @@ export function InspectorAdminView({
   const feedRangeTo = Math.min((safeFeedPage + 1) * FEED_PAGE_SIZE, filtered.length);
 
   const handleDeleteFeedItem = useCallback((item: InspectorFeedItem) => {
-    setJobs((prev) => removeInspectorFeedItem(prev, item));
+    setJobs((prev) => {
+      const next = removeInspectorFeedItem(prev, item);
+      pushKeysToCloudSafe(["kw-jobs"], [next]).catch(() => {});
+      return next;
+    });
     setDeleteConfirmId(null);
   }, [setJobs]);
 

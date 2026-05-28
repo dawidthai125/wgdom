@@ -62,15 +62,32 @@ function jobId(j: unknown): string | undefined {
 }
 
 function mergeJobsUnion(prev: unknown[], next: unknown[]): unknown[] {
-  const map = new Map<string, unknown>();
-  for (const j of prev) {
-    const id = jobId(j);
-    if (id) map.set(id, j);
-  }
-  for (const j of next) {
-    const id = jobId(j);
-    if (id) map.set(id, j);
-  }
+  const map = new Map<string, Record<string, unknown>>();
+  const ingest = (list: unknown[]) => {
+    for (const raw of list) {
+      const id = jobId(raw);
+      if (!id) continue;
+      const j = raw as Record<string, unknown>;
+      const existing = map.get(id);
+      if (!existing) {
+        map.set(id, j);
+        continue;
+      }
+      const hidden = [
+        ...new Set([
+          ...((existing.hiddenInspectorFeedIds as string[] | undefined) ?? []),
+          ...((j.hiddenInspectorFeedIds as string[] | undefined) ?? []),
+        ]),
+      ];
+      map.set(id, {
+        ...existing,
+        ...j,
+        hiddenInspectorFeedIds: hidden.length > 0 ? hidden : undefined,
+      });
+    }
+  };
+  ingest(prev);
+  ingest(next);
   return [...map.values()].sort((a, b) => {
     const da = (a as { startDate?: string }).startDate || "";
     const db = (b as { startDate?: string }).startDate || "";

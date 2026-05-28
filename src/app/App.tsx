@@ -7995,6 +7995,12 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-28", version:"2.19.13", label:"Inspektor — trwałe usuwanie powiadomień",
+    items:[
+      {type:"fix", text:"Inspektor — usunięte powiadomienia nie wracają po odświeżeniu / sync z chmurą (ukryte id scalane przy merge robotów)"},
+    ],
+  },
+  {
     date:"2026-05-28", version:"2.19.12", label:"Sync — ochrona przed starą kartą w tle",
     items:[
       {type:"fix", text:"Zapis do chmury — ukryta / stara karta nie nadpisuje świeższych danych (localStorage, znaczniki czasu, brak auto-sync w tle)"},

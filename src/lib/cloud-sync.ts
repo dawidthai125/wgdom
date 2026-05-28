@@ -6,6 +6,7 @@ import {
 } from "@/config/supabase";
 import { mergeJobDocuments, mergeJobFiles } from "@/lib/job-documents";
 import { mergeJobNotes, mergeInspectorPhotos, mergeHandoverStage, mergePlannedHandoverDate } from "@/lib/job-wm";
+import { mergeHiddenInspectorFeedIds } from "@/lib/job-activity";
 
 /** Klucze danych biznesowych — każdy nowy typ zapisu MUSI być tutaj. */
 export const DATA_KEYS = [
@@ -203,6 +204,7 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
     inspectorPhotos?: import("@/lib/job-wm").InspectorPhotoEntry[];
     handoverStage?: string;
     plannedHandoverDate?: string;
+    hiddenInspectorFeedIds?: string[];
   };
   const map = new Map<string, J>();
   const mergePair = (prev: J, j: J): J => {
@@ -224,6 +226,10 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
     }
     const pick = { ...older, ...newer };
     const mergedLogs = mergeActivityLogs(prev.activityLog, j.activityLog);
+    const hiddenInspectorFeedIds = mergeHiddenInspectorFeedIds(
+      prev.hiddenInspectorFeedIds,
+      j.hiddenInspectorFeedIds,
+    );
     const latestTs = new Date(Math.max(prevTs, jTs, Date.now())).toISOString();
     return {
       ...pick,
@@ -238,6 +244,7 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
         j.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,
         mergedLogs as { type: string; at: string; text: string }[],
       ) || pick.handoverStage,
+      hiddenInspectorFeedIds,
       updatedAt: newer.updatedAt ?? older.updatedAt ?? latestTs,
     };
   };

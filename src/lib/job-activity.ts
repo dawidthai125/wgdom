@@ -144,22 +144,22 @@ export function collectInspectorFeed(jobs: JobWithActivity[]): InspectorFeedItem
   return items.sort((a, b) => b.at.localeCompare(a.at));
 }
 
-/** Usuwa wpis z feedu inspektora — z logu aktywności lub ukrywa legacy wpis pliku. */
+/** Usuwa wpis z feedu inspektora — ukrywa id (sync-safe; chmura nie przywraca wpisu). */
 export function removeInspectorFeedItem(
   jobs: JobWithActivity[],
   item: InspectorFeedItem,
 ): JobWithActivity[] {
   return jobs.map((j) => {
     if (j.id !== item.jobId) return j;
-    if (item.id.startsWith("file-")) {
-      const prev = j.hiddenInspectorFeedIds ?? [];
-      if (prev.includes(item.id)) return j;
-      return { ...j, hiddenInspectorFeedIds: [...prev, item.id] };
-    }
-    const nextLog = (j.activityLog ?? []).filter((a) => a.id !== item.id);
-    if (nextLog.length === (j.activityLog ?? []).length) return j;
-    return { ...j, activityLog: nextLog };
+    const prev = j.hiddenInspectorFeedIds ?? [];
+    if (prev.includes(item.id)) return j;
+    return { ...j, hiddenInspectorFeedIds: [...prev, item.id] };
   });
+}
+
+export function mergeHiddenInspectorFeedIds(a?: string[], b?: string[]): string[] | undefined {
+  const merged = [...new Set([...(a ?? []), ...(b ?? [])])];
+  return merged.length > 0 ? merged : undefined;
 }
 
 export function inspectorDocToggleText(doc: DocType, checked: boolean): string {
