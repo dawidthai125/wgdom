@@ -59,6 +59,8 @@ export interface PayrollCashSplit {
   isAnyBiweeklyPayoutWeek: boolean;
   nextBiweeklyPayoutDate: string;
   hasBiweeklyEmployees: boolean;
+  weeklyCount: number;
+  biweeklyCount: number;
 }
 
 function parseTime(t: string): number {
@@ -244,10 +246,13 @@ export function computePayrollCashSplit(
   let isAnyBiweeklyPayoutWeek = false;
   let hasBiweeklyEmployees = false;
   let nextBiweeklyPayoutDate = "";
+  let weeklyCount = 0;
+  let biweeklyCount = 0;
 
   for (const emp of weekEmployees) {
     if (isBiweeklyPayrollEmployee(emp, directory)) {
       hasBiweeklyEmployees = true;
+      biweeklyCount += 1;
       const row = calcBiweeklyRowDisplay(emp, directory, weekFrom, weekTo, savedWeeks);
       if (!row) continue;
       if (!nextBiweeklyPayoutDate) nextBiweeklyPayoutDate = row.nextPayoutDate;
@@ -258,6 +263,7 @@ export function computePayrollCashSplit(
         biweeklyAccruedNet += row.thisWeekNet;
       }
     } else {
+      weeklyCount += 1;
       weeklyNet += calcWeeklyNet(emp);
     }
   }
@@ -270,7 +276,26 @@ export function computePayrollCashSplit(
     isAnyBiweeklyPayoutWeek,
     nextBiweeklyPayoutDate,
     hasBiweeklyEmployees,
+    weeklyCount,
+    biweeklyCount,
   };
+}
+
+/** Krótki opis wypłaty co 2 tygodnie — sidebar / pulpit. */
+export function biweeklyCashContextLine(split: PayrollCashSplit, weekTo: string): string | null {
+  if (!split.hasBiweeklyEmployees) return null;
+  const sat = fmtDateShort(weekTo);
+  if (split.isAnyBiweeklyPayoutWeek) {
+    return `W sob. ${sat} wypada wypłata co 2 tygodnie (${split.biweeklyCount} os.) — kasa za ten i poprzedni tydzień`;
+  }
+  const next = fmtDateShort(split.nextBiweeklyPayoutDate);
+  return `W sob. ${sat} bez wypłaty co 2 tyg. (${split.biweeklyCount} os.) — kwota przechodzi na sob. ${next}`;
+}
+
+function fmtDateShort(iso: string): string {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${d}.${m}.${y}`;
 }
 
 /** Brak poprzedniego tygodnia w archiwum dla UK — potrzebny przed pierwszą wypłatą 2-tygodniową. */

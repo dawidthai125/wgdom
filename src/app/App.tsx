@@ -183,6 +183,7 @@ import {
   calcBiweeklyRowDisplay,
   computePayrollCashSplit,
   biweeklyMissingPrevWeekArchive,
+  biweeklyCashContextLine,
   calcWeekNetNoPrevSat,
 } from "@/lib/payroll-cycle";
 
@@ -3169,6 +3170,8 @@ function PayrollView({
     [weekEmployees, directory, weekFrom, weekTo, savedWeeks],
   );
 
+  const payrollCashContext = biweeklyCashContextLine(cashSplit, weekTo);
+
   const biweeklyRowMap = useMemo(() => {
     const m = new Map<string, ReturnType<typeof calcBiweeklyRowDisplay>>();
     for (const emp of weekEmployees) {
@@ -3304,19 +3307,22 @@ function PayrollView({
             {cashSplit.hasBiweeklyEmployees && canViewRates && (
               <div className="bg-card border border-border rounded-xl px-5 py-4 space-y-2">
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Kasa w sobotę {fmtDate(weekTo)}</p>
+                {payrollCashContext && (
+                  <p className="text-xs text-muted-foreground leading-snug">{payrollCashContext}</p>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                   <div className="bg-secondary/50 rounded-lg px-3 py-2.5">
-                    <p className="text-xs text-muted-foreground mb-0.5">Tygodniówki</p>
+                    <p className="text-xs text-muted-foreground mb-0.5">Tygodniówki ({cashSplit.weeklyCount} os.)</p>
                     <p className="font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.weeklyNet)} PLN</p>
                   </div>
                   {cashSplit.isAnyBiweeklyPayoutWeek ? (
                     <div className="bg-sky-500/10 border border-sky-500/20 rounded-lg px-3 py-2.5">
-                      <p className="text-xs text-sky-300 mb-0.5">Co 2 tyg. (ten tydzień + poprzedni)</p>
+                      <p className="text-xs text-sky-300 mb-0.5">Co 2 tyg. ({cashSplit.biweeklyCount} os.) — ten + poprzedni tydzień</p>
                       <p className="font-bold text-sky-300" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.biweeklyPayoutNet)} PLN</p>
                     </div>
                   ) : (
                     <div className="bg-secondary/50 rounded-lg px-3 py-2.5">
-                      <p className="text-xs text-muted-foreground mb-0.5">Co 2 tyg. → na {fmtDate(cashSplit.nextBiweeklyPayoutDate)}</p>
+                      <p className="text-xs text-muted-foreground mb-0.5">Co 2 tyg. ({cashSplit.biweeklyCount} os.) → {fmtDate(cashSplit.nextBiweeklyPayoutDate)}</p>
                       <p className="font-bold text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cashSplit.biweeklyAccruedNet)} PLN</p>
                     </div>
                   )}
@@ -7094,7 +7100,7 @@ function DashboardView({
   );
   const weekTotal = payrollCash.totalSaturdayCash;
   const weekHours = weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).totalHours, 0);
-  const biweeklyCount = weekEmployees.filter((e) => isBiweeklyPayrollEmployee(e, directory)).length;
+  const payrollContextLine = biweeklyCashContextLine(payrollCash, weekTo);
 
   const yearNow = new Date().getFullYear();
   const yearWeeks = savedWeeks.filter((w) => new Date(w.weekFrom).getFullYear() === yearNow);
@@ -7360,20 +7366,28 @@ function DashboardView({
             <p className="text-[10px] text-muted-foreground mt-0.5">
               {fmtH(weekHours)} · {weekEmployees.length} os.
             </p>
-            {payrollCash.hasBiweeklyEmployees && (
-              <p className="text-[10px] text-muted-foreground mt-1.5 pt-1.5 border-t border-border/60 leading-snug">
-                {payrollCash.isAnyBiweeklyPayoutWeek ? (
-                  <>
-                    w tym <span className="font-medium text-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(payrollCash.biweeklyPayoutNet)} zł</span>
-                    {" "}za 2 tygodnie ({biweeklyCount} os.)
-                  </>
-                ) : (
-                  <>
-                    + <span className="font-medium text-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(payrollCash.biweeklyAccruedNet)} zł</span>
-                    {" "}za 2 tyg. na sob. {fmtDate(payrollCash.nextBiweeklyPayoutDate).slice(0, 5)}
-                  </>
-                )}
+            {payrollContextLine && (
+              <p className="text-[10px] text-muted-foreground/90 mt-1 leading-snug">
+                {payrollContextLine}
               </p>
+            )}
+            {payrollCash.hasBiweeklyEmployees && (
+              <div className="text-[10px] text-muted-foreground mt-1.5 pt-1.5 border-t border-border/60 space-y-0.5">
+                <div className="flex justify-between gap-2">
+                  <span>Tygodniówki ({payrollCash.weeklyCount} os.)</span>
+                  <span className="font-medium text-foreground shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(payrollCash.weeklyNet)}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span>
+                    {payrollCash.isAnyBiweeklyPayoutWeek
+                      ? `Co 2 tyg. (${payrollCash.biweeklyCount} os.)`
+                      : `Co 2 tyg. (${payrollCash.biweeklyCount} os.) → ${fmtDate(payrollCash.nextBiweeklyPayoutDate).slice(0, 5)}`}
+                  </span>
+                  <span className="font-medium text-foreground shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    {fmt(payrollCash.isAnyBiweeklyPayoutWeek ? payrollCash.biweeklyPayoutNet : payrollCash.biweeklyAccruedNet)}
+                  </span>
+                </div>
+              </div>
             )}
           </button>
           <button
@@ -8584,6 +8598,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.21.4", label:"Kasa w sobotę — liczba osób i opis cyklu",
+    items:[
+      {type:"improve", text:"Sidebar i Pulpit — przy podziale kasy: Tygodniówki (X os.) i Co 2 tyg. (X os.) oraz linia wyjaśniająca, czy w tę sobotę wypada wypłata co 2 tygodnie, czy kwota przechodzi na następną"},
+      {type:"improve", text:"Lista Płac — panel „Kasa w sobotę” z tym samym opisem i liczbą osób"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.21.3", label:"Pulpit — czytelniejszy kafelek wypłaty",
     items:[
@@ -10730,6 +10751,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     [productionWeekEmployees, directory, weekFrom, weekTo, savedWeeks],
   );
 
+  const sidebarPayrollContext = biweeklyCashContextLine(payrollCashSplitSidebar, weekTo);
+
   const todayFieldStats = useMemo(() => {
     const iso = todayIsoDate();
     return {
@@ -10800,21 +10823,24 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
                 <p className="text-xs text-muted-foreground mb-0.5">Do wypłaty w sobotę</p>
                 <p className="text-lg font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN</p>
               </div>
+              {sidebarPayrollContext && (
+                <p className="text-[10px] text-muted-foreground leading-snug">{sidebarPayrollContext}</p>
+              )}
               {payrollCashSplitSidebar.hasBiweeklyEmployees && (
                 <>
                   <div className="flex justify-between text-[11px]">
-                    <span className="text-muted-foreground">Tygodniówki</span>
+                    <span className="text-muted-foreground">Tygodniówki ({payrollCashSplitSidebar.weeklyCount} os.)</span>
                     <span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.weeklyNet)}</span>
                   </div>
                   {payrollCashSplitSidebar.isAnyBiweeklyPayoutWeek ? (
                     <div className="flex justify-between text-[11px]">
-                      <span className="text-sky-400/90">Co 2 tyg.</span>
-                      <span className="font-medium text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.biweeklyPayoutNet)}</span>
+                      <span className="text-muted-foreground">Co 2 tyg. ({payrollCashSplitSidebar.biweeklyCount} os.)</span>
+                      <span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.biweeklyPayoutNet)}</span>
                     </div>
                   ) : (
                     <div className="flex justify-between text-[11px]">
-                      <span className="text-muted-foreground">Co 2 tyg. → {fmtDate(payrollCashSplitSidebar.nextBiweeklyPayoutDate).slice(0,5)}</span>
-                      <span className="font-medium text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.biweeklyAccruedNet)}</span>
+                      <span className="text-muted-foreground">Co 2 tyg. ({payrollCashSplitSidebar.biweeklyCount} os.) → {fmtDate(payrollCashSplitSidebar.nextBiweeklyPayoutDate).slice(0,5)}</span>
+                      <span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.biweeklyAccruedNet)}</span>
                     </div>
                   )}
                 </>
