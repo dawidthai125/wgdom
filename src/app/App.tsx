@@ -8812,6 +8812,13 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.26.0", label:"Lista Płac — przełącznik widoku szczegółowego",
+    items:[
+      {type:"new", text:"Lista Płac — przełącznik „Sumy” / „Szczegóły dni” obok tytułu: godziny 7–16, dodatki i zaliczki wg dni bez otwierania PDF"},
+      {type:"improve", text:"Widok szczegółowy — kolumny Pn–So + Sob. poprz., sumy godzin na dole; wybór zapamiętywany w przeglądarce"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.25.2", label:"Lista płac — poprawka podsumowania Sob. poprz.",
     items:[
       {type:"fix", text:"Podsumowanie „Sob. poprz.” nie wlicza już godzin pracowników z wypłatą co 2 tygodnie (wcześniej w wierszach było „—”, a w sumie zostawały ich godziny)"},
