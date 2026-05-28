@@ -160,6 +160,8 @@ import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
 import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } from "@/lib/photo-queue";
 import { PwaInstallBanner } from "@/app/PwaInstallBanner";
+import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh";
+import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { Toaster, toast } from "sonner";
 import {
   type EmailContact,
@@ -3126,6 +3128,7 @@ function PayrollView({
   onSaveBacklogWeek,
   initialEmpId,
   onInitialEmpConsumed,
+  onDetailOpenChange,
 }:{
   weekEmployees: WeekEmployee[]; weekFrom:string; weekTo:string;
   directory: DirectoryEmployee[];
@@ -3145,6 +3148,7 @@ function PayrollView({
   onSaveBacklogWeek?:(weekFrom:string, weekTo:string, employees:WeekEmployee[])=>void;
   initialEmpId?: string | null;
   onInitialEmpConsumed?: () => void;
+  onDetailOpenChange?: (open: boolean) => void;
 }) {
   const { canViewRates } = useAdminAccess();
   const [selectedEmpId, setSelectedEmpId] = useState<string|null>(null);
@@ -3177,6 +3181,18 @@ function PayrollView({
       onInitialEmpConsumed?.();
     }
   }, [initialEmpId, weekEmployees, onInitialEmpConsumed]);
+
+  useEffect(() => {
+    onDetailOpenChange?.(selectedEmpId != null);
+  }, [selectedEmpId, onDetailOpenChange]);
+
+  useEffect(() => {
+    if (!selectedEmpId) return;
+    return registerNativeBackHandler(() => {
+      setSelectedEmpId(null);
+      return true;
+    });
+  }, [selectedEmpId]);
 
   const isSaturday = new Date().getDay() === 6;
 
@@ -7113,6 +7129,34 @@ function JobsView({
 
 // ─── Grafik tygodniowy ────────────────────────────────────────────────────────
 
+function ScheduleCellBody({ cell }: { cell: ReturnType<typeof scheduleCellFor> }) {
+  if (!cell.working) return <span className="text-muted-foreground/50 text-sm">—</span>;
+  return (
+    <div className="space-y-1 min-h-[40px] flex flex-col items-center justify-start">
+      {cell.timeRange && (
+        <span className="text-[10px] font-semibold text-green-400/90 bg-green-500/10 px-1.5 py-0.5 rounded font-mono whitespace-nowrap">
+          {cell.timeRange}
+        </span>
+      )}
+      {cell.hoursLabel && <span className="text-[9px] text-muted-foreground">{cell.hoursLabel}</span>}
+      {cell.locations.length > 0 ? (
+        cell.locations.map((loc, i) => (
+          <span key={i} className="text-[9px] leading-snug text-primary flex items-start gap-0.5 max-w-[96px]">
+            <MapPin size={8} className="shrink-0 mt-0.5"/>
+            <span className="text-left">{loc}</span>
+          </span>
+        ))
+      ) : cell.timeRange ? (
+        cell.logisticsOnly ? (
+          <span className="text-[9px] leading-snug text-violet-500/90 italic max-w-[96px] text-center">{MULTI_SITE_SCHEDULE_LABEL}</span>
+        ) : (
+          <span className="text-[9px] text-muted-foreground italic">bez roboty</span>
+        )
+      ) : null}
+    </div>
+  );
+}
+
 function ScheduleView({
   weekEmployees,
   weekFrom,
@@ -7162,7 +7206,7 @@ function ScheduleView({
               className="bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}/>
             {weekFrom !== currentWeek.from && (
-              <button onClick={onGoToCurrent} className="text-xs px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/70 border border-border font-medium">
+              <button onClick={onGoToCurrent} className="text-xs px-3 py-2.5 min-h-[44px] rounded-lg bg-secondary hover:bg-secondary/70 border border-border font-medium touch-manipulation">
                 Bieżący tydzień
               </button>
             )}
@@ -7175,17 +7219,48 @@ function ScheduleView({
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
-        {sortedEmps.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-6 text-center text-muted-foreground">
+      {sortedEmps.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 px-6 text-center text-muted-foreground flex-1">
             <CalendarDays size={40} className="opacity-20 mb-3"/>
             <p className="text-sm font-medium text-foreground">Brak pracowników w tym tygodniu</p>
             <p className="text-xs mt-2 max-w-sm">Dodaj ekipę w Liście Płac i zaznacz dni pracy. Adresy pojawią się po wpisach „Pracownicy na robocie”.</p>
-            <button onClick={onOpenPayroll} className="mt-4 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium">
+            <button onClick={onOpenPayroll} className="mt-4 px-4 py-2.5 min-h-[44px] rounded-xl bg-primary text-primary-foreground text-sm font-medium touch-manipulation">
               Otwórz Listę Płac
             </button>
           </div>
         ) : (
+          <>
+            {/* Mobile — karty pracownika */}
+            <div className="md:hidden flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-3">
+              {sortedEmps.map((emp) => (
+                <div key={emp.id} className="bg-card border border-border rounded-xl overflow-hidden">
+                  <div className="px-3 py-2.5 border-b border-border bg-secondary/30">
+                    <p className="text-sm font-semibold leading-tight">{emp.name || "—"}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{emp.position || "—"}</p>
+                  </div>
+                  <div className="divide-y divide-border">
+                    {columns.map((col) => {
+                      const cell = scheduleCellFor(emp, col.key, col.iso, jobs, directory);
+                      const isToday = col.iso === todayIso;
+                      return (
+                        <div key={col.key} className={`flex items-start gap-3 px-3 py-2.5 ${isToday ? "bg-primary/5" : ""} ${cell.working ? "" : "opacity-50"}`}>
+                          <div className="shrink-0 w-11 text-center pt-0.5">
+                            <p className={`text-xs font-bold ${isToday ? "text-primary" : ""}`}>{col.shortLabel}</p>
+                            <p className="text-[9px] text-muted-foreground font-mono">{col.dateLabel}</p>
+                          </div>
+                          <div className="flex-1 min-w-0 pt-0.5">
+                            <ScheduleCellBody cell={cell}/>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop — tabela */}
+            <div className="hidden md:block flex-1 overflow-auto overscroll-contain">
           <table className="w-full min-w-[720px] border-collapse text-left">
             <thead className="sticky top-0 z-20 bg-card shadow-[0_1px_0_var(--border)]">
               <tr>
@@ -7220,30 +7295,7 @@ function ScheduleView({
                       >
                         {cell.working ? (
                           <div className="space-y-1 min-h-[52px] flex flex-col items-center justify-start">
-                            {cell.timeRange && (
-                              <span className="text-[10px] font-semibold text-green-400/90 bg-green-500/10 px-1.5 py-0.5 rounded font-mono whitespace-nowrap">
-                                {cell.timeRange}
-                              </span>
-                            )}
-                            {cell.hoursLabel && (
-                              <span className="text-[9px] text-muted-foreground">{cell.hoursLabel}</span>
-                            )}
-                            {cell.locations.length > 0 ? (
-                              cell.locations.map((loc, i) => (
-                                <span key={i} className="text-[9px] leading-snug text-primary flex items-start gap-0.5 max-w-[96px]">
-                                  <MapPin size={8} className="shrink-0 mt-0.5"/>
-                                  <span className="text-left">{loc}</span>
-                                </span>
-                              ))
-                            ) : cell.timeRange ? (
-                              cell.logisticsOnly ? (
-                                <span className="text-[9px] leading-snug text-violet-500/90 italic max-w-[96px] text-center">
-                                  {MULTI_SITE_SCHEDULE_LABEL}
-                                </span>
-                              ) : (
-                                <span className="text-[9px] text-muted-foreground italic">bez roboty</span>
-                              )
-                            ) : null}
+                            <ScheduleCellBody cell={cell}/>
                           </div>
                         ) : (
                           <span className="text-muted-foreground/50 text-sm">—</span>
@@ -7255,8 +7307,9 @@ function ScheduleView({
               ))}
             </tbody>
           </table>
+            </div>
+          </>
         )}
-      </div>
     </div>
   );
 }
@@ -8812,6 +8865,17 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.28.0", label:"Mobilne UX — Faza B (natywka)",
+    items:[
+      {type:"new", text:"Capacitor — przycisk Wstecz (Android): zamyka modale, edytor płac, szczegół roboty; sync po wznowieniu apki"},
+      {type:"improve", text:"Klawiatura mobilna — wykrywanie wysokości (visualViewport), przewijanie aktywnego pola, padding modali"},
+      {type:"improve", text:"Lista płac — edytor pracownika pełnoekranowy z ukrytą dolną nawigacją na telefonie"},
+      {type:"improve", text:"Panel pracownika — pull-to-refresh (odśwież dane z chmury)"},
+      {type:"improve", text:"Grafik — widok kart na telefonie (zamiast przewijania szerokiej tabeli)"},
+      {type:"improve", text:"iOS Info.plist — opisy uprawnień aparatu i galerii (App Store)"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.27.0", label:"Mobilne UX — Faza A (PWA i natywka)",
     items:[
@@ -10616,6 +10680,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [showSmsModal, setShowSmsModal] = useState(false);
   const [appSettings, setAppSettings] = useState<AppSettings>(() => loadAppSettingsLocal());
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
+  const [payrollDetailOpen, setPayrollDetailOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState<"idle"|"saving"|"saved"|"error"|"offline">("idle");
   const [syncError, setSyncError] = useState("");
   const syncTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
@@ -10706,6 +10771,23 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       toast.error("Nie udało się wysłać do chmury", { description: msg, id: "admin-cloud-sync" });
     }
   }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts]);
+
+  useEffect(() => {
+    return registerNativeBackHandler(() => {
+      if (showAdminSettings) { setShowAdminSettings(false); return true; }
+      if (showSmsModal) { setShowSmsModal(false); return true; }
+      if (showSaveConfirm) { setShowSaveConfirm(false); return true; }
+      if (mobileMoreOpen) { setMobileMoreOpen(false); return true; }
+      if (showSearch) { setShowSearch(false); setGlobalSearch(""); return true; }
+      return false;
+    });
+  }, [showAdminSettings, showSmsModal, showSaveConfirm, mobileMoreOpen, showSearch]);
+
+  useEffect(() => {
+    return onNativeAppResume(() => {
+      if (tabVisibleRef.current) void runCloudSync();
+    });
+  }, [runCloudSync]);
 
   // Po CloudLoader (merge chmura↔local) — zapis tylko przy zmianach użytkownika
   useEffect(() => {
@@ -11341,9 +11423,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         )}
 
         {/* Content */}
-        <div className="flex flex-1 min-h-0 overflow-hidden pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
+        <div className={`flex flex-1 min-h-0 overflow-hidden ${payrollDetailOpen ? "" : "pb-[calc(3.5rem+env(safe-area-inset-bottom))]"} md:pb-0`}>
           {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs} adminUserId={adminSession?.id} alertsSeenTick={alertsSeenTick} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} onOpenSms={()=>setShowSmsModal(true)}/>}
-          {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onSyncRatesFromDirectory={syncWeekRatesFromDirectory} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive} onSaveBacklogWeek={saveBiweeklyBacklogWeek} initialEmpId={pendingPayrollEmpId} onInitialEmpConsumed={()=>setPendingPayrollEmpId(null)}/>}
+          {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onSyncRatesFromDirectory={syncWeekRatesFromDirectory} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive} onSaveBacklogWeek={saveBiweeklyBacklogWeek} initialEmpId={pendingPayrollEmpId} onInitialEmpConsumed={()=>setPendingPayrollEmpId(null)} onDetailOpenChange={setPayrollDetailOpen}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory} onOpenSms={()=>setShowSmsModal(true)}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
@@ -11356,6 +11438,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         </div>
 
         {/* Mobile bottom nav — 4 główne + Menu (iOS/Android) */}
+        {!payrollDetailOpen && (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex z-40" style={{paddingBottom:"env(safe-area-inset-bottom)"}}>
           {mobileNavPrimary.map(({key,icon:Icon,badge})=>(
             <button key={key} onClick={()=>{setView(key);setMobileMoreOpen(false);}} className={`flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[52px] py-2 relative transition-colors ${view===key?"text-primary":"text-muted-foreground"}`}>
@@ -11371,6 +11454,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             <span className="text-[10px] font-medium leading-none">Więcej</span>
           </button>
         </nav>
+        )}
 
         {mobileMoreOpen && (
           <div className="md:hidden fixed inset-0 z-50" style={{background:"rgba(0,0,0,0.55)"}} onClick={()=>setMobileMoreOpen(false)}>
@@ -12838,6 +12922,21 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
     };
   }, [reloadWorkerData]);
 
+  const workerScrollRef = useRef<HTMLDivElement>(null);
+  const workerPull = usePullToRefresh(workerScrollRef, reloadWorkerData, !selectedJobId);
+
+  useEffect(() => {
+    return onNativeAppResume(() => { reloadWorkerData(); });
+  }, [reloadWorkerData]);
+
+  useEffect(() => {
+    if (!selectedJobId) return;
+    return registerNativeBackHandler(() => {
+      setSelectedJobId(null);
+      return true;
+    });
+  }, [selectedJobId]);
+
   const submitReceipt = async (file: File) => {
     if (!currentWeekEmp) {
       setReceiptError("Nie ma Cię na liście płac w tym tygodniu — poproś admina o dodanie.");
@@ -13136,7 +13235,8 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto overscroll-contain" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+      <div ref={workerScrollRef} className="flex-1 overflow-y-auto overscroll-contain" data-keyboard-aware style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+        <PullToRefreshIndicator pull={workerPull.pull} refreshing={workerPull.refreshing || payrollLoading || jobsLoading} ready={workerPull.ready}/>
         {selectedJob && (
           <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-2.5">
             <button type="button" onClick={() => setSelectedJobId(null)} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px] px-1 -ml-1">

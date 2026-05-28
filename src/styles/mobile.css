@@ -32,4 +32,13 @@
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
     max-height: 92dvh;
   }
+
+  .keyboard-open .modal-sheet {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom), var(--keyboard-inset, 0px));
+    max-height: calc(92dvh - var(--keyboard-inset, 0px));
+  }
+
+  .keyboard-open [data-keyboard-aware] {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom), var(--keyboard-inset, 0px));
+  }
 }

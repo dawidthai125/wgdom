@@ -47,5 +47,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>W&amp;G DOM potrzebuje aparatu, aby robić zdjęcia z budowy i wysyłać je do robot.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>W&amp;G DOM potrzebuje dostępu do galerii, aby wybierać zdjęcia z budowy.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>W&amp;G DOM może zapisać zdjęcia w galerii po pobraniu z chmury.</string>
 </dict>
 </plist>
