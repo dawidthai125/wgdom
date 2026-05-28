@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import {
   fetchKeysFromCloud,
-  pushKeysToCloud,
+  pushKeysToCloudSafe,
   normalizeJobsValue,
   mergeJobsById,
   getDeletedJobIds,
@@ -216,7 +216,7 @@ export function InspectorPanel({
     try {
       localStorage.setItem("kw-jobs", JSON.stringify(next));
     } catch { /* ignore */ }
-    pushKeysToCloud(["kw-jobs"], [next]).catch(() => {});
+    pushKeysToCloudSafe(["kw-jobs"], [next]).catch(() => {});
   }, []);
 
   const updateJob = useCallback((updated: InspectorJob) => {

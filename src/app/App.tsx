@@ -36,6 +36,11 @@ import {
   mergeDirectory,
   mergeContacts,
   mergeDataKey,
+  mergeIncomingWithStored,
+  readLocalStorageDataKey,
+  isDataKey,
+  pushKeysToCloudSafe,
+  type DataKey,
   weekEmployeesListRichness,
   fetchPayrollBackupStatus,
   restoreCloudPayrollBackup,
@@ -195,6 +200,7 @@ interface DirectoryEmployee {
   workerPinHash?: string;
   /** Konto testowe — tylko logowanie pracownika, bez listy płac, grafiku i raportów */
   testAccount?: boolean;
+  updatedAt?: string;
 }
 
 interface DayData {
@@ -412,6 +418,8 @@ interface Job {
   hiddenInspectorFeedIds?: string[];
   housingType?: HousingType | "";
   stoveType?: StoveType | "";
+  /** Ostatnia zmiana wpisu — do scalania między kartami / chmurą */
+  updatedAt?: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -1989,11 +1997,52 @@ async function uploadReceipt(
   }
 }
 
+function applyWriteTimestamps(key: string, prev: unknown, next: unknown): unknown {
+  const now = new Date().toISOString();
+  if (!Array.isArray(prev) || !Array.isArray(next)) return next;
+  const prevMap = new Map(
+    (prev as { id?: string }[]).filter((r) => r?.id).map((r) => [String(r.id), r]),
+  );
+  if (key === "kw-jobs" || key === "kw-directory" || key === "kw-contacts") {
+    return (next as { id?: string }[]).map((item) => {
+      if (!item?.id) return item;
+      const old = prevMap.get(String(item.id));
+      if (!old || JSON.stringify(old) !== JSON.stringify(item)) {
+        return { ...item, updatedAt: now };
+      }
+      return item;
+    });
+  }
+  return next;
+}
+
 function useLocalStorage<T>(key: string, initial: T): [T, (v: T|((p:T)=>T))=>void] {
   const [state, setState] = useState<T>(()=>{ try{ const s=localStorage.getItem(key); return s?JSON.parse(s):initial; }catch{ return initial; } });
   const set = useCallback((v: T|((p:T)=>T))=>{
-    setState(prev=>{ const next=typeof v==="function"?(v as (p:T)=>T)(prev):v; try{localStorage.setItem(key,JSON.stringify(next));}catch{} return next; });
+    setState(prev=>{
+      const incoming = typeof v==="function"?(v as (p:T)=>T)(prev):v;
+      if (!isDataKey(key)) {
+        try { localStorage.setItem(key, JSON.stringify(incoming)); } catch { /* ignore */ }
+        return incoming;
+      }
+      const stored = readLocalStorageDataKey(key as DataKey);
+      let next = incoming;
+      if (stored != null) {
+        next = mergeIncomingWithStored(key as DataKey, stored, incoming) as T;
+      }
+      next = applyWriteTimestamps(key, stored ?? prev, next) as T;
+      try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
   },[key]);
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== key || e.newValue == null) return;
+      try { setState(JSON.parse(e.newValue) as T); } catch { /* ignore */ }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [key]);
   return [state,set];
 }
 
@@ -7946,6 +7995,13 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-28", version:"2.19.12", label:"Sync — ochrona przed starą kartą w tle",
+    items:[
+      {type:"fix", text:"Zapis do chmury — ukryta / stara karta nie nadpisuje świeższych danych (localStorage, znaczniki czasu, brak auto-sync w tle)"},
+      {type:"improve", text:"Roboty, kartoteka, kontakty, archiwum — scalanie po updatedAt; odświeżenie stanu po powrocie do karty"},
+    ],
+  },
+  {
     date:"2026-05-28", version:"2.19.11", label:"Lista płac — trwały zapis stawek z kartoteki",
     items:[
       {type:"fix", text:"Lista płac — stawki zsynchronizowane z kartoteki nie wracają po dniu / odświeżeniu (osobny znacznik czasu stawki vs godzin; ochrona przed starą kartą w tle)"},
@@ -9426,6 +9482,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [syncStatus, setSyncStatus] = useState<"idle"|"saving"|"saved"|"error"|"offline">("idle");
   const [syncError, setSyncError] = useState("");
   const syncTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
+  const tabVisibleRef = useRef(typeof document !== "undefined" ? !document.hidden : true);
   const initialSyncDone = useRef(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [jobsBackupStatus, setJobsBackupStatus] = useState<{ current: number; prev: number; prev2: number; today: number } | null>(null);
@@ -9477,6 +9534,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const pushToCloud = pushAllDataToCloud;
 
   const runCloudSync = useCallback(async () => {
+    if (!tabVisibleRef.current) return;
     if (!isSupabaseConfigured()) {
       setSyncStatus("offline");
       setSyncError("Brak VITE_SUPABASE_* w Vercel — ustaw zmienne i zrób redeploy");
@@ -9501,12 +9559,52 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     initialSyncDone.current = true;
   }, []);
 
-  // Auto-save to cloud on any data change (debounced 2s, only after initial sync)
+  // Auto-save to cloud on any data change (debounced 2s, only after initial sync; nie w ukrytej karcie)
   useEffect(() => {
     if (!initialSyncDone.current) return;
     if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
-    syncTimerRef.current = setTimeout(() => { runCloudSync(); }, 2000);
+    syncTimerRef.current = setTimeout(() => {
+      if (!tabVisibleRef.current) return;
+      runCloudSync();
+    }, 2000);
   }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, runCloudSync]);
+
+  const reloadFromLocalStorage = useCallback(() => {
+    try {
+      const d = readLocalStorageDataKey("kw-directory");
+      if (Array.isArray(d)) setDirectory(d as DirectoryEmployee[]);
+      const we = readLocalStorageDataKey("kw-week-employees");
+      if (Array.isArray(we)) setWeekEmployees(we as WeekEmployee[]);
+      const arch = readLocalStorageDataKey("kw-archive");
+      if (Array.isArray(arch)) setSavedWeeks(arch as WeekSnapshot[]);
+      const j = readLocalStorageDataKey("kw-jobs");
+      if (Array.isArray(j)) setJobs(j as Job[]);
+      const c = readLocalStorageDataKey("kw-contacts");
+      if (Array.isArray(c)) setContacts(c as EmailContact[]);
+      const wf = readLocalStorageDataKey("kw-weekFrom");
+      if (typeof wf === "string" && wf) setWeekFrom(wf);
+      const wt = readLocalStorageDataKey("kw-weekTo");
+      if (typeof wt === "string" && wt) setWeekTo(wt);
+    } catch { /* ignore */ }
+  }, [setDirectory, setWeekEmployees, setSavedWeeks, setJobs, setContacts, setWeekFrom, setWeekTo]);
+
+  useEffect(() => {
+    const onVis = () => {
+      tabVisibleRef.current = !document.hidden;
+      if (!document.hidden) reloadFromLocalStorage();
+    };
+    const onFocus = () => {
+      tabVisibleRef.current = true;
+      reloadFromLocalStorage();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", onFocus);
+    tabVisibleRef.current = !document.hidden;
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [reloadFromLocalStorage]);
 
   // Backup
   const exportBackup = () => {
@@ -11383,7 +11481,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
                   )
                 : j,
             );
-            pushKeysToCloud(["kw-jobs"], [updated]).catch(() => {});
+            pushKeysToCloudSafe(["kw-jobs"], [updated]).catch(() => {});
             try { localStorage.setItem("kw-jobs", JSON.stringify(updated)); } catch { /* ignore */ }
             return updated;
           });
@@ -11476,7 +11574,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
     setJobsLocal((prev) => {
       const updated = updater(prev);
       saveLocalJobsSnapshot(updated);
-      pushKeysToCloud(["kw-jobs"], [updated]).catch(() => {});
+      pushKeysToCloudSafe(["kw-jobs"], [updated]).catch(() => {});
       return updated;
     });
   };
@@ -11485,7 +11583,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
     setWeekEmployees((prev) => {
       const updated = updater(prev);
       try { localStorage.setItem("kw-week-employees", JSON.stringify(updated)); } catch { /* ignore */ }
-      pushKeysToCloud(["kw-week-employees"], [updated]).catch(() => {});
+      pushKeysToCloudSafe(["kw-week-employees"], [updated]).catch(() => {});
       return updated;
     });
   };

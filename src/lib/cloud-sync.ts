@@ -167,10 +167,32 @@ function filterDeletedJobs(list: unknown[], deletedIds: string[]): unknown[] {
   });
 }
 
-/** Scal roboty po id — nie gub starszych wpisów gdy chmura ma mniej danych. */
+function parseRecordTs(v: unknown): number {
+  if (typeof v !== "string") return 0;
+  const t = Date.parse(v);
+  return Number.isNaN(t) ? 0 : t;
+}
+
+function jobUpdatedTs(j: {
+  updatedAt?: string;
+  activityLog?: { at: string }[];
+  startDate?: string;
+}): number {
+  const direct = parseRecordTs(j.updatedAt);
+  if (direct) return direct;
+  if (Array.isArray(j.activityLog)) {
+    let max = 0;
+    for (const ev of j.activityLog) max = Math.max(max, parseRecordTs(ev.at));
+    if (max) return max;
+  }
+  return parseRecordTs(j.startDate);
+}
+
+/** Scal roboty po id — nie gub starszych wpisów; przy konflikcie wygrywa nowszy updatedAt. */
 export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds: string[] = []): unknown[] {
   type J = {
     id?: string;
+    updatedAt?: string;
     workEntries?: unknown[];
     photos?: unknown[];
     startDate?: string;
@@ -183,6 +205,42 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
     plannedHandoverDate?: string;
   };
   const map = new Map<string, J>();
+  const mergePair = (prev: J, j: J): J => {
+    const prevTs = jobUpdatedTs(prev);
+    const jTs = jobUpdatedTs(j);
+    let newer: J;
+    let older: J;
+    if (jTs >= prevTs) {
+      newer = j;
+      older = prev;
+    } else {
+      newer = prev;
+      older = j;
+    }
+    if (prevTs === jTs) {
+      const winnerFirst = jobMergeScore(j) >= jobMergeScore(prev);
+      newer = winnerFirst ? j : prev;
+      older = winnerFirst ? prev : j;
+    }
+    const pick = { ...older, ...newer };
+    const mergedLogs = mergeActivityLogs(prev.activityLog, j.activityLog);
+    const latestTs = new Date(Math.max(prevTs, jTs, Date.now())).toISOString();
+    return {
+      ...pick,
+      documents: mergeJobDocuments(prev.documents, j.documents),
+      jobFiles: mergeJobFiles(prev.jobFiles, j.jobFiles),
+      activityLog: mergedLogs,
+      jobNotes: mergeJobNotes(prev.jobNotes, j.jobNotes),
+      inspectorPhotos: mergeInspectorPhotos(prev.inspectorPhotos, j.inspectorPhotos),
+      plannedHandoverDate: mergePlannedHandoverDate(prev.plannedHandoverDate, j.plannedHandoverDate),
+      handoverStage: mergeHandoverStage(
+        prev.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,
+        j.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,
+        mergedLogs as { type: string; at: string; text: string }[],
+      ) || pick.handoverStage,
+      updatedAt: newer.updatedAt ?? older.updatedAt ?? latestTs,
+    };
+  };
   const ingest = (list: unknown[]) => {
     for (const item of list) {
       const j = item as J;
@@ -192,23 +250,7 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
         map.set(j.id, j);
         continue;
       }
-      const winnerFirst = jobMergeScore(j) >= jobMergeScore(prev);
-      const pick = winnerFirst ? { ...prev, ...j } : { ...j, ...prev };
-      const mergedLogs = mergeActivityLogs(prev.activityLog, j.activityLog);
-      map.set(j.id, {
-        ...pick,
-        documents: mergeJobDocuments(prev.documents, j.documents),
-        jobFiles: mergeJobFiles(prev.jobFiles, j.jobFiles),
-        activityLog: mergedLogs,
-        jobNotes: mergeJobNotes(prev.jobNotes, j.jobNotes),
-        inspectorPhotos: mergeInspectorPhotos(prev.inspectorPhotos, j.inspectorPhotos),
-        plannedHandoverDate: mergePlannedHandoverDate(prev.plannedHandoverDate, j.plannedHandoverDate),
-        handoverStage: mergeHandoverStage(
-          prev.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,
-          j.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,
-          mergedLogs as { type: string; at: string; text: string }[],
-        ) || pick.handoverStage,
-      });
+      map.set(j.id, mergePair(prev, j));
     }
   };
   ingest(filterDeletedJobs(cloud, deletedJobIds));
@@ -224,12 +266,6 @@ type DayLike = {
   notes?: unknown[];
   zaliczka?: string;
 };
-
-function parseRecordTs(v: unknown): number {
-  if (typeof v !== "string") return 0;
-  const t = Date.parse(v);
-  return Number.isNaN(t) ? 0 : t;
-}
 
 function pickRateByTimestamps(l: Record<string, unknown>, c: Record<string, unknown>): unknown {
   const lAt = parseRecordTs(l.rateUpdatedAt);
@@ -341,6 +377,42 @@ export function mergeWeekEmployeesWithStored(stored: unknown[], incoming: unknow
   return mergeWeekEmployees(stored, incoming);
 }
 
+/** Odczyt klucza danych z localStorage (między kartami / przed zapisem do chmury). */
+export function readLocalStorageDataKey(key: DataKey): unknown | null {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+/** Scal zapis z pamięci karty z tym, co już jest w localStorage (nowsze wygrywa). */
+export function mergeIncomingWithStored(key: DataKey, stored: unknown, incoming: unknown): unknown {
+  if (stored == null) return incoming;
+  if (incoming == null) return stored;
+  return mergeDataKey(key, stored, incoming);
+}
+
+/** Przed pushem do chmury — uwzględnij localStorage (inna karta mogła zapisać świeższe dane). */
+export function prepareDataBundleForCloudPush(values: unknown[]): unknown[] {
+  const prepared = [...values];
+  for (let i = 0; i < DATA_KEYS.length; i++) {
+    const key = DATA_KEYS[i];
+    const stored = readLocalStorageDataKey(key);
+    if (stored == null) continue;
+    const incoming = prepared[i];
+    const hasIncoming =
+      incoming != null && !(Array.isArray(incoming) && incoming.length === 0) && incoming !== "";
+    const hasStored =
+      stored != null && !(Array.isArray(stored) && stored.length === 0) && stored !== "";
+    if (!hasIncoming && !hasStored) continue;
+    prepared[i] = mergeIncomingWithStored(key, stored, incoming);
+  }
+  return prepared;
+}
+
 /** Scal listę płac tygodnia — po id; odznaczenie dnia / stawka z bieżącej karty nie wraca z chmury. */
 export function mergeWeekEmployees(local: unknown[], cloud: unknown[]): unknown[] {
   const map = new Map<string, unknown>();
@@ -378,7 +450,21 @@ export function mergeArchive(local: unknown[], cloud: unknown[]): unknown[] {
       if (!w?.weekFrom) continue;
       const k = keyOf(w);
       const prev = map.get(k);
-      if (!prev || score(w) >= score(prev)) map.set(k, w);
+      if (!prev) {
+        map.set(k, w);
+        continue;
+      }
+      const wScore = score(w);
+      const prevScore = score(prev);
+      if (wScore > prevScore) {
+        map.set(k, w);
+      } else if (wScore < prevScore) {
+        /* keep prev */
+      } else {
+        const wSaved = parseRecordTs((w as { savedAt?: string }).savedAt);
+        const prevSaved = parseRecordTs((prev as { savedAt?: string }).savedAt);
+        map.set(k, wSaved >= prevSaved ? w : prev);
+      }
     }
   };
   ingest(Array.isArray(local) ? local : []);
@@ -437,7 +523,14 @@ export function mergeContacts(local: unknown[], cloud: unknown[]): unknown[] {
         map.set(id, { ...c });
         continue;
       }
-      const pick = recordRichness(c) >= recordRichness(prev) ? c : prev;
+      const cTs = parseRecordTs(c.updatedAt);
+      const pTs = parseRecordTs(prev.updatedAt);
+      let pick: Record<string, unknown>;
+      if (cTs && pTs && cTs !== pTs) {
+        pick = cTs > pTs ? c : prev;
+      } else {
+        pick = recordRichness(c) >= recordRichness(prev) ? c : prev;
+      }
       map.set(id, {
         ...prev,
         ...pick,
@@ -451,7 +544,17 @@ export function mergeContacts(local: unknown[], cloud: unknown[]): unknown[] {
   return [...map.values()];
 }
 
-/** Kartoteka: lokalna lista decyduje o składzie; pola scalane po id (bogatszy wygrywa). Usunięci — tombstones. */
+function pickDirectoryRecord(localItem: unknown, cloudItem: unknown | undefined): unknown {
+  if (!cloudItem) return localItem;
+  const l = localItem as Record<string, unknown>;
+  const c = cloudItem as Record<string, unknown>;
+  const lTs = parseRecordTs(l.updatedAt);
+  const cTs = parseRecordTs(c.updatedAt);
+  if (lTs && cTs && lTs !== cTs) return lTs > cTs ? localItem : cloudItem;
+  return recordRichness(l) >= recordRichness(c) ? localItem : cloudItem;
+}
+
+/** Kartoteka: lokalna lista decyduje o składzie; pola scalane po id (nowszy updatedAt / bogatszy). */
 export function mergeDirectory(
   local: unknown[],
   cloud: unknown[],
@@ -471,11 +574,7 @@ export function mergeDirectory(
     if (!id) continue;
     localIds.add(id);
     const cloudItem = cloudMap.get(id);
-    if (!cloudItem || recordRichness(item) >= recordRichness(cloudItem)) {
-      result.push(item);
-    } else {
-      result.push(cloudItem);
-    }
+    result.push(pickDirectoryRecord(item, cloudItem));
   }
   for (const [id, item] of cloudMap) {
     if (!localIds.has(id)) result.push(item);
@@ -636,7 +735,11 @@ export async function pushDirectoryToCloud(directory: unknown[]): Promise<void> 
   } catch { /* offline */ }
   const mergedDeleted = mergeDeletedDirectoryIds(getDeletedDirectoryIds(), cloudDeleted);
   saveDeletedDirectoryIds(mergedDeleted);
-  const merged = mergeDirectory(directory, cloudDir, mergedDeleted);
+  const stored = readLocalStorageDataKey("kw-directory");
+  const sessionDir = stored != null
+    ? mergeIncomingWithStored("kw-directory", stored, directory)
+    : directory;
+  const merged = mergeDirectory(sessionDir, cloudDir, mergedDeleted);
   await pushKeysToCloud(
     ["kw-directory", DIRECTORY_DELETED_IDS_KEY],
     [merged, mergedDeleted],
@@ -646,24 +749,7 @@ export async function pushDirectoryToCloud(directory: unknown[]): Promise<void> 
 
 export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
   const keys = [...DATA_KEYS];
-  const valuesForMerge = [...values];
-  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
-  if (empIdx >= 0) {
-    try {
-      const raw = localStorage.getItem("kw-week-employees");
-      if (raw) {
-        const stored = JSON.parse(raw) as unknown[];
-        if (Array.isArray(stored) && stored.length > 0) {
-          valuesForMerge[empIdx] = mergeWeekEmployeesWithStored(
-            stored,
-            normalizeArrayValue(valuesForMerge[empIdx]),
-          );
-        }
-      }
-    } catch {
-      /* ignore */
-    }
-  }
+  const valuesForMerge = prepareDataBundleForCloudPush(values);
 
   let cloudValues: unknown[] = keys.map(() => null);
   let cloudDeleted: string[] = [];
@@ -683,6 +769,7 @@ export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
   let merged = mergeAllDataKeys(valuesForMerge, cloudValues, mergedDeleted, mergedDirDeleted);
   merged = alignWeekRangeInMerged(merged);
 
+  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
   const archIdx = DATA_KEYS.indexOf("kw-archive");
   if (
     empIdx >= 0 &&
@@ -705,15 +792,18 @@ export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
   );
 }
 
-/** Zapis wielu kluczy z merge względem chmury. */
+/** Zapis wielu kluczy z merge względem chmury i localStorage. */
 export async function pushKeysToCloudSafe(keys: string[], values: unknown[]): Promise<void> {
   let cloudValues: unknown[] = keys.map(() => null);
   try {
     cloudValues = await fetchKeysFromCloud(keys);
   } catch { /* ignore */ }
-  const merged = keys.map((key, i) =>
-    isDataKey(key) ? mergeDataKey(key, values[i], cloudValues[i]) : values[i],
-  );
+  const merged = keys.map((key, i) => {
+    if (!isDataKey(key)) return values[i];
+    const stored = readLocalStorageDataKey(key);
+    const session = stored != null ? mergeIncomingWithStored(key, stored, values[i]) : values[i];
+    return mergeDataKey(key, session, cloudValues[i]);
+  });
   await pushKeysToCloud(keys, merged);
 }
 

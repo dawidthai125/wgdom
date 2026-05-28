@@ -9,6 +9,7 @@ export interface EmailContact {
   allowJobs?: boolean;
   /** Email z listą płac (PDF/Word) */
   allowPayroll?: boolean;
+  updatedAt?: string;
 }
 
 export function defaultEmailContact(): EmailContact {
