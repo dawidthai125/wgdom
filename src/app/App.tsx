@@ -31,7 +31,6 @@ import {
   fetchJobsBackupStatus,
   restoreCloudJobsBackup,
   mergeWeekEmployees,
-  mergeWeekEmployeeRecord,
   mergeArchive,
   mergeDirectory,
   mergeContacts,
@@ -2059,9 +2058,19 @@ function useLocalStorage<T>(key: string, initial: T): [T, (v: T|((p:T)=>T))=>voi
 // ─── Shared UI ────────────────────────────────────────────────────────────────
 
 function Checkbox({checked,onChange}:{checked:boolean;onChange:(v:boolean)=>void}) {
-  return <button onClick={()=>onChange(!checked)} className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all shrink-0 ${checked?"bg-primary border-primary":"border-muted-foreground/40"}`}>
-    {checked&&<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-  </button>;
+  return (
+    <button
+      type="button"
+      aria-pressed={checked}
+      aria-label={checked ? "Odznacz dzień" : "Zaznacz dzień"}
+      onClick={()=>onChange(!checked)}
+      className={`min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center shrink-0 touch-manipulation rounded-lg sm:rounded-none sm:p-0 ${checked?"":"hover:bg-secondary/50 sm:hover:bg-transparent"}`}
+    >
+      <span className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${checked?"bg-primary border-primary":"border-muted-foreground/40"}`}>
+        {checked&&<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+      </span>
+    </button>
+  );
 }
 
 function StatCard({label,value,sub,icon:Icon,accent=false}:{label:string;value:string;sub?:string;icon:React.ElementType;accent?:boolean}) {
@@ -8008,6 +8017,13 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-28", version:"2.19.16", label:"Lista płac — zaznaczanie dni",
+    items:[
+      {type:"fix", text:"Lista płac — zaznaczenie dnia (np. czwartek) działa od razu; edycja nie była nadpisywana przez stary wpis z pamięci"},
+      {type:"improve", text:"Checkbox dnia — większy obszar dotyku na telefonie (44px)"},
+    ],
+  },
+  {
     date:"2026-05-28", version:"2.19.15", label:"Mobile i tablet — Android / iOS",
     items:[
       {type:"improve", text:"Telefon i tablet — dolna nawigacja do 768px; sidebar na większych ekranach (wygodniejsze tablety)"},
@@ -9846,23 +9862,15 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const updateWeekEmployee = useCallback((updated:WeekEmployee)=>{
     setWeekEmployees((prev)=>prev.map((e)=>{
       if (e.id !== updated.id) return e;
-      let lsEmp: WeekEmployee | undefined;
-      try {
-        const ls = JSON.parse(localStorage.getItem("kw-week-employees") || "[]") as WeekEmployee[];
-        lsEmp = ls.find((x) => x.id === e.id);
-      } catch { /* ignore */ }
-      const merged = (lsEmp
-        ? mergeWeekEmployeeRecord(lsEmp, updated)
-        : updated) as WeekEmployee;
       const now = new Date().toISOString();
       const rateChanged = updated.rate !== e.rate;
       const dataChanged =
         JSON.stringify({ days: updated.days, prevSaturday: updated.prevSaturday, extraCosts: updated.extraCosts })
         !== JSON.stringify({ days: e.days, prevSaturday: e.prevSaturday, extraCosts: e.extraCosts });
       return {
-        ...merged,
-        rateUpdatedAt: rateChanged ? now : merged.rateUpdatedAt ?? e.rateUpdatedAt,
-        dataUpdatedAt: dataChanged ? now : merged.dataUpdatedAt ?? e.dataUpdatedAt,
+        ...updated,
+        rateUpdatedAt: rateChanged ? now : updated.rateUpdatedAt ?? e.rateUpdatedAt,
+        dataUpdatedAt: dataChanged ? now : updated.dataUpdatedAt ?? e.dataUpdatedAt,
       };
     }));
   },[setWeekEmployees]);
