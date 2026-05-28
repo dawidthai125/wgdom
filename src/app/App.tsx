@@ -159,6 +159,7 @@ import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
 import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } from "@/lib/photo-queue";
+import { consumePendingDeepLink, type DeepLinkRoute } from "@/lib/deep-link";
 import { PwaInstallBanner } from "@/app/PwaInstallBanner";
 import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
@@ -8866,6 +8867,15 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.29.0", label:"Mobilne UX — Faza C (sklep i offline)",
+    items:[
+      {type:"new", text:"Deep linki wgdom://job/{id} i wgdom://payroll — otwarcie roboty lub listy płac (Android, iOS, web ?open=job&id=…)"},
+      {type:"improve", text:"Capacitor — strona offline gdy brak sieci (errorPath); opcjonalny tryb bundle: CAPACITOR_USE_BUNDLE=1"},
+      {type:"improve", text:"PWA — manifest id, ikony maskable, kategorie; service worker v2 z offline.html"},
+      {type:"improve", text:"Inspektor — kolejka offline zdjęć (jak u pracownika), wysyłka po powrocie sieci"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.28.0", label:"Mobilne UX — Faza B (natywka)",
     items:[
       {type:"new", text:"Capacitor — przycisk Wstecz (Android): zamyka modale, edytor płac, szczegół roboty; sync po wznowieniu apki"},
@@ -11240,6 +11250,29 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setMobileMoreOpen(false);
   }, []);
 
+  const applyDeepLink = useCallback((route: DeepLinkRoute) => {
+    if (route.type === "job") {
+      setPendingJobId(route.jobId);
+      setView("jobs");
+      setMobileMoreOpen(false);
+    } else if (route.type === "payroll") {
+      if (route.empId) setPendingPayrollEmpId(route.empId);
+      setView("payroll");
+      setMobileMoreOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const pending = consumePendingDeepLink();
+    if (pending) applyDeepLink(pending);
+    const onLink = (e: Event) => {
+      const route = (e as CustomEvent<DeepLinkRoute>).detail;
+      if (route) applyDeepLink(route);
+    };
+    window.addEventListener("wgdom-deeplink", onLink);
+    return () => window.removeEventListener("wgdom-deeplink", onLink);
+  }, [applyDeepLink]);
+
   return (
     <div className="flex bg-background text-foreground overflow-hidden" style={{fontFamily:"'Inter', sans-serif", height:"100dvh"}}>
 
@@ -12735,7 +12768,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
   }, [galleryPicks]);
 
   const refreshQueueCount = useCallback(() => {
-    queuedPhotoCount().then(setQueueCount).catch(() => {});
+    queuedPhotoCount("worker").then(setQueueCount).catch(() => {});
   }, []);
 
   useEffect(() => { refreshQueueCount(); }, [refreshQueueCount]);
@@ -12744,7 +12777,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
     if (!navigator.onLine || flushingQueue) return;
     setFlushingQueue(true);
     try {
-      const items = await listQueuedPhotos();
+      const items = await listQueuedPhotos("worker");
       for (const item of items) {
         const job = jobs.find((j) => j.id === item.jobId);
         if (!job) {
@@ -13009,6 +13042,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
       } else {
         try {
           await queuePhoto({
+            kind: "worker",
             jobId: selectedJob.id,
             label,
             caption: pick.caption,

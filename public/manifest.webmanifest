@@ -1,18 +1,23 @@
 {
+  "id": "/",
   "name": "W&G DOM — Zarządzanie Pracą",
   "short_name": "W&G DOM",
   "description": "Zarządzanie robotami budowlanymi, zdjęcia i raporty z budowy",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "any",
   "background_color": "#0f1419",
   "theme_color": "#344254",
   "lang": "pl",
+  "categories": ["business", "productivity"],
   "icons": [
-    { "src": "/favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/favicon-32.png", "sizes": "32x32", "type": "image/png", "purpose": "any" },
     { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-192.webp", "sizes": "192x192", "type": "image/webp", "purpose": "any" },
-    { "src": "/icons/icon-512.webp", "sizes": "512x512", "type": "image/webp", "purpose": "any maskable" }
+    { "src": "/icons/icon-512.webp", "sizes": "512x512", "type": "image/webp", "purpose": "any" },
+    { "src": "/icons/icon-192.webp", "sizes": "192x192", "type": "image/webp", "purpose": "maskable" },
+    { "src": "/icons/icon-512.webp", "sizes": "512x512", "type": "image/webp", "purpose": "maskable" }
   ]
 }

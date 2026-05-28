@@ -1,5 +1,15 @@
-const CACHE = "wgdom-shell-v1";
-const PRECACHE = ["/", "/index.html", "/manifest.webmanifest", "/favicon-16.png", "/favicon-32.png", "/apple-touch-icon.png"];
+const CACHE = "wgdom-shell-v2";
+const PRECACHE = [
+  "/",
+  "/index.html",
+  "/offline.html",
+  "/manifest.webmanifest",
+  "/favicon-16.png",
+  "/favicon-32.png",
+  "/apple-touch-icon.png",
+  "/icons/icon-192.webp",
+  "/icons/icon-512.webp",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
@@ -27,6 +37,14 @@ self.addEventListener("fetch", (event) => {
         }
         return res;
       })
-      .catch(() => caches.match(event.request).then((r) => r || caches.match("/index.html")))
+      .catch(() =>
+        caches.match(event.request).then((r) => {
+          if (r) return r;
+          if (event.request.mode === "navigate") {
+            return caches.match("/offline.html").then((offline) => offline || caches.match("/index.html"));
+          }
+          return caches.match("/index.html");
+        })
+      )
   );
 });

@@ -53,5 +53,16 @@
 	<string>W&amp;G DOM potrzebuje dostępu do galerii, aby wybierać zdjęcia z budowy.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>W&amp;G DOM może zapisać zdjęcia w galerii po pobraniu z chmury.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>fun.wgdom.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>wgdom</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

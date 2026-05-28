@@ -78,6 +78,8 @@ import {
   type InspectorMainTab,
 } from "@/app/InspectorNavigation";
 import { PwaInstallBanner } from "@/app/PwaInstallBanner";
+import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } from "@/lib/photo-queue";
+import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh";
 import { Toaster, toast } from "sonner";
 
@@ -215,6 +217,14 @@ export function InspectorPanel({
   const listScrollRef = useRef<HTMLDivElement>(null);
   const dashboardScrollRef = useRef<HTMLDivElement>(null);
   const portfolioScrollRef = useRef<HTMLDivElement>(null);
+  const [photoQueueCount, setPhotoQueueCount] = useState(0);
+  const [flushingPhotoQueue, setFlushingPhotoQueue] = useState(false);
+
+  const refreshPhotoQueueCount = useCallback(() => {
+    queuedPhotoCount("inspector").then(setPhotoQueueCount).catch(() => {});
+  }, []);
+
+  useEffect(() => { refreshPhotoQueueCount(); }, [refreshPhotoQueueCount]);
 
   const scrollToJobSection = useCallback((id: InspectorJobSection) => {
     document.getElementById(`inspector-section-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -441,12 +451,66 @@ export function InspectorPanel({
 
   const selectedJob = jobs.find((j) => j.id === selectedId) || null;
 
+  const flushInspectorPhotoQueue = useCallback(async () => {
+    if (!navigator.onLine || flushingPhotoQueue) return;
+    setFlushingPhotoQueue(true);
+    try {
+      const items = await listQueuedPhotos("inspector");
+      for (const item of items) {
+        const job = jobs.find((j) => j.id === item.jobId);
+        if (!job) {
+          await removeQueuedPhoto(item.id);
+          continue;
+        }
+        const file = new File([item.blob], item.filename, { type: item.blob.type || "image/jpeg" });
+        const { entry, error } = await uploadInspectorPhoto(
+          job.id,
+          file,
+          item.uploadedBy,
+          item.caption,
+          item.label as InspectorPhotoLabel,
+        );
+        if (entry) {
+          updateJob(
+            appendJobActivity(
+              { ...job, inspectorPhotos: [entry, ...(job.inspectorPhotos || [])] },
+              "inspector_photo",
+              `Zdjęcie inspektora (${item.label})${entry.caption ? `: ${entry.caption}` : ""} — z kolejki offline`,
+              item.uploadedBy,
+            ),
+          );
+          await removeQueuedPhoto(item.id);
+        } else if (error?.toLowerCase().includes("internet") || error?.toLowerCase().includes("połączenia")) {
+          break;
+        }
+      }
+    } finally {
+      setFlushingPhotoQueue(false);
+      refreshPhotoQueueCount();
+    }
+  }, [jobs, flushingPhotoQueue, updateJob, refreshPhotoQueueCount]);
+
   const handleInspectorPhotoUpload = useCallback(async (file: File, label: InspectorPhotoLabel, caption: string) => {
     if (!selectedJob) return false;
     const { entry, error } = await uploadInspectorPhoto(selectedJob.id, file, displayName, caption, label);
     if (!entry) {
-      setMsg(error || "Nie udało się wgrać zdjęcia");
-      return false;
+      try {
+        await queuePhoto({
+          kind: "inspector",
+          jobId: selectedJob.id,
+          label,
+          caption,
+          uploadedBy: displayName,
+          blob: file,
+          filename: file.name,
+        });
+        refreshPhotoQueueCount();
+        setMsg("Brak sieci — zdjęcie zapisane w kolejce offline.");
+        return true;
+      } catch {
+        setMsg(error || "Nie udało się wgrać zdjęcia");
+        return false;
+      }
     }
     updateJob(
       appendJobActivity(
@@ -457,7 +521,26 @@ export function InspectorPanel({
       ),
     );
     return true;
-  }, [selectedJob, displayName, updateJob]);
+  }, [selectedJob, displayName, updateJob, refreshPhotoQueueCount]);
+
+  useEffect(() => {
+    const onOnline = () => { void flushInspectorPhotoQueue(); };
+    window.addEventListener("online", onOnline);
+    if (navigator.onLine) void flushInspectorPhotoQueue();
+    return () => window.removeEventListener("online", onOnline);
+  }, [flushInspectorPhotoQueue]);
+
+  useEffect(() => {
+    return onNativeAppResume(() => { void flushInspectorPhotoQueue(); });
+  }, [flushInspectorPhotoQueue]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    return registerNativeBackHandler(() => {
+      setSelectedId(null);
+      return true;
+    });
+  }, [selectedId]);
 
   const pullRefresh = useCallback(() => refreshFromCloud(false), [refreshFromCloud]);
   const dashboardPull = usePullToRefresh(dashboardScrollRef, pullRefresh, !selectedId && mainTab === "dashboard");
@@ -589,6 +672,20 @@ export function InspectorPanel({
       <div className="px-4 shrink-0">
         <PwaInstallBanner compact dismissKey="wg-pwa-inspector-dismiss" persist="local" className="mb-0 mt-2"/>
       </div>
+
+      {(photoQueueCount > 0 || flushingPhotoQueue) && (
+        <div className="mx-4 mt-2 flex items-center gap-2 bg-amber-500/10 border border-amber-500/25 rounded-xl px-3 py-2 text-xs shrink-0">
+          <CloudOff size={13} className="text-amber-400 shrink-0"/>
+          <span className="text-amber-400 font-medium">
+            {flushingPhotoQueue ? "Wysyłanie zdjęć z kolejki…" : `${photoQueueCount} zdjęć inspektora w kolejce offline`}
+          </span>
+          {!flushingPhotoQueue && navigator.onLine && (
+            <button type="button" onClick={() => void flushInspectorPhotoQueue()} className="ml-auto text-primary hover:underline shrink-0 min-h-[44px] px-2 touch-manipulation">
+              Wyślij teraz
+            </button>
+          )}
+        </div>
+      )}
 
       {adminNotesPending.length > 0 && !selectedJob && (
         <div className="mx-4 mt-2 mb-1 bg-violet-500/10 border border-violet-500/25 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
