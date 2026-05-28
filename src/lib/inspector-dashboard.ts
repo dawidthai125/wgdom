@@ -24,10 +24,13 @@ export interface DashboardFileAlert {
 export interface DashboardDocAlert {
   job: InspectorDashboardJob;
   urgency: number;
+  missingDocs: DocType[];
   missingLabels: string[];
   planStatus: DashboardPlanStatus;
   stage: JobHandoverStage;
 }
+
+export type DashboardFilter = "all" | "pliki" | "dokumenty" | "terminy" | "admin";
 
 export interface DashboardReadyNoDateAlert {
   job: InspectorDashboardJob;
@@ -87,6 +90,7 @@ export function buildMissingDocAlerts(jobs: InspectorDashboardJob[]): DashboardD
     items.push({
       job,
       urgency: urgencyScore(job),
+      missingDocs: missing,
       missingLabels: missing.map((d) => DOC_LABELS[d]),
       planStatus: plannedHandoverStatus(job.plannedHandoverDate || "", stage),
       stage,
@@ -173,4 +177,4 @@ export function planStatusBadge(plan: DashboardPlanStatus, plannedDate?: string)
   return null;
 }
 
-export type QuickMarkDoc = Extract<DocType, "zlecenie" | "kosztorys">;
+export type QuickMarkDoc = DocType;

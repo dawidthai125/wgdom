@@ -5,6 +5,7 @@ import {
   MapPin, LogOut, Search, ArrowLeft, FileText, ClipboardList, Ruler,
   CheckCircle2, Circle, ImagePlus, Phone, Users,
   ChevronDown, ChevronUp, Camera, X, FileCheck, AlertCircle, BookOpen, RefreshCw, MessageSquare, ScrollText,
+  Cloud, CloudOff,
 } from "lucide-react";
 import {
   fetchKeysFromCloud,
@@ -39,7 +40,7 @@ import { InspectorDashboard } from "@/app/InspectorDashboard";
 import { InspectorPhotoGallery } from "@/app/InspectorPhotoGallery";
 import { uploadJobFile } from "@/lib/job-file-upload";
 import { uploadInspectorPhoto } from "@/lib/job-photo-upload";
-import { computeInspectorDashboardStats, type QuickMarkDoc } from "@/lib/inspector-dashboard";
+import { computeInspectorDashboardStats } from "@/lib/inspector-dashboard";
 import {
   inferHandoverStage,
   plannedHandoverStatus,
@@ -73,6 +74,7 @@ import {
 } from "@/app/InspectorNavigation";
 import { PwaInstallBanner } from "@/app/PwaInstallBanner";
 import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh";
+import { Toaster, toast } from "sonner";
 
 type JobStatus = "in_progress" | "completed";
 
@@ -197,7 +199,11 @@ export function InspectorPanel({
   const [lightbox, setLightbox] = useState<{ url: string; label: string } | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [syncPending, setSyncPending] = useState(false);
+  const [pushFailed, setPushFailed] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+  const pushPendingRef = useRef(0);
+  const prevAdminNotesCountRef = useRef<number | null>(null);
   const [notesSeenTick, setNotesSeenTick] = useState(0);
   const [stageSuggestion, setStageSuggestion] = useState<{ jobId: string; stage: JobHandoverStage } | null>(null);
   const jobScrollRef = useRef<HTMLDivElement>(null);
@@ -219,7 +225,25 @@ export function InspectorPanel({
     try {
       localStorage.setItem("kw-jobs", JSON.stringify(next));
     } catch { /* ignore */ }
-    pushKeysToCloudSafe(["kw-jobs"], [next]).catch(() => {});
+    pushPendingRef.current += 1;
+    setSyncPending(true);
+    setPushFailed(false);
+    pushKeysToCloudSafe(["kw-jobs"], [next])
+      .then(() => {
+        pushPendingRef.current -= 1;
+        if (pushPendingRef.current <= 0) {
+          pushPendingRef.current = 0;
+          setSyncPending(false);
+          setPushFailed(false);
+          setLastSyncedAt(new Date());
+        }
+      })
+      .catch(() => {
+        pushPendingRef.current -= 1;
+        if (pushPendingRef.current <= 0) pushPendingRef.current = 0;
+        setSyncPending(true);
+        setPushFailed(true);
+      });
   }, []);
 
   const updateJob = useCallback((updated: InspectorJob) => {
@@ -275,9 +299,28 @@ export function InspectorPanel({
     return ids.size;
   }, [jobs, adminNotesPending]);
 
-  const markDocFromDashboard = useCallback((jobId: string, doc: QuickMarkDoc) => {
+  useEffect(() => {
+    const prev = prevAdminNotesCountRef.current;
+    if (prev !== null && adminNotesPending.length > prev && adminNotesPending.length > 0) {
+      const first = adminNotesPending[0];
+      toast.info(`Odpowiedź od admina (${adminNotesPending.length})`, {
+        description: first?.address || "Sprawdź notatki w Odbiorze WM",
+        action: {
+          label: "Otwórz",
+          onClick: () => openJob(first.id, "wm"),
+        },
+      });
+    }
+    prevAdminNotesCountRef.current = adminNotesPending.length;
+  }, [adminNotesPending, openJob]);
+
+  const markDocFromDashboard = useCallback((jobId: string, doc: DocType) => {
     const job = jobs.find((j) => j.id === jobId);
     if (!job || job.documents[doc]) return;
+    if (isReportSyncedDocLocked(job, doc)) {
+      toast.error("Ten dokument jest powiązany z raportem — nie można go cofnąć");
+      return;
+    }
     updateJob(
       appendJobActivity(
         { ...job, documents: { ...job.documents, [doc]: true } },
@@ -286,7 +329,12 @@ export function InspectorPanel({
         displayName,
       ),
     );
-    setMsg(`Oznaczono: ${DOC_LABELS[doc]}`);
+    const label = DOC_LABELS[doc];
+    if (doc === "zlecenie" || doc === "kosztorys") {
+      toast.success(`Zapisano · ${label} — firma widzi w Robotach`);
+    } else {
+      toast.success(`Zapisano · ${label}`);
+    }
   }, [jobs, updateJob, displayName]);
 
   const jobInspectorHistory = useCallback((job: InspectorJob, limit = 5): JobActivity[] => {
@@ -328,6 +376,8 @@ export function InspectorPanel({
         } catch { setDirectory([]); }
       }
       setLastSyncedAt(new Date());
+      setPushFailed(false);
+      if (pushPendingRef.current <= 0) setSyncPending(false);
       const [cloudAdminUsers] = await fetchKeysFromCloud([ADMIN_USERS_CONFIG_KEY]);
       const mergedAdminUsers = mergeAdminUsersConfig(loadAdminUsersConfig(), cloudAdminUsers);
       try { localStorage.setItem(ADMIN_USERS_CONFIG_KEY, JSON.stringify(mergedAdminUsers)); } catch { /* ignore */ }
@@ -499,7 +549,8 @@ export function InspectorPanel({
           <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-7 w-auto shrink-0"/>
           <div className="min-w-0">
             <p className="text-sm font-semibold truncate">{displayName}</p>
-            <p className="text-[10px] text-muted-foreground truncate">Inspektor · Wrocławskie Mieszkania</p>
+            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate">Inspektor WM · W&G DOM</p>
+            <SyncStatusBadge syncing={syncing} syncPending={syncPending} pushFailed={pushFailed} lastSyncedAt={lastSyncedAt}/>
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
@@ -575,6 +626,7 @@ export function InspectorPanel({
               ) : (
                 <InspectorDashboard
                   jobs={jobs}
+                  displayName={displayName}
                   adminNotesPending={adminNotesPending}
                   onOpenJob={openJob}
                   onMarkDoc={markDocFromDashboard}
@@ -1065,6 +1117,51 @@ export function InspectorPanel({
           <img src={lightbox.url} alt={lightbox.label} className="max-w-full max-h-[85dvh] object-contain rounded-lg" onClick={(e) => e.stopPropagation()}/>
         </div>
       )}
+
+      <Toaster position="top-center" richColors closeButton duration={4000}/>
     </div>
+  );
+}
+
+function SyncStatusBadge({
+  syncing,
+  syncPending,
+  pushFailed,
+  lastSyncedAt,
+}: {
+  syncing: boolean;
+  syncPending: boolean;
+  pushFailed: boolean;
+  lastSyncedAt: Date | null;
+}) {
+  if (syncing) {
+    return (
+      <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+        <RefreshCw size={10} className="animate-spin shrink-0"/>
+        Odświeżam z chmury…
+      </p>
+    );
+  }
+  if (pushFailed) {
+    return (
+      <p className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5" title="Zmiany zapisane lokalnie — wyśle się po odzyskaniu sieci">
+        <CloudOff size={10} className="shrink-0"/>
+        Czeka na wysłanie
+      </p>
+    );
+  }
+  if (syncPending) {
+    return (
+      <p className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5">
+        <Cloud size={10} className="shrink-0"/>
+        Zapisywanie…
+      </p>
+    );
+  }
+  return (
+    <p className="text-[10px] text-green-600 dark:text-green-400 flex items-center gap-1 mt-0.5" title={lastSyncedAt ? `Ostatnio: ${lastSyncedAt.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}` : undefined}>
+      <Cloud size={10} className="shrink-0"/>
+      Zsynchronizowano
+    </p>
   );
 }

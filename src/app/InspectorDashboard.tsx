@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   LayoutDashboard, FileText, MessageSquare, ChevronRight,
-  AlertTriangle, CheckCircle2, Calendar, FileWarning,
+  AlertTriangle, CheckCircle2, Calendar, FileWarning, BarChart3, FileDown, Cloud,
 } from "lucide-react";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import type { InspectorJobSection } from "@/app/InspectorNavigation";
@@ -12,9 +12,13 @@ import {
   computeInspectorDashboardStats,
   planStatusBadge,
   type InspectorDashboardJob,
+  type DashboardFilter,
   type QuickMarkDoc,
 } from "@/lib/inspector-dashboard";
+import { DOC_LABELS } from "@/lib/job-documents";
 import { inferHandoverStage, plannedHandoverStatus } from "@/lib/job-wm";
+import { inspectorGreeting, statsForWeek, MONTH_NAMES_PL } from "@/lib/inspector-activity-stats";
+import { downloadInspectorMonthReportPdf, downloadInspectorYearReportPdf } from "@/lib/inspector-report-pdf";
 
 function fmtDate(iso: string): string {
   if (!iso) return "—";
@@ -22,21 +26,36 @@ function fmtDate(iso: string): string {
   return `${d}.${m}.${y}`;
 }
 
+const FILTER_OPTIONS: { id: DashboardFilter; label: string }[] = [
+  { id: "all", label: "Wszystko" },
+  { id: "admin", label: "Admin" },
+  { id: "pliki", label: "Pliki" },
+  { id: "dokumenty", label: "Dokumenty" },
+  { id: "terminy", label: "Terminy" },
+];
+
 export function InspectorDashboard({
   jobs,
+  displayName,
   adminNotesPending,
   onOpenJob,
   onMarkDoc,
 }: {
   jobs: InspectorDashboardJob[];
+  displayName: string;
   adminNotesPending: InspectorDashboardJob[];
   onOpenJob: (jobId: string, section?: InspectorJobSection) => void;
   onMarkDoc: (jobId: string, doc: QuickMarkDoc) => void;
 }) {
+  const [filter, setFilter] = useState<DashboardFilter>("all");
+  const [pdfBusy, setPdfBusy] = useState<"month" | "year" | null>(null);
+
   const stats = useMemo(
     () => computeInspectorDashboardStats(jobs, adminNotesPending.length),
     [jobs, adminNotesPending.length],
   );
+
+  const weekStats = useMemo(() => statsForWeek(jobs, displayName), [jobs, displayName]);
 
   const fileAlerts = useMemo(() => buildFileDeliveryAlerts(jobs), [jobs]);
   const docAlerts = useMemo(() => buildMissingDocAlerts(jobs), [jobs]);
@@ -50,6 +69,16 @@ export function InspectorDashboard({
     [jobs],
   );
 
+  const urgentCount = useMemo(() => {
+    const ids = new Set<string>();
+    adminNotesPending.forEach((j) => ids.add(j.id));
+    fileAlerts.forEach((a) => ids.add(a.job.id));
+    docAlerts.forEach((a) => ids.add(a.job.id));
+    readyNoDate.forEach((a) => ids.add(a.job.id));
+    overdueJobs.forEach((j) => ids.add(j.id));
+    return ids.size;
+  }, [adminNotesPending, fileAlerts, docAlerts, readyNoDate, overdueJobs]);
+
   const allClear =
     adminNotesPending.length === 0
     && fileAlerts.length === 0
@@ -57,18 +86,59 @@ export function InspectorDashboard({
     && readyNoDate.length === 0
     && overdueJobs.length === 0;
 
+  const showAdmin = filter === "all" || filter === "admin";
+  const showFiles = filter === "all" || filter === "pliki";
+  const showDocs = filter === "all" || filter === "dokumenty";
+  const showTerminy = filter === "all" || filter === "terminy";
+
+  const now = new Date();
+  const reportMonth = now.getMonth();
+  const reportYear = now.getFullYear();
+
+  const handleMonthPdf = async () => {
+    setPdfBusy("month");
+    try {
+      await downloadInspectorMonthReportPdf(jobs, displayName, reportYear, reportMonth);
+    } finally {
+      setPdfBusy(null);
+    }
+  };
+
+  const handleYearPdf = async () => {
+    setPdfBusy("year");
+    try {
+      await downloadInspectorYearReportPdf(jobs, displayName, reportYear);
+    } finally {
+      setPdfBusy(null);
+    }
+  };
+
   return (
     <div className="space-y-5">
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-          <LayoutDashboard size={20} className="text-primary"/>
-        </div>
-        <div>
-          <h2 className="text-base font-semibold">Pulpit</h2>
-          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-            Pilne sprawy posortowane wg terminu odbioru. Zlecenie/kosztorys — oznacz „Jest” jednym tapnięciem (plik opcjonalny).
-          </p>
-        </div>
+      <div className="space-y-2">
+        <h2 className="text-lg font-semibold">{inspectorGreeting(displayName)}</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {allClear
+            ? "Wszystko na bieżąco — brak pilnych spraw na pulpicie."
+            : urgentCount === 1
+              ? "Masz 1 pilną sprawę — poniżej posortowane wg terminu odbioru."
+              : `Masz ${urgentCount} pilne sprawy — poniżej posortowane wg terminu odbioru.`}
+        </p>
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+        {FILTER_OPTIONS.map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => setFilter(opt.id)}
+            className={`shrink-0 px-3 py-2 min-h-[36px] rounded-full text-xs font-medium transition-colors touch-manipulation ${
+              filter === opt.id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -80,14 +150,62 @@ export function InspectorDashboard({
         <StatTile label="Odpowiedzi admina" value={adminNotesPending.length} accent={adminNotesPending.length > 0 ? "violet" : "ok"}/>
       </div>
 
-      {allClear && (
+      <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-3">
+        <div className="flex items-start gap-2">
+          <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+            <BarChart3 size={18} className="text-emerald-600 dark:text-emerald-400"/>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">Twoja robota w tym tygodniu</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Od poniedziałku · wg dziennika aktywności</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          <MiniStat label="Roboty" value={weekStats.jobsTouched}/>
+          <MiniStat label="Dokumenty" value={weekStats.documentsMarked}/>
+          <MiniStat label="Pliki" value={weekStats.filesUploaded}/>
+          <MiniStat label="Zdjęcia" value={weekStats.photosUploaded}/>
+          <MiniStat label="Notatki" value={weekStats.notesSent}/>
+          <MiniStat label="Etapy" value={weekStats.stageUpdates}/>
+        </div>
+      </div>
+
+      <div className="bg-secondary/40 border border-border rounded-xl p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <FileDown size={16} className="text-primary shrink-0"/>
+          <p className="text-sm font-semibold">Raport PDF</p>
+        </div>
+        <p className="text-[11px] text-muted-foreground">Podsumowanie Twojej aktywności — do archiwum lub rozliczeń.</p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={pdfBusy !== null}
+            onClick={handleMonthPdf}
+            className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] rounded-lg bg-primary text-primary-foreground text-xs font-medium touch-manipulation disabled:opacity-50"
+          >
+            <FileText size={14}/>
+            {pdfBusy === "month" ? "Generuję…" : `Mój miesiąc (${MONTH_NAMES_PL[reportMonth]})`}
+          </button>
+          <button
+            type="button"
+            disabled={pdfBusy !== null}
+            onClick={handleYearPdf}
+            className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] rounded-lg bg-secondary text-foreground text-xs font-medium border border-border touch-manipulation disabled:opacity-50"
+          >
+            <Cloud size={14}/>
+            {pdfBusy === "year" ? "Generuję…" : `Mój rok (${reportYear})`}
+          </button>
+        </div>
+      </div>
+
+      {allClear && filter === "all" && (
         <div className="flex items-start gap-2 bg-green-500/10 border border-green-500/25 rounded-xl px-4 py-3 text-sm text-green-700 dark:text-green-300">
           <CheckCircle2 size={16} className="shrink-0 mt-0.5"/>
           <p>Wszystko na bieżąco — brak pilnych spraw na pulpicie.</p>
         </div>
       )}
 
-      {adminNotesPending.length > 0 && (
+      {showAdmin && adminNotesPending.length > 0 && (
         <AlertSection title={`Odpowiedź od admina (${adminNotesPending.length})`} icon={MessageSquare} accent="violet" hint="Admin odpisał — sprawdź notatki w sekcji Odbiór WM.">
           {adminNotesPending.map((job) => (
             <JobRow key={job.id} job={job} badges={[{ text: "Nowa odpowiedź", tone: "violet" }]} onOpen={() => onOpenJob(job.id, "wm")}/>
@@ -95,7 +213,7 @@ export function InspectorDashboard({
         </AlertSection>
       )}
 
-      {fileAlerts.length > 0 && (
+      {showFiles && fileAlerts.length > 0 && (
         <AlertSection
           title={`Zlecenie / kosztorys (${fileAlerts.length} ${fileAlerts.length === 1 ? "robota" : "robot"})`}
           icon={FileText}
@@ -130,7 +248,7 @@ export function InspectorDashboard({
         </AlertSection>
       )}
 
-      {overdueJobs.length > 0 && (
+      {showTerminy && overdueJobs.length > 0 && (
         <AlertSection title={`Termin odbioru minął (${overdueJobs.length})`} icon={Calendar} accent="amber" hint="Zaktualizuj datę odbioru lub etap WM — kliknij robotę.">
           {overdueJobs.map((job) => {
             const planBadge = planStatusBadge("overdue", job.plannedHandoverDate);
@@ -146,26 +264,61 @@ export function InspectorDashboard({
         </AlertSection>
       )}
 
-      {docAlerts.length > 0 && (
-        <AlertSection title={`Brakujące dokumenty (${docAlerts.length})`} icon={FileWarning} accent="red" hint="Kominiarz, pomiary, oświadczenia… — zaznacz „Jest” w checklistcie dokumentów.">
+      {showDocs && docAlerts.length > 0 && (
+        <AlertSection title={`Brakujące dokumenty (${docAlerts.length})`} icon={FileWarning} accent="red" hint="Kominiarz, pomiary, oświadczenia… — oznacz „Jest” jednym tapnięciem.">
           {docAlerts.map((alert) => (
             <JobRow
               key={alert.job.id}
               job={alert.job}
               subtitle={`Brakuje: ${alert.missingLabels.slice(0, 4).join(", ")}${alert.missingLabels.length > 4 ? "…" : ""}`}
               onOpen={() => onOpenJob(alert.job.id, "docs")}
+              actions={
+                <>
+                  {alert.missingDocs.slice(0, 3).map((doc) => (
+                    <QuickBtn
+                      key={doc}
+                      label={`${shortDocLabel(doc)} ✓`}
+                      onClick={() => onMarkDoc(alert.job.id, doc)}
+                    />
+                  ))}
+                </>
+              }
             />
           ))}
         </AlertSection>
       )}
 
-      {readyNoDate.length > 0 && (
+      {showTerminy && readyNoDate.length > 0 && (
         <AlertSection title={`Gotowe do odbioru — brak daty (${readyNoDate.length})`} icon={Calendar} accent="amber" hint="Ustaw planowaną datę odbioru WM w sekcji Odbiór WM.">
           {readyNoDate.map((alert) => (
             <JobRow key={alert.job.id} job={alert.job} badges={[{ text: "Ustaw datę odbioru", tone: "amber" }]} onOpen={() => onOpenJob(alert.job.id, "wm")}/>
           ))}
         </AlertSection>
       )}
+
+      {!allClear && filter !== "all" && (
+        (filter === "admin" && adminNotesPending.length === 0)
+        || (filter === "pliki" && fileAlerts.length === 0)
+        || (filter === "dokumenty" && docAlerts.length === 0)
+        || (filter === "terminy" && overdueJobs.length === 0 && readyNoDate.length === 0)
+      ) && (
+        <p className="text-xs text-muted-foreground text-center py-6">Brak spraw w tym filtrze.</p>
+      )}
+    </div>
+  );
+}
+
+function shortDocLabel(doc: QuickMarkDoc): string {
+  const full = DOC_LABELS[doc];
+  if (full.length <= 14) return full;
+  return full.split(" ")[0] || full.slice(0, 12);
+}
+
+function MiniStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="bg-background/60 rounded-lg px-2 py-2 border border-border/60 text-center">
+      <p className="text-[9px] uppercase tracking-wider text-muted-foreground truncate">{label}</p>
+      <p className="text-base font-semibold mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{value}</p>
     </div>
   );
 }
@@ -208,7 +361,8 @@ function QuickBtn({ label, onClick }: { label: string; onClick: () => void }) {
     <button
       type="button"
       onClick={(e) => { e.stopPropagation(); onClick(); }}
-      className="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90 touch-manipulation shrink-0"
+      className="text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90 touch-manipulation shrink-0 max-w-[120px] truncate"
+      title={label}
     >
       {label}
     </button>
@@ -250,8 +404,8 @@ function JobRow({
           ))}
         </div>
       </button>
-      <div className="flex flex-col items-end gap-2 shrink-0 pt-0.5">
-        {actions}
+      <div className="flex flex-col items-end gap-2 shrink-0 pt-0.5 max-w-[40%]">
+        <div className="flex flex-wrap justify-end gap-1">{actions}</div>
         <button type="button" onClick={onOpen} className="p-1 text-muted-foreground hover:text-foreground" aria-label="Otwórz">
           <ChevronRight size={16}/>
         </button>

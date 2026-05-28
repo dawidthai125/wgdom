@@ -8604,6 +8604,16 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.25.0", label:"Inspektor — pulpit v2 (UX + raporty PDF)",
+    items:[
+      {type:"new", text:"Pulpit — powitanie z podsumowaniem pilnych spraw, filtry (admin / pliki / dokumenty / terminy)"},
+      {type:"new", text:"Kafelek „Twoja robota w tym tygodniu” — statystyki z dziennika aktywności inspektora"},
+      {type:"new", text:"Raport PDF — „Mój miesiąc” i „Mój rok” (roboty, dokumenty, zdjęcia, notatki, etapy WM)"},
+      {type:"improve", text:"Status synchronizacji w nagłówku (zielony / pomarańczowy); toasty po szybkim „Jest”; szybkie oznaczanie pozostałych dokumentów na Pulpicie"},
+      {type:"improve", text:"Powiadomienie toast przy nowej odpowiedzi admina; nagłówek „Inspektor WM · W&G DOM”"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.24.0", label:"Inspektor — pulpit pro + galeria ZIP",
     items:[
       {type:"new", text:"Pulpit — priorytety (termin odbioru), jedna robota na liście zlec/kosz, braki dokumentów, gotowe bez daty, szybkie „Zlecenie ✓” / „Kosztorys ✓”"},
