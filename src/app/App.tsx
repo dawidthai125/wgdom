@@ -5854,6 +5854,8 @@ function JobsView({
   const [detailSection, setDetailSection] = useState<JobDetailSection>("summary");
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
   const [uploadMsg, setUploadMsg] = useState("");
+  const [photoUploadBusy, setPhotoUploadBusy] = useState(false);
+  const [photoUploadLabel, setPhotoUploadLabel] = useState<PhotoEntry["label"]>("progress");
   const jobNotesRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -5953,6 +5955,23 @@ function JobsView({
     }
 
     setJobs((prev) => prev.map((j) => (j.id === next.id ? next : j)));
+  };
+
+  const appendJobPhotos = (entries: PhotoEntry[], activityText: string) => {
+    if (!selectedJobId || entries.length === 0) return;
+    setJobs((prev) =>
+      prev.map((j) => {
+        if (j.id !== selectedJobId) return j;
+        let next = syncJobDocuments({
+          ...j,
+          photos: [...(j.photos || []), ...entries],
+        });
+        next = appendJobActivity(next, "photo_upload", activityText);
+        if (next.jobPhase) next = applyJobPhase(next, next.jobPhase);
+        else if (isWmClient(next.client)) next = normalizeJobWmFields(next);
+        return next;
+      }),
+    );
   };
 
   const setJobPhase = (job: Job, phase: JobPhase) => {
@@ -7192,39 +7211,83 @@ function JobsView({
 
             {detailSection === "photos" && (
             <div className="bg-card rounded-xl border border-border overflow-hidden">
-              <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Camera size={13} className="text-muted-foreground"/>
-                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Zdjęcia</span>
-                  {selectedPendingPhotoCount > 0 && (
-                    <span className="bg-yellow-500/20 text-yellow-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      {selectedPendingPhotoCount} nowych
-                    </span>
-                  )}
-                </div>
-                <HiddenFileInput multiple onPick={async (files) => {
-                  if (!files?.length) return;
-                  for (const file of Array.from(files)) {
-                    const wm = await prepareWatermarkedPhoto(selectedJob, file);
-                    const { entry } = await uploadPhoto(selectedJob.id, wm, "progress", "admin");
-                    if (entry) {
-                      updateJob({
-                        ...selectedJob,
-                        photos:[...(selectedJob.photos||[]), {...entry, status:"approved"}],
-                      }, { type: "photo_upload", text: `Admin dodał zdjęcie (${entry.label})` });
+              <div className="px-5 py-4 border-b border-border space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Camera size={13} className="text-muted-foreground"/>
+                    <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Zdjęcia</span>
+                    {selectedPendingPhotoCount > 0 && (
+                      <span className="bg-yellow-500/20 text-yellow-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        {selectedPendingPhotoCount} nowych
+                      </span>
+                    )}
+                  </div>
+                  <HiddenFileInput multiple onPick={async (files) => {
+                    if (!files?.length || !selectedJob || photoUploadBusy) return;
+                    const fileList = Array.from(files);
+                    const label = photoUploadLabel;
+                    setPhotoUploadBusy(true);
+                    const newPhotos: PhotoEntry[] = [];
+                    try {
+                      for (const file of fileList) {
+                        const wm = await prepareWatermarkedPhoto(selectedJob, file);
+                        const { entry, error } = await uploadPhoto(selectedJob.id, wm, label, "admin");
+                        if (entry) {
+                          newPhotos.push({ ...entry, status: "approved" });
+                        } else if (error) {
+                          window.alert(error);
+                          break;
+                        }
+                      }
+                      if (newPhotos.length > 0) {
+                        const cat = PHOTO_LABEL_NAMES[label];
+                        appendJobPhotos(
+                          newPhotos,
+                          newPhotos.length === 1
+                            ? `Admin dodał zdjęcie (${cat})`
+                            : `Admin dodał ${newPhotos.length} zdjęć (${cat})`,
+                        );
+                      }
+                    } finally {
+                      setPhotoUploadBusy(false);
                     }
-                  }
-                }}>
-                  {(open) => (
-                    <button
-                      type="button"
-                      onClick={open}
-                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 rounded-lg hover:bg-secondary transition-colors"
-                    >
-                      <ImagePlus size={13}/>Dodaj
-                    </button>
-                  )}
-                </HiddenFileInput>
+                  }}>
+                    {(open) => (
+                      <button
+                        type="button"
+                        onClick={open}
+                        disabled={photoUploadBusy}
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 rounded-lg hover:bg-secondary transition-colors disabled:opacity-50 shrink-0"
+                      >
+                        <ImagePlus size={13}/>{photoUploadBusy ? "Wgrywanie…" : "Dodaj zdjęcia"}
+                      </button>
+                    )}
+                  </HiddenFileInput>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] text-muted-foreground shrink-0">Kategoria:</span>
+                  {PHOTO_LABEL_ORDER.map((label) => {
+                    const meta = PHOTO_LABEL_SECTION[label];
+                    const Icon = meta.icon;
+                    const active = photoUploadLabel === label;
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setPhotoUploadLabel(label)}
+                        disabled={photoUploadBusy}
+                        className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors disabled:opacity-50 ${
+                          active
+                            ? `${meta.accent} bg-secondary border-current`
+                            : "border-border text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                        }`}
+                      >
+                        <Icon size={12}/>
+                        {PHOTO_LABEL_NAMES[label]}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div className="p-4">
                 <PhotoGallery
@@ -9026,6 +9089,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.32.4", label:"Roboty — zdjęcia admina (wiele + kategoria)",
+    items:[
+      {type:"fix", text:"Admin w zakładce Zdjęcia — wybór wielu plików naraz zapisuje wszystkie (wcześniej zostawało tylko ostatnie)"},
+      {type:"new", text:"Admin — wybór kategorii przed wgraniem: Przed remontem / Po remoncie / W trakcie"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.32.3", label:"Spójność godzin — ignoruj nadmiar z dodatkowych",
     items:[
