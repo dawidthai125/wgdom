@@ -1,21 +1,17 @@
 /* Mobile / tablet — iOS Safari, Android Chrome, PWA */
 
-/* Admin shell — małe laptopy, skalowanie Windows 125–150%, niska wysokość okna */
+/* Admin shell — małe laptopy, skalowanie Windows, Chrome (visualViewport) */
 @media (min-width: 768px) {
   .admin-app-shell {
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100vh;
-    max-height: 100dvh;
+    height: var(--app-height, 100svh);
+    max-height: var(--app-height, 100svh);
+    min-height: var(--app-height, 100svh);
   }
 
-  .admin-topbar-nav {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .admin-topbar-nav::-webkit-scrollbar {
-    display: none;
+  .admin-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
   }
 }
 

@@ -9105,6 +9105,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.35.11", label:"Admin — górny pasek zawsze widoczny",
+    items:[
+      {type:"fix", text:"Panel admina — górny pasek (odtwarzacz, chmura…) nie chowa się pod paskiem zakładek Chrome; wysokość okna z visualViewport"},
+      {type:"improve", text:"Zwinięte menu w górnym pasku — pełne nazwy, bez poziomego scrolla"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.35.10", label:"Admin — układ na każdym ekranie",
     items:[
       {type:"fix", text:"Panel admina — menu i górny pasek nie ucinają się na mniejszych laptopach i przy skalowaniu Windows (125–150%)"},
@@ -11943,10 +11950,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           </button>
           {/* Mobile: logo */}
           <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-6 w-auto object-contain md:hidden shrink-0"/>
-          {/* Desktop: collapsed nav — ikony + scroll poziomy (bez zawijania w drugą linię) */}
-          {!sidebarOpen&&<div className="admin-topbar-nav hidden md:flex flex-1 min-w-0 overflow-x-auto overscroll-x-contain gap-0.5">
+          {/* Desktop: collapsed nav */}
+          {!sidebarOpen&&<div className="hidden md:flex gap-1 flex-wrap">
             {navItems.map(({key,label,icon:Icon})=>(
-              <button key={key} onClick={()=>goToView(key)} title={label} className={`flex items-center gap-1.5 text-xs px-2.5 lg:px-3 py-1.5 rounded-lg font-medium transition-colors shrink-0 whitespace-nowrap ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:bg-secondary"}`}><Icon size={12}/><span className="hidden lg:inline">{label}</span></button>
+              <button key={key} onClick={()=>goToView(key)} className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:bg-secondary"}`}><Icon size={12}/>{label}</button>
             ))}
           </div>}
           <ChevronRight size={13} className="text-muted-foreground/40 hidden sm:block shrink-0"/>
