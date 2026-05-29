@@ -1,5 +1,5 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { X, Loader2, AlertTriangle, FileText } from "lucide-react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { X, Loader2, AlertTriangle, FileText, FileDown, Eye } from "lucide-react";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import {
   fetchAndParseKosztorys,
@@ -7,6 +7,7 @@ import {
   isKosztorysPreviewExt,
   type AthPreviewResult,
 } from "@/lib/ath-parser";
+import { downloadKosztorysPdf, previewKosztorysPdf } from "@/lib/ath-kosztorys-pdf";
 import { resolveJobFileStoragePath } from "@/lib/job-documents";
 
 export function JobFilePreviewModal({
@@ -27,16 +28,56 @@ export function JobFilePreviewModal({
 
   const [loading, setLoading] = useState(false);
   const [parseResult, setParseResult] = useState<AthPreviewResult | null>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"table" | "pdf">("table");
 
   useEffect(() => {
     if (isPdf || isPhoto) return;
     if (!isKosztorysPreviewExt(filename)) return;
     setLoading(true);
     setParseResult(null);
+    setPdfPreviewUrl(null);
+    setViewMode("table");
     fetchAndParseKosztorys(url, filename, storagePath, item.kind === "jobFile" ? item.file : undefined)
       .then(setParseResult)
       .finally(() => setLoading(false));
   }, [url, filename, storagePath, isPdf, isPhoto, item]);
+
+  useEffect(() => () => {
+    if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+  }, [pdfPreviewUrl]);
+
+  const canExportPdf = parseResult?.ok && parseResult.rows.length > 0;
+
+  const handlePdfPreview = useCallback(async () => {
+    if (!parseResult) return;
+    setPdfBusy(true);
+    try {
+      if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+      const blobUrl = await previewKosztorysPdf(parseResult, filename);
+      setPdfPreviewUrl(blobUrl);
+      setViewMode("pdf");
+    } catch {
+      window.alert("Nie udało się wygenerować PDF. Spróbuj ponownie.");
+    } finally {
+      setPdfBusy(false);
+    }
+  }, [parseResult, filename, pdfPreviewUrl]);
+
+  const handlePdfDownload = useCallback(async () => {
+    if (!parseResult) return;
+    setPdfBusy(true);
+    try {
+      await downloadKosztorysPdf(parseResult, filename);
+    } catch {
+      window.alert("Nie udało się pobrać PDF.");
+    } finally {
+      setPdfBusy(false);
+    }
+  }, [parseResult, filename]);
+
+  const przedmiarRows = parseResult?.rows.filter((r) => r.przedmiar && r.przedmiar.length > 0) ?? [];
 
   return (
     <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/70" onClick={onClose}>
@@ -44,18 +85,29 @@ export function JobFilePreviewModal({
         className="bg-card rounded-t-2xl md:rounded-2xl border border-border w-full max-w-4xl max-h-[92dvh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-3 border-b border-border shrink-0">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border shrink-0 gap-2">
           <div className="min-w-0">
             <p className="text-sm font-semibold truncate">Podgląd — {filename}</p>
             {isKosztorys && !isPdf && (
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Kosztorys ATH/NOR — odczyt sekcji pozycji. Pełny widok: NORMA lub PDF.
+                  Kosztorys ATH — pozycje, przedmiar, podsumowanie. PDF generowany lokalnie z pliku .ath.
                 </p>
             )}
           </div>
-          <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground">
-            <X size={16}/>
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            {canExportPdf && viewMode === "pdf" && (
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-secondary hover:bg-secondary/80"
+              >
+                Tabela
+              </button>
+            )}
+            <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground">
+              <X size={16}/>
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 min-h-0 overflow-auto p-4">
@@ -86,7 +138,15 @@ export function JobFilePreviewModal({
                 </p>
               )}
 
-              {!loading && parseResult && (
+              {!loading && parseResult && viewMode === "pdf" && pdfPreviewUrl && (
+                <iframe
+                  title="Podgląd PDF kosztorysu"
+                  src={pdfPreviewUrl}
+                  className="w-full h-[70dvh] rounded-lg border border-border bg-white"
+                />
+              )}
+
+              {!loading && parseResult && viewMode === "table" && (
                 <div className="space-y-4">
                   <div className="space-y-1">
                     {parseResult.documentType && (
@@ -203,13 +263,65 @@ export function JobFilePreviewModal({
                       Nie udało się odczytać struktury kosztorysu. Pobierz plik i otwórz w NORMA, lub poproś o PDF.
                     </p>
                   )}
+
+                  {przedmiarRows.length > 0 && (
+                    <div className="overflow-x-auto rounded-xl border border-border">
+                      <div className="px-3 py-2 bg-secondary/50 border-b border-border">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Przedmiar / obmiar</p>
+                      </div>
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-secondary/30 text-left">
+                            <th className="px-2 py-2 font-medium">Lp</th>
+                            <th className="px-2 py-2 font-medium min-w-[180px]">Opis pozycji</th>
+                            <th className="px-2 py-2 font-medium text-right">Ilość</th>
+                            <th className="px-2 py-2 font-medium min-w-[140px]">Obmiar / wzór</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {przedmiarRows.flatMap((row) =>
+                            row.przedmiar!.map((pm, i) => (
+                              <tr key={`${row.lp}-pm-${i}`} className="border-t border-border hover:bg-secondary/30">
+                                <td className="px-2 py-1.5">{i === 0 ? row.lp : ""}</td>
+                                <td className="px-2 py-1.5">{i === 0 ? row.description : ""}</td>
+                                <td className="px-2 py-1.5 text-right font-mono">{pm.quantity}</td>
+                                <td className="px-2 py-1.5 text-muted-foreground font-mono text-[10px]">{pm.formula || "—"}</td>
+                              </tr>
+                            )),
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               )}
             </>
           )}
         </div>
 
-        <div className="px-5 py-3 border-t border-border shrink-0 flex justify-end gap-2">
+        <div className="px-5 py-3 border-t border-border shrink-0 flex flex-wrap justify-end gap-2">
+          {canExportPdf && (
+            <>
+              <button
+                type="button"
+                disabled={pdfBusy}
+                onClick={() => void handlePdfPreview()}
+                className="px-4 py-2 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80 disabled:opacity-50 inline-flex items-center gap-1.5"
+              >
+                {pdfBusy ? <Loader2 size={14} className="animate-spin"/> : <Eye size={14}/>}
+                Podgląd PDF
+              </button>
+              <button
+                type="button"
+                disabled={pdfBusy}
+                onClick={() => void handlePdfDownload()}
+                className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-1.5"
+              >
+                {pdfBusy ? <Loader2 size={14} className="animate-spin"/> : <FileDown size={14}/>}
+                Pobierz PDF
+              </button>
+            </>
+          )}
           <a
             href={url}
             download={filename}

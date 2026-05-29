@@ -3,6 +3,13 @@
 import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
 import { resolveJobFileStoragePath, type JobFileAttachment } from "@/lib/job-documents";
 
+export interface AthPreviewPrzedmiarLine {
+  /** Wynikowa ilość (pierwsza kolumna wo=). */
+  quantity: string;
+  /** Opis / wzór obmiaru (np. 2,47*4+4,83*2). */
+  formula?: string;
+}
+
 export interface AthPreviewRow {
   lp: string;
   code: string;
@@ -13,6 +20,8 @@ export interface AthPreviewRow {
   total: string;
   category?: string;
   categoryLp?: string;
+  /** Wiersze przedmiaru / obmiaru powiązane z pozycją (sekcja [PRZEDMIAR]). */
+  przedmiar?: AthPreviewPrzedmiarLine[];
 }
 
 export interface AthPreviewCategory {
@@ -215,6 +224,45 @@ function firstNumericToken(s: string): string {
   return m ? m[0].replace(",", ".") : "";
 }
 
+/** Rozkłada netto pozycji na KB + Kp + Zysk wg kaskady narzutów (gdy brak kwot w pliku). */
+function deriveNarzutAmountsFromNetto(
+  netto: number,
+  kpPct: number,
+  zPct: number,
+): { direct: number; kp: number; zysk: number } {
+  if (netto <= 0 || (kpPct <= 0 && zPct <= 0)) {
+    return { direct: netto, kp: 0, zysk: 0 };
+  }
+  const kp = kpPct / 100;
+  const z = zPct / 100;
+  const direct = netto / (1 + kp + (1 + kp) * z);
+  const kpAmt = direct * kp;
+  const zAmt = (direct + kpAmt) * z;
+  return {
+    direct: +direct.toFixed(2),
+    kp: +kpAmt.toFixed(2),
+    zysk: +zAmt.toFixed(2),
+  };
+}
+
+function parsePrzedmiarSection(body: string): AthPreviewPrzedmiarLine | null {
+  const wo = parseIniField(body, "wo");
+  if (!wo) return null;
+  const parts = wo.split("\t").map((p) => cleanAthText(p)).filter((p) => p.length > 0);
+  if (parts.length === 0) return null;
+  const quantity = parts[0].replace(",", ".");
+  const formula = parts.slice(2).join(" ").trim() || parts[1]?.replace(/^1$/, "") || undefined;
+  return { quantity, formula: formula || undefined };
+}
+
+function narzutKey(name: string, code: string): string {
+  const n = name.toLowerCase();
+  if (code === "Kp" || n.includes("pośredn") || n.includes("posredn")) return "kp";
+  if (code === "Z" || n === "zysk") return "zysk";
+  if (code === "V" || n.includes("vat")) return "vat";
+  return n;
+}
+
 function extractKnrCode(pd: string): string {
   const knrMatch = pd.match(/KNR[\t\s]+([\d-]+)[\t\s]+([\d-]+(?:-\d+)?)/i);
   if (knrMatch) return `KNR ${knrMatch[1]} ${knrMatch[2]}`.trim();
@@ -310,6 +358,16 @@ function parseAthAthenasoftIni(text: string): AthPreviewResult {
       continue;
     }
 
+    if (sec.title === "PRZEDMIAR") {
+      const line = parsePrzedmiarSection(sec.body);
+      const last = rows[rows.length - 1];
+      if (line && last) {
+        if (!last.przedmiar) last.przedmiar = [];
+        last.przedmiar.push(line);
+      }
+      continue;
+    }
+
     if (sec.title !== "POZYCJA") continue;
 
     const description = cleanAthText(parseIniField(sec.body, "na") || "");
@@ -379,19 +437,59 @@ function parseAthAthenasoftIni(text: string): AthPreviewResult {
 
   if (narzuty.length > 0 || headerNarAmounts.size > 0) {
     summaryLines.push({ label: "Narzuty i podatki", value: "", bold: true });
+
+    const positionsNetSumPre = +rows.reduce((s, r) => {
+      const n = parseFloat(String(r.total).replace(/\s/g, "").replace(",", "."));
+      return s + (Number.isNaN(n) ? 0 : n);
+    }, 0).toFixed(2);
+
+    const kpNar = narzuty.find((n) => narzutKey(n.name, n.code) === "kp");
+    const zNar = narzuty.find((n) => narzutKey(n.name, n.code) === "zysk");
+    const kpPct = kpNar?.percent ? parseFloat(kpNar.percent) : NaN;
+    const zPct = zNar?.percent ? parseFloat(zNar.percent) : NaN;
+
+    let kpAmount = headerNarAmounts.get("koszty pośrednie")
+      || headerNarAmounts.get("kp");
+    let zAmount = headerNarAmounts.get("zysk") || headerNarAmounts.get("z");
+    let derivedNote = false;
+
+    if ((!kpAmount || !zAmount) && positionsNetSumPre > 0 && !Number.isNaN(kpPct) && !Number.isNaN(zPct)) {
+      const derived = deriveNarzutAmountsFromNetto(positionsNetSumPre, kpPct, zPct);
+      if (!kpAmount) kpAmount = formatPlnAmount(derived.kp);
+      if (!zAmount) zAmount = formatPlnAmount(derived.zysk);
+      derivedNote = !headerNarAmounts.get("koszty pośrednie") && !headerNarAmounts.get("zysk");
+    }
+
     for (const n of narzuty) {
-      const key = n.name.toLowerCase();
-      const amount = headerNarAmounts.get(key);
+      const key = narzutKey(n.name, n.code);
+      if (key === "vat") continue;
+      let amount: string | undefined;
+      if (key === "kp") amount = kpAmount;
+      else if (key === "zysk") amount = zAmount;
+      else amount = headerNarAmounts.get(n.name.toLowerCase());
+
+      const pctLabel = n.percent ? `${n.percent} %` : "";
       summaryLines.push({
         label: n.code ? `${n.name} (${n.code})` : n.name,
-        value: amount
-          ? `${formatPlnAmount(amount)} ${currency} (${n.percent} %)`
-          : n.percent ? `${n.percent} %` : "—",
+        value: amount && pctLabel
+          ? `${amount} ${currency} (${pctLabel})`
+          : amount
+            ? `${amount} ${currency}`
+            : pctLabel || "—",
         indent: 1,
       });
     }
+
+    if (derivedNote) {
+      summaryLines.push({
+        label: "Kwoty Kp/Z — wyliczone z netto i % narzutów (brak w pliku ATH)",
+        value: "",
+        indent: 2,
+      });
+    }
+
     for (const [label, amount] of headerNarAmounts) {
-      if (narzuty.some((n) => n.name.toLowerCase() === label)) continue;
+      if (label.includes("vat") || label.includes("pośredn") || label.includes("posredn") || label === "zysk" || label === "z") continue;
       summaryLines.push({
         label: label.charAt(0).toUpperCase() + label.slice(1),
         value: `${formatPlnAmount(amount)} ${currency}`,

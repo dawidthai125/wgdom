@@ -8975,6 +8975,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.31.0", label:"Kosztorys ATH — Kp/Z PLN, przedmiar, PDF",
+    items:[
+      {type:"new", text:"Podgląd PDF i Pobierz PDF — generowanie kosztorysu z pliku .ath (pdfmake, polskie znaki)"},
+      {type:"new", text:"Sekcja przedmiar/obmiar — odczyt [PRZEDMIAR] z wzorami (np. 2,47*4+4,83*2)"},
+      {type:"improve", text:"Podsumowanie — kwoty Kp i Zysk w PLN (z pliku lub wyliczone z netto i % narzutów)"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.30.9", label:"Podgląd ATH — ceny jak w NORMA ofertowy",
     items:[
       {type:"fix", text:"Cena jednostkowa i wartość pozycji z pola cj×ilość (jak wydruk NORMA), nie z wn (koszty pośrednie R/M)"},
