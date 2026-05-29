@@ -9114,6 +9114,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.35.25", label:"Przetargi — pełny słownik remontów wnętrz",
+    items:[
+      {type:"improve", text:"Słowa kluczowe: malowanie, podłogi, sufity, glazura, regips, tapety, parkiet, wymiana"},
+      {type:"improve", text:"Obiekty: hale, uniwerki, lokale usługowe, mieszkania, szpitale, szkoły, urzędy…"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.35.24", label:"Przetargi — instalacje elektryczne i wymiany",
     items:[
       {type:"improve", text:"Słowa kluczowe: instalacje elektryczne, oświetlenie, okablowanie, rozdzielnie, wymiana, teletechnika, CO, wod-kan"},

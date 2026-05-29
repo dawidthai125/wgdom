@@ -146,7 +146,7 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-              Wrocław — remonty budynków i instalacje (elektryczne, sanitarne, CO). Bez dróg i nowej zabudowy.
+              Wrocław — remonty i wykończenia (pomieszczenia, podłogi, sufity, malowanie). Hale, uniwerki, lokale, mieszkania.
             </p>
           </div>
           <button

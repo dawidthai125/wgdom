@@ -1935,38 +1935,50 @@ app.get("/make-server-0afb8820/sms-history", async (c) => {
 });
 
 const BZP_ACTION_KEYWORDS = [
-  "remont", "moderniz", "termomoderniz", "wykończ", "wykończen", "przebudow",
-  "renowac", "adaptacj", "rehabilit", "odśwież", "termo", "konserwac", "napraw", "odnow",
-  "wymian", "podłącz", "podlacz", "demonta",
+  "remont", "moderniz", "termomoderniz", "wykończ", "wykończen", "przebudow", "renowac", "adaptacj",
+  "rehabilit", "odśwież", "termo", "konserwac", "napraw", "odnow", "wymian", "podłącz", "podlacz",
+  "demonta", "monta", "układ", "ukladan", "malow", "tapet", "tapetow", "tynk", "gładź", "gladz",
+  "szpachl", "glazur", "płytek", "plytek", "fugow", "posadzk", "podłog", "podlog", "sufit", "parkiet",
+  "wykładzin", "wykladzin", "regips", "zabudow", "cyklin", "lakier", "olejow", "okładzin", "okladzin",
+  "sztukator", "impregnat", "natrysk", "szlif",
 ];
 const BZP_SCOPE_KEYWORDS = [
-  "mieszkan", "lokalu", "lokal ", "lokali", "lokale", "biur", "biurow", "biurowc",
-  "pomieszcze", "pomieszczen", "budynk", "klatk", "elewac", "dach", "toalet", "sanitar",
-  "łazienk", "lazienk", "kuchni", "wind", "dźwig", "dzwig", "piętr", "pietr",
-  "uniwersytet", "uczelni", "szpital", "szkoł", "przedszk", "kamienic", "bibliotek", "muzeum",
-  "urząd", "urzedu", "pensjonat", "hotel", "osiedl", "centrum handlow", "magazyn",
-  "sala ", "sal ", "korytarz", "garaż", "garaz", "piwnic", "strych",
-  "stolark", "okien", "okno", "drzwi", "posadzk", "sufit", "tynk", "malow",
-  "instalac", "elektrycz", "oświetl", "osietlen", "okablow", "rozdzieln", "tablic rozdziel",
-  "przewod", "gniazd", "gniazdk", "opraw oświet", "opraw osiet", "zasilani", "uziemien",
+  "pomieszcze", "pomieszczen", "wnętrz", "wnetrz", "lokal ", "lokalu", "lokali", "lokale", "mieszkan",
+  "apartament", "segment", "pustostan", "korytarz", "hol ", "holu", "przedpok", "garderob", "spiżarn",
+  "spizarn", "sala ", "sal ", "aula", "auli", "ścian", "scian", "sufit", "posadzk", "podłog", "podlog",
+  "tynk", "malow", "tapeta", "glazura", "płytk", "plytk", "okładzin", "okladzin", "parapet", "cokół",
+  "cokol", "balustrad", "barierk", "poręcz", "porecz", "klatk", "schodisk", "schod", "piętr", "pietr",
+  "parter", "piwnic", "strych", "toalet", "sanitar", "łazienk", "lazienk", "kuchni", "garaż", "garaz",
+  "budynk", "biur", "biurow", "biurowc", "administracyj", "hala ", "hali ", "hale ", "magazyn", "fabryk",
+  "hali produkcy", "warsztat", "pracowni", "laboratori", "uniwersytet", "uczelni", "collegium", "wydział",
+  "wydzial", "instytut", "akademi", "dydaktyczn", "akademik", "domu studenck", "dom studenck", "internat",
+  "szpital", "przychodni", "gabinet", "poradni", "klinik", "szkoł", "przedszk", "żłobek", "zlobek",
+  "bibliotek", "muzeum", "centrum kultury", "dom kultury", "dom kultur", "świetlic", "swietlic", "stołówk",
+  "stolowk", "jadalni", "basen", "hala sport", "obiekt sport", "siłowni", "silowni", "rekreacji", "hotel",
+  "hostel", "pensjonat", "nocleg", "urząd", "urzedu", "sąd", "sad ", "prokurat", "komendy", "remiz",
+  "straż poż", "straz poz", "poczta", "poczty", "kościoł", "kosciol", "kaplic", "filia", "oddział",
+  "oddzial", "dom opieki", "pieczy zastępc", "pieczy zastepc", "kamienic", "osiedl", "blok ", "wspólnot",
+  "wspolnot", "centrum handlow", "galeria handl", "sklep", "kiosk", "pawilon", "lokale usług",
+  "lokali uslug", "lokale handl", "lokali handl", "lokale użytk", "lokale uzytk", "usługow", "uslugow",
+  "handlow", "nieruchomo", "obiekt budowl", "elewac", "dach", "stolark", "okien", "okno", "drzwi", "wind",
+  "dźwig", "dzwig", "izolac", "instalac", "elektrycz", "oświetl", "osietlen", "okablow", "rozdzieln",
+  "tablic rozdziel", "przewod", "gniazd", "gniazdk", "opraw oświet", "opraw osiet", "zasilani", "uziemien",
   "niskoprąd", "niskopradow", "teletechnik", "domofon", "videofon", "sap ", "system alarm",
-  "pogotowie energet", "grzewcz", "wentylac", "klimatyzac", "wodno-kanal", "wodno kanal",
-  "wod-kan", "hydraulic", "sanitarn", "co ", "centralnego ogrzew",
-  "pustostan", "internat", "akademik",
-  "obiekt budowl", "nieruchomo", "fabryk", "hali produkcy", "administracyj",
-  "domu studenck", "dom studenck", "izolac", "monta",
+  "pogotowie energet", "grzewcz", "wentylac", "klimatyzac", "wodno-kanal", "wodno kanal", "wod-kan",
+  "hydraulic", "sanitarn", "co ", "centralnego ogrzew",
 ];
 const BZP_EXCLUDE_KEYWORDS = [
-  "drogi wojewódzk", "nawierzchni jezdni", "chodników drogow", "przebudowa drogi",
-  "remont drogi", "remont dróg", "remont nawierzchni", "rozbudowa skrzyżowania",
-  "budowa drogi", "budowa dróg", "nawierzchni bitum", "utwardzenie placu drogowego",
-  "kanalizacji deszczowej", "wodociąg", "gazociąg", "most ", "wiadukt", "prom ",
-  "linii kolejow", "budowa budynk", "budowa obiektu", "budowa nowego", "budowa hali magazyn",
-  "budowa budynku", "wykonanie obiektu budowl", "roboty budowlane polegające na budowie",
-  "roboty ziemne", "wycinka drzew", "boisko sportowe",
+  "drogi wojewódzk", "nawierzchni jezdni", "chodników drogow", "przebudowa drogi", "remont drogi",
+  "remont dróg", "remont nawierzchni", "rozbudowa skrzyżowania", "budowa drogi", "budowa dróg",
+  "nawierzchni bitum", "utwardzenie placu drogowego", "kanalizacji deszczowej", "wodociąg", "gazociąg",
+  "most ", "wiadukt", "prom ", "linii kolejow", "budowa budynk", "budowa obiektu", "budowa nowego",
+  "budowa hali magazyn", "budowa budynku", "wykonanie obiektu budowl",
+  "roboty budowlane polegające na budowie", "roboty ziemne", "wycinka drzew", "boisko sportowe",
+  "nawierzchni sportowej",
 ];
 const BZP_RENOVATION_SIGNALS = [
-  "remont", "moderniz", "przebudow", "termomoderniz", "adaptacj", "rozbudow", "renowac", "wykończ", "wykończen",
+  "remont", "moderniz", "przebudow", "termomoderniz", "adaptacj", "rozbudow", "renowac",
+  "wykończ", "wykończen", "wymian", "malow", "odnow",
 ];
 const PRIORITY_BUILDING_HINTS = [...BZP_ACTION_KEYWORDS, ...BZP_SCOPE_KEYWORDS];
 
@@ -2010,6 +2022,11 @@ function matchBzpKeywords(title: string): { action: string[]; scope: string[] } 
     action: BZP_ACTION_KEYWORDS.filter((kw) => t.includes(kw)),
     scope: BZP_SCOPE_KEYWORDS.filter((kw) => t.includes(kw)),
   };
+}
+
+function bzpHasRenovationSignal(title: string): boolean {
+  const { action, scope } = matchBzpKeywords(title);
+  return action.length > 0 || scope.length >= 2;
 }
 
 function foldPolish(s: string): string {
@@ -2064,7 +2081,7 @@ function scoreBzpNotice(n: BzpNoticeRow, opts?: { priorityOrg?: boolean }): { sc
   if (priority) score += 20;
   const priorityPass = priority && PRIORITY_BUILDING_HINTS.some((h) => title.includes(h));
   if (priorityPass) score = Math.max(score, 18);
-  if (action.length === 0 && !priorityPass) return { score: 0, excluded: true };
+  if (!bzpHasRenovationSignal(title) && !priorityPass) return { score: 0, excluded: true };
   return { score, excluded: false };
 }
 

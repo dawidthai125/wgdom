@@ -2,6 +2,7 @@ import { fetchKeysFromCloud, persistKey, API_BASE, API_HEADERS } from "@/lib/clo
 import {
   matchTenderKeywords,
   isExcludedTenderTitle,
+  hasRenovationSignal,
   TENDER_PRIORITY_BUILDING_HINTS,
 } from "@/lib/tenders-bzp-keywords";
 
@@ -179,7 +180,7 @@ export function scoreTenderNotice(
   if (priority) score += 20;
   const priorityPass = priority && PRIORITY_BUILDING_HINTS.some((h) => title.includes(h));
   if (priorityPass) score = Math.max(score, 18);
-  if (actionKeywords.length === 0 && !priorityPass) {
+  if (!hasRenovationSignal(title) && !priorityPass) {
     return { score: 0, keywords: allKeywords, excluded: true };
   }
   return { score, keywords: allKeywords, excluded: false };
