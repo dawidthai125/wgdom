@@ -677,6 +677,23 @@ function jobHoursForEmployeeOnDate(
   return +total.toFixed(2);
 }
 
+/** Godziny na robotach do porównania z podstawową zmianą — nadmiar równy dodatkowym z listy płac nie liczy się jako rozbieżność. */
+function jobHoursComparableToPayrollBase(
+  emp: WeekEmployee,
+  jobs: Job[],
+  dateIso: string,
+  directory: DirectoryEmployee[],
+  weekFrom: string,
+): number {
+  const raw = jobHoursForEmployeeOnDate(emp, jobs, dateIso, directory);
+  const dayKey = dayKeyForIsoInWeek(dateIso, weekFrom);
+  if (!dayKey) return raw;
+  const base = dayBaseHoursOnly(emp.days[dayKey]);
+  const extra = dayExtraHoursOnly(emp.days[dayKey]);
+  if (raw > base + 0.01 && extra > 0.01 && Math.abs(raw - base - extra) <= 0.01) return base;
+  return raw;
+}
+
 interface PayrollJobConsistencyAlert {
   name: string;
   dayLabel: string;
@@ -781,7 +798,7 @@ function payrollJobConsistencyAlerts(
         emp.name || "—",
         col,
         dayBaseHoursOnly(emp.days[col.key]),
-        jobHoursForEmployeeOnDate(emp, jobs, col.iso, directory),
+        jobHoursComparableToPayrollBase(emp, jobs, col.iso, directory, weekFrom),
         emp,
       );
     }
@@ -9009,6 +9026,12 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.32.3", label:"Spójność godzin — ignoruj nadmiar z dodatkowych",
+    items:[
+      {type:"fix", text:"Pulpit: spójność listy płac ↔ roboty — gdy wpis na robocie ma sumę = podstawa + dodatkowe godziny z listy płac, nie pokazuje fałszywej rozbieżności"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.32.2", label:"Roboty — zakładki zamiast scrolla",
     items:[
