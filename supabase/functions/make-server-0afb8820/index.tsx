@@ -1937,6 +1937,7 @@ app.get("/make-server-0afb8820/sms-history", async (c) => {
 const BZP_ACTION_KEYWORDS = [
   "remont", "moderniz", "termomoderniz", "wykończ", "wykończen", "przebudow",
   "renowac", "adaptacj", "rehabilit", "odśwież", "termo", "konserwac", "napraw", "odnow",
+  "wymian", "podłącz", "podlacz", "demonta",
 ];
 const BZP_SCOPE_KEYWORDS = [
   "mieszkan", "lokalu", "lokal ", "lokali", "lokale", "biur", "biurow", "biurowc",
@@ -1946,7 +1947,12 @@ const BZP_SCOPE_KEYWORDS = [
   "urząd", "urzedu", "pensjonat", "hotel", "osiedl", "centrum handlow", "magazyn",
   "sala ", "sal ", "korytarz", "garaż", "garaz", "piwnic", "strych",
   "stolark", "okien", "okno", "drzwi", "posadzk", "sufit", "tynk", "malow",
-  "instalac", "grzewcz", "wentylac", "klimatyzac", "pustostan", "internat", "akademik",
+  "instalac", "elektrycz", "oświetl", "osietlen", "okablow", "rozdzieln", "tablic rozdziel",
+  "przewod", "gniazd", "gniazdk", "opraw oświet", "opraw osiet", "zasilani", "uziemien",
+  "niskoprąd", "niskopradow", "teletechnik", "domofon", "videofon", "sap ", "system alarm",
+  "pogotowie energet", "grzewcz", "wentylac", "klimatyzac", "wodno-kanal", "wodno kanal",
+  "wod-kan", "hydraulic", "sanitarn", "co ", "centralnego ogrzew",
+  "pustostan", "internat", "akademik",
   "obiekt budowl", "nieruchomo", "fabryk", "hali produkcy", "administracyj",
   "domu studenck", "dom studenck", "izolac", "monta",
 ];

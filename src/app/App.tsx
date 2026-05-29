@@ -9114,6 +9114,12 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.35.24", label:"Przetargi — instalacje elektryczne i wymiany",
+    items:[
+      {type:"improve", text:"Słowa kluczowe: instalacje elektryczne, oświetlenie, okablowanie, rozdzielnie, wymiana, teletechnika, CO, wod-kan"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.35.23", label:"Przetargi — profil remont budynków Wrocław",
     items:[
       {type:"improve", text:"Słowa kluczowe: mieszkania, biura, uczelnie, szpitale, pomieszczenia, elewacje, instalacje…"},
