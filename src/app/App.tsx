@@ -19,7 +19,7 @@ import {
   Mic, MicOff, Bell, Copy, ScrollText, Sparkles,
   BookOpen, ChevronDown as ChevDown, HelpCircle, Smartphone, Monitor,
   Camera, ImagePlus, Lock, LogOut, Eye, ArrowLeft, ShieldCheck, ThumbsUp, ThumbsDown, Clock3,
-  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale, Images, Settings, Menu, ClipboardCheck, MessageSquare, LayoutGrid, FolderOpen,
+  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale, Images, Settings, Menu, ClipboardCheck, MessageSquare, LayoutGrid, FolderOpen, PanelLeft,
 } from "lucide-react";
 import {
   API_BASE,
@@ -9105,6 +9105,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.35.10", label:"Admin — układ na każdym ekranie",
+    items:[
+      {type:"fix", text:"Panel admina — menu i górny pasek nie ucinają się na mniejszych laptopach i przy skalowaniu Windows (125–150%)"},
+      {type:"improve", text:"Sidebar z przewijaniem; zwinięte menu — ikony + poziomy scroll zamiast zawijania w niewidoczny pasek"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.35.9", label:"Inspektor — kółka zlec/kosz na pulpicie",
     items:[
       {type:"improve", text:"Pulpit inspektora — zlecenie i kosztorys jako kółka (jak u admina); robota nie znika po zaznaczeniu, można odznaczyć"},
@@ -11856,18 +11863,19 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [applyDeepLink]);
 
   return (
-    <div className="flex bg-background text-foreground overflow-hidden" style={{fontFamily:"'Inter', sans-serif", height:"100dvh"}}>
+    <div className="admin-app-shell flex bg-background text-foreground overflow-hidden min-h-0" style={{fontFamily:"'Inter', sans-serif"}}>
 
       {/* Sidebar — desktop only */}
-      <aside className={`hidden md:flex flex-col border-r border-border bg-card transition-all duration-300 shrink-0 ${sidebarOpen?"w-56":"w-0 overflow-hidden"}`}>
+      <aside className={`hidden md:flex flex-col border-r border-border bg-card transition-all duration-300 shrink-0 min-h-0 ${sidebarOpen?"w-56":"w-0 overflow-hidden"}`}>
         {/* Logo */}
-        <div className="flex flex-col gap-1.5 px-4 py-4 border-b border-border">
+        <div className="admin-sidebar-logo flex flex-col gap-1.5 px-4 py-4 border-b border-border shrink-0">
           <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-8 w-auto object-contain object-left"/>
           <p className="text-xs text-muted-foreground font-medium tracking-wide">Zarządzanie Pracą</p>
         </div>
 
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
         {/* Nav */}
-        <nav className="px-3 py-4 space-y-1 border-b border-border">
+        <nav className="admin-sidebar-nav px-3 py-3 space-y-0.5 border-b border-border">
           {navItems.map(({key,label,hint,icon:Icon,badge})=>(
             <NavItemWithHint key={key} hint={hint}>
               <button onClick={()=>goToView(key)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
@@ -11880,7 +11888,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         </nav>
 
         {/* Week summary */}
-        <div className="px-4 py-4 flex-1">
+        <div className="px-4 py-4">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Bieżący tydzień</p>
           <div className="space-y-2">
             <div className="flex justify-between text-xs"><span className="text-muted-foreground">Pracownicy</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{productionWeekEmployees.length}</span></div>
@@ -11922,26 +11930,27 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             </div>
           </div>
         </div>
+        </div>
       </aside>
 
       {/* Main */}
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+      <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden">
         {/* Topbar */}
-        <div className="flex items-center gap-2 px-3 sm:px-5 py-3 sm:py-3.5 border-b border-border bg-card shrink-0" style={{paddingTop:"max(0.75rem, env(safe-area-inset-top))"}}>
+        <div className="admin-topbar flex items-center gap-2 px-3 sm:px-5 py-3 sm:py-3.5 border-b border-border bg-card shrink-0 min-h-[3rem]" style={{paddingTop:"max(0.75rem, env(safe-area-inset-top))"}}>
           {/* Desktop: sidebar toggle */}
-          <button onClick={()=>setSidebarOpen(v=>!v)} className="hidden md:flex p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
-            <Users size={15}/>
+          <button onClick={()=>setSidebarOpen(v=>!v)} title={sidebarOpen ? "Zwiń menu boczne" : "Rozwiń menu boczne"} className="hidden md:flex p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground shrink-0">
+            <PanelLeft size={15}/>
           </button>
           {/* Mobile: logo */}
-          <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-6 w-auto object-contain md:hidden"/>
-          {/* Desktop: collapsed nav */}
-          {!sidebarOpen&&<div className="hidden md:flex gap-1">
+          <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-6 w-auto object-contain md:hidden shrink-0"/>
+          {/* Desktop: collapsed nav — ikony + scroll poziomy (bez zawijania w drugą linię) */}
+          {!sidebarOpen&&<div className="admin-topbar-nav hidden md:flex flex-1 min-w-0 overflow-x-auto overscroll-x-contain gap-0.5">
             {navItems.map(({key,label,icon:Icon})=>(
-              <button key={key} onClick={()=>goToView(key)} className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:bg-secondary"}`}><Icon size={12}/>{label}</button>
+              <button key={key} onClick={()=>goToView(key)} title={label} className={`flex items-center gap-1.5 text-xs px-2.5 lg:px-3 py-1.5 rounded-lg font-medium transition-colors shrink-0 whitespace-nowrap ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:bg-secondary"}`}><Icon size={12}/><span className="hidden lg:inline">{label}</span></button>
             ))}
           </div>}
-          <ChevronRight size={13} className="text-muted-foreground/40 hidden sm:block"/>
-          <h2 className="text-sm font-semibold truncate min-w-0">{navItems.find(n=>n.key===view)?.label}</h2>
+          <ChevronRight size={13} className="text-muted-foreground/40 hidden sm:block shrink-0"/>
+          <h2 className="text-sm font-semibold truncate min-w-0 shrink">{navItems.find(n=>n.key===view)?.label}</h2>
           {adminSession && (
             <span className="hidden md:inline text-[10px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full truncate max-w-[180px]" title={adminRoleLabel(adminSession.role)}>
               {adminSession.displayName}

@@ -1,5 +1,41 @@
 /* Mobile / tablet — iOS Safari, Android Chrome, PWA */
 
+/* Admin shell — małe laptopy, skalowanie Windows 125–150%, niska wysokość okna */
+@media (min-width: 768px) {
+  .admin-app-shell {
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+  }
+
+  .admin-topbar-nav {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .admin-topbar-nav::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) and (max-height: 820px) {
+  .admin-sidebar-nav button {
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+  }
+
+  .admin-sidebar-logo {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+
+  .admin-topbar {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+}
+
 @layer utilities {
   .touch-target {
     min-width: 44px;
