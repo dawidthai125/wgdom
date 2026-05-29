@@ -88,6 +88,7 @@ import {
   adminCanViewRates,
   adminRoleLabel,
   adminIsSuperAdmin,
+  adminCanViewTendersTab,
   loadAdminSessionFromStorage,
   saveAdminSessionToStorage,
   adminRememberEnabled,
@@ -173,7 +174,7 @@ import {
 } from "@/lib/job-list-status";
 import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
 import { normalizeJobMetaFields, isJobHousingSet, HOUSING_TYPE_LABELS, STOVE_TYPE_LABELS_FULL, type HousingType, type StoveType } from "@/lib/job-meta";
-import { syncAppSettingsFromCloud, saveAppSettings, loadAppSettingsLocal, mergeAthPreviewEnabled, type AppSettings } from "@/lib/app-settings";
+import { syncAppSettingsFromCloud, saveAppSettings, loadAppSettingsLocal, mergeAthPreviewEnabled, mergeTendersTabForStaffEnabled, type AppSettings } from "@/lib/app-settings";
 import { WorkScopeEditor, WorkScopeDisplay } from "@/app/WorkScopeEditor";
 import {
   getReportWorkScopeText,
@@ -9113,6 +9114,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.35.19", label:"Przetargi — widoczność dla adminów i moderatorów",
+    items:[
+      {type:"new", text:"Ustawienia Super Admina — przełącznik „Zakładka Przetargi dla administratorów i moderatorów” (sync w chmurze)"},
+      {type:"improve", text:"Super Admin zawsze widzi Przetargi; admin/moderator — gdy włączone w ustawieniach"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.35.18", label:"Przetargi BZP (Super Admin · test)",
     items:[
       {type:"new", text:"Zakładka Przetargi — pipeline ogłoszeń z BZP (dolnośląskie, remont/modernizacja), widoczna tylko dla Super Admina"},
@@ -10879,6 +10887,25 @@ function AdminSettingsModal({
                 </p>
               </div>
             </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={appSettings.tendersTabForStaffEnabled}
+                onChange={async (e) => {
+                  const next = { ...appSettings, tendersTabForStaffEnabled: e.target.checked };
+                  onAppSettingsChange(next);
+                  await saveAppSettings(next);
+                }}
+                className="mt-0.5"
+              />
+              <div>
+                <p className="text-sm font-medium">Zakładka Przetargi dla administratorów i moderatorów</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Wyłączone domyślnie. Super Administrator zawsze widzi Przetargi w menu.
+                  Po włączeniu — Administrator i Moderator też mają dostęp do pipeline BZP (wspólna chmura).
+                </p>
+              </div>
+            </label>
           </div>
 
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 space-y-3">
@@ -11193,6 +11220,7 @@ function CloudLoader({children}: {children: React.ReactNode}) {
           const cloudS = cloudAppSettings as AppSettings;
           const mergedSettings: AppSettings = {
             athPreviewEnabled: mergeAthPreviewEnabled(cloudS, localSettings),
+            tendersTabForStaffEnabled: mergeTendersTabForStaffEnabled(cloudS, localSettings),
           };
           localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(mergedSettings));
         }
@@ -11860,7 +11888,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[]);
 
-  const isSuperAdminNav = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
+  const canViewTendersNav = adminSession
+    ? adminCanViewTendersTab(adminSession.role, appSettings)
+    : false;
 
   const navItems: {key:View;label:string;hint:string;icon:React.ElementType;badge?:number}[] = [
     {key:"dashboard", label:"Pulpit", hint:"Podsumowanie tygodnia, alerty (spójność, dokumenty, zdjęcia) i szybkie skróty.", icon:LayoutDashboard},
@@ -11874,7 +11904,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     {key:"photos", label:"Zdjęcia", hint:"Zaakceptowane zdjęcia z robot — galeria i archiwum po 30 dniach od zdania.", icon:Images, badge:(()=>{ const n=jobs.reduce((s,j)=>{ const b=jobGalleryBucket(j); return b==="active"||b==="grace"?s+jobApprovedPhotos(j).length:s;},0); return n||undefined; })()},
     {key:"jobfiles", label:"Pliki robot", hint:"Wszystkie pliki z robot: zlecenia, kosztorysy, zdjęcia, rysunki — pobierz pojedynczo lub ZIP.", icon:FolderOpen, badge:(()=>{ const n=jobs.reduce((s,j)=>jobHasBrowserFiles(j)?s+countBrowserFiles(j):s,0); return n||undefined; })()},
     {key:"guide", label:"Zmiany/Instrukcja", hint:"Historia wersji aplikacji i pomoc krok po kroku.", icon:BookOpen},
-    ...(isSuperAdminNav ? [{ key: "tenders" as const, label: "Przetargi", hint: "Ogłoszenia BZP — dolnośląskie, remont/modernizacja. Pipeline statusów (test Super Admin).", icon: Scale }] : []),
+    ...(canViewTendersNav ? [{ key: "tenders" as const, label: "Przetargi", hint: "Ogłoszenia BZP — dolnośląskie, remont/modernizacja. Pipeline statusów i notatki.", icon: Scale }] : []),
   ];
 
   const MOBILE_NAV_PRIMARY: View[] = ["dashboard", "payroll", "schedule", "jobs"];
@@ -11951,8 +11981,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, []);
 
   useEffect(() => {
-    if (view === "tenders" && !isSuperAdminNav) setView("dashboard");
-  }, [view, isSuperAdminNav]);
+    if (view === "tenders" && !canViewTendersNav) setView("dashboard");
+  }, [view, canViewTendersNav]);
 
   useEffect(() => {
     const pending = consumePendingDeepLink();
@@ -12162,7 +12192,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           {view==="photos"&&<JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="jobfiles"&&<JobFilesBrowser jobs={jobs} athPreviewEnabled={appSettings.athPreviewEnabled} layout="admin" onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="guide"&&<GuideView/>}
-          {view==="tenders"&&isSuperAdminNav&&<TendersView/>}
+          {view==="tenders"&&canViewTendersNav&&<TendersView showTestBadge={adminSession ? adminIsSuperAdmin(adminSession.role) : false}/>}
         </div>
 
         {/* Mobile bottom nav — 4 główne + Menu (iOS/Android) */}

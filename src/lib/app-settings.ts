@@ -7,10 +7,12 @@ export { APP_SETTINGS_KEY };
 export interface AppSettings {
   /** Podgląd kosztorysów ATH/NOR w przeglądarce (parser best-effort). Domyślnie włączone. */
   athPreviewEnabled: boolean;
+  /** Zakładka Przetargi w menu dla Administratora i Moderatora (Super Admin zawsze widzi). */
+  tendersTabForStaffEnabled: boolean;
 }
 
 export function defaultAppSettings(): AppSettings {
-  return { athPreviewEnabled: true };
+  return { athPreviewEnabled: true, tendersTabForStaffEnabled: false };
 }
 
 /** Chmura ma pierwszeństwo — lokalne false z starej wersji nie blokuje podglądu. */
@@ -23,6 +25,16 @@ export function mergeAthPreviewEnabled(
   return local.athPreviewEnabled !== false;
 }
 
+/** Chmura ma pierwszeństwo — domyślnie wyłączone dla staff. */
+export function mergeTendersTabForStaffEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.tendersTabForStaffEnabled === true) return true;
+  if (remote?.tendersTabForStaffEnabled === false) return false;
+  return local.tendersTabForStaffEnabled === true;
+}
+
 export function loadAppSettingsLocal(): AppSettings {
   try {
     const raw = localStorage.getItem(APP_SETTINGS_KEY);
@@ -30,6 +42,7 @@ export function loadAppSettingsLocal(): AppSettings {
     const parsed = JSON.parse(raw) as Partial<AppSettings>;
     return {
       athPreviewEnabled: parsed.athPreviewEnabled !== false,
+      tendersTabForStaffEnabled: parsed.tendersTabForStaffEnabled === true,
     };
   } catch {
     return defaultAppSettings();
@@ -50,6 +63,7 @@ export async function syncAppSettingsFromCloud(): Promise<AppSettings> {
     const remote = cloud as Partial<AppSettings>;
     const merged: AppSettings = {
       athPreviewEnabled: mergeAthPreviewEnabled(remote, local),
+      tendersTabForStaffEnabled: mergeTendersTabForStaffEnabled(remote, local),
     };
     saveAppSettingsLocal(merged);
     return merged;

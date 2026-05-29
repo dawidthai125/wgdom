@@ -33,7 +33,7 @@ function daysUntil(iso: string | null): number | null {
   return Math.ceil((d.getTime() - Date.now()) / 86400000);
 }
 
-export function TendersView() {
+export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean }) {
   const [items, setItems] = useState<TenderPipelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -126,7 +126,9 @@ export function TendersView() {
             <div className="flex items-center gap-2">
               <Scale size={18} className="text-primary" />
               <h1 className="text-lg font-semibold">Przetargi BZP</h1>
-              <span className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">Super Admin · test</span>
+              {showTestBadge && (
+                <span className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">Super Admin · test</span>
+              )}
             </div>
             <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
               Ogłoszenia z BZP — woj. dolnośląskie (PL02), roboty budowlane, filtr remont / modernizacja / wykończenia.

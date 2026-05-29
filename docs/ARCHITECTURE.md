@@ -171,7 +171,7 @@ Nawigacja **nie używa URL** (poza `?podglad=` i deep linkami). Stan w React + `
 | `photos` | Galeria zdjęć | `JobPhotosGalleryView` |
 | `jobfiles` | Pliki robót | `JobAllFilesView` / browser |
 | `guide` | Instrukcja + Changelog | `HelpView`, `ChangelogView` |
-| `tenders` | Przetargi BZP (pipeline) | `TendersView` — **tylko Super Admin** (test) |
+| `tenders` | Przetargi BZP (pipeline) | `TendersView` — Super Admin zawsze; admin/moderator gdy `tendersTabForStaffEnabled` |
 
 Widoki nieaktywne są **odmontowywane** (`{view==="jobs"&&<JobsView/>}`) — scroll wewnątrz każdego widoku.
 
@@ -274,7 +274,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 |-------|-----------|
 | `kw-admin-passwords` | Hash hasła per userId |
 | `kw-admin-users-config` | Role, custom users, telefony |
-| `kw-app-settings` | Np. `athPreviewEnabled` |
+| `kw-app-settings` | Np. `athPreviewEnabled`, `tendersTabForStaffEnabled` |
 | `kw-inspector-stats` | Logowania / wizyty inspektorów |
 | `kw-tenders-pipeline` | Pipeline przetargów BZP (status, notatki) — Super Admin |
 
@@ -366,7 +366,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | `src/app/TendersView.tsx` | UI listy — odśwież z BZP, filtry Wrocław/trafność/status, notatki, link e-Zamówienia |
 | Edge `GET /tenders-bzp-search` | Pobiera strony z `ezamowienia.gov.pl/mo-board/api/v1/Board/Search` (CORS po stronie serwera) |
 
-**Dostęp:** zakładka w menu admina tylko gdy `adminIsSuperAdmin(role)`.
+**Dostęp:** Super Admin zawsze; Administrator i Moderator — gdy Super Admin włączy w Ustawieniach (`tendersTabForStaffEnabled` w `kw-app-settings`).
 
 ### 12.2 Deploy Supabase
 

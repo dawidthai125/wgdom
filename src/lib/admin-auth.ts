@@ -746,6 +746,18 @@ export function adminIsSuperAdmin(role: AdminRole): boolean {
 
 
 
+/** Zakładka Przetargi — Super Admin zawsze; admin/moderator gdy włączone w ustawieniach. */
+export function adminCanViewTendersTab(
+  role: AdminRole,
+  settings: { tendersTabForStaffEnabled?: boolean },
+): boolean {
+  if (role === "super_admin") return true;
+  if (!settings.tendersTabForStaffEnabled) return false;
+  return role === "admin" || role === "moderator";
+}
+
+
+
 export function adminRoleLabel(role: AdminRole): string {
 
   switch (role) {
