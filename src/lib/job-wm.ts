@@ -1,6 +1,7 @@
 /** Wrocławskie Mieszkania — etap odbioru, notatki, zdjęcia inspektora, portfolio. */
 
 import { REQUIRED_DOCS, type DocType } from "@/lib/job-documents";
+import { applyJobPhase, type JobPhase } from "@/lib/job-list-status";
 
 export const HANDOVER_STAGES = [
   "awaiting_order",
@@ -84,13 +85,16 @@ export function inferHandoverStage(job: JobWmJob): JobHandoverStage {
   return "in_progress";
 }
 
-export function normalizeJobWmFields<T extends JobWmJob>(job: T): T {
+export function normalizeJobWmFields<T extends JobWmJob & { jobPhase?: JobPhase }>(job: T): T {
   const base = {
     ...job,
     plannedHandoverDate: job.plannedHandoverDate || "",
     jobNotes: job.jobNotes || [],
     inspectorPhotos: job.inspectorPhotos || [],
   };
+  if (base.jobPhase) {
+    return applyJobPhase(base, base.jobPhase);
+  }
   if (!isWmClient(base.client)) return base;
   const stage = inferHandoverStage(base);
   return applyHandoverStageToJob({ ...base, handoverStage: stage }, stage);

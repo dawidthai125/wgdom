@@ -17,6 +17,7 @@ import {
   type JobNoteAuthorRole,
   type JobWmJob,
 } from "@/lib/job-wm";
+import { applyJobPhase, type JobPhase } from "@/lib/job-list-status";
 import type { JobMetaFields } from "@/lib/job-meta";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
 
@@ -53,7 +54,12 @@ export function JobWmPanel({
   const planStatus = plannedHandoverStatus(job.plannedHandoverDate || "", stage);
 
   const setStage = (next: JobHandoverStage) => {
-    let updated = applyHandoverStageToJob(job, next);
+    const phase: JobPhase = next === "handed_over"
+      ? "completed"
+      : next === "in_progress"
+        ? "in_progress"
+        : "handover";
+    let updated = applyJobPhase(job as JobWmJobMutable & { jobPhase?: JobPhase }, phase) as JobWmJobMutable;
     updated = appendJobActivity(
       updated,
       "inspector_stage",

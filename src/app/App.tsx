@@ -149,12 +149,16 @@ import {
   computeWmPortfolioStats,
 } from "@/lib/job-wm";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
-import { JobListFilterBar, JobListLegend, JobListPrimaryBadge } from "@/app/JobListStatus";
+import { JobListFilterBar, JobListLegend, JobListPrimaryBadge, JobPhasePicker, applyJobPhase } from "@/app/JobListStatus";
 import {
   countJobsByListFilter,
+  inferJobPhase,
   jobMatchesListFilter,
-  resolveJobListStatus,
+  jobMissingRequiredDocs,
+  inferJobPhase,
+  JOB_PHASE_LABELS,
   type JobListFilter,
+  type JobPhase,
 } from "@/lib/job-list-status";
 import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
 import { normalizeJobMetaFields, isJobHousingSet, HOUSING_TYPE_LABELS, STOVE_TYPE_LABELS_FULL, type HousingType, type StoveType } from "@/lib/job-meta";
@@ -446,6 +450,8 @@ interface Job {
   endDate: string;
   status: "in_progress" | "completed";
   keysHandedOver: boolean;
+  /** Ręczny status: w trakcie / gotowe do odbioru / zdane */
+  jobPhase?: import("@/lib/job-list-status").JobPhase;
   notes: string;
   documents: Record<DocType, boolean>;
   workEntries: WorkEntry[];
@@ -1478,10 +1484,6 @@ const ACTIVITY_LABELS: Record<JobActivityType, string> = {
   inspector_note: "Inspektor · notatka",
   inspector_photo: "Inspektor · zdjęcie",
 };
-
-function jobMissingRequiredDocs(job: Job): DocType[] {
-  return REQUIRED_DOCS.filter((d) => !job.documents[d]);
-}
 
 function jobDaysSinceStart(job: Job): number {
   const start = new Date(job.startDate);
@@ -5822,9 +5824,8 @@ function JobsView({
   const [entryHours, setEntryHours] = useState(String(DEFAULT_JOB_ENTRY_HOURS));
   const [entryRate, setEntryRate] = useState("");
 
-  const [statusWarning, setStatusWarning] = useState(false);
-  const [shareCopied, setShareCopied] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   const [expandedWorkerKeys, setExpandedWorkerKeys] = useState<Set<string>>(new Set());
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
   const jobNotesRef = useRef<HTMLTextAreaElement>(null);
@@ -5919,17 +5920,21 @@ function JobsView({
       ? appendJobActivity(next, activity.type, activity.text, activity.actor || "Administrator")
       : next;
 
-    if (isWmClient(next.client)) {
+    if (next.jobPhase) {
+      next = applyJobPhase(next, next.jobPhase);
+    } else if (isWmClient(next.client)) {
       next = normalizeJobWmFields(next);
-      setJobs((prev) => prev.map((j) => (j.id === next.id ? next : j)));
-      return;
     }
 
-    const wasAllDone = allDocsDone(next);
-    const withStatus = wasAllDone && next.status === "in_progress"
-      ? appendJobActivity({ ...next, status: "completed" as const }, "status_change", "Automatycznie oznaczono jako zdane (komplet dokumentów)", "System")
-      : next;
-    setJobs((prev) => prev.map((j) => (j.id === withStatus.id ? withStatus : j)));
+    setJobs((prev) => prev.map((j) => (j.id === next.id ? next : j)));
+  };
+
+  const setJobPhase = (job: Job, phase: JobPhase) => {
+    const next = applyJobPhase(job, phase);
+    updateJob(next, {
+      type: "status_change",
+      text: `Status: ${JOB_PHASE_LABELS[phase]}`,
+    });
   };
 
   const handleDeleteJobFile = async (file: import("@/lib/job-documents").JobFileAttachment) => {
@@ -5958,25 +5963,6 @@ function JobsView({
     } finally {
       setFileDeleteBusy(null);
     }
-  };
-
-  const tryToggleStatus = (job: Job) => {
-    if (isWmClient(job.client)) {
-      setStatusWarning(true);
-      setTimeout(() => setStatusWarning(false), 4000);
-      return;
-    }
-    if (job.status === "in_progress" && (!allDocsDone(job) || !isJobHousingSet(job))) {
-      setStatusWarning(true);
-      setTimeout(() => setStatusWarning(false), 4000);
-      return;
-    }
-    setStatusWarning(false);
-    const nextStatus = job.status === "in_progress" ? "completed" as const : "in_progress" as const;
-    updateJob(
-      { ...job, status: nextStatus },
-      { type: "status_change", text: nextStatus === "completed" ? "Oznaczono jako zdane" : "Przywrócono status „w trakcie”" },
-    );
   };
 
   const addJob = () => {
@@ -6305,7 +6291,7 @@ function JobsView({
               {groupJobs.map(job=>{
                 const docsCount = DOCUMENT_TYPES.filter(d=>job.documents[d]).length;
                 const missingDocs = jobMissingRequiredDocs(job);
-                const listStatus = resolveJobListStatus(job);
+                const jobPhase = inferJobPhase(job);
                 const cost = jobCost(job);
                 const isSelected = job.id===selectedJobId;
                 const isDupe = isDuplicateJob(job);
@@ -6320,12 +6306,12 @@ function JobsView({
                         </div>
                         <JobListPrimaryBadge job={job}/>
                       </div>
-                      {(listStatus === "docs_pending" || listStatus === "ready_handover") && missingDocs.length > 0 && (
+                      {(jobPhase === "handover") && missingDocs.length > 0 && (
                         <p className="text-[10px] text-orange-600 dark:text-orange-400 mb-1.5 leading-snug" title="Brakujące dokumenty do odbioru">
                           Brakuje: {missingDocs.map((d) => DOC_LABELS[d]).join(", ")}
                         </p>
                       )}
-                      {listStatus === "ready_handover" && missingDocs.length === 0 && (
+                      {jobPhase === "handover" && missingDocs.length === 0 && (
                         <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mb-1.5">
                           Dokumenty kompletne — można zdawać
                         </p>
@@ -6453,72 +6439,21 @@ function JobsView({
                 </div>
               </div>
 
-              {/* Status row */}
-              <div className="flex flex-col gap-2">
+              {/* Status */}
+              <div className="flex flex-col gap-3">
+                <JobPhasePicker
+                  job={selectedJob}
+                  onPhaseChange={(phase) => setJobPhase(selectedJob, phase)}
+                />
                 <div className="flex items-center gap-3 flex-wrap">
-                  {isWmClient(selectedJob.client) ? (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <JobWmStageBadge job={selectedJob}/>
-                      {selectedJob.plannedHandoverDate && <JobWmPlannedBadge job={selectedJob}/>}
-                      <span className="text-xs text-muted-foreground">
-                        Status WM ustawiasz w sekcji <strong className="text-foreground/80">Odbiór WM</strong> poniżej
-                      </span>
-                    </div>
-                  ) : (
-                    <>
-                      <button
-                        onClick={()=>tryToggleStatus(selectedJob)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${selectedJob.status==="completed"?"bg-green-500/15 text-green-400 border-green-500/20 hover:bg-green-500/25":"bg-yellow-500/10 text-yellow-400 border-yellow-500/20 hover:bg-yellow-500/20"}`}>
-                        {selectedJob.status==="completed"?<><CheckCircle2 size={13}/>Zdane</>:<><Circle size={13}/>W trakcie</>}
-                      </button>
-                      <button
-                        onClick={()=>updateJob({...selectedJob, keysHandedOver:!selectedJob.keysHandedOver})}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${selectedJob.keysHandedOver?"bg-blue-500/15 text-blue-400 border-blue-500/20 hover:bg-blue-500/25":"bg-secondary text-muted-foreground border-border hover:text-foreground hover:bg-secondary/70"}`}>
-                        {selectedJob.keysHandedOver?<><CheckCircle2 size={13}/>Klucze zdane</>:<><Circle size={13}/>Klucze</>}
-                      </button>
-                    </>
+                  {isWmClient(selectedJob.client) && selectedJob.plannedHandoverDate && (
+                    <JobWmPlannedBadge job={selectedJob}/>
                   )}
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock size={13}/>
                     <span>Czas remontu: <span className="font-semibold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{jobDuration(selectedJob)} dni</span></span>
                   </div>
-                  {!isWmClient(selectedJob.client) && !allDocsDone(selectedJob) && selectedJob.status === "in_progress" && (
-                    <span className="text-xs text-muted-foreground ml-auto">
-                      Brakuje <span className="font-semibold text-yellow-400">{REQUIRED_DOCS.filter(d=>!selectedJob.documents[d]).length}</span> z {REQUIRED_DOCS.length} wymaganych dokumentów
-                    </span>
-                  )}
-                  {!isWmClient(selectedJob.client) && allDocsDone(selectedJob) && selectedJob.status === "in_progress" && (
-                    <span className="text-xs text-green-400 ml-auto flex items-center gap-1">
-                      <CheckCircle2 size={11}/>Wszystkie dokumenty skompletowane — można zdać
-                    </span>
-                  )}
-                  {isWmClient(selectedJob.client) && allDocsDone(selectedJob) && inferHandoverStage(selectedJob) !== "handed_over" && (
-                    <span className="text-xs text-emerald-400 ml-auto flex items-center gap-1">
-                      <CheckCircle2 size={11}/>Dokumenty kompletne — ustaw etap „Gotowa do odbioru WM”
-                    </span>
-                  )}
                 </div>
-                {statusWarning && isWmClient(selectedJob.client) && (
-                  <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/25 rounded-lg px-4 py-2.5 text-sm text-amber-700 dark:text-amber-300">
-                    <AlertTriangle size={14} className="shrink-0"/>
-                    <span>Roboty WM — status zmieniasz w sekcji <strong>Odbiór WM</strong> (etap odbioru), nie przyciskiem „Zdane”.</span>
-                  </div>
-                )}
-                {statusWarning && !isWmClient(selectedJob.client) && (
-                  <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-lg px-4 py-2.5 text-sm text-destructive">
-                    <X size={14} className="shrink-0"/>
-                    <span>
-                      Nie można oznaczyć jako zdane —
-                      {!isJobHousingSet(selectedJob) && <> wybierz <strong>typ lokalu</strong></>}
-                      {!isJobHousingSet(selectedJob) && !allDocsDone(selectedJob) && " oraz"}
-                      {!allDocsDone(selectedJob) && (
-                        <> brakuje <strong>{REQUIRED_DOCS.filter(d=>!selectedJob.documents[d]).length}</strong> dokumentów:{" "}
-                        {REQUIRED_DOCS.filter(d=>!selectedJob.documents[d]).map(d=>DOC_LABELS[d]).join(", ")}</>
-                      )}
-                      .
-                    </span>
-                  </div>
-                )}
                 {isDuplicateJob(selectedJob) && (
                   <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 rounded-lg px-4 py-2.5 text-sm">
                     <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5"/>
@@ -6530,7 +6465,7 @@ function JobsView({
                     </div>
                   </div>
                 )}
-                {!allDocsDone(selectedJob) && selectedJob.status === "in_progress" && jobDaysSinceStart(selectedJob) >= 7 && (
+                {!allDocsDone(selectedJob) && inferJobPhase(selectedJob) === "in_progress" && jobDaysSinceStart(selectedJob) >= 7 && (
                   <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 rounded-lg px-4 py-3 text-sm">
                     <Bell size={14} className="text-amber-400 shrink-0 mt-0.5"/>
                     <div>
@@ -8812,7 +8747,7 @@ function HelpView() {
           <p className="text-sm text-foreground/90 leading-relaxed">Na ekranie startowym wybierz <strong>Inspektor</strong> → użytkownik (np. Szymon Szóstak) → hasło. Inspektor widzi wszystkie roboty, ale <strong>bez stawek PLN/h</strong> pracowników. Widzi natomiast kto jest przypisany do roboty i numer telefonu z kartoteki.</p>
           <div className="space-y-3">
             {[
-              {q:"Co widać na liście robót?", a:"Adres, klient i jeden główny status: W trakcie, Gotowe do odbioru (brakuje dokumentów), Komplet do odbioru (dokumenty OK), Zdane. Pasek postępu dokumentów, brakujące pozycje wypisane przy „Gotowe do odbioru”. Filtry z licznikami + legenda „Co oznaczają statusy?”. Najechanie na status pokazuje podpowiedź."},
+              {q:"Co widać na liście robót?", a:"Adres, klient i status ustawiony ręcznie: W trakcie, Gotowe do odbioru lub Zdane. Przy „Gotowe do odbioru” widać brakujące dokumenty. Status zmieniasz w szczegółach roboty — trzy przyciski + lista braków pod spodem."},
               {q:"Zlecenie i kosztorys", a:"Przy robocie możesz zaznaczyć checkbox „mam zlecenie” / „mam kosztorys” oraz wrzucić plik (zlecenie: PDF; kosztorys: PDF, ATH, NOR, XML, DOC z programu NORMA). Przy .ath wybierz „Wszystkie pliki”, jeśli nie widać rozszerzenia. Status widać na liście — nie musisz pamiętać czy już wysłałeś email."},
               {q:"Dokumenty i zakresy", a:"Checklista dokumentów (zlecenie, zakres, kominiarz, pomiary…). Sekcja raportów pracowników: zakres prac, wymiary pomieszczeń, zdjęcia rysunków z opisami."},
               {q:"Galeria zdjęć", a:"Tylko zdjęcia zaakceptowane przez admina. Pobierz pojedyncze lub „Pobierz wszystkie” z danej roboty."},
@@ -9008,6 +8943,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-29", version:"2.31.7", label:"Roboty — ręczny status + braki dokumentów",
+    items:[
+      {type:"new", text:"Szczegóły roboty — wybór statusu: W trakcie, Gotowe do odbioru, Zdane (dla wszystkich klientów)"},
+      {type:"improve", text:"Pod statusem lista brakujących dokumentów do zdania; bez auto-zdawania po komplecie"},
+    ],
+  },
   {
     date:"2026-05-29", version:"2.31.6", label:"SMS — nadawcy tylko ręcznie w SMSAPI",
     items:[
