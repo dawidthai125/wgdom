@@ -35,11 +35,21 @@ Nowa opcja / przycisk / ekran → zaktualizuj `HelpView` w `App.tsx`:
 - Forma: pytanie + odpowiedź (FAQ) lub kafelek w „Przydatne sztuczki”.
 - Wspomnij synchronizację/chmurkę, jeśli dotyczy zapisu danych.
 
-## 4. Kolejność pracy
+## 4. Dokument architektury (obowiązkowo przy większych zmianach)
+
+Przy każdej zmianie syncu, panelu, API, deployu, PWA lub nowym kluczu danych:
+
+- Zaktualizuj **`docs/ARCHITECTURE.md`** — odpowiednia sekcja + data „Ostatnia aktualizacja” na górze pliku.
+- To living document dla AI/programisty — **nie wymaga** czytania całego `App.tsx` od zera.
+
+Pełny opis systemu: **`docs/ARCHITECTURE.md`** (czytaj najpierw przy nowej sesji).
+
+## 5. Kolejność pracy
 
 1. Implementacja + chmura  
 2. Wpis w CHANGELOG  
-3. Aktualizacja instrukcji  
-4. Krótkie podsumowanie po polsku dla użytkownika  
+3. Aktualizacja instrukcji (HelpView / hinty)  
+4. Aktualizacja **`docs/ARCHITECTURE.md`** (jeśli dotyczy architektury, syncu, API, mobile, deployu)  
+5. Krótkie podsumowanie po polsku dla użytkownika  
 
-Szczegóły: `guidelines/ROZWOJ.md`.
+Skrót: `guidelines/ROZWOJ.md` · pełna architektura: `docs/ARCHITECTURE.md`.

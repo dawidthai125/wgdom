@@ -9112,6 +9112,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.35.16", label:"Dokumentacja architektury dla developerów / AI",
+    items:[
+      {type:"new", text:"docs/ARCHITECTURE.md — pełny przewodnik: panele, sync, Supabase, Vercel, PWA, testy, pułapki"},
+      {type:"improve", text:"Reguły Cursor + ROZWOJ.md — obowiązek aktualizacji ARCHITECTURE.md przy zmianach (obok CHANGELOG)"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.35.15", label:"Sync, wydajność i spójność paneli",
     items:[
       {type:"fix", text:"pushKeysToCloudSafe — merge z localStorage przed chmurą (inspektor/pracownik nie nadpisują edycji admina)"},
