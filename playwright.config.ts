@@ -26,12 +26,12 @@ export default defineConfig({
     {
       name: "iphone-se",
       use: { ...devices["iPhone SE"], browserName: "chromium" },
-      testMatch: /mobile-smoke\.spec\.ts/,
+      testMatch: /mobile-(smoke|flows)\.spec\.ts/,
     },
     {
       name: "pixel-7",
       use: { ...devices["Pixel 7"], browserName: "chromium" },
-      testMatch: /mobile-smoke\.spec\.ts/,
+      testMatch: /mobile-(smoke|flows)\.spec\.ts/,
     },
   ],
 });
