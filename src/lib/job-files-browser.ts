@@ -183,6 +183,97 @@ export function jobBrowserTitle(job: JobFilesBrowserSource): string {
   return jobDisplayTitle(job);
 }
 
+export type JobBrowserFileSummary = {
+  total: number;
+  zlecenie: number;
+  kosztorys: number;
+  crewPhotos: number;
+  inspectorPhotos: number;
+  reportSketches: number;
+};
+
+export type JobFileSummaryChip = {
+  key: keyof Omit<JobBrowserFileSummary, "total">;
+  label: string;
+};
+
+/** Liczba plików wg typu — bez rozwijania karty roboty. */
+export function summarizeJobBrowserFiles(job: JobFilesBrowserSource): JobBrowserFileSummary {
+  let zlecenie = 0;
+  let kosztorys = 0;
+  let crewPhotos = 0;
+  let inspectorPhotos = 0;
+  let reportSketches = 0;
+
+  for (const f of job.jobFiles || []) {
+    if (!f.publicUrl) continue;
+    if (f.kind === "zlecenie") zlecenie++;
+    else if (f.kind === "kosztorys") kosztorys++;
+  }
+  for (const p of job.photos || []) {
+    if (p.status === "approved" && p.publicUrl) crewPhotos++;
+  }
+  for (const p of job.inspectorPhotos || []) {
+    if (p.publicUrl) inspectorPhotos++;
+  }
+  for (const r of job.workerReports || []) {
+    if (r.sketch?.publicUrl) reportSketches++;
+  }
+
+  return {
+    total: zlecenie + kosztorys + crewPhotos + inspectorPhotos + reportSketches,
+    zlecenie,
+    kosztorys,
+    crewPhotos,
+    inspectorPhotos,
+    reportSketches,
+  };
+}
+
+function plFileLabel(n: number, one: string, few: string, many: string): string {
+  if (n === 1) return `1 ${one}`;
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${n} ${few}`;
+  return `${n} ${many}`;
+}
+
+/** Etykiety do badge'ów na liście (tylko niezerowe). */
+export function jobFileSummaryChips(summary: JobBrowserFileSummary): JobFileSummaryChip[] {
+  const out: JobFileSummaryChip[] = [];
+  if (summary.zlecenie > 0) {
+    out.push({
+      key: "zlecenie",
+      label: plFileLabel(summary.zlecenie, "zlecenie", "zlecenia", "zleceń"),
+    });
+  }
+  if (summary.kosztorys > 0) {
+    out.push({
+      key: "kosztorys",
+      label: plFileLabel(summary.kosztorys, "kosztorys", "kosztorysy", "kosztorysów"),
+    });
+  }
+  if (summary.crewPhotos > 0) {
+    out.push({
+      key: "crewPhotos",
+      label: `${summary.crewPhotos} zdj. ekipy`,
+    });
+  }
+  if (summary.inspectorPhotos > 0) {
+    out.push({
+      key: "inspectorPhotos",
+      label: `${summary.inspectorPhotos} zdj. inspektora`,
+    });
+  }
+  if (summary.reportSketches > 0) {
+    out.push({
+      key: "reportSketches",
+      label: plFileLabel(summary.reportSketches, "rysunek", "rysunki", "rysunków"),
+    });
+  }
+  return out;
+}
+
 export function countBrowserFiles(job: JobFilesBrowserSource): number {
-  return collectJobBrowserFileGroups(job).reduce((s, g) => s + g.files.length, 0);
+  return summarizeJobBrowserFiles(job).total;
 }

@@ -7,8 +7,11 @@ import {
   countBrowserFiles,
   jobBrowserTitle,
   jobHasBrowserFiles,
+  summarizeJobBrowserFiles,
+  jobFileSummaryChips,
   type JobFilesBrowserSource,
   type JobBrowserFile,
+  type JobFileSummaryChip,
 } from "@/lib/job-files-browser";
 import { downloadJobDocumentsPack, type JobPackSource } from "@/lib/job-documents-pack";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
@@ -47,6 +50,36 @@ function toPreviewItem(file: JobBrowserFile): InspectorFileItem | null {
     return { kind: "imageUrl", url: file.url, filename: file.filename };
   }
   return null;
+}
+
+const CHIP_STYLE: Record<JobFileSummaryChip["key"], string> = {
+  zlecenie: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+  kosztorys: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
+  crewPhotos: "bg-primary/10 text-primary",
+  inspectorPhotos: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  reportSketches: "bg-violet-500/10 text-violet-700 dark:text-violet-400",
+};
+
+function JobFileSummaryBadges({ job }: { job: JobFilesBrowserSource }) {
+  const summary = summarizeJobBrowserFiles(job);
+  const chips = jobFileSummaryChips(summary);
+  if (chips.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+      <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground font-medium">
+        {summary.total} {summary.total === 1 ? "plik" : summary.total < 5 ? "pliki" : "plików"}
+      </span>
+      {chips.map((chip) => (
+        <span
+          key={chip.key}
+          className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${CHIP_STYLE[chip.key]}`}
+        >
+          {chip.label}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 export function JobFilesBrowser({
@@ -153,7 +186,6 @@ export function JobFilesBrowser({
               {filtered.map((job) => {
                 const expanded = expandedIds.has(job.id);
                 const groups = collectJobBrowserFileGroups(job);
-                const fileCount = countBrowserFiles(job);
                 return (
                   <div key={job.id} className="bg-card rounded-xl border border-border overflow-hidden">
                     <button
@@ -162,12 +194,10 @@ export function JobFilesBrowser({
                       className="w-full text-left px-4 sm:px-5 py-4 hover:bg-secondary/30 transition-colors"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold truncate">{jobBrowserTitle(job)}</p>
                           <p className="text-xs text-muted-foreground truncate">{job.client || "—"}</p>
-                          <span className="inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">
-                            {fileCount} {fileCount === 1 ? "plik" : fileCount < 5 ? "pliki" : "plików"}
-                          </span>
+                          <JobFileSummaryBadges job={job}/>
                         </div>
                         {expanded ? <ChevronDown size={16} className="shrink-0 mt-1"/> : <ChevronRight size={16} className="shrink-0 mt-1"/>}
                       </div>
