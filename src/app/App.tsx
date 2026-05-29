@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useRef, Fragment, createContext, useContext, type RefObject } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef, Fragment, createContext, useContext, lazy, Suspense, type RefObject } from "react";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import { CompanyMusicPlayer } from "@/app/components/CompanyMusicPlayer";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
@@ -107,7 +107,9 @@ import {
   digestSha256Hex,
   type AdminAssignableRole,
 } from "@/lib/admin-auth";
-import { InspectorPanel } from "@/app/InspectorPanel";
+const InspectorPanel = lazy(() =>
+  import("@/app/InspectorPanel").then((m) => ({ default: m.InspectorPanel })),
+);
 import { InspectorAdminView } from "@/app/InspectorAdminView";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
@@ -9110,6 +9112,18 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.35.15", label:"Sync, wydajność i spójność paneli",
+    items:[
+      {type:"fix", text:"pushKeysToCloudSafe — merge z localStorage przed chmurą (inspektor/pracownik nie nadpisują edycji admina)"},
+      {type:"fix", text:"Inspektor — natychmiastowa synchronizacja z adminem przez storage events (kw-jobs, kw-directory)"},
+      {type:"fix", text:"Pracownik — lista płac i archiwum zapisywane do localStorage po pull z chmury (offline OK)"},
+      {type:"fix", text:"alignWeekRangeInMerged — poprawny wybór tygodnia z bogatszą listą płac (local vs chmura)"},
+      {type:"improve", text:"Admin — pull anuluje oczekujący push; brak wyścigu pull↔push"},
+      {type:"improve", text:"Zakładka Inspektor (admin) — statystyki odświeżają się przy focus"},
+      {type:"improve", text:"Lazy-load panelu inspektora + podział bundla (ui-vendor, panel-inspector); PWA cache v20"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.35.14", label:"Sync — ochrona przed cofką danych",
     items:[
       {type:"fix", text:"Admin — powrót do karty / F5: pobieranie chmury i merge (nie tylko stary localStorage); UI odświeża się po syncu"},
@@ -11380,6 +11394,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const pullFromCloudAndMerge = useCallback(async () => {
     if (!tabVisibleRef.current || !isSupabaseConfigured() || pullInFlightRef.current) return;
     pullInFlightRef.current = true;
+    if (syncTimerRef.current) {
+      clearTimeout(syncTimerRef.current);
+      syncTimerRef.current = null;
+    }
     try {
       const merged = await pullAndMergeDataBundle(adminDataBundle());
       applyAdminDataBundle(merged);
@@ -11394,6 +11412,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const runCloudSync = useCallback(async (opts?: { toastSuccess?: boolean }) => {
     if (!tabVisibleRef.current) return;
+    if (pullInFlightRef.current) return;
     if (!isSupabaseConfigured()) {
       setSyncStatus("offline");
       setSyncError("Brak VITE_SUPABASE_* w Vercel — ustaw zmienne i zrób redeploy");
@@ -11446,6 +11465,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
     syncTimerRef.current = setTimeout(() => {
       if (!tabVisibleRef.current) return;
+      if (pullInFlightRef.current) return;
       if (Date.now() < suppressAutoSyncUntilRef.current) return;
       runCloudSync();
     }, 2000);
@@ -13493,21 +13513,27 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
         setJobsLocal(synced);
         try { localStorage.setItem("kw-jobs", JSON.stringify(synced)); } catch { /* ignore */ }
       }
-      setWeekEmployees(
-        mergeWeekEmployees(
-          loadWorkerLocal<WeekEmployee[]>("kw-week-employees", []),
-          (cloudWeekEmps as WeekEmployee[] | null) ?? [],
-        ) as WeekEmployee[],
-      );
-      setSavedWeeks(
-        mergeArchive(
-          loadWorkerLocal<WeekSnapshot[]>("kw-archive", []),
-          (cloudArchive as WeekSnapshot[] | null) ?? [],
-        ) as WeekSnapshot[],
-      );
       const week = getWeekRange();
-      setWeekFrom(typeof cloudFrom === "string" && cloudFrom ? cloudFrom : loadWorkerLocal("kw-weekFrom", week.from));
-      setWeekTo(typeof cloudTo === "string" && cloudTo ? cloudTo : loadWorkerLocal("kw-weekTo", week.to));
+      const mergedWeekEmps = mergeWeekEmployees(
+        loadWorkerLocal<WeekEmployee[]>("kw-week-employees", []),
+        (cloudWeekEmps as WeekEmployee[] | null) ?? [],
+      ) as WeekEmployee[];
+      const mergedArch = mergeArchive(
+        loadWorkerLocal<WeekSnapshot[]>("kw-archive", []),
+        (cloudArchive as WeekSnapshot[] | null) ?? [],
+      ) as WeekSnapshot[];
+      const mergedFrom = typeof cloudFrom === "string" && cloudFrom ? cloudFrom : loadWorkerLocal("kw-weekFrom", week.from);
+      const mergedTo = typeof cloudTo === "string" && cloudTo ? cloudTo : loadWorkerLocal("kw-weekTo", week.to);
+      setWeekEmployees(mergedWeekEmps);
+      setSavedWeeks(mergedArch);
+      setWeekFrom(mergedFrom);
+      setWeekTo(mergedTo);
+      try {
+        localStorage.setItem("kw-week-employees", JSON.stringify(mergedWeekEmps));
+        localStorage.setItem("kw-archive", JSON.stringify(mergedArch));
+        localStorage.setItem("kw-weekFrom", JSON.stringify(mergedFrom));
+        localStorage.setItem("kw-weekTo", JSON.stringify(mergedTo));
+      } catch { /* ignore */ }
     },
     [loadWorkerLocal, setJobsLocal],
   );
@@ -14747,7 +14773,11 @@ function AppInnerWithAuth() {
   if (appMode === "login") return <LoginScreen onAdmin={enterAdmin} onInspector={enterInspector} onWorker={enterWorker}/>;
   if (appMode === "worker") return <WorkerPhotoView workerName={workerName} workerId={workerId} onLogout={logout}/>;
   if (appMode === "inspector" && inspectorSession) {
-    return <InspectorPanel inspectorId={inspectorSession.id} displayName={inspectorSession.displayName} onLogout={logout}/>;
+    return (
+      <Suspense fallback={<div className="min-h-[100dvh] flex items-center justify-center bg-background"><p className="text-sm text-muted-foreground">Ładowanie panelu inspektora…</p></div>}>
+        <InspectorPanel inspectorId={inspectorSession.id} displayName={inspectorSession.displayName} onLogout={logout}/>
+      </Suspense>
+    );
   }
   if (!adminSession) return <LoginScreen onAdmin={enterAdmin} onInspector={enterInspector} onWorker={enterWorker}/>;
   return (

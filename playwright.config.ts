@@ -19,12 +19,19 @@ export default defineConfig({
   },
   projects: [
     {
+      name: "desktop-chrome",
+      use: { browserName: "chromium", viewport: { width: 1920, height: 1080 } },
+      testMatch: /desktop-smoke\.spec\.ts/,
+    },
+    {
       name: "iphone-se",
       use: { ...devices["iPhone SE"], browserName: "chromium" },
+      testMatch: /mobile-smoke\.spec\.ts/,
     },
     {
       name: "pixel-7",
       use: { ...devices["Pixel 7"], browserName: "chromium" },
+      testMatch: /mobile-smoke\.spec\.ts/,
     },
   ],
 });

@@ -242,6 +242,18 @@ export function InspectorAdminView({
     refreshStats();
   }, [refreshStats]);
 
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === "visible") refreshStats();
+    };
+    window.addEventListener("focus", refreshStats);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.removeEventListener("focus", refreshStats);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [refreshStats]);
+
   const loginStats = useMemo(
     () => (statsStore ? summarizeInspectorStats(statsStore) : null),
     [statsStore],

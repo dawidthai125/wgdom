@@ -469,11 +469,6 @@ export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown
   };
 }
 
-/** Połącz wpis z localStorage z bieżącym stanem React (chroni przed starą kartą w tle). */
-export function mergeWeekEmployeesWithStored(stored: unknown[], incoming: unknown[]): unknown[] {
-  return mergeWeekEmployees(stored, incoming);
-}
-
 /** Odczyt klucza danych z localStorage (między kartami / przed zapisem do chmury). */
 export function readLocalStorageDataKey(key: DataKey): unknown | null {
   try {
@@ -769,17 +764,38 @@ export function mergeAllDataKeys(
   );
 }
 
-/** Po merge weekFrom/weekTo — dopasuj do tygodnia z bogatszą listą płac. */
-export function alignWeekRangeInMerged(merged: unknown[]): unknown[] {
+/** Po merge weekFrom/weekTo — dopasuj do tygodnia z bogatszą listą płac (local vs chmura). */
+export function alignWeekRangeInMerged(
+  merged: unknown[],
+  localValues: unknown[],
+  cloudValues: unknown[],
+): unknown[] {
   const out = [...merged];
   const empIdx = DATA_KEYS.indexOf("kw-week-employees");
   const fromIdx = DATA_KEYS.indexOf("kw-weekFrom");
   const toIdx = DATA_KEYS.indexOf("kw-weekTo");
   if (empIdx < 0 || fromIdx < 0 || toIdx < 0) return out;
-  const range = pickWeekRange(out[fromIdx], out[toIdx], out[fromIdx], out[toIdx], out[empIdx], out[empIdx]);
+  const range = pickWeekRange(
+    localValues[fromIdx],
+    localValues[toIdx],
+    cloudValues[fromIdx],
+    cloudValues[toIdx],
+    localValues[empIdx],
+    cloudValues[empIdx],
+  );
   if (range.from) out[fromIdx] = range.from;
   if (range.to) out[toIdx] = range.to;
   return out;
+}
+
+/** Przed pushem wybranych kluczy — uwzględnij localStorage (inna karta / admin). */
+export function prepareKeysForCloudPush(keys: string[], values: unknown[]): unknown[] {
+  return keys.map((key, i) => {
+    if (!isDataKey(key)) return values[i];
+    const stored = readLocalStorageDataKey(key);
+    if (stored == null) return values[i];
+    return mergeIncomingWithStored(key, stored, values[i]);
+  });
 }
 
 export function dataKeyRichness(key: DataKey, value: unknown): number {
@@ -923,7 +939,7 @@ export async function computeMergedDataBundle(
     mergedContactsDeleted,
     mergedArchiveDeleted,
   );
-  merged = alignWeekRangeInMerged(merged);
+  merged = alignWeekRangeInMerged(merged, valuesForMerge, cloudValues);
 
   const empIdx = DATA_KEYS.indexOf("kw-week-employees");
   const archIdx = DATA_KEYS.indexOf("kw-archive");
@@ -968,17 +984,18 @@ export async function pushAllDataToCloudSafe(values: unknown[]): Promise<unknown
   return merged;
 }
 
-/** Zapis wielu kluczy z merge względem chmury i localStorage. */
+/** Zapis wielu kluczy z merge względem localStorage i chmury. */
 export async function pushKeysToCloudSafe(keys: string[], values: unknown[]): Promise<void> {
+  const prepared = prepareKeysForCloudPush(keys, values);
   let cloudValues: unknown[] = keys.map(() => null);
   try {
     cloudValues = await fetchKeysFromCloud(keys);
   } catch { /* ignore */ }
   const merged = keys.map((key, i) => {
-    if (!isDataKey(key)) return values[i];
+    if (!isDataKey(key)) return prepared[i];
     return mergeDataKey(
       key,
-      values[i],
+      prepared[i],
       cloudValues[i],
       getDeletedJobIds(),
       getDeletedDirectoryIds(),

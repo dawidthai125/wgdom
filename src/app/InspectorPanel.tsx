@@ -492,6 +492,33 @@ export function InspectorPanel({
   }, [refreshFromCloud]);
 
   useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.newValue == null) return;
+      if (e.key === "kw-jobs") {
+        try {
+          const parsed = normalizeJobsValue(JSON.parse(e.newValue)).map(normalizeJob) as InspectorJob[];
+          const json = JSON.stringify(parsed);
+          if (lastAppliedJobsJsonRef.current !== json) {
+            lastAppliedJobsJsonRef.current = json;
+            setJobs(parsed);
+          }
+        } catch { /* ignore */ }
+      } else if (e.key === "kw-directory") {
+        try {
+          const parsed = JSON.parse(e.newValue) as DirectoryEmployee[];
+          const json = JSON.stringify(parsed);
+          if (lastAppliedDirJsonRef.current !== json) {
+            lastAppliedDirJsonRef.current = json;
+            setDirectory(parsed);
+          }
+        } catch { /* ignore */ }
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  useEffect(() => {
     const onVis = () => {
       if (document.visibilityState === "visible") refreshFromCloud(true);
     };
