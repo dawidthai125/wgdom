@@ -8975,6 +8975,13 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.30.8", label:"PDF — karta dodatkowych godzin jak rozpis tygodniowy",
+    items:[
+      {type:"improve", text:"Karta dodatkowych godzin (PDF/Word) — siatka pracownik × dni Pn–So jak rozpis tygodniowy, z kolumną Kwota PLN"},
+      {type:"improve", text:"Komórka dnia: godziny od–do, opis, suma h i kwota brutto; wiersz Razem + podpis sumy kosztu nadgodzin"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.30.7", label:"Podgląd ATH — polskie znaki, działy, podsumowanie",
     items:[
       {type:"fix", text:"ATH Athenasoft — dekodowanie Windows-1250 (poprawne ą, ę, ł, ś… zamiast �)"},
