@@ -560,11 +560,15 @@ function dayTotalHours(day: DayData): number {
   const extra = (day.extraHours ?? []).reduce((s, e) => s + hoursWorked(e.from, e.to), 0);
   return +(base + extra).toFixed(2);
 }
+/** Godziny podstawowej zmiany (Pn–So) — bez dodatkowych; do spójności z robotami. */
+function dayBaseHoursOnly(day: DayData): number {
+  return day.active ? hoursWorked(day.from, day.to) : 0;
+}
 function dayExtraHoursOnly(day: DayData): number {
   return +(day.extraHours ?? []).reduce((s, e) => s + hoursWorked(e.from, e.to), 0).toFixed(2);
 }
 function prevSatBaseHours(day: DayData): number {
-  return day.active ? hoursWorked(day.from, day.to) : 0;
+  return dayBaseHoursOnly(day);
 }
 
 function payrollWeekExtraHourLines(employees: WeekEmployee[]) {
@@ -749,7 +753,7 @@ function payrollJobConsistencyAlerts(
       pushAlert(
         emp.name || "—",
         col,
-        dayTotalHours(emp.days[col.key]),
+        dayBaseHoursOnly(emp.days[col.key]),
         jobHoursForEmployeeOnDate(emp, jobs, col.iso, directory),
         emp,
       );
@@ -1075,7 +1079,7 @@ function duplicateWorkEntryWithPayrollHours(
   );
   const dayKey = dayKeyForIsoInWeek(targetDate, weekFrom);
   if (emp && dayKey) {
-    const payHours = dayTotalHours(emp.days[dayKey]);
+    const payHours = dayBaseHoursOnly(emp.days[dayKey]);
     if (payHours > 0) return { ...base, hours: payHours };
   }
   return { ...base, hours: DEFAULT_JOB_ENTRY_HOURS };
@@ -1302,7 +1306,7 @@ function payrollHoursForDirectoryOnDate(
   const emp = weekEmployees.find((e) => e.directoryId === dirId);
   const dayKey = dayKeyForIsoInWeek(dateIso, weekFrom);
   if (!emp || !dayKey) return 0;
-  return dayTotalHours(emp.days[dayKey]);
+  return dayBaseHoursOnly(emp.days[dayKey]);
 }
 
 function workEntryGroupKey(entry: WorkEntry): string {
@@ -1376,7 +1380,7 @@ function workEntriesFromPayrollForDate(
   for (const emp of weekEmployees) {
     const day = emp.days[dayKey];
     if (!day || !emp.directoryId) continue;
-    const hours = dayTotalHours(day);
+    const hours = dayBaseHoursOnly(day);
     if (hours <= 0) continue;
     if (existingToday.has(emp.directoryId)) continue;
     const extraNotes = (day.extraHours ?? [])
@@ -8847,7 +8851,7 @@ function HelpView() {
             {icon:Copy, title:"Kopiuj pracowników z zeszłego tygodnia", desc:"W Liście Płac, gdy tydzień jest pusty, pojawia się przycisk \"Kopiuj z poprzedniego tygodnia\". Kliknij — od razu doda tych samych pracowników co w poprzednim tygodniu. Oszczędzasz czas."},
             {icon:Mic, title:"Dyktowanie notatek głosem", desc:"Przy polu Notatki w robotach jest ikona mikrofonu. Kliknij, powiedz co chcesz wpisać — aplikacja zamieni mowę na tekst. Działa w przeglądarce Chrome na telefonie i komputerze."},
             {icon:Bell, title:"Reminder w sobotę", desc:"W sobotę na Pulpicie pojawia się niebieski baner: zapisz tydzień i rozlicz pracowników. W Liście Płac też jest żółty baner. Po „Zapisz tydzień” wysyłany jest backup emailem (raz na tydzień)."},
-            {icon:Scale, title:"Spójność listy płac ↔ roboty", desc:"Porównywana jest suma godzin z listy płac z wpisami na robotach. Pracownik z „Wiele robót dziennie” w kartotece jest pomijany (logistyka, kierowca)."},
+            {icon:Scale, title:"Spójność listy płac ↔ roboty", desc:"Porównywana jest podstawowa zmiana z listy płac (Pn–So) z wpisami na robotach — dodatkowe godziny z opisem nie wchodzą do tego porównania. Pracownik z „Wiele robót dziennie” w kartotece jest pomijany (logistyka, kierowca)."},
             {icon:BarChart3, title:"Karta pracownika z archiwum", desc:"Pracownicy → ikona wykresu przy osobie: roczne godziny, wypłaty, słupki miesięczne i lista tygodni z archiwum."},
             {icon:FileDown, title:"Raport roczny PDF", desc:"Archiwum → wybierz rok → „Raport roczny PDF”: wypłaty × 12 miesięcy, roboty zdane, średni koszt roboczogodziny."},
             {icon:LayoutDashboard, title:"Pulpit — centrum dowodzenia", desc:"Sekcja „Uwaga dziś”: zdjęcia, raporty, paragony, inspektor (nowe zmiany), spójność godzin, dokumenty. Klik w wiersz → otwiera robotę, listę płac lub Inspektora."},
@@ -8925,6 +8929,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-29", version:"2.30.3", label:"Spójność płac — bez dodatkowych godzin",
+    items:[
+      {type:"fix", text:"Pulpit: spójność listy płac ↔ roboty ignoruje dodatkowe godziny (mają własny opis, bez wpisu na robocie)"},
+      {type:"improve", text:"Wpisy na robotach z listy płac — godziny tylko z podstawowej zmiany, nie z nadgodzin"},
+    ],
+  },
   {
     date:"2026-05-29", version:"2.30.2", label:"Podgląd kosztorysu — poprawki",
     items:[
