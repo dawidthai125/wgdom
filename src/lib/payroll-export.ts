@@ -79,6 +79,14 @@ export interface WeekExtraHourLine {
   reason: string;
 }
 
+/** Pojedynczy zaakceptowany koszt do zwrotu (paragon, paliwo…) — trafia do kolumny Koszty i do wypłaty. */
+export interface WeekExtraCostLine {
+  name: string;
+  position: string;
+  description: string;
+  amount: number;
+}
+
 export interface PrevSatDetailLine {
   name: string;
   position: string;
@@ -213,6 +221,39 @@ function payrollExtraHourTotals(lines: WeekExtraHourLine[]): { hours: number; am
     hours: +lines.reduce((s, l) => s + l.hours, 0).toFixed(2),
     amount: +lines.reduce((s, l) => s + l.amount, 0).toFixed(2),
   };
+}
+
+/** Wiersze kosztów do zwrotu — tylko zaakceptowane (te same co w kolumnie Koszty / Do wypłaty). */
+export function buildPayrollExtraCostLines(
+  employees: {
+    name: string;
+    position: string;
+    extraCosts?: { description: string; amount: string; status?: string }[];
+  }[],
+): WeekExtraCostLine[] {
+  const lines: WeekExtraCostLine[] = [];
+  for (const emp of employees) {
+    for (const cost of emp.extraCosts ?? []) {
+      const status = cost.status ?? "approved";
+      if (status !== "approved") continue;
+      const amount = parseFloat(String(cost.amount).replace(",", ".")) || 0;
+      const description = cost.description?.trim() || "";
+      if (amount <= 0 && !description) continue;
+      lines.push({
+        name: emp.name || "—",
+        position: emp.position || "—",
+        description: description || "—",
+        amount: +amount.toFixed(2),
+      });
+    }
+  }
+  return lines.sort(
+    (a, b) => a.name.localeCompare(b.name, "pl") || a.description.localeCompare(b.description, "pl"),
+  );
+}
+
+function payrollExtraCostTotals(lines: WeekExtraCostLine[]): number {
+  return +lines.reduce((s, l) => s + l.amount, 0).toFixed(2);
 }
 
 function payrollEmployeeLabel(r: PayrollCalcRow): string {
@@ -614,6 +655,7 @@ export async function generatePayrollPdfBlob(
   prevSatDetails: PrevSatDetailLine[],
   prevSatIso: string,
   jobWorkLines: PayrollJobWorkLine[] = [],
+  extraCostLines: WeekExtraCostLine[] = [],
 ): Promise<Blob> {
   const pdfMake = await loadPdfMake();
   const logoDataUrl = await getCompanyLogoDataUrl();
@@ -679,6 +721,7 @@ export async function generatePayrollPdfBlob(
 
   const extraHourTotals = payrollExtraHourTotals(extraHourLines);
   const extraHoursGrid = buildPayrollExtraHoursGrid(extraHourLines, weekFrom);
+  const extraCostTotal = payrollExtraCostTotals(extraCostLines);
 
   const pdfTableLayout = {
     hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
@@ -843,6 +886,90 @@ export async function generatePayrollPdfBlob(
               },
               {
                 text: `Suma kosztu dodatkowych godzin w tygodniu: ${fmt(extraHourTotals.amount)} PLN brutto (${fmtH(extraHourTotals.hours)})`,
+                fontSize: 10,
+                bold: true,
+                color: C.navy,
+                margin: [0, 8, 0, 0] as [number, number, number, number],
+              },
+            ],
+            pageBreak: "before" as const,
+            unbreakable: false,
+          },
+        ]
+      : [];
+
+  const extraCostAppendixPdfBlock =
+    extraCostLines.length > 0
+      ? [
+          {
+            stack: [
+              {
+                text: "Koszty do zwrotu — szczegóły",
+                bold: true,
+                fontSize: 13,
+                color: C.navy,
+                margin: [0, 0, 0, 4] as [number, number, number, number],
+              },
+              {
+                text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · zaakceptowane paragony / wydatki doliczone do kolumny „Koszty” i „Do wypłaty” (brutto − zaliczki + koszty)`,
+                fontSize: 10,
+                color: C.muted,
+                margin: [0, 0, 0, 10] as [number, number, number, number],
+              },
+              {
+                table: {
+                  headerRows: 1,
+                  dontBreakRows: true,
+                  widths: [72, 52, "*", 48],
+                  body: [
+                    [
+                      pdfHdr("Pracownik"),
+                      pdfHdr("Stanowisko"),
+                      pdfHdr("Opis kosztu"),
+                      pdfHdr("Kwota"),
+                    ],
+                    ...extraCostLines.map((line, i) => {
+                      const bg = i % 2 === 0 ? C.white : C.lightGray;
+                      return [
+                        { text: line.name, fillColor: bg, fontSize: 9.5, alignment: "left" as const },
+                        { text: line.position || "—", fillColor: bg, fontSize: 9, color: C.muted, alignment: "left" as const },
+                        { text: line.description, fillColor: bg, fontSize: 9, alignment: "left" as const },
+                        {
+                          text: line.amount > 0 ? fmt(line.amount) : "—",
+                          fillColor: bg,
+                          fontSize: 9.5,
+                          bold: true,
+                          alignment: "right" as const,
+                          color: line.amount > 0 ? C.green : C.muted,
+                        },
+                      ];
+                    }),
+                    [
+                      {
+                        text: "Razem koszty do zwrotu",
+                        bold: true,
+                        colSpan: 3,
+                        fillColor: C.lightNavy,
+                        fontSize: 9,
+                        alignment: "right" as const,
+                      },
+                      {},
+                      {},
+                      {
+                        text: fmt(extraCostTotal),
+                        bold: true,
+                        fillColor: C.lightNavy,
+                        alignment: "right" as const,
+                        fontSize: 10,
+                        color: C.green,
+                      },
+                    ],
+                  ],
+                },
+                layout: pdfTableLayout,
+              },
+              {
+                text: `Suma kosztów do zwrotu w tygodniu: +${fmt(extraCostTotal)} PLN (doliczone do wypłaty)`,
                 fontSize: 10,
                 bold: true,
                 color: C.navy,
@@ -1033,6 +1160,14 @@ export async function generatePayrollPdfBlob(
             margin: [0, 0, 0, 10] as [number, number, number, number],
           }]
         : []),
+      ...(totals.totalExtraCostsSum > 0
+        ? [{
+            text: `Kolumna „Koszty”: +${fmt(totals.totalExtraCostsSum)} PLN — zwrot zaakceptowanych wydatków (szczegóły w załączniku poniżej).`,
+            fontSize: 9,
+            color: C.green,
+            margin: [0, 0, 0, 8] as [number, number, number, number],
+          }]
+        : []),
       {
         table: {
           headerRows: 1,
@@ -1051,6 +1186,7 @@ export async function generatePayrollPdfBlob(
       },
       ...dailyDetailPdfBlock,
       ...extraHourAppendixPdfBlock,
+      ...extraCostAppendixPdfBlock,
       ...prevSatAppendixPdfBlock,
       ...jobWorkAppendixPdfBlock,
     ],
@@ -1072,6 +1208,7 @@ export async function generatePayrollWordBlob(
   extraHourLines: WeekExtraHourLine[],
   prevSatDetails: PrevSatDetailLine[],
   prevSatIso: string,
+  extraCostLines: WeekExtraCostLine[] = [],
 ): Promise<Blob> {
   const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, ImageRun, WidthType, AlignmentType, BorderStyle, PageBreak, VerticalAlign } = await import("docx");
 
@@ -1079,6 +1216,7 @@ export async function generatePayrollWordBlob(
   const logoBytes = logoBytesFromDataUrl(logoDataUrl);
   const extraHourTotals = payrollExtraHourTotals(extraHourLines);
   const extraHoursGrid = buildPayrollExtraHoursGrid(extraHourLines, weekFrom);
+  const extraCostTotal = payrollExtraCostTotals(extraCostLines);
   const bNone = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
   const bThin = { style: BorderStyle.SINGLE, size: 2, color: "DDE3EA" };
   const mkCell = (txt: string, opts: { bold?: boolean; fill?: string; align?: (typeof AlignmentType)[keyof typeof AlignmentType]; color?: string; size?: number } = {}) =>
@@ -1228,6 +1366,21 @@ export async function generatePayrollWordBlob(
                 : []),
             ],
           }),
+          ...(totals.totalExtraCostsSum > 0
+            ? [
+                new Paragraph({
+                  spacing: { before: 120, after: 120 },
+                  children: [
+                    new TextRun({
+                      text: `Kolumna „Koszty”: +${fmt(totals.totalExtraCostsSum)} PLN — zwrot zaakceptowanych wydatków (szczegóły w załączniku).`,
+                      size: 20,
+                      color: "1E7E34",
+                      font: "Calibri",
+                    }),
+                  ],
+                }),
+              ]
+            : []),
           ...(weeklyGrid && weeklyGrid.rows.length > 0
             ? [
                 new Paragraph({ children: [new PageBreak()] }),
@@ -1334,6 +1487,73 @@ export async function generatePayrollWordBlob(
                   children: [
                     new TextRun({
                       text: `Suma kosztu dodatkowych godzin: ${fmt(extraHourTotals.amount)} PLN brutto (${fmtH(extraHourTotals.hours)})`,
+                      bold: true,
+                      size: 22,
+                      color: "344254",
+                      font: "Calibri",
+                    }),
+                  ],
+                }),
+              ]
+            : []),
+          ...(extraCostLines.length > 0
+            ? [
+                new Paragraph({ children: [new PageBreak()] }),
+                new Paragraph({
+                  spacing: { after: 100 },
+                  children: [new TextRun({ text: "Koszty do zwrotu — szczegóły", bold: true, size: 28, color: "344254", font: "Calibri" })],
+                }),
+                new Paragraph({
+                  spacing: { after: 200 },
+                  children: [
+                    new TextRun({
+                      text: `Tydzień: ${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · zaakceptowane wydatki doliczone do kolumny „Koszty” i „Do wypłaty”`,
+                      size: 22,
+                      color: "6B7A8D",
+                      font: "Calibri",
+                    }),
+                  ],
+                }),
+                new Table({
+                  width: { size: 100, type: WidthType.PERCENTAGE },
+                  rows: [
+                    new TableRow({
+                      children: ["Pracownik", "Stanowisko", "Opis kosztu", "Kwota"].map((h) =>
+                        mkCell(h, { bold: true, fill: "344254", color: "FFFFFF", size: 18 }),
+                      ),
+                      tableHeader: true,
+                    }),
+                    ...extraCostLines.map((line, i) =>
+                      new TableRow({
+                        cantSplit: true,
+                        children: [
+                          mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 20 }),
+                          mkCell(line.position || "—", { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 18 }),
+                          mkCellMultiline(line.description, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 18 }),
+                          mkCell(line.amount > 0 ? `${fmt(line.amount)} PLN` : "—", {
+                            bold: true,
+                            fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6",
+                            color: line.amount > 0 ? "1E7E34" : "6B7A8D",
+                            size: 20,
+                          }),
+                        ],
+                      }),
+                    ),
+                    new TableRow({
+                      children: [
+                        mkCell("Razem koszty do zwrotu", { bold: true, fill: "EDF1F6", align: AlignmentType.RIGHT, size: 16 }),
+                        mkCell("", { fill: "EDF1F6" }),
+                        mkCell("", { fill: "EDF1F6" }),
+                        mkCell(`${fmt(extraCostTotal)} PLN`, { bold: true, fill: "EDF1F6", color: "1E7E34", size: 20 }),
+                      ],
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  spacing: { before: 200 },
+                  children: [
+                    new TextRun({
+                      text: `Suma kosztów do zwrotu: +${fmt(extraCostTotal)} PLN (doliczone do wypłaty)`,
                       bold: true,
                       size: 22,
                       color: "344254",

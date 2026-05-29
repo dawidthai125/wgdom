@@ -185,6 +185,7 @@ import {
   buildPayrollEmailHtml,
   generatePayrollPdfBlob,
   generatePayrollWordBlob,
+  buildPayrollExtraCostLines,
   type PayrollJobWorkLine,
   blobToBase64,
 } from "@/lib/payroll-export";
@@ -2875,19 +2876,20 @@ function PayrollEmailModal({
     try {
       const weeklyGrid = payrollWeeklyGrid(rows.map((r) => r.emp), weekFrom);
       const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
+      const extraCostLines = buildPayrollExtraCostLines(rows.map((r) => r.emp));
       const prevSatDetails = payrollPrevSatDetailLines(rows.filter((r) => !isBiweeklyPayrollEmployee(r.emp, directory)).map((r) => r.emp), weekFrom);
       const prevSatIso = previousSaturdayIso(weekFrom);
       const jobWorkLines = payrollJobWorkLines(jobs, weekFrom, weekTo);
       const attachments: { filename: string; content: string }[] = [];
       if (attachPdf) {
         setSendStage("Ładuję generator PDF…");
-        const pdfBlob = await generatePayrollPdfBlob(weekFrom, weekTo, calcRows, totals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso, jobWorkLines);
+        const pdfBlob = await generatePayrollPdfBlob(weekFrom, weekTo, calcRows, totals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso, jobWorkLines, extraCostLines);
         setSendStage("Koduję PDF…");
         attachments.push({ filename: `lista-plac-${weekFrom}.pdf`, content: await blobToBase64(pdfBlob) });
       }
       if (attachWord) {
         setSendStage("Generuję Word…");
-        const wordBlob = await generatePayrollWordBlob(weekFrom, weekTo, calcRows, totals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso);
+        const wordBlob = await generatePayrollWordBlob(weekFrom, weekTo, calcRows, totals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso, extraCostLines);
         setSendStage("Koduję Word…");
         attachments.push({ filename: `lista-plac-${weekFrom}.docx`, content: await blobToBase64(wordBlob) });
       }
@@ -3318,15 +3320,16 @@ function PayrollView({
     const calcRows = toPayrollCalcRows(rows, directory, weekFrom, weekTo, savedWeeks);
     const weeklyGrid = payrollWeeklyGrid(rows.map((r) => r.emp), weekFrom);
     const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
+    const extraCostLines = buildPayrollExtraCostLines(rows.map((r) => r.emp));
     const prevSatDetails = payrollPrevSatDetailLines(rows.filter((r) => !isBiweeklyPayrollEmployee(r.emp, directory)).map((r) => r.emp), weekFrom);
     const prevSatIso = previousSaturdayIso(weekFrom);
     const jobWorkLines = payrollJobWorkLines(jobs, weekFrom, weekTo);
-    return { calcRows, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso, jobWorkLines };
+    return { calcRows, weeklyGrid, extraHourLines, extraCostLines, prevSatDetails, prevSatIso, jobWorkLines };
   };
 
   const buildPayrollPdfBlob = useCallback(async () => {
-    const { calcRows, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso, jobWorkLines } = payrollExportArgs();
-    return generatePayrollPdfBlob(weekFrom, weekTo, calcRows, exportTotals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso, jobWorkLines);
+    const { calcRows, weeklyGrid, extraHourLines, extraCostLines, prevSatDetails, prevSatIso, jobWorkLines } = payrollExportArgs();
+    return generatePayrollPdfBlob(weekFrom, weekTo, calcRows, exportTotals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso, jobWorkLines, extraCostLines);
   }, [weekFrom, weekTo, rows, exportTotals, jobs]);
 
   const exportPDF = async () => {
@@ -3335,8 +3338,8 @@ function PayrollView({
   };
 
   const exportWord = async () => {
-    const { calcRows, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso } = payrollExportArgs();
-    const blob = await generatePayrollWordBlob(weekFrom, weekTo, calcRows, exportTotals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso);
+    const { calcRows, weeklyGrid, extraHourLines, extraCostLines, prevSatDetails, prevSatIso } = payrollExportArgs();
+    const blob = await generatePayrollWordBlob(weekFrom, weekTo, calcRows, exportTotals, weeklyGrid, extraHourLines, prevSatDetails, prevSatIso, extraCostLines);
     saveAs(blob, `lista-plac-${weekFrom}.docx`);
   };
 
@@ -8974,6 +8977,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-29", version:"2.31.1", label:"Lista płac PDF/Word — opisy kosztów do zwrotu",
+    items:[
+      {type:"fix", text:"PDF i Word — załącznik „Koszty do zwrotu” z opisem każdego paragonu/wydatku (wcześniej tylko suma w kolumnie Koszty)"},
+      {type:"improve", text:"Pod tabelą główną — informacja skąd kwota w kolumnie Koszty i że szczegóły są w załączniku"},
+    ],
+  },
   {
     date:"2026-05-29", version:"2.31.0", label:"Kosztorys ATH — Kp/Z PLN, przedmiar, PDF",
     items:[
