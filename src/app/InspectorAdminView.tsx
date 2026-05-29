@@ -329,7 +329,7 @@ export function InspectorAdminView({
           actorAdminRole={adminRole !== "inspector" ? adminRole : "admin"}
           contacts={contacts}
           athPreviewEnabled={athPreviewEnabled}
-          directory={directoryContacts}
+          directory={directory}
         />
       </div>
     );

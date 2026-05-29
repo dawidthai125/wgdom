@@ -9101,6 +9101,13 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.33.1", label:"Inspektor admin — zakładki w szczegółach roboty",
+    items:[
+      {type:"fix", text:"Zakładka Inspektor (panel admina) — po otwarciu roboty sekcje WM, Pliki, Dokumenty, Ekipa, Raporty, Zdjęcia jako zakładki (wcześniej tylko aplikacja inspektora)"},
+      {type:"improve", text:"PWA — odświeżony cache shell (v3) po wdrożeniu"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.33.0", label:"Inspektor + nawigacja — zakładki i powrót do Pulpitu",
     items:[
       {type:"fix", text:"Aplikacja inspektora — sekcje (Pliki, Dokumenty, Zdjęcia…) jako zakładki; kliknięcie od razu pokazuje treść"},
