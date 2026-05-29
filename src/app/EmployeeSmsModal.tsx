@@ -3,9 +3,13 @@ import { X, Send, MessageSquare, Users, AlertTriangle, CheckCircle2, Shield, Har
 import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
 import { normalizePhoneE164, normalizePhone9 } from "@/lib/phone-normalize";
 import { adminRoleLabel, listAdminUsersForManagement, type AdminSession } from "@/lib/admin-auth";
-
-/** Nazwy nadawców dodane ręcznie w panelu SMSAPI (nie przez API). */
-const SMS_EXPECTED_SENDERS = ["W&GDOM", "W&G-Dawid", "W&G-Pawel", "W&G-Stan"] as const;
+import {
+  SMS_SENDER_NAMES,
+  isActiveSmsSender,
+  pickDefaultSmsFrom,
+  senderNameKey,
+  type SmsSenderName,
+} from "@/lib/sms-senders";
 
 export type SmsDirectoryEmployee = {
   id: string;
@@ -142,6 +146,25 @@ export function EmployeeSmsModal({
   }>({ loading: true, configured: false, provider: "none", restricted: false });
   const [ensureBusy, setEnsureBusy] = useState(false);
   const [ensureNote, setEnsureNote] = useState("");
+  const [selectedFrom, setSelectedFrom] = useState<SmsSenderName>("W&GDOM");
+
+  const activeKnownSenders = useMemo(() => {
+    const fromApi = smsStatus.sendernames
+      ?.filter((s) => s.status === "ACTIVE")
+      .map((s) => s.sender) ?? [];
+    const knownKeys = new Set(SMS_SENDER_NAMES.map(senderNameKey));
+    return fromApi.filter((s) => knownKeys.has(senderNameKey(s)));
+  }, [smsStatus.sendernames]);
+
+  const senderStatusByName = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const s of smsStatus.sendernames ?? []) {
+      if (SMS_SENDER_NAMES.some((n) => senderNameKey(n) === senderNameKey(s.sender))) {
+        map.set(senderNameKey(s.sender), s.status);
+      }
+    }
+    return map;
+  }, [smsStatus.sendernames]);
 
   const loadHistory = useCallback(async () => {
     if (!API_BASE) return;
@@ -184,6 +207,7 @@ export function EmployeeSmsModal({
           restricted?: boolean;
           points?: number;
           registrationPhone?: string;
+          activeKnownSenders?: string[];
           error?: string;
           sendernames?: { sender: string; status: string; is_default?: boolean }[];
         };
@@ -218,12 +242,20 @@ export function EmployeeSmsModal({
       });
   }, [open, eligible, loadHistory]);
 
+  const senderLabel = sender?.displayName?.trim() || "Administrator";
+
+  useEffect(() => {
+    if (!open) return;
+    const active = activeKnownSenders.length > 0
+      ? activeKnownSenders
+      : SMS_SENDER_NAMES.filter((n) => senderStatusByName.get(senderNameKey(n)) === "ACTIVE");
+    setSelectedFrom(pickDefaultSmsFrom(senderLabel, active));
+  }, [open, senderLabel, activeKnownSenders, senderStatusByName]);
+
   const recipients = useMemo(
     () => uniqueByPhone(eligible.filter((r) => selected.has(r.id))),
     [eligible, selected],
   );
-
-  const senderLabel = sender?.displayName?.trim() || "Administrator";
 
   const toggle = (id: string) => {
     setSelected((prev) => {
@@ -262,16 +294,13 @@ export function EmployeeSmsModal({
         setSmsStatus((s) => ({ ...s, sendernames: data.sendernames }));
       }
       const active = data.active ?? [];
-      const missing = data.results?.filter((r) => r.status === "MISSING" || r.action === "failed") ?? [];
-      const pending = data.results?.filter((r) => r.status === "INACTIVE") ?? [];
-      if (active.length > 0) {
-        setEnsureNote(`Aktywne nazwy nadawców: ${active.join(", ")}`);
-      } else if (pending.length > 0) {
-        setEnsureNote(`Oczekuje na akceptację SMSAPI: ${pending.map((r) => r.sender).join(", ")}`);
-      } else if (missing.length > 0) {
-        setEnsureNote(`Brak w SMSAPI: ${missing.map((r) => r.sender).join(", ")} — dodaj ręcznie w panelu smsapi.pl`);
+      const missing = SMS_SENDER_NAMES.filter((n) => !isActiveSmsSender(n, active));
+      if (active.length >= SMS_SENDER_NAMES.length) {
+        setEnsureNote(`Wszystkie nazwy aktywne: ${active.join(", ")}`);
+      } else if (active.length > 0) {
+        setEnsureNote(`Aktywne: ${active.join(", ")}${missing.length ? ` · brak: ${missing.join(", ")}` : ""}`);
       } else {
-        setEnsureNote("Sprawdzono nazwy nadawców w SMSAPI.");
+        setEnsureNote(`Brak aktywnych nadawców — dodaj w panelu SMSAPI: ${SMS_SENDER_NAMES.join(", ")}`);
       }
     } catch {
       setEnsureNote("Błąd połączenia przy sprawdzaniu nadawców");
@@ -292,6 +321,10 @@ export function EmployeeSmsModal({
     }
     if (!API_BASE) {
       setError("Backend nie skonfigurowany (Supabase)");
+      return;
+    }
+    if (smsStatus.provider === "smsapi" && !isActiveSmsSender(selectedFrom, activeKnownSenders)) {
+      setError(`Nadawca „${selectedFrom}” nie jest aktywny w SMSAPI. Wybierz inną nazwę lub odśwież status.`);
       return;
     }
 
@@ -315,6 +348,7 @@ export function EmployeeSmsModal({
           senderLogin: sender?.login || "",
           senderName: senderLabel,
           senderRole: sender?.role,
+          smsFrom: selectedFrom,
         }),
       });
       const data = (await res.json()) as {
@@ -499,24 +533,42 @@ export function EmployeeSmsModal({
               <div className="bg-secondary/40 rounded-xl px-3 py-2.5 text-[11px] text-muted-foreground leading-relaxed space-y-2">
                 <p>
                   Treść SMS zacznie się od <strong className="text-foreground/90">{previewPrefix}</strong> — odbiorca zobaczy kto wysłał.
-                  Pole nadawcy na telefonie (np. <em>W&G-Dawid</em>) ustawiasz <strong className="text-foreground/90">ręcznie w panelu SMSAPI</strong> — aplikacja nie dodaje nazw przez API.
+                  Pole nadawcy na telefonie wybierasz poniżej (tylko nazwy ACTIVE w SMSAPI).
                 </p>
-                <p className="text-[10px] pt-1 border-t border-border/50">
-                  Wymagane nazwy w SMSAPI: {SMS_EXPECTED_SENDERS.join(", ")}
-                </p>
-                {smsStatus.sendernames && smsStatus.sendernames.length > 0 && (
-                  <div className="text-[10px] space-y-0.5 pt-1 border-t border-border/50">
-                    <p className="font-medium text-foreground/80">Nazwy nadawców w SMSAPI:</p>
-                    {smsStatus.sendernames.map((s) => (
-                      <p key={s.sender}>
-                        <span className={s.status === "ACTIVE" ? "text-emerald-600 font-medium" : "text-amber-600"}>
-                          {s.status === "ACTIVE" ? "✓" : "⏳"} {s.sender}
-                        </span>
-                        <span className="text-muted-foreground"> — {s.status}{s.is_default ? " · domyślna" : ""}</span>
-                      </p>
-                    ))}
+
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+                    Nazwa nadawcy SMS (pole From)
+                  </p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {SMS_SENDER_NAMES.map((name) => {
+                      const status = senderStatusByName.get(senderNameKey(name));
+                      const active = status === "ACTIVE" || isActiveSmsSender(name, activeKnownSenders);
+                      const selected = senderNameKey(selectedFrom) === senderNameKey(name);
+                      return (
+                        <button
+                          key={name}
+                          type="button"
+                          disabled={!active && smsStatus.provider === "smsapi" && !smsStatus.loading}
+                          onClick={() => setSelectedFrom(name)}
+                          className={`px-2.5 py-2 rounded-lg text-left text-[11px] border transition-colors ${
+                            selected
+                              ? "border-primary bg-primary/10 text-foreground font-medium"
+                              : active
+                                ? "border-border bg-card hover:bg-secondary/60"
+                                : "border-border/50 opacity-50 cursor-not-allowed"
+                          }`}
+                        >
+                          <span className="block font-medium">{name}</span>
+                          <span className={`text-[10px] ${active ? "text-emerald-600" : "text-amber-600"}`}>
+                            {smsStatus.loading ? "…" : active ? "ACTIVE" : status || "brak w SMSAPI"}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
+                </div>
+
                 <button
                   type="button"
                   disabled={ensureBusy || !smsStatus.configured || smsStatus.provider !== "smsapi"}
@@ -620,7 +672,12 @@ export function EmployeeSmsModal({
             <button
               type="button"
               onClick={handleSend}
-              disabled={busy || !message.trim() || recipients.length === 0}
+              disabled={
+                busy
+                || !message.trim()
+                || recipients.length === 0
+                || (smsStatus.provider === "smsapi" && !isActiveSmsSender(selectedFrom, activeKnownSenders))
+              }
               className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-40 flex items-center justify-center gap-2"
             >
               <Send size={14}/>

@@ -23,7 +23,7 @@ import {
   type DownloadablePhoto,
 } from "@/lib/photo-download";
 import { downloadPhotosAsZip } from "@/lib/photo-zip";
-import type { InspectorPhotoEntry, InspectorPhotoLabel } from "@/lib/job-wm";
+import type { InspectorPhotoEntry } from "@/lib/job-wm";
 
 type CrewPhoto = DownloadablePhoto & {
   label: "before" | "after" | "progress";

@@ -155,7 +155,6 @@ import {
   inferJobPhase,
   jobMatchesListFilter,
   jobMissingRequiredDocs,
-  inferJobPhase,
   JOB_PHASE_LABELS,
   type JobListFilter,
   type JobPhase,
@@ -8943,6 +8942,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-29", version:"2.31.8", label:"SMS — wybór nadawcy z 4 nazw",
+    items:[
+      {type:"new", text:"Modal SMS — wybór nadawcy: W&GDOM, W&G-Dawid, W&G-Pawel, W&G-Stan (tylko ACTIVE w SMSAPI)"},
+      {type:"improve", text:"Domyślnie nazwa dopasowana do zalogowanego użytkownika; backend wysyła tylko z wybranej aktywnej nazwy"},
+    ],
+  },
   {
     date:"2026-05-29", version:"2.31.7", label:"Roboty — ręczny status + braki dokumentów",
     items:[

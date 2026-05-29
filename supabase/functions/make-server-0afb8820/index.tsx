@@ -1,4 +1,4 @@
-/** W&G DOM Edge Function — v2.31.6 SMS nadawcy tylko ręcznie w panelu SMSAPI */
+/** W&G DOM Edge Function — v2.31.8 SMS wybór nadawcy z listy 4 nazw */
 import { Hono } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
@@ -1390,6 +1390,7 @@ async function getSmsProviderStatus(): Promise<{
   registrationPhone?: string;
   paymentType?: string;
   sendernames?: SmsApiSenderEntry[];
+  activeKnownSenders?: string[];
   error?: string;
 }> {
   const smsapiToken = Deno.env.get("SMSAPI_TOKEN");
@@ -1412,6 +1413,7 @@ async function getSmsProviderStatus(): Promise<{
       registrationPhone: prof.profile.phone_number,
       paymentType: prof.profile.payment_type,
       sendernames,
+      activeKnownSenders: activeKnownSenders(sendernames),
     };
   }
   if (Deno.env.get("TWILIO_ACCOUNT_SID")) {
@@ -1624,6 +1626,44 @@ function activeSenderNames(entries: SmsApiSenderEntry[]): string[] {
   return entries.filter((s) => s.status === "ACTIVE").map((s) => s.sender);
 }
 
+function activeKnownSenders(allSenders: SmsApiSenderEntry[]): string[] {
+  const activeKeys = new Set(activeSenderNames(allSenders).map(senderNameKey));
+  return SMS_KNOWN_SENDERS.filter((s) => activeKeys.has(senderNameKey(s)));
+}
+
+function resolveFromCandidates(
+  active: string[],
+  opts?: { requestedFrom?: string; senderDisplayName?: string },
+): { fromCandidates: string[]; error?: string } {
+  const activeKnown = SMS_KNOWN_SENDERS
+    .map((name) => active.find((a) => senderNameKey(a) === senderNameKey(name)))
+    .filter((s): s is string => Boolean(s));
+
+  const requested = opts?.requestedFrom?.trim();
+  if (requested) {
+    const match = activeKnown.find((s) => senderNameKey(s) === senderNameKey(requested));
+    if (!match) {
+      return {
+        fromCandidates: [],
+        error: activeKnown.length > 0
+          ? `Nadawca „${requested}” niedostępny. Aktywne: ${activeKnown.join(", ")}`
+          : `Brak aktywnych nadawców. Dodaj w panelu SMSAPI: ${SMS_KNOWN_SENDERS.join(", ")}`,
+      };
+    }
+    return { fromCandidates: [match] };
+  }
+
+  const personal = opts?.senderDisplayName ? buildSmsFromCandidate(opts.senderDisplayName) : undefined;
+  const ordered = prioritizeFromCandidates([...SMS_KNOWN_SENDERS], active, personal);
+  if (ordered.length === 0) {
+    return {
+      fromCandidates: [],
+      error: `Brak aktywnych nadawców (${SMS_KNOWN_SENDERS.join(", ")}).`,
+    };
+  }
+  return { fromCandidates: ordered };
+}
+
 function prioritizeFromCandidates(candidates: string[], active: string[], personal?: string): string[] {
   const activeByKey = new Map(active.map((a) => [senderNameKey(a), a]));
   const ordered: string[] = [];
@@ -1736,7 +1776,8 @@ app.post("/make-server-0afb8820/sms-sendernames/ensure", async (c) => {
       ok: true,
       results,
       sendernames,
-      active: activeSenderNames(sendernames),
+      active: activeKnownSenders(sendernames),
+      activeAll: activeSenderNames(sendernames),
       expected: SMS_KNOWN_SENDERS,
       manualOnly: true,
     });
@@ -1755,6 +1796,7 @@ app.post("/make-server-0afb8820/send-sms-bulk", async (c) => {
     senderLogin?: string;
     senderName?: string;
     senderRole?: string;
+    smsFrom?: string;
   };
   try {
     body = await c.req.json();
@@ -1809,17 +1851,22 @@ app.post("/make-server-0afb8820/send-sms-bulk", async (c) => {
   const smsPrefix = Deno.env.get("SMS_PREFIX")?.trim();
   const fullMessage = buildFullSmsText(message, senderName || undefined, smsPrefix);
 
+  const smsFrom = String(body.smsFrom || "").trim() || undefined;
+
   const personalFrom = senderName ? buildSmsFromCandidate(senderName) : undefined;
   let fromCandidates = personalFrom ? [personalFrom] : [];
   let ensureResults: SmsSenderEnsureResult[] = [];
 
   const smsToken = Deno.env.get("SMSAPI_TOKEN");
   if (smsToken) {
-    const toCheck = collectSenderNamesToEnsure(senderName);
-    ensureResults = await checkSmsApiSendersStatus(smsToken, toCheck);
+    ensureResults = await checkSmsApiSendersStatus(smsToken, [...SMS_KNOWN_SENDERS]);
     const senders = await listSmsApiSenders(smsToken);
     const active = activeSenderNames(senders);
-    fromCandidates = prioritizeFromCandidates(collectSenderNamesToEnsure(senderName), active, personalFrom);
+    const resolved = resolveFromCandidates(active, { requestedFrom: smsFrom, senderDisplayName: senderName });
+    if (resolved.fromCandidates.length === 0) {
+      return c.json({ ok: false, error: resolved.error || "Brak aktywnych nadawców SMS", sent: 0, failed: 0 }, 400);
+    }
+    fromCandidates = resolved.fromCandidates;
   } else {
     fromCandidates = personalFrom ? [personalFrom] : [];
     const envFrom = Deno.env.get("SMSAPI_FROM")?.trim();
