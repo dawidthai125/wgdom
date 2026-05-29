@@ -9101,6 +9101,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.34.0", label:"Panel inspektora — Galeria, Pliki, powrót do Pulpitu",
+    items:[
+      {type:"fix", text:"Inspektor — po wejściu w robotę z Pulpitu/Galerii/Plików przycisk „Wróć do …” wraca tam, skąd przyszedłeś (nie tylko lista robót)"},
+      {type:"new", text:"Inspektor — dolna zakładka Galeria (zdjęcia ekipy jak u admina) i Pliki (pobieranie pojedynczo lub ZIP)"},
+      {type:"improve", text:"Pakiet ZIP plików roboty — foldery wg typu i daty (zlecenie/2026-05-20/, zdjecia-ekipa/przed/…)"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.33.1", label:"Inspektor admin — zakładki w szczegółach roboty",
     items:[
       {type:"fix", text:"Zakładka Inspektor (panel admina) — po otwarciu roboty sekcje WM, Pliki, Dokumenty, Ekipa, Raporty, Zdjęcia jako zakładki (wcześniej tylko aplikacja inspektora)"},

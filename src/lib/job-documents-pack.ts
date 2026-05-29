@@ -132,10 +132,12 @@ export function collectJobPackEntries(job: JobPackSource): PackFileEntry[] {
     entries.push({ zipPath: path, url });
   };
 
+  const dateFolder = (iso: string) => (iso || "").slice(0, 10) || "bez-daty";
+
   for (const f of job.jobFiles || []) {
     if (!f.publicUrl) continue;
-    const folder = f.kind === "zlecenie" ? "01-zlecenie" : "02-kosztorys";
-    add(`pliki/${folder}/${safeFilename(f.filename || `${f.kind}.pdf`)}`, f.publicUrl);
+    const folder = f.kind === "zlecenie" ? "zlecenie" : "kosztorys";
+    add(`${folder}/${dateFolder(f.uploadedAt)}/${safeFilename(f.filename || `${f.kind}.pdf`)}`, f.publicUrl);
   }
 
   let inspIdx = 1;
@@ -147,7 +149,7 @@ export function collectJobPackEntries(job: JobPackSource): PackFileEntry[] {
       : p.label === "after_handover" ? "po-odbiorem"
       : "przed-odbiorem";
     const name = p.caption ? safeFilename(p.caption) : `zdjecie-${inspIdx}${ext}`;
-    add(`pliki/03-zdjecia-inspektor/${labelFolder}/${name}`, p.publicUrl);
+    add(`zdjecia-inspektor/${labelFolder}/${dateFolder(p.uploadedAt)}/${name}`, p.publicUrl);
     inspIdx++;
   }
 
@@ -162,7 +164,7 @@ export function collectJobPackEntries(job: JobPackSource): PackFileEntry[] {
     const folder = labelFolder[p.label] || p.label;
     const ext = extFromUrl(p.publicUrl, ".jpg");
     const base = p.filename || p.caption || `zdjecie-${photoIdx}${ext}`;
-    add(`pliki/04-zdjecia-zatwierdzone/${folder}/${safeFilename(base)}`, p.publicUrl);
+    add(`zdjecia-ekipa/${folder}/${dateFolder(p.uploadedAt)}/${safeFilename(base)}`, p.publicUrl);
     photoIdx++;
   }
 
@@ -170,7 +172,7 @@ export function collectJobPackEntries(job: JobPackSource): PackFileEntry[] {
     if (!r.sketch?.publicUrl) continue;
     const ext = extFromUrl(r.sketch.publicUrl, ".jpg");
     const who = safeFilename(r.workerName || "pracownik");
-    add(`pliki/05-raporty-rysunki/${who}-${r.id.slice(0, 8)}${ext}`, r.sketch.publicUrl);
+    add(`raporty-rysunki/${dateFolder(r.submittedAt)}/${who}-${r.id.slice(0, 8)}${ext}`, r.sketch.publicUrl);
   }
 
   return entries;

@@ -76,6 +76,14 @@ import {
   type InspectorJobSection,
   type InspectorMainTab,
 } from "@/app/InspectorNavigation";
+
+const TAB_RETURN_LABELS: Record<InspectorMainTab, string> = {
+  dashboard: "Pulpitu",
+  jobs: "listy robót",
+  gallery: "Galerii",
+  files: "Plików",
+  portfolio: "Portfolio",
+};
 import { PwaInstallBanner } from "@/app/PwaInstallBanner";
 import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } from "@/lib/photo-queue";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
@@ -83,6 +91,9 @@ import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh
 import { Toaster, toast } from "sonner";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
+import { JobInspectorFilesPanel } from "@/app/JobInspectorFilesPanel";
+import { InspectorJobPhotosGalleryView } from "@/app/InspectorJobPhotosGalleryView";
+import { InspectorJobFilesBrowser } from "@/app/InspectorJobFilesBrowser";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { loadAppSettingsLocal, syncAppSettingsFromCloud } from "@/lib/app-settings";
 
@@ -220,11 +231,14 @@ export function InspectorPanel({
   const listScrollRef = useRef<HTMLDivElement>(null);
   const dashboardScrollRef = useRef<HTMLDivElement>(null);
   const portfolioScrollRef = useRef<HTMLDivElement>(null);
+  const galleryScrollRef = useRef<HTMLDivElement>(null);
+  const filesScrollRef = useRef<HTMLDivElement>(null);
   const [photoQueueCount, setPhotoQueueCount] = useState(0);
   const [flushingPhotoQueue, setFlushingPhotoQueue] = useState(false);
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
   const [athPreviewEnabled, setAthPreviewEnabled] = useState(() => loadAppSettingsLocal().athPreviewEnabled);
   const [jobSection, setJobSection] = useState<InspectorJobSection>("wm");
+  const [jobReturnNav, setJobReturnNav] = useState<{ tab: InspectorMainTab; label: string } | null>(null);
 
   useEffect(() => {
     syncAppSettingsFromCloud()
@@ -302,15 +316,40 @@ export function InspectorPanel({
     markInspectorJobNotesSeen(inspectorId).then(() => setNotesSeenTick((t) => t + 1)).catch(() => {});
   };
 
-  const openJob = useCallback((jobId: string, section?: InspectorJobSection) => {
+  const openJob = useCallback((jobId: string, section?: InspectorJobSection, fromTab?: InspectorMainTab) => {
+    const tab = fromTab ?? mainTab;
+    setJobReturnNav({ tab, label: TAB_RETURN_LABELS[tab] });
     setSelectedId(jobId);
-    setMainTab("jobs");
     setMsg("");
     setOpenReportId(null);
     if (section) setJobSection(section);
     else setJobSection("wm");
     if (adminNotesPending.some((j) => j.id === jobId)) markAdminNotesSeen();
-  }, [adminNotesPending]);
+  }, [adminNotesPending, mainTab]);
+
+  const closeJob = useCallback(() => {
+    if (jobReturnNav) setMainTab(jobReturnNav.tab);
+    setSelectedId(null);
+    setJobReturnNav(null);
+  }, [jobReturnNav]);
+
+  const switchMainTab = useCallback((tab: InspectorMainTab) => {
+    setMainTab(tab);
+    setSelectedId(null);
+    setJobReturnNav(null);
+  }, []);
+
+  const renderBottomNav = () => (
+    <InspectorBottomNav
+      active={mainTab}
+      alertCount={dashboardAlertCount}
+      onDashboard={() => switchMainTab("dashboard")}
+      onJobs={() => switchMainTab("jobs")}
+      onGallery={() => switchMainTab("gallery")}
+      onFiles={() => switchMainTab("files")}
+      onPortfolio={() => switchMainTab("portfolio")}
+    />
+  );
 
   const dashboardAlertCount = useMemo(() => {
     const stats = computeInspectorDashboardStats(jobs, adminNotesPending.length);
@@ -549,14 +588,16 @@ export function InspectorPanel({
   useEffect(() => {
     if (!selectedId) return;
     return registerNativeBackHandler(() => {
-      setSelectedId(null);
+      closeJob();
       return true;
     });
-  }, [selectedId]);
+  }, [selectedId, closeJob]);
 
   const pullRefresh = useCallback(() => refreshFromCloud(false), [refreshFromCloud]);
   const dashboardPull = usePullToRefresh(dashboardScrollRef, pullRefresh, !selectedId && mainTab === "dashboard");
   const listPull = usePullToRefresh(listScrollRef, pullRefresh, !selectedId && mainTab === "jobs");
+  const galleryPull = usePullToRefresh(galleryScrollRef, pullRefresh, !selectedId && mainTab === "gallery");
+  const filesPull = usePullToRefresh(filesScrollRef, pullRefresh, !selectedId && mainTab === "files");
   const jobPull = usePullToRefresh(jobScrollRef, pullRefresh, Boolean(selectedId));
   const portfolioPull = usePullToRefresh(portfolioScrollRef, pullRefresh, !selectedId && mainTab === "portfolio");
 
@@ -707,7 +748,7 @@ export function InspectorPanel({
           <div className="flex gap-2 shrink-0">
             <button
               type="button"
-              onClick={() => { setSelectedId(adminNotesPending[0].id); setMsg(""); markAdminNotesSeen(); }}
+              onClick={() => openJob(adminNotesPending[0].id, "wm")}
               className="px-3 py-2.5 min-h-[44px] rounded-lg bg-violet-600 text-white text-xs font-medium touch-manipulation"
             >
               Otwórz
@@ -742,29 +783,38 @@ export function InspectorPanel({
               )}
             </div>
           </div>
-          <InspectorBottomNav
-            active={mainTab}
-            alertCount={dashboardAlertCount}
-            onDashboard={() => setMainTab("dashboard")}
-            onJobs={() => setMainTab("jobs")}
-            onPortfolio={() => setMainTab("portfolio")}
-            onHelp={() => setHelpOpen(true)}
-          />
+          {renderBottomNav()}
         </div>
       ) : !selectedJob && mainTab === "portfolio" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <PullToRefreshIndicator pull={portfolioPull.pull} refreshing={portfolioPull.refreshing || syncing} ready={portfolioPull.ready}/>
-          <WmPortfolioView jobs={jobs} scrollRef={portfolioScrollRef} onOpenJob={(id) => openJob(id)}/>
-          <InspectorBottomNav
-            active={mainTab}
-            alertCount={dashboardAlertCount}
-            onDashboard={() => setMainTab("dashboard")}
-            onJobs={() => setMainTab("jobs")}
-            onPortfolio={() => setMainTab("portfolio")}
-            onHelp={() => setHelpOpen(true)}
-          />
+          <WmPortfolioView jobs={jobs} scrollRef={portfolioScrollRef} onOpenJob={(id) => openJob(id, undefined, "portfolio")}/>
+          {renderBottomNav()}
         </div>
-      ) : !selectedJob ? (
+      ) : !selectedJob && mainTab === "gallery" ? (
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <PullToRefreshIndicator pull={galleryPull.pull} refreshing={galleryPull.refreshing || syncing} ready={galleryPull.ready}/>
+          <div ref={galleryScrollRef} className="flex-1 overflow-y-auto overscroll-contain">
+            <InspectorJobPhotosGalleryView
+              jobs={jobs}
+              onOpenJob={(id) => openJob(id, "photos", "gallery")}
+            />
+          </div>
+          {renderBottomNav()}
+        </div>
+      ) : !selectedJob && mainTab === "files" ? (
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <PullToRefreshIndicator pull={filesPull.pull} refreshing={filesPull.refreshing || syncing} ready={filesPull.ready}/>
+          <div ref={filesScrollRef} className="flex-1 overflow-y-auto overscroll-contain">
+            <InspectorJobFilesBrowser
+              jobs={jobs}
+              athPreviewEnabled={athPreviewEnabled}
+              onOpenJob={(id) => openJob(id, "files", "files")}
+            />
+          </div>
+          {renderBottomNav()}
+        </div>
+      ) : !selectedJob && mainTab === "jobs" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <div className="px-4 py-3 space-y-3 border-b border-border bg-card/50 shrink-0">
             <div className="flex items-end justify-between gap-2">
@@ -825,7 +875,7 @@ export function InspectorPanel({
                   <button
                     key={job.id}
                     type="button"
-                    onClick={() => { setSelectedId(job.id); setMsg(""); setOpenReportId(null); if (hasAdminReply) markAdminNotesSeen(); }}
+                    onClick={() => openJob(job.id, undefined, "jobs")}
                     className={`w-full text-left bg-card border rounded-2xl p-4 hover:border-primary/40 transition-colors active:scale-[0.99] ${hasAdminReply ? "border-violet-500/40 ring-1 ring-violet-500/20" : "border-border"}`}
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -872,20 +922,13 @@ export function InspectorPanel({
             )}
           </div>
 
-          <InspectorBottomNav
-            active={mainTab}
-            alertCount={dashboardAlertCount}
-            onDashboard={() => setMainTab("dashboard")}
-            onJobs={() => setMainTab("jobs")}
-            onPortfolio={() => setMainTab("portfolio")}
-            onHelp={() => setHelpOpen(true)}
-          />
+          {renderBottomNav()}
         </div>
       ) : (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-4 py-2 shrink-0 space-y-2">
-            <button type="button" onClick={() => setSelectedId(null)} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px]">
-              <ArrowLeft size={16}/>Wróć do listy robót
+            <button type="button" onClick={closeJob} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px]">
+              <ArrowLeft size={16}/>Wróć do {jobReturnNav?.label ?? "listy robót"}
             </button>
             <div className="pb-1">
               <p className="text-sm font-semibold truncate leading-snug">
@@ -901,7 +944,7 @@ export function InspectorPanel({
             />
             <p className="text-[10px] text-muted-foreground px-0.5 pb-1">
               {jobSection === "wm" && "Etap odbioru WM, notatki i odpowiedzi od admina"}
-              {jobSection === "files" && "Zlecenie PDF i kosztorys — oznacz „Jest” lub wgraj plik"}
+              {jobSection === "files" && "Zlecenie, kosztorys i wszystkie pliki — pobierz pojedynczo lub ZIP"}
               {jobSection === "docs" && "Checklist dokumentów wymaganych przy odbiorze"}
               {jobSection === "team" && "Kto pracował na robocie — numery telefonów"}
               {jobSection === "reports" && "Raporty ekipy: zakres prac, wymiary, rysunki"}
@@ -1068,6 +1111,18 @@ export function InspectorPanel({
                 );
               })}
             </div>
+              <JobInspectorFilesPanel
+                jobId={selectedJob.id}
+                jobAddress={selectedJob.address}
+                jobFlat={selectedJob.flatNumber}
+                jobFiles={selectedJob.jobFiles || []}
+                inspectorPhotos={selectedJob.inspectorPhotos || []}
+                athPreviewEnabled={athPreviewEnabled}
+                contacts={[]}
+                readOnly
+                packSource={selectedJob}
+                title="Wszystkie pliki roboty"
+              />
             </div>
             )}
 

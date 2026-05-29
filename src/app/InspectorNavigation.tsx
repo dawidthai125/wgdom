@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import {
   List, LayoutGrid, LayoutDashboard, BookOpen, MessageSquare, FileText, ClipboardList,
-  Users, Ruler, ImagePlus, Calendar,
+  Users, Ruler, ImagePlus, Calendar, Images, FolderOpen,
 } from "lucide-react";
 
-export type InspectorMainTab = "dashboard" | "jobs" | "portfolio";
+export type InspectorMainTab = "dashboard" | "jobs" | "gallery" | "files" | "portfolio";
 
 export type InspectorJobSection =
   | "wm"
@@ -32,21 +32,31 @@ export function InspectorBottomNav({
   active,
   onDashboard,
   onJobs,
+  onGallery,
+  onFiles,
   onPortfolio,
-  onHelp,
   alertCount = 0,
 }: {
   active: InspectorMainTab;
   onDashboard: () => void;
   onJobs: () => void;
+  onGallery: () => void;
+  onFiles: () => void;
   onPortfolio: () => void;
-  onHelp: () => void;
   alertCount?: number;
 }) {
   const tabClass = (on: boolean) =>
-    `flex flex-col items-center justify-center gap-0.5 flex-1 py-2 min-h-[52px] text-[10px] font-medium transition-colors ${
+    `flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 min-h-[48px] text-[9px] font-medium transition-colors touch-manipulation ${
       on ? "text-primary" : "text-muted-foreground hover:text-foreground"
     }`;
+
+  const tabs: { id: InspectorMainTab; label: string; icon: typeof List; onClick: () => void }[] = [
+    { id: "dashboard", label: "Pulpit", icon: LayoutDashboard, onClick: onDashboard },
+    { id: "jobs", label: "Roboty", icon: List, onClick: onJobs },
+    { id: "gallery", label: "Galeria", icon: Images, onClick: onGallery },
+    { id: "files", label: "Pliki", icon: FolderOpen, onClick: onFiles },
+    { id: "portfolio", label: "Portfolio", icon: LayoutGrid, onClick: onPortfolio },
+  ];
 
   return (
     <nav
@@ -55,29 +65,25 @@ export function InspectorBottomNav({
       aria-label="Nawigacja inspektora"
     >
       <div className="flex items-stretch max-w-lg mx-auto">
-        <button type="button" onClick={onDashboard} className={`${tabClass(active === "dashboard")} touch-manipulation`} aria-current={active === "dashboard" ? "page" : undefined}>
-          <span className="relative">
-            <LayoutDashboard size={20} strokeWidth={active === "dashboard" ? 2.25 : 2}/>
-            {alertCount > 0 && (
-              <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[9px] font-bold flex items-center justify-center">
-                {alertCount > 9 ? "9+" : alertCount}
-              </span>
-            )}
-          </span>
-          Pulpit
-        </button>
-        <button type="button" onClick={onJobs} className={`${tabClass(active === "jobs")} touch-manipulation`} aria-current={active === "jobs" ? "page" : undefined}>
-          <List size={20} strokeWidth={active === "jobs" ? 2.25 : 2}/>
-          Roboty
-        </button>
-        <button type="button" onClick={onPortfolio} className={`${tabClass(active === "portfolio")} touch-manipulation`} aria-current={active === "portfolio" ? "page" : undefined}>
-          <LayoutGrid size={20} strokeWidth={active === "portfolio" ? 2.25 : 2}/>
-          Portfolio
-        </button>
-        <button type="button" onClick={onHelp} className={`${tabClass(false)} touch-manipulation`}>
-          <BookOpen size={20}/>
-          Pomoc
-        </button>
+        {tabs.map(({ id, label, icon: Icon, onClick }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={onClick}
+            className={tabClass(active === id)}
+            aria-current={active === id ? "page" : undefined}
+          >
+            <span className="relative">
+              <Icon size={18} strokeWidth={active === id ? 2.25 : 2}/>
+              {id === "dashboard" && alertCount > 0 && (
+                <span className="absolute -top-1 -right-2 min-w-[14px] h-3.5 px-0.5 rounded-full bg-red-600 text-white text-[8px] font-bold flex items-center justify-center">
+                  {alertCount > 9 ? "9+" : alertCount}
+                </span>
+              )}
+            </span>
+            {label}
+          </button>
+        ))}
       </div>
     </nav>
   );

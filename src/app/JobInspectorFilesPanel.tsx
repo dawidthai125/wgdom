@@ -65,6 +65,7 @@ export function JobInspectorFilesPanel({
   packSource,
   title = "Pliki roboty",
   uploadSlot,
+  readOnly = false,
 }: {
   jobId: string;
   jobAddress: string;
@@ -78,6 +79,8 @@ export function JobInspectorFilesPanel({
   packSource?: JobPackSource;
   title?: string;
   uploadSlot?: ReactNode;
+  /** Inspektor: tylko podgląd i pobieranie (bez email, zaznaczania, usuwania). */
+  readOnly?: boolean;
 }) {
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
   const [emailItems, setEmailItems] = useState<InspectorFileItem[] | null>(null);
@@ -183,7 +186,7 @@ export function JobInspectorFilesPanel({
                 <Package size={12}/>{packBusy ? "Pakowanie…" : "Pakiet ZIP"}
               </button>
             )}
-            {selectedItems.length > 0 && (
+            {selectedItems.length > 0 && !readOnly && (
               <button
                 type="button"
                 onClick={() => setEmailItems(selectedItems)}
@@ -206,6 +209,7 @@ export function JobInspectorFilesPanel({
             const previewOk = canPreview(item);
             return (
               <div key={key} className="px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                {!readOnly ? (
                 <label className="flex items-start gap-3 min-w-0 flex-1 cursor-pointer">
                   <input
                     type="checkbox"
@@ -223,7 +227,20 @@ export function JobInspectorFilesPanel({
                     </p>
                   </div>
                 </label>
-                <div className="flex items-center gap-1.5 shrink-0 pl-7 sm:pl-0">
+                ) : (
+                <div className="flex items-start gap-3 min-w-0 flex-1">
+                  <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${item.kind === "inspectorPhoto" ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"}`}>
+                    <Icon size={14}/>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{fileLabel(item)} · {filename}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {uploadedBy} · {new Date(uploadedAt).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
+                </div>
+                )}
+                <div className={`flex items-center gap-1.5 shrink-0 ${readOnly ? "" : "pl-7 sm:pl-0"}`}>
                   {previewOk ? (
                     <button
                       type="button"
@@ -242,6 +259,7 @@ export function JobInspectorFilesPanel({
                   >
                     <Download size={12}/> Pobierz
                   </a>
+                  {!readOnly && (
                   <button
                     type="button"
                     onClick={() => setEmailItems([item])}
@@ -251,7 +269,8 @@ export function JobInspectorFilesPanel({
                   >
                     <Mail size={12}/> Email
                   </button>
-                  {onDeleteFile && (
+                  )}
+                  {onDeleteFile && !readOnly && (
                     <button
                       type="button"
                       disabled={deleteBusy === key}
