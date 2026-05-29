@@ -9105,6 +9105,12 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.35.7", label:"Inspektor — naprawa pustego panelu",
+    items:[
+      {type:"fix", text:"Panel inspektora — roboty i dane znów się wyświetlają (błąd syncu: stan React nie ładował się z cache)"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.35.6", label:"Inspektor — stabilny scroll, bez banera offline",
     items:[
       {type:"fix", text:"Panel inspektora — mniej „skaczącego” scrolla (sync w tle nie odświeża wskaźnika pull, stabilniejsza kolejka zdjęć)"},

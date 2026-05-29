@@ -236,6 +236,8 @@ export function InspectorPanel({
   const jobsRef = useRef(jobs);
   jobsRef.current = jobs;
   const flushingPhotoQueueRef = useRef(false);
+  const lastAppliedJobsJsonRef = useRef<string | null>(null);
+  const lastAppliedDirJsonRef = useRef<string | null>(null);
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
   const [athPreviewEnabled, setAthPreviewEnabled] = useState(() => loadAppSettingsLocal().athPreviewEnabled);
   const [jobSection, setJobSection] = useState<InspectorJobSection>("wm");
@@ -245,6 +247,27 @@ export function InspectorPanel({
     syncAppSettingsFromCloud()
       .then((s) => setAthPreviewEnabled(s.athPreviewEnabled))
       .catch(() => {});
+  }, []);
+
+  /** Natychmiast pokaż dane z pamięci przeglądarki — zanim skończy się sync z chmurą. */
+  useEffect(() => {
+    try {
+      const cachedJobs = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")).map(normalizeJob) as InspectorJob[];
+      if (cachedJobs.length > 0) {
+        const json = JSON.stringify(cachedJobs);
+        lastAppliedJobsJsonRef.current = json;
+        setJobs(cachedJobs);
+      }
+    } catch { /* ignore */ }
+    try {
+      const cachedDir = JSON.parse(localStorage.getItem("kw-directory") || "[]");
+      if (Array.isArray(cachedDir) && cachedDir.length > 0) {
+        const json = JSON.stringify(cachedDir);
+        lastAppliedDirJsonRef.current = json;
+        setDirectory(cachedDir);
+      }
+    } catch { /* ignore */ }
+    setLoading(false);
   }, []);
 
   const scrollToJobSection = useCallback((id: InspectorJobSection) => {
@@ -422,14 +445,10 @@ export function InspectorPanel({
       const merged = mergeJobsById(localJobs, normalizeJobsValue(cloudJobs), mergedJobsDeleted) as InspectorJob[];
       const normalized = merged.map(normalizeJob);
       const nextJobsJson = JSON.stringify(normalized);
-      try {
-        const prevJobsJson = localStorage.getItem("kw-jobs");
-        if (prevJobsJson !== nextJobsJson) {
-          setJobs(normalized);
-          localStorage.setItem("kw-jobs", nextJobsJson);
-        }
-      } catch {
+      if (lastAppliedJobsJsonRef.current !== nextJobsJson) {
+        lastAppliedJobsJsonRef.current = nextJobsJson;
         setJobs(normalized);
+        try { localStorage.setItem("kw-jobs", nextJobsJson); } catch { /* ignore */ }
       }
       if (cloudDir && Array.isArray(cloudDir)) {
         let localDir: DirectoryEmployee[] = [];
@@ -438,14 +457,10 @@ export function InspectorPanel({
         } catch { /* ignore */ }
         const mergedDir = mergeDirectory(localDir, cloudDir as DirectoryEmployee[], mergedDirDeleted) as DirectoryEmployee[];
         const nextDirJson = JSON.stringify(mergedDir);
-        try {
-          const prevDirJson = localStorage.getItem("kw-directory");
-          if (prevDirJson !== nextDirJson) {
-            setDirectory(mergedDir);
-            localStorage.setItem("kw-directory", nextDirJson);
-          }
-        } catch {
+        if (lastAppliedDirJsonRef.current !== nextDirJson) {
+          lastAppliedDirJsonRef.current = nextDirJson;
           setDirectory(mergedDir);
+          try { localStorage.setItem("kw-directory", nextDirJson); } catch { /* ignore */ }
         }
       } else {
         try {
