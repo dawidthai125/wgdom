@@ -180,6 +180,38 @@ export function countJobFiles(job: JobFilesSource): number {
   return collectJobFileCatalog(job).length;
 }
 
+export type JobFileGroup = {
+  jobId: string;
+  jobAddress: string;
+  jobFlat: string;
+  jobClient: string;
+  items: JobFileCatalogItem[];
+  latestAt: string;
+};
+
+/** Pliki pogrupowane po robocie (tylko roboty z plikami). */
+export function groupFilesByJob(jobs: JobFilesSource[]): JobFileGroup[] {
+  const groups: JobFileGroup[] = [];
+  for (const job of jobs) {
+    const items = collectJobFileCatalog(job);
+    if (items.length === 0) continue;
+    const latestAt = items.reduce((max, i) => (i.uploadedAt > max ? i.uploadedAt : max), "");
+    groups.push({
+      jobId: job.id,
+      jobAddress: job.address || "Bez adresu",
+      jobFlat: job.flatNumber || "",
+      jobClient: job.client || "—",
+      items,
+      latestAt,
+    });
+  }
+  return groups.sort((a, b) => b.latestAt.localeCompare(a.latestAt));
+}
+
+export function jobDisplayTitle(g: Pick<JobFileGroup, "jobAddress" | "jobFlat">): string {
+  return `${g.jobAddress}${g.jobFlat ? ` m.${g.jobFlat}` : ""}`;
+}
+
 export function fmtJobFileDate(iso: string): string {
   if (!iso) return "—";
   try {

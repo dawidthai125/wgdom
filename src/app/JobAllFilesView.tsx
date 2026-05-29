@@ -1,15 +1,18 @@
 import { useMemo, useState } from "react";
 import {
   Search, Download, Eye, FileText, ClipboardList, Camera, Image as ImageIcon,
-  Filter, MapPin, ChevronRight,
+  MapPin, ChevronRight, ChevronDown, ArrowLeft, FolderOpen, ExternalLink,
 } from "lucide-react";
 import {
   collectAllJobFiles,
   canPreviewCatalogItem,
   fmtJobFileDate,
+  groupFilesByJob,
+  jobDisplayTitle,
   JOB_FILE_CATEGORY_LABELS,
   type JobFileCatalogItem,
   type JobFileCategory,
+  type JobFileGroup,
   type JobFilesSource,
 } from "@/lib/job-files-index";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
@@ -29,67 +32,105 @@ export function JobAllFilesView({
   jobs,
   athPreviewEnabled,
   onOpenJob,
+  onBack,
 }: {
   jobs: JobFilesSource[];
   athPreviewEnabled: boolean;
   onOpenJob: (jobId: string) => void;
+  onBack: () => void;
 }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
 
-  const allItems = useMemo(() => collectAllJobFiles(jobs), [jobs]);
+  const allGroups = useMemo(() => groupFilesByJob(jobs), [jobs]);
 
-  const filtered = useMemo(() => {
+  const filteredGroups = useMemo((): JobFileGroup[] => {
     const q = search.trim().toLowerCase();
-    return allItems.filter((item) => {
-      if (category !== "all" && item.category !== category) return false;
-      if (!q) return true;
-      const hay = [
-        item.jobAddress,
-        item.jobFlat,
-        item.jobClient,
-        item.filename,
-        item.uploadedBy,
-        item.categoryLabel,
-        item.subtitle,
-      ].join(" ").toLowerCase();
-      return hay.includes(q);
-    });
-  }, [allItems, search, category]);
+    return allGroups
+      .map((group) => {
+        let items = group.items;
+        if (category !== "all") {
+          items = items.filter((i) => i.category === category);
+        }
+        if (q) {
+          items = items.filter((item) => {
+            const hay = [
+              group.jobAddress,
+              group.jobFlat,
+              group.jobClient,
+              item.filename,
+              item.uploadedBy,
+              item.categoryLabel,
+              item.subtitle,
+            ].join(" ").toLowerCase();
+            return hay.includes(q);
+          });
+        }
+        if (items.length === 0) return null;
+        return { ...group, items };
+      })
+      .filter((g): g is JobFileGroup => g !== null);
+  }, [allGroups, search, category]);
 
-  const counts = useMemo(() => {
-    const map: Record<string, number> = { all: allItems.length };
-    for (const item of allItems) {
+  const totalFiles = useMemo(() => collectAllJobFiles(jobs).length, [jobs]);
+
+  const categoryCounts = useMemo(() => {
+    const map: Record<string, number> = { all: totalFiles };
+    for (const item of collectAllJobFiles(jobs)) {
       map[item.category] = (map[item.category] || 0) + 1;
     }
     return map;
-  }, [allItems]);
+  }, [jobs, totalFiles]);
+
+  const toggleExpanded = (jobId: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(jobId)) next.delete(jobId);
+      else next.add(jobId);
+      return next;
+    });
+  };
 
   return (
     <div className="flex flex-1 flex-col min-h-0 overflow-hidden bg-background">
-      <div className="px-4 sm:px-6 py-4 border-b border-border space-y-3 shrink-0">
-        <div>
-          <h2 className="text-base font-semibold">Wszystkie pliki robót</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Zlecenia, kosztorysy NORMA (.ath), zdjęcia i rysunki — przypisane do roboty z datą i autorem.
-          </p>
+      <div className="px-4 sm:px-6 py-4 border-b border-border space-y-3 shrink-0 bg-card/50">
+        <div className="flex items-start gap-3">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center gap-1.5 text-sm font-medium text-primary shrink-0 mt-0.5 hover:underline"
+          >
+            <ArrowLeft size={16}/>
+            Lista robót
+          </button>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base font-semibold flex items-center gap-2">
+              <FolderOpen size={18} className="text-primary shrink-0"/>
+              Pliki wg adresów
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {allGroups.length} {allGroups.length === 1 ? "robota z plikami" : "robót z plikami"}
+              {totalFiles > 0 ? ` · ${totalFiles} plików łącznie` : ""}
+            </p>
+          </div>
         </div>
-        <div className="relative max-w-md">
+        <div className="relative max-w-lg">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Szukaj adresu, pliku, osoby…"
+            placeholder="Szukaj adresu, klienta, nazwy pliku…"
             className="w-full bg-secondary rounded-xl pl-8 pr-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
           />
         </div>
         <div className="flex flex-wrap gap-1.5">
           {(["all", "zlecenie", "kosztorys", "inspector_photo", "crew_photo", "report_sketch"] as CategoryFilter[]).map((cat) => {
-            const n = counts[cat] ?? 0;
+            const n = categoryCounts[cat] ?? 0;
             if (cat !== "all" && n === 0) return null;
-            const label = cat === "all" ? "Wszystkie" : JOB_FILE_CATEGORY_LABELS[cat];
+            const label = cat === "all" ? "Wszystkie typy" : JOB_FILE_CATEGORY_LABELS[cat];
             return (
               <button
                 key={cat}
@@ -108,21 +149,22 @@ export function JobAllFilesView({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto overscroll-contain">
-        {filtered.length === 0 ? (
-          <div className="p-12 text-center text-muted-foreground space-y-2">
-            <Filter size={28} className="mx-auto opacity-30"/>
-            <p className="text-sm">{allItems.length === 0 ? "Brak plików w robotach" : "Brak wyników dla filtra"}</p>
+      <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
+        {filteredGroups.length === 0 ? (
+          <div className="py-16 text-center text-muted-foreground space-y-2">
+            <FolderOpen size={32} className="mx-auto opacity-25"/>
+            <p className="text-sm">{totalFiles === 0 ? "Brak plików w robotach" : "Brak wyników — zmień filtr lub wyszukiwanie"}</p>
           </div>
         ) : (
-          <div className="divide-y divide-border">
-            {filtered.map((item) => (
-              <JobFileCatalogRow
-                key={item.id}
-                item={item}
-                showJob
-                onPreview={() => setPreviewItem(item.previewItem)}
-                onOpenJob={() => onOpenJob(item.jobId)}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 max-w-7xl mx-auto">
+            {filteredGroups.map((group) => (
+              <JobAddressFileTile
+                key={group.jobId}
+                group={group}
+                expanded={expanded.has(group.jobId)}
+                onToggle={() => toggleExpanded(group.jobId)}
+                onOpenJob={() => onOpenJob(group.jobId)}
+                onPreview={(item) => setPreviewItem(item.previewItem)}
               />
             ))}
           </div>
@@ -136,6 +178,155 @@ export function JobAllFilesView({
           onClose={() => setPreviewItem(null)}
         />
       )}
+    </div>
+  );
+}
+
+function JobAddressFileTile({
+  group,
+  expanded,
+  onToggle,
+  onOpenJob,
+  onPreview,
+}: {
+  group: JobFileGroup;
+  expanded: boolean;
+  onToggle: () => void;
+  onOpenJob: () => void;
+  onPreview: (item: JobFileCatalogItem) => void;
+}) {
+  const counts = useMemo(() => {
+    const c: Partial<Record<JobFileCategory, number>> = {};
+    for (const item of group.items) {
+      c[item.category] = (c[item.category] || 0) + 1;
+    }
+    return c;
+  }, [group.items]);
+
+  const hasZlecenie = (counts.zlecenie ?? 0) > 0;
+  const hasKosztorys = (counts.kosztorys ?? 0) > 0;
+
+  return (
+    <article className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:border-primary/30 transition-colors flex flex-col">
+      <div className="p-4 space-y-3">
+        <div className="flex items-start gap-2">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <MapPin size={18} className="text-primary"/>
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm font-semibold leading-snug truncate" title={jobDisplayTitle(group)}>
+              {jobDisplayTitle(group)}
+            </h3>
+            <p className="text-xs text-muted-foreground truncate mt-0.5">{group.jobClient}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {group.items.length} {group.items.length === 1 ? "plik" : group.items.length < 5 ? "pliki" : "plików"}
+              {group.latestAt ? ` · ostatnio ${fmtJobFileDate(group.latestAt)}` : ""}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          <TypeChip ok={hasZlecenie} label="Zlecenie" icon={FileText}/>
+          <TypeChip ok={hasKosztorys} label="Kosztorys" icon={ClipboardList}/>
+          {(counts.inspector_photo ?? 0) > 0 && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/12 text-amber-700 dark:text-amber-400 font-medium">
+              Inspektor {counts.inspector_photo}
+            </span>
+          )}
+          {(counts.crew_photo ?? 0) > 0 && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground font-medium">
+              Ekipa {counts.crew_photo}
+            </span>
+          )}
+          {(counts.report_sketch ?? 0) > 0 && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/12 text-violet-600 dark:text-violet-400 font-medium">
+              Rysunki {counts.report_sketch}
+            </span>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onToggle}
+            className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2 rounded-xl bg-secondary hover:bg-secondary/80 transition-colors"
+          >
+            {expanded ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
+            {expanded ? "Zwiń pliki" : "Pokaż pliki"}
+          </button>
+          <button
+            type="button"
+            onClick={onOpenJob}
+            className="flex items-center justify-center gap-1 text-xs font-medium px-3 py-2 rounded-xl border border-primary/30 text-primary hover:bg-primary/10 transition-colors"
+            title="Otwórz robotę"
+          >
+            <ExternalLink size={13}/>
+            Robota
+          </button>
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="border-t border-border bg-secondary/20 divide-y divide-border/80 max-h-64 overflow-y-auto">
+          {group.items.map((item) => (
+            <CompactFileRow key={item.id} item={item} onPreview={() => onPreview(item)}/>
+          ))}
+        </div>
+      )}
+    </article>
+  );
+}
+
+function TypeChip({
+  ok,
+  label,
+  icon: Icon,
+}: {
+  ok: boolean;
+  label: string;
+  icon: typeof FileText;
+}) {
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${
+      ok
+        ? "bg-emerald-500/12 text-emerald-700 dark:text-emerald-400"
+        : "bg-red-500/8 text-red-500/70 dark:text-red-400/60"
+    }`}>
+      <Icon size={10}/>
+      {ok ? label : `Brak ${label.toLowerCase()}`}
+    </span>
+  );
+}
+
+function CompactFileRow({
+  item,
+  onPreview,
+}: {
+  item: JobFileCatalogItem;
+  onPreview: () => void;
+}) {
+  const Icon = CATEGORY_ICONS[item.category];
+  const previewOk = canPreviewCatalogItem(item);
+
+  return (
+    <div className="px-3 py-2.5 flex items-center gap-2">
+      <Icon size={14} className="shrink-0 text-muted-foreground"/>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-medium truncate">{item.filename}</p>
+        <p className="text-[10px] text-muted-foreground truncate">
+          {item.categoryLabel} · {item.uploadedBy} · {fmtJobFileDate(item.uploadedAt)}
+        </p>
+      </div>
+      <div className="flex shrink-0 gap-1">
+        {previewOk && (
+          <button type="button" onClick={onPreview} className="p-1.5 rounded-lg hover:bg-secondary" title="Podgląd">
+            <Eye size={13}/>
+          </button>
+        )}
+        <a href={item.publicUrl} download={item.filename} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg hover:bg-secondary" title="Pobierz">
+          <Download size={13}/>
+        </a>
+      </div>
     </div>
   );
 }
@@ -175,16 +366,12 @@ export function JobFileCatalogList({
 
 function JobFileCatalogRow({
   item,
-  showJob,
   onPreview,
-  onOpenJob,
   onDelete,
   deleteBusy,
 }: {
   item: JobFileCatalogItem;
-  showJob?: boolean;
   onPreview: () => void;
-  onOpenJob?: () => void;
   onDelete?: () => void;
   deleteBusy?: boolean;
 }) {
@@ -202,17 +389,6 @@ function JobFileCatalogRow({
           <Icon size={16}/>
         </div>
         <div className="min-w-0 flex-1">
-          {showJob && (
-            <button
-              type="button"
-              onClick={onOpenJob}
-              className="text-[11px] font-medium text-primary hover:underline flex items-center gap-1 mb-0.5 truncate"
-            >
-              <MapPin size={10} className="shrink-0"/>
-              {item.jobAddress}{item.jobFlat ? ` m.${item.jobFlat}` : ""}{item.jobClient ? ` · ${item.jobClient}` : ""}
-              <ChevronRight size={10} className="shrink-0 opacity-60"/>
-            </button>
-          )}
           <p className="text-sm font-medium truncate">
             <span className="text-muted-foreground font-normal">{item.categoryLabel} · </span>
             {item.filename}

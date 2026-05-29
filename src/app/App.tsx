@@ -17,7 +17,7 @@ import {
   Mic, MicOff, Bell, Copy, ScrollText, Sparkles,
   BookOpen, ChevronDown as ChevDown, HelpCircle, Smartphone, Monitor,
   Camera, ImagePlus, Lock, LogOut, Eye, ArrowLeft, ShieldCheck, ThumbsUp, ThumbsDown, Clock3,
-  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale, Images, Settings, Menu, ClipboardCheck, MessageSquare, LayoutGrid,
+  ClipboardList, Ruler, Mail, Send, RotateCcw, BarChart3, Scale, Images, Settings, Menu, ClipboardCheck, MessageSquare, LayoutGrid, FolderOpen,
 } from "lucide-react";
 import {
   API_BASE,
@@ -5833,7 +5833,7 @@ function JobsView({
   const [shareCopied, setShareCopied] = useState(false);
   const [expandedWorkerKeys, setExpandedWorkerKeys] = useState<Set<string>>(new Set());
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
-  const [jobsTab, setJobsTab] = useState<"list" | "files">("list");
+  const [showAllFiles, setShowAllFiles] = useState(false);
   const [detailSection, setDetailSection] = useState<JobDetailSection>("summary");
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
   const [uploadMsg, setUploadMsg] = useState("");
@@ -6321,33 +6321,13 @@ function JobsView({
 
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
-      <div className="flex gap-1 px-4 py-2 border-b border-border bg-card shrink-0">
-        <button
-          type="button"
-          onClick={() => setJobsTab("list")}
-          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
-            jobsTab === "list" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-          }`}
-        >
-          Lista robót
-        </button>
-        <button
-          type="button"
-          onClick={() => setJobsTab("files")}
-          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
-            jobsTab === "files" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-          }`}
-        >
-          Wszystkie pliki{totalJobFilesCount > 0 ? ` (${totalJobFilesCount})` : ""}
-        </button>
-      </div>
-
-      {jobsTab === "files" ? (
+      {showAllFiles ? (
         <JobAllFilesView
           jobs={jobs}
           athPreviewEnabled={athPreviewEnabled}
+          onBack={() => setShowAllFiles(false)}
           onOpenJob={(jobId) => {
-            setJobsTab("list");
+            setShowAllFiles(false);
             setSelectedJobId(jobId);
             setDetailSection("files");
           }}
@@ -6360,6 +6340,14 @@ function JobsView({
         <div className="px-4 pt-4 pb-3 space-y-3 border-b border-border">
           <button onClick={addJob} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors">
             <Plus size={14}/>Nowa robota
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowAllFiles(true)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border border-emerald-500/35 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-500/20 transition-colors"
+          >
+            <FolderOpen size={14}/>
+            Pliki wg adresów{totalJobFilesCount > 0 ? ` (${totalJobFilesCount})` : ""}
           </button>
           <div className="relative">
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
@@ -8980,6 +8968,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-29", version:"2.32.1", label:"Pliki wg adresów — kafelki zamiast zakładki",
+    items:[
+      {type:"improve", text:"„Pliki wg adresów” — pełny ekran z kafelkami po adresie (zlecenie/kosztorys/zdjęcia), nie zakładka w liście"},
+      {type:"improve", text:"Każdy kafel: podsumowanie typów plików, rozwijana lista z podglądem i pobieraniem, skrót do roboty"},
+    ],
+  },
   {
     date:"2026-05-29", version:"2.32.0", label:"Roboty — pliki + czytelniejszy układ",
     items:[
