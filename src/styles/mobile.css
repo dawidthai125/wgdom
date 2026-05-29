@@ -1,6 +1,13 @@
 /* Mobile / tablet — iOS Safari, Android Chrome, PWA */
 
-/* Admin shell — małe laptopy, skalowanie Windows, Chrome (visualViewport) */
+/* Admin shell — mobile: pełna wysokość (scroll wewnątrz widoków) */
+.admin-app-shell {
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+}
+
+/* Admin shell — desktop: visualViewport z Chrome */
 @media (min-width: 768px) {
   .admin-app-shell {
     height: var(--app-height, 100svh);
