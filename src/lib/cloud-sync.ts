@@ -358,6 +358,17 @@ function pickRateByTimestamps(l: Record<string, unknown>, c: Record<string, unkn
   return c.rate;
 }
 
+function pickSettledByTimestamps(l: Record<string, unknown>, c: Record<string, unknown>): boolean {
+  const lAt = parseRecordTs(l.settledUpdatedAt);
+  const cAt = parseRecordTs(c.settledUpdatedAt);
+  if (lAt > 0 || cAt > 0) {
+    if (lAt >= cAt) return Boolean(l.settled);
+    return Boolean(c.settled);
+  }
+  // Legacy (bez settledUpdatedAt): nie tracimy rozliczeń z innej karty / admina
+  return Boolean(l.settled) || Boolean(c.settled);
+}
+
 function pickDaysByTimestamps(l: Record<string, unknown>, c: Record<string, unknown>): Record<string, DayLike> {
   const lDays = (l.days as Record<string, DayLike>) || {};
   const cDays = (c.days as Record<string, DayLike>) || {};
@@ -449,7 +460,11 @@ export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown
     rate,
     rateUpdatedAt: lRateAt >= cRateAt ? l.rateUpdatedAt ?? c.rateUpdatedAt : c.rateUpdatedAt ?? l.rateUpdatedAt,
     dataUpdatedAt: lAt >= cAt ? l.dataUpdatedAt ?? c.dataUpdatedAt : c.dataUpdatedAt ?? l.dataUpdatedAt,
-    settled: l.settled !== undefined ? l.settled : c.settled,
+    settled: pickSettledByTimestamps(l, c),
+    settledUpdatedAt:
+      parseRecordTs(l.settledUpdatedAt) >= parseRecordTs(c.settledUpdatedAt)
+        ? l.settledUpdatedAt ?? c.settledUpdatedAt
+        : c.settledUpdatedAt ?? l.settledUpdatedAt,
   };
 }
 

@@ -310,6 +310,8 @@ interface WeekEmployee {
   rateUpdatedAt?: string;
   /** Kiedy ostatnio zmieniono godziny / koszty / Sob.pr. */
   dataUpdatedAt?: string;
+  /** Kiedy ostatnio zmieniono status rozliczenia */
+  settledUpdatedAt?: string;
   days: Record<DayKey, DayData>;
   /** Sobota poprzedniego tygodnia — wypłacana w bieżącym tygodniu */
   prevSaturday?: DayData;
@@ -9105,6 +9107,12 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.35.13", label:"Sync — status rozliczony",
+    items:[
+      {type:"fix", text:"Lista płac — status „Rozliczony” synchronizuje się między adminami (wcześniej lokalne „oczekuje” nadpisywało chmurę)"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.35.12", label:"Mobile — naprawa scrolla admina",
     items:[
       {type:"fix", text:"Panel admina na telefonie — przywrócony scroll i dotyk (regresja po poprawce viewportu desktop)"},
@@ -11670,10 +11678,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [patchArchiveWeek]);
 
   const toggleArchiveSettled = useCallback((weekId: string, empId: string) => {
-    patchArchiveWeek(weekId, (emps) => emps.map((e) => (e.id === empId ? { ...e, settled: !e.settled } : e)));
+    const now = new Date().toISOString();
+    patchArchiveWeek(weekId, (emps) => emps.map((e) => (e.id === empId ? { ...e, settled: !e.settled, settledUpdatedAt: now } : e)));
   }, [patchArchiveWeek]);
 
-  const toggleSettled = (id:string) => setWeekEmployees((prev)=>prev.map((e)=>e.id===id?{...e,settled:!e.settled}:e));
+  const toggleSettled = (id: string) => {
+    const now = new Date().toISOString();
+    setWeekEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, settled: !e.settled, settledUpdatedAt: now } : e)));
+  };
 
   const saveBiweeklyBacklogWeek = useCallback((backlogFrom: string, backlogTo: string, employees: WeekEmployee[]) => {
     if (employees.length === 0) return;
