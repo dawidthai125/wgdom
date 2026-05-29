@@ -1,4 +1,4 @@
-import type { AthPreviewResult } from "@/lib/ath-parser";
+import { kosztorysResultForDisplay, type AthPreviewResult } from "@/lib/ath-parser";
 import { getCompanyLogoDataUrl } from "@/lib/payroll-export";
 
 async function loadPdfMake() {
@@ -286,7 +286,7 @@ export async function buildKosztorysPreviewPdfBlob(
 ): Promise<Blob> {
   const pdfMake = await loadPdfMake();
   const logoDataUrl = await getCompanyLogoDataUrl();
-  const docDef = buildKosztorysDocDef(data, sourceFilename, logoDataUrl);
+  const docDef = buildKosztorysDocDef(kosztorysResultForDisplay(data), sourceFilename, logoDataUrl);
   return pdfMake.createPdf(docDef).getBlob();
 }
 

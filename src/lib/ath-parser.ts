@@ -56,6 +56,20 @@ export interface AthPreviewResult {
   rawPreview?: string;
 }
 
+/** Ogólne komunikaty o ograniczeniach podglądu — nie pokazujemy przy udanym parsowaniu ani w PDF. */
+const KOSZTORYS_BOILERPLATE_WARNINGS = new Set([
+  "Format ATH/NOR jest zamknięty — podgląd może być niepełny. Do pełnej weryfikacji użyj NORMA lub PDF.",
+  "Podgląd na wzór wydruku NORMA — działy, pozycje i podsumowanie. Do pełnej weryfikacji użyj NORMA lub PDF.",
+]);
+
+export function filterKosztorysBoilerplateWarnings(warnings: string[]): string[] {
+  return warnings.filter((w) => !KOSZTORYS_BOILERPLATE_WARNINGS.has(w));
+}
+
+export function kosztorysResultForDisplay(data: AthPreviewResult): AthPreviewResult {
+  return { ...data, warnings: filterKosztorysBoilerplateWarnings(data.warnings) };
+}
+
 function normalizeLines(text: string): string[] {
   return text
     .replace(/\r\n/g, "\n")
@@ -277,9 +291,7 @@ function extractKnrCode(pd: string): string {
 
 /** Tekstowy format ATH Athenasoft — działy [ELEMENT], pozycje [POZYCJA], narzuty, suma wk=. */
 function parseAthAthenasoftIni(text: string): AthPreviewResult {
-  const warnings = [
-    "Podgląd na wzór wydruku NORMA — działy, pozycje i podsumowanie. Do pełnej weryfikacji użyj NORMA lub PDF.",
-  ];
+  const warnings: string[] = [];
 
   const sections = splitAthSections(text);
   const headerSec = sections.find((s) => s.title === "KOSZTORYS ATHENASOFT")?.body ?? text.slice(0, 3000);
@@ -635,18 +647,14 @@ function parseXml(text: string): AthPreviewResult {
 
 export function parseKosztorysFile(content: string, filename: string): AthPreviewResult {
   const ext = (filename.split(".").pop() || "").toLowerCase();
-  const warnings: string[] = [
-    "Format ATH/NOR jest zamknięty — podgląd może być niepełny. Do pełnej weryfikacji użyj NORMA lub PDF.",
-  ];
 
   if (isAthenasoftKosztorys(content)) {
     const parsed = parseAthAthenasoftIni(content);
-    if (parsed.rows.length > 0) return { ...parsed, warnings: [...warnings, ...parsed.warnings] };
+    if (parsed.rows.length > 0) return parsed;
   }
 
   if (ext === "xml" || content.trimStart().startsWith("<")) {
-    const xml = parseXml(content);
-    return { ...xml, warnings: [...warnings, ...xml.warnings] };
+    return parseXml(content);
   }
 
   if (looksBinary(content)) {
@@ -655,7 +663,6 @@ export function parseKosztorysFile(content: string, filename: string): AthPrevie
       format: "binary",
       rows: [],
       warnings: [
-        ...warnings,
         "Plik wygląda na binarny (typowy format ATH z NORMA). Pobierz i otwórz w NORMA lub poproś inspektora o eksport PDF.",
       ],
     };
@@ -668,7 +675,7 @@ export function parseKosztorysFile(content: string, filename: string): AthPrevie
       ok: true,
       format: "text",
       rows,
-      warnings,
+      warnings: [],
       rawPreview: lines.slice(0, 80).join("\n"),
     };
   }
@@ -678,21 +685,17 @@ export function parseKosztorysFile(content: string, filename: string): AthPrevie
     ok: printable.length > 0,
     format: printable.length > 0 ? "text" : "unknown",
     rows: [],
-    warnings,
+    warnings: [],
     rawPreview: printable.slice(0, 60).join("\n") || content.slice(0, 2000),
   };
 }
 
 export function parseKosztorysBytes(bytes: Uint8Array, filename: string): AthPreviewResult {
-  const warnings: string[] = [
-    "Format ATH/NOR jest zamknięty — podgląd może być niepełny. Do pełnej weryfikacji użyj NORMA lub PDF.",
-  ];
-
   const athText = decodeAthText(bytes);
   if (isAthenasoftKosztorys(athText)) {
     const parsed = parseAthAthenasoftIni(athText);
     if (parsed.rows.length > 0 || parsed.summaryLines?.length) {
-      return { ...parsed, warnings: [...warnings, ...parsed.warnings] };
+      return parsed;
     }
   }
 
@@ -700,20 +703,20 @@ export function parseKosztorysBytes(bytes: Uint8Array, filename: string): AthPre
     if (isAthenasoftKosztorys(text)) {
       const parsed = parseAthAthenasoftIni(text);
       if (parsed.rows.length > 0 || parsed.summaryLines?.length) {
-        return { ...parsed, warnings: [...warnings, ...parsed.warnings] };
+        return parsed;
       }
     }
     const embedded = extractEmbeddedXml(text);
     if (embedded) {
       const xmlResult = parseKosztorysFile(embedded, "export.xml");
       if (xmlResult.rows.length > 0 || xmlResult.ok) {
-        return { ...xmlResult, warnings: [...warnings, ...xmlResult.warnings] };
+        return xmlResult;
       }
     }
     if (!looksBinary(text)) {
       const parsed = parseKosztorysFile(text, filename);
-      if (parsed.rows.length > 0) return { ...parsed, warnings: [...warnings, ...parsed.warnings] };
-      if (parsed.rawPreview && parsed.format === "text") return { ...parsed, warnings: [...warnings, ...parsed.warnings] };
+      if (parsed.rows.length > 0) return parsed;
+      if (parsed.rawPreview && parsed.format === "text") return parsed;
     }
   }
 
@@ -729,7 +732,7 @@ export function parseKosztorysBytes(bytes: Uint8Array, filename: string): AthPre
         format: "text",
         title,
         rows: tableRows,
-        warnings: [...warnings, "Odczytano fragmenty z pliku binarnego ATH."],
+        warnings: ["Odczytano fragmenty z pliku binarnego ATH."],
         rawPreview: strings.slice(0, 40).join("\n"),
       };
     }
@@ -740,7 +743,7 @@ export function parseKosztorysBytes(bytes: Uint8Array, filename: string): AthPre
         format: "binary",
         title,
         rows: [],
-        warnings: [...warnings, "Plik binarny ATH — poniżej wyciągnięte opisy pozycji (bez kwot). Otwórz w NORMA lub poproś o PDF."],
+        warnings: ["Plik binarny ATH — poniżej wyciągnięte opisy pozycji (bez kwot). Otwórz w NORMA lub poproś o PDF."],
         rawPreview: printable.slice(0, 50).join("\n"),
       };
     }
@@ -751,7 +754,6 @@ export function parseKosztorysBytes(bytes: Uint8Array, filename: string): AthPre
     format: "binary",
     rows: [],
     warnings: [
-      ...warnings,
       "Nie udało się odczytać pozycji z pliku ATH. Pobierz plik i otwórz w programie NORMA, lub poproś inspektora o eksport PDF.",
     ],
   };
@@ -784,7 +786,7 @@ export async function fetchAndParseKosztorys(
     if (resolvedPath) {
       try {
         const bytes = await fetchBytesViaApi(resolvedPath, filename);
-        if (bytes) return parseKosztorysBytes(bytes, filename);
+        if (bytes) return kosztorysResultForDisplay(parseKosztorysBytes(bytes, filename));
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Błąd pobierania przez serwer";
         /* fallback: direct URL */
@@ -799,7 +801,7 @@ export async function fetchAndParseKosztorys(
       return { ok: false, format: "unknown", rows: [], warnings: [`Nie udało się pobrać pliku (${res.status}).`] };
     }
     const buf = await res.arrayBuffer();
-    return parseKosztorysBytes(new Uint8Array(buf), filename);
+    return kosztorysResultForDisplay(parseKosztorysBytes(new Uint8Array(buf), filename));
   } catch {
     return { ok: false, format: "unknown", rows: [], warnings: ["Błąd pobierania pliku do podglądu."] };
   }

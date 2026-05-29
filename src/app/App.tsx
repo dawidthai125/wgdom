@@ -9104,6 +9104,12 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.35.3", label:"Kosztorys — bez zbędnego ostrzeżenia ATH/NOR",
+    items:[
+      {type:"improve", text:"Przeglądarka kosztorysów i generowany PDF — usunięto komunikat „Format ATH/NOR jest zamknięty…” przy poprawnym podglądzie"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.35.2", label:"SMS pilne — naprawa pustego ekranu",
     items:[
       {type:"fix", text:"SMS pilne — modal znów się otwiera (brakujący import + wysokość okna); treść widoczna na telefonie i desktopie"},
