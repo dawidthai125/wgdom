@@ -8978,6 +8978,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.31.3", label:"SMS — auto-rejestracja nadawców przez API SMSAPI",
+    items:[
+      {type:"new", text:"Przy wysyłce SMS — automatyczna rejestracja nazw nadawców (POST smsapi.pl/sms/sendernames)"},
+      {type:"new", text:"Przycisk „Zarejestruj nazwy nadawców” + lista statusów ACTIVE/INACTIVE w modalu SMS"},
+      {type:"improve", text:"Wysyłka używa tylko ACTIVE pól nadawcy — do czasu akceptacji SMSAPI zostaje prefiks W&G - Imię w treści"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.31.2", label:"SMS — nadawca admina + historia wysyłek",
     items:[
       {type:"fix", text:"SMS pilne — prefiks W&G - Imię w treści; pole nadawcy W&G-Imię (zamiast domyślnego Test z SMSAPI)"},

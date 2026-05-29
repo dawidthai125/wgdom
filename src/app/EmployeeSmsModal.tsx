@@ -135,7 +135,10 @@ export function EmployeeSmsModal({
     points?: number;
     registrationPhone?: string;
     statusError?: string;
+    sendernames?: { sender: string; status: string; is_default?: boolean }[];
   }>({ loading: true, configured: false, provider: "none", restricted: false });
+  const [ensureBusy, setEnsureBusy] = useState(false);
+  const [ensureNote, setEnsureNote] = useState("");
 
   const loadHistory = useCallback(async () => {
     if (!API_BASE) return;
@@ -179,6 +182,7 @@ export function EmployeeSmsModal({
           points?: number;
           registrationPhone?: string;
           error?: string;
+          sendernames?: { sender: string; status: string; is_default?: boolean }[];
         };
         if (!res.ok || data.ok === false) {
           setSmsStatus({
@@ -197,6 +201,7 @@ export function EmployeeSmsModal({
           restricted: Boolean(data.restricted),
           points: data.points,
           registrationPhone: data.registrationPhone,
+          sendernames: data.sendernames,
         });
       })
       .catch(() => {
@@ -228,6 +233,52 @@ export function EmployeeSmsModal({
 
   const selectAll = () => setSelected(new Set(eligible.map((r) => r.id)));
   const selectNone = () => setSelected(new Set());
+
+  const handleEnsureSenders = async () => {
+    if (!API_BASE) return;
+    setEnsureBusy(true);
+    setEnsureNote("");
+    try {
+      const res = await fetch(`${API_BASE}/sms-sendernames/ensure`, {
+        method: "POST",
+        headers: API_HEADERS,
+        body: JSON.stringify({ senderName: senderLabel }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        results?: { sender: string; status: string; action: string; error?: string }[];
+        sendernames?: { sender: string; status: string; is_default?: boolean }[];
+        active?: string[];
+      };
+      if (!res.ok || !data.ok) {
+        setEnsureNote(data.error || "Nie udało się zarejestrować nazw nadawców");
+        return;
+      }
+      if (data.sendernames) {
+        setSmsStatus((s) => ({ ...s, sendernames: data.sendernames }));
+      }
+      const added = data.results?.filter((r) => r.action === "added") ?? [];
+      const pending = data.results?.filter((r) => r.status === "INACTIVE") ?? [];
+      const active = data.active ?? [];
+      if (added.length > 0) {
+        setEnsureNote(
+          `Zgłoszono do SMSAPI: ${added.map((r) => r.sender).join(", ")}. `
+          + "Status INACTIVE = czeka na akceptację SMSAPI (zwykle do 1 dnia roboczego).",
+        );
+      } else if (active.length > 0) {
+        setEnsureNote(`Aktywne nazwy nadawców: ${active.join(", ")}`);
+      } else if (pending.length > 0) {
+        setEnsureNote(`Oczekuje na akceptację SMSAPI: ${pending.map((r) => r.sender).join(", ")}`);
+      } else {
+        setEnsureNote("Sprawdzono nazwy nadawców w SMSAPI.");
+      }
+    } catch {
+      setEnsureNote("Błąd połączenia przy rejestracji nadawców");
+    } finally {
+      setEnsureBusy(false);
+    }
+  };
 
   const handleSend = async () => {
     const text = message.trim();
@@ -445,11 +496,33 @@ export function EmployeeSmsModal({
             </div>
           ) : (
             <>
-              <div className="bg-secondary/40 rounded-xl px-3 py-2.5 text-[11px] text-muted-foreground leading-relaxed">
-                Treść SMS zacznie się od <strong className="text-foreground/90">{previewPrefix}</strong> — odbiorca zobaczy kto wysłał.
-                Pole nadawcy na telefonie (np. <em>W&G-Dawid</em>) wymaga dodania nazwy w panelu{" "}
-                <a href="https://ssl.smsapi.pl/sms_settings/sendernames" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">smsapi.pl → Pola nadawcy</a>.
-                Domyślne „Test” znika po dodaniu własnej nazwy.
+              <div className="bg-secondary/40 rounded-xl px-3 py-2.5 text-[11px] text-muted-foreground leading-relaxed space-y-2">
+                <p>
+                  Treść SMS zacznie się od <strong className="text-foreground/90">{previewPrefix}</strong> — odbiorca zobaczy kto wysłał.
+                  Pole nadawcy na telefonie (np. <em>W&G-Dawid</em>, max 11 znaków) rejestrujemy automatycznie przez API SMSAPI.
+                </p>
+                {smsStatus.sendernames && smsStatus.sendernames.length > 0 && (
+                  <div className="text-[10px] space-y-0.5 pt-1 border-t border-border/50">
+                    <p className="font-medium text-foreground/80">Nazwy nadawców w SMSAPI:</p>
+                    {smsStatus.sendernames.map((s) => (
+                      <p key={s.sender}>
+                        <span className={s.status === "ACTIVE" ? "text-emerald-600 font-medium" : "text-amber-600"}>
+                          {s.status === "ACTIVE" ? "✓" : "⏳"} {s.sender}
+                        </span>
+                        <span className="text-muted-foreground"> — {s.status}{s.is_default ? " · domyślna" : ""}</span>
+                      </p>
+                    ))}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  disabled={ensureBusy || !smsStatus.configured || smsStatus.provider !== "smsapi"}
+                  onClick={() => void handleEnsureSenders()}
+                  className="text-[10px] font-medium text-primary hover:underline disabled:opacity-40"
+                >
+                  {ensureBusy ? "Rejestruję w SMSAPI…" : "Zarejestruj / odśwież nazwy nadawców (API SMSAPI)"}
+                </button>
+                {ensureNote && <p className="text-[10px] text-foreground/80">{ensureNote}</p>}
               </div>
 
               <div>
