@@ -7,7 +7,7 @@ import { SmsModalErrorBoundary } from "@/app/SmsModalErrorBoundary";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { JobFilesBrowser } from "@/app/JobFilesBrowser";
 import { TendersView } from "@/app/TendersView";
-import { jobDraftFromTender } from "@/lib/tenders-bzp";
+import { jobDraftFromTender, attachTenderAssetsToJob, loadTendersPipeline, computeTendersDashboardStats, type TendersDashboardStats } from "@/lib/tenders-bzp";
 import { appendJobActivity } from "@/lib/job-activity";
 import { countBrowserFiles, jobHasBrowserFiles } from "@/lib/job-files-browser";
 import { isPrivacyShieldSuppressed } from "@/lib/privacy-shield";
@@ -491,6 +491,9 @@ interface Job {
   stoveType?: StoveType | "";
   /** Ostatnia zmiana wpisu — do scalania między kartami / chmurą */
   updatedAt?: string;
+  /** Powiązany przetarg BZP (pipeline). */
+  linkedTenderId?: string;
+  linkedTenderBzpNumber?: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -5827,6 +5830,7 @@ function JobsView({
   onGoToInspector,
   athPreviewEnabled,
   returnNav,
+  onOpenTender,
 }: {
   jobs: Job[];
   setJobs: (v: Job[] | ((p: Job[]) => Job[])) => void;
@@ -5840,6 +5844,7 @@ function JobsView({
   onGoToInspector?: (jobId?: string) => void;
   athPreviewEnabled: boolean;
   returnNav?: { label: string; onBack: () => void };
+  onOpenTender?: (tenderId: string) => void;
 }) {
   const { canViewRates, session: adminSession } = useAdminAccess();
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
@@ -6585,6 +6590,23 @@ function JobsView({
                         Masz więcej niż jedną robotę pod tym samym adresem. Usuń pustą lub niepotrzebną kopię — kosz „Usuń robotę” u góry albo kosz na liście po lewej.
                       </p>
                     </div>
+                  </div>
+                )}
+                {selectedJob.linkedTenderId && onOpenTender && (
+                  <div className="flex items-center justify-between gap-3 bg-violet-500/10 border border-violet-500/25 rounded-lg px-4 py-2.5 text-sm">
+                    <div className="min-w-0">
+                      <p className="font-medium text-violet-700 dark:text-violet-300">Powiązany przetarg BZP</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                        {selectedJob.linkedTenderBzpNumber || selectedJob.linkedTenderId}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onOpenTender(selectedJob.linkedTenderId!)}
+                      className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 text-violet-700 dark:text-violet-300 text-xs font-medium hover:bg-violet-500/25"
+                    >
+                      <Scale size={12} /> Otwórz przetarg
+                    </button>
                   </div>
                 )}
                 {!allDocsDone(selectedJob) && inferJobPhase(selectedJob) === "in_progress" && jobDaysSinceStart(selectedJob) >= 7 && (
@@ -7567,6 +7589,7 @@ function ScheduleView({
 function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
   onNavigate, onFixJobs, adminUserId, alertsSeenTick, onAlertsSeen, onOpenSms,
+  tendersStats, onOpenTenders, canViewTenders,
 }: {
   jobs: Job[];
   directory: DirectoryEmployee[];
@@ -7579,6 +7602,9 @@ function DashboardView({
   alertsSeenTick: number;
   onAlertsSeen: () => void;
   onOpenSms?: () => void;
+  tendersStats?: TendersDashboardStats | null;
+  onOpenTenders?: () => void;
+  canViewTenders?: boolean;
 }) {
   const { session: adminSession } = useAdminAccess();
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
@@ -7952,6 +7978,36 @@ function DashboardView({
             </p>
           </div>
         </div>
+
+        {canViewTenders && tendersStats && onOpenTenders && (
+          <button
+            type="button"
+            onClick={onOpenTenders}
+            className="w-full bg-card border border-violet-500/25 rounded-xl px-4 py-3 text-left hover:border-violet-500/50 transition-colors flex flex-wrap items-center justify-between gap-3"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center shrink-0">
+                <Scale size={18} className="text-violet-600 dark:text-violet-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Przetargi BZP</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {tendersStats.actionable} do zgłoszenia
+                  {tendersStats.interested > 0 && ` · ${tendersStats.interested} w analizie`}
+                  {tendersStats.funnel.winRate != null && ` · skuteczność ${tendersStats.funnel.winRate}%`}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs">
+              {tendersStats.urgent > 0 && (
+                <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium">
+                  {tendersStats.urgent} termin ≤7 dni
+                </span>
+              )}
+              <span className="px-2.5 py-1 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400">Otwórz →</span>
+            </div>
+          </button>
+        )}
 
         {/* Uwaga dziś */}
         {attentionCount > 0 && (
@@ -8810,6 +8866,39 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
       ),
     },
     {
+      id:"tenders",
+      icon:Scale,
+      title:"Przetargi BZP",
+      subtitle:"Pipeline ogłoszeń, SWZ i powiązanie z robotą",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">Zakładka <strong>Przetargi</strong> zbiera ogłoszenia z Biuletynu Zamówień Publicznych (e-Zamówienia) dopasowane do profilu W&G DOM — remonty budynków we Wrocławiu i okolicy. Pipeline zapisuje się w chmurze (<code>kw-tenders-pipeline</code>).</p>
+          <div className="space-y-3">
+            {[
+              {q:"Kto widzi zakładkę Przetargi?", a:"Super Administrator zawsze. Administrator i Moderator — gdy włączysz to w Ustawieniach (⚙): „Zakładka Przetargi dla administratorów i moderatorów”."},
+              {q:"Jak odświeżyć listę?", a:"Przycisk „Odśwież z BZP” pobiera nowe ogłoszenia z dolnośląskiego BZP i od kluczowych zamawiających (WM, ZIK, ZIM, TBS, Gmina, MOPS). Aplikacja też odświeża listę automatycznie co ~20 h."},
+              {q:"Co to „Do zgłoszenia”?", a:"Domyślny filtr — tylko aktywne przetargi (otwarty termin składania ofert), z Wrocławia lub od kluczowych zamawiających, pasujące do słownika remontów wnętrz."},
+              {q:"Rozwiń przetarg — co się dzieje?", a:"Auto-analiza: pobiera status postępowania, HTML ogłoszenia, załączniki BZP i analizuje SWZ (wadium, wartość, terminy, wymagania techniczne). Możesz też wgrać SWZ/kosztorys ręcznie."},
+              {q:"Ocena opłacalności", a:"Po analizie SWZ widzisz ocenę (Sensowny / Ostrożnie / Ryzykowny). Wpisz „Nasz szacunek” — system porówna z wartością zamówienia i wadium."},
+              {q:"Uczenie słów kluczowych", a:"Oznacz przetargi jako „Interesuje nas” — na dole panelu pojawią się propozycje słów. „Ucz system” dopisuje je do słownika w chmurze (kw-tenders-custom-keywords) i przelicza trafność."},
+              {q:"Lejek pipeline", a:"U góry listy widać statystyki: nowe → obejrzane → interesuje → oferta → złożone → wygrane/przegrane oraz wskaźnik skuteczności (% wygranych)."},
+              {q:"Utwórz robotę z przetargu", a:"Status „Przygotowujemy ofertę” lub „Wygrany” → przycisk „Utwórz robotę”. SWZ/kosztorys z przetargu trafia do plików roboty. W karcie roboty jest link „Otwórz przetarg”."},
+              {q:"Widget na Pulpicie", a:"Kafelek „Przetargi BZP” pokazuje liczbę do zgłoszenia, pilne terminy (≤7 dni) i skuteczność — klik przenosi do zakładki Przetargi."},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
       id:"directory",
       icon:Users,
       title:"Pracownicy",
@@ -9115,6 +9204,20 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.37.0", label:"Przetargi — workflow, pulpit, instrukcja",
+    items:[
+      {type:"new", text:"Instrukcja obsługi — sekcja Przetargi BZP (pipeline, SWZ, uczenie, robota)"},
+      {type:"new", text:"Sync słów kluczowych z chmury + przeliczenie trafności przy starcie"},
+      {type:"new", text:"Tworzenie roboty — auto-dołączanie SWZ/kosztorysu z przetargu"},
+      {type:"new", text:"Link zwrotny przetarg ↔ robota (banner w karcie roboty)"},
+      {type:"new", text:"Auto-analiza po rozwinięciu (HTML, załączniki, SWZ)"},
+      {type:"new", text:"Auto-odświeżanie BZP co ~20 h + widget na Pulpicie"},
+      {type:"new", text:"Lejek pipeline ze wskaźnikiem skuteczności"},
+      {type:"new", text:"Podgląd pełnego ogłoszenia HTML + status postępowania z API"},
+      {type:"improve", text:"Parsowanie SWZ: terminy realizacji, wymagania techniczne, pozycje tabel PDF"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.36.0", label:"Przetargi BZP — SWZ, analiza, uczenie słów, robota",
     items:[
@@ -11395,6 +11498,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [contacts, setContacts] = useLocalStorage<EmailContact[]>("kw-contacts", []);
   const [view, setView] = useState<View>("dashboard");
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
+  const [pendingTenderId, setPendingTenderId] = useState<string | null>(null);
+  const [tenderDashStats, setTenderDashStats] = useState<TendersDashboardStats | null>(null);
   const [pendingInspectorJobId, setPendingInspectorJobId] = useState<string | null>(null);
   const [inspectorInitialTab, setInspectorInitialTab] = useState<"activity" | "portfolio">("activity");
   const [alertsSeenTick, setAlertsSeenTick] = useState(0);
@@ -11945,6 +12050,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     ? adminCanViewTendersTab(adminSession.role, appSettings)
     : false;
 
+  useEffect(() => {
+    if (!canViewTendersNav) return;
+    if (view !== "dashboard" && view !== "tenders") return;
+    loadTendersPipeline()
+      .then((items) => setTenderDashStats(computeTendersDashboardStats(items)))
+      .catch(() => setTenderDashStats(null));
+  }, [canViewTendersNav, view]);
+
   const navItems: {key:View;label:string;hint:string;icon:React.ElementType;badge?:number}[] = [
     {key:"dashboard", label:"Pulpit", hint:"Podsumowanie tygodnia, alerty (spójność, dokumenty, zdjęcia) i szybkie skróty.", icon:LayoutDashboard},
     {key:"payroll", label:"Lista Płac", hint:"Godziny, stawki, zaliczki i wypłaty za bieżący tydzień. Eksport PDF i Word.", icon:FileText},
@@ -12234,13 +12347,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
         {/* Content */}
         <div className={`flex flex-1 min-h-0 overflow-hidden ${payrollDetailOpen ? "" : "pb-[calc(3.5rem+env(safe-area-inset-bottom))]"} md:pb-0`}>
-          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs} adminUserId={adminSession?.id} alertsSeenTick={alertsSeenTick} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} onOpenSms={()=>setShowSmsModal(true)}/>}
+          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs} adminUserId={adminSession?.id} alertsSeenTick={alertsSeenTick} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} onOpenSms={()=>setShowSmsModal(true)} canViewTenders={canViewTendersNav} tendersStats={tenderDashStats} onOpenTenders={()=>setView("tenders")}/>}
           {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onSyncRatesFromDirectory={syncWeekRatesFromDirectory} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive} onSaveBacklogWeek={saveBiweeklyBacklogWeek} initialEmpId={pendingPayrollEmpId} onInitialEmpConsumed={()=>setPendingPayrollEmpId(null)} onDetailOpenChange={setPayrollDetailOpen}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory} onOpenSms={()=>setShowSmsModal(true)}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>{ addDeletedArchiveId(id); setSavedWeeks(prev=>prev.filter(w=>w.id!==id)); }} onUpdateWeekEmployee={updateArchiveWeekEmployee} onToggleArchiveSettled={toggleArchiveSettled} jobs={jobs} directory={directory}/>}
-          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={(jobId)=>{ if (jobId) setPendingInspectorJobId(jobId); setViewReturn({ view: "jobs", label: "Roboty" }); setView("inspector"); }} athPreviewEnabled={appSettings.athPreviewEnabled} returnNav={viewReturn && viewReturn.view !== "jobs" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingJobId(null); } } : undefined}/>}
+          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={(jobId)=>{ if (jobId) setPendingInspectorJobId(jobId); setViewReturn({ view: "jobs", label: "Roboty" }); setView("inspector"); }} athPreviewEnabled={appSettings.athPreviewEnabled} onOpenTender={(tid)=>{ setPendingTenderId(tid); setViewReturn({ view: "jobs", label: "Roboty" }); setView("tenders"); }} returnNav={viewReturn && viewReturn.view !== "jobs" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingJobId(null); } } : undefined}/>}
           {view==="inspector"&&<InspectorAdminView jobs={jobs} setJobs={setJobs} directory={directory} adminUserId={adminSession?.id} adminDisplayName={adminSession?.displayName || "Administrator"} adminRole={adminSession?.role} initialTab={inspectorInitialTab} initialJobId={pendingInspectorJobId} onInitialJobConsumed={()=>setPendingInspectorJobId(null)} contacts={contacts} athPreviewEnabled={appSettings.athPreviewEnabled} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} returnNav={viewReturn && viewReturn.view !== "inspector" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingInspectorJobId(null); } } : undefined}/>}
           {view==="photos"&&<JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="jobfiles"&&<JobFilesBrowser jobs={jobs} athPreviewEnabled={appSettings.athPreviewEnabled} layout="admin" onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
@@ -12249,6 +12362,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             <TendersView
               showTestBadge={adminSession ? adminIsSuperAdmin(adminSession.role) : false}
               athPreviewEnabled={appSettings.athPreviewEnabled}
+              initialExpandedId={pendingTenderId}
               onOpenJob={(id) => { setPendingJobId(id); setView("jobs"); }}
               onCreateJobFromTender={(draft, item) => {
                 const j = defaultJob();
@@ -12256,8 +12370,19 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
                 j.client = draft.client;
                 j.notes = draft.notes;
                 if (draft.invoiceAmount) j.invoiceAmount = draft.invoiceAmount;
+                j.linkedTenderId = draft.linkedTenderId;
+                j.linkedTenderBzpNumber = draft.linkedTenderBzpNumber;
                 appendJobActivity(j, "note", `Utworzono z przetargu BZP: ${item.bzpNumber}`);
                 setJobs((prev) => [j, ...prev]);
+                const actor = adminSession?.displayName || "Administrator";
+                void attachTenderAssetsToJob(j.id, item, actor).then((attachments) => {
+                  if (!attachments.length) return;
+                  setJobs((prev) => prev.map((job) =>
+                    job.id === j.id
+                      ? { ...job, jobFiles: [...(job.jobFiles || []), ...attachments] }
+                      : job,
+                  ));
+                });
                 setPendingJobId(j.id);
                 setView("jobs");
                 return j.id;

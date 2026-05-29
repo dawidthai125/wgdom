@@ -10,8 +10,12 @@ import {
   getMergedScopeKeywords,
   getMergedExcludeKeywords,
   loadCustomKeywordsLocal,
+  loadCustomKeywords,
+  type TendersCustomKeywords,
 } from "@/lib/tenders-bzp-learn";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
+import { isKosztorysUploadFilename } from "@/lib/job-documents";
+import type { JobFileAttachment } from "@/lib/job-documents";
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 
@@ -39,6 +43,7 @@ export interface BzpNoticeRaw {
   orderType?: string;
   tenderId?: string;
   moIdentifier?: string;
+  tenderState?: string;
 }
 
 export interface TenderBzpDocument {
@@ -93,7 +98,136 @@ export interface TenderPipelineItem {
   ourEstimatePln?: number | null;
   /** Powiązana robota w WGDOM (po wygranym przetargu). */
   linkedJobId?: string | null;
+  /** Status postępowania z API e-Zamówienia. */
   tenderState?: string | null;
+  /** Cache HTML ogłoszenia (podgląd). */
+  noticeHtml?: string | null;
+  noticeHtmlFetchedAt?: string | null;
+}
+
+export const TENDERS_LAST_BZP_SYNC_KEY = "kw-tenders-bzp-last-sync";
+export const BZP_AUTO_REFRESH_HOURS = 20;
+
+export const TENDER_STATE_LABELS: Record<string, string> = {
+  Initiated: "Zainicjowane",
+  CollectingOffers: "Składanie ofert",
+  OffersOpened: "Otwarcie ofert",
+  Cancelled: "Unieważnione",
+  Awarded: "Rozstrzygnięte",
+  Finished: "Zakończone",
+  Suspended: "Zawieszone",
+  Open: "Otwarte",
+  Closed: "Zamknięte",
+};
+
+export function labelTenderState(state: string | null | undefined): string {
+  if (!state) return "—";
+  return TENDER_STATE_LABELS[state] || state.replace(/([a-z])([A-Z])/g, "$1 $2");
+}
+
+export interface TenderPipelineFunnel {
+  new: number;
+  seen: number;
+  interested: number;
+  preparing: number;
+  submitted: number;
+  won: number;
+  lost: number;
+  ignored: number;
+  winRate: number | null;
+}
+
+export interface TendersDashboardStats {
+  actionable: number;
+  urgent: number;
+  interested: number;
+  funnel: TenderPipelineFunnel;
+}
+
+export function getLastBzpSyncAt(): string | null {
+  try {
+    return localStorage.getItem(TENDERS_LAST_BZP_SYNC_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function markBzpSyncedAt(): void {
+  try {
+    localStorage.setItem(TENDERS_LAST_BZP_SYNC_KEY, new Date().toISOString());
+  } catch { /* ignore */ }
+}
+
+export function shouldAutoRefreshBzp(): boolean {
+  const last = getLastBzpSyncAt();
+  if (!last) return true;
+  const ageMs = Date.now() - new Date(last).getTime();
+  return ageMs >= BZP_AUTO_REFRESH_HOURS * 3600_000;
+}
+
+export function computePipelineFunnel(items: TenderPipelineItem[]): TenderPipelineFunnel {
+  const counts = {
+    new: 0, seen: 0, interested: 0, preparing: 0,
+    submitted: 0, won: 0, lost: 0, ignored: 0,
+  };
+  for (const i of items) {
+    if (i.status in counts) counts[i.status as keyof typeof counts] += 1;
+  }
+  const decided = counts.won + counts.lost;
+  return {
+    ...counts,
+    winRate: decided > 0 ? Math.round((counts.won / decided) * 100) : null,
+  };
+}
+
+export function computeTendersDashboardStats(items: TenderPipelineItem[]): TendersDashboardStats {
+  return {
+    actionable: items.filter((i) => isActionableTender(i)).length,
+    urgent: items.filter((i) => {
+      const d = daysUntilTenderDeadline(i.submittingOffersDate);
+      return isTenderOpenForOffers(i.submittingOffersDate) && d !== null && d >= 0 && d <= 7;
+    }).length,
+    interested: items.filter((i) => i.status === "interested" || i.status === "preparing").length,
+    funnel: computePipelineFunnel(items),
+  };
+}
+
+export function recalculateTenderItemScore(
+  item: TenderPipelineItem,
+  custom?: TendersCustomKeywords,
+): TenderPipelineItem {
+  const n: BzpNoticeRaw = {
+    objectId: item.id,
+    orderObject: item.title,
+    organizationName: item.organizationName,
+    organizationCity: item.organizationCity,
+    organizationProvince: item.organizationProvince,
+    cpvCode: item.cpvCode,
+    publicationDate: item.publicationDate,
+    submittingOffersDate: item.submittingOffersDate,
+    tenderId: item.tenderId,
+  };
+  const kw = custom ?? loadCustomKeywordsLocal();
+  const { score, keywords } = scoreTenderNotice(n, { priorityOrg: !!item.priorityBuyerId, custom: kw });
+  return { ...item, relevanceScore: score, matchedKeywords: keywords };
+}
+
+export function recalculateAllTenderScores(items: TenderPipelineItem[], custom?: TendersCustomKeywords): TenderPipelineItem[] {
+  const c = custom ?? loadCustomKeywordsLocal();
+  return items.map((i) => recalculateTenderItemScore(i, c));
+}
+
+/** Sync słów kluczowych z chmury + przeliczenie score pipeline. */
+export async function syncTenderKeywordsAndRescore(
+  items: TenderPipelineItem[],
+): Promise<{ items: TenderPipelineItem[]; custom: TendersCustomKeywords; changed: boolean }> {
+  const custom = await loadCustomKeywords();
+  const next = recalculateAllTenderScores(items, custom);
+  const changed = next.some((n, i) =>
+    n.relevanceScore !== items[i]?.relevanceScore
+    || n.matchedKeywords.join(",") !== items[i]?.matchedKeywords.join(","),
+  );
+  return { items: next, custom, changed };
 }
 
 const PRIORITY_BUILDING_HINTS = TENDER_PRIORITY_BUILDING_HINTS;
@@ -199,10 +333,10 @@ export function tenderEzamowieniaUrl(tenderId: string): string {
 
 export function scoreTenderNotice(
   n: BzpNoticeRaw,
-  opts?: { priorityOrg?: boolean },
+  opts?: { priorityOrg?: boolean; custom?: TendersCustomKeywords },
 ): { score: number; keywords: string[]; excluded: boolean } {
   const title = `${n.orderObject || ""} ${n.cpvCode || ""}`.toLowerCase();
-  const custom = loadCustomKeywordsLocal();
+  const custom = opts?.custom ?? loadCustomKeywordsLocal();
   const customKw = {
     action: getMergedActionKeywords(custom),
     scope: getMergedScopeKeywords(custom),
@@ -264,7 +398,9 @@ export function mapBzpToPipelineItem(n: BzpNoticeRaw, existing?: TenderPipelineI
     uploadedFile: existing?.uploadedFile ?? null,
     ourEstimatePln: existing?.ourEstimatePln ?? null,
     linkedJobId: existing?.linkedJobId ?? null,
-    tenderState: existing?.tenderState ?? null,
+    tenderState: n.tenderState ?? existing?.tenderState ?? null,
+    noticeHtml: existing?.noticeHtml ?? null,
+    noticeHtmlFetchedAt: existing?.noticeHtmlFetchedAt ?? null,
   };
 }
 
@@ -288,7 +424,9 @@ export function mergeTenderPipeline(
           uploadedFile: prev.uploadedFile ?? item.uploadedFile,
           ourEstimatePln: prev.ourEstimatePln ?? item.ourEstimatePln,
           linkedJobId: prev.linkedJobId ?? item.linkedJobId,
-          tenderState: prev.tenderState ?? item.tenderState,
+          tenderState: item.tenderState ?? prev.tenderState,
+          noticeHtml: prev.noticeHtml ?? item.noticeHtml,
+          noticeHtmlFetchedAt: prev.noticeHtmlFetchedAt ?? item.noticeHtmlFetchedAt,
         }
       : item);
   }
@@ -453,13 +591,17 @@ export async function uploadTenderFile(
   };
 }
 
-/** Szablon roboty z wygranego / przygotowywanego przetargu. */
-export function jobDraftFromTender(item: TenderPipelineItem): {
+export interface TenderJobDraft {
   address: string;
   client: string;
   notes: string;
   invoiceAmount: string;
-} {
+  linkedTenderId: string;
+  linkedTenderBzpNumber: string;
+}
+
+/** Szablon roboty z wygranego / przygotowywanego przetargu. */
+export function jobDraftFromTender(item: TenderPipelineItem): TenderJobDraft {
   const addr = item.organizationCity?.includes("Wrocław") || item.isWroclaw
     ? item.title.slice(0, 80)
     : `${item.organizationCity || "Wrocław"} — ${item.title.slice(0, 60)}`;
@@ -477,5 +619,46 @@ export function jobDraftFromTender(item: TenderPipelineItem): {
     client: item.organizationName || "—",
     notes,
     invoiceAmount,
+    linkedTenderId: item.id,
+    linkedTenderBzpNumber: item.bzpNumber,
   };
+}
+
+/** Kopiuje pliki przetargu (SWZ / kosztorys) do storage roboty. */
+export async function attachTenderAssetsToJob(
+  jobId: string,
+  item: TenderPipelineItem,
+  uploadedBy: string,
+): Promise<JobFileAttachment[]> {
+  if (!API_BASE) return [];
+  type Source = { storagePath?: string; url?: string; filename: string; kind: "zlecenie" | "kosztorys" };
+  const sources: Source[] = [];
+  if (item.uploadedFile?.path) {
+    const kind = isKosztorysUploadFilename(item.uploadedFile.filename) ? "kosztorys" : "zlecenie";
+    sources.push({
+      storagePath: item.uploadedFile.path,
+      filename: item.uploadedFile.filename,
+      kind,
+    });
+  } else if (item.uploadedFile?.publicUrl) {
+    const kind = isKosztorysUploadFilename(item.uploadedFile.filename) ? "kosztorys" : "zlecenie";
+    sources.push({ url: item.uploadedFile.publicUrl, filename: item.uploadedFile.filename, kind });
+  }
+  const swzDoc = item.bzpDocuments?.find((d) => d.isSwzHint) ?? item.bzpDocuments?.[0];
+  if (swzDoc && !sources.some((s) => s.filename === swzDoc.filename)) {
+    sources.push({
+      url: swzDoc.downloadUrl,
+      filename: swzDoc.filename,
+      kind: isKosztorysUploadFilename(swzDoc.filename) ? "kosztorys" : "zlecenie",
+    });
+  }
+  if (sources.length === 0) return [];
+  const res = await fetch(`${API_BASE}/tenders-bzp-attach-to-job`, {
+    method: "POST",
+    headers: API_HEADERS,
+    body: JSON.stringify({ jobId, uploadedBy, sources }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok) return [];
+  return (data.attachments || []) as JobFileAttachment[];
 }

@@ -1,7 +1,7 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ExternalLink, FileText, Download, Loader2, Sparkles, Briefcase,
-  Upload, AlertTriangle, CheckCircle2, HelpCircle,
+  Upload, AlertTriangle, CheckCircle2, HelpCircle, ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -10,8 +10,10 @@ import {
   type TenderBzpDocument,
   TENDER_STATUS_LABELS,
   fetchTenderDocuments,
+  fetchTenderNoticeDetails,
   analyzeTenderSwz,
   uploadTenderFile,
+  labelTenderState,
 } from "@/lib/tenders-bzp";
 import {
   fmtPln,
@@ -68,6 +70,50 @@ export function TenderDetailPanel({
   const [learning, setLearning] = useState(false);
   const [athPreview, setAthPreview] = useState<AthPreviewResult | null>(null);
   const [athLoading, setAthLoading] = useState(false);
+  const [autoRunning, setAutoRunning] = useState(false);
+  const [showHtml, setShowHtml] = useState(false);
+  const autoRanRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (autoRanRef.current.has(item.id)) return;
+    autoRanRef.current.add(item.id);
+    let cancelled = false;
+    (async () => {
+      setAutoRunning(true);
+      const patch: Partial<TenderPipelineItem> = {};
+      try {
+        if (item.noticeNumber && !item.noticeHtml) {
+          const det = await fetchTenderNoticeDetails(item.noticeNumber);
+          if (!cancelled) {
+            patch.tenderState = det.tenderState;
+            patch.noticeHtml = det.htmlBody;
+            patch.noticeHtmlFetchedAt = new Date().toISOString();
+          }
+        }
+        if (item.tenderId && !item.bzpDocuments?.length) {
+          const docs = await fetchTenderDocuments(item.tenderId);
+          if (!cancelled) {
+            patch.bzpDocuments = docs;
+            patch.documentsFetchedAt = new Date().toISOString();
+          }
+        }
+        if (Object.keys(patch).length > 0 && !cancelled) onUpdate(patch);
+        if (item.noticeNumber && !item.swzAnalysis && !cancelled) {
+          const analysis = await analyzeTenderSwz({
+            noticeNumber: item.noticeNumber,
+            ourEstimatePln: item.ourEstimatePln ?? null,
+          });
+          if (!cancelled) onUpdate({ swzAnalysis: analysis });
+        }
+      } catch {
+        /* auto-analiza best-effort */
+      } finally {
+        if (!cancelled) setAutoRunning(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- once per item id on expand
+  }, [item.id]);
 
   const loadDocuments = useCallback(async () => {
     if (!item.tenderId) {
@@ -150,9 +196,15 @@ export function TenderDetailPanel({
     <div className="px-4 pb-4 pt-0 border-t border-border space-y-4">
       <p className="text-xs text-muted-foreground pt-3">
         CPV: {item.cpvCode || "—"}
+        {item.tenderState && <> · Postępowanie: <strong>{labelTenderState(item.tenderState)}</strong></>}
         {item.matchedKeywords.length > 0 && <> · Słowa: {item.matchedKeywords.slice(0, 8).join(", ")}{item.matchedKeywords.length > 8 ? "…" : ""}</>}
       </p>
       <p className="text-xs text-muted-foreground">Publikacja: {fmtDate(item.publicationDate)}</p>
+      {autoRunning && (
+        <p className="text-xs text-muted-foreground flex items-center gap-2">
+          <Loader2 size={12} className="animate-spin" /> Auto-analiza (ogłoszenie, załączniki, SWZ)…
+        </p>
+      )}
 
       {swz && (
         <div className={`rounded-xl px-3 py-2.5 text-xs space-y-1.5 ${HINT_STYLE[swz.profitabilityHint]}`}>
@@ -168,8 +220,29 @@ export function TenderDetailPanel({
             <p>Wartość: {swz.estimatedValueRaw}</p>
           )}
           {swz.wadiumRaw && <p>Wadium: {swz.wadiumRaw}</p>}
+          {swz.implementationDeadlineRaw && (
+            <p>Termin realizacji: {swz.implementationDeadlineRaw}{swz.implementationDays ? ` (~${swz.implementationDays} dni)` : ""}</p>
+          )}
           {swz.referenceRequirement && (
             <p className="opacity-90">Referencje: {swz.referenceRequirement.slice(0, 200)}…</p>
+          )}
+          {swz.technicalRequirements?.length > 0 && (
+            <div className="opacity-90 space-y-0.5">
+              <p className="font-medium">Wymagania techniczne:</p>
+              {swz.technicalRequirements.slice(0, 3).map((t, i) => (
+                <p key={i} className="pl-2 border-l-2 border-current/20">{t.slice(0, 180)}{t.length > 180 ? "…" : ""}</p>
+              ))}
+            </div>
+          )}
+          {swz.tableExtracts?.length > 0 && (
+            <div className="opacity-90 space-y-0.5">
+              <p className="font-medium">Pozycje z kosztorysu (PDF):</p>
+              <ul className="list-disc pl-4 space-y-0.5">
+                {swz.tableExtracts.slice(0, 4).map((row, i) => (
+                  <li key={i} className="font-mono text-[10px]">{row.slice(0, 120)}{row.length > 120 ? "…" : ""}</li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       )}
@@ -217,6 +290,27 @@ export function TenderDetailPanel({
           Analizuj ogłoszenie
         </button>
       </div>
+
+      {item.noticeHtml && (
+        <div className="rounded-xl border border-border overflow-hidden">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setShowHtml((v) => !v); }}
+            className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium bg-secondary/50 hover:bg-secondary/80"
+          >
+            <span className="flex items-center gap-1.5"><FileText size={12} /> Pełne ogłoszenie BZP (HTML)</span>
+            <ChevronDown size={14} className={`transition-transform ${showHtml ? "rotate-180" : ""}`} />
+          </button>
+          {showHtml && (
+            <iframe
+              title="Ogłoszenie BZP"
+              sandbox=""
+              srcDoc={item.noticeHtml}
+              className="w-full h-72 sm:h-96 bg-white text-black border-t border-border"
+            />
+          )}
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <label className="text-xs text-muted-foreground">

@@ -2225,7 +2225,7 @@ app.get("/make-server-0afb8820/tenders-bzp-search", async (c) => {
   }
 });
 
-const EZAMOWIENIA_UA = "WGDOM/2.36.0 tenders-pipeline";
+const EZAMOWIENIA_UA = "WGDOM/2.37.0 tenders-pipeline";
 const EZAMOWIENIA_FETCH = {
   Accept: "application/json",
   "User-Agent": EZAMOWIENIA_UA,
@@ -2270,17 +2270,48 @@ function parseSwzFromText(
   const wadiumRaw = swzFirstMatch(folded, [
     /wadium[:\s]+([^.;]{5,200})/i,
     /wysokość wadium[:\s]+([^.;]{5,200})/i,
+    /wniesienia wadium[:\s]+([^.;]{5,200})/i,
   ]);
   const valueRaw = swzFirstMatch(folded, [
     /wartość zamówienia[:\s]+([^.;]{5,200})/i,
     /szacunkow[aą] wartość[:\s]+([^.;]{5,200})/i,
     /wartość brutto[:\s]+([^.;]{5,200})/i,
+    /całkowit[aą] wartość[:\s]+([^.;]{5,200})/i,
   ]);
   const referenceRequirement = swzFirstMatch(folded, [
     /referencj[^.]{10,400}\./i,
     /doświadczen[^.]{10,400}\./i,
     /co najmniej[^.]{10,200}zł[^.]{0,80}\./i,
   ]);
+  const implementationDeadlineRaw = swzFirstMatch(folded, [
+    /termin realizacji[:\s]+([^.;]{5,160})/i,
+    /okres realizacji[:\s]+([^.;]{5,160})/i,
+    /termin wykonania[:\s]+([^.;]{5,160})/i,
+  ]);
+  const technicalRequirements: string[] = [];
+  const techRe = /wymagania techniczne[^:]{0,40}[:\s]+([^.]{15,280}\.)/gi;
+  let tm: RegExpExecArray | null;
+  while ((tm = techRe.exec(folded)) && technicalRequirements.length < 4) {
+    technicalRequirements.push(tm[1].trim());
+  }
+  const tableExtracts: string[] = [];
+  for (const part of text.split(/\n|\s\|\s|\s{3,}/)) {
+    const line = part.replace(/\s+/g, " ").trim();
+    if (line.length < 15 || line.length > 220) continue;
+    const hasUnit = /\b(m2|m²|mb|szt|kpl|kg|t|godz|h|rbh)\b/i.test(line);
+    const hasMoney = /\d+[,.]\d{2}|\d+\s*\d{3}/.test(line);
+    if (hasUnit && hasMoney) tableExtracts.push(line);
+    if (tableExtracts.length >= 8) break;
+  }
+  let implementationDays: number | null = null;
+  if (implementationDeadlineRaw) {
+    const dm = implementationDeadlineRaw.match(/(\d+)\s*(?:dni|dzień)/i)
+      || implementationDeadlineRaw.match(/(\d+)\s*(?:miesięcy|mies)/i);
+    if (dm) {
+      const n = parseInt(dm[1], 10);
+      implementationDays = /mies/i.test(dm[0]) ? n * 30 : n;
+    }
+  }
   const { value: wadiumPln, label: wadiumLabel } = parsePlnFromText(wadiumRaw);
   const { value: estimatedValuePln, label: estLabel } = parsePlnFromText(valueRaw);
   let profitabilityHint = "unknown";
@@ -2288,6 +2319,9 @@ function parseSwzFromText(
   if (wadiumPln != null && wadiumPln >= 50000) {
     profitabilityHint = "risky";
     profitabilityNote = `Wysokie wadium (~${wadiumPln} zł).`;
+  } else if (implementationDays != null && implementationDays <= 14 && estimatedValuePln != null && estimatedValuePln > 100000) {
+    profitabilityHint = "caution";
+    profitabilityNote = `Krótki termin realizacji (${implementationDays} dni).`;
   } else if (estimatedValuePln != null && ourEstimatePln != null && ourEstimatePln > estimatedValuePln * 1.15) {
     profitabilityHint = "caution";
     profitabilityNote = "Szacunek wyższy niż wartość w SWZ.";
@@ -2305,6 +2339,10 @@ function parseSwzFromText(
     wadiumRaw: wadiumLabel || wadiumRaw,
     referenceRequirement,
     qualificationHints: [],
+    implementationDeadlineRaw,
+    implementationDays,
+    technicalRequirements,
+    tableExtracts,
     parsedAt: new Date().toISOString(),
     source,
     profitabilityHint,
@@ -2473,6 +2511,57 @@ app.post("/make-server-0afb8820/tenders-bzp-upload", async (c) => {
     return c.json({ ok: true, path, publicUrl: pub.publicUrl });
   } catch (e) {
     return c.json({ ok: false, error: String(e) }, 500);
+  }
+});
+
+app.post("/make-server-0afb8820/tenders-bzp-attach-to-job", async (c) => {
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const jobId = String(body.jobId || "").trim();
+    const uploadedBy = String(body.uploadedBy || "Administrator");
+    const sources = Array.isArray(body.sources) ? body.sources : [];
+    if (!jobId || sources.length === 0) {
+      return c.json({ ok: false, error: "Brak jobId lub sources" }, 400);
+    }
+    await ensurePhotosBucket();
+    const supabase = supabaseAdmin();
+    const attachments: Record<string, unknown>[] = [];
+    for (const src of sources.slice(0, 5)) {
+      const filename = String(src.filename || "dokument.pdf");
+      const kind = src.kind === "zlecenie" ? "zlecenie" : "kosztorys";
+      const safeName = `${kind}-${Date.now()}-${filename.replace(/[^a-zA-Z0-9._-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/gi, "_").slice(0, 80)}`;
+      const destPath = `jobs/${jobId}/${safeName}`;
+      let bytes: Uint8Array | null = null;
+      if (src.storagePath) {
+        const { data, error } = await supabase.storage.from(PHOTOS_BUCKET).download(String(src.storagePath));
+        if (!error && data) bytes = new Uint8Array(await data.arrayBuffer());
+      } else if (src.url) {
+        const res = await fetch(String(src.url), { headers: EZAMOWIENIA_FETCH });
+        if (res.ok) {
+          bytes = new Uint8Array(await res.arrayBuffer());
+          if (bytes.byteLength > 15 * 1024 * 1024) continue;
+        }
+      }
+      if (!bytes) continue;
+      const { error: upErr } = await supabase.storage.from(PHOTOS_BUCKET).upload(destPath, bytes, {
+        contentType: contentTypeForUploadedFile(filename, ""),
+        upsert: true,
+      });
+      if (upErr) continue;
+      const { data: pub } = supabase.storage.from(PHOTOS_BUCKET).getPublicUrl(destPath);
+      attachments.push({
+        id: crypto.randomUUID(),
+        kind,
+        path: destPath,
+        publicUrl: pub.publicUrl,
+        filename,
+        uploadedBy,
+        uploadedAt: new Date().toISOString(),
+      });
+    }
+    return c.json({ ok: true, attachments });
+  } catch (e) {
+    return c.json({ ok: false, error: e instanceof Error ? e.message : "attach error" }, 500);
   }
 });
 

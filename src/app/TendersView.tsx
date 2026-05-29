@@ -20,6 +20,11 @@ import {
   pruneExpiredUntouched,
   sortTendersByUrgency,
   jobDraftFromTender,
+  syncTenderKeywordsAndRescore,
+  shouldAutoRefreshBzp,
+  markBzpSyncedAt,
+  computePipelineFunnel,
+  labelTenderState,
 } from "@/lib/tenders-bzp";
 import { PROFITABILITY_LABELS } from "@/lib/tenders-bzp-swz";
 import { TenderDetailPanel } from "@/app/TenderDetailPanel";
@@ -44,11 +49,13 @@ export function TendersView({
   onCreateJobFromTender,
   onOpenJob,
   athPreviewEnabled = true,
+  initialExpandedId = null,
 }: {
   showTestBadge?: boolean;
   onCreateJobFromTender?: (draft: ReturnType<typeof jobDraftFromTender>, item: TenderPipelineItem) => string | void;
   onOpenJob?: (jobId: string) => void;
   athPreviewEnabled?: boolean;
+  initialExpandedId?: string | null;
 }) {
   const [items, setItems] = useState<TenderPipelineItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,15 +63,13 @@ export function TendersView({
   const [search, setSearch] = useState("");
   const [localFilter, setLocalFilter] = useState<LocalFilter>("actionable");
   const [statusFilter, setStatusFilter] = useState<TenderPipelineStatus | "all">("all");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId);
   const [error, setError] = useState("");
+  const [autoSyncing, setAutoSyncing] = useState(false);
 
   useEffect(() => {
-    loadTendersPipeline()
-      .then(setItems)
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
-  }, []);
+    if (initialExpandedId) setExpandedId(initialExpandedId);
+  }, [initialExpandedId]);
 
   const persist = useCallback(async (next: TenderPipelineItem[]) => {
     setItems(next);
@@ -75,20 +80,59 @@ export function TendersView({
     }
   }, []);
 
+  const runBzpMerge = useCallback(async (baseItems: TenderPipelineItem[], silent = false) => {
+    const raw = await fetchBzpTendersFromServer({ days: 90, pages: 4, orgPages: 5, province: "PL02" });
+    const mapped = raw.map((n) => {
+      const prev = baseItems.find((i) => i.id === String(n.objectId || n.moIdentifier || n.bzpNumber));
+      return mapBzpToPipelineItem(n, prev);
+    });
+    const merged = pruneExpiredUntouched(mergeTenderPipeline(baseItems, mapped));
+    await persist(merged);
+    markBzpSyncedAt();
+    if (!silent) {
+      const actionableN = merged.filter((m) => isActionableTender(m)).length;
+      const priorityN = merged.filter((m) => isTenderOpenForOffers(m.submittingOffersDate) && m.priorityBuyerId).length;
+      toast.success(`BZP: ${actionableN} aktywnych do rozważenia (w tym ${priorityN} od kluczowych zamawiających)`);
+    }
+    return merged;
+  }, [persist]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        let loaded = await loadTendersPipeline();
+        const { items: rescored, changed } = await syncTenderKeywordsAndRescore(loaded);
+        if (changed) {
+          await saveTendersPipeline(rescored);
+          loaded = rescored;
+        }
+        if (!cancelled) setItems(loaded);
+        if (!cancelled && shouldAutoRefreshBzp()) {
+          setAutoSyncing(true);
+          try {
+            await runBzpMerge(loaded, true);
+          } catch {
+            /* ciche auto-odświeżenie */
+          } finally {
+            if (!cancelled) setAutoSyncing(false);
+          }
+        }
+      } catch {
+        if (!cancelled) setItems([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [runBzpMerge]);
+
   const refreshFromBzp = useCallback(async () => {
     setSyncing(true);
     setError("");
     try {
-      const raw = await fetchBzpTendersFromServer({ days: 90, pages: 4, orgPages: 5, province: "PL02" });
-      const mapped = raw.map((n) => {
-        const prev = items.find((i) => i.id === String(n.objectId || n.moIdentifier || n.bzpNumber));
-        return mapBzpToPipelineItem(n, prev);
-      });
-      const merged = pruneExpiredUntouched(mergeTenderPipeline(items, mapped));
-      await persist(merged);
-      const actionableN = merged.filter((m) => isActionableTender(m)).length;
-      const priorityN = merged.filter((m) => isTenderOpenForOffers(m.submittingOffersDate) && m.priorityBuyerId).length;
-      toast.success(`BZP: ${actionableN} aktywnych do rozważenia (w tym ${priorityN} od kluczowych zamawiających)`);
+      await runBzpMerge(items, false);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Błąd pobierania przetargów";
       setError(msg);
@@ -96,7 +140,7 @@ export function TendersView({
     } finally {
       setSyncing(false);
     }
-  }, [items, persist]);
+  }, [items, runBzpMerge]);
 
   const updateItem = useCallback((id: string, patch: Partial<TenderPipelineItem>) => {
     const next = items.map((i) =>
@@ -138,6 +182,8 @@ export function TendersView({
     interested: items.filter((i) => i.status === "interested" || i.status === "preparing").length,
   }), [items]);
 
+  const funnel = useMemo(() => computePipelineFunnel(items), [items]);
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
@@ -168,8 +214,8 @@ export function TendersView({
             disabled={syncing}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-60 min-h-[44px]"
           >
-            <RefreshCw size={16} className={syncing ? "animate-spin" : ""} />
-            {syncing ? "Pobieranie…" : "Odśwież z BZP"}
+            <RefreshCw size={16} className={syncing || autoSyncing ? "animate-spin" : ""} />
+            {syncing ? "Pobieranie…" : autoSyncing ? "Auto-sync…" : "Odśwież z BZP"}
           </button>
         </div>
 
@@ -181,6 +227,22 @@ export function TendersView({
           )}
           <span className="px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400">{stats.priority} kluczowi</span>
           <span className="px-2.5 py-1 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400">{stats.interested} w analizie</span>
+        </div>
+
+        <div className="rounded-xl bg-secondary/40 px-3 py-2.5 space-y-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Lejek pipeline</p>
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+            <span>Nowe: <strong className="text-foreground">{funnel.new}</strong></span>
+            <span>Obejrzane: <strong className="text-foreground">{funnel.seen}</strong></span>
+            <span>Interesuje: <strong className="text-violet-600">{funnel.interested}</strong></span>
+            <span>Oferta: <strong className="text-foreground">{funnel.preparing}</strong></span>
+            <span>Złożone: <strong className="text-foreground">{funnel.submitted}</strong></span>
+            <span>Wygrane: <strong className="text-emerald-600">{funnel.won}</strong></span>
+            <span>Przegrane: <strong className="text-foreground">{funnel.lost}</strong></span>
+            {funnel.winRate != null && (
+              <span>Skuteczność: <strong className="text-primary">{funnel.winRate}%</strong></span>
+            )}
+          </div>
         </div>
 
         {error && (
@@ -273,6 +335,9 @@ export function TendersView({
                       )}
                       {item.linkedJobId && (
                         <span className="text-[10px] bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded">Robota</span>
+                      )}
+                      {item.tenderState && (
+                        <span className="text-[10px] bg-secondary text-muted-foreground px-1.5 py-0.5 rounded">{labelTenderState(item.tenderState)}</span>
                       )}
                     </div>
                     <p className="text-sm font-semibold leading-snug">{item.title}</p>
