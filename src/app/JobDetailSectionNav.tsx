@@ -1,11 +1,11 @@
-import { FileText, FolderOpen, Users, Camera, ClipboardList, LayoutList } from "lucide-react";
+import { FileText, FolderOpen, Users, Camera, ClipboardList, LayoutList, MapPin, Plus } from "lucide-react";
 
 export type JobDetailSection = "summary" | "documents" | "files" | "workers" | "photos" | "reports";
 
 const SECTIONS: { id: JobDetailSection; label: string; icon: typeof FileText }[] = [
-  { id: "summary", label: "Dane", icon: LayoutList },
-  { id: "documents", label: "Dokumenty", icon: FileText },
+  { id: "summary", label: "Przegląd", icon: LayoutList },
   { id: "files", label: "Pliki", icon: FolderOpen },
+  { id: "documents", label: "Dokumenty", icon: FileText },
   { id: "workers", label: "Pracownicy", icon: Users },
   { id: "photos", label: "Zdjęcia", icon: Camera },
   { id: "reports", label: "Raporty", icon: ClipboardList },
@@ -15,42 +15,109 @@ export function JobDetailSectionNav({
   active,
   onSelect,
   fileCount,
+  missingDocCount,
+  pendingPhotoCount,
+  reportCount,
 }: {
   active: JobDetailSection;
   onSelect: (section: JobDetailSection) => void;
   fileCount?: number;
+  missingDocCount?: number;
+  pendingPhotoCount?: number;
+  reportCount?: number;
 }) {
+  const badge = (id: JobDetailSection) => {
+    let n: number | undefined;
+    let warn = false;
+    if (id === "files") n = fileCount;
+    else if (id === "documents") {
+      n = missingDocCount;
+      warn = (missingDocCount ?? 0) > 0;
+    } else if (id === "photos") {
+      n = pendingPhotoCount;
+      warn = (pendingPhotoCount ?? 0) > 0;
+    } else if (id === "reports") n = reportCount;
+    if (typeof n !== "number" || n <= 0) return null;
+    return (
+      <span
+        className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+          active === id
+            ? warn
+              ? "bg-amber-400/30 text-amber-950"
+              : "bg-primary-foreground/20"
+            : warn
+              ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
+              : "bg-background text-muted-foreground"
+        }`}
+      >
+        {n}
+      </span>
+    );
+  };
+
   return (
-    <div className="sticky top-0 z-10 -mx-4 sm:-mx-8 px-4 sm:px-8 py-2 bg-background/95 backdrop-blur border-b border-border mb-4">
-      <div className="flex gap-1 overflow-x-auto overscroll-x-contain pb-0.5 scrollbar-none">
-        {SECTIONS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => onSelect(id)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
-              active === id
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Icon size={12}/>
-            {label}
-            {id === "files" && typeof fileCount === "number" && fileCount > 0 && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                active === id ? "bg-primary-foreground/20" : "bg-background"
-              }`}>
-                {fileCount}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+    <div className="flex gap-1 overflow-x-auto overscroll-x-contain pb-0.5 scrollbar-none -mx-1 px-1">
+      {SECTIONS.map(({ id, label, icon: Icon }) => (
+        <button
+          key={id}
+          type="button"
+          onClick={() => onSelect(id)}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
+            active === id
+              ? id === "files"
+                ? "bg-emerald-600 text-white"
+                : "bg-primary text-primary-foreground"
+              : "bg-secondary text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Icon size={12}/>
+          {label}
+          {badge(id)}
+        </button>
+      ))}
     </div>
   );
 }
 
-export function scrollToJobSection(section: JobDetailSection) {
-  const el = document.getElementById(`job-section-${section}`);
-  el?.scrollIntoView({ behavior: "smooth", block: "start" });
+export function JobsDetailEmptyState({
+  onNewJob,
+  onAllFiles,
+  fileCount,
+  jobCount,
+}: {
+  onNewJob: () => void;
+  onAllFiles: () => void;
+  fileCount: number;
+  jobCount: number;
+}) {
+  return (
+    <div className="flex-1 hidden sm:flex flex-col items-center justify-center gap-6 p-8 text-center">
+      <MapPin size={48} className="opacity-15 text-muted-foreground"/>
+      <div className="space-y-1 max-w-sm">
+        <p className="text-sm font-medium text-foreground">Wybierz robotę z listy po lewej</p>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          {jobCount > 0
+            ? "Każda robota ma zakładki: Pliki, Dokumenty, Pracownicy i więcej — bez długiego przewijania."
+            : "Dodaj pierwszą robotę albo przejrzyj pliki ze wszystkich adresów."}
+        </p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-md">
+        <button
+          type="button"
+          onClick={onNewJob}
+          className="flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          <Plus size={14}/>Nowa robota
+        </button>
+        <button
+          type="button"
+          onClick={onAllFiles}
+          className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium border border-emerald-500/35 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-500/20 transition-colors"
+        >
+          <FolderOpen size={14}/>
+          Pliki wg adresów{fileCount > 0 ? ` (${fileCount})` : ""}
+        </button>
+      </div>
+    </div>
+  );
 }

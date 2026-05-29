@@ -153,7 +153,7 @@ import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { JobListFilterBar, JobListLegend, JobListPrimaryBadge, JobPhasePicker, applyJobPhase } from "@/app/JobListStatus";
 import { JobListCard } from "@/app/JobListCard";
 import { JobAllFilesView, JobFileCatalogList } from "@/app/JobAllFilesView";
-import { JobDetailSectionNav, scrollToJobSection, type JobDetailSection } from "@/app/JobDetailSectionNav";
+import { JobDetailSectionNav, JobsDetailEmptyState, type JobDetailSection } from "@/app/JobDetailSectionNav";
 import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
 import { collectJobFileCatalog, countJobFiles, type JobFileCatalogItem } from "@/lib/job-files-index";
 import {
@@ -6035,17 +6035,16 @@ function JobsView({
 
   const totalJobFilesCount = useMemo(() => jobs.reduce((s, j) => s + countJobFiles(j), 0), [jobs]);
 
-  useEffect(() => {
-    if (!selectedJobId) return;
-    if (detailSection !== "summary") {
-      window.setTimeout(() => scrollToJobSection(detailSection), 150);
-    }
-  }, [selectedJobId, detailSection]);
+  const openJob = (id: string, tab: JobDetailSection = "summary") => {
+    setSelectedJobId(id);
+    setDetailSection(tab);
+    setShowHistory(false);
+  };
 
   const addJob = () => {
     const j = defaultJob();
     setJobs(prev=>[j,...prev]);
-    setSelectedJobId(j.id);
+    openJob(j.id);
   };
 
   const deleteJob = (id: string) => {
@@ -6319,6 +6318,13 @@ function JobsView({
     setShowAddEntry(true);
   };
 
+  const selectedMissingDocCount = selectedJob ? jobMissingRequiredDocs(selectedJob).length : 0;
+  const selectedPendingPhotoCount = selectedJob ? (selectedJob.photos || []).filter((p) => p.status === "pending").length : 0;
+  const selectedReportCount = selectedJob ? jobWorkerReports(selectedJob).length : 0;
+  const selectedJobTitle = selectedJob
+    ? `${selectedJob.address || "Bez adresu"}${selectedJob.flatNumber ? ` m.${selectedJob.flatNumber}` : ""}`
+    : "";
+
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
       {showAllFiles ? (
@@ -6328,8 +6334,7 @@ function JobsView({
           onBack={() => setShowAllFiles(false)}
           onOpenJob={(jobId) => {
             setShowAllFiles(false);
-            setSelectedJobId(jobId);
-            setDetailSection("files");
+            openJob(jobId, "files");
           }}
         />
       ) : (
@@ -6400,7 +6405,7 @@ function JobsView({
                     workerCount={workerCount}
                     totalHoursLabel={fmtH(jobTotalHours(job))}
                     costLabel={cost > 0 ? `${fmt(cost)} PLN` : null}
-                    onSelect={() => setSelectedJobId(job.id)}
+                    onSelect={() => openJob(job.id)}
                     onDeleteRequest={() => { setDeleteConfirmListId(job.id); setDeleteConfirmId(null); }}
                     deleteConfirm={deleteConfirmListId === job.id}
                     onDeleteConfirm={() => deleteJob(job.id)}
@@ -6418,22 +6423,47 @@ function JobsView({
 
       {/* Right panel — job detail */}
       {selectedJob ? (
-        <div className="flex-1 overflow-y-auto overscroll-contain">
-          <div className="max-w-3xl mx-auto px-4 sm:px-8 py-6 space-y-6">
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <div className="shrink-0 border-b border-border bg-background/95 backdrop-blur z-10">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-3 pb-2 space-y-3">
+              <button onClick={()=>setSelectedJobId(null)} className="sm:hidden flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <ChevronRight size={14} className="rotate-180"/>Powrót do listy
+              </button>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1 space-y-1">
+                  <h2 className="text-base font-semibold truncate leading-tight">{selectedJobTitle}</h2>
+                  {selectedJob.client && (
+                    <p className="text-xs text-muted-foreground truncate">{selectedJob.client}</p>
+                  )}
+                  <JobListPrimaryBadge job={selectedJob}/>
+                </div>
+                {detailSection !== "files" && (
+                  <button
+                    type="button"
+                    onClick={() => setDetailSection("files")}
+                    className="shrink-0 flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-emerald-600/90 hover:bg-emerald-600 text-white font-medium transition-colors"
+                  >
+                    <FolderOpen size={12}/>
+                    Pliki{selectedJobCatalog.length > 0 ? ` (${selectedJobCatalog.length})` : ""}
+                  </button>
+                )}
+              </div>
+              <JobDetailSectionNav
+                active={detailSection}
+                onSelect={setDetailSection}
+                fileCount={selectedJobCatalog.length}
+                missingDocCount={selectedMissingDocCount}
+                pendingPhotoCount={selectedPendingPhotoCount}
+                reportCount={selectedReportCount}
+              />
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto overscroll-contain">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 space-y-4">
 
-            {/* Back button (mobile) */}
-            <button onClick={()=>setSelectedJobId(null)} className="sm:hidden flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2">
-              <ChevronRight size={14} className="rotate-180"/>Powrót do listy
-            </button>
-
-            <JobDetailSectionNav
-              active={detailSection}
-              onSelect={(s) => { setDetailSection(s); scrollToJobSection(s); }}
-              fileCount={selectedJobCatalog.length}
-            />
-
-            {/* Header */}
-            <div id="job-section-summary" className="scroll-mt-36 bg-card rounded-xl border border-border p-5 space-y-4">
+            {detailSection === "summary" && (
+            <>
+            <div className="bg-card rounded-xl border border-border p-5 space-y-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -6703,8 +6733,11 @@ function JobsView({
               </div>
             )}
 
-            {/* Documents card */}
-            <div id="job-section-documents" className="scroll-mt-36 bg-card rounded-xl border border-border overflow-hidden">
+            </>
+            )}
+
+            {detailSection === "documents" && (
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
               <div className="px-5 py-4 border-b border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FileText size={13} className="text-muted-foreground"/>
@@ -6754,8 +6787,10 @@ function JobsView({
                 })}
               </div>
             </div>
+            )}
 
-            <div id="job-section-files" className="scroll-mt-36 bg-card rounded-xl border border-emerald-500/25 overflow-hidden">
+            {detailSection === "files" && (
+            <div className="bg-card rounded-xl border border-emerald-500/25 overflow-hidden">
               <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <FileText size={13} className="text-emerald-600 dark:text-emerald-400"/>
@@ -6797,9 +6832,11 @@ function JobsView({
                 deleteBusyId={fileDeleteBusy}
               />
             </div>
+            )}
 
-            {/* Workers & Cost card */}
-            <div id="job-section-workers" className="scroll-mt-36 bg-card rounded-xl border border-border overflow-hidden">
+            {detailSection === "workers" && (
+            <>
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
               <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Users size={13} className="text-muted-foreground"/>
@@ -7133,34 +7170,18 @@ function JobsView({
               </div>
             )}
 
-            {/* Worker reports */}
-            <div id="job-section-reports" className="scroll-mt-36">
-            <JobWorkerReportsPanel
-              jobId={selectedJob.id}
-              authorName={adminSession?.displayName || "Administrator"}
-              authorAdminRole={adminSession?.role && adminSession.role !== "inspector" ? adminSession.role : "admin"}
-              reports={jobWorkerReports(selectedJob)}
-              onAddReport={(report) => updateJob({
-                ...selectedJob,
-                workerReports: [...jobWorkerReports(selectedJob), report],
-                reportDocSaOverride: clearReportDocSaOverrideFromReport(selectedJob.reportDocSaOverride, report),
-              }, { type: "report_add", text: `Dodano raport (${scopeTextLineCount(getReportWorkScopeText(report))} linii)` })}
-              onDelete={(reportId) => updateJob({
-                ...selectedJob,
-                workerReports: jobWorkerReports(selectedJob).filter(r => r.id !== reportId),
-              }, { type: "report_delete", text: "Usunięto raport" })}
-            />
-            </div>
+            </>
+            )}
 
-            {/* Photos */}
-            <div id="job-section-photos" className="scroll-mt-36 bg-card rounded-xl border border-border overflow-hidden">
+            {detailSection === "photos" && (
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
               <div className="px-5 py-4 border-b border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Camera size={13} className="text-muted-foreground"/>
                   <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Zdjęcia</span>
-                  {(selectedJob.photos||[]).filter(p=>p.status==="pending").length > 0 && (
+                  {selectedPendingPhotoCount > 0 && (
                     <span className="bg-yellow-500/20 text-yellow-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      {(selectedJob.photos||[]).filter(p=>p.status==="pending").length} nowych
+                      {selectedPendingPhotoCount} nowych
                     </span>
                   )}
                 </div>
@@ -7192,21 +7213,41 @@ function JobsView({
                 <PhotoGallery
                   photos={selectedJob.photos||[]}
                   onUpdate={(photos, activity) => {
-                    const prev = selectedJob.photos || [];
                     updateJob({ ...selectedJob, photos }, activity);
                   }}
                 />
               </div>
             </div>
+            )}
+
+            {detailSection === "reports" && (
+            <JobWorkerReportsPanel
+              jobId={selectedJob.id}
+              authorName={adminSession?.displayName || "Administrator"}
+              authorAdminRole={adminSession?.role && adminSession.role !== "inspector" ? adminSession.role : "admin"}
+              reports={jobWorkerReports(selectedJob)}
+              onAddReport={(report) => updateJob({
+                ...selectedJob,
+                workerReports: [...jobWorkerReports(selectedJob), report],
+                reportDocSaOverride: clearReportDocSaOverrideFromReport(selectedJob.reportDocSaOverride, report),
+              }, { type: "report_add", text: `Dodano raport (${scopeTextLineCount(getReportWorkScopeText(report))} linii)` })}
+              onDelete={(reportId) => updateJob({
+                ...selectedJob,
+                workerReports: jobWorkerReports(selectedJob).filter(r => r.id !== reportId),
+              }, { type: "report_delete", text: "Usunięto raport" })}
+            />
+            )}
 
           </div>
         </div>
-      ) : (
-        <div className="flex-1 hidden sm:flex flex-col items-center justify-center gap-3 text-muted-foreground">
-          <MapPin size={48} className="opacity-15"/>
-          <p className="text-sm font-medium">Wybierz robotę z listy</p>
-          <p className="text-xs text-center max-w-xs">lub kliknij "Nowa robota" aby dodać nową.</p>
         </div>
+      ) : (
+        <JobsDetailEmptyState
+          onNewJob={addJob}
+          onAllFiles={() => setShowAllFiles(true)}
+          fileCount={totalJobFilesCount}
+          jobCount={jobs.length}
+        />
       )}
     </div>
       )}
@@ -8968,6 +9009,14 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.32.2", label:"Roboty — zakładki zamiast scrolla",
+    items:[
+      {type:"improve", text:"Szczegóły roboty — jedna zakładka na ekran (Przegląd, Pliki, Dokumenty…), bez długiego przewijania"},
+      {type:"improve", text:"Pliki — druga zakładka, zielony przycisk skrótu w nagłówku i licznik plików"},
+      {type:"improve", text:"Badge’e: brakujące dokumenty, nowe zdjęcia, liczba raportów; pusty panel z skrótami do plików i nowej roboty"},
+    ],
+  },
   {
     date:"2026-05-29", version:"2.32.1", label:"Pliki wg adresów — kafelki zamiast zakładki",
     items:[
