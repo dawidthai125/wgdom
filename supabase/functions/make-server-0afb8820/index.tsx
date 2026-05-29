@@ -1511,7 +1511,7 @@ function buildSmsFromCandidate(senderDisplayName: string): string {
     .normalize("NFD")
     .replace(/\p{M}/gu, "")
     .replace(/[^a-zA-Z0-9]/g, "");
-  const short = SMS_FROM_NAME_ALIASES[ascii.toLowerCase()] ?? ascii.slice(0, 6) || "Admin";
+  const short = (SMS_FROM_NAME_ALIASES[ascii.toLowerCase()] ?? ascii.slice(0, 6)) || "Admin";
   const candidate = `W&G-${short}`.slice(0, 11);
   return candidate.length >= 3 ? candidate : "W&GDOM";
 }
