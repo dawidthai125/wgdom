@@ -144,11 +144,11 @@ export function JobFilePreviewModal({
                         <thead>
                           <tr className="bg-secondary/30 text-left">
                             <th className="px-2 py-2 font-medium">Lp</th>
-                            <th className="px-2 py-2 font-medium">Kod</th>
-                            <th className="px-2 py-2 font-medium min-w-[200px]">Opis</th>
+                            <th className="px-2 py-2 font-medium">Podstawa</th>
+                            <th className="px-2 py-2 font-medium min-w-[200px]">Opis pozycji</th>
                             <th className="px-2 py-2 font-medium">j.m.</th>
                             <th className="px-2 py-2 font-medium text-right">Ilość</th>
-                            <th className="px-2 py-2 font-medium text-right">Cena</th>
+                            <th className="px-2 py-2 font-medium text-right">Cena j.</th>
                             <th className="px-2 py-2 font-medium text-right">Wartość</th>
                           </tr>
                         </thead>

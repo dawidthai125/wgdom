@@ -8975,6 +8975,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.30.9", label:"Podgląd ATH — ceny jak w NORMA ofertowy",
+    items:[
+      {type:"fix", text:"Cena jednostkowa i wartość pozycji z pola cj×ilość (jak wydruk NORMA), nie z wn (koszty pośrednie R/M)"},
+      {type:"improve", text:"Podsumowanie: kosztorys netto + VAT + brutto — zgodne z końcówką PDF z Normy"},
+      {type:"improve", text:"Nagłówki tabeli: Podstawa (KNR), Cena j., Opis pozycji — terminologia NORMA"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.30.8", label:"PDF — karta dodatkowych godzin jak rozpis tygodniowy",
     items:[
       {type:"improve", text:"Karta dodatkowych godzin (PDF/Word) — siatka pracownik × dni Pn–So jak rozpis tygodniowy, z kolumną Kwota PLN"},

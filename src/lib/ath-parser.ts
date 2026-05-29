@@ -320,17 +320,28 @@ function parseAthAthenasoftIni(text: string): AthPreviewResult {
     const ob = parseIniField(sec.body, "ob") || "";
     const kj = parseIniField(sec.body, "kj") || "";
     const wn = parseIniField(sec.body, "wn") || "";
+    const cjRaw = parseIniField(sec.body, "cj") || "";
 
     const qty = ob.replace(",", ".");
-    const totalNum = sumTabNumbers(wn);
-    const total = totalNum > 0 ? formatPlnAmount(totalNum) : firstNumericToken(wn);
-    let unitPrice = firstNumericToken(kj);
     const q = parseFloat(qty);
-    if (!unitPrice && q > 0 && totalNum > 0) {
-      unitPrice = formatPlnAmount(totalNum / q);
-    } else if (unitPrice) {
-      unitPrice = formatPlnAmount(unitPrice);
+    const cjNum = parseFloat(firstNumericToken(cjRaw));
+
+    let totalNum = 0;
+    let unitPrice = "";
+    // NORMA kosztorys ofertowy: cena j. = cj, wartość = cj × ilość (ob)
+    if (!Number.isNaN(cjNum) && cjNum > 0 && q > 0) {
+      totalNum = +(cjNum * q).toFixed(2);
+      unitPrice = formatPlnAmount(cjNum);
+    } else {
+      totalNum = sumTabNumbers(wn);
+      unitPrice = firstNumericToken(kj);
+      if (!unitPrice && q > 0 && totalNum > 0) {
+        unitPrice = formatPlnAmount(totalNum / q);
+      } else if (unitPrice) {
+        unitPrice = formatPlnAmount(unitPrice);
+      }
     }
+    const total = totalNum > 0 ? formatPlnAmount(totalNum) : firstNumericToken(wn);
 
     rows.push({
       lp: cleanAthText(parseIniField(sec.body, "nu") || String(rows.length + 1)),
@@ -389,18 +400,34 @@ function parseAthAthenasoftIni(text: string): AthPreviewResult {
     }
   }
 
+  const positionsNetSum = +rows.reduce((s, r) => {
+    const n = parseFloat(String(r.total).replace(/\s/g, "").replace(",", "."));
+    return s + (Number.isNaN(n) ? 0 : n);
+  }, 0).toFixed(2);
+
+  const vatNarzut = narzuty.find((n) => n.name.toLowerCase().includes("vat"));
+  const vatPct = vatNarzut?.percent ? parseFloat(vatNarzut.percent) : NaN;
+  const vatAmountStr = headerNarAmounts.get("vat")
+    || (positionsNetSum > 0 && !Number.isNaN(vatPct) ? formatPlnAmount(positionsNetSum * vatPct / 100) : "");
+
+  if (positionsNetSum > 0) {
+    summaryLines.push({ label: "Kosztorys netto (suma pozycji)", value: `${formatPlnAmount(positionsNetSum)} ${currency}`, bold: true });
+    if (vatAmountStr && vatNarzut?.percent) {
+      summaryLines.push({
+        label: `VAT (${vatNarzut.percent} %)`,
+        value: `${vatAmountStr} ${currency}`,
+        indent: 1,
+      });
+    }
+  }
+
   if (totalValue) {
     summaryLines.push({
-      label: "WARTOŚĆ CAŁKOWITA KOSZTORYSU",
+      label: "WARTOŚĆ CAŁKOWITA (brutto)",
       value: `${formatPlnAmount(totalValue)} ${currency}`,
       bold: true,
     });
   }
-
-  const positionsSum = rows.reduce((s, r) => {
-    const n = parseFloat(r.total.replace(/\s/g, "").replace(",", "."));
-    return s + (Number.isNaN(n) ? 0 : n);
-  }, 0);
 
   return {
     ok: rows.length > 0,
@@ -413,9 +440,11 @@ function parseAthAthenasoftIni(text: string): AthPreviewResult {
     summaryLines,
     totalValue: totalValue || undefined,
     currency,
-    summary: totalValue
-      ? `Wartość całkowita: ${formatPlnAmount(totalValue)} ${currency}${positionsSum > 0 ? ` · suma pozycji (widok uproszczony): ${formatPlnAmount(positionsSum)} ${currency}` : ""}`
-      : undefined,
+    summary: totalValue && positionsNetSum > 0
+      ? `Netto: ${formatPlnAmount(positionsNetSum)} ${currency} · brutto: ${formatPlnAmount(totalValue)} ${currency}`
+      : totalValue
+        ? `Wartość całkowita: ${formatPlnAmount(totalValue)} ${currency}`
+        : undefined,
     warnings,
   };
 }
