@@ -47,6 +47,8 @@ export interface TenderPipelineItem {
   relevanceScore: number;
   matchedKeywords: string[];
   isWroclaw: boolean;
+  priorityBuyerId: string | null;
+  priorityBuyerLabel: string | null;
   addedAt: string;
   updatedAt: string;
   ezamowieniaUrl: string;
@@ -80,12 +82,42 @@ const EXCLUDE_KEYWORDS = [
   "wiadukt",
 ];
 
+/** Kluczowi wrocławscy zamawiający — dedykowane zapytania organizationName w BZP. */
+export const WROCLAW_PRIORITY_BUYERS = [
+  { id: "wm", label: "Wrocławskie Mieszkania", search: "Wrocławskie Mieszkania", cityOnly: true },
+  { id: "zik", label: "Zarząd Zasobu Komunalnego", search: "Zarząd Zasobu Komunalnego", cityOnly: true },
+  { id: "zim", label: "Gmina Wrocław – ZIM", search: "Zarząd Inwestycji Miejskich", cityOnly: true },
+  { id: "tbs", label: "TBS Wrocław", search: "Budownictwa Społecznego Wrocław", cityOnly: false },
+  { id: "gmina", label: "Gmina Wrocław", search: "Gmina Wrocław", cityOnly: true },
+] as const;
+
+const PRIORITY_BUILDING_HINTS = [
+  "lokal", "mieszkal", "pustostan", "budynk", "klatk", "elewac", "stolark",
+  "sanitar", "piętr", "pietr", "wind", "dźwig", "dzwig", "remont", "moderniz",
+  "przebudow", "wykończ", "wykończen",
+];
+
+export function matchPriorityBuyer(orgName: string): { id: string; label: string } | null {
+  const n = orgName || "";
+  for (const b of WROCLAW_PRIORITY_BUYERS) {
+    if (b.id === "wm" && /wrocławskie\s+mieszkania/i.test(n)) return { id: b.id, label: b.label };
+    if (b.id === "zik" && /zarząd\s+zasobu\s+komunalnego/i.test(n)) return { id: b.id, label: b.label };
+    if (b.id === "zim" && /zarząd\s+inwestycji\s+miejskich/i.test(n)) return { id: b.id, label: b.label };
+    if (b.id === "tbs" && /budownictwa\s+społecznego\s+wrocław|tbs.*wrocław|tbś.*wrocław/i.test(n)) return { id: b.id, label: b.label };
+    if (b.id === "gmina" && /gmina\s+wrocław/i.test(n) && !/kąty|wrocławski/i.test(n)) return { id: b.id, label: b.label };
+  }
+  return null;
+}
+
 export function tenderEzamowieniaUrl(tenderId: string): string {
   if (!tenderId) return "https://ezamowienia.gov.pl/mo-client-board/";
   return `https://ezamowienia.gov.pl/mp-client/search/list/${encodeURIComponent(tenderId)}`;
 }
 
-export function scoreTenderNotice(n: BzpNoticeRaw): { score: number; keywords: string[]; excluded: boolean } {
+export function scoreTenderNotice(
+  n: BzpNoticeRaw,
+  opts?: { priorityOrg?: boolean },
+): { score: number; keywords: string[]; excluded: boolean } {
   const title = `${n.orderObject || ""} ${n.cpvCode || ""}`.toLowerCase();
   const keywords: string[] = [];
   for (const kw of INCLUDE_KEYWORDS) {
@@ -100,12 +132,18 @@ export function scoreTenderNotice(n: BzpNoticeRaw): { score: number; keywords: s
   if ((n.orderObject || "").toLowerCase().includes("wrocław")) score += 15;
   if ((n.cpvCode || "").includes("454")) score += 5;
   if ((n.cpvCode || "").includes("452")) score += 3;
+  const priority = opts?.priorityOrg || !!matchPriorityBuyer(n.organizationName || "");
+  if (priority) score += 20;
+  if (keywords.length === 0 && priority && PRIORITY_BUILDING_HINTS.some((h) => title.includes(h))) {
+    score = Math.max(score, 18);
+  }
   if (keywords.length === 0 && score < 20) return { score: 0, keywords, excluded: true };
   return { score, keywords, excluded: false };
 }
 
 export function mapBzpToPipelineItem(n: BzpNoticeRaw, existing?: TenderPipelineItem): TenderPipelineItem {
-  const { score, keywords } = scoreTenderNotice(n);
+  const priority = matchPriorityBuyer(n.organizationName || "");
+  const { score, keywords } = scoreTenderNotice(n, { priorityOrg: !!priority });
   const id = String(n.objectId || n.moIdentifier || n.bzpNumber || "");
   const now = new Date().toISOString();
   const city = n.organizationCity || "";
@@ -129,6 +167,8 @@ export function mapBzpToPipelineItem(n: BzpNoticeRaw, existing?: TenderPipelineI
     relevanceScore: score,
     matchedKeywords: keywords,
     isWroclaw,
+    priorityBuyerId: priority?.id ?? existing?.priorityBuyerId ?? null,
+    priorityBuyerLabel: priority?.label ?? existing?.priorityBuyerLabel ?? null,
     addedAt: existing?.addedAt || now,
     updatedAt: now,
     ezamowieniaUrl: tenderEzamowieniaUrl(n.tenderId || ""),
@@ -163,11 +203,13 @@ export async function fetchBzpTendersFromServer(opts?: {
   days?: number;
   pages?: number;
   province?: string;
+  orgPages?: number;
 }): Promise<BzpNoticeRaw[]> {
   if (!API_BASE) throw new Error("Brak konfiguracji Supabase");
   const params = new URLSearchParams({
-    days: String(opts?.days ?? 30),
+    days: String(opts?.days ?? 60),
     pages: String(opts?.pages ?? 4),
+    orgPages: String(opts?.orgPages ?? 3),
     province: opts?.province ?? "PL02",
   });
   const res = await fetch(`${API_BASE}/tenders-bzp-search?${params}`, { headers: API_HEADERS });

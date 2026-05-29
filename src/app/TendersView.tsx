@@ -15,7 +15,7 @@ import {
   mapBzpToPipelineItem,
 } from "@/lib/tenders-bzp";
 
-type LocalFilter = "all" | "wroclaw" | "high";
+type LocalFilter = "all" | "wroclaw" | "high" | "priority";
 
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -63,14 +63,15 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
     setSyncing(true);
     setError("");
     try {
-      const raw = await fetchBzpTendersFromServer({ days: 30, pages: 5, province: "PL02" });
+      const raw = await fetchBzpTendersFromServer({ days: 60, pages: 4, orgPages: 3, province: "PL02" });
       const mapped = raw.map((n) => {
         const prev = items.find((i) => i.id === String(n.objectId || n.moIdentifier || n.bzpNumber));
         return mapBzpToPipelineItem(n, prev);
       });
       const merged = mergeTenderPipeline(items, mapped);
       await persist(merged);
-      toast.success(`Pobrano z BZP — ${mapped.length} pasujących ogłoszeń (dolnośląskie)`);
+      const priorityN = mapped.filter((m) => m.priorityBuyerId).length;
+      toast.success(`Pobrano z BZP — ${mapped.length} ogłoszeń (w tym ${priorityN} od kluczowych zamawiających Wrocławia)`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Błąd pobierania przetargów";
       setError(msg);
@@ -93,6 +94,7 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
       if (statusFilter !== "all" && i.status !== statusFilter) return false;
       if (localFilter === "wroclaw" && !i.isWroclaw) return false;
       if (localFilter === "high" && i.relevanceScore < 15) return false;
+      if (localFilter === "priority" && !i.priorityBuyerId) return false;
       if (!q) return true;
       return (
         i.title.toLowerCase().includes(q)
@@ -107,6 +109,7 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
     total: items.length,
     new: items.filter((i) => i.status === "new").length,
     wroclaw: items.filter((i) => i.isWroclaw).length,
+    priority: items.filter((i) => i.priorityBuyerId).length,
     interested: items.filter((i) => i.status === "interested" || i.status === "preparing").length,
   }), [items]);
 
@@ -131,7 +134,7 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-              Ogłoszenia z BZP — woj. dolnośląskie (PL02), roboty budowlane, filtr remont / modernizacja / wykończenia.
+              Ogłoszenia z BZP — woj. dolnośląskie + dedykowany skan: Wrocławskie Mieszkania, ZIK, ZIM, TBS, Gmina Wrocław.
             </p>
           </div>
           <button
@@ -149,6 +152,7 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
           <span className="px-2.5 py-1 rounded-lg bg-secondary">{stats.total} w pipeline</span>
           <span className="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">{stats.new} nowych</span>
           <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">{stats.wroclaw} Wrocław</span>
+          <span className="px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400">{stats.priority} kluczowi</span>
           <span className="px-2.5 py-1 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400">{stats.interested} w analizie</span>
         </div>
 
@@ -176,6 +180,7 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
               className="bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none min-h-[44px]"
             >
               <option value="all">Wszystkie (DŚ)</option>
+              <option value="priority">Kluczowi zamawiający</option>
               <option value="wroclaw">Tylko Wrocław</option>
               <option value="high">Wysoka trafność</option>
             </select>
@@ -218,6 +223,9 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
                     <div className="flex flex-wrap items-center gap-2">
                       {item.isWroclaw && (
                         <span className="text-[10px] font-semibold uppercase tracking-wide text-primary bg-primary/10 px-1.5 py-0.5 rounded">Wrocław</span>
+                      )}
+                      {item.priorityBuyerLabel && (
+                        <span className="text-[10px] font-semibold text-orange-700 dark:text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded">{item.priorityBuyerLabel}</span>
                       )}
                       <span className="text-[10px] text-muted-foreground font-mono">{item.bzpNumber}</span>
                       {item.relevanceScore >= 20 && (

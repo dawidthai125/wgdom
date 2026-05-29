@@ -364,7 +364,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 |------|------|
 | `src/lib/tenders-bzp.ts` | Typy, scoring, merge pipeline, `fetchBzpTendersFromServer`, persist `kw-tenders-pipeline` |
 | `src/app/TendersView.tsx` | UI listy — odśwież z BZP, filtry Wrocław/trafność/status, notatki, link e-Zamówienia |
-| Edge `GET /tenders-bzp-search` | Pobiera strony z `ezamowienia.gov.pl/mo-board/api/v1/Board/Search` (CORS po stronie serwera) |
+| Edge `GET /tenders-bzp-search` | Pobiera strony z `ezamowienia.gov.pl/mo-board/api/v1/Board/Search` (CORS po stronie serwera). Skan ogólny `organizationProvince=PL02` + dedykowane `organizationName` dla kluczowych wrocławskich zamawiających (WM, ZIK, ZIM, TBS, Gmina). Parametry: `days`, `pages`, `orgPages`, `province`. |
 
 **Dostęp:** Super Admin zawsze; Administrator i Moderator — gdy Super Admin włączy w Ustawieniach (`tendersTabForStaffEnabled` w `kw-app-settings`).
 

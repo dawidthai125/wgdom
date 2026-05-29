@@ -9114,6 +9114,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.35.20", label:"Przetargi — kluczowi zamawiający Wrocławia",
+    items:[
+      {type:"new", text:"BZP — dedykowany skan po organizationName: Wrocławskie Mieszkania, ZIK, ZIM, TBS, Gmina Wrocław"},
+      {type:"improve", text:"Filtr „Kluczowi zamawiający”, badge organizacji, luźniejszy scoring dla WM/ZIK/ZIM"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.35.19", label:"Przetargi — widoczność dla adminów i moderatorów",
     items:[
       {type:"new", text:"Ustawienia Super Admina — przełącznik „Zakładka Przetargi dla administratorów i moderatorów” (sync w chmurze)"},
@@ -11904,7 +11911,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     {key:"photos", label:"Zdjęcia", hint:"Zaakceptowane zdjęcia z robot — galeria i archiwum po 30 dniach od zdania.", icon:Images, badge:(()=>{ const n=jobs.reduce((s,j)=>{ const b=jobGalleryBucket(j); return b==="active"||b==="grace"?s+jobApprovedPhotos(j).length:s;},0); return n||undefined; })()},
     {key:"jobfiles", label:"Pliki robot", hint:"Wszystkie pliki z robot: zlecenia, kosztorysy, zdjęcia, rysunki — pobierz pojedynczo lub ZIP.", icon:FolderOpen, badge:(()=>{ const n=jobs.reduce((s,j)=>jobHasBrowserFiles(j)?s+countBrowserFiles(j):s,0); return n||undefined; })()},
     {key:"guide", label:"Zmiany/Instrukcja", hint:"Historia wersji aplikacji i pomoc krok po kroku.", icon:BookOpen},
-    ...(canViewTendersNav ? [{ key: "tenders" as const, label: "Przetargi", hint: "Ogłoszenia BZP — dolnośląskie, remont/modernizacja. Pipeline statusów i notatki.", icon: Scale }] : []),
+    ...(canViewTendersNav ? [{ key: "tenders" as const, label: "Przetargi", hint: "Ogłoszenia BZP — DŚ + Wrocławskie Mieszkania, ZIK, ZIM, TBS. Pipeline statusów.", icon: Scale }] : []),
   ];
 
   const MOBILE_NAV_PRIMARY: View[] = ["dashboard", "payroll", "schedule", "jobs"];
