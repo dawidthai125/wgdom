@@ -4,6 +4,9 @@ import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
 import { normalizePhoneE164, normalizePhone9 } from "@/lib/phone-normalize";
 import { adminRoleLabel, listAdminUsersForManagement, type AdminSession } from "@/lib/admin-auth";
 
+/** Nazwy nadawców dodane ręcznie w panelu SMSAPI (nie przez API). */
+const SMS_EXPECTED_SENDERS = ["W&GDOM", "W&G-Dawid", "W&G-Pawel", "W&G-Stan"] as const;
+
 export type SmsDirectoryEmployee = {
   id: string;
   name: string;
@@ -252,29 +255,26 @@ export function EmployeeSmsModal({
         active?: string[];
       };
       if (!res.ok || !data.ok) {
-        setEnsureNote(data.error || "Nie udało się zarejestrować nazw nadawców");
+        setEnsureNote(data.error || "Nie udało się sprawdzić nazw nadawców");
         return;
       }
       if (data.sendernames) {
         setSmsStatus((s) => ({ ...s, sendernames: data.sendernames }));
       }
-      const added = data.results?.filter((r) => r.action === "added") ?? [];
-      const pending = data.results?.filter((r) => r.status === "INACTIVE") ?? [];
       const active = data.active ?? [];
-      if (added.length > 0) {
-        setEnsureNote(
-          `Zgłoszono do SMSAPI: ${added.map((r) => r.sender).join(", ")}. `
-          + "Status INACTIVE = czeka na akceptację SMSAPI (zwykle do 1 dnia roboczego).",
-        );
-      } else if (active.length > 0) {
+      const missing = data.results?.filter((r) => r.status === "MISSING" || r.action === "failed") ?? [];
+      const pending = data.results?.filter((r) => r.status === "INACTIVE") ?? [];
+      if (active.length > 0) {
         setEnsureNote(`Aktywne nazwy nadawców: ${active.join(", ")}`);
       } else if (pending.length > 0) {
         setEnsureNote(`Oczekuje na akceptację SMSAPI: ${pending.map((r) => r.sender).join(", ")}`);
+      } else if (missing.length > 0) {
+        setEnsureNote(`Brak w SMSAPI: ${missing.map((r) => r.sender).join(", ")} — dodaj ręcznie w panelu smsapi.pl`);
       } else {
         setEnsureNote("Sprawdzono nazwy nadawców w SMSAPI.");
       }
     } catch {
-      setEnsureNote("Błąd połączenia przy rejestracji nadawców");
+      setEnsureNote("Błąd połączenia przy sprawdzaniu nadawców");
     } finally {
       setEnsureBusy(false);
     }
@@ -499,7 +499,10 @@ export function EmployeeSmsModal({
               <div className="bg-secondary/40 rounded-xl px-3 py-2.5 text-[11px] text-muted-foreground leading-relaxed space-y-2">
                 <p>
                   Treść SMS zacznie się od <strong className="text-foreground/90">{previewPrefix}</strong> — odbiorca zobaczy kto wysłał.
-                  Pole nadawcy na telefonie (np. <em>W&G-Dawid</em>, max 11 znaków) rejestrujemy automatycznie przez API SMSAPI.
+                  Pole nadawcy na telefonie (np. <em>W&G-Dawid</em>) ustawiasz <strong className="text-foreground/90">ręcznie w panelu SMSAPI</strong> — aplikacja nie dodaje nazw przez API.
+                </p>
+                <p className="text-[10px] pt-1 border-t border-border/50">
+                  Wymagane nazwy w SMSAPI: {SMS_EXPECTED_SENDERS.join(", ")}
                 </p>
                 {smsStatus.sendernames && smsStatus.sendernames.length > 0 && (
                   <div className="text-[10px] space-y-0.5 pt-1 border-t border-border/50">
@@ -520,7 +523,7 @@ export function EmployeeSmsModal({
                   onClick={() => void handleEnsureSenders()}
                   className="text-[10px] font-medium text-primary hover:underline disabled:opacity-40"
                 >
-                  {ensureBusy ? "Rejestruję w SMSAPI…" : "Zarejestruj / odśwież nazwy nadawców (API SMSAPI)"}
+                  {ensureBusy ? "Sprawdzam status…" : "Odśwież status nadawców (SMSAPI)"}
                 </button>
                 {ensureNote && <p className="text-[10px] text-foreground/80">{ensureNote}</p>}
               </div>

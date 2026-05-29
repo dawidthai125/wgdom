@@ -9009,6 +9009,13 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.31.6", label:"SMS — nadawcy tylko ręcznie w SMSAPI",
+    items:[
+      {type:"fix", text:"Wyłączona auto-rejestracja nadawców przez API (SMSAPI wymaga ręcznego dodania w panelu)"},
+      {type:"improve", text:"Nadawcy: W&GDOM, W&G-Dawid, W&G-Pawel, W&G-Stan — modal tylko sprawdza status ACTIVE"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.31.5", label:"Roboty — czytelniejsza lista i statusy",
     items:[
       {type:"improve", text:"Lista robót — jeden główny status: W trakcie, Gotowe do odbioru, Komplet do odbioru, Zdane"},
