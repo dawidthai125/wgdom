@@ -1,13 +1,16 @@
 import { useMemo, useState } from "react";
 import {
-  Eye, Download, Loader2, RefreshCw, FileText, ClipboardList, Paperclip,
+  Eye, Download, Loader2, RefreshCw, FileText, ClipboardList, Paperclip, ChevronDown, Archive,
 } from "lucide-react";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { TenderBzpDocument, TenderPipelineItem, TenderUploadedFile } from "@/lib/tenders-bzp";
+import { loadTenderBzpDocumentBytes } from "@/lib/tenders-bzp";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
+import { isDocxFilename, isXlsxFilename, isZipFilename, listZipFiles, type ZipListedFile } from "@/lib/tenders-bzp-doc-parse";
 
 function docIcon(filename: string) {
+  if (isZipFilename(filename)) return Archive;
   if (isKosztorysPreviewExt(filename)) return ClipboardList;
   return FileText;
 }
@@ -15,17 +18,25 @@ function docIcon(filename: string) {
 function canPreviewFilename(name: string): boolean {
   if (isPdfFilename(name)) return true;
   if (isKosztorysPreviewExt(name)) return true;
+  if (isDocxFilename(name)) return true;
+  if (isXlsxFilename(name)) return true;
+  if (isZipFilename(name)) return true;
   if (/\.(jpe?g|png|gif|webp)$/i.test(name)) return true;
   return false;
 }
 
-function previewItemForDoc(tenderId: string, doc: TenderBzpDocument): InspectorFileItem {
+function previewItemForDoc(
+  tenderId: string,
+  doc: TenderBzpDocument,
+  opts?: { zipInnerPath?: string; displayName?: string },
+): InspectorFileItem {
   return {
     kind: "tenderBzp",
     tenderId,
     documentIndex: doc.index,
-    filename: doc.filename,
+    filename: opts?.displayName ?? doc.filename,
     contentType: doc.contentType,
+    zipInnerPath: opts?.zipInnerPath,
   };
 }
 
@@ -36,6 +47,81 @@ function previewItemForUpload(file: TenderUploadedFile): InspectorFileItem {
     publicUrl: file.publicUrl,
     path: file.path,
   };
+}
+
+function ZipInnerList({
+  tenderId,
+  doc,
+  onPreview,
+}: {
+  tenderId: string;
+  doc: TenderBzpDocument;
+  onPreview: (item: InspectorFileItem) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [entries, setEntries] = useState<ZipListedFile[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = async () => {
+    if (entries) {
+      setOpen((v) => !v);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const { bytes } = await loadTenderBzpDocumentBytes(tenderId, doc.index);
+      const list = await listZipFiles(bytes);
+      setEntries(list);
+      setOpen(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Nie udało się odczytać ZIP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="w-full basis-full mt-1">
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); void load(); }}
+        disabled={loading}
+        className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground disabled:opacity-50"
+      >
+        {loading ? <Loader2 size={10} className="animate-spin" /> : <ChevronDown size={10} className={open ? "rotate-180" : ""} />}
+        {open ? "Ukryj pliki w ZIP" : "Pokaż pliki w ZIP"}
+      </button>
+      {error && <p className="text-[10px] text-amber-600 mt-0.5">{error}</p>}
+      {open && entries && (
+        <ul className="mt-1 space-y-1 pl-2 border-l-2 border-border">
+          {entries.length === 0 && (
+            <li className="text-[10px] text-muted-foreground">Brak rozpoznanych plików (ATH/PDF/DOCX/XLSX).</li>
+          )}
+          {entries.map((entry) => (
+            <li key={entry.path} className="flex flex-wrap items-center gap-2 text-[10px]">
+              <span className="truncate min-w-0 flex-1" title={entry.path}>{entry.filename}</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPreview(previewItemForDoc(tenderId, doc, {
+                    zipInnerPath: entry.path,
+                    displayName: `${doc.filename} → ${entry.filename}`,
+                  }));
+                }}
+                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/20 shrink-0"
+              >
+                <Eye size={9} />
+                Podgląd
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 export function TenderAttachmentsPanel({
@@ -107,6 +193,7 @@ export function TenderAttachmentsPanel({
           {sortedDocs.map((doc) => {
             const Icon = docIcon(doc.filename);
             const canPreview = canPreviewFilename(doc.filename);
+            const isZip = isZipFilename(doc.filename);
             return (
               <li
                 key={doc.documentId}
@@ -153,6 +240,13 @@ export function TenderAttachmentsPanel({
                   >
                     analizuj SWZ
                   </button>
+                )}
+                {isZip && item.tenderId && (
+                  <ZipInnerList
+                    tenderId={item.tenderId}
+                    doc={doc}
+                    onPreview={setPreview}
+                  />
                 )}
               </li>
             );

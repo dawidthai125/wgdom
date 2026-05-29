@@ -6,6 +6,7 @@ import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { fmtPln } from "@/lib/tenders-bzp-swz";
 import { stripHtmlToText } from "@/lib/tenders-bzp-swz";
+import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-doc-parse";
 
 export type TenderRequirementStatus = "met" | "partial" | "gap" | "unknown";
 
@@ -219,7 +220,27 @@ function buildCombinedText(item: TenderPipelineItem, swz: TenderSwzAnalysis | nu
       parts.push(`${f.label} ${f.value}`);
     }
   }
+  const k = item.tenderDossier?.kosztorys;
+  if (k?.ok) {
+    if (k.title) parts.push(k.title);
+    if (k.totalValue) parts.push(`Wartość kosztorysu ${k.totalValue} ${k.currency || "PLN"}`);
+    for (const row of k.rows.slice(0, 80)) {
+      if (row.description) parts.push(row.description);
+    }
+  }
   return parts.join("\n");
+}
+
+function estimatedValuePlnFromItem(
+  item: TenderPipelineItem,
+  swz: TenderSwzAnalysis | null | undefined,
+): number | null {
+  if (swz?.estimatedValuePln != null) return swz.estimatedValuePln;
+  const k = item.tenderDossier?.kosztorys;
+  if (k?.ok && k.totalValue) {
+    return parsePlnFromKosztorysTotal(k.totalValue, k.currency);
+  }
+  return null;
 }
 
 export function assessTenderFit(
@@ -283,7 +304,10 @@ export function assessTenderFit(
   if (cpvSt === "met") score += 6;
 
   // Wartość zamówienia
-  const estVal = swz?.estimatedValuePln ?? null;
+  const estVal = estimatedValuePlnFromItem(item, swz);
+  const estValSource = swz?.estimatedValuePln != null
+    ? "SWZ"
+    : (item.tenderDossier?.kosztorys?.ok && estVal != null ? "kosztorys ATH" : null);
   if (estVal != null) {
     let st: TenderRequirementStatus = "met";
     let tip: string | undefined;
@@ -305,7 +329,7 @@ export function assessTenderFit(
       companyHas: `${fmtPln(profile.minOrderValuePln)} – ${fmtPln(profile.maxOrderValuePln)}`,
       status: st,
       impact: st === "gap" ? "high" : "medium",
-      tip,
+      tip: tip ?? (estValSource === "kosztorys ATH" ? "Wartość z sumy kosztorysu — zweryfikuj z SWZ." : undefined),
     });
   } else {
     checks.push({
@@ -316,7 +340,7 @@ export function assessTenderFit(
       companyHas: `${fmtPln(profile.minOrderValuePln)} – ${fmtPln(profile.maxOrderValuePln)}`,
       status: "unknown",
       impact: "medium",
-      tip: "Pobierz SWZ lub uzupełnij szacunek ręcznie.",
+      tip: "Pobierz SWZ, kosztorys ATH lub uzupełnij szacunek ręcznie.",
     });
   }
 

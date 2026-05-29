@@ -20,6 +20,10 @@ export interface TenderPrzedmiarLine {
 export interface TenderKosztorysSnapshot {
   ok: boolean;
   sourceFilename: string;
+  /** Indeks załącznika BZP (e-Zamówienia). */
+  sourceDocumentIndex?: number;
+  /** Ścieżka wewnątrz archiwum ZIP, jeśli dotyczy. */
+  zipInnerPath?: string;
   title?: string;
   totalValue?: string;
   currency?: string;

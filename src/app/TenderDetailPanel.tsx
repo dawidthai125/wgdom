@@ -10,8 +10,6 @@ import {
   TENDER_STATUS_LABELS,
   fetchTenderDocuments,
   fetchTenderNoticeDetails,
-  fetchTenderDocumentBytes,
-  base64ToBytes,
   analyzeTenderSwz,
   uploadTenderFile,
   labelTenderState,
@@ -25,13 +23,12 @@ import {
   learnKeywordsFromPipeline,
   suggestKeywordsFromPipeline,
 } from "@/lib/tenders-bzp-learn";
-import {
-  parseNoticeHtmlBrief,
-  athPreviewToSnapshot,
-  pickBestKosztorysDocument,
-  mergeBriefWithItemTitle,
-} from "@/lib/tenders-bzp-brief";
-import { parseKosztorysBytes, fetchAndParseKosztorys, isKosztorysPreviewExt, type AthPreviewResult } from "@/lib/ath-parser";
+import { parseNoticeHtmlBrief, mergeBriefWithItemTitle, athPreviewToSnapshot } from "@/lib/tenders-bzp-brief";
+import { parseBestTenderDocuments, mergeSwzAnalysis } from "@/lib/tender-document-resolver";
+import { fetchAndParseKosztorys, isKosztorysPreviewExt, type AthPreviewResult } from "@/lib/ath-parser";
+import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-doc-parse";
+import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
+import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { TenderDossierPanel } from "@/app/TenderDossierPanel";
 import { TenderAttachmentsPanel } from "@/app/TenderAttachmentsPanel";
 import { TenderFitPanel } from "@/app/TenderFitPanel";
@@ -87,6 +84,7 @@ export function TenderDetailPanel({
   const [athLoading, setAthLoading] = useState(false);
   const [autoRunning, setAutoRunning] = useState(false);
   const [showHtml, setShowHtml] = useState(false);
+  const [docPreview, setDocPreview] = useState<InspectorFileItem | null>(null);
   const autoRanRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -132,26 +130,26 @@ export function TenderDetailPanel({
             item.title,
           );
           let kosztorysSnap = null;
-          const bestDoc = pickBestKosztorysDocument(docs);
-          if (bestDoc && item.tenderId) {
+          let swzMerged = swz;
+          let estimatePln = item.ourEstimatePln ?? null;
+
+          if (docs.length && item.tenderId) {
             try {
-              if (/\.(ath|nor|xml)$/i.test(bestDoc.filename)) {
-                const { base64, filename } = await fetchTenderDocumentBytes(item.tenderId, bestDoc.index);
-                const preview = parseKosztorysBytes(base64ToBytes(base64), filename);
-                kosztorysSnap = athPreviewToSnapshot(preview, filename);
-              } else if (/\.pdf$/i.test(bestDoc.filename)) {
-                const analysis = await analyzeTenderSwz({
-                  tenderId: item.tenderId,
-                  documentIndex: bestDoc.index,
-                  ourEstimatePln: item.ourEstimatePln ?? null,
-                });
-                if (!swz) {
-                  swz = analysis;
-                  onUpdate({ swzAnalysis: analysis });
-                }
+              const parsed = await parseBestTenderDocuments(item.tenderId, docs, {
+                ourEstimatePln: estimatePln,
+                existingSwz: swz ?? undefined,
+              });
+              kosztorysSnap = parsed.kosztorys;
+              if (parsed.swzFromDoc) {
+                swzMerged = mergeSwzAnalysis(swz, parsed.swzFromDoc);
+                if (!swz) onUpdate({ swzAnalysis: swzMerged });
+              }
+              if (parsed.estimatePln != null && item.ourEstimatePln == null) {
+                estimatePln = parsed.estimatePln;
               }
             } catch { /* brak kosztorysu */ }
           }
+
           if (item.uploadedFile && athPreviewEnabled && isKosztorysPreviewExt(item.uploadedFile.filename)) {
             try {
               const preview = await fetchAndParseKosztorys(
@@ -160,15 +158,26 @@ export function TenderDetailPanel({
                 item.uploadedFile.path,
               );
               kosztorysSnap = athPreviewToSnapshot(preview, item.uploadedFile.filename);
+              if (estimatePln == null) {
+                estimatePln = parsePlnFromKosztorysTotal(kosztorysSnap.totalValue, kosztorysSnap.currency);
+              }
             } catch { /* ignore */ }
           }
-          onUpdate({
+
+          const dossierPatch: Partial<TenderPipelineItem> = {
             tenderDossier: {
               brief,
               kosztorys: kosztorysSnap,
               builtAt: new Date().toISOString(),
             },
-          });
+          };
+          if (estimatePln != null && item.ourEstimatePln == null) {
+            dossierPatch.ourEstimatePln = estimatePln;
+          }
+          if (swzMerged && swzMerged !== swz) {
+            dossierPatch.swzAnalysis = swzMerged;
+          }
+          onUpdate(dossierPatch);
         }
       } catch {
         /* auto-analiza best-effort */
@@ -268,8 +277,8 @@ export function TenderDetailPanel({
           },
         });
         if (preview.totalValue) {
-          const num = parseFloat(preview.totalValue.replace(/\s/g, "").replace(",", "."));
-          if (Number.isFinite(num)) onUpdate({ ourEstimatePln: num });
+          const num = parsePlnFromKosztorysTotal(preview.totalValue, preview.currency);
+          if (num != null) onUpdate({ ourEstimatePln: num });
         }
       }
     } catch (e) {
@@ -310,7 +319,12 @@ export function TenderDetailPanel({
         </p>
       )}
 
-      <TenderDossierPanel item={item} dossier={item.tenderDossier} swz={swz} />
+      <TenderDossierPanel
+        item={item}
+        dossier={item.tenderDossier}
+        swz={swz}
+        onOpenKosztorysPreview={(previewItem) => setDocPreview(previewItem)}
+      />
 
       {swz && (
         <div className={`rounded-xl px-3 py-2 text-xs ${HINT_STYLE[swz.profitabilityHint]}`}>
@@ -492,6 +506,14 @@ export function TenderDetailPanel({
         className="w-full bg-secondary rounded-xl px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none resize-y min-h-[60px]"
         onClick={(e) => e.stopPropagation()}
       />
+
+      {docPreview && (
+        <JobFilePreviewModal
+          item={docPreview}
+          athPreviewEnabled={athPreviewEnabled !== false}
+          onClose={() => setDocPreview(null)}
+        />
+      )}
     </div>
   );
 }

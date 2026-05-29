@@ -6,6 +6,7 @@ import type { JobFileAttachment } from "@/lib/job-documents";
 import type { InspectorPhotoEntry } from "@/lib/job-wm";
 import type { EmailContact } from "@/lib/email-contacts";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
+import { isDocxFilename, isXlsxFilename } from "@/lib/tenders-bzp-doc-parse";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { JobFilesEmailModal } from "@/app/JobFilesEmailModal";
 import { downloadJobDocumentsPack, type JobPackSource } from "@/lib/job-documents-pack";
@@ -14,7 +15,7 @@ export type InspectorFileItem =
   | { kind: "jobFile"; file: JobFileAttachment }
   | { kind: "inspectorPhoto"; file: InspectorPhotoEntry }
   | { kind: "imageUrl"; url: string; filename: string }
-  | { kind: "tenderBzp"; tenderId: string; documentIndex: number; filename: string; contentType?: string }
+  | { kind: "tenderBzp"; tenderId: string; documentIndex: number; filename: string; contentType?: string; zipInnerPath?: string }
   | { kind: "tenderUpload"; filename: string; publicUrl: string; path: string };
 
 function fileLabel(item: InspectorFileItem): string {
@@ -119,7 +120,10 @@ export function JobInspectorFilesPanel({
     if (item.kind === "tenderBzp" || item.kind === "tenderUpload") {
       if (isKosztorysPreviewExt(name)) return true;
       if (/\.(jpe?g|png|gif|webp)$/i.test(name)) return true;
-      return isPdfFilename(name);
+      if (isPdfFilename(name)) return true;
+      if (isDocxFilename(name)) return true;
+      if (isXlsxFilename(name)) return true;
+      return false;
     }
     if (isKosztorysPreviewExt(name)) return true;
     return false;

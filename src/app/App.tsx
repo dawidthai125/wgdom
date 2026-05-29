@@ -9206,6 +9206,16 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.41.0", label:"Przetargi — DOCX/XLSX/ZIP, pdf.js, auto-szacunek ATH",
+    items:[
+      {type:"new", text:"Auto „Nasz szacunek” z sumy kosztorysu po pobraniu załączników BZP"},
+      {type:"new", text:"Podgląd DOCX (tekst SWZ), XLSX (tabela pozycji SheetJS), ZIP (lista + auto-pick ATH/PDF)"},
+      {type:"improve", text:"PDF przez pdf.js — ekstrakcja tekstu SWZ, ostrzeżenie o skanach bez OCR"},
+      {type:"improve", text:"Dopasowanie przetargu uwzględnia wartość z kosztorysu ATH i opisy pozycji"},
+      {type:"improve", text:"Karta kosztorysu — skrót pozycji + link „Pełny podgląd” zamiast pełnej tabeli inline"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.40.2", label:"Przetargi — profil po wyszukiwaniu BZP/BIP",
     items:[
       {type:"improve", text:"Profil v3: MOPS Owsiana 2024 (615 tys. zł, 5 ofert), MPWiK 2012 (23,10 zł/rbh)"},

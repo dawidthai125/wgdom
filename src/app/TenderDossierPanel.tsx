@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { ChevronDown, FileSpreadsheet, MapPin, Calendar, User, ClipboardList } from "lucide-react";
+import { ChevronDown, FileSpreadsheet, MapPin, Calendar, User, ClipboardList, Eye } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { fmtPln, PROFITABILITY_LABELS } from "@/lib/tenders-bzp-swz";
 import type { TenderDossier } from "@/lib/tenders-bzp-brief";
 import { labelTenderState } from "@/lib/tenders-bzp";
+import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value?.trim()) return null;
@@ -55,12 +56,15 @@ export function TenderDossierPanel({
   item,
   dossier,
   swz,
+  onOpenKosztorysPreview,
 }: {
   item: TenderPipelineItem;
   dossier: TenderDossier | null | undefined;
   swz: TenderSwzAnalysis | null | undefined;
+  onOpenKosztorysPreview?: (preview: InspectorFileItem) => void;
 }) {
   const [showAllFields, setShowAllFields] = useState(false);
+  const [showKosztorysRows, setShowKosztorysRows] = useState(false);
   const brief = dossier?.brief;
   const k = dossier?.kosztorys;
 
@@ -146,20 +150,72 @@ export function TenderDossierPanel({
                 <FileSpreadsheet size={13} />
                 Kosztorys: {k.sourceFilename}
               </p>
-              {k.totalValue && (
-                <p className="text-sm font-bold font-mono text-emerald-700 dark:text-emerald-400">
-                  {k.totalValue} {k.currency || "PLN"}
-                  {k.rowCount > k.rows.length && ` · ${k.rowCount} poz. łącznie`}
-                </p>
-              )}
+              <div className="flex flex-wrap items-center gap-2">
+                {k.totalValue && (
+                  <p className="text-sm font-bold font-mono text-emerald-700 dark:text-emerald-400">
+                    {k.totalValue} {k.currency || "PLN"}
+                    {k.rowCount > k.rows.length && ` · ${k.rowCount} poz.`}
+                  </p>
+                )}
+                {onOpenKosztorysPreview && k.sourceDocumentIndex != null && item.tenderId && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenKosztorysPreview({
+                        kind: "tenderBzp",
+                        tenderId: item.tenderId,
+                        documentIndex: k.sourceDocumentIndex!,
+                        filename: k.sourceFilename,
+                        zipInnerPath: k.zipInnerPath,
+                      });
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-medium hover:bg-primary/20"
+                  >
+                    <Eye size={11} />
+                    Pełny podgląd
+                  </button>
+                )}
+                {onOpenKosztorysPreview && k.sourceDocumentIndex == null && item.uploadedFile && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenKosztorysPreview({
+                        kind: "tenderUpload",
+                        filename: item.uploadedFile!.filename,
+                        publicUrl: item.uploadedFile!.publicUrl,
+                        path: item.uploadedFile!.path,
+                      });
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-medium hover:bg-primary/20"
+                  >
+                    <Eye size={11} />
+                    Pełny podgląd
+                  </button>
+                )}
+              </div>
             </div>
             {k.title && <p className="text-[11px] text-muted-foreground">{k.title}</p>}
-            <CostTable rows={k.rows} caption="Pozycje kosztorysu" />
-            {k.przedmiar.length > 0 && (
+            {k.rows.length > 0 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setShowKosztorysRows((v) => !v); }}
+                  className="text-[10px] text-muted-foreground hover:text-foreground underline"
+                >
+                  {showKosztorysRows ? "Ukryj skrót pozycji" : `Pokaż skrót pozycji (${Math.min(k.rows.length, 40)} z ${k.rowCount})`}
+                </button>
+                {showKosztorysRows && (
+                  <CostTable rows={k.rows.slice(0, 12)} caption="Skrót pozycji kosztorysu" />
+                )}
+              </>
+            )}
+            {k.przedmiar.length > 0 && showKosztorysRows && (
               <div className="space-y-1">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Przedmiar / obmiar</p>
                 <ul className="text-[10px] space-y-1">
-                  {k.przedmiar.slice(0, 15).map((p, i) => (
+                  {k.przedmiar.slice(0, 8).map((p, i) => (
                     <li key={i} className="bg-background/60 rounded px-2 py-1">
                       <span className="font-medium">{p.description}</span>
                       {" — "}

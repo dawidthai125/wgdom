@@ -10,6 +10,18 @@ import {
   type AthPreviewResult,
 } from "@/lib/ath-parser";
 import {
+  extractDocxText,
+  extractPdfText,
+  isDocxFilename,
+  isXlsxFilename,
+  isZipFilename,
+  listZipFiles,
+  parseDocumentToKosztorys,
+  readZipEntry,
+  resolveDocumentBytes,
+  type ZipListedFile,
+} from "@/lib/tenders-bzp-doc-parse";
+import {
   downloadKosztorysPdf,
   previewKosztorysPdf,
   KOSZTORYS_DISCLAIMER_BODY,
@@ -58,21 +70,25 @@ export function JobFilePreviewModal({
     return undefined;
   }, [item]);
 
-  const isPdf = isPdfFilename(filename);
-  const isPhoto =
-    item.kind === "inspectorPhoto"
-    || item.kind === "imageUrl"
-    || isImageFilename(filename);
-  const isKosztorys =
-    (item.kind === "jobFile" && item.file.kind === "kosztorys")
-    || ((item.kind === "tenderBzp" || item.kind === "tenderUpload") && isKosztorysPreviewExt(filename));
-
   const [loading, setLoading] = useState(false);
   const [parseResult, setParseResult] = useState<AthPreviewResult | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"table" | "pdf">("table");
+  const [viewMode, setViewMode] = useState<"table" | "pdf" | "text">("table");
   const [mediaBlobUrl, setMediaBlobUrl] = useState<string | null>(null);
+  const [zipEntries, setZipEntries] = useState<ZipListedFile[]>([]);
+  const [pdfTextPreview, setPdfTextPreview] = useState<string | null>(null);
+  const [pdfScanWarning, setPdfScanWarning] = useState<string | null>(null);
+  const [effectiveFilename, setEffectiveFilename] = useState(filename);
+
+  const isPdf = isPdfFilename(effectiveFilename);
+  const isPhoto =
+    item.kind === "inspectorPhoto"
+    || item.kind === "imageUrl"
+    || isImageFilename(effectiveFilename);
+  const isKosztorys =
+    (item.kind === "jobFile" && item.file.kind === "kosztorys")
+    || ((item.kind === "tenderBzp" || item.kind === "tenderUpload") && isKosztorysPreviewExt(effectiveFilename));
 
   useEffect(() => {
     let cancelled = false;
@@ -83,6 +99,10 @@ export function JobFilePreviewModal({
       setPdfPreviewUrl(null);
       setViewMode("table");
       setMediaBlobUrl(null);
+      setZipEntries([]);
+      setPdfTextPreview(null);
+      setPdfScanWarning(null);
+      setEffectiveFilename(filename);
     };
 
     reset();
@@ -91,16 +111,48 @@ export function JobFilePreviewModal({
       if (item.kind === "tenderBzp") {
         setLoading(true);
         try {
-          const { bytes, filename: serverName, contentType } = await loadTenderBzpDocumentBytes(
+          const { bytes: outerBytes, filename: serverName, contentType } = await loadTenderBzpDocumentBytes(
             item.tenderId,
             item.documentIndex,
           );
           if (cancelled) return;
-          const name = item.filename || serverName;
+          const outerName = item.filename || serverName;
+          const zipInner = item.kind === "tenderBzp" ? item.zipInnerPath : undefined;
+
+          const loadBytes = async (idx: number) => {
+            if (idx === item.documentIndex) return outerBytes;
+            const r = await loadTenderBzpDocumentBytes(item.tenderId, idx);
+            return r.bytes;
+          };
+          let bytes = await resolveDocumentBytes(loadBytes, item.documentIndex, outerName, zipInner);
+          let name = zipInner
+            ? (outerName.includes(" → ") ? outerName.split(" → ").pop()! : outerName)
+            : outerName;
+
+          if (isZipFilename(outerName) && !zipInner) {
+            const entries = await listZipFiles(outerBytes);
+            if (!cancelled) setZipEntries(entries);
+            if (entries.length > 0) {
+              const inner = await readZipEntry(outerBytes, entries[0].path);
+              if (inner) {
+                bytes = inner;
+                name = entries[0].filename;
+              }
+            }
+          }
+          if (!cancelled) setEffectiveFilename(name);
+
           if (isPdfFilename(name)) {
             const blobUrl = bytesToBlobUrl(bytes, contentType);
             revokeMedia = blobUrl;
             setMediaBlobUrl(blobUrl);
+            const { text, likelyScan, pageCount } = await extractPdfText(bytes);
+            if (!cancelled) {
+              if (text.length >= 80) setPdfTextPreview(text.slice(0, 120_000));
+              if (likelyScan) {
+                setPdfScanWarning(`PDF (${pageCount} str.) — mało tekstu; możliwy skan bez OCR.`);
+              }
+            }
           } else if (isKosztorysPreviewExt(name)) {
             if (!athPreviewEnabled) {
               setParseResult({
@@ -112,6 +164,20 @@ export function JobFilePreviewModal({
             } else {
               setParseResult(kosztorysResultForDisplay(parseKosztorysBytes(bytes, name)));
             }
+          } else if (isXlsxFilename(name)) {
+            const xlsxResult = await parseDocumentToKosztorys(bytes, name);
+            if (xlsxResult) setParseResult(kosztorysResultForDisplay(xlsxResult));
+          } else if (isDocxFilename(name)) {
+            const text = await extractDocxText(bytes);
+            setParseResult({
+              ok: text.length >= 40,
+              format: "text",
+              rows: [],
+              title: name,
+              warnings: text.length < 80 ? ["DOCX — bardzo krótki tekst."] : [],
+              rawPreview: text.slice(0, 120_000) || "Brak tekstu w dokumencie.",
+            });
+            setViewMode("text");
           } else if (isImageFilename(name)) {
             const blobUrl = bytesToBlobUrl(bytes, contentType);
             revokeMedia = blobUrl;
@@ -181,6 +247,8 @@ export function JobFilePreviewModal({
   const showPdf = isPdf && Boolean(displayUrl);
   const showPhoto = isPhoto && Boolean(displayUrl);
   const canExportPdf = parseResult?.ok && parseResult.rows.length > 0;
+  const hasTextPreview = Boolean(parseResult?.rawPreview) || Boolean(pdfTextPreview);
+  const showTextView = viewMode === "text" && hasTextPreview;
 
   const handlePdfPreview = useCallback(async () => {
     if (!parseResult) return;
@@ -253,6 +321,24 @@ export function JobFilePreviewModal({
                 Tabela
               </button>
             )}
+            {showPdf && pdfTextPreview && viewMode !== "text" && (
+              <button
+                type="button"
+                onClick={() => setViewMode("text")}
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-secondary hover:bg-secondary/80"
+              >
+                Tekst SWZ
+              </button>
+            )}
+            {(showTextView || (viewMode === "text" && hasTextPreview)) && (showPdf || isDocxFilename(effectiveFilename)) && (
+              <button
+                type="button"
+                onClick={() => setViewMode(showPdf ? "pdf" : "table")}
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-secondary hover:bg-secondary/80"
+              >
+                {showPdf ? "PDF" : "Wróć"}
+              </button>
+            )}
             <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground">
               <X size={16}/>
             </button>
@@ -260,6 +346,27 @@ export function JobFilePreviewModal({
         </div>
 
         <div className="flex-1 min-h-0 overflow-auto p-4">
+          {zipEntries.length > 0 && item.kind === "tenderBzp" && !item.zipInnerPath && (
+            <div className="mb-4 rounded-xl border border-border overflow-hidden">
+              <div className="px-3 py-2 bg-secondary/50 border-b border-border">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Pliki w archiwum ZIP ({zipEntries.length})
+                </p>
+              </div>
+              <ul className="divide-y divide-border/60 max-h-40 overflow-y-auto">
+                {zipEntries.map((entry) => (
+                  <li key={entry.path} className="flex items-center justify-between gap-2 px-3 py-1.5 text-xs">
+                    <span className="truncate min-w-0" title={entry.path}>{entry.filename}</span>
+                    <span className="text-[10px] text-muted-foreground shrink-0">score {entry.score}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[10px] text-muted-foreground px-3 py-2 border-t border-border">
+                Podgląd automatycznie otwiera najlepszy plik (ATH/PDF/XLSX). Pełna lista powyżej.
+              </p>
+            </div>
+          )}
+
           {loading && item.kind === "tenderBzp" && (isPdf || isPhoto) && (
             <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
               <Loader2 size={20} className="animate-spin"/>
@@ -267,19 +374,38 @@ export function JobFilePreviewModal({
             </div>
           )}
 
-          {showPdf && !(loading && item.kind === "tenderBzp") && (
-            <iframe
-              title={filename}
-              src={displayUrl}
-              className="w-full h-[70dvh] rounded-lg border border-border bg-white"
-            />
+          {showPdf && !(loading && item.kind === "tenderBzp") && viewMode !== "text" && (
+            <div className="space-y-2">
+              {pdfScanWarning && (
+                <div className="flex items-start gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5"/>
+                  {pdfScanWarning}
+                </div>
+              )}
+              <iframe
+                title={filename}
+                src={displayUrl}
+                className="w-full h-[70dvh] rounded-lg border border-border bg-white"
+              />
+            </div>
+          )}
+
+          {showTextView && (
+            <div className="bg-secondary/30 rounded-xl p-4">
+              <p className="text-xs font-medium mb-2 flex items-center gap-1.5">
+                <FileText size={13}/> Tekst dokumentu (pdf.js / DOCX)
+              </p>
+              <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap break-words max-h-[70dvh] overflow-auto font-mono leading-relaxed">
+                {pdfTextPreview || parseResult?.rawPreview}
+              </pre>
+            </div>
           )}
 
           {showPhoto && !(loading && item.kind === "tenderBzp") && (
             <img src={displayUrl} alt={filename} className="max-w-full max-h-[70dvh] mx-auto rounded-lg"/>
           )}
 
-          {!showPdf && !showPhoto && (
+          {!showPdf && !showPhoto && !showTextView && (
             <>
               {loading && (
                 <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
