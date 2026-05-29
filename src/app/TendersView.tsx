@@ -63,7 +63,7 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
     setSyncing(true);
     setError("");
     try {
-      const raw = await fetchBzpTendersFromServer({ days: 60, pages: 4, orgPages: 3, province: "PL02" });
+      const raw = await fetchBzpTendersFromServer({ days: 365, pages: 4, orgPages: 5, province: "PL02" });
       const mapped = raw.map((n) => {
         const prev = items.find((i) => i.id === String(n.objectId || n.moIdentifier || n.bzpNumber));
         return mapBzpToPipelineItem(n, prev);

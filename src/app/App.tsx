@@ -9116,8 +9116,8 @@ const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"
   {
     date:"2026-05-29", version:"2.35.21", label:"Przetargi — MOPS Wrocław",
     items:[
-      {type:"fix", text:"BZP — MOPS publikuje jako „Miejski Ośrodek Pomocy Społecznej” + miasto Wrocław (nie „we Wrocławiu” w nazwie)"},
-      {type:"improve", text:"Dedykowany skan MOPS z organizationCity=Wrocław; szersze hinty (adaptacja, izolacja, pensjonat)"},
+      {type:"fix", text:"MOPS — w BZP nazwa „Miejski Ośrodek Pomocy Społecznej” + miasto Wrocław (nie „we Wrocławiu”)"},
+      {type:"fix", text:"Pobieranie MOPS przez zakodowany URL (fix Deno/Edge); skan do 365 dni"},
     ],
   },
   {

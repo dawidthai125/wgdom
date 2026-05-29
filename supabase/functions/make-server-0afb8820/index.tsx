@@ -1944,13 +1944,24 @@ const BZP_EXCLUDE_KEYWORDS = [
   "gazociąg", "most ", "wiadukt",
 ];
 
-const WROCLAW_PRIORITY_ORG_SEARCHES: { id: string; search: string; cityOnly: boolean; organizationCity?: string }[] = [
+const WROCLAW_PRIORITY_ORG_SEARCHES: {
+  id: string;
+  search?: string;
+  cityOnly: boolean;
+  organizationCity?: string;
+  /** Gotowy, zakodowany fragment query (gdy URLSearchParams w Deno psuje polskie znaki). */
+  queryString?: string;
+}[] = [
   { id: "wm", search: "Wrocławskie Mieszkania", cityOnly: true },
   { id: "zik", search: "Zarząd Zasobu Komunalnego", cityOnly: true },
   { id: "zim", search: "Zarząd Inwestycji Miejskich", cityOnly: true },
   { id: "tbs", search: "Budownictwa Społecznego Wrocław", cityOnly: false },
   { id: "gmina", search: "Gmina Wrocław", cityOnly: true },
-  { id: "mops", search: "Miejski Ośrodek Pomocy Społecznej", cityOnly: true, organizationCity: "Wrocław" },
+  {
+    id: "mops",
+    cityOnly: true,
+    queryString: "organizationName=Miejski%20O%C5%9Brodek%20Pomocy%20Spo%C5%82ecznej&organizationCity=Wroc%C5%82aw",
+  },
 ];
 
 const PRIORITY_BUILDING_HINTS = [
@@ -1961,20 +1972,27 @@ const PRIORITY_BUILDING_HINTS = [
 
 type BzpNoticeRow = Record<string, unknown>;
 
+function foldPolish(s: string): string {
+  return s.toLowerCase()
+    .replace(/ą/g, "a").replace(/ć/g, "c").replace(/ę/g, "e")
+    .replace(/ł/g, "l").replace(/ń/g, "n").replace(/ó/g, "o")
+    .replace(/ś/g, "s").replace(/ź/g, "z").replace(/ż/g, "z");
+}
+
 function isWroclawRelatedRow(n: BzpNoticeRow): boolean {
-  const city = (n.organizationCity || "").toString().toLowerCase();
-  const title = (n.orderObject || "").toString().toLowerCase();
-  const org = (n.organizationName || "").toString().toLowerCase();
-  return city.includes("wrocław") || city.includes("wroclaw")
-    || title.includes("wrocław") || title.includes("wroclaw")
-    || org.includes("wrocław") || org.includes("wroclaw");
+  const city = foldPolish((n.organizationCity || "").toString());
+  const title = foldPolish((n.orderObject || "").toString());
+  const org = foldPolish((n.organizationName || "").toString());
+  if (city.includes("wroclaw") || city.startsWith("wroc")) return true;
+  if (title.includes("wroclaw") || org.includes("wroclaw")) return true;
+  return false;
 }
 
 function isPriorityBuyerOrg(orgName: string, organizationCity?: string): boolean {
-  const n = orgName || "";
-  const city = (organizationCity || "").toString().toLowerCase();
-  if (/miejski\s+ośrodek\s+pomocy\s+społecznej/i.test(n) && (city.includes("wrocław") || city.includes("wroclaw"))) return true;
-  return /wrocławskie\s+mieszkania|zarząd\s+zasobu\s+komunalnego|zarząd\s+inwestycji\s+miejskich|budownictwa\s+społecznego\s+wrocław|gmina\s+wrocław/i.test(n);
+  const n = foldPolish(orgName || "");
+  const city = foldPolish(organizationCity || "");
+  if (/miejski\s+osrodek\s+pomocy\s+spolecznej/.test(n) && city.includes("wroclaw")) return true;
+  return /wroclawskie\s+mieszkania|zarzad\s+zasobu\s+komunalnego|zarzad\s+inwestycji\s+miejskich|budownictwa\s+spolecznego\s+wroclaw|gmina\s+wroclaw/.test(n);
 }
 
 function normalizeBzpSearchPayload(data: unknown): BzpNoticeRow[] {
@@ -1998,9 +2016,10 @@ function scoreBzpNotice(n: BzpNoticeRow, opts?: { priorityOrg?: boolean }): { sc
     if (title.includes(ex)) return { score: 0, excluded: true };
   }
   let score = keywords.length * 10;
-  const city = (n.organizationCity || "").toString().toLowerCase();
-  if (city.includes("wrocław") || city.includes("wroclaw")) score += 25;
-  if ((n.orderObject || "").toString().toLowerCase().includes("wrocław")) score += 15;
+  const city = foldPolish((n.organizationCity || "").toString());
+  if (city.includes("wroclaw") || city.startsWith("wroc")) score += 25;
+  const titleNorm = foldPolish((n.orderObject || "").toString());
+  if (titleNorm.includes("wroclaw")) score += 15;
   if ((n.cpvCode || "").toString().includes("454")) score += 5;
   if ((n.cpvCode || "").toString().includes("452")) score += 3;
   const priority = opts?.priorityOrg || isPriorityBuyerOrg(
@@ -2038,7 +2057,27 @@ async function fetchBzpSearchPages(
     });
     const url = `https://ezamowienia.gov.pl/mo-board/api/v1/Board/Search?${params}`;
     const res = await fetch(url, {
-      headers: { Accept: "application/json", "User-Agent": "WGDOM/2.35.20 tenders-pipeline" },
+      headers: { Accept: "application/json", "User-Agent": "WGDOM/2.35.21 tenders-pipeline" },
+    });
+    if (!res.ok) throw new Error(`BZP HTTP ${res.status}`);
+    const batch = normalizeBzpSearchPayload(await res.json());
+    if (batch.length === 0) break;
+    out.push(...batch);
+    if (batch.length < 50) break;
+  }
+  return out;
+}
+
+async function fetchBzpPagesByQueryString(
+  extraQuery: string,
+  maxPages: number,
+  publicationDateFrom: string,
+): Promise<BzpNoticeRow[]> {
+  const out: BzpNoticeRow[] = [];
+  for (let page = 1; page <= maxPages; page++) {
+    const url = `https://ezamowienia.gov.pl/mo-board/api/v1/Board/Search?noticeType=ContractNotice&orderType=Works&SortingColumnName=PublicationDate&SortingDirection=DESC&PageNumber=${page}&PageSize=50&publicationDateFrom=${publicationDateFrom}&${extraQuery}`;
+    const res = await fetch(url, {
+      headers: { Accept: "application/json", "User-Agent": "WGDOM/2.35.21 tenders-pipeline" },
     });
     if (!res.ok) throw new Error(`BZP HTTP ${res.status}`);
     const batch = normalizeBzpSearchPayload(await res.json());
@@ -2071,7 +2110,7 @@ function ingestNotices(
 
 app.get("/make-server-0afb8820/tenders-bzp-search", async (c) => {
   try {
-    const days = Math.min(Math.max(parseInt(c.req.query("days") || "60", 10) || 60, 1), 90);
+    const days = Math.min(Math.max(parseInt(c.req.query("days") || "90", 10) || 90, 1), 365);
     const pages = Math.min(Math.max(parseInt(c.req.query("pages") || "4", 10) || 4, 1), 10);
     const orgPages = Math.min(Math.max(parseInt(c.req.query("orgPages") || "3", 10) || 3, 1), 8);
     const province = (c.req.query("province") || "PL02").trim() || "PL02";
@@ -2090,16 +2129,16 @@ app.get("/make-server-0afb8820/tenders-bzp-search", async (c) => {
     ingestNotices(provinceBatch, seen, all);
 
     for (const org of WROCLAW_PRIORITY_ORG_SEARCHES) {
-      const searchParams: Record<string, string> = { organizationName: org.search };
-      if (org.organizationCity) searchParams.organizationCity = org.organizationCity;
-      const orgBatch = await fetchBzpSearchPages(
-        searchParams,
-        orgPages,
-        publicationDateFrom,
-      );
+      const orgBatch = org.queryString
+        ? await fetchBzpPagesByQueryString(org.queryString, orgPages, publicationDateFrom)
+        : await fetchBzpSearchPages(
+          { organizationName: org.search! },
+          orgPages,
+          publicationDateFrom,
+        );
       const n = ingestNotices(orgBatch, seen, all, {
         priorityOrg: true,
-        wroclawOnly: org.cityOnly,
+        wroclawOnly: org.cityOnly && !org.queryString,
       });
       orgStats[org.id] = n;
     }

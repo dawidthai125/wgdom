@@ -100,15 +100,22 @@ const PRIORITY_BUILDING_HINTS = [
 
 export function matchPriorityBuyer(orgName: string, organizationCity?: string): { id: string; label: string } | null {
   const n = orgName || "";
-  const city = (organizationCity || "").toLowerCase();
-  const isWroclawCity = city.includes("wrocław") || city.includes("wroclaw");
+  const folded = n.toLowerCase()
+    .replace(/ą/g, "a").replace(/ć/g, "c").replace(/ę/g, "e")
+    .replace(/ł/g, "l").replace(/ń/g, "n").replace(/ó/g, "o")
+    .replace(/ś/g, "s").replace(/ź/g, "z").replace(/ż/g, "z");
+  const city = (organizationCity || "").toLowerCase()
+    .replace(/ą/g, "a").replace(/ć/g, "c").replace(/ę/g, "e")
+    .replace(/ł/g, "l").replace(/ń/g, "n").replace(/ó/g, "o")
+    .replace(/ś/g, "s").replace(/ź/g, "z").replace(/ż/g, "z");
+  const isWroclawCity = city.includes("wroclaw") || city.startsWith("wroc");
   for (const b of WROCLAW_PRIORITY_BUYERS) {
     if (b.id === "wm" && /wrocławskie\s+mieszkania/i.test(n)) return { id: b.id, label: b.label };
     if (b.id === "zik" && /zarząd\s+zasobu\s+komunalnego/i.test(n)) return { id: b.id, label: b.label };
     if (b.id === "zim" && /zarząd\s+inwestycji\s+miejskich/i.test(n)) return { id: b.id, label: b.label };
     if (b.id === "tbs" && /budownictwa\s+społecznego\s+wrocław|tbs.*wrocław|tbś.*wrocław/i.test(n)) return { id: b.id, label: b.label };
     if (b.id === "gmina" && /gmina\s+wrocław/i.test(n) && !/kąty|wrocławski/i.test(n)) return { id: b.id, label: b.label };
-    if (b.id === "mops" && /miejski\s+ośrodek\s+pomocy\s+społecznej/i.test(n) && (isWroclawCity || /we\s+wrocławiu/i.test(n))) {
+    if (b.id === "mops" && /miejski\s+osrodek\s+pomocy\s+spolecznej/.test(folded) && (isWroclawCity || /we\s+wrocławiu/i.test(n))) {
       return { id: b.id, label: b.label };
     }
   }
@@ -148,11 +155,11 @@ export function scoreTenderNotice(
 }
 
 export function mapBzpToPipelineItem(n: BzpNoticeRaw, existing?: TenderPipelineItem): TenderPipelineItem {
+  const city = n.organizationCity || "";
   const priority = matchPriorityBuyer(n.organizationName || "", city);
   const { score, keywords } = scoreTenderNotice(n, { priorityOrg: !!priority });
   const id = String(n.objectId || n.moIdentifier || n.bzpNumber || "");
   const now = new Date().toISOString();
-  const city = n.organizationCity || "";
   const isWroclaw = /wrocław|wroclaw/i.test(city) || /wrocław|wroclaw/i.test(n.orderObject || "");
   return {
     id,
@@ -213,12 +220,27 @@ export async function fetchBzpTendersFromServer(opts?: {
 }): Promise<BzpNoticeRaw[]> {
   if (!API_BASE) throw new Error("Brak konfiguracji Supabase");
   const params = new URLSearchParams({
-    days: String(opts?.days ?? 60),
+    days: String(opts?.days ?? 90),
     pages: String(opts?.pages ?? 4),
-    orgPages: String(opts?.orgPages ?? 3),
+    orgPages: String(opts?.orgPages ?? 5),
     province: opts?.province ?? "PL02",
   });
-  const res = await fetch(`${API_BASE}/tenders-bzp-search?${params}`, { headers: API_HEADERS });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 180_000);
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/tenders-bzp-search?${params}`, {
+      headers: API_HEADERS,
+      signal: controller.signal,
+    });
+  } catch (e) {
+    if (e instanceof Error && e.name === "AbortError") {
+      throw new Error("Przekroczono czas oczekiwania na BZP (3 min) — spróbuj ponownie");
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeout);
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.ok) {
     throw new Error(data.error || `Błąd pobierania BZP (${res.status})`);
