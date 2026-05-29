@@ -9105,6 +9105,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.35.6", label:"Inspektor — stabilny scroll, bez banera offline",
+    items:[
+      {type:"fix", text:"Panel inspektora — mniej „skaczącego” scrolla (sync w tle nie odświeża wskaźnika pull, stabilniejsza kolejka zdjęć)"},
+      {type:"improve", text:"Inspektor — usunięty żółty pasek „kolejka offline zdjęć”; wysyłka w tle po powrocie sieci bez bannera"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.35.5", label:"SMS pilne — naprawa crasha (HardHat)",
     items:[
       {type:"fix", text:"SMS pilne — literówka ikony HardHat powodowała komunikat „Nie udało się otworzyć SMS pilne” gdy w kartotece są pracownicy z telefonem"},

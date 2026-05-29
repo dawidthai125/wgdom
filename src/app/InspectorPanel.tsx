@@ -85,7 +85,7 @@ const TAB_RETURN_LABELS: Record<InspectorMainTab, string> = {
   portfolio: "Portfolio",
 };
 import { PwaInstallBanner } from "@/app/PwaInstallBanner";
-import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } from "@/lib/photo-queue";
+import { queuePhoto, listQueuedPhotos, removeQueuedPhoto } from "@/lib/photo-queue";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh";
 import { Toaster, toast } from "sonner";
@@ -233,8 +233,9 @@ export function InspectorPanel({
   const portfolioScrollRef = useRef<HTMLDivElement>(null);
   const galleryScrollRef = useRef<HTMLDivElement>(null);
   const filesScrollRef = useRef<HTMLDivElement>(null);
-  const [photoQueueCount, setPhotoQueueCount] = useState(0);
-  const [flushingPhotoQueue, setFlushingPhotoQueue] = useState(false);
+  const jobsRef = useRef(jobs);
+  jobsRef.current = jobs;
+  const flushingPhotoQueueRef = useRef(false);
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
   const [athPreviewEnabled, setAthPreviewEnabled] = useState(() => loadAppSettingsLocal().athPreviewEnabled);
   const [jobSection, setJobSection] = useState<InspectorJobSection>("wm");
@@ -246,15 +247,9 @@ export function InspectorPanel({
       .catch(() => {});
   }, []);
 
-  const refreshPhotoQueueCount = useCallback(() => {
-    queuedPhotoCount("inspector").then(setPhotoQueueCount).catch(() => {});
-  }, []);
-
-  useEffect(() => { refreshPhotoQueueCount(); }, [refreshPhotoQueueCount]);
-
   const scrollToJobSection = useCallback((id: InspectorJobSection) => {
     setJobSection(id);
-    jobScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    jobScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
   }, []);
 
   const directoryContacts = useMemo(
@@ -426,16 +421,32 @@ export function InspectorPanel({
       } catch { /* ignore */ }
       const merged = mergeJobsById(localJobs, normalizeJobsValue(cloudJobs), mergedJobsDeleted) as InspectorJob[];
       const normalized = merged.map(normalizeJob);
-      setJobs(normalized);
-      try { localStorage.setItem("kw-jobs", JSON.stringify(normalized)); } catch { /* ignore */ }
+      const nextJobsJson = JSON.stringify(normalized);
+      try {
+        const prevJobsJson = localStorage.getItem("kw-jobs");
+        if (prevJobsJson !== nextJobsJson) {
+          setJobs(normalized);
+          localStorage.setItem("kw-jobs", nextJobsJson);
+        }
+      } catch {
+        setJobs(normalized);
+      }
       if (cloudDir && Array.isArray(cloudDir)) {
         let localDir: DirectoryEmployee[] = [];
         try {
           localDir = JSON.parse(localStorage.getItem("kw-directory") || "[]");
         } catch { /* ignore */ }
         const mergedDir = mergeDirectory(localDir, cloudDir as DirectoryEmployee[], mergedDirDeleted) as DirectoryEmployee[];
-        setDirectory(mergedDir);
-        try { localStorage.setItem("kw-directory", JSON.stringify(mergedDir)); } catch { /* ignore */ }
+        const nextDirJson = JSON.stringify(mergedDir);
+        try {
+          const prevDirJson = localStorage.getItem("kw-directory");
+          if (prevDirJson !== nextDirJson) {
+            setDirectory(mergedDir);
+            localStorage.setItem("kw-directory", nextDirJson);
+          }
+        } catch {
+          setDirectory(mergedDir);
+        }
       } else {
         try {
           setDirectory(JSON.parse(localStorage.getItem("kw-directory") || "[]"));
@@ -480,7 +491,7 @@ export function InspectorPanel({
     if (document.visibilityState !== "visible") return;
     const id = window.setInterval(() => {
       if (document.visibilityState === "visible") refreshFromCloud(true);
-    }, 45000);
+    }, 120_000);
     return () => window.clearInterval(id);
   }, [refreshFromCloud]);
 
@@ -503,12 +514,12 @@ export function InspectorPanel({
   const selectedJob = jobs.find((j) => j.id === selectedId) || null;
 
   const flushInspectorPhotoQueue = useCallback(async () => {
-    if (!navigator.onLine || flushingPhotoQueue) return;
-    setFlushingPhotoQueue(true);
+    if (!navigator.onLine || flushingPhotoQueueRef.current) return;
+    flushingPhotoQueueRef.current = true;
     try {
       const items = await listQueuedPhotos("inspector");
       for (const item of items) {
-        const job = jobs.find((j) => j.id === item.jobId);
+        const job = jobsRef.current.find((j) => j.id === item.jobId);
         if (!job) {
           await removeQueuedPhoto(item.id);
           continue;
@@ -536,10 +547,9 @@ export function InspectorPanel({
         }
       }
     } finally {
-      setFlushingPhotoQueue(false);
-      refreshPhotoQueueCount();
+      flushingPhotoQueueRef.current = false;
     }
-  }, [jobs, flushingPhotoQueue, updateJob, refreshPhotoQueueCount]);
+  }, [updateJob]);
 
   const handleInspectorPhotoUpload = useCallback(async (file: File, label: InspectorPhotoLabel, caption: string) => {
     if (!selectedJob) return false;
@@ -555,8 +565,7 @@ export function InspectorPanel({
           blob: file,
           filename: file.name,
         });
-        refreshPhotoQueueCount();
-        setMsg("Brak sieci — zdjęcie zapisane w kolejce offline.");
+        setMsg("Brak sieci — zdjęcie zapisane lokalnie, wyśle się po powrocie sieci.");
         return true;
       } catch {
         setMsg(error || "Nie udało się wgrać zdjęcia");
@@ -572,7 +581,7 @@ export function InspectorPanel({
       ),
     );
     return true;
-  }, [selectedJob, displayName, updateJob, refreshPhotoQueueCount]);
+  }, [selectedJob, displayName, updateJob]);
 
   useEffect(() => {
     const onOnline = () => { void flushInspectorPhotoQueue(); };
@@ -720,20 +729,6 @@ export function InspectorPanel({
         <PwaInstallBanner compact dismissKey="wg-pwa-inspector-dismiss" persist="local" className="mb-0 mt-2"/>
       </div>
 
-      {(photoQueueCount > 0 || flushingPhotoQueue) && (
-        <div className="mx-4 mt-2 flex items-center gap-2 bg-amber-500/10 border border-amber-500/25 rounded-xl px-3 py-2 text-xs shrink-0">
-          <CloudOff size={13} className="text-amber-400 shrink-0"/>
-          <span className="text-amber-400 font-medium">
-            {flushingPhotoQueue ? "Wysyłanie zdjęć z kolejki…" : `${photoQueueCount} zdjęć inspektora w kolejce offline`}
-          </span>
-          {!flushingPhotoQueue && navigator.onLine && (
-            <button type="button" onClick={() => void flushInspectorPhotoQueue()} className="ml-auto text-primary hover:underline shrink-0 min-h-[44px] px-2 touch-manipulation">
-              Wyślij teraz
-            </button>
-          )}
-        </div>
-      )}
-
       {adminNotesPending.length > 0 && !selectedJob && (
         <div className="mx-4 mt-2 mb-1 bg-violet-500/10 border border-violet-500/25 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
           <div className="flex-1 min-w-0">
@@ -762,7 +757,7 @@ export function InspectorPanel({
 
       {!selectedJob && mainTab === "dashboard" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <PullToRefreshIndicator pull={dashboardPull.pull} refreshing={dashboardPull.refreshing || syncing} ready={dashboardPull.ready}/>
+          <PullToRefreshIndicator pull={dashboardPull.pull} refreshing={dashboardPull.refreshing} ready={dashboardPull.ready}/>
           <div ref={dashboardScrollRef} className="flex-1 overflow-y-auto overscroll-contain">
             <div
               className="max-w-2xl mx-auto w-full px-4 py-4"
@@ -787,13 +782,13 @@ export function InspectorPanel({
         </div>
       ) : !selectedJob && mainTab === "portfolio" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <PullToRefreshIndicator pull={portfolioPull.pull} refreshing={portfolioPull.refreshing || syncing} ready={portfolioPull.ready}/>
+          <PullToRefreshIndicator pull={portfolioPull.pull} refreshing={portfolioPull.refreshing} ready={portfolioPull.ready}/>
           <WmPortfolioView jobs={jobs} scrollRef={portfolioScrollRef} onOpenJob={(id) => openJob(id, undefined, "portfolio")}/>
           {renderBottomNav()}
         </div>
       ) : !selectedJob && mainTab === "gallery" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <PullToRefreshIndicator pull={galleryPull.pull} refreshing={galleryPull.refreshing || syncing} ready={galleryPull.ready}/>
+          <PullToRefreshIndicator pull={galleryPull.pull} refreshing={galleryPull.refreshing} ready={galleryPull.ready}/>
           <div ref={galleryScrollRef} className="flex-1 overflow-y-auto overscroll-contain">
             <InspectorJobPhotosGalleryView
               jobs={jobs}
@@ -804,7 +799,7 @@ export function InspectorPanel({
         </div>
       ) : !selectedJob && mainTab === "files" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <PullToRefreshIndicator pull={filesPull.pull} refreshing={filesPull.refreshing || syncing} ready={filesPull.ready}/>
+          <PullToRefreshIndicator pull={filesPull.pull} refreshing={filesPull.refreshing} ready={filesPull.ready}/>
           <div ref={filesScrollRef} className="flex-1 overflow-y-auto overscroll-contain">
             <JobFilesBrowser
               jobs={jobs}
@@ -852,7 +847,7 @@ export function InspectorPanel({
             </div>
           </div>
 
-          <PullToRefreshIndicator pull={listPull.pull} refreshing={listPull.refreshing || syncing} ready={listPull.ready}/>
+          <PullToRefreshIndicator pull={listPull.pull} refreshing={listPull.refreshing} ready={listPull.ready}/>
           <div ref={listScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 space-y-3">
             {loading ? (
               <div className="flex justify-center py-16">
@@ -952,8 +947,8 @@ export function InspectorPanel({
             </p>
           </div>
 
+          <PullToRefreshIndicator pull={jobPull.pull} refreshing={jobPull.refreshing} ready={jobPull.ready}/>
           <div ref={jobScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-5 max-w-2xl mx-auto w-full" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
-            <PullToRefreshIndicator pull={jobPull.pull} refreshing={jobPull.refreshing || syncing} ready={jobPull.ready}/>
             {msg && <p className="text-xs text-primary bg-primary/10 rounded-lg px-3 py-2">{msg}</p>}
 
             {jobSection === "wm" && (
