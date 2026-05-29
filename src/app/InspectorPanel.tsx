@@ -1,11 +1,12 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
+import { CompanyMusicPlayer } from "@/app/components/CompanyMusicPlayer";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   MapPin, LogOut, Search, ArrowLeft, FileText, ClipboardList, Ruler,
   CheckCircle2, Circle, ImagePlus, Phone, Users,
   ChevronDown, ChevronUp, Camera, X, FileCheck, AlertCircle, BookOpen, RefreshCw, MessageSquare, ScrollText,
-  Cloud, CloudOff, Eye,
+  Cloud, CloudOff, CloudUpload, Eye,
 } from "lucide-react";
 import {
   fetchKeysFromCloud,
@@ -618,6 +619,40 @@ export function InspectorPanel({
   }, [selectedId, closeJob]);
 
   const pullRefresh = useCallback(() => refreshFromCloud(false), [refreshFromCloud]);
+
+  const retryCloudPush = useCallback(() => {
+    pushPendingRef.current = 1;
+    setSyncPending(true);
+    setPushFailed(false);
+    pushKeysToCloudSafe(["kw-jobs"], [jobsRef.current])
+      .then(() => {
+        pushPendingRef.current = 0;
+        setSyncPending(false);
+        setPushFailed(false);
+        setLastSyncedAt(new Date());
+      })
+      .catch(() => {
+        pushPendingRef.current = 0;
+        setSyncPending(true);
+        setPushFailed(true);
+      });
+  }, []);
+
+  const inspectorCloudStatus = syncing || syncPending ? "saving" : pushFailed ? "error" : lastSyncedAt ? "saved" : "idle";
+
+  const handleCloudSyncClick = useCallback(() => {
+    if (pushFailed) retryCloudPush();
+    else if (!syncing) refreshFromCloud(false);
+  }, [pushFailed, syncing, retryCloudPush, refreshFromCloud]);
+
+  const cloudSyncTitle = syncing || syncPending
+    ? "Zapisywanie do chmury…"
+    : pushFailed
+      ? "Błąd zapisu — dotknij, aby ponowić"
+      : lastSyncedAt
+        ? `Zsynchronizowano · ${lastSyncedAt.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}`
+        : "Synchronizacja z chmurą";
+
   const dashboardPull = usePullToRefresh(dashboardScrollRef, pullRefresh, !selectedId && mainTab === "dashboard");
   const listPull = usePullToRefresh(listScrollRef, pullRefresh, !selectedId && mainTab === "jobs");
   const galleryPull = usePullToRefresh(galleryScrollRef, pullRefresh, !selectedId && mainTab === "gallery");
@@ -709,10 +744,24 @@ export function InspectorPanel({
           <div className="min-w-0">
             <p className="text-sm font-semibold truncate">{displayName}</p>
             <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate">Inspektor WM · W&G DOM</p>
-            <SyncStatusBadge syncing={syncing} syncPending={syncPending} pushFailed={pushFailed} lastSyncedAt={lastSyncedAt} onRetry={() => refreshFromCloud(false)}/>
+            <SyncStatusBadge syncing={syncing} syncPending={syncPending} pushFailed={pushFailed} lastSyncedAt={lastSyncedAt} onRetry={handleCloudSyncClick}/>
           </div>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+          <CompanyMusicPlayer />
+          <button
+            type="button"
+            onClick={handleCloudSyncClick}
+            disabled={syncing && !pushFailed}
+            className={`p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg ${pushFailed ? "hover:bg-secondary cursor-pointer" : syncing ? "cursor-default" : "hover:bg-secondary"}`}
+            title={cloudSyncTitle}
+            aria-label={cloudSyncTitle}
+          >
+            {inspectorCloudStatus === "saving" && <CloudUpload size={15} className="text-muted-foreground animate-pulse"/>}
+            {inspectorCloudStatus === "saved" && <Cloud size={15} className="text-green-500"/>}
+            {inspectorCloudStatus === "error" && <CloudOff size={15} className="text-destructive"/>}
+            {inspectorCloudStatus === "idle" && <Cloud size={15} className="text-muted-foreground/40"/>}
+          </button>
           <button
             type="button"
             onClick={() => refreshFromCloud(false)}
@@ -1362,7 +1411,7 @@ function SyncStatusBadge({
         type="button"
         onClick={onRetry}
         className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5 touch-manipulation min-h-[28px]"
-        title="Dotknij, aby ponowić wysłanie do chmury"
+        title="Dotknij ikony chmury u góry, aby ponowić wysłanie"
       >
         <CloudOff size={10} className="shrink-0"/>
         Czeka na wysłanie — dotknij

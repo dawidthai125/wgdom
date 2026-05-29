@@ -9105,6 +9105,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.35.8", label:"Inspektor — hymny + chmurka sync",
+    items:[
+      {type:"new", text:"Panel inspektora — odtwarzacz hymnów firmowych (jak w panelu admina)"},
+      {type:"new", text:"Inspektor — ikona chmury w pasku: zapis do chmury, błąd (dotknij = ponów), zsynchronizowano"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.35.7", label:"Inspektor — naprawa pustego panelu",
     items:[
       {type:"fix", text:"Panel inspektora — roboty i dane znów się wyświetlają (błąd syncu: stan React nie ładował się z cache)"},
