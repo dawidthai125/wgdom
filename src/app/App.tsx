@@ -9206,6 +9206,14 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.40.2", label:"Przetargi — profil po wyszukiwaniu BZP/BIP",
+    items:[
+      {type:"improve", text:"Profil v3: MOPS Owsiana 2024 (615 tys. zł, 5 ofert), MPWiK 2012 (23,10 zł/rbh)"},
+      {type:"improve", text:"Wygrana Kamieńskiego — dokładna kwota BZP, 130 dni, 3 oferty MŚP"},
+      {type:"improve", text:"Notatki: potwierdzone źródła (BIP MOPS, mpwik.wroc.pl, eGospodarka)"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.40.1", label:"Przetargi — profil W&G DOM z CEIDG i wgdom.pl",
     items:[
       {type:"improve", text:"Domyślny profil firmy: NIP 8991736797, Iwona Schabowska-Wałek, referencje ZUS/PKO/UWr/DOZG/MOPS"},

@@ -1,7 +1,7 @@
 import { fetchKeysFromCloud, persistKey } from "@/lib/cloud-sync";
 
 export const TENDERS_COMPANY_PROFILE_KEY = "kw-tenders-company-profile";
-export const PROFILE_SCHEMA_VERSION = 2;
+export const PROFILE_SCHEMA_VERSION = 3;
 
 export interface TenderCompanyReference {
   client: string;
@@ -87,7 +87,8 @@ export function defaultCompanyProfile(): TenderCompanyProfile {
       "malowanie, tynki, podłogi, glazura, gładzie",
       "wymiana instalacji c.o., elektrycznych i sanitarnych",
       "roboty dla instytucji publicznych we Wrocławiu",
-      "ZUS, PKO, UWr, DOZG, MOPS — referencje",
+      "MOPS Wrocław — wygrana Kamieńskiego 2025, udział Owsiana 2024",
+      "ZUS, PKO, UWr, DOZG — referencje",
       "Wrocław i okolice — kilkadziesiąt obiektów od 1989",
       "WM, spółdzielnie, TBS, wspólnoty",
     ],
@@ -126,23 +127,38 @@ export function defaultCompanyProfile(): TenderCompanyProfile {
     tenderWins: [
       {
         client: "MOPS Wrocław",
-        scope: "Przebudowa 16 lokali mieszkalnych — Pensjonat ul. Kamieńskiego 190",
+        scope:
+          "Przebudowa 16 lokali — Pensjonat ul. Kamieńskiego 190 (130 dni, 3 oferty, 100% cena)",
         year: "2025",
         valuePln: 983_310,
-        source: "BZP / eGospodarka — 2025/BZP 00390721",
+        source: "BZP 2025/BZP 00390721 — umowa 2025-08-06, 983 309,93 zł",
       },
     ],
     tenderParticipations: [
       {
+        client: "MOPS Wrocław",
+        scope:
+          "Modernizacja ul. Owsianej 4/6 — centrum przeciwdziałania przemocy domowej, Etap I (oferta złożona)",
+        year: "2024",
+        valuePln: 615_000,
+        source:
+          "BIP MOPS — otwarcie ofert 21.10.2024 (5 ofert; budżet 652 466 zł; nie wybrano)",
+      },
+      {
         client: "MPWiK Wrocław",
-        scope: "Prace konserwacyjno-remontowe budynków MPWiK (oferta złożona)",
+        scope:
+          "Prace konserwacyjno-remontowe budynków MPWiK (oferta 23,10 zł/rbh, 13. z 17 ofert)",
         year: "2012",
-        source: "mpwik.wroc.pl — Stanisław Wałek W&G Dom",
+        source: "mpwik.wroc.pl — Stanisław Wałek W&G Dom, ul. Poświęcka 19",
       },
     ],
     notes:
       "Dane rejestrowe: NIP 8991736797, REGON 931121728, VAT czynny (MF). "
-      + "Ciągłość marki W&G od 1989. Uzupełnij kwoty referencji prywatnych, jeśli SWZ wymaga wyższych progów.",
+      + "Ciągłość marki W&G od 1989 (wgdom.pl). "
+      + "Publiczne BZP: 1 wygrana (MOPS Kamieńskiego 2025). "
+      + "Udziały: MOPS Owsiana 2024, MPWiK 2012 (Stanisław Wałek). "
+      + "Brak innych wpisów w eGospodarka „kto wygrał” dla REGON 931121728. "
+      + "Uzupełnij kwoty referencji prywatnych, jeśli SWZ wymaga wyższych progów.",
     updatedAt: "",
   };
 }
