@@ -7,11 +7,11 @@ import { toast } from "sonner";
 import {
   type TenderPipelineItem,
   type TenderPipelineStatus,
-  type TenderBzpDocument,
   TENDER_STATUS_LABELS,
   fetchTenderDocuments,
   fetchTenderNoticeDetails,
   fetchTenderDocumentBytes,
+  base64ToBytes,
   analyzeTenderSwz,
   uploadTenderFile,
   labelTenderState,
@@ -32,13 +32,7 @@ import {
 } from "@/lib/tenders-bzp-brief";
 import { parseKosztorysBytes, fetchAndParseKosztorys, isKosztorysPreviewExt, type AthPreviewResult } from "@/lib/ath-parser";
 import { TenderDossierPanel } from "@/app/TenderDossierPanel";
-
-function base64ToBytes(b64: string): Uint8Array {
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
-}
+import { TenderAttachmentsPanel } from "@/app/TenderAttachmentsPanel";
 
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -375,37 +369,14 @@ export function TenderDetailPanel({
         </label>
       </div>
 
-      {item.bzpDocuments && item.bzpDocuments.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Załączniki postępowania</p>
-          <ul className="space-y-1">
-            {item.bzpDocuments.map((doc: TenderBzpDocument) => (
-              <li key={doc.documentId} className="flex flex-wrap items-center gap-2 text-xs">
-                {doc.isSwzHint && (
-                  <span className="text-[10px] bg-violet-500/10 text-violet-600 px-1 rounded">SWZ?</span>
-                )}
-                <a
-                  href={doc.downloadUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline truncate max-w-[240px]"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {doc.filename}
-                </a>
-                <button
-                  type="button"
-                  disabled={analyzing}
-                  onClick={(e) => { e.stopPropagation(); void runAnalysis(doc.index); }}
-                  className="text-[10px] text-muted-foreground hover:text-foreground underline"
-                >
-                  analizuj
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <TenderAttachmentsPanel
+        item={item}
+        athPreviewEnabled={athPreviewEnabled}
+        loadingDocs={loadingDocs || autoRunning}
+        onRefresh={() => void loadDocuments()}
+        onAnalyze={(idx) => void runAnalysis(idx)}
+        analyzing={analyzing}
+      />
 
       <div className="flex flex-wrap items-center gap-2">
         <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-xs font-medium cursor-pointer hover:bg-secondary/80">
@@ -423,17 +394,6 @@ export function TenderDetailPanel({
             onClick={(e) => e.stopPropagation()}
           />
         </label>
-        {item.uploadedFile && (
-          <a
-            href={item.uploadedFile.publicUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-primary hover:underline"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {item.uploadedFile.filename}
-          </a>
-        )}
       </div>
 
       {athLoading && (

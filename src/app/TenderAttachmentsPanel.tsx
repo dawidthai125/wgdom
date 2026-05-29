@@ -1,0 +1,218 @@
+import { useMemo, useState } from "react";
+import {
+  Eye, Download, Loader2, RefreshCw, FileText, ClipboardList, Paperclip,
+} from "lucide-react";
+import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
+import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
+import type { TenderBzpDocument, TenderPipelineItem, TenderUploadedFile } from "@/lib/tenders-bzp";
+import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
+
+function docIcon(filename: string) {
+  if (isKosztorysPreviewExt(filename)) return ClipboardList;
+  return FileText;
+}
+
+function canPreviewFilename(name: string): boolean {
+  if (isPdfFilename(name)) return true;
+  if (isKosztorysPreviewExt(name)) return true;
+  if (/\.(jpe?g|png|gif|webp)$/i.test(name)) return true;
+  return false;
+}
+
+function previewItemForDoc(tenderId: string, doc: TenderBzpDocument): InspectorFileItem {
+  return {
+    kind: "tenderBzp",
+    tenderId,
+    documentIndex: doc.index,
+    filename: doc.filename,
+    contentType: doc.contentType,
+  };
+}
+
+function previewItemForUpload(file: TenderUploadedFile): InspectorFileItem {
+  return {
+    kind: "tenderUpload",
+    filename: file.filename,
+    publicUrl: file.publicUrl,
+    path: file.path,
+  };
+}
+
+export function TenderAttachmentsPanel({
+  item,
+  athPreviewEnabled,
+  loadingDocs,
+  onRefresh,
+  onAnalyze,
+  analyzing,
+}: {
+  item: TenderPipelineItem;
+  athPreviewEnabled?: boolean;
+  loadingDocs?: boolean;
+  onRefresh?: () => void;
+  onAnalyze?: (documentIndex: number) => void;
+  analyzing?: boolean;
+}) {
+  const [preview, setPreview] = useState<InspectorFileItem | null>(null);
+
+  const docs = item.bzpDocuments ?? [];
+  const hasUpload = Boolean(item.uploadedFile);
+  const totalCount = docs.length + (hasUpload ? 1 : 0);
+
+  const sortedDocs = useMemo(
+    () => [...docs].sort((a, b) => a.index - b.index),
+    [docs],
+  );
+
+  if (!item.tenderId && !hasUpload) return null;
+
+  return (
+    <>
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+            <Paperclip size={11} />
+            Załączniki postępowania
+            {totalCount > 0 && (
+              <span className="text-[10px] font-normal normal-case text-muted-foreground/80">
+                ({totalCount})
+              </span>
+            )}
+          </p>
+          {onRefresh && item.tenderId && (
+            <button
+              type="button"
+              disabled={loadingDocs}
+              onClick={(e) => { e.stopPropagation(); onRefresh(); }}
+              className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground disabled:opacity-50"
+            >
+              {loadingDocs ? <Loader2 size={10} className="animate-spin" /> : <RefreshCw size={10} />}
+              Odśwież
+            </button>
+          )}
+        </div>
+
+        {loadingDocs && docs.length === 0 && (
+          <p className="text-xs text-muted-foreground flex items-center gap-2">
+            <Loader2 size={12} className="animate-spin" />
+            Skanowanie załączników BZP…
+          </p>
+        )}
+
+        {!loadingDocs && docs.length === 0 && item.documentsFetchedAt && !hasUpload && (
+          <p className="text-xs text-muted-foreground">Brak publicznych załączników w e-Zamówienia.</p>
+        )}
+
+        <ul className="space-y-1.5">
+          {sortedDocs.map((doc) => {
+            const Icon = docIcon(doc.filename);
+            const canPreview = canPreviewFilename(doc.filename);
+            return (
+              <li
+                key={doc.documentId}
+                className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-secondary/20 px-2.5 py-1.5 text-xs"
+              >
+                <Icon size={13} className="shrink-0 text-muted-foreground" />
+                {doc.isSwzHint && (
+                  <span className="text-[10px] bg-violet-500/10 text-violet-600 dark:text-violet-400 px-1 rounded shrink-0">
+                    SWZ?
+                  </span>
+                )}
+                <span className="truncate min-w-0 flex-1" title={doc.filename}>
+                  {doc.filename}
+                </span>
+                {canPreview && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPreview(previewItemForDoc(item.tenderId, doc));
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-medium shrink-0"
+                  >
+                    <Eye size={11} />
+                    Podgląd
+                  </button>
+                )}
+                <a
+                  href={doc.downloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary hover:bg-secondary/80 text-[10px] shrink-0"
+                >
+                  <Download size={11} />
+                  Pobierz
+                </a>
+                {onAnalyze && (
+                  <button
+                    type="button"
+                    disabled={analyzing}
+                    onClick={(e) => { e.stopPropagation(); onAnalyze(doc.index); }}
+                    className="text-[10px] text-muted-foreground hover:text-foreground underline shrink-0 disabled:opacity-50"
+                  >
+                    analizuj SWZ
+                  </button>
+                )}
+              </li>
+            );
+          })}
+
+          {item.uploadedFile && (
+            <li className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-2.5 py-1.5 text-xs">
+              <UploadIcon filename={item.uploadedFile.filename} />
+              <span className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-1 rounded shrink-0">
+                Wgrany
+              </span>
+              <span className="truncate min-w-0 flex-1" title={item.uploadedFile.filename}>
+                {item.uploadedFile.filename}
+              </span>
+              {canPreviewFilename(item.uploadedFile.filename) && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreview(previewItemForUpload(item.uploadedFile!));
+                  }}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-medium shrink-0"
+                >
+                  <Eye size={11} />
+                  Podgląd
+                </button>
+              )}
+              <a
+                href={item.uploadedFile.publicUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary hover:bg-secondary/80 text-[10px] shrink-0"
+              >
+                <Download size={11} />
+                Pobierz
+              </a>
+            </li>
+          )}
+        </ul>
+
+        {athPreviewEnabled === false && sortedDocs.some((d) => isKosztorysPreviewExt(d.filename)) && (
+          <p className="text-[10px] text-muted-foreground">
+            Podgląd ATH/NOR/XML wymaga włączonej opcji „Przeglądarka kosztorysów” w ustawieniach.
+          </p>
+        )}
+      </div>
+
+      {preview && (
+        <JobFilePreviewModal
+          item={preview}
+          athPreviewEnabled={athPreviewEnabled !== false}
+          onClose={() => setPreview(null)}
+        />
+      )}
+    </>
+  );
+}
+
+function UploadIcon({ filename }: { filename: string }) {
+  const Icon = isKosztorysPreviewExt(filename) ? ClipboardList : FileText;
+  return <Icon size={13} className="shrink-0 text-muted-foreground" />;
+}

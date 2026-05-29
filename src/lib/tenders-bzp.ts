@@ -677,3 +677,22 @@ export async function fetchTenderDocumentBytes(
   }) as { base64: string; filename: string; contentType: string };
   return data;
 }
+
+export function base64ToBytes(b64: string): Uint8Array {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+export function bytesToBlobUrl(bytes: Uint8Array, contentType?: string): string {
+  return URL.createObjectURL(new Blob([bytes], { type: contentType || "application/octet-stream" }));
+}
+
+export async function loadTenderBzpDocumentBytes(
+  tenderId: string,
+  documentIndex: number,
+): Promise<{ bytes: Uint8Array; filename: string; contentType: string }> {
+  const { base64, filename, contentType } = await fetchTenderDocumentBytes(tenderId, documentIndex);
+  return { bytes: base64ToBytes(base64), filename, contentType };
+}

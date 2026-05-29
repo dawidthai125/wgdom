@@ -13,7 +13,9 @@ import { downloadJobDocumentsPack, type JobPackSource } from "@/lib/job-document
 export type InspectorFileItem =
   | { kind: "jobFile"; file: JobFileAttachment }
   | { kind: "inspectorPhoto"; file: InspectorPhotoEntry }
-  | { kind: "imageUrl"; url: string; filename: string };
+  | { kind: "imageUrl"; url: string; filename: string }
+  | { kind: "tenderBzp"; tenderId: string; documentIndex: number; filename: string; contentType?: string }
+  | { kind: "tenderUpload"; filename: string; publicUrl: string; path: string };
 
 function fileLabel(item: InspectorFileItem): string {
   if (item.kind === "jobFile") {
@@ -32,6 +34,7 @@ function fileIcon(item: InspectorFileItem) {
 function itemFilename(item: InspectorFileItem): string {
   if (item.kind === "jobFile") return item.file.filename;
   if (item.kind === "inspectorPhoto") return item.file.caption || "zdjecie-inspektora.jpg";
+  if (item.kind === "tenderBzp" || item.kind === "tenderUpload") return item.filename;
   return item.filename;
 }
 
@@ -49,6 +52,8 @@ function itemUploadedAt(item: InspectorFileItem): string {
 
 function itemUrl(item: InspectorFileItem): string {
   if (item.kind === "imageUrl") return item.url;
+  if (item.kind === "tenderUpload") return item.publicUrl;
+  if (item.kind === "tenderBzp") return "";
   return item.file.publicUrl;
 }
 
@@ -102,6 +107,8 @@ export function JobInspectorFilesPanel({
   const itemKey = (item: InspectorFileItem) => {
     if (item.kind === "jobFile") return `jf:${item.file.id}`;
     if (item.kind === "inspectorPhoto") return `ip:${item.file.id}`;
+    if (item.kind === "tenderBzp") return `tbzp:${item.tenderId}:${item.documentIndex}`;
+    if (item.kind === "tenderUpload") return `tup:${item.path}`;
     return `img:${item.url}`;
   };
 
@@ -109,6 +116,11 @@ export function JobInspectorFilesPanel({
     const name = itemFilename(item);
     if (isPdfFilename(name)) return true;
     if (item.kind === "inspectorPhoto" || item.kind === "imageUrl") return true;
+    if (item.kind === "tenderBzp" || item.kind === "tenderUpload") {
+      if (isKosztorysPreviewExt(name)) return true;
+      if (/\.(jpe?g|png|gif|webp)$/i.test(name)) return true;
+      return isPdfFilename(name);
+    }
     if (isKosztorysPreviewExt(name)) return true;
     return false;
   };

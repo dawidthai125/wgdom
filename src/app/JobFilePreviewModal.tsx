@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { X, Loader2, AlertTriangle, FileText, FileDown, Eye } from "lucide-react";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import {
   fetchAndParseKosztorys,
   isPdfFilename,
   isKosztorysPreviewExt,
+  kosztorysResultForDisplay,
+  parseKosztorysBytes,
   type AthPreviewResult,
 } from "@/lib/ath-parser";
 import {
@@ -15,8 +17,29 @@ import {
   KOSZTORYS_DTT_CREDIT,
 } from "@/lib/ath-kosztorys-pdf";
 import { resolveJobFileStoragePath } from "@/lib/job-documents";
+import { bytesToBlobUrl, loadTenderBzpDocumentBytes } from "@/lib/tenders-bzp";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
+
+function previewFilename(item: InspectorFileItem): string {
+  if (item.kind === "imageUrl") return item.filename;
+  if (item.kind === "jobFile") return item.file.filename;
+  if (item.kind === "inspectorPhoto") return item.file.caption || "zdjecie.jpg";
+  if (item.kind === "tenderBzp" || item.kind === "tenderUpload") return item.filename;
+  return "plik";
+}
+
+function previewUrl(item: InspectorFileItem): string {
+  if (item.kind === "imageUrl") return item.url;
+  if (item.kind === "tenderUpload") return item.publicUrl;
+  if (item.kind === "tenderBzp") return "";
+  if (item.kind === "jobFile" || item.kind === "inspectorPhoto") return item.file.publicUrl;
+  return "";
+}
+
+function isImageFilename(name: string): boolean {
+  return /\.(jpe?g|png|gif|webp)$/i.test(name);
+}
 
 export function JobFilePreviewModal({
   item,
@@ -27,35 +50,136 @@ export function JobFilePreviewModal({
   athPreviewEnabled: boolean;
   onClose: () => void;
 }) {
-  const url = item.kind === "imageUrl" ? item.url : item.file.publicUrl;
-  const filename = item.kind === "imageUrl" ? item.filename : (item.kind === "jobFile" ? item.file.filename : "zdjecie.jpg");
-  const storagePath = item.kind === "jobFile" ? resolveJobFileStoragePath(item.file) : undefined;
+  const filename = previewFilename(item);
+  const url = previewUrl(item);
+  const storagePath = useMemo(() => {
+    if (item.kind === "jobFile") return resolveJobFileStoragePath(item.file);
+    if (item.kind === "tenderUpload") return item.path;
+    return undefined;
+  }, [item]);
+
   const isPdf = isPdfFilename(filename);
-  const isPhoto = item.kind === "inspectorPhoto" || item.kind === "imageUrl";
-  const isKosztorys = item.kind === "jobFile" && item.file.kind === "kosztorys";
+  const isPhoto =
+    item.kind === "inspectorPhoto"
+    || item.kind === "imageUrl"
+    || isImageFilename(filename);
+  const isKosztorys =
+    (item.kind === "jobFile" && item.file.kind === "kosztorys")
+    || ((item.kind === "tenderBzp" || item.kind === "tenderUpload") && isKosztorysPreviewExt(filename));
 
   const [loading, setLoading] = useState(false);
   const [parseResult, setParseResult] = useState<AthPreviewResult | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"table" | "pdf">("table");
+  const [mediaBlobUrl, setMediaBlobUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isPdf || isPhoto) return;
-    if (!isKosztorysPreviewExt(filename)) return;
-    setLoading(true);
-    setParseResult(null);
-    setPdfPreviewUrl(null);
-    setViewMode("table");
-    fetchAndParseKosztorys(url, filename, storagePath, item.kind === "jobFile" ? item.file : undefined)
-      .then(setParseResult)
-      .finally(() => setLoading(false));
-  }, [url, filename, storagePath, isPdf, isPhoto, item]);
+    let cancelled = false;
+    let revokeMedia: string | null = null;
+
+    const reset = () => {
+      setParseResult(null);
+      setPdfPreviewUrl(null);
+      setViewMode("table");
+      setMediaBlobUrl(null);
+    };
+
+    reset();
+
+    const load = async () => {
+      if (item.kind === "tenderBzp") {
+        setLoading(true);
+        try {
+          const { bytes, filename: serverName, contentType } = await loadTenderBzpDocumentBytes(
+            item.tenderId,
+            item.documentIndex,
+          );
+          if (cancelled) return;
+          const name = item.filename || serverName;
+          if (isPdfFilename(name)) {
+            const blobUrl = bytesToBlobUrl(bytes, contentType);
+            revokeMedia = blobUrl;
+            setMediaBlobUrl(blobUrl);
+          } else if (isKosztorysPreviewExt(name)) {
+            if (!athPreviewEnabled) {
+              setParseResult({
+                ok: false,
+                format: "unknown",
+                rows: [],
+                warnings: ["Podgląd kosztorysów ATH/NOR/XML jest wyłączony w ustawieniach."],
+              });
+            } else {
+              setParseResult(kosztorysResultForDisplay(parseKosztorysBytes(bytes, name)));
+            }
+          } else if (isImageFilename(name)) {
+            const blobUrl = bytesToBlobUrl(bytes, contentType);
+            revokeMedia = blobUrl;
+            setMediaBlobUrl(blobUrl);
+          } else {
+            const blobUrl = bytesToBlobUrl(bytes, contentType);
+            revokeMedia = blobUrl;
+            setParseResult({
+              ok: false,
+              format: "unknown",
+              rows: [],
+              warnings: [`Brak podglądu dla tego typu pliku. Pobierz: ${name}`],
+            });
+            setMediaBlobUrl(blobUrl);
+          }
+        } catch (e) {
+          if (!cancelled) {
+            setParseResult({
+              ok: false,
+              format: "unknown",
+              rows: [],
+              warnings: [e instanceof Error ? e.message : "Nie udało się pobrać załącznika"],
+            });
+          }
+        } finally {
+          if (!cancelled) setLoading(false);
+        }
+        return;
+      }
+
+      if (isPdf || isPhoto) return;
+
+      if (!isKosztorysPreviewExt(filename)) return;
+      if (!athPreviewEnabled) {
+        setParseResult({
+          ok: false,
+          format: "unknown",
+          rows: [],
+          warnings: ["Podgląd kosztorysów ATH/NOR/XML jest wyłączony w ustawieniach."],
+        });
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const fileRef = item.kind === "jobFile" ? item.file : undefined;
+        const result = await fetchAndParseKosztorys(url, filename, storagePath, fileRef);
+        if (!cancelled) setParseResult(result);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    void load();
+
+    return () => {
+      cancelled = true;
+      if (revokeMedia) URL.revokeObjectURL(revokeMedia);
+    };
+  }, [item, url, filename, storagePath, isPdf, isPhoto, athPreviewEnabled]);
 
   useEffect(() => () => {
     if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
   }, [pdfPreviewUrl]);
 
+  const displayUrl = mediaBlobUrl || url;
+  const showPdf = isPdf && Boolean(displayUrl);
+  const showPhoto = isPhoto && Boolean(displayUrl);
   const canExportPdf = parseResult?.ok && parseResult.rows.length > 0;
 
   const handlePdfPreview = useCallback(async () => {
@@ -115,7 +239,7 @@ export function JobFilePreviewModal({
             <p className="text-sm font-semibold truncate">Podgląd — {filename}</p>
             {isKosztorys && !isPdf && (
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Podgląd wewnętrzny kosztorysu z pliku NORMA (.ath) — PDF z logo W&G DOM i klauzulą użytku wewnętrznego.
+                  Podgląd wewnętrzny kosztorysu (.ath / .nor / .xml) — PDF z logo W&G DOM i klauzulą użytku wewnętrznego.
                 </p>
             )}
           </div>
@@ -136,19 +260,26 @@ export function JobFilePreviewModal({
         </div>
 
         <div className="flex-1 min-h-0 overflow-auto p-4">
-          {isPdf && (
+          {loading && item.kind === "tenderBzp" && (isPdf || isPhoto) && (
+            <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
+              <Loader2 size={20} className="animate-spin"/>
+              <span className="text-sm">Pobieram załącznik z BZP…</span>
+            </div>
+          )}
+
+          {showPdf && !(loading && item.kind === "tenderBzp") && (
             <iframe
               title={filename}
-              src={url}
+              src={displayUrl}
               className="w-full h-[70dvh] rounded-lg border border-border bg-white"
             />
           )}
 
-          {isPhoto && (
-            <img src={url} alt={filename} className="max-w-full max-h-[70dvh] mx-auto rounded-lg"/>
+          {showPhoto && !(loading && item.kind === "tenderBzp") && (
+            <img src={displayUrl} alt={filename} className="max-w-full max-h-[70dvh] mx-auto rounded-lg"/>
           )}
 
-          {!isPdf && !isPhoto && (
+          {!showPdf && !showPhoto && (
             <>
               {loading && (
                 <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
@@ -351,15 +482,17 @@ export function JobFilePreviewModal({
               </button>
             </>
           )}
-          <a
-            href={url}
-            download={filename}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-4 py-2 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80"
-          >
-            Pobierz plik
-          </a>
+          {displayUrl ? (
+            <a
+              href={displayUrl}
+              download={filename}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80"
+            >
+              Pobierz plik
+            </a>
+          ) : null}
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium">
             Zamknij
           </button>

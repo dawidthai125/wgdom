@@ -8878,7 +8878,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Kto widzi zakładkę Przetargi?", a:"Super Administrator zawsze. Administrator i Moderator — gdy włączysz to w Ustawieniach (⚙): „Zakładka Przetargi dla administratorów i moderatorów”."},
               {q:"Jak odświeżyć listę?", a:"Przycisk „Odśwież z BZP” pobiera nowe ogłoszenia z dolnośląskiego BZP i od kluczowych zamawiających (WM, ZIK, ZIM, TBS, Gmina, MOPS). Aplikacja też odświeża listę automatycznie co ~20 h."},
               {q:"Co to „Do zgłoszenia”?", a:"Domyślny filtr — tylko aktywne przetargi (otwarty termin składania ofert), z Wrocławia lub od kluczowych zamawiających, pasujące do słownika remontów wnętrz."},
-              {q:"Rozwiń przetarg — co się dzieje?", a:"Auto-analiza buduje Kartę przetargu: przedmiot, terminy, wadium, kontakt, referencje, tabela pozycji kosztorysu i przedmiar z załączników BZP (ATH/NOR/PDF) — bez wychodzenia na e-Zamówienia. Możesz też wgrać SWZ ręcznie."},
+              {q:"Rozwiń przetarg — co się dzieje?", a:"Auto-analiza buduje Kartę przetargu: przedmiot, terminy, wadium, kontakt, referencje, tabela pozycji kosztorysu i przedmiar z załączników BZP (ATH/NOR/XML/PDF) — bez wychodzenia na e-Zamówienia. Sekcja „Załączniki postępowania” skanuje pliki z BZP — przy każdym jest Podgląd (PDF, ATH, NOR, XML) i Pobierz. Możesz też wgrać SWZ ręcznie."},
               {q:"Ocena opłacalności", a:"Po analizie SWZ widzisz ocenę (Sensowny / Ostrożnie / Ryzykowny). Wpisz „Nasz szacunek” — system porówna z wartością zamówienia i wadium."},
               {q:"Uczenie słów kluczowych", a:"Oznacz przetargi jako „Interesuje nas” — na dole panelu pojawią się propozycje słów. „Ucz system” dopisuje je do słownika w chmurze (kw-tenders-custom-keywords) i przelicza trafność."},
               {q:"Lejek pipeline", a:"U góry listy widać statystyki: nowe → obejrzane → interesuje → oferta → złożone → wygrane/przegrane oraz wskaźnik skuteczności (% wygranych)."},
@@ -9204,6 +9204,14 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.39.0", label:"Przetargi — podgląd załączników BZP",
+    items:[
+      {type:"new", text:"Lista załączników postępowania z auto-skanem BZP i licznikiem plików"},
+      {type:"new", text:"Podgląd w aplikacji: PDF, ATH, NOR, XML (przez proxy — bez CORS) oraz wgrany SWZ"},
+      {type:"improve", text:"Ta sama przeglądarka kosztorysów co w robotach — tabela, przedmiar, eksport PDF"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.38.0", label:"Przetargi — karta przetargu (kosztorys, przedmiar, SWZ)",
     items:[
