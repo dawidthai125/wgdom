@@ -146,7 +146,7 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-              Aktywne przetargi z otwartym terminem składania ofert — remonty i modernizacje, DŚ + kluczowi zamawiający Wrocławia.
+              Wrocław — remonty i modernizacje budynków (mieszkania, biura, uczelnie, szpitale). Bez dróg i nowej zabudowy.
             </p>
           </div>
           <button
@@ -193,7 +193,7 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
               onChange={(e) => setLocalFilter(e.target.value as LocalFilter)}
               className="bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none min-h-[44px]"
             >
-              <option value="actionable">Do zgłoszenia (aktywne · ważne)</option>
+              <option value="actionable">Do zgłoszenia (Wrocław · remont budynków)</option>
               <option value="active">Wszystkie aktywne</option>
               <option value="priority">Kluczowi zamawiający</option>
               <option value="wroclaw">Tylko Wrocław</option>

@@ -9114,6 +9114,14 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.35.23", label:"Przetargi — profil remont budynków Wrocław",
+    items:[
+      {type:"improve", text:"Słowa kluczowe: mieszkania, biura, uczelnie, szpitale, pomieszczenia, elewacje, instalacje…"},
+      {type:"improve", text:"Wykluczenia: drogi, nowa zabudowa (sam „budowa” bez remontu), sieci, mosty"},
+      {type:"improve", text:"Widok „Do zgłoszenia” — tylko Wrocław (lub kluczowy zamawiający) + remont/modernizacja"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.35.22", label:"Przetargi — tylko aktywne do zgłoszenia",
     items:[
       {type:"improve", text:"Domyślny widok „Do zgłoszenia” — otwarty termin ofert + wysoka trafność lub kluczowy zamawiający"},
@@ -11925,7 +11933,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     {key:"photos", label:"Zdjęcia", hint:"Zaakceptowane zdjęcia z robot — galeria i archiwum po 30 dniach od zdania.", icon:Images, badge:(()=>{ const n=jobs.reduce((s,j)=>{ const b=jobGalleryBucket(j); return b==="active"||b==="grace"?s+jobApprovedPhotos(j).length:s;},0); return n||undefined; })()},
     {key:"jobfiles", label:"Pliki robot", hint:"Wszystkie pliki z robot: zlecenia, kosztorysy, zdjęcia, rysunki — pobierz pojedynczo lub ZIP.", icon:FolderOpen, badge:(()=>{ const n=jobs.reduce((s,j)=>jobHasBrowserFiles(j)?s+countBrowserFiles(j):s,0); return n||undefined; })()},
     {key:"guide", label:"Zmiany/Instrukcja", hint:"Historia wersji aplikacji i pomoc krok po kroku.", icon:BookOpen},
-    ...(canViewTendersNav ? [{ key: "tenders" as const, label: "Przetargi", hint: "Aktywne ogłoszenia BZP z otwartym terminem składania ofert.", icon: Scale }] : []),
+    ...(canViewTendersNav ? [{ key: "tenders" as const, label: "Przetargi", hint: "Wrocław — aktywne remonty budynków (mieszkania, biura, uczelnie).", icon: Scale }] : []),
   ];
 
   const MOBILE_NAV_PRIMARY: View[] = ["dashboard", "payroll", "schedule", "jobs"];

@@ -1,4 +1,9 @@
 import { fetchKeysFromCloud, persistKey, API_BASE, API_HEADERS } from "@/lib/cloud-sync";
+import {
+  matchTenderKeywords,
+  isExcludedTenderTitle,
+  TENDER_PRIORITY_BUILDING_HINTS,
+} from "@/lib/tenders-bzp-keywords";
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 
@@ -54,35 +59,8 @@ export interface TenderPipelineItem {
   ezamowieniaUrl: string;
 }
 
-const INCLUDE_KEYWORDS = [
-  "remont",
-  "moderniz",
-  "termomoderniz",
-  "wykończ",
-  "wykończen",
-  "przebudow",
-  "renowac",
-  "adaptacj",
-  "rehabilit",
-  "odśwież",
-  "termo",
-];
+const PRIORITY_BUILDING_HINTS = TENDER_PRIORITY_BUILDING_HINTS;
 
-const EXCLUDE_KEYWORDS = [
-  "drogi wojewódzk",
-  "nawierzchni jezdni",
-  "chodników drogow",
-  "przebudowa drogi",
-  "rozbudowa skrzyżowania",
-  "budowa drogi",
-  "kanalizacji deszczowej",
-  "wodociąg",
-  "gazociąg",
-  "most ",
-  "wiadukt",
-];
-
-/** Kluczowi wrocławscy zamawiający — dedykowane zapytania organizationName w BZP. */
 export const WROCLAW_PRIORITY_BUYERS = [
   { id: "wm", label: "Wrocławskie Mieszkania", search: "Wrocławskie Mieszkania", cityOnly: true },
   { id: "zik", label: "Zarząd Zasobu Komunalnego", search: "Zarząd Zasobu Komunalnego", cityOnly: true },
@@ -91,12 +69,6 @@ export const WROCLAW_PRIORITY_BUYERS = [
   { id: "gmina", label: "Gmina Wrocław", search: "Gmina Wrocław", cityOnly: true },
   { id: "mops", label: "MOPS Wrocław", search: "Miejski Ośrodek Pomocy Społecznej", cityOnly: true, organizationCity: "Wrocław" },
 ] as const;
-
-const PRIORITY_BUILDING_HINTS = [
-  "lokal", "mieszkal", "pustostan", "budynk", "klatk", "elewac", "stolark",
-  "sanitar", "piętr", "pietr", "wind", "dźwig", "dzwig", "remont", "moderniz",
-  "przebudow", "wykończ", "wykończen", "adaptac", "izolac", "pensjonat", "pomieszcze", "monta",
-];
 
 export function matchPriorityBuyer(orgName: string, organizationCity?: string): { id: string; label: string } | null {
   const n = orgName || "";
@@ -150,10 +122,11 @@ export function isTenderImportant(
   return !!item.priorityBuyerId || item.relevanceScore >= TENDER_IMPORTANCE_MIN_SCORE;
 }
 
-/** Aktywny przetarg, w którym warto rozważyć udział. */
+/** Aktywny przetarg budowlany we Wrocławiu (lub u kluczowego zamawiającego), w którym warto rozważyć udział. */
 export function isActionableTender(item: TenderPipelineItem, now = new Date()): boolean {
   if (!isTenderOpenForOffers(item.submittingOffersDate, now)) return false;
   if (item.status === "ignored" || item.status === "lost" || item.status === "won") return false;
+  if (!item.isWroclaw && !item.priorityBuyerId) return false;
   return isTenderImportant(item);
 }
 
@@ -192,14 +165,11 @@ export function scoreTenderNotice(
   opts?: { priorityOrg?: boolean },
 ): { score: number; keywords: string[]; excluded: boolean } {
   const title = `${n.orderObject || ""} ${n.cpvCode || ""}`.toLowerCase();
-  const keywords: string[] = [];
-  for (const kw of INCLUDE_KEYWORDS) {
-    if (title.includes(kw)) keywords.push(kw);
+  if (isExcludedTenderTitle(title)) {
+    return { score: 0, keywords: [], excluded: true };
   }
-  for (const ex of EXCLUDE_KEYWORDS) {
-    if (title.includes(ex)) return { score: 0, keywords, excluded: true };
-  }
-  let score = keywords.length * 10;
+  const { actionKeywords, scopeKeywords, allKeywords } = matchTenderKeywords(title);
+  let score = actionKeywords.length * 10 + scopeKeywords.length * 5;
   const city = (n.organizationCity || "").toLowerCase();
   if (city.includes("wrocław") || city.includes("wroclaw")) score += 25;
   if ((n.orderObject || "").toLowerCase().includes("wrocław")) score += 15;
@@ -207,11 +177,12 @@ export function scoreTenderNotice(
   if ((n.cpvCode || "").includes("452")) score += 3;
   const priority = opts?.priorityOrg || !!matchPriorityBuyer(n.organizationName || "", n.organizationCity);
   if (priority) score += 20;
-  if (keywords.length === 0 && priority && PRIORITY_BUILDING_HINTS.some((h) => title.includes(h))) {
-    score = Math.max(score, 18);
+  const priorityPass = priority && PRIORITY_BUILDING_HINTS.some((h) => title.includes(h));
+  if (priorityPass) score = Math.max(score, 18);
+  if (actionKeywords.length === 0 && !priorityPass) {
+    return { score: 0, keywords: allKeywords, excluded: true };
   }
-  if (keywords.length === 0 && score < 20) return { score: 0, keywords, excluded: true };
-  return { score, keywords, excluded: false };
+  return { score, keywords: allKeywords, excluded: false };
 }
 
 export function mapBzpToPipelineItem(n: BzpNoticeRaw, existing?: TenderPipelineItem): TenderPipelineItem {

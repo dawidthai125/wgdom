@@ -1934,15 +1934,35 @@ app.get("/make-server-0afb8820/sms-history", async (c) => {
   }
 });
 
-const BZP_INCLUDE_KEYWORDS = [
+const BZP_ACTION_KEYWORDS = [
   "remont", "moderniz", "termomoderniz", "wykończ", "wykończen", "przebudow",
-  "renowac", "adaptacj", "rehabilit", "odśwież", "termo",
+  "renowac", "adaptacj", "rehabilit", "odśwież", "termo", "konserwac", "napraw", "odnow",
+];
+const BZP_SCOPE_KEYWORDS = [
+  "mieszkan", "lokalu", "lokal ", "lokali", "lokale", "biur", "biurow", "biurowc",
+  "pomieszcze", "pomieszczen", "budynk", "klatk", "elewac", "dach", "toalet", "sanitar",
+  "łazienk", "lazienk", "kuchni", "wind", "dźwig", "dzwig", "piętr", "pietr",
+  "uniwersytet", "uczelni", "szpital", "szkoł", "przedszk", "kamienic", "bibliotek", "muzeum",
+  "urząd", "urzedu", "pensjonat", "hotel", "osiedl", "centrum handlow", "magazyn",
+  "sala ", "sal ", "korytarz", "garaż", "garaz", "piwnic", "strych",
+  "stolark", "okien", "okno", "drzwi", "posadzk", "sufit", "tynk", "malow",
+  "instalac", "grzewcz", "wentylac", "klimatyzac", "pustostan", "internat", "akademik",
+  "obiekt budowl", "nieruchomo", "fabryk", "hali produkcy", "administracyj",
+  "domu studenck", "dom studenck", "izolac", "monta",
 ];
 const BZP_EXCLUDE_KEYWORDS = [
   "drogi wojewódzk", "nawierzchni jezdni", "chodników drogow", "przebudowa drogi",
-  "rozbudowa skrzyżowania", "budowa drogi", "kanalizacji deszczowej", "wodociąg",
-  "gazociąg", "most ", "wiadukt",
+  "remont drogi", "remont dróg", "remont nawierzchni", "rozbudowa skrzyżowania",
+  "budowa drogi", "budowa dróg", "nawierzchni bitum", "utwardzenie placu drogowego",
+  "kanalizacji deszczowej", "wodociąg", "gazociąg", "most ", "wiadukt", "prom ",
+  "linii kolejow", "budowa budynk", "budowa obiektu", "budowa nowego", "budowa hali magazyn",
+  "budowa budynku", "wykonanie obiektu budowl", "roboty budowlane polegające na budowie",
+  "roboty ziemne", "wycinka drzew", "boisko sportowe",
 ];
+const BZP_RENOVATION_SIGNALS = [
+  "remont", "moderniz", "przebudow", "termomoderniz", "adaptacj", "rozbudow", "renowac", "wykończ", "wykończen",
+];
+const PRIORITY_BUILDING_HINTS = [...BZP_ACTION_KEYWORDS, ...BZP_SCOPE_KEYWORDS];
 
 const WROCLAW_PRIORITY_ORG_SEARCHES: {
   id: string;
@@ -1964,13 +1984,27 @@ const WROCLAW_PRIORITY_ORG_SEARCHES: {
   },
 ];
 
-const PRIORITY_BUILDING_HINTS = [
-  "lokal", "mieszkal", "pustostan", "budynk", "klatk", "elewac", "stolark",
-  "sanitar", "piętr", "pietr", "wind", "dźwig", "dzwig", "remont", "moderniz",
-  "przebudow", "wykończ", "wykończen", "adaptac", "izolac", "pensjonat", "pomieszcze", "monta",
-];
-
 type BzpNoticeRow = Record<string, unknown>;
+
+function isNewConstructionTitle(title: string): boolean {
+  const t = title.toLowerCase();
+  if (!t.includes("budowa")) return false;
+  return !BZP_RENOVATION_SIGNALS.some((s) => t.includes(s));
+}
+
+function isExcludedBzpTitle(title: string): boolean {
+  const t = title.toLowerCase();
+  if (BZP_EXCLUDE_KEYWORDS.some((ex) => t.includes(ex))) return true;
+  return isNewConstructionTitle(t);
+}
+
+function matchBzpKeywords(title: string): { action: string[]; scope: string[] } {
+  const t = title.toLowerCase();
+  return {
+    action: BZP_ACTION_KEYWORDS.filter((kw) => t.includes(kw)),
+    scope: BZP_SCOPE_KEYWORDS.filter((kw) => t.includes(kw)),
+  };
+}
 
 function foldPolish(s: string): string {
   return s.toLowerCase()
@@ -2008,14 +2042,9 @@ function normalizeBzpSearchPayload(data: unknown): BzpNoticeRow[] {
 
 function scoreBzpNotice(n: BzpNoticeRow, opts?: { priorityOrg?: boolean }): { score: number; excluded: boolean } {
   const title = `${n.orderObject || ""} ${n.cpvCode || ""}`.toString().toLowerCase();
-  const keywords: string[] = [];
-  for (const kw of BZP_INCLUDE_KEYWORDS) {
-    if (title.includes(kw)) keywords.push(kw);
-  }
-  for (const ex of BZP_EXCLUDE_KEYWORDS) {
-    if (title.includes(ex)) return { score: 0, excluded: true };
-  }
-  let score = keywords.length * 10;
+  if (isExcludedBzpTitle(title)) return { score: 0, excluded: true };
+  const { action, scope } = matchBzpKeywords(title);
+  let score = action.length * 10 + scope.length * 5;
   const city = foldPolish((n.organizationCity || "").toString());
   if (city.includes("wroclaw") || city.startsWith("wroc")) score += 25;
   const titleNorm = foldPolish((n.orderObject || "").toString());
@@ -2027,10 +2056,9 @@ function scoreBzpNotice(n: BzpNoticeRow, opts?: { priorityOrg?: boolean }): { sc
     (n.organizationCity || "").toString(),
   );
   if (priority) score += 20;
-  if (keywords.length === 0 && priority && PRIORITY_BUILDING_HINTS.some((h) => title.includes(h))) {
-    score = Math.max(score, 18);
-  }
-  if (keywords.length === 0 && score < 20) return { score: 0, excluded: true };
+  const priorityPass = priority && PRIORITY_BUILDING_HINTS.some((h) => title.includes(h));
+  if (priorityPass) score = Math.max(score, 18);
+  if (action.length === 0 && !priorityPass) return { score: 0, excluded: true };
   return { score, excluded: false };
 }
 
