@@ -1497,14 +1497,19 @@ async function sendViaSmsApi(
   return { ok: false, error: "Nie udało się wysłać SMS (SMSAPI)" };
 }
 
-/** Nazwa nadawcy SMSAPI (max 11 znaków, bez polskich znaków) — np. W&G-Dawid. */
+/** Skróty imion dla pola nadawcy SMS (max 11 znaków łącznie z prefiksem W&G-). */
+const SMS_FROM_NAME_ALIASES: Record<string, string> = {
+  stanislaw: "Stan",
+};
+
+/** Nazwa nadawcy SMSAPI (max 11 znaków, bez polskich znaków) — np. W&G-Dawid, W&G-Stan. */
 function buildSmsFromCandidate(senderDisplayName: string): string {
   const first = senderDisplayName.trim().split(/\s+/)[0] || "Admin";
   const ascii = first
     .normalize("NFD")
     .replace(/\p{M}/gu, "")
     .replace(/[^a-zA-Z0-9]/g, "");
-  const short = ascii.slice(0, 6) || "Admin";
+  const short = SMS_FROM_NAME_ALIASES[ascii.toLowerCase()] ?? ascii.slice(0, 6) || "Admin";
   const candidate = `W&G-${short}`.slice(0, 11);
   return candidate.length >= 3 ? candidate : "WGDom";
 }
@@ -1559,6 +1564,17 @@ async function listSmsApiSenders(token: string): Promise<SmsApiSenderEntry[]> {
   return coll as SmsApiSenderEntry[];
 }
 
+/** Wszystkie nazwy nadawców zespołu — rejestrowane przy każdym ensure. */
+const DEFAULT_TEAM_SENDERS = ["WGDom", "W&G-Dawid", "W&G-Pawel", "W&G-Stan"];
+
+async function deleteSmsApiSender(token: string, sender: string): Promise<{ ok: boolean; error?: string }> {
+  const encoded = btoa(sender);
+  const r = await smsApiRequest(token, `/sms/sendernames/${encoded}`, { method: "DELETE" });
+  if (r.ok || r.status === 204 || r.status === 404) return { ok: true };
+  const errMsg = typeof r.json?.message === "string" ? r.json.message : r.text || "Błąd usuwania nadawcy";
+  return { ok: false, error: errMsg };
+}
+
 async function addSmsApiSender(token: string, sender: string): Promise<{ ok: boolean; status?: string; error?: string }> {
   const r = await smsApiRequest(token, "/sms/sendernames", {
     method: "POST",
@@ -1575,35 +1591,56 @@ async function addSmsApiSender(token: string, sender: string): Promise<{ ok: boo
 }
 
 function collectSenderNamesToEnsure(senderDisplayName?: string): string[] {
-  const names: string[] = ["WGDom"];
+  const names: string[] = [...DEFAULT_TEAM_SENDERS];
   if (senderDisplayName?.trim()) names.push(buildSmsFromCandidate(senderDisplayName));
   const envFrom = Deno.env.get("SMSAPI_FROM")?.trim();
-  if (envFrom) names.push(envFrom);
+  if (envFrom && envFrom.toLowerCase() !== "wgdom") names.push(envFrom);
   const auto = (Deno.env.get("SMSAPI_AUTO_SENDERS") || "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
   names.push(...auto);
-  return [...new Set(names.filter((n) => n.length >= 3 && n.length <= 11 && !/^test$/i.test(n)))];
+  const canonical = new Map<string, string>();
+  for (const raw of names) {
+    const n = raw.trim();
+    if (n.length < 3 || n.length > 11 || /^test$/i.test(n)) continue;
+    const key = n.toLowerCase();
+    const preferred = DEFAULT_TEAM_SENDERS.find((d) => d.toLowerCase() === key);
+    if (!canonical.has(key) || preferred) canonical.set(key, preferred || n);
+  }
+  return [...canonical.values()];
 }
 
 /** Rejestruje brakujące nazwy nadawców przez SMSAPI (POST /sms/sendernames). ACTIVE wymaga akceptacji SMSAPI. */
-async function ensureSmsApiSenders(token: string, names: string[]): Promise<SmsSenderEnsureResult[]> {
+async function ensureSmsApiSenders(
+  token: string,
+  names: string[],
+  opts?: { force?: string[] },
+): Promise<SmsSenderEnsureResult[]> {
   const existing = await listSmsApiSenders(token);
   const byName = new Map(existing.map((s) => [s.sender.toLowerCase(), s]));
   const results: SmsSenderEnsureResult[] = [];
+  const forceSet = new Set((opts?.force || []).map((n) => n.toLowerCase()));
 
   for (const raw of [...new Set(names.map((n) => n.trim()).filter(Boolean))]) {
     if (/^test$/i.test(raw)) continue;
-    const found = byName.get(raw.toLowerCase());
-    if (found) {
+    const key = raw.toLowerCase();
+    const found = byName.get(key);
+    if (found && forceSet.has(key)) {
+      const del = await deleteSmsApiSender(token, found.sender);
+      if (!del.ok) {
+        results.push({ sender: raw, status: "ERROR", action: "failed", error: del.error });
+        continue;
+      }
+      byName.delete(key);
+    } else if (found) {
       results.push({ sender: found.sender, status: found.status, action: "exists" });
       continue;
     }
     const added = await addSmsApiSender(token, raw);
     if (added.ok) {
       results.push({ sender: raw, status: added.status || "INACTIVE", action: "added" });
-      byName.set(raw.toLowerCase(), { sender: raw, status: added.status || "INACTIVE" });
+      byName.set(key, { sender: raw, status: added.status || "INACTIVE" });
     } else {
       results.push({ sender: raw, status: "ERROR", action: "failed", error: added.error });
     }
@@ -1705,7 +1742,7 @@ app.post("/make-server-0afb8820/sms-sendernames/ensure", async (c) => {
   if (!token) {
     return c.json({ ok: false, error: "SMSAPI_TOKEN not set" }, 503);
   }
-  let body: { senderName?: string; names?: string[] };
+  let body: { senderName?: string; names?: string[]; force?: string[] };
   try {
     body = await c.req.json();
   } catch {
@@ -1717,8 +1754,9 @@ app.post("/make-server-0afb8820/sms-sendernames/ensure", async (c) => {
     if (n.trim()) names.push(n.trim());
   }
   const unique = [...new Set(names)];
+  const force = Array.isArray(body.force) ? body.force.map(String).filter(Boolean) : [];
   try {
-    const results = await ensureSmsApiSenders(token, unique);
+    const results = await ensureSmsApiSenders(token, unique, { force });
     const sendernames = await listSmsApiSenders(token);
     return c.json({ ok: true, results, sendernames, active: activeSenderNames(sendernames) });
   } catch (e) {

@@ -7,8 +7,16 @@ import {
   isKosztorysPreviewExt,
   type AthPreviewResult,
 } from "@/lib/ath-parser";
-import { downloadKosztorysPdf, previewKosztorysPdf } from "@/lib/ath-kosztorys-pdf";
+import {
+  downloadKosztorysPdf,
+  previewKosztorysPdf,
+  KOSZTORYS_DISCLAIMER_BODY,
+  KOSZTORYS_DISCLAIMER_TITLE,
+  KOSZTORYS_DTT_CREDIT,
+} from "@/lib/ath-kosztorys-pdf";
 import { resolveJobFileStoragePath } from "@/lib/job-documents";
+import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
+import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 
 export function JobFilePreviewModal({
   item,
@@ -79,6 +87,23 @@ export function JobFilePreviewModal({
 
   const przedmiarRows = parseResult?.rows.filter((r) => r.przedmiar && r.przedmiar.length > 0) ?? [];
 
+  const kosztorysBranding = isKosztorys && !isPdf ? (
+    <div className="rounded-xl border border-border bg-secondary/20 overflow-hidden">
+      <div className="flex items-start gap-3 px-4 py-3 border-b border-border bg-card">
+        <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-9 w-auto shrink-0 object-contain"/>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">W&G DOM</p>
+          <p className="text-[11px] text-muted-foreground">Przeglądarka kosztorysów — wyłącznie do użytku wewnętrznego</p>
+        </div>
+      </div>
+      <div className="px-4 py-3 space-y-2">
+        <p className="text-xs font-medium text-foreground/90">{KOSZTORYS_DISCLAIMER_TITLE}</p>
+        <p className="text-[11px] leading-relaxed text-muted-foreground">{KOSZTORYS_DISCLAIMER_BODY}</p>
+        <p className="text-[10px] italic text-muted-foreground border-t border-border/60 pt-2">{KOSZTORYS_DTT_CREDIT}</p>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/70" onClick={onClose}>
       <div
@@ -90,7 +115,7 @@ export function JobFilePreviewModal({
             <p className="text-sm font-semibold truncate">Podgląd — {filename}</p>
             {isKosztorys && !isPdf && (
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Kosztorys ATH — pozycje, przedmiar, podsumowanie. PDF generowany lokalnie z pliku .ath.
+                  Podgląd wewnętrzny kosztorysu z pliku NORMA (.ath) — PDF z logo W&G DOM i klauzulą użytku wewnętrznego.
                 </p>
             )}
           </div>
@@ -139,15 +164,19 @@ export function JobFilePreviewModal({
               )}
 
               {!loading && parseResult && viewMode === "pdf" && pdfPreviewUrl && (
-                <iframe
-                  title="Podgląd PDF kosztorysu"
-                  src={pdfPreviewUrl}
-                  className="w-full h-[70dvh] rounded-lg border border-border bg-white"
-                />
+                <div className="space-y-3">
+                  {kosztorysBranding}
+                  <iframe
+                    title="Podgląd PDF kosztorysu"
+                    src={pdfPreviewUrl}
+                    className="w-full h-[62dvh] rounded-lg border border-border bg-white"
+                  />
+                </div>
               )}
 
               {!loading && parseResult && viewMode === "table" && (
                 <div className="space-y-4">
+                  {kosztorysBranding}
                   <div className="space-y-1">
                     {parseResult.documentType && (
                       <p className="text-[10px] font-semibold uppercase tracking-wider text-primary">{parseResult.documentType}</p>

@@ -8978,6 +8978,13 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.31.4", label:"Kosztorys PDF — logo, klauzula, credit DTT",
+    items:[
+      {type:"improve", text:"PDF kosztorysu — logo W&G DOM, klauzula użytku wewnętrznego (NORMA/Athenasoft), stopka na każdej stronie"},
+      {type:"improve", text:"Podgląd kosztorysu — baner z logo, disclaimer i credit DTT (Przeglądarka plików NORMA)"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.31.3", label:"SMS — auto-rejestracja nadawców przez API SMSAPI",
     items:[
       {type:"new", text:"Przy wysyłce SMS — automatyczna rejestracja nazw nadawców (POST smsapi.pl/sms/sendernames)"},
