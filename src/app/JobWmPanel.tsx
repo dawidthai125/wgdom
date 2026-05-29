@@ -213,7 +213,10 @@ export function JobWmPanel({
 export function JobWmStageBadge({ job }: { job: JobWmJob }) {
   const stage = inferHandoverStage(job);
   return (
-    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${stageBadgeClass(stage)}`}>
+    <span
+      title={HANDOVER_STAGE_HINTS[stage]}
+      className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${stageBadgeClass(stage)}`}
+    >
       {HANDOVER_STAGE_LABELS[stage]}
     </span>
   );

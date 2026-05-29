@@ -149,6 +149,13 @@ import {
   computeWmPortfolioStats,
 } from "@/lib/job-wm";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
+import { JobListFilterBar, JobListLegend, JobListPrimaryBadge } from "@/app/JobListStatus";
+import {
+  countJobsByListFilter,
+  jobMatchesListFilter,
+  resolveJobListStatus,
+  type JobListFilter,
+} from "@/lib/job-list-status";
 import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
 import { normalizeJobMetaFields, isJobHousingSet, HOUSING_TYPE_LABELS, STOVE_TYPE_LABELS_FULL, type HousingType, type StoveType } from "@/lib/job-meta";
 import { syncAppSettingsFromCloud, saveAppSettings, loadAppSettingsLocal, mergeAthPreviewEnabled, type AppSettings } from "@/lib/app-settings";
@@ -5799,7 +5806,8 @@ function JobsView({
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "in_progress" | "completed">("all");
+  const [filter, setFilter] = useState<JobListFilter>("all");
+  const [showJobLegend, setShowJobLegend] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteConfirmListId, setDeleteConfirmListId] = useState<string | null>(null);
   const [workerFilter, setWorkerFilter] = useState<string>("");
@@ -6127,10 +6135,16 @@ function JobsView({
     pdfMake.createPdf(dd).download(`robota-${(job.address||"bez-adresu").replace(/\s+/g,"-").toLowerCase()}.pdf`);
   };
 
+  const filterCounts = useMemo(() => ({
+    all: countJobsByListFilter(jobs, "all"),
+    in_progress: countJobsByListFilter(jobs, "in_progress"),
+    handover: countJobsByListFilter(jobs, "handover"),
+    completed: countJobsByListFilter(jobs, "completed"),
+  }), [jobs]);
+
   // Filter + search
   const filtered = jobs.filter(j=>{
-    if(filter==="in_progress"&&j.status!=="in_progress") return false;
-    if(filter==="completed"&&j.status!=="completed") return false;
+    if (!jobMatchesListFilter(j, filter)) return false;
     if(workerFilter && !j.workEntries.some(e=>e.directoryId===workerFilter)) return false;
     const q = search.toLowerCase();
     return !q || j.address.toLowerCase().includes(q) || j.client.toLowerCase().includes(q) || j.flatNumber.toLowerCase().includes(q);
@@ -6255,13 +6269,15 @@ function JobsView({
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
             <input type="text" placeholder="Szukaj adresu, klienta..." value={search} onChange={e=>setSearch(e.target.value)} className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"/>
           </div>
-          <div className="flex gap-1">
-            {(["all","in_progress","completed"] as const).map(f=>(
-              <button key={f} onClick={()=>setFilter(f)} className={`flex-1 text-xs py-2.5 min-h-[44px] rounded-lg font-medium transition-colors touch-manipulation ${filter===f?"bg-secondary text-foreground border border-primary/30":"text-muted-foreground hover:text-foreground hover:bg-secondary/50"}`}>
-                {f==="all"?"Wszystkie":f==="in_progress"?"W trakcie":"Zdane"}
-              </button>
-            ))}
-          </div>
+          <JobListFilterBar filter={filter} onFilter={setFilter} counts={filterCounts}/>
+          <button
+            type="button"
+            onClick={() => setShowJobLegend((v) => !v)}
+            className="w-full text-[11px] text-muted-foreground hover:text-foreground py-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
+          >
+            {showJobLegend ? "Ukryj legendę statusów" : "Co oznaczają statusy? (legenda)"}
+          </button>
+          {showJobLegend && <JobListLegend compact/>}
           {filterProductionActiveDirectory(directory).length>0&&(
             <select value={workerFilter} onChange={e=>setWorkerFilter(e.target.value)}
               className="w-full bg-secondary rounded-lg px-3 py-2 text-xs border border-transparent focus:border-primary focus:outline-none text-muted-foreground">
@@ -6288,6 +6304,8 @@ function JobsView({
               </div>
               {groupJobs.map(job=>{
                 const docsCount = DOCUMENT_TYPES.filter(d=>job.documents[d]).length;
+                const missingDocs = jobMissingRequiredDocs(job);
+                const listStatus = resolveJobListStatus(job);
                 const cost = jobCost(job);
                 const isSelected = job.id===selectedJobId;
                 const isDupe = isDuplicateJob(job);
@@ -6295,52 +6313,65 @@ function JobsView({
                 return (
                   <div key={job.id} className={`flex items-stretch border-b border-border transition-colors ${isSelected?"bg-primary/8 border-l-2 border-l-primary":""} ${isDupe?"bg-amber-500/5":""}`}>
                     <button onClick={()=>setSelectedJobId(job.id)} className={`flex-1 min-w-0 text-left px-4 py-3.5 hover:bg-secondary/40 transition-colors ${isSelected?"":"hover:bg-secondary/40"}`}>
-                      <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="flex items-start justify-between gap-2 mb-1.5">
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold truncate leading-tight">{job.address||<span className="italic text-muted-foreground">Bez adresu</span>}{job.flatNumber&&<span className="text-muted-foreground"> m.{job.flatNumber}</span>}</p>
-                          <p className="text-xs text-muted-foreground truncate">{job.client||"—"}</p>
-                          <JobMetaBadges job={job}/>
-                          {(isDupe || job.workEntries.length > 0) && (
-                            <p className="text-[10px] text-muted-foreground/80 mt-0.5">
-                              {isDupe && <span className="text-amber-600 dark:text-amber-400 font-medium">Duplikat adresu · </span>}
-                              {job.workEntries.length > 0 && `${workerCount} os. · ${fmtH(jobTotalHours(job))}`}
-                              {job.workEntries.length === 0 && isDupe && "brak wpisów — kandydat do usunięcia"}
-                            </p>
-                          )}
+                          <p className="text-sm font-semibold truncate leading-tight">{job.address||<span className="italic text-muted-foreground">Bez adresu</span>}{job.flatNumber&&<span className="text-muted-foreground font-normal"> m.{job.flatNumber}</span>}</p>
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">{job.client||"—"}</p>
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {job.keysHandedOver && <span title="Klucze zdane"><KeyRound size={12} className="text-blue-400"/></span>}
-                          {jobWorkerReports(job).length > 0 && (
-                            <span title="Raporty pracowników" className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">
-                              {jobWorkerReports(job).length} rap.
+                        <JobListPrimaryBadge job={job}/>
+                      </div>
+                      {(listStatus === "docs_pending" || listStatus === "ready_handover") && missingDocs.length > 0 && (
+                        <p className="text-[10px] text-orange-600 dark:text-orange-400 mb-1.5 leading-snug" title="Brakujące dokumenty do odbioru">
+                          Brakuje: {missingDocs.map((d) => DOC_LABELS[d]).join(", ")}
+                        </p>
+                      )}
+                      {listStatus === "ready_handover" && missingDocs.length === 0 && (
+                        <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mb-1.5">
+                          Dokumenty kompletne — można zdawać
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                        <JobMetaBadges job={job}/>
+                        <JobWmPlannedBadge job={job}/>
+                        {job.keysHandedOver && <span title="Klucze zdane"><KeyRound size={11} className="text-blue-400"/></span>}
+                        {jobWorkerReports(job).length > 0 && (
+                          <span title="Raporty pracowników" className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">
+                            {jobWorkerReports(job).length} rap.
+                          </span>
+                        )}
+                        {isDupe && (
+                          <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">Duplikat adresu</span>
+                        )}
+                        {job.workEntries.length > 0 && (
+                          <span className="text-[10px] text-muted-foreground">{workerCount} os. · {fmtH(jobTotalHours(job))}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          <div className="flex-1 bg-border rounded-full h-1.5 overflow-hidden" title="Postęp dokumentów do odbioru">
+                            <div
+                              className={`h-1.5 rounded-full transition-all ${docsCount === REQUIRED_DOCS.length ? "bg-emerald-500" : "bg-primary"}`}
+                              style={{width:`${(docsCount/REQUIRED_DOCS.length)*100}%`}}
+                            />
+                          </div>
+                          <span className="text-[10px] text-muted-foreground shrink-0 tabular-nums">{docsCount}/{REQUIRED_DOCS.length} dok.</span>
+                        </div>
+                        {cost>0&&<span className="text-[10px] font-semibold text-primary shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cost)} PLN</span>}
+                      </div>
+                      {(!job.documents.zlecenie || !job.documents.kosztorys) && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {!job.documents.zlecenie && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-red-500/10 text-red-500 dark:text-red-400">
+                              <FileText size={9}/> Brak zlecenia
                             </span>
                           )}
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${job.status==="completed"?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>
-                            {job.status==="completed"?"Zdane":"W trakcie"}
-                          </span>
+                          {!job.documents.kosztorys && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-red-500/10 text-red-500 dark:text-red-400">
+                              <ClipboardList size={9}/> Brak kosztorysu
+                            </span>
+                          )}
                         </div>
-                      </div>
-                      <div className="flex items-center justify-between gap-2 mt-2">
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                          <div className="flex-1 bg-border rounded-full h-1 overflow-hidden">
-                            <div className="bg-primary h-1 rounded-full transition-all" style={{width:`${(docsCount/REQUIRED_DOCS.length)*100}%`}}/>
-                          </div>
-                          <span className="text-xs text-muted-foreground shrink-0">{docsCount}/{REQUIRED_DOCS.length}</span>
-                        </div>
-                        {cost>0&&<span className="text-xs font-semibold text-primary shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cost)} PLN</span>}
-                      </div>
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        <JobWmStageBadge job={job}/>
-                        <JobWmPlannedBadge job={job}/>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        <span className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${job.documents.zlecenie ? "bg-green-500/15 text-green-400" : "bg-secondary text-muted-foreground"}`}>
-                          <FileText size={9}/> Zlec. {job.documents.zlecenie ? "✓" : "—"}
-                        </span>
-                        <span className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${job.documents.kosztorys ? "bg-green-500/15 text-green-400" : "bg-secondary text-muted-foreground"}`}>
-                          <ClipboardList size={9}/> Kosz. {job.documents.kosztorys ? "✓" : "—"}
-                        </span>
-                      </div>
+                      )}
                     </button>
                     <div className="flex items-center pr-2 shrink-0">
                       {deleteConfirmListId===job.id ? (
@@ -8781,7 +8812,7 @@ function HelpView() {
           <p className="text-sm text-foreground/90 leading-relaxed">Na ekranie startowym wybierz <strong>Inspektor</strong> → użytkownik (np. Szymon Szóstak) → hasło. Inspektor widzi wszystkie roboty, ale <strong>bez stawek PLN/h</strong> pracowników. Widzi natomiast kto jest przypisany do roboty i numer telefonu z kartoteki.</p>
           <div className="space-y-3">
             {[
-              {q:"Co widać na liście robót?", a:"Adres, klient, status, ikony: czy jest zlecenie PDF, kosztorys NORMA, ile dokumentów zebranych, ile zdjęć zaakceptowanych. Filtry: aktywne / zdane / wszystkie + wyszukiwarka."},
+              {q:"Co widać na liście robót?", a:"Adres, klient i jeden główny status: W trakcie, Gotowe do odbioru (brakuje dokumentów), Komplet do odbioru (dokumenty OK), Zdane. Pasek postępu dokumentów, brakujące pozycje wypisane przy „Gotowe do odbioru”. Filtry z licznikami + legenda „Co oznaczają statusy?”. Najechanie na status pokazuje podpowiedź."},
               {q:"Zlecenie i kosztorys", a:"Przy robocie możesz zaznaczyć checkbox „mam zlecenie” / „mam kosztorys” oraz wrzucić plik (zlecenie: PDF; kosztorys: PDF, ATH, NOR, XML, DOC z programu NORMA). Przy .ath wybierz „Wszystkie pliki”, jeśli nie widać rozszerzenia. Status widać na liście — nie musisz pamiętać czy już wysłałeś email."},
               {q:"Dokumenty i zakresy", a:"Checklista dokumentów (zlecenie, zakres, kominiarz, pomiary…). Sekcja raportów pracowników: zakres prac, wymiary pomieszczeń, zdjęcia rysunków z opisami."},
               {q:"Galeria zdjęć", a:"Tylko zdjęcia zaakceptowane przez admina. Pobierz pojedyncze lub „Pobierz wszystkie” z danej roboty."},
@@ -8977,6 +9008,14 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-29", version:"2.31.5", label:"Roboty — czytelniejsza lista i statusy",
+    items:[
+      {type:"improve", text:"Lista robót — jeden główny status: W trakcie, Gotowe do odbioru, Komplet do odbioru, Zdane"},
+      {type:"improve", text:"Filtry z licznikami + legenda statusów (najechanie / „Co oznaczają statusy?”)"},
+      {type:"improve", text:"Na liście widać brakujące dokumenty i alerty tylko gdy brak zlecenia/kosztorysu"},
+    ],
+  },
   {
     date:"2026-05-29", version:"2.31.4", label:"Kosztorys PDF — logo, klauzula, credit DTT",
     items:[
