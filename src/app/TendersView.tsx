@@ -134,7 +134,7 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-              Ogłoszenia z BZP — woj. dolnośląskie + dedykowany skan: Wrocławskie Mieszkania, ZIK, ZIM, TBS, Gmina Wrocław.
+              Ogłoszenia z BZP — woj. dolnośląskie + skan: WM, ZIK, ZIM, TBS, Gmina Wrocław, MOPS Wrocław.
             </p>
           </div>
           <button

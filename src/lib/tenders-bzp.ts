@@ -89,22 +89,28 @@ export const WROCLAW_PRIORITY_BUYERS = [
   { id: "zim", label: "Gmina Wrocław – ZIM", search: "Zarząd Inwestycji Miejskich", cityOnly: true },
   { id: "tbs", label: "TBS Wrocław", search: "Budownictwa Społecznego Wrocław", cityOnly: false },
   { id: "gmina", label: "Gmina Wrocław", search: "Gmina Wrocław", cityOnly: true },
+  { id: "mops", label: "MOPS Wrocław", search: "Miejski Ośrodek Pomocy Społecznej", cityOnly: true, organizationCity: "Wrocław" },
 ] as const;
 
 const PRIORITY_BUILDING_HINTS = [
   "lokal", "mieszkal", "pustostan", "budynk", "klatk", "elewac", "stolark",
   "sanitar", "piętr", "pietr", "wind", "dźwig", "dzwig", "remont", "moderniz",
-  "przebudow", "wykończ", "wykończen",
+  "przebudow", "wykończ", "wykończen", "adaptac", "izolac", "pensjonat", "pomieszcze", "monta",
 ];
 
-export function matchPriorityBuyer(orgName: string): { id: string; label: string } | null {
+export function matchPriorityBuyer(orgName: string, organizationCity?: string): { id: string; label: string } | null {
   const n = orgName || "";
+  const city = (organizationCity || "").toLowerCase();
+  const isWroclawCity = city.includes("wrocław") || city.includes("wroclaw");
   for (const b of WROCLAW_PRIORITY_BUYERS) {
     if (b.id === "wm" && /wrocławskie\s+mieszkania/i.test(n)) return { id: b.id, label: b.label };
     if (b.id === "zik" && /zarząd\s+zasobu\s+komunalnego/i.test(n)) return { id: b.id, label: b.label };
     if (b.id === "zim" && /zarząd\s+inwestycji\s+miejskich/i.test(n)) return { id: b.id, label: b.label };
     if (b.id === "tbs" && /budownictwa\s+społecznego\s+wrocław|tbs.*wrocław|tbś.*wrocław/i.test(n)) return { id: b.id, label: b.label };
     if (b.id === "gmina" && /gmina\s+wrocław/i.test(n) && !/kąty|wrocławski/i.test(n)) return { id: b.id, label: b.label };
+    if (b.id === "mops" && /miejski\s+ośrodek\s+pomocy\s+społecznej/i.test(n) && (isWroclawCity || /we\s+wrocławiu/i.test(n))) {
+      return { id: b.id, label: b.label };
+    }
   }
   return null;
 }
@@ -132,7 +138,7 @@ export function scoreTenderNotice(
   if ((n.orderObject || "").toLowerCase().includes("wrocław")) score += 15;
   if ((n.cpvCode || "").includes("454")) score += 5;
   if ((n.cpvCode || "").includes("452")) score += 3;
-  const priority = opts?.priorityOrg || !!matchPriorityBuyer(n.organizationName || "");
+  const priority = opts?.priorityOrg || !!matchPriorityBuyer(n.organizationName || "", n.organizationCity);
   if (priority) score += 20;
   if (keywords.length === 0 && priority && PRIORITY_BUILDING_HINTS.some((h) => title.includes(h))) {
     score = Math.max(score, 18);
@@ -142,7 +148,7 @@ export function scoreTenderNotice(
 }
 
 export function mapBzpToPipelineItem(n: BzpNoticeRaw, existing?: TenderPipelineItem): TenderPipelineItem {
-  const priority = matchPriorityBuyer(n.organizationName || "");
+  const priority = matchPriorityBuyer(n.organizationName || "", city);
   const { score, keywords } = scoreTenderNotice(n, { priorityOrg: !!priority });
   const id = String(n.objectId || n.moIdentifier || n.bzpNumber || "");
   const now = new Date().toISOString();

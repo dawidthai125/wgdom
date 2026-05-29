@@ -1944,18 +1944,19 @@ const BZP_EXCLUDE_KEYWORDS = [
   "gazociąg", "most ", "wiadukt",
 ];
 
-const WROCLAW_PRIORITY_ORG_SEARCHES = [
+const WROCLAW_PRIORITY_ORG_SEARCHES: { id: string; search: string; cityOnly: boolean; organizationCity?: string }[] = [
   { id: "wm", search: "Wrocławskie Mieszkania", cityOnly: true },
   { id: "zik", search: "Zarząd Zasobu Komunalnego", cityOnly: true },
   { id: "zim", search: "Zarząd Inwestycji Miejskich", cityOnly: true },
   { id: "tbs", search: "Budownictwa Społecznego Wrocław", cityOnly: false },
   { id: "gmina", search: "Gmina Wrocław", cityOnly: true },
+  { id: "mops", search: "Miejski Ośrodek Pomocy Społecznej", cityOnly: true, organizationCity: "Wrocław" },
 ];
 
 const PRIORITY_BUILDING_HINTS = [
   "lokal", "mieszkal", "pustostan", "budynk", "klatk", "elewac", "stolark",
   "sanitar", "piętr", "pietr", "wind", "dźwig", "dzwig", "remont", "moderniz",
-  "przebudow", "wykończ", "wykończen",
+  "przebudow", "wykończ", "wykończen", "adaptac", "izolac", "pensjonat", "pomieszcze", "monta",
 ];
 
 type BzpNoticeRow = Record<string, unknown>;
@@ -1969,8 +1970,10 @@ function isWroclawRelatedRow(n: BzpNoticeRow): boolean {
     || org.includes("wrocław") || org.includes("wroclaw");
 }
 
-function isPriorityBuyerOrg(orgName: string): boolean {
+function isPriorityBuyerOrg(orgName: string, organizationCity?: string): boolean {
   const n = orgName || "";
+  const city = (organizationCity || "").toString().toLowerCase();
+  if (/miejski\s+ośrodek\s+pomocy\s+społecznej/i.test(n) && (city.includes("wrocław") || city.includes("wroclaw"))) return true;
   return /wrocławskie\s+mieszkania|zarząd\s+zasobu\s+komunalnego|zarząd\s+inwestycji\s+miejskich|budownictwa\s+społecznego\s+wrocław|gmina\s+wrocław/i.test(n);
 }
 
@@ -2000,7 +2003,10 @@ function scoreBzpNotice(n: BzpNoticeRow, opts?: { priorityOrg?: boolean }): { sc
   if ((n.orderObject || "").toString().toLowerCase().includes("wrocław")) score += 15;
   if ((n.cpvCode || "").toString().includes("454")) score += 5;
   if ((n.cpvCode || "").toString().includes("452")) score += 3;
-  const priority = opts?.priorityOrg || isPriorityBuyerOrg((n.organizationName || "").toString());
+  const priority = opts?.priorityOrg || isPriorityBuyerOrg(
+    (n.organizationName || "").toString(),
+    (n.organizationCity || "").toString(),
+  );
   if (priority) score += 20;
   if (keywords.length === 0 && priority && PRIORITY_BUILDING_HINTS.some((h) => title.includes(h))) {
     score = Math.max(score, 18);
@@ -2084,8 +2090,10 @@ app.get("/make-server-0afb8820/tenders-bzp-search", async (c) => {
     ingestNotices(provinceBatch, seen, all);
 
     for (const org of WROCLAW_PRIORITY_ORG_SEARCHES) {
+      const searchParams: Record<string, string> = { organizationName: org.search };
+      if (org.organizationCity) searchParams.organizationCity = org.organizationCity;
       const orgBatch = await fetchBzpSearchPages(
-        { organizationName: org.search },
+        searchParams,
         orgPages,
         publicationDateFrom,
       );
