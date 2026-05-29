@@ -200,6 +200,21 @@ export function TenderCompanyProfilePanel({
                 <NumInput label="Liczba referencji" value={profile.referenceCount} onChange={(v) => setProfile({ ...profile, referenceCount: v })} step={1} />
                 <NumInput label="Min. dni na realizację" value={profile.minProjectDays} onChange={(v) => setProfile({ ...profile, minProjectDays: v })} step={1} />
                 <NumInput label="Max. równoległych robót" value={profile.maxConcurrentProjects} onChange={(v) => setProfile({ ...profile, maxConcurrentProjects: v })} step={1} />
+                <p className="col-span-full text-[10px] font-semibold uppercase tracking-wide text-muted-foreground pt-1 border-t border-border">
+                  Model kosztów ofertowych
+                </p>
+                <NumInput label="Etaty / załoga" value={profile.costModel.headcount} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, headcount: v } })} step={1} />
+                <NumInput label="Osób na budowach" value={profile.costModel.activeWorkersOnSite} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, activeWorkersOnSite: v } })} step={1} />
+                <NumInput label="Stawka brutto rbh (zł)" value={profile.costModel.avgGrossHourlyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, avgGrossHourlyPln: v } })} step={1} />
+                <NumInput label="Obciążenie pracodawcy (%)" value={profile.costModel.employerBurdenPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, employerBurdenPct: v } })} step={1} />
+                <NumInput label="Stałe miesięczne (zł)" value={profile.costModel.fixedOverheadMonthlyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, fixedOverheadMonthlyPln: v } })} step={1000} />
+                <NumInput label="Indeks materiałów (%)" value={profile.costModel.materialPriceIndexPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, materialPriceIndexPct: v } })} step={1} />
+                <NumInput label="Indeks robocizny (%)" value={profile.costModel.laborNormIndexPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, laborNormIndexPct: v } })} step={1} />
+                <NumInput label="Kp (%)" value={profile.costModel.kpPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, kpPct: v } })} step={1} />
+                <NumInput label="Zysk (%)" value={profile.costModel.profitPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, profitPct: v } })} step={1} />
+                <NumInput label="Rezerwa ryzyka (%)" value={profile.costModel.riskReservePct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, riskReservePct: v } })} step={1} />
+                <NumInput label="Min. marża (%)" value={profile.costModel.minMarginPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, minMarginPct: v } })} step={1} />
+                <NumInput label="Rabat vs ref. przy 100% ceny (%)" value={profile.costModel.targetPriceDiscountPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, targetPriceDiscountPct: v } })} step={0.5} />
                 <NumInput label="Polisa OC (PLN)" value={profile.ocInsuranceMinPln} onChange={(v) => setProfile({ ...profile, ocInsuranceMinPln: v })} step={100000} />
                 <LinesInput
                   label="Prefiksy CPV"

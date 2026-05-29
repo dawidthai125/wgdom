@@ -4,8 +4,7 @@ import type { TenderCompanyProfile } from "@/lib/tenders-bzp-company";
 import { profileKnownBuyerKeywords } from "@/lib/tenders-bzp-company";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
-import { fmtPln } from "@/lib/tenders-bzp-swz";
-import { stripHtmlToText } from "@/lib/tenders-bzp-swz";
+import { fmtPln, stripHtmlToText } from "@/lib/tenders-bzp-swz";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-doc-parse";
 
 export type TenderRequirementStatus = "met" | "partial" | "gap" | "unknown";
@@ -231,7 +230,7 @@ function buildCombinedText(item: TenderPipelineItem, swz: TenderSwzAnalysis | nu
   return parts.join("\n");
 }
 
-function estimatedValuePlnFromItem(
+export function estimatedValuePlnFromItem(
   item: TenderPipelineItem,
   swz: TenderSwzAnalysis | null | undefined,
 ): number | null {

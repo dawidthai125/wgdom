@@ -9206,6 +9206,14 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.42.0", label:"Przetargi — kalkulator ceny ofertowej",
+    items:[
+      {type:"new", text:"Propozycja ceny startowej: robocizna (rbh+ZUS), materiały, Kp, stałe 15 os., marża"},
+      {type:"new", text:"Warianty: agresywna / rekomendowana / bezpieczna — z uwzględnieniem wagi ceny w SWZ"},
+      {type:"improve", text:"Profil firmy — model kosztów (stawki, indeksy, stałe miesięczne) edytowalny w chmurze"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.41.0", label:"Przetargi — DOCX/XLSX/ZIP, pdf.js, auto-szacunek ATH",
     items:[
       {type:"new", text:"Auto „Nasz szacunek” z sumy kosztorysu po pobraniu załączników BZP"},

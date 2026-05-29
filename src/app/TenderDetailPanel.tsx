@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ExternalLink, FileText, Download, Loader2, Sparkles, Briefcase,
   Upload, AlertTriangle, CheckCircle2, HelpCircle, ChevronDown,
@@ -32,8 +32,10 @@ import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { TenderDossierPanel } from "@/app/TenderDossierPanel";
 import { TenderAttachmentsPanel } from "@/app/TenderAttachmentsPanel";
 import { TenderFitPanel } from "@/app/TenderFitPanel";
+import { TenderBidProposalPanel } from "@/app/TenderBidProposalPanel";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
-import { assessTenderFit } from "@/lib/tenders-bzp-fit";
+import { assessTenderFit, estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
+import { computeTenderBidProposal } from "@/lib/tenders-bid-calculator";
 
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -305,6 +307,26 @@ export function TenderDetailPanel({
   const swz = item.swzAnalysis;
   const HintIcon = swz ? HINT_ICON[swz.profitabilityHint] : HelpCircle;
 
+  const bidProposal = useMemo(() => {
+    const k = item.tenderDossier?.kosztorys;
+    if (!k?.ok) return null;
+    const profile = loadCompanyProfileLocal();
+    return computeTenderBidProposal({
+      kosztorys: k,
+      swz,
+      fit: item.tenderFit,
+      costModel: profile.costModel,
+      minProjectDays: profile.minProjectDays,
+      maxConcurrentProjects: profile.maxConcurrentProjects,
+    });
+  }, [item.tenderDossier?.kosztorys, item.tenderFit, swz]);
+
+  const referenceValuePln = estimatedValuePlnFromItem(item, swz)
+    ?? parsePlnFromKosztorysTotal(
+      item.tenderDossier?.kosztorys?.totalValue,
+      item.tenderDossier?.kosztorys?.currency,
+    );
+
   return (
     <div className="px-4 pb-4 pt-0 border-t border-border space-y-4">
       <p className="text-xs text-muted-foreground pt-3">
@@ -324,6 +346,13 @@ export function TenderDetailPanel({
         dossier={item.tenderDossier}
         swz={swz}
         onOpenKosztorysPreview={(previewItem) => setDocPreview(previewItem)}
+      />
+
+      <TenderBidProposalPanel
+        proposal={bidProposal}
+        referenceValuePln={referenceValuePln}
+        ourEstimatePln={item.ourEstimatePln}
+        onApplyRecommended={(pln) => onUpdate({ ourEstimatePln: pln })}
       />
 
       {swz && (

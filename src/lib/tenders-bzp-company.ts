@@ -1,7 +1,52 @@
 import { fetchKeysFromCloud, persistKey } from "@/lib/cloud-sync";
 
 export const TENDERS_COMPANY_PROFILE_KEY = "kw-tenders-company-profile";
-export const PROFILE_SCHEMA_VERSION = 3;
+export const PROFILE_SCHEMA_VERSION = 4;
+
+/** Parametry kosztowe do wyliczania oferty przetargowej. */
+export interface TenderCompanyCostModel {
+  /** Etaty / stała załoga (np. 15). */
+  headcount: number;
+  /** Ile osób średnio pracuje jednocześnie na budowach. */
+  activeWorkersOnSite: number;
+  /** Średnia stawka brutto rbh (Wrocław, remonty). */
+  avgGrossHourlyPln: number;
+  /** Składki pracodawcy + urlopy/chorobowe (% od brutto). */
+  employerBurdenPct: number;
+  /** Stałe miesięczne: biuro, flota, admin, ubezp., narzędzia. */
+  fixedOverheadMonthlyPln: number;
+  /** Indeks cen materiałów vs norma ATH (%). */
+  materialPriceIndexPct: number;
+  /** Indeks kosztu rbh vs norma ATH (%). */
+  laborNormIndexPct: number;
+  /** Koszty pośrednie Kp (% od direct). */
+  kpPct: number;
+  /** Docelowy zysk (% od direct+Kp+stałe). */
+  profitPct: number;
+  /** Rezerwa ryzyka (%). */
+  riskReservePct: number;
+  /** Minimalna marża nad kosztem własnym (%). */
+  minMarginPct: number;
+  /** Przy 100% ceny — ile % poniżej wartości ref. startować. */
+  targetPriceDiscountPct: number;
+}
+
+export function defaultCostModel(): TenderCompanyCostModel {
+  return {
+    headcount: 15,
+    activeWorkersOnSite: 11,
+    avgGrossHourlyPln: 42,
+    employerBurdenPct: 23,
+    fixedOverheadMonthlyPln: 52_000,
+    materialPriceIndexPct: 108,
+    laborNormIndexPct: 115,
+    kpPct: 12,
+    profitPct: 7,
+    riskReservePct: 3,
+    minMarginPct: 4,
+    targetPriceDiscountPct: 2,
+  };
+}
 
 export interface TenderCompanyReference {
   client: string;
@@ -41,6 +86,8 @@ export interface TenderCompanyProfile {
   references: TenderCompanyReference[];
   tenderWins: TenderCompanyReference[];
   tenderParticipations: TenderCompanyReference[];
+  /** Model kosztów ofertowych (robocizna, ZUS, stałe). */
+  costModel: TenderCompanyCostModel;
   notes: string;
   updatedAt: string;
 }
@@ -152,6 +199,7 @@ export function defaultCompanyProfile(): TenderCompanyProfile {
         source: "mpwik.wroc.pl — Stanisław Wałek W&G Dom, ul. Poświęcka 19",
       },
     ],
+    costModel: defaultCostModel(),
     notes:
       "Dane rejestrowe: NIP 8991736797, REGON 931121728, VAT czynny (MF). "
       + "Ciągłość marki W&G od 1989 (wgdom.pl). "
@@ -186,12 +234,32 @@ function normalizeRefs(raw: unknown, fallback: TenderCompanyReference[]): Tender
   return out.length > 0 ? out : fallback;
 }
 
+function normalizeCostModel(raw: Partial<TenderCompanyCostModel> | undefined): TenderCompanyCostModel {
+  const d = defaultCostModel();
+  if (!raw || typeof raw !== "object") return d;
+  return {
+    headcount: num(raw.headcount, d.headcount),
+    activeWorkersOnSite: num(raw.activeWorkersOnSite, d.activeWorkersOnSite),
+    avgGrossHourlyPln: num(raw.avgGrossHourlyPln, d.avgGrossHourlyPln),
+    employerBurdenPct: num(raw.employerBurdenPct, d.employerBurdenPct),
+    fixedOverheadMonthlyPln: num(raw.fixedOverheadMonthlyPln, d.fixedOverheadMonthlyPln),
+    materialPriceIndexPct: num(raw.materialPriceIndexPct, d.materialPriceIndexPct),
+    laborNormIndexPct: num(raw.laborNormIndexPct, d.laborNormIndexPct),
+    kpPct: num(raw.kpPct, d.kpPct),
+    profitPct: num(raw.profitPct, d.profitPct),
+    riskReservePct: num(raw.riskReservePct, d.riskReservePct),
+    minMarginPct: num(raw.minMarginPct, d.minMarginPct),
+    targetPriceDiscountPct: num(raw.targetPriceDiscountPct, d.targetPriceDiscountPct),
+  };
+}
+
 function normalizeProfile(raw: Partial<TenderCompanyProfile>): TenderCompanyProfile {
   const d = defaultCompanyProfile();
   const version = raw.profileSchemaVersion ?? 1;
   if (version < PROFILE_SCHEMA_VERSION) {
     return {
       ...d,
+      costModel: normalizeCostModel(raw.costModel as Partial<TenderCompanyCostModel> | undefined),
       notes: raw.notes?.trim() ? raw.notes : d.notes,
       updatedAt: typeof raw.updatedAt === "string" ? raw.updatedAt : "",
     };
@@ -227,6 +295,7 @@ function normalizeProfile(raw: Partial<TenderCompanyProfile>): TenderCompanyProf
     references: normalizeRefs(raw.references, d.references),
     tenderWins: normalizeRefs(raw.tenderWins, d.tenderWins),
     tenderParticipations: normalizeRefs(raw.tenderParticipations, d.tenderParticipations),
+    costModel: normalizeCostModel(raw.costModel as Partial<TenderCompanyCostModel> | undefined),
     notes: typeof raw.notes === "string" ? raw.notes : d.notes,
     updatedAt: typeof raw.updatedAt === "string" ? raw.updatedAt : "",
   };

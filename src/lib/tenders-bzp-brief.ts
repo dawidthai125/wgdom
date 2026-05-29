@@ -1,6 +1,7 @@
 /** Brief przetargu — ustrukturyzowane dane z ogłoszenia HTML i SWZ (bez linków zewnętrznych). */
 
 import { stripHtmlToText, type TenderCostLine } from "@/lib/tenders-bzp-swz";
+import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import type { TenderBzpDocument } from "@/lib/tenders-bzp";
 import type { AthPreviewResult } from "@/lib/ath-parser";
 
@@ -237,6 +238,8 @@ export function pickBestKosztorysDocument(docs: TenderBzpDocument[]): TenderBzpD
 export interface TenderDossier {
   brief: TenderBrief;
   kosztorys: TenderKosztorysSnapshot | null;
+  /** Wyliczona propozycja ceny ofertowej. */
+  bidProposal?: TenderBidProposal | null;
   builtAt: string;
 }
 
