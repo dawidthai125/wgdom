@@ -2874,7 +2874,7 @@ function PayrollEmailModal({
     setSendStage("Przygotowanie…");
     try {
       const weeklyGrid = payrollWeeklyGrid(rows.map((r) => r.emp), weekFrom);
-      const extraHourLines = payrollWeekExtraHourLines(rows.filter((r) => !isBiweeklyPayrollEmployee(r.emp, directory)).map((r) => r.emp));
+      const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
       const prevSatDetails = payrollPrevSatDetailLines(rows.filter((r) => !isBiweeklyPayrollEmployee(r.emp, directory)).map((r) => r.emp), weekFrom);
       const prevSatIso = previousSaturdayIso(weekFrom);
       const jobWorkLines = payrollJobWorkLines(jobs, weekFrom, weekTo);
@@ -3317,7 +3317,7 @@ function PayrollView({
   const payrollExportArgs = () => {
     const calcRows = toPayrollCalcRows(rows, directory, weekFrom, weekTo, savedWeeks);
     const weeklyGrid = payrollWeeklyGrid(rows.map((r) => r.emp), weekFrom);
-    const extraHourLines = payrollWeekExtraHourLines(rows.filter((r) => !isBiweeklyPayrollEmployee(r.emp, directory)).map((r) => r.emp));
+    const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
     const prevSatDetails = payrollPrevSatDetailLines(rows.filter((r) => !isBiweeklyPayrollEmployee(r.emp, directory)).map((r) => r.emp), weekFrom);
     const prevSatIso = previousSaturdayIso(weekFrom);
     const jobWorkLines = payrollJobWorkLines(jobs, weekFrom, weekTo);
@@ -8974,6 +8974,14 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-29", version:"2.30.6", label:"Lista płac PDF — karta dodatkowych godzin + łamanie stron",
+    items:[
+      {type:"fix", text:"Karta dodatkowych godzin w PDF/Word — uwzględnia wszystkich pracowników (w tym Ukraińców co 2 tyg.), wcześniej byli pomijani"},
+      {type:"fix", text:"PDF rozpis tygodniowy — wiersz pracownika nie dzieli się między dwie kartki (dontBreakRows)"},
+      {type:"improve", text:"Word — cantSplit na wierszach rozpisu tygodniowego i karty dodatkowych godzin"},
+    ],
+  },
   {
     date:"2026-05-29", version:"2.30.5", label:"Pliki inspektora — usuwanie + podgląd ATH",
     items:[

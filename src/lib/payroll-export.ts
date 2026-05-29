@@ -658,6 +658,7 @@ export async function generatePayrollPdfBlob(
               {
                 table: {
                   headerRows: 1,
+                  dontBreakRows: true,
                   widths: [80, ...weeklyGrid.dayHeaders.map(() => "*"), 34],
                   body: [
                     [
@@ -853,6 +854,7 @@ export async function generatePayrollPdfBlob(
               {
                 table: {
                   headerRows: 1,
+                  dontBreakRows: true,
                   widths: [72, ...jobWorkGrid.dayHeaders.map(() => "*"), 34, 40],
                   body: [
                     [
@@ -1164,6 +1166,7 @@ export async function generatePayrollWordBlob(
                     }),
                     ...weeklyGrid.rows.map((row, i) =>
                       new TableRow({
+                        cantSplit: true,
                         children: [
                           mkCell(row.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 19 }),
                           ...row.dayCells.map((cell) =>
@@ -1217,6 +1220,7 @@ export async function generatePayrollWordBlob(
                     }),
                     ...extraHourLines.map((line, i) =>
                       new TableRow({
+                        cantSplit: true,
                         children: [
                           mkCell(line.name, { align: AlignmentType.LEFT, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 18 }),
                           mkCell(line.day, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", size: 16 }),
