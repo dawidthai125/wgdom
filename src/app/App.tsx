@@ -9205,6 +9205,14 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.38.0", label:"Przetargi — karta przetargu (kosztorys, przedmiar, SWZ)",
+    items:[
+      {type:"new", text:"Karta przetargu w aplikacji: przedmiot, terminy, wadium, kontakt, referencje — bez linków zewnętrznych"},
+      {type:"new", text:"Auto-parsowanie kosztorysu ATH/NOR/XML i przedmiaru z załączników BZP"},
+      {type:"new", text:"Tabela pozycji kosztorysu + wszystkie pola z ogłoszenia HTML"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.37.1", label:"Przetargi — legenda trafności i statusów",
     items:[
       {type:"new", text:"Przetargi — rozwijana legenda u góry: trafność, statusy pipeline, ocena SWZ, lejek"},

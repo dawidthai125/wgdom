@@ -1,5 +1,14 @@
 /** Parsowanie SWZ / ogłoszenia BZP — wadium, kwota, referencje, terminy (best-effort). */
 
+export interface TenderCostLine {
+  lp: string;
+  description: string;
+  unit: string;
+  quantity: string;
+  unitPrice: string;
+  total: string;
+}
+
 export type TenderProfitabilityHint = "good" | "caution" | "risky" | "unknown";
 
 export interface TenderSwzAnalysis {
@@ -16,6 +25,8 @@ export interface TenderSwzAnalysis {
   technicalRequirements: string[];
   /** Wiersze przypominające pozycje kosztorysu / tabelę. */
   tableExtracts: string[];
+  /** Ustrukturyzowane pozycje kosztorysu (heurystyka PDF/tekst). */
+  costLines: TenderCostLine[];
   parsedAt: string;
   source: "html" | "pdf" | "docx" | "manual";
   sourceFilename?: string;
@@ -108,6 +119,35 @@ export function extractTableHints(text: string): string[] {
   return [...new Set(rows)].slice(0, 10);
 }
 
+/** Ustrukturyzowane pozycje kosztorysu z tekstu PDF/SWZ. */
+export function parseStructuredCostLines(text: string): TenderCostLine[] {
+  const lines: TenderCostLine[] = [];
+  const parts = text.split(/\n|\s\|\s/);
+  let lp = 0;
+  for (const part of parts) {
+    const line = part.replace(/\s+/g, " ").trim();
+    if (line.length < 12 || line.length > 280) continue;
+    const money = line.match(/(\d[\d\s]*[.,]\d{2})\s*(?:zł|PLN)?/gi);
+    if (!money || money.length < 1) continue;
+    const unitM = line.match(/\b(m2|m²|mb|szt|kpl|kg|t|godz|h|rbh|km)\b/i);
+    if (!unitM && money.length < 2) continue;
+    lp += 1;
+    const total = money[money.length - 1].replace(/\s/g, "");
+    const unitPrice = money.length >= 2 ? money[money.length - 2].replace(/\s/g, "") : "";
+    const qtyM = line.match(/(\d+[.,]?\d*)\s*(?:m2|m²|mb|szt|kpl|kg|rbh|godz|h)\b/i);
+    lines.push({
+      lp: String(lp),
+      description: line.slice(0, 120),
+      unit: unitM?.[1] ?? "",
+      quantity: qtyM?.[1] ?? "",
+      unitPrice,
+      total,
+    });
+    if (lines.length >= 25) break;
+  }
+  return lines;
+}
+
 function parseImplementationDays(raw: string | null): number | null {
   if (!raw) return null;
   const m = raw.match(/(\d+)\s*(?:dni|dzień|dni roboczy)/i)
@@ -171,6 +211,7 @@ export function parseSwzPlainText(
   }
 
   const tableExtracts = extractTableHints(text.length > 500 ? text : multiline);
+  const costLines = parseStructuredCostLines(text.length > 500 ? text : multiline);
 
   const { value: wadiumPln, label: wadiumLabel } = parsePlnAmount(wadiumRaw);
   const { value: estimatedValuePln, label: estLabel } = parsePlnAmount(valueRaw);
@@ -194,6 +235,7 @@ export function parseSwzPlainText(
     implementationDays,
     technicalRequirements: [...new Set(technicalRequirements)].slice(0, 6),
     tableExtracts,
+    costLines,
     parsedAt: new Date().toISOString(),
     source: opts?.source ?? "html",
     sourceFilename: opts?.sourceFilename,

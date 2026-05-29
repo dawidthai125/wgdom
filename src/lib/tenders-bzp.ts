@@ -103,6 +103,8 @@ export interface TenderPipelineItem {
   /** Cache HTML ogłoszenia (podgląd). */
   noticeHtml?: string | null;
   noticeHtmlFetchedAt?: string | null;
+  /** Ustrukturyzowany brief + kosztorys (bez wychodzenia na zewnątrz). */
+  tenderDossier?: import("@/lib/tenders-bzp-brief").TenderDossier | null;
 }
 
 export const TENDERS_LAST_BZP_SYNC_KEY = "kw-tenders-bzp-last-sync";
@@ -401,6 +403,7 @@ export function mapBzpToPipelineItem(n: BzpNoticeRaw, existing?: TenderPipelineI
     tenderState: n.tenderState ?? existing?.tenderState ?? null,
     noticeHtml: existing?.noticeHtml ?? null,
     noticeHtmlFetchedAt: existing?.noticeHtmlFetchedAt ?? null,
+    tenderDossier: existing?.tenderDossier ?? null,
   };
 }
 
@@ -427,6 +430,7 @@ export function mergeTenderPipeline(
           tenderState: item.tenderState ?? prev.tenderState,
           noticeHtml: prev.noticeHtml ?? item.noticeHtml,
           noticeHtmlFetchedAt: prev.noticeHtmlFetchedAt ?? item.noticeHtmlFetchedAt,
+          tenderDossier: prev.tenderDossier ?? item.tenderDossier,
         }
       : item);
   }
@@ -661,4 +665,15 @@ export async function attachTenderAssetsToJob(
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.ok) return [];
   return (data.attachments || []) as JobFileAttachment[];
+}
+
+export async function fetchTenderDocumentBytes(
+  tenderId: string,
+  documentIndex: number,
+): Promise<{ base64: string; filename: string; contentType: string }> {
+  const data = await tenderApiGet("/tenders-bzp-document-bytes", {
+    tenderId,
+    documentIndex: String(documentIndex),
+  }) as { base64: string; filename: string; contentType: string };
+  return data;
 }

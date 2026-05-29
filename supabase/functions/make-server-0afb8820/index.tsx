@@ -2343,6 +2343,7 @@ function parseSwzFromText(
     implementationDays,
     technicalRequirements,
     tableExtracts,
+    costLines: [],
     parsedAt: new Date().toISOString(),
     source,
     profitabilityHint,
@@ -2511,6 +2512,35 @@ app.post("/make-server-0afb8820/tenders-bzp-upload", async (c) => {
     return c.json({ ok: true, path, publicUrl: pub.publicUrl });
   } catch (e) {
     return c.json({ ok: false, error: String(e) }, 500);
+  }
+});
+
+app.get("/make-server-0afb8820/tenders-bzp-document-bytes", async (c) => {
+  try {
+    const tenderId = (c.req.query("tenderId") || "").trim();
+    const docIndex = parseInt(c.req.query("documentIndex") || "0", 10) || 0;
+    if (!tenderId || docIndex < 1) {
+      return c.json({ ok: false, error: "Podaj tenderId i documentIndex >= 1" }, 400);
+    }
+    const documentId = `${tenderId}_${docIndex}`;
+    const url = `https://ezamowienia.gov.pl/mp-readmodels/api/Tender/DownloadDocument/${encodeURIComponent(tenderId)}/${encodeURIComponent(documentId)}`;
+    const res = await fetch(url, { headers: EZAMOWIENIA_FETCH });
+    if (!res.ok) return c.json({ ok: false, error: `Dokument HTTP ${res.status}` }, 502);
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    if (bytes.byteLength > 15 * 1024 * 1024) {
+      return c.json({ ok: false, error: "Plik zbyt duży (max 15 MB)" }, 413);
+    }
+    const filename = parseDispositionFilename(res.headers.get("content-disposition"));
+    const contentType = res.headers.get("content-type") || "application/octet-stream";
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    }
+    const base64 = btoa(binary);
+    return c.json({ ok: true, base64, filename, contentType, size: bytes.byteLength });
+  } catch (e) {
+    return c.json({ ok: false, error: e instanceof Error ? e.message : "document-bytes error" }, 500);
   }
 });
 

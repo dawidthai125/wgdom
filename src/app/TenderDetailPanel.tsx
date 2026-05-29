@@ -11,12 +11,12 @@ import {
   TENDER_STATUS_LABELS,
   fetchTenderDocuments,
   fetchTenderNoticeDetails,
+  fetchTenderDocumentBytes,
   analyzeTenderSwz,
   uploadTenderFile,
   labelTenderState,
 } from "@/lib/tenders-bzp";
 import {
-  fmtPln,
   PROFITABILITY_LABELS,
   type TenderProfitabilityHint,
 } from "@/lib/tenders-bzp-swz";
@@ -24,7 +24,21 @@ import {
   learnKeywordsFromPipeline,
   suggestKeywordsFromPipeline,
 } from "@/lib/tenders-bzp-learn";
-import { fetchAndParseKosztorys, isKosztorysPreviewExt, type AthPreviewResult } from "@/lib/ath-parser";
+import {
+  parseNoticeHtmlBrief,
+  athPreviewToSnapshot,
+  pickBestKosztorysDocument,
+  mergeBriefWithItemTitle,
+} from "@/lib/tenders-bzp-brief";
+import { parseKosztorysBytes, fetchAndParseKosztorys, isKosztorysPreviewExt, type AthPreviewResult } from "@/lib/ath-parser";
+import { TenderDossierPanel } from "@/app/TenderDossierPanel";
+
+function base64ToBytes(b64: string): Uint8Array {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
 
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -81,29 +95,79 @@ export function TenderDetailPanel({
     (async () => {
       setAutoRunning(true);
       const patch: Partial<TenderPipelineItem> = {};
+      let html = item.noticeHtml ?? null;
+      let docs = item.bzpDocuments ?? [];
       try {
-        if (item.noticeNumber && !item.noticeHtml) {
+        if (item.noticeNumber && !html) {
           const det = await fetchTenderNoticeDetails(item.noticeNumber);
           if (!cancelled) {
             patch.tenderState = det.tenderState;
             patch.noticeHtml = det.htmlBody;
             patch.noticeHtmlFetchedAt = new Date().toISOString();
+            html = det.htmlBody;
           }
         }
-        if (item.tenderId && !item.bzpDocuments?.length) {
-          const docs = await fetchTenderDocuments(item.tenderId);
+        if (item.tenderId && !docs.length) {
+          docs = await fetchTenderDocuments(item.tenderId);
           if (!cancelled) {
             patch.bzpDocuments = docs;
             patch.documentsFetchedAt = new Date().toISOString();
           }
         }
         if (Object.keys(patch).length > 0 && !cancelled) onUpdate(patch);
-        if (item.noticeNumber && !item.swzAnalysis && !cancelled) {
-          const analysis = await analyzeTenderSwz({
+
+        let swz = item.swzAnalysis ?? null;
+        if (item.noticeNumber && !swz && !cancelled) {
+          swz = await analyzeTenderSwz({
             noticeNumber: item.noticeNumber,
             ourEstimatePln: item.ourEstimatePln ?? null,
           });
-          if (!cancelled) onUpdate({ swzAnalysis: analysis });
+          onUpdate({ swzAnalysis: swz });
+        }
+
+        if (!item.tenderDossier && !cancelled) {
+          const brief = mergeBriefWithItemTitle(
+            html ? parseNoticeHtmlBrief(html) : parseNoticeHtmlBrief(""),
+            item.title,
+          );
+          let kosztorysSnap = null;
+          const bestDoc = pickBestKosztorysDocument(docs);
+          if (bestDoc && item.tenderId) {
+            try {
+              if (/\.(ath|nor|xml)$/i.test(bestDoc.filename)) {
+                const { base64, filename } = await fetchTenderDocumentBytes(item.tenderId, bestDoc.index);
+                const preview = parseKosztorysBytes(base64ToBytes(base64), filename);
+                kosztorysSnap = athPreviewToSnapshot(preview, filename);
+              } else if (/\.pdf$/i.test(bestDoc.filename)) {
+                const analysis = await analyzeTenderSwz({
+                  tenderId: item.tenderId,
+                  documentIndex: bestDoc.index,
+                  ourEstimatePln: item.ourEstimatePln ?? null,
+                });
+                if (!swz) {
+                  swz = analysis;
+                  onUpdate({ swzAnalysis: analysis });
+                }
+              }
+            } catch { /* brak kosztorysu */ }
+          }
+          if (item.uploadedFile && athPreviewEnabled && isKosztorysPreviewExt(item.uploadedFile.filename)) {
+            try {
+              const preview = await fetchAndParseKosztorys(
+                item.uploadedFile.publicUrl,
+                item.uploadedFile.filename,
+                item.uploadedFile.path,
+              );
+              kosztorysSnap = athPreviewToSnapshot(preview, item.uploadedFile.filename);
+            } catch { /* ignore */ }
+          }
+          onUpdate({
+            tenderDossier: {
+              brief,
+              kosztorys: kosztorysSnap,
+              builtAt: new Date().toISOString(),
+            },
+          });
         }
       } catch {
         /* auto-analiza best-effort */
@@ -163,6 +227,19 @@ export function TenderDetailPanel({
         setAthLoading(true);
         const preview = await fetchAndParseKosztorys(uploaded.publicUrl, file.name, uploaded.path);
         setAthPreview(preview);
+        const kosztorysSnap = athPreviewToSnapshot(preview, file.name);
+        const brief = item.tenderDossier?.brief
+          ?? mergeBriefWithItemTitle(
+            item.noticeHtml ? parseNoticeHtmlBrief(item.noticeHtml) : parseNoticeHtmlBrief(""),
+            item.title,
+          );
+        onUpdate({
+          tenderDossier: {
+            brief,
+            kosztorys: kosztorysSnap,
+            builtAt: new Date().toISOString(),
+          },
+        });
         if (preview.totalValue) {
           const num = parseFloat(preview.totalValue.replace(/\s/g, "").replace(",", "."));
           if (Number.isFinite(num)) onUpdate({ ourEstimatePln: num });
@@ -202,48 +279,19 @@ export function TenderDetailPanel({
       <p className="text-xs text-muted-foreground">Publikacja: {fmtDate(item.publicationDate)}</p>
       {autoRunning && (
         <p className="text-xs text-muted-foreground flex items-center gap-2">
-          <Loader2 size={12} className="animate-spin" /> Auto-analiza (ogłoszenie, załączniki, SWZ)…
+          <Loader2 size={12} className="animate-spin" /> Ładowanie karty przetargu (ogłoszenie, SWZ, kosztorys)…
         </p>
       )}
 
+      <TenderDossierPanel item={item} dossier={item.tenderDossier} swz={swz} />
+
       {swz && (
-        <div className={`rounded-xl px-3 py-2.5 text-xs space-y-1.5 ${HINT_STYLE[swz.profitabilityHint]}`}>
+        <div className={`rounded-xl px-3 py-2 text-xs ${HINT_STYLE[swz.profitabilityHint]}`}>
           <div className="flex items-center gap-2 font-semibold">
             <HintIcon size={14} />
-            Ocena: {PROFITABILITY_LABELS[swz.profitabilityHint]}
+            Ocena opłacalności: {PROFITABILITY_LABELS[swz.profitabilityHint]}
           </div>
-          <p>{swz.profitabilityNote}</p>
-          {swz.estimatedValuePln != null && (
-            <p>Wartość zamówienia: ~{fmtPln(swz.estimatedValuePln)}</p>
-          )}
-          {swz.estimatedValueRaw && !swz.estimatedValuePln && (
-            <p>Wartość: {swz.estimatedValueRaw}</p>
-          )}
-          {swz.wadiumRaw && <p>Wadium: {swz.wadiumRaw}</p>}
-          {swz.implementationDeadlineRaw && (
-            <p>Termin realizacji: {swz.implementationDeadlineRaw}{swz.implementationDays ? ` (~${swz.implementationDays} dni)` : ""}</p>
-          )}
-          {swz.referenceRequirement && (
-            <p className="opacity-90">Referencje: {swz.referenceRequirement.slice(0, 200)}…</p>
-          )}
-          {swz.technicalRequirements?.length > 0 && (
-            <div className="opacity-90 space-y-0.5">
-              <p className="font-medium">Wymagania techniczne:</p>
-              {swz.technicalRequirements.slice(0, 3).map((t, i) => (
-                <p key={i} className="pl-2 border-l-2 border-current/20">{t.slice(0, 180)}{t.length > 180 ? "…" : ""}</p>
-              ))}
-            </div>
-          )}
-          {swz.tableExtracts?.length > 0 && (
-            <div className="opacity-90 space-y-0.5">
-              <p className="font-medium">Pozycje z kosztorysu (PDF):</p>
-              <ul className="list-disc pl-4 space-y-0.5">
-                {swz.tableExtracts.slice(0, 4).map((row, i) => (
-                  <li key={i} className="font-mono text-[10px]">{row.slice(0, 120)}{row.length > 120 ? "…" : ""}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <p className="mt-1 opacity-90">{swz.profitabilityNote}</p>
         </div>
       )}
 

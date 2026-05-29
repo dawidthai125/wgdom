@@ -99,6 +99,14 @@ export function TendersLegend({ compact = false }: { compact?: boolean }) {
       </section>
 
       <section className={`space-y-1 ${textSize}`}>
+        <p className="font-medium text-foreground/90">Karta przetargu</p>
+        <p className="text-muted-foreground leading-snug">
+          Po rozwinięciu widzisz sekcję „Karta przetargu — wszystko w aplikacji”: przedmiot, terminy, finanse, kosztorys (tabela pozycji),
+          przedmiar/obmiar, referencje i pełną listę pól z ogłoszenia BZP.
+        </p>
+      </section>
+
+      <section className={`space-y-1 ${textSize}`}>
         <p className="font-medium text-foreground/90">Inne oznaczenia na liście</p>
         <ul className="space-y-0.5 text-muted-foreground leading-snug list-disc pl-4">
           <li><strong className="text-primary">Wrocław</strong> — zamawiający lub tytuł z Wrocławia.</li>
