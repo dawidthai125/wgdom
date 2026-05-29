@@ -9112,6 +9112,12 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.35.17", label:"Wykrywalność dokumentacji dla AI",
+    items:[
+      {type:"new", text:"AGENTS.md + README.md — punkt wejścia; Cursor alwaysApply: czytaj ARCHITECTURE.md na start sesji"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.35.16", label:"Dokumentacja architektury dla developerów / AI",
     items:[
       {type:"new", text:"docs/ARCHITECTURE.md — pełny przewodnik: panele, sync, Supabase, Vercel, PWA, testy, pułapki"},
