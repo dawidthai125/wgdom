@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   FileText, Download, Mail, Eye, ClipboardList, Camera, Upload, Package, Trash2,
 } from "lucide-react";
@@ -12,19 +12,44 @@ import { downloadJobDocumentsPack, type JobPackSource } from "@/lib/job-document
 
 export type InspectorFileItem =
   | { kind: "jobFile"; file: JobFileAttachment }
-  | { kind: "inspectorPhoto"; file: InspectorPhotoEntry };
+  | { kind: "inspectorPhoto"; file: InspectorPhotoEntry }
+  | { kind: "imageUrl"; url: string; filename: string };
 
 function fileLabel(item: InspectorFileItem): string {
   if (item.kind === "jobFile") {
     return item.file.kind === "zlecenie" ? "Zlecenie" : "Kosztorys";
   }
-  return "Zdjęcie inspektora";
+  if (item.kind === "inspectorPhoto") return "Zdjęcie inspektora";
+  return "Zdjęcie";
 }
 
 function fileIcon(item: InspectorFileItem) {
-  if (item.kind === "inspectorPhoto") return Camera;
+  if (item.kind === "inspectorPhoto" || item.kind === "imageUrl") return Camera;
   if (item.kind === "jobFile" && item.file.kind === "kosztorys") return ClipboardList;
   return FileText;
+}
+
+function itemFilename(item: InspectorFileItem): string {
+  if (item.kind === "jobFile") return item.file.filename;
+  if (item.kind === "inspectorPhoto") return item.file.caption || "zdjecie-inspektora.jpg";
+  return item.filename;
+}
+
+function itemUploadedBy(item: InspectorFileItem): string {
+  if (item.kind === "jobFile") return item.file.uploadedBy;
+  if (item.kind === "inspectorPhoto") return item.file.uploadedBy;
+  return "—";
+}
+
+function itemUploadedAt(item: InspectorFileItem): string {
+  if (item.kind === "jobFile") return item.file.uploadedAt;
+  if (item.kind === "inspectorPhoto") return item.file.uploadedAt;
+  return "";
+}
+
+function itemUrl(item: InspectorFileItem): string {
+  if (item.kind === "imageUrl") return item.url;
+  return item.file.publicUrl;
 }
 
 export function JobInspectorFilesPanel({
@@ -38,6 +63,8 @@ export function JobInspectorFilesPanel({
   onEmailSent,
   onDeleteFile,
   packSource,
+  title = "Pliki roboty",
+  uploadSlot,
 }: {
   jobId: string;
   jobAddress: string;
@@ -49,6 +76,8 @@ export function JobInspectorFilesPanel({
   onEmailSent?: (to: string) => void;
   onDeleteFile?: (item: InspectorFileItem) => void | Promise<void>;
   packSource?: JobPackSource;
+  title?: string;
+  uploadSlot?: ReactNode;
 }) {
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
   const [emailItems, setEmailItems] = useState<InspectorFileItem[] | null>(null);
@@ -64,20 +93,19 @@ export function JobInspectorFilesPanel({
     for (const p of inspectorPhotos || []) {
       if (p.publicUrl) list.push({ kind: "inspectorPhoto", file: p });
     }
-    return list.sort((a, b) => {
-      const at = a.kind === "jobFile" ? a.file.uploadedAt : a.file.uploadedAt;
-      const bt = b.kind === "jobFile" ? b.file.uploadedAt : b.file.uploadedAt;
-      return bt.localeCompare(at);
-    });
+    return list.sort((a, b) => itemUploadedAt(b).localeCompare(itemUploadedAt(a)));
   }, [jobFiles, inspectorPhotos]);
 
-  const itemKey = (item: InspectorFileItem) =>
-    item.kind === "jobFile" ? `jf:${item.file.id}` : `ip:${item.file.id}`;
+  const itemKey = (item: InspectorFileItem) => {
+    if (item.kind === "jobFile") return `jf:${item.file.id}`;
+    if (item.kind === "inspectorPhoto") return `ip:${item.file.id}`;
+    return `img:${item.url}`;
+  };
 
   const canPreview = (item: InspectorFileItem): boolean => {
-    const name = item.kind === "jobFile" ? item.file.filename : "photo.jpg";
+    const name = itemFilename(item);
     if (isPdfFilename(name)) return true;
-    if (item.kind === "inspectorPhoto") return true;
+    if (item.kind === "inspectorPhoto" || item.kind === "imageUrl") return true;
     if (isKosztorysPreviewExt(name)) return true;
     return false;
   };
@@ -97,9 +125,11 @@ export function JobInspectorFilesPanel({
         <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
             <Upload size={13} className="text-muted-foreground"/>
-            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pliki inspektora</span>
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{title}</span>
           </div>
-          {packSource && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {uploadSlot}
+            {packSource && (
             <button
               type="button"
               disabled={packBusy}
@@ -115,9 +145,11 @@ export function JobInspectorFilesPanel({
             >
               <Package size={12}/>{packBusy ? "Pakowanie…" : "Pakiet ZIP"}
             </button>
-          )}
+            )}
+          </div>
         </div>
-        <p className="px-5 py-4 text-xs text-muted-foreground">Brak wgranych plików — inspektor może dodać zlecenie, kosztorys lub zdjęcia.</p>
+        {uploadSlot && <div className="px-5 py-3 border-b border-border">{uploadSlot}</div>}
+        <p className="px-5 py-4 text-xs text-muted-foreground">Brak wgranych plików — dodaj zlecenie, kosztorys lub zdjęcia.</p>
       </div>
     );
   }
@@ -130,7 +162,7 @@ export function JobInspectorFilesPanel({
         <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
             <Upload size={13} className="text-emerald-600 dark:text-emerald-400"/>
-            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pliki inspektora</span>
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{title}</span>
             <span className="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full text-muted-foreground">{items.length}</span>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -162,14 +194,15 @@ export function JobInspectorFilesPanel({
             )}
           </div>
         </div>
+        {uploadSlot && <div className="px-5 py-3 border-b border-border bg-secondary/20">{uploadSlot}</div>}
         <div className="divide-y divide-border">
           {items.map((item) => {
             const key = itemKey(item);
             const Icon = fileIcon(item);
-            const filename = item.kind === "jobFile" ? item.file.filename : (item.file.caption || "zdjęcie-inspektora.jpg");
-            const uploadedBy = item.kind === "jobFile" ? item.file.uploadedBy : item.file.uploadedBy;
-            const uploadedAt = item.kind === "jobFile" ? item.file.uploadedAt : item.file.uploadedAt;
-            const url = item.kind === "jobFile" ? item.file.publicUrl : item.file.publicUrl;
+            const filename = itemFilename(item);
+            const uploadedBy = itemUploadedBy(item);
+            const uploadedAt = itemUploadedAt(item);
+            const url = itemUrl(item);
             const previewOk = canPreview(item);
             return (
               <div key={key} className="px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -212,7 +245,9 @@ export function JobInspectorFilesPanel({
                   <button
                     type="button"
                     onClick={() => setEmailItems([item])}
-                    className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg bg-primary/90 text-primary-foreground hover:bg-primary font-medium"
+                    disabled={item.kind === "imageUrl"}
+                    title={item.kind === "imageUrl" ? "Email dostępny tylko dla zlecenia/kosztorysu i zdjęć inspektora" : undefined}
+                    className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg bg-primary/90 text-primary-foreground hover:bg-primary font-medium disabled:opacity-40"
                   >
                     <Mail size={12}/> Email
                   </button>

@@ -27,11 +27,11 @@ export function JobFilePreviewModal({
   athPreviewEnabled: boolean;
   onClose: () => void;
 }) {
-  const url = item.kind === "jobFile" ? item.file.publicUrl : item.file.publicUrl;
-  const filename = item.kind === "jobFile" ? item.file.filename : "zdjecie.jpg";
+  const url = item.kind === "imageUrl" ? item.url : item.file.publicUrl;
+  const filename = item.kind === "imageUrl" ? item.filename : (item.kind === "jobFile" ? item.file.filename : "zdjecie.jpg");
   const storagePath = item.kind === "jobFile" ? resolveJobFileStoragePath(item.file) : undefined;
   const isPdf = isPdfFilename(filename);
-  const isPhoto = item.kind === "inspectorPhoto";
+  const isPhoto = item.kind === "inspectorPhoto" || item.kind === "imageUrl";
   const isKosztorys = item.kind === "jobFile" && item.file.kind === "kosztorys";
 
   const [loading, setLoading] = useState(false);

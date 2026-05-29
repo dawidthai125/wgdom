@@ -127,7 +127,7 @@ import {
   resolveJobFileStoragePath,
   type InspectorJobFileKind,
 } from "@/lib/job-documents";
-import { deleteJobFile } from "@/lib/job-file-upload";
+import { deleteJobFile, uploadJobFile } from "@/lib/job-file-upload";
 import {
   recordInspectorEvent,
   markInspectorFeedSeen,
@@ -147,9 +147,15 @@ import {
   HANDOVER_STAGE_LABELS,
   inferHandoverStage,
   computeWmPortfolioStats,
+  removeInspectorPhoto,
 } from "@/lib/job-wm";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { JobListFilterBar, JobListLegend, JobListPrimaryBadge, JobPhasePicker, applyJobPhase } from "@/app/JobListStatus";
+import { JobListCard } from "@/app/JobListCard";
+import { JobAllFilesView, JobFileCatalogList } from "@/app/JobAllFilesView";
+import { JobDetailSectionNav, scrollToJobSection, type JobDetailSection } from "@/app/JobDetailSectionNav";
+import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
+import { collectJobFileCatalog, countJobFiles, type JobFileCatalogItem } from "@/lib/job-files-index";
 import {
   countJobsByListFilter,
   inferJobPhase,
@@ -5827,6 +5833,10 @@ function JobsView({
   const [shareCopied, setShareCopied] = useState(false);
   const [expandedWorkerKeys, setExpandedWorkerKeys] = useState<Set<string>>(new Set());
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
+  const [jobsTab, setJobsTab] = useState<"list" | "files">("list");
+  const [detailSection, setDetailSection] = useState<JobDetailSection>("summary");
+  const [uploadBusy, setUploadBusy] = useState<string | null>(null);
+  const [uploadMsg, setUploadMsg] = useState("");
   const jobNotesRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -5936,12 +5946,12 @@ function JobsView({
     });
   };
 
-  const handleDeleteJobFile = async (file: import("@/lib/job-documents").JobFileAttachment) => {
+  const handleDeleteJobFile = async (file: import("@/lib/job-documents").JobFileAttachment, busyKey?: string) => {
     if (!selectedJob) return;
     if (!window.confirm(`Usunąć „${file.filename}”?\n\nPlik zostanie usunięty ze storage i zniknie wszędzie w aplikacji.`)) {
       return;
     }
-    setFileDeleteBusy(file.id);
+    setFileDeleteBusy(busyKey ?? file.id);
     try {
       const path = resolveJobFileStoragePath(file);
       if (path) {
@@ -5957,12 +5967,80 @@ function JobsView({
       );
       updateJob(next, {
         type: "inspector_file",
-        text: `Usunięto plik inspektora: ${file.filename}`,
+        text: `Usunięto plik: ${file.filename}`,
       });
     } finally {
       setFileDeleteBusy(null);
     }
   };
+
+  const handleDeleteCatalogItem = async (item: JobFileCatalogItem) => {
+    if (!selectedJob) return;
+    if (item.category === "crew_photo" || item.category === "report_sketch") {
+      window.alert("To zdjęcie usuń w sekcji Zdjęcia lub Raporty pracowników.");
+      return;
+    }
+    if (item.previewItem.kind === "jobFile") {
+      await handleDeleteJobFile(item.previewItem.file, item.id);
+      return;
+    }
+    if (item.previewItem.kind === "inspectorPhoto") {
+      const photo = item.previewItem.file;
+      if (!window.confirm(`Usunąć zdjęcie inspektora?\n\nPlik zostanie usunięty ze storage.`)) return;
+      setFileDeleteBusy(item.id);
+      try {
+        const path = photo.path;
+        if (path) {
+          const { ok, error } = await deleteJobFile(path);
+          if (!ok) {
+            window.alert(error || "Nie udało się usunąć pliku ze storage");
+            return;
+          }
+        }
+        updateJob(
+          removeInspectorPhoto({ ...selectedJob, updatedAt: new Date().toISOString() }, photo.id),
+          { type: "inspector_photo", text: `Usunięto zdjęcie inspektora: ${photo.caption || "zdjęcie"}` },
+        );
+      } finally {
+        setFileDeleteBusy(null);
+      }
+    }
+  };
+
+  const handleJobFileUpload = async (kind: "zlecenie" | "kosztorys", file: File) => {
+    if (!selectedJob) return;
+    setUploadBusy(kind);
+    const actor = adminSession?.displayName || "Administrator";
+    const { attachment } = await uploadJobFile(selectedJob.id, file, kind, actor);
+    setUploadBusy(null);
+    if (!attachment) return;
+    updateJob(
+      {
+        ...selectedJob,
+        jobFiles: [...(selectedJob.jobFiles || []).filter((f) => f.kind !== kind), attachment],
+        documents: { ...selectedJob.documents, [kind]: true },
+      },
+      {
+        type: "inspector_file",
+        text: `Wgrano ${kind === "zlecenie" ? "zlecenie" : "kosztorys"}: ${file.name}`,
+        actor,
+      },
+    );
+  };
+
+  const selectedJobCatalog = useMemo(
+    () => (selectedJob ? collectJobFileCatalog(selectedJob) : []),
+    [selectedJob],
+  );
+
+  const totalJobFilesCount = useMemo(() => jobs.reduce((s, j) => s + countJobFiles(j), 0), [jobs]);
+
+  useEffect(() => {
+    if (!selectedJobId) return;
+    if (detailSection !== "summary") {
+      window.setTimeout(() => scrollToJobSection(detailSection), 150);
+    }
+  }, [selectedJobId, detailSection]);
 
   const addJob = () => {
     const j = defaultJob();
@@ -6242,6 +6320,39 @@ function JobsView({
   };
 
   return (
+    <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
+      <div className="flex gap-1 px-4 py-2 border-b border-border bg-card shrink-0">
+        <button
+          type="button"
+          onClick={() => setJobsTab("list")}
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
+            jobsTab === "list" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
+          }`}
+        >
+          Lista robót
+        </button>
+        <button
+          type="button"
+          onClick={() => setJobsTab("files")}
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
+            jobsTab === "files" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
+          }`}
+        >
+          Wszystkie pliki{totalJobFilesCount > 0 ? ` (${totalJobFilesCount})` : ""}
+        </button>
+      </div>
+
+      {jobsTab === "files" ? (
+        <JobAllFilesView
+          jobs={jobs}
+          athPreviewEnabled={athPreviewEnabled}
+          onOpenJob={(jobId) => {
+            setJobsTab("list");
+            setSelectedJobId(jobId);
+            setDetailSection("files");
+          }}
+        />
+      ) : (
     <div className="flex flex-1 min-h-0 overflow-hidden">
       {/* Left panel — job list */}
       <div className={`flex flex-col border-r border-border bg-card shrink-0 overflow-hidden transition-all duration-300 ${selectedJob?"hidden sm:flex sm:w-72 lg:w-80":"flex w-full sm:w-72 lg:w-80"}`}>
@@ -6288,97 +6399,25 @@ function JobsView({
                 {groupLabel(key)}
               </div>
               {groupJobs.map(job=>{
-                const docsCount = DOCUMENT_TYPES.filter(d=>job.documents[d]).length;
-                const missingDocs = jobMissingRequiredDocs(job);
-                const jobPhase = inferJobPhase(job);
                 const cost = jobCost(job);
                 const isSelected = job.id===selectedJobId;
                 const isDupe = isDuplicateJob(job);
                 const workerCount = new Set(job.workEntries.map((e) => e.directoryId || e.employeeName)).size;
                 return (
-                  <div key={job.id} className={`flex items-stretch border-b border-border transition-colors ${isSelected?"bg-primary/8 border-l-2 border-l-primary":""} ${isDupe?"bg-amber-500/5":""}`}>
-                    <button onClick={()=>setSelectedJobId(job.id)} className={`flex-1 min-w-0 text-left px-4 py-3.5 hover:bg-secondary/40 transition-colors ${isSelected?"":"hover:bg-secondary/40"}`}>
-                      <div className="flex items-start justify-between gap-2 mb-1.5">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold truncate leading-tight">{job.address||<span className="italic text-muted-foreground">Bez adresu</span>}{job.flatNumber&&<span className="text-muted-foreground font-normal"> m.{job.flatNumber}</span>}</p>
-                          <p className="text-xs text-muted-foreground truncate mt-0.5">{job.client||"—"}</p>
-                        </div>
-                        <JobListPrimaryBadge job={job}/>
-                      </div>
-                      {(jobPhase === "handover") && missingDocs.length > 0 && (
-                        <p className="text-[10px] text-orange-600 dark:text-orange-400 mb-1.5 leading-snug" title="Brakujące dokumenty do odbioru">
-                          Brakuje: {missingDocs.map((d) => DOC_LABELS[d]).join(", ")}
-                        </p>
-                      )}
-                      {jobPhase === "handover" && missingDocs.length === 0 && (
-                        <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mb-1.5">
-                          Dokumenty kompletne — można zdawać
-                        </p>
-                      )}
-                      <div className="flex items-center gap-2 flex-wrap mb-2">
-                        <JobMetaBadges job={job}/>
-                        <JobWmPlannedBadge job={job}/>
-                        {job.keysHandedOver && <span title="Klucze zdane"><KeyRound size={11} className="text-blue-400"/></span>}
-                        {jobWorkerReports(job).length > 0 && (
-                          <span title="Raporty pracowników" className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">
-                            {jobWorkerReports(job).length} rap.
-                          </span>
-                        )}
-                        {isDupe && (
-                          <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">Duplikat adresu</span>
-                        )}
-                        {job.workEntries.length > 0 && (
-                          <span className="text-[10px] text-muted-foreground">{workerCount} os. · {fmtH(jobTotalHours(job))}</span>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                          <div className="flex-1 bg-border rounded-full h-1.5 overflow-hidden" title="Postęp dokumentów do odbioru">
-                            <div
-                              className={`h-1.5 rounded-full transition-all ${docsCount === REQUIRED_DOCS.length ? "bg-emerald-500" : "bg-primary"}`}
-                              style={{width:`${(docsCount/REQUIRED_DOCS.length)*100}%`}}
-                            />
-                          </div>
-                          <span className="text-[10px] text-muted-foreground shrink-0 tabular-nums">{docsCount}/{REQUIRED_DOCS.length} dok.</span>
-                        </div>
-                        {cost>0&&<span className="text-[10px] font-semibold text-primary shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(cost)} PLN</span>}
-                      </div>
-                      {(!job.documents.zlecenie || !job.documents.kosztorys) && (
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          {!job.documents.zlecenie && (
-                            <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-red-500/10 text-red-500 dark:text-red-400">
-                              <FileText size={9}/> Brak zlecenia
-                            </span>
-                          )}
-                          {!job.documents.kosztorys && (
-                            <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-red-500/10 text-red-500 dark:text-red-400">
-                              <ClipboardList size={9}/> Brak kosztorysu
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </button>
-                    <div className="flex items-center pr-2 shrink-0">
-                      {deleteConfirmListId===job.id ? (
-                        <div className="flex flex-col items-end gap-1 py-2" onClick={(e) => e.stopPropagation()}>
-                          <span className="text-[10px] text-muted-foreground text-right leading-tight max-w-[72px]">Usunąć całą robotę?</span>
-                          <div className="flex items-center gap-1">
-                            <button type="button" onClick={() => deleteJob(job.id)} className="text-[10px] bg-destructive text-white px-2 py-1 rounded font-medium">Tak</button>
-                            <button type="button" onClick={() => setDeleteConfirmListId(null)} className="text-[10px] text-muted-foreground px-1"><X size={12}/></button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); setDeleteConfirmListId(job.id); setDeleteConfirmId(null); }}
-                          title="Usuń całą robotę"
-                          className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={14}/>
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                  <JobListCard
+                    key={job.id}
+                    job={job}
+                    selected={isSelected}
+                    isDuplicate={isDupe}
+                    workerCount={workerCount}
+                    totalHoursLabel={fmtH(jobTotalHours(job))}
+                    costLabel={cost > 0 ? `${fmt(cost)} PLN` : null}
+                    onSelect={() => setSelectedJobId(job.id)}
+                    onDeleteRequest={() => { setDeleteConfirmListId(job.id); setDeleteConfirmId(null); }}
+                    deleteConfirm={deleteConfirmListId === job.id}
+                    onDeleteConfirm={() => deleteJob(job.id)}
+                    onDeleteCancel={() => setDeleteConfirmListId(null)}
+                  />
                 );
               })}
             </div>
@@ -6399,8 +6438,14 @@ function JobsView({
               <ChevronRight size={14} className="rotate-180"/>Powrót do listy
             </button>
 
+            <JobDetailSectionNav
+              active={detailSection}
+              onSelect={(s) => { setDetailSection(s); scrollToJobSection(s); }}
+              fileCount={selectedJobCatalog.length}
+            />
+
             {/* Header */}
-            <div className="bg-card rounded-xl border border-border p-5 space-y-4">
+            <div id="job-section-summary" className="scroll-mt-36 bg-card rounded-xl border border-border p-5 space-y-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -6671,7 +6716,7 @@ function JobsView({
             )}
 
             {/* Documents card */}
-            <div className="bg-card rounded-xl border border-border overflow-hidden">
+            <div id="job-section-documents" className="scroll-mt-36 bg-card rounded-xl border border-border overflow-hidden">
               <div className="px-5 py-4 border-b border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FileText size={13} className="text-muted-foreground"/>
@@ -6722,62 +6767,51 @@ function JobsView({
               </div>
             </div>
 
-            {(latestJobFile(selectedJob, "zlecenie") || latestJobFile(selectedJob, "kosztorys")) && (
-              <div className="bg-card rounded-xl border border-border overflow-hidden">
-                <div className="px-5 py-3 border-b border-border flex items-center gap-2">
-                  <FileText size={13} className="text-muted-foreground"/>
-                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pliki inspektora</span>
+            <div id="job-section-files" className="scroll-mt-36 bg-card rounded-xl border border-emerald-500/25 overflow-hidden">
+              <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <FileText size={13} className="text-emerald-600 dark:text-emerald-400"/>
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pliki roboty</span>
+                  <span className="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full text-muted-foreground">{selectedJobCatalog.length}</span>
                 </div>
-                <div className="divide-y divide-border">
-                  {(["zlecenie", "kosztorys"] as const).map((kind) => {
-                    const file = latestJobFile(selectedJob, kind);
-                    if (!file) return null;
-                    const canPreview = isPdfFilename(file.filename) || isKosztorysPreviewExt(file.filename);
-                    return (
-                      <div key={kind} className="px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium">{kind === "zlecenie" ? "Zlecenie" : "Kosztorys"} · {file.filename}</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            {file.uploadedBy} · {new Date(file.uploadedAt).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {canPreview && (
-                            <button
-                              type="button"
-                              onClick={() => setPreviewItem({ kind: "jobFile", file })}
-                              className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 font-medium"
-                            >
-                              <Eye size={12}/> Podgląd
-                            </button>
-                          )}
-                          <a
-                            href={file.publicUrl}
-                            download={file.filename}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 font-medium"
-                          >
-                            <Download size={12}/> Pobierz
-                          </a>
-                          <button
-                            type="button"
-                            disabled={fileDeleteBusy === file.id}
-                            onClick={() => handleDeleteJobFile(file)}
-                            className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg text-destructive hover:bg-destructive/10 font-medium disabled:opacity-50"
-                          >
-                            <Trash2 size={12}/> {fileDeleteBusy === file.id ? "…" : "Usuń"}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <button
+                  type="button"
+                  disabled={packBusy}
+                  onClick={async () => {
+                    setPackBusy(true);
+                    try { await downloadJobDocumentsPack(selectedJob); } finally { setPackBusy(false); }
+                  }}
+                  className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-lg bg-emerald-600/90 text-white font-medium disabled:opacity-50"
+                >
+                  <Package size={12}/>{packBusy ? "Pakowanie…" : "Pakiet ZIP"}
+                </button>
               </div>
-            )}
+              <div className="px-5 py-3 border-b border-border bg-secondary/20">
+                <p className="text-[11px] text-muted-foreground mb-2">Wgraj zlecenie (PDF) lub kosztorys (.ath / .nor / PDF):</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {(["zlecenie", "kosztorys"] as const).map((kind) => (
+                    <InspectorJobFileUpload
+                      key={kind}
+                      kind={kind}
+                      busy={uploadBusy === kind}
+                      hasFile={!!latestJobFile(selectedJob, kind)}
+                      onPick={(f) => void handleJobFileUpload(kind, f)}
+                      onError={(msg) => setUploadMsg(msg)}
+                    />
+                  ))}
+                </div>
+                {uploadMsg && <p className="text-xs text-destructive mt-2">{uploadMsg}</p>}
+              </div>
+              <JobFileCatalogList
+                items={selectedJobCatalog}
+                onPreview={(item) => setPreviewItem(item.previewItem)}
+                onDelete={handleDeleteCatalogItem}
+                deleteBusyId={fileDeleteBusy}
+              />
+            </div>
 
             {/* Workers & Cost card */}
-            <div className="bg-card rounded-xl border border-border overflow-hidden">
+            <div id="job-section-workers" className="scroll-mt-36 bg-card rounded-xl border border-border overflow-hidden">
               <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Users size={13} className="text-muted-foreground"/>
@@ -7112,6 +7146,7 @@ function JobsView({
             )}
 
             {/* Worker reports */}
+            <div id="job-section-reports" className="scroll-mt-36">
             <JobWorkerReportsPanel
               jobId={selectedJob.id}
               authorName={adminSession?.displayName || "Administrator"}
@@ -7127,9 +7162,10 @@ function JobsView({
                 workerReports: jobWorkerReports(selectedJob).filter(r => r.id !== reportId),
               }, { type: "report_delete", text: "Usunięto raport" })}
             />
+            </div>
 
             {/* Photos */}
-            <div className="bg-card rounded-xl border border-border overflow-hidden">
+            <div id="job-section-photos" className="scroll-mt-36 bg-card rounded-xl border border-border overflow-hidden">
               <div className="px-5 py-4 border-b border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Camera size={13} className="text-muted-foreground"/>
@@ -7183,6 +7219,8 @@ function JobsView({
           <p className="text-sm font-medium">Wybierz robotę z listy</p>
           <p className="text-xs text-center max-w-xs">lub kliknij "Nowa robota" aby dodać nową.</p>
         </div>
+      )}
+    </div>
       )}
       {showEmailModal && selectedJob && (
         <JobEmailModal
@@ -8942,6 +8980,15 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-29", version:"2.32.0", label:"Roboty — pliki + czytelniejszy układ",
+    items:[
+      {type:"new", text:"Zakładka „Wszystkie pliki” — zlecenia, kosztorysy ATH/NOR, zdjęcia i rysunki z datą, autorem, podglądem i pobieraniem"},
+      {type:"new", text:"Szczegóły roboty — sekcje: Dane, Dokumenty, Pliki, Pracownicy, Zdjęcia, Raporty (nawigacja u góry)"},
+      {type:"improve", text:"Pliki roboty — pełna lista (zlecenie, kosztorys, inspektor, ekipa, raporty) + wgranie zlecenia/kosztorysu z poziomu Roboty"},
+      {type:"improve", text:"Lista robót — czytelniejsze karty ze statusem, liczbą plików i brakami dokumentów"},
+    ],
+  },
   {
     date:"2026-05-29", version:"2.31.8", label:"SMS — wybór nadawcy z 4 nazw",
     items:[
