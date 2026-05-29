@@ -431,7 +431,7 @@ export function EmployeeSmsModal({
 
   const renderGroup = (title: string, icon: typeof Users, items: SmsRecipient[]) => {
     if (items.length === 0) return null;
-    const Icon = icon;
+    const Icon = icon ?? Users;
     return (
       <div>
         <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-3 py-2 bg-secondary/40 flex items-center gap-1.5">
@@ -655,7 +655,7 @@ export function EmployeeSmsModal({
                     </p>
                   ) : (
                     <>
-                      {renderGroup("Pracownicy", Hardhat, employees)}
+                      {renderGroup("Pracownicy", HardHat, employees)}
                       {renderGroup("Zespół — admin, moderator, inspektor", Shield, team)}
                     </>
                   )}

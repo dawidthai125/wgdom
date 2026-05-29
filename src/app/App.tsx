@@ -9105,6 +9105,12 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.35.5", label:"SMS pilne — naprawa crasha (HardHat)",
+    items:[
+      {type:"fix", text:"SMS pilne — literówka ikony HardHat powodowała komunikat „Nie udało się otworzyć SMS pilne” gdy w kartotece są pracownicy z telefonem"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.35.4", label:"SMS pilne — naprawa pustego ekranu (2)",
     items:[
       {type:"fix", text:"SMS pilne z Pulpitu — modal bez portalu, stabilny layout, historia ładuje się dopiero w zakładce Historia; ErrorBoundary zamiast pustej strony"},
