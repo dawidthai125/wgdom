@@ -568,6 +568,7 @@ Pełna historia → tablica `CHANGELOG` w `App.tsx`.
 
 | Plik | Kiedy czytać |
 |------|--------------|
+| **[`AGENTS.md`](../AGENTS.md)** | **Zawsze na start** — krótkie wejście dla AI |
 | **docs/ARCHITECTURE.md** | Zawsze — pełny obraz (ten plik) |
 | `guidelines/ROZWOJ.md` | Skrót reguł rozwoju |
 | `docs/MOBILE-NATIVE.md` | Capacitor, APK, App Store |
@@ -575,5 +576,10 @@ Pełna historia → tablica `CHANGELOG` w `App.tsx`.
 | `.cursor/rules/wgdom-stan-projektu.mdc` | Hasło „kontynuuj WGDOM” — skrót sesji |
 
 ---
+
+## Dla agentów AI i nowych programistów
+
+**→ [`AGENTS.md`](AGENTS.md)** — punkt wejścia (czytaj przed kodem)  
+**→ [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — pełna architektura systemu
 
 *Koniec dokumentu. Przy każdej istotnej zmianie w repo zaktualizuj sekcję, której dotyczy, oraz datę „Ostatnia aktualizacja” na górze.*

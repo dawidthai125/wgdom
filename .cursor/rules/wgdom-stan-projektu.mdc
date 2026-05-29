@@ -12,8 +12,8 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja:** sprawdź `CHANGELOG[0].version` w App.tsx (obecnie **2.35.15**)
-- **Pełna architektura:** `docs/ARCHITECTURE.md` — czytaj zamiast analizy plik po pliku
+- **Aktualna wersja:** sprawdź `CHANGELOG[0].version` w App.tsx
+- **★ Pełna architektura (CZYTAJ NA START):** [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) · [`AGENTS.md`](../../AGENTS.md)
 - **Testy użytkownika:** głównie **Vercel**, nie localhost
 - **Konto testowe pracownika:** imię `test`, tel. `+48 000 000 000` — tylko tryb pracownika, bez listy płac/grafiku/pulpitu
 

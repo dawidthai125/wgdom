@@ -1,10 +1,11 @@
 ---
-description: Zasady rozwoju aplikacji W&G DOM — chmura, zmiany, instrukcja
-globs: "**/WGDOM1/**"
-alwaysApply: false
+description: Zasady rozwoju aplikacji W&G DOM — chmura, zmiany, instrukcja, ARCHITECTURE.md
+alwaysApply: true
 ---
 
 # W&G DOM — zasady przy każdej zmianie
+
+**Start sesji:** [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) · [`AGENTS.md`](../../AGENTS.md)
 
 Komunikuj się z użytkownikiem po **polsku**.
 

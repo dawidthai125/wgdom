@@ -1,0 +1,29 @@
+---
+description: WGDOM — na start sesji czytaj docs/ARCHITECTURE.md i AGENTS.md
+alwaysApply: true
+---
+
+# W&G DOM — czytaj dokumentację na start
+
+Komunikuj się z użytkownikiem po **polsku**.
+
+## Zanim zaczniesz pracę w tym repo
+
+1. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — pełna architektura (panele, sync, Supabase, Vercel, PWA, pułapki).
+2. Skrót wejścia: [`AGENTS.md`](AGENTS.md).
+
+Nie analizuj od zera całego `src/app/App.tsx` (~15k linii) — ARCHITECTURE.md opisuje system jako całość.
+
+## Po każdej zmianie w kodzie
+
+Stosuj [`.cursor/rules/wgdom-development.mdc`](wgdom-development.mdc): chmura → CHANGELOG → HelpView → **aktualizacja `docs/ARCHITECTURE.md`** (gdy dotyczy) → podsumowanie.
+
+## Kluczowe pliki (gdy ARCHITECTURE nie wystarcza)
+
+| Temat | Plik |
+|-------|------|
+| Sync / merge | `src/lib/cloud-sync.ts` |
+| Admin UI monolit | `src/app/App.tsx` |
+| Inspektor terenowy | `src/app/InspectorPanel.tsx` |
+| Backend API | `supabase/functions/make-server-0afb8820/index.tsx` |
+| Auth / role | `src/lib/admin-auth.ts` |
