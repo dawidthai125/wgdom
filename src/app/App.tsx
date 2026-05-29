@@ -579,9 +579,12 @@ function payrollWeekExtraHourLines(employees: WeekEmployee[]) {
     baseShift: string;
     extraRange: string;
     hours: number;
+    rate: number;
+    amount: number;
     reason: string;
   }[] = [];
   for (const emp of employees) {
+    const rate = parseFloat(emp.rate) || 0;
     for (const key of DAYS) {
       const day = emp.days[key];
       const baseShift = day.active ? `${day.from}–${day.to}` : "—";
@@ -596,6 +599,8 @@ function payrollWeekExtraHourLines(employees: WeekEmployee[]) {
           baseShift,
           extraRange: h > 0 ? `${ex.from}–${ex.to}` : "—",
           hours: h,
+          rate,
+          amount: h > 0 ? +(h * rate).toFixed(2) : 0,
           reason: reason || "—",
         });
       }
@@ -8530,7 +8535,7 @@ function HelpView() {
           <div className="space-y-3">
             {[
               {q:"Skąd biorą się godziny?", a:"Z Listy Płac — podstawowa zmiana (zaznaczony dzień, od–do) plus ewentualne „Dodatkowe godziny” pod dniem. W komórce widać łączną sumę i zakresy, np. 07:00–16:00 + 16:00–18:00. Jeśli nie ma godzin w liście płac, komórka jest pusta (—), chyba że jest wpis na robocie."},
-              {q:"Czy grafik pokazuje dodatkowe godziny?", a:"Tak — grafik (bieżący i w Archiwum) sumuje podstawową zmianę i wszystkie bloki dodatkowych godzin z listy płac. Opis dodatkowych godzin (np. „transport”) widać w panelu pracownika i w PDF/Word, nie w siatce grafiku."},
+              {q:"Czy grafik pokazuje dodatkowe godziny?", a:"Tak — grafik sumuje podstawową zmianę i bloki dodatkowych godzin. W PDF/Word jest osobna „Karta dodatkowych godzin” ze stawką, kwotą brutto i opisem każdego bloku."},
               {q:"Skąd bierze się adres?", a:"Z Roboty → Pracownicy na robocie → Dodaj wpis z datą tego dnia. Adres pojawia się pod godzinami z ikoną pinezki."},
               {q:"Czy grafik zmienia dane?", a:"Nie — tylko podgląd. Edycja godzin: Lista Płac. Edycja miejsca pracy: Roboty."},
               {q:"Inny tydzień?", a:"Zmień daty u góry (tak jak w Liście Płac) lub kliknij „Bieżący tydzień”."},
@@ -8929,6 +8934,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-29", version:"2.30.4", label:"Lista płac — karta dodatkowych godzin",
+    items:[
+      {type:"new", text:"PDF i Word — osobna „Karta dodatkowych godzin”: opis, stawka, kwota brutto (h × stawka) i suma"},
+      {type:"improve", text:"Eksport listy płac — nadgodziny widoczne osobno od wpisów na robotach"},
+    ],
+  },
   {
     date:"2026-05-29", version:"2.30.3", label:"Spójność płac — bez dodatkowych godzin",
     items:[
