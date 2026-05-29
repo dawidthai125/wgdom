@@ -8975,6 +8975,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.30.7", label:"Podgląd ATH — polskie znaki, działy, podsumowanie",
+    items:[
+      {type:"fix", text:"ATH Athenasoft — dekodowanie Windows-1250 (poprawne ą, ę, ł, ś… zamiast �)"},
+      {type:"new", text:"Podgląd kosztorysu — działy (ELEMENT), narzuty Kp/Z/VAT, wartość całkowita wk= jak w NORMA"},
+      {type:"improve", text:"Modal — tabela podsumowania + pozycje pogrupowane wg działów (Roboty, Instalacje…)"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.30.6", label:"Lista płac PDF — karta dodatkowych godzin + łamanie stron",
     items:[
       {type:"fix", text:"Karta dodatkowych godzin w PDF/Word — uwzględnia wszystkich pracowników (w tym Ukraińców co 2 tyg.), wcześniej byli pomijani"},

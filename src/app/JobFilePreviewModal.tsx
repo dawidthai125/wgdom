@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { X, Loader2, AlertTriangle, FileText } from "lucide-react";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import {
@@ -88,9 +88,21 @@ export function JobFilePreviewModal({
 
               {!loading && parseResult && (
                 <div className="space-y-4">
-                  {parseResult.title && (
-                    <p className="text-sm font-semibold">{parseResult.title}</p>
-                  )}
+                  <div className="space-y-1">
+                    {parseResult.documentType && (
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-primary">{parseResult.documentType}</p>
+                    )}
+                    {parseResult.title && (
+                      <p className="text-sm font-semibold">{parseResult.title}</p>
+                    )}
+                    {parseResult.subtitle && (
+                      <p className="text-xs text-muted-foreground">{parseResult.subtitle}</p>
+                    )}
+                    {parseResult.summary && (
+                      <p className="text-xs font-medium text-foreground/90 mt-1">{parseResult.summary}</p>
+                    )}
+                  </div>
+
                   {parseResult.warnings.map((w) => (
                     <div key={w} className="flex items-start gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
                       <AlertTriangle size={14} className="shrink-0 mt-0.5"/>
@@ -98,11 +110,39 @@ export function JobFilePreviewModal({
                     </div>
                   ))}
 
+                  {parseResult.summaryLines && parseResult.summaryLines.length > 0 && (
+                    <div className="rounded-xl border border-border overflow-hidden">
+                      <div className="px-3 py-2 bg-secondary/50 border-b border-border">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Podsumowanie kosztorysu</p>
+                      </div>
+                      <table className="w-full text-xs">
+                        <tbody>
+                          {parseResult.summaryLines.map((line, i) => (
+                            <tr key={i} className={`border-t border-border/60 ${line.bold ? "bg-primary/5" : ""}`}>
+                              <td
+                                className={`px-3 py-2 ${line.bold ? "font-semibold" : "text-muted-foreground"}`}
+                                style={{ paddingLeft: `${12 + (line.indent ?? 0) * 14}px` }}
+                              >
+                                {line.label}
+                              </td>
+                              <td className={`px-3 py-2 text-right font-mono whitespace-nowrap ${line.bold ? "font-bold text-primary" : ""}`}>
+                                {line.value}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
                   {parseResult.rows.length > 0 ? (
                     <div className="overflow-x-auto rounded-xl border border-border">
+                      <div className="px-3 py-2 bg-secondary/50 border-b border-border">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pozycje kosztorysu</p>
+                      </div>
                       <table className="w-full text-xs">
                         <thead>
-                          <tr className="bg-secondary/50 text-left">
+                          <tr className="bg-secondary/30 text-left">
                             <th className="px-2 py-2 font-medium">Lp</th>
                             <th className="px-2 py-2 font-medium">Kod</th>
                             <th className="px-2 py-2 font-medium min-w-[200px]">Opis</th>
@@ -113,21 +153,40 @@ export function JobFilePreviewModal({
                           </tr>
                         </thead>
                         <tbody>
-                          {parseResult.rows.map((row, i) => (
-                            <tr key={i} className="border-t border-border hover:bg-secondary/30">
-                              <td className="px-2 py-1.5">{row.lp}</td>
-                              <td className="px-2 py-1.5 font-mono text-[10px]">{row.code}</td>
-                              <td className="px-2 py-1.5">{row.description}</td>
-                              <td className="px-2 py-1.5">{row.unit}</td>
-                              <td className="px-2 py-1.5 text-right font-mono">{row.quantity}</td>
-                              <td className="px-2 py-1.5 text-right font-mono">{row.unitPrice}</td>
-                              <td className="px-2 py-1.5 text-right font-mono">{row.total}</td>
-                            </tr>
-                          ))}
+                          {(() => {
+                            const out: ReactNode[] = [];
+                            let lastCat = "";
+                            for (const row of parseResult.rows) {
+                              const catKey = row.categoryLp ? `${row.categoryLp}|${row.category}` : row.category || "";
+                              if (catKey && catKey !== lastCat) {
+                                lastCat = catKey;
+                                out.push(
+                                  <tr key={`cat-${catKey}`} className="bg-emerald-500/10 border-t border-border">
+                                    <td colSpan={7} className="px-2 py-2 font-semibold text-emerald-800 dark:text-emerald-300">
+                                      {row.categoryLp ? `${row.categoryLp} · ` : ""}{row.category}
+                                    </td>
+                                  </tr>,
+                                );
+                              }
+                              out.push(
+                                <tr key={`${row.lp}-${row.description.slice(0, 20)}`} className="border-t border-border hover:bg-secondary/30">
+                                  <td className="px-2 py-1.5">{row.lp}</td>
+                                  <td className="px-2 py-1.5 font-mono text-[10px]">{row.code}</td>
+                                  <td className="px-2 py-1.5">{row.description}</td>
+                                  <td className="px-2 py-1.5">{row.unit}</td>
+                                  <td className="px-2 py-1.5 text-right font-mono">{row.quantity}</td>
+                                  <td className="px-2 py-1.5 text-right font-mono">{row.unitPrice}</td>
+                                  <td className="px-2 py-1.5 text-right font-mono font-medium">{row.total}</td>
+                                </tr>,
+                              );
+                            }
+                            return out;
+                          })()}
                         </tbody>
                       </table>
                       <p className="text-[10px] text-muted-foreground px-3 py-2 border-t border-border">
-                        Wykryto {parseResult.rows.length} pozycji (format: {parseResult.format})
+                        {parseResult.rows.length} pozycji
+                        {parseResult.totalValue ? ` · wartość całkowita wg pliku: ${parseResult.totalValue} ${parseResult.currency || "PLN"}` : ""}
                       </p>
                     </div>
                   ) : parseResult.rawPreview ? (

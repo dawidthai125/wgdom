@@ -11,15 +11,38 @@ export interface AthPreviewRow {
   quantity: string;
   unitPrice: string;
   total: string;
+  category?: string;
+  categoryLp?: string;
+}
+
+export interface AthPreviewCategory {
+  lp: string;
+  name: string;
+  total: string;
+  level: number;
+  /** Robocizna / materiały / sprzęt (kn=) — gdy dostępne. */
+  breakdown?: string;
+}
+
+export interface AthPreviewSummaryLine {
+  label: string;
+  value: string;
+  bold?: boolean;
+  indent?: number;
 }
 
 export interface AthPreviewResult {
   ok: boolean;
   format: "xml" | "text" | "binary" | "unknown";
   title?: string;
+  subtitle?: string;
+  documentType?: string;
   rows: AthPreviewRow[];
+  categories?: AthPreviewCategory[];
+  summaryLines?: AthPreviewSummaryLine[];
   summary?: string;
   totalValue?: string;
+  currency?: string;
   warnings: string[];
   rawPreview?: string;
 }
@@ -50,13 +73,13 @@ function looksBinary(text: string): boolean {
 function decodeAttempts(bytes: Uint8Array): string[] {
   const out: string[] = [];
   try {
-    out.push(new TextDecoder("utf-8", { fatal: false }).decode(bytes));
-  } catch { /* ignore */ }
-  try {
     out.push(new TextDecoder("windows-1250", { fatal: false }).decode(bytes));
   } catch { /* ignore */ }
   try {
     out.push(new TextDecoder("iso-8859-2", { fatal: false }).decode(bytes));
+  } catch { /* ignore */ }
+  try {
+    out.push(new TextDecoder("utf-8", { fatal: false }).decode(bytes));
   } catch { /* ignore */ }
 
   let u16 = "";
@@ -68,6 +91,61 @@ function decodeAttempts(bytes: Uint8Array): string[] {
   if (u16.length > 20) out.push(u16);
 
   return [...new Set(out.filter(Boolean))];
+}
+
+/** Athenasoft ATH — zawsze Windows-1250 (UTF-8 psuje ą, ę, ł…). */
+function decodeAthText(bytes: Uint8Array): string {
+  try {
+    return new TextDecoder("windows-1250", { fatal: false }).decode(bytes);
+  } catch {
+    return new TextDecoder("iso-8859-2", { fatal: false }).decode(bytes);
+  }
+}
+
+function cleanAthText(s: string): string {
+  return s.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "").trim();
+}
+
+function formatPlnAmount(value: string | number): string {
+  const n = typeof value === "number" ? value : parseFloat(String(value).replace(",", "."));
+  if (Number.isNaN(n)) return String(value);
+  return n.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function sumTabNumbers(s: string): number {
+  return s
+    .split("\t")
+    .map((p) => parseFloat(p.trim().replace(",", ".")))
+    .filter((n) => !Number.isNaN(n))
+    .reduce((a, b) => a + b, 0);
+}
+
+function categoryLevel(lp: string): number {
+  return lp.includes(".") ? lp.split(".").length - 1 : 0;
+}
+
+interface AthSection {
+  title: string;
+  body: string;
+}
+
+function splitAthSections(text: string): AthSection[] {
+  const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const starts: { title: string; index: number }[] = [];
+  const re = /^\[([^\]]+)\]/gm;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(normalized)) !== null) {
+    starts.push({ title: match[1], index: match.index });
+  }
+  const out: AthSection[] = [];
+  for (let i = 0; i < starts.length; i += 1) {
+    const { title, index } = starts[i];
+    const end = i + 1 < starts.length ? starts[i + 1].index : normalized.length;
+    const chunk = normalized.slice(index, end);
+    const body = chunk.replace(/^\[[^\]]+\]\n?/, "");
+    out.push({ title, body });
+  }
+  return out;
 }
 
 function extractEmbeddedXml(text: string): string | null {
@@ -149,71 +227,195 @@ function extractKnrCode(pd: string): string {
   return "";
 }
 
-/** Tekstowy format ATH Athenasoft — sekcje [POZYCJA] z polami na=, jm=, ob=, kj=, wn=. */
+/** Tekstowy format ATH Athenasoft — działy [ELEMENT], pozycje [POZYCJA], narzuty, suma wk=. */
 function parseAthAthenasoftIni(text: string): AthPreviewResult {
   const warnings = [
-    "Format ATH Athenasoft — podgląd z sekcji [POZYCJA]. Do pełnej weryfikacji użyj NORMA lub PDF.",
+    "Podgląd na wzór wydruku NORMA — działy, pozycje i podsumowanie. Do pełnej weryfikacji użyj NORMA lub PDF.",
   ];
 
-  const headerEnd = text.indexOf("\n[");
-  const header = headerEnd > 0 ? text.slice(0, headerEnd) : text.slice(0, 3000);
+  const sections = splitAthSections(text);
+  const headerSec = sections.find((s) => s.title === "KOSZTORYS ATHENASOFT")?.body ?? text.slice(0, 3000);
+  const titlePage = sections.find((s) => s.title === "STRONA TYT")?.body;
 
-  let title = parseIniField(header, "nan");
-  const stBlock = text.match(/\[STRONA TYT\][\s\S]*?(?=\n\[|$)/)?.[0];
-  if (stBlock) {
-    const nb = parseIniField(stBlock, "nb");
-    const ab = parseIniField(stBlock, "ab");
-    const na = parseIniField(stBlock, "na");
+  let title = cleanAthText(parseIniField(headerSec, "nan") || "");
+  let subtitle: string | undefined;
+  let documentType: string | undefined;
+
+  if (titlePage) {
+    documentType = cleanAthText(parseIniField(titlePage, "na") || "");
+    const nb = cleanAthText(parseIniField(titlePage, "nb") || "");
+    const ab = cleanAthText(parseIniField(titlePage, "ab") || "");
+    const ni = cleanAthText(parseIniField(titlePage, "ni") || "");
+    const nfn = cleanAthText(parseIniField(titlePage, "nfn") || "");
     if (nb && ab) title = `${nb} — ${ab}`;
     else if (nb) title = nb;
-    else if (na) title = na;
+    const parts = [ni && `Inwestor: ${ni}`, nfn && `Wykonawca: ${nfn}`].filter(Boolean);
+    if (parts.length) subtitle = parts.join(" · ");
   }
 
-  const totalValue = firstNumericToken(parseIniField(header, "wk") || "");
+  const currency = cleanAthText(parseIniField(headerSec, "wan") || "PLN");
+  const totalValue = firstNumericToken(parseIniField(headerSec, "wk") || "");
 
+  const narzuty: { name: string; code: string; percent: string }[] = [];
+  for (const sec of sections) {
+    if (!sec.title.startsWith("NARZUTY NORMA")) continue;
+    const nameParts = (parseIniField(sec.body, "na") || "").split("\t").map(cleanAthText).filter(Boolean);
+    const waParts = (parseIniField(sec.body, "wa") || "").split("\t");
+    const pct = firstNumericToken(waParts[0] || "");
+    if (nameParts.length) {
+      narzuty.push({
+        name: nameParts[0],
+        code: nameParts[1] || "",
+        percent: pct,
+      });
+    }
+  }
+
+  const headerNarLabels = (parseIniField(headerSec, "na") || "").split("\t").map(cleanAthText);
+  const headerNarRaw = (parseIniField(headerSec, "wn") || "").split("\t");
+  const headerNarAmounts = new Map<string, string>();
+  headerNarLabels.forEach((label, i) => {
+    if (!label) return;
+    const v = firstNumericToken(headerNarRaw[i] || "");
+    if (v) headerNarAmounts.set(label.toLowerCase(), v);
+  });
+
+  const categories: AthPreviewCategory[] = [];
   const rows: AthPreviewRow[] = [];
-  const sections = text.split("[POZYCJA]");
-  for (let i = 1; i < sections.length; i += 1) {
-    const block = sections[i];
-    const nextSection = block.search(/\n\[[A-Z0-9 ]+\]/);
-    const body = nextSection >= 0 ? block.slice(0, nextSection) : block;
+  let currentCategory: AthPreviewCategory | undefined;
 
-    const description = parseIniField(body, "na");
+  for (const sec of sections) {
+    if (sec.title.startsWith("ELEMENT ")) {
+      const lp = cleanAthText(parseIniField(sec.body, "nu") || "");
+      const name = cleanAthText(parseIniField(sec.body, "na") || "");
+      if (!name) continue;
+      const wa = firstNumericToken(parseIniField(sec.body, "wa") || "");
+      const kn = parseIniField(sec.body, "kn");
+      let breakdown: string | undefined;
+      if (kn) {
+        const parts = kn.split("\t").map((p) => firstNumericToken(p)).filter(Boolean);
+        if (parts.length >= 3) {
+          breakdown = `R ${formatPlnAmount(parts[0])} · M ${formatPlnAmount(parts[1])} · S ${formatPlnAmount(parts[2])} PLN`;
+        }
+      }
+      const cat: AthPreviewCategory = {
+        lp: lp || String(categories.length + 1),
+        name,
+        total: wa ? formatPlnAmount(wa) : "—",
+        level: categoryLevel(lp || "1"),
+        breakdown,
+      };
+      categories.push(cat);
+      currentCategory = cat;
+      continue;
+    }
+
+    if (sec.title !== "POZYCJA") continue;
+
+    const description = cleanAthText(parseIniField(sec.body, "na") || "");
     if (!description) continue;
 
-    const pd = parseIniField(body, "pd") || "";
-    const jm = parseIniField(body, "jm") || "";
-    const ob = parseIniField(body, "ob") || "";
-    const kj = parseIniField(body, "kj") || "";
-    const wn = parseIniField(body, "wn") || "";
+    const pd = parseIniField(sec.body, "pd") || "";
+    const jm = parseIniField(sec.body, "jm") || "";
+    const ob = parseIniField(sec.body, "ob") || "";
+    const kj = parseIniField(sec.body, "kj") || "";
+    const wn = parseIniField(sec.body, "wn") || "";
 
     const qty = ob.replace(",", ".");
-    const total = firstNumericToken(wn) || firstNumericToken(wn.split("\t")[0] || "");
+    const totalNum = sumTabNumbers(wn);
+    const total = totalNum > 0 ? formatPlnAmount(totalNum) : firstNumericToken(wn);
     let unitPrice = firstNumericToken(kj);
-    if (!unitPrice && qty && total) {
-      const q = parseFloat(qty);
-      const t = parseFloat(total);
-      if (q > 0 && !Number.isNaN(t)) unitPrice = (t / q).toFixed(2);
+    const q = parseFloat(qty);
+    if (!unitPrice && q > 0 && totalNum > 0) {
+      unitPrice = formatPlnAmount(totalNum / q);
+    } else if (unitPrice) {
+      unitPrice = formatPlnAmount(unitPrice);
     }
 
     rows.push({
-      lp: parseIniField(body, "nu") || String(rows.length + 1),
+      lp: cleanAthText(parseIniField(sec.body, "nu") || String(rows.length + 1)),
       code: extractKnrCode(pd),
       description,
       unit: firstTabToken(jm),
       quantity: qty,
       unitPrice,
       total,
+      category: currentCategory?.name,
+      categoryLp: currentCategory?.lp,
     });
   }
+
+  const summaryLines: AthPreviewSummaryLine[] = [];
+
+  if (categories.length > 0) {
+    summaryLines.push({ label: "Podsumowanie działów", value: "", bold: true });
+    for (const cat of categories) {
+      summaryLines.push({
+        label: cat.lp ? `${cat.lp}  ${cat.name}` : cat.name,
+        value: cat.total !== "—" ? `${cat.total} ${currency}` : "—",
+        bold: cat.level === 0,
+        indent: cat.level,
+      });
+      if (cat.breakdown) {
+        summaryLines.push({
+          label: "skład: robocizna / materiały / sprzęt",
+          value: cat.breakdown,
+          indent: cat.level + 1,
+        });
+      }
+    }
+  }
+
+  if (narzuty.length > 0 || headerNarAmounts.size > 0) {
+    summaryLines.push({ label: "Narzuty i podatki", value: "", bold: true });
+    for (const n of narzuty) {
+      const key = n.name.toLowerCase();
+      const amount = headerNarAmounts.get(key);
+      summaryLines.push({
+        label: n.code ? `${n.name} (${n.code})` : n.name,
+        value: amount
+          ? `${formatPlnAmount(amount)} ${currency} (${n.percent} %)`
+          : n.percent ? `${n.percent} %` : "—",
+        indent: 1,
+      });
+    }
+    for (const [label, amount] of headerNarAmounts) {
+      if (narzuty.some((n) => n.name.toLowerCase() === label)) continue;
+      summaryLines.push({
+        label: label.charAt(0).toUpperCase() + label.slice(1),
+        value: `${formatPlnAmount(amount)} ${currency}`,
+        indent: 1,
+      });
+    }
+  }
+
+  if (totalValue) {
+    summaryLines.push({
+      label: "WARTOŚĆ CAŁKOWITA KOSZTORYSU",
+      value: `${formatPlnAmount(totalValue)} ${currency}`,
+      bold: true,
+    });
+  }
+
+  const positionsSum = rows.reduce((s, r) => {
+    const n = parseFloat(r.total.replace(/\s/g, "").replace(",", "."));
+    return s + (Number.isNaN(n) ? 0 : n);
+  }, 0);
 
   return {
     ok: rows.length > 0,
     format: "text",
-    title,
+    title: title || undefined,
+    subtitle,
+    documentType,
     rows: rows.slice(0, 500),
+    categories,
+    summaryLines,
     totalValue: totalValue || undefined,
-    summary: totalValue ? `Wartość kosztorysu: ${totalValue} PLN` : undefined,
+    currency,
+    summary: totalValue
+      ? `Wartość całkowita: ${formatPlnAmount(totalValue)} ${currency}${positionsSum > 0 ? ` · suma pozycji (widok uproszczony): ${formatPlnAmount(positionsSum)} ${currency}` : ""}`
+      : undefined,
     warnings,
   };
 }
@@ -359,10 +561,18 @@ export function parseKosztorysBytes(bytes: Uint8Array, filename: string): AthPre
     "Format ATH/NOR jest zamknięty — podgląd może być niepełny. Do pełnej weryfikacji użyj NORMA lub PDF.",
   ];
 
+  const athText = decodeAthText(bytes);
+  if (isAthenasoftKosztorys(athText)) {
+    const parsed = parseAthAthenasoftIni(athText);
+    if (parsed.rows.length > 0 || parsed.summaryLines?.length) {
+      return { ...parsed, warnings: [...warnings, ...parsed.warnings] };
+    }
+  }
+
   for (const text of decodeAttempts(bytes)) {
     if (isAthenasoftKosztorys(text)) {
       const parsed = parseAthAthenasoftIni(text);
-      if (parsed.rows.length > 0) {
+      if (parsed.rows.length > 0 || parsed.summaryLines?.length) {
         return { ...parsed, warnings: [...warnings, ...parsed.warnings] };
       }
     }
