@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { Building2, ChevronDown, Loader2, Save } from "lucide-react";
+import { Building2, ChevronDown, Loader2, RefreshCw, Save, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import {
   type TenderCompanyProfile,
+  type TenderCompanyReference,
   defaultCompanyProfile,
   loadCompanyProfile,
   saveCompanyProfile,
@@ -60,6 +61,28 @@ function LinesInput({
   );
 }
 
+function RefList({ title, items }: { title: string; items: TenderCompanyReference[] }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="col-span-full rounded-lg border border-border/60 bg-secondary/20 px-2.5 py-2 space-y-1.5">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
+      <ul className="space-y-1.5">
+        {items.map((r, i) => (
+          <li key={`${r.client}-${i}`} className="text-[10px] text-muted-foreground">
+            <span className="font-medium text-foreground">{r.client}</span>
+            {r.year && <span className="text-muted-foreground/80"> · {r.year}</span>}
+            {r.valuePln != null && r.valuePln > 0 && (
+              <span className="text-emerald-600 dark:text-emerald-400"> · {r.valuePln.toLocaleString("pl-PL")} zł</span>
+            )}
+            <p className="mt-0.5">{r.scope}</p>
+            {r.source && <p className="text-[9px] opacity-70">{r.source}</p>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function TenderCompanyProfilePanel({
   onSaved,
 }: {
@@ -94,6 +117,12 @@ export function TenderCompanyProfilePanel({
     }
   }, [profile, onSaved]);
 
+  const reloadDefaults = useCallback(() => {
+    const d = defaultCompanyProfile();
+    setProfile(d);
+    toast.message("Załadowano domyślny profil W&G DOM (CEIDG/wgdom.pl) — kliknij Zapisz");
+  }, []);
+
   return (
     <div className="rounded-xl border border-border overflow-hidden">
       <button
@@ -103,7 +132,10 @@ export function TenderCompanyProfilePanel({
       >
         <span className="flex items-center gap-1.5">
           <Building2 size={13} className="text-primary" />
-          Profil firmy — dopasowanie i szacunek szans
+          Profil firmy — W&G DOM · dopasowanie przetargów
+          {profile.nip && (
+            <span className="text-[10px] font-normal text-muted-foreground">NIP {profile.nip}</span>
+          )}
         </span>
         <ChevronDown size={14} className={`transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
@@ -115,21 +147,48 @@ export function TenderCompanyProfilePanel({
             </p>
           ) : (
             <>
-              <p className="text-[10px] text-muted-foreground leading-relaxed">
-                Uzupełnij dane W&G DOM — system porówna je z wymaganiami każdego przetargu (referencje, wadium, CPV, region)
-                i oszacuje szanse. Współdzielone w chmurze dla całego zespołu.
-              </p>
+              <div className="rounded-lg bg-primary/5 border border-primary/15 px-2.5 py-2 text-[10px] text-muted-foreground space-y-1">
+                <p>
+                  <strong className="text-foreground">{profile.companyName}</strong>
+                  {" · "}{profile.ownerName}
+                  {" · marka od "}{profile.brandSinceYear}
+                  {" · VAT od "}{profile.vatRegisteredSince}
+                </p>
+                <p>{profile.address} · {profile.phone} · {profile.email}</p>
+                <p className="italic">{profile.formerOwnerNote}</p>
+              </div>
+
+              <RefList title="Referencje (wgdom.pl)" items={profile.references} />
+              <RefList title="Wygrane przetargi BZP" items={profile.tenderWins} />
+              <RefList title="Udział w przetargach" items={profile.tenderParticipations} />
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                <label className="block text-[10px] text-muted-foreground col-span-full sm:col-span-2">
-                  Nazwa firmy
+                <label className="block text-[10px] text-muted-foreground">
+                  NIP
                   <input
-                    value={profile.companyName}
-                    onChange={(e) => setProfile({ ...profile, companyName: e.target.value })}
+                    value={profile.nip}
+                    onChange={(e) => setProfile({ ...profile, nip: e.target.value })}
+                    className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border font-mono"
+                  />
+                </label>
+                <label className="block text-[10px] text-muted-foreground">
+                  REGON
+                  <input
+                    value={profile.regon}
+                    onChange={(e) => setProfile({ ...profile, regon: e.target.value })}
+                    className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border font-mono"
+                  />
+                </label>
+                <label className="block text-[10px] text-muted-foreground sm:col-span-2">
+                  Właścicielka / firma CEIDG
+                  <input
+                    value={profile.ownerName}
+                    onChange={(e) => setProfile({ ...profile, ownerName: e.target.value })}
                     className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
                   />
                 </label>
                 <LinesInput
-                  label="Regiony / miasta działania (jedna linia = jeden wpis)"
+                  label="Regiony / miasta działania"
                   value={profile.regions}
                   onChange={(regions) => setProfile({ ...profile, regions })}
                 />
@@ -143,7 +202,7 @@ export function TenderCompanyProfilePanel({
                 <NumInput label="Max. równoległych robót" value={profile.maxConcurrentProjects} onChange={(v) => setProfile({ ...profile, maxConcurrentProjects: v })} step={1} />
                 <NumInput label="Polisa OC (PLN)" value={profile.ocInsuranceMinPln} onChange={(v) => setProfile({ ...profile, ocInsuranceMinPln: v })} step={100000} />
                 <LinesInput
-                  label="Prefiksy CPV (np. 454, 452)"
+                  label="Prefiksy CPV"
                   value={profile.preferredCpvPrefixes}
                   onChange={(preferredCpvPrefixes) => setProfile({ ...profile, preferredCpvPrefixes })}
                 />
@@ -154,22 +213,28 @@ export function TenderCompanyProfilePanel({
                 />
                 <LinesInput
                   label="Mocne strony / specjalizacja"
-                  hint="Dopasowanie do tytułu przetargu"
                   value={profile.strengths}
                   onChange={(strengths) => setProfile({ ...profile, strengths })}
                 />
                 <label className="block text-[10px] text-muted-foreground col-span-full">
-                  Notatki wewnętrne
+                  Historia / notatki (np. ciągłość marki, wykluczenia)
                   <textarea
-                    rows={2}
-                    value={profile.notes}
+                    rows={3}
+                    value={`${profile.formerOwnerNote}\n\n${profile.notes}`.trim()}
                     onChange={(e) => setProfile({ ...profile, notes: e.target.value })}
                     className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
-                    placeholder="Np. nie bierzemy hal sportowych…"
                   />
                 </label>
               </div>
-              <div className="flex justify-end">
+              <div className="flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={reloadDefaults}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-xs font-medium hover:bg-secondary/80"
+                >
+                  <RefreshCw size={12} />
+                  Przywróć dane W&G DOM
+                </button>
                 <button
                   type="button"
                   disabled={saving}
@@ -180,6 +245,12 @@ export function TenderCompanyProfilePanel({
                   Zapisz profil
                 </button>
               </div>
+              {profile.tenderWins.length > 0 && (
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <Trophy size={11} className="text-amber-500" />
+                  Ostatnia wygrana BZP: {profile.tenderWins[0].client} ({profile.tenderWins[0].valuePln?.toLocaleString("pl-PL")} zł)
+                </p>
+              )}
             </>
           )}
         </div>

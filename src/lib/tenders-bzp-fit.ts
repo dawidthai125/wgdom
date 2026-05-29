@@ -1,6 +1,7 @@
 /** Dopasowanie przetargu do profilu firmy, kryteria punktacji, szacunek szans. */
 
 import type { TenderCompanyProfile } from "@/lib/tenders-bzp-company";
+import { profileKnownBuyerKeywords } from "@/lib/tenders-bzp-company";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { fmtPln } from "@/lib/tenders-bzp-swz";
@@ -164,6 +165,21 @@ function regionMatch(item: TenderPipelineItem, profile: TenderCompanyProfile): b
   return profile.regions.some((r) => hay.includes(fold(r)));
 }
 
+function knownClientMatch(item: TenderPipelineItem, profile: TenderCompanyProfile): {
+  matched: boolean;
+  label: string | null;
+} {
+  const hay = fold(`${item.organizationName} ${item.title} ${item.priorityBuyerLabel ?? ""}`);
+  const keywords = profileKnownBuyerKeywords(profile);
+  for (const kw of keywords) {
+    const k = fold(kw);
+    if (k.length >= 4 && hay.includes(k)) {
+      return { matched: true, label: kw };
+    }
+  }
+  return { matched: false, label: null };
+}
+
 function cpvMatch(item: TenderPipelineItem, profile: TenderCompanyProfile): "met" | "partial" | "unknown" {
   const cpv = (item.cpvCode || "").replace(/\D/g, "").slice(0, 6);
   if (!cpv) return "unknown";
@@ -227,6 +243,16 @@ export function assessTenderFit(
   score += Math.min(20, Math.round(item.relevanceScore * 0.5));
   if (item.priorityBuyerId) score += 5;
   if (item.isWroclaw) score += 8;
+
+  const clientHit = knownClientMatch(item, profile);
+  if (clientHit.matched) {
+    score += 10;
+    tips.push(`Znany zamawiający / referencja (${clientHit.label}) — macie doświadczenie we Wrocławiu.`);
+  }
+
+  // Doświadczenie marki (1989)
+  const yearsOnMarket = new Date().getFullYear() - (profile.brandSinceYear || 1989);
+  if (yearsOnMarket >= 30) score += 4;
 
   // Region
   const inRegion = regionMatch(item, profile);

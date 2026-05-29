@@ -9206,6 +9206,14 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.40.1", label:"Przetargi — profil W&G DOM z CEIDG i wgdom.pl",
+    items:[
+      {type:"improve", text:"Domyślny profil firmy: NIP 8991736797, Iwona Schabowska-Wałek, referencje ZUS/PKO/UWr/DOZG/MOPS"},
+      {type:"new", text:"Lista referencji, wygranych BZP (MOPS Kamieńskiego ~983 tys. zł) i udziałów w przetargach"},
+      {type:"improve", text:"Dopasowanie przetargu rozpoznaje znanych zamawiających z historii firmy"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.40.0", label:"Przetargi — profil firmy, dopasowanie, punktacja",
     items:[
       {type:"new", text:"Profil firmy (edytowalny, chmura): referencje, wadium, CPV, region, OC, moce zespołu"},
