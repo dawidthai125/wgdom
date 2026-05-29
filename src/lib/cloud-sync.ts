@@ -354,6 +354,7 @@ function pickRateByTimestamps(l: Record<string, unknown>, c: Record<string, unkn
   if (lAt && cAt && lAt !== cAt) return lAt > cAt ? l.rate : c.rate;
   if (lAt && !cAt) return l.rate;
   if (cAt && !lAt) return c.rate;
+  if (c.rate !== undefined && String(c.rate).trim() !== "") return c.rate;
   if (l.rate !== undefined && String(l.rate).trim() !== "") return l.rate;
   return c.rate;
 }
@@ -376,7 +377,7 @@ function pickDaysByTimestamps(l: Record<string, unknown>, c: Record<string, unkn
   const cAt = parseRecordTs(c.dataUpdatedAt);
   if (lAt > cAt) return { ...cDays, ...lDays };
   if (cAt > lAt) return { ...lDays, ...cDays };
-  return { ...cDays, ...lDays };
+  return { ...lDays, ...cDays };
 }
 
 function pickPrevSaturdayByTimestamps(
@@ -389,7 +390,7 @@ function pickPrevSaturdayByTimestamps(
   const cAt = parseRecordTs(c.dataUpdatedAt);
   if (lAt > cAt) return lps !== undefined ? lps : cps;
   if (cAt > lAt) return cps !== undefined ? cps : lps;
-  return lps !== undefined ? lps : cps;
+  return cps !== undefined ? cps : lps;
 }
 
 function dayRichness(d: DayLike | undefined): number {
@@ -848,9 +849,9 @@ export async function pushJobsAfterDelete(jobs: unknown[], deletedIds: string[])
   );
 }
 
-/** Wszystkie dane aplikacji naraz (kolejność jak DATA_KEYS). */
-export async function pushAllDataToCloud(values: unknown[]): Promise<void> {
-  await pushAllDataToCloudSafe(values);
+/** Wszystkie dane aplikacji naraz (kolejność jak DATA_KEYS). Zwraca scalony bundle. */
+export async function pushAllDataToCloud(values: unknown[]): Promise<unknown[]> {
+  return pushAllDataToCloudSafe(values);
 }
 
 /**
@@ -877,7 +878,9 @@ export async function pushDirectoryToCloud(directory: unknown[]): Promise<void> 
   );
 }
 
-export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
+export async function computeMergedDataBundle(
+  values: unknown[],
+): Promise<{ merged: unknown[]; cloudReachable: boolean }> {
   const keys = [...DATA_KEYS];
   const valuesForMerge = prepareDataBundleForCloudPush(values);
 
@@ -886,6 +889,7 @@ export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
   let cloudDirDeleted: string[] = [];
   let cloudContactsDeleted: string[] = [];
   let cloudArchiveDeleted: string[] = [];
+  let cloudReachable = false;
   try {
     const fetched = await fetchKeysFromCloud([
       ...keys,
@@ -899,8 +903,9 @@ export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
     cloudDirDeleted = normalizeDeletedDirectoryIds(fetched[keys.length + 1]);
     cloudContactsDeleted = normalizeDeletedJobIds(fetched[keys.length + 2]);
     cloudArchiveDeleted = normalizeDeletedJobIds(fetched[keys.length + 3]);
+    cloudReachable = true;
   } catch {
-    /* offline */
+    /* offline — scal tylko lokalne źródła */
   }
   const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), cloudDeleted);
   saveDeletedJobIds(mergedDeleted);
@@ -933,14 +938,34 @@ export async function pushAllDataToCloudSafe(values: unknown[]): Promise<void> {
     merged[empIdx] = [];
   }
 
+  return { merged, cloudReachable };
+}
+
+/** Pobierz chmurę i scal z lokalnym — bez zapisu (do odświeżenia UI / pull on focus). */
+export async function pullAndMergeDataBundle(values: unknown[]): Promise<unknown[]> {
+  const { merged } = await computeMergedDataBundle(values);
+  return merged;
+}
+
+export async function pushAllDataToCloudSafe(values: unknown[]): Promise<unknown[]> {
+  const { merged } = await computeMergedDataBundle(values);
+
   await pushKeysToCloud(
-    [...keys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY],
-    [...merged, mergedDeleted, mergedDirDeleted, mergedContactsDeleted, mergedArchiveDeleted],
+    [...DATA_KEYS, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY],
+    [
+      ...merged,
+      getDeletedJobIds(),
+      getDeletedDirectoryIds(),
+      getDeletedContactsIds(),
+      getDeletedArchiveIds(),
+    ],
     {
       replaceJobsKeys: ["kw-jobs"],
       replaceDirectoryKeys: ["kw-directory"],
     },
   );
+
+  return merged;
 }
 
 /** Zapis wielu kluczy z merge względem chmury i localStorage. */

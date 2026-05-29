@@ -40,6 +40,7 @@ import {
   readLocalStorageDataKey,
   isDataKey,
   pushKeysToCloudSafe,
+  pullAndMergeDataBundle,
   type DataKey,
   weekEmployeesListRichness,
   fetchPayrollBackupStatus,
@@ -2180,14 +2181,16 @@ function applyWriteTimestamps(key: string, prev: unknown, next: unknown): unknow
       const old = prevMap.get(String(item.id)) as WeekEmployee | undefined;
       if (!old) return item;
       const rateChanged = item.rate !== old.rate;
+      const settledChanged = item.settled !== old.settled;
       const dataChanged =
         JSON.stringify({ days: item.days, prevSaturday: item.prevSaturday, extraCosts: item.extraCosts })
         !== JSON.stringify({ days: old.days, prevSaturday: old.prevSaturday, extraCosts: old.extraCosts });
-      if (!rateChanged && !dataChanged) return item;
+      if (!rateChanged && !dataChanged && !settledChanged) return item;
       return {
         ...item,
         rateUpdatedAt: rateChanged ? now : item.rateUpdatedAt ?? old.rateUpdatedAt,
-        dataUpdatedAt: dataChanged ? now : item.dataUpdatedAt ?? old.dataUpdatedAt,
+        dataUpdatedAt: (dataChanged || settledChanged) ? now : item.dataUpdatedAt ?? old.dataUpdatedAt,
+        settledUpdatedAt: settledChanged ? now : item.settledUpdatedAt ?? old.settledUpdatedAt,
       };
     });
   }
@@ -9107,6 +9110,14 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.35.14", label:"Sync — ochrona przed cofką danych",
+    items:[
+      {type:"fix", text:"Admin — powrót do karty / F5: pobieranie chmury i merge (nie tylko stary localStorage); UI odświeża się po syncu"},
+      {type:"improve", text:"Scalanie listy płac — remis dat idzie na korzyść chmury; rozliczenie zapisuje settledUpdatedAt + dataUpdatedAt"},
+      {type:"improve", text:"Po zapisie do chmury stan ekranu = wynik merge (to samo widzą wszyscy admini)"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.35.13", label:"Sync — status rozliczony",
     items:[
       {type:"fix", text:"Lista płac — status „Rozliczony” synchronizuje się między adminami (wcześniej lokalne „oczekuje” nadpisywało chmurę)"},
@@ -11285,6 +11296,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const syncTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
   const tabVisibleRef = useRef(typeof document !== "undefined" ? !document.hidden : true);
   const initialSyncDone = useRef(false);
+  const suppressAutoSyncUntilRef = useRef(0);
+  const pullInFlightRef = useRef(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [jobsBackupStatus, setJobsBackupStatus] = useState<{ current: number; prev: number; prev2: number; today: number } | null>(null);
   const [payrollBackupStatus, setPayrollBackupStatus] = useState<{ employeesPrev: number; employeesPrev2: number; archivePrev: number } | null>(null);
@@ -11345,6 +11358,38 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     pushDirectoryToCloud(directory).catch(() => {});
   }, [directory]);
 
+  const adminDataBundle = useCallback(
+    () => [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts] as unknown[],
+    [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts],
+  );
+
+  const applyAdminDataBundle = useCallback((merged: unknown[]) => {
+    const [dir, emps, arch, wf, wt, jbs, cont] = merged;
+    suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    if (Array.isArray(dir)) setDirectory(dir as DirectoryEmployee[]);
+    if (Array.isArray(emps)) setWeekEmployees(emps as WeekEmployee[]);
+    if (Array.isArray(arch)) setSavedWeeks(arch as WeekSnapshot[]);
+    if (typeof wf === "string" && wf) setWeekFrom(wf);
+    if (typeof wt === "string" && wt) setWeekTo(wt);
+    if (Array.isArray(jbs)) {
+      setJobs((jbs as Job[]).map((j) => syncJobDocuments(j)));
+    }
+    if (Array.isArray(cont)) setContacts(cont as EmailContact[]);
+  }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts]);
+
+  const pullFromCloudAndMerge = useCallback(async () => {
+    if (!tabVisibleRef.current || !isSupabaseConfigured() || pullInFlightRef.current) return;
+    pullInFlightRef.current = true;
+    try {
+      const merged = await pullAndMergeDataBundle(adminDataBundle());
+      applyAdminDataBundle(merged);
+    } catch {
+      /* offline — zostaw lokalne dane */
+    } finally {
+      pullInFlightRef.current = false;
+    }
+  }, [adminDataBundle, applyAdminDataBundle]);
+
   const pushToCloud = pushAllDataToCloud;
 
   const runCloudSync = useCallback(async (opts?: { toastSuccess?: boolean }) => {
@@ -11359,7 +11404,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setSyncStatus("saving");
     setSyncError("");
     try {
-      await pushToCloud([directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts]);
+      const merged = await pushToCloud(adminDataBundle());
+      applyAdminDataBundle(merged);
       setSyncStatus("saved");
       if (opts?.toastSuccess) toast.success("Zsynchronizowano z chmurą");
       setTimeout(() => setSyncStatus("idle"), 2500);
@@ -11369,7 +11415,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       setSyncError(msg);
       toast.error("Nie udało się wysłać do chmury", { description: msg, id: "admin-cloud-sync" });
     }
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts]);
+  }, [adminDataBundle, applyAdminDataBundle, jobs]);
 
   useEffect(() => {
     return registerNativeBackHandler(() => {
@@ -11384,9 +11430,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   useEffect(() => {
     return onNativeAppResume(() => {
-      if (tabVisibleRef.current) void runCloudSync();
+      if (tabVisibleRef.current) void pullFromCloudAndMerge();
     });
-  }, [runCloudSync]);
+  }, [pullFromCloudAndMerge]);
 
   // Po CloudLoader (merge chmura↔local) — zapis tylko przy zmianach użytkownika
   useEffect(() => {
@@ -11396,40 +11442,23 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   // Auto-save to cloud on any data change (debounced 2s, only after initial sync; nie w ukrytej karcie)
   useEffect(() => {
     if (!initialSyncDone.current) return;
+    if (Date.now() < suppressAutoSyncUntilRef.current) return;
     if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
     syncTimerRef.current = setTimeout(() => {
       if (!tabVisibleRef.current) return;
+      if (Date.now() < suppressAutoSyncUntilRef.current) return;
       runCloudSync();
     }, 2000);
   }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, runCloudSync]);
 
-  const reloadFromLocalStorage = useCallback(() => {
-    try {
-      const d = readLocalStorageDataKey("kw-directory");
-      if (Array.isArray(d)) setDirectory(d as DirectoryEmployee[]);
-      const we = readLocalStorageDataKey("kw-week-employees");
-      if (Array.isArray(we)) setWeekEmployees(we as WeekEmployee[]);
-      const arch = readLocalStorageDataKey("kw-archive");
-      if (Array.isArray(arch)) setSavedWeeks(arch as WeekSnapshot[]);
-      const j = readLocalStorageDataKey("kw-jobs");
-      if (Array.isArray(j)) setJobs(j as Job[]);
-      const c = readLocalStorageDataKey("kw-contacts");
-      if (Array.isArray(c)) setContacts(c as EmailContact[]);
-      const wf = readLocalStorageDataKey("kw-weekFrom");
-      if (typeof wf === "string" && wf) setWeekFrom(wf);
-      const wt = readLocalStorageDataKey("kw-weekTo");
-      if (typeof wt === "string" && wt) setWeekTo(wt);
-    } catch { /* ignore */ }
-  }, [setDirectory, setWeekEmployees, setSavedWeeks, setJobs, setContacts, setWeekFrom, setWeekTo]);
-
   useEffect(() => {
     const onVis = () => {
       tabVisibleRef.current = !document.hidden;
-      if (!document.hidden) reloadFromLocalStorage();
+      if (!document.hidden) void pullFromCloudAndMerge();
     };
     const onFocus = () => {
       tabVisibleRef.current = true;
-      reloadFromLocalStorage();
+      void pullFromCloudAndMerge();
     };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onFocus);
@@ -11438,7 +11467,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("focus", onFocus);
     };
-  }, [reloadFromLocalStorage]);
+  }, [pullFromCloudAndMerge]);
 
   // Backup
   const exportBackup = () => {
