@@ -75,7 +75,7 @@ export function JobInspectorFilesPanel({
     const name = item.kind === "jobFile" ? item.file.filename : "photo.jpg";
     if (isPdfFilename(name)) return true;
     if (item.kind === "inspectorPhoto") return true;
-    if (athPreviewEnabled && isKosztorysPreviewExt(name)) return true;
+    if (isKosztorysPreviewExt(name)) return true;
     return false;
   };
 
@@ -196,11 +196,7 @@ export function JobInspectorFilesPanel({
                     >
                       <Eye size={12}/> Podgląd
                     </button>
-                  ) : (
-                    <span className="text-[10px] text-muted-foreground px-2" title="Włącz podgląd ATH w ustawieniach ⚙ Super Admin">
-                      Podgląd ATH wył.
-                    </span>
-                  )}
+                  ) : null}
                   <a
                     href={url}
                     download={filename}
@@ -222,11 +218,6 @@ export function JobInspectorFilesPanel({
             );
           })}
         </div>
-        {!athPreviewEnabled && jobFiles.some((f) => isKosztorysPreviewExt(f.filename)) && (
-          <p className="px-5 py-2 text-[10px] text-muted-foreground border-t border-border bg-secondary/20">
-            Kosztorys ATH/NOR — podgląd w aplikacji wyłączony. Super Admin może włączyć w ⚙ Ustawienia.
-          </p>
-        )}
       </div>
 
       {previewItem && (

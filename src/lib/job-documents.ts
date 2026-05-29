@@ -38,6 +38,24 @@ export interface JobFileAttachment {
   uploadedAt: string;
 }
 
+const STORAGE_PUBLIC_PATH =
+  /\/storage\/v1\/object\/public\/make-0afb8820-photos\/(.+)$/i;
+
+/** path ze storage — z pola path lub z publicUrl (starsze wpisy). */
+export function resolveJobFileStoragePath(
+  file: Pick<JobFileAttachment, "path" | "publicUrl">,
+): string | undefined {
+  const direct = file.path?.trim();
+  if (direct) return direct;
+  const m = file.publicUrl?.match(STORAGE_PUBLIC_PATH);
+  if (!m?.[1]) return undefined;
+  try {
+    return decodeURIComponent(m[1]);
+  } catch {
+    return m[1];
+  }
+}
+
 /** Rozszerzenia kosztorysu NORMA + PDF. */
 export const KOSZTORYS_EXTENSIONS = ["pdf", "nor", "xml", "ath", "doc", "docx", "xls", "xlsx"] as const;
 

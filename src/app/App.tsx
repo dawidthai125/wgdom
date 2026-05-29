@@ -106,6 +106,9 @@ import {
 } from "@/lib/admin-auth";
 import { InspectorPanel } from "@/app/InspectorPanel";
 import { InspectorAdminView } from "@/app/InspectorAdminView";
+import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
+import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
+import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import {
   appendJobActivity,
   collectInspectorFeed,
@@ -145,7 +148,7 @@ import {
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
 import { normalizeJobMetaFields, isJobHousingSet, HOUSING_TYPE_LABELS, STOVE_TYPE_LABELS_FULL, type HousingType, type StoveType } from "@/lib/job-meta";
-import { syncAppSettingsFromCloud, saveAppSettings, loadAppSettingsLocal, type AppSettings } from "@/lib/app-settings";
+import { syncAppSettingsFromCloud, saveAppSettings, loadAppSettingsLocal, mergeAthPreviewEnabled, type AppSettings } from "@/lib/app-settings";
 import { WorkScopeEditor, WorkScopeDisplay } from "@/app/WorkScopeEditor";
 import {
   getReportWorkScopeText,
@@ -5763,6 +5766,7 @@ function JobsView({
   weekEmployees,
   weekFrom,
   onGoToInspector,
+  athPreviewEnabled,
 }: {
   jobs: Job[];
   setJobs: (v: Job[] | ((p: Job[]) => Job[])) => void;
@@ -5774,6 +5778,7 @@ function JobsView({
   weekEmployees: WeekEmployee[];
   weekFrom: string;
   onGoToInspector?: (jobId?: string) => void;
+  athPreviewEnabled: boolean;
 }) {
   const { canViewRates, session: adminSession } = useAdminAccess();
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
@@ -5797,6 +5802,7 @@ function JobsView({
   const [shareCopied, setShareCopied] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [expandedWorkerKeys, setExpandedWorkerKeys] = useState<Set<string>>(new Set());
+  const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
   const jobNotesRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -6707,6 +6713,52 @@ function JobsView({
               </div>
             </div>
 
+            {(latestJobFile(selectedJob, "zlecenie") || latestJobFile(selectedJob, "kosztorys")) && (
+              <div className="bg-card rounded-xl border border-border overflow-hidden">
+                <div className="px-5 py-3 border-b border-border flex items-center gap-2">
+                  <FileText size={13} className="text-muted-foreground"/>
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pliki inspektora</span>
+                </div>
+                <div className="divide-y divide-border">
+                  {(["zlecenie", "kosztorys"] as const).map((kind) => {
+                    const file = latestJobFile(selectedJob, kind);
+                    if (!file) return null;
+                    const canPreview = isPdfFilename(file.filename) || isKosztorysPreviewExt(file.filename);
+                    return (
+                      <div key={kind} className="px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium">{kind === "zlecenie" ? "Zlecenie" : "Kosztorys"} · {file.filename}</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            {file.uploadedBy} · {new Date(file.uploadedAt).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {canPreview && (
+                            <button
+                              type="button"
+                              onClick={() => setPreviewItem({ kind: "jobFile", file })}
+                              className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 font-medium"
+                            >
+                              <Eye size={12}/> Podgląd
+                            </button>
+                          )}
+                          <a
+                            href={file.publicUrl}
+                            download={file.filename}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 font-medium"
+                          >
+                            <Download size={12}/> Pobierz
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Workers & Cost card */}
             <div className="bg-card rounded-xl border border-border overflow-hidden">
               <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-2 flex-wrap">
@@ -7122,6 +7174,13 @@ function JobsView({
           onClose={() => setShowEmailModal(false)}
           onManageContacts={() => { setShowEmailModal(false); onManageContacts(); }}
           onSent={(to) => updateJob(selectedJob, { type: "email_sent", text: `Wysłano materiały na ${to}` })}
+        />
+      )}
+      {previewItem && (
+        <JobFilePreviewModal
+          item={previewItem}
+          athPreviewEnabled={athPreviewEnabled}
+          onClose={() => setPreviewItem(null)}
         />
       )}
     </div>
@@ -8867,6 +8926,15 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.30.2", label:"Podgląd kosztorysu — poprawki",
+    items:[
+      {type:"fix", text:"Roboty — sekcja Pliki inspektora z przyciskiem Podgląd (wcześniej tylko nazwa pliku przy checkboxie)"},
+      {type:"fix", text:"Sync ustawień — chmura włączone podgląd ATH nie blokowany przez stary localStorage false"},
+      {type:"fix", text:"path storage wyciągany z publicUrl gdy brak w starych wpisach jobFiles"},
+      {type:"improve", text:"ATH — tytuł kosztorysu (nan=) w modalu podglądu"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.30.1", label:"Podgląd kosztorysów ATH/NOR",
     items:[
       {type:"fix", text:"Podgląd .ath/.nor/.xml — parser binarny, proxy API (omija CORS), domyślnie włączony"},
@@ -10574,7 +10642,7 @@ function CloudLoader({children}: {children: React.ReactNode}) {
           const localSettings = loadAppSettingsLocal();
           const cloudS = cloudAppSettings as AppSettings;
           const mergedSettings: AppSettings = {
-            athPreviewEnabled: cloudS.athPreviewEnabled !== false && localSettings.athPreviewEnabled !== false,
+            athPreviewEnabled: mergeAthPreviewEnabled(cloudS, localSettings),
           };
           localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(mergedSettings));
         }
@@ -11480,7 +11548,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory} onOpenSms={()=>setShowSmsModal(true)}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>{ addDeletedArchiveId(id); setSavedWeeks(prev=>prev.filter(w=>w.id!==id)); }} onUpdateWeekEmployee={updateArchiveWeekEmployee} onToggleArchiveSettled={toggleArchiveSettled} jobs={jobs} directory={directory}/>}
-          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={(jobId)=>{ if (jobId) setPendingInspectorJobId(jobId); setView("inspector"); }}/>}
+          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={(jobId)=>{ if (jobId) setPendingInspectorJobId(jobId); setView("inspector"); }} athPreviewEnabled={appSettings.athPreviewEnabled}/>}
           {view==="inspector"&&<InspectorAdminView jobs={jobs} setJobs={setJobs} directory={directory} adminUserId={adminSession?.id} adminDisplayName={adminSession?.displayName || "Administrator"} adminRole={adminSession?.role} initialTab={inspectorInitialTab} initialJobId={pendingInspectorJobId} onInitialJobConsumed={()=>setPendingInspectorJobId(null)} contacts={contacts} athPreviewEnabled={appSettings.athPreviewEnabled} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)}/>}
           {view==="photos"&&<JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="changelog"&&<ChangelogView/>}

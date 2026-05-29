@@ -13,6 +13,16 @@ export function defaultAppSettings(): AppSettings {
   return { athPreviewEnabled: true };
 }
 
+/** Chmura ma pierwszeństwo — lokalne false z starej wersji nie blokuje podglądu. */
+export function mergeAthPreviewEnabled(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): boolean {
+  if (remote?.athPreviewEnabled === false) return false;
+  if (remote?.athPreviewEnabled === true) return true;
+  return local.athPreviewEnabled !== false;
+}
+
 export function loadAppSettingsLocal(): AppSettings {
   try {
     const raw = localStorage.getItem(APP_SETTINGS_KEY);
@@ -39,7 +49,7 @@ export async function syncAppSettingsFromCloud(): Promise<AppSettings> {
     if (!cloud || typeof cloud !== "object") return local;
     const remote = cloud as Partial<AppSettings>;
     const merged: AppSettings = {
-      athPreviewEnabled: remote.athPreviewEnabled !== false && local.athPreviewEnabled !== false,
+      athPreviewEnabled: mergeAthPreviewEnabled(remote, local),
     };
     saveAppSettingsLocal(merged);
     return merged;

@@ -1026,7 +1026,7 @@ export function InspectorPanel({
                           <a href={file.publicUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 truncate min-w-0">
                             <FileText size={12}/>{file.filename}
                           </a>
-                          {(isPdfFilename(file.filename) || (athPreviewEnabled && isKosztorysPreviewExt(file.filename))) && (
+                          {(isPdfFilename(file.filename) || isKosztorysPreviewExt(file.filename)) && (
                             <button
                               type="button"
                               onClick={() => setPreviewItem({ kind: "jobFile", file })}

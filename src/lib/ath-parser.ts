@@ -1,6 +1,7 @@
 /** Best-effort parser kosztorysów ATH / NOR / XML — bez oficjalnej specyfikacji Athenasoft. */
 
 import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
+import { resolveJobFileStoragePath, type JobFileAttachment } from "@/lib/job-documents";
 
 export interface AthPreviewRow {
   lp: string;
@@ -270,12 +271,15 @@ export function parseKosztorysBytes(bytes: Uint8Array, filename: string): AthPre
 
   const strings = extractStringsFromBinary(bytes);
   if (strings.length > 0) {
+    const titleMatch = strings.find((s) => s.startsWith("nan="));
+    const title = titleMatch?.slice(4).trim();
     const joined = strings.join("\n");
     const tableRows = parseTextTable(normalizeLines(joined));
     if (tableRows.length > 0) {
       return {
         ok: true,
         format: "text",
+        title,
         rows: tableRows,
         warnings: [...warnings, "Odczytano fragmenty z pliku binarnego ATH."],
         rawPreview: strings.slice(0, 40).join("\n"),
@@ -286,6 +290,7 @@ export function parseKosztorysBytes(bytes: Uint8Array, filename: string): AthPre
       return {
         ok: true,
         format: "binary",
+        title,
         rows: [],
         warnings: [...warnings, "Plik binarny ATH — poniżej wyciągnięte opisy pozycji (bez kwot). Otwórz w NORMA lub poproś o PDF."],
         rawPreview: printable.slice(0, 50).join("\n"),
@@ -324,11 +329,13 @@ export async function fetchAndParseKosztorys(
   url: string,
   filename: string,
   storagePath?: string,
+  file?: Pick<JobFileAttachment, "path" | "publicUrl">,
 ): Promise<AthPreviewResult> {
+  const resolvedPath = storagePath || (file ? resolveJobFileStoragePath(file) : undefined);
   try {
-    if (storagePath) {
+    if (resolvedPath) {
       try {
-        const bytes = await fetchBytesViaApi(storagePath, filename);
+        const bytes = await fetchBytesViaApi(resolvedPath, filename);
         if (bytes) return parseKosztorysBytes(bytes, filename);
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Błąd pobierania przez serwer";

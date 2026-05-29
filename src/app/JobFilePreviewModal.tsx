@@ -7,6 +7,7 @@ import {
   isKosztorysPreviewExt,
   type AthPreviewResult,
 } from "@/lib/ath-parser";
+import { resolveJobFileStoragePath } from "@/lib/job-documents";
 
 export function JobFilePreviewModal({
   item,
@@ -19,7 +20,7 @@ export function JobFilePreviewModal({
 }) {
   const url = item.kind === "jobFile" ? item.file.publicUrl : item.file.publicUrl;
   const filename = item.kind === "jobFile" ? item.file.filename : "zdjecie.jpg";
-  const storagePath = item.kind === "jobFile" ? item.file.path : undefined;
+  const storagePath = item.kind === "jobFile" ? resolveJobFileStoragePath(item.file) : undefined;
   const isPdf = isPdfFilename(filename);
   const isPhoto = item.kind === "inspectorPhoto";
   const isKosztorys = item.kind === "jobFile" && item.file.kind === "kosztorys";
@@ -29,13 +30,13 @@ export function JobFilePreviewModal({
 
   useEffect(() => {
     if (isPdf || isPhoto) return;
-    if (!athPreviewEnabled || !isKosztorysPreviewExt(filename)) return;
+    if (!isKosztorysPreviewExt(filename)) return;
     setLoading(true);
     setParseResult(null);
-    fetchAndParseKosztorys(url, filename, storagePath)
+    fetchAndParseKosztorys(url, filename, storagePath, item.kind === "jobFile" ? item.file : undefined)
       .then(setParseResult)
       .finally(() => setLoading(false));
-  }, [url, filename, storagePath, isPdf, isPhoto, athPreviewEnabled]);
+  }, [url, filename, storagePath, isPdf, isPhoto, item]);
 
   return (
     <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/70" onClick={onClose}>
@@ -87,6 +88,9 @@ export function JobFilePreviewModal({
 
               {!loading && parseResult && (
                 <div className="space-y-4">
+                  {parseResult.title && (
+                    <p className="text-sm font-semibold">{parseResult.title}</p>
+                  )}
                   {parseResult.warnings.map((w) => (
                     <div key={w} className="flex items-start gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
                       <AlertTriangle size={14} className="shrink-0 mt-0.5"/>
