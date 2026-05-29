@@ -9105,6 +9105,12 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.35.9", label:"Inspektor — kółka zlec/kosz na pulpicie",
+    items:[
+      {type:"improve", text:"Pulpit inspektora — zlecenie i kosztorys jako kółka (jak u admina); robota nie znika po zaznaczeniu, można odznaczyć"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.35.8", label:"Inspektor — hymny + chmurka sync",
     items:[
       {type:"new", text:"Panel inspektora — odtwarzacz hymnów firmowych (jak w panelu admina)"},

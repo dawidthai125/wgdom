@@ -64,7 +64,6 @@ export function buildFileDeliveryAlerts(jobs: InspectorDashboardJob[]): Dashboar
   for (const job of active) {
     const missingZlecenie = !job.documents.zlecenie;
     const missingKosztorys = !job.documents.kosztorys;
-    if (!missingZlecenie && !missingKosztorys) continue;
     const stage = inferHandoverStage(job);
     items.push({
       job,
@@ -134,7 +133,9 @@ export function computeInspectorDashboardStats(
   const readyNoDate = buildReadyNoDateAlerts(jobs);
 
   const actionJobIds = new Set<string>();
-  for (const a of fileAlerts) actionJobIds.add(a.job.id);
+  for (const a of fileAlerts) {
+    if (a.missingZlecenie || a.missingKosztorys) actionJobIds.add(a.job.id);
+  }
   for (const a of docAlerts) actionJobIds.add(a.job.id);
   for (const a of readyNoDate) actionJobIds.add(a.job.id);
   for (let i = 0; i < adminNotesCount; i++) {

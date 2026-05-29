@@ -401,24 +401,25 @@ export function InspectorPanel({
 
   const markDocFromDashboard = useCallback((jobId: string, doc: DocType) => {
     const job = jobs.find((j) => j.id === jobId);
-    if (!job || job.documents[doc]) return;
-    if (isReportSyncedDocLocked(job, doc)) {
+    if (!job) return;
+    const next = !job.documents[doc];
+    if (!next && isReportSyncedDocLocked(job, doc)) {
       toast.error("Ten dokument jest powiązany z raportem — nie można go cofnąć");
       return;
     }
     updateJob(
       appendJobActivity(
-        { ...job, documents: { ...job.documents, [doc]: true } },
+        { ...job, documents: { ...job.documents, [doc]: next } },
         "inspector_document",
-        inspectorDocToggleText(doc, true),
+        inspectorDocToggleText(doc, next),
         displayName,
       ),
     );
     const label = DOC_LABELS[doc];
     if (doc === "zlecenie" || doc === "kosztorys") {
-      toast.success(`Zapisano · ${label} — firma widzi w Robotach`);
+      toast.success(next ? `Zapisano · ${label} — firma widzi w Robotach` : `Odznaczono · ${label}`);
     } else {
-      toast.success(`Zapisano · ${label}`);
+      toast.success(next ? `Zapisano · ${label}` : `Odznaczono · ${label}`);
     }
   }, [jobs, updateJob, displayName]);
 

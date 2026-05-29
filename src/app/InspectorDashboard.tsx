@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   LayoutDashboard, FileText, MessageSquare, ChevronRight,
-  AlertTriangle, CheckCircle2, Calendar, FileWarning, BarChart3, FileDown, Cloud,
+  AlertTriangle, CheckCircle2, Calendar, FileWarning, BarChart3, FileDown, Cloud, Circle,
 } from "lucide-react";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import type { InspectorJobSection } from "@/app/InspectorNavigation";
@@ -15,7 +15,7 @@ import {
   type DashboardFilter,
   type QuickMarkDoc,
 } from "@/lib/inspector-dashboard";
-import { DOC_LABELS } from "@/lib/job-documents";
+import { DOC_LABELS, isReportSyncedDocLocked } from "@/lib/job-documents";
 import { inferHandoverStage, plannedHandoverStatus } from "@/lib/job-wm";
 import { inspectorGreeting, statsForWeek, MONTH_NAMES_PL } from "@/lib/inspector-activity-stats";
 import { downloadInspectorMonthReportPdf, downloadInspectorYearReportPdf } from "@/lib/inspector-report-pdf";
@@ -70,19 +70,24 @@ export function InspectorDashboard({
     [jobs],
   );
 
+  const fileAlertsNeedingAction = useMemo(
+    () => fileAlerts.filter((a) => a.missingZlecenie || a.missingKosztorys),
+    [fileAlerts],
+  );
+
   const urgentCount = useMemo(() => {
     const ids = new Set<string>();
     adminNotesPending.forEach((j) => ids.add(j.id));
-    fileAlerts.forEach((a) => ids.add(a.job.id));
+    fileAlertsNeedingAction.forEach((a) => ids.add(a.job.id));
     docAlerts.forEach((a) => ids.add(a.job.id));
     readyNoDate.forEach((a) => ids.add(a.job.id));
     overdueJobs.forEach((j) => ids.add(j.id));
     return ids.size;
-  }, [adminNotesPending, fileAlerts, docAlerts, readyNoDate, overdueJobs]);
+  }, [adminNotesPending, fileAlertsNeedingAction, docAlerts, readyNoDate, overdueJobs]);
 
   const allClear =
     adminNotesPending.length === 0
-    && fileAlerts.length === 0
+    && fileAlertsNeedingAction.length === 0
     && docAlerts.length === 0
     && readyNoDate.length === 0
     && overdueJobs.length === 0;
@@ -224,8 +229,8 @@ export function InspectorDashboard({
         <AlertSection
           title={`Zlecenie / kosztorys (${fileAlerts.length} ${fileAlerts.length === 1 ? "robota" : "robot"})`}
           icon={FileText}
-          accent="red"
-          hint="Każda robota tylko raz. Szybkie „Jest ✓” — bez wgrywania pliku, jeśli poszło mailem lub osobiście."
+          accent={fileAlertsNeedingAction.length > 0 ? "red" : "ok"}
+          hint="Kółka jak w panelu admina — tapnij, aby oznaczyć „jest” lub odznaczyć. Robota zostaje na liście; bez wgrywania pliku, jeśli poszło mailem."
         >
           {fileAlerts.map((alert) => {
             const planBadge = planStatusBadge(alert.planStatus, alert.job.plannedHandoverDate);
@@ -241,12 +246,15 @@ export function InspectorDashboard({
                 onOpen={() => onOpenJob(alert.job.id, "files")}
                 actions={
                   <>
-                    {alert.missingZlecenie && (
-                      <QuickBtn label="Zlecenie ✓" onClick={() => onMarkDoc(alert.job.id, "zlecenie")}/>
-                    )}
-                    {alert.missingKosztorys && (
-                      <QuickBtn label="Kosztorys ✓" onClick={() => onMarkDoc(alert.job.id, "kosztorys")}/>
-                    )}
+                    {(["zlecenie", "kosztorys"] as const).map((doc) => (
+                      <DocFileToggle
+                        key={doc}
+                        doc={doc}
+                        checked={!!alert.job.documents[doc]}
+                        locked={!!alert.job.documents[doc] && isReportSyncedDocLocked(alert.job, doc)}
+                        onClick={() => onMarkDoc(alert.job.id, doc)}
+                      />
+                    ))}
                   </>
                 }
               />
@@ -345,9 +353,58 @@ function StatTile({ label, value, accent = "neutral" }: { label: string; value: 
   );
 }
 
-function AlertSection({ title, hint, icon: Icon, accent, children }: { title: string; hint: string; icon: typeof FileText; accent: "red" | "violet" | "amber"; children: React.ReactNode }) {
-  const border = accent === "violet" ? "border-violet-500/25 bg-violet-500/5" : accent === "amber" ? "border-amber-500/25 bg-amber-500/5" : "border-red-500/25 bg-red-500/5";
-  const titleCls = accent === "violet" ? "text-violet-700 dark:text-violet-300" : accent === "amber" ? "text-amber-700 dark:text-amber-300" : "text-red-700 dark:text-red-300";
+function DocFileToggle({
+  doc,
+  checked,
+  locked,
+  onClick,
+}: {
+  doc: "zlecenie" | "kosztorys";
+  checked: boolean;
+  locked: boolean;
+  onClick: () => void;
+}) {
+  const label = DOC_LABELS[doc];
+  return (
+    <button
+      type="button"
+      title={
+        locked
+          ? `${label} — potwierdzone raportem (nie można odznaczyć)`
+          : checked
+            ? `${label} — jest (kliknij, aby odznaczyć)`
+            : `Oznacz jako odebrane: ${label}`
+      }
+      onClick={(e) => { e.stopPropagation(); if (!locked) onClick(); }}
+      className={`inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-2 min-h-[44px] rounded-md border transition-all touch-manipulation shrink-0 ${
+        locked
+          ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 cursor-default"
+          : checked
+            ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 hover:bg-green-500/20 active:scale-[0.97]"
+            : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25 hover:bg-green-500/15 hover:text-green-700 hover:border-green-500/30 dark:hover:text-green-300 active:scale-[0.97]"
+      }`}
+    >
+      {checked ? (
+        <CheckCircle2 size={10} className="shrink-0"/>
+      ) : (
+        <Circle size={10} className="shrink-0 opacity-70"/>
+      )}
+      {label}
+    </button>
+  );
+}
+
+function AlertSection({ title, hint, icon: Icon, accent, children }: { title: string; hint: string; icon: typeof FileText; accent: "red" | "violet" | "amber" | "ok"; children: React.ReactNode }) {
+  const border =
+    accent === "violet" ? "border-violet-500/25 bg-violet-500/5"
+      : accent === "amber" ? "border-amber-500/25 bg-amber-500/5"
+        : accent === "ok" ? "border-green-500/25 bg-green-500/5"
+          : "border-red-500/25 bg-red-500/5";
+  const titleCls =
+    accent === "violet" ? "text-violet-700 dark:text-violet-300"
+      : accent === "amber" ? "text-amber-700 dark:text-amber-300"
+        : accent === "ok" ? "text-green-700 dark:text-green-300"
+          : "text-red-700 dark:text-red-300";
   return (
     <div className={`rounded-xl border overflow-hidden ${border}`}>
       <div className="px-4 py-3 border-b border-border/60 space-y-1">

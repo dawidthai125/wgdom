@@ -45,7 +45,7 @@ const SECTIONS = [
     id: "dashboard",
     icon: LayoutGrid,
     title: "Pulpit — co pilne",
-    body: "Lista robót bez zlecenia/kosztorysu (każda robota raz), brakujące dokumenty, minąły termin odbioru, gotowe do odbioru bez daty. Przyciski „Zlecenie ✓” / „Kosztorys ✓” oznaczają dostarczenie bez wgrywania pliku. Po zaznaczeniu pozycja znika z pulpitu.",
+    body: "Aktywne roboty ze statusem zlecenia i kosztorysu (kółka jak u admina — zielone ✓ = jest, czerwone ○ = brak). Tapnij, aby oznaczyć lub odznaczyć bez wgrywania pliku. Robota zostaje na liście. Dalej: brakujące dokumenty, minąły termin odbioru, gotowe bez daty.",
   },
   {
     id: "sections",
