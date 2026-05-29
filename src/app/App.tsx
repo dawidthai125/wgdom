@@ -8978,6 +8978,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.31.2", label:"SMS — nadawca admina + historia wysyłek",
+    items:[
+      {type:"fix", text:"SMS pilne — prefiks W&G - Imię w treści; pole nadawcy W&G-Imię (zamiast domyślnego Test z SMSAPI)"},
+      {type:"new", text:"Historia SMS — kto wysłał, do kogo, kiedy, treść i status doręczenia (zakładka Historia)"},
+      {type:"improve", text:"Modal SMS — wyświetla zalogowanego nadawcę; instrukcja dodania nazwy w panelu smsapi.pl"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.31.1", label:"Lista płac PDF/Word — opisy kosztów do zwrotu",
     items:[
       {type:"fix", text:"PDF i Word — załącznik „Koszty do zwrotu” z opisem każdego paragonu/wydatku (wcześniej tylko suma w kolumnie Koszty)"},
@@ -11763,6 +11771,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           open={showSmsModal}
           onClose={() => setShowSmsModal(false)}
           directory={directory}
+          sender={adminSession}
         />
       )}
       {showSaveConfirm && (

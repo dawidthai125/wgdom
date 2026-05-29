@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import { X, Send, MessageSquare, Users, AlertTriangle, CheckCircle2, Shield, HardHat } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { X, Send, MessageSquare, Users, AlertTriangle, CheckCircle2, Shield, HardHat, History, Clock } from "lucide-react";
 import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
 import { normalizePhoneE164, normalizePhone9 } from "@/lib/phone-normalize";
-import { adminRoleLabel, listAdminUsersForManagement } from "@/lib/admin-auth";
+import { adminRoleLabel, listAdminUsersForManagement, type AdminSession } from "@/lib/admin-auth";
 
 export type SmsDirectoryEmployee = {
   id: string;
@@ -19,6 +19,19 @@ type SmsRecipient = {
   phone: string;
   subtitle: string;
   group: "employee" | "team";
+};
+
+export type SmsHistoryEntry = {
+  id: string;
+  at: string;
+  senderLogin: string;
+  senderName: string;
+  senderRole?: string;
+  message: string;
+  fromField?: string;
+  recipients: { name: string; phone: string; ok: boolean; error?: string }[];
+  sent: number;
+  failed: number;
 };
 
 function isEmployeeSmsEligible(emp: SmsDirectoryEmployee): boolean {
@@ -76,24 +89,44 @@ function uniqueByPhone(recipients: SmsRecipient[]): SmsRecipient[] {
   return out;
 }
 
+function fmtDateTime(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString("pl-PL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso.slice(0, 16);
+  }
+}
+
 export function EmployeeSmsModal({
   open,
   onClose,
   directory,
+  sender,
 }: {
   open: boolean;
   onClose: () => void;
   directory: SmsDirectoryEmployee[];
+  sender: AdminSession | null;
 }) {
   const eligible = useMemo(() => buildRecipients(directory), [directory]);
   const employees = useMemo(() => eligible.filter((r) => r.group === "employee"), [eligible]);
   const team = useMemo(() => eligible.filter((r) => r.group === "team"), [eligible]);
 
+  const [tab, setTab] = useState<"send" | "history">("send");
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<{ sent: number; failed: number; errors: string[] } | null>(null);
+  const [result, setResult] = useState<{ sent: number; failed: number; errors: string[]; fromField?: string } | null>(null);
   const [error, setError] = useState("");
+  const [history, setHistory] = useState<SmsHistoryEntry[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState("");
   const [smsStatus, setSmsStatus] = useState<{
     loading: boolean;
     configured: boolean;
@@ -104,13 +137,34 @@ export function EmployeeSmsModal({
     statusError?: string;
   }>({ loading: true, configured: false, provider: "none", restricted: false });
 
+  const loadHistory = useCallback(async () => {
+    if (!API_BASE) return;
+    setHistoryLoading(true);
+    setHistoryError("");
+    try {
+      const res = await fetch(`${API_BASE}/sms-history?limit=80`, { headers: API_HEADERS });
+      const data = (await res.json()) as { ok?: boolean; entries?: SmsHistoryEntry[]; error?: string };
+      if (!res.ok || !data.ok) {
+        setHistoryError(data.error || "Nie udało się pobrać historii SMS");
+        return;
+      }
+      setHistory(Array.isArray(data.entries) ? data.entries : []);
+    } catch {
+      setHistoryError("Błąd połączenia — historia niedostępna");
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!open) return;
+    setTab("send");
     setSelected(new Set(eligible.map((r) => r.id)));
     setMessage("");
     setError("");
     setResult(null);
     setSmsStatus((s) => ({ ...s, loading: true }));
+    void loadHistory();
     if (!API_BASE) {
       setSmsStatus({ loading: false, configured: false, provider: "none", restricted: false, statusError: "Brak backendu" });
       return;
@@ -154,12 +208,14 @@ export function EmployeeSmsModal({
           statusError: "Błąd połączenia — status SMS nieznany",
         });
       });
-  }, [open, eligible]);
+  }, [open, eligible, loadHistory]);
 
   const recipients = useMemo(
     () => uniqueByPhone(eligible.filter((r) => selected.has(r.id))),
     [eligible, selected],
   );
+
+  const senderLabel = sender?.displayName?.trim() || "Administrator";
 
   const toggle = (id: string) => {
     setSelected((prev) => {
@@ -192,16 +248,22 @@ export function EmployeeSmsModal({
     setError("");
     setResult(null);
     try {
-      const phones = recipients
-        .map((e) => normalizePhoneE164(e.phone))
-        .filter((p): p is string => !!p);
+      const payloadRecipients = recipients
+        .map((e) => {
+          const phone = normalizePhoneE164(e.phone);
+          return phone ? { name: e.name, phone } : null;
+        })
+        .filter((r): r is { name: string; phone: string } => !!r);
+
       const res = await fetch(`${API_BASE}/send-sms-bulk`, {
         method: "POST",
         headers: API_HEADERS,
         body: JSON.stringify({
           message: text,
-          phones,
-          labels: recipients.map((e) => e.name),
+          recipients: payloadRecipients,
+          senderLogin: sender?.login || "",
+          senderName: senderLabel,
+          senderRole: sender?.role,
         }),
       });
       const data = (await res.json()) as {
@@ -210,6 +272,7 @@ export function EmployeeSmsModal({
         sent?: number;
         failed?: number;
         errors?: string[];
+        fromField?: string;
       };
       if (!res.ok || !data.ok) {
         const detail = data.errors?.length
@@ -219,15 +282,17 @@ export function EmployeeSmsModal({
         return;
       }
       setResult({
-        sent: data.sent ?? phones.length,
+        sent: data.sent ?? payloadRecipients.length,
         failed: data.failed ?? 0,
         errors: data.errors ?? [],
+        fromField: data.fromField,
       });
       if ((data.failed ?? 0) > 0 && data.errors?.length) {
         setError(`Wysłano ${data.sent ?? 0}, nie udało się ${data.failed}: ${data.errors.slice(0, 3).join(" · ")}`);
       }
       setMessage("");
       setSelected(new Set(eligible.map((r) => r.id)));
+      void loadHistory();
     } catch {
       setError("Błąd połączenia z serwerem");
     } finally {
@@ -238,6 +303,7 @@ export function EmployeeSmsModal({
   if (!open) return null;
 
   const segments = smsSegments(message.trim());
+  const previewPrefix = `W&G - ${senderLabel}:`;
 
   const renderGroup = (title: string, icon: typeof Users, items: SmsRecipient[]) => {
     if (items.length === 0) return null;
@@ -277,7 +343,10 @@ export function EmployeeSmsModal({
             <MessageSquare size={18} className="text-primary shrink-0"/>
             <div className="min-w-0">
               <h2 className="text-sm font-semibold truncate">SMS pilne</h2>
-              <p className="text-[11px] text-muted-foreground">Pracownicy + admin, moderator, inspektor</p>
+              <p className="text-[11px] text-muted-foreground truncate">
+                Nadawca: <span className="text-foreground/90 font-medium">{senderLabel}</span>
+                {sender?.role ? ` · ${adminRoleLabel(sender.role)}` : ""}
+              </p>
             </div>
           </div>
           <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-secondary shrink-0" aria-label="Zamknij">
@@ -285,13 +354,79 @@ export function EmployeeSmsModal({
           </button>
         </div>
 
+        <div className="px-5 pt-3 flex gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => setTab("send")}
+            className={`flex-1 py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 ${tab === "send" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+          >
+            <Send size={13}/> Wyślij
+          </button>
+          <button
+            type="button"
+            onClick={() => { setTab("history"); void loadHistory(); }}
+            className={`flex-1 py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 ${tab === "history" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+          >
+            <History size={13}/> Historia {history.length > 0 ? `(${history.length})` : ""}
+          </button>
+        </div>
+
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          {result ? (
+          {tab === "history" ? (
+            <>
+              {historyLoading && (
+                <p className="text-sm text-muted-foreground text-center py-8">Ładuję historię…</p>
+              )}
+              {!historyLoading && historyError && (
+                <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">{historyError}</p>
+              )}
+              {!historyLoading && !historyError && history.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-8">Brak wysłanych SMS w historii.</p>
+              )}
+              {!historyLoading && history.map((entry) => (
+                <div key={entry.id} className="rounded-xl border border-border p-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold truncate">
+                        {entry.senderName}
+                        {entry.senderRole ? (
+                          <span className="text-[10px] font-normal text-muted-foreground ml-1.5">
+                            ({adminRoleLabel(entry.senderRole as import("@/lib/admin-auth").AdminRole)})
+                          </span>
+                        ) : null}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <Clock size={10}/>
+                        {fmtDateTime(entry.at)}
+                        {entry.fromField ? ` · nadawca SMS: ${entry.fromField}` : ""}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-medium text-emerald-600 shrink-0">
+                      {entry.sent} wysł.
+                      {entry.failed > 0 ? ` · ${entry.failed} bł.` : ""}
+                    </span>
+                  </div>
+                  <p className="text-xs bg-secondary/50 rounded-lg px-2.5 py-2 whitespace-pre-wrap">{entry.message}</p>
+                  <div className="text-[10px] text-muted-foreground space-y-0.5 max-h-24 overflow-y-auto">
+                    {entry.recipients.map((r, i) => (
+                      <p key={i} className={r.ok ? "" : "text-destructive"}>
+                        {r.ok ? "✓" : "✗"} {r.name} · {r.phone}
+                        {!r.ok && r.error ? ` — ${r.error.slice(0, 60)}` : ""}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : result ? (
             <div className="space-y-3">
               <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-4 py-3">
                 <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5"/>
                 <div className="text-sm">
-                  <p className="font-medium text-emerald-700 dark:text-emerald-300">Wysłano {result.sent} SMS</p>
+                  <p className="font-medium text-emerald-700 dark:text-emerald-300">Wysłano {result.sent} SMS jako {senderLabel}</p>
+                  {result.fromField && (
+                    <p className="text-xs text-muted-foreground mt-1">Pole nadawcy SMS: {result.fromField}</p>
+                  )}
                   {result.failed > 0 && (
                     <p className="text-xs text-muted-foreground mt-1">Nie udało się: {result.failed}</p>
                   )}
@@ -310,6 +445,13 @@ export function EmployeeSmsModal({
             </div>
           ) : (
             <>
+              <div className="bg-secondary/40 rounded-xl px-3 py-2.5 text-[11px] text-muted-foreground leading-relaxed">
+                Treść SMS zacznie się od <strong className="text-foreground/90">{previewPrefix}</strong> — odbiorca zobaczy kto wysłał.
+                Pole nadawcy na telefonie (np. <em>W&G-Dawid</em>) wymaga dodania nazwy w panelu{" "}
+                <a href="https://ssl.smsapi.pl/sms_settings/sendernames" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">smsapi.pl → Pola nadawcy</a>.
+                Domyślne „Test” znika po dodaniu własnej nazwy.
+              </div>
+
               <div>
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Treść</label>
                 <textarea
@@ -321,7 +463,7 @@ export function EmployeeSmsModal({
                   className="mt-1.5 w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none resize-none"
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  {message.trim().length}/640 znaków
+                  {message.trim().length}/640 znaków (+ prefiks nadawcy)
                   {segments > 0 && ` · ~${segments} SMS na odbiorcę`}
                 </p>
               </div>
@@ -336,13 +478,6 @@ export function EmployeeSmsModal({
                     <button type="button" onClick={selectNone} className="text-[10px] text-muted-foreground hover:underline">Wyczyść wybór</button>
                   </div>
                 </div>
-                <p className="text-[11px] text-muted-foreground mb-2">
-                  {selected.size === 0
-                    ? "Nikt nie zaznaczony — zaznacz odbiorców albo kliknij „Zaznacz wszystkich”."
-                    : selected.size === eligible.length
-                      ? `Wszyscy z listy (${eligible.length} osób).`
-                      : `Wybrano ${selected.size} z ${eligible.length} osób.`}
-                </p>
                 <div className="max-h-56 overflow-y-auto border border-border rounded-xl divide-y divide-border">
                   {eligible.length === 0 ? (
                     <p className="px-3 py-4 text-xs text-muted-foreground text-center leading-relaxed">
@@ -350,7 +485,7 @@ export function EmployeeSmsModal({
                     </p>
                   ) : (
                     <>
-                      {renderGroup("Pracownicy", HardHat, employees)}
+                      {renderGroup("Pracownicy", Hardhat, employees)}
                       {renderGroup("Zespół — admin, moderator, inspektor", Shield, team)}
                     </>
                   )}
@@ -365,7 +500,6 @@ export function EmployeeSmsModal({
                     {typeof smsStatus.points === "number" && (
                       <> · saldo <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{smsStatus.points.toFixed(2)}</span> pkt</>
                     )}
-                    {" "}— możesz wysłać do całej zaznaczonej listy.
                   </p>
                 </div>
               )}
@@ -376,7 +510,6 @@ export function EmployeeSmsModal({
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
                     <strong className="text-foreground/90">Konto SMSAPI ograniczone</strong> — SMS można wysłać tylko na numer z rejestracji
                     {smsStatus.registrationPhone ? ` (${smsStatus.registrationPhone})` : ""}.
-                    Po doładowaniu i aktywacji w panelu smsapi.pl odśwież okno — status sprawdzi się ponownie.
                   </p>
                 </div>
               )}
@@ -390,40 +523,20 @@ export function EmployeeSmsModal({
                 </div>
               )}
 
-              {smsStatus.loading && (
-                <p className="text-[11px] text-muted-foreground px-1">Sprawdzanie statusu SMSAPI…</p>
-              )}
-
               {smsStatus.statusError && !smsStatus.loading && (
                 <p className="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
                   {smsStatus.statusError}
                 </p>
               )}
 
-              {!smsStatus.loading && smsStatus.configured && smsStatus.provider === "twilio" && (
-                <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-3 py-2.5">
-                  <CheckCircle2 size={14} className="text-emerald-600 shrink-0 mt-0.5"/>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    <strong className="text-foreground/90">Twilio skonfigurowane</strong> — wysyłka do zaznaczonej listy.
-                  </p>
-                </div>
-              )}
-
-              <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 rounded-xl px-3 py-2.5">
-                <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5"/>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Numery inspektorów i adminów ustawiasz w ⚙ Super Admin. Ten sam numer wysyłany jest tylko raz.
-                </p>
-              </div>
-
               {error && (
-                <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">{error}</p>
+                <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2 whitespace-pre-wrap">{error}</p>
               )}
             </>
           )}
         </div>
 
-        {!result && (
+        {tab === "send" && !result && (
           <div className="px-5 py-4 border-t border-border shrink-0 flex gap-2">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm font-medium hover:bg-secondary transition-colors">
               Anuluj
