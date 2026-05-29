@@ -6,6 +6,7 @@ import { EmployeeSmsModal } from "@/app/EmployeeSmsModal";
 import { SmsModalErrorBoundary } from "@/app/SmsModalErrorBoundary";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { JobFilesBrowser } from "@/app/JobFilesBrowser";
+import { TendersView } from "@/app/TendersView";
 import { countBrowserFiles, jobHasBrowserFiles } from "@/lib/job-files-browser";
 import { isPrivacyShieldSuppressed } from "@/lib/privacy-shield";
 import {
@@ -9112,6 +9113,14 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-29", version:"2.35.18", label:"Przetargi BZP (Super Admin · test)",
+    items:[
+      {type:"new", text:"Zakładka Przetargi — pipeline ogłoszeń z BZP (dolnośląskie, remont/modernizacja), widoczna tylko dla Super Admina"},
+      {type:"new", text:"Endpoint GET /tenders-bzp-search — proxy do API e-Zamówienia z filtrem słów kluczowych"},
+      {type:"new", text:"Chmura kw-tenders-pipeline — status, notatki, link do e-Zamówienia"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.35.17", label:"Wykrywalność dokumentacji dla AI",
     items:[
       {type:"new", text:"AGENTS.md + README.md — punkt wejścia; Cursor alwaysApply: czytaj ARCHITECTURE.md na start sesji"},
@@ -11130,7 +11139,7 @@ function AdminSettingsModal({
 
 // ─── Root App ─────────────────────────────────────────────────────────────────
 
-type View = "dashboard" | "payroll" | "schedule" | "directory" | "contacts" | "archive" | "jobs" | "inspector" | "photos" | "jobfiles" | "guide";
+type View = "dashboard" | "payroll" | "schedule" | "directory" | "contacts" | "archive" | "jobs" | "inspector" | "photos" | "jobfiles" | "guide" | "tenders";
 
 function CloudLoader({children}: {children: React.ReactNode}) {
   const [ready, setReady] = useState(false);
@@ -11851,6 +11860,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[]);
 
+  const isSuperAdminNav = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
+
   const navItems: {key:View;label:string;hint:string;icon:React.ElementType;badge?:number}[] = [
     {key:"dashboard", label:"Pulpit", hint:"Podsumowanie tygodnia, alerty (spójność, dokumenty, zdjęcia) i szybkie skróty.", icon:LayoutDashboard},
     {key:"payroll", label:"Lista Płac", hint:"Godziny, stawki, zaliczki i wypłaty za bieżący tydzień. Eksport PDF i Word.", icon:FileText},
@@ -11863,6 +11874,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     {key:"photos", label:"Zdjęcia", hint:"Zaakceptowane zdjęcia z robot — galeria i archiwum po 30 dniach od zdania.", icon:Images, badge:(()=>{ const n=jobs.reduce((s,j)=>{ const b=jobGalleryBucket(j); return b==="active"||b==="grace"?s+jobApprovedPhotos(j).length:s;},0); return n||undefined; })()},
     {key:"jobfiles", label:"Pliki robot", hint:"Wszystkie pliki z robot: zlecenia, kosztorysy, zdjęcia, rysunki — pobierz pojedynczo lub ZIP.", icon:FolderOpen, badge:(()=>{ const n=jobs.reduce((s,j)=>jobHasBrowserFiles(j)?s+countBrowserFiles(j):s,0); return n||undefined; })()},
     {key:"guide", label:"Zmiany/Instrukcja", hint:"Historia wersji aplikacji i pomoc krok po kroku.", icon:BookOpen},
+    ...(isSuperAdminNav ? [{ key: "tenders" as const, label: "Przetargi", hint: "Ogłoszenia BZP — dolnośląskie, remont/modernizacja. Pipeline statusów (test Super Admin).", icon: Scale }] : []),
   ];
 
   const MOBILE_NAV_PRIMARY: View[] = ["dashboard", "payroll", "schedule", "jobs"];
@@ -11937,6 +11949,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       setMobileMoreOpen(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (view === "tenders" && !isSuperAdminNav) setView("dashboard");
+  }, [view, isSuperAdminNav]);
 
   useEffect(() => {
     const pending = consumePendingDeepLink();
@@ -12146,6 +12162,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           {view==="photos"&&<JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="jobfiles"&&<JobFilesBrowser jobs={jobs} athPreviewEnabled={appSettings.athPreviewEnabled} layout="admin" onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="guide"&&<GuideView/>}
+          {view==="tenders"&&isSuperAdminNav&&<TendersView/>}
         </div>
 
         {/* Mobile bottom nav — 4 główne + Menu (iOS/Android) */}

@@ -1934,4 +1934,101 @@ app.get("/make-server-0afb8820/sms-history", async (c) => {
   }
 });
 
+const BZP_INCLUDE_KEYWORDS = [
+  "remont", "moderniz", "termomoderniz", "wykończ", "wykończen", "przebudow",
+  "renowac", "adaptacj", "rehabilit", "odśwież", "termo",
+];
+const BZP_EXCLUDE_KEYWORDS = [
+  "drogi wojewódzk", "nawierzchni jezdni", "chodników drogow", "przebudowa drogi",
+  "rozbudowa skrzyżowania", "budowa drogi", "kanalizacji deszczowej", "wodociąg",
+  "gazociąg", "most ", "wiadukt",
+];
+
+type BzpNoticeRow = Record<string, unknown>;
+
+function normalizeBzpSearchPayload(data: unknown): BzpNoticeRow[] {
+  if (Array.isArray(data)) return data as BzpNoticeRow[];
+  if (data && typeof data === "object") {
+    const o = data as Record<string, unknown>;
+    if (Array.isArray(o.items)) return o.items as BzpNoticeRow[];
+    if (Array.isArray(o.data)) return o.data as BzpNoticeRow[];
+    if (o.objectId || o.bzpNumber) return [o];
+  }
+  return [];
+}
+
+function scoreBzpNotice(n: BzpNoticeRow): { score: number; excluded: boolean } {
+  const title = `${n.orderObject || ""} ${n.cpvCode || ""}`.toString().toLowerCase();
+  const keywords: string[] = [];
+  for (const kw of BZP_INCLUDE_KEYWORDS) {
+    if (title.includes(kw)) keywords.push(kw);
+  }
+  for (const ex of BZP_EXCLUDE_KEYWORDS) {
+    if (title.includes(ex)) return { score: 0, excluded: true };
+  }
+  let score = keywords.length * 10;
+  const city = (n.organizationCity || "").toString().toLowerCase();
+  if (city.includes("wrocław") || city.includes("wroclaw")) score += 25;
+  if ((n.orderObject || "").toString().toLowerCase().includes("wrocław")) score += 15;
+  if ((n.cpvCode || "").toString().includes("454")) score += 5;
+  if ((n.cpvCode || "").toString().includes("452")) score += 3;
+  if (keywords.length === 0 && score < 20) return { score: 0, excluded: true };
+  return { score, excluded: false };
+}
+
+app.get("/make-server-0afb8820/tenders-bzp-search", async (c) => {
+  try {
+    const days = Math.min(Math.max(parseInt(c.req.query("days") || "30", 10) || 30, 1), 90);
+    const pages = Math.min(Math.max(parseInt(c.req.query("pages") || "4", 10) || 4, 1), 10);
+    const province = (c.req.query("province") || "PL02").trim() || "PL02";
+    const from = new Date(Date.now() - days * 86400000);
+    const publicationDateFrom = from.toISOString().slice(0, 10);
+
+    const all: BzpNoticeRow[] = [];
+    const seen = new Set<string>();
+
+    for (let page = 1; page <= pages; page++) {
+      const params = new URLSearchParams({
+        noticeType: "ContractNotice",
+        orderType: "Works",
+        organizationProvince: province,
+        SortingColumnName: "PublicationDate",
+        SortingDirection: "DESC",
+        PageNumber: String(page),
+        PageSize: "50",
+        publicationDateFrom,
+      });
+      const url = `https://ezamowienia.gov.pl/mo-board/api/v1/Board/Search?${params}`;
+      const res = await fetch(url, {
+        headers: { Accept: "application/json", "User-Agent": "WGDOM/2.35.18 tenders-pipeline" },
+      });
+      if (!res.ok) {
+        return c.json({ ok: false, error: `BZP HTTP ${res.status}` }, 502);
+      }
+      const raw = await res.json();
+      const batch = normalizeBzpSearchPayload(raw);
+      if (batch.length === 0) break;
+      for (const row of batch) {
+        const id = String(row.objectId || row.moIdentifier || row.bzpNumber || "");
+        if (!id || seen.has(id)) continue;
+        seen.add(id);
+        const { score, excluded } = scoreBzpNotice(row);
+        if (!excluded && score > 0) all.push(row);
+      }
+      if (batch.length < 50) break;
+    }
+
+    all.sort((a, b) => {
+      const da = String(a.publicationDate || "");
+      const db = String(b.publicationDate || "");
+      return db.localeCompare(da);
+    });
+
+    return c.json({ ok: true, items: all, count: all.length, province, days, pages });
+  } catch (e) {
+    console.error("tenders-bzp-search:", e);
+    return c.json({ ok: false, error: e instanceof Error ? e.message : "BZP search error" }, 500);
+  }
+});
+
 Deno.serve(app.fetch);

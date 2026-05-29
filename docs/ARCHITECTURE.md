@@ -171,6 +171,7 @@ Nawigacja **nie używa URL** (poza `?podglad=` i deep linkami). Stan w React + `
 | `photos` | Galeria zdjęć | `JobPhotosGalleryView` |
 | `jobfiles` | Pliki robót | `JobAllFilesView` / browser |
 | `guide` | Instrukcja + Changelog | `HelpView`, `ChangelogView` |
+| `tenders` | Przetargi BZP (pipeline) | `TendersView` — **tylko Super Admin** (test) |
 
 Widoki nieaktywne są **odmontowywane** (`{view==="jobs"&&<JobsView/>}`) — scroll wewnątrz każdego widoku.
 
@@ -275,6 +276,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | `kw-admin-users-config` | Role, custom users, telefony |
 | `kw-app-settings` | Np. `athPreviewEnabled` |
 | `kw-inspector-stats` | Logowania / wizyty inspektorów |
+| `kw-tenders-pipeline` | Pipeline przetargów BZP (status, notatki) — Super Admin |
 
 ### 10.4 Tylko lokalne (bez chmury)
 
@@ -352,8 +354,19 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | POST | `/send-job-files-email` | Mail plików |
 | GET | `/client-share` | Token podglądu klienta `?podglad=` |
 | GET/POST | `/sms-*` | SMS bulk, nadawcy, historia |
+| GET | `/tenders-bzp-search` | Proxy BZP — `?days=30&pages=4&province=PL02`, filtr remont/modernizacja |
 
 **Storage bucket:** `make-0afb8820-photos` (public, auto-create)
+
+### 12.1.1 Przetargi BZP (v2.35.18)
+
+| Plik | Rola |
+|------|------|
+| `src/lib/tenders-bzp.ts` | Typy, scoring, merge pipeline, `fetchBzpTendersFromServer`, persist `kw-tenders-pipeline` |
+| `src/app/TendersView.tsx` | UI listy — odśwież z BZP, filtry Wrocław/trafność/status, notatki, link e-Zamówienia |
+| Edge `GET /tenders-bzp-search` | Pobiera strony z `ezamowienia.gov.pl/mo-board/api/v1/Board/Search` (CORS po stronie serwera) |
+
+**Dostęp:** zakładka w menu admina tylko gdy `adminIsSuperAdmin(role)`.
 
 ### 12.2 Deploy Supabase
 
