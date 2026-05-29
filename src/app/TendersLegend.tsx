@@ -5,6 +5,7 @@ import {
   type TenderPipelineStatus,
 } from "@/lib/tenders-bzp";
 import { PROFITABILITY_LABELS, type TenderProfitabilityHint } from "@/lib/tenders-bzp-swz";
+import { FIT_LABELS } from "@/lib/tenders-bzp-fit";
 
 const PIPELINE_HINTS: Record<TenderPipelineStatus, string> = {
   new: "Pobrany z BZP — jeszcze nie oceniany przez zespół.",
@@ -99,6 +100,19 @@ export function TendersLegend({ compact = false }: { compact?: boolean }) {
       </section>
 
       <section className={`space-y-1 ${textSize}`}>
+        <p className="font-medium text-foreground/90">Dopasowanie i szacunek szans</p>
+        <p className="text-muted-foreground leading-snug">
+          Po analizie SWZ system porównuje wymagania z <strong className="text-foreground/90">Profilem firmy</strong> (u góry listy):
+          referencje, wadium, CPV, region, ubezpieczenie OC, termin realizacji. Wynik: badge{" "}
+          {Object.values(FIT_LABELS).map((l, i) => (
+            <span key={l}>{i > 0 ? " / " : ""}<strong>{l}</strong></span>
+          ))}{" "}
+          oraz szacunek szans (%). Tabela „Kryteria oceny ofert” pokazuje wagę ceny i punktację z ogłoszenia/SWZ.
+          Uzupełnij „Nasz szacunek” — wpływa na ocenę marginesu przy przetargach cenowych.
+        </p>
+      </section>
+
+      <section className={`space-y-1 ${textSize}`}>
         <p className="font-medium text-foreground/90">Karta przetargu</p>
         <p className="text-muted-foreground leading-snug">
           Po rozwinięciu widzisz sekcję „Karta przetargu — wszystko w aplikacji”: przedmiot, terminy, finanse, kosztorys (tabela pozycji),
@@ -113,6 +127,7 @@ export function TendersLegend({ compact = false }: { compact?: boolean }) {
           <li><strong className="text-orange-600">Etykieta zamawiającego</strong> — np. WM, ZIK (kluczowy odbiorca).</li>
           <li><strong className="text-foreground/90">Postępowanie: …</strong> — status z e-Zamówienia (np. składanie ofert, unieważnione).</li>
           <li><strong className="text-emerald-600">Robota</strong> — powiązana karta roboty w WGDOM.</li>
+          <li><strong className="text-blue-600">Do rozważenia / Dobry profil</strong> — dopasowanie do profilu firmy + szacunek szans.</li>
         </ul>
       </section>
 

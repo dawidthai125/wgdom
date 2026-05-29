@@ -15,6 +15,7 @@ import {
   analyzeTenderSwz,
   uploadTenderFile,
   labelTenderState,
+  computePipelineFunnel,
 } from "@/lib/tenders-bzp";
 import {
   PROFITABILITY_LABELS,
@@ -33,6 +34,9 @@ import {
 import { parseKosztorysBytes, fetchAndParseKosztorys, isKosztorysPreviewExt, type AthPreviewResult } from "@/lib/ath-parser";
 import { TenderDossierPanel } from "@/app/TenderDossierPanel";
 import { TenderAttachmentsPanel } from "@/app/TenderAttachmentsPanel";
+import { TenderFitPanel } from "@/app/TenderFitPanel";
+import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
+import { assessTenderFit } from "@/lib/tenders-bzp-fit";
 
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -64,6 +68,7 @@ export function TenderDetailPanel({
   onCreateJob,
   onOpenJob,
   athPreviewEnabled,
+  profileVersion = 0,
 }: {
   item: TenderPipelineItem;
   allItems: TenderPipelineItem[];
@@ -71,6 +76,8 @@ export function TenderDetailPanel({
   onCreateJob?: (item: TenderPipelineItem) => string | void;
   onOpenJob?: (jobId: string) => void;
   athPreviewEnabled?: boolean;
+  /** Inkrementowany po zapisie profilu firmy — przelicza dopasowanie. */
+  profileVersion?: number;
 }) {
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -172,6 +179,32 @@ export function TenderDetailPanel({
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- once per item id on expand
   }, [item.id]);
+
+  const pipelineWinRate = computePipelineFunnel(allItems).winRate;
+
+  useEffect(() => {
+    if (!item.swzAnalysis && !item.noticeHtml) return;
+    const fit = assessTenderFit(item, loadCompanyProfileLocal(), { pipelineWinRate });
+    const prev = item.tenderFit;
+    if (
+      prev
+      && prev.fitScore === fit.fitScore
+      && prev.winChancePct === fit.winChancePct
+      && prev.blockingIssues.join("|") === fit.blockingIssues.join("|")
+      && prev.awardCriteria.length === fit.awardCriteria.length
+    ) return;
+    onUpdate({ tenderFit: fit });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- przeliczenie dopasowania
+  }, [
+    item.id,
+    item.swzAnalysis?.parsedAt,
+    item.noticeHtml,
+    item.ourEstimatePln,
+    item.tenderDossier?.builtAt,
+    item.relevanceScore,
+    profileVersion,
+    pipelineWinRate,
+  ]);
 
   const loadDocuments = useCallback(async () => {
     if (!item.tenderId) {
@@ -288,6 +321,8 @@ export function TenderDetailPanel({
           <p className="mt-1 opacity-90">{swz.profitabilityNote}</p>
         </div>
       )}
+
+      <TenderFitPanel fit={item.tenderFit} />
 
       <div className="flex flex-wrap gap-2">
         <label className="text-xs text-muted-foreground flex items-center gap-2">

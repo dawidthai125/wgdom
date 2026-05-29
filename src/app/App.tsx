@@ -8880,6 +8880,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Co to „Do zgłoszenia”?", a:"Domyślny filtr — tylko aktywne przetargi (otwarty termin składania ofert), z Wrocławia lub od kluczowych zamawiających, pasujące do słownika remontów wnętrz."},
               {q:"Rozwiń przetarg — co się dzieje?", a:"Auto-analiza buduje Kartę przetargu: przedmiot, terminy, wadium, kontakt, referencje, tabela pozycji kosztorysu i przedmiar z załączników BZP (ATH/NOR/XML/PDF) — bez wychodzenia na e-Zamówienia. Sekcja „Załączniki postępowania” skanuje pliki z BZP — przy każdym jest Podgląd (PDF, ATH, NOR, XML) i Pobierz. Możesz też wgrać SWZ ręcznie."},
               {q:"Ocena opłacalności", a:"Po analizie SWZ widzisz ocenę (Sensowny / Ostrożnie / Ryzykowny). Wpisz „Nasz szacunek” — system porówna z wartością zamówienia i wadium."},
+              {q:"Profil firmy i szacunek szans", a:"U góry listy Przetargi rozwiń „Profil firmy” — wpisz referencje, max wadium, CPV, regiony, polisę OC. Po rozwinięciu przetargu zobaczysz dopasowanie (Dobry profil / Do rozważenia), tabelę wymagań vs wasze dane, kryteria punktacji (waga ceny) i szacunek szans %."},
               {q:"Uczenie słów kluczowych", a:"Oznacz przetargi jako „Interesuje nas” — na dole panelu pojawią się propozycje słów. „Ucz system” dopisuje je do słownika w chmurze (kw-tenders-custom-keywords) i przelicza trafność."},
               {q:"Lejek pipeline", a:"U góry listy widać statystyki: nowe → obejrzane → interesuje → oferta → złożone → wygrane/przegrane oraz wskaźnik skuteczności (% wygranych)."},
               {q:"Utwórz robotę z przetargu", a:"Status „Przygotowujemy ofertę” lub „Wygrany” → przycisk „Utwórz robotę”. SWZ/kosztorys z przetargu trafia do plików roboty. W karcie roboty jest link „Otwórz przetarg”."},
@@ -9204,6 +9205,15 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.40.0", label:"Przetargi — profil firmy, dopasowanie, punktacja",
+    items:[
+      {type:"new", text:"Profil firmy (edytowalny, chmura): referencje, wadium, CPV, region, OC, moce zespołu"},
+      {type:"new", text:"Dopasowanie przetargu vs wymagania SWZ — tabela OK / luka / częściowo"},
+      {type:"new", text:"Kryteria oceny ofert — waga ceny, punktacja z ogłoszenia"},
+      {type:"new", text:"Szacunek szans (%) + podpowiedzi — badge na liście przetargów"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.39.0", label:"Przetargi — podgląd załączników BZP",
     items:[

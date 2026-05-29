@@ -105,6 +105,8 @@ export interface TenderPipelineItem {
   noticeHtmlFetchedAt?: string | null;
   /** Ustrukturyzowany brief + kosztorys (bez wychodzenia na zewnątrz). */
   tenderDossier?: import("@/lib/tenders-bzp-brief").TenderDossier | null;
+  /** Dopasowanie do profilu firmy + szacunek szans (po analizie SWZ). */
+  tenderFit?: import("@/lib/tenders-bzp-fit").TenderFitAssessment | null;
 }
 
 export const TENDERS_LAST_BZP_SYNC_KEY = "kw-tenders-bzp-last-sync";

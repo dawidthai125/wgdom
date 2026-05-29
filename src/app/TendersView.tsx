@@ -29,6 +29,8 @@ import {
 import { PROFITABILITY_LABELS } from "@/lib/tenders-bzp-swz";
 import { TenderDetailPanel } from "@/app/TenderDetailPanel";
 import { TendersLegend } from "@/app/TendersLegend";
+import { TenderCompanyProfilePanel } from "@/app/TenderCompanyProfilePanel";
+import { FIT_LABELS } from "@/lib/tenders-bzp-fit";
 
 type LocalFilter = "actionable" | "active" | "priority" | "wroclaw" | "high" | "archive" | "all";
 
@@ -68,6 +70,7 @@ export function TendersView({
   const [error, setError] = useState("");
   const [autoSyncing, setAutoSyncing] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
+  const [profileVersion, setProfileVersion] = useState(0);
 
   useEffect(() => {
     if (initialExpandedId) setExpandedId(initialExpandedId);
@@ -257,6 +260,8 @@ export function TendersView({
         </button>
         {showLegend && <TendersLegend compact />}
 
+        <TenderCompanyProfilePanel onSaved={() => setProfileVersion((v) => v + 1)} />
+
         {error && (
           <div className="flex items-start gap-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
             <AlertCircle size={14} className="shrink-0 mt-0.5" />
@@ -345,6 +350,16 @@ export function TendersView({
                           {PROFITABILITY_LABELS[item.swzAnalysis.profitabilityHint]}
                         </span>
                       )}
+                      {item.tenderFit && item.tenderFit.fitLabel !== "unknown" && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                          item.tenderFit.fitLabel === "strong" ? "bg-emerald-500/10 text-emerald-600" :
+                          item.tenderFit.fitLabel === "possible" ? "bg-blue-500/10 text-blue-600" :
+                          "bg-red-500/10 text-red-600"
+                        }`}>
+                          {FIT_LABELS[item.tenderFit.fitLabel]}
+                          {item.tenderFit.winChancePct != null && ` · ${item.tenderFit.winChancePct}%`}
+                        </span>
+                      )}
                       {item.linkedJobId && (
                         <span className="text-[10px] bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded">Robota</span>
                       )}
@@ -391,6 +406,7 @@ export function TendersView({
                   allItems={items}
                   onUpdate={(patch) => updateItem(item.id, patch)}
                   athPreviewEnabled={athPreviewEnabled}
+                  profileVersion={profileVersion}
                   onOpenJob={onOpenJob}
                   onCreateJob={onCreateJobFromTender
                     ? (t) => onCreateJobFromTender(jobDraftFromTender(t), t)
