@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import {
   ClipboardCheck, Search, MapPin, FileText, CheckCircle2, Upload,
   ExternalLink, ChevronRight, ChevronLeft, Filter, LogIn, Eye, LayoutGrid,
-  MessageSquare, Camera, Calendar, RefreshCw, Trash2, X,
+  MessageSquare, Camera, Calendar, RefreshCw, Trash2, X, ArrowLeft,
 } from "lucide-react";
 import {
   collectInspectorFeed,
@@ -170,6 +170,7 @@ export function InspectorAdminView({
   contacts,
   athPreviewEnabled,
   onAlertsSeen,
+  returnNav,
 }: {
   jobs: JobWithActivity[];
   setJobs: (v: JobWithActivity[] | ((p: JobWithActivity[]) => JobWithActivity[])) => void;
@@ -183,6 +184,7 @@ export function InspectorAdminView({
   contacts: EmailContact[];
   athPreviewEnabled: boolean;
   onAlertsSeen?: () => void;
+  returnNav?: { label: string; onBack: () => void };
 }) {
   const [tab, setTab] = useState<"activity" | "portfolio">(initialTab);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -322,6 +324,7 @@ export function InspectorAdminView({
           job={selectedJob}
           onUpdate={updateJob}
           onBack={() => setSelectedJobId(null)}
+          returnNav={returnNav}
           actorName={adminDisplayName}
           actorAdminRole={adminRole !== "inspector" ? adminRole : "admin"}
           contacts={contacts}
@@ -339,6 +342,15 @@ export function InspectorAdminView({
           className="max-w-4xl mx-auto w-full px-4 sm:px-8 py-8 space-y-6"
           style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
         >
+          {returnNav && (
+            <button
+              type="button"
+              onClick={returnNav.onBack}
+              className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px] -ml-1 mb-2"
+            >
+              <ArrowLeft size={16}/>Wróć do {returnNav.label}
+            </button>
+          )}
           <div className="flex gap-2 flex-wrap">
             <button
               type="button"
@@ -371,7 +383,7 @@ export function InspectorAdminView({
                 <div className="min-w-0">
                   <h2 className="text-base font-semibold">Aktywność inspektora</h2>
                   <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                    Dokumenty, etapy, notatki i pliki — osobno od zakładki Roboty.
+                    Wpisy z aplikacji inspektora: dokumenty, pliki, etapy WM, notatki. Kliknij adres — szczegóły roboty.
                   </p>
                 </div>
               </div>

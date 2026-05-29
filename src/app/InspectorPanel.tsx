@@ -73,7 +73,6 @@ import {
   InspectorBottomNav,
   InspectorJobSectionNav,
   InspectorQuickActions,
-  useInspectorSectionSpy,
   type InspectorJobSection,
   type InspectorMainTab,
 } from "@/app/InspectorNavigation";
@@ -225,6 +224,7 @@ export function InspectorPanel({
   const [flushingPhotoQueue, setFlushingPhotoQueue] = useState(false);
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
   const [athPreviewEnabled, setAthPreviewEnabled] = useState(() => loadAppSettingsLocal().athPreviewEnabled);
+  const [jobSection, setJobSection] = useState<InspectorJobSection>("wm");
 
   useEffect(() => {
     syncAppSettingsFromCloud()
@@ -239,7 +239,8 @@ export function InspectorPanel({
   useEffect(() => { refreshPhotoQueueCount(); }, [refreshPhotoQueueCount]);
 
   const scrollToJobSection = useCallback((id: InspectorJobSection) => {
-    document.getElementById(`inspector-section-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setJobSection(id);
+    jobScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   const directoryContacts = useMemo(
@@ -306,11 +307,10 @@ export function InspectorPanel({
     setMainTab("jobs");
     setMsg("");
     setOpenReportId(null);
+    if (section) setJobSection(section);
+    else setJobSection("wm");
     if (adminNotesPending.some((j) => j.id === jobId)) markAdminNotesSeen();
-    if (section) {
-      window.setTimeout(() => scrollToJobSection(section), 150);
-    }
-  }, [scrollToJobSection, adminNotesPending]);
+  }, [adminNotesPending]);
 
   const dashboardAlertCount = useMemo(() => {
     const stats = computeInspectorDashboardStats(jobs, adminNotesPending.length);
@@ -559,12 +559,6 @@ export function InspectorPanel({
   const listPull = usePullToRefresh(listScrollRef, pullRefresh, !selectedId && mainTab === "jobs");
   const jobPull = usePullToRefresh(jobScrollRef, pullRefresh, Boolean(selectedId));
   const portfolioPull = usePullToRefresh(portfolioScrollRef, pullRefresh, !selectedId && mainTab === "portfolio");
-
-  const activeJobSection = useInspectorSectionSpy(
-    ["wm", "files", "docs", "team", "reports", "photos"],
-    jobScrollRef,
-    Boolean(selectedJob),
-  );
 
   const jobSectionBadges = useMemo((): Partial<Record<InspectorJobSection, number>> => {
     if (!selectedJob) return {};
@@ -901,16 +895,26 @@ export function InspectorPanel({
               <JobMetaBadges job={selectedJob}/>
             </div>
             <InspectorJobSectionNav
-              active={activeJobSection}
+              active={jobSection}
               badges={jobSectionBadges}
               onSelect={scrollToJobSection}
             />
+            <p className="text-[10px] text-muted-foreground px-0.5 pb-1">
+              {jobSection === "wm" && "Etap odbioru WM, notatki i odpowiedzi od admina"}
+              {jobSection === "files" && "Zlecenie PDF i kosztorys — oznacz „Jest” lub wgraj plik"}
+              {jobSection === "docs" && "Checklist dokumentów wymaganych przy odbiorze"}
+              {jobSection === "team" && "Kto pracował na robocie — numery telefonów"}
+              {jobSection === "reports" && "Raporty ekipy: zakres prac, wymiary, rysunki"}
+              {jobSection === "photos" && "Zdjęcia ekipy i własne zdjęcia inspektora"}
+            </p>
           </div>
 
           <div ref={jobScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-5 max-w-2xl mx-auto w-full" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
             <PullToRefreshIndicator pull={jobPull.pull} refreshing={jobPull.refreshing || syncing} ready={jobPull.ready}/>
             {msg && <p className="text-xs text-primary bg-primary/10 rounded-lg px-3 py-2">{msg}</p>}
 
+            {jobSection === "wm" && (
+            <>
             {stageSuggestion?.jobId === selectedJob.id && (
               <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
                 <p className="text-xs text-emerald-700 dark:text-emerald-300 flex-1">
@@ -961,7 +965,7 @@ export function InspectorPanel({
               <InspectorQuickActions items={jobQuickActions} onSelect={scrollToJobSection}/>
             </div>
 
-            <section id="inspector-section-wm" className="scroll-mt-44 space-y-3">
+            <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 px-0.5">Odbiór WM — etap, notatki, zdjęcia</p>
             <JobWmPanel
               job={selectedJob}
@@ -971,7 +975,7 @@ export function InspectorPanel({
               directory={directoryContacts}
               onGoToPhotos={() => scrollToJobSection("photos")}
             />
-            </section>
+            </div>
 
             {jobInspectorHistory(selectedJob).length > 0 && (
               <div className="bg-card border border-border rounded-2xl p-4">
@@ -995,8 +999,11 @@ export function InspectorPanel({
                 </div>
               </div>
             )}
+            </>
+            )}
 
-            <section id="inspector-section-files" className="scroll-mt-44 space-y-3">
+            {jobSection === "files" && (
+            <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-0.5">Zlecenie i kosztorys</p>
             <div className="grid sm:grid-cols-2 gap-3">
               {(["zlecenie", "kosztorys"] as const).map((kind) => {
@@ -1061,9 +1068,10 @@ export function InspectorPanel({
                 );
               })}
             </div>
-            </section>
+            </div>
+            )}
 
-            <section id="inspector-section-docs" className="scroll-mt-44">
+            {jobSection === "docs" && (
             <div className="bg-card border border-border rounded-2xl p-4">
               <p className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <ClipboardList size={15}/> Dokumentacja robót
@@ -1093,9 +1101,9 @@ export function InspectorPanel({
                 </p>
               )}
             </div>
-            </section>
+            )}
 
-            <section id="inspector-section-team" className="scroll-mt-44">
+            {jobSection === "team" && (
             <div className="bg-card border border-border rounded-2xl p-4">
               <p className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <Users size={15}/> Pracownicy na robocie
@@ -1121,9 +1129,9 @@ export function InspectorPanel({
                 </div>
               )}
             </div>
-            </section>
+            )}
 
-            <section id="inspector-section-reports" className="scroll-mt-44">
+            {jobSection === "reports" && (
             <div className="bg-card border border-border rounded-2xl overflow-hidden">
               <div className="px-4 py-3 border-b border-border">
                 <p className="text-sm font-semibold flex items-center gap-2">
@@ -1209,9 +1217,9 @@ export function InspectorPanel({
                 </div>
               )}
             </div>
-            </section>
+            )}
 
-            <section id="inspector-section-photos" className="scroll-mt-44">
+            {jobSection === "photos" && (
               <InspectorPhotoGallery
                 jobAddress={selectedJob.address || "robota"}
                 crewPhotos={selectedJob.photos || []}
@@ -1221,9 +1229,9 @@ export function InspectorPanel({
                 canUpload
                 onUploadInspectorPhoto={handleInspectorPhotoUpload}
               />
-            </section>
+            )}
 
-            {selectedJob.notes && (
+            {selectedJob.notes && jobSection === "wm" && (
               <div className="bg-card border border-border rounded-2xl p-4">
                 <p className="text-xs font-medium text-muted-foreground mb-1">Notatki</p>
                 <p className="text-sm whitespace-pre-wrap">{selectedJob.notes}</p>

@@ -44,6 +44,7 @@ export function InspectorAdminJobDetail({
   job,
   onUpdate,
   onBack,
+  returnNav,
   actorName,
   actorAdminRole = "admin",
   contacts,
@@ -53,6 +54,7 @@ export function InspectorAdminJobDetail({
   job: JobWithActivity & JobWmJobMutable;
   onUpdate: (job: JobWithActivity & JobWmJobMutable) => void;
   onBack: () => void;
+  returnNav?: { label: string; onBack: () => void };
   actorName: string;
   actorAdminRole?: AdminRole;
   contacts: EmailContact[];
@@ -135,9 +137,16 @@ export function InspectorAdminJobDetail({
           className="max-w-4xl mx-auto w-full px-4 sm:px-8 py-8 space-y-5"
           style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
         >
-          <button type="button" onClick={onBack} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px] -ml-1">
-            <ArrowLeft size={16}/>Lista inspektora
-          </button>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
+            <button type="button" onClick={onBack} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px] -ml-1">
+              <ArrowLeft size={16}/>Lista inspektora
+            </button>
+            {returnNav && (
+              <button type="button" onClick={returnNav.onBack} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary min-h-[44px]">
+                <ArrowLeft size={16}/>{returnNav.label}
+              </button>
+            )}
+          </div>
         {stageSuggestion && (
           <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
             <p className="text-xs text-emerald-700 dark:text-emerald-300 flex-1">

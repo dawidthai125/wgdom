@@ -21,8 +21,8 @@ export const JOB_SECTIONS: {
   icon: typeof List;
 }[] = [
   { id: "wm", label: "Odbiór WM", short: "WM", icon: Calendar },
-  { id: "files", label: "Zlecenie i kosztorys", short: "Pliki", icon: FileText },
-  { id: "docs", label: "Dokumentacja", short: "Dok.", icon: ClipboardList },
+  { id: "files", label: "Pliki", short: "Pliki", icon: FileText },
+  { id: "docs", label: "Dokumenty", short: "Dok.", icon: ClipboardList },
   { id: "team", label: "Pracownicy", short: "Ekipa", icon: Users },
   { id: "reports", label: "Zakresy i wymiary", short: "Raporty", icon: Ruler },
   { id: "photos", label: "Galeria zdjęć", short: "Zdjęcia", icon: ImagePlus },
@@ -94,9 +94,9 @@ export function InspectorJobSectionNav({
 }) {
   return (
     <div className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur border-b border-border/80">
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 px-0.5">Przejdź do sekcji</p>
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 px-0.5">Sekcja roboty</p>
       <div className="flex gap-1.5 overflow-x-auto overscroll-x-contain pb-0.5 scrollbar-none" style={{ WebkitOverflowScrolling: "touch" }}>
-        {JOB_SECTIONS.map(({ id, short, icon: Icon }) => {
+        {JOB_SECTIONS.map(({ id, label, icon: Icon }) => {
           const on = active === id;
           const badge = badges?.[id];
           return (
@@ -110,8 +110,8 @@ export function InspectorJobSectionNav({
                   : "bg-secondary/80 text-muted-foreground hover:text-foreground hover:bg-secondary"
               }`}
             >
-              <Icon size={13}/>
-              {short}
+          <Icon size={13}/>
+          {label}
               {badge != null && badge > 0 && (
                 <span className={`ml-0.5 min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold flex items-center justify-center ${
                   on ? "bg-primary-foreground/20 text-primary-foreground" : "bg-violet-600 text-white"

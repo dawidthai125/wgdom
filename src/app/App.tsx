@@ -5813,6 +5813,7 @@ function JobsView({
   weekFrom,
   onGoToInspector,
   athPreviewEnabled,
+  returnNav,
 }: {
   jobs: Job[];
   setJobs: (v: Job[] | ((p: Job[]) => Job[])) => void;
@@ -5825,6 +5826,7 @@ function JobsView({
   weekFrom: string;
   onGoToInspector?: (jobId?: string) => void;
   athPreviewEnabled: boolean;
+  returnNav?: { label: string; onBack: () => void };
 }) {
   const { canViewRates, session: adminSession } = useAdminAccess();
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
@@ -6379,6 +6381,15 @@ function JobsView({
       <div className={`flex flex-col border-r border-border bg-card shrink-0 overflow-hidden transition-all duration-300 ${selectedJob?"hidden sm:flex sm:w-72 lg:w-80":"flex w-full sm:w-72 lg:w-80"}`}>
         {/* Top */}
         <div className="px-4 pt-4 pb-3 space-y-3 border-b border-border">
+          {returnNav && (
+            <button
+              type="button"
+              onClick={() => { setSelectedJobId(null); returnNav.onBack(); }}
+              className="w-full flex items-center gap-2 text-sm font-medium text-primary px-1 py-1.5 rounded-lg hover:bg-primary/10 transition-colors"
+            >
+              <ArrowLeft size={16}/>Wróć do {returnNav.label}
+            </button>
+          )}
           <button onClick={addJob} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors">
             <Plus size={14}/>Nowa robota
           </button>
@@ -9090,6 +9101,14 @@ function HelpView() {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.33.0", label:"Inspektor + nawigacja — zakładki i powrót do Pulpitu",
+    items:[
+      {type:"fix", text:"Aplikacja inspektora — sekcje (Pliki, Dokumenty, Zdjęcia…) jako zakładki; kliknięcie od razu pokazuje treść"},
+      {type:"improve", text:"Roboty / Inspektor — przycisk „Wróć do Pulpitu” po wejściu z pulpitu (alert, skrót)"},
+      {type:"improve", text:"Inspektor admin — krótszy opis listy aktywności i powrót do poprzedniej zakładki"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.32.4", label:"Roboty — zdjęcia admina (wiele + kategoria)",
     items:[
       {type:"fix", text:"Admin w zakładce Zdjęcia — wybór wielu plików naraz zapisuje wszystkie (wcześniej zostawało tylko ostatnie)"},
@@ -11097,6 +11116,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [appSettings, setAppSettings] = useState<AppSettings>(() => loadAppSettingsLocal());
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [payrollDetailOpen, setPayrollDetailOpen] = useState(false);
+  const [viewReturn, setViewReturn] = useState<{ view: View; label: string } | null>(null);
   const [syncStatus, setSyncStatus] = useState<"idle"|"saving"|"saved"|"error"|"offline">("idle");
   const [syncError, setSyncError] = useState("");
   const syncTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
@@ -11645,6 +11665,21 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [jobs, directory, productionWeekEmployees, weekFrom]);
 
   const handleNavigate = useCallback((v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string, payrollEmpId?: string, inspectorTab?: "activity" | "portfolio") => {
+    const dest = v as View;
+    const returnLabels: Partial<Record<View, string>> = {
+      dashboard: "Pulpit",
+      payroll: "Lista płac",
+      schedule: "Grafik",
+      directory: "Kartoteka",
+      inspector: "Inspektor",
+      archive: "Archiwum",
+      jobs: "Roboty",
+    };
+    if ((dest === "jobs" || dest === "inspector") && view !== dest) {
+      setViewReturn({ view, label: returnLabels[view] ?? "Wstecz" });
+    } else if (dest !== "jobs" && dest !== "inspector") {
+      setViewReturn(null);
+    }
     if (jobId) {
       if (v === "inspector") setPendingInspectorJobId(jobId);
       else setPendingJobId(jobId);
@@ -11652,7 +11687,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (payrollEmpId) setPendingPayrollEmpId(payrollEmpId);
     if (inspectorTab) setInspectorInitialTab(inspectorTab);
     else if (v !== "inspector") setInspectorInitialTab("activity");
-    setView(v as View);
+    setView(dest);
+    setMobileMoreOpen(false);
+  }, [view]);
+
+  const goToView = useCallback((v: View) => {
+    setViewReturn(null);
+    setView(v);
     setMobileMoreOpen(false);
   }, []);
 
@@ -11694,7 +11735,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         <nav className="px-3 py-4 space-y-1 border-b border-border">
           {navItems.map(({key,label,hint,icon:Icon,badge})=>(
             <NavItemWithHint key={key} hint={hint}>
-              <button onClick={()=>setView(key)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
+              <button onClick={()=>goToView(key)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
                 <Icon size={15}/>
                 <span className="flex-1 text-left">{label}</span>
                 {badge!==undefined&&badge>0&&<span className={`text-xs px-1.5 py-0.5 rounded-full ${view===key?"bg-primary/20 text-primary":"bg-secondary text-muted-foreground"}`}>{badge}</span>}
@@ -11761,7 +11802,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           {/* Desktop: collapsed nav */}
           {!sidebarOpen&&<div className="hidden md:flex gap-1">
             {navItems.map(({key,label,icon:Icon})=>(
-              <button key={key} onClick={()=>setView(key)} className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:bg-secondary"}`}><Icon size={12}/>{label}</button>
+              <button key={key} onClick={()=>goToView(key)} className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:bg-secondary"}`}><Icon size={12}/>{label}</button>
             ))}
           </div>}
           <ChevronRight size={13} className="text-muted-foreground/40 hidden sm:block"/>
@@ -11869,8 +11910,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory} onOpenSms={()=>setShowSmsModal(true)}/>}
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>{ addDeletedArchiveId(id); setSavedWeeks(prev=>prev.filter(w=>w.id!==id)); }} onUpdateWeekEmployee={updateArchiveWeekEmployee} onToggleArchiveSettled={toggleArchiveSettled} jobs={jobs} directory={directory}/>}
-          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={(jobId)=>{ if (jobId) setPendingInspectorJobId(jobId); setView("inspector"); }} athPreviewEnabled={appSettings.athPreviewEnabled}/>}
-          {view==="inspector"&&<InspectorAdminView jobs={jobs} setJobs={setJobs} directory={directory} adminUserId={adminSession?.id} adminDisplayName={adminSession?.displayName || "Administrator"} adminRole={adminSession?.role} initialTab={inspectorInitialTab} initialJobId={pendingInspectorJobId} onInitialJobConsumed={()=>setPendingInspectorJobId(null)} contacts={contacts} athPreviewEnabled={appSettings.athPreviewEnabled} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)}/>}
+          {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={(jobId)=>{ if (jobId) setPendingInspectorJobId(jobId); setViewReturn({ view: "jobs", label: "Roboty" }); setView("inspector"); }} athPreviewEnabled={appSettings.athPreviewEnabled} returnNav={viewReturn && viewReturn.view !== "jobs" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingJobId(null); } } : undefined}/>}
+          {view==="inspector"&&<InspectorAdminView jobs={jobs} setJobs={setJobs} directory={directory} adminUserId={adminSession?.id} adminDisplayName={adminSession?.displayName || "Administrator"} adminRole={adminSession?.role} initialTab={inspectorInitialTab} initialJobId={pendingInspectorJobId} onInitialJobConsumed={()=>setPendingInspectorJobId(null)} contacts={contacts} athPreviewEnabled={appSettings.athPreviewEnabled} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} returnNav={viewReturn && viewReturn.view !== "inspector" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingInspectorJobId(null); } } : undefined}/>}
           {view==="photos"&&<JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="changelog"&&<ChangelogView/>}
           {view==="help"&&<HelpView/>}
@@ -11880,7 +11921,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         {!payrollDetailOpen && (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex z-40" style={{paddingBottom:"env(safe-area-inset-bottom)"}}>
           {mobileNavPrimary.map(({key,icon:Icon,badge})=>(
-            <button key={key} onClick={()=>{setView(key);setMobileMoreOpen(false);}} className={`flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[52px] py-2 relative transition-colors ${view===key?"text-primary":"text-muted-foreground"}`}>
+            <button key={key} onClick={()=>goToView(key)} className={`flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[52px] py-2 relative transition-colors ${view===key?"text-primary":"text-muted-foreground"}`}>
               <div className="relative">
                 <Icon size={22}/>
                 {badge!==undefined&&badge>0&&<span className="absolute -top-1 -right-1.5 min-w-4 h-4 flex items-center justify-center text-[9px] font-bold rounded-full bg-primary text-primary-foreground px-0.5">{badge>99?"99+":badge}</span>}
@@ -11919,7 +11960,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
                   <button
                     key={key}
                     type="button"
-                    onClick={()=>{setView(key);setMobileMoreOpen(false);}}
+                    onClick={()=>{ goToView(key); }}
                     className={`flex flex-col items-center justify-center gap-1.5 min-h-[72px] rounded-xl border transition-colors ${view===key?"bg-primary/15 border-primary/40 text-primary":"bg-secondary/40 border-border text-muted-foreground hover:text-foreground"}`}
                   >
                     <div className="relative">
