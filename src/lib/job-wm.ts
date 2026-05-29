@@ -131,6 +131,16 @@ export function mergeInspectorPhotos(
   return [...map.values()].sort((x, y) => y.uploadedAt.localeCompare(x.uploadedAt)).slice(0, 200);
 }
 
+/** Usuń zdjęcie inspektora z listy robota. */
+export function removeInspectorPhoto<T extends { inspectorPhotos?: InspectorPhotoEntry[] }>(
+  job: T,
+  photoId: string,
+): T {
+  const inspectorPhotos = (job.inspectorPhotos || []).filter((p) => p.id !== photoId);
+  if (inspectorPhotos.length === (job.inspectorPhotos || []).length) return job;
+  return { ...job, inspectorPhotos };
+}
+
 export function stageBadgeClass(stage: JobHandoverStage): string {
   switch (stage) {
     case "awaiting_order":

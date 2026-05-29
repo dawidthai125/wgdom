@@ -49,7 +49,7 @@ export function JobFilePreviewModal({
             <p className="text-sm font-semibold truncate">Podgląd — {filename}</p>
             {isKosztorys && !isPdf && (
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Best-effort — pliki binarne ATH mogą pokazać tylko fragmenty. Pełny widok: NORMA lub PDF.
+                  Kosztorys ATH/NOR — odczyt sekcji pozycji. Pełny widok: NORMA lub PDF.
                 </p>
             )}
           </div>

@@ -11,16 +11,19 @@ import {
   type JobWithActivity,
 } from "@/lib/job-activity";
 import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
-import { uploadJobFile } from "@/lib/job-file-upload";
+import { uploadJobFile, deleteJobFile } from "@/lib/job-file-upload";
 import {
   latestJobFile,
   DOC_LABELS,
+  removeJobFileAttachment,
+  resolveJobFileStoragePath,
 } from "@/lib/job-documents";
 import {
   applyHandoverStageToJob,
   inferHandoverStage,
   HANDOVER_STAGE_LABELS,
   normalizeJobWmFields,
+  removeInspectorPhoto,
   type JobHandoverStage,
 } from "@/lib/job-wm";
 import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
@@ -28,6 +31,7 @@ import { normalizeJobMetaFields } from "@/lib/job-meta";
 import type { EmailContact } from "@/lib/email-contacts";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
 import type { AdminRole } from "@/lib/admin-auth";
+import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 
 function fmtDate(iso: string): string {
   if (!iso) return "—";
@@ -95,6 +99,33 @@ export function InspectorAdminJobDetail({
       setStageSuggestion("in_progress");
     }
     setUploadBusy(null);
+  };
+
+  const handleDeleteFile = async (item: InspectorFileItem) => {
+    const label = item.kind === "jobFile"
+      ? item.file.filename
+      : (item.file.caption || "zdjęcie inspektora");
+    if (!window.confirm(`Usunąć „${label}”?\n\nPlik zostanie usunięty ze storage i zniknie wszędzie w aplikacji.`)) {
+      return;
+    }
+    const path = item.kind === "jobFile"
+      ? resolveJobFileStoragePath(item.file)
+      : item.file.path;
+    if (path) {
+      const { ok, error } = await deleteJobFile(path);
+      if (!ok) {
+        window.alert(error || "Nie udało się usunąć pliku ze storage");
+        return;
+      }
+    }
+    const now = new Date().toISOString();
+    const next = item.kind === "jobFile"
+      ? removeJobFileAttachment({ ...job, updatedAt: now }, item.file.id)
+      : { ...removeInspectorPhoto({ ...job, updatedAt: now }, item.file.id), updatedAt: now };
+    updateJob(next, {
+      type: item.kind === "jobFile" ? "inspector_file" : "inspector_photo",
+      text: `Usunięto ${item.kind === "jobFile" ? "plik" : "zdjęcie"}: ${label}`,
+    });
   };
 
   return (
@@ -243,6 +274,7 @@ export function InspectorAdminJobDetail({
           contacts={contacts}
           packSource={job}
           onEmailSent={(to) => updateJob(job, { type: "email_sent", text: `Wysłano pliki inspektora na ${to}` })}
+          onDeleteFile={handleDeleteFile}
         />
 
         {jobInspectorHistory().length > 0 && (

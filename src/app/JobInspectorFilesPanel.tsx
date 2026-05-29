@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-  FileText, Download, Mail, Eye, ClipboardList, Camera, Upload, Package,
+  FileText, Download, Mail, Eye, ClipboardList, Camera, Upload, Package, Trash2,
 } from "lucide-react";
 import type { JobFileAttachment } from "@/lib/job-documents";
 import type { InspectorPhotoEntry } from "@/lib/job-wm";
@@ -36,6 +36,7 @@ export function JobInspectorFilesPanel({
   athPreviewEnabled,
   contacts,
   onEmailSent,
+  onDeleteFile,
   packSource,
 }: {
   jobId: string;
@@ -46,12 +47,14 @@ export function JobInspectorFilesPanel({
   athPreviewEnabled: boolean;
   contacts: EmailContact[];
   onEmailSent?: (to: string) => void;
+  onDeleteFile?: (item: InspectorFileItem) => void | Promise<void>;
   packSource?: JobPackSource;
 }) {
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
   const [emailItems, setEmailItems] = useState<InspectorFileItem[] | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [packBusy, setPackBusy] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState<string | null>(null);
 
   const items = useMemo((): InspectorFileItem[] => {
     const list: InspectorFileItem[] = [];
@@ -213,6 +216,28 @@ export function JobInspectorFilesPanel({
                   >
                     <Mail size={12}/> Email
                   </button>
+                  {onDeleteFile && (
+                    <button
+                      type="button"
+                      disabled={deleteBusy === key}
+                      onClick={async () => {
+                        setDeleteBusy(key);
+                        try {
+                          await onDeleteFile(item);
+                          setSelected((prev) => {
+                            const next = new Set(prev);
+                            next.delete(key);
+                            return next;
+                          });
+                        } finally {
+                          setDeleteBusy(null);
+                        }
+                      }}
+                      className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg text-destructive hover:bg-destructive/10 font-medium disabled:opacity-50"
+                    >
+                      <Trash2 size={12}/> {deleteBusy === key ? "…" : "Usuń"}
+                    </button>
+                  )}
                 </div>
               </div>
             );

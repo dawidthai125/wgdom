@@ -852,6 +852,30 @@ app.post("/make-server-0afb8820/storage-upload", async (c) => {
   }
 });
 
+/** Usuń plik ze storage (zlecenie/kosztorys/zdjęcie inspektora). */
+app.post("/make-server-0afb8820/storage-delete", async (c) => {
+  try {
+    const { path } = await c.req.json();
+    if (!path || typeof path !== "string") {
+      return c.json({ ok: false, error: "Brak path" }, 400);
+    }
+    if (!path.startsWith("jobs/")) {
+      return c.json({ ok: false, error: "Niedozwolona ścieżka" }, 403);
+    }
+    await ensurePhotosBucket();
+    const supabase = supabaseAdmin();
+    const { error } = await supabase.storage.from(PHOTOS_BUCKET).remove([path]);
+    if (error) {
+      console.error("storage-delete:", error);
+      return c.json({ ok: false, error: error.message }, 500);
+    }
+    return c.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    return c.json({ ok: false, error: String(e) }, 500);
+  }
+});
+
 /** Pobierz kosztorys ze storage (proxy — omija CORS, binarne ATH). */
 app.post("/make-server-0afb8820/kosztorys-preview", async (c) => {
   try {

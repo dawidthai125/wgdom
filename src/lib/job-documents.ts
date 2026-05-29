@@ -319,3 +319,18 @@ export function mergeJobFiles(
   }
   return [...byKind.values()];
 }
+
+/** Usuń plik inspektora z jobFiles; odznacz dokument gdy brak pliku tego typu. */
+export function removeJobFileAttachment<T extends {
+  documents: Record<DocType, boolean>;
+  jobFiles?: JobFileAttachment[];
+}>(job: T, fileId: string): T {
+  const file = (job.jobFiles || []).find((f) => f.id === fileId);
+  if (!file) return job;
+  const jobFiles = (job.jobFiles || []).filter((f) => f.id !== fileId);
+  const documents = { ...job.documents };
+  if (!jobFiles.some((f) => f.kind === file.kind)) {
+    documents[file.kind] = false;
+  }
+  return syncJobDocuments({ ...job, jobFiles, documents });
+}

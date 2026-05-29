@@ -46,3 +46,22 @@ export async function uploadJobFile(
     return { attachment: null, error: "Brak połączenia z internetem" };
   }
 }
+
+export async function deleteJobFile(
+  storagePath: string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/storage-delete`, {
+      method: "POST",
+      headers: API_HEADERS,
+      body: JSON.stringify({ path: storagePath }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      return { ok: false, error: data.error || `Błąd serwera (${res.status})` };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Brak połączenia z internetem" };
+  }
+}

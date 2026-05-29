@@ -118,6 +118,106 @@ function parseNumberLike(s: string): boolean {
   return /^-?\d[\d\s,.]*$/.test(s.trim());
 }
 
+function isAthenasoftKosztorys(text: string): boolean {
+  return text.includes("[KOSZTORYS ATHENASOFT]");
+}
+
+function parseIniField(block: string, key: string): string | undefined {
+  const re = new RegExp(`^${key}=(.*)$`, "m");
+  const m = block.match(re);
+  return m?.[1]?.trim();
+}
+
+function firstTabToken(s: string): string {
+  return s.split("\t")[0].trim();
+}
+
+function firstNumericToken(s: string): string {
+  const m = s.trim().match(/^[\d.,]+/);
+  return m ? m[0].replace(",", ".") : "";
+}
+
+function extractKnrCode(pd: string): string {
+  const knrMatch = pd.match(/KNR[\t\s]+([\d-]+)[\t\s]+([\d-]+(?:-\d+)?)/i);
+  if (knrMatch) return `KNR ${knrMatch[1]} ${knrMatch[2]}`.trim();
+  const parts = pd.split("\t").map((p) => p.trim()).filter(Boolean);
+  const idx = parts.findIndex((p) => /^KNR$/i.test(p));
+  if (idx >= 0 && parts[idx + 1]) {
+    const sub = parts[idx + 2] || "";
+    return sub ? `KNR ${parts[idx + 1]} ${sub}` : `KNR ${parts[idx + 1]}`;
+  }
+  return "";
+}
+
+/** Tekstowy format ATH Athenasoft — sekcje [POZYCJA] z polami na=, jm=, ob=, kj=, wn=. */
+function parseAthAthenasoftIni(text: string): AthPreviewResult {
+  const warnings = [
+    "Format ATH Athenasoft — podgląd z sekcji [POZYCJA]. Do pełnej weryfikacji użyj NORMA lub PDF.",
+  ];
+
+  const headerEnd = text.indexOf("\n[");
+  const header = headerEnd > 0 ? text.slice(0, headerEnd) : text.slice(0, 3000);
+
+  let title = parseIniField(header, "nan");
+  const stBlock = text.match(/\[STRONA TYT\][\s\S]*?(?=\n\[|$)/)?.[0];
+  if (stBlock) {
+    const nb = parseIniField(stBlock, "nb");
+    const ab = parseIniField(stBlock, "ab");
+    const na = parseIniField(stBlock, "na");
+    if (nb && ab) title = `${nb} — ${ab}`;
+    else if (nb) title = nb;
+    else if (na) title = na;
+  }
+
+  const totalValue = firstNumericToken(parseIniField(header, "wk") || "");
+
+  const rows: AthPreviewRow[] = [];
+  const sections = text.split("[POZYCJA]");
+  for (let i = 1; i < sections.length; i += 1) {
+    const block = sections[i];
+    const nextSection = block.search(/\n\[[A-Z0-9 ]+\]/);
+    const body = nextSection >= 0 ? block.slice(0, nextSection) : block;
+
+    const description = parseIniField(body, "na");
+    if (!description) continue;
+
+    const pd = parseIniField(body, "pd") || "";
+    const jm = parseIniField(body, "jm") || "";
+    const ob = parseIniField(body, "ob") || "";
+    const kj = parseIniField(body, "kj") || "";
+    const wn = parseIniField(body, "wn") || "";
+
+    const qty = ob.replace(",", ".");
+    const total = firstNumericToken(wn) || firstNumericToken(wn.split("\t")[0] || "");
+    let unitPrice = firstNumericToken(kj);
+    if (!unitPrice && qty && total) {
+      const q = parseFloat(qty);
+      const t = parseFloat(total);
+      if (q > 0 && !Number.isNaN(t)) unitPrice = (t / q).toFixed(2);
+    }
+
+    rows.push({
+      lp: parseIniField(body, "nu") || String(rows.length + 1),
+      code: extractKnrCode(pd),
+      description,
+      unit: firstTabToken(jm),
+      quantity: qty,
+      unitPrice,
+      total,
+    });
+  }
+
+  return {
+    ok: rows.length > 0,
+    format: "text",
+    title,
+    rows: rows.slice(0, 500),
+    totalValue: totalValue || undefined,
+    summary: totalValue ? `Wartość kosztorysu: ${totalValue} PLN` : undefined,
+    warnings,
+  };
+}
+
 function parseTextTable(lines: string[]): AthPreviewRow[] {
   const rows: AthPreviewRow[] = [];
   for (const line of lines) {
@@ -210,6 +310,11 @@ export function parseKosztorysFile(content: string, filename: string): AthPrevie
     "Format ATH/NOR jest zamknięty — podgląd może być niepełny. Do pełnej weryfikacji użyj NORMA lub PDF.",
   ];
 
+  if (isAthenasoftKosztorys(content)) {
+    const parsed = parseAthAthenasoftIni(content);
+    if (parsed.rows.length > 0) return { ...parsed, warnings: [...warnings, ...parsed.warnings] };
+  }
+
   if (ext === "xml" || content.trimStart().startsWith("<")) {
     const xml = parseXml(content);
     return { ...xml, warnings: [...warnings, ...xml.warnings] };
@@ -255,6 +360,12 @@ export function parseKosztorysBytes(bytes: Uint8Array, filename: string): AthPre
   ];
 
   for (const text of decodeAttempts(bytes)) {
+    if (isAthenasoftKosztorys(text)) {
+      const parsed = parseAthAthenasoftIni(text);
+      if (parsed.rows.length > 0) {
+        return { ...parsed, warnings: [...warnings, ...parsed.warnings] };
+      }
+    }
     const embedded = extractEmbeddedXml(text);
     if (embedded) {
       const xmlResult = parseKosztorysFile(embedded, "export.xml");

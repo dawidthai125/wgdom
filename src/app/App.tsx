@@ -123,8 +123,11 @@ import {
   confirmReportSyncedDocUncheck,
   applyReportDocDocumentToggle,
   clearReportDocSaOverrideFromReport,
+  removeJobFileAttachment,
+  resolveJobFileStoragePath,
   type InspectorJobFileKind,
 } from "@/lib/job-documents";
+import { deleteJobFile } from "@/lib/job-file-upload";
 import {
   recordInspectorEvent,
   markInspectorFeedSeen,
@@ -5799,6 +5802,7 @@ function JobsView({
   const [workerFilter, setWorkerFilter] = useState<string>("");
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [packBusy, setPackBusy] = useState(false);
+  const [fileDeleteBusy, setFileDeleteBusy] = useState<string | null>(null);
 
   // Work entry add form state
   const [showAddEntry, setShowAddEntry] = useState(false);
@@ -5915,6 +5919,34 @@ function JobsView({
       ? appendJobActivity({ ...next, status: "completed" as const }, "status_change", "Automatycznie oznaczono jako zdane (komplet dokumentów)", "System")
       : next;
     setJobs((prev) => prev.map((j) => (j.id === withStatus.id ? withStatus : j)));
+  };
+
+  const handleDeleteJobFile = async (file: import("@/lib/job-documents").JobFileAttachment) => {
+    if (!selectedJob) return;
+    if (!window.confirm(`Usunąć „${file.filename}”?\n\nPlik zostanie usunięty ze storage i zniknie wszędzie w aplikacji.`)) {
+      return;
+    }
+    setFileDeleteBusy(file.id);
+    try {
+      const path = resolveJobFileStoragePath(file);
+      if (path) {
+        const { ok, error } = await deleteJobFile(path);
+        if (!ok) {
+          window.alert(error || "Nie udało się usunąć pliku ze storage");
+          return;
+        }
+      }
+      const next = removeJobFileAttachment(
+        { ...selectedJob, updatedAt: new Date().toISOString() },
+        file.id,
+      );
+      updateJob(next, {
+        type: "inspector_file",
+        text: `Usunięto plik inspektora: ${file.filename}`,
+      });
+    } finally {
+      setFileDeleteBusy(null);
+    }
   };
 
   const tryToggleStatus = (job: Job) => {
@@ -6760,6 +6792,14 @@ function JobsView({
                           >
                             <Download size={12}/> Pobierz
                           </a>
+                          <button
+                            type="button"
+                            disabled={fileDeleteBusy === file.id}
+                            onClick={() => handleDeleteJobFile(file)}
+                            className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg text-destructive hover:bg-destructive/10 font-medium disabled:opacity-50"
+                          >
+                            <Trash2 size={12}/> {fileDeleteBusy === file.id ? "…" : "Usuń"}
+                          </button>
                         </div>
                       </div>
                     );
@@ -8934,6 +8974,14 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-29", version:"2.30.5", label:"Pliki inspektora — usuwanie + podgląd ATH",
+    items:[
+      {type:"new", text:"Roboty i panel inspektora — przycisk Usuń przy plikach (zlecenie, kosztorys, zdjęcia); kasuje ze storage i synchronizuje w chmurze"},
+      {type:"fix", text:"Podgląd ATH Athenasoft — parser tekstowy [POZYCJA] (opis, KNR, j.m., ilość, cena, wartość) zamiast śmieci z binarnego odczytu"},
+      {type:"improve", text:"Sync chmury — nowsza wersja robota zastępuje listę jobFiles/zdjęć (usuwanie nie wraca po odświeżeniu)"},
+    ],
+  },
   {
     date:"2026-05-29", version:"2.30.4", label:"Lista płac — karta dodatkowych godzin",
     items:[

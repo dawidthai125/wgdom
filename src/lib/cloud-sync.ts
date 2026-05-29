@@ -304,10 +304,14 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
       ...pick,
       documents: mergeJobsDocumentsOnConflict(prev, j),
       reportDocSaOverride: mergeReportDocSaOverrideOnConflict(prev, j),
-      jobFiles: mergeJobFiles(prev.jobFiles, j.jobFiles),
+      jobFiles: jTs !== prevTs
+        ? (jTs >= prevTs ? (j.jobFiles || []) : (prev.jobFiles || []))
+        : mergeJobFiles(prev.jobFiles, j.jobFiles),
       activityLog: mergedLogs,
       jobNotes: mergeJobNotes(prev.jobNotes, j.jobNotes),
-      inspectorPhotos: mergeInspectorPhotos(prev.inspectorPhotos, j.inspectorPhotos),
+      inspectorPhotos: jTs !== prevTs
+        ? (jTs >= prevTs ? (j.inspectorPhotos || []) : (prev.inspectorPhotos || []))
+        : mergeInspectorPhotos(prev.inspectorPhotos, j.inspectorPhotos),
       plannedHandoverDate: mergePlannedHandoverDate(prev.plannedHandoverDate, j.plannedHandoverDate),
       handoverStage: mergeHandoverStage(
         prev.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,
