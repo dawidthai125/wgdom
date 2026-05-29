@@ -3,6 +3,7 @@ import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import { CompanyMusicPlayer } from "@/app/components/CompanyMusicPlayer";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { EmployeeSmsModal } from "@/app/EmployeeSmsModal";
+import { SmsModalErrorBoundary } from "@/app/SmsModalErrorBoundary";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { JobFilesBrowser } from "@/app/JobFilesBrowser";
 import { countBrowserFiles, jobHasBrowserFiles } from "@/lib/job-files-browser";
@@ -9104,6 +9105,12 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.35.4", label:"SMS pilne — naprawa pustego ekranu (2)",
+    items:[
+      {type:"fix", text:"SMS pilne z Pulpitu — modal bez portalu, stabilny layout, historia ładuje się dopiero w zakładce Historia; ErrorBoundary zamiast pustej strony"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.35.3", label:"Kosztorys — bez zbędnego ostrzeżenia ATH/NOR",
     items:[
       {type:"improve", text:"Przeglądarka kosztorysów i generowany PDF — usunięto komunikat „Format ATH/NOR jest zamknięty…” przy poprawnym podglądzie"},
@@ -12097,12 +12104,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         />
       )}
       {showSmsModal && (
-        <EmployeeSmsModal
-          open={showSmsModal}
-          onClose={() => setShowSmsModal(false)}
-          directory={directory}
-          sender={adminSession}
-        />
+        <SmsModalErrorBoundary onClose={() => setShowSmsModal(false)}>
+          <EmployeeSmsModal
+            open={showSmsModal}
+            onClose={() => setShowSmsModal(false)}
+            directory={directory}
+            sender={adminSession}
+          />
+        </SmsModalErrorBoundary>
       )}
       {showSaveConfirm && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4" style={{background:"rgba(0,0,0,0.7)"}} onClick={()=>setShowSaveConfirm(false)}>

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import { X, Send, MessageSquare, Users, AlertTriangle, CheckCircle2, Shield, HardHat, History, Clock } from "lucide-react";
 import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
 import { normalizePhoneE164, normalizePhone9 } from "@/lib/phone-normalize";
@@ -115,6 +114,27 @@ function fmtDateTime(iso: string): string {
   }
 }
 
+function safeAdminRoleLabel(role?: string): string {
+  if (!role) return "";
+  try {
+    return adminRoleLabel(role as import("@/lib/admin-auth").AdminRole) || role;
+  } catch {
+    return role;
+  }
+}
+
+function normalizeSmsDirectory(directory: SmsDirectoryEmployee[] | unknown): SmsDirectoryEmployee[] {
+  if (!Array.isArray(directory)) return [];
+  return directory.map((emp) => ({
+    id: String(emp?.id ?? ""),
+    name: String(emp?.name ?? ""),
+    phone: String(emp?.phone ?? ""),
+    position: String(emp?.position ?? ""),
+    active: emp?.active !== false,
+    testAccount: Boolean(emp?.testAccount),
+  }));
+}
+
 export function EmployeeSmsModal({
   open,
   onClose,
@@ -126,14 +146,15 @@ export function EmployeeSmsModal({
   directory: SmsDirectoryEmployee[];
   sender: AdminSession | null;
 }) {
+  const safeDirectory = useMemo(() => normalizeSmsDirectory(directory), [directory]);
   const eligible = useMemo(() => {
     try {
-      return buildRecipients(directory);
+      return buildRecipients(safeDirectory);
     } catch (e) {
       console.error("SMS recipients build failed", e);
       return [];
     }
-  }, [directory]);
+  }, [safeDirectory]);
   const employees = useMemo(() => eligible.filter((r) => r.group === "employee"), [eligible]);
   const team = useMemo(() => eligible.filter((r) => r.group === "team"), [eligible]);
 
@@ -159,7 +180,6 @@ export function EmployeeSmsModal({
   const [ensureBusy, setEnsureBusy] = useState(false);
   const [ensureNote, setEnsureNote] = useState("");
   const [selectedFrom, setSelectedFrom] = useState<SmsSenderName>("W&GDOM");
-  const [renderError, setRenderError] = useState("");
 
   const activeKnownSenders = useMemo(() => {
     const fromApi = smsStatus.sendernames
@@ -200,14 +220,14 @@ export function EmployeeSmsModal({
 
   useEffect(() => {
     if (!open) return;
-    setRenderError("");
     setTab("send");
     setSelected(new Set(eligible.map((r) => r.id)));
     setMessage("");
     setError("");
     setResult(null);
+    setHistory([]);
+    setHistoryError("");
     setSmsStatus((s) => ({ ...s, loading: true }));
-    void loadHistory();
     if (!API_BASE) {
       setSmsStatus({ loading: false, configured: false, provider: "none", restricted: false, statusError: "Brak backendu" });
       return;
@@ -254,7 +274,12 @@ export function EmployeeSmsModal({
           statusError: "Błąd połączenia — status SMS nieznany",
         });
       });
-  }, [open, eligible, loadHistory]);
+  }, [open, eligible]);
+
+  useEffect(() => {
+    if (!open || tab !== "history") return;
+    void loadHistory();
+  }, [open, tab, loadHistory]);
 
   const senderLabel = sender?.displayName?.trim() || "Administrator";
 
@@ -431,10 +456,10 @@ export function EmployeeSmsModal({
     );
   };
 
-  return createPortal(
-    <div className="fixed inset-0 z-[200] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/50" onClick={onClose}>
+  return (
+    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50" onClick={onClose}>
       <div
-        className="bg-card border border-border rounded-t-2xl md:rounded-2xl w-full max-w-lg shadow-xl flex flex-col h-[min(90dvh,720px)] md:h-auto md:max-h-[min(92vh,720px)]"
+        className="bg-card border border-border rounded-t-2xl sm:rounded-2xl w-full max-w-lg shadow-xl flex flex-col max-h-[min(92dvh,720px)] sm:max-h-[min(88vh,720px)]"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -447,7 +472,7 @@ export function EmployeeSmsModal({
               <h2 id="sms-modal-title" className="text-sm font-semibold truncate">SMS pilne</h2>
               <p className="text-[11px] text-muted-foreground truncate">
                 Nadawca: <span className="text-foreground/90 font-medium">{senderLabel}</span>
-                {sender?.role ? ` · ${adminRoleLabel(sender.role)}` : ""}
+                {sender?.role ? ` · ${safeAdminRoleLabel(sender.role)}` : ""}
               </p>
             </div>
           </div>
@@ -473,10 +498,7 @@ export function EmployeeSmsModal({
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-4 space-y-4">
-          {renderError && (
-            <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">{renderError}</p>
-          )}
+        <div className="overflow-y-auto overscroll-contain px-5 py-4 space-y-4 min-h-[240px] max-h-[calc(min(92dvh,720px)-11rem)] sm:max-h-[calc(min(88vh,720px)-11rem)]">
           {tab === "history" ? (
             <>
               {historyLoading && (
@@ -496,7 +518,7 @@ export function EmployeeSmsModal({
                         {entry.senderName}
                         {entry.senderRole ? (
                           <span className="text-[10px] font-normal text-muted-foreground ml-1.5">
-                            ({adminRoleLabel(entry.senderRole as import("@/lib/admin-auth").AdminRole)})
+                            ({safeAdminRoleLabel(entry.senderRole)})
                           </span>
                         ) : null}
                       </p>
@@ -513,7 +535,7 @@ export function EmployeeSmsModal({
                   </div>
                   <p className="text-xs bg-secondary/50 rounded-lg px-2.5 py-2 whitespace-pre-wrap">{entry.message}</p>
                   <div className="text-[10px] text-muted-foreground space-y-0.5 max-h-24 overflow-y-auto">
-                    {entry.recipients.map((r, i) => (
+                    {(entry.recipients ?? []).map((r, i) => (
                       <p key={i} className={r.ok ? "" : "text-destructive"}>
                         {r.ok ? "✓" : "✗"} {r.name} · {r.phone}
                         {!r.ok && r.error ? ` — ${r.error.slice(0, 60)}` : ""}
@@ -706,7 +728,6 @@ export function EmployeeSmsModal({
           </div>
         )}
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

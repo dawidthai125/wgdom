@@ -12,7 +12,7 @@ export function smsFromForDisplayName(displayName: string): SmsSenderName {
   const first = displayName.trim().split(/\s+/)[0] || "";
   const ascii = first
     .normalize("NFD")
-    .replace(/\p{M}/gu, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-zA-Z0-9]/g, "")
     .toLowerCase();
   if (ascii === "dawid") return "W&G-Dawid";
