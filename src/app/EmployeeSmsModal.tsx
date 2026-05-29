@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Send, MessageSquare, Users, AlertTriangle, CheckCircle2, Shield, HardHat, History, Clock } from "lucide-react";
 import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
 import { normalizePhoneE164, normalizePhone9 } from "@/lib/phone-normalize";
@@ -60,15 +61,19 @@ function buildRecipients(directory: SmsDirectoryEmployee[]): SmsRecipient[] {
     });
   }
 
-  for (const user of listAdminUsersForManagement()) {
-    if (!normalizePhone9(user.phone)) continue;
-    list.push({
-      id: `admin:${user.id}`,
-      name: user.displayName,
-      phone: user.phone,
-      subtitle: adminRoleLabel(user.role),
-      group: "team",
-    });
+  try {
+    for (const user of listAdminUsersForManagement()) {
+      if (!normalizePhone9(user.phone)) continue;
+      list.push({
+        id: `admin:${user.id}`,
+        name: user.displayName,
+        phone: user.phone,
+        subtitle: adminRoleLabel(user.role),
+        group: "team",
+      });
+    }
+  } catch {
+    /* kartoteka adminów niedostępna — lista pracowników nadal działa */
   }
 
   return list.sort((a, b) => {
@@ -121,7 +126,14 @@ export function EmployeeSmsModal({
   directory: SmsDirectoryEmployee[];
   sender: AdminSession | null;
 }) {
-  const eligible = useMemo(() => buildRecipients(directory), [directory]);
+  const eligible = useMemo(() => {
+    try {
+      return buildRecipients(directory);
+    } catch (e) {
+      console.error("SMS recipients build failed", e);
+      return [];
+    }
+  }, [directory]);
   const employees = useMemo(() => eligible.filter((r) => r.group === "employee"), [eligible]);
   const team = useMemo(() => eligible.filter((r) => r.group === "team"), [eligible]);
 
@@ -147,6 +159,7 @@ export function EmployeeSmsModal({
   const [ensureBusy, setEnsureBusy] = useState(false);
   const [ensureNote, setEnsureNote] = useState("");
   const [selectedFrom, setSelectedFrom] = useState<SmsSenderName>("W&GDOM");
+  const [renderError, setRenderError] = useState("");
 
   const activeKnownSenders = useMemo(() => {
     const fromApi = smsStatus.sendernames
@@ -187,6 +200,7 @@ export function EmployeeSmsModal({
 
   useEffect(() => {
     if (!open) return;
+    setRenderError("");
     setTab("send");
     setSelected(new Set(eligible.map((r) => r.id)));
     setMessage("");
@@ -417,17 +431,20 @@ export function EmployeeSmsModal({
     );
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[200] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/50" onClick={onClose}>
       <div
-        className="bg-card border border-border rounded-t-2xl md:rounded-2xl w-full max-w-lg max-h-[92vh] flex flex-col shadow-xl"
+        className="bg-card border border-border rounded-t-2xl md:rounded-2xl w-full max-w-lg shadow-xl flex flex-col h-[min(90dvh,720px)] md:h-auto md:max-h-[min(92vh,720px)]"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sms-modal-title"
       >
         <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             <MessageSquare size={18} className="text-primary shrink-0"/>
             <div className="min-w-0">
-              <h2 className="text-sm font-semibold truncate">SMS pilne</h2>
+              <h2 id="sms-modal-title" className="text-sm font-semibold truncate">SMS pilne</h2>
               <p className="text-[11px] text-muted-foreground truncate">
                 Nadawca: <span className="text-foreground/90 font-medium">{senderLabel}</span>
                 {sender?.role ? ` · ${adminRoleLabel(sender.role)}` : ""}
@@ -456,7 +473,10 @@ export function EmployeeSmsModal({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-4 space-y-4">
+          {renderError && (
+            <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">{renderError}</p>
+          )}
           {tab === "history" ? (
             <>
               {historyLoading && (
@@ -544,7 +564,7 @@ export function EmployeeSmsModal({
                     {SMS_SENDER_NAMES.map((name) => {
                       const status = senderStatusByName.get(senderNameKey(name));
                       const active = status === "ACTIVE" || isActiveSmsSender(name, activeKnownSenders);
-                      const selected = senderNameKey(selectedFrom) === senderNameKey(name);
+                      const isSelected = senderNameKey(selectedFrom) === senderNameKey(name);
                       return (
                         <button
                           key={name}
@@ -552,7 +572,7 @@ export function EmployeeSmsModal({
                           disabled={!active && smsStatus.provider === "smsapi" && !smsStatus.loading}
                           onClick={() => setSelectedFrom(name)}
                           className={`px-2.5 py-2 rounded-lg text-left text-[11px] border transition-colors ${
-                            selected
+                            isSelected
                               ? "border-primary bg-primary/10 text-foreground font-medium"
                               : active
                                 ? "border-border bg-card hover:bg-secondary/60"
@@ -686,6 +706,7 @@ export function EmployeeSmsModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
