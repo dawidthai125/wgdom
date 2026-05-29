@@ -2038,6 +2038,14 @@ function noticeId(row: BzpNoticeRow): string {
   return String(row.objectId || row.moIdentifier || row.bzpNumber || "");
 }
 
+function isOfferDeadlineOpen(row: BzpNoticeRow): boolean {
+  const raw = row.submittingOffersDate;
+  if (!raw) return false;
+  const d = new Date(String(raw));
+  if (Number.isNaN(d.getTime())) return false;
+  return d.getTime() > Date.now();
+}
+
 async function fetchBzpSearchPages(
   baseParams: Record<string, string>,
   maxPages: number,
@@ -2097,6 +2105,7 @@ function ingestNotices(
   let added = 0;
   for (const row of batch) {
     if (opts?.wroclawOnly && !isWroclawRelatedRow(row)) continue;
+    if (!isOfferDeadlineOpen(row)) continue;
     const id = noticeId(row);
     if (!id || seen.has(id)) continue;
     const { score, excluded } = scoreBzpNotice(row, { priorityOrg: opts?.priorityOrg });
@@ -2144,9 +2153,9 @@ app.get("/make-server-0afb8820/tenders-bzp-search", async (c) => {
     }
 
     all.sort((a, b) => {
-      const da = String(a.publicationDate || "");
-      const db = String(b.publicationDate || "");
-      return db.localeCompare(da);
+      const da = String(a.submittingOffersDate || a.publicationDate || "");
+      const db = String(b.submittingOffersDate || b.publicationDate || "");
+      return da.localeCompare(db);
     });
 
     return c.json({

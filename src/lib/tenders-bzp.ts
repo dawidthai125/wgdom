@@ -122,6 +122,66 @@ export function matchPriorityBuyer(orgName: string, organizationCity?: string): 
   return null;
 }
 
+/** Minimalna trafność, żeby przetarg trafił do widoku „Do zgłoszenia”. */
+export const TENDER_IMPORTANCE_MIN_SCORE = 15;
+
+export function parseTenderDeadline(iso: string | null | undefined): Date | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/** Termin składania ofert jeszcze nie minął. */
+export function isTenderOpenForOffers(iso: string | null | undefined, now = new Date()): boolean {
+  const d = parseTenderDeadline(iso);
+  if (!d) return false;
+  return d.getTime() > now.getTime();
+}
+
+export function daysUntilTenderDeadline(iso: string | null | undefined, now = new Date()): number | null {
+  const d = parseTenderDeadline(iso);
+  if (!d) return null;
+  return Math.ceil((d.getTime() - now.getTime()) / 86400000);
+}
+
+export function isTenderImportant(
+  item: Pick<TenderPipelineItem, "relevanceScore" | "priorityBuyerId">,
+): boolean {
+  return !!item.priorityBuyerId || item.relevanceScore >= TENDER_IMPORTANCE_MIN_SCORE;
+}
+
+/** Aktywny przetarg, w którym warto rozważyć udział. */
+export function isActionableTender(item: TenderPipelineItem, now = new Date()): boolean {
+  if (!isTenderOpenForOffers(item.submittingOffersDate, now)) return false;
+  if (item.status === "ignored" || item.status === "lost" || item.status === "won") return false;
+  return isTenderImportant(item);
+}
+
+/** Usuwa z pipeline zamknięte ogłoszenia, których nikt nie oznaczył. */
+export function pruneExpiredUntouched(items: TenderPipelineItem[]): TenderPipelineItem[] {
+  return items.filter((i) => {
+    if (isTenderOpenForOffers(i.submittingOffersDate)) return true;
+    return i.status !== "new" && i.status !== "seen";
+  });
+}
+
+export function sortTendersByUrgency(items: TenderPipelineItem[]): TenderPipelineItem[] {
+  return [...items].sort((a, b) => {
+    const aOpen = isTenderOpenForOffers(a.submittingOffersDate);
+    const bOpen = isTenderOpenForOffers(b.submittingOffersDate);
+    if (aOpen && !bOpen) return -1;
+    if (!aOpen && bOpen) return 1;
+    if (aOpen && bOpen) {
+      const da = a.submittingOffersDate || "";
+      const db = b.submittingOffersDate || "";
+      return da.localeCompare(db);
+    }
+    const pa = a.publicationDate || "";
+    const pb = b.publicationDate || "";
+    return pb.localeCompare(pa);
+  });
+}
+
 export function tenderEzamowieniaUrl(tenderId: string): string {
   if (!tenderId) return "https://ezamowienia.gov.pl/mo-client-board/";
   return `https://ezamowienia.gov.pl/mp-client/search/list/${encodeURIComponent(tenderId)}`;
@@ -205,11 +265,7 @@ export function mergeTenderPipeline(
         }
       : item);
   }
-  return [...map.values()].sort((a, b) => {
-    const da = a.submittingOffersDate || a.publicationDate;
-    const db = b.submittingOffersDate || b.publicationDate;
-    return db.localeCompare(da);
-  });
+  return sortTendersByUrgency([...map.values()]);
 }
 
 export async function fetchBzpTendersFromServer(opts?: {

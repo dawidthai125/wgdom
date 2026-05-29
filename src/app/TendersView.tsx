@@ -13,9 +13,15 @@ import {
   saveTendersPipeline,
   mergeTenderPipeline,
   mapBzpToPipelineItem,
+  isTenderOpenForOffers,
+  isActionableTender,
+  isTenderImportant,
+  daysUntilTenderDeadline,
+  pruneExpiredUntouched,
+  sortTendersByUrgency,
 } from "@/lib/tenders-bzp";
 
-type LocalFilter = "all" | "wroclaw" | "high" | "priority";
+type LocalFilter = "actionable" | "active" | "priority" | "wroclaw" | "high" | "archive" | "all";
 
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -27,10 +33,7 @@ function fmtDate(iso: string | null | undefined): string {
 }
 
 function daysUntil(iso: string | null): number | null {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return Math.ceil((d.getTime() - Date.now()) / 86400000);
+  return daysUntilTenderDeadline(iso);
 }
 
 export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean }) {
@@ -38,7 +41,7 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [search, setSearch] = useState("");
-  const [localFilter, setLocalFilter] = useState<LocalFilter>("all");
+  const [localFilter, setLocalFilter] = useState<LocalFilter>("actionable");
   const [statusFilter, setStatusFilter] = useState<TenderPipelineStatus | "all">("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -63,15 +66,16 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
     setSyncing(true);
     setError("");
     try {
-      const raw = await fetchBzpTendersFromServer({ days: 365, pages: 4, orgPages: 5, province: "PL02" });
+      const raw = await fetchBzpTendersFromServer({ days: 90, pages: 4, orgPages: 5, province: "PL02" });
       const mapped = raw.map((n) => {
         const prev = items.find((i) => i.id === String(n.objectId || n.moIdentifier || n.bzpNumber));
         return mapBzpToPipelineItem(n, prev);
       });
-      const merged = mergeTenderPipeline(items, mapped);
+      const merged = pruneExpiredUntouched(mergeTenderPipeline(items, mapped));
       await persist(merged);
-      const priorityN = mapped.filter((m) => m.priorityBuyerId).length;
-      toast.success(`Pobrano z BZP — ${mapped.length} ogłoszeń (w tym ${priorityN} od kluczowych zamawiających Wrocławia)`);
+      const actionableN = merged.filter((m) => isActionableTender(m)).length;
+      const priorityN = merged.filter((m) => isTenderOpenForOffers(m.submittingOffersDate) && m.priorityBuyerId).length;
+      toast.success(`BZP: ${actionableN} aktywnych do rozważenia (w tym ${priorityN} od kluczowych zamawiających)`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Błąd pobierania przetargów";
       setError(msg);
@@ -90,10 +94,14 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return items.filter((i) => {
+    const list = items.filter((i) => {
       if (statusFilter !== "all" && i.status !== statusFilter) return false;
+      const open = isTenderOpenForOffers(i.submittingOffersDate);
+      if (localFilter === "actionable" && !isActionableTender(i)) return false;
+      if (localFilter === "active" && !open) return false;
+      if (localFilter === "archive" && open) return false;
       if (localFilter === "wroclaw" && !i.isWroclaw) return false;
-      if (localFilter === "high" && i.relevanceScore < 15) return false;
+      if (localFilter === "high" && !isTenderImportant(i)) return false;
       if (localFilter === "priority" && !i.priorityBuyerId) return false;
       if (!q) return true;
       return (
@@ -103,13 +111,17 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
         || i.bzpNumber.toLowerCase().includes(q)
       );
     });
+    return sortTendersByUrgency(list);
   }, [items, search, localFilter, statusFilter]);
 
   const stats = useMemo(() => ({
-    total: items.length,
-    new: items.filter((i) => i.status === "new").length,
-    wroclaw: items.filter((i) => i.isWroclaw).length,
-    priority: items.filter((i) => i.priorityBuyerId).length,
+    actionable: items.filter((i) => isActionableTender(i)).length,
+    active: items.filter((i) => isTenderOpenForOffers(i.submittingOffersDate)).length,
+    urgent: items.filter((i) => {
+      const d = daysUntilTenderDeadline(i.submittingOffersDate);
+      return isTenderOpenForOffers(i.submittingOffersDate) && d !== null && d >= 0 && d <= 7;
+    }).length,
+    priority: items.filter((i) => isTenderOpenForOffers(i.submittingOffersDate) && i.priorityBuyerId).length,
     interested: items.filter((i) => i.status === "interested" || i.status === "preparing").length,
   }), [items]);
 
@@ -134,7 +146,7 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-              Ogłoszenia z BZP — woj. dolnośląskie + skan: WM, ZIK, ZIM, TBS, Gmina Wrocław, MOPS Wrocław.
+              Aktywne przetargi z otwartym terminem składania ofert — remonty i modernizacje, DŚ + kluczowi zamawiający Wrocławia.
             </p>
           </div>
           <button
@@ -149,9 +161,11 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
         </div>
 
         <div className="flex flex-wrap gap-2 text-xs">
-          <span className="px-2.5 py-1 rounded-lg bg-secondary">{stats.total} w pipeline</span>
-          <span className="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">{stats.new} nowych</span>
-          <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">{stats.wroclaw} Wrocław</span>
+          <span className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-medium">{stats.actionable} do zgłoszenia</span>
+          <span className="px-2.5 py-1 rounded-lg bg-secondary">{stats.active} aktywnych</span>
+          {stats.urgent > 0 && (
+            <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400">{stats.urgent} termin ≤7 dni</span>
+          )}
           <span className="px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400">{stats.priority} kluczowi</span>
           <span className="px-2.5 py-1 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400">{stats.interested} w analizie</span>
         </div>
@@ -179,10 +193,13 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
               onChange={(e) => setLocalFilter(e.target.value as LocalFilter)}
               className="bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none min-h-[44px]"
             >
-              <option value="all">Wszystkie (DŚ)</option>
+              <option value="actionable">Do zgłoszenia (aktywne · ważne)</option>
+              <option value="active">Wszystkie aktywne</option>
               <option value="priority">Kluczowi zamawiający</option>
               <option value="wroclaw">Tylko Wrocław</option>
               <option value="high">Wysoka trafność</option>
+              <option value="archive">Archiwum (termin minął)</option>
+              <option value="all">Pełna lista</option>
             </select>
             <select
               value={statusFilter}
@@ -202,12 +219,17 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
         {filtered.length === 0 ? (
           <div className="text-center py-16 space-y-3">
             <Filter size={32} className="mx-auto text-muted-foreground/50" />
-            <p className="text-sm text-muted-foreground">Brak przetargów — kliknij „Odśwież z BZP”</p>
+            <p className="text-sm text-muted-foreground">
+              {localFilter === "actionable"
+                ? "Brak aktywnych przetargów do rozważenia — kliknij „Odśwież z BZP”"
+                : "Brak przetargów dla wybranych filtrów"}
+            </p>
           </div>
         ) : filtered.map((item) => {
           const days = daysUntil(item.submittingOffersDate);
-          const urgent = days !== null && days >= 0 && days <= 7;
-          const open = expandedId === item.id;
+          const offerOpen = isTenderOpenForOffers(item.submittingOffersDate);
+          const urgent = offerOpen && days !== null && days >= 0 && days <= 7;
+          const expanded = expandedId === item.id;
           return (
             <article
               key={item.id}
@@ -216,7 +238,7 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
               <button
                 type="button"
                 className="w-full text-left px-4 py-3.5 hover:bg-secondary/40 transition-colors"
-                onClick={() => setExpandedId(open ? null : item.id)}
+                onClick={() => setExpandedId(expanded ? null : item.id)}
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0 flex-1 space-y-1">
@@ -252,17 +274,20 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
                       {TENDER_STATUS_LABELS[item.status]}
                     </span>
                     {item.submittingOffersDate && (
-                      <span className={`text-[10px] flex items-center gap-1 ${urgent ? "text-amber-600 font-semibold" : "text-muted-foreground"}`}>
+                      <span className={`text-[10px] flex items-center gap-1 ${
+                        !offerOpen ? "text-muted-foreground line-through" :
+                        urgent ? "text-amber-600 font-semibold" : "text-muted-foreground"
+                      }`}>
                         <Calendar size={11} />
-                        Oferty: {fmtDate(item.submittingOffersDate)}
-                        {days !== null && days >= 0 && ` (${days} d.)`}
+                        {offerOpen ? "Oferty do:" : "Termin minął:"} {fmtDate(item.submittingOffersDate)}
+                        {offerOpen && days !== null && days >= 0 && ` (${days} d.)`}
                       </span>
                     )}
                   </div>
                 </div>
               </button>
 
-              {open && (
+              {expanded && (
                 <div className="px-4 pb-4 pt-0 border-t border-border space-y-3">
                   <p className="text-xs text-muted-foreground pt-3">
                     CPV: {item.cpvCode || "—"}
