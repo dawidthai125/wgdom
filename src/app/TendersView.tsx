@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   RefreshCw, Search, Scale, MapPin, Calendar, Building2,
-  Filter, AlertCircle,
+  Filter, AlertCircle, HelpCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -28,6 +28,7 @@ import {
 } from "@/lib/tenders-bzp";
 import { PROFITABILITY_LABELS } from "@/lib/tenders-bzp-swz";
 import { TenderDetailPanel } from "@/app/TenderDetailPanel";
+import { TendersLegend } from "@/app/TendersLegend";
 
 type LocalFilter = "actionable" | "active" | "priority" | "wroclaw" | "high" | "archive" | "all";
 
@@ -66,6 +67,7 @@ export function TendersView({
   const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId);
   const [error, setError] = useState("");
   const [autoSyncing, setAutoSyncing] = useState(false);
+  const [showLegend, setShowLegend] = useState(false);
 
   useEffect(() => {
     if (initialExpandedId) setExpandedId(initialExpandedId);
@@ -244,6 +246,16 @@ export function TendersView({
             )}
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setShowLegend((v) => !v)}
+          className="w-full sm:w-auto text-[11px] text-muted-foreground hover:text-foreground flex items-center justify-center sm:justify-start gap-1.5 py-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
+        >
+          <HelpCircle size={13} className="text-primary shrink-0" />
+          {showLegend ? "Ukryj legendę (trafność, statusy, oceny)" : "Co oznacza trafność i statusy? (legenda)"}
+        </button>
+        {showLegend && <TendersLegend compact />}
 
         {error && (
           <div className="flex items-start gap-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
