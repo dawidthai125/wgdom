@@ -859,7 +859,7 @@ app.post("/make-server-0afb8820/storage-delete", async (c) => {
     if (!path || typeof path !== "string") {
       return c.json({ ok: false, error: "Brak path" }, 400);
     }
-    if (!path.startsWith("jobs/")) {
+    if (!path.startsWith("jobs/") && !path.startsWith("tenders/")) {
       return c.json({ ok: false, error: "Niedozwolona ścieżka" }, 403);
     }
     await ensurePhotosBucket();
@@ -2222,6 +2222,257 @@ app.get("/make-server-0afb8820/tenders-bzp-search", async (c) => {
   } catch (e) {
     console.error("tenders-bzp-search:", e);
     return c.json({ ok: false, error: e instanceof Error ? e.message : "BZP search error" }, 500);
+  }
+});
+
+const EZAMOWIENIA_UA = "WGDOM/2.36.0 tenders-pipeline";
+const EZAMOWIENIA_FETCH = {
+  Accept: "application/json",
+  "User-Agent": EZAMOWIENIA_UA,
+};
+
+function stripHtmlForSwz(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function parsePlnFromText(raw: string | null): { value: number | null; label: string | null } {
+  if (!raw) return { value: null, label: null };
+  const cleaned = raw.replace(/\s+/g, " ").trim();
+  const m = cleaned.match(/([\d\s]+(?:[.,]\d{1,2})?)\s*(?:zł|PLN|pln)/i)
+    || cleaned.match(/([\d\s]+(?:[.,]\d{1,2})?)/);
+  if (!m) return { value: null, label: cleaned.slice(0, 120) || null };
+  const num = parseFloat(m[1].replace(/\s/g, "").replace(",", "."));
+  return Number.isFinite(num) ? { value: num, label: cleaned.slice(0, 120) } : { value: null, label: cleaned.slice(0, 120) };
+}
+
+function swzFirstMatch(text: string, patterns: RegExp[]): string | null {
+  for (const p of patterns) {
+    const m = text.match(p);
+    if (m?.[1]) return m[1].replace(/\s+/g, " ").trim().slice(0, 500);
+  }
+  return null;
+}
+
+function parseSwzFromText(
+  text: string,
+  source: string,
+  ourEstimatePln: number | null,
+): Record<string, unknown> {
+  const folded = text.replace(/\s+/g, " ");
+  const wadiumRaw = swzFirstMatch(folded, [
+    /wadium[:\s]+([^.;]{5,200})/i,
+    /wysokość wadium[:\s]+([^.;]{5,200})/i,
+  ]);
+  const valueRaw = swzFirstMatch(folded, [
+    /wartość zamówienia[:\s]+([^.;]{5,200})/i,
+    /szacunkow[aą] wartość[:\s]+([^.;]{5,200})/i,
+    /wartość brutto[:\s]+([^.;]{5,200})/i,
+  ]);
+  const referenceRequirement = swzFirstMatch(folded, [
+    /referencj[^.]{10,400}\./i,
+    /doświadczen[^.]{10,400}\./i,
+    /co najmniej[^.]{10,200}zł[^.]{0,80}\./i,
+  ]);
+  const { value: wadiumPln, label: wadiumLabel } = parsePlnFromText(wadiumRaw);
+  const { value: estimatedValuePln, label: estLabel } = parsePlnFromText(valueRaw);
+  let profitabilityHint = "unknown";
+  let profitabilityNote = "Brak kwoty/wadium w tekście.";
+  if (wadiumPln != null && wadiumPln >= 50000) {
+    profitabilityHint = "risky";
+    profitabilityNote = `Wysokie wadium (~${wadiumPln} zł).`;
+  } else if (estimatedValuePln != null && ourEstimatePln != null && ourEstimatePln > estimatedValuePln * 1.15) {
+    profitabilityHint = "caution";
+    profitabilityNote = "Szacunek wyższy niż wartość w SWZ.";
+  } else if (estimatedValuePln != null && estimatedValuePln >= 30000) {
+    profitabilityHint = "good";
+    profitabilityNote = `Wartość ~${estimatedValuePln} zł — sprawdź zakres.`;
+  } else if (estimatedValuePln != null || wadiumPln != null) {
+    profitabilityHint = "caution";
+    profitabilityNote = "Dane częściowe — przejrzyj pełną SWZ.";
+  }
+  return {
+    estimatedValuePln,
+    estimatedValueRaw: estLabel || valueRaw,
+    wadiumPln,
+    wadiumRaw: wadiumLabel || wadiumRaw,
+    referenceRequirement,
+    qualificationHints: [],
+    parsedAt: new Date().toISOString(),
+    source,
+    profitabilityHint,
+    profitabilityNote,
+  };
+}
+
+function parseDispositionFilename(h: string | null): string {
+  if (!h) return "dokument";
+  const star = h.match(/filename\*=UTF-8''([^;]+)/i);
+  if (star) {
+    try { return decodeURIComponent(star[1]); } catch { return star[1]; }
+  }
+  const plain = h.match(/filename="([^"]+)"/i);
+  return plain ? plain[1] : "dokument";
+}
+
+function isSwzFilename(name: string): boolean {
+  const n = name.toLowerCase();
+  return /swz|opz|specyfikac|kosztorys|formularz/.test(n);
+}
+
+async function probeTenderDocuments(tenderId: string): Promise<Record<string, unknown>[]> {
+  const out: Record<string, unknown>[] = [];
+  const base = "https://ezamowienia.gov.pl/mp-readmodels/api/Tender/DownloadDocument";
+  for (let i = 1; i <= 25; i++) {
+    const documentId = `${tenderId}_${i}`;
+    const url = `${base}/${encodeURIComponent(tenderId)}/${encodeURIComponent(documentId)}`;
+    const res = await fetch(url, { method: "HEAD", headers: EZAMOWIENIA_FETCH });
+    if (!res.ok) break;
+    const ct = res.headers.get("content-type") || "application/octet-stream";
+    const filename = parseDispositionFilename(res.headers.get("content-disposition"));
+    out.push({
+      index: i,
+      documentId,
+      filename,
+      contentType: ct.split(";")[0],
+      downloadUrl: url,
+      isSwzHint: isSwzFilename(filename),
+    });
+  }
+  return out;
+}
+
+function extractPdfTextSimple(bytes: Uint8Array): string {
+  const raw = new TextDecoder("latin1").decode(bytes);
+  const chunks: string[] = [];
+  const streamRe = /stream\r?\n([\s\S]*?)endstream/g;
+  let m: RegExpExecArray | null;
+  while ((m = streamRe.exec(raw))) {
+    const chunk = m[1].replace(/[^\x20-\x7E\n\r\s]/g, " ").replace(/\s+/g, " ");
+    if (chunk.length > 30) chunks.push(chunk);
+  }
+  return chunks.join(" ");
+}
+
+app.get("/make-server-0afb8820/tenders-bzp-notice", async (c) => {
+  try {
+    const noticeNumber = (c.req.query("noticeNumber") || "").trim();
+    if (!noticeNumber) return c.json({ ok: false, error: "Brak noticeNumber" }, 400);
+    const enc = encodeURIComponent(noticeNumber);
+    const [detRes, htmlRes] = await Promise.all([
+      fetch(`https://ezamowienia.gov.pl/mo-board/api/v1/Board/GetNoticeDetails?noticeNumber=${enc}`, { headers: EZAMOWIENIA_FETCH }),
+      fetch(`https://ezamowienia.gov.pl/mo-board/api/v1/Board/GetNoticeHtmlBody?noticeNumber=${enc}`, { headers: EZAMOWIENIA_FETCH }),
+    ]);
+    if (!detRes.ok) return c.json({ ok: false, error: `BZP details HTTP ${detRes.status}` }, 502);
+    const details = await detRes.json();
+    let htmlBody = "";
+    if (htmlRes.ok) {
+      const raw = await htmlRes.text();
+      htmlBody = raw.startsWith('"') ? JSON.parse(raw) : raw;
+    }
+    return c.json({
+      ok: true,
+      details: {
+        id: details.id,
+        tenderId: details.tenderId,
+        moIdentifier: details.moIdentifier,
+        noticeNumber: details.noticeNumber,
+        tenderState: details.tenderState,
+        publicationDate: details.publicationDate,
+        htmlBody,
+      },
+    });
+  } catch (e) {
+    return c.json({ ok: false, error: e instanceof Error ? e.message : "notice error" }, 500);
+  }
+});
+
+app.get("/make-server-0afb8820/tenders-bzp-documents", async (c) => {
+  try {
+    const tenderId = (c.req.query("tenderId") || "").trim();
+    if (!tenderId) return c.json({ ok: false, error: "Brak tenderId" }, 400);
+    const documents = await probeTenderDocuments(tenderId);
+    return c.json({ ok: true, tenderId, documents, count: documents.length });
+  } catch (e) {
+    return c.json({ ok: false, error: e instanceof Error ? e.message : "documents error" }, 500);
+  }
+});
+
+app.get("/make-server-0afb8820/tenders-bzp-analyze-swz", async (c) => {
+  try {
+    const noticeNumber = (c.req.query("noticeNumber") || "").trim();
+    const tenderId = (c.req.query("tenderId") || "").trim();
+    const docIndex = parseInt(c.req.query("documentIndex") || "0", 10) || 0;
+    const ourEstimatePln = parseFloat(c.req.query("ourEstimatePln") || "") || null;
+    let text = "";
+    let source = "html";
+
+    if (docIndex > 0 && tenderId) {
+      const url = `https://ezamowienia.gov.pl/mp-readmodels/api/Tender/DownloadDocument/${encodeURIComponent(tenderId)}/${encodeURIComponent(`${tenderId}_${docIndex}`)}`;
+      const res = await fetch(url, { headers: EZAMOWIENIA_FETCH });
+      if (!res.ok) return c.json({ ok: false, error: `Dokument HTTP ${res.status}` }, 502);
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      if (bytes.byteLength > 15 * 1024 * 1024) return c.json({ ok: false, error: "Plik zbyt duży (max 15 MB)" }, 413);
+      const ct = res.headers.get("content-type") || "";
+      if (ct.includes("pdf")) {
+        text = extractPdfTextSimple(bytes);
+        source = "pdf";
+      } else {
+        text = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+        source = "docx";
+      }
+    } else if (noticeNumber) {
+      const enc = encodeURIComponent(noticeNumber);
+      const htmlRes = await fetch(`https://ezamowienia.gov.pl/mo-board/api/v1/Board/GetNoticeHtmlBody?noticeNumber=${enc}`, { headers: EZAMOWIENIA_FETCH });
+      if (!htmlRes.ok) return c.json({ ok: false, error: `HTML HTTP ${htmlRes.status}` }, 502);
+      const raw = await htmlRes.text();
+      const html = raw.startsWith('"') ? JSON.parse(raw) : raw;
+      text = stripHtmlForSwz(html);
+      source = "html";
+    } else {
+      return c.json({ ok: false, error: "Podaj noticeNumber lub tenderId+documentIndex" }, 400);
+    }
+
+    const analysis = parseSwzFromText(text, source, ourEstimatePln);
+    return c.json({ ok: true, analysis });
+  } catch (e) {
+    return c.json({ ok: false, error: e instanceof Error ? e.message : "analyze error" }, 500);
+  }
+});
+
+app.post("/make-server-0afb8820/tenders-bzp-upload", async (c) => {
+  try {
+    const form = await c.req.formData();
+    const file = form.get("file");
+    const tenderId = form.get("tenderId");
+    const filename = form.get("filename");
+    if (!(file instanceof File) || !tenderId || !filename) {
+      return c.json({ ok: false, error: "Brak pliku, tenderId lub filename" }, 400);
+    }
+    await ensurePhotosBucket();
+    const supabase = supabaseAdmin();
+    const safeName = String(filename).replace(/[^a-zA-Z0-9._-]/g, "_");
+    const path = `tenders/${tenderId}/${safeName}`;
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    if (bytes.byteLength > 15 * 1024 * 1024) {
+      return c.json({ ok: false, error: "Plik zbyt duży (max 15 MB)" }, 413);
+    }
+    const { error } = await supabase.storage.from(PHOTOS_BUCKET).upload(path, bytes, {
+      contentType: contentTypeForUploadedFile(String(filename), file.type || ""),
+      upsert: true,
+    });
+    if (error) return c.json({ ok: false, error: error.message }, 500);
+    const { data: pub } = supabase.storage.from(PHOTOS_BUCKET).getPublicUrl(path);
+    return c.json({ ok: true, path, publicUrl: pub.publicUrl });
+  } catch (e) {
+    return c.json({ ok: false, error: String(e) }, 500);
   }
 });
 

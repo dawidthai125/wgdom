@@ -7,6 +7,8 @@ import { SmsModalErrorBoundary } from "@/app/SmsModalErrorBoundary";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { JobFilesBrowser } from "@/app/JobFilesBrowser";
 import { TendersView } from "@/app/TendersView";
+import { jobDraftFromTender } from "@/lib/tenders-bzp";
+import { appendJobActivity } from "@/lib/job-activity";
 import { countBrowserFiles, jobHasBrowserFiles } from "@/lib/job-files-browser";
 import { isPrivacyShieldSuppressed } from "@/lib/privacy-shield";
 import {
@@ -9114,6 +9116,15 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.36.0", label:"Przetargi BZP — SWZ, analiza, uczenie słów, robota",
+    items:[
+      {type:"new", text:"Szczegóły postępowania: załączniki SWZ z e-Zamówień (skan publicznych dokumentów) + ręczny upload pliku"},
+      {type:"new", text:"Analiza SWZ: wadium, kwota, referencje z PDF/HTML; podgląd ATH; ocena opłacalności vs nasza wycena"},
+      {type:"new", text:"Uczenie słów kluczowych z przetargów „interesuje nas”; propozycje fraz do słownika"},
+      {type:"new", text:"Powiązanie wygranego/przygotowywanego przetargu z robotą — utwórz lub otwórz powiązaną robotę"},
+    ],
+  },
+  {
     date:"2026-05-29", version:"2.35.25", label:"Przetargi — pełny słownik remontów wnętrz",
     items:[
       {type:"improve", text:"Słowa kluczowe: malowanie, podłogi, sufity, glazura, regips, tapety, parkiet, wymiana"},
@@ -12234,7 +12245,25 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           {view==="photos"&&<JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="jobfiles"&&<JobFilesBrowser jobs={jobs} athPreviewEnabled={appSettings.athPreviewEnabled} layout="admin" onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
           {view==="guide"&&<GuideView/>}
-          {view==="tenders"&&canViewTendersNav&&<TendersView showTestBadge={adminSession ? adminIsSuperAdmin(adminSession.role) : false}/>}
+          {view==="tenders"&&canViewTendersNav&&(
+            <TendersView
+              showTestBadge={adminSession ? adminIsSuperAdmin(adminSession.role) : false}
+              athPreviewEnabled={appSettings.athPreviewEnabled}
+              onOpenJob={(id) => { setPendingJobId(id); setView("jobs"); }}
+              onCreateJobFromTender={(draft, item) => {
+                const j = defaultJob();
+                j.address = draft.address.slice(0, 120);
+                j.client = draft.client;
+                j.notes = draft.notes;
+                if (draft.invoiceAmount) j.invoiceAmount = draft.invoiceAmount;
+                appendJobActivity(j, "note", `Utworzono z przetargu BZP: ${item.bzpNumber}`);
+                setJobs((prev) => [j, ...prev]);
+                setPendingJobId(j.id);
+                setView("jobs");
+                return j.id;
+              }}
+            />
+          )}
         </div>
 
         {/* Mobile bottom nav — 4 główne + Menu (iOS/Android) */}

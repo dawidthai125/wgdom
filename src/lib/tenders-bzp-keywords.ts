@@ -310,27 +310,38 @@ export function isNewConstructionTitle(title: string): boolean {
   return !RENOVATION_SIGNALS.some((s) => t.includes(s));
 }
 
-export function matchTenderKeywords(title: string): {
+export function matchTenderKeywords(
+  title: string,
+  custom?: { action?: readonly string[]; scope?: readonly string[] },
+): {
   actionKeywords: string[];
   scopeKeywords: string[];
   allKeywords: string[];
 } {
   const t = title.toLowerCase();
-  const actionKeywords = TENDER_ACTION_KEYWORDS.filter((kw) => t.includes(kw));
-  const scopeKeywords = TENDER_SCOPE_KEYWORDS.filter((kw) => t.includes(kw));
+  const actionSrc = custom?.action?.length ? custom.action : TENDER_ACTION_KEYWORDS;
+  const scopeSrc = custom?.scope?.length ? custom.scope : TENDER_SCOPE_KEYWORDS;
+  const actionKeywords = actionSrc.filter((kw) => t.includes(kw));
+  const scopeKeywords = scopeSrc.filter((kw) => t.includes(kw));
   return { actionKeywords, scopeKeywords, allKeywords: [...actionKeywords, ...scopeKeywords] };
 }
 
-/** Czy tytuł opisuje roboty wykończeniowe / remontowe (bez słowa „remont”). */
-export function hasRenovationSignal(title: string): boolean {
-  const { actionKeywords, scopeKeywords } = matchTenderKeywords(title);
+export function hasRenovationSignal(
+  title: string,
+  custom?: { action?: readonly string[]; scope?: readonly string[] },
+): boolean {
+  const { actionKeywords, scopeKeywords } = matchTenderKeywords(title, custom);
   if (actionKeywords.length > 0) return true;
   if (scopeKeywords.length >= 2) return true;
   return false;
 }
 
-export function isExcludedTenderTitle(title: string): boolean {
+export function isExcludedTenderTitle(
+  title: string,
+  customExclude?: readonly string[],
+): boolean {
   const t = title.toLowerCase();
-  if (TENDER_EXCLUDE_KEYWORDS.some((ex) => t.includes(ex))) return true;
+  const ex = customExclude?.length ? customExclude : TENDER_EXCLUDE_KEYWORDS;
+  if (ex.some((e) => t.includes(e))) return true;
   return isNewConstructionTitle(t);
 }

@@ -5,6 +5,13 @@ import {
   hasRenovationSignal,
   TENDER_PRIORITY_BUILDING_HINTS,
 } from "@/lib/tenders-bzp-keywords";
+import {
+  getMergedActionKeywords,
+  getMergedScopeKeywords,
+  getMergedExcludeKeywords,
+  loadCustomKeywordsLocal,
+} from "@/lib/tenders-bzp-learn";
+import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 
@@ -34,6 +41,23 @@ export interface BzpNoticeRaw {
   moIdentifier?: string;
 }
 
+export interface TenderBzpDocument {
+  index: number;
+  documentId: string;
+  filename: string;
+  contentType: string;
+  downloadUrl: string;
+  isSwzHint: boolean;
+}
+
+export interface TenderUploadedFile {
+  id: string;
+  filename: string;
+  path: string;
+  publicUrl: string;
+  uploadedAt: string;
+}
+
 export interface TenderPipelineItem {
   id: string;
   bzpNumber: string;
@@ -58,6 +82,18 @@ export interface TenderPipelineItem {
   addedAt: string;
   updatedAt: string;
   ezamowieniaUrl: string;
+  /** Załączniki z e-Zamówienia (po skanowaniu). */
+  bzpDocuments?: TenderBzpDocument[];
+  documentsFetchedAt?: string | null;
+  /** Analiza SWZ / ogłoszenia HTML. */
+  swzAnalysis?: TenderSwzAnalysis | null;
+  /** Ręcznie wgrany plik SWZ/kosztorys. */
+  uploadedFile?: TenderUploadedFile | null;
+  /** Wasz szacunek kosztów (PLN brutto) — do oceny opłacalności. */
+  ourEstimatePln?: number | null;
+  /** Powiązana robota w WGDOM (po wygranym przetargu). */
+  linkedJobId?: string | null;
+  tenderState?: string | null;
 }
 
 const PRIORITY_BUILDING_HINTS = TENDER_PRIORITY_BUILDING_HINTS;
@@ -166,10 +202,15 @@ export function scoreTenderNotice(
   opts?: { priorityOrg?: boolean },
 ): { score: number; keywords: string[]; excluded: boolean } {
   const title = `${n.orderObject || ""} ${n.cpvCode || ""}`.toLowerCase();
-  if (isExcludedTenderTitle(title)) {
+  const custom = loadCustomKeywordsLocal();
+  const customKw = {
+    action: getMergedActionKeywords(custom),
+    scope: getMergedScopeKeywords(custom),
+  };
+  if (isExcludedTenderTitle(title, getMergedExcludeKeywords(custom))) {
     return { score: 0, keywords: [], excluded: true };
   }
-  const { actionKeywords, scopeKeywords, allKeywords } = matchTenderKeywords(title);
+  const { actionKeywords, scopeKeywords, allKeywords } = matchTenderKeywords(title, customKw);
   let score = actionKeywords.length * 10 + scopeKeywords.length * 5;
   const city = (n.organizationCity || "").toLowerCase();
   if (city.includes("wrocław") || city.includes("wroclaw")) score += 25;
@@ -217,6 +258,13 @@ export function mapBzpToPipelineItem(n: BzpNoticeRaw, existing?: TenderPipelineI
     addedAt: existing?.addedAt || now,
     updatedAt: now,
     ezamowieniaUrl: tenderEzamowieniaUrl(n.tenderId || ""),
+    bzpDocuments: existing?.bzpDocuments,
+    documentsFetchedAt: existing?.documentsFetchedAt ?? null,
+    swzAnalysis: existing?.swzAnalysis ?? null,
+    uploadedFile: existing?.uploadedFile ?? null,
+    ourEstimatePln: existing?.ourEstimatePln ?? null,
+    linkedJobId: existing?.linkedJobId ?? null,
+    tenderState: existing?.tenderState ?? null,
   };
 }
 
@@ -234,6 +282,13 @@ export function mergeTenderPipeline(
           status: prev.status === "new" ? item.status : prev.status,
           notes: prev.notes,
           addedAt: prev.addedAt,
+          bzpDocuments: prev.bzpDocuments ?? item.bzpDocuments,
+          documentsFetchedAt: prev.documentsFetchedAt ?? item.documentsFetchedAt,
+          swzAnalysis: prev.swzAnalysis ?? item.swzAnalysis,
+          uploadedFile: prev.uploadedFile ?? item.uploadedFile,
+          ourEstimatePln: prev.ourEstimatePln ?? item.ourEstimatePln,
+          linkedJobId: prev.linkedJobId ?? item.linkedJobId,
+          tenderState: prev.tenderState ?? item.tenderState,
         }
       : item);
   }
@@ -320,3 +375,107 @@ export const TENDER_STATUS_LABELS: Record<TenderPipelineStatus, string> = {
   lost: "Przegrany / rezygnacja",
   ignored: "Pominięty",
 };
+
+export interface TenderNoticeDetails {
+  id: string;
+  tenderId: string;
+  moIdentifier: string;
+  noticeNumber: string;
+  tenderState: string;
+  publicationDate: string;
+  htmlBody: string;
+}
+
+async function tenderApiGet(path: string, params: Record<string, string>): Promise<unknown> {
+  if (!API_BASE) throw new Error("Brak konfiguracji Supabase");
+  const q = new URLSearchParams(params);
+  const res = await fetch(`${API_BASE}${path}?${q}`, { headers: API_HEADERS });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !(data as { ok?: boolean }).ok) {
+    throw new Error((data as { error?: string }).error || `Błąd API (${res.status})`);
+  }
+  return data;
+}
+
+export async function fetchTenderNoticeDetails(noticeNumber: string): Promise<TenderNoticeDetails> {
+  const data = await tenderApiGet("/tenders-bzp-notice", { noticeNumber }) as {
+    details: TenderNoticeDetails;
+  };
+  return data.details;
+}
+
+export async function fetchTenderDocuments(tenderId: string): Promise<TenderBzpDocument[]> {
+  const data = await tenderApiGet("/tenders-bzp-documents", { tenderId }) as {
+    documents: TenderBzpDocument[];
+  };
+  return data.documents || [];
+}
+
+export async function analyzeTenderSwz(opts: {
+  noticeNumber?: string;
+  tenderId?: string;
+  documentIndex?: number;
+  ourEstimatePln?: number | null;
+}): Promise<TenderSwzAnalysis> {
+  const data = await tenderApiGet("/tenders-bzp-analyze-swz", {
+    ...(opts.noticeNumber ? { noticeNumber: opts.noticeNumber } : {}),
+    ...(opts.tenderId ? { tenderId: opts.tenderId } : {}),
+    ...(opts.documentIndex != null ? { documentIndex: String(opts.documentIndex) } : {}),
+    ...(opts.ourEstimatePln != null ? { ourEstimatePln: String(opts.ourEstimatePln) } : {}),
+  }) as { analysis: TenderSwzAnalysis };
+  return data.analysis;
+}
+
+export async function uploadTenderFile(
+  tenderItemId: string,
+  file: File,
+): Promise<TenderUploadedFile> {
+  if (!API_BASE) throw new Error("Brak konfiguracji Supabase");
+  const safeName = file.name.replace(/[^\w.\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ ]+/g, "_").slice(0, 80);
+  const filename = `swz-${Date.now()}-${safeName}`;
+  const form = new FormData();
+  form.append("file", file);
+  form.append("tenderId", tenderItemId);
+  form.append("filename", filename);
+  const res = await fetch(`${API_BASE}/tenders-bzp-upload`, {
+    method: "POST",
+    headers: { Authorization: API_HEADERS.Authorization },
+    body: form,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok) throw new Error(data.error || `Błąd uploadu (${res.status})`);
+  return {
+    id: crypto.randomUUID(),
+    filename: file.name,
+    path: data.path,
+    publicUrl: data.publicUrl,
+    uploadedAt: new Date().toISOString(),
+  };
+}
+
+/** Szablon roboty z wygranego / przygotowywanego przetargu. */
+export function jobDraftFromTender(item: TenderPipelineItem): {
+  address: string;
+  client: string;
+  notes: string;
+  invoiceAmount: string;
+} {
+  const addr = item.organizationCity?.includes("Wrocław") || item.isWroclaw
+    ? item.title.slice(0, 80)
+    : `${item.organizationCity || "Wrocław"} — ${item.title.slice(0, 60)}`;
+  const notes = [
+    `Przetarg BZP: ${item.bzpNumber}`,
+    item.noticeNumber ? `Nr ogłoszenia: ${item.noticeNumber}` : "",
+    item.ezamowieniaUrl,
+    item.swzAnalysis?.estimatedValueRaw ? `Wartość SWZ: ${item.swzAnalysis.estimatedValueRaw}` : "",
+  ].filter(Boolean).join("\n");
+  const invoiceAmount = item.swzAnalysis?.estimatedValuePln
+    ? String(Math.round(item.swzAnalysis.estimatedValuePln))
+    : item.ourEstimatePln ? String(Math.round(item.ourEstimatePln)) : "";
+  return {
+    address: addr,
+    client: item.organizationName || "—",
+    notes,
+    invoiceAmount,
+  };
+}

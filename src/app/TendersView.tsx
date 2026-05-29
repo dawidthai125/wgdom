@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  RefreshCw, ExternalLink, Search, Scale, MapPin, Calendar, Building2,
+  RefreshCw, Search, Scale, MapPin, Calendar, Building2,
   Filter, AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -19,7 +19,10 @@ import {
   daysUntilTenderDeadline,
   pruneExpiredUntouched,
   sortTendersByUrgency,
+  jobDraftFromTender,
 } from "@/lib/tenders-bzp";
+import { PROFITABILITY_LABELS } from "@/lib/tenders-bzp-swz";
+import { TenderDetailPanel } from "@/app/TenderDetailPanel";
 
 type LocalFilter = "actionable" | "active" | "priority" | "wroclaw" | "high" | "archive" | "all";
 
@@ -36,7 +39,17 @@ function daysUntil(iso: string | null): number | null {
   return daysUntilTenderDeadline(iso);
 }
 
-export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean }) {
+export function TendersView({
+  showTestBadge = false,
+  onCreateJobFromTender,
+  onOpenJob,
+  athPreviewEnabled = true,
+}: {
+  showTestBadge?: boolean;
+  onCreateJobFromTender?: (draft: ReturnType<typeof jobDraftFromTender>, item: TenderPipelineItem) => string | void;
+  onOpenJob?: (jobId: string) => void;
+  athPreviewEnabled?: boolean;
+}) {
   const [items, setItems] = useState<TenderPipelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -253,6 +266,14 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
                       {item.relevanceScore >= 20 && (
                         <span className="text-[10px] bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded">Trafność {item.relevanceScore}</span>
                       )}
+                      {item.swzAnalysis && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${item.swzAnalysis.profitabilityHint === "good" ? "bg-emerald-500/10 text-emerald-600" : item.swzAnalysis.profitabilityHint === "risky" ? "bg-red-500/10 text-red-600" : "bg-amber-500/10 text-amber-600"}`}>
+                          {PROFITABILITY_LABELS[item.swzAnalysis.profitabilityHint]}
+                        </span>
+                      )}
+                      {item.linkedJobId && (
+                        <span className="text-[10px] bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded">Robota</span>
+                      )}
                     </div>
                     <p className="text-sm font-semibold leading-snug">{item.title}</p>
                     <p className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
@@ -288,52 +309,16 @@ export function TendersView({ showTestBadge = false }: { showTestBadge?: boolean
               </button>
 
               {expanded && (
-                <div className="px-4 pb-4 pt-0 border-t border-border space-y-3">
-                  <p className="text-xs text-muted-foreground pt-3">
-                    CPV: {item.cpvCode || "—"}
-                    {item.matchedKeywords.length > 0 && (
-                      <> · Słowa: {item.matchedKeywords.join(", ")}</>
-                    )}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Publikacja: {fmtDate(item.publicationDate)}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2">
-                    <label className="text-xs text-muted-foreground flex items-center gap-2">
-                      Status
-                      <select
-                        value={item.status}
-                        onChange={(e) => updateItem(item.id, { status: e.target.value as TenderPipelineStatus })}
-                        className="bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {(Object.keys(TENDER_STATUS_LABELS) as TenderPipelineStatus[]).map((s) => (
-                          <option key={s} value={s}>{TENDER_STATUS_LABELS[s]}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <a
-                      href={item.ezamowieniaUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <ExternalLink size={12} />
-                      e-Zamówienia
-                    </a>
-                  </div>
-
-                  <textarea
-                    value={item.notes}
-                    onChange={(e) => updateItem(item.id, { notes: e.target.value })}
-                    placeholder="Notatki wewnętrzne (kosztorys ATH, kontakt, ryzyko…)"
-                    rows={2}
-                    className="w-full bg-secondary rounded-xl px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none resize-y min-h-[60px]"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
+                <TenderDetailPanel
+                  item={item}
+                  allItems={items}
+                  onUpdate={(patch) => updateItem(item.id, patch)}
+                  athPreviewEnabled={athPreviewEnabled}
+                  onOpenJob={onOpenJob}
+                  onCreateJob={onCreateJobFromTender
+                    ? (t) => onCreateJobFromTender(jobDraftFromTender(t), t)
+                    : undefined}
+                />
               )}
             </article>
           );
