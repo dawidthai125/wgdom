@@ -4,7 +4,8 @@ import { CompanyMusicPlayer } from "@/app/components/CompanyMusicPlayer";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { EmployeeSmsModal } from "@/app/EmployeeSmsModal";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
-import { downloadJobDocumentsPack } from "@/lib/job-documents-pack";
+import { JobFilesBrowser } from "@/app/JobFilesBrowser";
+import { countBrowserFiles, jobHasBrowserFiles } from "@/lib/job-files-browser";
 import { isPrivacyShieldSuppressed } from "@/lib/privacy-shield";
 import {
   Calculator, Clock, Banknote, User, Plus, Trash2,
@@ -8653,7 +8654,7 @@ function DashboardView({
 
 // ─── Instrukcja obsługi ───────────────────────────────────────────────────────
 
-function HelpView() {
+function HelpView({ embedded = false }: { embedded?: boolean }) {
   const [open, setOpen] = useState<string|null>("start");
 
   const sections: {id:string; icon:React.ElementType; title:string; subtitle:string; content:React.ReactNode}[] = [
@@ -8932,7 +8933,7 @@ function HelpView() {
       subtitle:"Co nowego w aplikacji",
       content:(
         <div className="space-y-4">
-          <p className="text-sm text-foreground/90 leading-relaxed">W menu po lewej (lub na dole na telefonie) jest zakładka <strong>Zmiany</strong>. Tam znajdziesz chronologiczną listę aktualizacji — od najnowszej wersji w dół. Domyślnie widać 10 wpisów; na dole możesz przełączać strony albo ustawić 20 lub 50 wpisów na stronie.</p>
+          <p className="text-sm text-foreground/90 leading-relaxed">W menu jest zakładka <strong>Zmiany/Instrukcja</strong>. W niej wybierz podzakładkę <strong>Zmiany</strong> — chronologiczna lista aktualizacji od najnowszej wersji w dół. Domyślnie widać 10 wpisów; na dole możesz przełączać strony albo ustawić 20 lub 50 wpisów na stronie.</p>
           <div className="space-y-3">
             {[
               {q:"Po co jest ta zakładka?", a:"Żebyś wiedział co się zmieniło po aktualizacji — nowe funkcje, poprawki i ulepszenia. Najnowsza wersja jest na górze z zieloną etykietą „Najnowsza”."},
@@ -9056,6 +9057,7 @@ function HelpView() {
       <div className="max-w-3xl mx-auto px-4 sm:px-8 py-8 space-y-3">
 
         {/* Header */}
+        {!embedded && (
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
             <BookOpen size={18} className="text-primary"/>
@@ -9065,6 +9067,7 @@ function HelpView() {
             <p className="text-xs text-muted-foreground">Wszystko co musisz wiedzieć żeby sprawnie korzystać z aplikacji</p>
           </div>
         </div>
+        )}
 
         {/* Sections */}
         {sections.map(sec=>(
@@ -9100,6 +9103,13 @@ function HelpView() {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.35.0", label:"Admin — Pliki robot + Zmiany/Instrukcja",
+    items:[
+      {type:"new", text:"Menu admina — zakładka „Pliki robot”: wszystkie pliki z robot (jak u inspektora), pobieranie pojedynczo i ZIP"},
+      {type:"improve", text:"Menu — połączono Zmiany + Instrukcja w jedną zakładkę „Zmiany/Instrukcja” (więcej miejsca w menu)"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.34.0", label:"Panel inspektora — Galeria, Pliki, powrót do Pulpitu",
     items:[
@@ -10282,7 +10292,48 @@ const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"
 const CHANGELOG_PAGE_SIZES = [10, 20, 50] as const;
 type ChangelogPageSize = (typeof CHANGELOG_PAGE_SIZES)[number];
 
-function ChangelogView() {
+function GuideView() {
+  const [tab, setTab] = useState<"help" | "changelog">("help");
+
+  return (
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <div className="shrink-0 px-4 sm:px-8 pt-6 pb-3 max-w-3xl mx-auto w-full">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+            <BookOpen size={18} className="text-primary"/>
+          </div>
+          <div>
+            <h1 className="text-lg font-bold">Zmiany / Instrukcja</h1>
+            <p className="text-xs text-muted-foreground">Pomoc krok po kroku i historia wersji aplikacji</p>
+          </div>
+        </div>
+        <div className="flex gap-1 p-1 bg-secondary rounded-xl">
+          <button
+            type="button"
+            onClick={() => setTab("help")}
+            className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${tab === "help" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Instrukcja
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("changelog")}
+            className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${tab === "changelog" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <ScrollText size={14}/>
+            Zmiany
+            <span className="text-[10px] bg-primary/15 text-primary px-1.5 py-0.5 rounded-full font-semibold">v{CHANGELOG[0].version}</span>
+          </button>
+        </div>
+      </div>
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        {tab === "help" ? <HelpView embedded /> : <ChangelogView embedded />}
+      </div>
+    </div>
+  );
+}
+
+function ChangelogView({ embedded = false }: { embedded?: boolean }) {
   const TYPE_STYLE = {
     new:     {bg:"bg-primary/15",    text:"text-primary",       dot:"bg-primary",     label:"Nowość"},
     fix:     {bg:"bg-green-500/15",  text:"text-green-400",     dot:"bg-green-400",   label:"Poprawka"},
@@ -10319,6 +10370,7 @@ function ChangelogView() {
       <div className="max-w-3xl mx-auto px-4 sm:px-8 py-8 space-y-2">
 
         {/* Header */}
+        {!embedded ? (
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
             <ScrollText size={18} className="text-primary"/>
@@ -10334,6 +10386,17 @@ function ChangelogView() {
             <span className="text-xs font-semibold text-primary">v{CHANGELOG[0].version}</span>
           </div>
         </div>
+        ) : (
+        <div className="flex items-center justify-between gap-3 mb-6">
+          <p className="text-xs text-muted-foreground">
+            {total} wersji · wyświetlane {rangeFrom}–{rangeTo}
+          </p>
+          <div className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-full px-3 py-1.5 shrink-0">
+            <Sparkles size={12} className="text-primary"/>
+            <span className="text-xs font-semibold text-primary">v{CHANGELOG[0].version}</span>
+          </div>
+        </div>
+        )}
 
         {/* Timeline */}
         <div className="relative">
@@ -10944,7 +11007,7 @@ function AdminSettingsModal({
 
 // ─── Root App ─────────────────────────────────────────────────────────────────
 
-type View = "dashboard" | "payroll" | "schedule" | "directory" | "contacts" | "archive" | "jobs" | "inspector" | "photos" | "changelog" | "help";
+type View = "dashboard" | "payroll" | "schedule" | "directory" | "contacts" | "archive" | "jobs" | "inspector" | "photos" | "jobfiles" | "guide";
 
 function CloudLoader({children}: {children: React.ReactNode}) {
   const [ready, setReady] = useState(false);
@@ -11647,8 +11710,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     {key:"jobs", label:"Roboty", hint:"Adresy remontów: dokumenty, czas pracy, materiały, zdjęcia i raporty.", icon:MapPin, badge:(()=>{ const pend=jobs.reduce((s,j)=>s+(j.photos||[]).filter(p=>p.status==="pending").length,0); return pend>0?pend:jobs.filter(j=>j.status==="in_progress").length||undefined; })()},
     {key:"inspector", label:"Inspektor", hint:"Zmiany inspektora: dokumenty, zlecenia PDF i kosztorysy — osobno od kart robót.", icon:ClipboardCheck, badge:(()=>{ const notes=jobsWithInspectorNotesNeedingAdmin(jobs,getAdminJobNotesSeenAt(adminSession?.id)); const n=countUnseenInspectorAlerts(jobs,adminSession?.id,notes.length); return n>0?n:undefined; })()},
     {key:"photos", label:"Zdjęcia", hint:"Zaakceptowane zdjęcia z robot — galeria i archiwum po 30 dniach od zdania.", icon:Images, badge:(()=>{ const n=jobs.reduce((s,j)=>{ const b=jobGalleryBucket(j); return b==="active"||b==="grace"?s+jobApprovedPhotos(j).length:s;},0); return n||undefined; })()},
-    {key:"changelog", label:"Zmiany", hint:"Co nowego w aplikacji — historia wersji i poprawek.", icon:ScrollText},
-    {key:"help", label:"Instrukcja", hint:"Pomoc krok po kroku: lista płac, roboty, grafik i typowe pytania.", icon:BookOpen},
+    {key:"jobfiles", label:"Pliki robot", hint:"Wszystkie pliki z robot: zlecenia, kosztorysy, zdjęcia, rysunki — pobierz pojedynczo lub ZIP.", icon:FolderOpen, badge:(()=>{ const n=jobs.reduce((s,j)=>jobHasBrowserFiles(j)?s+countBrowserFiles(j):s,0); return n||undefined; })()},
+    {key:"guide", label:"Zmiany/Instrukcja", hint:"Historia wersji aplikacji i pomoc krok po kroku.", icon:BookOpen},
   ];
 
   const MOBILE_NAV_PRIMARY: View[] = ["dashboard", "payroll", "schedule", "jobs"];
@@ -11928,8 +11991,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={(jobId)=>{ if (jobId) setPendingInspectorJobId(jobId); setViewReturn({ view: "jobs", label: "Roboty" }); setView("inspector"); }} athPreviewEnabled={appSettings.athPreviewEnabled} returnNav={viewReturn && viewReturn.view !== "jobs" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingJobId(null); } } : undefined}/>}
           {view==="inspector"&&<InspectorAdminView jobs={jobs} setJobs={setJobs} directory={directory} adminUserId={adminSession?.id} adminDisplayName={adminSession?.displayName || "Administrator"} adminRole={adminSession?.role} initialTab={inspectorInitialTab} initialJobId={pendingInspectorJobId} onInitialJobConsumed={()=>setPendingInspectorJobId(null)} contacts={contacts} athPreviewEnabled={appSettings.athPreviewEnabled} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} returnNav={viewReturn && viewReturn.view !== "inspector" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingInspectorJobId(null); } } : undefined}/>}
           {view==="photos"&&<JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
-          {view==="changelog"&&<ChangelogView/>}
-          {view==="help"&&<HelpView/>}
+          {view==="jobfiles"&&<JobFilesBrowser jobs={jobs} athPreviewEnabled={appSettings.athPreviewEnabled} layout="admin" onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
+          {view==="guide"&&<GuideView/>}
         </div>
 
         {/* Mobile bottom nav — 4 główne + Menu (iOS/Android) */}

@@ -93,7 +93,7 @@ import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobInspectorFilesPanel } from "@/app/JobInspectorFilesPanel";
 import { InspectorJobPhotosGalleryView } from "@/app/InspectorJobPhotosGalleryView";
-import { InspectorJobFilesBrowser } from "@/app/InspectorJobFilesBrowser";
+import { JobFilesBrowser } from "@/app/JobFilesBrowser";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { loadAppSettingsLocal, syncAppSettingsFromCloud } from "@/lib/app-settings";
 
@@ -806,7 +806,7 @@ export function InspectorPanel({
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <PullToRefreshIndicator pull={filesPull.pull} refreshing={filesPull.refreshing || syncing} ready={filesPull.ready}/>
           <div ref={filesScrollRef} className="flex-1 overflow-y-auto overscroll-contain">
-            <InspectorJobFilesBrowser
+            <JobFilesBrowser
               jobs={jobs}
               athPreviewEnabled={athPreviewEnabled}
               onOpenJob={(id) => openJob(id, "files", "files")}
