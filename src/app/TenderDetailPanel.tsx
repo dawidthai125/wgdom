@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ExternalLink, FileText, Download, Loader2, Sparkles, Briefcase,
-  Upload, AlertTriangle, CheckCircle2, HelpCircle, ChevronDown,
+  Upload, AlertTriangle, CheckCircle2, HelpCircle, ChevronDown, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -70,6 +70,7 @@ export function TenderDetailPanel({
   onOpenJob,
   athPreviewEnabled,
   profileVersion = 0,
+  onRemove,
 }: {
   item: TenderPipelineItem;
   allItems: TenderPipelineItem[];
@@ -79,6 +80,7 @@ export function TenderDetailPanel({
   athPreviewEnabled?: boolean;
   /** Inkrementowany po zapisie profilu firmy — przelicza dopasowanie. */
   profileVersion?: number;
+  onRemove?: () => void;
 }) {
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -114,9 +116,20 @@ export function TenderDetailPanel({
         })),
         { ourEstimatePln: estimatePln, existingSwz: swzMerged ?? undefined },
       );
-      if (extParsed.kosztorys?.ok) kosztorysSnap = extParsed.kosztorys;
+      const existingK = item.tenderDossier?.kosztorys;
+      if (extParsed.kosztorys?.ok) {
+        const extRows = extParsed.kosztorys.rows?.length ?? 0;
+        const existingRows = existingK?.ok ? (existingK.rows?.length ?? 0) : 0;
+        if (!existingK?.ok || extRows > existingRows) {
+          kosztorysSnap = extParsed.kosztorys;
+        }
+      }
       if (extParsed.swzFromDoc) {
-        swzMerged = mergeSwzAnalysis(swzMerged, extParsed.swzFromDoc);
+        const missingValue = swzMerged?.estimatedValuePln == null;
+        const missingWadium = swzMerged?.wadiumPln == null;
+        if (missingValue || missingWadium || !swzMerged) {
+          swzMerged = mergeSwzAnalysis(swzMerged, extParsed.swzFromDoc);
+        }
       }
       if (extParsed.estimatePln != null && estimatePln == null) {
         estimatePln = extParsed.estimatePln;
@@ -264,8 +277,18 @@ export function TenderDetailPanel({
                 bzpNumber: item.bzpNumber,
               });
               if (!cancelled) await applyExternalDiscovery(discovery);
-            } catch {
-              /* best-effort */
+            } catch (err) {
+              if (!cancelled) {
+                onUpdate({
+                  externalDocDiscovery: {
+                    builtAt: new Date().toISOString(),
+                    status: "failed",
+                    message: err instanceof Error ? err.message : "Błąd wyszukiwania dokumentów zewnętrznych",
+                    pageLinks: [],
+                    files: [],
+                  },
+                });
+              }
             } finally {
               if (!cancelled) setExternalDiscovering(false);
             }
@@ -290,8 +313,18 @@ export function TenderDetailPanel({
               bzpNumber: item.bzpNumber,
             });
             if (!cancelled) await applyExternalDiscovery(discovery);
-          } catch {
-            /* best-effort */
+          } catch (err) {
+            if (!cancelled) {
+              onUpdate({
+                externalDocDiscovery: {
+                  builtAt: new Date().toISOString(),
+                  status: "failed",
+                  message: err instanceof Error ? err.message : "Błąd wyszukiwania dokumentów zewnętrznych",
+                  pageLinks: [],
+                  files: [],
+                },
+              });
+            }
           } finally {
             if (!cancelled) setExternalDiscovering(false);
           }
@@ -477,6 +510,7 @@ export function TenderDetailPanel({
         proposal={bidProposal}
         referenceValuePln={referenceValuePln}
         ourEstimatePln={item.ourEstimatePln}
+        teamHeadcount={loadCompanyProfileLocal().costModel.headcount}
         onApplyRecommended={(pln) => onUpdate({ ourEstimatePln: pln })}
       />
 
@@ -534,6 +568,16 @@ export function TenderDetailPanel({
           {analyzing ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />}
           Analizuj ogłoszenie
         </button>
+        {onRemove && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-700 dark:text-red-400 text-xs font-medium hover:bg-red-500/20"
+          >
+            <Trash2 size={12} />
+            Usuń z listy
+          </button>
+        )}
       </div>
 
       {item.noticeHtml && (

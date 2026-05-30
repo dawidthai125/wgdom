@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w `src/app/App.tsx` (obecnie **2.35.16**)  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-05-29 (v2.35.16 — utworzenie dokumentu)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w `src/app/App.tsx` (obecnie **2.45.0**)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-05-30 (v2.45.0 — zarządzanie sekcją przetargów)
 
 ---
 
@@ -355,18 +355,103 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | GET | `/client-share` | Token podglądu klienta `?podglad=` |
 | GET/POST | `/sms-*` | SMS bulk, nadawcy, historia |
 | GET | `/tenders-bzp-search` | Proxy BZP — `?days=30&pages=4&province=PL02`, filtr remont/modernizacja |
+| GET | `/tenders-bzp-notice` | HTML ogłoszenia BZP — `?noticeNumber=` |
+| GET | `/tenders-bzp-documents` | Skan załączników e-Zamówienia — `?tenderId=` (HEAD probe 1–25) |
+| GET | `/tenders-bzp-analyze-swz` | Analiza SWZ z HTML/PDF — `?noticeNumber=` lub `?tenderId=&documentIndex=` |
+| GET | `/tenders-bzp-document-bytes` | Pobranie załącznika BZP jako base64 |
+| POST | `/tenders-bzp-upload` | Upload SWZ/kosztorysu do storage `tenders/{id}/` |
+| POST | `/tenders-bzp-attach-to-job` | Kopiowanie plików przetargu → roboty |
+| POST | `/tenders-external-discover` | **v2.44** — linki z ogłoszenia + crawl BIP/portali → pobranie plików do storage |
 
 **Storage bucket:** `make-0afb8820-photos` (public, auto-create)
 
-### 12.1.1 Przetargi BZP (v2.35.18)
+### 12.1.1 Przetargi BZP (pipeline v2.37 → v2.44)
+
+**Klucz chmury:** `kw-tenders-pipeline` — tablica `TenderPipelineItem[]`.
+
+**Dostęp:** Super Admin zawsze; Administrator i Moderator — gdy `tendersTabForStaffEnabled` w `kw-app-settings`.
+
+#### Pliki — lista / sync
 
 | Plik | Rola |
 |------|------|
-| `src/lib/tenders-bzp.ts` | Typy, scoring, merge pipeline, `fetchBzpTendersFromServer`, persist `kw-tenders-pipeline` |
-| `src/app/TendersView.tsx` | UI listy — odśwież z BZP, filtry Wrocław/trafność/status, notatki, link e-Zamówienia |
-| Edge `GET /tenders-bzp-search` | Pobiera strony z `ezamowienia.gov.pl/mo-board/api/v1/Board/Search` (CORS po stronie serwera). Skan ogólny `organizationProvince=PL02` + dedykowane `organizationName` (WM, ZIK, ZIM, TBS, Gmina, **MOPS** z `organizationCity=Wrocław`). Parametry: `days`, `pages`, `orgPages`, `province`. |
+| `src/lib/tenders-bzp.ts` | Typy pipeline, scoring, merge, API klienta (BZP, dokumenty, upload) |
+| `src/lib/tenders-bzp-keywords.ts` | Słowa kluczowe scoringu (sync z Edge) |
+| `src/lib/tenders-bzp-learn.ts` | Uczenie słów z przetargów „interesuje nas” |
+| `src/app/TendersView.tsx` | UI listy, filtry, lejek pipeline, profil firmy (sticky header) |
 
-**Dostęp:** Super Admin zawsze; Administrator i Moderator — gdy Super Admin włączy w Ustawieniach (`tendersTabForStaffEnabled` w `kw-app-settings`).
+#### Pliki — szczegóły przetargu (po rozwinięciu)
+
+| Plik | Rola |
+|------|------|
+| `src/app/TenderDetailPanel.tsx` | Auto-analiza przy expand: HTML → SWZ → załączniki BZP → **external discover** → dossier |
+| `src/app/TenderDossierPanel.tsx` | Karta przetargu (brief, kosztorys, przedmiar) |
+| `src/app/TenderAttachmentsPanel.tsx` | Załączniki e-Zamówienia + podgląd ZIP/PDF/ATH |
+| `src/app/TenderExternalDocsPanel.tsx` | **v2.44** — dokumenty u zamawiającego (BIP, linki z ogłoszenia) |
+| `src/app/TenderFitPanel.tsx` | Dopasowanie profilu, wymagania vs firma, szacunek szans % |
+| `src/app/TenderBidProposalPanel.tsx` | Propozycja ceny ofertowej (kalkulator) |
+| `src/app/TenderCompanyProfilePanel.tsx` | Profil firmy + model kosztów (schema v5) |
+| `src/lib/tender-document-resolver.ts` | Parsowanie najlepszego załącznika BZP + **`parseExternalTenderDocuments`** |
+| `src/lib/tenders-bzp-doc-parse.ts` | PDF (pdf.js), DOCX, XLSX, ZIP → kosztorys / tekst SWZ |
+| `src/lib/tenders-bzp-swz.ts` | Analiza SWZ (wartość, wadium, opłacalność) |
+| `src/lib/tenders-bzp-fit.ts` | Dopasowanie przetarg ↔ profil, `estimatedValuePlnFromItem` |
+| `src/lib/tenders-bzp-brief.ts` | Brief z HTML ogłoszenia |
+| `src/lib/tenders-bzp-company.ts` | Profil firmy W&G DOM, `TenderCompanyCostModel` (schema **v5**) |
+| `src/lib/tenders-bid-calculator.ts` | Kalkulator oferty — robocizna + materiały + Kp + stałe + marża |
+| `src/lib/company-labor-cost.ts` | **v2.43** — model z listy płac (13 os., ~28,6 zł/h) + koszty poboczne tygodniowe |
+| `src/lib/tender-external-docs.ts` | **v2.44** — wyciąganie linków z HTML, portale BIP, klient API discover |
+| `src/lib/wheel-scroll-forward.ts` | **v2.43.1** — scroll kółkiem z nagłówków flex (Przetargi, Grafik…) |
+
+#### Flow auto-analizy (`TenderDetailPanel`, raz na `item.id`)
+
+1. Pobierz HTML ogłoszenia (`/tenders-bzp-notice`) + listę załączników BZP.
+2. Analiza SWZ z HTML (`/tenders-bzp-analyze-swz`).
+3. Parsuj najlepsze załączniki (`parseBestTenderDocuments`) → kosztorys ATH / SWZ z PDF.
+4. Zbuduj `tenderDossier` (brief + kosztorys).
+5. **Jeśli brak kosztorysu lub wartości SWZ** → `POST /tenders-external-discover`:
+   - linki z ogłoszenia (BIP, platformy, pliki),
+   - crawl portali wrocławskich (WM, MOPS, MPWiK…),
+   - pobranie plików do `tenders/{tenderId}/external/`,
+   - klient: `parseExternalTenderDocuments` → ten sam parser co BZP.
+6. Przelicz `tenderFit` (`assessTenderFit`) + opcjonalnie `computeTenderBidProposal`.
+
+#### Pola `TenderPipelineItem` (ważne od v2.38+)
+
+| Pole | Opis |
+|------|------|
+| `bzpDocuments` | Załączniki z e-Zamówienia (po skanie) |
+| `noticeHtml` | Cache HTML ogłoszenia |
+| `swzAnalysis` | Wartość, wadium, opłacalność, wymagania |
+| `tenderDossier` | `{ brief, kosztorys, builtAt }` |
+| `tenderFit` | Dopasowanie + szacunek szans % |
+| `ourEstimatePln` | Ręczny / auto szacunek brutto |
+| `externalDocDiscovery` | **v2.44** `{ pageLinks, files[], status, builtAt }` |
+| `linkedJobId` | Powiązana robota po wygranej |
+
+#### Model kosztów ofertowych (v2.43)
+
+- Domyślnie z **listy płac**: 13 os., ~28,62 zł/h, ZUS 23%, Kp 14%, zysk 8%.
+- **Koszty poboczne tygodniowe** (bez materiałów): paliwo 3 aut, narzędzia, BHP, gruz, ubezp., koordynacja — edycja w Profil firmy.
+- **Roboty:** `JobCostBreakdownPanel` — alokacja pobocznych na robotę z wpisów godzin.
+- **Przetargi:** `TenderBidProposalPanel` — cena z kosztorysu ATH + model firmy.
+
+#### Edge — przetargi
+
+| Endpoint | Opis |
+|----------|------|
+| `GET /tenders-bzp-search` | Proxy BZP. Skan `PL02` + orgi WM, ZIK, ZIM, TBS, Gmina, MOPS (Wrocław) |
+| `POST /tenders-external-discover` | Body: `{ tenderId, noticeHtml, organizationName, priorityBuyerId, title, bzpNumber }` → `{ discovery }` |
+
+**Deploy Supabase wymagany** przy zmianie endpointów przetargowych (`index.tsx`).
+
+**Walidacja (v2.44.1):** external discover nie nadpisuje dobrego kosztorysu BZP; fit/szanse działają też z wartością ATH; kalkulator — jedna marża (próg opłacalności); serwer blokuje `10.*` w URL crawl; bonus dopasowania pliku tylko gdy tytuł ma słowa kluczowe; profil firmy — clamp kosztów.
+
+**Zarządzanie sekcją (v2.45):** klucze `kw-tenders-*` w `DATA_KEYS` (sync + backup); `src/lib/tenders-sync.ts` (merge, CSV, deleted ids); usuwanie / bulk / eksport CSV w `TendersView`; `TenderKeywordsPanel`; edycja referencji w profilu; ustawienia BZP w `AppSettings`; reset w Super Admin ⚙.
+
+#### UX — scroll (v2.43.1)
+
+- `TendersView`: jeden kontener scroll (profil firmy + lista).
+- `useWheelScrollForward` na nagłówkach Grafik / Roboty / Instrukcja — kółko myszy przekierowuje do listy poniżej.
 
 ### 12.2 Deploy Supabase
 
@@ -424,10 +509,12 @@ WGDOM1/
 │   │   ├── InspectorPanel.tsx   # Inspektor terenowy
 │   │   ├── InspectorAdminView.tsx
 │   │   ├── InspectorDashboard.tsx
-│   │   ├── Job*.tsx, WmPortfolioView.tsx, …
+│   │   ├── TendersView.tsx, TenderDetailPanel.tsx, TenderExternalDocsPanel.tsx, …
+│   │   ├── JobCostBreakdownPanel.tsx
 │   │   └── components/ui/       # shadcn
 │   ├── lib/                     # ★ Logika domenowa + sync
 │   │   ├── cloud-sync.ts        # ★★ Sync — czytaj pierwszy przy danych
+│   │   ├── tenders-bzp*.ts, tender-*.ts, company-labor-cost.ts  # Przetargi
 │   │   ├── admin-auth.ts
 │   │   ├── job-documents.ts, job-wm.ts, job-activity.ts
 │   │   ├── photo-queue.ts, payroll-export.ts, …
@@ -567,6 +654,11 @@ WGDOM1/
 
 | Wersja | Temat |
 |--------|-------|
+| 2.44.0 | Przetargi — dokumenty z BIP/linków ogłoszenia, `tenders-external-discover` |
+| 2.43.0 | Model kosztów z listy płac, kalkulator oferty, `JobCostBreakdownPanel` |
+| 2.43.1 | Fix scroll — Przetargi, nagłówki flex, `wheel-scroll-forward` |
+| 2.42.0 | Kalkulator ceny ofertowej przetargowej |
+| 2.38–2.41 | Karta przetargu, podgląd BZP, profil firmy, dopasowanie, DOCX/XLSX |
 | 2.35.15 | Sync LS przed push, storage inspektor, worker payroll LS, lazy inspector, SW v20 |
 | 2.35.14 | Pull on focus admin, ochrona cofki, settledUpdatedAt |
 | 2.35.13 | Fix sync statusu Rozliczony |

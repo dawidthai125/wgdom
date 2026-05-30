@@ -9,10 +9,31 @@ export interface AppSettings {
   athPreviewEnabled: boolean;
   /** Zakładka Przetargi w menu dla Administratora i Moderatora (Super Admin zawsze widzi). */
   tendersTabForStaffEnabled: boolean;
+  /** Skan BZP — ile dni wstecz. */
+  bzpScanDays: number;
+  /** Skan BZP — strony ogólne PL02. */
+  bzpScanPages: number;
+  /** Skan BZP — strony per kluczowy zamawiający. */
+  bzpScanOrgPages: number;
+  /** Auto-odświeżenie listy BZP (godziny). */
+  bzpAutoRefreshHours: number;
 }
 
 export function defaultAppSettings(): AppSettings {
-  return { athPreviewEnabled: true, tendersTabForStaffEnabled: false };
+  return {
+    athPreviewEnabled: true,
+    tendersTabForStaffEnabled: false,
+    bzpScanDays: 90,
+    bzpScanPages: 4,
+    bzpScanOrgPages: 5,
+    bzpAutoRefreshHours: 20,
+  };
+}
+
+function numSetting(v: unknown, fallback: number, min: number, max: number): number {
+  const n = typeof v === "number" ? v : parseInt(String(v ?? ""), 10);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
 }
 
 /** Chmura ma pierwszeństwo — lokalne false z starej wersji nie blokuje podglądu. */
@@ -38,11 +59,16 @@ export function mergeTendersTabForStaffEnabled(
 export function loadAppSettingsLocal(): AppSettings {
   try {
     const raw = localStorage.getItem(APP_SETTINGS_KEY);
-    if (!raw) return defaultAppSettings();
+    const d = defaultAppSettings();
+    if (!raw) return d;
     const parsed = JSON.parse(raw) as Partial<AppSettings>;
     return {
       athPreviewEnabled: parsed.athPreviewEnabled !== false,
       tendersTabForStaffEnabled: parsed.tendersTabForStaffEnabled === true,
+      bzpScanDays: numSetting(parsed.bzpScanDays, d.bzpScanDays, 7, 365),
+      bzpScanPages: numSetting(parsed.bzpScanPages, d.bzpScanPages, 1, 20),
+      bzpScanOrgPages: numSetting(parsed.bzpScanOrgPages, d.bzpScanOrgPages, 1, 20),
+      bzpAutoRefreshHours: numSetting(parsed.bzpAutoRefreshHours, d.bzpAutoRefreshHours, 1, 168),
     };
   } catch {
     return defaultAppSettings();
@@ -61,10 +87,7 @@ export async function syncAppSettingsFromCloud(): Promise<AppSettings> {
     const local = loadAppSettingsLocal();
     if (!cloud || typeof cloud !== "object") return local;
     const remote = cloud as Partial<AppSettings>;
-    const merged: AppSettings = {
-      athPreviewEnabled: mergeAthPreviewEnabled(remote, local),
-      tendersTabForStaffEnabled: mergeTendersTabForStaffEnabled(remote, local),
-    };
+    const merged: AppSettings = mergeAppSettings(remote, local);
     saveAppSettingsLocal(merged);
     return merged;
   } catch {
@@ -75,4 +98,18 @@ export async function syncAppSettingsFromCloud(): Promise<AppSettings> {
 export async function saveAppSettings(settings: AppSettings): Promise<void> {
   saveAppSettingsLocal(settings);
   await persistKey(APP_SETTINGS_KEY, settings);
+}
+
+export function mergeAppSettings(
+  remote: Partial<AppSettings> | null | undefined,
+  local: AppSettings,
+): AppSettings {
+  return {
+    athPreviewEnabled: mergeAthPreviewEnabled(remote, local),
+    tendersTabForStaffEnabled: mergeTendersTabForStaffEnabled(remote, local),
+    bzpScanDays: numSetting(remote?.bzpScanDays, local.bzpScanDays, 7, 365),
+    bzpScanPages: numSetting(remote?.bzpScanPages, local.bzpScanPages, 1, 20),
+    bzpScanOrgPages: numSetting(remote?.bzpScanOrgPages, local.bzpScanOrgPages, 1, 20),
+    bzpAutoRefreshHours: numSetting(remote?.bzpAutoRefreshHours, local.bzpAutoRefreshHours, 1, 168),
+  };
 }

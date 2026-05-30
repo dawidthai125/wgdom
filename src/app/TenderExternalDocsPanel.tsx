@@ -36,7 +36,8 @@ export function TenderExternalDocsPanel({
 
   const pageLinks = discovery?.pageLinks ?? [];
   const files = discovery?.files ?? [];
-  const hasContent = pageLinks.length > 0 || files.length > 0 || discovering || busy;
+  const hasContent = pageLinks.length > 0 || files.length > 0 || discovering || busy
+    || discovery?.status === "failed";
 
   const runDiscover = async () => {
     if (!item.tenderId) {
@@ -103,7 +104,14 @@ export function TenderExternalDocsPanel({
         )}
 
         {discovery?.message && !busy && !discovering && (
-          <p className="px-3 py-2 text-[10px] text-muted-foreground">{discovery.message}</p>
+          <p className={`px-3 py-2 text-[10px] ${
+            discovery.status === "failed" ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
+          }`}>
+            {discovery.message}
+            {discovery.builtAt && (
+              <> · {new Date(discovery.builtAt).toLocaleString("pl-PL")}</>
+            )}
+          </p>
         )}
 
         {pageLinks.length > 0 && (

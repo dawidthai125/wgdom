@@ -519,12 +519,13 @@ export function assessTenderFit(
   }
 
   score = Math.max(0, Math.min(100, Math.round(score)));
-  const fitLabel = swz ? fitLabelFromScore(score, blockingIssues) : "unknown";
+  const hasAnalysisBasis = swz != null || estVal != null || item.tenderDossier?.kosztorys?.ok;
+  const fitLabel = hasAnalysisBasis ? fitLabelFromScore(score, blockingIssues) : "unknown";
 
   // Szacunek szans
   let winChance: number | null = null;
-  let winChanceNote = "Rozwiń przetarg i poczekaj na analizę SWZ.";
-  if (swz) {
+  let winChanceNote = "Rozwiń przetarg i poczekaj na analizę SWZ lub kosztorysu.";
+  if (hasAnalysisBasis) {
     let wc = score * 0.75;
     if (priceWeightPct != null && priceWeightPct >= 85 && item.ourEstimatePln != null && estVal != null) {
       if (item.ourEstimatePln <= estVal * 0.95) wc += 12;
@@ -538,6 +539,8 @@ export function assessTenderFit(
     winChance = Math.max(5, Math.min(85, Math.round(wc)));
     if (blockingIssues.length >= 2) {
       winChanceNote = "Niskie szanse — kilka wymagań poza profilem firmy.";
+    } else if (!swz?.estimatedValuePln && estVal != null) {
+      winChanceNote = "Szacunek na podstawie kosztorysu — zweryfikuj wartość w SWZ.";
     } else if (winChance >= 60) {
       winChanceNote = "Dobre dopasowanie — warto przygotować ofertę i kosztorys.";
     } else if (winChance >= 40) {

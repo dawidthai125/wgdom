@@ -7,6 +7,13 @@ import {
 import { mergeJobFiles, mergeJobsDocumentsOnConflict, mergeReportDocSaOverrideOnConflict } from "@/lib/job-documents";
 import { mergeJobNotes, mergeInspectorPhotos, mergeHandoverStage, mergePlannedHandoverDate } from "@/lib/job-wm";
 import { mergeHiddenInspectorFeedIds } from "@/lib/job-activity";
+import {
+  mergeTenderDataKey,
+  TENDERS_PIPELINE_KEY,
+  TENDERS_COMPANY_PROFILE_KEY,
+  TENDERS_CUSTOM_KEYWORDS_KEY,
+  TENDERS_DELETED_IDS_KEY,
+} from "@/lib/tenders-sync";
 
 /** Klucze danych biznesowych — każdy nowy typ zapisu MUSI być tutaj. */
 export const DATA_KEYS = [
@@ -17,6 +24,9 @@ export const DATA_KEYS = [
   "kw-weekTo",
   "kw-jobs",
   "kw-contacts",
+  "kw-tenders-pipeline",
+  "kw-tenders-company-profile",
+  "kw-tenders-custom-keywords",
 ] as const;
 
 export type DataKey = (typeof DATA_KEYS)[number];
@@ -734,6 +744,12 @@ export function mergeDataKey(
       return mergeDirectory(normalizeArrayValue(local), normalizeArrayValue(cloud), deletedDirectoryIds);
     case "kw-contacts":
       return mergeContacts(normalizeArrayValue(local), normalizeArrayValue(cloud), deletedContactsIds);
+    case "kw-tenders-pipeline":
+      return mergeTenderDataKey(TENDERS_PIPELINE_KEY, local, cloud);
+    case "kw-tenders-company-profile":
+      return mergeTenderDataKey(TENDERS_COMPANY_PROFILE_KEY, local, cloud);
+    case "kw-tenders-custom-keywords":
+      return mergeTenderDataKey(TENDERS_CUSTOM_KEYWORDS_KEY, local, cloud);
     case "kw-weekFrom":
     case "kw-weekTo":
       return typeof local === "string" && local ? local : (typeof cloud === "string" && cloud ? cloud : local ?? cloud);
@@ -1160,7 +1176,7 @@ export async function persistKey(
   }
   const shouldSync =
     options?.cloud !== false &&
-    (isDataKey(key) || key === ADMIN_HASH_KEY || key === ADMIN_PASSWORDS_KEY || key === ADMIN_USERS_CONFIG_KEY || key === INSPECTOR_STATS_KEY || key === APP_SETTINGS_KEY);
+    (isDataKey(key) || key === ADMIN_HASH_KEY || key === ADMIN_PASSWORDS_KEY || key === ADMIN_USERS_CONFIG_KEY || key === INSPECTOR_STATS_KEY || key === APP_SETTINGS_KEY || key === TENDERS_DELETED_IDS_KEY);
   if (shouldSync) {
     await pushKeyToCloud(key, value);
   }

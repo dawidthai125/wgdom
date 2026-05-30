@@ -6,11 +6,13 @@ export function TenderBidProposalPanel({
   proposal,
   referenceValuePln,
   ourEstimatePln,
+  teamHeadcount,
   onApplyRecommended,
 }: {
   proposal: TenderBidProposal | null | undefined;
   referenceValuePln?: number | null;
   ourEstimatePln?: number | null;
+  teamHeadcount?: number | null;
   onApplyRecommended?: (pln: number) => void;
 }) {
   if (!proposal?.ok) {
@@ -36,7 +38,7 @@ export function TenderBidProposalPanel({
             Propozycja ceny ofertowej
           </p>
           <p className="text-[10px] text-muted-foreground">
-            Robocizna + materiały + Kp + stałe (15 os.) + ZUS + marża
+            Robocizna + materiały + Kp + stałe ({teamHeadcount ?? 13} os.) + ZUS + marża
           </p>
         </div>
         <p className="text-lg font-bold font-mono text-violet-700 dark:text-violet-300">

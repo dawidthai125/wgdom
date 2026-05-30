@@ -2617,8 +2617,12 @@ function extIsSafeUrl(url: string): boolean {
     const u = new URL(url);
     if (u.protocol !== "http:" && u.protocol !== "https:") return false;
     const host = u.hostname.toLowerCase();
-    if (host === "localhost" || host.startsWith("127.") || host.startsWith("192.168.")) return false;
-    if (/facebook|twitter|instagram|youtube|linkedin|cookie|gdpr|privacy/.test(host + u.pathname)) return false;
+    if (host === "localhost" || host.startsWith("127.") || host.startsWith("192.168.") || host.startsWith("10.")) {
+      return false;
+    }
+    if (/facebook|twitter|instagram|youtube|linkedin|cookie|gdpr|privacy|cloudflare|recaptcha/.test(host + u.pathname)) {
+      return false;
+    }
     return true;
   } catch {
     return false;
@@ -2682,12 +2686,12 @@ function extExtractLinks(html: string, baseUrl: string): { url: string; label: s
 
 const EXT_BIP_PORTALS: Record<string, { label: string; seedUrls: string[] }> = {
   wm: { label: "BIP Wrocław / WM", seedUrls: ["https://bip.wroclaw.pl/", "https://bip.wroclaw.pl/search/document?q=przetarg"] },
-  zik: { label: "BIP ZIK", seedUrls: ["https://bip.wroclaw.pl/search/document?q=ZIK"] },
-  zim: { label: "BIP ZIM", seedUrls: ["https://bip.wroclaw.pl/search/document?q=ZIM"] },
-  gmina: { label: "BIP Gmina Wrocław", seedUrls: ["https://bip.wroclaw.pl/search/document?q=zam%C3%B3wienia"] },
+  zik: { label: "BIP ZIK", seedUrls: ["https://bip.wroclaw.pl/", "https://bip.wroclaw.pl/search/document?q=ZIK"] },
+  zim: { label: "BIP ZIM", seedUrls: ["https://bip.wroclaw.pl/", "https://bip.wroclaw.pl/search/document?q=ZIM"] },
+  gmina: { label: "BIP Gmina Wrocław", seedUrls: ["https://bip.wroclaw.pl/", "https://bip.wroclaw.pl/search/document?q=zam%C3%B3wienia"] },
   mops: { label: "BIP MOPS", seedUrls: ["https://bip.mops.wroclaw.pl/", "https://bip.mops.wroclaw.pl/?cat=przetargi"] },
   tbs: { label: "BIP TBS", seedUrls: ["https://bip.tbs.wroclaw.pl/"] },
-  mpwik: { label: "MPWiK Wrocław", seedUrls: ["https://mpwik.wroc.pl/pl/przetargi"] },
+  mpwik: { label: "MPWiK Wrocław", seedUrls: ["https://mpwik.wroc.pl/", "https://mpwik.wroc.pl/pl/przetargi"] },
 };
 
 function extTitleKeywords(title: string, bzpNumber: string): string[] {
@@ -2702,7 +2706,7 @@ function extTitleKeywords(title: string, bzpNumber: string): string[] {
 }
 
 function extMatchesTender(hay: string, keywords: string[]): boolean {
-  if (keywords.length === 0) return true;
+  if (keywords.length === 0) return false;
   const folded = extFold(hay);
   return keywords.some((kw) => folded.includes(kw));
 }

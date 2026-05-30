@@ -1,4 +1,5 @@
 import { fetchKeysFromCloud, persistKey } from "@/lib/cloud-sync";
+import { mergeCustomKeywordsForCloud } from "@/lib/tenders-sync";
 import {
   TENDER_ACTION_KEYWORDS,
   TENDER_SCOPE_KEYWORDS,
@@ -39,14 +40,15 @@ export function loadCustomKeywordsLocal(): TendersCustomKeywords {
 
 export async function loadCustomKeywords(): Promise<TendersCustomKeywords> {
   try {
+    const local = loadCustomKeywordsLocal();
     const [cloud] = await fetchKeysFromCloud([TENDERS_CUSTOM_KEYWORDS_KEY]);
-    if (cloud && typeof cloud === "object") {
-      const c = cloud as TendersCustomKeywords;
-      localStorage.setItem(TENDERS_CUSTOM_KEYWORDS_KEY, JSON.stringify(c));
-      return c;
-    }
-  } catch { /* offline */ }
-  return loadCustomKeywordsLocal();
+    if (cloud == null || typeof cloud !== "object") return local;
+    const merged = mergeCustomKeywordsForCloud(local, cloud) as TendersCustomKeywords;
+    localStorage.setItem(TENDERS_CUSTOM_KEYWORDS_KEY, JSON.stringify(merged));
+    return merged;
+  } catch {
+    return loadCustomKeywordsLocal();
+  }
 }
 
 export async function saveCustomKeywords(kw: TendersCustomKeywords): Promise<void> {

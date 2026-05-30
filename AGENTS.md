@@ -38,6 +38,16 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 | Backend API | `supabase/functions/make-server-0afb8820/index.tsx` |
 | Monolit UI | `src/app/App.tsx` (+ wydzielone panele w `src/app/`) |
 
+## 3a. Moduł przetargów (skrót)
+
+Szczegóły: **ARCHITECTURE.md § 12.1.1**. Kluczowe pliki:
+
+- `src/lib/tenders-bzp.ts` — pipeline, typy, API klienta  
+- `src/lib/tender-external-docs.ts` — BIP / linki z ogłoszenia (v2.44)  
+- `src/lib/company-labor-cost.ts` — model kosztów z listy płac (v2.43)  
+- `src/app/TenderDetailPanel.tsx` — auto-analiza przy expand  
+- Edge: `POST /tenders-external-discover`, `GET /tenders-bzp-*`
+
 ## 4. Komendy
 
 ```bash

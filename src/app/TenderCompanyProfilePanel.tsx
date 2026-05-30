@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Building2, ChevronDown, Loader2, RefreshCw, Save, Trophy } from "lucide-react";
+import { Building2, ChevronDown, Loader2, Plus, RefreshCw, Save, Trash2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import {
   type TenderCompanyProfile,
@@ -61,24 +61,76 @@ function LinesInput({
   );
 }
 
-function RefList({ title, items }: { title: string; items: TenderCompanyReference[] }) {
-  if (items.length === 0) return null;
+function RefEditor({
+  title,
+  items,
+  onChange,
+}: {
+  title: string;
+  items: TenderCompanyReference[];
+  onChange: (items: TenderCompanyReference[]) => void;
+}) {
+  const update = (idx: number, patch: Partial<TenderCompanyReference>) => {
+    onChange(items.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+  };
+  const remove = (idx: number) => onChange(items.filter((_, i) => i !== idx));
+  const add = () => onChange([...items, { client: "", scope: "", year: "", valuePln: null, source: "" }]);
+
   return (
-    <div className="col-span-full rounded-lg border border-border/60 bg-secondary/20 px-2.5 py-2 space-y-1.5">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
-      <ul className="space-y-1.5">
-        {items.map((r, i) => (
-          <li key={`${r.client}-${i}`} className="text-[10px] text-muted-foreground">
-            <span className="font-medium text-foreground">{r.client}</span>
-            {r.year && <span className="text-muted-foreground/80"> · {r.year}</span>}
-            {r.valuePln != null && r.valuePln > 0 && (
-              <span className="text-emerald-600 dark:text-emerald-400"> · {r.valuePln.toLocaleString("pl-PL")} zł</span>
-            )}
-            <p className="mt-0.5">{r.scope}</p>
-            {r.source && <p className="text-[9px] opacity-70">{r.source}</p>}
-          </li>
-        ))}
-      </ul>
+    <div className="col-span-full rounded-lg border border-border/60 bg-secondary/20 px-2.5 py-2 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
+        <button type="button" onClick={add} className="text-[10px] text-primary flex items-center gap-0.5 hover:underline">
+          <Plus size={10} /> Dodaj
+        </button>
+      </div>
+      {items.length === 0 && (
+        <p className="text-[10px] text-muted-foreground">Brak wpisów — kliknij Dodaj.</p>
+      )}
+      {items.map((r, i) => (
+        <div key={i} className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-2 rounded-lg bg-background/50 border border-border/40">
+          <input
+            placeholder="Klient / zamawiający"
+            value={r.client}
+            onChange={(e) => update(i, { client: e.target.value })}
+            className="bg-secondary rounded px-2 py-1 text-[10px] border border-border"
+          />
+          <input
+            placeholder="Rok"
+            value={r.year ?? ""}
+            onChange={(e) => update(i, { year: e.target.value })}
+            className="bg-secondary rounded px-2 py-1 text-[10px] border border-border"
+          />
+          <input
+            placeholder="Wartość PLN"
+            type="number"
+            min={0}
+            value={r.valuePln ?? ""}
+            onChange={(e) => update(i, { valuePln: e.target.value ? Number(e.target.value) : null })}
+            className="bg-secondary rounded px-2 py-1 text-[10px] border border-border"
+          />
+          <input
+            placeholder="Źródło (BZP, wgdom.pl…)"
+            value={r.source ?? ""}
+            onChange={(e) => update(i, { source: e.target.value })}
+            className="bg-secondary rounded px-2 py-1 text-[10px] border border-border"
+          />
+          <textarea
+            placeholder="Zakres robót"
+            rows={2}
+            value={r.scope}
+            onChange={(e) => update(i, { scope: e.target.value })}
+            className="sm:col-span-2 bg-secondary rounded px-2 py-1 text-[10px] border border-border"
+          />
+          <button
+            type="button"
+            onClick={() => remove(i)}
+            className="sm:col-span-2 text-[10px] text-red-600 flex items-center gap-1 justify-end hover:underline"
+          >
+            <Trash2 size={10} /> Usuń wpis
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
@@ -158,9 +210,21 @@ export function TenderCompanyProfilePanel({
                 <p className="italic">{profile.formerOwnerNote}</p>
               </div>
 
-              <RefList title="Referencje (wgdom.pl)" items={profile.references} />
-              <RefList title="Wygrane przetargi BZP" items={profile.tenderWins} />
-              <RefList title="Udział w przetargach" items={profile.tenderParticipations} />
+              <RefEditor
+                title="Referencje (wgdom.pl)"
+                items={profile.references}
+                onChange={(references) => setProfile({ ...profile, references })}
+              />
+              <RefEditor
+                title="Wygrane przetargi BZP"
+                items={profile.tenderWins}
+                onChange={(tenderWins) => setProfile({ ...profile, tenderWins })}
+              />
+              <RefEditor
+                title="Udział w przetargach"
+                items={profile.tenderParticipations}
+                onChange={(tenderParticipations) => setProfile({ ...profile, tenderParticipations })}
+              />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 <label className="block text-[10px] text-muted-foreground">

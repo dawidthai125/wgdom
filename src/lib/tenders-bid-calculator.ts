@@ -270,7 +270,7 @@ export function computeTenderBidProposal(opts: {
   const estVal = swz?.estimatedValuePln ?? athTotal;
   const priceWeight = fit?.priceWeightPct ?? null;
 
-  let recommended = costPrice * (1 + costModel.profitPct / 100);
+  let recommended = floorBid;
   if (priceWeight != null && priceWeight >= 80) {
     const competitive = estVal * (1 - costModel.targetPriceDiscountPct / 100);
     recommended = Math.max(floorBid, Math.min(competitive, estVal * 0.995));
@@ -284,8 +284,8 @@ export function computeTenderBidProposal(opts: {
       );
     }
   } else {
-    recommended = Math.max(floorBid, recommended);
-    assumptions.push("Mieszane kryteria oceny — rekomendacja z pełną marżą docelową.");
+    recommended = floorBid;
+    assumptions.push("Mieszane kryteria oceny — rekomendacja przy progu opłacalności (koszt + marża minimalna).");
   }
 
   const aggressive = priceWeight != null && priceWeight >= 85

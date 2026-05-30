@@ -15,6 +15,10 @@ Dane firmowe są w Supabase (funkcja `make-server-0afb8820`). Moduł: `src/lib/c
 | `kw-weekFrom` / `kw-weekTo` | Zakres dat tygodnia |
 | `kw-jobs` | Roboty (w tym zdjęcia w metadanych) |
 | `kw-contacts` | Kontakty e-mail |
+| `kw-tenders-pipeline` | Przetargi BZP — pipeline, dossier, fit, `externalDocDiscovery` (sync w `DATA_KEYS` od v2.45) |
+| `kw-tenders-company-profile` | Profil firmy pod przetargi (schema v5, koszty) |
+| `kw-tenders-custom-keywords` | Słowa kluczowe uczone / edytowane w UI |
+| `kw-tenders-deleted-ids` | ID usuniętych z pipeline (nie wracają z BZP) |
 | `kw-admin-passwords` | Hash hasła per użytkownik |
 | `kw-admin-users-config` | Role, custom users |
 
@@ -38,6 +42,13 @@ Aktualizuj przy każdej zmianie architektury / syncu / API / mobile / deployu.
 Bucket: `make-0afb8820-photos`. Endpointy: `storage-upload`, `storage-delete` w Edge Function.
 
 Po zmianie `supabase/functions/make-server-0afb8820/index.tsx` → deploy Supabase (GitHub Action lub CLI).
+
+## Przetargi BZP (v2.37+)
+
+Moduł w `src/lib/tenders-bzp*.ts`, `tender-*.ts`, `company-labor-cost.ts`. UI: `TendersView`, `TenderDetailPanel`, `TenderExternalDocsPanel`.  
+Pełny opis flow, endpointów i pól pipeline → **`docs/ARCHITECTURE.md` § 12.1.1**.
+
+Nowe endpointy przetargowe (np. `POST /tenders-external-discover`) wymagają deploy Supabase.
 
 ## Uruchomienie lokalne
 

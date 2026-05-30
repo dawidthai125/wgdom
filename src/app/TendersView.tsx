@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   RefreshCw, Search, Scale, MapPin, Calendar, Building2,
-  Filter, AlertCircle, HelpCircle,
+  Filter, AlertCircle, HelpCircle, Download, Trash2, CheckSquare, Square,
 } from "lucide-react";
 import { toast } from "sonner";
+import { saveAs } from "file-saver";
+import { loadAppSettingsLocal } from "@/lib/app-settings";
 import {
   type TenderPipelineItem,
   type TenderPipelineStatus,
@@ -25,12 +27,15 @@ import {
   markBzpSyncedAt,
   computePipelineFunnel,
   labelTenderState,
+  removeTenderFromPipeline,
 } from "@/lib/tenders-bzp";
-import { PROFITABILITY_LABELS } from "@/lib/tenders-bzp-swz";
+import { exportTendersPipelineCsv, getDeletedTenderIds } from "@/lib/tenders-sync";
 import { TenderDetailPanel } from "@/app/TenderDetailPanel";
 import { TendersLegend } from "@/app/TendersLegend";
 import { TenderCompanyProfilePanel } from "@/app/TenderCompanyProfilePanel";
+import { TenderKeywordsPanel } from "@/app/TenderKeywordsPanel";
 import { FIT_LABELS } from "@/lib/tenders-bzp-fit";
+import { PROFITABILITY_LABELS } from "@/lib/tenders-bzp-swz";
 
 type LocalFilter = "actionable" | "active" | "priority" | "wroclaw" | "high" | "archive" | "all";
 
@@ -71,6 +76,11 @@ export function TendersView({
   const [autoSyncing, setAutoSyncing] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
   const [profileVersion, setProfileVersion] = useState(0);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<TenderPipelineStatus>("ignored");
+
+  const bzpSettings = useMemo(() => loadAppSettingsLocal(), []);
 
   useEffect(() => {
     if (initialExpandedId) setExpandedId(initialExpandedId);
@@ -86,11 +96,20 @@ export function TendersView({
   }, []);
 
   const runBzpMerge = useCallback(async (baseItems: TenderPipelineItem[], silent = false) => {
-    const raw = await fetchBzpTendersFromServer({ days: 90, pages: 4, orgPages: 5, province: "PL02" });
-    const mapped = raw.map((n) => {
-      const prev = baseItems.find((i) => i.id === String(n.objectId || n.moIdentifier || n.bzpNumber));
-      return mapBzpToPipelineItem(n, prev);
+    const s = loadAppSettingsLocal();
+    const raw = await fetchBzpTendersFromServer({
+      days: s.bzpScanDays,
+      pages: s.bzpScanPages,
+      orgPages: s.bzpScanOrgPages,
+      province: "PL02",
     });
+    const deleted = new Set(getDeletedTenderIds());
+    const mapped = raw
+      .map((n) => {
+        const prev = baseItems.find((i) => i.id === String(n.objectId || n.moIdentifier || n.bzpNumber));
+        return mapBzpToPipelineItem(n, prev);
+      })
+      .filter((m) => !deleted.has(m.id));
     const merged = pruneExpiredUntouched(mergeTenderPipeline(baseItems, mapped));
     await persist(merged);
     markBzpSyncedAt();
@@ -114,7 +133,7 @@ export function TendersView({
           loaded = rescored;
         }
         if (!cancelled) setItems(loaded);
-        if (!cancelled && shouldAutoRefreshBzp()) {
+        if (!cancelled && shouldAutoRefreshBzp(bzpSettings.bzpAutoRefreshHours)) {
           setAutoSyncing(true);
           try {
             await runBzpMerge(loaded, true);
@@ -154,6 +173,19 @@ export function TendersView({
     void persist(next);
   }, [items, persist]);
 
+  const removeItem = useCallback(async (id: string) => {
+    if (!window.confirm("Usunąć przetarg z listy pipeline? (nie wróci przy sync BZP)")) return;
+    try {
+      const next = await removeTenderFromPipeline(items, id);
+      setItems(next);
+      setExpandedId((e) => (e === id ? null : e));
+      setSelectedIds((s) => { const n = new Set(s); n.delete(id); return n; });
+      toast.success("Usunięto z pipeline");
+    } catch {
+      toast.error("Nie udało się usunąć");
+    }
+  }, [items]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = items.filter((i) => {
@@ -175,6 +207,46 @@ export function TendersView({
     });
     return sortTendersByUrgency(list);
   }, [items, search, localFilter, statusFilter]);
+
+  const exportCsv = useCallback(() => {
+    const blob = new Blob([exportTendersPipelineCsv(filtered)], { type: "text/csv;charset=utf-8" });
+    saveAs(blob, `przetargi-${new Date().toISOString().slice(0, 10)}.csv`);
+    toast.success(`Eksport: ${filtered.length} wierszy`);
+  }, [filtered]);
+
+  const applyBulkStatus = useCallback(() => {
+    if (selectedIds.size === 0) return;
+    const count = selectedIds.size;
+    const next = items.map((i) =>
+      selectedIds.has(i.id)
+        ? { ...i, status: bulkStatus, updatedAt: new Date().toISOString() }
+        : i,
+    );
+    void persist(next);
+    setSelectedIds(new Set());
+    toast.success(`Zmieniono status ${count} przetargów`);
+  }, [items, selectedIds, bulkStatus, persist]);
+
+  const bulkRemove = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`Usunąć ${selectedIds.size} przetarg(ów) z pipeline?`)) return;
+    let next = items;
+    for (const id of selectedIds) {
+      next = await removeTenderFromPipeline(next, id);
+    }
+    setItems(next);
+    setSelectedIds(new Set());
+    setExpandedId(null);
+    toast.success("Usunięto zaznaczone");
+  }, [items, selectedIds]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id); else n.add(id);
+      return n;
+    });
+  }, []);
 
   const stats = useMemo(() => ({
     actionable: items.filter((i) => isActionableTender(i)).length,
@@ -267,6 +339,52 @@ export function TendersView({
         {showLegend && <TendersLegend compact />}
 
         <TenderCompanyProfilePanel onSaved={() => setProfileVersion((v) => v + 1)} />
+        <TenderKeywordsPanel onSaved={() => void syncTenderKeywordsAndRescore(items).then(({ items: r, changed }) => {
+          if (changed) void persist(r);
+        })} />
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => { setBulkMode((v) => !v); setSelectedIds(new Set()); }}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-xs font-medium hover:bg-secondary/80"
+          >
+            {bulkMode ? <CheckSquare size={13} /> : <Square size={13} />}
+            {bulkMode ? "Tryb masowy" : "Zaznacz wiele"}
+          </button>
+          <button
+            type="button"
+            onClick={exportCsv}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-xs font-medium hover:bg-secondary/80"
+          >
+            <Download size={13} />
+            Eksport CSV
+          </button>
+        </div>
+
+        {bulkMode && selectedIds.size > 0 && (
+          <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-violet-500/10 border border-violet-500/20">
+            <span className="text-xs font-medium">{selectedIds.size} zaznaczonych</span>
+            <select
+              value={bulkStatus}
+              onChange={(e) => setBulkStatus(e.target.value as TenderPipelineStatus)}
+              className="bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
+            >
+              {(Object.keys(TENDER_STATUS_LABELS) as TenderPipelineStatus[]).map((s) => (
+                <option key={s} value={s}>{TENDER_STATUS_LABELS[s]}</option>
+              ))}
+            </select>
+            <button type="button" onClick={applyBulkStatus} className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium">
+              Ustaw status
+            </button>
+            <button type="button" onClick={() => void bulkRemove()} className="px-3 py-1.5 rounded-lg bg-red-600/90 text-white text-xs font-medium flex items-center gap-1">
+              <Trash2 size={12} /> Usuń
+            </button>
+            <button type="button" onClick={() => setSelectedIds(new Set())} className="text-xs text-muted-foreground hover:underline">
+              Wyczyść zaznaczenie
+            </button>
+          </div>
+        )}
 
         {error && (
           <div className="flex items-start gap-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
@@ -335,10 +453,28 @@ export function TendersView({
             >
               <button
                 type="button"
-                className="w-full text-left px-4 py-3.5 hover:bg-secondary/40 transition-colors"
-                onClick={() => setExpandedId(expanded ? null : item.id)}
+                className="w-full text-left px-4 py-3.5 hover:bg-secondary/40 transition-colors flex gap-2"
+                onClick={() => {
+                  const opening = expandedId !== item.id;
+                  setExpandedId(opening ? item.id : null);
+                  if (opening && item.status === "new") {
+                    updateItem(item.id, { status: "seen" });
+                  }
+                }}
               >
-                <div className="flex flex-wrap items-start justify-between gap-2">
+                {bulkMode && (
+                  <span
+                    role="checkbox"
+                    aria-checked={selectedIds.has(item.id)}
+                    className="shrink-0 pt-0.5"
+                    onClick={(e) => { e.stopPropagation(); toggleSelect(item.id); }}
+                  >
+                    {selectedIds.has(item.id)
+                      ? <CheckSquare size={16} className="text-primary" />
+                      : <Square size={16} className="text-muted-foreground" />}
+                  </span>
+                )}
+                <div className="flex flex-wrap items-start justify-between gap-2 flex-1 min-w-0">
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       {item.isWroclaw && (
@@ -411,6 +547,7 @@ export function TendersView({
                   item={item}
                   allItems={items}
                   onUpdate={(patch) => updateItem(item.id, patch)}
+                  onRemove={() => void removeItem(item.id)}
                   athPreviewEnabled={athPreviewEnabled}
                   profileVersion={profileVersion}
                   onOpenJob={onOpenJob}

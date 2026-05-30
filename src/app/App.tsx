@@ -178,7 +178,19 @@ import {
 } from "@/lib/job-list-status";
 import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
 import { normalizeJobMetaFields, isJobHousingSet, HOUSING_TYPE_LABELS, STOVE_TYPE_LABELS_FULL, type HousingType, type StoveType } from "@/lib/job-meta";
-import { syncAppSettingsFromCloud, saveAppSettings, loadAppSettingsLocal, mergeAthPreviewEnabled, mergeTendersTabForStaffEnabled, type AppSettings } from "@/lib/app-settings";
+import { syncAppSettingsFromCloud, saveAppSettings, loadAppSettingsLocal, mergeAppSettings, type AppSettings } from "@/lib/app-settings";
+import {
+  resetTendersPipeline,
+  resetTendersKeywords,
+  resetTendersCompanyProfile,
+  resetAllTendersSection,
+} from "@/lib/tenders-admin";
+import {
+  mergeTenderDataKey,
+  TENDERS_PIPELINE_KEY,
+  TENDERS_COMPANY_PROFILE_KEY,
+  TENDERS_CUSTOM_KEYWORDS_KEY,
+} from "@/lib/tenders-sync";
 import { WorkScopeEditor, WorkScopeDisplay } from "@/app/WorkScopeEditor";
 import {
   getReportWorkScopeText,
@@ -8907,10 +8919,15 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Kto widzi zakładkę Przetargi?", a:"Super Administrator zawsze. Administrator i Moderator — gdy włączysz to w Ustawieniach (⚙): „Zakładka Przetargi dla administratorów i moderatorów”."},
               {q:"Jak odświeżyć listę?", a:"Przycisk „Odśwież z BZP” pobiera nowe ogłoszenia z dolnośląskiego BZP i od kluczowych zamawiających (WM, ZIK, ZIM, TBS, Gmina, MOPS). Aplikacja też odświeża listę automatycznie co ~20 h."},
               {q:"Co to „Do zgłoszenia”?", a:"Domyślny filtr — tylko aktywne przetargi (otwarty termin składania ofert), z Wrocławia lub od kluczowych zamawiających, pasujące do słownika remontów wnętrz."},
-              {q:"Rozwiń przetarg — co się dzieje?", a:"Auto-analiza buduje Kartę przetargu: przedmiot, terminy, wadium, kontakt, referencje, tabela pozycji kosztorysu i przedmiar z załączników BZP (ATH/NOR/XML/PDF) — bez wychodzenia na e-Zamówienia. Sekcja „Załączniki postępowania” skanuje pliki z BZP — przy każdym jest Podgląd (PDF, ATH, NOR, XML) i Pobierz. Możesz też wgrać SWZ ręcznie."},
+              {q:"Rozwiń przetarg — co się dzieje?", a:"Auto-analiza buduje Kartę przetargu: przedmiot, terminy, wadium, kontakt, referencje, tabela pozycji kosztorysu i przedmiar z załączników BZP (ATH/NOR/XML/PDF/DOCX/XLSX/ZIP) — bez wychodzenia na e-Zamówienia. Sekcja „Załączniki postępowania” skanuje pliki z BZP — przy każdym jest Podgląd i Pobierz. Gdy na e-Zamówieniach brak kosztorysu lub wartości — aplikacja szuka dokumentów u zamawiającego (BIP, linki z ogłoszenia). Możesz też wgrać SWZ ręcznie."},
+              {q:"Dokumenty u zamawiającego (BIP)", a:"Panel pojawia się, gdy załączniki e-Zamówienia nie wystarczą. System wyciąga linki z treści ogłoszenia, przeszukuje BIP/portale wrocławskie (WM, MOPS, MPWiK itd.) i pobiera pliki SWZ/kosztorys. Po pobraniu działa ten sam parser co dla BZP — wartość i pozycje trafiają do karty przetargu."},
+              {q:"Kalkulator ceny ofertowej", a:"Po rozwinięciu przetargu z kosztorysem zobaczysz propozycję ceny: robocizna (stawki z listy płac), materiały z ATH, koszty stałe firmy, marża. Stawki i koszty poboczne (paliwo, narzędzia, BHP…) edytujesz w „Profil firmy” u góry listy Przetargi."},
+              {q:"Koszty robocizny w Robotach", a:"W karcie roboty — panel „Koszty robocizny”: ile kosztuje ekipa na tej robocie wg listy płac i alokacji kosztów pobocznych (paliwo, narzędzia…) proporcjonalnie do godzin. Pokazuje też minimalną cenę z marżą."},
               {q:"Ocena opłacalności", a:"Po analizie SWZ widzisz ocenę (Sensowny / Ostrożnie / Ryzykowny). Wpisz „Nasz szacunek” — system porówna z wartością zamówienia i wadium."},
-              {q:"Profil firmy i szacunek szans", a:"U góry listy Przetargi rozwiń „Profil firmy” — wpisz referencje, max wadium, CPV, regiony, polisę OC. Po rozwinięciu przetargu zobaczysz dopasowanie (Dobry profil / Do rozważenia), tabelę wymagań vs wasze dane, kryteria punktacji (waga ceny) i szacunek szans %."},
-              {q:"Uczenie słów kluczowych", a:"Oznacz przetargi jako „Interesuje nas” — na dole panelu pojawią się propozycje słów. „Ucz system” dopisuje je do słownika w chmurze (kw-tenders-custom-keywords) i przelicza trafność."},
+              {q:"Profil firmy i szacunek szans", a:"U góry listy Przetargi rozwiń „Profil firmy” — referencje, max wadium, CPV, regiony, polisę OC oraz model kosztów (stawki ekipy, koszty poboczne tygodniowe bez materiałów). Po rozwinięciu przetargu zobaczysz dopasowanie (Dobry profil / Do rozważenia), tabelę wymagań vs wasze dane, kryteria punktacji (waga ceny) i szacunek szans %."},
+              {q:"Uczenie słów kluczowych", a:"Oznacz przetargi jako „Interesuje nas” — na dole panelu pojawią się propozycje słów. „Ucz system” dopisuje je do słownika w chmurze (kw-tenders-custom-keywords) i przelicza trafność. Pełna edycja słownika: panel „Słownik słów kluczowych” u góry listy."},
+              {q:"Zarządzanie listą", a:"Eksport CSV (filtrowana lista), tryb „Zaznacz wiele” (masowy status lub usuwanie), przycisk „Usuń z listy” w szczegółach. Usunięte przetargi nie wracają przy sync BZP."},
+              {q:"Super Admin — reset i skan", a:"Ustawienia ⚙: dni/strony skanu BZP, auto-sync (godziny), reset pipeline / słownika / profilu. Backup JSON z górnego paska obejmuje kw-tenders-*."},
               {q:"Lejek pipeline", a:"U góry listy widać statystyki: nowe → obejrzane → interesuje → oferta → złożone → wygrane/przegrane oraz wskaźnik skuteczności (% wygranych)."},
               {q:"Utwórz robotę z przetargu", a:"Status „Przygotowujemy ofertę” lub „Wygrany” → przycisk „Utwórz robotę”. SWZ/kosztorys z przetargu trafia do plików roboty. W karcie roboty jest link „Otwórz przetarg”."},
               {q:"Widget na Pulpicie", a:"Kafelek „Przetargi BZP” pokazuje liczbę do zgłoszenia, pilne terminy (≤7 dni) i skuteczność — klik przenosi do zakładki Przetargi."},
@@ -9234,6 +9251,26 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-30", version:"2.45.0", label:"Przetargi — pełne zarządzanie sekcją",
+    items:[
+      {type:"new", text:"Sync chmury kw-tenders-* (pipeline, profil, słownik) + merge między urządzeniami"},
+      {type:"new", text:"Usuń z listy, eksport CSV, tryb masowy (status / usuwanie)"},
+      {type:"new", text:"Panel słownika słów kluczowych + edycja referencji/wygranych w profilu firmy"},
+      {type:"new", text:"Ustawienia Super Admina: skan BZP (dni/strony/auto-sync) + reset sekcji przetargów"},
+      {type:"improve", text:"Backup JSON obejmuje dane przetargów; auto „Obejrzany” przy rozwinięciu"},
+    ],
+  },
+  {
+    date:"2026-05-30", version:"2.44.1", label:"Przetargi — walidacja i poprawki kalkulatora",
+    items:[
+      {type:"fix", text:"Kalkulator oferty — usunięte podwójne liczenie marży; rekomendacja = próg opłacalności"},
+      {type:"fix", text:"Dopasowanie przetargu działa też przy wartości z kosztorysu ATH (bez pełnej SWZ)"},
+      {type:"fix", text:"Dokumenty BIP nie nadpisują dobrego kosztorysu z e-Zamówień; błędy discover widoczne w panelu"},
+      {type:"fix", text:"Serwer: SSRF (10.x), dopasowanie plików po słowach kluczowych, zsynchronizowane portale BIP"},
+      {type:"improve", text:"Profil firmy — clamp wartości kosztów (ujemne stawki, >100% marży itp.)"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.44.0", label:"Przetargi — dokumenty z BIP i linków w ogłoszeniu",
     items:[
@@ -11185,6 +11222,65 @@ function AdminSettingsModal({
             </label>
           </div>
 
+          <div className="bg-sky-500/5 border border-sky-500/20 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-sky-700 dark:text-sky-300">
+              Przetargi BZP — skan i reset
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {([
+                ["bzpScanDays", "Dni wstecz", 7, 365],
+                ["bzpScanPages", "Strony PL02", 1, 20],
+                ["bzpScanOrgPages", "Strony / org", 1, 20],
+                ["bzpAutoRefreshHours", "Auto-sync (h)", 1, 168],
+              ] as const).map(([key, label, min, max]) => (
+                <label key={key} className="text-[10px] text-muted-foreground">
+                  {label}
+                  <input
+                    type="number"
+                    min={min}
+                    max={max}
+                    value={appSettings[key]}
+                    onChange={async (e) => {
+                      const v = Math.max(min, Math.min(max, parseInt(e.target.value, 10) || min));
+                      const next = { ...appSettings, [key]: v };
+                      onAppSettingsChange(next);
+                      await saveAppSettings(next);
+                    }}
+                    className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
+                  />
+                </label>
+              ))}
+            </div>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              Pipeline, profil firmy i słownik synchronizują się w chmurze (<code>kw-tenders-*</code>) — backup JSON je obejmuje.
+            </p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {([
+                ["Wyczyść pipeline", resetTendersPipeline],
+                ["Reset słownika", resetTendersKeywords],
+                ["Reset profilu firmy", resetTendersCompanyProfile],
+                ["Reset całej sekcji", resetAllTendersSection],
+              ] as const).map(([label, fn]) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={async () => {
+                    if (!window.confirm(`${label}? Tej operacji nie można cofnąć.`)) return;
+                    try {
+                      await fn();
+                      alert(`${label} — gotowe. Odśwież zakładkę Przetargi.`);
+                    } catch (e) {
+                      alert(e instanceof Error ? e.message : "Błąd resetu");
+                    }
+                  }}
+                  className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-[10px] font-medium"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 space-y-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">
               Kopie zapasowe
@@ -11495,10 +11591,7 @@ function CloudLoader({children}: {children: React.ReactNode}) {
         if (cloudAppSettings && typeof cloudAppSettings === "object") {
           const localSettings = loadAppSettingsLocal();
           const cloudS = cloudAppSettings as AppSettings;
-          const mergedSettings: AppSettings = {
-            athPreviewEnabled: mergeAthPreviewEnabled(cloudS, localSettings),
-            tendersTabForStaffEnabled: mergeTendersTabForStaffEnabled(cloudS, localSettings),
-          };
+          const mergedSettings: AppSettings = mergeAppSettings(cloudS, localSettings);
           localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(mergedSettings));
         }
 
@@ -11850,6 +11943,18 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         if (data["kw-contacts"] != null) {
           const local = JSON.parse(localStorage.getItem("kw-contacts") || "[]");
           data["kw-contacts"] = mergeContacts(local, data["kw-contacts"], getDeletedContactsIds());
+        }
+        if (data[TENDERS_PIPELINE_KEY] != null) {
+          const local = JSON.parse(localStorage.getItem(TENDERS_PIPELINE_KEY) || "[]");
+          data[TENDERS_PIPELINE_KEY] = mergeTenderDataKey(TENDERS_PIPELINE_KEY, local, data[TENDERS_PIPELINE_KEY]);
+        }
+        if (data[TENDERS_COMPANY_PROFILE_KEY] != null) {
+          const local = JSON.parse(localStorage.getItem(TENDERS_COMPANY_PROFILE_KEY) || "null");
+          data[TENDERS_COMPANY_PROFILE_KEY] = mergeTenderDataKey(TENDERS_COMPANY_PROFILE_KEY, local, data[TENDERS_COMPANY_PROFILE_KEY]);
+        }
+        if (data[TENDERS_CUSTOM_KEYWORDS_KEY] != null) {
+          const local = JSON.parse(localStorage.getItem(TENDERS_CUSTOM_KEYWORDS_KEY) || "null");
+          data[TENDERS_CUSTOM_KEYWORDS_KEY] = mergeTenderDataKey(TENDERS_CUSTOM_KEYWORDS_KEY, local, data[TENDERS_CUSTOM_KEYWORDS_KEY]);
         }
         Object.entries(data).forEach(([k,v])=>localStorage.setItem(k,JSON.stringify(v)));
         try {

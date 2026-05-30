@@ -1,4 +1,5 @@
 import { fetchKeysFromCloud, persistKey } from "@/lib/cloud-sync";
+import { mergeCompanyProfileForCloud } from "@/lib/tenders-sync";
 import { defaultCostModelFromPayroll } from "@/lib/company-labor-cost";
 
 export const TENDERS_COMPANY_PROFILE_KEY = "kw-tenders-company-profile";
@@ -222,33 +223,38 @@ function normalizeRefs(raw: unknown, fallback: TenderCompanyReference[]): Tender
   return out.length > 0 ? out : fallback;
 }
 
+function clamp(n: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, n));
+}
+
 function normalizeCostModel(raw: Partial<TenderCompanyCostModel> | undefined): TenderCompanyCostModel {
   const d = defaultCostModel();
   if (!raw || typeof raw !== "object") return d;
+  const headcount = clamp(Math.round(num(raw.headcount, d.headcount)), 1, 200);
   return {
-    headcount: num(raw.headcount, d.headcount),
-    activeWorkersOnSite: num(raw.activeWorkersOnSite, d.activeWorkersOnSite),
-    avgGrossHourlyPln: num(raw.avgGrossHourlyPln, d.avgGrossHourlyPln),
-    employerBurdenPct: num(raw.employerBurdenPct, d.employerBurdenPct),
-    fixedOverheadMonthlyPln: num(raw.fixedOverheadMonthlyPln, d.fixedOverheadMonthlyPln),
-    materialPriceIndexPct: num(raw.materialPriceIndexPct, d.materialPriceIndexPct),
-    laborNormIndexPct: num(raw.laborNormIndexPct, d.laborNormIndexPct),
-    kpPct: num(raw.kpPct, d.kpPct),
-    profitPct: num(raw.profitPct, d.profitPct),
-    riskReservePct: num(raw.riskReservePct, d.riskReservePct),
-    minMarginPct: num(raw.minMarginPct, d.minMarginPct),
-    targetPriceDiscountPct: num(raw.targetPriceDiscountPct, d.targetPriceDiscountPct),
-    vehicleCount: num(raw.vehicleCount, d.vehicleCount),
-    fuelPerVehicleWeeklyPln: num(raw.fuelPerVehicleWeeklyPln, d.fuelPerVehicleWeeklyPln),
-    vehicleMaintenanceWeeklyPln: num(raw.vehicleMaintenanceWeeklyPln, d.vehicleMaintenanceWeeklyPln),
-    toolWearWeeklyPln: num(raw.toolWearWeeklyPln, d.toolWearWeeklyPln),
-    bhpPerWorkerWeeklyPln: num(raw.bhpPerWorkerWeeklyPln, d.bhpPerWorkerWeeklyPln),
-    parkingTollsWeeklyPln: num(raw.parkingTollsWeeklyPln, d.parkingTollsWeeklyPln),
-    commsWeeklyPln: num(raw.commsWeeklyPln, d.commsWeeklyPln),
-    wasteDisposalWeeklyPln: num(raw.wasteDisposalWeeklyPln, d.wasteDisposalWeeklyPln),
-    smallConsumablesWeeklyPln: num(raw.smallConsumablesWeeklyPln, d.smallConsumablesWeeklyPln),
-    insuranceWeeklyPln: num(raw.insuranceWeeklyPln, d.insuranceWeeklyPln),
-    supervisionWeeklyPln: num(raw.supervisionWeeklyPln, d.supervisionWeeklyPln),
+    headcount,
+    activeWorkersOnSite: clamp(Math.round(num(raw.activeWorkersOnSite, d.activeWorkersOnSite)), 1, headcount),
+    avgGrossHourlyPln: clamp(num(raw.avgGrossHourlyPln, d.avgGrossHourlyPln), 15, 500),
+    employerBurdenPct: clamp(num(raw.employerBurdenPct, d.employerBurdenPct), 0, 100),
+    fixedOverheadMonthlyPln: clamp(num(raw.fixedOverheadMonthlyPln, d.fixedOverheadMonthlyPln), 0, 500_000),
+    materialPriceIndexPct: clamp(num(raw.materialPriceIndexPct, d.materialPriceIndexPct), 50, 200),
+    laborNormIndexPct: clamp(num(raw.laborNormIndexPct, d.laborNormIndexPct), 50, 200),
+    kpPct: clamp(num(raw.kpPct, d.kpPct), 0, 50),
+    profitPct: clamp(num(raw.profitPct, d.profitPct), 0, 50),
+    riskReservePct: clamp(num(raw.riskReservePct, d.riskReservePct), 0, 30),
+    minMarginPct: clamp(num(raw.minMarginPct, d.minMarginPct), 0, 50),
+    targetPriceDiscountPct: clamp(num(raw.targetPriceDiscountPct, d.targetPriceDiscountPct), 0, 30),
+    vehicleCount: clamp(Math.round(num(raw.vehicleCount, d.vehicleCount)), 0, 50),
+    fuelPerVehicleWeeklyPln: clamp(num(raw.fuelPerVehicleWeeklyPln, d.fuelPerVehicleWeeklyPln), 0, 10_000),
+    vehicleMaintenanceWeeklyPln: clamp(num(raw.vehicleMaintenanceWeeklyPln, d.vehicleMaintenanceWeeklyPln), 0, 10_000),
+    toolWearWeeklyPln: clamp(num(raw.toolWearWeeklyPln, d.toolWearWeeklyPln), 0, 10_000),
+    bhpPerWorkerWeeklyPln: clamp(num(raw.bhpPerWorkerWeeklyPln, d.bhpPerWorkerWeeklyPln), 0, 500),
+    parkingTollsWeeklyPln: clamp(num(raw.parkingTollsWeeklyPln, d.parkingTollsWeeklyPln), 0, 5_000),
+    commsWeeklyPln: clamp(num(raw.commsWeeklyPln, d.commsWeeklyPln), 0, 5_000),
+    wasteDisposalWeeklyPln: clamp(num(raw.wasteDisposalWeeklyPln, d.wasteDisposalWeeklyPln), 0, 10_000),
+    smallConsumablesWeeklyPln: clamp(num(raw.smallConsumablesWeeklyPln, d.smallConsumablesWeeklyPln), 0, 10_000),
+    insuranceWeeklyPln: clamp(num(raw.insuranceWeeklyPln, d.insuranceWeeklyPln), 0, 10_000),
+    supervisionWeeklyPln: clamp(num(raw.supervisionWeeklyPln, d.supervisionWeeklyPln), 0, 20_000),
   };
 }
 
@@ -332,18 +338,15 @@ export function loadCompanyProfileLocal(): TenderCompanyProfile {
 
 export async function loadCompanyProfile(): Promise<TenderCompanyProfile> {
   try {
+    const local = loadCompanyProfileLocal();
     const [cloud] = await fetchKeysFromCloud([TENDERS_COMPANY_PROFILE_KEY]);
-    if (cloud && typeof cloud === "object") {
-      const parsed = cloud as Partial<TenderCompanyProfile>;
-      const p = normalizeProfile(parsed);
-      localStorage.setItem(TENDERS_COMPANY_PROFILE_KEY, JSON.stringify(p));
-      if ((parsed.profileSchemaVersion ?? 1) < PROFILE_SCHEMA_VERSION) {
-        await persistKey(TENDERS_COMPANY_PROFILE_KEY, p);
-      }
-      return p;
-    }
-  } catch { /* offline */ }
-  return loadCompanyProfileLocal();
+    if (cloud == null || typeof cloud !== "object") return local;
+    const merged = normalizeProfile(mergeCompanyProfileForCloud(local, cloud) as Partial<TenderCompanyProfile>);
+    localStorage.setItem(TENDERS_COMPANY_PROFILE_KEY, JSON.stringify(merged));
+    return merged;
+  } catch {
+    return loadCompanyProfileLocal();
+  }
 }
 
 export async function saveCompanyProfile(profile: TenderCompanyProfile): Promise<void> {

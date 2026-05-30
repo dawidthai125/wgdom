@@ -1,5 +1,11 @@
 import { fetchKeysFromCloud, persistKey, API_BASE, API_HEADERS } from "@/lib/cloud-sync";
 import {
+  addDeletedTenderId,
+  getDeletedTenderIds,
+  mergeTenderPipelineForCloud,
+  TENDERS_DELETED_IDS_KEY,
+} from "@/lib/tenders-sync";
+import {
   matchTenderKeywords,
   isExcludedTenderTitle,
   hasRenovationSignal,
@@ -164,11 +170,11 @@ export function markBzpSyncedAt(): void {
   } catch { /* ignore */ }
 }
 
-export function shouldAutoRefreshBzp(): boolean {
+export function shouldAutoRefreshBzp(hours = BZP_AUTO_REFRESH_HOURS): boolean {
   const last = getLastBzpSyncAt();
   if (!last) return true;
   const ageMs = Date.now() - new Date(last).getTime();
-  return ageMs >= BZP_AUTO_REFRESH_HOURS * 3600_000;
+  return ageMs >= hours * 3600_000;
 }
 
 export function computePipelineFunnel(items: TenderPipelineItem[]): TenderPipelineFunnel {
@@ -500,14 +506,26 @@ export function saveTendersPipelineLocal(items: TenderPipelineItem[]): void {
 
 export async function loadTendersPipeline(): Promise<TenderPipelineItem[]> {
   try {
+    const local = loadTendersPipelineLocal();
     const [cloud] = await fetchKeysFromCloud([TENDERS_PIPELINE_KEY]);
-    if (Array.isArray(cloud) && cloud.length >= 0) {
-      const items = cloud as TenderPipelineItem[];
-      saveTendersPipelineLocal(items);
-      return items;
-    }
-  } catch { /* offline */ }
-  return loadTendersPipelineLocal();
+    if (cloud == null || !Array.isArray(cloud)) return local;
+    const merged = mergeTenderPipelineForCloud(local, cloud);
+    saveTendersPipelineLocal(merged);
+    return merged;
+  } catch {
+    return loadTendersPipelineLocal();
+  }
+}
+
+export async function removeTenderFromPipeline(
+  items: TenderPipelineItem[],
+  id: string,
+): Promise<TenderPipelineItem[]> {
+  addDeletedTenderId(id);
+  await persistKey(TENDERS_DELETED_IDS_KEY, getDeletedTenderIds());
+  const next = items.filter((i) => i.id !== id);
+  await saveTendersPipeline(next);
+  return next;
 }
 
 export async function saveTendersPipeline(items: TenderPipelineItem[]): Promise<void> {
