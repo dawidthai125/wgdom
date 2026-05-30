@@ -830,12 +830,26 @@ export function dataKeyRichness(key: DataKey, value: unknown): number {
   }
 }
 
-function sanitizeValueForCloud(key: string, value: unknown): unknown {
-  if (key === "kw-jobs") return normalizeJobsValue(value);
-  if (key === "kw-week-employees" || key === "kw-archive" || key === "kw-directory" || key === "kw-contacts") {
-    return normalizeArrayValue(value);
+/** Supabase JSONB NOT NULL — null psuje batch-set (np. kw-tenders-company-profile). */
+export function coerceValueForCloudKey(key: string, value: unknown): unknown {
+  if (value != null && value !== "") return value;
+  if (key.endsWith("-deleted-ids")) return [];
+  if (key === "kw-weekFrom" || key === "kw-weekTo") return "";
+  if (key === TENDERS_COMPANY_PROFILE_KEY) return {};
+  if (key === TENDERS_CUSTOM_KEYWORDS_KEY) {
+    return { action: [], scope: [], exclude: [], learnedFromCount: 0, updatedAt: "" };
   }
-  return value;
+  if (key.startsWith("kw-")) return [];
+  return {};
+}
+
+function sanitizeValueForCloud(key: string, value: unknown): unknown {
+  const coerced = coerceValueForCloudKey(key, value);
+  if (key === "kw-jobs") return normalizeJobsValue(coerced);
+  if (key === "kw-week-employees" || key === "kw-archive" || key === "kw-directory" || key === "kw-contacts") {
+    return normalizeArrayValue(coerced);
+  }
+  return coerced;
 }
 
 /** Zapis wielu kluczy do Supabase KV (kolejność keys = kolejność values). */
@@ -979,9 +993,8 @@ export async function pullAndMergeDataBundle(values: unknown[]): Promise<unknown
   return merged;
 }
 
-export async function pushAllDataToCloudSafe(values: unknown[]): Promise<unknown[]> {
-  const { merged } = await computeMergedDataBundle(values);
-
+/** Zapis już scalonego bundle do chmury (bez ponownego merge). */
+export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<void> {
   await pushKeysToCloud(
     [...DATA_KEYS, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY],
     [
@@ -996,7 +1009,11 @@ export async function pushAllDataToCloudSafe(values: unknown[]): Promise<unknown
       replaceDirectoryKeys: ["kw-directory"],
     },
   );
+}
 
+export async function pushAllDataToCloudSafe(values: unknown[]): Promise<unknown[]> {
+  const { merged } = await computeMergedDataBundle(values);
+  await pushMergedDataBundleToCloud(merged);
   return merged;
 }
 

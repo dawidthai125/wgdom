@@ -440,10 +440,22 @@ async function saveDailyFullBackup(keys: string[], values: unknown[]): Promise<v
   }
 }
 
+function coerceKvValue(key: string, value: unknown): unknown {
+  if (value != null && value !== "") return value;
+  if (key.endsWith("-deleted-ids")) return [];
+  if (key === "kw-weekFrom" || key === "kw-weekTo") return "";
+  if (key === "kw-tenders-company-profile") return {};
+  if (key === "kw-tenders-custom-keywords") {
+    return { action: [], scope: [], exclude: [], learnedFromCount: 0, updatedAt: "" };
+  }
+  if (key.startsWith("kw-")) return [];
+  return {};
+}
+
 // Batch set multiple keys at once
 app.post("/make-server-0afb8820/batch-set", async (c) => {
   const { keys, values, replaceJobsKeys = [], replaceDirectoryKeys = [] } = await c.req.json();
-  const safeValues = [...values];
+  const safeValues = values.map((v: unknown, i: number) => coerceKvValue(keys[i], v));
   const archBatchIdx = keys.indexOf("kw-archive");
   const archiveInBatch = archBatchIdx >= 0 ? normalizeArrayKv(values[archBatchIdx]) : [];
   const deletedBatchIdx = keys.indexOf("kw-jobs-deleted-ids");

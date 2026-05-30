@@ -119,7 +119,7 @@ export function mergeTenderPipelineForCloud(
 export function mergeCompanyProfileForCloud(local: unknown, cloud: unknown): unknown {
   const l = local && typeof local === "object" ? local as { updatedAt?: string } : null;
   const c = cloud && typeof cloud === "object" ? cloud as { updatedAt?: string } : null;
-  if (!l && !c) return cloud ?? local ?? null;
+  if (!l && !c) return {};
   if (!l) return c;
   if (!c) return l;
   return ts(l.updatedAt) >= ts(c.updatedAt) ? l : c;

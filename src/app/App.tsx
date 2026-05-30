@@ -45,6 +45,7 @@ import {
   isDataKey,
   pushKeysToCloudSafe,
   pullAndMergeDataBundle,
+  pushMergedDataBundleToCloud,
   type DataKey,
   weekEmployeesListRichness,
   fetchPayrollBackupStatus,
@@ -9262,6 +9263,14 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-30", version:"2.45.2", label:"Chmura — naprawa sync + odzysk listy płac",
+    items:[
+      {type:"fix", text:"Czerwona chmurka: batch-set nie pada już na null w profilu firmy przetargów"},
+      {type:"fix", text:"Sync najpierw scala dane z chmury (archiwum wraca) — potem zapis; błąd push nie czyści UI"},
+      {type:"fix", text:"Pusta lista płac automatycznie przywraca się z archiwum dla bieżącego tygodnia"},
+    ],
+  },
+  {
     date:"2026-05-30", version:"2.45.1", label:"Lista płac — niedziela zamiast soboty, spójność",
     items:[
       {type:"fix", text:"Niedziela wciąż pokazuje tydzień Pn–So (wypłaty w sobotę) — lista nie znika o 4:00 w niedzielę"},
@@ -11864,8 +11873,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setSyncStatus("saving");
     setSyncError("");
     try {
-      const merged = await pushToCloud(adminDataBundle());
+      const merged = await pullAndMergeDataBundle(adminDataBundle());
       applyAdminDataBundle(merged);
+      await pushMergedDataBundleToCloud(merged);
       setSyncStatus("saved");
       if (opts?.toastSuccess) toast.success("Zsynchronizowano z chmurą");
       setTimeout(() => setSyncStatus("idle"), 2500);
@@ -12253,6 +12263,22 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (weekFrom === current.from) return;
     if (weekEmployees.length > 0 && weekEmployees.some((e) => !e.settled)) return;
     autoArchiveAndAdvance(current.from, current.to);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Odzyskaj listę płac z archiwum gdy bieżący tydzień pusty (np. po błędnym auto-advance)
+  const payrollRestoredRef = useRef(false);
+  useEffect(() => {
+    if (payrollRestoredRef.current || weekEmployees.length > 0) return;
+    const snap = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+    const emps = snap?.weekEmployees;
+    if (!emps?.length) return;
+    payrollRestoredRef.current = true;
+    setWeekEmployees(JSON.parse(JSON.stringify(emps)) as WeekEmployee[]);
+    toast.info("Przywrócono listę płac z archiwum", {
+      description: `${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · ${emps.length} os.`,
+      id: "payroll-auto-restore",
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
