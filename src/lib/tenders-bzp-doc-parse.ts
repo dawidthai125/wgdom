@@ -56,6 +56,57 @@ export function scoreTenderFilename(name: string): number {
   return s;
 }
 
+const GENERIC_FILENAME_RE =
+  /^(dokument|document|file|download|attachment|plik|getfile|index|default)(\.[a-z0-9]{2,5})?$/i;
+
+function extFromContentType(contentType?: string | null): string {
+  const ct = (contentType || "").toLowerCase();
+  if (ct.includes("pdf")) return ".pdf";
+  if (ct.includes("word") || ct.includes("docx")) return ".docx";
+  if (ct.includes("msword")) return ".doc";
+  if (ct.includes("sheet") || ct.includes("excel")) return ".xlsx";
+  if (ct.includes("zip")) return ".zip";
+  if (ct.includes("xml")) return ".xml";
+  return "";
+}
+
+function filenameFromUrl(url?: string): string {
+  if (!url) return "";
+  try {
+    const last = decodeURIComponent(new URL(url).pathname.split("/").pop() || "");
+    const base = last.split("?")[0];
+    if (base.length >= 5 && /\.\w{2,5}$/i.test(base) && !GENERIC_FILENAME_RE.test(base)) return base;
+  } catch { /* ignore */ }
+  return "";
+}
+
+/** Czytelna nazwa pliku — BZP często zwraca samo „dokument”. */
+export function displayTenderFilename(
+  filename: string,
+  opts?: { index?: number; contentType?: string | null; url?: string; prefix?: string },
+): string {
+  let name = (filename || "").trim();
+  try {
+    if (name.includes("%")) name = decodeURIComponent(name);
+  } catch { /* ignore */ }
+  name = name.replace(/\+/g, " ").trim();
+
+  const fromUrl = filenameFromUrl(opts?.url);
+  const extInName = name.match(/(\.[a-z0-9]{2,5})$/i)?.[1] || "";
+  const ext = extInName || extFromContentType(opts?.contentType) || ".pdf";
+
+  if (!name || GENERIC_FILENAME_RE.test(name) || (name.length < 5 && !extInName)) {
+    if (fromUrl) return fromUrl;
+    const prefix = opts?.prefix || "Załącznik";
+    const n = opts?.index != null ? ` ${opts.index}` : "";
+    return `${prefix}${n}${ext}`;
+  }
+
+  if (/^[\d_a-f-]{20,}(\.[a-z]+)?$/i.test(name) && fromUrl) return fromUrl;
+
+  return name;
+}
+
 export function isZipFilename(name: string): boolean {
   return /\.zip$/i.test(name);
 }

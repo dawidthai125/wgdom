@@ -2378,6 +2378,24 @@ function isSwzFilename(name: string): boolean {
   return /swz|opz|specyfikac|kosztorys|formularz/.test(n);
 }
 
+function extFromContentType(ct: string): string {
+  const l = ct.toLowerCase();
+  if (l.includes("pdf")) return ".pdf";
+  if (l.includes("word") || l.includes("docx")) return ".docx";
+  if (l.includes("msword")) return ".doc";
+  if (l.includes("sheet") || l.includes("excel")) return ".xlsx";
+  if (l.includes("zip")) return ".zip";
+  if (l.includes("xml")) return ".xml";
+  return ".pdf";
+}
+
+function normalizeBzpFilename(filename: string, index: number, contentType: string): string {
+  const name = (filename || "").trim();
+  if (name && !/^(dokument|document|file|download)$/i.test(name)) return name;
+  const ext = extFromContentType(contentType);
+  return `Zalacznik_${index}${ext}`;
+}
+
 async function probeTenderDocuments(tenderId: string): Promise<Record<string, unknown>[]> {
   const out: Record<string, unknown>[] = [];
   const base = "https://ezamowienia.gov.pl/mp-readmodels/api/Tender/DownloadDocument";
@@ -2387,7 +2405,8 @@ async function probeTenderDocuments(tenderId: string): Promise<Record<string, un
     const res = await fetch(url, { method: "HEAD", headers: EZAMOWIENIA_FETCH });
     if (!res.ok) break;
     const ct = res.headers.get("content-type") || "application/octet-stream";
-    const filename = parseDispositionFilename(res.headers.get("content-disposition"));
+    const rawName = parseDispositionFilename(res.headers.get("content-disposition"));
+    const filename = normalizeBzpFilename(rawName, i, ct);
     out.push({
       index: i,
       documentId,
@@ -2707,8 +2726,15 @@ const EXT_BIP_PORTALS: Record<string, { label: string; seedUrls: string[] }> = {
 };
 
 function extTitleKeywords(title: string, bzpNumber: string): string[] {
-  const words = extFold(title).replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter((w) => w.length >= 5);
-  const set = new Set(words.slice(0, 8));
+  const stop = new Set([
+    "wroclaw", "wroclawiu", "remont", "robot", "budowl", "lokal", "mieszkan",
+    "wykonanie", "przebudowa", "modernizacja", "zamowienia", "publiczne",
+  ]);
+  const words = extFold(title)
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 4 && !stop.has(w));
+  const set = new Set(words.slice(0, 6));
   if (bzpNumber) {
     set.add(extFold(bzpNumber));
     const digits = bzpNumber.replace(/\D/g, "");
@@ -2717,10 +2743,51 @@ function extTitleKeywords(title: string, bzpNumber: string): string[] {
   return [...set];
 }
 
+function extBuildSearchQuery(title: string, bzpNumber: string): string {
+  const kws = extTitleKeywords(title, bzpNumber);
+  if (kws.length > 0) return kws.slice(0, 4).join(" ");
+  return extFold(bzpNumber || title).slice(0, 80) || "przetarg";
+}
+
+function extIsGenericPortalUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    const path = u.pathname.replace(/\/+$/, "") || "/";
+    if (path === "/" && u.search === "") return true;
+    const q = u.searchParams.get("q") || u.searchParams.get("s") || "";
+    if (/^przetarg$/i.test(q.trim())) return true;
+    if (/^zam/i.test(q.trim()) && q.length < 24) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function extBipSearchUrl(portalId: string, query: string): string {
+  const q = encodeURIComponent(query.slice(0, 120));
+  if (portalId === "mops") return `https://bip.mops.wroclaw.pl/?s=${q}`;
+  if (portalId === "mpwik") return `https://mpwik.wroc.pl/pl/szukaj?query=${q}`;
+  if (portalId === "tbs") return `https://bip.tbs.wroclaw.pl/?s=${q}`;
+  return `https://bip.wroclaw.pl/search/document?q=${q}`;
+}
+
+function extFileEligibleForFetch(
+  cand: { url: string; filename: string; score: number; fromNotice: boolean },
+  keywords: string[],
+): boolean {
+  const hay = `${cand.url} ${cand.filename}`;
+  const nameScore = extScoreFilename(cand.filename);
+  const matches = extMatchesTender(hay, keywords);
+  if (cand.fromNotice) {
+    return cand.score >= 12 || nameScore >= 20;
+  }
+  return matches && (cand.score >= 28 || nameScore >= 30);
+}
+
 function extMatchesTender(hay: string, keywords: string[]): boolean {
   if (keywords.length === 0) return false;
   const folded = extFold(hay);
-  return keywords.some((kw) => folded.includes(kw));
+  return keywords.some((kw) => kw.length >= 4 && folded.includes(kw));
 }
 
 async function extFetchHtml(url: string): Promise<string | null> {
@@ -2756,71 +2823,103 @@ app.post("/make-server-0afb8820/tenders-external-discover", async (c) => {
     if (!tenderId) return c.json({ ok: false, error: "Brak tenderId" }, 400);
 
     const keywords = extTitleKeywords(title, bzpNumber);
-    const pageLinks: { url: string; label: string; source: string; score: number }[] = [];
-    const fileCandidates = new Map<string, { url: string; filename: string; score: number; sourcePageUrl: string }>();
+    const searchQuery = extBuildSearchQuery(title, bzpNumber);
+    type PageLink = { url: string; label: string; source: string; score: number; matchedTender?: boolean };
+    type FileCand = { url: string; filename: string; score: number; sourcePageUrl: string; fromNotice: boolean };
 
+    const pageLinks: PageLink[] = [];
+    const fileCandidates = new Map<string, FileCand>();
+
+    const addFile = (cand: FileCand) => {
+      if (!extFileEligibleForFetch(cand, keywords)) return;
+      const prev = fileCandidates.get(cand.url);
+      if (!prev || cand.score > prev.score) fileCandidates.set(cand.url, cand);
+    };
+
+    // 1) Linki wyłącznie z treści ogłoszenia BZP
     if (noticeHtml.length > 100) {
       for (const link of extExtractLinks(noticeHtml, "https://ezamowienia.gov.pl/")) {
-        pageLinks.push({ ...link, source: "notice" });
+        const matched = extMatchesTender(`${link.url} ${link.label}`, keywords);
         if (EXT_DOC_EXT_RE.test(link.url)) {
           const fn = decodeURIComponent(link.url.split("/").pop()?.split("?")[0] || "dokument");
-          fileCandidates.set(link.url, {
+          addFile({
             url: link.url,
             filename: fn,
-            score: link.score + extScoreFilename(fn),
+            score: link.score + extScoreFilename(fn) + (matched ? 25 : 0),
             sourcePageUrl: link.url,
+            fromNotice: true,
           });
+        } else if (link.score >= 8 && !extIsGenericPortalUrl(link.url)) {
+          pageLinks.push({ ...link, source: "notice", matchedTender: matched });
         }
       }
     }
 
+    // 2) Celowane wyszukiwanie BIP (tylko gdy brak plików z ogłoszenia)
     const portal = priorityBuyerId ? EXT_BIP_PORTALS[priorityBuyerId] : null;
-    if (portal) {
-      for (const seed of portal.seedUrls) {
-        pageLinks.push({ url: seed, label: portal.label, source: "bip_portal", score: 14 });
-      }
-    }
     const orgFold = extFold(String(body.organizationName || ""));
-    if (/mpwik|wodociag/.test(orgFold) && !portal) {
-      for (const seed of EXT_BIP_PORTALS.mpwik.seedUrls) {
-        pageLinks.push({ url: seed, label: EXT_BIP_PORTALS.mpwik.label, source: "bip_portal", score: 14 });
-      }
+    const portalId = portal
+      ? priorityBuyerId
+      : /mpwik|wodociag/.test(orgFold)
+        ? "mpwik"
+        : null;
+
+    const crawlQueue: string[] = [];
+    const noticePages = pageLinks
+      .filter((p) => p.source === "notice" && p.matchedTender && !EXT_DOC_EXT_RE.test(p.url))
+      .slice(0, 3)
+      .map((p) => p.url);
+
+    crawlQueue.push(...noticePages);
+
+    if (fileCandidates.size === 0 && portalId) {
+      const searchUrl = extBipSearchUrl(portalId, searchQuery);
+      crawlQueue.push(searchUrl);
+      pageLinks.push({
+        url: searchUrl,
+        label: `Szukaj: ${searchQuery}`,
+        source: "bip_search",
+        score: 20,
+        matchedTender: true,
+      });
     }
 
-    const crawlSeeds = [
-      ...pageLinks.filter((p) => p.score >= 10 && !EXT_DOC_EXT_RE.test(p.url)).slice(0, 4),
-      ...(portal?.seedUrls.slice(0, 2).map((url) => ({ url, label: portal.label, source: "bip_portal", score: 14 })) ?? []),
-    ];
     const visited = new Set<string>();
-    const queue = crawlSeeds.map((s) => s.url);
-
-    while (queue.length > 0 && visited.size < 8) {
-      const pageUrl = queue.shift()!;
-      if (visited.has(pageUrl)) continue;
+    while (crawlQueue.length > 0 && visited.size < 4) {
+      const pageUrl = crawlQueue.shift()!;
+      if (visited.has(pageUrl) || !extIsSafeUrl(pageUrl)) continue;
       visited.add(pageUrl);
       const html = await extFetchHtml(pageUrl);
       if (!html) continue;
-      const links = extExtractLinks(html, pageUrl);
-      for (const link of links) {
+      for (const link of extExtractLinks(html, pageUrl)) {
+        const matched = extMatchesTender(`${link.url} ${link.label}`, keywords);
         if (EXT_DOC_EXT_RE.test(link.url)) {
           const fn = decodeURIComponent(link.url.split("/").pop()?.split("?")[0] || "dokument");
           let score = link.score + extScoreFilename(fn);
-          if (extMatchesTender(`${link.url} ${link.label} ${fn}`, keywords)) score += 22;
-          const prev = fileCandidates.get(link.url);
-          if (!prev || score > prev.score) {
-            fileCandidates.set(link.url, { url: link.url, filename: fn, score, sourcePageUrl: pageUrl });
-          }
-        } else if (link.score >= 14 && visited.size < 8 && !visited.has(link.url)) {
-          queue.push(link.url);
-          pageLinks.push({ url: link.url, label: link.label, source: "crawl", score: link.score });
+          if (matched) score += 25;
+          addFile({
+            url: link.url,
+            filename: fn,
+            score,
+            sourcePageUrl: pageUrl,
+            fromNotice: false,
+          });
+        } else if (
+          matched
+          && link.score >= 12
+          && !extIsGenericPortalUrl(link.url)
+          && visited.size < 4
+          && !visited.has(link.url)
+        ) {
+          crawlQueue.push(link.url);
+          pageLinks.push({ ...link, source: "crawl", matchedTender: true });
         }
       }
     }
 
     const topFiles = [...fileCandidates.values()]
-      .filter((f) => f.score >= 10)
       .sort((a, b) => b.score - a.score)
-      .slice(0, 6);
+      .slice(0, 3);
 
     await ensurePhotosBucket();
     const supabase = supabaseAdmin();
@@ -2855,6 +2954,8 @@ app.post("/make-server-0afb8820/tenders-external-discover", async (c) => {
           isSwzHint: extIsSwzFilename(fn),
           score: cand.score,
           sourcePageUrl: cand.sourcePageUrl,
+          fromNotice: cand.fromNotice,
+          matchedTender: extMatchesTender(`${cand.url} ${fn}`, keywords),
           fetchedAt: new Date().toISOString(),
         });
       } catch {
@@ -2862,21 +2963,28 @@ app.post("/make-server-0afb8820/tenders-external-discover", async (c) => {
       }
     }
 
-    const uniquePages = new Map<string, typeof pageLinks[0]>();
+    const uniquePages = new Map<string, PageLink>();
     for (const p of pageLinks) {
+      if (extIsGenericPortalUrl(p.url)) continue;
+      if (p.source === "crawl" && !p.matchedTender) continue;
       const prev = uniquePages.get(p.url);
       if (!prev || p.score > prev.score) uniquePages.set(p.url, p);
     }
 
+    const visiblePages = [...uniquePages.values()]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
+
     const discovery = {
       builtAt: new Date().toISOString(),
-      status: fetched.length > 0 ? "done" : (uniquePages.size > 0 ? "partial" : "empty"),
+      status: fetched.length > 0 ? "done" : (visiblePages.length > 0 ? "partial" : "empty"),
       message: fetched.length > 0
-        ? `Pobrano ${fetched.length} plik(ów) spoza e-Zamówień`
-        : uniquePages.size > 0
-          ? "Znaleziono strony — brak plików do auto-pobrania (otwórz link ręcznie)"
-          : "Brak linków zewnętrznych w ogłoszeniu",
-      pageLinks: [...uniquePages.values()].sort((a, b) => b.score - a.score).slice(0, 20),
+        ? `Pobrano ${fetched.length} plik(ów) powiązanych z tym postępowaniem`
+        : visiblePages.length > 0
+          ? "Są linki z ogłoszenia — otwórz ręcznie lub wgraj SWZ"
+          : "Brak linków do dokumentów w ogłoszeniu BZP",
+      searchQuery: fileCandidates.size === 0 && portalId ? searchQuery : undefined,
+      pageLinks: visiblePages,
       files: fetched,
     };
 

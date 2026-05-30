@@ -7,7 +7,9 @@ import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { TenderBzpDocument, TenderPipelineItem, TenderUploadedFile } from "@/lib/tenders-bzp";
 import { loadTenderBzpDocumentBytes } from "@/lib/tenders-bzp";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
-import { isDocxFilename, isXlsxFilename, isZipFilename, listZipFiles, type ZipListedFile } from "@/lib/tenders-bzp-doc-parse";
+import { isDocxFilename, isXlsxFilename, isZipFilename, listZipFiles, type ZipListedFile, displayTenderFilename } from "@/lib/tenders-bzp-doc-parse";
+import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
+import { Building2, ExternalLink, Globe } from "lucide-react";
 
 function docIcon(filename: string) {
   if (isZipFilename(filename)) return Archive;
@@ -131,6 +133,9 @@ export function TenderAttachmentsPanel({
   onRefresh,
   onAnalyze,
   analyzing,
+  externalDiscovery,
+  externalDiscovering,
+  onSearchExternal,
 }: {
   item: TenderPipelineItem;
   athPreviewEnabled?: boolean;
@@ -138,19 +143,27 @@ export function TenderAttachmentsPanel({
   onRefresh?: () => void;
   onAnalyze?: (documentIndex: number) => void;
   analyzing?: boolean;
+  externalDiscovery?: TenderExternalDocDiscovery | null;
+  externalDiscovering?: boolean;
+  onSearchExternal?: () => void;
 }) {
   const [preview, setPreview] = useState<InspectorFileItem | null>(null);
 
   const docs = item.bzpDocuments ?? [];
+  const externalFiles = externalDiscovery?.files ?? [];
+  const noticeLinks = (externalDiscovery?.pageLinks ?? []).filter((l) => l.source === "notice");
   const hasUpload = Boolean(item.uploadedFile);
-  const totalCount = docs.length + (hasUpload ? 1 : 0);
+  const totalCount = docs.length + externalFiles.length + (hasUpload ? 1 : 0);
 
   const sortedDocs = useMemo(
     () => [...docs].sort((a, b) => a.index - b.index),
     [docs],
   );
 
-  if (!item.tenderId && !hasUpload) return null;
+  const displayName = (filename: string, opts: { index?: number; contentType?: string; url?: string }) =>
+    displayTenderFilename(filename, opts);
+
+  if (!item.tenderId && !hasUpload && externalFiles.length === 0) return null;
 
   return (
     <>
@@ -158,7 +171,7 @@ export function TenderAttachmentsPanel({
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
             <Paperclip size={11} />
-            Załączniki postępowania
+            Dokumenty
             {totalCount > 0 && (
               <span className="text-[10px] font-normal normal-case text-muted-foreground/80">
                 ({totalCount})
@@ -173,7 +186,18 @@ export function TenderAttachmentsPanel({
               className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground disabled:opacity-50"
             >
               {loadingDocs ? <Loader2 size={10} className="animate-spin" /> : <RefreshCw size={10} />}
-              Odśwież
+              Odśwież BZP
+            </button>
+          )}
+          {onSearchExternal && item.tenderId && (
+            <button
+              type="button"
+              disabled={externalDiscovering}
+              onClick={(e) => { e.stopPropagation(); onSearchExternal(); }}
+              className="inline-flex items-center gap-1 text-[10px] text-sky-700 dark:text-sky-300 hover:underline disabled:opacity-50"
+            >
+              {(externalDiscovering) ? <Loader2 size={10} className="animate-spin" /> : <Building2 size={10} />}
+              {externalDiscovering ? "Szukam…" : "Szukaj u zamawiającego"}
             </button>
           )}
         </div>
@@ -185,15 +209,16 @@ export function TenderAttachmentsPanel({
           </p>
         )}
 
-        {!loadingDocs && docs.length === 0 && item.documentsFetchedAt && !hasUpload && (
-          <p className="text-xs text-muted-foreground">Brak publicznych załączników w e-Zamówienia.</p>
+        {!loadingDocs && docs.length === 0 && item.documentsFetchedAt && !hasUpload && externalFiles.length === 0 && (
+          <p className="text-xs text-muted-foreground">Brak załączników w e-Zamówienia — wgraj SWZ ręcznie lub użyj „Szukaj u zamawiającego”.</p>
         )}
 
         <ul className="space-y-1.5">
           {sortedDocs.map((doc) => {
-            const Icon = docIcon(doc.filename);
-            const canPreview = canPreviewFilename(doc.filename);
-            const isZip = isZipFilename(doc.filename);
+            const name = displayName(doc.filename, { index: doc.index, contentType: doc.contentType, url: doc.downloadUrl });
+            const Icon = docIcon(name);
+            const canPreview = canPreviewFilename(name);
+            const isZip = isZipFilename(name);
             return (
               <li
                 key={doc.documentId}
@@ -202,11 +227,11 @@ export function TenderAttachmentsPanel({
                 <Icon size={13} className="shrink-0 text-muted-foreground" />
                 {doc.isSwzHint && (
                   <span className="text-[10px] bg-violet-500/10 text-violet-600 dark:text-violet-400 px-1 rounded shrink-0">
-                    SWZ?
+                    SWZ
                   </span>
                 )}
-                <span className="truncate min-w-0 flex-1" title={doc.filename}>
-                  {doc.filename}
+                <span className="truncate min-w-0 flex-1 font-medium" title={name}>
+                  {name}
                 </span>
                 {canPreview && (
                   <button
@@ -238,16 +263,61 @@ export function TenderAttachmentsPanel({
                     onClick={(e) => { e.stopPropagation(); onAnalyze(doc.index); }}
                     className="text-[10px] text-muted-foreground hover:text-foreground underline shrink-0 disabled:opacity-50"
                   >
-                    analizuj SWZ
+                    analiza
                   </button>
                 )}
                 {isZip && item.tenderId && (
                   <ZipInnerList
                     tenderId={item.tenderId}
-                    doc={doc}
+                    doc={{ ...doc, filename: name }}
                     onPreview={setPreview}
                   />
                 )}
+              </li>
+            );
+          })}
+
+          {externalFiles.map((file, idx) => {
+            const name = displayName(file.filename, { index: idx + 1, url: file.publicUrl, prefix: "BIP" });
+            const canPreview = canPreviewFilename(name);
+            return (
+              <li
+                key={file.id}
+                className="flex flex-wrap items-center gap-2 rounded-lg border border-sky-500/25 bg-sky-500/5 px-2.5 py-1.5 text-xs"
+              >
+                <FileText size={13} className="shrink-0 text-muted-foreground" />
+                <span className="text-[10px] bg-sky-500/10 text-sky-600 px-1 rounded shrink-0">BIP</span>
+                {file.isSwzHint && (
+                  <span className="text-[10px] bg-violet-500/10 text-violet-600 px-1 rounded shrink-0">SWZ</span>
+                )}
+                <span className="truncate min-w-0 flex-1 font-medium" title={name}>{name}</span>
+                {canPreview && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPreview({
+                        kind: "tenderUpload",
+                        filename: name,
+                        publicUrl: file.publicUrl,
+                        path: file.storagePath,
+                      });
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-medium shrink-0"
+                  >
+                    <Eye size={11} />
+                    Podgląd
+                  </button>
+                )}
+                <a
+                  href={file.publicUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary hover:bg-secondary/80 text-[10px] shrink-0"
+                >
+                  <Download size={11} />
+                </a>
               </li>
             );
           })}
@@ -288,7 +358,29 @@ export function TenderAttachmentsPanel({
           )}
         </ul>
 
-        {athPreviewEnabled === false && sortedDocs.some((d) => isKosztorysPreviewExt(d.filename)) && (
+        {noticeLinks.length > 0 && (
+          <div className="pt-1 space-y-1">
+            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <Globe size={10} /> Linki z ogłoszenia
+            </p>
+            {noticeLinks.slice(0, 3).map((link) => (
+              <a
+                key={link.url}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-1.5 text-[10px] text-sky-700 dark:text-sky-300 hover:underline truncate"
+                title={link.url}
+              >
+                <ExternalLink size={10} className="shrink-0" />
+                <span className="truncate">{link.label || link.url}</span>
+              </a>
+            ))}
+          </div>
+        )}
+
+        {athPreviewEnabled === false && sortedDocs.some((d) => isKosztorysPreviewExt(displayName(d.filename, { index: d.index, contentType: d.contentType, url: d.downloadUrl }))) && (
           <p className="text-[10px] text-muted-foreground">
             Podgląd ATH/NOR/XML wymaga włączonej opcji „Przeglądarka kosztorysów” w ustawieniach.
           </p>

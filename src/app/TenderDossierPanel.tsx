@@ -77,7 +77,7 @@ export function TenderDossierPanel({
     <div className="rounded-xl border border-primary/20 bg-card overflow-hidden space-y-0">
       <div className="px-3 py-2.5 bg-primary/5 border-b border-primary/15 flex items-center gap-2">
         <ClipboardList size={14} className="text-primary shrink-0" />
-        <p className="text-xs font-semibold">Karta przetargu — wszystko w aplikacji</p>
+        <p className="text-xs font-semibold">Karta przetargu</p>
       </div>
 
       <div className="px-3 py-3 space-y-4">

@@ -8947,7 +8947,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Jak odświeżyć listę?", a:"Przycisk „Odśwież z BZP” pobiera nowe ogłoszenia z dolnośląskiego BZP i od kluczowych zamawiających (WM, ZIK, ZIM, TBS, Gmina, MOPS). Aplikacja też odświeża listę automatycznie co ~20 h."},
               {q:"Co to „Do zgłoszenia”?", a:"Domyślny filtr — tylko aktywne przetargi (otwarty termin składania ofert), z Wrocławia lub od kluczowych zamawiających, pasujące do słownika remontów wnętrz."},
               {q:"Rozwiń przetarg — co się dzieje?", a:"Auto-analiza buduje Kartę przetargu: przedmiot, terminy, wadium, kontakt, referencje, tabela pozycji kosztorysu i przedmiar z załączników BZP (ATH/NOR/XML/PDF/DOCX/XLSX/ZIP) — bez wychodzenia na e-Zamówienia. Sekcja „Załączniki postępowania” skanuje pliki z BZP — przy każdym jest Podgląd i Pobierz. Gdy na e-Zamówieniach brak kosztorysu lub wartości — aplikacja szuka dokumentów u zamawiającego (BIP, linki z ogłoszenia). Możesz też wgrać SWZ ręcznie."},
-              {q:"Dokumenty u zamawiającego (BIP)", a:"Panel pojawia się, gdy załączniki e-Zamówienia nie wystarczą. System wyciąga linki z treści ogłoszenia, przeszukuje BIP/portale wrocławskie (WM, MOPS, MPWiK itd.) i pobiera pliki SWZ/kosztorys. Po pobraniu działa ten sam parser co dla BZP — wartość i pozycje trafiają do karty przetargu."},
+              {q:"Dokumenty u zamawiającego (BIP)", a:"Gdy załączniki e-Zamówienia nie wystarczą: linki tylko z treści ogłoszenia BZP + ewentualnie wyszukiwanie BIP po słowach z tytułu i numerze postępowania (nie cały portal). Pobierane są max. 3 pliki pasujące do tego przetargu (SWZ/kosztorys). Resztę otwórz ręcznie z listy linków z ogłoszenia."},
               {q:"Kalkulator ceny ofertowej", a:"Po rozwinięciu przetargu z kosztorysem zobaczysz propozycję ceny: robocizna (stawki z listy płac), materiały z ATH, koszty stałe firmy, marża. Stawki i koszty poboczne (paliwo, narzędzia, BHP…) edytujesz w „Profil firmy” u góry listy Przetargi."},
               {q:"Koszty robocizny w Robotach", a:"W karcie roboty — panel „Koszty robocizny”: ile kosztuje ekipa na tej robocie wg listy płac i alokacji kosztów pobocznych (paliwo, narzędzia…) proporcjonalnie do godzin. Pokazuje też minimalną cenę z marżą."},
               {q:"Ocena opłacalności", a:"Po analizie SWZ widzisz ocenę (Sensowny / Ostrożnie / Ryzykowny). Wpisz „Nasz szacunek” — system porówna z wartością zamówienia i wadium."},
@@ -9278,6 +9278,16 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-30", version:"2.45.4", label:"Przetargi — BIP tylko dla tego postępowania",
+    items:[
+      {type:"fix", text:"Dokumenty u zamawiającego: bez crawl całego BIP — tylko linki z ogłoszenia + wyszukiwanie po tytule/numerze BZP"},
+      {type:"fix", text:"Max 3 pliki, filtrowane pod tytuł postępowania — koniec z pobieraniem obcych PDF-ów"},
+      {type:"fix", text:"Nazwy plików BZP: zamiast „dokument” — Załącznik 1.pdf, 2.pdf… (czytelne etykiety)"},
+      {type:"improve", text:"Rozwinięty przetarg uproszczony: dokumenty na górze, reszta w „Szczegóły, kosztorys, dopasowanie”"},
+      {type:"improve", text:"Jedna sekcja Dokumenty (BZP + BIP + wgrane), bez auto-szukania w tle"},
+    ],
+  },
   {
     date:"2026-05-30", version:"2.45.3", label:"Blank page — naprawa workEntries null",
     items:[

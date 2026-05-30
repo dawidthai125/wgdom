@@ -8,8 +8,9 @@ import { scoreTenderFilename } from "@/lib/tenders-bzp-doc-parse";
 export interface TenderExternalPageLink {
   url: string;
   label: string;
-  source: "notice" | "bip_portal" | "crawl";
+  source: "notice" | "bip_portal" | "bip_search" | "crawl";
   score: number;
+  matchedTender?: boolean;
 }
 
 export interface TenderExternalFetchedFile {
@@ -22,6 +23,8 @@ export interface TenderExternalFetchedFile {
   isSwzHint: boolean;
   score: number;
   sourcePageUrl?: string;
+  fromNotice?: boolean;
+  matchedTender?: boolean;
   fetchedAt: string;
 }
 
@@ -29,6 +32,7 @@ export interface TenderExternalDocDiscovery {
   builtAt: string;
   status: "running" | "done" | "partial" | "empty" | "failed";
   message?: string;
+  searchQuery?: string;
   pageLinks: TenderExternalPageLink[];
   files: TenderExternalFetchedFile[];
 }
@@ -170,11 +174,15 @@ export function scoreExternalLink(url: string, label: string): number {
 }
 
 export function titleKeywordsForExternalMatch(title: string, bzpNumber: string): string[] {
+  const stop = new Set([
+    "wroclaw", "wroclawiu", "remont", "robot", "budowl", "lokal", "mieszkan",
+    "wykonanie", "przebudowa", "modernizacja", "zamowienia", "publiczne",
+  ]);
   const words = foldPolishExternal(title)
     .replace(/[^a-z0-9\s]/g, " ")
     .split(/\s+/)
-    .filter((w) => w.length >= 5);
-  const uniq = new Set<string>(words.slice(0, 8));
+    .filter((w) => w.length >= 4 && !stop.has(w));
+  const uniq = new Set<string>(words.slice(0, 6));
   if (bzpNumber) {
     const num = bzpNumber.replace(/\D/g, "");
     if (num.length >= 4) uniq.add(num);
@@ -183,16 +191,21 @@ export function titleKeywordsForExternalMatch(title: string, bzpNumber: string):
   return [...uniq];
 }
 
-export function portalSeedsForBuyer(priorityBuyerId: string | null | undefined): TenderExternalPageLink[] {
-  if (!priorityBuyerId) return [];
-  const portal = WROCLAW_BUYER_PORTALS[priorityBuyerId];
-  if (!portal) return [];
-  return portal.seedUrls.map((url) => ({
-    url,
-    label: portal.label,
-    source: "bip_portal" as const,
-    score: 14,
-  }));
+export function externalLinkMatchesTender(
+  url: string,
+  label: string,
+  title: string,
+  bzpNumber: string,
+): boolean {
+  const kws = titleKeywordsForExternalMatch(title, bzpNumber);
+  if (kws.length === 0) return false;
+  const hay = foldPolishExternal(`${url} ${label}`);
+  return kws.some((kw) => kw.length >= 4 && hay.includes(kw));
+}
+
+export function portalSeedsForBuyer(_priorityBuyerId: string | null | undefined): TenderExternalPageLink[] {
+  // Celowe wyszukiwanie robi serwer (tenders-external-discover) — bez ogólnych stron BIP.
+  return [];
 }
 
 export async function discoverExternalTenderDocs(opts: {

@@ -22,6 +22,7 @@ import {
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { isKosztorysUploadFilename, type JobFileAttachment } from "@/lib/job-documents";
 import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
+import { displayTenderFilename } from "@/lib/tenders-bzp-doc-parse";
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 
@@ -576,7 +577,14 @@ export async function fetchTenderDocuments(tenderId: string): Promise<TenderBzpD
   const data = await tenderApiGet("/tenders-bzp-documents", { tenderId }) as {
     documents: TenderBzpDocument[];
   };
-  return data.documents || [];
+  return (data.documents || []).map((doc) => ({
+    ...doc,
+    filename: displayTenderFilename(doc.filename, {
+      index: doc.index,
+      contentType: doc.contentType,
+      url: doc.downloadUrl,
+    }),
+  }));
 }
 
 export async function analyzeTenderSwz(opts: {
