@@ -3,7 +3,7 @@ import { mergeCompanyProfileForCloud } from "@/lib/tenders-sync";
 import { defaultCostModelFromPayroll } from "@/lib/company-labor-cost";
 
 export const TENDERS_COMPANY_PROFILE_KEY = "kw-tenders-company-profile";
-export const PROFILE_SCHEMA_VERSION = 5;
+export const PROFILE_SCHEMA_VERSION = 6;
 
 /** Parametry kosztowe do wyliczania oferty przetargowej. */
 export interface TenderCompanyCostModel {
@@ -123,7 +123,7 @@ export function defaultCompanyProfile(): TenderCompanyProfile {
       "malowanie, tynki, podłogi, glazura, gładzie",
       "wymiana instalacji c.o., elektrycznych i sanitarnych",
       "roboty dla instytucji publicznych we Wrocławiu",
-      "MOPS Wrocław — wygrana Kamieńskiego 2025, udział Owsiana 2024",
+      "MOPS Wrocław — wygrane: Owsiana 2024 (wykonane w terminie), Kamieńskiego 2025",
       "ZUS, PKO, UWr, DOZG — referencje",
       "Wrocław i okolice — kilkadziesiąt obiektów od 1989",
       "WM, spółdzielnie, TBS, wspólnoty",
@@ -169,17 +169,16 @@ export function defaultCompanyProfile(): TenderCompanyProfile {
         valuePln: 983_310,
         source: "BZP 2025/BZP 00390721 — umowa 2025-08-06, 983 309,93 zł",
       },
-    ],
-    tenderParticipations: [
       {
         client: "MOPS Wrocław",
         scope:
-          "Modernizacja ul. Owsianej 4/6 — centrum przeciwdziałania przemocy domowej, Etap I (oferta złożona)",
+          "Modernizacja ul. Owsianej 4/6 — Dział Przeciwdziałania Przemocy Domowej, Etap I (roboty wykonane w terminie)",
         year: "2024",
         valuePln: 615_000,
-        source:
-          "BIP MOPS — otwarcie ofert 21.10.2024 (5 ofert; budżet 652 466 zł; nie wybrano)",
+        source: "BIP MOPS — wygrany przetarg, otwarcie ofert 21.10.2024 (5 ofert; budżet 652 466 zł)",
       },
+    ],
+    tenderParticipations: [
       {
         client: "MPWiK Wrocław",
         scope:
@@ -192,8 +191,8 @@ export function defaultCompanyProfile(): TenderCompanyProfile {
     notes:
       "Dane rejestrowe: NIP 8991736797, REGON 931121728, VAT czynny (MF). "
       + "Ciągłość marki W&G od 1989 (wgdom.pl). "
-      + "Publiczne BZP: 1 wygrana (MOPS Kamieńskiego 2025). "
-      + "Udziały: MOPS Owsiana 2024, MPWiK 2012 (Stanisław Wałek). "
+      + "Publiczne BZP: 2 wygrane MOPS (Owsiana 2024 — w terminie, Kamieńskiego 2025). "
+      + "Udział: MPWiK 2012 (Stanisław Wałek). "
       + "Brak innych wpisów w eGospodarka „kto wygrał” dla REGON 931121728. "
       + "Uzupełnij kwoty referencji prywatnych, jeśli SWZ wymaga wyższych progów.",
     updatedAt: "",
