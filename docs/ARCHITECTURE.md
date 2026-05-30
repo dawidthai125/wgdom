@@ -253,7 +253,9 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | `kw-directory` | Kartoteka pracowników | Admin, worker (login), inspector (read) |
 | `kw-week-employees` | Lista płac — bieżący tydzień | Admin, worker (edit) |
 | `kw-archive` | Zapisane tygodnie (snapshots) | Admin |
-| `kw-weekFrom` / `kw-weekTo` | Zakres dat tygodnia płac | Admin |
+| `kw-weekFrom` / `kw-weekTo` | Zakres dat tygodnia płac (Pn–So; niedziela = wciąż ten sam tydzień) | Admin |
+
+**Tydzień płacowy (v2.45.1):** zakres Pn–So. W **niedzielę** aplikacja nadal pokazuje tydzień, który skończył się wczoraj (sobotę) — żeby w sobotę 16–17 można było wypłacać i oznaczać „Rozliczony”. Auto-archiwum i email backup: **niedziela**, tylko gdy wszyscy rozliczeni. Alert spójności lista płac ↔ roboty nie pokazuje się przy pustej liście na nowy tydzień.
 | `kw-jobs` | Roboty (zdjęcia, pliki, WM, activity…) | Wszyscy |
 | `kw-contacts` | Kontakty e-mail | Admin |
 

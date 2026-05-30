@@ -596,7 +596,7 @@ function previousSaturdayIso(weekFrom: string): string {
   const [y, m, d] = weekFrom.split("-").map(Number);
   const mon = new Date(y, m - 1, d);
   mon.setDate(mon.getDate() - 2);
-  return mon.toISOString().slice(0, 10);
+  return localIsoDate(mon);
 }
 
 function weekEmployeeFromDir(dir: DirectoryEmployee): WeekEmployee {
@@ -783,6 +783,7 @@ function payrollJobConsistencyAlerts(
   weekTo: string,
   directory: DirectoryEmployee[],
 ): PayrollJobConsistencyAlert[] {
+  if (weekEmployees.length === 0) return [];
   const alerts: PayrollJobConsistencyAlert[] = [];
   const cols = weekDayColumns(weekFrom);
   const TOLERANCE = 0.01;
@@ -1023,11 +1024,18 @@ function fmt(n: number) { return n.toLocaleString("pl-PL",{minimumFractionDigits
 function fmtH(n: number) { const h=Math.floor(n),m=Math.round((n-h)*60); return m===0?`${h}h`:`${h}h ${m}m`; }
 function fmtDate(iso: string) { if(!iso) return ""; const [y,mo,d]=iso.split("-"); return `${d}.${mo}.${y}`; }
 function getWeekRange() {
-  const now=new Date(),day=now.getDay(),diff=day===0?1:1-day;
-  const mon=new Date(now); mon.setDate(now.getDate()+diff);
-  const sat=new Date(mon); sat.setDate(mon.getDate()+5);
-  const iso=(d:Date)=>d.toISOString().slice(0,10);
-  return {from:iso(mon),to:iso(sat)};
+  const now = new Date();
+  const day = now.getDay(); // 0=Nd, 1=Pn … 6=So
+  const mon = new Date(now);
+  if (day === 0) {
+    // Niedziela: wciąż tydzień Pn–So, który skończył się wczoraj (wypłaty w sobotę, rozliczenie w Nd)
+    mon.setDate(now.getDate() - 6);
+  } else {
+    mon.setDate(now.getDate() + (1 - day));
+  }
+  const sat = new Date(mon);
+  sat.setDate(mon.getDate() + 5);
+  return { from: localIsoDate(mon), to: localIsoDate(sat) };
 }
 function calcWeekEmployee(emp: WeekEmployee) {
   const weekHours = +(DAYS.reduce((s, d) => s + dayTotalHours(emp.days[d]), 0)).toFixed(2);
@@ -2470,14 +2478,14 @@ function collectLocalBackupData(overrides?: Partial<Record<string, unknown>>): R
   return data;
 }
 
-/** Email backup — tylko w sobotę, raz na zarchiwizowany tydzień (po zapisie listy płac). */
+/** Email backup — w niedzielę, raz na zarchiwizowany tydzień (po zapisie listy płac). */
 function triggerWeeklyBackupEmail(
   archivedWeekFrom: string,
   archivedWeekTo: string,
   jobsForSnapshot: Job[],
   archiveOverride?: WeekSnapshot[],
 ): void {
-  if (new Date().getDay() !== 6) return;
+  if (new Date().getDay() !== 0) return;
   if (localStorage.getItem(KW_LAST_BACKUP_WEEK_KEY) === archivedWeekFrom) return;
 
   const data = collectLocalBackupData(
@@ -3416,8 +3424,8 @@ function PayrollView({
               <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/25 rounded-xl px-4 py-3">
                 <Bell size={15} className="text-yellow-400 shrink-0"/>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-yellow-400">Dziś sobota — pamiętaj o zamknięciu tygodnia!</p>
-                  <p className="text-xs text-muted-foreground">Kliknij „Zapisz tydzień”, aby zarchiwizować listę płac. W sobotę wysyłany jest też jeden backup emailem (raz na tydzień).</p>
+                  <p className="text-sm font-medium text-yellow-400">Dziś sobota — wypłaty (w tym co 2 tyg.)</p>
+                  <p className="text-xs text-muted-foreground">Oznacz „Rozliczony” po wypłacie. Tydzień trafi do archiwum automatycznie w <strong>niedzielę</strong> (gdy wszyscy rozliczeni) lub kliknij „Zapisz tydzień”.</p>
                 </div>
                 <button onClick={()=>setSatDismissed(true)} className="p-1 text-muted-foreground hover:text-foreground transition-colors shrink-0"><X size={14}/></button>
               </div>
@@ -7775,14 +7783,16 @@ function DashboardView({
   const dayOfWeek = new Date().getDay();
   const isFriday = dayOfWeek === 5;
   const isSaturday = dayOfWeek === 6;
+  const isSunday = dayOfWeek === 0;
   const showSaturdayBanner =
     isSaturday && isCurrentPayrollWeek && weekEmployees.length > 0 && (!weekSaved || unsettledEmployees.length > 0);
 
-  // Tydzień zapisuje się automatycznie w sobotę (AppInner) — alert tylko w sobotę, gdy auto-zapis nie zadziałał
+  // Auto-zapis w niedzielę (nie w sobotę — wypłaty ukraińców w sobotę popołudniu)
   const needsUnsavedWeekAlert =
-    weekEmployees.length > 0 && !weekSaved && isCurrentPayrollWeek && isSaturday;
-  // Rozliczenia w piątek — bez sensu świecić alertem cały tydzień
-  const needsUnsettledAlert = unsettledEmployees.length > 0 && isCurrentPayrollWeek && isFriday;
+    weekEmployees.length > 0 && !weekSaved && isCurrentPayrollWeek && isSunday;
+  // Rozliczenie: przypomnienie od piątku przez niedzielę (wypłata w sobotę 16–17)
+  const needsUnsettledAlert =
+    unsettledEmployees.length > 0 && isCurrentPayrollWeek && (isFriday || isSaturday || isSunday);
 
   const attentionCount =
     (needsUnsavedWeekAlert ? 1 : 0) +
@@ -8210,7 +8220,7 @@ function DashboardView({
                       <span className="text-xs text-muted-foreground font-normal">({fmtDate(weekFrom)} – {fmtDate(weekTo)})</span>
                     </p>
                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                      W sobotę tydzień zapisuje się automatycznie przy otwarciu aplikacji — zapisz ręcznie, jeśli auto-zapis nie zadziałał.
+                      W niedzielę tydzień zapisuje się automatycznie (po rozliczeniu wypłat w sobotę) — zapisz ręcznie, jeśli auto-zapis nie zadziałał.
                     </p>
                   </div>
                   <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline shrink-0">
@@ -8993,7 +9003,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Jak przeglądać archiwum?", a:"U góry wybierz rok, potem miesiąc. Zobaczysz wszystkie tygodnie z tego okresu z podsumowaniem godzin i wypłat. Kliknij tydzień żeby rozwinąć szczegółową listę pracowników."},
               {q:"Jak wygenerować raport miesięczny?", a:'Wybierz miesiąc, potem kliknij czerwony przycisk "Raport miesięczny PDF". Dostaniesz dokument A4 poziomy z: podsumowaniem finansowym (wypłaty, koszty robót, materiały, faktury), tabelą wszystkich robót z tego miesiąca i szczegółowymi listami płac z każdego tygodnia.'},
               {q:"Jak usunąć zapisany tydzień?", a:"Przy każdym tygodniu jest ikona kosza. Kliknij ją → potwierdź. Uwaga: tej operacji nie można cofnąć."},
-              {q:"Co jest w archiwum od wersji 1.9?", a:"Pełny tydzień: podsumowanie wypłat (z kolumną kosztów do zwrotu), szczegóły listy płac (dni, godziny, dodatkowe bloki, zaliczki) oraz zapisany grafik z adresami robót. W sobotę aplikacja robi auto-zapis bieżącego tygodnia."},
+              {q:"Co jest w archiwum od wersji 1.9?", a:"Pełny tydzień: podsumowanie wypłat (z kolumną kosztów do zwrotu), szczegóły listy płac (dni, godziny, dodatkowe bloki, zaliczki) oraz zapisany grafik z adresami robót. W niedzielę (gdy wszyscy rozliczeni) aplikacja robi auto-zapis bieżącego tygodnia — w sobotę możesz spokojnie wypłacać."},
               {q:"Gdzie zobaczyć stary grafik?", a:"Archiwum → rozwiń tydzień → zakładka Grafik. Starsze wpisy (sprzed 1.9) mają tylko listę płac bez grafiku."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
@@ -9143,7 +9153,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Czy dane mogą zniknąć?", a:"Dane są w przeglądarce i w chmurze Supabase. Każdy zapis scala lokalne z chmurowymi — pustsza wersja nie nadpisze bogatszej. Chmura trzyma kopie prev/prev2 i dzienny pełny backup wszystkich kluczy. Przed sync tworzona jest też lokalna kopia na urządzeniu."},
               {q:"Co oznaczają ikonki chmurki w prawym górnym rogu?", a:"Szara chmurka = wszystko zsynchronizowane. Animowana chmurka ze strzałką = trwa zapis. Zielona chmurka = właśnie zapisano. Czerwona chmurka z X = błąd połączenia (sprawdź internet)."},
               {q:"Co to jest backup i jak go zrobić?", a:'W górnym pasku (ikona pobierania) kliknij „Eksportuj backup” — pobierze się plik .json. Super Admin: pełne przywracanie w ⚙ Ustawienia → Kopie zapasowe. Import scala z obecnymi danymi i zapisuje do chmury.'},
-              {q:"Automatyczny backup emailem", a:"Raz w tygodniu — w sobotę, po zapisaniu tygodnia do archiwum (przycisk „Zapisz tydzień” lub automatyczny zapis w sobotę). Wysyłana jest jedna kopia JSON na adres z ustawień (domyślnie dawid.thai@int.pl). Nie ma już codziennych maili przy każdym wejściu w aplikację. Dodatkowo każdy zapis do chmury tworzy kopie w Supabase (prev / prev2 / dzienna) dla listy płac, archiwum, robót, pracowników i kontaktów."},
+              {q:"Automatyczny backup emailem", a:"Raz w tygodniu — w niedzielę, po zapisaniu tygodnia do archiwum (przycisk „Zapisz tydzień” lub automatyczny zapis w niedzielę, gdy wszyscy rozliczeni). Wysyłana jest jedna kopia JSON na adres z ustawień. Nie ma codziennych maili przy każdym wejściu w aplikację."},
               {q:"Utrata danych — co robić?", a:"⚙ Ustawienia (Super Admin) → Kopie zapasowe: przywróć wszystko z chmury lub lokalnie. Dla pojedynczych typów: lista płac lub roboty osobno. W Liście płac: „Przywróć z archiwum” dla bieżącego tygodnia. Regularnie rób eksport backup z górnego paska."},
               {q:"Używam dwóch urządzeń — które dane są właściwe?", a:"Przy każdym zapisie aplikacja scala dane z obu źródeł — bogatsze wpisy wygrywają. Stara karta z pustą listą nie nadpisze chmury. Przy pierwszym wejściu na nowym urządzeniu dane pobierają się z chmury i łączą z lokalnymi."},
             ].map((item,i)=>(
@@ -9251,6 +9261,15 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-30", version:"2.45.1", label:"Lista płac — niedziela zamiast soboty, spójność",
+    items:[
+      {type:"fix", text:"Niedziela wciąż pokazuje tydzień Pn–So (wypłaty w sobotę) — lista nie znika o 4:00 w niedzielę"},
+      {type:"fix", text:"Auto-archiwum w niedzielę (nie w sobotę), tylko gdy wszyscy oznaczeni jako rozliczeni"},
+      {type:"fix", text:"Brak fałszywych alertów spójności gdy nowy tydzień bez listy płac"},
+      {type:"fix", text:"Nie przechodzi do nowego tygodnia dopóki są nierozliczeni pracownicy"},
+    ],
+  },
   {
     date:"2026-05-30", version:"2.45.0", label:"Przetargi — pełne zarządzanie sekcją",
     items:[
@@ -12083,7 +12102,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     window.location.reload();
   };
 
-  // Auto-backup email — tylko w sobotę, po zapisie tygodnia do archiwum (patrz triggerWeeklyBackupEmail)
+  // Auto-backup email — w niedzielę, po zapisie tygodnia do archiwum (patrz triggerWeeklyBackupEmail)
 
   // Global search results
   const searchResults = useMemo(()=>{
@@ -12216,31 +12235,39 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const goToCurrent = useCallback(() => {
     const c = getWeekRange();
-    if(weekFrom === c.from) return;
+    if (weekFrom === c.from) return;
+    if (weekEmployees.some((e) => !e.settled)) {
+      if (!window.confirm(
+        "Są nierozliczeni pracownicy (wypłata w sobotę?). Przejść do bieżącego tygodnia mimo to? Obecna lista trafi do archiwum.",
+      )) return;
+    }
     autoArchiveAndAdvance(c.from, c.to);
-  }, [weekFrom, autoArchiveAndAdvance]);
+  }, [weekFrom, weekEmployees, autoArchiveAndAdvance]);
 
-  // Auto-advance: on mount, if stored week is in the past → archive it, reset to current week
+  // Auto-advance: gdy minął tydzień (poniedziałek+) — archiwizuj i przejdź do bieżącego, ale nie gdy są nierozliczeni
   const autoAdvancedRef = useRef(false);
-  useEffect(()=>{
-    if(autoAdvancedRef.current) return;
+  useEffect(() => {
+    if (autoAdvancedRef.current) return;
     autoAdvancedRef.current = true;
     const current = getWeekRange();
-    if(weekFrom === current.from) return;
+    if (weekFrom === current.from) return;
+    if (weekEmployees.length > 0 && weekEmployees.some((e) => !e.settled)) return;
     autoArchiveAndAdvance(current.from, current.to);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[]);
+  }, []);
 
-  // Auto-archiwum w sobotę — pełny zapis tygodnia (lista płac + grafik) + tygodniowy backup email
+  // Auto-archiwum w niedzielę — po wypłatach w sobotę; pomijaj gdy ktoś jeszcze nierozliczony
   useEffect(() => {
     const today = localIsoDate();
-    const isSaturday = new Date().getDay() === 6;
+    const isSunday = new Date().getDay() === 0;
     const lastAuto = localStorage.getItem("kw-last-week-auto-archive");
     const current = getWeekRange();
+    const hasUnsettled = weekEmployees.some((e) => !e.settled);
     if (
-      isSaturday &&
+      isSunday &&
       lastAuto !== today &&
-      weekFrom === current.from
+      weekFrom === current.from &&
+      !hasUnsettled
     ) {
       localStorage.setItem("kw-last-week-auto-archive", today);
       if (weekEmployees.length > 0) {
