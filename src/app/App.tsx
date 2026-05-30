@@ -9279,6 +9279,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-30", version:"2.45.6", label:"Profil firmy — MOPS Owsiana 2024 wygrany",
+    items:[
+      {type:"fix", text:"Profil przetargów: MOPS ul. Owsiana 2024 — wygrany przetarg, roboty w terminie (wcześniej błędnie jako udział)"},
+      {type:"improve", text:"Schema profilu v6 — odświeżenie danych przy wejściu w Przetargi"},
+    ],
+  },
+  {
     date:"2026-05-30", version:"2.45.5", label:"Przetargi — karta ofertowa i czytelna analiza SWZ",
     items:[
       {type:"new", text:"Karta ofertowa: checklist (termin, wartość, wadium, kosztorys, kryteria, wycena) — widać czego brakuje"},
