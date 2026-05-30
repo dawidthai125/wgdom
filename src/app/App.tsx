@@ -9,6 +9,7 @@ import { JobFilesBrowser } from "@/app/JobFilesBrowser";
 import { TendersView } from "@/app/TendersView";
 import { jobDraftFromTender, attachTenderAssetsToJob, loadTendersPipeline, computeTendersDashboardStats, type TendersDashboardStats } from "@/lib/tenders-bzp";
 import { appendJobActivity } from "@/lib/job-activity";
+import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";
 import { countBrowserFiles, jobHasBrowserFiles } from "@/lib/job-files-browser";
 import { isPrivacyShieldSuppressed } from "@/lib/privacy-shield";
 import {
@@ -5876,6 +5877,10 @@ function JobsView({
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
   const [uploadMsg, setUploadMsg] = useState("");
   const [photoUploadBusy, setPhotoUploadBusy] = useState(false);
+  const jobsListHeaderRef = useRef<HTMLDivElement>(null);
+  const jobDetailHeaderRef = useRef<HTMLDivElement>(null);
+  useWheelScrollForward(jobsListHeaderRef);
+  useWheelScrollForward(jobDetailHeaderRef);
   const [photoUploadLabel, setPhotoUploadLabel] = useState<PhotoEntry["label"]>("progress");
   const jobNotesRef = useRef<HTMLTextAreaElement>(null);
 
@@ -6406,7 +6411,7 @@ function JobsView({
       {/* Left panel — job list */}
       <div className={`flex flex-col border-r border-border bg-card shrink-0 overflow-hidden transition-all duration-300 ${selectedJob?"hidden sm:flex sm:w-72 lg:w-80":"flex w-full sm:w-72 lg:w-80"}`}>
         {/* Top */}
-        <div className="px-4 pt-4 pb-3 space-y-3 border-b border-border">
+        <div ref={jobsListHeaderRef} className="px-4 pt-4 pb-3 space-y-3 border-b border-border">
           {returnNav && (
             <button
               type="button"
@@ -6497,7 +6502,7 @@ function JobsView({
       {/* Right panel — job detail */}
       {selectedJob ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <div className="shrink-0 border-b border-border bg-background/95 backdrop-blur z-10">
+          <div ref={jobDetailHeaderRef} className="shrink-0 border-b border-border bg-background/95 backdrop-blur z-10">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-3 pb-2 space-y-3">
               <button onClick={()=>setSelectedJobId(null)} className="sm:hidden flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronRight size={14} className="rotate-180"/>Powrót do listy
@@ -7475,10 +7480,12 @@ function ScheduleView({
     () => [...weekEmployees].sort((a, b) => a.name.localeCompare(b.name, "pl")),
     [weekEmployees],
   );
+  const scheduleHeaderRef = useRef<HTMLDivElement>(null);
+  useWheelScrollForward(scheduleHeaderRef);
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-      <div className="px-4 sm:px-6 py-4 border-b border-border bg-card shrink-0 space-y-3">
+      <div ref={scheduleHeaderRef} className="px-4 sm:px-6 py-4 border-b border-border bg-card shrink-0 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-sm font-semibold flex items-center gap-2">
@@ -9228,6 +9235,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.43.1", label:"Scroll — profil firmy i nagłówki",
+    items:[
+      {type:"fix", text:"Przetargi — profil firmy i filtry w jednym obszarze przewijania (kółko myszy działa wszędzie)"},
+      {type:"fix", text:"Grafik, Roboty, Instrukcja — scroll z nagłówka przekierowany do listy poniżej"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.43.0", label:"Koszty robót i przetargów — lista płac + poboczne",
     items:[
       {type:"new", text:"Roboty — koszt robocizny + poboczne (ZUS, paliwo 3 aut, narzędzia, BHP, Kp) i min. cena z marżą"},
@@ -10687,10 +10701,12 @@ type ChangelogPageSize = (typeof CHANGELOG_PAGE_SIZES)[number];
 
 function GuideView() {
   const [tab, setTab] = useState<"help" | "changelog">("help");
+  const guideHeaderRef = useRef<HTMLDivElement>(null);
+  useWheelScrollForward(guideHeaderRef);
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-      <div className="shrink-0 px-4 sm:px-8 pt-6 pb-3 max-w-3xl mx-auto w-full">
+      <div ref={guideHeaderRef} className="shrink-0 px-4 sm:px-8 pt-6 pb-3 max-w-3xl mx-auto w-full">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
             <BookOpen size={18} className="text-primary"/>

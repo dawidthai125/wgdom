@@ -199,31 +199,37 @@ export function TendersView({
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-      <div className="px-4 sm:px-6 py-4 border-b border-border bg-card shrink-0 space-y-3">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <Scale size={18} className="text-primary" />
-              <h1 className="text-lg font-semibold">Przetargi BZP</h1>
-              {showTestBadge && (
-                <span className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">Super Admin · test</span>
-              )}
+      <div
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+        style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+      >
+        <div className="sticky top-0 z-20 px-4 sm:px-6 py-3 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <Scale size={18} className="text-primary" />
+                <h1 className="text-lg font-semibold">Przetargi BZP</h1>
+                {showTestBadge && (
+                  <span className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">Super Admin · test</span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+                Wrocław — remonty i wykończenia (pomieszczenia, podłogi, sufity, malowanie). Hale, uniwerki, lokale, mieszkania.
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-              Wrocław — remonty i wykończenia (pomieszczenia, podłogi, sufity, malowanie). Hale, uniwerki, lokale, mieszkania.
-            </p>
+            <button
+              type="button"
+              onClick={() => void refreshFromBzp()}
+              disabled={syncing}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-60 min-h-[44px]"
+            >
+              <RefreshCw size={16} className={syncing || autoSyncing ? "animate-spin" : ""} />
+              {syncing ? "Pobieranie…" : autoSyncing ? "Auto-sync…" : "Odśwież z BZP"}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => void refreshFromBzp()}
-            disabled={syncing}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-60 min-h-[44px]"
-          >
-            <RefreshCw size={16} className={syncing || autoSyncing ? "animate-spin" : ""} />
-            {syncing ? "Pobieranie…" : autoSyncing ? "Auto-sync…" : "Odśwież z BZP"}
-          </button>
         </div>
 
+        <div className="px-4 sm:px-6 py-4 space-y-3">
         <div className="flex flex-wrap gap-2 text-xs">
           <span className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-medium">{stats.actionable} do zgłoszenia</span>
           <span className="px-2.5 py-1 rounded-lg bg-secondary">{stats.active} aktywnych</span>
@@ -305,9 +311,9 @@ export function TendersView({
             </select>
           </div>
         </div>
-      </div>
+        </div>
 
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 space-y-3" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+        <div className="px-4 sm:px-6 pb-4 space-y-3">
         {filtered.length === 0 ? (
           <div className="text-center py-16 space-y-3">
             <Filter size={32} className="mx-auto text-muted-foreground/50" />
@@ -416,6 +422,7 @@ export function TendersView({
             </article>
           );
         })}
+        </div>
       </div>
     </div>
   );
