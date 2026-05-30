@@ -5,7 +5,7 @@ alwaysApply: true
 
 # W&G DOM — zasady przy każdej zmianie
 
-**Start sesji:** [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) · [`AGENTS.md`](../../AGENTS.md)
+**Start sesji:** [`AGENTS.md`](../../AGENTS.md) → [`PROJECT-GUIDE.md`](../../PROJECT-GUIDE.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md)
 
 Komunikuj się z użytkownikiem po **polsku**.
 
@@ -27,6 +27,7 @@ Przy każdej widocznej zmianie dla użytkownika:
 - Dodaj **nowy wpis na górze** tablicy `CHANGELOG` w `src/app/App.tsx` (nie edytuj starych wersji).
 - Format: `date`, `version` (patch +0.1), `label`, `items[]` z typem `new` | `fix` | `improve`.
 - Aktualna wersja w UI = `CHANGELOG[0].version`.
+- Dopisz skrót w **`CHANGELOG.md`** (dla agentów AI).
 
 ## 3. Instrukcja obsługi (HelpView)
 
@@ -48,9 +49,10 @@ Pełny opis systemu: **`docs/ARCHITECTURE.md`** (czytaj najpierw przy nowej sesj
 ## 5. Kolejność pracy
 
 1. Implementacja + chmura  
-2. Wpis w CHANGELOG  
+2. Wpis w CHANGELOG (`App.tsx`) + skrót w **`CHANGELOG.md`**  
 3. Aktualizacja instrukcji (HelpView / hinty)  
 4. Aktualizacja **`docs/ARCHITECTURE.md`** (jeśli dotyczy architektury, syncu, API, mobile, deployu)  
-5. Krótkie podsumowanie po polsku dla użytkownika  
+5. **`CURRENT-TASK.md`** — na końcu większej sesji (skończone / w trakcie / następne)  
+6. Krótkie podsumowanie po polsku dla użytkownika  
 
-Skrót: `guidelines/ROZWOJ.md` · pełna architektura: `docs/ARCHITECTURE.md`.
+Skrót: `guidelines/ROZWOJ.md` · przewodnik: `PROJECT-GUIDE.md` · pełna architektura: `docs/ARCHITECTURE.md`.

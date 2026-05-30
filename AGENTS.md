@@ -1,29 +1,58 @@
 # W&G DOM — instrukcja dla agentów AI i programistów
 
-> **Zanim cokolwiek zmienisz lub przeanalizujesz — przeczytaj ten plik i dokument poniżej.**
+> **Zanim cokolwiek zmienisz — przeczytaj pliki poniżej w tej kolejności.**
 
-## 1. Obowiązkowy punkt startu
+---
 
-**[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — pełny przewodnik systemu:
+## START HERE
 
-- panele (admin, inspektor, pracownik), routing, auth  
-- sync i merge (`cloud-sync.ts`, `DATA_KEYS`, pułapki)  
-- Supabase Edge Function + endpointy  
-- Vercel, PWA, Capacitor, mobile  
-- jak bezpiecznie dodawać funkcje bez psucia syncu  
-- testy, deploy, czego nie commitować  
+```text
+1. AGENTS.md              ← ten plik (JAK pracować)
+2. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+3. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
+4. CHANGELOG.md           ← CO już zrobiono (skrót)
+5. CURRENT-TASK.md        ← gdzie skończyliśmy / co dalej
+6. App.tsx → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+```
 
-**Nie analizuj `App.tsx` plik po pliku od zera** — najpierw ARCHITECTURE.md.
+### WAŻNE
+
+- **Nie zgaduj architektury** — sprawdź `PROJECT-GUIDE.md` i `docs/ARCHITECTURE.md`.
+- **Nie zmieniaj syncu / merge** bez przeczytania ARCHITECTURE § 11.
+- **Przed większą zmianą** przeczytaj **Known Issues** w `PROJECT-GUIDE.md`.
+- **Na końcu sesji** zaktualizuj `CURRENT-TASK.md` (skończone / w trakcie / następne).
+- Hasło użytkownika: **„kontynuuj WGDOM”** → czytaj też `.cursor/rules/wgdom-stan-projektu.mdc`.
+
+---
+
+## 1. Rola każdego pliku
+
+| Plik | Pytanie, na które odpowiada |
+|------|-----------------------------|
+| **AGENTS.md** | Jak pracować nad projektem? (zasady, workflow, zakazy) |
+| **PROJECT-GUIDE.md** | Jak działa projekt? (architektura, API, pułapki) |
+| **docs/ARCHITECTURE.md** | Pełny techniczny przewodnik (living document) |
+| **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
+| **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
+| **App.tsx → CHANGELOG** | Źródło prawdy wersji + UI użytkownika (zakładka Zmiany) |
+
+**Nie analizuj `App.tsx` plik po pliku od zera** — najpierw PROJECT-GUIDE + ARCHITECTURE.
+
+---
 
 ## 2. Przy każdej zmianie w kodzie
 
-1. Implementacja (+ chmura, jeśli dane trwałe)  
-2. `CHANGELOG` w `src/app/App.tsx` (nowy wpis na górze)  
-3. Instrukcja użytkownika (`HelpView`, hinty) — jeśli widoczne w UI  
-4. **Aktualizacja [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — sekcja dotycząca zmiany + data na górze  
-5. Podsumowanie po **polsku**  
+1. Implementacja (+ chmura, jeśli dane trwałe)
+2. `CHANGELOG` w `src/app/App.tsx` (nowy wpis na górze)
+3. **`CHANGELOG.md`** — dopisz ostatnią wersję (skrót)
+4. Instrukcja użytkownika (`HelpView`, hinty) — jeśli widoczne w UI
+5. **`docs/ARCHITECTURE.md`** — sekcja dotycząca zmiany + data na górze
+6. **`CURRENT-TASK.md`** — na końcu większej sesji
+7. Podsumowanie po **polsku**
 
 Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-development.mdc) · skrót: [`guidelines/ROZWOJ.md`](guidelines/ROZWOJ.md)
+
+---
 
 ## 3. Szybkie fakty
 
@@ -36,29 +65,33 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 | Backend deploy | push `supabase/functions/**` → GitHub Action |
 | Sync | `src/lib/cloud-sync.ts` |
 | Backend API | `supabase/functions/make-server-0afb8820/index.tsx` |
-| Monolit UI | `src/app/App.tsx` (+ wydzielone panele w `src/app/`) |
+| Monolit UI | `src/app/App.tsx` (+ panele w `src/app/`) |
+
+---
 
 ## 3a. Moduł przetargów (skrót)
 
-Szczegóły: **ARCHITECTURE.md § 12.1.1**. Kluczowe pliki (stan **v2.45.10**):
+Szczegóły: **ARCHITECTURE.md § 12.1.1**. Kluczowe pliki (stan **v2.45.12**):
 
-- `src/lib/tenders-bzp.ts` — pipeline, typy, API klienta, `patchOurEstimatePln`  
-- `src/lib/tenders-actions.ts` — chipy akcji, auto-wynik BZP, alerty pulpitu, .ics  
-- `src/lib/tenders-bzp-analyze-local.ts` — analiza SWZ pdf.js (klient)  
-- `src/lib/tenders-wadium.ts` — wadium + blokada vs limit profilu  
-- `src/lib/tenders-map-coords.ts` + `TendersMapPanel.tsx` — mapa SVG Wrocław (nie staticmap OSM)  
-- `src/app/TenderBidPrepPanel.tsx` — karta ofertowa  
-- `src/lib/tender-external-docs.ts` — BIP / linki z ogłoszenia (v2.44)  
-- `src/app/TenderDetailPanel.tsx` — auto-analiza przy expand  
+- `src/lib/tenders-bzp.ts` — pipeline, typy, API klienta, scoring
+- `src/lib/tenders-actions.ts` — chipy akcji, auto-wynik BZP, alerty pulpitu, .ics
+- `src/lib/tenders-bzp-analyze-local.ts` — analiza SWZ pdf.js (klient)
+- `src/lib/tenders-wadium.ts` — wadium + blokada vs limit profilu
+- `src/lib/tenders-map-coords.ts` + `TendersMapPanel.tsx` — **mapa OSM** Wrocław + markery
+- `src/app/TenderKeywordsPanel.tsx` — własne słowa kluczowe (+ wbudowany słownik w kodzie)
+- `src/app/TenderBidPrepPanel.tsx` — karta ofertowa
 - Edge: `GET /tenders-bzp-*`, `GET /tenders-bzp-award-result`, `POST /tenders-external-discover`
+
+---
 
 ## 3b. Galeria admin (skrót)
 
 Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 
-- `JobPhotosGalleryView` w `App.tsx` — zakładka **Zdjęcia**  
-- `src/lib/photo-download.ts` — `downloadJobGalleryZip` (foldery przed / w-realizacji / po-odbior)  
-- `src/lib/photo-zip.ts` — JSZip helper
+- `JobPhotosGalleryView` w `App.tsx` — zakładka **Zdjęcia**
+- `src/lib/photo-download.ts` — `downloadJobGalleryZip`
+
+---
 
 ## 4. Komendy
 
@@ -69,10 +102,8 @@ npm run test:mobile  # Playwright → wgdom.fun
 npm run audit:mobile # statyczny audyt mobile
 ```
 
+---
+
 ## 5. Nie commitować
 
 `_206_app.txt`, `_old_app.txt`, `restore-lista-plac-*.json`, `supabase/.temp/`, `icons/`, `music/` (chyba że celowo).
-
-## 6. Hasło sesji (Cursor)
-
-Użytkownik może napisać **„kontynuuj WGDOM”** — wtedy czytaj też [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc).

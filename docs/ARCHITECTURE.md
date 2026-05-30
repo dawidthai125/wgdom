@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w `src/app/App.tsx` (obecnie **2.45.10**)  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-05-25 (v2.45.7–2.45.10 — przetargi: SWZ, wadium, mapa SVG, akcje; galeria admin ZIP)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w `src/app/App.tsx` (obecnie **2.45.12**)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-05-25 (v2.45.12 — mapa OSM przetargów, słownik kluczowych, docs AI)
 
 ---
 
@@ -368,7 +368,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 
 **Storage bucket:** `make-0afb8820-photos` (public, auto-create)
 
-### 12.1.1 Przetargi BZP (pipeline v2.37 → v2.45.10)
+### 12.1.1 Przetargi BZP (pipeline v2.37 → v2.45.12)
 
 **Klucz chmury:** `kw-tenders-pipeline` — tablica `TenderPipelineItem[]` (+ `kw-tenders-company-profile`, `kw-tenders-custom-keywords`, `kw-tenders-deleted-ids`).
 
@@ -384,9 +384,10 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | `src/lib/tenders-bzp-learn.ts` | Uczenie słów z przetargów „interesuje nas” |
 | `src/lib/tenders-actions.ts` | **v2.45.8** — chipy „wymaga działania”, auto-wynik BZP, alerty pulpitu, .ics, porównanie cen |
 | `src/lib/tenders-wadium.ts` | **v2.45.7** — wadium % wartości, limit profilu, blokada udziału |
-| `src/lib/tenders-map-coords.ts` | **v2.45.7** — geolokacja heurystyczna Wrocław (SVG, bez staticmap OSM) |
+| `src/lib/tenders-map-coords.ts` | Geolokacja heurystyczna Wrocław + siatka kafelków OSM |
 | `src/app/TendersView.tsx` | UI listy, filtry, lejek, chipy akcji, mapa (zwijana) |
-| `src/app/TendersMapPanel.tsx` | **v2.45.9** — mapa SVG Wrocław + lista punktów (zwijana jak profil firmy) |
+| `src/app/TendersMapPanel.tsx` | **v2.45.12** — mapa OSM (kafelki) Wrocław + markery + lista punktów |
+| `src/app/TenderKeywordsPanel.tsx` | **v2.45.12** — własne słowa kluczowe + podgląd wbudowanego słownika |
 | `src/app/TenderBidPrepPanel.tsx` | **v2.45.5+** — karta ofertowa (checklist, wadium, wynik BZP, pakiet PDF) |
 
 #### Pliki — szczegóły przetargu (po rozwinięciu)
@@ -441,12 +442,13 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | `externalDocDiscovery` | **v2.44** `{ pageLinks, files[], status, builtAt }` |
 | `linkedJobId` | Powiązana robota po wygranej |
 
-#### UX przetargów (v2.45.5–2.45.10)
+#### UX przetargów (v2.45.5–2.45.12)
 
 - **Karta ofertowa** (`TenderBidPrepPanel`) — checklist, analiza SWZ, wadium + blokada, referencje, wynik BZP, porównanie cen, .ics terminu, pakiet PDF.
 - **Chipy „wymaga działania”** — filtry: termin bez wyceny, wadium, brak kosztorysu, referencje NIE, obciążenie zespołu.
 - **Pulpit admin** — sekcja alertów przetargów (klik → otwiera przetarg).
-- **Mapa Wrocław** — SVG lokalnie (**nie** `staticmap.openstreetmap.de` — domena niedostępna); panel zwijany obok profilu firmy i słownika słów kluczowych.
+- **Mapa Wrocław** — kafelki **OpenStreetMap** (`tile.openstreetmap.org`) + markery; **nie** `staticmap.openstreetmap.de` (niedostępny). Panel domyślnie rozwinięty.
+- **Słownik słów kluczowych** — wbudowany w `tenders-bzp-keywords.ts` (~280 haseł) + opcjonalne własne w chmurze (`kw-tenders-custom-keywords`).
 
 #### Edge — przetargi
 
@@ -684,8 +686,10 @@ WGDOM1/
 
 | Wersja | Temat |
 |--------|-------|
+| 2.45.12 | Mapa przetargów OSM + panel słownika kluczowych (podgląd wbudowanych haseł) |
+| 2.45.11 | Docs AI — AGENTS.md, ARCHITECTURE § 12.1 |
 | 2.45.10 | Galeria admin — ZIP roboty wg kategorii (ulica, data) — `photo-download.ts` |
-| 2.45.9 | Mapa przetargów Wrocław — SVG (bez staticmap OSM), panel zwijany |
+| 2.45.9 | Mapa przetargów — tymczasowe SVG (zastąpione OSM w 2.45.12) |
 | 2.45.8 | Przetargi — chipy akcji, auto-wynik BZP, alerty pulpitu, .ics |
 | 2.45.7 | Przetargi — SWZ pdf.js, wadium, wyniki BZP, pakiet PDF, historia szacunku |
 | 2.45.5–6 | Karta ofertowa, profil firmy v6 (MOPS Owsiana wygrany) |
@@ -709,8 +713,11 @@ Pełna historia → tablica `CHANGELOG` w `App.tsx`.
 
 | Plik | Kiedy czytać |
 |------|--------------|
-| **[`AGENTS.md`](../AGENTS.md)** | **Zawsze na start** — krótkie wejście dla AI |
-| **docs/ARCHITECTURE.md** | Zawsze — pełny obraz (ten plik) |
+| **[`AGENTS.md`](../AGENTS.md)** | **Zawsze na start** — workflow agenta (START HERE) |
+| **[`PROJECT-GUIDE.md`](../PROJECT-GUIDE.md)** | Architektura skrót + Known Issues |
+| **`docs/ARCHITECTURE.md`** | Pełny obraz techniczny (ten plik) |
+| **`CHANGELOG.md`** | Skrót ostatnich wersji |
+| **`CURRENT-TASK.md`** | Wznowienie sesji — stan bieżącej pracy |
 | `guidelines/ROZWOJ.md` | Skrót reguł rozwoju |
 | `docs/MOBILE-NATIVE.md` | Capacitor, APK, App Store |
 | `.cursor/rules/wgdom-development.mdc` | Reguły dla agenta Cursor |

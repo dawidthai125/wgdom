@@ -12,12 +12,15 @@ React + Vite · Supabase · Vercel · PWA · Capacitor (Android/iOS)
 
 | Dokument | Opis |
 |----------|------|
-| **[`AGENTS.md`](AGENTS.md)** | Punkt wejścia dla AI — co czytać na start |
-| **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** | Pełna architektura, sync, API, deploy, pułapki |
+| **[`AGENTS.md`](AGENTS.md)** | **START HERE** — jak pracować (workflow agenta) |
+| **[`PROJECT-GUIDE.md`](PROJECT-GUIDE.md)** | Jak działa projekt + Known Issues |
+| **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** | Pełna architektura, sync, API, deploy |
+| **[`CHANGELOG.md`](CHANGELOG.md)** | Skrót ostatnich wersji (źródło prawdy: `App.tsx`) |
+| **[`CURRENT-TASK.md`](CURRENT-TASK.md)** | Wznowienie sesji — co skończone / co dalej |
 | [`guidelines/ROZWOJ.md`](guidelines/ROZWOJ.md) | Skrót reguł rozwoju |
 | [`docs/MOBILE-NATIVE.md`](docs/MOBILE-NATIVE.md) | Capacitor, APK, PWA |
 
-Przy każdej zmianie aktualizuj **CHANGELOG** (`App.tsx`) i — gdy dotyczy architektury — **`docs/ARCHITECTURE.md`**.
+Przy każdej zmianie aktualizuj **CHANGELOG** (`App.tsx` + `CHANGELOG.md`) i — gdy dotyczy architektury — **`docs/ARCHITECTURE.md`**. Na końcu sesji — **`CURRENT-TASK.md`**.
 
 ---
 

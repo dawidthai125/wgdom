@@ -9352,6 +9352,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.45.13", label:"Docs AI — START HERE, PROJECT-GUIDE, CURRENT-TASK",
+    items:[
+      {type:"new", text:"PROJECT-GUIDE.md, CHANGELOG.md, CURRENT-TASK.md — struktura dla agentów AI (wznowienie sesji)"},
+      {type:"improve", text:"AGENTS.md START HERE + Known Issues; reguły Cursor; ARCHITECTURE v2.45.12 (mapa OSM)"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.45.12", label:"Przetargi — mapa OSM i słownik kluczowych",
     items:[
       {type:"fix", text:"Mapa przetargów Wrocław — kafelki OpenStreetMap zamiast pustego SVG (ulice, rzeka, markery)"},

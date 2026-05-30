@@ -1,0 +1,47 @@
+# W&G DOM — changelog (skrót dla agentów AI)
+
+> **Źródło prawdy:** tablica `CHANGELOG` w [`src/app/App.tsx`](src/app/App.tsx) (~linia 9353).  
+> UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
+> **Przy każdej nowej wersji:** dodaj wpis na górze w `App.tsx` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
+
+**Aktualna wersja:** **2.45.13**
+
+---
+
+## 2.45.13 (2026-05-25) — Docs AI: START HERE
+
+- **new** `PROJECT-GUIDE.md`, `CHANGELOG.md`, `CURRENT-TASK.md` — struktura dla agentów
+- **improve** AGENTS.md START HERE, Known Issues, reguły Cursor, ARCHITECTURE v2.45.12
+
+## 2.45.12 (2026-05-25) — Przetargi: mapa OSM i słownik
+
+- **fix** Mapa przetargów Wrocław — kafelki OpenStreetMap zamiast pustego SVG
+- **improve** Słownik słów kluczowych — podgląd wbudowanych haseł, licznik wbudowanych/własnych
+
+## 2.45.11 (2026-05-25) — Docs dla AI
+
+- ARCHITECTURE.md § 12.1.1–12.1.2, AGENTS.md, ROZWOJ.md, wgdom-stan-projektu
+
+## 2.45.10 (2026-05-25) — Galeria admin ZIP
+
+- Pobieranie ZIP całej roboty / kategorii (przed / w trakcie / po)
+
+## 2.45.9 (2026-05-25) — Mapa przetargów (SVG — zastąpione w 2.45.12)
+
+- Tymczasowa mapa SVG po awarii staticmap OSM
+
+## 2.45.8 (2026-05-25) — Przetargi: akcje i alerty
+
+- Chipy „wymaga działania”, auto-wynik BZP, alerty pulpitu, .ics, porównanie cen
+
+## 2.45.7 (2026-05-25) — Przetargi: SWZ, wadium, wyniki
+
+- Analiza SWZ pdf.js, wadium + blokada, wyniki BZP, pakiet PDF, historia szacunku
+
+## 2.45.0–2.45.6 — Zarządzanie sekcją przetargów
+
+- Karta ofertowa, profil firmy v6, BIP discover, kalkulator oferty — szczegóły w App.tsx
+
+---
+
+Pełna historia (setki wpisów) → **`CHANGELOG` w `App.tsx`**.
