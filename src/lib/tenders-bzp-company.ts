@@ -1,51 +1,39 @@
 import { fetchKeysFromCloud, persistKey } from "@/lib/cloud-sync";
+import { defaultCostModelFromPayroll } from "@/lib/company-labor-cost";
 
 export const TENDERS_COMPANY_PROFILE_KEY = "kw-tenders-company-profile";
-export const PROFILE_SCHEMA_VERSION = 4;
+export const PROFILE_SCHEMA_VERSION = 5;
 
 /** Parametry kosztowe do wyliczania oferty przetargowej. */
 export interface TenderCompanyCostModel {
-  /** Etaty / stała załoga (np. 15). */
   headcount: number;
-  /** Ile osób średnio pracuje jednocześnie na budowach. */
   activeWorkersOnSite: number;
-  /** Średnia stawka brutto rbh (Wrocław, remonty). */
   avgGrossHourlyPln: number;
-  /** Składki pracodawcy + urlopy/chorobowe (% od brutto). */
   employerBurdenPct: number;
-  /** Stałe miesięczne: biuro, flota, admin, ubezp., narzędzia. */
   fixedOverheadMonthlyPln: number;
-  /** Indeks cen materiałów vs norma ATH (%). */
   materialPriceIndexPct: number;
-  /** Indeks kosztu rbh vs norma ATH (%). */
   laborNormIndexPct: number;
-  /** Koszty pośrednie Kp (% od direct). */
   kpPct: number;
-  /** Docelowy zysk (% od direct+Kp+stałe). */
   profitPct: number;
-  /** Rezerwa ryzyka (%). */
   riskReservePct: number;
-  /** Minimalna marża nad kosztem własnym (%). */
   minMarginPct: number;
-  /** Przy 100% ceny — ile % poniżej wartości ref. startować. */
   targetPriceDiscountPct: number;
+  /** Flota — liczba aut służbowych. */
+  vehicleCount: number;
+  fuelPerVehicleWeeklyPln: number;
+  vehicleMaintenanceWeeklyPln: number;
+  toolWearWeeklyPln: number;
+  bhpPerWorkerWeeklyPln: number;
+  parkingTollsWeeklyPln: number;
+  commsWeeklyPln: number;
+  wasteDisposalWeeklyPln: number;
+  smallConsumablesWeeklyPln: number;
+  insuranceWeeklyPln: number;
+  supervisionWeeklyPln: number;
 }
 
 export function defaultCostModel(): TenderCompanyCostModel {
-  return {
-    headcount: 15,
-    activeWorkersOnSite: 11,
-    avgGrossHourlyPln: 42,
-    employerBurdenPct: 23,
-    fixedOverheadMonthlyPln: 52_000,
-    materialPriceIndexPct: 108,
-    laborNormIndexPct: 115,
-    kpPct: 12,
-    profitPct: 7,
-    riskReservePct: 3,
-    minMarginPct: 4,
-    targetPriceDiscountPct: 2,
-  };
+  return defaultCostModelFromPayroll();
 }
 
 export interface TenderCompanyReference {
@@ -250,6 +238,17 @@ function normalizeCostModel(raw: Partial<TenderCompanyCostModel> | undefined): T
     riskReservePct: num(raw.riskReservePct, d.riskReservePct),
     minMarginPct: num(raw.minMarginPct, d.minMarginPct),
     targetPriceDiscountPct: num(raw.targetPriceDiscountPct, d.targetPriceDiscountPct),
+    vehicleCount: num(raw.vehicleCount, d.vehicleCount),
+    fuelPerVehicleWeeklyPln: num(raw.fuelPerVehicleWeeklyPln, d.fuelPerVehicleWeeklyPln),
+    vehicleMaintenanceWeeklyPln: num(raw.vehicleMaintenanceWeeklyPln, d.vehicleMaintenanceWeeklyPln),
+    toolWearWeeklyPln: num(raw.toolWearWeeklyPln, d.toolWearWeeklyPln),
+    bhpPerWorkerWeeklyPln: num(raw.bhpPerWorkerWeeklyPln, d.bhpPerWorkerWeeklyPln),
+    parkingTollsWeeklyPln: num(raw.parkingTollsWeeklyPln, d.parkingTollsWeeklyPln),
+    commsWeeklyPln: num(raw.commsWeeklyPln, d.commsWeeklyPln),
+    wasteDisposalWeeklyPln: num(raw.wasteDisposalWeeklyPln, d.wasteDisposalWeeklyPln),
+    smallConsumablesWeeklyPln: num(raw.smallConsumablesWeeklyPln, d.smallConsumablesWeeklyPln),
+    insuranceWeeklyPln: num(raw.insuranceWeeklyPln, d.insuranceWeeklyPln),
+    supervisionWeeklyPln: num(raw.supervisionWeeklyPln, d.supervisionWeeklyPln),
   };
 }
 

@@ -5,6 +5,11 @@ import type { TenderCompanyCostModel } from "@/lib/tenders-bzp-company";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { TenderFitAssessment } from "@/lib/tenders-bzp-fit";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-doc-parse";
+import {
+  fullyLoadedHourly,
+  weeklyAncillaryLines,
+  weeklyFixedOverheadShare,
+} from "@/lib/company-labor-cost";
 
 export interface TenderBidCostLine {
   label: string;
@@ -85,8 +90,8 @@ function estimateLaborHours(unit: string, quantity: string, description: string)
   return 0;
 }
 
-function fullyLoadedHourly(model: TenderCompanyCostModel): number {
-  return model.avgGrossHourlyPln * (1 + model.employerBurdenPct / 100);
+function fullyLoadedHourlyFromModel(model: TenderCompanyCostModel): number {
+  return fullyLoadedHourly(model);
 }
 
 function projectMonths(
@@ -138,11 +143,11 @@ export function computeTenderBidProposal(opts: {
     };
   }
 
-  const flHourly = fullyLoadedHourly(costModel);
+  const flHourly = fullyLoadedHourlyFromModel(costModel);
   assumptions.push(
     `${costModel.headcount} prac. (${costModel.activeWorkersOnSite} na budowie), `
-    + `stawka brutto ${costModel.avgGrossHourlyPln} zł/h + obciążenie pracodawcy ${costModel.employerBurdenPct}% `
-    + `= ${flHourly.toFixed(2)} zł/h koszt rbh`,
+    + `stawka brutto ${costModel.avgGrossHourlyPln} zł/h (lista płac) + ZUS ${costModel.employerBurdenPct}% `
+    + `= ${flHourly.toFixed(2)} zł/h`,
   );
   assumptions.push(
     `Indeksy rynkowe: materiały ×${(costModel.materialPriceIndexPct / 100).toFixed(2)}, `
@@ -215,20 +220,29 @@ export function computeTenderBidProposal(opts: {
 
   const kp = directCost * (costModel.kpPct / 100);
   costStack.push({
-    label: `Koszty pośrednie (Kp ${costModel.kpPct}%)`,
+    label: `Koszty pośrednie Kp (${costModel.kpPct}% — norma remonty)`,
     pln: roundPln(kp),
-    detail: "Transport, narzędzia, BHP, kierownictwo budowy",
+    detail: "Zaplecze budowy, logistyka, drobny transport",
   });
 
   const months = projectMonths(swz?.implementationDays, minProjectDays, athTotal, costModel);
-  const overhead = (costModel.fixedOverheadMonthlyPln * months) / Math.max(maxConcurrentProjects, 1);
+  const weeks = Math.max(months * 4.33, 1);
+  const weeklyAncillaryTotal = weeklyAncillaryLines(costModel).reduce((s, l) => s + l.pln, 0);
+  const ancillaryProject = weeklyAncillaryTotal * weeks;
   costStack.push({
-    label: "Stałe firmy (admin, flota, biuro, ubezp.)",
-    pln: roundPln(overhead),
-    detail: `${roundPln(costModel.fixedOverheadMonthlyPln)} zł/m-c × ${months.toFixed(1)} m-c ÷ ${maxConcurrentProjects} robót`,
+    label: "Koszty poboczne tygodniowe (paliwo, narzędzia, BHP…)",
+    pln: roundPln(ancillaryProject),
+    detail: `${roundPln(weeklyAncillaryTotal)} zł/tyg. × ${weeks.toFixed(1)} tyg. · ${costModel.vehicleCount} aut`,
   });
 
-  const subtotal = directCost + kp + overhead;
+  const overhead = weeklyFixedOverheadShare(costModel, maxConcurrentProjects) * weeks;
+  costStack.push({
+    label: "Stałe firmy — KZP (admin, biuro, księgowość)",
+    pln: roundPln(overhead),
+    detail: `${roundPln(costModel.fixedOverheadMonthlyPln)} zł/m-c ÷ ${maxConcurrentProjects} robót × ${weeks.toFixed(1)} tyg.`,
+  });
+
+  const subtotal = directCost + kp + ancillaryProject + overhead;
   const profit = subtotal * (costModel.profitPct / 100);
   costStack.push({
     label: `Zysk (${costModel.profitPct}%)`,

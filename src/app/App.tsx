@@ -116,6 +116,7 @@ const InspectorPanel = lazy(() =>
 );
 import { InspectorAdminView } from "@/app/InspectorAdminView";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
+import { JobCostBreakdownPanel } from "@/app/JobCostBreakdownPanel";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import {
@@ -5887,6 +5888,13 @@ function JobsView({
   }, [initialJobId, jobs, onInitialJobConsumed]);
 
   const selectedJob = jobs.find(j=>j.id===selectedJobId)||null;
+  const companyWeekHours = useMemo(
+    () => {
+      const h = weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).totalHours, 0);
+      return h > 0 ? h : undefined;
+    },
+    [weekEmployees],
+  );
   const todayIso = localIsoDate();
 
   const yesterdayEntriesToCopy = useMemo(
@@ -7185,11 +7193,25 @@ function JobsView({
                 <div className="px-5 pb-2">
                   <div className="bg-secondary/50 rounded-xl px-4 py-3 flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-muted-foreground">Koszt pracowników</p>
+                      <p className="text-xs text-muted-foreground">Koszt pracowników (brutto wpisów)</p>
                       <p className="text-xs text-muted-foreground">{jobTotalHours(selectedJob).toFixed(1)}h · {new Set(selectedJob.workEntries.map(e=>e.date)).size} dni</p>
                     </div>
                     <span className="text-lg font-bold text-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(jobCost(selectedJob))} PLN</span>
                   </div>
+                </div>
+              )}
+
+              {selectedJob.workEntries.length > 0 && (
+                <div className="px-5 pb-3">
+                  <JobCostBreakdownPanel
+                    workEntries={selectedJob.workEntries.map((e) => ({
+                      date: e.date,
+                      hours: e.hours,
+                      rate: e.rate,
+                    }))}
+                    materialsCost={jobMaterialsCost(selectedJob)}
+                    companyHoursSameWeek={companyWeekHours}
+                  />
                 </div>
               )}
             </div>
@@ -9205,6 +9227,15 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.43.0", label:"Koszty robót i przetargów — lista płac + poboczne",
+    items:[
+      {type:"new", text:"Roboty — koszt robocizny + poboczne (ZUS, paliwo 3 aut, narzędzia, BHP, Kp) i min. cena z marżą"},
+      {type:"improve", text:"Model kosztów z listy płac: 13 os., ~28,6 zł/h brutto, Kp remonty 14%, zysk 8%"},
+      {type:"improve", text:"Przetargi — kalkulator uwzględnia koszty poboczne tygodniowe i realne stawki ekipy"},
+      {type:"improve", text:"Profil firmy — edycja paliwa, narzędzi, gruzu, ubezpieczeń (tygodniowy udział)"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.42.0", label:"Przetargi — kalkulator ceny ofertowej",
     items:[

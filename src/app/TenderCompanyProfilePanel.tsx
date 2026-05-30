@@ -215,6 +215,20 @@ export function TenderCompanyProfilePanel({
                 <NumInput label="Rezerwa ryzyka (%)" value={profile.costModel.riskReservePct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, riskReservePct: v } })} step={1} />
                 <NumInput label="Min. marża (%)" value={profile.costModel.minMarginPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, minMarginPct: v } })} step={1} />
                 <NumInput label="Rabat vs ref. przy 100% ceny (%)" value={profile.costModel.targetPriceDiscountPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, targetPriceDiscountPct: v } })} step={0.5} />
+                <p className="col-span-full text-[10px] font-semibold uppercase tracking-wide text-muted-foreground pt-1 border-t border-border">
+                  Koszty poboczne tygodniowe (bez materiałów)
+                </p>
+                <NumInput label="Auta służbowe" value={profile.costModel.vehicleCount} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, vehicleCount: v } })} step={1} />
+                <NumInput label="Paliwo / auto / tydz. (zł)" value={profile.costModel.fuelPerVehicleWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, fuelPerVehicleWeeklyPln: v } })} step={10} />
+                <NumInput label="Serwis aut / tydz. (zł)" value={profile.costModel.vehicleMaintenanceWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, vehicleMaintenanceWeeklyPln: v } })} step={10} />
+                <NumInput label="Narzędzia / tydz. (zł)" value={profile.costModel.toolWearWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, toolWearWeeklyPln: v } })} step={10} />
+                <NumInput label="BHP / os. / tydz. (zł)" value={profile.costModel.bhpPerWorkerWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, bhpPerWorkerWeeklyPln: v } })} step={5} />
+                <NumInput label="Parkingi / drogi / tydz." value={profile.costModel.parkingTollsWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, parkingTollsWeeklyPln: v } })} step={10} />
+                <NumInput label="Telefony / tydz." value={profile.costModel.commsWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, commsWeeklyPln: v } })} step={10} />
+                <NumInput label="Gruz / kontenery / tydz." value={profile.costModel.wasteDisposalWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, wasteDisposalWeeklyPln: v } })} step={10} />
+                <NumInput label="Chemia pomocnicza / tydz." value={profile.costModel.smallConsumablesWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, smallConsumablesWeeklyPln: v } })} step={10} />
+                <NumInput label="Ubezpieczenia / tydz." value={profile.costModel.insuranceWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, insuranceWeeklyPln: v } })} step={10} />
+                <NumInput label="Koordynacja / dojazdy / tydz." value={profile.costModel.supervisionWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, supervisionWeeklyPln: v } })} step={10} />
                 <NumInput label="Polisa OC (PLN)" value={profile.ocInsuranceMinPln} onChange={(v) => setProfile({ ...profile, ocInsuranceMinPln: v })} step={100000} />
                 <LinesInput
                   label="Prefiksy CPV"
