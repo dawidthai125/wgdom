@@ -9279,6 +9279,15 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-30", version:"2.45.5", label:"Przetargi — karta ofertowa i czytelna analiza SWZ",
+    items:[
+      {type:"new", text:"Karta ofertowa: checklist (termin, wartość, wadium, kosztorys, kryteria, wycena) — widać czego brakuje"},
+      {type:"fix", text:"Analizuj SWZ pokazuje konkretny wynik (wartość, wadium) zamiast pustego toastu; działa też na załącznikach PDF"},
+      {type:"improve", text:"Lista przetargów: wartość, wadium i status kosztorysu w wierszu bez rozwijania"},
+      {type:"improve", text:"Dopasowanie i kalkulator oferty na wierzchu — nie schowane w szczegółach"},
+    ],
+  },
+  {
     date:"2026-05-30", version:"2.45.4", label:"Przetargi — BIP tylko dla tego postępowania",
     items:[
       {type:"fix", text:"Dokumenty u zamawiającego: bez crawl całego BIP — tylko linki z ogłoszenia + wyszukiwanie po tytule/numerze BZP"},

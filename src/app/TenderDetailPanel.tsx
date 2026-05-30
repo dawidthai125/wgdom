@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ExternalLink, FileText, Loader2, Sparkles, Briefcase,
-  Upload, AlertTriangle, CheckCircle2, HelpCircle, ChevronDown, Trash2,
+  ExternalLink, Loader2, Sparkles, Briefcase,
+  Upload, ChevronDown, Trash2, FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -15,50 +15,23 @@ import {
   computePipelineFunnel,
 } from "@/lib/tenders-bzp";
 import {
-  PROFITABILITY_LABELS,
-  type TenderProfitabilityHint,
-} from "@/lib/tenders-bzp-swz";
-import {
   learnKeywordsFromPipeline,
   suggestKeywordsFromPipeline,
 } from "@/lib/tenders-bzp-learn";
 import { parseNoticeHtmlBrief, mergeBriefWithItemTitle, athPreviewToSnapshot } from "@/lib/tenders-bzp-brief";
 import { parseBestTenderDocuments, mergeSwzAnalysis, parseExternalTenderDocuments } from "@/lib/tender-document-resolver";
 import { discoverExternalTenderDocs, type TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
+import { summarizeSwzFindings } from "@/lib/tenders-bid-prep";
+import { TenderBidPrepPanel } from "@/app/TenderBidPrepPanel";
 import { fetchAndParseKosztorys, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-doc-parse";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { TenderDossierPanel } from "@/app/TenderDossierPanel";
 import { TenderAttachmentsPanel } from "@/app/TenderAttachmentsPanel";
-import { TenderFitPanel } from "@/app/TenderFitPanel";
-import { TenderBidProposalPanel } from "@/app/TenderBidProposalPanel";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { assessTenderFit, estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 import { computeTenderBidProposal } from "@/lib/tenders-bid-calculator";
-
-function fmtDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleString("pl-PL", {
-    day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
-  });
-}
-
-const HINT_STYLE: Record<TenderProfitabilityHint, string> = {
-  good: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  caution: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  risky: "bg-red-500/10 text-red-700 dark:text-red-400",
-  unknown: "bg-secondary text-muted-foreground",
-};
-
-const HINT_ICON = {
-  good: CheckCircle2,
-  caution: AlertTriangle,
-  risky: AlertTriangle,
-  unknown: HelpCircle,
-};
 
 export function TenderDetailPanel({
   item,
@@ -324,14 +297,51 @@ export function TenderDetailPanel({
   const runAnalysis = useCallback(async (docIndex?: number) => {
     setAnalyzing(true);
     try {
-      const analysis = await analyzeTenderSwz({
-        noticeNumber: item.noticeNumber || undefined,
-        tenderId: docIndex ? item.tenderId : undefined,
-        documentIndex: docIndex,
-        ourEstimatePln: item.ourEstimatePln ?? null,
+      let analysis;
+      if (docIndex && item.tenderId) {
+        analysis = await analyzeTenderSwz({
+          tenderId: item.tenderId,
+          documentIndex: docIndex,
+          ourEstimatePln: item.ourEstimatePln ?? null,
+        });
+      } else if (item.noticeNumber) {
+        analysis = await analyzeTenderSwz({
+          noticeNumber: item.noticeNumber,
+          ourEstimatePln: item.ourEstimatePln ?? null,
+        });
+      } else {
+        const doc = item.bzpDocuments?.find((d) => d.isSwzHint) ?? item.bzpDocuments?.[0];
+        if (doc && item.tenderId) {
+          analysis = await analyzeTenderSwz({
+            tenderId: item.tenderId,
+            documentIndex: doc.index,
+            ourEstimatePln: item.ourEstimatePln ?? null,
+          });
+        } else {
+          toast.error("Brak ogłoszenia BZP i załączników — odśwież dokumenty lub wgraj SWZ");
+          return;
+        }
+      }
+
+      const merged = mergeSwzAnalysis(item.swzAnalysis ?? null, analysis);
+      const brief = item.tenderDossier?.brief
+        ?? mergeBriefWithItemTitle(
+          item.noticeHtml ? parseNoticeHtmlBrief(item.noticeHtml) : parseNoticeHtmlBrief(""),
+          item.title,
+        );
+
+      onUpdate({
+        swzAnalysis: merged,
+        tenderDossier: {
+          brief,
+          kosztorys: item.tenderDossier?.kosztorys ?? null,
+          builtAt: new Date().toISOString(),
+        },
       });
-      onUpdate({ swzAnalysis: analysis });
-      toast.success("Przeanalizowano dane SWZ");
+
+      const summary = summarizeSwzFindings(merged);
+      if (summary) toast.success(`Analiza: ${summary}`);
+      else toast.message("Analiza zakończona — w tekście nie znaleziono kwoty ani wadium (sprawdź załączniki PDF)");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Błąd analizy SWZ");
     } finally {
@@ -386,14 +396,11 @@ export function TenderDetailPanel({
 
   const suggestions = suggestKeywordsFromPipeline(allItems);
   const swz = item.swzAnalysis;
-  const HintIcon = swz ? HINT_ICON[swz.profitabilityHint] : HelpCircle;
 
   const bidProposal = useMemo(() => {
-    const k = item.tenderDossier?.kosztorys;
-    if (!k?.ok) return null;
     const profile = loadCompanyProfileLocal();
     return computeTenderBidProposal({
-      kosztorys: k,
+      kosztorys: item.tenderDossier?.kosztorys,
       swz,
       fit: item.tenderFit,
       costModel: profile.costModel,
@@ -408,24 +415,26 @@ export function TenderDetailPanel({
       item.tenderDossier?.kosztorys?.currency,
     );
 
-  const keyFacts = [
-    item.submittingOffersDate && `Termin ofert: ${fmtDate(item.submittingOffersDate)}`,
-    swz?.estimatedValuePln != null && `Wartość: ${swz.estimatedValuePln.toLocaleString("pl-PL")} PLN`,
-    swz?.wadiumRaw && `Wadium: ${swz.wadiumRaw}`,
-    item.tenderDossier?.kosztorys?.ok && item.tenderDossier.kosztorys.totalValue
-      && `Kosztorys: ${item.tenderDossier.kosztorys.totalValue} ${item.tenderDossier.kosztorys.currency || "PLN"}`,
-  ].filter(Boolean);
-
   return (
     <div className="px-4 pb-4 pt-2 border-t border-border space-y-3">
-      {keyFacts.length > 0 && (
-        <p className="text-xs text-foreground/90 pt-1">{keyFacts.join(" · ")}</p>
-      )}
       {autoRunning && (
         <p className="text-[10px] text-muted-foreground flex items-center gap-2">
           <Loader2 size={11} className="animate-spin" /> Ładowanie ogłoszenia i załączników…
         </p>
       )}
+
+      <TenderBidPrepPanel
+        item={item}
+        swz={swz}
+        fit={item.tenderFit}
+        bidProposal={bidProposal}
+        referenceValuePln={referenceValuePln}
+        ourEstimatePln={item.ourEstimatePln}
+        teamHeadcount={loadCompanyProfileLocal().costModel.headcount}
+        analyzing={analyzing}
+        onAnalyze={() => void runAnalysis()}
+        onApplyRecommended={(pln) => onUpdate({ ourEstimatePln: pln })}
+      />
 
       <TenderAttachmentsPanel
         item={item}
@@ -533,7 +542,7 @@ export function TenderDetailPanel({
 
       <details className="rounded-xl border border-border overflow-hidden group">
         <summary className="px-3 py-2.5 text-xs font-medium bg-secondary/40 hover:bg-secondary/60 cursor-pointer list-none flex items-center justify-between">
-          <span>Szczegóły, kosztorys, dopasowanie</span>
+          <span>Pełna karta przetargu i ogłoszenie BZP</span>
           <ChevronDown size={14} className="transition-transform group-open:rotate-180 shrink-0" />
         </summary>
         <div className="px-3 pb-3 pt-2 space-y-3 border-t border-border">
@@ -543,38 +552,6 @@ export function TenderDetailPanel({
             swz={swz}
             onOpenKosztorysPreview={(previewItem) => setDocPreview(previewItem)}
           />
-
-          {swz && (
-            <div className={`rounded-lg px-3 py-2 text-xs ${HINT_STYLE[swz.profitabilityHint]}`}>
-              <div className="flex items-center gap-2 font-semibold">
-                <HintIcon size={14} />
-                {PROFITABILITY_LABELS[swz.profitabilityHint]}
-              </div>
-              {swz.profitabilityNote && <p className="mt-1 opacity-90">{swz.profitabilityNote}</p>}
-            </div>
-          )}
-
-          <TenderFitPanel fit={item.tenderFit} />
-
-          <TenderBidProposalPanel
-            proposal={bidProposal}
-            referenceValuePln={referenceValuePln}
-            ourEstimatePln={item.ourEstimatePln}
-            teamHeadcount={loadCompanyProfileLocal().costModel.headcount}
-            onApplyRecommended={(pln) => onUpdate({ ourEstimatePln: pln })}
-          />
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={analyzing || !item.noticeNumber}
-              onClick={(e) => { e.stopPropagation(); void runAnalysis(); }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/10 text-violet-700 dark:text-violet-400 text-xs font-medium hover:bg-violet-500/20 disabled:opacity-50"
-            >
-              {analyzing ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />}
-              Analizuj ogłoszenie SWZ
-            </button>
-          </div>
 
           {item.noticeHtml && (
             <div className="rounded-lg border border-border overflow-hidden">

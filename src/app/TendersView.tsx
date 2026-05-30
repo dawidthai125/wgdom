@@ -36,6 +36,7 @@ import { TenderCompanyProfilePanel } from "@/app/TenderCompanyProfilePanel";
 import { TenderKeywordsPanel } from "@/app/TenderKeywordsPanel";
 import { FIT_LABELS } from "@/lib/tenders-bzp-fit";
 import { PROFITABILITY_LABELS } from "@/lib/tenders-bzp-swz";
+import { tenderListBidLine } from "@/lib/tenders-bid-prep";
 
 type LocalFilter = "actionable" | "active" | "priority" | "wroclaw" | "high" | "archive" | "all";
 
@@ -446,6 +447,7 @@ export function TendersView({
           const offerOpen = isTenderOpenForOffers(item.submittingOffersDate);
           const urgent = offerOpen && days !== null && days >= 0 && days <= 7;
           const expanded = expandedId === item.id;
+          const bidLine = tenderListBidLine(item);
           return (
             <article
               key={item.id}
@@ -517,6 +519,11 @@ export function TendersView({
                       <MapPin size={12} />
                       {item.organizationCity || "—"}
                     </p>
+                    {bidLine && (
+                      <p className="text-[11px] font-medium text-foreground/85 tabular-nums">
+                        {bidLine}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col items-end gap-1 shrink-0">
                     <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${

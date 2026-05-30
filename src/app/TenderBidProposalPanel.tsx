@@ -8,22 +8,29 @@ export function TenderBidProposalPanel({
   ourEstimatePln,
   teamHeadcount,
   onApplyRecommended,
+  missingKosztorys,
 }: {
   proposal: TenderBidProposal | null | undefined;
   referenceValuePln?: number | null;
   ourEstimatePln?: number | null;
   teamHeadcount?: number | null;
   onApplyRecommended?: (pln: number) => void;
+  missingKosztorys?: boolean;
 }) {
   if (!proposal?.ok) {
-    if (proposal?.warnings?.length) {
-      return (
-        <p className="text-xs text-muted-foreground rounded-xl border border-dashed border-border px-3 py-2">
-          {proposal.warnings[0]}
+    const msg = proposal?.warnings?.[0]
+      ?? (missingKosztorys
+        ? "Aby wyliczyć ofertę: pobierz kosztorys (ATH/XLSX/PDF) z załączników lub wgraj ręcznie."
+        : "Kalkulator oferty — wczytaj i sparsuj kosztorys.");
+    return (
+      <div className="rounded-xl border border-dashed border-violet-500/30 bg-violet-500/5 px-3 py-2.5 space-y-1">
+        <p className="text-xs font-semibold text-violet-800 dark:text-violet-300 flex items-center gap-1.5">
+          <Calculator size={13} />
+          Propozycja ceny ofertowej
         </p>
-      );
-    }
-    return null;
+        <p className="text-[11px] text-muted-foreground">{msg}</p>
+      </div>
+    );
   }
 
   const rec = proposal.recommendedBidPln;
