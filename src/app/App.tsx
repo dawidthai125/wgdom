@@ -9235,6 +9235,14 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.44.0", label:"Przetargi — dokumenty z BIP i linków w ogłoszeniu",
+    items:[
+      {type:"new", text:"Auto-wykrywanie linków SWZ/BIP w ogłoszeniu BZP + panel „Dokumenty u zamawiającego”"},
+      {type:"new", text:"Pobieranie plików z portali urzędów (Wrocław, MOPS, MPWiK…) — ten sam parser SWZ/ATH"},
+      {type:"improve", text:"Kosztorys i wartość zamówienia uzupełniane z dokumentów spoza e-Zamówień"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.43.1", label:"Scroll — profil firmy i nagłówki",
     items:[
       {type:"fix", text:"Przetargi — profil firmy i filtry w jednym obszarze przewijania (kółko myszy działa wszędzie)"},

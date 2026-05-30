@@ -2595,4 +2595,283 @@ app.post("/make-server-0afb8820/tenders-bzp-attach-to-job", async (c) => {
   }
 });
 
+// ─── Dokumenty zewnętrzne (BIP, linki z ogłoszenia) ─────────────────────────
+
+const EXTERNAL_FETCH_UA = "WGDOM/2.44.0 tenders-external";
+const EXTERNAL_FETCH_HEADERS = {
+  Accept: "text/html,application/xhtml+xml,application/pdf,*/*",
+  "User-Agent": EXTERNAL_FETCH_UA,
+};
+
+const EXT_DOC_EXT_RE = /\.(pdf|docx?|xlsx?|ath|nor|xml|zip)(\?|#|$)/i;
+
+function extFold(s: string): string {
+  return s.toLowerCase()
+    .replace(/ą/g, "a").replace(/ć/g, "c").replace(/ę/g, "e")
+    .replace(/ł/g, "l").replace(/ń/g, "n").replace(/ó/g, "o")
+    .replace(/ś/g, "s").replace(/ź/g, "z").replace(/ż/g, "z");
+}
+
+function extIsSafeUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
+    const host = u.hostname.toLowerCase();
+    if (host === "localhost" || host.startsWith("127.") || host.startsWith("192.168.")) return false;
+    if (/facebook|twitter|instagram|youtube|linkedin|cookie|gdpr|privacy/.test(host + u.pathname)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function extResolveUrl(base: string, href: string): string | null {
+  try {
+    return new URL(href, base).href;
+  } catch {
+    return null;
+  }
+}
+
+function extStripTags(html: string): string {
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function extScoreFilename(name: string): number {
+  const n = name.toLowerCase();
+  let s = 0;
+  if (/kosztorys|przedmiar|obmiar/.test(n)) s += 35;
+  if (/swz|opz|specyfikac|formularz/.test(n)) s += 22;
+  if (/\.(ath|nor|xml)$/i.test(n)) s += 28;
+  if (/\.xlsx?$/i.test(n)) s += 14;
+  if (/\.docx?$/i.test(n)) s += 12;
+  if (/\.pdf$/i.test(n)) s += 8;
+  if (/\.zip$/i.test(n)) s += 6;
+  return s;
+}
+
+function extScoreLink(url: string, label: string): number {
+  const hay = extFold(`${url} ${label}`);
+  let s = 0;
+  if (EXT_DOC_EXT_RE.test(url)) s += extScoreFilename(decodeURIComponent(url.split("/").pop()?.split("?")[0] || ""));
+  if (/bip\.|\.gov\.|wroclaw|mpwik|mops|egospodarka|platformazakupowa|logintrade|e-propublico|smartpzp/.test(hay)) s += 12;
+  if (/przetarg|zamowien|postepow|dokumentac|swz|specyfikac|kosztorys|platforma|ofert/.test(hay)) s += 18;
+  if (/\.(css|js|png|jpe?g|gif|svg|woff2?|ico)(\?|$)/i.test(url)) return -10;
+  if (/facebook|twitter|instagram|youtube|polityka-prywatnosci|rodo/.test(hay)) return -20;
+  return s;
+}
+
+function extExtractLinks(html: string, baseUrl: string): { url: string; label: string; score: number }[] {
+  const out = new Map<string, { url: string; label: string; score: number }>();
+  const add = (url: string, label: string) => {
+    if (!extIsSafeUrl(url)) return;
+    const score = extScoreLink(url, label);
+    if (score <= 0) return;
+    const prev = out.get(url);
+    if (!prev || score > prev.score) out.set(url, { url, label: label.slice(0, 240) || url, score });
+  };
+  for (const m of html.matchAll(/<a[^>]+href=["']([^"'#][^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
+    const url = extResolveUrl(baseUrl, m[1].trim());
+    if (url) add(url, extStripTags(m[2]));
+  }
+  for (const m of html.matchAll(/https?:\/\/[^\s<>"']+/gi)) {
+    add(m[0].replace(/[.,;)]+$/g, ""), m[0]);
+  }
+  return [...out.values()].sort((a, b) => b.score - a.score);
+}
+
+const EXT_BIP_PORTALS: Record<string, { label: string; seedUrls: string[] }> = {
+  wm: { label: "BIP Wrocław / WM", seedUrls: ["https://bip.wroclaw.pl/", "https://bip.wroclaw.pl/search/document?q=przetarg"] },
+  zik: { label: "BIP ZIK", seedUrls: ["https://bip.wroclaw.pl/search/document?q=ZIK"] },
+  zim: { label: "BIP ZIM", seedUrls: ["https://bip.wroclaw.pl/search/document?q=ZIM"] },
+  gmina: { label: "BIP Gmina Wrocław", seedUrls: ["https://bip.wroclaw.pl/search/document?q=zam%C3%B3wienia"] },
+  mops: { label: "BIP MOPS", seedUrls: ["https://bip.mops.wroclaw.pl/", "https://bip.mops.wroclaw.pl/?cat=przetargi"] },
+  tbs: { label: "BIP TBS", seedUrls: ["https://bip.tbs.wroclaw.pl/"] },
+  mpwik: { label: "MPWiK Wrocław", seedUrls: ["https://mpwik.wroc.pl/pl/przetargi"] },
+};
+
+function extTitleKeywords(title: string, bzpNumber: string): string[] {
+  const words = extFold(title).replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter((w) => w.length >= 5);
+  const set = new Set(words.slice(0, 8));
+  if (bzpNumber) {
+    set.add(extFold(bzpNumber));
+    const digits = bzpNumber.replace(/\D/g, "");
+    if (digits.length >= 4) set.add(digits);
+  }
+  return [...set];
+}
+
+function extMatchesTender(hay: string, keywords: string[]): boolean {
+  if (keywords.length === 0) return true;
+  const folded = extFold(hay);
+  return keywords.some((kw) => folded.includes(kw));
+}
+
+async function extFetchHtml(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      headers: EXTERNAL_FETCH_HEADERS,
+      redirect: "follow",
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) return null;
+    const ct = res.headers.get("content-type") || "";
+    if (!ct.includes("html") && !ct.includes("text")) return null;
+    const text = await res.text();
+    return text.length > 500 && text.length < 2_500_000 ? text : null;
+  } catch {
+    return null;
+  }
+}
+
+function extIsSwzFilename(name: string): boolean {
+  const n = name.toLowerCase();
+  return /swz|opz|specyfikac|kosztorys|formularz/.test(n);
+}
+
+app.post("/make-server-0afb8820/tenders-external-discover", async (c) => {
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const tenderId = String(body.tenderId || "").trim();
+    const noticeHtml = String(body.noticeHtml || "");
+    const priorityBuyerId = String(body.priorityBuyerId || "").trim();
+    const title = String(body.title || "");
+    const bzpNumber = String(body.bzpNumber || "");
+    if (!tenderId) return c.json({ ok: false, error: "Brak tenderId" }, 400);
+
+    const keywords = extTitleKeywords(title, bzpNumber);
+    const pageLinks: { url: string; label: string; source: string; score: number }[] = [];
+    const fileCandidates = new Map<string, { url: string; filename: string; score: number; sourcePageUrl: string }>();
+
+    if (noticeHtml.length > 100) {
+      for (const link of extExtractLinks(noticeHtml, "https://ezamowienia.gov.pl/")) {
+        pageLinks.push({ ...link, source: "notice" });
+        if (EXT_DOC_EXT_RE.test(link.url)) {
+          const fn = decodeURIComponent(link.url.split("/").pop()?.split("?")[0] || "dokument");
+          fileCandidates.set(link.url, {
+            url: link.url,
+            filename: fn,
+            score: link.score + extScoreFilename(fn),
+            sourcePageUrl: link.url,
+          });
+        }
+      }
+    }
+
+    const portal = priorityBuyerId ? EXT_BIP_PORTALS[priorityBuyerId] : null;
+    if (portal) {
+      for (const seed of portal.seedUrls) {
+        pageLinks.push({ url: seed, label: portal.label, source: "bip_portal", score: 14 });
+      }
+    }
+    const orgFold = extFold(String(body.organizationName || ""));
+    if (/mpwik|wodociag/.test(orgFold) && !portal) {
+      for (const seed of EXT_BIP_PORTALS.mpwik.seedUrls) {
+        pageLinks.push({ url: seed, label: EXT_BIP_PORTALS.mpwik.label, source: "bip_portal", score: 14 });
+      }
+    }
+
+    const crawlSeeds = [
+      ...pageLinks.filter((p) => p.score >= 10 && !EXT_DOC_EXT_RE.test(p.url)).slice(0, 4),
+      ...(portal?.seedUrls.slice(0, 2).map((url) => ({ url, label: portal.label, source: "bip_portal", score: 14 })) ?? []),
+    ];
+    const visited = new Set<string>();
+    const queue = crawlSeeds.map((s) => s.url);
+
+    while (queue.length > 0 && visited.size < 8) {
+      const pageUrl = queue.shift()!;
+      if (visited.has(pageUrl)) continue;
+      visited.add(pageUrl);
+      const html = await extFetchHtml(pageUrl);
+      if (!html) continue;
+      const links = extExtractLinks(html, pageUrl);
+      for (const link of links) {
+        if (EXT_DOC_EXT_RE.test(link.url)) {
+          const fn = decodeURIComponent(link.url.split("/").pop()?.split("?")[0] || "dokument");
+          let score = link.score + extScoreFilename(fn);
+          if (extMatchesTender(`${link.url} ${link.label} ${fn}`, keywords)) score += 22;
+          const prev = fileCandidates.get(link.url);
+          if (!prev || score > prev.score) {
+            fileCandidates.set(link.url, { url: link.url, filename: fn, score, sourcePageUrl: pageUrl });
+          }
+        } else if (link.score >= 14 && visited.size < 8 && !visited.has(link.url)) {
+          queue.push(link.url);
+          pageLinks.push({ url: link.url, label: link.label, source: "crawl", score: link.score });
+        }
+      }
+    }
+
+    const topFiles = [...fileCandidates.values()]
+      .filter((f) => f.score >= 10)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
+
+    await ensurePhotosBucket();
+    const supabase = supabaseAdmin();
+    const fetched: Record<string, unknown>[] = [];
+
+    for (const cand of topFiles) {
+      try {
+        const res = await fetch(cand.url, {
+          headers: EXTERNAL_FETCH_HEADERS,
+          redirect: "follow",
+          signal: AbortSignal.timeout(35000),
+        });
+        if (!res.ok) continue;
+        const bytes = new Uint8Array(await res.arrayBuffer());
+        if (bytes.byteLength < 100 || bytes.byteLength > 15 * 1024 * 1024) continue;
+        const fn = parseDispositionFilename(res.headers.get("content-disposition")) || cand.filename;
+        const safeName = fn.replace(/[^a-zA-Z0-9._-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/gi, "_").slice(0, 100);
+        const storagePath = `tenders/${tenderId}/external/${Date.now()}-${safeName}`;
+        const { error } = await supabase.storage.from(PHOTOS_BUCKET).upload(storagePath, bytes, {
+          contentType: contentTypeForUploadedFile(fn, res.headers.get("content-type") || ""),
+          upsert: true,
+        });
+        if (error) continue;
+        const { data: pub } = supabase.storage.from(PHOTOS_BUCKET).getPublicUrl(storagePath);
+        fetched.push({
+          id: crypto.randomUUID(),
+          url: cand.url,
+          filename: fn,
+          contentType: res.headers.get("content-type")?.split(";")[0] || "application/octet-stream",
+          storagePath,
+          publicUrl: pub.publicUrl,
+          isSwzHint: extIsSwzFilename(fn),
+          score: cand.score,
+          sourcePageUrl: cand.sourcePageUrl,
+          fetchedAt: new Date().toISOString(),
+        });
+      } catch {
+        /* następny plik */
+      }
+    }
+
+    const uniquePages = new Map<string, typeof pageLinks[0]>();
+    for (const p of pageLinks) {
+      const prev = uniquePages.get(p.url);
+      if (!prev || p.score > prev.score) uniquePages.set(p.url, p);
+    }
+
+    const discovery = {
+      builtAt: new Date().toISOString(),
+      status: fetched.length > 0 ? "done" : (uniquePages.size > 0 ? "partial" : "empty"),
+      message: fetched.length > 0
+        ? `Pobrano ${fetched.length} plik(ów) spoza e-Zamówień`
+        : uniquePages.size > 0
+          ? "Znaleziono strony — brak plików do auto-pobrania (otwórz link ręcznie)"
+          : "Brak linków zewnętrznych w ogłoszeniu",
+      pageLinks: [...uniquePages.values()].sort((a, b) => b.score - a.score).slice(0, 20),
+      files: fetched,
+    };
+
+    return c.json({ ok: true, discovery });
+  } catch (e) {
+    console.error("tenders-external-discover:", e);
+    return c.json({
+      ok: false,
+      error: e instanceof Error ? e.message : "external discover error",
+    }, 500);
+  }
+});
+
 Deno.serve(app.fetch);

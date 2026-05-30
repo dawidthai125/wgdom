@@ -14,8 +14,8 @@ import {
   type TendersCustomKeywords,
 } from "@/lib/tenders-bzp-learn";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
-import { isKosztorysUploadFilename } from "@/lib/job-documents";
-import type { JobFileAttachment } from "@/lib/job-documents";
+import { isKosztorysUploadFilename, type JobFileAttachment } from "@/lib/job-documents";
+import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 
@@ -107,6 +107,8 @@ export interface TenderPipelineItem {
   tenderDossier?: import("@/lib/tenders-bzp-brief").TenderDossier | null;
   /** Dopasowanie do profilu firmy + szacunek szans (po analizie SWZ). */
   tenderFit?: import("@/lib/tenders-bzp-fit").TenderFitAssessment | null;
+  /** Linki BIP / platformy + pobrane pliki spoza e-Zamówień. */
+  externalDocDiscovery?: TenderExternalDocDiscovery | null;
 }
 
 export const TENDERS_LAST_BZP_SYNC_KEY = "kw-tenders-bzp-last-sync";
@@ -406,6 +408,8 @@ export function mapBzpToPipelineItem(n: BzpNoticeRaw, existing?: TenderPipelineI
     noticeHtml: existing?.noticeHtml ?? null,
     noticeHtmlFetchedAt: existing?.noticeHtmlFetchedAt ?? null,
     tenderDossier: existing?.tenderDossier ?? null,
+    tenderFit: existing?.tenderFit ?? null,
+    externalDocDiscovery: existing?.externalDocDiscovery ?? null,
   };
 }
 
@@ -433,6 +437,8 @@ export function mergeTenderPipeline(
           noticeHtml: prev.noticeHtml ?? item.noticeHtml,
           noticeHtmlFetchedAt: prev.noticeHtmlFetchedAt ?? item.noticeHtmlFetchedAt,
           tenderDossier: prev.tenderDossier ?? item.tenderDossier,
+          tenderFit: prev.tenderFit ?? item.tenderFit,
+          externalDocDiscovery: prev.externalDocDiscovery ?? item.externalDocDiscovery,
         }
       : item);
   }
@@ -657,6 +663,15 @@ export async function attachTenderAssetsToJob(
       filename: swzDoc.filename,
       kind: isKosztorysUploadFilename(swzDoc.filename) ? "kosztorys" : "zlecenie",
     });
+  }
+  for (const ext of item.externalDocDiscovery?.files ?? []) {
+    if (!sources.some((s) => s.filename === ext.filename)) {
+      sources.push({
+        storagePath: ext.storagePath,
+        filename: ext.filename,
+        kind: isKosztorysUploadFilename(ext.filename) ? "kosztorys" : "zlecenie",
+      });
+    }
   }
   if (sources.length === 0) return [];
   const res = await fetch(`${API_BASE}/tenders-bzp-attach-to-job`, {

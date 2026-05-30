@@ -162,6 +162,121 @@ export async function parseTenderDocumentCandidate(
   };
 }
 
+/** Parsowanie pliku z zewnętrznego źródła (BIP / link z ogłoszenia) — bez e-Zamówień. */
+export async function parseExternalTenderFile(
+  bytes: Uint8Array,
+  filename: string,
+  opts?: { ourEstimatePln?: number | null; existingSwz?: TenderSwzAnalysis | null },
+): Promise<TenderDocumentParseResult> {
+  let effectiveBytes = bytes;
+  let effectiveName = filename;
+
+  if (isZipFilename(filename)) {
+    const picked = await pickBestFromZipBytes(bytes, filename);
+    if (picked) {
+      effectiveBytes = picked.bytes;
+      effectiveName = picked.filename;
+    }
+  }
+
+  let kosztorys: TenderKosztorysSnapshot | null = null;
+  let estimatePln = opts?.ourEstimatePln ?? null;
+
+  const kosztorysPreview = await parseDocumentToKosztorys(effectiveBytes, effectiveName);
+  if (kosztorysPreview?.ok && (kosztorysPreview.rows.length > 0 || kosztorysPreview.totalValue)) {
+    kosztorys = {
+      ...athPreviewToSnapshot(kosztorysPreview, effectiveName),
+      sourceDocumentIndex: undefined,
+    };
+    if (estimatePln == null) {
+      estimatePln = parsePlnFromKosztorysTotal(kosztorys.totalValue, kosztorys.currency);
+    }
+  }
+
+  let swzFromDoc: TenderSwzAnalysis | null = null;
+  const canSwzText = isPdfFilename(effectiveName) || isDocxFilename(effectiveName);
+  if (canSwzText) {
+    const { text, source, warnings } = await parseDocumentToSwzText(effectiveBytes, effectiveName);
+    swzFromDoc = analyzeSwzFromDocumentText(text, source, {
+      sourceFilename: effectiveName,
+      ourEstimatePln: estimatePln,
+    });
+    if (swzFromDoc && warnings.length) {
+      swzFromDoc = {
+        ...swzFromDoc,
+        qualificationHints: [...swzFromDoc.qualificationHints, ...warnings].slice(0, 6),
+      };
+    }
+    if (swzFromDoc && estimatePln == null && swzFromDoc.estimatedValuePln != null) {
+      estimatePln = swzFromDoc.estimatedValuePln;
+    }
+  }
+
+  if (!kosztorys && !swzFromDoc && isPdfFilename(effectiveName)) {
+    const { text, source, warnings } = await parseDocumentToSwzText(effectiveBytes, effectiveName);
+    swzFromDoc = analyzeSwzFromDocumentText(text, source, {
+      sourceFilename: effectiveName,
+      ourEstimatePln: estimatePln,
+    });
+    if (swzFromDoc && warnings.length) {
+      swzFromDoc = {
+        ...swzFromDoc,
+        qualificationHints: [...(swzFromDoc.qualificationHints ?? []), ...warnings].slice(0, 6),
+      };
+    }
+  }
+
+  return {
+    kosztorys,
+    swzFromDoc,
+    estimatePln,
+    sourceFilename: effectiveName,
+  };
+}
+
+export async function parseExternalTenderDocuments(
+  files: { filename: string; score: number; publicUrl: string }[],
+  opts?: { ourEstimatePln?: number | null; existingSwz?: TenderSwzAnalysis | null },
+): Promise<TenderDocumentParseResult> {
+  const sorted = [...files].sort((a, b) => b.score - a.score).slice(0, 6);
+  let bestKosztorys: TenderKosztorysSnapshot | null = null;
+  let bestSwz: TenderSwzAnalysis | null = null;
+  let estimatePln = opts?.ourEstimatePln ?? null;
+  let sourceFilename: string | undefined;
+
+  for (const file of sorted) {
+    try {
+      const res = await fetch(file.publicUrl);
+      if (!res.ok) continue;
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      if (bytes.byteLength > 15 * 1024 * 1024 || bytes.byteLength < 80) continue;
+      const parsed = await parseExternalTenderFile(bytes, file.filename, {
+        ourEstimatePln: estimatePln,
+        existingSwz: opts?.existingSwz,
+      });
+      if (parsed.kosztorys?.ok && !bestKosztorys) {
+        bestKosztorys = parsed.kosztorys;
+        sourceFilename = parsed.sourceFilename;
+        if (parsed.estimatePln != null) estimatePln = parsed.estimatePln;
+      }
+      if (parsed.swzFromDoc && !bestSwz) {
+        bestSwz = parsed.swzFromDoc;
+        if (!sourceFilename) sourceFilename = parsed.sourceFilename;
+      }
+      if (bestKosztorys?.ok && bestSwz) break;
+    } catch {
+      /* kolejny plik */
+    }
+  }
+
+  return {
+    kosztorys: bestKosztorys,
+    swzFromDoc: bestSwz,
+    estimatePln,
+    sourceFilename,
+  };
+}
+
 export async function parseBestTenderDocuments(
   tenderId: string,
   docs: TenderBzpDocument[],

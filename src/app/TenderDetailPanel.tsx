@@ -24,7 +24,9 @@ import {
   suggestKeywordsFromPipeline,
 } from "@/lib/tenders-bzp-learn";
 import { parseNoticeHtmlBrief, mergeBriefWithItemTitle, athPreviewToSnapshot } from "@/lib/tenders-bzp-brief";
-import { parseBestTenderDocuments, mergeSwzAnalysis } from "@/lib/tender-document-resolver";
+import { parseBestTenderDocuments, mergeSwzAnalysis, parseExternalTenderDocuments } from "@/lib/tender-document-resolver";
+import { discoverExternalTenderDocs, type TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
+import { TenderExternalDocsPanel } from "@/app/TenderExternalDocsPanel";
 import { fetchAndParseKosztorys, isKosztorysPreviewExt, type AthPreviewResult } from "@/lib/ath-parser";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-doc-parse";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
@@ -85,9 +87,69 @@ export function TenderDetailPanel({
   const [athPreview, setAthPreview] = useState<AthPreviewResult | null>(null);
   const [athLoading, setAthLoading] = useState(false);
   const [autoRunning, setAutoRunning] = useState(false);
+  const [externalDiscovering, setExternalDiscovering] = useState(false);
   const [showHtml, setShowHtml] = useState(false);
   const [docPreview, setDocPreview] = useState<InspectorFileItem | null>(null);
   const autoRanRef = useRef<Set<string>>(new Set());
+  const extRanRef = useRef<Set<string>>(new Set());
+
+  const applyExternalDiscovery = useCallback(async (discovery: TenderExternalDocDiscovery) => {
+    let swzMerged = item.swzAnalysis ?? null;
+    let kosztorysSnap = item.tenderDossier?.kosztorys ?? null;
+    let estimatePln = item.ourEstimatePln ?? null;
+    const brief = item.tenderDossier?.brief
+      ?? mergeBriefWithItemTitle(
+        item.noticeHtml ? parseNoticeHtmlBrief(item.noticeHtml) : parseNoticeHtmlBrief(""),
+        item.title,
+      );
+
+    const patch: Partial<TenderPipelineItem> = { externalDocDiscovery: discovery };
+
+    if (discovery.files.length > 0) {
+      const extParsed = await parseExternalTenderDocuments(
+        discovery.files.map((f) => ({
+          filename: f.filename,
+          score: f.score,
+          publicUrl: f.publicUrl,
+        })),
+        { ourEstimatePln: estimatePln, existingSwz: swzMerged ?? undefined },
+      );
+      if (extParsed.kosztorys?.ok) kosztorysSnap = extParsed.kosztorys;
+      if (extParsed.swzFromDoc) {
+        swzMerged = mergeSwzAnalysis(swzMerged, extParsed.swzFromDoc);
+      }
+      if (extParsed.estimatePln != null && estimatePln == null) {
+        estimatePln = extParsed.estimatePln;
+      }
+    }
+
+    patch.tenderDossier = {
+      brief,
+      kosztorys: kosztorysSnap,
+      builtAt: new Date().toISOString(),
+    };
+    if (swzMerged) patch.swzAnalysis = swzMerged;
+    if (estimatePln != null && item.ourEstimatePln == null) patch.ourEstimatePln = estimatePln;
+    onUpdate(patch);
+  }, [item, onUpdate]);
+
+  const runExternalDiscovery = useCallback(async () => {
+    if (!item.tenderId) return;
+    setExternalDiscovering(true);
+    try {
+      const discovery = await discoverExternalTenderDocs({
+        tenderId: item.tenderId,
+        noticeHtml: item.noticeHtml,
+        organizationName: item.organizationName,
+        priorityBuyerId: item.priorityBuyerId,
+        title: item.title,
+        bzpNumber: item.bzpNumber,
+      });
+      await applyExternalDiscovery(discovery);
+    } finally {
+      setExternalDiscovering(false);
+    }
+  }, [item, applyExternalDiscovery]);
 
   useEffect(() => {
     if (autoRanRef.current.has(item.id)) return;
@@ -180,6 +242,59 @@ export function TenderDetailPanel({
             dossierPatch.swzAnalysis = swzMerged;
           }
           onUpdate(dossierPatch);
+
+          const needExternal = !kosztorysSnap?.ok || !(swzMerged?.estimatedValuePln);
+          if (
+            needExternal
+            && !item.externalDocDiscovery
+            && item.tenderId
+            && (html || item.priorityBuyerId)
+            && !extRanRef.current.has(item.id)
+            && !cancelled
+          ) {
+            extRanRef.current.add(item.id);
+            setExternalDiscovering(true);
+            try {
+              const discovery = await discoverExternalTenderDocs({
+                tenderId: item.tenderId,
+                noticeHtml: html,
+                organizationName: item.organizationName,
+                priorityBuyerId: item.priorityBuyerId,
+                title: item.title,
+                bzpNumber: item.bzpNumber,
+              });
+              if (!cancelled) await applyExternalDiscovery(discovery);
+            } catch {
+              /* best-effort */
+            } finally {
+              if (!cancelled) setExternalDiscovering(false);
+            }
+          }
+        } else if (
+          !item.externalDocDiscovery
+          && item.tenderId
+          && (html || item.priorityBuyerId)
+          && !extRanRef.current.has(item.id)
+          && !cancelled
+          && (!item.tenderDossier?.kosztorys?.ok || !item.swzAnalysis?.estimatedValuePln)
+        ) {
+          extRanRef.current.add(item.id);
+          setExternalDiscovering(true);
+          try {
+            const discovery = await discoverExternalTenderDocs({
+              tenderId: item.tenderId,
+              noticeHtml: html,
+              organizationName: item.organizationName,
+              priorityBuyerId: item.priorityBuyerId,
+              title: item.title,
+              bzpNumber: item.bzpNumber,
+            });
+            if (!cancelled) await applyExternalDiscovery(discovery);
+          } catch {
+            /* best-effort */
+          } finally {
+            if (!cancelled) setExternalDiscovering(false);
+          }
         }
       } catch {
         /* auto-analiza best-effort */
@@ -212,6 +327,7 @@ export function TenderDetailPanel({
     item.noticeHtml,
     item.ourEstimatePln,
     item.tenderDossier?.builtAt,
+    item.externalDocDiscovery?.builtAt,
     item.relevanceScore,
     profileVersion,
     pipelineWinRate,
@@ -346,6 +462,15 @@ export function TenderDetailPanel({
         dossier={item.tenderDossier}
         swz={swz}
         onOpenKosztorysPreview={(previewItem) => setDocPreview(previewItem)}
+      />
+
+      <TenderExternalDocsPanel
+        item={item}
+        discovery={item.externalDocDiscovery}
+        discovering={externalDiscovering}
+        athPreviewEnabled={athPreviewEnabled}
+        onDiscovery={(d) => void applyExternalDiscovery(d)}
+        onParsed={() => { /* fit przeliczy useEffect */ }}
       />
 
       <TenderBidProposalPanel
