@@ -9311,6 +9311,14 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.45.9", label:"Przetargi — naprawa mapy Wrocław",
+    items:[
+      {type:"fix", text:"Mapa przetargów — SVG zamiast niedziałającego staticmap.openstreetmap.de"},
+      {type:"improve", text:"Mapa zwijana jak profil firmy i słownik słów kluczowych"},
+      {type:"improve", text:"Mapa widoczna zawsze w sekcji Przetargi (domyślnie zwinięta)"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.45.8", label:"Przetargi — akcje, auto-wyniki, alerty pulpitu",
     items:[
       {type:"new", text:"Chipy „wymaga działania” — filtry: termin bez wyceny, wadium, kosztorys, referencje"},

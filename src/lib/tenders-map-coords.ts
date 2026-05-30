@@ -13,6 +13,14 @@ export interface TenderMapPoint {
 
 const WROCLAW = { lat: 51.1079, lng: 17.0385 };
 
+/** Granice Wrocławia do projekcji SVG (bez zewnętrznego API map). */
+export const WROCLAW_MAP_BOUNDS = {
+  minLat: 51.02,
+  maxLat: 51.19,
+  minLng: 16.88,
+  maxLng: 17.24,
+};
+
 const KNOWN: { re: RegExp; lat: number; lng: number; label: string }[] = [
   { re: /mops|strzegomsk/i, lat: 51.1098, lng: 17.0175, label: "MOPS" },
   { re: /kamieńskiego\s*190/i, lat: 51.1092, lng: 16.9498, label: "Kamieńskiego" },
@@ -39,11 +47,17 @@ function extractStreet(title: string): string | null {
   return m?.[0] ?? null;
 }
 
+export function isWroclawTenderItem(item: TenderPipelineItem): boolean {
+  if (item.isWroclaw) return true;
+  const city = (item.organizationCity || "").toLowerCase();
+  return city.includes("wroc") || /wrocław|wroclaw/i.test(item.title);
+}
+
 export function tenderMapPoint(
   item: TenderPipelineItem,
   opts?: { blocked?: boolean; daysLeft?: number | null },
 ): TenderMapPoint | null {
-  if (!item.isWroclaw && !/wrocław|wroclaw/i.test(item.organizationCity)) return null;
+  if (!isWroclawTenderItem(item)) return null;
 
   const hay = `${item.title} ${item.organizationName} ${item.organizationCity}`;
   for (const k of KNOWN) {
@@ -76,16 +90,27 @@ export function tenderMapPoint(
   };
 }
 
-export function buildStaticMapUrl(points: TenderMapPoint[], selectedId?: string | null): string {
-  if (points.length === 0) return "";
-  const markers = points.slice(0, 18).map((p) => {
-    const color = p.id === selectedId ? "blue" : p.blocked ? "red" : "green";
-    return `${p.lat},${p.lng},${color}`;
-  }).join("|");
-  const center = points[0];
-  return `https://staticmap.openstreetmap.de/staticmap.php?center=${center.lat},${center.lng}&zoom=11&size=640x320&markers=${encodeURIComponent(markers)}`;
+/** Współrzędne punktu na SVG (px). */
+export function mapPointToSvg(
+  lat: number,
+  lng: number,
+  width: number,
+  height: number,
+  padding = 16,
+): { x: number; y: number } {
+  const b = WROCLAW_MAP_BOUNDS;
+  const innerW = width - padding * 2;
+  const innerH = height - padding * 2;
+  const x = padding + ((lng - b.minLng) / (b.maxLng - b.minLng)) * innerW;
+  const y = padding + (1 - (lat - b.minLat) / (b.maxLat - b.minLat)) * innerH;
+  return { x: Math.max(padding, Math.min(width - padding, x)), y: Math.max(padding, Math.min(height - padding, y)) };
 }
 
 export function osmLink(lat: number, lng: number): string {
   return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=15/${lat}/${lng}`;
+}
+
+/** @deprecated staticmap.openstreetmap.de niedostępny — używaj SVG w TendersMapPanel */
+export function buildStaticMapUrl(_points: TenderMapPoint[], _selectedId?: string | null): string {
+  return "";
 }

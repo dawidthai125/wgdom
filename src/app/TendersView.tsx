@@ -377,13 +377,11 @@ export function TendersView({
           if (changed) void persist(r);
         })} />
 
-        {(localFilter === "wroclaw" || localFilter === "actionable" || localFilter === "active") && (
-          <TendersMapPanel
-            items={items.filter((i) => i.isWroclaw)}
-            selectedId={expandedId}
-            onSelect={(id) => setExpandedId(id)}
-          />
-        )}
+        <TendersMapPanel
+          items={items}
+          selectedId={expandedId}
+          onSelect={(id) => setExpandedId(id)}
+        />
 
         <div className="flex flex-wrap items-center gap-2">
           <button
