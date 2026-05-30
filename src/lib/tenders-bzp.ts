@@ -116,6 +116,35 @@ export interface TenderPipelineItem {
   tenderFit?: import("@/lib/tenders-bzp-fit").TenderFitAssessment | null;
   /** Linki BIP / platformy + pobrane pliki spoza e-Zamówień. */
   externalDocDiscovery?: TenderExternalDocDiscovery | null;
+  /** Historia zmian „Nasz szacunek”. */
+  estimateHistory?: TenderEstimateSnapshot[];
+  /** Wynik postępowania (wykonawca, kwota). */
+  awardResult?: import("@/lib/tenders-bzp-award").TenderAwardResult | null;
+}
+
+export interface TenderEstimateSnapshot {
+  pln: number;
+  at: string;
+  note?: string;
+}
+
+export function patchOurEstimatePln(
+  item: TenderPipelineItem,
+  pln: number | null,
+  note?: string,
+): Partial<TenderPipelineItem> {
+  const history = [...(item.estimateHistory ?? [])];
+  if (item.ourEstimatePln != null && item.ourEstimatePln !== pln) {
+    history.push({
+      pln: item.ourEstimatePln,
+      at: new Date().toISOString(),
+      note: note ? `Przed: ${note}` : undefined,
+    });
+  }
+  return {
+    ourEstimatePln: pln,
+    estimateHistory: history.slice(-25),
+  };
 }
 
 export const TENDERS_LAST_BZP_SYNC_KEY = "kw-tenders-bzp-last-sync";
@@ -417,6 +446,8 @@ export function mapBzpToPipelineItem(n: BzpNoticeRaw, existing?: TenderPipelineI
     tenderDossier: existing?.tenderDossier ?? null,
     tenderFit: existing?.tenderFit ?? null,
     externalDocDiscovery: existing?.externalDocDiscovery ?? null,
+    estimateHistory: existing?.estimateHistory ?? [],
+    awardResult: existing?.awardResult ?? null,
   };
 }
 
@@ -446,6 +477,8 @@ export function mergeTenderPipeline(
           tenderDossier: prev.tenderDossier ?? item.tenderDossier,
           tenderFit: prev.tenderFit ?? item.tenderFit,
           externalDocDiscovery: prev.externalDocDiscovery ?? item.externalDocDiscovery,
+          estimateHistory: prev.estimateHistory ?? item.estimateHistory,
+          awardResult: prev.awardResult ?? item.awardResult,
         }
       : item);
   }

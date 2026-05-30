@@ -37,6 +37,9 @@ import { TenderKeywordsPanel } from "@/app/TenderKeywordsPanel";
 import { FIT_LABELS } from "@/lib/tenders-bzp-fit";
 import { PROFITABILITY_LABELS } from "@/lib/tenders-bzp-swz";
 import { tenderListBidLine } from "@/lib/tenders-bid-prep";
+import { TendersMapPanel } from "@/app/TendersMapPanel";
+import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
+import { computeWadiumInfo } from "@/lib/tenders-wadium";
 
 type LocalFilter = "actionable" | "active" | "priority" | "wroclaw" | "high" | "archive" | "all";
 
@@ -344,6 +347,14 @@ export function TendersView({
           if (changed) void persist(r);
         })} />
 
+        {(localFilter === "wroclaw" || localFilter === "actionable" || localFilter === "active") && (
+          <TendersMapPanel
+            items={items.filter((i) => i.isWroclaw)}
+            selectedId={expandedId}
+            onSelect={(id) => setExpandedId(id)}
+          />
+        )}
+
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -448,6 +459,11 @@ export function TendersView({
           const urgent = offerOpen && days !== null && days >= 0 && days <= 7;
           const expanded = expandedId === item.id;
           const bidLine = tenderListBidLine(item);
+          const wadiumBlocked = computeWadiumInfo(
+            item,
+            item.swzAnalysis,
+            loadCompanyProfileLocal().maxWadiumPln,
+          ).blocked;
           return (
             <article
               key={item.id}
@@ -509,6 +525,14 @@ export function TendersView({
                       )}
                       {item.tenderState && (
                         <span className="text-[10px] bg-secondary text-muted-foreground px-1.5 py-0.5 rounded">{labelTenderState(item.tenderState)}</span>
+                      )}
+                      {wadiumBlocked && (
+                        <span className="text-[10px] font-semibold bg-red-500/10 text-red-600 px-1.5 py-0.5 rounded">Wadium blokada</span>
+                      )}
+                      {item.awardResult && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${item.awardResult.isUs ? "bg-emerald-500/10 text-emerald-600" : "bg-secondary text-muted-foreground"}`}>
+                          {item.awardResult.isUs ? "Wygraliśmy" : "Wynik BZP"}
+                        </span>
                       )}
                     </div>
                     <p className="text-sm font-semibold leading-snug">{item.title}</p>

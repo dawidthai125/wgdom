@@ -32,6 +32,15 @@ export interface TenderSwzAnalysis {
   sourceFilename?: string;
   profitabilityHint: TenderProfitabilityHint;
   profitabilityNote: string;
+  /** Kryteria oceny wyciągnięte z SWZ/PDF. */
+  awardCriteria?: {
+    name: string;
+    weightPct: number | null;
+    maxPoints: number | null;
+    description: string;
+  }[];
+  /** Wadium jako % wartości zamówienia. */
+  wadiumPercent?: number | null;
 }
 
 export function stripHtmlToText(html: string): string {

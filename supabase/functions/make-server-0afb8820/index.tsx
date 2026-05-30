@@ -2517,6 +2517,143 @@ app.get("/make-server-0afb8820/tenders-bzp-analyze-swz", async (c) => {
   }
 });
 
+const AWARD_US_RE = /w\s*&\s*g|wgdom|wg\s*dom|schabowska|wałek|walek/i;
+
+function parseAwardPln(raw: string | null | undefined): number | null {
+  if (!raw) return null;
+  const m = raw.match(/([\d\s]+(?:[.,]\d{1,2})?)\s*(?:zł|PLN)?/i);
+  if (!m) return null;
+  const n = parseFloat(m[1].replace(/\s/g, "").replace(",", "."));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function parseAwardResultFromSwzText(
+  text: string,
+  opts?: { resultNoticeNumber?: string; source?: string },
+): Record<string, unknown> | null {
+  const folded = text.replace(/\s+/g, " ");
+  const winnerMatch = folded.match(
+    /wykonawcy,?\s*któremu udzielono(?:\s+zamówienia)?[:\s]+([^(\n]{4,140}?)(?:\(|,|\d{2}-\d{2}-\d{4}|$)/i,
+  ) || folded.match(
+    /nazwa\s*\(?\s*firmy\s*\)?\s*wykonawcy[^:]{0,40}[:\s]+([^(\n]{4,140}?)(?:\(|,|\d{2}-\d{2}-\d{4}|$)/i,
+  ) || folded.match(
+    /wybrano ofertę[^:]{0,20}[:\s]+([^(\n]{4,120})/i,
+  );
+  const winnerName = winnerMatch?.[1]?.replace(/\s+/g, " ").trim() ?? null;
+  if (!winnerName || winnerName.length < 4) return null;
+
+  const valueMatch = folded.match(
+    /(?:cena|wartość)\s+oferty[^:]{0,30}[:\s]+([\d\s.,]+)\s*(?:zł|PLN)/i,
+  ) || folded.match(
+    /(?:kwota|wartość)\s+(?:umowy|zamówienia)[^:]{0,30}[:\s]+([\d\s.,]+)\s*(?:zł|PLN)/i,
+  );
+  const awardValueRaw = valueMatch?.[1]?.trim() ?? null;
+  const awardValuePln = parseAwardPln(awardValueRaw);
+
+  const dateMatch = folded.match(/data zawarcia umowy[:\s]+(\d{2}-\d{2}-\d{4})/i)
+    || folded.match(/(\d{2}-\d{2}-\d{4})/);
+  const contractDate = dateMatch?.[1] ?? null;
+
+  return {
+    winnerName,
+    awardValuePln,
+    awardValueRaw: awardValueRaw ? `${awardValueRaw} zł` : null,
+    contractDate,
+    resultNoticeNumber: opts?.resultNoticeNumber ?? null,
+    fetchedAt: new Date().toISOString(),
+    isUs: AWARD_US_RE.test(winnerName),
+    source: opts?.source ?? "html",
+  };
+}
+
+async function searchBzpAwardNotices(
+  searchText: string,
+  publicationDateFrom: string,
+): Promise<BzpNoticeRow[]> {
+  const out: BzpNoticeRow[] = [];
+  for (const noticeType of ["ContractAwardNotice", "TendersResultsNotice"]) {
+    for (let page = 1; page <= 3; page++) {
+      const params = new URLSearchParams({
+        noticeType,
+        orderType: "Works",
+        SortingColumnName: "PublicationDate",
+        SortingDirection: "DESC",
+        PageNumber: String(page),
+        PageSize: "50",
+        publicationDateFrom,
+        SearchText: searchText,
+      });
+      const url = `https://ezamowienia.gov.pl/mo-board/api/v1/Board/Search?${params}`;
+      const res = await fetch(url, { headers: EZAMOWIENIA_FETCH });
+      if (!res.ok) continue;
+      const batch = normalizeBzpSearchPayload(await res.json());
+      if (batch.length === 0) break;
+      out.push(...batch);
+      if (batch.length < 50) break;
+    }
+  }
+  return out;
+}
+
+app.get("/make-server-0afb8820/tenders-bzp-award-result", async (c) => {
+  try {
+    const bzpNumber = (c.req.query("bzpNumber") || "").trim();
+    const moIdentifier = (c.req.query("moIdentifier") || "").trim();
+    if (!bzpNumber && !moIdentifier) {
+      return c.json({ ok: false, error: "Podaj bzpNumber lub moIdentifier" }, 400);
+    }
+
+    const publicationDateFrom = new Date(Date.now() - 365 * 86400000).toISOString().slice(0, 10);
+    const searchTerms = [moIdentifier, bzpNumber].filter(Boolean);
+    const seen = new Set<string>();
+    let candidates: BzpNoticeRow[] = [];
+
+    for (const term of searchTerms) {
+      const batch = await searchBzpAwardNotices(term, publicationDateFrom);
+      for (const row of batch) {
+        const id = noticeId(row);
+        if (!id || seen.has(id)) continue;
+        seen.add(id);
+        candidates.push(row);
+      }
+    }
+
+    const needle = foldPolish(`${bzpNumber} ${moIdentifier}`);
+    candidates.sort((a, b) => {
+      const da = String(a.publicationDate || "");
+      const db = String(b.publicationDate || "");
+      return db.localeCompare(da);
+    });
+
+    for (const row of candidates) {
+      const rowText = foldPolish(`${row.bzpNumber || ""} ${row.moIdentifier || ""} ${row.orderObject || ""}`);
+      if (needle && !rowText.includes(foldPolish(bzpNumber)) && moIdentifier && !rowText.includes(foldPolish(moIdentifier))) {
+        continue;
+      }
+      const noticeNumber = String(row.noticeNumber || row.objectId || "");
+      if (!noticeNumber) continue;
+      const enc = encodeURIComponent(noticeNumber);
+      const htmlRes = await fetch(
+        `https://ezamowienia.gov.pl/mo-board/api/v1/Board/GetNoticeHtmlBody?noticeNumber=${enc}`,
+        { headers: EZAMOWIENIA_FETCH },
+      );
+      if (!htmlRes.ok) continue;
+      const raw = await htmlRes.text();
+      const html = raw.startsWith('"') ? JSON.parse(raw) : raw;
+      const text = stripHtmlForSwz(html);
+      const parsed = parseAwardResultFromSwzText(text, {
+        resultNoticeNumber: noticeNumber,
+        source: "bzp_search",
+      });
+      if (parsed) return c.json({ ok: true, result: parsed });
+    }
+
+    return c.json({ ok: true, result: null });
+  } catch (e) {
+    return c.json({ ok: false, error: e instanceof Error ? e.message : "award result error" }, 500);
+  }
+});
+
 app.post("/make-server-0afb8820/tenders-bzp-upload", async (c) => {
   try {
     const form = await c.req.formData();

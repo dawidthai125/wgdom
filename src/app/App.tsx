@@ -9279,6 +9279,17 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.45.7", label:"Przetargi — SWZ, wadium, wyniki, mapa, pakiet PDF",
+    items:[
+      {type:"improve", text:"Analiza SWZ (pdf.js): kryteria oceny, fragmenty tabel, wadium jako % wartości"},
+      {type:"new", text:"Eksport „Pakiet wyceny” — PDF z checklistą, wadium, dopasowaniem i propozycją oferty"},
+      {type:"new", text:"Wadium — kalkulator + blokada gdy przekracza limit profilu (badge na liście)"},
+      {type:"new", text:"Wyniki postępowań — pobieranie z BZP (kto wygrał, za ile)"},
+      {type:"new", text:"Mapa przetargów Wrocław — aktywne postępowania na mapie OSM"},
+      {type:"new", text:"Historia wersji „Nasz szacunek” przy ręcznej edycji i z kalkulatora"},
+    ],
+  },
+  {
     date:"2026-05-30", version:"2.45.6", label:"Profil firmy — MOPS Owsiana 2024 wygrany",
     items:[
       {type:"fix", text:"Profil przetargów: MOPS ul. Owsiana 2024 — wygrany przetarg, roboty w terminie (wcześniej błędnie jako udział)"},

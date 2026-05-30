@@ -6,6 +6,8 @@ import { estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-doc-parse";
 import { isTenderOpenForOffers, daysUntilTenderDeadline } from "@/lib/tenders-bzp";
+import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
+import { computeWadiumInfo } from "@/lib/tenders-wadium";
 
 export type BidPrepItemStatus = "ok" | "partial" | "missing";
 
@@ -37,6 +39,9 @@ export function computeBidPrepChecks(
       item.tenderDossier?.kosztorys?.currency,
     );
 
+  const profile = loadCompanyProfileLocal();
+  const wadiumInfo = computeWadiumInfo(item, swz, profile.maxWadiumPln);
+
   const kosztorysOk = Boolean(item.tenderDossier?.kosztorys?.ok);
   const docCount = (item.bzpDocuments?.length ?? 0) + (item.uploadedFile ? 1 : 0)
     + (item.externalDocDiscovery?.files?.length ?? 0);
@@ -63,9 +68,19 @@ export function computeBidPrepChecks(
     {
       id: "wadium",
       label: "Wadium",
-      status: swz?.wadiumPln != null || swz?.wadiumRaw ? "ok" : "missing",
-      display: swz?.wadiumRaw ?? (swz?.wadiumPln != null ? fmtPln(swz.wadiumPln) : "Brak danych"),
-      hint: !swz?.wadiumRaw && swz?.wadiumPln == null ? "W SWZ/ogłoszeniu — użyj „Analizuj”" : undefined,
+      status: wadiumInfo.blocked
+        ? "partial"
+        : wadiumInfo.amountPln != null || wadiumInfo.raw
+          ? "ok"
+          : "missing",
+      display: wadiumInfo.blocked
+        ? `${wadiumInfo.summary} — BLOKADA`
+        : wadiumInfo.summary,
+      hint: wadiumInfo.blocked
+        ? `Limit profilu: ${profile.maxWadiumPln.toLocaleString("pl-PL")} zł`
+        : !wadiumInfo.raw && wadiumInfo.amountPln == null
+          ? "W SWZ/ogłoszeniu — użyj „Analizuj”"
+          : undefined,
     },
     {
       id: "kosztorys",
@@ -126,9 +141,13 @@ export function summarizeSwzFindings(swz: TenderSwzAnalysis): string {
 export function tenderListBidLine(item: TenderPipelineItem): string | null {
   const swz = item.swzAnalysis;
   const valuePln = estimatedValuePlnFromItem(item, swz ?? null);
+  const profile = loadCompanyProfileLocal();
+  const wadium = computeWadiumInfo(item, swz, profile.maxWadiumPln);
   const parts: string[] = [];
   if (valuePln != null) parts.push(fmtPln(valuePln));
-  if (swz?.wadiumRaw) parts.push(`wad. ${swz.wadiumRaw.replace(/\s+/g, " ").slice(0, 24)}`);
+  if (wadium.blocked) parts.push("wadium BLOKADA");
+  else if (wadium.raw) parts.push(`wad. ${wadium.raw.replace(/\s+/g, " ").slice(0, 24)}`);
+  else if (wadium.amountPln != null) parts.push(`wad. ${fmtPln(wadium.amountPln)}`);
   if (item.tenderDossier?.kosztorys?.ok) parts.push("kosztorys ✓");
   else if ((item.bzpDocuments?.length ?? 0) === 0 && !item.uploadedFile) parts.push("brak plików");
   else if (!item.tenderDossier?.kosztorys?.ok) parts.push("brak kosztorysu");

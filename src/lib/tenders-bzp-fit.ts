@@ -249,7 +249,8 @@ export function assessTenderFit(
 ): TenderFitAssessment {
   const swz = item.swzAnalysis;
   const combinedText = buildCombinedText(item, swz);
-  const awardCriteria = extractAwardCriteria(combinedText);
+  const fromSwz = swz?.awardCriteria ?? [];
+  const awardCriteria = fromSwz.length > 0 ? fromSwz : extractAwardCriteria(combinedText);
   const priceWeightPct = derivePriceWeightPct(awardCriteria);
   const requiredRefPln = extractRequiredReferencePln(combinedText);
   const requiredOcPln = extractRequiredOcPln(combinedText);
@@ -344,7 +345,11 @@ export function assessTenderFit(
   }
 
   // Wadium
-  const wadium = swz?.wadiumPln ?? null;
+  const wadiumPct = swz?.wadiumPercent ?? null;
+  let wadium = swz?.wadiumPln ?? null;
+  if (wadium == null && wadiumPct != null && estVal != null) {
+    wadium = Math.round(estVal * wadiumPct / 100);
+  }
   if (wadium != null) {
     const ok = wadium <= profile.maxWadiumPln;
     checks.push({

@@ -10,9 +10,9 @@ import {
   TENDER_STATUS_LABELS,
   fetchTenderDocuments,
   fetchTenderNoticeDetails,
-  analyzeTenderSwz,
   uploadTenderFile,
   computePipelineFunnel,
+  patchOurEstimatePln,
 } from "@/lib/tenders-bzp";
 import {
   learnKeywordsFromPipeline,
@@ -22,6 +22,9 @@ import { parseNoticeHtmlBrief, mergeBriefWithItemTitle, athPreviewToSnapshot } f
 import { parseBestTenderDocuments, mergeSwzAnalysis, parseExternalTenderDocuments } from "@/lib/tender-document-resolver";
 import { discoverExternalTenderDocs, type TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import { summarizeSwzFindings } from "@/lib/tenders-bid-prep";
+import { analyzeTenderSwzEnhanced } from "@/lib/tenders-bzp-analyze-local";
+import { fetchTenderAwardResult } from "@/lib/tenders-bzp-award";
+import { exportTenderBidPackagePdf } from "@/lib/tender-bid-package-pdf";
 import { TenderBidPrepPanel } from "@/app/TenderBidPrepPanel";
 import { fetchAndParseKosztorys, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-doc-parse";
@@ -59,6 +62,8 @@ export function TenderDetailPanel({
   const [learning, setLearning] = useState(false);
   const [autoRunning, setAutoRunning] = useState(false);
   const [externalDiscovering, setExternalDiscovering] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [fetchingAward, setFetchingAward] = useState(false);
   const [showHtml, setShowHtml] = useState(false);
   const [docPreview, setDocPreview] = useState<InspectorFileItem | null>(null);
   const autoRanRef = useRef<Set<string>>(new Set());
@@ -174,12 +179,18 @@ export function TenderDetailPanel({
         if (Object.keys(patch).length > 0 && !cancelled) onUpdate(patch);
 
         let swz = item.swzAnalysis ?? null;
-        if (item.noticeNumber && !swz && !cancelled) {
-          swz = await analyzeTenderSwz({
-            noticeNumber: item.noticeNumber,
-            ourEstimatePln: item.ourEstimatePln ?? null,
-          });
-          onUpdate({ swzAnalysis: swz });
+        if (!swz && !cancelled && (item.noticeNumber || item.tenderId)) {
+          try {
+            const { analysis } = await analyzeTenderSwzEnhanced({
+              noticeNumber: item.noticeNumber || undefined,
+              tenderId: item.tenderId,
+              bzpDocuments: docs.length ? docs : item.bzpDocuments,
+              noticeHtml: html ?? item.noticeHtml,
+              ourEstimatePln: item.ourEstimatePln ?? null,
+            });
+            swz = analysis;
+            onUpdate({ swzAnalysis: swz });
+          } catch { /* auto-analiza best-effort */ }
         }
 
         if (!item.tenderDossier && !cancelled) {
@@ -297,33 +308,16 @@ export function TenderDetailPanel({
   const runAnalysis = useCallback(async (docIndex?: number) => {
     setAnalyzing(true);
     try {
-      let analysis;
-      if (docIndex && item.tenderId) {
-        analysis = await analyzeTenderSwz({
-          tenderId: item.tenderId,
-          documentIndex: docIndex,
-          ourEstimatePln: item.ourEstimatePln ?? null,
-        });
-      } else if (item.noticeNumber) {
-        analysis = await analyzeTenderSwz({
-          noticeNumber: item.noticeNumber,
-          ourEstimatePln: item.ourEstimatePln ?? null,
-        });
-      } else {
-        const doc = item.bzpDocuments?.find((d) => d.isSwzHint) ?? item.bzpDocuments?.[0];
-        if (doc && item.tenderId) {
-          analysis = await analyzeTenderSwz({
-            tenderId: item.tenderId,
-            documentIndex: doc.index,
-            ourEstimatePln: item.ourEstimatePln ?? null,
-          });
-        } else {
-          toast.error("Brak ogłoszenia BZP i załączników — odśwież dokumenty lub wgraj SWZ");
-          return;
-        }
-      }
+      const { analysis: merged, warnings } = await analyzeTenderSwzEnhanced({
+        noticeNumber: item.noticeNumber || undefined,
+        tenderId: item.tenderId,
+        documentIndex: docIndex,
+        bzpDocuments: item.bzpDocuments,
+        noticeHtml: item.noticeHtml,
+        ourEstimatePln: item.ourEstimatePln ?? null,
+        existing: item.swzAnalysis ?? null,
+      });
 
-      const merged = mergeSwzAnalysis(item.swzAnalysis ?? null, analysis);
       const brief = item.tenderDossier?.brief
         ?? mergeBriefWithItemTitle(
           item.noticeHtml ? parseNoticeHtmlBrief(item.noticeHtml) : parseNoticeHtmlBrief(""),
@@ -340,12 +334,36 @@ export function TenderDetailPanel({
       });
 
       const summary = summarizeSwzFindings(merged);
-      if (summary) toast.success(`Analiza: ${summary}`);
-      else toast.message("Analiza zakończona — w tekście nie znaleziono kwoty ani wadium (sprawdź załączniki PDF)");
+      const critN = merged.awardCriteria?.length ?? 0;
+      const extra = critN > 0 ? ` · ${critN} kryteriów` : "";
+      if (summary) toast.success(`Analiza: ${summary}${extra}`);
+      else toast.message(`Analiza zakończona${extra} — sprawdź załączniki PDF jeśli brak kwoty`);
+      warnings.forEach((w) => toast.message(w));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Błąd analizy SWZ");
     } finally {
       setAnalyzing(false);
+    }
+  }, [item, onUpdate]);
+
+  const handleFetchAward = useCallback(async () => {
+    setFetchingAward(true);
+    try {
+      const result = await fetchTenderAwardResult({
+        bzpNumber: item.bzpNumber,
+        moIdentifier: item.moIdentifier,
+        noticeHtml: item.noticeHtml,
+      });
+      if (result) {
+        onUpdate({ awardResult: result });
+        toast.success(result.isUs ? "Wygraliśmy to postępowanie!" : `Wynik: ${result.winnerName}`);
+      } else {
+        toast.message("Brak ogłoszenia o wyniku w BZP — postępowanie może być w toku");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Błąd pobierania wyniku");
+    } finally {
+      setFetchingAward(false);
     }
   }, [item, onUpdate]);
 
@@ -372,7 +390,7 @@ export function TenderDetailPanel({
         });
         if (preview.totalValue) {
           const num = parsePlnFromKosztorysTotal(preview.totalValue, preview.currency);
-          if (num != null) onUpdate({ ourEstimatePln: num });
+          if (num != null) onUpdate(patchOurEstimatePln(item, num, "kosztorys z uploadu"));
         }
       }
     } catch (e) {
@@ -415,6 +433,22 @@ export function TenderDetailPanel({
       item.tenderDossier?.kosztorys?.currency,
     );
 
+  const handleExportPdf = useCallback(async () => {
+    setExportingPdf(true);
+    try {
+      await exportTenderBidPackagePdf({
+        item,
+        profile: loadCompanyProfileLocal(),
+        bidProposal,
+      });
+      toast.success("Pobrano pakiet wyceny PDF");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Błąd eksportu PDF");
+    } finally {
+      setExportingPdf(false);
+    }
+  }, [item, bidProposal]);
+
   return (
     <div className="px-4 pb-4 pt-2 border-t border-border space-y-3">
       {autoRunning && (
@@ -433,7 +467,12 @@ export function TenderDetailPanel({
         teamHeadcount={loadCompanyProfileLocal().costModel.headcount}
         analyzing={analyzing}
         onAnalyze={() => void runAnalysis()}
-        onApplyRecommended={(pln) => onUpdate({ ourEstimatePln: pln })}
+        onApplyRecommended={(pln) => onUpdate(patchOurEstimatePln(item, pln, "propozycja kalkulatora"))}
+        onExportPdf={() => void handleExportPdf()}
+        exportingPdf={exportingPdf}
+        awardResult={item.awardResult}
+        onFetchAward={() => void handleFetchAward()}
+        fetchingAward={fetchingAward}
       />
 
       <TenderAttachmentsPanel
@@ -525,11 +564,33 @@ export function TenderDetailPanel({
           min="0"
           step="1000"
           value={item.ourEstimatePln ?? ""}
-          onChange={(e) => onUpdate({ ourEstimatePln: e.target.value ? Number(e.target.value) : null })}
+          onChange={(e) => {
+            const pln = e.target.value ? Number(e.target.value) : null;
+            onUpdate(patchOurEstimatePln(item, pln, "ręczna edycja"));
+          }}
           className="w-28 bg-secondary rounded-lg px-2 py-1 text-xs border border-border"
           onClick={(e) => e.stopPropagation()}
         />
       </label>
+
+      {(item.estimateHistory?.length ?? 0) > 0 && (
+        <details className="rounded-lg border border-border/60 bg-secondary/20 px-3 py-2 text-[10px]">
+          <summary className="cursor-pointer font-medium text-muted-foreground hover:text-foreground">
+            Historia szacunku ({item.estimateHistory!.length})
+          </summary>
+          <ul className="mt-2 space-y-1 max-h-28 overflow-y-auto">
+            {[...(item.estimateHistory ?? [])].reverse().map((snap, idx) => (
+              <li key={`${snap.at}-${idx}`} className="flex flex-wrap gap-x-2 text-muted-foreground">
+                <span className="font-medium text-foreground tabular-nums">
+                  {snap.pln.toLocaleString("pl-PL")} zł
+                </span>
+                <span>{new Date(snap.at).toLocaleString("pl-PL")}</span>
+                {snap.note && <span className="italic">{snap.note}</span>}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       <textarea
         value={item.notes}
