@@ -17,6 +17,14 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **Testy użytkownika:** głównie **Vercel**, nie localhost
 - **Konto testowe pracownika:** imię `test`, tel. `+48 000 000 000` — tylko tryb pracownika, bez listy płac/grafiku/pulpitu
 
+## v2.45.7–2.45.10 — Przetargi + galeria admin (2026-05)
+
+**Przetargi:** karta ofertowa (`TenderBidPrepPanel`), analiza SWZ pdf.js (`tenders-bzp-analyze-local.ts`), wadium + blokada (`tenders-wadium.ts`), wyniki BZP (`tenders-bzp-award.ts` + Edge `GET /tenders-bzp-award-result`), pakiet PDF wyceny, chipy akcji + auto-wynik + alerty pulpitu (`tenders-actions.ts`), mapa Wrocław **SVG** (`TendersMapPanel` — **nie** staticmap.openstreetmap.de), profil firmy schema **v6**.
+
+**Galeria admin:** `JobPhotosGalleryView` — ZIP całej roboty / ZIP kategorii (`photo-download.ts`, foldery przed/w-realizacji/po-odbior, nazwy: ulica-data).
+
+Pełny opis → **`docs/ARCHITECTURE.md` § 12.1.1–12.1.2**.
+
 ## v2.10.1 — Admin: zakładka Inspektor
 
 - Menu **Inspektor** — oś czasu zmian (dokumenty, pliki PDF/NORMA)

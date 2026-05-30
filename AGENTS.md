@@ -40,13 +40,25 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 
 ## 3a. Moduł przetargów (skrót)
 
-Szczegóły: **ARCHITECTURE.md § 12.1.1**. Kluczowe pliki:
+Szczegóły: **ARCHITECTURE.md § 12.1.1**. Kluczowe pliki (stan **v2.45.10**):
 
-- `src/lib/tenders-bzp.ts` — pipeline, typy, API klienta  
+- `src/lib/tenders-bzp.ts` — pipeline, typy, API klienta, `patchOurEstimatePln`  
+- `src/lib/tenders-actions.ts` — chipy akcji, auto-wynik BZP, alerty pulpitu, .ics  
+- `src/lib/tenders-bzp-analyze-local.ts` — analiza SWZ pdf.js (klient)  
+- `src/lib/tenders-wadium.ts` — wadium + blokada vs limit profilu  
+- `src/lib/tenders-map-coords.ts` + `TendersMapPanel.tsx` — mapa SVG Wrocław (nie staticmap OSM)  
+- `src/app/TenderBidPrepPanel.tsx` — karta ofertowa  
 - `src/lib/tender-external-docs.ts` — BIP / linki z ogłoszenia (v2.44)  
-- `src/lib/company-labor-cost.ts` — model kosztów z listy płac (v2.43)  
 - `src/app/TenderDetailPanel.tsx` — auto-analiza przy expand  
-- Edge: `POST /tenders-external-discover`, `GET /tenders-bzp-*`
+- Edge: `GET /tenders-bzp-*`, `GET /tenders-bzp-award-result`, `POST /tenders-external-discover`
+
+## 3b. Galeria admin (skrót)
+
+Szczegóły: **ARCHITECTURE.md § 12.1.2**.
+
+- `JobPhotosGalleryView` w `App.tsx` — zakładka **Zdjęcia**  
+- `src/lib/photo-download.ts` — `downloadJobGalleryZip` (foldery przed / w-realizacji / po-odbior)  
+- `src/lib/photo-zip.ts` — JSZip helper
 
 ## 4. Komendy
 

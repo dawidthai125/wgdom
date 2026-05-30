@@ -9156,7 +9156,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Co widać na liście robót?", a:"Adres, klient i status ustawiony ręcznie: W trakcie, Gotowe do odbioru lub Zdane. Przy „Gotowe do odbioru” widać brakujące dokumenty. Status zmieniasz w szczegółach roboty — trzy przyciski + lista braków pod spodem."},
               {q:"Zlecenie i kosztorys", a:"Przy robocie możesz zaznaczyć checkbox „mam zlecenie” / „mam kosztorys” oraz wrzucić plik (zlecenie: PDF; kosztorys: PDF, ATH, NOR, XML, DOC z programu NORMA). Przy .ath wybierz „Wszystkie pliki”, jeśli nie widać rozszerzenia. Status widać na liście — nie musisz pamiętać czy już wysłałeś email."},
               {q:"Dokumenty i zakresy", a:"Checklista dokumentów (zlecenie, zakres, kominiarz, pomiary…). Sekcja raportów pracowników: zakres prac, wymiary pomieszczeń, zdjęcia rysunków z opisami."},
-              {q:"Galeria zdjęć", a:"Tylko zdjęcia zaakceptowane przez admina. Pobierz pojedyncze lub „Pobierz wszystkie” z danej roboty."},
+              {q:"Galeria zdjęć", a:"Tylko zdjęcia zaakceptowane przez admina. Rozwiń robotę → „Pobierz galerię ZIP” (foldery: przed / w trakcie / po) lub „ZIP kategorii”. Nazwy plików: ulica, data, kategoria."},
               {q:"Kto zarządza kontem inspektora?", a:"Super Administrator (Dawid) w panelu ⚙ — zmiana hasła, dodawanie kolejnych inspektorów. Hasła sync w chmurze jak u adminów."},
               {q:"Gdzie admin widzi zmiany inspektora?", a:"Pulpit → „Uwaga dziś” (nowe zmiany od ostatniego przeczytania) oraz zakładka Inspektor — oś czasu + statystyki logowań. W Robotach sekcja Zlecenie · Kosztorys na żywo."},
               {q:"Instrukcja dla inspektora", a:"W panelu inspektora: przycisk Pomoc / baner przy pierwszym wejściu. Dymki ? przy sekcjach wyjaśniają co kliknąć. Instrukcja opisuje zlecenia, kosztorysy NORMA, dokumenty, zdjęcia i raporty."},
@@ -9351,6 +9351,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.45.11", label:"Docs — ARCHITECTURE/AGENTS dla AI (v2.45.7–10)",
+    items:[
+      {type:"improve", text:"ARCHITECTURE.md § 12.1.1–12.1.2 — przetargi v2.45.7–10, galeria ZIP, mapa SVG, endpoint award-result"},
+      {type:"improve", text:"AGENTS.md, ROZWOJ.md, wgdom-stan-projektu — skrót dla przyszłych agentów AI"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.45.10", label:"Galeria admin — pobieranie ZIP roboty",
     items:[
