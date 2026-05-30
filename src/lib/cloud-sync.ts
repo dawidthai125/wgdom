@@ -48,11 +48,24 @@ export function isDataKey(key: string): key is DataKey {
   return (DATA_KEYS as readonly string[]).includes(key);
 }
 
+/** Odrzuca wpisy kartoteki / śmieci w tablicy kw-jobs (np. dir-6 bez adresu). */
+export function isValidJobRecord(raw: unknown): boolean {
+  if (!raw || typeof raw !== "object") return false;
+  const j = raw as { id?: string; address?: string; client?: string; status?: string };
+  if (!j.id || typeof j.id !== "string") return false;
+  if (j.status !== "in_progress" && j.status !== "completed") return false;
+  const addr = typeof j.address === "string" ? j.address.trim() : "";
+  const client = typeof j.client === "string" ? j.client.trim() : "";
+  return addr.length > 0 || client.length > 0;
+}
+
 /** kw-jobs musi być tablicą — w chmurze czasem lądował pojedynczy obiekt. */
 export function normalizeJobsValue(raw: unknown): unknown[] {
-  if (Array.isArray(raw)) return raw;
-  if (raw && typeof raw === "object" && "id" in (raw as object)) return [raw];
-  return [];
+  let arr: unknown[];
+  if (Array.isArray(raw)) arr = raw;
+  else if (raw && typeof raw === "object" && "id" in (raw as object)) arr = [raw];
+  else return [];
+  return arr.filter(isValidJobRecord);
 }
 
 function jobMergeScore(j: {

@@ -43,6 +43,7 @@ import {
   mergeDataKey,
   readLocalStorageDataKey,
   isDataKey,
+  isValidJobRecord,
   pushKeysToCloudSafe,
   pullAndMergeDataBundle,
   pushMergedDataBundleToCloud,
@@ -664,7 +665,8 @@ function payrollJobWorkLines(jobs: Job[], weekFrom: string, weekTo: string): Pay
   const lines: PayrollJobWorkLine[] = [];
   for (const job of jobs) {
     const jobAddress = formatJobStreet(job);
-    for (const we of job.workEntries) {
+    const entries = Array.isArray(job.workEntries) ? job.workEntries : [];
+    for (const we of entries) {
       if (we.date < weekFrom || we.date > weekTo || we.hours <= 0) continue;
       const dk = dayKeyForIsoInWeek(we.date, weekFrom);
       const parts = we.date.split("-");
@@ -698,7 +700,8 @@ function jobHoursForEmployeeOnDate(
 ): number {
   let total = 0;
   for (const job of jobs) {
-    for (const we of job.workEntries) {
+    const entries = Array.isArray(job.workEntries) ? job.workEntries : [];
+    for (const we of entries) {
       if (we.date !== dateIso || we.hours <= 0) continue;
       if (workEntryMatchesEmployee(emp, we, directory)) total += we.hours;
     }
@@ -759,7 +762,8 @@ function jobSitesForEmployeeOnDate(
 ): { jobId: string; entryId: string; label: string; hours: number }[] {
   const sites: { jobId: string; entryId: string; label: string; hours: number }[] = [];
   for (const job of jobs) {
-    for (const we of job.workEntries) {
+    const entries = Array.isArray(job.workEntries) ? job.workEntries : [];
+    for (const we of entries) {
       if (we.date !== dateIso || we.hours <= 0) continue;
       if (!workEntryMatchesEmployee(empRef, we, directory)) continue;
       const addr = job.address?.trim() || "Bez adresu";
@@ -836,7 +840,8 @@ function payrollJobConsistencyAlerts(
 
   const externalByKeyDate = new Map<string, { name: string; col: (typeof cols)[0]; hours: number; directoryId: string }>();
   for (const job of jobs) {
-    for (const we of job.workEntries) {
+    const entries = Array.isArray(job.workEntries) ? job.workEntries : [];
+    for (const we of entries) {
       if (we.date < weekFrom || we.date > weekTo || we.hours <= 0) continue;
       if (we.directoryId && isTestDirectoryEmployee(directory.find((d) => d.id === we.directoryId))) continue;
       if (weekEmployees.some((e) => workEntryMatchesEmployee(e, we, directory))) continue;
@@ -1502,12 +1507,21 @@ function defaultJob(): Job {
 function normalizeJob(job: Job): Job {
   return normalizeJobMetaFields(normalizeJobWmFields(syncJobDocuments({
     ...job,
+    address: job.address ?? "",
+    flatNumber: job.flatNumber ?? "",
+    client: job.client ?? "",
+    status: job.status === "completed" ? "completed" : "in_progress",
+    workEntries: Array.isArray(job.workEntries) ? job.workEntries : [],
     photos: job.photos || [],
     workerReports: job.workerReports || [],
     activityLog: job.activityLog || [],
     materials: job.materials || [],
     jobFiles: job.jobFiles || [],
   })));
+}
+
+function normalizeJobsList(raw: unknown[]): Job[] {
+  return raw.filter(isValidJobRecord).map((j) => normalizeJob(j as Job));
 }
 
 function clientShareToken(): string {
@@ -1835,7 +1849,8 @@ function todayFieldWorkStats(
   const jobIds = new Set<string>();
   for (const job of jobs) {
     if (job.status !== "in_progress") continue;
-    for (const we of job.workEntries) {
+    const entries = Array.isArray(job.workEntries) ? job.workEntries : [];
+    for (const we of entries) {
       if (we.date !== dateIso) continue;
       if (we.directoryId) {
         const dir = directory.find((d) => d.id === we.directoryId);
@@ -1950,7 +1965,8 @@ function scheduleCellFor(
 function collectWorkEntriesForWeek(jobs: Job[], weekFrom: string, weekTo: string): ArchivedWorkEntry[] {
   const out: ArchivedWorkEntry[] = [];
   for (const job of jobs) {
-    for (const we of job.workEntries) {
+    const entries = Array.isArray(job.workEntries) ? job.workEntries : [];
+    for (const we of entries) {
       if (we.date >= weekFrom && we.date <= weekTo) {
         out.push({
           jobId: job.id,
@@ -9263,6 +9279,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-30", version:"2.45.3", label:"Blank page — naprawa workEntries null",
+    items:[
+      {type:"fix", text:"Szybszy start — ekran logowania/panel po pobraniu z chmury, zapis push w tle (nie czeka na batch-set)"},
+      {type:"fix", text:"Roboty z workEntries: null lub wpis kartoteki w kw-jobs nie wywalają aplikacji po zalogowaniu"},
+    ],
+  },
+  {
     date:"2026-05-30", version:"2.45.2", label:"Chmura — naprawa sync + odzysk listy płac",
     items:[
       {type:"fix", text:"Czerwona chmurka: batch-set nie pada już na null w profilu firmy przetargów"},
@@ -11574,7 +11597,7 @@ function CloudLoader({children}: {children: React.ReactNode}) {
 
   useEffect(() => {
     const keys = [...DATA_KEYS];
-    const fallback = setTimeout(() => setReady(true), 5000);
+    const fallback = setTimeout(() => setReady(true), 3000);
 
     fetchKeysFromCloud([
       ...keys,
@@ -11699,16 +11722,15 @@ function CloudLoader({children}: {children: React.ReactNode}) {
         }
 
         if (pushKeys.length > 0) {
-          try {
-            await pushKeysToCloud(
-              [...pushKeys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY],
-              [...pushValues, mergedDeleted, mergedDirDeleted, mergedContactsDeleted, mergedArchiveDeleted],
-              {
-                replaceJobsKeys: pushKeys.includes("kw-jobs") ? ["kw-jobs"] : [],
-                replaceDirectoryKeys: pushKeys.includes("kw-directory") ? ["kw-directory"] : [],
-              },
-            );
-          } catch { /* offline */ }
+          // Push w tle — nie blokuj startu UI (batch-get ~2–3 s wystarczy)
+          void pushKeysToCloud(
+            [...pushKeys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY],
+            [...pushValues, mergedDeleted, mergedDirDeleted, mergedContactsDeleted, mergedArchiveDeleted],
+            {
+              replaceJobsKeys: pushKeys.includes("kw-jobs") ? ["kw-jobs"] : [],
+              replaceDirectoryKeys: pushKeys.includes("kw-directory") ? ["kw-directory"] : [],
+            },
+          ).catch(() => {});
         }
       })
       .catch(() => {})
@@ -11779,14 +11801,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   useEffect(() => {
     setJobs((prev) => {
-      if (prev.length === 0) return prev;
-      let changed = false;
-      const next = prev.map((j) => {
-        const synced = syncJobDocuments(j);
-        if (synced !== j) changed = true;
-        return synced;
-      });
-      return changed ? next : prev;
+      const next = normalizeJobsList(prev as unknown[]);
+      if (next.length === prev.length && next.every((j, i) => j === prev[i])) return prev;
+      return next;
     });
   }, [setJobs]);
 
@@ -11836,7 +11853,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (typeof wf === "string" && wf) setWeekFrom(wf);
     if (typeof wt === "string" && wt) setWeekTo(wt);
     if (Array.isArray(jbs)) {
-      setJobs((jbs as Job[]).map((j) => syncJobDocuments(j)));
+      setJobs(normalizeJobsList(jbs as unknown[]));
     }
     if (Array.isArray(cont)) setContacts(cont as EmailContact[]);
   }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts]);
@@ -12011,7 +12028,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const { count } = await restoreCloudJobsBackup(source);
       const [cloudJobs] = await fetchKeysFromCloud(["kw-jobs"]);
       const merged = mergeJobsById(jobs, normalizeJobsValue(cloudJobs), getDeletedJobIds()) as Job[];
-      const synced = merged.map((j) => syncJobDocuments(j));
+      const synced = normalizeJobsList(merged as unknown[]);
       localStorage.setItem("kw-jobs", JSON.stringify(synced));
       setJobs(synced);
       await pushKeysToCloud(["kw-jobs"], [synced], { replaceJobsKeys: ["kw-jobs"] });
@@ -12036,7 +12053,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const restored = restoreLocalJobsSnapshot(0);
     if (!restored) { alert("Błąd odczytu lokalnej kopii."); return; }
     const merged = mergeJobsById(jobs, restored, getDeletedJobIds()) as Job[];
-    const synced = merged.map((j) => syncJobDocuments(j));
+    const synced = normalizeJobsList(merged as unknown[]);
     setJobs(synced);
     pushKeysToCloudSafe(["kw-jobs"], [synced]).catch(() => {});
     alert(`Przywrócono lokalną kopię. Łącznie robot: ${synced.length}.`);
@@ -14044,7 +14061,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
         } catch { /* ignore */ }
         const cloudJobsNorm = normalizeJobsValue(cloudJobs) as Job[];
         const merged = mergeJobsById(localJobs, cloudJobsNorm, mergedDeleted) as Job[];
-        const synced = merged.map((j) => syncJobDocuments(j));
+        const synced = normalizeJobsList(merged as unknown[]);
         setJobsLocal(synced);
         try { localStorage.setItem("kw-jobs", JSON.stringify(synced)); } catch { /* ignore */ }
       }

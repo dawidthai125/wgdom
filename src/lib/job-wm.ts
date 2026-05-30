@@ -70,8 +70,8 @@ export type JobWmJob = JobWmData & {
   startDate: string;
 };
 
-export function isWmClient(client: string): boolean {
-  const c = client.toLowerCase();
+export function isWmClient(client: string | undefined): boolean {
+  const c = (client ?? "").toLowerCase();
   return c.includes("wrocławskie") || c.includes("wroclawskie") || c.includes("mieszkania");
 }
 
