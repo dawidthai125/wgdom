@@ -6,67 +6,109 @@ import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
 import {
   isWroclawTenderItem,
-  mapPointToSvg,
+  buildOsmTileGrid,
+  mapPointToPercent,
   osmLink,
+  osmTileUrl,
   tenderMapPoint,
   type TenderMapPoint,
+  type OsmTileGrid,
 } from "@/lib/tenders-map-coords";
 
-const SVG_W = 640;
-const SVG_H = 280;
+const WROCLAW_CENTER = { lat: 51.1079, lng: 17.0385 };
+const MAP_ZOOM = 12;
+const TILE_RADIUS = 2;
 
-function TenderMapSvg({
+function OsmMapWithMarkers({
+  grid,
   points,
   activeId,
   onSelect,
 }: {
+  grid: OsmTileGrid;
   points: TenderMapPoint[];
   activeId: string | null;
   onSelect: (id: string) => void;
 }) {
   return (
-    <svg
-      viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-      className="w-full h-40 sm:h-48 bg-[#e8eef4] dark:bg-[#1a2332]"
+    <div
+      className="relative w-full h-44 sm:h-52 overflow-hidden bg-[#f2efe9] dark:bg-[#1a2332]"
       role="img"
-      aria-label="Mapa przetargów Wrocław"
+      aria-label="Mapa przetargów Wrocław — OpenStreetMap"
     >
-      <defs>
-        <pattern id="tender-map-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-          <path d="M 32 0 L 0 0 0 32" fill="none" stroke="currentColor" strokeWidth="0.4" className="text-border/40" />
-        </pattern>
-      </defs>
-      <rect width={SVG_W} height={SVG_H} fill="url(#tender-map-grid)" />
-      <text x={SVG_W / 2} y={22} textAnchor="middle" className="fill-muted-foreground" fontSize="11" fontWeight="600">
-        Wrocław — aktywne przetargi
-      </text>
+      <div
+        className="absolute inset-0 grid"
+        style={{
+          gridTemplateColumns: `repeat(${grid.cols}, 1fr)`,
+          gridTemplateRows: `repeat(${grid.rows}, 1fr)`,
+        }}
+      >
+        {grid.tiles.map((t) => (
+          <img
+            key={`${t.x}-${t.y}`}
+            src={osmTileUrl(t.x, t.y, grid.zoom)}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full block"
+            style={{ gridColumn: t.col + 1, gridRow: t.row + 1 }}
+          />
+        ))}
+      </div>
       {points.map((p) => {
-        const { x, y } = mapPointToSvg(p.lat, p.lng, SVG_W, SVG_H);
+        const { left, top } = mapPointToPercent(p.lat, p.lng, grid.bounds);
         const active = p.id === activeId;
-        const fill = p.blocked ? "#dc2626" : active ? "#2563eb" : "#16a34a";
-        const r = active ? 9 : 7;
+        const color = p.blocked ? "#dc2626" : active ? "#2563eb" : "#16a34a";
+        const size = active ? 14 : 11;
         return (
-          <g
+          <button
             key={p.id}
-            className="cursor-pointer"
+            type="button"
+            title={`${p.label} · ${p.organizationName}\n${p.title}`}
             onClick={() => onSelect(p.id)}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onSelect(p.id); }}
-            role="button"
-            tabIndex={0}
+            className="absolute z-10 p-0 border-0 bg-transparent cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
+            style={{
+              left: `${left}%`,
+              top: `${top}%`,
+              transform: "translate(-50%, -50%)",
+            }}
             aria-label={`${p.label}, ${p.organizationName}`}
           >
             {active && (
-              <circle cx={x} cy={y} r={14} fill={fill} opacity={0.2} />
+              <span
+                className="absolute rounded-full opacity-25"
+                style={{
+                  width: size + 12,
+                  height: size + 12,
+                  left: "50%",
+                  top: "50%",
+                  transform: "translate(-50%, -50%)",
+                  backgroundColor: color,
+                }}
+              />
             )}
-            <circle cx={x} cy={y} r={r} fill={fill} stroke="#fff" strokeWidth={2} />
-            <title>{`${p.label} · ${p.organizationName}\n${p.title}`}</title>
-          </g>
+            <span
+              className="block rounded-full border-2 border-white shadow-md"
+              style={{ width: size, height: size, backgroundColor: color }}
+            />
+          </button>
         );
       })}
-      <text x={12} y={SVG_H - 10} className="fill-muted-foreground" fontSize="9">
-        ● zielony — OK · ● czerwony — wadium blokuje · kliknij punkt
-      </text>
-    </svg>
+      <div className="absolute bottom-0 left-0 right-0 px-2 py-1 bg-gradient-to-t from-black/50 to-transparent pointer-events-none">
+        <p className="text-[9px] text-white/90">
+          ©{" "}
+          <a
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline pointer-events-auto"
+          >
+            OpenStreetMap
+          </a>
+          {" · "}● zielony OK · ● czerwony wadium blokuje
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -79,10 +121,15 @@ export function TendersMapPanel({
   selectedId?: string | null;
   onSelect?: (id: string) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [localSelected, setLocalSelected] = useState<string | null>(null);
   const activeId = selectedId ?? localSelected;
   const profile = loadCompanyProfileLocal();
+
+  const tileGrid = useMemo(
+    () => buildOsmTileGrid(WROCLAW_CENTER.lat, WROCLAW_CENTER.lng, MAP_ZOOM, TILE_RADIUS),
+    [],
+  );
 
   const wroclawItems = useMemo(
     () => items.filter(isWroclawTenderItem),
@@ -129,7 +176,8 @@ export function TendersMapPanel({
           ) : (
             <>
               <div className="relative">
-                <TenderMapSvg
+                <OsmMapWithMarkers
+                  grid={tileGrid}
                   points={points}
                   activeId={activeId}
                   onSelect={(id) => {
@@ -142,7 +190,7 @@ export function TendersMapPanel({
                     href={osmLink(activePoint.lat, activePoint.lng)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="absolute top-2 right-2 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-background/90 border border-border text-[10px] text-primary hover:bg-background shadow-sm"
+                    className="absolute top-2 right-2 z-20 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-background/90 border border-border text-[10px] text-primary hover:bg-background shadow-sm"
                   >
                     <ExternalLink size={10} />
                     OSM

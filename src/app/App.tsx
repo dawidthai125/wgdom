@@ -9352,6 +9352,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.45.12", label:"Przetargi — mapa OSM i słownik kluczowych",
+    items:[
+      {type:"fix", text:"Mapa przetargów Wrocław — kafelki OpenStreetMap zamiast pustego SVG (ulice, rzeka, markery)"},
+      {type:"improve", text:"Słownik słów kluczowych — podgląd wbudowanych haseł, licznik wbudowanych/własnych, wyjaśnienie roli scoringu"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.45.11", label:"Docs — ARCHITECTURE/AGENTS dla AI (v2.45.7–10)",
     items:[
       {type:"improve", text:"ARCHITECTURE.md § 12.1.1–12.1.2 — przetargi v2.45.7–10, galeria ZIP, mapa SVG, endpoint award-result"},

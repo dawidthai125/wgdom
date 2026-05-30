@@ -106,6 +106,84 @@ export function mapPointToSvg(
   return { x: Math.max(padding, Math.min(width - padding, x)), y: Math.max(padding, Math.min(height - padding, y)) };
 }
 
+export interface OsmTileGrid {
+  zoom: number;
+  minX: number;
+  minY: number;
+  cols: number;
+  rows: number;
+  bounds: { north: number; south: number; west: number; east: number };
+  tiles: { x: number; y: number; col: number; row: number }[];
+}
+
+export function latLngToTile(lat: number, lng: number, zoom: number): { x: number; y: number } {
+  const n = 2 ** zoom;
+  const x = Math.floor(((lng + 180) / 360) * n);
+  const latRad = (lat * Math.PI) / 180;
+  const y = Math.floor(
+    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n,
+  );
+  return { x, y };
+}
+
+export function tileToLatLng(x: number, y: number, zoom: number): { lat: number; lng: number } {
+  const n = 2 ** zoom;
+  const lng = (x / n) * 360 - 180;
+  const latRad = Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / n)));
+  return { lat: (latRad * 180) / Math.PI, lng };
+}
+
+export function osmTileUrl(x: number, y: number, zoom: number): string {
+  return `https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`;
+}
+
+/** Siatka kafelków OSM wokół punktu (radius=1 → 3×3, radius=2 → 5×5). */
+export function buildOsmTileGrid(
+  centerLat: number,
+  centerLng: number,
+  zoom: number,
+  radius = 2,
+): OsmTileGrid {
+  const center = latLngToTile(centerLat, centerLng, zoom);
+  const tiles: OsmTileGrid["tiles"] = [];
+  for (let dy = -radius; dy <= radius; dy += 1) {
+    for (let dx = -radius; dx <= radius; dx += 1) {
+      const x = center.x + dx;
+      const y = center.y + dy;
+      tiles.push({ x, y, col: dx + radius, row: dy + radius });
+    }
+  }
+  const minX = center.x - radius;
+  const minY = center.y - radius;
+  const cols = radius * 2 + 1;
+  const rows = cols;
+  const nw = tileToLatLng(minX, minY, zoom);
+  const se = tileToLatLng(minX + cols, minY + rows, zoom);
+  return {
+    zoom,
+    minX,
+    minY,
+    cols,
+    rows,
+    bounds: { north: nw.lat, west: nw.lng, south: se.lat, east: se.lng },
+    tiles,
+  };
+}
+
+/** Pozycja markera w % kontenera mapy (zgodna z kafelkami OSM). */
+export function mapPointToPercent(
+  lat: number,
+  lng: number,
+  bounds: OsmTileGrid["bounds"],
+): { left: number; top: number } {
+  const left = ((lng - bounds.west) / (bounds.east - bounds.west)) * 100;
+  const top = ((bounds.north - lat) / (bounds.north - bounds.south)) * 100;
+  return {
+    left: Math.max(2, Math.min(98, left)),
+    top: Math.max(2, Math.min(98, top)),
+  };
+}
+
 export function osmLink(lat: number, lng: number): string {
   return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=15/${lat}/${lng}`;
 }
