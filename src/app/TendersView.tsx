@@ -40,6 +40,12 @@ import { tenderListBidLine } from "@/lib/tenders-bid-prep";
 import { TendersMapPanel } from "@/app/TendersMapPanel";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
+import {
+  computeActionChips,
+  matchesQuickFilter,
+  autoFetchAwardResults,
+  type TenderQuickFilter,
+} from "@/lib/tenders-actions";
 
 type LocalFilter = "actionable" | "active" | "priority" | "wroclaw" | "high" | "archive" | "all";
 
@@ -83,6 +89,8 @@ export function TendersView({
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<TenderPipelineStatus>("ignored");
+  const [quickFilter, setQuickFilter] = useState<TenderQuickFilter | null>(null);
+  const [autoAwardRunning, setAutoAwardRunning] = useState(false);
 
   const bzpSettings = useMemo(() => loadAppSettingsLocal(), []);
 
@@ -115,14 +123,16 @@ export function TendersView({
       })
       .filter((m) => !deleted.has(m.id));
     const merged = pruneExpiredUntouched(mergeTenderPipeline(baseItems, mapped));
-    await persist(merged);
+    const { items: withAwards, updated: awardsUpdated } = await autoFetchAwardResults(merged, 5);
+    await persist(withAwards);
     markBzpSyncedAt();
     if (!silent) {
-      const actionableN = merged.filter((m) => isActionableTender(m)).length;
-      const priorityN = merged.filter((m) => isTenderOpenForOffers(m.submittingOffersDate) && m.priorityBuyerId).length;
-      toast.success(`BZP: ${actionableN} aktywnych do rozważenia (w tym ${priorityN} od kluczowych zamawiających)`);
+      const actionableN = withAwards.filter((m) => isActionableTender(m)).length;
+      const priorityN = withAwards.filter((m) => isTenderOpenForOffers(m.submittingOffersDate) && m.priorityBuyerId).length;
+      const awardNote = awardsUpdated > 0 ? ` · ${awardsUpdated} wynik(ów) BZP` : "";
+      toast.success(`BZP: ${actionableN} aktywnych do rozważenia (w tym ${priorityN} od kluczowych zamawiających)${awardNote}`);
     }
-    return merged;
+    return withAwards;
   }, [persist]);
 
   useEffect(() => {
@@ -137,6 +147,19 @@ export function TendersView({
           loaded = rescored;
         }
         if (!cancelled) setItems(loaded);
+        if (!cancelled) {
+          setAutoAwardRunning(true);
+          try {
+            const { items: withAwards, updated } = await autoFetchAwardResults(loaded, 5);
+            if (updated > 0) {
+              await saveTendersPipeline(withAwards);
+              if (!cancelled) setItems(withAwards);
+            }
+          } catch { /* ciche auto-wyniki */ }
+          finally {
+            if (!cancelled) setAutoAwardRunning(false);
+          }
+        }
         if (!cancelled && shouldAutoRefreshBzp(bzpSettings.bzpAutoRefreshHours)) {
           setAutoSyncing(true);
           try {
@@ -190,6 +213,8 @@ export function TendersView({
     }
   }, [items]);
 
+  const actionChips = useMemo(() => computeActionChips(items), [items, profileVersion]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = items.filter((i) => {
@@ -201,6 +226,11 @@ export function TendersView({
       if (localFilter === "wroclaw" && !i.isWroclaw) return false;
       if (localFilter === "high" && !isTenderImportant(i)) return false;
       if (localFilter === "priority" && !i.priorityBuyerId) return false;
+      if (quickFilter === "overload") {
+        const preparing = items.filter((x) => x.status === "preparing" || x.status === "interested").length;
+        if (preparing < loadCompanyProfileLocal().maxConcurrentProjects) return false;
+        if (!["preparing", "interested"].includes(i.status)) return false;
+      } else if (quickFilter && !matchesQuickFilter(i, quickFilter)) return false;
       if (!q) return true;
       return (
         i.title.toLowerCase().includes(q)
@@ -210,7 +240,7 @@ export function TendersView({
       );
     });
     return sortTendersByUrgency(list);
-  }, [items, search, localFilter, statusFilter]);
+  }, [items, search, localFilter, statusFilter, quickFilter, profileVersion]);
 
   const exportCsv = useCallback(() => {
     const blob = new Blob([exportTendersPipelineCsv(filtered)], { type: "text/csv;charset=utf-8" });
@@ -403,6 +433,45 @@ export function TendersView({
             <AlertCircle size={14} className="shrink-0 mt-0.5" />
             {error}
           </div>
+        )}
+
+        {actionChips.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            <span className="text-[10px] text-muted-foreground self-center mr-1">Wymaga działania:</span>
+            {actionChips.map((chip) => {
+              const active = quickFilter === chip.id;
+              const toneCls = chip.tone === "red"
+                ? "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/25"
+                : chip.tone === "amber"
+                  ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/25"
+                  : chip.tone === "violet"
+                    ? "bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/25"
+                    : "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/25";
+              return (
+                <button
+                  key={chip.id}
+                  type="button"
+                  onClick={() => setQuickFilter(active ? null : chip.id)}
+                  className={`text-[10px] font-medium px-2 py-1 rounded-lg border transition-colors ${toneCls} ${active ? "ring-2 ring-primary/40" : "hover:opacity-90"}`}
+                >
+                  {chip.label} ({chip.count})
+                </button>
+              );
+            })}
+            {quickFilter && (
+              <button
+                type="button"
+                onClick={() => setQuickFilter(null)}
+                className="text-[10px] text-muted-foreground hover:text-foreground underline px-1"
+              >
+                Wyczyść filtr
+              </button>
+            )}
+          </div>
+        )}
+
+        {autoAwardRunning && (
+          <p className="text-[10px] text-muted-foreground">Sprawdzam wyniki zakończonych postępowań…</p>
         )}
 
         <div className="flex flex-col sm:flex-row gap-2">

@@ -66,6 +66,9 @@ function mergePipelineItem(a: TenderPipelineItem, b: TenderPipelineItem): Tender
     tenderDossier: primary.tenderDossier ?? secondary.tenderDossier,
     tenderFit: primary.tenderFit ?? secondary.tenderFit,
     externalDocDiscovery: primary.externalDocDiscovery ?? secondary.externalDocDiscovery,
+    estimateHistory: primary.estimateHistory?.length ? primary.estimateHistory : secondary.estimateHistory,
+    awardResult: primary.awardResult ?? secondary.awardResult,
+    awardFetchAttemptedAt: primary.awardFetchAttemptedAt ?? secondary.awardFetchAttemptedAt,
     updatedAt: ts(a.updatedAt) >= ts(b.updatedAt) ? a.updatedAt : b.updatedAt,
   };
 }

@@ -8,6 +8,7 @@ import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { JobFilesBrowser } from "@/app/JobFilesBrowser";
 import { TendersView } from "@/app/TendersView";
 import { jobDraftFromTender, attachTenderAssetsToJob, loadTendersPipeline, computeTendersDashboardStats, type TendersDashboardStats } from "@/lib/tenders-bzp";
+import { enrichTendersDashboardStats } from "@/lib/tenders-actions";
 import { appendJobActivity } from "@/lib/job-activity";
 import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";
 import { countBrowserFiles, jobHasBrowserFiles } from "@/lib/job-files-browser";
@@ -7655,7 +7656,7 @@ function ScheduleView({
 function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
   onNavigate, onFixJobs, adminUserId, alertsSeenTick, onAlertsSeen, onOpenSms,
-  tendersStats, onOpenTenders, canViewTenders,
+  tendersStats, onOpenTenders, onOpenTender, canViewTenders,
 }: {
   jobs: Job[];
   directory: DirectoryEmployee[];
@@ -7670,6 +7671,7 @@ function DashboardView({
   onOpenSms?: () => void;
   tendersStats?: TendersDashboardStats | null;
   onOpenTenders?: () => void;
+  onOpenTender?: (tenderId: string) => void;
   canViewTenders?: boolean;
 }) {
   const { session: adminSession } = useAdminAccess();
@@ -8072,9 +8074,39 @@ function DashboardView({
                   {tendersStats.urgent} termin ≤7 dni
                 </span>
               )}
+              {(tendersStats.alerts?.length ?? 0) > 0 && (
+                <span className="px-2.5 py-1 rounded-lg bg-red-500/10 text-red-700 dark:text-red-400 font-medium">
+                  {tendersStats.alerts!.length} do ogarnięcia
+                </span>
+              )}
               <span className="px-2.5 py-1 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400">Otwórz →</span>
             </div>
           </button>
+        )}
+
+        {canViewTenders && tendersStats && onOpenTender && (tendersStats.alerts?.length ?? 0) > 0 && (
+          <div className="bg-card border border-violet-500/20 rounded-xl overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-violet-500/15 bg-violet-500/5 flex items-center gap-2">
+              <Scale size={14} className="text-violet-600 dark:text-violet-400 shrink-0" />
+              <span className="text-xs font-semibold text-violet-700 dark:text-violet-300">Przetargi — wymaga działania</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {tendersStats.alerts!.map((a) => (
+                <li key={a.id}>
+                  <button
+                    type="button"
+                    onClick={() => onOpenTender(a.tenderId)}
+                    className="w-full text-left px-4 py-2.5 hover:bg-secondary/40 transition-colors"
+                  >
+                    <p className={`text-xs font-medium ${a.tone === "red" ? "text-red-700 dark:text-red-400" : "text-amber-700 dark:text-amber-400"}`}>
+                      {a.title}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{a.message}</p>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
 
         {/* Uwaga dziś */}
@@ -9278,6 +9310,16 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.45.8", label:"Przetargi — akcje, auto-wyniki, alerty pulpitu",
+    items:[
+      {type:"new", text:"Chipy „wymaga działania” — filtry: termin bez wyceny, wadium, kosztorys, referencje"},
+      {type:"new", text:"Auto-pobieranie wyników BZP po terminie (status wygrany/przegrany)"},
+      {type:"improve", text:"Referencje vs SWZ — konkretna luka w PLN w dopasowaniu i na karcie ofertowej"},
+      {type:"new", text:"Porównanie cen po wyniku: szacunek vs wygrana vs wartość SWZ"},
+      {type:"new", text:"Termin ofert → kalendarz (.ics) + alerty przetargów na pulpicie"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.45.7", label:"Przetargi — SWZ, wadium, wyniki, mapa, pakiet PDF",
     items:[
@@ -12387,7 +12429,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (!canViewTendersNav) return;
     if (view !== "dashboard" && view !== "tenders") return;
     loadTendersPipeline()
-      .then((items) => setTenderDashStats(computeTendersDashboardStats(items)))
+      .then((items) => setTenderDashStats(enrichTendersDashboardStats(computeTendersDashboardStats(items), items)))
       .catch(() => setTenderDashStats(null));
   }, [canViewTendersNav, view]);
 
@@ -12680,7 +12722,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
         {/* Content */}
         <div className={`flex flex-1 min-h-0 overflow-hidden ${payrollDetailOpen ? "" : "pb-[calc(3.5rem+env(safe-area-inset-bottom))]"} md:pb-0`}>
-          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs} adminUserId={adminSession?.id} alertsSeenTick={alertsSeenTick} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} onOpenSms={()=>setShowSmsModal(true)} canViewTenders={canViewTendersNav} tendersStats={tenderDashStats} onOpenTenders={()=>setView("tenders")}/>}
+          {view==="dashboard"&&<DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs} adminUserId={adminSession?.id} alertsSeenTick={alertsSeenTick} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} onOpenSms={()=>setShowSmsModal(true)} canViewTenders={canViewTendersNav} tendersStats={tenderDashStats} onOpenTenders={()=>setView("tenders")} onOpenTender={(tid)=>{ setPendingTenderId(tid); setView("tenders"); }}/>}
           {view==="payroll"&&<PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onUpdateWeekEmployee={updateWeekEmployee} onSyncRatesFromDirectory={syncWeekRatesFromDirectory} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive} onSaveBacklogWeek={saveBiweeklyBacklogWeek} initialEmpId={pendingPayrollEmpId} onInitialEmpConsumed={()=>setPendingPayrollEmpId(null)} onDetailOpenChange={setPayrollDetailOpen}/>}
           {view==="schedule"&&<ScheduleView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>}
           {view==="directory"&&<DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory} onOpenSms={()=>setShowSmsModal(true)}/>}

@@ -400,7 +400,12 @@ export function assessTenderFit(
     else if (st === "partial") score -= 6;
     else {
       score -= 20;
-      blockingIssues.push(`Referencje: wymagane ${fmtPln(requiredRefPln)}`);
+      const gap = requiredRefPln - profile.totalReferencesPln;
+      blockingIssues.push(
+        gap > 0
+          ? `Referencje: brakuje ${fmtPln(gap)} (wymagane ${fmtPln(requiredRefPln)})`
+          : `Referencje: wymagane ${fmtPln(requiredRefPln)}`,
+      );
     }
   } else if (swz?.referenceRequirement) {
     checks.push({

@@ -120,6 +120,8 @@ export interface TenderPipelineItem {
   estimateHistory?: TenderEstimateSnapshot[];
   /** Wynik postępowania (wykonawca, kwota). */
   awardResult?: import("@/lib/tenders-bzp-award").TenderAwardResult | null;
+  /** Ostatnia próba pobrania wyniku z BZP (auto). */
+  awardFetchAttemptedAt?: string | null;
 }
 
 export interface TenderEstimateSnapshot {
@@ -184,6 +186,7 @@ export interface TendersDashboardStats {
   urgent: number;
   interested: number;
   funnel: TenderPipelineFunnel;
+  alerts: import("@/lib/tenders-actions").TenderDashboardAlert[];
 }
 
 export function getLastBzpSyncAt(): string | null {
@@ -231,6 +234,7 @@ export function computeTendersDashboardStats(items: TenderPipelineItem[]): Tende
     }).length,
     interested: items.filter((i) => i.status === "interested" || i.status === "preparing").length,
     funnel: computePipelineFunnel(items),
+    alerts: [],
   };
 }
 

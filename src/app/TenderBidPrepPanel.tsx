@@ -1,16 +1,19 @@
 import {
-  AlertCircle, CheckCircle2, HelpCircle, Loader2, RefreshCw, ClipboardList, FileDown, ShieldAlert, Trophy,
+  AlertCircle, CheckCircle2, HelpCircle, Loader2, RefreshCw, ClipboardList, FileDown, ShieldAlert, Trophy, CalendarPlus, BookOpen,
 } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { TenderFitAssessment } from "@/lib/tenders-bzp-fit";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import type { TenderAwardResult } from "@/lib/tenders-bzp-award";
-import {
-  computeBidPrepChecks,
-  type BidPrepItemStatus,
-} from "@/lib/tenders-bid-prep";
+import { computeBidPrepChecks, type BidPrepItemStatus } from "@/lib/tenders-bid-prep";
+import { isTenderOpenForOffers } from "@/lib/tenders-bzp";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
+import {
+  computeReferenceMatchSummary,
+  computeAwardPriceComparison,
+  downloadTenderDeadlineIcs,
+} from "@/lib/tenders-actions";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { TenderFitPanel } from "@/app/TenderFitPanel";
 import { TenderBidProposalPanel } from "@/app/TenderBidProposalPanel";
@@ -68,6 +71,8 @@ export function TenderBidPrepPanel({
 }) {
   const profile = loadCompanyProfileLocal();
   const wadium = computeWadiumInfo(item, swz, profile.maxWadiumPln);
+  const refMatch = computeReferenceMatchSummary(item, profile);
+  const priceCompare = computeAwardPriceComparison(item);
   const checks = computeBidPrepChecks(item, swz, fit, bidProposal);
   const readyCount = checks.filter((c) => c.status === "ok").length;
   const canAnalyze = Boolean(
@@ -128,6 +133,30 @@ export function TenderBidPrepPanel({
         </p>
       )}
 
+      {refMatch.status !== "unknown" && (
+        <p className={`text-[10px] px-3 pt-1.5 ${
+          refMatch.status === "ok" ? "text-emerald-700 dark:text-emerald-400"
+            : refMatch.status === "partial" ? "text-amber-700 dark:text-amber-400"
+              : "text-red-700 dark:text-red-400 font-medium"
+        }`}>
+          <BookOpen size={10} className="inline mr-1 -mt-0.5" />
+          {refMatch.summary}
+        </p>
+      )}
+
+      {item.submittingOffersDate && isTenderOpenForOffers(item.submittingOffersDate) && (
+        <div className="px-3 pt-1">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); downloadTenderDeadlineIcs(item); }}
+            className="text-[10px] text-primary hover:underline inline-flex items-center gap-1"
+          >
+            <CalendarPlus size={11} />
+            Dodaj termin ofert do kalendarza
+          </button>
+        </div>
+      )}
+
       {swz?.parsedAt && (
         <p className="text-[10px] text-muted-foreground px-3 py-1.5 border-b border-border/60 bg-secondary/20">
           Ostatnia analiza: {new Date(swz.parsedAt).toLocaleString("pl-PL")}
@@ -183,11 +212,20 @@ export function TenderBidPrepPanel({
             )}
           </div>
           {awardResult ? (
-            <p className={`text-xs ${awardResult.isUs ? "text-emerald-700 dark:text-emerald-400 font-medium" : "text-foreground"}`}>
-              {awardResult.winnerName}
-              {awardResult.awardValueRaw && <> · {awardResult.awardValueRaw}</>}
-              {awardResult.isUs && " · WYGRALIŚMY"}
-            </p>
+            <div className="space-y-1">
+              <p className={`text-xs ${awardResult.isUs ? "text-emerald-700 dark:text-emerald-400 font-medium" : "text-foreground"}`}>
+                {awardResult.winnerName}
+                {awardResult.awardValueRaw && <> · {awardResult.awardValueRaw}</>}
+                {awardResult.isUs && " · WYGRALIŚMY"}
+              </p>
+              {priceCompare && priceCompare.summaryLines.length > 0 && (
+                <ul className="text-[10px] text-muted-foreground space-y-0.5 list-none">
+                  {priceCompare.summaryLines.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
           ) : (
             <p className="text-[10px] text-muted-foreground">Brak wyniku — pobierz po rozstrzygnięciu postępowania.</p>
           )}
