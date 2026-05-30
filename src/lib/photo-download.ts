@@ -1,8 +1,10 @@
 import { saveAs } from "file-saver";
 import type { CrewPhotoLabel } from "@/lib/photo-labels";
-import { PHOTO_LABEL_SECTION } from "@/lib/photo-labels";
+import { PHOTO_LABEL_ORDER, PHOTO_LABEL_SECTION } from "@/lib/photo-labels";
 import type { InspectorPhotoEntry } from "@/lib/job-wm";
 import { INSPECTOR_PHOTO_LABEL_SECTION, normalizeInspectorPhotoLabel } from "@/lib/photo-labels";
+import type { PhotoZipEntry } from "@/lib/photo-zip";
+import { downloadPhotosAsZip } from "@/lib/photo-zip";
 
 export function safeDownloadName(name: string): string {
   return name.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").replace(/\s+/g, " ").trim() || "plik";
@@ -122,4 +124,47 @@ export async function downloadInspectorPhotosBatch(
     }
   }
   return { ok, failed };
+}
+
+/** Ścieżki ZIP galerii ekipy — foldery: przed / w-realizacji / po-odbior, pliki: ulica-data. */
+export function buildJobGalleryZipEntries(
+  jobTitle: string,
+  photos: DownloadablePhoto[],
+): PhotoZipEntry[] {
+  const entries: PhotoZipEntry[] = [];
+  for (const label of PHOTO_LABEL_ORDER) {
+    const group = photos.filter((p) => p.label === label);
+    if (group.length === 0) continue;
+    const folder = PHOTO_LABEL_SECTION[label].zipFolder;
+    group.forEach((p, i) => {
+      entries.push({
+        zipPath: `${folder}/${buildCrewPhotoFilename(jobTitle, { ...p, label }, i)}`,
+        url: p.publicUrl,
+      });
+    });
+  }
+  return entries;
+}
+
+export async function downloadJobGalleryZip(
+  jobTitle: string,
+  photos: DownloadablePhoto[],
+  filter?: CrewPhotoLabel,
+): Promise<{ ok: boolean; count: number; error?: string }> {
+  const list = photos.filter((p) => p.publicUrl);
+  const filtered = filter ? list.filter((p) => p.label === filter) : list;
+  if (filtered.length === 0) {
+    return { ok: false, count: 0, error: "Brak zdjęć do pobrania" };
+  }
+  const entries = filter
+    ? filtered.map((p, i) => ({
+      zipPath: `${PHOTO_LABEL_SECTION[filter].zipFolder}/${buildCrewPhotoFilename(jobTitle, { ...p, label: filter }, i)}`,
+      url: p.publicUrl,
+    }))
+    : buildJobGalleryZipEntries(jobTitle, filtered);
+  const slug = jobSlug(jobTitle);
+  const suffix = filter ? PHOTO_LABEL_SECTION[filter].zipFolder : "galeria";
+  const res = await downloadPhotosAsZip(`${slug}-${suffix}`, entries);
+  if (!res.ok) return { ok: false, count: res.count, error: res.error };
+  return { ok: true, count: res.count };
 }

@@ -12,7 +12,8 @@ import { enrichTendersDashboardStats } from "@/lib/tenders-actions";
 import { appendJobActivity } from "@/lib/job-activity";
 import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";
 import { countBrowserFiles, jobHasBrowserFiles } from "@/lib/job-files-browser";
-import { isPrivacyShieldSuppressed } from "@/lib/privacy-shield";
+import { downloadJobGalleryZip } from "@/lib/photo-download";
+import type { CrewPhotoLabel } from "@/lib/photo-labels";
 import {
   Calculator, Clock, Banknote, User, Plus, Trash2,
   ChevronRight, ChevronLeft, Users, FileText, FileDown, CheckCircle2,
@@ -4648,6 +4649,7 @@ function JobPhotosGalleryView({
   const [search, setSearch] = useState("");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [lightbox, setLightbox] = useState<{ photo: PhotoEntry; job: Job } | null>(null);
+  const [zipBusy, setZipBusy] = useState<string | null>(null);
 
   const entries = useMemo(() => {
     const list: JobPhotoGalleryEntry[] = [];
@@ -4693,6 +4695,19 @@ function JobPhotosGalleryView({
       else next.add(id);
       return next;
     });
+  };
+
+  const runGalleryZip = async (job: Job, photos: PhotoEntry[], filter?: CrewPhotoLabel) => {
+    const key = filter ? `${job.id}-${filter}` : `${job.id}-all`;
+    setZipBusy(key);
+    try {
+      const title = jobDisplayTitle(job);
+      const res = await downloadJobGalleryZip(title, photos, filter);
+      if (res.ok) toast.success(`Pobrano ZIP: ${res.count} zdjęć`);
+      else toast.error(res.error || "Nie udało się spakować galerii");
+    } finally {
+      setZipBusy(null);
+    }
   };
 
   const PhotoThumbGrid = ({ photos, job }: { photos: PhotoEntry[]; job: Job }) => (
@@ -4784,19 +4799,45 @@ function JobPhotosGalleryView({
 
         {expanded && (
           <div className="px-4 sm:px-5 pb-4 space-y-4 border-t border-border pt-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                disabled={zipBusy === `${job.id}-all`}
+                onClick={(e) => { e.stopPropagation(); void runGalleryZip(job, photos); }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/10 text-primary text-[10px] font-medium hover:bg-primary/20 disabled:opacity-50"
+              >
+                <Download size={12}/>
+                {zipBusy === `${job.id}-all` ? "Pakowanie…" : `Pobierz galerię ZIP (${photos.length})`}
+              </button>
+              <span className="text-[10px] text-muted-foreground">
+                Foldery: przed · w-realizacji · po-odbior · nazwy: ulica, data
+              </span>
+            </div>
             {PHOTO_LABEL_ORDER.map((label) => {
               const group = photos.filter((p) => p.label === label);
               if (group.length === 0) return null;
               const meta = PHOTO_LABEL_SECTION[label];
               const Icon = meta.icon;
+              const busyKey = `${job.id}-${label}`;
               return (
                 <div key={label}>
-                  <div className={`flex items-center gap-2 mb-2 pb-1 border-b ${meta.border}`}>
-                    <Icon size={13} className={meta.accent}/>
-                    <span className={`text-xs font-semibold uppercase tracking-wider ${meta.accent}`}>
-                      {PHOTO_LABEL_NAMES[label]}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">({group.length})</span>
+                  <div className={`flex flex-wrap items-center justify-between gap-2 mb-2 pb-1 border-b ${meta.border}`}>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Icon size={13} className={meta.accent}/>
+                      <span className={`text-xs font-semibold uppercase tracking-wider ${meta.accent}`}>
+                        {PHOTO_LABEL_NAMES[label]}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">({group.length})</span>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={zipBusy === busyKey}
+                      onClick={(e) => { e.stopPropagation(); void runGalleryZip(job, photos, label); }}
+                      className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline disabled:opacity-50 shrink-0"
+                    >
+                      <Download size={11}/>
+                      {zipBusy === busyKey ? "…" : "ZIP kategorii"}
+                    </button>
                   </div>
                   <PhotoThumbGrid photos={group} job={job}/>
                 </div>
@@ -9310,6 +9351,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.45.10", label:"Galeria admin — pobieranie ZIP roboty",
+    items:[
+      {type:"new", text:"Zakładka Galeria (admin): pobierz ZIP całej roboty lub pojedynczej kategorii (przed / w trakcie / po)"},
+      {type:"improve", text:"Pliki w ZIP: foldery wg kategorii, nazwa ulica + data + numer zdjęcia"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.45.9", label:"Przetargi — naprawa mapy Wrocław",
     items:[
