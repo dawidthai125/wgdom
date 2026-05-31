@@ -54,6 +54,12 @@ export default defineConfig({
           ) {
             return 'panel-guide';
           }
+          if (
+            id.includes('/src/app/JobsView')
+            || id.includes('/src/app/PayrollView')
+          ) {
+            return id.includes('PayrollView') ? 'panel-payroll' : 'panel-jobs';
+          }
         },
       },
     },

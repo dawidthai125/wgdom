@@ -1,9 +1,18 @@
 # W&G DOM — optymalizacja Web + Mobile (audyt)
 
-> **Ostatnia aktualizacja:** 2026-05-25 · v2.45.16  
+> **Ostatnia aktualizacja:** 2026-05-25 · v2.45.17  
 > **Prod:** https://wgdom.fun · PWA + Capacitor (Android/iOS ładują ten sam frontend)
 
 ---
+
+## Stan po optymalizacji v2.45.17
+
+| Metryka | v2.45.16 | v2.45.17 |
+|---------|----------|----------|
+| Główny chunk JS (gzip) | ~107 KB | **~64 KB** |
+| Roboty (JobsView) | W głównym bundle | **panel-jobs** (~23 KB gzip) |
+| Lista płac (PayrollView) | W głównym bundle | **panel-payroll** (~27 KB gzip) |
+| Audyt statyczny mobile | 36/36 ✓ | 36/36 ✓ |
 
 ## Stan po optymalizacji v2.45.16
 
@@ -31,18 +40,18 @@
 ## Web (przeglądarka desktop)
 
 ### Zrobione
-- **Code splitting:** lazy load — Przetargi, Inspektor (admin), Pliki robot, odtwarzacz muzyki, **Instrukcja/Changelog (GuideView)**
+- **Code splitting:** lazy load — Przetargi, Inspektor, Pliki robot, muzyka, Instrukcja/Changelog, **Roboty (JobsView), Lista płac (PayrollView)**
 - **Preconnect** do Supabase w `index.html` — szybszy pierwszy sync
 - **manualChunks** w Vite — pdfmake, pdfjs, ui-vendor, panele inspektora/przetargów
 - **Service Worker** `wgdom-shell-v21` — cache powłoki PWA
 
 ### Nadal w głównym bundle (świadomie)
-- `App.tsx` — monolit z widokami: Pulpit, Lista płac, Roboty, Archiwum (~13k linii)
+- `App.tsx` — Pulpit, Grafik, Archiwum, Pracownicy, Kontakty (~8k linii)
 - **JobPhotosGalleryView** — inline; można wydzielić w przyszłości
 
 ### Rekomendacje na później (duży refactor)
-1. ~~Wydzielić `GuideView` + `CHANGELOG` do osobnego pliku + lazy~~ ✓ v2.45.16
-2. Wydzielić `JobsView` / `PayrollView` do plików (już częściowo są funkcjami w App.tsx)
+1. ~~Wydzielić `GuideView` + `CHANGELOG`~~ ✓ v2.45.16
+2. ~~Wydzielić `JobsView` / `PayrollView`~~ ✓ v2.45.17
 3. Virtualizacja długich list (roboty, przetargi BZP) — gdy >100 pozycji
 
 ---

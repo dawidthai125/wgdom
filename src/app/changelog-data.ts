@@ -11,6 +11,13 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-05-25", version:"2.45.17", label:"Optymalizacja faza 2 krok 2 — Roboty + Lista płac poza głównym bundle",
+    items:[
+      {type:"improve", text:"Lazy load: JobsView (~94 KB) i PayrollView (~54 KB) — ładowane przy wejściu w Roboty / Lista płac"},
+      {type:"improve", text:"app-domain.ts — typy i helpery domenowe wydzielone z App.tsx (~4300 linii mniej w monolicie)"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.45.16", label:"Optymalizacja faza 2 — Instrukcja/Changelog poza głównym bundle",
     items:[
       {type:"improve", text:"Lazy load: Instrukcja + Changelog (GuideView) — ~2300 linii mniej w głównym JS"},
