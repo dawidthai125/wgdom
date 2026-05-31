@@ -382,17 +382,85 @@ function pickRateByTimestamps(l: Record<string, unknown>, c: Record<string, unkn
   return c.rate;
 }
 
+function normalizeWeekEmployeeMergeName(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/** Klucz scalania — po directoryId, inaczej dokładne imię (bez mylenia „Tomek od X” z „Tomekiem”). */
+export function weekEmployeeMergeKey(emp: { id?: string; directoryId?: string; name?: string }): string {
+  const dirId = String(emp.directoryId ?? "").trim();
+  if (dirId) return `dir:${dirId}`;
+  const n = normalizeWeekEmployeeMergeName(String(emp.name ?? ""));
+  if (n) return `name:${n}`;
+  return `id:${String(emp.id ?? "")}`;
+}
+
+export function weekEmployeesSamePerson(
+  a: { id?: string; directoryId?: string; name?: string },
+  b: { id?: string; directoryId?: string; name?: string },
+): boolean {
+  if (a.id && b.id && a.id === b.id) return true;
+  return weekEmployeeMergeKey(a) === weekEmployeeMergeKey(b);
+}
+
+/** settled=false z tym samym czasem co dataUpdatedAt — stary bug syncu, nie prawdziwe cofnięcie wypłaty. */
+function isLikelySpuriousUnsettle(rec: Record<string, unknown>): boolean {
+  if (Boolean(rec.settled)) return false;
+  const sAt = parseRecordTs(rec.settledUpdatedAt);
+  const dAt = parseRecordTs(rec.dataUpdatedAt);
+  if (sAt <= 0 || dAt <= 0) return false;
+  return Math.abs(sAt - dAt) <= 1500;
+}
+
+function pickSettledUpdatedAtForMerge(
+  l: Record<string, unknown>,
+  c: Record<string, unknown>,
+  settled: boolean,
+): string | undefined {
+  const lAt = parseRecordTs(l.settledUpdatedAt);
+  const cAt = parseRecordTs(c.settledUpdatedAt);
+  const lSettled = Boolean(l.settled);
+  const cSettled = Boolean(c.settled);
+  if (settled) {
+    if (lSettled && (!cSettled || lAt >= cAt)) return l.settledUpdatedAt as string | undefined;
+    if (cSettled) return c.settledUpdatedAt as string | undefined;
+  } else {
+    if (!lSettled && (!cSettled || lAt >= cAt)) return l.settledUpdatedAt as string | undefined;
+    if (!cSettled) return c.settledUpdatedAt as string | undefined;
+  }
+  return lAt >= cAt
+    ? (l.settledUpdatedAt ?? c.settledUpdatedAt) as string | undefined
+    : (c.settledUpdatedAt ?? l.settledUpdatedAt) as string | undefined;
+}
+
 function pickSettledByTimestamps(l: Record<string, unknown>, c: Record<string, unknown>): boolean {
   const lAt = parseRecordTs(l.settledUpdatedAt);
   const cAt = parseRecordTs(c.settledUpdatedAt);
+  const lSettled = Boolean(l.settled);
+  const cSettled = Boolean(c.settled);
   if (lAt > 0 || cAt > 0) {
-    if (lAt > cAt) return Boolean(l.settled);
-    if (cAt > lAt) return Boolean(c.settled);
+    if (lAt > cAt) return lSettled;
+    if (cAt > lAt) {
+      if (!cSettled && lSettled && isLikelySpuriousUnsettle(c)) return true;
+      if (!lSettled && cSettled && isLikelySpuriousUnsettle(l)) return false;
+      return cSettled;
+    }
     // Remis — nie tracimy rozliczenia (np. sync z dwóch kart w tej samej sekundzie)
-    return Boolean(l.settled) || Boolean(c.settled);
+    return lSettled || cSettled;
   }
   // Legacy (bez settledUpdatedAt): nie tracimy rozliczeń z innej karty / admina
-  return Boolean(l.settled) || Boolean(c.settled);
+  return lSettled || cSettled;
+}
+
+function collapseWeekEmployeesByIdentity(list: unknown[]): unknown[] {
+  const map = new Map<string, unknown>();
+  for (const item of list) {
+    if (!item || typeof item !== "object") continue;
+    const key = weekEmployeeMergeKey(item as { id?: string; directoryId?: string; name?: string });
+    const prev = map.get(key);
+    map.set(key, prev ? mergeWeekEmployeeRecord(prev, item) : item);
+  }
+  return [...map.values()];
 }
 
 function pickDaysByTimestamps(l: Record<string, unknown>, c: Record<string, unknown>): Record<string, DayLike> {
@@ -475,6 +543,7 @@ export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown
   const lRateAt = parseRecordTs(l.rateUpdatedAt);
   const cRateAt = parseRecordTs(c.rateUpdatedAt);
   const dataWinner = lAt >= cAt ? l : c;
+  const settled = pickSettledByTimestamps(l, c);
 
   return {
     ...c,
@@ -486,11 +555,8 @@ export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown
     rate,
     rateUpdatedAt: lRateAt >= cRateAt ? l.rateUpdatedAt ?? c.rateUpdatedAt : c.rateUpdatedAt ?? l.rateUpdatedAt,
     dataUpdatedAt: lAt >= cAt ? l.dataUpdatedAt ?? c.dataUpdatedAt : c.dataUpdatedAt ?? l.dataUpdatedAt,
-    settled: pickSettledByTimestamps(l, c),
-    settledUpdatedAt:
-      parseRecordTs(l.settledUpdatedAt) >= parseRecordTs(c.settledUpdatedAt)
-        ? l.settledUpdatedAt ?? c.settledUpdatedAt
-        : c.settledUpdatedAt ?? l.settledUpdatedAt,
+    settled,
+    settledUpdatedAt: pickSettledUpdatedAtForMerge(l, c, settled),
   };
 }
 
@@ -548,7 +614,7 @@ export function mergeWeekEmployees(local: unknown[], cloud: unknown[]): unknown[
     const prev = map.get(id);
     map.set(id, prev ? mergeWeekEmployeeRecord(prev, item) : item);
   }
-  return [...map.values()];
+  return collapseWeekEmployeesByIdentity([...map.values()]);
 }
 
 /** Scal archiwum tygodni — lokalna lista decyduje o składzie; usunięte tygodnie nie wracają z chmury. */

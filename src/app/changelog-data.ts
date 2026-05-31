@@ -11,6 +11,15 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-05-25", version:"2.45.19", label:"Lista płac — Rozliczony trzyma się u każdej osoby (sync)",
+    items:[
+      {type:"fix", text:"Scalanie listy płac — duplikat tej samej osoby (inny id) nie zostawia „Oczekuje”; wygrywa rozliczony"},
+      {type:"fix", text:"Archiwum — status Rozliczony dopasowany po imieniu / kartotece, nie tylko po starym id wpisu"},
+      {type:"fix", text:"Po oznaczeniu Rozliczony szybki zapis do chmury (~0,4 s) — odświeżenie nie cofa ostatniej osoby"},
+      {type:"fix", text:"Ignorowanie fałszywego „oczekuje” z błędnego syncu (ten sam czas co edycja godzin)"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.45.18", label:"Lista płac — status Rozliczony nie znika po syncu",
     items:[
       {type:"fix", text:"Scalanie chmury — remis settledUpdatedAt nie cofa rozliczenia; przy remisie wygrywa „rozliczony”"},

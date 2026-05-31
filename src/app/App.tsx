@@ -36,6 +36,7 @@ import {
   fetchJobsBackupStatus,
   restoreCloudJobsBackup,
   mergeWeekEmployees,
+  weekEmployeesSamePerson,
   mergeArchive,
   mergeDirectory,
   mergeContacts,
@@ -3932,6 +3933,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [syncStatus, setSyncStatus] = useState<"idle"|"saving"|"saved"|"error"|"offline">("idle");
   const [syncError, setSyncError] = useState("");
   const syncTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
+  const settledSyncTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
   const tabVisibleRef = useRef(typeof document !== "undefined" ? !document.hidden : true);
   const initialSyncDone = useRef(false);
   const suppressAutoSyncUntilRef = useRef(0);
@@ -4372,14 +4374,28 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const toggleSettled = useCallback((id: string) => {
     const now = new Date().toISOString();
-    setWeekEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, settled: !e.settled, settledUpdatedAt: now } : e)));
+    const emp = weekEmployees.find((e) => e.id === id);
+    if (!emp) return;
+    const newSettled = !emp.settled;
+    setWeekEmployees((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, settled: newSettled, settledUpdatedAt: now } : e)),
+    );
     const archived = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
     if (archived) {
       patchArchiveWeek(archived.id, (emps) =>
-        emps.map((e) => (e.id === id ? { ...e, settled: !e.settled, settledUpdatedAt: now } : e)),
+        emps.map((e) =>
+          weekEmployeesSamePerson(e, emp) ? { ...e, settled: newSettled, settledUpdatedAt: now } : e,
+        ),
       );
     }
-  }, [savedWeeks, weekFrom, weekTo, patchArchiveWeek, setWeekEmployees]);
+    if (settledSyncTimerRef.current) clearTimeout(settledSyncTimerRef.current);
+    settledSyncTimerRef.current = setTimeout(() => {
+      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+      syncTimerRef.current = null;
+      suppressAutoSyncUntilRef.current = 0;
+      void runCloudSync();
+    }, 400);
+  }, [weekEmployees, savedWeeks, weekFrom, weekTo, patchArchiveWeek, setWeekEmployees, runCloudSync]);
 
   const saveBiweeklyBacklogWeek = useCallback((backlogFrom: string, backlogTo: string, employees: WeekEmployee[]) => {
     if (employees.length === 0) return;
