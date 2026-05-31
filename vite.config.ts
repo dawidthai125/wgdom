@@ -48,6 +48,12 @@ export default defineConfig({
           if (id.includes('/src/app/InspectorAdminView')) {
             return 'panel-inspector-admin';
           }
+          if (
+            id.includes('/src/app/GuideView')
+            || id.includes('/src/app/changelog-data')
+          ) {
+            return 'panel-guide';
+          }
         },
       },
     },

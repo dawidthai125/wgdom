@@ -1,11 +1,22 @@
 # W&G DOM — optymalizacja Web + Mobile (audyt)
 
-> **Ostatnia aktualizacja:** 2026-05-25 · v2.45.15  
+> **Ostatnia aktualizacja:** 2026-05-25 · v2.45.16  
 > **Prod:** https://wgdom.fun · PWA + Capacitor (Android/iOS ładują ten sam frontend)
 
 ---
 
-## Stan po optymalizacji v2.45.15
+## Stan po optymalizacji v2.45.16
+
+| Metryka | Przed (v2.45.14) | v2.45.15 | v2.45.16 |
+|---------|------------------|----------|----------|
+| Główny chunk JS (gzip) | ~204 KB | ~154 KB | **~107 KB** |
+| Instrukcja + Changelog | W głównym bundle | W głównym bundle | **Osobny chunk** `panel-guide` (~41 KB gzip) |
+| Przetargi (pdf.js, panele) | W głównym bundle | Osobny chunk | Bez zmian |
+| Audyt statyczny mobile | 36/36 ✓ | 36/36 ✓ | 36/36 ✓ |
+
+---
+
+## Stan po optymalizacji v2.45.15 (archiwum)
 
 | Metryka | Przed | Po (v2.45.15) |
 |---------|-------|----------------|
@@ -20,18 +31,17 @@
 ## Web (przeglądarka desktop)
 
 ### Zrobione
-- **Code splitting:** lazy load — Przetargi, Inspektor (admin), Pliki robot, odtwarzacz muzyki
+- **Code splitting:** lazy load — Przetargi, Inspektor (admin), Pliki robot, odtwarzacz muzyki, **Instrukcja/Changelog (GuideView)**
 - **Preconnect** do Supabase w `index.html` — szybszy pierwszy sync
 - **manualChunks** w Vite — pdfmake, pdfjs, ui-vendor, panele inspektora/przetargów
 - **Service Worker** `wgdom-shell-v21` — cache powłoki PWA
 
 ### Nadal w głównym bundle (świadomie)
-- `App.tsx` — monolit z widokami: Pulpit, Lista płac, Roboty, Archiwum, Instrukcja (~15k linii)
-- **GuideView / CHANGELOG** — inline w App.tsx (duży, ale rzadko otwierany)
+- `App.tsx` — monolit z widokami: Pulpit, Lista płac, Roboty, Archiwum (~13k linii)
 - **JobPhotosGalleryView** — inline; można wydzielić w przyszłości
 
 ### Rekomendacje na później (duży refactor)
-1. Wydzielić `GuideView` + `CHANGELOG` do osobnego pliku + lazy
+1. ~~Wydzielić `GuideView` + `CHANGELOG` do osobnego pliku + lazy~~ ✓ v2.45.16
 2. Wydzielić `JobsView` / `PayrollView` do plików (już częściowo są funkcjami w App.tsx)
 3. Virtualizacja długich list (roboty, przetargi BZP) — gdy >100 pozycji
 
