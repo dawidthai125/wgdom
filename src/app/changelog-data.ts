@@ -11,6 +11,14 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-05-25", version:"2.45.18", label:"Lista płac — status Rozliczony nie znika po syncu",
+    items:[
+      {type:"fix", text:"Scalanie chmury — remis settledUpdatedAt nie cofa rozliczenia; przy remisie wygrywa „rozliczony”"},
+      {type:"fix", text:"Pull z chmury (telefon / powrót do karty) — merge nie nadpisuje settledUpdatedAt fałszywym timestampem"},
+      {type:"fix", text:"Oznaczenie Rozliczony aktualizuje też archiwum tygodnia (przywrócenie z archiwum nie gubi statusu)"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.45.17", label:"Optymalizacja faza 2 krok 2 — Roboty + Lista płac poza głównym bundle",
     items:[
       {type:"improve", text:"Lazy load: JobsView (~94 KB) i PayrollView (~54 KB) — ładowane przy wejściu w Roboty / Lista płac"},

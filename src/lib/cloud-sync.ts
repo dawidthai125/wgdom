@@ -386,8 +386,10 @@ function pickSettledByTimestamps(l: Record<string, unknown>, c: Record<string, u
   const lAt = parseRecordTs(l.settledUpdatedAt);
   const cAt = parseRecordTs(c.settledUpdatedAt);
   if (lAt > 0 || cAt > 0) {
-    if (lAt >= cAt) return Boolean(l.settled);
-    return Boolean(c.settled);
+    if (lAt > cAt) return Boolean(l.settled);
+    if (cAt > lAt) return Boolean(c.settled);
+    // Remis — nie tracimy rozliczenia (np. sync z dwóch kart w tej samej sekundzie)
+    return Boolean(l.settled) || Boolean(c.settled);
   }
   // Legacy (bez settledUpdatedAt): nie tracimy rozliczeń z innej karty / admina
   return Boolean(l.settled) || Boolean(c.settled);

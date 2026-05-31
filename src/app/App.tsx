@@ -272,6 +272,9 @@ async function loadPdfMake() {
 
 type PdfDocDef = Parameters<Awaited<ReturnType<typeof loadPdfMake>>["createPdf"]>[0];
 
+/** Sync z chmury — nie nadpisuj settledUpdatedAt przy apply merge (unikaj fałszywego „cofnięcia” rozliczenia). */
+let skipApplyWriteTimestamps = false;
+
 function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T) => T)) => void] {
   const [state, setState] = useState<T>(() => {
     try {
@@ -288,7 +291,7 @@ function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T) => T))
         try { localStorage.setItem(key, JSON.stringify(incoming)); } catch { /* ignore */ }
         return incoming;
       }
-      const next = applyWriteTimestamps(key, prev, incoming) as T;
+      const next = (skipApplyWriteTimestamps ? incoming : applyWriteTimestamps(key, prev, incoming)) as T;
       try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* ignore */ }
       return next;
     });
@@ -3996,15 +3999,20 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const applyAdminDataBundle = useCallback((merged: unknown[]) => {
     const [dir, emps, arch, wf, wt, jbs, cont] = merged;
     suppressAutoSyncUntilRef.current = Date.now() + 4500;
-    if (Array.isArray(dir)) setDirectory(dir as DirectoryEmployee[]);
-    if (Array.isArray(emps)) setWeekEmployees(emps as WeekEmployee[]);
-    if (Array.isArray(arch)) setSavedWeeks(arch as WeekSnapshot[]);
-    if (typeof wf === "string" && wf) setWeekFrom(wf);
-    if (typeof wt === "string" && wt) setWeekTo(wt);
-    if (Array.isArray(jbs)) {
-      setJobs(normalizeJobsList(jbs as unknown[]));
+    skipApplyWriteTimestamps = true;
+    try {
+      if (Array.isArray(dir)) setDirectory(dir as DirectoryEmployee[]);
+      if (Array.isArray(emps)) setWeekEmployees(emps as WeekEmployee[]);
+      if (Array.isArray(arch)) setSavedWeeks(arch as WeekSnapshot[]);
+      if (typeof wf === "string" && wf) setWeekFrom(wf);
+      if (typeof wt === "string" && wt) setWeekTo(wt);
+      if (Array.isArray(jbs)) {
+        setJobs(normalizeJobsList(jbs as unknown[]));
+      }
+      if (Array.isArray(cont)) setContacts(cont as EmailContact[]);
+    } finally {
+      skipApplyWriteTimestamps = false;
     }
-    if (Array.isArray(cont)) setContacts(cont as EmailContact[]);
   }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts]);
 
   const pullFromCloudAndMerge = useCallback(async () => {
@@ -4308,6 +4316,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         !== JSON.stringify({ days: e.days, prevSaturday: e.prevSaturday, extraCosts: e.extraCosts });
       return {
         ...updated,
+        settled: updated.settled ?? e.settled,
+        settledUpdatedAt: updated.settledUpdatedAt ?? e.settledUpdatedAt,
         rateUpdatedAt: rateChanged ? now : updated.rateUpdatedAt ?? e.rateUpdatedAt,
         dataUpdatedAt: dataChanged ? now : updated.dataUpdatedAt ?? e.dataUpdatedAt,
       };
@@ -4360,10 +4370,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     patchArchiveWeek(weekId, (emps) => emps.map((e) => (e.id === empId ? { ...e, settled: !e.settled, settledUpdatedAt: now } : e)));
   }, [patchArchiveWeek]);
 
-  const toggleSettled = (id: string) => {
+  const toggleSettled = useCallback((id: string) => {
     const now = new Date().toISOString();
     setWeekEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, settled: !e.settled, settledUpdatedAt: now } : e)));
-  };
+    const archived = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+    if (archived) {
+      patchArchiveWeek(archived.id, (emps) =>
+        emps.map((e) => (e.id === id ? { ...e, settled: !e.settled, settledUpdatedAt: now } : e)),
+      );
+    }
+  }, [savedWeeks, weekFrom, weekTo, patchArchiveWeek, setWeekEmployees]);
 
   const saveBiweeklyBacklogWeek = useCallback((backlogFrom: string, backlogTo: string, employees: WeekEmployee[]) => {
     if (employees.length === 0) return;
