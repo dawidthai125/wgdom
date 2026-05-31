@@ -36,6 +36,12 @@ import {
 import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";
 import { CHANGELOG } from "@/app/changelog-data";
 
+function fmtDate(iso: string) {
+  if (!iso) return "";
+  const [y, mo, d] = iso.split("-");
+  return `${d}.${mo}.${y}`;
+}
+
 function HelpView({ embedded = false }: { embedded?: boolean }) {
   const [open, setOpen] = useState<string|null>("start");
 
