@@ -22,10 +22,21 @@ export default defineConfig({
             if (id.includes('pdfmake') || id.includes('pdfkit') || id.includes('fontkit')) {
               return 'pdfmake';
             }
+            if (id.includes('pdfjs') || id.includes('pdf.worker')) {
+              return 'pdfjs';
+            }
             if (id.includes('@radix-ui') || id.includes('lucide-react')) {
               return 'ui-vendor';
             }
             return;
+          }
+          if (
+            id.includes('/src/app/TendersView.tsx')
+            || id.includes('/src/app/TenderDetailPanel.tsx')
+            || id.includes('/src/app/TenderBidPrepPanel.tsx')
+            || id.includes('/src/app/TendersMapPanel.tsx')
+          ) {
+            return 'panel-tenders';
           }
           if (
             id.includes('/src/app/InspectorPanel')
@@ -33,6 +44,9 @@ export default defineConfig({
             || id.includes('/src/app/InspectorNavigation')
           ) {
             return 'panel-inspector';
+          }
+          if (id.includes('/src/app/InspectorAdminView')) {
+            return 'panel-inspector-admin';
           }
         },
       },

@@ -8,6 +8,12 @@
 
 ---
 
+## 2.45.15 (2026-05-25) — Optymalizacja Web + Mobile
+
+- **improve** Lazy load: Przetargi, Inspektor admin, Pliki robot — szybszy start
+- **improve** Główny JS −25% gzip, osobne chunki pdfjs/przetargi, preconnect Supabase
+- **improve** docs/OPTIMIZATION.md
+
 ## 2.45.14 (2026-05-25) — Lista płac: niedziela 20:00
 
 - **improve** Nd od 20:00 — auto-archiwum + nowy tydzień (gdy wszyscy rozliczeni)

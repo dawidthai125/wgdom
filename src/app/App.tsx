@@ -1,14 +1,11 @@
 import { useState, useCallback, useMemo, useEffect, useRef, Fragment, createContext, useContext, lazy, Suspense, type RefObject } from "react";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
-import { CompanyMusicPlayer } from "@/app/components/CompanyMusicPlayer";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
+import { ViewLoadFallback } from "@/app/ViewLoadFallback";
 import { EmployeeSmsModal } from "@/app/EmployeeSmsModal";
 import { SmsModalErrorBoundary } from "@/app/SmsModalErrorBoundary";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
-import { JobFilesBrowser } from "@/app/JobFilesBrowser";
-import { TendersView } from "@/app/TendersView";
-import { jobDraftFromTender, attachTenderAssetsToJob, loadTendersPipeline, computeTendersDashboardStats, type TendersDashboardStats } from "@/lib/tenders-bzp";
-import { enrichTendersDashboardStats } from "@/lib/tenders-actions";
+import type { TendersDashboardStats } from "@/lib/tenders-bzp";
 import { appendJobActivity } from "@/lib/job-activity";
 import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";
 import { countBrowserFiles, jobHasBrowserFiles } from "@/lib/job-files-browser";
@@ -119,7 +116,18 @@ import {
 const InspectorPanel = lazy(() =>
   import("@/app/InspectorPanel").then((m) => ({ default: m.InspectorPanel })),
 );
-import { InspectorAdminView } from "@/app/InspectorAdminView";
+const InspectorAdminView = lazy(() =>
+  import("@/app/InspectorAdminView").then((m) => ({ default: m.InspectorAdminView })),
+);
+const JobFilesBrowser = lazy(() =>
+  import("@/app/JobFilesBrowser").then((m) => ({ default: m.JobFilesBrowser })),
+);
+const TendersView = lazy(() =>
+  import("@/app/TendersView").then((m) => ({ default: m.TendersView })),
+);
+const CompanyMusicPlayer = lazy(() =>
+  import("@/app/components/CompanyMusicPlayer").then((m) => ({ default: m.CompanyMusicPlayer })),
+);
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { JobCostBreakdownPanel } from "@/app/JobCostBreakdownPanel";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
@@ -9350,6 +9358,14 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
   {
+    date:"2026-05-25", version:"2.45.15", label:"Optymalizacja Web + Mobile — lazy load, mniejszy bundle",
+    items:[
+      {type:"improve", text:"Lazy load: Przetargi, Inspektor admin, Pliki robot, muzyka — szybszy start na telefonie"},
+      {type:"improve", text:"Code split: panel-tenders, pdfjs, preconnect Supabase, mobile scroll (overscroll-behavior)"},
+      {type:"improve", text:"docs/OPTIMIZATION.md — audyt Web + iOS/Android/PWA"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.45.14", label:"Lista płac — nowy tydzień od niedzieli 20:00",
     items:[
       {type:"improve", text:"Nd od 20:00 — auto-archiwum + przejście na nadchodzący tydzień Pn–So (gdy wszyscy rozliczeni); Nd przed 20:00 bez zmian"},
@@ -12527,9 +12543,20 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     if (!canViewTendersNav) return;
     if (view !== "dashboard" && view !== "tenders") return;
-    loadTendersPipeline()
-      .then((items) => setTenderDashStats(enrichTendersDashboardStats(computeTendersDashboardStats(items), items)))
-      .catch(() => setTenderDashStats(null));
+    let cancelled = false;
+    void Promise.all([
+      import("@/lib/tenders-bzp"),
+      import("@/lib/tenders-actions"),
+    ]).then(([{ loadTendersPipeline, computeTendersDashboardStats }, { enrichTendersDashboardStats }]) =>
+      loadTendersPipeline()
+        .then((items) => {
+          if (!cancelled) {
+            setTenderDashStats(enrichTendersDashboardStats(computeTendersDashboardStats(items), items));
+          }
+        })
+        .catch(() => { if (!cancelled) setTenderDashStats(null); }),
+    );
+    return () => { cancelled = true; };
   }, [canViewTendersNav, view]);
 
   const navItems: {key:View;label:string;hint:string;icon:React.ElementType;badge?:number}[] = [
@@ -12730,7 +12757,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             </span>
           )}
           <div className="ml-auto flex items-center gap-0.5 sm:gap-2 shrink-0">
-            <div className="hidden sm:block"><CompanyMusicPlayer /></div>
+            <div className="hidden sm:block">
+              <Suspense fallback={null}>
+                <CompanyMusicPlayer />
+              </Suspense>
+            </div>
             {view==="payroll"&&canViewRates&&<span className="text-xs text-muted-foreground hidden sm:block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN · {productionWeekEmployees.length} prac.</span>}
             {view==="schedule"&&<span className="text-xs text-muted-foreground hidden sm:block">{fmtDate(weekFrom)} – {fmtDate(weekTo)} · {productionWeekEmployees.length} prac.</span>}
             {view==="jobs"&&<span className="text-xs text-muted-foreground hidden sm:block">{jobs.filter(j=>j.status==="in_progress").length} aktywne · {jobs.filter(j=>j.status==="completed").length} zdane</span>}
@@ -12828,11 +12859,20 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           {view==="contacts"&&<ContactsView contacts={contacts} onChange={setContacts}/>}
           {view==="archive"&&<ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>{ addDeletedArchiveId(id); setSavedWeeks(prev=>prev.filter(w=>w.id!==id)); }} onUpdateWeekEmployee={updateArchiveWeekEmployee} onToggleArchiveSettled={toggleArchiveSettled} jobs={jobs} directory={directory}/>}
           {view==="jobs"&&<JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={(jobId)=>{ if (jobId) setPendingInspectorJobId(jobId); setViewReturn({ view: "jobs", label: "Roboty" }); setView("inspector"); }} athPreviewEnabled={appSettings.athPreviewEnabled} onOpenTender={(tid)=>{ setPendingTenderId(tid); setViewReturn({ view: "jobs", label: "Roboty" }); setView("tenders"); }} returnNav={viewReturn && viewReturn.view !== "jobs" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingJobId(null); } } : undefined}/>}
-          {view==="inspector"&&<InspectorAdminView jobs={jobs} setJobs={setJobs} directory={directory} adminUserId={adminSession?.id} adminDisplayName={adminSession?.displayName || "Administrator"} adminRole={adminSession?.role} initialTab={inspectorInitialTab} initialJobId={pendingInspectorJobId} onInitialJobConsumed={()=>setPendingInspectorJobId(null)} contacts={contacts} athPreviewEnabled={appSettings.athPreviewEnabled} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} returnNav={viewReturn && viewReturn.view !== "inspector" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingInspectorJobId(null); } } : undefined}/>}
+          {view==="inspector"&&(
+            <Suspense fallback={<ViewLoadFallback label="Ładowanie inspektora…" />}>
+              <InspectorAdminView jobs={jobs} setJobs={setJobs} directory={directory} adminUserId={adminSession?.id} adminDisplayName={adminSession?.displayName || "Administrator"} adminRole={adminSession?.role} initialTab={inspectorInitialTab} initialJobId={pendingInspectorJobId} onInitialJobConsumed={()=>setPendingInspectorJobId(null)} contacts={contacts} athPreviewEnabled={appSettings.athPreviewEnabled} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} returnNav={viewReturn && viewReturn.view !== "inspector" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingInspectorJobId(null); } } : undefined}/>
+            </Suspense>
+          )}
           {view==="photos"&&<JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
-          {view==="jobfiles"&&<JobFilesBrowser jobs={jobs} athPreviewEnabled={appSettings.athPreviewEnabled} layout="admin" onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>}
+          {view==="jobfiles"&&(
+            <Suspense fallback={<ViewLoadFallback label="Ładowanie plików…" />}>
+              <JobFilesBrowser jobs={jobs} athPreviewEnabled={appSettings.athPreviewEnabled} layout="admin" onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>
+            </Suspense>
+          )}
           {view==="guide"&&<GuideView/>}
           {view==="tenders"&&canViewTendersNav&&(
+            <Suspense fallback={<ViewLoadFallback label="Ładowanie przetargów…" />}>
             <TendersView
               showTestBadge={adminSession ? adminIsSuperAdmin(adminSession.role) : false}
               athPreviewEnabled={appSettings.athPreviewEnabled}
@@ -12849,8 +12889,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
                 appendJobActivity(j, "note", `Utworzono z przetargu BZP: ${item.bzpNumber}`);
                 setJobs((prev) => [j, ...prev]);
                 const actor = adminSession?.displayName || "Administrator";
-                void attachTenderAssetsToJob(j.id, item, actor).then((attachments) => {
-                  if (!attachments.length) return;
+                void import("@/lib/tenders-bzp").then(({ attachTenderAssetsToJob }) =>
+                  attachTenderAssetsToJob(j.id, item, actor),
+                ).then((attachments) => {
+                  if (!attachments?.length) return;
                   setJobs((prev) => prev.map((job) =>
                     job.id === j.id
                       ? { ...job, jobFiles: [...(job.jobFiles || []), ...attachments] }
@@ -12862,6 +12904,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
                 return j.id;
               }}
             />
+            </Suspense>
           )}
         </div>
 
