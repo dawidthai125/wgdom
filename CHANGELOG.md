@@ -4,9 +4,14 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `App.tsx` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja:** **2.45.13**
+**Aktualna wersja:** **2.45.14**
 
 ---
+
+## 2.45.14 (2026-05-25) — Lista płac: niedziela 20:00
+
+- **improve** Nd od 20:00 — auto-archiwum + nowy tydzień (gdy wszyscy rozliczeni)
+- **fix** Alerty gdy tydzień zostaje w tyle po przejściu
 
 ## 2.45.13 (2026-05-25) — Docs AI: START HERE
 

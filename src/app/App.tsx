@@ -239,6 +239,9 @@ import {
   biweeklyMissingPrevWeekArchive,
   biweeklyCashContextLine,
   calcWeekNetNoPrevSat,
+  getPayrollWeekRange,
+  getPayrollClosingWeekRange,
+  PAYROLL_WEEK_ROLLOVER_HOUR,
 } from "@/lib/payroll-cycle";
 
 /** pdfmake ~1 MB — ładuj dopiero przy eksporcie PDF (szybszy start na telefonie). */
@@ -1032,18 +1035,7 @@ function fmt(n: number) { return n.toLocaleString("pl-PL",{minimumFractionDigits
 function fmtH(n: number) { const h=Math.floor(n),m=Math.round((n-h)*60); return m===0?`${h}h`:`${h}h ${m}m`; }
 function fmtDate(iso: string) { if(!iso) return ""; const [y,mo,d]=iso.split("-"); return `${d}.${mo}.${y}`; }
 function getWeekRange() {
-  const now = new Date();
-  const day = now.getDay(); // 0=Nd, 1=Pn … 6=So
-  const mon = new Date(now);
-  if (day === 0) {
-    // Niedziela: wciąż tydzień Pn–So, który skończył się wczoraj (wypłaty w sobotę, rozliczenie w Nd)
-    mon.setDate(now.getDate() - 6);
-  } else {
-    mon.setDate(now.getDate() + (1 - day));
-  }
-  const sat = new Date(mon);
-  sat.setDate(mon.getDate() + 5);
-  return { from: localIsoDate(mon), to: localIsoDate(sat) };
+  return getPayrollWeekRange();
 }
 function calcWeekEmployee(emp: WeekEmployee) {
   const weekHours = +(DAYS.reduce((s, d) => s + dayTotalHours(emp.days[d]), 0)).toFixed(2);
@@ -3444,7 +3436,7 @@ function PayrollView({
                 <Bell size={15} className="text-yellow-400 shrink-0"/>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-yellow-400">Dziś sobota — wypłaty (w tym co 2 tyg.)</p>
-                  <p className="text-xs text-muted-foreground">Oznacz „Rozliczony” po wypłacie. Tydzień trafi do archiwum automatycznie w <strong>niedzielę</strong> (gdy wszyscy rozliczeni) lub kliknij „Zapisz tydzień”.</p>
+                  <p className="text-xs text-muted-foreground">Oznacz „Rozliczony” po wypłacie. Tydzień trafi do archiwum w <strong>niedzielę</strong> (gdy wszyscy rozliczeni) — po <strong>{PAYROLL_WEEK_ROLLOVER_HOUR}:00</strong> startuje nowy tydzień. Możesz też kliknąć „Zapisz tydzień”.</p>
                 </div>
                 <button onClick={()=>setSatDismissed(true)} className="p-1 text-muted-foreground hover:text-foreground transition-colors shrink-0"><X size={14}/></button>
               </div>
@@ -7837,7 +7829,10 @@ function DashboardView({
   };
 
   const currentWeekRange = getWeekRange();
+  const closingWeekRange = getPayrollClosingWeekRange();
   const isCurrentPayrollWeek = weekFrom === currentWeekRange.from && weekTo === currentWeekRange.to;
+  const isOnClosingWeek = weekFrom === closingWeekRange.from && weekTo === closingWeekRange.to;
+  const payrollWeekBehind = weekFrom !== currentWeekRange.from || weekTo !== currentWeekRange.to;
   const weekSaved = savedWeeks.some((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
   const unsettledEmployees = weekEmployees.filter((e) => !e.settled);
   const dayOfWeek = new Date().getDay();
@@ -7845,14 +7840,17 @@ function DashboardView({
   const isSaturday = dayOfWeek === 6;
   const isSunday = dayOfWeek === 0;
   const showSaturdayBanner =
-    isSaturday && isCurrentPayrollWeek && weekEmployees.length > 0 && (!weekSaved || unsettledEmployees.length > 0);
+    isSaturday && isOnClosingWeek && weekEmployees.length > 0 && (!weekSaved || unsettledEmployees.length > 0);
 
   // Auto-zapis w niedzielę (nie w sobotę — wypłaty ukraińców w sobotę popołudniu)
   const needsUnsavedWeekAlert =
-    weekEmployees.length > 0 && !weekSaved && isCurrentPayrollWeek && isSunday;
-  // Rozliczenie: przypomnienie od piątku przez niedzielę (wypłata w sobotę 16–17)
+    weekEmployees.length > 0 && !weekSaved && isOnClosingWeek && isSunday;
+  // Rozliczenie: przypomnienie od piątku; także gdy tydzień zostaje w tyle (np. Nd po 20:00 bez przejścia)
   const needsUnsettledAlert =
-    unsettledEmployees.length > 0 && isCurrentPayrollWeek && (isFriday || isSaturday || isSunday);
+    unsettledEmployees.length > 0 && (
+      payrollWeekBehind
+      || (isCurrentPayrollWeek && (isFriday || isSaturday || isSunday))
+    );
 
   const attentionCount =
     (needsUnsavedWeekAlert ? 1 : 0) +
@@ -8310,7 +8308,7 @@ function DashboardView({
                       <span className="text-xs text-muted-foreground font-normal">({fmtDate(weekFrom)} – {fmtDate(weekTo)})</span>
                     </p>
                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                      W niedzielę tydzień zapisuje się automatycznie (po rozliczeniu wypłat w sobotę) — zapisz ręcznie, jeśli auto-zapis nie zadziałał.
+                      W niedzielę (po {PAYROLL_WEEK_ROLLOVER_HOUR}:00 — nowy tydzień) tydzień zapisuje się automatycznie, gdy wszyscy rozliczeni. Zapisz ręcznie, jeśli auto-zapis nie zadziałał.
                     </p>
                   </div>
                   <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline shrink-0">
@@ -9351,6 +9349,13 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
 
 /** Przy nowych funkcjach uzupełnij: CHANGELOG, helpSections, navItems.hint, LabelWithHint w formularzach. */
 const CHANGELOG: {date:string; version:string; label:string; items:{type:"new"|"fix"|"improve"; text:string}[]}[] = [
+  {
+    date:"2026-05-25", version:"2.45.14", label:"Lista płac — nowy tydzień od niedzieli 20:00",
+    items:[
+      {type:"improve", text:"Nd od 20:00 — auto-archiwum + przejście na nadchodzący tydzień Pn–So (gdy wszyscy rozliczeni); Nd przed 20:00 bez zmian"},
+      {type:"fix", text:"Alerty rozliczenia także gdy tydzień zostaje w tyle po Nd 20:00; logika w payroll-cycle.ts"},
+    ],
+  },
   {
     date:"2026-05-25", version:"2.45.13", label:"Docs AI — START HERE, PROJECT-GUIDE, CURRENT-TASK",
     items:[
@@ -12427,19 +12432,68 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     autoArchiveAndAdvance(c.from, c.to);
   }, [weekFrom, weekEmployees, autoArchiveAndAdvance]);
 
-  // Auto-advance: gdy minął tydzień (poniedziałek+) — archiwizuj i przejdź do bieżącego, ale nie gdy są nierozliczeni
-  const autoAdvancedRef = useRef(false);
+  // Auto-przejście tygodnia płac: Nd ≥20:00 lub Pn+ (gdy wszyscy rozliczeni) + auto-archiwum w Nd
+  const payrollWeekCycleRef = useRef<() => void>(() => {});
+  const payrollWeekAdvancedToastRef = useRef<string | null>(null);
+
+  const trySundayArchiveOnly = useCallback(() => {
+    const now = new Date();
+    if (now.getDay() !== 0) return;
+    const closing = getPayrollClosingWeekRange(now);
+    if (weekFrom !== closing.from || weekTo !== closing.to) return;
+    if (weekEmployees.some((e) => !e.settled)) return;
+    const today = localIsoDate(now);
+    if (localStorage.getItem("kw-last-week-auto-archive") === today) return;
+    localStorage.setItem("kw-last-week-auto-archive", today);
+    if (weekEmployees.length === 0) {
+      const archived = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+      if (archived) triggerWeeklyBackupEmail(weekFrom, weekTo, jobs, savedWeeks);
+      return;
+    }
+    const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+    const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing);
+    const nextArchive = existing
+      ? savedWeeks.map((w) => (w.id === existing.id ? snapshot : w))
+      : [...savedWeeks, snapshot];
+    setSavedWeeks(nextArchive);
+    triggerWeeklyBackupEmail(weekFrom, weekTo, jobs, nextArchive);
+  }, [weekFrom, weekTo, weekEmployees, savedWeeks, jobs, setSavedWeeks]);
+
+  const tryPayrollWeekCycle = useCallback(() => {
+    const current = getPayrollWeekRange();
+    const onCurrentRange = weekFrom === current.from && weekTo === current.to;
+
+    if (!onCurrentRange) {
+      if (weekEmployees.length > 0 && weekEmployees.some((e) => !e.settled)) return;
+      autoArchiveAndAdvance(current.from, current.to);
+      if (payrollWeekAdvancedToastRef.current !== current.from) {
+        payrollWeekAdvancedToastRef.current = current.from;
+        toast.success(`Nowy tydzień listy płac · ${fmtDate(current.from)}–${fmtDate(current.to)}`, {
+          id: "payroll-week-advance",
+          description: "Poprzedni tydzień zapisany w archiwum. Dodaj pracowników i godziny od poniedziałku.",
+        });
+      }
+      return;
+    }
+
+    trySundayArchiveOnly();
+  }, [weekFrom, weekTo, weekEmployees, autoArchiveAndAdvance, trySundayArchiveOnly]);
+
+  payrollWeekCycleRef.current = tryPayrollWeekCycle;
+
   useEffect(() => {
-    if (autoAdvancedRef.current) return;
-    autoAdvancedRef.current = true;
-    const current = getWeekRange();
-    if (weekFrom === current.from) return;
-    if (weekEmployees.length > 0 && weekEmployees.some((e) => !e.settled)) return;
-    autoArchiveAndAdvance(current.from, current.to);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    payrollWeekCycleRef.current();
+    const tick = () => payrollWeekCycleRef.current();
+    const id = setInterval(tick, 60_000);
+    const onVis = () => { if (!document.hidden) tick(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, []);
 
-  // Odzyskaj listę płac z archiwum gdy bieżący tydzień pusty (np. po błędnym auto-advance)
+  // Odzyskaj listę płac z archiwum gdy bieżący tydzień pusty (np. po auto-przejściu)
   const payrollRestoredRef = useRef(false);
   useEffect(() => {
     if (payrollRestoredRef.current || weekEmployees.length > 0) return;
@@ -12452,38 +12506,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       description: `${fmtDate(weekFrom)} – ${fmtDate(weekTo)} · ${emps.length} os.`,
       id: "payroll-auto-restore",
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Auto-archiwum w niedzielę — po wypłatach w sobotę; pomijaj gdy ktoś jeszcze nierozliczony
-  useEffect(() => {
-    const today = localIsoDate();
-    const isSunday = new Date().getDay() === 0;
-    const lastAuto = localStorage.getItem("kw-last-week-auto-archive");
-    const current = getWeekRange();
-    const hasUnsettled = weekEmployees.some((e) => !e.settled);
-    if (
-      isSunday &&
-      lastAuto !== today &&
-      weekFrom === current.from &&
-      !hasUnsettled
-    ) {
-      localStorage.setItem("kw-last-week-auto-archive", today);
-      if (weekEmployees.length > 0) {
-        const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-        const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing);
-        const nextArchive = existing
-          ? savedWeeks.map((w) => (w.id === existing.id ? snapshot : w))
-          : [...savedWeeks, snapshot];
-        setSavedWeeks(nextArchive);
-        triggerWeeklyBackupEmail(weekFrom, weekTo, jobs, nextArchive);
-      } else {
-        const archived = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-        if (archived) {
-          triggerWeeklyBackupEmail(weekFrom, weekTo, jobs, savedWeeks);
-        }
-      }
-    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

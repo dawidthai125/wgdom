@@ -2,6 +2,55 @@
 
 const DAY_KEYS = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"] as const;
 
+/** Niedziela od tej godziny (lokalnie) — lista płac przechodzi na nadchodzący tydzień Pn–So. */
+export const PAYROLL_WEEK_ROLLOVER_HOUR = 20;
+
+function localIsoDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Niedziela ≥ 20:00 — czas przejścia na nowy tydzień płacowy (przed poniedziałkiem). */
+export function isPayrollWeekRolloverTime(now = new Date()): boolean {
+  return now.getDay() === 0 && now.getHours() >= PAYROLL_WEEK_ROLLOVER_HOUR;
+}
+
+/**
+ * Bieżący tydzień płacowy Pn–So do pracy w liście płac.
+ * Nd przed 20:00 → domykany tydzień (Pn–So z wczorajszej soboty).
+ * Nd po 20:00 → nadchodzący tydzień (od jutrzejszego poniedziałku).
+ */
+export function getPayrollWeekRange(now = new Date()): { from: string; to: string } {
+  const day = now.getDay();
+  const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0);
+  if (day === 0 && !isPayrollWeekRolloverTime(now)) {
+    mon.setDate(mon.getDate() - 6);
+  } else if (day === 0 && isPayrollWeekRolloverTime(now)) {
+    mon.setDate(mon.getDate() + 1);
+  } else {
+    mon.setDate(mon.getDate() + (1 - day));
+  }
+  const sat = new Date(mon);
+  sat.setDate(mon.getDate() + 5);
+  return { from: localIsoDate(mon), to: localIsoDate(sat) };
+}
+
+/** Tydzień domykany w weekend (Pn–So z ostatnią sobotą). Nd zawsze = tydzień kończący się wczoraj. */
+export function getPayrollClosingWeekRange(now = new Date()): { from: string; to: string } {
+  const day = now.getDay();
+  const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0);
+  if (day === 0) {
+    mon.setDate(mon.getDate() - 6);
+  } else {
+    mon.setDate(mon.getDate() + (1 - day));
+  }
+  const sat = new Date(mon);
+  sat.setDate(mon.getDate() + 5);
+  return { from: localIsoDate(mon), to: localIsoDate(sat) };
+}
+
 export interface DirectoryPayrollRef {
   id: string;
   name: string;
