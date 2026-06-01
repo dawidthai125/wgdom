@@ -947,20 +947,28 @@ async function sendViaResend(body: Record<string, unknown>): Promise<Response> {
   });
 }
 
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
 // Send backup email via Resend
 app.post("/make-server-0afb8820/send-backup-email", async (c) => {
   const resendKey = Deno.env.get("RESEND_API_KEY");
   if (!resendKey) return c.json({ ok: false, error: "RESEND_API_KEY not set" }, 500);
 
+  try {
   const { data, date, weekFrom, weekTo } = await c.req.json();
   const backupTo = backupEmailTo();
   const periodLabel = weekFrom && weekTo ? ` (tydzień ${weekFrom} – ${weekTo})` : "";
 
   const json = JSON.stringify(data, null, 2);
-  // Base64 encode for attachment
-  const encoder = new TextEncoder();
-  const bytes = encoder.encode(json);
-  const base64 = btoa(String.fromCharCode(...bytes));
+  const bytes = new TextEncoder().encode(json);
+  const base64 = bytesToBase64(bytes);
 
   const res = await sendViaResend({
     from: resendFrom(),
@@ -982,6 +990,10 @@ app.post("/make-server-0afb8820/send-backup-email", async (c) => {
   }
 
   return c.json({ ok: true });
+  } catch (e) {
+    console.error("send-backup-email:", e);
+    return c.json({ ok: false, error: e instanceof Error ? e.message : String(e) }, 500);
+  }
 });
 
 function escapeHtml(s: string): string {

@@ -57,7 +57,9 @@ const sendRes = await fetch(`${base}/send-backup-email`, {
   headers,
   body: JSON.stringify({ data, date, weekFrom, weekTo }),
 });
-const body = await sendRes.json().catch(async () => ({ raw: await sendRes.text() }));
+const sendText = await sendRes.text();
+let body;
+try { body = JSON.parse(sendText); } catch { body = { raw: sendText }; }
 if (!sendRes.ok) {
   console.error("send-backup-email failed:", sendRes.status, body);
   process.exit(1);
