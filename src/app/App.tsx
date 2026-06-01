@@ -4401,17 +4401,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // One-time migration: fix 08:00 → 07:00 for existing week employees
-  useEffect(()=>{
-    const needs = weekEmployees.some(e=>DAYS.some(d=>e.days[d].from==="08:00"));
-    if(!needs) return;
-    setWeekEmployees(prev=>prev.map(e=>({
-      ...e,
-      days: Object.fromEntries(DAYS.map(d=>[d,{...e.days[d],from:e.days[d].from==="08:00"?"07:00":e.days[d].from}])) as Record<DayKey,DayData>,
-    })));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[]);
-
   const canViewTendersNav = adminSession
     ? adminCanViewTendersTab(adminSession.role, appSettings)
     : false;
