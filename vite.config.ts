@@ -18,6 +18,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          if (id.includes('/src/config/supabase.ts') || id.includes('/src/lib/cloud-sync.ts')) {
+            return 'app-core';
+          }
           if (id.includes('node_modules')) {
             if (id.includes('pdfmake') || id.includes('pdfkit') || id.includes('fontkit')) {
               return 'pdfmake';

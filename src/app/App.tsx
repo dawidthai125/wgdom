@@ -82,6 +82,7 @@ import {
   ADMIN_PASSWORDS_KEY,
   ADMIN_USERS_CONFIG_KEY,
   APP_SETTINGS_KEY,
+  isSupabaseConfigured,
 } from "@/lib/cloud-sync";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
@@ -223,7 +224,6 @@ import {
   scopeTextToWorkItems,
   workItemsToScopeText,
 } from "@/lib/work-scope-text";
-import { isSupabaseConfigured } from "@/config/supabase";
 import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
 import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } from "@/lib/photo-queue";

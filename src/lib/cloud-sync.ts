@@ -37,6 +37,8 @@ export const ADMIN_USERS_CONFIG_KEY = "kw-admin-users-config";
 export const INSPECTOR_STATS_KEY = "kw-inspector-stats";
 export const APP_SETTINGS_KEY = "kw-app-settings";
 
+export { isSupabaseConfigured } from "@/config/supabase";
+
 export const API_BASE = supabaseFunctionsBase;
 
 export const API_HEADERS: Record<string, string> = {
