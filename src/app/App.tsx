@@ -127,9 +127,6 @@ import {
   digestSha256Hex,
   type AdminAssignableRole,
 } from "@/lib/admin-auth";
-const InspectorPanel = lazy(() =>
-  import("@/app/InspectorPanel").then((m) => ({ default: m.InspectorPanel })),
-);
 import type { DayKey, DirectoryEmployee, DayData, EmployeeExtraCost, WeekEmployee, WeekSnapshot, DocType, PhotoEntry, RoomTypeKey, RoomDimension, WorkerJobReport, Job, PayrollJobConsistencyAlert, JobGalleryBucket } from "@/app/app-domain";
 import { DAYS, MULTI_SITE_SCHEDULE_LABEL, MONTH_NAMES, DOCUMENT_TYPES, REQUIRED_DOCS, DOC_LABELS, ROOM_TYPE_LABELS, defaultDirEmployee, isTestDirectoryEmployee, isProductionDirectoryEmployee, filterProductionDirectory, filterProductionActiveDirectory, filterProductionWeekEmployees, normalizeDirectoryTestFlags, PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, PHOTO_LABEL_SECTION, weekEmployeeFromDir, hoursWorked, dayTotalHours, payrollJobConsistencyAlerts, buildEmployeeArchiveStats, consistencyAlertMessage, fmt, fmtH, fmtDate, getWeekRange, calcWeekEmployee, extraCostStatus, PHOTO_STATUS_LABELS, EXTRA_COST_STATUS_LABELS, workerTodayWorkInfo, fixJobsForConsistencyAlert, defaultJob, normalizeJobsList, jobDaysSinceStart, jobWorkerReports, reportNeedsAdminAttention, normalizeWorkerReport, workItemHasContent, roomHasContent, roomDisplayName, defaultRoom, jobCost, jobMaterialsCost, jobTotalCost, GALLERY_ARCHIVE_DAYS, jobDisplayTitle, jobApprovedPhotos, jobHandoverIso, jobGalleryBucket, galleryDaysUntilArchive, todayDayKey, localIsoDate, todayIsoDate, fridayIsoOfWeek, findWeekEmployeeForWorker, workerPayoutHistory, todayFieldWorkStats, jobsForEmployeeOnDashboard, weekDayColumns, scheduleCellFor, buildWeekSnapshot, scheduleCellFromArchive, formatJobStreet, workerHasPhonePin, workerPhonePinValid, workerHasPersonalPin, workerPinTooWeak, applyWriteTimestamps } from "@/app/app-domain";
 import { AdminAccessContext, useAdminAccess } from "@/app/admin-access";
@@ -228,6 +225,7 @@ import { PwaInstallBanner } from "@/app/PwaInstallBanner";
 import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { Toaster, toast } from "sonner";
+import { AppInnerWithAuth } from "@/app/AppInnerWithAuth";
 import {
   type EmailContact,
   defaultEmailContact,
@@ -4947,101 +4945,7 @@ function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: strin
   );
 }
 
-// ─── App with auth ─────────────────────────────────────────────────────────────
-
-function AppInnerWithAuth() {
-  const shareToken = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    return new URLSearchParams(window.location.search).get("podglad")?.trim() || "";
-  }, []);
-
-  const [adminSession, setAdminSession] = useState<AdminSession | null>(() => {
-    const mode = sessionStorage.getItem("wg-session-mode");
-    if (mode !== "admin") return null;
-    const s = loadAdminSessionFromStorage();
-    return s && s.role !== "inspector" ? s : null;
-  });
-
-  const [inspectorSession, setInspectorSession] = useState<AdminSession | null>(() => {
-    const mode = sessionStorage.getItem("wg-session-mode");
-    if (mode !== "inspector") return null;
-    const s = loadAdminSessionFromStorage();
-    return s?.role === "inspector" ? s : null;
-  });
-
-  const [appMode, setAppMode] = useState<"login"|"admin"|"worker"|"inspector">(() => {
-    const s = sessionStorage.getItem("wg-session-mode");
-    const stored = loadAdminSessionFromStorage();
-    if (s === "admin" && stored && stored.role !== "inspector") return "admin";
-    if (s === "inspector" && stored?.role === "inspector") return "inspector";
-    if (s === "worker") return "worker";
-    return "login";
-  });
-  const [workerName, setWorkerName] = useState(() => sessionStorage.getItem("wg-worker-name") || "");
-  const [workerId, setWorkerId] = useState(() => sessionStorage.getItem("wg-worker-id") || "");
-
-  const adminAccess = useMemo(
-    () => ({
-      session: adminSession,
-      canViewRates: adminSession ? adminCanViewRates(adminSession.role) : true,
-    }),
-    [adminSession],
-  );
-
-  const enterAdmin = (session: AdminSession) => {
-    if (session.role === "inspector") return;
-    saveAdminSessionToStorage(session);
-    setAdminSession(session);
-    setInspectorSession(null);
-    sessionStorage.setItem("wg-session-mode", "admin");
-    setAppMode("admin");
-  };
-  const enterInspector = (session: AdminSession) => {
-    if (session.role !== "inspector") return;
-    saveAdminSessionToStorage(session);
-    setInspectorSession(session);
-    setAdminSession(null);
-    sessionStorage.setItem("wg-session-mode", "inspector");
-    sessionStorage.removeItem("wg-inspector-visit-recorded");
-    setAppMode("inspector");
-    recordInspectorEvent(session.id, session.displayName, "login").catch(() => {});
-  };
-  const enterWorker = (emp: DirectoryEmployee) => {
-    sessionStorage.setItem("wg-session-mode","worker");
-    sessionStorage.setItem("wg-worker-name", emp.name);
-    sessionStorage.setItem("wg-worker-id", emp.id);
-    setWorkerName(emp.name);
-    setWorkerId(emp.id);
-    setAppMode("worker");
-  };
-  const logout = () => {
-    sessionStorage.removeItem("wg-session-mode");
-    sessionStorage.removeItem("wg-worker-name");
-    sessionStorage.removeItem("wg-worker-id");
-    sessionStorage.removeItem("wg-inspector-visit-recorded");
-    saveAdminSessionToStorage(null);
-    setAdminSession(null);
-    setInspectorSession(null);
-    setAppMode("login"); setWorkerName(""); setWorkerId("");
-  };
-
-  if (shareToken) return <ClientShareView token={shareToken}/>;
-  if (appMode === "login") return <LoginScreen onAdmin={enterAdmin} onInspector={enterInspector} onWorker={enterWorker}/>;
-  if (appMode === "worker") return <WorkerPhotoView workerName={workerName} workerId={workerId} onLogout={logout}/>;
-  if (appMode === "inspector" && inspectorSession) {
-    return (
-      <Suspense fallback={<div className="min-h-[100dvh] flex items-center justify-center bg-background"><p className="text-sm text-muted-foreground">Ładowanie panelu inspektora…</p></div>}>
-        <InspectorPanel inspectorId={inspectorSession.id} displayName={inspectorSession.displayName} onLogout={logout}/>
-      </Suspense>
-    );
-  }
-  if (!adminSession) return <LoginScreen onAdmin={enterAdmin} onInspector={enterInspector} onWorker={enterWorker}/>;
-  return (
-    <AdminAccessContext.Provider value={adminAccess}>
-      <AppInner onLogout={logout}/>
-    </AdminAccessContext.Provider>
-  );
-}
+export { AppInner, LoginScreen, WorkerPhotoView };
 
 export default function App() {
   return <CloudLoader><AppInnerWithAuth/></CloudLoader>;
