@@ -5,6 +5,7 @@ import {
   CalendarDays, TrendingUp, Wallet, X, Phone, UserPlus, Edit2, Check, Search, Building2,
   MapPin, AlertTriangle, Download, Upload, HardHat, StickyNote, Cloud, Mail, Send, Eye,
   RotateCcw, BarChart3, Scale, HelpCircle, LayoutGrid, Sparkles, Bell, Copy, CloudUpload,
+  UserMinus, RefreshCw,
 } from "lucide-react";
 import { saveAs } from "file-saver";
 import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";
@@ -425,7 +426,7 @@ export function PayrollPdfPreviewModal({
 export function PayrollView({
   weekEmployees, weekFrom, weekTo, directory, contacts, jobs,
   onWeekChange, onToggleSettled, onSaveWeek, savedWeeks,
-  onAddFromDirectory, onRemoveWeekEmployee, onUpdateWeekEmployee,   onGoToCurrent,
+  onAddFromDirectory, onRemoveWeekEmployee, onClearAllWeekEmployees, onReplaceWithAllActive, onUpdateWeekEmployee,   onGoToCurrent,
   onManageContacts,
   onRestoreFromArchive,
   onSyncRatesFromDirectory,
@@ -444,6 +445,8 @@ export function PayrollView({
   savedWeeks:WeekSnapshot[];
   onAddFromDirectory:(ids:string[])=>void;
   onRemoveWeekEmployee:(id:string)=>void;
+  onClearAllWeekEmployees?:()=>void;
+  onReplaceWithAllActive?:()=>void;
   onUpdateWeekEmployee:(emp:WeekEmployee)=>void;
   onGoToCurrent:()=>void;
   onManageContacts:()=>void;
@@ -572,6 +575,27 @@ export function PayrollView({
   // Directory employees not yet in this week
   const assignedDirIds = new Set(weekEmployees.map((e)=>e.directoryId).filter(Boolean));
   const availableFromDir = filterProductionActiveDirectory(directory).filter((d) => !assignedDirIds.has(d.id));
+  const activeDirectoryCount = filterProductionActiveDirectory(directory).length;
+
+  const confirmClearAll = () => {
+    if (weekEmployees.length === 0) return;
+    if (!window.confirm(`Usunąć wszystkich pracowników (${weekEmployees.length}) z listy płac tego tygodnia?\nGodziny w tym tygodniu zostaną skasowane z widoku — archiwum zapisane wcześniej nie zmienia się.`)) return;
+    onClearAllWeekEmployees?.();
+  };
+
+  const confirmReplaceAllActive = () => {
+    const n = activeDirectoryCount;
+    if (n === 0) {
+      window.alert("Brak aktywnych pracowników w kartotece.");
+      return;
+    }
+    const msg = weekEmployees.length > 0
+      ? `Usunąć obecnych (${weekEmployees.length}) i dodać ${n} aktywnych z kartoteki?`
+      : `Dodać ${n} aktywnych pracowników z kartoteki do tego tygodnia?`;
+    if (!window.confirm(msg)) return;
+    onReplaceWithAllActive?.();
+  };
+
   const filteredAvailable = availableFromDir.filter((d)=>
     d.name.toLowerCase().includes(pickerSearch.toLowerCase()) ||
     d.position.toLowerCase().includes(pickerSearch.toLowerCase())
@@ -723,6 +747,26 @@ export function PayrollView({
                 <button onClick={()=>setShowPicker(true)} className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors">
                   <UserPlus size={14}/>Dodaj pracownika
                 </button>
+                {weekEmployees.length > 0 && onClearAllWeekEmployees && (
+                  <button
+                    type="button"
+                    onClick={confirmClearAll}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-destructive/10 hover:bg-destructive/20 border border-destructive/30 text-destructive rounded-lg text-sm font-medium transition-colors"
+                    title="Usuń wszystkich pracowników z bieżącego tygodnia (nie zmienia archiwum)"
+                  >
+                    <UserMinus size={14}/>Usuń wszystkich
+                  </button>
+                )}
+                {onReplaceWithAllActive && activeDirectoryCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={confirmReplaceAllActive}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-primary/15 hover:bg-primary/25 border border-primary/30 text-primary rounded-lg text-sm font-medium transition-colors"
+                    title="Wyczyść skład tygodnia i dodaj wszystkich aktywnych z kartoteki Pracownicy"
+                  >
+                    <RefreshCw size={14}/>Odśwież skład ({activeDirectoryCount})
+                  </button>
+                )}
                 {availableFromDir.length > 0 && (
                   <button
                     type="button"

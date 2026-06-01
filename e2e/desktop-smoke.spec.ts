@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { fetchLazyChunk } from "./chunk-helpers";
 
 /** Smoke desktop — 1920×1080 (project desktop-chrome w playwright.config). */
 test.describe("Desktop smoke — przeglądarka PC/laptop", () => {
@@ -30,27 +31,21 @@ test.describe("Desktop smoke — przeglądarka PC/laptop", () => {
   });
 
   test("lazy chunk inspektora — plik panel-inspector dostępny", async ({ request, baseURL }) => {
-    const html = await (await request.get(`${baseURL}/`)).text();
-    const match = html.match(/panel-inspector-[\w]+\.js/);
-    expect(match, "brak referencji panel-inspector w index.html").toBeTruthy();
-    const res = await request.get(`${baseURL}/assets/${match![0]}`);
-    expect(res.ok()).toBeTruthy();
-    expect((await res.body()).byteLength).toBeGreaterThan(10_000);
+    const { name, bytes } = await fetchLazyChunk(request, baseURL!, "panel-inspector");
+    expect(bytes).toBeGreaterThan(10_000);
+    expect(name).toMatch(/^panel-inspector-/);
   });
 
-  test("service worker v20 — obecny w buildzie", async ({ request, baseURL }) => {
+  test("service worker v25 — obecny w buildzie", async ({ request, baseURL }) => {
     const res = await request.get(`${baseURL}/sw.js`);
     expect(res.ok()).toBeTruthy();
     const js = await res.text();
-    expect(js).toContain("wgdom-shell-v24");
+    expect(js).toContain("wgdom-shell-v25");
   });
 
   test("ui-vendor chunk — ładuje się poprawnie", async ({ request, baseURL }) => {
-    const html = await (await request.get(`${baseURL}/`)).text();
-    const match = html.match(/ui-vendor-[\w]+\.js/);
-    expect(match).toBeTruthy();
-    const res = await request.get(`${baseURL}/assets/${match![0]}`);
-    expect(res.ok()).toBeTruthy();
+    const { bytes } = await fetchLazyChunk(request, baseURL!, "ui-vendor");
+    expect(bytes).toBeGreaterThan(1000);
   });
 
   test("tryb inspektora — ekran logowania bez błędu", async ({ page }) => {

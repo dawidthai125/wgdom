@@ -1,4 +1,4 @@
-const CACHE = "wgdom-shell-v24";
+const CACHE = "wgdom-shell-v25";
 const PRECACHE = [
   "/",
   "/index.html",

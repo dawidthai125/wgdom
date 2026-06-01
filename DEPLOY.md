@@ -22,7 +22,7 @@ Repozytorium utwórz na [github.com/new](https://github.com/new) (np. nazwa `wgd
 
 | Nazwa | Wartość |
 |-------|---------|
-| `VITE_SUPABASE_PROJECT_ID` | `kchwyjlnkdlymwvsnfiu` |
+| `VITE_SUPABASE_PROJECT_ID` | `bdpygdvfgbggermvqtys` |
 | `VITE_SUPABASE_ANON_KEY` | klucz anon z Supabase → Settings → API |
 | `VITE_SUPABASE_FUNCTION_SLUG` | `make-server-0afb8820` |
 

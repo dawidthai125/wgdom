@@ -5,7 +5,7 @@ import type { WorkerJobReport } from "@/app/app-domain";
 import { fmtDate, roomDisplayName } from "@/app/app-domain";
 import { getReportWorkScopeText, reportHasWorkScope, scopeTextLineCount } from "@/lib/work-scope-text";
 import type { AdminRole } from "@/lib/admin-auth";
-import { JobReportForm } from "@/app/JobReportForm";
+import { JobPhotoImg } from "@/app/JobPhotoImg";
 
 export function JobWorkerReportsPanel({
   jobId,
@@ -147,7 +147,7 @@ export function JobWorkerReportsPanel({
                       <div>
                         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Rysunek z wymiarami</p>
                         <a href={report.sketch.publicUrl} target="_blank" rel="noopener noreferrer" className="block max-w-xs">
-                          <img src={report.sketch.publicUrl} alt="Rysunek" className="rounded-xl border border-border w-full object-contain bg-secondary max-h-64"/>
+                          <JobPhotoImg src={report.sketch.publicUrl} alt="Rysunek" className="rounded-xl border border-border w-full object-contain bg-secondary max-h-64"/>
                         </a>
                         {report.sketchNote && <p className="text-xs text-muted-foreground mt-2 italic">{report.sketchNote}</p>}
                       </div>

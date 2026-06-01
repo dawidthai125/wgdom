@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { fetchLazyChunk } from "./chunk-helpers";
 
 /** Głębsze smoke mobile — bez logowania (brak haseł w CI). Produkcja lub preview. */
 test.describe("Mobile flows — nawigacja startowa", () => {
@@ -32,12 +33,8 @@ test.describe("Mobile flows — nawigacja startowa", () => {
   });
 
   test("chunk panel-inspector — dostępny (lazy-load po zalogowaniu)", async ({ request, baseURL }) => {
-    const html = await (await request.get(`${baseURL}/`)).text();
-    const match = html.match(/panel-inspector-[\w]+\.js/);
-    expect(match, "brak panel-inspector w HTML").toBeTruthy();
-    const res = await request.get(`${baseURL}/assets/${match![0]}`);
-    expect(res.ok()).toBeTruthy();
-    expect((await res.body()).byteLength).toBeGreaterThan(50_000);
+    const { bytes } = await fetchLazyChunk(request, baseURL!, "panel-inspector");
+    expect(bytes).toBeGreaterThan(50_000);
   });
 
   test("mobile shell — overflow hidden na html (scroll wewnątrz panelu)", async ({ page }) => {

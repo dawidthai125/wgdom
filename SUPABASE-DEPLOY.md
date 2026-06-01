@@ -6,7 +6,7 @@ Backend W&G DOM to **jedna Edge Function** na Supabase. Frontend (Vercel) tylko 
 - wgrywanie zdjęć,
 - **link podglądu dla klienta** (v2.5).
 
-**Twój projekt:** `kchwyjlnkdlymwvsnfiu`  
+**Twój projekt:** `bdpygdvfgbggermvqtys`  
 **Nazwa funkcji:** `make-server-0afb8820`  
 **Pliki w repozytorium:** `supabase/functions/make-server-0afb8820/index.tsx` + `kv_store.tsx`
 
@@ -30,7 +30,7 @@ Backend W&G DOM to **jedna Edge Function** na Supabase. Frontend (Vercel) tylko 
 
 1. Otwórz [https://supabase.com/dashboard](https://supabase.com/dashboard)
 2. Zaloguj się na konto, na którym masz projekt W&G DOM
-3. Kliknij projekt **`kchwyjlnkdlymwvsnfiu`** (lub ten, którego ID masz w Vercel jako `VITE_SUPABASE_PROJECT_ID`)
+3. Kliknij projekt **`bdpygdvfgbggermvqtys`** (lub ten, którego ID masz w Vercel jako `VITE_SUPABASE_PROJECT_ID`)
 
 ---
 
@@ -224,7 +224,7 @@ Jeśli wkleisz URL health w pasek adresu, dostaniesz:
 
 ```powershell
 $anon = "TWOJ_ANON_KEY"
-Invoke-RestMethod -Uri "https://kchwyjlnkdlymwvsnfiu.supabase.co/functions/v1/make-server-0afb8820/health" -Headers @{ Authorization = "Bearer $anon"; apikey = $anon }
+Invoke-RestMethod -Uri "https://bdpygdvfgbggermvqtys.supabase.co/functions/v1/make-server-0afb8820/health" -Headers @{ Authorization = "Bearer $anon"; apikey = $anon }
 ```
 
 Oczekiwany wynik:
@@ -274,7 +274,7 @@ ok
 ```powershell
 $anon = "TWOJ_ANON_KEY"
 $token = "TOKEN_Z_LINKU"
-Invoke-RestMethod -Uri "https://kchwyjlnkdlymwvsnfiu.supabase.co/functions/v1/make-server-0afb8820/client-share?token=$token" -Headers @{ Authorization = "Bearer $anon" }
+Invoke-RestMethod -Uri "https://bdpygdvfgbggermvqtys.supabase.co/functions/v1/make-server-0afb8820/client-share?token=$token" -Headers @{ Authorization = "Bearer $anon" }
 ```
 
 Oczekiwany wynik: `ok : True` oraz obiekt `job` z adresem i tablicą `photos`.
@@ -305,13 +305,13 @@ npm i -g supabase
 supabase login
 
 # Połączenie z projektem
-supabase link --project-ref kchwyjlnkdlymwvsnfiu
+supabase link --project-ref bdpygdvfgbggermvqtys
 
 # Sekret (jednorazowo)
 supabase secrets set RESEND_API_KEY=re_twoj_klucz
 
 # Deploy funkcji
-supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfiu
+supabase functions deploy make-server-0afb8820 --project-ref bdpygdvfgbggermvqtys
 ```
 
 > Jeśli CLI zgłasza brak `config.toml`, bezpieczniej użyj **kroku 3 (Dashboard)** — wklejenie dwóch plików ręcznie.

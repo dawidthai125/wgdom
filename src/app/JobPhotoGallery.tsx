@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Camera, Eye, X, ThumbsUp, ThumbsDown, CheckCircle2, Clock3 } from "lucide-react";
 import type { PhotoEntry } from "@/app/app-domain";
 import { PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, PHOTO_LABEL_SECTION } from "@/app/app-domain";
-import type { JobActivityType } from "@/lib/job-activity";
+import { JobPhotoImg } from "@/app/JobPhotoImg";
 
 export function JobPhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photos:PhotoEntry[], activity?: {type: JobActivityType; text: string})=>void}) {
   const [lightbox, setLightbox] = useState<PhotoEntry|null>(null);
@@ -50,7 +50,7 @@ export function JobPhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpd
     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
       {items.map((p) => (
         <div key={p.id} className="group relative aspect-square rounded-xl overflow-hidden bg-secondary cursor-pointer" onClick={() => setLightbox(p)}>
-          <img src={p.publicUrl} alt={p.label} className="w-full h-full object-cover"/>
+          <JobPhotoImg src={p.publicUrl} alt={p.label} className="w-full h-full object-cover"/>
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
             <Eye size={20} className="text-white drop-shadow"/>
           </div>
@@ -186,7 +186,7 @@ export function JobPhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpd
       {lightbox && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90" onClick={()=>setLightbox(null)}>
           <button className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-2"><X size={24}/></button>
-          <img src={lightbox.publicUrl} alt={lightbox.label} className="max-w-full max-h-[90dvh] rounded-xl object-contain" onClick={e=>e.stopPropagation()}/>
+          <JobPhotoImg src={lightbox.publicUrl} alt={lightbox.label} className="max-w-full max-h-[90dvh] rounded-xl object-contain" onClick={(e)=>e.stopPropagation()}/>
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center">
             <p className="text-white/90 text-sm font-medium">{PHOTO_LABEL_NAMES[lightbox.label]}</p>
             {lightbox.caption && <p className="text-white/80 text-xs mt-1 italic">{lightbox.caption}</p>}

@@ -328,7 +328,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 ## 12. Supabase — backend
 
 **Funkcja:** `supabase/functions/make-server-0afb8820/index.tsx`  
-**Project ref:** `kchwyjlnkdlymwvsnfiu` (w workflow deploy)  
+**Project ref:** `bdpygdvfgbggermvqtys` (w workflow deploy)  
 **Klient API:** `API_BASE` = `https://{PROJECT_ID}.supabase.co/functions/v1/{slug}`  
 **Auth nagłówków:** `Authorization: Bearer {VITE_SUPABASE_ANON_KEY}`
 
@@ -489,7 +489,7 @@ Inspektor ma analogiczny flow w `InspectorPhotoGallery.tsx` + `InspectorJobPhoto
 
 - **Auto:** push na `main` gdy zmieni się `supabase/functions/**` → workflow `.github/workflows/deploy-supabase.yml`
 - **Secret GitHub:** `SUPABASE_ACCESS_TOKEN`
-- **Ręcznie:** `supabase functions deploy make-server-0afb8820 --project-ref kchwyjlnkdlymwvsnfiu`
+- **Ręcznie:** `supabase functions deploy make-server-0afb8820 --project-ref bdpygdvfgbggermvqtys`
 
 **Kiedy deploy Supabase jest wymagany:** zmiana `index.tsx`, nowe endpointy, logika batch-set/shrink, storage, SMS, e-mail.
 

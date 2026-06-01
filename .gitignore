@@ -35,3 +35,14 @@ ios/DerivedData/
 test-results/
 e2e-report/
 playwright-report/
+
+# Lokalne backupy danych (zawierają hasła adminów — NIE commitować)
+backups/
+restore-lista-plac-*.json
+
+# Tymczasowe / lokalne kopie
+_old_app.txt
+_206_app.txt
+.env.vercel
+.env.vercel.*
+supabase/.temp/
