@@ -3688,6 +3688,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const remoteMergeInFlightRef = useRef(false);
   const payrollRosterPushRef = useRef(false);
   const autoSyncMountSettledRef = useRef(false);
+  const deleteJobsInFlightRef = useRef(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [jobsBackupStatus, setJobsBackupStatus] = useState<{ current: number; prev: number; prev2: number; today: number } | null>(null);
   const [payrollBackupStatus, setPayrollBackupStatus] = useState<{ employeesPrev: number; employeesPrev2: number; archivePrev: number } | null>(null);
@@ -3773,7 +3774,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       if (typeof wf === "string" && wf) setWeekFrom(wf);
       if (typeof wt === "string" && wt) setWeekTo(wt);
       if (Array.isArray(jbs)) {
-        setJobs(normalizeJobsList(jbs as unknown[]));
+        const tombstones = new Set(getDeletedJobIds());
+        const withoutDeleted = tombstones.size
+          ? (jbs as Job[]).filter((j) => !tombstones.has(j.id))
+          : (jbs as Job[]);
+        setJobs(normalizeJobsList(withoutDeleted as unknown[]));
       }
       if (Array.isArray(cont)) setContacts(cont as EmailContact[]);
     } finally {
@@ -3781,8 +3786,35 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     }
   }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts]);
 
+  const deleteJobsByIds = useCallback(async (ids: string[]) => {
+    const unique = [...new Set(ids.filter(Boolean))];
+    if (unique.length === 0) return;
+    deleteJobsInFlightRef.current = true;
+    clearPendingAutoSync();
+    suppressAutoSyncUntilRef.current = Date.now() + 12_000;
+    let deletedIds = getDeletedJobIds();
+    for (const id of unique) {
+      deletedIds = addDeletedJobId(id);
+    }
+    let updated: Job[] = [];
+    setJobs((prev) => {
+      updated = prev.filter((j) => !unique.includes(j.id));
+      return updated;
+    });
+    try {
+      await pushJobsAfterDelete(updated, deletedIds);
+      toast.success(unique.length === 1 ? "Robota usunięta" : `Usunięto ${unique.length} robot`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Błąd zapisu do chmury";
+      toast.error("Usunięto lokalnie, ale sync chmury nie powiódł się", { description: msg });
+    } finally {
+      deleteJobsInFlightRef.current = false;
+    }
+  }, [clearPendingAutoSync, setJobs]);
+
   const pullFromCloudAndMerge = useCallback(async () => {
     if (!tabVisibleRef.current || !isSupabaseConfigured() || pullInFlightRef.current) return;
+    if (deleteJobsInFlightRef.current) return;
     pullInFlightRef.current = true;
     clearAutoSyncTimers();
     try {
@@ -3800,6 +3832,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const runCloudSync = useCallback(async (opts?: { toastSuccess?: boolean }) => {
     if (!tabVisibleRef.current) return;
     if (pullInFlightRef.current) return;
+    if (deleteJobsInFlightRef.current) return;
     if (!isSupabaseConfigured()) {
       setSyncStatus("offline");
       setSyncError("Brak VITE_SUPABASE_* w Vercel — ustaw zmienne i zrób redeploy");
@@ -4752,7 +4785,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           {view==="jobs"&&(
             <ViewErrorBoundary label="Roboty">
               <Suspense fallback={<ViewLoadFallback label="Ładowanie robot…" />}>
-                <JobsView jobs={jobs} setJobs={setJobs} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={(jobId)=>{ if (jobId) setPendingInspectorJobId(jobId); setViewReturn({ view: "jobs", label: "Roboty" }); setView("inspector"); }} athPreviewEnabled={appSettings.athPreviewEnabled} onOpenTender={(tid)=>{ setPendingTenderId(tid); setViewReturn({ view: "jobs", label: "Roboty" }); setView("tenders"); }} returnNav={viewReturn && viewReturn.view !== "jobs" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingJobId(null); } } : undefined}/>
+                <JobsView jobs={jobs} setJobs={setJobs} onDeleteJobs={deleteJobsByIds} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={(jobId)=>{ if (jobId) setPendingInspectorJobId(jobId); setViewReturn({ view: "jobs", label: "Roboty" }); setView("inspector"); }} athPreviewEnabled={appSettings.athPreviewEnabled} onOpenTender={(tid)=>{ setPendingTenderId(tid); setViewReturn({ view: "jobs", label: "Roboty" }); setView("tenders"); }} returnNav={viewReturn && viewReturn.view !== "jobs" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingJobId(null); } } : undefined}/>
               </Suspense>
             </ViewErrorBoundary>
           )}

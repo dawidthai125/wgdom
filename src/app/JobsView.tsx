@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef, Fragment } from "react";
 import {
   Plus, Trash2, ChevronRight, ChevronLeft, FileText, FileDown, CheckCircle2, Archive,
+  CheckSquare, Square,
   ChevronDown, ChevronUp, Calendar, CalendarDays, X, Phone, Edit2, Check, Search, Building2,
   MapPin, KeyRound, HardHat, StickyNote, Cloud, Download, Upload, Mail, Send,
   Camera, ImagePlus, Eye, ArrowLeft, ClipboardList, Ruler, Images, FolderOpen, Package,
@@ -50,7 +51,7 @@ import {
   scopeTextToWorkItems, workItemsToScopeText,
 } from "@/lib/work-scope-text";
 import { contactsForJobs, contactAllowsJobs, type EmailContact } from "@/lib/email-contacts";
-import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
+import { API_BASE, API_HEADERS, addDeletedJobId, getDeletedJobIds, pushJobsAfterDelete } from "@/lib/cloud-sync";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
 import {
   normalizeJobWmFields, isWmClient, fmtPlannedHandover, HANDOVER_STAGE_LABELS,
@@ -483,6 +484,7 @@ export function JobEmailModal({
 export function JobsView({
   jobs,
   setJobs,
+  onDeleteJobs,
   directory,
   contacts,
   onManageContacts,
@@ -497,6 +499,7 @@ export function JobsView({
 }: {
   jobs: Job[];
   setJobs: (v: Job[] | ((p: Job[]) => Job[])) => void;
+  onDeleteJobs?: (ids: string[]) => Promise<void>;
   directory: DirectoryEmployee[];
   contacts: EmailContact[];
   onManageContacts: () => void;
@@ -517,6 +520,9 @@ export function JobsView({
   const [showJobLegend, setShowJobLegend] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteConfirmListId, setDeleteConfirmListId] = useState<string | null>(null);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkSelectedIds, setBulkSelectedIds] = useState<Set<string>>(() => new Set());
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const [workerFilter, setWorkerFilter] = useState<string>("");
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [packBusy, setPackBusy] = useState(false);
@@ -777,16 +783,68 @@ export function JobsView({
     openJob(j.id);
   };
 
-  const deleteJob = (id: string) => {
-    const deletedIds = addDeletedJobId(id);
-    setJobs((prev) => {
-      const updated = prev.filter((j) => j.id !== id);
-      pushJobsAfterDelete(updated, deletedIds).catch(() => {});
-      return updated;
-    });
-    if (selectedJobId === id) setSelectedJobId(null);
+  const deleteJob = async (id: string) => {
+    if (deleteBusy) return;
+    setDeleteBusy(true);
     setDeleteConfirmId(null);
     setDeleteConfirmListId(null);
+    if (selectedJobId === id) setSelectedJobId(null);
+    setBulkSelectedIds((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+    try {
+      if (onDeleteJobs) {
+        await onDeleteJobs([id]);
+      } else {
+        const deletedIds = addDeletedJobId(id);
+        setJobs((prev) => {
+          const updated = prev.filter((j) => j.id !== id);
+          pushJobsAfterDelete(updated, deletedIds).catch(() => {});
+          return updated;
+        });
+      }
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
+  const deleteBulkSelected = async () => {
+    if (deleteBusy || bulkSelectedIds.size === 0) return;
+    const ids = [...bulkSelectedIds];
+    if (!window.confirm(`Usunąć ${ids.length} ${ids.length === 1 ? "robotę" : "robot"}?`)) return;
+    setDeleteBusy(true);
+    setBulkSelectedIds(new Set());
+    setDeleteConfirmId(null);
+    setDeleteConfirmListId(null);
+    if (selectedJobId && ids.includes(selectedJobId)) setSelectedJobId(null);
+    try {
+      if (onDeleteJobs) {
+        await onDeleteJobs(ids);
+      } else {
+        let deletedIds = getDeletedJobIds();
+        for (const id of ids) deletedIds = addDeletedJobId(id);
+        const idSet = new Set(ids);
+        setJobs((prev) => {
+          const updated = prev.filter((j) => !idSet.has(j.id));
+          pushJobsAfterDelete(updated, deletedIds).catch(() => {});
+          return updated;
+        });
+      }
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
+  const toggleBulkSelect = (id: string) => {
+    setBulkSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const exportJobPDF = async (job: Job) => {
@@ -1100,6 +1158,34 @@ export function JobsView({
           <JobListFilterBar filter={filter} onFilter={setFilter} counts={filterCounts}/>
           <button
             type="button"
+            onClick={() => {
+              setBulkMode((v) => !v);
+              setBulkSelectedIds(new Set());
+              setDeleteConfirmListId(null);
+            }}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border border-border bg-secondary/60 hover:bg-secondary transition-colors"
+          >
+            {bulkMode ? <CheckSquare size={13}/> : <Square size={13}/>}
+            {bulkMode ? "Tryb masowy — zaznacz roboty" : "Zaznacz wiele do usunięcia"}
+          </button>
+          {bulkMode && bulkSelectedIds.size > 0 && (
+            <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-destructive/10 border border-destructive/25">
+              <span className="text-xs font-medium">{bulkSelectedIds.size} zaznaczonych</span>
+              <button
+                type="button"
+                disabled={deleteBusy}
+                onClick={() => void deleteBulkSelected()}
+                className="px-3 py-1.5 rounded-lg bg-destructive text-white text-xs font-medium flex items-center gap-1 disabled:opacity-50"
+              >
+                <Trash2 size={12}/>{deleteBusy ? "Usuwanie…" : "Usuń"}
+              </button>
+              <button type="button" onClick={() => setBulkSelectedIds(new Set())} className="text-xs text-muted-foreground hover:underline">
+                Wyczyść
+              </button>
+            </div>
+          )}
+          <button
+            type="button"
             onClick={() => setShowJobLegend((v) => !v)}
             className="w-full text-[11px] text-muted-foreground hover:text-foreground py-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
           >
@@ -1144,11 +1230,15 @@ export function JobsView({
                     workerCount={workerCount}
                     totalHoursLabel={fmtH(jobTotalHours(job))}
                     costLabel={cost > 0 ? `${fmt(cost)} PLN` : null}
+                    bulkMode={bulkMode}
+                    bulkSelected={bulkSelectedIds.has(job.id)}
+                    onBulkToggle={() => toggleBulkSelect(job.id)}
                     onSelect={() => openJob(job.id)}
                     onDeleteRequest={() => { setDeleteConfirmListId(job.id); setDeleteConfirmId(null); }}
                     deleteConfirm={deleteConfirmListId === job.id}
-                    onDeleteConfirm={() => deleteJob(job.id)}
+                    onDeleteConfirm={() => void deleteJob(job.id)}
                     onDeleteCancel={() => setDeleteConfirmListId(null)}
+                    deleteBusy={deleteBusy}
                   />
                 );
               })}
@@ -1334,11 +1424,11 @@ export function JobsView({
                   {deleteConfirmId===selectedJob.id?(
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">Usunąć całą robotę?</span>
-                      <button onClick={()=>deleteJob(selectedJob.id)} className="text-xs bg-destructive text-white px-3 py-1.5 rounded-lg font-medium">Tak, usuń</button>
-                      <button onClick={()=>setDeleteConfirmId(null)} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg"><X size={12}/></button>
+                      <button type="button" disabled={deleteBusy} onClick={() => void deleteJob(selectedJob.id)} className="text-xs bg-destructive text-white px-3 py-1.5 rounded-lg font-medium disabled:opacity-50">{deleteBusy ? "Usuwanie…" : "Usuń"}</button>
+                      <button type="button" onClick={()=>setDeleteConfirmId(null)} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg"><X size={12}/></button>
                     </div>
                   ):(
-                    <button onClick={()=>{ setDeleteConfirmId(selectedJob.id); setDeleteConfirmListId(null); }} className="flex items-center gap-1.5 text-xs px-3 py-1.5 text-destructive hover:bg-destructive/10 border border-destructive/30 rounded-lg font-medium transition-colors">
+                    <button type="button" onClick={()=>{ setDeleteConfirmId(selectedJob.id); setDeleteConfirmListId(null); }} className="flex items-center gap-1.5 text-xs px-3 py-1.5 text-destructive hover:bg-destructive/10 border border-destructive/30 rounded-lg font-medium transition-colors">
                       <Trash2 size={12}/>Usuń robotę
                     </button>
                   )}

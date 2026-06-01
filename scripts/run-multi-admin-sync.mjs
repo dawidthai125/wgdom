@@ -5,6 +5,7 @@
  */
 import { chromium } from "playwright";
 import { readFileSync } from "fs";
+import { clickNavJobs } from "./e2e-sync-helpers.mjs";
 
 const env = readFileSync(".env", "utf8");
 const pid = env.match(/VITE_SUPABASE_PROJECT_ID=(.+)/)?.[1]?.trim();
@@ -56,8 +57,8 @@ async function waitBootstrap(page, ms = 8000) {
 }
 
 async function goToJobs(page) {
-  await page.getByRole("button", { name: /Roboty/i }).first().click({ timeout: 15_000 });
-  await page.waitForTimeout(1200);
+  await clickNavJobs(page);
+  await page.waitForTimeout(400);
 }
 
 async function getJobs(page) {
@@ -120,7 +121,8 @@ async function addJobWithMarker(page, marker) {
 
 async function openJobByMarker(page, marker) {
   await goToJobs(page);
-  await page.locator("button").filter({ hasText: marker }).first().click({ timeout: 20_000 });
+  const row = page.locator("button").filter({ hasText: marker }).first();
+  await row.click({ timeout: 20_000 });
   await page.waitForTimeout(1000);
   await page.locator('input[placeholder*="Przykładowa"]').first().waitFor({ timeout: 10_000 });
 }

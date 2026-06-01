@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { ClipboardList, Plus, ChevronUp, ChevronDown, Ruler, Trash2 } from "lucide-react";
 import { WorkScopeDisplay } from "@/app/WorkScopeEditor";
+import { JobReportForm } from "@/app/JobReportForm";
 import type { WorkerJobReport } from "@/app/app-domain";
 import { fmtDate, roomDisplayName } from "@/app/app-domain";
 import { getReportWorkScopeText, reportHasWorkScope, scopeTextLineCount } from "@/lib/work-scope-text";

@@ -3,6 +3,7 @@
  * PW_BASE_URL=http://127.0.0.1:5204 node scripts/run-smoke-admin.mjs
  */
 import { chromium } from "playwright";
+import { clickNavJobs } from "./e2e-sync-helpers.mjs";
 
 const BASE = process.env.PW_BASE_URL || "http://127.0.0.1:5199";
 const MARKER = `SMOKE-${Date.now()}`;
@@ -86,7 +87,7 @@ try {
   console.log("✓ logowanie admina");
 
   await page.waitForTimeout(6000);
-  await page.getByRole("button", { name: /Roboty/i }).first().click();
+  await clickNavJobs(page);
   await page.waitForTimeout(1000);
   await page.getByRole("button", { name: /Nowa robota/i }).first().click();
   await page.waitForTimeout(700);

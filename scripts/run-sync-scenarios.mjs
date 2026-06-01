@@ -3,6 +3,16 @@
  * PW_BASE_URL=http://127.0.0.1:5199 node scripts/run-sync-scenarios.mjs
  */
 import { chromium } from "playwright";
+import {
+  clickNavJobs,
+  clickNavPayroll,
+  clickFirstProductionJob,
+  evaluateSc01,
+  evaluateSc02,
+  evaluateSc04,
+  evaluateSc08,
+  countFullSync14,
+} from "./e2e-sync-helpers.mjs";
 
 const BASE = process.env.PW_BASE_URL || "http://127.0.0.1:5199";
 
@@ -58,9 +68,9 @@ function attachTracker(page) {
 }
 
 async function editJob(page) {
-  await page.getByRole("button", { name: "Roboty 9" }).click();
-  await page.waitForTimeout(1500);
-  await page.locator("button").filter({ hasText: /ul\.|m\.|Warsz|Krak|Gda|Łód|Wroc|Pozn/i }).first().click({ timeout: 10_000 });
+  await clickNavJobs(page);
+  await page.waitForTimeout(700);
+  await clickFirstProductionJob(page);
   await page.waitForTimeout(800);
   const ta = page.locator("textarea").first();
   await ta.fill(`sync-${Date.now()}`);
@@ -131,7 +141,7 @@ if (shouldRun("SC-08")) {
 results["SC-08"] = await runScenario("SC-08 toggle settled +15s", async (page) => {
   await login(page);
   await page.waitForTimeout(3000);
-  await page.getByRole("button", { name: /Lista płac/i }).first().click();
+  await clickNavPayroll(page);
   await page.waitForTimeout(2000);
   await page.getByRole("button", { name: /Oczekuje/i }).first().click();
   await page.waitForTimeout(15_000);
@@ -158,4 +168,19 @@ results["SC-10"] = await runScenario("SC-10 ukryta karta 70s + powrót", async (
 }
 
 console.log("\n=== FINAL ===");
+const evaluators = {
+  "SC-01": evaluateSc01,
+  "SC-02": evaluateSc02,
+  "SC-04": evaluateSc04,
+  "SC-08": evaluateSc08,
+};
+for (const [id, r] of Object.entries(results)) {
+  const pass = evaluators[id]?.(r) ?? !r.error;
+  r.pass = pass;
+  r.fullSync14Get = countFullSync14(r.batchGetDetail);
+  r.fullSync14Set = countFullSync14(r.batchSetDetail);
+  console.log(`${id}: ${pass ? "PASS" : "FAIL"}${r.error ? ` (${r.error})` : ""}`);
+}
 console.log(JSON.stringify(results, null, 2));
+const allPass = Object.values(results).every((r) => r.pass);
+process.exit(allPass ? 0 : 1);

@@ -1,4 +1,4 @@
-import { FileText, ClipboardList, KeyRound, Trash2, X } from "lucide-react";
+import { FileText, ClipboardList, KeyRound, Trash2, X, CheckSquare, Square } from "lucide-react";
 import { JobListPrimaryBadge } from "@/app/JobListStatus";
 import { JobMetaBadges } from "@/app/JobMetaPickers";
 import { JobWmPlannedBadge } from "@/app/JobWmPanel";
@@ -22,11 +22,15 @@ export function JobListCard({
   workerCount,
   totalHoursLabel,
   costLabel,
+  bulkMode,
+  bulkSelected,
+  onBulkToggle,
   onSelect,
   onDeleteRequest,
   deleteConfirm,
   onDeleteConfirm,
   onDeleteCancel,
+  deleteBusy,
 }: {
   job: JobListCardJob;
   selected: boolean;
@@ -34,11 +38,15 @@ export function JobListCard({
   workerCount: number;
   totalHoursLabel: string;
   costLabel: string | null;
+  bulkMode?: boolean;
+  bulkSelected?: boolean;
+  onBulkToggle?: () => void;
   onSelect: () => void;
   onDeleteRequest: () => void;
   deleteConfirm: boolean;
   onDeleteConfirm: () => void;
   onDeleteCancel: () => void;
+  deleteBusy?: boolean;
 }) {
   const docsCount = DOCUMENT_TYPES.filter((d) => job.documents[d]).length;
   const missingDocs = jobMissingRequiredDocs(job);
@@ -48,7 +56,20 @@ export function JobListCard({
   return (
     <div className={`flex items-stretch border-b border-border transition-colors ${
       selected ? "bg-primary/8 border-l-2 border-l-primary" : ""
-    } ${isDuplicate ? "bg-amber-500/5" : ""}`}>
+    } ${isDuplicate ? "bg-amber-500/5" : ""} ${bulkSelected ? "bg-destructive/5" : ""}`}>
+      {bulkMode && (
+        <div className="flex items-center pl-3 shrink-0">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onBulkToggle?.(); }}
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
+            aria-label={bulkSelected ? "Odznacz robotę" : "Zaznacz robotę"}
+            aria-pressed={bulkSelected}
+          >
+            {bulkSelected ? <CheckSquare size={16} className="text-destructive"/> : <Square size={16}/>}
+          </button>
+        </div>
+      )}
       <button
         type="button"
         onClick={onSelect}
@@ -123,12 +144,12 @@ export function JobListCard({
         )}
       </button>
       <div className="flex items-center pr-2 shrink-0">
-        {deleteConfirm ? (
+        {!bulkMode && (deleteConfirm ? (
           <div className="flex flex-col items-end gap-1 py-2" onClick={(e) => e.stopPropagation()}>
             <span className="text-[10px] text-muted-foreground text-right leading-tight max-w-[72px]">Usunąć?</span>
             <div className="flex items-center gap-1">
-              <button type="button" onClick={onDeleteConfirm} className="text-[10px] bg-destructive text-white px-2 py-1 rounded font-medium">Tak</button>
-              <button type="button" onClick={onDeleteCancel} className="text-[10px] text-muted-foreground px-1"><X size={12}/></button>
+              <button type="button" disabled={deleteBusy} onClick={onDeleteConfirm} className="text-[10px] bg-destructive text-white px-2.5 py-1.5 rounded font-medium min-h-[32px] disabled:opacity-50">{deleteBusy ? "…" : "Usuń"}</button>
+              <button type="button" onClick={onDeleteCancel} className="text-[10px] text-muted-foreground px-1 min-h-[32px]"><X size={12}/></button>
             </div>
           </div>
         ) : (
@@ -136,11 +157,11 @@ export function JobListCard({
             type="button"
             onClick={(e) => { e.stopPropagation(); onDeleteRequest(); }}
             title="Usuń robotę"
-            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+            className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
           >
             <Trash2 size={14}/>
           </button>
-        )}
+        ))}
       </div>
     </div>
   );
