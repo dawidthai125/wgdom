@@ -1,9 +1,12 @@
 import { useState, useCallback, useMemo, useEffect, useRef, Fragment, createContext, useContext, lazy, Suspense, type RefObject } from "react";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
-import { ViewLoadFallback } from "@/app/ViewLoadFallback";
-import { ViewErrorBoundary } from "@/app/ViewErrorBoundary";
-import { JobPhotosGalleryView } from "@/app/JobPhotosGalleryView";
+import { AdminSidebar } from "@/app/admin/AdminSidebar";
+import { AdminTopbar } from "@/app/admin/AdminTopbar";
+import { GlobalSearchPanel } from "@/app/admin/GlobalSearchPanel";
+import { AdminViewRouter } from "@/app/admin/AdminViewRouter";
+import { AdminMobileNav } from "@/app/admin/AdminMobileNav";
+import { buildAdminNavItems, splitMobileNav, type View } from "@/app/admin/admin-nav";
 import { EmployeeSmsModal } from "@/app/EmployeeSmsModal";
 import { SmsModalErrorBoundary } from "@/app/SmsModalErrorBoundary";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
@@ -121,28 +124,11 @@ import {
 const InspectorPanel = lazy(() =>
   import("@/app/InspectorPanel").then((m) => ({ default: m.InspectorPanel })),
 );
-const InspectorAdminView = lazy(() =>
-  import("@/app/InspectorAdminView").then((m) => ({ default: m.InspectorAdminView })),
-);
-const JobFilesBrowser = lazy(() =>
-  import("@/app/JobFilesBrowser").then((m) => ({ default: m.JobFilesBrowser })),
-);
-const TendersView = lazy(() =>
-  import("@/app/TendersView").then((m) => ({ default: m.TendersView })),
-);
-const CompanyMusicPlayer = lazy(() =>
-  import("@/app/components/CompanyMusicPlayer").then((m) => ({ default: m.CompanyMusicPlayer })),
-);
-const GuideView = lazy(() =>
-  import("@/app/GuideView").then((m) => ({ default: m.GuideView })),
-);
 import type { DayKey, DirectoryEmployee, DayData, EmployeeExtraCost, WeekEmployee, WeekSnapshot, DocType, PhotoEntry, RoomTypeKey, RoomDimension, WorkerJobReport, Job, PayrollJobConsistencyAlert, JobGalleryBucket } from "@/app/app-domain";
 import { DAYS, MULTI_SITE_SCHEDULE_LABEL, MONTH_NAMES, DOCUMENT_TYPES, REQUIRED_DOCS, DOC_LABELS, ROOM_TYPE_LABELS, defaultDirEmployee, isTestDirectoryEmployee, isProductionDirectoryEmployee, filterProductionDirectory, filterProductionActiveDirectory, filterProductionWeekEmployees, normalizeDirectoryTestFlags, PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, PHOTO_LABEL_SECTION, weekEmployeeFromDir, hoursWorked, dayTotalHours, payrollJobConsistencyAlerts, buildEmployeeArchiveStats, consistencyAlertMessage, fmt, fmtH, fmtDate, getWeekRange, calcWeekEmployee, extraCostStatus, PHOTO_STATUS_LABELS, EXTRA_COST_STATUS_LABELS, workerTodayWorkInfo, fixJobsForConsistencyAlert, defaultJob, normalizeJobsList, jobDaysSinceStart, jobWorkerReports, reportNeedsAdminAttention, normalizeWorkerReport, workItemHasContent, roomHasContent, roomDisplayName, defaultRoom, jobCost, jobMaterialsCost, jobTotalCost, GALLERY_ARCHIVE_DAYS, jobDisplayTitle, jobApprovedPhotos, jobHandoverIso, jobGalleryBucket, galleryDaysUntilArchive, todayDayKey, localIsoDate, todayIsoDate, fridayIsoOfWeek, findWeekEmployeeForWorker, workerPayoutHistory, todayFieldWorkStats, jobsForEmployeeOnDashboard, weekDayColumns, scheduleCellFor, buildWeekSnapshot, scheduleCellFromArchive, formatJobStreet, workerHasPhonePin, workerPhonePinValid, workerHasPersonalPin, workerPinTooWeak, applyWriteTimestamps } from "@/app/app-domain";
 import { AdminAccessContext, useAdminAccess } from "@/app/admin-access";
 import { Checkbox, StatCard, NavItemWithHint, LabelWithHint, VoiceNoteButton, PayrollDayCellDisplay } from "@/app/app-ui";
 import { WeekEmployeeDetail } from "@/app/WeekEmployeeDetail";
-const PayrollView = lazy(() => import("@/app/PayrollView").then((m) => ({ default: m.PayrollView })));
-const JobsView = lazy(() => import("@/app/JobsView").then((m) => ({ default: m.JobsView })));
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { JobCostBreakdownPanel } from "@/app/JobCostBreakdownPanel";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
@@ -3485,8 +3471,6 @@ function AdminSettingsModal({
 
 // ─── Root App ─────────────────────────────────────────────────────────────────
 
-type View = "dashboard" | "payroll" | "schedule" | "directory" | "contacts" | "archive" | "jobs" | "inspector" | "photos" | "jobfiles" | "guide" | "tenders";
-
 function CloudLoader({children}: {children: React.ReactNode}) {
   const [ready, setReady] = useState(false);
 
@@ -4457,24 +4441,21 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     return () => { cancelled = true; };
   }, [canViewTendersNav, view]);
 
-  const navItems: {key:View;label:string;hint:string;icon:React.ElementType;badge?:number}[] = [
-    {key:"dashboard", label:"Pulpit", hint:"Podsumowanie tygodnia, alerty (spójność, dokumenty, zdjęcia) i szybkie skróty.", icon:LayoutDashboard},
-    {key:"payroll", label:"Lista Płac", hint:"Godziny, stawki, zaliczki i wypłaty za bieżący tydzień. Eksport PDF i Word.", icon:FileText},
-    {key:"schedule", label:"Grafik", hint:"Kto pracuje którego dnia — widok Pn–So na podstawie listy płac.", icon:CalendarDays, badge:productionWeekEmployees.length || undefined},
-    {key:"directory", label:"Pracownicy", hint:"Kartoteka: dane, stawki, telefony, kod 4-cyfrowy, konto testowe, archiwum.", icon:Users, badge:filterProductionActiveDirectory(directory).length},
-    {key:"contacts", label:"Kontakty", hint:"Adresy e-mail klientów i współpracowników — do wysyłki z robot.", icon:Mail, badge:contacts.filter(c=>c.email.trim()).length||undefined},
-    {key:"archive", label:"Archiwum", hint:"Zapisane tygodnie — edycja godzin, raporty miesięczne i roczne.", icon:Archive, badge:savedWeeks.length||undefined},
-    {key:"jobs", label:"Roboty", hint:"Adresy remontów: dokumenty, czas pracy, materiały, zdjęcia i raporty.", icon:MapPin, badge:(()=>{ const pend=jobs.reduce((s,j)=>s+(j.photos||[]).filter(p=>p.status==="pending").length,0); return pend>0?pend:jobs.filter(j=>j.status==="in_progress").length||undefined; })()},
-    {key:"inspector", label:"Inspektor", hint:"Zmiany inspektora: dokumenty, zlecenia PDF i kosztorysy — osobno od kart robót.", icon:ClipboardCheck, badge:(()=>{ const notes=jobsWithInspectorNotesNeedingAdmin(jobs,getAdminJobNotesSeenAt(adminSession?.id)); const n=countUnseenInspectorAlerts(jobs,adminSession?.id,notes.length); return n>0?n:undefined; })()},
-    {key:"photos", label:"Zdjęcia", hint:"Zaakceptowane zdjęcia z robot — galeria i archiwum po 30 dniach od zdania.", icon:Images, badge:(()=>{ const n=jobs.reduce((s,j)=>{ const b=jobGalleryBucket(j); return b==="active"||b==="grace"?s+jobApprovedPhotos(j).length:s;},0); return n||undefined; })()},
-    {key:"jobfiles", label:"Pliki robot", hint:"Wszystkie pliki z robot: zlecenia, kosztorysy, zdjęcia, rysunki — pobierz pojedynczo lub ZIP.", icon:FolderOpen, badge:(()=>{ const n=jobs.reduce((s,j)=>jobHasBrowserFiles(j)?s+countBrowserFiles(j):s,0); return n||undefined; })()},
-    {key:"guide", label:"Zmiany/Instrukcja", hint:"Historia wersji aplikacji i pomoc krok po kroku.", icon:BookOpen},
-    ...(canViewTendersNav ? [{ key: "tenders" as const, label: "Przetargi", hint: "Wrocław — aktywne remonty budynków (mieszkania, biura, uczelnie).", icon: Scale }] : []),
-  ];
+  const navItems = useMemo(
+    () =>
+      buildAdminNavItems({
+        canViewTendersNav,
+        productionWeekEmployees,
+        directory,
+        contacts,
+        savedWeeks,
+        jobs,
+        adminUserId: adminSession?.id,
+      }),
+    [canViewTendersNav, productionWeekEmployees, directory, contacts, savedWeeks, jobs, adminSession?.id],
+  );
 
-  const MOBILE_NAV_PRIMARY: View[] = ["dashboard", "payroll", "schedule", "jobs"];
-  const mobileNavPrimary = navItems.filter((n) => MOBILE_NAV_PRIMARY.includes(n.key));
-  const mobileNavMore = navItems.filter((n) => !MOBILE_NAV_PRIMARY.includes(n.key));
+  const { mobileNavPrimary, mobileNavMore } = useMemo(() => splitMobileNav(navItems), [navItems]);
   const mobileMoreActive = mobileNavMore.some((n) => n.key === view);
 
   const totalNet = useMemo(
@@ -4563,354 +4544,135 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   return (
     <div className="admin-app-shell flex bg-background text-foreground overflow-hidden min-h-0" style={{fontFamily:"'Inter', sans-serif"}}>
 
-      {/* Sidebar — desktop only */}
-      <aside className={`hidden md:flex flex-col border-r border-border bg-card transition-all duration-300 shrink-0 min-h-0 ${sidebarOpen?"w-56":"w-0 overflow-hidden"}`}>
-        {/* Logo */}
-        <div className="admin-sidebar-logo flex flex-col gap-1.5 px-4 py-4 border-b border-border shrink-0">
-          <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-8 w-auto object-contain object-left"/>
-          <p className="text-xs text-muted-foreground font-medium tracking-wide">Zarządzanie Pracą</p>
-        </div>
+      <AdminSidebar
+        sidebarOpen={sidebarOpen}
+        view={view}
+        navItems={navItems}
+        onGoToView={goToView}
+        productionWeekEmployees={productionWeekEmployees}
+        weekFrom={weekFrom}
+        weekTo={weekTo}
+        todayFieldStats={todayFieldStats}
+        totalNet={totalNet}
+        payrollCashSplitSidebar={payrollCashSplitSidebar}
+      />
 
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
-        {/* Nav */}
-        <nav className="admin-sidebar-nav px-3 py-3 space-y-0.5 border-b border-border">
-          {navItems.map(({key,label,hint,icon:Icon,badge})=>(
-            <NavItemWithHint key={key} hint={hint}>
-              <button onClick={()=>goToView(key)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
-                <Icon size={15}/>
-                <span className="flex-1 text-left">{label}</span>
-                {badge!==undefined&&badge>0&&<span className={`text-xs px-1.5 py-0.5 rounded-full ${view===key?"bg-primary/20 text-primary":"bg-secondary text-muted-foreground"}`}>{badge}</span>}
-              </button>
-            </NavItemWithHint>
-          ))}
-        </nav>
-
-        {/* Week summary */}
-        <div className="px-4 py-4">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Bieżący tydzień</p>
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Pracownicy</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{productionWeekEmployees.length}</span></div>
-            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Okres</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtDate(weekFrom).slice(0,5)}–{fmtDate(weekTo).slice(0,5)}</span></div>
-            <div className="flex justify-between text-xs"><span className="text-muted-foreground">Rozliczeni</span><span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{productionWeekEmployees.filter(e=>e.settled).length}/{productionWeekEmployees.length}</span></div>
-            <div className="flex justify-between items-baseline gap-2 text-xs pt-0.5">
-              <span className="text-muted-foreground leading-snug">
-                Dziś
-                <span className="text-muted-foreground/65 normal-case"> ({todayFieldStats.label})</span>
-              </span>
-              <span className="font-medium text-right leading-snug shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}} title="Osoby z wpisem czasu pracy na aktywnej robocie">
-                {todayFieldStats.people} os. · {todayFieldStats.jobs} rob.
-              </span>
-            </div>
-            <div className="pt-2 mt-2 border-t border-border space-y-2">
-              <div>
-                <p className="text-xs text-muted-foreground mb-0.5">Do wypłaty w sobotę</p>
-                <p className="text-lg font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN</p>
-              </div>
-              {payrollCashSplitSidebar.hasBiweeklyEmployees && (
-                <>
-                  <div className="flex justify-between text-[11px]">
-                    <span className="text-muted-foreground">Tygodniówki</span>
-                    <span className="font-medium" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.weeklyNet)}</span>
-                  </div>
-                  {payrollCashSplitSidebar.isAnyBiweeklyPayoutWeek ? (
-                    <div className="flex justify-between text-[11px]">
-                      <span className="text-sky-400/90">Co 2 tyg.</span>
-                      <span className="font-medium text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.biweeklyPayoutNet)}</span>
-                    </div>
-                  ) : (
-                    <div className="flex justify-between text-[11px]">
-                      <span className="text-muted-foreground">Co 2 tyg. → {fmtDate(payrollCashSplitSidebar.nextBiweeklyPayoutDate).slice(0,5)}</span>
-                      <span className="font-medium text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(payrollCashSplitSidebar.biweeklyAccruedNet)}</span>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-        </div>
-      </aside>
-
-      {/* Main */}
       <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden">
-        {/* Topbar */}
-        <div className="admin-topbar flex items-center gap-2 px-3 sm:px-5 py-3 sm:py-3.5 border-b border-border bg-card shrink-0 min-h-[3rem]" style={{paddingTop:"max(0.75rem, env(safe-area-inset-top))"}}>
-          {/* Desktop: sidebar toggle */}
-          <button onClick={()=>setSidebarOpen(v=>!v)} title={sidebarOpen ? "Zwiń menu boczne" : "Rozwiń menu boczne"} className="hidden md:flex p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground shrink-0">
-            <PanelLeft size={15}/>
-          </button>
-          {/* Mobile: logo */}
-          <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-6 w-auto object-contain md:hidden shrink-0"/>
-          {/* Desktop: collapsed nav */}
-          {!sidebarOpen&&<div className="hidden md:flex gap-1 flex-wrap">
-            {navItems.map(({key,label,icon:Icon})=>(
-              <button key={key} onClick={()=>goToView(key)} className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${view===key?"bg-primary/15 text-primary":"text-muted-foreground hover:bg-secondary"}`}><Icon size={12}/>{label}</button>
-            ))}
-          </div>}
-          <ChevronRight size={13} className="text-muted-foreground/40 hidden sm:block shrink-0"/>
-          <h2 className="text-sm font-semibold truncate min-w-0 shrink">{navItems.find(n=>n.key===view)?.label}</h2>
-          {adminSession && (
-            <span className="hidden md:inline text-[10px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full truncate max-w-[180px]" title={adminRoleLabel(adminSession.role)}>
-              {adminSession.displayName}
-            </span>
-          )}
-          <div className="ml-auto flex items-center gap-0.5 sm:gap-2 shrink-0">
-            <div className="hidden sm:block">
-              <Suspense fallback={null}>
-                <CompanyMusicPlayer />
-              </Suspense>
-            </div>
-            {view==="payroll"&&canViewRates&&<span className="text-xs text-muted-foreground hidden sm:block" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(totalNet)} PLN · {productionWeekEmployees.length} prac.</span>}
-            {view==="schedule"&&<span className="text-xs text-muted-foreground hidden sm:block">{fmtDate(weekFrom)} – {fmtDate(weekTo)} · {productionWeekEmployees.length} prac.</span>}
-            {view==="jobs"&&<span className="text-xs text-muted-foreground hidden sm:block">{jobs.filter(j=>j.status==="in_progress").length} aktywne · {jobs.filter(j=>j.status==="completed").length} zdane</span>}
-            {/* Backup — górny pasek (wszyscy admini); przywracanie w ⚙ Super Admin */}
-            <button type="button" onClick={exportBackup} title="Eksportuj backup" className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
-              <Download size={16}/>
-            </button>
-            <label title="Importuj backup" className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground cursor-pointer">
-              <Upload size={16}/>
-              <input type="file" accept=".json" className="hidden" onChange={e=>e.target.files?.[0]&&importBackup(e.target.files[0])}/>
-            </label>
-            {/* Sync indicator — kliknij przy błędzie, aby ponowić */}
-            <button
-              type="button"
-              onClick={() => (syncStatus === "error" || syncStatus === "offline") && runCloudSync({ toastSuccess: true })}
-              className={`p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg ${syncStatus === "error" || syncStatus === "offline" ? "hover:bg-secondary cursor-pointer" : "cursor-default"}`}
-              title={
-                syncStatus === "saving" ? "Zapisywanie..."
-                : syncStatus === "saved" ? "Zsynchronizowano"
-                : syncStatus === "error" ? `Błąd synchronizacji — kliknij, aby ponowić${syncError ? `\n${syncError}` : ""}`
-                : syncStatus === "offline" ? syncError || "Chmura niedostępna — brak konfiguracji"
-                : "Zsynchronizowano"
-              }
-            >
-              {syncStatus==="saving"&&<CloudUpload size={15} className="text-muted-foreground animate-pulse"/>}
-              {syncStatus==="saved"&&<Cloud size={15} className="text-green-500"/>}
-              {syncStatus==="error"&&<CloudOff size={15} className="text-destructive"/>}
-              {syncStatus==="offline"&&<CloudOff size={15} className="text-yellow-500"/>}
-              {syncStatus==="idle"&&<Cloud size={15} className="text-muted-foreground/40"/>}
-            </button>
-            <button onClick={()=>setShowSearch(v=>!v)} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
-              <Search size={16}/>
-            </button>
-            {adminSession && adminIsSuperAdmin(adminSession.role) && (
-              <button onClick={()=>setShowAdminSettings(true)} title="Ustawienia administratorów" className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
-                <Settings size={16}/>
-              </button>
-            )}
-            {onLogout && (
-              <button onClick={onLogout} title="Wyloguj" className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
-                <LogOut size={16}/>
-              </button>
-            )}
-          </div>
-        </div>
+        <AdminTopbar
+          sidebarOpen={sidebarOpen}
+          onToggleSidebar={() => setSidebarOpen((v) => !v)}
+          view={view}
+          navItems={navItems}
+          onGoToView={goToView}
+          adminSession={adminSession}
+          canViewRates={canViewRates}
+          totalNet={totalNet}
+          productionWeekEmployees={productionWeekEmployees}
+          weekFrom={weekFrom}
+          weekTo={weekTo}
+          jobs={jobs}
+          exportBackup={exportBackup}
+          importBackup={importBackup}
+          syncStatus={syncStatus}
+          syncError={syncError}
+          onRetrySync={() => runCloudSync({ toastSuccess: true })}
+          onToggleSearch={() => setShowSearch((v) => !v)}
+          onOpenAdminSettings={() => setShowAdminSettings(true)}
+          onLogout={onLogout}
+        />
 
-        {/* Global search panel */}
         {showSearch && (
-          <div className="border-b border-border bg-card px-4 py-3 space-y-2">
-            <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-              <input autoFocus type="text" placeholder="Szukaj pracownika, adresu, klienta..." value={globalSearch}
-                onChange={e=>setGlobalSearch(e.target.value)}
-                onKeyDown={e=>e.key==="Escape"&&(setShowSearch(false),setGlobalSearch(""))}
-                className="w-full bg-secondary rounded-lg pl-8 pr-10 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"/>
-              <button onClick={()=>{setShowSearch(false);setGlobalSearch("");}} className="absolute right-1 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground touch-manipulation"><X size={14}/></button>
-            </div>
-            {globalSearch.trim() && (
-              <div className="bg-background rounded-xl border border-border overflow-hidden max-h-64 overflow-y-auto">
-                {searchResults.employees.length===0&&searchResults.jobs.length===0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">Brak wyników</p>
-                ) : (
-                  <>
-                    {searchResults.employees.length>0&&(<>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider px-4 py-2 border-b border-border bg-card">Pracownicy</p>
-                      {searchResults.employees.map(e=>(
-                        <button key={e.id} onClick={()=>{setView("directory");setShowSearch(false);setGlobalSearch("");}} className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-secondary transition-colors border-b border-border/50">
-                          <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center text-xs font-bold text-primary shrink-0">{e.name?e.name[0].toUpperCase():"?"}</div>
-                          <div><p className="text-sm font-medium">{e.name}</p><p className="text-xs text-muted-foreground">{e.position||"—"} · {e.phone||"—"}</p></div>
-                        </button>
-                      ))}
-                    </>)}
-                    {searchResults.jobs.length>0&&(<>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider px-4 py-2 border-b border-border bg-card">Roboty</p>
-                      {searchResults.jobs.map(j=>(
-                        <button key={j.id} onClick={()=>{setView("jobs");setShowSearch(false);setGlobalSearch("");}} className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-secondary transition-colors border-b border-border/50">
-                          <MapPin size={14} className="text-muted-foreground shrink-0"/>
-                          <div><p className="text-sm font-medium">{j.address||"Bez adresu"}{j.flatNumber&&` m.${j.flatNumber}`}</p><p className="text-xs text-muted-foreground">{j.client||"—"} · {j.status==="completed"?"Zdane":"W trakcie"}</p></div>
-                        </button>
-                      ))}
-                    </>)}
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+          <GlobalSearchPanel
+            globalSearch={globalSearch}
+            onGlobalSearchChange={setGlobalSearch}
+            searchResults={searchResults}
+            onNavigate={setView}
+            onClose={() => setShowSearch(false)}
+          />
         )}
 
-        {/* Content */}
-        <div className={`flex flex-1 min-h-0 overflow-hidden ${payrollDetailOpen ? "" : "pb-[calc(3.5rem+env(safe-area-inset-bottom))]"} md:pb-0`}>
-          {view==="dashboard"&&(
-            <ViewErrorBoundary label="Pulpit">
-              <DashboardView jobs={jobs} directory={directory} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} savedWeeks={savedWeeks} onNavigate={handleNavigate} onFixJobs={setJobs} adminUserId={adminSession?.id} alertsSeenTick={alertsSeenTick} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} onOpenSms={()=>setShowSmsModal(true)} canViewTenders={canViewTendersNav} tendersStats={tenderDashStats} onOpenTenders={()=>setView("tenders")} onOpenTender={(tid)=>{ setPendingTenderId(tid); setView("tenders"); }}/>
-            </ViewErrorBoundary>
-          )}
-          {view==="payroll"&&(
-            <ViewErrorBoundary label="Lista płac">
-              <Suspense fallback={<ViewLoadFallback label="Ładowanie listy płac…" />}>
-                <PayrollView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} directory={directory} contacts={contacts} jobs={jobs} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onToggleSettled={toggleSettled} onSaveWeek={saveWeek} savedWeeks={savedWeeks} onAddFromDirectory={addFromDirectory} onRemoveWeekEmployee={removeWeekEmployee} onClearAllWeekEmployees={clearAllWeekEmployees} onReplaceWithAllActive={replaceWeekWithAllActive} onUpdateWeekEmployee={updateWeekEmployee} onSyncRatesFromDirectory={syncWeekRatesFromDirectory} onGoToCurrent={goToCurrent} onManageContacts={()=>setView("contacts")} onRestoreFromArchive={restoreWeekFromArchive} onSaveBacklogWeek={saveBiweeklyBacklogWeek} initialEmpId={pendingPayrollEmpId} onInitialEmpConsumed={()=>setPendingPayrollEmpId(null)} onDetailOpenChange={setPayrollDetailOpen}/>
-              </Suspense>
-            </ViewErrorBoundary>
-          )}
-          {view==="schedule"&&(
-            <ViewErrorBoundary label="Grafik">
-              <ScheduleView weekEmployees={productionWeekEmployees} weekFrom={weekFrom} weekTo={weekTo} jobs={jobs} directory={directory} onWeekChange={(f,t)=>{setWeekFrom(f);setWeekTo(t);}} onGoToCurrent={goToCurrent} onOpenPayroll={()=>setView("payroll")}/>
-            </ViewErrorBoundary>
-          )}
-          {view==="directory"&&(
-            <ViewErrorBoundary label="Pracownicy">
-              <DirectoryView directory={directory} savedWeeks={savedWeeks} onChange={setDirectory} onCommit={commitDirectory} onOpenSms={()=>setShowSmsModal(true)}/>
-            </ViewErrorBoundary>
-          )}
-          {view==="contacts"&&(
-            <ViewErrorBoundary label="Kontakty">
-              <ContactsView contacts={contacts} onChange={setContacts}/>
-            </ViewErrorBoundary>
-          )}
-          {view==="archive"&&(
-            <ViewErrorBoundary label="Archiwum">
-              <ArchiveView savedWeeks={savedWeeks} onDelete={(id)=>{ addDeletedArchiveId(id); setSavedWeeks(prev=>prev.filter(w=>w.id!==id)); }} onUpdateWeekEmployee={updateArchiveWeekEmployee} onToggleArchiveSettled={toggleArchiveSettled} jobs={jobs} directory={directory}/>
-            </ViewErrorBoundary>
-          )}
-          {view==="jobs"&&(
-            <ViewErrorBoundary label="Roboty">
-              <Suspense fallback={<ViewLoadFallback label="Ładowanie robot…" />}>
-                <JobsView jobs={jobs} setJobs={setJobs} onDeleteJobs={deleteJobsByIds} directory={directory} contacts={contacts} onManageContacts={()=>setView("contacts")} initialJobId={pendingJobId} onInitialJobConsumed={()=>setPendingJobId(null)} weekEmployees={productionWeekEmployees} weekFrom={weekFrom} onGoToInspector={(jobId)=>{ if (jobId) setPendingInspectorJobId(jobId); setViewReturn({ view: "jobs", label: "Roboty" }); setView("inspector"); }} athPreviewEnabled={appSettings.athPreviewEnabled} onOpenTender={(tid)=>{ setPendingTenderId(tid); setViewReturn({ view: "jobs", label: "Roboty" }); setView("tenders"); }} returnNav={viewReturn && viewReturn.view !== "jobs" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingJobId(null); } } : undefined}/>
-              </Suspense>
-            </ViewErrorBoundary>
-          )}
-          {view==="inspector"&&(
-            <ViewErrorBoundary label="Inspektor">
-              <Suspense fallback={<ViewLoadFallback label="Ładowanie inspektora…" />}>
-                <InspectorAdminView jobs={jobs} setJobs={setJobs} directory={directory} adminUserId={adminSession?.id} adminDisplayName={adminSession?.displayName || "Administrator"} adminRole={adminSession?.role} initialTab={inspectorInitialTab} initialJobId={pendingInspectorJobId} onInitialJobConsumed={()=>setPendingInspectorJobId(null)} contacts={contacts} athPreviewEnabled={appSettings.athPreviewEnabled} onAlertsSeen={()=>setAlertsSeenTick(t=>t+1)} returnNav={viewReturn && viewReturn.view !== "inspector" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingInspectorJobId(null); } } : undefined}/>
-              </Suspense>
-            </ViewErrorBoundary>
-          )}
-          {view==="photos"&&(
-            <ViewErrorBoundary label="Zdjęcia">
-              <JobPhotosGalleryView jobs={jobs} onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>
-            </ViewErrorBoundary>
-          )}
-          {view==="jobfiles"&&(
-            <ViewErrorBoundary label="Pliki">
-              <Suspense fallback={<ViewLoadFallback label="Ładowanie plików…" />}>
-                <JobFilesBrowser jobs={jobs} athPreviewEnabled={appSettings.athPreviewEnabled} layout="admin" onOpenJob={(id)=>{ setPendingJobId(id); setView("jobs"); }}/>
-              </Suspense>
-            </ViewErrorBoundary>
-          )}
-          {view==="guide"&&(
-            <ViewErrorBoundary label="Instrukcja">
-              <Suspense fallback={<ViewLoadFallback label="Ładowanie instrukcji…" />}>
-                <GuideView/>
-              </Suspense>
-            </ViewErrorBoundary>
-          )}
-          {view==="tenders"&&canViewTendersNav&&(
-            <ViewErrorBoundary label="Przetargi">
-              <Suspense fallback={<ViewLoadFallback label="Ładowanie przetargów…" />}>
-            <TendersView
-              showTestBadge={adminSession ? adminIsSuperAdmin(adminSession.role) : false}
-              athPreviewEnabled={appSettings.athPreviewEnabled}
-              initialExpandedId={pendingTenderId}
-              onOpenJob={(id) => { setPendingJobId(id); setView("jobs"); }}
-              onCreateJobFromTender={(draft, item) => {
-                const j = defaultJob();
-                j.address = draft.address.slice(0, 120);
-                j.client = draft.client;
-                j.notes = draft.notes;
-                if (draft.invoiceAmount) j.invoiceAmount = draft.invoiceAmount;
-                j.linkedTenderId = draft.linkedTenderId;
-                j.linkedTenderBzpNumber = draft.linkedTenderBzpNumber;
-                appendJobActivity(j, "note", `Utworzono z przetargu BZP: ${item.bzpNumber}`);
-                setJobs((prev) => [j, ...prev]);
-                const actor = adminSession?.displayName || "Administrator";
-                void import("@/lib/tenders-bzp").then(({ attachTenderAssetsToJob }) =>
-                  attachTenderAssetsToJob(j.id, item, actor),
-                ).then((attachments) => {
-                  if (!attachments?.length) return;
-                  setJobs((prev) => prev.map((job) =>
-                    job.id === j.id
-                      ? { ...job, jobFiles: [...(job.jobFiles || []), ...attachments] }
-                      : job,
-                  ));
-                });
-                setPendingJobId(j.id);
-                setView("jobs");
-                return j.id;
-              }}
-            />
-            </Suspense>
-            </ViewErrorBoundary>
-          )}
-        </div>
+        <AdminViewRouter
+          view={view}
+          payrollDetailOpen={payrollDetailOpen}
+          canViewTendersNav={canViewTendersNav}
+          embedded={{
+            DashboardView,
+            ScheduleView,
+            DirectoryView,
+            ContactsView,
+            ArchiveView,
+          }}
+          jobs={jobs}
+          directory={directory}
+          productionWeekEmployees={productionWeekEmployees}
+          weekFrom={weekFrom}
+          weekTo={weekTo}
+          savedWeeks={savedWeeks}
+          contacts={contacts}
+          adminSession={adminSession}
+          alertsSeenTick={alertsSeenTick}
+          onAlertsSeen={() => setAlertsSeenTick((t) => t + 1)}
+          onOpenSms={() => setShowSmsModal(true)}
+          tenderDashStats={tenderDashStats}
+          onOpenTenders={() => setView("tenders")}
+          onOpenTender={(tid) => { setPendingTenderId(tid); setView("tenders"); }}
+          handleNavigate={handleNavigate}
+          onFixJobs={setJobs}
+          setWeekFrom={setWeekFrom}
+          setWeekTo={setWeekTo}
+          toggleSettled={toggleSettled}
+          saveWeek={saveWeek}
+          addFromDirectory={addFromDirectory}
+          removeWeekEmployee={removeWeekEmployee}
+          clearAllWeekEmployees={clearAllWeekEmployees}
+          replaceWeekWithAllActive={replaceWeekWithAllActive}
+          updateWeekEmployee={updateWeekEmployee}
+          syncWeekRatesFromDirectory={syncWeekRatesFromDirectory}
+          goToCurrent={goToCurrent}
+          restoreWeekFromArchive={restoreWeekFromArchive}
+          saveBiweeklyBacklogWeek={saveBiweeklyBacklogWeek}
+          pendingPayrollEmpId={pendingPayrollEmpId}
+          onInitialPayrollEmpConsumed={() => setPendingPayrollEmpId(null)}
+          onPayrollDetailOpenChange={setPayrollDetailOpen}
+          setDirectory={setDirectory}
+          commitDirectory={commitDirectory}
+          setContacts={setContacts}
+          onArchiveDelete={(id) => { addDeletedArchiveId(id); setSavedWeeks((prev) => prev.filter((w) => w.id !== id)); }}
+          updateArchiveWeekEmployee={updateArchiveWeekEmployee}
+          toggleArchiveSettled={toggleArchiveSettled}
+          setJobs={setJobs}
+          deleteJobsByIds={deleteJobsByIds}
+          pendingJobId={pendingJobId}
+          onInitialJobConsumed={() => setPendingJobId(null)}
+          onGoToInspector={(jobId) => { if (jobId) setPendingInspectorJobId(jobId); setViewReturn({ view: "jobs", label: "Roboty" }); setView("inspector"); }}
+          appSettings={appSettings}
+          onOpenTenderFromJobs={(tid) => { setPendingTenderId(tid); setViewReturn({ view: "jobs", label: "Roboty" }); setView("tenders"); }}
+          jobsReturnNav={viewReturn && viewReturn.view !== "jobs" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingJobId(null); } } : undefined}
+          inspectorInitialTab={inspectorInitialTab}
+          pendingInspectorJobId={pendingInspectorJobId}
+          onInitialInspectorJobConsumed={() => setPendingInspectorJobId(null)}
+          inspectorReturnNav={viewReturn && viewReturn.view !== "inspector" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingInspectorJobId(null); } } : undefined}
+          onOpenJobFromGallery={(id) => { setPendingJobId(id); setView("jobs"); }}
+          onOpenJobFromFiles={(id) => { setPendingJobId(id); setView("jobs"); }}
+          pendingTenderId={pendingTenderId}
+          onOpenJobFromTender={(id) => { setPendingJobId(id); setView("jobs"); }}
+          onSetPendingJobId={setPendingJobId}
+          onSetView={setView}
+        />
 
-        {/* Mobile bottom nav — 4 główne + Menu (iOS/Android) */}
-        {!payrollDetailOpen && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex z-40" style={{paddingBottom:"env(safe-area-inset-bottom)"}}>
-          {mobileNavPrimary.map(({key,icon:Icon,badge})=>(
-            <button key={key} onClick={()=>goToView(key)} className={`flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[52px] py-2 relative transition-colors ${view===key?"text-primary":"text-muted-foreground"}`}>
-              <div className="relative">
-                <Icon size={22}/>
-                {badge!==undefined&&badge>0&&<span className="absolute -top-1 -right-1.5 min-w-4 h-4 flex items-center justify-center text-[9px] font-bold rounded-full bg-primary text-primary-foreground px-0.5">{badge>99?"99+":badge}</span>}
-              </div>
-              <span className="text-[10px] font-medium leading-none">{navItems.find(n=>n.key===key)?.label.split(" ")[0]}</span>
-            </button>
-          ))}
-          <button type="button" onClick={()=>setMobileMoreOpen(true)} className={`flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[52px] py-2 relative transition-colors ${mobileMoreActive?"text-primary":"text-muted-foreground"}`}>
-            <Menu size={22}/>
-            <span className="text-[10px] font-medium leading-none">Więcej</span>
-          </button>
-        </nav>
-        )}
-
-        {mobileMoreOpen && (
-          <div className="md:hidden fixed inset-0 z-50" style={{background:"rgba(0,0,0,0.55)"}} onClick={()=>setMobileMoreOpen(false)}>
-            <div
-              className="absolute bottom-0 left-0 right-0 bg-card border-t border-border rounded-t-2xl px-4 pt-4 pb-2 max-h-[70dvh] overflow-y-auto"
-              style={{paddingBottom:"max(1rem, env(safe-area-inset-bottom))"}}
-              onClick={(e)=>e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-semibold">Menu</p>
-                <button type="button" onClick={()=>setMobileMoreOpen(false)} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground">
-                  <X size={18}/>
-                </button>
-              </div>
-              <p className="text-[11px] text-muted-foreground flex justify-between gap-2 mb-3 pb-3 border-b border-border">
-                <span>Dziś ({todayFieldStats.label})</span>
-                <span className="font-medium shrink-0" style={{fontFamily:"'JetBrains Mono', monospace"}}>
-                  {todayFieldStats.people} os. · {todayFieldStats.jobs} rob.
-                </span>
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                {mobileNavMore.map(({key,label,icon:Icon,badge})=>(
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={()=>{ goToView(key); }}
-                    className={`flex flex-col items-center justify-center gap-1.5 min-h-[72px] rounded-xl border transition-colors ${view===key?"bg-primary/15 border-primary/40 text-primary":"bg-secondary/40 border-border text-muted-foreground hover:text-foreground"}`}
-                  >
-                    <div className="relative">
-                      <Icon size={20}/>
-                      {badge!==undefined&&badge>0&&<span className="absolute -top-1.5 -right-2 min-w-4 h-4 flex items-center justify-center text-[9px] font-bold rounded-full bg-primary text-primary-foreground px-0.5">{badge>99?"99+":badge}</span>}
-                    </div>
-                    <span className="text-[10px] font-medium text-center leading-tight px-1">{label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+        <AdminMobileNav
+          view={view}
+          payrollDetailOpen={payrollDetailOpen}
+          mobileNavPrimary={mobileNavPrimary}
+          mobileNavMore={mobileNavMore}
+          mobileMoreActive={mobileMoreActive}
+          mobileMoreOpen={mobileMoreOpen}
+          navItems={navItems}
+          todayFieldStats={todayFieldStats}
+          onGoToView={goToView}
+          onOpenMore={() => setMobileMoreOpen(true)}
+          onCloseMore={() => setMobileMoreOpen(false)}
+        />
       </div>
 
       {/* Overwrite archive confirm */}
