@@ -1,0 +1,99 @@
+# Automatyczny backup danych W&G DOM z Supabase KV.
+#
+# Harmonogram (Europe/Warsaw, CEST = UTC+2):
+#   Piątek 18:00  → mail z JSON (send-backup-email / Resend)
+#   Niedziela 03:00 → pełny backup jako artifact GitHub (90 dni)
+#
+# Sekrety (GitHub → Settings → Secrets → Actions):
+#   VITE_SUPABASE_ANON_KEY — klucz anon z Supabase
+# Opcjonalnie:
+#   BACKUP_EMAIL — domyślnie dawid.thai@int.pl (adres odbiorcy ustawia też Edge Function)
+
+name: Scheduled backup
+
+on:
+  schedule:
+    # Piątek 18:00 Warszawa (CEST) = 16:00 UTC
+    - cron: "0 16 * * 5"
+    # Niedziela 03:00 Warszawa (CEST) = 01:00 UTC
+    - cron: "0 1 * * 0"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Tryb backupu"
+        required: true
+        default: both
+        type: choice
+        options:
+          - local
+          - email
+          - both
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Ustal tryb (cron vs ręczny)
+        id: pick
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # github.event.schedule to pełny cron string
+          CRON="${{ github.event.schedule }}"
+          if [ "$CRON" = "0 16 * * 5" ]; then
+            echo "mode=email" >> "$GITHUB_OUTPUT"
+          elif [ "$CRON" = "0 1 * * 0" ]; then
+            echo "mode=local" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=both" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Backup lokalny (KV → artifact)
+        if: steps.pick.outputs.mode == 'local' || steps.pick.outputs.mode == 'both'
+        env:
+          VITE_SUPABASE_PROJECT_ID: bdpygdvfgbggermvqtys
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_FUNCTION_SLUG: make-server-0afb8820
+        run: |
+          if [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
+            echo "::error::Brak sekretu VITE_SUPABASE_ANON_KEY w GitHub Actions"
+            exit 1
+          fi
+          OUT="backup-ci-${{ github.run_id }}"
+          node scripts/run-scheduled-backup.mjs --mode local --out "$OUT" --keep 999
+          echo "BACKUP_DIR=$OUT" >> "$GITHUB_ENV"
+
+      - name: Upload artifact (niedzielny backup)
+        if: steps.pick.outputs.mode == 'local' || steps.pick.outputs.mode == 'both'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wgdom-kv-backup-${{ github.run_number }}-${{ github.run_attempt }}
+          path: ${{ env.BACKUP_DIR }}/
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Backup email (piątek)
+        if: steps.pick.outputs.mode == 'email' || steps.pick.outputs.mode == 'both'
+        env:
+          VITE_SUPABASE_PROJECT_ID: bdpygdvfgbggermvqtys
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_FUNCTION_SLUG: make-server-0afb8820
+          BACKUP_EMAIL: ${{ secrets.BACKUP_EMAIL }}
+        run: |
+          if [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
+            echo "::error::Brak sekretu VITE_SUPABASE_ANON_KEY w GitHub Actions"
+            exit 1
+          fi
+          node scripts/run-scheduled-backup.mjs --mode email
