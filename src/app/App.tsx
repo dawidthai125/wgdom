@@ -3834,39 +3834,6 @@ function LoginScreen({onAdmin, onInspector, onWorker}: {onAdmin:(session: AdminS
 
 // ─── Worker Photo View ────────────────────────────────────────────────────────
 
-function useWorkerPrivacyShield(enabled: boolean) {
-  const [shield, setShield] = useState(false);
-
-  useEffect(() => {
-    if (!enabled) return;
-    const onVis = () => {
-      if (isPrivacyShieldSuppressed()) return;
-      setShield(document.hidden);
-    };
-    const onBlur = () => {
-      if (isPrivacyShieldSuppressed()) return;
-      setShield(true);
-    };
-    const onFocus = () => {
-      if (isPrivacyShieldSuppressed()) return;
-      setShield(false);
-    };
-    const blockCtx = (e: Event) => e.preventDefault();
-    document.addEventListener("visibilitychange", onVis);
-    window.addEventListener("blur", onBlur);
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("contextmenu", blockCtx);
-    return () => {
-      document.removeEventListener("visibilitychange", onVis);
-      window.removeEventListener("blur", onBlur);
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("contextmenu", blockCtx);
-    };
-  }, [enabled]);
-
-  return shield;
-}
-
 function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: string; workerId: string; onLogout: () => void }) {
   const [jobs, setJobsLocal] = useLocalStorage<Job[]>("kw-jobs", []);
   const [jobsLoading, setJobsLoading] = useState(true);
