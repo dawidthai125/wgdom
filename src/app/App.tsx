@@ -232,6 +232,7 @@ import { saveAs } from "file-saver";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
 import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } from "@/lib/photo-queue";
 import { consumePendingDeepLink, type DeepLinkRoute } from "@/lib/deep-link";
+import { markCloudBootstrapSuccess, initialAutoSyncSuppressUntil } from "@/lib/cloud-bootstrap";
 import { PwaInstallBanner } from "@/app/PwaInstallBanner";
 import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
@@ -292,6 +293,7 @@ function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T) => T))
   const set = useCallback((v: T | ((p: T) => T)) => {
     setState((prev) => {
       const incoming = typeof v === "function" ? (v as (p: T) => T)(prev) : v;
+      if (Object.is(prev, incoming)) return prev;
       if (!isDataKey(key)) {
         try { localStorage.setItem(key, JSON.stringify(incoming)); } catch { /* ignore */ }
         return incoming;
@@ -3626,6 +3628,8 @@ function CloudLoader({children}: {children: React.ReactNode}) {
             },
           ).catch(() => {});
         }
+
+        markCloudBootstrapSuccess();
       })
       .catch(() => {})
       .finally(() => { clearTimeout(fallback); setReady(true); });
@@ -3677,8 +3681,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const settledSyncTimerRef = useRef<ReturnType<typeof setTimeout>|null>(null);
   const tabVisibleRef = useRef(typeof document !== "undefined" ? !document.hidden : true);
   const initialSyncDone = useRef(false);
-  const suppressAutoSyncUntilRef = useRef(0);
+  const suppressAutoSyncUntilRef = useRef(initialAutoSyncSuppressUntil());
   const pullInFlightRef = useRef(false);
+  const pendingAutoSyncRef = useRef(false);
+  const suppressWakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const remoteMergeInFlightRef = useRef(false);
+  const payrollRosterPushRef = useRef(false);
+  const autoSyncMountSettledRef = useRef(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [jobsBackupStatus, setJobsBackupStatus] = useState<{ current: number; prev: number; prev2: number; today: number } | null>(null);
   const [payrollBackupStatus, setPayrollBackupStatus] = useState<{ employeesPrev: number; employeesPrev2: number; archivePrev: number } | null>(null);
@@ -3695,26 +3704,23 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, []);
 
   useEffect(() => {
-    setJobs((prev) => {
-      const next = normalizeJobsList(prev as unknown[]);
-      if (next.length === prev.length && next.every((j, i) => j === prev[i])) return prev;
-      return next;
-    });
-  }, [setJobs]);
-
-  useEffect(() => {
     syncAppSettingsFromCloud().then(setAppSettings).catch(() => {});
   }, []);
 
   useEffect(() => {
     const normalized = normalizeDirectoryTestFlags(directory);
-    if (normalized !== directory) setDirectory(normalized);
+    if (normalized !== directory) {
+      remoteMergeInFlightRef.current = true;
+      setDirectory(normalized);
+    }
   }, [directory, setDirectory]);
 
   useEffect(() => {
     setWeekEmployees((prev) => {
       const next = filterProductionWeekEmployees(prev, directory);
-      return next.length === prev.length ? prev : next;
+      if (next.length === prev.length) return prev;
+      remoteMergeInFlightRef.current = true;
+      return next;
     });
   }, [directory, setWeekEmployees]);
 
@@ -3734,6 +3740,22 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     pushDirectoryToCloud(directory).catch(() => {});
   }, [directory]);
 
+  const clearAutoSyncTimers = useCallback(() => {
+    if (syncTimerRef.current) {
+      clearTimeout(syncTimerRef.current);
+      syncTimerRef.current = null;
+    }
+    if (suppressWakeTimerRef.current) {
+      clearTimeout(suppressWakeTimerRef.current);
+      suppressWakeTimerRef.current = null;
+    }
+  }, []);
+
+  const clearPendingAutoSync = useCallback(() => {
+    pendingAutoSyncRef.current = false;
+    clearAutoSyncTimers();
+  }, [clearAutoSyncTimers]);
+
   const adminDataBundle = useCallback(
     () => [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts] as unknown[],
     [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts],
@@ -3742,6 +3764,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const applyAdminDataBundle = useCallback((merged: unknown[]) => {
     const [dir, emps, arch, wf, wt, jbs, cont] = merged;
     suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    remoteMergeInFlightRef.current = true;
     skipApplyWriteTimestamps = true;
     try {
       if (Array.isArray(dir)) setDirectory(dir as DirectoryEmployee[]);
@@ -3761,10 +3784,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const pullFromCloudAndMerge = useCallback(async () => {
     if (!tabVisibleRef.current || !isSupabaseConfigured() || pullInFlightRef.current) return;
     pullInFlightRef.current = true;
-    if (syncTimerRef.current) {
-      clearTimeout(syncTimerRef.current);
-      syncTimerRef.current = null;
-    }
+    clearAutoSyncTimers();
     try {
       const merged = await pullAndMergeDataBundle(adminDataBundle());
       applyAdminDataBundle(merged);
@@ -3773,7 +3793,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     } finally {
       pullInFlightRef.current = false;
     }
-  }, [adminDataBundle, applyAdminDataBundle]);
+  }, [adminDataBundle, applyAdminDataBundle, clearAutoSyncTimers]);
 
   const pushToCloud = pushAllDataToCloud;
 
@@ -3784,6 +3804,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       setSyncStatus("offline");
       setSyncError("Brak VITE_SUPABASE_* w Vercel — ustaw zmienne i zrób redeploy");
       return;
+    }
+    pendingAutoSyncRef.current = false;
+    if (suppressWakeTimerRef.current) {
+      clearTimeout(suppressWakeTimerRef.current);
+      suppressWakeTimerRef.current = null;
     }
     if (jobs.length > 0) saveLocalJobsSnapshot(jobs);
     saveLocalDataSnapshot();
@@ -3803,6 +3828,84 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       toast.error("Nie udało się wysłać do chmury", { description: msg, id: "admin-cloud-sync" });
     }
   }, [adminDataBundle, applyAdminDataBundle, jobs]);
+
+  const fireDeferredAutoSync = useCallback(() => {
+    suppressWakeTimerRef.current = null;
+    if (remoteMergeInFlightRef.current) {
+      return;
+    }
+    if (Date.now() < suppressAutoSyncUntilRef.current) {
+      const delay = suppressAutoSyncUntilRef.current - Date.now();
+      suppressWakeTimerRef.current = setTimeout(() => {
+        suppressWakeTimerRef.current = null;
+        fireDeferredAutoSync();
+      }, delay);
+      return;
+    }
+    if (!pendingAutoSyncRef.current) {
+      return;
+    }
+    if (!tabVisibleRef.current) {
+      return;
+    }
+    if (pullInFlightRef.current) {
+      return;
+    }
+    pendingAutoSyncRef.current = false;
+    void runCloudSync();
+  }, [runCloudSync]);
+
+  const scheduleWakeAtSuppressExpiry = useCallback(() => {
+    const delay = suppressAutoSyncUntilRef.current - Date.now();
+    if (suppressWakeTimerRef.current) {
+      clearTimeout(suppressWakeTimerRef.current);
+      suppressWakeTimerRef.current = null;
+    }
+    if (delay <= 0) {
+      fireDeferredAutoSync();
+      return;
+    }
+    suppressWakeTimerRef.current = setTimeout(() => {
+      suppressWakeTimerRef.current = null;
+      fireDeferredAutoSync();
+    }, delay);
+  }, [fireDeferredAutoSync]);
+
+  const scheduleAutoCloudSync = useCallback(() => {
+    if (!initialSyncDone.current) {
+      return;
+    }
+    if (remoteMergeInFlightRef.current) {
+      return;
+    }
+    if (payrollRosterPushRef.current) {
+      return;
+    }
+
+    const suppressed = Date.now() < suppressAutoSyncUntilRef.current;
+
+    if (suppressed) {
+      if (!autoSyncMountSettledRef.current) {
+        return;
+      }
+      pendingAutoSyncRef.current = true;
+      scheduleWakeAtSuppressExpiry();
+      return;
+    }
+
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => {
+      if (!tabVisibleRef.current) return;
+      if (pullInFlightRef.current) return;
+      if (Date.now() < suppressAutoSyncUntilRef.current) {
+        pendingAutoSyncRef.current = true;
+        scheduleWakeAtSuppressExpiry();
+        return;
+      }
+      pendingAutoSyncRef.current = false;
+      void runCloudSync();
+    }, 2000);
+  }, [scheduleWakeAtSuppressExpiry, runCloudSync]);
 
   useEffect(() => {
     return registerNativeBackHandler(() => {
@@ -3824,20 +3927,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   // Po CloudLoader (merge chmura↔local) — zapis tylko przy zmianach użytkownika
   useEffect(() => {
     initialSyncDone.current = true;
+    queueMicrotask(() => { autoSyncMountSettledRef.current = true; });
   }, []);
 
   // Auto-save to cloud on any data change (debounced 2s, only after initial sync; nie w ukrytej karcie)
   useEffect(() => {
-    if (!initialSyncDone.current) return;
-    if (Date.now() < suppressAutoSyncUntilRef.current) return;
-    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
-    syncTimerRef.current = setTimeout(() => {
-      if (!tabVisibleRef.current) return;
-      if (pullInFlightRef.current) return;
-      if (Date.now() < suppressAutoSyncUntilRef.current) return;
-      runCloudSync();
-    }, 2000);
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, runCloudSync]);
+    scheduleAutoCloudSync();
+    remoteMergeInFlightRef.current = false;
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, scheduleAutoCloudSync]);
+
+  useEffect(() => () => clearAutoSyncTimers(), [clearAutoSyncTimers]);
 
   useEffect(() => {
     const onVis = () => {
@@ -4043,7 +4142,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const persistPayrollRoster = useCallback((next: WeekEmployee[]) => {
     suppressAutoSyncUntilRef.current = Date.now() + 6000;
-    void pushWeekEmployeesToCloud(next).catch(() => {});
+    payrollRosterPushRef.current = true;
+    void pushWeekEmployeesToCloud(next)
+      .finally(() => { payrollRosterPushRef.current = false; })
+      .catch(() => {});
   }, []);
 
   const addFromDirectory = (ids: string[]) => {
@@ -4106,6 +4208,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         return { ...emp, rate: dir.defaultRate, rateUpdatedAt: now };
       });
       void (async () => {
+        payrollRosterPushRef.current = true;
         try {
           let archive = savedWeeks;
           const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
@@ -4117,6 +4220,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           }
           await pushAllDataToCloud([directory, next, archive, weekFrom, weekTo, jobs, contacts]);
         } catch { /* auto-sync ponowi */ }
+        finally { payrollRosterPushRef.current = false; }
       })();
       return next;
     });
@@ -4159,12 +4263,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     }
     if (settledSyncTimerRef.current) clearTimeout(settledSyncTimerRef.current);
     settledSyncTimerRef.current = setTimeout(() => {
-      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
-      syncTimerRef.current = null;
+      clearPendingAutoSync();
       suppressAutoSyncUntilRef.current = 0;
       void runCloudSync();
     }, 400);
-  }, [weekEmployees, savedWeeks, weekFrom, weekTo, patchArchiveWeek, setWeekEmployees, runCloudSync]);
+  }, [weekEmployees, savedWeeks, weekFrom, weekTo, patchArchiveWeek, setWeekEmployees, runCloudSync, clearPendingAutoSync]);
 
   const saveBiweeklyBacklogWeek = useCallback((backlogFrom: string, backlogTo: string, employees: WeekEmployee[]) => {
     if (employees.length === 0) return;
