@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { Banknote, X, Plus, Trash2, FileText, Clock } from "lucide-react";
+import { Banknote, X, Plus, Trash2, FileText, Clock, Receipt, ThumbsUp, ThumbsDown } from "lucide-react";
 import { useAdminAccess } from "@/app/admin-access";
 import { PayrollDayEditor } from "@/app/payroll-editors";
 import {
@@ -20,35 +20,58 @@ import {
   fmtH,
   calcWeekEmployee,
   previousSaturdayIso,
+  defaultDay,
+  defaultDays,
+  fmtDate,
+  PREV_SAT_SHORT,
 } from "@/app/app-domain";
 
+/** Uzupełnia brakujące dni (stare archiwum / niepełny sync). */
+function ensureWeekEmployeeDays(emp: WeekEmployee): WeekEmployee {
+  const base = defaultDays();
+  const days = { ...base };
+  for (const k of DAYS) {
+    const d = emp.days?.[k];
+    if (d && typeof d === "object") days[k] = { ...defaultDay(), ...d };
+  }
+  return {
+    ...emp,
+    days,
+    prevSaturday: emp.prevSaturday && typeof emp.prevSaturday === "object"
+      ? { ...defaultDay(), ...emp.prevSaturday }
+      : defaultDay(),
+    extraCosts: emp.extraCosts ?? [],
+  };
+}
+
 export function WeekEmployeeDetail({emp, weekFrom, weekTo, directory, savedWeeks, onChange, onClose}:{emp:WeekEmployee; weekFrom:string; weekTo:string; directory: DirectoryEmployee[]; savedWeeks: WeekSnapshot[]; onChange:(u:WeekEmployee)=>void; onClose:()=>void}) {
+  const safeEmp = ensureWeekEmployeeDays(emp);
   const { canViewRates } = useAdminAccess();
-  const biweekly = isBiweeklyPayrollEmployee(emp, directory);
-  const biweeklyRow = biweekly ? calcBiweeklyRowDisplay(emp, directory, weekFrom, weekTo, savedWeeks) : null;
+  const biweekly = isBiweeklyPayrollEmployee(safeEmp, directory);
+  const biweeklyRow = biweekly ? calcBiweeklyRowDisplay(safeEmp, directory, weekFrom, weekTo, savedWeeks) : null;
   const updateDayData = useCallback((key: DayKey, next: DayData) => {
-    onChange({ ...emp, days: { ...emp.days, [key]: next } });
-  }, [emp, onChange]);
+    onChange({ ...safeEmp, days: { ...safeEmp.days, [key]: next } });
+  }, [safeEmp, onChange]);
   const prevSatIso = previousSaturdayIso(weekFrom);
-  const extraCosts = emp.extraCosts ?? [];
+  const extraCosts = safeEmp.extraCosts ?? [];
   const updateExtraCosts = useCallback((next: EmployeeExtraCost[]) => {
-    onChange({ ...emp, extraCosts: next });
-  }, [emp, onChange]);
+    onChange({ ...safeEmp, extraCosts: next });
+  }, [safeEmp, onChange]);
   const addExtraCost = () => {
     updateExtraCosts([...extraCosts, { id: crypto.randomUUID(), description: "", amount: "" }]);
   };
   const {
     weekHours, prevSatHours, totalHours, totalExtraHours,
     totalZaliczka, totalExtraCosts, grossPay, weekGross, prevSatGross, netPay, rateNum,
-  } = calcWeekEmployee(emp);
-  const weekOnly = biweekly ? calcWeekNetNoPrevSat(emp) : null;
+  } = calcWeekEmployee(safeEmp);
+  const weekOnly = biweekly ? calcWeekNetNoPrevSat(safeEmp) : null;
 
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
         <div>
-          <p className="text-sm font-semibold">{emp.name||"Pracownik"}</p>
-          <p className="text-xs text-muted-foreground">{emp.position||"—"}</p>
+          <p className="text-sm font-semibold">{safeEmp.name||"Pracownik"}</p>
+          <p className="text-xs text-muted-foreground">{safeEmp.position||"—"}</p>
         </div>
         <button onClick={onClose} className="touch-target p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"><X size={16}/></button>
       </div>
@@ -57,8 +80,8 @@ export function WeekEmployeeDetail({emp, weekFrom, weekTo, directory, savedWeeks
         <div className="flex items-center gap-3 bg-secondary rounded-xl px-4 py-3">
           <Banknote size={14} className="text-muted-foreground shrink-0"/>
           <span className="text-sm text-muted-foreground flex-1">Stawka w tym tygodniu</span>
-          <input type="number" min="0" step="0.50" value={emp.rate}
-            onChange={(e)=>onChange({...emp,rate:e.target.value})}
+          <input type="number" min="0" step="0.50" value={safeEmp.rate}
+            onChange={(e)=>onChange({...safeEmp,rate:e.target.value})}
             className="w-24 bg-background rounded-lg px-2 py-2 text-base text-right border border-transparent focus:border-primary focus:outline-none"
             style={{fontFamily:"'JetBrains Mono', monospace"}}/>
           <span className="text-xs text-muted-foreground">PLN/h</span>
@@ -85,19 +108,19 @@ export function WeekEmployeeDetail({emp, weekFrom, weekTo, directory, savedWeeks
             {!biweekly && (
             <div className="bg-amber-500/5 border-b border-amber-500/15">
               <PayrollDayEditor
-                day={getPrevSaturday(emp)}
+                day={getPrevSaturday(safeEmp)}
                 title={PREV_SAT_SHORT}
                 hint={`${fmtDate(prevSatIso)} · wypłata w tym tygodniu`}
                 titleClass="text-amber-500"
                 variant="prevSaturday"
-                onUpdate={(next) => onChange({ ...emp, prevSaturday: { ...next, extraHours: undefined } })}
+                onUpdate={(next) => onChange({ ...safeEmp, prevSaturday: { ...next, extraHours: undefined } })}
               />
             </div>
             )}
             {DAYS.map((key) => (
               <PayrollDayEditor
                 key={key}
-                day={emp.days[key]}
+                day={safeEmp.days[key]}
                 title={DAY_LABELS[key]}
                 titleClass={key === "So" ? "text-primary" : ""}
                 hint={key === "So" ? "Bieżąca sobota — czasem wypłata w sobotę" : undefined}

@@ -1859,7 +1859,7 @@ export function workerPinTooWeak(emp: DirectoryEmployee, pin: string): boolean {
 
 export const ADMIN_PIN_KEY = "kw-admin-pin";
 
-async function uploadPhoto(
+export async function uploadPhoto(
   jobId: string,
   file: File,
   label: string,

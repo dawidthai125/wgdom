@@ -4,7 +4,7 @@ import {
   FileText, FileDown, CheckCircle2, Circle, Archive, ChevronDown, ChevronUp, Calendar,
   CalendarDays, TrendingUp, Wallet, X, Phone, UserPlus, Edit2, Check, Search, Building2,
   MapPin, AlertTriangle, Download, Upload, HardHat, StickyNote, Cloud, Mail, Send, Eye,
-  RotateCcw, BarChart3, Scale, HelpCircle, LayoutGrid, Sparkles,
+  RotateCcw, BarChart3, Scale, HelpCircle, LayoutGrid, Sparkles, Bell, Copy, CloudUpload,
 } from "lucide-react";
 import { saveAs } from "file-saver";
 import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";

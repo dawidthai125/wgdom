@@ -4,7 +4,8 @@ import {
   ChevronDown, ChevronUp, Calendar, CalendarDays, X, Phone, Edit2, Check, Search, Building2,
   MapPin, KeyRound, HardHat, StickyNote, Cloud, Download, Upload, Mail, Send,
   Camera, ImagePlus, Eye, ArrowLeft, ClipboardList, Ruler, Images, FolderOpen, Package,
-  Receipt, AlertTriangle, Copy, Sparkles, Clock, Users, Banknote, Scale, MessageSquare,
+  Receipt, AlertTriangle, Copy, Sparkles, Clock, Users, Banknote, Scale, MessageSquare, ScrollText,
+  ClipboardCheck, Bell, Circle,
 } from "lucide-react";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
@@ -22,6 +23,9 @@ import { JobDetailSectionNav, JobsDetailEmptyState, type JobDetailSection } from
 import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
 import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
 import { WorkScopeEditor, WorkScopeDisplay } from "@/app/WorkScopeEditor";
+import { JobWorkerReportsPanel } from "@/app/JobWorkerReportsPanel";
+import { JobPhotoGallery } from "@/app/JobPhotoGallery";
+import { uploadPhoto } from "@/app/app-domain";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { LabelWithHint, VoiceNoteButton } from "@/app/app-ui";
@@ -2020,7 +2024,7 @@ export function JobsView({
                 </div>
               </div>
               <div className="p-4">
-                <PhotoGallery
+                <JobPhotoGallery
                   photos={selectedJob.photos||[]}
                   onUpdate={(photos, activity) => {
                     updateJob({ ...selectedJob, photos }, activity);

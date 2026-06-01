@@ -42,7 +42,7 @@ test.describe("Desktop smoke — przeglądarka PC/laptop", () => {
     const res = await request.get(`${baseURL}/sw.js`);
     expect(res.ok()).toBeTruthy();
     const js = await res.text();
-    expect(js).toContain("wgdom-shell-v23");
+    expect(js).toContain("wgdom-shell-v24");
   });
 
   test("ui-vendor chunk — ładuje się poprawnie", async ({ request, baseURL }) => {
