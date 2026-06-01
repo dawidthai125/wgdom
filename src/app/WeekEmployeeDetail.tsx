@@ -24,6 +24,7 @@ import {
   defaultDays,
   fmtDate,
   PREV_SAT_SHORT,
+  getPrevSaturday,
 } from "@/app/app-domain";
 
 /** Uzupełnia brakujące dni (stare archiwum / niepełny sync). */

@@ -29,6 +29,7 @@ function arg(name, fallback) {
 }
 
 const mode = arg("--mode", "local");
+const full = args.includes("--full");
 const keep = Math.max(1, parseInt(arg("--keep", "12"), 10) || 12);
 const emailOverride = arg("--email", null);
 const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
@@ -98,8 +99,10 @@ async function runLocal() {
 async function runEmail() {
   console.log("=== Backup email (piątek) ===");
   console.log("Adres:", config.backupEmail);
+  console.log("Zakres:", full ? "PEŁNY (wszystkie klucze KV)" : "standardowy");
 
-  const kv = await fetchKvBackup(EMAIL_KV_KEYS, config);
+  const keys = full ? fullBackupKvKeys(today) : EMAIL_KV_KEYS;
+  const kv = await fetchKvBackup(keys, config);
   const s = kvSummary(kv);
   console.log(`Dane: jobs=${s.jobs}, directory=${s.directory}, tydzień=${s.weekFrom}–${s.weekTo}`);
 
