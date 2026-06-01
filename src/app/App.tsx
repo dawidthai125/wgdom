@@ -77,6 +77,7 @@ import {
   addDeletedContactId,
   addDeletedArchiveId,
   pushDirectoryToCloud,
+  pushWeekEmployeesToCloud,
   stripWorkerPinHashesFromDirectory,
   WORKER_PINS_RESET_FLAG,
   ADMIN_PASSWORDS_KEY,
@@ -1293,6 +1294,58 @@ function JobPhotosGalleryView({
 
 // ─── Archive view ─────────────────────────────────────────────────────────────
 
+/** Wypłata w archiwum — dla „co 2 tyg.” jak na liście płac (pełna wypłata w tygodniu wypłaty). */
+function archiveEmployeePayrollDisplay(
+  full: WeekEmployee | undefined,
+  emp: WeekSnapshot["employees"][number],
+  directory: DirectoryEmployee[],
+  week: WeekSnapshot,
+  savedWeeks: WeekSnapshot[],
+): {
+  c: ReturnType<typeof calcWeekEmployee>;
+  displayNetPay: number;
+  biweeklyHint: string | null;
+} {
+  const fallback = {
+    weekHours: emp.weekHours ?? emp.totalHours,
+    prevSatHours: emp.prevSatHours ?? 0,
+    totalHours: emp.totalHours,
+    grossPay: emp.grossPay,
+    totalZaliczka: emp.totalZaliczka,
+    totalExtraCosts: emp.totalExtraCosts ?? 0,
+    netPay: emp.netPay,
+    rateNum: emp.rate,
+  } as ReturnType<typeof calcWeekEmployee>;
+
+  if (!full) {
+    return { c: fallback, displayNetPay: emp.netPay, biweeklyHint: null };
+  }
+
+  const base = calcWeekEmployee(full);
+  const biweekly = isBiweeklyPayrollEmployee(full, directory);
+  const bw = biweekly ? calcBiweeklyRowDisplay(full, directory, week.weekFrom, week.weekTo, savedWeeks) : null;
+  const displayNetPay = bw
+    ? (bw.isPayoutWeek ? bw.displayNet : bw.thisWeekNet)
+    : base.netPay;
+  const c = biweekly
+    ? {
+        ...base,
+        prevSatHours: 0,
+        totalHours: base.weekHours,
+        grossPay: base.weekGross,
+        totalZaliczka: base.weekZaliczka,
+      }
+    : base;
+  const biweeklyHint =
+    bw?.isPayoutWeek && bw.prevWeekFrom
+      ? `co 2 tyg. + ${fmtDate(bw.prevWeekFrom)}–${fmtDate(bw.prevWeekTo)}`
+      : biweekly
+        ? "co 2 tyg."
+        : null;
+
+  return { c, displayNetPay, biweeklyHint };
+}
+
 function ArchiveView({
   savedWeeks,
   onDelete,
@@ -1734,15 +1787,13 @@ function ArchiveView({
                 <tbody className="divide-y divide-border">
                   {week.employees.map((emp,i)=>{
                     const full = week.weekEmployees?.find((we) => we.name === emp.name && we.position === emp.position);
-                    const c = full ? calcWeekEmployee(full) : {
-                      weekHours: emp.weekHours ?? emp.totalHours,
-                      prevSatHours: emp.prevSatHours ?? 0,
-                      totalHours: emp.totalHours,
-                      grossPay: emp.grossPay,
-                      totalZaliczka: emp.totalZaliczka,
-                      totalExtraCosts: emp.totalExtraCosts ?? 0,
-                      netPay: emp.netPay,
-                    };
+                    const { c, displayNetPay, biweeklyHint } = archiveEmployeePayrollDisplay(
+                      full,
+                      emp,
+                      directory,
+                      week,
+                      savedWeeks,
+                    );
                     const isEditing = editContext?.weekId === week.id && full && editContext.empId === full.id;
                     return (
                     <tr
@@ -1750,7 +1801,18 @@ function ArchiveView({
                       onClick={() => full && setEditContext({ weekId: week.id, empId: full.id })}
                       className={`transition-colors ${full ? "cursor-pointer hover:bg-secondary/30" : ""} ${emp.settled?"opacity-60":""} ${isEditing ? "bg-primary/5 border-l-2 border-primary" : ""}`}
                     >
-                      <td className="px-5 py-3"><div className="flex items-center gap-2"><div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{emp.name?emp.name[0].toUpperCase():"?"}</div><span className="font-medium">{emp.name||"—"}</span>{full && <Edit2 size={11} className="text-muted-foreground/50 shrink-0"/>}</div></td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{emp.name?emp.name[0].toUpperCase():"?"}</div>
+                          <div className="min-w-0">
+                            <span className="font-medium block">{emp.name||"—"}</span>
+                            {biweeklyHint && (
+                              <span className="text-[10px] text-sky-400/90 block truncate" title={biweeklyHint}>{biweeklyHint}</span>
+                            )}
+                          </div>
+                          {full && <Edit2 size={11} className="text-muted-foreground/50 shrink-0"/>}
+                        </div>
+                      </td>
                       <td className="px-3 py-3 text-muted-foreground text-xs hidden sm:table-cell">{emp.position||"—"}</td>
                       <td className="px-3 py-3 text-right text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{c.weekHours>0?fmtH(c.weekHours):"—"}</td>
                       <td className="px-3 py-3 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{c.prevSatHours>0?<span className="text-amber-500">{fmtH(c.prevSatHours)}</span>:"—"}</td>
@@ -1758,7 +1820,7 @@ function ArchiveView({
                       <td className="px-3 py-3 text-right text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{canViewRates ? fmt(c.grossPay) : "—"}</td>
                       <td className="px-3 py-3 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{emp.totalZaliczka>0?<span className="text-destructive">−{fmt(emp.totalZaliczka)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
                       <td className="px-3 py-3 text-right" style={{fontFamily:"'JetBrains Mono', monospace"}}>{c.totalExtraCosts>0?<span className="text-green-500">+{fmt(c.totalExtraCosts)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
-                      <td className="px-3 py-3 text-right font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(c.netPay)} PLN</td>
+                      <td className="px-3 py-3 text-right font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}} title={biweeklyHint ? "Wypłata co 2 tygodnie (ten + poprzedni tydzień)" : undefined}>{fmt(displayNetPay)} PLN</td>
                       <td className="px-5 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                         {full ? (
                           <button
@@ -3882,6 +3944,7 @@ function CloudLoader({children}: {children: React.ReactNode}) {
             {
               replaceJobsKeys: pushKeys.includes("kw-jobs") ? ["kw-jobs"] : [],
               replaceDirectoryKeys: pushKeys.includes("kw-directory") ? ["kw-directory"] : [],
+              replaceWeekEmployeesKeys: pushKeys.includes("kw-week-employees") ? ["kw-week-employees"] : [],
             },
           ).catch(() => {});
         }
@@ -4300,13 +4363,28 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     };
   },[globalSearch,directory,jobs]);
 
+  const persistPayrollRoster = useCallback((next: WeekEmployee[]) => {
+    suppressAutoSyncUntilRef.current = Date.now() + 6000;
+    void pushWeekEmployeesToCloud(next).catch(() => {});
+  }, []);
+
   const addFromDirectory = (ids: string[]) => {
-    const toAdd = directory.filter((d) => ids.includes(d.id) && isProductionDirectoryEmployee(d));
-    const newEmps = toAdd.map(weekEmployeeFromDir);
-    setWeekEmployees((prev)=>[...prev,...newEmps]);
+    setWeekEmployees((prev) => {
+      const toAdd = directory.filter((d) => ids.includes(d.id) && isProductionDirectoryEmployee(d));
+      const newEmps = toAdd.map(weekEmployeeFromDir);
+      const next = [...prev, ...newEmps];
+      if (newEmps.length > 0) persistPayrollRoster(next);
+      return next;
+    });
   };
 
-  const removeWeekEmployee = (id:string) => setWeekEmployees((prev)=>prev.filter((e)=>e.id!==id));
+  const removeWeekEmployee = (id: string) => {
+    setWeekEmployees((prev) => {
+      const next = prev.filter((e) => e.id !== id);
+      if (next.length !== prev.length) persistPayrollRoster(next);
+      return next;
+    });
+  };
 
   const updateWeekEmployee = useCallback((updated:WeekEmployee)=>{
     setWeekEmployees((prev)=>prev.map((e)=>{

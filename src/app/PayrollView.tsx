@@ -723,6 +723,16 @@ export function PayrollView({
                 <button onClick={()=>setShowPicker(true)} className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors">
                   <UserPlus size={14}/>Dodaj pracownika
                 </button>
+                {availableFromDir.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onAddFromDirectory(availableFromDir.map((d) => d.id))}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors"
+                    title="Dodaj wszystkich aktywnych z kartoteki Pracownicy, którzy nie są jeszcze w tym tygodniu"
+                  >
+                    <Users size={14}/>Wszyscy aktywni ({availableFromDir.length})
+                  </button>
+                )}
                 {canViewRates && onSyncRatesFromDirectory && weekEmployees.length > 0 && (
                   <button
                     type="button"
@@ -923,14 +933,24 @@ export function PayrollView({
                   <div className="sm:hidden divide-y divide-border">
                     {rows.map((r)=>(
                       <div key={r.emp.id} className={`p-4 space-y-3 ${r.emp.settled?"opacity-60":""}`} onClick={()=>setSelectedEmpId(r.emp.id===selectedEmpId?null:r.emp.id)}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground">{r.emp.name?r.emp.name[0].toUpperCase():"?"}</div>
-                            <div><p className="text-sm font-medium">{r.emp.name||"—"}</p><p className="text-xs text-muted-foreground">{r.emp.position||"—"}</p></div>
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{r.emp.name?r.emp.name[0].toUpperCase():"?"}</div>
+                            <div className="min-w-0"><p className="text-sm font-medium truncate">{r.emp.name||"—"}</p><p className="text-xs text-muted-foreground truncate">{r.emp.position||"—"}</p></div>
                           </div>
-                          <button onClick={(e)=>{e.stopPropagation();onToggleSettled(r.emp.id);}} className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap shrink-0 ${r.emp.settled?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>
-                            {r.emp.settled?<><CheckCircle2 size={11}/>Rozliczony</>:<><Circle size={11}/>Oczekuje</>}
-                          </button>
+                          <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                            <button onClick={() => onToggleSettled(r.emp.id)} className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${r.emp.settled?"bg-green-500/15 text-green-400":"bg-yellow-500/10 text-yellow-400"}`}>
+                              {r.emp.settled?<><CheckCircle2 size={11}/>Rozlicz.</>:<><Circle size={11}/>Oczek.</>}
+                            </button>
+                            {deleteConfirm === r.emp.id ? (
+                              <div className="flex items-center gap-1">
+                                <button type="button" onClick={() => { onRemoveWeekEmployee(r.emp.id); setDeleteConfirm(null); }} className="text-xs bg-destructive text-white px-2 py-1 rounded">Usuń</button>
+                                <button type="button" onClick={() => setDeleteConfirm(null)} className="text-xs text-muted-foreground px-1"><X size={11}/></button>
+                              </div>
+                            ) : (
+                              <button type="button" onClick={() => setDeleteConfirm(r.emp.id)} className="p-1.5 text-muted-foreground hover:text-destructive rounded" aria-label="Usuń z tygodnia"><Trash2 size={14}/></button>
+                            )}
+                          </div>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
                           <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Tydzień</p><p className="text-sm font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.weekHours>0?fmtH(r.weekHours):"—"}</p></div>

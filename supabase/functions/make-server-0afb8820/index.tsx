@@ -196,6 +196,45 @@ function weekEmployeesRichness(list: unknown[]): number {
   return list.reduce((sum, e) => sum + weekEmployeeRichness(e), 0);
 }
 
+function weekEmployeeIds(list: unknown[]): Set<string> {
+  const ids = new Set<string>();
+  for (const item of list) {
+    if (!item || typeof item !== "object") continue;
+    const id = String((item as { id?: string }).id || "");
+    if (id) ids.add(id);
+  }
+  return ids;
+}
+
+function hasWeekEmployeesRosterExpansion(prev: unknown[], next: unknown[]): boolean {
+  const prevIds = weekEmployeeIds(prev);
+  for (const item of next) {
+    if (!item || typeof item !== "object") continue;
+    const id = String((item as { id?: string }).id || "");
+    if (id && !prevIds.has(id)) return true;
+  }
+  return false;
+}
+
+/** Aktualizacja pól bez dodawania osób usuniętych na innym urządzeniu (stary telefon). */
+function mergeWeekEmployeesKeepPrevRoster(prev: unknown[], next: unknown[]): unknown[] {
+  const nextMap = new Map<string, unknown>();
+  for (const item of next) {
+    if (!item || typeof item !== "object") continue;
+    const id = String((item as { id?: string }).id || "");
+    if (id) nextMap.set(id, item);
+  }
+  const result: unknown[] = [];
+  for (const item of prev) {
+    if (!item || typeof item !== "object") continue;
+    const id = String((item as { id?: string }).id || "");
+    if (!id) continue;
+    const incoming = nextMap.get(id);
+    result.push(incoming ? mergeWeekEmployeeRecordByTimestamps(item, incoming) : item);
+  }
+  return result;
+}
+
 function mergeWeekEmployeesUnion(prev: unknown[], next: unknown[]): unknown[] {
   const map = new Map<string, unknown>();
   const ingest = (list: unknown[]) => {
@@ -454,7 +493,7 @@ function coerceKvValue(key: string, value: unknown): unknown {
 
 // Batch set multiple keys at once
 app.post("/make-server-0afb8820/batch-set", async (c) => {
-  const { keys, values, replaceJobsKeys = [], replaceDirectoryKeys = [] } = await c.req.json();
+  const { keys, values, replaceJobsKeys = [], replaceDirectoryKeys = [], replaceWeekEmployeesKeys = [] } = await c.req.json();
   const safeValues = values.map((v: unknown, i: number) => coerceKvValue(keys[i], v));
   const archBatchIdx = keys.indexOf("kw-archive");
   const archiveInBatch = archBatchIdx >= 0 ? normalizeArrayKv(values[archBatchIdx]) : [];
@@ -468,6 +507,8 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   const allDirDeletedIds = new Set([...storedDirDeleted, ...dirDeletedFromBatch]);
   const forceReplaceJobs = Array.isArray(replaceJobsKeys) && replaceJobsKeys.includes("kw-jobs");
   const forceReplaceDirectory = Array.isArray(replaceDirectoryKeys) && replaceDirectoryKeys.includes("kw-directory");
+  const forceReplaceWeekEmployees =
+    Array.isArray(replaceWeekEmployeesKeys) && replaceWeekEmployeesKeys.includes("kw-week-employees");
 
   for (let i = 0; i < keys.length; i++) {
     if (keys[i] === "kw-jobs-deleted-ids") {
@@ -497,11 +538,19 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
         await rotateKvBackups("kw-week-employees");
         const prevNorm = normalizeArrayKv(prev);
         const intentionalClear = isIntentionalWeekClear(nextNorm, archiveInBatch);
-        if (!intentionalClear && isSuspiciousPayrollShrink(prevNorm, nextNorm)) {
+        if (!forceReplaceWeekEmployees && !intentionalClear && isSuspiciousPayrollShrink(prevNorm, nextNorm)) {
           console.log(
             `kw-week-employees: blocked shrink richness ${weekEmployeesRichness(prevNorm)} → ${weekEmployeesRichness(nextNorm)}, merging`,
           );
           nextNorm = mergeWeekEmployeesUnion(prevNorm, nextNorm);
+        } else if (
+          !forceReplaceWeekEmployees &&
+          hasWeekEmployeesRosterExpansion(prevNorm, nextNorm)
+        ) {
+          console.log(
+            `kw-week-employees: blocked stale roster expansion ${prevNorm.length} → ${nextNorm.length}, keeping server roster`,
+          );
+          nextNorm = mergeWeekEmployeesKeepPrevRoster(prevNorm, nextNorm);
         }
       }
       safeValues[i] = nextNorm;

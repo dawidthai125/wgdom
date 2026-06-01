@@ -598,12 +598,49 @@ export function prepareDataBundleForCloudPush(values: unknown[]): unknown[] {
   return prepared;
 }
 
-/** Scal listę płac tygodnia — po id; odznaczenie dnia / stawka z bieżącej karty nie wraca z chmury. */
+function weekEmployeeIdSet(list: unknown[]): Set<string> {
+  const ids = new Set<string>();
+  for (const item of list) {
+    if (!item || typeof item !== "object") continue;
+    const id = String((item as { id?: string }).id || "");
+    if (id) ids.add(id);
+  }
+  return ids;
+}
+
+/**
+ * Scal listę płac tygodnia.
+ * - Usunięcie na innym urządzeniu (chmura ⊂ lokalnie, mniej osób) → przyjmij skład z chmury.
+ * - W przeciwnym razie skład decyduje lokalna karta; chmura tylko uzupełnia pola tych samych osób.
+ */
 export function mergeWeekEmployees(local: unknown[], cloud: unknown[]): unknown[] {
-  const map = new Map<string, unknown>();
   const localArr = Array.isArray(local) ? local : [];
   const cloudArr = Array.isArray(cloud) ? cloud : [];
-
+  if (localArr.length === 0) {
+    return collapseWeekEmployeesByIdentity(cloudArr);
+  }
+  if (cloudArr.length > 0) {
+    const localIds = weekEmployeeIdSet(localArr);
+    const cloudIds = weekEmployeeIdSet(cloudArr);
+    const cloudSubsetOfLocal = [...cloudIds].every((id) => localIds.has(id));
+    const localOnlyCount = [...localIds].filter((id) => !cloudIds.has(id)).length;
+    if (cloudSubsetOfLocal && localOnlyCount > 0 && cloudArr.length < localArr.length) {
+      const localMap = new Map<string, unknown>();
+      for (const item of localArr) {
+        if (!item || typeof item !== "object") continue;
+        const id = String((item as { id?: string }).id || "");
+        if (id) localMap.set(id, item);
+      }
+      const adopted = cloudArr.map((item) => {
+        if (!item || typeof item !== "object") return item;
+        const id = String((item as { id?: string }).id || "");
+        const localItem = id ? localMap.get(id) : undefined;
+        return localItem ? mergeWeekEmployeeRecord(localItem, item) : item;
+      });
+      return collapseWeekEmployeesByIdentity(adopted);
+    }
+  }
+  const map = new Map<string, unknown>();
   for (const item of localArr) {
     if (!item || typeof item !== "object") continue;
     const id = String((item as { id?: string }).id || "");
@@ -612,9 +649,8 @@ export function mergeWeekEmployees(local: unknown[], cloud: unknown[]): unknown[
   for (const item of cloudArr) {
     if (!item || typeof item !== "object") continue;
     const id = String((item as { id?: string }).id || "");
-    if (!id) continue;
-    const prev = map.get(id);
-    map.set(id, prev ? mergeWeekEmployeeRecord(prev, item) : item);
+    if (!id || !map.has(id)) continue;
+    map.set(id, mergeWeekEmployeeRecord(map.get(id)!, item));
   }
   return collapseWeekEmployeesByIdentity([...map.values()]);
 }
@@ -1063,7 +1099,11 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
 export async function pushKeysToCloud(
   keys: string[],
   values: unknown[],
-  options?: { replaceJobsKeys?: string[]; replaceDirectoryKeys?: string[] },
+  options?: {
+    replaceJobsKeys?: string[];
+    replaceDirectoryKeys?: string[];
+    replaceWeekEmployeesKeys?: string[];
+  },
 ): Promise<void> {
   if (!isSupabaseConfigured() || !API_BASE) {
     throw new Error("Brak konfiguracji Supabase (VITE_SUPABASE_*)");
@@ -1077,6 +1117,7 @@ export async function pushKeysToCloud(
       values: safeValues,
       replaceJobsKeys: options?.replaceJobsKeys ?? [],
       replaceDirectoryKeys: options?.replaceDirectoryKeys ?? [],
+      replaceWeekEmployeesKeys: options?.replaceWeekEmployeesKeys ?? [],
     }),
   });
   if (!res.ok) {
@@ -1112,6 +1153,18 @@ export async function pushAllDataToCloud(values: unknown[]): Promise<unknown[]> 
  * Chroni przed nadpisaniem pustszą wersją z innej karty / urządzenia.
  */
 /** Natychmiastowy zapis kartoteki po usunięciu / edycji pracownika. */
+/** Natychmiastowy zapis składu listy płac (usuń / dodaj pracownika w tygodniu). */
+export async function pushWeekEmployeesToCloud(weekEmployees: unknown[]): Promise<void> {
+  if (!isSupabaseConfigured() || !API_BASE) return;
+  const normalized = collapseWeekEmployeesByIdentity(normalizeArrayValue(weekEmployees));
+  try {
+    localStorage.setItem("kw-week-employees", JSON.stringify(normalized));
+  } catch { /* ignore */ }
+  await pushKeysToCloud(["kw-week-employees"], [normalized], {
+    replaceWeekEmployeesKeys: ["kw-week-employees"],
+  });
+}
+
 export async function pushDirectoryToCloud(directory: unknown[]): Promise<void> {
   if (!isSupabaseConfigured() || !API_BASE) return;
   let cloudDeleted: string[] = [];
@@ -1216,6 +1269,7 @@ export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<vo
     {
       replaceJobsKeys: ["kw-jobs"],
       replaceDirectoryKeys: ["kw-directory"],
+      replaceWeekEmployeesKeys: ["kw-week-employees"],
     },
   );
 }
