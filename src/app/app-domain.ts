@@ -1270,7 +1270,7 @@ export function clientShareUrl(token: string): string {
   return `${base}/?podglad=${token}`;
 }
 
-async function prepareWatermarkedPhoto(job: Job, file: File): Promise<File> {
+export async function prepareWatermarkedPhoto(job: Job, file: File): Promise<File> {
   return watermarkedFile(file, jobWatermarkLines(job.address, job.flatNumber));
 }
 
@@ -1908,7 +1908,7 @@ export async function uploadPhoto(
   }
 }
 
-async function uploadReceipt(
+export async function uploadReceipt(
   workerKey: string,
   file: File,
 ): Promise<{ publicUrl: string | null; error?: string }> {
