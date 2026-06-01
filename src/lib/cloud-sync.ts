@@ -793,6 +793,120 @@ export function mergeDirectory(
   return result;
 }
 
+const PAYROLL_DAY_KEYS = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"] as const;
+
+function defaultPayrollDay() {
+  return { active: false, from: "07:00", to: "16:00", zaliczka: "" };
+}
+
+function defaultPayrollDays() {
+  return Object.fromEntries(PAYROLL_DAY_KEYS.map((d) => [d, defaultPayrollDay()]));
+}
+
+function weekRangeKey(from: unknown, to: unknown): string {
+  return typeof from === "string" && from && typeof to === "string" && to ? `${from}|${to}` : "";
+}
+
+/** Usuwa godziny / Sob.pr. / koszty — zostawia kartotekę wpisu (imię, stawka, id). */
+export function stripWeekEmployeeHours(emp: unknown): unknown {
+  if (!emp || typeof emp !== "object") return emp;
+  const e = emp as Record<string, unknown>;
+  return {
+    ...e,
+    days: defaultPayrollDays(),
+    prevSaturday: defaultPayrollDay(),
+    extraCosts: [],
+    settled: false,
+    settledUpdatedAt: undefined,
+  };
+}
+
+function stripWeekEmployeeHoursList(list: unknown[]): unknown[] {
+  return list.map(stripWeekEmployeeHours);
+}
+
+/**
+ * Scal listę płac tylko w kontekście docelowego tygodnia Pn–So.
+ * Godziny ze źródła z innym weekFrom/weekTo nie przechodzą na nowy tydzień.
+ */
+export function mergeWeekEmployeesForWeekRange(
+  weekFrom: string,
+  weekTo: string,
+  localFrom: unknown,
+  localTo: unknown,
+  localEmps: unknown,
+  cloudFrom: unknown,
+  cloudTo: unknown,
+  cloudEmps: unknown,
+  archive: unknown,
+): unknown[] {
+  const target = weekRangeKey(weekFrom, weekTo);
+  if (!target) return mergeWeekEmployees(normalizeArrayValue(localEmps), normalizeArrayValue(cloudEmps));
+
+  const local = normalizeArrayValue(localEmps);
+  const cloud = normalizeArrayValue(cloudEmps);
+  const localMatch = weekRangeKey(localFrom, localTo) === target;
+  const cloudMatch = weekRangeKey(cloudFrom, cloudTo) === target;
+
+  const archSnap = normalizeArrayValue(archive).find(
+    (w) => (w as { weekFrom?: string; weekTo?: string }).weekFrom === weekFrom
+      && (w as { weekFrom?: string; weekTo?: string }).weekTo === weekTo,
+  ) as { weekEmployees?: unknown[] } | undefined;
+  const hasArchivedWeek = (archSnap?.weekEmployees?.length ?? 0) > 0;
+
+  if (localMatch && cloudMatch) {
+    const localEmpty = local.length === 0;
+    const cloudEmpty = cloud.length === 0;
+    if (!hasArchivedWeek && localEmpty !== cloudEmpty) {
+      return localEmpty ? local : cloud;
+    }
+    return mergeWeekEmployees(local, cloud);
+  }
+
+  if (localMatch && !cloudMatch) {
+    return mergeWeekEmployees(local, stripWeekEmployeeHoursList(cloud));
+  }
+  if (!localMatch && cloudMatch) {
+    return mergeWeekEmployees(stripWeekEmployeeHoursList(local), cloud);
+  }
+
+  const roster = mergeWeekEmployees(local, cloud);
+  if (roster.length === 0) return roster;
+  if (!hasArchivedWeek) return stripWeekEmployeeHoursList(roster);
+  return roster;
+}
+
+/** Po ustaleniu weekFrom/weekTo — nie przenoś godzin ze starego tygodnia. */
+export function sanitizeWeekEmployeesForTargetRange(
+  merged: unknown[],
+  localValues: unknown[],
+  cloudValues: unknown[],
+): unknown[] {
+  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
+  const fromIdx = DATA_KEYS.indexOf("kw-weekFrom");
+  const toIdx = DATA_KEYS.indexOf("kw-weekTo");
+  const archIdx = DATA_KEYS.indexOf("kw-archive");
+  if (empIdx < 0 || fromIdx < 0 || toIdx < 0) return merged;
+
+  const weekFrom = merged[fromIdx] as string;
+  const weekTo = merged[toIdx] as string;
+  if (!weekFrom || !weekTo) return merged;
+
+  const out = [...merged];
+  out[empIdx] = mergeWeekEmployeesForWeekRange(
+    weekFrom,
+    weekTo,
+    localValues[fromIdx],
+    localValues[toIdx],
+    localValues[empIdx],
+    cloudValues[fromIdx],
+    cloudValues[toIdx],
+    cloudValues[empIdx],
+    archIdx >= 0 ? merged[archIdx] : [],
+  );
+  return out;
+}
+
 function pickWeekRange(localFrom: unknown, localTo: unknown, cloudFrom: unknown, cloudTo: unknown, localEmps: unknown, cloudEmps: unknown): { from: string; to: string } {
   const lf = typeof localFrom === "string" ? localFrom : "";
   const cf = typeof cloudFrom === "string" ? cloudFrom : "";
@@ -800,6 +914,16 @@ function pickWeekRange(localFrom: unknown, localTo: unknown, cloudFrom: unknown,
   const ct = typeof cloudTo === "string" ? cloudTo : "";
   const localR = weekEmployeesListRichness(localEmps);
   const cloudR = weekEmployeesListRichness(cloudEmps);
+
+  if (lf && lt && cf && ct && (lf !== cf || lt !== ct)) {
+    const localEmpty = localR === 0;
+    const cloudEmpty = cloudR === 0;
+    if (localEmpty && !cloudEmpty) return { from: cf, to: ct };
+    if (cloudEmpty && !localEmpty) return { from: lf, to: lt };
+    if (cf >= lf) return { from: cf, to: ct };
+    return { from: lf, to: lt };
+  }
+
   if (localR > cloudR + 1 && lf && lt) return { from: lf, to: lt };
   if (cloudR > localR + 1 && cf && ct) return { from: cf, to: ct };
   if (lf && lt) return { from: lf, to: lt };
@@ -1053,6 +1177,7 @@ export async function computeMergedDataBundle(
     mergedArchiveDeleted,
   );
   merged = alignWeekRangeInMerged(merged, valuesForMerge, cloudValues);
+  merged = sanitizeWeekEmployeesForTargetRange(merged, valuesForMerge, cloudValues);
 
   const empIdx = DATA_KEYS.indexOf("kw-week-employees");
   const archIdx = DATA_KEYS.indexOf("kw-archive");
@@ -1062,7 +1187,8 @@ export async function computeMergedDataBundle(
     normalizeArrayValue(values[empIdx]).length === 0 &&
     normalizeArrayValue(values[archIdx]).some(
       (w) => weekEmployeesListRichness((w as { weekEmployees?: unknown[] })?.weekEmployees) >= 8,
-    )
+    ) &&
+    weekEmployeesListRichness(merged[empIdx]) > 0
   ) {
     merged[empIdx] = [];
   }

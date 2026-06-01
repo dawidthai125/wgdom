@@ -11,6 +11,14 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-02", version:"2.45.20", label:"Sync — godziny nie przechodzą na nowy tydzień",
+    items:[
+      {type:"fix", text:"Scalanie chmury — godziny z poprzedniego tygodnia nie wskakują na bieżący Pn–So po rollover / odzyskaniu bazy"},
+      {type:"fix", text:"Gdy jedno urządzenie ma pustą listę a drugie starą — wygrywa pusta (nowy tydzień bez archiwum)"},
+      {type:"fix", text:"Wybór weekFrom/weekTo — przy rozjechanych datach preferowany nowszy tydzień, nie „bogatsza” stara lista"},
+    ],
+  },
+  {
     date:"2026-05-25", version:"2.45.19", label:"Lista płac — Rozliczony trzyma się u każdej osoby (sync)",
     items:[
       {type:"fix", text:"Scalanie listy płac — duplikat tej samej osoby (inny id) nie zostawia „Oczekuje”; wygrywa rozliczony"},
