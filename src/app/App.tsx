@@ -59,7 +59,6 @@ import {
   pullAndMergeDataBundle,
   pushMergedDataBundleToCloud,
   type DataKey,
-  weekEmployeesListRichness,
   fetchPayrollBackupStatus,
   restoreCloudPayrollBackup,
   fetchFullDataBackupStatus,
@@ -67,33 +66,16 @@ import {
   addDeletedJobId,
   pushJobsAfterDelete,
   getDeletedJobIds,
-  mergeDeletedJobIds,
-  saveDeletedJobIds,
-  normalizeDeletedJobIds,
-  JOBS_DELETED_IDS_KEY,
-  DIRECTORY_DELETED_IDS_KEY,
   getDeletedDirectoryIds,
-  saveDeletedDirectoryIds,
-  mergeDeletedDirectoryIds,
-  mergeDeletedContactsIds,
-  mergeDeletedArchiveIds,
-  saveDeletedContactsIds,
-  saveDeletedArchiveIds,
   getDeletedContactsIds,
   getDeletedArchiveIds,
-  normalizeDeletedDirectoryIds,
-  CONTACTS_DELETED_IDS_KEY,
-  ARCHIVE_DELETED_IDS_KEY,
   addDeletedDirectoryId,
   addDeletedContactId,
   addDeletedArchiveId,
   pushDirectoryToCloud,
   pushWeekEmployeesToCloud,
-  stripWorkerPinHashesFromDirectory,
-  WORKER_PINS_RESET_FLAG,
   ADMIN_PASSWORDS_KEY,
   ADMIN_USERS_CONFIG_KEY,
-  APP_SETTINGS_KEY,
   isSupabaseConfigured,
 } from "@/lib/cloud-sync";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
@@ -101,12 +83,7 @@ import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots
 import {
   type AdminSession,
   adminCanViewRates,
-  adminIsSuperAdmin,
   adminCanViewTendersTab,
-  loadAdminPasswordOverrides,
-  mergeAdminPasswordOverrides,
-  loadAdminUsersConfig,
-  mergeAdminUsersConfig,
 } from "@/lib/admin-auth";
 import type { DayKey, DirectoryEmployee, DayData, EmployeeExtraCost, WeekEmployee, WeekSnapshot, DocType, PhotoEntry, RoomTypeKey, RoomDimension, WorkerJobReport, Job, PayrollJobConsistencyAlert, JobGalleryBucket } from "@/app/app-domain";
 import { DAYS, MULTI_SITE_SCHEDULE_LABEL, MONTH_NAMES, DOCUMENT_TYPES, REQUIRED_DOCS, DOC_LABELS, ROOM_TYPE_LABELS, defaultDirEmployee, isTestDirectoryEmployee, isProductionDirectoryEmployee, filterProductionDirectory, filterProductionActiveDirectory, filterProductionWeekEmployees, normalizeDirectoryTestFlags, PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, PHOTO_LABEL_SECTION, weekEmployeeFromDir, hoursWorked, dayTotalHours, payrollJobConsistencyAlerts, buildEmployeeArchiveStats, consistencyAlertMessage, fmt, fmtH, fmtDate, getWeekRange, calcWeekEmployee, extraCostStatus, PHOTO_STATUS_LABELS, EXTRA_COST_STATUS_LABELS, workerTodayWorkInfo, fixJobsForConsistencyAlert, defaultJob, normalizeJobsList, jobDaysSinceStart, jobWorkerReports, reportNeedsAdminAttention, normalizeWorkerReport, workItemHasContent, roomHasContent, roomDisplayName, defaultRoom, jobCost, jobMaterialsCost, jobTotalCost, GALLERY_ARCHIVE_DAYS, jobDisplayTitle, jobApprovedPhotos, jobHandoverIso, jobGalleryBucket, galleryDaysUntilArchive, todayDayKey, localIsoDate, todayIsoDate, fridayIsoOfWeek, findWeekEmployeeForWorker, workerPayoutHistory, todayFieldWorkStats, jobsForEmployeeOnDashboard, weekDayColumns, scheduleCellFor, buildWeekSnapshot, scheduleCellFromArchive, formatJobStreet, applyWriteTimestamps } from "@/app/app-domain";
@@ -174,7 +151,7 @@ import {
 } from "@/lib/job-list-status";
 import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
 import { normalizeJobMetaFields, isJobHousingSet, HOUSING_TYPE_LABELS, STOVE_TYPE_LABELS_FULL, type HousingType, type StoveType } from "@/lib/job-meta";
-import { syncAppSettingsFromCloud, loadAppSettingsLocal, mergeAppSettings, type AppSettings } from "@/lib/app-settings";
+import { syncAppSettingsFromCloud, loadAppSettingsLocal, type AppSettings } from "@/lib/app-settings";
 import {
   mergeTenderDataKey,
   TENDERS_PIPELINE_KEY,
@@ -193,10 +170,11 @@ import {
 } from "@/lib/work-scope-text";
 import { saveAs } from "file-saver";
 import { consumePendingDeepLink, type DeepLinkRoute } from "@/lib/deep-link";
-import { markCloudBootstrapSuccess, initialAutoSyncSuppressUntil } from "@/lib/cloud-bootstrap";
+import { initialAutoSyncSuppressUntil } from "@/lib/cloud-bootstrap";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { Toaster, toast } from "sonner";
 import { AppInnerWithAuth } from "@/app/AppInnerWithAuth";
+import { CloudLoader } from "@/app/CloudLoader";
 import {
   type EmailContact,
   defaultEmailContact,
@@ -304,167 +282,6 @@ function triggerWeeklyBackupEmail(
       weekTo: archivedWeekTo,
     }),
   }).catch(() => {});
-}
-
-function CloudLoader({children}: {children: React.ReactNode}) {
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    const keys = [...DATA_KEYS];
-    const fallback = setTimeout(() => setReady(true), 3000);
-
-    fetchKeysFromCloud([
-      ...keys,
-      JOBS_DELETED_IDS_KEY,
-      DIRECTORY_DELETED_IDS_KEY,
-      CONTACTS_DELETED_IDS_KEY,
-      ARCHIVE_DELETED_IDS_KEY,
-      ADMIN_PASSWORDS_KEY,
-      ADMIN_USERS_CONFIG_KEY,
-      APP_SETTINGS_KEY,
-    ])
-      .then(async (allValues) => {
-        const values = allValues.slice(0, keys.length);
-        const cloudDeleted = normalizeDeletedJobIds(allValues[keys.length]);
-        const cloudDirDeleted = normalizeDeletedDirectoryIds(allValues[keys.length + 1]);
-        const cloudContactsDeleted = normalizeDeletedJobIds(allValues[keys.length + 2]);
-        const cloudArchiveDeleted = normalizeDeletedJobIds(allValues[keys.length + 3]);
-        const cloudAdminPw = allValues[keys.length + 4];
-        const cloudAdminUsers = allValues[keys.length + 5];
-        const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), cloudDeleted);
-        saveDeletedJobIds(mergedDeleted);
-        const mergedDirDeleted = mergeDeletedDirectoryIds(getDeletedDirectoryIds(), cloudDirDeleted);
-        saveDeletedDirectoryIds(mergedDirDeleted);
-        const mergedContactsDeleted = mergeDeletedContactsIds(getDeletedContactsIds(), cloudContactsDeleted);
-        saveDeletedContactsIds(mergedContactsDeleted);
-        const mergedArchiveDeleted = mergeDeletedArchiveIds(getDeletedArchiveIds(), cloudArchiveDeleted);
-        saveDeletedArchiveIds(mergedArchiveDeleted);
-
-        const localAdminPw = loadAdminPasswordOverrides();
-        const mergedAdminPw = mergeAdminPasswordOverrides(localAdminPw, cloudAdminPw);
-        if (Object.keys(mergedAdminPw).length > 0) {
-          localStorage.setItem(ADMIN_PASSWORDS_KEY, JSON.stringify(mergedAdminPw));
-        } else if (cloudAdminPw == null && Object.keys(localAdminPw).length > 0) {
-          localStorage.setItem(ADMIN_PASSWORDS_KEY, JSON.stringify(localAdminPw));
-        }
-
-        const localAdminUsers = loadAdminUsersConfig();
-        const mergedAdminUsers = mergeAdminUsersConfig(localAdminUsers, cloudAdminUsers);
-        localStorage.setItem(ADMIN_USERS_CONFIG_KEY, JSON.stringify(mergedAdminUsers));
-
-        const cloudAppSettings = allValues[keys.length + 6];
-        if (cloudAppSettings && typeof cloudAppSettings === "object") {
-          const localSettings = loadAppSettingsLocal();
-          const cloudS = cloudAppSettings as AppSettings;
-          const mergedSettings: AppSettings = mergeAppSettings(cloudS, localSettings);
-          localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(mergedSettings));
-        }
-
-        const pushKeys: string[] = [];
-        const pushValues: unknown[] = [];
-
-        if (isSupabaseConfigured() && Object.keys(localAdminPw).length > 0 && JSON.stringify(mergedAdminPw) !== JSON.stringify(cloudAdminPw ?? {})) {
-          pushKeys.push(ADMIN_PASSWORDS_KEY);
-          pushValues.push(mergedAdminPw);
-        }
-        if (isSupabaseConfigured() && JSON.stringify(mergedAdminUsers) !== JSON.stringify(cloudAdminUsers ?? { roleOverrides: {}, customUsers: [] })) {
-          pushKeys.push(ADMIN_USERS_CONFIG_KEY);
-          pushValues.push(mergedAdminUsers);
-        }
-
-        keys.forEach((key, i) => {
-          let cloudVal = values[i];
-          let localVal: unknown = null;
-          try {
-            const raw = localStorage.getItem(key);
-            if (raw) localVal = JSON.parse(raw);
-          } catch { /* ignore */ }
-
-          const merged = mergeDataKey(
-            key,
-            localVal,
-            cloudVal,
-            mergedDeleted,
-            mergedDirDeleted,
-            mergedContactsDeleted,
-            mergedArchiveDeleted,
-          );
-          const hasRealData = merged != null && !(Array.isArray(merged) && merged.length === 0) && merged !== "";
-          if (hasRealData || (key === "kw-weekFrom" || key === "kw-weekTo") && merged) {
-            localStorage.setItem(key, JSON.stringify(merged));
-          }
-
-          if (!isSupabaseConfigured()) return;
-
-          const cloudEmpty = cloudVal == null || (Array.isArray(cloudVal) && cloudVal.length === 0);
-          const richnessIncreased =
-            key === "kw-week-employees"
-              ? weekEmployeesListRichness(merged) > weekEmployeesListRichness(cloudVal) + 1
-              : key === "kw-jobs"
-                ? normalizeJobsValue(merged).length > normalizeJobsValue(cloudVal).length
-                : Array.isArray(merged) && Array.isArray(cloudVal) && merged.length > cloudVal.length;
-
-          const shouldPush =
-            (cloudEmpty && hasRealData) ||
-            richnessIncreased ||
-            (hasRealData && JSON.stringify(merged) !== JSON.stringify(cloudVal));
-
-          if (shouldPush) {
-            pushKeys.push(key);
-            pushValues.push(merged);
-          }
-        });
-
-        if (localStorage.getItem(WORKER_PINS_RESET_FLAG) !== "1") {
-          try {
-            const raw = localStorage.getItem("kw-directory");
-            const parsed = raw ? JSON.parse(raw) : [];
-            const arr = Array.isArray(parsed) ? parsed : [];
-            const { directory: stripped } = stripWorkerPinHashesFromDirectory(arr);
-            localStorage.setItem("kw-directory", JSON.stringify(stripped));
-            if (isSupabaseConfigured()) {
-              await pushKeysToCloud(
-                ["kw-directory", DIRECTORY_DELETED_IDS_KEY],
-                [stripped, mergedDirDeleted],
-                { replaceDirectoryKeys: ["kw-directory"] },
-              );
-            }
-            localStorage.setItem(WORKER_PINS_RESET_FLAG, "1");
-          } catch {
-            /* ponowi przy następnym wejściu */
-          }
-        }
-
-        if (pushKeys.length > 0) {
-          // Push w tle — nie blokuj startu UI (batch-get ~2–3 s wystarczy)
-          void pushKeysToCloud(
-            [...pushKeys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY],
-            [...pushValues, mergedDeleted, mergedDirDeleted, mergedContactsDeleted, mergedArchiveDeleted],
-            {
-              replaceJobsKeys: pushKeys.includes("kw-jobs") ? ["kw-jobs"] : [],
-              replaceDirectoryKeys: pushKeys.includes("kw-directory") ? ["kw-directory"] : [],
-              replaceWeekEmployeesKeys: pushKeys.includes("kw-week-employees") ? ["kw-week-employees"] : [],
-            },
-          ).catch(() => {});
-        }
-
-        markCloudBootstrapSuccess();
-      })
-      .catch(() => {})
-      .finally(() => { clearTimeout(fallback); setReady(true); });
-  }, []);
-
-  if (!ready) return (
-    <div style={{fontFamily:"'Inter',sans-serif", height:"100dvh"}} className="flex bg-background text-foreground items-center justify-center flex-col gap-4">
-      <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-10 w-auto object-contain"/>
-      <div className="flex items-center gap-2 text-muted-foreground text-sm">
-        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
-        Ładowanie danych...
-      </div>
-    </div>
-  );
-
-  return <>{children}</>;
 }
 
 function AppInner({onLogout}: {onLogout?: ()=>void}) {
