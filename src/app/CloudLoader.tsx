@@ -37,6 +37,7 @@ import {
 import {
   loadAdminPasswordOverrides,
   mergeAdminPasswordOverrides,
+  shouldPushAdminPasswordOverridesOnBootstrap,
   loadAdminUsersConfig,
   mergeAdminUsersConfig,
 } from "@/lib/admin-auth";
@@ -81,8 +82,8 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         const mergedAdminPw = mergeAdminPasswordOverrides(localAdminPw, cloudAdminPw);
         if (Object.keys(mergedAdminPw).length > 0) {
           localStorage.setItem(ADMIN_PASSWORDS_KEY, JSON.stringify(mergedAdminPw));
-        } else if (cloudAdminPw == null && Object.keys(localAdminPw).length > 0) {
-          localStorage.setItem(ADMIN_PASSWORDS_KEY, JSON.stringify(localAdminPw));
+        } else {
+          localStorage.removeItem(ADMIN_PASSWORDS_KEY);
         }
 
         const localAdminUsers = loadAdminUsersConfig();
@@ -100,7 +101,10 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         const pushKeys: string[] = [];
         const pushValues: unknown[] = [];
 
-        if (isSupabaseConfigured() && Object.keys(localAdminPw).length > 0 && JSON.stringify(mergedAdminPw) !== JSON.stringify(cloudAdminPw ?? {})) {
+        if (
+          isSupabaseConfigured() &&
+          shouldPushAdminPasswordOverridesOnBootstrap(localAdminPw, cloudAdminPw, mergedAdminPw)
+        ) {
           pushKeys.push(ADMIN_PASSWORDS_KEY);
           pushValues.push(mergedAdminPw);
         }

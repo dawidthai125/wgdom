@@ -506,22 +506,43 @@ export function loadAdminPasswordOverrides(): AdminPasswordOverrides {
 
 
 
+/** Walidacja obiektu override z chmury / LS (userId → hash SHA-256). */
+export function normalizeAdminPasswordOverrides(raw: unknown): AdminPasswordOverrides {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: AdminPasswordOverrides = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (typeof v === "string" && v.length === 64) out[k] = v;
+  }
+  return out;
+}
+
+/**
+ * Scal override haseł: chmura decyduje o zbiorze kluczy.
+ * Brak klucza w chmurze = usunięty override (nie wraca z localStorage).
+ * Dla kluczy obecnych w obu — lokalny hash wygrywa (niesyncowana edycja).
+ */
 export function mergeAdminPasswordOverrides(
-
   local: AdminPasswordOverrides,
-
   cloud: unknown,
-
 ): AdminPasswordOverrides {
+  const cloudObj = normalizeAdminPasswordOverrides(cloud);
+  const merged: AdminPasswordOverrides = { ...cloudObj };
+  for (const [k, v] of Object.entries(local)) {
+    if (k in cloudObj && typeof v === "string" && v.length === 64) merged[k] = v;
+  }
+  return merged;
+}
 
-  const cloudObj = cloud && typeof cloud === "object" && !Array.isArray(cloud)
-
-    ? (cloud as AdminPasswordOverrides)
-
-    : {};
-
-  return { ...local, ...cloudObj };
-
+/** Bootstrap CloudLoader — nie pushuj, gdy chmura ma mniej kluczy niż local (usunięte override). */
+export function shouldPushAdminPasswordOverridesOnBootstrap(
+  local: AdminPasswordOverrides,
+  cloud: unknown,
+  merged: AdminPasswordOverrides,
+): boolean {
+  const cloudObj = normalizeAdminPasswordOverrides(cloud);
+  if (Object.keys(local).length === 0) return false;
+  if (Object.keys(cloudObj).length < Object.keys(local).length) return false;
+  return JSON.stringify(merged) !== JSON.stringify(cloudObj);
 }
 
 
