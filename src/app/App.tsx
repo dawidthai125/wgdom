@@ -53,7 +53,6 @@ import {
   mergeContacts,
   mergeDataKey,
   readLocalStorageDataKey,
-  isDataKey,
   isValidJobRecord,
   pushKeysToCloudSafe,
   pullAndMergeDataBundle,
@@ -86,7 +85,7 @@ import {
   adminCanViewTendersTab,
 } from "@/lib/admin-auth";
 import type { DayKey, DirectoryEmployee, DayData, EmployeeExtraCost, WeekEmployee, WeekSnapshot, DocType, PhotoEntry, RoomTypeKey, RoomDimension, WorkerJobReport, Job, PayrollJobConsistencyAlert, JobGalleryBucket } from "@/app/app-domain";
-import { DAYS, MULTI_SITE_SCHEDULE_LABEL, MONTH_NAMES, DOCUMENT_TYPES, REQUIRED_DOCS, DOC_LABELS, ROOM_TYPE_LABELS, defaultDirEmployee, isTestDirectoryEmployee, isProductionDirectoryEmployee, filterProductionDirectory, filterProductionActiveDirectory, filterProductionWeekEmployees, normalizeDirectoryTestFlags, PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, PHOTO_LABEL_SECTION, weekEmployeeFromDir, hoursWorked, dayTotalHours, payrollJobConsistencyAlerts, buildEmployeeArchiveStats, consistencyAlertMessage, fmt, fmtH, fmtDate, getWeekRange, calcWeekEmployee, extraCostStatus, PHOTO_STATUS_LABELS, EXTRA_COST_STATUS_LABELS, workerTodayWorkInfo, fixJobsForConsistencyAlert, defaultJob, normalizeJobsList, jobDaysSinceStart, jobWorkerReports, reportNeedsAdminAttention, normalizeWorkerReport, workItemHasContent, roomHasContent, roomDisplayName, defaultRoom, jobCost, jobMaterialsCost, jobTotalCost, GALLERY_ARCHIVE_DAYS, jobDisplayTitle, jobApprovedPhotos, jobHandoverIso, jobGalleryBucket, galleryDaysUntilArchive, todayDayKey, localIsoDate, todayIsoDate, fridayIsoOfWeek, findWeekEmployeeForWorker, workerPayoutHistory, todayFieldWorkStats, jobsForEmployeeOnDashboard, weekDayColumns, scheduleCellFor, buildWeekSnapshot, scheduleCellFromArchive, formatJobStreet, applyWriteTimestamps } from "@/app/app-domain";
+import { DAYS, MULTI_SITE_SCHEDULE_LABEL, MONTH_NAMES, DOCUMENT_TYPES, REQUIRED_DOCS, DOC_LABELS, ROOM_TYPE_LABELS, defaultDirEmployee, isTestDirectoryEmployee, isProductionDirectoryEmployee, filterProductionDirectory, filterProductionActiveDirectory, filterProductionWeekEmployees, normalizeDirectoryTestFlags, PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, PHOTO_LABEL_SECTION, weekEmployeeFromDir, hoursWorked, dayTotalHours, payrollJobConsistencyAlerts, buildEmployeeArchiveStats, consistencyAlertMessage, fmt, fmtH, fmtDate, getWeekRange, calcWeekEmployee, extraCostStatus, PHOTO_STATUS_LABELS, EXTRA_COST_STATUS_LABELS, workerTodayWorkInfo, fixJobsForConsistencyAlert, defaultJob, normalizeJobsList, jobDaysSinceStart, jobWorkerReports, reportNeedsAdminAttention, normalizeWorkerReport, workItemHasContent, roomHasContent, roomDisplayName, defaultRoom, jobCost, jobMaterialsCost, jobTotalCost, GALLERY_ARCHIVE_DAYS, jobDisplayTitle, jobApprovedPhotos, jobHandoverIso, jobGalleryBucket, galleryDaysUntilArchive, todayDayKey, localIsoDate, todayIsoDate, fridayIsoOfWeek, findWeekEmployeeForWorker, workerPayoutHistory, todayFieldWorkStats, jobsForEmployeeOnDashboard, weekDayColumns, scheduleCellFor, buildWeekSnapshot, scheduleCellFromArchive, formatJobStreet } from "@/app/app-domain";
 import { AdminAccessContext, useAdminAccess } from "@/app/admin-access";
 import { Checkbox, StatCard, NavItemWithHint, LabelWithHint, VoiceNoteButton, PayrollDayCellDisplay } from "@/app/app-ui";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
@@ -175,6 +174,7 @@ import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-b
 import { Toaster, toast } from "sonner";
 import { AppInnerWithAuth } from "@/app/AppInnerWithAuth";
 import { CloudLoader } from "@/app/CloudLoader";
+import { useLocalStorage, setSkipApplyWriteTimestamps } from "@/app/hooks/useLocalStorage";
 import {
   type EmailContact,
   defaultEmailContact,
@@ -203,42 +203,6 @@ import {
   getPayrollClosingWeekRange,
   PAYROLL_WEEK_ROLLOVER_HOUR,
 } from "@/lib/payroll-cycle";
-
-/** Sync z chmury — nie nadpisuj settledUpdatedAt przy apply merge (unikaj fałszywego „cofnięcia” rozliczenia). */
-let skipApplyWriteTimestamps = false;
-
-function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T) => T)) => void] {
-  const [state, setState] = useState<T>(() => {
-    try {
-      const s = localStorage.getItem(key);
-      return s ? JSON.parse(s) : initial;
-    } catch {
-      return initial;
-    }
-  });
-  const set = useCallback((v: T | ((p: T) => T)) => {
-    setState((prev) => {
-      const incoming = typeof v === "function" ? (v as (p: T) => T)(prev) : v;
-      if (Object.is(prev, incoming)) return prev;
-      if (!isDataKey(key)) {
-        try { localStorage.setItem(key, JSON.stringify(incoming)); } catch { /* ignore */ }
-        return incoming;
-      }
-      const next = (skipApplyWriteTimestamps ? incoming : applyWriteTimestamps(key, prev, incoming)) as T;
-      try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* ignore */ }
-      return next;
-    });
-  }, [key]);
-  useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key !== key || e.newValue == null) return;
-      try { setState(JSON.parse(e.newValue) as T); } catch { /* ignore */ }
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, [key]);
-  return [state, set];
-}
 
 const KW_LAST_BACKUP_WEEK_KEY = "kw-last-backup-week";
 
@@ -402,7 +366,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const [dir, emps, arch, wf, wt, jbs, cont] = merged;
     suppressAutoSyncUntilRef.current = Date.now() + 4500;
     remoteMergeInFlightRef.current = true;
-    skipApplyWriteTimestamps = true;
+    setSkipApplyWriteTimestamps(true);
     try {
       if (Array.isArray(dir)) setDirectory(dir as DirectoryEmployee[]);
       if (Array.isArray(emps)) setWeekEmployees(emps as WeekEmployee[]);
@@ -418,7 +382,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       }
       if (Array.isArray(cont)) setContacts(cont as EmailContact[]);
     } finally {
-      skipApplyWriteTimestamps = false;
+      setSkipApplyWriteTimestamps(false);
     }
   }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts]);
 

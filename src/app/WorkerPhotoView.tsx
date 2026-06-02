@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { useWorkerPrivacyShield } from "@/app/hooks/useWorkerPrivacyShield";
+import { useLocalStorage } from "@/app/hooks/useLocalStorage";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { appendJobActivity } from "@/lib/job-activity";
 import {
@@ -21,7 +22,6 @@ import {
   saveDeletedJobIds,
   normalizeDeletedJobIds,
   JOBS_DELETED_IDS_KEY,
-  isDataKey,
 } from "@/lib/cloud-sync";
 import { saveLocalJobsSnapshot } from "@/lib/jobs-safety";
 import type {
@@ -51,7 +51,6 @@ import {
   weekDayColumns,
   scheduleCellFor,
   todayIsoDate,
-  applyWriteTimestamps,
   uploadPhoto,
   prepareWatermarkedPhoto,
   uploadReceipt,
@@ -63,39 +62,6 @@ import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } fro
 import { PwaInstallBanner } from "@/app/PwaInstallBanner";
 import { PullToRefreshIndicator, usePullToRefresh } from "@/app/usePullToRefresh";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
-
-function useLocalStorage<T>(key: string, initial: T): [T, (v: T | ((p: T) => T)) => void] {
-  const [state, setState] = useState<T>(() => {
-    try {
-      const s = localStorage.getItem(key);
-      return s ? JSON.parse(s) : initial;
-    } catch {
-      return initial;
-    }
-  });
-  const set = useCallback((v: T | ((p: T) => T)) => {
-    setState((prev) => {
-      const incoming = typeof v === "function" ? (v as (p: T) => T)(prev) : v;
-      if (Object.is(prev, incoming)) return prev;
-      if (!isDataKey(key)) {
-        try { localStorage.setItem(key, JSON.stringify(incoming)); } catch { /* ignore */ }
-        return incoming;
-      }
-      const next = applyWriteTimestamps(key, prev, incoming) as T;
-      try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* ignore */ }
-      return next;
-    });
-  }, [key]);
-  useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key !== key || e.newValue == null) return;
-      try { setState(JSON.parse(e.newValue) as T); } catch { /* ignore */ }
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, [key]);
-  return [state, set];
-}
 
 export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName: string; workerId: string; onLogout: () => void }) {
   const [jobs, setJobsLocal] = useLocalStorage<Job[]>("kw-jobs", []);
