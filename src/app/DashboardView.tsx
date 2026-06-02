@@ -20,6 +20,7 @@ import {
   jobsForEmployeeOnDashboard, formatJobStreet,
 } from "@/app/app-domain";
 import { useAdminAccess } from "@/app/admin-access";
+import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import {
   confirmReportSyncedDocUncheck,
   applyReportDocDocumentToggle,
@@ -123,7 +124,7 @@ export function DashboardView({
       jobs
         .flatMap((j) =>
           (j.photos || [])
-            .filter((p) => p.status === "pending")
+            .filter((p) => p.status === "pending" && isMediaAttachmentAvailable(p))
             .map((p) => ({ photo: p, job: j })),
         )
         .sort((a, b) => b.photo.uploadedAt.localeCompare(a.photo.uploadedAt)),
