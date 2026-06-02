@@ -8,6 +8,20 @@
 
 ---
 
+## Stabilność sync (main, bez bump UI — 2026-06-02)
+
+Wdrożone commity infra (prod @ `92d574e`):
+
+| Commit | Temat |
+|--------|--------|
+| `db1d05a` | Payroll Guard — `wouldBlockPayrollShrink` |
+| `c9db032` | P11 — `applyBootstrapPayrollMerge` w CloudLoader |
+| `92d574e` | P15 — fix merge `kw-admin-passwords` |
+
+Szczegóły, procedury KV, UI media na gałęzi audit → [`docs/INCIDENTS-2026-06.md`](docs/INCIDENTS-2026-06.md)
+
+---
+
 ## 2.45.15 (2026-05-25) — Optymalizacja Web + Mobile
 
 - **improve** Lazy load: Przetargi, Inspektor admin, Pliki robot — szybszy start

@@ -29,12 +29,25 @@
 
 ## Known Issues — przeczytaj przed większą zmianą
 
-### Sync (§ 11.3) — najczęstsze regresje
+### Sync (§ 11.3–11.5) — najczęstsze regresje
 
 1. **Nigdy** nie trzymaj trwałych danych tylko w React state — zawsze LS + chmura.
 2. Partial push musi iść przez `prepareKeysForCloudPush` — inaczej nadpiszesz edycje z innej karty.
 3. Inspektor + admin w jednej karcie — storage events; między urządzeniami — merge po timestamp.
 4. Usuwanie roboty → `addDeletedJobId` + `pushJobsAfterDelete`.
+5. **Stale localStorage** może przywrócić usunięte klucze KV (admin passwords, martwe URL w jobs) — fix P11/P15 w `CloudLoader`; po incydencie **hard refresh**. → [`docs/INCIDENTS-2026-06.md`](docs/INCIDENTS-2026-06.md)
+6. **Payroll Guard** — nie omijaj `wouldBlockPayrollShrink` przy push listy płac.
+7. **`kw-admin-passwords`** — osobny merge (`mergeAdminPasswordOverrides`), nie ogólny `mergeDataKey`.
+
+### Stabilność czerwiec 2026 (prod `main` @ `92d574e`)
+
+| Temat | Commit | Test |
+|-------|--------|------|
+| Payroll Guard | `db1d05a` | symulacja w `INCIDENTS-2026-06.md` |
+| Bootstrap payroll P11 | `c9db032` | `scripts/test-p11-bootstrap-payroll.mjs` |
+| Admin passwords P15 | `92d574e` | `scripts/test-p15-admin-password-merge.mjs` |
+
+Operacje KV (Szymon/Paweł override, martwe URL) — tylko read-then-set ze snapshotem; szczegóły w INCIDENTS.
 
 ### Monolit UI
 
@@ -81,4 +94,5 @@ Pełna lista pułapek → **ARCHITECTURE.md § 11.3, § 17**.
 | [`AGENTS.md`](AGENTS.md) | **Jak pracować** nad projektem (workflow agenta) |
 | [`CHANGELOG.md`](CHANGELOG.md) | **Co zrobiono** — skrót ostatnich wersji |
 | [`CURRENT-TASK.md`](CURRENT-TASK.md) | **Gdzie skończyliśmy** — wznowienie sesji |
+| [`docs/INCIDENTS-2026-06.md`](docs/INCIDENTS-2026-06.md) | **Incydenty sync/payroll/admin** — czerwiec 2026 |
 | [`guidelines/ROZWOJ.md`](guidelines/ROZWOJ.md) | Skrót reguł rozwoju |

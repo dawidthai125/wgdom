@@ -10,9 +10,10 @@
 1. AGENTS.md              ← ten plik (JAK pracować)
 2. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
 3. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
-4. CHANGELOG.md           ← CO już zrobiono (skrót)
-5. CURRENT-TASK.md        ← gdzie skończyliśmy / co dalej
-6. App.tsx → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+4. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin (czerwiec 2026)
+5. CHANGELOG.md           ← CO już zrobiono (skrót)
+6. CURRENT-TASK.md        ← gdzie skończyliśmy / co dalej
+7. App.tsx → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -34,6 +35,7 @@
 | **docs/ARCHITECTURE.md** | Pełny techniczny przewodnik (living document) |
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
+| **docs/INCIDENTS-2026-06.md** | Incydenty stabilności — payroll, admin passwords, media (czerwiec 2026) |
 | **App.tsx → CHANGELOG** | Źródło prawdy wersji + UI użytkownika (zakładka Zmiany) |
 
 **Nie analizuj `App.tsx` plik po pliku od zera** — najpierw PROJECT-GUIDE + ARCHITECTURE.

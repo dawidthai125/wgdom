@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w `src/app/App.tsx` (obecnie **2.45.12**)  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-05-25 (v2.45.12 — mapa OSM przetargów, słownik kluczowych, docs AI)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w `src/app/App.tsx` (obecnie **2.45.14**)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-02 (Payroll Guard P11, admin passwords P15 — § 11.4–11.5, [`INCIDENTS-2026-06.md`](INCIDENTS-2026-06.md))
 
 ---
 
@@ -322,6 +322,30 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 3. Inspektor w tej samej karcie co admin — używaj storage events; między urządzeniami — timestamp merge.
 4. Usuwanie roboty → `addDeletedJobId` + `pushJobsAfterDelete`.
 5. Usuwanie z kartoteki → `pushDirectoryToCloud` (natychmiast).
+6. **Stale localStorage + bootstrap push** — stary LS może przywrócić usunięte klucze KV (admin passwords, martwe URL w jobs). Fix: P11/P15 w `CloudLoader`; po incydencie **hard refresh**. Szczegóły → [`INCIDENTS-2026-06.md`](INCIDENTS-2026-06.md).
+7. **Logout nie uruchamia ponownie CloudLoader** — merge bootstrap tylko przy pierwszym mount strony.
+
+### 11.4 Payroll Guard i bootstrap merge (P11, czerwiec 2026)
+
+| Mechanizm | Plik | Rola |
+|-----------|------|------|
+| `wouldBlockPayrollShrink` | `cloud-sync.ts` | Blokuje push gdy `activeDays` lub `totalHours` spada >50% vs chmura |
+| `applyPayrollGuardBeforePush` | `cloud-sync.ts` | Wywoływany przed batch-set payroll |
+| `applyBootstrapPayrollMerge` | `CloudLoader.tsx` | Po fetch z chmury: jeśli chmura bogatsza niż lokal → preferuj chmurę (fix 0 h w UI) |
+| `sanitizeWeekEmployeesForTargetRange` | `cloud-sync.ts` | Odrzuca rekordy spoza docelowego zakresu tygodnia |
+
+Test: `npx vite-node scripts/test-p11-bootstrap-payroll.mjs`
+
+### 11.5 Admin passwords (`kw-admin-passwords`, P15)
+
+- Klucz KV: mapa `userId → SHA-256("wgdom-admin-account-v1:" + login + ":" + password)`.
+- **Brak klucza** = hasło startowe z `BUILTIN_ADMIN_ACCOUNTS` (`admin-auth.ts`).
+- **`mergeAdminPasswordOverrides(local, cloud)`** (P15): baza = klucze z chmury; lokal nadpisuje tylko wspólne klucze; klucze tylko w LS **nie wracają** do push.
+- **`shouldPushAdminPasswordOverridesOnBootstrap`**: nie pushuj gdy `cloudKeys < localKeys` (chmura jest źródłem prawdy o składzie override).
+
+Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
+
+**Nie mieszaj** z ogólnym `mergeDataKey` — admin passwords mają osobną logikę w `CloudLoader`, nie w `cloud-sync.ts`.
 
 ---
 
@@ -686,6 +710,7 @@ WGDOM1/
 
 | Wersja | Temat |
 |--------|-------|
+| — (main, bez bump UI) | Payroll Guard, P11 bootstrap payroll, P15 admin passwords — commity `db1d05a`, `c9db032`, `92d574e` |
 | 2.45.12 | Mapa przetargów OSM + panel słownika kluczowych (podgląd wbudowanych haseł) |
 | 2.45.11 | Docs AI — AGENTS.md, ARCHITECTURE § 12.1 |
 | 2.45.10 | Galeria admin — ZIP roboty wg kategorii (ulica, data) — `photo-download.ts` |
@@ -718,6 +743,7 @@ Pełna historia → tablica `CHANGELOG` w `App.tsx`.
 | **`docs/ARCHITECTURE.md`** | Pełny obraz techniczny (ten plik) |
 | **`CHANGELOG.md`** | Skrót ostatnich wersji |
 | **`CURRENT-TASK.md`** | Wznowienie sesji — stan bieżącej pracy |
+| **`docs/INCIDENTS-2026-06.md`** | Incydenty sync/payroll/admin/media — czerwiec 2026 |
 | `guidelines/ROZWOJ.md` | Skrót reguł rozwoju |
 | `docs/MOBILE-NATIVE.md` | Capacitor, APK, App Store |
 | `.cursor/rules/wgdom-development.mdc` | Reguły dla agenta Cursor |
