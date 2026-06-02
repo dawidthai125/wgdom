@@ -1,0 +1,1716 @@
+{
+  "capturedAt": "2026-06-02T09:49:36.786Z",
+  "purpose": "before-payroll-restore-guarded",
+  "kw-week-employees": [
+    {
+      "id": "we-1",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "beefea25-984c-4ed3-a680-bebd7c120e88",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "f30118d1-4772-4fcf-abe2-80d01ff11240",
+              "to": "18:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "d0017f35-c2e9-490c-a5b0-2bf24e787525",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "88450ec7-4b84-4612-89ff-796c5368048f",
+              "to": "19:00",
+              "from": "16:30",
+              "description": ""
+            }
+          ]
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "14751ac9-5646-4409-8848-044a93f8b14a",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "d61582ca-3bd1-495f-91f5-f85cff9fd595",
+              "to": "18:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        }
+      },
+      "name": "Piotrek Ukraina",
+      "rate": "29",
+      "phone": "",
+      "settled": true,
+      "position": "Kombinator",
+      "extraCosts": [],
+      "directoryId": "dir-1",
+      "prevSaturday": {
+        "to": "16:00",
+        "from": "07:00",
+        "notes": [
+          {
+            "id": "bb49495b-9c38-4a7a-aca9-fd2ef02ddb1a",
+            "text": "Sala Boks Pawel"
+          }
+        ],
+        "active": true,
+        "zaliczka": ""
+      },
+      "dataUpdatedAt": "2026-06-02T09:37:18.279Z",
+      "settledUpdatedAt": "2026-06-02T09:37:18.279Z"
+    },
+    {
+      "id": "we-2",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "ae147437-e1f9-4025-a11f-2547f90f5265",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "9475e21f-51b2-4044-ab6f-68716c051b5c",
+              "to": "18:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "e67cba09-0f95-40e7-bed1-ae5730c7941c",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "7b5ca667-52df-42d8-9cb9-6eba4d401af0",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "43e6b0df-1c30-4f1f-9cd3-1b5ded192512",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "0d494760-5b77-47c7-a967-5c995588dee7",
+              "to": "18:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        }
+      },
+      "name": "Michal Ukraina",
+      "rate": "29",
+      "phone": "",
+      "settled": true,
+      "position": "Rybak",
+      "extraCosts": [],
+      "directoryId": "dir-2",
+      "prevSaturday": {
+        "to": "16:00",
+        "from": "07:00",
+        "notes": [
+          {
+            "id": "d893ffea-474a-49fa-a9e6-5c6c1f62c1ca",
+            "text": "Sala Boks Pawel"
+          }
+        ],
+        "active": true,
+        "zaliczka": ""
+      },
+      "dataUpdatedAt": "2026-06-02T09:45:52.996Z",
+      "settledUpdatedAt": "2026-06-02T09:45:52.996Z"
+    },
+    {
+      "id": "we-3",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "50567303-5406-4795-ae02-fa67d727ccfe",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "0ad7dbde-c4f0-49b4-abaa-0b3eda80192c",
+              "to": "18:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "0d825299-2cce-4478-a9e0-4229078aa8a8",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "9bea4813-fbf9-45ea-bc75-76420f8d51a3",
+              "to": "19:00",
+              "from": "16:30",
+              "description": ""
+            }
+          ]
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "18e1baf9-c296-4de8-acb3-cbdcf9790b3f",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "cf5feb97-c1de-421d-8beb-efc2e9ce5d5f",
+              "to": "18:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        }
+      },
+      "name": "Kola Ukraina",
+      "rate": "25",
+      "phone": "",
+      "settled": false,
+      "position": "Kolega Rybakow",
+      "extraCosts": [],
+      "directoryId": "dir-3",
+      "prevSaturday": {
+        "to": "16:00",
+        "from": "07:00",
+        "notes": [
+          {
+            "id": "954fdaec-58bc-4c07-a764-e04edfae8934",
+            "text": "Sala boks Pawel"
+          }
+        ],
+        "active": true,
+        "zaliczka": ""
+      },
+      "dataUpdatedAt": "2026-05-29T05:41:49.364Z"
+    },
+    {
+      "id": "we-4",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Kamil Elektryk",
+      "rate": "30",
+      "phone": "",
+      "settled": false,
+      "position": "Elektryk",
+      "extraCosts": [
+        {
+          "id": "78a9033a-c14d-4b29-85ee-2f0d59623119",
+          "amount": "200",
+          "description": "Casotrama - rozdzielnia,gniazdka, kostki"
+        }
+      ],
+      "directoryId": "dir-4",
+      "dataUpdatedAt": "2026-05-28T19:51:05.338Z"
+    },
+    {
+      "id": "we-5",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "50"
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "13:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Adam",
+      "rate": "30",
+      "phone": "",
+      "settled": false,
+      "position": "Wariat",
+      "extraCosts": [],
+      "directoryId": "dir-5",
+      "prevSaturday": {
+        "to": "13:00",
+        "from": "07:00",
+        "notes": [
+          {
+            "id": "2e1f0286-dea5-49de-97e9-86dfc42fed66",
+            "text": "Sala Boks Pawel"
+          }
+        ],
+        "active": true,
+        "zaliczka": ""
+      },
+      "dataUpdatedAt": "2026-05-28T19:51:38.707Z"
+    },
+    {
+      "id": "we-6",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Rafal",
+      "rate": "30",
+      "phone": "",
+      "settled": false,
+      "position": "Lekarz",
+      "extraCosts": [],
+      "directoryId": "dir-6",
+      "dataUpdatedAt": "2026-05-28T19:51:11.557Z"
+    },
+    {
+      "id": "we-7",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "09:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Kamil Zabka",
+      "rate": "29",
+      "phone": "",
+      "settled": false,
+      "position": "Amator",
+      "extraCosts": [],
+      "directoryId": "dir-7",
+      "dataUpdatedAt": "2026-05-29T05:23:01.792Z"
+    },
+    {
+      "id": "we-8",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Tomek Od Lukasza",
+      "rate": "30",
+      "phone": "",
+      "settled": false,
+      "position": "Pomocnik/Majster",
+      "extraCosts": [],
+      "directoryId": "dir-8",
+      "dataUpdatedAt": "2026-05-29T05:22:42.462Z"
+    },
+    {
+      "id": "we-9",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Marcin",
+      "rate": "35",
+      "phone": "",
+      "settled": false,
+      "position": "Mistrz Hydrauliki",
+      "extraCosts": [
+        {
+          "id": "7dd46870-4d5a-4d2f-900b-372b2015d18d",
+          "amount": "25",
+          "description": "chemia"
+        }
+      ],
+      "directoryId": "dir-9",
+      "dataUpdatedAt": "2026-05-28T19:51:32.633Z"
+    },
+    {
+      "id": "we-10",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Grzesiek",
+      "rate": "30",
+      "phone": "",
+      "settled": false,
+      "position": "Rybak zawodowy",
+      "extraCosts": [],
+      "directoryId": "dir-10",
+      "dataUpdatedAt": "2026-05-28T19:51:18.150Z"
+    },
+    {
+      "id": "we-11",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Mikolaj",
+      "rate": "25",
+      "phone": "",
+      "settled": false,
+      "position": "Mistrz Grupy zryw",
+      "extraCosts": [],
+      "directoryId": "dir-11",
+      "dataUpdatedAt": "2026-05-29T05:19:59.482Z"
+    },
+    {
+      "id": "we-12",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Tomek od Mikolaja",
+      "rate": "25",
+      "phone": "",
+      "settled": false,
+      "position": "Pomocnik Mistrza",
+      "extraCosts": [],
+      "directoryId": "dir-12",
+      "dataUpdatedAt": "2026-05-29T05:22:52.613Z"
+    },
+    {
+      "id": "we-13",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Jaroslaw",
+      "rate": "25",
+      "phone": "",
+      "settled": false,
+      "position": "Kierowca zawodowy",
+      "extraCosts": [],
+      "directoryId": "dir-13",
+      "dataUpdatedAt": "2026-05-28T19:51:23.365Z"
+    }
+  ],
+  "kw-week-employees-prev": [
+    {
+      "id": "we-1",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "beefea25-984c-4ed3-a680-bebd7c120e88",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "f30118d1-4772-4fcf-abe2-80d01ff11240",
+              "to": "18:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "d0017f35-c2e9-490c-a5b0-2bf24e787525",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "88450ec7-4b84-4612-89ff-796c5368048f",
+              "to": "19:00",
+              "from": "16:30",
+              "description": ""
+            }
+          ]
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "14751ac9-5646-4409-8848-044a93f8b14a",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "d61582ca-3bd1-495f-91f5-f85cff9fd595",
+              "to": "18:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        }
+      },
+      "name": "Piotrek Ukraina",
+      "rate": "29",
+      "phone": "",
+      "settled": true,
+      "position": "Kombinator",
+      "extraCosts": [],
+      "directoryId": "dir-1",
+      "prevSaturday": {
+        "to": "16:00",
+        "from": "07:00",
+        "notes": [
+          {
+            "id": "bb49495b-9c38-4a7a-aca9-fd2ef02ddb1a",
+            "text": "Sala Boks Pawel"
+          }
+        ],
+        "active": true,
+        "zaliczka": ""
+      },
+      "dataUpdatedAt": "2026-06-02T09:37:18.279Z",
+      "settledUpdatedAt": "2026-06-02T09:37:18.279Z"
+    },
+    {
+      "id": "we-2",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "ae147437-e1f9-4025-a11f-2547f90f5265",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "9475e21f-51b2-4044-ab6f-68716c051b5c",
+              "to": "18:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "e67cba09-0f95-40e7-bed1-ae5730c7941c",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "7b5ca667-52df-42d8-9cb9-6eba4d401af0",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "43e6b0df-1c30-4f1f-9cd3-1b5ded192512",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "0d494760-5b77-47c7-a967-5c995588dee7",
+              "to": "18:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        }
+      },
+      "name": "Michal Ukraina",
+      "rate": "29",
+      "phone": "",
+      "settled": false,
+      "position": "Rybak",
+      "extraCosts": [],
+      "directoryId": "dir-2",
+      "prevSaturday": {
+        "to": "16:00",
+        "from": "07:00",
+        "notes": [
+          {
+            "id": "d893ffea-474a-49fa-a9e6-5c6c1f62c1ca",
+            "text": "Sala Boks Pawel"
+          }
+        ],
+        "active": true,
+        "zaliczka": ""
+      },
+      "dataUpdatedAt": "2026-05-29T05:40:21.644Z"
+    },
+    {
+      "id": "we-3",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "50567303-5406-4795-ae02-fa67d727ccfe",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "0ad7dbde-c4f0-49b4-abaa-0b3eda80192c",
+              "to": "18:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "0d825299-2cce-4478-a9e0-4229078aa8a8",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "9bea4813-fbf9-45ea-bc75-76420f8d51a3",
+              "to": "19:00",
+              "from": "16:30",
+              "description": ""
+            }
+          ]
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "18e1baf9-c296-4de8-acb3-cbdcf9790b3f",
+              "to": "19:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "",
+          "extraHours": [
+            {
+              "id": "cf5feb97-c1de-421d-8beb-efc2e9ce5d5f",
+              "to": "18:00",
+              "from": "16:30",
+              "description": "Sala Boks Pawel"
+            }
+          ]
+        }
+      },
+      "name": "Kola Ukraina",
+      "rate": "25",
+      "phone": "",
+      "settled": false,
+      "position": "Kolega Rybakow",
+      "extraCosts": [],
+      "directoryId": "dir-3",
+      "prevSaturday": {
+        "to": "16:00",
+        "from": "07:00",
+        "notes": [
+          {
+            "id": "954fdaec-58bc-4c07-a764-e04edfae8934",
+            "text": "Sala boks Pawel"
+          }
+        ],
+        "active": true,
+        "zaliczka": ""
+      },
+      "dataUpdatedAt": "2026-05-29T05:41:49.364Z"
+    },
+    {
+      "id": "we-4",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Kamil Elektryk",
+      "rate": "30",
+      "phone": "",
+      "settled": false,
+      "position": "Elektryk",
+      "extraCosts": [
+        {
+          "id": "78a9033a-c14d-4b29-85ee-2f0d59623119",
+          "amount": "200",
+          "description": "Casotrama - rozdzielnia,gniazdka, kostki"
+        }
+      ],
+      "directoryId": "dir-4",
+      "dataUpdatedAt": "2026-05-28T19:51:05.338Z"
+    },
+    {
+      "id": "we-5",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": "50"
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "13:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Adam",
+      "rate": "30",
+      "phone": "",
+      "settled": false,
+      "position": "Wariat",
+      "extraCosts": [],
+      "directoryId": "dir-5",
+      "prevSaturday": {
+        "to": "13:00",
+        "from": "07:00",
+        "notes": [
+          {
+            "id": "2e1f0286-dea5-49de-97e9-86dfc42fed66",
+            "text": "Sala Boks Pawel"
+          }
+        ],
+        "active": true,
+        "zaliczka": ""
+      },
+      "dataUpdatedAt": "2026-05-28T19:51:38.707Z"
+    },
+    {
+      "id": "we-6",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Rafal",
+      "rate": "30",
+      "phone": "",
+      "settled": false,
+      "position": "Lekarz",
+      "extraCosts": [],
+      "directoryId": "dir-6",
+      "dataUpdatedAt": "2026-05-28T19:51:11.557Z"
+    },
+    {
+      "id": "we-7",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "09:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Kamil Zabka",
+      "rate": "29",
+      "phone": "",
+      "settled": false,
+      "position": "Amator",
+      "extraCosts": [],
+      "directoryId": "dir-7",
+      "dataUpdatedAt": "2026-05-29T05:23:01.792Z"
+    },
+    {
+      "id": "we-8",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Tomek Od Lukasza",
+      "rate": "30",
+      "phone": "",
+      "settled": false,
+      "position": "Pomocnik/Majster",
+      "extraCosts": [],
+      "directoryId": "dir-8",
+      "dataUpdatedAt": "2026-05-29T05:22:42.462Z"
+    },
+    {
+      "id": "we-9",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Marcin",
+      "rate": "35",
+      "phone": "",
+      "settled": false,
+      "position": "Mistrz Hydrauliki",
+      "extraCosts": [
+        {
+          "id": "7dd46870-4d5a-4d2f-900b-372b2015d18d",
+          "amount": "25",
+          "description": "chemia"
+        }
+      ],
+      "directoryId": "dir-9",
+      "dataUpdatedAt": "2026-05-28T19:51:32.633Z"
+    },
+    {
+      "id": "we-10",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Grzesiek",
+      "rate": "30",
+      "phone": "",
+      "settled": false,
+      "position": "Rybak zawodowy",
+      "extraCosts": [],
+      "directoryId": "dir-10",
+      "dataUpdatedAt": "2026-05-28T19:51:18.150Z"
+    },
+    {
+      "id": "we-11",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Mikolaj",
+      "rate": "25",
+      "phone": "",
+      "settled": false,
+      "position": "Mistrz Grupy zryw",
+      "extraCosts": [],
+      "directoryId": "dir-11",
+      "dataUpdatedAt": "2026-05-29T05:19:59.482Z"
+    },
+    {
+      "id": "we-12",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Tomek od Mikolaja",
+      "rate": "25",
+      "phone": "",
+      "settled": false,
+      "position": "Pomocnik Mistrza",
+      "extraCosts": [],
+      "directoryId": "dir-12",
+      "dataUpdatedAt": "2026-05-29T05:22:52.613Z"
+    },
+    {
+      "id": "we-13",
+      "days": {
+        "Cz": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pn": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Pt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "So": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": false,
+          "zaliczka": ""
+        },
+        "Sr": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        },
+        "Wt": {
+          "to": "16:00",
+          "from": "07:00",
+          "active": true,
+          "zaliczka": ""
+        }
+      },
+      "name": "Jaroslaw",
+      "rate": "25",
+      "phone": "",
+      "settled": false,
+      "position": "Kierowca zawodowy",
+      "extraCosts": [],
+      "directoryId": "dir-13",
+      "dataUpdatedAt": "2026-05-28T19:51:23.365Z"
+    }
+  ],
+  "kw-weekFrom": "2026-05-25",
+  "kw-weekTo": "2026-05-30",
+  "statsMain": {
+    "employees": 13,
+    "activeDays": 71,
+    "weekdayActive": 67,
+    "weekdayHours": 640,
+    "totalHours": 673,
+    "settledTrue": 2
+  },
+  "statsPrev": {
+    "employees": 13,
+    "activeDays": 71,
+    "weekdayActive": 67,
+    "weekdayHours": 640,
+    "totalHours": 673,
+    "settledTrue": 1
+  },
+  "otherKeys": {
+    "jobs": 14,
+    "directory": 14,
+    "archive": 2
+  }
+}

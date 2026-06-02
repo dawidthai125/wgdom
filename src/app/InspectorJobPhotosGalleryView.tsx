@@ -16,6 +16,8 @@ import {
   PHOTO_LABEL_ORDER,
   PHOTO_LABEL_SECTION,
 } from "@/lib/photo-labels";
+import { JobPhotoImg } from "@/app/JobPhotoImg";
+import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
 
 interface GalleryEntry {
   job: GalleryJob;
@@ -34,6 +36,7 @@ export function InspectorJobPhotosGalleryView({
   const [search, setSearch] = useState("");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [lightbox, setLightbox] = useState<{ photo: GalleryPhoto; job: GalleryJob } | null>(null);
+  const failRev = useMediaFailureRevision();
 
   const entries = useMemo(() => {
     const list: GalleryEntry[] = [];
@@ -44,7 +47,7 @@ export function InspectorJobPhotosGalleryView({
       list.push({ job, bucket, photos });
     }
     return list;
-  }, [jobs]);
+  }, [jobs, failRev]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -87,7 +90,7 @@ export function InspectorJobPhotosGalleryView({
           onClick={() => setLightbox({ photo: p, job })}
           className="group relative aspect-square rounded-xl overflow-hidden bg-secondary ring-1 ring-border/60"
         >
-          <img src={p.publicUrl} alt="" className="w-full h-full object-cover"/>
+          <JobPhotoImg src={p.publicUrl} alt="" className="w-full h-full object-cover"/>
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/75 to-transparent px-1.5 py-1">
             <p className="text-[8px] text-white font-medium truncate">{PHOTO_LABEL_NAMES[p.label]}</p>
           </div>
@@ -171,7 +174,7 @@ export function InspectorJobPhotosGalleryView({
                       <div className="flex items-start gap-3">
                         <div className="w-12 h-12 rounded-xl overflow-hidden bg-secondary shrink-0 ring-1 ring-border">
                           {photos[0]?.publicUrl ? (
-                            <img src={photos[0].publicUrl} alt="" className="w-full h-full object-cover"/>
+                            <JobPhotoImg src={photos[0].publicUrl} alt="" className="w-full h-full object-cover"/>
                           ) : (
                             <div className="w-full h-full flex items-center justify-center"><Camera size={18}/></div>
                           )}
@@ -236,7 +239,7 @@ export function InspectorJobPhotosGalleryView({
           <button type="button" className="absolute top-4 right-4 text-white p-2" onClick={() => setLightbox(null)}>
             <X size={24}/>
           </button>
-          <img src={lightbox.photo.publicUrl} alt="" className="max-w-full max-h-[85vh] rounded-xl object-contain" onClick={(e) => e.stopPropagation()}/>
+          <JobPhotoImg src={lightbox.photo.publicUrl} alt="" className="max-w-full max-h-[85vh] rounded-xl object-contain" onClick={(e) => e.stopPropagation()}/>
           <div className="absolute bottom-6 left-4 right-4 text-center pointer-events-none">
             <p className="text-white font-medium text-sm">{jobDisplayTitle(lightbox.job)}</p>
             <p className="text-white/90 text-xs mt-0.5">{PHOTO_LABEL_NAMES[lightbox.photo.label]}</p>

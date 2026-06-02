@@ -7,6 +7,7 @@ import type { InspectorPhotoEntry } from "@/lib/job-wm";
 import type { EmailContact } from "@/lib/email-contacts";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { isDocxFilename, isXlsxFilename } from "@/lib/tenders-bzp-doc-parse";
+import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { JobFilesEmailModal } from "@/app/JobFilesEmailModal";
 import { downloadJobDocumentsPack, type JobPackSource } from "@/lib/job-documents-pack";
@@ -97,10 +98,10 @@ export function JobInspectorFilesPanel({
   const items = useMemo((): InspectorFileItem[] => {
     const list: InspectorFileItem[] = [];
     for (const f of jobFiles || []) {
-      if (f.publicUrl) list.push({ kind: "jobFile", file: f });
+      if (isMediaAttachmentAvailable(f)) list.push({ kind: "jobFile", file: f });
     }
     for (const p of inspectorPhotos || []) {
-      if (p.publicUrl) list.push({ kind: "inspectorPhoto", file: p });
+      if (isMediaAttachmentAvailable(p)) list.push({ kind: "inspectorPhoto", file: p });
     }
     return list.sort((a, b) => itemUploadedAt(b).localeCompare(itemUploadedAt(a)));
   }, [jobFiles, inspectorPhotos]);

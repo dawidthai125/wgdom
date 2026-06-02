@@ -1,0 +1,4428 @@
+{
+  "capturedAt": "2026-06-02T12:41:08.261Z",
+  "supabaseProjectId": "bdpygdvfgbggermvqtys",
+  "purpose": "P14 snapshot przed cleanup martwych URL w kw-jobs",
+  "jobsCount": 10,
+  "urlCounts": {
+    "totalUrls": 90,
+    "deadUrls": 74,
+    "activeUrls": 16,
+    "deadByReason": {
+      "old-project": 74,
+      "wrong-project-bucket": 0
+    },
+    "deadSamples": [
+      {
+        "url": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/f97f6c7f",
+        "reason": "old-project"
+      },
+      {
+        "url": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/f97f6c7f",
+        "reason": "old-project"
+      },
+      {
+        "url": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/f97f6c7f",
+        "reason": "old-project"
+      }
+    ]
+  },
+  "kw-jobs": [
+    {
+      "id": "8a752b0d-2236-44cb-9100-f3f25a95ba76",
+      "notes": "sync-1780396509345",
+      "client": "Wrocławskie Mieszkania",
+      "photos": [],
+      "status": "in_progress",
+      "address": "Brochow",
+      "endDate": "",
+      "jobFiles": [],
+      "jobNotes": [],
+      "jobPhase": "in_progress",
+      "documents": {
+        "zakres": false,
+        "pomiary": false,
+        "rysunek": false,
+        "zdjecia": false,
+        "zlecenie": false,
+        "gwarancje": false,
+        "kominiarz": false,
+        "kosztorys": false,
+        "oswiadczenia": false
+      },
+      "materials": [],
+      "startDate": "2026-06-02",
+      "stoveType": "",
+      "updatedAt": "2026-06-02T10:35:09.379Z",
+      "flatNumber": "Cyganka",
+      "activityLog": [
+        {
+          "at": "2026-06-02T06:50:52.682Z",
+          "id": "bd849136-b9fb-4579-9794-68bd179a3d75",
+          "text": "Piotrek Ukraina — 02.06.2026, 9h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-02T06:50:47.462Z",
+          "id": "fceb138c-c476-4ae5-8927-41f67eb1eb23",
+          "text": "Marcin — 02.06.2026, 9h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-02T06:50:30.221Z",
+          "id": "dc9ec771-93f2-45ca-8c28-a00de4bbf927",
+          "text": "Status: W trakcie",
+          "type": "status_change",
+          "actor": "Administrator"
+        }
+      ],
+      "housingType": "zamienny",
+      "workEntries": [
+        {
+          "id": "13b7f448-0251-45b9-97c2-dd609c9214c6",
+          "date": "2026-06-02",
+          "rate": 42.5,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-9",
+          "employeeName": "Marcin"
+        },
+        {
+          "id": "ef655b19-25e7-4341-bcf2-f941af59715e",
+          "date": "2026-06-02",
+          "rate": 28.43,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-1",
+          "employeeName": "Piotrek Ukraina"
+        }
+      ],
+      "handoverStage": "in_progress",
+      "invoiceAmount": "",
+      "invoiceNumber": "",
+      "invoiceStatus": "pending",
+      "workerReports": [],
+      "keysHandedOver": false,
+      "inspectorPhotos": [],
+      "plannedHandoverDate": ""
+    },
+    {
+      "id": "d8e49651-b67c-4381-8971-f26ab80fb271",
+      "notes": "sync-1780330525312",
+      "client": "Wrocławskie Mieszkania",
+      "photos": [
+        {
+          "id": "f73f62f4-15ab-41b4-a5bf-099ae63e8e65",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780383812269.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780383812269.jpg",
+          "uploadedAt": "2026-06-02T07:04:34.113Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "d92e82c0-2543-4da5-801f-f922847a3c62",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780383610276.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780383610276.jpg",
+          "uploadedAt": "2026-06-02T07:00:40.042Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "260543bb-ae17-4596-b06b-864b11cbb14a",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780383640492.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780383640492.jpg",
+          "uploadedAt": "2026-06-02T07:00:55.883Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "7e5c4c16-f7ba-4146-af57-b44528240795",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780383656430.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780383656430.jpg",
+          "uploadedAt": "2026-06-02T07:01:18.762Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "dd3b9837-68ef-4256-a130-6d618f21132f",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780383679268.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780383679268.jpg",
+          "uploadedAt": "2026-06-02T07:01:36.300Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "068e113a-b8d9-4a98-b635-360fc51fbf31",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780383802686.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780383802686.jpg",
+          "uploadedAt": "2026-06-02T07:04:22.599Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "c4abc79f-1d58-4fd3-bf13-149e6fbe843d",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780384056949.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780384056949.jpg",
+          "uploadedAt": "2026-06-02T07:12:08.230Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "994c9fcb-9655-4dd4-9a85-f21963113e88",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780384051970.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780384051970.jpg",
+          "uploadedAt": "2026-06-02T07:12:09.378Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "72c4bb60-9ca2-4d8f-805c-e1636e2f595e",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780384329456.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780384329456.jpg",
+          "uploadedAt": "2026-06-02T07:12:14.886Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "a78b9e7d-49a6-4dec-b1d8-1b06e46a162a",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780384334906.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780384334906.jpg",
+          "uploadedAt": "2026-06-02T07:12:19.503Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "dfabcc8b-47af-4c36-982e-6fd04a779e06",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780384339527.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780384339527.jpg",
+          "uploadedAt": "2026-06-02T07:12:24.229Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "18f1999c-d250-4a3b-8d5f-ace9bed0ab0a",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780384344310.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780384344310.jpg",
+          "uploadedAt": "2026-06-02T07:12:29.693Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "3ac03028-c071-4a2b-abd2-14678bef23cf",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780392522055.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780392522055.jpg",
+          "uploadedAt": "2026-06-02T09:29:13.011Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "4664dfdc-9cf7-47b4-8a15-755e8a2d6382",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780392553081.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780392553081.jpg",
+          "uploadedAt": "2026-06-02T09:29:29.606Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "16162bb2-dbfc-49c9-bc02-8c787507ea94",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780392569629.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780392569629.jpg",
+          "uploadedAt": "2026-06-02T09:29:37.833Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "361291a8-2a77-46bb-889f-163714933d38",
+          "path": "jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780392577908.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/d8e49651-b67c-4381-8971-f26ab80fb271/progress-1780392577908.jpg",
+          "uploadedAt": "2026-06-02T09:29:50.711Z",
+          "uploadedBy": "Kamil Elektryk"
+        }
+      ],
+      "status": "in_progress",
+      "address": "Grunwaldzka 10a",
+      "endDate": "",
+      "jobFiles": [],
+      "jobNotes": [],
+      "jobPhase": "in_progress",
+      "documents": {
+        "zakres": false,
+        "pomiary": false,
+        "rysunek": false,
+        "zdjecia": false,
+        "zlecenie": false,
+        "gwarancje": false,
+        "kominiarz": false,
+        "kosztorys": false,
+        "oswiadczenia": false
+      },
+      "materials": [],
+      "startDate": "2026-05-29",
+      "stoveType": "",
+      "updatedAt": "2026-06-02T12:13:14.403Z",
+      "flatNumber": "2",
+      "activityLog": [
+        {
+          "at": "2026-06-02T12:13:14.403Z",
+          "id": "69718d55-0822-473f-b567-3bd424e667fd",
+          "text": "Zaakceptowano wszystkie (4)",
+          "type": "photo_approved",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-02T09:29:50.711Z",
+          "id": "87714931-fd9f-479e-92d9-1e2b9a461d32",
+          "text": "Kamil Elektryk wgrał zdjęcie z kolejki (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-06-02T09:29:37.833Z",
+          "id": "d900e6e7-c82f-41a0-b5c1-b06e2468743d",
+          "text": "Kamil Elektryk wgrał zdjęcie z kolejki (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-06-02T09:29:29.606Z",
+          "id": "23f30b16-5b95-42fd-a2ab-23e429f93a6b",
+          "text": "Kamil Elektryk wgrał zdjęcie z kolejki (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-06-02T09:29:13.013Z",
+          "id": "440a99b2-07b1-4439-9575-c5a5fb555474",
+          "text": "Kamil Elektryk wgrał zdjęcie z kolejki (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-06-02T07:51:14.024Z",
+          "id": "b982b35d-e8df-488f-b04a-5c273d3f1b51",
+          "text": "Zaakceptowano wszystkie (12)",
+          "type": "photo_approved",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-02T07:12:29.694Z",
+          "id": "669eb796-971f-454b-bb94-a5b29cac91b0",
+          "text": "Kamil Elektryk wgrał zdjęcie z kolejki (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-06-02T07:12:24.231Z",
+          "id": "97a787fd-2633-4767-b3bc-467a52d4d708",
+          "text": "Kamil Elektryk wgrał zdjęcie z kolejki (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-06-02T07:12:19.503Z",
+          "id": "376a5785-cc6f-4190-94cf-3e1c36ef86b4",
+          "text": "Kamil Elektryk wgrał zdjęcie z kolejki (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-06-02T07:12:14.886Z",
+          "id": "36141354-f43b-4789-bd16-4939d26cc2a4",
+          "text": "Kamil Elektryk wgrał zdjęcie z kolejki (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-06-02T07:12:09.380Z",
+          "id": "149dfe02-1d73-4ae0-bb93-4af4d0aac241",
+          "text": "Kamil Elektryk wgrał zdjęcie z kolejki (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-06-02T07:12:08.232Z",
+          "id": "4f69402d-63a9-48ba-9e9a-f197298b5f30",
+          "text": "Kamil Elektryk wgrał 6 zdjęć (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-06-02T07:04:34.116Z",
+          "id": "1835de61-0174-48e1-8498-d088f23e1dfc",
+          "text": "Kamil Elektryk wgrał zdjęcie z kolejki (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-06-02T06:49:28.408Z",
+          "id": "0d3137a2-ae3b-49ba-b70a-a50d29e5df63",
+          "text": "Michal Ukraina skopiowany na 02.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-02T06:45:36.952Z",
+          "id": "05dbdf9c-a574-4fe6-a999-57e605d5ef0b",
+          "text": "Kamil Elektryk — 02.06.2026, 9h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-02T06:45:26.964Z",
+          "id": "0fcbd451-32e2-4bd4-972c-0932836413d5",
+          "text": "Michal Ukraina skopiowany na 02.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-02T06:45:24.748Z",
+          "id": "b6cc04f4-41c3-4300-b11c-b4779857d0a9",
+          "text": "Grzesiek skopiowany na 02.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T08:03:57.236Z",
+          "id": "77dc3270-397c-4d41-b8ed-792df5076241",
+          "text": "Michal Ukraina skopiowany na 01.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T07:57:31.539Z",
+          "id": "24f74a12-218f-42e9-bf39-8cd3ba56484a",
+          "text": "Grzesiek skopiowany na 01.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T08:18:48.430Z",
+          "id": "c2dd9ef6-829b-46c2-bc2c-243fc6fbec2d",
+          "text": "Admin dodał 12 zdjęć (Przed remontem)",
+          "type": "photo_upload"
+        },
+        {
+          "at": "2026-05-29T07:10:16.844Z",
+          "id": "d92391b0-06b0-4e85-8060-6d9b969f9792",
+          "text": "Status: W trakcie",
+          "type": "status_change",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T05:53:21.068Z",
+          "id": "5471ca7f-681c-42d8-9ca6-439d58604d9a",
+          "text": "Kola Ukraina — 30.05.2026, 9h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T05:53:08.434Z",
+          "id": "727df281-523f-42f6-bd67-4af259c7b5a2",
+          "text": "Michal Ukraina — 30.05.2026, 9h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T05:30:34.883Z",
+          "id": "8f4d0f1e-3bf4-4472-b987-ce88934d42cf",
+          "text": "Grzesiek — 29.05.2026, 9h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T05:30:29.910Z",
+          "id": "fcbbb6b3-ecb1-402d-984e-39ae97350547",
+          "text": "Michal Ukraina — 29.05.2026, 9h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        }
+      ],
+      "housingType": "zamienny",
+      "workEntries": [
+        {
+          "id": "59714353-fc5e-42ac-b2ef-1d4f137a8950",
+          "date": "2026-05-29",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-2",
+          "employeeName": "Michal Ukraina"
+        },
+        {
+          "id": "f22b3a9b-db69-4b98-bddf-0bd0242dd57e",
+          "date": "2026-05-29",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-10",
+          "employeeName": "Grzesiek"
+        },
+        {
+          "id": "a086e43f-df9c-4872-9d8c-e4c65f7682f9",
+          "date": "2026-05-30",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-2",
+          "employeeName": "Michal Ukraina"
+        },
+        {
+          "id": "3789c72b-89c7-4372-8d31-e3b749667be0",
+          "date": "2026-05-30",
+          "rate": 25,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-3",
+          "employeeName": "Kola Ukraina"
+        },
+        {
+          "id": "0ffcb78b-95e8-4f44-a512-e8b4efb8b07e",
+          "date": "2026-06-01",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-10",
+          "employeeName": "Grzesiek"
+        },
+        {
+          "id": "37cc93a6-f4ec-4192-995b-9df4ff3db195",
+          "date": "2026-06-01",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-2",
+          "employeeName": "Michal Ukraina"
+        },
+        {
+          "id": "dd0a47ad-eb48-45c1-b9b7-eef73a2fee40",
+          "date": "2026-06-02",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-10",
+          "employeeName": "Grzesiek"
+        },
+        {
+          "id": "b4ed0da5-8af9-4967-ae21-855f61d4a6e6",
+          "date": "2026-06-02",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-4",
+          "employeeName": "Kamil Elektryk"
+        },
+        {
+          "id": "554f7ea9-86a7-4241-8bf8-02b8bc52f860",
+          "date": "2026-06-02",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-2",
+          "employeeName": "Michal Ukraina"
+        }
+      ],
+      "handoverStage": "in_progress",
+      "invoiceAmount": "",
+      "invoiceNumber": "",
+      "invoiceStatus": "pending",
+      "workerReports": [],
+      "keysHandedOver": false,
+      "inspectorPhotos": [],
+      "plannedHandoverDate": ""
+    },
+    {
+      "id": "f97f6c7f-6df7-447c-a3e2-a79695214753",
+      "notes": "",
+      "client": "Wrocławskie Mieszkania",
+      "photos": [
+        {
+          "id": "fc93deb2-5e5a-48eb-9cd6-4a6c523bcb13",
+          "path": "jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041516478.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041516478.jpeg",
+          "uploadedAt": "2026-05-29T07:58:36.961Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "a8e6bfaa-7798-465f-966c-a2b2b520ed82",
+          "path": "jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041522711.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041522711.jpeg",
+          "uploadedAt": "2026-05-29T07:58:43.356Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "f41bcc8c-4f54-4de4-8e6e-cd4d49abd8f1",
+          "path": "jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041532033.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041532033.jpeg",
+          "uploadedAt": "2026-05-29T07:58:52.624Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "59a2dd75-9552-4819-b842-626fee2e6ecb",
+          "path": "jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041538492.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041538492.jpeg",
+          "uploadedAt": "2026-05-29T07:58:59.076Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "279e218d-1414-40e8-bc4b-1f0e87e82b33",
+          "path": "jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041543374.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041543374.jpeg",
+          "uploadedAt": "2026-05-29T07:59:03.888Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "353ddd23-92c6-4b31-8bed-68e53823a0d0",
+          "path": "jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041547800.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041547800.jpeg",
+          "uploadedAt": "2026-05-29T07:59:08.315Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "1129dc5a-8699-4b1a-8bf6-1b7b97673ea8",
+          "path": "jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041553300.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041553300.jpeg",
+          "uploadedAt": "2026-05-29T07:59:14.026Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "a67ff075-d927-47e1-aa8f-105de2f51189",
+          "path": "jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041557024.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041557024.jpeg",
+          "uploadedAt": "2026-05-29T07:59:17.591Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "03b202a0-b86e-49c8-bb20-e7ac46eade2b",
+          "path": "jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041559434.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041559434.jpeg",
+          "uploadedAt": "2026-05-29T07:59:19.965Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "f89c1d1b-d012-4e87-943b-e6bbad5d4054",
+          "path": "jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041561995.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/progress-1780041561995.jpeg",
+          "uploadedAt": "2026-05-29T07:59:22.538Z",
+          "uploadedBy": "admin"
+        }
+      ],
+      "status": "in_progress",
+      "address": "Sepa Sarzynskiego 63",
+      "endDate": "",
+      "jobFiles": [],
+      "jobNotes": [],
+      "documents": {
+        "zakres": true,
+        "pomiary": false,
+        "rysunek": true,
+        "zdjecia": false,
+        "zlecenie": true,
+        "gwarancje": false,
+        "kominiarz": false,
+        "kosztorys": true,
+        "oswiadczenia": false
+      },
+      "materials": [],
+      "startDate": "2026-05-27",
+      "stoveType": "dwupalnik",
+      "updatedAt": "2026-06-02T04:11:30.234Z",
+      "flatNumber": "1",
+      "activityLog": [
+        {
+          "at": "2026-06-01T08:41:41.809Z",
+          "id": "92849e68-c7dd-4030-8856-1c5f0a1525a6",
+          "text": "Zaznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T08:41:41.317Z",
+          "id": "c1353f78-444d-4846-a332-d690f6870a89",
+          "text": "Zaznaczono: Kosztorys",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T19:43:18.091Z",
+          "id": "5b3be105-c9e3-4ea7-886b-438566cbc1e2",
+          "text": "Usunięto plik: Koreańska 1 m 305  ofertowy.ath",
+          "type": "inspector_file",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T07:59:22.538Z",
+          "id": "b60d6ad4-b21b-4364-b1dd-05a56d77c42f",
+          "text": "Admin dodał zdjęcie (progress)",
+          "type": "photo_upload",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T07:59:19.965Z",
+          "id": "999efa3c-25ae-4daf-9228-95f2002e7e4d",
+          "text": "Admin dodał zdjęcie (progress)",
+          "type": "photo_upload",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T07:59:17.591Z",
+          "id": "787eadc9-761d-43bd-a20a-d663d8962e91",
+          "text": "Admin dodał zdjęcie (progress)",
+          "type": "photo_upload",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T07:59:14.026Z",
+          "id": "c6438765-678f-4bbc-b685-884a2450c9bf",
+          "text": "Admin dodał zdjęcie (progress)",
+          "type": "photo_upload",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T07:59:08.316Z",
+          "id": "c4293f45-5022-45a9-aea0-2fb86e41dc79",
+          "text": "Admin dodał zdjęcie (progress)",
+          "type": "photo_upload",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T07:59:03.888Z",
+          "id": "6e44979c-3962-41a1-b775-505195c59f4f",
+          "text": "Admin dodał zdjęcie (progress)",
+          "type": "photo_upload",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T07:58:59.076Z",
+          "id": "2f8aa5bf-ceae-4fbe-97a4-8e5fcb72a174",
+          "text": "Admin dodał zdjęcie (progress)",
+          "type": "photo_upload",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T07:58:52.624Z",
+          "id": "5be957ef-a7ec-4575-8c0c-327576528e7c",
+          "text": "Admin dodał zdjęcie (progress)",
+          "type": "photo_upload",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T07:58:43.356Z",
+          "id": "0cdef202-c7a4-4fb4-9eb3-8ef33980a619",
+          "text": "Admin dodał zdjęcie (progress)",
+          "type": "photo_upload",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T07:58:36.961Z",
+          "id": "529cd0c6-e721-4758-8956-c7ed193d0b85",
+          "text": "Admin dodał zdjęcie (progress)",
+          "type": "photo_upload",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T07:58:07.238Z",
+          "id": "becdb2ca-ce6c-40ae-9409-b9e9c98eb94f",
+          "text": "Dodano raport (0 linii)",
+          "type": "report_add",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T07:51:45.191Z",
+          "id": "2dc83530-d7bd-4a35-bf05-9cb3591fb2a8",
+          "text": "Dodano raport (8 linii)",
+          "type": "report_add",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T07:10:25.411Z",
+          "id": "e28120ae-a40b-452a-a76a-6d194d4a3998",
+          "text": "Odznaczono: Kosztorys",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T05:23:34.397Z",
+          "id": "deb59482-d5f8-4165-9991-99d4128fffa3",
+          "text": "Etap: Gotowa do odbioru WM",
+          "type": "inspector_stage",
+          "actor": "Dawid"
+        },
+        {
+          "at": "2026-05-29T05:23:16.978Z",
+          "id": "940b2ee3-3886-49e1-a2a3-3bd95d1d71bb",
+          "text": "Odznaczono: Kosztorys",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T20:44:58.910Z",
+          "id": "7269c235-f33c-4918-845d-228ce4fa2b71",
+          "text": "Odznaczono: Kosztorys",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T20:42:36.897Z",
+          "id": "16e6e945-7a92-42e4-9cb9-16115536faec",
+          "text": "Odznaczono: Kosztorys",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T20:42:28.789Z",
+          "id": "b70d9c5e-0d4a-4035-8ce8-ec1919f1cce1",
+          "text": "Odznaczono: Kosztorys",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T20:41:28.945Z",
+          "id": "45f98130-6a85-4c2f-990b-824c686f2cff",
+          "text": "Wgrano kosztorys: Koreańska 1 m 305  ofertowy.ath",
+          "type": "inspector_file",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T17:29:33.332Z",
+          "id": "7c8df177-fc1c-4918-ae2c-07f734b9ce0e",
+          "text": "Etap: Dokumenty do odbioru",
+          "type": "inspector_stage",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-27T09:59:32.860Z",
+          "id": "13c1c051-2de6-42ec-a34e-48491e9ec971",
+          "text": "Odznaczono: Kominiarz",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-27T09:59:32.118Z",
+          "id": "fbe88f25-ab94-4c8f-aaf9-bf9c035c36c2",
+          "text": "Zaznaczono: Kominiarz",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-27T09:59:31.808Z",
+          "id": "dcc3ed75-56b6-4f46-b4b2-2fc37737ce8b",
+          "text": "Odznaczono: Oświadczenia",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-27T09:59:31.233Z",
+          "id": "f551ef33-9384-45cf-922c-82e416afafbc",
+          "text": "Zaznaczono: Oświadczenia",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-27T09:59:28.051Z",
+          "id": "ed7186cb-481b-42e8-a8cb-f5ef6a690240",
+          "text": "Odznaczono: Zlecenie",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-27T09:59:27.269Z",
+          "id": "3cc2be23-1eb3-41ac-9464-afb23a028bef",
+          "text": "Zaznaczono: Zlecenie",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        }
+      ],
+      "housingType": "komunalny",
+      "workEntries": [],
+      "handoverStage": "ready_for_handover",
+      "invoiceAmount": "",
+      "invoiceNumber": "",
+      "invoiceStatus": "pending",
+      "workerReports": [
+        {
+          "id": "366a0947-ce38-4a06-9da0-786044542508",
+          "rooms": [],
+          "sketch": null,
+          "workItems": [
+            {
+              "id": "6d74d240-8c6b-45bd-a0ea-ff11de0ab572",
+              "note": "",
+              "text": "• Demontaż zamurowanych okien"
+            },
+            {
+              "id": "707d3be0-4161-4d7a-9eab-1fc23541735c",
+              "note": "",
+              "text": "• Usunięcie pęknięć oraz naprawa ubytków w kuchni"
+            },
+            {
+              "id": "3d768039-e13d-4df1-b67e-3c764a6ae1df",
+              "note": "",
+              "text": "• Malowanie kuchni"
+            },
+            {
+              "id": "b26bf098-1acf-4d9d-bb9e-515824d6ae2b",
+              "note": "",
+              "text": "• Malowanie całej ściany z oknami"
+            },
+            {
+              "id": "f5302093-3a2e-4224-aea1-cfc93ea6da85",
+              "note": "",
+              "text": "• Malowanie łazienki"
+            },
+            {
+              "id": "e7ec6783-ddbc-407a-8843-625de3cb1f4b",
+              "note": "",
+              "text": "• Wymiana włącznika"
+            },
+            {
+              "id": "ed34e6cf-9f1b-4864-9cf1-d8aa3ece8cad",
+              "note": "",
+              "text": "• Malowanie okien i parapetów"
+            },
+            {
+              "id": "db774fe3-0709-475a-9d17-b2703c22e1af",
+              "note": "",
+              "text": "• Wykonanie numeru na drzwi"
+            }
+          ],
+          "sketchNote": "",
+          "workerName": "Dawid",
+          "generalNote": "",
+          "submittedAt": "2026-05-29T07:51:45.191Z",
+          "workScopeText": "• Demontaż zamurowanych okien\n• Usunięcie pęknięć oraz naprawa ubytków w kuchni\n• Malowanie kuchni\n• Malowanie całej ściany z oknami\n• Malowanie łazienki\n• Wymiana włącznika\n• Malowanie okien i parapetów\n• Wykonanie numeru na drzwi",
+          "adminReviewedAt": "2026-05-29T07:57:38.801Z",
+          "authorAdminRole": "super_admin"
+        },
+        {
+          "id": "1de2a79d-fb65-4e21-b97c-0bf6174f80d0",
+          "rooms": [],
+          "sketch": {
+            "path": "jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/sketch-1780041486006.JPEG",
+            "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/f97f6c7f-6df7-447c-a3e2-a79695214753/sketch-1780041486006.JPEG"
+          },
+          "workItems": [],
+          "sketchNote": "",
+          "workerName": "Dawid",
+          "generalNote": "",
+          "submittedAt": "2026-05-29T07:58:07.238Z",
+          "workScopeText": "",
+          "adminReviewedAt": "2026-05-29T08:10:16.099Z",
+          "authorAdminRole": "super_admin"
+        }
+      ],
+      "keysHandedOver": false,
+      "inspectorPhotos": [],
+      "plannedHandoverDate": "",
+      "hiddenInspectorFeedIds": [
+        "13c1c051-2de6-42ec-a34e-48491e9ec971",
+        "fbe88f25-ab94-4c8f-aaf9-bf9c035c36c2",
+        "dcc3ed75-56b6-4f46-b4b2-2fc37737ce8b",
+        "f551ef33-9384-45cf-922c-82e416afafbc",
+        "3cc2be23-1eb3-41ac-9464-afb23a028bef",
+        "ed7186cb-481b-42e8-a8cb-f5ef6a690240",
+        "45f98130-6a85-4c2f-990b-824c686f2cff"
+      ]
+    },
+    {
+      "id": "9a218012-552f-4faa-8b28-6bec26a36a22",
+      "notes": "Inspektor zachwycony, będą nagrody końcoworoczne\n",
+      "client": "Wrocławskie Mieszkania",
+      "photos": [],
+      "status": "completed",
+      "address": "Czajkowskiego 9",
+      "endDate": "",
+      "jobFiles": [],
+      "jobNotes": [],
+      "documents": {
+        "zakres": true,
+        "pomiary": true,
+        "rysunek": true,
+        "zdjecia": true,
+        "zlecenie": true,
+        "gwarancje": true,
+        "kominiarz": true,
+        "kosztorys": true,
+        "oswiadczenia": true
+      },
+      "materials": [],
+      "startDate": "2026-05-27",
+      "stoveType": "dwupalnik",
+      "updatedAt": "2026-06-02T04:11:30.234Z",
+      "flatNumber": "9",
+      "activityLog": [
+        {
+          "at": "2026-06-01T16:55:14.910Z",
+          "id": "f1bb87df-a4df-454e-a408-762f202df265",
+          "text": "Zaznaczono: Zdjęcia",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T08:36:57.961Z",
+          "id": "806ef6ea-5b62-42f7-9f52-d471c28b07ac",
+          "text": "Etap: Odebrana",
+          "type": "inspector_stage",
+          "actor": "Dawid"
+        },
+        {
+          "at": "2026-05-27T08:36:52.751Z",
+          "id": "b0d5237d-2152-48d6-b3e9-39ca34163d83",
+          "text": "Zaznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Dawid"
+        },
+        {
+          "at": "2026-05-27T08:36:52.066Z",
+          "id": "52158906-dbea-4630-a19d-6d7284a9ceb9",
+          "text": "Odznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Dawid"
+        },
+        {
+          "at": "2026-05-27T08:36:11.649Z",
+          "id": "408e5ccf-ba7f-413c-b7e4-affccc99a430",
+          "text": "Zaznaczono: Kominiarz",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T08:36:11.201Z",
+          "id": "5460d6cc-0701-43a6-a7a7-904f780dd04c",
+          "text": "Zaznaczono: Rysunek/Plan",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T08:36:10.686Z",
+          "id": "eb5083df-bd15-41bf-ae27-f908587322bf",
+          "text": "Zaznaczono: Gwarancje",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T08:36:10.338Z",
+          "id": "8f562baf-caad-4a46-97c6-48a00d93445b",
+          "text": "Zaznaczono: Kosztorys",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T08:36:09.739Z",
+          "id": "3d137de2-5694-48e4-94c8-fc19f62372cd",
+          "text": "Zaznaczono: Zakres robót",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T08:36:09.184Z",
+          "id": "a3413ecb-cff2-4bac-9502-2cfb9a7ca56e",
+          "text": "Zaznaczono: Oświadczenia",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T08:36:08.821Z",
+          "id": "0cd22a24-5211-4f4e-8d1d-9ae0aabb25e8",
+          "text": "Zaznaczono: Pomiary",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T08:36:07.434Z",
+          "id": "37a89f85-6df9-4f0d-9efb-d7f2151487f9",
+          "text": "Zaznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Administrator"
+        }
+      ],
+      "housingType": "zamienny",
+      "workEntries": [],
+      "handoverStage": "handed_over",
+      "invoiceAmount": "",
+      "invoiceNumber": "",
+      "invoiceStatus": "pending",
+      "workerReports": [],
+      "keysHandedOver": true,
+      "inspectorPhotos": [],
+      "plannedHandoverDate": ""
+    },
+    {
+      "id": "c914073d-15e2-41c8-83e1-671495a67b37",
+      "notes": "",
+      "client": "Wrocławskie Mieszkania",
+      "photos": [
+        {
+          "id": "8d45b870-e0eb-487b-a982-31077af36412",
+          "path": "jobs/c914073d-15e2-41c8-83e1-671495a67b37/progress-1779796118952.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/c914073d-15e2-41c8-83e1-671495a67b37/progress-1779796118952.jpg",
+          "uploadedAt": "2026-05-26T11:48:41.415Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "93c01037-ebe0-47dc-b493-771ec918a431",
+          "path": "jobs/c914073d-15e2-41c8-83e1-671495a67b37/progress-1779796121838.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/c914073d-15e2-41c8-83e1-671495a67b37/progress-1779796121838.jpg",
+          "uploadedAt": "2026-05-26T11:48:44.130Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "dba00d78-f326-4f12-b1b4-d53f13676942",
+          "path": "jobs/c914073d-15e2-41c8-83e1-671495a67b37/progress-1779796124589.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/c914073d-15e2-41c8-83e1-671495a67b37/progress-1779796124589.jpg",
+          "uploadedAt": "2026-05-26T11:48:46.983Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "5b849932-aa46-4f9d-9cf4-de9ed3ad7f70",
+          "path": "jobs/c914073d-15e2-41c8-83e1-671495a67b37/progress-1779796127419.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/c914073d-15e2-41c8-83e1-671495a67b37/progress-1779796127419.jpg",
+          "uploadedAt": "2026-05-26T11:48:49.642Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "21e4dff9-add2-4309-8a17-37ee73cfb79c",
+          "path": "jobs/c914073d-15e2-41c8-83e1-671495a67b37/progress-1779796130396.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/c914073d-15e2-41c8-83e1-671495a67b37/progress-1779796130396.jpg",
+          "uploadedAt": "2026-05-26T11:48:53.128Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "c7c798ac-129a-4d1c-90f9-6ff0d719a0bb",
+          "path": "jobs/c914073d-15e2-41c8-83e1-671495a67b37/progress-1779796133683.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/c914073d-15e2-41c8-83e1-671495a67b37/progress-1779796133683.jpg",
+          "uploadedAt": "2026-05-26T11:48:56.416Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "4d8240d7-f2b2-4c95-9dac-0667962dbf11",
+          "path": "jobs/c914073d-15e2-41c8-83e1-671495a67b37/progress-1779796137332.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/c914073d-15e2-41c8-83e1-671495a67b37/progress-1779796137332.jpg",
+          "uploadedAt": "2026-05-26T11:48:59.988Z",
+          "uploadedBy": "Kamil Elektryk"
+        }
+      ],
+      "status": "in_progress",
+      "address": "Prądzyńskiego 1a",
+      "endDate": "",
+      "jobFiles": [],
+      "jobNotes": [],
+      "documents": {
+        "zakres": false,
+        "pomiary": false,
+        "rysunek": false,
+        "zdjecia": false,
+        "zlecenie": false,
+        "gwarancje": false,
+        "kominiarz": false,
+        "kosztorys": false,
+        "oswiadczenia": false
+      },
+      "materials": [],
+      "startDate": "2026-05-25",
+      "stoveType": "dwupalnik",
+      "updatedAt": "2026-06-02T06:50:07.839Z",
+      "flatNumber": "14",
+      "activityLog": [
+        {
+          "at": "2026-06-02T06:50:07.839Z",
+          "id": "41541f70-c402-410e-b038-427f7e08f041",
+          "text": "Tomek Od Lukasza skopiowany na 02.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-02T06:46:31.839Z",
+          "id": "2202be6e-e6de-4f42-bf28-676be0d861c9",
+          "text": "Tomek Od Lukasza skopiowany na 02.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-02T06:46:29.581Z",
+          "id": "6164393e-0514-432d-9221-77df03e088d5",
+          "text": "Kola Ukraina skopiowany na 02.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T10:59:07.409Z",
+          "id": "7bdc4378-4267-4ae7-b261-5b93b1d1c9a9",
+          "text": "Tomek Od Lukasza — 01.06.2026, 8h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T08:05:08.248Z",
+          "id": "11402def-9435-41e1-8b01-39fefea22c52",
+          "text": "Tomek Od Lukasza: 9h — Poniedziałek (01.06) (dopasowano do listy płac)",
+          "type": "work_entry",
+          "actor": "Pulpit"
+        },
+        {
+          "at": "2026-06-01T07:59:01.873Z",
+          "id": "b9a5b661-2499-42fc-9018-c3835dcdabcb",
+          "text": "Tomek Od Lukasza — 01.06.2026, 8h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T07:58:07.291Z",
+          "id": "67be66d2-0d17-4bfb-ab86-51c47404b24b",
+          "text": "Tomek Od Lukasza — 01.06.2026, 7h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T07:57:47.158Z",
+          "id": "a419295b-2d66-4d84-8ba5-74ec62441890",
+          "text": "Tomek Od Lukasza skopiowany na 01.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T07:57:46.101Z",
+          "id": "dbe5db00-95cd-4caa-adb3-43b7ab173aca",
+          "text": "Kola Ukraina skopiowany na 01.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T05:28:39.610Z",
+          "id": "c3083173-8886-4c7a-b84a-66af36ce2a04",
+          "text": "Kola Ukraina skopiowany na 29.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T05:28:38.656Z",
+          "id": "5c8a5b86-3435-4bbf-8971-aca687c9b05c",
+          "text": "Tomek Od Lukasza skopiowany na 29.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T20:14:35.030Z",
+          "id": "2d649458-058e-460b-9e2d-956bff74c7ac",
+          "text": "Odznaczono: Rysunek/Plan",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T20:13:38.222Z",
+          "id": "16f9b7bd-5528-4f1d-98ee-56dff9a799aa",
+          "text": "Zaznaczono: Rysunek/Plan",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T17:29:44.667Z",
+          "id": "c7149fa3-1edf-4239-a3a5-bbd4d700c543",
+          "text": "Etap: W realizacji",
+          "type": "inspector_stage",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T07:25:43.648Z",
+          "id": "a29a09bf-9860-461a-892d-2533863e65af",
+          "text": "Odznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:58:39.935Z",
+          "id": "6227fe26-657e-407a-8410-b492b8faf2d6",
+          "text": "Odznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:53:28.521Z",
+          "id": "d436144b-bd02-4ac9-9b62-6b8ba0a38076",
+          "text": "Zaznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:13:03.977Z",
+          "id": "665f84bd-74be-459b-bb2f-1fd8112a6b80",
+          "text": "Kola Ukraina skopiowany na 28.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:13:00.537Z",
+          "id": "44f40c39-fe82-4544-8d31-c3d336b3f588",
+          "text": "Tomek Od Lukasza skopiowany na 28.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T05:18:32.347Z",
+          "id": "8c2a54bc-4cc2-498f-b791-b9bcb2494c3b",
+          "text": "Tomek Od Lukasza skopiowany na 27.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T03:24:38.928Z",
+          "id": "60deb742-cf7c-4891-a8b2-ea294c3d0b71",
+          "text": "Kola Ukraina skopiowany na 27.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T03:24:17.369Z",
+          "id": "1c9d78db-9e2b-47f5-8818-1347346abb9d",
+          "text": "Kamil Elektryk skopiowany na 27.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T11:55:57.013Z",
+          "id": "ed99ad5d-607e-43e8-bafc-effa1b4b3257",
+          "text": "Zaakceptowano zdjęcie (progress)",
+          "type": "photo_approved",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T11:55:56.567Z",
+          "id": "33b0dc97-09fd-4958-829e-2dd855743bd2",
+          "text": "Zaakceptowano zdjęcie (progress)",
+          "type": "photo_approved",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T11:55:56.170Z",
+          "id": "dcbc3fc9-c4bb-4188-afc6-2f0ebb22aa9a",
+          "text": "Zaakceptowano zdjęcie (progress)",
+          "type": "photo_approved",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T11:55:55.719Z",
+          "id": "5831e223-d1fd-444d-a72f-2e7b92363954",
+          "text": "Zaakceptowano zdjęcie (progress)",
+          "type": "photo_approved",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T11:55:55.251Z",
+          "id": "21d4e062-cd0c-4176-95f6-cce70c9d381d",
+          "text": "Zaakceptowano zdjęcie (progress)",
+          "type": "photo_approved",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T11:55:54.665Z",
+          "id": "4c4a55dd-f64b-429b-8cc1-7e9386e6677b",
+          "text": "Zaakceptowano zdjęcie (progress)",
+          "type": "photo_approved",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T11:55:53.690Z",
+          "id": "1c6bc21b-9eed-40b2-b31b-189ed187d7f2",
+          "text": "Zaakceptowano zdjęcie (progress)",
+          "type": "photo_approved",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T11:48:59.989Z",
+          "id": "7e165ee1-adc1-46e7-88cc-21e84abe860a",
+          "text": "Kamil Elektryk wgrał 7 zdjęć (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-05-26T10:47:57.060Z",
+          "id": "30f56313-e5b1-44f0-8b49-6fc6e7323301",
+          "text": "Jaroslaw: 9h — Wtorek (26.05) (z listy płac)",
+          "type": "work_entry",
+          "actor": "Pulpit"
+        },
+        {
+          "at": "2026-05-26T09:45:04.235Z",
+          "id": "9a9ded46-b672-4946-ae01-08fa2a80f1e6",
+          "text": "Wyłączono link podglądu dla klienta",
+          "type": "share_link",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T09:44:52.514Z",
+          "id": "dac81d5b-12d5-4016-b223-788827cdd202",
+          "text": "Wygenerowano link podglądu dla klienta",
+          "type": "share_link",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T09:30:10.188Z",
+          "id": "87008b33-4cf0-48ea-8f06-a574fd26cb35",
+          "text": "Kola Ukraina — 26.05.2026, 9h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T07:19:52.276Z",
+          "id": "8b83781a-9287-4001-8965-b35b8f7ade0c",
+          "text": "Kamil Zabka — 26.05.2026, 7h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T07:19:17.009Z",
+          "id": "08ec79c6-b45b-4219-903d-94ac7fe93ef9",
+          "text": "Z listy płac na dziś (10 os.)",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T07:19:09.233Z",
+          "id": "9bbdc6ac-62c3-4307-a058-662b4eac9c60",
+          "text": "Kamil Zabka skopiowany na 26.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T05:48:39.541Z",
+          "id": "aa68fc5b-cad5-402f-8afe-0a4c50ce2374",
+          "text": "Kola Ukraina — 26.05.2026, 9h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T05:48:29.447Z",
+          "id": "9e41ccfd-f90f-423b-946f-bb8bca4288bc",
+          "text": "Skopiowano wczoraj → dziś (3 os.)",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T05:48:03.071Z",
+          "id": "0fb968e4-5c45-425b-bbe5-e9c0813b1176",
+          "text": "Z listy płac na dziś (13 os.)",
+          "type": "work_entry",
+          "actor": "Administrator"
+        }
+      ],
+      "clientShare": {
+        "token": "aa88a9ab19c7404e812b17e6",
+        "enabled": false,
+        "createdAt": "2026-05-26T09:44:52.514Z"
+      },
+      "housingType": "komunalny",
+      "workEntries": [
+        {
+          "id": "b41877a3-cdd9-4e9a-ad0d-3a6bf7a01163",
+          "date": "2026-05-25",
+          "rate": 29,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-7",
+          "employeeName": "Kamil Zabka"
+        },
+        {
+          "id": "5f24add4-3c88-4d71-ba57-e62500182196",
+          "date": "2026-05-25",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-4",
+          "employeeName": "Kamil Elektryk"
+        },
+        {
+          "id": "648e17db-844c-4162-8ec0-740d97386ca7",
+          "date": "2026-05-25",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-8",
+          "employeeName": "Tomek Od Lukasza"
+        },
+        {
+          "id": "be49f9e1-d3c0-46df-a227-2557acefed7e",
+          "date": "2026-05-26",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-4",
+          "employeeName": "Kamil Elektryk"
+        },
+        {
+          "id": "0f5c2cd0-7b72-4343-a442-2cad74bbdd3d",
+          "date": "2026-05-26",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-8",
+          "employeeName": "Tomek Od Lukasza"
+        },
+        {
+          "id": "96f11d54-8d77-4397-9b50-92fe8b0971cd",
+          "date": "2026-05-26",
+          "rate": 29,
+          "hours": 7,
+          "notes": "",
+          "directoryId": "dir-7",
+          "employeeName": "Kamil Zabka"
+        },
+        {
+          "id": "6e25af22-e159-4aff-b0d4-314ad34aca0a",
+          "date": "2026-05-26",
+          "rate": 25,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-3",
+          "employeeName": "Kola Ukraina"
+        },
+        {
+          "id": "3c70eecb-89df-4df4-b3b5-1fd8b5e1e8ba",
+          "date": "2026-05-27",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-4",
+          "employeeName": "Kamil Elektryk"
+        },
+        {
+          "id": "f819d115-b73e-40cb-91e5-d751ed45e30f",
+          "date": "2026-05-27",
+          "rate": 25,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-3",
+          "employeeName": "Kola Ukraina"
+        },
+        {
+          "id": "ec38ef11-d54c-4ed9-aec3-9f5dbb5ba52f",
+          "date": "2026-05-27",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-8",
+          "employeeName": "Tomek Od Lukasza"
+        },
+        {
+          "id": "4ddf9360-12f0-4008-8f09-6747db23512e",
+          "date": "2026-05-28",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-8",
+          "employeeName": "Tomek Od Lukasza"
+        },
+        {
+          "id": "e0b41aae-abe5-4945-abfb-dfbe37e3c8d4",
+          "date": "2026-05-28",
+          "rate": 25,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-3",
+          "employeeName": "Kola Ukraina"
+        },
+        {
+          "id": "1b860dcc-de67-463a-bd3c-1060d985fb42",
+          "date": "2026-05-29",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-8",
+          "employeeName": "Tomek Od Lukasza"
+        },
+        {
+          "id": "be24c895-3270-4151-b054-c64232fcc836",
+          "date": "2026-05-29",
+          "rate": 25,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-3",
+          "employeeName": "Kola Ukraina"
+        },
+        {
+          "id": "f86a305d-0df6-430c-8bd1-51f9ccd39da2",
+          "date": "2026-06-01",
+          "rate": 25,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-3",
+          "employeeName": "Kola Ukraina"
+        },
+        {
+          "id": "5f75c94c-6bab-4dc7-babc-9b6b30e79433",
+          "date": "2026-06-01",
+          "rate": 30,
+          "hours": 8,
+          "notes": "",
+          "directoryId": "dir-8",
+          "employeeName": "Tomek Od Lukasza"
+        },
+        {
+          "id": "ac36728c-6cf4-4f7f-a2dd-565e783eddc4",
+          "date": "2026-06-02",
+          "rate": 25,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-3",
+          "employeeName": "Kola Ukraina"
+        },
+        {
+          "id": "2b8b2a63-a9c6-46e6-93f7-2d946dad1ae7",
+          "date": "2026-06-02",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-8",
+          "employeeName": "Tomek Od Lukasza"
+        }
+      ],
+      "handoverStage": "in_progress",
+      "invoiceAmount": "",
+      "invoiceNumber": "",
+      "invoiceStatus": "pending",
+      "workerReports": [],
+      "keysHandedOver": false,
+      "inspectorPhotos": [],
+      "plannedHandoverDate": ""
+    },
+    {
+      "id": "b7053423-1512-4fc4-9670-058d1ade6cad",
+      "notes": "",
+      "client": "Wrocławskie Mieszkania",
+      "photos": [
+        {
+          "id": "a15b41fd-cdd0-4537-ba09-6f921976a853",
+          "path": "jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780042240980.jpeg",
+          "label": "after",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780042240980.jpeg",
+          "uploadedAt": "2026-05-29T08:10:41.994Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "fe8ea758-fbed-44b8-b310-c253cd6cf182",
+          "path": "jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780042242035.jpeg",
+          "label": "after",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780042242035.jpeg",
+          "uploadedAt": "2026-05-29T08:10:42.608Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "0d4a9abf-132e-430b-95cb-0a88e8f849bb",
+          "path": "jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780042242625.jpeg",
+          "label": "after",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780042242625.jpeg",
+          "uploadedAt": "2026-05-29T08:10:43.540Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "f701b8a1-7667-459e-b32e-c9804dbc6fe0",
+          "path": "jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780042243561.jpeg",
+          "label": "after",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780042243561.jpeg",
+          "uploadedAt": "2026-05-29T08:10:44.076Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "a9ac1861-f621-414b-a03d-c27eb8294abe",
+          "path": "jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780042244103.jpeg",
+          "label": "after",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780042244103.jpeg",
+          "uploadedAt": "2026-05-29T08:10:44.745Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "1381a366-14b2-47e9-b9f2-7fa3ad1bfffb",
+          "path": "jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780051409012.jpg",
+          "label": "after",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780051409012.jpg",
+          "uploadedAt": "2026-05-29T10:43:30.417Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "b52b2b1e-68f7-4511-85dc-7de037588fbb",
+          "path": "jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780051410859.jpg",
+          "label": "after",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780051410859.jpg",
+          "uploadedAt": "2026-05-29T10:43:32.079Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "a1941df0-7c09-4f43-a428-5cedd097acb5",
+          "path": "jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780051412471.jpg",
+          "label": "after",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780051412471.jpg",
+          "uploadedAt": "2026-05-29T10:43:33.431Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "52d70cfc-2bf9-41fc-89d4-73f0985e6408",
+          "path": "jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780051413798.jpg",
+          "label": "after",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780051413798.jpg",
+          "uploadedAt": "2026-05-29T10:43:35.011Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "3eafe066-64e6-4f48-9149-b0762df47896",
+          "path": "jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780051415401.jpg",
+          "label": "after",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780051415401.jpg",
+          "uploadedAt": "2026-05-29T10:43:36.610Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "cc294808-0e05-4662-8c0f-c32af85f80e3",
+          "path": "jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780051417299.jpg",
+          "label": "after",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/b7053423-1512-4fc4-9670-058d1ade6cad/after-1780051417299.jpg",
+          "uploadedAt": "2026-05-29T10:43:38.295Z",
+          "uploadedBy": "Kamil Elektryk"
+        }
+      ],
+      "status": "in_progress",
+      "address": "Sępa Sarzyńskiego 83",
+      "endDate": "",
+      "jobFiles": [],
+      "jobNotes": [],
+      "documents": {
+        "zakres": false,
+        "pomiary": false,
+        "rysunek": false,
+        "zdjecia": false,
+        "zlecenie": false,
+        "gwarancje": false,
+        "kominiarz": false,
+        "kosztorys": false,
+        "oswiadczenia": false
+      },
+      "materials": [],
+      "startDate": "2026-05-25",
+      "stoveType": "dwupalnik",
+      "updatedAt": "2026-06-02T04:11:30.234Z",
+      "flatNumber": "7",
+      "activityLog": [
+        {
+          "at": "2026-05-29T11:11:03.627Z",
+          "id": "ee01a8b2-7575-44b5-ab7e-de027b2b083d",
+          "text": "Odznaczono: Zdjęcia",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T11:11:03.372Z",
+          "id": "2a3832f7-cde4-43e7-b79f-7bda4640062d",
+          "text": "Odznaczono: Pomiary",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T11:11:02.967Z",
+          "id": "a4727c69-b741-47c2-a40b-3464bf45a3f3",
+          "text": "Odznaczono: Oświadczenia",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T11:11:02.367Z",
+          "id": "1f48912b-4e9b-4f3e-9e29-7af81ff08aeb",
+          "text": "Odznaczono: Gwarancje",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T11:11:01.962Z",
+          "id": "bf908765-0985-44a0-9d08-acba00db33f0",
+          "text": "Odznaczono: Kominiarz",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T11:10:47.645Z",
+          "id": "2d5f446e-cdc1-4214-b44b-d636529f1d5e",
+          "text": "Zaznaczono: Zdjęcia",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T11:10:46.723Z",
+          "id": "facd339f-aea9-41f4-be7d-7689748bfb1d",
+          "text": "Zaznaczono: Pomiary",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T11:10:42.972Z",
+          "id": "1699c5e8-047d-4ab5-8fef-69bcdd4cc277",
+          "text": "Zaznaczono: Oświadczenia",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T11:10:42.171Z",
+          "id": "5fa98d13-f162-45a4-ab71-2a9c922bb5b6",
+          "text": "Zaznaczono: Gwarancje",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T11:10:36.815Z",
+          "id": "7bf6c021-a11c-4c89-900b-6ab3de114adf",
+          "text": "Zaznaczono: Kominiarz",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T11:10:23.519Z",
+          "id": "83f4b6f7-de1b-45f8-b0f3-260d8920f4ce",
+          "text": "Zaakceptowano wszystkie (6)",
+          "type": "photo_approved",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T10:43:38.296Z",
+          "id": "79be4641-f94c-4d37-92e1-57e7d07770f2",
+          "text": "Kamil Elektryk wgrał 6 zdjęć (after)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-05-29T09:37:06.376Z",
+          "id": "181dd090-adba-4599-a3d0-268b4b40d118",
+          "text": "Odznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Dawid"
+        },
+        {
+          "at": "2026-05-29T09:26:26.242Z",
+          "id": "a0508017-7c37-4807-a386-7cafaa946557",
+          "text": "Zaznaczono: Zlecenie",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-29T08:10:44.745Z",
+          "id": "7d3a5f22-4fe5-44a3-a126-ae5ab1d005d7",
+          "text": "Admin dodał 5 zdjęć (Po remoncie)",
+          "type": "photo_upload"
+        },
+        {
+          "at": "2026-05-29T05:33:39.508Z",
+          "id": "89e05331-ed79-4634-bbbd-a4af89d3339e",
+          "text": "Etap: Gotowa do odbioru WM",
+          "type": "inspector_stage",
+          "actor": "Dawid"
+        },
+        {
+          "at": "2026-05-29T05:32:05.740Z",
+          "id": "0755a289-e219-4546-abfb-f7bfc14dbbed",
+          "text": "Kamil Elektryk — 29.05.2026, 9h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T17:29:53.276Z",
+          "id": "33432910-2f47-4475-998e-fe20784db9cd",
+          "text": "Etap: Dokumenty do odbioru",
+          "type": "inspector_stage",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T06:13:17.556Z",
+          "id": "e772f2d6-2469-4780-9709-0c5e97b133ea",
+          "text": "Grzesiek skopiowany na 28.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:13:16.457Z",
+          "id": "651e85ad-1a2b-4e42-b487-2cf1e5a4d1f1",
+          "text": "Michal Ukraina skopiowany na 28.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T03:27:32.889Z",
+          "id": "bc471209-54ae-4040-87ab-b4dbbd03b26a",
+          "text": "Michal Ukraina skopiowany na 27.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T03:27:28.961Z",
+          "id": "0c50ac29-6d08-44e7-8f00-2192aeb7a14b",
+          "text": "Grzesiek skopiowany na 27.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T12:13:13.804Z",
+          "id": "28429a08-d5c8-4f9e-8150-932130e157ea",
+          "text": "Grzesiek: 9h — Poniedziałek (25.05) (dopasowano do listy płac)",
+          "type": "work_entry",
+          "actor": "Pulpit"
+        },
+        {
+          "at": "2026-05-26T12:13:13.453Z",
+          "id": "60194865-d156-427b-92a9-f826c2999142",
+          "text": "Kola Ukraina: 10h 30m — Poniedziałek (25.05) (dopasowano do listy płac)",
+          "type": "work_entry",
+          "actor": "Pulpit"
+        },
+        {
+          "at": "2026-05-26T12:13:13.044Z",
+          "id": "79311ccf-ee4f-4c35-be29-719190807615",
+          "text": "Michal Ukraina: 10h 30m — Poniedziałek (25.05) (dopasowano do listy płac)",
+          "type": "work_entry",
+          "actor": "Pulpit"
+        },
+        {
+          "at": "2026-05-26T12:13:12.380Z",
+          "id": "63ec7f12-41fc-4289-b5ef-63adae7a71b5",
+          "text": "Grzesiek: 9h — Wtorek (26.05) (dopasowano do listy płac)",
+          "type": "work_entry",
+          "actor": "Pulpit"
+        },
+        {
+          "at": "2026-05-26T10:47:56.645Z",
+          "id": "53a06014-1632-4ec7-9dbc-745ab9c468b9",
+          "text": "Grzesiek: 9h — Wtorek (26.05) (dopasowano do listy płac)",
+          "type": "work_entry",
+          "actor": "Pulpit"
+        },
+        {
+          "at": "2026-05-26T10:47:54.579Z",
+          "id": "7570362b-f525-442d-9e57-906298e574fa",
+          "text": "Michal Ukraina: 10h 30m — Poniedziałek (25.05) (dopasowano do listy płac)",
+          "type": "work_entry",
+          "actor": "Pulpit"
+        },
+        {
+          "at": "2026-05-26T10:47:53.464Z",
+          "id": "49e94d89-fd20-40e2-8c50-df34cbaa92f1",
+          "text": "Kola Ukraina: 10h 30m — Poniedziałek (25.05) (dopasowano do listy płac)",
+          "type": "work_entry",
+          "actor": "Pulpit"
+        },
+        {
+          "at": "2026-05-26T10:47:32.584Z",
+          "id": "6b1ec9e2-7abd-43cd-8c11-99b33457cee4",
+          "text": "Grzesiek: 9h — Poniedziałek (25.05) (dopasowano do listy płac)",
+          "type": "work_entry",
+          "actor": "Pulpit"
+        },
+        {
+          "at": "2026-05-26T05:48:48.520Z",
+          "id": "eb50e8e2-65b3-42d2-bcd9-d186de06db7c",
+          "text": "Skopiowano wczoraj → dziś (3 os.)",
+          "type": "work_entry",
+          "actor": "Administrator"
+        }
+      ],
+      "housingType": "komunalny",
+      "workEntries": [
+        {
+          "id": "091c2e26-775f-47c6-bfaf-96da4658b7b1",
+          "date": "2026-05-25",
+          "rate": 30,
+          "hours": 10.5,
+          "notes": "",
+          "directoryId": "dir-2",
+          "employeeName": "Michal Ukraina"
+        },
+        {
+          "id": "5b9ca107-1ffd-462c-8d0a-1a5d13e47d5f",
+          "date": "2026-05-25",
+          "rate": 25,
+          "hours": 10.5,
+          "notes": "",
+          "directoryId": "dir-3",
+          "employeeName": "Kola Ukraina"
+        },
+        {
+          "id": "96097810-f23f-4db1-bf46-ec69b538c68c",
+          "date": "2026-05-25",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-10",
+          "employeeName": "Grzesiek"
+        },
+        {
+          "id": "fb5c60bc-9947-44d8-8e1d-cbdd5c438b3b",
+          "date": "2026-05-26",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-2",
+          "employeeName": "Michal Ukraina"
+        },
+        {
+          "id": "24b6b7aa-8d79-47b3-8178-553fd18546ec",
+          "date": "2026-05-26",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-10",
+          "employeeName": "Grzesiek"
+        },
+        {
+          "id": "f8895c2d-33ac-42f1-ba58-3ad21e76838a",
+          "date": "2026-05-27",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-10",
+          "employeeName": "Grzesiek"
+        },
+        {
+          "id": "16ffaf5e-2fd1-4779-8b00-c57a8a878c2a",
+          "date": "2026-05-27",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-2",
+          "employeeName": "Michal Ukraina"
+        },
+        {
+          "id": "77e0f846-2923-4418-b8c6-808d198b14c4",
+          "date": "2026-05-28",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-2",
+          "employeeName": "Michal Ukraina"
+        },
+        {
+          "id": "b8c4b227-d6da-4baa-9c67-1310b657de51",
+          "date": "2026-05-28",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-10",
+          "employeeName": "Grzesiek"
+        },
+        {
+          "id": "40103692-80ba-4147-aadf-ed6bbfc0c266",
+          "date": "2026-05-29",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-4",
+          "employeeName": "Kamil Elektryk"
+        }
+      ],
+      "handoverStage": "ready_for_handover",
+      "invoiceAmount": "",
+      "invoiceNumber": "",
+      "invoiceStatus": "pending",
+      "workerReports": [],
+      "keysHandedOver": false,
+      "inspectorPhotos": [],
+      "plannedHandoverDate": ""
+    },
+    {
+      "id": "aaf69098-3f4d-4621-b98b-4469c4e33cc6",
+      "notes": "",
+      "client": "Wrocławskie Mieszkania",
+      "photos": [
+        {
+          "id": "10763369-835c-4d3d-8f00-5775bca28509",
+          "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766564909.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766564909.jpeg",
+          "uploadedAt": "2026-05-26T03:36:05.854Z",
+          "uploadedBy": "Mikolaj Ukraina"
+        },
+        {
+          "id": "7a01daa5-2870-4b37-8beb-e1fdf63083f0",
+          "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766565874.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766565874.jpeg",
+          "uploadedAt": "2026-05-26T03:36:06.767Z",
+          "uploadedBy": "Mikolaj Ukraina"
+        },
+        {
+          "id": "96f9c20e-9064-47dc-9bfa-e8b1236f3d68",
+          "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766566789.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766566789.jpeg",
+          "uploadedAt": "2026-05-26T03:36:07.658Z",
+          "uploadedBy": "Mikolaj Ukraina"
+        },
+        {
+          "id": "661f403e-f382-4cd8-9634-bc2579b7c857",
+          "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766567678.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766567678.jpeg",
+          "uploadedAt": "2026-05-26T03:36:08.578Z",
+          "uploadedBy": "Mikolaj Ukraina"
+        },
+        {
+          "id": "4785bb9d-86ca-4097-8083-f613234a38cb",
+          "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766568598.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766568598.jpeg",
+          "uploadedAt": "2026-05-26T03:36:09.603Z",
+          "uploadedBy": "Mikolaj Ukraina"
+        },
+        {
+          "id": "25baa16e-1209-4ba0-a8bf-ad052fe1ea90",
+          "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766569623.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766569623.jpeg",
+          "uploadedAt": "2026-05-26T03:36:10.625Z",
+          "uploadedBy": "Mikolaj Ukraina"
+        },
+        {
+          "id": "d07ed02c-559a-4ad2-aba1-24a549d0a606",
+          "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766570646.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766570646.jpeg",
+          "uploadedAt": "2026-05-26T03:36:11.444Z",
+          "uploadedBy": "Mikolaj Ukraina"
+        },
+        {
+          "id": "0c5f03e6-63cf-4bc3-89fd-799dc268a047",
+          "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766571464.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766571464.jpeg",
+          "uploadedAt": "2026-05-26T03:36:12.265Z",
+          "uploadedBy": "Mikolaj Ukraina"
+        },
+        {
+          "id": "8ea57cea-1202-4bdb-a635-1bb75479fbce",
+          "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766572286.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766572286.jpeg",
+          "uploadedAt": "2026-05-26T03:36:13.288Z",
+          "uploadedBy": "Mikolaj Ukraina"
+        },
+        {
+          "id": "3809d479-c66f-48b9-b589-8a50874a237e",
+          "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766573308.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1779766573308.jpeg",
+          "uploadedAt": "2026-05-26T03:36:14.005Z",
+          "uploadedBy": "Mikolaj Ukraina"
+        },
+        {
+          "id": "342b24d3-ebb0-4483-85cc-72821a07683e",
+          "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1780027316980.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1780027316980.jpg",
+          "uploadedAt": "2026-05-29T04:01:58.862Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "dff4e54e-e944-4fc7-95c6-5bc6d00d45a3",
+          "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1780027319346.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1780027319346.jpg",
+          "uploadedAt": "2026-05-29T04:02:00.911Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "223999c3-af9b-4d1e-a0db-7861846bddab",
+          "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1780027321334.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1780027321334.jpg",
+          "uploadedAt": "2026-05-29T04:02:03.373Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "445e4eb6-3f49-401e-b49b-6886d5c866ec",
+          "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1780027324027.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/progress-1780027324027.jpg",
+          "uploadedAt": "2026-05-29T04:02:05.721Z",
+          "uploadedBy": "Kamil Elektryk"
+        }
+      ],
+      "status": "in_progress",
+      "address": "Czajkowskiego",
+      "endDate": "",
+      "jobFiles": [],
+      "jobNotes": [],
+      "documents": {
+        "zakres": true,
+        "pomiary": false,
+        "rysunek": true,
+        "zdjecia": true,
+        "zlecenie": true,
+        "gwarancje": false,
+        "kominiarz": false,
+        "kosztorys": false,
+        "oswiadczenia": false
+      },
+      "materials": [],
+      "startDate": "2026-05-25",
+      "stoveType": "gazowa",
+      "updatedAt": "2026-06-02T06:51:06.586Z",
+      "flatNumber": "62/16",
+      "activityLog": [
+        {
+          "at": "2026-06-02T06:51:06.586Z",
+          "id": "57b7bceb-9852-4bb6-91d7-b7d94e41d38a",
+          "text": "Tomek od Mikolaja skopiowany na 02.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-02T06:51:03.436Z",
+          "id": "4265262d-0bef-4a51-9dda-76ec29bab6ea",
+          "text": "Mikolaj Ukraina skopiowany na 02.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T08:04:20.850Z",
+          "id": "669bed47-0e30-418f-83c9-b96018a4b3de",
+          "text": "Tomek od Mikolaja skopiowany na 01.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T08:04:15.827Z",
+          "id": "6b2ea52e-6241-4140-9dc5-87c13a3a19a5",
+          "text": "Mikolaj Ukraina skopiowany na 01.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T05:28:59.664Z",
+          "id": "ecf8d2c3-cfba-472b-abd1-1002d346f614",
+          "text": "Mikolaj Ukraina skopiowany na 29.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T05:28:57.206Z",
+          "id": "ee1bfb3e-778b-41f5-8927-b6f78717a6f9",
+          "text": "Tomek od Mikolaja skopiowany na 29.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T04:03:01.215Z",
+          "id": "c694355f-5293-45a8-a06c-e77984e3fa9b",
+          "text": "Zaakceptowano wszystkie (4)",
+          "type": "photo_approved",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T04:02:05.723Z",
+          "id": "47e914a2-bb53-4483-901e-267388f33ec6",
+          "text": "Kamil Elektryk wgrał 4 zdjęć (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-05-28T11:59:39.658Z",
+          "id": "b33cc6af-6abe-4d44-9fec-fdd452418d83",
+          "text": "Dodano raport (50 linii)",
+          "type": "report_add",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T11:59:28.127Z",
+          "id": "0d875cb2-ce9d-4710-b2ae-650814852a62",
+          "text": "Usunięto raport",
+          "type": "report_delete",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:58:48.395Z",
+          "id": "34e69123-04c4-4a53-8a63-f905e1dbf8c2",
+          "text": "Odznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:16:04.100Z",
+          "id": "ef69c26b-da6d-4ec9-8529-8eed7d8f3367",
+          "text": "Kamil Elektryk — 28.05.2026, 9h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:15:17.916Z",
+          "id": "678701ad-c8ce-4dc9-8c7c-43d7a25a0787",
+          "text": "Zaznaczono: Zakres robót",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:13:45.076Z",
+          "id": "7e59f834-9f51-4bc9-8d08-1fcd56febfb2",
+          "text": "Mikolaj Ukraina skopiowany na 28.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:13:44.041Z",
+          "id": "4e60779b-c9bf-43d9-b3f0-404c89abe837",
+          "text": "Tomek od Mikolaja skopiowany na 28.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T04:05:43.837Z",
+          "id": "7e52c83f-891f-4aa1-873a-b4163cfac0e0",
+          "text": "Dodano raport (0 linii)",
+          "type": "report_add",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T04:04:59.220Z",
+          "id": "589ecae8-3489-4d80-9771-d63f4933496e",
+          "text": "Dodano raport (20 linii)",
+          "type": "report_add",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T05:19:29.083Z",
+          "id": "2ce109cd-c8f6-4d88-bf89-9b15611b6eb6",
+          "text": "Tomek od Mikolaja skopiowany na 27.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T03:28:56.717Z",
+          "id": "39b4202b-2033-4b9a-b3c7-f1870d0db1a4",
+          "text": "Etap: W realizacji",
+          "type": "inspector_stage",
+          "actor": "Dawid"
+        },
+        {
+          "at": "2026-05-27T03:28:49.931Z",
+          "id": "db5f0700-2f49-4e9b-8005-45ccaecd13fd",
+          "text": "Zaznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T05:48:58.502Z",
+          "id": "9120ecd4-1416-470d-baac-f2298044f28d",
+          "text": "Skopiowano wczoraj → dziś (2 os.)",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T03:37:08.110Z",
+          "id": "651943ae-c6a2-4386-946f-8d077b7d0c6b",
+          "text": "Zaznaczono: Zdjęcia",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T03:36:44.075Z",
+          "id": "ed5dbbc4-752b-46ce-9134-6e5712bf7d78",
+          "text": "Zaakceptowano wszystkie (10)",
+          "type": "photo_approved",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T03:36:14.005Z",
+          "id": "e7fdfda2-fa01-4a5c-b5c1-103c7e24b970",
+          "text": "Mikolaj Ukraina wgrał 10 zdjęć (progress)",
+          "type": "photo_upload",
+          "actor": "Mikolaj Ukraina"
+        }
+      ],
+      "housingType": "zamienny",
+      "workEntries": [
+        {
+          "id": "6697e508-015d-4fc9-85bf-1dc9d7bd1f63",
+          "date": "2026-05-25",
+          "rate": 40,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-11",
+          "employeeName": "Mikolaj Ukraina"
+        },
+        {
+          "id": "56457f3c-9d82-4e1e-b036-6c4562bc0f2f",
+          "date": "2026-05-25",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-12",
+          "employeeName": "Tomek od Mikolaja"
+        },
+        {
+          "id": "55ed334a-9cfe-4b66-97cf-de64bd05731c",
+          "date": "2026-05-26",
+          "rate": 40,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-11",
+          "employeeName": "Mikolaj Ukraina"
+        },
+        {
+          "id": "27cd591b-1a44-4f2a-8e08-b713fb4ce5d6",
+          "date": "2026-05-26",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-12",
+          "employeeName": "Tomek od Mikolaja"
+        },
+        {
+          "id": "41246266-fc72-4c7a-8178-0b386e22646f",
+          "date": "2026-05-27",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-12",
+          "employeeName": "Tomek od Mikolaja"
+        },
+        {
+          "id": "ebb5f6b2-bf49-4d66-8436-6c59bdfde5c0",
+          "date": "2026-05-28",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-12",
+          "employeeName": "Tomek od Mikolaja"
+        },
+        {
+          "id": "09b4369a-5f61-43a1-91a5-dbc65265d22c",
+          "date": "2026-05-28",
+          "rate": 40,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-11",
+          "employeeName": "Mikolaj Ukraina"
+        },
+        {
+          "id": "05412225-b86a-4714-85f6-619864c8f628",
+          "date": "2026-05-28",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-4",
+          "employeeName": "Kamil Elektryk"
+        },
+        {
+          "id": "f8b659ea-2f09-467f-8723-d46fcdde2e49",
+          "date": "2026-05-29",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-12",
+          "employeeName": "Tomek od Mikolaja"
+        },
+        {
+          "id": "de5fb7e2-f2fc-453e-aa41-69a2320e8d9b",
+          "date": "2026-05-29",
+          "rate": 40,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-11",
+          "employeeName": "Mikolaj Ukraina"
+        },
+        {
+          "id": "d1ac227a-9060-4e88-b620-2d2b77facf8d",
+          "date": "2026-06-01",
+          "rate": 40,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-11",
+          "employeeName": "Mikolaj Ukraina"
+        },
+        {
+          "id": "fcf0835c-0a29-4b32-ad3f-d891882fe1c5",
+          "date": "2026-06-01",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-12",
+          "employeeName": "Tomek od Mikolaja"
+        },
+        {
+          "id": "92a69513-fc89-4122-8500-b8d3187a3b88",
+          "date": "2026-06-02",
+          "rate": 40,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-11",
+          "employeeName": "Mikolaj Ukraina"
+        },
+        {
+          "id": "aa0831aa-dbf2-4ea0-ad6b-518a2b4504f3",
+          "date": "2026-06-02",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-12",
+          "employeeName": "Tomek od Mikolaja"
+        }
+      ],
+      "handoverStage": "in_progress",
+      "invoiceAmount": "",
+      "invoiceNumber": "",
+      "invoiceStatus": "pending",
+      "workerReports": [
+        {
+          "id": "882adcfb-994a-4da7-b25d-d0cbe1dd4dd6",
+          "rooms": [],
+          "sketch": {
+            "path": "jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/sketch-1779941140146.jpeg",
+            "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/aaf69098-3f4d-4621-b98b-4469c4e33cc6/sketch-1779941140146.jpeg"
+          },
+          "workItems": [],
+          "sketchNote": "",
+          "workerName": "Dawid",
+          "generalNote": "",
+          "submittedAt": "2026-05-28T04:05:43.836Z",
+          "workScopeText": "",
+          "adminReviewedAt": "2026-05-28T06:13:41.239Z",
+          "authorAdminRole": "super_admin"
+        },
+        {
+          "id": "eb23b846-64c9-448c-98ec-9fb1debd3032",
+          "rooms": [],
+          "sketch": null,
+          "workItems": [
+            {
+              "id": "ecfc0033-2d65-4a91-9848-45f28ff0b44d",
+              "note": "",
+              "text": "• Pokój:"
+            },
+            {
+              "id": "194ad879-42bf-4959-b2d6-f2c13a982604",
+              "note": "",
+              "text": "  • Sufit – siatka oraz tynki"
+            },
+            {
+              "id": "bdf1c4fa-3962-4aae-9b5f-2b016cb2853c",
+              "note": "",
+              "text": "  • Ściany – tynki"
+            },
+            {
+              "id": "64ab3116-4c51-4c68-8f89-8b81cccb95b1",
+              "note": "",
+              "text": "  • Malowanie"
+            },
+            {
+              "id": "d9ec01ca-25ab-4450-b19b-e23ec65cde92",
+              "note": "",
+              "text": "  • Podłoga – płyta OSB, panele oraz listwy"
+            },
+            {
+              "id": "2f6a6110-4e60-4fbe-b10b-792085762862",
+              "note": "",
+              "text": "  • Montaż okna"
+            },
+            {
+              "id": "b66440fa-e8df-43c9-a08c-e15b365b878b",
+              "note": "",
+              "text": "  • Obróbka okna"
+            },
+            {
+              "id": "3c41ece9-666f-4cc0-aef4-59c4b56ca1e6",
+              "note": "",
+              "text": "  • Malowanie parapetu oraz grzejnika"
+            },
+            {
+              "id": "1da22c32-eb91-4827-8bf1-efb5fa7e8c56",
+              "note": "",
+              "text": "• Kuchnia:"
+            },
+            {
+              "id": "3e95622c-08a1-4874-b7d8-940578ba64e5",
+              "note": "",
+              "text": "  • Montaż okna"
+            },
+            {
+              "id": "8f918a3b-bf4b-4755-95b1-798f40954a8c",
+              "note": "",
+              "text": "  • Obróbka okna"
+            },
+            {
+              "id": "8fb09b34-653a-44a4-b280-3a32f788be5d",
+              "note": "",
+              "text": "  • Montaż drzwi"
+            },
+            {
+              "id": "9a8f89a9-45a5-4070-a2d6-3dc0c43d032b",
+              "note": "",
+              "text": "  • Malowanie parapetu i grzejnika"
+            },
+            {
+              "id": "59357448-097f-408e-9bf2-ce6bcc6f63e7",
+              "note": "",
+              "text": "  • Malowanie ościeżnicy"
+            },
+            {
+              "id": "1826d049-ed19-49af-8711-2790aec2525b",
+              "note": "",
+              "text": "  • Tynki ścian i sufitu"
+            },
+            {
+              "id": "29f91d17-2e1a-4886-aaaf-9b96b8e6a7ae",
+              "note": "",
+              "text": "  • Siatka na suficie"
+            },
+            {
+              "id": "5cfe1adc-42c2-4dc1-a6d4-4e38e48d9df4",
+              "note": "",
+              "text": "  • Malowanie"
+            },
+            {
+              "id": "4995c069-51b0-41b9-846f-b978db1b0a86",
+              "note": "",
+              "text": "  • Wykonanie zabudowy"
+            },
+            {
+              "id": "3da1ebeb-af4c-4eda-8483-df7004343106",
+              "note": "",
+              "text": "  • Płytki podłogowe oraz fartuch kuchenny"
+            },
+            {
+              "id": "586cc42d-0b56-4da9-aefe-0e0ae178ac09",
+              "note": "",
+              "text": "  • Wykonanie instalacji gazowej i wodnej"
+            },
+            {
+              "id": "7384e0f8-6691-4709-b497-986739c95d0b",
+              "note": "",
+              "text": "  • Wylewka samopoziomująca"
+            },
+            {
+              "id": "e8961b70-a72d-4325-9951-1a85d55c482e",
+              "note": "",
+              "text": "  • Montaż listew"
+            },
+            {
+              "id": "7ec29955-125e-4bbe-b8b9-b9e02cfe32ee",
+              "note": "",
+              "text": "• Przedpokój:"
+            },
+            {
+              "id": "db923784-e8d7-48ff-8854-c8beb88ee84f",
+              "note": "",
+              "text": "  • Tynki"
+            },
+            {
+              "id": "a6ac2af0-7ed5-4e05-93de-c732c3eb980b",
+              "note": "",
+              "text": "  • Sufit – siatka"
+            },
+            {
+              "id": "0c8d0161-8d2a-4337-b33b-0d86c8dbce79",
+              "note": "",
+              "text": "  • Malowanie"
+            },
+            {
+              "id": "9497b356-33f0-44f9-aaca-818c2b281546",
+              "note": "",
+              "text": "  • Montaż paneli"
+            },
+            {
+              "id": "0bc7d257-c38b-4a27-9a92-48cc67cf3fd3",
+              "note": "",
+              "text": "  • Montaż listew"
+            },
+            {
+              "id": "7002bee2-c823-44b5-a5a9-6cbc76b9d127",
+              "note": "",
+              "text": "• Łazienka:"
+            },
+            {
+              "id": "a81543d5-6748-4993-9927-ee8c951a0b69",
+              "note": "",
+              "text": "  • Wykonanie hydrauliki"
+            },
+            {
+              "id": "8ea88180-0d4c-4071-bfef-51b5d4b927ca",
+              "note": "",
+              "text": "  • Klejenie płyt GK"
+            },
+            {
+              "id": "9ee78535-f863-4732-be6c-0f48bcd45c97",
+              "note": "",
+              "text": "  • Wykonanie zabudów"
+            },
+            {
+              "id": "32cd0e80-a7dc-42f3-a303-da24cc216943",
+              "note": "",
+              "text": "  • Wylewka samopoziomująca"
+            },
+            {
+              "id": "a39488bc-62e5-4dd0-8d41-b4028f419a7a",
+              "note": "",
+              "text": "  • Szpachlowanie"
+            },
+            {
+              "id": "eaaefef2-46d3-48f8-a4f8-21b7bd299597",
+              "note": "",
+              "text": "  • Osadzanie narożników"
+            },
+            {
+              "id": "74266561-21db-4bbe-9196-17e45246e22e",
+              "note": "",
+              "text": "  • Malowanie"
+            },
+            {
+              "id": "5fdffe7a-4fc2-4a1b-a7f0-ac28c7aa04d8",
+              "note": "",
+              "text": "  • Układanie płytek"
+            },
+            {
+              "id": "136b4ed5-47c0-4f32-840b-29e7ff2b2caa",
+              "note": "",
+              "text": "  • Wykonanie cokołów"
+            },
+            {
+              "id": "faa2744a-73ad-47dc-a14c-9e6503732a62",
+              "note": "",
+              "text": "  • Biały montaż"
+            },
+            {
+              "id": "c071144b-4a25-4b75-a648-fb4f2bc741c1",
+              "note": "",
+              "text": "  • Wstawienie drzwi"
+            },
+            {
+              "id": "233b250a-97ca-42f2-bada-a9048c322243",
+              "note": "",
+              "text": "  • Malowanie ościeżnicy"
+            },
+            {
+              "id": "274baa51-4a0c-4c05-ac82-dee2ab87b0e5",
+              "note": "",
+              "text": "• Elektryka w całym mieszkaniu"
+            },
+            {
+              "id": "8728ba23-49b4-46a4-8596-1251550e0fdf",
+              "note": "",
+              "text": "• Montaż nowej rozdzielni"
+            },
+            {
+              "id": "b56f7ac3-b3f3-40ba-bca3-cbbb24548d9f",
+              "note": "",
+              "text": "• Wykonanie nowej instalacji gazowej – miedź fi 15"
+            },
+            {
+              "id": "08b43fde-b682-4a38-8661-98b837ab7523",
+              "note": "",
+              "text": "• Montaż gniazdek oraz wyłączników"
+            },
+            {
+              "id": "245d41a3-111e-4e15-acfb-dc762ba3ac80",
+              "note": "",
+              "text": "• Montaż kabiny prysznicowej, umywalki i WC"
+            },
+            {
+              "id": "e917a38a-6e84-4cc7-bcbc-a1af6ea8bee3",
+              "note": "",
+              "text": "• Montaż nowego bojlera"
+            },
+            {
+              "id": "b3d2fc10-0dcc-4efc-af46-f5dd305ac5a8",
+              "note": "",
+              "text": "• Wykonanie nowej instalacji hydraulicznej"
+            },
+            {
+              "id": "810ed1d1-92d2-4c65-81a4-7c1219c2db4f",
+              "note": "",
+              "text": "• Wymiana okien"
+            },
+            {
+              "id": "6284c3b6-1cde-4804-ba85-5044206f35cf",
+              "note": "",
+              "text": "• Wstawianie ościeżnic"
+            }
+          ],
+          "sketchNote": "",
+          "workerName": "Dawid",
+          "generalNote": "",
+          "submittedAt": "2026-05-28T11:59:39.658Z",
+          "workScopeText": "• Pokój:\n\n  • Sufit – siatka oraz tynki\n  • Ściany – tynki\n  • Malowanie\n  • Podłoga – płyta OSB, panele oraz listwy\n  • Montaż okna\n  • Obróbka okna\n  • Malowanie parapetu oraz grzejnika\n\n• Kuchnia:\n\n  • Montaż okna\n  • Obróbka okna\n  • Montaż drzwi\n  • Malowanie parapetu i grzejnika\n  • Malowanie ościeżnicy\n  • Tynki ścian i sufitu\n  • Siatka na suficie\n  • Malowanie\n  • Wykonanie zabudowy\n  • Płytki podłogowe oraz fartuch kuchenny\n  • Wykonanie instalacji gazowej i wodnej\n  • Wylewka samopoziomująca\n  • Montaż listew\n\n• Przedpokój:\n\n  • Tynki\n  • Sufit – siatka\n  • Malowanie\n  • Montaż paneli\n  • Montaż listew\n\n• Łazienka:\n\n  • Wykonanie hydrauliki\n  • Klejenie płyt GK\n  • Wykonanie zabudów\n  • Wylewka samopoziomująca\n  • Szpachlowanie\n  • Osadzanie narożników\n  • Malowanie\n  • Układanie płytek\n  • Wykonanie cokołów\n  • Biały montaż\n  • Wstawienie drzwi\n  • Malowanie ościeżnicy\n\n• Elektryka w całym mieszkaniu\n\n• Montaż nowej rozdzielni\n\n• Wykonanie nowej instalacji gazowej – miedź fi 15\n\n• Montaż gniazdek oraz wyłączników\n\n• Montaż kabiny prysznicowej, umywalki i WC\n\n• Montaż nowego bojlera\n\n• Wykonanie nowej instalacji hydraulicznej\n\n• Wymiana okien\n\n• Wstawianie ościeżnic",
+          "adminReviewedAt": "2026-05-28T12:00:00.574Z",
+          "authorAdminRole": "super_admin"
+        }
+      ],
+      "keysHandedOver": false,
+      "inspectorPhotos": [],
+      "plannedHandoverDate": "",
+      "hiddenInspectorFeedIds": [
+        "39b4202b-2033-4b9a-b3c7-f1870d0db1a4"
+      ]
+    },
+    {
+      "id": "016e6d9b-b0c0-464e-a87c-2463034541ca",
+      "notes": "",
+      "client": "Wrocławskie Mieszkania",
+      "photos": [],
+      "status": "in_progress",
+      "address": "Krzywoustego 268",
+      "endDate": "",
+      "jobFiles": [],
+      "jobNotes": [],
+      "jobPhase": "handover",
+      "documents": {
+        "zakres": true,
+        "pomiary": false,
+        "rysunek": true,
+        "zdjecia": true,
+        "zlecenie": false,
+        "gwarancje": false,
+        "kominiarz": false,
+        "kosztorys": false,
+        "oswiadczenia": false
+      },
+      "materials": [],
+      "startDate": "2026-05-25",
+      "stoveType": "gazowa",
+      "updatedAt": "2026-06-02T12:13:46.242Z",
+      "flatNumber": "2",
+      "activityLog": [
+        {
+          "at": "2026-06-01T10:50:14.871Z",
+          "id": "2aee602d-66a9-4e5c-ad0f-58e12f3a45cc",
+          "text": "Status: Gotowe do odbioru",
+          "type": "status_change",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T08:42:20.288Z",
+          "id": "0b07dc9e-ca7e-4c49-9348-4253c1a532ac",
+          "text": "Odznaczono: Kosztorys",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T08:41:50.221Z",
+          "id": "65c303fc-973c-4d57-87c2-3da2188786b8",
+          "text": "Zaznaczono: Kosztorys",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T07:58:21.226Z",
+          "id": "e7a54e3b-19fd-4e15-9f17-90c2fc024d1f",
+          "text": "Kamil Elektryk — 01.06.2026, 9h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T07:58:16.017Z",
+          "id": "2a1e53c3-29ea-4971-bdb3-8bcaea820f3b",
+          "text": "Piotrek Ukraina skopiowany na 01.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T07:58:15.266Z",
+          "id": "ab6fba5f-e7d1-4cb6-a222-7746de538edd",
+          "text": "Marcin skopiowany na 01.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T11:55:05.025Z",
+          "id": "24c594fc-4c44-47e0-885e-6a44a1402bed",
+          "text": "Zaakceptowano wszystkie (6)",
+          "type": "photo_approved",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T10:00:13.031Z",
+          "id": "8a22d70c-e26f-4792-b070-66291105cfcb",
+          "text": "Kamil Elektryk wgrał 6 zdjęć (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-05-29T05:53:36.817Z",
+          "id": "92cd795b-7bdb-4f5c-8f0c-8a82875e7f54",
+          "text": "Piotrek Ukraina — 30.05.2026, 9h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T05:29:09.906Z",
+          "id": "e6c3f2b4-a6fd-4747-877d-4506081d284b",
+          "text": "Piotrek Ukraina skopiowany na 29.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T05:29:08.240Z",
+          "id": "7579e1ff-00f4-46a9-a1af-3200d0543f47",
+          "text": "Marcin skopiowany na 29.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T05:29:07.121Z",
+          "id": "ce804faa-832b-4eb5-b2a0-e087e36071a8",
+          "text": "Kamil Zabka skopiowany na 29.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T17:29:13.911Z",
+          "id": "8dd97340-5616-4bbf-8b92-fdd7bf161fc7",
+          "text": "Etap: W realizacji",
+          "type": "inspector_stage",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T11:58:28.210Z",
+          "id": "8a5e9048-5057-4dc4-86dc-45eed34042c8",
+          "text": "Dodano raport (21 linii)",
+          "type": "report_add",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T11:55:25.465Z",
+          "id": "d921d921-ebb3-490a-99a2-5a5a9f23578f",
+          "text": "Dodano raport (0 linii)",
+          "type": "report_add",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T11:55:13.683Z",
+          "id": "1280bbf8-0af3-4d02-9219-fa4841e7996b",
+          "text": "Zaznaczono: Zdjęcia",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T07:25:38.170Z",
+          "id": "af991980-2e5c-49b0-a7c2-f41adc2af856",
+          "text": "Odznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:58:35.332Z",
+          "id": "aca6bf4b-a417-4947-aeb9-3b37006d230d",
+          "text": "Odznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:53:23.625Z",
+          "id": "6a7fad0c-4b10-481d-8617-d92d72218856",
+          "text": "Zaznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:14:37.258Z",
+          "id": "a226f170-2592-4f5d-b56b-37e78ffd47e7",
+          "text": "Marcin skopiowany na 28.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:14:36.215Z",
+          "id": "034a9714-8653-4b5b-8855-a78fa7013201",
+          "text": "Piotrek Ukraina skopiowany na 28.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:14:00.837Z",
+          "id": "e7c93cad-8453-46ad-9b05-78d17d33c526",
+          "text": "Kamil Zabka skopiowany na 28.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T05:18:16.395Z",
+          "id": "93c9a004-91ee-4c2a-a84f-479b7b4e5cbb",
+          "text": "Kamil Zabka — 27.05.2026, 9h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T03:28:14.867Z",
+          "id": "58fcfe23-3ca4-401a-b875-993714267e7b",
+          "text": "Marcin skopiowany na 27.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T03:28:09.703Z",
+          "id": "71458525-9331-4ed6-928d-83f28068e2fe",
+          "text": "Piotrek Ukraina skopiowany na 27.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T12:13:12.453Z",
+          "id": "65b77668-50c2-4842-af11-4dfd664639ec",
+          "text": "Piotrek Ukraina: 10h 30m — Poniedziałek (25.05) (dopasowano do listy płac)",
+          "type": "work_entry",
+          "actor": "Pulpit"
+        },
+        {
+          "at": "2026-05-26T10:47:55.250Z",
+          "id": "09160265-c156-4a74-8b93-5c8e9822563d",
+          "text": "Piotrek Ukraina: 10h 30m — Poniedziałek (25.05) (dopasowano do listy płac)",
+          "type": "work_entry",
+          "actor": "Pulpit"
+        },
+        {
+          "at": "2026-05-26T05:49:04.948Z",
+          "id": "f2298d60-3c44-4cae-9fd0-2e70ad17ed29",
+          "text": "Skopiowano wczoraj → dziś (2 os.)",
+          "type": "work_entry",
+          "actor": "Administrator"
+        }
+      ],
+      "housingType": "zamienny",
+      "workEntries": [
+        {
+          "id": "8057f095-51d5-4758-a7ee-bda1411a60a2",
+          "date": "2026-05-25",
+          "rate": 35,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-9",
+          "employeeName": "Marcin"
+        },
+        {
+          "id": "ab6e1cf6-76f2-4b31-969f-eb987582bebe",
+          "date": "2026-05-25",
+          "rate": 30,
+          "hours": 10.5,
+          "notes": "",
+          "directoryId": "dir-1",
+          "employeeName": "Piotrek Ukraina"
+        },
+        {
+          "id": "a5478740-c5ed-4244-887e-9069c4dc4321",
+          "date": "2026-05-26",
+          "rate": 35,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-9",
+          "employeeName": "Marcin"
+        },
+        {
+          "id": "75ec642e-3e13-4bc7-acb4-d43d890282cc",
+          "date": "2026-05-26",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-1",
+          "employeeName": "Piotrek Ukraina"
+        },
+        {
+          "id": "34b0afa2-653c-432c-aabb-6b61665f8087",
+          "date": "2026-05-27",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-1",
+          "employeeName": "Piotrek Ukraina"
+        },
+        {
+          "id": "845c389f-db89-447a-ba07-9d7df93cea8c",
+          "date": "2026-05-27",
+          "rate": 35,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-9",
+          "employeeName": "Marcin"
+        },
+        {
+          "id": "225bbcc7-ac6d-4073-bd87-349a546e865c",
+          "date": "2026-05-27",
+          "rate": 29,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-7",
+          "employeeName": "Kamil Zabka"
+        },
+        {
+          "id": "df6ed38d-dd60-41c5-a9a4-cec08c4f6205",
+          "date": "2026-05-28",
+          "rate": 29,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-7",
+          "employeeName": "Kamil Zabka"
+        },
+        {
+          "id": "5bd55782-db35-4714-bf2a-8eb25296153a",
+          "date": "2026-05-28",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-1",
+          "employeeName": "Piotrek Ukraina"
+        },
+        {
+          "id": "0a7ac097-91a4-47a8-a22f-cb590589c778",
+          "date": "2026-05-28",
+          "rate": 35,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-9",
+          "employeeName": "Marcin"
+        },
+        {
+          "id": "cfa5688c-97c6-445e-b3ae-ad80df4da938",
+          "date": "2026-05-29",
+          "rate": 29,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-7",
+          "employeeName": "Kamil Zabka"
+        },
+        {
+          "id": "ab129878-1f76-4cd8-be36-1f73427f770f",
+          "date": "2026-05-29",
+          "rate": 35,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-9",
+          "employeeName": "Marcin"
+        },
+        {
+          "id": "5c943b22-3abc-45a8-b99f-f7cf589de5a5",
+          "date": "2026-05-29",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-1",
+          "employeeName": "Piotrek Ukraina"
+        },
+        {
+          "id": "daf3f810-3446-4f52-88ed-9fd243df7b1e",
+          "date": "2026-05-30",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-1",
+          "employeeName": "Piotrek Ukraina"
+        },
+        {
+          "id": "abb6e35f-8c0e-4ab6-8b5c-95131326f70f",
+          "date": "2026-06-01",
+          "rate": 35,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-9",
+          "employeeName": "Marcin"
+        },
+        {
+          "id": "9e2095a5-332e-4ffb-b7d3-f3be494be54c",
+          "date": "2026-06-01",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-1",
+          "employeeName": "Piotrek Ukraina"
+        },
+        {
+          "id": "5ac8f09e-504d-421b-970a-d588cee57ecb",
+          "date": "2026-06-01",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-4",
+          "employeeName": "Kamil Elektryk"
+        }
+      ],
+      "handoverStage": "in_progress",
+      "invoiceAmount": "",
+      "invoiceNumber": "",
+      "invoiceStatus": "pending",
+      "workerReports": [
+        {
+          "id": "8eb907cb-33f9-4ecf-bbbd-40e3c1cd45d2",
+          "rooms": [],
+          "sketch": null,
+          "workItems": [],
+          "sketchNote": "",
+          "workerName": "Dawid",
+          "generalNote": "",
+          "submittedAt": "2026-05-28T11:55:25.464Z",
+          "workScopeText": "",
+          "adminReviewedAt": "2026-05-28T12:00:04.493Z",
+          "authorAdminRole": "super_admin"
+        },
+        {
+          "id": "25a2076b-e506-47cc-b6fd-478d3c435eb2",
+          "rooms": [],
+          "sketch": null,
+          "workItems": [
+            {
+              "id": "4927f953-69b6-460b-b976-bc8f7303763c",
+              "note": "",
+              "text": "• Rozbiórka łazienki i kuchni"
+            },
+            {
+              "id": "7f3e0a5f-44f9-4eb0-b5ff-47985c664510",
+              "note": "",
+              "text": "• Naprawa ubytków, siatka i MP75 – 12 m²"
+            },
+            {
+              "id": "06fac381-cec7-41c1-a635-bb029bec7ab0",
+              "note": "",
+              "text": "• Gruntowanie całego mieszkania"
+            },
+            {
+              "id": "83ad4966-cf5b-4535-8f00-15b7e9dde43a",
+              "note": "",
+              "text": "• Gładzie na wszystkich ścianach oprócz łazienki"
+            },
+            {
+              "id": "c3f4e693-ca77-40b8-b8be-8a5e4a056c8b",
+              "note": "",
+              "text": "• Malowanie po plamach – 3 razy"
+            },
+            {
+              "id": "d4bc7013-ea9a-46e6-aa61-d97f67250eeb",
+              "note": "",
+              "text": "• Malowanie Śnieżką – 2 razy"
+            },
+            {
+              "id": "c7023500-a153-491a-a7ef-f182b639ba63",
+              "note": "",
+              "text": "• Malowanie ościeżnic – 2 sztuki"
+            },
+            {
+              "id": "4e2cf58a-8249-4b49-8eec-ce610b94cfce",
+              "note": "",
+              "text": "• Montaż paneli w pokoju oraz listew przypodłogowych"
+            },
+            {
+              "id": "953ec4f6-55f2-40bb-8472-520a91e4882e",
+              "note": "",
+              "text": "• Wymiana grzejnika w kuchni"
+            },
+            {
+              "id": "b9a312d1-d674-4971-acbd-b5bb602a7c2d",
+              "note": "",
+              "text": "• Montaż pieca gazowego oraz kuchenki gazowej"
+            },
+            {
+              "id": "fbe6ba6e-b19a-4716-8170-5a8984269577",
+              "note": "",
+              "text": "• Montaż zlewozmywaka"
+            },
+            {
+              "id": "e21b301b-72a4-4f23-95f0-86e465faee51",
+              "note": "",
+              "text": "• Montaż kabiny prysznicowej, WC oraz umywalki w łazience"
+            },
+            {
+              "id": "9d083fe9-7933-4a5f-ab33-d5c0d7b461f0",
+              "note": "",
+              "text": "• Mycie płytek w łazience i kuchni oraz płytek podłogowych"
+            },
+            {
+              "id": "726b63ea-20c9-47be-867c-01e5ee6d363b",
+              "note": "",
+              "text": "• Mycie grzejników – 3 sztuki"
+            },
+            {
+              "id": "ec1c513d-16bc-44e4-b3c2-35448cb6e8b7",
+              "note": "",
+              "text": "• Malowanie skrzynki prądowej"
+            },
+            {
+              "id": "1aeb80cb-6d1f-4f27-848e-12376fab0006",
+              "note": "",
+              "text": "• Malowanie rury gazowej na żółto – 9 m"
+            },
+            {
+              "id": "9cfbeb6e-700a-4103-807c-108913a7bcdb",
+              "note": "",
+              "text": "• Montaż nowych gniazd – 9 sztuk"
+            },
+            {
+              "id": "7bc9ea46-1b2c-4b24-a361-c36cfdbf5ede",
+              "note": "",
+              "text": "• Montaż włączników – 4 sztuki"
+            },
+            {
+              "id": "e50b2655-f95c-4065-bafb-fc4e498d1fc6",
+              "note": "",
+              "text": "• Montaż listwy drzwiowej – 1 sztuka"
+            },
+            {
+              "id": "1a500848-1221-4054-9004-1771bb58c938",
+              "note": "",
+              "text": "• Wycinanie wentylacji w drzwiach łazienkowych – 4 sztuki"
+            },
+            {
+              "id": "1b5facb9-7ad6-466c-97a3-eab2b07d8d3c",
+              "note": "",
+              "text": "• Montaż kratek wentylacyjnych – 2 sztuki"
+            }
+          ],
+          "sketchNote": "",
+          "workerName": "Dawid",
+          "generalNote": "",
+          "submittedAt": "2026-05-28T11:58:28.209Z",
+          "workScopeText": "• Rozbiórka łazienki i kuchni\n• Naprawa ubytków, siatka i MP75 – 12 m²\n• Gruntowanie całego mieszkania\n• Gładzie na wszystkich ścianach oprócz łazienki\n• Malowanie po plamach – 3 razy\n• Malowanie Śnieżką – 2 razy\n• Malowanie ościeżnic – 2 sztuki\n• Montaż paneli w pokoju oraz listew przypodłogowych\n• Wymiana grzejnika w kuchni\n• Montaż pieca gazowego oraz kuchenki gazowej\n• Montaż zlewozmywaka\n• Montaż kabiny prysznicowej, WC oraz umywalki w łazience\n• Mycie płytek w łazience i kuchni oraz płytek podłogowych\n• Mycie grzejników – 3 sztuki\n• Malowanie skrzynki prądowej\n• Malowanie rury gazowej na żółto – 9 m\n• Montaż nowych gniazd – 9 sztuk\n• Montaż włączników – 4 sztuki\n• Montaż listwy drzwiowej – 1 sztuka\n• Wycinanie wentylacji w drzwiach łazienkowych – 4 sztuki\n• Montaż kratek wentylacyjnych – 2 sztuki",
+          "adminReviewedAt": "2026-05-28T12:00:04.493Z",
+          "authorAdminRole": "super_admin"
+        }
+      ],
+      "keysHandedOver": false,
+      "inspectorPhotos": [],
+      "plannedHandoverDate": ""
+    },
+    {
+      "id": "8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef",
+      "notes": "",
+      "client": "Wrocławskie Mieszkania",
+      "photos": [
+        {
+          "id": "fbde3759-c681-46c3-9e49-25422e77bcb7",
+          "path": "jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046467716.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046467716.jpg",
+          "uploadedAt": "2026-05-29T09:21:09.236Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "629d2b1e-76b8-40f4-9646-d541b0dd8d6a",
+          "path": "jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046469695.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046469695.jpg",
+          "uploadedAt": "2026-05-29T09:21:10.697Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "849f291b-6f28-4d6c-9db6-204a340add0f",
+          "path": "jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046471100.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046471100.jpg",
+          "uploadedAt": "2026-05-29T09:21:12.257Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "5ca2e686-fb0f-4459-85c0-d3cee531e663",
+          "path": "jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046472686.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046472686.jpg",
+          "uploadedAt": "2026-05-29T09:21:13.976Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "830437a3-2dda-4d26-bff7-4328fa863daa",
+          "path": "jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046474386.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046474386.jpg",
+          "uploadedAt": "2026-05-29T09:21:17.040Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "f3356658-eecd-40a0-b6af-2e3b2976ec38",
+          "path": "jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046478139.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046478139.jpg",
+          "uploadedAt": "2026-05-29T09:21:19.816Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "8ed344f9-54d4-44ae-b5f8-2f97b3e3547b",
+          "path": "jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046480252.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046480252.jpg",
+          "uploadedAt": "2026-05-29T09:21:22.168Z",
+          "uploadedBy": "Kamil Elektryk"
+        },
+        {
+          "id": "fde4d543-a07a-4bed-8692-2f4c953a0c5a",
+          "path": "jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046483158.jpg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/progress-1780046483158.jpg",
+          "uploadedAt": "2026-05-29T09:21:24.693Z",
+          "uploadedBy": "Kamil Elektryk"
+        }
+      ],
+      "status": "in_progress",
+      "address": "Okulickiego 22",
+      "endDate": "",
+      "jobFiles": [],
+      "jobNotes": [],
+      "documents": {
+        "zakres": true,
+        "pomiary": false,
+        "rysunek": true,
+        "zdjecia": false,
+        "zlecenie": false,
+        "gwarancje": false,
+        "kominiarz": false,
+        "kosztorys": false,
+        "oswiadczenia": false
+      },
+      "materials": [],
+      "startDate": "2026-05-25",
+      "stoveType": "dwupalnik",
+      "updatedAt": "2026-06-02T06:46:58.416Z",
+      "flatNumber": "9",
+      "activityLog": [
+        {
+          "at": "2026-06-02T06:46:58.416Z",
+          "id": "017d0ef1-2105-4e22-b110-5f667f7c4314",
+          "text": "Adam skopiowany na 02.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-02T06:46:57.479Z",
+          "id": "e199594c-0674-44b5-8cc4-f3de1073dc54",
+          "text": "Rafal skopiowany na 02.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T16:34:22.530Z",
+          "id": "503d0db4-8103-499d-8c5d-782544a2c0bc",
+          "text": "Adam — 01.06.2026, 6h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T08:42:27.513Z",
+          "id": "30cf36d1-18e1-4f6d-85d5-f6450d357f81",
+          "text": "Odznaczono: Kosztorys",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T07:58:36.061Z",
+          "id": "683194f4-d0ac-4571-aad1-7f56ae5ca635",
+          "text": "Adam — 01.06.2026, 4h",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T07:58:29.419Z",
+          "id": "db110d08-2f42-4248-9ef9-a7d31edb928b",
+          "text": "Rafal skopiowany na 01.06.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T21:00:10.560Z",
+          "id": "cd6a8ae0-f362-4487-9e17-e640d4c2f274",
+          "text": "Odznaczono: Kosztorys",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-29T10:52:08.021Z",
+          "id": "45ece0f4-0ccc-4ec9-863f-22d7f02e5e11",
+          "text": "Zaznaczono: Kosztorys",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T09:36:53.880Z",
+          "id": "9ae0fc0a-e578-4440-a24d-bb3ce1a75c5c",
+          "text": "Zaakceptowano wszystkie (8)",
+          "type": "photo_approved",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T09:21:24.694Z",
+          "id": "17a6fbbf-a062-40ec-a4be-1bf184d791fb",
+          "text": "Kamil Elektryk wgrał 8 zdjęć (progress)",
+          "type": "photo_upload",
+          "actor": "Kamil Elektryk"
+        },
+        {
+          "at": "2026-05-29T05:33:54.546Z",
+          "id": "a9439130-901a-4826-bfd0-13c2204195b4",
+          "text": "Etap: Gotowa do odbioru WM",
+          "type": "inspector_stage",
+          "actor": "Dawid"
+        },
+        {
+          "at": "2026-05-29T05:29:16.600Z",
+          "id": "6c2c6bd3-d197-40e8-967f-dc5910f77297",
+          "text": "Adam skopiowany na 29.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T05:29:15.088Z",
+          "id": "cda80533-122a-47e3-aea0-bdd031f351dc",
+          "text": "Rafal skopiowany na 29.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T17:30:18.487Z",
+          "id": "8377c802-1ede-4da1-8535-c94cc17396fa",
+          "text": "Etap: W realizacji",
+          "type": "inspector_stage",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T06:15:08.488Z",
+          "id": "607c3399-6ce9-4000-9fbc-c09e56245e0b",
+          "text": "Zaznaczono: Zakres robót",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:14:48.500Z",
+          "id": "dbe72b02-c83c-4083-931d-1fcfe2a36d31",
+          "text": "Adam skopiowany na 28.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:14:47.796Z",
+          "id": "63da54fd-6802-4bcb-9ca2-0a99f32ad3e0",
+          "text": "Rafal skopiowany na 28.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T08:56:16.485Z",
+          "id": "18780b46-38e0-4588-8573-e7a2381b1d6b",
+          "text": "Dodano raport (0 linii)",
+          "type": "report_add",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T08:43:38.093Z",
+          "id": "3e08aab2-c139-4a4d-b9fe-848f1e1864df",
+          "text": "Dodano raport (20 linii)",
+          "type": "report_add",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T03:26:44.533Z",
+          "id": "3be80a55-ab74-43da-812f-b42ffb752c76",
+          "text": "Rafal skopiowany na 27.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-27T03:26:38.667Z",
+          "id": "c8b2cad3-e29e-47c8-b64a-d451844de194",
+          "text": "Adam skopiowany na 27.05.2026",
+          "type": "work_entry",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-26T05:49:07.666Z",
+          "id": "a185051e-048e-47aa-8017-42823c79769b",
+          "text": "Skopiowano wczoraj → dziś (2 os.)",
+          "type": "work_entry",
+          "actor": "Administrator"
+        }
+      ],
+      "housingType": "komunalny",
+      "workEntries": [
+        {
+          "id": "56489b4b-c246-480e-b1f2-336db56f6c34",
+          "date": "2026-05-25",
+          "rate": 29,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-6",
+          "employeeName": "Rafal"
+        },
+        {
+          "id": "ba296332-fffe-4c59-af40-6641c6a24ba6",
+          "date": "2026-05-25",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-5",
+          "employeeName": "Adam"
+        },
+        {
+          "id": "00a95ad4-5326-465b-abaa-bcb3d003a9c2",
+          "date": "2026-05-26",
+          "rate": 29,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-6",
+          "employeeName": "Rafal"
+        },
+        {
+          "id": "d3f51956-3eb5-4cb7-ba51-16f696312caa",
+          "date": "2026-05-26",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-5",
+          "employeeName": "Adam"
+        },
+        {
+          "id": "7a183b9b-f035-443f-974e-c34daca5c196",
+          "date": "2026-05-27",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-5",
+          "employeeName": "Adam"
+        },
+        {
+          "id": "04e53d1b-ad1c-42dc-995f-625e5992e0fc",
+          "date": "2026-05-27",
+          "rate": 29,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-6",
+          "employeeName": "Rafal"
+        },
+        {
+          "id": "5710dcb7-45b0-4f53-8ffe-b6258aa812f5",
+          "date": "2026-05-28",
+          "rate": 29,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-6",
+          "employeeName": "Rafal"
+        },
+        {
+          "id": "63b0585f-eea6-495f-a705-64920e3f001d",
+          "date": "2026-05-28",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-5",
+          "employeeName": "Adam"
+        },
+        {
+          "id": "e8a95465-d9b1-46ce-a952-93978c0f12ba",
+          "date": "2026-05-29",
+          "rate": 29,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-6",
+          "employeeName": "Rafal"
+        },
+        {
+          "id": "5ca14d19-506d-45ae-9b56-9a4d1836b819",
+          "date": "2026-05-29",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-5",
+          "employeeName": "Adam"
+        },
+        {
+          "id": "d00d0a54-16b2-4ae5-ad57-1b84f6841db3",
+          "date": "2026-06-01",
+          "rate": 29,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-6",
+          "employeeName": "Rafal"
+        },
+        {
+          "id": "d86dd021-ad3d-4128-ab32-640907a23498",
+          "date": "2026-06-01",
+          "rate": 30,
+          "hours": 6,
+          "notes": "",
+          "directoryId": "dir-5",
+          "employeeName": "Adam"
+        },
+        {
+          "id": "20202b54-e5ab-4753-9b73-e1555a7f027b",
+          "date": "2026-06-02",
+          "rate": 29,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-6",
+          "employeeName": "Rafal"
+        },
+        {
+          "id": "bf6012ef-7ed5-46ba-a3e8-e7da2b07be26",
+          "date": "2026-06-02",
+          "rate": 30,
+          "hours": 9,
+          "notes": "",
+          "directoryId": "dir-5",
+          "employeeName": "Adam"
+        }
+      ],
+      "handoverStage": "ready_for_handover",
+      "invoiceAmount": "",
+      "invoiceNumber": "",
+      "invoiceStatus": "pending",
+      "workerReports": [
+        {
+          "id": "8085f3ff-6bd4-4c22-9eec-a86fcbd5cd4a",
+          "rooms": [],
+          "sketch": null,
+          "workItems": [
+            {
+              "id": "ee0f3f0d-d164-4ad7-9a9d-1e90046b4049",
+              "note": "",
+              "text": "1. Wysprzątanie obu pomieszczeń."
+            },
+            {
+              "id": "eca60725-0470-4283-91f5-5a9c315e92a5",
+              "note": "",
+              "text": "2)Rozebranie pieca kaflowego."
+            },
+            {
+              "id": "515a8e84-8200-4e95-8808-e2483801d69c",
+              "note": "",
+              "text": "3)Wywózka gruzu po rozebraniu pieca"
+            },
+            {
+              "id": "cfe6e9b3-37d5-4cb5-9d94-63b71c6a9e97",
+              "note": "",
+              "text": "4. Wycięcie rury kominowej+załatanie"
+            },
+            {
+              "id": "18037de6-2ad0-4ffb-9644-d2fbdd782492",
+              "note": "",
+              "text": "5)Skrobanie ścian,oraz eliminacja starych kołków,oraz gwoździ"
+            },
+            {
+              "id": "238b393a-ecaa-440e-a443-7648a4fb7ab4",
+              "note": "",
+              "text": "6)Zrywanie starej wykładziny w obu pomieszczeniach"
+            },
+            {
+              "id": "23febd75-6d7e-4474-9200-928720af6209",
+              "note": "",
+              "text": "7)Gruntowanie wszystkich ścian+sufity."
+            },
+            {
+              "id": "cffdf207-5eba-4149-b42b-b50bb0e509fb",
+              "note": "",
+              "text": "8)Nakładanie dwa razy gładzi Euro-mix na wszystkie ściany+pęknięcia na sufitach"
+            },
+            {
+              "id": "a34f3894-00f4-411d-9217-357597c39fe2",
+              "note": "",
+              "text": "9. Szlifowanie wszystkich ścian."
+            },
+            {
+              "id": "11fe6004-6eb4-49c2-a96e-14df92e50b94",
+              "note": "",
+              "text": "10)Odpylenie i posprzątanie obu pomieszczeń,a następnie wszystko należy zagruntować."
+            },
+            {
+              "id": "9294ee54-9a6f-437f-9ff1-3a241e452163",
+              "note": "",
+              "text": "11. Malowanie +akryl na wszystkich łączeniach."
+            },
+            {
+              "id": "ba50d1b4-1c75-4065-8ac2-a483a1d37584",
+              "note": "",
+              "text": "13. Montaż wykładzin+listew"
+            },
+            {
+              "id": "05bc5540-e4f7-4862-b8d8-cc838cfb5f43",
+              "note": "",
+              "text": "14)Malowanie progu w przejściu+rurka od gazu na żółto"
+            },
+            {
+              "id": "d3816171-82a7-4b69-8556-55ccb0d72c15",
+              "note": "",
+              "text": "15. Montaż kratki wentylacyjnej"
+            },
+            {
+              "id": "5adf0592-fe51-49fb-86f8-64f59031a594",
+              "note": "",
+              "text": "16. Montaż gniazdek i włączników"
+            },
+            {
+              "id": "da8eb6ce-2c51-480c-b36c-1c63ba6903f4",
+              "note": "",
+              "text": "17. Montaz Szafki zlewozmywakowej"
+            },
+            {
+              "id": "b850a238-8dd2-426a-9644-9cf319fa13e1",
+              "note": "",
+              "text": "18. Podgrzewacz podszafkowy"
+            },
+            {
+              "id": "6897ff3f-e9cb-4a6f-b2ac-b5e40bd22025",
+              "note": "",
+              "text": "19. licznik wody"
+            },
+            {
+              "id": "bffe1bba-2298-4eb5-83fd-d4b876b89bb0",
+              "note": "",
+              "text": "20. montaz kibla"
+            },
+            {
+              "id": "9b6f6996-3615-47ce-a99f-5b604d1a22fa",
+              "note": "",
+              "text": "21. malowanie korytarza i wymina wykladziny na korytarzu"
+            }
+          ],
+          "sketchNote": "",
+          "workerName": "Dawid",
+          "generalNote": "",
+          "submittedAt": "2026-05-27T08:43:38.093Z",
+          "workScopeText": "1. Wysprzątanie obu pomieszczeń.\n2)Rozebranie pieca kaflowego.\n3)Wywózka gruzu po rozebraniu pieca \n4. Wycięcie rury kominowej+załatanie \n5)Skrobanie ścian,oraz eliminacja starych kołków,oraz gwoździ \n6)Zrywanie starej wykładziny w obu pomieszczeniach\n7)Gruntowanie wszystkich ścian+sufity.\n8)Nakładanie dwa razy gładzi Euro-mix na wszystkie ściany+pęknięcia na sufitach \n9. Szlifowanie wszystkich ścian.\n10)Odpylenie i posprzątanie obu pomieszczeń,a następnie wszystko należy zagruntować.\n11. Malowanie +akryl na wszystkich łączeniach.\n13. Montaż wykładzin+listew \n14)Malowanie progu w przejściu+rurka od gazu na żółto \n15. Montaż kratki wentylacyjnej\n16. Montaż gniazdek i włączników\n17. Montaz Szafki zlewozmywakowej \n18. Podgrzewacz podszafkowy\n19. licznik wody\n20. montaz kibla\n21. malowanie korytarza i wymina wykladziny na korytarzu",
+          "adminReviewedAt": "2026-05-27T08:55:53.395Z",
+          "authorAdminRole": "super_admin"
+        },
+        {
+          "id": "7d1296e9-c5a0-4d1e-9d06-aeeb9b4843d4",
+          "rooms": [],
+          "sketch": {
+            "path": "jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/sketch-1779872175015.jpg",
+            "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/8ba3aa73-b178-4dca-b4ac-3250f6f6a1ef/sketch-1779872175015.jpg"
+          },
+          "workItems": [],
+          "sketchNote": "wymiary i rysunek",
+          "workerName": "Dawid",
+          "generalNote": "",
+          "submittedAt": "2026-05-27T08:56:16.485Z",
+          "workScopeText": "",
+          "adminReviewedAt": "2026-05-27T12:40:01.481Z",
+          "authorAdminRole": "super_admin"
+        }
+      ],
+      "keysHandedOver": false,
+      "inspectorPhotos": [],
+      "plannedHandoverDate": ""
+    },
+    {
+      "id": "943c9719-f36a-407d-a39f-4a6604ba3140",
+      "notes": "",
+      "client": "Wrocławskie Mieszkania",
+      "photos": [
+        {
+          "id": "2ee56038-9c63-48de-9ddc-6df9f98fd755",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042278485.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042278485.jpeg",
+          "uploadedAt": "2026-05-29T08:11:19.167Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "33abfa51-7cb5-47ef-9d04-db016f5dba1f",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042279202.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042279202.jpeg",
+          "uploadedAt": "2026-05-29T08:11:20.059Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "f4ace4df-0e59-492a-979a-6f672215c436",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042280091.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042280091.jpeg",
+          "uploadedAt": "2026-05-29T08:11:21.016Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "49d03273-6566-469c-9742-7c222425958c",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042281053.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042281053.jpeg",
+          "uploadedAt": "2026-05-29T08:11:21.966Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "350e80b7-9be8-49ee-a724-5200b813fbe6",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042281995.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042281995.jpeg",
+          "uploadedAt": "2026-05-29T08:11:22.729Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "4b8e1829-cc79-4843-b85b-1bbd4175986d",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042282760.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042282760.jpeg",
+          "uploadedAt": "2026-05-29T08:11:23.784Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "3c4e414f-2f40-4a69-9ace-44f660e17062",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042283820.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042283820.jpeg",
+          "uploadedAt": "2026-05-29T08:11:24.771Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "269079ac-b1b5-41c0-87e3-5829799d8194",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042284804.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042284804.jpeg",
+          "uploadedAt": "2026-05-29T08:11:25.510Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "b29ddf1d-8477-4b65-9d81-167340eaaec5",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042285538.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042285538.jpeg",
+          "uploadedAt": "2026-05-29T08:11:26.217Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "b4dbb791-abf5-4f0e-91f6-df0177808970",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042286252.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042286252.jpeg",
+          "uploadedAt": "2026-05-29T08:11:26.930Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "5b55f131-aeeb-43ee-a51c-81e056dd274c",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042286961.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042286961.jpeg",
+          "uploadedAt": "2026-05-29T08:11:27.605Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "8f6beced-75e2-4076-9c50-2470e075cb26",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042287635.jpeg",
+          "label": "progress",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/progress-1780042287635.jpeg",
+          "uploadedAt": "2026-05-29T08:11:28.266Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "8672b5be-bbdb-4bb1-9240-6fb27671bda1",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042866395.jpeg",
+          "label": "before",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042866395.jpeg",
+          "uploadedAt": "2026-05-29T08:21:07.594Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "d5585392-096e-4d00-b0f1-dc7e2c3f25dc",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042867602.jpeg",
+          "label": "before",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042867602.jpeg",
+          "uploadedAt": "2026-05-29T08:21:08.171Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "6a9e115f-1786-4d34-a412-9b953103c451",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042868185.jpeg",
+          "label": "before",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042868185.jpeg",
+          "uploadedAt": "2026-05-29T08:21:08.699Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "9b268672-921b-4426-a4dc-1331d7f6e735",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042868718.jpeg",
+          "label": "before",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042868718.jpeg",
+          "uploadedAt": "2026-05-29T08:21:09.253Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "85087220-dcd1-4226-a99b-21eda46f5196",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042869263.jpeg",
+          "label": "before",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042869263.jpeg",
+          "uploadedAt": "2026-05-29T08:21:09.720Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "1834800c-9819-4e91-84ee-770b3c5445b4",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042869732.jpeg",
+          "label": "before",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042869732.jpeg",
+          "uploadedAt": "2026-05-29T08:21:10.272Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "f79cdef2-71d3-4f38-b0f3-93c8cd320a85",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042870281.jpeg",
+          "label": "before",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042870281.jpeg",
+          "uploadedAt": "2026-05-29T08:21:10.862Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "1e3c7eee-f305-448c-8d12-d29aa7910e17",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042870872.jpeg",
+          "label": "before",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042870872.jpeg",
+          "uploadedAt": "2026-05-29T08:21:11.391Z",
+          "uploadedBy": "admin"
+        },
+        {
+          "id": "b14ca7f3-5541-44eb-9ecb-da472cd2542a",
+          "path": "jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042871398.jpeg",
+          "label": "before",
+          "status": "approved",
+          "caption": "",
+          "publicUrl": "https://kchwyjlnkdlymwvsnfiu.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/943c9719-f36a-407d-a39f-4a6604ba3140/before-1780042871398.jpeg",
+          "uploadedAt": "2026-05-29T08:21:11.924Z",
+          "uploadedBy": "admin"
+        }
+      ],
+      "status": "in_progress",
+      "address": "Zmigrodzka",
+      "endDate": "",
+      "jobFiles": [],
+      "jobNotes": [],
+      "documents": {
+        "zakres": true,
+        "pomiary": false,
+        "rysunek": false,
+        "zdjecia": false,
+        "zlecenie": true,
+        "gwarancje": false,
+        "kominiarz": false,
+        "kosztorys": true,
+        "oswiadczenia": false
+      },
+      "materials": [],
+      "startDate": "2026-05-25",
+      "stoveType": "",
+      "updatedAt": "2026-06-02T04:11:30.234Z",
+      "flatNumber": "8",
+      "activityLog": [
+        {
+          "at": "2026-06-01T08:42:04.912Z",
+          "id": "9feb65ee-6853-4e1b-adae-1cc58a19f336",
+          "text": "Zaznaczono: Kosztorys",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-06-01T08:41:48.542Z",
+          "id": "1e55cd12-31c8-4611-b53c-cbf0bcbce73f",
+          "text": "Zaznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T08:21:11.924Z",
+          "id": "434e864b-a1ff-4adc-ba66-3188fadda53d",
+          "text": "Admin dodał 9 zdjęć (Przed remontem)",
+          "type": "photo_upload"
+        },
+        {
+          "at": "2026-05-29T08:11:28.266Z",
+          "id": "b065ce1c-7dda-4fd1-8304-8107fe8e481d",
+          "text": "Admin dodał 12 zdjęć (W trakcie)",
+          "type": "photo_upload"
+        },
+        {
+          "at": "2026-05-29T07:53:16.155Z",
+          "id": "ead64f26-5a73-4855-b5af-5cda8601bca0",
+          "text": "Odznaczono: Rysunek/Plan",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T07:53:02.436Z",
+          "id": "9fd9e252-8ce8-4199-ac1b-72ac6a871684",
+          "text": "Dodano raport (15 linii)",
+          "type": "report_add",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-29T05:29:41.528Z",
+          "id": "0157e266-8228-448b-bef7-a13a383a0a28",
+          "text": "Etap: Gotowa do odbioru WM",
+          "type": "inspector_stage",
+          "actor": "Dawid"
+        },
+        {
+          "at": "2026-05-28T15:15:54.944Z",
+          "id": "7a4a836c-88fb-4209-9a86-72dfbcde614f",
+          "text": "Zaznaczono: Zakres robót",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T15:15:54.348Z",
+          "id": "d8fc1e82-2631-4e91-8c3c-d684fd1b632a",
+          "text": "Odznaczono: Zakres robót",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T15:15:54.161Z",
+          "id": "dc298841-4ee4-40c4-9a4b-52d54711dc01",
+          "text": "Zaznaczono: Zakres robót",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T15:15:53.569Z",
+          "id": "e08b6fa9-dfa5-4637-88bb-c504728fba52",
+          "text": "Odznaczono: Zakres robót",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T15:15:53.345Z",
+          "id": "3716918f-0c13-4538-ad6b-8dafb3d80ac4",
+          "text": "Zaznaczono: Zakres robót",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T15:15:52.641Z",
+          "id": "3ac7f0a4-16c9-47f3-b3c8-bf81175133e0",
+          "text": "Odznaczono: Zakres robót",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T15:15:37.873Z",
+          "id": "0d9d5900-c7dd-4faf-95e3-27cb42b7e447",
+          "text": "Zaznaczono: Zakres robót",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T15:15:34.929Z",
+          "id": "200b8f90-b51d-41bd-8557-aca3a276583e",
+          "text": "Odznaczono: Zakres robót",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T15:15:04.340Z",
+          "id": "f7a51b26-73b1-4421-9bdb-ea82efd59534",
+          "text": "Zaznaczono: Zakres robót",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T15:15:01.636Z",
+          "id": "23c27f13-97ee-4b7b-8913-c469f960d53c",
+          "text": "Odznaczono: Zakres robót",
+          "type": "inspector_document",
+          "actor": "Szymon Szóstak"
+        },
+        {
+          "at": "2026-05-28T07:25:48.719Z",
+          "id": "cc67960f-a20e-46a6-8843-9ecc9eba6a4c",
+          "text": "Odznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:58:46.225Z",
+          "id": "0b9179dd-3653-44d4-b458-5b5ed0b9e521",
+          "text": "Odznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:15:00.716Z",
+          "id": "2a33fe21-672b-41fc-a6a4-10b3accaa385",
+          "text": "Odznaczono: Zlecenie",
+          "type": "document",
+          "actor": "Administrator"
+        },
+        {
+          "at": "2026-05-28T06:14:54.366Z",
+          "id": "c2aaf69f-f8ae-4afd-878f-72512ce3407b",
+          "text": "Zaznaczono: Zakres robót",
+          "type": "document",
+          "actor": "Administrator"
+        }
+      ],
+      "housingType": "komunalny",
+      "workEntries": [],
+      "handoverStage": "ready_for_handover",
+      "invoiceAmount": "",
+      "invoiceNumber": "",
+      "invoiceStatus": "pending",
+      "workerReports": [
+        {
+          "id": "f35b3252-b6d0-429f-b943-3666b05647c5",
+          "rooms": [],
+          "sketch": null,
+          "workItems": [
+            {
+              "id": "db254acc-29d8-474b-85bd-64635ac455b2",
+              "note": "",
+              "text": "• Wymiary pomieszczenia: 2,40 m × 3,62 m"
+            },
+            {
+              "id": "9ce155f8-e060-41b3-b051-a381bda08021",
+              "note": "",
+              "text": "• Wymiana podbitek"
+            },
+            {
+              "id": "35989b95-4d8c-466f-8c7a-dfc1c167f471",
+              "note": "",
+              "text": "• Wykonanie balkoników 8 × 8 cm oraz 25 cm"
+            },
+            {
+              "id": "354f44e5-e64a-4c52-aed7-38a656dac27a",
+              "note": "",
+              "text": "• Montaż płyt OSB – 3 sztuki"
+            },
+            {
+              "id": "912f6cc2-0ffe-4bf8-9050-d80d8ec2666c",
+              "note": "",
+              "text": "• Zabezpieczenie belek smarem impregnującym"
+            },
+            {
+              "id": "9157fee9-273b-44ed-81a9-13ebef3ddd6d",
+              "note": "",
+              "text": "• Zużycie preparatu Savo – 15 szt. po 0,7 l"
+            },
+            {
+              "id": "ad33309c-8d0a-4168-a14e-fe4a7fd515b5",
+              "note": "",
+              "text": "• Likwidacja pęknięć"
+            },
+            {
+              "id": "66a72f90-4582-4bd6-9e13-bf81bb438ff9",
+              "note": "",
+              "text": "• Gruntowanie podkładem – 7 opakowań po 0,8 l"
+            },
+            {
+              "id": "a940f274-3a7f-44dc-ab70-d46b7fc96b37",
+              "note": "",
+              "text": "• Malowanie – 3 warstwy"
+            },
+            {
+              "id": "31e00d31-29bb-4fd9-ae31-201544819aae",
+              "note": "",
+              "text": "• Wymiana drzwi"
+            },
+            {
+              "id": "3438990f-7902-4bf2-ac8b-7a8a7b23452b",
+              "note": "",
+              "text": "• Montaż wykładziny oraz listew przypodłogowych"
+            },
+            {
+              "id": "708a01ef-268f-45a2-8871-f23ed89be49f",
+              "note": "",
+              "text": "• Montaż nawiewnika"
+            },
+            {
+              "id": "d236402c-db77-4340-b10c-a04eaab33b32",
+              "note": "",
+              "text": "• Wymiana plafonu"
+            },
+            {
+              "id": "98237859-6cd5-4b69-921c-90386fb60ea2",
+              "note": "",
+              "text": "• Wymiana grzejnika"
+            },
+            {
+              "id": "dd34f4b9-81fd-4b35-96ac-04b72ac7664b",
+              "note": "",
+              "text": "• Wykonanie numeru na drzwi"
+            }
+          ],
+          "sketchNote": "",
+          "workerName": "Dawid",
+          "generalNote": "",
+          "submittedAt": "2026-05-29T07:53:02.436Z",
+          "workScopeText": "• Wymiary pomieszczenia: 2,40 m × 3,62 m\n• Wymiana podbitek\n• Wykonanie balkoników 8 × 8 cm oraz 25 cm\n• Montaż płyt OSB – 3 sztuki\n• Zabezpieczenie belek smarem impregnującym\n• Zużycie preparatu Savo – 15 szt. po 0,7 l\n• Likwidacja pęknięć\n• Gruntowanie podkładem – 7 opakowań po 0,8 l\n• Malowanie – 3 warstwy\n• Wymiana drzwi\n• Montaż wykładziny oraz listew przypodłogowych\n• Montaż nawiewnika\n• Wymiana plafonu\n• Wymiana grzejnika\n• Wykonanie numeru na drzwi",
+          "adminReviewedAt": "2026-05-29T08:00:27.703Z",
+          "authorAdminRole": "super_admin"
+        }
+      ],
+      "keysHandedOver": false,
+      "inspectorPhotos": [],
+      "plannedHandoverDate": ""
+    }
+  ]
+}

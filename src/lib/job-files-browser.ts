@@ -2,6 +2,7 @@ import type { JobFileAttachment } from "@/lib/job-documents";
 import type { InspectorPhotoEntry } from "@/lib/job-wm";
 import { PHOTO_LABEL_NAMES, INSPECTOR_PHOTO_LABEL_NAMES, normalizeInspectorPhotoLabel } from "@/lib/photo-labels";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
+import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import { jobDisplayTitle } from "@/lib/job-gallery";
 
 export type JobFilesBrowserSource = {
@@ -82,7 +83,7 @@ export function collectJobBrowserFileGroups(job: JobFilesBrowserSource): JobBrow
   };
 
   for (const f of job.jobFiles || []) {
-    if (!f.publicUrl) continue;
+    if (!isMediaAttachmentAvailable(f)) continue;
     const category = f.kind === "zlecenie" ? "Zlecenie" : "Kosztorys";
     const dateIso = dateIsoFromUploadedAt(f.uploadedAt);
     add(category, {
@@ -103,7 +104,7 @@ export function collectJobBrowserFileGroups(job: JobFilesBrowserSource): JobBrow
     progress: PHOTO_LABEL_NAMES.progress,
   };
   for (const p of job.photos || []) {
-    if (p.status !== "approved" || !p.publicUrl) continue;
+    if (p.status !== "approved" || !isMediaAttachmentAvailable(p)) continue;
     const category = `Zdjęcia ekipy — ${crewLabel[p.label] || p.label}`;
     const dateIso = dateIsoFromUploadedAt(p.uploadedAt);
     const ext = extFromUrl(p.publicUrl, ".jpg");
@@ -120,7 +121,7 @@ export function collectJobBrowserFileGroups(job: JobFilesBrowserSource): JobBrow
   }
 
   for (const p of job.inspectorPhotos || []) {
-    if (!p.publicUrl) continue;
+    if (!isMediaAttachmentAvailable(p)) continue;
     const label = normalizeInspectorPhotoLabel(p.label);
     const category = `Zdjęcia inspektora — ${INSPECTOR_PHOTO_LABEL_NAMES[label]}`;
     const dateIso = dateIsoFromUploadedAt(p.uploadedAt);
@@ -138,7 +139,8 @@ export function collectJobBrowserFileGroups(job: JobFilesBrowserSource): JobBrow
   }
 
   for (const r of job.workerReports || []) {
-    if (!r.sketch?.publicUrl) continue;
+    const sketch = r.sketch;
+    if (!sketch?.publicUrl || !isMediaAttachmentAvailable(sketch)) continue;
     const category = "Rysunki z raportów";
     const dateIso = dateIsoFromUploadedAt(r.submittedAt);
     const ext = extFromUrl(r.sketch.publicUrl, ".jpg");
@@ -206,18 +208,18 @@ export function summarizeJobBrowserFiles(job: JobFilesBrowserSource): JobBrowser
   let reportSketches = 0;
 
   for (const f of job.jobFiles || []) {
-    if (!f.publicUrl) continue;
+    if (!isMediaAttachmentAvailable(f)) continue;
     if (f.kind === "zlecenie") zlecenie++;
     else if (f.kind === "kosztorys") kosztorys++;
   }
   for (const p of job.photos || []) {
-    if (p.status === "approved" && p.publicUrl) crewPhotos++;
+    if (p.status === "approved" && isMediaAttachmentAvailable(p)) crewPhotos++;
   }
   for (const p of job.inspectorPhotos || []) {
-    if (p.publicUrl) inspectorPhotos++;
+    if (isMediaAttachmentAvailable(p)) inspectorPhotos++;
   }
   for (const r of job.workerReports || []) {
-    if (r.sketch?.publicUrl) reportSketches++;
+    if (r.sketch?.publicUrl && isMediaAttachmentAvailable(r.sketch)) reportSketches++;
   }
 
   return {

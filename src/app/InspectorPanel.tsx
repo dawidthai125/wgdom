@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import { CompanyMusicPlayer } from "@/app/components/CompanyMusicPlayer";
+import { JobPhotoImg } from "@/app/JobPhotoImg";
+import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   MapPin, LogOut, Search, ArrowLeft, FileText, ClipboardList, Ruler,
@@ -1339,11 +1341,11 @@ export function InspectorPanel({
                                 </table>
                               </div>
                             )}
-                            {report.sketch?.publicUrl && (
+                            {report.sketch && isMediaAttachmentAvailable(report.sketch) && (
                               <div>
                                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Rysunek / wymiary (foto)</p>
                                 <button type="button" onClick={() => setLightbox({ url: report.sketch!.publicUrl, label: "Rysunek" })} className="block w-full max-w-xs rounded-xl overflow-hidden border border-border">
-                                  <img src={report.sketch.publicUrl} alt="Rysunek" className="w-full h-auto object-cover"/>
+                                  <JobPhotoImg src={report.sketch.publicUrl} alt="Rysunek" className="w-full h-auto object-cover"/>
                                 </button>
                                 {report.sketchNote && <p className="text-xs text-muted-foreground mt-1 italic">{report.sketchNote}</p>}
                               </div>
@@ -1389,7 +1391,7 @@ export function InspectorPanel({
             <X size={24}/>
           </button>
           <p className="text-white text-sm mb-3">{lightbox.label}</p>
-          <img src={lightbox.url} alt={lightbox.label} className="max-w-full max-h-[85dvh] object-contain rounded-lg" onClick={(e) => e.stopPropagation()}/>
+          <JobPhotoImg src={lightbox.url} alt={lightbox.label} className="max-w-full max-h-[85dvh] object-contain rounded-lg" onClick={(e) => e.stopPropagation()}/>
         </div>
       )}
 

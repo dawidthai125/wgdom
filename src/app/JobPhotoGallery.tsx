@@ -1,15 +1,19 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Camera, Eye, X, ThumbsUp, ThumbsDown, CheckCircle2, Clock3 } from "lucide-react";
 import type { PhotoEntry } from "@/app/app-domain";
 import { PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, PHOTO_LABEL_SECTION } from "@/app/app-domain";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
+import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
+import { filterAvailablePhotos } from "@/lib/media-filter";
 
 export function JobPhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpdate:(photos:PhotoEntry[], activity?: {type: JobActivityType; text: string})=>void}) {
   const [lightbox, setLightbox] = useState<PhotoEntry|null>(null);
+  const failRev = useMediaFailureRevision();
 
-  const pending  = photos.filter(p=>p.status==="pending");
-  const approved = photos.filter(p=>p.status==="approved");
-  const rejected = photos.filter(p=>p.status==="rejected");
+  const visiblePhotos = useMemo(() => filterAvailablePhotos(photos), [photos, failRev]);
+  const pending  = visiblePhotos.filter(p=>p.status==="pending");
+  const approved = visiblePhotos.filter(p=>p.status==="approved");
+  const rejected = visiblePhotos.filter(p=>p.status==="rejected");
 
   const approve = (id: string) => {
     const p = photos.find(x => x.id === id);
@@ -28,7 +32,7 @@ export function JobPhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpd
   };
   const remove  = (id: string) => onUpdate(photos.filter(p=>p.id!==id));
 
-  if (photos.length === 0) return (
+  if (visiblePhotos.length === 0) return (
     <div className="text-center py-10 text-muted-foreground">
       <Camera size={36} className="mx-auto opacity-20 mb-2"/>
       <p className="text-sm">Brak zdjęć</p>
@@ -46,9 +50,12 @@ export function JobPhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpd
     showActions?: boolean;
     showDelete?: boolean;
     showLabel?: boolean;
-  }) => (
+  }) => {
+    const visible = filterAvailablePhotos(items);
+    if (visible.length === 0) return null;
+    return (
     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-      {items.map((p) => (
+      {visible.map((p) => (
         <div key={p.id} className="group relative aspect-square rounded-xl overflow-hidden bg-secondary cursor-pointer" onClick={() => setLightbox(p)}>
           <JobPhotoImg src={p.publicUrl} alt={p.label} className="w-full h-full object-cover"/>
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
@@ -91,7 +98,8 @@ export function JobPhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpd
         </div>
       ))}
     </div>
-  );
+    );
+  };
 
   const CategorySections = ({
     items,

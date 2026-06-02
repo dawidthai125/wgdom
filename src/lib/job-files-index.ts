@@ -4,6 +4,7 @@ import type { JobFileAttachment } from "@/lib/job-documents";
 import type { InspectorPhotoEntry } from "@/lib/job-wm";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
+import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import { INSPECTOR_PHOTO_LABEL_NAMES, PHOTO_LABEL_NAMES } from "@/lib/photo-labels";
 
 export type JobFileCategory =
@@ -88,7 +89,7 @@ export function collectJobFileCatalog(job: JobFilesSource): JobFileCatalogItem[]
   };
 
   for (const f of job.jobFiles || []) {
-    if (!f.publicUrl) continue;
+    if (!isMediaAttachmentAvailable(f)) continue;
     const category = f.kind as "zlecenie" | "kosztorys";
     items.push({
       ...base,
@@ -105,7 +106,7 @@ export function collectJobFileCatalog(job: JobFilesSource): JobFileCatalogItem[]
   }
 
   for (const p of job.inspectorPhotos || []) {
-    if (!p.publicUrl) continue;
+    if (!isMediaAttachmentAvailable(p)) continue;
     const label = p.label ? INSPECTOR_PHOTO_LABEL_NAMES[p.label] : undefined;
     items.push({
       ...base,
@@ -123,7 +124,7 @@ export function collectJobFileCatalog(job: JobFilesSource): JobFileCatalogItem[]
   }
 
   for (const p of job.photos || []) {
-    if (p.status !== "approved" || !p.publicUrl) continue;
+    if (p.status !== "approved" || !isMediaAttachmentAvailable(p)) continue;
     const label = PHOTO_LABEL_NAMES[p.label as keyof typeof PHOTO_LABEL_NAMES] || p.label;
     items.push({
       ...base,
@@ -144,7 +145,8 @@ export function collectJobFileCatalog(job: JobFilesSource): JobFileCatalogItem[]
   }
 
   for (const r of job.workerReports || []) {
-    if (!r.sketch?.publicUrl) continue;
+    const sketch = r.sketch;
+    if (!sketch?.publicUrl || !isMediaAttachmentAvailable(sketch)) continue;
     items.push({
       ...base,
       id: `sk:${r.id}`,

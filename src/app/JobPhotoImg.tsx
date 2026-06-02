@@ -1,37 +1,27 @@
 import { useState } from "react";
-import { ImageOff } from "lucide-react";
-import { isDeadStorageUrl, UNAVAILABLE_PHOTO_LABEL } from "@/lib/storage-url";
+import { isUnavailableMediaUrl, markMediaUrlFailed } from "@/lib/media-filter";
 
-type Props = React.ImgHTMLAttributes<HTMLImageElement> & {
-  compact?: boolean;
-};
+type Props = React.ImgHTMLAttributes<HTMLImageElement>;
 
-/** Miniatura z obsługą martwych URL-i (stary Supabase) i błędów 404. */
-export function JobPhotoImg({ src, alt, className, compact, ...rest }: Props) {
-  const dead = isDeadStorageUrl(typeof src === "string" ? src : undefined);
-  const [failed, setFailed] = useState(dead);
+/** Miniatura — ukryta gdy URL martwy lub plik nie istnieje w storage (404). */
+export function JobPhotoImg({ src, alt, className, onError, ...rest }: Props) {
+  const url = typeof src === "string" ? src : undefined;
+  const initiallyUnavailable = isUnavailableMediaUrl(url);
+  const [failed, setFailed] = useState(initiallyUnavailable);
 
-  if (failed || !src) {
-    return (
-      <div
-        className={`flex flex-col items-center justify-center bg-secondary text-muted-foreground ${compact ? "p-1" : "p-2"} ${className ?? ""}`}
-        title={UNAVAILABLE_PHOTO_LABEL}
-      >
-        <ImageOff size={compact ? 14 : 20} className="opacity-50 shrink-0" />
-        {!compact && (
-          <span className="text-[9px] text-center leading-tight mt-1 px-1 opacity-70">Niedostępne</span>
-        )}
-      </div>
-    );
-  }
+  if (failed || !url) return null;
 
   return (
     <img
-      src={src}
+      src={url}
       alt={alt ?? ""}
       className={className}
       {...rest}
-      onError={() => setFailed(true)}
+      onError={(e) => {
+        markMediaUrlFailed(url);
+        setFailed(true);
+        onError?.(e);
+      }}
     />
   );
 }

@@ -26,6 +26,8 @@ import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
 import { WorkScopeEditor, WorkScopeDisplay } from "@/app/WorkScopeEditor";
 import { JobWorkerReportsPanel } from "@/app/JobWorkerReportsPanel";
 import { JobPhotoGallery } from "@/app/JobPhotoGallery";
+import { JobPhotoImg } from "@/app/JobPhotoImg";
+import { filterAvailablePhotos, isMediaAttachmentAvailable } from "@/lib/media-filter";
 import { uploadPhoto } from "@/app/app-domain";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
@@ -77,7 +79,7 @@ export function jobEmailDefaultSubject(job: Job): string {
 
 export function collectJobEmailSelectableKeys(job: Job): EmailSelectKey[] {
   const keys: EmailSelectKey[] = [];
-  for (const p of (job.photos || []).filter((ph) => ph.status !== "rejected" && ph.publicUrl)) {
+  for (const p of filterAvailablePhotos((job.photos || []).filter((ph) => ph.status !== "rejected"))) {
     keys.push(`p:${p.id}`);
   }
   for (const report of jobWorkerReports(job)) {
@@ -92,7 +94,7 @@ export function collectJobEmailSelectableKeys(job: Job): EmailSelectKey[] {
       void idx;
       keys.push(`rm:${report.id}:${room.id}`);
     }
-    if (report.sketch?.publicUrl) keys.push(`sk:${report.id}`);
+    if (report.sketch && isMediaAttachmentAvailable(report.sketch)) keys.push(`sk:${report.id}`);
   }
   return keys;
 }
@@ -105,9 +107,9 @@ export function buildJobEmailPayload(
   subject: string,
   introMessage: string,
 ) {
-  const photos = (job.photos || [])
-    .filter((p) => selected.has(`p:${p.id}`) && p.publicUrl)
-    .map((p) => ({
+  const photos = filterAvailablePhotos(
+    (job.photos || []).filter((p) => selected.has(`p:${p.id}`)),
+  ).map((p) => ({
       publicUrl: p.publicUrl,
       label: p.label,
       caption: p.caption,
@@ -144,7 +146,7 @@ export function buildJobEmailPayload(
       }
     }
 
-    const sketch = selected.has(`sk:${report.id}`) && report.sketch?.publicUrl
+    const sketch = selected.has(`sk:${report.id}`) && report.sketch && isMediaAttachmentAvailable(report.sketch)
       ? { publicUrl: report.sketch.publicUrl, note: report.sketchNote || undefined }
       : undefined;
 
@@ -298,7 +300,9 @@ export function JobEmailModal({
   }
 
   const reports = jobWorkerReports(job);
-  const photos = (job.photos || []).filter((p) => p.status !== "rejected" && p.publicUrl);
+  const photos = filterAvailablePhotos(
+    (job.photos || []).filter((p) => p.status !== "rejected"),
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
@@ -370,7 +374,7 @@ export function JobEmailModal({
                         return (
                           <label key={p.id} className={`flex items-center gap-3 p-2 rounded-xl border cursor-pointer transition-colors ${selected.has(key) ? "border-primary/40 bg-primary/5" : "border-border hover:bg-secondary/40"}`}>
                             <input type="checkbox" checked={selected.has(key)} onChange={() => toggleKey(key)} className="shrink-0 accent-primary"/>
-                            <img src={p.publicUrl} alt="" className="w-12 h-12 rounded-lg object-cover bg-secondary shrink-0"/>
+                            <JobPhotoImg src={p.publicUrl} alt="" className="w-12 h-12 rounded-lg object-cover bg-secondary shrink-0"/>
                             <div className="min-w-0 flex-1">
                               <p className="text-xs font-medium">{PHOTO_LABEL_NAMES[p.label]}</p>
                               {p.caption && <p className="text-[10px] text-muted-foreground truncate">{p.caption}</p>}
@@ -438,11 +442,11 @@ export function JobEmailModal({
                             </label>
                           );
                         })}
-                        {report.sketch?.publicUrl && (
+                        {report.sketch && isMediaAttachmentAvailable(report.sketch) && (
                           <label className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer ${selected.has(`sk:${report.id}`) ? "bg-violet-500/10" : "hover:bg-secondary/30"}`}>
                             <input type="checkbox" checked={selected.has(`sk:${report.id}`)} onChange={() => toggleKey(`sk:${report.id}`)} className="mt-0.5 shrink-0 accent-primary"/>
                             <div className="flex items-center gap-2">
-                              <img src={report.sketch.publicUrl} alt="" className="w-10 h-10 rounded object-cover bg-secondary"/>
+                              <JobPhotoImg src={report.sketch.publicUrl} alt="" className="w-10 h-10 rounded object-cover bg-secondary"/>
                               <div>
                                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Rysunek z wymiarami</p>
                                 {report.sketchNote && <p className="text-[10px] text-muted-foreground italic">{report.sketchNote}</p>}

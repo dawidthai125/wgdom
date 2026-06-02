@@ -63,8 +63,12 @@ foreach ($t in $tasks) {
     -TaskName $t.Name `
     -Action $action `
     -Trigger $trigger `
+    -Settings $settings `
     -User $env:USERNAME `
     -RunLevel Limited | Out-Null
+
+  # Register-ScheduledTask czasem ignoruje ustawienia baterii — wymuszamy ponownie.
+  Set-ScheduledTask -TaskName $t.Name -Settings $settings | Out-Null
 
   Write-Host "Utworzono: $($t.Name) - $($t.Days) $($t.Time)"
 }

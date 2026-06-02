@@ -1,6 +1,7 @@
 /** Wspólne typy dokumentów robót — używane w panelu admina i inspektora. */
 
 import { reportHasWorkScope } from "./work-scope-text";
+import { isMediaAttachmentAvailable, isUnavailableMediaUrl } from "./media-filter";
 
 export const DOCUMENT_TYPES = [
   "zlecenie", "zakres", "kosztorys", "kominiarz", "pomiary",
@@ -99,7 +100,7 @@ export type WorkerReportDocSource = {
 
 /** Raport z zakresem prac (tekst lub punkty). */
 export function reportHasRysunek(report: WorkerReportDocSource): boolean {
-  if (report.sketch?.publicUrl) return true;
+  if (report.sketch?.publicUrl && !isUnavailableMediaUrl(report.sketch.publicUrl)) return true;
   return (report.rooms || []).some(
     (room) =>
       room.length.trim() ||
@@ -192,7 +193,7 @@ export function latestJobFile(
   job: { jobFiles?: JobFileAttachment[] },
   kind: InspectorJobFileKind,
 ): JobFileAttachment | undefined {
-  const files = (job.jobFiles || []).filter((f) => f.kind === kind);
+  const files = (job.jobFiles || []).filter((f) => f.kind === kind && isMediaAttachmentAvailable(f));
   if (files.length === 0) return undefined;
   return files.reduce((a, b) => (a.uploadedAt >= b.uploadedAt ? a : b));
 }
@@ -205,7 +206,7 @@ export function syncJobDocumentsFromFiles<T extends {
   const docs = { ...job.documents };
   let changed = false;
   for (const kind of INSPECTOR_FILE_KINDS) {
-    if ((job.jobFiles || []).some((f) => f.kind === kind) && !docs[kind]) {
+    if ((job.jobFiles || []).some((f) => f.kind === kind && isMediaAttachmentAvailable(f)) && !docs[kind]) {
       docs[kind] = true;
       changed = true;
     }

@@ -6,6 +6,7 @@ import type { WorkerJobReport } from "@/app/app-domain";
 import { fmtDate, roomDisplayName } from "@/app/app-domain";
 import { getReportWorkScopeText, reportHasWorkScope, scopeTextLineCount } from "@/lib/work-scope-text";
 import type { AdminRole } from "@/lib/admin-auth";
+import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 
 export function JobWorkerReportsPanel({
@@ -144,7 +145,7 @@ export function JobWorkerReportsPanel({
                         </div>
                       </div>
                     )}
-                    {report.sketch && (
+                    {report.sketch && isMediaAttachmentAvailable(report.sketch) && (
                       <div>
                         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Rysunek z wymiarami</p>
                         <a href={report.sketch.publicUrl} target="_blank" rel="noopener noreferrer" className="block max-w-xs">

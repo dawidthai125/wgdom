@@ -7,6 +7,7 @@ import {
   type DocType,
   type JobFileAttachment,
 } from "@/lib/job-documents";
+import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import type { InspectorPhotoEntry } from "@/lib/job-wm";
 import {
   HOUSING_TYPE_LABELS,
@@ -135,14 +136,14 @@ export function collectJobPackEntries(job: JobPackSource): PackFileEntry[] {
   const dateFolder = (iso: string) => (iso || "").slice(0, 10) || "bez-daty";
 
   for (const f of job.jobFiles || []) {
-    if (!f.publicUrl) continue;
+    if (!isMediaAttachmentAvailable(f)) continue;
     const folder = f.kind === "zlecenie" ? "zlecenie" : "kosztorys";
     add(`${folder}/${dateFolder(f.uploadedAt)}/${safeFilename(f.filename || `${f.kind}.pdf`)}`, f.publicUrl);
   }
 
   let inspIdx = 1;
   for (const p of job.inspectorPhotos || []) {
-    if (!p.publicUrl) continue;
+    if (!isMediaAttachmentAvailable(p)) continue;
     const ext = extFromUrl(p.publicUrl, ".jpg");
     const labelFolder = p.label === "defect" ? "usterka"
       : p.label === "in_progress" ? "w-realizacji"
@@ -160,7 +161,7 @@ export function collectJobPackEntries(job: JobPackSource): PackFileEntry[] {
   };
   let photoIdx = 1;
   for (const p of job.photos || []) {
-    if (p.status !== "approved" || !p.publicUrl) continue;
+    if (p.status !== "approved" || !isMediaAttachmentAvailable(p)) continue;
     const folder = labelFolder[p.label] || p.label;
     const ext = extFromUrl(p.publicUrl, ".jpg");
     const base = p.filename || p.caption || `zdjecie-${photoIdx}${ext}`;
@@ -169,7 +170,8 @@ export function collectJobPackEntries(job: JobPackSource): PackFileEntry[] {
   }
 
   for (const r of job.workerReports || []) {
-    if (!r.sketch?.publicUrl) continue;
+    const sketch = r.sketch;
+    if (!sketch?.publicUrl || !isMediaAttachmentAvailable(sketch)) continue;
     const ext = extFromUrl(r.sketch.publicUrl, ".jpg");
     const who = safeFilename(r.workerName || "pracownik");
     add(`raporty-rysunki/${dateFolder(r.submittedAt)}/${who}-${r.id.slice(0, 8)}${ext}`, r.sketch.publicUrl);

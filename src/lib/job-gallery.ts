@@ -1,3 +1,5 @@
+import { filterAvailablePhotos } from "@/lib/media-filter";
+
 export const GALLERY_ARCHIVE_DAYS = 30;
 
 export type GalleryPhoto = {
@@ -31,7 +33,9 @@ export function jobDisplayTitle(job: { address?: string; flatNumber?: string }):
 }
 
 export function jobApprovedPhotos(job: { photos?: GalleryPhoto[] }): GalleryPhoto[] {
-  return (job.photos || []).filter((p) => p.status === "approved" && p.publicUrl);
+  return filterAvailablePhotos(
+    (job.photos || []).filter((p) => p.status === "approved" && p.publicUrl),
+  );
 }
 
 function jobHandoverIso(job: GalleryJob): string | null {

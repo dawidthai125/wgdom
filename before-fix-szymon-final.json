@@ -1,0 +1,9 @@
+{
+  "capturedAt": "2026-06-02T12:38:22.158Z",
+  "purpose": "P13A snapshot przed usunięciem override szymon z kw-admin-passwords",
+  "kw-admin-passwords": {
+    "dawid": "20fa3a3dd3eefceb3edff7d9281256df237d0107614ee2b77ca07b097313a6a4",
+    "pawel": "514a115c99899197548bc450844917f6e458ec87b53f312b00ff137872b313be",
+    "szymon": "15622045e35f20d0605271bd81cfdcba236fd33560c26e50f88d8c76440eec7f"
+  }
+}

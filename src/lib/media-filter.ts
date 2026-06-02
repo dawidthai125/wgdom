@@ -60,3 +60,60 @@ export function availableSketch<T extends { publicUrl?: string | null; path?: st
   if (!sketch || !isMediaAttachmentAvailable(sketch)) return null;
   return sketch;
 }
+
+/** Martwy storage (stary projekt / obcy bucket) — bez runtime 404 z sesji. */
+function isDeadMediaAttachment(item: {
+  publicUrl?: string | null;
+  path?: string | null;
+  url?: string | null;
+}): boolean {
+  const url = (item.publicUrl || item.url || "").trim();
+  const path = (item.path || "").trim();
+  return isDeadStorageUrl(url) || isDeadStorageUrl(path);
+}
+
+/** Usuwa martwe URL storage z jednej roboty (sync — nie zmienia innych pól). */
+export function stripDeadMediaFromJob<T extends Record<string, unknown>>(job: T): T {
+  if (!job || typeof job !== "object") return job;
+
+  const photos = (Array.isArray(job.photos) ? job.photos : [])
+    .filter((p) => p && typeof p === "object" && !isDeadMediaAttachment(p as { publicUrl?: string; path?: string; url?: string }));
+
+  const jobFiles = (Array.isArray(job.jobFiles) ? job.jobFiles : [])
+    .filter((f) => f && typeof f === "object" && !isDeadMediaAttachment(f as { publicUrl?: string; path?: string }));
+
+  const inspectorPhotos = (Array.isArray(job.inspectorPhotos) ? job.inspectorPhotos : [])
+    .filter((p) => p && typeof p === "object" && !isDeadMediaAttachment(p as { publicUrl?: string; path?: string; url?: string }));
+
+  const workerReports = (Array.isArray(job.workerReports) ? job.workerReports : []).map((r) => {
+    if (!r || typeof r !== "object") return r;
+    const row = r as { sketch?: { publicUrl?: string; path?: string } | null };
+    const sketch =
+      row.sketch && typeof row.sketch === "object" && !isDeadMediaAttachment(row.sketch)
+        ? row.sketch
+        : null;
+    return { ...row, sketch };
+  });
+
+  let sketch = job.sketch;
+  if (sketch && typeof sketch === "object" && isDeadMediaAttachment(sketch as { publicUrl?: string; path?: string })) {
+    sketch = null;
+  }
+
+  return {
+    ...job,
+    photos,
+    jobFiles,
+    inspectorPhotos,
+    workerReports,
+    sketch,
+  };
+}
+
+/** Usuwa martwe URL storage z listy robót (po merge / przed push do chmury). */
+export function stripDeadMediaFromJobs(jobs: unknown[]): unknown[] {
+  if (!Array.isArray(jobs)) return jobs;
+  return jobs.map((j) =>
+    j && typeof j === "object" ? stripDeadMediaFromJob(j as Record<string, unknown>) : j,
+  );
+}

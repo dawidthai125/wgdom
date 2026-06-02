@@ -24,6 +24,9 @@ import {
 } from "@/lib/photo-download";
 import { downloadPhotosAsZip } from "@/lib/photo-zip";
 import type { InspectorPhotoEntry } from "@/lib/job-wm";
+import { filterAvailablePhotos } from "@/lib/media-filter";
+import { JobPhotoImg } from "@/app/JobPhotoImg";
+import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
 
 type CrewPhoto = DownloadablePhoto & {
   label: "before" | "after" | "progress";
@@ -69,9 +72,10 @@ export function InspectorPhotoGallery({
   const [uploadCaption, setUploadCaption] = useState("");
   const [uploadBusy, setUploadBusy] = useState(false);
   const touchStartX = useRef<number | null>(null);
+  const failRev = useMediaFailureRevision();
 
-  const approvedCrew = crewPhotos.filter((p) => p.status === "approved" && p.publicUrl);
-  const inspPhotos = inspectorPhotos.filter((p) => p.publicUrl);
+  const approvedCrew = filterAvailablePhotos(crewPhotos.filter((p) => p.status === "approved" && p.publicUrl));
+  const inspPhotos = filterAvailablePhotos(inspectorPhotos);
 
   const notify = (msg: string) => onStatusMessage?.(msg);
 
@@ -106,7 +110,7 @@ export function InspectorPhotoGallery({
       });
     }
     return out;
-  }, [approvedCrew, inspPhotos, jobAddress]);
+  }, [approvedCrew, inspPhotos, jobAddress, failRev]);
 
   const lightbox = lightboxIndex != null ? slides[lightboxIndex] ?? null : null;
 
@@ -373,7 +377,7 @@ export function InspectorPhotoGallery({
             </button>
           </div>
           <div className="flex-1 flex items-center justify-center p-2 min-h-0">
-            <img src={lightbox.url} alt={lightbox.caption || lightbox.title} className="max-w-full max-h-full object-contain rounded-lg select-none"/>
+            <JobPhotoImg src={lightbox.url} alt={lightbox.caption || lightbox.title} className="max-w-full max-h-full object-contain rounded-lg select-none"/>
           </div>
           <div className="flex items-center justify-center gap-3 px-4 py-4 shrink-0" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
             <button type="button" onClick={() => downloadUrlAsFile(lightbox.url, lightbox.downloadName).catch(() => notify("Błąd pobierania"))} className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/15 text-sm font-medium">
@@ -434,7 +438,7 @@ function PhotoThumbGrid({
         <div key={item.id} className="space-y-1">
           <div className="group relative aspect-square rounded-xl overflow-hidden bg-secondary border border-border">
             <button type="button" onClick={item.onOpen} className="block w-full h-full">
-              <img src={item.url} alt={item.caption || ""} className="w-full h-full object-cover"/>
+              <JobPhotoImg src={item.url} alt={item.caption || ""} className="w-full h-full object-cover"/>
             </button>
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-2 py-2 pointer-events-none">
               {item.caption && <p className="text-[10px] text-white font-medium leading-snug line-clamp-2">{item.caption}</p>}

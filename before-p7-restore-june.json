@@ -1,0 +1,16 @@
+{
+  "capturedAt": "2026-06-02T10:08:25.583Z",
+  "purpose": "before-p7-restore-june",
+  "kw-week-employees": [],
+  "kw-weekFrom": "2026-06-01",
+  "kw-weekTo": "2026-06-06",
+  "statsBefore": {
+    "employees": 0,
+    "activeDays": 0,
+    "weekdayActive": 0,
+    "weekdayHours": 0,
+    "totalHours": 0,
+    "settled": 0,
+    "fingerprint": "4f53cda18c2baa0c"
+  }
+}

@@ -17,6 +17,7 @@ import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
 import { normalizeJobMetaFields } from "@/lib/job-meta";
 import { normalizeJobWmFields } from "@/lib/job-wm";
 import { syncJobDocuments } from "@/lib/job-documents";
+import { filterAvailablePhotos } from "@/lib/media-filter";
 
 export type DayKey = "Pn" | "Wt" | "Sr" | "Cz" | "Pt" | "So";
 export const DAY_LABELS: Record<DayKey, string> = { Pn: "Poniedziałek", Wt: "Wtorek", Sr: "Środa", Cz: "Czwartek", Pt: "Piątek", So: "Sobota" };
@@ -1386,7 +1387,9 @@ export function jobDisplayTitle(job: Job): string {
 }
 
 export function jobApprovedPhotos(job: Job): PhotoEntry[] {
-  return (job.photos || []).filter((p) => p.status === "approved" && p.publicUrl);
+  return filterAvailablePhotos(
+    (job.photos || []).filter((p) => p.status === "approved" && p.publicUrl),
+  );
 }
 
 export function jobHandoverIso(job: Job): string | null {

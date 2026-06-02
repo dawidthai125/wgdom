@@ -4,6 +4,9 @@ import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { useWorkerPrivacyShield } from "@/app/hooks/useWorkerPrivacyShield";
 import { useLocalStorage } from "@/app/hooks/useLocalStorage";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
+import { JobPhotoImg } from "@/app/JobPhotoImg";
+import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
+import { filterAvailablePhotos } from "@/lib/media-filter";
 import { appendJobActivity } from "@/lib/job-activity";
 import {
   Camera, Eye, ImagePlus, Lock, LogOut, MapPin, CalendarDays, Wallet,
@@ -539,7 +542,11 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
     );
   };
 
-  const myPhotos = selectedJob ? (selectedJob.photos||[]).filter(p=>p.uploadedBy===workerName) : [];
+  const failRev = useMediaFailureRevision();
+  void failRev;
+  const myPhotos = selectedJob
+    ? filterAvailablePhotos((selectedJob.photos || []).filter((p) => p.uploadedBy === workerName))
+    : [];
   const myReports = selectedJob ? jobWorkerReports(selectedJob).filter(r => r.workerName === workerName) : [];
 
   return (
@@ -1123,7 +1130,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                   {myPhotos.map(p=>(
                     <div key={p.id} className="flex gap-3 bg-card border border-border rounded-xl p-3">
                       <div className="w-20 h-20 rounded-xl overflow-hidden bg-secondary shrink-0">
-                        <img src={p.publicUrl} alt={p.label} className="w-full h-full object-cover"/>
+                        <JobPhotoImg src={p.publicUrl} alt={p.label} className="w-full h-full object-cover"/>
                       </div>
                       <div className="flex-1 min-w-0 space-y-2">
                         <div className="flex items-center justify-between gap-2">

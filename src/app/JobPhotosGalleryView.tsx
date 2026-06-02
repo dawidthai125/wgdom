@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import type { CrewPhotoLabel } from "@/lib/photo-labels";
 import { downloadJobGalleryZip } from "@/lib/photo-download";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
+import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
 import type { Job, PhotoEntry, JobGalleryBucket } from "@/app/app-domain";
 import {
   GALLERY_ARCHIVE_DAYS,
@@ -38,6 +39,7 @@ export function JobPhotosGalleryView({
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [lightbox, setLightbox] = useState<{ photo: PhotoEntry; job: Job } | null>(null);
   const [zipBusy, setZipBusy] = useState<string | null>(null);
+  const failRev = useMediaFailureRevision();
 
   const entries = useMemo(() => {
     const list: JobPhotoGalleryEntry[] = [];
@@ -48,7 +50,7 @@ export function JobPhotosGalleryView({
       list.push({ job, bucket, photos });
     }
     return list;
-  }, [jobs]);
+  }, [jobs, failRev]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

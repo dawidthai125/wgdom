@@ -12,6 +12,8 @@ import {
   type JobWithActivity,
 } from "@/lib/job-activity";
 import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
+import { JobPhotoImg } from "@/app/JobPhotoImg";
+import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import { uploadJobFile, deleteJobFile } from "@/lib/job-file-upload";
 import {
   latestJobFile,
@@ -541,11 +543,11 @@ export function InspectorAdminJobDetail({
                                 </table>
                               </div>
                             )}
-                            {report.sketch?.publicUrl && (
+                            {report.sketch && isMediaAttachmentAvailable(report.sketch) && (
                               <div>
                                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Rysunek / wymiary (foto)</p>
                                 <button type="button" onClick={() => setLightbox({ url: report.sketch!.publicUrl, label: "Rysunek" })} className="block w-full max-w-xs rounded-xl overflow-hidden border border-border">
-                                  <img src={report.sketch.publicUrl} alt="Rysunek" className="w-full h-auto object-cover"/>
+                                  <JobPhotoImg src={report.sketch.publicUrl} alt="Rysunek" className="w-full h-auto object-cover"/>
                                 </button>
                                 {report.sketchNote && <p className="text-xs text-muted-foreground mt-1 italic">{report.sketchNote}</p>}
                               </div>
@@ -580,7 +582,7 @@ export function InspectorAdminJobDetail({
             ×
           </button>
           <p className="text-white text-sm mb-3">{lightbox.label}</p>
-          <img src={lightbox.url} alt={lightbox.label} className="max-w-full max-h-[85dvh] object-contain rounded-lg" onClick={(e) => e.stopPropagation()}/>
+          <JobPhotoImg src={lightbox.url} alt={lightbox.label} className="max-w-full max-h-[85dvh] object-contain rounded-lg" onClick={(e) => e.stopPropagation()}/>
         </div>
       )}
     </div>

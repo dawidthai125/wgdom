@@ -8,6 +8,8 @@ import {
   getReportWorkScopeText,
   reportHasWorkScope,
 } from "@/lib/work-scope-text";
+import { filterAvailablePhotos, isMediaAttachmentAvailable } from "@/lib/media-filter";
+import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
 
 interface ClientShareJob {
@@ -40,6 +42,7 @@ export function ClientShareView({ token }: { token: string }) {
   }, [token]);
 
   const LABEL_NAMES: Record<string, string> = { before: "Przed remontem", after: "Po remoncie", progress: "W trakcie", sketch: "Rysunek" };
+  const sharePhotos = job ? filterAvailablePhotos(job.photos) : [];
 
   return (
     <div className="min-h-[100dvh] bg-background text-foreground flex flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -68,13 +71,13 @@ export function ClientShareView({ token }: { token: string }) {
                 {" · "}{job.status === "completed" ? "Zakończono" : "W trakcie"}
               </p>
             </div>
-            {job.photos.length > 0 && (
+            {sharePhotos.length > 0 && (
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Zdjęcia</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {job.photos.map((p, i) => (
+                  {sharePhotos.map((p, i) => (
                     <div key={i} className="aspect-square rounded-xl overflow-hidden bg-secondary relative">
-                      <img src={p.publicUrl} alt="" className="w-full h-full object-cover"/>
+                      <JobPhotoImg src={p.publicUrl} alt="" className="w-full h-full object-cover"/>
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
                         <p className="text-[9px] text-white">{LABEL_NAMES[p.label] || p.label}</p>
                         {p.caption && <p className="text-[8px] text-white/80 truncate">{p.caption}</p>}
@@ -96,15 +99,15 @@ export function ClientShareView({ token }: { token: string }) {
                         <WorkScopeDisplay text={getReportWorkScopeText(norm)}/>
                       )}
                       {norm.generalNote && <p className="text-xs text-muted-foreground italic border-t border-border pt-2">{norm.generalNote}</p>}
-                      {norm.sketch?.publicUrl && (
-                        <img src={norm.sketch.publicUrl} alt="Rysunek" className="rounded-lg border border-border max-h-48 object-contain w-full bg-secondary"/>
+                      {norm.sketch && isMediaAttachmentAvailable(norm.sketch) && (
+                        <JobPhotoImg src={norm.sketch.publicUrl} alt="Rysunek" className="rounded-lg border border-border max-h-48 object-contain w-full bg-secondary"/>
                       )}
                     </div>
                   );
                 })}
               </div>
             )}
-            {job.photos.length === 0 && job.workerReports.length === 0 && (
+            {sharePhotos.length === 0 && job.workerReports.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-8">Brak opublikowanych materiałów — administrator jeszcze nie udostępnił zdjęć ani raportów.</p>
             )}
           </>

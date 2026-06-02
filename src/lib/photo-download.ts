@@ -5,6 +5,7 @@ import type { InspectorPhotoEntry } from "@/lib/job-wm";
 import { INSPECTOR_PHOTO_LABEL_SECTION, normalizeInspectorPhotoLabel } from "@/lib/photo-labels";
 import type { PhotoZipEntry } from "@/lib/photo-zip";
 import { downloadPhotosAsZip } from "@/lib/photo-zip";
+import { isMediaAttachmentAvailable, filterAvailablePhotos } from "@/lib/media-filter";
 
 export function safeDownloadName(name: string): string {
   return name.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").replace(/\s+/g, " ").trim() || "plik";
@@ -96,7 +97,7 @@ export async function downloadPhotosBatch(
   let failed = 0;
   for (let i = 0; i < photos.length; i++) {
     const p = photos[i];
-    if (!p.publicUrl) continue;
+    if (!isMediaAttachmentAvailable(p)) continue;
     try {
       await downloadUrlAsFile(p.publicUrl, buildFilename(p, i));
       ok++;
@@ -115,7 +116,7 @@ export async function downloadInspectorPhotosBatch(
   let failed = 0;
   for (let i = 0; i < photos.length; i++) {
     const p = photos[i];
-    if (!p.publicUrl) continue;
+    if (!isMediaAttachmentAvailable(p)) continue;
     try {
       await downloadUrlAsFile(p.publicUrl, buildInspectorPhotoFilename(jobAddress, p, i));
       ok++;
@@ -151,7 +152,7 @@ export async function downloadJobGalleryZip(
   photos: DownloadablePhoto[],
   filter?: CrewPhotoLabel,
 ): Promise<{ ok: boolean; count: number; error?: string }> {
-  const list = photos.filter((p) => p.publicUrl);
+  const list = filterAvailablePhotos(photos);
   const filtered = filter ? list.filter((p) => p.label === filter) : list;
   if (filtered.length === 0) {
     return { ok: false, count: 0, error: "Brak zdjęć do pobrania" };
