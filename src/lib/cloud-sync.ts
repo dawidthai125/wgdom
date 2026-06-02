@@ -518,6 +518,168 @@ export function weekEmployeesListRichness(list: unknown): number {
   return list.reduce((sum, e) => sum + weekEmployeeRichness(e), 0);
 }
 
+export type PayrollMetricsSnapshot = {
+  activeDays: number;
+  totalHours: number;
+};
+
+function parsePayrollTime(t: unknown): number | null {
+  const m = String(t ?? "").match(/^(\d+):(\d+)$/);
+  return m ? +m[1] * 60 + +m[2] : null;
+}
+
+function payrollDayHours(day: DayLike | undefined): number {
+  if (!day?.active) return 0;
+  const f = parsePayrollTime(day.from);
+  const to = parsePayrollTime(day.to);
+  let h = f != null && to != null && to > f ? (to - f) / 60 : 0;
+  for (const ex of day.extraHours ?? []) {
+    const ef = parsePayrollTime(ex?.from);
+    const et = parsePayrollTime(ex?.to);
+    if (ef != null && et != null && et > ef) h += (et - ef) / 60;
+  }
+  return h;
+}
+
+/** Metryki listy płac — aktywne dni i łączne godziny (Pn–Pt + Sob.pr.). */
+export function payrollMetrics(list: unknown): PayrollMetricsSnapshot {
+  const arr = normalizeArrayValue(list);
+  let activeDays = 0;
+  let totalHours = 0;
+  for (const item of arr) {
+    if (!item || typeof item !== "object") continue;
+    const emp = item as Record<string, unknown>;
+    for (const d of Object.values((emp.days as Record<string, DayLike>) || {})) {
+      if (d?.active) {
+        activeDays++;
+        totalHours += payrollDayHours(d);
+      }
+    }
+    const ps = emp.prevSaturday as DayLike | undefined;
+    if (ps?.active) {
+      activeDays++;
+      totalHours += payrollDayHours(ps);
+    }
+  }
+  return { activeDays, totalHours: +totalHours.toFixed(1) };
+}
+
+/** Czy outgoing spada >50% vs chmura (dni aktywne lub godziny). */
+export function wouldBlockPayrollShrink(cloud: unknown, outgoing: unknown): boolean {
+  const c = payrollMetrics(cloud);
+  const o = payrollMetrics(outgoing);
+  if (c.activeDays >= 4 && o.activeDays < c.activeDays * 0.5) return true;
+  if (c.totalHours >= 8 && o.totalHours < c.totalHours * 0.5) return true;
+  return false;
+}
+
+function readArchiveFromBatchOrLocal(keys: string[], values: unknown[]): unknown[] {
+  const archIdx = keys.indexOf("kw-archive");
+  if (archIdx >= 0) return normalizeArrayValue(values[archIdx]);
+  try {
+    return normalizeArrayValue(JSON.parse(localStorage.getItem("kw-archive") || "[]"));
+  } catch {
+    return [];
+  }
+}
+
+function readWeekRangeFromBatchOrLocal(keys: string[], values: unknown[]): { from: string; to: string } {
+  const fromIdx = keys.indexOf("kw-weekFrom");
+  const toIdx = keys.indexOf("kw-weekTo");
+  let from = fromIdx >= 0 && typeof values[fromIdx] === "string" ? (values[fromIdx] as string) : "";
+  let to = toIdx >= 0 && typeof values[toIdx] === "string" ? (values[toIdx] as string) : "";
+  if (!from) {
+    try {
+      from = localStorage.getItem("kw-weekFrom") || "";
+    } catch {
+      /* ignore */
+    }
+  }
+  if (!to) {
+    try {
+      to = localStorage.getItem("kw-weekTo") || "";
+    } catch {
+      /* ignore */
+    }
+  }
+  return { from, to };
+}
+
+function archiveWeekHasPayroll(week: unknown): boolean {
+  if (!week || typeof week !== "object") return false;
+  return weekEmployeesListRichness((week as { weekEmployees?: unknown[] }).weekEmployees) >= 8;
+}
+
+/** Pusty skład po zapisie tygodnia / cyklu archiwum — świadome wyczyszczenie, nie blokuj. */
+function isIntentionalPayrollWeekClear(keys: string[], values: unknown[], outgoingEmps: unknown): boolean {
+  if (normalizeArrayValue(outgoingEmps).length > 0) return false;
+  const { from, to } = readWeekRangeFromBatchOrLocal(keys, values);
+  const archive = readArchiveFromBatchOrLocal(keys, values);
+  if (from && to) {
+    return archive.some((w) => {
+      const snap = w as { weekFrom?: string; weekTo?: string };
+      return snap.weekFrom === from && snap.weekTo === to && archiveWeekHasPayroll(w);
+    });
+  }
+  return archive.some((w) => archiveWeekHasPayroll(w));
+}
+
+type PushKeysToCloudOptions = {
+  replaceJobsKeys?: string[];
+  replaceDirectoryKeys?: string[];
+  replaceWeekEmployeesKeys?: string[];
+  /** Restore script / jawny bypass guarda. */
+  skipPayrollGuard?: boolean;
+  /** Opcjonalnie — unikaj drugiego batch-get w pushKeysToCloudSafe. */
+  cloudWeekEmployees?: unknown;
+};
+
+async function applyPayrollGuardBeforePush(
+  keys: string[],
+  values: unknown[],
+  options?: PushKeysToCloudOptions,
+): Promise<{ keys: string[]; values: unknown[]; options: PushKeysToCloudOptions; blocked: boolean }> {
+  const opts: PushKeysToCloudOptions = { ...(options ?? {}) };
+  const empIdx = keys.indexOf("kw-week-employees");
+  if (empIdx < 0) return { keys, values, options: opts, blocked: false };
+  if (opts.skipPayrollGuard) return { keys, values, options: opts, blocked: false };
+
+  const outgoing = values[empIdx];
+  if (isIntentionalPayrollWeekClear(keys, values, outgoing)) {
+    return { keys, values, options: opts, blocked: false };
+  }
+
+  let cloudEmps = opts.cloudWeekEmployees;
+  if (cloudEmps === undefined) {
+    try {
+      [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
+    } catch {
+      return { keys, values, options: opts, blocked: false };
+    }
+  }
+
+  if (!wouldBlockPayrollShrink(cloudEmps, outgoing)) {
+    return { keys, values, options: opts, blocked: false };
+  }
+
+  console.warn("[PAYROLL-GUARD] blocked suspicious payroll shrink", {
+    cloud: payrollMetrics(cloudEmps),
+    outgoing: payrollMetrics(outgoing),
+  });
+
+  const newKeys = keys.filter((_, i) => i !== empIdx);
+  const newValues = values.filter((_, i) => i !== empIdx);
+  return {
+    keys: newKeys,
+    values: newValues,
+    options: {
+      ...opts,
+      replaceWeekEmployeesKeys: (opts.replaceWeekEmployeesKeys ?? []).filter((k) => k !== "kw-week-employees"),
+    },
+    blocked: true,
+  };
+}
+
 /** Scal dwa wpisy tego samego pracownika — stawka i godziny osobno (rateUpdatedAt / dataUpdatedAt). */
 export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown {
   const l = local as Record<string, unknown>;
@@ -1128,25 +1290,28 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
 export async function pushKeysToCloud(
   keys: string[],
   values: unknown[],
-  options?: {
-    replaceJobsKeys?: string[];
-    replaceDirectoryKeys?: string[];
-    replaceWeekEmployeesKeys?: string[];
-  },
+  options?: PushKeysToCloudOptions,
 ): Promise<void> {
   if (!isSupabaseConfigured() || !API_BASE) {
     throw new Error("Brak konfiguracji Supabase (VITE_SUPABASE_*)");
   }
-  const safeValues = keys.map((k, i) => sanitizeValueForCloud(k, values[i]));
+  const guarded = await applyPayrollGuardBeforePush(keys, values, options);
+  if (guarded.keys.length === 0) {
+    return;
+  }
+  const pushKeys = guarded.keys;
+  const pushValues = guarded.values;
+  const pushOptions = guarded.options;
+  const safeValues = pushKeys.map((k, i) => sanitizeValueForCloud(k, pushValues[i]));
   const res = await fetch(`${API_BASE}/batch-set`, {
     method: "POST",
     headers: API_HEADERS,
     body: JSON.stringify({
-      keys,
+      keys: pushKeys,
       values: safeValues,
-      replaceJobsKeys: options?.replaceJobsKeys ?? [],
-      replaceDirectoryKeys: options?.replaceDirectoryKeys ?? [],
-      replaceWeekEmployeesKeys: options?.replaceWeekEmployeesKeys ?? [],
+      replaceJobsKeys: pushOptions.replaceJobsKeys ?? [],
+      replaceDirectoryKeys: pushOptions.replaceDirectoryKeys ?? [],
+      replaceWeekEmployeesKeys: pushOptions.replaceWeekEmployeesKeys ?? [],
     }),
   });
   if (!res.ok) {
@@ -1328,7 +1493,10 @@ export async function pushKeysToCloudSafe(keys: string[], values: unknown[]): Pr
       getDeletedArchiveIds(),
     );
   });
-  await pushKeysToCloud(keys, merged);
+  const empIdx = keys.indexOf("kw-week-employees");
+  await pushKeysToCloud(keys, merged, {
+    cloudWeekEmployees: empIdx >= 0 ? cloudValues[empIdx] : undefined,
+  });
 }
 
 /** Pobranie wielu kluczy z chmury. */
