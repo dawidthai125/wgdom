@@ -1,15 +1,24 @@
-import { FileText, FolderOpen, Users, Camera, ClipboardList, LayoutList, MapPin, Plus } from "lucide-react";
+import { FileText, FolderOpen, Users, Camera, ClipboardList, LayoutList, MapPin, Plus, type LucideIcon } from "lucide-react";
 
 export type JobDetailSection = "summary" | "documents" | "files" | "workers" | "photos" | "reports";
 
-const SECTIONS: { id: JobDetailSection; label: string; icon: typeof FileText }[] = [
-  { id: "summary", label: "Przegląd", icon: LayoutList },
-  { id: "files", label: "Pliki", icon: FolderOpen },
-  { id: "documents", label: "Dokumenty", icon: FileText },
-  { id: "workers", label: "Pracownicy", icon: Users },
-  { id: "photos", label: "Zdjęcia", icon: Camera },
-  { id: "reports", label: "Raporty", icon: ClipboardList },
-];
+type JobDetailNavItem = { id: JobDetailSection; label: string; icon: LucideIcon };
+
+let jobDetailSectionsCache: JobDetailNavItem[] | undefined;
+
+function getJobDetailSections(): JobDetailNavItem[] {
+  if (!jobDetailSectionsCache) {
+    jobDetailSectionsCache = [
+      { id: "summary", label: "Przegląd", icon: LayoutList },
+      { id: "files", label: "Pliki", icon: FolderOpen },
+      { id: "documents", label: "Dokumenty", icon: FileText },
+      { id: "workers", label: "Pracownicy", icon: Users },
+      { id: "photos", label: "Zdjęcia", icon: Camera },
+      { id: "reports", label: "Raporty", icon: ClipboardList },
+    ];
+  }
+  return jobDetailSectionsCache;
+}
 
 export function JobDetailSectionNav({
   active,
@@ -57,7 +66,7 @@ export function JobDetailSectionNav({
 
   return (
     <div className="flex gap-1 overflow-x-auto overscroll-x-contain pb-0.5 scrollbar-none -mx-1 px-1">
-      {SECTIONS.map(({ id, label, icon: Icon }) => (
+      {getJobDetailSections().map(({ id, label, icon: Icon }) => (
         <button
           key={id}
           type="button"

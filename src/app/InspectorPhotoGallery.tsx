@@ -6,10 +6,10 @@ import { InspectorHint } from "@/app/InspectorHelp";
 import {
   PHOTO_LABEL_NAMES,
   PHOTO_LABEL_ORDER,
-  PHOTO_LABEL_SECTION,
+  getPhotoLabelSection,
   INSPECTOR_PHOTO_LABEL_NAMES,
   INSPECTOR_PHOTO_LABEL_ORDER,
-  INSPECTOR_PHOTO_LABEL_SECTION,
+  getInspectorPhotoLabelSection,
   normalizeInspectorPhotoLabel,
   type InspectorPhotoLabel,
 } from "@/lib/photo-labels";
@@ -131,7 +131,7 @@ export function InspectorPhotoGallery({
     const group = approvedCrew.filter((p) => p.label === label);
     if (group.length === 0) return;
     setBusy(`zip-crew-${label}`);
-    const folder = PHOTO_LABEL_SECTION[label].zipFolder;
+    const folder = getPhotoLabelSection()[label].zipFolder;
     const entries = group.map((p, i) => ({
       zipPath: `ekipa/${folder}/${buildCrewPhotoFilename(jobAddress, p, i)}`,
       url: p.publicUrl,
@@ -145,7 +145,7 @@ export function InspectorPhotoGallery({
     const group = inspPhotos.filter((p) => normalizeInspectorPhotoLabel(p.label) === label);
     if (group.length === 0) return;
     setBusy(`zip-insp-${label}`);
-    const folder = INSPECTOR_PHOTO_LABEL_SECTION[label].zipFolder;
+    const folder = getInspectorPhotoLabelSection()[label].zipFolder;
     const entries = group.map((p, i) => ({
       zipPath: `inspektor/${folder}/${buildInspectorPhotoZipPath(p, i).split("/").pop() || `zdj-${i}.jpg`}`,
       url: p.publicUrl,
@@ -159,7 +159,7 @@ export function InspectorPhotoGallery({
     const entries: { zipPath: string; url: string }[] = [];
     PHOTO_LABEL_ORDER.forEach((label) => {
       const group = approvedCrew.filter((p) => p.label === label);
-      const folder = PHOTO_LABEL_SECTION[label].zipFolder;
+      const folder = getPhotoLabelSection()[label].zipFolder;
       group.forEach((p, i) => {
         entries.push({ zipPath: `ekipa/${folder}/${buildCrewPhotoFilename(jobAddress, p, i)}`, url: p.publicUrl });
       });
@@ -265,7 +265,7 @@ export function InspectorPhotoGallery({
         {PHOTO_LABEL_ORDER.map((label) => {
           const group = approvedCrew.filter((p) => p.label === label);
           if (group.length === 0) return null;
-          const meta = PHOTO_LABEL_SECTION[label];
+          const meta = getPhotoLabelSection()[label];
           const Icon = meta.icon;
           return (
             <PhotoCategoryBlock
@@ -304,7 +304,7 @@ export function InspectorPhotoGallery({
             {INSPECTOR_PHOTO_LABEL_ORDER.map((label) => {
               const group = inspPhotos.filter((p) => normalizeInspectorPhotoLabel(p.label) === label);
               if (group.length === 0) return null;
-              const meta = INSPECTOR_PHOTO_LABEL_SECTION[label];
+              const meta = getInspectorPhotoLabelSection()[label];
               const Icon = meta.icon;
               return (
                 <PhotoCategoryBlock

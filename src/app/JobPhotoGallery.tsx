@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Camera, Eye, X, ThumbsUp, ThumbsDown, CheckCircle2, Clock3 } from "lucide-react";
 import type { PhotoEntry } from "@/app/app-domain";
-import { PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, PHOTO_LABEL_SECTION } from "@/app/app-domain";
+import { PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, getAppPhotoLabelSection } from "@/app/app-domain";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
 import { filterAvailablePhotos } from "@/lib/media-filter";
@@ -114,7 +114,7 @@ export function JobPhotoGallery({photos, onUpdate}: {photos: PhotoEntry[]; onUpd
       {PHOTO_LABEL_ORDER.map((label) => {
         const group = items.filter((p) => p.label === label);
         if (group.length === 0) return null;
-        const meta = PHOTO_LABEL_SECTION[label];
+        const meta = getAppPhotoLabelSection()[label];
         const Icon = meta.icon;
         return (
           <div key={label}>

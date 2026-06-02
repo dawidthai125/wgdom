@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   HelpCircle, X, BookOpen, List, FileText, ClipboardList, Users, Ruler,
   ImagePlus, CheckCircle2, ChevronDown, ChevronUp, MessageSquare, Calendar, LayoutGrid, Camera, Phone,
+  type LucideIcon,
 } from "lucide-react";
 
 /** Dymek pomocy — hover (desktop) lub tap (mobile) */
@@ -34,7 +35,18 @@ export function InspectorHint({
   );
 }
 
-const SECTIONS = [
+type InspectorHelpSection = {
+  id: string;
+  icon: LucideIcon;
+  title: string;
+  body: string;
+};
+
+let inspectorHelpSectionsCache: InspectorHelpSection[] | undefined;
+
+function getInspectorHelpSections(): InspectorHelpSection[] {
+  if (!inspectorHelpSectionsCache) {
+    inspectorHelpSectionsCache = [
   {
     id: "nav",
     icon: List,
@@ -137,7 +149,10 @@ const SECTIONS = [
     title: "Portfolio WM",
     body: "Widok zbiorczy wszystkich robót WM: ile na jakim etapie, braki dokumentów, terminy odbioru. Przełącznik „Portfolio” na dolnym pasku nawigacji.",
   },
-];
+    ];
+  }
+  return inspectorHelpSectionsCache;
+}
 
 export function InspectorHelpBanner({ onOpenHelp }: { onOpenHelp: () => void }) {
   const [dismissed, setDismissed] = useState(() => {
@@ -209,7 +224,7 @@ export function InspectorHelpModal({ open, onClose }: { open: boolean; onClose: 
           <p className="text-xs text-muted-foreground leading-relaxed pb-2">
             Wrocławskie Mieszkania — remonty pustostanów. Ten panel służy do kontroli dokumentów, zleceń, kosztorysów i zdjęć. Firma W&G DOM widzi Twoje zmiany od razu w zakładce Roboty.
           </p>
-          {SECTIONS.map((s) => {
+          {getInspectorHelpSections().map((s) => {
             const Icon = s.icon;
             const isOpen = openSection === s.id;
             return (

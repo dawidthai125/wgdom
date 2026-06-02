@@ -1,8 +1,12 @@
 import { saveAs } from "file-saver";
 import type { CrewPhotoLabel } from "@/lib/photo-labels";
-import { PHOTO_LABEL_ORDER, PHOTO_LABEL_SECTION } from "@/lib/photo-labels";
+import {
+  PHOTO_LABEL_ORDER,
+  getPhotoLabelSection,
+  getInspectorPhotoLabelSection,
+  normalizeInspectorPhotoLabel,
+} from "@/lib/photo-labels";
 import type { InspectorPhotoEntry } from "@/lib/job-wm";
-import { INSPECTOR_PHOTO_LABEL_SECTION, normalizeInspectorPhotoLabel } from "@/lib/photo-labels";
 import type { PhotoZipEntry } from "@/lib/photo-zip";
 import { downloadPhotosAsZip } from "@/lib/photo-zip";
 import { isMediaAttachmentAvailable, filterAvailablePhotos } from "@/lib/media-filter";
@@ -63,7 +67,7 @@ export function buildCrewPhotoFilename(
   index: number,
 ): string {
   const ext = extFromPhotoUrl(photo.publicUrl);
-  const folder = photo.label ? PHOTO_LABEL_SECTION[photo.label].zipFolder : "zdjecie";
+  const folder = photo.label ? getPhotoLabelSection()[photo.label].zipFolder : "zdjecie";
   const date = photo.uploadedAt.slice(0, 10);
   const desc = photo.caption ? `-${safeDownloadName(photo.caption).slice(0, 40)}` : "";
   return `${jobSlug(jobAddress)}-${folder}-${date}${desc}-${index + 1}${ext}`;
@@ -76,13 +80,13 @@ export function buildInspectorPhotoFilename(
 ): string {
   const ext = extFromPhotoUrl(photo.publicUrl);
   const date = photo.uploadedAt.slice(0, 10);
-  const folder = INSPECTOR_PHOTO_LABEL_SECTION[normalizeInspectorPhotoLabel(photo.label)].zipFolder;
+  const folder = getInspectorPhotoLabelSection()[normalizeInspectorPhotoLabel(photo.label)].zipFolder;
   const desc = photo.caption ? safeDownloadName(photo.caption).slice(0, 40) : `zdjecie-${index + 1}`;
   return `${jobSlug(jobAddress)}-${folder}-${date}-${desc}${ext}`;
 }
 
 export function buildInspectorPhotoZipPath(photo: InspectorPhotoEntry, index: number): string {
-  const folder = INSPECTOR_PHOTO_LABEL_SECTION[normalizeInspectorPhotoLabel(photo.label)].zipFolder;
+  const folder = getInspectorPhotoLabelSection()[normalizeInspectorPhotoLabel(photo.label)].zipFolder;
   const ext = extFromPhotoUrl(photo.publicUrl);
   const date = photo.uploadedAt.slice(0, 10);
   const desc = photo.caption ? safeDownloadName(photo.caption).slice(0, 40) : `zdjecie-${index + 1}`;
@@ -136,7 +140,7 @@ export function buildJobGalleryZipEntries(
   for (const label of PHOTO_LABEL_ORDER) {
     const group = photos.filter((p) => p.label === label);
     if (group.length === 0) continue;
-    const folder = PHOTO_LABEL_SECTION[label].zipFolder;
+    const folder = getPhotoLabelSection()[label].zipFolder;
     group.forEach((p, i) => {
       entries.push({
         zipPath: `${folder}/${buildCrewPhotoFilename(jobTitle, { ...p, label }, i)}`,
@@ -159,12 +163,12 @@ export async function downloadJobGalleryZip(
   }
   const entries = filter
     ? filtered.map((p, i) => ({
-      zipPath: `${PHOTO_LABEL_SECTION[filter].zipFolder}/${buildCrewPhotoFilename(jobTitle, { ...p, label: filter }, i)}`,
+      zipPath: `${getPhotoLabelSection()[filter].zipFolder}/${buildCrewPhotoFilename(jobTitle, { ...p, label: filter }, i)}`,
       url: p.publicUrl,
     }))
     : buildJobGalleryZipEntries(jobTitle, filtered);
   const slug = jobSlug(jobTitle);
-  const suffix = filter ? PHOTO_LABEL_SECTION[filter].zipFolder : "galeria";
+  const suffix = filter ? getPhotoLabelSection()[filter].zipFolder : "galeria";
   const res = await downloadPhotosAsZip(`${slug}-${suffix}`, entries);
   if (!res.ok) return { ok: false, count: res.count, error: res.error };
   return { ok: true, count: res.count };

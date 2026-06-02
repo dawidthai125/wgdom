@@ -69,7 +69,7 @@ import {
   duplicateWorkEntryWithPayrollHours, collectEntriesFromYesterday, groupWorkEntriesByEmployee, ACTIVITY_LABELS,
   calcWeekEmployee, workItemHasContent, roomHasContent, jobAddressKey, roomDisplayName,
   duplicateWorkEntry, payrollHoursForDirectoryOnDate, DEFAULT_MULTI_SITE_VISIT_HOURS,
-  PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, PHOTO_LABEL_SECTION, filterProductionActiveDirectory, MONTH_NAMES,
+  PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, getAppPhotoLabelSection, filterProductionActiveDirectory, MONTH_NAMES,
 } from "@/app/app-domain";
 
 export function jobEmailDefaultSubject(job: Job): string {
@@ -2095,7 +2095,7 @@ export function JobsView({
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[11px] text-muted-foreground shrink-0">Kategoria:</span>
                   {PHOTO_LABEL_ORDER.map((label) => {
-                    const meta = PHOTO_LABEL_SECTION[label];
+                    const meta = getAppPhotoLabelSection()[label];
                     const Icon = meta.icon;
                     const active = photoUploadLabel === label;
                     return (

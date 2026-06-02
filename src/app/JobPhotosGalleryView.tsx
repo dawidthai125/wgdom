@@ -12,7 +12,7 @@ import {
   GALLERY_ARCHIVE_DAYS,
   PHOTO_LABEL_NAMES,
   PHOTO_LABEL_ORDER,
-  PHOTO_LABEL_SECTION,
+  getAppPhotoLabelSection,
   fmtDate,
   jobApprovedPhotos,
   jobDisplayTitle,
@@ -206,7 +206,7 @@ export function JobPhotosGalleryView({
             {PHOTO_LABEL_ORDER.map((label) => {
               const group = photos.filter((p) => p.label === label);
               if (group.length === 0) return null;
-              const meta = PHOTO_LABEL_SECTION[label];
+              const meta = getAppPhotoLabelSection()[label];
               const Icon = meta.icon;
               const busyKey = `${job.id}-${label}`;
               return (

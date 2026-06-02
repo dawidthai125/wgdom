@@ -28,7 +28,7 @@ export default defineConfig({
             if (id.includes('pdfjs') || id.includes('pdf.worker')) {
               return 'pdfjs';
             }
-            if (id.includes('@radix-ui') || id.includes('lucide-react')) {
+            if (id.includes('@radix-ui')) {
               return 'ui-vendor';
             }
             return;

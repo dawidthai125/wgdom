@@ -14,7 +14,7 @@ import {
 import {
   PHOTO_LABEL_NAMES,
   PHOTO_LABEL_ORDER,
-  PHOTO_LABEL_SECTION,
+  getPhotoLabelSection,
 } from "@/lib/photo-labels";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
@@ -203,7 +203,7 @@ export function InspectorJobPhotosGalleryView({
                         {PHOTO_LABEL_ORDER.map((label) => {
                           const group = photos.filter((p) => p.label === label);
                           if (group.length === 0) return null;
-                          const meta = PHOTO_LABEL_SECTION[label];
+                          const meta = getPhotoLabelSection()[label];
                           const Icon = meta.icon;
                           return (
                             <div key={label}>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   List, LayoutGrid, LayoutDashboard, BookOpen, MessageSquare, FileText, ClipboardList,
-  Users, Ruler, ImagePlus, Calendar, Images, FolderOpen,
+  Users, Ruler, ImagePlus, Calendar, Images, FolderOpen, type LucideIcon,
 } from "lucide-react";
 
 export type InspectorMainTab = "dashboard" | "jobs" | "gallery" | "files" | "portfolio";
@@ -14,19 +14,28 @@ export type InspectorJobSection =
   | "reports"
   | "photos";
 
-export const JOB_SECTIONS: {
+type InspectorJobSectionItem = {
   id: InspectorJobSection;
   label: string;
   short: string;
-  icon: typeof List;
-}[] = [
-  { id: "wm", label: "Odbiór WM", short: "WM", icon: Calendar },
-  { id: "files", label: "Pliki", short: "Pliki", icon: FileText },
-  { id: "docs", label: "Dokumenty", short: "Dok.", icon: ClipboardList },
-  { id: "team", label: "Pracownicy", short: "Ekipa", icon: Users },
-  { id: "reports", label: "Zakresy i wymiary", short: "Raporty", icon: Ruler },
-  { id: "photos", label: "Galeria zdjęć", short: "Zdjęcia", icon: ImagePlus },
-];
+  icon: LucideIcon;
+};
+
+let jobSectionsCache: InspectorJobSectionItem[] | undefined;
+
+export function getJobSections(): InspectorJobSectionItem[] {
+  if (!jobSectionsCache) {
+    jobSectionsCache = [
+      { id: "wm", label: "Odbiór WM", short: "WM", icon: Calendar },
+      { id: "files", label: "Pliki", short: "Pliki", icon: FileText },
+      { id: "docs", label: "Dokumenty", short: "Dok.", icon: ClipboardList },
+      { id: "team", label: "Pracownicy", short: "Ekipa", icon: Users },
+      { id: "reports", label: "Zakresy i wymiary", short: "Raporty", icon: Ruler },
+      { id: "photos", label: "Galeria zdjęć", short: "Zdjęcia", icon: ImagePlus },
+    ];
+  }
+  return jobSectionsCache;
+}
 
 export function InspectorBottomNav({
   active,
@@ -102,7 +111,7 @@ export function InspectorJobSectionNav({
     <div className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur border-b border-border/80">
       <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 px-0.5">Sekcja roboty</p>
       <div className="flex gap-1.5 overflow-x-auto overscroll-x-contain pb-0.5 scrollbar-none" style={{ WebkitOverflowScrolling: "touch" }}>
-        {JOB_SECTIONS.map(({ id, label, icon: Icon }) => {
+        {getJobSections().map(({ id, label, icon: Icon }) => {
           const on = active === id;
           const badge = badges?.[id];
           return (

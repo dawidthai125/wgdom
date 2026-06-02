@@ -350,11 +350,21 @@ export const PHOTO_LABEL_NAMES: Record<PhotoEntry["label"], string> = {
 
 export const PHOTO_LABEL_ORDER: PhotoEntry["label"][] = ["before", "after", "progress"];
 
-export const PHOTO_LABEL_SECTION: Record<PhotoEntry["label"], { icon: typeof Camera; accent: string; border: string }> = {
-  before: { icon: Camera, accent: "text-blue-400", border: "border-blue-500/20" },
-  after: { icon: Eye, accent: "text-green-400", border: "border-green-500/20" },
-  progress: { icon: ImagePlus, accent: "text-yellow-400", border: "border-yellow-500/20" },
-};
+type AppPhotoLabelSectionMeta = { icon: typeof Camera; accent: string; border: string };
+
+let appPhotoLabelSectionCache: Record<PhotoEntry["label"], AppPhotoLabelSectionMeta> | undefined;
+
+/** Lazy init — unika TDZ przy circular chunk (lucide ↔ panel-jobs). */
+export function getAppPhotoLabelSection(): Record<PhotoEntry["label"], AppPhotoLabelSectionMeta> {
+  if (!appPhotoLabelSectionCache) {
+    appPhotoLabelSectionCache = {
+      before: { icon: Camera, accent: "text-blue-400", border: "border-blue-500/20" },
+      after: { icon: Eye, accent: "text-green-400", border: "border-green-500/20" },
+      progress: { icon: ImagePlus, accent: "text-yellow-400", border: "border-yellow-500/20" },
+    };
+  }
+  return appPhotoLabelSectionCache;
+}
 
 export const PREV_SAT_SHORT = "Sob. poprz.";
 
