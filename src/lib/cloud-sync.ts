@@ -839,8 +839,36 @@ function defaultPayrollDays() {
   return Object.fromEntries(PAYROLL_DAY_KEYS.map((d) => [d, defaultPayrollDay()]));
 }
 
+function parsePayrollIsoDate(iso: string): Date | null {
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  return new Date(+m[1], +m[2] - 1, +m[3], 12, 0, 0, 0);
+}
+
+function payrollIsoFromDate(d: Date): string {
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${mo}-${day}`;
+}
+
+/** Pn–So: weekTo = sobota; niedziela (Pn+6) traktowana jak sobota (Pn+5) przy porównaniu tygodni. */
+function canonicalPayrollWeekTo(weekFrom: string, weekTo: string): string {
+  const mon = parsePayrollIsoDate(weekFrom);
+  if (!mon) return weekTo;
+  const sun = new Date(mon);
+  sun.setDate(mon.getDate() + 6);
+  if (weekTo === payrollIsoFromDate(sun)) {
+    const sat = new Date(mon);
+    sat.setDate(mon.getDate() + 5);
+    return payrollIsoFromDate(sat);
+  }
+  return weekTo;
+}
+
 function weekRangeKey(from: unknown, to: unknown): string {
-  return typeof from === "string" && from && typeof to === "string" && to ? `${from}|${to}` : "";
+  if (typeof from !== "string" || !from || typeof to !== "string" || !to) return "";
+  return `${from}|${canonicalPayrollWeekTo(from, to)}`;
 }
 
 /** Usuwa godziny / Sob.pr. / koszty — zostawia kartotekę wpisu (imię, stawka, id). */
@@ -854,6 +882,7 @@ export function stripWeekEmployeeHours(emp: unknown): unknown {
     extraCosts: [],
     settled: false,
     settledUpdatedAt: undefined,
+    dataUpdatedAt: undefined,
   };
 }
 
