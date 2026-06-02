@@ -1,0 +1,454 @@
+/**
+ * Tender Center PRO — Action Center (ETAP 3D).
+ * Codzienne rekomendacje dla właściciela — runtime only.
+ */
+
+import { daysUntilTenderDeadline } from "@/lib/tenders-bzp";
+import type { CompanyHealthResult } from "@/lib/tender-center-health";
+import type { TenderScoringBundle } from "@/lib/tender-center-decision";
+import type { Forecast90DaysResult } from "@/lib/tender-center-forecast-90d";
+import { collectGoCandidates, primaryForecastScenario } from "@/lib/tender-center-forecast-90d";
+import type { OwnerDecisionsStore } from "@/lib/tender-center-owner-decisions";
+import type { OwnerStrategicAlert } from "@/lib/tender-center-explain";
+
+export type ActionPriority = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+
+export type ActionCategory = "TENDERS" | "BUSINESS" | "STAFF" | "FINANCE" | "PLANNING";
+
+export interface OwnerActionItem {
+  id: string;
+  priority: ActionPriority;
+  category: ActionCategory;
+  title: string;
+  description: string;
+  reason: string;
+  source: string;
+  recommendedAction: string;
+  /** Id przetargu w pipeline — quick action „Otwórz przetarg”. */
+  tenderId?: string;
+}
+
+export interface ActionCenterResult {
+  actions: OwnerActionItem[];
+  counts: Record<ActionPriority, number>;
+  primaryAction: OwnerActionItem | null;
+  headline: string;
+}
+
+export const ACTION_PRIORITY_LABEL_PL: Record<ActionPriority, string> = {
+  CRITICAL: "Krytyczne",
+  HIGH: "Wysokie",
+  MEDIUM: "Średnie",
+  LOW: "Niskie",
+};
+
+export const ACTION_CATEGORY_LABEL_PL: Record<ActionCategory, string> = {
+  TENDERS: "Przetargi",
+  BUSINESS: "Biznes",
+  STAFF: "Zasoby",
+  FINANCE: "Finanse",
+  PLANNING: "Planowanie",
+};
+
+const PRIORITY_RANK: Record<ActionPriority, number> = {
+  CRITICAL: 0,
+  HIGH: 1,
+  MEDIUM: 2,
+  LOW: 3,
+};
+
+export interface ActionCenterInput {
+  radarTop: TenderScoringBundle[];
+  scoredBundles: TenderScoringBundle[];
+  health: CompanyHealthResult;
+  forecast: Forecast90DaysResult;
+  ownerStore: OwnerDecisionsStore;
+  strategicAlerts: OwnerStrategicAlert[];
+  now?: Date;
+}
+
+function action(
+  partial: OwnerActionItem,
+): OwnerActionItem {
+  return partial;
+}
+
+function sortActions(items: OwnerActionItem[]): OwnerActionItem[] {
+  return [...items].sort(
+    (a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority],
+  );
+}
+
+function countByPriority(actions: OwnerActionItem[]): Record<ActionPriority, number> {
+  return {
+    CRITICAL: actions.filter((a) => a.priority === "CRITICAL").length,
+    HIGH: actions.filter((a) => a.priority === "HIGH").length,
+    MEDIUM: actions.filter((a) => a.priority === "MEDIUM").length,
+    LOW: actions.filter((a) => a.priority === "LOW").length,
+  };
+}
+
+function actionsFromRadar(
+  radarTop: TenderScoringBundle[],
+  now: Date,
+): OwnerActionItem[] {
+  const out: OwnerActionItem[] = [];
+
+  for (const b of radarTop) {
+    const days = daysUntilTenderDeadline(b.item.submittingOffersDate, now);
+    if (days == null || days < 0) continue;
+
+    const titleShort = b.item.title.length > 56 ? `${b.item.title.slice(0, 56)}…` : b.item.title;
+
+    if (days <= 3) {
+      out.push(action({
+        id: `radar-deadline-3d-${b.item.id}`,
+        priority: "CRITICAL",
+        category: "TENDERS",
+        title: `Termin składania oferty za ${days} dni`,
+        description: titleShort,
+        reason: `Przetarg ${b.item.bzpNumber} — Opportunity ${b.opportunity.score}, decyzja systemu ${b.decision}`,
+        source: "pipeline.submittingOffersDate · Radar okazji",
+        recommendedAction: "Przygotuj ofertę natychmiast.",
+        tenderId: b.item.id,
+      }));
+    } else if (days <= 7 && (b.decision === "GO" || b.opportunity.score >= 65)) {
+      out.push(action({
+        id: `radar-deadline-7d-${b.item.id}`,
+        priority: "HIGH",
+        category: "TENDERS",
+        title: `Oferta za ${days} dni — priorytetowy przetarg`,
+        description: titleShort,
+        reason: `System: ${b.decision} · Strategic ${b.strategic.score}`,
+        source: "pipeline.submittingOffersDate · scoring GO",
+        recommendedAction: "Dokończ analizę SWZ i wycenę, podejmij decyzję właściciela.",
+        tenderId: b.item.id,
+      }));
+    }
+
+    if (
+      b.item.status === "preparing"
+      && days <= 7
+      && !out.some((a) => a.id === `radar-deadline-3d-${b.item.id}`)
+    ) {
+      out.push(action({
+        id: `radar-preparing-${b.item.id}`,
+        priority: days <= 3 ? "CRITICAL" : "HIGH",
+        category: "TENDERS",
+        title: days <= 3 ? "Oferta w przygotowaniu — termin krytyczny" : "Oferta w przygotowaniu — pilny termin",
+        description: titleShort,
+        reason: `Status: preparing · ${days} dni do deadline`,
+        source: "pipeline.status · submittingOffersDate",
+        recommendedAction: "Domknij kosztorys i złóż ofertę lub zmień status pipeline.",
+        tenderId: b.item.id,
+      }));
+    }
+  }
+
+  return out;
+}
+
+function actionsFromHealth(health: CompanyHealthResult): OwnerActionItem[] {
+  const out: OwnerActionItem[] = [];
+
+  if (health.index < 40) {
+    out.push(action({
+      id: "health-critical",
+      priority: "CRITICAL",
+      category: "BUSINESS",
+      title: `Health Index krytyczny (${health.index})`,
+      description: health.recommendation,
+      reason: `Obciążenie pipeline ${Math.round(health.overloadIndex * 100)}%, wolne sloty: ${health.freeSlots}`,
+      source: "computeCompanyHealth()",
+      recommendedAction: "Wstrzymaj nowe oferty — dokończ roboty i odciąż zespół.",
+    }));
+  } else if (health.index < 60) {
+    out.push(action({
+      id: "health-below-60",
+      priority: "HIGH",
+      category: "BUSINESS",
+      title: `Health Index poniżej 60 (${health.index})`,
+      description: health.recommendation,
+      reason: `Kondycja: ${health.label} · overload ${Math.round(health.overloadIndex * 100)}%`,
+      source: "computeCompanyHealth()",
+      recommendedAction: "Ogranicz nowe zobowiązania.",
+    }));
+  }
+
+  if (health.overloadIndex >= 1) {
+    out.push(action({
+      id: "health-overload-pipeline",
+      priority: "HIGH",
+      category: "PLANNING",
+      title: "Pipeline ofert przeciążony",
+      description: `Równoległe oferty przekraczają komfortowy limit (${Math.round(health.overloadIndex * 100)}%).`,
+      reason: "Zbyt wiele przetargów w statusie interested/preparing",
+      source: "tender-center-kpi · overloadIndex",
+      recommendedAction: "Zamknij lub odpuszcz część ofert w przygotowaniu.",
+    }));
+  }
+
+  if (health.freeSlots <= 0 && health.index >= 50) {
+    out.push(action({
+      id: "health-no-free-slots",
+      priority: "HIGH",
+      category: "STAFF",
+      title: "Brak wolnych slotów zespołu dziś",
+      description: "Cała dostępna ekipa jest przypisana do robót.",
+      reason: "todayFieldWorkStats · weekEmployees",
+      source: "computeCompanyHealth() · wymiar Z",
+      recommendedAction: "Nie planuj nowych startów bez rezerwy ludzi.",
+    }));
+  }
+
+  return out;
+}
+
+function actionsFromForecast(forecast: Forecast90DaysResult): OwnerActionItem[] {
+  const out: OwnerActionItem[] = [];
+  const primary = primaryForecastScenario(forecast);
+  const h30 = primary.horizons.find((h) => h.days === 30);
+  const h60 = primary.horizons.find((h) => h.days === 60);
+  const h90 = primary.horizons.find((h) => h.days === 90);
+
+  if (h90 && h90.utilizationPct < 30) {
+    out.push(action({
+      id: "forecast-90-low",
+      priority: "HIGH",
+      category: "PLANNING",
+      title: `90 dni = ${h90.utilizationPct}% obłożenia`,
+      description: "Scenariusz C (50% GO) — ryzyko pustych slotów produkcyjnych.",
+      reason: `${h90.activeJobs} równoległych kontraktów vs limit ${forecast.maxConcurrentProjects}`,
+      source: "forecast90d · scenariusz C",
+      recommendedAction: "Znajdź minimum 2 nowe kontrakty.",
+    }));
+  } else if (h90 && h90.utilizationPct < 50) {
+    out.push(action({
+      id: "forecast-90-moderate-low",
+      priority: "MEDIUM",
+      category: "PLANNING",
+      title: `Niskie obłożenie za 90 dni (${h90.utilizationPct}%)`,
+      description: primary.alert ?? "Prognoza wskazuje spadek obłożenia.",
+      reason: "Kończące się roboty bez pełnego zastępstwa z GO",
+      source: "forecast90d",
+      recommendedAction: "Aktywuj pozyskiwanie przetargów i relacje z kluczowymi zamawiającymi.",
+    }));
+  }
+
+  if (h60 && h60.utilizationPct > 100) {
+    out.push(action({
+      id: "forecast-60-overload",
+      priority: "HIGH",
+      category: "STAFF",
+      title: `Możliwe przeciążenie za 60 dni (${h60.utilizationPct}%)`,
+      description: primary.alert ?? "Zbyt wiele równoległych kontraktów w horyzoncie.",
+      reason: `${h60.activeJobs} aktywnych slotów przy limicie ${forecast.maxConcurrentProjects}`,
+      source: "forecast90d · horyzont 60 dni",
+      recommendedAction: "Rozłóż starty lub rozważ podwykonawców / rekrutację.",
+    }));
+  }
+
+  if (h30 && (h30.utilizationPct > 120 || h30.risk === "BRAK_LUDZI")) {
+    out.push(action({
+      id: "forecast-30-critical",
+      priority: "CRITICAL",
+      category: "STAFF",
+      title: `Krytyczne obciążenie za 30 dni (${h30.utilizationPct}%)`,
+      description: "Ryzyko braku ludzi lub przekroczenia limitu równoległych robót.",
+      reason: h30.risk,
+      source: "forecast90d · horyzont 30 dni",
+      recommendedAction: "Odłóż nowe GO lub przyspiesz zakończenia bieżących robót.",
+    }));
+  }
+
+  return out;
+}
+
+function actionsFromOwnerDecisions(
+  scoredBundles: TenderScoringBundle[],
+  ownerStore: OwnerDecisionsStore,
+  now: Date,
+): OwnerActionItem[] {
+  const out: OwnerActionItem[] = [];
+  const goCandidates = collectGoCandidates(scoredBundles, ownerStore);
+
+  const undecidedGo = goCandidates.filter((b) => !ownerStore.byId[b.item.id]);
+  if (undecidedGo.length >= 3) {
+    out.push(action({
+      id: "owner-undecided-go-many",
+      priority: "MEDIUM",
+      category: "TENDERS",
+      title: `${undecidedGo.length} przetargów GO bez decyzji właściciela`,
+      description: "System wskazuje GO — brak Twojej decyzji w Centrum decyzji.",
+      reason: goCandidates.map((b) => b.item.bzpNumber).slice(0, 4).join(", "),
+      source: "kw-tender-decisions · owner decisions",
+      recommendedAction: "Podejmij decyzję GO/HOLD/NO-GO dla każdego przetargu.",
+    }));
+  } else if (undecidedGo.length >= 1) {
+    out.push(action({
+      id: "owner-undecided-go",
+      priority: "MEDIUM",
+      category: "TENDERS",
+      title: `${undecidedGo.length} przetarg GO bez decyzji właściciela`,
+      description: undecidedGo[0].item.title.slice(0, 72),
+      reason: `System: GO · Opportunity ${undecidedGo[0].opportunity.score}`,
+      source: "kw-tender-decisions",
+      recommendedAction: "Podejmij decyzję GO/HOLD/NO-GO.",
+      tenderId: undecidedGo[0].item.id,
+    }));
+  }
+
+  const holdVsGoUrgent = goCandidates.filter((b) => {
+    const owner = ownerStore.byId[b.item.id];
+    if (owner?.decision !== "HOLD") return false;
+    const days = daysUntilTenderDeadline(b.item.submittingOffersDate, now);
+    return days != null && days >= 0 && days <= 7 && b.decision === "GO";
+  });
+  if (holdVsGoUrgent.length > 0) {
+    out.push(action({
+      id: "owner-hold-vs-system-go",
+      priority: "HIGH",
+      category: "TENDERS",
+      title: "Rozbieżność: Ty HOLD, system GO — bliski termin",
+      description: holdVsGoUrgent[0].item.title.slice(0, 72),
+      reason: "Decyzja właściciela vs rekomendacja scoringu",
+      source: "kw-tender-decisions · tender-center-decision",
+      recommendedAction: "Ponownie oceń przetarg lub potwierdź HOLD przed upływem terminu.",
+      tenderId: holdVsGoUrgent[0].item.id,
+    }));
+  }
+
+  return out;
+}
+
+function actionsFromStrategicAlerts(alerts: OwnerStrategicAlert[]): OwnerActionItem[] {
+  const out: OwnerActionItem[] = [];
+
+  for (const alert of alerts) {
+    if (alert.id === "go-deadline-7" || alert.id === "go-deadline-7-one") {
+      continue;
+    }
+    if (alert.id.startsWith("radar-")) continue;
+
+    let priority: ActionPriority = "MEDIUM";
+    let category: ActionCategory = "PLANNING";
+    let recommendedAction = "Zapoznaj się ze szczegółami w dashboardzie.";
+
+    if (alert.tone === "danger") {
+      priority = "CRITICAL";
+      category = alert.id.includes("wm") ? "BUSINESS" : "STAFF";
+      recommendedAction = alert.id.includes("wm")
+        ? "Uporządkuj terminy odbiorów WM natychmiast."
+        : "Działaj — ogranicz obciążenie lub zatrudnij wsparcie.";
+    } else if (alert.tone === "warning") {
+      priority = "HIGH";
+      if (alert.id.includes("low-load") || alert.id.includes("ending")) category = "PLANNING";
+      else if (alert.id.includes("overload")) category = "STAFF";
+      else category = "TENDERS";
+      recommendedAction = alert.id.includes("low-load")
+        ? "Szukaj nowych kontraktów publicznych i prywatnych."
+        : alert.id.includes("ending")
+          ? "Zaplanuj zastępstwo kończących się robót."
+          : "Priorytetyzuj terminy składania ofert.";
+    } else if (alert.tone === "success") {
+      priority = "MEDIUM";
+      category = "PLANNING";
+      recommendedAction = "Rozważ aktywne pozyskanie zleceń.";
+    } else {
+      priority = "LOW";
+      category = "TENDERS";
+      recommendedAction = "Rozszerz kryteria radaru lub odśwież pipeline BZP.";
+    }
+
+    if (alert.id === "capacity-one-more") {
+      priority = "MEDIUM";
+      category = "PLANNING";
+      recommendedAction = "Rozważ aktywne pozyskanie zleceń.";
+    }
+
+    out.push(action({
+      id: `alert-${alert.id}`,
+      priority,
+      category,
+      title: alert.message,
+      description: "Alert strategiczny z warstwy explainability.",
+      reason: alert.message,
+      source: alert.source,
+      recommendedAction,
+    }));
+  }
+
+  return out;
+}
+
+function actionsFromCapacity(forecast: Forecast90DaysResult): OwnerActionItem[] {
+  if (
+    forecast.freeSlotsToday >= 1
+    && forecast.activeJobsNow < forecast.maxConcurrentProjects
+  ) {
+    const primary = primaryForecastScenario(forecast);
+    const h30 = primary.horizons.find((h) => h.days === 30);
+    if (h30 && h30.utilizationPct <= 85) {
+      return [action({
+        id: "capacity-one-contract",
+        priority: "MEDIUM",
+        category: "PLANNING",
+        title: "Możesz przyjąć jeszcze 1 średni kontrakt",
+        description: `${forecast.activeJobsNow}/${forecast.maxConcurrentProjects} slotów · ${forecast.freeSlotsToday} wolne sloty dziś`,
+        reason: "Wolna pojemność operacyjna przy stabilnej prognozie 30 dni",
+        source: "freeSlots · jobs · forecast90d",
+        recommendedAction: "Rozważ aktywne pozyskanie zleceń.",
+      })];
+    }
+  }
+  return [];
+}
+
+function dedupeActions(actions: OwnerActionItem[]): OwnerActionItem[] {
+  const seen = new Set<string>();
+  const out: OwnerActionItem[] = [];
+  for (const a of sortActions(actions)) {
+    if (seen.has(a.id)) continue;
+    seen.add(a.id);
+    out.push(a);
+  }
+  return out;
+}
+
+export function buildActionCenter(input: ActionCenterInput): ActionCenterResult {
+  const now = input.now ?? new Date();
+
+  const merged = dedupeActions([
+    ...actionsFromRadar(input.radarTop, now),
+    ...actionsFromHealth(input.health),
+    ...actionsFromForecast(input.forecast),
+    ...actionsFromOwnerDecisions(input.scoredBundles, input.ownerStore, now),
+    ...actionsFromStrategicAlerts(input.strategicAlerts),
+    ...actionsFromCapacity(input.forecast),
+  ]);
+
+  const primaryAction = merged[0] ?? null;
+  const headline = primaryAction
+    ? `Dzisiaj system rekomenduje: ${primaryAction.recommendedAction}`
+    : "Dzisiaj system rekomenduje: utrzymaj bieżący rytm — brak pilnych akcji.";
+
+  return {
+    actions: merged,
+    counts: countByPriority(merged),
+    primaryAction,
+    headline,
+  };
+}
+
+export function priorityTone(priority: ActionPriority): string {
+  switch (priority) {
+    case "CRITICAL":
+      return "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30";
+    case "HIGH":
+      return "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30";
+    case "MEDIUM":
+      return "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30";
+    case "LOW":
+      return "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/25";
+  }
+}

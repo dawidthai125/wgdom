@@ -113,6 +113,33 @@ export function rankTopTenderOpportunities(
     .slice(0, limit);
 }
 
+export interface PortfolioDecisionCounts {
+  GO: number;
+  HOLD: number;
+  "NO-GO": number;
+  total: number;
+}
+
+/** Liczniki GO / HOLD / NO-GO dla otwartych przetargów w pipeline. */
+export function countPortfolioDecisions(
+  items: TenderPipelineItem[],
+  profile: TenderCompanyProfile,
+  strategicContext: StrategicScoreContext,
+  now: Date = new Date(),
+): PortfolioDecisionCounts {
+  const candidates = items.filter(
+    (i) => isTenderOpenForOffers(i.submittingOffersDate, now)
+      && isActionableTender(i, now),
+  );
+
+  const counts: PortfolioDecisionCounts = { GO: 0, HOLD: 0, "NO-GO": 0, total: candidates.length };
+  for (const item of candidates) {
+    const { decision } = scoreTender(item, profile, strategicContext, now);
+    counts[decision]++;
+  }
+  return counts;
+}
+
 /** Połączone powody decyzji (max 5). */
 export function topDecisionReasons(bundle: TenderScoringBundle): string[] {
   const merged = [

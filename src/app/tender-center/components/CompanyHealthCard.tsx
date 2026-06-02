@@ -1,9 +1,15 @@
+/**
+ * @legacy ETAP 5A — nie montowany w OwnerDashboard (zastąpiony przez CommandCenterHero).
+ * Raport: docs/tender-center-pro-legacy-components.md
+ */
 import { Activity } from "lucide-react";
 import {
   type CompanyHealthResult,
   HEALTH_LABEL_PL,
   type HealthDimension,
 } from "@/lib/tender-center-health";
+import type { HealthExplanation } from "@/lib/tender-center-explain";
+import { ExplainBullets, ExplainToggle } from "@/app/tender-center/components/ExplainBullets";
 
 const DIMENSION_LABELS: Record<HealthDimension, string> = {
   O: "Operacje",
@@ -33,7 +39,13 @@ function dimensionBarColor(score: number): string {
   return "bg-red-500";
 }
 
-export function CompanyHealthCard({ health }: { health: CompanyHealthResult }) {
+export function CompanyHealthCard({
+  health,
+  explanation,
+}: {
+  health: CompanyHealthResult;
+  explanation?: HealthExplanation | null;
+}) {
   const tone = labelTone(health.label);
   const dimensions = (["O", "Z", "F", "R", "D"] as HealthDimension[]);
 
@@ -95,6 +107,13 @@ export function CompanyHealthCard({ health }: { health: CompanyHealthResult }) {
             );
           })}
         </div>
+
+        {explanation && (
+          <ExplainToggle label={`Dlaczego Health Index ${explanation.index}?`}>
+            <p className="text-[10px] text-muted-foreground mb-2 leading-snug">{explanation.summary}</p>
+            <ExplainBullets plus={explanation.plus} minus={explanation.minus} />
+          </ExplainToggle>
+        )}
       </div>
     </section>
   );

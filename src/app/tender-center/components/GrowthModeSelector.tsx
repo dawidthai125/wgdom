@@ -1,3 +1,7 @@
+/**
+ * @legacy ETAP 5A — nie montowany w OwnerDashboard (Growth Mode w CommandCenterHero).
+ * Raport: docs/tender-center-pro-legacy-components.md
+ */
 import { Compass, Sparkles } from "lucide-react";
 import {
   type GrowthMode,

@@ -1,6 +1,12 @@
+/**
+ * @legacy ETAP 5A — nie montowany w OwnerDashboard (zastąpiony przez BestOpportunityCard).
+ * Raport: docs/tender-center-pro-legacy-components.md
+ */
 import { Radar } from "lucide-react";
 import type { TenderScoringBundle } from "@/lib/tender-center-decision";
 import { topDecisionReasons } from "@/lib/tender-center-decision";
+import { explainOpportunityScore } from "@/lib/tender-center-explain";
+import { ExplainBullets, ExplainToggle } from "@/app/tender-center/components/ExplainBullets";
 
 function decisionTone(decision: TenderScoringBundle["decision"]): string {
   switch (decision) {
@@ -36,6 +42,7 @@ function ScoreBadge({ label, score }: { label: string; score: number }) {
 function OpportunityCard({ bundle }: { bundle: TenderScoringBundle }) {
   const { item, opportunity, strategic, decision, decisionLabel } = bundle;
   const reasons = topDecisionReasons(bundle);
+  const oppExplain = explainOpportunityScore(opportunity);
 
   return (
     <article className="rounded-xl border border-border bg-card/80 p-3.5 space-y-2.5">
@@ -70,6 +77,10 @@ function OpportunityCard({ bundle }: { bundle: TenderScoringBundle }) {
           ))}
         </ul>
       )}
+
+      <ExplainToggle label="Opportunity — dlaczego?">
+        <ExplainBullets plus={oppExplain.plus} minus={oppExplain.minus} compact />
+      </ExplainToggle>
     </article>
   );
 }

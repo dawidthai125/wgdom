@@ -101,11 +101,22 @@ export function TenderCenterProView({
   savedWeeks: WeekSnapshot[];
 }) {
   const [viewMode, setViewMode] = useState<TenderCenterViewMode>(loadViewMode);
+  const [classicExpandedId, setClassicExpandedId] = useState<string | null>(
+    initialExpandedId ?? null,
+  );
 
   const handleViewModeChange = useCallback((mode: TenderCenterViewMode) => {
     setViewMode(mode);
     saveViewMode(mode);
   }, []);
+
+  const handleOpenTenderInClassic = useCallback((tenderId: string) => {
+    setClassicExpandedId(tenderId);
+    setViewMode("classic");
+    saveViewMode("classic");
+  }, []);
+
+  const classicInitialExpanded = classicExpandedId ?? initialExpandedId ?? null;
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -116,7 +127,7 @@ export function TenderCenterProView({
           onCreateJobFromTender={onCreateJobFromTender}
           onOpenJob={onOpenJob}
           athPreviewEnabled={athPreviewEnabled}
-          initialExpandedId={initialExpandedId}
+          initialExpandedId={classicInitialExpanded}
         />
       ) : (
         <OwnerDashboard
@@ -127,6 +138,7 @@ export function TenderCenterProView({
           weekTo={weekTo}
           savedWeeks={savedWeeks}
           showTestBadge={showTestBadge}
+          onOpenTender={handleOpenTenderInClassic}
         />
       )}
     </div>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { RefreshCw, Scale, GitBranch, AlertCircle } from "lucide-react";
+import { RefreshCw, Scale, AlertCircle, Layers } from "lucide-react";
 import type {
   DirectoryEmployee,
   Job,
@@ -15,11 +15,39 @@ import {
   type GrowthModeState,
 } from "@/lib/tender-center-growth-mode";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
-import { rankTopTenderOpportunities } from "@/lib/tender-center-decision";
-import { CompanyHealthCard } from "@/app/tender-center/components/CompanyHealthCard";
-import { GrowthModeSelector } from "@/app/tender-center/components/GrowthModeSelector";
+import {
+  countPortfolioDecisions,
+  rankTopTenderOpportunities,
+} from "@/lib/tender-center-decision";
+import { useOwnerTenderDecisions } from "@/app/tender-center/hooks/useOwnerTenderDecisions";
+import {
+  collectGoCandidates,
+  computeForecast90Days,
+  type Forecast90DaysInput,
+} from "@/lib/tender-center-forecast-90d";
+import { OwnerAlertsPanel } from "@/app/tender-center/components/OwnerAlertsPanel";
+import { ActionCenter } from "@/app/tender-center/components/ActionCenter";
 import { OpportunityOverview } from "@/app/tender-center/components/OpportunityOverview";
-import { OpportunityRadar } from "@/app/tender-center/components/OpportunityRadar";
+import {
+  explainHealth,
+  buildForecastExplainContext,
+  explainAllForecastHorizons,
+  buildOwnerStrategicAlerts,
+} from "@/lib/tender-center-explain";
+import type { CompanyHealthInput } from "@/lib/tender-center-health";
+import { buildActionCenter } from "@/lib/tender-center-action-center";
+import { CommandCenterHero } from "@/app/tender-center/components/CommandCenterHero";
+import { BestOpportunityCard } from "@/app/tender-center/components/BestOpportunityCard";
+import { ForecastCommandStrip } from "@/app/tender-center/components/ForecastCommandStrip";
+import { WhatIfPanel } from "@/app/tender-center/components/WhatIfPanel";
+import { TenderPortfolioPanel } from "@/app/tender-center/components/TenderPortfolioCounters";
+import { CommandCenterExplainability } from "@/app/tender-center/components/CommandCenterExplainability";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/app/components/ui/accordion";
 
 export function OwnerDashboard({
   jobs,
@@ -29,6 +57,7 @@ export function OwnerDashboard({
   weekTo,
   savedWeeks,
   showTestBadge = false,
+  onOpenTender,
 }: {
   jobs: Job[];
   directory: DirectoryEmployee[];
@@ -37,9 +66,11 @@ export function OwnerDashboard({
   weekTo: string;
   savedWeeks: WeekSnapshot[];
   showTestBadge?: boolean;
+  onOpenTender?: (tenderId: string) => void;
 }) {
   const [growthModeState, setGrowthModeState] = useState<GrowthModeState>(loadGrowthMode);
   const pipeline = useTendersPipeline({ profileVersion: 0 });
+  const ownerDecisions = useOwnerTenderDecisions();
 
   const profile = useMemo(() => loadCompanyProfileLocal(), []);
 
@@ -69,21 +100,153 @@ export function OwnerDashboard({
     ],
   );
 
+  const scoringContext = useMemo(
+    () => ({
+      health,
+      growthMode: growthModeState.mode,
+      jobs,
+      items: pipeline.items,
+      profile,
+    }),
+    [health, growthModeState.mode, jobs, pipeline.items, profile],
+  );
+
   const marketKpi = useMemo(
     () => aggregateMarketKpi(pipeline.items, profile),
     [pipeline.items, profile],
   );
 
   const radarTop = useMemo(
+    () => rankTopTenderOpportunities(pipeline.items, profile, scoringContext, 5),
+    [pipeline.items, profile, scoringContext],
+  );
+
+  const bestOpportunity = radarTop[0] ?? null;
+
+  const portfolioCounts = useMemo(
+    () => countPortfolioDecisions(pipeline.items, profile, scoringContext),
+    [pipeline.items, profile, scoringContext],
+  );
+
+  const scoredForForecast = useMemo(
+    () => rankTopTenderOpportunities(pipeline.items, profile, scoringContext, 40),
+    [pipeline.items, profile, scoringContext],
+  );
+
+  const goCandidates = useMemo(
     () =>
-      rankTopTenderOpportunities(pipeline.items, profile, {
-        health,
-        growthMode: growthModeState.mode,
+      collectGoCandidates(scoredForForecast, ownerDecisions.store)
+        .sort((a, b) => b.opportunity.score - a.opportunity.score),
+    [scoredForForecast, ownerDecisions.store],
+  );
+
+  const forecastInput = useMemo(
+    (): Forecast90DaysInput => ({
+      jobs,
+      savedWeeks,
+      weekEmployees: productionWeekEmployees,
+      directory,
+      weekFrom,
+      weekTo,
+      profile,
+      goBundles: scoredForForecast,
+      ownerStore: ownerDecisions.store,
+    }),
+    [
+      jobs,
+      savedWeeks,
+      productionWeekEmployees,
+      directory,
+      weekFrom,
+      weekTo,
+      profile,
+      scoredForForecast,
+      ownerDecisions.store,
+    ],
+  );
+
+  const forecast90 = useMemo(
+    () => computeForecast90Days(forecastInput),
+    [forecastInput],
+  );
+
+  const healthInput = useMemo(
+    (): CompanyHealthInput => ({
+      items: pipeline.items,
+      jobs,
+      directory,
+      weekEmployees: productionWeekEmployees,
+      weekFrom,
+      weekTo,
+      profile,
+      growthMode: growthModeState.mode,
+      savedWeeks,
+    }),
+    [
+      pipeline.items,
+      jobs,
+      directory,
+      productionWeekEmployees,
+      weekFrom,
+      weekTo,
+      profile,
+      growthModeState.mode,
+      savedWeeks,
+    ],
+  );
+
+  const healthExplanation = useMemo(
+    () => explainHealth(healthInput, health, forecast90),
+    [healthInput, health, forecast90],
+  );
+
+  const forecastExplainContext = useMemo(() => {
+    const goItems = collectGoCandidates(scoredForForecast, ownerDecisions.store)
+      .sort((a, b) => b.opportunity.score - a.opportunity.score)
+      .map((b) => b.item);
+    return buildForecastExplainContext(jobs, goItems);
+  }, [jobs, scoredForForecast, ownerDecisions.store]);
+
+  const forecastHorizonExplanations = useMemo(
+    () => explainAllForecastHorizons(forecast90, forecastExplainContext),
+    [forecast90, forecastExplainContext],
+  );
+
+  const ownerAlerts = useMemo(
+    () =>
+      buildOwnerStrategicAlerts({
         jobs,
         items: pipeline.items,
+        goBundles: scoredForForecast,
+        forecast: forecast90,
+        forecastContext: forecastExplainContext,
         profile,
-      }, 5),
-    [pipeline.items, profile, health, growthModeState.mode, jobs],
+        ownerStore: ownerDecisions.store,
+        savedWeeks,
+      }),
+    [
+      jobs,
+      pipeline.items,
+      scoredForForecast,
+      forecast90,
+      forecastExplainContext,
+      profile,
+      ownerDecisions.store,
+      savedWeeks,
+    ],
+  );
+
+  const actionCenter = useMemo(
+    () =>
+      buildActionCenter({
+        radarTop,
+        scoredBundles: scoredForForecast,
+        health,
+        forecast: forecast90,
+        ownerStore: ownerDecisions.store,
+        strategicAlerts: ownerAlerts,
+      }),
+    [radarTop, scoredForForecast, health, forecast90, ownerDecisions.store, ownerAlerts],
   );
 
   const handleGrowthModeChange = (mode: GrowthModeState["mode"]) => {
@@ -116,7 +279,7 @@ export function OwnerDashboard({
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-              Centrum rozwoju firmy — kondycja, tryb rozwoju i pipeline przetargów publicznych.
+              Centrum dowodzenia właściciela — kondycja, priorytety i prognoza firmy w 10 sekund.
             </p>
           </div>
           <button
@@ -131,7 +294,7 @@ export function OwnerDashboard({
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 py-4 space-y-4">
+      <div className="px-4 sm:px-6 py-4 space-y-5">
         {pipeline.error && (
           <div className="flex items-start gap-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
             <AlertCircle size={14} className="shrink-0 mt-0.5" />
@@ -143,88 +306,86 @@ export function OwnerDashboard({
           <p className="text-[10px] text-muted-foreground">Sprawdzam wyniki zakończonych postępowań…</p>
         )}
 
-        <CompanyHealthCard health={health} />
-
-        <GrowthModeSelector
-          mode={growthModeState.mode}
+        {/* SEKCJA 1 — HERO */}
+        <CommandCenterHero
+          health={health}
+          growthMode={growthModeState.mode}
           suggestedMode={health.suggestedGrowthMode}
-          onChange={handleGrowthModeChange}
+          onGrowthModeChange={handleGrowthModeChange}
+          actionCenter={actionCenter}
         />
 
-        <OpportunityOverview kpi={marketKpi} />
+        {/* SEKCJA 2 — CO WYMAGA UWAGI */}
+        <ActionCenter center={actionCenter} variant="urgent" onOpenTender={onOpenTender} />
 
-        <OpportunityRadar ranked={radarTop} />
+        {/* SEKCJA 3 + 4 — okazja i prognoza obok siebie na desktop */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <BestOpportunityCard
+            bundle={bestOpportunity}
+            ownerRecord={bestOpportunity ? ownerDecisions.getOwnerDecision(bestOpportunity.item.id) : null}
+            onSetDecision={ownerDecisions.setOwnerDecision}
+            onOpenTender={onOpenTender}
+          />
+          <ForecastCommandStrip forecast={forecast90} />
+        </div>
 
+        <WhatIfPanel forecastInput={forecastInput} goCandidates={goCandidates} />
+
+        {/* SEKCJA 5 — PORTFEL */}
+        <TenderPortfolioPanel
+          systemCounts={portfolioCounts}
+          ownerStats={ownerDecisions.stats}
+          snapshotAlignment={ownerDecisions.snapshotAlignment}
+          recent={ownerDecisions.recent}
+          pipelineItems={pipeline.items}
+        />
+
+        {/* SEKCJA 6 — POZOSTAŁE ANALIZY */}
         <section className="rounded-xl border border-border bg-card overflow-hidden">
           <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-            <GitBranch size={16} className="text-primary" />
-            <h2 className="text-sm font-semibold">Podsumowanie pipeline</h2>
+            <Layers size={16} className="text-primary" />
+            <h2 className="text-sm font-semibold">Pozostałe analizy</h2>
           </div>
-          <div className="p-4 space-y-4">
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-medium">
-                {pipeline.stats.actionable} do zgłoszenia
-              </span>
-              <span className="px-2.5 py-1 rounded-lg bg-secondary">{pipeline.stats.active} aktywnych</span>
-              {pipeline.stats.urgent > 0 && (
-                <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400">
-                  {pipeline.stats.urgent} termin ≤7 dni
-                </span>
-              )}
-              <span className="px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400">
-                {pipeline.stats.priority} kluczowi
-              </span>
-              <span className="px-2.5 py-1 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400">
-                {pipeline.stats.interested} w analizie
-              </span>
-            </div>
+          <Accordion type="multiple" className="px-4">
+            <AccordionItem value="kpi">
+              <AccordionTrigger>KPI rynku</AccordionTrigger>
+              <AccordionContent>
+                <OpportunityOverview kpi={marketKpi} />
+              </AccordionContent>
+            </AccordionItem>
 
-            <div className="rounded-xl bg-secondary/40 px-3 py-2.5 space-y-1.5">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Lejek pipeline</p>
-              <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
-                <span>Nowe: <strong className="text-foreground">{pipeline.funnel.new}</strong></span>
-                <span>Obejrzane: <strong className="text-foreground">{pipeline.funnel.seen}</strong></span>
-                <span>Interesuje: <strong className="text-violet-600">{pipeline.funnel.interested}</strong></span>
-                <span>Oferta: <strong className="text-foreground">{pipeline.funnel.preparing}</strong></span>
-                <span>Złożone: <strong className="text-foreground">{pipeline.funnel.submitted}</strong></span>
-                <span>Wygrane: <strong className="text-emerald-600">{pipeline.funnel.won}</strong></span>
-                <span>Przegrane: <strong className="text-foreground">{pipeline.funnel.lost}</strong></span>
-                {pipeline.funnel.winRate != null && (
-                  <span>Skuteczność: <strong className="text-primary">{pipeline.funnel.winRate}%</strong></span>
+            <AccordionItem value="alerts">
+              <AccordionTrigger>
+                Alerty
+                {ownerAlerts.length > 0 && (
+                  <span className="ml-2 text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                    {ownerAlerts.length}
+                  </span>
                 )}
-              </div>
-            </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <OwnerAlertsPanel alerts={ownerAlerts} />
+              </AccordionContent>
+            </AccordionItem>
 
-            {pipeline.actionChips.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                <span className="text-[10px] text-muted-foreground self-center mr-1">Wymaga działania:</span>
-                {pipeline.actionChips.map((chip) => {
-                  const toneCls =
-                    chip.tone === "red"
-                      ? "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/25"
-                      : chip.tone === "amber"
-                        ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/25"
-                        : chip.tone === "violet"
-                          ? "bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/25"
-                          : "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/25";
-                  return (
-                    <span
-                      key={chip.id}
-                      className={`text-[10px] font-medium px-2 py-1 rounded-lg border ${toneCls}`}
-                    >
-                      {chip.label} ({chip.count})
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-
-            <p className="text-[11px] text-muted-foreground">
-              Pełna lista przetargów, filtry i szczegóły SWZ — w{" "}
-              <strong className="text-foreground">Klasycznym widoku</strong> (przełącznik u góry ekranu).
-            </p>
-          </div>
+            <AccordionItem value="explain">
+              <AccordionTrigger>Explainability</AccordionTrigger>
+              <AccordionContent>
+                <CommandCenterExplainability
+                  health={health}
+                  healthExplanation={healthExplanation}
+                  bestOpportunity={bestOpportunity}
+                  forecastHorizonExplanations={forecastHorizonExplanations}
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </section>
+
+        <p className="text-[11px] text-muted-foreground text-center pb-2">
+          Pełna lista przetargów, filtry i SWZ — w{" "}
+          <strong className="text-foreground">Klasycznym widoku</strong> (przełącznik u góry ekranu).
+        </p>
       </div>
     </div>
   );
