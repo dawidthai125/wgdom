@@ -6,7 +6,8 @@ import {
   pushKeysToCloud,
   fetchKeysFromCloud,
   normalizeJobsValue,
-  mergeDataKey,
+  mergeAllDataKeys,
+  applyBootstrapPayrollMerge,
   mergeDeletedJobIds,
   getDeletedJobIds,
   saveDeletedJobIds,
@@ -108,23 +109,27 @@ export function CloudLoader({ children }: { children: ReactNode }) {
           pushValues.push(mergedAdminUsers);
         }
 
-        keys.forEach((key, i) => {
-          let cloudVal = values[i];
-          let localVal: unknown = null;
+        const localValues = keys.map((key) => {
           try {
             const raw = localStorage.getItem(key);
-            if (raw) localVal = JSON.parse(raw);
+            if (raw) return JSON.parse(raw) as unknown;
           } catch { /* ignore */ }
+          return null;
+        });
 
-          const merged = mergeDataKey(
-            key,
-            localVal,
-            cloudVal,
-            mergedDeleted,
-            mergedDirDeleted,
-            mergedContactsDeleted,
-            mergedArchiveDeleted,
-          );
+        let mergedBundle = mergeAllDataKeys(
+          localValues,
+          values,
+          mergedDeleted,
+          mergedDirDeleted,
+          mergedContactsDeleted,
+          mergedArchiveDeleted,
+        );
+        mergedBundle = applyBootstrapPayrollMerge(mergedBundle, localValues, values);
+
+        keys.forEach((key, i) => {
+          const cloudVal = values[i];
+          const merged = mergedBundle[i];
           const hasRealData = merged != null && !(Array.isArray(merged) && merged.length === 0) && merged !== "";
           if (hasRealData || (key === "kw-weekFrom" || key === "kw-weekTo") && merged) {
             localStorage.setItem(key, JSON.stringify(merged));

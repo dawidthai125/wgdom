@@ -1134,6 +1134,37 @@ export function sanitizeWeekEmployeesForTargetRange(
   return out;
 }
 
+/**
+ * CloudLoader bootstrap — ta sama sanityzacja co computeMergedDataBundle,
+ * plus przy bogatszej chmurze (richness / activeDays) przyjmij payroll z KV.
+ */
+export function applyBootstrapPayrollMerge(
+  merged: unknown[],
+  localValues: unknown[],
+  cloudValues: unknown[],
+): unknown[] {
+  let out = alignWeekRangeInMerged(merged, localValues, cloudValues);
+  out = sanitizeWeekEmployeesForTargetRange(out, localValues, cloudValues);
+
+  const empIdx = DATA_KEYS.indexOf("kw-week-employees");
+  if (empIdx < 0) return out;
+
+  const localEmps = normalizeArrayValue(localValues[empIdx]);
+  const cloudEmps = normalizeArrayValue(cloudValues[empIdx]);
+  const localR = weekEmployeesListRichness(localEmps);
+  const cloudR = weekEmployeesListRichness(cloudEmps);
+  const localM = payrollMetrics(localEmps);
+  const cloudM = payrollMetrics(cloudEmps);
+
+  if (cloudR > localR || cloudM.activeDays > localM.activeDays) {
+    const next = [...out];
+    next[empIdx] = mergeWeekEmployees([], cloudEmps);
+    return next;
+  }
+
+  return out;
+}
+
 function pickWeekRange(localFrom: unknown, localTo: unknown, cloudFrom: unknown, cloudTo: unknown, localEmps: unknown, cloudEmps: unknown): { from: string; to: string } {
   const lf = typeof localFrom === "string" ? localFrom : "";
   const cf = typeof cloudFrom === "string" ? cloudFrom : "";
