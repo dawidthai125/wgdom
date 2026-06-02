@@ -26,7 +26,9 @@ const JobFilesBrowser = lazy(() =>
   import("@/app/JobFilesBrowser").then((m) => ({ default: m.JobFilesBrowser })),
 );
 const GuideView = lazy(() => import("@/app/GuideView").then((m) => ({ default: m.GuideView })));
-const TendersView = lazy(() => import("@/app/TendersView").then((m) => ({ default: m.TendersView })));
+const TenderCenterProView = lazy(() =>
+  import("@/app/TenderCenterProView").then((m) => ({ default: m.TenderCenterProView })),
+);
 
 /** Widoki nadal zdefiniowane w App.tsx — przekazywane, żeby uniknąć zależności cyklicznej. */
 export type AdminEmbeddedViews = {
@@ -344,10 +346,16 @@ export function AdminViewRouter({
       {view === "tenders" && canViewTendersNav && (
         <ViewErrorBoundary label="Przetargi">
           <Suspense fallback={<ViewLoadFallback label="Ładowanie przetargów…" />}>
-            <TendersView
+            <TenderCenterProView
               showTestBadge={adminSession ? adminIsSuperAdmin(adminSession.role) : false}
               athPreviewEnabled={appSettings.athPreviewEnabled}
               initialExpandedId={pendingTenderId}
+              jobs={jobs}
+              directory={directory}
+              productionWeekEmployees={productionWeekEmployees}
+              weekFrom={weekFrom}
+              weekTo={weekTo}
+              savedWeeks={savedWeeks}
               onOpenJob={onOpenJobFromTender}
               onCreateJobFromTender={(draft, item) => {
                 const j = defaultJob();
