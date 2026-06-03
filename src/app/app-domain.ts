@@ -15,7 +15,8 @@ import { Camera, Eye, ImagePlus } from "lucide-react";
 import { scopeTextToWorkItems, workItemsToScopeText } from "@/lib/work-scope-text";
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
 import { normalizeJobMetaFields } from "@/lib/job-meta";
-import { normalizeJobWmFields } from "@/lib/job-wm";
+import { normalizeJobWmFields, inferHandoverStage, HANDOVER_STAGE_LABELS } from "@/lib/job-wm";
+import { resolveJobListStatus, JOB_LIST_STATUS_CONFIG, type JobListStatusJob } from "@/lib/job-list-status";
 import { syncJobDocuments } from "@/lib/job-documents";
 import { filterAvailablePhotos } from "@/lib/media-filter";
 
@@ -1284,6 +1285,24 @@ export function isWorkerOnExecutionTeam(job: Job, workerDirectoryId: string): bo
   if (!id) return false;
   if (job.executionLeadDirectoryId === id) return true;
   return (job.executionAssigneeDirectoryIds ?? []).includes(id);
+}
+
+/** FAZA 9.0.1 — status kontraktu/roboty na karcie „Twoje kontrakty” (tylko odczyt). */
+export function resolveWorkerContractStatusLabel(job: Job): string {
+  const statusJob = job as JobListStatusJob;
+  if (job.linkedTenderId) {
+    return HANDOVER_STAGE_LABELS[inferHandoverStage(statusJob)];
+  }
+  return JOB_LIST_STATUS_CONFIG[resolveJobListStatus(statusJob)].label;
+}
+
+/** FAZA 9.0.1 — termin kontraktu na karcie pracownika (fmtDate, bez plannedHandoverDate). */
+export function resolveWorkerContractDateLabel(job: Job): string | null {
+  const start = job.startDate?.trim();
+  const end = job.endDate?.trim();
+  if (start && end) return `${fmtDate(start)} – ${fmtDate(end)}`;
+  if (start) return `Start: ${fmtDate(start)}`;
+  return null;
 }
 
 export function normalizeJobsList(raw: unknown[]): Job[] {

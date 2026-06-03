@@ -11,6 +11,13 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-03", version:"2.45.31", label:"Pracownik — status i termin kontraktu (FAZA 9.0.1)",
+    items:[
+      {type:"improve", text:"„Twoje kontrakty” — status (etap realizacji lub status listy) i termin start–koniec z roboty"},
+      {type:"improve", text:"Tylko odczyt pól Job — bez zmian grafiku, listy płac i przetargów"},
+    ],
+  },
+  {
     date:"2026-06-03", version:"2.45.30", label:"Pracownik — Twoje kontrakty (FAZA 9.0)",
     items:[
       {type:"new", text:"Tryb pracownika — sekcja „Twoje kontrakty” (plan ekipy z roboty admina), poniżej „Wszystkie roboty w toku”"},

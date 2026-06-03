@@ -4,9 +4,13 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja:** **2.45.30** (UI)
+**Aktualna wersja:** **2.45.31** (UI)
 
 ---
+
+## 2.45.31 (2026-06-03) — FAZA 9.0.1: status + termin kontraktu (pracownik)
+
+- `resolveWorkerContractStatusLabel`, `resolveWorkerContractDateLabel` — karty „Twoje kontrakty”
 
 ## 2.45.30 (2026-06-03) — FAZA 9.0: Twoje kontrakty (pracownik)
 

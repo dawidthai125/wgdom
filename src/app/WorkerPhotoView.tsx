@@ -58,6 +58,8 @@ import {
   prepareWatermarkedPhoto,
   uploadReceipt,
   isWorkerOnExecutionTeam,
+  resolveWorkerContractStatusLabel,
+  resolveWorkerContractDateLabel,
 } from "@/app/app-domain";
 import { JobReportForm } from "@/app/JobReportForm";
 import { getReportWorkScopeText, reportHasWorkScope } from "@/lib/work-scope-text";
@@ -270,8 +272,40 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
     setEditingReport(null);
   };
 
-  const renderWorkerJobCard = (job: Job) => {
+  const renderWorkerJobCard = (job: Job, contractMeta = false) => {
     const pending = (job.photos || []).filter((p) => p.status === "pending").length;
+    if (contractMeta) {
+      const statusLabel = resolveWorkerContractStatusLabel(job);
+      const dateLabel = resolveWorkerContractDateLabel(job);
+      return (
+        <button
+          key={job.id}
+          type="button"
+          onClick={() => openWorkerJob(job.id)}
+          className="w-full bg-card border border-primary/20 rounded-2xl px-5 py-4 text-left hover:border-primary/40 hover:bg-primary/5 transition-all"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold">
+                {job.address || "Bez adresu"}
+                {job.flatNumber && <span className="text-muted-foreground"> m.{job.flatNumber}</span>}
+              </p>
+              <p className="text-xs font-medium text-primary mt-1.5">{statusLabel}</p>
+              {dateLabel && (
+                <p className="text-xs text-muted-foreground mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  {dateLabel}
+                </p>
+              )}
+            </div>
+            {pending > 0 && (
+              <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full shrink-0">
+                {pending} oczekuje
+              </span>
+            )}
+          </div>
+        </button>
+      );
+    }
     return (
       <button
         key={job.id}
@@ -1019,7 +1053,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                         Przypisane do planowej ekipy realizacji
                       </p>
                     </div>
-                    <div className="space-y-2">{myContractJobs.map(renderWorkerJobCard)}</div>
+                    <div className="space-y-2">{myContractJobs.map((j) => renderWorkerJobCard(j, true))}</div>
                   </div>
                 )}
                 <div className="space-y-2">
