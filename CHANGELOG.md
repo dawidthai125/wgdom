@@ -4,7 +4,14 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `App.tsx` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja:** **2.45.23** (UI)
+**Aktualna wersja:** **2.45.24** (UI)
+
+---
+
+## 2.45.24 (2026-06-03) — ETAP 8.1: mapowanie roboty z wygranego
+
+- **improve** `awardValuePln` → `invoiceAmount` (priorytet nad SWZ i naszym szacunkiem)
+- **improve** `contractDate` → `startDate`, `implementationDays` → `endDate` (gdy oba źródła dostępne)
 
 ---
 

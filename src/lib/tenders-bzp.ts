@@ -673,6 +673,47 @@ export interface TenderJobDraft {
   invoiceAmount: string;
   linkedTenderId: string;
   linkedTenderBzpNumber: string;
+  /** ETAP 8.1 — z awardResult.contractDate (ISO), gdy dostępne. */
+  startDate?: string;
+  /** ETAP 8.1 — contractDate + swzAnalysis.implementationDays, gdy oba dostępne. */
+  endDate?: string;
+}
+
+/** Konwersja awardResult.contractDate (DD-MM-YYYY) → YYYY-MM-DD. Bez parserów tekstowych SWZ. */
+function awardContractDateToIso(contractDate: string | null | undefined): string | undefined {
+  if (!contractDate?.trim()) return undefined;
+  const trimmed = contractDate.trim();
+  const dmy = trimmed.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (dmy) return `${dmy[3]}-${dmy[2]}-${dmy[1]}`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  return undefined;
+}
+
+function addCalendarDaysIso(isoStart: string, days: number): string {
+  const d = new Date(`${isoStart}T12:00:00`);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/** ETAP 8.1 — kwota faktury: wygrana → SWZ → nasz szacunek. */
+export function resolveInvoiceAmountFromTender(item: TenderPipelineItem): string {
+  const awardPln = item.awardResult?.awardValuePln;
+  if (awardPln != null && awardPln > 0) return String(Math.round(awardPln));
+  const estimatedPln = item.swzAnalysis?.estimatedValuePln;
+  if (estimatedPln != null) return String(Math.round(estimatedPln));
+  if (item.ourEstimatePln != null) return String(Math.round(item.ourEstimatePln));
+  return "";
+}
+
+/** ETAP 8.1 — terminy z umowy + implementationDays (bez contractPeriod / deadline raw). */
+export function resolveJobDraftDatesFromTender(
+  item: TenderPipelineItem,
+): Pick<TenderJobDraft, "startDate" | "endDate"> {
+  const startDate = awardContractDateToIso(item.awardResult?.contractDate);
+  if (!startDate) return {};
+  const implDays = item.swzAnalysis?.implementationDays;
+  if (implDays == null || implDays <= 0) return { startDate };
+  return { startDate, endDate: addCalendarDaysIso(startDate, implDays) };
 }
 
 /** Szablon roboty z wygranego / przygotowywanego przetargu. */
@@ -686,9 +727,8 @@ export function jobDraftFromTender(item: TenderPipelineItem): TenderJobDraft {
     item.ezamowieniaUrl,
     item.swzAnalysis?.estimatedValueRaw ? `Wartość SWZ: ${item.swzAnalysis.estimatedValueRaw}` : "",
   ].filter(Boolean).join("\n");
-  const invoiceAmount = item.swzAnalysis?.estimatedValuePln
-    ? String(Math.round(item.swzAnalysis.estimatedValuePln))
-    : item.ourEstimatePln ? String(Math.round(item.ourEstimatePln)) : "";
+  const invoiceAmount = resolveInvoiceAmountFromTender(item);
+  const dates = resolveJobDraftDatesFromTender(item);
   return {
     address: addr,
     client: item.organizationName || "—",
@@ -696,6 +736,7 @@ export function jobDraftFromTender(item: TenderPipelineItem): TenderJobDraft {
     invoiceAmount,
     linkedTenderId: item.id,
     linkedTenderBzpNumber: item.bzpNumber,
+    ...dates,
   };
 }
 

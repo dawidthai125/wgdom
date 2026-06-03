@@ -32,6 +32,8 @@ export function executeCreateJobFromTender(
   j.client = draft.client;
   j.notes = draft.notes;
   if (draft.invoiceAmount) j.invoiceAmount = draft.invoiceAmount;
+  if (draft.startDate) j.startDate = draft.startDate;
+  if (draft.endDate) j.endDate = draft.endDate;
   j.linkedTenderId = draft.linkedTenderId;
   j.linkedTenderBzpNumber = draft.linkedTenderBzpNumber;
   appendJobActivity(j, "note", `Utworzono z przetargu BZP: ${item.bzpNumber}`);

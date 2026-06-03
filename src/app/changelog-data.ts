@@ -11,6 +11,13 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-03", version:"2.45.24", label:"Przetargi — mapowanie roboty z wygranego (ETAP 8.1)",
+    items:[
+      {type:"improve", text:"Utwórz robotę — kwota wygranej oferty (BZP) ma pierwszeństwo przed wartością z SWZ"},
+      {type:"improve", text:"Data umowy i termin realizacji (dni z analizy SWZ) trafiają do roboty, gdy są w danych przetargu"},
+    ],
+  },
+  {
     date:"2026-06-03", version:"2.45.23", label:"Przetargi — wspólny pipeline Classic × CC (ETAP 8.0A)",
     items:[
       {type:"fix", text:"Classic View i COMMAND CENTER korzystają z jednego pipeline — „Otwórz robotę” widoczne od razu bez odświeżania strony"},
