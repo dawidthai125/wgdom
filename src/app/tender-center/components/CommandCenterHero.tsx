@@ -10,6 +10,7 @@ import {
 } from "@/lib/tender-center-growth-mode";
 import type { ActionCenterResult } from "@/lib/tender-center-action-center";
 import { priorityTone } from "@/lib/tender-center-action-center";
+import { MetricHelpTooltip } from "@/app/tender-center/components/MetricHelpTooltip";
 
 function labelTone(label: HealthLabel): string {
   switch (label) {
@@ -69,7 +70,10 @@ export function CommandCenterHero({
       <div className="p-4 sm:p-5 space-y-4">
         <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-4 items-start">
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Health Index</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+              Health Index
+              <MetricHelpTooltip metricId="health-index" />
+            </p>
             <p
               className="text-5xl sm:text-6xl font-bold text-primary leading-none mt-1"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}

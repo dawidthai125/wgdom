@@ -6,6 +6,7 @@ import {
   riskTone,
   utilizationBarTone,
 } from "@/lib/tender-center-forecast-90d";
+import { MetricHelpTooltip } from "@/app/tender-center/components/MetricHelpTooltip";
 
 function HorizonTile({
   days,
@@ -58,7 +59,10 @@ export function ForecastCommandStrip({ forecast }: { forecast: Forecast90DaysRes
       <div className="px-4 py-3 border-b border-border flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <CalendarRange size={16} className="text-primary" />
-          <h2 className="text-sm font-semibold">Prognoza firmy</h2>
+          <h2 className="text-sm font-semibold flex items-center gap-1.5">
+            Prognoza firmy
+            <MetricHelpTooltip metricId="forecast-90" />
+          </h2>
         </div>
         <span className="text-[10px] text-muted-foreground">Scenariusz C · 50% GO</span>
       </div>

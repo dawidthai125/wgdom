@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { RefreshCw, AlertCircle, Layers } from "lucide-react";
 import type {
   DirectoryEmployee,
@@ -60,6 +60,11 @@ import { TenderPortfolioPanel } from "@/app/tender-center/components/TenderPortf
 import { CommandCenterExplainability } from "@/app/tender-center/components/CommandCenterExplainability";
 import { CommandCenterBrandHeader } from "@/app/tender-center/components/CommandCenterBrandHeader";
 import { COMMAND_CENTER_BRAND } from "@/app/tender-center/branding";
+import { hasSeenCommandCenterOnboarding } from "@/app/tender-center/command-center-onboarding";
+import { CommandCenterWelcomeDialog } from "@/app/tender-center/components/CommandCenterWelcomeDialog";
+import { HowToUseCommandCenter } from "@/app/tender-center/components/HowToUseCommandCenter";
+import { CommandCenterGlossary } from "@/app/tender-center/components/CommandCenterGlossary";
+import { AboutCommandCenter } from "@/app/tender-center/components/AboutCommandCenter";
 import {
   Accordion,
   AccordionContent,
@@ -93,7 +98,14 @@ export function OwnerDashboard({
     decision: TenderDecision;
   } | null>(null);
   const [learningRevision, setLearningRevision] = useState(0);
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
   const pipeline = useTendersPipeline({ profileVersion: 0 });
+
+  useEffect(() => {
+    if (!hasSeenCommandCenterOnboarding()) {
+      setWelcomeOpen(true);
+    }
+  }, []);
   const ownerDecisions = useOwnerTenderDecisions();
 
   const learningStats = useMemo(
@@ -484,8 +496,31 @@ export function OwnerDashboard({
                 <OwnerProfilePanel profile={ownerDecisionProfile} />
               </AccordionContent>
             </AccordionItem>
+
+            <AccordionItem value="how-to-use">
+              <AccordionTrigger>🎓 Jak korzystać z COMMAND CENTER AI</AccordionTrigger>
+              <AccordionContent>
+                <HowToUseCommandCenter />
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="glossary">
+              <AccordionTrigger>📚 Słownik COMMAND CENTER AI</AccordionTrigger>
+              <AccordionContent>
+                <CommandCenterGlossary />
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="about">
+              <AccordionTrigger>ℹ️ O COMMAND CENTER AI</AccordionTrigger>
+              <AccordionContent>
+                <AboutCommandCenter />
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
         </section>
+
+        <CommandCenterWelcomeDialog open={welcomeOpen} onOpenChange={setWelcomeOpen} />
 
         <LearningReasonDialog
           open={learningDialogOpen}

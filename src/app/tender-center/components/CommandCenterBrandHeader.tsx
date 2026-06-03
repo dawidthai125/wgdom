@@ -28,8 +28,10 @@ export function CommandCenterBrandHeader({
             <h1 className="text-xl sm:text-2xl font-semibold leading-tight text-foreground">
               {COMMAND_CENTER_BRAND.tagline}
             </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground font-medium italic">
-              {COMMAND_CENTER_BRAND.author}
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              {COMMAND_CENTER_BRAND.authorLine}
+              <br />
+              <span className="font-medium italic">{COMMAND_CENTER_BRAND.authorName}</span>
             </p>
             <p className="text-sm text-foreground/80 max-w-2xl pt-0.5">
               {COMMAND_CENTER_BRAND.subtitle}

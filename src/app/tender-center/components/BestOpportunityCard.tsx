@@ -4,6 +4,7 @@ import { topDecisionReasons } from "@/lib/tender-center-decision";
 import type { OwnerTenderDecisionRecord } from "@/lib/tender-center-owner-decisions";
 import { daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 import { estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
+import { MetricHelpTooltip } from "@/app/tender-center/components/MetricHelpTooltip";
 
 function fmtPln(n: number): string {
   return new Intl.NumberFormat("pl-PL", {
@@ -162,7 +163,10 @@ export function BestOpportunityCard({
 
             <div className="grid grid-cols-3 gap-2">
               <div className="rounded-xl border border-border bg-secondary/30 px-3 py-2.5 text-center">
-                <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Opportunity</p>
+                <p className="text-[9px] uppercase tracking-wider text-muted-foreground flex items-center justify-center gap-0.5">
+                  Opportunity
+                  <MetricHelpTooltip metricId="opportunity-score" />
+                </p>
                 <p
                   className={`text-2xl font-bold tabular-nums mt-0.5 ${scoreTone(bundle.opportunity.score)}`}
                   style={{ fontFamily: "'JetBrains Mono', monospace" }}
@@ -171,7 +175,10 @@ export function BestOpportunityCard({
                 </p>
               </div>
               <div className="rounded-xl border border-border bg-secondary/30 px-3 py-2.5 text-center">
-                <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Strategic</p>
+                <p className="text-[9px] uppercase tracking-wider text-muted-foreground flex items-center justify-center gap-0.5">
+                  Strategic
+                  <MetricHelpTooltip metricId="strategic-score" />
+                </p>
                 <p
                   className={`text-2xl font-bold tabular-nums mt-0.5 ${scoreTone(bundle.strategic.score)}`}
                   style={{ fontFamily: "'JetBrains Mono', monospace" }}
