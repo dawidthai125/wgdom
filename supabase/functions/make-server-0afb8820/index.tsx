@@ -247,11 +247,7 @@ function mergeWeekEmployeesUnion(prev: unknown[], next: unknown[]): unknown[] {
         map.set(id, item);
         continue;
       }
-      const er = weekEmployeeRichness(existing);
-      const ir = weekEmployeeRichness(item);
-      if (ir > er) map.set(id, item);
-      else if (ir < er) { /* keep existing */ }
-      else map.set(id, mergeWeekEmployeeRecordByTimestamps(existing, item));
+      map.set(id, mergeWeekEmployeeRecordByTimestamps(existing, item));
     }
   };
   ingest(prev);
@@ -275,6 +271,53 @@ function pickRateByTimestamps(l: Record<string, unknown>, c: Record<string, unkn
   return c.rate;
 }
 
+/** settled=false z tym samym czasem co dataUpdatedAt — stary bug syncu, nie prawdziwe cofnięcie wypłaty. */
+function isLikelySpuriousUnsettle(rec: Record<string, unknown>): boolean {
+  if (Boolean(rec.settled)) return false;
+  const sAt = parseRecordTs(rec.settledUpdatedAt);
+  const dAt = parseRecordTs(rec.dataUpdatedAt);
+  if (sAt <= 0 || dAt <= 0) return false;
+  return Math.abs(sAt - dAt) <= 1500;
+}
+
+function pickSettledUpdatedAtForMerge(
+  l: Record<string, unknown>,
+  c: Record<string, unknown>,
+  settled: boolean,
+): string | undefined {
+  const lAt = parseRecordTs(l.settledUpdatedAt);
+  const cAt = parseRecordTs(c.settledUpdatedAt);
+  const lSettled = Boolean(l.settled);
+  const cSettled = Boolean(c.settled);
+  if (settled) {
+    if (lSettled && (!cSettled || lAt >= cAt)) return l.settledUpdatedAt as string | undefined;
+    if (cSettled) return c.settledUpdatedAt as string | undefined;
+  } else {
+    if (!lSettled && (!cSettled || lAt >= cAt)) return l.settledUpdatedAt as string | undefined;
+    if (!cSettled) return c.settledUpdatedAt as string | undefined;
+  }
+  return lAt >= cAt
+    ? (l.settledUpdatedAt ?? c.settledUpdatedAt) as string | undefined
+    : (c.settledUpdatedAt ?? l.settledUpdatedAt) as string | undefined;
+}
+
+function pickSettledByTimestamps(l: Record<string, unknown>, c: Record<string, unknown>): boolean {
+  const lAt = parseRecordTs(l.settledUpdatedAt);
+  const cAt = parseRecordTs(c.settledUpdatedAt);
+  const lSettled = Boolean(l.settled);
+  const cSettled = Boolean(c.settled);
+  if (lAt > 0 || cAt > 0) {
+    if (lAt > cAt) return lSettled;
+    if (cAt > lAt) {
+      if (!cSettled && lSettled && isLikelySpuriousUnsettle(c)) return true;
+      if (!lSettled && cSettled && isLikelySpuriousUnsettle(l)) return false;
+      return cSettled;
+    }
+    return lSettled || cSettled;
+  }
+  return lSettled || cSettled;
+}
+
 function mergeWeekEmployeeRecordByTimestamps(a: unknown, b: unknown): unknown {
   const l = a as Record<string, unknown>;
   const c = b as Record<string, unknown>;
@@ -287,6 +330,7 @@ function mergeWeekEmployeeRecordByTimestamps(a: unknown, b: unknown): unknown {
   const lRateAt = parseRecordTs(l.rateUpdatedAt);
   const cRateAt = parseRecordTs(c.rateUpdatedAt);
   const dataWinner = lAt >= cAt ? l : c;
+  const settled = pickSettledByTimestamps(l, c);
   return {
     ...c,
     ...l,
@@ -295,6 +339,8 @@ function mergeWeekEmployeeRecordByTimestamps(a: unknown, b: unknown): unknown {
     rate,
     rateUpdatedAt: lRateAt >= cRateAt ? l.rateUpdatedAt ?? c.rateUpdatedAt : c.rateUpdatedAt ?? l.rateUpdatedAt,
     dataUpdatedAt: lAt >= cAt ? l.dataUpdatedAt ?? c.dataUpdatedAt : c.dataUpdatedAt ?? l.dataUpdatedAt,
+    settled,
+    settledUpdatedAt: pickSettledUpdatedAtForMerge(l, c, settled),
   };
 }
 

@@ -310,6 +310,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 
 - **Jobs:** per `id`, winner po `updatedAt` + merge pól (documents, photos, activity…)
 - **Week employees:** per `id`; `rateUpdatedAt`, `dataUpdatedAt`, `settledUpdatedAt` osobno
+- **Edge `batch-set` (FIX A, 2026-06-03):** `mergeWeekEmployeeRecordByTimestamps` używa `pickSettledByTimestamps` / `isLikelySpuriousUnsettle` jak klient; `mergeWeekEmployeesUnion` zawsze scala rekordy (nie zastępuje całego wpisu po `weekEmployeeRichness`)
 - **Directory:** lokalna lista decyduje o składzie; pola scalane per id
 - **Archive:** lokalna lista + merge `weekEmployees` wewnątrz tygodnia
 - **Remis timestampów:** preferencja **chmury** (v2.35.14+)
