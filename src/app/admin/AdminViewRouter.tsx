@@ -204,6 +204,23 @@ export function AdminViewRouter({
             tendersStats={tenderDashStats}
             onOpenTenders={onOpenTenders}
             onOpenTender={onOpenTender}
+            setJobs={setJobs}
+            onOpenJobFromTender={onOpenJobFromTender}
+            tenderJobUploadedBy={adminSession?.displayName || "Administrator"}
+            onNavigateToJobFromTender={(jobId) => {
+              onSetPendingJobId(jobId);
+              onSetView("jobs");
+            }}
+            onCreateJobFromTender={(draft, item) =>
+              executeCreateJobFromTender(draft, item, {
+                setJobs,
+                uploadedBy: adminSession?.displayName || "Administrator",
+                onNavigateToJob: (jobId) => {
+                  onSetPendingJobId(jobId);
+                  onSetView("jobs");
+                },
+              })
+            }
           />
         </ViewErrorBoundary>
       )}

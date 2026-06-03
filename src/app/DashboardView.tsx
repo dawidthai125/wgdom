@@ -5,6 +5,7 @@ import {
   Calendar, HardHat, KeyRound, TrendingUp,
 } from "lucide-react";
 import type { TendersDashboardStats } from "@/lib/tenders-bzp";
+import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
 import { CommandCenterExecutivePanel } from "@/app/tender-center/components/CommandCenterExecutivePanel";
 import { appendJobActivity } from "@/lib/job-activity";
 import { adminIsSuperAdmin } from "@/lib/admin-auth";
@@ -59,6 +60,11 @@ export function DashboardView({
   onOpenTenders,
   onOpenTender,
   canViewTenders,
+  setJobs,
+  onOpenJobFromTender,
+  onNavigateToJobFromTender,
+  onCreateJobFromTender,
+  tenderJobUploadedBy,
 }: {
   jobs: Job[];
   directory: DirectoryEmployee[];
@@ -76,6 +82,14 @@ export function DashboardView({
   onOpenTenders?: () => void;
   onOpenTender?: (tenderId: string) => void;
   canViewTenders?: boolean;
+  setJobs?: (updater: Job[] | ((prev: Job[]) => Job[])) => void;
+  onOpenJobFromTender?: (jobId: string) => void;
+  onNavigateToJobFromTender?: (jobId: string) => void;
+  onCreateJobFromTender?: (
+    draft: ReturnType<typeof jobDraftFromTender>,
+    item: TenderPipelineItem,
+  ) => string | void;
+  tenderJobUploadedBy?: string;
 }) {
   void _legacyTendersStats;
   const { session: adminSession } = useAdminAccess();
@@ -469,6 +483,11 @@ export function DashboardView({
             savedWeeks={savedWeeks}
             onOpenCommandCenter={onOpenTenders}
             onOpenTender={onOpenTender}
+            setJobs={setJobs}
+            tenderJobUploadedBy={tenderJobUploadedBy}
+            onNavigateToJobFromTender={onNavigateToJobFromTender}
+            onOpenJob={onOpenJobFromTender}
+            onCreateJobFromTender={onCreateJobFromTender}
           />
         )}
 

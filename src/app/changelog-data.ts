@@ -11,6 +11,13 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-03", version:"2.45.26", label:"Pulpit — wygrane bez roboty + CTA (ETAP 8.3)",
+    items:[
+      {type:"new", text:"Pulpit COMMAND CENTER — KPI „Wygrane bez roboty” oraz przyciski Utwórz / Otwórz robotę przy wygranych"},
+      {type:"improve", text:"Action Center na Pulpicie — realizacja wygranych (won-realization) z tymi samymi akcjami co w COMMAND CENTER"},
+    ],
+  },
+  {
     date:"2026-06-03", version:"2.45.25", label:"Roboty — realizacja kontraktu po przetargu (ETAP 8.2)",
     items:[
       {type:"improve", text:"Utwórz robotę — planowany odbiór WM z terminem realizacji; dokumenty zsynchronizowane po skopiowaniu plików z przetargu"},
