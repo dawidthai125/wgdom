@@ -11,6 +11,14 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-03", version:"2.45.29", label:"Roboty — planowa ekipa realizacyjna (ETAP 8.5 FULL)",
+    items:[
+      {type:"new", text:"Baner „Realizacja kontraktu” — lider i ekipa (multi-select z kartoteki), zapis do roboty i chmury"},
+      {type:"new", text:"Lista robót — badge „Ekipa: N” gdy przypisano planowych wykonawców"},
+      {type:"improve", text:"Bez wpisów czasu pracy i bez zmian listy płac — tylko pola executionLeadDirectoryId i executionAssigneeDirectoryIds w kw-jobs"},
+    ],
+  },
+  {
     date:"2026-06-03", version:"2.45.28", label:"Roboty — Rozpocznij realizację kontraktu (ETAP 8.5 MIN)",
     items:[
       {type:"new", text:"Baner przetargu w Robotach — przycisk „Rozpocznij realizację” (etap W realizacji, status W trakcie, wpis w historii)"},

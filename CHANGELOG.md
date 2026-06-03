@@ -4,9 +4,15 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja:** **2.45.28** (UI)
+**Aktualna wersja:** **2.45.29** (UI)
 
 ---
+
+## 2.45.29 (2026-06-03) — ETAP 8.5 FULL: planowa ekipa (B lite)
+
+- Pola `executionLeadDirectoryId`, `executionAssigneeDirectoryIds` w `Job` (`kw-jobs`)
+- Baner kontraktu: lider + multi-select, `assignExecutionTeam`, badge na liście
+- Merge w `mergeJobsById`; bez payroll / grafiku / Edge
 
 ## 2.45.28 (2026-06-03) — ETAP 8.5 MIN: Start Execution
 

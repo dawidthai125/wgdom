@@ -5,7 +5,14 @@ import {
   isSupabaseConfigured,
 } from "@/config/supabase";
 import { mergeJobFiles, mergeJobsDocumentsOnConflict, mergeReportDocSaOverrideOnConflict } from "@/lib/job-documents";
-import { mergeJobNotes, mergeInspectorPhotos, mergeHandoverStage, mergePlannedHandoverDate } from "@/lib/job-wm";
+import {
+  mergeJobNotes,
+  mergeInspectorPhotos,
+  mergeHandoverStage,
+  mergePlannedHandoverDate,
+  mergeExecutionLeadDirectoryId,
+  mergeExecutionAssigneeDirectoryIds,
+} from "@/lib/job-wm";
 import { mergeHiddenInspectorFeedIds } from "@/lib/job-activity";
 import {
   mergeTenderDataKey,
@@ -299,6 +306,8 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
     handoverStage?: string;
     plannedHandoverDate?: string;
     hiddenInspectorFeedIds?: string[];
+    executionLeadDirectoryId?: string;
+    executionAssigneeDirectoryIds?: string[];
   };
   const map = new Map<string, J>();
   const mergePair = (prev: J, j: J): J => {
@@ -338,6 +347,15 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
         ? (jTs >= prevTs ? (j.inspectorPhotos || []) : (prev.inspectorPhotos || []))
         : mergeInspectorPhotos(prev.inspectorPhotos, j.inspectorPhotos),
       plannedHandoverDate: mergePlannedHandoverDate(prev.plannedHandoverDate, j.plannedHandoverDate),
+      executionLeadDirectoryId: mergeExecutionLeadDirectoryId(
+        prev.executionLeadDirectoryId,
+        j.executionLeadDirectoryId,
+        jTs >= prevTs,
+      ),
+      executionAssigneeDirectoryIds: mergeExecutionAssigneeDirectoryIds(
+        prev.executionAssigneeDirectoryIds,
+        j.executionAssigneeDirectoryIds,
+      ),
       handoverStage: mergeHandoverStage(
         prev.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,
         j.handoverStage as import("@/lib/job-wm").JobHandoverStage | undefined,

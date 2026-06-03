@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (obecnie **2.45.27**)  
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (obecnie **2.45.29**)  
 > **Ostatnia aktualizacja tego dokumentu:** 2026-06-03 (FAZA 8 CLOSED — § 12.1.4; ETAP 7G — § 6.1, § 12.1.3, [`tender-center-7g-executive.md`](tender-center-7g-executive.md))
 
 ---
@@ -512,7 +512,7 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 
-**Status:** **CLOSED** (8.0–8.4). **ETAP 8.5 MIN** — Start Execution (`startJobExecution`, baner Roboty). **Faza 9** — nie rozpoczęta bez polecenia.
+**Status:** **CLOSED** (8.0–8.4). **ETAP 8.5 MIN** — Start Execution. **ETAP 8.5 FULL** — planowa ekipa (`executionLeadDirectoryId`, `executionAssigneeDirectoryIds`). **Faza 9** — nie rozpoczęta bez polecenia.
 
 #### Przepływ produktowy
 
@@ -524,6 +524,7 @@ Tender (pipeline BZP, status won)
   → Executive Dashboard (KPI, Utwórz / Otwórz robotę — ETAP 8.3)
   → Open Job (pendingJobId → Roboty)
   → Start Execution (8.5 MIN: „Rozpocznij realizację” w banerze — `jobPhase` + `handoverStage` + activityLog)
+  → Planowa ekipa (8.5 FULL: lider + lista wykonawców w banerze, badge na liście robót)
 ```
 
 #### ETAP 8.5 MIN (Start Execution)
@@ -532,6 +533,22 @@ Tender (pipeline BZP, status won)
 |------|------|
 | `src/lib/job-wm.ts` | `startJobExecution`, `canShowStartExecutionButton`, `JOB_START_EXECUTION_ACTIVITY_TEXT` |
 | `src/app/JobsView.tsx` | Przycisk w banerze „Realizacja kontraktu” (`linkedTenderId`, etap ≠ `in_progress`) |
+
+#### ETAP 8.5 FULL (planowa ekipa — Wariant B lite)
+
+| Pole `Job` | Opis |
+|------------|------|
+| `executionLeadDirectoryId` | Id lidera z `kw-directory` |
+| `executionAssigneeDirectoryIds` | Tablica id planowej ekipy (bez auto `workEntries`) |
+
+| Plik | Rola |
+|------|------|
+| `src/lib/job-wm.ts` | `assignExecutionTeam`, merge pól ekipy przy sync |
+| `src/lib/cloud-sync.ts` | `mergeJobsById` — scalanie lead + union assignees |
+| `src/app/JobsView.tsx` | Select lidera + checkboxy ekipy w banerze kontraktu |
+| `src/app/JobListCard.tsx` | Badge „Ekipa: N” |
+
+Bez zmian: payroll, grafik, portfolio WM, Tender Center, Executive, Supabase Edge, `workEntries`.
 
 Bez zmian: `executeCreateJobFromTender`, `TenderJobLinkButtons`, pipeline, Command Center.
 

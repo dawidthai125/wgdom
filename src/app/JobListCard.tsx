@@ -13,6 +13,7 @@ import { countJobFiles } from "@/lib/job-files-index";
 type JobListCardJob = JobListStatusJob & {
   id: string;
   workEntries: { directoryId?: string; employeeName: string }[];
+  executionAssigneeDirectoryIds?: string[];
 };
 
 export function JobListCard({
@@ -52,6 +53,7 @@ export function JobListCard({
   const missingDocs = jobMissingRequiredDocs(job);
   const jobPhase = inferJobPhase(job);
   const fileCount = countJobFiles(job);
+  const executionCrewCount = job.executionAssigneeDirectoryIds?.length ?? 0;
 
   return (
     <div className={`flex items-stretch border-b border-border transition-colors ${
@@ -105,6 +107,11 @@ export function JobListCard({
           )}
           {isDuplicate && (
             <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">Duplikat</span>
+          )}
+          {executionCrewCount > 0 && (
+            <span className="text-[10px] bg-sky-500/12 text-sky-700 dark:text-sky-400 px-1.5 py-0.5 rounded-full font-medium">
+              Ekipa: {executionCrewCount}
+            </span>
           )}
           {workerCount > 0 && (
             <span className="text-[10px] text-muted-foreground">{workerCount} os. · {totalHoursLabel}</span>

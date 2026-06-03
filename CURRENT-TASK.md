@@ -4,9 +4,9 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** (czytaj też `.cursor/rules/wgdom-stan-projektu.mdc`).
 
 **Ostatnia aktualizacja:** 2026-06-03  
-**Wersja UI:** **2.45.27** (`src/app/changelog-data.ts`)  
-**Prod (`main`):** https://www.wgdom.fun · commit **`88c25f8`**  
-**Faza 8:** **CLOSED**
+**Wersja UI:** **2.45.29** (`src/app/changelog-data.ts`)  
+**Faza 8:** **CLOSED** · **ETAP 8.5 MIN:** CLOSED · **ETAP 8.5 FULL (B lite):** CLOSED (lokalnie, bez commitu)  
+**Faza 9:** NOT STARTED
 
 ---
 
@@ -35,7 +35,20 @@ Tender → Win → Create Job → Execution Ready → Executive Dashboard → Op
 
 ---
 
-## Okres stabilizacji (propozycje — **nie** ETAP 8.5 / **nie** Faza 9 bez polecenia)
+## ETAP 8.5 — planowa ekipa (FULL)
+
+| Etap | Status | Zakres |
+|------|--------|--------|
+| **8.5 MIN** | CLOSED (`1c7e164`) | `startJobExecution`, baner „Rozpocznij realizację” |
+| **8.5 FULL** | CLOSED (kod lokalny) | `executionLeadDirectoryId`, `executionAssigneeDirectoryIds`, baner + badge |
+
+**Test:** `npx vite-node scripts/test-job-execution-team-8.5-full.mjs`
+
+**Smoke prod:** wygrana → robota → start realizacji → lider + 3 osoby → odśwież → badge „Ekipa: 3”.
+
+---
+
+## Okres stabilizacji (propozycje — **nie** Faza 9 bez polecenia)
 
 1. **Smoke manualny** Fazy 8 na wgdom.fun (konto z wygranymi bez `linkedJobId`)
 2. **Deprecate `tenderDashStats`** — UI pulpitu nie czyta; ewentualny jeden load pipeline

@@ -104,6 +104,55 @@ export function normalizeJobWmFields<T extends JobWmJob & { jobPhase?: JobPhase 
 /** ETAP 8.5 MIN — tekst wpisu w activityLog po „Rozpocznij realizację”. */
 export const JOB_START_EXECUTION_ACTIVITY_TEXT = "Rozpoczęto realizację kontraktu";
 
+/** ETAP 8.5 FULL — tekst wpisu w activityLog po przypisaniu ekipy planowej. */
+export const JOB_EXECUTION_TEAM_ACTIVITY_TEXT = "Przypisano ekipę realizacyjną";
+
+export function sanitizeExecutionAssigneeIds(raw: string[] | undefined): string[] {
+  return [...new Set((raw || []).map((id) => String(id).trim()).filter(Boolean))];
+}
+
+export function mergeExecutionLeadDirectoryId(
+  a?: string,
+  b?: string,
+  preferB?: boolean,
+): string | undefined {
+  const leadA = a?.trim() || undefined;
+  const leadB = b?.trim() || undefined;
+  if (!leadA) return leadB;
+  if (!leadB) return leadA;
+  return preferB ? leadB : leadA;
+}
+
+export function mergeExecutionAssigneeDirectoryIds(
+  a?: string[],
+  b?: string[],
+): string[] {
+  return sanitizeExecutionAssigneeIds([...(a || []), ...(b || [])]);
+}
+
+/**
+ * ETAP 8.5 FULL — planowa ekipa na robocie (bez workEntries / payroll).
+ */
+export function assignExecutionTeam<
+  T extends JobWmJob & {
+    executionLeadDirectoryId?: string;
+    executionAssigneeDirectoryIds?: string[];
+    activityLog?: JobActivity[];
+    updatedAt?: string;
+  },
+>(job: T, leadDirectoryId: string | undefined, assigneeDirectoryIds: string[], actorName: string): T {
+  const lead = leadDirectoryId?.trim() || undefined;
+  const assignees = sanitizeExecutionAssigneeIds(assigneeDirectoryIds);
+  let next: T = {
+    ...job,
+    executionLeadDirectoryId: lead,
+    executionAssigneeDirectoryIds: assignees,
+    updatedAt: new Date().toISOString(),
+  };
+  next = appendJobActivity(next, "status_change", JOB_EXECUTION_TEAM_ACTIVITY_TEXT, actorName);
+  return next;
+}
+
 /** Baner przetargu: pokaż CTA gdy jest linkedTenderId i etap ≠ W realizacji. */
 export function canShowStartExecutionButton(
   job: JobWmJob & { linkedTenderId?: string },

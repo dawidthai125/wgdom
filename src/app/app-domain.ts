@@ -278,6 +278,10 @@ export interface Job {
   /** Powiązany przetarg BZP (pipeline). */
   linkedTenderId?: string;
   linkedTenderBzpNumber?: string;
+  /** ETAP 8.5 FULL — planowany lider ekipy (id z kw-directory). */
+  executionLeadDirectoryId?: string;
+  /** ETAP 8.5 FULL — planowana ekipa (ids z kw-directory, bez auto workEntries). */
+  executionAssigneeDirectoryIds?: string[];
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -1265,7 +1269,13 @@ export function normalizeJob(job: Job): Job {
     activityLog: job.activityLog || [],
     materials: job.materials || [],
     jobFiles: job.jobFiles || [],
+    executionLeadDirectoryId: job.executionLeadDirectoryId?.trim() || undefined,
+    executionAssigneeDirectoryIds: sanitizeExecutionAssigneeIds(job.executionAssigneeDirectoryIds),
   })));
+}
+
+function sanitizeExecutionAssigneeIds(raw: string[] | undefined): string[] {
+  return [...new Set((raw || []).map((id) => String(id).trim()).filter(Boolean))];
 }
 
 export function normalizeJobsList(raw: unknown[]): Job[] {

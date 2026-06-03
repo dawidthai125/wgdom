@@ -58,6 +58,7 @@ import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
 import {
   normalizeJobWmFields, isWmClient, fmtPlannedHandover, HANDOVER_STAGE_LABELS,
   inferHandoverStage, removeInspectorPhoto, canShowStartExecutionButton, startJobExecution,
+  assignExecutionTeam,
 } from "@/lib/job-wm";
 import {
   type Job, type WeekEmployee, type DirectoryEmployee, type PhotoEntry, type WorkEntry, type DocType,
@@ -539,6 +540,8 @@ export function JobsView({
   const [entryHours, setEntryHours] = useState(String(DEFAULT_JOB_ENTRY_HOURS));
   const [entryRate, setEntryRate] = useState("");
 
+  const [teamLeadId, setTeamLeadId] = useState("");
+  const [teamAssigneeIds, setTeamAssigneeIds] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const [expandedWorkerKeys, setExpandedWorkerKeys] = useState<Set<string>>(new Set());
@@ -564,6 +567,14 @@ export function JobsView({
   }, [initialJobId, jobs, onInitialJobConsumed]);
 
   const selectedJob = jobs.find(j=>j.id===selectedJobId)||null;
+  const productionDirectory = useMemo(
+    () => filterProductionActiveDirectory(directory),
+    [directory],
+  );
+  const savedExecutionLeadName = useMemo(() => {
+    if (!selectedJob?.executionLeadDirectoryId) return null;
+    return directory.find((d) => d.id === selectedJob.executionLeadDirectoryId)?.name ?? null;
+  }, [selectedJob?.executionLeadDirectoryId, directory]);
   const companyWeekHours = useMemo(
     () => {
       const h = weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).totalHours, 0);
@@ -603,6 +614,16 @@ export function JobsView({
   useEffect(() => {
     setExpandedWorkerKeys(new Set());
   }, [selectedJobId]);
+
+  useEffect(() => {
+    if (!selectedJob) {
+      setTeamLeadId("");
+      setTeamAssigneeIds([]);
+      return;
+    }
+    setTeamLeadId(selectedJob.executionLeadDirectoryId || "");
+    setTeamAssigneeIds(selectedJob.executionAssigneeDirectoryIds || []);
+  }, [selectedJobId, selectedJob?.executionLeadDirectoryId, selectedJob?.executionAssigneeDirectoryIds]);
 
   const markedReportsForJobRef = useRef<string | null>(null);
   useEffect(() => {
@@ -691,6 +712,20 @@ export function JobsView({
     const actor = adminSession?.displayName || "Administrator";
     updateJob(startJobExecution(selectedJob, actor));
     toast.success("Rozpoczęto realizację kontraktu");
+  };
+
+  const handleSaveExecutionTeam = () => {
+    if (!selectedJob) return;
+    if (!teamLeadId && teamAssigneeIds.length === 0) return;
+    const actor = adminSession?.displayName || "Administrator";
+    updateJob(assignExecutionTeam(selectedJob, teamLeadId || undefined, teamAssigneeIds, actor));
+    toast.success("Zapisano ekipę realizacyjną");
+  };
+
+  const toggleTeamAssignee = (id: string) => {
+    setTeamAssigneeIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
   };
 
   const handleDeleteJobFile = async (file: import("@/lib/job-documents").JobFileAttachment, busyKey?: string) => {
@@ -1416,6 +1451,84 @@ export function JobsView({
                           <span className="font-medium">{fmtPlannedHandover(selectedJob.plannedHandoverDate)}</span>
                         </p>
                       )}
+                    </div>
+                    {(savedExecutionLeadName || (selectedJob.executionAssigneeDirectoryIds?.length ?? 0) > 0) && (
+                      <div className="text-xs space-y-0.5 pt-0.5">
+                        {savedExecutionLeadName && (
+                          <p>
+                            <span className="text-muted-foreground">Lider: </span>
+                            <span className="font-medium text-foreground">{savedExecutionLeadName}</span>
+                          </p>
+                        )}
+                        {(selectedJob.executionAssigneeDirectoryIds?.length ?? 0) > 0 && (
+                          <p>
+                            <span className="text-muted-foreground">Ekipa: </span>
+                            <span className="font-medium text-foreground">
+                              {selectedJob.executionAssigneeDirectoryIds!.length}{" "}
+                              {selectedJob.executionAssigneeDirectoryIds!.length === 1
+                                ? "osoba"
+                                : selectedJob.executionAssigneeDirectoryIds!.length < 5
+                                  ? "osoby"
+                                  : "osób"}
+                            </span>
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    <div className="border-t border-emerald-500/20 pt-2 space-y-2">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <Users size={11} className="shrink-0" />
+                        Plan ekipy realizacyjnej
+                      </p>
+                      <div>
+                        <label className="text-xs text-muted-foreground block mb-1">Lider</label>
+                        <select
+                          value={teamLeadId}
+                          onChange={(e) => setTeamLeadId(e.target.value)}
+                          className="w-full bg-background rounded-lg px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none transition-colors"
+                        >
+                          <option value="">Wybierz lidera…</option>
+                          {productionDirectory.map((d) => (
+                            <option key={d.id} value={d.id}>
+                              {d.name}{d.position ? ` — ${d.position}` : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground block mb-1">Ekipa</label>
+                        <div className="max-h-36 overflow-y-auto overscroll-contain rounded-lg border border-border bg-background/70 p-2 space-y-0.5">
+                          {productionDirectory.length === 0 ? (
+                            <p className="text-xs text-muted-foreground px-1 py-2">Brak aktywnych pracowników w kartotece.</p>
+                          ) : (
+                            productionDirectory.map((d) => (
+                              <label
+                                key={d.id}
+                                className="flex items-center gap-2 text-xs cursor-pointer py-1 px-1 rounded hover:bg-secondary/50"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={teamAssigneeIds.includes(d.id)}
+                                  onChange={() => toggleTeamAssignee(d.id)}
+                                  className="rounded border-border"
+                                />
+                                <span className="min-w-0 truncate">
+                                  {d.name}{d.position ? ` — ${d.position}` : ""}
+                                </span>
+                              </label>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleSaveExecutionTeam}
+                        disabled={!teamLeadId && teamAssigneeIds.length === 0}
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[40px] rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation"
+                      >
+                        <Check size={14} className="shrink-0" />
+                        Zapisz ekipę
+                      </button>
                     </div>
                     {canShowStartExecutionButton(selectedJob) && (
                       <button
