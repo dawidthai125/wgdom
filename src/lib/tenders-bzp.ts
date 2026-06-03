@@ -695,6 +695,101 @@ function addCalendarDaysIso(isoStart: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** ETAP 8.4 — DD.MM.YYYY → YYYY-MM-DD; tylko poprawne daty kalendarzowe. */
+function dmyToIso(day: string, month: string, year: string): string | undefined {
+  const dd = parseInt(day, 10);
+  const mm = parseInt(month, 10);
+  const yyyy = parseInt(year, 10);
+  if (!Number.isFinite(dd) || !Number.isFinite(mm) || !Number.isFinite(yyyy)) return undefined;
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31 || yyyy < 1990 || yyyy > 2100) return undefined;
+  const probe = new Date(`${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}T12:00:00`);
+  if (
+    probe.getFullYear() !== yyyy
+    || probe.getMonth() + 1 !== mm
+    || probe.getDate() !== dd
+  ) {
+    return undefined;
+  }
+  return `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+}
+
+/**
+ * ETAP 8.4 — jednoznaczny termin końcowy (bez zgadywania).
+ * Wzorce: „do 31.12.2026”, „termin realizacji: 31.12.2026”, samo „31.12.2026”.
+ */
+export function parseAbsoluteDeadlineFromSwzText(raw: string | null | undefined): string | undefined {
+  if (!raw?.trim()) return undefined;
+  const text = raw.replace(/\s+/g, " ").trim();
+  const patterns: RegExp[] = [
+    /\bdo\s+(\d{1,2})\.(\d{1,2})\.(\d{4})\b/i,
+    /termin\s+(?:realizacji|wykonania|zakończenia|zakonczenia)\s*[:\s]+(\d{1,2})\.(\d{1,2})\.(\d{4})/i,
+    /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/i,
+  ];
+  for (const re of patterns) {
+    const m = text.match(re);
+    if (m) return dmyToIso(m[1], m[2], m[3]);
+  }
+  return undefined;
+}
+
+/**
+ * ETAP 8.4 — jednoznaczny okres: „30 dni”, „6 miesięcy” (dokładnie jeden match w tekście).
+ */
+export function parseUnambiguousDurationDaysFromSwzText(raw: string | null | undefined): number | null {
+  if (!raw?.trim()) return null;
+  const text = raw.replace(/\s+/g, " ").trim();
+  const dayMatches = [...text.matchAll(/(\d+)\s*(?:dni|dzień|dzien|dni roboczych?)\b/gi)];
+  const monthMatches = [...text.matchAll(/(\d+)\s*(?:miesięcy|miesiące|mies\.?)\b/gi)];
+  type Hit = { kind: "days" | "months"; n: number };
+  const hits: Hit[] = [];
+  for (const m of dayMatches) {
+    const n = parseInt(m[1], 10);
+    if (Number.isFinite(n) && n > 0 && n <= 730) hits.push({ kind: "days", n });
+  }
+  for (const m of monthMatches) {
+    const n = parseInt(m[1], 10);
+    if (Number.isFinite(n) && n > 0 && n <= 36) hits.push({ kind: "months", n });
+  }
+  if (hits.length !== 1) return null;
+  const one = hits[0]!;
+  return one.kind === "days" ? one.n : one.n * 30;
+}
+
+function tenderImplementationDeadlineRaw(item: TenderPipelineItem): string | null {
+  const raw = item.swzAnalysis?.implementationDeadlineRaw?.trim();
+  return raw || null;
+}
+
+function tenderContractPeriod(item: TenderPipelineItem): string | null {
+  const raw = item.tenderDossier?.brief?.contractPeriod?.trim();
+  return raw || null;
+}
+
+/** Koniec realizacji z tekstu SWZ/brief — wymaga startDate (okres względny) lub sama data absolutna. */
+function resolveEndDateFromSwzFallbackText(
+  raw: string,
+  startDateIso: string | undefined,
+): string | undefined {
+  const abs = parseAbsoluteDeadlineFromSwzText(raw);
+  const dur = parseUnambiguousDurationDaysFromSwzText(raw);
+  if (abs && dur) return undefined;
+  if (startDateIso && dur) return addCalendarDaysIso(startDateIso, dur);
+  if (abs) return abs;
+  return undefined;
+}
+
+function resolveEndDateFromSwzFallbacks(
+  item: TenderPipelineItem,
+  startDateIso: string | undefined,
+): string | undefined {
+  for (const raw of [tenderImplementationDeadlineRaw(item), tenderContractPeriod(item)]) {
+    if (!raw) continue;
+    const end = resolveEndDateFromSwzFallbackText(raw, startDateIso);
+    if (end) return end;
+  }
+  return undefined;
+}
+
 /** ETAP 8.1 — kwota faktury: wygrana → SWZ → nasz szacunek. */
 export function resolveInvoiceAmountFromTender(item: TenderPipelineItem): string {
   const awardPln = item.awardResult?.awardValuePln;
@@ -705,15 +800,27 @@ export function resolveInvoiceAmountFromTender(item: TenderPipelineItem): string
   return "";
 }
 
-/** ETAP 8.1 — terminy z umowy + implementationDays (bez contractPeriod / deadline raw). */
+/**
+ * Terminy draftu roboty z przetargu.
+ * Priorytet: contractDate + implementationDays (8.1) → implementationDeadlineRaw → contractPeriod.
+ */
 export function resolveJobDraftDatesFromTender(
   item: TenderPipelineItem,
 ): Pick<TenderJobDraft, "startDate" | "endDate"> {
   const startDate = awardContractDateToIso(item.awardResult?.contractDate);
-  if (!startDate) return {};
-  const implDays = item.swzAnalysis?.implementationDays;
-  if (implDays == null || implDays <= 0) return { startDate };
-  return { startDate, endDate: addCalendarDaysIso(startDate, implDays) };
+  if (startDate) {
+    const implDays = item.swzAnalysis?.implementationDays;
+    if (implDays != null && implDays > 0) {
+      return { startDate, endDate: addCalendarDaysIso(startDate, implDays) };
+    }
+    const endFromFallback = resolveEndDateFromSwzFallbacks(item, startDate);
+    if (endFromFallback) return { startDate, endDate: endFromFallback };
+    return { startDate };
+  }
+
+  const endOnly = resolveEndDateFromSwzFallbacks(item, undefined);
+  if (endOnly) return { endDate: endOnly };
+  return {};
 }
 
 /** Szablon roboty z wygranego / przygotowywanego przetargu. */

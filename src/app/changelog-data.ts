@@ -11,6 +11,13 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-03", version:"2.45.27", label:"Przetargi — daty SWZ w robocie (ETAP 8.4)",
+    items:[
+      {type:"improve", text:"Utwórz robotę — dodatkowe terminy z SWZ (okres w dniach/miesiącach, data „do …”) gdy brak daty umowy lub liczby dni z analizy"},
+      {type:"fix", text:"Priorytet bez zmian: najpierw data umowy + dni z SWZ; tekstowe terminy tylko jako bezpieczny fallback"},
+    ],
+  },
+  {
     date:"2026-06-03", version:"2.45.26", label:"Pulpit — wygrane bez roboty + CTA (ETAP 8.3)",
     items:[
       {type:"new", text:"Pulpit COMMAND CENTER — KPI „Wygrane bez roboty” oraz przyciski Utwórz / Otwórz robotę przy wygranych"},
