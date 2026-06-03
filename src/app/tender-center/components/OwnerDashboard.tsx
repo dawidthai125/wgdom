@@ -55,14 +55,11 @@ import { CommandCenterHero } from "@/app/tender-center/components/CommandCenterH
 import { BestOpportunityCard } from "@/app/tender-center/components/BestOpportunityCard";
 import { ForecastCommandStrip } from "@/app/tender-center/components/ForecastCommandStrip";
 import { WhatIfPanel } from "@/app/tender-center/components/WhatIfPanel";
-import { ImpactPanel } from "@/app/tender-center/components/ImpactPanel";
 import { FinancialCapacityPanel } from "@/app/tender-center/components/FinancialCapacityPanel";
 import { TenderPortfolioPanel } from "@/app/tender-center/components/TenderPortfolioCounters";
 import { CommandCenterExplainability } from "@/app/tender-center/components/CommandCenterExplainability";
 import { CommandCenterBrandHeader } from "@/app/tender-center/components/CommandCenterBrandHeader";
 import { COMMAND_CENTER_BRAND } from "@/app/tender-center/branding";
-import { computeTenderImpact } from "@/lib/tender-center-impact";
-import { computeFinancialCapacity } from "@/lib/tender-center-financial-capacity";
 import {
   Accordion,
   AccordionContent,
@@ -319,47 +316,8 @@ export function OwnerDashboard({
     [radarTop, scoredForForecast, health, forecast90, ownerDecisions.store, ownerAlerts],
   );
 
-  const tenderImpact = useMemo(() => {
-    if (!bestOpportunity) return null;
-    return computeTenderImpact({
-      bundle: bestOpportunity,
-      health,
-      healthInput,
-      forecastInput,
-      forecast: forecast90,
-      growthMode: growthModeState.mode,
-      jobs,
-      weekEmployees: productionWeekEmployees,
-      directory,
-      goCandidates,
-      profile,
-    });
-  }, [
-    bestOpportunity,
-    health,
-    healthInput,
-    forecastInput,
-    forecast90,
-    growthModeState.mode,
-    jobs,
-    productionWeekEmployees,
-    directory,
-    goCandidates,
-    profile,
-  ]);
-
-  const financialCapacity = useMemo(() => {
-    if (!bestOpportunity || !tenderImpact) return null;
-    return computeFinancialCapacity({
-      bundle: bestOpportunity,
-      profile,
-      health,
-      impact: tenderImpact,
-      jobs,
-      growthMode: growthModeState.mode,
-      pipelineItems: pipeline.items,
-    });
-  }, [bestOpportunity, tenderImpact, profile, health, jobs, growthModeState.mode, pipeline.items]);
+  // HOTFIX: Impact engine wyłączony — panel finansowy bez danych impact (izolacja 6C/6D).
+  const financialCapacity = null;
 
   const handleGrowthModeChange = (mode: GrowthModeState["mode"]) => {
     setGrowthModeState(setGrowthMode(mode));
@@ -382,7 +340,7 @@ export function OwnerDashboard({
       systemDecision: bundle.decision,
       opportunityScore: bundle.opportunity.score,
       strategicScore: bundle.strategic.score,
-      impactScore: tenderImpact?.impactScore ?? 0,
+      impactScore: 0,
     });
     setLearningRevision((v) => v + 1);
     setPendingDecision(null);
@@ -452,8 +410,6 @@ export function OwnerDashboard({
           />
           <ForecastCommandStrip forecast={forecast90} />
         </div>
-
-        <ImpactPanel impact={tenderImpact} />
 
         <FinancialCapacityPanel capacity={financialCapacity} />
 
