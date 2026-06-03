@@ -3,7 +3,7 @@
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
 > **Aktualna wersja UI:** `CHANGELOG[0].version` w `src/app/App.tsx` (obecnie **2.45.14**)  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-02 (Payroll Guard P11, admin passwords P15 — § 11.4–11.5, [`INCIDENTS-2026-06.md`](INCIDENTS-2026-06.md))
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-03 (ETAP 7G — executive COMMAND CENTER na pulpicie — § 6.1, § 12.1.3, [`tender-center-7g-executive.md`](tender-center-7g-executive.md))
 
 ---
 
@@ -160,7 +160,7 @@ Nawigacja **nie używa URL** (poza `?podglad=` i deep linkami). Stan w React + `
 
 | `view` | Opis | Główna funkcja w App.tsx |
 |--------|------|--------------------------|
-| `dashboard` | Pulpit, alerty „Uwaga dziś” | `DashboardView` |
+| `dashboard` | Pulpit: operacje (roboty, płace, WM) + **COMMAND CENTER executive** (7G) + „Uwaga dziś” | `DashboardView` |
 | `payroll` | Lista płac | `PayrollView` |
 | `schedule` | Grafik tygodnia | `ScheduleView` |
 | `directory` | Kartoteka pracowników | `DirectoryView` |
@@ -171,7 +171,7 @@ Nawigacja **nie używa URL** (poza `?podglad=` i deep linkami). Stan w React + `
 | `photos` | Galeria zdjęć (admin) — zaakceptowane zdjęcia ekipy; ZIP całej roboty / kategorii | `JobPhotosGalleryView` w `App.tsx` |
 | `jobfiles` | Pliki robót | `JobAllFilesView` / browser |
 | `guide` | Instrukcja + Changelog | `HelpView`, `ChangelogView` |
-| `tenders` | Przetargi BZP (pipeline) | `TendersView` — Super Admin zawsze; admin/moderator gdy `tendersTabForStaffEnabled` |
+| `tenders` | Przetargi: **COMMAND CENTER AI** (`TenderCenterProView` / `OwnerDashboard`) lub widok klasyczny | Super Admin zawsze; admin/moderator gdy `tendersTabForStaffEnabled` |
 
 Widoki nieaktywne są **odmontowywane** (`{view==="jobs"&&<JobsView/>}`) — scroll wewnątrz każdego widoku.
 
@@ -470,7 +470,7 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 
 - **Karta ofertowa** (`TenderBidPrepPanel`) — checklist, analiza SWZ, wadium + blokada, referencje, wynik BZP, porównanie cen, .ics terminu, pakiet PDF.
 - **Chipy „wymaga działania”** — filtry: termin bez wyceny, wadium, brak kosztorysu, referencje NIE, obciążenie zespołu.
-- **Pulpit admin** — sekcja alertów przetargów (klik → otwiera przetarg).
+- **Pulpit admin (7G)** — **W&G DOM COMMAND CENTER AI** (executive summary): briefing, health, capacity, okazja, prognoza 90d, Action Center (max 3). Szczegóły → [`tender-center-7g-executive.md`](tender-center-7g-executive.md). Stare alerty BZP (`tenderDashStats`) — **@legacy**, UI ich nie pokazuje.
 - **Mapa Wrocław** — kafelki **OpenStreetMap** (`tile.openstreetmap.org`) + markery; **nie** `staticmap.openstreetmap.de` (niedostępny). Panel domyślnie rozwinięty.
 - **Słownik słów kluczowych** — wbudowany w `tenders-bzp-keywords.ts` (~280 haseł) + opcjonalne własne w chmurze (`kw-tenders-custom-keywords`).
 
@@ -485,6 +485,29 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 **Deploy Supabase wymagany** przy zmianie endpointów przetargowych (`index.tsx`).
 
 **Zarządzanie sekcją (v2.45):** klucze `kw-tenders-*` w `DATA_KEYS`; merge w `tenders-sync.ts`; CSV, bulk, profil, słownik słów kluczowych.
+
+### 12.1.3 W&G DOM COMMAND CENTER AI + pulpit executive (ETAP 4–7G)
+
+**Pełny moduł:** `src/app/TenderCenterProView.tsx` → `src/app/tender-center/components/OwnerDashboard.tsx` (lazy chunk `TenderCenterProView-*.js`).
+
+**Pulpit (ETAP 7G):** `DashboardView` → `CommandCenterExecutivePanel` — ten sam silnik co CC przez `useCommandCenterExecutiveSnapshot`.
+
+| Plik | Rola |
+|------|------|
+| `src/app/tender-center/hooks/useCommandCenterExecutiveSnapshot.ts` | Snapshot: health, briefing, action center, forecast, best opportunity, … |
+| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | Executive summary (5 kart + Action Center max 3) |
+| `src/lib/tender-center-health.ts` | Health Index |
+| `src/lib/tender-center-morning-briefing.ts` | Morning Briefing |
+| `src/lib/tender-center-action-center.ts` | Action Center |
+| `src/lib/tender-center-forecast-90d.ts` | Prognoza 90 dni |
+| `src/lib/tender-center-decision.ts` | Scoring / najlepsza okazja |
+| `src/lib/tender-center-financial-capacity.ts` | Zdolność finansowa (pulpit: z impact najlepszej okazji) |
+
+**@legacy:** `tenderDashStats` w `App.tsx` (`computeTendersDashboardStats` + `enrichTendersDashboardStats`) — fetch nadal przy `dashboard`/`tenders`, UI pulpitu nie czyta.
+
+**Dokumentacja AI:** [`docs/tender-center-7g-executive.md`](tender-center-7g-executive.md) · komponenty UI legacy 5A: [`tender-center-pro-legacy-components.md`](tender-center-pro-legacy-components.md)
+
+**Prod 7G:** commit `7d49be2`.
 
 #### UX — scroll (v2.43.1)
 

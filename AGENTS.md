@@ -11,9 +11,10 @@
 2. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
 3. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
 4. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin (czerwiec 2026)
-5. CHANGELOG.md           ← CO już zrobiono (skrót)
-6. CURRENT-TASK.md        ← gdzie skończyliśmy / co dalej
-7. App.tsx → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+5. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G) ★
+6. CHANGELOG.md           ← CO już zrobiono (skrót)
+7. CURRENT-TASK.md        ← gdzie skończyliśmy / co dalej
+8. App.tsx → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -71,9 +72,11 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 
 ---
 
-## 3a. Moduł przetargów (skrót)
+## 3a. Moduł przetargów + COMMAND CENTER (skrót)
 
-Szczegóły: **ARCHITECTURE.md § 12.1.1**. Kluczowe pliki (stan **v2.45.12**):
+- **Pulpit executive (7G):** [`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md) — `CommandCenterExecutivePanel`, `useCommandCenterExecutiveSnapshot`, legacy `tenderDashStats`
+- **Pełny CC:** `OwnerDashboard` + **ARCHITECTURE.md § 12.1.3**
+- **Lista BZP / pipeline:** **ARCHITECTURE.md § 12.1.1**. Kluczowe pliki (stan **v2.45.12**):
 
 - `src/lib/tenders-bzp.ts` — pipeline, typy, API klienta, scoring
 - `src/lib/tenders-actions.ts` — chipy akcji, auto-wynik BZP, alerty pulpitu, .ics

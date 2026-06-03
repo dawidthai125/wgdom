@@ -4,7 +4,15 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `App.tsx` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja:** **2.45.14**
+**Aktualna wersja:** **2.45.14** (UI); **7G wdrożone** na prod commit `7d49be2` (2026-06-03, bez bump wersji w App.tsx)
+
+---
+
+## Docs — ETAP 7G executive dashboard (2026-06-03)
+
+- **new** [`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md) — mapa plików, hook, legacy stats, ryzyka deploy
+- **improve** `ARCHITECTURE.md` § 6.1, § 12.1.3 · `AGENTS.md` START HERE · `CURRENT-TASK.md` · `wgdom-stan-projektu.mdc`
+- **Kod prod:** `7d49be2` — `feat(dashboard): integrate command center executive summary`
 
 ---
 

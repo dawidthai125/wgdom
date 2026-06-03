@@ -13,9 +13,18 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
 - **Aktualna wersja:** sprawdź `CHANGELOG[0].version` w App.tsx
-- **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`PROJECT-GUIDE.md`](../../PROJECT-GUIDE.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) → [`docs/INCIDENTS-2026-06.md`](../../docs/INCIDENTS-2026-06.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md)
+- **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`PROJECT-GUIDE.md`](../../PROJECT-GUIDE.md) → [`docs/tender-center-7g-executive.md`](../../docs/tender-center-7g-executive.md) (pulpit + CC) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) → [`docs/INCIDENTS-2026-06.md`](../../docs/INCIDENTS-2026-06.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md)
 - **Testy użytkownika:** głównie **Vercel**, nie localhost
 - **Konto testowe pracownika:** imię `test`, tel. `+48 000 000 000` — tylko tryb pracownika, bez listy płac/grafiku/pulpitu
+
+## ETAP 7G — Pulpit × COMMAND CENTER AI (prod `7d49be2`, 2026-06-03)
+
+- **Pulpit:** `DashboardView` → `CommandCenterExecutivePanel` (gdy `canViewTenders`)
+- **Hook:** `useCommandCenterExecutiveSnapshot` — wspólny z `OwnerDashboard`
+- **Legacy:** `tenderDashStats` w `App.tsx` — fetch zostaje, **UI nie używa**
+- **Action Center na pulpicie:** max **3** × CRITICAL/HIGH
+- **Docs:** [`docs/tender-center-7g-executive.md`](../../docs/tender-center-7g-executive.md)
+- **Ryzyka:** podwójny load pipeline (App + hook), większy bundle `index-*.js`, PWA cache po deploy
 
 ## v2.45.12 — mapa OSM + słownik (2026-05)
 
@@ -117,7 +126,10 @@ Alerty (liczone w **Do ogarnięcia**):
 
 | Plik | Rola |
 |------|------|
-| `src/app/App.tsx` | UI, WorkerPhotoView, DashboardView, PhotoGallery, PayrollView |
+| `src/app/App.tsx` | UI, WorkerPhotoView, DashboardView (+ CC executive 7G), PhotoGallery, PayrollView |
+| `src/app/tender-center/hooks/useCommandCenterExecutiveSnapshot.ts` | Snapshot CC (pulpit + OwnerDashboard) |
+| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | Executive summary na pulpicie (7G) |
+| `docs/tender-center-7g-executive.md` | Dokumentacja 7G dla AI |
 | `src/app/InspectorPanel.tsx` | Panel inspektora — roboty, dokumenty, pliki |
 | `src/lib/job-documents.ts` | Typy dokumentów, jobFiles, accept MIME |
 | `src/lib/job-file-upload.ts` | Upload zlecenia/kosztorysu → storage-upload |

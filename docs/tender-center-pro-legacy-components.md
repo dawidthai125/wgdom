@@ -1,4 +1,18 @@
-# Tender Center PRO — komponenty legacy (ETAP 5A)
+# Tender Center PRO — komponenty i dane legacy
+
+## Dane legacy — `tenderDashStats` (ETAP 7G)
+
+| Warstwa | Stan |
+|---------|------|
+| `App.tsx` | `@legacy` — `computeTendersDashboardStats` + `enrichTendersDashboardStats` |
+| `DashboardView` | Prop `tendersStats` zachowany, **nieużywany w UI** (`void _legacyTendersStats`) |
+| Zastąpione przez | `CommandCenterExecutivePanel` + `useCommandCenterExecutiveSnapshot` |
+
+Szczegóły → [`tender-center-7g-executive.md`](tender-center-7g-executive.md).
+
+---
+
+## Komponenty UI legacy (ETAP 5A)
 
 Komponenty oznaczone `@legacy` **nie są montowane** w `OwnerDashboard` po ETAPIE 4/5A.
 

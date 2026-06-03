@@ -17,7 +17,8 @@
 | § 4–9 | Bootstrap, auth, panele (admin / inspektor / pracownik) |
 | § 10 | Model danych (`Job`, `WeekEmployee`, klucze LS) |
 | § 11 | **Sync i merge** (`cloud-sync.ts`) — **KRYTYCZNE** |
-| § 12 | Supabase backend, endpointy, **§ 12.1.1 przetargi** |
+| § 12 | Supabase backend, endpointy, **§ 12.1.1 przetargi**, **§ 12.1.3 COMMAND CENTER + pulpit 7G** |
+| — | **[`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md)** — executive summary na pulpicie (AI) |
 | § 13–14 | Vercel, PWA, mobile |
 | § 15–16 | Struktura katalogów, mapa `src/lib/` |
 | § 17 | Jak bezpiecznie rozbudować |
