@@ -115,30 +115,6 @@ export function OwnerDashboard({
     [learningRevision, ownerDecisionProfile],
   );
 
-  const morningBriefing = useMemo(
-    () =>
-      buildMorningBriefing({
-        health,
-        actionCenter,
-        forecast: forecast90,
-        financialCapacity,
-        ownerProfile: ownerDecisionProfile,
-        aiInsights,
-        bestOpportunity,
-        ownerName: profile.ownerName,
-      }),
-    [
-      health,
-      actionCenter,
-      forecast90,
-      financialCapacity,
-      ownerDecisionProfile,
-      aiInsights,
-      bestOpportunity,
-      profile.ownerName,
-    ],
-  );
-
   const profile = useMemo(() => loadCompanyProfileLocal(), []);
 
   const health = useMemo(
@@ -318,6 +294,30 @@ export function OwnerDashboard({
 
   // HOTFIX: Impact engine wyłączony — panel finansowy bez danych impact (izolacja 6C/6D).
   const financialCapacity = null;
+
+  const morningBriefing = useMemo(
+    () =>
+      buildMorningBriefing({
+        health,
+        actionCenter,
+        forecast: forecast90,
+        financialCapacity,
+        ownerProfile: ownerDecisionProfile,
+        aiInsights,
+        bestOpportunity,
+        ownerName: profile.ownerName,
+      }),
+    [
+      health,
+      actionCenter,
+      forecast90,
+      financialCapacity,
+      ownerDecisionProfile,
+      aiInsights,
+      bestOpportunity,
+      profile.ownerName,
+    ],
+  );
 
   const handleGrowthModeChange = (mode: GrowthModeState["mode"]) => {
     setGrowthModeState(setGrowthMode(mode));
