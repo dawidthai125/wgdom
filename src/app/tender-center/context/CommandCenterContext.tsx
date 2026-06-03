@@ -73,6 +73,7 @@ export type CommandCenterContextValue = {
   ownerProfile: OwnerProfile;
   aiInsights: AiInsightsResult;
   learningRevision: number;
+  profileVersion: number;
   bumpLearningRevision: () => void;
   bumpProfileVersion: () => void;
 };
@@ -424,6 +425,7 @@ export function CommandCenterProvider({
       ownerProfile,
       aiInsights,
       learningRevision,
+      profileVersion,
       bumpLearningRevision,
       bumpProfileVersion,
     }),
@@ -434,6 +436,7 @@ export function CommandCenterProvider({
       ownerProfile,
       aiInsights,
       learningRevision,
+      profileVersion,
       bumpLearningRevision,
       bumpProfileVersion,
     ],

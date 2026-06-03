@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   RefreshCw, Search, Scale, MapPin, Calendar, Building2,
   Filter, AlertCircle, HelpCircle, Download, Trash2, CheckSquare, Square,
@@ -22,7 +22,7 @@ import { tenderListBidLine } from "@/lib/tenders-bid-prep";
 import { TendersMapPanel } from "@/app/TendersMapPanel";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
-import { useTendersPipeline } from "@/app/tender-center/hooks/useTendersPipeline";
+import { useCommandCenterContext } from "@/app/tender-center/context/CommandCenterContext";
 
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -52,9 +52,16 @@ export function TendersView({
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId);
   const [showLegend, setShowLegend] = useState(false);
-  const [profileVersion, setProfileVersion] = useState(0);
+  const { snapshot, bumpProfileVersion, profileVersion } = useCommandCenterContext();
+  const pipeline = snapshot.pipeline;
+  const r1Hydrated = useRef(false);
 
-  const pipeline = useTendersPipeline({ profileVersion });
+  /** ETAP 8.0A R1 — lekki reload z storage przy wejściu w Classic (bez BZP merge). */
+  useEffect(() => {
+    if (r1Hydrated.current) return;
+    r1Hydrated.current = true;
+    void pipeline.reloadFromStorage();
+  }, [pipeline.reloadFromStorage]);
 
   useEffect(() => {
     if (initialExpandedId) setExpandedId(initialExpandedId);
@@ -147,7 +154,7 @@ export function TendersView({
         </button>
         {showLegend && <TendersLegend compact />}
 
-        <TenderCompanyProfilePanel onSaved={() => setProfileVersion((v) => v + 1)} />
+        <TenderCompanyProfilePanel onSaved={() => bumpProfileVersion()} />
         <TenderKeywordsPanel onSaved={() => void pipeline.resyncKeywords()} />
 
         <TendersMapPanel

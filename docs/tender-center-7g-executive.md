@@ -49,7 +49,7 @@ useTendersPipeline (×1 w Provider)
 
 `useCommandCenterExecutiveSnapshot()` **nie** tworzy drugiego pipeline — zwraca `snapshot` z Providera.
 
-**Classic View (`TendersView`):** nadal własny `useTendersPipeline` (osobny tryb listy/filtrów/SWZ — podłączenie wymagałoby przekazania mutacji pipeline do klasycznego UI).
+**ETAP 8.0A — Classic View (`TendersView`):** `useCommandCenterContext().snapshot.pipeline` (jeden runtime z Providerem). Przy mount: `pipeline.reloadFromStorage()` — hydration + keyword rescore, **bez** BZP merge / autoAward. Profil firmy: `bumpProfileVersion()` z Context.
 
 ---
 
@@ -105,8 +105,8 @@ Stary UX („Przetargi BZP” + lista `computeTenderDashboardAlerts`) **zastąpi
 
 ## Znane ograniczenia (nie naprawiać w 7G bez polecenia)
 
-1. **Podwójny load pipeline na pulpicie:** `App.tsx` (legacy stats) + `useTendersPipeline` w executive panelu — osobne instancje, ten sam storage.
-2. **Trzeci load:** po wejściu w Przetargi — nowy mount `useTendersPipeline` w `OwnerDashboard`.
+1. **Podwójny load pipeline na pulpicie:** `App.tsx` (legacy stats) + `useTendersPipeline` w Providerze — osobne odczyty, ten sam storage.
+2. ~~**Trzeci load:** Classic `TendersView`~~ — **naprawione 8.0A** (wspólny pipeline + lekki R1 przy wejściu w Classic).
 3. **Bundle:** logika CC w chunku głównym pulpitu (`index-*.js`), nie tylko lazy `TenderCenterProView-*.js`.
 4. **PWA / `public/sw.js`:** po deployu możliwy stary cache assetów — hard refresh.
 5. **TDZ:** przy zmianach w `OwnerDashboard` / hooku — nie odwoływać się w `useMemo` do zmiennych zadeklarowanych **poniżej** (incydent `Cannot access 'C' before initialization`, fix `b95120a`).

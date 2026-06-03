@@ -11,6 +11,13 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-03", version:"2.45.23", label:"Przetargi — wspólny pipeline Classic × CC (ETAP 8.0A)",
+    items:[
+      {type:"fix", text:"Classic View i COMMAND CENTER korzystają z jednego pipeline — „Otwórz robotę” widoczne od razu bez odświeżania strony"},
+      {type:"improve", text:"Wejście w widok klasyczny odświeża listę z pamięci (bez ponownego pobierania BZP)"},
+    ],
+  },
+  {
     date:"2026-06-03", version:"2.45.22", label:"COMMAND CENTER — utwórz robotę z wygranego (ETAP 8.0)",
     items:[
       {type:"new", text:"COMMAND CENTER — „Utwórz robotę” / „Otwórz robotę” przy wygranym przetargu (okazja, briefing, akcje)"},

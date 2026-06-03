@@ -4,14 +4,29 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** (czytaj też `.cursor/rules/wgdom-stan-projektu.mdc`).
 
 **Ostatnia aktualizacja:** 2026-06-03  
-**Wersja UI (App.tsx):** `2.45.14` (7G na prod bez bump wersji w CHANGELOG UI)  
-**Prod (`main`):** https://www.wgdom.fun · commit **`7d49be2`** (ETAP 7G executive dashboard)  
+**Wersja UI:** `2.45.23` (`changelog-data.ts`) — ETAP **8.0A** lokalnie (jeden pipeline Classic × CC)  
+**Prod (`main`):** https://www.wgdom.fun · ostatni znany deploy **8.0** (`d1b888e`) — **8.0A czeka na push**  
 **Docs 7G:** commit dokumentacji po `7d49be2` (ten push)  
 **Gałąź robocza:** `audit-before-cleanup` @ **`7eaf7ee`** (snapshoty + UI media — **nie prod**)
 
 ---
 
 ## Co jest skończone
+
+### ETAP 8.0A — jeden runtime pipeline (lokalnie, 2026-06-03)
+
+| Element | Plik |
+|---------|------|
+| Classic → wspólny pipeline | `TendersView.tsx` → `useCommandCenterContext().snapshot.pipeline` |
+| R1 safeguard | `reloadFromStorage()` w `useTendersPipeline.ts` |
+| Jedyna instancja hooka | `CommandCenterContext.tsx` L102 |
+| Docs | `docs/tender-center-7g-executive.md` |
+
+**Smoke po deploy:** Create Job Classic → CC „Otwórz robotę” bez F5; odwrotnie CC → Classic.
+
+### ETAP 8.0 — roboty z CC (prod `d1b888e`)
+
+Wspólny `executeCreateJobFromTender` + `TenderJobLinkButtons` — bez zmian w 8.0A.
 
 ### ETAP 7G — Pulpit × COMMAND CENTER AI (prod `7d49be2`)
 

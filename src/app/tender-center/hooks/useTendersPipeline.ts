@@ -189,6 +189,21 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
     if (changed) await persist(rescored);
   }, [items, persist]);
 
+  /** ETAP 8.0A — lekki reload z storage (Classic mount), bez BZP merge / autoAward. */
+  const reloadFromStorage = useCallback(async () => {
+    try {
+      let loaded = await loadTendersPipeline();
+      const { items: rescored, changed } = await syncTenderKeywordsAndRescore(loaded);
+      if (changed) {
+        await saveTendersPipeline(rescored);
+        loaded = rescored;
+      }
+      setItems(loaded);
+    } catch {
+      /* zostaw bieżące items */
+    }
+  }, []);
+
   const actionChips = useMemo(() => computeActionChips(items), [items, profileVersion]);
 
   const filtered = useMemo(() => {
@@ -305,6 +320,7 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
     updateItem,
     removeItem,
     resyncKeywords,
+    reloadFromStorage,
     actionChips,
     filtered,
     exportCsv,
