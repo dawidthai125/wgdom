@@ -1,10 +1,15 @@
-import { Zap, ChevronRight, ExternalLink } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Zap, ChevronRight, ExternalLink, ChevronDown, Calendar } from "lucide-react";
+import type { TenderPipelineItem } from "@/lib/tenders-bzp";
+import { daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 import type { ActionCenterResult, OwnerActionItem, ActionPriority } from "@/lib/tender-center-action-center";
 import {
   ACTION_CATEGORY_LABEL_PL,
   ACTION_PRIORITY_LABEL_PL,
   priorityTone,
 } from "@/lib/tender-center-action-center";
+
+const URGENT_VISIBLE_MAX = 5;
 
 function countUrgent(actions: OwnerActionItem[]): ActionCenterResult["counts"] {
   return {
@@ -15,12 +20,37 @@ function countUrgent(actions: OwnerActionItem[]): ActionCenterResult["counts"] {
   };
 }
 
+function fmtDeadlineLabel(iso: string | null | undefined, now: Date): string | null {
+  if (!iso) return null;
+  const days = daysUntilTenderDeadline(iso, now);
+  if (days === null) return null;
+  const d = new Date(iso.length <= 10 ? `${iso}T12:00:00.000Z` : iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const dateStr = d.toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit", year: "numeric" });
+  if (days < 0) return `Termin minął · ${dateStr}`;
+  if (days === 0) return `Termin dziś · ${dateStr}`;
+  if (days === 1) return `Termin jutro · ${dateStr}`;
+  return `Termin za ${days} dni · ${dateStr}`;
+}
+
+function useTenderDeadlineLookup(pipelineItems?: TenderPipelineItem[]) {
+  return useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const item of pipelineItems ?? []) {
+      map.set(item.id, item.submittingOffersDate ?? null);
+    }
+    return map;
+  }, [pipelineItems]);
+}
+
 function PriorityCounters({
   counts,
   urgentOnly = false,
+  compact = false,
 }: {
   counts: ActionCenterResult["counts"];
   urgentOnly?: boolean;
+  compact?: boolean;
 }) {
   const items = (
     urgentOnly
@@ -37,15 +67,15 @@ function PriorityCounters({
   ) as [ActionPriority, number][];
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-1.5">
       {items.map(([key, n]) => (
         <div
           key={key}
-          className={`rounded-lg border px-2.5 py-1.5 text-center min-w-[64px] ${priorityTone(key)}`}
+          className={`rounded-lg border text-center ${compact ? "px-2 py-1 min-w-[52px]" : "px-2.5 py-1.5 min-w-[64px]"} ${priorityTone(key)}`}
         >
-          <p className="text-[9px] uppercase tracking-wider opacity-80">{key}</p>
+          <p className={`uppercase tracking-wider opacity-80 ${compact ? "text-[8px]" : "text-[9px]"}`}>{key}</p>
           <p
-            className="text-lg font-bold tabular-nums leading-tight"
+            className={`font-bold tabular-nums leading-tight ${compact ? "text-base" : "text-lg"}`}
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
             {n}
@@ -112,23 +142,105 @@ function ActionRow({
   );
 }
 
+function ActionRowCompact({
+  item,
+  deadlineLabel,
+  onOpenTender,
+}: {
+  item: OwnerActionItem;
+  deadlineLabel: string | null;
+  onOpenTender?: (tenderId: string) => void;
+}) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
+  return (
+    <article className="rounded-lg border border-border bg-card/50 px-3 py-2.5 space-y-1.5">
+      <div className="flex flex-wrap items-start gap-2">
+        <span className={`text-[8px] font-bold px-1 py-0.5 rounded border shrink-0 ${priorityTone(item.priority)}`}>
+          {item.priority}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold leading-snug">{item.title}</p>
+          {deadlineLabel && (
+            <p className="text-[10px] text-amber-700 dark:text-amber-400 mt-0.5 flex items-center gap-1">
+              <Calendar size={10} className="shrink-0" />
+              {deadlineLabel}
+            </p>
+          )}
+          <p className="text-[10px] text-primary mt-1 leading-snug">{item.recommendedAction}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setDetailsOpen((v) => !v)}
+          className="text-[10px] font-medium text-muted-foreground hover:text-foreground min-h-[32px] px-1"
+        >
+          {detailsOpen ? "Ukryj szczegóły" : "Szczegóły"}
+        </button>
+        {item.tenderId && onOpenTender && (
+          <button
+            type="button"
+            onClick={() => onOpenTender(item.tenderId!)}
+            className="inline-flex items-center gap-1 text-[10px] font-medium text-primary hover:underline min-h-[32px]"
+          >
+            <ExternalLink size={10} />
+            Przetarg
+          </button>
+        )}
+      </div>
+
+      {detailsOpen && (
+        <div className="text-[10px] text-muted-foreground space-y-1 pt-1 border-t border-border/60">
+          {item.description ? <p>{item.description}</p> : null}
+          <p>
+            <span className="opacity-70">Powód: </span>
+            {item.reason}
+          </p>
+          <p className="text-[9px] opacity-80">Źródło: {item.source}</p>
+          <p className="text-[9px]">{ACTION_CATEGORY_LABEL_PL[item.category]}</p>
+        </div>
+      )}
+    </article>
+  );
+}
+
 export function ActionCenter({
   center,
   variant = "full",
   onOpenTender,
+  pipelineItems,
 }: {
   center: ActionCenterResult;
   variant?: "full" | "urgent";
   onOpenTender?: (tenderId: string) => void;
+  /** Do etykiet terminu w widoku skróconym (variant urgent). */
+  pipelineItems?: TenderPipelineItem[];
 }) {
+  const [showAllUrgent, setShowAllUrgent] = useState(false);
   const urgentPriorities = new Set<ActionPriority>(["CRITICAL", "HIGH"]);
   const primaryId = center.primaryAction?.id;
+  const deadlineLookup = useTenderDeadlineLookup(pipelineItems);
+  const now = useMemo(() => new Date(), []);
 
   const urgentActions = center.actions.filter((a) => urgentPriorities.has(a.priority));
-  const actions =
+  const urgentList =
     variant === "urgent"
       ? urgentActions.filter((a) => a.id !== primaryId)
-      : center.actions;
+      : urgentActions;
+
+  const actions = variant === "urgent" ? urgentList : center.actions;
+
+  const visibleUrgent =
+    variant === "urgent" && !showAllUrgent
+      ? actions.slice(0, URGENT_VISIBLE_MAX)
+      : actions;
+
+  const hiddenUrgentCount =
+    variant === "urgent" && !showAllUrgent && actions.length > URGENT_VISIBLE_MAX
+      ? actions.length - URGENT_VISIBLE_MAX
+      : 0;
 
   const counts =
     variant === "urgent"
@@ -136,20 +248,20 @@ export function ActionCenter({
       : center.counts;
 
   const title = variant === "urgent" ? "Co wymaga uwagi" : "Action Center";
-  const subtitle = variant === "urgent" ? "CRITICAL · HIGH" : "Co zrobić dzisiaj";
+  const subtitle = variant === "urgent" ? "max 5 · CRITICAL · HIGH" : "Co zrobić dzisiaj";
 
   return (
     <section className="rounded-xl border-2 border-primary/25 bg-card overflow-hidden shadow-sm">
-      <div className="px-4 py-3 border-b border-border bg-primary/5 flex flex-wrap items-center justify-between gap-2">
+      <div className="px-3 py-2.5 border-b border-border bg-primary/5 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Zap size={18} className="text-primary" />
+          <Zap size={16} className="text-primary" />
           <h2 className="text-sm font-semibold">{title}</h2>
         </div>
         <span className="text-[10px] text-muted-foreground">{subtitle}</span>
       </div>
 
-      <div className="p-4 space-y-4">
-        <PriorityCounters counts={counts} urgentOnly={variant === "urgent"} />
+      <div className={`${variant === "urgent" ? "p-3 space-y-3" : "p-4 space-y-4"}`}>
+        <PriorityCounters counts={counts} urgentOnly={variant === "urgent"} compact={variant === "urgent"} />
 
         {variant === "full" && center.primaryAction && (
           <div className="rounded-xl border border-primary/30 bg-primary/10 px-3.5 py-3 space-y-1">
@@ -166,16 +278,50 @@ export function ActionCenter({
           <p className="text-xs text-muted-foreground text-center py-2">{center.headline}</p>
         )}
 
-        {actions.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
+        {visibleUrgent.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-3">
             {variant === "urgent"
-              ? "Brak dodatkowych pilnych zadań — główna akcja jest w sekcji Kondycja firmy."
+              ? "Brak dodatkowych pilnych zadań — priorytet jest w raporcie powyżej."
               : "Brak zadań na dziś — sytuacja stabilna."}
           </p>
+        ) : variant === "urgent" ? (
+          <div className="space-y-2">
+            {visibleUrgent.map((item) => {
+              const iso = item.tenderId ? deadlineLookup.get(item.tenderId) : null;
+              const deadlineLabel = fmtDeadlineLabel(iso ?? null, now);
+              return (
+                <ActionRowCompact
+                  key={item.id}
+                  item={item}
+                  deadlineLabel={deadlineLabel}
+                  onOpenTender={onOpenTender}
+                />
+              );
+            })}
+            {hiddenUrgentCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowAllUrgent(true)}
+                className="w-full flex items-center justify-center gap-1.5 text-xs font-medium text-primary hover:underline min-h-[40px] py-2 rounded-lg border border-dashed border-primary/30"
+              >
+                <ChevronDown size={14} />
+                Pokaż wszystkie ({actions.length})
+              </button>
+            )}
+            {showAllUrgent && actions.length > URGENT_VISIBLE_MAX && (
+              <button
+                type="button"
+                onClick={() => setShowAllUrgent(false)}
+                className="w-full text-[10px] text-muted-foreground hover:text-foreground py-1"
+              >
+                Zwiń listę
+              </button>
+            )}
+          </div>
         ) : (
           <div className="space-y-2">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              {variant === "urgent" ? `Pilne działania (${actions.length})` : `Lista działań (${actions.length})`}
+              Lista działań ({actions.length})
             </p>
             {actions.map((item) => (
               <ActionRow key={item.id} item={item} onOpenTender={onOpenTender} />

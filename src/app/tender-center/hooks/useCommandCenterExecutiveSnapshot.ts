@@ -56,8 +56,8 @@ export type CommandCenterExecutiveSnapshotInput = {
   /** Inkrement po zapisie profilu / learning — przelicza scoring. */
   learningRevision?: number;
   /**
-   * false = HOTFIX OwnerDashboard (Impact wyłączony, capacity null).
-   * true = Pulpit executive (capacity z najlepszej okazji).
+   * true = licz capacity z impact najlepszej okazji (OwnerDashboard od 7G.1, Pulpit executive).
+   * false = wyłącz panel (np. testy izolowane).
    */
   financialCapacityEnabled?: boolean;
 } & UseTendersPipelineOptions;

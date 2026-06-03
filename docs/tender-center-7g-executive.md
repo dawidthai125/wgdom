@@ -49,7 +49,7 @@ useCommandCenterExecutiveSnapshot({
 
 | Flaga | Pulpit (7G) | OwnerDashboard (CC) |
 |-------|-------------|---------------------|
-| `financialCapacityEnabled` | `true` — capacity z najlepszej okazji + impact | `false` — `FinancialCapacityPanel` pokazuje „Brak danych” (hotfix 6C/6D) |
+| `financialCapacityEnabled` | `true` — Pulpit executive + **OwnerDashboard (7G.1)** | `false` — tylko gdy wyłączysz jawnie (testy) |
 | `learningRevision` | domyślnie `0` | inkrement po zapisie decyzji learning |
 
 **Zwraca m.in.:** `pipeline`, `health`, `morningBriefing`, `actionCenter`, `forecast90`, `bestOpportunity`, `financialCapacity`, `growthModeState`, `setGrowthMode`, …
@@ -93,7 +93,7 @@ Stary UX („Przetargi BZP” + lista `computeTenderDashboardAlerts`) **zastąpi
 3. **Bundle:** logika CC w chunku głównym pulpitu (`index-*.js`), nie tylko lazy `TenderCenterProView-*.js`.
 4. **PWA / `public/sw.js`:** po deployu możliwy stary cache assetów — hard refresh.
 5. **TDZ:** przy zmianach w `OwnerDashboard` / hooku — nie odwoływać się w `useMemo` do zmiennych zadeklarowanych **poniżej** (incydent `Cannot access 'C' before initialization`, fix `b95120a`).
-6. **Impact hotfix:** pełny CC nadal ma `financialCapacity = null` w UI; pulpit liczy capacity z impact najlepszej okazji.
+6. **7G.1:** OwnerDashboard — `financialCapacityEnabled: true`; sekcja „Co wymaga uwagi” max 5 + skrót; kolejność: briefing → okazja → capacity → hero → akcje.
 
 ---
 

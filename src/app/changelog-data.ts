@@ -11,6 +11,15 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-03", version:"2.45.21", label:"COMMAND CENTER — uproszczenie UX (ETAP 7G.1)",
+    items:[
+      {type:"improve", text:"„Co wymaga uwagi” — max 5 pozycji, widok skrócony, „Pokaż wszystkie”, szczegóły na żądanie"},
+      {type:"improve", text:"Kolejność sekcji: briefing → okazja → zdolność finansowa → kondycja → akcje → prognoza"},
+      {type:"fix", text:"Zdolność finansowa przywrócona w COMMAND CENTER (jak na Pulpicie)"},
+      {type:"improve", text:"Mniej duplikatów — Hero bez głównej akcji; kompaktowy briefing"},
+    ],
+  },
+  {
     date:"2026-06-02", version:"2.45.20", label:"Sync — godziny nie przechodzą na nowy tydzień",
     items:[
       {type:"fix", text:"Scalanie chmury — godziny z poprzedniego tygodnia nie wskakują na bieżący Pn–So po rollover / odzyskaniu bazy"},

@@ -4,7 +4,15 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `App.tsx` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja:** **2.45.14** (UI); **7G wdrożone** na prod commit `7d49be2` (2026-06-03, bez bump wersji w App.tsx)
+**Aktualna wersja:** **2.45.21** (UI)
+
+---
+
+## 2.45.21 (2026-06-03) — COMMAND CENTER UX (ETAP 7G.1)
+
+- **improve** „Co wymaga uwagi” — max 5, skrót, Pokaż wszystkie, Szczegóły
+- **improve** Kolejność sekcji CC; kompaktowy briefing i Hero
+- **fix** Zdolność finansowa w OwnerDashboard (`financialCapacityEnabled: true`)
 
 ---
 

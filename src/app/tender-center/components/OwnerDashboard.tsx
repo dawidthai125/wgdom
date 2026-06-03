@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { RefreshCw, AlertCircle, Layers } from "lucide-react";
 import type {
   DirectoryEmployee,
@@ -40,7 +40,6 @@ import { AboutCommandCenter } from "@/app/tender-center/components/AboutCommandC
 import { computeAiInsights } from "@/lib/tender-center-ai-insights";
 import { computeOwnerProfile } from "@/lib/tender-center-owner-profile";
 import { loadTenderLearning } from "@/lib/tender-center-learning";
-import { useMemo } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -91,7 +90,7 @@ export function OwnerDashboard({
     weekTo,
     savedWeeks,
     learningRevision,
-    financialCapacityEnabled: false,
+    financialCapacityEnabled: true,
   });
 
   const {
@@ -106,13 +105,12 @@ export function OwnerDashboard({
     forecastInput,
     forecastHorizonExplanations,
     bestOpportunity,
+    financialCapacity,
     marketKpi,
     portfolioCounts,
     ownerAlerts,
     goCandidates,
   } = snapshot;
-
-  const financialCapacity = null;
 
   const learningStats = useMemo(
     () => getLearningStats(),
@@ -188,7 +186,7 @@ export function OwnerDashboard({
         }
       />
 
-      <div className="px-4 sm:px-6 py-4 space-y-5">
+      <div className="px-4 sm:px-6 py-3 space-y-4">
         {pipeline.error && (
           <div className="flex items-start gap-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
             <AlertCircle size={14} className="shrink-0 mt-0.5" />
@@ -200,29 +198,32 @@ export function OwnerDashboard({
           <p className="text-[10px] text-muted-foreground">Sprawdzam wyniki zakończonych postępowań…</p>
         )}
 
-        <MorningBriefingCard briefing={morningBriefing} />
+        <MorningBriefingCard briefing={morningBriefing} compact hideOpportunityPreview />
+
+        <BestOpportunityCard
+          bundle={bestOpportunity}
+          ownerRecord={bestOpportunity ? ownerDecisions.getOwnerDecision(bestOpportunity.item.id) : null}
+          onSetDecision={handleDecisionRequest}
+          onOpenTender={onOpenTender}
+        />
+
+        <FinancialCapacityPanel capacity={financialCapacity} />
 
         <CommandCenterHero
           health={health}
           growthMode={growthModeState.mode}
           suggestedMode={health.suggestedGrowthMode}
           onGrowthModeChange={handleGrowthModeChange}
-          actionCenter={actionCenter}
         />
 
-        <ActionCenter center={actionCenter} variant="urgent" onOpenTender={onOpenTender} />
+        <ActionCenter
+          center={actionCenter}
+          variant="urgent"
+          onOpenTender={onOpenTender}
+          pipelineItems={pipeline.items}
+        />
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <BestOpportunityCard
-            bundle={bestOpportunity}
-            ownerRecord={bestOpportunity ? ownerDecisions.getOwnerDecision(bestOpportunity.item.id) : null}
-            onSetDecision={handleDecisionRequest}
-            onOpenTender={onOpenTender}
-          />
-          <ForecastCommandStrip forecast={forecast90} />
-        </div>
-
-        <FinancialCapacityPanel capacity={financialCapacity} />
+        <ForecastCommandStrip forecast={forecast90} />
 
         <WhatIfPanel forecastInput={forecastInput} goCandidates={goCandidates} />
 
