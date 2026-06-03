@@ -57,7 +57,7 @@ import { API_BASE, API_HEADERS, addDeletedJobId, getDeletedJobIds, pushJobsAfter
 import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
 import {
   normalizeJobWmFields, isWmClient, fmtPlannedHandover, HANDOVER_STAGE_LABELS,
-  inferHandoverStage, removeInspectorPhoto,
+  inferHandoverStage, removeInspectorPhoto, canShowStartExecutionButton, startJobExecution,
 } from "@/lib/job-wm";
 import {
   type Job, type WeekEmployee, type DirectoryEmployee, type PhotoEntry, type WorkEntry, type DocType,
@@ -684,6 +684,13 @@ export function JobsView({
       type: "status_change",
       text: `Status: ${JOB_PHASE_LABELS[phase]}`,
     });
+  };
+
+  const handleStartContractExecution = () => {
+    if (!selectedJob || !canShowStartExecutionButton(selectedJob)) return;
+    const actor = adminSession?.displayName || "Administrator";
+    updateJob(startJobExecution(selectedJob, actor));
+    toast.success("Rozpoczęto realizację kontraktu");
   };
 
   const handleDeleteJobFile = async (file: import("@/lib/job-documents").JobFileAttachment, busyKey?: string) => {
@@ -1410,6 +1417,16 @@ export function JobsView({
                         </p>
                       )}
                     </div>
+                    {canShowStartExecutionButton(selectedJob) && (
+                      <button
+                        type="button"
+                        onClick={handleStartContractExecution}
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors touch-manipulation"
+                      >
+                        <HardHat size={16} className="shrink-0" />
+                        Rozpocznij realizację
+                      </button>
+                    )}
                   </div>
                 )}
                 {!allDocsDone(selectedJob) && inferJobPhase(selectedJob) === "in_progress" && jobDaysSinceStart(selectedJob) >= 7 && (

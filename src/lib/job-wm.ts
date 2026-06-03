@@ -1,6 +1,7 @@
 /** Wrocławskie Mieszkania — etap odbioru, notatki, zdjęcia inspektora, portfolio. */
 
 import { REQUIRED_DOCS, type DocType } from "@/lib/job-documents";
+import { appendJobActivity, type JobActivity } from "@/lib/job-activity";
 import { applyJobPhase, type JobPhase } from "@/lib/job-list-status";
 
 export const HANDOVER_STAGES = [
@@ -98,6 +99,27 @@ export function normalizeJobWmFields<T extends JobWmJob & { jobPhase?: JobPhase 
   if (!isWmClient(base.client)) return base;
   const stage = inferHandoverStage(base);
   return applyHandoverStageToJob({ ...base, handoverStage: stage }, stage);
+}
+
+/** ETAP 8.5 MIN — tekst wpisu w activityLog po „Rozpocznij realizację”. */
+export const JOB_START_EXECUTION_ACTIVITY_TEXT = "Rozpoczęto realizację kontraktu";
+
+/** Baner przetargu: pokaż CTA gdy jest linkedTenderId i etap ≠ W realizacji. */
+export function canShowStartExecutionButton(
+  job: JobWmJob & { linkedTenderId?: string },
+): boolean {
+  return Boolean(job.linkedTenderId) && inferHandoverStage(job) !== "in_progress";
+}
+
+/**
+ * Rozpocznij realizację kontraktu (przetarg → robota): jobPhase + handoverStage in_progress + ślad w logu.
+ */
+export function startJobExecution<
+  T extends JobWmJob & { jobPhase?: JobPhase; activityLog?: JobActivity[]; updatedAt?: string },
+>(job: T, actorName: string): T {
+  let next = applyJobPhase(job, "in_progress");
+  next = appendJobActivity(next, "status_change", JOB_START_EXECUTION_ACTIVITY_TEXT, actorName);
+  return { ...next, updatedAt: new Date().toISOString() };
 }
 
 /** Po zmianie etapu — spójność ze statusem roboty. */

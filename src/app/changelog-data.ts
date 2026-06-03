@@ -11,6 +11,13 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-03", version:"2.45.28", label:"Roboty — Rozpocznij realizację kontraktu (ETAP 8.5 MIN)",
+    items:[
+      {type:"new", text:"Baner przetargu w Robotach — przycisk „Rozpocznij realizację” (etap W realizacji, status W trakcie, wpis w historii)"},
+      {type:"improve", text:"Bez nowych pól w chmurze — używa jobPhase, handoverStage i activityLog jak dotychczas"},
+    ],
+  },
+  {
     date:"2026-06-03", version:"2.45.27", label:"Przetargi — daty SWZ w robocie (ETAP 8.4)",
     items:[
       {type:"improve", text:"Utwórz robotę — dodatkowe terminy z SWZ (okres w dniach/miesiącach, data „do …”) gdy brak daty umowy lub liczby dni z analizy"},
