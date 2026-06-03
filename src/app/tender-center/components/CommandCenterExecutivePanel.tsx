@@ -1,13 +1,7 @@
 import { useMemo } from "react";
 import { Target, HeartPulse, Landmark, Trophy, CalendarRange, Zap, ChevronRight, ExternalLink } from "lucide-react";
-import type {
-  DirectoryEmployee,
-  Job,
-  WeekEmployee,
-  WeekSnapshot,
-} from "@/app/app-domain";
 import { COMMAND_CENTER_BRAND } from "@/app/tender-center/branding";
-import { useCommandCenterExecutiveSnapshot } from "@/app/tender-center/hooks/useCommandCenterExecutiveSnapshot";
+import { useCommandCenterContext } from "@/app/tender-center/context/CommandCenterContext";
 import { HEALTH_LABEL_PL } from "@/lib/tender-center-health";
 import {
   capacityScoreTone,
@@ -68,24 +62,20 @@ function ForecastHorizonCompact({
 }
 
 export function CommandCenterExecutivePanel({
-  jobs,
-  directory,
-  weekEmployees,
-  weekFrom,
-  weekTo,
-  savedWeeks,
   onOpenCommandCenter,
   onOpenTender,
 }: {
-  jobs: Job[];
-  directory: DirectoryEmployee[];
-  weekEmployees: WeekEmployee[];
-  weekFrom: string;
-  weekTo: string;
-  savedWeeks: WeekSnapshot[];
+  /** @deprecated ETAP 7H — dane z CommandCenterContext; props zachowane w DashboardView bez zmian sygnatury. */
+  jobs?: unknown;
+  directory?: unknown;
+  weekEmployees?: unknown;
+  weekFrom?: string;
+  weekTo?: string;
+  savedWeeks?: unknown;
   onOpenCommandCenter: () => void;
   onOpenTender?: (tenderId: string) => void;
 }) {
+  const { snapshot } = useCommandCenterContext();
   const {
     pipeline,
     morningBriefing,
@@ -94,15 +84,7 @@ export function CommandCenterExecutivePanel({
     bestOpportunity,
     forecast90,
     actionCenter,
-  } = useCommandCenterExecutiveSnapshot({
-    jobs,
-    directory,
-    productionWeekEmployees: weekEmployees,
-    weekFrom,
-    weekTo,
-    savedWeeks,
-    financialCapacityEnabled: true,
-  });
+  } = snapshot;
 
   const executiveActions = useMemo(
     () => pickExecutiveActions(actionCenter, EXECUTIVE_ACTION_MAX),

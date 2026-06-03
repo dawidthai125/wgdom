@@ -16,6 +16,7 @@ import type { AppSettings } from "@/lib/app-settings";
 import type { TendersDashboardStats } from "@/lib/tenders-bzp";
 import type { EmailContact } from "@/lib/email-contacts";
 import type { View } from "@/app/admin/admin-nav";
+import { CommandCenterProvider } from "@/app/tender-center/context/CommandCenterContext";
 
 const PayrollView = lazy(() => import("@/app/PayrollView").then((m) => ({ default: m.PayrollView })));
 const JobsView = lazy(() => import("@/app/JobsView").then((m) => ({ default: m.JobsView })));
@@ -173,6 +174,15 @@ export function AdminViewRouter({
   const { DashboardView, ScheduleView, DirectoryView, ContactsView, ArchiveView } = embedded;
 
   return (
+    <CommandCenterProvider
+      enabled={canViewTendersNav}
+      jobs={jobs}
+      directory={directory}
+      productionWeekEmployees={productionWeekEmployees}
+      weekFrom={weekFrom}
+      weekTo={weekTo}
+      savedWeeks={savedWeeks}
+    >
     <div
       className={`flex flex-1 min-h-0 overflow-hidden ${payrollDetailOpen ? "" : "pb-[calc(3.5rem+env(safe-area-inset-bottom))]"} md:pb-0`}
     >
@@ -390,5 +400,6 @@ export function AdminViewRouter({
         </ViewErrorBoundary>
       )}
     </div>
+    </CommandCenterProvider>
   );
 }

@@ -18,9 +18,11 @@ Pełny moduł CC pozostaje w `TenderCenterProView` → `OwnerDashboard`.
 
 | Plik | Rola |
 |------|------|
+| `src/app/tender-center/context/CommandCenterContext.tsx` | **ETAP 7H** — `CommandCenterProvider` + wspólny pipeline i snapshot |
+| `src/app/admin/AdminViewRouter.tsx` | Owija widoki admina w `CommandCenterProvider` gdy `canViewTendersNav` |
 | `src/app/DashboardView.tsx` | Renderuje `CommandCenterExecutivePanel` gdy `canViewTenders && onOpenTenders` |
-| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | UI executive: 5 kart + Action Center (max 3) + CTA |
-| `src/app/tender-center/hooks/useCommandCenterExecutiveSnapshot.ts` | **Jedna** ścieżka obliczeń CC (health, briefing, forecast, action center, …) |
+| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | UI executive: 5 kart + Action Center (max 3) + CTA — **odczyt z Context** |
+| `src/app/tender-center/hooks/useCommandCenterExecutiveSnapshot.ts` | **ETAP 7H** — cienki odczyt `ctx.snapshot` (bez drugiego pipeline) |
 | `src/app/tender-center/components/OwnerDashboard.tsx` | Pełny CC; używa tego samego hooka |
 | `src/app/admin/AdminViewRouter.tsx` | `view === "dashboard"` → `DashboardView` |
 | `src/app/App.tsx` | `canViewTendersNav`, nawigacja `onOpenTenders` → `setView("tenders")` |
@@ -33,6 +35,21 @@ Pełny moduł CC pozostaje w `TenderCenterProView` → `OwnerDashboard`.
 - `computeForecast90Days` — `src/lib/tender-center-forecast-90d.ts`
 - `rankTopTenderOpportunities` / `bestOpportunity` — `src/lib/tender-center-decision.ts`
 - `computeTenderImpact` + `computeFinancialCapacity` — tylko gdy `financialCapacityEnabled: true` (pulpit)
+
+---
+
+## ETAP 7H — wspólny store (Pipeline → Provider → Context)
+
+```text
+useTendersPipeline (×1 w Provider)
+  → health, forecast, actionCenter, morningBriefing, …
+  → CommandCenterContext
+  → CommandCenterExecutivePanel | OwnerDashboard
+```
+
+`useCommandCenterExecutiveSnapshot()` **nie** tworzy drugiego pipeline — zwraca `snapshot` z Providera.
+
+**Classic View (`TendersView`):** nadal własny `useTendersPipeline` (osobny tryb listy/filtrów/SWZ — podłączenie wymagałoby przekazania mutacji pipeline do klasycznego UI).
 
 ---
 

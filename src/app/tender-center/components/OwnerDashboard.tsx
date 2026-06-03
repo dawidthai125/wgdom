@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { RefreshCw, AlertCircle, Layers } from "lucide-react";
 import type {
   DirectoryEmployee,
@@ -6,11 +6,9 @@ import type {
   WeekEmployee,
   WeekSnapshot,
 } from "@/app/app-domain";
-import { useCommandCenterExecutiveSnapshot } from "@/app/tender-center/hooks/useCommandCenterExecutiveSnapshot";
+import { useCommandCenterContext } from "@/app/tender-center/context/CommandCenterContext";
 import type { GrowthModeState } from "@/lib/tender-center-growth-mode";
-import { useOwnerTenderDecisions } from "@/app/tender-center/hooks/useOwnerTenderDecisions";
 import {
-  getLearningStats,
   recordTenderLearningDecision,
   type LearningReasonId,
 } from "@/lib/tender-center-learning";
@@ -37,9 +35,6 @@ import { CommandCenterWelcomeDialog } from "@/app/tender-center/components/Comma
 import { HowToUseCommandCenter } from "@/app/tender-center/components/HowToUseCommandCenter";
 import { CommandCenterGlossary } from "@/app/tender-center/components/CommandCenterGlossary";
 import { AboutCommandCenter } from "@/app/tender-center/components/AboutCommandCenter";
-import { computeAiInsights } from "@/lib/tender-center-ai-insights";
-import { computeOwnerProfile } from "@/lib/tender-center-owner-profile";
-import { loadTenderLearning } from "@/lib/tender-center-learning";
 import {
   Accordion,
   AccordionContent,
@@ -48,15 +43,16 @@ import {
 } from "@/app/components/ui/accordion";
 
 export function OwnerDashboard({
-  jobs,
-  directory,
-  productionWeekEmployees,
-  weekFrom,
-  weekTo,
-  savedWeeks,
+  jobs: _jobs,
+  directory: _directory,
+  productionWeekEmployees: _productionWeekEmployees,
+  weekFrom: _weekFrom,
+  weekTo: _weekTo,
+  savedWeeks: _savedWeeks,
   showTestBadge = false,
   onOpenTender,
 }: {
+  /** @deprecated ETAP 7H — dane operacyjne z CommandCenterProvider. */
   jobs: Job[];
   directory: DirectoryEmployee[];
   productionWeekEmployees: WeekEmployee[];
@@ -66,32 +62,28 @@ export function OwnerDashboard({
   showTestBadge?: boolean;
   onOpenTender?: (tenderId: string) => void;
 }) {
+  void _jobs;
+  void _directory;
+  void _productionWeekEmployees;
+  void _weekFrom;
+  void _weekTo;
+  void _savedWeeks;
+
   const [learningDialogOpen, setLearningDialogOpen] = useState(false);
   const [pendingDecision, setPendingDecision] = useState<{
     bundle: TenderScoringBundle;
     decision: TenderDecision;
   } | null>(null);
-  const [learningRevision, setLearningRevision] = useState(0);
   const [welcomeOpen, setWelcomeOpen] = useState(false);
 
-  useEffect(() => {
-    if (!hasSeenCommandCenterOnboarding()) {
-      setWelcomeOpen(true);
-    }
-  }, []);
-
-  const ownerDecisions = useOwnerTenderDecisions();
-
-  const snapshot = useCommandCenterExecutiveSnapshot({
-    jobs,
-    directory,
-    productionWeekEmployees,
-    weekFrom,
-    weekTo,
-    savedWeeks,
-    learningRevision,
-    financialCapacityEnabled: true,
-  });
+  const {
+    snapshot,
+    ownerDecisions,
+    learningStats,
+    ownerProfile,
+    aiInsights,
+    bumpLearningRevision,
+  } = useCommandCenterContext();
 
   const {
     pipeline,
@@ -112,24 +104,11 @@ export function OwnerDashboard({
     goCandidates,
   } = snapshot;
 
-  const learningStats = useMemo(
-    () => getLearningStats(),
-    [learningRevision],
-  );
-
-  const ownerDecisionProfile = useMemo(() => {
-    const { entries } = loadTenderLearning();
-    return computeOwnerProfile(entries);
-  }, [learningRevision]);
-
-  const aiInsights = useMemo(
-    () =>
-      computeAiInsights({
-        learningEntries: loadTenderLearning().entries,
-        ownerProfile: ownerDecisionProfile,
-      }),
-    [learningRevision, ownerDecisionProfile],
-  );
+  useEffect(() => {
+    if (!hasSeenCommandCenterOnboarding()) {
+      setWelcomeOpen(true);
+    }
+  }, []);
 
   const handleGrowthModeChange = (mode: GrowthModeState["mode"]) => {
     applyGrowthMode(mode);
@@ -154,7 +133,7 @@ export function OwnerDashboard({
       strategicScore: bundle.strategic.score,
       impactScore: 0,
     });
-    setLearningRevision((v) => v + 1);
+    bumpLearningRevision();
     setPendingDecision(null);
   };
 
@@ -291,7 +270,7 @@ export function OwnerDashboard({
             <AccordionItem value="owner-profile">
               <AccordionTrigger>Profil właściciela</AccordionTrigger>
               <AccordionContent>
-                <OwnerProfilePanel profile={ownerDecisionProfile} />
+                <OwnerProfilePanel profile={ownerProfile} />
               </AccordionContent>
             </AccordionItem>
 
