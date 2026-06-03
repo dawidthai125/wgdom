@@ -301,7 +301,8 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
           <div className="space-y-3">
             {[
               {q:"Logowanie — telefon + kod", a:"Telefon potwierdza kim jesteś (9 cyfr z kartoteki). Kod 4 cyfry to Twój osobisty PIN — ustawiasz przy pierwszym logowaniu. Nie podawaj go kolegom. Zapomniałeś? Administrator resetuje kod w kartotece Pracownicy."},
-              {q:"Zakładka Roboty", a:"Lista aktywnych remontów. Wybierz robotę → wgrywaj zdjęcia (przed / w trakcie / po), wysyłaj raport z zakresem prac i wymiarami. Bez internetu zdjęcia czekają w kolejce i wyślą się same."},
+              {q:"Zakładka Roboty", a:"Na górze „Twoje kontrakty” — roboty, do których admin przypisał Cię w planowej ekipie (lider lub lista wykonawców). Poniżej „Wszystkie roboty w toku”. Wybierz robotę → zdjęcia (przed / w trakcie / po), raport z wymiarami. Offline: kolejka zdjęć."},
+              {q:"Twoje kontrakty — skąd lista?", a:"Administrator zapisuje plan ekipy w robocie (baner realizacji kontraktu). Nie dodaje to godzin ani nie zmienia wypłaty — tylko pokazuje Ci przypisane kontrakty na liście."},
               {q:"Zakładka Wypłata u pracownika", a:"Kwota do wypłaty w najbliższy piątek, godziny bieżącego tygodnia, zaliczki i koszty do zwrotu (jeśli wpisane). Niżej — archiwum wypłat z zapisanych tygodni. Administrator musi najpierw dodać Cię do listy płac w danym tygodniu."},
               {q:"Ochrona danych wypłat", a:"Logowanie wymaga telefonu i osobistego kodu — kolega nie wejdzie na Twój profil samym numerem. Kwota ukrywa się też gdy przełączysz aplikację (Alt+Tab). Kopiowanie tekstu jest zablokowane."},
               {q:"Jak się zalogować?", a:"Administrator musi wpisać Twój numer w kartotece Pracownicy. Wybierz swoje imię z listy, wpisz telefon i kod. Nie wpisuj ręcznie cudzego imienia."},

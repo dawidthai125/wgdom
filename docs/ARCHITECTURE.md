@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (obecnie **2.45.29**)  
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (obecnie **2.45.30**)  
 > **Ostatnia aktualizacja tego dokumentu:** 2026-06-03 (FAZA 8 CLOSED — § 12.1.4; ETAP 7G — § 6.1, § 12.1.3, [`tender-center-7g-executive.md`](tender-center-7g-executive.md))
 
 ---
@@ -512,7 +512,7 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 
-**Status:** **CLOSED** (8.0–8.4). **ETAP 8.5 MIN** — Start Execution. **ETAP 8.5 FULL** — planowa ekipa (`executionLeadDirectoryId`, `executionAssigneeDirectoryIds`). **Faza 9** — nie rozpoczęta bez polecenia.
+**Status:** **CLOSED** (8.0–8.4). **ETAP 8.5** — plan + start realizacji. **FAZA 9.0** — Delivery Ops MVP (pracownik: Twoje kontrakty). **9.0.1+** — nie rozpoczęte bez polecenia.
 
 #### Przepływ produktowy
 
@@ -525,7 +525,17 @@ Tender (pipeline BZP, status won)
   → Open Job (pendingJobId → Roboty)
   → Start Execution (8.5 MIN: „Rozpocznij realizację” w banerze — `jobPhase` + `handoverStage` + activityLog)
   → Planowa ekipa (8.5 FULL: lider + lista wykonawców w banerze, badge na liście robót)
+  → Twoje kontrakty u pracownika (9.0: odczyt planu ekipy w WorkerPhotoView)
 ```
+
+#### FAZA 9.0 — Delivery Ops MVP (pracownik, Wariant B)
+
+| Plik | Rola |
+|------|------|
+| `src/app/app-domain.ts` | `isWorkerOnExecutionTeam(job, workerDirectoryId)` |
+| `src/app/WorkerPhotoView.tsx` | Sekcje „Twoje kontrakty” + „Wszystkie roboty w toku”; ten sam detail po kliknięciu |
+
+Bez zmian: payroll, grafik (`workerTodayWorkInfo`, `scheduleCellFor`), Tender Center, Executive, nowe klucze KV, Edge.
 
 #### ETAP 8.5 MIN (Start Execution)
 

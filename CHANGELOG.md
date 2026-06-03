@@ -4,9 +4,14 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja:** **2.45.29** (UI)
+**Aktualna wersja:** **2.45.30** (UI)
 
 ---
+
+## 2.45.30 (2026-06-03) — FAZA 9.0: Twoje kontrakty (pracownik)
+
+- `isWorkerOnExecutionTeam` + sekcje w `WorkerPhotoView` (plan ekipy → widoczność)
+- Bez zmian grafiku, payroll, TC, Executive
 
 ## 2.45.29 (2026-06-03) — ETAP 8.5 FULL: planowa ekipa (B lite)
 

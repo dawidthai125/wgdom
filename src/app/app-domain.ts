@@ -1278,6 +1278,14 @@ function sanitizeExecutionAssigneeIds(raw: string[] | undefined): string[] {
   return [...new Set((raw || []).map((id) => String(id).trim()).filter(Boolean))];
 }
 
+/** FAZA 9.0 — czy pracownik (directoryId) jest na planowej ekipie realizacji kontraktu. */
+export function isWorkerOnExecutionTeam(job: Job, workerDirectoryId: string): boolean {
+  const id = workerDirectoryId?.trim();
+  if (!id) return false;
+  if (job.executionLeadDirectoryId === id) return true;
+  return (job.executionAssigneeDirectoryIds ?? []).includes(id);
+}
+
 export function normalizeJobsList(raw: unknown[]): Job[] {
   return raw.filter(isValidJobRecord).map((j) => normalizeJob(j as Job));
 }

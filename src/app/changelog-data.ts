@@ -11,6 +11,13 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-03", version:"2.45.30", label:"Pracownik — Twoje kontrakty (FAZA 9.0)",
+    items:[
+      {type:"new", text:"Tryb pracownika — sekcja „Twoje kontrakty” (plan ekipy z roboty admina), poniżej „Wszystkie roboty w toku”"},
+      {type:"improve", text:"Ten sam ekran zdjęć i raportów po kliknięciu — bez zmian grafiku, listy płac i przetargów"},
+    ],
+  },
+  {
     date:"2026-06-03", version:"2.45.29", label:"Roboty — planowa ekipa realizacyjna (ETAP 8.5 FULL)",
     items:[
       {type:"new", text:"Baner „Realizacja kontraktu” — lider i ekipa (multi-select z kartoteki), zapis do roboty i chmury"},

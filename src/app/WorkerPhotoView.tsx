@@ -57,6 +57,7 @@ import {
   uploadPhoto,
   prepareWatermarkedPhoto,
   uploadReceipt,
+  isWorkerOnExecutionTeam,
 } from "@/app/app-domain";
 import { JobReportForm } from "@/app/JobReportForm";
 import { getReportWorkScopeText, reportHasWorkScope } from "@/lib/work-scope-text";
@@ -241,12 +242,66 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
       });
   }, [mergeWorkerCloudPayload, loadWorkerLocal]);
 
-  const activeJobs = jobs
-    .filter(j => j.status === "in_progress")
-    .filter(j => !search.trim() || j.address.toLowerCase().includes(search.toLowerCase()) || (j.client||"").toLowerCase().includes(search.toLowerCase()))
-    .sort((a,b) => b.startDate.localeCompare(a.startDate));
+  const activeJobs = useMemo(
+    () =>
+      jobs
+        .filter((j) => j.status === "in_progress")
+        .filter(
+          (j) =>
+            !search.trim() ||
+            j.address.toLowerCase().includes(search.toLowerCase()) ||
+            (j.client || "").toLowerCase().includes(search.toLowerCase()),
+        )
+        .sort((a, b) => b.startDate.localeCompare(a.startDate)),
+    [jobs, search],
+  );
+
+  const myContractJobs = useMemo(
+    () => activeJobs.filter((j) => isWorkerOnExecutionTeam(j, workerId)),
+    [activeJobs, workerId],
+  );
 
   const selectedJob = jobs.find(j => j.id === selectedJobId) || null;
+
+  const openWorkerJob = (jobId: string) => {
+    setSelectedJobId(jobId);
+    setUploadedCount(0);
+    setUploadError("");
+    setEditingReport(null);
+  };
+
+  const renderWorkerJobCard = (job: Job) => {
+    const pending = (job.photos || []).filter((p) => p.status === "pending").length;
+    return (
+      <button
+        key={job.id}
+        type="button"
+        onClick={() => openWorkerJob(job.id)}
+        className="w-full bg-card border border-border rounded-2xl px-5 py-4 text-left hover:border-primary/40 hover:bg-primary/5 transition-all"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold">
+              {job.address || "Bez adresu"}
+              {job.flatNumber && <span className="text-muted-foreground"> m.{job.flatNumber}</span>}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">{job.client || "—"}</p>
+          </div>
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            <span className="text-[10px] bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded-full font-medium">
+              W trakcie
+            </span>
+            {pending > 0 && (
+              <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full">
+                {pending} oczekuje
+              </span>
+            )}
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">Rozpoczęto: {fmtDate(job.startDate)}</p>
+      </button>
+    );
+  };
 
   const LABELS: {value: PhotoEntry["label"]; icon: React.ElementType; title: string; desc: string; color: string}[] = [
     {value:"before", icon:Camera,    title:"Przed remontem", desc:"Stan mieszkania przed rozpoczęciem prac",  color:"bg-blue-500/10 border-blue-500/25 text-blue-400"},
@@ -609,7 +664,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
           </button>
           {workerHelpOpen && (
             <div className="mt-1.5 px-3 py-2.5 rounded-xl border border-border bg-card text-[11px] text-muted-foreground leading-relaxed space-y-1.5">
-              <p><strong className="text-foreground/90">Roboty</strong> — wybierz aktywną robotę, dodaj zdjęcia (galeria lub aparat), wyślij raport z wymiarami. Status zdjęć i powód odrzucenia widać przy każdym zdjęciu.</p>
+              <p><strong className="text-foreground/90">Roboty</strong> — na górze lista <strong>Twoje kontrakty</strong> (gdy admin przypisał Cię do planowej ekipy), poniżej wszystkie roboty w toku. Wybierz robotę → zdjęcia (galeria lub aparat), raport z wymiarami.</p>
               <p><strong className="text-foreground/90">Grafik</strong> — Twój tydzień Pn–So: godziny z listy płac i adresy z wpisów na robotach.</p>
               <p><strong className="text-foreground/90">Wypłata</strong> — kwota na piątek, skan paragonu (chemia, paliwo) trafia do kosztów do zwrotu po akceptacji admina.</p>
               <p><strong className="text-foreground/90">Offline</strong> — zdjęcia bez sieci trafiają do kolejki i wysyłają się po powrocie zasięgu.</p>
@@ -954,28 +1009,30 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                 <p className="text-sm">Brak aktywnych robót</p>
                 <p className="text-xs mt-2 max-w-xs mx-auto">Administrator musi dodać robotę ze statusem „w trakcie” w panelu.</p>
               </div>
-            ) : null}
-            <div className="space-y-2">
-              {activeJobs.map(job => {
-                const pending = (job.photos||[]).filter(p=>p.status==="pending").length;
-                return (
-                  <button key={job.id} onClick={()=>{setSelectedJobId(job.id);setUploadedCount(0);setUploadError("");setEditingReport(null);}}
-                    className="w-full bg-card border border-border rounded-2xl px-5 py-4 text-left hover:border-primary/40 hover:bg-primary/5 transition-all">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold">{job.address||"Bez adresu"}{job.flatNumber&&<span className="text-muted-foreground"> m.{job.flatNumber}</span>}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{job.client||"—"}</p>
-                      </div>
-                      <div className="flex flex-col items-end gap-1.5 shrink-0">
-                        <span className="text-[10px] bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded-full font-medium">W trakcie</span>
-                        {pending > 0 && <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full">{pending} oczekuje</span>}
-                      </div>
+            ) : (
+              <div className="space-y-6">
+                {myContractJobs.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="border-b border-border pb-2">
+                      <p className="text-sm font-bold text-foreground">Twoje kontrakty</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        Przypisane do planowej ekipy realizacji
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">Rozpoczęto: {fmtDate(job.startDate)}</p>
-                  </button>
-                );
-              })}
-            </div>
+                    <div className="space-y-2">{myContractJobs.map(renderWorkerJobCard)}</div>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <div className="border-b border-border pb-2">
+                    <p className="text-sm font-bold text-foreground">Wszystkie roboty w toku</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Zdjęcia i raporty — jak dotychczas
+                    </p>
+                  </div>
+                  <div className="space-y-2">{activeJobs.map(renderWorkerJobCard)}</div>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="max-w-lg mx-auto px-4 pt-4 space-y-5">
