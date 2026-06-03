@@ -14,6 +14,7 @@ import {
   financialRecommendationTone,
   liquidityRiskTone,
 } from "@/lib/tender-center-financial-capacity";
+import { MetricHelpTooltip } from "@/app/tender-center/components/MetricHelpTooltip";
 
 function fmtPln(n: number): string {
   return new Intl.NumberFormat("pl-PL", {
