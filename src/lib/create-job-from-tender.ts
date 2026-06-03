@@ -3,13 +3,33 @@
  * Nie modyfikuje jobDraftFromTender ani attachTenderAssetsToJob.
  */
 
-import { defaultJob, type Job } from "@/app/app-domain";
+import { defaultJob, normalizeJob, type Job } from "@/app/app-domain";
 import { appendJobActivity } from "@/lib/job-activity";
 import {
   attachTenderAssetsToJob,
   type TenderJobDraft,
   type TenderPipelineItem,
 } from "@/lib/tenders-bzp";
+
+/** ETAP 8.2 — rozszerzona notatka w historii przy utworzeniu z przetargu. */
+function buildTenderJobCreatedActivityText(
+  item: TenderPipelineItem,
+  draft: TenderJobDraft,
+  plannedHandoverDate?: string,
+): string {
+  const lines = [`Utworzono z przetargu BZP: ${item.bzpNumber}`];
+  if (draft.invoiceAmount) {
+    const n = parseFloat(draft.invoiceAmount.replace(/\s/g, "").replace(",", "."));
+    const label = Number.isFinite(n) && n > 0
+      ? `${Math.round(n).toLocaleString("pl-PL")} PLN`
+      : `${draft.invoiceAmount} PLN`;
+    lines.push(`Wartość kontraktu: ${label}`);
+  }
+  if (draft.startDate) lines.push(`Start umowy: ${draft.startDate}`);
+  if (draft.endDate) lines.push(`Koniec realizacji: ${draft.endDate}`);
+  if (plannedHandoverDate) lines.push(`Planowany odbiór WM: ${plannedHandoverDate}`);
+  return lines.join("\n");
+}
 
 export type CreateJobFromTenderDeps = {
   setJobs: (updater: Job[] | ((prev: Job[]) => Job[])) => void;
@@ -33,20 +53,31 @@ export function executeCreateJobFromTender(
   j.notes = draft.notes;
   if (draft.invoiceAmount) j.invoiceAmount = draft.invoiceAmount;
   if (draft.startDate) j.startDate = draft.startDate;
-  if (draft.endDate) j.endDate = draft.endDate;
+  if (draft.endDate) {
+    j.endDate = draft.endDate;
+    j.plannedHandoverDate = draft.endDate;
+  }
   j.linkedTenderId = draft.linkedTenderId;
   j.linkedTenderBzpNumber = draft.linkedTenderBzpNumber;
-  appendJobActivity(j, "note", `Utworzono z przetargu BZP: ${item.bzpNumber}`);
-  deps.setJobs((prev) => [j, ...prev]);
+  appendJobActivity(
+    j,
+    "note",
+    buildTenderJobCreatedActivityText(item, draft, j.plannedHandoverDate),
+    deps.uploadedBy,
+  );
+  deps.setJobs((prev) => [normalizeJob(j), ...prev]);
 
   void attachTenderAssetsToJob(j.id, item, deps.uploadedBy).then((attachments) => {
     if (!attachments?.length) return;
     deps.setJobs((prev) =>
-      prev.map((job) =>
-        job.id === j.id
-          ? { ...job, jobFiles: [...(job.jobFiles || []), ...attachments] }
-          : job,
-      ),
+      prev.map((job) => {
+        if (job.id !== j.id) return job;
+        const merged: Job = {
+          ...job,
+          jobFiles: [...(job.jobFiles || []), ...attachments],
+        };
+        return normalizeJob(merged);
+      }),
     );
   });
 

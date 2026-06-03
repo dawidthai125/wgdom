@@ -11,6 +11,13 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-03", version:"2.45.25", label:"Roboty — realizacja kontraktu po przetargu (ETAP 8.2)",
+    items:[
+      {type:"improve", text:"Utwórz robotę — planowany odbiór WM z terminem realizacji; dokumenty zsynchronizowane po skopiowaniu plików z przetargu"},
+      {type:"improve", text:"Baner realizacji kontraktu w Robotach (kwota, terminy, link do BZP)"},
+    ],
+  },
+  {
     date:"2026-06-03", version:"2.45.24", label:"Przetargi — mapowanie roboty z wygranego (ETAP 8.1)",
     items:[
       {type:"improve", text:"Utwórz robotę — kwota wygranej oferty (BZP) ma pierwszeństwo przed wartością z SWZ"},

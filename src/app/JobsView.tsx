@@ -5,7 +5,7 @@ import {
   ChevronDown, ChevronUp, Calendar, CalendarDays, X, Phone, Edit2, Check, Search, Building2,
   MapPin, KeyRound, HardHat, StickyNote, Cloud, Download, Upload, Mail, Send,
   Camera, ImagePlus, Eye, ArrowLeft, ClipboardList, Ruler, Images, FolderOpen, Package,
-  Receipt, AlertTriangle, Copy, Sparkles, Clock, Users, Banknote, Scale, MessageSquare, ScrollText,
+  Receipt, AlertTriangle, Copy, Sparkles, Clock, Users, Banknote, Scale, Briefcase, MessageSquare, ScrollText,
   ClipboardCheck, Bell, Circle,
 } from "lucide-react";
 import { saveAs } from "file-saver";
@@ -1360,21 +1360,56 @@ export function JobsView({
                     </div>
                   </div>
                 )}
-                {selectedJob.linkedTenderId && onOpenTender && (
-                  <div className="flex items-center justify-between gap-3 bg-violet-500/10 border border-violet-500/25 rounded-lg px-4 py-2.5 text-sm">
-                    <div className="min-w-0">
-                      <p className="font-medium text-violet-700 dark:text-violet-300">Powiązany przetarg BZP</p>
-                      <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                        {selectedJob.linkedTenderBzpNumber || selectedJob.linkedTenderId}
-                      </p>
+                {selectedJob.linkedTenderId && (
+                  <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-lg px-4 py-3 text-sm space-y-2">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-medium text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                          <Briefcase size={14} className="shrink-0" />
+                          Realizacja kontraktu (przetarg BZP)
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                          {selectedJob.linkedTenderBzpNumber || selectedJob.linkedTenderId}
+                        </p>
+                      </div>
+                      {onOpenTender && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenTender(selectedJob.linkedTenderId!)}
+                          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 text-violet-700 dark:text-violet-300 text-xs font-medium hover:bg-violet-500/25"
+                        >
+                          <Scale size={12} /> Otwórz przetarg
+                        </button>
+                      )}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => onOpenTender(selectedJob.linkedTenderId!)}
-                      className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 text-violet-700 dark:text-violet-300 text-xs font-medium hover:bg-violet-500/25"
-                    >
-                      <Scale size={12} /> Otwórz przetarg
-                    </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                      {parseFloat(selectedJob.invoiceAmount || "0") > 0 && (
+                        <p>
+                          <span className="text-muted-foreground">Wartość kontraktu: </span>
+                          <span className="font-semibold text-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                            {fmt(parseFloat(selectedJob.invoiceAmount))} PLN
+                          </span>
+                        </p>
+                      )}
+                      {selectedJob.startDate && (
+                        <p>
+                          <span className="text-muted-foreground">Start: </span>
+                          <span className="font-medium">{fmtPlannedHandover(selectedJob.startDate)}</span>
+                        </p>
+                      )}
+                      {selectedJob.endDate && (
+                        <p>
+                          <span className="text-muted-foreground">Koniec realizacji: </span>
+                          <span className="font-medium">{fmtPlannedHandover(selectedJob.endDate)}</span>
+                        </p>
+                      )}
+                      {selectedJob.plannedHandoverDate && (
+                        <p>
+                          <span className="text-muted-foreground">Planowany odbiór WM: </span>
+                          <span className="font-medium">{fmtPlannedHandover(selectedJob.plannedHandoverDate)}</span>
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
                 {!allDocsDone(selectedJob) && inferJobPhase(selectedJob) === "in_progress" && jobDaysSinceStart(selectedJob) >= 7 && (

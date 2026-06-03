@@ -4,7 +4,14 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `App.tsx` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja:** **2.45.24** (UI)
+**Aktualna wersja:** **2.45.25** (UI)
+
+---
+
+## 2.45.25 (2026-06-03) — ETAP 8.2: realizacja kontraktu po Create Job
+
+- **improve** `plannedHandoverDate` z terminem realizacji; sync dokumentów po plikach z przetargu
+- **improve** Baner kontraktu w Robotach (kwota, daty, BZP)
 
 ---
 
