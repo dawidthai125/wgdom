@@ -216,6 +216,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [view, setView] = useState<View>("dashboard");
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
   const [pendingTenderId, setPendingTenderId] = useState<string | null>(null);
+  /** @legacy ETAP 7G — BZP dashboard stats; executive pulpit używa COMMAND CENTER snapshot. */
   const [tenderDashStats, setTenderDashStats] = useState<TendersDashboardStats | null>(null);
   const [pendingInspectorJobId, setPendingInspectorJobId] = useState<string | null>(null);
   const [inspectorInitialTab, setInspectorInitialTab] = useState<"activity" | "portfolio">("activity");

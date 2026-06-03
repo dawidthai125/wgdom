@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { RefreshCw, AlertCircle, Layers } from "lucide-react";
 import type {
   DirectoryEmployee,
@@ -6,51 +6,23 @@ import type {
   WeekEmployee,
   WeekSnapshot,
 } from "@/app/app-domain";
-import { useTendersPipeline } from "@/app/tender-center/hooks/useTendersPipeline";
-import { computeCompanyHealth } from "@/lib/tender-center-health";
-import { aggregateMarketKpi } from "@/lib/tender-center-kpi";
-import {
-  loadGrowthMode,
-  setGrowthMode,
-  type GrowthModeState,
-} from "@/lib/tender-center-growth-mode";
-import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
-import {
-  countPortfolioDecisions,
-  rankTopTenderOpportunities,
-} from "@/lib/tender-center-decision";
+import { useCommandCenterExecutiveSnapshot } from "@/app/tender-center/hooks/useCommandCenterExecutiveSnapshot";
+import type { GrowthModeState } from "@/lib/tender-center-growth-mode";
 import { useOwnerTenderDecisions } from "@/app/tender-center/hooks/useOwnerTenderDecisions";
 import {
-  collectGoCandidates,
-  computeForecast90Days,
-  type Forecast90DaysInput,
-} from "@/lib/tender-center-forecast-90d";
-import { OwnerAlertsPanel } from "@/app/tender-center/components/OwnerAlertsPanel";
-import { ActionCenter } from "@/app/tender-center/components/ActionCenter";
-import { OpportunityOverview } from "@/app/tender-center/components/OpportunityOverview";
-import {
-  explainHealth,
-  buildForecastExplainContext,
-  explainAllForecastHorizons,
-  buildOwnerStrategicAlerts,
-} from "@/lib/tender-center-explain";
-import type { CompanyHealthInput } from "@/lib/tender-center-health";
-import type { TenderDecision, TenderScoringBundle } from "@/lib/tender-center-decision";
-import {
   getLearningStats,
-  loadTenderLearning,
   recordTenderLearningDecision,
   type LearningReasonId,
 } from "@/lib/tender-center-learning";
-import { computeOwnerProfile } from "@/lib/tender-center-owner-profile";
-import { computeAiInsights } from "@/lib/tender-center-ai-insights";
-import { buildMorningBriefing } from "@/lib/tender-center-morning-briefing";
+import type { TenderDecision, TenderScoringBundle } from "@/lib/tender-center-decision";
+import { OwnerAlertsPanel } from "@/app/tender-center/components/OwnerAlertsPanel";
+import { ActionCenter } from "@/app/tender-center/components/ActionCenter";
+import { OpportunityOverview } from "@/app/tender-center/components/OpportunityOverview";
 import { LearningReasonDialog } from "@/app/tender-center/components/LearningReasonDialog";
 import { LearningMemoryPanel } from "@/app/tender-center/components/LearningMemoryPanel";
 import { OwnerProfilePanel } from "@/app/tender-center/components/OwnerProfilePanel";
 import { AiInsightsPanel } from "@/app/tender-center/components/AiInsightsPanel";
 import { MorningBriefingCard } from "@/app/tender-center/components/MorningBriefingCard";
-import { buildActionCenter } from "@/lib/tender-center-action-center";
 import { CommandCenterHero } from "@/app/tender-center/components/CommandCenterHero";
 import { BestOpportunityCard } from "@/app/tender-center/components/BestOpportunityCard";
 import { ForecastCommandStrip } from "@/app/tender-center/components/ForecastCommandStrip";
@@ -65,6 +37,10 @@ import { CommandCenterWelcomeDialog } from "@/app/tender-center/components/Comma
 import { HowToUseCommandCenter } from "@/app/tender-center/components/HowToUseCommandCenter";
 import { CommandCenterGlossary } from "@/app/tender-center/components/CommandCenterGlossary";
 import { AboutCommandCenter } from "@/app/tender-center/components/AboutCommandCenter";
+import { computeAiInsights } from "@/lib/tender-center-ai-insights";
+import { computeOwnerProfile } from "@/lib/tender-center-owner-profile";
+import { loadTenderLearning } from "@/lib/tender-center-learning";
+import { useMemo } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -91,7 +67,6 @@ export function OwnerDashboard({
   showTestBadge?: boolean;
   onOpenTender?: (tenderId: string) => void;
 }) {
-  const [growthModeState, setGrowthModeState] = useState<GrowthModeState>(loadGrowthMode);
   const [learningDialogOpen, setLearningDialogOpen] = useState(false);
   const [pendingDecision, setPendingDecision] = useState<{
     bundle: TenderScoringBundle;
@@ -99,14 +74,45 @@ export function OwnerDashboard({
   } | null>(null);
   const [learningRevision, setLearningRevision] = useState(0);
   const [welcomeOpen, setWelcomeOpen] = useState(false);
-  const pipeline = useTendersPipeline({ profileVersion: 0 });
 
   useEffect(() => {
     if (!hasSeenCommandCenterOnboarding()) {
       setWelcomeOpen(true);
     }
   }, []);
+
   const ownerDecisions = useOwnerTenderDecisions();
+
+  const snapshot = useCommandCenterExecutiveSnapshot({
+    jobs,
+    directory,
+    productionWeekEmployees,
+    weekFrom,
+    weekTo,
+    savedWeeks,
+    learningRevision,
+    financialCapacityEnabled: false,
+  });
+
+  const {
+    pipeline,
+    growthModeState,
+    setGrowthMode: applyGrowthMode,
+    health,
+    healthExplanation,
+    morningBriefing,
+    actionCenter,
+    forecast90,
+    forecastInput,
+    forecastHorizonExplanations,
+    bestOpportunity,
+    marketKpi,
+    portfolioCounts,
+    ownerAlerts,
+    goCandidates,
+  } = snapshot;
+
+  const financialCapacity = null;
 
   const learningStats = useMemo(
     () => getLearningStats(),
@@ -127,212 +133,8 @@ export function OwnerDashboard({
     [learningRevision, ownerDecisionProfile],
   );
 
-  const profile = useMemo(() => loadCompanyProfileLocal(), []);
-
-  const health = useMemo(
-    () =>
-      computeCompanyHealth({
-        items: pipeline.items,
-        jobs,
-        directory,
-        weekEmployees: productionWeekEmployees,
-        weekFrom,
-        weekTo,
-        profile,
-        growthMode: growthModeState.mode,
-        savedWeeks,
-      }),
-    [
-      pipeline.items,
-      jobs,
-      directory,
-      productionWeekEmployees,
-      weekFrom,
-      weekTo,
-      profile,
-      growthModeState.mode,
-      savedWeeks,
-    ],
-  );
-
-  const scoringContext = useMemo(
-    () => ({
-      health,
-      growthMode: growthModeState.mode,
-      jobs,
-      items: pipeline.items,
-      profile,
-    }),
-    [health, growthModeState.mode, jobs, pipeline.items, profile],
-  );
-
-  const marketKpi = useMemo(
-    () => aggregateMarketKpi(pipeline.items, profile),
-    [pipeline.items, profile],
-  );
-
-  const radarTop = useMemo(
-    () => rankTopTenderOpportunities(pipeline.items, profile, scoringContext, 5),
-    [pipeline.items, profile, scoringContext],
-  );
-
-  const bestOpportunity = radarTop[0] ?? null;
-
-  const portfolioCounts = useMemo(
-    () => countPortfolioDecisions(pipeline.items, profile, scoringContext),
-    [pipeline.items, profile, scoringContext],
-  );
-
-  const scoredForForecast = useMemo(
-    () => rankTopTenderOpportunities(pipeline.items, profile, scoringContext, 40),
-    [pipeline.items, profile, scoringContext],
-  );
-
-  const goCandidates = useMemo(
-    () =>
-      collectGoCandidates(scoredForForecast, ownerDecisions.store)
-        .sort((a, b) => b.opportunity.score - a.opportunity.score),
-    [scoredForForecast, ownerDecisions.store],
-  );
-
-  const forecastInput = useMemo(
-    (): Forecast90DaysInput => ({
-      jobs,
-      savedWeeks,
-      weekEmployees: productionWeekEmployees,
-      directory,
-      weekFrom,
-      weekTo,
-      profile,
-      goBundles: scoredForForecast,
-      ownerStore: ownerDecisions.store,
-    }),
-    [
-      jobs,
-      savedWeeks,
-      productionWeekEmployees,
-      directory,
-      weekFrom,
-      weekTo,
-      profile,
-      scoredForForecast,
-      ownerDecisions.store,
-    ],
-  );
-
-  const forecast90 = useMemo(
-    () => computeForecast90Days(forecastInput),
-    [forecastInput],
-  );
-
-  const healthInput = useMemo(
-    (): CompanyHealthInput => ({
-      items: pipeline.items,
-      jobs,
-      directory,
-      weekEmployees: productionWeekEmployees,
-      weekFrom,
-      weekTo,
-      profile,
-      growthMode: growthModeState.mode,
-      savedWeeks,
-    }),
-    [
-      pipeline.items,
-      jobs,
-      directory,
-      productionWeekEmployees,
-      weekFrom,
-      weekTo,
-      profile,
-      growthModeState.mode,
-      savedWeeks,
-    ],
-  );
-
-  const healthExplanation = useMemo(
-    () => explainHealth(healthInput, health, forecast90),
-    [healthInput, health, forecast90],
-  );
-
-  const forecastExplainContext = useMemo(() => {
-    const goItems = collectGoCandidates(scoredForForecast, ownerDecisions.store)
-      .sort((a, b) => b.opportunity.score - a.opportunity.score)
-      .map((b) => b.item);
-    return buildForecastExplainContext(jobs, goItems);
-  }, [jobs, scoredForForecast, ownerDecisions.store]);
-
-  const forecastHorizonExplanations = useMemo(
-    () => explainAllForecastHorizons(forecast90, forecastExplainContext),
-    [forecast90, forecastExplainContext],
-  );
-
-  const ownerAlerts = useMemo(
-    () =>
-      buildOwnerStrategicAlerts({
-        jobs,
-        items: pipeline.items,
-        goBundles: scoredForForecast,
-        forecast: forecast90,
-        forecastContext: forecastExplainContext,
-        profile,
-        ownerStore: ownerDecisions.store,
-        savedWeeks,
-      }),
-    [
-      jobs,
-      pipeline.items,
-      scoredForForecast,
-      forecast90,
-      forecastExplainContext,
-      profile,
-      ownerDecisions.store,
-      savedWeeks,
-    ],
-  );
-
-  const actionCenter = useMemo(
-    () =>
-      buildActionCenter({
-        radarTop,
-        scoredBundles: scoredForForecast,
-        health,
-        forecast: forecast90,
-        ownerStore: ownerDecisions.store,
-        strategicAlerts: ownerAlerts,
-      }),
-    [radarTop, scoredForForecast, health, forecast90, ownerDecisions.store, ownerAlerts],
-  );
-
-  // HOTFIX: Impact engine wyłączony — panel finansowy bez danych impact (izolacja 6C/6D).
-  const financialCapacity = null;
-
-  const morningBriefing = useMemo(
-    () =>
-      buildMorningBriefing({
-        health,
-        actionCenter,
-        forecast: forecast90,
-        financialCapacity,
-        ownerProfile: ownerDecisionProfile,
-        aiInsights,
-        bestOpportunity,
-        ownerName: profile.ownerName,
-      }),
-    [
-      health,
-      actionCenter,
-      forecast90,
-      financialCapacity,
-      ownerDecisionProfile,
-      aiInsights,
-      bestOpportunity,
-      profile.ownerName,
-    ],
-  );
-
   const handleGrowthModeChange = (mode: GrowthModeState["mode"]) => {
-    setGrowthModeState(setGrowthMode(mode));
+    applyGrowthMode(mode);
   };
 
   const handleDecisionRequest = (bundle: TenderScoringBundle, decision: TenderDecision) => {
@@ -400,7 +202,6 @@ export function OwnerDashboard({
 
         <MorningBriefingCard briefing={morningBriefing} />
 
-        {/* SEKCJA 1 — HERO */}
         <CommandCenterHero
           health={health}
           growthMode={growthModeState.mode}
@@ -409,10 +210,8 @@ export function OwnerDashboard({
           actionCenter={actionCenter}
         />
 
-        {/* SEKCJA 2 — CO WYMAGA UWAGI */}
         <ActionCenter center={actionCenter} variant="urgent" onOpenTender={onOpenTender} />
 
-        {/* SEKCJA 3 + 4 — okazja i prognoza obok siebie na desktop */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           <BestOpportunityCard
             bundle={bestOpportunity}
@@ -427,7 +226,6 @@ export function OwnerDashboard({
 
         <WhatIfPanel forecastInput={forecastInput} goCandidates={goCandidates} />
 
-        {/* SEKCJA 5 — PORTFEL */}
         <TenderPortfolioPanel
           systemCounts={portfolioCounts}
           ownerStats={ownerDecisions.stats}
@@ -436,7 +234,6 @@ export function OwnerDashboard({
           pipelineItems={pipeline.items}
         />
 
-        {/* SEKCJA 6 — POZOSTAŁE ANALIZY */}
         <section className="rounded-xl border border-border bg-card overflow-hidden">
           <div className="px-4 py-3 border-b border-border flex items-center gap-2">
             <Layers size={16} className="text-primary" />

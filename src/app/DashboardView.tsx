@@ -5,6 +5,7 @@ import {
   Calendar, HardHat, KeyRound, TrendingUp,
 } from "lucide-react";
 import type { TendersDashboardStats } from "@/lib/tenders-bzp";
+import { CommandCenterExecutivePanel } from "@/app/tender-center/components/CommandCenterExecutivePanel";
 import { appendJobActivity } from "@/lib/job-activity";
 import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import type {
@@ -54,7 +55,10 @@ import {
 export function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
   onNavigate, onFixJobs, adminUserId, alertsSeenTick, onAlertsSeen, onOpenSms,
-  tendersStats, onOpenTenders, onOpenTender, canViewTenders,
+  tendersStats: _legacyTendersStats,
+  onOpenTenders,
+  onOpenTender,
+  canViewTenders,
 }: {
   jobs: Job[];
   directory: DirectoryEmployee[];
@@ -67,11 +71,13 @@ export function DashboardView({
   alertsSeenTick: number;
   onAlertsSeen: () => void;
   onOpenSms?: () => void;
+  /** @legacy ETAP 7G — zachowane w App.tsx; executive panel używa COMMAND CENTER snapshot. */
   tendersStats?: TendersDashboardStats | null;
   onOpenTenders?: () => void;
   onOpenTender?: (tenderId: string) => void;
   canViewTenders?: boolean;
 }) {
+  void _legacyTendersStats;
   const { session: adminSession } = useAdminAccess();
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
   const todayKey = todayDayKey();
@@ -453,64 +459,17 @@ export function DashboardView({
           </div>
         </div>
 
-        {canViewTenders && tendersStats && onOpenTenders && (
-          <button
-            type="button"
-            onClick={onOpenTenders}
-            className="w-full bg-card border border-violet-500/25 rounded-xl px-4 py-3 text-left hover:border-violet-500/50 transition-colors flex flex-wrap items-center justify-between gap-3"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center shrink-0">
-                <Scale size={18} className="text-violet-600 dark:text-violet-400" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Przetargi BZP</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {tendersStats.actionable} do zgłoszenia
-                  {tendersStats.interested > 0 && ` · ${tendersStats.interested} w analizie`}
-                  {tendersStats.funnel.winRate != null && ` · skuteczność ${tendersStats.funnel.winRate}%`}
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs">
-              {tendersStats.urgent > 0 && (
-                <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium">
-                  {tendersStats.urgent} termin ≤7 dni
-                </span>
-              )}
-              {(tendersStats.alerts?.length ?? 0) > 0 && (
-                <span className="px-2.5 py-1 rounded-lg bg-red-500/10 text-red-700 dark:text-red-400 font-medium">
-                  {tendersStats.alerts!.length} do ogarnięcia
-                </span>
-              )}
-              <span className="px-2.5 py-1 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400">Otwórz →</span>
-            </div>
-          </button>
-        )}
-
-        {canViewTenders && tendersStats && onOpenTender && (tendersStats.alerts?.length ?? 0) > 0 && (
-          <div className="bg-card border border-violet-500/20 rounded-xl overflow-hidden">
-            <div className="px-4 py-2.5 border-b border-violet-500/15 bg-violet-500/5 flex items-center gap-2">
-              <Scale size={14} className="text-violet-600 dark:text-violet-400 shrink-0" />
-              <span className="text-xs font-semibold text-violet-700 dark:text-violet-300">Przetargi — wymaga działania</span>
-            </div>
-            <ul className="divide-y divide-border">
-              {tendersStats.alerts!.map((a) => (
-                <li key={a.id}>
-                  <button
-                    type="button"
-                    onClick={() => onOpenTender(a.tenderId)}
-                    className="w-full text-left px-4 py-2.5 hover:bg-secondary/40 transition-colors"
-                  >
-                    <p className={`text-xs font-medium ${a.tone === "red" ? "text-red-700 dark:text-red-400" : "text-amber-700 dark:text-amber-400"}`}>
-                      {a.title}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{a.message}</p>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+        {canViewTenders && onOpenTenders && (
+          <CommandCenterExecutivePanel
+            jobs={jobs}
+            directory={directory}
+            weekEmployees={weekEmployees}
+            weekFrom={weekFrom}
+            weekTo={weekTo}
+            savedWeeks={savedWeeks}
+            onOpenCommandCenter={onOpenTenders}
+            onOpenTender={onOpenTender}
+          />
         )}
 
         {/* Uwaga dziś */}

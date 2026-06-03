@@ -55,6 +55,7 @@ export type AdminViewRouterProps = {
   alertsSeenTick: number;
   onAlertsSeen: () => void;
   onOpenSms: () => void;
+  /** @legacy ETAP 7G — UI pulpitu nie czyta; zachowane dla kompatybilności fetch w App. */
   tenderDashStats: TendersDashboardStats | null;
   onOpenTenders: () => void;
   onOpenTender: (tid: string) => void;
