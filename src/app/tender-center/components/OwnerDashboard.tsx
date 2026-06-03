@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { RefreshCw, Scale, AlertCircle, Layers } from "lucide-react";
+import { RefreshCw, AlertCircle, Layers } from "lucide-react";
 import type {
   DirectoryEmployee,
   Job,
@@ -35,13 +35,34 @@ import {
   buildOwnerStrategicAlerts,
 } from "@/lib/tender-center-explain";
 import type { CompanyHealthInput } from "@/lib/tender-center-health";
+import type { TenderDecision, TenderScoringBundle } from "@/lib/tender-center-decision";
+import {
+  getLearningStats,
+  loadTenderLearning,
+  recordTenderLearningDecision,
+  type LearningReasonId,
+} from "@/lib/tender-center-learning";
+import { computeOwnerProfile } from "@/lib/tender-center-owner-profile";
+import { computeAiInsights } from "@/lib/tender-center-ai-insights";
+import { buildMorningBriefing } from "@/lib/tender-center-morning-briefing";
+import { LearningReasonDialog } from "@/app/tender-center/components/LearningReasonDialog";
+import { LearningMemoryPanel } from "@/app/tender-center/components/LearningMemoryPanel";
+import { OwnerProfilePanel } from "@/app/tender-center/components/OwnerProfilePanel";
+import { AiInsightsPanel } from "@/app/tender-center/components/AiInsightsPanel";
+import { MorningBriefingCard } from "@/app/tender-center/components/MorningBriefingCard";
 import { buildActionCenter } from "@/lib/tender-center-action-center";
 import { CommandCenterHero } from "@/app/tender-center/components/CommandCenterHero";
 import { BestOpportunityCard } from "@/app/tender-center/components/BestOpportunityCard";
 import { ForecastCommandStrip } from "@/app/tender-center/components/ForecastCommandStrip";
 import { WhatIfPanel } from "@/app/tender-center/components/WhatIfPanel";
+import { ImpactPanel } from "@/app/tender-center/components/ImpactPanel";
+import { FinancialCapacityPanel } from "@/app/tender-center/components/FinancialCapacityPanel";
 import { TenderPortfolioPanel } from "@/app/tender-center/components/TenderPortfolioCounters";
 import { CommandCenterExplainability } from "@/app/tender-center/components/CommandCenterExplainability";
+import { CommandCenterBrandHeader } from "@/app/tender-center/components/CommandCenterBrandHeader";
+import { COMMAND_CENTER_BRAND } from "@/app/tender-center/branding";
+import { computeTenderImpact } from "@/lib/tender-center-impact";
+import { computeFinancialCapacity } from "@/lib/tender-center-financial-capacity";
 import {
   Accordion,
   AccordionContent,
@@ -69,8 +90,57 @@ export function OwnerDashboard({
   onOpenTender?: (tenderId: string) => void;
 }) {
   const [growthModeState, setGrowthModeState] = useState<GrowthModeState>(loadGrowthMode);
+  const [learningDialogOpen, setLearningDialogOpen] = useState(false);
+  const [pendingDecision, setPendingDecision] = useState<{
+    bundle: TenderScoringBundle;
+    decision: TenderDecision;
+  } | null>(null);
+  const [learningRevision, setLearningRevision] = useState(0);
   const pipeline = useTendersPipeline({ profileVersion: 0 });
   const ownerDecisions = useOwnerTenderDecisions();
+
+  const learningStats = useMemo(
+    () => getLearningStats(),
+    [learningRevision],
+  );
+
+  const ownerDecisionProfile = useMemo(() => {
+    const { entries } = loadTenderLearning();
+    return computeOwnerProfile(entries);
+  }, [learningRevision]);
+
+  const aiInsights = useMemo(
+    () =>
+      computeAiInsights({
+        learningEntries: loadTenderLearning().entries,
+        ownerProfile: ownerDecisionProfile,
+      }),
+    [learningRevision, ownerDecisionProfile],
+  );
+
+  const morningBriefing = useMemo(
+    () =>
+      buildMorningBriefing({
+        health,
+        actionCenter,
+        forecast: forecast90,
+        financialCapacity,
+        ownerProfile: ownerDecisionProfile,
+        aiInsights,
+        bestOpportunity,
+        ownerName: profile.ownerName,
+      }),
+    [
+      health,
+      actionCenter,
+      forecast90,
+      financialCapacity,
+      ownerDecisionProfile,
+      aiInsights,
+      bestOpportunity,
+      profile.ownerName,
+    ],
+  );
 
   const profile = useMemo(() => loadCompanyProfileLocal(), []);
 
@@ -249,14 +319,79 @@ export function OwnerDashboard({
     [radarTop, scoredForForecast, health, forecast90, ownerDecisions.store, ownerAlerts],
   );
 
+  const tenderImpact = useMemo(() => {
+    if (!bestOpportunity) return null;
+    return computeTenderImpact({
+      bundle: bestOpportunity,
+      health,
+      healthInput,
+      forecastInput,
+      forecast: forecast90,
+      growthMode: growthModeState.mode,
+      jobs,
+      weekEmployees: productionWeekEmployees,
+      directory,
+      goCandidates,
+      profile,
+    });
+  }, [
+    bestOpportunity,
+    health,
+    healthInput,
+    forecastInput,
+    forecast90,
+    growthModeState.mode,
+    jobs,
+    productionWeekEmployees,
+    directory,
+    goCandidates,
+    profile,
+  ]);
+
+  const financialCapacity = useMemo(() => {
+    if (!bestOpportunity || !tenderImpact) return null;
+    return computeFinancialCapacity({
+      bundle: bestOpportunity,
+      profile,
+      health,
+      impact: tenderImpact,
+      jobs,
+      growthMode: growthModeState.mode,
+      pipelineItems: pipeline.items,
+    });
+  }, [bestOpportunity, tenderImpact, profile, health, jobs, growthModeState.mode, pipeline.items]);
+
   const handleGrowthModeChange = (mode: GrowthModeState["mode"]) => {
     setGrowthModeState(setGrowthMode(mode));
+  };
+
+  const handleDecisionRequest = (bundle: TenderScoringBundle, decision: TenderDecision) => {
+    setPendingDecision({ bundle, decision });
+    setLearningDialogOpen(true);
+  };
+
+  const handleLearningConfirm = (reason: LearningReasonId, customReason: string) => {
+    if (!pendingDecision) return;
+    const { bundle, decision } = pendingDecision;
+    ownerDecisions.setOwnerDecision(bundle, decision);
+    recordTenderLearningDecision({
+      tenderId: bundle.item.id,
+      ownerDecision: decision,
+      reason,
+      customReason,
+      systemDecision: bundle.decision,
+      opportunityScore: bundle.opportunity.score,
+      strategicScore: bundle.strategic.score,
+      impactScore: tenderImpact?.impactScore ?? 0,
+    });
+    setLearningRevision((v) => v + 1);
+    setPendingDecision(null);
   };
 
   if (pipeline.loading) {
     return (
       <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-        Ładowanie Tender Center PRO…
+        {COMMAND_CENTER_BRAND.loading}
       </div>
     );
   }
@@ -266,33 +401,20 @@ export function OwnerDashboard({
       className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
       style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
     >
-      <div className="sticky top-0 z-20 px-4 sm:px-6 py-3 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <Scale size={18} className="text-primary" />
-              <h1 className="text-lg font-semibold">Tender Center PRO</h1>
-              {showTestBadge && (
-                <span className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">
-                  Super Admin · test
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-              Centrum dowodzenia właściciela — kondycja, priorytety i prognoza firmy w 10 sekund.
-            </p>
-          </div>
+      <CommandCenterBrandHeader
+        showTestBadge={showTestBadge}
+        refreshButton={
           <button
             type="button"
             onClick={() => void pipeline.refreshFromBzp()}
             disabled={pipeline.syncing}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-60 min-h-[44px]"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-60 min-h-[44px] shrink-0"
           >
             <RefreshCw size={16} className={pipeline.syncing || pipeline.autoSyncing ? "animate-spin" : ""} />
             {pipeline.syncing ? "Pobieranie…" : pipeline.autoSyncing ? "Auto-sync…" : "Odśwież z BZP"}
           </button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="px-4 sm:px-6 py-4 space-y-5">
         {pipeline.error && (
@@ -305,6 +427,8 @@ export function OwnerDashboard({
         {pipeline.autoAwardRunning && (
           <p className="text-[10px] text-muted-foreground">Sprawdzam wyniki zakończonych postępowań…</p>
         )}
+
+        <MorningBriefingCard briefing={morningBriefing} />
 
         {/* SEKCJA 1 — HERO */}
         <CommandCenterHero
@@ -323,11 +447,15 @@ export function OwnerDashboard({
           <BestOpportunityCard
             bundle={bestOpportunity}
             ownerRecord={bestOpportunity ? ownerDecisions.getOwnerDecision(bestOpportunity.item.id) : null}
-            onSetDecision={ownerDecisions.setOwnerDecision}
+            onSetDecision={handleDecisionRequest}
             onOpenTender={onOpenTender}
           />
           <ForecastCommandStrip forecast={forecast90} />
         </div>
+
+        <ImpactPanel impact={tenderImpact} />
+
+        <FinancialCapacityPanel capacity={financialCapacity} />
 
         <WhatIfPanel forecastInput={forecastInput} goCandidates={goCandidates} />
 
@@ -347,6 +475,13 @@ export function OwnerDashboard({
             <h2 className="text-sm font-semibold">Pozostałe analizy</h2>
           </div>
           <Accordion type="multiple" className="px-4">
+            <AccordionItem value="ai-insights">
+              <AccordionTrigger>AI Insights</AccordionTrigger>
+              <AccordionContent>
+                <AiInsightsPanel insights={aiInsights} />
+              </AccordionContent>
+            </AccordionItem>
+
             <AccordionItem value="kpi">
               <AccordionTrigger>KPI rynku</AccordionTrigger>
               <AccordionContent>
@@ -379,12 +514,33 @@ export function OwnerDashboard({
                 />
               </AccordionContent>
             </AccordionItem>
+
+            <AccordionItem value="learning">
+              <AccordionTrigger>Pamięć decyzji</AccordionTrigger>
+              <AccordionContent>
+                <LearningMemoryPanel stats={learningStats} />
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="owner-profile">
+              <AccordionTrigger>Profil właściciela</AccordionTrigger>
+              <AccordionContent>
+                <OwnerProfilePanel profile={ownerDecisionProfile} />
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
         </section>
 
+        <LearningReasonDialog
+          open={learningDialogOpen}
+          decision={pendingDecision?.decision ?? null}
+          onOpenChange={setLearningDialogOpen}
+          onConfirm={handleLearningConfirm}
+        />
+
         <p className="text-[11px] text-muted-foreground text-center pb-2">
           Pełna lista przetargów, filtry i SWZ — w{" "}
-          <strong className="text-foreground">Klasycznym widoku</strong> (przełącznik u góry ekranu).
+          <strong className="text-foreground">{COMMAND_CENTER_BRAND.toggleClassic}</strong> (przełącznik u góry ekranu).
         </p>
       </div>
     </div>

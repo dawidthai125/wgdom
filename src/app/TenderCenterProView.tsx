@@ -9,6 +9,7 @@ import type {
 import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
 import { TendersView } from "@/app/TendersView";
 import { OwnerDashboard } from "@/app/tender-center/components/OwnerDashboard";
+import { COMMAND_CENTER_BRAND } from "@/app/tender-center/branding";
 
 export type TenderCenterViewMode = "pro" | "classic";
 
@@ -54,7 +55,7 @@ function TenderCenterViewToggle({
           }`}
         >
           <LayoutGrid size={14} />
-          Tender Center PRO
+          {COMMAND_CENTER_BRAND.togglePro}
         </button>
         <button
           type="button"
@@ -68,7 +69,7 @@ function TenderCenterViewToggle({
           }`}
         >
           <List size={14} />
-          Klasyczny widok
+          {COMMAND_CENTER_BRAND.toggleClassic}
         </button>
       </div>
     </div>
