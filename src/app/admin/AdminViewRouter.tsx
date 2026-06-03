@@ -2,8 +2,7 @@ import { lazy, Suspense, type ComponentType } from "react";
 import { ViewErrorBoundary } from "@/app/ViewErrorBoundary";
 import { ViewLoadFallback } from "@/app/ViewLoadFallback";
 import { JobPhotosGalleryView } from "@/app/JobPhotosGalleryView";
-import { appendJobActivity } from "@/lib/job-activity";
-import { defaultJob } from "@/app/app-domain";
+import { executeCreateJobFromTender } from "@/lib/create-job-from-tender";
 import type {
   DirectoryEmployee,
   Job,
@@ -368,33 +367,22 @@ export function AdminViewRouter({
               weekTo={weekTo}
               savedWeeks={savedWeeks}
               onOpenJob={onOpenJobFromTender}
-              onCreateJobFromTender={(draft, item) => {
-                const j = defaultJob();
-                j.address = draft.address.slice(0, 120);
-                j.client = draft.client;
-                j.notes = draft.notes;
-                if (draft.invoiceAmount) j.invoiceAmount = draft.invoiceAmount;
-                j.linkedTenderId = draft.linkedTenderId;
-                j.linkedTenderBzpNumber = draft.linkedTenderBzpNumber;
-                appendJobActivity(j, "note", `Utworzono z przetargu BZP: ${item.bzpNumber}`);
-                setJobs((prev) => [j, ...prev]);
-                const actor = adminSession?.displayName || "Administrator";
-                void import("@/lib/tenders-bzp").then(({ attachTenderAssetsToJob }) =>
-                  attachTenderAssetsToJob(j.id, item, actor),
-                ).then((attachments) => {
-                  if (!attachments?.length) return;
-                  setJobs((prev) =>
-                    prev.map((job) =>
-                      job.id === j.id
-                        ? { ...job, jobFiles: [...(job.jobFiles || []), ...attachments] }
-                        : job,
-                    ),
-                  );
-                });
-                onSetPendingJobId(j.id);
+              setJobs={setJobs}
+              tenderJobUploadedBy={adminSession?.displayName || "Administrator"}
+              onNavigateToJobFromTender={(jobId) => {
+                onSetPendingJobId(jobId);
                 onSetView("jobs");
-                return j.id;
               }}
+              onCreateJobFromTender={(draft, item) =>
+                executeCreateJobFromTender(draft, item, {
+                  setJobs,
+                  uploadedBy: adminSession?.displayName || "Administrator",
+                  onNavigateToJob: (jobId) => {
+                    onSetPendingJobId(jobId);
+                    onSetView("jobs");
+                  },
+                })
+              }
             />
           </Suspense>
         </ViewErrorBoundary>

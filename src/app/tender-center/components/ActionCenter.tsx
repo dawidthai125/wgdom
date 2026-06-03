@@ -2,6 +2,10 @@ import { useMemo, useState } from "react";
 import { Zap, ChevronRight, ExternalLink, ChevronDown, Calendar } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { daysUntilTenderDeadline } from "@/lib/tenders-bzp";
+import {
+  isWonRealizationAction,
+  TenderJobLinkButtons,
+} from "@/app/tender-center/components/TenderJobLinkButtons";
 import type { ActionCenterResult, OwnerActionItem, ActionPriority } from "@/lib/tender-center-action-center";
 import {
   ACTION_CATEGORY_LABEL_PL,
@@ -86,13 +90,30 @@ function PriorityCounters({
   );
 }
 
+function resolveTenderItem(
+  tenderId: string | undefined,
+  pipelineItems?: TenderPipelineItem[],
+): TenderPipelineItem | null {
+  if (!tenderId || !pipelineItems?.length) return null;
+  return pipelineItems.find((i) => i.id === tenderId) ?? null;
+}
+
 function ActionRow({
   item,
   onOpenTender,
+  pipelineItems,
+  onCreateJobFromTender,
+  onOpenJob,
 }: {
   item: OwnerActionItem;
   onOpenTender?: (tenderId: string) => void;
+  pipelineItems?: TenderPipelineItem[];
+  onCreateJobFromTender?: (item: TenderPipelineItem) => void;
+  onOpenJob?: (jobId: string) => void;
 }) {
+  const tenderItem = isWonRealizationAction(item.id)
+    ? resolveTenderItem(item.tenderId, pipelineItems)
+    : null;
   return (
     <article className="rounded-xl border border-border bg-card/60 px-3.5 py-3 space-y-2">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -123,16 +144,26 @@ function ActionRow({
         </p>
       </div>
 
-      {item.tenderId && onOpenTender && (
-        <button
-          type="button"
-          onClick={() => onOpenTender(item.tenderId!)}
-          className="inline-flex items-center gap-1.5 text-[10px] font-medium text-primary hover:underline min-h-[36px]"
-        >
-          <ExternalLink size={12} />
-          Otwórz przetarg
-        </button>
-      )}
+      <div className="flex flex-wrap items-center gap-2">
+        {tenderItem && (
+          <TenderJobLinkButtons
+            item={tenderItem}
+            onCreateJob={onCreateJobFromTender}
+            onOpenJob={onOpenJob}
+            size="compact"
+          />
+        )}
+        {item.tenderId && onOpenTender && (
+          <button
+            type="button"
+            onClick={() => onOpenTender(item.tenderId!)}
+            className="inline-flex items-center gap-1.5 text-[10px] font-medium text-primary hover:underline min-h-[36px]"
+          >
+            <ExternalLink size={12} />
+            Otwórz przetarg
+          </button>
+        )}
+      </div>
 
       <p className="text-[10px] text-muted-foreground">
         <span className="opacity-70">Powód: </span>{item.reason}
@@ -146,11 +177,20 @@ function ActionRowCompact({
   item,
   deadlineLabel,
   onOpenTender,
+  pipelineItems,
+  onCreateJobFromTender,
+  onOpenJob,
 }: {
   item: OwnerActionItem;
   deadlineLabel: string | null;
   onOpenTender?: (tenderId: string) => void;
+  pipelineItems?: TenderPipelineItem[];
+  onCreateJobFromTender?: (item: TenderPipelineItem) => void;
+  onOpenJob?: (jobId: string) => void;
 }) {
+  const tenderItem = isWonRealizationAction(item.id)
+    ? resolveTenderItem(item.tenderId, pipelineItems)
+    : null;
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   return (
@@ -179,6 +219,14 @@ function ActionRowCompact({
         >
           {detailsOpen ? "Ukryj szczegóły" : "Szczegóły"}
         </button>
+        {tenderItem && (
+          <TenderJobLinkButtons
+            item={tenderItem}
+            onCreateJob={onCreateJobFromTender}
+            onOpenJob={onOpenJob}
+            size="compact"
+          />
+        )}
         {item.tenderId && onOpenTender && (
           <button
             type="button"
@@ -211,12 +259,16 @@ export function ActionCenter({
   variant = "full",
   onOpenTender,
   pipelineItems,
+  onCreateJobFromTender,
+  onOpenJob,
 }: {
   center: ActionCenterResult;
   variant?: "full" | "urgent";
   onOpenTender?: (tenderId: string) => void;
   /** Do etykiet terminu w widoku skróconym (variant urgent). */
   pipelineItems?: TenderPipelineItem[];
+  onCreateJobFromTender?: (item: TenderPipelineItem) => void;
+  onOpenJob?: (jobId: string) => void;
 }) {
   const [showAllUrgent, setShowAllUrgent] = useState(false);
   const urgentPriorities = new Set<ActionPriority>(["CRITICAL", "HIGH"]);
@@ -295,6 +347,9 @@ export function ActionCenter({
                   item={item}
                   deadlineLabel={deadlineLabel}
                   onOpenTender={onOpenTender}
+                  pipelineItems={pipelineItems}
+                  onCreateJobFromTender={onCreateJobFromTender}
+                  onOpenJob={onOpenJob}
                 />
               );
             })}
@@ -324,7 +379,14 @@ export function ActionCenter({
               Lista działań ({actions.length})
             </p>
             {actions.map((item) => (
-              <ActionRow key={item.id} item={item} onOpenTender={onOpenTender} />
+              <ActionRow
+                key={item.id}
+                item={item}
+                onOpenTender={onOpenTender}
+                pipelineItems={pipelineItems}
+                onCreateJobFromTender={onCreateJobFromTender}
+                onOpenJob={onOpenJob}
+              />
             ))}
           </div>
         )}

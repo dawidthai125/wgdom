@@ -381,6 +381,46 @@ function actionsFromStrategicAlerts(alerts: OwnerStrategicAlert[]): OwnerActionI
   return out;
 }
 
+/** Wygrane przetargi bez roboty — realizacja (ETAP 8.0). */
+function actionsFromWonRealization(scoredBundles: TenderScoringBundle[]): OwnerActionItem[] {
+  const out: OwnerActionItem[] = [];
+  for (const b of scoredBundles) {
+    if (b.item.status !== "won") continue;
+    const titleShort =
+      b.item.title.length > 56 ? `${b.item.title.slice(0, 56)}…` : b.item.title;
+    if (b.item.linkedJobId) {
+      out.push(
+        action({
+          id: `won-realization-open-${b.item.id}`,
+          priority: "HIGH",
+          category: "BUSINESS",
+          title: "Wygrany przetarg — otwórz robotę",
+          description: titleShort,
+          reason: `BZP ${b.item.bzpNumber} · powiązana robota w systemie`,
+          source: "pipeline.status · linkedJobId",
+          recommendedAction: "Otwórz robotę i rozpocznij realizację kontraktu.",
+          tenderId: b.item.id,
+        }),
+      );
+    } else {
+      out.push(
+        action({
+          id: `won-realization-create-${b.item.id}`,
+          priority: "HIGH",
+          category: "BUSINESS",
+          title: "Wygrany przetarg — utwórz robotę",
+          description: titleShort,
+          reason: `Status: won · brak linkedJobId`,
+          source: "pipeline.status · jobDraftFromTender",
+          recommendedAction: "Utwórz robotę z danymi i plikami przetargu.",
+          tenderId: b.item.id,
+        }),
+      );
+    }
+  }
+  return out.slice(0, 5);
+}
+
 function actionsFromCapacity(forecast: Forecast90DaysResult): OwnerActionItem[] {
   if (
     forecast.freeSlotsToday >= 1
@@ -419,6 +459,7 @@ export function buildActionCenter(input: ActionCenterInput): ActionCenterResult 
   const now = input.now ?? new Date();
 
   const merged = dedupeActions([
+    ...actionsFromWonRealization(input.scoredBundles),
     ...actionsFromRadar(input.radarTop, now),
     ...actionsFromHealth(input.health),
     ...actionsFromForecast(input.forecast),

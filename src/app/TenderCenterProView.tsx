@@ -80,6 +80,9 @@ export function TenderCenterProView({
   showTestBadge = false,
   onCreateJobFromTender,
   onOpenJob,
+  setJobs,
+  tenderJobUploadedBy = "Administrator",
+  onNavigateToJobFromTender,
   athPreviewEnabled = true,
   initialExpandedId = null,
   jobs,
@@ -92,6 +95,9 @@ export function TenderCenterProView({
   showTestBadge?: boolean;
   onCreateJobFromTender?: (draft: ReturnType<typeof jobDraftFromTender>, item: TenderPipelineItem) => string | void;
   onOpenJob?: (jobId: string) => void;
+  setJobs?: (updater: Job[] | ((prev: Job[]) => Job[])) => void;
+  tenderJobUploadedBy?: string;
+  onNavigateToJobFromTender?: (jobId: string) => void;
   athPreviewEnabled?: boolean;
   initialExpandedId?: string | null;
   jobs: Job[];
@@ -140,6 +146,11 @@ export function TenderCenterProView({
           savedWeeks={savedWeeks}
           showTestBadge={showTestBadge}
           onOpenTender={handleOpenTenderInClassic}
+          setJobs={setJobs}
+          tenderJobUploadedBy={tenderJobUploadedBy}
+          onNavigateToJobFromTender={onNavigateToJobFromTender}
+          onOpenJob={onOpenJob}
+          onCreateJobFromTender={onCreateJobFromTender}
         />
       )}
     </div>

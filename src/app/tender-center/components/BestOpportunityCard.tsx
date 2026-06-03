@@ -1,4 +1,6 @@
 import { Target, ExternalLink, Calendar, Building2, Hash, Wallet } from "lucide-react";
+import type { TenderPipelineItem } from "@/lib/tenders-bzp";
+import { TenderJobLinkButtons } from "@/app/tender-center/components/TenderJobLinkButtons";
 import type { TenderDecision, TenderScoringBundle } from "@/lib/tender-center-decision";
 import { topDecisionReasons } from "@/lib/tender-center-decision";
 import type { OwnerTenderDecisionRecord } from "@/lib/tender-center-owner-decisions";
@@ -78,11 +80,15 @@ export function BestOpportunityCard({
   ownerRecord,
   onSetDecision,
   onOpenTender,
+  onCreateJobFromTender,
+  onOpenJob,
 }: {
   bundle: TenderScoringBundle | null;
   ownerRecord?: OwnerTenderDecisionRecord | null;
   onSetDecision?: (bundle: TenderScoringBundle, decision: TenderDecision) => void;
   onOpenTender?: (tenderId: string) => void;
+  onCreateJobFromTender?: (item: TenderPipelineItem) => void;
+  onOpenJob?: (jobId: string) => void;
 }) {
   return (
     <section className="rounded-xl border border-border bg-card overflow-hidden">
@@ -91,16 +97,26 @@ export function BestOpportunityCard({
           <Target size={16} className="text-primary" />
           <h2 className="text-sm font-semibold">Najlepsza okazja</h2>
         </div>
-        {bundle && onOpenTender && (
-          <button
-            type="button"
-            onClick={() => onOpenTender(bundle.item.id)}
-            className="inline-flex items-center gap-1 text-[10px] font-medium text-primary hover:underline min-h-[36px] px-2"
-          >
-            <ExternalLink size={12} />
-            Otwórz przetarg
-          </button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {bundle && bundle.item.status === "won" && (
+            <TenderJobLinkButtons
+              item={bundle.item}
+              onCreateJob={onCreateJobFromTender}
+              onOpenJob={onOpenJob}
+              size="compact"
+            />
+          )}
+          {bundle && onOpenTender && (
+            <button
+              type="button"
+              onClick={() => onOpenTender(bundle.item.id)}
+              className="inline-flex items-center gap-1 text-[10px] font-medium text-primary hover:underline min-h-[36px] px-2"
+            >
+              <ExternalLink size={12} />
+              Otwórz przetarg
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="p-4">

@@ -7,6 +7,8 @@ import type {
   WeekSnapshot,
 } from "@/app/app-domain";
 import { useCommandCenterContext } from "@/app/tender-center/context/CommandCenterContext";
+import { useTenderJobFromPipeline } from "@/app/tender-center/hooks/useTenderJobFromPipeline";
+import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { GrowthModeState } from "@/lib/tender-center-growth-mode";
 import {
   recordTenderLearningDecision,
@@ -51,6 +53,11 @@ export function OwnerDashboard({
   savedWeeks: _savedWeeks,
   showTestBadge = false,
   onOpenTender,
+  setJobs,
+  tenderJobUploadedBy = "Administrator",
+  onNavigateToJobFromTender,
+  onOpenJob,
+  onCreateJobFromTender,
 }: {
   /** @deprecated ETAP 7H — dane operacyjne z CommandCenterProvider. */
   jobs: Job[];
@@ -61,6 +68,14 @@ export function OwnerDashboard({
   savedWeeks: WeekSnapshot[];
   showTestBadge?: boolean;
   onOpenTender?: (tenderId: string) => void;
+  setJobs?: (updater: Job[] | ((prev: Job[]) => Job[])) => void;
+  tenderJobUploadedBy?: string;
+  onNavigateToJobFromTender?: (jobId: string) => void;
+  onOpenJob?: (jobId: string) => void;
+  onCreateJobFromTender?: (
+    draft: ReturnType<typeof jobDraftFromTender>,
+    item: TenderPipelineItem,
+  ) => string | void;
 }) {
   void _jobs;
   void _directory;
@@ -84,6 +99,26 @@ export function OwnerDashboard({
     aiInsights,
     bumpLearningRevision,
   } = useCommandCenterContext();
+
+  const tenderJobEnabled = Boolean(
+    setJobs && onNavigateToJobFromTender && onOpenJob && onCreateJobFromTender,
+  );
+
+  const ccJobActions = useTenderJobFromPipeline({
+    setJobs: setJobs ?? (() => {}),
+    uploadedBy: tenderJobUploadedBy,
+    onNavigateToJob: onNavigateToJobFromTender ?? (() => {}),
+    onOpenJob: onOpenJob ?? (() => {}),
+    pipeline: tenderJobEnabled ? snapshot.pipeline : undefined,
+  });
+
+  const handleCreateJobFromTenderItem = tenderJobEnabled
+    ? (item: TenderPipelineItem) => {
+        ccJobActions.createJobFromTender(jobDraftFromTender(item), item);
+      }
+    : undefined;
+
+  const openLinkedJob = tenderJobEnabled ? ccJobActions.openLinkedJob : undefined;
 
   const {
     pipeline,
@@ -177,13 +212,26 @@ export function OwnerDashboard({
           <p className="text-[10px] text-muted-foreground">Sprawdzam wyniki zakończonych postępowań…</p>
         )}
 
-        <MorningBriefingCard briefing={morningBriefing} compact hideOpportunityPreview />
+        <MorningBriefingCard
+          briefing={morningBriefing}
+          compact
+          hideOpportunityPreview
+          wonOpportunityItem={
+            bestOpportunity?.item.status === "won" && !bestOpportunity.item.linkedJobId
+              ? bestOpportunity.item
+              : null
+          }
+          onCreateJobFromTender={handleCreateJobFromTenderItem}
+          onOpenJob={openLinkedJob}
+        />
 
         <BestOpportunityCard
           bundle={bestOpportunity}
           ownerRecord={bestOpportunity ? ownerDecisions.getOwnerDecision(bestOpportunity.item.id) : null}
           onSetDecision={handleDecisionRequest}
           onOpenTender={onOpenTender}
+          onCreateJobFromTender={handleCreateJobFromTenderItem}
+          onOpenJob={openLinkedJob}
         />
 
         <FinancialCapacityPanel capacity={financialCapacity} />
@@ -200,6 +248,8 @@ export function OwnerDashboard({
           variant="urgent"
           onOpenTender={onOpenTender}
           pipelineItems={pipeline.items}
+          onCreateJobFromTender={handleCreateJobFromTenderItem}
+          onOpenJob={openLinkedJob}
         />
 
         <ForecastCommandStrip forecast={forecast90} />

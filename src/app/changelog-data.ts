@@ -11,6 +11,13 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-03", version:"2.45.22", label:"COMMAND CENTER — utwórz robotę z wygranego (ETAP 8.0)",
+    items:[
+      {type:"new", text:"COMMAND CENTER — „Utwórz robotę” / „Otwórz robotę” przy wygranym przetargu (okazja, briefing, akcje)"},
+      {type:"improve", text:"Wspólny handler tworzenia roboty z przetargu — Classic i CC bez duplikacji logiki"},
+    ],
+  },
+  {
     date:"2026-06-03", version:"2.45.21", label:"COMMAND CENTER — uproszczenie UX (ETAP 7G.1)",
     items:[
       {type:"improve", text:"„Co wymaga uwagi” — max 5 pozycji, widok skrócony, „Pokaż wszystkie”, szczegóły na żądanie"},

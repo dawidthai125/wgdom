@@ -208,7 +208,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Zarządzanie listą", a:"Eksport CSV (filtrowana lista), tryb „Zaznacz wiele” (masowy status lub usuwanie), przycisk „Usuń z listy” w szczegółach. Usunięte przetargi nie wracają przy sync BZP."},
               {q:"Super Admin — reset i skan", a:"Ustawienia ⚙: dni/strony skanu BZP, auto-sync (godziny), reset pipeline / słownika / profilu. Backup JSON z górnego paska obejmuje kw-tenders-*."},
               {q:"Lejek pipeline", a:"U góry listy widać statystyki: nowe → obejrzane → interesuje → oferta → złożone → wygrane/przegrane oraz wskaźnik skuteczności (% wygranych)."},
-              {q:"Utwórz robotę z przetargu", a:"Status „Przygotowujemy ofertę” lub „Wygrany” → przycisk „Utwórz robotę”. SWZ/kosztorys z przetargu trafia do plików roboty. W karcie roboty jest link „Otwórz przetarg”."},
+              {q:"Utwórz robotę z przetargu", a:"Status „Wygrany” (lub „Przygotowujemy ofertę” w widoku klasycznym) → „Utwórz robotę” / „Otwórz robotę”. W COMMAND CENTER AI: najlepsza okazja, briefing (wygrany bez roboty), alerty realizacji. SWZ/kosztorys trafia do plików roboty; w robocie link „Otwórz przetarg”."},
               {q:"Widget na Pulpicie", a:"Kafelek „Przetargi BZP” pokazuje liczbę do zgłoszenia, pilne terminy (≤7 dni) i skuteczność — klik przenosi do zakładki Przetargi."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">

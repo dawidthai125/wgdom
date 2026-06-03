@@ -1,9 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import { Sun, AlertTriangle, Wallet, Lightbulb } from "lucide-react";
+import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import {
   summaryToneClasses,
   type MorningBriefing,
 } from "@/lib/tender-center-morning-briefing";
+import { TenderJobLinkButtons } from "@/app/tender-center/components/TenderJobLinkButtons";
 
 function BriefBlock({
   label,
@@ -48,12 +50,23 @@ export function MorningBriefingCard({
   briefing,
   compact = true,
   hideOpportunityPreview = true,
+  wonOpportunityItem = null,
+  onCreateJobFromTender,
+  onOpenJob,
 }: {
   briefing: MorningBriefing;
   /** ETAP 7G.1 — mniejszy briefing; priorytet i okazja są w innych sekcjach. */
   compact?: boolean;
   hideOpportunityPreview?: boolean;
+  /** Najlepsza okazja = wygrany przetarg bez roboty — CTA ETAP 8.0 */
+  wonOpportunityItem?: TenderPipelineItem | null;
+  onCreateJobFromTender?: (item: TenderPipelineItem) => void;
+  onOpenJob?: (jobId: string) => void;
 }) {
+  const showWonJobCta =
+    wonOpportunityItem?.status === "won"
+    && !wonOpportunityItem.linkedJobId
+    && onCreateJobFromTender;
   return (
     <section
       className={`rounded-xl border-2 border-primary/25 bg-gradient-to-br from-card via-card to-primary/8 overflow-hidden ${
@@ -115,6 +128,20 @@ export function MorningBriefingCard({
             <Lightbulb size={12} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
             <span className="line-clamp-2">{briefing.ownerInsight}</span>
           </p>
+        )}
+
+        {showWonJobCta && wonOpportunityItem && (
+          <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2.5 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-medium text-emerald-800 dark:text-emerald-300 leading-snug">
+              Wygrany przetarg — utwórz robotę, aby rozpocząć realizację.
+            </p>
+            <TenderJobLinkButtons
+              item={wonOpportunityItem}
+              onCreateJob={onCreateJobFromTender}
+              onOpenJob={onOpenJob}
+              size="compact"
+            />
+          </div>
         )}
       </div>
     </section>
