@@ -3,6 +3,7 @@ node_modules/
 
 # Build
 dist/
+dist-audit/
 
 # Env (sekrety — tylko .env.example w repo)
 .env

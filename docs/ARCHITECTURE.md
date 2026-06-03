@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w `src/app/App.tsx` (obecnie **2.45.14**)  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-03 (ETAP 7G — executive COMMAND CENTER na pulpicie — § 6.1, § 12.1.3, [`tender-center-7g-executive.md`](tender-center-7g-executive.md))
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (obecnie **2.45.27**)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-03 (FAZA 8 CLOSED — § 12.1.4; ETAP 7G — § 6.1, § 12.1.3, [`tender-center-7g-executive.md`](tender-center-7g-executive.md))
 
 ---
 
@@ -18,7 +18,7 @@
 **Kolejność pracy (obowiązkowa):**
 
 1. Implementacja (+ chmura, jeśli dane trwałe)
-2. Wpis w `CHANGELOG` (`App.tsx`)
+2. Wpis w `CHANGELOG` (`changelog-data.ts`)
 3. Instrukcja `HelpView` / hinty nawigacji (jeśli widoczne dla użytkownika)
 4. **Aktualizacja `docs/ARCHITECTURE.md`** (sekcja dotycząca zmiany + data na górze)
 5. Krótkie podsumowanie po polsku
@@ -507,12 +507,63 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 
 **Dokumentacja AI:** [`docs/tender-center-7g-executive.md`](tender-center-7g-executive.md) · komponenty UI legacy 5A: [`tender-center-pro-legacy-components.md`](tender-center-pro-legacy-components.md)
 
-**Prod 7G:** commit `7d49be2`.
+**Prod 7G:** commit `7d49be2`. Rozszerzenia Fazy 8 (8.3 executive CTA) — § 12.1.4.
 
-#### UX — scroll (v2.43.1)
+### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 
-- `TendersView`: jeden kontener scroll (profil firmy + lista).
-- `useWheelScrollForward` na nagłówkach Grafik / Roboty / Instrukcja.
+**Status:** **CLOSED** na `main` @ **`88c25f8`** (UI **2.45.27**). **ETAP 8.5** / **Faza 9** — nie rozpoczęte bez polecenia użytkownika.
+
+#### Przepływ produktowy
+
+```text
+Tender (pipeline BZP, status won)
+  → Win (awardResult, linkedJobId opcjonalnie)
+  → Create Job (executeCreateJobFromTender + useTenderJobFromPipeline)
+  → Execution Ready (Job + baner kontraktu, daty, pliki z przetargu)
+  → Executive Dashboard (KPI, Utwórz / Otwórz robotę — ETAP 8.3)
+  → Open Job (pendingJobId → Roboty)
+```
+
+#### Etapy i commity
+
+| Etap | Commit | UI | Zakres |
+|------|--------|-----|--------|
+| 8.0 | `d1b888e` | 2.45.22 | Wspólny create/open job — CC + Classic |
+| 8.0A | `5368016` | 2.45.23 | Jeden runtime pipeline (`CommandCenterProvider`) |
+| 8.1 | `dd41581` | 2.45.24 | Mapowanie draftu: kwota, daty z umowy + `implementationDays` |
+| 8.2 | `8b6e822` | 2.45.25 | Baner realizacji, `plannedHandoverDate`, sync dokumentów |
+| 8.3 | `9bac507` | 2.45.26 | Executive: KPI „Wygrane bez roboty”, `TenderJobLinkButtons` |
+| 8.4 | `88c25f8` | 2.45.27 | Fallback dat SWZ w `resolveJobDraftDatesFromTender` |
+
+#### Pliki kluczowe
+
+| Plik | Rola |
+|------|------|
+| `src/lib/create-job-from-tender.ts` | `executeCreateJobFromTender` — Job + activity + attach async |
+| `src/lib/tenders-bzp.ts` | `jobDraftFromTender`, `resolveJobDraftDatesFromTender`, `resolveInvoiceAmountFromTender` |
+| `src/app/tender-center/hooks/useTenderJobFromPipeline.ts` | Create/open + `pipeline.updateItem(linkedJobId)` |
+| `src/app/tender-center/components/TenderJobLinkButtons.tsx` | UI przycisków (won) |
+| `src/app/tender-center/context/CommandCenterContext.tsx` | Jedyna instancja `useTendersPipeline` (8.0A) |
+| `src/app/TendersView.tsx` | Classic — ten sam pipeline z Context (8.0A) |
+| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | Pulpit executive + KPI (8.3) |
+| `src/app/admin/AdminViewRouter.tsx` | Handlery job → `DashboardView` + `TenderCenterProView` |
+| `src/app/JobsView.tsx` | Baner „Realizacja kontraktu” (8.2) |
+
+#### Daty draftu (8.1 + 8.4)
+
+Priorytet w `resolveJobDraftDatesFromTender`:
+
+1. `awardResult.contractDate` + `swzAnalysis.implementationDays`
+2. `implementationDeadlineRaw` (jednoznaczne: N dni, N miesięcy, „do DD.MM.RRRR”)
+3. `tenderDossier.brief.contractPeriod` (ten sam parser)
+4. Brak daty — bez zgadywania
+
+`executeCreateJobFromTender` ustawia `plannedHandoverDate` z `draft.endDate` (8.2). Test: `scripts/test-tender-job-draft-dates-8.4.mjs`.
+
+#### Ograniczenia / stabilizacja
+
+- **`tenderDashStats`** w `App.tsx` — nadal fetch przy pulpicie/przetargach; UI executive **nie czyta** (tech debt).
+- **Nie zmieniać** bez polecenia: `CommandCenterProvider`, `useTendersPipeline`, `linkedJobId`, `TenderJobLinkButtons` (tylko reuse).
 
 ### 12.1.2 Galeria zdjęć admin (v2.45.10)
 

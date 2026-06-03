@@ -4,43 +4,54 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** (czytaj też `.cursor/rules/wgdom-stan-projektu.mdc`).
 
 **Ostatnia aktualizacja:** 2026-06-03  
-**Wersja UI:** `2.45.23` (`changelog-data.ts`) — ETAP **8.0A** lokalnie (jeden pipeline Classic × CC)  
-**Prod (`main`):** https://www.wgdom.fun · ostatni znany deploy **8.0** (`d1b888e`) — **8.0A czeka na push**  
-**Docs 7G:** commit dokumentacji po `7d49be2` (ten push)  
-**Gałąź robocza:** `audit-before-cleanup` @ **`7eaf7ee`** (snapshoty + UI media — **nie prod**)
+**Wersja UI:** **2.45.27** (`src/app/changelog-data.ts`)  
+**Prod (`main`):** https://www.wgdom.fun · commit **`88c25f8`**  
+**Faza 8:** **CLOSED**
 
 ---
 
-## Co jest skończone
+## FAZA 8 — CLOSED (Tender → Job → Execution Ready → Executive)
 
-### ETAP 8.0A — jeden runtime pipeline (lokalnie, 2026-06-03)
+Łańcuch produktowy na prod (`main` @ `88c25f8`):
 
-| Element | Plik |
-|---------|------|
-| Classic → wspólny pipeline | `TendersView.tsx` → `useCommandCenterContext().snapshot.pipeline` |
-| R1 safeguard | `reloadFromStorage()` w `useTendersPipeline.ts` |
-| Jedyna instancja hooka | `CommandCenterContext.tsx` L102 |
-| Docs | `docs/tender-center-7g-executive.md` |
+```text
+Tender → Win → Create Job → Execution Ready → Executive Dashboard → Open Job
+```
 
-**Smoke po deploy:** Create Job Classic → CC „Otwórz robotę” bez F5; odwrotnie CC → Classic.
+| Etap | Commit | Wersja UI | Zakres |
+|------|--------|-----------|--------|
+| **8.0** | `d1b888e` | 2.45.22 | `executeCreateJobFromTender`, `TenderJobLinkButtons`, CC + Classic |
+| **8.0A** | `5368016` | 2.45.23 | Jeden `useTendersPipeline` w Providerze; Classic × CC bez F5 |
+| **8.1** | `dd41581` | 2.45.24 | `resolveInvoiceAmountFromTender`, `resolveJobDraftDatesFromTender` (umowa + dni SWZ) |
+| **8.2** | `8b6e822` | 2.45.25 | `plannedHandoverDate`, baner „Realizacja kontraktu”, sync dokumentów po attach |
+| **8.3** | `9bac507` | 2.45.26 | Pulpit: KPI „Wygrane bez roboty”, Utwórz/Otwórz robotę (executive) |
+| **8.4** | `88c25f8` | 2.45.27 | Fallback dat z `implementationDeadlineRaw` / `contractPeriod` |
 
-### ETAP 8.0 — roboty z CC (prod `d1b888e`)
+**Dokumentacja:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.4 · [`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md)
 
-Wspólny `executeCreateJobFromTender` + `TenderJobLinkButtons` — bez zmian w 8.0A.
+**Test parserów 8.4 (lokalnie):** `node scripts/test-tender-job-draft-dates-8.4.mjs`
 
-### ETAP 7G — Pulpit × COMMAND CENTER AI (prod `7d49be2`)
+**Smoke prod (do ręcznego domknięcia w stabilizacji):** wygrana bez roboty → Utwórz robotę → KPI N−1 → baner 8.2 → daty 8.4 — patrz checklist w audycie prod (2026-06-03).
 
-| Element | Plik / uwagi |
-|---------|----------------|
-| Executive panel na pulpicie | `CommandCenterExecutivePanel.tsx` |
-| Wspólny snapshot | `useCommandCenterExecutiveSnapshot.ts` |
-| Refactor CC | `OwnerDashboard.tsx` używa hooka; `financialCapacityEnabled: false` (hotfix Impact) |
-| Legacy stats | `tenderDashStats` w `App.tsx` — **UI nie czyta** |
-| Dokumentacja AI | [`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md) |
+---
 
-**Smoke prod:** `index-CwKd3AmM.js`, lazy `TenderCenterProView-CeptbaCg.js`, stringi executive w bundlu.
+## Okres stabilizacji (propozycje — **nie** ETAP 8.5 / **nie** Faza 9 bez polecenia)
 
-### Czerwiec 2026 — stabilność sync (prod)
+1. **Smoke manualny** Fazy 8 na wgdom.fun (konto z wygranymi bez `linkedJobId`)
+2. **Deprecate `tenderDashStats`** — UI pulpitu nie czyta; ewentualny jeden load pipeline
+3. **E2E Playwright** — flow Create Job (Classic / Executive)
+4. Gałąź **`audit-before-cleanup`** @ `7eaf7ee` — media filter (nie prod); cherry-pick po decyzji
+5. Optymalizacja 7G (bundle pulpit, lazy executive) — opcjonalnie
+
+---
+
+## Wcześniejsze (referencja)
+
+### ETAP 7G — Pulpit × COMMAND CENTER AI (`7d49be2`)
+
+Executive panel, wspólny snapshot, docs: [`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md). Rozszerzone w **8.3** (Win CTA + KPI).
+
+### Stabilność sync — czerwiec 2026
 
 | Commit | Temat |
 |--------|--------|
@@ -48,31 +59,12 @@ Wspólny `executeCreateJobFromTender` + `TenderJobLinkButtons` — bez zmian w 8
 | `c9db032` | P11 bootstrap payroll merge |
 | `92d574e` | P15 admin-passwords merge |
 
-Szczegóły → [`docs/INCIDENTS-2026-06.md`](docs/INCIDENTS-2026-06.md)
+→ [`docs/INCIDENTS-2026-06.md`](docs/INCIDENTS-2026-06.md)
 
-### COMMAND CENTER (wcześniejsze ETAPy na prod)
+### Gałąź nieprod
 
-| Commit | Temat |
-|--------|--------|
-| `b95120a` | Fix TDZ `OwnerDashboard` (kolejność hooków) |
-| `4e7aa8d` | ETAP 7F onboarding / słownik / tooltips |
-| `7125a86` | Hotfix import `MetricHelpTooltip` |
-
----
-
-## W trakcie / lokalnie (NIE na `main`)
-
-- Gałąź **`audit-before-cleanup`** @ `7eaf7ee` — UI media filter, snapshoty KV (nie prod)
-- **`dist-audit/`** — lokalny build audytowy, nie commitować
-
----
-
-## Następne (propozycje — nie ETAP 8 bez polecenia)
-
-1. **Optymalizacja 7G** — wspólny load pipeline (App legacy stats vs hook); ewentualny lazy executive panel
-2. **Przywrócenie Impact** w `OwnerDashboard` (`financialCapacity` ≠ null) — po stabilizacji 6C/6D
-3. **UI Media Cleanup** — cherry-pick z `audit-before-cleanup`
-4. **Deprecate `tenderDashStats`** — po weryfikacji że nic nie czyta legacy fetch
+- **`audit-before-cleanup`** @ `7eaf7ee` — snapshoty KV, UI media — **nie** `main`
+- **`dist-audit/`** — lokalny build; w `.gitignore`
 
 ---
 
@@ -81,9 +73,9 @@ Szczegóły → [`docs/INCIDENTS-2026-06.md`](docs/INCIDENTS-2026-06.md)
 ```text
 1. AGENTS.md
 2. PROJECT-GUIDE.md
-3. docs/tender-center-7g-executive.md   ← pulpit + CC (7G)
-4. docs/ARCHITECTURE.md  → § 6.1, § 12.1.3
+3. docs/ARCHITECTURE.md  → § 11 (sync), § 12.1.3 (CC), § 12.1.4 (Faza 8)
+4. docs/tender-center-7g-executive.md
 5. docs/INCIDENTS-2026-06.md
 6. CURRENT-TASK.md (ten plik)
-7. CHANGELOG.md
+7. CHANGELOG.md + changelog-data.ts
 ```

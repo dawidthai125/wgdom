@@ -14,7 +14,7 @@
 5. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G) ★
 6. CHANGELOG.md           ← CO już zrobiono (skrót)
 7. CURRENT-TASK.md        ← gdzie skończyliśmy / co dalej
-8. App.tsx → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+8. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -37,7 +37,7 @@
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
 | **docs/INCIDENTS-2026-06.md** | Incydenty stabilności — payroll, admin passwords, media (czerwiec 2026) |
-| **App.tsx → CHANGELOG** | Źródło prawdy wersji + UI użytkownika (zakładka Zmiany) |
+| **`changelog-data.ts` → CHANGELOG** | Źródło prawdy wersji + UI użytkownika (zakładka Zmiany, lazy `GuideView`) |
 
 **Nie analizuj `App.tsx` plik po pliku od zera** — najpierw PROJECT-GUIDE + ARCHITECTURE.
 
@@ -46,7 +46,7 @@
 ## 2. Przy każdej zmianie w kodzie
 
 1. Implementacja (+ chmura, jeśli dane trwałe)
-2. `CHANGELOG` w `src/app/App.tsx` (nowy wpis na górze)
+2. `CHANGELOG` w `src/app/changelog-data.ts` (nowy wpis na górze)
 3. **`CHANGELOG.md`** — dopisz ostatnią wersję (skrót)
 4. Instrukcja użytkownika (`HelpView`, hinty) — jeśli widoczne w UI
 5. **`docs/ARCHITECTURE.md`** — sekcja dotycząca zmiany + data na górze
@@ -63,7 +63,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `App.tsx` |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.45.27**) |
+| Prod `main` | commit **`88c25f8`** · Faza 8 **CLOSED** |
 | Frontend deploy | push `main` → Vercel |
 | Backend deploy | push `supabase/functions/**` → GitHub Action |
 | Sync | `src/lib/cloud-sync.ts` |
@@ -76,7 +77,7 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 
 - **Pulpit executive (7G):** [`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md) — `CommandCenterExecutivePanel`, `useCommandCenterExecutiveSnapshot`, legacy `tenderDashStats`
 - **Pełny CC:** `OwnerDashboard` + **ARCHITECTURE.md § 12.1.3**
-- **Lista BZP / pipeline:** **ARCHITECTURE.md § 12.1.1**. Kluczowe pliki (stan **v2.45.12**):
+- **Lista BZP / pipeline:** **ARCHITECTURE.md § 12.1.1**. Kluczowe pliki:
 
 - `src/lib/tenders-bzp.ts` — pipeline, typy, API klienta, scoring
 - `src/lib/tenders-actions.ts` — chipy akcji, auto-wynik BZP, alerty pulpitu, .ics
@@ -86,6 +87,23 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 - `src/app/TenderKeywordsPanel.tsx` — własne słowa kluczowe (+ wbudowany słownik w kodzie)
 - `src/app/TenderBidPrepPanel.tsx` — karta ofertowa
 - Edge: `GET /tenders-bzp-*`, `GET /tenders-bzp-award-result`, `POST /tenders-external-discover`
+
+---
+
+## 3c. FAZA 8 — Tender → Job (CLOSED, nie rozpoczynaj 8.5 bez polecenia)
+
+**Prod:** `88c25f8` · pełny opis: **ARCHITECTURE.md § 12.1.4**
+
+| Etap | Skrót |
+|------|--------|
+| 8.0 | `executeCreateJobFromTender`, `TenderJobLinkButtons` |
+| 8.0A | Jeden `useTendersPipeline` w Provider; Classic × CC |
+| 8.1 | Kwota + daty z umowy / `implementationDays` |
+| 8.2 | Baner kontraktu, `plannedHandoverDate`, attach → dokumenty |
+| 8.3 | Executive KPI + Utwórz/Otwórz robotę |
+| 8.4 | Fallback dat z SWZ (`resolveJobDraftDatesFromTender`) |
+
+**Nie zmieniaj bez polecenia:** pipeline, Provider, `linkedJobId`, `TenderJobLinkButtons` (tylko reuse).
 
 ---
 

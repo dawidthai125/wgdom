@@ -1,8 +1,8 @@
 # ETAP 7G — Pulpit admina × COMMAND CENTER AI (executive summary)
 
 > **Dla agentów AI:** czytaj ten plik przed zmianą pulpitu, `tenderDashStats` lub integracji CC.  
-> **Prod (7G):** commit `7d49be2` · https://www.wgdom.fun  
-> **Nie zaczynaj ETAP 8** bez polecenia użytkownika.
+> **Prod:** `main` @ **`88c25f8`** (UI **2.45.27**) · https://www.wgdom.fun  
+> **Faza 8:** **zamknięta** (8.0–8.4). **ETAP 8.5** / **Faza 9** — nie rozpoczynaj bez polecenia.
 
 ---
 
@@ -121,6 +121,7 @@ Stary UX („Przetargi BZP” + lista `computeTenderDashboardAlerts`) **zastąpi
 | 7D | Morning Briefing | `tender-center-morning-briefing.ts`, `MorningBriefingCard.tsx` |
 | 7F | Onboarding, słownik, tooltips | `command-center-onboarding.ts`, `HowToUseCommandCenter.tsx`, … |
 | 7G | **Executive na pulpicie** | ten plik + `CommandCenterExecutivePanel.tsx` |
+| **8.0–8.4** | **Tender → Job (CLOSED)** | [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.4 · `88c25f8` |
 | 5A legacy UI | Nieużywane karty | `docs/tender-center-pro-legacy-components.md` |
 
 ---
@@ -134,8 +135,22 @@ Stary UX („Przetargi BZP” + lista `computeTenderDashboardAlerts`) **zastąpi
 
 ---
 
+## Faza 8 — powiązanie z pulpit (8.3)
+
+- **KPI:** „Wygrane bez roboty” — `won && !linkedJobId` na `snapshot.pipeline.items`
+- **CTA:** `TenderJobLinkButtons` + `useTenderJobFromPipeline` (handlery z `AdminViewRouter` → `DashboardView`)
+- **Pełny opis:** [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.4
+
+---
+
 ## Changelog git
 
 | Commit | Opis |
 |--------|------|
-| `7d49be2` | `feat(dashboard): integrate command center executive summary` |
+| `88c25f8` | ETAP 8.4 — daty SWZ → draft roboty |
+| `9bac507` | ETAP 8.3 — executive Win CTA + KPI |
+| `8b6e822` | ETAP 8.2 — baner realizacji kontraktu |
+| `dd41581` | ETAP 8.1 — mapowanie draftu z wygranego |
+| `5368016` | ETAP 8.0A — jeden pipeline |
+| `d1b888e` | ETAP 8.0 — create job z CC |
+| `7d49be2` | ETAP 7G — `feat(dashboard): integrate command center executive summary` |

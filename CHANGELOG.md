@@ -1,8 +1,8 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Źródło prawdy:** tablica `CHANGELOG` w [`src/app/App.tsx`](src/app/App.tsx) (~linia 9353).  
+> **Źródło prawdy:** tablica `CHANGELOG` w [`src/app/changelog-data.ts`](src/app/changelog-data.ts).  
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
-> **Przy każdej nowej wersji:** dodaj wpis na górze w `App.tsx` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
+> **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
 **Aktualna wersja:** **2.45.27** (UI)
 
