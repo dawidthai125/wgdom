@@ -1861,8 +1861,8 @@ export function formatJobStreet(job: Job): string {
 }
 
 export function jobAddressKey(job: Job): string {
-  const addr = job.address.trim().toLowerCase().replace(/\s+/g, " ");
-  const flat = job.flatNumber.trim().toLowerCase();
+  const addr = (job.address ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+  const flat = (job.flatNumber ?? "").trim().toLowerCase();
   if (!addr) return "";
   return flat ? `${addr}|${flat}` : addr;
 }
