@@ -8,6 +8,12 @@ import {
   CheckSquare,
   Square,
   Trash2,
+  HardHat,
+  ClipboardCheck,
+  Users,
+  Scale,
+  AlertTriangle,
+  type LucideIcon,
 } from "lucide-react";
 import { JobListFilterBar, JobListLegend } from "@/app/JobListStatus";
 import { opsChipForKpiKey, type JobListOpsKpi, type JobOpsChip } from "@/lib/job-list-ops";
@@ -22,6 +28,48 @@ const KPI_ITEMS = [
   { key: "bzp", label: "BZP", countKey: "bzp" as const, chip: "bzp_only" as const, kind: "chip" as const },
   { key: "wmOverdue", label: "WM po terminie", countKey: "wmOverdue" as const, chip: "wm_overdue" as const, kind: "chip" as const },
 ] as const;
+
+/** 2.1B MIN — tylko wizualizacja KPI (ikony + akcenty); bez wpływu na liczenie/filtry. */
+const KPI_VISUAL: Record<
+  (typeof KPI_ITEMS)[number]["key"],
+  { icon: LucideIcon; idle: string; active: string; iconIdle: string; iconActive: string }
+> = {
+  inProgress: {
+    icon: HardHat,
+    idle: "border-yellow-500/20 bg-yellow-500/5 hover:bg-yellow-500/10",
+    active: "border-yellow-500/45 bg-yellow-500/15 text-yellow-900 dark:text-yellow-100",
+    iconIdle: "text-yellow-600/70 dark:text-yellow-400/70",
+    iconActive: "text-yellow-700 dark:text-yellow-300",
+  },
+  handover: {
+    icon: ClipboardCheck,
+    idle: "border-orange-500/20 bg-orange-500/5 hover:bg-orange-500/10",
+    active: "border-orange-500/45 bg-orange-500/15 text-orange-900 dark:text-orange-100",
+    iconIdle: "text-orange-600/70 dark:text-orange-400/70",
+    iconActive: "text-orange-700 dark:text-orange-300",
+  },
+  noTeam: {
+    icon: Users,
+    idle: "border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10",
+    active: "border-amber-500/45 bg-amber-500/15 text-amber-900 dark:text-amber-100",
+    iconIdle: "text-amber-600/70 dark:text-amber-400/70",
+    iconActive: "text-amber-700 dark:text-amber-300",
+  },
+  bzp: {
+    icon: Scale,
+    idle: "border-violet-500/20 bg-violet-500/5 hover:bg-violet-500/10",
+    active: "border-violet-500/45 bg-violet-500/15 text-violet-900 dark:text-violet-100",
+    iconIdle: "text-violet-600/70 dark:text-violet-400/70",
+    iconActive: "text-violet-700 dark:text-violet-300",
+  },
+  wmOverdue: {
+    icon: AlertTriangle,
+    idle: "border-red-500/20 bg-red-500/5 hover:bg-red-500/10",
+    active: "border-red-500/45 bg-red-500/15 text-red-900 dark:text-red-100",
+    iconIdle: "text-red-600/70 dark:text-red-400/70",
+    iconActive: "text-red-700 dark:text-red-300",
+  },
+};
 
 export function JobListPanelHeader({
   returnNav,
@@ -131,25 +179,37 @@ export function JobListPanelHeader({
         </button>
       </div>
 
-      <div className="-mx-1 px-1 overflow-x-auto overscroll-x-contain scrollbar-thin">
-        <div className="flex gap-2 min-w-max pb-0.5">
+      <div
+        className="-mx-1 px-1 overflow-x-auto overscroll-x-contain scrollbar-thin"
+        role="group"
+        aria-label="KPI robót"
+      >
+        <div className="flex flex-nowrap gap-2.5 min-w-max pb-0.5">
           {KPI_ITEMS.map((item) => {
             const active = kpiActive(item);
             const count = opsKpi[item.countKey];
+            const visual = KPI_VISUAL[item.key];
+            const Icon = visual.icon;
             return (
               <button
                 key={item.key}
                 type="button"
                 onClick={() => onKpiClick(item)}
                 aria-pressed={active}
-                className={`shrink-0 min-w-[5.5rem] px-3 py-2.5 rounded-xl border text-left transition-colors touch-manipulation ${
-                  active
-                    ? "bg-primary/12 text-foreground border-primary/40"
-                    : "bg-secondary/50 text-muted-foreground border-border/70 hover:text-foreground hover:bg-secondary"
+                title={`${count} — ${item.label}`}
+                className={`shrink-0 flex items-center gap-2.5 min-w-[7.25rem] px-3.5 py-3 rounded-2xl border text-left transition-colors touch-manipulation ${
+                  active ? visual.active : `text-muted-foreground ${visual.idle} hover:text-foreground`
                 }`}
               >
-                <span className="block text-[10px] font-medium leading-tight">{item.label}</span>
-                <span className="block text-lg font-semibold tabular-nums leading-tight mt-0.5">{count}</span>
+                <Icon
+                  size={18}
+                  className={`shrink-0 ${active ? visual.iconActive : visual.iconIdle}`}
+                  aria-hidden
+                />
+                <span className="flex items-baseline gap-1.5 min-w-0 whitespace-nowrap leading-none">
+                  <span className="text-xl font-bold tabular-nums tracking-tight">{count}</span>
+                  <span className="text-[11px] font-semibold leading-tight">{item.label}</span>
+                </span>
               </button>
             );
           })}
