@@ -2,7 +2,7 @@
 
 > **Dla agentów AI:** przeczytaj ten plik po `CURRENT-TASK.md`, jeśli pracujesz nad sync, payroll, adminami lub mediami.  
 > **Produkcja:** https://www.wgdom.fun · **Supabase KV:** `bdpygdvfgbggermvqtys`  
-> **Ostatnia aktualizacja:** 2026-06-02
+> **Ostatnia aktualizacja:** 2026-06-04
 
 ---
 
@@ -183,3 +183,18 @@ Ostatni znany dobry backup czerwca: `backups/auto/wgdom-full-2026-06-02T07-51-08
 2. Ponowić P14 na KV jeśli martwe URL wróciły (sprawdź `audit-dead-media-kv.mjs`)
 3. Po każdej operacji KV adminów — weryfikacja P13B + smoke login
 4. Rozważyć guard sync dla `kw-jobs` (analogiczny do payroll) przed client-side strip
+
+---
+
+## 11. Roboty — czarny ekran (`normalizePhone9`) — 2026-06-04
+
+| | |
+|---|---|
+| **Objaw** | Crash przy wejściu w zakładkę Roboty: `Cannot read properties of undefined (reading 'replace')` |
+| **Przyczyna** | `normalizePhone9(emp.phone)` w `inferTestAccountHeuristic` przy aktywnym rekordzie kartoteki **bez** pola `phone` w JSON z KV |
+| **Mount** | `filterProductionActiveDirectory` w `JobsView` + `JobListPanelHeader` (2×) |
+| **Fix** | Commit **`99e08c2`** — `String(phone ?? "")`, `(emp.name ?? "")`, `(d.phone ?? "")` w wyszukiwarce |
+| **Dane** | **Nie** zmieniano KV ani localStorage |
+| **Powiązany fix** | `0c4da46` — `jobAddressKey` (inny łańcuch `.replace`, adres job) |
+
+Pełny handoff: [`SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md`](SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md).

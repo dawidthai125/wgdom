@@ -4,8 +4,10 @@
 > **Hasło w Cursorze:** „kontynuuj WGDOM” → też [`.cursor/rules/wgdom-stan-projektu.mdc`](../.cursor/rules/wgdom-stan-projektu.mdc) i [`CURRENT-TASK.md`](../CURRENT-TASK.md).
 
 **Data handoff:** 2026-06-04  
-**Prod `main` (ostatni znany commit):** `622bbbb` — `fix(ux): remove owner-specific greeting from morning briefing`  
-**Wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) → **2.45.31**
+**Prod `main` (HEAD):** `99e08c2` — fix czarny ekran Roboty (`normalizePhone9`)  
+**Wersja UI:** **2.45.33** (2.1A) w [`changelog-data.ts`](../src/app/changelog-data.ts)
+
+> **Incydent Roboty / 2.1B MIN / pełny kontekst sesji RCA:** [`SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md`](SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md) — **nowy agent zaczyna tam.**
 
 ---
 
