@@ -296,7 +296,7 @@ export function defaultDirEmployee(): DirectoryEmployee {
 
 /** Heurystyka: znane konto testowe (np. test + 000000000). */
 export function inferTestAccountHeuristic(emp: DirectoryEmployee): boolean {
-  const name = emp.name.trim().toLowerCase();
+  const name = (emp.name ?? "").trim().toLowerCase();
   const phone9 = normalizePhone9(emp.phone);
   return name === "test" || phone9 === "000000000";
 }
@@ -1868,8 +1868,8 @@ export function jobAddressKey(job: Job): string {
 }
 
 /** 9 cyfr numeru PL (bez +48) — do logowania pracownika. */
-export function normalizePhone9(phone: string): string | null {
-  const d = phone.replace(/\D/g, "");
+export function normalizePhone9(phone: string | null | undefined): string | null {
+  const d = String(phone ?? "").replace(/\D/g, "");
   if (d.length < 9) return null;
   return d.slice(-9);
 }

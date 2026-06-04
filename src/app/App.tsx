@@ -724,7 +724,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if(!globalSearch.trim()) return {employees:[],jobs:[]};
     const q=globalSearch.toLowerCase();
     return {
-      employees: filterProductionDirectory(directory).filter((d)=>d.name.toLowerCase().includes(q)||d.phone.includes(q)||d.position.toLowerCase().includes(q)),
+      employees: filterProductionDirectory(directory).filter((d)=>d.name.toLowerCase().includes(q)||(d.phone ?? "").includes(q)||d.position.toLowerCase().includes(q)),
       jobs: jobs.filter(j=>j.address.toLowerCase().includes(q)||j.client.toLowerCase().includes(q)||j.flatNumber.toLowerCase().includes(q)),
     };
   },[globalSearch,directory,jobs]);
