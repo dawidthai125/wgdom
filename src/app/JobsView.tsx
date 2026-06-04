@@ -1,8 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef, Fragment } from "react";
 import {
   Plus, Trash2, ChevronRight, ChevronLeft, FileText, FileDown, CheckCircle2, Archive,
-  CheckSquare, Square,
-  ChevronDown, ChevronUp, Calendar, CalendarDays, X, Phone, Edit2, Check, Search, Building2,
+  ChevronDown, ChevronUp, Calendar, CalendarDays, X, Phone, Edit2, Check, Building2,
   MapPin, KeyRound, HardHat, StickyNote, Cloud, Download, Upload, Mail, Send,
   Camera, ImagePlus, Eye, ArrowLeft, ClipboardList, Ruler, Images, FolderOpen, Package,
   Receipt, AlertTriangle, Copy, Sparkles, Clock, Users, Banknote, Scale, Briefcase, MessageSquare, ScrollText,
@@ -17,8 +16,9 @@ import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { JobCostBreakdownPanel } from "@/app/JobCostBreakdownPanel";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
-import { JobListFilterBar, JobListLegend, JobListPrimaryBadge, JobPhasePicker, applyJobPhase } from "@/app/JobListStatus";
+import { JobListPrimaryBadge, JobPhasePicker, applyJobPhase } from "@/app/JobListStatus";
 import { JobListCard } from "@/app/JobListCard";
+import { JobListPanelHeader } from "@/app/JobListPanelHeader";
 import { JobAllFilesView, JobFileCatalogList } from "@/app/JobAllFilesView";
 import { JobDetailSectionNav, JobsDetailEmptyState, type JobDetailSection } from "@/app/JobDetailSectionNav";
 import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
@@ -50,7 +50,6 @@ import {
 import {
   computeJobListOpsKpi,
   filterJobsForListView,
-  opsChipForKpiKey,
   sortJobsInMonthGroup,
   wmOverdueJobIdSet,
   type JobOpsChip,
@@ -1200,128 +1199,37 @@ export function JobsView({
       {/* Left panel — job list */}
       <div className={`flex flex-col border-r border-border bg-card shrink-0 overflow-hidden transition-all duration-300 ${selectedJob?"hidden sm:flex sm:w-72 lg:w-80":"flex w-full sm:w-72 lg:w-80"}`}>
         {/* Top */}
-        <div ref={jobsListHeaderRef} className="px-4 pt-4 pb-3 space-y-3 border-b border-border">
-          {returnNav && (
-            <button
-              type="button"
-              onClick={() => { setSelectedJobId(null); returnNav.onBack(); }}
-              className="w-full flex items-center gap-2 text-sm font-medium text-primary px-1 py-1.5 rounded-lg hover:bg-primary/10 transition-colors"
-            >
-              <ArrowLeft size={16}/>Wróć do {returnNav.label}
-            </button>
-          )}
-          <button onClick={addJob} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors">
-            <Plus size={14}/>Nowa robota
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowAllFiles(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border border-emerald-500/35 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-500/20 transition-colors"
-          >
-            <FolderOpen size={14}/>
-            Pliki wg adresów{totalJobFilesCount > 0 ? ` (${totalJobFilesCount})` : ""}
-          </button>
-          <div className="relative">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-            <input type="text" placeholder="Szukaj adresu, klienta..." value={search} onChange={e=>setSearch(e.target.value)} className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"/>
-          </div>
-          <JobListFilterBar filter={filter} onFilter={setFilter} counts={filterCounts}/>
-          <div className="space-y-2">
-            <div className="grid grid-cols-2 gap-1.5">
-              {(
-                [
-                  { key: "inProgress", label: "W toku", count: opsKpi.inProgress, active: filter === "in_progress", onClick: () => togglePhaseFilterFromKpi("in_progress") },
-                  { key: "handover", label: "Do odbioru", count: opsKpi.handover, active: filter === "handover", onClick: () => togglePhaseFilterFromKpi("handover") },
-                  { key: "noTeam", label: "Bez ekipy", count: opsKpi.noTeam, active: opsChip === "no_team", onClick: () => toggleOpsChip(opsChipForKpiKey("noTeam")) },
-                  { key: "bzp", label: "BZP", count: opsKpi.bzp, active: opsChip === "bzp_only", onClick: () => toggleOpsChip(opsChipForKpiKey("bzp")) },
-                  { key: "wmOverdue", label: "WM po terminie", count: opsKpi.wmOverdue, active: opsChip === "wm_overdue", onClick: () => toggleOpsChip(opsChipForKpiKey("wmOverdue")), colSpan: true },
-                ] as const
-              ).map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={item.onClick}
-                  className={`text-[11px] py-2 min-h-[36px] rounded-lg font-medium transition-colors touch-manipulation border ${
-                    "colSpan" in item && item.colSpan ? "col-span-2" : ""
-                  } ${
-                    item.active
-                      ? "bg-primary/12 text-foreground border-primary/40"
-                      : "text-muted-foreground border-border/60 hover:text-foreground hover:bg-secondary/60"
-                  }`}
-                >
-                  {item.label}
-                  <span className="ml-1 opacity-75 tabular-nums">({item.count})</span>
-                </button>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {(
-                [
-                  { chip: "no_team" as const, label: "Bez ekipy" },
-                  { chip: "bzp_only" as const, label: "Tylko BZP" },
-                  { chip: "wm_overdue" as const, label: "WM po terminie" },
-                ]
-              ).map(({ chip, label }) => (
-                <button
-                  key={chip}
-                  type="button"
-                  onClick={() => toggleOpsChip(chip)}
-                  className={`text-[10px] px-2.5 py-1.5 rounded-full font-medium border transition-colors touch-manipulation ${
-                    opsChip === chip
-                      ? "bg-primary/15 text-foreground border-primary/40"
-                      : "text-muted-foreground border-border/70 hover:bg-secondary/60"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
+        <div ref={jobsListHeaderRef}>
+          <JobListPanelHeader
+            returnNav={returnNav ? { label: returnNav.label, onBack: () => { setSelectedJobId(null); returnNav.onBack(); } } : undefined}
+            onAddJob={addJob}
+            onShowAllFiles={() => setShowAllFiles(true)}
+            totalJobFilesCount={totalJobFilesCount}
+            search={search}
+            onSearchChange={setSearch}
+            opsKpi={opsKpi}
+            filter={filter}
+            opsChip={opsChip}
+            onTogglePhaseFilterFromKpi={togglePhaseFilterFromKpi}
+            onToggleOpsChip={toggleOpsChip}
+            filterCounts={filterCounts}
+            onFilterChange={setFilter}
+            directory={directory}
+            workerFilter={workerFilter}
+            onWorkerFilterChange={setWorkerFilter}
+            bulkMode={bulkMode}
+            onBulkModeToggle={() => {
               setBulkMode((v) => !v);
               setBulkSelectedIds(new Set());
               setDeleteConfirmListId(null);
             }}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border border-border bg-secondary/60 hover:bg-secondary transition-colors"
-          >
-            {bulkMode ? <CheckSquare size={13}/> : <Square size={13}/>}
-            {bulkMode ? "Tryb masowy — zaznacz roboty" : "Zaznacz wiele do usunięcia"}
-          </button>
-          {bulkMode && bulkSelectedIds.size > 0 && (
-            <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-destructive/10 border border-destructive/25">
-              <span className="text-xs font-medium">{bulkSelectedIds.size} zaznaczonych</span>
-              <button
-                type="button"
-                disabled={deleteBusy}
-                onClick={() => void deleteBulkSelected()}
-                className="px-3 py-1.5 rounded-lg bg-destructive text-white text-xs font-medium flex items-center gap-1 disabled:opacity-50"
-              >
-                <Trash2 size={12}/>{deleteBusy ? "Usuwanie…" : "Usuń"}
-              </button>
-              <button type="button" onClick={() => setBulkSelectedIds(new Set())} className="text-xs text-muted-foreground hover:underline">
-                Wyczyść
-              </button>
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => setShowJobLegend((v) => !v)}
-            className="w-full text-[11px] text-muted-foreground hover:text-foreground py-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
-          >
-            {showJobLegend ? "Ukryj legendę statusów" : "Co oznaczają statusy? (legenda)"}
-          </button>
-          {showJobLegend && <JobListLegend compact/>}
-          {filterProductionActiveDirectory(directory).length>0&&(
-            <select value={workerFilter} onChange={e=>setWorkerFilter(e.target.value)}
-              className="w-full bg-secondary rounded-lg px-3 py-2 text-xs border border-transparent focus:border-primary focus:outline-none text-muted-foreground">
-              <option value="">Wszyscy pracownicy</option>
-              {filterProductionActiveDirectory(directory).map(d=>(
-                <option key={d.id} value={d.id}>{d.name}{d.position?` — ${d.position}`:""}</option>
-              ))}
-            </select>
-          )}
+            bulkSelectedCount={bulkSelectedIds.size}
+            onBulkDelete={() => void deleteBulkSelected()}
+            onBulkClear={() => setBulkSelectedIds(new Set())}
+            deleteBusy={deleteBusy}
+            showJobLegend={showJobLegend}
+            onShowJobLegendChange={setShowJobLegend}
+          />
         </div>
 
         {/* Job list */}

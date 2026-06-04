@@ -11,6 +11,14 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-04", version:"2.45.33", label:"Roboty 2.1A — przebudowa układu listy robót",
+    items:[
+      {type:"improve", text:"Lista robót — układ: CTA → KPI (pasek poziomy) → szukaj → fazy → lista; filtry operacyjne tylko z KPI (bez drugiego rzędu chipów)"},
+      {type:"improve", text:"Filtry ▼ — pracownik, tryb masowy i legenda w zwijanym panelu obok wyszukiwarki"},
+      {type:"improve", text:"Karta na liście — adres + status, klient • termin, badge BZP → Ekipa → WM (tylko prezentacja, logika 2.0 bez zmian)"},
+    ],
+  },
+  {
     date:"2026-06-04", version:"2.45.32", label:"Roboty 2.0 MIN — KPI i pilność na liście",
     items:[
       {type:"new", text:"Lista robót — pasek KPI (w toku, do odbioru, bez ekipy, BZP, WM po terminie); klik włącza filtr lub chip"},

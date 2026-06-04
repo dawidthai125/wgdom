@@ -4,7 +4,15 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja:** **2.45.32** (UI)
+**Aktualna wersja:** **2.45.33** (UI)
+
+---
+
+## 2.45.33 (2026-06-04) — Roboty 2.1A (UX listy)
+
+- `JobListPanelHeader.tsx` — KPI poziomy, Filtry ▼, kolejność CTA → KPI → szukaj → fazy
+- `JobListCard.tsx` — uproszczona karta (klient • termin, stała kolejność badge)
+- Logika 2.0 (`job-list-ops.ts`) — bez zmian
 
 ---
 

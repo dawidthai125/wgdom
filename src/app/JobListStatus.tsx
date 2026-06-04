@@ -162,22 +162,25 @@ export function JobListFilterBar({
     { id: "completed", label: "Zdane" },
   ];
   return (
-    <div className="grid grid-cols-2 gap-1.5">
-      {tabs.map((t) => (
-        <button
-          key={t.id}
-          type="button"
-          onClick={() => onFilter(t.id)}
-          className={`text-xs py-2 min-h-[40px] rounded-lg font-medium transition-colors touch-manipulation border ${
-            filter === t.id
-              ? "bg-primary/10 text-foreground border-primary/35"
-              : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/60"
-          }`}
-        >
-          {t.label}
-          <span className="ml-1 opacity-70">({counts[t.id]})</span>
-        </button>
-      ))}
+    <div className="-mx-1 px-1 overflow-x-auto overscroll-x-contain">
+      <div className="flex gap-1.5 min-w-max pb-0.5">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => onFilter(t.id)}
+            aria-pressed={filter === t.id}
+            className={`shrink-0 text-xs py-2 px-3 min-h-[40px] rounded-lg font-medium transition-colors touch-manipulation border whitespace-nowrap ${
+              filter === t.id
+                ? "bg-primary/10 text-foreground border-primary/35"
+                : "text-muted-foreground border-border/60 hover:text-foreground hover:bg-secondary/60"
+            }`}
+          >
+            {t.label}
+            <span className="ml-1 opacity-70 tabular-nums">({counts[t.id]})</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

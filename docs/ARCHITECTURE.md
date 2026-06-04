@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (obecnie **2.45.32**)  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-04 (Roboty 2.0 MIN — § 12.1.4; FAZA 8–9 CLOSED; [`jobs-2.0-product-audit.md`](jobs-2.0-product-audit.md))
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (obecnie **2.45.33**)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-04 (Roboty 2.1A UX — § 12.1.4; 2.0 MIN; FAZA 8–9 CLOSED)
 
 ---
 
@@ -530,6 +530,24 @@ Warstwa operacyjna **bez** nowych kluczy KV, syncu ani Edge. Logika w [`src/lib/
 Test: `node scripts/test-job-list-ops-2.0-min.mjs` (lub `npx vite-node`).
 
 Audyt pełny MIN/MID/FULL: [`jobs-2.0-product-audit.md`](jobs-2.0-product-audit.md).
+
+#### Roboty 2.1A (UX listy, v2.45.33)
+
+**Tylko prezentacja** — bez zmian w `job-list-ops.ts`, sync, KV ani Edge.
+
+| Plik | Rola |
+|------|------|
+| `src/app/JobListPanelHeader.tsx` | Nagłówek listy: CTA w jednym rzędzie, KPI (5 kafelków, scroll poziomy), szukaj + **Filtry ▼**, `JobListFilterBar` |
+| `src/app/JobsView.tsx` | Podłączenie nagłówka; lista + detail bez zmian logiki filtrowania |
+| `src/app/JobListCard.tsx` | Hierarchia karty: adres+status → klient•termin → BZP→Ekipa→WM→meta → docs/koszt → alerty |
+| `src/app/JobListStatus.tsx` | Fazy w jednym rzędzie ze scroll (layout) |
+
+| UX | Opis |
+|----|------|
+| Kolejność | CTA → KPI → Szukaj → Fazy → Filtry ▼ (zwinięte) → Lista |
+| Chipy operacyjne | **Brak** drugiego rzędu pod KPI — Bez ekipy / BZP / WM tylko przez klik w kafelek KPI |
+| Filtry ▼ | Pracownik (`workEntries`), tryb masowy, legenda statusów |
+| Mobile | KPI i fazy: `overflow-x-auto` |
 
 #### Przepływ produktowy
 
