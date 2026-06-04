@@ -48,15 +48,9 @@ function daysUntilDeadline(iso: string | null | undefined, now: Date): number | 
   return Math.ceil((d.getTime() - now.getTime()) / 86_400_000);
 }
 
-function buildGreeting(ownerName: string | null | undefined, now: Date): string {
-  const trimmed = ownerName?.trim();
-  if (trimmed) {
-    const first = trimmed.split(/\s+/)[0];
-    const hour = now.getHours();
-    const salutation = hour < 18 ? "Dzień dobry" : "Dobry wieczór";
-    return `${salutation} ${first}.`;
-  }
-  return "COMMAND CENTER AI — poranny briefing.";
+/** Neutralny nagłówek — raport dla wielu administratorów, bez imienia właściciela. */
+function buildGreeting(): string {
+  return "Dzienny raport operacyjny W&G";
 }
 
 function truncate(text: string, max: number): string {
@@ -308,7 +302,7 @@ export function buildMorningBriefing(input: MorningBriefingInput): MorningBriefi
   const summaryTone = computeSummaryTone(input);
 
   return {
-    greeting: buildGreeting(input.ownerName, now),
+    greeting: buildGreeting(),
     headline: buildHeadline(summaryTone, input.actionCenter),
     priorityAction: buildPriorityAction(
       input.actionCenter,

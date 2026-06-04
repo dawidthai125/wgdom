@@ -258,7 +258,10 @@ for (const { label, briefing } of scenarios) {
   console.log(`ownerInsight: ${briefing.ownerInsight}`);
 }
 
-assert("healthy greeting", healthyBriefing.greeting.includes("Dawid"));
+assert(
+  "healthy greeting neutral",
+  healthyBriefing.greeting === "Dzienny raport operacyjny W&G",
+);
 assert("healthy tone good", ["ŚWIETNY DZIEŃ", "DOBRY DZIEŃ"].includes(healthyBriefing.summaryTone), {
   got: healthyBriefing.summaryTone,
 });
