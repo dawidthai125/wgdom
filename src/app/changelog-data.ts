@@ -11,6 +11,14 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-04", version:"2.45.32", label:"Roboty 2.0 MIN — KPI i pilność na liście",
+    items:[
+      {type:"new", text:"Lista robót — pasek KPI (w toku, do odbioru, bez ekipy, BZP, WM po terminie); klik włącza filtr lub chip"},
+      {type:"improve", text:"Chipy: Bez ekipy, Tylko BZP, WM po terminie — sort pilności w grupie miesiąca"},
+      {type:"improve", text:"Karta listy — badge BZP, Ekipa: 0/N, termin kontraktu (bez zmian sync i panelu pracownika)"},
+    ],
+  },
+  {
     date:"2026-06-03", version:"2.45.31", label:"Pracownik — status i termin kontraktu (FAZA 9.0.1)",
     items:[
       {type:"improve", text:"„Twoje kontrakty” — status (etap realizacji lub status listy) i termin start–koniec z roboty"},

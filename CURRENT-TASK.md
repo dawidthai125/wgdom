@@ -4,7 +4,7 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-04  
-**Wersja UI:** **2.45.31** (`src/app/changelog-data.ts`)  
+**Wersja UI:** **2.45.32** (`src/app/changelog-data.ts`) — Roboty 2.0 MIN (lokalnie, bez commit)  
 **Prod `main` (HEAD):** `622bbbb` — https://www.wgdom.fun
 
 ---
@@ -24,9 +24,15 @@
 
 ---
 
+## W trakcie / lokalnie (2026-06-04)
+
+| Temat | Status |
+|-------|--------|
+| **Roboty 2.0 MIN** | Zaimplementowane lokalnie — KPI, chipy, sort, `job-list-ops.ts`, badge na karcie; **brak commit/push** |
+
 ## Następne (tylko na polecenie użytkownika)
 
-1. **Roboty 2.0 MIN** — KPI na liście + karty (BZP, ekipa 0/N, WM termin) — najwyższy ROI, audyt gotowy.
+1. Commit + deploy **2.45.32** po smoke na Vercel (lista: KPI, chipy, sort, karty BZP/ekipa).
 2. Smoke manualny Fazy 8–9 na Vercel (wygrana → robota → ekipa → pracownik „Twoje kontrakty”).
 3. Opcjonalnie: deprecate `tenderDashStats` w `App.tsx` (stabilizacja 7G).
 4. **NIE** bez polecenia: 9.0.2, 9.1, Execution Board, Owner Language Cleanup, ETAP 5B delete legacy CC.

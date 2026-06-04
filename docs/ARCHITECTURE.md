@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (obecnie **2.45.31**)  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-04 (FAZA 8–9 CLOSED — § 12.1.4; handoff audytów — [`SESSION-HANDOFF-2026-06.md`](SESSION-HANDOFF-2026-06.md); Roboty 2.0 — [`jobs-2.0-product-audit.md`](jobs-2.0-product-audit.md))
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (obecnie **2.45.32**)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-04 (Roboty 2.0 MIN — § 12.1.4; FAZA 8–9 CLOSED; [`jobs-2.0-product-audit.md`](jobs-2.0-product-audit.md))
 
 ---
 
@@ -514,7 +514,22 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 
-**Status:** **CLOSED** (8.0–8.4, 8.5 MIN/FULL, 9.0, 9.0.1). **9.0.2+** — nie rozpoczęte bez polecenia. **Roboty 2.0** — audyt produktowy gotowy, implementacja **MIN** rekomendowana — [`jobs-2.0-product-audit.md`](jobs-2.0-product-audit.md).
+**Status:** **CLOSED** (8.0–8.4, 8.5 MIN/FULL, 9.0, 9.0.1). **9.0.2+** — nie rozpoczęte bez polecenia.
+
+#### Roboty 2.0 MIN (lista admina, v2.45.32)
+
+Warstwa operacyjna **bez** nowych kluczy KV, syncu ani Edge. Logika w [`src/lib/job-list-ops.ts`](../src/lib/job-list-ops.ts); UI w `JobsView` + `JobListCard`.
+
+| Element | Opis |
+|---------|------|
+| KPI nad listą | W toku / Do odbioru (filtr fazy, klik toggle → „Wszystkie”) / Bez ekipy / BZP / WM po terminie (chipy) |
+| Chipy | `no_team` — `phase !== completed` && brak `executionAssigneeDirectoryIds`; `bzp_only` — `linkedTenderId` + aktywna; `wm_overdue` — reuse `wmJobsWithOverduePlanned` |
+| Sort w grupie miesiąca | WM overdue → bez ekipy → BZP bez startu (`canShowStartExecutionButton`) → reszta po `startDate` desc |
+| Karta listy | Badge BZP, Ekipa: 0/N, `resolveWorkerContractDateLabel`; WM — `JobWmPlannedBadge` |
+
+Test: `node scripts/test-job-list-ops-2.0-min.mjs` (lub `npx vite-node`).
+
+Audyt pełny MIN/MID/FULL: [`jobs-2.0-product-audit.md`](jobs-2.0-product-audit.md).
 
 #### Przepływ produktowy
 

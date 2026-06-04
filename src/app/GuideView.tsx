@@ -171,6 +171,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Link podglądu dla klienta", a:"W karcie roboty: sekcja „Podgląd dla klienta” → Utwórz link → Kopiuj. Klient otwiera link bez logowania — widzi tylko zaakceptowane zdjęcia i raporty (bez kosztów). Wyłącz link gdy nie jest już potrzebny."},
               {q:"Historia roboty", a:"Przycisk „Historia” na karcie roboty — log zdarzeń: zdjęcia, dokumenty, emaile, link klienta, zmiany statusu."},
               {q:"Pulpit — szybki dostęp do roboty", a:"W sekcji „Uwaga dziś” i „Roboty w trakcie” kliknij wiersz — aplikacja otworzy od razu tę robotę w zakładce Roboty."},
+              {q:"KPI i filtry na liście robót (2.0)", a:"Pod filtrami fazy (Wszystkie / W trakcie…) jest pasek KPI: W toku, Do odbioru, Bez ekipy, BZP, WM po terminie. Klik w liczbę włącza filtr fazy albo chip (drugi klik wyłącza). Chipy: Bez ekipy (aktywne roboty bez planowej ekipy), Tylko BZP (kontrakt z przetargu), WM po terminie. W każdym miesiącu roboty pilniejsze są wyżej. Na karcie: badge BZP, Ekipa: 0 lub Ekipa: N, termin start–koniec."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-secondary/30">
@@ -210,7 +211,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Lejek pipeline", a:"U góry listy widać statystyki: nowe → obejrzane → interesuje → oferta → złożone → wygrane/przegrane oraz wskaźnik skuteczności (% wygranych)."},
               {q:"Utwórz robotę z przetargu", a:"Status „Wygrany” (lub „Przygotowujemy ofertę” w widoku klasycznym) → „Utwórz robotę” / „Otwórz robotę”. W COMMAND CENTER AI: najlepsza okazja, briefing (wygrany bez roboty), alerty realizacji. SWZ/kosztorys trafia do plików roboty; w robocie link „Otwórz przetarg”."},
               {q:"Rozpocznij realizację kontraktu", a:"W robocie powiązanej z wygranym przetargiem (baner „Realizacja kontraktu”) — przycisk „Rozpocznij realizację”, gdy etap nie jest jeszcze „W realizacji”. Ustawia status W trakcie, etap WM W realizacji i wpis w historii roboty. Zapis trafia do chmury z resztą danych."},
-              {q:"Planowa ekipa na kontrakcie", a:"W tym samym banerze: wybierz lidera (lista) i ekipę (wielokrotny wybór z kartoteki), potem „Zapisz ekipę”. Na liście robót widać badge „Ekipa: N”. To plan operacyjny — nie dodaje godzin ani nie zmienia listy płac. Dane są w obiekcie roboty (kw-jobs) i synchronizują się z chmurą."},
+              {q:"Planowa ekipa na kontrakcie", a:"W tym samym banerze: wybierz lidera (lista) i ekipę (wielokrotny wybór z kartoteki), potem „Zapisz ekipę”. Na liście robót widać badge „Ekipa: N” lub „Ekipa: 0” gdy plan jest pusty (wszystkie aktywne roboty). To plan operacyjny — nie dodaje godzin ani nie zmienia listy płac. Dane są w obiekcie roboty (kw-jobs) i synchronizują się z chmurą."},
               {q:"Widget na Pulpicie", a:"Kafelek „Przetargi BZP” pokazuje liczbę do zgłoszenia, pilne terminy (≤7 dni) i skuteczność — klik przenosi do zakładki Przetargi."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">

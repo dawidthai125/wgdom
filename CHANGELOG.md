@@ -4,7 +4,15 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja:** **2.45.31** (UI)
+**Aktualna wersja:** **2.45.32** (UI)
+
+---
+
+## 2.45.32 (2026-06-04) — Roboty 2.0 MIN
+
+- `src/lib/job-list-ops.ts` — KPI, chipy, sort pilności
+- `JobsView` — pasek KPI + chipy; `JobListCard` — BZP, Ekipa: 0/N, termin
+- Test: `scripts/test-job-list-ops-2.0-min.mjs`
 
 ---
 

@@ -44,9 +44,17 @@ import {
 import { deleteJobFile, uploadJobFile } from "@/lib/job-file-upload";
 import { collectJobFileCatalog, countJobFiles, type JobFileCatalogItem } from "@/lib/job-files-index";
 import {
-  countJobsByListFilter, inferJobPhase, jobMatchesListFilter, jobMissingRequiredDocs,
+  countJobsByListFilter, inferJobPhase, jobMissingRequiredDocs,
   JOB_PHASE_LABELS, type JobListFilter, type JobPhase,
 } from "@/lib/job-list-status";
+import {
+  computeJobListOpsKpi,
+  filterJobsForListView,
+  opsChipForKpiKey,
+  sortJobsInMonthGroup,
+  wmOverdueJobIdSet,
+  type JobOpsChip,
+} from "@/lib/job-list-ops";
 import { normalizeJobMetaFields, isJobHousingSet, HOUSING_TYPE_LABELS, STOVE_TYPE_LABELS_FULL } from "@/lib/job-meta";
 import {
   getReportWorkScopeText, reportHasWorkScope, scopeTextHasContent, scopeTextLineCount,
@@ -65,7 +73,7 @@ import {
   DOCUMENT_TYPES, DOC_LABELS, REQUIRED_DOCS, DEFAULT_JOB_ENTRY_HOURS,
   fmt, fmtDate, fmtH, localIsoDate, defaultJob, normalizeJob, jobDisplayTitle, jobTotalHours,
   jobCost, jobTotalCost, jobMaterialsCost, jobApprovedPhotos, jobWorkerReports, reportNeedsAdminAttention,
-  jobDaysSinceStart, jobDuration, jobGalleryBucket, galleryDaysUntilArchive, sortJobsActiveFirst,
+  jobDaysSinceStart, jobDuration, jobGalleryBucket, galleryDaysUntilArchive,
   formatJobStreet, clientShareUrl, clientShareToken, workEntriesFromPayrollForDate,
   duplicateWorkEntryWithPayrollHours, collectEntriesFromYesterday, groupWorkEntriesByEmployee, ACTIVITY_LABELS,
   calcWeekEmployee, workItemHasContent, roomHasContent, jobAddressKey, roomDisplayName,
@@ -522,6 +530,7 @@ export function JobsView({
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<JobListFilter>("all");
+  const [opsChip, setOpsChip] = useState<JobOpsChip | null>(null);
   const [showJobLegend, setShowJobLegend] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteConfirmListId, setDeleteConfirmListId] = useState<string | null>(null);
@@ -1038,26 +1047,41 @@ export function JobsView({
     completed: countJobsByListFilter(jobs, "completed"),
   }), [jobs]);
 
-  // Filter + search
-  const filtered = jobs.filter(j=>{
-    if (!jobMatchesListFilter(j, filter)) return false;
-    if(workerFilter && !j.workEntries.some(e=>e.directoryId===workerFilter)) return false;
-    const q = search.toLowerCase();
-    return !q || j.address.toLowerCase().includes(q) || j.client.toLowerCase().includes(q) || j.flatNumber.toLowerCase().includes(q);
-  });
+  const wmOverdueIds = useMemo(() => wmOverdueJobIdSet(jobs), [jobs]);
+  const opsKpi = useMemo(() => computeJobListOpsKpi(jobs), [jobs]);
 
-  // Group by month of startDate
-  const grouped = useMemo(()=>{
+  const toggleOpsChip = (chip: JobOpsChip) => {
+    setOpsChip((current) => (current === chip ? null : chip));
+  };
+
+  const togglePhaseFilterFromKpi = (phase: "in_progress" | "handover") => {
+    setFilter((current) => (current === phase ? "all" : phase));
+  };
+
+  const filtered = useMemo(
+    () =>
+      filterJobsForListView(jobs, {
+        phaseFilter: filter,
+        opsChip,
+        overdueIds: wmOverdueIds,
+        workerDirectoryId: workerFilter,
+        searchQuery: search,
+      }),
+    [jobs, filter, opsChip, wmOverdueIds, workerFilter, search],
+  );
+
+  const grouped = useMemo(() => {
     const map = new Map<string, Job[]>();
-    filtered.forEach(j=>{
+    filtered.forEach((j) => {
       const d = new Date(j.startDate);
-      const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2,"0")}`;
-      if(!map.has(key)) map.set(key,[]);
+      const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, "0")}`;
+      if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(j);
     });
-    // Sort groups newest first
-    return Array.from(map.entries()).sort((a,b)=>b[0].localeCompare(a[0]));
-  },[filtered]);
+    return Array.from(map.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([key, groupJobs]) => [key, sortJobsInMonthGroup(groupJobs, wmOverdueIds)] as const);
+  }, [filtered, wmOverdueIds]);
 
   const groupLabel = (key: string) => {
     const [y,m] = key.split("-");
@@ -1202,6 +1226,57 @@ export function JobsView({
             <input type="text" placeholder="Szukaj adresu, klienta..." value={search} onChange={e=>setSearch(e.target.value)} className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"/>
           </div>
           <JobListFilterBar filter={filter} onFilter={setFilter} counts={filterCounts}/>
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-1.5">
+              {(
+                [
+                  { key: "inProgress", label: "W toku", count: opsKpi.inProgress, active: filter === "in_progress", onClick: () => togglePhaseFilterFromKpi("in_progress") },
+                  { key: "handover", label: "Do odbioru", count: opsKpi.handover, active: filter === "handover", onClick: () => togglePhaseFilterFromKpi("handover") },
+                  { key: "noTeam", label: "Bez ekipy", count: opsKpi.noTeam, active: opsChip === "no_team", onClick: () => toggleOpsChip(opsChipForKpiKey("noTeam")) },
+                  { key: "bzp", label: "BZP", count: opsKpi.bzp, active: opsChip === "bzp_only", onClick: () => toggleOpsChip(opsChipForKpiKey("bzp")) },
+                  { key: "wmOverdue", label: "WM po terminie", count: opsKpi.wmOverdue, active: opsChip === "wm_overdue", onClick: () => toggleOpsChip(opsChipForKpiKey("wmOverdue")), colSpan: true },
+                ] as const
+              ).map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={item.onClick}
+                  className={`text-[11px] py-2 min-h-[36px] rounded-lg font-medium transition-colors touch-manipulation border ${
+                    "colSpan" in item && item.colSpan ? "col-span-2" : ""
+                  } ${
+                    item.active
+                      ? "bg-primary/12 text-foreground border-primary/40"
+                      : "text-muted-foreground border-border/60 hover:text-foreground hover:bg-secondary/60"
+                  }`}
+                >
+                  {item.label}
+                  <span className="ml-1 opacity-75 tabular-nums">({item.count})</span>
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {(
+                [
+                  { chip: "no_team" as const, label: "Bez ekipy" },
+                  { chip: "bzp_only" as const, label: "Tylko BZP" },
+                  { chip: "wm_overdue" as const, label: "WM po terminie" },
+                ]
+              ).map(({ chip, label }) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => toggleOpsChip(chip)}
+                  className={`text-[10px] px-2.5 py-1.5 rounded-full font-medium border transition-colors touch-manipulation ${
+                    opsChip === chip
+                      ? "bg-primary/15 text-foreground border-primary/40"
+                      : "text-muted-foreground border-border/70 hover:bg-secondary/60"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
           <button
             type="button"
             onClick={() => {

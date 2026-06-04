@@ -7,11 +7,16 @@ import {
   jobMissingRequiredDocs,
   type JobListStatusJob,
 } from "@/lib/job-list-status";
+import { jobOpsExecutionCrewCount, jobOpsHasNoExecutionTeam, jobOpsIsBzpContract } from "@/lib/job-list-ops";
+import { resolveWorkerContractDateLabel } from "@/app/app-domain";
 import { DOC_LABELS, DOCUMENT_TYPES, REQUIRED_DOCS } from "@/lib/job-documents";
 import { countJobFiles } from "@/lib/job-files-index";
 
 type JobListCardJob = JobListStatusJob & {
   id: string;
+  linkedTenderId?: string;
+  endDate?: string;
+  startDate: string;
   workEntries: { directoryId?: string; employeeName: string }[];
   executionAssigneeDirectoryIds?: string[];
 };
@@ -53,7 +58,9 @@ export function JobListCard({
   const missingDocs = jobMissingRequiredDocs(job);
   const jobPhase = inferJobPhase(job);
   const fileCount = countJobFiles(job);
-  const executionCrewCount = job.executionAssigneeDirectoryIds?.length ?? 0;
+  const executionCrewCount = jobOpsExecutionCrewCount(job);
+  const contractDateLabel = resolveWorkerContractDateLabel(job);
+  const showNoTeamBadge = jobOpsHasNoExecutionTeam(job);
 
   return (
     <div className={`flex items-stretch border-b border-border transition-colors ${
@@ -94,9 +101,23 @@ export function JobListCard({
           </p>
         )}
 
+        {contractDateLabel && (
+          <p className="text-[10px] text-muted-foreground mb-1.5 truncate">{contractDateLabel}</p>
+        )}
+
         <div className="flex items-center gap-1.5 flex-wrap mb-2">
+          {jobOpsIsBzpContract(job) && (
+            <span className="text-[10px] bg-violet-500/12 text-violet-700 dark:text-violet-400 px-1.5 py-0.5 rounded-full font-semibold">
+              BZP
+            </span>
+          )}
           <JobMetaBadges job={job}/>
           <JobWmPlannedBadge job={job}/>
+          {showNoTeamBadge && (
+            <span className="text-[10px] bg-amber-500/15 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded-full font-medium">
+              Ekipa: 0
+            </span>
+          )}
           {job.keysHandedOver && (
             <span title="Klucze zdane"><KeyRound size={11} className="text-blue-400"/></span>
           )}
