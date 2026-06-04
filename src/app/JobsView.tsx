@@ -17,8 +17,9 @@ import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { JobCostBreakdownPanel } from "@/app/JobCostBreakdownPanel";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobListPrimaryBadge, JobPhasePicker, applyJobPhase } from "@/app/JobListStatus";
-import { JobListCard } from "@/app/JobListCard";
+import { JobListCardV2 } from "@/app/JobListCardV2";
 import { JobListPanelHeader } from "@/app/JobListPanelHeader";
+import { JobListGuidePanel } from "@/app/JobListGuidePanel";
 import { JobAllFilesView, JobFileCatalogList } from "@/app/JobAllFilesView";
 import { JobDetailSectionNav, JobsDetailEmptyState, type JobDetailSection } from "@/app/JobDetailSectionNav";
 import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
@@ -530,7 +531,6 @@ export function JobsView({
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<JobListFilter>("all");
   const [opsChip, setOpsChip] = useState<JobOpsChip | null>(null);
-  const [showJobLegend, setShowJobLegend] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteConfirmListId, setDeleteConfirmListId] = useState<string | null>(null);
   const [bulkMode, setBulkMode] = useState(false);
@@ -1195,44 +1195,46 @@ export function JobsView({
           }}
         />
       ) : (
-    <div className="flex flex-1 min-h-0 overflow-hidden">
-      {/* Left panel — job list */}
-      <div className={`flex flex-col border-r border-border bg-card shrink-0 overflow-hidden transition-all duration-300 ${selectedJob?"hidden sm:flex sm:w-72 lg:w-80":"flex w-full sm:w-72 lg:w-80"}`}>
-        {/* Top */}
-        <div ref={jobsListHeaderRef}>
-          <JobListPanelHeader
-            returnNav={returnNav ? { label: returnNav.label, onBack: () => { setSelectedJobId(null); returnNav.onBack(); } } : undefined}
-            onAddJob={addJob}
-            onShowAllFiles={() => setShowAllFiles(true)}
-            totalJobFilesCount={totalJobFilesCount}
-            search={search}
-            onSearchChange={setSearch}
-            opsKpi={opsKpi}
-            filter={filter}
-            opsChip={opsChip}
-            onTogglePhaseFilterFromKpi={togglePhaseFilterFromKpi}
-            onToggleOpsChip={toggleOpsChip}
-            filterCounts={filterCounts}
-            onFilterChange={setFilter}
-            directory={directory}
-            workerFilter={workerFilter}
-            onWorkerFilterChange={setWorkerFilter}
-            bulkMode={bulkMode}
-            onBulkModeToggle={() => {
-              setBulkMode((v) => !v);
-              setBulkSelectedIds(new Set());
-              setDeleteConfirmListId(null);
-            }}
-            bulkSelectedCount={bulkSelectedIds.size}
-            onBulkDelete={() => void deleteBulkSelected()}
-            onBulkClear={() => setBulkSelectedIds(new Set())}
-            deleteBusy={deleteBusy}
-            showJobLegend={showJobLegend}
-            onShowJobLegendChange={setShowJobLegend}
-          />
-        </div>
+    <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
+      {/* 2.1B STREFA A — toolbar pełna szerokość (KPI, szukaj, filtry) */}
+      <div ref={jobsListHeaderRef} className="shrink-0 w-full border-b border-border bg-card">
+        <JobListPanelHeader
+          returnNav={returnNav ? { label: returnNav.label, onBack: () => { setSelectedJobId(null); returnNav.onBack(); } } : undefined}
+          onAddJob={addJob}
+          onShowAllFiles={() => setShowAllFiles(true)}
+          totalJobFilesCount={totalJobFilesCount}
+          search={search}
+          onSearchChange={setSearch}
+          opsKpi={opsKpi}
+          filter={filter}
+          opsChip={opsChip}
+          onTogglePhaseFilterFromKpi={togglePhaseFilterFromKpi}
+          onToggleOpsChip={toggleOpsChip}
+          filterCounts={filterCounts}
+          onFilterChange={setFilter}
+          directory={directory}
+          workerFilter={workerFilter}
+          onWorkerFilterChange={setWorkerFilter}
+          bulkMode={bulkMode}
+          onBulkModeToggle={() => {
+            setBulkMode((v) => !v);
+            setBulkSelectedIds(new Set());
+            setDeleteConfirmListId(null);
+          }}
+          bulkSelectedCount={bulkSelectedIds.size}
+          onBulkDelete={() => void deleteBulkSelected()}
+          onBulkClear={() => setBulkSelectedIds(new Set())}
+          deleteBusy={deleteBusy}
+        />
+      </div>
 
-        {/* Job list */}
+      {/* STREFA B — lista (~45%) | szczegóły (~55%) */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div
+        className={`flex flex-col flex-[11] min-w-0 min-h-0 border-r border-border bg-card overflow-hidden transition-all duration-300 ${
+          selectedJob ? "hidden sm:flex" : "flex"
+        }`}
+      >
         <div className="flex-1 overflow-y-auto overscroll-contain">
           {jobs.length===0&&(
             <div className="p-8 text-center space-y-2 text-muted-foreground">
@@ -1251,7 +1253,7 @@ export function JobsView({
                 const isDupe = isDuplicateJob(job);
                 const workerCount = new Set(job.workEntries.map((e) => e.directoryId || e.employeeName)).size;
                 return (
-                  <JobListCard
+                  <JobListCardV2
                     key={job.id}
                     job={job}
                     selected={isSelected}
@@ -1279,9 +1281,9 @@ export function JobsView({
         </div>
       </div>
 
-      {/* Right panel — job detail */}
+      {/* Szczegóły roboty */}
       {selectedJob ? (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div className="flex flex-col flex-[13] min-w-0 min-h-0 overflow-hidden">
           <div ref={jobDetailHeaderRef} className="shrink-0 border-b border-border bg-background/95 backdrop-blur z-10">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-3 pb-2 space-y-3">
               <button onClick={()=>setSelectedJobId(null)} className="sm:hidden flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -2298,13 +2300,28 @@ export function JobsView({
         </div>
         </div>
       ) : (
-        <JobsDetailEmptyState
-          onNewJob={addJob}
-          onAllFiles={() => setShowAllFiles(true)}
-          fileCount={totalJobFilesCount}
-          jobCount={jobs.length}
-        />
+        <div className="flex flex-col flex-[13] min-w-0 min-h-0 overflow-hidden">
+          <div className="hidden sm:flex flex-col flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-6 py-3 sm:py-4">
+            <div className="shrink-0 max-w-3xl mx-auto w-full">
+              <JobsDetailEmptyState
+                onNewJob={addJob}
+                onAllFiles={() => setShowAllFiles(true)}
+                fileCount={totalJobFilesCount}
+                jobCount={jobs.length}
+              />
+            </div>
+            <div
+              className="shrink-0 max-w-3xl mx-auto w-full mt-3 pt-3 border-t border-border
+                [&_aside]:h-auto [&_aside]:min-h-0 [&_aside]:bg-transparent
+                [&_aside>div:first-child]:hidden
+                [&_aside>div:last-child]:flex-none [&_aside>div:last-child]:overflow-visible [&_aside>div:last-child]:px-0 [&_aside>div:last-child]:pt-2 [&_aside>div:last-child]:pb-0"
+            >
+              <JobListGuidePanel />
+            </div>
+          </div>
+        </div>
       )}
+      </div>
     </div>
       )}
       {showEmailModal && selectedJob && (

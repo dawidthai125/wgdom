@@ -15,7 +15,7 @@ import {
   AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
-import { JobListFilterBar, JobListLegend } from "@/app/JobListStatus";
+import { JobListFilterBar } from "@/app/JobListStatus";
 import { opsChipForKpiKey, type JobListOpsKpi, type JobOpsChip } from "@/lib/job-list-ops";
 import type { JobListFilter } from "@/lib/job-list-status";
 import type { DirectoryEmployee } from "@/app/app-domain";
@@ -94,8 +94,6 @@ export function JobListPanelHeader({
   onBulkDelete,
   onBulkClear,
   deleteBusy,
-  showJobLegend,
-  onShowJobLegendChange,
 }: {
   returnNav?: { label: string; onBack: () => void };
   onAddJob: () => void;
@@ -119,8 +117,6 @@ export function JobListPanelHeader({
   onBulkDelete: () => void;
   onBulkClear: () => void;
   deleteBusy: boolean;
-  showJobLegend: boolean;
-  onShowJobLegendChange: (open: boolean) => void;
 }) {
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const activeDirectory = filterProductionActiveDirectory(directory);
@@ -216,33 +212,32 @@ export function JobListPanelHeader({
         </div>
       </div>
 
-      <div className="flex gap-2 items-stretch">
-        <div className="relative flex-1 min-w-0">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-          <input
-            type="search"
-            placeholder="Szukaj adresu, klienta…"
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none min-h-[44px]"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowMoreFilters((v) => !v)}
-          aria-expanded={showMoreFilters}
-          className={`shrink-0 flex items-center gap-1 px-3 py-2.5 rounded-lg text-xs font-medium border min-h-[44px] touch-manipulation transition-colors ${
-            showMoreFilters || filtersActive
-              ? "bg-primary/10 text-foreground border-primary/35"
-              : "bg-secondary text-muted-foreground border-border hover:bg-secondary/80"
-          }`}
-        >
-          Filtry
-          <ChevronDown size={14} className={`transition-transform ${showMoreFilters ? "rotate-180" : ""}`} />
-        </button>
+      <div className="relative w-full">
+        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+        <input
+          type="search"
+          placeholder="Szukaj adresu, klienta…"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none min-h-[40px]"
+        />
       </div>
 
       <JobListFilterBar filter={filter} onFilter={onFilterChange} counts={filterCounts} />
+
+      <button
+        type="button"
+        onClick={() => setShowMoreFilters((v) => !v)}
+        aria-expanded={showMoreFilters}
+        className={`w-full flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium border min-h-[36px] touch-manipulation transition-colors ${
+          showMoreFilters || filtersActive
+            ? "bg-primary/10 text-foreground border-primary/35"
+            : "bg-secondary text-muted-foreground border-border hover:bg-secondary/80"
+        }`}
+      >
+        Filtry dodatkowe
+        <ChevronDown size={14} className={`transition-transform ${showMoreFilters ? "rotate-180" : ""}`} />
+      </button>
 
       {showMoreFilters && (
         <div className="rounded-xl border border-border bg-secondary/25 p-3 space-y-3">
@@ -293,15 +288,6 @@ export function JobListPanelHeader({
               </button>
             </div>
           )}
-
-          <button
-            type="button"
-            onClick={() => onShowJobLegendChange(!showJobLegend)}
-            className="w-full text-[11px] text-muted-foreground hover:text-foreground py-2 rounded-lg hover:bg-secondary/50 transition-colors"
-          >
-            {showJobLegend ? "Ukryj legendę statusów" : "Co oznaczają statusy? (legenda)"}
-          </button>
-          {showJobLegend && <JobListLegend compact />}
         </div>
       )}
     </div>

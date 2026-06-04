@@ -100,7 +100,7 @@ export function JobsDetailEmptyState({
   jobCount: number;
 }) {
   return (
-    <div className="flex-1 hidden sm:flex flex-col items-center justify-center gap-6 p-8 text-center">
+    <div className="hidden sm:flex flex-col items-center gap-4 p-4 sm:p-5 text-center">
       <MapPin size={48} className="opacity-15 text-muted-foreground"/>
       <div className="space-y-1 max-w-sm">
         <p className="text-sm font-medium text-foreground">Wybierz robotę z listy po lewej</p>
