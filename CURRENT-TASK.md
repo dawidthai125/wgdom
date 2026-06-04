@@ -1,94 +1,73 @@
 # W&G DOM — bieżąca sesja / wznowienie pracy
 
 > **Aktualizuj ten plik na końcu każdej większej sesji z agentem AI.**  
-> Hasło w Cursorze: **„kontynuuj WGDOM”** (czytaj też `.cursor/rules/wgdom-stan-projektu.mdc`).
+> Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
-**Ostatnia aktualizacja:** 2026-06-03  
-**Wersja UI:** **2.45.29** (`src/app/changelog-data.ts`)  
-**Faza 8:** **CLOSED** · **ETAP 8.5 MIN:** CLOSED · **ETAP 8.5 FULL (B lite):** CLOSED (lokalnie, bez commitu)  
-**Faza 9:** NOT STARTED
+**Ostatnia aktualizacja:** 2026-06-04  
+**Wersja UI:** **2.45.31** (`src/app/changelog-data.ts`)  
+**Prod `main` (HEAD):** `622bbbb` — https://www.wgdom.fun
 
 ---
 
-## FAZA 8 — CLOSED (Tender → Job → Execution Ready → Executive)
+## Skończone w ostatniej sesji (audyty + UX, bez nowej fazy produktowej)
 
-Łańcuch produktowy na prod (`main` @ `88c25f8`):
+| Temat | Status | Dokumentacja |
+|-------|--------|----------------|
+| FAZA 9.0 + 9.0.1 | CLOSED (`3c575c7`, `a57a576`) | ARCHITECTURE § 12.1.4 |
+| ETAP 8.5 MIN + FULL | CLOSED (`1c7e164`, `83b193e`) | j.w. |
+| UX — neutralny greeting raportu | CLOSED (`622bbbb`) | [`docs/SESSION-HANDOFF-2026-06.md`](docs/SESSION-HANDOFF-2026-06.md) §3 |
+| Audyt uprawnień Przetargów | PASS | [`docs/permissions-roles-audit-2026-06.md`](docs/permissions-roles-audit-2026-06.md) |
+| Audyt martwego kodu (całe repo) | Raport | [`docs/dead-code-audit-2026-06.md`](docs/dead-code-audit-2026-06.md) |
+| Audyt produktowy **Roboty 2.0** | Rekomendacja MIN | [`docs/jobs-2.0-product-audit.md`](docs/jobs-2.0-product-audit.md) |
+
+**★ Handoff dla AI:** [`docs/SESSION-HANDOFF-2026-06.md`](docs/SESSION-HANDOFF-2026-06.md) — **czytaj najpierw** po „kontynuuj WGDOM”.
+
+---
+
+## Następne (tylko na polecenie użytkownika)
+
+1. **Roboty 2.0 MIN** — KPI na liście + karty (BZP, ekipa 0/N, WM termin) — najwyższy ROI, audyt gotowy.
+2. Smoke manualny Fazy 8–9 na Vercel (wygrana → robota → ekipa → pracownik „Twoje kontrakty”).
+3. Opcjonalnie: deprecate `tenderDashStats` w `App.tsx` (stabilizacja 7G).
+4. **NIE** bez polecenia: 9.0.2, 9.1, Execution Board, Owner Language Cleanup, ETAP 5B delete legacy CC.
+
+---
+
+## FAZA 8 — CLOSED (skrót)
+
+| Etap | Commit | UI |
+|------|--------|-----|
+| 8.0–8.4 | `d1b888e` … `88c25f8` | 2.45.22–2.45.27 |
+| 8.5 MIN | `1c7e164` | 2.45.28 |
+| 8.5 FULL | `83b193e` | 2.45.29 |
+| 9.0 | `3c575c7` | 2.45.30 |
+| 9.0.1 | `a57a576` | 2.45.31 |
 
 ```text
-Tender → Win → Create Job → Execution Ready → Executive Dashboard → Open Job
+Tender → Win → Create Job → Baner kontraktu → Executive CTA
+→ Start realizacji (8.5 MIN) → Plan ekipy (8.5 FULL) → Twoje kontrakty (9.0/9.0.1)
 ```
 
-| Etap | Commit | Wersja UI | Zakres |
-|------|--------|-----------|--------|
-| **8.0** | `d1b888e` | 2.45.22 | `executeCreateJobFromTender`, `TenderJobLinkButtons`, CC + Classic |
-| **8.0A** | `5368016` | 2.45.23 | Jeden `useTendersPipeline` w Providerze; Classic × CC bez F5 |
-| **8.1** | `dd41581` | 2.45.24 | `resolveInvoiceAmountFromTender`, `resolveJobDraftDatesFromTender` (umowa + dni SWZ) |
-| **8.2** | `8b6e822` | 2.45.25 | `plannedHandoverDate`, baner „Realizacja kontraktu”, sync dokumentów po attach |
-| **8.3** | `9bac507` | 2.45.26 | Pulpit: KPI „Wygrane bez roboty”, Utwórz/Otwórz robotę (executive) |
-| **8.4** | `88c25f8` | 2.45.27 | Fallback dat z `implementationDeadlineRaw` / `contractPeriod` |
-
-**Dokumentacja:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.4 · [`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md)
-
-**Test parserów 8.4 (lokalnie):** `node scripts/test-tender-job-draft-dates-8.4.mjs`
-
-**Smoke prod (do ręcznego domknięcia w stabilizacji):** wygrana bez roboty → Utwórz robotę → KPI N−1 → baner 8.2 → daty 8.4 — patrz checklist w audycie prod (2026-06-03).
-
----
-
-## ETAP 8.5 — planowa ekipa (FULL)
-
-| Etap | Status | Zakres |
-|------|--------|--------|
-| **8.5 MIN** | CLOSED (`1c7e164`) | `startJobExecution`, baner „Rozpocznij realizację” |
-| **8.5 FULL** | CLOSED (kod lokalny) | `executionLeadDirectoryId`, `executionAssigneeDirectoryIds`, baner + badge |
-
-**Test:** `npx vite-node scripts/test-job-execution-team-8.5-full.mjs`
-
-**Smoke prod:** wygrana → robota → start realizacji → lider + 3 osoby → odśwież → badge „Ekipa: 3”.
-
----
-
-## Okres stabilizacji (propozycje — **nie** Faza 9 bez polecenia)
-
-1. **Smoke manualny** Fazy 8 na wgdom.fun (konto z wygranymi bez `linkedJobId`)
-2. **Deprecate `tenderDashStats`** — UI pulpitu nie czyta; ewentualny jeden load pipeline
-3. **E2E Playwright** — flow Create Job (Classic / Executive)
-4. Gałąź **`audit-before-cleanup`** @ `7eaf7ee` — media filter (nie prod); cherry-pick po decyzji
-5. Optymalizacja 7G (bundle pulpit, lazy executive) — opcjonalnie
-
----
-
-## Wcześniejsze (referencja)
-
-### ETAP 7G — Pulpit × COMMAND CENTER AI (`7d49be2`)
-
-Executive panel, wspólny snapshot, docs: [`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md). Rozszerzone w **8.3** (Win CTA + KPI).
-
-### Stabilność sync — czerwiec 2026
-
-| Commit | Temat |
-|--------|--------|
-| `db1d05a` | Payroll Guard |
-| `c9db032` | P11 bootstrap payroll merge |
-| `92d574e` | P15 admin-passwords merge |
-
-→ [`docs/INCIDENTS-2026-06.md`](docs/INCIDENTS-2026-06.md)
-
-### Gałąź nieprod
-
-- **`audit-before-cleanup`** @ `7eaf7ee` — snapshoty KV, UI media — **nie** `main`
-- **`dist-audit/`** — lokalny build; w `.gitignore`
+**Testy:** `test-tender-job-draft-dates-8.4.mjs`, `test-job-execution-team-8.5-full.mjs`, `test-worker-execution-team-9.0.mjs`, `test-worker-contract-card-9.0.1.mjs`
 
 ---
 
 ## Szybki start dla nowego agenta
 
 ```text
-1. AGENTS.md
-2. PROJECT-GUIDE.md
-3. docs/ARCHITECTURE.md  → § 11 (sync), § 12.1.3 (CC), § 12.1.4 (Faza 8)
-4. docs/tender-center-7g-executive.md
-5. docs/INCIDENTS-2026-06.md
+1. docs/SESSION-HANDOFF-2026-06.md     ← stan sesji 2026-06-04 ★
+2. AGENTS.md
+3. PROJECT-GUIDE.md (+ Known Issues)
+4. docs/ARCHITECTURE.md (§ 11 sync, § 12.1.4 Faza 8–9)
+5. docs/jobs-2.0-product-audit.md    ← jeśli praca nad Robotami
 6. CURRENT-TASK.md (ten plik)
-7. CHANGELOG.md + changelog-data.ts
+7. changelog-data.ts → CHANGELOG[0].version
 ```
+
+---
+
+## Wcześniejsze (referencja)
+
+- **7G Pulpit × CC:** [`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md) — prod `7d49be2`
+- **Sync czerwiec 2026:** [`docs/INCIDENTS-2026-06.md`](docs/INCIDENTS-2026-06.md)
+- **Gałąź `audit-before-cleanup` @ `7eaf7ee`** — NIE prod · **`dist-audit/`** w `.gitignore`

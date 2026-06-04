@@ -12,26 +12,29 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja:** **2.45.27** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
-- **Prod (`main`):** **`88c25f8`** · https://www.wgdom.fun
-- **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`PROJECT-GUIDE.md`](../../PROJECT-GUIDE.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) § 12.1.4 (Faza 8) → [`docs/tender-center-7g-executive.md`](../../docs/tender-center-7g-executive.md) → [`docs/INCIDENTS-2026-06.md`](../../docs/INCIDENTS-2026-06.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md)
+- **Aktualna wersja:** **2.45.31** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
+- **Prod (`main`):** **`622bbbb`** · https://www.wgdom.fun
+- **★ Handoff sesji 2026-06-04:** [`docs/SESSION-HANDOFF-2026-06.md`](../../docs/SESSION-HANDOFF-2026-06.md) — audyty, Roboty 2.0, UX greeting
+- **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`PROJECT-GUIDE.md`](../../PROJECT-GUIDE.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) § 12.1.4 → [`docs/tender-center-7g-executive.md`](../../docs/tender-center-7g-executive.md) → [`docs/INCIDENTS-2026-06.md`](../../docs/INCIDENTS-2026-06.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md)
 - **Testy użytkownika:** głównie **Vercel**, nie localhost
 - **Konto testowe pracownika:** imię `test`, tel. `+48 000 000 000` — tylko tryb pracownika, bez listy płac/grafiku/pulpitu
 
-## FAZA 8 — Tender → Job (CLOSED, prod `88c25f8`, 2026-06-03)
+## FAZA 8–9 — Tender → Job → Ekipa → Pracownik (CLOSED, prod `622bbbb`, 2026-06-04)
 
-**Status:** **CLOSED** · **ETAP 8.5** i **Faza 9** — **nie rozpoczęte** bez polecenia.
+**Status:** **CLOSED** (8.0–8.4, 8.5 MIN/FULL, 9.0, 9.0.1) · **9.0.2+ / Roboty 2.0 implementacja** — tylko na polecenie.
 
 | Etap | Commit | Skrót |
 |------|--------|--------|
-| **8.0** | `d1b888e` | `executeCreateJobFromTender`, `TenderJobLinkButtons` — CC, briefing, Action Center |
-| **8.0A** | `5368016` | Jeden pipeline w `CommandCenterContext`; Classic `reloadFromStorage`; `linkedJobId` bez F5 |
-| **8.1** | `dd41581` | Draft: `awardValuePln` → kwota; `contractDate` + `implementationDays` → daty |
-| **8.2** | `8b6e822` | `plannedHandoverDate`, baner kontraktu w `JobsView`, `normalizeJob` po attach plików |
-| **8.3** | `9bac507` | Pulpit: KPI „Wygrane bez roboty”, `useTenderJobFromPipeline` + CTA na executive |
-| **8.4** | `88c25f8` | `resolveJobDraftDatesFromTender` — fallback SWZ (`implementationDeadlineRaw`, `contractPeriod`) |
+| **8.0–8.4** | `88c25f8` | Tender → Job, executive CTA, daty SWZ |
+| **8.5 MIN** | `1c7e164` | `startJobExecution`, „Rozpocznij realizację” |
+| **8.5 FULL** | `83b193e` | `executionLeadDirectoryId`, `executionAssigneeDirectoryIds` |
+| **9.0** | `3c575c7` | WorkerPhotoView „Twoje kontrakty” |
+| **9.0.1** | `a57a576` | Status + termin na kartach pracownika |
+| **UX** | `622bbbb` | Morning briefing: neutralny greeting (bez imienia właściciela) |
 
-**Pliki:** `create-job-from-tender.ts`, `useTenderJobFromPipeline.ts`, `TenderJobLinkButtons.tsx`, `CommandCenterExecutivePanel.tsx`, `tenders-bzp.ts` (`resolveJobDraftDatesFromTender`). **Nie zmieniać** bez polecenia: pipeline Provider, `linkedJobId`, logika 8.0A.
+**Następne (audyt, nie kod):** [`docs/jobs-2.0-product-audit.md`](../../docs/jobs-2.0-product-audit.md) — rekomendacja **Roboty 2.0 MIN**.
+
+**Pliki:** `create-job-from-tender.ts`, `JobsView.tsx`, `WorkerPhotoView.tsx`, `job-wm.ts`, `app-domain.ts`. **Nie zmieniać** bez polecenia: pipeline Provider, `linkedJobId`, CC/KPI/scoring.
 
 ## ETAP 7G — Pulpit × COMMAND CENTER AI (prod `7d49be2`, 2026-06-03)
 

@@ -8,13 +8,15 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-3. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
-4. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin (czerwiec 2026)
-5. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G) ★
-6. CHANGELOG.md           ← CO już zrobiono (skrót)
-7. CURRENT-TASK.md        ← gdzie skończyliśmy / co dalej
-8. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+2. docs/SESSION-HANDOFF-2026-06.md  ← ★ stan sesji 2026-06-04 (audyty, Faza 8–9, Roboty 2.0)
+3. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+4. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
+5. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin (czerwiec 2026)
+6. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
+7. docs/jobs-2.0-product-audit.md    ← rekomendacja rozwoju zakładki Roboty
+8. CHANGELOG.md           ← CO już zrobiono (skrót)
+9. CURRENT-TASK.md        ← gdzie skończyliśmy / co dalej
+10. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -36,6 +38,10 @@
 | **docs/ARCHITECTURE.md** | Pełny techniczny przewodnik (living document) |
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
+| **docs/SESSION-HANDOFF-2026-06.md** | Handoff sesji: audyty, commity, Roboty 2.0, UX greeting |
+| **docs/jobs-2.0-product-audit.md** | Audyt produktowy Roboty (MIN/MID/FULL) |
+| **docs/dead-code-audit-2026-06.md** | Martwy kod — repo-wide |
+| **docs/permissions-roles-audit-2026-06.md** | Uprawnienia Przetargów — PASS |
 | **docs/INCIDENTS-2026-06.md** | Incydenty stabilności — payroll, admin passwords, media (czerwiec 2026) |
 | **`changelog-data.ts` → CHANGELOG** | Źródło prawdy wersji + UI użytkownika (zakładka Zmiany, lazy `GuideView`) |
 

@@ -28,6 +28,21 @@
 
 ---
 
+## Handoff sesji 2026-06-04 (agent AI)
+
+Po hasłach **„kontynuuj WGDOM”** / nowa sesja — najpierw [`docs/SESSION-HANDOFF-2026-06.md`](docs/SESSION-HANDOFF-2026-06.md), potem [`CURRENT-TASK.md`](CURRENT-TASK.md).
+
+| Temat | Dokument |
+|-------|----------|
+| Stan prod Faza 8–9 + UX `622bbbb` | `SESSION-HANDOFF-2026-06.md` |
+| Roboty 2.0 (rekomendacja MIN) | `docs/jobs-2.0-product-audit.md` |
+| Martwy kod (7 plików legacy CC) | `docs/dead-code-audit-2026-06.md` |
+| Uprawnienia Przetargów | `docs/permissions-roles-audit-2026-06.md` |
+
+**Prod HEAD:** `622bbbb` · **UI:** 2.45.31 · **Nie implementować** 9.0.2 / Roboty 2.0 bez polecenia.
+
+---
+
 ## Known Issues — przeczytaj przed większą zmianą
 
 ### Sync (§ 11.3–11.5) — najczęstsze regresje

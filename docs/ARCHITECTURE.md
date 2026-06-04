@@ -3,7 +3,7 @@
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
 > **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (obecnie **2.45.31**)  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-03 (FAZA 8 CLOSED — § 12.1.4; ETAP 7G — § 6.1, § 12.1.3, [`tender-center-7g-executive.md`](tender-center-7g-executive.md))
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-04 (FAZA 8–9 CLOSED — § 12.1.4; handoff audytów — [`SESSION-HANDOFF-2026-06.md`](SESSION-HANDOFF-2026-06.md); Roboty 2.0 — [`jobs-2.0-product-audit.md`](jobs-2.0-product-audit.md))
 
 ---
 
@@ -28,6 +28,8 @@ Reguła Cursor: `.cursor/rules/wgdom-development.mdc`
 ---
 
 ## 1. Szybki start (5 minut)
+
+**Wznowienie po przerwie (agent AI):** [`SESSION-HANDOFF-2026-06.md`](SESSION-HANDOFF-2026-06.md) → [`CURRENT-TASK.md`](../CURRENT-TASK.md) → ten dokument § 11 (sync) i § 12.1.4 (Faza 8–9).
 
 ```bash
 cd WGDOM1
@@ -512,7 +514,7 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 
-**Status:** **CLOSED** (8.0–8.4). **ETAP 8.5** — plan + start realizacji. **FAZA 9.0** — Twoje kontrakty. **FAZA 9.0.1** — status + termin na kartach. **9.0.2+** — nie rozpoczęte bez polecenia.
+**Status:** **CLOSED** (8.0–8.4, 8.5 MIN/FULL, 9.0, 9.0.1). **9.0.2+** — nie rozpoczęte bez polecenia. **Roboty 2.0** — audyt produktowy gotowy, implementacja **MIN** rekomendowana — [`jobs-2.0-product-audit.md`](jobs-2.0-product-audit.md).
 
 #### Przepływ produktowy
 

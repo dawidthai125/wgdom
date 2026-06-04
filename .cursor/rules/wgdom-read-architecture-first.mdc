@@ -9,8 +9,9 @@ Komunikuj się z użytkownikiem po **polsku**.
 
 ## Zanim zaczniesz pracę w tym repo
 
-1. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — pełna architektura (panele, sync, Supabase, Vercel, PWA, pułapki).
-2. Skrót wejścia: [`AGENTS.md`](AGENTS.md).
+1. **Przeczytaj [`docs/SESSION-HANDOFF-2026-06.md`](docs/SESSION-HANDOFF-2026-06.md)** — stan sesji (Faza 8–9, audyty, Roboty 2.0).
+2. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — pełna architektura (panele, sync, Supabase, Vercel, PWA, pułapki).
+3. Skrót wejścia: [`AGENTS.md`](AGENTS.md).
 
 Nie analizuj od zera całego `src/app/App.tsx` (~15k linii) — ARCHITECTURE.md opisuje system jako całość.
 
