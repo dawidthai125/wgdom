@@ -4,7 +4,17 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja:** **2.45.33** (UI)
+**Aktualna wersja:** **2.45.34** (UI)
+
+---
+
+## 2.45.34 (2026-06-04) — Performance 1.1C + 1.2A + 1.3A+
+
+- Usunięcie legacy `tenderDashStats` (`App.tsx`, `DashboardView`, `AdminViewRouter`)
+- `useTendersPipeline` — award/BZP w tle; szybszy placeholder COMMAND CENTER AI
+- `CloudLoader` + `cloud-sync` — CORE/DEFERRED bootstrap; event `wgdom-deferred-bootstrap`
+- `CommandCenterContext` — odświeżenie profilu firmy po deferred bootstrap
+- Tag release: `v2.45.34-perf-1.3a`
 
 ---
 

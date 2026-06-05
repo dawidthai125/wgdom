@@ -16,8 +16,6 @@ import { AdminSettingsModal } from "@/app/AdminSettingsModal";
 import { ScheduleView } from "@/app/ScheduleView";
 import { EmployeeSmsModal } from "@/app/EmployeeSmsModal";
 import { SmsModalErrorBoundary } from "@/app/SmsModalErrorBoundary";
-import type { TendersDashboardStats } from "@/lib/tenders-bzp";
-import { appendJobActivity } from "@/lib/job-activity";
 import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";
 import { countBrowserFiles, jobHasBrowserFiles } from "@/lib/job-files-browser";
 import { downloadJobGalleryZip } from "@/lib/photo-download";
@@ -216,8 +214,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [view, setView] = useState<View>("dashboard");
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
   const [pendingTenderId, setPendingTenderId] = useState<string | null>(null);
-  /** @legacy ETAP 7G — BZP dashboard stats; executive pulpit używa COMMAND CENTER snapshot. */
-  const [tenderDashStats, setTenderDashStats] = useState<TendersDashboardStats | null>(null);
   const [pendingInspectorJobId, setPendingInspectorJobId] = useState<string | null>(null);
   const [inspectorInitialTab, setInspectorInitialTab] = useState<"activity" | "portfolio">("activity");
   const [alertsSeenTick, setAlertsSeenTick] = useState(0);
@@ -994,25 +990,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     ? adminCanViewTendersTab(adminSession.role, appSettings)
     : false;
 
-  useEffect(() => {
-    if (!canViewTendersNav) return;
-    if (view !== "dashboard" && view !== "tenders") return;
-    let cancelled = false;
-    void Promise.all([
-      import("@/lib/tenders-bzp"),
-      import("@/lib/tenders-actions"),
-    ]).then(([{ loadTendersPipeline, computeTendersDashboardStats }, { enrichTendersDashboardStats }]) =>
-      loadTendersPipeline()
-        .then((items) => {
-          if (!cancelled) {
-            setTenderDashStats(enrichTendersDashboardStats(computeTendersDashboardStats(items), items));
-          }
-        })
-        .catch(() => { if (!cancelled) setTenderDashStats(null); }),
-    );
-    return () => { cancelled = true; };
-  }, [canViewTendersNav, view]);
-
   const navItems = useMemo(
     () =>
       buildAdminNavItems({
@@ -1185,7 +1162,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           alertsSeenTick={alertsSeenTick}
           onAlertsSeen={() => setAlertsSeenTick((t) => t + 1)}
           onOpenSms={() => setShowSmsModal(true)}
-          tenderDashStats={tenderDashStats}
           onOpenTenders={() => setView("tenders")}
           onOpenTender={(tid) => { setPendingTenderId(tid); setView("tenders"); }}
           handleNavigate={handleNavigate}

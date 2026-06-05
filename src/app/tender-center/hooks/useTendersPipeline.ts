@@ -113,37 +113,46 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
         let loaded = await loadTendersPipeline();
         const { items: rescored, changed } = await syncTenderKeywordsAndRescore(loaded);
         if (changed) {
-          await saveTendersPipeline(rescored);
           loaded = rescored;
         }
         if (!cancelled) setItems(loaded);
-        if (!cancelled) {
-          setAutoAwardRunning(true);
-          try {
-            const { items: withAwards, updated } = await autoFetchAwardResults(loaded, 5);
-            if (updated > 0) {
-              await saveTendersPipeline(withAwards);
-              if (!cancelled) setItems(withAwards);
-            }
-          } catch { /* ciche auto-wyniki */ }
-          finally {
-            if (!cancelled) setAutoAwardRunning(false);
-          }
+        if (!cancelled) setLoading(false);
+
+        if (!cancelled && changed) {
+          void saveTendersPipeline(rescored).catch(() => {});
         }
-        if (!cancelled && shouldAutoRefreshBzp(bzpSettings.bzpAutoRefreshHours)) {
-          setAutoSyncing(true);
-          try {
-            await runBzpMerge(loaded, true);
-          } catch {
-            /* ciche auto-odświeżenie */
-          } finally {
-            if (!cancelled) setAutoSyncing(false);
-          }
+
+        if (!cancelled) {
+          void (async () => {
+            setAutoAwardRunning(true);
+            try {
+              const { items: withAwards, updated } = await autoFetchAwardResults(loaded, 5);
+              if (updated > 0) {
+                await saveTendersPipeline(withAwards);
+                if (!cancelled) setItems(withAwards);
+              }
+            } catch { /* ciche auto-wyniki */ }
+            finally {
+              if (!cancelled) setAutoAwardRunning(false);
+            }
+
+            if (!cancelled && shouldAutoRefreshBzp(bzpSettings.bzpAutoRefreshHours)) {
+              setAutoSyncing(true);
+              try {
+                await runBzpMerge(loaded, true);
+              } catch {
+                /* ciche auto-odświeżenie */
+              } finally {
+                if (!cancelled) setAutoSyncing(false);
+              }
+            }
+          })();
         }
       } catch {
-        if (!cancelled) setItems([]);
-      } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setItems([]);
+          setLoading(false);
+        }
       }
     })();
     return () => { cancelled = true; };

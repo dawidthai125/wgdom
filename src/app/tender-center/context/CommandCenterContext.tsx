@@ -2,10 +2,12 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+import { WGDOM_DEFERRED_BOOTSTRAP_EVENT } from "@/lib/cloud-sync";
 import type {
   DirectoryEmployee,
   Job,
@@ -53,7 +55,6 @@ import {
   type FinancialCapacityResult,
 } from "@/lib/tender-center-financial-capacity";
 import { computeTenderImpact } from "@/lib/tender-center-impact";
-import type { useOwnerTenderDecisions } from "@/app/tender-center/hooks/useOwnerTenderDecisions";
 
 export type CommandCenterProviderInput = {
   jobs: Job[];
@@ -391,6 +392,15 @@ export function CommandCenterProvider({
   const bumpProfileVersion = useCallback(() => {
     setProfileVersion((v) => v + 1);
   }, []);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const onDeferredBootstrap = () => {
+      bumpProfileVersion();
+    };
+    window.addEventListener(WGDOM_DEFERRED_BOOTSTRAP_EVENT, onDeferredBootstrap);
+    return () => window.removeEventListener(WGDOM_DEFERRED_BOOTSTRAP_EVENT, onDeferredBootstrap);
+  }, [enabled, bumpProfileVersion]);
 
   const ownerDecisions = useOwnerTenderDecisions();
   const snapshot = useCommandCenterSnapshot(

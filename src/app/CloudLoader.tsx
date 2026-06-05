@@ -3,9 +3,9 @@ import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import {
   DATA_KEYS,
+  BOOTSTRAP_CORE_KEYS,
   pushKeysToCloud,
   fetchKeysFromCloud,
-  normalizeJobsValue,
   mergeAllDataKeys,
   applyBootstrapPayrollMerge,
   mergeDeletedJobIds,
@@ -14,14 +14,14 @@ import {
   mergeDeletedDirectoryIds,
   getDeletedDirectoryIds,
   saveDeletedDirectoryIds,
-  mergeDeletedContactsIds,
   mergeDeletedArchiveIds,
-  saveDeletedContactsIds,
   saveDeletedArchiveIds,
   getDeletedContactsIds,
   getDeletedArchiveIds,
   normalizeDeletedJobIds,
   normalizeDeletedDirectoryIds,
+  readLocalStorageDataKey,
+  fetchAndMergeDeferredBootstrap,
   JOBS_DELETED_IDS_KEY,
   DIRECTORY_DELETED_IDS_KEY,
   CONTACTS_DELETED_IDS_KEY,
@@ -32,7 +32,8 @@ import {
   ADMIN_USERS_CONFIG_KEY,
   APP_SETTINGS_KEY,
   isSupabaseConfigured,
-  weekEmployeesListRichness,
+  bootstrapMergedShouldPersist,
+  bootstrapMergedShouldPush,
 } from "@/lib/cloud-sync";
 import {
   loadAdminPasswordOverrides,
@@ -48,35 +49,35 @@ export function CloudLoader({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const keys = [...DATA_KEYS];
+    const coreKeys = [...BOOTSTRAP_CORE_KEYS];
     const fallback = setTimeout(() => setReady(true), 3000);
+    const startDeferredPhase = () => {
+      void fetchAndMergeDeferredBootstrap();
+    };
 
     fetchKeysFromCloud([
-      ...keys,
+      ...coreKeys,
       JOBS_DELETED_IDS_KEY,
       DIRECTORY_DELETED_IDS_KEY,
-      CONTACTS_DELETED_IDS_KEY,
       ARCHIVE_DELETED_IDS_KEY,
       ADMIN_PASSWORDS_KEY,
       ADMIN_USERS_CONFIG_KEY,
       APP_SETTINGS_KEY,
     ])
       .then(async (allValues) => {
-        const values = allValues.slice(0, keys.length);
-        const cloudDeleted = normalizeDeletedJobIds(allValues[keys.length]);
-        const cloudDirDeleted = normalizeDeletedDirectoryIds(allValues[keys.length + 1]);
-        const cloudContactsDeleted = normalizeDeletedJobIds(allValues[keys.length + 2]);
-        const cloudArchiveDeleted = normalizeDeletedJobIds(allValues[keys.length + 3]);
-        const cloudAdminPw = allValues[keys.length + 4];
-        const cloudAdminUsers = allValues[keys.length + 5];
+        const values = allValues.slice(0, coreKeys.length);
+        const cloudDeleted = normalizeDeletedJobIds(allValues[coreKeys.length]);
+        const cloudDirDeleted = normalizeDeletedDirectoryIds(allValues[coreKeys.length + 1]);
+        const cloudArchiveDeleted = normalizeDeletedJobIds(allValues[coreKeys.length + 2]);
+        const cloudAdminPw = allValues[coreKeys.length + 3];
+        const cloudAdminUsers = allValues[coreKeys.length + 4];
         const mergedDeleted = mergeDeletedJobIds(getDeletedJobIds(), cloudDeleted);
         saveDeletedJobIds(mergedDeleted);
         const mergedDirDeleted = mergeDeletedDirectoryIds(getDeletedDirectoryIds(), cloudDirDeleted);
         saveDeletedDirectoryIds(mergedDirDeleted);
-        const mergedContactsDeleted = mergeDeletedContactsIds(getDeletedContactsIds(), cloudContactsDeleted);
-        saveDeletedContactsIds(mergedContactsDeleted);
         const mergedArchiveDeleted = mergeDeletedArchiveIds(getDeletedArchiveIds(), cloudArchiveDeleted);
         saveDeletedArchiveIds(mergedArchiveDeleted);
+        const mergedContactsDeleted = getDeletedContactsIds();
 
         const localAdminPw = loadAdminPasswordOverrides();
         const mergedAdminPw = mergeAdminPasswordOverrides(localAdminPw, cloudAdminPw);
@@ -90,7 +91,7 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         const mergedAdminUsers = mergeAdminUsersConfig(localAdminUsers, cloudAdminUsers);
         localStorage.setItem(ADMIN_USERS_CONFIG_KEY, JSON.stringify(mergedAdminUsers));
 
-        const cloudAppSettings = allValues[keys.length + 6];
+        const cloudAppSettings = allValues[coreKeys.length + 5];
         if (cloudAppSettings && typeof cloudAppSettings === "object") {
           const localSettings = loadAppSettingsLocal();
           const cloudS = cloudAppSettings as AppSettings;
@@ -113,48 +114,30 @@ export function CloudLoader({ children }: { children: ReactNode }) {
           pushValues.push(mergedAdminUsers);
         }
 
-        const localValues = keys.map((key) => {
-          try {
-            const raw = localStorage.getItem(key);
-            if (raw) return JSON.parse(raw) as unknown;
-          } catch { /* ignore */ }
-          return null;
+        const localValues = DATA_KEYS.map((key) => readLocalStorageDataKey(key));
+        const cloudValues = DATA_KEYS.map((key) => {
+          const idx = coreKeys.indexOf(key as (typeof BOOTSTRAP_CORE_KEYS)[number]);
+          return idx >= 0 ? values[idx] : null;
         });
 
         let mergedBundle = mergeAllDataKeys(
           localValues,
-          values,
+          cloudValues,
           mergedDeleted,
           mergedDirDeleted,
           mergedContactsDeleted,
           mergedArchiveDeleted,
         );
-        mergedBundle = applyBootstrapPayrollMerge(mergedBundle, localValues, values);
+        mergedBundle = applyBootstrapPayrollMerge(mergedBundle, localValues, cloudValues);
 
-        keys.forEach((key, i) => {
-          const cloudVal = values[i];
+        coreKeys.forEach((key) => {
+          const i = DATA_KEYS.indexOf(key);
+          const cloudVal = cloudValues[i];
           const merged = mergedBundle[i];
-          const hasRealData = merged != null && !(Array.isArray(merged) && merged.length === 0) && merged !== "";
-          if (hasRealData || (key === "kw-weekFrom" || key === "kw-weekTo") && merged) {
+          if (bootstrapMergedShouldPersist(key, merged)) {
             localStorage.setItem(key, JSON.stringify(merged));
           }
-
-          if (!isSupabaseConfigured()) return;
-
-          const cloudEmpty = cloudVal == null || (Array.isArray(cloudVal) && cloudVal.length === 0);
-          const richnessIncreased =
-            key === "kw-week-employees"
-              ? weekEmployeesListRichness(merged) > weekEmployeesListRichness(cloudVal) + 1
-              : key === "kw-jobs"
-                ? normalizeJobsValue(merged).length > normalizeJobsValue(cloudVal).length
-                : Array.isArray(merged) && Array.isArray(cloudVal) && merged.length > cloudVal.length;
-
-          const shouldPush =
-            (cloudEmpty && hasRealData) ||
-            richnessIncreased ||
-            (hasRealData && JSON.stringify(merged) !== JSON.stringify(cloudVal));
-
-          if (shouldPush) {
+          if (bootstrapMergedShouldPush(key, merged, cloudVal)) {
             pushKeys.push(key);
             pushValues.push(merged);
           }
@@ -181,7 +164,6 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         }
 
         if (pushKeys.length > 0) {
-          // Push w tle — nie blokuj startu UI (batch-get ~2–3 s wystarczy)
           void pushKeysToCloud(
             [...pushKeys, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY],
             [...pushValues, mergedDeleted, mergedDirDeleted, mergedContactsDeleted, mergedArchiveDeleted],
@@ -194,9 +176,15 @@ export function CloudLoader({ children }: { children: ReactNode }) {
         }
 
         markCloudBootstrapSuccess();
+        startDeferredPhase();
       })
-      .catch(() => {})
-      .finally(() => { clearTimeout(fallback); setReady(true); });
+      .catch(() => {
+        startDeferredPhase();
+      })
+      .finally(() => {
+        clearTimeout(fallback);
+        setReady(true);
+      });
   }, []);
 
   if (!ready) return (

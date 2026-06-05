@@ -11,6 +11,15 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date:"2026-06-04", version:"2.45.34", label:"Performance 1.1C + 1.2A + 1.3A+",
+    items:[
+      {type:"improve", text:"Usunięcie legacy tenderDashStats — Pulpit korzysta wyłącznie z COMMAND CENTER AI"},
+      {type:"improve", text:"Szybsze pojawianie COMMAND CENTER AI — pipeline bez blokowania na award/BZP w tle"},
+      {type:"improve", text:"CloudLoader CORE/DEFERRED bootstrap — szybsze wejście do aplikacji, cięższe dane w tle"},
+      {type:"improve", text:"Automatyczne odświeżanie profilu firmy po deferred bootstrap (COMMAND CENTER)"},
+    ],
+  },
+  {
     date:"2026-06-04", version:"2.45.33", label:"Roboty 2.1A — przebudowa układu listy robót",
     items:[
       {type:"improve", text:"Lista robót — układ: CTA → KPI (pasek poziomy) → szukaj → fazy → lista; filtry operacyjne tylko z KPI (bez drugiego rzędu chipów)"},

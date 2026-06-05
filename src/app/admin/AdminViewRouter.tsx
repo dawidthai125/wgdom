@@ -12,7 +12,6 @@ import type {
 import type { AdminSession } from "@/lib/admin-auth";
 import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import type { AppSettings } from "@/lib/app-settings";
-import type { TendersDashboardStats } from "@/lib/tenders-bzp";
 import type { EmailContact } from "@/lib/email-contacts";
 import type { View } from "@/app/admin/admin-nav";
 import { CommandCenterProvider } from "@/app/tender-center/context/CommandCenterContext";
@@ -55,8 +54,6 @@ export type AdminViewRouterProps = {
   alertsSeenTick: number;
   onAlertsSeen: () => void;
   onOpenSms: () => void;
-  /** @legacy ETAP 7G — UI pulpitu nie czyta; zachowane dla kompatybilności fetch w App. */
-  tenderDashStats: TendersDashboardStats | null;
   onOpenTenders: () => void;
   onOpenTender: (tid: string) => void;
   handleNavigate: (
@@ -124,7 +121,6 @@ export function AdminViewRouter({
   alertsSeenTick,
   onAlertsSeen,
   onOpenSms,
-  tenderDashStats,
   onOpenTenders,
   onOpenTender,
   handleNavigate,
@@ -201,7 +197,6 @@ export function AdminViewRouter({
             onAlertsSeen={onAlertsSeen}
             onOpenSms={onOpenSms}
             canViewTenders={canViewTendersNav}
-            tendersStats={tenderDashStats}
             onOpenTenders={onOpenTenders}
             onOpenTender={onOpenTender}
             setJobs={setJobs}

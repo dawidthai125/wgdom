@@ -4,7 +4,6 @@ import {
   FileText, CheckCircle2, Circle, Archive, Camera, Receipt, ClipboardList, ClipboardCheck,
   Calendar, HardHat, KeyRound, TrendingUp,
 } from "lucide-react";
-import type { TendersDashboardStats } from "@/lib/tenders-bzp";
 import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
 import { CommandCenterExecutivePanel } from "@/app/tender-center/components/CommandCenterExecutivePanel";
 import { appendJobActivity } from "@/lib/job-activity";
@@ -56,7 +55,6 @@ import {
 export function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
   onNavigate, onFixJobs, adminUserId, alertsSeenTick, onAlertsSeen, onOpenSms,
-  tendersStats: _legacyTendersStats,
   onOpenTenders,
   onOpenTender,
   canViewTenders,
@@ -77,8 +75,6 @@ export function DashboardView({
   alertsSeenTick: number;
   onAlertsSeen: () => void;
   onOpenSms?: () => void;
-  /** @legacy ETAP 7G — zachowane w App.tsx; executive panel używa COMMAND CENTER snapshot. */
-  tendersStats?: TendersDashboardStats | null;
   onOpenTenders?: () => void;
   onOpenTender?: (tenderId: string) => void;
   canViewTenders?: boolean;
@@ -91,7 +87,6 @@ export function DashboardView({
   ) => string | void;
   tenderJobUploadedBy?: string;
 }) {
-  void _legacyTendersStats;
   const { session: adminSession } = useAdminAccess();
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
   const todayKey = todayDayKey();

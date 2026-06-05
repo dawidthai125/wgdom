@@ -38,6 +38,26 @@ export const DATA_KEYS = [
 
 export type DataKey = (typeof DATA_KEYS)[number];
 
+/** Faza 1 CloudLoader — klucze blokujące ready. */
+export const BOOTSTRAP_CORE_KEYS = [
+  "kw-directory",
+  "kw-week-employees",
+  "kw-archive",
+  "kw-weekFrom",
+  "kw-weekTo",
+  "kw-jobs",
+] as const satisfies readonly DataKey[];
+
+/** Faza 2 CloudLoader — pobierane w tle po ready. */
+export const BOOTSTRAP_DEFERRED_KEYS = [
+  "kw-tenders-pipeline",
+  "kw-tenders-company-profile",
+  "kw-tenders-custom-keywords",
+  "kw-contacts",
+] as const satisfies readonly DataKey[];
+
+export const WGDOM_DEFERRED_BOOTSTRAP_EVENT = "wgdom-deferred-bootstrap";
+
 export const ADMIN_HASH_KEY = "kw-admin-hash";
 export const ADMIN_PASSWORDS_KEY = "kw-admin-passwords";
 export const ADMIN_USERS_CONFIG_KEY = "kw-admin-users-config";
@@ -1238,6 +1258,89 @@ export function mergeDataKey(
       return typeof local === "string" && local ? local : (typeof cloud === "string" && cloud ? cloud : local ?? cloud);
     default:
       return local ?? cloud;
+  }
+}
+
+export function bootstrapMergedShouldPersist(key: DataKey, merged: unknown): boolean {
+  const hasRealData =
+    merged != null && !(Array.isArray(merged) && merged.length === 0) && merged !== "";
+  return hasRealData || ((key === "kw-weekFrom" || key === "kw-weekTo") && Boolean(merged));
+}
+
+export function bootstrapMergedShouldPush(key: DataKey, merged: unknown, cloudVal: unknown): boolean {
+  if (!isSupabaseConfigured()) return false;
+  const hasRealData =
+    merged != null && !(Array.isArray(merged) && merged.length === 0) && merged !== "";
+  const cloudEmpty = cloudVal == null || (Array.isArray(cloudVal) && cloudVal.length === 0);
+  const richnessIncreased =
+    key === "kw-week-employees"
+      ? weekEmployeesListRichness(merged) > weekEmployeesListRichness(cloudVal) + 1
+      : key === "kw-jobs"
+        ? normalizeJobsValue(merged).length > normalizeJobsValue(cloudVal).length
+        : Array.isArray(merged) && Array.isArray(cloudVal) && merged.length > cloudVal.length;
+  return (
+    (cloudEmpty && hasRealData) ||
+    richnessIncreased ||
+    (hasRealData && JSON.stringify(merged) !== JSON.stringify(cloudVal))
+  );
+}
+
+function persistBootstrapMergedKey(key: DataKey, merged: unknown): void {
+  if (!bootstrapMergedShouldPersist(key, merged)) return;
+  try {
+    localStorage.setItem(key, JSON.stringify(merged));
+  } catch { /* ignore */ }
+}
+
+/** Faza 2 — deferred klucze + tombstone kontaktów; na końcu wgdom-deferred-bootstrap. */
+export async function fetchAndMergeDeferredBootstrap(): Promise<void> {
+  try {
+    if (!isSupabaseConfigured()) return;
+    const keys = [...BOOTSTRAP_DEFERRED_KEYS];
+    const allValues = await fetchKeysFromCloud([...keys, CONTACTS_DELETED_IDS_KEY]);
+    const cloudValues = allValues.slice(0, keys.length);
+    const cloudContactsDeleted = normalizeDeletedJobIds(allValues[keys.length]);
+    const mergedContactsDeleted = mergeDeletedContactsIds(getDeletedContactsIds(), cloudContactsDeleted);
+    saveDeletedContactsIds(mergedContactsDeleted);
+
+    const deletedJobIds = getDeletedJobIds();
+    const deletedDirIds = getDeletedDirectoryIds();
+    const deletedArchiveIds = getDeletedArchiveIds();
+
+    const pushKeys: string[] = [];
+    const pushValues: unknown[] = [];
+
+    keys.forEach((key, i) => {
+      const local = readLocalStorageDataKey(key);
+      const cloudVal = cloudValues[i];
+      const merged = mergeDataKey(
+        key,
+        local,
+        cloudVal,
+        deletedJobIds,
+        deletedDirIds,
+        mergedContactsDeleted,
+        deletedArchiveIds,
+      );
+      persistBootstrapMergedKey(key, merged);
+      if (bootstrapMergedShouldPush(key, merged, cloudVal)) {
+        pushKeys.push(key);
+        pushValues.push(merged);
+      }
+    });
+
+    if (pushKeys.length > 0) {
+      void pushKeysToCloud(
+        [...pushKeys, CONTACTS_DELETED_IDS_KEY],
+        [...pushValues, mergedContactsDeleted],
+      ).catch(() => {});
+    }
+  } catch {
+    /* offline — zostaw lokalne dane */
+  } finally {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(WGDOM_DEFERRED_BOOTSTRAP_EVENT));
+    }
   }
 }
 
