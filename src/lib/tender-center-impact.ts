@@ -23,10 +23,11 @@ import {
   type CompanyHealthInput,
   type CompanyHealthResult,
 } from "@/lib/tender-center-health";
-import { aggregateMarketKpi } from "@/lib/tender-center-kpi";
+import { aggregateMarketKpi, type TenderCenterMarketKpi } from "@/lib/tender-center-kpi";
 import {
   type Forecast90DaysInput,
   type Forecast90DaysResult,
+  type ForecastScenarioResult,
   computeSingleForecastScenario,
 } from "@/lib/tender-center-forecast-90d";
 import { stripHtmlToText } from "@/lib/tenders-bzp-swz";
@@ -133,6 +134,10 @@ export interface TenderImpactInput {
   goCandidates: TenderScoringBundle[];
   profile: TenderCompanyProfile;
   now?: Date;
+  /** Precomputed KPI (Performance 2.1A). */
+  marketKpi?: TenderCenterMarketKpi;
+  /** Scenariusz „none” z computeForecast90Days — pomija redundantny pass (Performance 2.1A). */
+  beforeForecastScenario?: ForecastScenarioResult;
 }
 
 export const CONTRACT_SCALE_LABEL_PL: Record<ContractScale, string> = {
@@ -199,9 +204,10 @@ export function computeCompanyScaleContext(
   items: TenderPipelineItem[],
   profile: TenderCompanyProfile,
   savedWeeks?: WeekSnapshot[],
+  marketKpi?: TenderCenterMarketKpi,
 ): CompanyScaleContext {
   const activePortfolioPln = activeJobsValuePln(jobs);
-  const kpi = aggregateMarketKpi(items, profile);
+  const kpi = marketKpi ?? aggregateMarketKpi(items, profile);
   const pipelineValuePln = Math.round(kpi.pipelineBidValuePln + kpi.marketValuePln * 0.25);
   const annualThroughputPln = Math.max(
     annualThroughputFromArchive(savedWeeks, profile),
@@ -685,6 +691,7 @@ export function computeTenderImpact(input: TenderImpactInput): TenderImpactResul
     healthInput.items,
     profile,
     healthInput.savedWeeks,
+    input.marketKpi,
   );
   const contractScale = classifyContractScale(
     revenueImpact.contractValuePln,
@@ -693,7 +700,10 @@ export function computeTenderImpact(input: TenderImpactInput): TenderImpactResul
   );
 
   const forecastInputReady = ensureBundleInForecastInput(forecastInput, bundle);
-  const beforeScenario = computeSingleForecastScenario(forecastInputReady, { scenarioId: "none" });
+  const beforeScenario =
+    input.beforeForecastScenario
+    ?? forecast.scenarios.find((s) => s.id === "none")
+    ?? computeSingleForecastScenario(forecastInputReady, { scenarioId: "none" });
   const afterScenario = computeSingleForecastScenario(forecastInputReady, {
     customWinTenderIds: [item.id],
   });
@@ -706,7 +716,7 @@ export function computeTenderImpact(input: TenderImpactInput): TenderImpactResul
     contractScale,
   );
 
-  const kpi = aggregateMarketKpi(healthInput.items, profile);
+  const kpi = input.marketKpi ?? aggregateMarketKpi(healthInput.items, profile);
   const { healthAfter, healthDelta } = computeHealthImpactV2(
     health.index,
     contractScale,

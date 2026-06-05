@@ -27,8 +27,8 @@ import {
 } from "@/lib/tender-center-growth-mode";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import {
-  countPortfolioDecisions,
-  rankTopTenderOpportunities,
+  portfolioCountsFromScoredBundles,
+  scoreAllActionableTenderOpportunities,
 } from "@/lib/tender-center-decision";
 import {
   collectGoCandidates,
@@ -104,6 +104,11 @@ function useCommandCenterSnapshot(
 
   const profile = useMemo(() => loadCompanyProfileLocal(), [profileVersion]);
 
+  const marketKpi = useMemo(
+    () => aggregateMarketKpi(pipeline.items, profile),
+    [pipeline.items, profile],
+  );
+
   const healthInput = useMemo(
     (): CompanyHealthInput => ({
       items: pipeline.items,
@@ -115,6 +120,7 @@ function useCommandCenterSnapshot(
       profile,
       growthMode: growthModeState.mode,
       savedWeeks,
+      marketKpi,
     }),
     [
       pipeline.items,
@@ -126,6 +132,7 @@ function useCommandCenterSnapshot(
       profile,
       growthModeState.mode,
       savedWeeks,
+      marketKpi,
     ],
   );
 
@@ -138,30 +145,31 @@ function useCommandCenterSnapshot(
       jobs,
       items: pipeline.items,
       profile,
+      marketKpi,
     }),
-    [health, growthModeState.mode, jobs, pipeline.items, profile],
+    [health, growthModeState.mode, jobs, pipeline.items, profile, marketKpi],
   );
 
-  const marketKpi = useMemo(
-    () => aggregateMarketKpi(pipeline.items, profile),
-    [pipeline.items, profile],
+  const scoredOpportunities = useMemo(
+    () => scoreAllActionableTenderOpportunities(pipeline.items, profile, scoringContext),
+    [pipeline.items, profile, scoringContext],
   );
 
   const radarTop = useMemo(
-    () => rankTopTenderOpportunities(pipeline.items, profile, scoringContext, 5),
-    [pipeline.items, profile, scoringContext],
+    () => scoredOpportunities.slice(0, 5),
+    [scoredOpportunities],
   );
 
   const bestOpportunity = radarTop[0] ?? null;
 
   const portfolioCounts = useMemo(
-    () => countPortfolioDecisions(pipeline.items, profile, scoringContext),
-    [pipeline.items, profile, scoringContext],
+    () => portfolioCountsFromScoredBundles(scoredOpportunities),
+    [scoredOpportunities],
   );
 
   const scoredForForecast = useMemo(
-    () => rankTopTenderOpportunities(pipeline.items, profile, scoringContext, 40),
-    [pipeline.items, profile, scoringContext],
+    () => scoredOpportunities.slice(0, 40),
+    [scoredOpportunities],
   );
 
   const goCandidates = useMemo(
@@ -269,6 +277,7 @@ function useCommandCenterSnapshot(
 
   const financialCapacityComputed = useMemo((): FinancialCapacityResult | null => {
     if (!bestOpportunity) return null;
+    const beforeForecastScenario = forecast90.scenarios.find((s) => s.id === "none");
     const impact = computeTenderImpact({
       bundle: bestOpportunity,
       health,
@@ -281,6 +290,8 @@ function useCommandCenterSnapshot(
       directory,
       goCandidates,
       profile,
+      marketKpi,
+      beforeForecastScenario,
     });
     if (!impact) return null;
     return computeFinancialCapacity({
@@ -291,6 +302,7 @@ function useCommandCenterSnapshot(
       jobs,
       growthMode: growthModeState.mode,
       pipelineItems: pipeline.items,
+      marketKpi,
     });
   }, [
     bestOpportunity,
@@ -305,6 +317,7 @@ function useCommandCenterSnapshot(
     goCandidates,
     profile,
     pipeline.items,
+    marketKpi,
   ]);
 
   const morningBriefing = useMemo(

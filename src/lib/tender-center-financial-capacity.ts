@@ -8,7 +8,7 @@ import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderCompanyProfile } from "@/lib/tenders-bzp-company";
 import type { GrowthMode } from "@/lib/tender-center-growth-mode";
 import type { CompanyHealthResult } from "@/lib/tender-center-health";
-import { aggregateMarketKpi } from "@/lib/tender-center-kpi";
+import { aggregateMarketKpi, type TenderCenterMarketKpi } from "@/lib/tender-center-kpi";
 import type { TenderScoringBundle } from "@/lib/tender-center-decision";
 import type { TenderImpactResult, ContractScale } from "@/lib/tender-center-impact";
 
@@ -55,6 +55,8 @@ export interface FinancialCapacityInput {
   jobs: Job[];
   growthMode: GrowthMode;
   pipelineItems: TenderPipelineItem[];
+  /** Precomputed KPI (Performance 2.1A). */
+  marketKpi?: TenderCenterMarketKpi;
 }
 
 const GROWTH_BUFFER_MULT: Record<GrowthMode, number> = {
@@ -138,8 +140,9 @@ function computeEstimatedBuffer(
   jobs: Job[],
   pipelineItems: TenderPipelineItem[],
   contractValue: number | null,
+  marketKpi?: TenderCenterMarketKpi,
 ): number {
-  const kpi = aggregateMarketKpi(pipelineItems, profile);
+  const kpi = marketKpi ?? aggregateMarketKpi(pipelineItems, profile);
   const wadiumHeadroom = Math.max(0, kpi.wadiumHeadroomPln);
   const healthFactor = health.index / 100;
   const { companyScale, freeSlotsBefore, forecastAfter, contractScale } = impact;
@@ -309,7 +312,7 @@ function buildStrengths(
 export function computeFinancialCapacity(
   input: FinancialCapacityInput,
 ): FinancialCapacityResult | null {
-  const { profile, health, impact, jobs, growthMode, pipelineItems } = input;
+  const { profile, health, impact, jobs, growthMode, pipelineItems, marketKpi } = input;
 
   const contractValue = impact.revenueImpact.contractValuePln;
   const depositValue = impact.revenueImpact.wadiumPln;
@@ -322,6 +325,7 @@ export function computeFinancialCapacity(
     jobs,
     pipelineItems,
     contractValue,
+    marketKpi,
   );
   const fundingGap =
     depositValue != null && depositValue > estimatedBuffer

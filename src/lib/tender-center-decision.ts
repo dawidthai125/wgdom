@@ -95,11 +95,10 @@ export function scoreTender(
   };
 }
 
-export function rankTopTenderOpportunities(
+function scoreActionableCandidates(
   items: TenderPipelineItem[],
   profile: TenderCompanyProfile,
   strategicContext: StrategicScoreContext,
-  limit = 5,
   now: Date = new Date(),
 ): TenderScoringBundle[] {
   const candidates = items.filter(
@@ -109,8 +108,27 @@ export function rankTopTenderOpportunities(
 
   return candidates
     .map((item) => scoreTender(item, profile, strategicContext, now))
-    .sort((a, b) => b.compositeRank - a.compositeRank)
-    .slice(0, limit);
+    .sort((a, b) => b.compositeRank - a.compositeRank);
+}
+
+/** Pełny ranking actionable — jeden pass scoringu (Performance 2.1A). */
+export function scoreAllActionableTenderOpportunities(
+  items: TenderPipelineItem[],
+  profile: TenderCompanyProfile,
+  strategicContext: StrategicScoreContext,
+  now: Date = new Date(),
+): TenderScoringBundle[] {
+  return scoreActionableCandidates(items, profile, strategicContext, now);
+}
+
+export function rankTopTenderOpportunities(
+  items: TenderPipelineItem[],
+  profile: TenderCompanyProfile,
+  strategicContext: StrategicScoreContext,
+  limit = 5,
+  now: Date = new Date(),
+): TenderScoringBundle[] {
+  return scoreActionableCandidates(items, profile, strategicContext, now).slice(0, limit);
 }
 
 export interface PortfolioDecisionCounts {
@@ -120,6 +138,17 @@ export interface PortfolioDecisionCounts {
   total: number;
 }
 
+/** Liczniki GO / HOLD / NO-GO z już policzonego rankingu (Performance 2.1A). */
+export function portfolioCountsFromScoredBundles(
+  scored: TenderScoringBundle[],
+): PortfolioDecisionCounts {
+  const counts: PortfolioDecisionCounts = { GO: 0, HOLD: 0, "NO-GO": 0, total: scored.length };
+  for (const bundle of scored) {
+    counts[bundle.decision]++;
+  }
+  return counts;
+}
+
 /** Liczniki GO / HOLD / NO-GO dla otwartych przetargów w pipeline. */
 export function countPortfolioDecisions(
   items: TenderPipelineItem[],
@@ -127,17 +156,9 @@ export function countPortfolioDecisions(
   strategicContext: StrategicScoreContext,
   now: Date = new Date(),
 ): PortfolioDecisionCounts {
-  const candidates = items.filter(
-    (i) => isTenderOpenForOffers(i.submittingOffersDate, now)
-      && isActionableTender(i, now),
+  return portfolioCountsFromScoredBundles(
+    scoreActionableCandidates(items, profile, strategicContext, now),
   );
-
-  const counts: PortfolioDecisionCounts = { GO: 0, HOLD: 0, "NO-GO": 0, total: candidates.length };
-  for (const item of candidates) {
-    const { decision } = scoreTender(item, profile, strategicContext, now);
-    counts[decision]++;
-  }
-  return counts;
 }
 
 /** Połączone powody decyzji (max 5). */

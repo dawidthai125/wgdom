@@ -25,7 +25,7 @@ import {
 import type { TenderCompanyProfile } from "@/lib/tenders-bzp-company";
 import { extractRequiredReferencePln } from "@/lib/tenders-bzp-fit";
 import { stripHtmlToText } from "@/lib/tenders-bzp-swz";
-import { aggregateMarketKpi } from "@/lib/tender-center-kpi";
+import { aggregateMarketKpi, type TenderCenterMarketKpi } from "@/lib/tender-center-kpi";
 import {
   type GrowthMode,
   healthWeightsForMode,
@@ -75,6 +75,8 @@ export interface CompanyHealthInput {
   growthMode: GrowthMode;
   savedWeeks?: WeekSnapshot[];
   now?: Date;
+  /** Precomputed KPI — pomija redundantne aggregateMarketKpi (Performance 2.1A). */
+  marketKpi?: TenderCenterMarketKpi;
 }
 
 function clamp(n: number, min: number, max: number): number {
@@ -186,8 +188,9 @@ function computeFinancialScore(
   items: TenderPipelineItem[],
   jobs: Job[],
   profile: TenderCompanyProfile,
+  marketKpi?: TenderCenterMarketKpi,
 ): number {
-  const kpi = aggregateMarketKpi(items, profile);
+  const kpi = marketKpi ?? aggregateMarketKpi(items, profile);
   const completed = jobs.filter((j) => j.status === "completed");
   const margins: number[] = [];
   for (const j of completed) {
@@ -295,7 +298,7 @@ export function computeCompanyHealth(input: CompanyHealthInput): CompanyHealthRe
     input.profile,
     now,
   );
-  const F = computeFinancialScore(input.items, input.jobs, input.profile);
+  const F = computeFinancialScore(input.items, input.jobs, input.profile, input.marketKpi);
   const R = computeMarketScore(input.items, input.profile);
   const D = computeExperienceScore(input.items, input.profile, input.savedWeeks, now);
 
@@ -305,7 +308,7 @@ export function computeCompanyHealth(input: CompanyHealthInput): CompanyHealthRe
   const clampedIndex = clamp(index, 0, 100);
   const label = healthLabelFromIndex(clampedIndex);
 
-  const kpi = aggregateMarketKpi(input.items, input.profile);
+  const kpi = input.marketKpi ?? aggregateMarketKpi(input.items, input.profile);
   const wmOverdueCount = wmJobsWithOverduePlanned(input.jobs).length;
 
   const suggestedGrowthMode = suggestGrowthMode({

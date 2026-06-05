@@ -14,7 +14,7 @@ import { estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 import type { GrowthMode } from "@/lib/tender-center-growth-mode";
 import { GROWTH_MODE_LABELS, minOpportunityScoreForMode } from "@/lib/tender-center-growth-mode";
 import type { CompanyHealthResult } from "@/lib/tender-center-health";
-import { aggregateMarketKpi, countPreparingOffers } from "@/lib/tender-center-kpi";
+import { aggregateMarketKpi, countPreparingOffers, type TenderCenterMarketKpi } from "@/lib/tender-center-kpi";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
 
 export type StrategicScoreLabel = "STARTUJ" | "ANALIZUJ" | "ODPUŚĆ";
@@ -32,6 +32,8 @@ export interface StrategicScoreContext {
   items: TenderPipelineItem[];
   profile: TenderCompanyProfile;
   now?: Date;
+  /** Precomputed KPI — pomija redundantne aggregateMarketKpi w scoreWadiumCapacity (Performance 2.1A). */
+  marketKpi?: TenderCenterMarketKpi;
 }
 
 function clamp(n: number, min: number, max: number): number {
@@ -136,10 +138,11 @@ function scoreWadiumCapacity(
   item: TenderPipelineItem,
   profile: TenderCompanyProfile,
   items: TenderPipelineItem[],
+  marketKpi?: TenderCenterMarketKpi,
 ): { pts: number; reason?: string } {
   const w = computeWadiumInfo(item, item.swzAnalysis ?? null, profile.maxWadiumPln);
   if (w.blocked) return { pts: 0, reason: "− brak headroomu na wadium" };
-  const kpi = aggregateMarketKpi(items, profile);
+  const kpi = marketKpi ?? aggregateMarketKpi(items, profile);
   if (kpi.wadiumHeadroomPln <= 0 && w.amountPln != null) {
     return { pts: 2, reason: "− wadium innych ofert blokuje kapitał" };
   }
@@ -169,7 +172,7 @@ export function computeStrategicScore(
     scoreFreeResources(context.health),
     scoreWinHistory(context.items),
     scoreContractSize(valuePln, context.profile, context.health),
-    scoreWadiumCapacity(item, context.profile, context.items),
+    scoreWadiumCapacity(item, context.profile, context.items, context.marketKpi),
   ];
 
   let total = 0;
