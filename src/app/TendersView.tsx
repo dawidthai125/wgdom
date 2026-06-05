@@ -23,6 +23,7 @@ import { TendersMapPanel } from "@/app/TendersMapPanel";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
 import { useCommandCenterContext } from "@/app/tender-center/context/CommandCenterContext";
+import { getPipelineSessionCacheIfFresh } from "@/lib/tenders-pipeline-session-cache";
 
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -56,10 +57,11 @@ export function TendersView({
   const pipeline = snapshot.pipeline;
   const r1Hydrated = useRef(false);
 
-  /** ETAP 8.0A R1 — lekki reload z storage przy wejściu w Classic (bez BZP merge). */
+  /** ETAP 8.0A / 2.1C — Classic mount; pomiń gdy sesyjny cache świeży (PRO już załadował). */
   useEffect(() => {
     if (r1Hydrated.current) return;
     r1Hydrated.current = true;
+    if (getPipelineSessionCacheIfFresh()) return;
     void pipeline.reloadFromStorage();
   }, [pipeline.reloadFromStorage]);
 

@@ -5,6 +5,7 @@ import {
   mergeTenderPipelineForCloud,
   TENDERS_DELETED_IDS_KEY,
 } from "@/lib/tenders-sync";
+import { patchPipelineSessionCache } from "@/lib/tenders-pipeline-session-cache";
 import {
   matchTenderKeywords,
   isExcludedTenderTitle,
@@ -263,16 +264,25 @@ export function recalculateAllTenderScores(items: TenderPipelineItem[], custom?:
   return items.map((i) => recalculateTenderItemScore(i, c));
 }
 
-/** Sync słów kluczowych z chmury + przeliczenie score pipeline. */
-export async function syncTenderKeywordsAndRescore(
+/** Przeliczenie score bez fetch chmury (Performance 2.1C — cache hit). */
+export function rescorePipelineWithKeywords(
   items: TenderPipelineItem[],
-): Promise<{ items: TenderPipelineItem[]; custom: TendersCustomKeywords; changed: boolean }> {
-  const custom = await loadCustomKeywords();
+  custom: TendersCustomKeywords,
+): { items: TenderPipelineItem[]; changed: boolean } {
   const next = recalculateAllTenderScores(items, custom);
   const changed = next.some((n, i) =>
     n.relevanceScore !== items[i]?.relevanceScore
     || n.matchedKeywords.join(",") !== items[i]?.matchedKeywords.join(","),
   );
+  return { items: next, changed };
+}
+
+/** Sync słów kluczowych z chmury + przeliczenie score pipeline. */
+export async function syncTenderKeywordsAndRescore(
+  items: TenderPipelineItem[],
+): Promise<{ items: TenderPipelineItem[]; custom: TendersCustomKeywords; changed: boolean }> {
+  const custom = await loadCustomKeywords();
+  const { items: next, changed } = rescorePipelineWithKeywords(items, custom);
   return { items: next, custom, changed };
 }
 
@@ -568,6 +578,7 @@ export async function removeTenderFromPipeline(
 
 export async function saveTendersPipeline(items: TenderPipelineItem[]): Promise<void> {
   saveTendersPipelineLocal(items);
+  patchPipelineSessionCache(items);
   await persistKey(TENDERS_PIPELINE_KEY, items);
 }
 

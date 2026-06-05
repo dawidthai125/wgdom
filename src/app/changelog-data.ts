@@ -11,6 +11,33 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-05",
+    version: "2.45.35",
+    label: "Performance 2.1 — Command Center",
+    items: [
+      {
+        type: "improve",
+        text: "COMMAND CENTER AI — szybsze przeliczanie pulpitu i przetargów (jeden pass rankingu, wspólne KPI rynkowe)",
+      },
+      {
+        type: "improve",
+        text: "Pulpit i Przetargi — COMMAND CENTER ładuje się tylko tam, gdzie jest potrzebny (nie obciąża Robot, Płac ani Kartoteki)",
+      },
+      {
+        type: "improve",
+        text: "Cache pipeline przetargów (60 s) — powrót Pulpit ↔ Przetargi lub Roboty bez ponownego ładowania listy i auto-wyników BZP",
+      },
+      {
+        type: "fix",
+        text: "Powrót z Roboty na Pulpit (<60 s) — zachowany cache po synchronizacji chmury w tle (bez placeholdera COMMAND CENTER)",
+      },
+      {
+        type: "improve",
+        text: "Roboty, Lista płac, Grafik, Kartoteka — płynniejsza praca bez zbędnych obliczeń przetargów w tle",
+      },
+    ],
+  },
+  {
     date:"2026-06-04", version:"2.45.34", label:"Performance 1.1C + 1.2A + 1.3A+",
     items:[
       {type:"improve", text:"Usunięcie legacy tenderDashStats — Pulpit korzysta wyłącznie z COMMAND CENTER AI"},

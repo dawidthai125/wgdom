@@ -4,10 +4,11 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-05  
-**Wersja UI (`changelog-data.ts`):** **2.45.34** (Performance 1.1C + 1.2A + 1.3A+)  
-**Prod `origin/main` HEAD:** **`a6cdb4a`** — tag `v2.45.34-perf-1.3a` — https://www.wgdom.fun
+**Wersja UI (`changelog-data.ts`):** **2.45.35** (Performance 2.1 **CLOSED**)  
+**Prod `origin/main` HEAD:** *(po push release 2.1)* — https://www.wgdom.fun
 
-**★ Performance 1.x (CLOSED):** [`docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md`](docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md) — **nowy agent: czytaj przy temacie wydajności / CloudLoader / CC**
+**★ Performance 1.x (CLOSED):** [`docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md`](docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md)  
+**★ Performance 2.1 (CLOSED):** 2.1A dedup + 2.1B Provider scope + 2.1C pipeline cache + 2.1C+ hotfix — tag `v2.45.35-perf-2.1`
 
 **★ Incydent Roboty / RCA:** [`docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md`](docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md)
 
@@ -19,8 +20,18 @@
 |-------|--------------|--------|
 | Fix czarny ekran Roboty (`normalizePhone9`) | `99e08c2` | |
 | Roboty 2.1B MIN | `2b71385`, `a213a65` | KPI header, layout, `JobListCardV2` |
-| **Performance 1.1C + 1.2A + 1.3A+** | **`a6cdb4a`** | CloudLoader CORE/DEFERRED, CC fast path, bez `tenderDashStats` |
-| **Release perf** | **`v2.45.34-perf-1.3a`** | push + Vercel deploy OK; pomiar prod PASS |
+| **Performance 1.1C + 1.2A + 1.3A+** | **`a6cdb4a`** | CloudLoader CORE/DEFERRED, CC fast path |
+| **Performance 2.1A + 2.1B** | **`deb5d37`, `b27bc18`** | dedup snapshot CC; Provider tylko Pulpit + Przetargi |
+| **Performance 2.1C + 2.1C+** | *(release commit)* | pipeline session cache TTL 60 s; deferred-bootstrap hydrate |
+| **Release perf 2.1** | tag **`v2.45.35-perf-2.1`** | push + Vercel; UI **2.45.35** |
+
+---
+
+## Performance 2.1 — status
+
+**CLOSED (MIN).** 2.1A + 2.1B + 2.1C + hotfix na prod. Nie rozpoczynaj 2.2+ bez polecenia.
+
+Szczegóły: [`CHANGELOG.md`](CHANGELOG.md) § 2.45.35.
 
 ---
 
@@ -36,17 +47,17 @@ Szczegóły: [`docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md`](docs/SESSION-HANDOF
 
 ## Następne (na polecenie użytkownika)
 
-1. Smoke Vercel: login admin → Pulpit → marka **W&G DOM COMMAND CENTER AI**.
-2. Roboty / 2.1B dalsze fazy — tylko na polecenie.
-3. Performance 1.4+ (podwójny CORE bootstrap, Dashboard lazy) — **zamrożone**.
-4. **NIE** bez polecenia: zmiany KV/LS/sync, 9.0.2, dead-code delete.
+1. Smoke Vercel po release 2.1 — weryfikacja cache hit (Pulpit ↔ Przetargi, Pulpit → Roboty → Pulpit).
+3. Roboty / 2.1B dalsze fazy — tylko na polecenie.
+4. Performance 1.4+ — **zamrożone**.
+5. **NIE** bez polecenia: zmiany KV/LS/sync, 9.0.2, dead-code delete.
 
 ---
 
 ## Working tree (lokalnie)
 
-- **Tracked:** czysty względem `HEAD` (`a6cdb4a`), zsynchronizowany z `origin/main`.
-- **Untracked:** skrypty RCA/diag w `scripts/audit-*`, `scripts/map-*`, `scripts/verify-*`, `_ephemeral-*` — **nie commitować** bez polecenia.
+- **Tracked:** changelog **2.45.35** (`changelog-data.ts`, `CHANGELOG.md`) — **niecommitowane** w chwili aktualizacji docs.
+- **Untracked:** skrypty RCA/diag w `scripts/` — **nie commitować** bez polecenia.
 
 ---
 

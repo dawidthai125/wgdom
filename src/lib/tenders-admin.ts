@@ -9,12 +9,14 @@ import {
   TENDERS_DELETED_IDS_KEY,
   clearDeletedTenderIds,
 } from "@/lib/tenders-sync";
+import { invalidatePipelineSessionCache } from "@/lib/tenders-pipeline-session-cache";
 
 export async function resetTendersPipeline(): Promise<void> {
   clearDeletedTenderIds();
   saveTendersPipelineLocal([]);
   await persistKey(TENDERS_PIPELINE_KEY, []);
   await persistKey(TENDERS_DELETED_IDS_KEY, []);
+  invalidatePipelineSessionCache("reset-pipeline");
 }
 
 export async function resetTendersKeywords(): Promise<void> {

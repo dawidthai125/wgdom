@@ -18,11 +18,23 @@ import {
   pruneExpiredUntouched,
   sortTendersByUrgency,
   syncTenderKeywordsAndRescore,
+  rescorePipelineWithKeywords,
   shouldAutoRefreshBzp,
   markBzpSyncedAt,
   computePipelineFunnel,
   removeTenderFromPipeline,
 } from "@/lib/tenders-bzp";
+import { loadCustomKeywordsLocal } from "@/lib/tenders-bzp-learn";
+import {
+  getPipelineCacheGeneration,
+  getPipelineSessionCacheIfFresh,
+  invalidatePipelineSessionCache,
+  keywordsEpochFromCustom,
+  markPipelineAutoAwardCompleted,
+  patchPipelineSessionCache,
+  setPipelineSessionCache,
+  shouldSkipAutoAwardPass,
+} from "@/lib/tenders-pipeline-session-cache";
 import { exportTendersPipelineCsv, getDeletedTenderIds } from "@/lib/tenders-sync";
 import {
   computeActionChips,
@@ -91,6 +103,7 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
     const merged = pruneExpiredUntouched(mergeTenderPipeline(baseItems, mapped));
     const { items: withAwards, updated: awardsUpdated } = await autoFetchAwardResults(merged, 5);
     await persist(withAwards);
+    markPipelineAutoAwardCompleted();
     markBzpSyncedAt();
     if (!silent) {
       const actionableN = withAwards.filter((m) => isActionableTender(m)).length;
@@ -107,58 +120,102 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
 
   useEffect(() => {
     let cancelled = false;
+    const genAtStart = getPipelineCacheGeneration();
+
+    const runBackgroundTasks = async (loaded: TenderPipelineItem[]) => {
+      if (cancelled || genAtStart !== getPipelineCacheGeneration()) return;
+
+      if (!shouldSkipAutoAwardPass()) {
+        setAutoAwardRunning(true);
+        try {
+          const { items: withAwards, updated } = await autoFetchAwardResults(loaded, 5);
+          if (cancelled || genAtStart !== getPipelineCacheGeneration()) return;
+          if (updated > 0) {
+            await saveTendersPipeline(withAwards);
+            if (!cancelled) setItems(withAwards);
+          }
+          markPipelineAutoAwardCompleted();
+        } catch { /* ciche auto-wyniki */ }
+        finally {
+          if (!cancelled) setAutoAwardRunning(false);
+        }
+      }
+
+      if (cancelled || genAtStart !== getPipelineCacheGeneration()) return;
+
+      if (shouldAutoRefreshBzp(bzpSettings.bzpAutoRefreshHours)) {
+        setAutoSyncing(true);
+        try {
+          await runBzpMerge(loaded, true);
+        } catch {
+          /* ciche auto-odświeżenie */
+        } finally {
+          if (!cancelled) setAutoSyncing(false);
+        }
+      }
+    };
+
     (async () => {
+      const cached = getPipelineSessionCacheIfFresh();
+      if (cached) {
+        let loaded = cached.items;
+        const localKw = loadCustomKeywordsLocal();
+        const epoch = keywordsEpochFromCustom(localKw);
+        if (cached.meta.keywordsEpoch !== epoch) {
+          const { items: rescored, changed } = rescorePipelineWithKeywords(loaded, localKw);
+          if (changed) {
+            loaded = rescored;
+            patchPipelineSessionCache(loaded, {
+              customKeywords: localKw,
+              partialMeta: { keywordsEpoch: epoch },
+            });
+            if (!cancelled && genAtStart === getPipelineCacheGeneration()) {
+              void saveTendersPipeline(rescored).catch(() => {});
+            }
+          }
+        }
+        if (cancelled || genAtStart !== getPipelineCacheGeneration()) return;
+        setItems(loaded);
+        setLoading(false);
+        void runBackgroundTasks(loaded);
+        return;
+      }
+
       setLoading(true);
       try {
         let loaded = await loadTendersPipeline();
-        const { items: rescored, changed } = await syncTenderKeywordsAndRescore(loaded);
+        const { items: rescored, changed, custom } = await syncTenderKeywordsAndRescore(loaded);
         if (changed) {
           loaded = rescored;
         }
-        if (!cancelled) setItems(loaded);
-        if (!cancelled) setLoading(false);
+        if (cancelled || genAtStart !== getPipelineCacheGeneration()) return;
+        setItems(loaded);
+        setLoading(false);
+        setPipelineSessionCache({
+          items: loaded,
+          customKeywords: custom,
+          cloudHydrated: true,
+          autoAwardCompletedAt: null,
+        });
 
-        if (!cancelled && changed) {
+        if (changed) {
           void saveTendersPipeline(rescored).catch(() => {});
         }
 
-        if (!cancelled) {
-          void (async () => {
-            setAutoAwardRunning(true);
-            try {
-              const { items: withAwards, updated } = await autoFetchAwardResults(loaded, 5);
-              if (updated > 0) {
-                await saveTendersPipeline(withAwards);
-                if (!cancelled) setItems(withAwards);
-              }
-            } catch { /* ciche auto-wyniki */ }
-            finally {
-              if (!cancelled) setAutoAwardRunning(false);
-            }
-
-            if (!cancelled && shouldAutoRefreshBzp(bzpSettings.bzpAutoRefreshHours)) {
-              setAutoSyncing(true);
-              try {
-                await runBzpMerge(loaded, true);
-              } catch {
-                /* ciche auto-odświeżenie */
-              } finally {
-                if (!cancelled) setAutoSyncing(false);
-              }
-            }
-          })();
-        }
+        void runBackgroundTasks(loaded);
       } catch {
         if (!cancelled) {
           setItems([]);
           setLoading(false);
+          invalidatePipelineSessionCache("mount-error");
         }
       }
     })();
     return () => { cancelled = true; };
-  }, [runBzpMerge]);
+  }, [runBzpMerge, bzpSettings.bzpAutoRefreshHours]);
 
   const refreshFromBzp = useCallback(async () => {
+    invalidatePipelineSessionCache("refresh-bzp");
     setSyncing(true);
     setError("");
     try {
@@ -198,15 +255,26 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
     if (changed) await persist(rescored);
   }, [items, persist]);
 
-  /** ETAP 8.0A — lekki reload z storage (Classic mount), bez BZP merge / autoAward. */
+  /** ETAP 8.0A / 2.1C — Classic mount; cache hit = zero fetch. */
   const reloadFromStorage = useCallback(async () => {
+    const cached = getPipelineSessionCacheIfFresh();
+    if (cached) {
+      setItems(cached.items);
+      return;
+    }
     try {
       let loaded = await loadTendersPipeline();
-      const { items: rescored, changed } = await syncTenderKeywordsAndRescore(loaded);
+      const { items: rescored, changed, custom } = await syncTenderKeywordsAndRescore(loaded);
       if (changed) {
         await saveTendersPipeline(rescored);
         loaded = rescored;
       }
+      setPipelineSessionCache({
+        items: loaded,
+        customKeywords: custom,
+        cloudHydrated: true,
+        autoAwardCompletedAt: shouldSkipAutoAwardPass() ? Date.now() : null,
+      });
       setItems(loaded);
     } catch {
       /* zostaw bieżące items */

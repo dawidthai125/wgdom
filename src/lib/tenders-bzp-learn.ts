@@ -6,6 +6,12 @@ import {
   TENDER_EXCLUDE_KEYWORDS,
 } from "@/lib/tenders-bzp-keywords";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
+import { recalculateAllTenderScores } from "@/lib/tenders-bzp";
+import {
+  getPipelineSessionCacheOrNull,
+  keywordsEpochFromCustom,
+  patchPipelineSessionCache,
+} from "@/lib/tenders-pipeline-session-cache";
 
 export const TENDERS_CUSTOM_KEYWORDS_KEY = "kw-tenders-custom-keywords";
 
@@ -54,6 +60,14 @@ export async function loadCustomKeywords(): Promise<TendersCustomKeywords> {
 export async function saveCustomKeywords(kw: TendersCustomKeywords): Promise<void> {
   localStorage.setItem(TENDERS_CUSTOM_KEYWORDS_KEY, JSON.stringify(kw));
   await persistKey(TENDERS_CUSTOM_KEYWORDS_KEY, kw);
+  const entry = getPipelineSessionCacheOrNull();
+  if (entry) {
+    const rescored = recalculateAllTenderScores(entry.items, kw);
+    patchPipelineSessionCache(rescored, {
+      customKeywords: kw,
+      partialMeta: { keywordsEpoch: keywordsEpochFromCustom(kw) },
+    });
+  }
 }
 
 const STOP = new Set([
