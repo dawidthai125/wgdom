@@ -75,7 +75,7 @@ export function useCommandCenterExecutiveSnapshot(
   const ctx = useCommandCenterContextOptional();
   if (!ctx) {
     throw new Error(
-      "useCommandCenterExecutiveSnapshot wymaga CommandCenterProvider — owij AdminViewRouter gdy canViewTendersNav.",
+      "useCommandCenterExecutiveSnapshot wymaga CommandCenterProvider — Pulpit lub Przetargi (Performance 2.1B).",
     );
   }
   return ctx.snapshot;

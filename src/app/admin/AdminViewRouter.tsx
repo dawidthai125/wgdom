@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ComponentType } from "react";
+import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
 import { ViewErrorBoundary } from "@/app/ViewErrorBoundary";
 import { ViewLoadFallback } from "@/app/ViewLoadFallback";
 import { JobPhotosGalleryView } from "@/app/JobPhotosGalleryView";
@@ -28,6 +28,39 @@ const GuideView = lazy(() => import("@/app/GuideView").then((m) => ({ default: m
 const TenderCenterProView = lazy(() =>
   import("@/app/TenderCenterProView").then((m) => ({ default: m.TenderCenterProView })),
 );
+
+/** Performance 2.1B — CC snapshot tylko na Pulpicie i w Przetargach (COMMAND CENTER). */
+function CommandCenterProviderScope({
+  jobs,
+  directory,
+  productionWeekEmployees,
+  weekFrom,
+  weekTo,
+  savedWeeks,
+  children,
+}: {
+  jobs: Job[];
+  directory: DirectoryEmployee[];
+  productionWeekEmployees: WeekEmployee[];
+  weekFrom: string;
+  weekTo: string;
+  savedWeeks: WeekSnapshot[];
+  children: ReactNode;
+}) {
+  return (
+    <CommandCenterProvider
+      enabled
+      jobs={jobs}
+      directory={directory}
+      productionWeekEmployees={productionWeekEmployees}
+      weekFrom={weekFrom}
+      weekTo={weekTo}
+      savedWeeks={savedWeeks}
+    >
+      {children}
+    </CommandCenterProvider>
+  );
+}
 
 /** Widoki nadal zdefiniowane w App.tsx — przekazywane, żeby uniknąć zależności cyklicznej. */
 export type AdminEmbeddedViews = {
@@ -168,55 +201,63 @@ export function AdminViewRouter({
 }: AdminViewRouterProps) {
   const { DashboardView, ScheduleView, DirectoryView, ContactsView, ArchiveView } = embedded;
 
-  return (
-    <CommandCenterProvider
-      enabled={canViewTendersNav}
+  const ccProviderInput = {
+    jobs,
+    directory,
+    productionWeekEmployees,
+    weekFrom,
+    weekTo,
+    savedWeeks,
+  };
+
+  const dashboardView = (
+    <DashboardView
       jobs={jobs}
       directory={directory}
-      productionWeekEmployees={productionWeekEmployees}
+      weekEmployees={productionWeekEmployees}
       weekFrom={weekFrom}
       weekTo={weekTo}
       savedWeeks={savedWeeks}
-    >
+      onNavigate={handleNavigate}
+      onFixJobs={onFixJobs}
+      adminUserId={adminSession?.id}
+      alertsSeenTick={alertsSeenTick}
+      onAlertsSeen={onAlertsSeen}
+      onOpenSms={onOpenSms}
+      canViewTenders={canViewTendersNav}
+      onOpenTenders={onOpenTenders}
+      onOpenTender={onOpenTender}
+      setJobs={setJobs}
+      onOpenJobFromTender={onOpenJobFromTender}
+      tenderJobUploadedBy={adminSession?.displayName || "Administrator"}
+      onNavigateToJobFromTender={(jobId) => {
+        onSetPendingJobId(jobId);
+        onSetView("jobs");
+      }}
+      onCreateJobFromTender={(draft, item) =>
+        executeCreateJobFromTender(draft, item, {
+          setJobs,
+          uploadedBy: adminSession?.displayName || "Administrator",
+          onNavigateToJob: (jobId) => {
+            onSetPendingJobId(jobId);
+            onSetView("jobs");
+          },
+        })
+      }
+    />
+  );
+
+  return (
     <div
       className={`flex flex-1 min-h-0 overflow-hidden ${payrollDetailOpen ? "" : "pb-[calc(3.5rem+env(safe-area-inset-bottom))]"} md:pb-0`}
     >
       {view === "dashboard" && (
         <ViewErrorBoundary label="Pulpit">
-          <DashboardView
-            jobs={jobs}
-            directory={directory}
-            weekEmployees={productionWeekEmployees}
-            weekFrom={weekFrom}
-            weekTo={weekTo}
-            savedWeeks={savedWeeks}
-            onNavigate={handleNavigate}
-            onFixJobs={onFixJobs}
-            adminUserId={adminSession?.id}
-            alertsSeenTick={alertsSeenTick}
-            onAlertsSeen={onAlertsSeen}
-            onOpenSms={onOpenSms}
-            canViewTenders={canViewTendersNav}
-            onOpenTenders={onOpenTenders}
-            onOpenTender={onOpenTender}
-            setJobs={setJobs}
-            onOpenJobFromTender={onOpenJobFromTender}
-            tenderJobUploadedBy={adminSession?.displayName || "Administrator"}
-            onNavigateToJobFromTender={(jobId) => {
-              onSetPendingJobId(jobId);
-              onSetView("jobs");
-            }}
-            onCreateJobFromTender={(draft, item) =>
-              executeCreateJobFromTender(draft, item, {
-                setJobs,
-                uploadedBy: adminSession?.displayName || "Administrator",
-                onNavigateToJob: (jobId) => {
-                  onSetPendingJobId(jobId);
-                  onSetView("jobs");
-                },
-              })
-            }
-          />
+          {canViewTendersNav ? (
+            <CommandCenterProviderScope {...ccProviderInput}>{dashboardView}</CommandCenterProviderScope>
+          ) : (
+            dashboardView
+          )}
         </ViewErrorBoundary>
       )}
       {view === "payroll" && (
@@ -367,39 +408,40 @@ export function AdminViewRouter({
       )}
       {view === "tenders" && canViewTendersNav && (
         <ViewErrorBoundary label="Przetargi">
-          <Suspense fallback={<ViewLoadFallback label="Ładowanie przetargów…" />}>
-            <TenderCenterProView
-              showTestBadge={adminSession ? adminIsSuperAdmin(adminSession.role) : false}
-              athPreviewEnabled={appSettings.athPreviewEnabled}
-              initialExpandedId={pendingTenderId}
-              jobs={jobs}
-              directory={directory}
-              productionWeekEmployees={productionWeekEmployees}
-              weekFrom={weekFrom}
-              weekTo={weekTo}
-              savedWeeks={savedWeeks}
-              onOpenJob={onOpenJobFromTender}
-              setJobs={setJobs}
-              tenderJobUploadedBy={adminSession?.displayName || "Administrator"}
-              onNavigateToJobFromTender={(jobId) => {
-                onSetPendingJobId(jobId);
-                onSetView("jobs");
-              }}
-              onCreateJobFromTender={(draft, item) =>
-                executeCreateJobFromTender(draft, item, {
-                  setJobs,
-                  uploadedBy: adminSession?.displayName || "Administrator",
-                  onNavigateToJob: (jobId) => {
-                    onSetPendingJobId(jobId);
-                    onSetView("jobs");
-                  },
-                })
-              }
-            />
-          </Suspense>
+          <CommandCenterProviderScope {...ccProviderInput}>
+            <Suspense fallback={<ViewLoadFallback label="Ładowanie przetargów…" />}>
+              <TenderCenterProView
+                showTestBadge={adminSession ? adminIsSuperAdmin(adminSession.role) : false}
+                athPreviewEnabled={appSettings.athPreviewEnabled}
+                initialExpandedId={pendingTenderId}
+                jobs={jobs}
+                directory={directory}
+                productionWeekEmployees={productionWeekEmployees}
+                weekFrom={weekFrom}
+                weekTo={weekTo}
+                savedWeeks={savedWeeks}
+                onOpenJob={onOpenJobFromTender}
+                setJobs={setJobs}
+                tenderJobUploadedBy={adminSession?.displayName || "Administrator"}
+                onNavigateToJobFromTender={(jobId) => {
+                  onSetPendingJobId(jobId);
+                  onSetView("jobs");
+                }}
+                onCreateJobFromTender={(draft, item) =>
+                  executeCreateJobFromTender(draft, item, {
+                    setJobs,
+                    uploadedBy: adminSession?.displayName || "Administrator",
+                    onNavigateToJob: (jobId) => {
+                      onSetPendingJobId(jobId);
+                      onSetView("jobs");
+                    },
+                  })
+                }
+              />
+            </Suspense>
+          </CommandCenterProviderScope>
         </ViewErrorBoundary>
       )}
     </div>
-    </CommandCenterProvider>
   );
 }
