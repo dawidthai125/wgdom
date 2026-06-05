@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (obecnie **2.45.33**)  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-04 (Roboty 2.1A UX — § 12.1.4; 2.0 MIN; FAZA 8–9 CLOSED)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (obecnie **2.45.34**)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-05 (Performance 1.3A+ — § 11.5 CloudLoader CORE/DEFERRED; usunięcie `tenderDashStats`)
 
 ---
 
@@ -126,7 +126,7 @@ flowchart TB
 main.tsx → App (default export) → CloudLoader → AppInnerWithAuth
 ```
 
-- `CloudLoader` — przy starcie: fetch chmury, merge wszystkich `DATA_KEYS`, zapis localStorage, ewentualny push bogatszej wersji. Timeout 5 s → UI i tak się pokaże.
+- `CloudLoader` — przy starcie: **dwufazowy bootstrap** (§ 11.5): faza 1 CORE → `ready=true`; faza 2 DEFERRED w tle. Timeout 5 s → UI i tak się pokaże.
 - `AppInnerWithAuth` — wybór trybu po `sessionStorage` / query `?podglad=`.
 
 ---
@@ -350,6 +350,25 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 
 **Nie mieszaj** z ogólnym `mergeDataKey` — admin passwords mają osobną logikę w `CloudLoader`, nie w `cloud-sync.ts`.
 
+### 11.5 CloudLoader CORE / DEFERRED bootstrap (Performance 1.3A+, prod `a6cdb4a`)
+
+**Cel:** szybsze `ready=true` — cięższe klucze przetargów i kontaktów pobierane **po** wejściu w UI (login / admin).
+
+| Faza | Kiedy | Klucze | Plik |
+|------|--------|--------|------|
+| **CORE** | przed `setReady(true)` | `BOOTSTRAP_CORE_KEYS` (6) + tombstones + admin keys | `CloudLoader.tsx`, `cloud-sync.ts` |
+| **DEFERRED** | `void` po `ready` | `BOOTSTRAP_DEFERRED_KEYS` (4) + `kw-contacts-deleted-ids` | `fetchAndMergeDeferredBootstrap()` |
+
+**CORE:** `kw-directory`, `kw-week-employees`, `kw-archive`, `kw-weekFrom`, `kw-weekTo`, `kw-jobs`.
+
+**DEFERRED:** `kw-tenders-pipeline`, `kw-tenders-company-profile`, `kw-tenders-custom-keywords`, `kw-contacts`.
+
+Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTSTRAP_EVENT`) → `CommandCenterContext` wywołuje `bumpProfileVersion()` (profil firmy w CC).
+
+**Uwaga:** `useTendersPipeline` nadal może robić własny fetch pipeline przy mount CC — nie zakłada danych z fazy 1 CloudLoader.
+
+**Dokumentacja sesji:** [`SESSION-HANDOFF-PERFORMANCE-2026-06.md`](SESSION-HANDOFF-PERFORMANCE-2026-06.md)
+
 ---
 
 ## 12. Supabase — backend
@@ -473,7 +492,7 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 
 - **Karta ofertowa** (`TenderBidPrepPanel`) — checklist, analiza SWZ, wadium + blokada, referencje, wynik BZP, porównanie cen, .ics terminu, pakiet PDF.
 - **Chipy „wymaga działania”** — filtry: termin bez wyceny, wadium, brak kosztorysu, referencje NIE, obciążenie zespołu.
-- **Pulpit admin (7G)** — **W&G DOM COMMAND CENTER AI** (executive summary): briefing, health, capacity, okazja, prognoza 90d, Action Center (max 3). Szczegóły → [`tender-center-7g-executive.md`](tender-center-7g-executive.md). Stare alerty BZP (`tenderDashStats`) — **@legacy**, UI ich nie pokazuje.
+- **Pulpit admin (7G)** — **W&G DOM COMMAND CENTER AI** (executive summary): briefing, health, capacity, okazja, prognoza 90d, Action Center (max 3). Szczegóły → [`tender-center-7g-executive.md`](tender-center-7g-executive.md). Legacy `tenderDashStats` **usunięte** (Performance 1.1C, `a6cdb4a`).
 - **Mapa Wrocław** — kafelki **OpenStreetMap** (`tile.openstreetmap.org`) + markery; **nie** `staticmap.openstreetmap.de` (niedostępny). Panel domyślnie rozwinięty.
 - **Słownik słów kluczowych** — wbudowany w `tenders-bzp-keywords.ts` (~280 haseł) + opcjonalne własne w chmurze (`kw-tenders-custom-keywords`).
 
@@ -506,7 +525,7 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 | `src/lib/tender-center-decision.ts` | Scoring / najlepsza okazja |
 | `src/lib/tender-center-financial-capacity.ts` | Zdolność finansowa (pulpit: z impact najlepszej okazji) |
 
-**@legacy:** `tenderDashStats` w `App.tsx` (`computeTendersDashboardStats` + `enrichTendersDashboardStats`) — fetch nadal przy `dashboard`/`tenders`, UI pulpitu nie czyta.
+**Pipeline CC (1.2A):** `useTendersPipeline` — `loading=false` po pipeline+rescore; award/BZP w tle (nie blokują marki CC).
 
 **Dokumentacja AI:** [`docs/tender-center-7g-executive.md`](tender-center-7g-executive.md) · komponenty UI legacy 5A: [`tender-center-pro-legacy-components.md`](tender-center-pro-legacy-components.md)
 
@@ -642,8 +661,7 @@ Priorytet w `resolveJobDraftDatesFromTender`:
 
 #### Ograniczenia / stabilizacja
 
-- **`tenderDashStats`** w `App.tsx` — nadal fetch przy pulpicie/przetargach; UI executive **nie czyta** (tech debt).
-- **Nie zmieniać** bez polecenia: `CommandCenterProvider`, `useTendersPipeline`, `linkedJobId`, `TenderJobLinkButtons` (tylko reuse).
+- **Nie zmieniać** bez polecenia: `BOOTSTRAP_CORE_KEYS` / `BOOTSTRAP_DEFERRED_KEYS`, `CommandCenterProvider`, `linkedJobId`, `TenderJobLinkButtons` (tylko reuse). Zmiany w `useTendersPipeline` / CloudLoader — tylko z audytem (patrz [`SESSION-HANDOFF-PERFORMANCE-2026-06.md`](SESSION-HANDOFF-PERFORMANCE-2026-06.md)).
 
 ### 12.1.2 Galeria zdjęć admin (v2.45.10)
 

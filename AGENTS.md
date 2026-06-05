@@ -8,9 +8,10 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md  ← ★ incydent Roboty, 99e08c2, 2.1B MIN (nowy agent)
+2. docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md  ← ★ Performance 1.x CLOSED, a6cdb4a (nowy agent)
 3. CURRENT-TASK.md        ← skrót: co na prod / co dalej
-4. docs/SESSION-HANDOFF-2026-06.md  ← audyty, Faza 8–9, Roboty 2.0
+4. docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md  ← incydent Roboty, RCA
+5. docs/SESSION-HANDOFF-2026-06.md  ← audyty, Faza 8–9, Roboty 2.0
 5. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
 6. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
 7. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin + Roboty §11
@@ -39,6 +40,7 @@
 | **docs/ARCHITECTURE.md** | Pełny techniczny przewodnik (living document) |
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
+| **docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md** | Performance 1.x CLOSED — CloudLoader CORE/DEFERRED, pomiary, tag `v2.45.34-perf-1.3a` |
 | **docs/SESSION-HANDOFF-2026-06.md** | Handoff sesji: audyty, commity, Roboty 2.0, UX greeting |
 | **docs/jobs-2.0-product-audit.md** | Audyt produktowy Roboty (MIN/MID/FULL) |
 | **docs/dead-code-audit-2026-06.md** | Martwy kod — repo-wide |
@@ -70,8 +72,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.45.33**) |
-| Prod `main` | commit **`99e08c2`** · fix `normalizePhone9` + Roboty 2.1A/2.0 na prod |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.45.34**) |
+| Prod `main` | commit **`a6cdb4a`** · tag `v2.45.34-perf-1.3a` · Performance 1.3A+ na prod |
 | Frontend deploy | push `main` → Vercel |
 | Backend deploy | push `supabase/functions/**` → GitHub Action |
 | Sync | `src/lib/cloud-sync.ts` |

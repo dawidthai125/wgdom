@@ -3,11 +3,12 @@
 > **Cel:** jeden plik z kontekstem audytów, stanem prod i rekomendacjami — bez czytania całej historii czatu.  
 > **Hasło w Cursorze:** „kontynuuj WGDOM” → też [`.cursor/rules/wgdom-stan-projektu.mdc`](../.cursor/rules/wgdom-stan-projektu.mdc) i [`CURRENT-TASK.md`](../CURRENT-TASK.md).
 
-**Data handoff:** 2026-06-04  
-**Prod `main` (HEAD):** `99e08c2` — fix czarny ekran Roboty (`normalizePhone9`)  
-**Wersja UI:** **2.45.33** (2.1A) w [`changelog-data.ts`](../src/app/changelog-data.ts)
+**Data handoff:** 2026-06-04 (zaktualizowano 2026-06-05)  
+**Prod `main` (HEAD):** `a6cdb4a` — Performance 1.3A+ · tag `v2.45.34-perf-1.3a`  
+**Wersja UI:** **2.45.34** w [`changelog-data.ts`](../src/app/changelog-data.ts)
 
-> **Incydent Roboty / 2.1B MIN / pełny kontekst sesji RCA:** [`SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md`](SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md) — **nowy agent zaczyna tam.**
+> **★ Performance 1.x (CLOSED):** [`SESSION-HANDOFF-PERFORMANCE-2026-06.md`](SESSION-HANDOFF-PERFORMANCE-2026-06.md) — **nowy agent przy temacie wydajności zaczyna tam.**  
+> **Incydent Roboty / RCA:** [`SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md`](SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md)
 
 ---
 

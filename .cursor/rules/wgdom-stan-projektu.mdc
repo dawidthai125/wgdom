@@ -12,9 +12,10 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.45.33** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
-- **Prod (`main` / `origin/main`):** **`99e08c2`** · https://www.wgdom.fun
-- **★ Handoff incydent Roboty + 2.1B (2026-06-04):** [`docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md`](../../docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md) — **czytaj przy nowym agencie**
+- **Aktualna wersja UI:** **2.45.34** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
+- **Prod (`main` / `origin/main`):** **`a6cdb4a`** · tag `v2.45.34-perf-1.3a` · https://www.wgdom.fun
+- **★ Handoff Performance 1.x CLOSED (2026-06-05):** [`docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md`](../../docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md) — **czytaj przy nowym agencie**
+- **Handoff incydent Roboty + 2.1B:** [`docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md`](../../docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md)
 - **Handoff sesji 2026-06 (Faza 8–9, audyty):** [`docs/SESSION-HANDOFF-2026-06.md`](../../docs/SESSION-HANDOFF-2026-06.md)
 - **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`PROJECT-GUIDE.md`](../../PROJECT-GUIDE.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) § 12.1.4 → [`docs/tender-center-7g-executive.md`](../../docs/tender-center-7g-executive.md) → [`docs/INCIDENTS-2026-06.md`](../../docs/INCIDENTS-2026-06.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md)
 - **Testy użytkownika:** głównie **Vercel**, nie localhost
@@ -33,7 +34,9 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 | **9.0.1** | `a57a576` | Status + termin na kartach pracownika |
 | **UX** | `622bbbb` | Morning briefing: neutralny greeting (bez imienia właściciela) |
 
-**Roboty na prod (2026-06-04):** `5b612e4` 2.0 MIN · `299d3f1` 2.1A · `0c4da46` jobAddressKey · **`99e08c2`** fix `normalizePhone9`. **2.1B MIN — brak w repo** (plan w handoff incydent).
+**Roboty na prod:** `5b612e4` 2.0 MIN · `299d3f1` 2.1A · **`a213a65`** 2.1B MIN · **`99e08c2`** fix `normalizePhone9`.
+
+**Performance na prod (2026-06-05):** **`a6cdb4a`** — 1.1C (`tenderDashStats` out) + 1.2A (CC fast path) + 1.3A+ (CloudLoader CORE/DEFERRED). **1.x MIN CLOSED** — nie kontynuować bez polecenia.
 
 **Pliki:** `create-job-from-tender.ts`, `JobsView.tsx`, `WorkerPhotoView.tsx`, `job-wm.ts`, `app-domain.ts`. **Nie zmieniać** bez polecenia: pipeline Provider, `linkedJobId`, CC/KPI/scoring, **KV/LS/sync** przy incydencie.
 
