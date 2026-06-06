@@ -1,13 +1,10 @@
-import { useState, useCallback, useMemo, useEffect, useRef, Fragment, createContext, useContext, lazy, Suspense, type RefObject } from "react";
-import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
-import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { AdminSidebar } from "@/app/admin/AdminSidebar";
 import { AdminTopbar } from "@/app/admin/AdminTopbar";
 import { GlobalSearchPanel } from "@/app/admin/GlobalSearchPanel";
 import { AdminViewRouter } from "@/app/admin/AdminViewRouter";
 import { AdminMobileNav } from "@/app/admin/AdminMobileNav";
 import { buildAdminNavItems, splitMobileNav, type View } from "@/app/admin/admin-nav";
-import { ClientShareView } from "@/app/ClientShareView";
 import { ContactsView } from "@/app/ContactsView";
 import { DirectoryView } from "@/app/DirectoryView";
 import { ArchiveView } from "@/app/ArchiveView";
@@ -16,23 +13,7 @@ import { AdminSettingsModal } from "@/app/AdminSettingsModal";
 import { ScheduleView } from "@/app/ScheduleView";
 import { EmployeeSmsModal } from "@/app/EmployeeSmsModal";
 import { SmsModalErrorBoundary } from "@/app/SmsModalErrorBoundary";
-import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";
-import { countBrowserFiles, jobHasBrowserFiles } from "@/lib/job-files-browser";
-import { downloadJobGalleryZip } from "@/lib/photo-download";
-import type { CrewPhotoLabel } from "@/lib/photo-labels";
-import {
-  Calculator, Clock, Banknote, User, Plus, Trash2,
-  ChevronRight, ChevronLeft, Users, FileText, FileDown, CheckCircle2,
-  Circle, Archive, ChevronDown, ChevronUp,
-  Calendar, CalendarDays, TrendingUp, Wallet, X, Phone,
-  Edit2, Check, Search, Building2, MapPin, KeyRound,
-  LayoutDashboard, Package, Receipt, AlertTriangle,
-  HardHat, StickyNote, Cloud, CloudUpload, CloudOff,
-  Mic, MicOff, Bell, Copy, ScrollText, Sparkles,
-  BookOpen, ChevronDown as ChevDown, HelpCircle, Smartphone, Monitor,
-  Camera, ImagePlus, Lock, LogOut, Eye, ArrowLeft, ThumbsUp, ThumbsDown, Clock3,
-  ClipboardList, Ruler, Mail, Send, BarChart3, Scale, Images, Menu, MessageSquare, LayoutGrid, FolderOpen, PanelLeft,
-} from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { triggerWeeklyBackupEmail } from "@/lib/weekly-backup-email";
 import {
   DATA_KEYS,
@@ -49,12 +30,9 @@ import {
   mergeDirectory,
   mergeContacts,
   mergeDataKey,
-  readLocalStorageDataKey,
-  isValidJobRecord,
   pushKeysToCloudSafe,
   pullAndMergeDataBundle,
   pushMergedDataBundleToCloud,
-  type DataKey,
   fetchPayrollBackupStatus,
   restoreCloudPayrollBackup,
   fetchFullDataBackupStatus,
@@ -65,8 +43,6 @@ import {
   getDeletedDirectoryIds,
   getDeletedContactsIds,
   getDeletedArchiveIds,
-  addDeletedDirectoryId,
-  addDeletedContactId,
   addDeletedArchiveId,
   pushDirectoryToCloud,
   pushWeekEmployeesToCloud,
@@ -76,77 +52,26 @@ import {
 } from "@/lib/cloud-sync";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
+import { adminCanViewTendersTab } from "@/lib/admin-auth";
+import type { DirectoryEmployee, WeekEmployee, WeekSnapshot, Job } from "@/app/app-domain";
 import {
-  type AdminSession,
-  adminCanViewRates,
-  adminCanViewTendersTab,
-} from "@/lib/admin-auth";
-import type { DayKey, DirectoryEmployee, DayData, EmployeeExtraCost, WeekEmployee, WeekSnapshot, DocType, PhotoEntry, RoomTypeKey, RoomDimension, WorkerJobReport, Job, PayrollJobConsistencyAlert, JobGalleryBucket } from "@/app/app-domain";
-import { DAYS, MULTI_SITE_SCHEDULE_LABEL, MONTH_NAMES, DOCUMENT_TYPES, REQUIRED_DOCS, DOC_LABELS, ROOM_TYPE_LABELS, defaultDirEmployee, isTestDirectoryEmployee, isProductionDirectoryEmployee, filterProductionDirectory, filterProductionActiveDirectory, filterProductionWeekEmployees, normalizeDirectoryTestFlags, PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, getAppPhotoLabelSection, weekEmployeeFromDir, hoursWorked, dayTotalHours, payrollJobConsistencyAlerts, buildEmployeeArchiveStats, consistencyAlertMessage, fmt, fmtH, fmtDate, getWeekRange, calcWeekEmployee, extraCostStatus, PHOTO_STATUS_LABELS, EXTRA_COST_STATUS_LABELS, workerTodayWorkInfo, fixJobsForConsistencyAlert, defaultJob, normalizeJobsList, jobDaysSinceStart, jobWorkerReports, reportNeedsAdminAttention, normalizeWorkerReport, workItemHasContent, roomHasContent, roomDisplayName, defaultRoom, jobCost, jobMaterialsCost, jobTotalCost, GALLERY_ARCHIVE_DAYS, jobDisplayTitle, jobApprovedPhotos, jobHandoverIso, jobGalleryBucket, galleryDaysUntilArchive, todayDayKey, localIsoDate, todayIsoDate, fridayIsoOfWeek, findWeekEmployeeForWorker, workerPayoutHistory, todayFieldWorkStats, jobsForEmployeeOnDashboard, weekDayColumns, scheduleCellFor, buildWeekSnapshot, scheduleCellFromArchive, formatJobStreet } from "@/app/app-domain";
-import { AdminAccessContext, useAdminAccess } from "@/app/admin-access";
-import { Checkbox, StatCard, NavItemWithHint, LabelWithHint, VoiceNoteButton, PayrollDayCellDisplay } from "@/app/app-ui";
-import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
-import { JobCostBreakdownPanel } from "@/app/JobCostBreakdownPanel";
-import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
-import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
-import {
-  appendJobActivity,
-  collectInspectorFeed,
-  isInspectorActivityType,
-  type JobActivity,
-  type JobActivityType,
-} from "@/lib/job-activity";
-import {
-  latestJobFile,
-  syncJobDocuments,
-  isReportSyncedDocLocked,
-  confirmReportSyncedDocUncheck,
-  applyReportDocDocumentToggle,
-  clearReportDocSaOverrideFromReport,
-  removeJobFileAttachment,
-  resolveJobFileStoragePath,
-  type InspectorJobFileKind,
-} from "@/lib/job-documents";
-import { deleteJobFile, uploadJobFile } from "@/lib/job-file-upload";
-import {
-  recordInspectorEvent,
-  markInspectorFeedSeen,
-  markAdminJobNotesSeen,
-  getUnseenInspectorFeed,
-  getAdminJobNotesSeenAt,
-  syncAlertsSeenFromCloud,
-  countUnseenInspectorAlerts,
-} from "@/lib/inspector-stats";
-import {
-  normalizeJobWmFields,
-  jobsWithInspectorNotesNeedingAdmin,
-  isWmClient,
-  wmJobsWithOverduePlanned,
-  wmJobsPlannedThisWeek,
-  fmtPlannedHandover,
-  HANDOVER_STAGE_LABELS,
-  inferHandoverStage,
-  computeWmPortfolioStats,
-  removeInspectorPhoto,
-} from "@/lib/job-wm";
-import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
-import { JobListFilterBar, JobListLegend, JobListPrimaryBadge, JobPhasePicker, applyJobPhase } from "@/app/JobListStatus";
-import { JobListCard } from "@/app/JobListCard";
-import { JobAllFilesView, JobFileCatalogList } from "@/app/JobAllFilesView";
-import { JobDetailSectionNav, JobsDetailEmptyState, type JobDetailSection } from "@/app/JobDetailSectionNav";
-import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
-import { collectJobFileCatalog, countJobFiles, type JobFileCatalogItem } from "@/lib/job-files-index";
-import {
-  countJobsByListFilter,
-  inferJobPhase,
-  jobMatchesListFilter,
-  jobMissingRequiredDocs,
-  JOB_PHASE_LABELS,
-  type JobListFilter,
-  type JobPhase,
-} from "@/lib/job-list-status";
-import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
-import { normalizeJobMetaFields, isJobHousingSet, HOUSING_TYPE_LABELS, STOVE_TYPE_LABELS_FULL, type HousingType, type StoveType } from "@/lib/job-meta";
+  isProductionDirectoryEmployee,
+  filterProductionDirectory,
+  filterProductionActiveDirectory,
+  filterProductionWeekEmployees,
+  normalizeDirectoryTestFlags,
+  weekEmployeeFromDir,
+  fmtDate,
+  getWeekRange,
+  calcWeekEmployee,
+  normalizeJobsList,
+  localIsoDate,
+  todayIsoDate,
+  todayFieldWorkStats,
+  buildWeekSnapshot,
+} from "@/app/app-domain";
+import { useAdminAccess } from "@/app/admin-access";
+import { syncAlertsSeenFromCloud } from "@/lib/inspector-stats";
 import { syncAppSettingsFromCloud, loadAppSettingsLocal, type AppSettings } from "@/lib/app-settings";
 import {
   mergeTenderDataKey,
@@ -154,16 +79,6 @@ import {
   TENDERS_COMPANY_PROFILE_KEY,
   TENDERS_CUSTOM_KEYWORDS_KEY,
 } from "@/lib/tenders-sync";
-import { WorkScopeEditor, WorkScopeDisplay } from "@/app/WorkScopeEditor";
-import { JobReportForm } from "@/app/JobReportForm";
-import {
-  getReportWorkScopeText,
-  reportHasWorkScope,
-  scopeTextHasContent,
-  scopeTextLineCount,
-  scopeTextToWorkItems,
-  workItemsToScopeText,
-} from "@/lib/work-scope-text";
 import { saveAs } from "file-saver";
 import { consumePendingDeepLink, type DeepLinkRoute } from "@/lib/deep-link";
 import { initialAutoSyncSuppressUntil } from "@/lib/cloud-bootstrap";
@@ -172,34 +87,8 @@ import { Toaster, toast } from "sonner";
 import { AppInnerWithAuth } from "@/app/AppInnerWithAuth";
 import { CloudLoader } from "@/app/CloudLoader";
 import { useLocalStorage, setSkipApplyWriteTimestamps } from "@/app/hooks/useLocalStorage";
-import {
-  type EmailContact,
-  defaultEmailContact,
-  contactsForJobs,
-  contactsForPayroll,
-  contactAllowsJobs,
-  contactAllowsPayroll,
-} from "@/lib/email-contacts";
-import {
-  type PayrollCalcRow,
-  type PayrollExportTotals,
-  type PayrollWeeklyGrid,
-  buildPayrollEmailHtml,
-  generatePayrollPdfBlob,
-  generatePayrollWordBlob,
-  buildPayrollExtraCostLines,
-  type PayrollJobWorkLine,
-  blobToBase64,
-} from "@/lib/payroll-export";
-import {
-  computePayrollCashSplit,
-  biweeklyMissingPrevWeekArchive,
-  biweeklyCashContextLine,
-  calcWeekNetNoPrevSat,
-  getPayrollWeekRange,
-  getPayrollClosingWeekRange,
-  PAYROLL_WEEK_ROLLOVER_HOUR,
-} from "@/lib/payroll-cycle";
+import type { EmailContact } from "@/lib/email-contacts";
+import { computePayrollCashSplit, getPayrollWeekRange, getPayrollClosingWeekRange } from "@/lib/payroll-cycle";
 
 function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const { session: adminSession, canViewRates } = useAdminAccess();

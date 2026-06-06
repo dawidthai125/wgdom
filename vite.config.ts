@@ -42,15 +42,6 @@ export default defineConfig({
             return;
           }
           if (
-            id.includes('/src/app/InspectorNavigation')
-            || id.includes('/src/app/InspectorJobFileUpload')
-            || id.includes('/src/app/InspectorPhotoGallery')
-            || id.includes('/src/app/InspectorAdminJobDetail')
-            || id.includes('/src/app/WmPortfolioView')
-          ) {
-            return 'shared-inspector';
-          }
-          if (
             id.includes('/src/app/GuideView')
             || id.includes('/src/app/changelog-data')
           ) {
