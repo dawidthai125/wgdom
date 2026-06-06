@@ -35,7 +35,7 @@ function fmtDate(iso: string): string {
 
 const FILTER_OPTIONS: { id: DashboardFilter; label: string }[] = [
   { id: "all", label: "Wszystko" },
-  { id: "admin", label: "Admin" },
+  { id: "admin", label: "Od administratora" },
   { id: "pliki", label: "Pliki" },
   { id: "dokumenty", label: "Dokumenty" },
   { id: "terminy", label: "Terminy" },
@@ -152,8 +152,8 @@ export function InspectorDashboard({
           {allClear
             ? "Wszystko na bieżąco — brak pilnych kontroli na dziś."
             : actionCenter.length === 1
-              ? "1 sprawa wymaga działania — Action Center poniżej."
-              : `${actionCenter.length} spraw w Action Center · ${todayJobs.length} na dziś / wkrótce`}
+              ? "1 sprawa wymaga działania — centrum działań poniżej."
+              : `${actionCenter.length} spraw w centrum działań · ${todayJobs.length} na dziś / wkrótce`}
         </p>
       </div>
 
@@ -194,8 +194,8 @@ export function InspectorDashboard({
         <div className="rounded-xl border border-primary/25 bg-primary/5 overflow-hidden">
           <div className="px-4 py-3 border-b border-primary/15 flex items-center gap-2">
             <Zap size={15} className="text-primary shrink-0"/>
-            <p className="text-sm font-semibold">Action Center</p>
-            <span className="text-[10px] text-muted-foreground ml-auto">max 3</span>
+            <p className="text-sm font-semibold">Centrum działań</p>
+            <span className="text-[10px] text-muted-foreground ml-auto">maks. 3</span>
           </div>
           <div className="divide-y divide-border/60">
             {actionCenter.map((item) => (
@@ -341,7 +341,7 @@ export function InspectorDashboard({
           </div>
 
           {showAdmin && adminNotesPending.length > 0 && (
-            <AlertSection title={`Odpowiedź od admina (${adminNotesPending.length})`} icon={MessageSquare} accent="violet" hint="Admin odpisał — sprawdź notatki w sekcji Odbiór WM.">
+            <AlertSection title={`Odpowiedź od administratora (${adminNotesPending.length})`} icon={MessageSquare} accent="violet" hint="Administrator odpisał — sprawdź notatki w sekcji Odbiór WM.">
               {adminNotesPending.map((job) => (
                 <InspectorJobCard key={job.id} job={job} hasAdminReply onSelect={() => onOpenJob(job.id, "wm")} compact/>
               ))}

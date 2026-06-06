@@ -25,9 +25,9 @@ export interface RecoverableCharge {
 export const RECOVERABLE_CHARGE_STATUSES: RecoverableChargeStatus[] = ["open", "partial", "settled"];
 
 export const RECOVERABLE_CHARGE_STATUS_LABELS: Record<RecoverableChargeStatus, string> = {
-  open: "Otwarta",
-  partial: "Częściowo",
-  settled: "Rozliczona",
+  open: "Do rozliczenia",
+  partial: "Rozliczone częściowo",
+  settled: "Rozliczone",
 };
 
 export const RECOVERABLE_CHARGE_STATUS_EMOJI: Record<RecoverableChargeStatus, string> = {

@@ -340,7 +340,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
           <p className="text-sm text-foreground/90 leading-relaxed">Na ekranie startowym wybierz <strong>Inspektor</strong> → użytkownik (np. Szymon Szóstak) → hasło. Inspektor widzi wszystkie roboty, ale <strong>bez stawek PLN/h</strong> pracowników. Widzi natomiast kto jest przypisany do roboty i numer telefonu z kartoteki.</p>
           <div className="space-y-3">
             {[
-              {q:"Pulpit inspektora (nowy)", a:"KPI: aktywne kontrole, wymagające uwagi, zakończone, zdjęcia ekipy oczekujące na akceptację. Sekcja „Dzisiaj i wkrótce” — terminy odbioru. Action Center — max 3 najpilniejsze sprawy. Pasek postępu kontroli 0–100% na kartach."},
+              {q:"Pulpit inspektora (nowy)", a:"KPI: aktywne kontrole, wymagające uwagi, zakończone, zdjęcia ekipy oczekujące na akceptację. Sekcja „Dzisiaj i wkrótce” — terminy odbioru. Centrum działań — maks. 3 najpilniejsze sprawy. Pasek postępu kontroli 0–100% na kartach."},
               {q:"Co widać na liście robót?", a:"Karta z adresem, postępem %, brakującymi elementami do odbioru i ostatnią aktywnością. Priorytety: 🔴 po terminie, 🟠 odbiór dziś, 🟢 kompletne. Przycisk 📷 (FAB) — szybkie zdjęcie z aparatu do wybranej roboty."},
               {q:"Zlecenie i kosztorys", a:"Przy robocie możesz zaznaczyć checkbox „mam zlecenie” / „mam kosztorys” oraz wrzucić plik (zlecenie: PDF; kosztorys: PDF, ATH, NOR, XML, DOC z programu NORMA). Przy .ath wybierz „Wszystkie pliki”, jeśli nie widać rozszerzenia. Status widać na liście — nie musisz pamiętać czy już wysłałeś email."},
               {q:"Dokumenty i zakresy", a:"Checklista dokumentów (zlecenie, zakres, kominiarz, pomiary…). Sekcja raportów pracowników: zakres prac, wymiary pomieszczeń, zdjęcia rysunków z opisami."},
@@ -373,9 +373,9 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
           <div className="space-y-3">
             {[
               {q:"Jak dodać pozycję?", a:"Kliknij „Dodaj pozycję”. Wybierz źródło: z roboty (lista adresów) albo poza systemem (wpisz klienta ręcznie). Uzupełnij opis, kwotę, opcjonalnie inspektora i tagi."},
-              {q:"Statusy 🔴🟡🟢", a:"🔴 Otwarta — czeka na odzysk. 🟡 Częściowo — część kwoty rozliczona (ręcznie, bez historii rozliczeń w tej wersji). 🟢 Rozliczona — pozycja zamknięta w rejestrze."},
+              {q:"Statusy 🔴🟡🟢", a:"🔴 Do rozliczenia — czeka na odzysk. 🟡 Rozliczone częściowo — część kwoty rozliczona (ręcznie, bez historii rozliczeń w tej wersji). 🟢 Rozliczone — pozycja zamknięta w rejestrze."},
               {q:"Panel szczegółów", a:"Kliknij wiersz na liście — po prawej (lub pod listą na wąskim ekranie) zobaczysz opis, kwotę, źródło, inspektora, tagi i kto/kiedy utworzył wpis. Na razie tylko podgląd — bez workflow rozliczeń."},
-              {q:"Media — zdjęcia i pliki", a:"W menu „Media” są dwie zakładki: Zdjęcia (galeria zaakceptowanych) i Pliki (zlecenia, kosztorysy, ZIP). Wcześniej były to osobne pozycje menu."},
+              {q:"Zdjęcia i pliki", a:"W menu „Zdjęcia i pliki” są dwie zakładki: Zdjęcia (galeria zaakceptowanych) i Pliki (zlecenia, kosztorysy, ZIP). Wcześniej były to osobne pozycje menu."},
               {q:"Czy to zmienia robotę lub listę płac?", a:"Nie. Pozycje są w osobnym zapisie chmurowym (kw-recoverable-charges). Roboty i payroll działają jak dotychczas."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
@@ -432,7 +432,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
             <li><strong>Lista płac</strong> — godziny (w tym dodatkowe), zaliczki, koszty do zwrotu, rozliczenia; eksport PDF/Word i wysyłka emailem</li>
             <li><strong>Archiwum</strong> — zapisane tygodnie</li>
             <li><strong>Roboty</strong> — adresy, dokumenty, materiały, raporty, wpisy czasu pracy</li>
-            <li><strong>Media</strong> — zdjęcia (Storage + metadane w robocie) i pliki robot (jobFiles)</li>
+            <li><strong>Zdjęcia i pliki</strong> — zdjęcia (Storage + metadane w robocie) i pliki robot (jobFiles)</li>
             <li><strong>Do rozliczenia</strong> — rejestr pozycji do odzyskania (<code>kw-recoverable-charges</code>)</li>
             <li><strong>Logowanie admina / inspektora</strong> — konta z hasłami jako hash SHA-256, sync w chmurze (<code>kw-admin-passwords</code>). Super Admin zmienia hasła w panelu ⚙. Pliki zlecenia/kosztorysu inspektora zapisują się przy robocie (<code>jobFiles</code>)</li>
           </ul>

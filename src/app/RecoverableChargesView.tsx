@@ -160,7 +160,7 @@ export function RecoverableChargesView({
             </div>
 
             <div className="bg-card border border-border rounded-xl px-4 py-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 max-w-md">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">OPEN</span>
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Do rozliczenia</span>
               <span className="text-sm font-semibold">{openKpi.count} pozycji</span>
               <span className="text-sm font-bold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                 {fmtRecoverableAmount(openKpi.sum)}
@@ -355,7 +355,7 @@ function ChargeDetailPanel({
           <DetailRow label="Ostatnia zmiana" value={formatRecoverableChargeDate(charge.updatedAt)} />
         </div>
         <p className="text-xs text-muted-foreground bg-secondary/50 rounded-lg p-3">
-          Workflow rozliczeń i powiązania z fakturami — Sprint 20.3B. Na tym etapie panel tylko do odczytu.
+          Powiązanie z fakturami i pełny workflow rozliczeń będzie dostępne w kolejnej wersji. Na razie panel służy wyłącznie do podglądu wpisów.
         </p>
       </div>
     </div>
@@ -545,7 +545,7 @@ function ChargeFormPanel({
             value={tagsToInputValue(draft.tags)}
             onChange={(e) => onChange({ ...draft, tags: inputValueToTags(e.target.value) })}
             className="w-full bg-secondary border border-border rounded-xl px-3 py-2.5 text-sm"
-            placeholder="materiał, gwarancja, VO"
+            placeholder="materiał, gwarancja, zlecenie dodatkowe"
           />
         </label>
       </div>

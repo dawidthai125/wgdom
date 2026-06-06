@@ -275,7 +275,7 @@ export function PayrollEmailModal({
                 {(useManual || payrollContacts.length === 0) && (
                   <div>
                     <label className="text-xs text-muted-foreground block mb-1.5">Email odbiorcy</label>
-                    <input type="email" value={manualEmail} onChange={(e) => setManualEmail(e.target.value)} placeholder="odbiorca@example.com" className="w-full bg-secondary rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"/>
+                    <input type="email" value={manualEmail} onChange={(e) => setManualEmail(e.target.value)} placeholder="odbiorca@firma.pl" className="w-full bg-secondary rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"/>
                   </div>
                 )}
               </div>

@@ -149,7 +149,7 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
     },
     {
       key: "media",
-      label: "Media",
+      label: "Zdjęcia i pliki",
       hint: "Zdjęcia i pliki z robot — galeria, archiwum zdjęć oraz pobieranie ZIP dokumentów.",
       icon: FolderOpen,
       badge: (() => {

@@ -4,9 +4,18 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.46.00** (`changelog-data.ts`) · Sprint 20.3A Do rozliczenia (lokalnie)
+**Aktualna wersja UI:** **2.46.01** (`changelog-data.ts`) · Sprint 20.3B MIN UI Language Policy (lokalnie)
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
+
+---
+
+## 2.46.01 (2026-06-06) — UI Language Policy MIN (Sprint 20.3B)
+
+* **Do rozliczenia** — statusy PL, mini-KPI „Do rozliczenia”, usunięty tekst developerski z panelu szczegółów
+* **Inspektor** — Centrum działań, filtr Od administratora
+* **Menu** — Zdjęcia i pliki (zamiast Media)
+* **Lista płac** — placeholder `odbiorca@firma.pl`
 
 ---
 

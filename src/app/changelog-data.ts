@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-06",
+    version: "2.46.01",
+    label: "Polonizacja UI — rozliczenia, inspektor, media (Sprint 20.3B MIN)",
+    items: [
+      { type: "improve", text: "Do rozliczenia — statusy po polsku (Do rozliczenia / Rozliczone częściowo / Rozliczone), mini-KPI bez OPEN" },
+      { type: "improve", text: "Inspektor — Centrum działań, filtr Od administratora, komunikaty pomocnicze po polsku" },
+      { type: "improve", text: "Menu Zdjęcia i pliki (wcześniej Media) — spójna nazwa w nawigacji, nagłówku i instrukcji" },
+      { type: "improve", text: "Lista płac — polski placeholder e-mail (odbiorca@firma.pl)" },
+    ],
+  },
+  {
+    date: "2026-06-06",
     version: "2.46.00",
     label: "Do rozliczenia — fundament (Sprint 20.3A)",
     items: [

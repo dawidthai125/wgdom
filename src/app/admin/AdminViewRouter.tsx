@@ -401,7 +401,7 @@ export function AdminViewRouter({
         </ViewErrorBoundary>
       )}
       {view === "media" && (
-        <ViewErrorBoundary label="Media">
+        <ViewErrorBoundary label="Zdjęcia i pliki">
           <Suspense fallback={<ViewLoadFallback label="Ładowanie mediów…" />}>
             <MediaView
               jobs={jobs}
