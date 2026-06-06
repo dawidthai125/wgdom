@@ -284,6 +284,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Legacy** | `normalizeRecoverableCharges`: brak settlements → `[]`; legacy `settled` → syntetyczny wpis migracyjny; legacy `partial` → reset do `open` |
 | **Merge** | `mergeRecoverableCharges()` — union `settlements` po `id` (`mergeSettlementsById`), potem `deriveChargeAmounts()`; pola skalarne LWW po `updatedAt` |
 | **UI (20.4B, v2.47.10)** | `RecoverableChargesView.tsx` + `SettleChargeModal.tsx` — KPI (do rozliczenia / częściowo / odzyskano), Rozlicz, historia, status tylko do odczytu |
+| **Dashboard (20.4C.1, v2.48.00)** | `RecoverableChargesDashboardCard.tsx` na Pulpicie — `recoverableChargesDashboardCardStats()`; klik → moduł; bez aging/eksportu |
 | **Badge menu** | `countUnsettledRecoverableCharges()` — open + partial |
 | **Menu** | **Do rozliczenia** (💰); **Media** = Zdjęcia + Pliki robot (jak Instrukcja/Zmiany) |
 | **Sync** | `pushRecoverableChargesToCloud()`; tombstone `kw-recoverable-charges-deleted-ids` |

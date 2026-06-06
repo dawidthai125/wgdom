@@ -543,6 +543,63 @@ export function countUnsettledRecoverableCharges(charges: RecoverableCharge[]): 
   }).length;
 }
 
+export function countPartialRecoverableCharges(charges: RecoverableCharge[]): number {
+  return charges.filter((c) => deriveChargeAmounts(c).status === "partial").length;
+}
+
+const DASHBOARD_ALARM_MIN_REMAINING_PLN = 2000;
+const DASHBOARD_ALARM_OLDEST_DAYS = 30;
+
+/** KPI karty Pulpitu — Sprint 20.4C.1 (bez aging / top list). */
+export function recoverableChargesDashboardCardStats(
+  charges: RecoverableCharge[],
+  now: Date = new Date(),
+): {
+  toRecoverSum: number;
+  unsettledCount: number;
+  partialCount: number;
+  recoveredSum: number;
+  oldestUnsettledDays: number | null;
+  isAlarm: boolean;
+  isEmpty: boolean;
+} {
+  const moduleKpi = recoverableChargesModuleKpi(charges);
+  const toRecoverSum = +(moduleKpi.toSettleSum + moduleKpi.partialRemainingSum).toFixed(2);
+  const unsettledCount = countUnsettledRecoverableCharges(charges);
+  const partialCount = countPartialRecoverableCharges(charges);
+
+  let oldestUnsettledDays: number | null = null;
+  let hasHighRemaining = false;
+  const nowMs = now.getTime();
+
+  for (const c of charges) {
+    const { amountRemaining, status } = deriveChargeAmounts(c);
+    if (status !== "open" && status !== "partial") continue;
+    if (amountRemaining >= DASHBOARD_ALARM_MIN_REMAINING_PLN) hasHighRemaining = true;
+    const createdMs = Date.parse(c.createdAt);
+    if (!Number.isFinite(createdMs)) continue;
+    const ageDays = Math.max(0, Math.floor((nowMs - createdMs) / 86400000));
+    if (oldestUnsettledDays == null || ageDays > oldestUnsettledDays) {
+      oldestUnsettledDays = ageDays;
+    }
+  }
+
+  const isEmpty = unsettledCount === 0;
+  const isAlarm =
+    !isEmpty &&
+    ((oldestUnsettledDays != null && oldestUnsettledDays > DASHBOARD_ALARM_OLDEST_DAYS) || hasHighRemaining);
+
+  return {
+    toRecoverSum,
+    unsettledCount,
+    partialCount,
+    recoveredSum: moduleKpi.recoveredSum,
+    oldestUnsettledDays,
+    isAlarm,
+    isEmpty,
+  };
+}
+
 /** Etykieta roboty docelowej rozliczenia — z KV, listy lub „Robota archiwalna”. */
 export function settlementTargetJobLabel(
   settlement: Pick<RecoverableChargeSettlement, "targetJobId" | "targetJobLabel">,

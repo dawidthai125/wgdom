@@ -51,9 +51,12 @@ import {
   getPayrollClosingWeekRange,
   PAYROLL_WEEK_ROLLOVER_HOUR,
 } from "@/lib/payroll-cycle";
+import type { RecoverableCharge } from "@/lib/recoverable-charges";
+import { RecoverableChargesDashboardCard } from "@/app/RecoverableChargesDashboardCard";
 
 export function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
+  recoverableCharges = [],
   onNavigate, onFixJobs, adminUserId, alertsSeenTick, onAlertsSeen, onOpenSms,
   onOpenTenders,
   onOpenTender,
@@ -69,7 +72,8 @@ export function DashboardView({
   weekEmployees: WeekEmployee[];
   weekFrom: string; weekTo: string;
   savedWeeks: WeekSnapshot[];
-  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule" | "inspector", jobId?: string, payrollEmpId?: string, inspectorTab?: "activity" | "portfolio") => void;
+  recoverableCharges?: RecoverableCharge[];
+  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule" | "inspector" | "recoverablecharges", jobId?: string, payrollEmpId?: string, inspectorTab?: "activity" | "portfolio") => void;
   onFixJobs: (updater: (prev: Job[]) => Job[]) => void;
   adminUserId?: string;
   alertsSeenTick: number;
@@ -467,6 +471,11 @@ export function DashboardView({
             </p>
           </div>
         </div>
+
+        <RecoverableChargesDashboardCard
+          charges={recoverableCharges}
+          onOpenModule={() => onNavigate("recoverablecharges")}
+        />
 
         {canViewTenders && onOpenTenders && (
           <CommandCenterExecutivePanel

@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-06",
+    version: "2.48.00",
+    label: "Pulpit — karta Do odzyskania (Sprint 20.4C.1)",
+    items: [
+      { type: "new", text: "Pulpit — karta 💰 Do odzyskania: 4 KPI (kwota, pozycje, częściowo, odzyskano) + najstarsza pozycja" },
+      { type: "improve", text: "Klik w kartę otwiera moduł Do rozliczenia; stan pusty i alarmowy (> 30 dni lub ≥ 2 000 PLN)" },
+      { type: "improve", text: "Bez aging, eksportów i Command Center — kolejne kroki w 20.4C.2/20.4C.3" },
+    ],
+  },
+  {
+    date: "2026-06-06",
     version: "2.47.10",
     label: "Do rozliczenia — workflow rozliczeń (Sprint 20.4B)",
     items: [

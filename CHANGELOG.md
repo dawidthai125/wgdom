@@ -4,9 +4,17 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.47.10** (`changelog-data.ts`) · Sprint 20.4B Settlement Workflow UI (lokalnie)
+**Aktualna wersja UI:** **2.48.00** (`changelog-data.ts`) · Sprint 20.4C.1 Dashboard KPI (lokalnie)
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
+
+---
+
+## 2.48.00 (2026-06-06) — Dashboard Do odzyskania (Sprint 20.4C.1)
+
+* **Pulpit** — karta Do odzyskania: 4 KPI, najstarsza pozycja, klik → moduł
+* **Stany** — pusty (brak pozycji) i alarmowy (≥ 2 000 PLN lub > 30 dni)
+* **Bez** — aging, top list, eksport, Command Center, zmian modelu
 
 ---
 

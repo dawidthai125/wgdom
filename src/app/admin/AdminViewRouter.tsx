@@ -232,6 +232,7 @@ export function AdminViewRouter({
       weekFrom={weekFrom}
       weekTo={weekTo}
       savedWeeks={savedWeeks}
+      recoverableCharges={recoverableCharges}
       onNavigate={handleNavigate}
       onFixJobs={onFixJobs}
       adminUserId={adminSession?.id}

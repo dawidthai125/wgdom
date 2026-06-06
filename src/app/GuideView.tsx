@@ -377,6 +377,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Jak rozliczyć kwotę?", a:"Otwórz szczegóły pozycji i kliknij „Rozlicz”. Podaj kwotę (nie większą niż pozostało), opcjonalnie robotę docelową, typ rozliczenia i notatkę. Możesz zaznaczyć „Na podstawie informacji od inspektora”."},
               {q:"Panel szczegółów", a:"Kwota pierwotna, rozliczono i pozostało — bez zgadywania. Sekcja „Historia rozliczeń” pokazuje kto, kiedy, na jakiej robocie i ile rozliczył."},
               {q:"KPI u góry", a:"Do rozliczenia — suma pozostałych kwot pozycji otwartych. Rozliczone częściowo — suma pozostałych kwot pozycji częściowych. Odzyskano — łączna suma wszystkich rozliczeń."},
+              {q:"Pulpit — karta Do odzyskania", a:"Na Pulpicie (pod skrótami liczbowymi) karta z 4 KPI: łączna kwota do odzyskania, liczba pozycji, ile częściowo rozliczonych, suma odzyskana. Widać wiek najstarszej pozycji. Klik → moduł Do rozliczenia. Obramowanie ostrzegawcze gdy pozycja > 30 dni lub kwota ≥ 2 000 PLN."},
               {q:"Zdjęcia i pliki", a:"W menu „Zdjęcia i pliki” są dwie zakładki: Zdjęcia (galeria zaakceptowanych) i Pliki (zlecenia, kosztorysy, ZIP). Wcześniej były to osobne pozycje menu."},
               {q:"Czy to zmienia robotę lub listę płac?", a:"Nie. Pozycje są w osobnym zapisie chmurowym (kw-recoverable-charges). Roboty i payroll działają jak dotychczas."},
             ].map((item,i)=>(
