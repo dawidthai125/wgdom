@@ -14,7 +14,7 @@
 | **Production** | https://www.wgdom.fun |
 | **Vercel deploy** | **PASS** @ `74e65d9` |
 | **Edge deploy** | nie wymagany (tylko frontend) |
-| **Docs closure (ta sesja)** | commit docs-only — pełny kontekst czatu dla AI |
+| **Docs closure (ta sesja)** | **`d89dc9c`** — `docs: close sprint 20.1B session context for AI agents` |
 
 ### Łańcuch commitów (payroll carry)
 

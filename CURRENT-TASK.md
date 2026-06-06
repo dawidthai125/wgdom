@@ -44,7 +44,7 @@ Rozdzielono **saved** (backup w `savedWeeks`) od **closed** (tydzień historyczn
 2. **Sprint 20.1B** — saved ≠ closed: `isPayrollWeekClosed`, defer do rolloveru, live payroll na operacyjnym, snapshot tylko historyczny, `refreshSavedActiveWeekSnapshot`.
 3. **Testy** — A–F + TEST 1–9 + regresje 20.0A/20.1A + build — PASS.
 4. **Deploy** — commit `74e65d9`, Vercel PASS, prod **2.45.39**.
-5. **Docs follow-up** — commit docs-only z pełnym kontekstem dla przyszłych AI.
+5. **Docs follow-up** — commit **`d89dc9c`** (kontekst czatu dla AI, Cursor rules).
 
 **Nie commitowane (poza sprintem):** skrypty RCA w `scripts/audit-*`, `find-map-sources`, `verify-jobs-mount-crash`, itd.
 
