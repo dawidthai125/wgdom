@@ -42,6 +42,7 @@ import {
   settlementTypeLabel,
   type SettleChargeSubmit,
 } from "@/app/SettleChargeModal";
+import { RecoverableChargesAnalysisSection } from "@/app/RecoverableChargesAnalysisSection";
 
 type FormMode = "create" | "edit" | null;
 
@@ -221,6 +222,8 @@ export function RecoverableChargesView({
                 value={fmtRecoverableAmount(moduleKpi.recoveredSum)}
               />
             </div>
+
+            <RecoverableChargesAnalysisSection charges={charges} />
 
             <div className="flex flex-col lg:flex-row gap-2">
               <div className="relative flex-1 min-w-0">

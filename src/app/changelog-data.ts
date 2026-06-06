@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-06",
+    version: "2.48.10",
+    label: "Aging odzyskiwania (Sprint 20.4C.2A)",
+    items: [
+      { type: "new", text: "computeRecoverableChargesReportingStats() — kubełki wieku 0–30 / 31–60 / 61–90 / 90+ dni (tylko open i partial)" },
+      { type: "new", text: "Pulpit — skrót aging na karcie Do odzyskania; moduł — sekcja Analiza odzyskiwania (pozycje + PLN)" },
+      { type: "improve", text: "Suma kubełków aging = kwota Do odzyskania — weryfikacja w smoke 20.4C.2A" },
+      { type: "improve", text: "Bez alertów, top list i zmian modelu — 20.4C.2B/2C w kolejnych sprintach" },
+    ],
+  },
+  {
+    date: "2026-06-06",
     version: "2.48.00",
     label: "Pulpit — karta Do odzyskania (Sprint 20.4C.1)",
     items: [

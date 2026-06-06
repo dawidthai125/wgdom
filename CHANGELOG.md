@@ -4,9 +4,19 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.48.00** (`changelog-data.ts`) · Sprint 20.4C.1 Dashboard KPI (lokalnie)
+**Aktualna wersja UI:** **2.48.10** (`changelog-data.ts`) · Sprint 20.4C.2A Aging (lokalnie)
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
+
+---
+
+## 2.48.10 (2026-06-06) — Aging odzyskiwania (Sprint 20.4C.2A)
+
+* **Helper** — `computeRecoverableChargesReportingStats()` — jedno przejście, kubełki 0–30 / 31–60 / 61–90 / 90+ dni (open + partial)
+* **Pulpit** — skrót aging na karcie Do odzyskania (sumy PLN)
+* **Moduł** — sekcja Analiza odzyskiwania (liczba pozycji + PLN per kubełek)
+* **Smoke** — suma aging = Do odzyskania; settled wykluczone
+* **Bez zmian** — model, merge, cloud-sync, Payroll, Leaves, Inspector, alerty, top listy (20.4C.2B/2C)
 
 ---
 

@@ -550,7 +550,114 @@ export function countPartialRecoverableCharges(charges: RecoverableCharge[]): nu
 const DASHBOARD_ALARM_MIN_REMAINING_PLN = 2000;
 const DASHBOARD_ALARM_OLDEST_DAYS = 30;
 
-/** KPI karty Pulpitu — Sprint 20.4C.1 (bez aging / top list). */
+export type RecoverableChargeAgingBucketKey = "0_30" | "31_60" | "61_90" | "90_plus";
+
+export interface RecoverableChargeAgingBucket {
+  key: RecoverableChargeAgingBucketKey;
+  label: string;
+  count: number;
+  amountRemainingSum: number;
+}
+
+export const AGING_BUCKET_LABELS: Record<RecoverableChargeAgingBucketKey, string> = {
+  "0_30": "0–30 dni",
+  "31_60": "31–60 dni",
+  "61_90": "61–90 dni",
+  "90_plus": "90+ dni",
+};
+
+export const AGING_BUCKET_ORDER: RecoverableChargeAgingBucketKey[] = ["0_30", "31_60", "61_90", "90_plus"];
+
+export function recoverableChargeAgeDays(createdAt: string, now: Date = new Date()): number {
+  const createdMs = Date.parse(createdAt);
+  if (!Number.isFinite(createdMs)) return 0;
+  return Math.max(0, Math.floor((now.getTime() - createdMs) / 86400000));
+}
+
+export function agingBucketKeyForAgeDays(ageDays: number): RecoverableChargeAgingBucketKey {
+  if (ageDays <= 30) return "0_30";
+  if (ageDays <= 60) return "31_60";
+  if (ageDays <= 90) return "61_90";
+  return "90_plus";
+}
+
+function emptyAgingBuckets(): Record<RecoverableChargeAgingBucketKey, RecoverableChargeAgingBucket> {
+  return {
+    "0_30": { key: "0_30", label: AGING_BUCKET_LABELS["0_30"], count: 0, amountRemainingSum: 0 },
+    "31_60": { key: "31_60", label: AGING_BUCKET_LABELS["31_60"], count: 0, amountRemainingSum: 0 },
+    "61_90": { key: "61_90", label: AGING_BUCKET_LABELS["61_90"], count: 0, amountRemainingSum: 0 },
+    "90_plus": { key: "90_plus", label: AGING_BUCKET_LABELS["90_plus"], count: 0, amountRemainingSum: 0 },
+  };
+}
+
+export function sumAgingAmountRemaining(aging: RecoverableChargeAgingBucket[]): number {
+  return +aging.reduce((s, b) => s + b.amountRemainingSum, 0).toFixed(2);
+}
+
+/** Jedno przejście — aging + KPI Pulpitu / modułu (Sprint 20.4C.2A). */
+export function computeRecoverableChargesReportingStats(
+  charges: RecoverableCharge[],
+  now: Date = new Date(),
+): {
+  aging: RecoverableChargeAgingBucket[];
+  toRecoverSum: number;
+  unsettledCount: number;
+  partialCount: number;
+  recoveredSum: number;
+  oldestUnsettledDays: number | null;
+  isAlarm: boolean;
+  isEmpty: boolean;
+} {
+  const buckets = emptyAgingBuckets();
+  const moduleKpi = recoverableChargesModuleKpi(charges);
+  const toRecoverSum = +(moduleKpi.toSettleSum + moduleKpi.partialRemainingSum).toFixed(2);
+  let unsettledCount = 0;
+  let partialCount = 0;
+  let oldestUnsettledDays: number | null = null;
+  let hasHighRemaining = false;
+
+  for (const c of charges) {
+    const { amountRemaining, status } = deriveChargeAmounts(c);
+    if (status !== "open" && status !== "partial") continue;
+
+    unsettledCount += 1;
+    if (status === "partial") partialCount += 1;
+    if (amountRemaining >= DASHBOARD_ALARM_MIN_REMAINING_PLN) hasHighRemaining = true;
+
+    const ageDays = recoverableChargeAgeDays(c.createdAt, now);
+    if (oldestUnsettledDays == null || ageDays > oldestUnsettledDays) {
+      oldestUnsettledDays = ageDays;
+    }
+
+    const bucketKey = agingBucketKeyForAgeDays(ageDays);
+    const bucket = buckets[bucketKey];
+    bucket.count += 1;
+    bucket.amountRemainingSum = +(bucket.amountRemainingSum + amountRemaining).toFixed(2);
+  }
+
+  const aging = AGING_BUCKET_ORDER.map((key) => ({
+    ...buckets[key],
+    amountRemainingSum: +buckets[key].amountRemainingSum.toFixed(2),
+  }));
+
+  const isEmpty = unsettledCount === 0;
+  const isAlarm =
+    !isEmpty &&
+    ((oldestUnsettledDays != null && oldestUnsettledDays > DASHBOARD_ALARM_OLDEST_DAYS) || hasHighRemaining);
+
+  return {
+    aging,
+    toRecoverSum,
+    unsettledCount,
+    partialCount,
+    recoveredSum: moduleKpi.recoveredSum,
+    oldestUnsettledDays,
+    isAlarm,
+    isEmpty,
+  };
+}
+
+/** KPI karty Pulpitu — deleguje do computeRecoverableChargesReportingStats. */
 export function recoverableChargesDashboardCardStats(
   charges: RecoverableCharge[],
   now: Date = new Date(),
@@ -563,40 +670,15 @@ export function recoverableChargesDashboardCardStats(
   isAlarm: boolean;
   isEmpty: boolean;
 } {
-  const moduleKpi = recoverableChargesModuleKpi(charges);
-  const toRecoverSum = +(moduleKpi.toSettleSum + moduleKpi.partialRemainingSum).toFixed(2);
-  const unsettledCount = countUnsettledRecoverableCharges(charges);
-  const partialCount = countPartialRecoverableCharges(charges);
-
-  let oldestUnsettledDays: number | null = null;
-  let hasHighRemaining = false;
-  const nowMs = now.getTime();
-
-  for (const c of charges) {
-    const { amountRemaining, status } = deriveChargeAmounts(c);
-    if (status !== "open" && status !== "partial") continue;
-    if (amountRemaining >= DASHBOARD_ALARM_MIN_REMAINING_PLN) hasHighRemaining = true;
-    const createdMs = Date.parse(c.createdAt);
-    if (!Number.isFinite(createdMs)) continue;
-    const ageDays = Math.max(0, Math.floor((nowMs - createdMs) / 86400000));
-    if (oldestUnsettledDays == null || ageDays > oldestUnsettledDays) {
-      oldestUnsettledDays = ageDays;
-    }
-  }
-
-  const isEmpty = unsettledCount === 0;
-  const isAlarm =
-    !isEmpty &&
-    ((oldestUnsettledDays != null && oldestUnsettledDays > DASHBOARD_ALARM_OLDEST_DAYS) || hasHighRemaining);
-
+  const stats = computeRecoverableChargesReportingStats(charges, now);
   return {
-    toRecoverSum,
-    unsettledCount,
-    partialCount,
-    recoveredSum: moduleKpi.recoveredSum,
-    oldestUnsettledDays,
-    isAlarm,
-    isEmpty,
+    toRecoverSum: stats.toRecoverSum,
+    unsettledCount: stats.unsettledCount,
+    partialCount: stats.partialCount,
+    recoveredSum: stats.recoveredSum,
+    oldestUnsettledDays: stats.oldestUnsettledDays,
+    isAlarm: stats.isAlarm,
+    isEmpty: stats.isEmpty,
   };
 }
 

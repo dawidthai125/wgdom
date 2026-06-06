@@ -3,7 +3,7 @@ import { Wallet, ChevronRight, AlertTriangle } from "lucide-react";
 import {
   type RecoverableCharge,
   fmtRecoverableAmount,
-  recoverableChargesDashboardCardStats,
+  computeRecoverableChargesReportingStats,
 } from "@/lib/recoverable-charges";
 
 export function RecoverableChargesDashboardCard({
@@ -13,7 +13,7 @@ export function RecoverableChargesDashboardCard({
   charges: RecoverableCharge[];
   onOpenModule: () => void;
 }) {
-  const stats = useMemo(() => recoverableChargesDashboardCardStats(charges), [charges]);
+  const stats = useMemo(() => computeRecoverableChargesReportingStats(charges), [charges]);
 
   return (
     <div
@@ -76,6 +76,19 @@ export function RecoverableChargesDashboardCard({
                 )}
               </p>
             )}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-border/60">
+              {stats.aging.map((bucket) => (
+                <div key={bucket.key} className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground truncate">{bucket.label}</p>
+                  <p
+                    className={`text-xs font-semibold truncate ${bucket.key === "90_plus" && bucket.count > 0 ? "text-amber-600 dark:text-amber-400" : ""}`}
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    {fmtRecoverableAmount(bucket.amountRemainingSum)}
+                  </p>
+                </div>
+              ))}
+            </div>
           </>
         )}
       </button>

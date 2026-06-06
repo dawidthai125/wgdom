@@ -5,7 +5,9 @@
 import {
   applySettlement,
   defaultRecoverableCharge,
+  computeRecoverableChargesReportingStats,
   recoverableChargesDashboardCardStats,
+  sumAgingAmountRemaining,
 } from "../src/lib/recoverable-charges.ts";
 
 const results = {};
@@ -75,6 +77,11 @@ assert("small-oldest", small.oldestUnsettledDays === 5, String(small.oldestUnset
 // All settled → empty recovery state
 const allSettled = recoverableChargesDashboardCardStats([settled], NOW);
 assert("all-settled-empty", allSettled.isEmpty);
+
+// Aging sum = Do odzyskania (20.4C.2A)
+const reporting = computeRecoverableChargesReportingStats([open, partial, settled], NOW);
+const agingSum = sumAgingAmountRemaining(reporting.aging);
+assert("aging-sum-equals-toRecover", agingSum === stats.toRecoverSum, `${agingSum} vs ${stats.toRecoverSum}`);
 
 const passCount = Object.values(results).filter((v) => v === "PASS").length;
 log(`\n=== SUMMARY: ${passCount} PASS, ${Object.values(results).filter((v) => v === "FAIL").length} FAIL ===`);
