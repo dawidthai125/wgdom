@@ -3,7 +3,7 @@
  */
 
 import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
-import { scoreTenderFilename } from "@/lib/tenders-bzp-doc-parse";
+import { scoreTenderFilename } from "@/lib/tenders-bzp-filename";
 
 export interface TenderExternalPageLink {
   url: string;

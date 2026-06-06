@@ -9,18 +9,21 @@ import {
 } from "@/lib/tenders-bzp-brief";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import {
-  analyzeSwzFromDocumentText,
+  isDocxFilename,
   isZipFilename,
-  listZipFiles,
-  parseDocumentToKosztorys,
-  parseDocumentToSwzText,
   parsePlnFromKosztorysTotal,
-  pickBestFromZipBytes,
-  resolveDocumentBytes,
   scoreTenderFilename,
-} from "@/lib/tenders-bzp-doc-parse";
+} from "@/lib/tenders-bzp-filename";
 import { isPdfFilename } from "@/lib/ath-parser";
-import { isDocxFilename } from "@/lib/tenders-bzp-doc-parse";
+
+type DocParseModule = typeof import("@/lib/tenders-bzp-doc-parse");
+
+let docParsePromise: Promise<DocParseModule> | null = null;
+
+async function loadDocParse(): Promise<DocParseModule> {
+  docParsePromise ??= import("@/lib/tenders-bzp-doc-parse");
+  return docParsePromise;
+}
 
 export interface TenderDocCandidate {
   documentIndex: number;
@@ -58,6 +61,7 @@ export async function buildTenderDocCandidates(
     });
     if (isZipFilename(doc.filename)) {
       try {
+        const { listZipFiles } = await loadDocParse();
         const zipBytes = await loadDocBytes(tenderId, doc.index);
         const inner = await listZipFiles(zipBytes);
         for (const entry of inner.slice(0, 12)) {
@@ -79,6 +83,14 @@ export async function parseTenderDocumentCandidate(
   candidate: TenderDocCandidate,
   opts?: { ourEstimatePln?: number | null; mergeSwz?: TenderSwzAnalysis | null },
 ): Promise<TenderDocumentParseResult> {
+  const {
+    analyzeSwzFromDocumentText,
+    parseDocumentToKosztorys,
+    parseDocumentToSwzText,
+    pickBestFromZipBytes,
+    resolveDocumentBytes,
+  } = await loadDocParse();
+
   const loadBytes = (idx: number) => loadDocBytes(tenderId, idx);
   let bytes = await resolveDocumentBytes(
     loadBytes,
@@ -137,7 +149,6 @@ export async function parseTenderDocumentCandidate(
     /* noop */
   }
 
-  // PDF bez kosztorysu — spróbuj SWZ tylko
   if (!kosztorys && isPdfFilename(effectiveName) && !swzFromDoc) {
     const { text, source, warnings } = await parseDocumentToSwzText(bytes, effectiveName);
     swzFromDoc = analyzeSwzFromDocumentText(text, source, {
@@ -168,6 +179,13 @@ export async function parseExternalTenderFile(
   filename: string,
   opts?: { ourEstimatePln?: number | null; existingSwz?: TenderSwzAnalysis | null },
 ): Promise<TenderDocumentParseResult> {
+  const {
+    analyzeSwzFromDocumentText,
+    parseDocumentToKosztorys,
+    parseDocumentToSwzText,
+    pickBestFromZipBytes,
+  } = await loadDocParse();
+
   let effectiveBytes = bytes;
   let effectiveName = filename;
 
@@ -320,7 +338,6 @@ export async function parseBestTenderDocuments(
     if (bestKosztorys?.ok && bestSwz) break;
   }
 
-  // Fallback: stary pick tylko po nazwie (bez zip expand) gdy nic nie wyszło
   if (!bestKosztorys && !bestSwz) {
     const legacy = pickBestKosztorysDocument(docs);
     if (legacy) {

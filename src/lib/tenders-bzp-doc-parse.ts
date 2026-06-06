@@ -1,4 +1,4 @@
-/** Parsowanie załączników przetargowych: PDF (pdf.js), DOCX, XLSX, ZIP. */
+/** Parsowanie załączników przetargowych: PDF (pdf.js), DOCX, XLSX, ZIP. Ładowany dynamicznie. */
 
 import JSZip from "jszip";
 import mammoth from "mammoth";
@@ -13,14 +13,23 @@ import {
   type AthPreviewRow,
 } from "@/lib/ath-parser";
 import { parseSwzPlainText, type TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
+import {
+  isDocxFilename,
+  isXlsxFilename,
+  isZipFilename,
+  scoreTenderFilename,
+  type ZipListedFile,
+} from "@/lib/tenders-bzp-filename";
 
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
-
-export interface ZipListedFile {
-  path: string;
-  filename: string;
-  score: number;
-}
+export type { ZipListedFile } from "@/lib/tenders-bzp-filename";
+export {
+  displayTenderFilename,
+  isDocxFilename,
+  isXlsxFilename,
+  isZipFilename,
+  parsePlnFromKosztorysTotal,
+  scoreTenderFilename,
+} from "@/lib/tenders-bzp-filename";
 
 export interface ResolvedTenderFile {
   bytes: Uint8Array;
@@ -29,94 +38,12 @@ export interface ResolvedTenderFile {
   zipInnerPath?: string;
 }
 
-export function parsePlnFromKosztorysTotal(
-  totalValue?: string | null,
-  currency?: string | null,
-): number | null {
-  if (!totalValue?.trim()) return null;
-  const cur = (currency || "PLN").toUpperCase();
-  if (cur !== "PLN" && cur !== "ZŁ") return null;
-  const cleaned = totalValue.replace(/\s/g, "").replace(",", ".");
-  const m = cleaned.match(/[\d.]+/);
-  if (!m) return null;
-  const n = parseFloat(m[0]);
-  return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
-}
+let pdfWorkerReady = false;
 
-export function scoreTenderFilename(name: string): number {
-  const n = name.toLowerCase();
-  let s = 0;
-  if (/kosztorys|przedmiar|obmiar/.test(n)) s += 35;
-  if (/swz|opz|specyfikac|formularz/.test(n)) s += 22;
-  if (/\.(ath|nor|xml)$/i.test(n)) s += 28;
-  if (/\.xlsx?$/i.test(n)) s += 14;
-  if (/\.docx?$/i.test(n)) s += 12;
-  if (/\.pdf$/i.test(n)) s += 8;
-  if (/\.zip$/i.test(n)) s += 6;
-  return s;
-}
-
-const GENERIC_FILENAME_RE =
-  /^(dokument|document|file|download|attachment|plik|getfile|index|default)(\.[a-z0-9]{2,5})?$/i;
-
-function extFromContentType(contentType?: string | null): string {
-  const ct = (contentType || "").toLowerCase();
-  if (ct.includes("pdf")) return ".pdf";
-  if (ct.includes("word") || ct.includes("docx")) return ".docx";
-  if (ct.includes("msword")) return ".doc";
-  if (ct.includes("sheet") || ct.includes("excel")) return ".xlsx";
-  if (ct.includes("zip")) return ".zip";
-  if (ct.includes("xml")) return ".xml";
-  return "";
-}
-
-function filenameFromUrl(url?: string): string {
-  if (!url) return "";
-  try {
-    const last = decodeURIComponent(new URL(url).pathname.split("/").pop() || "");
-    const base = last.split("?")[0];
-    if (base.length >= 5 && /\.\w{2,5}$/i.test(base) && !GENERIC_FILENAME_RE.test(base)) return base;
-  } catch { /* ignore */ }
-  return "";
-}
-
-/** Czytelna nazwa pliku — BZP często zwraca samo „dokument”. */
-export function displayTenderFilename(
-  filename: string,
-  opts?: { index?: number; contentType?: string | null; url?: string; prefix?: string },
-): string {
-  let name = (filename || "").trim();
-  try {
-    if (name.includes("%")) name = decodeURIComponent(name);
-  } catch { /* ignore */ }
-  name = name.replace(/\+/g, " ").trim();
-
-  const fromUrl = filenameFromUrl(opts?.url);
-  const extInName = name.match(/(\.[a-z0-9]{2,5})$/i)?.[1] || "";
-  const ext = extInName || extFromContentType(opts?.contentType) || ".pdf";
-
-  if (!name || GENERIC_FILENAME_RE.test(name) || (name.length < 5 && !extInName)) {
-    if (fromUrl) return fromUrl;
-    const prefix = opts?.prefix || "Załącznik";
-    const n = opts?.index != null ? ` ${opts.index}` : "";
-    return `${prefix}${n}${ext}`;
-  }
-
-  if (/^[\d_a-f-]{20,}(\.[a-z]+)?$/i.test(name) && fromUrl) return fromUrl;
-
-  return name;
-}
-
-export function isZipFilename(name: string): boolean {
-  return /\.zip$/i.test(name);
-}
-
-export function isDocxFilename(name: string): boolean {
-  return /\.docx?$/i.test(name);
-}
-
-export function isXlsxFilename(name: string): boolean {
-  return /\.xlsx?$/i.test(name);
+function ensurePdfWorker(): void {
+  if (pdfWorkerReady) return;
+  pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
+  pdfWorkerReady = true;
 }
 
 export async function listZipFiles(bytes: Uint8Array): Promise<ZipListedFile[]> {
@@ -181,6 +108,7 @@ export async function extractDocxText(bytes: Uint8Array): Promise<string> {
 }
 
 export async function extractPdfText(bytes: Uint8Array): Promise<{ text: string; pageCount: number; likelyScan: boolean }> {
+  ensurePdfWorker();
   try {
     const loading = pdfjs.getDocument({ data: bytes.slice() });
     const pdf = await loading.promise;

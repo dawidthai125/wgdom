@@ -27,7 +27,7 @@ import { fetchTenderAwardResult } from "@/lib/tenders-bzp-award";
 import { exportTenderBidPackagePdf } from "@/lib/tender-bid-package-pdf";
 import { TenderBidPrepPanel } from "@/app/TenderBidPrepPanel";
 import { fetchAndParseKosztorys, isKosztorysPreviewExt } from "@/lib/ath-parser";
-import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-doc-parse";
+import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { TenderDossierPanel } from "@/app/TenderDossierPanel";

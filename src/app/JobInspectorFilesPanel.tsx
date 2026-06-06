@@ -6,7 +6,7 @@ import type { JobFileAttachment } from "@/lib/job-documents";
 import type { InspectorPhotoEntry } from "@/lib/job-wm";
 import type { EmailContact } from "@/lib/email-contacts";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
-import { isDocxFilename, isXlsxFilename } from "@/lib/tenders-bzp-doc-parse";
+import { isDocxFilename, isXlsxFilename } from "@/lib/tenders-bzp-filename";
 import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { JobFilesEmailModal } from "@/app/JobFilesEmailModal";

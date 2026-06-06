@@ -4,7 +4,7 @@ import type { TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
 import type { TenderCompanyCostModel } from "@/lib/tenders-bzp-company";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { TenderFitAssessment } from "@/lib/tenders-bzp-fit";
-import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-doc-parse";
+import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import {
   fullyLoadedHourly,
   weeklyAncillaryLines,

@@ -5,7 +5,7 @@ import { profileKnownBuyerKeywords } from "@/lib/tenders-bzp-company";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { fmtPln, stripHtmlToText } from "@/lib/tenders-bzp-swz";
-import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-doc-parse";
+import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 
 export type TenderRequirementStatus = "met" | "partial" | "gap" | "unknown";
 

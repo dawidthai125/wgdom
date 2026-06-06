@@ -7,7 +7,13 @@ import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { TenderBzpDocument, TenderPipelineItem, TenderUploadedFile } from "@/lib/tenders-bzp";
 import { loadTenderBzpDocumentBytes } from "@/lib/tenders-bzp";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
-import { isDocxFilename, isXlsxFilename, isZipFilename, listZipFiles, type ZipListedFile, displayTenderFilename } from "@/lib/tenders-bzp-doc-parse";
+import {
+  isDocxFilename,
+  isXlsxFilename,
+  isZipFilename,
+  displayTenderFilename,
+  type ZipListedFile,
+} from "@/lib/tenders-bzp-filename";
 import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import { Building2, ExternalLink, Globe } from "lucide-react";
 
@@ -74,6 +80,7 @@ function ZipInnerList({
     setError(null);
     try {
       const { bytes } = await loadTenderBzpDocumentBytes(tenderId, doc.index);
+      const { listZipFiles } = await import("@/lib/tenders-bzp-doc-parse");
       const list = await listZipFiles(bytes);
       setEntries(list);
       setOpen(true);

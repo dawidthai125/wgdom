@@ -23,7 +23,7 @@ import {
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { isKosztorysUploadFilename, type JobFileAttachment } from "@/lib/job-documents";
 import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
-import { displayTenderFilename } from "@/lib/tenders-bzp-doc-parse";
+import { displayTenderFilename } from "@/lib/tenders-bzp-filename";
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 

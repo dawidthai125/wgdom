@@ -8,7 +8,7 @@ import { discoverExternalTenderDocs } from "@/lib/tender-external-docs";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { isKosztorysPreviewExt, isPdfFilename } from "@/lib/ath-parser";
-import { isDocxFilename, isXlsxFilename, isZipFilename } from "@/lib/tenders-bzp-doc-parse";
+import { isDocxFilename, isXlsxFilename, isZipFilename } from "@/lib/tenders-bzp-filename";
 import { toast } from "sonner";
 
 function canPreview(name: string): boolean {

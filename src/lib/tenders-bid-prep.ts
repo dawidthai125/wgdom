@@ -4,7 +4,7 @@ import { fmtPln } from "@/lib/tenders-bzp-swz";
 import type { TenderFitAssessment } from "@/lib/tenders-bzp-fit";
 import { estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
-import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-doc-parse";
+import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import { isTenderOpenForOffers, daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";

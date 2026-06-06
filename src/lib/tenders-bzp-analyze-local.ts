@@ -2,10 +2,7 @@ import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { parseSwzPlainText, stripHtmlToText, extractTableHints } from "@/lib/tenders-bzp-swz";
 import { extractAwardCriteria } from "@/lib/tenders-bzp-fit";
 import { extractWadiumPercent } from "@/lib/tenders-wadium";
-import {
-  parseDocumentToSwzText,
-  displayTenderFilename,
-} from "@/lib/tenders-bzp-doc-parse";
+import { displayTenderFilename } from "@/lib/tenders-bzp-filename";
 import {
   analyzeTenderSwz,
   fetchTenderNoticeDetails,
@@ -56,6 +53,7 @@ export async function analyzeTenderSwzEnhanced(opts: {
       })
       : `Załącznik ${opts.documentIndex}`;
     const bytes = await loadTenderBzpDocumentBytes(opts.tenderId, opts.documentIndex);
+    const { parseDocumentToSwzText } = await import("@/lib/tenders-bzp-doc-parse");
     const parsed = await parseDocumentToSwzText(bytes, filename);
     warnings.push(...parsed.warnings);
     if (parsed.text.length >= 80) {

@@ -10,17 +10,11 @@ import {
   type AthPreviewResult,
 } from "@/lib/ath-parser";
 import {
-  extractDocxText,
-  extractPdfText,
   isDocxFilename,
   isXlsxFilename,
   isZipFilename,
-  listZipFiles,
-  parseDocumentToKosztorys,
-  readZipEntry,
-  resolveDocumentBytes,
   type ZipListedFile,
-} from "@/lib/tenders-bzp-doc-parse";
+} from "@/lib/tenders-bzp-filename";
 import {
   downloadKosztorysPdf,
   previewKosztorysPdf,
@@ -111,6 +105,14 @@ export function JobFilePreviewModal({
       if (item.kind === "tenderBzp") {
         setLoading(true);
         try {
+          const {
+            extractDocxText,
+            extractPdfText,
+            listZipFiles,
+            parseDocumentToKosztorys,
+            readZipEntry,
+            resolveDocumentBytes,
+          } = await import("@/lib/tenders-bzp-doc-parse");
           const { bytes: outerBytes, filename: serverName, contentType } = await loadTenderBzpDocumentBytes(
             item.tenderId,
             item.documentIndex,
