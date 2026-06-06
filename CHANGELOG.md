@@ -4,21 +4,21 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.45.38** (`changelog-data.ts`) · prod app **`778f616`** (20.1A lokalnie, przed push)
+**Aktualna wersja UI:** **2.45.38** (`changelog-data.ts`) · prod app **`f24fafe`**
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
 
 ---
 
-## 2.45.38 (2026-06-06) — Odroczenie wypłaty (Sprint 20.1A) — **Ready (lokalnie)**
+## 2.45.38 (2026-06-06) — Odroczenie wypłaty (Sprint 20.1A) — **Released** · `f24fafe`
 
-* **Deferred Payroll Payment** — ⏭ „Przenieś na następny tydzień” na liście płac (tygodniówka); kwota zamrożona w momencie kliknięcia (MODEL A)
-* Pole `payrollCarryForward` na `WeekEmployee` (`kw-week-employees`) — bez nowego klucza KV
-* Tydzień źródłowy: `netPay=0`, etykieta PRZENIESIONO; tydzień docelowy: bieżąca wypłata + `carryForwardIn`
-* Archiwum: `carryForwardOut` / `carryForwardIn` zamrożone w `EmployeeSnapshot`; PDF/DOCX ze snapshotu
-* Biweekly (wypłata co 2 tyg.) — **zablokowane** w V1; urlop blokuje przeniesienie
-* Sync: `mergeWeekEmployeeRecord` — `pickPayrollCarryForward` (chmura bez pola nie czyści defer)
-* Edge deploy: **nie wymagany**
+* **Deferred Payroll Payment** — ⏭ „Przenieś na następny tydzień” (tygodniówka, jednorazowo)
+* **Frozen Amount Model (MODEL A)** — kwota zamrożona w momencie kliknięcia; bez przeliczenia po zmianie godzin/stawki
+* **Archive Freeze** — `carryForwardOut` / `carryForwardIn` w `EmployeeSnapshot`; historyczne PDF/DOCX niezmienne
+* **PDF/DOCX support** — PRZENIESIONO (W1); suma z adnotacją przen. (W2)
+* Pole `payrollCarryForward` na `WeekEmployee` (`kw-week-employees`) — bez nowego klucza KV / Edge deploy
+* Biweekly — **zablokowane** w V1; urlop blokuje przeniesienie
+* Sync: `pickPayrollCarryForward` w `mergeWeekEmployeeRecord`
 
 ---
 
