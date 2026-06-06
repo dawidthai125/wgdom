@@ -4,7 +4,26 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja:** **2.45.36** (UI)
+**Aktualna wersja UI:** **2.45.36** (`changelog-data.ts` — bez bumpu przy release perf-only)
+
+**Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · prod app `35614f0`
+
+---
+
+## Performance 2.4A (2026-06-06) — **CLOSED** · tag `v2.45.38-perf-2.4a`
+
+* (`35614f0`) Usunięto chunk `shared-inspector` z `manualChunks` + martwe importy `App.tsx`
+* Startup JS: **1119 KB** (4 requesty); brak `shared-inspector` i `pdfjs` w preload
+* **Bez bumpu UI** — wpis tylko w tym pliku (dla agentów AI)
+
+---
+
+## Performance 2.3C (2026-06-06) — **CLOSED** · tag `v2.45.37-perf-2.3c`
+
+* (`c922b44`) Lazy load parsera dokumentów przetargowych (`tenders-bzp-doc-parse`)
+* Parser stack (pdfjs, xlsx, doc-parse) poza cold startem; startup JS **1244 KB**
+* Synthetic runtime verification PASS
+* **Bez bumpu UI** — wpis tylko w tym pliku (dla agentów AI)
 
 ---
 
