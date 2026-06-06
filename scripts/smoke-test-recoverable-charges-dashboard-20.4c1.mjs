@@ -63,8 +63,15 @@ assert("recovered", stats.recoveredSum === 1800, String(stats.recoveredSum));
 // Oldest — open from 2026-04-01 partial remaining vs open 2026-05-01 → partial older (67 days from June 6)
 assert("oldest-days", stats.oldestUnsettledDays === 66, String(stats.oldestUnsettledDays));
 
-// Alarm — 5000 remaining + > 30 days
+// Alarm — 5000 remaining (kwota); wiek partial 66 dni < 90
 assert("alarm-high", stats.isAlarm);
+
+// 66 dni bez dużej kwoty — brak alarmu (próg 90 dni od 20.4C.2B)
+const midOnly = recoverableChargesDashboardCardStats(
+  [charge("m1", 500, "2026-04-01T10:00:00.000Z")],
+  NOW,
+);
+assert("no-alarm-66-days", !midOnly.isAlarm, String(midOnly.oldestUnsettledDays));
 
 // No alarm — small recent
 const small = recoverableChargesDashboardCardStats(

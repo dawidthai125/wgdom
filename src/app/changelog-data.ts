@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-06",
+    version: "2.48.20",
+    label: "Alerty odzyskiwania (Sprint 20.4C.2B)",
+    items: [
+      { type: "new", text: "computeRecoverableChargesAlerts() — kwota ≥ 2 000 PLN, wiek > 90 dni, partial > 60 dni, brak aktywności > 60 dni" },
+      { type: "new", text: "Pulpit — Wymaga uwagi (max 3 pozycje); moduł — pełna lista z filtrami typu alertu" },
+      { type: "improve", text: "attentionCount +1 na Pulpicie gdy billing wymaga uwagi (jedna kategoria, nie +N)" },
+      { type: "improve", text: "Próg alarmu wieku na karcie: > 90 dni (zgodnie z audytem 20.4C.2)" },
+    ],
+  },
+  {
+    date: "2026-06-06",
     version: "2.48.10",
     label: "Aging odzyskiwania (Sprint 20.4C.2A)",
     items: [

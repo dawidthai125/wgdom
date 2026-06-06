@@ -52,6 +52,7 @@ import {
   PAYROLL_WEEK_ROLLOVER_HOUR,
 } from "@/lib/payroll-cycle";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
+import { computeRecoverableChargesAlerts } from "@/lib/recoverable-charges";
 import { RecoverableChargesDashboardCard } from "@/app/RecoverableChargesDashboardCard";
 
 export function DashboardView({
@@ -236,6 +237,11 @@ export function DashboardView({
       || (isCurrentPayrollWeek && (isFriday || isSaturday || isSunday))
     );
 
+  const recoverableChargesAttention = useMemo(
+    () => computeRecoverableChargesAlerts(recoverableCharges).attentionCount,
+    [recoverableCharges],
+  );
+
   const attentionCount =
     (needsUnsavedWeekAlert ? 1 : 0) +
     (needsUnsettledAlert ? unsettledEmployees.length : 0) +
@@ -247,7 +253,8 @@ export function DashboardView({
     unseenInspectorFeed.length +
     inspectorNotesPending.length +
     wmOverdueJobs.length +
-    wmThisWeekJobs.length;
+    wmThisWeekJobs.length +
+    recoverableChargesAttention;
 
   const handleFixConsistency = (alert: PayrollJobConsistencyAlert) => {
     onFixJobs((prev) => fixJobsForConsistencyAlert(prev, alert, weekEmployees, weekFrom, weekTo, directory));

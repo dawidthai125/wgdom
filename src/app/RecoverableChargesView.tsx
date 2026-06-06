@@ -43,6 +43,7 @@ import {
   type SettleChargeSubmit,
 } from "@/app/SettleChargeModal";
 import { RecoverableChargesAnalysisSection } from "@/app/RecoverableChargesAnalysisSection";
+import { RecoverableChargesAlertsSection } from "@/app/RecoverableChargesAlertsSection";
 
 type FormMode = "create" | "edit" | null;
 
@@ -222,6 +223,12 @@ export function RecoverableChargesView({
                 value={fmtRecoverableAmount(moduleKpi.recoveredSum)}
               />
             </div>
+
+            <RecoverableChargesAlertsSection
+              charges={charges}
+              variant="module"
+              onSelectCharge={(id) => setSelectedId(id)}
+            />
 
             <RecoverableChargesAnalysisSection charges={charges} />
 

@@ -4,9 +4,19 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.48.10** (`changelog-data.ts`) · Sprint 20.4C.2A Aging (lokalnie)
+**Aktualna wersja UI:** **2.48.20** (`changelog-data.ts`) · Sprint 20.4C.2B Alerty (lokalnie)
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
+
+---
+
+## 2.48.20 (2026-06-06) — Alerty odzyskiwania (Sprint 20.4C.2B)
+
+* **Helper** — `computeRecoverableChargesAlerts()` — typy kwota / wiek / częściowe / aktywność; `attentionCount` +1 (nie +N)
+* **Pulpit** — sekcja Wymaga uwagi (max 3); próg alarmu wieku **> 90 dni** (zamiast 30)
+* **Moduł** — pełna lista alertów z filtrami; klik → szczegóły pozycji
+* **attentionCount** — Pulpit +1 gdy jakikolwiek alert billing
+* **Bez zmian** — model, merge, top listy (20.4C.2C)
 
 ---
 

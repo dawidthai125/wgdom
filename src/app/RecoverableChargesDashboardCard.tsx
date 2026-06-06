@@ -4,7 +4,9 @@ import {
   type RecoverableCharge,
   fmtRecoverableAmount,
   computeRecoverableChargesReportingStats,
+  computeRecoverableChargesAlerts,
 } from "@/lib/recoverable-charges";
+import { RecoverableChargesAlertsSection } from "@/app/RecoverableChargesAlertsSection";
 
 export function RecoverableChargesDashboardCard({
   charges,
@@ -14,13 +16,15 @@ export function RecoverableChargesDashboardCard({
   onOpenModule: () => void;
 }) {
   const stats = useMemo(() => computeRecoverableChargesReportingStats(charges), [charges]);
+  const alertStats = useMemo(() => computeRecoverableChargesAlerts(charges), [charges]);
+  const needsAttention = alertStats.attentionCount > 0;
 
   return (
     <div
       className={`rounded-xl border overflow-hidden transition-colors ${
         stats.isEmpty
           ? "bg-card border-border"
-          : stats.isAlarm
+          : needsAttention
             ? "bg-amber-500/5 border-amber-500/30"
             : "bg-card border-border hover:border-primary/25"
       }`}
@@ -39,10 +43,16 @@ export function RecoverableChargesDashboardCard({
               <p className="text-sm font-semibold">Do odzyskania</p>
               {stats.isEmpty ? (
                 <p className="text-xs text-muted-foreground mt-0.5">Brak pozycji do odzyskania</p>
-              ) : stats.isAlarm ? (
+              ) : needsAttention ? (
                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5 flex items-center gap-1">
                   <AlertTriangle size={12} className="shrink-0" />
                   Wymaga uwagi
+                  {alertStats.alerts.length > 0 && (
+                    <span className="text-muted-foreground font-normal">
+                      · {alertStats.alerts.length}{" "}
+                      {alertStats.alerts.length === 1 ? "pozycja" : alertStats.alerts.length < 5 ? "pozycje" : "pozycji"}
+                    </span>
+                  )}
                 </p>
               ) : (
                 <p className="text-xs text-muted-foreground mt-0.5">Kliknij, aby otworzyć moduł</p>
@@ -71,8 +81,8 @@ export function RecoverableChargesDashboardCard({
               <p className="text-xs text-muted-foreground">
                 Najstarsza pozycja:{" "}
                 <span className="font-medium text-foreground">{stats.oldestUnsettledDays} dni</span>
-                {stats.oldestUnsettledDays > 30 && (
-                  <span className="text-amber-600 dark:text-amber-400"> · powyżej 30 dni</span>
+                {stats.oldestUnsettledDays > 90 && (
+                  <span className="text-amber-600 dark:text-amber-400"> · powyżej 90 dni</span>
                 )}
               </p>
             )}
@@ -89,6 +99,7 @@ export function RecoverableChargesDashboardCard({
                 </div>
               ))}
             </div>
+            <RecoverableChargesAlertsSection charges={charges} variant="dashboard" />
           </>
         )}
       </button>

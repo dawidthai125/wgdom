@@ -548,7 +548,157 @@ export function countPartialRecoverableCharges(charges: RecoverableCharge[]): nu
 }
 
 const DASHBOARD_ALARM_MIN_REMAINING_PLN = 2000;
-const DASHBOARD_ALARM_OLDEST_DAYS = 30;
+const DASHBOARD_ALARM_OLDEST_DAYS = 90;
+
+export const ALERT_PARTIAL_STALE_DAYS = 60;
+export const ALERT_INACTIVITY_DAYS = 60;
+
+export type RecoverableChargeAlertType = "kwota" | "wiek" | "częściowe" | "aktywność";
+
+export const RECOVERABLE_CHARGE_ALERT_TYPE_LABELS: Record<RecoverableChargeAlertType, string> = {
+  kwota: "Kwota",
+  wiek: "Wiek",
+  częściowe: "Częściowe",
+  aktywność: "Brak aktywności",
+};
+
+export const RECOVERABLE_CHARGE_ALERT_REASONS: Record<RecoverableChargeAlertType, string> = {
+  kwota: "Kwota ≥ 2 000 PLN",
+  wiek: "Ponad 90 dni",
+  częściowe: "Częściowo rozliczone > 60 dni",
+  aktywność: "Brak aktywności > 60 dni",
+};
+
+export const ALERT_TYPE_SORT_PRIORITY: Record<RecoverableChargeAlertType, number> = {
+  wiek: 1,
+  kwota: 2,
+  częściowe: 3,
+  aktywność: 4,
+};
+
+export interface RecoverableChargeAlert {
+  chargeId: string;
+  title: string;
+  amountRemaining: number;
+  types: RecoverableChargeAlertType[];
+  primaryType: RecoverableChargeAlertType;
+  reason: string;
+  sortPriority: number;
+}
+
+export interface RecoverableChargesAlertsResult {
+  attentionCount: number;
+  alerts: RecoverableChargeAlert[];
+  countsByType: Record<RecoverableChargeAlertType, number>;
+}
+
+function isLegacyMigrationSettlementId(id: string): boolean {
+  return id.startsWith("legacy-migration-");
+}
+
+function firstNonLegacySettlementMs(charge: RecoverableCharge): number | null {
+  let min: number | null = null;
+  for (const s of charge.settlements ?? []) {
+    if (isLegacyMigrationSettlementId(s.id)) continue;
+    const ms = Date.parse(s.settledAt);
+    if (!Number.isFinite(ms)) continue;
+    if (min == null || ms < min) min = ms;
+  }
+  return min;
+}
+
+export function recoverableChargeLastActivityMs(charge: RecoverableCharge): number | null {
+  let maxMs = Date.parse(charge.updatedAt);
+  if (!Number.isFinite(maxMs)) maxMs = 0;
+  for (const s of charge.settlements ?? []) {
+    const ms = Date.parse(s.settledAt);
+    if (Number.isFinite(ms) && ms > maxMs) maxMs = ms;
+  }
+  return maxMs > 0 ? maxMs : null;
+}
+
+function emptyAlertCounts(): Record<RecoverableChargeAlertType, number> {
+  return { kwota: 0, wiek: 0, częściowe: 0, aktywność: 0 };
+}
+
+function primaryAlertType(types: RecoverableChargeAlertType[]): RecoverableChargeAlertType {
+  return types.reduce((best, t) =>
+    ALERT_TYPE_SORT_PRIORITY[t] < ALERT_TYPE_SORT_PRIORITY[best] ? t : best,
+  );
+}
+
+function alertTitle(charge: RecoverableCharge): string {
+  return charge.title.trim() || charge.description.trim().slice(0, 80) || "Pozycja do rozliczenia";
+}
+
+/** Jedno przejście — alerty A–D dla open + partial (Sprint 20.4C.2B). */
+export function computeRecoverableChargesAlerts(
+  charges: RecoverableCharge[],
+  now: Date = new Date(),
+): RecoverableChargesAlertsResult {
+  const countsByType = emptyAlertCounts();
+  const alerts: RecoverableChargeAlert[] = [];
+  const nowMs = now.getTime();
+
+  for (const c of charges) {
+    const { amountRemaining, status } = deriveChargeAmounts(c);
+    if (status !== "open" && status !== "partial") continue;
+    if (amountRemaining <= 0) continue;
+
+    const types: RecoverableChargeAlertType[] = [];
+    const ageDays = recoverableChargeAgeDays(c.createdAt, now);
+
+    if (amountRemaining >= DASHBOARD_ALARM_MIN_REMAINING_PLN) types.push("kwota");
+    if (ageDays > DASHBOARD_ALARM_OLDEST_DAYS) types.push("wiek");
+
+    if (status === "partial") {
+      const firstMs = firstNonLegacySettlementMs(c);
+      if (firstMs != null) {
+        const daysSinceFirst = Math.max(0, Math.floor((nowMs - firstMs) / 86400000));
+        if (daysSinceFirst > ALERT_PARTIAL_STALE_DAYS) types.push("częściowe");
+      }
+    }
+
+    const lastActivityMs = recoverableChargeLastActivityMs(c);
+    if (lastActivityMs != null) {
+      const daysSinceActivity = Math.max(0, Math.floor((nowMs - lastActivityMs) / 86400000));
+      if (daysSinceActivity > ALERT_INACTIVITY_DAYS) types.push("aktywność");
+    }
+
+    if (types.length === 0) continue;
+
+    for (const t of types) countsByType[t] += 1;
+
+    const primaryType = primaryAlertType(types);
+    alerts.push({
+      chargeId: c.id,
+      title: alertTitle(c),
+      amountRemaining,
+      types,
+      primaryType,
+      reason: RECOVERABLE_CHARGE_ALERT_REASONS[primaryType],
+      sortPriority: ALERT_TYPE_SORT_PRIORITY[primaryType],
+    });
+  }
+
+  alerts.sort((a, b) => {
+    if (a.sortPriority !== b.sortPriority) return a.sortPriority - b.sortPriority;
+    return b.amountRemaining - a.amountRemaining;
+  });
+
+  return {
+    attentionCount: alerts.length > 0 ? 1 : 0,
+    alerts,
+    countsByType,
+  };
+}
+
+export function topRecoverableChargeAlerts(
+  alerts: RecoverableChargeAlert[],
+  limit = 3,
+): RecoverableChargeAlert[] {
+  return alerts.slice(0, limit);
+}
 
 export type RecoverableChargeAgingBucketKey = "0_30" | "31_60" | "61_90" | "90_plus";
 
