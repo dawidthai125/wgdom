@@ -4,7 +4,15 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja:** **2.45.35** (UI)
+**Aktualna wersja:** **2.45.36** (UI)
+
+---
+
+## 2.45.36 (2026-06-05) — Performance 2.2C **CLOSED**
+
+* Usunięto reguły `manualChunks` dla `panel-jobs|payroll|tenders|inspector*` — prawdziwe lazy ładowanie zakładek admina
+* Startup: brak fetch 5 paneli przed kliknięciem (lazy `JobsView`, `PayrollView`, `TenderCenterProView`, `InspectorPanel`, `InspectorAdminView`)
+* Tag release: `v2.45.36-perf-2.2c`
 
 ---
 

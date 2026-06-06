@@ -15,6 +15,14 @@ export default defineConfig({
   },
   assetsInclude: ['**/*.svg', '**/*.csv'],
   build: {
+    // Performance 2.2A MIN — nie preloaduj lazy paneli przy starcie (Pulpit)
+    modulePreload: {
+      polyfill: true,
+      resolveDependencies(_filename, deps) {
+        const deferLazyPanels = /panel-(jobs|payroll|tenders|inspector-admin|inspector)\b/;
+        return deps.filter((dep) => !deferLazyPanels.test(dep));
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -34,22 +42,13 @@ export default defineConfig({
             return;
           }
           if (
-            id.includes('/src/app/TendersView.tsx')
-            || id.includes('/src/app/TenderDetailPanel.tsx')
-            || id.includes('/src/app/TenderBidPrepPanel.tsx')
-            || id.includes('/src/app/TendersMapPanel.tsx')
+            id.includes('/src/app/InspectorNavigation')
+            || id.includes('/src/app/InspectorJobFileUpload')
+            || id.includes('/src/app/InspectorPhotoGallery')
+            || id.includes('/src/app/InspectorAdminJobDetail')
+            || id.includes('/src/app/WmPortfolioView')
           ) {
-            return 'panel-tenders';
-          }
-          if (
-            id.includes('/src/app/InspectorPanel')
-            || id.includes('/src/app/InspectorDashboard')
-            || id.includes('/src/app/InspectorNavigation')
-          ) {
-            return 'panel-inspector';
-          }
-          if (id.includes('/src/app/InspectorAdminView')) {
-            return 'panel-inspector-admin';
+            return 'shared-inspector';
           }
           if (
             id.includes('/src/app/GuideView')
@@ -57,12 +56,7 @@ export default defineConfig({
           ) {
             return 'panel-guide';
           }
-          if (
-            id.includes('/src/app/JobsView')
-            || id.includes('/src/app/PayrollView')
-          ) {
-            return id.includes('PayrollView') ? 'panel-payroll' : 'panel-jobs';
-          }
+          // Performance 2.2C — panel-* manualChunks usunięte (eksperyment SCC)
         },
       },
     },

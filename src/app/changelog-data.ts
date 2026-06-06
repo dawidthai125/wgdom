@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-05",
+    version: "2.45.36",
+    label: "Performance 2.2 — prawdziwe lazy ładowanie zakładek",
+    items: [
+      {
+        type: "improve",
+        text: "Pulpit nie pobiera już przy starcie ciężkich modułów Roboty, Lista płac, Przetargi i Inspektor — zakładki ładują się dopiero po ich otwarciu",
+      },
+      {
+        type: "improve",
+        text: "Zmniejszono liczbę modułów pobieranych podczas uruchamiania aplikacji",
+      },
+      {
+        type: "fix",
+        text: "Naprawiono konfigurację bundlera odpowiedzialną za przedwczesne pobieranie paneli",
+      },
+    ],
+  },
+  {
+    date: "2026-06-05",
     version: "2.45.35",
     label: "Performance 2.1 — Command Center",
     items: [
