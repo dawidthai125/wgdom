@@ -8,17 +8,18 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md  ← ★ Performance 1.x CLOSED, a6cdb4a (nowy agent)
-3. CURRENT-TASK.md        ← skrót: co na prod / co dalej
-4. docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md  ← incydent Roboty, RCA
-5. docs/SESSION-HANDOFF-2026-06.md  ← audyty, Faza 8–9, Roboty 2.0
-5. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-6. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
-7. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin + Roboty §11
-8. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
-9. docs/jobs-2.0-product-audit.md    ← rekomendacja rozwoju zakładki Roboty
-10. CHANGELOG.md          ← CO już zrobiono (skrót)
-11. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+2. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← ★ Performance 2.x CLOSED (wyniki końcowe)
+3. docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md  ← Performance 1.x CLOSED, a6cdb4a
+4. CURRENT-TASK.md        ← skrót: co na prod / co dalej
+5. docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md  ← incydent Roboty, RCA
+6. docs/SESSION-HANDOFF-2026-06.md  ← audyty, Faza 8–9, Roboty 2.0
+7. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+8. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
+9. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin + Roboty §11
+10. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
+11. docs/jobs-2.0-product-audit.md    ← rekomendacja rozwoju zakładki Roboty
+12. CHANGELOG.md          ← CO już zrobiono (skrót)
+13. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -40,6 +41,7 @@
 | **docs/ARCHITECTURE.md** | Pełny techniczny przewodnik (living document) |
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
+| **docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md** | Performance 2.x **CLOSED** (`35614f0`) — startup 1119 KB, seria 2.2C→2.4A |
 | **docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md** | Performance 1.x CLOSED — CloudLoader CORE/DEFERRED, pomiary, tag `v2.45.34-perf-1.3a` |
 | **docs/SESSION-HANDOFF-2026-06.md** | Handoff sesji: audyty, commity, Roboty 2.0, UX greeting |
 | **docs/jobs-2.0-product-audit.md** | Audyt produktowy Roboty (MIN/MID/FULL) |
@@ -72,8 +74,9 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.45.34**) |
-| Prod `main` | commit **`a6cdb4a`** · tag `v2.45.34-perf-1.3a` · Performance 1.3A+ na prod |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.45.36** na prod) |
+| Prod `main` (app) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · Performance 2.x **CLOSED** |
+| Docs HEAD | commit **`6e45fb0`** — zamknięcie serii Performance w dokumentacji |
 | Frontend deploy | push `main` → Vercel |
 | Backend deploy | push `supabase/functions/**` → GitHub Action |
 | Sync | `src/lib/cloud-sync.ts` |

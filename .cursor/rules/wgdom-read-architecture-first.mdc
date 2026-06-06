@@ -9,9 +9,11 @@ Komunikuj się z użytkownikiem po **polsku**.
 
 ## Zanim zaczniesz pracę w tym repo
 
-1. **Przeczytaj [`docs/SESSION-HANDOFF-2026-06.md`](docs/SESSION-HANDOFF-2026-06.md)** — stan sesji (Faza 8–9, audyty, Roboty 2.0).
-2. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — pełna architektura (panele, sync, Supabase, Vercel, PWA, pułapki).
-3. Skrót wejścia: [`AGENTS.md`](AGENTS.md).
+1. **Przeczytaj [`docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md`](docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md)** — Performance 2.x **CLOSED** (`35614f0`).
+2. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — skrót: co na prod / co lokalnie.
+3. **Przeczytaj [`docs/SESSION-HANDOFF-2026-06.md`](docs/SESSION-HANDOFF-2026-06.md)** — Faza 8–9, audyty, Roboty 2.0.
+4. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — pełna architektura (panele, sync, Supabase, Vercel, PWA, pułapki).
+5. Skrót wejścia: [`AGENTS.md`](AGENTS.md).
 
 Nie analizuj od zera całego `src/app/App.tsx` (~15k linii) — ARCHITECTURE.md opisuje system jako całość.
 
