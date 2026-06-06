@@ -262,9 +262,22 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | `kw-contacts` | Kontakty e-mail | Admin |
 | `kw-employee-leaves` | Nieobecności pracowników (urlop / L4 / bezpłatny, tygodnie Pn–So) | Admin |
 
-**Nieobecności (Sprint 20.0A, v2.45.37):** tablica `EmployeeLeave[]` w `kw-employee-leaves`. Overlay na live payroll (`payroll-leave-overlay.ts`) — `netPay`/`grossPay`=0, godziny bez zmian. Przy `buildWeekSnapshot` zamrażany `leaveStatus` w `EmployeeSnapshot`. Archiwalny PDF/DOCX tylko ze snapshotu — bez live lookup urlopów.
+**Nieobecności (Sprint 20.0A, v2.45.37, prod `778f616`):**
 
-**Nowy typ danych → MUSISZ:** dodać do `DATA_KEYS`, hook stanu w adminie, merge w `mergeDataKey`, push/pull paths.
+| Aspekt | Opis |
+|--------|------|
+| **Model** | Tablica `EmployeeLeave[]` w `kw-employee-leaves` — typy: urlop / L4 / bezpłatny; zakres tygodni Pn–So |
+| **UI** | `EmployeeLeavesSection.tsx` w kartotece — CRUD; walidacja overlap + blokada tygodni w archiwum |
+| **Payroll leave overlay** | `payroll-leave-overlay.ts` — na **live** liście płac: `netPay`/`grossPay`=0, **godziny bez zmian**; etykiety 🏖 URLOP / 🤒 CHOROBOWE / 🚫 BEZPŁATNY |
+| **Biweekly** | `calcBiweeklyWeekNetWithLeave` — cash split i payout zerowane w tygodniu urlopu |
+| **Archive snapshot freeze** | Przy `buildWeekSnapshot` zamrażany `leaveStatus` w `EmployeeSnapshot`; archiwalna lista płac i PDF/DOCX **tylko ze snapshotu** — bez live lookup urlopów dodanych później |
+| **Eksport** | `payroll-export.ts` — `payrollNetDisplayText()` → „URLOP” / status zamiast kwoty net |
+| **Sync** | `mergeEmployeeLeaves()` w `cloud-sync.ts`; push przez `pushEmployeeLeavesToCloud()` |
+| **Edge** | Walidacja payloadu + overlap w `batch-set`; filtrowanie ID z tombstone list |
+
+Pliki: `src/lib/employee-leaves.ts`, `src/lib/payroll-leave-overlay.ts`, `src/app/EmployeeLeavesSection.tsx`, `src/app/PayrollView.tsx`.
+
+**Nowy typ danych → MUSISZ:** dodać do `DATA_KEYS`, hook stanu w adminie, merge w `mergeDataKey`, push/pull paths, tombstone przy DELETE.
 
 ### 10.2 Tombstones (usunięcia nie wracają z chmury)
 
@@ -274,6 +287,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | `kw-directory-deleted-ids` | Usunięci pracownicy |
 | `kw-contacts-deleted-ids` | Usunięte kontakty |
 | `kw-archive-deleted-ids` | Usunięte tygodnie archiwum |
+| `kw-employee-leaves-deleted-ids` | Usunięte nieobecności (Sprint 20.0A) — merge i Edge batch-set filtrują te ID |
 
 ### 10.3 Klucze konfiguracyjne (chmura przez `persistKey`)
 
@@ -318,6 +332,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 - **Edge `batch-set` (FIX A, 2026-06-03):** `mergeWeekEmployeeRecordByTimestamps` używa `pickSettledByTimestamps` / `isLikelySpuriousUnsettle` jak klient; `mergeWeekEmployeesUnion` zawsze scala rekordy (nie zastępuje całego wpisu po `weekEmployeeRichness`)
 - **Directory:** lokalna lista decyduje o składzie; pola scalane per id
 - **Archive:** lokalna lista + merge `weekEmployees` wewnątrz tygodnia
+- **Employee leaves:** per `id`, winner po `updatedAt`; union z filtrem `kw-employee-leaves-deleted-ids` — usunięte wpisy **nie wracają** z chmury (Sprint 20.0A)
 - **Remis timestampów:** preferencja **chmury** (v2.35.14+)
 - **Po pull admina:** `suppressAutoSyncUntilRef` — nie pushuj od razu pętlą
 
@@ -360,11 +375,11 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 | Faza | Kiedy | Klucze | Plik |
 |------|--------|--------|------|
 | **CORE** | przed `setReady(true)` | `BOOTSTRAP_CORE_KEYS` (6) + tombstones + admin keys | `CloudLoader.tsx`, `cloud-sync.ts` |
-| **DEFERRED** | `void` po `ready` | `BOOTSTRAP_DEFERRED_KEYS` (4) + `kw-contacts-deleted-ids` | `fetchAndMergeDeferredBootstrap()` |
+| **DEFERRED** | `void` po `ready` | `BOOTSTRAP_DEFERRED_KEYS` (5) + tombstones (w tym `kw-employee-leaves-deleted-ids`) | `fetchAndMergeDeferredBootstrap()` |
 
 **CORE:** `kw-directory`, `kw-week-employees`, `kw-archive`, `kw-weekFrom`, `kw-weekTo`, `kw-jobs`.
 
-**DEFERRED:** `kw-tenders-pipeline`, `kw-tenders-company-profile`, `kw-tenders-custom-keywords`, `kw-contacts`.
+**DEFERRED:** `kw-tenders-pipeline`, `kw-tenders-company-profile`, `kw-tenders-custom-keywords`, `kw-contacts`, `kw-employee-leaves`.
 
 Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTSTRAP_EVENT`) → `CommandCenterContext` wywołuje `bumpProfileVersion()` (profil firmy w CC).
 

@@ -11,15 +11,16 @@
 2. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← ★ Performance 2.x CLOSED (wyniki końcowe)
 3. docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md  ← Performance 1.x CLOSED, a6cdb4a
 4. CURRENT-TASK.md        ← skrót: co na prod / co dalej
-5. docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md  ← incydent Roboty, RCA
-6. docs/SESSION-HANDOFF-2026-06.md  ← audyty, Faza 8–9, Roboty 2.0
-7. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-8. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
-9. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin + Roboty §11
-10. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
-11. docs/jobs-2.0-product-audit.md    ← rekomendacja rozwoju zakładki Roboty
-12. CHANGELOG.md          ← CO już zrobiono (skrót)
-13. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+5. docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md  ← Sprint 20.0A CLOSED (nieobecności, `778f616`)
+6. docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md  ← incydent Roboty, RCA
+7. docs/SESSION-HANDOFF-2026-06.md  ← audyty, Faza 8–9, Roboty 2.0
+8. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+9. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
+10. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin + Roboty §11
+11. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
+12. docs/jobs-2.0-product-audit.md    ← rekomendacja rozwoju zakładki Roboty
+13. CHANGELOG.md          ← CO już zrobiono (skrót)
+14. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -42,6 +43,7 @@
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
 | **docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md** | Performance 2.x **CLOSED** (`35614f0`) — startup 1119 KB, seria 2.2C→2.4A |
+| **docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md** | Sprint 20.0A **CLOSED** (`778f616`) — nieobecności, overlay payroll, tombstones |
 | **docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md** | Performance 1.x CLOSED — CloudLoader CORE/DEFERRED, pomiary, tag `v2.45.34-perf-1.3a` |
 | **docs/SESSION-HANDOFF-2026-06.md** | Handoff sesji: audyty, commity, Roboty 2.0, UX greeting |
 | **docs/jobs-2.0-product-audit.md** | Audyt produktowy Roboty (MIN/MID/FULL) |
@@ -74,9 +76,9 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.45.36** na prod) |
-| Prod `main` (app) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · Performance 2.x **CLOSED** |
-| Docs HEAD | commity docs na `main` po `35614f0` (m.in. `dc71792`, `fa10c1f`) — Performance 2.x CLOSED |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.45.37** na prod) |
+| Prod `main` (app) | commit **`778f616`** · Sprint 20.0A nieobecności **CLOSED** |
+| Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Frontend deploy | push `main` → Vercel |
 | Backend deploy | push `supabase/functions/**` → GitHub Action |
 | Sync | `src/lib/cloud-sync.ts` |
@@ -125,6 +127,17 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 
 - `JobPhotosGalleryView` w `App.tsx` — zakładka **Zdjęcia**
 - `src/lib/photo-download.ts` — `downloadJobGalleryZip`
+
+---
+
+## 3d. Nieobecności pracowników — Sprint 20.0A (**CLOSED**, prod `778f616`)
+
+- **Handoff:** [`docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md`](docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md)
+- **Architektura:** **ARCHITECTURE.md § 10.1** — `kw-employee-leaves`, `kw-employee-leaves-deleted-ids`, overlay, archive freeze
+- **Pliki:** `employee-leaves.ts`, `payroll-leave-overlay.ts`, `EmployeeLeavesSection.tsx`, `PayrollView.tsx`, `payroll-export.ts`
+- **Test smoke:** `npx vite-node scripts/smoke-test-employee-leaves-20.0a.mjs`
+
+**Nie zmieniaj bez polecenia:** merge leaves + tombstones, overlay archiwum (snapshot-only), Edge walidacja leaves.
 
 ---
 
