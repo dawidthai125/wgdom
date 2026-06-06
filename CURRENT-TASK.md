@@ -5,7 +5,7 @@
 
 **Ostatnia aktualizacja:** 2026-06-06  
 **Wersja UI (prod):** **2.45.39** — Sprint 20.1B saved ≠ closed  
-**Prod `origin/main` HEAD:** po deploy 20.1B · https://www.wgdom.fun  
+**Prod `origin/main` HEAD:** **`74e65d9`** · https://www.wgdom.fun  
 **Status Sprint 20.1B:** **CLOSED**
 
 ---
@@ -15,9 +15,10 @@
 | Pole | Wartość |
 |------|---------|
 | **Release** | **v2.45.39** |
-| **Commit** | po push — `fix(payroll): allow carry forward on saved active week (20.1B)` |
+| **Commit** | **`74e65d9`** — `fix(payroll): allow carry forward on saved active week (20.1B)` |
 | **Production** | https://www.wgdom.fun |
 | **Edge deploy** | **nie wymagany** |
+| **Vercel deploy** | **PASS** @ `74e65d9` |
 
 ### Podsumowanie
 
@@ -36,6 +37,16 @@ Rozdzielono **saved** (backup w `savedWeeks`) od **closed** (tydzień historyczn
 **Testy:** `scripts/pre-commit-verify-20.1b.mjs`, `scripts/smoke-test-payroll-carry-forward-20.1b.mjs`, regresja 20.0A + 20.1A — PASS
 
 **Następny sprint:** TBD
+
+### Sesja AI 2026-06-06 (ten czat) — chronologia
+
+1. **Audyt widoczności 20.1A** — po „Zapisz tydzień” ⏭ znikał (root: `isArchivedWeek` = zapisany = zarchiwizowany). Scenariusz Kamila 35h/1050 PLN → przycisk ukryty mimo braku rolloveru.
+2. **Sprint 20.1B** — saved ≠ closed: `isPayrollWeekClosed`, defer do rolloveru, live payroll na operacyjnym, snapshot tylko historyczny, `refreshSavedActiveWeekSnapshot`.
+3. **Testy** — A–F + TEST 1–9 + regresje 20.0A/20.1A + build — PASS.
+4. **Deploy** — commit `74e65d9`, Vercel PASS, prod **2.45.39**.
+5. **Docs follow-up** — commit docs-only z pełnym kontekstem dla przyszłych AI.
+
+**Nie commitowane (poza sprintem):** skrypty RCA w `scripts/audit-*`, `find-map-sources`, `verify-jobs-mount-crash`, itd.
 
 ---
 

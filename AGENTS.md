@@ -80,9 +80,10 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.45.39** po deploy 20.1B) |
-| Prod `main` (app) | po push 20.1B · release **v2.45.39** · Sprint 20.1B carry workflow **CLOSED** |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.45.39**) |
+| Prod `main` (app) | commit **`74e65d9`** · release **v2.45.39** · Sprint 20.1B carry workflow **CLOSED** |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
+| Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |
 | Frontend deploy | push `main` → Vercel |
 | Backend deploy | push `supabase/functions/**` → GitHub Action |
 | Sync | `src/lib/cloud-sync.ts` |
@@ -162,13 +163,15 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 
 ---
 
-## 3f. Carry workflow — Sprint 20.1B (**CLOSED**, v2.45.39)
+## 3f. Carry workflow — Sprint 20.1B (**CLOSED**, prod `74e65d9`, v2.45.39)
 
-- **Handoff:** [`docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md`](docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md)
+- **Handoff:** [`docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md`](docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md) — **czytaj najpierw** (audyt Kamila → fix → deploy)
 - **Architektura:** **ARCHITECTURE.md § 10.1** — `isPayrollWeekSaved`, `isPayrollWeekClosed`, `refreshSavedActiveWeekSnapshot`
 - **Test smoke:** `npx vite-node scripts/smoke-test-payroll-carry-forward-20.1b.mjs`, `scripts/pre-commit-verify-20.1b.mjs`
 
 **saved ≠ closed** — defer ⏭ do rolloveru; zapisany operacyjny tydzień = live payroll + auto snapshot refresh.
+
+**Kontekst z sesji 2026-06-06:** 20.1A traktował `savedWeeks` jak archiwum (`archived_week`) — po „Zapisz tydzień” ⏭ znikał. 20.1B naprawia to bez zmiany MODEL A freeze ani logiki urlopów 20.0A.
 
 ---
 
