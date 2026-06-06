@@ -7,7 +7,7 @@ import {
   getPayrollWeekRange,
   getPayrollClosingWeekRange,
 } from "@/lib/payroll-cycle";
-import type { PayrollWeeklyGrid } from "@/lib/payroll-export";
+import { snapshotCarryFieldsForEmployee } from "@/lib/payroll-carry-snapshot";
 import { isDataKey, isValidJobRecord, API_BASE, API_HEADERS, type DataKey } from "@/lib/cloud-sync";
 import { appendJobActivity } from "@/lib/job-activity";
 import { digestSha256Hex } from "@/lib/admin-auth";
@@ -109,6 +109,8 @@ export interface WeekEmployee {
   prevSaturday?: DayData;
   extraCosts?: EmployeeExtraCost[];
   settled: boolean;
+  /** Sprint 20.1A — jednorazowe przeniesienie wypłaty (zamrożona kwota) na następny tydzień. */
+  payrollCarryForward?: import("@/lib/payroll-carry-forward").PayrollCarryForward;
 }
 
 /** Status nieobecności zamrożony w archiwum tygodnia (Sprint 20.0A). */
@@ -122,6 +124,13 @@ export interface EmployeeSnapshot {
   settled: boolean;
   /** Zamrożony przy zapisie tygodnia — nie zmienia się po dodaniu urlopów wstecz. */
   leaveStatus?: PayrollLeaveStatus;
+  /** Sprint 20.1A — kwota przeniesiona na następny tydzień (zamrożona). */
+  carryForwardOut?: number;
+  carryForwardTargetFrom?: string;
+  carryForwardTargetTo?: string;
+  /** Sprint 20.1A — kwota otrzymana z poprzedniego tygodnia. */
+  carryForwardIn?: number;
+  carryForwardFromWeek?: { from: string; to: string };
 }
 
 /** Wpis czasu na robocie zapisany w archiwum tygodnia */
@@ -1783,6 +1792,7 @@ export function buildWeekSnapshot(
   jobs: Job[],
   existing?: WeekSnapshot,
   employeeLeaves?: import("@/lib/employee-leaves").EmployeeLeave[],
+  savedWeeksForCarry?: WeekSnapshot[],
 ): WeekSnapshot {
   const employees = weekEmployees.map((emp) => {
     const c = calcWeekEmployee(emp);
@@ -1796,8 +1806,10 @@ export function buildWeekSnapshot(
       );
       leaveStatus = leave?.leaveType;
     }
-    const netPay = leaveStatus ? 0 : c.netPay;
     const grossPay = leaveStatus ? 0 : c.grossPay;
+    const carryFields = leaveStatus
+      ? { netPay: 0 as number }
+      : snapshotCarryFieldsForEmployee(emp, weekFrom, weekTo, c.netPay, false, savedWeeksForCarry);
     return {
       name: emp.name,
       position: emp.position,
@@ -1808,9 +1820,14 @@ export function buildWeekSnapshot(
       grossPay,
       totalZaliczka: c.totalZaliczka,
       totalExtraCosts: c.totalExtraCosts,
-      netPay,
+      netPay: leaveStatus ? 0 : carryFields.netPay,
       settled: emp.settled,
       ...(leaveStatus ? { leaveStatus } : {}),
+      ...(carryFields.carryForwardOut != null ? { carryForwardOut: carryFields.carryForwardOut } : {}),
+      ...(carryFields.carryForwardTargetFrom ? { carryForwardTargetFrom: carryFields.carryForwardTargetFrom } : {}),
+      ...(carryFields.carryForwardTargetTo ? { carryForwardTargetTo: carryFields.carryForwardTargetTo } : {}),
+      ...(carryFields.carryForwardIn != null ? { carryForwardIn: carryFields.carryForwardIn } : {}),
+      ...(carryFields.carryForwardFromWeek ? { carryForwardFromWeek: carryFields.carryForwardFromWeek } : {}),
     };
   });
   return {

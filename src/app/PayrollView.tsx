@@ -27,6 +27,14 @@ import {
   type PayrollCalcWithLeave,
 } from "@/lib/payroll-leave-overlay";
 import {
+  calcWeekEmployeeForPayroll,
+  canDeferPayroll,
+  buildPayrollCarryForwardRecord,
+  calcWeeklyNetWithCarry,
+  CARRY_FORWARD_LABEL,
+  type PayrollCalcWithAdjustments,
+} from "@/lib/payroll-carry-forward";
+import {
   isBiweeklyPayrollEmployee,
   calcBiweeklyRowDisplay,
   computePayrollCashSplit,
@@ -76,7 +84,7 @@ import {
 
 
 export function toPayrollCalcRows(
-  rows: ({ emp: WeekEmployee } & PayrollCalcWithLeave)[],
+  rows: ({ emp: WeekEmployee } & PayrollCalcWithAdjustments)[],
   directory: DirectoryEmployee[],
   weekFrom: string,
   weekTo: string,
@@ -84,9 +92,15 @@ export function toPayrollCalcRows(
 ): PayrollCalcRow[] {
   return rows.map((r) => {
     const leaveStatus = r.leaveStatus;
-    const biweekly = !leaveStatus && isBiweeklyPayrollEmployee(r.emp, directory);
+    const carryOut = r.carryForwardOut != null && r.carryForwardOut > 0;
+    const carryIn = r.carryForwardIn != null && r.carryForwardIn > 0;
+    const biweekly = !leaveStatus && !carryOut && !carryIn && isBiweeklyPayrollEmployee(r.emp, directory);
     const bw = biweekly ? calcBiweeklyRowDisplay(r.emp, directory, weekFrom, weekTo, savedWeeks) : null;
-    const netPay = leaveStatus ? 0 : (bw ? (bw.isPayoutWeek ? bw.displayNet : bw.thisWeekNet) : r.netPay);
+    let netPay: number;
+    if (leaveStatus || carryOut) netPay = 0;
+    else if (carryIn) netPay = r.displayNetPay ?? r.netPay ?? 0;
+    else if (bw) netPay = bw.isPayoutWeek ? bw.displayNet : bw.thisWeekNet;
+    else netPay = r.displayNetPay ?? r.netPay ?? 0;
     const grossPay = leaveStatus ? 0 : (biweekly ? r.weekGross : r.grossPay);
     return {
       emp: { name: r.emp.name, position: r.emp.position, settled: r.emp.settled },
@@ -101,7 +115,7 @@ export function toPayrollCalcRows(
       weekGross: r.weekGross,
       prevSatGross: biweekly ? 0 : r.prevSatGross,
       grossPay,
-      weekNet: leaveStatus ? 0 : r.weekNet,
+      weekNet: leaveStatus || carryOut ? 0 : r.weekNet,
       prevSatNet: biweekly ? 0 : r.prevSatNet,
       netPay,
       rateNum: r.rateNum,
@@ -114,6 +128,9 @@ export function toPayrollCalcRows(
       biweeklyPrevWeekLabel: bw ? `${fmtDate(bw.prevWeekFrom)}–${fmtDate(bw.prevWeekTo)}` : undefined,
       biweeklyDisplayNet: leaveStatus ? 0 : bw?.displayNet,
       leaveStatus,
+      carryForwardOut: r.carryForwardOut,
+      carryForwardIn: r.carryForwardIn,
+      carryForwardInFrom: r.carryForwardInFrom,
     };
   });
 }
@@ -538,15 +555,16 @@ export function PayrollView({
     () =>
       payrollEmployees.map((emp) => ({
         emp,
-        ...calcWeekEmployeeWithLeave(emp, {
+        ...calcWeekEmployeeForPayroll(emp, {
           weekFrom,
           weekTo,
           employeeLeaves: isArchivedWeek ? undefined : employeeLeaves,
           archivedSnapshot: isArchivedWeek ? archivedForWeek : undefined,
           livePayroll: !isArchivedWeek,
+          savedWeeks,
         }),
       })),
-    [payrollEmployees, weekFrom, weekTo, employeeLeaves, isArchivedWeek, archivedForWeek],
+    [payrollEmployees, weekFrom, weekTo, employeeLeaves, isArchivedWeek, archivedForWeek, savedWeeks],
   );
 
   const cashSplit = useMemo(
@@ -558,13 +576,11 @@ export function PayrollView({
         weekTo,
         savedWeeks,
         (e) =>
-          calcWeekEmployeeWithLeave(e, {
-            weekFrom,
-            weekTo,
+          calcWeeklyNetWithCarry(e, weekFrom, weekTo, {
             employeeLeaves: isArchivedWeek ? undefined : employeeLeaves,
+            savedWeeks,
             archivedSnapshot: isArchivedWeek ? archivedForWeek : undefined,
-            livePayroll: !isArchivedWeek,
-          }).netPay,
+          }),
         (e, from, to) =>
           calcBiweeklyWeekNetWithLeave(e, from, to, {
             employeeLeaves,
@@ -584,7 +600,7 @@ export function PayrollView({
   const biweeklyRowMap = useMemo(() => {
     const m = new Map<string, ReturnType<typeof calcBiweeklyRowDisplay>>();
     for (const r of rows) {
-      if (r.leaveStatus) continue;
+      if (r.leaveStatus || r.carryForwardOut || r.carryForwardIn) continue;
       if (isBiweeklyPayrollEmployee(r.emp, directory)) {
         m.set(r.emp.id, calcBiweeklyRowDisplay(r.emp, directory, weekFrom, weekTo, savedWeeks));
       }
@@ -614,10 +630,11 @@ export function PayrollView({
   const totalZaliczkaSum = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?r.weekZaliczka:r.totalZaliczka),0);
   const totalExtraCostsSum = rows.reduce((s,r)=>s+r.totalExtraCosts,0);
   const totalNet = rows.reduce((s,r)=>{
-    if (r.leaveStatus) return s;
+    if (r.leaveStatus || (r.carryForwardOut != null && r.carryForwardOut > 0)) return s;
+    if (r.carryForwardIn != null && r.carryForwardIn > 0) return s + r.displayNetPay;
     const bw = biweeklyRowMap.get(r.emp.id);
     if (bw) return s+(bw.isPayoutWeek?bw.displayNet:bw.thisWeekNet);
-    return s+r.netPay;
+    return s+r.displayNetPay;
   },0);
 
   const alreadySaved = isArchivedWeek;
@@ -655,6 +672,29 @@ export function PayrollView({
   );
 
   const selectedEmp = weekEmployees.find((e)=>e.id===selectedEmpId)||null;
+  const selectedPayrollRow = selectedEmp ? rows.find((r) => r.emp.id === selectedEmp.id) : undefined;
+
+  const handleDeferPayroll = useCallback(
+    (emp: WeekEmployee) => {
+      const row = rows.find((r) => r.emp.id === emp.id);
+      if (!row) return;
+      const check = canDeferPayroll(emp, row, directory, isArchivedWeek);
+      if (!check.ok || check.frozenAmount == null) return;
+      const target = buildPayrollCarryForwardRecord(check.frozenAmount, weekFrom, weekTo);
+      if (
+        !window.confirm(
+          `Przenieść wypłatę ${fmt(check.frozenAmount)} PLN na tydzień ${fmtDate(target.targetWeekFrom)}–${fmtDate(target.targetWeekTo)}?\n\nKwota zostanie zamrożona — późniejsza zmiana godzin lub stawki nie wpłynie na przeniesienie.`,
+        )
+      ) {
+        return;
+      }
+      onUpdateWeekEmployee({
+        ...emp,
+        payrollCarryForward: target,
+      });
+    },
+    [rows, directory, isArchivedWeek, weekFrom, weekTo, onUpdateWeekEmployee],
+  );
 
   const exportTotals: PayrollExportTotals = {
     totalWeekHours,
@@ -968,6 +1008,16 @@ export function PayrollView({
                                 if (r.leaveStatus) {
                                   return <span className="text-violet-400">{leaveTypeDisplayLabel(r.leaveStatus)}</span>;
                                 }
+                                if (r.carryForwardOut != null && r.carryForwardOut > 0) {
+                                  return <span className="text-amber-400" title={`Przeniesiono ${fmt(r.carryForwardOut)} PLN na następny tydzień`}>{CARRY_FORWARD_LABEL}</span>;
+                                }
+                                if (r.carryForwardIn != null && r.carryForwardIn > 0) {
+                                  return (
+                                    <span title={`Bieżąca ${fmt(r.displayNetPay - r.carryForwardIn)} + przeniesiona ${fmt(r.carryForwardIn)}`}>
+                                      {fmt(r.displayNetPay)} <span className="text-[10px] font-normal text-amber-400/80">(+{fmt(r.carryForwardIn)})</span>
+                                    </span>
+                                  );
+                                }
                                 const bw = biweeklyRowMap.get(r.emp.id);
                                 if (bw && !bw.isPayoutWeek) {
                                   return <span title={`Narasta na ${fmtDate(bw.nextPayoutDate)}`}><span className="text-sky-400">{fmt(bw.thisWeekNet)}</span> <span className="text-[10px] font-normal text-sky-400/70">→ {fmtDate(bw.nextPayoutDate).slice(0,5)}</span></span>;
@@ -1069,6 +1119,8 @@ export function PayrollView({
                           <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Koszty</p><p className="text-sm font-semibold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalExtraCosts>0?`+${fmt(r.totalExtraCosts)}`:"—"}</p></div>
                           <div className="bg-primary/10 rounded-lg px-2 py-2 col-span-2 sm:col-span-1"><p className="text-xs text-primary/70">Do wypłaty</p><p className="text-sm font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{(() => {
                                 if (r.leaveStatus) return leaveTypeDisplayLabel(r.leaveStatus);
+                                if (r.carryForwardOut != null && r.carryForwardOut > 0) return CARRY_FORWARD_LABEL;
+                                if (r.carryForwardIn != null && r.carryForwardIn > 0) return `${fmt(r.displayNetPay)} (+${fmt(r.carryForwardIn)})`;
                                 const bw = biweeklyRowMap.get(r.emp.id);
                                 if (bw && !bw.isPayoutWeek) return fmt(bw.thisWeekNet);
                                 if (bw && bw.isPayoutWeek) return fmt(bw.displayNet);
@@ -1220,7 +1272,18 @@ export function PayrollView({
       {/* Detail panel */}
       {selectedEmp && (
         <div className="w-full sm:flex-1 sm:min-w-[400px] lg:min-w-[480px] border-l border-border bg-card shrink-0 flex flex-col min-h-0 h-full overflow-hidden absolute sm:relative inset-0 sm:inset-auto z-50 sm:z-auto">
-          <WeekEmployeeDetail emp={selectedEmp} weekFrom={weekFrom} weekTo={weekTo} directory={directory} savedWeeks={savedWeeks} onChange={onUpdateWeekEmployee} onClose={()=>setSelectedEmpId(null)}/>
+          <WeekEmployeeDetail
+            emp={selectedEmp}
+            weekFrom={weekFrom}
+            weekTo={weekTo}
+            directory={directory}
+            savedWeeks={savedWeeks}
+            isArchivedWeek={isArchivedWeek}
+            payrollRow={selectedPayrollRow}
+            onDeferPayroll={handleDeferPayroll}
+            onChange={onUpdateWeekEmployee}
+            onClose={()=>setSelectedEmpId(null)}
+          />
         </div>
       )}
 

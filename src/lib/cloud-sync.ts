@@ -745,6 +745,24 @@ async function applyPayrollGuardBeforePush(
 }
 
 /** Scal dwa wpisy tego samego pracownika — stawka i godziny osobno (rateUpdatedAt / dataUpdatedAt). */
+type PayrollCarryForwardLike = { amount?: number; createdAt?: string };
+
+/** Nie gub payrollCarryForward przy merge — chmura bez pola nie może wyczyścić lokalnego defer. */
+function pickPayrollCarryForward(l: Record<string, unknown>, c: Record<string, unknown>): PayrollCarryForwardLike | undefined {
+  const lCf = l.payrollCarryForward as PayrollCarryForwardLike | undefined;
+  const cCf = c.payrollCarryForward as PayrollCarryForwardLike | undefined;
+  const lAmt = lCf?.amount ?? 0;
+  const cAmt = cCf?.amount ?? 0;
+  if (lAmt > 0 && cAmt <= 0) return lCf;
+  if (cAmt > 0 && lAmt <= 0) return cCf;
+  if (lAmt > 0 && cAmt > 0) {
+    const lAt = parseRecordTs(lCf?.createdAt);
+    const cAt = parseRecordTs(cCf?.createdAt);
+    return lAt >= cAt ? lCf : cCf;
+  }
+  return undefined;
+}
+
 export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown {
   const l = local as Record<string, unknown>;
   const c = cloud as Record<string, unknown>;
@@ -785,6 +803,7 @@ export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown
     dataUpdatedAt: lAt >= cAt ? l.dataUpdatedAt ?? c.dataUpdatedAt : c.dataUpdatedAt ?? l.dataUpdatedAt,
     settled,
     settledUpdatedAt: pickSettledUpdatedAtForMerge(l, c, settled),
+    payrollCarryForward: pickPayrollCarryForward(l, c),
   };
 }
 

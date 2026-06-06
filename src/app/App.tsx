@@ -712,7 +712,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           let archive = savedWeeks;
           const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
           if (existing) {
-            const snapshot = buildWeekSnapshot(weekFrom, weekTo, next, jobs, existing, employeeLeaves);
+            const snapshot = buildWeekSnapshot(weekFrom, weekTo, next, jobs, existing, employeeLeaves, savedWeeks);
             archive = savedWeeks.map((w) => (w.id === existing.id ? snapshot : w));
             try { localStorage.setItem("kw-archive", JSON.stringify(archive)); } catch { /* ignore */ }
             setSavedWeeks(archive);
@@ -730,7 +730,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const week = prev.find((w) => w.id === weekId);
       if (!week?.weekEmployees?.length) return prev;
       const nextEmployees = patchEmployees(week.weekEmployees);
-      const snapshot = buildWeekSnapshot(week.weekFrom, week.weekTo, nextEmployees, jobs, week, employeeLeaves);
+      const snapshot = buildWeekSnapshot(week.weekFrom, week.weekTo, nextEmployees, jobs, week, employeeLeaves, savedWeeks);
       return prev.map((w) => (w.id === weekId ? snapshot : w));
     });
   }, [jobs, setSavedWeeks]);
@@ -771,7 +771,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const saveBiweeklyBacklogWeek = useCallback((backlogFrom: string, backlogTo: string, employees: WeekEmployee[]) => {
     if (employees.length === 0) return;
     const existing = savedWeeks.find((w) => w.weekFrom === backlogFrom && w.weekTo === backlogTo);
-    const snapshot = buildWeekSnapshot(backlogFrom, backlogTo, employees, jobs, existing, employeeLeaves);
+    const snapshot = buildWeekSnapshot(backlogFrom, backlogTo, employees, jobs, existing, employeeLeaves, savedWeeks);
     snapshot.backlog = true;
     snapshot.backlogNote = "Zaległa lista płac — wypłata co 2 tygodnie";
     const nextArchive = existing
@@ -783,7 +783,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const doSaveWeek = useCallback(() => {
     if (weekEmployees.length === 0) return;
     const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-    const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves);
+    const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves, savedWeeks);
     const nextArchive = existing
       ? savedWeeks.map((w) => (w.id === existing.id ? snapshot : w))
       : [...savedWeeks, snapshot];
@@ -803,7 +803,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const autoArchiveAndAdvance = useCallback((targetFrom: string, targetTo: string) => {
     if (weekEmployees.length > 0) {
       const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-      const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves);
+      const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves, savedWeeks);
       if (existing) setSavedWeeks((prev) => prev.map((w) => (w.id === existing.id ? snapshot : w)));
       else setSavedWeeks((prev) => [...prev, snapshot]);
     }
@@ -842,7 +842,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       return;
     }
     const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-    const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves);
+    const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves, savedWeeks);
     const nextArchive = existing
       ? savedWeeks.map((w) => (w.id === existing.id ? snapshot : w))
       : [...savedWeeks, snapshot];

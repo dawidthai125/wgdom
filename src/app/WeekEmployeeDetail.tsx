@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { Banknote, X, Plus, Trash2, FileText, Clock, Receipt, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Banknote, X, Plus, Trash2, FileText, Clock, Receipt, ThumbsUp, ThumbsDown, SkipForward } from "lucide-react";
 import { useAdminAccess } from "@/app/admin-access";
 import { PayrollDayEditor } from "@/app/payroll-editors";
 import {
@@ -7,6 +7,11 @@ import {
   calcBiweeklyRowDisplay,
   calcWeekNetNoPrevSat,
 } from "@/lib/payroll-cycle";
+import {
+  canDeferPayroll,
+  CARRY_FORWARD_LABEL,
+  type PayrollCalcWithAdjustments,
+} from "@/lib/payroll-carry-forward";
 import {
   type WeekEmployee,
   type WeekSnapshot,
@@ -45,7 +50,29 @@ function ensureWeekEmployeeDays(emp: WeekEmployee): WeekEmployee {
   };
 }
 
-export function WeekEmployeeDetail({emp, weekFrom, weekTo, directory, savedWeeks, onChange, onClose}:{emp:WeekEmployee; weekFrom:string; weekTo:string; directory: DirectoryEmployee[]; savedWeeks: WeekSnapshot[]; onChange:(u:WeekEmployee)=>void; onClose:()=>void}) {
+export function WeekEmployeeDetail({
+  emp,
+  weekFrom,
+  weekTo,
+  directory,
+  savedWeeks,
+  isArchivedWeek = false,
+  payrollRow,
+  onDeferPayroll,
+  onChange,
+  onClose,
+}: {
+  emp: WeekEmployee;
+  weekFrom: string;
+  weekTo: string;
+  directory: DirectoryEmployee[];
+  savedWeeks: WeekSnapshot[];
+  isArchivedWeek?: boolean;
+  payrollRow?: { emp: WeekEmployee } & PayrollCalcWithAdjustments;
+  onDeferPayroll?: (emp: WeekEmployee) => void;
+  onChange: (u: WeekEmployee) => void;
+  onClose: () => void;
+}) {
   const safeEmp = ensureWeekEmployeeDays(emp);
   const { canViewRates } = useAdminAccess();
   const biweekly = isBiweeklyPayrollEmployee(safeEmp, directory);
@@ -66,6 +93,19 @@ export function WeekEmployeeDetail({emp, weekFrom, weekTo, directory, savedWeeks
     totalZaliczka, totalExtraCosts, grossPay, weekGross, prevSatGross, netPay, rateNum,
   } = calcWeekEmployee(safeEmp);
   const weekOnly = biweekly ? calcWeekNetNoPrevSat(safeEmp) : null;
+  const deferCheck = payrollRow ? canDeferPayroll(safeEmp, payrollRow, directory, isArchivedWeek) : { ok: false as const };
+  const displayNet =
+    payrollRow?.leaveStatus
+      ? 0
+      : payrollRow?.carryForwardOut
+        ? 0
+        : payrollRow?.carryForwardIn
+          ? payrollRow.displayNetPay
+          : biweekly && biweeklyRow
+            ? biweeklyRow.isPayoutWeek
+              ? biweeklyRow.displayNet
+              : biweeklyRow.thisWeekNet
+            : netPay;
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -226,6 +266,30 @@ export function WeekEmployeeDetail({emp, weekFrom, weekTo, directory, savedWeeks
           )}
         </div>
 
+        {!isArchivedWeek && onDeferPayroll && deferCheck.ok && (
+          <button
+            type="button"
+            onClick={() => onDeferPayroll(safeEmp)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-200 text-sm font-medium hover:bg-amber-500/20 transition-colors"
+          >
+            <SkipForward size={16} />
+            Przenieś {fmt(deferCheck.frozenAmount ?? 0)} PLN na następny tydzień
+          </button>
+        )}
+
+        {safeEmp.payrollCarryForward?.amount != null && safeEmp.payrollCarryForward.amount > 0 && (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+            {CARRY_FORWARD_LABEL} — {fmt(safeEmp.payrollCarryForward.amount)} PLN → tydzień {fmtDate(safeEmp.payrollCarryForward.targetWeekFrom)}–{fmtDate(safeEmp.payrollCarryForward.targetWeekTo)}
+          </div>
+        )}
+
+        {payrollRow?.carryForwardIn != null && payrollRow.carryForwardIn > 0 && (
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-100/90">
+            Przeniesiona wypłata: +{fmt(payrollRow.carryForwardIn)} PLN
+            {payrollRow.carryForwardInFrom ? ` (z ${fmtDate(payrollRow.carryForwardInFrom.from)}–${fmtDate(payrollRow.carryForwardInFrom.to)})` : ""}
+          </div>
+        )}
+
         {/* Mini summary */}
         <div className="space-y-2">
           <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Tydzień Pn–So</span><span className="font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(weekOnly?.weekHours ?? weekHours)}</span></div>
@@ -244,8 +308,12 @@ export function WeekEmployeeDetail({emp, weekFrom, weekTo, directory, savedWeeks
           {(weekOnly?.totalZaliczka ?? totalZaliczka)>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Zaliczki</span><span className="font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>−{fmt(weekOnly?.totalZaliczka ?? totalZaliczka)} PLN</span></div>}
           {totalExtraCosts>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Koszty do zwrotu</span><span className="font-semibold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>+{fmt(totalExtraCosts)} PLN</span></div>}
           <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-xl px-4 py-3">
-            <span className="text-sm font-semibold text-primary">{biweekly && biweeklyRow && !biweeklyRow.isPayoutWeek ? "Ten tydzień (narasta)" : "Do wypłaty"}</span>
-            <span className={`text-xl font-bold ${(biweekly && biweeklyRow ? biweeklyRow.displayNet : netPay)<0?"text-destructive":"text-primary"}`} style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(biweekly && biweeklyRow ? (biweeklyRow.isPayoutWeek ? biweeklyRow.displayNet : biweeklyRow.thisWeekNet) : netPay)} PLN</span>
+            <span className="text-sm font-semibold text-primary">
+              {payrollRow?.carryForwardOut ? "Do wypłaty" : biweekly && biweeklyRow && !biweeklyRow.isPayoutWeek ? "Ten tydzień (narasta)" : "Do wypłaty"}
+            </span>
+            <span className={`text-xl font-bold ${displayNet < 0 ? "text-destructive" : payrollRow?.carryForwardOut ? "text-amber-400" : "text-primary"}`} style={{fontFamily:"'JetBrains Mono', monospace"}}>
+              {payrollRow?.carryForwardOut ? CARRY_FORWARD_LABEL : `${fmt(displayNet)} PLN`}
+            </span>
           </div>
         </div>
       </div>

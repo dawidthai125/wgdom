@@ -50,9 +50,16 @@ function archiveEmployeePayrollDisplay(
   const base = calcWeekEmployee(full);
   const biweekly = isBiweeklyPayrollEmployee(full, directory);
   const bw = biweekly ? calcBiweeklyRowDisplay(full, directory, week.weekFrom, week.weekTo, savedWeeks) : null;
-  const displayNetPay = bw
+  let displayNetPay = bw
     ? (bw.isPayoutWeek ? bw.displayNet : bw.thisWeekNet)
     : base.netPay;
+  if (emp.carryForwardOut != null && emp.carryForwardOut > 0) {
+    displayNetPay = 0;
+  } else if (emp.carryForwardIn != null && emp.carryForwardIn > 0) {
+    displayNetPay = emp.netPay;
+  } else if (emp.leaveStatus) {
+    displayNetPay = 0;
+  }
   const c = biweekly
     ? {
         ...base,

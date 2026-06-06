@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-06",
+    version: "2.45.38",
+    label: "Odroczenie wypłaty na następny tydzień",
+    items: [
+      { type: "new", text: "Lista płac — ⏭ Przenieś na następny tydzień (jednorazowo, zamrożona kwota w momencie kliknięcia)" },
+      { type: "new", text: "Tydzień docelowy — bieżąca wypłata + przeniesiona kwota; PDF/Word ze snapshotu archiwum" },
+      { type: "improve", text: "Archiwum zamraża carryForwardOut/In — historyczne listy nie zmieniają się po edycji godzin" },
+      { type: "fix", text: "Wypłata co 2 tygodnie — bez przenoszenia (tylko tygodniówka); urlop blokuje przeniesienie" },
+    ],
+  },
+  {
+    date: "2026-06-06",
     version: "2.45.37",
     label: "Nieobecności pracowników (urlop / L4 / bezpłatny)",
     items: [

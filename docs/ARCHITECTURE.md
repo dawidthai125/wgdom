@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (prod **2.45.36**; perf release tag `v2.45.38-perf-2.4a` @ `35614f0`)  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-06 (Sprint 20.0A — nieobecności / `kw-employee-leaves`)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (prod **2.45.37**; lokalnie **2.45.38** Sprint 20.1A)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-06 (Sprint 20.1A — odroczenie wypłaty / `payrollCarryForward`)
 
 ---
 
@@ -276,6 +276,22 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Edge** | Walidacja payloadu + overlap w `batch-set`; filtrowanie ID z tombstone list |
 
 Pliki: `src/lib/employee-leaves.ts`, `src/lib/payroll-leave-overlay.ts`, `src/app/EmployeeLeavesSection.tsx`, `src/app/PayrollView.tsx`.
+
+**Odroczenie wypłaty (Sprint 20.1A, v2.45.38, lokalnie — prod po push):**
+
+| Aspekt | Opis |
+|--------|------|
+| **Model** | Pole opcjonalne `payrollCarryForward` na `WeekEmployee` w `kw-week-employees` — `{ amount, targetWeekFrom, targetWeekTo, createdAt }`. **Bez nowego klucza KV / Edge deploy.** |
+| **UI** | Lista płac + panel pracownika — przycisk ⏭ „Przenieś na następny tydzień” (jednorazowo). Tydzień źródłowy: `displayNetPay=0`, etykieta PRZENIESIONO. Tydzień docelowy: `displayNet = baseNet + carryForwardIn`. |
+| **MODEL A (freeze)** | Kwota `amount` zamrożona w momencie kliknięcia — **nie** przelicza się po zmianie godzin/stawki w tygodniu źródłowym. |
+| **Priorytet overlay** | urlop → carry out → carry in → biweekly |
+| **Biweekly V1** | Wypłata co 2 tygodnie — **zablokowana** (`canDeferPayroll` → `biweekly_blocked`). Urlop blokuje przeniesienie. |
+| **Archive snapshot freeze** | Przy `buildWeekSnapshot(..., savedWeeksForCarry?)` zamrażane w `EmployeeSnapshot`: `carryForwardOut`, `carryForwardTargetFrom/To`, `carryForwardIn`, `carryForwardFromWeek`. Archiwalna lista płac, PDF i DOCX **tylko ze snapshotu**. |
+| **Eksport** | `payroll-export.ts` — `payrollNetDisplayText()`: W1 „PRZENIESIONO”; W2 `4500,00 (+2250,00 przen.)` |
+| **Sync** | `pickPayrollCarryForward()` w `mergeWeekEmployeeRecord` — merge nie gubi defer gdy chmura nie ma pola |
+| **Double-click** | Drugie ⏭ → `already_deferred` (BLOCKED) |
+
+Pliki: `src/lib/payroll-carry-forward.ts`, `src/app/PayrollView.tsx`, `src/app/WeekEmployeeDetail.tsx`, `src/app/app-domain.ts`, `src/lib/payroll-export.ts`, `src/lib/cloud-sync.ts` (merge carry).
 
 **Nowy typ danych → MUSISZ:** dodać do `DATA_KEYS`, hook stanu w adminie, merge w `mergeDataKey`, push/pull paths, tombstone przy DELETE.
 

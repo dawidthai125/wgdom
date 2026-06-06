@@ -2,6 +2,7 @@
 
 import logoAsset from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { leaveTypeDisplayLabel, type PayrollLeaveStatus } from "@/lib/employee-leaves";
+import { CARRY_FORWARD_PDF_LABEL } from "@/lib/payroll-carry-forward";
 
 export const PREV_SAT_SHORT = "Sob. poprz.";
 
@@ -41,10 +42,19 @@ export interface PayrollCalcRow {
   biweeklyDisplayNet?: number;
   /** Nieobecność — zamrożona (archiwum) lub live overlay. */
   leaveStatus?: PayrollLeaveStatus;
+  /** Sprint 20.1A — przeniesienie wypłaty. */
+  carryForwardOut?: number;
+  carryForwardIn?: number;
+  carryForwardInFrom?: { from: string; to: string };
 }
 
-export function payrollNetDisplayText(row: Pick<PayrollCalcRow, "netPay" | "leaveStatus" | "biweekly" | "biweeklyPayoutWeek" | "biweeklyDisplayNet" | "biweeklyAccruedOnly" | "biweeklyThisWeekNet">): string {
+export function payrollNetDisplayText(row: Pick<PayrollCalcRow, "netPay" | "leaveStatus" | "carryForwardOut" | "carryForwardIn" | "biweekly" | "biweeklyPayoutWeek" | "biweeklyDisplayNet" | "biweeklyAccruedOnly" | "biweeklyThisWeekNet">): string {
   if (row.leaveStatus) return leaveTypeDisplayLabel(row.leaveStatus, false);
+  if (row.carryForwardOut != null && row.carryForwardOut > 0) return CARRY_FORWARD_PDF_LABEL;
+  if (row.carryForwardIn != null && row.carryForwardIn > 0) {
+    const base = +(row.netPay - row.carryForwardIn).toFixed(2);
+    return `${fmt(row.netPay)} (+${fmt(row.carryForwardIn)} przen.)`;
+  }
   if (row.biweekly && row.biweeklyPayoutWeek && row.biweeklyDisplayNet != null) return fmt(row.biweeklyDisplayNet);
   if (row.biweekly && row.biweeklyAccruedOnly && row.biweeklyThisWeekNet != null) return fmt(row.biweeklyThisWeekNet);
   return fmt(row.netPay);
@@ -527,7 +537,7 @@ export async function buildPayrollEmailHtml(
         ${td(escapeHtml(fmt(r.grossPay)), { align: "right", color: C.muted, bg })}
         ${td(r.totalZaliczka > 0 ? escapeHtml(fmt(r.totalZaliczka)) : "—", { align: "right", bg })}
         ${td(r.totalExtraCosts > 0 ? escapeHtml(fmt(r.totalExtraCosts)) : "—", { align: "right", color: C.green, bg })}
-        ${td(escapeHtml(payrollNetDisplayText(r)), { align: "right", bold: true, color: r.leaveStatus ? C.navy : C.red, bg })}
+        ${td(escapeHtml(payrollNetDisplayText(r)), { align: "right", bold: true, color: r.leaveStatus || r.carryForwardOut ? C.navy : C.red, bg })}
         ${td(escapeHtml(r.emp.settled ? "Rozliczony" : "Oczekuje"), {
           align: "center",
           color: r.emp.settled ? C.green : C.gold,
@@ -697,7 +707,7 @@ export async function generatePayrollPdfBlob(
       { text: `${fmt(r.grossPay)}`, alignment: "right" as const, fillColor: bg, color: C.muted, fontSize: 10 },
       { text: r.totalZaliczka > 0 ? `${fmt(r.totalZaliczka)}` : "—", alignment: "right" as const, fillColor: bg, fontSize: 10 },
       { text: r.totalExtraCosts > 0 ? `${fmt(r.totalExtraCosts)}` : "—", alignment: "right" as const, fillColor: bg, color: C.green, fontSize: 10 },
-      { text: payrollNetDisplayText(r), bold: true, color: r.leaveStatus ? C.navy : C.red, alignment: "right" as const, fillColor: bg, fontSize: 10 },
+      { text: payrollNetDisplayText(r), bold: true, color: r.leaveStatus || r.carryForwardOut ? C.navy : C.red, alignment: "right" as const, fillColor: bg, fontSize: 10 },
       {
         text: r.emp.settled ? "Rozliczony" : "Oczekuje",
         alignment: "center" as const,
@@ -1366,7 +1376,7 @@ export async function generatePayrollWordBlob(
                     mkCell(`${fmt(r.grossPay)} PLN`, { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: "6B7A8D", size: 20 }),
                     mkCell(r.totalZaliczka > 0 ? `${fmt(r.totalZaliczka)} PLN` : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.totalZaliczka > 0 ? "C0392B" : "6B7A8D", size: 20 }),
                     mkCell(r.totalExtraCosts > 0 ? `${fmt(r.totalExtraCosts)} PLN` : "-", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.totalExtraCosts > 0 ? "1E7E34" : "6B7A8D", size: 20 }),
-                    mkCell(r.leaveStatus ? `${leaveTypeDisplayLabel(r.leaveStatus, false)}` : `${fmt(r.netPay)} PLN`, { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.leaveStatus ? "344254" : "C0392B", size: 20 }),
+                    mkCell(payrollNetDisplayText(r), { bold: true, fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.leaveStatus || r.carryForwardOut ? "344254" : "C0392B", size: 20 }),
                     mkCell(r.emp.settled ? "Rozliczony" : "Oczekuje", { fill: i % 2 === 0 ? "FFFFFF" : "EDF1F6", color: r.emp.settled ? "1E7E34" : "7B5800", bold: r.emp.settled, size: 19 }),
                   ],
                 }),
