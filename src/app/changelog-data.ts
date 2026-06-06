@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-06",
+    version: "2.45.41",
+    label: "Lista płac — spójna kasa w sobotę (sidebar)",
+    items: [
+      { type: "fix", text: "Sidebar, topbar i Pulpit — „Do wypłaty w sobotę” uwzględnia ⏭ PRZENIESIONO (jak tabela i PDF)" },
+      { type: "improve", text: "computePayrollCashSplitWithCarry — wspólna logika carry dla panelu admina i listy płac" },
+    ],
+  },
+  {
+    date: "2026-06-06",
     version: "2.45.40",
     label: "Panel inspektora — nowoczesny UX",
     items: [

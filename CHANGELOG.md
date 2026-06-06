@@ -4,9 +4,16 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.45.40** (`changelog-data.ts`) · Sprint 20.2A Inspector UX (lokalnie)
+**Aktualna wersja UI:** **2.45.41** (`changelog-data.ts`) · Sprint 20.1B.1 carry totals (lokalnie)
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
+
+---
+
+## 2.45.41 (2026-06-06) — Carry totals sidebar (Sprint 20.1B.1)
+
+* **Fix** — Sidebar / topbar / Pulpit: suma sobotnia wyklucza ⏭ PRZENIESIONO (spójnie z tabelą i PDF)
+* **Helper** — `computePayrollCashSplitWithCarry()` w `payroll-carry-forward.ts`
 
 ---
 

@@ -2,8 +2,14 @@
 
 import type { WeekEmployee, WeekSnapshot } from "@/app/app-domain";
 import { calcWeekEmployeeWithLeave, type PayrollCalcWithLeave } from "@/lib/payroll-leave-overlay";
-import { isBiweeklyPayrollEmployee, nextPayrollWeekRange } from "@/lib/payroll-cycle";
-import type { DirectoryPayrollRef } from "@/lib/payroll-cycle";
+import {
+  computePayrollCashSplit,
+  isBiweeklyPayrollEmployee,
+  nextPayrollWeekRange,
+  type DirectoryPayrollRef,
+  type PayrollCashSplit,
+} from "@/lib/payroll-cycle";
+import { calcBiweeklyWeekNetWithLeave } from "@/lib/payroll-leave-overlay";
 import type { EmployeeLeave } from "@/lib/employee-leaves";
 import {
   findEmployeeSnapshot,
@@ -196,4 +202,29 @@ export function calcWeeklyNetWithCarry(
   });
   if (row.leaveStatus || row.carryForwardOut) return 0;
   return row.displayNetPay;
+}
+
+/** Sidebar / Pulpit / Topbar — ta sama kasa sobotnia co PayrollView cashSplit (carry + biweekly leave net). */
+export function computePayrollCashSplitWithCarry(
+  weekEmployees: WeekEmployee[],
+  directory: DirectoryPayrollRef[],
+  weekFrom: string,
+  weekTo: string,
+  savedWeeks: WeekSnapshot[],
+): PayrollCashSplit {
+  return computePayrollCashSplit(
+    weekEmployees,
+    directory,
+    weekFrom,
+    weekTo,
+    savedWeeks,
+    (e) =>
+      calcWeeklyNetWithCarry(e, weekFrom, weekTo, {
+        savedWeeks,
+      }),
+    (e, from, to) =>
+      calcBiweeklyWeekNetWithLeave(e, from, to, {
+        savedWeeks,
+      }),
+  );
 }

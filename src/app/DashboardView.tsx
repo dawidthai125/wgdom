@@ -45,8 +45,8 @@ import {
 } from "@/lib/job-wm";
 import { jobMissingRequiredDocs } from "@/lib/job-list-status";
 import { getReportWorkScopeText } from "@/lib/work-scope-text";
+import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
 import {
-  computePayrollCashSplit,
   biweeklyCashContextLine,
   getPayrollClosingWeekRange,
   PAYROLL_WEEK_ROLLOVER_HOUR,
@@ -117,7 +117,7 @@ export function DashboardView({
   );
 
   const payrollCash = useMemo(
-    () => computePayrollCashSplit(weekEmployees, directory, weekFrom, weekTo, savedWeeks, (e) => calcWeekEmployee(e).netPay),
+    () => computePayrollCashSplitWithCarry(weekEmployees, directory, weekFrom, weekTo, savedWeeks),
     [weekEmployees, directory, weekFrom, weekTo, savedWeeks],
   );
   const weekTotal = payrollCash.totalSaturdayCash;

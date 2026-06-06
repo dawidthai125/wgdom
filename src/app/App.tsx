@@ -66,7 +66,6 @@ import {
   weekEmployeeFromDir,
   fmtDate,
   getWeekRange,
-  calcWeekEmployee,
   normalizeJobsList,
   localIsoDate,
   todayIsoDate,
@@ -93,7 +92,8 @@ import { useLocalStorage, setSkipApplyWriteTimestamps } from "@/app/hooks/useLoc
 import type { EmailContact } from "@/lib/email-contacts";
 import type { EmployeeLeave } from "@/lib/employee-leaves";
 import { mergeEmployeeLeaves } from "@/lib/employee-leaves";
-import { computePayrollCashSplit, getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosed } from "@/lib/payroll-cycle";
+import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
+import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosed } from "@/lib/payroll-cycle";
 
 function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const { session: adminSession, canViewRates } = useAdminAccess();
@@ -937,15 +937,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const { mobileNavPrimary, mobileNavMore } = useMemo(() => splitMobileNav(navItems), [navItems]);
   const mobileMoreActive = mobileNavMore.some((n) => n.key === view);
 
-  const totalNet = useMemo(
-    () => computePayrollCashSplit(productionWeekEmployees, directory, weekFrom, weekTo, savedWeeks, (e) => calcWeekEmployee(e).netPay).totalSaturdayCash,
+  const payrollCashSplitSidebar = useMemo(
+    () => computePayrollCashSplitWithCarry(productionWeekEmployees, directory, weekFrom, weekTo, savedWeeks),
     [productionWeekEmployees, directory, weekFrom, weekTo, savedWeeks],
   );
 
-  const payrollCashSplitSidebar = useMemo(
-    () => computePayrollCashSplit(productionWeekEmployees, directory, weekFrom, weekTo, savedWeeks, (e) => calcWeekEmployee(e).netPay),
-    [productionWeekEmployees, directory, weekFrom, weekTo, savedWeeks],
-  );
+  const totalNet = payrollCashSplitSidebar.totalSaturdayCash;
 
   const todayFieldStats = useMemo(() => {
     const iso = todayIsoDate();

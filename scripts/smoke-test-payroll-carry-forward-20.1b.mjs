@@ -44,7 +44,10 @@ import {
   calcWeekEmployeeForPayroll,
   canDeferPayroll,
   buildPayrollCarryForwardRecord,
+  computePayrollCashSplitWithCarry,
 } from "../src/lib/payroll-carry-forward.ts";
+import { calcWeekEmployee } from "../src/app/app-domain.ts";
+import { computePayrollCashSplit } from "../src/lib/payroll-cycle.ts";
 import {
   generatePayrollPdfBlob,
   payrollNetDisplayText,
@@ -231,6 +234,32 @@ function testE(ctx) {
   log(`E: ${R.E}`);
 }
 
+// G — sidebar / dashboard cash split excludes deferred Kamil (20.1B.1)
+function testG(ctx) {
+  log("\n═══ G — sidebar totalSaturdayCash (20.1B.1) ═══");
+  const { directory, snap } = ctx;
+  const emp = snap.weekEmployees[0];
+  const oldSplit = computePayrollCashSplit(
+    [emp],
+    directory,
+    W1.from,
+    W1.to,
+    [snap],
+    (e) => calcWeekEmployee(e).netPay,
+  );
+  const newSplit = computePayrollCashSplitWithCarry([emp], directory, W1.from, W1.to, [snap]);
+  log(`  Kamil defer carryOut=${ctx.row?.carryForwardOut ?? "?"}`);
+  log(`  old totalSaturdayCash=${oldSplit.totalSaturdayCash} (bug: includes defer)`);
+  log(`  new totalSaturdayCash=${newSplit.totalSaturdayCash} (expect 0)`);
+  R.G =
+    newSplit.totalSaturdayCash === 0 &&
+    oldSplit.totalSaturdayCash === 1050 &&
+    emp.payrollCarryForward?.amount === 1050
+      ? "PASS"
+      : "FAIL";
+  log(`G: ${R.G}`);
+}
+
 // F — leaves regression (archived_week on saved week unchanged)
 function testF() {
   log("\n═══ F — leaves 20.0A regression ═══");
@@ -254,7 +283,8 @@ async function main() {
   log(`W1=${W1.from}–${W1.to} W2=${W2.from}–${W2.to}`);
   const ctxA = testA();
   testB();
-  await testC(ctxA);
+  const ctxC = await testC(ctxA);
+  testG(ctxC);
   testD(ctxA);
   testE(ctxA);
   testF();
