@@ -76,7 +76,7 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
 | Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.45.36** na prod) |
 | Prod `main` (app) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · Performance 2.x **CLOSED** |
-| Docs HEAD | commit **`8a9cff4`** — changelog + handoff + kontekst agentów (Performance 2.x CLOSED) |
+| Docs HEAD | commit **`5f504b0`** — changelog + handoff + kontekst agentów (Performance 2.x CLOSED) |
 | Frontend deploy | push `main` → Vercel |
 | Backend deploy | push `supabase/functions/**` → GitHub Action |
 | Sync | `src/lib/cloud-sync.ts` |
