@@ -12,6 +12,19 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-06",
+    version: "2.45.40",
+    label: "Panel inspektora — nowoczesny UX",
+    items: [
+      { type: "new", text: "Pulpit inspektora — KPI (aktywne, uwaga, zakończone, zdjęcia oczekujące), sekcja „Dzisiaj”, Action Center (max 3)" },
+      { type: "new", text: "Postęp kontroli 0–100% na kartach i w szczegółach roboty — bez nowych pól w chmurze" },
+      { type: "improve", text: "Karty robót — brakujące elementy do odbioru, ostatnia aktywność, priorytety 🔴🟠🟢" },
+      { type: "improve", text: "Checklist dokumentów w grupach (Dokumentacja / Pomiary / Zdjęcia) z licznikiem 5/8" },
+      { type: "new", text: "Szybkie zdjęcie 📷 — FAB, wybór roboty, aparat (offline queue bez zmian)" },
+      { type: "fix", text: "Postęp kontroli % — bez podwójnego liczenia zlecenia/kosztorysu (documents 50% + etap 25%)" },
+    ],
+  },
+  {
+    date: "2026-06-06",
     version: "2.45.39",
     label: "Przeniesienie wypłaty po zapisie tygodnia",
     items: [

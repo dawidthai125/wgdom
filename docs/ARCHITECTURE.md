@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (prod **2.45.39** · Sprint 20.1B · commit **`74e65d9`**)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-06 (Sprint 20.1B CLOSED — saved ≠ closed / carry forward workflow; handoff: [`SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md`](SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md))
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.45.40** · Sprint 20.2A Inspector UX)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-06 (Sprint 20.2A — Inspector UX Refresh; audyt: [`INSPECTOR-AUDIT-20.2A.md`](INSPECTOR-AUDIT-20.2A.md))
 
 ---
 
@@ -204,11 +204,23 @@ Widoki nieaktywne są **odmontowywane** (`{view==="jobs"&&<JobsView/>}`) — scr
 
 | Zakładka | Opis |
 |----------|------|
-| `dashboard` | Pulpit WM, alerty, kółka zlec/kosz |
-| `jobs` | Lista robót + szczegóły (WM, docs, pliki, zdjęcia, raporty) |
+| `dashboard` | Pulpit WM — KPI, „Dzisiaj”, Action Center (max 3), tygodniowe statystyki |
+| `jobs` | Lista robót (karty + postęp %) + szczegóły sekcjami (WM, docs, pliki, zdjęcia, raporty) |
 | `gallery` | Galeria zdjęć ekip |
 | `files` | Przeglądarka plików + ZIP |
 | `portfolio` | Portfolio WM |
+
+**Sprint 20.2A (v2.45.40) — bez nowych KV, bez zmian `mergeJobsById`:**
+
+| Element | Plik | Opis |
+|---------|------|------|
+| Postęp kontroli | `inspector-dashboard.ts` | `computeInspectionProgress()` — **20.2A.1:** documents 50% + stage 25% + photos 15% + notes 10% (bez `filesPct`; zlecenie/kosztorys tylko w REQUIRED_DOCS) |
+| KPI / Action Center | `InspectorDashboard.tsx` | `computeInspectorKpiStats`, `buildActionCenterItems`, `buildTodayJobs` |
+| Karty | `InspectorJobCard.tsx` | Postęp %, brakujące do odbioru, ostatnia aktywność, 🔴🟠🟢 |
+| Checklist grupy | `InspectorDocChecklist.tsx` | Dokumentacja / Pomiary / Zdjęcia + licznik `n/8` |
+| FAB zdjęcie | `InspectorQuickPhotoFab.tsx` | Aparat + wybór roboty → `uploadInspectorPhoto` / `photo-queue` |
+
+Smoke: `npx vite-node scripts/smoke-test-inspector-20.2a.mjs`
 
 **Sync inspektora:**
 

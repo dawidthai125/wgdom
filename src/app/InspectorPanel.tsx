@@ -29,7 +29,6 @@ import {
   ADMIN_USERS_CONFIG_KEY,
 } from "@/lib/cloud-sync";
 import {
-  DOCUMENT_TYPES,
   DOC_LABELS,
   REQUIRED_DOCS,
   type DocType,
@@ -40,7 +39,17 @@ import {
 } from "@/lib/job-documents";
 import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
 import { InspectorDashboard } from "@/app/InspectorDashboard";
+import { InspectorDocChecklist } from "@/app/InspectorDocChecklist";
+import { InspectorJobCard } from "@/app/InspectorJobCard";
 import { InspectorPhotoGallery } from "@/app/InspectorPhotoGallery";
+import { InspectorProgressBar } from "@/app/InspectorProgressBar";
+import { InspectorQuickPhotoFab } from "@/app/InspectorQuickPhotoFab";
+import {
+  computeInspectionProgress,
+  inspectionPriority,
+  INSPECTION_PRIORITY_EMOJI,
+  sortJobsByInspectionPriority,
+} from "@/lib/inspector-dashboard";
 import { uploadJobFile } from "@/lib/job-file-upload";
 import { uploadInspectorPhoto } from "@/lib/job-photo-upload";
 import { computeInspectorDashboardStats } from "@/lib/inspector-dashboard";
@@ -543,18 +552,18 @@ export function InspectorPanel({
 
   const filteredJobs = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return jobs
-      .filter((j) => {
-        if (filter === "active" && j.status !== "in_progress") return false;
-        if (filter === "completed" && j.status !== "completed") return false;
-        if (!q) return true;
-        return (
-          j.address.toLowerCase().includes(q)
-          || j.client.toLowerCase().includes(q)
-          || (j.flatNumber || "").toLowerCase().includes(q)
-        );
-      })
-      .sort((a, b) => b.startDate.localeCompare(a.startDate));
+    const list = jobs.filter((j) => {
+      if (filter === "active" && j.status !== "in_progress") return false;
+      if (filter === "completed" && j.status !== "completed") return false;
+      if (!q) return true;
+      return (
+        j.address.toLowerCase().includes(q)
+        || j.client.toLowerCase().includes(q)
+        || (j.flatNumber || "").toLowerCase().includes(q)
+      );
+    });
+    if (filter === "active") return sortJobsByInspectionPriority(list);
+    return [...list].sort((a, b) => b.startDate.localeCompare(a.startDate));
   }, [jobs, search, filter]);
 
   const selectedJob = jobs.find((j) => j.id === selectedId) || null;
@@ -597,14 +606,20 @@ export function InspectorPanel({
     }
   }, [updateJob]);
 
-  const handleInspectorPhotoUpload = useCallback(async (file: File, label: InspectorPhotoLabel, caption: string) => {
-    if (!selectedJob) return false;
-    const { entry, error } = await uploadInspectorPhoto(selectedJob.id, file, displayName, caption, label);
+  const uploadInspectorPhotoForJob = useCallback(async (
+    jobId: string,
+    file: File,
+    label: InspectorPhotoLabel,
+    caption = "",
+  ): Promise<boolean> => {
+    const job = jobsRef.current.find((j) => j.id === jobId);
+    if (!job) return false;
+    const { entry, error } = await uploadInspectorPhoto(job.id, file, displayName, caption, label);
     if (!entry) {
       try {
         await queuePhoto({
           kind: "inspector",
-          jobId: selectedJob.id,
+          jobId: job.id,
           label,
           caption,
           uploadedBy: displayName,
@@ -620,14 +635,25 @@ export function InspectorPanel({
     }
     updateJob(
       appendJobActivity(
-        { ...selectedJob, inspectorPhotos: [entry, ...(selectedJob.inspectorPhotos || [])] },
+        { ...job, inspectorPhotos: [entry, ...(job.inspectorPhotos || [])] },
         "inspector_photo",
         `Zdjęcie inspektora (${label})${entry.caption ? `: ${entry.caption}` : ""}`,
         displayName,
       ),
     );
     return true;
-  }, [selectedJob, displayName, updateJob]);
+  }, [displayName, updateJob]);
+
+  const handleInspectorPhotoUpload = useCallback(async (file: File, label: InspectorPhotoLabel, caption: string) => {
+    if (!selectedJob) return false;
+    return uploadInspectorPhotoForJob(selectedJob.id, file, label, caption);
+  }, [selectedJob, uploadInspectorPhotoForJob]);
+
+  const handleQuickPhotoUpload = useCallback(async (jobId: string, file: File, label: InspectorPhotoLabel) => {
+    const ok = await uploadInspectorPhotoForJob(jobId, file, label);
+    if (ok) toast.success("Zdjęcie wgrane");
+    return ok;
+  }, [uploadInspectorPhotoForJob]);
 
   useEffect(() => {
     const onOnline = () => { void flushInspectorPhotoQueue(); };
@@ -954,60 +980,14 @@ export function InspectorPanel({
                 <p className="text-xs text-muted-foreground/80">Zmień filtr na „Wszystkie” lub użyj wyszukiwarki</p>
               </div>
             ) : (
-              filteredJobs.map((job) => {
-                const reqDone = REQUIRED_DOCS.filter((d) => job.documents[d]).length;
-                const hasZlecenie = job.documents.zlecenie;
-                const hasKosztorys = job.documents.kosztorys;
-                const photoCount = (job.photos || []).filter((p) => p.status === "approved").length;
-                const hasAdminReply = adminNotesPending.some((j) => j.id === job.id);
-                return (
-                  <button
-                    key={job.id}
-                    type="button"
-                    onClick={() => openJob(job.id, undefined, "jobs")}
-                    className={`w-full text-left bg-card border rounded-2xl p-4 hover:border-primary/40 transition-colors active:scale-[0.99] ${hasAdminReply ? "border-violet-500/40 ring-1 ring-violet-500/20" : "border-border"}`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm truncate">
-                          {job.address || "Bez adresu"}{job.flatNumber && <span className="text-muted-foreground"> m.{job.flatNumber}</span>}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{job.client || "—"}</p>
-                        <div className="mt-1"><JobMetaBadges job={job}/></div>
-                      </div>
-                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${job.status === "completed" ? "bg-green-500/15 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
-                        {job.status === "completed" ? "Zdana" : "W trakcie"}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mt-2">Start: {fmtDate(job.startDate)}</p>
-                    {hasAdminReply && (
-                      <p className="text-[10px] text-violet-600 dark:text-violet-400 font-medium mt-1.5 flex items-center gap-1">
-                        <MessageSquare size={10}/> Nowa odpowiedź admina — kliknij, aby otworzyć
-                      </p>
-                    )}
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      <JobWmStageBadge job={job}/>
-                      <JobWmPlannedBadge job={job}/>
-                    </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full ${hasZlecenie ? "bg-green-500/15 text-green-400" : "bg-red-500/10 text-red-400"}`}>
-                        <FileText size={10}/> Zlecenie {hasZlecenie ? "✓" : "—"}
-                      </span>
-                      <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full ${hasKosztorys ? "bg-green-500/15 text-green-400" : "bg-red-500/10 text-red-400"}`}>
-                        <FileCheck size={10}/> Kosztorys {hasKosztorys ? "✓" : "—"}
-                      </span>
-                      <span className="text-[10px] px-2 py-1 rounded-full bg-secondary text-muted-foreground">
-                        Dok. {reqDone}/{REQUIRED_DOCS.length}
-                      </span>
-                      {photoCount > 0 && (
-                        <span className="text-[10px] px-2 py-1 rounded-full bg-secondary text-muted-foreground">
-                          {photoCount} zdjęć
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })
+              filteredJobs.map((job) => (
+                <InspectorJobCard
+                  key={job.id}
+                  job={job}
+                  hasAdminReply={adminNotesPending.some((j) => j.id === job.id)}
+                  onSelect={() => openJob(job.id, undefined, "jobs")}
+                />
+              ))
             )}
           </div>
 
@@ -1019,11 +999,15 @@ export function InspectorPanel({
             <button type="button" onClick={closeJob} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px]">
               <ArrowLeft size={16}/>Wróć do {jobReturnNav?.label ?? "listy robót"}
             </button>
-            <div className="pb-1">
+            <div className="pb-1 space-y-2">
               <p className="text-sm font-semibold truncate leading-snug">
+                {INSPECTION_PRIORITY_EMOJI[inspectionPriority(selectedJob)] && (
+                  <span className="mr-1">{INSPECTION_PRIORITY_EMOJI[inspectionPriority(selectedJob)]}</span>
+                )}
                 {selectedJob.address || "Bez adresu"}{selectedJob.flatNumber && ` m.${selectedJob.flatNumber}`}
               </p>
               <p className="text-[11px] text-muted-foreground truncate">{selectedJob.client || "—"}</p>
+              <InspectorProgressBar percent={computeInspectionProgress(selectedJob).percent}/>
               <JobMetaBadges job={selectedJob}/>
             </div>
             <InspectorJobSectionNav
@@ -1216,35 +1200,10 @@ export function InspectorPanel({
             )}
 
             {jobSection === "docs" && (
-            <div className="bg-card border border-border rounded-2xl p-4">
-              <p className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <ClipboardList size={15}/> Dokumentacja robót
-                <InspectorHint text="Kliknij pole — zaznaczasz że mamy ten dokument. Żółte = wymagane przy odbiorze. Admin widzi to samo w Robotach."/>
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {DOCUMENT_TYPES.map((doc) => {
-                  const checked = selectedJob.documents[doc];
-                  const required = (REQUIRED_DOCS as readonly string[]).includes(doc);
-                  return (
-                    <button
-                      key={doc}
-                      type="button"
-                      onClick={() => toggleDoc(selectedJob, doc)}
-                      className={`flex items-center gap-2 text-left text-xs px-3 py-2.5 rounded-xl border transition-colors min-h-[44px] ${checked ? "border-green-500/30 bg-green-500/10 text-green-400" : required ? "border-amber-500/20 bg-amber-500/5 text-muted-foreground" : "border-border bg-secondary/30 text-muted-foreground"}`}
-                    >
-                      {checked ? <CheckCircle2 size={14} className="shrink-0"/> : <Circle size={14} className="shrink-0"/>}
-                      <span className="leading-tight">{DOC_LABELS[doc]}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              {REQUIRED_DOCS.filter((d) => !selectedJob.documents[d]).length > 0 && (
-                <p className="text-[11px] text-amber-400/90 mt-3 flex items-start gap-1.5">
-                  <AlertCircle size={12} className="shrink-0 mt-0.5"/>
-                  Brakuje: {REQUIRED_DOCS.filter((d) => !selectedJob.documents[d]).map((d) => DOC_LABELS[d]).join(", ")}
-                </p>
-              )}
-            </div>
+              <InspectorDocChecklist
+                job={selectedJob}
+                onToggle={(doc) => toggleDoc(selectedJob, doc)}
+              />
             )}
 
             {jobSection === "team" && (
@@ -1400,6 +1359,14 @@ export function InspectorPanel({
           item={previewItem}
           athPreviewEnabled={athPreviewEnabled}
           onClose={() => setPreviewItem(null)}
+        />
+      )}
+
+      {!selectedJob && (
+        <InspectorQuickPhotoFab
+          jobs={jobs}
+          onUpload={handleQuickPhotoUpload}
+          disabled={loading || syncing}
         />
       )}
 

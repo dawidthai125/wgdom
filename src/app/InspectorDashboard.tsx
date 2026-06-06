@@ -1,22 +1,28 @@
 import { useMemo, useState } from "react";
 import {
-  LayoutDashboard, FileText, MessageSquare, ChevronRight,
+  LayoutDashboard, FileText, MessageSquare, ChevronRight, Zap,
   AlertTriangle, CheckCircle2, Calendar, FileWarning, BarChart3, FileDown, Cloud, Circle,
+  HardHat, AlertCircle, Camera, ClipboardCheck,
 } from "lucide-react";
-import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
+import { InspectorJobCard } from "@/app/InspectorJobCard";
+import { InspectorProgressBar } from "@/app/InspectorProgressBar";
 import type { InspectorJobSection } from "@/app/InspectorNavigation";
 import {
   buildFileDeliveryAlerts,
   buildMissingDocAlerts,
   buildReadyNoDateAlerts,
-  computeInspectorDashboardStats,
-  planStatusBadge,
+  buildActionCenterItems,
+  buildTodayJobs,
+  computeInspectionProgress,
+  computeInspectorKpiStats,
+  daysUntilHandover,
   type InspectorDashboardJob,
   type DashboardFilter,
   type QuickMarkDoc,
+  type InspectorActionCenterItem,
 } from "@/lib/inspector-dashboard";
 import { DOC_LABELS, isReportSyncedDocLocked } from "@/lib/job-documents";
-import { inferHandoverStage, plannedHandoverStatus } from "@/lib/job-wm";
+import { inferHandoverStage, plannedHandoverStatus, HANDOVER_STAGE_LABELS } from "@/lib/job-wm";
 import { inspectorGreeting, statsForWeek, MONTH_NAMES_PL } from "@/lib/inspector-activity-stats";
 import { downloadInspectorMonthReportPdf, downloadInspectorYearReportPdf } from "@/lib/inspector-report-pdf";
 import { toast } from "sonner";
@@ -35,6 +41,13 @@ const FILTER_OPTIONS: { id: DashboardFilter; label: string }[] = [
   { id: "terminy", label: "Terminy" },
 ];
 
+const KPI_TILES = [
+  { key: "active" as const, label: "Aktywne", icon: HardHat },
+  { key: "attention" as const, label: "Wymagają uwagi", icon: AlertCircle },
+  { key: "completed" as const, label: "Zakończone", icon: ClipboardCheck },
+  { key: "pendingPhotos" as const, label: "Zdjęcia oczekujące", icon: Camera },
+];
+
 export function InspectorDashboard({
   jobs,
   displayName,
@@ -50,13 +63,19 @@ export function InspectorDashboard({
 }) {
   const [filter, setFilter] = useState<DashboardFilter>("all");
   const [pdfBusy, setPdfBusy] = useState<"month" | "year" | null>(null);
+  const [showLegacyAlerts, setShowLegacyAlerts] = useState(false);
 
-  const stats = useMemo(
-    () => computeInspectorDashboardStats(jobs, adminNotesPending.length),
-    [jobs, adminNotesPending.length],
+  const kpi = useMemo(
+    () => computeInspectorKpiStats(jobs, adminNotesPending),
+    [jobs, adminNotesPending],
   );
 
   const weekStats = useMemo(() => statsForWeek(jobs, displayName), [jobs, displayName]);
+  const todayJobs = useMemo(() => buildTodayJobs(jobs), [jobs]);
+  const actionCenter = useMemo(
+    () => buildActionCenterItems(jobs, adminNotesPending, 3),
+    [jobs, adminNotesPending],
+  );
 
   const fileAlerts = useMemo(() => buildFileDeliveryAlerts(jobs), [jobs]);
   const docAlerts = useMemo(() => buildMissingDocAlerts(jobs), [jobs]);
@@ -75,22 +94,7 @@ export function InspectorDashboard({
     [fileAlerts],
   );
 
-  const urgentCount = useMemo(() => {
-    const ids = new Set<string>();
-    adminNotesPending.forEach((j) => ids.add(j.id));
-    fileAlertsNeedingAction.forEach((a) => ids.add(a.job.id));
-    docAlerts.forEach((a) => ids.add(a.job.id));
-    readyNoDate.forEach((a) => ids.add(a.job.id));
-    overdueJobs.forEach((j) => ids.add(j.id));
-    return ids.size;
-  }, [adminNotesPending, fileAlertsNeedingAction, docAlerts, readyNoDate, overdueJobs]);
-
-  const allClear =
-    adminNotesPending.length === 0
-    && fileAlertsNeedingAction.length === 0
-    && docAlerts.length === 0
-    && readyNoDate.length === 0
-    && overdueJobs.length === 0;
+  const allClear = actionCenter.length === 0 && todayJobs.length === 0;
 
   const showAdmin = filter === "all" || filter === "admin";
   const showFiles = filter === "all" || filter === "pliki";
@@ -100,6 +104,13 @@ export function InspectorDashboard({
   const now = new Date();
   const reportMonth = now.getMonth();
   const reportYear = now.getFullYear();
+
+  const kpiValues: Record<(typeof KPI_TILES)[number]["key"], number> = {
+    active: kpi.activeCount,
+    attention: kpi.needsAttentionCount,
+    completed: kpi.completedCount,
+    pendingPhotos: kpi.pendingPhotosCount,
+  };
 
   const handleMonthPdf = async () => {
     setPdfBusy("month");
@@ -125,42 +136,136 @@ export function InspectorDashboard({
     }
   };
 
+  const handleAction = (item: InspectorActionCenterItem) => {
+    if (item.doc && (item.kind === "missing_file" || item.kind === "missing_doc")) {
+      onMarkDoc(item.job.id, item.doc);
+      return;
+    }
+    onOpenJob(item.job.id, item.section);
+  };
+
   return (
     <div className="space-y-5">
       <div className="space-y-2">
         <h2 className="text-lg font-semibold">{inspectorGreeting(displayName)}</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           {allClear
-            ? "Wszystko na bieżąco — brak pilnych spraw na pulpicie."
-            : urgentCount === 1
-              ? "Masz 1 pilną sprawę — poniżej posortowane wg terminu odbioru."
-              : `Masz ${urgentCount} pilne sprawy — poniżej posortowane wg terminu odbioru.`}
+            ? "Wszystko na bieżąco — brak pilnych kontroli na dziś."
+            : actionCenter.length === 1
+              ? "1 sprawa wymaga działania — Action Center poniżej."
+              : `${actionCenter.length} spraw w Action Center · ${todayJobs.length} na dziś / wkrótce`}
         </p>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
-        {FILTER_OPTIONS.map((opt) => (
-          <button
-            key={opt.id}
-            type="button"
-            onClick={() => setFilter(opt.id)}
-            className={`shrink-0 px-3 py-2.5 min-h-[44px] rounded-full text-xs font-medium transition-colors touch-manipulation ${
-              filter === opt.id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
+        {KPI_TILES.map(({ key, label, icon: Icon }) => {
+          const value = kpiValues[key];
+          const accent =
+            key === "attention" && value > 0 ? "border-red-500/30 bg-red-500/5"
+              : key === "pendingPhotos" && value > 0 ? "border-amber-500/30 bg-amber-500/5"
+                : key === "active" ? "border-sky-500/25 bg-sky-500/5"
+                  : key === "completed" ? "border-emerald-500/25 bg-emerald-500/5"
+                    : "border-border bg-secondary/40";
+          const valueCls =
+            key === "attention" && value > 0 ? "text-red-500"
+              : key === "pendingPhotos" && value > 0 ? "text-amber-500"
+                : "text-foreground";
+          return (
+            <div
+              key={key}
+              className={`shrink-0 min-w-[7.5rem] rounded-xl border px-3 py-2.5 ${accent}`}
+            >
+              <div className="flex items-center gap-1.5 mb-1">
+                <Icon size={13} className="text-muted-foreground shrink-0"/>
+                <p className="text-[9px] uppercase tracking-wider text-muted-foreground leading-tight">{label}</p>
+              </div>
+              <p
+                className={`text-xl font-semibold tabular-nums ${valueCls}`}
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                {value}
+              </p>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        <StatTile label="Aktywne" value={stats.activeCount}/>
-        <StatTile label="Bez zlecenia" value={stats.missingZlecenie} accent={stats.missingZlecenie > 0 ? "red" : "ok"}/>
-        <StatTile label="Bez kosztorysu" value={stats.missingKosztorys} accent={stats.missingKosztorys > 0 ? "red" : "ok"}/>
-        <StatTile label="Termin minął" value={stats.overdue} accent={stats.overdue > 0 ? "red" : "ok"}/>
-        <StatTile label="Odbiór ≤7 dni" value={stats.soon} accent={stats.soon > 0 ? "amber" : "ok"}/>
-        <StatTile label="Odpowiedzi admina" value={adminNotesPending.length} accent={adminNotesPending.length > 0 ? "violet" : "ok"}/>
-      </div>
+      {actionCenter.length > 0 && (
+        <div className="rounded-xl border border-primary/25 bg-primary/5 overflow-hidden">
+          <div className="px-4 py-3 border-b border-primary/15 flex items-center gap-2">
+            <Zap size={15} className="text-primary shrink-0"/>
+            <p className="text-sm font-semibold">Action Center</p>
+            <span className="text-[10px] text-muted-foreground ml-auto">max 3</span>
+          </div>
+          <div className="divide-y divide-border/60">
+            {actionCenter.map((item) => (
+              <div key={item.id} className="px-4 py-3 flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{item.label}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {item.job.address || "Bez adresu"}
+                    {item.job.flatNumber && ` m.${item.job.flatNumber}`}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleAction(item)}
+                  className="shrink-0 px-3 py-2.5 min-h-[44px] rounded-lg bg-primary text-primary-foreground text-xs font-medium touch-manipulation"
+                >
+                  {item.doc && (item.kind === "missing_file" || item.kind === "missing_doc") ? "Oznacz" : "Otwórz"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {todayJobs.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Calendar size={15} className="text-amber-500"/>
+            <p className="text-sm font-semibold">Dzisiaj i wkrótce</p>
+          </div>
+          <div className="space-y-2">
+            {todayJobs.slice(0, 6).map((job) => {
+              const progress = computeInspectionProgress(job);
+              const days = daysUntilHandover(job.plannedHandoverDate || "");
+              const stage = inferHandoverStage(job);
+              return (
+                <button
+                  key={job.id}
+                  type="button"
+                  onClick={() => onOpenJob(job.id, "wm")}
+                  className="w-full text-left bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-colors touch-manipulation"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold truncate">
+                        {days === 0 ? "🟠 " : days != null && days < 0 ? "🔴 " : ""}
+                        {job.address || "Bez adresu"}
+                        {job.flatNumber && <span className="text-muted-foreground font-normal"> m.{job.flatNumber}</span>}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {days === 0 ? "Odbiór dziś" : days != null && days < 0 ? `Termin minął (${Math.abs(days)} dni)` : `Za ${days} dni`}
+                        {" · "}{HANDOVER_STAGE_LABELS[stage]}
+                      </p>
+                    </div>
+                    <ChevronRight size={16} className="text-muted-foreground shrink-0 mt-1"/>
+                  </div>
+                  <InspectorProgressBar percent={progress.percent} className="mt-2.5"/>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {allClear && (
+        <div className="flex items-start gap-2 bg-green-500/10 border border-green-500/25 rounded-xl px-4 py-3 text-sm text-green-700 dark:text-green-300">
+          <CheckCircle2 size={16} className="shrink-0 mt-0.5"/>
+          <p>Wszystko na bieżąco — brak pilnych spraw na pulpicie.</p>
+        </div>
+      )}
 
       <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-3">
         <div className="flex items-start gap-2">
@@ -182,143 +287,139 @@ export function InspectorDashboard({
         </div>
       </div>
 
-      <div className="bg-secondary/40 border border-border rounded-xl p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <FileDown size={16} className="text-primary shrink-0"/>
-          <p className="text-sm font-semibold">Raport PDF</p>
-        </div>
-        <p className="text-[11px] text-muted-foreground">Podsumowanie Twojej aktywności — do archiwum lub rozliczeń.</p>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            disabled={pdfBusy !== null}
-            onClick={handleMonthPdf}
-            className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] rounded-lg bg-primary text-primary-foreground text-xs font-medium touch-manipulation disabled:opacity-50"
-          >
-            <FileText size={14}/>
-            {pdfBusy === "month" ? "Generuję…" : `Mój miesiąc (${MONTH_NAMES_PL[reportMonth]})`}
-          </button>
-          <button
-            type="button"
-            disabled={pdfBusy !== null}
-            onClick={handleYearPdf}
-            className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] rounded-lg bg-secondary text-foreground text-xs font-medium border border-border touch-manipulation disabled:opacity-50"
-          >
-            <Cloud size={14}/>
-            {pdfBusy === "year" ? "Generuję…" : `Mój rok (${reportYear})`}
-          </button>
-        </div>
-      </div>
+      <button
+        type="button"
+        onClick={() => setShowLegacyAlerts((v) => !v)}
+        className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-2 min-h-[44px] rounded-lg border border-border bg-secondary/30 touch-manipulation"
+      >
+        <LayoutDashboard size={13}/>
+        {showLegacyAlerts ? "Ukryj szczegółowe alerty" : "Pokaż szczegółowe alerty i filtry"}
+      </button>
 
-      {allClear && filter === "all" && (
-        <div className="flex items-start gap-2 bg-green-500/10 border border-green-500/25 rounded-xl px-4 py-3 text-sm text-green-700 dark:text-green-300">
-          <CheckCircle2 size={16} className="shrink-0 mt-0.5"/>
-          <p>Wszystko na bieżąco — brak pilnych spraw na pulpicie.</p>
-        </div>
-      )}
+      {showLegacyAlerts && (
+        <>
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+            {FILTER_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setFilter(opt.id)}
+                className={`shrink-0 px-3 py-2.5 min-h-[44px] rounded-full text-xs font-medium transition-colors touch-manipulation ${
+                  filter === opt.id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
 
-      {showAdmin && adminNotesPending.length > 0 && (
-        <AlertSection title={`Odpowiedź od admina (${adminNotesPending.length})`} icon={MessageSquare} accent="violet" hint="Admin odpisał — sprawdź notatki w sekcji Odbiór WM.">
-          {adminNotesPending.map((job) => (
-            <JobRow key={job.id} job={job} badges={[{ text: "Nowa odpowiedź", tone: "violet" }]} onOpen={() => onOpenJob(job.id, "wm")}/>
-          ))}
-        </AlertSection>
-      )}
+          <div className="bg-secondary/40 border border-border rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <FileDown size={16} className="text-primary shrink-0"/>
+              <p className="text-sm font-semibold">Raport PDF</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={pdfBusy !== null}
+                onClick={handleMonthPdf}
+                className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] rounded-lg bg-primary text-primary-foreground text-xs font-medium touch-manipulation disabled:opacity-50"
+              >
+                <FileText size={14}/>
+                {pdfBusy === "month" ? "Generuję…" : `Mój miesiąc (${MONTH_NAMES_PL[reportMonth]})`}
+              </button>
+              <button
+                type="button"
+                disabled={pdfBusy !== null}
+                onClick={handleYearPdf}
+                className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] rounded-lg bg-secondary text-foreground text-xs font-medium border border-border touch-manipulation disabled:opacity-50"
+              >
+                <Cloud size={14}/>
+                {pdfBusy === "year" ? "Generuję…" : `Mój rok (${reportYear})`}
+              </button>
+            </div>
+          </div>
 
-      {showFiles && fileAlerts.length > 0 && (
-        <AlertSection
-          title={`Zlecenie / kosztorys (${fileAlerts.length} ${fileAlerts.length === 1 ? "robota" : "robot"})`}
-          icon={FileText}
-          accent={fileAlertsNeedingAction.length > 0 ? "red" : "ok"}
-          hint="Kółka jak w panelu admina — tapnij, aby oznaczyć „jest” lub odznaczyć. Robota zostaje na liście; bez wgrywania pliku, jeśli poszło mailem."
-        >
-          {fileAlerts.map((alert) => {
-            const planBadge = planStatusBadge(alert.planStatus, alert.job.plannedHandoverDate);
-            return (
-              <JobRow
-                key={alert.job.id}
-                job={alert.job}
-                badges={[
-                  planBadge ? { text: planBadge.text, tone: planBadge.tone === "red" ? "red" : "amber" } : null,
-                  alert.missingZlecenie ? { text: "Brak zlecenia", tone: "red" } : null,
-                  alert.missingKosztorys ? { text: "Brak kosztorysu", tone: "red" } : null,
-                ].filter(Boolean) as { text: string; tone: "amber" | "red" | "violet" }[]}
-                onOpen={() => onOpenJob(alert.job.id, "files")}
-                actions={
-                  <>
-                    {(["zlecenie", "kosztorys"] as const).map((doc) => (
-                      <DocFileToggle
-                        key={doc}
-                        doc={doc}
-                        checked={!!alert.job.documents[doc]}
-                        locked={!!alert.job.documents[doc] && isReportSyncedDocLocked(alert.job, doc)}
-                        onClick={() => onMarkDoc(alert.job.id, doc)}
-                      />
+          {showAdmin && adminNotesPending.length > 0 && (
+            <AlertSection title={`Odpowiedź od admina (${adminNotesPending.length})`} icon={MessageSquare} accent="violet" hint="Admin odpisał — sprawdź notatki w sekcji Odbiór WM.">
+              {adminNotesPending.map((job) => (
+                <InspectorJobCard key={job.id} job={job} hasAdminReply onSelect={() => onOpenJob(job.id, "wm")} compact/>
+              ))}
+            </AlertSection>
+          )}
+
+          {showFiles && fileAlerts.length > 0 && (
+            <AlertSection
+              title={`Zlecenie / kosztorys (${fileAlerts.length})`}
+              icon={FileText}
+              accent={fileAlertsNeedingAction.length > 0 ? "red" : "ok"}
+              hint="Tapnij, aby oznaczyć „jest” lub otwórz robotę."
+            >
+              {fileAlerts.map((alert) => (
+                <LegacyFileRow key={alert.job.id} alert={alert} onOpen={() => onOpenJob(alert.job.id, "files")} onMarkDoc={onMarkDoc}/>
+              ))}
+            </AlertSection>
+          )}
+
+          {showTerminy && overdueJobs.length > 0 && (
+            <AlertSection title={`Termin minął (${overdueJobs.length})`} icon={Calendar} accent="amber" hint="Zaktualizuj datę lub etap WM.">
+              {overdueJobs.map((job) => (
+                <InspectorJobCard key={`overdue-${job.id}`} job={job} onSelect={() => onOpenJob(job.id, "wm")} compact/>
+              ))}
+            </AlertSection>
+          )}
+
+          {showDocs && docAlerts.length > 0 && (
+            <AlertSection title={`Brakujące dokumenty (${docAlerts.length})`} icon={FileWarning} accent="red" hint="Oznacz „Jest” jednym tapnięciem.">
+              {docAlerts.map((alert) => (
+                <div key={alert.job.id} className="px-4 py-3 border-b border-border/60 last:border-0">
+                  <InspectorJobCard job={alert.job} onSelect={() => onOpenJob(alert.job.id, "docs")} compact/>
+                  <div className="flex flex-wrap gap-1 mt-2 pl-1">
+                    {alert.missingDocs.slice(0, 3).map((doc) => (
+                      <QuickBtn key={doc} label={`${shortDocLabel(doc)} ✓`} onClick={() => onMarkDoc(alert.job.id, doc)}/>
                     ))}
-                  </>
-                }
-              />
-            );
-          })}
-        </AlertSection>
-      )}
+                  </div>
+                </div>
+              ))}
+            </AlertSection>
+          )}
 
-      {showTerminy && overdueJobs.length > 0 && (
-        <AlertSection title={`Termin odbioru minął (${overdueJobs.length})`} icon={Calendar} accent="amber" hint="Zaktualizuj datę odbioru lub etap WM — kliknij robotę.">
-          {overdueJobs.map((job) => {
-            const planBadge = planStatusBadge("overdue", job.plannedHandoverDate);
-            return (
-              <JobRow
-                key={`overdue-${job.id}`}
-                job={job}
-                badges={planBadge ? [{ text: planBadge.text, tone: "red" }] : [{ text: "Termin minął", tone: "red" }]}
-                onOpen={() => onOpenJob(job.id, "wm")}
-              />
-            );
-          })}
-        </AlertSection>
+          {showTerminy && readyNoDate.length > 0 && (
+            <AlertSection title={`Gotowe — brak daty (${readyNoDate.length})`} icon={Calendar} accent="amber" hint="Ustaw datę odbioru WM.">
+              {readyNoDate.map((alert) => (
+                <InspectorJobCard key={alert.job.id} job={alert.job} onSelect={() => onOpenJob(alert.job.id, "wm")} compact/>
+              ))}
+            </AlertSection>
+          )}
+        </>
       )}
+    </div>
+  );
+}
 
-      {showDocs && docAlerts.length > 0 && (
-        <AlertSection title={`Brakujące dokumenty (${docAlerts.length})`} icon={FileWarning} accent="red" hint="Kominiarz, pomiary, oświadczenia… — oznacz „Jest” jednym tapnięciem.">
-          {docAlerts.map((alert) => (
-            <JobRow
-              key={alert.job.id}
-              job={alert.job}
-              subtitle={`Brakuje: ${alert.missingLabels.slice(0, 4).join(", ")}${alert.missingLabels.length > 4 ? "…" : ""}`}
-              onOpen={() => onOpenJob(alert.job.id, "docs")}
-              actions={
-                <>
-                  {alert.missingDocs.slice(0, 3).map((doc) => (
-                    <QuickBtn
-                      key={doc}
-                      label={`${shortDocLabel(doc)} ✓`}
-                      onClick={() => onMarkDoc(alert.job.id, doc)}
-                    />
-                  ))}
-                </>
-              }
-            />
-          ))}
-        </AlertSection>
-      )}
-
-      {showTerminy && readyNoDate.length > 0 && (
-        <AlertSection title={`Gotowe do odbioru — brak daty (${readyNoDate.length})`} icon={Calendar} accent="amber" hint="Ustaw planowaną datę odbioru WM w sekcji Odbiór WM.">
-          {readyNoDate.map((alert) => (
-            <JobRow key={alert.job.id} job={alert.job} badges={[{ text: "Ustaw datę odbioru", tone: "amber" }]} onOpen={() => onOpenJob(alert.job.id, "wm")}/>
-          ))}
-        </AlertSection>
-      )}
-
-      {!allClear && filter !== "all" && (
-        (filter === "admin" && adminNotesPending.length === 0)
-        || (filter === "pliki" && fileAlerts.length === 0)
-        || (filter === "dokumenty" && docAlerts.length === 0)
-        || (filter === "terminy" && overdueJobs.length === 0 && readyNoDate.length === 0)
-      ) && (
-        <p className="text-xs text-muted-foreground text-center py-6">Brak spraw w tym filtrze.</p>
-      )}
+function LegacyFileRow({
+  alert,
+  onOpen,
+  onMarkDoc,
+}: {
+  alert: ReturnType<typeof buildFileDeliveryAlerts>[number];
+  onOpen: () => void;
+  onMarkDoc: (jobId: string, doc: QuickMarkDoc) => void;
+}) {
+  return (
+    <div className="px-4 py-3 flex flex-col gap-2">
+      <InspectorJobCard job={alert.job} onSelect={onOpen} compact/>
+      <div className="flex flex-wrap gap-1">
+        {(["zlecenie", "kosztorys"] as const).map((doc) => (
+          <DocFileToggle
+            key={doc}
+            doc={doc}
+            checked={!!alert.job.documents[doc]}
+            locked={!!alert.job.documents[doc] && isReportSyncedDocLocked(alert.job, doc)}
+            onClick={() => onMarkDoc(alert.job.id, doc)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -338,21 +439,6 @@ function MiniStat({ label, value }: { label: string; value: number }) {
   );
 }
 
-function StatTile({ label, value, accent = "neutral" }: { label: string; value: number; accent?: "red" | "violet" | "amber" | "ok" | "neutral" }) {
-  const valueCls =
-    accent === "red" ? "text-red-400"
-      : accent === "violet" ? "text-violet-500 dark:text-violet-400"
-        : accent === "amber" ? "text-amber-400"
-          : accent === "ok" ? "text-green-500 dark:text-green-400"
-            : "text-foreground";
-  return (
-    <div className="bg-secondary/50 rounded-xl px-3 py-2.5 border border-border">
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className={`text-lg font-semibold mt-0.5 ${valueCls}`} style={{ fontFamily: "'JetBrains Mono', monospace" }}>{value}</p>
-    </div>
-  );
-}
-
 function DocFileToggle({
   doc,
   checked,
@@ -368,27 +454,17 @@ function DocFileToggle({
   return (
     <button
       type="button"
-      title={
-        locked
-          ? `${label} — potwierdzone raportem (nie można odznaczyć)`
-          : checked
-            ? `${label} — jest (kliknij, aby odznaczyć)`
-            : `Oznacz jako odebrane: ${label}`
-      }
+      title={locked ? `${label} — zablokowane` : checked ? `${label} — jest` : `Oznacz: ${label}`}
       onClick={(e) => { e.stopPropagation(); if (!locked) onClick(); }}
       className={`inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-2 min-h-[44px] rounded-md border transition-all touch-manipulation shrink-0 ${
         locked
           ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 cursor-default"
           : checked
-            ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 hover:bg-green-500/20 active:scale-[0.97]"
-            : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25 hover:bg-green-500/15 hover:text-green-700 hover:border-green-500/30 dark:hover:text-green-300 active:scale-[0.97]"
+            ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35"
+            : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25"
       }`}
     >
-      {checked ? (
-        <CheckCircle2 size={10} className="shrink-0"/>
-      ) : (
-        <Circle size={10} className="shrink-0 opacity-70"/>
-      )}
+      {checked ? <CheckCircle2 size={10}/> : <Circle size={10}/>}
       {label}
     </button>
   );
@@ -400,22 +476,15 @@ function AlertSection({ title, hint, icon: Icon, accent, children }: { title: st
       : accent === "amber" ? "border-amber-500/25 bg-amber-500/5"
         : accent === "ok" ? "border-green-500/25 bg-green-500/5"
           : "border-red-500/25 bg-red-500/5";
-  const titleCls =
-    accent === "violet" ? "text-violet-700 dark:text-violet-300"
-      : accent === "amber" ? "text-amber-700 dark:text-amber-300"
-        : accent === "ok" ? "text-green-700 dark:text-green-300"
-          : "text-red-700 dark:text-red-300";
   return (
     <div className={`rounded-xl border overflow-hidden ${border}`}>
       <div className="px-4 py-3 border-b border-border/60 space-y-1">
-        <p className={`text-sm font-semibold flex items-center gap-1.5 ${titleCls}`}>
-          <Icon size={14}/>{title}
-        </p>
+        <p className="text-sm font-semibold flex items-center gap-1.5"><Icon size={14}/>{title}</p>
         <p className="text-[11px] text-muted-foreground leading-snug flex items-start gap-1">
           <AlertTriangle size={11} className="shrink-0 mt-0.5 opacity-70"/>{hint}
         </p>
       </div>
-      <div className="divide-y divide-border/60">{children}</div>
+      <div>{children}</div>
     </div>
   );
 }
@@ -430,50 +499,5 @@ function QuickBtn({ label, onClick }: { label: string; onClick: () => void }) {
     >
       {label}
     </button>
-  );
-}
-
-function JobRow({
-  job,
-  badges,
-  subtitle,
-  actions,
-  onOpen,
-}: {
-  job: InspectorDashboardJob;
-  badges?: { text: string; tone: "amber" | "red" | "violet" }[];
-  subtitle?: string;
-  actions?: React.ReactNode;
-  onOpen: () => void;
-}) {
-  return (
-    <div className="px-4 py-3 flex items-start gap-2 hover:bg-secondary/30 transition-colors">
-      <button type="button" onClick={onOpen} className="flex-1 min-w-0 text-left touch-manipulation">
-        <p className="font-semibold text-sm truncate">
-          {job.address || "Bez adresu"}
-          {job.flatNumber && <span className="text-muted-foreground"> m.{job.flatNumber}</span>}
-        </p>
-        <p className="text-xs text-muted-foreground truncate mt-0.5">{job.client || "—"}</p>
-        {subtitle && <p className="text-[10px] text-muted-foreground mt-1 leading-snug">{subtitle}</p>}
-        <p className="text-[10px] text-muted-foreground mt-1">Start: {fmtDate(job.startDate)}</p>
-        <div className="flex flex-wrap gap-1.5 mt-2">
-          <JobWmStageBadge job={job}/>
-          <JobWmPlannedBadge job={job}/>
-          {badges?.map((b) => (
-            <span key={b.text} className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-              b.tone === "violet" ? "bg-violet-500/15 text-violet-600 dark:text-violet-400"
-                : b.tone === "amber" ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
-                  : "bg-red-500/10 text-red-400"
-            }`}>{b.text}</span>
-          ))}
-        </div>
-      </button>
-      <div className="flex flex-col items-end gap-2 shrink-0 pt-0.5 max-w-[40%]">
-        <div className="flex flex-wrap justify-end gap-1">{actions}</div>
-        <button type="button" onClick={onOpen} className="p-1 text-muted-foreground hover:text-foreground" aria-label="Otwórz">
-          <ChevronRight size={16}/>
-        </button>
-      </div>
-    </div>
   );
 }

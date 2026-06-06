@@ -4,9 +4,20 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.45.39** (`changelog-data.ts`) · prod app **`74e65d9`**
+**Aktualna wersja UI:** **2.45.40** (`changelog-data.ts`) · Sprint 20.2A Inspector UX (lokalnie)
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
+
+---
+
+## 2.45.40 (2026-06-06) — Panel inspektora UX (Sprint 20.2A)
+
+* **Pulpit** — KPI, „Dzisiaj”, Action Center (max 3)
+* **Postęp kontroli** 0–100% — `computeInspectionProgress()` bez nowych KV
+* **Karty robót** — brakujące do odbioru, ostatnia aktywność, 🔴🟠🟢
+* **Checklist** w grupach + licznik dokumentów
+* **FAB 📷** — szybkie zdjęcie z aparatu
+* **Fix 20.2A.1** — postęp % bez double-count zlecenie/kosztorys (documents 50% + etap 25%)
 
 ---
 
