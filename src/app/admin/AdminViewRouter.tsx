@@ -13,6 +13,7 @@ import type { AdminSession } from "@/lib/admin-auth";
 import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import type { AppSettings } from "@/lib/app-settings";
 import type { EmailContact } from "@/lib/email-contacts";
+import type { EmployeeLeave } from "@/lib/employee-leaves";
 import type { View } from "@/app/admin/admin-nav";
 import { CommandCenterProvider } from "@/app/tender-center/context/CommandCenterContext";
 
@@ -83,6 +84,9 @@ export type AdminViewRouterProps = {
   weekTo: string;
   savedWeeks: WeekSnapshot[];
   contacts: EmailContact[];
+  employeeLeaves: EmployeeLeave[];
+  setEmployeeLeaves: (v: EmployeeLeave[] | ((prev: EmployeeLeave[]) => EmployeeLeave[])) => void;
+  commitEmployeeLeaves: (next?: EmployeeLeave[], deletedId?: string) => void;
   adminSession: AdminSession | null | undefined;
   alertsSeenTick: number;
   onAlertsSeen: () => void;
@@ -150,6 +154,9 @@ export function AdminViewRouter({
   weekTo,
   savedWeeks,
   contacts,
+  employeeLeaves,
+  setEmployeeLeaves,
+  commitEmployeeLeaves,
   adminSession,
   alertsSeenTick,
   onAlertsSeen,
@@ -268,6 +275,7 @@ export function AdminViewRouter({
               weekFrom={weekFrom}
               weekTo={weekTo}
               directory={directory}
+              employeeLeaves={employeeLeaves}
               contacts={contacts}
               jobs={jobs}
               onWeekChange={(f, t) => {
@@ -316,8 +324,11 @@ export function AdminViewRouter({
           <DirectoryView
             directory={directory}
             savedWeeks={savedWeeks}
+            employeeLeaves={employeeLeaves}
             onChange={setDirectory}
             onCommit={commitDirectory}
+            onLeavesChange={setEmployeeLeaves}
+            onLeavesCommit={commitEmployeeLeaves}
             onOpenSms={onOpenSms}
           />
         </ViewErrorBoundary>

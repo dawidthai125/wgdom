@@ -19,6 +19,13 @@ import {
   type PayrollCalcRow,
   type PayrollExportTotals,
 } from "@/lib/payroll-export";
+import { leaveTypeDisplayLabel, type EmployeeLeave } from "@/lib/employee-leaves";
+import {
+  calcWeekEmployeeWithLeave,
+  calcBiweeklyWeekNetWithLeave,
+  isPayrollWeekArchived,
+  type PayrollCalcWithLeave,
+} from "@/lib/payroll-leave-overlay";
 import {
   isBiweeklyPayrollEmployee,
   calcBiweeklyRowDisplay,
@@ -69,15 +76,18 @@ import {
 
 
 export function toPayrollCalcRows(
-  rows: ({ emp: WeekEmployee } & ReturnType<typeof calcWeekEmployee>)[],
+  rows: ({ emp: WeekEmployee } & PayrollCalcWithLeave)[],
   directory: DirectoryEmployee[],
   weekFrom: string,
   weekTo: string,
   savedWeeks: WeekSnapshot[],
 ): PayrollCalcRow[] {
   return rows.map((r) => {
-    const biweekly = isBiweeklyPayrollEmployee(r.emp, directory);
+    const leaveStatus = r.leaveStatus;
+    const biweekly = !leaveStatus && isBiweeklyPayrollEmployee(r.emp, directory);
     const bw = biweekly ? calcBiweeklyRowDisplay(r.emp, directory, weekFrom, weekTo, savedWeeks) : null;
+    const netPay = leaveStatus ? 0 : (bw ? (bw.isPayoutWeek ? bw.displayNet : bw.thisWeekNet) : r.netPay);
+    const grossPay = leaveStatus ? 0 : (biweekly ? r.weekGross : r.grossPay);
     return {
       emp: { name: r.emp.name, position: r.emp.position, settled: r.emp.settled },
       weekHours: r.weekHours,
@@ -90,19 +100,20 @@ export function toPayrollCalcRows(
       totalExtraCosts: r.totalExtraCosts,
       weekGross: r.weekGross,
       prevSatGross: biweekly ? 0 : r.prevSatGross,
-      grossPay: biweekly ? r.weekGross : r.grossPay,
-      weekNet: r.weekNet,
+      grossPay,
+      weekNet: leaveStatus ? 0 : r.weekNet,
       prevSatNet: biweekly ? 0 : r.prevSatNet,
-      netPay: bw ? (bw.isPayoutWeek ? bw.displayNet : bw.thisWeekNet) : r.netPay,
+      netPay,
       rateNum: r.rateNum,
       biweekly: biweekly || undefined,
       biweeklyPayoutWeek: bw?.isPayoutWeek,
       biweeklyAccruedOnly: bw?.accruedOnly,
       biweeklyNextPayout: bw?.nextPayoutDate,
-      biweeklyThisWeekNet: bw?.thisWeekNet,
+      biweeklyThisWeekNet: leaveStatus ? 0 : bw?.thisWeekNet,
       biweeklyPrevWeekNet: bw?.prevWeekNet,
       biweeklyPrevWeekLabel: bw ? `${fmtDate(bw.prevWeekFrom)}–${fmtDate(bw.prevWeekTo)}` : undefined,
-      biweeklyDisplayNet: bw?.displayNet,
+      biweeklyDisplayNet: leaveStatus ? 0 : bw?.displayNet,
+      leaveStatus,
     };
   });
 }
@@ -424,7 +435,7 @@ export function PayrollPdfPreviewModal({
 // ─── Lista Płac (current week) ────────────────────────────────────────────────
 
 export function PayrollView({
-  weekEmployees, weekFrom, weekTo, directory, contacts, jobs,
+  weekEmployees, weekFrom, weekTo, directory, contacts, jobs, employeeLeaves,
   onWeekChange, onToggleSettled, onSaveWeek, savedWeeks,
   onAddFromDirectory, onRemoveWeekEmployee, onClearAllWeekEmployees, onReplaceWithAllActive, onUpdateWeekEmployee,   onGoToCurrent,
   onManageContacts,
@@ -437,6 +448,7 @@ export function PayrollView({
 }:{
   weekEmployees: WeekEmployee[]; weekFrom:string; weekTo:string;
   directory: DirectoryEmployee[];
+  employeeLeaves: EmployeeLeave[];
   contacts: EmailContact[];
   jobs: Job[];
   onWeekChange:(f:string,t:string)=>void;
@@ -515,11 +527,51 @@ export function PayrollView({
     if (toAdd.length > 0) onAddFromDirectory(toAdd.map(d => d.id));
   };
 
-  const rows = weekEmployees.map((emp)=>({emp,...calcWeekEmployee(emp)}));
+  const archivedForWeek = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+  const isArchivedWeek = isPayrollWeekArchived(savedWeeks, weekFrom, weekTo);
+  const payrollEmployees =
+    isArchivedWeek && archivedForWeek?.weekEmployees?.length
+      ? archivedForWeek.weekEmployees
+      : weekEmployees;
+
+  const rows = useMemo(
+    () =>
+      payrollEmployees.map((emp) => ({
+        emp,
+        ...calcWeekEmployeeWithLeave(emp, {
+          weekFrom,
+          weekTo,
+          employeeLeaves: isArchivedWeek ? undefined : employeeLeaves,
+          archivedSnapshot: isArchivedWeek ? archivedForWeek : undefined,
+          livePayroll: !isArchivedWeek,
+        }),
+      })),
+    [payrollEmployees, weekFrom, weekTo, employeeLeaves, isArchivedWeek, archivedForWeek],
+  );
 
   const cashSplit = useMemo(
-    () => computePayrollCashSplit(weekEmployees, directory, weekFrom, weekTo, savedWeeks, (e) => calcWeekEmployee(e).netPay),
-    [weekEmployees, directory, weekFrom, weekTo, savedWeeks],
+    () =>
+      computePayrollCashSplit(
+        payrollEmployees,
+        directory,
+        weekFrom,
+        weekTo,
+        savedWeeks,
+        (e) =>
+          calcWeekEmployeeWithLeave(e, {
+            weekFrom,
+            weekTo,
+            employeeLeaves: isArchivedWeek ? undefined : employeeLeaves,
+            archivedSnapshot: isArchivedWeek ? archivedForWeek : undefined,
+            livePayroll: !isArchivedWeek,
+          }).netPay,
+        (e, from, to) =>
+          calcBiweeklyWeekNetWithLeave(e, from, to, {
+            employeeLeaves,
+            savedWeeks,
+          }),
+      ),
+    [payrollEmployees, directory, weekFrom, weekTo, savedWeeks, employeeLeaves, isArchivedWeek, archivedForWeek],
   );
 
   const backlogCheck = useMemo(
@@ -531,13 +583,14 @@ export function PayrollView({
 
   const biweeklyRowMap = useMemo(() => {
     const m = new Map<string, ReturnType<typeof calcBiweeklyRowDisplay>>();
-    for (const emp of weekEmployees) {
-      if (isBiweeklyPayrollEmployee(emp, directory)) {
-        m.set(emp.id, calcBiweeklyRowDisplay(emp, directory, weekFrom, weekTo, savedWeeks));
+    for (const r of rows) {
+      if (r.leaveStatus) continue;
+      if (isBiweeklyPayrollEmployee(r.emp, directory)) {
+        m.set(r.emp.id, calcBiweeklyRowDisplay(r.emp, directory, weekFrom, weekTo, savedWeeks));
       }
     }
     return m;
-  }, [weekEmployees, directory, weekFrom, weekTo, savedWeeks]);
+  }, [rows, directory, weekFrom, weekTo, savedWeeks]);
 
   const payrollDayColumns = useMemo(() => weekDayColumns(weekFrom), [weekFrom]);
   const showPrevSatDetailCol = useMemo(
@@ -553,21 +606,21 @@ export function PayrollView({
   const totalWeekHours = rows.reduce((s,r)=>s+r.weekHours,0);
   const totalPrevSatHours = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?0:r.prevSatHours),0);
   const totalHoursAll = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?r.weekHours:r.totalHours),0);
-  const totalWeekGross = rows.reduce((s,r)=>s+r.weekGross,0);
-  const totalPrevSatGross = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?0:r.prevSatGross),0);
-  const totalGross = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?r.weekGross:r.grossPay),0);
+  const totalWeekGross = rows.reduce((s,r)=>s+(r.leaveStatus?0:r.weekGross),0);
+  const totalPrevSatGross = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)||r.leaveStatus?0:r.prevSatGross),0);
+  const totalGross = rows.reduce((s,r)=>s+(r.leaveStatus?0:(biweeklyRowMap.has(r.emp.id)?r.weekGross:r.grossPay)),0);
   const totalWeekZaliczka = rows.reduce((s,r)=>s+r.weekZaliczka,0);
   const totalPrevSatZaliczka = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?0:r.prevSatZaliczka),0);
   const totalZaliczkaSum = rows.reduce((s,r)=>s+(biweeklyRowMap.has(r.emp.id)?r.weekZaliczka:r.totalZaliczka),0);
   const totalExtraCostsSum = rows.reduce((s,r)=>s+r.totalExtraCosts,0);
   const totalNet = rows.reduce((s,r)=>{
+    if (r.leaveStatus) return s;
     const bw = biweeklyRowMap.get(r.emp.id);
     if (bw) return s+(bw.isPayoutWeek?bw.displayNet:bw.thisWeekNet);
     return s+r.netPay;
   },0);
 
-  const alreadySaved = savedWeeks.some((w)=>w.weekFrom===weekFrom&&w.weekTo===weekTo);
-  const archivedForWeek = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+  const alreadySaved = isArchivedWeek;
   const archiveRichness = archivedForWeek?.weekEmployees ? weekEmployeesListRichness(archivedForWeek.weekEmployees) : 0;
   const currentRichness = weekEmployeesListRichness(weekEmployees);
   const showRestoreBanner = Boolean(onRestoreFromArchive && archivedForWeek?.weekEmployees?.length && archiveRichness > currentRichness + 1);
@@ -669,6 +722,16 @@ export function PayrollView({
                   <p className="text-xs text-muted-foreground">Oznacz „Rozliczony” po wypłacie. Tydzień trafi do archiwum w <strong>niedzielę</strong> (gdy wszyscy rozliczeni) — po <strong>{PAYROLL_WEEK_ROLLOVER_HOUR}:00</strong> startuje nowy tydzień. Możesz też kliknąć „Zapisz tydzień”.</p>
                 </div>
                 <button onClick={()=>setSatDismissed(true)} className="p-1 text-muted-foreground hover:text-foreground transition-colors shrink-0"><X size={14}/></button>
+              </div>
+            )}
+
+            {isArchivedWeek && (
+              <div className="flex items-center gap-3 bg-violet-500/10 border border-violet-500/25 rounded-xl px-4 py-3">
+                <Archive size={15} className="text-violet-400 shrink-0"/>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-violet-300">Tydzień archiwalny — podgląd ze snapshotu</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Lista płac i eksport PDF/DOCX korzystają wyłącznie z zapisanego archiwum. Nowe urlopy nie zmieniają tego tygodnia.</p>
+                </div>
               </div>
             )}
 
@@ -902,6 +965,9 @@ export function PayrollView({
                             <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalExtraCosts>0?<span className="text-green-500">+{fmt(r.totalExtraCosts)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
                             <td className="px-2 py-3.5 text-right font-bold text-primary whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>
                               {(() => {
+                                if (r.leaveStatus) {
+                                  return <span className="text-violet-400">{leaveTypeDisplayLabel(r.leaveStatus)}</span>;
+                                }
                                 const bw = biweeklyRowMap.get(r.emp.id);
                                 if (bw && !bw.isPayoutWeek) {
                                   return <span title={`Narasta na ${fmtDate(bw.nextPayoutDate)}`}><span className="text-sky-400">{fmt(bw.thisWeekNet)}</span> <span className="text-[10px] font-normal text-sky-400/70">→ {fmtDate(bw.nextPayoutDate).slice(0,5)}</span></span>;
@@ -1002,6 +1068,7 @@ export function PayrollView({
                           <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Zaliczki</p><p className="text-sm font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalZaliczka>0?`−${fmt(r.totalZaliczka)}`:"—"}</p></div>
                           <div className="bg-secondary rounded-lg px-2 py-2"><p className="text-xs text-muted-foreground">Koszty</p><p className="text-sm font-semibold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalExtraCosts>0?`+${fmt(r.totalExtraCosts)}`:"—"}</p></div>
                           <div className="bg-primary/10 rounded-lg px-2 py-2 col-span-2 sm:col-span-1"><p className="text-xs text-primary/70">Do wypłaty</p><p className="text-sm font-bold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>{(() => {
+                                if (r.leaveStatus) return leaveTypeDisplayLabel(r.leaveStatus);
                                 const bw = biweeklyRowMap.get(r.emp.id);
                                 if (bw && !bw.isPayoutWeek) return fmt(bw.thisWeekNet);
                                 if (bw && bw.isPayoutWeek) return fmt(bw.displayNet);

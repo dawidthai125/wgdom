@@ -3,7 +3,7 @@
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
 > **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (prod **2.45.36**; perf release tag `v2.45.38-perf-2.4a` @ `35614f0`)  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-06 (Performance 2.x CLOSED — § 17.5 bundling / `manualChunks`)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-06 (Sprint 20.0A — nieobecności / `kw-employee-leaves`)
 
 ---
 
@@ -260,6 +260,9 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 **Tydzień płacowy (v2.45.14):** zakres Pn–So. **Nd przed 20:00** — domykany tydzień (wypłaty w sobotę). **Nd od 20:00** — w panelu admina startuje **nadchodzący** tydzień (archiwum + pusta lista, gdy wszyscy rozliczeni). **Pn+** — to samo przy pierwszym wejściu, jeśli tydzień w tyle. Auto-archiwum + email backup: niedziela. Alert spójności nie pokazuje się przy pustej liście na nowy tydzień.
 | `kw-jobs` | Roboty (zdjęcia, pliki, WM, activity…) | Wszyscy |
 | `kw-contacts` | Kontakty e-mail | Admin |
+| `kw-employee-leaves` | Nieobecności pracowników (urlop / L4 / bezpłatny, tygodnie Pn–So) | Admin |
+
+**Nieobecności (Sprint 20.0A, v2.45.37):** tablica `EmployeeLeave[]` w `kw-employee-leaves`. Overlay na live payroll (`payroll-leave-overlay.ts`) — `netPay`/`grossPay`=0, godziny bez zmian. Przy `buildWeekSnapshot` zamrażany `leaveStatus` w `EmployeeSnapshot`. Archiwalny PDF/DOCX tylko ze snapshotu — bez live lookup urlopów.
 
 **Nowy typ danych → MUSISZ:** dodać do `DATA_KEYS`, hook stanu w adminie, merge w `mergeDataKey`, push/pull paths.
 

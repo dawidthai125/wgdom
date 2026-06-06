@@ -111,12 +111,17 @@ export interface WeekEmployee {
   settled: boolean;
 }
 
+/** Status nieobecności zamrożony w archiwum tygodnia (Sprint 20.0A). */
+export type PayrollLeaveStatus = "vacation" | "sick" | "unpaid";
+
 export interface EmployeeSnapshot {
   name: string; position: string; rate: number;
   weekHours?: number; prevSatHours?: number;
   totalHours: number; grossPay: number; totalZaliczka: number; totalExtraCosts: number;
   netPay: number;
   settled: boolean;
+  /** Zamrożony przy zapisie tygodnia — nie zmienia się po dodaniu urlopów wstecz. */
+  leaveStatus?: PayrollLeaveStatus;
 }
 
 /** Wpis czasu na robocie zapisany w archiwum tygodnia */
@@ -1777,9 +1782,22 @@ export function buildWeekSnapshot(
   weekEmployees: WeekEmployee[],
   jobs: Job[],
   existing?: WeekSnapshot,
+  employeeLeaves?: import("@/lib/employee-leaves").EmployeeLeave[],
 ): WeekSnapshot {
   const employees = weekEmployees.map((emp) => {
     const c = calcWeekEmployee(emp);
+    let leaveStatus: PayrollLeaveStatus | undefined;
+    if (employeeLeaves?.length && emp.directoryId) {
+      const leave = employeeLeaves.find(
+        (l) =>
+          l.employeeId === emp.directoryId &&
+          l.weekStart <= weekTo &&
+          l.weekEnd >= weekFrom,
+      );
+      leaveStatus = leave?.leaveType;
+    }
+    const netPay = leaveStatus ? 0 : c.netPay;
+    const grossPay = leaveStatus ? 0 : c.grossPay;
     return {
       name: emp.name,
       position: emp.position,
@@ -1787,11 +1805,12 @@ export function buildWeekSnapshot(
       weekHours: c.weekHours,
       prevSatHours: c.prevSatHours,
       totalHours: c.totalHours,
-      grossPay: c.grossPay,
+      grossPay,
       totalZaliczka: c.totalZaliczka,
       totalExtraCosts: c.totalExtraCosts,
-      netPay: c.netPay,
+      netPay,
       settled: emp.settled,
+      ...(leaveStatus ? { leaveStatus } : {}),
     };
   });
   return {
@@ -1802,9 +1821,9 @@ export function buildWeekSnapshot(
     employees,
     totalEmployees: weekEmployees.length,
     totalHours: weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).totalHours, 0),
-    totalGross: weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).grossPay, 0),
+    totalGross: employees.reduce((s, e) => s + e.grossPay, 0),
     totalZaliczka: weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).totalZaliczka, 0),
-    totalNet: weekEmployees.reduce((s, e) => s + calcWeekEmployee(e).netPay, 0),
+    totalNet: employees.reduce((s, e) => s + e.netPay, 0),
     weekEmployees: JSON.parse(JSON.stringify(weekEmployees)) as WeekEmployee[],
     workEntries: existing?.workEntries ?? collectWorkEntriesForWeek(jobs, weekFrom, weekTo),
     backlog: existing?.backlog,

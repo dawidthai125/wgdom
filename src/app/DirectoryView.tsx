@@ -15,14 +15,17 @@ import {
   workerHasPersonalPin,
   workerPinTooWeak,
 } from "@/app/app-domain";
-import { addDeletedDirectoryId, pushDirectoryToCloud } from "@/lib/cloud-sync";
+import { addDeletedDirectoryId, pushDirectoryToCloud, pushEmployeeLeavesToCloud } from "@/lib/cloud-sync";
+import type { EmployeeLeave } from "@/lib/employee-leaves";
+import { mergeEmployeeLeaves } from "@/lib/employee-leaves";
+import { EmployeeLeavesSection } from "@/app/EmployeeLeavesSection";
 import { digestSha256Hex } from "@/lib/admin-auth";
 
 async function hashWorkerPin(pin: string): Promise<string> {
   return digestSha256Hex(`wgdom-worker-pin-v1:${pin}`);
 }
 
-export function DirectoryView({directory, savedWeeks, onChange, onCommit, onOpenSms}:{directory:DirectoryEmployee[]; savedWeeks: WeekSnapshot[]; onChange:(d:DirectoryEmployee[])=>void; onCommit?:()=>void; onOpenSms?:()=>void}) {
+export function DirectoryView({directory, savedWeeks, employeeLeaves, onChange, onCommit, onLeavesChange, onLeavesCommit, onOpenSms}:{directory:DirectoryEmployee[]; savedWeeks: WeekSnapshot[]; employeeLeaves: EmployeeLeave[]; onChange:(d:DirectoryEmployee[])=>void; onCommit?:()=>void; onLeavesChange:(l:EmployeeLeave[])=>void; onLeavesCommit?:(next:EmployeeLeave[], deletedId?:string)=>void; onOpenSms?:()=>void}) {
   const { canViewRates } = useAdminAccess();
   const [editId, setEditId] = useState<string|null>(null);
   const [archiveEmpId, setArchiveEmpId] = useState<string|null>(null);
@@ -265,6 +268,14 @@ export function DirectoryView({directory, savedWeeks, onChange, onCommit, onOpen
                         </span>
                       </span>
                     </label>
+                    <EmployeeLeavesSection
+                      employeeId={editEmp.id}
+                      employeeName={editEmp.name}
+                      leaves={employeeLeaves}
+                      savedWeeks={savedWeeks}
+                      onChange={onLeavesChange}
+                      onCommit={(next, deletedId) => onLeavesCommit?.(next, deletedId)}
+                    />
                     <div className="flex items-center gap-2 pt-2">
                       <button onClick={()=>{ setEditId(null); onCommit?.(); }} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"><Check size={13}/>Zapisz</button>
                       <button onClick={()=>setEditId(null)} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Anuluj</button>

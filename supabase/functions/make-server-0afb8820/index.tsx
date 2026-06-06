@@ -464,6 +464,70 @@ function normalizeArrayKv(raw: unknown): unknown[] {
   return Array.isArray(raw) ? raw : [];
 }
 
+function leaveRangesOverlapKv(aStart: string, aEnd: string, bStart: string, bEnd: string): boolean {
+  return aStart <= bEnd && aEnd >= bStart;
+}
+
+function normalizeEmployeeLeavesKv(raw: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(raw)) return [];
+  const out: Record<string, unknown>[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const r = item as Record<string, unknown>;
+    const leaveType = String(r.leaveType ?? "");
+    if (leaveType !== "vacation" && leaveType !== "sick" && leaveType !== "unpaid") continue;
+    if (!r.id || !r.employeeId || !r.weekStart || !r.weekEnd) continue;
+    out.push(r);
+  }
+  return out;
+}
+
+function leaveRangeOverlapsArchiveKv(
+  weekStart: string,
+  weekEnd: string,
+  archiveWeeks: unknown[],
+): boolean {
+  for (const snap of archiveWeeks) {
+    if (!snap || typeof snap !== "object") continue;
+    const w = snap as { weekFrom?: string; weekTo?: string };
+    if (!w.weekFrom || !w.weekTo) continue;
+    if (leaveRangesOverlapKv(weekStart, weekEnd, w.weekFrom, w.weekTo)) return true;
+  }
+  return false;
+}
+
+function validateEmployeeLeavesKv(
+  leaves: Record<string, unknown>[],
+  archiveWeeks: unknown[],
+): { ok: boolean; leaves: Record<string, unknown>[] } {
+  for (const leave of leaves) {
+    const weekStart = String(leave.weekStart ?? "");
+    const weekEnd = String(leave.weekEnd ?? "");
+    const employeeId = String(leave.employeeId ?? "");
+    if (!employeeId || !weekStart || !weekEnd) return { ok: false, leaves: [] };
+    if (weekEnd < weekStart) return { ok: false, leaves: [] };
+    if (leaveRangeOverlapsArchiveKv(weekStart, weekEnd, archiveWeeks)) return { ok: false, leaves: [] };
+  }
+  for (let i = 0; i < leaves.length; i++) {
+    for (let j = i + 1; j < leaves.length; j++) {
+      const a = leaves[i];
+      const b = leaves[j];
+      if (String(a.employeeId) !== String(b.employeeId)) continue;
+      if (
+        leaveRangesOverlapKv(
+          String(a.weekStart),
+          String(a.weekEnd),
+          String(b.weekStart),
+          String(b.weekEnd),
+        )
+      ) {
+        return { ok: false, leaves: [] };
+      }
+    }
+  }
+  return { ok: true, leaves };
+}
+
 async function rotateKvBackups(baseKey: string): Promise<void> {
   const prev = await kv.get(baseKey);
   if (prev == null) return;
@@ -551,6 +615,10 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   const dirDeletedFromBatch = dirDeletedBatchIdx >= 0 ? normalizeDeletedIdsKv(values[dirDeletedBatchIdx]) : [];
   const storedDirDeleted = normalizeDeletedIdsKv(await kv.get("kw-directory-deleted-ids"));
   const allDirDeletedIds = new Set([...storedDirDeleted, ...dirDeletedFromBatch]);
+  const leavesDeletedBatchIdx = keys.indexOf("kw-employee-leaves-deleted-ids");
+  const leavesDeletedFromBatch = leavesDeletedBatchIdx >= 0 ? normalizeDeletedIdsKv(values[leavesDeletedBatchIdx]) : [];
+  const storedLeavesDeleted = normalizeDeletedIdsKv(await kv.get("kw-employee-leaves-deleted-ids"));
+  const allLeavesDeletedIds = new Set([...storedLeavesDeleted, ...leavesDeletedFromBatch]);
   const forceReplaceJobs = Array.isArray(replaceJobsKeys) && replaceJobsKeys.includes("kw-jobs");
   const forceReplaceDirectory = Array.isArray(replaceDirectoryKeys) && replaceDirectoryKeys.includes("kw-directory");
   const forceReplaceWeekEmployees =
@@ -561,6 +629,8 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
       safeValues[i] = [...allDeletedIds].slice(-500);
     } else if (keys[i] === "kw-directory-deleted-ids") {
       safeValues[i] = [...allDirDeletedIds].slice(-500);
+    } else if (keys[i] === "kw-employee-leaves-deleted-ids") {
+      safeValues[i] = [...allLeavesDeletedIds].slice(-500);
     } else if (keys[i] === "kw-jobs") {
       const prev = await kv.get("kw-jobs");
       let nextNorm = filterJobsNotDeleted(normalizeJobsKvValue(values[i]), allDeletedIds);
@@ -635,6 +705,23 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
         mergeContactsUnion,
         isSuspiciousArrayShrink,
       );
+    } else if (keys[i] === "kw-employee-leaves") {
+      const prev = await kv.get("kw-employee-leaves");
+      let nextNorm = normalizeEmployeeLeavesKv(values[i]).filter(
+        (l) => !allLeavesDeletedIds.has(String(l.id ?? "")),
+      );
+      const archiveWeeks = archBatchIdx >= 0
+        ? archiveInBatch
+        : normalizeArrayKv(await kv.get("kw-archive"));
+      const validated = validateEmployeeLeavesKv(nextNorm, archiveWeeks);
+      if (!validated.ok) {
+        console.log("kw-employee-leaves: blocked invalid leave payload, keeping previous");
+        nextNorm = prev != null ? normalizeEmployeeLeavesKv(prev) : [];
+      } else {
+        nextNorm = validated.leaves;
+        if (prev != null) await rotateKvBackups("kw-employee-leaves");
+      }
+      safeValues[i] = nextNorm;
     }
   }
   await kv.mset(keys, safeValues);

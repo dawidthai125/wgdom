@@ -21,6 +21,7 @@ import {
   TENDERS_CUSTOM_KEYWORDS_KEY,
   TENDERS_DELETED_IDS_KEY,
 } from "@/lib/tenders-sync";
+import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-leaves";
 
 /** Klucze danych biznesowych — każdy nowy typ zapisu MUSI być tutaj. */
 export const DATA_KEYS = [
@@ -31,6 +32,7 @@ export const DATA_KEYS = [
   "kw-weekTo",
   "kw-jobs",
   "kw-contacts",
+  "kw-employee-leaves",
   "kw-tenders-pipeline",
   "kw-tenders-company-profile",
   "kw-tenders-custom-keywords",
@@ -54,6 +56,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-tenders-company-profile",
   "kw-tenders-custom-keywords",
   "kw-contacts",
+  "kw-employee-leaves",
 ] as const satisfies readonly DataKey[];
 
 export const WGDOM_DEFERRED_BOOTSTRAP_EVENT = "wgdom-deferred-bootstrap";
@@ -132,6 +135,7 @@ export const JOBS_DELETED_IDS_KEY = "kw-jobs-deleted-ids";
 export const DIRECTORY_DELETED_IDS_KEY = "kw-directory-deleted-ids";
 export const CONTACTS_DELETED_IDS_KEY = "kw-contacts-deleted-ids";
 export const ARCHIVE_DELETED_IDS_KEY = "kw-archive-deleted-ids";
+export const EMPLOYEE_LEAVES_DELETED_IDS_KEY = "kw-employee-leaves-deleted-ids";
 
 function jobIdOf(j: unknown): string | undefined {
   if (!j || typeof j !== "object" || !("id" in j)) return undefined;
@@ -267,6 +271,28 @@ export function addDeletedArchiveId(id: string): string[] {
 }
 
 export function mergeDeletedArchiveIds(local: string[], cloud: string[]): string[] {
+  return mergeDeletedJobIds(local, cloud);
+}
+
+export function normalizeDeletedEmployeeLeaveIds(raw: unknown): string[] {
+  return normalizeDeletedJobIds(raw);
+}
+
+export function getDeletedEmployeeLeaveIds(): string[] {
+  return getDeletedIdsFromKey(EMPLOYEE_LEAVES_DELETED_IDS_KEY);
+}
+
+export function saveDeletedEmployeeLeaveIds(ids: string[]): void {
+  saveDeletedIdsToKey(EMPLOYEE_LEAVES_DELETED_IDS_KEY, ids);
+}
+
+export function addDeletedEmployeeLeaveId(id: string): string[] {
+  const next = [...new Set([...getDeletedEmployeeLeaveIds(), id])].slice(-500);
+  saveDeletedEmployeeLeaveIds(next);
+  return next;
+}
+
+export function mergeDeletedEmployeeLeaveIds(local: string[], cloud: string[]): string[] {
   return mergeDeletedJobIds(local, cloud);
 }
 
@@ -1235,6 +1261,7 @@ export function mergeDataKey(
   deletedDirectoryIds: string[] = getDeletedDirectoryIds(),
   deletedContactsIds: string[] = getDeletedContactsIds(),
   deletedArchiveIds: string[] = getDeletedArchiveIds(),
+  deletedEmployeeLeaveIds: string[] = getDeletedEmployeeLeaveIds(),
 ): unknown {
   switch (key) {
     case "kw-jobs":
@@ -1247,6 +1274,8 @@ export function mergeDataKey(
       return mergeDirectory(normalizeArrayValue(local), normalizeArrayValue(cloud), deletedDirectoryIds);
     case "kw-contacts":
       return mergeContacts(normalizeArrayValue(local), normalizeArrayValue(cloud), deletedContactsIds);
+    case "kw-employee-leaves":
+      return mergeEmployeeLeaves(local, cloud, deletedEmployeeLeaveIds);
     case "kw-tenders-pipeline":
       return mergeTenderDataKey(TENDERS_PIPELINE_KEY, local, cloud);
     case "kw-tenders-company-profile":
@@ -1297,11 +1326,14 @@ export async function fetchAndMergeDeferredBootstrap(): Promise<void> {
   try {
     if (!isSupabaseConfigured()) return;
     const keys = [...BOOTSTRAP_DEFERRED_KEYS];
-    const allValues = await fetchKeysFromCloud([...keys, CONTACTS_DELETED_IDS_KEY]);
+    const allValues = await fetchKeysFromCloud([...keys, CONTACTS_DELETED_IDS_KEY, EMPLOYEE_LEAVES_DELETED_IDS_KEY]);
     const cloudValues = allValues.slice(0, keys.length);
     const cloudContactsDeleted = normalizeDeletedJobIds(allValues[keys.length]);
+    const cloudLeavesDeleted = normalizeDeletedEmployeeLeaveIds(allValues[keys.length + 1]);
     const mergedContactsDeleted = mergeDeletedContactsIds(getDeletedContactsIds(), cloudContactsDeleted);
     saveDeletedContactsIds(mergedContactsDeleted);
+    const mergedLeavesDeleted = mergeDeletedEmployeeLeaveIds(getDeletedEmployeeLeaveIds(), cloudLeavesDeleted);
+    saveDeletedEmployeeLeaveIds(mergedLeavesDeleted);
 
     const deletedJobIds = getDeletedJobIds();
     const deletedDirIds = getDeletedDirectoryIds();
@@ -1321,6 +1353,7 @@ export async function fetchAndMergeDeferredBootstrap(): Promise<void> {
         deletedDirIds,
         mergedContactsDeleted,
         deletedArchiveIds,
+        mergedLeavesDeleted,
       );
       persistBootstrapMergedKey(key, merged);
       if (bootstrapMergedShouldPush(key, merged, cloudVal)) {
@@ -1331,8 +1364,8 @@ export async function fetchAndMergeDeferredBootstrap(): Promise<void> {
 
     if (pushKeys.length > 0) {
       void pushKeysToCloud(
-        [...pushKeys, CONTACTS_DELETED_IDS_KEY],
-        [...pushValues, mergedContactsDeleted],
+        [...pushKeys, CONTACTS_DELETED_IDS_KEY, EMPLOYEE_LEAVES_DELETED_IDS_KEY],
+        [...pushValues, mergedContactsDeleted, mergedLeavesDeleted],
       ).catch(() => {});
     }
   } catch {
@@ -1352,6 +1385,7 @@ export function mergeAllDataKeys(
   deletedDirectoryIds: string[] = getDeletedDirectoryIds(),
   deletedContactsIds: string[] = getDeletedContactsIds(),
   deletedArchiveIds: string[] = getDeletedArchiveIds(),
+  deletedEmployeeLeaveIds: string[] = getDeletedEmployeeLeaveIds(),
 ): unknown[] {
   return DATA_KEYS.map((key, i) =>
     mergeDataKey(
@@ -1362,6 +1396,7 @@ export function mergeAllDataKeys(
       deletedDirectoryIds,
       deletedContactsIds,
       deletedArchiveIds,
+      deletedEmployeeLeaveIds,
     ),
   );
 }
@@ -1410,6 +1445,7 @@ export function dataKeyRichness(key: DataKey, value: unknown): number {
       return normalizeArrayValue(value).reduce((s, w) => s + recordRichness(w) + weekEmployeesListRichness((w as { weekEmployees?: unknown[] })?.weekEmployees), 0);
     case "kw-directory":
     case "kw-contacts":
+    case "kw-employee-leaves":
       return normalizeArrayValue(value).reduce((s, e) => s + recordRichness(e), 0);
     default:
       return value != null && value !== "" ? 1 : 0;
@@ -1432,7 +1468,7 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
 function sanitizeValueForCloud(key: string, value: unknown): unknown {
   const coerced = coerceValueForCloudKey(key, value);
   if (key === "kw-jobs") return normalizeJobsValue(coerced);
-  if (key === "kw-week-employees" || key === "kw-archive" || key === "kw-directory" || key === "kw-contacts") {
+  if (key === "kw-week-employees" || key === "kw-archive" || key === "kw-directory" || key === "kw-contacts" || key === "kw-employee-leaves") {
     return normalizeArrayValue(coerced);
   }
   return coerced;
@@ -1530,6 +1566,27 @@ export async function pushDirectoryToCloud(directory: unknown[]): Promise<void> 
   );
 }
 
+export async function pushEmployeeLeavesToCloud(
+  leaves: unknown[],
+  deletedIds: string[] = getDeletedEmployeeLeaveIds(),
+): Promise<void> {
+  if (!isSupabaseConfigured() || !API_BASE) return;
+  let cloudDeleted: string[] = [];
+  let cloudLeaves: unknown[] = [];
+  try {
+    const [cloudRaw, deletedRaw] = await fetchKeysFromCloud(["kw-employee-leaves", EMPLOYEE_LEAVES_DELETED_IDS_KEY]);
+    cloudLeaves = normalizeEmployeeLeaves(cloudRaw);
+    cloudDeleted = normalizeDeletedEmployeeLeaveIds(deletedRaw);
+  } catch { /* offline */ }
+  const mergedDeleted = mergeDeletedEmployeeLeaveIds(deletedIds, cloudDeleted);
+  saveDeletedEmployeeLeaveIds(mergedDeleted);
+  const merged = mergeEmployeeLeaves(leaves, cloudLeaves, mergedDeleted);
+  try {
+    localStorage.setItem("kw-employee-leaves", JSON.stringify(merged));
+  } catch { /* ignore */ }
+  await pushKeysToCloud(["kw-employee-leaves", EMPLOYEE_LEAVES_DELETED_IDS_KEY], [merged, mergedDeleted]);
+}
+
 export async function computeMergedDataBundle(
   values: unknown[],
 ): Promise<{ merged: unknown[]; cloudReachable: boolean }> {
@@ -1541,6 +1598,7 @@ export async function computeMergedDataBundle(
   let cloudDirDeleted: string[] = [];
   let cloudContactsDeleted: string[] = [];
   let cloudArchiveDeleted: string[] = [];
+  let cloudLeavesDeleted: string[] = [];
   let cloudReachable = false;
   try {
     const fetched = await fetchKeysFromCloud([
@@ -1549,12 +1607,14 @@ export async function computeMergedDataBundle(
       DIRECTORY_DELETED_IDS_KEY,
       CONTACTS_DELETED_IDS_KEY,
       ARCHIVE_DELETED_IDS_KEY,
+      EMPLOYEE_LEAVES_DELETED_IDS_KEY,
     ]);
     cloudValues = fetched.slice(0, keys.length);
     cloudDeleted = normalizeDeletedJobIds(fetched[keys.length]);
     cloudDirDeleted = normalizeDeletedDirectoryIds(fetched[keys.length + 1]);
     cloudContactsDeleted = normalizeDeletedJobIds(fetched[keys.length + 2]);
     cloudArchiveDeleted = normalizeDeletedJobIds(fetched[keys.length + 3]);
+    cloudLeavesDeleted = normalizeDeletedEmployeeLeaveIds(fetched[keys.length + 4]);
     cloudReachable = true;
   } catch {
     /* offline — scal tylko lokalne źródła */
@@ -1567,6 +1627,8 @@ export async function computeMergedDataBundle(
   saveDeletedContactsIds(mergedContactsDeleted);
   const mergedArchiveDeleted = mergeDeletedArchiveIds(getDeletedArchiveIds(), cloudArchiveDeleted);
   saveDeletedArchiveIds(mergedArchiveDeleted);
+  const mergedLeavesDeleted = mergeDeletedEmployeeLeaveIds(getDeletedEmployeeLeaveIds(), cloudLeavesDeleted);
+  saveDeletedEmployeeLeaveIds(mergedLeavesDeleted);
   let merged = mergeAllDataKeys(
     valuesForMerge,
     cloudValues,
@@ -1574,6 +1636,7 @@ export async function computeMergedDataBundle(
     mergedDirDeleted,
     mergedContactsDeleted,
     mergedArchiveDeleted,
+    mergedLeavesDeleted,
   );
   merged = alignWeekRangeInMerged(merged, valuesForMerge, cloudValues);
   merged = sanitizeWeekEmployeesForTargetRange(merged, valuesForMerge, cloudValues);
@@ -1604,13 +1667,14 @@ export async function pullAndMergeDataBundle(values: unknown[]): Promise<unknown
 /** Zapis już scalonego bundle do chmury (bez ponownego merge). */
 export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<void> {
   await pushKeysToCloud(
-    [...DATA_KEYS, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY],
+    [...DATA_KEYS, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY, EMPLOYEE_LEAVES_DELETED_IDS_KEY],
     [
       ...merged,
       getDeletedJobIds(),
       getDeletedDirectoryIds(),
       getDeletedContactsIds(),
       getDeletedArchiveIds(),
+      getDeletedEmployeeLeaveIds(),
     ],
     {
       replaceJobsKeys: ["kw-jobs"],
@@ -1643,6 +1707,7 @@ export async function pushKeysToCloudSafe(keys: string[], values: unknown[]): Pr
       getDeletedDirectoryIds(),
       getDeletedContactsIds(),
       getDeletedArchiveIds(),
+      getDeletedEmployeeLeaveIds(),
     );
   });
   const empIdx = keys.indexOf("kw-week-employees");

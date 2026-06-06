@@ -4,9 +4,17 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.45.36** (`changelog-data.ts` — bez bumpu przy release perf-only)
+**Aktualna wersja UI:** **2.45.37** (`changelog-data.ts`)
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · prod app `35614f0`
+
+---
+
+## 2.45.37 (2026-06-06) — Nieobecności pracowników (Sprint 20.0A)
+
+* KV `kw-employee-leaves` — urlop / chorobowe / bezpłatny (tygodnie Pn–So)
+* Lista płac + PDF/DOCX — status zamiast kwoty; overlay live; archiwum zamrożone
+* Walidacja overlap + blokada tygodni w archiwum (frontend + Edge batch-set)
 
 ---
 

@@ -43,9 +43,12 @@ import {
   getDeletedDirectoryIds,
   getDeletedContactsIds,
   getDeletedArchiveIds,
+  getDeletedEmployeeLeaveIds,
+  addDeletedEmployeeLeaveId,
   addDeletedArchiveId,
   pushDirectoryToCloud,
   pushWeekEmployeesToCloud,
+  pushEmployeeLeavesToCloud,
   ADMIN_PASSWORDS_KEY,
   ADMIN_USERS_CONFIG_KEY,
   isSupabaseConfigured,
@@ -88,6 +91,8 @@ import { AppInnerWithAuth } from "@/app/AppInnerWithAuth";
 import { CloudLoader } from "@/app/CloudLoader";
 import { useLocalStorage, setSkipApplyWriteTimestamps } from "@/app/hooks/useLocalStorage";
 import type { EmailContact } from "@/lib/email-contacts";
+import type { EmployeeLeave } from "@/lib/employee-leaves";
+import { mergeEmployeeLeaves } from "@/lib/employee-leaves";
 import { computePayrollCashSplit, getPayrollWeekRange, getPayrollClosingWeekRange } from "@/lib/payroll-cycle";
 
 function AppInner({onLogout}: {onLogout?: ()=>void}) {
@@ -100,6 +105,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [weekTo, setWeekTo] = useLocalStorage("kw-weekTo", week.to);
   const [jobs, setJobs] = useLocalStorage<Job[]>("kw-jobs", []);
   const [contacts, setContacts] = useLocalStorage<EmailContact[]>("kw-contacts", []);
+  const [employeeLeaves, setEmployeeLeaves] = useLocalStorage<EmployeeLeave[]>("kw-employee-leaves", []);
   const [view, setView] = useState<View>("dashboard");
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
   const [pendingTenderId, setPendingTenderId] = useState<string | null>(null);
@@ -182,6 +188,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     pushDirectoryToCloud(directory).catch(() => {});
   }, [directory]);
 
+  const commitEmployeeLeaves = useCallback((next?: EmployeeLeave[], deletedId?: string) => {
+    const payload = next ?? employeeLeaves;
+    let deletedIds = getDeletedEmployeeLeaveIds();
+    if (deletedId) deletedIds = addDeletedEmployeeLeaveId(deletedId);
+    suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    pushEmployeeLeavesToCloud(payload, deletedIds).catch(() => {});
+  }, [employeeLeaves]);
+
   const clearAutoSyncTimers = useCallback(() => {
     if (syncTimerRef.current) {
       clearTimeout(syncTimerRef.current);
@@ -199,12 +213,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [clearAutoSyncTimers]);
 
   const adminDataBundle = useCallback(
-    () => [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts] as unknown[],
-    [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts],
+    () => [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves] as unknown[],
+    [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves],
   );
 
   const applyAdminDataBundle = useCallback((merged: unknown[]) => {
-    const [dir, emps, arch, wf, wt, jbs, cont] = merged;
+    const [dir, emps, arch, wf, wt, jbs, cont, leaves] = merged;
     suppressAutoSyncUntilRef.current = Date.now() + 4500;
     remoteMergeInFlightRef.current = true;
     setSkipApplyWriteTimestamps(true);
@@ -222,10 +236,17 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         setJobs(normalizeJobsList(withoutDeleted as unknown[]));
       }
       if (Array.isArray(cont)) setContacts(cont as EmailContact[]);
+      if (Array.isArray(leaves)) {
+        const tombstones = new Set(getDeletedEmployeeLeaveIds());
+        const filtered = tombstones.size
+          ? (leaves as EmployeeLeave[]).filter((l) => !tombstones.has(l.id))
+          : (leaves as EmployeeLeave[]);
+        setEmployeeLeaves(filtered);
+      }
     } finally {
       setSkipApplyWriteTimestamps(false);
     }
-  }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts]);
+  }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts, setEmployeeLeaves]);
 
   const deleteJobsByIds = useCallback(async (ids: string[]) => {
     const unique = [...new Set(ids.filter(Boolean))];
@@ -408,7 +429,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     scheduleAutoCloudSync();
     remoteMergeInFlightRef.current = false;
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, scheduleAutoCloudSync]);
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, scheduleAutoCloudSync]);
 
   useEffect(() => () => clearAutoSyncTimers(), [clearAutoSyncTimers]);
 
@@ -462,6 +483,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         if (data["kw-contacts"] != null) {
           const local = JSON.parse(localStorage.getItem("kw-contacts") || "[]");
           data["kw-contacts"] = mergeContacts(local, data["kw-contacts"], getDeletedContactsIds());
+        }
+        if (data["kw-employee-leaves"] != null) {
+          const local = JSON.parse(localStorage.getItem("kw-employee-leaves") || "[]");
+          data["kw-employee-leaves"] = mergeEmployeeLeaves(local, data["kw-employee-leaves"], getDeletedEmployeeLeaveIds());
         }
         if (data[TENDERS_PIPELINE_KEY] != null) {
           const local = JSON.parse(localStorage.getItem(TENDERS_PIPELINE_KEY) || "[]");
@@ -687,12 +712,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           let archive = savedWeeks;
           const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
           if (existing) {
-            const snapshot = buildWeekSnapshot(weekFrom, weekTo, next, jobs, existing);
+            const snapshot = buildWeekSnapshot(weekFrom, weekTo, next, jobs, existing, employeeLeaves);
             archive = savedWeeks.map((w) => (w.id === existing.id ? snapshot : w));
             try { localStorage.setItem("kw-archive", JSON.stringify(archive)); } catch { /* ignore */ }
             setSavedWeeks(archive);
           }
-          await pushAllDataToCloud([directory, next, archive, weekFrom, weekTo, jobs, contacts]);
+          await pushAllDataToCloud([directory, next, archive, weekFrom, weekTo, jobs, contacts, employeeLeaves]);
         } catch { /* auto-sync ponowi */ }
         finally { payrollRosterPushRef.current = false; }
       })();
@@ -705,7 +730,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const week = prev.find((w) => w.id === weekId);
       if (!week?.weekEmployees?.length) return prev;
       const nextEmployees = patchEmployees(week.weekEmployees);
-      const snapshot = buildWeekSnapshot(week.weekFrom, week.weekTo, nextEmployees, jobs, week);
+      const snapshot = buildWeekSnapshot(week.weekFrom, week.weekTo, nextEmployees, jobs, week, employeeLeaves);
       return prev.map((w) => (w.id === weekId ? snapshot : w));
     });
   }, [jobs, setSavedWeeks]);
@@ -746,19 +771,19 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const saveBiweeklyBacklogWeek = useCallback((backlogFrom: string, backlogTo: string, employees: WeekEmployee[]) => {
     if (employees.length === 0) return;
     const existing = savedWeeks.find((w) => w.weekFrom === backlogFrom && w.weekTo === backlogTo);
-    const snapshot = buildWeekSnapshot(backlogFrom, backlogTo, employees, jobs, existing);
+    const snapshot = buildWeekSnapshot(backlogFrom, backlogTo, employees, jobs, existing, employeeLeaves);
     snapshot.backlog = true;
     snapshot.backlogNote = "Zaległa lista płac — wypłata co 2 tygodnie";
     const nextArchive = existing
       ? savedWeeks.map((w) => (w.id === existing.id ? snapshot : w))
       : [...savedWeeks, snapshot];
     setSavedWeeks(nextArchive);
-  }, [savedWeeks, jobs, setSavedWeeks]);
+  }, [savedWeeks, jobs, setSavedWeeks, employeeLeaves]);
 
   const doSaveWeek = useCallback(() => {
     if (weekEmployees.length === 0) return;
     const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-    const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing);
+    const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves);
     const nextArchive = existing
       ? savedWeeks.map((w) => (w.id === existing.id ? snapshot : w))
       : [...savedWeeks, snapshot];
@@ -766,7 +791,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setShowSaveConfirm(false);
     toast.success(`Tydzień zapisany · ${fmtDate(weekFrom)}–${fmtDate(weekTo)}`);
     triggerWeeklyBackupEmail(weekFrom, weekTo, jobs, nextArchive);
-  }, [weekFrom, weekTo, weekEmployees, jobs, savedWeeks, setSavedWeeks]);
+  }, [weekFrom, weekTo, weekEmployees, jobs, savedWeeks, setSavedWeeks, employeeLeaves]);
 
   const saveWeek = () => {
     if (weekEmployees.length === 0) return;
@@ -778,14 +803,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const autoArchiveAndAdvance = useCallback((targetFrom: string, targetTo: string) => {
     if (weekEmployees.length > 0) {
       const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-      const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing);
+      const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves);
       if (existing) setSavedWeeks((prev) => prev.map((w) => (w.id === existing.id ? snapshot : w)));
       else setSavedWeeks((prev) => [...prev, snapshot]);
     }
     setWeekFrom(targetFrom);
     setWeekTo(targetTo);
     setWeekEmployees([]);
-  }, [weekEmployees, weekFrom, weekTo, savedWeeks, jobs, setSavedWeeks, setWeekFrom, setWeekTo, setWeekEmployees]);
+  }, [weekEmployees, weekFrom, weekTo, savedWeeks, jobs, setSavedWeeks, setWeekFrom, setWeekTo, setWeekEmployees, employeeLeaves]);
 
   const goToCurrent = useCallback(() => {
     const c = getWeekRange();
@@ -817,13 +842,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       return;
     }
     const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-    const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing);
+    const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves);
     const nextArchive = existing
       ? savedWeeks.map((w) => (w.id === existing.id ? snapshot : w))
       : [...savedWeeks, snapshot];
     setSavedWeeks(nextArchive);
     triggerWeeklyBackupEmail(weekFrom, weekTo, jobs, nextArchive);
-  }, [weekFrom, weekTo, weekEmployees, savedWeeks, jobs, setSavedWeeks]);
+  }, [weekFrom, weekTo, weekEmployees, savedWeeks, jobs, setSavedWeeks, employeeLeaves]);
 
   const tryPayrollWeekCycle = useCallback(() => {
     const current = getPayrollWeekRange();
@@ -1047,6 +1072,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           weekTo={weekTo}
           savedWeeks={savedWeeks}
           contacts={contacts}
+          employeeLeaves={employeeLeaves}
+          setEmployeeLeaves={setEmployeeLeaves}
+          commitEmployeeLeaves={commitEmployeeLeaves}
           adminSession={adminSession}
           alertsSeenTick={alertsSeenTick}
           onAlertsSeen={() => setAlertsSeenTick((t) => t + 1)}

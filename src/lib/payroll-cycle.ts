@@ -112,6 +112,13 @@ export interface PayrollCashSplit {
   biweeklyCount: number;
 }
 
+/** Netto Pn–So dla tygodnia (bez Sob. poprz.) — z uwzględnieniem urlopu gdy przekazane. */
+export type CalcBiweeklyWeekNetFn = (
+  emp: WeekEmpPayrollInput,
+  weekFrom: string,
+  weekTo: string,
+) => number;
+
 function parseTime(t: string): number {
   const [h, m] = t.split(":").map(Number);
   return Number.isNaN(h) || Number.isNaN(m) ? 0 : h + m / 60;
@@ -188,6 +195,35 @@ export function daysBetweenIso(fromIso: string, toIso: string): number {
   return Math.round((b - a) / 86400000);
 }
 
+/** ISO + N dni (lokalna data kalendarzowa). */
+export function addDaysToIso(iso: string, days: number): string {
+  const dt = parseIsoDate(iso);
+  dt.setDate(dt.getDate() + days);
+  return localIsoDate(dt);
+}
+
+/** Następny tydzień Pn–So (przesunięcie +7 dni). */
+export function nextPayrollWeekRange(range: { from: string; to: string }): { from: string; to: string } {
+  return {
+    from: addDaysToIso(range.from, 7),
+    to: addDaysToIso(range.to, 7),
+  };
+}
+
+/** Kolejne tygodnie rozliczeniowe Pn–So od startRange (włącznie). */
+export function listPayrollWeekRanges(
+  startRange: { from: string; to: string },
+  count: number,
+): { from: string; to: string }[] {
+  const out: { from: string; to: string }[] = [];
+  let cur = { ...startRange };
+  for (let i = 0; i < count; i++) {
+    out.push({ from: cur.from, to: cur.to });
+    cur = nextPayrollWeekRange(cur);
+  }
+  return out;
+}
+
 /** Czy sobota weekTo to sobota wypłaty w cyklu co 2 tygodnie (anchor + N×14 dni). */
 export function isBiweeklyPayoutWeek(weekTo: string, anchor: string): boolean {
   if (!anchor) return false;
@@ -242,24 +278,29 @@ export function calcBiweeklyRowDisplay(
   weekFrom: string,
   weekTo: string,
   savedWeeks: WeekArchiveRef[],
+  calcBiweeklyWeekNet?: CalcBiweeklyWeekNetFn,
 ): BiweeklyRowDisplay | null {
   const anchor = biweeklyAnchorFor(emp, directory);
   if (!anchor) return null;
   const thisWeek = calcWeekNetNoPrevSat(emp);
+  const weekNetFor = (e: WeekEmpPayrollInput, from: string, to: string) =>
+    calcBiweeklyWeekNet ? calcBiweeklyWeekNet(e, from, to) : calcWeekNetNoPrevSat(e).netPay;
+  const thisWeekNet = weekNetFor(emp, weekFrom, weekTo);
   const isPayoutWeek = isBiweeklyPayoutWeek(weekTo, anchor);
   const nextPayoutDate = nextBiweeklyPayoutSaturday(weekTo, anchor);
   const prevRange = previousWeekRange(weekFrom);
   const prevEmp = findWeekEmployeeInArchive(savedWeeks, prevRange.from, prevRange.to, emp);
   const prevWeek = prevEmp ? calcWeekNetNoPrevSat(prevEmp) : { weekHours: 0, totalZaliczka: 0, totalExtraCosts: 0, grossPay: 0, netPay: 0, rateNum: 0 };
+  const prevWeekNet = prevEmp ? weekNetFor(prevEmp, prevRange.from, prevRange.to) : 0;
 
   if (!isPayoutWeek) {
     return {
       isBiweekly: true,
       isPayoutWeek: false,
       nextPayoutDate,
-      thisWeekNet: thisWeek.netPay,
+      thisWeekNet,
       prevWeekNet: 0,
-      displayNet: thisWeek.netPay,
+      displayNet: thisWeekNet,
       accruedOnly: true,
       prevWeekFrom: prevRange.from,
       prevWeekTo: prevRange.to,
@@ -271,9 +312,9 @@ export function calcBiweeklyRowDisplay(
     isBiweekly: true,
     isPayoutWeek: true,
     nextPayoutDate,
-    thisWeekNet: thisWeek.netPay,
-    prevWeekNet: prevWeek.netPay,
-    displayNet: +(thisWeek.netPay + prevWeek.netPay).toFixed(2),
+    thisWeekNet,
+    prevWeekNet,
+    displayNet: +(thisWeekNet + prevWeekNet).toFixed(2),
     accruedOnly: false,
     prevWeekFrom: prevRange.from,
     prevWeekTo: prevRange.to,
@@ -288,6 +329,7 @@ export function computePayrollCashSplit(
   weekTo: string,
   savedWeeks: WeekArchiveRef[],
   calcWeeklyNet: (emp: WeekEmpPayrollInput) => number,
+  calcBiweeklyWeekNet?: CalcBiweeklyWeekNetFn,
 ): PayrollCashSplit {
   let weeklyNet = 0;
   let biweeklyPayoutNet = 0;
@@ -302,7 +344,7 @@ export function computePayrollCashSplit(
     if (isBiweeklyPayrollEmployee(emp, directory)) {
       hasBiweeklyEmployees = true;
       biweeklyCount += 1;
-      const row = calcBiweeklyRowDisplay(emp, directory, weekFrom, weekTo, savedWeeks);
+      const row = calcBiweeklyRowDisplay(emp, directory, weekFrom, weekTo, savedWeeks, calcBiweeklyWeekNet);
       if (!row) continue;
       if (!nextBiweeklyPayoutDate) nextBiweeklyPayoutDate = row.nextPayoutDate;
       if (row.isPayoutWeek) {

@@ -11,6 +11,18 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-06",
+    version: "2.45.37",
+    label: "Nieobecności pracowników (urlop / L4 / bezpłatny)",
+    items: [
+      { type: "new", text: "Kartoteka pracownika — sekcja Nieobecności (CRUD, tygodnie Pn–So jak lista płac)" },
+      { type: "new", text: "Lista płac — 🏖 URLOP / 🤒 CHOROBOWE / 🚫 BEZPŁATNY zamiast kwoty w tygodniu nieobecności (godziny zostają)" },
+      { type: "new", text: "PDF i Word listy płac — ten sam status nieobecności w kolumnie Do wypłaty" },
+      { type: "improve", text: "Zapis tygodnia zamraża leaveStatus w archiwum — historyczne listy nie zmieniają się po dodaniu urlopu wstecz" },
+      { type: "fix", text: "Walidacja: brak nakładania urlopów i blokada tygodni już zamkniętych w archiwum (frontend + chmura)" },
+    ],
+  },
+  {
     date: "2026-06-05",
     version: "2.45.36",
     label: "Performance 2.2 — prawdziwe lazy ładowanie zakładek",
