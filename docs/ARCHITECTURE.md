@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (obecnie **2.45.34**)  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-05 (Performance 1.3A+ — § 11.5 CloudLoader CORE/DEFERRED; usunięcie `tenderDashStats`)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (prod **2.45.36**; perf release tag `v2.45.38-perf-2.4a` @ `35614f0`)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-06 (Performance 2.x CLOSED — § 17.5 bundling / `manualChunks`)
 
 ---
 
@@ -824,9 +824,14 @@ WGDOM1/
 ### 17.5 Wydajność
 
 - **Nie** importuj pdfmake statycznie — użyj istniejących lazy loaderów.
-- Duże widoki admina: rozważ `React.lazy` (wzór: `InspectorPanel`).
-- `vite.config.ts` → `manualChunks` — nie psuj bez sprawdzenia rozmiaru buildu.
-- Po zmianie bundla: podbij `sw.js` cache version.
+- Duże widoki admina: `React.lazy` w [`AdminViewRouter.tsx`](../src/app/admin/AdminViewRouter.tsx) (`JobsView`, `PayrollView`, `TenderCenterProView`, `InspectorAdminView`, …).
+- **`vite.config.ts` → `manualChunks`** (stan prod `35614f0`, Performance 2.x **CLOSED**):
+  - **PROD:** `app-core`, `pdfjs`, `pdfmake`, `ui-vendor`, `panel-guide` — **bez** `shared-inspector` (usunięte w 2.4A) i **bez** `panel-*` (usunięte w 2.2C).
+  - **Startup (2.4A):** entry + 3 modulepreload ≈ **1119 KB**, **4** requesty; brak `shared-inspector` i `pdfjs` w preload.
+  - Nie przywracaj `panel-jobs|payroll|tenders|inspector*` ani `shared-inspector` — tworzą SCC / statyczne importy w entry (audyt 2.2B / 2.3A).
+  - **`modulePreload.resolveDependencies`** — filtruje preload `panel-*` (legacy po 2.2A); lazy chunki mają prefiks `JobsView-`, `PayrollView-`, itd.
+- Po zmianie bundla: `npm run build`, sprawdź brak `Circular chunk` warning, smoke Playwright; przy release podbij `sw.js` cache version.
+- Handoff: [`docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md`](SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md).
 
 ---
 
