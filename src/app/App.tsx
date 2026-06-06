@@ -93,7 +93,7 @@ import { useLocalStorage, setSkipApplyWriteTimestamps } from "@/app/hooks/useLoc
 import type { EmailContact } from "@/lib/email-contacts";
 import type { EmployeeLeave } from "@/lib/employee-leaves";
 import { mergeEmployeeLeaves } from "@/lib/employee-leaves";
-import { computePayrollCashSplit, getPayrollWeekRange, getPayrollClosingWeekRange } from "@/lib/payroll-cycle";
+import { computePayrollCashSplit, getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosed } from "@/lib/payroll-cycle";
 
 function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const { session: adminSession, canViewRates } = useAdminAccess();
@@ -647,12 +647,25 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       .catch(() => {});
   }, []);
 
+  const refreshSavedActiveWeekSnapshot = useCallback((nextEmployees: WeekEmployee[]) => {
+    if (isPayrollWeekClosed(weekFrom, weekTo)) return;
+    setSavedWeeks((prev) => {
+      const existing = prev.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+      if (!existing) return prev;
+      const snapshot = buildWeekSnapshot(weekFrom, weekTo, nextEmployees, jobs, existing, employeeLeaves, prev);
+      return prev.map((w) => (w.id === existing.id ? snapshot : w));
+    });
+  }, [weekFrom, weekTo, jobs, employeeLeaves, setSavedWeeks]);
+
   const addFromDirectory = (ids: string[]) => {
     setWeekEmployees((prev) => {
       const toAdd = directory.filter((d) => ids.includes(d.id) && isProductionDirectoryEmployee(d));
       const newEmps = toAdd.map(weekEmployeeFromDir);
       const next = [...prev, ...newEmps];
-      if (newEmps.length > 0) persistPayrollRoster(next);
+      if (newEmps.length > 0) {
+        persistPayrollRoster(next);
+        refreshSavedActiveWeekSnapshot(next);
+      }
       return next;
     });
   };
@@ -660,7 +673,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const removeWeekEmployee = (id: string) => {
     setWeekEmployees((prev) => {
       const next = prev.filter((e) => e.id !== id);
-      if (next.length !== prev.length) persistPayrollRoster(next);
+      if (next.length !== prev.length) {
+        persistPayrollRoster(next);
+        refreshSavedActiveWeekSnapshot(next);
+      }
       return next;
     });
   };
@@ -668,6 +684,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const clearAllWeekEmployees = () => {
     setWeekEmployees([]);
     persistPayrollRoster([]);
+    refreshSavedActiveWeekSnapshot([]);
   };
 
   const replaceWeekWithAllActive = () => {
@@ -676,25 +693,30 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       .map(weekEmployeeFromDir);
     setWeekEmployees(newEmps);
     persistPayrollRoster(newEmps);
+    refreshSavedActiveWeekSnapshot(newEmps);
   };
 
   const updateWeekEmployee = useCallback((updated:WeekEmployee)=>{
-    setWeekEmployees((prev)=>prev.map((e)=>{
-      if (e.id !== updated.id) return e;
-      const now = new Date().toISOString();
-      const rateChanged = updated.rate !== e.rate;
-      const dataChanged =
-        JSON.stringify({ days: updated.days, prevSaturday: updated.prevSaturday, extraCosts: updated.extraCosts })
-        !== JSON.stringify({ days: e.days, prevSaturday: e.prevSaturday, extraCosts: e.extraCosts });
-      return {
-        ...updated,
-        settled: updated.settled ?? e.settled,
-        settledUpdatedAt: updated.settledUpdatedAt ?? e.settledUpdatedAt,
-        rateUpdatedAt: rateChanged ? now : updated.rateUpdatedAt ?? e.rateUpdatedAt,
-        dataUpdatedAt: dataChanged ? now : updated.dataUpdatedAt ?? e.dataUpdatedAt,
-      };
-    }));
-  },[setWeekEmployees]);
+    setWeekEmployees((prev)=>{
+      const next = prev.map((e)=>{
+        if (e.id !== updated.id) return e;
+        const now = new Date().toISOString();
+        const rateChanged = updated.rate !== e.rate;
+        const dataChanged =
+          JSON.stringify({ days: updated.days, prevSaturday: updated.prevSaturday, extraCosts: updated.extraCosts, payrollCarryForward: updated.payrollCarryForward })
+          !== JSON.stringify({ days: e.days, prevSaturday: e.prevSaturday, extraCosts: e.extraCosts, payrollCarryForward: e.payrollCarryForward });
+        return {
+          ...updated,
+          settled: updated.settled ?? e.settled,
+          settledUpdatedAt: updated.settledUpdatedAt ?? e.settledUpdatedAt,
+          rateUpdatedAt: rateChanged ? now : updated.rateUpdatedAt ?? e.rateUpdatedAt,
+          dataUpdatedAt: dataChanged ? now : updated.dataUpdatedAt ?? e.dataUpdatedAt,
+        };
+      });
+      refreshSavedActiveWeekSnapshot(next);
+      return next;
+    });
+  },[setWeekEmployees, refreshSavedActiveWeekSnapshot]);
 
   const syncWeekRatesFromDirectory = useCallback(() => {
     const now = new Date().toISOString();
@@ -711,7 +733,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         try {
           let archive = savedWeeks;
           const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-          if (existing) {
+          if (existing && !isPayrollWeekClosed(weekFrom, weekTo)) {
             const snapshot = buildWeekSnapshot(weekFrom, weekTo, next, jobs, existing, employeeLeaves, savedWeeks);
             archive = savedWeeks.map((w) => (w.id === existing.id ? snapshot : w));
             try { localStorage.setItem("kw-archive", JSON.stringify(archive)); } catch { /* ignore */ }
@@ -749,24 +771,18 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const emp = weekEmployees.find((e) => e.id === id);
     if (!emp) return;
     const newSettled = !emp.settled;
-    setWeekEmployees((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, settled: newSettled, settledUpdatedAt: now } : e)),
-    );
-    const archived = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-    if (archived) {
-      patchArchiveWeek(archived.id, (emps) =>
-        emps.map((e) =>
-          weekEmployeesSamePerson(e, emp) ? { ...e, settled: newSettled, settledUpdatedAt: now } : e,
-        ),
-      );
-    }
+    setWeekEmployees((prev) => {
+      const next = prev.map((e) => (e.id === id ? { ...e, settled: newSettled, settledUpdatedAt: now } : e));
+      refreshSavedActiveWeekSnapshot(next);
+      return next;
+    });
     if (settledSyncTimerRef.current) clearTimeout(settledSyncTimerRef.current);
     settledSyncTimerRef.current = setTimeout(() => {
       clearPendingAutoSync();
       suppressAutoSyncUntilRef.current = 0;
       void runCloudSync();
     }, 400);
-  }, [weekEmployees, savedWeeks, weekFrom, weekTo, patchArchiveWeek, setWeekEmployees, runCloudSync, clearPendingAutoSync]);
+  }, [weekEmployees, weekFrom, weekTo, refreshSavedActiveWeekSnapshot, setWeekEmployees, runCloudSync, clearPendingAutoSync]);
 
   const saveBiweeklyBacklogWeek = useCallback((backlogFrom: string, backlogTo: string, employees: WeekEmployee[]) => {
     if (employees.length === 0) return;

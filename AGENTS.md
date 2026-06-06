@@ -8,20 +8,21 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md  ← ★ Sprint 20.1A CLOSED (odroczenie wypłaty, `f24fafe`)
-3. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← Performance 2.x CLOSED (wyniki końcowe)
-4. docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md  ← Performance 1.x CLOSED, a6cdb4a
-5. CURRENT-TASK.md        ← skrót: co na prod / co dalej
-6. docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md  ← Sprint 20.0A CLOSED (nieobecności, `778f616`)
-7. docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md  ← incydent Roboty, RCA
-8. docs/SESSION-HANDOFF-2026-06.md  ← audyty, Faza 8–9, Roboty 2.0
-9. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-10. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
-11. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin + Roboty §11
-12. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
-13. docs/jobs-2.0-product-audit.md    ← rekomendacja rozwoju zakładki Roboty
-14. CHANGELOG.md          ← CO już zrobiono (skrót)
-15. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+2. docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md  ← ★ Sprint 20.1B CLOSED (saved ≠ closed)
+3. docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md  ← Sprint 20.1A CLOSED (odroczenie wypłaty, `f24fafe`)
+4. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← Performance 2.x CLOSED (wyniki końcowe)
+5. docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md  ← Performance 1.x CLOSED, a6cdb4a
+6. CURRENT-TASK.md        ← skrót: co na prod / co dalej
+7. docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md  ← Sprint 20.0A CLOSED (nieobecności, `778f616`)
+8. docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md  ← incydent Roboty, RCA
+9. docs/SESSION-HANDOFF-2026-06.md  ← audyty, Faza 8–9, Roboty 2.0
+10. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+11. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
+12. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin + Roboty §11
+13. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
+14. docs/jobs-2.0-product-audit.md    ← rekomendacja rozwoju zakładki Roboty
+15. CHANGELOG.md          ← CO już zrobiono (skrót)
+16. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -44,6 +45,7 @@
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
 | **docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md** | Performance 2.x **CLOSED** (`35614f0`) — startup 1119 KB, seria 2.2C→2.4A |
+| **docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md** | Sprint 20.1B **CLOSED** — saved ≠ closed, defer po zapisie, live vs snapshot |
 | **docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md** | Sprint 20.1A **CLOSED** (`f24fafe`) — odroczenie wypłaty, MODEL A, archive freeze |
 | **docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md** | Sprint 20.0A **CLOSED** (`778f616`) — nieobecności, overlay payroll, tombstones |
 | **docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md** | Performance 1.x CLOSED — CloudLoader CORE/DEFERRED, pomiary, tag `v2.45.34-perf-1.3a` |
@@ -78,8 +80,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.45.38** na prod) |
-| Prod `main` (app) | commit **`f24fafe`** · release **v2.45.38** · Sprint 20.1A odroczenie wypłaty **CLOSED** |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.45.39** po deploy 20.1B) |
+| Prod `main` (app) | po push 20.1B · release **v2.45.39** · Sprint 20.1B carry workflow **CLOSED** |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Frontend deploy | push `main` → Vercel |
 | Backend deploy | push `supabase/functions/**` → GitHub Action |
@@ -156,7 +158,17 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 
 **Biweekly carry forward nieobsługiwany w V1** — tylko tygodniówka; wypłata co 2 tygodnie → `biweekly_blocked`.
 
-**Nie zmieniaj bez polecenia:** MODEL A freeze, merge `pickPayrollCarryForward`, archive snapshot-only export.
+**Nie zmieniaj bez polecenia:** MODEL A freeze, merge `pickPayrollCarryForward`, closed vs saved semantics (20.1B).
+
+---
+
+## 3f. Carry workflow — Sprint 20.1B (**CLOSED**, v2.45.39)
+
+- **Handoff:** [`docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md`](docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md)
+- **Architektura:** **ARCHITECTURE.md § 10.1** — `isPayrollWeekSaved`, `isPayrollWeekClosed`, `refreshSavedActiveWeekSnapshot`
+- **Test smoke:** `npx vite-node scripts/smoke-test-payroll-carry-forward-20.1b.mjs`, `scripts/pre-commit-verify-20.1b.mjs`
+
+**saved ≠ closed** — defer ⏭ do rolloveru; zapisany operacyjny tydzień = live payroll + auto snapshot refresh.
 
 ---
 

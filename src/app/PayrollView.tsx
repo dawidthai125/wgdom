@@ -23,7 +23,7 @@ import { leaveTypeDisplayLabel, type EmployeeLeave } from "@/lib/employee-leaves
 import {
   calcWeekEmployeeWithLeave,
   calcBiweeklyWeekNetWithLeave,
-  isPayrollWeekArchived,
+  isPayrollWeekSaved,
   type PayrollCalcWithLeave,
 } from "@/lib/payroll-leave-overlay";
 import {
@@ -38,6 +38,7 @@ import {
   isBiweeklyPayrollEmployee,
   calcBiweeklyRowDisplay,
   computePayrollCashSplit,
+  isPayrollWeekClosed,
   biweeklyMissingPrevWeekArchive,
   biweeklyCashContextLine,
   calcWeekNetNoPrevSat,
@@ -545,9 +546,10 @@ export function PayrollView({
   };
 
   const archivedForWeek = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-  const isArchivedWeek = isPayrollWeekArchived(savedWeeks, weekFrom, weekTo);
+  const isSavedWeek = isPayrollWeekSaved(savedWeeks, weekFrom, weekTo);
+  const isClosedWeek = isPayrollWeekClosed(weekFrom, weekTo);
   const payrollEmployees =
-    isArchivedWeek && archivedForWeek?.weekEmployees?.length
+    isClosedWeek && archivedForWeek?.weekEmployees?.length
       ? archivedForWeek.weekEmployees
       : weekEmployees;
 
@@ -558,13 +560,13 @@ export function PayrollView({
         ...calcWeekEmployeeForPayroll(emp, {
           weekFrom,
           weekTo,
-          employeeLeaves: isArchivedWeek ? undefined : employeeLeaves,
-          archivedSnapshot: isArchivedWeek ? archivedForWeek : undefined,
-          livePayroll: !isArchivedWeek,
+          employeeLeaves: isClosedWeek ? undefined : employeeLeaves,
+          archivedSnapshot: isClosedWeek ? archivedForWeek : undefined,
+          livePayroll: !isClosedWeek,
           savedWeeks,
         }),
       })),
-    [payrollEmployees, weekFrom, weekTo, employeeLeaves, isArchivedWeek, archivedForWeek, savedWeeks],
+    [payrollEmployees, weekFrom, weekTo, employeeLeaves, isClosedWeek, archivedForWeek, savedWeeks],
   );
 
   const cashSplit = useMemo(
@@ -577,9 +579,9 @@ export function PayrollView({
         savedWeeks,
         (e) =>
           calcWeeklyNetWithCarry(e, weekFrom, weekTo, {
-            employeeLeaves: isArchivedWeek ? undefined : employeeLeaves,
+            employeeLeaves: isClosedWeek ? undefined : employeeLeaves,
             savedWeeks,
-            archivedSnapshot: isArchivedWeek ? archivedForWeek : undefined,
+            archivedSnapshot: isClosedWeek ? archivedForWeek : undefined,
           }),
         (e, from, to) =>
           calcBiweeklyWeekNetWithLeave(e, from, to, {
@@ -587,7 +589,7 @@ export function PayrollView({
             savedWeeks,
           }),
       ),
-    [payrollEmployees, directory, weekFrom, weekTo, savedWeeks, employeeLeaves, isArchivedWeek, archivedForWeek],
+    [payrollEmployees, directory, weekFrom, weekTo, savedWeeks, employeeLeaves, isClosedWeek, archivedForWeek],
   );
 
   const backlogCheck = useMemo(
@@ -637,7 +639,7 @@ export function PayrollView({
     return s+r.displayNetPay;
   },0);
 
-  const alreadySaved = isArchivedWeek;
+  const alreadySaved = isSavedWeek;
   const archiveRichness = archivedForWeek?.weekEmployees ? weekEmployeesListRichness(archivedForWeek.weekEmployees) : 0;
   const currentRichness = weekEmployeesListRichness(weekEmployees);
   const showRestoreBanner = Boolean(onRestoreFromArchive && archivedForWeek?.weekEmployees?.length && archiveRichness > currentRichness + 1);
@@ -678,7 +680,7 @@ export function PayrollView({
     (emp: WeekEmployee) => {
       const row = rows.find((r) => r.emp.id === emp.id);
       if (!row) return;
-      const check = canDeferPayroll(emp, row, directory, isArchivedWeek);
+      const check = canDeferPayroll(emp, row, directory, isClosedWeek);
       if (!check.ok || check.frozenAmount == null) return;
       const target = buildPayrollCarryForwardRecord(check.frozenAmount, weekFrom, weekTo);
       if (
@@ -693,7 +695,7 @@ export function PayrollView({
         payrollCarryForward: target,
       });
     },
-    [rows, directory, isArchivedWeek, weekFrom, weekTo, onUpdateWeekEmployee],
+    [rows, directory, isClosedWeek, weekFrom, weekTo, onUpdateWeekEmployee],
   );
 
   const exportTotals: PayrollExportTotals = {
@@ -765,12 +767,22 @@ export function PayrollView({
               </div>
             )}
 
-            {isArchivedWeek && (
+            {isSavedWeek && !isClosedWeek && (
+              <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-4 py-3">
+                <Archive size={15} className="text-emerald-400 shrink-0"/>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-emerald-300">Tydzień zapisany jako kopia zapasowa</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Wypłaty i przeniesienia (⏭) nadal możliwe do przejścia na kolejny tydzień płac. Lista płac i eksport pokazują aktualny stan.</p>
+                </div>
+              </div>
+            )}
+
+            {isClosedWeek && (
               <div className="flex items-center gap-3 bg-violet-500/10 border border-violet-500/25 rounded-xl px-4 py-3">
                 <Archive size={15} className="text-violet-400 shrink-0"/>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-violet-300">Tydzień archiwalny — podgląd ze snapshotu</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Lista płac i eksport PDF/DOCX korzystają wyłącznie z zapisanego archiwum. Nowe urlopy nie zmieniają tego tygodnia.</p>
+                  <p className="text-sm font-medium text-violet-300">Tydzień historyczny — podgląd ze snapshotu</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Lista płac i eksport PDF/DOCX korzystają wyłącznie z zapisanego archiwum. Przeniesienia wypłat i nowe urlopy nie zmieniają tego tygodnia.</p>
                 </div>
               </div>
             )}
@@ -1278,7 +1290,7 @@ export function PayrollView({
             weekTo={weekTo}
             directory={directory}
             savedWeeks={savedWeeks}
-            isArchivedWeek={isArchivedWeek}
+            isClosedWeek={isClosedWeek}
             payrollRow={selectedPayrollRow}
             onDeferPayroll={handleDeferPayroll}
             onChange={onUpdateWeekEmployee}

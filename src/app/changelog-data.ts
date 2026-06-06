@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-06",
+    version: "2.45.39",
+    label: "Przeniesienie wypłaty po zapisie tygodnia",
+    items: [
+      { type: "fix", text: "⏭ Przenieś na następny tydzień — dostępne po „Zapisz tydzień”, dopóki trwa bieżący tydzień płac (zapis ≠ zamknięcie)" },
+      { type: "improve", text: "Zapisany tydzień operacyjny — lista płac i PDF/Word z aktualnego stanu (live), nie ze starego snapshotu" },
+      { type: "improve", text: "Archiwum odświeża się automatycznie po przeniesieniu wypłaty, rozliczeniu i edycji godzin" },
+      { type: "improve", text: "Baner: „kopia zapasowa” vs „tydzień historyczny” — czytelniejszy workflow w weekend" },
+    ],
+  },
+  {
+    date: "2026-06-06",
     version: "2.45.38",
     label: "Odroczenie wypłaty na następny tydzień",
     items: [

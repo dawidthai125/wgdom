@@ -377,6 +377,12 @@ function test7() {
   const checks = [
     canDeferPayroll(emp, { ...calc, emp }, directory, true),
     canDeferPayroll(
+      emp,
+      { ...calc, emp, displayNetPay: calc.netPay },
+      directory,
+      false,
+    ),
+    canDeferPayroll(
       { ...emp, payrollCarryForward: buildPayrollCarryForwardRecord(100, W1.from, W1.to) },
       { ...calc, emp, displayNetPay: 0, carryForwardOut: 100 },
       directory,
@@ -384,10 +390,15 @@ function test7() {
     ),
     canDeferPayroll(emp, { ...calc, emp, leaveStatus: "vacation", displayNetPay: 0 }, directory, false),
   ];
-  log(`  archived: ${checks[0].reason}`);
-  log(`  already deferred: ${checks[1].reason}`);
-  log(`  leave: ${checks[2].reason}`);
-  const ok = checks[0].reason === "archived_week" && checks[1].reason === "already_deferred" && checks[2].reason === "leave_active";
+  log(`  closed week: ${checks[0].reason}`);
+  log(`  saved active week: ${checks[1].ok}`);
+  log(`  already deferred: ${checks[2].reason}`);
+  log(`  leave: ${checks[3].reason}`);
+  const ok =
+    checks[0].reason === "closed_week" &&
+    checks[1].ok === true &&
+    checks[2].reason === "already_deferred" &&
+    checks[3].reason === "leave_active";
   results.validations = ok ? "PASS" : "FAIL";
   log(`TEST 7: ${results.validations}`);
 }

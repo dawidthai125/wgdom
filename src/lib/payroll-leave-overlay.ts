@@ -2,7 +2,7 @@
 
 import type { WeekEmployee, WeekSnapshot } from "@/app/app-domain";
 import { calcWeekEmployee } from "@/app/app-domain";
-import { calcWeekNetNoPrevSat } from "@/lib/payroll-cycle";
+import { calcWeekNetNoPrevSat, isPayrollWeekClosed } from "@/lib/payroll-cycle";
 import {
   findLeaveForEmployeeWeek,
   frozenLeaveStatusFromSnapshot,
@@ -77,6 +77,7 @@ export function calcWeekEmployeeWithLeave(
   return base;
 }
 
+/** @deprecated Użyj isPayrollWeekSaved — zachowane dla kompatybilności importów. */
 export function isPayrollWeekArchived(
   savedWeeks: WeekSnapshot[],
   weekFrom: string,
@@ -84,6 +85,8 @@ export function isPayrollWeekArchived(
 ): boolean {
   return savedWeeks.some((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
 }
+
+export { isPayrollWeekSaved, isPayrollWeekClosed } from "@/lib/payroll-cycle";
 
 /** Netto Pn–So dla wypłaty co 2 tyg. — 0 gdy urlop (live lub archiwum). */
 export function calcBiweeklyWeekNetWithLeave(
@@ -96,12 +99,13 @@ export function calcBiweeklyWeekNetWithLeave(
   },
 ): number {
   const snap = options.savedWeeks?.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+  const closed = isPayrollWeekClosed(weekFrom, weekTo);
   const calc = calcWeekEmployeeWithLeave(emp, {
     weekFrom,
     weekTo,
-    employeeLeaves: snap ? undefined : options.employeeLeaves,
-    archivedSnapshot: snap,
-    livePayroll: !snap,
+    employeeLeaves: snap && closed ? undefined : options.employeeLeaves,
+    archivedSnapshot: snap && closed ? snap : undefined,
+    livePayroll: !(snap && closed),
   });
   if (calc.leaveStatus) return 0;
   return calcWeekNetNoPrevSat(emp).netPay;

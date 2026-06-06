@@ -4,9 +4,21 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.45.38** (`changelog-data.ts`) · prod app **`f24fafe`**
+**Aktualna wersja UI:** **2.45.39** (`changelog-data.ts`) · prod app po deploy 20.1B
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
+
+---
+
+## 2.45.39 (2026-06-06) — Carry workflow fix (Sprint 20.1B) — **Released**
+
+* **saved ≠ closed** — „Zapisz tydzień” to backup; defer ⏭ możliwy do rolloveru payroll
+* **Live payroll** na aktywnym tygodniu (zapisanym) — lista, PDF/DOCX z bieżącego stanu
+* **Snapshot freeze** tylko dla tygodnia **historycznego** (`isPayrollWeekClosed`)
+* **`refreshSavedActiveWeekSnapshot`** — archiwum odświeżane po defer, settled, edycji
+* **`canDeferPayroll`** — blokada `closed_week` (nie `archived_week`)
+* **`isPayrollWeekClosed()`** — `weekFrom/weekTo ≠ getPayrollWeekRange()`
+* Regresja 20.0A urlopy + 20.1A carry — PASS
 
 ---
 

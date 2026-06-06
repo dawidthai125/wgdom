@@ -1,5 +1,7 @@
 /** Wypłaty co 2 tygodnie (sobota) — logika kasowa i archiwum. */
 
+import type { WeekSnapshot } from "@/app/app-domain";
+
 const DAY_KEYS = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"] as const;
 
 /** Niedziela od tej godziny (lokalnie) — lista płac przechodzi na nadchodzący tydzień Pn–So. */
@@ -35,6 +37,28 @@ export function getPayrollWeekRange(now = new Date()): { from: string; to: strin
   const sat = new Date(mon);
   sat.setDate(mon.getDate() + 5);
   return { from: localIsoDate(mon), to: localIsoDate(sat) };
+}
+
+/** Snapshot istnieje w archiwum (backup) — nie oznacza zamknięcia operacyjnego tygodnia. */
+export function isPayrollWeekSaved(
+  savedWeeks: WeekSnapshot[],
+  weekFrom: string,
+  weekTo: string,
+): boolean {
+  return savedWeeks.some((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
+}
+
+/**
+ * Tydzień historyczny — po rolloverze lub nawigacji poza bieżący zakres payroll.
+ * Sprint 20.1B: saved ≠ closed.
+ */
+export function isPayrollWeekClosed(
+  weekFrom: string,
+  weekTo: string,
+  now = new Date(),
+): boolean {
+  const current = getPayrollWeekRange(now);
+  return weekFrom !== current.from || weekTo !== current.to;
 }
 
 /** Tydzień domykany w weekend (Pn–So z ostatnią sobotą). Nd zawsze = tydzień kończący się wczoraj. */

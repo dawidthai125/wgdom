@@ -56,7 +56,7 @@ export function WeekEmployeeDetail({
   weekTo,
   directory,
   savedWeeks,
-  isArchivedWeek = false,
+  isClosedWeek = false,
   payrollRow,
   onDeferPayroll,
   onChange,
@@ -67,7 +67,7 @@ export function WeekEmployeeDetail({
   weekTo: string;
   directory: DirectoryEmployee[];
   savedWeeks: WeekSnapshot[];
-  isArchivedWeek?: boolean;
+  isClosedWeek?: boolean;
   payrollRow?: { emp: WeekEmployee } & PayrollCalcWithAdjustments;
   onDeferPayroll?: (emp: WeekEmployee) => void;
   onChange: (u: WeekEmployee) => void;
@@ -93,7 +93,7 @@ export function WeekEmployeeDetail({
     totalZaliczka, totalExtraCosts, grossPay, weekGross, prevSatGross, netPay, rateNum,
   } = calcWeekEmployee(safeEmp);
   const weekOnly = biweekly ? calcWeekNetNoPrevSat(safeEmp) : null;
-  const deferCheck = payrollRow ? canDeferPayroll(safeEmp, payrollRow, directory, isArchivedWeek) : { ok: false as const };
+  const deferCheck = payrollRow ? canDeferPayroll(safeEmp, payrollRow, directory, isClosedWeek) : { ok: false as const };
   const displayNet =
     payrollRow?.leaveStatus
       ? 0
@@ -266,7 +266,7 @@ export function WeekEmployeeDetail({
           )}
         </div>
 
-        {!isArchivedWeek && onDeferPayroll && deferCheck.ok && (
+        {!isClosedWeek && onDeferPayroll && deferCheck.ok && (
           <button
             type="button"
             onClick={() => onDeferPayroll(safeEmp)}

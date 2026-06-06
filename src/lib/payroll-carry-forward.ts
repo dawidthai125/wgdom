@@ -149,9 +149,9 @@ export function canDeferPayroll(
   emp: WeekEmployee,
   row: PayrollCalcWithAdjustments,
   directory: DirectoryPayrollRef[],
-  isArchivedWeek: boolean,
+  isClosedWeek: boolean,
 ): CanDeferPayrollResult {
-  if (isArchivedWeek) return { ok: false, reason: "archived_week" };
+  if (isClosedWeek) return { ok: false, reason: "closed_week" };
   if (row.leaveStatus) return { ok: false, reason: "leave_active" };
   if (emp.payrollCarryForward?.amount) return { ok: false, reason: "already_deferred" };
   if (isBiweeklyPayrollEmployee(emp, directory)) return { ok: false, reason: "biweekly_blocked" };
