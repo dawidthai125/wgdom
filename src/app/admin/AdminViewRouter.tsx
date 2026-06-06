@@ -1,7 +1,6 @@
 import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
 import { ViewErrorBoundary } from "@/app/ViewErrorBoundary";
 import { ViewLoadFallback } from "@/app/ViewLoadFallback";
-import { JobPhotosGalleryView } from "@/app/JobPhotosGalleryView";
 import { executeCreateJobFromTender } from "@/lib/create-job-from-tender";
 import type {
   DirectoryEmployee,
@@ -14,6 +13,7 @@ import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import type { AppSettings } from "@/lib/app-settings";
 import type { EmailContact } from "@/lib/email-contacts";
 import type { EmployeeLeave } from "@/lib/employee-leaves";
+import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import type { View } from "@/app/admin/admin-nav";
 import { CommandCenterProvider } from "@/app/tender-center/context/CommandCenterContext";
 
@@ -22,10 +22,11 @@ const JobsView = lazy(() => import("@/app/JobsView").then((m) => ({ default: m.J
 const InspectorAdminView = lazy(() =>
   import("@/app/InspectorAdminView").then((m) => ({ default: m.InspectorAdminView })),
 );
-const JobFilesBrowser = lazy(() =>
-  import("@/app/JobFilesBrowser").then((m) => ({ default: m.JobFilesBrowser })),
-);
 const GuideView = lazy(() => import("@/app/GuideView").then((m) => ({ default: m.GuideView })));
+const MediaView = lazy(() => import("@/app/MediaView").then((m) => ({ default: m.MediaView })));
+const RecoverableChargesView = lazy(() =>
+  import("@/app/RecoverableChargesView").then((m) => ({ default: m.RecoverableChargesView })),
+);
 const TenderCenterProView = lazy(() =>
   import("@/app/TenderCenterProView").then((m) => ({ default: m.TenderCenterProView })),
 );
@@ -87,6 +88,9 @@ export type AdminViewRouterProps = {
   employeeLeaves: EmployeeLeave[];
   setEmployeeLeaves: (v: EmployeeLeave[] | ((prev: EmployeeLeave[]) => EmployeeLeave[])) => void;
   commitEmployeeLeaves: (next?: EmployeeLeave[], deletedId?: string) => void;
+  recoverableCharges: RecoverableCharge[];
+  setRecoverableCharges: (v: RecoverableCharge[] | ((prev: RecoverableCharge[]) => RecoverableCharge[])) => void;
+  commitRecoverableCharges: (next?: RecoverableCharge[], deletedId?: string) => void;
   adminSession: AdminSession | null | undefined;
   alertsSeenTick: number;
   onAlertsSeen: () => void;
@@ -157,6 +161,9 @@ export function AdminViewRouter({
   employeeLeaves,
   setEmployeeLeaves,
   commitEmployeeLeaves,
+  recoverableCharges,
+  setRecoverableCharges,
+  commitRecoverableCharges,
   adminSession,
   alertsSeenTick,
   onAlertsSeen,
@@ -393,19 +400,27 @@ export function AdminViewRouter({
           </Suspense>
         </ViewErrorBoundary>
       )}
-      {view === "photos" && (
-        <ViewErrorBoundary label="Zdjęcia">
-          <JobPhotosGalleryView jobs={jobs} onOpenJob={onOpenJobFromGallery} />
-        </ViewErrorBoundary>
-      )}
-      {view === "jobfiles" && (
-        <ViewErrorBoundary label="Pliki">
-          <Suspense fallback={<ViewLoadFallback label="Ładowanie plików…" />}>
-            <JobFilesBrowser
+      {view === "media" && (
+        <ViewErrorBoundary label="Media">
+          <Suspense fallback={<ViewLoadFallback label="Ładowanie mediów…" />}>
+            <MediaView
               jobs={jobs}
               athPreviewEnabled={appSettings.athPreviewEnabled}
-              layout="admin"
-              onOpenJob={onOpenJobFromFiles}
+              onOpenJobFromGallery={onOpenJobFromGallery}
+              onOpenJobFromFiles={onOpenJobFromFiles}
+            />
+          </Suspense>
+        </ViewErrorBoundary>
+      )}
+      {view === "recoverablecharges" && (
+        <ViewErrorBoundary label="Do rozliczenia">
+          <Suspense fallback={<ViewLoadFallback label="Ładowanie pozycji…" />}>
+            <RecoverableChargesView
+              charges={recoverableCharges}
+              jobs={jobs}
+              createdByName={adminSession?.displayName || "Administrator"}
+              onChange={setRecoverableCharges}
+              onCommit={commitRecoverableCharges}
             />
           </Suspense>
         </ViewErrorBoundary>

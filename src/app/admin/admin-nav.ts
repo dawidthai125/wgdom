@@ -8,10 +8,10 @@ import {
   Archive,
   MapPin,
   ClipboardCheck,
-  Images,
   FolderOpen,
   BookOpen,
   Scale,
+  Wallet,
 } from "lucide-react";
 import type { DirectoryEmployee, Job, WeekEmployee, WeekSnapshot } from "@/app/app-domain";
 import { filterProductionActiveDirectory, jobApprovedPhotos, jobGalleryBucket } from "@/app/app-domain";
@@ -22,6 +22,8 @@ import {
 } from "@/lib/inspector-stats";
 import { jobsWithInspectorNotesNeedingAdmin } from "@/lib/job-wm";
 import type { EmailContact } from "@/lib/email-contacts";
+import { countOpenRecoverableCharges } from "@/lib/recoverable-charges";
+import type { RecoverableCharge } from "@/lib/recoverable-charges";
 
 export type View =
   | "dashboard"
@@ -32,8 +34,8 @@ export type View =
   | "archive"
   | "jobs"
   | "inspector"
-  | "photos"
-  | "jobfiles"
+  | "media"
+  | "recoverablecharges"
   | "guide"
   | "tenders";
 
@@ -54,6 +56,7 @@ export type BuildAdminNavItemsInput = {
   contacts: EmailContact[];
   savedWeeks: WeekSnapshot[];
   jobs: Job[];
+  recoverableCharges: RecoverableCharge[];
   adminUserId: string | undefined;
 };
 
@@ -65,6 +68,7 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
     contacts,
     savedWeeks,
     jobs,
+    recoverableCharges,
     adminUserId,
   } = input;
 
@@ -134,28 +138,30 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
       })(),
     },
     {
-      key: "photos",
-      label: "Zdjęcia",
-      hint: "Zaakceptowane zdjęcia z robot — galeria i archiwum po 30 dniach od zdania.",
-      icon: Images,
+      key: "recoverablecharges",
+      label: "Do rozliczenia",
+      hint: "Rejestr pozycji do odzyskania od klientów — powiązane z robotą lub poza systemem.",
+      icon: Wallet,
       badge: (() => {
-        const n = jobs.reduce((s, j) => {
-          const b = jobGalleryBucket(j);
-          return b === "active" || b === "grace" ? s + jobApprovedPhotos(j).length : s;
-        }, 0);
-        return n || undefined;
+        const n = countOpenRecoverableCharges(recoverableCharges);
+        return n > 0 ? n : undefined;
       })(),
     },
     {
-      key: "jobfiles",
-      label: "Pliki robot",
-      hint: "Wszystkie pliki z robot: zlecenia, kosztorysy, zdjęcia, rysunki — pobierz pojedynczo lub ZIP.",
+      key: "media",
+      label: "Media",
+      hint: "Zdjęcia i pliki z robot — galeria, archiwum zdjęć oraz pobieranie ZIP dokumentów.",
       icon: FolderOpen,
       badge: (() => {
-        const n = jobs.reduce(
+        const photos = jobs.reduce((s, j) => {
+          const b = jobGalleryBucket(j);
+          return b === "active" || b === "grace" ? s + jobApprovedPhotos(j).length : s;
+        }, 0);
+        const files = jobs.reduce(
           (s, j) => (jobHasBrowserFiles(j) ? s + countBrowserFiles(j) : s),
           0,
         );
+        const n = photos + files;
         return n || undefined;
       })(),
     },

@@ -87,11 +87,14 @@ export function JobFilesBrowser({
   athPreviewEnabled,
   onOpenJob,
   layout = "inspector",
+  embedded = false,
 }: {
   jobs: JobFilesBrowserSource[];
   athPreviewEnabled: boolean;
   onOpenJob: (jobId: string) => void;
   layout?: "inspector" | "admin";
+  /** Ukryj nagłówek h1 — np. w zakładce Media */
+  embedded?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -144,15 +147,17 @@ export function JobFilesBrowser({
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       <div className="flex-1 overflow-y-auto overscroll-contain pb-20 sm:pb-6">
         <div className={`${maxW} mx-auto w-full px-4 sm:px-8 py-6 space-y-4`} style={{ paddingBottom: layout === "inspector" ? "max(1rem, env(safe-area-inset-bottom))" : undefined }}>
-          <div>
-            <h1 className={`${titleCls} flex items-center gap-2`}>
-              <FolderOpen size={layout === "admin" ? 22 : 18} className="text-primary"/>
-              Pliki robot
-            </h1>
-            <p className={`${descCls} text-muted-foreground mt-1 leading-relaxed`}>
-              Zlecenia, kosztorysy, zdjęcia ekipy i inspektora, rysunki z raportów — pobierz pojedynczo lub pakiet ZIP (foldery wg typu i daty).
-            </p>
-          </div>
+          {!embedded && (
+            <div>
+              <h1 className={`${titleCls} flex items-center gap-2`}>
+                <FolderOpen size={layout === "admin" ? 22 : 18} className="text-primary"/>
+                Pliki robot
+              </h1>
+              <p className={`${descCls} text-muted-foreground mt-1 leading-relaxed`}>
+                Zlecenia, kosztorysy, zdjęcia ekipy i inspektora, rysunki z raportów — pobierz pojedynczo lub pakiet ZIP (foldery wg typu i daty).
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div className="bg-card rounded-xl border border-border px-4 py-3">

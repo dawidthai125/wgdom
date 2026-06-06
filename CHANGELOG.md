@@ -4,9 +4,18 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.45.41** (`changelog-data.ts`) · Sprint 20.1B.1 carry totals (lokalnie)
+**Aktualna wersja UI:** **2.46.00** (`changelog-data.ts`) · Sprint 20.3A Do rozliczenia (lokalnie)
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
+
+---
+
+## 2.46.00 (2026-06-06) — Do rozliczenia foundation (Sprint 20.3A)
+
+* **Nowość** — moduł **Do rozliczenia** (`RecoverableCharge`, KV `kw-recoverable-charges`)
+* **CRUD** — pozycja z roboty lub standalone; status 🔴🟡🟢; panel szczegółów (read-only)
+* **Menu** — **Media** = Zdjęcia + Pliki robot
+* **Sync** — `kw-recoverable-charges-deleted-ids`, deferred bootstrap, backup JSON
 
 ---
 

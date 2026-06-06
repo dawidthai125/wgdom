@@ -45,10 +45,13 @@ import {
   getDeletedArchiveIds,
   getDeletedEmployeeLeaveIds,
   addDeletedEmployeeLeaveId,
+  getDeletedRecoverableChargeIds,
+  addDeletedRecoverableChargeId,
   addDeletedArchiveId,
   pushDirectoryToCloud,
   pushWeekEmployeesToCloud,
   pushEmployeeLeavesToCloud,
+  pushRecoverableChargesToCloud,
   ADMIN_PASSWORDS_KEY,
   ADMIN_USERS_CONFIG_KEY,
   isSupabaseConfigured,
@@ -92,6 +95,8 @@ import { useLocalStorage, setSkipApplyWriteTimestamps } from "@/app/hooks/useLoc
 import type { EmailContact } from "@/lib/email-contacts";
 import type { EmployeeLeave } from "@/lib/employee-leaves";
 import { mergeEmployeeLeaves } from "@/lib/employee-leaves";
+import type { RecoverableCharge } from "@/lib/recoverable-charges";
+import { mergeRecoverableCharges } from "@/lib/recoverable-charges";
 import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
 import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosed } from "@/lib/payroll-cycle";
 
@@ -106,6 +111,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [jobs, setJobs] = useLocalStorage<Job[]>("kw-jobs", []);
   const [contacts, setContacts] = useLocalStorage<EmailContact[]>("kw-contacts", []);
   const [employeeLeaves, setEmployeeLeaves] = useLocalStorage<EmployeeLeave[]>("kw-employee-leaves", []);
+  const [recoverableCharges, setRecoverableCharges] = useLocalStorage<RecoverableCharge[]>("kw-recoverable-charges", []);
   const [view, setView] = useState<View>("dashboard");
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
   const [pendingTenderId, setPendingTenderId] = useState<string | null>(null);
@@ -196,6 +202,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     pushEmployeeLeavesToCloud(payload, deletedIds).catch(() => {});
   }, [employeeLeaves]);
 
+  const commitRecoverableCharges = useCallback((next?: RecoverableCharge[], deletedId?: string) => {
+    const payload = next ?? recoverableCharges;
+    let deletedIds = getDeletedRecoverableChargeIds();
+    if (deletedId) deletedIds = addDeletedRecoverableChargeId(deletedId);
+    suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    pushRecoverableChargesToCloud(payload, deletedIds).catch(() => {});
+  }, [recoverableCharges]);
+
   const clearAutoSyncTimers = useCallback(() => {
     if (syncTimerRef.current) {
       clearTimeout(syncTimerRef.current);
@@ -213,12 +227,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [clearAutoSyncTimers]);
 
   const adminDataBundle = useCallback(
-    () => [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves] as unknown[],
-    [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves],
+    () => [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges] as unknown[],
+    [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges],
   );
 
   const applyAdminDataBundle = useCallback((merged: unknown[]) => {
-    const [dir, emps, arch, wf, wt, jbs, cont, leaves] = merged;
+    const [dir, emps, arch, wf, wt, jbs, cont, leaves, charges] = merged;
     suppressAutoSyncUntilRef.current = Date.now() + 4500;
     remoteMergeInFlightRef.current = true;
     setSkipApplyWriteTimestamps(true);
@@ -243,10 +257,17 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           : (leaves as EmployeeLeave[]);
         setEmployeeLeaves(filtered);
       }
+      if (Array.isArray(charges)) {
+        const tombstones = new Set(getDeletedRecoverableChargeIds());
+        const filtered = tombstones.size
+          ? (charges as RecoverableCharge[]).filter((c) => !tombstones.has(c.id))
+          : (charges as RecoverableCharge[]);
+        setRecoverableCharges(filtered);
+      }
     } finally {
       setSkipApplyWriteTimestamps(false);
     }
-  }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts, setEmployeeLeaves]);
+  }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts, setEmployeeLeaves, setRecoverableCharges]);
 
   const deleteJobsByIds = useCallback(async (ids: string[]) => {
     const unique = [...new Set(ids.filter(Boolean))];
@@ -429,7 +450,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     scheduleAutoCloudSync();
     remoteMergeInFlightRef.current = false;
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, scheduleAutoCloudSync]);
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, scheduleAutoCloudSync]);
 
   useEffect(() => () => clearAutoSyncTimers(), [clearAutoSyncTimers]);
 
@@ -487,6 +508,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         if (data["kw-employee-leaves"] != null) {
           const local = JSON.parse(localStorage.getItem("kw-employee-leaves") || "[]");
           data["kw-employee-leaves"] = mergeEmployeeLeaves(local, data["kw-employee-leaves"], getDeletedEmployeeLeaveIds());
+        }
+        if (data["kw-recoverable-charges"] != null) {
+          const local = JSON.parse(localStorage.getItem("kw-recoverable-charges") || "[]");
+          data["kw-recoverable-charges"] = mergeRecoverableCharges(local, data["kw-recoverable-charges"], getDeletedRecoverableChargeIds());
         }
         if (data[TENDERS_PIPELINE_KEY] != null) {
           const local = JSON.parse(localStorage.getItem(TENDERS_PIPELINE_KEY) || "[]");
@@ -739,13 +764,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             try { localStorage.setItem("kw-archive", JSON.stringify(archive)); } catch { /* ignore */ }
             setSavedWeeks(archive);
           }
-          await pushAllDataToCloud([directory, next, archive, weekFrom, weekTo, jobs, contacts, employeeLeaves]);
+          await pushAllDataToCloud([directory, next, archive, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges]);
         } catch { /* auto-sync ponowi */ }
         finally { payrollRosterPushRef.current = false; }
       })();
       return next;
     });
-  }, [directory, savedWeeks, weekFrom, weekTo, jobs, contacts, setWeekEmployees, setSavedWeeks]);
+  }, [directory, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, setWeekEmployees, setSavedWeeks]);
 
   const patchArchiveWeek = useCallback((weekId: string, patchEmployees: (emps: WeekEmployee[]) => WeekEmployee[]) => {
     setSavedWeeks((prev) => {
@@ -929,9 +954,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         contacts,
         savedWeeks,
         jobs,
+        recoverableCharges,
         adminUserId: adminSession?.id,
       }),
-    [canViewTendersNav, productionWeekEmployees, directory, contacts, savedWeeks, jobs, adminSession?.id],
+    [canViewTendersNav, productionWeekEmployees, directory, contacts, savedWeeks, jobs, recoverableCharges, adminSession?.id],
   );
 
   const { mobileNavPrimary, mobileNavMore } = useMemo(() => splitMobileNav(navItems), [navItems]);
@@ -1088,6 +1114,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           employeeLeaves={employeeLeaves}
           setEmployeeLeaves={setEmployeeLeaves}
           commitEmployeeLeaves={commitEmployeeLeaves}
+          recoverableCharges={recoverableCharges}
+          setRecoverableCharges={setRecoverableCharges}
+          commitRecoverableCharges={commitRecoverableCharges}
           adminSession={adminSession}
           alertsSeenTick={alertsSeenTick}
           onAlertsSeen={() => setAlertsSeenTick((t) => t + 1)}

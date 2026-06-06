@@ -363,6 +363,35 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
       ),
     },
     {
+      id:"recoverable-charges",
+      icon:Wallet,
+      title:"Do rozliczenia",
+      subtitle:"Rejestr pozycji do odzyskania od klientów",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">Menu <strong>Do rozliczenia</strong> (💰) służy do zapisywania kwot, które firma poniosła, a klient ma je jeszcze uregulować — np. dodatkowy materiał po zamkniętym kosztorysie. To <strong>rejestr</strong>, nie faktura i nie lista płac.</p>
+          <div className="space-y-3">
+            {[
+              {q:"Jak dodać pozycję?", a:"Kliknij „Dodaj pozycję”. Wybierz źródło: z roboty (lista adresów) albo poza systemem (wpisz klienta ręcznie). Uzupełnij opis, kwotę, opcjonalnie inspektora i tagi."},
+              {q:"Statusy 🔴🟡🟢", a:"🔴 Otwarta — czeka na odzysk. 🟡 Częściowo — część kwoty rozliczona (ręcznie, bez historii rozliczeń w tej wersji). 🟢 Rozliczona — pozycja zamknięta w rejestrze."},
+              {q:"Panel szczegółów", a:"Kliknij wiersz na liście — po prawej (lub pod listą na wąskim ekranie) zobaczysz opis, kwotę, źródło, inspektora, tagi i kto/kiedy utworzył wpis. Na razie tylko podgląd — bez workflow rozliczeń."},
+              {q:"Media — zdjęcia i pliki", a:"W menu „Media” są dwie zakładki: Zdjęcia (galeria zaakceptowanych) i Pliki (zlecenia, kosztorysy, ZIP). Wcześniej były to osobne pozycje menu."},
+              {q:"Czy to zmienia robotę lub listę płac?", a:"Nie. Pozycje są w osobnym zapisie chmurowym (kw-recoverable-charges). Roboty i payroll działają jak dotychczas."},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
       id:"changelog",
       icon:ScrollText,
       title:"Historia zmian",
@@ -403,7 +432,8 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
             <li><strong>Lista płac</strong> — godziny (w tym dodatkowe), zaliczki, koszty do zwrotu, rozliczenia; eksport PDF/Word i wysyłka emailem</li>
             <li><strong>Archiwum</strong> — zapisane tygodnie</li>
             <li><strong>Roboty</strong> — adresy, dokumenty, materiały, raporty, wpisy czasu pracy</li>
-            <li><strong>Zdjęcia</strong> — pliki w chmurze Supabase Storage; informacja o zdjęciu (kto, kiedy, status) w danych roboty</li>
+            <li><strong>Media</strong> — zdjęcia (Storage + metadane w robocie) i pliki robot (jobFiles)</li>
+            <li><strong>Do rozliczenia</strong> — rejestr pozycji do odzyskania (<code>kw-recoverable-charges</code>)</li>
             <li><strong>Logowanie admina / inspektora</strong> — konta z hasłami jako hash SHA-256, sync w chmurze (<code>kw-admin-passwords</code>). Super Admin zmienia hasła w panelu ⚙. Pliki zlecenia/kosztorysu inspektora zapisują się przy robocie (<code>jobFiles</code>)</li>
           </ul>
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">

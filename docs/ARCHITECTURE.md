@@ -273,6 +273,19 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | `kw-jobs` | Roboty (zdjęcia, pliki, WM, activity…) | Wszyscy |
 | `kw-contacts` | Kontakty e-mail | Admin |
 | `kw-employee-leaves` | Nieobecności pracowników (urlop / L4 / bezpłatny, tygodnie Pn–So) | Admin |
+| `kw-recoverable-charges` | Pozycje do rozliczenia / odzyskania (Sprint 20.3A) | Admin |
+
+**Do rozliczenia (Sprint 20.3A, v2.46.00):**
+
+| Aspekt | Opis |
+|--------|------|
+| **Model** | Tablica `RecoverableCharge[]` w `kw-recoverable-charges` — status `open` / `partial` / `settled`; źródło `job` (opcjonalny `sourceJobId`) lub `standalone` |
+| **UI** | `RecoverableChargesView.tsx` — lista (szukaj, filtry, sort), CRUD, panel szczegółów read-only |
+| **Menu** | **Do rozliczenia** (💰); **Media** = Zdjęcia + Pliki robot (jak Instrukcja/Zmiany) |
+| **Sync** | `mergeRecoverableCharges()`; `pushRecoverableChargesToCloud()`; tombstone `kw-recoverable-charges-deleted-ids` |
+| **Poza zakresem 20.3A** | `settlements[]`, `amountRemaining`, workflow odzyskania, KPI, integracja faktur — Sprint 20.3B+ |
+
+Pliki: `src/lib/recoverable-charges.ts`, `src/app/RecoverableChargesView.tsx`, `src/app/MediaView.tsx`.
 
 **Nieobecności (Sprint 20.0A, v2.45.37, prod `778f616`):**
 
@@ -333,6 +346,7 @@ Pliki 20.1B: `src/lib/payroll-cycle.ts`, `src/app/PayrollView.tsx`, `src/app/App
 | `kw-contacts-deleted-ids` | Usunięte kontakty |
 | `kw-archive-deleted-ids` | Usunięte tygodnie archiwum |
 | `kw-employee-leaves-deleted-ids` | Usunięte nieobecności (Sprint 20.0A) — merge i Edge batch-set filtrują te ID |
+| `kw-recoverable-charges-deleted-ids` | Usunięte pozycje do rozliczenia (Sprint 20.3A) |
 
 ### 10.3 Klucze konfiguracyjne (chmura przez `persistKey`)
 
@@ -420,11 +434,11 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 | Faza | Kiedy | Klucze | Plik |
 |------|--------|--------|------|
 | **CORE** | przed `setReady(true)` | `BOOTSTRAP_CORE_KEYS` (6) + tombstones + admin keys | `CloudLoader.tsx`, `cloud-sync.ts` |
-| **DEFERRED** | `void` po `ready` | `BOOTSTRAP_DEFERRED_KEYS` (5) + tombstones (w tym `kw-employee-leaves-deleted-ids`) | `fetchAndMergeDeferredBootstrap()` |
+| **DEFERRED** | `void` po `ready` | `BOOTSTRAP_DEFERRED_KEYS` (6) + tombstones (w tym `kw-employee-leaves-deleted-ids`, `kw-recoverable-charges-deleted-ids`) | `fetchAndMergeDeferredBootstrap()` |
 
 **CORE:** `kw-directory`, `kw-week-employees`, `kw-archive`, `kw-weekFrom`, `kw-weekTo`, `kw-jobs`.
 
-**DEFERRED:** `kw-tenders-pipeline`, `kw-tenders-company-profile`, `kw-tenders-custom-keywords`, `kw-contacts`, `kw-employee-leaves`.
+**DEFERRED:** `kw-tenders-pipeline`, `kw-tenders-company-profile`, `kw-tenders-custom-keywords`, `kw-contacts`, `kw-employee-leaves`, `kw-recoverable-charges`.
 
 Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTSTRAP_EVENT`) → `CommandCenterContext` wywołuje `bumpProfileVersion()` (profil firmy w CC).
 

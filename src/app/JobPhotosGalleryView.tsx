@@ -30,9 +30,12 @@ interface JobPhotoGalleryEntry {
 export function JobPhotosGalleryView({
   jobs,
   onOpenJob,
+  embedded = false,
 }: {
   jobs: Job[];
   onOpenJob: (jobId: string) => void;
+  /** Ukryj nagłówek h1 — np. w zakładce Media */
+  embedded?: boolean;
 }) {
   const [tab, setTab] = useState<"gallery" | "archive">("gallery");
   const [search, setSearch] = useState("");
@@ -249,15 +252,17 @@ export function JobPhotosGalleryView({
   return (
     <div className="flex-1 overflow-y-auto overscroll-contain pb-20 sm:pb-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-8 py-6 space-y-6">
-        <div>
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <Images size={22} className="text-primary"/>
-            Zdjęcia z robot
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Tylko zaakceptowane zdjęcia. Po zdaniu mieszkania i kluczy roboty zostają tutaj {GALLERY_ARCHIVE_DAYS} dni, potem trafiają do archiwum.
-          </p>
-        </div>
+        {!embedded && (
+          <div>
+            <h1 className="text-xl font-bold flex items-center gap-2">
+              <Images size={22} className="text-primary"/>
+              Zdjęcia z robot
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Tylko zaakceptowane zdjęcia. Po zdaniu mieszkania i kluczy roboty zostają tutaj {GALLERY_ARCHIVE_DAYS} dni, potem trafiają do archiwum.
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div className="bg-card rounded-xl border border-border px-4 py-3">

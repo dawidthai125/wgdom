@@ -12,6 +12,18 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-06",
+    version: "2.46.00",
+    label: "Do rozliczenia — fundament (Sprint 20.3A)",
+    items: [
+      { type: "new", text: "💰 Do rozliczenia — rejestr pozycji do odzyskania (open / partial / settled) w KV kw-recoverable-charges" },
+      { type: "new", text: "Tworzenie pozycji powiązanej z robotą lub poza systemem — lista z wyszukiwarką, filtrami i sortowaniem" },
+      { type: "new", text: "Panel szczegółów (odczyt) — opis, kwota, źródło, inspektor, tagi, historia utworzenia" },
+      { type: "improve", text: "Menu Media — połączone Zdjęcia + Pliki robot (jak Instrukcja / Zmiany)" },
+      { type: "improve", text: "Sync chmury + tombstone kw-recoverable-charges-deleted-ids — bez zmian Payroll, Leaves, Inspector, Job" },
+    ],
+  },
+  {
+    date: "2026-06-06",
     version: "2.45.41",
     label: "Lista płac — spójna kasa w sobotę (sidebar)",
     items: [
