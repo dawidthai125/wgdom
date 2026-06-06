@@ -1,10 +1,24 @@
-/** Pozycje do rozliczenia / odzyskania — KV `kw-recoverable-charges`. Sprint 20.3A. */
+/** Pozycje do rozliczenia / odzyskania — KV `kw-recoverable-charges`. Sprint 20.3A + 20.4A settlement foundation. */
 
 import type { Job } from "@/app/app-domain";
 import { fmtDate } from "@/app/app-domain";
 
 export type RecoverableChargeStatus = "open" | "partial" | "settled";
 export type RecoverableChargeSourceType = "job" | "standalone";
+export type RecoverableSettlementRecordedVia = "admin" | "on_behalf_of_inspector";
+
+/** Pojedyncze rozliczenie / odzysk kwoty — append-only w ramach pozycji (Sprint 20.4A). */
+export interface RecoverableChargeSettlement {
+  id: string;
+  amount: number;
+  settledAt: string;
+  settledBy: string;
+  targetJobId?: string;
+  targetJobLabel?: string;
+  note?: string;
+  onBehalfOf?: string;
+  recordedVia?: RecoverableSettlementRecordedVia;
+}
 
 export interface RecoverableCharge {
   id: string;
@@ -20,6 +34,12 @@ export interface RecoverableCharge {
   createdBy: string;
   responsibleInspector: string;
   tags: string[];
+  /** Ledger rozliczeń — Sprint 20.4A. */
+  settlements?: RecoverableChargeSettlement[];
+  /** Suma settlements (cache, wyliczane przy zapisie / normalize / merge). */
+  amountSettled?: number;
+  /** amount − amountSettled, min. 0 (cache). */
+  amountRemaining?: number;
 }
 
 export const RECOVERABLE_CHARGE_STATUSES: RecoverableChargeStatus[] = ["open", "partial", "settled"];
@@ -35,6 +55,9 @@ export const RECOVERABLE_CHARGE_STATUS_EMOJI: Record<RecoverableChargeStatus, st
   partial: "🟡",
   settled: "🟢",
 };
+
+const LEGACY_MIGRATION_NOTE =
+  "Status ustawiony ręcznie przed wprowadzeniem workflow rozliczeń (migracja 20.4A)";
 
 export function recoverableChargeStatusLabel(status: RecoverableChargeStatus, withEmoji = true): string {
   const base = RECOVERABLE_CHARGE_STATUS_LABELS[status];
@@ -96,6 +119,210 @@ function parseSourceType(raw: unknown): RecoverableChargeSourceType {
   return raw === "standalone" ? "standalone" : "job";
 }
 
+function parseRecordedVia(raw: unknown): RecoverableSettlementRecordedVia | undefined {
+  if (raw === "on_behalf_of_inspector") return "on_behalf_of_inspector";
+  if (raw === "admin") return "admin";
+  return undefined;
+}
+
+function parseSettlements(raw: unknown): RecoverableChargeSettlement[] {
+  if (!Array.isArray(raw)) return [];
+  const out: RecoverableChargeSettlement[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const r = item as Partial<RecoverableChargeSettlement>;
+    if (!r.id) continue;
+    const amount = parseAmount(r.amount);
+    if (amount <= 0) continue;
+    const settlement: RecoverableChargeSettlement = {
+      id: String(r.id),
+      amount,
+      settledAt: String(r.settledAt ?? new Date().toISOString()),
+      settledBy: String(r.settledBy ?? "").trim(),
+    };
+    const targetJobId = String(r.targetJobId ?? "").trim();
+    if (targetJobId) settlement.targetJobId = targetJobId;
+    const targetJobLabel = String(r.targetJobLabel ?? "").trim();
+    if (targetJobLabel) settlement.targetJobLabel = targetJobLabel;
+    const note = String(r.note ?? "").trim();
+    if (note) settlement.note = note;
+    const onBehalfOf = String(r.onBehalfOf ?? "").trim();
+    if (onBehalfOf) settlement.onBehalfOf = onBehalfOf;
+    const recordedVia = parseRecordedVia(r.recordedVia);
+    if (recordedVia) settlement.recordedVia = recordedVia;
+    out.push(settlement);
+  }
+  return out;
+}
+
+/** Suma kwot rozliczeń (2 miejsca po przecinku). */
+export function sumSettlements(settlements: RecoverableChargeSettlement[]): number {
+  return +settlements.reduce((s, x) => s + x.amount, 0).toFixed(2);
+}
+
+/**
+ * Wylicza cache kwot i status z ledgeru settlements.
+ * Status: open (brak rozliczeń) → partial (część) → settled (pozostało 0).
+ */
+export function deriveChargeAmounts(
+  charge: Pick<RecoverableCharge, "amount" | "settlements">,
+): Pick<RecoverableCharge, "amountSettled" | "amountRemaining" | "status"> {
+  const settlements = charge.settlements ?? [];
+  const amount = parseAmount(charge.amount);
+  const amountSettled = sumSettlements(settlements);
+  const amountRemaining = Math.max(0, +(amount - amountSettled).toFixed(2));
+
+  let status: RecoverableChargeStatus;
+  if (amountRemaining === 0 && amount > 0) {
+    status = "settled";
+  } else if (amountSettled > 0 && amountRemaining > 0) {
+    status = "partial";
+  } else {
+    status = "open";
+  }
+
+  return { amountSettled, amountRemaining, status };
+}
+
+export type SettlementValidationError = "invalid_amount" | "exceeds_remaining";
+
+/** Walidacja kwoty pojedynczego rozliczenia względem pozostałej należności. */
+export function validateSettlementDraft(
+  charge: Pick<RecoverableCharge, "amount" | "settlements" | "amountRemaining">,
+  settlementAmount: number,
+): { ok: true } | { ok: false; error: SettlementValidationError; message: string } {
+  const amount = parseAmount(settlementAmount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return { ok: false, error: "invalid_amount", message: "Kwota rozliczenia musi być większa od 0 PLN." };
+  }
+
+  const amountRemaining = deriveChargeAmounts({
+    amount: charge.amount,
+    settlements: charge.settlements ?? [],
+  }).amountRemaining;
+
+  if (amount > amountRemaining) {
+    return {
+      ok: false,
+      error: "exceeds_remaining",
+      message: `Kwota rozliczenia (${amount} PLN) przekracza pozostałą należność (${amountRemaining} PLN).`,
+    };
+  }
+
+  return { ok: true };
+}
+
+/** Dodaje wpis rozliczenia i przelicza cache + status. */
+export function applySettlement(
+  charge: RecoverableCharge,
+  settlement: Omit<RecoverableChargeSettlement, "id"> & { id?: string },
+): RecoverableCharge {
+  const current = { ...charge, ...deriveChargeAmounts(charge) };
+  const validation = validateSettlementDraft(current, settlement.amount);
+  if (!validation.ok) {
+    throw new Error(validation.message);
+  }
+
+  const entry: RecoverableChargeSettlement = {
+    id: settlement.id ?? crypto.randomUUID(),
+    amount: parseAmount(settlement.amount),
+    settledAt: settlement.settledAt ?? new Date().toISOString(),
+    settledBy: String(settlement.settledBy ?? "").trim(),
+  };
+  if (settlement.targetJobId?.trim()) entry.targetJobId = settlement.targetJobId.trim();
+  if (settlement.targetJobLabel?.trim()) entry.targetJobLabel = settlement.targetJobLabel.trim();
+  if (settlement.note?.trim()) entry.note = settlement.note.trim();
+  if (settlement.onBehalfOf?.trim()) entry.onBehalfOf = settlement.onBehalfOf.trim();
+  if (settlement.recordedVia) entry.recordedVia = settlement.recordedVia;
+
+  const settlements = [...(current.settlements ?? []), entry];
+  const derived = deriveChargeAmounts({ amount: current.amount, settlements });
+
+  return {
+    ...current,
+    settlements,
+    ...derived,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Migracja rekordów sprzed 20.4A:
+ * - brak settlements → pusta tablica, derive z kwoty pierwotnej
+ * - legacy settled bez settlements → syntetyczny wpis (zachowuje zamknięcie)
+ * - legacy partial bez settlements → reset do open (brak wiarygodnej kwoty rozliczonej)
+ */
+function applyLegacySettlementMigration(charge: RecoverableCharge): RecoverableCharge {
+  const settlements = charge.settlements ?? [];
+  if (settlements.length > 0) {
+    return { ...charge, settlements };
+  }
+
+  const storedStatus = charge.status;
+
+  // Legacy partial: ręczny status bez ledgeru — nie wiadomo ile rozliczono; traktuj jak open.
+  if (storedStatus === "partial") {
+    return { ...charge, settlements: [] };
+  }
+
+  // Legacy settled: zachowaj zamknięcie przez syntetyczny wpis migracyjny.
+  if (storedStatus === "settled" && charge.amount > 0) {
+    const synthetic: RecoverableChargeSettlement = {
+      id: `legacy-migration-${charge.id}`,
+      amount: charge.amount,
+      settledAt: charge.updatedAt || charge.createdAt,
+      settledBy: charge.createdBy || "Migracja 20.4A",
+      note: LEGACY_MIGRATION_NOTE,
+      recordedVia: "admin",
+    };
+    return { ...charge, settlements: [synthetic] };
+  }
+
+  return { ...charge, settlements: [] };
+}
+
+function finalizeRecoverableCharge(charge: RecoverableCharge): RecoverableCharge {
+  const migrated = applyLegacySettlementMigration(charge);
+  const derived = deriveChargeAmounts(migrated);
+  return {
+    ...migrated,
+    settlements: migrated.settlements ?? [],
+    ...derived,
+  };
+}
+
+/** Union settlements po id — chroni przed utratą wpisów przy sync wielourządzeniowym. */
+export function mergeSettlementsById(
+  a: RecoverableChargeSettlement[],
+  b: RecoverableChargeSettlement[],
+): RecoverableChargeSettlement[] {
+  const byId = new Map<string, RecoverableChargeSettlement>();
+  for (const s of [...a, ...b]) {
+    if (!s?.id) continue;
+    const prev = byId.get(s.id);
+    if (!prev) {
+      byId.set(s.id, s);
+      continue;
+    }
+    const keep = (s.settledAt || "") >= (prev.settledAt || "") ? s : prev;
+    byId.set(s.id, keep);
+  }
+  return [...byId.values()].sort((x, y) => (x.settledAt || "").localeCompare(y.settledAt || ""));
+}
+
+function mergeChargePair(prev: RecoverableCharge, next: RecoverableCharge): RecoverableCharge {
+  const prevTs = prev.updatedAt || prev.createdAt;
+  const nextTs = next.updatedAt || next.createdAt;
+  const scalarWinner = nextTs >= prevTs ? next : prev;
+  const mergedSettlements = mergeSettlementsById(prev.settlements ?? [], next.settlements ?? []);
+  const derived = deriveChargeAmounts({ amount: scalarWinner.amount, settlements: mergedSettlements });
+  return {
+    ...scalarWinner,
+    settlements: mergedSettlements,
+    ...derived,
+  };
+}
+
 export function normalizeRecoverableCharges(raw: unknown): RecoverableCharge[] {
   if (!Array.isArray(raw)) return [];
   const out: RecoverableCharge[] = [];
@@ -104,7 +331,7 @@ export function normalizeRecoverableCharges(raw: unknown): RecoverableCharge[] {
     const r = item as Partial<RecoverableCharge>;
     if (!r.id) continue;
     const createdAt = String(r.createdAt ?? new Date().toISOString());
-    out.push({
+    const base: RecoverableCharge = {
       id: String(r.id),
       createdAt,
       updatedAt: String(r.updatedAt ?? createdAt),
@@ -118,7 +345,9 @@ export function normalizeRecoverableCharges(raw: unknown): RecoverableCharge[] {
       createdBy: String(r.createdBy ?? "").trim(),
       responsibleInspector: String(r.responsibleInspector ?? "").trim(),
       tags: parseTags(r.tags),
-    });
+      settlements: parseSettlements(r.settlements),
+    };
+    out.push(finalizeRecoverableCharge(base));
   }
   return out;
 }
@@ -139,16 +368,14 @@ export function mergeRecoverableCharges(
       byId.set(item.id, item);
       continue;
     }
-    const prevTs = prev.updatedAt || prev.createdAt;
-    const nextTs = item.updatedAt || item.createdAt;
-    byId.set(item.id, nextTs >= prevTs ? item : prev);
+    byId.set(item.id, mergeChargePair(prev, item));
   }
   return [...byId.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export function defaultRecoverableCharge(createdBy = ""): RecoverableCharge {
   const now = new Date().toISOString();
-  return {
+  const base: RecoverableCharge = {
     id: crypto.randomUUID(),
     createdAt: now,
     updatedAt: now,
@@ -162,7 +389,11 @@ export function defaultRecoverableCharge(createdBy = ""): RecoverableCharge {
     createdBy,
     responsibleInspector: "",
     tags: [],
+    settlements: [],
+    amountSettled: 0,
+    amountRemaining: 0,
   };
+  return finalizeRecoverableCharge(base);
 }
 
 export function jobLabelForCharge(job: Job): string {
@@ -280,6 +511,49 @@ export function openRecoverableChargesKpi(charges: RecoverableCharge[]): { count
     count: open.length,
     sum: +open.reduce((s, c) => s + c.amount, 0).toFixed(2),
   };
+}
+
+/** KPI modułu Do rozliczenia — Sprint 20.4B (sumy z deriveChargeAmounts). */
+export function recoverableChargesModuleKpi(charges: RecoverableCharge[]): {
+  toSettleSum: number;
+  partialRemainingSum: number;
+  recoveredSum: number;
+} {
+  let toSettleSum = 0;
+  let partialRemainingSum = 0;
+  let recoveredSum = 0;
+  for (const c of charges) {
+    const { amountSettled, amountRemaining, status } = deriveChargeAmounts(c);
+    recoveredSum += amountSettled;
+    if (status === "open") toSettleSum += amountRemaining;
+    if (status === "partial") partialRemainingSum += amountRemaining;
+  }
+  return {
+    toSettleSum: +toSettleSum.toFixed(2),
+    partialRemainingSum: +partialRemainingSum.toFixed(2),
+    recoveredSum: +recoveredSum.toFixed(2),
+  };
+}
+
+/** Badge menu: pozycje open + partial (bez settled). */
+export function countUnsettledRecoverableCharges(charges: RecoverableCharge[]): number {
+  return charges.filter((c) => {
+    const { status } = deriveChargeAmounts(c);
+    return status === "open" || status === "partial";
+  }).length;
+}
+
+/** Etykieta roboty docelowej rozliczenia — z KV, listy lub „Robota archiwalna”. */
+export function settlementTargetJobLabel(
+  settlement: Pick<RecoverableChargeSettlement, "targetJobId" | "targetJobLabel">,
+  jobsById?: Map<string, Job>,
+): string {
+  if (settlement.targetJobLabel?.trim()) return settlement.targetJobLabel.trim();
+  const id = settlement.targetJobId?.trim();
+  if (!id) return "—";
+  const job = jobsById?.get(id);
+  if (job) return jobLabelForCharge(job);
+  return "Robota archiwalna";
 }
 
 /** Krótsza etykieta źródła na liście — preferuje klienta zamiast pełnego adresu. */

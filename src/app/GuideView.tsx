@@ -369,12 +369,14 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
       subtitle:"Rejestr pozycji do odzyskania od klientów",
       content:(
         <div className="space-y-4">
-          <p className="text-sm text-foreground/90 leading-relaxed">Menu <strong>Do rozliczenia</strong> (💰) służy do zapisywania kwot, które firma poniosła, a klient ma je jeszcze uregulować — np. dodatkowy materiał po zamkniętym kosztorysie. To <strong>rejestr</strong>, nie faktura i nie lista płac.</p>
+          <p className="text-sm text-foreground/90 leading-relaxed">Menu <strong>Do rozliczenia</strong> (💰) służy do zapisywania kwot do odzyskania i <strong>rozliczania</strong> ich częściowo lub w całości — np. doliczenie kosztu do kolejnej roboty. To rejestr odzysku, nie faktura i nie lista płac.</p>
           <div className="space-y-3">
             {[
-              {q:"Jak dodać pozycję?", a:"Kliknij „Dodaj pozycję”. Wybierz źródło: z roboty (lista adresów) albo poza systemem (wpisz klienta ręcznie). Uzupełnij opis, kwotę, opcjonalnie inspektora i tagi."},
-              {q:"Statusy 🔴🟡🟢", a:"🔴 Do rozliczenia — czeka na odzysk. 🟡 Rozliczone częściowo — część kwoty rozliczona (ręcznie, bez historii rozliczeń w tej wersji). 🟢 Rozliczone — pozycja zamknięta w rejestrze."},
-              {q:"Panel szczegółów", a:"Kliknij wiersz na liście — po prawej (lub pod listą na wąskim ekranie) zobaczysz opis, kwotę, źródło, inspektora, tagi i kto/kiedy utworzył wpis. Na razie tylko podgląd — bez workflow rozliczeń."},
+              {q:"Jak dodać pozycję?", a:"Kliknij „Dodaj pozycję”. Wybierz źródło: z roboty (lista adresów) albo poza systemem (wpisz klienta ręcznie). Uzupełnij opis, kwotę pierwotną, opcjonalnie inspektora i tagi."},
+              {q:"Statusy 🔴🟡🟢", a:"Status jest wyliczany automatycznie z rozliczeń. 🔴 Do rozliczenia — nic nie rozliczono. 🟡 Rozliczone częściowo — część kwoty odzyskana, widać ile pozostało. 🟢 Rozliczone — cała kwota rozliczona."},
+              {q:"Jak rozliczyć kwotę?", a:"Otwórz szczegóły pozycji i kliknij „Rozlicz”. Podaj kwotę (nie większą niż pozostało), opcjonalnie robotę docelową, typ rozliczenia i notatkę. Możesz zaznaczyć „Na podstawie informacji od inspektora”."},
+              {q:"Panel szczegółów", a:"Kwota pierwotna, rozliczono i pozostało — bez zgadywania. Sekcja „Historia rozliczeń” pokazuje kto, kiedy, na jakiej robocie i ile rozliczył."},
+              {q:"KPI u góry", a:"Do rozliczenia — suma pozostałych kwot pozycji otwartych. Rozliczone częściowo — suma pozostałych kwot pozycji częściowych. Odzyskano — łączna suma wszystkich rozliczeń."},
               {q:"Zdjęcia i pliki", a:"W menu „Zdjęcia i pliki” są dwie zakładki: Zdjęcia (galeria zaakceptowanych) i Pliki (zlecenia, kosztorysy, ZIP). Wcześniej były to osobne pozycje menu."},
               {q:"Czy to zmienia robotę lub listę płac?", a:"Nie. Pozycje są w osobnym zapisie chmurowym (kw-recoverable-charges). Roboty i payroll działają jak dotychczas."},
             ].map((item,i)=>(

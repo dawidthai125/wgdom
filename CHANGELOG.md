@@ -4,9 +4,29 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.46.01** (`changelog-data.ts`) · Sprint 20.3B MIN UI Language Policy (lokalnie)
+**Aktualna wersja UI:** **2.47.10** (`changelog-data.ts`) · Sprint 20.4B Settlement Workflow UI (lokalnie)
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
+
+---
+
+## 2.47.10 (2026-06-06) — Settlement Workflow UI (Sprint 20.4B)
+
+* **Workflow** — przycisk Rozlicz, modal (kwota, robota docelowa, typ, notatka, onBehalfOf)
+* **Status** — wyłącznie wyliczany z ledgeru; usunięty ręczny dropdown
+* **KPI** — Do rozliczenia / Rozliczone częściowo / Odzyskano (PLN)
+* **Historia** — sekcja rozliczeń w panelu szczegółów; badge open+partial
+* **Bez zmian** — merge, cloud-sync, Payroll, Leaves, Inspector
+
+---
+
+## 2.47.00 (2026-06-06) — Settlement Foundation (Sprint 20.4A)
+
+* **Model** — `RecoverableChargeSettlement`, `settlements[]`, `amountSettled`, `amountRemaining` w `recoverable-charges.ts`
+* **Domain** — `sumSettlements`, `deriveChargeAmounts`, `applySettlement`, `validateSettlementDraft`
+* **Merge** — union settlements po `id`; po merge obowiązkowy `deriveChargeAmounts`
+* **Legacy** — migracja przy normalize: settled → wpis syntetyczny; partial bez ledgeru → open
+* **Bez UI** — przycisk Rozlicz, historia, KPI i integracje Jobs/Inspektor w Sprint 20.4B
 
 ---
 

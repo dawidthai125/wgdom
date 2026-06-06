@@ -22,7 +22,7 @@ import {
 } from "@/lib/inspector-stats";
 import { jobsWithInspectorNotesNeedingAdmin } from "@/lib/job-wm";
 import type { EmailContact } from "@/lib/email-contacts";
-import { countOpenRecoverableCharges } from "@/lib/recoverable-charges";
+import { countUnsettledRecoverableCharges } from "@/lib/recoverable-charges";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
 
 export type View =
@@ -143,7 +143,7 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
       hint: "Rejestr pozycji do odzyskania od klientów — powiązane z robotą lub poza systemem.",
       icon: Wallet,
       badge: (() => {
-        const n = countOpenRecoverableCharges(recoverableCharges);
+        const n = countUnsettledRecoverableCharges(recoverableCharges);
         return n > 0 ? n : undefined;
       })(),
     },

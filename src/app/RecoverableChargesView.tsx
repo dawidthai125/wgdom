@@ -7,13 +7,13 @@ import {
   Trash2,
   X,
   ChevronDown,
+  Banknote,
 } from "lucide-react";
 import type { Job } from "@/app/app-domain";
 import {
   type RecoverableCharge,
   type RecoverableChargeFilters,
   type RecoverableChargeSourceType,
-  type RecoverableChargeStatus,
   DEFAULT_RECOVERABLE_CHARGE_FILTERS,
   RECOVERABLE_CHARGE_STATUSES,
   RECOVERABLE_CHARGE_SOURCE_LABELS,
@@ -28,12 +28,32 @@ import {
   inputValueToTags,
   jobLabelForCharge,
   validateRecoverableChargeDraft,
-  openRecoverableChargesKpi,
+  recoverableChargesModuleKpi,
   recoverableChargeSourceListLabel,
+  applySettlement,
+  deriveChargeAmounts,
+  settlementTargetJobLabel,
 } from "@/lib/recoverable-charges";
 import { addDeletedRecoverableChargeId } from "@/lib/cloud-sync";
+import {
+  SettleChargeModal,
+  buildSettlementNote,
+  parseSettlementNote,
+  settlementTypeLabel,
+  type SettleChargeSubmit,
+} from "@/app/SettleChargeModal";
 
 type FormMode = "create" | "edit" | null;
+
+function chargeAmounts(charge: RecoverableCharge) {
+  const d = deriveChargeAmounts(charge);
+  return {
+    original: charge.amount,
+    settled: d.amountSettled,
+    remaining: d.amountRemaining,
+    status: d.status,
+  };
+}
 
 export function RecoverableChargesView({
   charges,
@@ -52,13 +72,15 @@ export function RecoverableChargesView({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [formMode, setFormMode] = useState<FormMode>(null);
   const [draft, setDraft] = useState<RecoverableCharge | null>(null);
+  const [settleChargeId, setSettleChargeId] = useState<string | null>(null);
 
   const jobsById = useMemo(() => new Map(jobs.map((j) => [j.id, j])), [jobs]);
 
   const filtered = useMemo(() => filterRecoverableCharges(charges, filters), [charges, filters]);
-  const openKpi = useMemo(() => openRecoverableChargesKpi(charges), [charges]);
+  const moduleKpi = useMemo(() => recoverableChargesModuleKpi(charges), [charges]);
 
   const selected = selectedId ? charges.find((c) => c.id === selectedId) ?? null : null;
+  const settleCharge = settleChargeId ? charges.find((c) => c.id === settleChargeId) ?? null : null;
 
   const openCreate = (preset?: Partial<RecoverableCharge>) => {
     const base = defaultRecoverableCharge(createdByName);
@@ -67,7 +89,7 @@ export function RecoverableChargesView({
   };
 
   const openEdit = (charge: RecoverableCharge) => {
-    setDraft({ ...charge });
+    setDraft({ ...charge, ...deriveChargeAmounts(charge) });
     setFormMode("edit");
     setSelectedId(charge.id);
   };
@@ -83,7 +105,7 @@ export function RecoverableChargesView({
     if (!validation.ok) return;
     const title = draft.title.trim() || draft.description.trim().slice(0, 80) || "Pozycja do rozliczenia";
     const now = new Date().toISOString();
-    const normalized: RecoverableCharge = {
+    const base: RecoverableCharge = {
       ...draft,
       title,
       description: draft.description.trim(),
@@ -92,6 +114,7 @@ export function RecoverableChargesView({
       updatedAt: now,
       sourceJobId: draft.sourceType === "job" ? draft.sourceJobId : "",
     };
+    const normalized = { ...base, ...deriveChargeAmounts(base) };
     if (formMode === "create") {
       const next = [normalized, ...charges];
       onChange(next);
@@ -113,6 +136,30 @@ export function RecoverableChargesView({
     onCommit(next, id);
     if (selectedId === id) setSelectedId(null);
     if (draft?.id === id) closeForm();
+    if (settleChargeId === id) setSettleChargeId(null);
+  };
+
+  const submitSettlement = (payload: SettleChargeSubmit) => {
+    if (!settleCharge) return;
+    const typeLabel = settlementTypeLabel(payload.settlementType);
+    const note = buildSettlementNote(typeLabel, payload.note);
+    try {
+      const updated = applySettlement(settleCharge, {
+        amount: payload.amount,
+        settledBy: createdByName || "Administrator",
+        targetJobId: payload.targetJobId || undefined,
+        targetJobLabel: payload.targetJobLabel || undefined,
+        note,
+        onBehalfOf: payload.onBehalfOf || undefined,
+        recordedVia: payload.onBehalfOf ? "on_behalf_of_inspector" : "admin",
+      });
+      const next = charges.map((c) => (c.id === updated.id ? updated : c));
+      onChange(next);
+      onCommit(next);
+      setSettleChargeId(null);
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "Nie udało się zapisać rozliczenia.");
+    }
   };
 
   const setDraftSourceType = (sourceType: RecoverableChargeSourceType) => {
@@ -146,7 +193,7 @@ export function RecoverableChargesView({
                 </div>
                 <div className="min-w-0">
                   <h1 className="text-lg font-bold">Do rozliczenia</h1>
-                  <p className="text-xs text-muted-foreground">Kwoty do odzyskania od klientów — rejestr pozycji poza lub po kosztorysie</p>
+                  <p className="text-xs text-muted-foreground">Kwoty do odzyskania od klientów — rejestr i rozliczenia częściowe</p>
                 </div>
               </div>
               <button
@@ -159,12 +206,20 @@ export function RecoverableChargesView({
               </button>
             </div>
 
-            <div className="bg-card border border-border rounded-xl px-4 py-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 max-w-md">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Do rozliczenia</span>
-              <span className="text-sm font-semibold">{openKpi.count} pozycji</span>
-              <span className="text-sm font-bold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                {fmtRecoverableAmount(openKpi.sum)}
-              </span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <KpiTile
+                label="Do rozliczenia"
+                value={fmtRecoverableAmount(moduleKpi.toSettleSum)}
+                accent
+              />
+              <KpiTile
+                label="Rozliczone częściowo"
+                value={fmtRecoverableAmount(moduleKpi.partialRemainingSum)}
+              />
+              <KpiTile
+                label="Odzyskano"
+                value={fmtRecoverableAmount(moduleKpi.recoveredSum)}
+              />
             </div>
 
             <div className="flex flex-col lg:flex-row gap-2">
@@ -217,10 +272,10 @@ export function RecoverableChargesView({
             </div>
 
             <div className="bg-card border border-border rounded-xl overflow-hidden min-w-0">
-              <div className="hidden sm:grid sm:grid-cols-[5.5rem_minmax(0,1fr)_5.5rem_minmax(0,1.2fr)_4.5rem] xl:grid-cols-[5.5rem_minmax(0,1fr)_5.5rem_minmax(0,1fr)_5rem_4.5rem] gap-2 px-3 py-2.5 text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border bg-secondary/30">
+              <div className="hidden sm:grid sm:grid-cols-[5.5rem_minmax(0,1fr)_6.5rem_minmax(0,1.2fr)_4.5rem] xl:grid-cols-[5.5rem_minmax(0,1fr)_6.5rem_minmax(0,1fr)_5rem_4.5rem] gap-2 px-3 py-2.5 text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border bg-secondary/30">
                 <span>Status</span>
                 <span>Opis</span>
-                <span className="text-right">Kwota</span>
+                <span className="text-right">Pozostało</span>
                 <span>Źródło</span>
                 <span className="hidden xl:block">Inspektor</span>
                 <span>Data</span>
@@ -233,38 +288,53 @@ export function RecoverableChargesView({
                 </div>
               ) : (
                 <div className="divide-y divide-border">
-                  {filtered.map((charge) => (
-                    <button
-                      key={charge.id}
-                      type="button"
-                      onClick={() => { setSelectedId(charge.id); setFormMode(null); }}
-                      className={`w-full text-left px-3 py-3 transition-colors hover:bg-secondary/40 ${selectedId === charge.id ? "bg-primary/5" : ""}`}
-                    >
-                      <div className="sm:grid sm:grid-cols-[5.5rem_minmax(0,1fr)_5.5rem_minmax(0,1.2fr)_4.5rem] xl:grid-cols-[5.5rem_minmax(0,1fr)_5.5rem_minmax(0,1fr)_5rem_4.5rem] sm:gap-2 sm:items-center space-y-1 sm:space-y-0 min-w-0">
-                        <span className="text-xs font-medium whitespace-nowrap">
-                          {recoverableChargeStatusLabel(charge.status)}
-                        </span>
-                        <span className="text-sm truncate min-w-0" title={recoverableChargeDescriptionLine(charge)}>
-                          {recoverableChargeDescriptionLine(charge)}
-                        </span>
-                        <span className="text-sm font-semibold sm:text-right whitespace-nowrap" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                          {fmtRecoverableAmount(charge.amount)}
-                        </span>
-                        <span
-                          className="text-xs text-muted-foreground truncate min-w-0"
-                          title={recoverableChargeSourceLabel(charge, jobsById)}
-                        >
-                          {recoverableChargeSourceListLabel(charge, jobsById)}
-                        </span>
-                        <span className="hidden xl:block text-xs text-muted-foreground truncate min-w-0">
-                          {charge.responsibleInspector || "—"}
-                        </span>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {formatRecoverableChargeDate(charge.createdAt)}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
+                  {filtered.map((charge) => {
+                    const amounts = chargeAmounts(charge);
+                    return (
+                      <button
+                        key={charge.id}
+                        type="button"
+                        onClick={() => { setSelectedId(charge.id); setFormMode(null); }}
+                        className={`w-full text-left px-3 py-3 transition-colors hover:bg-secondary/40 ${selectedId === charge.id ? "bg-primary/5" : ""}`}
+                      >
+                        <div className="sm:grid sm:grid-cols-[5.5rem_minmax(0,1fr)_6.5rem_minmax(0,1.2fr)_4.5rem] xl:grid-cols-[5.5rem_minmax(0,1fr)_6.5rem_minmax(0,1fr)_5rem_4.5rem] sm:gap-2 sm:items-center space-y-1 sm:space-y-0 min-w-0">
+                          <span className="text-xs font-medium whitespace-nowrap">
+                            {recoverableChargeStatusLabel(amounts.status)}
+                          </span>
+                          <div className="min-w-0">
+                            <span className="text-sm truncate block" title={recoverableChargeDescriptionLine(charge)}>
+                              {recoverableChargeDescriptionLine(charge)}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground sm:hidden">
+                              {fmtRecoverableAmount(amounts.original)} · rozliczono {fmtRecoverableAmount(amounts.settled)}
+                            </span>
+                          </div>
+                          <div className="sm:text-right">
+                            <span className="text-sm font-semibold whitespace-nowrap block" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                              {fmtRecoverableAmount(amounts.remaining)}
+                            </span>
+                            {amounts.settled > 0 && (
+                              <span className="text-[10px] text-muted-foreground hidden sm:block">
+                                z {fmtRecoverableAmount(amounts.original)}
+                              </span>
+                            )}
+                          </div>
+                          <span
+                            className="text-xs text-muted-foreground truncate min-w-0"
+                            title={recoverableChargeSourceLabel(charge, jobsById)}
+                          >
+                            {recoverableChargeSourceListLabel(charge, jobsById)}
+                          </span>
+                          <span className="hidden xl:block text-xs text-muted-foreground truncate min-w-0">
+                            {charge.responsibleInspector || "—"}
+                          </span>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {formatRecoverableChargeDate(charge.createdAt)}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -293,10 +363,60 @@ export function RecoverableChargesView({
               onEdit={() => openEdit(selected)}
               onDelete={() => removeCharge(selected.id)}
               onClose={() => setSelectedId(null)}
+              onSettle={() => setSettleChargeId(selected.id)}
             />
           ) : null}
         </div>
       )}
+
+      {settleCharge && (
+        <SettleChargeModal
+          charge={settleCharge}
+          jobs={jobs}
+          settledByName={createdByName}
+          onClose={() => setSettleChargeId(null)}
+          onSubmit={submitSettlement}
+        />
+      )}
+    </div>
+  );
+}
+
+function KpiTile({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="bg-card border border-border rounded-xl px-4 py-3">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
+      <p
+        className={`text-lg font-bold mt-0.5 ${accent ? "text-primary" : ""}`}
+        style={{ fontFamily: "'JetBrains Mono', monospace" }}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function ChargeAmountsBlock({ charge }: { charge: RecoverableCharge }) {
+  const amounts = chargeAmounts(charge);
+  return (
+    <div className="bg-secondary/40 rounded-xl p-3 space-y-2">
+      <AmountLine label="Kwota pierwotna" value={fmtRecoverableAmount(amounts.original)} />
+      <AmountLine label="Rozliczono" value={fmtRecoverableAmount(amounts.settled)} />
+      <AmountLine label="Pozostało" value={fmtRecoverableAmount(amounts.remaining)} emphasis />
+    </div>
+  );
+}
+
+function AmountLine({ label, value, emphasis }: { label: string; value: string; emphasis?: boolean }) {
+  return (
+    <div className="flex items-baseline justify-between gap-2">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span
+        className={`text-sm ${emphasis ? "font-bold text-primary" : "font-semibold"}`}
+        style={{ fontFamily: "'JetBrains Mono', monospace" }}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -307,14 +427,19 @@ function ChargeDetailPanel({
   onEdit,
   onDelete,
   onClose,
+  onSettle,
 }: {
   charge: RecoverableCharge;
   jobsById: Map<string, Job>;
   onEdit: () => void;
   onDelete: () => void;
   onClose: () => void;
+  onSettle: () => void;
 }) {
   const job = charge.sourceJobId ? jobsById.get(charge.sourceJobId) : undefined;
+  const amounts = chargeAmounts(charge);
+  const canSettle = amounts.status === "open" || amounts.status === "partial";
+  const history = [...(charge.settlements ?? [])].sort((a, b) => b.settledAt.localeCompare(a.settledAt));
 
   return (
     <div className="flex flex-col min-h-0 h-full">
@@ -333,9 +458,19 @@ function ChargeDetailPanel({
         </div>
       </div>
       <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-4 text-sm">
-        <DetailRow label="Status" value={recoverableChargeStatusLabel(charge.status)} />
+        <DetailRow label="Status" value={recoverableChargeStatusLabel(amounts.status)} />
         <DetailRow label="Opis" value={recoverableChargeDescriptionLine(charge)} multiline />
-        <DetailRow label="Kwota" value={fmtRecoverableAmount(charge.amount)} mono />
+        <ChargeAmountsBlock charge={charge} />
+        {canSettle && (
+          <button
+            type="button"
+            onClick={onSettle}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <Banknote size={14} />
+            Rozlicz
+          </button>
+        )}
         <DetailRow
           label="Źródło"
           value={
@@ -348,15 +483,43 @@ function ChargeDetailPanel({
         />
         <DetailRow label="Inspektor" value={charge.responsibleInspector || "—"} />
         <DetailRow label="Tagi" value={charge.tags.length ? charge.tags.join(", ") : "—"} />
+
+        {history.length > 0 && (
+          <div className="pt-2 border-t border-border space-y-3">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Historia rozliczeń</p>
+            {history.map((s) => {
+              const { typeLabel, userNote } = parseSettlementNote(s.note);
+              const targetLabel = settlementTargetJobLabel(s, jobsById);
+              return (
+                <div key={s.id} className="bg-secondary/40 rounded-xl p-3 space-y-1.5 text-xs">
+                  <p className="font-semibold text-sm" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    {formatRecoverableChargeDate(s.settledAt)} · {fmtRecoverableAmount(s.amount)}
+                  </p>
+                  {s.targetJobId && (
+                    <p><span className="text-muted-foreground">Robota docelowa: </span>{targetLabel}</p>
+                  )}
+                  <p><span className="text-muted-foreground">Rozliczył: </span>{s.settledBy || "—"}</p>
+                  {s.onBehalfOf && (
+                    <p><span className="text-muted-foreground">Na podstawie: </span>{s.onBehalfOf}</p>
+                  )}
+                  {typeLabel && (
+                    <p><span className="text-muted-foreground">Typ: </span>{typeLabel}</p>
+                  )}
+                  {userNote && (
+                    <p className="text-muted-foreground whitespace-pre-wrap break-words">{userNote}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         <div className="pt-2 border-t border-border space-y-2">
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Historia utworzenia</p>
           <DetailRow label="Utworzono" value={formatRecoverableChargeDate(charge.createdAt)} />
           <DetailRow label="Autor" value={charge.createdBy || "—"} />
           <DetailRow label="Ostatnia zmiana" value={formatRecoverableChargeDate(charge.updatedAt)} />
         </div>
-        <p className="text-xs text-muted-foreground bg-secondary/50 rounded-lg p-3">
-          Powiązanie z fakturami i pełny workflow rozliczeń będzie dostępne w kolejnej wersji. Na razie panel służy wyłącznie do podglądu wpisów.
-        </p>
       </div>
     </div>
   );
@@ -407,6 +570,8 @@ function ChargeFormPanel({
     [jobs],
   );
   const validation = useMemo(() => validateRecoverableChargeDraft(draft), [draft]);
+  const derived = useMemo(() => deriveChargeAmounts(draft), [draft]);
+  const hasSettlements = (draft.settlements?.length ?? 0) > 0;
 
   return (
     <div className="flex flex-col min-h-0 h-full">
@@ -417,6 +582,13 @@ function ChargeFormPanel({
         </button>
       </div>
       <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-4">
+        {mode === "edit" && (
+          <div className="flex items-center justify-between bg-secondary/40 rounded-xl px-3 py-2">
+            <span className="text-xs text-muted-foreground">Status (wyliczany)</span>
+            <span className="text-xs font-medium">{recoverableChargeStatusLabel(derived.status)}</span>
+          </div>
+        )}
+
         <div className="flex gap-1 p-1 bg-secondary rounded-xl">
           <button
             type="button"
@@ -490,12 +662,13 @@ function ChargeFormPanel({
         </label>
 
         <label className="block space-y-1">
-          <span className="text-xs text-muted-foreground">Kwota (PLN) *</span>
+          <span className="text-xs text-muted-foreground">Kwota pierwotna (PLN) *</span>
           <input
             type="number"
             min={0.01}
             step={0.01}
             value={draft.amount > 0 ? draft.amount : ""}
+            disabled={hasSettlements}
             onChange={(e) => {
               const raw = e.target.value;
               if (raw === "" || raw === "-") {
@@ -506,26 +679,18 @@ function ChargeFormPanel({
               if (!Number.isFinite(n) || n < 0) return;
               onChange({ ...draft, amount: n });
             }}
-            className={`w-full bg-secondary border rounded-xl px-3 py-2.5 text-sm ${!validation.ok && validation.error === "invalid_amount" ? "border-destructive" : "border-border"}`}
+            className={`w-full bg-secondary border rounded-xl px-3 py-2.5 text-sm disabled:opacity-60 ${!validation.ok && validation.error === "invalid_amount" ? "border-destructive" : "border-border"}`}
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           />
+          {hasSettlements && (
+            <p className="text-xs text-muted-foreground">Kwoty pierwotnej nie można zmienić po rozpoczęciu rozliczeń.</p>
+          )}
           {!validation.ok && validation.error === "invalid_amount" && (
             <p className="text-xs text-destructive">{validation.message}</p>
           )}
         </label>
 
-        <label className="block space-y-1">
-          <span className="text-xs text-muted-foreground">Status</span>
-          <select
-            value={draft.status}
-            onChange={(e) => onChange({ ...draft, status: e.target.value as RecoverableChargeStatus })}
-            className="w-full bg-secondary border border-border rounded-xl px-3 py-2.5 text-sm"
-          >
-            {RECOVERABLE_CHARGE_STATUSES.map((s) => (
-              <option key={s} value={s}>{recoverableChargeStatusLabel(s)}</option>
-            ))}
-          </select>
-        </label>
+        {hasSettlements && <ChargeAmountsBlock charge={draft} />}
 
         <label className="block space-y-1">
           <span className="text-xs text-muted-foreground">Inspektor odpowiedzialny</span>

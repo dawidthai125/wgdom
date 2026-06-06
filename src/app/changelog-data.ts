@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-06",
+    version: "2.47.10",
+    label: "Do rozliczenia — workflow rozliczeń (Sprint 20.4B)",
+    items: [
+      { type: "new", text: "Rozlicz — modal częściowego i pełnego rozliczenia (kwota, robota docelowa, typ, notatka, informacja od inspektora)" },
+      { type: "new", text: "Historia rozliczeń w panelu szczegółów — kto, kiedy, kwota, robota docelowa (lub Robota archiwalna)" },
+      { type: "improve", text: "Status wyłącznie wyliczany z ledgeru — usunięty ręczny wybór statusu w formularzu" },
+      { type: "improve", text: "KPI modułu: Do rozliczenia / Rozliczone częściowo / Odzyskano (PLN); badge menu: open + partial" },
+      { type: "improve", text: "Lista i szczegóły — kwota pierwotna, rozliczono, pozostało bez otwierania historii" },
+    ],
+  },
+  {
+    date: "2026-06-06",
+    version: "2.47.00",
+    label: "Do rozliczenia — Settlement Foundation (Sprint 20.4A)",
+    items: [
+      { type: "new", text: "Ledger rozliczeń — RecoverableChargeSettlement, settlements[], amountSettled, amountRemaining (model pod częściowe i pełne rozliczenie)" },
+      { type: "improve", text: "deriveChargeAmounts / applySettlement / validateSettlementDraft — status wyliczany z ledgeru, blokada kwoty > pozostało" },
+      { type: "improve", text: "Sync — mergeSettlementsById (union po id), derive po merge; migracja legacy settled/partial przy normalize" },
+      { type: "improve", text: "Bez zmian UI — workflow Rozlicz, historia i KPI w Sprint 20.4B" },
+    ],
+  },
+  {
+    date: "2026-06-06",
     version: "2.46.01",
     label: "Polonizacja UI — rozliczenia, inspektor, media (Sprint 20.3B MIN)",
     items: [

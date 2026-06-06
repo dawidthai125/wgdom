@@ -275,15 +275,19 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | `kw-employee-leaves` | Nieobecności pracowników (urlop / L4 / bezpłatny, tygodnie Pn–So) | Admin |
 | `kw-recoverable-charges` | Pozycje do rozliczenia / odzyskania (Sprint 20.3A) | Admin |
 
-**Do rozliczenia (Sprint 20.3A, v2.46.00):**
+**Do rozliczenia (Sprint 20.3A + 20.4A Foundation, v2.47.00):**
 
 | Aspekt | Opis |
 |--------|------|
 | **Model** | Tablica `RecoverableCharge[]` w `kw-recoverable-charges` — status `open` / `partial` / `settled`; źródło `job` (opcjonalny `sourceJobId`) lub `standalone` |
-| **UI** | `RecoverableChargesView.tsx` — lista (szukaj, filtry, sort), CRUD, panel szczegółów read-only |
+| **Settlement ledger (20.4A)** | `settlements[]` (`RecoverableChargeSettlement`), cache `amountSettled` / `amountRemaining`; status wyliczany przez `deriveChargeAmounts()` — UI rozliczania w 20.4B |
+| **Legacy** | `normalizeRecoverableCharges`: brak settlements → `[]`; legacy `settled` → syntetyczny wpis migracyjny; legacy `partial` → reset do `open` |
+| **Merge** | `mergeRecoverableCharges()` — union `settlements` po `id` (`mergeSettlementsById`), potem `deriveChargeAmounts()`; pola skalarne LWW po `updatedAt` |
+| **UI (20.4B, v2.47.10)** | `RecoverableChargesView.tsx` + `SettleChargeModal.tsx` — KPI (do rozliczenia / częściowo / odzyskano), Rozlicz, historia, status tylko do odczytu |
+| **Badge menu** | `countUnsettledRecoverableCharges()` — open + partial |
 | **Menu** | **Do rozliczenia** (💰); **Media** = Zdjęcia + Pliki robot (jak Instrukcja/Zmiany) |
-| **Sync** | `mergeRecoverableCharges()`; `pushRecoverableChargesToCloud()`; tombstone `kw-recoverable-charges-deleted-ids` |
-| **Poza zakresem 20.3A** | `settlements[]`, `amountRemaining`, workflow odzyskania, KPI, integracja faktur — Sprint 20.3B+ |
+| **Sync** | `pushRecoverableChargesToCloud()`; tombstone `kw-recoverable-charges-deleted-ids` |
+| **Poza zakresem 20.4B** | Dashboard kafelek, JobsView sekcja, Inspektor, Command Center — Sprint 20.4C |
 
 Pliki: `src/lib/recoverable-charges.ts`, `src/app/RecoverableChargesView.tsx`, `src/app/MediaView.tsx`.
 
