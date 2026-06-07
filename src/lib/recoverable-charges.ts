@@ -1036,3 +1036,93 @@ export function tagsToInputValue(tags: string[]): string {
 export function inputValueToTags(value: string): string[] {
   return parseTags(value);
 }
+
+/** Limit list pozycji na karcie roboty (Sprint 20.5A.1). */
+export const JOB_RECOVERABLE_CHARGES_LIST_LIMIT = 5;
+
+export type RecoverableChargeJobStats = {
+  chargeCount: number;
+  unsettledCount: number;
+  recoveredCount: number;
+  toRecoverAmount: number;
+  recoveredAmount: number;
+  alertCount: number;
+};
+
+/** Wiersz rozliczenia odzyskanego na robocie docelowej (targetJobId). */
+export type RecoverableChargeJobSettlementRow = {
+  chargeId: string;
+  title: string;
+  recoveredAmount: number;
+  lastSettledAt: string;
+};
+
+/** Pozycje źródłowe powiązane z robotą (sourceJobId). */
+export function getRecoverableChargesForJob(
+  charges: RecoverableCharge[],
+  jobId: string,
+): RecoverableCharge[] {
+  const id = jobId.trim();
+  if (!id) return [];
+  return charges
+    .filter((c) => c.sourceJobId?.trim() === id)
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+}
+
+/** Rozliczenia zaksięgowane na tej robocie jako docelowej (targetJobId w settlements). */
+export function getRecoverableChargesRecoveredOnJob(
+  charges: RecoverableCharge[],
+  jobId: string,
+): RecoverableChargeJobSettlementRow[] {
+  const id = jobId.trim();
+  if (!id) return [];
+  const rows: RecoverableChargeJobSettlementRow[] = [];
+
+  for (const c of charges) {
+    const matching = (c.settlements ?? []).filter((s) => s.targetJobId?.trim() === id);
+    if (matching.length === 0) continue;
+
+    const recoveredAmount = +matching.reduce((sum, s) => sum + s.amount, 0).toFixed(2);
+    const lastSettledAt = matching.reduce(
+      (best, s) => (s.settledAt > best ? s.settledAt : best),
+      matching[0].settledAt,
+    );
+    const title = c.title.trim() || c.description.trim().slice(0, 80) || "Pozycja do rozliczenia";
+
+    rows.push({ chargeId: c.id, title, recoveredAmount, lastSettledAt });
+  }
+
+  return rows.sort((a, b) => b.lastSettledAt.localeCompare(a.lastSettledAt));
+}
+
+/** Agregacja KPI pozycji do rozliczenia na robocie (read-only, Sprint 20.5A.1). */
+export function getRecoverableChargeJobStats(
+  charges: RecoverableCharge[],
+  jobId: string,
+  now: Date = new Date(),
+): RecoverableChargeJobStats {
+  const source = getRecoverableChargesForJob(charges, jobId);
+  const recoveredRows = getRecoverableChargesRecoveredOnJob(charges, jobId);
+
+  let toRecoverAmount = 0;
+  let unsettledCount = 0;
+  for (const c of source) {
+    const { amountRemaining, status } = deriveChargeAmounts(c);
+    if (status === "open" || status === "partial") {
+      unsettledCount += 1;
+      toRecoverAmount += amountRemaining;
+    }
+  }
+
+  const recoveredAmount = +recoveredRows.reduce((sum, r) => sum + r.recoveredAmount, 0).toFixed(2);
+  const { alerts } = computeRecoverableChargesAlerts(source, now);
+
+  return {
+    chargeCount: source.length,
+    unsettledCount,
+    recoveredCount: recoveredRows.length,
+    toRecoverAmount: +toRecoverAmount.toFixed(2),
+    recoveredAmount,
+    alertCount: alerts.length,
+  };
+}

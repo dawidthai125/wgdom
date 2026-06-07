@@ -119,6 +119,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [inspectorInitialTab, setInspectorInitialTab] = useState<"activity" | "portfolio">("activity");
   const [alertsSeenTick, setAlertsSeenTick] = useState(0);
   const [pendingPayrollEmpId, setPendingPayrollEmpId] = useState<string | null>(null);
+  const [pendingRecoverableChargeId, setPendingRecoverableChargeId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [globalSearch, setGlobalSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -1165,6 +1166,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           onOpenJobFromTender={(id) => { setPendingJobId(id); setView("jobs"); }}
           onSetPendingJobId={setPendingJobId}
           onSetView={setView}
+          pendingRecoverableChargeId={pendingRecoverableChargeId}
+          onInitialRecoverableChargeConsumed={() => setPendingRecoverableChargeId(null)}
+          onOpenRecoverableChargeFromJobs={(chargeId) => {
+            setPendingRecoverableChargeId(chargeId);
+            setViewReturn({ view: "jobs", label: "Roboty" });
+            setView("recoverablecharges");
+          }}
         />
 
         <AdminMobileNav

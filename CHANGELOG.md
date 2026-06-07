@@ -4,9 +4,19 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.48.30** (`changelog-data.ts`) · Sprint 20.4C.2C Top listy + KPI czasowe (lokalnie)
+**Aktualna wersja UI:** **2.49.00** (`changelog-data.ts`) · Sprint 20.5A.1 Roboty ↔ Do rozliczenia (lokalnie)
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
+
+---
+
+## 2.49.00 (2026-06-06) — Roboty ↔ Do rozliczenia (Sprint 20.5A.1)
+
+* **Helpery** — `getRecoverableChargesForJob()`, `getRecoverableChargesRecoveredOnJob()`, `getRecoverableChargeJobStats()`
+* **Lista robót** — badge 💰 (liczba nierozliczonych) + tooltip PLN do odzyskania
+* **Przegląd roboty** — karta Do rozliczenia: KPI, pozycje źródłowe (max 5), rozliczenia na tej robocie (max 5)
+* **Deep link** — klik pozycji → moduł Do rozliczenia z zaznaczeniem (`pendingRecoverableChargeId`)
+* **Bez zmian** — model, KV, sync, merge, dashboard KPI, tworzenie pozycji z roboty
 
 ---
 

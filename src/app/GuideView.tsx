@@ -174,6 +174,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Historia roboty", a:"Przycisk „Historia” na karcie roboty — log zdarzeń: zdjęcia, dokumenty, emaile, link klienta, zmiany statusu."},
               {q:"Pulpit — szybki dostęp do roboty", a:"W sekcji „Uwaga dziś” i „Roboty w trakcie” kliknij wiersz — aplikacja otworzy od razu tę robotę w zakładce Roboty."},
               {q:"Lista robót — układ i KPI (2.1A)", a:"Kolejność: przyciski Nowa robota / Pliki → poziomy pasek KPI (W toku, Do odbioru, Bez ekipy, BZP, WM po terminie; na telefonie przewiń w bok) → szukaj → fazy (Wszystkie, W trakcie, Do odbioru, Zdane) → lista. Klik w kafelek KPI włącza filtr (drugi klik wyłącza). Filtry ▼ obok szukaj: pracownik, zaznacz wiele do usunięcia, legenda statusów. Karta: adres i status, pod spodem klient • termin, potem BZP i Ekipa. Sort pilności w miesiącu — jak w wersji 2.0."},
+              {q:"Do rozliczenia na robocie (2.49)", a:"Na liście robót badge 💰 pokazuje liczbę nierozliczonych pozycji powiązanych z robotą (źródło kosztu). W Przeglądzie roboty — karta Do rozliczenia: kwota do odzyskania, liczba pozycji, odzyskano, alerty; lista pozycji źródłowych i rozliczeń zaksięgowanych na tej robocie. Klik w pozycję otwiera moduł Do rozliczenia z zaznaczeniem."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-secondary/30">

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Search,
   Plus,
@@ -64,15 +64,29 @@ export function RecoverableChargesView({
   createdByName,
   onChange,
   onCommit,
+  initialChargeId,
+  onInitialChargeConsumed,
 }: {
   charges: RecoverableCharge[];
   jobs: Job[];
   createdByName: string;
   onChange: (next: RecoverableCharge[]) => void;
   onCommit: (next?: RecoverableCharge[], deletedId?: string) => void;
+  initialChargeId?: string | null;
+  onInitialChargeConsumed?: () => void;
 }) {
   const [filters, setFilters] = useState<RecoverableChargeFilters>(DEFAULT_RECOVERABLE_CHARGE_FILTERS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!initialChargeId) return;
+    const exists = charges.some((c) => c.id === initialChargeId);
+    if (exists) {
+      setSelectedId(initialChargeId);
+      setFormMode(null);
+    }
+    onInitialChargeConsumed?.();
+  }, [initialChargeId, charges, onInitialChargeConsumed]);
   const [formMode, setFormMode] = useState<FormMode>(null);
   const [draft, setDraft] = useState<RecoverableCharge | null>(null);
   const [settleChargeId, setSettleChargeId] = useState<string | null>(null);

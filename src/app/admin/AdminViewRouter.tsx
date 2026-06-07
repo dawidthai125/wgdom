@@ -144,6 +144,9 @@ export type AdminViewRouterProps = {
   onOpenJobFromTender: (id: string) => void;
   onSetPendingJobId: (id: string) => void;
   onSetView: (v: View) => void;
+  pendingRecoverableChargeId: string | null;
+  onInitialRecoverableChargeConsumed: () => void;
+  onOpenRecoverableChargeFromJobs: (chargeId: string) => void;
 };
 
 export function AdminViewRouter({
@@ -212,6 +215,9 @@ export function AdminViewRouter({
   onOpenJobFromTender,
   onSetPendingJobId,
   onSetView,
+  pendingRecoverableChargeId,
+  onInitialRecoverableChargeConsumed,
+  onOpenRecoverableChargeFromJobs,
 }: AdminViewRouterProps) {
   const { DashboardView, ScheduleView, DirectoryView, ContactsView, ArchiveView } = embedded;
 
@@ -376,6 +382,8 @@ export function AdminViewRouter({
               athPreviewEnabled={appSettings.athPreviewEnabled}
               onOpenTender={onOpenTenderFromJobs}
               returnNav={jobsReturnNav}
+              recoverableCharges={recoverableCharges}
+              onOpenRecoverableCharge={onOpenRecoverableChargeFromJobs}
             />
           </Suspense>
         </ViewErrorBoundary>
@@ -422,6 +430,8 @@ export function AdminViewRouter({
               createdByName={adminSession?.displayName || "Administrator"}
               onChange={setRecoverableCharges}
               onCommit={commitRecoverableCharges}
+              initialChargeId={pendingRecoverableChargeId}
+              onInitialChargeConsumed={onInitialRecoverableChargeConsumed}
             />
           </Suspense>
         </ViewErrorBoundary>

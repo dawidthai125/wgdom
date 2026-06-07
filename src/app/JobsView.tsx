@@ -15,6 +15,7 @@ import { useAdminAccess } from "@/app/admin-access";
 import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { JobCostBreakdownPanel } from "@/app/JobCostBreakdownPanel";
+import { JobRecoverableChargesPanel } from "@/app/JobRecoverableChargesPanel";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobListPrimaryBadge, JobPhasePicker, applyJobPhase } from "@/app/JobListStatus";
 import { JobListCardV2 } from "@/app/JobListCardV2";
@@ -80,6 +81,11 @@ import {
   duplicateWorkEntry, payrollHoursForDirectoryOnDate, DEFAULT_MULTI_SITE_VISIT_HOURS,
   PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, getAppPhotoLabelSection, filterProductionActiveDirectory, MONTH_NAMES,
 } from "@/app/app-domain";
+import {
+  type RecoverableCharge,
+  type RecoverableChargeJobStats,
+  getRecoverableChargeJobStats,
+} from "@/lib/recoverable-charges";
 
 export function jobEmailDefaultSubject(job: Job): string {
   const addr = `${job.address || "Robota"}${job.flatNumber ? ` m.${job.flatNumber}` : ""}`;
@@ -509,6 +515,8 @@ export function JobsView({
   athPreviewEnabled,
   returnNav,
   onOpenTender,
+  recoverableCharges = [],
+  onOpenRecoverableCharge,
 }: {
   jobs: Job[];
   setJobs: (v: Job[] | ((p: Job[]) => Job[])) => void;
@@ -524,6 +532,8 @@ export function JobsView({
   athPreviewEnabled: boolean;
   returnNav?: { label: string; onBack: () => void };
   onOpenTender?: (tenderId: string) => void;
+  recoverableCharges?: RecoverableCharge[];
+  onOpenRecoverableCharge?: (chargeId: string) => void;
 }) {
   const { canViewRates, session: adminSession } = useAdminAccess();
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
@@ -1049,6 +1059,18 @@ export function JobsView({
   const wmOverdueIds = useMemo(() => wmOverdueJobIdSet(jobs), [jobs]);
   const opsKpi = useMemo(() => computeJobListOpsKpi(jobs), [jobs]);
 
+  const recoverableStatsByJobId = useMemo(() => {
+    const map = new Map<string, RecoverableChargeJobStats>();
+    const jobIds = new Set(jobs.map((j) => j.id));
+    for (const jobId of jobIds) {
+      const stats = getRecoverableChargeJobStats(recoverableCharges, jobId);
+      if (stats.chargeCount > 0 || stats.recoveredCount > 0) {
+        map.set(jobId, stats);
+      }
+    }
+    return map;
+  }, [jobs, recoverableCharges]);
+
   const toggleOpsChip = (chip: JobOpsChip) => {
     setOpsChip((current) => (current === chip ? null : chip));
   };
@@ -1252,6 +1274,7 @@ export function JobsView({
                 const isSelected = job.id===selectedJobId;
                 const isDupe = isDuplicateJob(job);
                 const workerCount = new Set(job.workEntries.map((e) => e.directoryId || e.employeeName)).size;
+                const rcStats = recoverableStatsByJobId.get(job.id);
                 return (
                   <JobListCardV2
                     key={job.id}
@@ -1270,6 +1293,8 @@ export function JobsView({
                     onDeleteConfirm={() => void deleteJob(job.id)}
                     onDeleteCancel={() => setDeleteConfirmListId(null)}
                     deleteBusy={deleteBusy}
+                    recoverableUnsettledCount={rcStats?.unsettledCount}
+                    recoverableToRecoverAmount={rcStats?.toRecoverAmount}
                   />
                 );
               })}
@@ -1662,6 +1687,12 @@ export function JobsView({
                 )}
               </div>
             </div>
+
+            <JobRecoverableChargesPanel
+              jobId={selectedJob.id}
+              charges={recoverableCharges}
+              onOpenCharge={onOpenRecoverableCharge}
+            />
 
             {showHistory && (
               <div className="bg-card rounded-xl border border-border overflow-hidden">

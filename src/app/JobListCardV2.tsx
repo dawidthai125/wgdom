@@ -38,6 +38,8 @@ export function JobListCardV2({
   onDeleteConfirm,
   onDeleteCancel,
   deleteBusy,
+  recoverableUnsettledCount,
+  recoverableToRecoverAmount,
 }: {
   job: JobListCardJob;
   selected: boolean;
@@ -54,6 +56,8 @@ export function JobListCardV2({
   onDeleteConfirm: () => void;
   onDeleteCancel: () => void;
   deleteBusy?: boolean;
+  recoverableUnsettledCount?: number;
+  recoverableToRecoverAmount?: number;
 }) {
   const docsCount = DOCUMENT_TYPES.filter((d) => job.documents[d]).length;
   const missingDocs = jobMissingRequiredDocs(job);
@@ -138,6 +142,18 @@ export function JobListCardV2({
           {fileCount > 0 && (
             <span className="text-[10px] bg-emerald-500/12 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded-full font-medium">
               {fileCount} pl.
+            </span>
+          )}
+          {(recoverableUnsettledCount ?? 0) > 0 && (
+            <span
+              title={
+                (recoverableToRecoverAmount ?? 0) > 0
+                  ? `Do odzyskania:\n${recoverableToRecoverAmount!.toLocaleString("pl-PL", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} PLN`
+                  : undefined
+              }
+              className="text-[10px] bg-amber-500/12 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded-full font-medium shrink-0"
+            >
+              💰 {recoverableUnsettledCount}
             </span>
           )}
           {isDuplicate && (

@@ -12,6 +12,18 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-06",
+    version: "2.49.00",
+    label: "Roboty ↔ Do rozliczenia (Sprint 20.5A.1)",
+    items: [
+      { type: "new", text: "getRecoverableChargesForJob / getRecoverableChargesRecoveredOnJob / getRecoverableChargeJobStats — agregacja po sourceJobId i targetJobId" },
+      { type: "new", text: "Lista robót — badge 💰 (nierozliczone pozycje) z tooltipem kwoty do odzyskania" },
+      { type: "new", text: "Przegląd roboty — karta Do rozliczenia: KPI, max 5 pozycji źródłowych, rozliczenia na tej robocie" },
+      { type: "improve", text: "Deep link z roboty → moduł Do rozliczenia z zaznaczoną pozycją (pendingRecoverableChargeId)" },
+      { type: "improve", text: "Read-only — bez tworzenia pozycji z roboty, bez zmian KV/sync/merge/dashboard KPI" },
+    ],
+  },
+  {
+    date: "2026-06-06",
     version: "2.48.30",
     label: "Top listy i KPI czasowe (Sprint 20.4C.2C)",
     items: [
