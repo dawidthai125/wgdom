@@ -44,6 +44,7 @@ import {
 } from "@/app/SettleChargeModal";
 import { RecoverableChargesAnalysisSection } from "@/app/RecoverableChargesAnalysisSection";
 import { RecoverableChargesAlertsSection } from "@/app/RecoverableChargesAlertsSection";
+import { RecoverableChargesInsightsSection } from "@/app/RecoverableChargesInsightsSection";
 
 type FormMode = "create" | "edit" | null;
 
@@ -231,6 +232,11 @@ export function RecoverableChargesView({
             />
 
             <RecoverableChargesAnalysisSection charges={charges} />
+
+            <RecoverableChargesInsightsSection
+              charges={charges}
+              onSelectCharge={(id) => setSelectedId(id)}
+            />
 
             <div className="flex flex-col lg:flex-row gap-2">
               <div className="relative flex-1 min-w-0">

@@ -4,9 +4,19 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.48.20** (`changelog-data.ts`) · Sprint 20.4C.2B Alerty (lokalnie)
+**Aktualna wersja UI:** **2.48.30** (`changelog-data.ts`) · Sprint 20.4C.2C Top listy + KPI czasowe (lokalnie)
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
+
+---
+
+## 2.48.30 (2026-06-06) — Top listy + KPI czasowe (Sprint 20.4C.2C)
+
+* **Helpery** — `computeRecoverableChargesTimeStats()` + `computeRecoverableChargesTopLists()` (TOP 5)
+* **Moduł** — sekcja Statystyki odzyskiwania: miesiąc/rok/średni czas/zamknięte + 3 rankingi
+* **Pulpit** — link „Zobacz analizę odzyskiwania” (bez nowych kafelków)
+* **Legacy** — `legacy-migration-*` wykluczone z KPI czasu i rankingu odzyskanych
+* **Bez zmian** — model, merge, Inspector, Payroll
 
 ---
 

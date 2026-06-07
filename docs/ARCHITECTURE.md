@@ -287,6 +287,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Dashboard (20.4C.1, v2.48.00)** | `RecoverableChargesDashboardCard.tsx` na Pulpicie — KPI + skrót aging (20.4C.2A); klik → moduł |
 | **Reporting aging (20.4C.2A, v2.48.10)** | `computeRecoverableChargesReportingStats()` — jedno przejście; kubełki 0–30/31–60/61–90/90+ od `createdAt`; tylko open+partial; `RecoverableChargesAnalysisSection.tsx` w module |
 | **Alerty (20.4C.2B, v2.48.20)** | `computeRecoverableChargesAlerts()` — A kwota / B wiek>90 / C partial>60 / D brak aktywności>60; `RecoverableChargesAlertsSection.tsx`; `attentionCount` +1 na Pulpicie |
+| **Insights (20.4C.2C, v2.48.30)** | `computeRecoverableChargesTimeStats()` + `computeRecoverableChargesTopLists()`; `RecoverableChargesInsightsSection.tsx` — KPI miesiąc/rok + TOP 5 |
 | **Badge menu** | `countUnsettledRecoverableCharges()` — open + partial |
 | **Menu** | **Do rozliczenia** (💰); **Media** = Zdjęcia + Pliki robot (jak Instrukcja/Zmiany) |
 | **Sync** | `pushRecoverableChargesToCloud()`; tombstone `kw-recoverable-charges-deleted-ids` |

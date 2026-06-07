@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-06",
+    version: "2.48.30",
+    label: "Top listy i KPI czasowe (Sprint 20.4C.2C)",
+    items: [
+      { type: "new", text: "computeRecoverableChargesTimeStats() — odzysk w miesiącu/roku, średni czas zamknięcia, liczba settled" },
+      { type: "new", text: "computeRecoverableChargesTopLists() — TOP 5: największe / najstarsze / odzyskane pozycje" },
+      { type: "new", text: "Moduł — sekcja Statystyki odzyskiwania (KPI + 3 rankingi kartowe); Pulpit — link do analizy" },
+      { type: "improve", text: "Legacy migration wykluczone z KPI czasu i listy odzyskanych; bez nowych zakładek i route" },
+    ],
+  },
+  {
+    date: "2026-06-06",
     version: "2.48.20",
     label: "Alerty odzyskiwania (Sprint 20.4C.2B)",
     items: [

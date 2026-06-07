@@ -700,6 +700,166 @@ export function topRecoverableChargeAlerts(
   return alerts.slice(0, limit);
 }
 
+export const RECOVERABLE_TOP_LIST_LIMIT = 5;
+
+export interface RecoverableChargesTimeStats {
+  monthRecovered: number;
+  yearRecovered: number;
+  averageRecoveryDays: number | null;
+  settledCount: number;
+}
+
+export interface RecoverableChargeTopListItem {
+  chargeId: string;
+  title: string;
+  amount: number;
+  ageDays: number | null;
+  statusLabel: string;
+}
+
+export interface RecoverableChargesTopLists {
+  largestOutstanding: RecoverableChargeTopListItem[];
+  oldestOutstanding: RecoverableChargeTopListItem[];
+  largestRecovered: RecoverableChargeTopListItem[];
+}
+
+function lastNonLegacySettlementMs(charge: RecoverableCharge): number | null {
+  let max: number | null = null;
+  for (const s of charge.settlements ?? []) {
+    if (isLegacyMigrationSettlementId(s.id)) continue;
+    const ms = Date.parse(s.settledAt);
+    if (!Number.isFinite(ms)) continue;
+    if (max == null || ms > max) max = ms;
+  }
+  return max;
+}
+
+function chargeHasOnlyLegacySettlements(charge: RecoverableCharge): boolean {
+  const settlements = charge.settlements ?? [];
+  return settlements.length > 0 && settlements.every((s) => isLegacyMigrationSettlementId(s.id));
+}
+
+function settlementInCalendarYear(settledAt: string, year: number): boolean {
+  const ms = Date.parse(settledAt);
+  if (!Number.isFinite(ms)) return false;
+  return new Date(ms).getFullYear() === year;
+}
+
+function settlementInCalendarMonth(settledAt: string, now: Date): boolean {
+  const ms = Date.parse(settledAt);
+  if (!Number.isFinite(ms)) return false;
+  const d = new Date(ms);
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+}
+
+function toOutstandingTopItem(
+  charge: RecoverableCharge,
+  amount: number,
+  status: RecoverableChargeStatus,
+  now: Date,
+  statusLabel: string,
+): RecoverableChargeTopListItem {
+  return {
+    chargeId: charge.id,
+    title: alertTitle(charge),
+    amount,
+    ageDays: recoverableChargeAgeDays(charge.createdAt, now),
+    statusLabel,
+  };
+}
+
+/** KPI czasowe — miesiąc/rok/średni czas zamknięcia (Sprint 20.4C.2C). */
+export function computeRecoverableChargesTimeStats(
+  charges: RecoverableCharge[],
+  now: Date = new Date(),
+): RecoverableChargesTimeStats {
+  let monthRecovered = 0;
+  let yearRecovered = 0;
+  let settledCount = 0;
+  const recoveryDurations: number[] = [];
+  const year = now.getFullYear();
+
+  for (const c of charges) {
+    const { status } = deriveChargeAmounts(c);
+    if (status === "settled") settledCount += 1;
+
+    for (const s of c.settlements ?? []) {
+      if (isLegacyMigrationSettlementId(s.id)) continue;
+      if (!settlementInCalendarYear(s.settledAt, year)) continue;
+      yearRecovered += s.amount;
+      if (settlementInCalendarMonth(s.settledAt, now)) monthRecovered += s.amount;
+    }
+
+    if (status !== "settled" || chargeHasOnlyLegacySettlements(c)) continue;
+
+    const lastMs = lastNonLegacySettlementMs(c);
+    const createdMs = Date.parse(c.createdAt);
+    if (lastMs == null || !Number.isFinite(createdMs)) continue;
+    recoveryDurations.push(Math.max(0, Math.floor((lastMs - createdMs) / 86400000)));
+  }
+
+  return {
+    monthRecovered: +monthRecovered.toFixed(2),
+    yearRecovered: +yearRecovered.toFixed(2),
+    averageRecoveryDays:
+      recoveryDurations.length > 0
+        ? Math.round(recoveryDurations.reduce((s, d) => s + d, 0) / recoveryDurations.length)
+        : null,
+    settledCount,
+  };
+}
+
+/** Top listy — największe / najstarsze / odzyskane (Sprint 20.4C.2C). */
+export function computeRecoverableChargesTopLists(
+  charges: RecoverableCharge[],
+  now: Date = new Date(),
+  limit = RECOVERABLE_TOP_LIST_LIMIT,
+): RecoverableChargesTopLists {
+  const outstanding: { charge: RecoverableCharge; remaining: number; status: RecoverableChargeStatus }[] = [];
+  const recovered: { charge: RecoverableCharge; settled: number }[] = [];
+
+  for (const c of charges) {
+    const amounts = deriveChargeAmounts(c);
+    if (amounts.status === "open" || amounts.status === "partial") {
+      if (amounts.amountRemaining > 0) {
+        outstanding.push({ charge: c, remaining: amounts.amountRemaining, status: amounts.status });
+      }
+    } else if (amounts.status === "settled" && !chargeHasOnlyLegacySettlements(c)) {
+      recovered.push({ charge: c, settled: amounts.amountSettled });
+    }
+  }
+
+  const largestOutstanding = [...outstanding]
+    .sort((a, b) => b.remaining - a.remaining)
+    .slice(0, limit)
+    .map(({ charge, remaining, status }) =>
+      toOutstandingTopItem(charge, remaining, status, now, recoverableChargeStatusLabel(status, false)),
+    );
+
+  const oldestOutstanding = [...outstanding]
+    .sort((a, b) => Date.parse(a.charge.createdAt) - Date.parse(b.charge.createdAt))
+    .slice(0, limit)
+    .map(({ charge, remaining, status }) => {
+      const ageDays = recoverableChargeAgeDays(charge.createdAt, now);
+      return toOutstandingTopItem(charge, remaining, status, now, `${ageDays} dni`);
+    });
+
+  const largestRecovered = [...recovered]
+    .sort((a, b) => b.settled - a.settled)
+    .slice(0, limit)
+    .map(({ charge, settled }) =>
+      toOutstandingTopItem(
+        charge,
+        settled,
+        "settled",
+        now,
+        recoverableChargeStatusLabel("settled", false),
+      ),
+    );
+
+  return { largestOutstanding, oldestOutstanding, largestRecovered };
+}
+
 export type RecoverableChargeAgingBucketKey = "0_30" | "31_60" | "61_90" | "90_plus";
 
 export interface RecoverableChargeAgingBucket {

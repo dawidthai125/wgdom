@@ -103,6 +103,17 @@ export function RecoverableChargesDashboardCard({
           </>
         )}
       </button>
+      {!stats.isEmpty && (
+        <div className="px-4 sm:px-5 pb-3 border-t border-border/60">
+          <button
+            type="button"
+            onClick={onOpenModule}
+            className="text-xs font-medium text-primary hover:underline"
+          >
+            Zobacz analizę odzyskiwania →
+          </button>
+        </div>
+      )}
     </div>
   );
 }
