@@ -1,7 +1,13 @@
 /** Pozycje do rozliczenia / odzyskania — KV `kw-recoverable-charges`. Sprint 20.3A + 20.4A settlement foundation. */
 
 import type { Job } from "@/app/app-domain";
-import { fmtDate } from "@/app/app-domain";
+
+/** ISO YYYY-MM-DD → DD.MM.YYYY — lokalnie, bez importu z app-domain (unika cyklu z cloud-sync). */
+function fmtIsoDatePl(iso: string): string {
+  if (!iso) return "";
+  const [y, mo, d] = iso.split("-");
+  return `${d}.${mo}.${y}`;
+}
 
 export type RecoverableChargeStatus = "open" | "partial" | "settled";
 export type RecoverableChargeSourceType = "job" | "standalone";
@@ -1026,7 +1032,7 @@ export function recoverableChargeSourceListLabel(
 export function formatRecoverableChargeDate(iso: string): string {
   if (!iso) return "—";
   const d = iso.slice(0, 10);
-  return fmtDate(d);
+  return fmtIsoDatePl(d);
 }
 
 export function tagsToInputValue(tags: string[]): string {
