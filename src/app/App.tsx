@@ -50,6 +50,7 @@ import {
   addDeletedArchiveId,
   pushDirectoryToCloud,
   pushWeekEmployeesToCloud,
+  pushPayrollWeekAfterRollover,
   pushEmployeeLeavesToCloud,
   pushRecoverableChargesToCloud,
   ADMIN_PASSWORDS_KEY,
@@ -671,7 +672,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const persistPayrollRoster = useCallback((next: WeekEmployee[]) => {
     suppressAutoSyncUntilRef.current = Date.now() + 6000;
     payrollRosterPushRef.current = true;
-    void pushWeekEmployeesToCloud(next)
+    void pushWeekEmployeesToCloud(next, { skipPayrollGuard: true })
       .finally(() => { payrollRosterPushRef.current = false; })
       .catch(() => {});
   }, []);
@@ -846,15 +847,25 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   };
 
   const autoArchiveAndAdvance = useCallback((targetFrom: string, targetTo: string) => {
+    let nextArchive = savedWeeks;
     if (weekEmployees.length > 0) {
       const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
       const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves, savedWeeks);
-      if (existing) setSavedWeeks((prev) => prev.map((w) => (w.id === existing.id ? snapshot : w)));
-      else setSavedWeeks((prev) => [...prev, snapshot]);
+      nextArchive = existing
+        ? savedWeeks.map((w) => (w.id === existing.id ? snapshot : w))
+        : [...savedWeeks, snapshot];
+      setSavedWeeks(nextArchive);
     }
     setWeekFrom(targetFrom);
     setWeekTo(targetTo);
     setWeekEmployees([]);
+    suppressAutoSyncUntilRef.current = Date.now() + 6000;
+    void pushPayrollWeekAfterRollover({
+      weekFrom: targetFrom,
+      weekTo: targetTo,
+      weekEmployees: [],
+      archive: nextArchive,
+    }).catch(() => {});
   }, [weekEmployees, weekFrom, weekTo, savedWeeks, jobs, setSavedWeeks, setWeekFrom, setWeekTo, setWeekEmployees, employeeLeaves]);
 
   const payrollRolloverCtx = useMemo(

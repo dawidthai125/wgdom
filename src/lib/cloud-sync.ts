@@ -714,7 +714,7 @@ function isIntentionalPayrollWeekClear(keys: string[], values: unknown[], outgoi
   return archive.some((w) => archiveWeekHasPayroll(w));
 }
 
-type PushKeysToCloudOptions = {
+export type PushKeysToCloudOptions = {
   replaceJobsKeys?: string[];
   replaceDirectoryKeys?: string[];
   replaceWeekEmployeesKeys?: string[];
@@ -722,6 +722,10 @@ type PushKeysToCloudOptions = {
   skipPayrollGuard?: boolean;
   /** Opcjonalnie — unikaj drugiego batch-get w pushKeysToCloudSafe. */
   cloudWeekEmployees?: unknown;
+};
+
+export type PushWeekEmployeesOptions = {
+  skipPayrollGuard?: boolean;
 };
 
 async function applyPayrollGuardBeforePush(
@@ -1256,7 +1260,27 @@ export function applyBootstrapPayrollMerge(
   out = sanitizeWeekEmployeesForTargetRange(out, localValues, cloudValues);
 
   const empIdx = DATA_KEYS.indexOf("kw-week-employees");
-  if (empIdx < 0) return out;
+  const fromIdx = DATA_KEYS.indexOf("kw-weekFrom");
+  const toIdx = DATA_KEYS.indexOf("kw-weekTo");
+  if (empIdx < 0 || fromIdx < 0 || toIdx < 0) return out;
+
+  const targetFrom = out[fromIdx];
+  const targetTo = out[toIdx];
+  const cloudFrom = cloudValues[fromIdx];
+  const cloudTo = cloudValues[toIdx];
+  const localFrom = localValues[fromIdx];
+  const localTo = localValues[toIdx];
+  const targetKey = weekRangeKey(targetFrom, targetTo);
+  const cloudKey = weekRangeKey(cloudFrom, cloudTo);
+  const localKey = weekRangeKey(localFrom, localTo);
+
+  // Sprint 20.1C.1 — nie adoptuj bogatszej chmury z innego tygodnia (rollover leak).
+  if (targetKey && cloudKey && targetKey !== cloudKey) {
+    return out;
+  }
+  if (localKey && cloudKey && localKey !== cloudKey && localKey === targetKey) {
+    return out;
+  }
 
   const localEmps = normalizeArrayValue(localValues[empIdx]);
   const cloudEmps = normalizeArrayValue(cloudValues[empIdx]);
@@ -1596,7 +1620,10 @@ export async function pushAllDataToCloud(values: unknown[]): Promise<unknown[]> 
  */
 /** Natychmiastowy zapis kartoteki po usunięciu / edycji pracownika. */
 /** Natychmiastowy zapis składu listy płac (usuń / dodaj pracownika w tygodniu). */
-export async function pushWeekEmployeesToCloud(weekEmployees: unknown[]): Promise<void> {
+export async function pushWeekEmployeesToCloud(
+  weekEmployees: unknown[],
+  options?: PushWeekEmployeesOptions,
+): Promise<void> {
   if (!isSupabaseConfigured() || !API_BASE) return;
   const normalized = collapseWeekEmployeesByIdentity(normalizeArrayValue(weekEmployees));
   try {
@@ -1604,7 +1631,44 @@ export async function pushWeekEmployeesToCloud(weekEmployees: unknown[]): Promis
   } catch { /* ignore */ }
   await pushKeysToCloud(["kw-week-employees"], [normalized], {
     replaceWeekEmployeesKeys: ["kw-week-employees"],
+    skipPayrollGuard: options?.skipPayrollGuard,
   });
+}
+
+/** Atomowy push po rolloverze — nowy tydzień + archiwum starego (Sprint 20.1C.1). */
+export async function pushPayrollWeekAfterRollover(params: {
+  weekFrom: string;
+  weekTo: string;
+  weekEmployees: unknown[];
+  archive: unknown[];
+}): Promise<void> {
+  if (!isSupabaseConfigured() || !API_BASE) return;
+  const normalized = collapseWeekEmployeesByIdentity(normalizeArrayValue(params.weekEmployees));
+  const archive = normalizeArrayValue(params.archive);
+  try {
+    localStorage.setItem("kw-weekFrom", JSON.stringify(params.weekFrom));
+    localStorage.setItem("kw-weekTo", JSON.stringify(params.weekTo));
+    localStorage.setItem("kw-week-employees", JSON.stringify(normalized));
+    localStorage.setItem("kw-archive", JSON.stringify(archive));
+  } catch { /* ignore */ }
+  await pushKeysToCloud(
+    ["kw-weekFrom", "kw-weekTo", "kw-week-employees", "kw-archive"],
+    [params.weekFrom, params.weekTo, normalized, archive],
+    {
+      replaceWeekEmployeesKeys: ["kw-week-employees"],
+      skipPayrollGuard: true,
+    },
+  );
+}
+
+/** Smoke / diag — czy Payroll Guard zablokuje push (bez batch-set). */
+export async function evaluatePayrollGuardBeforePush(
+  keys: string[],
+  values: unknown[],
+  options?: PushKeysToCloudOptions,
+): Promise<{ blocked: boolean; keys: string[] }> {
+  const guarded = await applyPayrollGuardBeforePush(keys, values, options);
+  return { blocked: guarded.blocked, keys: guarded.keys };
 }
 
 export async function pushDirectoryToCloud(directory: unknown[]): Promise<void> {

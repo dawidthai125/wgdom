@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-07",
+    version: "2.49.30",
+    label: "Sync rollover listy płac — izolacja tygodnia (Sprint 20.1C.1)",
+    items: [
+      { type: "fix", text: "F5 po rolloverze nie przywraca godzin poprzedniego tygodnia — bootstrap nie adoptuje bogatszej chmury z innym weekFrom/weekTo" },
+      { type: "fix", text: "Rollover — natychmiastowy push do KV (weekFrom, weekTo, pusty skład, archiwum) z pominięciem Payroll Guard" },
+      { type: "fix", text: "„Odśwież skład ludzi” — zapis nowego składu do KV mimo shrink guarda (świadoma akcja użytkownika)" },
+      { type: "improve", text: "Smoke: smoke-test-payroll-rollover-sync-20.1c1.mjs + integracja STALE_KV" },
+    ],
+  },
+  {
+    date: "2026-06-07",
     version: "2.49.20",
     label: "Rollover listy płac — kasa sobotnia (Sprint 20.1C)",
     items: [
