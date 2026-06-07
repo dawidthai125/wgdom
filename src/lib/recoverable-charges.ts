@@ -1126,3 +1126,62 @@ export function getRecoverableChargeJobStats(
     alertCount: alerts.length,
   };
 }
+
+/** Adres roboty do presetu tworzenia pozycji (Sprint 20.5A.2). */
+export function jobAddressForRecoverableCharge(job: Pick<Job, "address" | "flatNumber">): string {
+  const addr = job.address?.trim() || "";
+  const flat = job.flatNumber?.trim();
+  if (!addr && !flat) return "";
+  return flat ? `${addr} m.${flat}`.trim() : addr;
+}
+
+/** Inspektor odpowiedzialny — lider ekipy wykonawczej z kartoteki. */
+export function resolveJobResponsibleInspector(
+  job: Pick<Job, "executionLeadDirectoryId">,
+  directory: { id: string; name: string }[],
+): string {
+  const leadId = job.executionLeadDirectoryId?.trim();
+  if (!leadId) return "";
+  return directory.find((d) => d.id === leadId)?.name?.trim() || "";
+}
+
+/** Draft tworzenia pozycji z roboty — sourceType/job/klient/inspektor (Sprint 20.5A.2). */
+export function buildRecoverableChargeDraftFromJob(
+  job: Job,
+  createdBy: string,
+  directory: { id: string; name: string }[] = [],
+): RecoverableCharge {
+  const base = defaultRecoverableCharge(createdBy);
+  return {
+    ...base,
+    sourceType: "job",
+    sourceJobId: job.id,
+    clientName: job.client?.trim() || "",
+    responsibleInspector: resolveJobResponsibleInspector(job, directory),
+  };
+}
+
+/** Normalizacja draftu przed zapisem — wspólna dla modułu i roboty. */
+export function finalizeRecoverableChargeDraftForSave(draft: RecoverableCharge): RecoverableCharge {
+  const title = draft.title.trim() || draft.description.trim().slice(0, 80) || "Pozycja do rozliczenia";
+  const now = new Date().toISOString();
+  const base: RecoverableCharge = {
+    ...draft,
+    title,
+    description: draft.description.trim(),
+    clientName: draft.clientName.trim(),
+    responsibleInspector: draft.responsibleInspector.trim(),
+    updatedAt: now,
+    sourceJobId: draft.sourceType === "job" ? draft.sourceJobId : "",
+  };
+  return { ...base, ...deriveChargeAmounts(base) };
+}
+
+/** Dodaje nową pozycję na początku listy (create). */
+export function appendRecoverableChargeCreate(
+  charges: RecoverableCharge[],
+  draft: RecoverableCharge,
+): RecoverableCharge[] {
+  const normalized = finalizeRecoverableChargeDraftForSave(draft);
+  return [normalized, ...charges];
+}

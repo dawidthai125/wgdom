@@ -146,7 +146,10 @@ export type AdminViewRouterProps = {
   onSetView: (v: View) => void;
   pendingRecoverableChargeId: string | null;
   onInitialRecoverableChargeConsumed: () => void;
+  pendingRecoverableChargeCreatePreset: Partial<RecoverableCharge> | null;
+  onInitialRecoverableChargeCreatePresetConsumed: () => void;
   onOpenRecoverableChargeFromJobs: (chargeId: string) => void;
+  onOpenRecoverableChargeCreateFromJobs: (preset: Partial<RecoverableCharge>) => void;
 };
 
 export function AdminViewRouter({
@@ -217,7 +220,10 @@ export function AdminViewRouter({
   onSetView,
   pendingRecoverableChargeId,
   onInitialRecoverableChargeConsumed,
+  pendingRecoverableChargeCreatePreset,
+  onInitialRecoverableChargeCreatePresetConsumed,
   onOpenRecoverableChargeFromJobs,
+  onOpenRecoverableChargeCreateFromJobs,
 }: AdminViewRouterProps) {
   const { DashboardView, ScheduleView, DirectoryView, ContactsView, ArchiveView } = embedded;
 
@@ -384,6 +390,8 @@ export function AdminViewRouter({
               returnNav={jobsReturnNav}
               recoverableCharges={recoverableCharges}
               onOpenRecoverableCharge={onOpenRecoverableChargeFromJobs}
+              onChangeRecoverableCharges={setRecoverableCharges}
+              onCommitRecoverableCharges={(next) => commitRecoverableCharges(next)}
             />
           </Suspense>
         </ViewErrorBoundary>
@@ -432,6 +440,8 @@ export function AdminViewRouter({
               onCommit={commitRecoverableCharges}
               initialChargeId={pendingRecoverableChargeId}
               onInitialChargeConsumed={onInitialRecoverableChargeConsumed}
+              initialCreatePreset={pendingRecoverableChargeCreatePreset}
+              onInitialCreatePresetConsumed={onInitialRecoverableChargeCreatePresetConsumed}
             />
           </Suspense>
         </ViewErrorBoundary>

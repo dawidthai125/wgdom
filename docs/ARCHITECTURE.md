@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.49.00** · Sprint 20.5A.1 Roboty ↔ Do rozliczenia)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-06 (Sprint 20.5A.1 — integracja read-only Jobs ↔ Do rozliczenia)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.49.10** · Sprint 20.5A.2 Create from job)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-07 (Sprint 20.5A.2 — tworzenie pozycji z roboty)
 
 ---
 
@@ -289,12 +289,13 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Alerty (20.4C.2B, v2.48.20)** | `computeRecoverableChargesAlerts()` — A kwota / B wiek>90 / C partial>60 / D brak aktywności>60; `RecoverableChargesAlertsSection.tsx`; `attentionCount` +1 na Pulpicie |
 | **Insights (20.4C.2C, v2.48.30)** | `computeRecoverableChargesTimeStats()` + `computeRecoverableChargesTopLists()`; `RecoverableChargesInsightsSection.tsx` — KPI miesiąc/rok + TOP 5 |
 | **Jobs integracja (20.5A.1, v2.49.00)** | `getRecoverableChargeJobStats()` — agregacja po `sourceJobId` / `targetJobId`; badge 💰 na `JobListCardV2`; `JobRecoverableChargesPanel.tsx` w Przeglądzie roboty; deep link `pendingRecoverableChargeId` → `RecoverableChargesView` |
+| **Create from job (20.5A.2, v2.49.10)** | `buildRecoverableChargeDraftFromJob()` + `JobCreateRecoverableChargeModal.tsx` — modal na robocie (bez nawigacji); `pendingRecoverableChargeCreatePreset` → moduł z auto-create; `finalizeRecoverableChargeDraftForSave()` współdzielony |
 | **Badge menu** | `countUnsettledRecoverableCharges()` — open + partial |
 | **Menu** | **Do rozliczenia** (💰); **Media** = Zdjęcia + Pliki robot (jak Instrukcja/Zmiany) |
 | **Sync** | `pushRecoverableChargesToCloud()`; tombstone `kw-recoverable-charges-deleted-ids` |
-| **Poza zakresem 20.5A.1** | Tworzenie pozycji z roboty, Inspektor billing — Sprint 20.5A.2/3 |
+| **Poza zakresem 20.5A.2** | Inspektor billing — Sprint 20.5A.3 |
 
-Pliki: `src/lib/recoverable-charges.ts`, `src/app/RecoverableChargesView.tsx`, `src/app/JobRecoverableChargesPanel.tsx`, `src/app/MediaView.tsx`.
+Pliki: `src/lib/recoverable-charges.ts`, `src/app/RecoverableChargesView.tsx`, `src/app/JobRecoverableChargesPanel.tsx`, `src/app/JobCreateRecoverableChargeModal.tsx`, `src/app/MediaView.tsx`.
 
 **Nieobecności (Sprint 20.0A, v2.45.37, prod `778f616`):**
 

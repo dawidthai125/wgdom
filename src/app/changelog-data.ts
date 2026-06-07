@@ -11,6 +11,18 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-07",
+    version: "2.49.10",
+    label: "Tworzenie pozycji z roboty (Sprint 20.5A.2)",
+    items: [
+      { type: "new", text: "➕ Dodaj do rozliczenia — modal na karcie roboty bez opuszczania kontekstu (tytuł, kwota, opis)" },
+      { type: "new", text: "buildRecoverableChargeDraftFromJob() — preset sourceType/job, klient, inspektor z lidera ekipy" },
+      { type: "new", text: "pendingRecoverableChargeCreatePreset — deep link do modułu z auto-otwarciem formularza (consumed once)" },
+      { type: "improve", text: "Karta Do rozliczenia widoczna zawsze; KPI odświeża się po zapisie na robocie" },
+      { type: "improve", text: "Bez zmian KV/sync/merge — finalizeRecoverableChargeDraftForSave współdzielony z modułem" },
+    ],
+  },
+  {
     date: "2026-06-06",
     version: "2.49.00",
     label: "Roboty ↔ Do rozliczenia (Sprint 20.5A.1)",

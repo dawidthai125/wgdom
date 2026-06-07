@@ -1,4 +1,4 @@
-import { ChevronRight, Wallet } from "lucide-react";
+import { ChevronRight, Plus, Wallet } from "lucide-react";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import {
   JOB_RECOVERABLE_CHARGES_LIST_LIMIT,
@@ -15,14 +15,14 @@ export function JobRecoverableChargesPanel({
   jobId,
   charges,
   onOpenCharge,
+  onCreateCharge,
 }: {
   jobId: string;
   charges: RecoverableCharge[];
   onOpenCharge?: (chargeId: string) => void;
+  onCreateCharge?: () => void;
 }) {
   const stats = getRecoverableChargeJobStats(charges, jobId);
-  if (stats.chargeCount === 0 && stats.recoveredCount === 0) return null;
-
   const sourceCharges = getRecoverableChargesForJob(charges, jobId);
   const recoveredRows = getRecoverableChargesRecoveredOnJob(charges, jobId);
   const sourcePreview = sourceCharges.slice(0, JOB_RECOVERABLE_CHARGES_LIST_LIMIT);
@@ -32,11 +32,23 @@ export function JobRecoverableChargesPanel({
 
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden">
-      <div className="px-5 py-4 border-b border-border flex items-center gap-2">
-        <Wallet size={13} className="text-amber-600 dark:text-amber-400" />
-        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          💰 Do rozliczenia
-        </span>
+      <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <Wallet size={13} className="text-amber-600 dark:text-amber-400 shrink-0" />
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground truncate">
+            💰 Do rozliczenia
+          </span>
+        </div>
+        {onCreateCharge && (
+          <button
+            type="button"
+            onClick={onCreateCharge}
+            className="shrink-0 flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-colors"
+          >
+            <Plus size={12} />
+            Dodaj do rozliczenia
+          </button>
+        )}
       </div>
 
       <div className="px-5 py-4 grid grid-cols-2 sm:grid-cols-4 gap-3 border-b border-border/60">
@@ -126,6 +138,12 @@ export function JobRecoverableChargesPanel({
             <p className="text-[10px] text-muted-foreground mt-2">+ {recoveredOverflow} kolejnych</p>
           )}
         </div>
+      )}
+
+      {stats.chargeCount === 0 && stats.recoveredCount === 0 && (
+        <p className="px-5 py-4 text-xs text-muted-foreground">
+          Brak pozycji powiązanych z tą robotą — dodaj pierwszą pozycję do odzyskania.
+        </p>
       )}
     </div>
   );

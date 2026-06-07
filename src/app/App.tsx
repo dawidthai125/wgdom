@@ -120,6 +120,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [alertsSeenTick, setAlertsSeenTick] = useState(0);
   const [pendingPayrollEmpId, setPendingPayrollEmpId] = useState<string | null>(null);
   const [pendingRecoverableChargeId, setPendingRecoverableChargeId] = useState<string | null>(null);
+  const [pendingRecoverableChargeCreatePreset, setPendingRecoverableChargeCreatePreset] =
+    useState<Partial<RecoverableCharge> | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [globalSearch, setGlobalSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -1168,8 +1170,15 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           onSetView={setView}
           pendingRecoverableChargeId={pendingRecoverableChargeId}
           onInitialRecoverableChargeConsumed={() => setPendingRecoverableChargeId(null)}
+          pendingRecoverableChargeCreatePreset={pendingRecoverableChargeCreatePreset}
+          onInitialRecoverableChargeCreatePresetConsumed={() => setPendingRecoverableChargeCreatePreset(null)}
           onOpenRecoverableChargeFromJobs={(chargeId) => {
             setPendingRecoverableChargeId(chargeId);
+            setViewReturn({ view: "jobs", label: "Roboty" });
+            setView("recoverablecharges");
+          }}
+          onOpenRecoverableChargeCreateFromJobs={(preset) => {
+            setPendingRecoverableChargeCreatePreset(preset);
             setViewReturn({ view: "jobs", label: "Roboty" });
             setView("recoverablecharges");
           }}

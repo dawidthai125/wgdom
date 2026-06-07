@@ -16,6 +16,7 @@ import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { JobCostBreakdownPanel } from "@/app/JobCostBreakdownPanel";
 import { JobRecoverableChargesPanel } from "@/app/JobRecoverableChargesPanel";
+import { JobCreateRecoverableChargeModal } from "@/app/JobCreateRecoverableChargeModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobListPrimaryBadge, JobPhasePicker, applyJobPhase } from "@/app/JobListStatus";
 import { JobListCardV2 } from "@/app/JobListCardV2";
@@ -84,7 +85,9 @@ import {
 import {
   type RecoverableCharge,
   type RecoverableChargeJobStats,
+  appendRecoverableChargeCreate,
   getRecoverableChargeJobStats,
+  validateRecoverableChargeDraft,
 } from "@/lib/recoverable-charges";
 
 export function jobEmailDefaultSubject(job: Job): string {
@@ -517,6 +520,8 @@ export function JobsView({
   onOpenTender,
   recoverableCharges = [],
   onOpenRecoverableCharge,
+  onChangeRecoverableCharges,
+  onCommitRecoverableCharges,
 }: {
   jobs: Job[];
   setJobs: (v: Job[] | ((p: Job[]) => Job[])) => void;
@@ -534,8 +539,11 @@ export function JobsView({
   onOpenTender?: (tenderId: string) => void;
   recoverableCharges?: RecoverableCharge[];
   onOpenRecoverableCharge?: (chargeId: string) => void;
+  onChangeRecoverableCharges?: (next: RecoverableCharge[]) => void;
+  onCommitRecoverableCharges?: (next: RecoverableCharge[]) => void;
 }) {
   const { canViewRates, session: adminSession } = useAdminAccess();
+  const createdByName = adminSession?.displayName || "Administrator";
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -566,6 +574,7 @@ export function JobsView({
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
   const [showAllFiles, setShowAllFiles] = useState(false);
   const [detailSection, setDetailSection] = useState<JobDetailSection>("summary");
+  const [showCreateRecoverableCharge, setShowCreateRecoverableCharge] = useState(false);
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
   const [uploadMsg, setUploadMsg] = useState("");
   const [photoUploadBusy, setPhotoUploadBusy] = useState(false);
@@ -1692,7 +1701,29 @@ export function JobsView({
               jobId={selectedJob.id}
               charges={recoverableCharges}
               onOpenCharge={onOpenRecoverableCharge}
+              onCreateCharge={
+                onChangeRecoverableCharges && onCommitRecoverableCharges
+                  ? () => setShowCreateRecoverableCharge(true)
+                  : undefined
+              }
             />
+
+            {showCreateRecoverableCharge && selectedJob && onChangeRecoverableCharges && onCommitRecoverableCharges && (
+              <JobCreateRecoverableChargeModal
+                job={selectedJob}
+                directory={directory}
+                createdByName={createdByName}
+                onClose={() => setShowCreateRecoverableCharge(false)}
+                onSave={(draft) => {
+                  const validation = validateRecoverableChargeDraft(draft);
+                  if (!validation.ok) return false;
+                  const next = appendRecoverableChargeCreate(recoverableCharges, draft);
+                  onChangeRecoverableCharges(next);
+                  onCommitRecoverableCharges(next);
+                  return true;
+                }}
+              />
+            )}
 
             {showHistory && (
               <div className="bg-card rounded-xl border border-border overflow-hidden">

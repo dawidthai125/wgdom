@@ -32,6 +32,7 @@ import {
   recoverableChargeSourceListLabel,
   applySettlement,
   deriveChargeAmounts,
+  finalizeRecoverableChargeDraftForSave,
   settlementTargetJobLabel,
 } from "@/lib/recoverable-charges";
 import { addDeletedRecoverableChargeId } from "@/lib/cloud-sync";
@@ -66,6 +67,8 @@ export function RecoverableChargesView({
   onCommit,
   initialChargeId,
   onInitialChargeConsumed,
+  initialCreatePreset,
+  onInitialCreatePresetConsumed,
 }: {
   charges: RecoverableCharge[];
   jobs: Job[];
@@ -74,19 +77,11 @@ export function RecoverableChargesView({
   onCommit: (next?: RecoverableCharge[], deletedId?: string) => void;
   initialChargeId?: string | null;
   onInitialChargeConsumed?: () => void;
+  initialCreatePreset?: Partial<RecoverableCharge> | null;
+  onInitialCreatePresetConsumed?: () => void;
 }) {
   const [filters, setFilters] = useState<RecoverableChargeFilters>(DEFAULT_RECOVERABLE_CHARGE_FILTERS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!initialChargeId) return;
-    const exists = charges.some((c) => c.id === initialChargeId);
-    if (exists) {
-      setSelectedId(initialChargeId);
-      setFormMode(null);
-    }
-    onInitialChargeConsumed?.();
-  }, [initialChargeId, charges, onInitialChargeConsumed]);
   const [formMode, setFormMode] = useState<FormMode>(null);
   const [draft, setDraft] = useState<RecoverableCharge | null>(null);
   const [settleChargeId, setSettleChargeId] = useState<string | null>(null);
@@ -103,7 +98,27 @@ export function RecoverableChargesView({
     const base = defaultRecoverableCharge(createdByName);
     setDraft({ ...base, ...preset });
     setFormMode("create");
+    setSelectedId(null);
   };
+
+  useEffect(() => {
+    if (!initialChargeId) return;
+    const exists = charges.some((c) => c.id === initialChargeId);
+    if (exists) {
+      setSelectedId(initialChargeId);
+      setFormMode(null);
+    }
+    onInitialChargeConsumed?.();
+  }, [initialChargeId, charges, onInitialChargeConsumed]);
+
+  useEffect(() => {
+    if (!initialCreatePreset) return;
+    const base = defaultRecoverableCharge(createdByName);
+    setDraft({ ...base, ...initialCreatePreset });
+    setFormMode("create");
+    setSelectedId(null);
+    onInitialCreatePresetConsumed?.();
+  }, [initialCreatePreset, onInitialCreatePresetConsumed, createdByName]);
 
   const openEdit = (charge: RecoverableCharge) => {
     setDraft({ ...charge, ...deriveChargeAmounts(charge) });
@@ -120,18 +135,7 @@ export function RecoverableChargesView({
     if (!draft) return;
     const validation = validateRecoverableChargeDraft(draft);
     if (!validation.ok) return;
-    const title = draft.title.trim() || draft.description.trim().slice(0, 80) || "Pozycja do rozliczenia";
-    const now = new Date().toISOString();
-    const base: RecoverableCharge = {
-      ...draft,
-      title,
-      description: draft.description.trim(),
-      clientName: draft.clientName.trim(),
-      responsibleInspector: draft.responsibleInspector.trim(),
-      updatedAt: now,
-      sourceJobId: draft.sourceType === "job" ? draft.sourceJobId : "",
-    };
-    const normalized = { ...base, ...deriveChargeAmounts(base) };
+    const normalized = finalizeRecoverableChargeDraftForSave(draft);
     if (formMode === "create") {
       const next = [normalized, ...charges];
       onChange(next);
