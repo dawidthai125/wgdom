@@ -8,21 +8,23 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md  ← ★ Sprint 20.1B CLOSED (saved ≠ closed)
-3. docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md  ← Sprint 20.1A CLOSED (odroczenie wypłaty, `f24fafe`)
-4. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← Performance 2.x CLOSED (wyniki końcowe)
-5. docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md  ← Performance 1.x CLOSED, a6cdb4a
-6. CURRENT-TASK.md        ← skrót: co na prod / co dalej
-7. docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md  ← Sprint 20.0A CLOSED (nieobecności, `778f616`)
-8. docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md  ← incydent Roboty, RCA
-9. docs/SESSION-HANDOFF-2026-06.md  ← audyty, Faza 8–9, Roboty 2.0
-10. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-11. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
-12. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin + Roboty §11
-13. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
-14. docs/jobs-2.0-product-audit.md    ← rekomendacja rozwoju zakładki Roboty
-15. CHANGELOG.md          ← CO już zrobiono (skrót)
-16. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+2. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← ★ Billing + Roboty 20.3A–20.5A.2 CLOSED (v2.49.10, `571b90b`)
+3. docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md  ← Sprint 20.1B CLOSED (saved ≠ closed)
+4. docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md  ← Sprint 20.1A CLOSED (odroczenie wypłaty, `f24fafe`)
+5. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← Performance 2.x CLOSED (wyniki końcowe)
+6. docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md  ← Performance 1.x CLOSED, a6cdb4a
+7. CURRENT-TASK.md        ← skrót: co na prod / co dalej
+8. docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md  ← Sprint 20.0A CLOSED (nieobecności, `778f616`)
+9. docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md  ← incydent Roboty, RCA
+10. docs/SESSION-HANDOFF-2026-06.md  ← audyty, Faza 8–9, Roboty 2.0
+11. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+12. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
+13. docs/SETTLEMENT-WORKFLOW-AUDIT-20.4A.md  ← audyt settlement ledger
+14. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin + Roboty §11
+15. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
+16. docs/jobs-2.0-product-audit.md    ← rekomendacja rozwoju zakładki Roboty
+17. CHANGELOG.md          ← CO już zrobiono (skrót)
+18. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -45,6 +47,9 @@
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
 | **docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md** | Performance 2.x **CLOSED** (`35614f0`) — startup 1119 KB, seria 2.2C→2.4A |
+| **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.2 CLOSED** (`571b90b`, v2.49.10) |
+| **docs/SETTLEMENT-WORKFLOW-AUDIT-20.4A.md** | Audyt settlement ledger — design 20.4A |
+| **docs/SETTLEMENT-REPORTING-AUDIT-20.4C.md** | Audyt reporting + dashboard KPI |
 | **docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md** | Sprint 20.1B **CLOSED** — saved ≠ closed, defer po zapisie, live vs snapshot |
 | **docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md** | Sprint 20.1A **CLOSED** (`f24fafe`) — odroczenie wypłaty, MODEL A, archive freeze |
 | **docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md** | Sprint 20.0A **CLOSED** (`778f616`) — nieobecności, overlay payroll, tombstones |
@@ -80,8 +85,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.45.39**) |
-| Prod `main` (app) | commit **`74e65d9`** · release **v2.45.39** · Sprint 20.1B carry workflow **CLOSED** |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.49.10**) |
+| Prod `main` (app) | commit **`571b90b`** · release **v2.49.10** · Sprint 20.5A.2 Create from job **CLOSED** |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |
 | Frontend deploy | push `main` → Vercel |
@@ -172,6 +177,22 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 **saved ≠ closed** — defer ⏭ do rolloveru; zapisany operacyjny tydzień = live payroll + auto snapshot refresh.
 
 **Kontekst z sesji 2026-06-06:** 20.1A traktował `savedWeeks` jak archiwum (`archived_week`) — po „Zapisz tydzień” ⏭ znikał. 20.1B naprawia to bez zmiany MODEL A freeze ani logiki urlopów 20.0A.
+
+---
+
+## 3g. Do rozliczenia + Roboty — Sprint 20.5A (**CLOSED**, prod `571b90b`, v2.49.10)
+
+- **Handoff:** [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md) — **czytaj najpierw** przy pracy nad billing / roboty
+- **Architektura:** **ARCHITECTURE.md** § Do rozliczenia (2.47–2.49)
+- **20.5A.1** (`637f12c`): read-only — badge 💰, karta KPI, deep link `pendingRecoverableChargeId`
+- **20.5A.2** (`571b90b`): ➕ Dodaj do rozliczenia — modal na robocie, `buildRecoverableChargeDraftFromJob()`
+- **Kluczowe pliki:** `recoverable-charges.ts`, `JobRecoverableChargesPanel.tsx`, `JobCreateRecoverableChargeModal.tsx`, `JobsView.tsx`
+- **Smoke:** `smoke-test-recoverable-charges-jobs-20.5a1.mjs`, `smoke-test-recoverable-charges-create-from-job-20.5a2.mjs`
+- **Audyty:** `docs/SETTLEMENT-*.md`, `docs/ADDITIONAL-BILLING-AUDIT-20.3A.md`, `docs/UI-LANGUAGE-AUDIT-20.3B.md`
+
+**Następny:** 20.5A.3 Inspektor billing — nie rozpoczęty.
+
+**Nie zmieniaj bez polecenia:** KV/sync/merge settlements, dashboard KPI (20.4C), payroll, leaves.
 
 ---
 

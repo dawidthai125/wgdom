@@ -3,62 +3,45 @@
 > **Aktualizuj ten plik na końcu każdej większej sesji z agentem AI.**  
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
-**Ostatnia aktualizacja:** 2026-06-06  
-**Wersja UI (prod):** **2.45.39** — Sprint 20.1B saved ≠ closed  
-**Prod `origin/main` HEAD:** **`74e65d9`** · https://www.wgdom.fun  
-**Status Sprint 20.1B:** **CLOSED**
+**Ostatnia aktualizacja:** 2026-06-07  
+**Wersja UI (prod):** **2.49.10** — Sprint 20.5A.2 Create from job  
+**Prod `origin/main` HEAD:** **`571b90b`** · https://www.wgdom.fun  
+**Status Sprint 20.5A.2:** **CLOSED**
 
 ---
 
-## Sprint 20.1B — Carry workflow fix (**CLOSED**)
+## Sprint 20.5A.2 — Create from job (**CLOSED**)
 
 | Pole | Wartość |
 |------|---------|
-| **Release** | **v2.45.39** |
-| **Commit** | **`74e65d9`** — `fix(payroll): allow carry forward on saved active week (20.1B)` |
+| **Release** | **v2.49.10** |
+| **Commit** | **`571b90b`** — `feat(jobs): create recoverable charges from job view (20.5A.2)` |
+| **Pliki** | 12 · **+454 / −35** |
 | **Production** | https://www.wgdom.fun |
-| **Edge deploy** | **nie wymagany** |
-| **Vercel deploy** | **PASS** @ `74e65d9` |
+| **Vercel deploy** | **PASS** @ `571b90b` |
 
-### Podsumowanie
-
-Rozdzielono **saved** (backup w `savedWeeks`) od **closed** (tydzień historyczny po rolloverze). Defer ⏭ działa po „Zapisz tydzień”, dopóki tydzień jest operacyjny.
+### Zakres
 
 | Element | Opis |
 |---------|------|
-| **`isPayrollWeekSaved`** | wpis w archiwum — backup |
-| **`isPayrollWeekClosed`** | `weekFrom/weekTo ≠ getPayrollWeekRange()` |
-| **Aktywny tydzień** | live `weekEmployees`, defer ⏭, PDF/DOCX live |
-| **Historyczny tydzień** | snapshot freeze, defer zablokowany (`closed_week`) |
-| **Snapshot refresh** | `refreshSavedActiveWeekSnapshot()` po defer / settled / edycji |
+| **Modal inline** | `JobCreateRecoverableChargeModal` — ➕ Dodaj do rozliczenia |
+| **Preset** | `buildRecoverableChargeDraftFromJob()` — job, klient, adres, inspektor |
+| **Zapis** | Bez nawigacji do modułu; KPI odświeżone na robocie |
+| **Deep link** | `pendingRecoverableChargeCreatePreset` (consumed once) |
 
-**Handoff:** [`docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md`](docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md)
+**Handoff pełny:** [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md)
 
-**Testy:** `scripts/pre-commit-verify-20.1b.mjs`, `scripts/smoke-test-payroll-carry-forward-20.1b.mjs`, regresja 20.0A + 20.1A — PASS
-
-**Następny sprint:** TBD
-
-### Sesja AI 2026-06-06 (ten czat) — chronologia
-
-1. **Audyt widoczności 20.1A** — po „Zapisz tydzień” ⏭ znikał (root: `isArchivedWeek` = zapisany = zarchiwizowany). Scenariusz Kamila 35h/1050 PLN → przycisk ukryty mimo braku rolloveru.
-2. **Sprint 20.1B** — saved ≠ closed: `isPayrollWeekClosed`, defer do rolloveru, live payroll na operacyjnym, snapshot tylko historyczny, `refreshSavedActiveWeekSnapshot`.
-3. **Testy** — A–F + TEST 1–9 + regresje 20.0A/20.1A + build — PASS.
-4. **Deploy** — commit `74e65d9`, Vercel PASS, prod **2.45.39**.
-5. **Docs follow-up** — commit **`d89dc9c`** (kontekst czatu dla AI, Cursor rules).
-
-**Nie commitowane (poza sprintem):** skrypty RCA w `scripts/audit-*`, `find-map-sources`, `verify-jobs-mount-crash`, itd.
+**Następny sprint:** **20.5A.3** — Inspektor billing (nie rozpoczęty)
 
 ---
 
-## Sprint 20.1A — Odroczenie wypłaty (**CLOSED**, `f24fafe`, v2.45.38)
+## Seria billing + Roboty (CLOSED)
 
-**Handoff:** [`docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md`](docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md)
-
----
-
-## Sprint 20.0A — Nieobecności (**CLOSED**, `778f616`, v2.45.37)
-
-**Handoff:** [`docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md`](docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md)
+| Sprint | Wersja | Commit | Status |
+|--------|--------|--------|--------|
+| 20.4C.2C Insights | 2.48.30 | `81554f0` | CLOSED |
+| 20.5A.1 Jobs read-only | 2.49.00 | `637f12c` | CLOSED |
+| **20.5A.2 Create from job** | **2.49.10** | **`571b90b`** | **CLOSED** |
 
 ---
 
@@ -66,8 +49,8 @@ Rozdzielono **saved** (backup w `savedWeeks`) od **closed** (tydzień historyczn
 
 ```text
 1. CURRENT-TASK.md (ten plik)
-2. docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md (20.1B CLOSED)
-3. docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md (20.1A)
-4. docs/ARCHITECTURE.md § 10.1 (saved/closed + carry)
-5. src/lib/payroll-cycle.ts (isPayrollWeekClosed)
+2. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← ★ billing + jobs 20.3A–20.5A.2
+3. docs/SETTLEMENT-WORKFLOW-AUDIT-20.4A.md
+4. docs/ARCHITECTURE.md § Do rozliczenia
+5. AGENTS.md
 ```
