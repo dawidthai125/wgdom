@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-07",
+    version: "2.49.20",
+    label: "Rollover listy płac — kasa sobotnia (Sprint 20.1C)",
+    items: [
+      { type: "fix", text: "Auto-przejście tygodnia płac (Nd ≥20:00) — blokuje tylko nierozliczoną kasę w sobotę, nie cały status Oczekuje" },
+      { type: "fix", text: "⏭ PRZENIESIONO i wypłata co 2 tyg. (tydzień narastający) nie blokują już rolloveru" },
+      { type: "improve", text: "„Bieżący tydzień” i auto-archiwum niedzielne — ta sama reguła co auto-rollover (payroll-rollover.ts)" },
+      { type: "improve", text: "Bez zmian: MODEL A carry, archiwum, cash split, sync KV" },
+    ],
+  },
+  {
+    date: "2026-06-07",
     version: "2.49.10",
     label: "Tworzenie pozycji z roboty (Sprint 20.5A.2)",
     items: [

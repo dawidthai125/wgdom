@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.49.10** · Sprint 20.5A.2 Create from job)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-07 (Sprint 20.5A.2 — tworzenie pozycji z roboty)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.49.20** · Sprint 20.1C Payroll rollover)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-07 (Sprint 20.1C — rollover kasa sobotnia)
 
 ---
 
@@ -269,7 +269,9 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | `kw-archive` | Zapisane tygodnie (snapshots) | Admin |
 | `kw-weekFrom` / `kw-weekTo` | Zakres dat tygodnia płac (Pn–So; niedziela = wciąż ten sam tydzień) | Admin |
 
-**Tydzień płacowy (v2.45.14):** zakres Pn–So. **Nd przed 20:00** — domykany tydzień (wypłaty w sobotę). **Nd od 20:00** — w panelu admina startuje **nadchodzący** tydzień (archiwum + pusta lista, gdy wszyscy rozliczeni). **Pn+** — to samo przy pierwszym wejściu, jeśli tydzień w tyle. Auto-archiwum + email backup: niedziela. Alert spójności nie pokazuje się przy pustej liście na nowy tydzień.
+**Tydzień płacowy (v2.45.14, rollover v2.49.20):** zakres Pn–So. **Nd przed 20:00** — domykany tydzień (wypłaty w sobotę). **Nd od 20:00** — w panelu admina startuje **nadchodzący** tydzień (archiwum + pusta lista, gdy **brak nierozliczonej kasy sobotniej**). **Pn+** — to samo przy pierwszym wejściu, jeśli tydzień w tyle. Auto-archiwum + email backup: niedziela. Alert spójności nie pokazuje się przy pustej liście na nowy tydzień.
+
+**Rollover blokada (Sprint 20.1C, v2.49.20):** `hasPayrollRolloverBlockers()` w `src/lib/payroll-rollover.ts` — blokuje gdy `!settled && calcEmployeeSaturdayCash() > 0`. **Nie blokuje:** ⏭ PRZENIESIONO, biweekly `!isPayoutWeek`, urlop, net ≤ 0. Używane w `tryPayrollWeekCycle`, `trySundayArchiveOnly`, `goToCurrent` (`App.tsx`). Kasa per osoba = ten sam model co `totalSaturdayCash` (tygodniówki + biweekly payout week).
 | `kw-jobs` | Roboty (zdjęcia, pliki, WM, activity…) | Wszyscy |
 | `kw-contacts` | Kontakty e-mail | Admin |
 | `kw-employee-leaves` | Nieobecności pracowników (urlop / L4 / bezpłatny, tygodnie Pn–So) | Admin |
@@ -344,6 +346,18 @@ Pliki: `src/lib/payroll-carry-forward.ts`, `src/lib/payroll-carry-snapshot.ts`, 
 | **Banery UI** | Zapisany operacyjny: „kopia zapasowa”; historyczny: „podgląd ze snapshotu” |
 
 Pliki 20.1B: `src/lib/payroll-cycle.ts`, `src/app/PayrollView.tsx`, `src/app/App.tsx`, `src/lib/payroll-leave-overlay.ts` (biweekly overlay tylko closed).
+
+**Payroll rollover (Sprint 20.1C, v2.49.20 — lokalnie):**
+
+| Aspekt | Opis |
+|--------|------|
+| **Plik** | `src/lib/payroll-rollover.ts` — `calcEmployeeSaturdayCash`, `blocksPayrollRollover`, `hasPayrollRolloverBlockers` |
+| **Warunek blokady** | `!emp.settled && saturdayCash > 0` |
+| **saturdayCash** | Tygodniówka: `calcWeeklyNetWithCarry`; biweekly: `displayNet` tylko w `isPayoutWeek`, inaczej 0 |
+| **Zwolnienia** | Carry out (PRZENIESIONO), biweekly accrual, urlop, net ≤ 0 — przez `saturdayCash === 0` |
+| **Bez zmian** | `autoArchiveAndAdvance`, `buildWeekSnapshot`, MODEL A, `computePayrollCashSplit`, sync KV |
+| **Smoke** | `scripts/smoke-test-payroll-rollover-20.1c.mjs` |
+| **Poza zakresem** | `DashboardView` alerty nadal na `!settled`; `isPayrollWeekClosed` kalendarzowe |
 
 **Nowy typ danych → MUSISZ:** dodać do `DATA_KEYS`, hook stanu w adminie, merge w `mergeDataKey`, push/pull paths, tombstone przy DELETE.
 

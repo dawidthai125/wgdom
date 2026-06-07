@@ -99,6 +99,7 @@ import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import { mergeRecoverableCharges } from "@/lib/recoverable-charges";
 import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
 import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosed } from "@/lib/payroll-cycle";
+import { hasPayrollRolloverBlockers } from "@/lib/payroll-rollover";
 
 function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const { session: adminSession, canViewRates } = useAdminAccess();
@@ -856,16 +857,21 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setWeekEmployees([]);
   }, [weekEmployees, weekFrom, weekTo, savedWeeks, jobs, setSavedWeeks, setWeekFrom, setWeekTo, setWeekEmployees, employeeLeaves]);
 
+  const payrollRolloverCtx = useMemo(
+    () => ({ employeeLeaves, savedWeeks }),
+    [employeeLeaves, savedWeeks],
+  );
+
   const goToCurrent = useCallback(() => {
     const c = getWeekRange();
     if (weekFrom === c.from) return;
-    if (weekEmployees.some((e) => !e.settled)) {
+    if (hasPayrollRolloverBlockers(weekEmployees, weekFrom, weekTo, directory, payrollRolloverCtx)) {
       if (!window.confirm(
-        "Są nierozliczeni pracownicy (wypłata w sobotę?). Przejść do bieżącego tygodnia mimo to? Obecna lista trafi do archiwum.",
+        "Są nierozliczone wypłaty w sobotę. Przejść do bieżącego tygodnia mimo to? Obecna lista trafi do archiwum.",
       )) return;
     }
     autoArchiveAndAdvance(c.from, c.to);
-  }, [weekFrom, weekEmployees, autoArchiveAndAdvance]);
+  }, [weekFrom, weekTo, weekEmployees, directory, payrollRolloverCtx, autoArchiveAndAdvance]);
 
   // Auto-przejście tygodnia płac: Nd ≥20:00 lub Pn+ (gdy wszyscy rozliczeni) + auto-archiwum w Nd
   const payrollWeekCycleRef = useRef<() => void>(() => {});
@@ -876,7 +882,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     if (now.getDay() !== 0) return;
     const closing = getPayrollClosingWeekRange(now);
     if (weekFrom !== closing.from || weekTo !== closing.to) return;
-    if (weekEmployees.some((e) => !e.settled)) return;
+    if (hasPayrollRolloverBlockers(weekEmployees, weekFrom, weekTo, directory, payrollRolloverCtx)) return;
     const today = localIsoDate(now);
     if (localStorage.getItem("kw-last-week-auto-archive") === today) return;
     localStorage.setItem("kw-last-week-auto-archive", today);
@@ -892,14 +898,17 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       : [...savedWeeks, snapshot];
     setSavedWeeks(nextArchive);
     triggerWeeklyBackupEmail(weekFrom, weekTo, jobs, nextArchive);
-  }, [weekFrom, weekTo, weekEmployees, savedWeeks, jobs, setSavedWeeks, employeeLeaves]);
+  }, [weekFrom, weekTo, weekEmployees, directory, payrollRolloverCtx, savedWeeks, jobs, setSavedWeeks, employeeLeaves]);
 
   const tryPayrollWeekCycle = useCallback(() => {
     const current = getPayrollWeekRange();
     const onCurrentRange = weekFrom === current.from && weekTo === current.to;
 
     if (!onCurrentRange) {
-      if (weekEmployees.length > 0 && weekEmployees.some((e) => !e.settled)) return;
+      if (
+        weekEmployees.length > 0
+        && hasPayrollRolloverBlockers(weekEmployees, weekFrom, weekTo, directory, payrollRolloverCtx)
+      ) return;
       autoArchiveAndAdvance(current.from, current.to);
       if (payrollWeekAdvancedToastRef.current !== current.from) {
         payrollWeekAdvancedToastRef.current = current.from;
@@ -912,7 +921,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     }
 
     trySundayArchiveOnly();
-  }, [weekFrom, weekTo, weekEmployees, autoArchiveAndAdvance, trySundayArchiveOnly]);
+  }, [weekFrom, weekTo, weekEmployees, directory, payrollRolloverCtx, autoArchiveAndAdvance, trySundayArchiveOnly]);
 
   payrollWeekCycleRef.current = tryPayrollWeekCycle;
 

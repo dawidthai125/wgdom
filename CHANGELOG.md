@@ -4,9 +4,18 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.49.10** (`changelog-data.ts`) · Sprint 20.5A.2 Create from job (lokalnie)
+**Aktualna wersja UI:** **2.49.20** (`changelog-data.ts`) · Sprint 20.1C Payroll rollover (lokalnie)
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
+
+---
+
+## 2.49.20 (2026-06-07) — Rollover listy płac — kasa sobotnia (Sprint 20.1C)
+
+* **payroll-rollover.ts** — `calcEmployeeSaturdayCash`, `blocksPayrollRollover`, `hasPayrollRolloverBlockers`
+* **Auto-rollover** — blokada tylko gdy `!settled && saturdayCash > 0` (nie każde Oczekuje)
+* **Zwolnienia** — PRZENIESIONO, biweekly narastający, urlop, net ≤ 0
+* **Bez zmian** — MODEL A carry, archiwum, `computePayrollCashSplit`, sync KV
 
 ---
 
