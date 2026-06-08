@@ -156,7 +156,7 @@ export function JobListPanelHeader({
   };
 
   return (
-    <div className="px-4 pt-4 pb-3 space-y-3 border-b border-border">
+    <div className="px-4 pt-4 pb-3 max-md:pt-3 max-md:pb-2 space-y-3 max-md:space-y-2 border-b border-border">
       {returnNav && (
         <button
           type="button"
@@ -207,7 +207,7 @@ export function JobListPanelHeader({
                 onClick={() => onKpiClick(item)}
                 aria-pressed={active}
                 title={`${count} — ${item.label}`}
-                className={`shrink-0 flex items-center gap-2.5 min-w-[7.25rem] px-3.5 py-3 rounded-2xl border text-left transition-colors touch-manipulation ${
+                className={`shrink-0 flex items-center gap-2.5 min-w-[7.25rem] px-3.5 py-3 max-md:py-2 rounded-2xl border text-left transition-colors touch-manipulation ${
                   active ? visual.active : `text-muted-foreground ${visual.idle} hover:text-foreground`
                 }`}
               >
@@ -217,7 +217,7 @@ export function JobListPanelHeader({
                   aria-hidden
                 />
                 <span className="flex items-baseline gap-1.5 min-w-0 whitespace-nowrap leading-none">
-                  <span className="text-xl font-bold tabular-nums tracking-tight">{count}</span>
+                  <span className="text-xl max-md:text-lg font-bold tabular-nums tracking-tight">{count}</span>
                   <span className="text-[11px] font-semibold leading-tight">{item.label}</span>
                 </span>
               </button>
@@ -237,7 +237,7 @@ export function JobListPanelHeader({
             type="button"
             onClick={() => onListViewModeChange(mode)}
             aria-pressed={listViewMode === mode}
-            className={`flex-1 px-3 py-2 rounded-[10px] text-xs font-semibold min-h-[40px] transition-colors touch-manipulation ${
+            className={`flex-1 px-3 py-2 rounded-[10px] text-xs font-semibold min-h-[44px] transition-colors touch-manipulation ${
               listViewMode === mode
                 ? "bg-background text-foreground shadow-sm border border-border/60"
                 : "text-muted-foreground hover:text-foreground"
@@ -265,7 +265,7 @@ export function JobListPanelHeader({
         type="button"
         onClick={() => setShowMoreFilters((v) => !v)}
         aria-expanded={showMoreFilters}
-        className={`w-full flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium border min-h-[36px] touch-manipulation transition-colors ${
+        className={`w-full flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium border min-h-[44px] touch-manipulation transition-colors ${
           showMoreFilters || filtersActive
             ? "bg-primary/10 text-foreground border-primary/35"
             : "bg-secondary text-muted-foreground border-border hover:bg-secondary/80"

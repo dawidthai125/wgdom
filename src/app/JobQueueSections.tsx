@@ -54,7 +54,7 @@ export function JobQueueSections({
               type="button"
               onClick={() => toggleSection(section.id)}
               aria-expanded={expanded}
-              className={`w-full flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-left sticky top-0 z-10 backdrop-blur transition-colors touch-manipulation ${
+              className={`w-full flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-left transition-colors touch-manipulation ${
                 count > 0
                   ? "bg-background/95 text-foreground"
                   : "bg-background/80 text-muted-foreground"

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-08",
+    version: "2.50.10",
+    label: "Mobile Fix Pack — ergonomia Roboty na telefonach",
+    items: [
+      { type: "improve", text: "Roboty — kompaktowy toolbar na telefonie (mniejsze odstępy KPI, więcej miejsca na listę)" },
+      { type: "improve", text: "Lista / Kolejki — większe przyciski (44px): przełącznik widoku, fazy i Filtry dodatkowe" },
+      { type: "improve", text: "Kolejki — usunięto sticky nagłówków sekcji (czytelniejszy scroll)" },
+      { type: "improve", text: "Smoke mobile-fix-pack-2.50.1 — T1–T10 (toolbar, touch, kolejki, billing 💰, MID-B)" },
+    ],
+  },
+  {
+    date: "2026-06-08",
     version: "2.50.00",
     label: "Roboty 2.0 MID-B — kolejki operacyjne i filtr lidera",
     items: [

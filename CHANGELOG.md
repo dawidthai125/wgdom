@@ -4,7 +4,16 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.00** (`changelog-data.ts`) · Roboty 2.0 MID-B (lokalnie — przed release)
+**Aktualna wersja UI:** **2.50.10** (`changelog-data.ts`) · Mobile Fix Pack (lokalnie — przed release)
+
+---
+
+## 2.50.10 (2026-06-08) — Mobile Fix Pack
+
+* **Toolbar mobile** — kompaktowe odstępy KPI (`max-md:`), więcej miejsca na listę robót
+* **Touch 44px** — Lista/Kolejki, fazy, Filtry dodatkowe
+* **Kolejki** — bez sticky nagłówków sekcji (czytelniejszy scroll)
+* Smoke: `smoke-test-mobile-fix-pack-2.50.1.mjs`
 
 ---
 
