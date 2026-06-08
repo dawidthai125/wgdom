@@ -14,8 +14,8 @@ import {
   Wallet,
 } from "lucide-react";
 import type { DirectoryEmployee, Job, WeekEmployee, WeekSnapshot } from "@/app/app-domain";
-import { filterProductionActiveDirectory, jobApprovedPhotos, jobGalleryBucket } from "@/app/app-domain";
-import { countBrowserFiles, jobHasBrowserFiles } from "@/lib/job-files-browser";
+import { filterProductionActiveDirectory } from "@/app/app-domain";
+import { countAllJobsMediaItems } from "@/lib/job-files-browser";
 import {
   countUnseenInspectorAlerts,
   getAdminJobNotesSeenAt,
@@ -153,16 +153,8 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
       hint: "Zdjęcia i pliki z robot — galeria, archiwum zdjęć oraz pobieranie ZIP dokumentów.",
       icon: FolderOpen,
       badge: (() => {
-        const photos = jobs.reduce((s, j) => {
-          const b = jobGalleryBucket(j);
-          return b === "active" || b === "grace" ? s + jobApprovedPhotos(j).length : s;
-        }, 0);
-        const files = jobs.reduce(
-          (s, j) => (jobHasBrowserFiles(j) ? s + countBrowserFiles(j) : s),
-          0,
-        );
-        const n = photos + files;
-        return n || undefined;
+        const n = countAllJobsMediaItems(jobs);
+        return n > 0 ? n : undefined;
       })(),
     },
     {

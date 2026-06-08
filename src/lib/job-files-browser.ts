@@ -279,3 +279,8 @@ export function jobFileSummaryChips(summary: JobBrowserFileSummary): JobFileSumm
 export function countBrowserFiles(job: JobFilesBrowserSource): number {
   return summarizeJobBrowserFiles(job).total;
 }
+
+/** Badge menu „Zdjęcia i pliki” — jedno źródło (bez dublowania crew_photo). */
+export function countAllJobsMediaItems(jobs: JobFilesBrowserSource[]): number {
+  return jobs.reduce((s, j) => s + countBrowserFiles(j), 0);
+}
