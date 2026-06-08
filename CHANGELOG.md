@@ -4,7 +4,20 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.49.70** (`changelog-data.ts`) · Sprint 20.5A.3A Inspector Billing Review
+**Aktualna wersja UI:** **2.49.80** (`changelog-data.ts`) · Sprint 20.5A.4 Inspector Billing Notes
+
+---
+
+## 2.49.80 (2026-06-08) — Uwagi inspektora do pozycji billing (Sprint 20.5A.4)
+
+* **Inspektor** — „Zgłoś uwagę” przy pozycji Do rozliczenia (read-only kwot, zapis tylko kw-jobs)
+* **Admin** — wątek inspektor ↔ admin na robocie i w module; Pulpit — prefiks „Do rozliczenia”
+* **WM** — notatki WM bez mieszania z uwagami billing
+* Smoke: `smoke-test-inspector-billing-notes-20.5a4.mjs`
+
+---
+
+**Poprzednia:** **2.49.70** · Sprint 20.5A.3A Inspector Billing Review
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
 

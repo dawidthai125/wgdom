@@ -7,6 +7,7 @@ export type InspectorActivityType =
   | "inspector_file"
   | "inspector_stage"
   | "inspector_note"
+  | "inspector_billing_note"
   | "inspector_photo";
 
 export type JobActivityType =
@@ -26,6 +27,7 @@ export type JobActivityType =
   | InspectorActivityType
   | "inspector_stage"
   | "inspector_note"
+  | "inspector_billing_note"
   | "inspector_photo";
 
 export interface JobActivity {
@@ -68,6 +70,7 @@ export function isInspectorActivityType(type: JobActivityType): boolean {
     || type === "inspector_file"
     || type === "inspector_stage"
     || type === "inspector_note"
+    || type === "inspector_billing_note"
     || type === "inspector_photo";
 }
 

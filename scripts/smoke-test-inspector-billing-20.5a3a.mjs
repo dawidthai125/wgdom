@@ -154,7 +154,10 @@ log("=== Sprint 20.5A.3A-lite — Inspector Billing Review smoke ===\n");
   assert("T8 admin create button", panelSrc.includes("Dodaj do rozliczenia"));
   assert("T8 admin alerts KPI", panelSrc.includes('label="Alerty"'));
   assert("T8 default variant admin", panelSrc.includes('variant = "admin"'));
-  assert("T8 admin onOpenCharge list", panelSrc.includes("onOpenCharge?.(charge.id)"));
+  assert(
+    "T8 admin onOpenCharge list",
+    panelSrc.includes("onOpenCharge(charge.id)") || panelSrc.includes("onOpenCharge?.(charge.id)"),
+  );
 }
 
 log("\n--- Podsumowanie ---");

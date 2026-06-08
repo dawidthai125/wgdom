@@ -67,8 +67,9 @@ import { API_BASE, API_HEADERS, addDeletedJobId, getDeletedJobIds, pushJobsAfter
 import {
   normalizeJobWmFields, isWmClient, fmtPlannedHandover, HANDOVER_STAGE_LABELS,
   inferHandoverStage, removeInspectorPhoto, canShowStartExecutionButton, startJobExecution,
-  assignExecutionTeam,
+  assignExecutionTeam, appendBillingJobNote, buildBillingJobNote,
 } from "@/lib/job-wm";
+import { recoverableChargeDescriptionLine } from "@/lib/recoverable-charges";
 import {
   type Job, type WeekEmployee, type DirectoryEmployee, type PhotoEntry, type WorkEntry, type DocType,
   DOCUMENT_TYPES, DOC_LABELS, REQUIRED_DOCS, DEFAULT_JOB_ENTRY_HOURS,
@@ -707,6 +708,20 @@ export function JobsView({
 
     setJobs((prev) => prev.map((j) => (j.id === next.id ? next : j)));
   };
+
+  const handleAddBillingNote = useCallback((chargeId: string, text: string) => {
+    if (!selectedJob) return;
+    const charge = recoverableCharges.find((c) => c.id === chargeId);
+    const title = charge?.title.trim() || (charge ? recoverableChargeDescriptionLine(charge) : "Pozycja");
+    const note = buildBillingJobNote({
+      chargeId,
+      text,
+      author: createdByName,
+      authorRole: "admin",
+    });
+    updateJob(appendBillingJobNote(selectedJob, note, title));
+    toast.success("Odpowiedź wysłana do inspektora");
+  }, [selectedJob, recoverableCharges, createdByName]);
 
   const appendJobPhotos = (entries: PhotoEntry[], activityText: string) => {
     if (!selectedJobId || entries.length === 0) return;
@@ -1699,12 +1714,17 @@ export function JobsView({
             <JobRecoverableChargesPanel
               jobId={selectedJob.id}
               charges={recoverableCharges}
+              jobNotes={selectedJob.jobNotes}
               onOpenCharge={onOpenRecoverableCharge}
               onCreateCharge={
                 onChangeRecoverableCharges && onCommitRecoverableCharges
                   ? () => setShowCreateRecoverableCharge(true)
                   : undefined
               }
+              onAddBillingNote={handleAddBillingNote}
+              billingNoteActorName={createdByName}
+              billingNoteActorRole="admin"
+              directory={directory}
             />
 
             {showCreateRecoverableCharge && selectedJob && onChangeRecoverableCharges && onCommitRecoverableCharges && (

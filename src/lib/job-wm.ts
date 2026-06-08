@@ -32,12 +32,77 @@ export const HANDOVER_STAGE_HINTS: Record<JobHandoverStage, string> = {
 
 export type JobNoteAuthorRole = "inspector" | "admin";
 
+export type JobNoteContext = "wm" | "billing";
+
 export interface JobNote {
   id: string;
   author: string;
   authorRole: JobNoteAuthorRole;
   text: string;
   at: string;
+  /** Sprint 20.5A.4 — uwaga do konkretnej pozycji Do rozliczenia. */
+  recoverableChargeId?: string;
+  /** Jawny kontekst; billing gdy recoverableChargeId ustawione. */
+  context?: JobNoteContext;
+}
+
+/** Notatka powiązana z pozycją billing (nie WM). */
+export function isBillingJobNote(note: JobNote): boolean {
+  return note.context === "billing" || Boolean(note.recoverableChargeId?.trim());
+}
+
+/** Notatki WM / ogólne (bez powiązania z charge). */
+export function wmJobNotes(notes: JobNote[] | undefined): JobNote[] {
+  return (notes || []).filter((n) => !isBillingJobNote(n));
+}
+
+/** Wątek inspektor ↔ admin dla jednej pozycji billing (najnowsze na górze). */
+export function jobNotesForCharge(notes: JobNote[] | undefined, chargeId: string): JobNote[] {
+  const id = chargeId.trim();
+  if (!id) return [];
+  return (notes || [])
+    .filter((n) => n.recoverableChargeId?.trim() === id)
+    .sort((a, b) => b.at.localeCompare(a.at));
+}
+
+export function buildBillingJobNote(params: {
+  chargeId: string;
+  text: string;
+  author: string;
+  authorRole: JobNoteAuthorRole;
+}): JobNote {
+  const trimmed = params.text.trim();
+  return {
+    id: crypto.randomUUID(),
+    author: params.author,
+    authorRole: params.authorRole,
+    text: trimmed,
+    at: new Date().toISOString(),
+    recoverableChargeId: params.chargeId.trim(),
+    context: "billing",
+  };
+}
+
+export function billingNoteActivityText(chargeTitle: string, noteText: string, authorRole: JobNoteAuthorRole): string {
+  const title = chargeTitle.trim() || "Pozycja";
+  const short = noteText.length > 60 ? `${noteText.slice(0, 60)}…` : noteText;
+  const prefix = authorRole === "inspector" ? "Uwaga billing" : "Odpowiedź Do rozliczenia";
+  return `${prefix} · ${title} · ${short}`;
+}
+
+/** Dodaje notatkę billing + wpis activityLog (tylko kw-jobs, Sprint 20.5A.4). */
+export function appendBillingJobNote<T extends { jobNotes?: JobNote[]; activityLog?: JobActivity[] }>(
+  job: T,
+  note: JobNote,
+  chargeTitle: string,
+): T & { jobNotes: JobNote[]; activityLog: JobActivity[] } {
+  const activityType = note.authorRole === "inspector" ? "inspector_billing_note" : "note";
+  return appendJobActivity(
+    { ...job, jobNotes: [note, ...(job.jobNotes || [])] },
+    activityType,
+    billingNoteActivityText(chargeTitle, note.text, note.authorRole),
+    note.author,
+  );
 }
 
 export type InspectorPhotoLabel = "defect" | "in_progress" | "before_handover" | "after_handover";

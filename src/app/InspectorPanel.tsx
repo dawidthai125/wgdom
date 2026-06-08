@@ -42,6 +42,11 @@ import {
 } from "@/lib/recoverable-charges";
 import { JobRecoverableChargesPanel } from "@/app/JobRecoverableChargesPanel";
 import {
+  appendBillingJobNote,
+  buildBillingJobNote,
+} from "@/lib/job-wm";
+import { recoverableChargeDescriptionLine } from "@/lib/recoverable-charges";
+import {
   DOC_LABELS,
   REQUIRED_DOCS,
   type DocType,
@@ -646,6 +651,21 @@ export function InspectorPanel({
 
   const selectedJob = jobs.find((j) => j.id === selectedId) || null;
 
+  const handleAddBillingNote = useCallback((chargeId: string, text: string) => {
+    const job = jobsRef.current.find((j) => j.id === selectedId);
+    if (!job) return;
+    const charge = recoverableCharges.find((c) => c.id === chargeId);
+    const title = charge?.title.trim() || (charge ? recoverableChargeDescriptionLine(charge) : "Pozycja");
+    const note = buildBillingJobNote({
+      chargeId,
+      text,
+      author: displayName,
+      authorRole: "inspector",
+    });
+    updateJob(appendBillingJobNote(job, note, title));
+    setMsg("Uwaga wysłana do administratora");
+  }, [displayName, recoverableCharges, selectedId, updateJob]);
+
   const flushInspectorPhotoQueue = useCallback(async () => {
     if (!navigator.onLine || flushingPhotoQueueRef.current) return;
     flushingPhotoQueueRef.current = true;
@@ -1181,8 +1201,13 @@ export function InspectorPanel({
             <JobRecoverableChargesPanel
               jobId={selectedJob.id}
               charges={recoverableCharges}
+              jobNotes={selectedJob.jobNotes}
               variant="inspector"
               jobsById={jobsById}
+              onAddBillingNote={handleAddBillingNote}
+              billingNoteActorName={displayName}
+              billingNoteActorRole="inspector"
+              directory={directoryContacts}
             />
 
             {jobInspectorHistory(selectedJob).length > 0 && (

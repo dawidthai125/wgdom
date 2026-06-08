@@ -1354,6 +1354,7 @@ export const ACTIVITY_LABELS: Record<JobActivityType, string> = {
   inspector_file: "Inspektor · plik",
   inspector_stage: "Inspektor · etap",
   inspector_note: "Inspektor · notatka",
+  inspector_billing_note: "Inspektor · uwaga Do rozliczenia",
   inspector_photo: "Inspektor · zdjęcie",
 };
 

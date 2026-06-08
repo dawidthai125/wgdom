@@ -36,6 +36,7 @@ import {
   settlementTargetJobLabel,
 } from "@/lib/recoverable-charges";
 import { addDeletedRecoverableChargeId } from "@/lib/cloud-sync";
+import { jobNotesForCharge } from "@/lib/job-wm";
 import {
   SettleChargeModal,
   buildSettlementNote,
@@ -517,6 +518,23 @@ function ChargeDetailPanel({
         />
         <DetailRow label="Inspektor" value={charge.responsibleInspector || "—"} />
         <DetailRow label="Tagi" value={charge.tags.length ? charge.tags.join(", ") : "—"} />
+
+        {job && jobNotesForCharge(job.jobNotes, charge.id).length > 0 && (
+          <div className="pt-2 border-t border-border space-y-2">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Uwagi inspektora (robota)</p>
+            {[...jobNotesForCharge(job.jobNotes, charge.id)].reverse().map((n) => (
+              <div key={n.id} className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 text-xs">
+                <p className="text-[10px] text-muted-foreground">
+                  {n.author} · {n.authorRole === "inspector" ? "Inspektor" : "Admin"}
+                  {" · "}
+                  {new Date(n.at).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                </p>
+                <p className="mt-1 whitespace-pre-wrap break-words">{n.text}</p>
+              </div>
+            ))}
+            <p className="text-[10px] text-muted-foreground">Odpowiedź w zakładce Roboty → Do rozliczenia na robocie.</p>
+          </div>
+        )}
 
         {history.length > 0 && (
           <div className="pt-2 border-t border-border space-y-3">

@@ -1016,7 +1016,9 @@ export function DashboardView({
                           {" · "}
                           <span className="text-emerald-600 dark:text-emerald-400">{last.author}</span>
                           {": "}
-                          {last.text.length > 60 ? `${last.text.slice(0, 60)}…` : last.text}
+                          {(last.context === "billing" || last.recoverableChargeId)
+                            ? `Do rozliczenia: ${last.text.length > 50 ? `${last.text.slice(0, 50)}…` : last.text}`
+                            : last.text.length > 60 ? `${last.text.slice(0, 60)}…` : last.text}
                         </button>
                       );
                     })}

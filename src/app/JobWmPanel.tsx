@@ -13,6 +13,7 @@ import {
   plannedHandoverStatus,
   applyHandoverStageToJob,
   inferHandoverStage,
+  wmJobNotes,
   type JobHandoverStage,
   type JobNoteAuthorRole,
   type JobWmJob,
@@ -158,10 +159,10 @@ export function JobWmPanel({
           </p>
         </div>
         <div className="max-h-56 overflow-y-auto divide-y divide-border">
-          {(job.jobNotes || []).length === 0 ? (
+          {wmJobNotes(job.jobNotes).length === 0 ? (
             <p className="px-4 py-6 text-xs text-muted-foreground text-center">Brak notatek — napisz pierwszą poniżej</p>
           ) : (
-            (job.jobNotes || []).map((n) => (
+            wmJobNotes(job.jobNotes).map((n) => (
               <div key={n.id} className="px-4 py-3">
                 <p className="text-xs">
                   <AuthorAttribution

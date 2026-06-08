@@ -2,6 +2,7 @@ import { DOC_LABELS, REQUIRED_DOCS, type DocType } from "@/lib/job-documents";
 import { isInspectorActivityType, type JobActivity } from "@/lib/job-activity";
 import {
   inferHandoverStage,
+  isBillingJobNote,
   plannedHandoverStatus,
   type JobHandoverStage,
   type JobWmJob,
@@ -239,10 +240,11 @@ const STAGE_PROGRESS: Record<JobHandoverStage, number> = {
   handed_over: 100,
 };
 
-function hasInspectorCommunication(job: InspectorDashboardJob & { activityLog?: JobActivity[] }): boolean {
-  if ((job.jobNotes || []).length > 0) return true;
+function hasInspectorCommunication(job: InspectorDashboardJob & { activityLog?: JobActivity[]; jobNotes?: { recoverableChargeId?: string; context?: string }[] }): boolean {
+  const wmNotes = (job.jobNotes || []).filter((n) => !isBillingJobNote(n as import("@/lib/job-wm").JobNote));
+  if (wmNotes.length > 0) return true;
   return (job.activityLog || []).some(
-    (ev) => ev.type === "inspector_note" || isInspectorActivityType(ev.type),
+    (ev) => (ev.type === "inspector_note" || isInspectorActivityType(ev.type)) && ev.type !== "inspector_billing_note",
   );
 }
 

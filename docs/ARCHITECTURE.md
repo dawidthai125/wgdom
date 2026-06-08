@@ -296,7 +296,8 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Badge menu** | `countUnsettledRecoverableCharges()` — open + partial |
 | **Menu** | **Do rozliczenia** (💰); **Media** = Zdjęcia + Pliki robot (jak Instrukcja/Zmiany) |
 | **Sync** | Admin: `pushRecoverableChargesToCloud()`; Inspektor: tylko odczyt LS + cloud merge; tombstone `kw-recoverable-charges-deleted-ids` |
-| **Backlog** | 20.5A.4 — uwagi inspektora do pozycji billing |
+| **Inspektor uwagi (20.5A.4, v2.49.80)** | `JobNote.recoverableChargeId` + `context: billing` w `kw-jobs`; `activityLog` typ `inspector_billing_note`; wątek w `JobRecoverableChargesPanel`; bez push `kw-recoverable-charges` |
+| **Backlog** | 20.5A.5+ — zdjęcia do uwag billing, zgłoszenie nowej pozycji przez inspektora |
 
 Pliki: `src/lib/recoverable-charges.ts`, `src/app/RecoverableChargesView.tsx`, `src/app/JobRecoverableChargesPanel.tsx`, `src/app/JobCreateRecoverableChargeModal.tsx`, `src/app/InspectorPanel.tsx`, `src/app/MediaView.tsx`.
 

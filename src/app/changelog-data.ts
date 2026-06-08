@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-08",
+    version: "2.49.80",
+    label: "Inspektor — uwagi do pozycji Do rozliczenia (Sprint 20.5A.4)",
+    items: [
+      { type: "new", text: "Inspektor — „Zgłoś uwagę” przy pozycji billing (bez zmiany kwot); wątek z administratorem" },
+      { type: "new", text: "Admin — odpowiedź w karcie Do rozliczenia na robocie; podgląd w module i na Pulpicie" },
+      { type: "improve", text: "Notatki WM oddzielone od uwag billing (jobNotes + recoverableChargeId)" },
+      { type: "improve", text: "Smoke 20.5a4 — billing notes (T1–T10)" },
+    ],
+  },
+  {
+    date: "2026-06-08",
     version: "2.49.70",
     label: "Inspektor — podgląd Do rozliczenia na robocie (Sprint 20.5A.3A)",
     items: [
