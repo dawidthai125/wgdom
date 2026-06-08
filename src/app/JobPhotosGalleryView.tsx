@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import {
-  Camera, ChevronDown, ChevronRight, ChevronUp, Download, Eye, Images, Search, X,
+  Camera, ChevronDown, ChevronRight, ChevronUp, Download, Eye, Images, MapPin, Search, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { CrewPhotoLabel } from "@/lib/photo-labels";
