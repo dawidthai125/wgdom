@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-08",
+    version: "2.50.00",
+    label: "Roboty 2.0 MID-B — kolejki operacyjne i filtr lidera",
+    items: [
+      { type: "new", text: "Lista robót — przełącznik Lista / Kolejki: sześć sekcji pilnych spraw (WM po terminie, BZP wymaga startu, Bez ekipy, Do odbioru — braki, Gotowe do zdania, Dokumenty >7 dni)" },
+      { type: "improve", text: "Filtry ▼ — Lider realizacji (wszyscy / bez lidera / konkretna osoba z kartoteki); na karcie widać imię lidera" },
+      { type: "improve", text: "Badge statusu — rozróżnienie „Do odbioru — braki” i „Gotowe do zdania” (fazy i KPI bez zmian)" },
+      { type: "improve", text: "Smoke jobs-2.0-midb — T1–T10 (kolejki, filtr lidera, search, KPI, billing 💰)" },
+    ],
+  },
+  {
+    date: "2026-06-08",
     version: "2.49.90",
     label: "Polonizacja UI — Pulpit i przetargi (Sprint 20.3B MIN)",
     items: [

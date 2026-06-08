@@ -16,7 +16,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { JobListFilterBar } from "@/app/JobListStatus";
-import { opsChipForKpiKey, type JobListOpsKpi, type JobOpsChip } from "@/lib/job-list-ops";
+import {
+  LEAD_FILTER_NO_LEAD,
+  opsChipForKpiKey,
+  type JobListOpsKpi,
+  type JobListViewMode,
+  type JobOpsChip,
+} from "@/lib/job-list-ops";
 import type { JobListFilter } from "@/lib/job-list-status";
 import type { DirectoryEmployee } from "@/app/app-domain";
 import { filterProductionActiveDirectory } from "@/app/app-domain";
@@ -86,8 +92,12 @@ export function JobListPanelHeader({
   filterCounts,
   onFilterChange,
   directory,
+  listViewMode,
+  onListViewModeChange,
   workerFilter,
   onWorkerFilterChange,
+  leadFilter,
+  onLeadFilterChange,
   bulkMode,
   onBulkModeToggle,
   bulkSelectedCount,
@@ -109,8 +119,12 @@ export function JobListPanelHeader({
   filterCounts: Record<JobListFilter, number>;
   onFilterChange: (f: JobListFilter) => void;
   directory: DirectoryEmployee[];
+  listViewMode: JobListViewMode;
+  onListViewModeChange: (mode: JobListViewMode) => void;
   workerFilter: string;
   onWorkerFilterChange: (id: string) => void;
+  leadFilter: string;
+  onLeadFilterChange: (id: string) => void;
   bulkMode: boolean;
   onBulkModeToggle: () => void;
   bulkSelectedCount: number;
@@ -120,7 +134,7 @@ export function JobListPanelHeader({
 }) {
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const activeDirectory = filterProductionActiveDirectory(directory);
-  const filtersActive = Boolean(opsChip || workerFilter || bulkMode);
+  const filtersActive = Boolean(opsChip || workerFilter || leadFilter || bulkMode);
 
   const kpiActive = (item: (typeof KPI_ITEMS)[number]) => {
     if (item.kind === "phase") return filter === item.phaseActive;
@@ -212,6 +226,28 @@ export function JobListPanelHeader({
         </div>
       </div>
 
+      <div
+        className="flex rounded-xl border border-border bg-secondary/40 p-0.5"
+        role="group"
+        aria-label="Widok listy robót"
+      >
+        {(["list", "queues"] as const).map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => onListViewModeChange(mode)}
+            aria-pressed={listViewMode === mode}
+            className={`flex-1 px-3 py-2 rounded-[10px] text-xs font-semibold min-h-[40px] transition-colors touch-manipulation ${
+              listViewMode === mode
+                ? "bg-background text-foreground shadow-sm border border-border/60"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {mode === "list" ? "Lista" : "Kolejki"}
+          </button>
+        ))}
+      </div>
+
       <div className="relative w-full">
         <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         <input
@@ -241,6 +277,28 @@ export function JobListPanelHeader({
 
       {showMoreFilters && (
         <div className="rounded-xl border border-border bg-secondary/25 p-3 space-y-3">
+          {activeDirectory.length > 0 && (
+            <label className="block space-y-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Lider realizacji
+              </span>
+              <select
+                value={leadFilter}
+                onChange={(e) => onLeadFilterChange(e.target.value)}
+                className="w-full bg-secondary rounded-lg px-3 py-2.5 text-xs border border-transparent focus:border-primary focus:outline-none min-h-[44px]"
+              >
+                <option value="">Wszyscy liderzy</option>
+                <option value={LEAD_FILTER_NO_LEAD}>Bez lidera</option>
+                {activeDirectory.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                    {d.position ? ` — ${d.position}` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
           {activeDirectory.length > 0 && (
             <label className="block space-y-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">

@@ -110,7 +110,8 @@ export function JobPhasePicker({
 export function JobListLegend({ compact = false }: { compact?: boolean }) {
   const items: { kind: JobListStatusKind; label: string; hint: string }[] = [
     { kind: "in_progress", label: JOB_PHASE_LABELS.in_progress, hint: JOB_PHASE_HINTS.in_progress },
-    { kind: "docs_pending", label: JOB_PHASE_LABELS.handover, hint: JOB_PHASE_HINTS.handover },
+    { kind: "docs_pending", label: JOB_LIST_STATUS_CONFIG.docs_pending.label, hint: JOB_LIST_STATUS_CONFIG.docs_pending.hint },
+    { kind: "ready_handover", label: JOB_LIST_STATUS_CONFIG.ready_handover.label, hint: JOB_LIST_STATUS_CONFIG.ready_handover.hint },
     { kind: "completed", label: JOB_PHASE_LABELS.completed, hint: JOB_PHASE_HINTS.completed },
   ];
   return (

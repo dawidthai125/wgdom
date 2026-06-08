@@ -21,6 +21,7 @@ import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobListPrimaryBadge, JobPhasePicker, applyJobPhase } from "@/app/JobListStatus";
 import { JobListCardV2 } from "@/app/JobListCardV2";
 import { JobListPanelHeader } from "@/app/JobListPanelHeader";
+import { JobQueueSections } from "@/app/JobQueueSections";
 import { JobListGuidePanel } from "@/app/JobListGuidePanel";
 import { JobAllFilesView, JobFileCatalogList } from "@/app/JobAllFilesView";
 import { JobDetailSectionNav, JobsDetailEmptyState, type JobDetailSection } from "@/app/JobDetailSectionNav";
@@ -51,10 +52,12 @@ import {
   JOB_PHASE_LABELS, type JobListFilter, type JobPhase,
 } from "@/lib/job-list-status";
 import {
+  buildJobQueueSections,
   computeJobListOpsKpi,
   filterJobsForListView,
   sortJobsInMonthGroup,
   wmOverdueJobIdSet,
+  type JobListViewMode,
   type JobOpsChip,
 } from "@/lib/job-list-ops";
 import { normalizeJobMetaFields, isJobHousingSet, HOUSING_TYPE_LABELS, STOVE_TYPE_LABELS_FULL } from "@/lib/job-meta";
@@ -555,6 +558,8 @@ export function JobsView({
   const [bulkSelectedIds, setBulkSelectedIds] = useState<Set<string>>(() => new Set());
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [workerFilter, setWorkerFilter] = useState<string>("");
+  const [leadFilter, setLeadFilter] = useState<string>("");
+  const [listViewMode, setListViewMode] = useState<JobListViewMode>("list");
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [packBusy, setPackBusy] = useState(false);
   const [fileDeleteBusy, setFileDeleteBusy] = useState<string | null>(null);
@@ -1109,9 +1114,15 @@ export function JobsView({
         opsChip,
         overdueIds: wmOverdueIds,
         workerDirectoryId: workerFilter,
+        leadFilter,
         searchQuery: search,
       }),
-    [jobs, filter, opsChip, wmOverdueIds, workerFilter, search],
+    [jobs, filter, opsChip, wmOverdueIds, workerFilter, leadFilter, search],
+  );
+
+  const queueSections = useMemo(
+    () => buildJobQueueSections(filtered, wmOverdueIds),
+    [filtered, wmOverdueIds],
   );
 
   const grouped = useMemo(() => {
@@ -1227,6 +1238,43 @@ export function JobsView({
     ? `${selectedJob.address || "Bez adresu"}${selectedJob.flatNumber ? ` m.${selectedJob.flatNumber}` : ""}`
     : "";
 
+  const resolveLeadName = (job: Job) => {
+    const leadId = job.executionLeadDirectoryId?.trim();
+    if (!leadId) return null;
+    return directory.find((d) => d.id === leadId)?.name ?? null;
+  };
+
+  const renderJobListCard = (job: Job) => {
+    const cost = jobCost(job);
+    const isSelected = job.id === selectedJobId;
+    const isDupe = isDuplicateJob(job);
+    const workerCount = new Set(job.workEntries.map((e) => e.directoryId || e.employeeName)).size;
+    const rcStats = recoverableStatsByJobId.get(job.id);
+    return (
+      <JobListCardV2
+        key={job.id}
+        job={job}
+        selected={isSelected}
+        isDuplicate={isDupe}
+        workerCount={workerCount}
+        totalHoursLabel={fmtH(jobTotalHours(job))}
+        costLabel={cost > 0 ? `${fmt(cost)} PLN` : null}
+        bulkMode={bulkMode}
+        bulkSelected={bulkSelectedIds.has(job.id)}
+        onBulkToggle={() => toggleBulkSelect(job.id)}
+        onSelect={() => openJob(job.id)}
+        onDeleteRequest={() => { setDeleteConfirmListId(job.id); setDeleteConfirmId(null); }}
+        deleteConfirm={deleteConfirmListId === job.id}
+        onDeleteConfirm={() => void deleteJob(job.id)}
+        onDeleteCancel={() => setDeleteConfirmListId(null)}
+        deleteBusy={deleteBusy}
+        recoverableUnsettledCount={rcStats?.unsettledCount}
+        recoverableToRecoverAmount={rcStats?.toRecoverAmount}
+        leadName={resolveLeadName(job)}
+      />
+    );
+  };
+
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
       {showAllFiles ? (
@@ -1257,9 +1305,13 @@ export function JobsView({
           onToggleOpsChip={toggleOpsChip}
           filterCounts={filterCounts}
           onFilterChange={setFilter}
+          listViewMode={listViewMode}
+          onListViewModeChange={setListViewMode}
           directory={directory}
           workerFilter={workerFilter}
           onWorkerFilterChange={setWorkerFilter}
+          leadFilter={leadFilter}
+          onLeadFilterChange={setLeadFilter}
           bulkMode={bulkMode}
           onBulkModeToggle={() => {
             setBulkMode((v) => !v);
@@ -1287,42 +1339,18 @@ export function JobsView({
               <p className="text-sm">Brak robót. Kliknij "Nowa robota".</p>
             </div>
           )}
-          {grouped.map(([key,groupJobs])=>(
-            <div key={key}>
-              <div className="px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground bg-background/50 border-b border-border sticky top-0">
-                {groupLabel(key)}
+          {listViewMode === "queues" ? (
+            <JobQueueSections sections={queueSections} renderJob={renderJobListCard} />
+          ) : (
+            grouped.map(([key, groupJobs]) => (
+              <div key={key}>
+                <div className="px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground bg-background/50 border-b border-border sticky top-0">
+                  {groupLabel(key)}
+                </div>
+                {groupJobs.map((job) => renderJobListCard(job))}
               </div>
-              {groupJobs.map(job=>{
-                const cost = jobCost(job);
-                const isSelected = job.id===selectedJobId;
-                const isDupe = isDuplicateJob(job);
-                const workerCount = new Set(job.workEntries.map((e) => e.directoryId || e.employeeName)).size;
-                const rcStats = recoverableStatsByJobId.get(job.id);
-                return (
-                  <JobListCardV2
-                    key={job.id}
-                    job={job}
-                    selected={isSelected}
-                    isDuplicate={isDupe}
-                    workerCount={workerCount}
-                    totalHoursLabel={fmtH(jobTotalHours(job))}
-                    costLabel={cost > 0 ? `${fmt(cost)} PLN` : null}
-                    bulkMode={bulkMode}
-                    bulkSelected={bulkSelectedIds.has(job.id)}
-                    onBulkToggle={() => toggleBulkSelect(job.id)}
-                    onSelect={() => openJob(job.id)}
-                    onDeleteRequest={() => { setDeleteConfirmListId(job.id); setDeleteConfirmId(null); }}
-                    deleteConfirm={deleteConfirmListId === job.id}
-                    onDeleteConfirm={() => void deleteJob(job.id)}
-                    onDeleteCancel={() => setDeleteConfirmListId(null)}
-                    deleteBusy={deleteBusy}
-                    recoverableUnsettledCount={rcStats?.unsettledCount}
-                    recoverableToRecoverAmount={rcStats?.toRecoverAmount}
-                  />
-                );
-              })}
-            </div>
-          ))}
+            ))
+          )}
           {jobs.length>0&&filtered.length===0&&(
             <div className="p-8 text-center text-muted-foreground text-sm">Brak wyników.</div>
           )}

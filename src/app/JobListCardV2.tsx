@@ -40,6 +40,7 @@ export function JobListCardV2({
   deleteBusy,
   recoverableUnsettledCount,
   recoverableToRecoverAmount,
+  leadName,
 }: {
   job: JobListCardJob;
   selected: boolean;
@@ -58,6 +59,7 @@ export function JobListCardV2({
   deleteBusy?: boolean;
   recoverableUnsettledCount?: number;
   recoverableToRecoverAmount?: number;
+  leadName?: string | null;
 }) {
   const docsCount = DOCUMENT_TYPES.filter((d) => job.documents[d]).length;
   const missingDocs = jobMissingRequiredDocs(job);
@@ -66,7 +68,9 @@ export function JobListCardV2({
   const executionCrewCount = jobOpsExecutionCrewCount(job);
   const contractDateLabel = resolveWorkerContractDateLabel(job);
   const showNoTeamBadge = jobOpsHasNoExecutionTeam(job);
-  const clientLine = [job.client?.trim() || null, contractDateLabel].filter(Boolean).join(" • ");
+  const clientLine = [job.client?.trim() || null, contractDateLabel, leadName ? `Lider: ${leadName}` : null]
+    .filter(Boolean)
+    .join(" • ");
 
   return (
     <div

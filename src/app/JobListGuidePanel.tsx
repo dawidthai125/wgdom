@@ -104,14 +104,24 @@ export function JobListGuidePanel() {
           </ul>
         </section>
 
+        <section className="space-y-2">
+          <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Widok Kolejki (2.50)
+          </h3>
+          <p className="text-muted-foreground">
+            Przełącznik <strong className="text-foreground/80">Kolejki</strong> grupuje pilne roboty w sekcjach:
+            WM po terminie, BZP wymaga startu, Bez ekipy, Do odbioru — braki, Gotowe do zdania, Dokumenty &gt;7 dni.
+            Każda robota w jednej sekcji. Puste sekcje można zwinąć.
+          </p>
+        </section>
+
         <section className="space-y-2 rounded-xl border border-border bg-secondary/30 p-3">
           <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Wskazówka
           </h3>
           <p className="text-muted-foreground">
             Użyj wyszukiwarki po adresie lub kliencie. Zakładki faz (Wszystkie / W trakcie…) działają razem z KPI.
-            Dodatkowe filtry (pracownik, usuwanie wielu) otwierasz przyciskiem <strong className="text-foreground/80">Filtry</strong> pod
-            paskiem faz.
+            Filtry ▼: <strong className="text-foreground/80">Lider realizacji</strong> (plan kontraktu) i pracownik (godziny na robocie).
           </p>
         </section>
       </div>

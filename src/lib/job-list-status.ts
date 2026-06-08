@@ -44,13 +44,13 @@ export const JOB_LIST_STATUS_CONFIG: Record<
     badgeClass: "bg-yellow-500/12 text-yellow-700 dark:text-yellow-400 border-yellow-500/25",
   },
   docs_pending: {
-    label: "Gotowe do odbioru",
+    label: "Do odbioru — braki",
     filterLabel: "Do odbioru",
     hint: JOB_PHASE_HINTS.handover,
     badgeClass: "bg-orange-500/12 text-orange-700 dark:text-orange-400 border-orange-500/25",
   },
   ready_handover: {
-    label: "Gotowe do odbioru",
+    label: "Gotowe do zdania",
     filterLabel: "Do odbioru",
     hint: "Dokumenty skompletowane — można oznaczyć jako zdane.",
     badgeClass: "bg-emerald-500/12 text-emerald-700 dark:text-emerald-400 border-emerald-500/25",

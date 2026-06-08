@@ -4,9 +4,40 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-08  
+**Wersja UI (lokalnie):** **2.50.00** — Roboty 2.0 MID-B  
 **Wersja UI (prod):** **2.49.90** — Sprint 20.3B MIN Polonizacja UI  
 **Prod `origin/main` HEAD:** **`3d6a63e`** · https://www.wgdom.fun  
 **Status Sprint 20.3B MIN:** **CLOSED** (deploy prod)
+
+---
+
+## Roboty 2.0 MID-B — kolejki operacyjne (**IMPLEMENTED — local**)
+
+| Pole | Wartość |
+|------|---------|
+| **Wersja docelowa** | **v2.50.00** |
+| **Baseline kodu** | lokalnie na `3d6a63e` + diff MID-B (bez commit) |
+| **Status** | **IMPLEMENTED (local)** — nie RELEASED |
+
+### Zakres
+
+| Element | Opis |
+|---------|------|
+| **Toggle** | Lista \| Kolejki (`listViewMode`, domyślnie lista) |
+| **Kolejki** | 6 sekcji rozłącznych: WM overdue → BZP start → bez ekipy → braki → gotowe → docs >7d |
+| **Filtr lidera** | Filtry ▼ → `executionLeadDirectoryId` (wszyscy / bez lidera / aktywni) |
+| **Badge** | Do odbioru — braki / Gotowe do zdania (tylko prezentacja) |
+| **Pliki** | `job-list-ops.ts`, `JobQueueSections.tsx`, `JobsView`, `JobListPanelHeader`, smoke `smoke-test-jobs-2.0-midb.mjs` |
+
+### Walidacja lokalna (pre-release)
+
+| Suite | Wynik |
+|-------|-------|
+| `npm run build` | **PASS** (po docs) |
+| `smoke-test-jobs-2.0-midb.mjs` | **21/21 PASS** |
+| smoke 20.5a4 / 20.5a3a / 20.2a | **PASS** |
+
+**Następny krok:** commit + push → Vercel → oznaczenie RELEASED po manual smoke.
 
 ---
 
@@ -120,6 +151,7 @@
 
 | Sprint | Wersja | Commit | Status |
 |--------|--------|--------|--------|
+| **Roboty 2.0 MID-B** Kolejki + lider | **2.50.00** | *(lokalnie, bez commit)* | **IMPLEMENTED (local)** |
 | **20.3B MIN** Polonizacja UI | **2.49.90** | **`3d6a63e`** | **CLOSED** |
 | **20.5A.4** Billing Notes Workflow | **2.49.80** | **`9990921`** | **CLOSED** |
 | **20.5A.3A** Inspector Billing Review | **2.49.70** | **`4fec9cc`** | **CLOSED** |

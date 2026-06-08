@@ -4,7 +4,16 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.49.90** (`changelog-data.ts`) · Sprint 20.3B MIN Polonizacja UI
+**Aktualna wersja UI:** **2.50.00** (`changelog-data.ts`) · Roboty 2.0 MID-B (lokalnie — przed release)
+
+---
+
+## 2.50.00 (2026-06-08) — Roboty 2.0 MID-B
+
+* **Lista / Kolejki** — widok operacyjny: WM po terminie, BZP wymaga startu, Bez ekipy, Do odbioru — braki, Gotowe do zdania, Dokumenty >7 dni
+* **Filtr lidera** — Filtry ▼ → Lider realizacji (`executionLeadDirectoryId`)
+* **Badge odbiorów** — „Do odbioru — braki” vs „Gotowe do zdania” (prezentacja; bez zmian sync/KV)
+* Smoke: `smoke-test-jobs-2.0-midb.mjs`
 
 ---
 
