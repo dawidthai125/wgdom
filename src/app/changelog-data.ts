@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-08",
+    version: "2.50.20",
+    label: "Desktop Layout Fix — jeden scroll w panelu admina",
+    items: [
+      { type: "fix", text: "Laptop/desktop (≥768px) — wyłączono scroll dokumentu; przewijanie tylko wewnątrz widoków (Pulpit, Roboty, Lista płac…)" },
+      { type: "fix", text: "Flex layout — min-w-0 w routerze widoków, Pulpicie i Mediach (mniej poziomego overflow)" },
+      { type: "improve", text: "Smoke desktop-layout-2.50.20 — 1366×768, 1280×720, Pulpit/Roboty/Payroll" },
+    ],
+  },
+  {
+    date: "2026-06-08",
     version: "2.50.10",
     label: "Mobile Fix Pack — ergonomia Roboty na telefonach",
     items: [

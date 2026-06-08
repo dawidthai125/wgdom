@@ -10,9 +10,11 @@
 /* Admin shell — desktop: visualViewport z Chrome */
 @media (min-width: 768px) {
   .admin-app-shell {
+    box-sizing: border-box;
+    padding-top: var(--app-viewport-offset-top, 0px);
     height: var(--app-height, 100svh);
     max-height: var(--app-height, 100svh);
-    min-height: var(--app-height, 100svh);
+    min-height: 0;
   }
 
   .admin-topbar {

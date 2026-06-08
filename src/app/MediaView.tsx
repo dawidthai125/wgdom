@@ -20,7 +20,7 @@ export function MediaView({
   const [tab, setTab] = useState<MediaTab>("photos");
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+    <div className="flex-1 min-w-0 flex flex-col min-h-0 overflow-hidden">
       <div className="shrink-0 px-4 sm:px-8 pt-6 pb-3 max-w-4xl mx-auto w-full">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">

@@ -21,7 +21,7 @@ export default defineConfig({
     {
       name: "desktop-chrome",
       use: { browserName: "chromium", viewport: { width: 1920, height: 1080 } },
-      testMatch: /desktop-smoke\.spec\.ts/,
+      testMatch: /desktop-(smoke|layout)\.spec\.ts/,
     },
     {
       name: "iphone-se",

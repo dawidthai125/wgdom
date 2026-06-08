@@ -10,16 +10,20 @@ test.describe("Desktop smoke — przeglądarka PC/laptop", () => {
     await expect(page.locator("text=Unexpected")).toHaveCount(0);
   });
 
-  test("desktop viewport — html overflow-y auto, brak poziomego scrolla", async ({ page }) => {
+  test("desktop viewport — html overflow hidden, brak scrollu dokumentu", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("button", { name: /Panel administracyjny/i }).first()).toBeVisible({ timeout: 45_000 });
 
-    const overflowY = await page.evaluate(() => getComputedStyle(document.documentElement).overflowY);
-    expect(["auto", "scroll", "visible"]).toContain(overflowY);
-
-    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
-    const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
-    expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 2);
+    const layout = await page.evaluate(() => ({
+      overflowY: getComputedStyle(document.documentElement).overflowY,
+      scrollHeight: document.documentElement.scrollHeight,
+      clientHeight: document.documentElement.clientHeight,
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+    expect(layout.overflowY).toBe("hidden");
+    expect(layout.scrollHeight).toBeLessThanOrEqual(layout.clientHeight + 2);
+    expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth + 2);
   });
 
   test("formularz admin — otwiera się na desktopie", async ({ page }) => {

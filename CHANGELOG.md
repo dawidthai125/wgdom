@@ -4,7 +4,15 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.10** (`changelog-data.ts`) · Mobile Fix Pack (lokalnie — przed release)
+**Aktualna wersja UI:** **2.50.20** (`changelog-data.ts`) · Desktop Layout Fix (lokalnie — przed release)
+
+---
+
+## 2.50.20 (2026-06-08) — Desktop Layout Fix
+
+* **Admin laptop/desktop** — `overflow: hidden` na html/body; scroll tylko w widokach
+* **min-w-0** — AdminViewRouter, Pulpit, Media (flex bez poziomego wypychania)
+* Smoke: `smoke-test-desktop-layout-2.50.20.mjs` + `e2e/desktop-layout.spec.ts`
 
 ---
 

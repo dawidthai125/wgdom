@@ -277,7 +277,7 @@ export function AdminViewRouter({
 
   return (
     <div
-      className={`flex flex-1 min-h-0 overflow-hidden ${payrollDetailOpen ? "" : "pb-[calc(3.5rem+env(safe-area-inset-bottom))]"} md:pb-0`}
+      className={`flex flex-1 min-h-0 min-w-0 overflow-hidden ${payrollDetailOpen ? "" : "pb-[calc(3.5rem+env(safe-area-inset-bottom))]"} md:pb-0`}
     >
       {view === "dashboard" && (
         <ViewErrorBoundary label="Pulpit">
