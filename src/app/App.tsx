@@ -99,7 +99,7 @@ import { mergeEmployeeLeaves } from "@/lib/employee-leaves";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import { mergeRecoverableCharges } from "@/lib/recoverable-charges";
 import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
-import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosed } from "@/lib/payroll-cycle";
+import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosedForUi } from "@/lib/payroll-cycle";
 import { hasPayrollRolloverBlockers } from "@/lib/payroll-rollover";
 
 function AppInner({onLogout}: {onLogout?: ()=>void}) {
@@ -678,14 +678,18 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, []);
 
   const refreshSavedActiveWeekSnapshot = useCallback((nextEmployees: WeekEmployee[]) => {
-    if (isPayrollWeekClosed(weekFrom, weekTo)) return;
+    const blockers = hasPayrollRolloverBlockers(nextEmployees, weekFrom, weekTo, directory, {
+      employeeLeaves,
+      savedWeeks,
+    });
+    if (isPayrollWeekClosedForUi(weekFrom, weekTo, blockers)) return;
     setSavedWeeks((prev) => {
       const existing = prev.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
       if (!existing) return prev;
       const snapshot = buildWeekSnapshot(weekFrom, weekTo, nextEmployees, jobs, existing, employeeLeaves, prev);
       return prev.map((w) => (w.id === existing.id ? snapshot : w));
     });
-  }, [weekFrom, weekTo, jobs, employeeLeaves, setSavedWeeks]);
+  }, [weekFrom, weekTo, jobs, employeeLeaves, savedWeeks, directory, setSavedWeeks]);
 
   const addFromDirectory = (ids: string[]) => {
     setWeekEmployees((prev) => {
@@ -763,7 +767,17 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         try {
           let archive = savedWeeks;
           const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-          if (existing && !isPayrollWeekClosed(weekFrom, weekTo)) {
+          if (
+            existing
+            && !isPayrollWeekClosedForUi(
+              weekFrom,
+              weekTo,
+              hasPayrollRolloverBlockers(next, weekFrom, weekTo, directory, {
+                employeeLeaves,
+                savedWeeks: archive,
+              }),
+            )
+          ) {
             const snapshot = buildWeekSnapshot(weekFrom, weekTo, next, jobs, existing, employeeLeaves, savedWeeks);
             archive = savedWeeks.map((w) => (w.id === existing.id ? snapshot : w));
             try { localStorage.setItem("kw-archive", JSON.stringify(archive)); } catch { /* ignore */ }

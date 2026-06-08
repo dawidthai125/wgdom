@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-08",
+    version: "2.49.60",
+    label: "Lista płac — closed week przy zablokowanym rolloverze (Sprint 20.1D)",
+    items: [
+      { type: "fix", text: "Nd ≥20:00 z nierozliczoną kasą sobotnią — tydzień pozostaje operacyjny (nie „historyczny”)" },
+      { type: "fix", text: "Przeniesienie wypłaty (⏭) i edycja listy działają do czasu faktycznego rolloveru" },
+      { type: "fix", text: "Zapisany tydzień — backup odświeża się przy zmianach także gdy zegar już wskazuje kolejny tydzień" },
+      { type: "improve", text: "isPayrollWeekClosedForUi — wyjątek przy hasPayrollRolloverBlockers; smoke 20.1d (T1–T6)" },
+    ],
+  },
+  {
+    date: "2026-06-08",
     version: "2.49.50",
     label: "Roboty — naprawa wgrywania zdjęć (admin)",
     items: [

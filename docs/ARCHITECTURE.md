@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.49.20** · Sprint 20.1C Payroll rollover)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-07 (Sprint 20.1C — rollover kasa sobotnia)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.49.60** · Sprint 20.1D closed week semantics)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-08 (Sprint 20.1D — closed week przy zablokowanym rolloverze)
 
 ---
 
@@ -338,8 +338,9 @@ Pliki: `src/lib/payroll-carry-forward.ts`, `src/lib/payroll-carry-snapshot.ts`, 
 | Aspekt | Opis |
 |--------|------|
 | **`isPayrollWeekSaved`** | `savedWeeks.some(weekFrom/weekTo)` — kopia zapasowa istnieje |
-| **`isPayrollWeekClosed`** | `weekFrom/weekTo ≠ getPayrollWeekRange(now)` — tydzień po rolloverze lub nawigacja wstecz |
-| **Defer ⏭** | Dozwolony gdy **nie** closed; zablokowany: `closed_week` (nie `archived_week`) |
+| **`isPayrollWeekClosed`** | `weekFrom/weekTo ≠ getPayrollWeekRange(now)` — kalendarzowe (legacy / testy) |
+| **`isPayrollWeekClosedForUi`** | Jak wyżej, **ale** `hasRolloverBlockers` → nadal operacyjny (Sprint 20.1D) |
+| **Defer ⏭** | Dozwolony gdy **nie** closed (UI); zablokowany: `closed_week` (nie `archived_week`) |
 | **Aktywny tydzień (saved lub nie)** | Lista płac + PDF/DOCX z **live** `weekEmployees`; urlopy z live overlay |
 | **Tydzień historyczny (closed)** | Lista płac + PDF/DOCX ze **snapshotu**; defer zablokowany |
 | **Snapshot refresh** | `refreshSavedActiveWeekSnapshot()` w `App.tsx` — po defer, toggle settled, edycji rosteru (tylko gdy saved + operacyjny) |
@@ -357,7 +358,16 @@ Pliki 20.1B: `src/lib/payroll-cycle.ts`, `src/app/PayrollView.tsx`, `src/app/App
 | **Zwolnienia** | Carry out (PRZENIESIONO), biweekly accrual, urlop, net ≤ 0 — przez `saturdayCash === 0` |
 | **Bez zmian** | `autoArchiveAndAdvance`, `buildWeekSnapshot`, MODEL A, `computePayrollCashSplit`, sync KV |
 | **Smoke** | `scripts/smoke-test-payroll-rollover-20.1c.mjs` |
-| **Poza zakresem** | `DashboardView` alerty nadal na `!settled`; `isPayrollWeekClosed` kalendarzowe |
+| **20.1C.2** | Dashboard alerty = `listPayrollRolloverBlockers` (v2.49.40) |
+
+**Closed week semantics (Sprint 20.1D, v2.49.60 — CLOSED):**
+
+| Aspekt | Opis |
+|--------|------|
+| **Problem** | Nd ≥20:00 zegar → W2, ale blockers trzymają stan na W1; stary `isPayrollWeekClosed` = historyczny |
+| **Fix** | `isPayrollWeekClosedForUi(week, hasRolloverBlockers)` — calendar behind + blockers → **nie** closed |
+| **UI** | `PayrollView`, `App.tsx` snapshot refresh, `payroll-leave-overlay` biweekly |
+| **Smoke** | `scripts/smoke-test-payroll-week-closed-20.1d.mjs` (T1–T6) |
 
 **Nowy typ danych → MUSISZ:** dodać do `DATA_KEYS`, hook stanu w adminie, merge w `mergeDataKey`, push/pull paths, tombstone przy DELETE.
 

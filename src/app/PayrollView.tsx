@@ -38,7 +38,7 @@ import {
   isBiweeklyPayrollEmployee,
   calcBiweeklyRowDisplay,
   computePayrollCashSplit,
-  isPayrollWeekClosed,
+  isPayrollWeekClosedForUi,
   biweeklyMissingPrevWeekArchive,
   biweeklyCashContextLine,
   calcWeekNetNoPrevSat,
@@ -46,6 +46,7 @@ import {
   getPayrollClosingWeekRange,
   PAYROLL_WEEK_ROLLOVER_HOUR,
 } from "@/lib/payroll-cycle";
+import { hasPayrollRolloverBlockers } from "@/lib/payroll-rollover";
 import { contactsForPayroll, contactAllowsPayroll, type EmailContact } from "@/lib/email-contacts";
 import { API_BASE, API_HEADERS, weekEmployeesListRichness } from "@/lib/cloud-sync";
 import { useAdminAccess } from "@/app/admin-access";
@@ -547,7 +548,15 @@ export function PayrollView({
 
   const archivedForWeek = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
   const isSavedWeek = isPayrollWeekSaved(savedWeeks, weekFrom, weekTo);
-  const isClosedWeek = isPayrollWeekClosed(weekFrom, weekTo);
+  const hasRolloverBlockers = useMemo(
+    () =>
+      hasPayrollRolloverBlockers(weekEmployees, weekFrom, weekTo, directory, {
+        employeeLeaves,
+        savedWeeks,
+      }),
+    [weekEmployees, weekFrom, weekTo, directory, employeeLeaves, savedWeeks],
+  );
+  const isClosedWeek = isPayrollWeekClosedForUi(weekFrom, weekTo, hasRolloverBlockers);
   const payrollEmployees =
     isClosedWeek && archivedForWeek?.weekEmployees?.length
       ? archivedForWeek.weekEmployees
@@ -587,9 +596,10 @@ export function PayrollView({
           calcBiweeklyWeekNetWithLeave(e, from, to, {
             employeeLeaves,
             savedWeeks,
+            hasRolloverBlockers,
           }),
       ),
-    [payrollEmployees, directory, weekFrom, weekTo, savedWeeks, employeeLeaves, isClosedWeek, archivedForWeek],
+    [payrollEmployees, directory, weekFrom, weekTo, savedWeeks, employeeLeaves, isClosedWeek, archivedForWeek, hasRolloverBlockers],
   );
 
   const backlogCheck = useMemo(

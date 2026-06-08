@@ -85,8 +85,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.49.40**) |
-| Prod `main` (app) | commit **`75de889`** · release **v2.49.40** · Sprint 20.1C.2 Dashboard alerts **CLOSED** |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.49.60**) |
+| Prod `main` (app) | Sprint **20.1D** closed week · release **v2.49.60** (commit po deploy tej sesji) |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |
 | Frontend deploy | push `main` → Vercel |
@@ -180,10 +180,21 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 
 ---
 
+## 3e2. Closed week semantics — Sprint 20.1D (**CLOSED** po deploy, v2.49.60)
+
+- **Problem:** Nd ≥20:00 + `hasPayrollRolloverBlockers` — zegar W2, stan W1; `isPayrollWeekClosed` = fałszywy „historyczny”
+- **Fix:** `isPayrollWeekClosedForUi(week, hasRolloverBlockers)` — blockers → operacyjny (defer ⏭, live lista, snapshot refresh)
+- **Pliki:** `payroll-cycle.ts`, `PayrollView.tsx`, `App.tsx`, `payroll-leave-overlay.ts`
+- **Smoke:** `npx vite-node scripts/smoke-test-payroll-week-closed-20.1d.mjs` (T1–T6)
+
+**Nie zmieniaj bez polecenia:** `isPayrollWeekClosed` (legacy kalendarzowe), logika blockers 20.1C.
+
+---
+
 ## 3f. Carry workflow — Sprint 20.1B (**CLOSED**, prod `74e65d9`, v2.45.39)
 
 - **Handoff:** [`docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md`](docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md) — **czytaj najpierw** (audyt Kamila → fix → deploy)
-- **Architektura:** **ARCHITECTURE.md § 10.1** — `isPayrollWeekSaved`, `isPayrollWeekClosed`, `refreshSavedActiveWeekSnapshot`
+- **Architektura:** **ARCHITECTURE.md § 10.1** — `isPayrollWeekSaved`, `isPayrollWeekClosedForUi`, `refreshSavedActiveWeekSnapshot`
 - **Test smoke:** `npx vite-node scripts/smoke-test-payroll-carry-forward-20.1b.mjs`, `scripts/pre-commit-verify-20.1b.mjs`
 
 **saved ≠ closed** — defer ⏭ do rolloveru; zapisany operacyjny tydzień = live payroll + auto snapshot refresh.

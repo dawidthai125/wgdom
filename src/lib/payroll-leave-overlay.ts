@@ -2,7 +2,7 @@
 
 import type { WeekEmployee, WeekSnapshot } from "@/app/app-domain";
 import { calcWeekEmployee } from "@/app/app-domain";
-import { calcWeekNetNoPrevSat, isPayrollWeekClosed } from "@/lib/payroll-cycle";
+import { calcWeekNetNoPrevSat, isPayrollWeekClosedForUi } from "@/lib/payroll-cycle";
 import {
   findLeaveForEmployeeWeek,
   frozenLeaveStatusFromSnapshot,
@@ -86,7 +86,7 @@ export function isPayrollWeekArchived(
   return savedWeeks.some((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
 }
 
-export { isPayrollWeekSaved, isPayrollWeekClosed } from "@/lib/payroll-cycle";
+export { isPayrollWeekSaved, isPayrollWeekClosed, isPayrollWeekClosedForUi } from "@/lib/payroll-cycle";
 
 /** Netto Pn–So dla wypłaty co 2 tyg. — 0 gdy urlop (live lub archiwum). */
 export function calcBiweeklyWeekNetWithLeave(
@@ -96,10 +96,11 @@ export function calcBiweeklyWeekNetWithLeave(
   options: {
     employeeLeaves?: EmployeeLeave[];
     savedWeeks?: WeekSnapshot[];
+    hasRolloverBlockers?: boolean;
   },
 ): number {
   const snap = options.savedWeeks?.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-  const closed = isPayrollWeekClosed(weekFrom, weekTo);
+  const closed = isPayrollWeekClosedForUi(weekFrom, weekTo, options.hasRolloverBlockers ?? false);
   const calc = calcWeekEmployeeWithLeave(emp, {
     weekFrom,
     weekTo,

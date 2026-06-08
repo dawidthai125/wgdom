@@ -4,11 +4,17 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.49.50** (`changelog-data.ts`) · Fix admin photo upload JobsView
+**Aktualna wersja UI:** **2.49.60** (`changelog-data.ts`) · Sprint 20.1D closed week semantics
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
 
 ---
+
+## 2.49.60 (2026-06-08) — Closed week przy zablokowanym rolloverze (Sprint 20.1D)
+
+* **`isPayrollWeekClosedForUi`** — tydzień w tyle kalendarza + blockers → nadal operacyjny
+* PayrollView / defer ⏭ / snapshot refresh / leave overlay — nowa semantyka
+* Smoke: `smoke-test-payroll-week-closed-20.1d.mjs` (T1–T6)
 
 ## 2.49.50 (2026-06-08) — Roboty admin photo upload fix
 

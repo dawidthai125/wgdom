@@ -61,6 +61,23 @@ export function isPayrollWeekClosed(
   return weekFrom !== current.from || weekTo !== current.to;
 }
 
+/**
+ * Sprint 20.1D — closed dla UI / defer / snapshot.
+ * Tydzień w tyle kalendarza, ale rollover zablokowany (20.1C) → nadal operacyjny.
+ */
+export function isPayrollWeekClosedForUi(
+  weekFrom: string,
+  weekTo: string,
+  hasRolloverBlockers: boolean,
+  now = new Date(),
+): boolean {
+  const current = getPayrollWeekRange(now);
+  const calendarBehind = weekFrom !== current.from || weekTo !== current.to;
+  if (!calendarBehind) return false;
+  if (hasRolloverBlockers) return false;
+  return true;
+}
+
 /** Tydzień domykany w weekend (Pn–So z ostatnią sobotą). Nd zawsze = tydzień kończący się wczoraj. */
 export function getPayrollClosingWeekRange(now = new Date()): { from: string; to: string } {
   const day = now.getDay();
