@@ -1,6 +1,6 @@
 # W&G DOM
 
-System zarządzania robotami, listą płac i inspekcją WM — **https://wgdom.fun**
+System zarządzania robotami, listą płac i inspekcją WM — **https://www.wgdom.fun**
 
 React + Vite · Supabase · Vercel · PWA · Capacitor (Android/iOS)
 

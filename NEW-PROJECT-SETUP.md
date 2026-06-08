@@ -44,7 +44,7 @@ VITE_SUPABASE_ANON_KEY=eyJ...twój_klucz...
 VITE_SUPABASE_FUNCTION_SLUG=make-server-0afb8820
 ```
 
-### Vercel (wgdom.fun)
+### Vercel (www.wgdom.fun)
 
 **Settings** → **Environment Variables** (Production + Preview):
 
@@ -79,7 +79,7 @@ cd WGDOM1
 ### Opcja B — przez aplikację
 
 1. Ustaw zmienne w Vercel + redeploy (krok 3)
-2. Wejdź na wgdom.fun → zaloguj → **Importuj backup** (górny pasek)
+2. Wejdź na www.wgdom.fun → zaloguj → **Importuj backup** (górny pasek)
 3. Wybierz `backup-2026-05-31.json` — import zapisze też do chmury
 
 ## 6. Co jest w backupie mobile (31.05)

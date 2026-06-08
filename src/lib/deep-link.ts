@@ -30,7 +30,8 @@ export function parseDeepLink(raw: string): DeepLinkRoute | null {
       }
     }
 
-    if (url.hostname === "wgdom.fun" || url.hostname.endsWith(".vercel.app")) {
+    const host = url.hostname.toLowerCase();
+    if (host === "wgdom.fun" || host === "www.wgdom.fun" || host.endsWith(".vercel.app")) {
       const m = url.pathname.match(/^\/open\/job\/([^/]+)/);
       if (m?.[1]) return { type: "job", jobId: m[1] };
       const m2 = url.pathname.match(/^\/open\/payroll\/?([^/]*)/);

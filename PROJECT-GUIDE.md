@@ -4,7 +4,7 @@
 > Pełna treść techniczna (~700 linii) → **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**  
 > **Nie zgaduj architektury** — czytaj ARCHITECTURE przed większymi zmianami.
 
-**Produkcja:** https://wgdom.fun · **Stack:** React/Vite · Supabase Edge · Vercel · PWA · Capacitor
+**Produkcja:** https://www.wgdom.fun · **Stack:** React/Vite · Supabase Edge · Vercel · PWA · Capacitor
 
 ---
 

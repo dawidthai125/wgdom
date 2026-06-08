@@ -37,7 +37,7 @@ jobs:
       - run: npx playwright install chromium
       - run: npm run test:mobile
         env:
-          PW_BASE_URL: https://wgdom.fun
+          PW_BASE_URL: https://www.wgdom.fun
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

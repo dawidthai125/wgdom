@@ -83,7 +83,7 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 
 | | |
 |---|---|
-| Produkcja | https://wgdom.fun |
+| Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
 | Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.49.60**) |
 | Prod `main` (app) | Sprint **20.1D** closed week · release **v2.49.60** (commit po deploy tej sesji) |
@@ -224,7 +224,7 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 ```bash
 npm run dev          # localhost:5173
 npm run build
-npm run test:mobile  # Playwright → wgdom.fun
+npm run test:mobile  # Playwright → www.wgdom.fun
 npm run audit:mobile # statyczny audyt mobile
 ```
 

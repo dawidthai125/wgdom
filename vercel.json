@@ -13,6 +13,12 @@
       "has": [{ "type": "host", "value": "wgdom.fun" }],
       "destination": "https://www.wgdom.fun/:path*",
       "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.wgdom.online" }],
+      "destination": "https://www.wgdom.fun/:path*",
+      "permanent": true
     }
   ],
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]

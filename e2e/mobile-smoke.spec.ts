@@ -8,7 +8,7 @@ async function expectLoginScreen(page: import("@playwright/test").Page) {
 }
 
 /**
- * Smoke testy mobile — produkcja (wgdom.fun) lub preview:
+ * Smoke testy mobile — produkcja (www.wgdom.fun) lub preview:
  *   PW_BASE_URL=http://127.0.0.1:4173 npm run test:mobile
  */
 test.describe("Mobile smoke — PWA / web", () => {

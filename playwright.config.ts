@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = process.env.PW_BASE_URL || "https://wgdom.fun";
+const baseURL = process.env.PW_BASE_URL || "https://www.wgdom.fun";
 
 /** Chromium + emulacja mobile (WebKit na Windows w CI bywa problematyczny). */
 export default defineConfig({

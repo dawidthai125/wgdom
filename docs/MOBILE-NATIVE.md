@@ -1,6 +1,6 @@
 # W&G DOM — aplikacja natywna (Capacitor)
 
-Apka mobilna to **cienka skorupa** (Android / iOS), która ładuje UI z **https://wgdom.fun**.  
+Apka mobilna to **cienka skorupa** (Android / iOS), która ładuje UI z **https://www.wgdom.fun**.  
 Aktualizacje funkcji = push na Vercel — **bez** czekania na review w sklepie (zmienia się tylko strona).
 
 ---
@@ -9,7 +9,7 @@ Aktualizacje funkcji = push na Vercel — **bez** czekania na review w sklepie (
 
 ### 1. PWA (najprościej, już działa)
 
-Na telefonie: **wgdom.fun** → menu przeglądarki → **Dodaj do ekranu głównego**.
+Na telefonie: **www.wgdom.fun** → menu przeglądarki → **Dodaj do ekranu głównego**.
 
 To ta sama aplikacja co na komputerze, pełny ekran, sync z chmurą. **Nie potrzebujesz nic instalować na PC.**
 
@@ -75,7 +75,7 @@ Po każdej większej zmianie mobilnej uruchom lokalnie:
 
 ```bash
 npm run audit:mobile    # audyt statyczny kodu (36+ reguł)
-npm run test:mobile     # Playwright na https://wgdom.fun (iPhone SE + Pixel 7)
+npm run test:mobile     # Playwright na https://www.wgdom.fun (iPhone SE + Pixel 7)
 ```
 
 Preview lokalny:
@@ -126,7 +126,7 @@ Na fizycznym telefonie użyj IP komputera w sieci Wi‑Fi, np. `http://192.168.1
 Przed publikacją:
 - Podmień `resources/icon.png` na **1024×1024** (logo W&G DOM)  
 - Uruchom `npm run cap:assets`  
-- W `capacitor.config.ts` upewnij się, że `server.url` = `https://wgdom.fun`
+- W `capacitor.config.ts` upewnij się, że `server.url` = `https://www.wgdom.fun`
 
 ## Id aplikacji
 

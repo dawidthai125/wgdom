@@ -235,13 +235,13 @@ status
 ok
 ```
 
-**Alternatywa:** w aplikacji [wgdom.fun](https://wgdom.fun) sprawdź ikonę chmurki u góry — jeśli synchronizacja działa (szara/zielona chmurka), backend jest OK i health w przeglądarce możesz pominąć.
+**Alternatywa:** w aplikacji [www.wgdom.fun](https://www.wgdom.fun) sprawdź ikonę chmurki u góry — jeśli synchronizacja działa (szara/zielona chmurka), backend jest OK i health w przeglądarce możesz pominąć.
 
 ---
 
 ### Test B — email z aplikacji
 
-1. Wejdź na [https://wgdom.fun](https://wgdom.fun) (lub wgdom.vercel.app)
+1. Wejdź na [https://www.wgdom.fun](https://www.wgdom.fun) (lub wgdom.vercel.app)
 2. **Kontakty** → dodaj kontakt z **prawdziwym emailem**
 3. **Roboty** → wybierz robotę ze zdjęciami lub raportem
 4. **Email** → wybierz odbiorcę, zaznacz pozycje → **Wyślij**
@@ -257,7 +257,7 @@ ok
 2. Sekcja **„Podgląd dla klienta”** → **Utwórz link podglądu** → **Kopiuj**
 3. Link wygląda np. tak:
    ```
-   https://wgdom.fun/?podglad=abc123def456...
+   https://www.wgdom.fun/?podglad=abc123def456...
    ```
 4. Otwórz link w **trybie incognito** albo wyślij komuś — **bez logowania**
 5. Powinieneś zobaczyć adres, zaakceptowane zdjęcia i raporty (bez kosztów, notatek wewnętrznych)
@@ -327,7 +327,7 @@ supabase functions deploy make-server-0afb8820 --project-ref bdpygdvfgbggermvqty
 | `404` na `/send-job-email` | Stary kod na Supabase — powtórz krok 3 (wklej nowy `index.tsx`) |
 | `404` na `/client-share` | Brak v2.5 na Supabase — wklej nowy `index.tsx` z commitem `1dd9247+` i Deploy |
 | Link klienta: „Link nieaktywny” | W Roboty → włącz link; upewnij się, że chmurka zsynchronizowała dane (`clientShare.enabled = true`) |
-| Link klienta: pusty ekran / błąd | Otwórz link z **wgdom.fun** (Vercel v2.5); stary frontend nie ma widoku `?podglad=` |
+| Link klienta: pusty ekran / błąd | Otwórz link z **www.wgdom.fun** (Vercel v2.5); stary frontend nie ma widoku `?podglad=` |
 | Link klienta: brak zdjęć | Klient widzi tylko **zaakceptowane** zdjęcia — w Roboty kliknij ✓ przy zdjęciach |
 | Email nie dochodzi | Sprawdź spam; domena `wgdom.fun` musi być zweryfikowana w Resend |
 | Backup nie przychodzi w poniedziałek | Wdróż nowy `index.tsx`; backup idzie na `dawid.thai@int.pl` |

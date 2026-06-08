@@ -1,7 +1,7 @@
 # W&G DOM — przewodnik architektury (living document)
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
-> **Produkcja:** https://wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
+> **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
 > **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.49.60** · Sprint 20.1D closed week semantics)
 > **Ostatnia aktualizacja tego dokumentu:** 2026-06-08 (Sprint 20.1D — closed week przy zablokowanym rolloverze)
 
@@ -37,7 +37,7 @@ npm install
 cp .env.example .env   # jeśli istnieje; uzupełnij VITE_SUPABASE_*
 npm run dev              # http://127.0.0.1:5173
 npm run build            # produkcja → dist/
-npm run test:mobile      # Playwright na wgdom.fun (domyślnie)
+npm run test:mobile      # Playwright na www.wgdom.fun (domyślnie)
 npm run audit:mobile     # statyczny audyt kodu mobile
 ```
 
@@ -68,7 +68,7 @@ Konfiguracja: `src/config/supabase.ts` → `isSupabaseConfigured()` — bez tych
 | Chmura | Supabase Edge Function (Hono) + KV store + Storage |
 | Hosting UI | Vercel (SPA, auto-deploy z `main`) |
 | PWA | `public/sw.js`, `manifest.webmanifest` |
-| Native | Capacitor (Android/iOS) — WebView → wgdom.fun |
+| Native | Capacitor (Android/iOS) — WebView → www.wgdom.fun |
 | Testy E2E | Playwright (`e2e/`) |
 | PDF | pdfmake (lazy load), docx (dynamic import) |
 
@@ -831,7 +831,7 @@ Inspektor ma analogiczny flow w `InspectorPhotoGallery.tsx` + `InspectorJobPhoto
 | `e2e/mobile-flows.spec.ts` | Flow logowania admin/inspektor/pracownik |
 | `e2e/desktop-smoke.spec.ts` | Desktop 1920×1080 |
 
-**Capacitor:** `capacitor.config.ts` — domyślnie `server.url: https://wgdom.fun`. Szczegóły: `docs/MOBILE-NATIVE.md`.
+**Capacitor:** `capacitor.config.ts` — domyślnie `server.url: https://www.wgdom.fun`. Szczegóły: `docs/MOBILE-NATIVE.md`.
 
 **Bundle (v2.35.15):** lazy `panel-inspector`, chunk `ui-vendor`, główny admin ~608 KB (gzip ~149 KB).
 
@@ -952,7 +952,7 @@ WGDOM1/
 |---------|---------|
 | `npm run build` | Typecheck + produkcyjny bundle |
 | `npm run audit:mobile` | Statyczny audyt 36 reguł |
-| `npm run test:mobile` | Playwright — domyślnie **https://wgdom.fun** |
+| `npm run test:mobile` | Playwright — domyślnie **https://www.wgdom.fun** |
 | `PW_BASE_URL=http://127.0.0.1:4173 npm run test:mobile` | Testy na lokalnym preview |
 
 **GitHub Actions:**
