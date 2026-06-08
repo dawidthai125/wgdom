@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type RefObject } from "react";
 import {
   Images, Search, ChevronRight, ChevronDown, Camera, MapPin, X,
 } from "lucide-react";
@@ -28,9 +28,11 @@ interface GalleryEntry {
 export function InspectorJobPhotosGalleryView({
   jobs,
   onOpenJob,
+  scrollRef,
 }: {
   jobs: GalleryJob[];
   onOpenJob: (jobId: string) => void;
+  scrollRef?: RefObject<HTMLDivElement | null>;
 }) {
   const [tab, setTab] = useState<"gallery" | "archive">("gallery");
   const [search, setSearch] = useState("");
@@ -100,8 +102,8 @@ export function InspectorJobPhotosGalleryView({
   );
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-      <div className="flex-1 overflow-y-auto overscroll-contain">
+    <div className="flex flex-1 flex-col min-h-0 w-full overflow-hidden">
+      <div ref={scrollRef} className="flex-1 w-full overflow-y-auto overscroll-contain">
         <div className="max-w-2xl mx-auto w-full px-4 py-4 space-y-4" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
           <div>
             <h2 className="text-base font-semibold flex items-center gap-2">

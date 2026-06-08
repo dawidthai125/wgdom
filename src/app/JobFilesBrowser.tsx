@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type RefObject } from "react";
 import {
   FolderOpen, Search, ChevronRight, ChevronDown, Download, Package, Eye, FileText, Camera,
 } from "lucide-react";
@@ -88,6 +88,7 @@ export function JobFilesBrowser({
   onOpenJob,
   layout = "inspector",
   embedded = false,
+  scrollRef,
 }: {
   jobs: JobFilesBrowserSource[];
   athPreviewEnabled: boolean;
@@ -95,6 +96,8 @@ export function JobFilesBrowser({
   layout?: "inspector" | "admin";
   /** Ukryj nagłówek h1 — np. w zakładce Media */
   embedded?: boolean;
+  /** Jeden scroll-container — np. pull-to-refresh w panelu Inspektora */
+  scrollRef?: RefObject<HTMLDivElement | null>;
 }) {
   const [search, setSearch] = useState("");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -143,9 +146,11 @@ export function JobFilesBrowser({
   const titleCls = layout === "admin" ? "text-xl font-bold" : "text-base font-semibold";
   const descCls = layout === "admin" ? "text-sm" : "text-[11px]";
 
+  const scrollPad = scrollRef ? "" : "pb-20 sm:pb-6";
+
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-      <div className="flex-1 overflow-y-auto overscroll-contain pb-20 sm:pb-6">
+    <div className={`flex flex-col min-h-0 overflow-hidden ${scrollRef ? "flex-1 w-full" : "flex-1"}`}>
+      <div ref={scrollRef} className={`flex-1 w-full overflow-y-auto overscroll-contain ${scrollPad}`}>
         <div className={`${maxW} mx-auto w-full px-4 sm:px-8 py-6 space-y-4`} style={{ paddingBottom: layout === "inspector" ? "max(1rem, env(safe-area-inset-bottom))" : undefined }}>
           {!embedded && (
             <div>

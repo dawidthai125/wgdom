@@ -909,24 +909,22 @@ export function InspectorPanel({
       ) : !selectedJob && mainTab === "gallery" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <PullToRefreshIndicator pull={galleryPull.pull} refreshing={galleryPull.refreshing} ready={galleryPull.ready}/>
-          <div ref={galleryScrollRef} className="flex-1 overflow-y-auto overscroll-contain">
-            <InspectorJobPhotosGalleryView
-              jobs={jobs}
-              onOpenJob={(id) => openJob(id, "photos", "gallery")}
-            />
-          </div>
+          <InspectorJobPhotosGalleryView
+            jobs={jobs}
+            scrollRef={galleryScrollRef}
+            onOpenJob={(id) => openJob(id, "photos", "gallery")}
+          />
           {renderBottomNav()}
         </div>
       ) : !selectedJob && mainTab === "files" ? (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <PullToRefreshIndicator pull={filesPull.pull} refreshing={filesPull.refreshing} ready={filesPull.ready}/>
-          <div ref={filesScrollRef} className="flex-1 overflow-y-auto overscroll-contain">
-            <JobFilesBrowser
-              jobs={jobs}
-              athPreviewEnabled={athPreviewEnabled}
-              onOpenJob={(id) => openJob(id, "files", "files")}
-            />
-          </div>
+          <JobFilesBrowser
+            jobs={jobs}
+            athPreviewEnabled={athPreviewEnabled}
+            scrollRef={filesScrollRef}
+            onOpenJob={(id) => openJob(id, "files", "files")}
+          />
           {renderBottomNav()}
         </div>
       ) : !selectedJob && mainTab === "jobs" ? (
