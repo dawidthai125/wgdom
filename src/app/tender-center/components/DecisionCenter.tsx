@@ -89,7 +89,7 @@ function DecisionButtons({
           onClick={() => onSelect(d)}
           className={`text-[10px] font-medium px-2.5 py-1.5 rounded-lg border min-h-[36px] transition-colors ${decisionTone(d, current === d)}`}
         >
-          {d}
+          {DECISION_LABEL_PL[d]}
         </button>
       ))}
     </div>

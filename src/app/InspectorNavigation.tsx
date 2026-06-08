@@ -64,7 +64,7 @@ export function InspectorBottomNav({
     { id: "jobs", label: "Roboty", icon: List, onClick: onJobs },
     { id: "gallery", label: "Galeria", icon: Images, onClick: onGallery },
     { id: "files", label: "Pliki", icon: FolderOpen, onClick: onFiles },
-    { id: "portfolio", label: "Portfolio", icon: LayoutGrid, onClick: onPortfolio },
+    { id: "portfolio", label: "Portfolio WM", icon: LayoutGrid, onClick: onPortfolio },
   ];
 
   return (

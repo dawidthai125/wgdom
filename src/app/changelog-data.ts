@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-08",
+    version: "2.49.90",
+    label: "Polonizacja UI — Pulpit i przetargi (Sprint 20.3B MIN)",
+    items: [
+      { type: "improve", text: "Pulpit — Centrum działań, Indeks kondycji, priorytety po polsku (Krytyczne/Wysokie)" },
+      { type: "improve", text: "Przetargi — przyciski decyzji Startuj / Analizuj / Odpuszczaj zamiast GO/HOLD/NO-GO" },
+      { type: "improve", text: "Inspektor — zakładka Portfolio WM; moduł Do rozliczenia — etykieta Administrator" },
+      { type: "improve", text: "Smoke 20.3b — polonizacja UI (T1–T8)" },
+    ],
+  },
+  {
+    date: "2026-06-08",
     version: "2.49.80",
     label: "Inspektor — uwagi do pozycji Do rozliczenia (Sprint 20.5A.4)",
     items: [

@@ -77,7 +77,7 @@ function PriorityCounters({
           key={key}
           className={`rounded-lg border text-center ${compact ? "px-2 py-1 min-w-[52px]" : "px-2.5 py-1.5 min-w-[64px]"} ${priorityTone(key)}`}
         >
-          <p className={`uppercase tracking-wider opacity-80 ${compact ? "text-[8px]" : "text-[9px]"}`}>{key}</p>
+          <p className={`tracking-wider opacity-80 ${compact ? "text-[8px]" : "text-[9px]"}`}>{ACTION_PRIORITY_LABEL_PL[key]}</p>
           <p
             className={`font-bold tabular-nums leading-tight ${compact ? "text-base" : "text-lg"}`}
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
@@ -119,7 +119,7 @@ function ActionRow({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5 min-w-0">
           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${priorityTone(item.priority)}`}>
-            {item.priority}
+            {ACTION_PRIORITY_LABEL_PL[item.priority]}
           </span>
           <span className="text-[9px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">
             {ACTION_CATEGORY_LABEL_PL[item.category]}
@@ -197,7 +197,7 @@ function ActionRowCompact({
     <article className="rounded-lg border border-border bg-card/50 px-3 py-2.5 space-y-1.5">
       <div className="flex flex-wrap items-start gap-2">
         <span className={`text-[8px] font-bold px-1 py-0.5 rounded border shrink-0 ${priorityTone(item.priority)}`}>
-          {item.priority}
+          {ACTION_PRIORITY_LABEL_PL[item.priority]}
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold leading-snug">{item.title}</p>
@@ -299,8 +299,10 @@ export function ActionCenter({
       ? countUrgent(actions)
       : center.counts;
 
-  const title = variant === "urgent" ? "Co wymaga uwagi" : "Action Center";
-  const subtitle = variant === "urgent" ? "max 5 · CRITICAL · HIGH" : "Co zrobić dzisiaj";
+  const title = variant === "urgent" ? "Co wymaga uwagi" : "Centrum działań";
+  const subtitle = variant === "urgent"
+    ? `maks. 5 · ${ACTION_PRIORITY_LABEL_PL.CRITICAL.toLowerCase()} · ${ACTION_PRIORITY_LABEL_PL.HIGH.toLowerCase()}`
+    : "Co zrobić dzisiaj";
 
   return (
     <section className="rounded-xl border-2 border-primary/25 bg-card overflow-hidden shadow-sm">

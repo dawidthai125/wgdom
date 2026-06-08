@@ -4,7 +4,16 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.49.80** (`changelog-data.ts`) · Sprint 20.5A.4 Inspector Billing Notes
+**Aktualna wersja UI:** **2.49.90** (`changelog-data.ts`) · Sprint 20.3B MIN Polonizacja UI
+
+---
+
+## 2.49.90 (2026-06-08) — Polonizacja UI (Sprint 20.3B MIN)
+
+* **Pulpit / CC executive** — Centrum działań, Indeks kondycji, priorytety PL, Okazja/Strategiczny
+* **Przetargi** — przyciski Startuj / Analizuj / Odpuszczaj (`DECISION_LABEL_PL`)
+* **Inspektor** — Portfolio WM; billing — Administrator zamiast Admin
+* Smoke: `smoke-test-ui-language-20.3b.mjs`
 
 ---
 

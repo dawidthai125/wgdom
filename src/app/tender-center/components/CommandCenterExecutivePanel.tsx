@@ -20,7 +20,8 @@ import {
   riskTone,
 } from "@/lib/tender-center-forecast-90d";
 import type { ActionCenterResult, OwnerActionItem } from "@/lib/tender-center-action-center";
-import { priorityTone } from "@/lib/tender-center-action-center";
+import { ACTION_PRIORITY_LABEL_PL, priorityTone } from "@/lib/tender-center-action-center";
+import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
 
 const EXECUTIVE_ACTION_MAX = 3;
 
@@ -203,7 +204,7 @@ export function CommandCenterExecutivePanel({
           <div className="rounded-xl border border-border bg-card/80 px-3 py-2.5">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
               <HeartPulse size={11} className="text-emerald-500" />
-              Health Index
+              Indeks kondycji
             </p>
             <p
               className="text-2xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400 mt-0.5"
@@ -250,8 +251,8 @@ export function CommandCenterExecutivePanel({
                   {bestOpportunity.item.title.length > 56 ? "…" : ""}
                 </p>
                 <p className="text-[9px] text-muted-foreground mt-0.5 tabular-nums">
-                  Opp {bestOpportunity.opportunity.score} · Strat {bestOpportunity.strategic.score} ·{" "}
-                  <span className="font-semibold text-foreground">{bestOpportunity.decision}</span>
+                  Okazja {bestOpportunity.opportunity.score} · Strategiczny {bestOpportunity.strategic.score} ·{" "}
+                  <span className="font-semibold text-foreground">{DECISION_LABEL_PL[bestOpportunity.decision]}</span>
                 </p>
                 {bestOpportunity.item.status === "won" && (
                   <div className="mt-2">
@@ -309,8 +310,8 @@ export function CommandCenterExecutivePanel({
             <div className="px-3 py-2 border-b border-border flex items-center justify-between gap-2 bg-primary/5">
               <div className="flex items-center gap-1.5">
                 <Zap size={14} className="text-primary" />
-                <span className="text-xs font-semibold">Action Center</span>
-                <span className="text-[9px] text-muted-foreground">CRITICAL · HIGH</span>
+                <span className="text-xs font-semibold">Centrum działań</span>
+                <span className="text-[9px] text-muted-foreground">{ACTION_PRIORITY_LABEL_PL.CRITICAL} · {ACTION_PRIORITY_LABEL_PL.HIGH}</span>
               </div>
               <button
                 type="button"
@@ -329,7 +330,7 @@ export function CommandCenterExecutivePanel({
                   <li key={item.id} className="px-3 py-2.5">
                     <div className="flex flex-wrap items-center gap-1.5 mb-1">
                       <span className={`text-[8px] font-bold px-1 py-0.5 rounded border ${priorityTone(item.priority)}`}>
-                        {item.priority}
+                        {ACTION_PRIORITY_LABEL_PL[item.priority]}
                       </span>
                       <p className="text-xs font-semibold flex-1 min-w-0">{item.title}</p>
                     </div>

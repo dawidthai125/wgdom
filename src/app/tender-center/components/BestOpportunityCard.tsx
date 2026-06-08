@@ -1,7 +1,7 @@
 import { Target, ExternalLink, Calendar, Building2, Hash, Wallet } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { TenderJobLinkButtons } from "@/app/tender-center/components/TenderJobLinkButtons";
-import type { TenderDecision, TenderScoringBundle } from "@/lib/tender-center-decision";
+import { DECISION_LABEL_PL, type TenderDecision, type TenderScoringBundle } from "@/lib/tender-center-decision";
 import { topDecisionReasons } from "@/lib/tender-center-decision";
 import type { OwnerTenderDecisionRecord } from "@/lib/tender-center-owner-decisions";
 import { daysUntilTenderDeadline } from "@/lib/tenders-bzp";
@@ -68,7 +68,7 @@ function DecisionButtons({
           onClick={() => onSelect(d)}
           className={`text-xs font-medium px-3 py-2 rounded-lg border min-h-[40px] transition-colors ${decisionTone(d, current === d)}`}
         >
-          {d}
+          {DECISION_LABEL_PL[d]}
         </button>
       ))}
     </div>

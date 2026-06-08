@@ -112,7 +112,7 @@ const TAB_RETURN_LABELS: Record<InspectorMainTab, string> = {
   jobs: "listy robót",
   gallery: "Galerii",
   files: "Plików",
-  portfolio: "Portfolio",
+  portfolio: "Portfolio WM",
 };
 import { PwaInstallBanner } from "@/app/PwaInstallBanner";
 import { queuePhoto, listQueuedPhotos, removeQueuedPhoto } from "@/lib/photo-queue";

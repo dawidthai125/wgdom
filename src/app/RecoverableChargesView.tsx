@@ -525,7 +525,7 @@ function ChargeDetailPanel({
             {[...jobNotesForCharge(job.jobNotes, charge.id)].reverse().map((n) => (
               <div key={n.id} className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 text-xs">
                 <p className="text-[10px] text-muted-foreground">
-                  {n.author} · {n.authorRole === "inspector" ? "Inspektor" : "Admin"}
+                  {n.author} · {n.authorRole === "inspector" ? "Inspektor" : "Administrator"}
                   {" · "}
                   {new Date(n.at).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                 </p>
