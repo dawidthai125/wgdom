@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-08",
+    version: "2.49.70",
+    label: "Inspektor — podgląd Do rozliczenia na robocie (Sprint 20.5A.3A)",
+    items: [
+      { type: "new", text: "Panel inspektora — sekcja WM: pozycje do rozliczenia z kwotami, KPI i historią rozliczeń (read-only)" },
+      { type: "new", text: "Lista robót inspektora — badge 💰 przy nierozliczonych pozycjach (z tooltipem PLN)" },
+      { type: "improve", text: "Sync read-only kw-recoverable-charges w InspectorPanel — bez zapisu do chmury billing" },
+      { type: "improve", text: "Smoke 20.5a3a — inspektor billing review (T1–T8)" },
+    ],
+  },
+  {
+    date: "2026-06-08",
     version: "2.49.60",
     label: "Lista płac — closed week przy zablokowanym rolloverze (Sprint 20.1D)",
     items: [

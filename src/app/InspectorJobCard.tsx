@@ -33,6 +33,8 @@ export function InspectorJobCard({
   hasAdminReply,
   onSelect,
   compact = false,
+  recoverableUnsettledCount,
+  recoverableToRecoverAmount,
 }: {
   job: InspectorDashboardJob & {
     inspectorPhotos?: { id: string }[];
@@ -42,6 +44,8 @@ export function InspectorJobCard({
   hasAdminReply?: boolean;
   onSelect: () => void;
   compact?: boolean;
+  recoverableUnsettledCount?: number;
+  recoverableToRecoverAmount?: number;
 }) {
   const progress = computeInspectionProgress(job);
   const priority = inspectionPriority(job);
@@ -101,9 +105,21 @@ export function InspectorJobCard({
         </p>
       )}
 
-      <div className="flex flex-wrap gap-1.5 mt-2">
+      <div className="flex flex-wrap gap-1.5 mt-2 items-center">
         <JobWmStageBadge job={job}/>
         <JobWmPlannedBadge job={job}/>
+        {(recoverableUnsettledCount ?? 0) > 0 && (
+          <span
+            title={
+              (recoverableToRecoverAmount ?? 0) > 0
+                ? `Do odzyskania: ${recoverableToRecoverAmount!.toLocaleString("pl-PL", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} PLN`
+                : "Pozycje do rozliczenia"
+            }
+            className="text-[10px] bg-amber-500/12 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded-full font-medium shrink-0"
+          >
+            💰 {recoverableUnsettledCount}
+          </span>
+        )}
       </div>
     </button>
   );

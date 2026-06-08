@@ -27,7 +27,20 @@ import {
   JOBS_DELETED_IDS_KEY,
   DIRECTORY_DELETED_IDS_KEY,
   ADMIN_USERS_CONFIG_KEY,
+  RECOVERABLE_CHARGES_DELETED_IDS_KEY,
+  getDeletedRecoverableChargeIds,
+  mergeDeletedRecoverableChargeIds,
+  saveDeletedRecoverableChargeIds,
+  normalizeDeletedRecoverableChargeIds,
 } from "@/lib/cloud-sync";
+import type { RecoverableCharge } from "@/lib/recoverable-charges";
+import {
+  getRecoverableChargeJobStats,
+  mergeRecoverableCharges,
+  normalizeRecoverableCharges,
+  type RecoverableChargeJobStats,
+} from "@/lib/recoverable-charges";
+import { JobRecoverableChargesPanel } from "@/app/JobRecoverableChargesPanel";
 import {
   DOC_LABELS,
   REQUIRED_DOCS,
@@ -221,6 +234,7 @@ export function InspectorPanel({
 }) {
   const [jobs, setJobs] = useState<InspectorJob[]>([]);
   const [directory, setDirectory] = useState<DirectoryEmployee[]>([]);
+  const [recoverableCharges, setRecoverableCharges] = useState<RecoverableCharge[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "completed">("active");
@@ -250,6 +264,7 @@ export function InspectorPanel({
   const flushingPhotoQueueRef = useRef(false);
   const lastAppliedJobsJsonRef = useRef<string | null>(null);
   const lastAppliedDirJsonRef = useRef<string | null>(null);
+  const lastAppliedChargesJsonRef = useRef<string | null>(null);
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
   const [athPreviewEnabled, setAthPreviewEnabled] = useState(() => loadAppSettingsLocal().athPreviewEnabled);
   const [jobSection, setJobSection] = useState<InspectorJobSection>("wm");
@@ -277,6 +292,14 @@ export function InspectorPanel({
         const json = JSON.stringify(cachedDir);
         lastAppliedDirJsonRef.current = json;
         setDirectory(cachedDir);
+      }
+    } catch { /* ignore */ }
+    try {
+      const cachedCharges = normalizeRecoverableCharges(JSON.parse(localStorage.getItem("kw-recoverable-charges") || "[]"));
+      if (cachedCharges.length > 0) {
+        const json = JSON.stringify(cachedCharges);
+        lastAppliedChargesJsonRef.current = json;
+        setRecoverableCharges(cachedCharges);
       }
     } catch { /* ignore */ }
     setLoading(false);
@@ -441,11 +464,20 @@ export function InspectorPanel({
   const refreshFromCloud = useCallback(async (silent = false) => {
     if (!silent) setSyncing(true);
     try {
-      const [cloudJobs, cloudDir, cloudJobsDeletedRaw, cloudDirDeletedRaw] = await fetchKeysFromCloud([
+      const [
+        cloudJobs,
+        cloudDir,
+        cloudJobsDeletedRaw,
+        cloudDirDeletedRaw,
+        cloudChargesRaw,
+        cloudChargesDeletedRaw,
+      ] = await fetchKeysFromCloud([
         "kw-jobs",
         "kw-directory",
         JOBS_DELETED_IDS_KEY,
         DIRECTORY_DELETED_IDS_KEY,
+        "kw-recoverable-charges",
+        RECOVERABLE_CHARGES_DELETED_IDS_KEY,
       ]);
       const mergedJobsDeleted = mergeDeletedJobIds(getDeletedJobIds(), normalizeDeletedJobIds(cloudJobsDeletedRaw));
       saveDeletedJobIds(mergedJobsDeleted);
@@ -480,6 +512,26 @@ export function InspectorPanel({
           setDirectory(JSON.parse(localStorage.getItem("kw-directory") || "[]"));
         } catch { setDirectory([]); }
       }
+      const mergedChargesDeleted = mergeDeletedRecoverableChargeIds(
+        getDeletedRecoverableChargeIds(),
+        normalizeDeletedRecoverableChargeIds(cloudChargesDeletedRaw),
+      );
+      saveDeletedRecoverableChargeIds(mergedChargesDeleted);
+      let localCharges: RecoverableCharge[] = [];
+      try {
+        localCharges = normalizeRecoverableCharges(JSON.parse(localStorage.getItem("kw-recoverable-charges") || "[]"));
+      } catch { /* ignore */ }
+      const mergedCharges = mergeRecoverableCharges(
+        localCharges,
+        normalizeRecoverableCharges(cloudChargesRaw),
+        mergedChargesDeleted,
+      );
+      const nextChargesJson = JSON.stringify(mergedCharges);
+      if (lastAppliedChargesJsonRef.current !== nextChargesJson) {
+        lastAppliedChargesJsonRef.current = nextChargesJson;
+        setRecoverableCharges(mergedCharges);
+        try { localStorage.setItem("kw-recoverable-charges", nextChargesJson); } catch { /* ignore */ }
+      }
       setLastSyncedAt(new Date());
       setPushFailed(false);
       if (pushPendingRef.current <= 0) setSyncPending(false);
@@ -490,6 +542,7 @@ export function InspectorPanel({
       try {
         setJobs(normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")).map(normalizeJob));
         setDirectory(JSON.parse(localStorage.getItem("kw-directory") || "[]"));
+        setRecoverableCharges(normalizeRecoverableCharges(JSON.parse(localStorage.getItem("kw-recoverable-charges") || "[]")));
       } catch { /* ignore */ }
       if (!silent) setMsg("Nie udało się odświeżyć danych");
     } finally {
@@ -521,6 +574,15 @@ export function InspectorPanel({
           if (lastAppliedDirJsonRef.current !== json) {
             lastAppliedDirJsonRef.current = json;
             setDirectory(parsed);
+          }
+        } catch { /* ignore */ }
+      } else if (e.key === "kw-recoverable-charges") {
+        try {
+          const parsed = normalizeRecoverableCharges(JSON.parse(e.newValue));
+          const json = JSON.stringify(parsed);
+          if (lastAppliedChargesJsonRef.current !== json) {
+            lastAppliedChargesJsonRef.current = json;
+            setRecoverableCharges(parsed);
           }
         } catch { /* ignore */ }
       }
@@ -565,6 +627,22 @@ export function InspectorPanel({
     if (filter === "active") return sortJobsByInspectionPriority(list);
     return [...list].sort((a, b) => b.startDate.localeCompare(a.startDate));
   }, [jobs, search, filter]);
+
+  const recoverableStatsByJobId = useMemo(() => {
+    const map = new Map<string, RecoverableChargeJobStats>();
+    for (const job of jobs) {
+      const stats = getRecoverableChargeJobStats(recoverableCharges, job.id);
+      if (stats.chargeCount > 0 || stats.recoveredCount > 0) {
+        map.set(job.id, stats);
+      }
+    }
+    return map;
+  }, [jobs, recoverableCharges]);
+
+  const jobsById = useMemo(
+    () => new Map(jobs.map((j) => [j.id, { id: j.id, address: j.address, flatNumber: j.flatNumber, client: j.client }])),
+    [jobs],
+  );
 
   const selectedJob = jobs.find((j) => j.id === selectedId) || null;
 
@@ -720,6 +798,10 @@ export function InspectorPanel({
     if (!selectedJob) return {};
     const badges: Partial<Record<InspectorJobSection, number>> = {};
     if (adminNotesPending.some((j) => j.id === selectedJob.id)) badges.wm = 1;
+    const rcStats = recoverableStatsByJobId.get(selectedJob.id);
+    if (rcStats && rcStats.unsettledCount > 0) {
+      badges.wm = (badges.wm ?? 0) + rcStats.unsettledCount;
+    }
     const missingFiles = (!selectedJob.documents.zlecenie ? 1 : 0) + (!selectedJob.documents.kosztorys ? 1 : 0);
     if (missingFiles) badges.files = missingFiles;
     const missingDocs = REQUIRED_DOCS.filter((d) => !selectedJob.documents[d]).length;
@@ -729,7 +811,7 @@ export function InspectorPanel({
     const photoCount = (selectedJob.photos || []).filter((p) => p.status === "approved").length;
     if (photoCount) badges.photos = photoCount;
     return badges;
-  }, [selectedJob, adminNotesPending]);
+  }, [selectedJob, adminNotesPending, recoverableStatsByJobId]);
 
   const jobQuickActions = useMemo(() => {
     if (!selectedJob) return [];
@@ -978,14 +1060,19 @@ export function InspectorPanel({
                 <p className="text-xs text-muted-foreground/80">Zmień filtr na „Wszystkie” lub użyj wyszukiwarki</p>
               </div>
             ) : (
-              filteredJobs.map((job) => (
-                <InspectorJobCard
-                  key={job.id}
-                  job={job}
-                  hasAdminReply={adminNotesPending.some((j) => j.id === job.id)}
-                  onSelect={() => openJob(job.id, undefined, "jobs")}
-                />
-              ))
+              filteredJobs.map((job) => {
+                const rcStats = recoverableStatsByJobId.get(job.id);
+                return (
+                  <InspectorJobCard
+                    key={job.id}
+                    job={job}
+                    hasAdminReply={adminNotesPending.some((j) => j.id === job.id)}
+                    recoverableUnsettledCount={rcStats?.unsettledCount}
+                    recoverableToRecoverAmount={rcStats?.toRecoverAmount}
+                    onSelect={() => openJob(job.id, undefined, "jobs")}
+                  />
+                );
+              })
             )}
           </div>
 
@@ -1014,7 +1101,7 @@ export function InspectorPanel({
               onSelect={scrollToJobSection}
             />
             <p className="text-[10px] text-muted-foreground px-0.5 pb-1">
-              {jobSection === "wm" && "Etap odbioru WM, notatki i odpowiedzi od admina"}
+              {jobSection === "wm" && "Etap odbioru WM, do rozliczenia, notatki i odpowiedzi od admina"}
               {jobSection === "files" && "Zlecenie, kosztorys i wszystkie pliki — pobierz pojedynczo lub ZIP"}
               {jobSection === "docs" && "Checklist dokumentów wymaganych przy odbiorze"}
               {jobSection === "team" && "Kto pracował na robocie — numery telefonów"}
@@ -1090,6 +1177,13 @@ export function InspectorPanel({
               onGoToPhotos={() => scrollToJobSection("photos")}
             />
             </div>
+
+            <JobRecoverableChargesPanel
+              jobId={selectedJob.id}
+              charges={recoverableCharges}
+              variant="inspector"
+              jobsById={jobsById}
+            />
 
             {jobInspectorHistory(selectedJob).length > 0 && (
               <div className="bg-card border border-border rounded-2xl p-4">

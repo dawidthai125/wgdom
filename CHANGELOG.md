@@ -4,9 +4,18 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.49.60** (`changelog-data.ts`) · Sprint 20.1D closed week semantics
+**Aktualna wersja UI:** **2.49.70** (`changelog-data.ts`) · Sprint 20.5A.3A Inspector Billing Review
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
+
+---
+
+## 2.49.70 (2026-06-08) — Inspektor × Do rozliczenia read-only (Sprint 20.5A.3A)
+
+* **Inspektor** — sekcja WM: kwoty, KPI, historia settlementów (read-only)
+* **Badge 💰** na liście robót inspektora przy nierozliczonych pozycjach
+* **Sync** — `kw-recoverable-charges` read-only w `InspectorPanel` (bez push billing)
+* Smoke: `smoke-test-inspector-billing-20.5a3a.mjs`
 
 ---
 

@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.49.60** · Sprint 20.1D closed week semantics)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-08 (Sprint 20.1D — closed week przy zablokowanym rolloverze)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.49.70** · Sprint 20.5A.3A Inspector Billing Review)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-08 (Sprint 20.5A.3A — inspektor read-only billing z kwotami)
 
 ---
 
@@ -275,7 +275,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | `kw-jobs` | Roboty (zdjęcia, pliki, WM, activity…) | Wszyscy |
 | `kw-contacts` | Kontakty e-mail | Admin |
 | `kw-employee-leaves` | Nieobecności pracowników (urlop / L4 / bezpłatny, tygodnie Pn–So) | Admin |
-| `kw-recoverable-charges` | Pozycje do rozliczenia / odzyskania (Sprint 20.3A) | Admin |
+| `kw-recoverable-charges` | Pozycje do rozliczenia / odzyskania (Sprint 20.3A) | Admin (write); Inspektor (read-only, 20.5A.3A) |
 
 **Do rozliczenia (Sprint 20.3A + 20.4A Foundation, v2.47.00):**
 
@@ -292,12 +292,13 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Insights (20.4C.2C, v2.48.30)** | `computeRecoverableChargesTimeStats()` + `computeRecoverableChargesTopLists()`; `RecoverableChargesInsightsSection.tsx` — KPI miesiąc/rok + TOP 5 |
 | **Jobs integracja (20.5A.1, v2.49.00)** | `getRecoverableChargeJobStats()` — agregacja po `sourceJobId` / `targetJobId`; badge 💰 na `JobListCardV2`; `JobRecoverableChargesPanel.tsx` w Przeglądzie roboty; deep link `pendingRecoverableChargeId` → `RecoverableChargesView` |
 | **Create from job (20.5A.2, v2.49.10)** | `buildRecoverableChargeDraftFromJob()` + `JobCreateRecoverableChargeModal.tsx` — modal na robocie (bez nawigacji); `pendingRecoverableChargeCreatePreset` → moduł z auto-create; `finalizeRecoverableChargeDraftForSave()` współdzielony |
+| **Inspektor review (20.5A.3A, v2.49.70)** | `InspectorPanel` — read-only fetch/merge `kw-recoverable-charges` (bez `pushRecoverableChargesToCloud`); `JobRecoverableChargesPanel` `variant="inspector"` w sekcji WM — kwoty, KPI, pełna historia `settlements[]`; badge 💰 na `InspectorJobCard`. Kwoty odzyskania ≠ `adminCanViewRates` (stawki PLN/h) |
 | **Badge menu** | `countUnsettledRecoverableCharges()` — open + partial |
 | **Menu** | **Do rozliczenia** (💰); **Media** = Zdjęcia + Pliki robot (jak Instrukcja/Zmiany) |
-| **Sync** | `pushRecoverableChargesToCloud()`; tombstone `kw-recoverable-charges-deleted-ids` |
-| **Poza zakresem 20.5A.2** | Inspektor billing — Sprint 20.5A.3 |
+| **Sync** | Admin: `pushRecoverableChargesToCloud()`; Inspektor: tylko odczyt LS + cloud merge; tombstone `kw-recoverable-charges-deleted-ids` |
+| **Backlog** | 20.5A.4 — uwagi inspektora do pozycji billing |
 
-Pliki: `src/lib/recoverable-charges.ts`, `src/app/RecoverableChargesView.tsx`, `src/app/JobRecoverableChargesPanel.tsx`, `src/app/JobCreateRecoverableChargeModal.tsx`, `src/app/MediaView.tsx`.
+Pliki: `src/lib/recoverable-charges.ts`, `src/app/RecoverableChargesView.tsx`, `src/app/JobRecoverableChargesPanel.tsx`, `src/app/JobCreateRecoverableChargeModal.tsx`, `src/app/InspectorPanel.tsx`, `src/app/MediaView.tsx`.
 
 **Nieobecności (Sprint 20.0A, v2.45.37, prod `778f616`):**
 
