@@ -85,8 +85,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.49.10**) |
-| Prod `main` (app) | commit **`571b90b`** · release **v2.49.10** · Sprint 20.5A.2 Create from job **CLOSED** |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.49.40**) |
+| Prod `main` (app) | commit **`75de889`** · release **v2.49.40** · Sprint 20.1C.2 Dashboard alerts **CLOSED** |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |
 | Frontend deploy | push `main` → Vercel |
@@ -165,6 +165,18 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 **Biweekly carry forward nieobsługiwany w V1** — tylko tygodniówka; wypłata co 2 tygodnie → `biweekly_blocked`.
 
 **Nie zmieniaj bez polecenia:** MODEL A freeze, merge `pickPayrollCarryForward`, closed vs saved semantics (20.1B).
+
+---
+
+## 3f1. Rollover + dashboard alerts — Sprint 20.1C (**CLOSED**, prod `75de889`, v2.49.40)
+
+- **20.1C** (`c6614cc`, v2.49.20): `blocksPayrollRollover` — blokuje tylko nierozliczoną kasę sobotnią
+- **20.1C.1** (`a728528`, v2.49.30): sync integrity — bootstrap week mismatch, push po rolloverze
+- **20.1C.2** (`75de889`, v2.49.40): **DashboardView** alerty = `listPayrollRolloverBlockers` (nie `!settled`)
+- **Kluczowe pliki:** `payroll-rollover.ts`, `DashboardView.tsx`, `cloud-sync.ts` (20.1C.1)
+- **Smoke:** `smoke-test-payroll-rollover-20.1c.mjs`, `smoke-test-payroll-dashboard-20.1c2.mjs`, `smoke-test-payroll-rollover-sync-20.1c1.mjs`
+
+**Nie zmieniaj bez polecenia:** rollover w `App.tsx`, MODEL A carry, archiwum, cash split, sync merge.
 
 ---
 
