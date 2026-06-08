@@ -4,7 +4,7 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.20** (`changelog-data.ts`) · Desktop Layout Fix (lokalnie — przed release)
+**Aktualna wersja UI:** **2.50.20** (`changelog-data.ts`) · Desktop Layout Fix · prod **`5a664c2`**
 
 ---
 

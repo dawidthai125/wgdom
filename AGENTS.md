@@ -8,23 +8,24 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← ★ Billing + Roboty 20.3A–20.5A.4 CLOSED (v2.49.80, `9990921`)
-3. docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md  ← Sprint 20.1B CLOSED (saved ≠ closed)
-4. docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md  ← Sprint 20.1A CLOSED (odroczenie wypłaty, `f24fafe`)
-5. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← Performance 2.x CLOSED (wyniki końcowe)
-6. docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md  ← Performance 1.x CLOSED, a6cdb4a
-7. CURRENT-TASK.md        ← skrót: co na prod / co dalej
-8. docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md  ← Sprint 20.0A CLOSED (nieobecności, `778f616`)
-9. docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md  ← incydent Roboty, RCA
-10. docs/SESSION-HANDOFF-2026-06.md  ← audyty, Faza 8–9, Roboty 2.0
-11. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-12. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
-13. docs/SETTLEMENT-WORKFLOW-AUDIT-20.4A.md  ← audyt settlement ledger
-14. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin + Roboty §11
-15. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
-16. docs/jobs-2.0-product-audit.md    ← rekomendacja rozwoju zakładki Roboty
-17. CHANGELOG.md          ← CO już zrobiono (skrót)
-18. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+2. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← ★ Seria 2.50.x CLOSED (v2.50.20, `5a664c2`) — desktop scroll + mobile + MID-B
+3. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.4 CLOSED (v2.49.80, `9990921`)
+4. docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md  ← Sprint 20.1B CLOSED (saved ≠ closed)
+5. docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md  ← Sprint 20.1A CLOSED (odroczenie wypłaty, `f24fafe`)
+6. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← Performance 2.x CLOSED (wyniki końcowe)
+7. docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md  ← Performance 1.x CLOSED, a6cdb4a
+8. CURRENT-TASK.md        ← skrót: co na prod / co dalej
+9. docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md  ← Sprint 20.0A CLOSED (nieobecności, `778f616`)
+10. docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md  ← incydent Roboty, RCA
+11. docs/SESSION-HANDOFF-2026-06.md  ← audyty, Faza 8–9, Roboty 2.0
+12. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+13. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
+14. docs/SETTLEMENT-WORKFLOW-AUDIT-20.4A.md  ← audyt settlement ledger
+15. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin + Roboty §11
+16. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
+17. docs/jobs-2.0-product-audit.md    ← rekomendacja rozwoju zakładki Roboty
+18. CHANGELOG.md          ← CO już zrobiono (skrót)
+19. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -47,6 +48,7 @@
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
 | **docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md** | Performance 2.x **CLOSED** (`35614f0`) — startup 1119 KB, seria 2.2C→2.4A |
+| **docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md** | Seria **2.50.x CLOSED** (`5a664c2`, v2.50.20) — desktop scroll, mobile fix, MID-B, CI |
 | **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.4 CLOSED** (`9990921`, v2.49.80) |
 | **docs/SETTLEMENT-WORKFLOW-AUDIT-20.4A.md** | Audyt settlement ledger — design 20.4A |
 | **docs/SETTLEMENT-REPORTING-AUDIT-20.4C.md** | Audyt reporting + dashboard KPI |
@@ -85,8 +87,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.49.90**) |
-| Prod `main` (app) | Sprint **20.3B MIN** polonizacja UI · release **v2.49.90** (`3d6a63e`) |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.20**) |
+| Prod `main` (app) | Desktop Layout Fix · release **v2.50.20** (`5a664c2`) |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |
 | Frontend deploy | push `main` → Vercel |
@@ -229,6 +231,26 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 - **Audyt:** `docs/UI-LANGUAGE-AUDIT-20.3B.md` · backlog **20.3B+** (pełny CC: AI Insights, Explainability, Financial Capacity)
 
 **Nie zmieniaj bez polecenia:** marka COMMAND CENTER AI, enumy GO/HOLD/NO-GO w danych.
+
+---
+
+## 3i. Seria 2.50.x — MID-B + Mobile + Desktop Layout (**CLOSED**, prod `5a664c2`, v2.50.20)
+
+- **Handoff:** [`docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md`](docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md) — **czytaj najpierw** przy layout / Roboty mobile / e2e
+- **Architektura scrollu:** **ARCHITECTURE.md § 6.2** — dokument `overflow: hidden`, scroll w widokach
+
+| Wersja | Commit | Skrót |
+|--------|--------|-------|
+| **2.50.20** | **`5a664c2`** | Desktop — eliminacja podwójnego scrollbara admin (Fix A) |
+| CI P0 | `74a013d` | Mobile audit + Playwright CI infrastructure |
+| **2.50.10** | `4427b7a` | Mobile Fix Pack — toolbar, touch 44px, kolejki bez sticky |
+| **2.50.00** | `860e8d9` | Roboty MID-B — Lista/Kolejki, filtr lidera |
+
+- **Kluczowe pliki layout:** `index.html`, `src/styles/mobile.css`, `AdminViewRouter.tsx`, `DashboardView.tsx`, `MediaView.tsx`
+- **Smoke:** `smoke-test-desktop-layout-2.50.20.mjs`, `smoke-test-mobile-fix-pack-2.50.1.mjs`, `smoke-test-jobs-2.0-midb.mjs`
+- **E2E:** `e2e/desktop-layout.spec.ts`, `e2e/desktop-smoke.spec.ts` — `npm run test:mobile` (39 testów)
+
+**Nie zmieniaj bez polecenia:** model scrollu dokumentu (2.50.20), mobile shell `<768px`, logika kolejek MID-B.
 
 ---
 

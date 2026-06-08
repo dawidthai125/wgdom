@@ -9,12 +9,13 @@ Komunikuj się z użytkownikiem po **polsku**.
 
 ## Zanim zaczniesz pracę w tym repo
 
-1. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — skrót: co na prod / co lokalnie (**2.45.39**, `74e65d9`).
-2. **Przeczytaj [`docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md`](docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md)** — Sprint 20.1B **CLOSED** (saved ≠ closed, audyt Kamila).
-3. **Przeczytaj [`docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md`](docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md)** — Sprint 20.1A (odroczenie wypłaty, MODEL A).
-4. **Przeczytaj [`docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md`](docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md)** — Performance 2.x **CLOSED** (`35614f0`).
-5. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — pełna architektura (§ 10.1 payroll carry).
-6. Skrót wejścia: [`AGENTS.md`](AGENTS.md).
+1. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — skrót: co na prod (**2.50.20**, `5a664c2`).
+2. **Przeczytaj [`docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md`](docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md)** — seria 2.50.x **CLOSED** (desktop scroll, mobile, MID-B).
+3. **Przeczytaj [`docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md`](docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md)** — Sprint 20.1B **CLOSED** (saved ≠ closed, audyt Kamila).
+4. **Przeczytaj [`docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md`](docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md)** — Sprint 20.1A (odroczenie wypłaty, MODEL A).
+5. **Przeczytaj [`docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md`](docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md)** — Performance 2.x **CLOSED** (`35614f0`).
+6. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — pełna architektura (§ 6.2 shell scroll, § 10.1 payroll carry).
+7. Skrót wejścia: [`AGENTS.md`](AGENTS.md).
 
 Nie analizuj od zera całego `src/app/App.tsx` (~15k linii) — ARCHITECTURE.md opisuje system jako całość.
 

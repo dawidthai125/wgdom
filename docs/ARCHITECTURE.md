@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.49.90** · Sprint 20.3B MIN Polonizacja UI)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-08 (Sprint 20.3B MIN — etykiety PL Pulpit/CC executive)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.20** · Desktop Layout Fix)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-08 (2.50.20 — model scrollu admin desktop + e2e)
 
 ---
 
@@ -115,7 +115,7 @@ flowchart TB
 
 | Plik | Rola |
 |------|------|
-| `index.html` | Viewport, PWA meta, CSS anty-zoom iOS, desktop overflow |
+| `index.html` | Viewport, PWA meta, CSS anty-zoom iOS; **2.50.20:** md+ `overflow: hidden` na `html/body/#root` |
 | `src/main.tsx` | React root, SW, Capacitor shell, klawiatura mobile, viewport desktop, deep linki |
 | `src/app/App.tsx` | **Monolit** — auth, admin, worker, changelog, cloud loader |
 | `src/styles/index.css` | Import fontów, tailwind, theme, **mobile.css** |
@@ -177,12 +177,38 @@ Nawigacja **nie używa URL** (poza `?podglad=` i deep linkami). Stan w React + `
 
 Widoki nieaktywne są **odmontowywane** (`{view==="jobs"&&<JobsView/>}`) — scroll wewnątrz każdego widoku.
 
-### 6.2 Mobile admin
+### 6.2 Shell admin — mobile i desktop scroll (**2.50.20**)
+
+**Zasada:** dokument (`html`/`body`) **nie scrolluje**. Jedyne scrollowanie pionowe/poziome — wewnątrz aktywnego widoku.
+
+```text
+html, body, #root          overflow: hidden (mobile + md+)
+└─ .admin-app-shell        100dvh (mobile) / var(--app-height) (desktop)
+   └─ AdminViewRouter      flex min-h-0 min-w-0 overflow-hidden
+      └─ [widok aktywny]    overflow-y-auto lub overflow-x-auto (tabela)
+```
+
+| Warstwa | Plik / klasa | Rola |
+|---------|--------------|------|
+| Dokument | `index.html` | Bazowo `overflow: hidden`; md+ wysokość `var(--app-height)` |
+| Shell | `src/styles/mobile.css` `.admin-app-shell` | md+: `padding-top: var(--app-viewport-offset-top)`, `box-sizing: border-box` |
+| Router | `src/app/admin/AdminViewRouter.tsx` | `min-w-0` — flex nie wypycha poziomo całego okna |
+| Pulpit | `src/app/DashboardView.tsx` | `min-w-0` + `overflow-y-auto` na panelu głównym |
+| Media | `src/app/MediaView.tsx` | `min-w-0` — containment szerokości |
+| Viewport | `src/lib/app-viewport.ts` | **Tylko desktop** — `--app-height` z `visualViewport` |
+
+**Mobile (`<768px`):**
 
 - Dolna nawigacja (`md:hidden`) — 4 skróty + Menu
-- Shell: `.admin-app-shell` → `height: 100dvh` (mobile), `var(--app-height)` (desktop ≥768px)
-- `src/lib/app-viewport.ts` — **tylko desktop** — synchronizuje `--app-height` z `visualViewport` (Chrome, pasek zakładek)
+- Shell: `.admin-app-shell` → `height: 100dvh`
 - Pull-to-refresh: **brak** — sync przez chmurę + wskaźnik statusu
+
+**Desktop (≥768px) — historia:**
+
+- Przed **2.50.20:** `@media (min-width: 768px)` ustawiał `overflow-y: auto` na `html/body` → **podwójny scrollbar** z wewnętrznym scroll widoków.
+- Po **2.50.20:** Fix A — `overflow: hidden` na dokumencie; szczegóły: [`docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md`](SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md).
+
+**Testy:** `scripts/smoke-test-desktop-layout-2.50.20.mjs`, `e2e/desktop-layout.spec.ts`, `e2e/desktop-smoke.spec.ts`.
 
 ### 6.3 Sync admina
 
@@ -831,7 +857,8 @@ Inspektor ma analogiczny flow w `InspectorPhotoGallery.tsx` + `InspectorJobPhoto
 | `scripts/mobile-audit.mjs` | 36 statycznych checków |
 | `e2e/mobile-smoke.spec.ts` | Smoke PWA |
 | `e2e/mobile-flows.spec.ts` | Flow logowania admin/inspektor/pracownik |
-| `e2e/desktop-smoke.spec.ts` | Desktop 1920×1080 |
+| `e2e/desktop-smoke.spec.ts` | Desktop smoke — `overflow: hidden`, lazy chunks |
+| `e2e/desktop-layout.spec.ts` | **2.50.20** — 1366×768 / 1280×720, brak scrollu dokumentu |
 
 **Capacitor:** `capacitor.config.ts` — domyślnie `server.url: https://www.wgdom.fun`. Szczegóły: `docs/MOBILE-NATIVE.md`.
 

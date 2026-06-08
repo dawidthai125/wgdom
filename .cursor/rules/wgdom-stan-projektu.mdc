@@ -12,8 +12,9 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI (prod):** **2.49.90** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
-- **Prod (`main` / `origin/main`, app):** **`3d6a63e`** · https://www.wgdom.fun · Sprint 20.3B MIN **CLOSED**
+- **Aktualna wersja UI (prod):** **2.50.20** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
+- **Prod (`main` / `origin/main`, app):** **`5a664c2`** · https://www.wgdom.fun · Desktop Layout Fix **CLOSED**
+- **★ Handoff Seria 2.50.x (CLOSED):** [`docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md`](../../docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md) — MID-B, Mobile Fix, CI P0, desktop scroll
 - **★ Handoff Billing + Roboty (CLOSED):** [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](../../docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md) — 20.3A–20.5A.4, audyty, smoke
 - **Handoff Sprint 20.1B (CLOSED):** [`docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md`](../../docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md) — saved ≠ closed, defer po „Zapisz tydzień”
 - **Handoff Sprint 20.1A (CLOSED):** [`docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md`](../../docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md) — odroczenie wypłaty, `f24fafe`
@@ -59,6 +60,20 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 **Następny:** 20.5A.5+ (zdjęcia do uwag / zgłoszenie pozycji) — tylko na polecenie.
 
 **Nie zmieniaj bez polecenia:** KV `kw-recoverable-charges`, sync/merge settlements, dashboard KPI 20.4C.
+
+## Seria 2.50.x — MID-B + Mobile + Desktop Layout (CLOSED, prod `5a664c2`, 2026-06-08)
+
+| Wersja | Commit | Skrót |
+|--------|--------|-------|
+| **2.50.20** | **`5a664c2`** | Desktop Layout Fix — `overflow: hidden` dokument, scroll w widokach |
+| CI P0 | `74a013d` | Mobile Test Infrastructure — audit + Playwright CI PASS |
+| **2.50.10** | `4427b7a` | Mobile Fix Pack — toolbar compact, touch 44px, kolejki bez sticky |
+| **2.50.00** | `860e8d9` | Roboty MID-B — Lista/Kolejki, filtr lidera |
+
+**Kluczowe pliki layout:** `index.html`, `mobile.css`, `AdminViewRouter.tsx`, `DashboardView.tsx`, `MediaView.tsx`.  
+**Smoke:** `smoke-test-desktop-layout-2.50.20.mjs`, `e2e/desktop-layout.spec.ts`, `npm run test:mobile` (39).
+
+**Nie zmieniaj bez polecenia:** model scrollu 2.50.20, mobile shell, MID-B kolejki, sync/billing.
 
 ## Polonizacja UI — Sprint 20.3B MIN (CLOSED, prod `3d6a63e`, 2026-06-08)
 
