@@ -4,11 +4,17 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.49.30** (`changelog-data.ts`) · Sprint 20.1C.1 Payroll rollover sync integrity
+**Aktualna wersja UI:** **2.49.40** (`changelog-data.ts`) · Sprint 20.1C.2 Payroll dashboard alerts alignment
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
 
 ---
+
+## 2.49.40 (2026-06-07) — Pulpit alerty listy płac (Sprint 20.1C.2)
+
+* **DashboardView** — alerty payroll używają `listPayrollRolloverBlockers` (kasa sobotnia), nie `!settled`
+* PRZENIESIONO / biweekly accrual / urlop — brak fałszywych alarmów na pulpicie
+* Smoke: `smoke-test-payroll-dashboard-20.1c2.mjs` (T1–T5)
 
 ## 2.49.30 (2026-06-07) — Sync rollover listy płac (Sprint 20.1C.1)
 

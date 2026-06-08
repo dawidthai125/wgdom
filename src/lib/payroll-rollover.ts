@@ -70,3 +70,26 @@ export function hasPayrollRolloverBlockers(
     blocksPayrollRollover(e, weekFrom, weekTo, directory, options),
   );
 }
+
+/** Pracownicy blokujący rollover — ta sama reguła co auto-rollover (dashboard / alerty). */
+export function listPayrollRolloverBlockers(
+  weekEmployees: WeekEmployee[],
+  weekFrom: string,
+  weekTo: string,
+  directory: DirectoryPayrollRef[],
+  options: PayrollRolloverContext = {},
+): WeekEmployee[] {
+  return weekEmployees.filter((e) =>
+    blocksPayrollRollover(e, weekFrom, weekTo, directory, options),
+  );
+}
+
+export function countPayrollDashboardBlockers(
+  weekEmployees: WeekEmployee[],
+  weekFrom: string,
+  weekTo: string,
+  directory: DirectoryPayrollRef[],
+  options: PayrollRolloverContext = {},
+): number {
+  return listPayrollRolloverBlockers(weekEmployees, weekFrom, weekTo, directory, options).length;
+}

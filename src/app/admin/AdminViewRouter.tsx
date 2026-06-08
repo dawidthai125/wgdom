@@ -244,6 +244,7 @@ export function AdminViewRouter({
       weekFrom={weekFrom}
       weekTo={weekTo}
       savedWeeks={savedWeeks}
+      employeeLeaves={employeeLeaves}
       recoverableCharges={recoverableCharges}
       onNavigate={handleNavigate}
       onFixJobs={onFixJobs}

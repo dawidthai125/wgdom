@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-07",
+    version: "2.49.40",
+    label: "Pulpit — alerty listy płac (Sprint 20.1C.2)",
+    items: [
+      { type: "fix", text: "„Uwaga dziś” i baner sobotni — liczą tylko kasę sobotnią blokującą rollover (nie cały status Oczekuje)" },
+      { type: "fix", text: "PRZENIESIONO, wypłata co 2 tyg. (narastająca) i urlop nie generują już fałszywych alarmów na pulpicie" },
+      { type: "improve", text: "Ta sama reguła co auto-rollover 20.1C — listPayrollRolloverBlockers / blocksPayrollRollover" },
+      { type: "improve", text: "Smoke: smoke-test-payroll-dashboard-20.1c2.mjs (T1–T5)" },
+    ],
+  },
+  {
+    date: "2026-06-07",
     version: "2.49.30",
     label: "Sync rollover listy płac — izolacja tygodnia (Sprint 20.1C.1)",
     items: [

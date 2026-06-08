@@ -11,6 +11,7 @@ import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import type {
   DirectoryEmployee, WeekEmployee, WeekSnapshot, DocType, Job, PayrollJobConsistencyAlert,
 } from "@/app/app-domain";
+import type { EmployeeLeave } from "@/lib/employee-leaves";
 import {
   MONTH_NAMES, DOCUMENT_TYPES, REQUIRED_DOCS, DOC_LABELS,
   filterProductionActiveDirectory, hoursWorked, dayTotalHours,
@@ -51,12 +52,14 @@ import {
   getPayrollClosingWeekRange,
   PAYROLL_WEEK_ROLLOVER_HOUR,
 } from "@/lib/payroll-cycle";
+import { listPayrollRolloverBlockers } from "@/lib/payroll-rollover";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import { computeRecoverableChargesAlerts } from "@/lib/recoverable-charges";
 import { RecoverableChargesDashboardCard } from "@/app/RecoverableChargesDashboardCard";
 
 export function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
+  employeeLeaves = [],
   recoverableCharges = [],
   onNavigate, onFixJobs, adminUserId, alertsSeenTick, onAlertsSeen, onOpenSms,
   onOpenTenders,
@@ -73,6 +76,7 @@ export function DashboardView({
   weekEmployees: WeekEmployee[];
   weekFrom: string; weekTo: string;
   savedWeeks: WeekSnapshot[];
+  employeeLeaves?: EmployeeLeave[];
   recoverableCharges?: RecoverableCharge[];
   onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule" | "inspector" | "recoverablecharges", jobId?: string, payrollEmpId?: string, inspectorTab?: "activity" | "portfolio") => void;
   onFixJobs: (updater: (prev: Job[]) => Job[]) => void;
@@ -219,20 +223,27 @@ export function DashboardView({
   const isOnClosingWeek = weekFrom === closingWeekRange.from && weekTo === closingWeekRange.to;
   const payrollWeekBehind = weekFrom !== currentWeekRange.from || weekTo !== currentWeekRange.to;
   const weekSaved = savedWeeks.some((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-  const unsettledEmployees = weekEmployees.filter((e) => !e.settled);
+  const payrollRolloverCtx = useMemo(
+    () => ({ employeeLeaves, savedWeeks }),
+    [employeeLeaves, savedWeeks],
+  );
+  const payrollRolloverBlockers = useMemo(
+    () => listPayrollRolloverBlockers(weekEmployees, weekFrom, weekTo, directory, payrollRolloverCtx),
+    [weekEmployees, weekFrom, weekTo, directory, payrollRolloverCtx],
+  );
   const dayOfWeek = new Date().getDay();
   const isFriday = dayOfWeek === 5;
   const isSaturday = dayOfWeek === 6;
   const isSunday = dayOfWeek === 0;
   const showSaturdayBanner =
-    isSaturday && isOnClosingWeek && weekEmployees.length > 0 && (!weekSaved || unsettledEmployees.length > 0);
+    isSaturday && isOnClosingWeek && weekEmployees.length > 0 && (!weekSaved || payrollRolloverBlockers.length > 0);
 
   // Auto-zapis w niedzielę (nie w sobotę — wypłaty ukraińców w sobotę popołudniu)
   const needsUnsavedWeekAlert =
     weekEmployees.length > 0 && !weekSaved && isOnClosingWeek && isSunday;
   // Rozliczenie: przypomnienie od piątku; także gdy tydzień zostaje w tyle (np. Nd po 20:00 bez przejścia)
-  const needsUnsettledAlert =
-    unsettledEmployees.length > 0 && (
+  const needsPayrollBlockerAlert =
+    payrollRolloverBlockers.length > 0 && (
       payrollWeekBehind
       || (isCurrentPayrollWeek && (isFriday || isSaturday || isSunday))
     );
@@ -244,7 +255,7 @@ export function DashboardView({
 
   const attentionCount =
     (needsUnsavedWeekAlert ? 1 : 0) +
-    (needsUnsettledAlert ? unsettledEmployees.length : 0) +
+    (needsPayrollBlockerAlert ? payrollRolloverBlockers.length : 0) +
     consistencyAlerts.length +
     jobsMissingDocs.length +
     pendingPhotos.length +
@@ -363,10 +374,10 @@ export function DashboardView({
                 <p className="text-sm font-semibold text-primary">Sobota — czas zamknąć tydzień</p>
                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                   {!weekSaved && "Tydzień zapisze się automatycznie dziś przy otwarciu aplikacji — możesz też zapisać ręcznie. "}
-                  {unsettledEmployees.length > 0 && (
-                    <>{unsettledEmployees.length} {unsettledEmployees.length === 1 ? "osoba oczekuje" : "osób oczekuje"} na rozliczenie: {unsettledEmployees.slice(0, 4).map((e) => e.name.split(" ")[0]).join(", ")}{unsettledEmployees.length > 4 ? "…" : ""}.</>
+                  {payrollRolloverBlockers.length > 0 && (
+                    <>{payrollRolloverBlockers.length} {payrollRolloverBlockers.length === 1 ? "osoba ma" : "osób ma"} nierozliczoną kasę sobotnią: {payrollRolloverBlockers.slice(0, 4).map((e) => e.name.split(" ")[0]).join(", ")}{payrollRolloverBlockers.length > 4 ? "…" : ""}.</>
                   )}
-                  {weekSaved && unsettledEmployees.length === 0 && "Tydzień zapisany — sprawdź, czy wszyscy mają status Rozliczony."}
+                  {weekSaved && payrollRolloverBlockers.length === 0 && "Tydzień zapisany — brak blokad wypłaty sobotniej."}
                 </p>
               </div>
             </div>
@@ -670,14 +681,14 @@ export function DashboardView({
                   </button>
                 </div>
               )}
-              {needsUnsettledAlert && (
+              {needsPayrollBlockerAlert && (
                 <div className="px-5 py-3.5">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-sm font-medium flex items-center gap-2">
                       <Wallet size={14} className="text-yellow-400"/>
-                      Nierozliczeni pracownicy
+                      Wypłata sobotnia bez rozliczenia
                       <span className="text-[10px] bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded-full font-bold">
-                        {unsettledEmployees.length}
+                        {payrollRolloverBlockers.length}
                       </span>
                     </p>
                     <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline">
@@ -685,11 +696,11 @@ export function DashboardView({
                     </button>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {unsettledEmployees.slice(0, 8).map((e) => (
+                    {payrollRolloverBlockers.slice(0, 8).map((e) => (
                       <span key={e.id} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-muted-foreground">{e.name || "—"}</span>
                     ))}
-                    {unsettledEmployees.length > 8 && (
-                      <span className="text-[10px] text-muted-foreground">+ {unsettledEmployees.length - 8}</span>
+                    {payrollRolloverBlockers.length > 8 && (
+                      <span className="text-[10px] text-muted-foreground">+ {payrollRolloverBlockers.length - 8}</span>
                     )}
                   </div>
                 </div>
