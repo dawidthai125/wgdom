@@ -4,9 +4,9 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-08  
-**Wersja UI (prod):** **2.49.70** — Sprint 20.5A.3A Inspector Billing Review  
-**Prod `origin/main` HEAD:** **`4fec9cc`** · https://www.wgdom.fun  
-**Status Sprint 20.5A.3A:** **CLOSED** (deploy prod; manual smoke urządzenia — do potwierdzenia przez właściciela)
+**Wersja UI (prod):** **2.49.80** — Sprint 20.5A.4 Billing Notes Workflow  
+**Prod `origin/main` HEAD:** **`9990921`** · https://www.wgdom.fun  
+**Status Sprint 20.5A.4:** **CLOSED** (deploy prod; manual smoke urządzenia — do potwierdzenia przez właściciela)
 
 ---
 
@@ -49,12 +49,14 @@
 
 ---
 
-## Sprint 20.5A.4 — Uwagi inspektora do pozycji billing (**LOKALNIE — bez commit**)
+## Sprint 20.5A.4 — Uwagi inspektora do pozycji billing (**CLOSED**)
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI (lokalnie)** | **2.49.80** |
-| **Prod** | nadal **2.49.70** @ `4fec9cc` |
+| **Release** | **v2.49.80** |
+| **Commit** | **`9990921`** — `feat(inspector): add billing notes workflow for recoverable charges (20.5A.4)` |
+| **Production** | https://www.wgdom.fun · https://www.wgdom.online |
+| **Deploy** | Vercel `3oqGD9dUuNPHCZhtGVax2cXwbUsH` — **SUCCESS** |
 
 | Element | Opis |
 |---------|------|
@@ -64,7 +66,26 @@
 | **WM** | `wmJobNotes()` — separacja od billing |
 | **Smoke** | `smoke-test-inspector-billing-notes-20.5a4.mjs` **28/28 PASS** |
 
-**Czeka:** akceptacja → commit → push → deploy
+### Post-deploy (automatyczny)
+
+| Suite | Wynik |
+|-------|-------|
+| build lokalny | **PASS** |
+| smoke 20.5a4 | **28/28 PASS** |
+| smoke 20.5a3a | **28/28 PASS** |
+| smoke inspector 20.2a | **ALL PASS** |
+| prod bundle 2.49.80 (obie domeny) | **PASS** (markery UI; nazwy helperów zminifikowane w bundle) |
+| GitHub Mobile smoke tests | **FAIL** (workflow — wzorzec sprzed 20.5A; nie blokuje Vercel frontend) |
+
+### Manual smoke prod (billing notes A–D)
+
+| Urządzenie | Status |
+|------------|--------|
+| iPhone Safari | **Do potwierdzenia** (właściciel) |
+| Android Chrome | **Do potwierdzenia** (właściciel) |
+| Desktop Chrome | **Do potwierdzenia** (właściciel) |
+
+**Następny backlog:** 20.5A.5+ (zdjęcia do uwag / zgłoszenie pozycji przez inspektora) lub 20.3B MIN / Roboty 2.0 MID — tylko na polecenie.
 
 ---
 
@@ -72,6 +93,7 @@
 
 | Sprint | Wersja | Commit | Status |
 |--------|--------|--------|--------|
+| **20.5A.4** Billing Notes Workflow | **2.49.80** | **`9990921`** | **CLOSED** |
 | **20.5A.3A** Inspector Billing Review | **2.49.70** | **`4fec9cc`** | **CLOSED** |
 | 20.5A.2 Create from job | 2.49.10 | `571b90b` | CLOSED |
 | 20.5A.1 Jobs read-only | 2.49.00 | `637f12c` | CLOSED |
@@ -96,6 +118,6 @@
 ```text
 1. CURRENT-TASK.md (ten plik)
 2. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md
-3. docs/ARCHITECTURE.md § Do rozliczenia (20.5A.3A inspektor read-only)
+3. docs/ARCHITECTURE.md § Do rozliczenia (20.5A.4 billing notes + 20.5A.3A read-only)
 4. AGENTS.md
 ```

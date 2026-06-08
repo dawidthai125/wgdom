@@ -1,18 +1,18 @@
-# Sprint 20.3A–20.5A.2 — Do rozliczenia + Roboty (handoff dla AI)
+# Sprint 20.3A–20.5A.4 — Do rozliczenia + Roboty (handoff dla AI)
 
 > **Hasło:** „kontynuuj WGDOM” → [`CURRENT-TASK.md`](../CURRENT-TASK.md) · [`AGENTS.md`](../AGENTS.md)
 
 ---
 
-## Stan prod (2026-06-07)
+## Stan prod (2026-06-08)
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **v2.49.10** |
-| **Prod `origin/main`** | **`571b90b`** — `feat(jobs): create recoverable charges from job view (20.5A.2)` |
-| **Production** | https://www.wgdom.fun |
-| **Vercel deploy** | **PASS** @ `571b90b` |
-| **Następny sprint** | **20.5A.3** — Inspektor billing (nie rozpoczęty) |
+| **Wersja UI** | **v2.49.80** |
+| **Prod `origin/main`** | **`9990921`** — `feat(inspector): add billing notes workflow for recoverable charges (20.5A.4)` |
+| **Production** | https://www.wgdom.fun · https://www.wgdom.online |
+| **Vercel deploy** | **PASS** @ `9990921` |
+| **Następny sprint** | **20.5A.5+** — zdjęcia do uwag / zgłoszenie pozycji przez inspektora (tylko na polecenie) |
 
 ---
 
@@ -28,7 +28,9 @@
 | **20.4C.2B** | 2.48.20 | `7cc3c77` | Alerty odzyskiwania |
 | **20.4C.2C** | 2.48.30 | `81554f0` | Top listy + KPI czasowe |
 | **20.5A.1** | 2.49.00 | `637f12c` | Roboty ↔ Do rozliczenia (read-only) |
-| **20.5A.2** | **2.49.10** | **`571b90b`** | **Create from job** — modal na robocie |
+| **20.5A.2** | 2.49.10 | `571b90b` | Create from job — modal na robocie |
+| **20.5A.3A** | 2.49.70 | `4fec9cc` | Inspektor read-only billing review na robocie |
+| **20.5A.4** | **2.49.80** | **`9990921`** | **Billing notes** — uwagi inspektora per pozycja |
 
 ---
 
@@ -65,6 +67,38 @@
 **Smoke:** `scripts/smoke-test-recoverable-charges-create-from-job-20.5a2.mjs`
 
 **UX po zapisie:** modal zamknięty, użytkownik na robocie, KPI odświeżone (props `recoverableCharges`).
+
+---
+
+## Sprint 20.5A.3A — Inspektor read-only billing review
+
+**Commit:** `4fec9cc` · **v2.49.70**
+
+| Element | Opis |
+|---------|------|
+| **InspectorPanel** | Read-only fetch/merge `kw-recoverable-charges` + tombstones (bez push billing) |
+| **JobRecoverableChargesPanel** | `variant="inspector"` — KPI, kwoty, historia `settlements[]` |
+| **InspectorJobCard** | Badge 💰 + tooltip PLN przy `unsettledCount > 0` |
+
+**Smoke:** `scripts/smoke-test-inspector-billing-20.5a3a.mjs`
+
+---
+
+## Sprint 20.5A.4 — Billing notes workflow
+
+**Commit:** `9990921` · **v2.49.80**
+
+| Element | Opis |
+|---------|------|
+| **Model** | `JobNote.recoverableChargeId` + `context: billing`; `activityLog` typ `inspector_billing_note` |
+| **Inspektor** | „Zgłoś uwagę” na karcie pozycji; push tylko `kw-jobs` |
+| **Admin** | Wątek + odpowiedź w `JobRecoverableChargesPanel`; Pulpit prefiks „Do rozliczenia” |
+| **WM** | `wmJobNotes()` — separacja od notatek billing |
+| **Kluczowe pliki** | `job-wm.ts`, `JobRecoverableChargesPanel.tsx`, `InspectorPanel.tsx`, `JobsView.tsx`, `JobWmPanel.tsx`, `DashboardView.tsx` |
+
+**Smoke:** `scripts/smoke-test-inspector-billing-notes-20.5a4.mjs` (T1–T10, 28/28 PASS)
+
+**Bez zmian:** KV `kw-recoverable-charges`, create/edit/delete/settle charge w trybie inspektora.
 
 ---
 
@@ -120,10 +154,17 @@ Wszystkie **ALL PASS** przy closeout `571b90b`.
 - KV `kw-recoverable-charges`, sync, merge settlements
 - `deriveChargeAmounts()` / status wyliczany z ledgeru
 - Dashboard KPI (20.4C.1) — bez nowych kafelków w 20.5A
-- Payroll, leaves, inspector (poza planowanym 20.5A.3)
+- Payroll, leaves (poza planowanym 20.5A.5+)
 
 ---
 
-## Plan 20.5A.3 (nie rozpoczęty)
+## Testy regresji (closeout 20.5A.4)
 
-Widoczność billing w Inspektorze — read-only lub akcje inspektora; bez zmian sync/KV.
+```bash
+npm run build
+npx vite-node scripts/smoke-test-inspector-billing-notes-20.5a4.mjs
+npx vite-node scripts/smoke-test-inspector-billing-20.5a3a.mjs
+npx vite-node scripts/smoke-test-inspector-20.2a.mjs
+```
+
+Wszystkie **ALL PASS** przy closeout `9990921` (prod bundle **2.49.80** na obu domenach).

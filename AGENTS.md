@@ -8,7 +8,7 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← ★ Billing + Roboty 20.3A–20.5A.2 CLOSED (v2.49.10, `571b90b`)
+2. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← ★ Billing + Roboty 20.3A–20.5A.4 CLOSED (v2.49.80, `9990921`)
 3. docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md  ← Sprint 20.1B CLOSED (saved ≠ closed)
 4. docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md  ← Sprint 20.1A CLOSED (odroczenie wypłaty, `f24fafe`)
 5. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← Performance 2.x CLOSED (wyniki końcowe)
@@ -47,7 +47,7 @@
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
 | **docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md** | Performance 2.x **CLOSED** (`35614f0`) — startup 1119 KB, seria 2.2C→2.4A |
-| **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.2 CLOSED** (`571b90b`, v2.49.10) |
+| **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.4 CLOSED** (`9990921`, v2.49.80) |
 | **docs/SETTLEMENT-WORKFLOW-AUDIT-20.4A.md** | Audyt settlement ledger — design 20.4A |
 | **docs/SETTLEMENT-REPORTING-AUDIT-20.4C.md** | Audyt reporting + dashboard KPI |
 | **docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md** | Sprint 20.1B **CLOSED** — saved ≠ closed, defer po zapisie, live vs snapshot |
@@ -85,8 +85,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.49.60**) |
-| Prod `main` (app) | Sprint **20.1D** closed week · release **v2.49.60** (commit po deploy tej sesji) |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.49.80**) |
+| Prod `main` (app) | Sprint **20.5A.4** billing notes · release **v2.49.80** (`9990921`) |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |
 | Frontend deploy | push `main` → Vercel |
@@ -203,17 +203,19 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 
 ---
 
-## 3g. Do rozliczenia + Roboty — Sprint 20.5A (**CLOSED**, prod `571b90b`, v2.49.10)
+## 3g. Do rozliczenia + Roboty — Sprint 20.5A (**CLOSED**, prod `9990921`, v2.49.80)
 
 - **Handoff:** [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md) — **czytaj najpierw** przy pracy nad billing / roboty
 - **Architektura:** **ARCHITECTURE.md** § Do rozliczenia (2.47–2.49)
 - **20.5A.1** (`637f12c`): read-only — badge 💰, karta KPI, deep link `pendingRecoverableChargeId`
 - **20.5A.2** (`571b90b`): ➕ Dodaj do rozliczenia — modal na robocie, `buildRecoverableChargeDraftFromJob()`
-- **Kluczowe pliki:** `recoverable-charges.ts`, `JobRecoverableChargesPanel.tsx`, `JobCreateRecoverableChargeModal.tsx`, `JobsView.tsx`
-- **Smoke:** `smoke-test-recoverable-charges-jobs-20.5a1.mjs`, `smoke-test-recoverable-charges-create-from-job-20.5a2.mjs`
+- **20.5A.3A** (`4fec9cc`): inspektor read-only billing review na robocie (kwoty, KPI, historia)
+- **20.5A.4** (`9990921`): uwagi inspektora per pozycja — `JobNote.recoverableChargeId`, push tylko `kw-jobs`
+- **Kluczowe pliki:** `recoverable-charges.ts`, `job-wm.ts`, `JobRecoverableChargesPanel.tsx`, `InspectorPanel.tsx`, `JobsView.tsx`
+- **Smoke:** `smoke-test-inspector-billing-notes-20.5a4.mjs`, `smoke-test-inspector-billing-20.5a3a.mjs`
 - **Audyty:** `docs/SETTLEMENT-*.md`, `docs/ADDITIONAL-BILLING-AUDIT-20.3A.md`, `docs/UI-LANGUAGE-AUDIT-20.3B.md`
 
-**Następny:** 20.5A.3 Inspektor billing — nie rozpoczęty.
+**Następny:** 20.5A.5+ (zdjęcia do uwag / zgłoszenie pozycji przez inspektora) — tylko na polecenie.
 
 **Nie zmieniaj bez polecenia:** KV/sync/merge settlements, dashboard KPI (20.4C), payroll, leaves.
 

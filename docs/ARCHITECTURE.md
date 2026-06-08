@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.49.70** · Sprint 20.5A.3A Inspector Billing Review)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-08 (Sprint 20.5A.3A — inspektor read-only billing z kwotami)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.49.80** · Sprint 20.5A.4 Billing Notes Workflow)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-08 (Sprint 20.5A.4 — uwagi inspektora do pozycji billing)
 
 ---
 
