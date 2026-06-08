@@ -30,10 +30,10 @@ test.describe("Desktop smoke — przeglądarka PC/laptop", () => {
     await expect(page.locator("text=Application error")).toHaveCount(0);
   });
 
-  test("lazy chunk inspektora — plik panel-inspector dostępny", async ({ request, baseURL }) => {
+  test("lazy chunk inspektora — InspectorPanel dostępny", async ({ request, baseURL }) => {
     const { name, bytes } = await fetchLazyChunk(request, baseURL!, "panel-inspector");
     expect(bytes).toBeGreaterThan(10_000);
-    expect(name).toMatch(/^panel-inspector-/);
+    expect(name).toMatch(/^InspectorPanel-/);
   });
 
   test("service worker v25 — obecny w buildzie", async ({ request, baseURL }) => {

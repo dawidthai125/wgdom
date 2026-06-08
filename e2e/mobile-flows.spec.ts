@@ -32,8 +32,9 @@ test.describe("Mobile flows — nawigacja startowa", () => {
     expect(sw).toBeLessThanOrEqual(cw + 2);
   });
 
-  test("chunk panel-inspector — dostępny (lazy-load po zalogowaniu)", async ({ request, baseURL }) => {
-    const { bytes } = await fetchLazyChunk(request, baseURL!, "panel-inspector");
+  test("chunk InspectorPanel — dostępny (lazy-load po zalogowaniu)", async ({ request, baseURL }) => {
+    const { name, bytes } = await fetchLazyChunk(request, baseURL!, "panel-inspector");
+    expect(name).toMatch(/^InspectorPanel-/);
     expect(bytes).toBeGreaterThan(50_000);
   });
 

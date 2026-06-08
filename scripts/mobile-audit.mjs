@@ -123,13 +123,29 @@ pwaBanner.includes("isNativeApp()") ? pass("native", "baner PWA ukryty w natywce
 const pq = read("src/lib/photo-queue.ts") || "";
 pq.includes('"inspector"') || pq.includes("'inspector'") ? pass("queue", "kolejka inspektora") : fail("queue", "Brak kind inspector w photo-queue");
 
-// ─── Heurystyki App.tsx ───
+// ─── Heurystyki mobile shell / PTR (nie tylko App.tsx — refaktor Performance 2.x) ───
 const app = read("src/app/App.tsx") || "";
-app.includes("100dvh") ? pass("app", "100dvh") : fail("app", "Brak 100dvh w shellu");
+const workerView = read("src/app/WorkerPhotoView.tsx") || "";
+const inspectorPanel = read("src/app/InspectorPanel.tsx") || "";
+
+const has100dvh =
+  (mobileCss.includes("100dvh") && mobileCss.includes("admin-app-shell")) || html.includes("100dvh");
+has100dvh ? pass("app", "100dvh") : fail("app", "Brak 100dvh w shellu");
+
 app.includes("safe-area-inset") ? pass("app", "safe-area") : fail("app", "Brak safe-area-inset");
-app.includes("overscroll-contain") ? pass("app", "overscroll-contain") : warn("app", "Mało overscroll-contain");
+
+const hasOverscroll =
+  mobileCss.includes("overscroll-contain")
+  || mobileCss.includes("overscroll-behavior: contain")
+  || app.includes("overscroll-contain");
+hasOverscroll ? pass("app", "overscroll-contain") : warn("app", "Mało overscroll-contain");
+
 app.includes("Toaster") ? pass("app", "toasty admin") : warn("app", "Brak Toaster w adminie");
-app.includes("usePullToRefresh") ? pass("app", "PTR worker") : fail("app", "Brak PTR u pracownika");
+
+const hasPtr =
+  workerView.includes("usePullToRefresh") || inspectorPanel.includes("usePullToRefresh");
+hasPtr ? pass("app", "PTR worker/inspektor") : fail("app", "Brak PTR u pracownika");
+
 app.includes("registerNativeBackHandler") ? pass("app", "native back") : fail("app", "Brak obsługi Wstecz");
 
 // Małe touch targets — heurystyka (py-1 bez min-h na button)
