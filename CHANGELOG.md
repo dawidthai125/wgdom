@@ -4,11 +4,17 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.49.40** (`changelog-data.ts`) · Sprint 20.1C.2 Payroll dashboard alerts alignment
+**Aktualna wersja UI:** **2.49.50** (`changelog-data.ts`) · Fix admin photo upload JobsView
 
 **Performance 2.x (seria CLOSED):** tagi `v2.45.37-perf-2.3c`, `v2.45.38-perf-2.4a` · baza Performance `35614f0`
 
 ---
+
+## 2.49.50 (2026-06-08) — Roboty admin photo upload fix
+
+* **JobsView** — import `prepareWatermarkedPhoto` (regresja od v2.45.17 lazy-load)
+* catch + toast przy błędzie uploadu
+* Smoke: `smoke-test-jobs-admin-photo-upload.mjs`
 
 ## 2.49.40 (2026-06-07) — Pulpit alerty listy płac (Sprint 20.1C.2)
 

@@ -11,6 +11,16 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-08",
+    version: "2.49.50",
+    label: "Roboty — naprawa wgrywania zdjęć (admin)",
+    items: [
+      { type: "fix", text: "Admin → Roboty → Zdjęcia — „Dodaj zdjęcia” działa ponownie (brakujący import prepareWatermarkedPhoto od v2.45.17)" },
+      { type: "fix", text: "Wszystkie kategorie: Przed remontem, Po remoncie, W trakcie" },
+      { type: "improve", text: "Błąd uploadu — toast zamiast cichej awarii" },
+    ],
+  },
+  {
     date: "2026-06-07",
     version: "2.49.40",
     label: "Pulpit — alerty listy płac (Sprint 20.1C.2)",

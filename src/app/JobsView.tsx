@@ -31,7 +31,7 @@ import { JobWorkerReportsPanel } from "@/app/JobWorkerReportsPanel";
 import { JobPhotoGallery } from "@/app/JobPhotoGallery";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { filterAvailablePhotos, isMediaAttachmentAvailable } from "@/lib/media-filter";
-import { uploadPhoto } from "@/app/app-domain";
+import { uploadPhoto, prepareWatermarkedPhoto } from "@/app/app-domain";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { LabelWithHint, VoiceNoteButton } from "@/app/app-ui";
@@ -64,7 +64,6 @@ import {
 } from "@/lib/work-scope-text";
 import { contactsForJobs, contactAllowsJobs, type EmailContact } from "@/lib/email-contacts";
 import { API_BASE, API_HEADERS, addDeletedJobId, getDeletedJobIds, pushJobsAfterDelete } from "@/lib/cloud-sync";
-import { watermarkedFile, jobWatermarkLines } from "@/lib/photo-watermark";
 import {
   normalizeJobWmFields, isWmClient, fmtPlannedHandover, HANDOVER_STAGE_LABELS,
   inferHandoverStage, removeInspectorPhoto, canShowStartExecutionButton, startJobExecution,
@@ -2287,7 +2286,15 @@ export function JobsView({
                             ? `Admin dodał zdjęcie (${cat})`
                             : `Admin dodał ${newPhotos.length} zdjęć (${cat})`,
                         );
+                        toast.success(
+                          newPhotos.length === 1
+                            ? `Dodano zdjęcie (${cat})`
+                            : `Dodano ${newPhotos.length} zdjęć (${cat})`,
+                        );
                       }
+                    } catch (err) {
+                      const msg = err instanceof Error ? err.message : "Błąd wgrywania zdjęcia";
+                      toast.error("Nie udało się wgrać zdjęcia", { description: msg });
                     } finally {
                       setPhotoUploadBusy(false);
                     }
