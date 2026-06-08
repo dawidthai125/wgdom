@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.49.80** · Sprint 20.5A.4 Billing Notes Workflow)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-08 (Sprint 20.5A.4 — uwagi inspektora do pozycji billing)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.49.90** · Sprint 20.3B MIN Polonizacja UI)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-08 (Sprint 20.3B MIN — etykiety PL Pulpit/CC executive)
 
 ---
 
@@ -605,7 +605,7 @@ Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTST
 
 - **Karta ofertowa** (`TenderBidPrepPanel`) — checklist, analiza SWZ, wadium + blokada, referencje, wynik BZP, porównanie cen, .ics terminu, pakiet PDF.
 - **Chipy „wymaga działania”** — filtry: termin bez wyceny, wadium, brak kosztorysu, referencje NIE, obciążenie zespołu.
-- **Pulpit admin (7G)** — **W&G DOM COMMAND CENTER AI** (executive summary): briefing, health, capacity, okazja, prognoza 90d, Action Center (max 3). Szczegóły → [`tender-center-7g-executive.md`](tender-center-7g-executive.md). Legacy `tenderDashStats` **usunięte** (Performance 1.1C, `a6cdb4a`).
+- **Pulpit admin (7G)** — **W&G DOM COMMAND CENTER AI** (executive summary): briefing, Indeks kondycji, capacity, okazja, prognoza 90d, Centrum działań (max 3). **20.3B MIN (v2.49.90):** etykiety PL na executive panelu i przyciskach decyzji (`DECISION_LABEL_PL`). Szczegóły → [`tender-center-7g-executive.md`](tender-center-7g-executive.md). Legacy `tenderDashStats` **usunięte** (Performance 1.1C, `a6cdb4a`).
 - **Mapa Wrocław** — kafelki **OpenStreetMap** (`tile.openstreetmap.org`) + markery; **nie** `staticmap.openstreetmap.de` (niedostępny). Panel domyślnie rozwinięty.
 - **Słownik słów kluczowych** — wbudowany w `tenders-bzp-keywords.ts` (~280 haseł) + opcjonalne własne w chmurze (`kw-tenders-custom-keywords`).
 

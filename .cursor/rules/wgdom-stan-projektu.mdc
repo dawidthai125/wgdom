@@ -12,8 +12,8 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI (prod):** **2.49.80** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
-- **Prod (`main` / `origin/main`, app):** **`9990921`** · https://www.wgdom.fun · Sprint 20.5A.4 **CLOSED**
+- **Aktualna wersja UI (prod):** **2.49.90** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
+- **Prod (`main` / `origin/main`, app):** **`3d6a63e`** · https://www.wgdom.fun · Sprint 20.3B MIN **CLOSED**
 - **★ Handoff Billing + Roboty (CLOSED):** [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](../../docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md) — 20.3A–20.5A.4, audyty, smoke
 - **Handoff Sprint 20.1B (CLOSED):** [`docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md`](../../docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md) — saved ≠ closed, defer po „Zapisz tydzień”
 - **Handoff Sprint 20.1A (CLOSED):** [`docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md`](../../docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md) — odroczenie wypłaty, `f24fafe`
@@ -59,6 +59,14 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 **Następny:** 20.5A.5+ (zdjęcia do uwag / zgłoszenie pozycji) — tylko na polecenie.
 
 **Nie zmieniaj bez polecenia:** KV `kw-recoverable-charges`, sync/merge settlements, dashboard KPI 20.4C.
+
+## Polonizacja UI — Sprint 20.3B MIN (CLOSED, prod `3d6a63e`, 2026-06-08)
+
+| Sprint | Commit | Wersja | Skrót |
+|--------|--------|--------|-------|
+| **20.3B MIN** | **`3d6a63e`** | **2.49.90** | Centrum działań, Indeks kondycji, STARTUJ/ANALIZUJ/ODPUŚĆ, Portfolio WM |
+
+**Smoke:** `smoke-test-ui-language-20.3b.mjs` · **Następny:** 20.3B+ (pełny CC) — tylko na polecenie.
 
 ## Payroll carry — Sprint 20.0A → 20.1A → 20.1B (CLOSED, prod `74e65d9`, 2026-06-06)
 

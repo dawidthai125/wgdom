@@ -85,8 +85,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.49.80**) |
-| Prod `main` (app) | Sprint **20.5A.4** billing notes · release **v2.49.80** (`9990921`) |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.49.90**) |
+| Prod `main` (app) | Sprint **20.3B MIN** polonizacja UI · release **v2.49.90** (`3d6a63e`) |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |
 | Frontend deploy | push `main` → Vercel |
@@ -218,6 +218,17 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 **Następny:** 20.5A.5+ (zdjęcia do uwag / zgłoszenie pozycji przez inspektora) — tylko na polecenie.
 
 **Nie zmieniaj bez polecenia:** KV/sync/merge settlements, dashboard KPI (20.4C), payroll, leaves.
+
+---
+
+## 3h. Polonizacja UI — Sprint 20.3B MIN (**CLOSED**, prod `3d6a63e`, v2.49.90)
+
+- **Zakres:** prezentacja only — Pulpit CC executive, Action Center, decyzje przetargowe, Portfolio WM, billing Administrator
+- **Mapy:** `ACTION_PRIORITY_LABEL_PL`, `DECISION_LABEL_PL` (bez nowych enumów)
+- **Smoke:** `smoke-test-ui-language-20.3b.mjs` (T1–T8, 31/31)
+- **Audyt:** `docs/UI-LANGUAGE-AUDIT-20.3B.md` · backlog **20.3B+** (pełny CC: AI Insights, Explainability, Financial Capacity)
+
+**Nie zmieniaj bez polecenia:** marka COMMAND CENTER AI, enumy GO/HOLD/NO-GO w danych.
 
 ---
 

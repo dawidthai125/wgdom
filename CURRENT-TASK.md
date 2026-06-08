@@ -4,9 +4,9 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-08  
-**Wersja UI (prod):** **2.49.80** — Sprint 20.5A.4 Billing Notes Workflow  
-**Prod `origin/main` HEAD:** **`9990921`** · https://www.wgdom.fun  
-**Status Sprint 20.5A.4:** **CLOSED** (deploy prod; manual smoke urządzenia — do potwierdzenia przez właściciela)
+**Wersja UI (prod):** **2.49.90** — Sprint 20.3B MIN Polonizacja UI  
+**Prod `origin/main` HEAD:** **`3d6a63e`** · https://www.wgdom.fun  
+**Status Sprint 20.3B MIN:** **CLOSED** (deploy prod)
 
 ---
 
@@ -85,7 +85,34 @@
 | Android Chrome | **Do potwierdzenia** (właściciel) |
 | Desktop Chrome | **Do potwierdzenia** (właściciel) |
 
-**Następny backlog:** 20.5A.5+ (zdjęcia do uwag / zgłoszenie pozycji przez inspektora) lub 20.3B MIN / Roboty 2.0 MID — tylko na polecenie.
+---
+
+## Sprint 20.3B MIN — Polonizacja UI (**CLOSED**)
+
+| Pole | Wartość |
+|------|---------|
+| **Release** | **v2.49.90** |
+| **Commit** | **`3d6a63e`** — `feat(ui): polish daily labels for dashboard and tenders (20.3B MIN)` |
+| **Production** | https://www.wgdom.fun · https://www.wgdom.online |
+| **Deploy** | Vercel `4JaxDVWrG2oWzWfi1x2au6VZXczp` — **SUCCESS** |
+
+| Element | Opis |
+|---------|------|
+| **Pulpit CC executive** | Centrum działań, Indeks kondycji, priorytety PL, Okazja/Strategiczny |
+| **Przetargi** | Przyciski STARTUJ / ANALIZUJ / ODPUŚĆ (`DECISION_LABEL_PL`) |
+| **Inspektor** | Portfolio WM; billing — Administrator |
+| **Smoke** | `smoke-test-ui-language-20.3b.mjs` **31/31 PASS** |
+
+### Post-deploy (automatyczny)
+
+| Suite | Wynik |
+|-------|-------|
+| build lokalny | **PASS** |
+| smoke 20.3b | **31/31 PASS** |
+| smoke 20.5a4 / 20.5a3a / 20.2a | **PASS** |
+| prod bundle 2.49.90 (obie domeny) | **PASS** (markery MIN; `Health Index` w lazy CC — poza scope) |
+
+**Następny backlog:** 20.3B+ (pełny CC: AI Insights, Explainability, Financial Capacity) lub 20.5A.5+ — tylko na polecenie.
 
 ---
 
@@ -93,6 +120,7 @@
 
 | Sprint | Wersja | Commit | Status |
 |--------|--------|--------|--------|
+| **20.3B MIN** Polonizacja UI | **2.49.90** | **`3d6a63e`** | **CLOSED** |
 | **20.5A.4** Billing Notes Workflow | **2.49.80** | **`9990921`** | **CLOSED** |
 | **20.5A.3A** Inspector Billing Review | **2.49.70** | **`4fec9cc`** | **CLOSED** |
 | 20.5A.2 Create from job | 2.49.10 | `571b90b` | CLOSED |
@@ -119,5 +147,6 @@
 1. CURRENT-TASK.md (ten plik)
 2. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md
 3. docs/ARCHITECTURE.md § Do rozliczenia (20.5A.4 billing notes + 20.5A.3A read-only)
-4. AGENTS.md
+4. Sprint 20.3B MIN — polonizacja Pulpit/CC executive (`smoke-test-ui-language-20.3b.mjs`)
+5. AGENTS.md
 ```
