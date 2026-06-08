@@ -84,8 +84,24 @@ assert("job-source-label", srcLabel.includes("Testowa") && srcLabel.includes("Fi
 const list = normalizeRecoverableCharges([
   { ...defaultRecoverableCharge(), id: "a", title: "Alpha", status: "open", amount: 100, createdAt: "2026-06-01T10:00:00.000Z", clientName: "A" },
   { ...defaultRecoverableCharge(), id: "b", title: "Beta materiał", status: "settled", amount: 500, createdAt: "2026-06-02T10:00:00.000Z", clientName: "B" },
-  { ...defaultRecoverableCharge(), id: "c", title: "Gamma", status: "partial", amount: 50, createdAt: "2026-06-03T10:00:00.000Z", responsibleInspector: "Kamil" },
+  {
+    ...defaultRecoverableCharge(),
+    id: "c",
+    title: "Gamma",
+    amount: 50,
+    settlements: [{
+      id: "settle-c-1",
+      amount: 20,
+      settledAt: "2026-06-03T10:00:00.000Z",
+      settledBy: "Admin",
+    }],
+    createdAt: "2026-06-03T10:00:00.000Z",
+    responsibleInspector: "Kamil",
+  },
 ]);
+
+const itemC = list.find((x) => x.id === "c");
+assert("normalize-partial-ledger", itemC?.status === "partial" && itemC?.amountRemaining === 30, `status=${itemC?.status} remaining=${itemC?.amountRemaining}`);
 
 const searched = filterRecoverableCharges(list, {
   search: "materiał",
