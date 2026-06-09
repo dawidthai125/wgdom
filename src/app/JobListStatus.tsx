@@ -157,10 +157,10 @@ export function JobListFilterBar({
   counts: Record<JobListFilter, number>;
 }) {
   const tabs: { id: JobListFilter; label: string }[] = [
-    { id: "all", label: "Wszystkie" },
     { id: "in_progress", label: "W trakcie" },
     { id: "handover", label: "Do odbioru" },
     { id: "completed", label: "Zdane" },
+    { id: "all", label: "Wszystkie" },
   ];
   return (
     <div className="-mx-1 px-1 overflow-x-auto overscroll-x-contain">

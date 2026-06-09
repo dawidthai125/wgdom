@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.54",
+    label: "Roboty UX Pack (20.5B.5)",
+    items: [
+      { type: "improve", text: "Roboty — domyślny filtr „W trakcie”; kolejność faz: W trakcie → Do odbioru → Zdane → Wszystkie" },
+      { type: "improve", text: "Typ lokalu — etykieta Socjalny (klucz komunalny bez migracji danych)" },
+      { type: "new", text: "Roboty — pole opcjonalne „Piec gazowy” (Zostaje / Wymiana / Brak) obok kuchenki; sync w chmurze" },
+      { type: "improve", text: "Plan techniczny PDF = dokument odbiorowy „Rysunek/Plan” — doprecyzowanie w instrukcji (bez zmian logiki 20.5A.9)" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.53",
     label: "Dashboard WM Cleanup (20.5B.4)",
     items: [

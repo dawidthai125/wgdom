@@ -68,7 +68,13 @@ import {
   type JobListViewMode,
   type JobOpsChip,
 } from "@/lib/job-list-ops";
-import { normalizeJobMetaFields, isJobHousingSet, HOUSING_TYPE_LABELS, STOVE_TYPE_LABELS_FULL } from "@/lib/job-meta";
+import {
+  normalizeJobMetaFields,
+  isJobHousingSet,
+  HOUSING_TYPE_LABELS,
+  STOVE_TYPE_LABELS_FULL,
+  GAS_FURNACE_STATUS_LABELS,
+} from "@/lib/job-meta";
 import {
   getReportWorkScopeText, reportHasWorkScope, scopeTextHasContent, scopeTextLineCount,
   scopeTextToWorkItems, workItemsToScopeText,
@@ -569,7 +575,7 @@ export function JobsView({
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<JobListFilter>("all");
+  const [filter, setFilter] = useState<JobListFilter>("in_progress");
   const [opsChip, setOpsChip] = useState<JobOpsChip | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteConfirmListId, setDeleteConfirmListId] = useState<string | null>(null);
@@ -1089,6 +1095,10 @@ export function JobsView({
               {text:"Kuchenka", fontSize:8, color:C2.muted},
               {text:job.stoveType?STOVE_TYPE_LABELS_FULL[job.stoveType]:"—", fontSize:10, bold:true, color:C2.navy},
             ]},
+            {stack:[
+              {text:"Piec gazowy", fontSize:8, color:C2.muted},
+              {text:job.gasFurnaceStatus?GAS_FURNACE_STATUS_LABELS[job.gasFurnaceStatus]:"—", fontSize:10, bold:true, color:C2.navy},
+            ]},
           ],
           margin:[0,0,0,14],
         },
@@ -1525,8 +1535,10 @@ export function JobsView({
                       <JobMetaPickers
                         housingType={selectedJob.housingType}
                         stoveType={selectedJob.stoveType}
+                        gasFurnaceStatus={selectedJob.gasFurnaceStatus}
                         onHousingChange={(v) => updateJob({ ...selectedJob, housingType: v })}
                         onStoveChange={(v) => updateJob({ ...selectedJob, stoveType: v })}
+                        onGasFurnaceChange={(v) => updateJob({ ...selectedJob, gasFurnaceStatus: v })}
                       />
                     </div>
                   </div>

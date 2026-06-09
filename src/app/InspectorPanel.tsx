@@ -100,7 +100,7 @@ import {
 import { recordInspectorEvent, getInspectorJobNotesSeenAt, markInspectorJobNotesSeen, syncAlertsSeenFromCloud } from "@/lib/inspector-stats";
 import { InspectorHelpBanner, InspectorHelpModal, InspectorHint } from "@/app/InspectorHelp";
 import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
-import { normalizeJobMetaFields, type HousingType, type StoveType } from "@/lib/job-meta";
+import { normalizeJobMetaFields, type HousingType, type StoveType, type GasFurnaceStatus } from "@/lib/job-meta";
 import { WmPortfolioView } from "@/app/WmPortfolioView";
 import { JobWmPanel, JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { WorkScopeDisplay } from "@/app/WorkScopeEditor";
@@ -200,6 +200,7 @@ interface InspectorJob extends JobWmJob {
   activityLog?: JobActivity[];
   housingType?: HousingType | "";
   stoveType?: StoveType | "";
+  gasFurnaceStatus?: GasFurnaceStatus | "";
 }
 
 function fmtDate(iso: string): string {
@@ -1264,8 +1265,10 @@ export function InspectorPanel({
               <JobMetaPickers
                 housingType={selectedJob.housingType}
                 stoveType={selectedJob.stoveType}
+                gasFurnaceStatus={selectedJob.gasFurnaceStatus}
                 onHousingChange={(v) => updateJob({ ...selectedJob, housingType: v })}
                 onStoveChange={(v) => updateJob({ ...selectedJob, stoveType: v })}
+                onGasFurnaceChange={(v) => updateJob({ ...selectedJob, gasFurnaceStatus: v })}
               />
               <InspectorQuickActions items={jobQuickActions} onSelect={scrollToJobSection}/>
             </div>

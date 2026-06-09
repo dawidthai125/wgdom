@@ -292,6 +292,7 @@ export interface Job {
   hiddenInspectorFeedIds?: string[];
   housingType?: HousingType | "";
   stoveType?: StoveType | "";
+  gasFurnaceStatus?: import("@/lib/job-meta").GasFurnaceStatus | "";
   /** Ostatnia zmiana wpisu — do scalania między kartami / chmurą */
   updatedAt?: string;
   /** Powiązany przetarg BZP (pipeline). */

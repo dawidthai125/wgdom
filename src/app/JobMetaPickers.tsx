@@ -4,9 +4,12 @@ import {
   STOVE_TYPES,
   STOVE_TYPE_LABELS,
   STOVE_TYPE_LABELS_FULL,
+  GAS_FURNACE_STATUSES,
+  GAS_FURNACE_STATUS_LABELS,
   type HousingType,
   type JobMetaFields,
   type StoveType,
+  type GasFurnaceStatus,
   isJobHousingSet,
 } from "@/lib/job-meta";
 
@@ -57,13 +60,17 @@ function MetaRow<T extends string>({
 export function JobMetaPickers({
   housingType,
   stoveType,
+  gasFurnaceStatus,
   onHousingChange,
   onStoveChange,
+  onGasFurnaceChange,
 }: {
   housingType?: HousingType | "";
   stoveType?: StoveType | "";
+  gasFurnaceStatus?: GasFurnaceStatus | "";
   onHousingChange: (v: HousingType) => void;
   onStoveChange: (v: StoveType) => void;
+  onGasFurnaceChange: (v: GasFurnaceStatus) => void;
 }) {
   const housingMissing = !isJobHousingSet({ housingType });
 
@@ -88,6 +95,13 @@ export function JobMetaPickers({
         titleLabels={STOVE_TYPE_LABELS_FULL}
         onChange={onStoveChange}
       />
+      <MetaRow
+        label="Piec gazowy"
+        value={gasFurnaceStatus}
+        options={GAS_FURNACE_STATUSES}
+        labels={GAS_FURNACE_STATUS_LABELS}
+        onChange={onGasFurnaceChange}
+      />
     </div>
   );
 }
@@ -106,6 +120,13 @@ export function JobMetaBadges({ job }: { job: JobMetaFields }) {
       key: "stove",
       text: STOVE_TYPE_LABELS_FULL[job.stoveType as StoveType],
       className: "bg-violet-500/12 text-violet-400",
+    });
+  }
+  if (job.gasFurnaceStatus && GAS_FURNACE_STATUSES.includes(job.gasFurnaceStatus as GasFurnaceStatus)) {
+    badges.push({
+      key: "gasFurnace",
+      text: `Piec: ${GAS_FURNACE_STATUS_LABELS[job.gasFurnaceStatus as GasFurnaceStatus]}`,
+      className: "bg-orange-500/12 text-orange-400",
     });
   }
   if (badges.length === 0) return null;

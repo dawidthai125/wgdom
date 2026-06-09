@@ -10,9 +10,11 @@ import { collectJobDocuments, type MediaSeparationSource } from "@/lib/media-sep
 import {
   HOUSING_TYPE_LABELS,
   STOVE_TYPE_LABELS_FULL,
+  GAS_FURNACE_STATUS_LABELS,
   isJobHousingSet,
   type HousingType,
   type StoveType,
+  type GasFurnaceStatus,
 } from "@/lib/job-meta";
 
 export type JobPackSource = MediaSeparationSource & {
@@ -23,6 +25,7 @@ export type JobPackSource = MediaSeparationSource & {
   notes: string;
   housingType?: HousingType | "";
   stoveType?: StoveType | "";
+  gasFurnaceStatus?: GasFurnaceStatus | "";
   documents: Record<DocType, boolean>;
 };
 
@@ -63,6 +66,7 @@ function buildReadme(job: JobPackSource): string {
     `Klucze: ${job.keysHandedOver ? "Zdane" : "Nie zdane"}`,
     `Lokal: ${isJobHousingSet(job) ? HOUSING_TYPE_LABELS[job.housingType] : "—"}`,
     `Kuchenka: ${job.stoveType ? STOVE_TYPE_LABELS_FULL[job.stoveType] : "—"}`,
+    `Piec gazowy: ${job.gasFurnaceStatus ? GAS_FURNACE_STATUS_LABELS[job.gasFurnaceStatus] : "—"}`,
     "",
     "Checklist dokumentów:",
   ];

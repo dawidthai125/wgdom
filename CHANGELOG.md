@@ -4,7 +4,16 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.53** (`changelog-data.ts`) · Dashboard WM Cleanup 20.5B.4
+**Aktualna wersja UI:** **2.50.54** (`changelog-data.ts`) · Roboty UX Pack 20.5B.5
+
+---
+
+## 2.50.54 (2026-06-09) — Roboty UX Pack (20.5B.5)
+
+* **Improve:** Roboty — domyślny filtr „W trakcie”; kolejność faz na liście
+* **Improve:** Typ lokalu — etykieta Socjalny (key `komunalny` bez migracji)
+* **New:** Pole opcjonalne „Piec gazowy” (Zostaje / Wymiana / Brak)
+* **Improve:** FAQ — plan techniczny PDF = „Rysunek/Plan” (docs 20.5B.5D)
 
 ---
 

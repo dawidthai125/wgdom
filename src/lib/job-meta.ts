@@ -3,7 +3,7 @@ export type HousingType = (typeof HOUSING_TYPES)[number];
 
 export const HOUSING_TYPE_LABELS: Record<HousingType, string> = {
   zamienny: "Zamienny",
-  komunalny: "Komunalny",
+  komunalny: "Socjalny",
   repatrianci: "Repatrianci",
 };
 
@@ -23,9 +23,19 @@ export const STOVE_TYPE_LABELS_FULL: Record<StoveType, string> = {
   dwupalnik: "Dwupalnik",
 };
 
+export const GAS_FURNACE_STATUSES = ["zostaje", "wymiana", "brak"] as const;
+export type GasFurnaceStatus = (typeof GAS_FURNACE_STATUSES)[number];
+
+export const GAS_FURNACE_STATUS_LABELS: Record<GasFurnaceStatus, string> = {
+  zostaje: "Zostaje",
+  wymiana: "Wymiana",
+  brak: "Brak",
+};
+
 export type JobMetaFields = {
   housingType?: HousingType | "";
   stoveType?: StoveType | "";
+  gasFurnaceStatus?: GasFurnaceStatus | "";
 };
 
 export function isJobHousingSet(job: JobMetaFields): job is JobMetaFields & { housingType: HousingType } {
@@ -35,6 +45,15 @@ export function isJobHousingSet(job: JobMetaFields): job is JobMetaFields & { ho
 export function normalizeJobMetaFields<T extends JobMetaFields>(job: T): T {
   const housingType = HOUSING_TYPES.includes(job.housingType as HousingType) ? job.housingType : "";
   const stoveType = STOVE_TYPES.includes(job.stoveType as StoveType) ? job.stoveType : "";
-  if (housingType === job.housingType && stoveType === job.stoveType) return job;
-  return { ...job, housingType, stoveType };
+  const gasFurnaceStatus = GAS_FURNACE_STATUSES.includes(job.gasFurnaceStatus as GasFurnaceStatus)
+    ? job.gasFurnaceStatus
+    : "";
+  if (
+    housingType === job.housingType
+    && stoveType === job.stoveType
+    && gasFurnaceStatus === job.gasFurnaceStatus
+  ) {
+    return job;
+  }
+  return { ...job, housingType, stoveType, gasFurnaceStatus };
 }

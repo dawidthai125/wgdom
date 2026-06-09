@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.53** · Dashboard WM Cleanup 20.5B.4)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.53 — Dashboard WM Cleanup 20.5B.4)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.54** · Roboty UX Pack 20.5B.5)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.54 — Roboty UX Pack 20.5B.5)
 
 ---
 
@@ -840,7 +840,7 @@ Priorytet w `resolveJobDraftDatesFromTender`:
 
 **Separacja mediów (20.5A.8):** tab **Zdjęcia** = ekipa (approved) + inspektor + rysunki raportów (`media-separation.ts`). Tab **Pliki** = `jobFiles[]` (zlecenie, kosztorys, **plan techniczny**). ZIP: **Zdjęcia ZIP** vs **Dokumenty ZIP**.
 
-**Plan techniczny (20.5A.9):** `jobFiles[].kind === "plan_techniczny"` — PDF wgrywany przez **admina** w Robotach → Pliki roboty. Auto-zaznacza checklistę **`documents.rysunek`** (obok szkicu/wymiarów z `workerReports[]`). Inspektor: podgląd/pobranie, bez uploadu. Szkic terenowy pozostaje w `workerReports[].sketch` (obrazy, tab Zdjęcia).
+**Plan techniczny (20.5A.9):** `jobFiles[].kind === "plan_techniczny"` — PDF wgrywany przez **admina** w Robotach → Pliki roboty. Auto-zaznacza checklistę **`documents.rysunek`** (etykieta UI „Rysunek/Plan”) — **ta sama pozycja odbiorowa** co szkic/wymiary z `workerReports[]`; upload planu = spełnienie wymogu odbiorowego bez osobnego DocType. Inspektor: podgląd/pobranie, bez uploadu. Szkic terenowy pozostaje w `workerReports[].sketch` (obrazy, tab Zdjęcia).
 
 **Spójność plików (20.5B.3, v2.50.51):** opcjonalne `deletedJobFileTombstones[]` na Job — merge (`mergeJobFiles` / `mergeJobsById`) filtruje usunięte/zastąpione pliki po `fileId`; feed (`collectInspectorFeed`) ukrywa orphan upload (R1–R4). Replace: upload OK → tombstone poprzednika → update `jobFiles` → best-effort `deleteJobFile` storage. Skrypt naprawczy: `scripts/repair-job-file-orphans-20.5b3.mjs` (domyślnie read-only; `--apply` tylko `hiddenInspectorFeedIds`).
 
