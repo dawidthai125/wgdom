@@ -60,6 +60,8 @@ import {
   latestJobFile,
   syncJobDocuments,
   isReportSyncedDocLocked,
+  applyJobFileKindUpload,
+  resolveJobFileStoragePath,
 } from "@/lib/job-documents";
 import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
 import { InspectorDashboard } from "@/app/InspectorDashboard";
@@ -74,7 +76,7 @@ import {
   INSPECTION_PRIORITY_EMOJI,
   sortJobsByInspectionPriority,
 } from "@/lib/inspector-dashboard";
-import { uploadJobFile } from "@/lib/job-file-upload";
+import { uploadJobFile, deleteJobFile } from "@/lib/job-file-upload";
 import { uploadInspectorPhoto } from "@/lib/job-photo-upload";
 import { computeInspectorDashboardStats } from "@/lib/inspector-dashboard";
 import {
@@ -940,6 +942,7 @@ export function InspectorPanel({
   const handleFileUpload = async (job: InspectorJob, kind: JobFileAttachment["kind"], file: File) => {
     setUploadBusy(kind);
     setMsg("");
+    const previousFile = (job.jobFiles || []).find((f) => f.kind === kind);
     const { attachment, error } = await uploadJobFile(job.id, file, kind, displayName);
     if (!attachment) {
       setMsg(error || "Nie udało się wgrać pliku");
@@ -947,18 +950,27 @@ export function InspectorPanel({
       return;
     }
     const docKey = kind as DocType;
+    const next = applyJobFileKindUpload(
+      {
+        ...job,
+        documents: { ...job.documents, [docKey]: true },
+      },
+      kind,
+      attachment,
+      { deletedBy: displayName, previousFile },
+    );
     updateJob(
       appendJobActivity(
-        {
-          ...job,
-          jobFiles: [...(job.jobFiles || []).filter((f) => f.kind !== kind), attachment],
-          documents: { ...job.documents, [docKey]: true },
-        },
+        next,
         "inspector_file",
         inspectorFileUploadText(kind, file.name),
         displayName,
       ),
     );
+    if (previousFile) {
+      const oldPath = resolveJobFileStoragePath(previousFile);
+      if (oldPath) void deleteJobFile(oldPath).catch(() => {});
+    }
     setMsg(kind === "zlecenie" ? "Zlecenie wgrane" : "Kosztorys wgrany");
     if (kind === "zlecenie" && inferHandoverStage(job) === "awaiting_order") {
       setStageSuggestion({ jobId: job.id, stage: "in_progress" });

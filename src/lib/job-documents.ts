@@ -43,6 +43,18 @@ export interface JobFileAttachment {
   uploadedAt: string;
 }
 
+/** Sprint 20.5B.3 — tombstone usuniętego/zastąpionego pliku (merge-aware). */
+export interface JobFileTombstone {
+  fileId: string;
+  kind: JobFileKind;
+  path?: string;
+  filename?: string;
+  deletedAt: string;
+  deletedBy?: string;
+  reason?: "delete" | "replace";
+  supersededByFileId?: string;
+}
+
 const STORAGE_PUBLIC_PATH =
   /\/storage\/v1\/object\/public\/make-0afb8820-photos\/(.+)$/i;
 
@@ -360,16 +372,96 @@ export function mergeReportDocSaOverrideOnConflict(
   return newer.reportDocSaOverride ?? older.reportDocSaOverride;
 }
 
+export function buildJobFileTombstone(
+  file: JobFileAttachment,
+  opts: {
+    deletedBy?: string;
+    reason?: "delete" | "replace";
+    supersededByFileId?: string;
+    deletedAt?: string;
+  },
+): JobFileTombstone {
+  return {
+    fileId: file.id,
+    kind: file.kind,
+    path: resolveJobFileStoragePath(file),
+    filename: file.filename,
+    deletedAt: opts.deletedAt ?? new Date().toISOString(),
+    deletedBy: opts.deletedBy,
+    reason: opts.reason,
+    supersededByFileId: opts.supersededByFileId,
+  };
+}
+
+export function appendJobFileTombstone<T extends { deletedJobFileTombstones?: JobFileTombstone[] }>(
+  job: T,
+  tombstone: JobFileTombstone,
+): T {
+  const prev = job.deletedJobFileTombstones ?? [];
+  const next = [...prev.filter((t) => t.fileId !== tombstone.fileId), tombstone];
+  return { ...job, deletedJobFileTombstones: next };
+}
+
+export function mergeJobFileTombstones(
+  a: JobFileTombstone[] | undefined,
+  b: JobFileTombstone[] | undefined,
+): JobFileTombstone[] {
+  const map = new Map<string, JobFileTombstone>();
+  for (const t of [...(a || []), ...(b || [])]) {
+    if (!t?.fileId) continue;
+    const prev = map.get(t.fileId);
+    if (!prev || t.deletedAt >= prev.deletedAt) map.set(t.fileId, t);
+  }
+  return [...map.values()];
+}
+
+export function filterJobFilesByTombstones(
+  files: JobFileAttachment[] | undefined,
+  tombstones: JobFileTombstone[] | undefined,
+): JobFileAttachment[] {
+  const dead = new Set((tombstones || []).map((t) => t.fileId));
+  return (files || []).filter((f) => !dead.has(f.id));
+}
+
 export function mergeJobFiles(
   a: JobFileAttachment[] | undefined,
   b: JobFileAttachment[] | undefined,
+  tombstones?: JobFileTombstone[],
 ): JobFileAttachment[] {
   const byKind = new Map<JobFileKind, JobFileAttachment>();
-  for (const f of [...(a || []), ...(b || [])]) {
+  for (const f of filterJobFilesByTombstones([...(a || []), ...(b || [])], tombstones)) {
     const prev = byKind.get(f.kind);
     if (!prev || f.uploadedAt >= prev.uploadedAt) byKind.set(f.kind, f);
   }
   return [...byKind.values()];
+}
+
+/** Upload/replace tego samego kind — tombstone poprzednika + nowy wpis. */
+export function applyJobFileKindUpload<T extends {
+  documents: Record<DocType, boolean>;
+  jobFiles?: JobFileAttachment[];
+  deletedJobFileTombstones?: JobFileTombstone[];
+  workerReports?: WorkerReportDocSource[];
+  reportDocSaOverride?: ReportDocSaOverride;
+}>(
+  job: T,
+  kind: JobFileKind,
+  attachment: JobFileAttachment,
+  opts: { deletedBy?: string; previousFile?: JobFileAttachment },
+): T {
+  let next: T = job;
+  if (opts.previousFile) {
+    next = appendJobFileTombstone(
+      next,
+      buildJobFileTombstone(opts.previousFile, {
+        deletedBy: opts.deletedBy,
+        reason: "replace",
+        supersededByFileId: attachment.id,
+      }),
+    );
+  }
+  const jobFiles = [...(next.jobFiles || []).filter((f) => f.kind !== kind), attachment];
+  return syncJobDocuments({ ...next, jobFiles });
 }
 
 /** Usuń plik z jobFiles; odznacz checklistę gdy brak pliku (rysunek — przez sync z raportu). */
@@ -392,4 +484,25 @@ export function removeJobFileAttachment<T extends {
     }
   }
   return syncJobDocuments({ ...job, jobFiles, documents });
+}
+
+/** Delete z tombstone — merge nie przywróci pliku po sync. */
+export function removeJobFileAttachmentWithTombstone<T extends {
+  documents: Record<DocType, boolean>;
+  jobFiles?: JobFileAttachment[];
+  deletedJobFileTombstones?: JobFileTombstone[];
+  workerReports?: WorkerReportDocSource[];
+  reportDocSaOverride?: ReportDocSaOverride;
+}>(
+  job: T,
+  fileId: string,
+  opts: { deletedBy?: string; reason?: "delete" | "replace"; supersededByFileId?: string },
+): T {
+  const file = (job.jobFiles || []).find((f) => f.id === fileId);
+  if (!file) return job;
+  const withTombstone = appendJobFileTombstone(
+    job,
+    buildJobFileTombstone(file, opts),
+  );
+  return removeJobFileAttachment(withTombstone, fileId);
 }

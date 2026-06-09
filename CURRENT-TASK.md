@@ -4,43 +4,44 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-09  
-**Wersja UI (lokalnie):** **2.50.48** — Inspektor admin simplification 20.5B.2  
-**Prod `origin/main`:** **`134431f`** · v2.50.46 · https://www.wgdom.fun  
-**Status:** **IMPLEMENT lokalny 20.5B.2** · **bez commit / push / deploy**
+**Wersja UI (lokalnie):** **2.50.51** — File Consistency Hardening 20.5B.3  
+**Status:** **IMPLEMENT lokalny 20.5B.3** · **bez commit / push / deploy**
 
 ---
 
-## Sprint 20.5B.2 — Inspector Admin Simplification (**IMPLEMENT lokalny**)
+## Sprint 20.5B.3 — File Consistency Hardening (**IMPLEMENT lokalny**)
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja** | **2.50.48** |
-| **Zakres** | Feed hub admin · deep linki Roboty · email plików · Portfolio WM → Pulpit · DELETE `InspectorAdminJobDetail` |
+| **Wersja** | **2.50.51** |
+| **Zakres** | Tombstone plików · merge-aware delete · feed R1–R4 · replace storage cleanup |
 
 ### Kluczowe pliki
 
 | Plik | Rola |
 |------|------|
-| `src/lib/inspector-feed-deeplink.ts` | Mapa typ feedu → sekcja Roboty |
-| `src/app/InspectorAdminView.tsx` | Feed monitoringu (bez karty roboty) |
-| `src/app/JobsView.tsx` | `initialJobSection` + `JobInspectorFilesPanel` w Pliki |
-| `src/app/DashboardView.tsx` | `WmPortfolioView` na Pulpicie |
-| `src/app/App.tsx` | `pendingJobSection` · `openJobInJobs` |
+| `src/lib/job-documents.ts` | `JobFileTombstone`, `mergeJobFiles`, `removeJobFileAttachmentWithTombstone` |
+| `src/lib/cloud-sync.ts` | `mergeJobsById` + tombstone merge |
+| `src/lib/job-activity.ts` | `parseJobFileUploadActivity`, `isJobFileUploadActivityVisible`, feed filter |
+| `src/app/JobsView.tsx` | upload replace + delete z tombstone |
+| `src/app/InspectorPanel.tsx` | upload replace inspektora |
 
 ### Smoke / build (lokalnie)
 
 | Test | Wynik |
 |------|-------|
-| `smoke-test-inspector-admin-simplification-20.5b2.mjs` | uruchomić |
-| `npm run build` | **PASS** |
+| `smoke-test-job-file-consistency-20.5b3.mjs` | uruchomić |
+| `repair-job-file-orphans-20.5b3.mjs` | read-only domyślnie |
+| `npm run build` | uruchomić |
 
 ### Następne (po commit)
 
 - Deploy Vercel po push `main`
-- Weryfikacja prod: feed → Roboty, email plików, Portfolio na Pulpicie
+- Opcjonalnie: `repair-job-file-orphans-20.5b3.mjs --apply` na prod (hiddenInspectorFeedIds)
+- Weryfikacja: Okulickiego feed bez orphan upload
 
 ---
 
-## Sprint 20.5A.9 — Technical Drawing Workflow (**RELEASED lokalnie 2.50.47**)
+## Sprint 20.5B.2 — Inspector Admin Simplification (**RELEASED prod**)
 
-Pełny opis w [`CHANGELOG.md`](CHANGELOG.md) · commit oczekuje na polecenie użytkownika.
+Pełny opis w [`CHANGELOG.md`](CHANGELOG.md).

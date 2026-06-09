@@ -4,7 +4,15 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.50** (`changelog-data.ts`) · Hotfix delete plików P0 · lokalnie (bez commit)
+**Aktualna wersja UI:** **2.50.51** (`changelog-data.ts`) · File Consistency 20.5B.3 · lokalnie (bez commit)
+
+---
+
+## 2.50.51 (2026-06-09) — File Consistency Hardening (20.5B.3)
+
+* **Fix:** `deletedJobFileTombstones` — merge sync nie przywraca usuniętego pliku
+* **Fix:** feed inspektora / Pulpit — ukrywanie orphan upload (R1–R4)
+* **Improve:** replace pliku — tombstone + best-effort delete starego storage po uploadzie
 
 ---
 

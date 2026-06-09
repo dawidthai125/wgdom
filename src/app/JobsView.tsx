@@ -43,7 +43,8 @@ import { downloadJobGalleryZip } from "@/lib/photo-download";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import {
   latestJobFile, syncJobDocuments, isReportSyncedDocLocked, confirmReportSyncedDocUncheck,
-  applyReportDocDocumentToggle, clearReportDocSaOverrideFromReport, removeJobFileAttachment,
+  applyReportDocDocumentToggle, clearReportDocSaOverrideFromReport, removeJobFileAttachmentWithTombstone,
+  applyJobFileKindUpload,
   resolveJobFileStoragePath,
   jobFileUploadActivityText,
   type JobFileKind,
@@ -850,9 +851,10 @@ export function JobsView({
           return;
         }
       }
-      const next = removeJobFileAttachment(
+      const next = removeJobFileAttachmentWithTombstone(
         { ...selectedJob, updatedAt: new Date().toISOString() },
         file.id,
+        { deletedBy: adminSession?.displayName || "Administrator", reason: "delete" },
       );
       updateJob(next, {
         type: "inspector_file",
@@ -895,7 +897,11 @@ export function JobsView({
       const now = new Date().toISOString();
       if (item.kind === "jobFile") {
         updateJob(
-          removeJobFileAttachment({ ...selectedJob, updatedAt: now }, item.file.id),
+          removeJobFileAttachmentWithTombstone(
+            { ...selectedJob, updatedAt: now },
+            item.file.id,
+            { deletedBy: adminSession?.displayName || "Administrator", reason: "delete" },
+          ),
           { type: "inspector_file", text: `Usunięto plik: ${label}` },
         );
       } else if (item.kind === "inspectorPhoto") {
@@ -914,20 +920,23 @@ export function JobsView({
     if (!selectedJob) return;
     setUploadBusy(kind);
     const actor = adminSession?.displayName || "Administrator";
+    const previousFile = (selectedJob.jobFiles || []).find((f) => f.kind === kind);
     const { attachment } = await uploadJobFile(selectedJob.id, file, kind, actor);
     setUploadBusy(null);
     if (!attachment) return;
-    updateJob(
-      syncJobDocuments({
-        ...selectedJob,
-        jobFiles: [...(selectedJob.jobFiles || []).filter((f) => f.kind !== kind), attachment],
-      }),
-      {
-        type: "inspector_file",
-        text: jobFileUploadActivityText(kind, file.name),
-        actor,
-      },
-    );
+    const next = applyJobFileKindUpload(selectedJob, kind, attachment, {
+      deletedBy: actor,
+      previousFile,
+    });
+    updateJob(next, {
+      type: "inspector_file",
+      text: jobFileUploadActivityText(kind, file.name),
+      actor,
+    });
+    if (previousFile) {
+      const oldPath = resolveJobFileStoragePath(previousFile);
+      if (oldPath) void deleteJobFile(oldPath).catch(() => {});
+    }
   };
 
   const selectedJobCatalog = useMemo(

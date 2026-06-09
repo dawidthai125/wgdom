@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.51",
+    label: "Spójność plików roboty — tombstone + feed (20.5B.3)",
+    items: [
+      { type: "fix", text: "Pliki roboty — tombstone usuniętych/zastąpionych plików; merge sync nie przywraca pliku po delete" },
+      { type: "fix", text: "Feed inspektora / Pulpit — ukrywanie orphan upload gdy pliku nie ma lub został zastąpiony/usunięty" },
+      { type: "improve", text: "Replace pliku (zlecenie/kosztorys/plan) — best-effort cleanup starego pliku ze storage po udanym uploadzie" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.50",
     label: "Hotfix usuwanie plików w Robotach (P0)",
     items: [

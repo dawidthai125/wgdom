@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.48** · Inspektor admin 20.5B.2 · lokalnie)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.48 — Inspector Admin Simplification 20.5B.2)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.51** · File Consistency 20.5B.3 · lokalnie)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.51 — File Consistency Hardening 20.5B.3)
 
 ---
 
@@ -842,6 +842,8 @@ Priorytet w `resolveJobDraftDatesFromTender`:
 
 **Plan techniczny (20.5A.9):** `jobFiles[].kind === "plan_techniczny"` — PDF wgrywany przez **admina** w Robotach → Pliki roboty. Auto-zaznacza checklistę **`documents.rysunek`** (obok szkicu/wymiarów z `workerReports[]`). Inspektor: podgląd/pobranie, bez uploadu. Szkic terenowy pozostaje w `workerReports[].sketch` (obrazy, tab Zdjęcia).
 
+**Spójność plików (20.5B.3, v2.50.51):** opcjonalne `deletedJobFileTombstones[]` na Job — merge (`mergeJobFiles` / `mergeJobsById`) filtruje usunięte/zastąpione pliki po `fileId`; feed (`collectInspectorFeed`) ukrywa orphan upload (R1–R4). Replace: upload OK → tombstone poprzednika → update `jobFiles` → best-effort `deleteJobFile` storage. Skrypt naprawczy: `scripts/repair-job-file-orphans-20.5b3.mjs` (domyślnie read-only; `--apply` tylko `hiddenInspectorFeedIds`).
+
 | Plik | Rola |
 |------|------|
 | `src/lib/media-separation.ts` | Single source: obrazy vs dokumenty, county |
@@ -971,7 +973,7 @@ WGDOM1/
 |-------|------------------|
 | `cloud-sync.ts` | Sync, merge, API, DATA_KEYS |
 | `admin-auth.ts` | Logowanie, role, hash SHA-256, sesja |
-| `job-documents.ts` | Typy dokumentów, jobFiles (zlec/kosz/**plan_techniczny**), sync checklisty rysunek, lock raportu |
+| `job-documents.ts` | Typy dokumentów, jobFiles (zlec/kosz/**plan_techniczny**), **tombstone 20.5B.3**, sync checklisty rysunek, lock raportu |
 | `job-wm.ts` | WM, odbiór, etapy, notatki inspektora/admina |
 | `job-activity.ts` | Feed inspektora, typy zdarzeń |
 | `job-list-status.ts` | Fazy robót, filtry, badge |

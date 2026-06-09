@@ -1,6 +1,13 @@
 /** Aktywność na robocie — wspólne typy dla admina i inspektora. */
 
-import { DOC_LABELS, type DocType, type JobFileAttachment, JOB_FILE_KIND_LABELS } from "@/lib/job-documents";
+import {
+  DOC_LABELS,
+  type DocType,
+  type JobFileAttachment,
+  type JobFileKind,
+  type JobFileTombstone,
+  JOB_FILE_KIND_LABELS,
+} from "@/lib/job-documents";
 
 export type InspectorActivityType =
   | "inspector_document"
@@ -50,6 +57,7 @@ export interface JobWithActivity {
   status: "in_progress" | "completed";
   activityLog?: JobActivity[];
   jobFiles?: JobFileAttachment[];
+  deletedJobFileTombstones?: JobFileTombstone[];
   /** Ukryte wpisy feedu (np. legacy pliki bez logu) — id jak w InspectorFeedItem */
   hiddenInspectorFeedIds?: string[];
 }
@@ -98,14 +106,73 @@ export function appendJobActivity<T extends { activityLog?: JobActivity[] }>(
   };
 }
 
+const JOB_FILE_UPLOAD_PATTERNS: { kind: JobFileKind; re: RegExp }[] = [
+  { kind: "zlecenie", re: /^Wgrano zlecenie(?: PDF)?: (.+)$/i },
+  { kind: "kosztorys", re: /^Wgrano kosztorys: (.+)$/i },
+  { kind: "plan_techniczny", re: /^Wgrano plan techniczny: (.+)$/i },
+];
+
+/** Parsuje wpis activity upload pliku (admin + inspektor). */
+export function parseJobFileUploadActivity(text: string): { kind: JobFileKind; filename: string } | null {
+  const t = (text || "").trim();
+  for (const { kind, re } of JOB_FILE_UPLOAD_PATTERNS) {
+    const m = t.match(re);
+    if (m?.[1]) return { kind, filename: m[1].trim() };
+  }
+  return null;
+}
+
+function isJobFileDeleteActivity(text: string): boolean {
+  return /^Usunięto plik:/i.test((text || "").trim());
+}
+
+/** Reguły R1–R4 — czy upload activity ma być widoczne w feedzie. */
+export function isJobFileUploadActivityVisible(
+  job: JobWithActivity,
+  ev: JobActivity,
+): boolean {
+  const parsed = parseJobFileUploadActivity(ev.text);
+  if (!parsed) return true;
+
+  const tombstones = job.deletedJobFileTombstones ?? [];
+  const files = job.jobFiles ?? [];
+
+  // R3 — plik tombstoned (po filename lub dopasowaniu w tekście)
+  if (tombstones.some((t) => t.filename === parsed.filename)) return false;
+  if (tombstones.some((t) => t.filename && ev.text.includes(t.filename))) return false;
+
+  // R2 — nowszy delete tego samego pliku
+  if ((job.activityLog ?? []).some(
+    (other) =>
+      other.type === "inspector_file"
+      && isJobFileDeleteActivity(other.text)
+      && other.text.includes(parsed.filename)
+      && other.at > ev.at,
+  )) {
+    return false;
+  }
+
+  // R4 — replace: nowszy plik tego samego kind
+  if (files.some(
+    (f) => f.kind === parsed.kind && f.uploadedAt > ev.at && f.filename !== parsed.filename,
+  )) {
+    return false;
+  }
+
+  // R1 — plik musi istnieć w jobFiles
+  return files.some((f) => f.filename === parsed.filename || ev.text.includes(f.filename));
+}
+
 export function collectInspectorFeed(jobs: JobWithActivity[]): InspectorFeedItem[] {
   const items: InspectorFeedItem[] = [];
 
   for (const job of jobs) {
     const hidden = new Set(job.hiddenInspectorFeedIds ?? []);
+    const tombstoneIds = new Set((job.deletedJobFileTombstones ?? []).map((t) => t.fileId));
     for (const ev of job.activityLog || []) {
       if (!isInspectorActivityType(ev.type)) continue;
       if (hidden.has(ev.id)) continue;
+      if (ev.type === "inspector_file" && !isJobFileUploadActivityVisible(job, ev)) continue;
       const file = ev.type === "inspector_file"
         ? (job.jobFiles || []).find((f) => ev.text.includes(f.filename))
         : undefined;
@@ -126,6 +193,7 @@ export function collectInspectorFeed(jobs: JobWithActivity[]): InspectorFeedItem
     }
 
     for (const f of job.jobFiles || []) {
+      if (tombstoneIds.has(f.id)) continue;
       const logged = (job.activityLog || []).some(
         (ev) => ev.type === "inspector_file" && ev.text.includes(f.filename),
       );

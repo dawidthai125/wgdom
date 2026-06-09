@@ -4,7 +4,7 @@ import {
   supabaseFunctionsBase,
   isSupabaseConfigured,
 } from "@/config/supabase";
-import { mergeJobFiles, mergeJobsDocumentsOnConflict, mergeReportDocSaOverrideOnConflict } from "@/lib/job-documents";
+import { filterJobFilesByTombstones, mergeJobFileTombstones, mergeJobFiles, mergeJobsDocumentsOnConflict, mergeReportDocSaOverrideOnConflict } from "@/lib/job-documents";
 import {
   mergeJobNotes,
   mergeInspectorPhotos,
@@ -372,6 +372,7 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
     documents?: Record<string, boolean>;
     reportDocSaOverride?: import("@/lib/job-documents").ReportDocSaOverride;
     jobFiles?: import("@/lib/job-documents").JobFileAttachment[];
+    deletedJobFileTombstones?: import("@/lib/job-documents").JobFileTombstone[];
     activityLog?: { id: string; at: string }[];
     jobNotes?: import("@/lib/job-wm").JobNote[];
     inspectorPhotos?: import("@/lib/job-wm").InspectorPhotoEntry[];
@@ -401,18 +402,27 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
     }
     const pick = { ...older, ...newer };
     const mergedLogs = mergeActivityLogs(prev.activityLog, j.activityLog);
+    const mergedTombstones = mergeJobFileTombstones(
+      prev.deletedJobFileTombstones,
+      j.deletedJobFileTombstones,
+    );
     const hiddenInspectorFeedIds = mergeHiddenInspectorFeedIds(
       prev.hiddenInspectorFeedIds,
       j.hiddenInspectorFeedIds,
     );
     const latestTs = new Date(Math.max(prevTs, jTs, Date.now())).toISOString();
+    const mergedJobFiles = jTs !== prevTs
+      ? filterJobFilesByTombstones(
+          jTs >= prevTs ? (j.jobFiles || []) : (prev.jobFiles || []),
+          mergedTombstones,
+        )
+      : mergeJobFiles(prev.jobFiles, j.jobFiles, mergedTombstones);
     return {
       ...pick,
       documents: mergeJobsDocumentsOnConflict(prev, j),
       reportDocSaOverride: mergeReportDocSaOverrideOnConflict(prev, j),
-      jobFiles: jTs !== prevTs
-        ? (jTs >= prevTs ? (j.jobFiles || []) : (prev.jobFiles || []))
-        : mergeJobFiles(prev.jobFiles, j.jobFiles),
+      jobFiles: mergedJobFiles,
+      deletedJobFileTombstones: mergedTombstones.length ? mergedTombstones : undefined,
       activityLog: mergedLogs,
       jobNotes: mergeJobNotes(prev.jobNotes, j.jobNotes),
       inspectorPhotos: jTs !== prevTs

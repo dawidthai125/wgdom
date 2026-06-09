@@ -281,6 +281,7 @@ export interface Job {
   activityLog?: JobActivity[];
   clientShare?: ClientShareLink;
   jobFiles?: import("@/lib/job-documents").JobFileAttachment[];
+  deletedJobFileTombstones?: import("@/lib/job-documents").JobFileTombstone[];
   handoverStage?: import("@/lib/job-wm").JobHandoverStage;
   plannedHandoverDate?: string;
   jobNotes?: import("@/lib/job-wm").JobNote[];
