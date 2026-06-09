@@ -15,7 +15,7 @@ import { useAdminAccess } from "@/app/admin-access";
 import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { JobCostBreakdownPanel } from "@/app/JobCostBreakdownPanel";
-import { JobRecoverableChargesPanel } from "@/app/JobRecoverableChargesPanel";
+import { JobRecoverableChargesPanel, type BillingNotePendingFiles } from "@/app/JobRecoverableChargesPanel";
 import { JobCreateRecoverableChargeModal } from "@/app/JobCreateRecoverableChargeModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobListPrimaryBadge, JobPhasePicker, applyJobPhase } from "@/app/JobListStatus";
@@ -715,7 +715,7 @@ export function JobsView({
     setJobs((prev) => prev.map((j) => (j.id === next.id ? next : j)));
   };
 
-  const handleAddBillingNote = useCallback((chargeId: string, text: string) => {
+  const handleAddBillingNote = useCallback((chargeId: string, text: string, _files?: BillingNotePendingFiles) => {
     if (!selectedJob) return;
     const charge = recoverableCharges.find((c) => c.id === chargeId);
     const title = charge?.title.trim() || (charge ? recoverableChargeDescriptionLine(charge) : "Pozycja");

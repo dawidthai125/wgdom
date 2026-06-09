@@ -34,6 +34,17 @@ export type JobNoteAuthorRole = "inspector" | "admin";
 
 export type JobNoteContext = "wm" | "billing";
 
+/** Sprint 20.5A.5 — dowód wizualny przy uwadze billing (zdjęcie / PDF). */
+export interface JobNoteAttachment {
+  id: string;
+  kind: "image" | "pdf";
+  path: string;
+  publicUrl: string;
+  filename: string;
+  uploadedAt: string;
+  uploadedBy: string;
+}
+
 export interface JobNote {
   id: string;
   author: string;
@@ -44,6 +55,8 @@ export interface JobNote {
   recoverableChargeId?: string;
   /** Jawny kontekst; billing gdy recoverableChargeId ustawione. */
   context?: JobNoteContext;
+  /** Sprint 20.5A.5 — załączniki dowodowe (opcjonalne). */
+  attachments?: JobNoteAttachment[];
 }
 
 /** Notatka powiązana z pozycją billing (nie WM). */
@@ -70,8 +83,10 @@ export function buildBillingJobNote(params: {
   text: string;
   author: string;
   authorRole: JobNoteAuthorRole;
+  attachments?: JobNoteAttachment[];
 }): JobNote {
   const trimmed = params.text.trim();
+  const attachments = params.attachments?.length ? params.attachments : undefined;
   return {
     id: crypto.randomUUID(),
     author: params.author,
@@ -80,6 +95,7 @@ export function buildBillingJobNote(params: {
     at: new Date().toISOString(),
     recoverableChargeId: params.chargeId.trim(),
     context: "billing",
+    attachments,
   };
 }
 

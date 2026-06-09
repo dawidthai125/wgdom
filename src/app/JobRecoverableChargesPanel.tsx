@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import {
   JOB_RECOVERABLE_CHARGES_LIST_LIMIT,
@@ -19,9 +19,24 @@ import type { DirectoryEmployee } from "@/app/app-domain";
 import {
   jobNotesForCharge,
   type JobNote,
+  type JobNoteAttachment,
   type JobNoteAuthorRole,
 } from "@/lib/job-wm";
-import { ChevronRight, MessageSquare, Plus, Send, Wallet, X } from "lucide-react";
+import {
+  MAX_BILLING_EVIDENCE_IMAGES,
+  MAX_BILLING_EVIDENCE_PDFS,
+  validateBillingEvidenceFile,
+} from "@/lib/billing-evidence-upload";
+import { HiddenFileInput } from "@/app/HiddenFileInput";
+import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
+import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
+import { ChevronRight, Camera, FileText, Loader2, MessageSquare, Plus, Send, Wallet, X } from "lucide-react";
+
+/** Pliki oczekujące na upload przy wysyłce uwagi billing (Sprint 20.5A.5). */
+export type BillingNotePendingFiles = {
+  images: File[];
+  pdf: File | null;
+};
 
 type JobLookup = Pick<import("@/app/app-domain").Job, "id" | "address" | "flatNumber" | "client">;
 
@@ -50,8 +65,8 @@ export function JobRecoverableChargesPanel({
   jobNotes?: JobNote[];
   onOpenCharge?: (chargeId: string) => void;
   onCreateCharge?: () => void;
-  /** Sprint 20.5A.4 — zapis uwagi billing (tylko kw-jobs). */
-  onAddBillingNote?: (chargeId: string, text: string) => void;
+  /** Sprint 20.5A.4/5 — zapis uwagi billing (tylko kw-jobs). */
+  onAddBillingNote?: (chargeId: string, text: string, files?: BillingNotePendingFiles) => void | Promise<void>;
   billingNoteActorName?: string;
   billingNoteActorRole?: JobNoteAuthorRole;
   directory?: DirectoryEmployee[];
@@ -217,13 +232,14 @@ function ChargeReviewCard({
   variant: JobRecoverableChargesVariant;
   onOpenCharge?: (chargeId: string) => void;
   canAddBillingNote: boolean;
-  onAddBillingNote?: (chargeId: string, text: string) => void;
+  onAddBillingNote?: (chargeId: string, text: string, files?: BillingNotePendingFiles) => void | Promise<void>;
   billingNoteActorRole?: JobNoteAuthorRole;
   directory?: DirectoryEmployee[];
 }) {
   const [noteModalOpen, setNoteModalOpen] = useState(false);
   const [replyOpen, setReplyOpen] = useState(false);
   const [draft, setDraft] = useState("");
+  const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
   const amounts = deriveChargeAmounts(charge);
   const history = [...(charge.settlements ?? [])].sort((a, b) => b.settledAt.localeCompare(a.settledAt));
   const thread = jobNotesForCharge(jobNotes, charge.id);
@@ -233,13 +249,21 @@ function ChargeReviewCard({
     || "—";
   const isInspector = variant === "inspector";
 
-  const submitNote = () => {
+  const submitNote = async (files?: BillingNotePendingFiles) => {
     const text = draft.trim();
     if (!text || !onAddBillingNote) return;
-    onAddBillingNote(charge.id, text);
+    await Promise.resolve(onAddBillingNote(charge.id, text, files));
     setDraft("");
     setNoteModalOpen(false);
     setReplyOpen(false);
+  };
+
+  const openAttachmentPreview = (attachment: JobNoteAttachment) => {
+    setPreviewItem({
+      kind: "imageUrl",
+      url: attachment.publicUrl,
+      filename: attachment.filename,
+    });
   };
 
   return (
@@ -348,6 +372,12 @@ function ChargeReviewCard({
                   </span>
                 </p>
                 <p className="text-xs mt-1 whitespace-pre-wrap break-words">{n.text}</p>
+                {n.attachments && n.attachments.length > 0 && (
+                  <BillingNoteAttachmentStrip
+                    attachments={n.attachments}
+                    onPreview={openAttachmentPreview}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -385,6 +415,52 @@ function ChargeReviewCard({
           onClose={() => { setNoteModalOpen(false); setDraft(""); }}
         />
       )}
+
+      {previewItem && (
+        <JobFilePreviewModal
+          item={previewItem}
+          athPreviewEnabled={false}
+          onClose={() => setPreviewItem(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function BillingNoteAttachmentStrip({
+  attachments,
+  onPreview,
+}: {
+  attachments: JobNoteAttachment[];
+  onPreview: (attachment: JobNoteAttachment) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2 mt-2" data-billing-evidence-preview>
+      {attachments.map((a) => (
+        <button
+          key={a.id}
+          type="button"
+          onClick={() => onPreview(a)}
+          className="shrink-0 rounded-lg border border-border/60 overflow-hidden hover:ring-2 hover:ring-primary/40 touch-manipulation min-h-[44px]"
+          title={a.filename}
+        >
+          {a.kind === "image" ? (
+            <span className="flex items-center gap-1.5 px-2 py-1.5 text-[10px]">
+              <Camera size={12} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <img
+                src={a.publicUrl}
+                alt=""
+                className="h-10 w-10 object-cover rounded"
+              />
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 px-2.5 py-2 text-[10px] font-medium max-w-[140px]">
+              <FileText size={12} className="text-primary shrink-0" />
+              <span className="truncate">{a.filename}</span>
+            </span>
+          )}
+        </button>
+      ))}
     </div>
   );
 }
@@ -445,21 +521,105 @@ function BillingNoteModal({
   chargeTitle: string;
   draft: string;
   onDraftChange: (v: string) => void;
-  onSubmit: () => void;
+  onSubmit: (files?: BillingNotePendingFiles) => void | Promise<void>;
   onClose: () => void;
 }) {
+  const [pendingImages, setPendingImages] = useState<File[]>([]);
+  const [pendingPdf, setPendingPdf] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [pickError, setPickError] = useState("");
+
+  const imageThumbUrls = useMemo(
+    () => pendingImages.map((f) => URL.createObjectURL(f)),
+    [pendingImages],
+  );
+
+  useEffect(() => () => {
+    for (const url of imageThumbUrls) URL.revokeObjectURL(url);
+  }, [imageThumbUrls]);
+
+  const addImages = (files: FileList | null) => {
+    if (!files?.length) return;
+    setPickError("");
+    const next = [...pendingImages];
+    for (const file of Array.from(files)) {
+      if (next.length >= MAX_BILLING_EVIDENCE_IMAGES) {
+        setPickError(`Maksymalnie ${MAX_BILLING_EVIDENCE_IMAGES} zdjęcia.`);
+        break;
+      }
+      const err = validateBillingEvidenceFile(file);
+      if (err) {
+        setPickError(err);
+        continue;
+      }
+      if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+        setPickError("PDF dodaj przyciskiem „Dodaj PDF”.");
+        continue;
+      }
+      next.push(file);
+    }
+    setPendingImages(next);
+  };
+
+  const addPdf = (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file) return;
+    setPickError("");
+    if (pendingPdf) {
+      setPickError("Możesz dodać tylko 1 plik PDF.");
+      return;
+    }
+    const err = validateBillingEvidenceFile(file);
+    if (err) {
+      setPickError(err);
+      return;
+    }
+    if (!file.type.includes("pdf") && !file.name.toLowerCase().endsWith(".pdf")) {
+      setPickError("Dozwolony jest tylko plik PDF.");
+      return;
+    }
+    setPendingPdf(file);
+  };
+
+  const handleSubmit = async () => {
+    if (!draft.trim() || uploading) return;
+    setUploading(true);
+    setPickError("");
+    try {
+      const files: BillingNotePendingFiles | undefined =
+        pendingImages.length > 0 || pendingPdf
+          ? { images: pendingImages, pdf: pendingPdf }
+          : undefined;
+      await Promise.resolve(onSubmit(files));
+      setPendingImages([]);
+      setPendingPdf(null);
+    } catch {
+      setPickError("Nie udało się wysłać uwagi. Sprawdź połączenie i spróbuj ponownie.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const canSubmit = Boolean(draft.trim()) && !uploading;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50" onClick={uploading ? undefined : onClose}>
       <div
         className="bg-card border border-border rounded-2xl w-full max-w-md p-4 space-y-3 shadow-xl"
         onClick={(e) => e.stopPropagation()}
+        data-billing-evidence-modal
       >
         <div className="flex items-start justify-between gap-2">
           <div>
             <p className="text-sm font-semibold">Zgłoś uwagę</p>
             <p className="text-xs text-muted-foreground mt-0.5 truncate">{chargeTitle}</p>
           </div>
-          <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-secondary min-w-[44px] min-h-[44px] flex items-center justify-center">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={uploading}
+            className="p-2 rounded-lg hover:bg-secondary min-w-[44px] min-h-[44px] flex items-center justify-center disabled:opacity-40"
+          >
             <X size={16} />
           </button>
         </div>
@@ -469,14 +629,99 @@ function BillingNoteModal({
           placeholder="Np. kwota do weryfikacji, brak materiału na fakturze…"
           rows={4}
           autoFocus
-          className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none resize-none"
+          disabled={uploading}
+          className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none resize-none disabled:opacity-60"
           style={{ fontSize: "16px" }}
         />
-        <p className="text-[10px] text-muted-foreground">Uwaga trafia do administratora. Nie zmienia kwot ani statusu pozycji.</p>
+        <div className="flex flex-wrap gap-2">
+          <HiddenFileInput
+            accept="image/jpeg,image/png,image/webp,image/*,.jpg,.jpeg,.png,.webp"
+            multiple
+            capture="environment"
+            onPick={addImages}
+          >
+            {(open) => (
+              <button
+                type="button"
+                onClick={open}
+                disabled={uploading || pendingImages.length >= MAX_BILLING_EVIDENCE_IMAGES}
+                className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg bg-secondary text-xs font-medium touch-manipulation disabled:opacity-40"
+                data-billing-add-photos
+              >
+                <Camera size={12} /> Dodaj zdjęcia
+              </button>
+            )}
+          </HiddenFileInput>
+          <HiddenFileInput
+            accept="application/pdf,.pdf"
+            onPick={addPdf}
+          >
+            {(open) => (
+              <button
+                type="button"
+                onClick={open}
+                disabled={uploading || Boolean(pendingPdf) || MAX_BILLING_EVIDENCE_PDFS < 1}
+                className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg bg-secondary text-xs font-medium touch-manipulation disabled:opacity-40"
+                data-billing-add-pdf
+              >
+                <FileText size={12} /> Dodaj PDF
+              </button>
+            )}
+          </HiddenFileInput>
+        </div>
+        {(pendingImages.length > 0 || pendingPdf) && (
+          <div className="flex flex-wrap gap-2" data-billing-evidence-thumbs>
+            {pendingImages.map((file, i) => (
+              <div key={`${file.name}-${i}`} className="relative">
+                <img
+                  src={imageThumbUrls[i]}
+                  alt=""
+                  className="h-14 w-14 object-cover rounded-lg border border-border"
+                />
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => setPendingImages((prev) => prev.filter((_, idx) => idx !== i))}
+                  className="absolute -top-1.5 -right-1.5 p-0.5 rounded-full bg-destructive text-destructive-foreground min-w-[22px] min-h-[22px] flex items-center justify-center"
+                  aria-label="Usuń zdjęcie"
+                >
+                  <X size={10} />
+                </button>
+              </div>
+            ))}
+            {pendingPdf && (
+              <div className="relative flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-border bg-secondary/50 text-[10px] max-w-[160px]">
+                <FileText size={12} className="shrink-0 text-primary" />
+                <span className="truncate">{pendingPdf.name}</span>
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => setPendingPdf(null)}
+                  className="absolute -top-1.5 -right-1.5 p-0.5 rounded-full bg-destructive text-destructive-foreground min-w-[22px] min-h-[22px] flex items-center justify-center"
+                  aria-label="Usuń PDF"
+                >
+                  <X size={10} />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        {pickError && (
+          <p className="text-[10px] text-destructive">{pickError}</p>
+        )}
+        <p className="text-[10px] text-muted-foreground">
+          Do {MAX_BILLING_EVIDENCE_IMAGES} zdjęć i 1 PDF (max 8 MB każdy). Uwaga trafia do administratora — bez zmiany kwot.
+        </p>
+        {uploading && (
+          <p className="text-xs text-primary flex items-center gap-2" data-billing-uploading>
+            <Loader2 size={14} className="animate-spin shrink-0" />
+            Wgrywanie dowodów…
+          </p>
+        )}
         <button
           type="button"
-          disabled={!draft.trim()}
-          onClick={onSubmit}
+          disabled={!canSubmit}
+          onClick={() => void handleSubmit()}
           className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-xl bg-primary text-primary-foreground text-sm font-medium disabled:opacity-40 touch-manipulation"
         >
           <Send size={14} /> Wyślij uwagę

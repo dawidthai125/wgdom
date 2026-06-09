@@ -4,7 +4,16 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.41** (`changelog-data.ts`) · Roboty Active Today badge · lokalnie
+**Aktualna wersja UI:** **2.50.42** (`changelog-data.ts`) · Billing Evidence Pack · lokalnie
+
+---
+
+## 2.50.42 (2026-06-09) — Billing Evidence Pack (20.5A.5)
+
+* **Inspektor** — uwaga billing + zdjęcia (do 3) + PDF (1) jako dowód
+* **Admin** — podgląd załączników w wątku pozycji (JobFilePreviewModal)
+* **Model** — `JobNoteAttachment` w `JobNote.attachments`; upload przez `storage-upload`
+* Smoke: `smoke-test-inspector-billing-evidence-20.5a5.mjs`
 
 ---
 

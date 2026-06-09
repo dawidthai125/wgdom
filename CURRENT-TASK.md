@@ -3,10 +3,10 @@
 > **Aktualizuj ten plik na końcu każdej większej sesji z agentem AI.**  
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
-**Ostatnia aktualizacja:** 2026-06-08  
-**Wersja UI (prod):** **2.50.20** — Desktop Layout Fix  
-**Prod `origin/main` HEAD:** **`5a664c2`** · https://www.wgdom.fun  
-**Status:** **CLOSED** · **STABLE**
+**Ostatnia aktualizacja:** 2026-06-09  
+**Wersja UI (prod):** **2.50.41** — Roboty Active Today badge  
+**Prod `origin/main` HEAD:** **`8a5d142`** · https://www.wgdom.fun  
+**Status:** **STABLE**
 
 ---
 

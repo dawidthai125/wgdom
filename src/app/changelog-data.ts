@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.42",
+    label: "Billing Evidence Pack (20.5A.5)",
+    items: [
+      { type: "new", text: "Inspektor — do uwagi billing można dodać do 3 zdjęć i 1 PDF (max 8 MB) jako dowód rozliczeniowy" },
+      { type: "new", text: "Admin — podgląd załączników w wątku pozycji (zdjęcie / PDF inline, bez pobierania)" },
+      { type: "improve", text: "Dowody zapisane w JobNote.attachments — sync kw-jobs bez zmian kwot ani uprawnień billing" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.41",
     label: "Roboty — badge Aktywni dziś",
     items: [

@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   Building2,
   HelpCircle,
+  Wallet,
 } from "lucide-react";
 
 /** Roboty 2.1B MIN — statyczny panel pomocy (tylko UI, bez logiki filtrów). */
@@ -112,6 +113,19 @@ export function JobListGuidePanel() {
             Przełącznik <strong className="text-foreground/80">Kolejki</strong> grupuje pilne roboty w sekcjach:
             WM po terminie, BZP wymaga startu, Bez ekipy, Do odbioru — braki, Gotowe do zdania, Dokumenty &gt;7 dni.
             Każda robota w jednej sekcji. Puste sekcje można zwinąć.
+          </p>
+        </section>
+
+        <section className="space-y-2 rounded-xl border border-amber-500/25 bg-amber-500/5 p-3">
+          <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <Wallet size={12} className="text-amber-600 dark:text-amber-400" />
+            Do rozliczenia — dowody (20.5A.5)
+          </h3>
+          <p className="text-muted-foreground">
+            Inspektor może do uwagi billing dodać{" "}
+            <strong className="text-foreground/80">zdjęcia</strong> i{" "}
+            <strong className="text-foreground/80">PDF</strong> jako dowód (dopłaty, reklamacje, uszkodzenia).
+            Administrator widzi załączniki w wątku pozycji i otwiera podgląd bez pobierania.
           </p>
         </section>
 

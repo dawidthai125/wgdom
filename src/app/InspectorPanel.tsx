@@ -44,7 +44,10 @@ import { JobRecoverableChargesPanel } from "@/app/JobRecoverableChargesPanel";
 import {
   appendBillingJobNote,
   buildBillingJobNote,
+  type JobNoteAttachment,
 } from "@/lib/job-wm";
+import { uploadBillingEvidence } from "@/lib/billing-evidence-upload";
+import type { BillingNotePendingFiles } from "@/app/JobRecoverableChargesPanel";
 import { recoverableChargeDescriptionLine } from "@/lib/recoverable-charges";
 import {
   DOC_LABELS,
@@ -651,16 +654,38 @@ export function InspectorPanel({
 
   const selectedJob = jobs.find((j) => j.id === selectedId) || null;
 
-  const handleAddBillingNote = useCallback((chargeId: string, text: string) => {
+  const handleAddBillingNote = useCallback(async (chargeId: string, text: string, files?: BillingNotePendingFiles) => {
     const job = jobsRef.current.find((j) => j.id === selectedId);
-    if (!job) return;
+    if (!job) throw new Error("Brak roboty");
     const charge = recoverableCharges.find((c) => c.id === chargeId);
     const title = charge?.title.trim() || (charge ? recoverableChargeDescriptionLine(charge) : "Pozycja");
+
+    const attachments: JobNoteAttachment[] = [];
+    if (files) {
+      for (const img of files.images) {
+        const { attachment, error } = await uploadBillingEvidence(job.id, chargeId, img, displayName);
+        if (error || !attachment) {
+          setMsg(error || "Błąd wgrywania zdjęcia");
+          throw new Error(error || "upload failed");
+        }
+        attachments.push(attachment);
+      }
+      if (files.pdf) {
+        const { attachment, error } = await uploadBillingEvidence(job.id, chargeId, files.pdf, displayName);
+        if (error || !attachment) {
+          setMsg(error || "Błąd wgrywania PDF");
+          throw new Error(error || "upload failed");
+        }
+        attachments.push(attachment);
+      }
+    }
+
     const note = buildBillingJobNote({
       chargeId,
       text,
       author: displayName,
       authorRole: "inspector",
+      attachments: attachments.length > 0 ? attachments : undefined,
     });
     updateJob(appendBillingJobNote(job, note, title));
     setMsg("Uwaga wysłana do administratora");
