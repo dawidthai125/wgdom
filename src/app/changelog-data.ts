@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.56",
+    label: "Version Awareness & Update Banner (20.5B.7)",
+    items: [
+      { type: "new", text: "Wykrywanie nowej wersji po deployu — porównanie APP_VERSION z /version.json (polling + focus)" },
+      { type: "new", text: "Globalny banner „Dostępna nowa wersja WGDOM” z przyciskiem „Odśwież teraz” (bez auto-reload)" },
+      { type: "improve", text: "Build generuje version.json; instrukcja HelpView — FAQ o komunikacie aktualizacji" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.55",
     label: "Dokumentacja Robót — Naming Refresh (20.5B.6A.1)",
     items: [

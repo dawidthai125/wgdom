@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.54** · Roboty UX Pack 20.5B.5)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.54 — Roboty UX Pack 20.5B.5)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.56** · Version Awareness 20.5B.7)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.56 — Version Awareness & Update Banner 20.5B.7)
 
 ---
 
@@ -887,6 +887,25 @@ Inspektor ma analogiczny flow w `InspectorPhotoGallery.tsx` + `InspectorJobPhoto
 - Brak env → aplikacja działa offline-only ze starym LS, sync error w UI
 
 **Po deployu PWA:** podbij wersję cache w `public/sw.js` (`wgdom-shell-vN`) — inaczej użytkownicy mają stary JS do hard refresh.
+
+---
+
+## 13.1 Version Awareness (20.5B.7)
+
+| Plik | Rola |
+|------|------|
+| `src/lib/app-version.ts` | `APP_VERSION` w main bundle (vite `define` z `CHANGELOG[0]`) |
+| `src/lib/app-version-check.ts` | Fetch `/version.json`, polling 5 min, `visibilitychange` + `focus` |
+| `src/app/AppUpdateBanner.tsx` | Globalny banner „Odśwież teraz” / „Później” (session dismiss) |
+| `dist/version.json` | Generowany przy buildzie — `{ "version": "2.50.x" }` |
+| `scripts/read-changelog-version.mjs` | Parser wersji z `changelog-data.ts` (build + smoke) |
+| `vite.config.ts` | Plugin `wgdom-version-json` + `__APP_VERSION__` define |
+
+**Flow:** karta ładuje bundle z wbudowanym `APP_VERSION`. Co 5 min (oraz przy powrocie do karty) klient pobiera `/version.json` z `cache: no-store`. Gdy `serverVersion !== APP_VERSION` → banner u góry ekranu. **Brak auto-reload** — użytkownik klika „Odśwież teraz” (`location.reload()`).
+
+**Źródło prawdy wersji UI:** `CHANGELOG[0].version` w `changelog-data.ts` — przy release nowy wpis na górze; build automatycznie aktualizuje `version.json` i define.
+
+**Nie dotyczy:** sync, KV, Edge, auth.
 
 ---
 

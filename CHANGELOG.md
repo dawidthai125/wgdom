@@ -4,7 +4,15 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.55** (`changelog-data.ts`) · Dokumentacja Robót Naming 20.5B.6A.1
+**Aktualna wersja UI:** **2.50.56** (`changelog-data.ts`) · Version Awareness 20.5B.7
+
+---
+
+## 2.50.56 (2026-06-09) — Version Awareness & Update Banner (20.5B.7)
+
+* **New:** Wykrywanie nowej wersji — `/version.json` vs `APP_VERSION`, polling + focus
+* **New:** Globalny banner „Odśwież teraz” — bez auto-reload
+* **Improve:** HelpView FAQ; build generuje `version.json`
 
 ---
 

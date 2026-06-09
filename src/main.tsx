@@ -8,6 +8,7 @@ import { initNativeShell, isNativeApp } from "./lib/capacitor-native";
 import { initMobileKeyboard } from "./lib/mobile-keyboard";
 import { initAppViewport } from "./lib/app-viewport";
 import { initDeepLinks } from "./lib/deep-link";
+import { AppUpdateBanner } from "./app/AppUpdateBanner";
 
 registerServiceWorker();
 void initNativeShell();
@@ -17,6 +18,7 @@ initDeepLinks();
 
 createRoot(document.getElementById("root")!).render(
   <>
+    <AppUpdateBanner />
     <App />
     {!isNativeApp() && <Analytics />}
   </>,

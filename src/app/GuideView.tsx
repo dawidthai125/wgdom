@@ -485,6 +485,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Automatyczny backup emailem", a:"Raz w tygodniu — w niedzielę, po zapisaniu tygodnia do archiwum (przycisk „Zapisz tydzień” lub automatyczny zapis w niedzielę, gdy wszyscy rozliczeni). Wysyłana jest jedna kopia JSON na adres z ustawień. Nie ma codziennych maili przy każdym wejściu w aplikację."},
               {q:"Utrata danych — co robić?", a:"⚙ Ustawienia (Super Admin) → Kopie zapasowe: przywróć wszystko z chmury lub lokalnie. Dla pojedynczych typów: lista płac lub roboty osobno. W Liście płac: „Przywróć z archiwum” dla bieżącego tygodnia. Regularnie rób eksport backup z górnego paska."},
               {q:"Używam dwóch urządzeń — które dane są właściwe?", a:"Przy każdym zapisie aplikacja scala dane z obu źródeł — bogatsze wpisy wygrywają. Stara karta z pustą listą nie nadpisze chmury. Przy pierwszym wejściu na nowym urządzeniu dane pobierają się z chmury i łączą z lokalnymi."},
+              {q:"Dlaczego widzę komunikat o nowej wersji?", a:"Gdy na serwerze pojawi się nowsza wersja WGDOM niż ta w Twojej otwartej karcie, u góry ekranu zobaczysz zielony baner z numerem wersji. Kliknij „Odśwież teraz”, aby załadować najnowsze funkcje — aplikacja nie odświeża się sama. „Później” ukrywa baner do końca sesji; po kolejnym deployu komunikat może wrócić. Twoje dane w chmurze są bezpieczne."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-secondary/30">
