@@ -12,6 +12,7 @@ import {
   WHAT_IF_PRESET_ORDER,
   type WhatIfPresetId,
 } from "@/lib/tender-center-what-if";
+import { BASELINE_LABEL_PL, PIPELINE_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 
 function deltaTone(delta: number): string {
   if (delta > 5) return "text-orange-600 dark:text-orange-400";
@@ -63,7 +64,7 @@ function ComparisonResults({
                 {showDelta && (
                   <span className="text-muted-foreground/80">
                     {" "}
-                    · baseline {h.baselinePct}%
+                    · stan bazowy {h.baselinePct}%
                   </span>
                 )}
               </p>
@@ -90,7 +91,7 @@ function ComparisonResults({
           >
             {formatDeltaPct(comparison.biggestChangeDeltaPct)}%
           </span>
-          {" "}za {comparison.biggestChangeHorizon} dni względem baseline
+          {" "}za {comparison.biggestChangeHorizon} dni {BASELINE_LABEL_PL.vsBaseline}
         </p>
       )}
 
@@ -152,7 +153,7 @@ export function WhatIfPanel({
           <h2 className="text-sm font-semibold">Co jeśli?</h2>
         </div>
         <span className="text-[10px] text-muted-foreground">
-          Baseline: 50% GO · limit {comparison.maxConcurrentBaseline} slotów
+          {BASELINE_LABEL_PL.baseline}: {BASELINE_LABEL_PL.percentGo} · limit {comparison.maxConcurrentBaseline} slotów
         </span>
       </div>
 
@@ -180,11 +181,11 @@ export function WhatIfPanel({
         {presetId === "custom" && (
           <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-3 space-y-2">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Wybierz wygrane GO ({customSelectedIds.length}/{goCandidates.length})
+              Wybierz wygrane starty ({customSelectedIds.length}/{goCandidates.length})
             </p>
             {goCandidates.length === 0 ? (
               <p className="text-xs text-muted-foreground">
-                Brak kandydatów GO w pipeline — odśwież przetargi lub oznacz decyzje.
+                {PIPELINE_LABEL_PL.noCandidatesInPipeline}
               </p>
             ) : (
               <ul className="space-y-1.5">

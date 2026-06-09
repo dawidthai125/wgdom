@@ -11,8 +11,9 @@ import {
 } from "@/lib/tenders-bzp";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderCompanyProfile } from "@/lib/tenders-bzp-company";
-import type { TenderDecision, TenderScoringBundle } from "@/lib/tender-center-decision";
 import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
+import { METRIC_LABEL_PL, OPPORTUNITY_LABEL_PL, PIPELINE_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
+import type { TenderDecision, TenderScoringBundle } from "@/lib/tender-center-decision";
 import type { CompanyHealthInput, CompanyHealthResult, HealthDimension } from "@/lib/tender-center-health";
 import { HEALTH_LABEL_PL } from "@/lib/tender-center-health";
 import type { OpportunityScoreResult } from "@/lib/tender-center-opportunity-score";
@@ -101,7 +102,7 @@ function topN(lines: ExplainLine[], n: number): ExplainLine[] {
 export function explainOpportunityScore(
   result: OpportunityScoreResult,
 ): OpportunityExplanation {
-  const { plus, minus } = splitPolarizedReasons(result.reasons, "Opportunity Score");
+  const { plus, minus } = splitPolarizedReasons(result.reasons, OPPORTUNITY_LABEL_PL.score);
   return {
     score: result.score,
     label: result.label,
@@ -111,19 +112,19 @@ export function explainOpportunityScore(
 }
 
 export function explainStrategicDecision(bundle: TenderScoringBundle): StrategicDecisionExplanation {
-  const { plus, minus } = splitPolarizedReasons(bundle.strategic.reasons, "Strategic Score");
+  const { plus, minus } = splitPolarizedReasons(bundle.strategic.reasons, METRIC_LABEL_PL.strategicScore);
   const reasons = topN([...plus, ...minus], 5);
 
   let summary: string;
   switch (bundle.decision) {
     case "GO":
-      summary = `System rekomenduje ${bundle.decision} (${DECISION_LABEL_PL.GO}) — strategicznie firma jest gotowa na ten kontrakt.`;
+      summary = `System rekomenduje ${DECISION_LABEL_PL.GO} — strategicznie firma jest gotowa na ten kontrakt.`;
       break;
     case "HOLD":
-      summary = `System rekomenduje ${bundle.decision} (${DECISION_LABEL_PL.HOLD}) — atrakcyjny przetarg, ale firma wymaga ostrożności lub dodatkowej analizy.`;
+      summary = `System rekomenduje ${DECISION_LABEL_PL.HOLD} — atrakcyjny przetarg, ale firma wymaga ostrożności lub dodatkowej analizy.`;
       break;
     case "NO-GO":
-      summary = `System rekomenduje ${bundle.decision} (${DECISION_LABEL_PL["NO-GO"]}) — kontrakt lub kondycja firmy nie sprzyjają startowi.`;
+      summary = `System rekomenduje ${DECISION_LABEL_PL["NO-GO"]} — kontrakt lub kondycja firmy nie sprzyjają startowi.`;
       break;
   }
 
@@ -233,7 +234,7 @@ export function explainHealth(
   return {
     index: health.index,
     label: HEALTH_LABEL_PL[health.label],
-    summary: `Health Index ${health.index} — ${HEALTH_LABEL_PL[health.label]}. ${health.recommendation}`,
+    summary: `${METRIC_LABEL_PL.healthIndex} ${health.index} — ${HEALTH_LABEL_PL[health.label]}. ${health.recommendation}`,
     plus: topN(plus, 5),
     minus: topN(minus, 5),
   };
@@ -328,9 +329,9 @@ export function explainForecastHorizon(
   }
 
   if (goCountScenarioC === 0 && horizon.utilizationPct < 75) {
-    reasons.push(line("Brak kandydatów GO w pipeline", "Opportunity/Strategic Score · GO"));
+    reasons.push(line(`Brak kandydatów ${DECISION_LABEL_PL.GO} w ${PIPELINE_LABEL_PL.pipeline}`, `${OPPORTUNITY_LABEL_PL.score}/${METRIC_LABEL_PL.strategicScore} · ${DECISION_LABEL_PL.GO}`));
   } else if (goCountScenarioC === 1 && horizon.days >= 60) {
-    reasons.push(line(`Tylko ${Math.ceil(goCountScenarioC * 0.5) || 1} przetarg GO w scenariuszu C`, "kw-tender-decisions"));
+    reasons.push(line(`Tylko ${Math.ceil(goCountScenarioC * 0.5) || 1} przetarg ${DECISION_LABEL_PL.GO} w scenariuszu C`, "kw-tender-decisions"));
   }
 
   return {
@@ -469,14 +470,14 @@ export function buildOwnerStrategicAlerts(input: OwnerAlertsInput): OwnerStrateg
     alerts.push({
       id: "go-deadline-7",
       tone: "warning",
-      message: `Termin składania ${urgentGo.length} przetargów GO w ciągu 7 dni`,
+      message: `Termin składania ${urgentGo.length} przetargów ${DECISION_LABEL_PL.GO} w ciągu 7 dni`,
       source: "pipeline + kw-tender-decisions · submittingOffersDate",
     });
   } else if (urgentGo.length === 1) {
     alerts.push({
       id: "go-deadline-7-one",
       tone: "warning",
-      message: `Termin składania GO ≤7 dni: ${urgentGo[0].item.title.slice(0, 50)}…`,
+      message: `Termin składania ${DECISION_LABEL_PL.GO} ≤7 dni: ${urgentGo[0].item.title.slice(0, 50)}…`,
       source: "pipeline · submittingOffersDate",
     });
   }
@@ -514,7 +515,7 @@ export function buildOwnerStrategicAlerts(input: OwnerAlertsInput): OwnerStrateg
       alerts.push({
         id: "no-high-quality",
         tone: "info",
-        message: "Brak przetargów wysokiej jakości (Opportunity ≥65) — rozważ poszerzenie kryteriów",
+        message: `Brak przetargów wysokiej jakości (${OPPORTUNITY_LABEL_PL.short} ≥65) — rozważ poszerzenie kryteriów`,
         source: "tender-center-opportunity-score · pipeline",
       });
     } else {

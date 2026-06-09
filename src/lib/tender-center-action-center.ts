@@ -10,6 +10,8 @@ import type { Forecast90DaysResult } from "@/lib/tender-center-forecast-90d";
 import { collectGoCandidates, primaryForecastScenario } from "@/lib/tender-center-forecast-90d";
 import type { OwnerDecisionsStore } from "@/lib/tender-center-owner-decisions";
 import type { OwnerStrategicAlert } from "@/lib/tender-center-explain";
+import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
+import { BASELINE_LABEL_PL, METRIC_LABEL_PL, OPPORTUNITY_LABEL_PL, PIPELINE_LABEL_PL, STRATEGIC_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 
 export type ActionPriority = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 
@@ -107,7 +109,7 @@ function actionsFromRadar(
         category: "TENDERS",
         title: `Termin składania oferty za ${days} dni`,
         description: titleShort,
-        reason: `Przetarg ${b.item.bzpNumber} — Opportunity ${b.opportunity.score}, decyzja systemu ${b.decision}`,
+        reason: `Przetarg ${b.item.bzpNumber} — ${OPPORTUNITY_LABEL_PL.short} ${b.opportunity.score}, decyzja systemu ${DECISION_LABEL_PL[b.decision]}`,
         source: "pipeline.submittingOffersDate · Radar okazji",
         recommendedAction: "Przygotuj ofertę natychmiast.",
         tenderId: b.item.id,
@@ -119,7 +121,7 @@ function actionsFromRadar(
         category: "TENDERS",
         title: `Oferta za ${days} dni — priorytetowy przetarg`,
         description: titleShort,
-        reason: `System: ${b.decision} · Strategic ${b.strategic.score}`,
+        reason: `System: ${DECISION_LABEL_PL[b.decision]} · ${STRATEGIC_LABEL_PL.short} ${b.strategic.score}`,
         source: "pipeline.submittingOffersDate · scoring GO",
         recommendedAction: "Dokończ analizę SWZ i wycenę, podejmij decyzję właściciela.",
         tenderId: b.item.id,
@@ -137,9 +139,9 @@ function actionsFromRadar(
         category: "TENDERS",
         title: days <= 3 ? "Oferta w przygotowaniu — termin krytyczny" : "Oferta w przygotowaniu — pilny termin",
         description: titleShort,
-        reason: `Status: preparing · ${days} dni do deadline`,
+        reason: `Status: w przygotowaniu · ${days} dni do terminu`,
         source: "pipeline.status · submittingOffersDate",
-        recommendedAction: "Domknij kosztorys i złóż ofertę lub zmień status pipeline.",
+        recommendedAction: `Domknij kosztorys i złóż ofertę lub zmień status ${PIPELINE_LABEL_PL.pipeline}.`,
         tenderId: b.item.id,
       }));
     }
@@ -156,9 +158,9 @@ function actionsFromHealth(health: CompanyHealthResult): OwnerActionItem[] {
       id: "health-critical",
       priority: "CRITICAL",
       category: "BUSINESS",
-      title: `Health Index krytyczny (${health.index})`,
+      title: `${METRIC_LABEL_PL.healthIndex} krytyczny (${health.index})`,
       description: health.recommendation,
-      reason: `Obciążenie pipeline ${Math.round(health.overloadIndex * 100)}%, wolne sloty: ${health.freeSlots}`,
+      reason: `Obciążenie ${PIPELINE_LABEL_PL.pipeline} ${Math.round(health.overloadIndex * 100)}%, wolne sloty: ${health.freeSlots}`,
       source: "computeCompanyHealth()",
       recommendedAction: "Wstrzymaj nowe oferty — dokończ roboty i odciąż zespół.",
     }));
@@ -167,7 +169,7 @@ function actionsFromHealth(health: CompanyHealthResult): OwnerActionItem[] {
       id: "health-below-60",
       priority: "HIGH",
       category: "BUSINESS",
-      title: `Health Index poniżej 60 (${health.index})`,
+      title: `${METRIC_LABEL_PL.healthIndex} poniżej 60 (${health.index})`,
       description: health.recommendation,
       reason: `Kondycja: ${health.label} · overload ${Math.round(health.overloadIndex * 100)}%`,
       source: "computeCompanyHealth()",
@@ -180,9 +182,9 @@ function actionsFromHealth(health: CompanyHealthResult): OwnerActionItem[] {
       id: "health-overload-pipeline",
       priority: "HIGH",
       category: "PLANNING",
-      title: "Pipeline ofert przeciążony",
+      title: "Lejek ofert przeciążony",
       description: `Równoległe oferty przekraczają komfortowy limit (${Math.round(health.overloadIndex * 100)}%).`,
-      reason: "Zbyt wiele przetargów w statusie interested/preparing",
+      reason: "Zbyt wiele przetargów w statusie zainteresowany/w przygotowaniu",
       source: "tender-center-kpi · overloadIndex",
       recommendedAction: "Zamknij lub odpuszcz część ofert w przygotowaniu.",
     }));
@@ -217,7 +219,7 @@ function actionsFromForecast(forecast: Forecast90DaysResult): OwnerActionItem[] 
       priority: "HIGH",
       category: "PLANNING",
       title: `90 dni = ${h90.utilizationPct}% obłożenia`,
-      description: "Scenariusz C (50% GO) — ryzyko pustych slotów produkcyjnych.",
+      description: `Scenariusz C (${BASELINE_LABEL_PL.percentGo}) — ryzyko pustych slotów produkcyjnych.`,
       reason: `${h90.activeJobs} równoległych kontraktów vs limit ${forecast.maxConcurrentProjects}`,
       source: "forecast90d · scenariusz C",
       recommendedAction: "Znajdź minimum 2 nowe kontrakty.",
@@ -229,7 +231,7 @@ function actionsFromForecast(forecast: Forecast90DaysResult): OwnerActionItem[] 
       category: "PLANNING",
       title: `Niskie obłożenie za 90 dni (${h90.utilizationPct}%)`,
       description: primary.alert ?? "Prognoza wskazuje spadek obłożenia.",
-      reason: "Kończące się roboty bez pełnego zastępstwa z GO",
+      reason: `Kończące się roboty bez pełnego zastępstwa z ${DECISION_LABEL_PL.GO}`,
       source: "forecast90d",
       recommendedAction: "Aktywuj pozyskiwanie przetargów i relacje z kluczowymi zamawiającymi.",
     }));
@@ -257,7 +259,7 @@ function actionsFromForecast(forecast: Forecast90DaysResult): OwnerActionItem[] 
       description: "Ryzyko braku ludzi lub przekroczenia limitu równoległych robót.",
       reason: h30.risk,
       source: "forecast90d · horyzont 30 dni",
-      recommendedAction: "Odłóż nowe GO lub przyspiesz zakończenia bieżących robót.",
+      recommendedAction: `Odłóż nowe ${DECISION_LABEL_PL.GO} lub przyspiesz zakończenia bieżących robót.`,
     }));
   }
 
@@ -278,22 +280,22 @@ function actionsFromOwnerDecisions(
       id: "owner-undecided-go-many",
       priority: "MEDIUM",
       category: "TENDERS",
-      title: `${undecidedGo.length} przetargów GO bez decyzji właściciela`,
-      description: "System wskazuje GO — brak Twojej decyzji w Centrum decyzji.",
+      title: `${undecidedGo.length} przetargów ${DECISION_LABEL_PL.GO} bez decyzji właściciela`,
+      description: `System wskazuje ${DECISION_LABEL_PL.GO} — brak Twojej decyzji w Centrum decyzji.`,
       reason: goCandidates.map((b) => b.item.bzpNumber).slice(0, 4).join(", "),
       source: "kw-tender-decisions · owner decisions",
-      recommendedAction: "Podejmij decyzję GO/HOLD/NO-GO dla każdego przetargu.",
+      recommendedAction: `Podejmij decyzję ${DECISION_LABEL_PL.GO}/${DECISION_LABEL_PL.HOLD}/${DECISION_LABEL_PL["NO-GO"]} dla każdego przetargu.`,
     }));
   } else if (undecidedGo.length >= 1) {
     out.push(action({
       id: "owner-undecided-go",
       priority: "MEDIUM",
       category: "TENDERS",
-      title: `${undecidedGo.length} przetarg GO bez decyzji właściciela`,
+      title: `${undecidedGo.length} przetarg ${DECISION_LABEL_PL.GO} bez decyzji właściciela`,
       description: undecidedGo[0].item.title.slice(0, 72),
-      reason: `System: GO · Opportunity ${undecidedGo[0].opportunity.score}`,
+      reason: `System: ${DECISION_LABEL_PL.GO} · ${OPPORTUNITY_LABEL_PL.short} ${undecidedGo[0].opportunity.score}`,
       source: "kw-tender-decisions",
-      recommendedAction: "Podejmij decyzję GO/HOLD/NO-GO.",
+      recommendedAction: `Podejmij decyzję ${DECISION_LABEL_PL.GO}/${DECISION_LABEL_PL.HOLD}/${DECISION_LABEL_PL["NO-GO"]}.`,
       tenderId: undecidedGo[0].item.id,
     }));
   }
@@ -309,11 +311,11 @@ function actionsFromOwnerDecisions(
       id: "owner-hold-vs-system-go",
       priority: "HIGH",
       category: "TENDERS",
-      title: "Rozbieżność: Ty HOLD, system GO — bliski termin",
+      title: `Rozbieżność: Ty ${DECISION_LABEL_PL.HOLD}, system ${DECISION_LABEL_PL.GO} — bliski termin`,
       description: holdVsGoUrgent[0].item.title.slice(0, 72),
       reason: "Decyzja właściciela vs rekomendacja scoringu",
       source: "kw-tender-decisions · tender-center-decision",
-      recommendedAction: "Ponownie oceń przetarg lub potwierdź HOLD przed upływem terminu.",
+      recommendedAction: `Ponownie oceń przetarg lub potwierdź ${DECISION_LABEL_PL.HOLD} przed upływem terminu.`,
       tenderId: holdVsGoUrgent[0].item.id,
     }));
   }
@@ -357,7 +359,7 @@ function actionsFromStrategicAlerts(alerts: OwnerStrategicAlert[]): OwnerActionI
     } else {
       priority = "LOW";
       category = "TENDERS";
-      recommendedAction = "Rozszerz kryteria radaru lub odśwież pipeline BZP.";
+      recommendedAction = `Rozszerz kryteria radaru lub odśwież ${PIPELINE_LABEL_PL.pipeline} BZP.`;
     }
 
     if (alert.id === "capacity-one-more") {

@@ -5,6 +5,7 @@ import {
   summaryToneClasses,
   type MorningBriefing,
 } from "@/lib/tender-center-morning-briefing";
+import { SECTION_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 import { TenderJobLinkButtons } from "@/app/tender-center/components/TenderJobLinkButtons";
 
 function BriefBlock({
@@ -118,7 +119,7 @@ export function MorningBriefingCard({
             <BriefBlock label="Ryzyko" icon={AlertTriangle} content={briefing.biggestRisk} accent="amber" />
             <BriefBlock label="Finanse" icon={Wallet} content={briefing.financialStatus} accent="default" />
             {!hideOpportunityPreview && (
-              <BriefBlock label="Insight" icon={Lightbulb} content={briefing.ownerInsight} accent="emerald" />
+              <BriefBlock label={SECTION_LABEL_PL.insight} icon={Lightbulb} content={briefing.ownerInsight} accent="emerald" />
             )}
           </div>
         )}

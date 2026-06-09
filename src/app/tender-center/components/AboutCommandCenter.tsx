@@ -1,4 +1,5 @@
 import { COMMAND_CENTER_BRAND } from "@/app/tender-center/branding";
+import { SECTION_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 
 const CAPABILITIES = [
   "analizę przetargów",
@@ -12,7 +13,7 @@ export function AboutCommandCenter() {
   return (
     <div className="space-y-4 text-sm leading-relaxed">
       <div className="space-y-1">
-        <h3 className="text-base font-semibold">O COMMAND CENTER AI</h3>
+        <h3 className="text-base font-semibold">{SECTION_LABEL_PL.about}</h3>
         <p className="text-muted-foreground">{COMMAND_CENTER_BRAND.authorLine}</p>
         <p className="font-medium italic">{COMMAND_CENTER_BRAND.authorName}</p>
       </div>

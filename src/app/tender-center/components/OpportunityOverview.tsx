@@ -1,5 +1,6 @@
 import { BarChart3, TrendingUp, Wallet, AlertTriangle, Shield } from "lucide-react";
 import type { TenderCenterMarketKpi } from "@/lib/tender-center-kpi";
+import { SECTION_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 
 function fmtPln(n: number): string {
   return new Intl.NumberFormat("pl-PL", {
@@ -73,7 +74,7 @@ export function OpportunityOverview({ kpi }: { kpi: TenderCenterMarketKpi }) {
           icon={Wallet}
         />
         <KpiTile
-          label="Pipeline ofert"
+          label={SECTION_LABEL_PL.pipelineOffers}
           value={fmtPln(kpi.pipelineBidValuePln)}
           sub={`${kpi.preparingCount} w przygotowaniu · ${kpi.submittedCount} złożonych`}
           icon={BarChart3}
@@ -82,7 +83,7 @@ export function OpportunityOverview({ kpi }: { kpi: TenderCenterMarketKpi }) {
         <KpiTile
           label="Wadium"
           value={fmtPln(kpi.wadiumRequiredPln)}
-          sub={`Headroom: ${fmtPln(kpi.wadiumHeadroomPln)} / ${fmtPln(kpi.maxWadiumPln)}`}
+          sub={`${SECTION_LABEL_PL.headroom}: ${fmtPln(kpi.wadiumHeadroomPln)} / ${fmtPln(kpi.maxWadiumPln)}`}
           icon={Shield}
           accent={kpi.wadiumBlockedCount > 0 ? "red" : undefined}
         />

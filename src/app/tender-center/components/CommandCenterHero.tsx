@@ -9,6 +9,7 @@ import {
   GROWTH_MODE_LABELS,
 } from "@/lib/tender-center-growth-mode";
 import { MetricHelpTooltip } from "@/app/tender-center/components/MetricHelpTooltip";
+import { METRIC_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 
 function labelTone(label: HealthLabel): string {
   switch (label) {
@@ -66,7 +67,7 @@ export function CommandCenterHero({
         <div className="flex flex-wrap items-end gap-4">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-              Health Index
+              {METRIC_LABEL_PL.healthIndex}
               <MetricHelpTooltip metricId="health-index" />
             </p>
             <p
@@ -81,7 +82,7 @@ export function CommandCenterHero({
         <div className="pt-2 border-t border-border/60 space-y-1.5">
           <div className="flex items-center gap-1.5 text-muted-foreground">
             <Compass size={12} className="text-primary shrink-0" />
-            <p className="text-[10px] uppercase tracking-wider font-medium">Growth Mode</p>
+            <p className="text-[10px] uppercase tracking-wider font-medium">{METRIC_LABEL_PL.growthMode}</p>
             {suggestedMode !== growthMode && (
               <span className="text-[9px] text-amber-600 dark:text-amber-400">
                 · sugestia: {GROWTH_MODE_LABELS[suggestedMode]}

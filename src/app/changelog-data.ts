@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.43",
+    label: "Polonizacja COMMAND CENTER — pełny pakiet (20.3B+)",
+    items: [
+      { type: "improve", text: "COMMAND CENTER AI — polskie etykiety metryk (Indeks kondycji, Wynik okazji, Zdolność finansowa)" },
+      { type: "improve", text: "Przetargi CC — Wnioski AI, Wyjaśnienia scoringu, Lejek ofert, Historia decyzji po polsku" },
+      { type: "improve", text: "Decyzje w UI: Startuj / Analizuj / Odpuszczaj (enum GO/HOLD/NO-GO bez zmian w danych)" },
+      { type: "improve", text: "Marka COMMAND CENTER AI zachowana — smoke 20.3B+ FULL" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.42",
     label: "Billing Evidence Pack (20.5A.5)",
     items: [

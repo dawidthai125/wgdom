@@ -5,19 +5,21 @@ import {
   type OwnerType,
 } from "@/lib/tender-center-owner-profile";
 import type { TenderDecision } from "@/lib/tender-center-decision";
+import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
+import { SECTION_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 
 function decisionLabel(d: TenderDecision | null): string {
-  return d ?? "—";
+  return d != null ? DECISION_LABEL_PL[d] : "—";
 }
 
 function ownerTypeDescription(type: OwnerType): string {
   switch (type) {
     case "OSTROŻNY":
-      return "GO < 35% — ostrożna selekcja przetargów";
+      return `${DECISION_LABEL_PL.GO} < 35% — ostrożna selekcja przetargów`;
     case "WYWAŻONY":
-      return "GO 35–60% — zrównoważone podejście";
+      return `${DECISION_LABEL_PL.GO} 35–60% — zrównoważone podejście`;
     case "AGRESYWNY":
-      return "GO > 60% — wysoka gotowość do startu";
+      return `${DECISION_LABEL_PL.GO} > 60% — wysoka gotowość do startu`;
   }
 }
 
@@ -88,7 +90,7 @@ export function OwnerProfilePanel({ profile }: { profile: OwnerProfile }) {
       <div className="rounded-xl border border-border bg-secondary/15 px-4 py-3 space-y-2">
         <div className="flex items-center gap-2">
           <UserCircle2 size={14} className="text-primary" />
-          <p className="text-xs font-semibold uppercase tracking-wide">Top powody</p>
+          <p className="text-xs font-semibold uppercase tracking-wide">{SECTION_LABEL_PL.topReasons}</p>
         </div>
         {profile.topReasons.length === 0 ? (
           <p className="text-sm text-muted-foreground">Brak danych o powodach.</p>

@@ -1,5 +1,7 @@
 import { Briefcase } from "lucide-react";
 import type { PortfolioDecisionCounts } from "@/lib/tender-center-decision";
+import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
+import { PIPELINE_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 import type { OwnerDecisionStats } from "@/lib/tender-center-owner-decisions";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type {
@@ -47,17 +49,17 @@ function CounterRow({
       </div>
       <div className="grid grid-cols-3 gap-3">
         <Counter
-          label="GO"
+          label={DECISION_LABEL_PL.GO}
           count={counts.GO}
           tone="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
         />
         <Counter
-          label="HOLD"
+          label={DECISION_LABEL_PL.HOLD}
           count={counts.HOLD}
           tone="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
         />
         <Counter
-          label="NO-GO"
+          label={DECISION_LABEL_PL["NO-GO"]}
           count={counts["NO-GO"]}
           tone="border-red-500/25 bg-red-500/8 text-red-700 dark:text-red-400"
         />
@@ -94,14 +96,14 @@ export function TenderPortfolioPanel({
       <div className="p-4 space-y-6">
         <CounterRow
           title="Rekomendacje systemu"
-          subtitle="GO / HOLD / NO-GO wg scoringu dla otwartych przetargów"
+          subtitle={`${DECISION_LABEL_PL.GO} / ${DECISION_LABEL_PL.HOLD} / ${DECISION_LABEL_PL["NO-GO"]} wg scoringu dla otwartych przetargów`}
           counts={systemCounts}
         />
 
         <div className="border-t border-border pt-5 space-y-4">
           <CounterRow
             title="Moje decyzje"
-            subtitle="Co oznaczyłeś w pipeline — zapis w kw-tender-decisions"
+            subtitle={`Co oznaczyłeś w ${PIPELINE_LABEL_PL.pipeline} — ${PIPELINE_LABEL_PL.ownerDecisionsKv}`}
             counts={{
               GO: ownerStats.go,
               HOLD: ownerStats.hold,

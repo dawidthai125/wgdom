@@ -4,6 +4,8 @@ import {
   topLearningReasons,
   type LearningStats,
 } from "@/lib/tender-center-learning";
+import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
+import { SECTION_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 
 export function LearningMemoryPanel({ stats }: { stats: LearningStats }) {
   const topReasons = topLearningReasons(stats, 5);
@@ -21,7 +23,7 @@ export function LearningMemoryPanel({ stats }: { stats: LearningStats }) {
           </p>
         </div>
         <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-3 py-3 text-center">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">GO</p>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{DECISION_LABEL_PL.GO}</p>
           <p
             className="text-2xl font-bold tabular-nums mt-1 text-emerald-700 dark:text-emerald-400"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
@@ -30,7 +32,7 @@ export function LearningMemoryPanel({ stats }: { stats: LearningStats }) {
           </p>
         </div>
         <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 px-3 py-3 text-center">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">HOLD</p>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{DECISION_LABEL_PL.HOLD}</p>
           <p
             className="text-2xl font-bold tabular-nums mt-1 text-amber-700 dark:text-amber-400"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
@@ -39,7 +41,7 @@ export function LearningMemoryPanel({ stats }: { stats: LearningStats }) {
           </p>
         </div>
         <div className="rounded-xl border border-red-500/25 bg-red-500/5 px-3 py-3 text-center">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">NO-GO</p>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{DECISION_LABEL_PL["NO-GO"]}</p>
           <p
             className="text-2xl font-bold tabular-nums mt-1 text-red-700 dark:text-red-400"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
@@ -52,11 +54,11 @@ export function LearningMemoryPanel({ stats }: { stats: LearningStats }) {
       <div className="rounded-xl border border-border bg-secondary/15 px-4 py-3 space-y-2">
         <div className="flex items-center gap-2">
           <Brain size={14} className="text-primary" />
-          <p className="text-xs font-semibold uppercase tracking-wide">Top 5 powodów</p>
+          <p className="text-xs font-semibold uppercase tracking-wide">{SECTION_LABEL_PL.topReasons}</p>
         </div>
         {topReasons.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Brak zapisanych powodów — podejmij decyzję GO/HOLD/NO-GO przy najlepszej okazji.
+            Brak zapisanych powodów — podejmij decyzję {DECISION_LABEL_PL.GO}/{DECISION_LABEL_PL.HOLD}/{DECISION_LABEL_PL["NO-GO"]} przy najlepszej okazji.
           </p>
         ) : (
           <ul className="space-y-1.5">

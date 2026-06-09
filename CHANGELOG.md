@@ -4,7 +4,16 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.42** (`changelog-data.ts`) · Billing Evidence Pack · lokalnie
+**Aktualna wersja UI:** **2.50.43** (`changelog-data.ts`) · Polonizacja COMMAND CENTER (20.3B+)
+
+---
+
+## 2.50.43 (2026-06-09) — Polonizacja COMMAND CENTER (20.3B+ FULL)
+
+* **CC** — Indeks kondycji, Wnioski AI, Wyjaśnienia scoringu, Lejek ofert, Historia decyzji
+* **Decyzje UI** — Startuj / Analizuj / Odpuszczaj (enum bez zmian)
+* **Marka** — COMMAND CENTER AI zachowana
+* Smoke: `smoke-test-ui-language-20.3b-full.mjs`, `smoke-prod-bundle-2.50.43.mjs`
 
 ---
 

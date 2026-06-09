@@ -4,6 +4,8 @@
  */
 
 import type { TenderDecision } from "@/lib/tender-center-decision";
+import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
+import { IMPACT_LABEL_PL, METRIC_LABEL_PL, OPPORTUNITY_LABEL_PL, STRATEGIC_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 import { learningReasonLabel, type TenderLearningEntry } from "@/lib/tender-center-learning";
 import type { OwnerProfile } from "@/lib/tender-center-owner-profile";
 
@@ -81,12 +83,12 @@ function buildHighlights(
       total,
     );
     if (holdShare >= 30) {
-      highlights.push("Najczęściej wybierasz decyzję HOLD.");
+      highlights.push(`Najczęściej wybierasz decyzję ${DECISION_LABEL_PL.HOLD}.`);
     }
   } else if (profile.preferredDecision === "GO") {
     const goShare = pct(entries.filter((e) => e.ownerDecision === "GO").length, total);
     if (goShare >= 40) {
-      highlights.push("Najczęściej wybierasz decyzję GO.");
+      highlights.push(`Najczęściej wybierasz decyzję ${DECISION_LABEL_PL.GO}.`);
     }
   } else if (profile.preferredDecision === "NO-GO") {
     const noGoShare = pct(
@@ -94,7 +96,7 @@ function buildHighlights(
       total,
     );
     if (noGoShare >= 30) {
-      highlights.push("Najczęściej wybierasz decyzję NO-GO.");
+      highlights.push(`Najczęściej wybierasz decyzję ${DECISION_LABEL_PL["NO-GO"]}.`);
     }
   }
 
@@ -102,7 +104,7 @@ function buildHighlights(
   const highOppShare = pct(highOpp, total);
   if (highOppShare >= 40) {
     highlights.push(
-      `Najwięcej decyzji dotyczyło przetargów o wysokim Opportunity Score (${highOppShare}% ≥ 70).`,
+      `Najwięcej decyzji dotyczyło przetargów o wysokim ${METRIC_LABEL_PL.opportunityScore} (${highOppShare}% ≥ 70).`,
     );
   }
 
@@ -126,9 +128,9 @@ function buildHighlights(
   }
 
   if (profile.ownerType === "AGRESYWNY") {
-    highlights.push("Profil decyzyjny: właściciel agresywny (GO > 60%).");
+    highlights.push(`Profil decyzyjny: właściciel agresywny (${DECISION_LABEL_PL.GO} > 60%).`);
   } else if (profile.ownerType === "OSTROŻNY") {
-    highlights.push("Profil decyzyjny: właściciel ostrożny (GO < 35%).");
+    highlights.push(`Profil decyzyjny: właściciel ostrożny (${DECISION_LABEL_PL.GO} < 35%).`);
   }
 
   const topReason = profile.topReasons[0];
@@ -142,7 +144,7 @@ function buildHighlights(
     entries.reduce((s, e) => s + e.opportunityScore, 0) / total,
   );
   if (avgOpp >= 65 && highlights.length < 5) {
-    highlights.push(`Średni Opportunity Score analizowanych przetargów: ${avgOpp}/100.`);
+    highlights.push(`Średni ${METRIC_LABEL_PL.opportunityScore} analizowanych przetargów: ${avgOpp}/100.`);
   }
 
   return takeUnique(highlights, 5);
@@ -176,7 +178,7 @@ function buildWarnings(entries: TenderLearningEntry[]): string[] {
     const strategicShare = pct(strategicNoGo, noGoEntries.length);
     if (strategicShare >= 50) {
       warnings.push(
-        `Większość decyzji NO-GO dotyczy kontraktów strategicznych (${strategicShare}%).`,
+        `Większość decyzji ${DECISION_LABEL_PL["NO-GO"]} dotyczy kontraktów strategicznych (${strategicShare}%).`,
       );
     }
   }
@@ -192,7 +194,7 @@ function buildWarnings(entries: TenderLearningEntry[]): string[] {
   }
   if (streakWithoutLargeGo >= 20) {
     warnings.push(
-      `Od ${streakWithoutLargeGo} decyzji nie podjąłeś GO dla dużego kontraktu.`,
+      `Od ${streakWithoutLargeGo} decyzji nie podjąłeś ${DECISION_LABEL_PL.GO} dla dużego kontraktu.`,
     );
   }
 
@@ -215,7 +217,7 @@ function buildWarnings(entries: TenderLearningEntry[]): string[] {
 
   const zaKrotki = entries.filter((e) => e.reason === "za_krotki_termin").length;
   if (zaKrotki / total >= 0.2) {
-    warnings.push("Krótki termin realizacji często blokuje Twoje decyzje GO.");
+    warnings.push(`Krótki termin realizacji często blokuje Twoje decyzje ${DECISION_LABEL_PL.GO}.`);
   }
 
   return takeUnique(warnings, 5);
@@ -241,7 +243,7 @@ function buildStrengths(entries: TenderLearningEntry[]): string[] {
   if (systemGo > 0) {
     const alignShare = pct(alignedGo, systemGo);
     if (alignShare >= 60) {
-      strengths.push("Decyzje GO są zgodne z rekomendacją systemu.");
+      strengths.push(`Decyzje ${DECISION_LABEL_PL.GO} są zgodne z rekomendacją systemu.`);
     }
   }
 
@@ -249,7 +251,7 @@ function buildStrengths(entries: TenderLearningEntry[]): string[] {
   const highOppShare = pct(highOppAll, total);
   if (highOppShare >= 40) {
     strengths.push(
-      `Wysoki udział decyzji opartych na Opportunity Score > 70 (${highOppShare}%).`,
+      `Wysoki udział decyzji opartych na ${METRIC_LABEL_PL.opportunityScore} > 70 (${highOppShare}%).`,
     );
   }
 
@@ -259,7 +261,7 @@ function buildStrengths(entries: TenderLearningEntry[]): string[] {
     );
     if (avgStrategicGo >= 65) {
       strengths.push(
-        `Średni Strategic Score przy decyzjach GO: ${avgStrategicGo}/100.`,
+        `Średni ${STRATEGIC_LABEL_PL.score} przy decyzjach ${DECISION_LABEL_PL.GO}: ${avgStrategicGo}/100.`,
       );
     }
   }
@@ -272,7 +274,7 @@ function buildStrengths(entries: TenderLearningEntry[]): string[] {
 
   const impactGo = goEntries.filter((e) => e.impactScore >= 60).length;
   if (goEntries.length > 0 && pct(impactGo, goEntries.length) >= 50) {
-    strengths.push("Decyzje GO często dotyczą przetargów z wysokim Impact Score.");
+    strengths.push(`Decyzje ${DECISION_LABEL_PL.GO} często dotyczą przetargów z wysokim ${IMPACT_LABEL_PL.score}.`);
   }
 
   return takeUnique(strengths, 5);

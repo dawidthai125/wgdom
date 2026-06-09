@@ -1,27 +1,30 @@
+import { SECTION_LABEL_PL, METRIC_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
+import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
+
 const STEPS = [
   {
     n: 1,
-    title: "Przeczytaj Morning Briefing",
+    title: `Przeczytaj ${SECTION_LABEL_PL.morningBriefing}`,
     detail: "Codzienny raport właściciela — priorytet dnia, ryzyka i finanse w jednym miejscu.",
   },
   {
     n: 2,
     title: "Sprawdź Najlepszą Okazję",
-    detail: "Ranking przetargów z Opportunity Score i rekomendacją systemu.",
+    detail: `Ranking przetargów z ${METRIC_LABEL_PL.opportunityScore} i rekomendacją systemu.`,
   },
   {
     n: 3,
     title: "Przeanalizuj wpływ na firmę",
-    detail: "Oceń obłożenie, zasoby i wpływ wygranej oferty na operacje (Impact).",
+    detail: "Oceń obłożenie, zasoby i wpływ wygranej oferty na operacje.",
   },
   {
     n: 4,
     title: "Zweryfikuj finanse",
-    detail: "Sprawdź wadium, bufor i Financial Capacity przed decyzją.",
+    detail: `Sprawdź wadium, bufor i ${METRIC_LABEL_PL.financialCapacity} przed decyzją.`,
   },
   {
     n: 5,
-    title: "Podejmij decyzję: GO · HOLD · NO-GO",
+    title: `Podejmij decyzję: ${DECISION_LABEL_PL.GO} · ${DECISION_LABEL_PL.HOLD} · ${DECISION_LABEL_PL["NO-GO"]}`,
     detail: "System będzie analizował Twoje decyzje i budował profil właściciela.",
   },
 ] as const;

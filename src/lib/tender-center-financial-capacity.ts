@@ -11,6 +11,7 @@ import type { CompanyHealthResult } from "@/lib/tender-center-health";
 import { aggregateMarketKpi, type TenderCenterMarketKpi } from "@/lib/tender-center-kpi";
 import type { TenderScoringBundle } from "@/lib/tender-center-decision";
 import type { TenderImpactResult, ContractScale } from "@/lib/tender-center-impact";
+import { METRIC_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 
 export type FinancialCapacityClass =
   | "BARDZO WYSOKA"
@@ -289,7 +290,7 @@ function buildStrengths(
 ): string[] {
   const strengths: string[] = [];
 
-  if (health.index >= 70) strengths.push("Wysoki Health Index");
+  if (health.index >= 70) strengths.push(`Wysoki ${METRIC_LABEL_PL.healthIndex.toLowerCase()}`);
   if (impact.risks.some((r) => r.tone === "positive" && r.text.includes("profil"))) {
     strengths.push("Dobra zgodność z profilem");
   }

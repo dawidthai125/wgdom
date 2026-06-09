@@ -8,6 +8,7 @@ import {
   Banknote,
 } from "lucide-react";
 import type { FinancialCapacityResult } from "@/lib/tender-center-financial-capacity";
+import { FINANCIAL_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 import {
   capacityScoreTone,
   depositImpactTone,
@@ -92,7 +93,7 @@ export function FinancialCapacityPanel({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-              Financial Capacity Score
+              {FINANCIAL_LABEL_PL.capacityScore}
             </p>
             <p
               className={`text-3xl font-bold tabular-nums leading-none mt-1 ${capacityScoreTone(capacity.financialCapacityScore)}`}

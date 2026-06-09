@@ -7,6 +7,7 @@ import type { OwnerTenderDecisionRecord } from "@/lib/tender-center-owner-decisi
 import { daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 import { estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 import { MetricHelpTooltip } from "@/app/tender-center/components/MetricHelpTooltip";
+import { OPPORTUNITY_LABEL_PL, PIPELINE_LABEL_PL, SECTION_LABEL_PL, STRATEGIC_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 
 function fmtPln(n: number): string {
   return new Intl.NumberFormat("pl-PL", {
@@ -122,7 +123,7 @@ export function BestOpportunityCard({
       <div className="p-4">
         {!bundle ? (
           <p className="text-sm text-muted-foreground text-center py-6">
-            Brak aktywnych przetargów — odśwież pipeline z BZP.
+            Brak aktywnych przetargów — odśwież {PIPELINE_LABEL_PL.pipeline} z BZP.
           </p>
         ) : (
           <article className="space-y-4">
@@ -180,7 +181,7 @@ export function BestOpportunityCard({
             <div className="grid grid-cols-3 gap-2">
               <div className="rounded-xl border border-border bg-secondary/30 px-3 py-2.5 text-center">
                 <p className="text-[9px] uppercase tracking-wider text-muted-foreground flex items-center justify-center gap-0.5">
-                  Opportunity
+                  {OPPORTUNITY_LABEL_PL.short}
                   <MetricHelpTooltip metricId="opportunity-score" />
                 </p>
                 <p
@@ -192,7 +193,7 @@ export function BestOpportunityCard({
               </div>
               <div className="rounded-xl border border-border bg-secondary/30 px-3 py-2.5 text-center">
                 <p className="text-[9px] uppercase tracking-wider text-muted-foreground flex items-center justify-center gap-0.5">
-                  Strategic
+                  {STRATEGIC_LABEL_PL.short}
                   <MetricHelpTooltip metricId="strategic-score" />
                 </p>
                 <p
@@ -203,9 +204,9 @@ export function BestOpportunityCard({
                 </p>
               </div>
               <div className="rounded-xl border border-border bg-secondary/30 px-3 py-2.5 flex flex-col items-center justify-center">
-                <p className="text-[9px] uppercase tracking-wider text-muted-foreground">System</p>
+                <p className="text-[9px] uppercase tracking-wider text-muted-foreground">{SECTION_LABEL_PL.system}</p>
                 <span className={`mt-1 text-sm font-bold px-2 py-0.5 rounded-lg border ${systemDecisionBadgeTone(bundle.decision)}`}>
-                  {bundle.decision}
+                  {DECISION_LABEL_PL[bundle.decision]}
                 </span>
                 <p className="text-[9px] text-muted-foreground mt-0.5">{bundle.decisionLabel}</p>
               </div>
@@ -222,7 +223,7 @@ export function BestOpportunityCard({
                 />
                 {ownerRecord && ownerRecord.decision !== bundle.decision && (
                   <p className="text-[10px] text-amber-700 dark:text-amber-400">
-                    Rozbieżność z rekomendacją systemu ({bundle.decision})
+                    Rozbieżność z rekomendacją systemu ({DECISION_LABEL_PL[bundle.decision]})
                   </p>
                 )}
               </div>

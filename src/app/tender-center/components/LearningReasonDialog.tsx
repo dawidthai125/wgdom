@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { TenderDecision } from "@/lib/tender-center-decision";
+import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
 import {
   LEARNING_REASON_OPTIONS,
   type LearningReasonId,
@@ -53,7 +54,7 @@ export function LearningReasonDialog({
           <DialogTitle>Dlaczego podjąłeś tę decyzję?</DialogTitle>
           <DialogDescription>
             {decision
-              ? `Twoja decyzja: ${decision} — wybierz powód, aby COMMAND CENTER AI uczył się Twojego stylu.`
+              ? `Twoja decyzja: ${DECISION_LABEL_PL[decision]} — wybierz powód, aby COMMAND CENTER AI uczył się Twojego stylu.`
               : "Wybierz powód decyzji."}
           </DialogDescription>
         </DialogHeader>

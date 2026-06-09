@@ -32,6 +32,7 @@ import { TenderPortfolioPanel } from "@/app/tender-center/components/TenderPortf
 import { CommandCenterExplainability } from "@/app/tender-center/components/CommandCenterExplainability";
 import { CommandCenterBrandHeader } from "@/app/tender-center/components/CommandCenterBrandHeader";
 import { COMMAND_CENTER_BRAND } from "@/app/tender-center/branding";
+import { SECTION_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 import { hasSeenCommandCenterOnboarding } from "@/app/tender-center/command-center-onboarding";
 import { CommandCenterWelcomeDialog } from "@/app/tender-center/components/CommandCenterWelcomeDialog";
 import { HowToUseCommandCenter } from "@/app/tender-center/components/HowToUseCommandCenter";
@@ -195,7 +196,7 @@ export function OwnerDashboard({
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-60 min-h-[44px] shrink-0"
           >
             <RefreshCw size={16} className={pipeline.syncing || pipeline.autoSyncing ? "animate-spin" : ""} />
-            {pipeline.syncing ? "Pobieranie…" : pipeline.autoSyncing ? "Auto-sync…" : "Odśwież z BZP"}
+            {pipeline.syncing ? "Pobieranie…" : pipeline.autoSyncing ? SECTION_LABEL_PL.autoSync : "Odśwież z BZP"}
           </button>
         }
       />
@@ -271,7 +272,7 @@ export function OwnerDashboard({
           </div>
           <Accordion type="multiple" className="px-4">
             <AccordionItem value="ai-insights">
-              <AccordionTrigger>AI Insights</AccordionTrigger>
+              <AccordionTrigger>{SECTION_LABEL_PL.aiInsights}</AccordionTrigger>
               <AccordionContent>
                 <AiInsightsPanel insights={aiInsights} />
               </AccordionContent>
@@ -299,7 +300,7 @@ export function OwnerDashboard({
             </AccordionItem>
 
             <AccordionItem value="explain">
-              <AccordionTrigger>Explainability</AccordionTrigger>
+              <AccordionTrigger>{SECTION_LABEL_PL.explainability}</AccordionTrigger>
               <AccordionContent>
                 <CommandCenterExplainability
                   health={health}
@@ -325,21 +326,21 @@ export function OwnerDashboard({
             </AccordionItem>
 
             <AccordionItem value="how-to-use">
-              <AccordionTrigger>🎓 Jak korzystać z COMMAND CENTER AI</AccordionTrigger>
+              <AccordionTrigger>🎓 {SECTION_LABEL_PL.howToUse}</AccordionTrigger>
               <AccordionContent>
                 <HowToUseCommandCenter />
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="glossary">
-              <AccordionTrigger>📚 Słownik COMMAND CENTER AI</AccordionTrigger>
+              <AccordionTrigger>📚 {SECTION_LABEL_PL.glossary}</AccordionTrigger>
               <AccordionContent>
                 <CommandCenterGlossary />
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="about">
-              <AccordionTrigger>ℹ️ O COMMAND CENTER AI</AccordionTrigger>
+              <AccordionTrigger>ℹ️ {SECTION_LABEL_PL.about}</AccordionTrigger>
               <AccordionContent>
                 <AboutCommandCenter />
               </AccordionContent>

@@ -7,6 +7,7 @@ import {
   utilizationBarTone,
 } from "@/lib/tender-center-forecast-90d";
 import { MetricHelpTooltip } from "@/app/tender-center/components/MetricHelpTooltip";
+import { BASELINE_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 
 function HorizonTile({
   days,
@@ -64,7 +65,7 @@ export function ForecastCommandStrip({ forecast }: { forecast: Forecast90DaysRes
             <MetricHelpTooltip metricId="forecast-90" />
           </h2>
         </div>
-        <span className="text-[10px] text-muted-foreground">Scenariusz C · 50% GO</span>
+        <span className="text-[10px] text-muted-foreground">{BASELINE_LABEL_PL.scenarioC}</span>
       </div>
 
       <div className="p-4 space-y-3">

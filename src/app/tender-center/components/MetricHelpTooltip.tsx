@@ -5,6 +5,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/app/components/ui/popover";
+import { METRIC_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 
 export type MetricHelpId =
   | "health-index"
@@ -19,7 +20,7 @@ export const METRIC_HELP: Record<
   { title: string; body: ReactNode }
 > = {
   "health-index": {
-    title: "Health Index",
+    title: METRIC_LABEL_PL.healthIndex,
     body: (
       <>
         <p>Ocena ogólnej kondycji firmy.</p>
@@ -27,7 +28,7 @@ export const METRIC_HELP: Record<
         <ul className="list-disc pl-4 space-y-0.5">
           <li>aktywne roboty</li>
           <li>dostępne zasoby</li>
-          <li>pipeline przetargów</li>
+          <li>lejek przetargów</li>
           <li>referencje</li>
           <li>sytuację finansową</li>
         </ul>
@@ -49,7 +50,7 @@ export const METRIC_HELP: Record<
     ),
   },
   "opportunity-score": {
-    title: "Opportunity Score",
+    title: METRIC_LABEL_PL.opportunityScore,
     body: (
       <>
         <p>Ocena atrakcyjności przetargu.</p>
@@ -79,7 +80,7 @@ export const METRIC_HELP: Record<
     ),
   },
   "strategic-score": {
-    title: "Strategic Score",
+    title: METRIC_LABEL_PL.strategicScore,
     body: (
       <>
         <p>Ocena gotowości firmy do realizacji kontraktu.</p>
@@ -95,7 +96,7 @@ export const METRIC_HELP: Record<
     ),
   },
   "impact-score": {
-    title: "Impact Score",
+    title: METRIC_LABEL_PL.impactScore,
     body: (
       <>
         <p>Pokazuje jaki wpływ na firmę będzie miało wygranie kontraktu.</p>
@@ -110,7 +111,7 @@ export const METRIC_HELP: Record<
     ),
   },
   "financial-capacity": {
-    title: "Financial Capacity",
+    title: METRIC_LABEL_PL.financialCapacity,
     body: (
       <>
         <p>Czy firmę stać na realizację kontraktu.</p>
@@ -136,7 +137,7 @@ export const METRIC_HELP: Record<
     ),
   },
   "forecast-90": {
-    title: "Forecast 90 dni",
+    title: METRIC_LABEL_PL.forecast90,
     body: (
       <>
         <p>Prognoza obłożenia firmy na najbliższe 3 miesiące.</p>

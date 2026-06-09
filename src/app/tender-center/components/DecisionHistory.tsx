@@ -63,9 +63,9 @@ export function DecisionHistory({
       <div className={hideCounters ? "space-y-4" : "p-4 space-y-4"}>
         {!hideCounters && (
           <div className="flex flex-wrap gap-2">
-            <Counter label="GO" count={stats.go} tone="border-emerald-500/25 bg-emerald-500/5" />
-            <Counter label="HOLD" count={stats.hold} tone="border-amber-500/25 bg-amber-500/5" />
-            <Counter label="NO-GO" count={stats.noGo} tone="border-red-500/25 bg-red-500/5" />
+            <Counter label={DECISION_LABEL_PL.GO} count={stats.go} tone="border-emerald-500/25 bg-emerald-500/5" />
+            <Counter label={DECISION_LABEL_PL.HOLD} count={stats.hold} tone="border-amber-500/25 bg-amber-500/5" />
+            <Counter label={DECISION_LABEL_PL["NO-GO"]} count={stats.noGo} tone="border-red-500/25 bg-red-500/5" />
           </div>
         )}
 

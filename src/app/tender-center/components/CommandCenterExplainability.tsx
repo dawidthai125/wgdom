@@ -7,6 +7,8 @@ import {
   explainStrategicDecision,
 } from "@/lib/tender-center-explain";
 import { ExplainBullets, ExplainReasonList } from "@/app/tender-center/components/ExplainBullets";
+import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
+import { METRIC_LABEL_PL, OPPORTUNITY_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 
 export function CommandCenterExplainability({
   health,
@@ -36,21 +38,21 @@ export function CommandCenterExplainability({
       </div>
 
       <div className="rounded-xl border border-border bg-secondary/20 px-3 py-3 space-y-2">
-        <p className="text-xs font-semibold">Health Index — dlaczego {health.index}?</p>
+        <p className="text-xs font-semibold">{METRIC_LABEL_PL.healthIndex} — dlaczego {health.index}?</p>
         <p className="text-[10px] text-muted-foreground leading-snug">{healthExplanation.summary}</p>
         <ExplainBullets plus={healthExplanation.plus} minus={healthExplanation.minus} compact />
       </div>
 
       {bestOpportunity && oppExplain && (
         <div className="rounded-xl border border-border bg-secondary/20 px-3 py-3 space-y-2">
-          <p className="text-xs font-semibold">Opportunity Score — {bestOpportunity.item.title.slice(0, 48)}…</p>
+          <p className="text-xs font-semibold">{OPPORTUNITY_LABEL_PL.score} — {bestOpportunity.item.title.slice(0, 48)}…</p>
           <ExplainBullets plus={oppExplain.plus} minus={oppExplain.minus} compact />
         </div>
       )}
 
       {bestOpportunity && stratExplain && (
         <div className="rounded-xl border border-border bg-secondary/20 px-3 py-3 space-y-2">
-          <p className="text-xs font-semibold">Decyzja strategiczna — {bestOpportunity.decision}</p>
+          <p className="text-xs font-semibold">Decyzja strategiczna — {DECISION_LABEL_PL[bestOpportunity.decision]}</p>
           <p className="text-[10px] text-muted-foreground">{stratExplain.summary}</p>
           <ExplainReasonList reasons={stratExplain.reasons} title="Powody" />
         </div>

@@ -4,6 +4,8 @@
  */
 
 import type { TenderScoringBundle } from "@/lib/tender-center-decision";
+import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
+import { BASELINE_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 import type {
   Forecast90DaysInput,
   ForecastHorizon,
@@ -21,10 +23,10 @@ export type WhatIfPresetId =
   | "custom";
 
 export const WHAT_IF_PRESET_LABELS: Record<WhatIfPresetId, string> = {
-  baseline: "Baseline (dziś)",
+  baseline: BASELINE_LABEL_PL.baselineToday,
   none: "Nie wygram nic",
-  half_go: "Wygram 50% GO",
-  all_go: "Wygram wszystkie GO",
+  half_go: `Wygram ${BASELINE_LABEL_PL.percentGo}`,
+  all_go: `Wygram wszystkie ${DECISION_LABEL_PL.GO}`,
   plus_one_slot: "+1 slot równoległy",
   custom: "Własny scenariusz",
 };

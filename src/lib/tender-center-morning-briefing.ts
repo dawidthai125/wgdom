@@ -13,6 +13,13 @@ import type { FinancialCapacityResult } from "@/lib/tender-center-financial-capa
 import type { OwnerProfile } from "@/lib/tender-center-owner-profile";
 import type { AiInsightsResult } from "@/lib/tender-center-ai-insights";
 import type { TenderScoringBundle } from "@/lib/tender-center-decision";
+import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
+import {
+  METRIC_LABEL_PL,
+  OPPORTUNITY_LABEL_PL,
+  PIPELINE_LABEL_PL,
+  STRATEGIC_LABEL_PL,
+} from "@/lib/tender-center-ui-labels-pl";
 
 export type SummaryTone = "ŚWIETNY DZIEŃ" | "DOBRY DZIEŃ" | "OSTROŻNIE" | "WYSOKIE RYZYKO";
 
@@ -196,18 +203,18 @@ function buildFinancialStatus(capacity: FinancialCapacityResult | null): string 
 
 function buildOpportunityStatus(bundle: TenderScoringBundle | null): string {
   if (!bundle) {
-    return "Brak aktywnej okazji w pipeline.";
+    return `Brak aktywnej okazji w ${PIPELINE_LABEL_PL.pipeline}.`;
   }
 
   const title = truncate(bundle.item.title, 56);
   const decisionHint =
     bundle.decision === "GO"
-      ? "STARTUJ"
+      ? DECISION_LABEL_PL.GO
       : bundle.decision === "HOLD"
-        ? "HOLD — oceń ponownie"
-        : "NO-GO — system odradza";
+        ? `${DECISION_LABEL_PL.HOLD} — oceń ponownie`
+        : `${DECISION_LABEL_PL["NO-GO"]} — system odradza`;
 
-  return `${title}\n\nOpportunity ${bundle.opportunity.score}\nStrategic ${bundle.strategic.score}\n\n${decisionHint}`;
+  return `${title}\n\n${OPPORTUNITY_LABEL_PL.short} ${bundle.opportunity.score}\n${STRATEGIC_LABEL_PL.short} ${bundle.strategic.score}\n\n${decisionHint}`;
 }
 
 function buildOwnerInsight(ownerProfile: OwnerProfile, aiInsights: AiInsightsResult): string {
@@ -242,7 +249,7 @@ function buildOwnerInsight(ownerProfile: OwnerProfile, aiInsights: AiInsightsRes
     return `Preferujesz kontrakty ${size} wielkości.`;
   }
 
-  return "Zbieraj decyzje GO/HOLD/NO-GO, aby COMMAND CENTER uczył się Twojego stylu.";
+  return `Zbieraj decyzje ${DECISION_LABEL_PL.GO}/${DECISION_LABEL_PL.HOLD}/${DECISION_LABEL_PL["NO-GO"]}, aby COMMAND CENTER AI uczył się Twojego stylu.`;
 }
 
 function computeSummaryTone(input: MorningBriefingInput): SummaryTone {
