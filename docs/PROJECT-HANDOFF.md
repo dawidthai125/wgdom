@@ -9,18 +9,33 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **2.50.52** |
-| **Commit** | **`e6758e5`** — `feat(jobs): generic file attachments with tombstone sync (20.5A.10)` |
-| **Deploy** | **`4994803137`** — **SUCCESS** |
+| **Wersja UI** | **2.50.53** |
+| **Commit** | **`74890bd`** — `feat(dashboard): remove embedded Portfolio WM section (20.5B.4)` |
+| **Deploy** | **`4995023669`** — **SUCCESS** |
 | **Status** | **STABLE** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | **`e6758e5`** |
+| **Repo `origin/main`** | **`74890bd`** |
 
 **Brak aktywnych blockerów.** **Brak aktywnych incydentów.**
 
 ---
 
-## Ostatni release — 20.5A.10 / 2.50.52
+## Ostatni release — 20.5B.4 / 2.50.53
+
+**Dashboard WM Cleanup** — usunięcie embedded Portfolio WM z Pulpicu
+
+### Funkcje
+
+- Pulpit krótszy — bez listy portfolio WM na dole
+- KPI „Aktywne WM” + alerty terminów odbioru — bez zmian
+- Skróty WM → **Roboty** (zamiast scroll do portfolio)
+- `WmPortfolioView` — bez zmian w panelu inspektora terenowego
+
+**Raport:** [`RELEASE-REPORT-20.5B.4.md`](RELEASE-REPORT-20.5B.4.md)
+
+---
+
+## Poprzedni release — 20.5A.10 / 2.50.52
 
 **Generic File Attachments** (wariant **B** — osobne `jobAttachments[]`)
 

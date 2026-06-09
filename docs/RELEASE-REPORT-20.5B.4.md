@@ -2,7 +2,10 @@
 
 **Data:** 2026-06-09  
 **Wersja UI:** **2.50.53**  
-**Status:** IMPLEMENT DONE · oczekuje commit/deploy
+**Commit:** **`74890bd`**  
+**Deploy:** **`4995023669`** — **SUCCESS**  
+**CI Mobile:** run **`27231309821`** — **SUCCESS**  
+**Status:** **RELEASED**
 
 ---
 
@@ -12,7 +15,7 @@ Usunięto osadzoną sekcję Portfolio WM z Pulpicu administratora. KPI „Aktywn
 
 ---
 
-## Zmienione pliki
+## Zmienione pliki (release)
 
 | Plik | Zmiana |
 |------|--------|
@@ -21,11 +24,8 @@ Usunięto osadzoną sekcję Portfolio WM z Pulpicu administratora. KPI „Aktywn
 | `src/app/GuideView.tsx` | FAQ — Portfolio WM nie na Pulpicie |
 | `docs/ARCHITECTURE.md` | § 8 — Dashboard WM vs Roboty/InspectorPanel |
 | `CHANGELOG.md` | Skrót 2.50.53 |
-| `CURRENT-TASK.md` | Stan sprintu |
-| `scripts/smoke-test-inspector-admin-simplification-20.5b2.mjs` | T10 — brak portfolio na Pulpicie |
-| `scripts/smoke-test-dashboard-wm-cleanup-20.5b4.mjs` | **NOWY** — T1–T6 |
-
-**Bez zmian:** `WmPortfolioView.tsx`, `InspectorPanel.tsx`, `job-wm.ts`, sync, KV, Edge.
+| `scripts/smoke-test-dashboard-wm-cleanup-20.5b4.mjs` | Smoke T1–T6 |
+| `scripts/smoke-test-inspector-admin-simplification-20.5b2.mjs` | T10 zaktualizowany |
 
 ---
 
@@ -34,25 +34,33 @@ Usunięto osadzoną sekcję Portfolio WM z Pulpicu administratora. KPI „Aktywn
 | Check | Wynik |
 |-------|-------|
 | `npm run build` | **PASS** |
-| `smoke-test-dashboard-wm-cleanup-20.5b4.mjs` | **13/13 PASS** (T1–T6) |
+| `smoke-test-dashboard-wm-cleanup-20.5b4.mjs` | **13/13 PASS** |
 | `smoke-test-inspector-admin-simplification-20.5b2.mjs` | **29/29 PASS** |
 | `smoke-test-media-separation-20.5a8.mjs` | **18/18 PASS** |
 | `smoke-test-technical-drawing-20.5a9.mjs` | **21/21 PASS** |
+| GitHub Actions `#27231309821` | **SUCCESS** |
+| Vercel deploy `#4995023669` | **SUCCESS** |
+| Prod bundle `smoke-prod-bundle-2.50.53.mjs` | **9/9 PASS** × wgdom.fun + wgdom.online |
 
 ---
 
-## Proponowany commit
+## Post-Deploy Smoke (bundle)
 
-```
-feat(dashboard): remove embedded Portfolio WM section (20.5B.4)
-
-Pulpit keeps WM KPI and alerts but routes shortcuts to Roboty instead
-of scrolling to a duplicate portfolio list; InspectorPanel unchanged.
-```
+| Checklist | Wynik |
+|-----------|-------|
+| Dashboard — brak Portfolio WM embedded | **PASS** (brak `wm-portfolio`, brak `Portfolio WM →`) |
+| KPI „Aktywne WM” | **PASS** |
+| Link „Roboty →” | **PASS** |
+| InspectorPanel — Portfolio WM | **PASS** |
+| Wersja prod 2.50.53 | **PASS** |
 
 ---
 
-## Deploy
+## Baseline po wdrożeniu
 
-- **Frontend:** push `main` → Vercel auto-deploy
-- **Supabase:** nie wymagany (tylko UI)
+```text
+Version: 2.50.53
+Commit: 74890bd
+Deploy: 4995023669
+Status: RELEASED · STABLE
+```
