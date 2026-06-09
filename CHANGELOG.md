@@ -4,7 +4,14 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.49** (`changelog-data.ts`) · Hotfix plan_techniczny icon P0 · lokalnie (bez commit)
+**Aktualna wersja UI:** **2.50.50** (`changelog-data.ts`) · Hotfix delete plików P0 · lokalnie (bez commit)
+
+---
+
+## 2.50.50 (2026-06-09) — Hotfix usuwanie plików Roboty (P0)
+
+* **Fix:** `JobsView` — import `resolveJobFileStoragePath`; usuwanie w katalogu i panelu email działa po confirm
+* **Fix:** try/catch + toast.error przy błędzie storage / wyjątku
 
 ---
 

@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.50",
+    label: "Hotfix usuwanie plików w Robotach (P0)",
+    items: [
+      { type: "fix", text: "Roboty → Pliki — naprawiono usuwanie zlecenia, kosztorysu i planu technicznego (brak importu resolveJobFileStoragePath)" },
+      { type: "fix", text: "Usuwanie pliku — toast przy błędzie zamiast cichego przerwania flow" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.49",
     label: "Hotfix — ikona planu technicznego w katalogu plików (P0)",
     items: [

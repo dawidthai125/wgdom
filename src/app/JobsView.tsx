@@ -44,8 +44,10 @@ import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import {
   latestJobFile, syncJobDocuments, isReportSyncedDocLocked, confirmReportSyncedDocUncheck,
   applyReportDocDocumentToggle, clearReportDocSaOverrideFromReport, removeJobFileAttachment,
+  resolveJobFileStoragePath,
   jobFileUploadActivityText,
   type JobFileKind,
+  type JobFileAttachment,
 } from "@/lib/job-documents";
 import { deleteJobFile, uploadJobFile } from "@/lib/job-file-upload";
 import { collectJobFileCatalog, countJobFiles, type JobFileCatalogItem } from "@/lib/job-files-index";
@@ -833,7 +835,7 @@ export function JobsView({
     );
   };
 
-  const handleDeleteJobFile = async (file: import("@/lib/job-documents").JobFileAttachment, busyKey?: string) => {
+  const handleDeleteJobFile = async (file: JobFileAttachment, busyKey?: string) => {
     if (!selectedJob) return;
     if (!window.confirm(`Usunąć „${file.filename}”?\n\nPlik zostanie usunięty ze storage i zniknie wszędzie w aplikacji.`)) {
       return;
@@ -844,7 +846,7 @@ export function JobsView({
       if (path) {
         const { ok, error } = await deleteJobFile(path);
         if (!ok) {
-          window.alert(error || "Nie udało się usunąć pliku ze storage");
+          toast.error(error || "Nie udało się usunąć pliku ze storage");
           return;
         }
       }
@@ -856,6 +858,9 @@ export function JobsView({
         type: "inspector_file",
         text: `Usunięto plik: ${file.filename}`,
       });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Nie udało się usunąć pliku";
+      toast.error(msg);
     } finally {
       setFileDeleteBusy(null);
     }
@@ -876,27 +881,32 @@ export function JobsView({
     if (!window.confirm(`Usunąć „${label}”?\n\nPlik zostanie usunięty ze storage i zniknie wszędzie w aplikacji.`)) {
       return;
     }
-    const path = item.kind === "jobFile"
-      ? resolveJobFileStoragePath(item.file)
-      : item.file.path;
-    if (path) {
-      const { ok, error } = await deleteJobFile(path);
-      if (!ok) {
-        window.alert(error || "Nie udało się usunąć pliku ze storage");
-        return;
+    try {
+      const path = item.kind === "jobFile"
+        ? resolveJobFileStoragePath(item.file)
+        : item.file.path;
+      if (path) {
+        const { ok, error } = await deleteJobFile(path);
+        if (!ok) {
+          toast.error(error || "Nie udało się usunąć pliku ze storage");
+          return;
+        }
       }
-    }
-    const now = new Date().toISOString();
-    if (item.kind === "jobFile") {
-      updateJob(
-        removeJobFileAttachment({ ...selectedJob, updatedAt: now }, item.file.id),
-        { type: "inspector_file", text: `Usunięto plik: ${label}` },
-      );
-    } else if (item.kind === "inspectorPhoto") {
-      updateJob(
-        { ...removeInspectorPhoto({ ...selectedJob, updatedAt: now }, item.file.id), updatedAt: now },
-        { type: "inspector_photo", text: `Usunięto zdjęcie: ${label}` },
-      );
+      const now = new Date().toISOString();
+      if (item.kind === "jobFile") {
+        updateJob(
+          removeJobFileAttachment({ ...selectedJob, updatedAt: now }, item.file.id),
+          { type: "inspector_file", text: `Usunięto plik: ${label}` },
+        );
+      } else if (item.kind === "inspectorPhoto") {
+        updateJob(
+          { ...removeInspectorPhoto({ ...selectedJob, updatedAt: now }, item.file.id), updatedAt: now },
+          { type: "inspector_photo", text: `Usunięto zdjęcie: ${label}` },
+        );
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Nie udało się usunąć pliku";
+      toast.error(msg);
     }
   };
 
