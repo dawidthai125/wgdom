@@ -47,6 +47,8 @@ import {
 import { RecoverableChargesAnalysisSection } from "@/app/RecoverableChargesAnalysisSection";
 import { RecoverableChargesAlertsSection } from "@/app/RecoverableChargesAlertsSection";
 import { RecoverableChargesInsightsSection } from "@/app/RecoverableChargesInsightsSection";
+import type { AdminRole } from "@/lib/admin-auth";
+import { AuthorAttribution } from "@/app/AuthorAttribution";
 
 type FormMode = "create" | "edit" | null;
 
@@ -70,6 +72,8 @@ export function RecoverableChargesView({
   onInitialChargeConsumed,
   initialCreatePreset,
   onInitialCreatePresetConsumed,
+  viewerRole,
+  directoryContacts = [],
 }: {
   charges: RecoverableCharge[];
   jobs: Job[];
@@ -80,6 +84,8 @@ export function RecoverableChargesView({
   onInitialChargeConsumed?: () => void;
   initialCreatePreset?: Partial<RecoverableCharge> | null;
   onInitialCreatePresetConsumed?: () => void;
+  viewerRole: AdminRole;
+  directoryContacts?: { name: string; phone: string }[];
 }) {
   const [filters, setFilters] = useState<RecoverableChargeFilters>(DEFAULT_RECOVERABLE_CHARGE_FILTERS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -395,6 +401,8 @@ export function RecoverableChargesView({
             <ChargeDetailPanel
               charge={selected}
               jobsById={jobsById}
+              viewerRole={viewerRole}
+              directoryContacts={directoryContacts}
               onEdit={() => openEdit(selected)}
               onDelete={() => removeCharge(selected.id)}
               onClose={() => setSelectedId(null)}
@@ -459,6 +467,8 @@ function AmountLine({ label, value, emphasis }: { label: string; value: string; 
 function ChargeDetailPanel({
   charge,
   jobsById,
+  viewerRole,
+  directoryContacts,
   onEdit,
   onDelete,
   onClose,
@@ -466,6 +476,8 @@ function ChargeDetailPanel({
 }: {
   charge: RecoverableCharge;
   jobsById: Map<string, Job>;
+  viewerRole: AdminRole;
+  directoryContacts: { name: string; phone: string }[];
   onEdit: () => void;
   onDelete: () => void;
   onClose: () => void;
@@ -525,7 +537,13 @@ function ChargeDetailPanel({
             {[...jobNotesForCharge(job.jobNotes, charge.id)].reverse().map((n) => (
               <div key={n.id} className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 text-xs">
                 <p className="text-[10px] text-muted-foreground">
-                  {n.author} · {n.authorRole === "inspector" ? "Inspektor" : "Administrator"}
+                  <AuthorAttribution
+                    name={n.author}
+                    noteRole={n.authorRole}
+                    directory={directoryContacts}
+                    viewerRole={viewerRole}
+                    accentClass={n.authorRole === "inspector" ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-primary font-medium"}
+                  />
                   {" · "}
                   {new Date(n.at).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                 </p>

@@ -20,6 +20,7 @@ import {
 } from "@/lib/job-wm";
 import { applyJobPhase, type JobPhase } from "@/lib/job-list-status";
 import type { JobMetaFields } from "@/lib/job-meta";
+import type { AdminRole } from "@/lib/admin-auth";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
 
 export type JobWmJobMutable = JobWmJob & JobMetaFields & {
@@ -35,6 +36,7 @@ type JobWmPanelProps = {
   canSetPlannedDate?: boolean;
   canAddNotes?: boolean;
   directory?: { name: string; phone: string }[];
+  viewerRole: AdminRole;
   onGoToPhotos?: () => void;
 };
 
@@ -47,6 +49,7 @@ export function JobWmPanel({
   canSetPlannedDate = true,
   canAddNotes = true,
   directory = [],
+  viewerRole,
   onGoToPhotos,
 }: JobWmPanelProps) {
   const [noteText, setNoteText] = useState("");
@@ -169,6 +172,7 @@ export function JobWmPanel({
                     name={n.author}
                     noteRole={n.authorRole}
                     directory={directory}
+                    viewerRole={viewerRole}
                     accentClass={n.authorRole === "inspector" ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-primary font-medium"}
                   />
                   <span className="text-muted-foreground">

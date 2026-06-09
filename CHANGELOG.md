@@ -4,7 +4,16 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.44** (`changelog-data.ts`) · Billing Proposal 20.5A.6 · prod `99295e5`
+**Aktualna wersja UI:** **2.50.45** (`changelog-data.ts`) · Role Visibility 20.5A.7 · lokalnie (bez commit)
+
+---
+
+## 2.50.45 (2026-06-09) — Role Visibility Hardening (20.5A.7)
+
+* **Polityka UI** — admin/moderator: tylko `(Inspektor)`; inspektor: bez ról admin; super admin: pełny widok
+* **Core** — `role-visibility.ts` → `visibleRoleLabelForViewer()`; filtr w `resolveAuthorContact()` + `AuthorAttribution`
+* **Bypass** — SMS modal, Do rozliczenia (inline), topbar tooltip
+* Smoke: `smoke-test-role-visibility-20.5a7.mjs` (34) + regresja 20.5A.6 (59)
 
 ---
 

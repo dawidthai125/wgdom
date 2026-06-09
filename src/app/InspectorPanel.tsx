@@ -1266,6 +1266,7 @@ export function InspectorPanel({
               actorName={displayName}
               actorRole="inspector"
               directory={directoryContacts}
+              viewerRole="inspector"
               onGoToPhotos={() => scrollToJobSection("photos")}
             />
             </div>
@@ -1275,6 +1276,7 @@ export function InspectorPanel({
               charges={recoverableCharges}
               jobNotes={selectedJob.jobNotes}
               variant="inspector"
+              viewerRole="inspector"
               jobsById={jobsById}
               onCreateBillingProposal={() => setShowBillingProposalModal(true)}
               onAddBillingNote={handleAddBillingNote}
@@ -1304,6 +1306,7 @@ export function InspectorPanel({
                       <AuthorAttribution
                         name={ev.actor}
                         directory={directoryContacts}
+                        viewerRole="inspector"
                         accentClass="text-foreground/90 font-medium"
                       />
                       {" · "}
@@ -1364,6 +1367,7 @@ export function InspectorPanel({
                           <AuthorAttribution
                             name={file.uploadedBy}
                             directory={directoryContacts}
+                            viewerRole="inspector"
                             accentClass="text-muted-foreground font-medium"
                           />
                           {" · "}
@@ -1457,6 +1461,7 @@ export function InspectorPanel({
                                 name={report.workerName}
                                 reportAdminRole={report.authorAdminRole || "worker"}
                                 directory={directoryContacts}
+                                viewerRole="inspector"
                                 accentClass="text-sm font-medium text-foreground"
                               />
                             </p>
@@ -1528,6 +1533,7 @@ export function InspectorPanel({
                 crewPhotos={selectedJob.photos || []}
                 inspectorPhotos={selectedJob.inspectorPhotos || []}
                 directory={directoryContacts}
+                viewerRole="inspector"
                 onStatusMessage={setMsg}
                 canUpload
                 onUploadInspectorPhoto={handleInspectorPhotoUpload}

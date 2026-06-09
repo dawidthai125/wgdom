@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { X, Send, MessageSquare, Users, AlertTriangle, CheckCircle2, Shield, HardHat, History, Clock } from "lucide-react";
 import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
 import { normalizePhoneE164, normalizePhone9 } from "@/lib/phone-normalize";
-import { adminRoleLabel, listAdminUsersForManagement, type AdminSession } from "@/lib/admin-auth";
+import { listAdminUsersForManagement, type AdminRole, type AdminSession } from "@/lib/admin-auth";
+import { visibleRoleLabelForViewer } from "@/lib/role-visibility";
 import {
   SMS_SENDER_NAMES,
   isActiveSmsSender,
@@ -47,7 +48,7 @@ function isEmployeeSmsEligible(emp: SmsDirectoryEmployee): boolean {
   return normalizePhone9(emp.phone) !== null;
 }
 
-function buildRecipients(directory: SmsDirectoryEmployee[]): SmsRecipient[] {
+function buildRecipients(directory: SmsDirectoryEmployee[], viewerRole: AdminRole): SmsRecipient[] {
   const list: SmsRecipient[] = [];
 
   for (const emp of directory.filter(isEmployeeSmsEligible)) {
@@ -67,7 +68,7 @@ function buildRecipients(directory: SmsDirectoryEmployee[]): SmsRecipient[] {
         id: `admin:${user.id}`,
         name: user.displayName,
         phone: user.phone,
-        subtitle: adminRoleLabel(user.role),
+        subtitle: visibleRoleLabelForViewer(viewerRole, user.role, { variant: "full" }) ?? "",
         group: "team",
       });
     }
@@ -114,12 +115,12 @@ function fmtDateTime(iso: string): string {
   }
 }
 
-function safeAdminRoleLabel(role?: string): string {
+function visibleSenderRoleLabel(viewerRole: AdminRole, role?: string): string {
   if (!role) return "";
   try {
-    return adminRoleLabel(role as import("@/lib/admin-auth").AdminRole) || role;
+    return visibleRoleLabelForViewer(viewerRole, role as AdminRole, { variant: "full" }) ?? "";
   } catch {
-    return role;
+    return "";
   }
 }
 
@@ -146,15 +147,16 @@ export function EmployeeSmsModal({
   directory: SmsDirectoryEmployee[];
   sender: AdminSession | null;
 }) {
+  const viewerRole: AdminRole = sender?.role ?? "admin";
   const safeDirectory = useMemo(() => normalizeSmsDirectory(directory), [directory]);
   const eligible = useMemo(() => {
     try {
-      return buildRecipients(safeDirectory);
+      return buildRecipients(safeDirectory, viewerRole);
     } catch (e) {
       console.error("SMS recipients build failed", e);
       return [];
     }
-  }, [safeDirectory]);
+  }, [safeDirectory, viewerRole]);
   const employees = useMemo(() => eligible.filter((r) => r.group === "employee"), [eligible]);
   const team = useMemo(() => eligible.filter((r) => r.group === "team"), [eligible]);
 
@@ -518,7 +520,7 @@ export function EmployeeSmsModal({
                         {entry.senderName}
                         {entry.senderRole ? (
                           <span className="text-[10px] font-normal text-muted-foreground ml-1.5">
-                            ({safeAdminRoleLabel(entry.senderRole)})
+                            ({visibleSenderRoleLabel(viewerRole, entry.senderRole)})
                           </span>
                         ) : null}
                       </p>

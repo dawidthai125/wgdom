@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Camera, Check, FileText, X } from "lucide-react";
+import type { AdminRole } from "@/lib/admin-auth";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
@@ -57,6 +58,7 @@ export function BillingProposalReviewCard({
   proposal,
   directory,
   variant,
+  viewerRole,
   onApprove,
   onReject,
   onOpenCharge,
@@ -64,6 +66,7 @@ export function BillingProposalReviewCard({
   proposal: JobNote;
   directory?: DirectoryEmployee[];
   variant: "inspector" | "admin";
+  viewerRole: AdminRole;
   onApprove?: (proposalId: string) => void;
   onReject?: (proposalId: string, reason: string) => void;
   onOpenCharge?: (chargeId: string) => void;
@@ -122,6 +125,7 @@ export function BillingProposalReviewCard({
             name={note.author}
             noteRole={note.authorRole}
             directory={directory}
+            viewerRole={viewerRole}
             accentClass="text-emerald-600 dark:text-emerald-400 font-medium"
           />
         </span>

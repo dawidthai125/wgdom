@@ -8,6 +8,7 @@ export function AuthorAttribution({
   directory,
   noteRole,
   reportAdminRole,
+  viewerRole,
   className = "",
   accentClass = "text-foreground/90 font-medium",
 }: {
@@ -15,6 +16,7 @@ export function AuthorAttribution({
   directory: { name: string; phone: string }[];
   noteRole?: JobNoteAuthorRole;
   reportAdminRole?: AdminRole | "worker";
+  viewerRole: AdminRole;
   className?: string;
   accentClass?: string;
 }) {
@@ -22,6 +24,7 @@ export function AuthorAttribution({
     directory,
     noteRole,
     reportAdminRole,
+    viewerRole,
   });
 
   const title = resolved.phone

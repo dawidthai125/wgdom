@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.44** · Billing Proposal 20.5A.6 · prod `99295e5`)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.44 RELEASED — deploy `4990132607`)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.45** · Role Visibility 20.5A.7 · lokalnie)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.45 — Role Visibility 20.5A.7 IMPLEMENT lokalny)
 
 ---
 
@@ -153,6 +153,16 @@ Nawigacja **nie używa URL** (poza `?podglad=` i deep linkami). Stan w React + `
 **Role admina** (`src/lib/admin-auth.ts`): `super_admin` | `admin` | `moderator` | `inspector`  
 - `adminCanViewRates()` — moderator **nie widzi** stawek PLN/h.  
 - Super Admin (⚙): użytkownicy, hasła, restore backupów chmurowych.
+
+**Widoczność etykiet ról w UI (20.5A.7)** — `src/lib/role-visibility.ts` → `visibleRoleLabelForViewer(viewerRole, subjectRole)`:
+
+| Viewer | Widzi etykiety |
+|--------|----------------|
+| `super_admin` | wszystkie role + Pracownik |
+| `admin`, `moderator` | tylko Inspektor (+ Pracownik) |
+| `inspector` | tylko Inspektor (+ Pracownik) |
+
+Filtr stosowany w `resolveAuthorContact()` (`content-author-contact.ts`) i `AuthorAttribution`; bypassy: `EmployeeSmsModal`, `RecoverableChargesView`. Topbar: tooltip roli tylko dla super admina. **Admin Settings (⚙)** — pełne role (ekran zarządzania). Dane KV (`authorAdminRole`, `senderRole`) bez zmian — tylko prezentacja.
 
 ---
 

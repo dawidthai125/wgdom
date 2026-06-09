@@ -437,6 +437,8 @@ export function AdminViewRouter({
               charges={recoverableCharges}
               jobs={jobs}
               createdByName={adminSession?.displayName || "Administrator"}
+              viewerRole={adminSession?.role ?? "admin"}
+              directoryContacts={directory.map((d) => ({ name: d.name, phone: d.phone }))}
               onChange={setRecoverableCharges}
               onCommit={commitRecoverableCharges}
               initialChargeId={pendingRecoverableChargeId}

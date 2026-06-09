@@ -68,6 +68,7 @@ function FeedCard({
   onDeleteConfirm,
   onDeleteCancel,
   directoryContacts,
+  viewerRole,
 }: {
   item: InspectorFeedItem;
   onOpenJob: (jobId: string) => void;
@@ -76,6 +77,7 @@ function FeedCard({
   onDeleteConfirm: (id: string) => void;
   onDeleteCancel: () => void;
   directoryContacts: { name: string; phone: string }[];
+  viewerRole: import("@/lib/admin-auth").AdminRole;
 }) {
   const { Icon, cls } = feedTypeIcon(item.type);
   const confirming = deleteConfirmId === item.id;
@@ -91,6 +93,7 @@ function FeedCard({
             <AuthorAttribution
               name={item.actor}
               directory={directoryContacts}
+              viewerRole={viewerRole}
               accentClass="text-foreground/80 font-medium"
             />
             {" · "}
@@ -522,6 +525,7 @@ export function InspectorAdminView({
                       onDeleteConfirm={setDeleteConfirmId}
                       onDeleteCancel={() => setDeleteConfirmId(null)}
                       directoryContacts={directoryContacts}
+                      viewerRole={adminRole}
                     />
                   ))}
                 </div>

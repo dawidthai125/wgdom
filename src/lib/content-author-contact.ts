@@ -3,6 +3,7 @@
 import type { AdminRole } from "@/lib/admin-auth";
 import { getAllAdminAccounts, loadAdminUsersConfig } from "@/lib/admin-auth";
 import type { JobNoteAuthorRole } from "@/lib/job-wm";
+import { visibleRoleLabelForViewer, type SubjectRole } from "@/lib/role-visibility";
 
 export function personNamesMatch(a: string, b: string): boolean {
   const na = a.trim().toLowerCase().replace(/\s+/g, " ");
@@ -21,8 +22,10 @@ export interface ResolvedAuthor {
   name: string;
   phone: string | null;
   kind: AuthorKind;
-  /** Etykieta roli do wyświetlenia, np. „Administrator” */
+  /** Etykieta roli do wyświetlenia po filtrze viewerRole */
   roleLabel: string | null;
+  /** Rola autora przed filtrem widoczności (smoke / debug) */
+  subjectRole: SubjectRole;
 }
 
 function adminRoleLabelShort(role: AdminRole): string {
@@ -63,90 +66,136 @@ function findWorkerPhone(name: string, directory: { name: string; phone: string 
   return null;
 }
 
+interface ResolveOpts {
+  directory: { name: string; phone: string }[];
+  noteRole?: JobNoteAuthorRole;
+  reportAdminRole?: AdminRole | "worker";
+  viewerRole: AdminRole;
+}
+
+function withVisibility(
+  viewerRole: AdminRole,
+  partial: Omit<ResolvedAuthor, "roleLabel"> & { unfilteredRoleLabel: string | null },
+): ResolvedAuthor {
+  const { unfilteredRoleLabel: _u, ...rest } = partial;
+  return {
+    ...rest,
+    roleLabel: visibleRoleLabelForViewer(viewerRole, partial.subjectRole),
+  };
+}
+
 export function resolveAuthorContact(
   name: string,
-  opts: {
-    directory: { name: string; phone: string }[];
-    noteRole?: JobNoteAuthorRole;
-    reportAdminRole?: AdminRole | "worker";
-  },
+  opts: ResolveOpts,
 ): ResolvedAuthor {
   const raw = (name || "").trim() || "—";
   const lower = raw.toLowerCase();
+  const { viewerRole } = opts;
 
   if (lower === "system" || lower === "administrator (system)") {
-    return { name: raw, phone: null, kind: "system", roleLabel: null };
+    return withVisibility(viewerRole, {
+      name: raw,
+      phone: null,
+      kind: "system",
+      subjectRole: null,
+      unfilteredRoleLabel: null,
+    });
   }
 
   if (opts.noteRole === "inspector" || opts.reportAdminRole === "inspector") {
     const admin = findAdminByName(raw);
-    return {
+    return withVisibility(viewerRole, {
       name: admin?.displayName || raw,
       phone: admin ? adminPhoneById(admin.id) : findWorkerPhone(raw, opts.directory),
       kind: "inspector",
-      roleLabel: "Inspektor",
-    };
+      subjectRole: "inspector",
+      unfilteredRoleLabel: "Inspektor",
+    });
   }
 
   if (opts.reportAdminRole === "worker") {
-    return {
+    return withVisibility(viewerRole, {
       name: raw,
       phone: findWorkerPhone(raw, opts.directory),
       kind: "worker",
-      roleLabel: "Pracownik",
-    };
+      subjectRole: "worker",
+      unfilteredRoleLabel: "Pracownik",
+    });
   }
 
   if (opts.reportAdminRole && opts.reportAdminRole !== "worker") {
     const admin = findAdminByName(raw);
     const role = admin?.role || opts.reportAdminRole;
     if (role !== "inspector") {
-      return {
+      return withVisibility(viewerRole, {
         name: admin?.displayName || raw,
         phone: admin ? adminPhoneById(admin.id) : null,
         kind: "admin",
-        roleLabel: adminRoleLabelShort(role),
-      };
+        subjectRole: role,
+        unfilteredRoleLabel: adminRoleLabelShort(role),
+      });
     }
   }
 
   if (lower === "administrator") {
-    return { name: raw, phone: null, kind: "admin", roleLabel: "Administrator" };
+    return withVisibility(viewerRole, {
+      name: raw,
+      phone: null,
+      kind: "admin",
+      subjectRole: "admin",
+      unfilteredRoleLabel: "Administrator",
+    });
   }
 
   const admin = findAdminByName(raw);
   if (admin && admin.role !== "inspector") {
-    return {
+    return withVisibility(viewerRole, {
       name: admin.displayName,
       phone: adminPhoneById(admin.id),
       kind: "admin",
-      roleLabel: adminRoleLabelShort(admin.role),
-    };
+      subjectRole: admin.role,
+      unfilteredRoleLabel: adminRoleLabelShort(admin.role),
+    });
   }
 
   if (admin?.role === "inspector") {
-    return {
+    return withVisibility(viewerRole, {
       name: admin.displayName,
       phone: adminPhoneById(admin.id) || findWorkerPhone(raw, opts.directory),
       kind: "inspector",
-      roleLabel: "Inspektor",
-    };
+      subjectRole: "inspector",
+      unfilteredRoleLabel: "Inspektor",
+    });
   }
 
   const workerPhone = findWorkerPhone(raw, opts.directory);
   if (workerPhone) {
-    return { name: raw, phone: workerPhone, kind: "worker", roleLabel: "Pracownik" };
+    return withVisibility(viewerRole, {
+      name: raw,
+      phone: workerPhone,
+      kind: "worker",
+      subjectRole: "worker",
+      unfilteredRoleLabel: "Pracownik",
+    });
   }
 
   if (opts.noteRole === "admin") {
     const noteAdmin = findAdminByName(raw);
-    return {
+    const subjectRole: SubjectRole = noteAdmin?.role ?? "admin";
+    return withVisibility(viewerRole, {
       name: noteAdmin?.displayName || raw,
       phone: noteAdmin ? adminPhoneById(noteAdmin.id) : null,
       kind: "admin",
-      roleLabel: "Administrator",
-    };
+      subjectRole,
+      unfilteredRoleLabel: noteAdmin ? adminRoleLabelShort(noteAdmin.role) : "Administrator",
+    });
   }
 
-  return { name: raw, phone: null, kind: "unknown", roleLabel: null };
+  return withVisibility(viewerRole, {
+    name: raw,
+    phone: null,
+    kind: "unknown",
+    subjectRole: null,
+    unfilteredRoleLabel: null,
+  });
 }

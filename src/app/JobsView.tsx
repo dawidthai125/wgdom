@@ -1821,6 +1821,7 @@ export function JobsView({
               billingNoteActorName={createdByName}
               billingNoteActorRole="admin"
               directory={directory}
+              viewerRole={adminSession?.role ?? "admin"}
             />
 
             {approveProposalContext && selectedJob && onChangeRecoverableCharges && onCommitRecoverableCharges && (

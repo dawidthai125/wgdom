@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.45",
+    label: "Widoczność ról użytkowników — hardening (20.5A.7)",
+    items: [
+      { type: "improve", text: "Administrator i moderator widzą przy autorach treści wyłącznie etykietę Inspektor — bez ujawniania Super Admin / Administrator / Moderator" },
+      { type: "improve", text: "Inspektor — brak etykiet ról administracyjnych w notatkach WM, billing, feedzie i historii" },
+      { type: "improve", text: "Super Admin — pełna widoczność ról (w tym w SMS i topbarze); ustawienia ⚙ bez zmian" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.44",
     label: "Zgłoszenie pozycji Do rozliczenia — inspektor (20.5A.6)",
     items: [

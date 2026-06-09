@@ -34,6 +34,7 @@ import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { ChevronRight, Camera, FileText, Loader2, MessageSquare, Plus, Send, Wallet, X } from "lucide-react";
+import type { AdminRole } from "@/lib/admin-auth";
 
 /** Pliki oczekujące na upload przy wysyłce uwagi billing (Sprint 20.5A.5). */
 export type BillingNotePendingFiles = {
@@ -64,6 +65,7 @@ export function JobRecoverableChargesPanel({
   billingNoteActorRole,
   directory,
   variant = "admin",
+  viewerRole,
   jobsById,
 }: {
   jobId: string;
@@ -82,6 +84,7 @@ export function JobRecoverableChargesPanel({
   billingNoteActorRole?: JobNoteAuthorRole;
   directory?: DirectoryEmployee[];
   variant?: JobRecoverableChargesVariant;
+  viewerRole: AdminRole;
   jobsById?: Map<string, JobLookup>;
 }) {
   const isInspector = variant === "inspector";
@@ -162,6 +165,7 @@ export function JobRecoverableChargesPanel({
               proposal={proposal}
               directory={directory}
               variant={isInspector ? "inspector" : "admin"}
+              viewerRole={viewerRole}
               onApprove={!isInspector ? onApproveBillingProposal : undefined}
               onReject={!isInspector ? onRejectBillingProposal : undefined}
               onOpenCharge={!isInspector ? onOpenCharge : undefined}
@@ -187,6 +191,7 @@ export function JobRecoverableChargesPanel({
               onAddBillingNote={onAddBillingNote}
               billingNoteActorRole={billingNoteActorRole}
               directory={directory}
+              viewerRole={viewerRole}
             />
           ))}
           {sourceOverflow > 0 && (
@@ -273,6 +278,7 @@ function ChargeReviewCard({
   onAddBillingNote,
   billingNoteActorRole,
   directory,
+  viewerRole,
 }: {
   charge: RecoverableCharge;
   jobsById?: Map<string, JobLookup>;
@@ -283,6 +289,7 @@ function ChargeReviewCard({
   onAddBillingNote?: (chargeId: string, text: string, files?: BillingNotePendingFiles) => void | Promise<void>;
   billingNoteActorRole?: JobNoteAuthorRole;
   directory?: DirectoryEmployee[];
+  viewerRole: AdminRole;
 }) {
   const [noteModalOpen, setNoteModalOpen] = useState(false);
   const [replyOpen, setReplyOpen] = useState(false);
@@ -412,6 +419,7 @@ function ChargeReviewCard({
                     name={n.author}
                     noteRole={n.authorRole}
                     directory={directory}
+                    viewerRole={viewerRole}
                     accentClass={n.authorRole === "inspector" ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-primary font-medium"}
                   />
                   <span className="text-muted-foreground">

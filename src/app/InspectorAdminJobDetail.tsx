@@ -304,6 +304,7 @@ export function InspectorAdminJobDetail({
                 actorName={actorName}
                 actorRole="admin"
                 directory={directoryContacts}
+                viewerRole={actorAdminRole}
                 onGoToPhotos={() => selectSection("photos")}
               />
 
@@ -319,6 +320,7 @@ export function InspectorAdminJobDetail({
                           <AuthorAttribution
                             name={ev.actor}
                             directory={directoryContacts}
+                            viewerRole={actorAdminRole}
                             accentClass="text-foreground/90 font-medium"
                           />
                         </span>
@@ -379,6 +381,7 @@ export function InspectorAdminJobDetail({
                               <AuthorAttribution
                                 name={file.uploadedBy}
                                 directory={directoryContacts}
+                                viewerRole={actorAdminRole}
                                 accentClass="text-muted-foreground font-medium"
                               />
                               {" · "}
@@ -500,6 +503,7 @@ export function InspectorAdminJobDetail({
                                 name={report.workerName}
                                 reportAdminRole={report.authorAdminRole || "worker"}
                                 directory={directoryContacts}
+                                viewerRole={actorAdminRole}
                                 accentClass="text-sm font-medium text-foreground"
                               />
                             </p>
@@ -571,6 +575,7 @@ export function InspectorAdminJobDetail({
               crewPhotos={job.photos || []}
               inspectorPhotos={job.inspectorPhotos || []}
               directory={directoryContacts}
+              viewerRole={actorAdminRole}
             />
           )}
         </div>

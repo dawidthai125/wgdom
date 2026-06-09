@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Camera, ChevronLeft, ChevronRight, Download, ImagePlus, Share2, Upload, X } from "lucide-react";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
+import type { AdminRole } from "@/lib/admin-auth";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
 import { InspectorHint } from "@/app/InspectorHelp";
 import {
@@ -48,6 +49,7 @@ export type InspectorPhotoGalleryProps = {
   crewPhotos: CrewPhoto[];
   inspectorPhotos: InspectorPhotoEntry[];
   directory?: { name: string; phone: string }[];
+  viewerRole: AdminRole;
   onStatusMessage?: (msg: string) => void;
   canUpload?: boolean;
   onUploadInspectorPhoto?: (file: File, label: InspectorPhotoLabel, caption: string) => Promise<boolean>;
@@ -62,6 +64,7 @@ export function InspectorPhotoGallery({
   crewPhotos,
   inspectorPhotos,
   directory = [],
+  viewerRole,
   onStatusMessage,
   canUpload = false,
   onUploadInspectorPhoto,
@@ -333,7 +336,7 @@ export function InspectorPhotoGallery({
                     showAuthor={(id) => {
                       const p = group.find((x) => x.id === id);
                       return p ? (
-                        <AuthorAttribution name={p.uploadedBy} noteRole="inspector" directory={directory} accentClass="text-muted-foreground font-medium"/>
+                        <AuthorAttribution name={p.uploadedBy} noteRole="inspector" directory={directory} viewerRole={viewerRole} accentClass="text-muted-foreground font-medium"/>
                       ) : null;
                     }}
                   />

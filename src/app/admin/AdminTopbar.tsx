@@ -17,6 +17,7 @@ import { fmt, fmtDate } from "@/app/app-domain";
 import type { Job, WeekEmployee } from "@/app/app-domain";
 import type { AdminSession } from "@/lib/admin-auth";
 import { adminIsSuperAdmin, adminRoleLabel } from "@/lib/admin-auth";
+import { topbarRoleTooltipVisible } from "@/lib/role-visibility";
 import type { AdminNavItem, View } from "@/app/admin/admin-nav";
 
 const CompanyMusicPlayer = lazy(() =>
@@ -102,7 +103,7 @@ export function AdminTopbar({
       {adminSession && (
         <span
           className="hidden md:inline text-[10px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full truncate max-w-[180px]"
-          title={adminRoleLabel(adminSession.role)}
+          title={topbarRoleTooltipVisible(adminSession.role) ? adminRoleLabel(adminSession.role) : adminSession.displayName}
         >
           {adminSession.displayName}
         </span>
