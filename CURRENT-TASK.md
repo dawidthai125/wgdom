@@ -4,27 +4,29 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-09  
-**Current Version:** **2.50.55**  
+**Current Version:** **2.50.56**  
 **Current Baseline:** **RELEASED · STABLE**  
-**Prod `origin/main`:** **`782fe87`** · https://www.wgdom.fun  
-**Deploy:** **`4995467947`**  
-**Status:** Sprint 20.5B.6A.1 CLOSED
+**Prod `origin/main` (app):** **`1be7a80`** · https://www.wgdom.fun  
+**Deploy:** **`4995835869`**  
+**Status:** Sprint 20.5B.7 CLOSED
 
 ---
 
-## Podsumowanie — 20.5B.6A.1 Dokumentacja Robót Naming Refresh
+## Podsumowanie — 20.5B.7 Version Awareness & Update Banner
 
-Ujednolicono nazewnictwo modułu dokumentacji wykonania robót we wszystkich rolach (admin, pracownik, inspektor). Dodano hinty semantyczne obrys/wymiary vs plan techniczny PDF oraz help przy checklistie „Rysunek/Plan”. Bez zmian modelu, sync, KV i Edge.
+Wykrywanie nowej wersji po deployu — porównanie `APP_VERSION` z `/version.json`. Globalny banner z ręcznym odświeżeniem; brak auto-reload. Rozwiązuje problem starych kart SPA po wdrożeniu.
 
-**Kluczowe zmiany:**
+**Kluczowe elementy:**
 
-- Raporty → **Dokumentacja**
-- Raport z budowy → **Dokumentacja robót**
-- Zakresy i wymiary → **Dokumentacja**
-- Pulpit: **Nowa dokumentacja od ekipy**
-- Hint: obrys/wymiary ≠ plan techniczny PDF
+- **APP_VERSION** w main bundle (vite define z `CHANGELOG[0]`)
+- **`/version.json`** generowany przy buildzie
+- **Polling** co 5 minut
+- **Focus** i **visibilitychange** — sprawdzenie przy powrocie do karty
+- **Update banner** — „Dostępna nowa wersja WGDOM”
+- **Manual refresh** — „Odśwież teraz” → `location.reload()`
+- **Później** — dismiss sesji (`sessionStorage`)
 
-**Raport:** [`docs/RELEASE-REPORT-20.5B.6A.1.md`](docs/RELEASE-REPORT-20.5B.6A.1.md)
+**Raport:** [`docs/RELEASE-REPORT-20.5B.7.md`](docs/RELEASE-REPORT-20.5B.7.md)
 
 ---
 
@@ -33,47 +35,47 @@ Ujednolicono nazewnictwo modułu dokumentacji wykonania robót we wszystkich rol
 ```text
 1. CURRENT-TASK.md                    ← ten plik
 2. docs/PROJECT-HANDOFF.md            ← baseline prod
-3. docs/RELEASE-REPORT-20.5B.6A.1.md   ← ★ ostatni release
-4. docs/RELEASE-REPORT-20.5B.5.md     ← Roboty UX Pack
+3. docs/RELEASE-REPORT-20.5B.7.md      ← ★ ostatni release
+4. docs/RELEASE-REPORT-20.5B.6A.1.md  ← Dokumentacja Naming
 5. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md
-6. docs/ARCHITECTURE.md § 12.1.2
+6. docs/ARCHITECTURE.md § 13.1
 7. AGENTS.md
 ```
 
 ---
 
-## Sprint 20.5B.6A.1 — Dokumentacja Robót Naming (**RELEASED**)
+## Sprint 20.5B.7 — Version Awareness (**RELEASED**)
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja** | **2.50.55** |
-| **Commit** | **`782fe87`** |
-| **Deploy** | **`4995467947`** |
-| **CI Mobile** | **`27233391718`** SUCCESS |
-| **Zakres** | Raporty → Dokumentacja; hint obrys/plan; help Rysunek/Plan |
+| **Wersja** | **2.50.56** |
+| **Commit** | **`1be7a80`** |
+| **Deploy** | **`4995835869`** |
+| **CI Mobile** | **`27235143622`** SUCCESS |
+| **Zakres** | version.json, APP_VERSION, banner, manual refresh |
 
 ### Smoke / build (release)
 
 | Test | Wynik |
 |------|-------|
 | `npm run build` | **PASS** |
-| `smoke-test-job-documentation-labels-20.5b6a.mjs` | **19/19 PASS** |
+| `smoke-test-app-version-check-20.5b7.mjs` | **10/10 PASS** |
 | Regresja 20.5A.8 / 20.5A.9 / MID-B | **PASS** |
-| Prod bundle `2.50.55` | **17/17 PASS** |
-| CI Mobile `#27233391718` | **PASS** |
+| Prod bundle `2.50.56` | **14/14 PASS** |
+| CI Mobile `#27235143622` | **PASS** |
 
 ### Następny (tylko na polecenie)
 
+- 20.5B.7C — optional auto refresh (backlog, domyślnie OFF)
 - 20.5B.6A.2 — kolejność tabów / worker sub-nav
-- 20.5A.11 — inspektor read-only załączników
 - 20.3C — legacy CC + GuideView
 
 ---
 
-## Poprzedni release — 20.5B.5 / 2.50.54
+## Poprzedni release — 20.5B.6A.1 / 2.50.55
 
 | Pole | Wartość |
 |------|---------|
-| **Commit** | **`ae35c56`** |
-| **Deploy** | **`4995226877`** |
-| **Handoff** | [`RELEASE-REPORT-20.5B.5.md`](docs/RELEASE-REPORT-20.5B.5.md) |
+| **Commit** | **`782fe87`** |
+| **Deploy** | **`4995467947`** |
+| **Handoff** | [`RELEASE-REPORT-20.5B.6A.1.md`](docs/RELEASE-REPORT-20.5B.6A.1.md) |

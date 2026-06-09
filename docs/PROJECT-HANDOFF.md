@@ -9,28 +9,37 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **2.50.55** |
-| **Commit** | **`782fe87`** — `feat(jobs): Dokumentacja robót naming refresh (20.5B.6A.1)` |
-| **Deploy** | **`4995467947`** — **SUCCESS** |
+| **Wersja UI** | **2.50.56** |
+| **Commit** | **`1be7a80`** — `feat(app): version awareness and update banner (20.5B.7)` |
+| **Deploy** | **`4995835869`** — **SUCCESS** |
 | **Status** | **RELEASED · STABLE** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | **`782fe87`** |
+| **Repo `origin/main`** | **`1be7a80`** |
 
 **Brak aktywnych blockerów.** **Brak aktywnych incydentów.**
 
 ---
 
-## Ostatni release — 20.5B.6A.1 / 2.50.55
+## Ostatni release — 20.5B.7 / 2.50.56
 
-**Dokumentacja Robót Naming Refresh** — ujednolicenie nazewnictwa (Raporty → Dokumentacja)
+**Version Awareness & Update Banner** — wykrywanie nowej wersji po deployu
 
 ### Funkcje
 
-- Tab **Dokumentacja** (admin, inspektor) zamiast Raporty / Zakresy i wymiary
-- **Dokumentacja robót** u pracownika i w panelu admina
-- Hint: obrys/wymiary to materiał pod plan, nie plan PDF
-- Help przy checklistie **Rysunek/Plan** (3 źródła zaliczenia)
-- Pulpit: **Nowa dokumentacja od ekipy**
+- **APP_VERSION** w bundle + **`/version.json`** przy buildzie
+- Polling co **5 min** + **`visibilitychange`** + **`focus`**
+- Globalny banner: **„Dostępna nowa wersja WGDOM”**
+- **Odśwież teraz** — manual `location.reload()` (brak auto-reload)
+- **Później** — dismiss sesji; banner wraca po kolejnym deployu
+- Rozwiązuje problem **starych kart SPA** po wdrożeniu
+
+**Raport:** [`RELEASE-REPORT-20.5B.7.md`](RELEASE-REPORT-20.5B.7.md)
+
+---
+
+## Poprzedni release — 20.5B.6A.1 / 2.50.55
+
+**Dokumentacja Robót Naming Refresh** — Raporty → Dokumentacja
 
 **Raport:** [`RELEASE-REPORT-20.5B.6A.1.md`](RELEASE-REPORT-20.5B.6A.1.md)
 
