@@ -4,7 +4,16 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.45** (`changelog-data.ts`) · Role Visibility 20.5A.7 · lokalnie (bez commit)
+**Aktualna wersja UI:** **2.50.46** (`changelog-data.ts`) · Media Library UX 20.5A.8 · lokalnie (bez commit)
+
+---
+
+## 2.50.46 (2026-06-09) — Media Library UX (20.5A.8)
+
+* **Separacja** — Pliki = tylko zlecenie/kosztorys; Zdjęcia = ekipa + inspektor + rysunki raportów
+* **Core** — `media-separation.ts` → `collectJobImages()` / `collectJobDocuments()`
+* **ZIP** — `Dokumenty ZIP` (jobFiles) · `Zdjęcia ZIP` (wszystkie obrazy)
+* **UI** — liczniki tabów MediaView; smoke 18/18
 
 ---
 

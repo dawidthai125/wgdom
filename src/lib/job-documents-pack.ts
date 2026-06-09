@@ -5,10 +5,8 @@ import {
   DOC_LABELS,
   REQUIRED_DOCS,
   type DocType,
-  type JobFileAttachment,
 } from "@/lib/job-documents";
-import { isMediaAttachmentAvailable } from "@/lib/media-filter";
-import type { InspectorPhotoEntry } from "@/lib/job-wm";
+import { collectJobDocuments, type MediaSeparationSource } from "@/lib/media-separation";
 import {
   HOUSING_TYPE_LABELS,
   STOVE_TYPE_LABELS_FULL,
@@ -17,11 +15,7 @@ import {
   type StoveType,
 } from "@/lib/job-meta";
 
-export type JobPackSource = {
-  id: string;
-  address: string;
-  flatNumber: string;
-  client: string;
+export type JobPackSource = MediaSeparationSource & {
   startDate: string;
   endDate: string;
   status: "in_progress" | "completed";
@@ -30,22 +24,6 @@ export type JobPackSource = {
   housingType?: HousingType | "";
   stoveType?: StoveType | "";
   documents: Record<DocType, boolean>;
-  jobFiles?: JobFileAttachment[];
-  inspectorPhotos?: InspectorPhotoEntry[];
-  photos?: Array<{
-    status: string;
-    publicUrl: string;
-    label: string;
-    caption?: string;
-    filename?: string;
-  }>;
-  workerReports?: Array<{
-    id: string;
-    workerName: string;
-    submittedAt: string;
-    sketch?: { publicUrl: string } | null;
-    sketchNote?: string;
-  }>;
 };
 
 export type PackFileEntry = {
@@ -55,17 +33,6 @@ export type PackFileEntry = {
 
 function safeFilename(name: string): string {
   return name.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").replace(/\s+/g, " ").trim() || "plik";
-}
-
-function extFromUrl(url: string, fallback: string): string {
-  try {
-    const path = new URL(url).pathname;
-    const dot = path.lastIndexOf(".");
-    if (dot >= 0 && path.length - dot <= 6) return path.slice(dot);
-  } catch {
-    /* ignore */
-  }
-  return fallback;
 }
 
 function jobTitle(job: JobPackSource): string {
@@ -114,8 +81,8 @@ function buildReadme(job: JobPackSource): string {
   return lines.join("\n");
 }
 
-/** Lista plików do spakowania (bez pobierania). */
-export function collectJobPackEntries(job: JobPackSource): PackFileEntry[] {
+/** Lista dokumentów do spakowania (zlecenie + kosztorys — bez obrazów). */
+export function collectJobDocumentPackEntries(job: JobPackSource): PackFileEntry[] {
   const entries: PackFileEntry[] = [];
   const usedPaths = new Set<string>();
 
@@ -135,53 +102,26 @@ export function collectJobPackEntries(job: JobPackSource): PackFileEntry[] {
 
   const dateFolder = (iso: string) => (iso || "").slice(0, 10) || "bez-daty";
 
-  for (const f of job.jobFiles || []) {
-    if (!isMediaAttachmentAvailable(f)) continue;
+  for (const f of collectJobDocuments(job)) {
     const folder = f.kind === "zlecenie" ? "zlecenie" : "kosztorys";
     add(`${folder}/${dateFolder(f.uploadedAt)}/${safeFilename(f.filename || `${f.kind}.pdf`)}`, f.publicUrl);
-  }
-
-  let inspIdx = 1;
-  for (const p of job.inspectorPhotos || []) {
-    if (!isMediaAttachmentAvailable(p)) continue;
-    const ext = extFromUrl(p.publicUrl, ".jpg");
-    const labelFolder = p.label === "defect" ? "usterka"
-      : p.label === "in_progress" ? "w-realizacji"
-      : p.label === "after_handover" ? "po-odbiorem"
-      : "przed-odbiorem";
-    const name = p.caption ? safeFilename(p.caption) : `zdjecie-${inspIdx}${ext}`;
-    add(`zdjecia-inspektor/${labelFolder}/${dateFolder(p.uploadedAt)}/${name}`, p.publicUrl);
-    inspIdx++;
-  }
-
-  const labelFolder: Record<string, string> = {
-    before: "przed",
-    after: "po",
-    progress: "w-trakcie",
-  };
-  let photoIdx = 1;
-  for (const p of job.photos || []) {
-    if (p.status !== "approved" || !isMediaAttachmentAvailable(p)) continue;
-    const folder = labelFolder[p.label] || p.label;
-    const ext = extFromUrl(p.publicUrl, ".jpg");
-    const base = p.filename || p.caption || `zdjecie-${photoIdx}${ext}`;
-    add(`zdjecia-ekipa/${folder}/${dateFolder(p.uploadedAt)}/${safeFilename(base)}`, p.publicUrl);
-    photoIdx++;
-  }
-
-  for (const r of job.workerReports || []) {
-    const sketch = r.sketch;
-    if (!sketch?.publicUrl || !isMediaAttachmentAvailable(sketch)) continue;
-    const ext = extFromUrl(r.sketch.publicUrl, ".jpg");
-    const who = safeFilename(r.workerName || "pracownik");
-    add(`raporty-rysunki/${dateFolder(r.submittedAt)}/${who}-${r.id.slice(0, 8)}${ext}`, r.sketch.publicUrl);
   }
 
   return entries;
 }
 
+/** @deprecated Użyj collectJobDocumentPackEntries — tylko dokumenty (20.5A.8). */
+export function collectJobPackEntries(job: JobPackSource): PackFileEntry[] {
+  return collectJobDocumentPackEntries(job);
+}
+
+export function jobPackHasDocuments(job: JobPackSource): boolean {
+  return collectJobDocumentPackEntries(job).length > 0;
+}
+
+/** @deprecated */
 export function jobPackHasFiles(job: JobPackSource): boolean {
-  return collectJobPackEntries(job).length > 0;
+  return jobPackHasDocuments(job);
 }
 
 /** Pobiera pliki, pakuje ZIP i zapisuje na dysk. */
@@ -189,7 +129,7 @@ export async function downloadJobDocumentsPack(
   job: JobPackSource,
   onProgress?: (done: number, total: number) => void,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const fileEntries = collectJobPackEntries(job);
+  const fileEntries = collectJobDocumentPackEntries(job);
   const zip = new JSZip();
   zip.file("README-dokumentacja.txt", buildReadme(job));
 

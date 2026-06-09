@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.46",
+    label: "Media Library UX — separacja zdjęć i plików (20.5A.8)",
+    items: [
+      { type: "fix", text: "Zakładka Pliki — tylko dokumenty (zlecenie, kosztorys); zdjęcia ekipy, inspektora i rysunki raportów tylko w Zdjęciach" },
+      { type: "improve", text: "Zdjęcia i pliki — liczniki w tabach: Zdjęcia (X) · Pliki (Y); osobne ZIP: Zdjęcia ZIP i Dokumenty ZIP" },
+      { type: "improve", text: "Galeria admin — zdjęcia inspektora i rysunki z raportów obok zdjęć ekipy" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.45",
     label: "Widoczność ról użytkowników — hardening (20.5A.7)",
     items: [

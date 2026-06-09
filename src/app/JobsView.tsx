@@ -47,6 +47,7 @@ import {
 } from "@/lib/job-documents";
 import { deleteJobFile, uploadJobFile } from "@/lib/job-file-upload";
 import { collectJobFileCatalog, countJobFiles, type JobFileCatalogItem } from "@/lib/job-files-index";
+import { countJobImages } from "@/lib/media-separation";
 import {
   countJobsByListFilter, inferJobPhase, jobMissingRequiredDocs,
   JOB_PHASE_LABELS, type JobListFilter, type JobPhase,
@@ -857,34 +858,8 @@ export function JobsView({
 
   const handleDeleteCatalogItem = async (item: JobFileCatalogItem) => {
     if (!selectedJob) return;
-    if (item.category === "crew_photo" || item.category === "report_sketch") {
-      window.alert("To zdjęcie usuń w sekcji Zdjęcia lub Raporty pracowników.");
-      return;
-    }
     if (item.previewItem.kind === "jobFile") {
       await handleDeleteJobFile(item.previewItem.file, item.id);
-      return;
-    }
-    if (item.previewItem.kind === "inspectorPhoto") {
-      const photo = item.previewItem.file;
-      if (!window.confirm(`Usunąć zdjęcie inspektora?\n\nPlik zostanie usunięty ze storage.`)) return;
-      setFileDeleteBusy(item.id);
-      try {
-        const path = photo.path;
-        if (path) {
-          const { ok, error } = await deleteJobFile(path);
-          if (!ok) {
-            window.alert(error || "Nie udało się usunąć pliku ze storage");
-            return;
-          }
-        }
-        updateJob(
-          removeInspectorPhoto({ ...selectedJob, updatedAt: new Date().toISOString() }, photo.id),
-          { type: "inspector_photo", text: `Usunięto zdjęcie inspektora: ${photo.caption || "zdjęcie"}` },
-        );
-      } finally {
-        setFileDeleteBusy(null);
-      }
     }
   };
 
@@ -911,6 +886,11 @@ export function JobsView({
 
   const selectedJobCatalog = useMemo(
     () => (selectedJob ? collectJobFileCatalog(selectedJob) : []),
+    [selectedJob],
+  );
+
+  const selectedJobImageCount = useMemo(
+    () => (selectedJob ? countJobImages(selectedJob) : 0),
     [selectedJob],
   );
 
@@ -1446,6 +1426,7 @@ export function JobsView({
                 active={detailSection}
                 onSelect={setDetailSection}
                 fileCount={selectedJobCatalog.length}
+                imageCount={selectedJobImageCount}
                 missingDocCount={selectedMissingDocCount}
                 pendingPhotoCount={selectedPendingPhotoCount}
                 reportCount={selectedReportCount}
@@ -1704,7 +1685,7 @@ export function JobsView({
                     }}
                     className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-emerald-600/90 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                   >
-                    <Package size={12}/>{packBusy ? "Pakowanie…" : "Pakiet ZIP"}
+                    <Package size={12}/>{packBusy ? "Pakowanie…" : "Dokumenty ZIP"}
                   </button>
                   <button onClick={()=>exportJobPDF(selectedJob)} className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-destructive/80 hover:bg-destructive text-white rounded-lg font-medium transition-colors">
                     <FileDown size={12}/>PDF
@@ -2051,7 +2032,7 @@ export function JobsView({
                   }}
                   className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-lg bg-emerald-600/90 text-white font-medium disabled:opacity-50"
                 >
-                  <Package size={12}/>{packBusy ? "Pakowanie…" : "Pakiet ZIP"}
+                  <Package size={12}/>{packBusy ? "Pakowanie…" : "Dokumenty ZIP"}
                 </button>
               </div>
               <div className="px-5 py-3 border-b border-border bg-secondary/20">

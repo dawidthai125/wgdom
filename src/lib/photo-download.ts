@@ -10,6 +10,10 @@ import type { InspectorPhotoEntry } from "@/lib/job-wm";
 import type { PhotoZipEntry } from "@/lib/photo-zip";
 import { downloadPhotosAsZip } from "@/lib/photo-zip";
 import { isMediaAttachmentAvailable, filterAvailablePhotos } from "@/lib/media-filter";
+import {
+  collectJobImages,
+  type MediaSeparationSource,
+} from "@/lib/media-separation";
 
 export function safeDownloadName(name: string): string {
   return name.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").replace(/\s+/g, " ").trim() || "plik";
@@ -149,6 +153,67 @@ export function buildJobGalleryZipEntries(
     });
   }
   return entries;
+}
+
+function safeFilename(name: string): string {
+  return name.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").replace(/\s+/g, " ").trim() || "plik";
+}
+
+/** Ścieżki ZIP wszystkich obrazów roboty — ekipa, inspektor, rysunki raportów. */
+export function collectJobPhotoPackEntries(job: MediaSeparationSource): PhotoZipEntry[] {
+  const entries: PhotoZipEntry[] = [];
+  const images = collectJobImages(job);
+  const title = job.address || "robota";
+
+  const crewLabelFolder: Record<string, string> = {
+    before: "ekipa/przed",
+    after: "ekipa/po",
+    progress: "ekipa/w-trakcie",
+  };
+
+  let crewIdx = 0;
+  let inspIdx = 0;
+  let sketchIdx = 0;
+
+  for (const img of images) {
+    if (!isMediaAttachmentAvailable(img)) continue;
+    const ext = extFromPhotoUrl(img.publicUrl);
+    const date = (img.uploadedAt || "").slice(0, 10) || "bez-daty";
+
+    if (img.kind === "crew_photo") {
+      const folder = crewLabelFolder[img.label || ""] || "ekipa/inne";
+      const name = safeFilename(img.filename || `zdjecie-${++crewIdx}${ext}`);
+      entries.push({ zipPath: `${folder}/${date}/${name}`, url: img.publicUrl });
+    } else if (img.kind === "inspector_photo") {
+      const folder = img.subtitle
+        ? `inspektor/${safeFilename(img.subtitle).slice(0, 30)}`
+        : "inspektor";
+      const name = safeFilename(img.filename || `zdjecie-${++inspIdx}${ext}`);
+      entries.push({ zipPath: `${folder}/${date}/${name}`, url: img.publicUrl });
+    } else {
+      const who = safeFilename(img.uploadedBy || "raport");
+      const name = safeFilename(img.filename || `rysunek-${++sketchIdx}${ext}`);
+      entries.push({ zipPath: `raporty-rysunki/${date}/${who}-${name}`, url: img.publicUrl });
+    }
+  }
+
+  void title;
+  return entries;
+}
+
+/** Pobiera ZIP wszystkich obrazów roboty (ekipa + inspektor + rysunki). */
+export async function downloadJobAllImagesZip(
+  jobTitle: string,
+  job: MediaSeparationSource,
+): Promise<{ ok: boolean; count: number; error?: string }> {
+  const entries = collectJobPhotoPackEntries(job);
+  if (entries.length === 0) {
+    return { ok: false, count: 0, error: "Brak zdjęć do pobrania" };
+  }
+  const slug = jobSlug(jobTitle);
+  const res = await downloadPhotosAsZip(`${slug}-zdjecia`, entries);
+  if (!res.ok) return { ok: false, count: res.count, error: res.error };
+  return { ok: true, count: res.count };
 }
 
 export async function downloadJobGalleryZip(

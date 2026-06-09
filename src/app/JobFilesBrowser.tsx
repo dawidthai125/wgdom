@@ -1,6 +1,6 @@
 import { useMemo, useState, type RefObject } from "react";
 import {
-  FolderOpen, Search, ChevronRight, ChevronDown, Download, Package, Eye, FileText, Camera,
+  FolderOpen, Search, ChevronRight, ChevronDown, Download, Package, Eye, FileText,
 } from "lucide-react";
 import {
   collectJobBrowserFileGroups,
@@ -55,9 +55,6 @@ function toPreviewItem(file: JobBrowserFile): InspectorFileItem | null {
 const CHIP_STYLE: Record<JobFileSummaryChip["key"], string> = {
   zlecenie: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
   kosztorys: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
-  crewPhotos: "bg-primary/10 text-primary",
-  inspectorPhotos: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  reportSketches: "bg-violet-500/10 text-violet-700 dark:text-violet-400",
 };
 
 function JobFileSummaryBadges({ job }: { job: JobFilesBrowserSource }) {
@@ -159,7 +156,7 @@ export function JobFilesBrowser({
                 Pliki robot
               </h1>
               <p className={`${descCls} text-muted-foreground mt-1 leading-relaxed`}>
-                Zlecenia, kosztorysy, zdjęcia ekipy i inspektora, rysunki z raportów — pobierz pojedynczo lub pakiet ZIP (foldery wg typu i daty).
+                Zlecenia i kosztorysy — pobierz pojedynczo lub pakiet Dokumenty ZIP (bez zdjęć).
               </p>
             </div>
           )}
@@ -170,7 +167,7 @@ export function JobFilesBrowser({
               <p className="text-lg font-bold text-primary mt-0.5">{jobsWithFiles.length}</p>
             </div>
             <div className="bg-card rounded-xl border border-border px-4 py-3">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Łącznie plików</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Łącznie dokumentów</p>
               <p className="text-lg font-bold mt-0.5">{totalFiles}</p>
             </div>
           </div>
@@ -223,7 +220,7 @@ export function JobFilesBrowser({
                             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-medium min-h-[44px] disabled:opacity-50"
                           >
                             <Package size={13}/>
-                            {packBusy === job.id ? "Pakowanie…" : "Pobierz pakiet ZIP"}
+                            {packBusy === job.id ? "Pakowanie…" : "Dokumenty ZIP"}
                           </button>
                           <button
                             type="button"
@@ -237,7 +234,7 @@ export function JobFilesBrowser({
                         {groups.map((group) => (
                           <div key={group.category}>
                             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                              {group.category.startsWith("Zdjęcia") ? <Camera size={11}/> : <FileText size={11}/>}
+                              <FileText size={11}/>
                               {group.category}
                             </p>
                             <div className="space-y-1.5">

@@ -1,25 +1,15 @@
-/** Indeks plików przypisanych do robot — wspólny katalog dla listy i widoku „Wszystkie pliki”. */
+/** Indeks dokumentów przypisanych do robot — wspólny katalog dla listy i widoku „Wszystkie pliki”. */
 
 import type { JobFileAttachment } from "@/lib/job-documents";
-import type { InspectorPhotoEntry } from "@/lib/job-wm";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
-import { isMediaAttachmentAvailable } from "@/lib/media-filter";
-import { INSPECTOR_PHOTO_LABEL_NAMES, PHOTO_LABEL_NAMES } from "@/lib/photo-labels";
+import { collectJobDocuments, countJobDocuments, type MediaSeparationSource } from "@/lib/media-separation";
 
-export type JobFileCategory =
-  | "zlecenie"
-  | "kosztorys"
-  | "inspector_photo"
-  | "crew_photo"
-  | "report_sketch";
+export type JobFileCategory = "zlecenie" | "kosztorys";
 
 export const JOB_FILE_CATEGORY_LABELS: Record<JobFileCategory, string> = {
   zlecenie: "Zlecenie",
   kosztorys: "Kosztorys",
-  inspector_photo: "Zdjęcie inspektora",
-  crew_photo: "Zdjęcie ekipy",
-  report_sketch: "Rysunek z raportu",
 };
 
 export type JobFileCatalogItem = {
@@ -39,31 +29,7 @@ export type JobFileCatalogItem = {
   previewItem: InspectorFileItem;
 };
 
-export type JobFilesSource = {
-  id: string;
-  address: string;
-  flatNumber: string;
-  client: string;
-  jobFiles?: JobFileAttachment[];
-  inspectorPhotos?: InspectorPhotoEntry[];
-  photos?: Array<{
-    id: string;
-    status: string;
-    publicUrl: string;
-    label: string;
-    caption?: string;
-    filename?: string;
-    uploadedBy?: string;
-    uploadedAt?: string;
-  }>;
-  workerReports?: Array<{
-    id: string;
-    workerName: string;
-    submittedAt: string;
-    sketch?: { publicUrl: string; path?: string } | null;
-    sketchNote?: string;
-  }>;
-};
+export type JobFilesSource = MediaSeparationSource;
 
 function jobTitle(job: Pick<JobFilesSource, "address" | "flatNumber">): string {
   return `${job.address || "Bez adresu"}${job.flatNumber ? ` m.${job.flatNumber}` : ""}`;
@@ -72,13 +38,10 @@ function jobTitle(job: Pick<JobFilesSource, "address" | "flatNumber">): string {
 export function canPreviewCatalogItem(item: JobFileCatalogItem): boolean {
   if (isPdfFilename(item.filename)) return true;
   if (isKosztorysPreviewExt(item.filename)) return true;
-  if (item.category === "inspector_photo" || item.category === "crew_photo" || item.category === "report_sketch") {
-    return true;
-  }
   return false;
 }
 
-/** Zbiera wszystkie pliki z jednej roboty. */
+/** Zbiera dokumenty z jednej roboty (zlecenie + kosztorys — bez obrazów). */
 export function collectJobFileCatalog(job: JobFilesSource): JobFileCatalogItem[] {
   const items: JobFileCatalogItem[] = [];
   const base = {
@@ -88,9 +51,8 @@ export function collectJobFileCatalog(job: JobFilesSource): JobFileCatalogItem[]
     jobClient: job.client || "—",
   };
 
-  for (const f of job.jobFiles || []) {
-    if (!isMediaAttachmentAvailable(f)) continue;
-    const category = f.kind as "zlecenie" | "kosztorys";
+  for (const f of collectJobDocuments(job)) {
+    const category = f.kind as JobFileCategory;
     items.push({
       ...base,
       id: `jf:${f.id}`,
@@ -105,71 +67,10 @@ export function collectJobFileCatalog(job: JobFilesSource): JobFileCatalogItem[]
     });
   }
 
-  for (const p of job.inspectorPhotos || []) {
-    if (!isMediaAttachmentAvailable(p)) continue;
-    const label = p.label ? INSPECTOR_PHOTO_LABEL_NAMES[p.label] : undefined;
-    items.push({
-      ...base,
-      id: `ip:${p.id}`,
-      category: "inspector_photo",
-      categoryLabel: JOB_FILE_CATEGORY_LABELS.inspector_photo,
-      filename: p.caption || `zdjecie-inspektora-${p.id.slice(0, 6)}.jpg`,
-      publicUrl: p.publicUrl,
-      storagePath: p.path,
-      uploadedBy: p.uploadedBy || "Inspektor",
-      uploadedAt: p.uploadedAt,
-      subtitle: label,
-      previewItem: { kind: "inspectorPhoto", file: p },
-    });
-  }
-
-  for (const p of job.photos || []) {
-    if (p.status !== "approved" || !isMediaAttachmentAvailable(p)) continue;
-    const label = PHOTO_LABEL_NAMES[p.label as keyof typeof PHOTO_LABEL_NAMES] || p.label;
-    items.push({
-      ...base,
-      id: `cp:${p.id}`,
-      category: "crew_photo",
-      categoryLabel: JOB_FILE_CATEGORY_LABELS.crew_photo,
-      filename: p.filename || p.caption || `zdjecie-${p.id.slice(0, 6)}.jpg`,
-      publicUrl: p.publicUrl,
-      uploadedBy: p.uploadedBy || "Ekipa",
-      uploadedAt: p.uploadedAt || "",
-      subtitle: label,
-      previewItem: {
-        kind: "imageUrl",
-        url: p.publicUrl,
-        filename: p.filename || p.caption || "zdjecie.jpg",
-      },
-    });
-  }
-
-  for (const r of job.workerReports || []) {
-    const sketch = r.sketch;
-    if (!sketch?.publicUrl || !isMediaAttachmentAvailable(sketch)) continue;
-    items.push({
-      ...base,
-      id: `sk:${r.id}`,
-      category: "report_sketch",
-      categoryLabel: JOB_FILE_CATEGORY_LABELS.report_sketch,
-      filename: `rysunek-${r.workerName || "raport"}.jpg`,
-      publicUrl: r.sketch.publicUrl,
-      storagePath: r.sketch.path,
-      uploadedBy: r.workerName || "Pracownik",
-      uploadedAt: r.submittedAt,
-      subtitle: r.sketchNote || undefined,
-      previewItem: {
-        kind: "imageUrl",
-        url: r.sketch.publicUrl,
-        filename: `rysunek-${r.workerName || "raport"}.jpg`,
-      },
-    });
-  }
-
   return items.sort((a, b) => (b.uploadedAt || "").localeCompare(a.uploadedAt || ""));
 }
 
-/** Wszystkie pliki ze wszystkich robót. */
+/** Wszystkie dokumenty ze wszystkich robót. */
 export function collectAllJobFiles(jobs: JobFilesSource[]): JobFileCatalogItem[] {
   const all: JobFileCatalogItem[] = [];
   for (const job of jobs) {
@@ -178,8 +79,9 @@ export function collectAllJobFiles(jobs: JobFilesSource[]): JobFileCatalogItem[]
   return all.sort((a, b) => (b.uploadedAt || "").localeCompare(a.uploadedAt || ""));
 }
 
+/** Liczba dokumentów (zlecenie + kosztorys) — bez obrazów. */
 export function countJobFiles(job: JobFilesSource): number {
-  return collectJobFileCatalog(job).length;
+  return countJobDocuments(job);
 }
 
 export type JobFileGroup = {
@@ -191,7 +93,7 @@ export type JobFileGroup = {
   latestAt: string;
 };
 
-/** Pliki pogrupowane po robocie (tylko roboty z plikami). */
+/** Dokumenty pogrupowane po robocie (tylko roboty z dokumentami). */
 export function groupFilesByJob(jobs: JobFilesSource[]): JobFileGroup[] {
   const groups: JobFileGroup[] = [];
   for (const job of jobs) {

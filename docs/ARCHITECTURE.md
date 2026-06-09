@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.45** · Role Visibility 20.5A.7 · lokalnie)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.45 — Role Visibility 20.5A.7 IMPLEMENT lokalny)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.46** · Media Library UX 20.5A.8 · lokalnie)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.46 — Media Library UX 20.5A.8 IMPLEMENT lokalny)
 
 ---
 
@@ -829,14 +829,18 @@ Priorytet w `resolveJobDraftDatesFromTender`:
 
 - **Nie zmieniać** bez polecenia: `BOOTSTRAP_CORE_KEYS` / `BOOTSTRAP_DEFERRED_KEYS`, `CommandCenterProvider`, `linkedJobId`, `TenderJobLinkButtons` (tylko reuse). Zmiany w `useTendersPipeline` / CloudLoader — tylko z audytem (patrz [`SESSION-HANDOFF-PERFORMANCE-2026-06.md`](SESSION-HANDOFF-PERFORMANCE-2026-06.md)).
 
-### 12.1.2 Galeria zdjęć admin (v2.45.10)
+### 12.1.2 Galeria zdjęć admin (v2.45.10 → 20.5A.8)
 
-**Widok:** `JobPhotosGalleryView` w `App.tsx` (zakładka `photos`).
+**Widok:** `JobPhotosGalleryView` w `MediaView` (tab Zdjęcia) + sekcja Zdjęcia w `JobsView`.
+
+**Separacja mediów (20.5A.8):** tab **Zdjęcia** = ekipa (approved) + inspektor + rysunki raportów (`media-separation.ts`). Tab **Pliki** = tylko `jobFiles[]` (zlecenie/kosztorys). ZIP: **Zdjęcia ZIP** vs **Dokumenty ZIP**.
 
 | Plik | Rola |
 |------|------|
+| `src/lib/media-separation.ts` | Single source: obrazy vs dokumenty, county |
 | `src/lib/photo-labels.ts` | Etykiety kategorii ekipy: `before` / `progress` / `after` + foldery ZIP |
-| `src/lib/photo-download.ts` | Nazwy plików (ulica-data), `buildJobGalleryZipEntries`, `downloadJobGalleryZip` |
+| `src/lib/photo-download.ts` | `collectJobPhotoPackEntries`, `downloadJobAllImagesZip`, galeria ekipy |
+| `src/lib/job-documents-pack.ts` | `collectJobDocumentPackEntries` — ZIP tylko dokumentów |
 | `src/lib/photo-zip.ts` | Pakowanie wielu URL → ZIP (JSZip) |
 
 **Pobieranie (po rozwinięciu roboty w galerii):**
@@ -944,7 +948,7 @@ WGDOM1/
 | `jobs` | Roboty | `JobsView.tsx` | MID-B, billing panel 20.5A |
 | `inspector` | Inspektor | `InspectorAdminView.tsx` | Feed zmian terenowych |
 | `recoverablecharges` | Do rozliczenia | `RecoverableChargesView.tsx` | Settlement 20.3A–20.4C |
-| `media` | Zdjęcia i pliki | `MediaView.tsx` | Galeria + ZIP |
+| `media` | Zdjęcia i pliki | `MediaView.tsx` | Galeria obrazów + dokumenty · liczniki · ZIP |
 | `guide` | Zmiany/Instrukcja | `GuideView.tsx` | Changelog + help |
 | `tenders` | Przetargi | `TenderCenterProView.tsx` | CC pełny + widok BZP |
 
@@ -965,7 +969,8 @@ WGDOM1/
 | `job-activity.ts` | Feed inspektora, typy zdarzeń |
 | `job-list-status.ts` | Fazy robót, filtry, badge |
 | `job-file-upload.ts` / `job-photo-upload.ts` | Upload → storage API |
-| `job-files-browser.ts` | Katalog plików, ZIP |
+| `job-files-browser.ts` | Katalog dokumentów, ZIP dokumentów |
+| `media-separation.ts` | **20.5A.8** — `collectJobImages()` / `collectJobDocuments()`, county |
 | `photo-queue.ts` | Kolejka offline zdjęć (worker + inspector) |
 | `payroll-export.ts` / `payroll-cycle.ts` | PDF/Word listy płac, cykle tygodni |
 | `inspector-stats.ts` | Statystyki logowań inspektorów |

@@ -4,17 +4,17 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { CrewPhotoLabel } from "@/lib/photo-labels";
-import { downloadJobGalleryZip } from "@/lib/photo-download";
+import { downloadJobAllImagesZip, downloadJobGalleryZip } from "@/lib/photo-download";
+import { collectJobImages, type JobImageItem } from "@/lib/media-separation";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
 import { useMediaFailureRevision } from "@/app/useMediaFailureRevision";
-import type { Job, PhotoEntry, JobGalleryBucket } from "@/app/app-domain";
+import type { Job, JobGalleryBucket } from "@/app/app-domain";
 import {
   GALLERY_ARCHIVE_DAYS,
   PHOTO_LABEL_NAMES,
   PHOTO_LABEL_ORDER,
   getAppPhotoLabelSection,
   fmtDate,
-  jobApprovedPhotos,
   jobDisplayTitle,
   jobGalleryBucket,
   jobHandoverIso,
@@ -24,7 +24,14 @@ import {
 interface JobPhotoGalleryEntry {
   job: Job;
   bucket: JobGalleryBucket;
-  photos: PhotoEntry[];
+  images: JobImageItem[];
+}
+
+function resolveGalleryBucket(job: Job): JobGalleryBucket | null {
+  const bucket = jobGalleryBucket(job);
+  if (bucket) return bucket;
+  if (collectJobImages(job).length > 0) return "active";
+  return null;
 }
 
 export function JobPhotosGalleryView({
@@ -40,17 +47,18 @@ export function JobPhotosGalleryView({
   const [tab, setTab] = useState<"gallery" | "archive">("gallery");
   const [search, setSearch] = useState("");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [lightbox, setLightbox] = useState<{ photo: PhotoEntry; job: Job } | null>(null);
+  const [lightbox, setLightbox] = useState<{ image: JobImageItem; job: Job } | null>(null);
   const [zipBusy, setZipBusy] = useState<string | null>(null);
   const failRev = useMediaFailureRevision();
 
   const entries = useMemo(() => {
     const list: JobPhotoGalleryEntry[] = [];
     for (const job of jobs) {
-      const bucket = jobGalleryBucket(job);
-      const photos = jobApprovedPhotos(job);
-      if (!bucket || photos.length === 0) continue;
-      list.push({ job, bucket, photos });
+      const images = collectJobImages(job);
+      if (images.length === 0) continue;
+      const bucket = resolveGalleryBucket(job);
+      if (!bucket) continue;
+      list.push({ job, bucket, images });
     }
     return list;
   }, [jobs, failRev]);
@@ -78,8 +86,8 @@ export function JobPhotosGalleryView({
 
   const visible = tab === "gallery" ? galleryJobs : archiveJobs;
 
-  const totalApproved = entries.reduce((s, e) => s + e.photos.length, 0);
-  const galleryPhotoCount = galleryJobs.reduce((s, e) => s + e.photos.length, 0);
+  const totalImages = entries.reduce((s, e) => s + e.images.length, 0);
+  const galleryImageCount = galleryJobs.reduce((s, e) => s + e.images.length, 0);
 
   const toggleExpanded = (id: string) => {
     setExpandedIds((prev) => {
@@ -90,32 +98,45 @@ export function JobPhotosGalleryView({
     });
   };
 
-  const runGalleryZip = async (job: Job, photos: PhotoEntry[], filter?: CrewPhotoLabel) => {
-    const key = filter ? `${job.id}-${filter}` : `${job.id}-all`;
+  const runAllImagesZip = async (job: Job) => {
+    setZipBusy(`${job.id}-all`);
+    try {
+      const title = jobDisplayTitle(job);
+      const res = await downloadJobAllImagesZip(title, job);
+      if (res.ok) toast.success(`Pobrano Zdjęcia ZIP: ${res.count} plików`);
+      else toast.error(res.error || "Nie udało się spakować zdjęć");
+    } finally {
+      setZipBusy(null);
+    }
+  };
+
+  const runCrewGalleryZip = async (job: Job, filter?: CrewPhotoLabel) => {
+    const crewPhotos = (job.photos || []).filter((p) => p.status === "approved");
+    const key = filter ? `${job.id}-${filter}` : `${job.id}-crew`;
     setZipBusy(key);
     try {
       const title = jobDisplayTitle(job);
-      const res = await downloadJobGalleryZip(title, photos, filter);
-      if (res.ok) toast.success(`Pobrano ZIP: ${res.count} zdjęć`);
+      const res = await downloadJobGalleryZip(title, crewPhotos, filter);
+      if (res.ok) toast.success(`Pobrano ZIP: ${res.count} zdjęć ekipy`);
       else toast.error(res.error || "Nie udało się spakować galerii");
     } finally {
       setZipBusy(null);
     }
   };
 
-  const PhotoThumbGrid = ({ photos, job }: { photos: PhotoEntry[]; job: Job }) => (
+  const ImageThumbGrid = ({ images, job }: { images: JobImageItem[]; job: Job }) => (
     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-      {photos.map((p) => (
+      {images.map((img) => (
         <button
-          key={p.id}
+          key={img.id}
           type="button"
-          onClick={() => setLightbox({ photo: p, job })}
+          onClick={() => setLightbox({ image: img, job })}
           className="group relative aspect-square rounded-xl overflow-hidden bg-secondary ring-1 ring-border/60 hover:ring-primary/40 transition-all"
         >
-          <JobPhotoImg src={p.publicUrl} alt="" className="w-full h-full object-cover"/>
+          <JobPhotoImg src={img.publicUrl} alt="" className="w-full h-full object-cover"/>
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"/>
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/75 to-transparent px-1.5 py-1 pointer-events-none">
-            <p className="text-[8px] text-white font-medium truncate">{PHOTO_LABEL_NAMES[p.label]}</p>
+            <p className="text-[8px] text-white font-medium truncate">{img.subtitle || img.filename}</p>
           </div>
         </button>
       ))}
@@ -123,10 +144,13 @@ export function JobPhotosGalleryView({
   );
 
   const JobPhotoCard = ({ entry }: { entry: JobPhotoGalleryEntry }) => {
-    const { job, bucket, photos } = entry;
+    const { job, bucket, images } = entry;
     const expanded = expandedIds.has(job.id);
     const daysLeft = bucket === "grace" ? galleryDaysUntilArchive(job) : null;
     const handoverIso = jobHandoverIso(job);
+    const crewImages = images.filter((i) => i.kind === "crew_photo");
+    const inspectorImages = images.filter((i) => i.kind === "inspector_photo");
+    const sketchImages = images.filter((i) => i.kind === "report_sketch");
 
     return (
       <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -137,8 +161,8 @@ export function JobPhotosGalleryView({
         >
           <div className="flex items-start gap-3">
             <div className="w-14 h-14 rounded-xl overflow-hidden bg-secondary shrink-0 ring-1 ring-border">
-              {photos[0]?.publicUrl ? (
-                <JobPhotoImg src={photos[0].publicUrl} alt="" className="w-full h-full object-cover"/>
+              {images[0]?.publicUrl ? (
+                <JobPhotoImg src={images[0].publicUrl} alt="" className="w-full h-full object-cover"/>
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-muted-foreground"><Camera size={20}/></div>
               )}
@@ -153,13 +177,19 @@ export function JobPhotosGalleryView({
               </div>
               <div className="flex flex-wrap items-center gap-1.5 mt-2">
                 <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                  {photos.length} zdj.
+                  {images.length} zdj.
                 </span>
+                {crewImages.length > 0 && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">Ekipa {crewImages.length}</span>
+                )}
+                {inspectorImages.length > 0 && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300">Inspektor {inspectorImages.length}</span>
+                )}
+                {sketchImages.length > 0 && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-300">Rysunki {sketchImages.length}</span>
+                )}
                 {bucket === "active" && job.status === "in_progress" && (
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">W trakcie</span>
-                )}
-                {bucket === "active" && job.status === "completed" && !job.keysHandedOver && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">Zdane</span>
                 )}
                 {bucket === "grace" && daysLeft !== null && (
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300">
@@ -174,16 +204,16 @@ export function JobPhotosGalleryView({
               </div>
             </div>
           </div>
-          {!expanded && photos.length > 1 && (
+          {!expanded && images.length > 1 && (
             <div className="flex gap-1 mt-3 overflow-hidden">
-              {photos.slice(0, 5).map((p) => (
-                <div key={p.id} className="w-10 h-10 rounded-lg overflow-hidden bg-secondary shrink-0 ring-1 ring-border/50">
-                  <JobPhotoImg src={p.publicUrl} alt="" className="w-full h-full object-cover"/>
+              {images.slice(0, 5).map((img) => (
+                <div key={img.id} className="w-10 h-10 rounded-lg overflow-hidden bg-secondary shrink-0 ring-1 ring-border/50">
+                  <JobPhotoImg src={img.publicUrl} alt="" className="w-full h-full object-cover"/>
                 </div>
               ))}
-              {photos.length > 5 && (
+              {images.length > 5 && (
                 <div className="w-10 h-10 rounded-lg bg-secondary shrink-0 flex items-center justify-center text-[10px] text-muted-foreground font-medium">
-                  +{photos.length - 5}
+                  +{images.length - 5}
                 </div>
               )}
             </div>
@@ -196,18 +226,15 @@ export function JobPhotosGalleryView({
               <button
                 type="button"
                 disabled={zipBusy === `${job.id}-all`}
-                onClick={(e) => { e.stopPropagation(); void runGalleryZip(job, photos); }}
+                onClick={(e) => { e.stopPropagation(); void runAllImagesZip(job); }}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/10 text-primary text-[10px] font-medium hover:bg-primary/20 disabled:opacity-50"
               >
                 <Download size={12}/>
-                {zipBusy === `${job.id}-all` ? "Pakowanie…" : `Pobierz galerię ZIP (${photos.length})`}
+                {zipBusy === `${job.id}-all` ? "Pakowanie…" : `Zdjęcia ZIP (${images.length})`}
               </button>
-              <span className="text-[10px] text-muted-foreground">
-                Foldery: przed · w-realizacji · po-odbior · nazwy: ulica, data
-              </span>
             </div>
             {PHOTO_LABEL_ORDER.map((label) => {
-              const group = photos.filter((p) => p.label === label);
+              const group = crewImages.filter((i) => i.label === label);
               if (group.length === 0) return null;
               const meta = getAppPhotoLabelSection()[label];
               const Icon = meta.icon;
@@ -218,24 +245,40 @@ export function JobPhotosGalleryView({
                     <div className="flex items-center gap-2 min-w-0">
                       <Icon size={13} className={meta.accent}/>
                       <span className={`text-xs font-semibold uppercase tracking-wider ${meta.accent}`}>
-                        {PHOTO_LABEL_NAMES[label]}
+                        Ekipa — {PHOTO_LABEL_NAMES[label]}
                       </span>
                       <span className="text-[10px] text-muted-foreground">({group.length})</span>
                     </div>
                     <button
                       type="button"
                       disabled={zipBusy === busyKey}
-                      onClick={(e) => { e.stopPropagation(); void runGalleryZip(job, photos, label); }}
+                      onClick={(e) => { e.stopPropagation(); void runCrewGalleryZip(job, label); }}
                       className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline disabled:opacity-50 shrink-0"
                     >
                       <Download size={11}/>
-                      {zipBusy === busyKey ? "…" : "ZIP kategorii"}
+                      {zipBusy === busyKey ? "…" : "ZIP ekipy"}
                     </button>
                   </div>
-                  <PhotoThumbGrid photos={group} job={job}/>
+                  <ImageThumbGrid images={group} job={job}/>
                 </div>
               );
             })}
+            {inspectorImages.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-2">
+                  Inspektor ({inspectorImages.length})
+                </p>
+                <ImageThumbGrid images={inspectorImages} job={job}/>
+              </div>
+            )}
+            {sketchImages.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400 mb-2">
+                  Rysunki z raportów ({sketchImages.length})
+                </p>
+                <ImageThumbGrid images={sketchImages} job={job}/>
+              </div>
+            )}
             <button
               type="button"
               onClick={() => onOpenJob(job.id)}
@@ -259,7 +302,7 @@ export function JobPhotosGalleryView({
               Zdjęcia z robot
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Tylko zaakceptowane zdjęcia. Po zdaniu mieszkania i kluczy roboty zostają tutaj {GALLERY_ARCHIVE_DAYS} dni, potem trafiają do archiwum.
+              Zdjęcia ekipy (zaakceptowane), inspektora i rysunki z raportów. Archiwum ekipy po {GALLERY_ARCHIVE_DAYS} dniach od zdania kluczy.
             </p>
           </div>
         )}
@@ -267,15 +310,15 @@ export function JobPhotosGalleryView({
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div className="bg-card rounded-xl border border-border px-4 py-3">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">W galerii</p>
-            <p className="text-lg font-bold text-primary mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{galleryPhotoCount}</p>
+            <p className="text-lg font-bold text-primary mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{galleryImageCount}</p>
           </div>
           <div className="bg-card rounded-xl border border-border px-4 py-3">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Roboty</p>
             <p className="text-lg font-bold mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{galleryJobs.length}</p>
           </div>
           <div className="bg-card rounded-xl border border-border px-4 py-3 col-span-2 sm:col-span-1">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Łącznie zaakcept.</p>
-            <p className="text-lg font-bold mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{totalApproved}</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Łącznie obrazów</p>
+            <p className="text-lg font-bold mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{totalImages}</p>
           </div>
         </div>
 
@@ -312,7 +355,7 @@ export function JobPhotosGalleryView({
             <Images size={40} className="mx-auto opacity-20 mb-3"/>
             <p className="text-sm">
               {tab === "gallery"
-                ? "Brak zaakceptowanych zdjęć w galerii. Akceptuj zdjęcia w zakładce Roboty."
+                ? "Brak zdjęć w galerii. Dodaj zdjęcia w Robotach lub zaakceptuj zdjęcia ekipy."
                 : "Archiwum zdjęć jest puste — tu trafiają roboty zdane dłużej niż 30 dni temu."}
             </p>
           </div>
@@ -331,17 +374,17 @@ export function JobPhotosGalleryView({
             <X size={24}/>
           </button>
           <JobPhotoImg
-            src={lightbox.photo.publicUrl}
+            src={lightbox.image.publicUrl}
             alt=""
             className="max-w-full max-h-[85vh] rounded-xl object-contain"
             onClick={(e) => e.stopPropagation()}
           />
           <div className="absolute bottom-6 left-4 right-4 text-center pointer-events-none">
             <p className="text-white font-medium text-sm">{jobDisplayTitle(lightbox.job)}</p>
-            <p className="text-white/90 text-xs mt-0.5">{PHOTO_LABEL_NAMES[lightbox.photo.label]}</p>
-            {lightbox.photo.caption && <p className="text-white/75 text-xs mt-1 italic">{lightbox.photo.caption}</p>}
+            <p className="text-white/90 text-xs mt-0.5">{lightbox.image.subtitle || lightbox.image.filename}</p>
+            {lightbox.image.caption && <p className="text-white/75 text-xs mt-1 italic">{lightbox.image.caption}</p>}
             <p className="text-white/50 text-[11px] mt-1">
-              {lightbox.photo.uploadedBy} · {new Date(lightbox.photo.uploadedAt).toLocaleDateString("pl-PL")}
+              {lightbox.image.uploadedBy} · {new Date(lightbox.image.uploadedAt).toLocaleDateString("pl-PL")}
             </p>
           </div>
         </div>

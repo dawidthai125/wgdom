@@ -1,35 +1,15 @@
 import type { JobFileAttachment } from "@/lib/job-documents";
-import type { InspectorPhotoEntry } from "@/lib/job-wm";
-import { PHOTO_LABEL_NAMES, INSPECTOR_PHOTO_LABEL_NAMES, normalizeInspectorPhotoLabel } from "@/lib/photo-labels";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import { jobDisplayTitle } from "@/lib/job-gallery";
+import {
+  collectJobDocuments,
+  countJobDocuments,
+  countAllJobsMediaItems,
+  type MediaSeparationSource,
+} from "@/lib/media-separation";
 
-export type JobFilesBrowserSource = {
-  id: string;
-  address: string;
-  flatNumber: string;
-  client: string;
-  jobFiles?: JobFileAttachment[];
-  inspectorPhotos?: InspectorPhotoEntry[];
-  photos?: Array<{
-    id: string;
-    publicUrl: string;
-    label: "before" | "after" | "progress";
-    uploadedBy: string;
-    uploadedAt: string;
-    status: string;
-    caption?: string;
-    filename?: string;
-  }>;
-  workerReports?: Array<{
-    id: string;
-    workerName: string;
-    submittedAt: string;
-    sketch?: { publicUrl: string } | null;
-    sketchNote?: string;
-  }>;
-};
+export type JobFilesBrowserSource = MediaSeparationSource;
 
 export type JobBrowserFile = {
   id: string;
@@ -58,21 +38,11 @@ function dateIsoFromUploadedAt(iso: string): string {
   return iso.slice(0, 10) || "0000-00-00";
 }
 
-function previewOk(filename: string, isImage: boolean): boolean {
-  if (isImage) return true;
+function previewOk(filename: string): boolean {
   return isPdfFilename(filename) || isKosztorysPreviewExt(filename);
 }
 
-function extFromUrl(url: string, fallback: string): string {
-  try {
-    const path = new URL(url).pathname;
-    const dot = path.lastIndexOf(".");
-    if (dot >= 0 && path.length - dot <= 6) return path.slice(dot);
-  } catch { /* ignore */ }
-  return fallback;
-}
-
-/** Wszystkie pliki roboty pogrupowane wg kategorii (do widoku inspektora). */
+/** Dokumenty roboty pogrupowane wg kategorii (zlecenie / kosztorys). */
 export function collectJobBrowserFileGroups(job: JobFilesBrowserSource): JobBrowserFileGroup[] {
   const byCategory = new Map<string, JobBrowserFile[]>();
 
@@ -82,8 +52,7 @@ export function collectJobBrowserFileGroups(job: JobFilesBrowserSource): JobBrow
     byCategory.set(category, list);
   };
 
-  for (const f of job.jobFiles || []) {
-    if (!isMediaAttachmentAvailable(f)) continue;
+  for (const f of collectJobDocuments(job)) {
     const category = f.kind === "zlecenie" ? "Zlecenie" : "Kosztorys";
     const dateIso = dateIsoFromUploadedAt(f.uploadedAt);
     add(category, {
@@ -94,65 +63,7 @@ export function collectJobBrowserFileGroups(job: JobFilesBrowserSource): JobBrow
       filename: f.filename || `${f.kind}.pdf`,
       url: f.publicUrl,
       uploadedBy: f.uploadedBy,
-      canPreview: previewOk(f.filename || "", false),
-    });
-  }
-
-  const crewLabel: Record<string, string> = {
-    before: PHOTO_LABEL_NAMES.before,
-    after: PHOTO_LABEL_NAMES.after,
-    progress: PHOTO_LABEL_NAMES.progress,
-  };
-  for (const p of job.photos || []) {
-    if (p.status !== "approved" || !isMediaAttachmentAvailable(p)) continue;
-    const category = `Zdjęcia ekipy — ${crewLabel[p.label] || p.label}`;
-    const dateIso = dateIsoFromUploadedAt(p.uploadedAt);
-    const ext = extFromUrl(p.publicUrl, ".jpg");
-    add(category, {
-      id: `cp-${p.id}`,
-      category,
-      dateIso,
-      dateLabel: fmtDate(p.uploadedAt),
-      filename: p.filename || p.caption || `zdjecie${ext}`,
-      url: p.publicUrl,
-      uploadedBy: p.uploadedBy,
-      canPreview: true,
-    });
-  }
-
-  for (const p of job.inspectorPhotos || []) {
-    if (!isMediaAttachmentAvailable(p)) continue;
-    const label = normalizeInspectorPhotoLabel(p.label);
-    const category = `Zdjęcia inspektora — ${INSPECTOR_PHOTO_LABEL_NAMES[label]}`;
-    const dateIso = dateIsoFromUploadedAt(p.uploadedAt);
-    const ext = extFromUrl(p.publicUrl, ".jpg");
-    add(category, {
-      id: `ip-${p.id}`,
-      category,
-      dateIso,
-      dateLabel: fmtDate(p.uploadedAt),
-      filename: p.caption || `zdjecie-inspektora${ext}`,
-      url: p.publicUrl,
-      uploadedBy: p.uploadedBy,
-      canPreview: true,
-    });
-  }
-
-  for (const r of job.workerReports || []) {
-    const sketch = r.sketch;
-    if (!sketch?.publicUrl || !isMediaAttachmentAvailable(sketch)) continue;
-    const category = "Rysunki z raportów";
-    const dateIso = dateIsoFromUploadedAt(r.submittedAt);
-    const ext = extFromUrl(r.sketch.publicUrl, ".jpg");
-    add(category, {
-      id: `sk-${r.id}`,
-      category,
-      dateIso,
-      dateLabel: fmtDate(r.submittedAt),
-      filename: `${r.workerName || "pracownik"}-rysunek${ext}`,
-      url: r.sketch.publicUrl,
-      uploadedBy: r.workerName || "—",
-      canPreview: true,
+      canPreview: previewOk(f.filename || ""),
     });
   }
 
@@ -189,9 +100,6 @@ export type JobBrowserFileSummary = {
   total: number;
   zlecenie: number;
   kosztorys: number;
-  crewPhotos: number;
-  inspectorPhotos: number;
-  reportSketches: number;
 };
 
 export type JobFileSummaryChip = {
@@ -199,36 +107,21 @@ export type JobFileSummaryChip = {
   label: string;
 };
 
-/** Liczba plików wg typu — bez rozwijania karty roboty. */
+/** Liczba dokumentów wg typu — bez obrazów. */
 export function summarizeJobBrowserFiles(job: JobFilesBrowserSource): JobBrowserFileSummary {
   let zlecenie = 0;
   let kosztorys = 0;
-  let crewPhotos = 0;
-  let inspectorPhotos = 0;
-  let reportSketches = 0;
 
   for (const f of job.jobFiles || []) {
     if (!isMediaAttachmentAvailable(f)) continue;
     if (f.kind === "zlecenie") zlecenie++;
     else if (f.kind === "kosztorys") kosztorys++;
   }
-  for (const p of job.photos || []) {
-    if (p.status === "approved" && isMediaAttachmentAvailable(p)) crewPhotos++;
-  }
-  for (const p of job.inspectorPhotos || []) {
-    if (isMediaAttachmentAvailable(p)) inspectorPhotos++;
-  }
-  for (const r of job.workerReports || []) {
-    if (r.sketch?.publicUrl && isMediaAttachmentAvailable(r.sketch)) reportSketches++;
-  }
 
   return {
-    total: zlecenie + kosztorys + crewPhotos + inspectorPhotos + reportSketches,
+    total: zlecenie + kosztorys,
     zlecenie,
     kosztorys,
-    crewPhotos,
-    inspectorPhotos,
-    reportSketches,
   };
 }
 
@@ -240,7 +133,7 @@ function plFileLabel(n: number, one: string, few: string, many: string): string 
   return `${n} ${many}`;
 }
 
-/** Etykiety do badge'ów na liście (tylko niezerowe). */
+/** Etykiety do badge'ów na liście (tylko niezerowe dokumenty). */
 export function jobFileSummaryChips(summary: JobBrowserFileSummary): JobFileSummaryChip[] {
   const out: JobFileSummaryChip[] = [];
   if (summary.zlecenie > 0) {
@@ -255,32 +148,11 @@ export function jobFileSummaryChips(summary: JobBrowserFileSummary): JobFileSumm
       label: plFileLabel(summary.kosztorys, "kosztorys", "kosztorysy", "kosztorysów"),
     });
   }
-  if (summary.crewPhotos > 0) {
-    out.push({
-      key: "crewPhotos",
-      label: `${summary.crewPhotos} zdj. ekipy`,
-    });
-  }
-  if (summary.inspectorPhotos > 0) {
-    out.push({
-      key: "inspectorPhotos",
-      label: `${summary.inspectorPhotos} zdj. inspektora`,
-    });
-  }
-  if (summary.reportSketches > 0) {
-    out.push({
-      key: "reportSketches",
-      label: plFileLabel(summary.reportSketches, "rysunek", "rysunki", "rysunków"),
-    });
-  }
   return out;
 }
 
 export function countBrowserFiles(job: JobFilesBrowserSource): number {
-  return summarizeJobBrowserFiles(job).total;
+  return countJobDocuments(job);
 }
 
-/** Badge menu „Zdjęcia i pliki” — jedno źródło (bez dublowania crew_photo). */
-export function countAllJobsMediaItems(jobs: JobFilesBrowserSource[]): number {
-  return jobs.reduce((s, j) => s + countBrowserFiles(j), 0);
-}
+export { countAllJobsMediaItems };

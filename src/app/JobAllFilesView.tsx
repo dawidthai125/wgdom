@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-  Search, Download, Eye, FileText, ClipboardList, Camera, Image as ImageIcon,
+  Search, Download, Eye, FileText, ClipboardList,
   MapPin, ChevronRight, ChevronDown, ArrowLeft, FolderOpen, ExternalLink,
 } from "lucide-react";
 import {
@@ -21,9 +21,6 @@ import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 const CATEGORY_ICONS: Record<JobFileCategory, typeof FileText> = {
   zlecenie: FileText,
   kosztorys: ClipboardList,
-  inspector_photo: Camera,
-  crew_photo: ImageIcon,
-  report_sketch: ImageIcon,
 };
 
 type CategoryFilter = "all" | JobFileCategory;
@@ -127,7 +124,7 @@ export function JobAllFilesView({
           />
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {(["all", "zlecenie", "kosztorys", "inspector_photo", "crew_photo", "report_sketch"] as CategoryFilter[]).map((cat) => {
+          {(["all", "zlecenie", "kosztorys"] as CategoryFilter[]).map((cat) => {
             const n = categoryCounts[cat] ?? 0;
             if (cat !== "all" && n === 0) return null;
             const label = cat === "all" ? "Wszystkie typy" : JOB_FILE_CATEGORY_LABELS[cat];
@@ -228,21 +225,6 @@ function JobAddressFileTile({
         <div className="flex flex-wrap gap-1.5">
           <TypeChip ok={hasZlecenie} label="Zlecenie" icon={FileText}/>
           <TypeChip ok={hasKosztorys} label="Kosztorys" icon={ClipboardList}/>
-          {(counts.inspector_photo ?? 0) > 0 && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/12 text-amber-700 dark:text-amber-400 font-medium">
-              Inspektor {counts.inspector_photo}
-            </span>
-          )}
-          {(counts.crew_photo ?? 0) > 0 && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground font-medium">
-              Ekipa {counts.crew_photo}
-            </span>
-          )}
-          {(counts.report_sketch ?? 0) > 0 && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/12 text-violet-600 dark:text-violet-400 font-medium">
-              Rysunki {counts.report_sketch}
-            </span>
-          )}
         </div>
 
         <div className="flex gap-2">
@@ -345,7 +327,7 @@ export function JobFileCatalogList({
   if (items.length === 0) {
     return (
       <p className="px-5 py-6 text-xs text-muted-foreground text-center">
-        Brak plików — wgraj zlecenie, kosztorys lub dodaj zdjęcia.
+        Brak dokumentów — wgraj zlecenie lub kosztorys.
       </p>
     );
   }
@@ -381,11 +363,7 @@ function JobFileCatalogRow({
   return (
     <div className="px-4 sm:px-5 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-secondary/30 transition-colors">
       <div className="flex items-start gap-3 min-w-0 flex-1">
-        <div className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center ${
-          item.category === "zlecenie" || item.category === "kosztorys"
-            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-            : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-        }`}>
+        <div className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-600 dark:text-emerald-400`}>
           <Icon size={16}/>
         </div>
         <div className="min-w-0 flex-1">

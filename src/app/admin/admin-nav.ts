@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import type { DirectoryEmployee, Job, WeekEmployee, WeekSnapshot } from "@/app/app-domain";
 import { filterProductionActiveDirectory } from "@/app/app-domain";
-import { countAllJobsMediaItems } from "@/lib/job-files-browser";
+import { countAllJobsMediaItems } from "@/lib/media-separation";
 import {
   countUnseenInspectorAlerts,
   getAdminJobNotesSeenAt,

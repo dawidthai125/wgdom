@@ -100,11 +100,8 @@ export function JobInspectorFilesPanel({
     for (const f of jobFiles || []) {
       if (isMediaAttachmentAvailable(f)) list.push({ kind: "jobFile", file: f });
     }
-    for (const p of inspectorPhotos || []) {
-      if (isMediaAttachmentAvailable(p)) list.push({ kind: "inspectorPhoto", file: p });
-    }
     return list.sort((a, b) => itemUploadedAt(b).localeCompare(itemUploadedAt(a)));
-  }, [jobFiles, inspectorPhotos]);
+  }, [jobFiles]);
 
   const itemKey = (item: InspectorFileItem) => {
     if (item.kind === "jobFile") return `jf:${item.file.id}`;
@@ -163,13 +160,13 @@ export function JobInspectorFilesPanel({
               }}
               className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-lg bg-emerald-600/90 text-white font-medium disabled:opacity-50"
             >
-              <Package size={12}/>{packBusy ? "Pakowanie…" : "Pakiet ZIP"}
+              <Package size={12}/>{packBusy ? "Pakowanie…" : "Dokumenty ZIP"}
             </button>
             )}
           </div>
         </div>
         {uploadSlot && <div className="px-5 py-3 border-b border-border">{uploadSlot}</div>}
-        <p className="px-5 py-4 text-xs text-muted-foreground">Brak wgranych plików — dodaj zlecenie, kosztorys lub zdjęcia.</p>
+        <p className="px-5 py-4 text-xs text-muted-foreground">Brak dokumentów — wgraj zlecenie lub kosztorys powyżej.</p>
       </div>
     );
   }
@@ -200,7 +197,7 @@ export function JobInspectorFilesPanel({
                 }}
                 className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-lg bg-emerald-600/90 text-white font-medium disabled:opacity-50"
               >
-                <Package size={12}/>{packBusy ? "Pakowanie…" : "Pakiet ZIP"}
+                <Package size={12}/>{packBusy ? "Pakowanie…" : "Dokumenty ZIP"}
               </button>
             )}
             {selectedItems.length > 0 && !readOnly && (

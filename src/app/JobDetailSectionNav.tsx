@@ -24,6 +24,7 @@ export function JobDetailSectionNav({
   active,
   onSelect,
   fileCount,
+  imageCount,
   missingDocCount,
   pendingPhotoCount,
   reportCount,
@@ -31,6 +32,7 @@ export function JobDetailSectionNav({
   active: JobDetailSection;
   onSelect: (section: JobDetailSection) => void;
   fileCount?: number;
+  imageCount?: number;
   missingDocCount?: number;
   pendingPhotoCount?: number;
   reportCount?: number;
@@ -43,8 +45,12 @@ export function JobDetailSectionNav({
       n = missingDocCount;
       warn = (missingDocCount ?? 0) > 0;
     } else if (id === "photos") {
-      n = pendingPhotoCount;
-      warn = (pendingPhotoCount ?? 0) > 0;
+      if ((pendingPhotoCount ?? 0) > 0) {
+        n = pendingPhotoCount;
+        warn = true;
+      } else {
+        n = imageCount;
+      }
     } else if (id === "reports") n = reportCount;
     if (typeof n !== "number" || n <= 0) return null;
     return (
