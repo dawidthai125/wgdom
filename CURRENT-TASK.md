@@ -4,10 +4,27 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-09  
-**Wersja UI (prod):** **2.50.54** — Roboty UX Pack 20.5B.5  
-**Prod `origin/main`:** **`ae35c56`** · https://www.wgdom.fun  
-**Deploy:** GitHub **`4995226877`** · Ready  
-**Status:** **RELEASED** · Sprint 20.5B.5 CLOSED
+**Current Version:** **2.50.55**  
+**Current Baseline:** **RELEASED · STABLE**  
+**Prod `origin/main`:** **`782fe87`** · https://www.wgdom.fun  
+**Deploy:** **`4995467947`**  
+**Status:** Sprint 20.5B.6A.1 CLOSED
+
+---
+
+## Podsumowanie — 20.5B.6A.1 Dokumentacja Robót Naming Refresh
+
+Ujednolicono nazewnictwo modułu dokumentacji wykonania robót we wszystkich rolach (admin, pracownik, inspektor). Dodano hinty semantyczne obrys/wymiary vs plan techniczny PDF oraz help przy checklistie „Rysunek/Plan”. Bez zmian modelu, sync, KV i Edge.
+
+**Kluczowe zmiany:**
+
+- Raporty → **Dokumentacja**
+- Raport z budowy → **Dokumentacja robót**
+- Zakresy i wymiary → **Dokumentacja**
+- Pulpit: **Nowa dokumentacja od ekipy**
+- Hint: obrys/wymiary ≠ plan techniczny PDF
+
+**Raport:** [`docs/RELEASE-REPORT-20.5B.6A.1.md`](docs/RELEASE-REPORT-20.5B.6A.1.md)
 
 ---
 
@@ -16,70 +33,47 @@
 ```text
 1. CURRENT-TASK.md                    ← ten plik
 2. docs/PROJECT-HANDOFF.md            ← baseline prod
-3. docs/RELEASE-REPORT-20.5B.5.md     ← ★ ostatni release
-4. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md
-5. docs/ARCHITECTURE.md § 8, § 12.1.2
-6. AGENTS.md
+3. docs/RELEASE-REPORT-20.5B.6A.1.md   ← ★ ostatni release
+4. docs/RELEASE-REPORT-20.5B.5.md     ← Roboty UX Pack
+5. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md
+6. docs/ARCHITECTURE.md § 12.1.2
+7. AGENTS.md
 ```
 
 ---
 
-## Sprint 20.5B.5 — Roboty UX Pack (**RELEASED**)
+## Sprint 20.5B.6A.1 — Dokumentacja Robót Naming (**RELEASED**)
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja** | **2.50.54** |
-| **Commit** | **`ae35c56`** |
-| **Deploy** | **`4995226877`** |
-| **CI Mobile** | **`27232257123`** SUCCESS |
-| **Zakres** | Domyślny filtr W trakcie · Socjalny · Piec gazowy · docs plan PDF |
+| **Wersja** | **2.50.55** |
+| **Commit** | **`782fe87`** |
+| **Deploy** | **`4995467947`** |
+| **CI Mobile** | **`27233391718`** SUCCESS |
+| **Zakres** | Raporty → Dokumentacja; hint obrys/plan; help Rysunek/Plan |
 
 ### Smoke / build (release)
 
 | Test | Wynik |
 |------|-------|
 | `npm run build` | **PASS** |
-| `smoke-test-jobs-default-filter-20.5b5a.mjs` | **5/5 PASS** |
-| `smoke-test-job-meta-20.5b5b.mjs` | **4/4 PASS** |
-| `smoke-test-gas-furnace-20.5b5c.mjs` | **10/10 PASS** |
-| `smoke-test-technical-drawing-20.5a9.mjs` | **21/21 PASS** |
-| Prod bundle `2.50.54` | **15/15 PASS** (wgdom.fun + wgdom.online) |
-| CI Mobile `#27232257123` | **PASS** |
-
-### Kluczowe pliki
-
-| Plik | Rola |
-|------|------|
-| `src/app/JobsView.tsx` | Domyślny filtr `in_progress`; PDF meta |
-| `src/app/JobListStatus.tsx` | Kolejność tabów faz |
-| `src/lib/job-meta.ts` | Socjalny + `gasFurnaceStatus` |
-| `src/app/JobMetaPickers.tsx` | Picker pieca gazowego |
-| `src/app/InspectorPanel.tsx` | Pole pieca dla inspektora |
-| `src/lib/job-documents-pack.ts` | Piec gazowy w readme ZIP |
-| `docs/RELEASE-REPORT-20.5B.5.md` | Raport release |
+| `smoke-test-job-documentation-labels-20.5b6a.mjs` | **19/19 PASS** |
+| Regresja 20.5A.8 / 20.5A.9 / MID-B | **PASS** |
+| Prod bundle `2.50.55` | **17/17 PASS** |
+| CI Mobile `#27233391718` | **PASS** |
 
 ### Następny (tylko na polecenie)
 
-- 20.5A.11 — inspektor read-only załączników ogólnych
+- 20.5B.6A.2 — kolejność tabów / worker sub-nav
+- 20.5A.11 — inspektor read-only załączników
 - 20.3C — legacy CC + GuideView
-- Roboty 2.0 FULL
 
 ---
 
-## Poprzedni release — 20.5B.4 / 2.50.53
+## Poprzedni release — 20.5B.5 / 2.50.54
 
 | Pole | Wartość |
 |------|---------|
-| **Commit** | **`74890bd`** |
-| **Deploy** | **`4995023669`** |
-| **Handoff** | [`RELEASE-REPORT-20.5B.4.md`](docs/RELEASE-REPORT-20.5B.4.md) |
-
----
-
-## Poprzedni release — 20.5A.10 / 2.50.52
-
-| Pole | Wartość |
-|------|---------|
-| **Commit** | **`e6758e5`** |
-| **Deploy** | **`4994803137`** |
-| **Handoff** | [`SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md) |
+| **Commit** | **`ae35c56`** |
+| **Deploy** | **`4995226877`** |
+| **Handoff** | [`RELEASE-REPORT-20.5B.5.md`](docs/RELEASE-REPORT-20.5B.5.md) |

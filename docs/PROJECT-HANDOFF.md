@@ -9,28 +9,36 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **2.50.54** |
-| **Commit** | **`ae35c56`** — `feat(jobs): Roboty UX pack — default filter, Socjalny, piec gazowy (20.5B.5)` |
-| **Deploy** | **`4995226877`** — **SUCCESS** |
-| **Status** | **STABLE** |
+| **Wersja UI** | **2.50.55** |
+| **Commit** | **`782fe87`** — `feat(jobs): Dokumentacja robót naming refresh (20.5B.6A.1)` |
+| **Deploy** | **`4995467947`** — **SUCCESS** |
+| **Status** | **RELEASED · STABLE** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | **`ae35c56`** |
+| **Repo `origin/main`** | **`782fe87`** |
 
 **Brak aktywnych blockerów.** **Brak aktywnych incydentów.**
 
 ---
 
-## Ostatni release — 20.5B.5 / 2.50.54
+## Ostatni release — 20.5B.6A.1 / 2.50.55
 
-**Roboty UX Pack** — filtr, etykieta Socjalny, piec gazowy
+**Dokumentacja Robót Naming Refresh** — ujednolicenie nazewnictwa (Raporty → Dokumentacja)
 
 ### Funkcje
 
-- Roboty domyślnie otwierają się na filtr **W trakcie**
-- Kolejność tabów: W trakcie → Do odbioru → Zdane → Wszystkie
-- Typ lokalu **Socjalny** (key `komunalny` — bez migracji KV)
-- Nowe pole meta **Piec gazowy** (Zostaje / Wymiana / Brak) — admin, inspektor, PDF/ZIP
-- Docs: plan techniczny PDF = dokument odbiorowy „Rysunek/Plan”
+- Tab **Dokumentacja** (admin, inspektor) zamiast Raporty / Zakresy i wymiary
+- **Dokumentacja robót** u pracownika i w panelu admina
+- Hint: obrys/wymiary to materiał pod plan, nie plan PDF
+- Help przy checklistie **Rysunek/Plan** (3 źródła zaliczenia)
+- Pulpit: **Nowa dokumentacja od ekipy**
+
+**Raport:** [`RELEASE-REPORT-20.5B.6A.1.md`](RELEASE-REPORT-20.5B.6A.1.md)
+
+---
+
+## Poprzedni release — 20.5B.5 / 2.50.54
+
+**Roboty UX Pack** — filtr W trakcie, Socjalny, piec gazowy
 
 **Raport:** [`RELEASE-REPORT-20.5B.5.md`](RELEASE-REPORT-20.5B.5.md)
 
