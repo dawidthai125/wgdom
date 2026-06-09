@@ -19,6 +19,8 @@ import { JobRecoverableChargesPanel, type BillingNotePendingFiles } from "@/app/
 import { JobCreateRecoverableChargeModal } from "@/app/JobCreateRecoverableChargeModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobInspectorFilesPanel } from "@/app/JobInspectorFilesPanel";
+import { JobGenericAttachmentsSection } from "@/app/JobGenericAttachmentsSection";
+import { collectActiveJobAttachments } from "@/lib/job-attachments-pack";
 import { JobListPrimaryBadge, JobPhasePicker, applyJobPhase } from "@/app/JobListStatus";
 import { JobListCardV2 } from "@/app/JobListCardV2";
 import { JobListPanelHeader } from "@/app/JobListPanelHeader";
@@ -2125,9 +2127,19 @@ export function JobsView({
                 contacts={contacts}
                 packSource={selectedJob}
                 hidePackButton
+                genericAttachments={collectActiveJobAttachments(selectedJob)}
                 title="Wyślij pliki emailem"
-                onEmailSent={(to) => updateJob(selectedJob, { type: "email_sent", text: `Wysłano pliki inspektora na ${to}` })}
+                onEmailSent={(to, meta) => {
+                  const suffix = meta?.genericCount ? ` (+ ${meta.genericCount} załączników)` : "";
+                  updateJob(selectedJob, { type: "email_sent", text: `Wysłano pliki inspektora na ${to}${suffix}` });
+                }}
                 onDeleteFile={handleDeleteInspectorFileItem}
+              />
+              <JobGenericAttachmentsSection
+                job={selectedJob}
+                uploadedBy={adminSession?.displayName || "Administrator"}
+                athPreviewEnabled={athPreviewEnabled}
+                onJobUpdated={(next, activity) => updateJob(next as Job, activity ? { type: "inspector_file", text: activity.text } : undefined)}
               />
             </div>
             )}

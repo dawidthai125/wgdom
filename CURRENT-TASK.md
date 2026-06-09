@@ -4,44 +4,41 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-09  
-**Wersja UI (lokalnie):** **2.50.51** — File Consistency Hardening 20.5B.3  
-**Status:** **IMPLEMENT lokalny 20.5B.3** · **bez commit / push / deploy**
+**Wersja UI (lokalnie):** **2.50.52** — Generic File Attachments 20.5A.10  
+**Prod `origin/main`:** **`09a8284`** (2.50.51) · https://www.wgdom.fun  
+**Status:** **IMPLEMENT DONE** · 20.5A.10 lokalnie · **bez commit / push / deploy**
 
 ---
 
-## Sprint 20.5B.3 — File Consistency Hardening (**IMPLEMENT lokalny**)
+## Sprint 20.5A.10 — Generic File Attachments (**LOKALNIE, bez release**)
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja** | **2.50.51** |
-| **Zakres** | Tombstone plików · merge-aware delete · feed R1–R4 · replace storage cleanup |
+| **Wersja docelowa** | **2.50.52** |
+| **Zakres** | `jobAttachments[]` · tombstone sync · upload/delete · UI · email · ZIP · preview |
 
 ### Kluczowe pliki
 
 | Plik | Rola |
 |------|------|
-| `src/lib/job-documents.ts` | `JobFileTombstone`, `mergeJobFiles`, `removeJobFileAttachmentWithTombstone` |
-| `src/lib/cloud-sync.ts` | `mergeJobsById` + tombstone merge |
-| `src/lib/job-activity.ts` | `parseJobFileUploadActivity`, `isJobFileUploadActivityVisible`, feed filter |
-| `src/app/JobsView.tsx` | upload replace + delete z tombstone |
-| `src/app/InspectorPanel.tsx` | upload replace inspektora |
+| `src/lib/job-attachments.ts` | Model + merge/tombstone helpers |
+| `src/lib/job-attachment-upload.ts` | `uploadJobAttachment()` |
+| `src/lib/job-attachments-pack.ts` | ZIP załączników |
+| `src/lib/cloud-sync.ts` | `mergeJobsById` — attachments |
+| `src/app/JobGenericAttachmentsSection.tsx` | UI sekcji |
+| `src/app/JobFilesEmailModal.tsx` | Grupy email |
+| `scripts/smoke-test-generic-attachments-20.5a10.mjs` | Smoke T1–T20 |
 
-### Smoke / build (lokalnie)
+### Następny krok
 
-| Test | Wynik |
-|------|-------|
-| `smoke-test-job-file-consistency-20.5b3.mjs` | uruchomić |
-| `repair-job-file-orphans-20.5b3.mjs` | read-only domyślnie |
-| `npm run build` | uruchomić |
-
-### Następne (po commit)
-
-- Deploy Vercel po push `main`
-- Opcjonalnie: `repair-job-file-orphans-20.5b3.mjs --apply` na prod (hiddenInspectorFeedIds)
-- Weryfikacja: Okulickiego feed bez orphan upload
+- Commit + push + Vercel deploy po akceptacji użytkownika
+- Regresja manualna na prod po deploy
 
 ---
 
-## Sprint 20.5B.2 — Inspector Admin Simplification (**RELEASED prod**)
+## Sprint 20.5B.3 — File Consistency Hardening (**RELEASED** na prod)
 
-Pełny opis w [`CHANGELOG.md`](CHANGELOG.md).
+| Pole | Wartość |
+|------|---------|
+| **Wersja prod** | **2.50.51** |
+| **Commit** | **`09a8284`** |

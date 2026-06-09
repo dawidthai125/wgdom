@@ -15,6 +15,7 @@ import { downloadJobDocumentsPack, type JobPackSource } from "@/lib/job-document
 
 export type InspectorFileItem =
   | { kind: "jobFile"; file: JobFileAttachment }
+  | { kind: "jobAttachment"; file: import("@/lib/job-attachments").JobAttachment }
   | { kind: "inspectorPhoto"; file: InspectorPhotoEntry }
   | { kind: "imageUrl"; url: string; filename: string }
   | { kind: "tenderBzp"; tenderId: string; documentIndex: number; filename: string; contentType?: string; zipInnerPath?: string }
@@ -24,6 +25,7 @@ function fileLabel(item: InspectorFileItem): string {
   if (item.kind === "jobFile") {
     return JOB_FILE_KIND_LABELS[item.file.kind];
   }
+  if (item.kind === "jobAttachment") return "Załącznik ogólny";
   if (item.kind === "inspectorPhoto") return "Zdjęcie inspektora";
   return "Zdjęcie";
 }
@@ -35,20 +37,20 @@ function fileIcon(item: InspectorFileItem) {
 }
 
 function itemFilename(item: InspectorFileItem): string {
-  if (item.kind === "jobFile") return item.file.filename;
+  if (item.kind === "jobFile" || item.kind === "jobAttachment") return item.file.filename;
   if (item.kind === "inspectorPhoto") return item.file.caption || "zdjecie-inspektora.jpg";
   if (item.kind === "tenderBzp" || item.kind === "tenderUpload") return item.filename;
   return item.filename;
 }
 
 function itemUploadedBy(item: InspectorFileItem): string {
-  if (item.kind === "jobFile") return item.file.uploadedBy;
+  if (item.kind === "jobFile" || item.kind === "jobAttachment") return item.file.uploadedBy;
   if (item.kind === "inspectorPhoto") return item.file.uploadedBy;
   return "—";
 }
 
 function itemUploadedAt(item: InspectorFileItem): string {
-  if (item.kind === "jobFile") return item.file.uploadedAt;
+  if (item.kind === "jobFile" || item.kind === "jobAttachment") return item.file.uploadedAt;
   if (item.kind === "inspectorPhoto") return item.file.uploadedAt;
   return "";
 }
@@ -57,6 +59,7 @@ function itemUrl(item: InspectorFileItem): string {
   if (item.kind === "imageUrl") return item.url;
   if (item.kind === "tenderUpload") return item.publicUrl;
   if (item.kind === "tenderBzp") return "";
+  if (item.kind === "jobAttachment") return item.file.publicUrl;
   return item.file.publicUrl;
 }
 
@@ -71,6 +74,7 @@ export function JobInspectorFilesPanel({
   onEmailSent,
   onDeleteFile,
   packSource,
+  genericAttachments = [],
   title = "Pliki roboty",
   uploadSlot,
   hidePackButton = false,
@@ -83,9 +87,10 @@ export function JobInspectorFilesPanel({
   inspectorPhotos: InspectorPhotoEntry[];
   athPreviewEnabled: boolean;
   contacts: EmailContact[];
-  onEmailSent?: (to: string) => void;
+  onEmailSent?: (to: string, meta?: { genericCount: number }) => void;
   onDeleteFile?: (item: InspectorFileItem) => void | Promise<void>;
   packSource?: JobPackSource;
+  genericAttachments?: import("@/lib/job-attachments").JobAttachment[];
   title?: string;
   uploadSlot?: ReactNode;
   /** Ukryj przycisk ZIP gdy pack jest już w sekcji nadrzędnej (Roboty → Pliki). */
@@ -109,6 +114,7 @@ export function JobInspectorFilesPanel({
 
   const itemKey = (item: InspectorFileItem) => {
     if (item.kind === "jobFile") return `jf:${item.file.id}`;
+    if (item.kind === "jobAttachment") return `ja:${item.file.id}`;
     if (item.kind === "inspectorPhoto") return `ip:${item.file.id}`;
     if (item.kind === "tenderBzp") return `tbzp:${item.tenderId}:${item.documentIndex}`;
     if (item.kind === "tenderUpload") return `tup:${item.path}`;
@@ -331,9 +337,10 @@ export function JobInspectorFilesPanel({
           jobAddress={jobAddress}
           jobFlat={jobFlat}
           items={emailItems}
+          genericAttachments={genericAttachments}
           contacts={contacts}
           onClose={() => setEmailItems(null)}
-          onSent={onEmailSent}
+          onSent={(to, meta) => onEmailSent?.(to, meta)}
         />
       )}
     </>

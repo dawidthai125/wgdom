@@ -4,9 +4,16 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.51** (`changelog-data.ts`) · File Consistency 20.5B.3 · lokalnie (bez commit)
+**Aktualna wersja UI:** **2.50.52** (`changelog-data.ts`) · Generic File Attachments 20.5A.10 · lokalnie (bez commit)
 
 ---
+
+## 2.50.52 (2026-06-09) — Generic File Attachments (20.5A.10)
+
+* **New:** `jobAttachments[]` — załączniki ogólne (osobno od `jobFiles` kontraktowych)
+* **New:** Roboty → Pliki — sekcja Załączniki ogólne (upload/delete admin, podgląd, ZIP)
+* **New:** Email — grupy Dokumenty kontraktowe / Załączniki ogólne; activity (+ N załączników)
+* **Improve:** sync tombstone merge (wzorzec 20.5B.3)
 
 ## 2.50.51 (2026-06-09) — File Consistency Hardening (20.5B.3)
 

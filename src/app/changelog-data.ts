@@ -12,6 +12,18 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.52",
+    label: "Załączniki ogólne roboty (20.5A.10)",
+    items: [
+      { type: "new", text: "Roboty → Pliki — sekcja „Załączniki ogólne”: PDF, DOC/DOCX, XLS/XLSX, ZIP, RAR, DWG, TXT (max 25 MB); osobno od dokumentów kontraktowych" },
+      { type: "new", text: "Email plików — grupy: Dokumenty kontraktowe (domyślnie) i Załączniki ogólne; historia wysyłki (+ N załączników)" },
+      { type: "new", text: "Załączniki ZIP — osobny download obok Dokumenty ZIP (folder zalaczniki/)" },
+      { type: "improve", text: "Sync chmura — jobAttachments[] + tombstone merge (wzorzec 20.5B.3); delete nie wraca po sync" },
+      { type: "improve", text: "Podgląd załączników ogólnych: PDF, DOCX, XLSX; DWG/ZIP/RAR — pobierz plik" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.51",
     label: "Spójność plików roboty — tombstone + feed (20.5B.3)",
     items: [

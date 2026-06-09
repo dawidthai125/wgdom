@@ -23,13 +23,14 @@ import {
   KOSZTORYS_DTT_CREDIT,
 } from "@/lib/ath-kosztorys-pdf";
 import { resolveJobFileStoragePath } from "@/lib/job-documents";
+import { resolveJobAttachmentStoragePath } from "@/lib/job-attachments";
 import { bytesToBlobUrl, loadTenderBzpDocumentBytes } from "@/lib/tenders-bzp";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 
 function previewFilename(item: InspectorFileItem): string {
   if (item.kind === "imageUrl") return item.filename;
-  if (item.kind === "jobFile") return item.file.filename;
+  if (item.kind === "jobFile" || item.kind === "jobAttachment") return item.file.filename;
   if (item.kind === "inspectorPhoto") return item.file.caption || "zdjecie.jpg";
   if (item.kind === "tenderBzp" || item.kind === "tenderUpload") return item.filename;
   return "plik";
@@ -39,8 +40,12 @@ function previewUrl(item: InspectorFileItem): string {
   if (item.kind === "imageUrl") return item.url;
   if (item.kind === "tenderUpload") return item.publicUrl;
   if (item.kind === "tenderBzp") return "";
-  if (item.kind === "jobFile" || item.kind === "inspectorPhoto") return item.file.publicUrl;
+  if (item.kind === "jobFile" || item.kind === "jobAttachment" || item.kind === "inspectorPhoto") return item.file.publicUrl;
   return "";
+}
+
+function isNoPreviewAttachmentExt(name: string): boolean {
+  return /\.(dwg|zip|rar)$/i.test(name);
 }
 
 function isImageFilename(name: string): boolean {
@@ -60,6 +65,7 @@ export function JobFilePreviewModal({
   const url = previewUrl(item);
   const storagePath = useMemo(() => {
     if (item.kind === "jobFile") return resolveJobFileStoragePath(item.file);
+    if (item.kind === "jobAttachment") return resolveJobAttachmentStoragePath(item.file);
     if (item.kind === "tenderUpload") return item.path;
     return undefined;
   }, [item]);
@@ -102,6 +108,59 @@ export function JobFilePreviewModal({
     reset();
 
     const load = async () => {
+      if (item.kind === "jobAttachment") {
+        const name = item.file.filename;
+        if (isNoPreviewAttachmentExt(name)) {
+          setParseResult({
+            ok: false,
+            format: "unknown",
+            rows: [],
+            warnings: ["Brak podglądu — pobierz plik."],
+          });
+          return;
+        }
+        if (isDocxFilename(name) || isXlsxFilename(name)) {
+          setLoading(true);
+          try {
+            const {
+              extractDocxText,
+              parseDocumentToKosztorys,
+            } = await import("@/lib/tenders-bzp-doc-parse");
+            const res = await fetch(item.file.publicUrl);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const bytes = new Uint8Array(await res.arrayBuffer());
+            if (cancelled) return;
+            if (isXlsxFilename(name)) {
+              const xlsxResult = await parseDocumentToKosztorys(bytes, name);
+              if (xlsxResult) setParseResult(kosztorysResultForDisplay(xlsxResult));
+            } else {
+              const text = await extractDocxText(bytes);
+              setParseResult({
+                ok: text.length >= 40,
+                format: "text",
+                rows: [],
+                title: name,
+                warnings: text.length < 80 ? ["DOCX — bardzo krótki tekst."] : [],
+                rawPreview: text.slice(0, 120_000) || "Brak tekstu w dokumencie.",
+              });
+              setViewMode("text");
+            }
+          } catch (e) {
+            if (!cancelled) {
+              setParseResult({
+                ok: false,
+                format: "unknown",
+                rows: [],
+                warnings: [e instanceof Error ? e.message : "Nie udało się załadować podglądu"],
+              });
+            }
+          } finally {
+            if (!cancelled) setLoading(false);
+          }
+        }
+        return;
+      }
+
       if (item.kind === "tenderBzp") {
         setLoading(true);
         try {

@@ -282,6 +282,9 @@ export interface Job {
   clientShare?: ClientShareLink;
   jobFiles?: import("@/lib/job-documents").JobFileAttachment[];
   deletedJobFileTombstones?: import("@/lib/job-documents").JobFileTombstone[];
+  /** Sprint 20.5A.10 — ogólne załączniki (osobno od jobFiles kontraktowych). */
+  jobAttachments?: import("@/lib/job-attachments").JobAttachment[];
+  deletedJobAttachmentTombstones?: import("@/lib/job-attachments").JobAttachmentTombstone[];
   handoverStage?: import("@/lib/job-wm").JobHandoverStage;
   plannedHandoverDate?: string;
   jobNotes?: import("@/lib/job-wm").JobNote[];

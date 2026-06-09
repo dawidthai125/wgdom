@@ -5,6 +5,7 @@ import {
   isSupabaseConfigured,
 } from "@/config/supabase";
 import { filterJobFilesByTombstones, mergeJobFileTombstones, mergeJobFiles, mergeJobsDocumentsOnConflict, mergeReportDocSaOverrideOnConflict } from "@/lib/job-documents";
+import { filterJobAttachmentsByTombstones, mergeJobAttachmentTombstones, mergeJobAttachments } from "@/lib/job-attachments";
 import {
   mergeJobNotes,
   mergeInspectorPhotos,
@@ -373,6 +374,8 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
     reportDocSaOverride?: import("@/lib/job-documents").ReportDocSaOverride;
     jobFiles?: import("@/lib/job-documents").JobFileAttachment[];
     deletedJobFileTombstones?: import("@/lib/job-documents").JobFileTombstone[];
+    jobAttachments?: import("@/lib/job-attachments").JobAttachment[];
+    deletedJobAttachmentTombstones?: import("@/lib/job-attachments").JobAttachmentTombstone[];
     activityLog?: { id: string; at: string }[];
     jobNotes?: import("@/lib/job-wm").JobNote[];
     inspectorPhotos?: import("@/lib/job-wm").InspectorPhotoEntry[];
@@ -417,12 +420,24 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
           mergedTombstones,
         )
       : mergeJobFiles(prev.jobFiles, j.jobFiles, mergedTombstones);
+    const mergedAttachmentTombstones = mergeJobAttachmentTombstones(
+      prev.deletedJobAttachmentTombstones,
+      j.deletedJobAttachmentTombstones,
+    );
+    const mergedJobAttachments = jTs !== prevTs
+      ? filterJobAttachmentsByTombstones(
+          jTs >= prevTs ? (j.jobAttachments || []) : (prev.jobAttachments || []),
+          mergedAttachmentTombstones,
+        )
+      : mergeJobAttachments(prev.jobAttachments, j.jobAttachments, mergedAttachmentTombstones);
     return {
       ...pick,
       documents: mergeJobsDocumentsOnConflict(prev, j),
       reportDocSaOverride: mergeReportDocSaOverrideOnConflict(prev, j),
       jobFiles: mergedJobFiles,
       deletedJobFileTombstones: mergedTombstones.length ? mergedTombstones : undefined,
+      jobAttachments: mergedJobAttachments.length ? mergedJobAttachments : undefined,
+      deletedJobAttachmentTombstones: mergedAttachmentTombstones.length ? mergedAttachmentTombstones : undefined,
       activityLog: mergedLogs,
       jobNotes: mergeJobNotes(prev.jobNotes, j.jobNotes),
       inspectorPhotos: jTs !== prevTs
