@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.47** · Plan techniczny 20.5A.9 · lokalnie)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.47 — Technical Drawing Workflow 20.5A.9)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.48** · Inspektor admin 20.5B.2 · lokalnie)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.48 — Inspector Admin Simplification 20.5B.2)
 
 ---
 
@@ -179,7 +179,7 @@ Filtr stosowany w `resolveAuthorContact()` (`content-author-contact.ts`) i `Auth
 | `contacts` | Kontakty e-mail | `ContactsView` |
 | `archive` | Archiwum tygodni | `ArchiveView` |
 | `jobs` | Roboty (pełny CRUD) | `JobsView` |
-| `inspector` | Oś czasu inspektora (admin) | `InspectorAdminView` |
+| `inspector` | Monitoring inspektora (feed admin) | `InspectorAdminView` |
 | `photos` | Galeria zdjęć (admin) — zaakceptowane zdjęcia ekipy; ZIP całej roboty / kategorii | `JobPhotosGalleryView` w `App.tsx` |
 | `jobfiles` | Pliki robót | `JobAllFilesView` / browser |
 | `guide` | Instrukcja + Changelog | `HelpView`, `ChangelogView` |
@@ -270,13 +270,18 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 
 ---
 
-## 8. Panel inspektora (zakładka admina)
+## 8. Panel inspektora (zakładka admina) — 20.5B.2
 
 **Plik:** `src/app/InspectorAdminView.tsx`  
-- Feed aktywności z `job-activity.ts`  
-- Statystyki logowań — `syncInspectorStatsFromCloud()` + refresh on focus (v2.35.15)  
-- Szczegóły roboty: `InspectorAdminJobDetail.tsx`  
-- Zmiany jobów przez `setJobs` z admina → dziedziczy auto-sync 2 s
+**Rola:** centrum **monitoringu** (nie workspace operacyjny).
+
+- Feed aktywności z `job-activity.ts` + filtry (w tym billing proposal/note)
+- CTA „Otwórz w Robotach” → `pendingJobId` + `pendingJobSection` (`inspector-feed-deeplink.ts`)
+- Nieprzeczytane + statystyki logowań — `inspector-stats.ts` · `kw-inspector-stats`
+- **Portfolio WM** — na Pulpicie (`WmPortfolioView` w `DashboardView`), nie w Inspektorze admin
+- Akcje operacyjne (upload, checklista, approve billing, email plików) — wyłącznie **`JobsView`**
+
+**Panel terenowy** (`InspectorPanel.tsx`) — osobny flow, bez zmian w 20.5B.2.
 
 ---
 

@@ -116,9 +116,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [recoverableCharges, setRecoverableCharges] = useLocalStorage<RecoverableCharge[]>("kw-recoverable-charges", []);
   const [view, setView] = useState<View>("dashboard");
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
+  const [pendingJobSection, setPendingJobSection] = useState<import("@/app/JobDetailSectionNav").JobDetailSection | null>(null);
   const [pendingTenderId, setPendingTenderId] = useState<string | null>(null);
-  const [pendingInspectorJobId, setPendingInspectorJobId] = useState<string | null>(null);
-  const [inspectorInitialTab, setInspectorInitialTab] = useState<"activity" | "portfolio">("activity");
   const [alertsSeenTick, setAlertsSeenTick] = useState(0);
   const [pendingPayrollEmpId, setPendingPayrollEmpId] = useState<string | null>(null);
   const [pendingRecoverableChargeId, setPendingRecoverableChargeId] = useState<string | null>(null);
@@ -1020,7 +1019,38 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     };
   }, [jobs, directory, productionWeekEmployees, weekFrom]);
 
-  const handleNavigate = useCallback((v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule", jobId?: string, payrollEmpId?: string, inspectorTab?: "activity" | "portfolio") => {
+  const openJobInJobs = useCallback((
+    jobId: string,
+    section: import("@/app/JobDetailSectionNav").JobDetailSection = "summary",
+  ) => {
+    const returnLabels: Partial<Record<View, string>> = {
+      dashboard: "Pulpit",
+      payroll: "Lista płac",
+      schedule: "Grafik",
+      directory: "Kartoteka",
+      inspector: "Inspektor",
+      archive: "Archiwum",
+      jobs: "Roboty",
+      media: "Zdjęcia i pliki",
+      recoverablecharges: "Do rozliczenia",
+      guide: "Instrukcja",
+      tenders: "Przetargi",
+    };
+    if (view !== "jobs") {
+      setViewReturn({ view, label: returnLabels[view] ?? "Wstecz" });
+    }
+    setPendingJobId(jobId);
+    setPendingJobSection(section);
+    setView("jobs");
+    setMobileMoreOpen(false);
+  }, [view]);
+
+  const handleNavigate = useCallback((
+    v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule",
+    jobId?: string,
+    payrollEmpId?: string,
+    jobSection?: import("@/app/JobDetailSectionNav").JobDetailSection,
+  ) => {
     const dest = v as View;
     const returnLabels: Partial<Record<View, string>> = {
       dashboard: "Pulpit",
@@ -1036,13 +1066,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     } else if (dest !== "jobs" && dest !== "inspector") {
       setViewReturn(null);
     }
-    if (jobId) {
-      if (v === "inspector") setPendingInspectorJobId(jobId);
-      else setPendingJobId(jobId);
+    if (jobId && dest === "jobs") {
+      setPendingJobId(jobId);
+      setPendingJobSection(jobSection ?? "summary");
     }
     if (payrollEmpId) setPendingPayrollEmpId(payrollEmpId);
-    if (inspectorTab) setInspectorInitialTab(inspectorTab);
-    else if (v !== "inspector") setInspectorInitialTab("activity");
     setView(dest);
     setMobileMoreOpen(false);
   }, [view]);
@@ -1187,17 +1215,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           setJobs={setJobs}
           deleteJobsByIds={deleteJobsByIds}
           pendingJobId={pendingJobId}
-          onInitialJobConsumed={() => setPendingJobId(null)}
-          onGoToInspector={(jobId) => { if (jobId) setPendingInspectorJobId(jobId); setViewReturn({ view: "jobs", label: "Roboty" }); setView("inspector"); }}
+          pendingJobSection={pendingJobSection}
+          onInitialJobConsumed={() => { setPendingJobId(null); setPendingJobSection(null); }}
+          onOpenJobInJobs={openJobInJobs}
+          onGoToInspector={() => { setViewReturn({ view: "jobs", label: "Roboty" }); setView("inspector"); }}
           appSettings={appSettings}
           onOpenTenderFromJobs={(tid) => { setPendingTenderId(tid); setViewReturn({ view: "jobs", label: "Roboty" }); setView("tenders"); }}
-          jobsReturnNav={viewReturn && viewReturn.view !== "jobs" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingJobId(null); } } : undefined}
-          inspectorInitialTab={inspectorInitialTab}
-          pendingInspectorJobId={pendingInspectorJobId}
-          onInitialInspectorJobConsumed={() => setPendingInspectorJobId(null)}
-          inspectorReturnNav={viewReturn && viewReturn.view !== "inspector" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingInspectorJobId(null); } } : undefined}
-          onOpenJobFromGallery={(id) => { setPendingJobId(id); setView("jobs"); }}
-          onOpenJobFromFiles={(id) => { setPendingJobId(id); setView("jobs"); }}
+          jobsReturnNav={viewReturn && viewReturn.view !== "jobs" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingJobId(null); setPendingJobSection(null); } } : undefined}
+          inspectorReturnNav={viewReturn && viewReturn.view !== "inspector" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); } } : undefined}
+          onOpenJobFromGallery={(id) => { setPendingJobId(id); setPendingJobSection("photos"); setView("jobs"); }}
+          onOpenJobFromFiles={(id) => { setPendingJobId(id); setPendingJobSection("files"); setView("jobs"); }}
           pendingTenderId={pendingTenderId}
           onOpenJobFromTender={(id) => { setPendingJobId(id); setView("jobs"); }}
           onSetPendingJobId={setPendingJobId}

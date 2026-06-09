@@ -4,7 +4,16 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.47** (`changelog-data.ts`) · Plan techniczny PDF 20.5A.9 · lokalnie (bez commit)
+**Aktualna wersja UI:** **2.50.48** (`changelog-data.ts`) · Inspektor admin simplification 20.5B.2 · lokalnie (bez commit)
+
+---
+
+## 2.50.48 (2026-06-09) — Inspektor admin simplification (20.5B.2)
+
+* **Inspektor (admin)** — feed monitoringu; CTA „Otwórz w Robotach” z deep linkiem sekcji
+* **Filtry** — Propozycje billing · Uwagi billing · KPI propozycji
+* **Roboty → Pliki** — email plików inspektora (`send-job-files-email`)
+* **Portfolio WM** — na Pulpicie; usunięto `InspectorAdminJobDetail`
 
 ---
 

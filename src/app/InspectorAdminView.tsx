@@ -1,8 +1,9 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import {
   ClipboardCheck, Search, MapPin, FileText, CheckCircle2, Upload,
-  ExternalLink, ChevronRight, ChevronLeft, Filter, LogIn, Eye, LayoutGrid,
+  ExternalLink, ChevronRight, ChevronLeft, Filter, LogIn, Eye,
   MessageSquare, Camera, Calendar, RefreshCw, Trash2, X, ArrowLeft,
+  Wallet, Receipt, Briefcase,
 } from "lucide-react";
 import {
   collectInspectorFeed,
@@ -22,11 +23,10 @@ import {
   getUnseenInspectorFeed,
 } from "@/lib/inspector-stats";
 import { pushKeysToCloudSafe } from "@/lib/cloud-sync";
-import { jobsWithInspectorNotesNeedingAdmin, normalizeJobWmFields } from "@/lib/job-wm";
-import { WmPortfolioView } from "@/app/WmPortfolioView";
-import { InspectorAdminJobDetail } from "@/app/InspectorAdminJobDetail";
+import { jobsWithInspectorNotesNeedingAdmin } from "@/lib/job-wm";
 import type { JobWmJob } from "@/lib/job-wm";
-import type { EmailContact } from "@/lib/email-contacts";
+import type { JobDetailSection } from "@/app/JobDetailSectionNav";
+import { resolveInspectorFeedDeepLink } from "@/lib/inspector-feed-deeplink";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
 
 type FilterKind = "all" | InspectorActivityType;
@@ -53,6 +53,12 @@ function feedTypeIcon(type: InspectorActivityType) {
       return { Icon: MessageSquare, cls: "bg-blue-500/10 text-blue-500" };
     case "inspector_photo":
       return { Icon: Camera, cls: "bg-amber-500/10 text-amber-500" };
+    case "inspector_billing_proposal":
+      return { Icon: Wallet, cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" };
+    case "inspector_billing_note":
+      return { Icon: Receipt, cls: "bg-sky-500/10 text-sky-500" };
+    case "inspector_document":
+      return { Icon: CheckCircle2, cls: "bg-blue-500/10 text-blue-500" };
     default:
       return { Icon: CheckCircle2, cls: "bg-blue-500/10 text-blue-500" };
   }
@@ -62,7 +68,7 @@ const FEED_PAGE_SIZE = 10;
 
 function FeedCard({
   item,
-  onOpenJob,
+  onOpenInJobs,
   onDelete,
   deleteConfirmId,
   onDeleteConfirm,
@@ -71,7 +77,7 @@ function FeedCard({
   viewerRole,
 }: {
   item: InspectorFeedItem;
-  onOpenJob: (jobId: string) => void;
+  onOpenInJobs: (jobId: string, section: JobDetailSection) => void;
   onDelete: (item: InspectorFeedItem) => void;
   deleteConfirmId: string | null;
   onDeleteConfirm: (id: string) => void;
@@ -80,6 +86,7 @@ function FeedCard({
   viewerRole: import("@/lib/admin-auth").AdminRole;
 }) {
   const { Icon, cls } = feedTypeIcon(item.type);
+  const { section, sectionLabel } = resolveInspectorFeedDeepLink(item);
   const confirming = deleteConfirmId === item.id;
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -99,18 +106,23 @@ function FeedCard({
             {" · "}
             {fmtDateTime(item.at)}
           </p>
-          <button
-            type="button"
-            onClick={() => onOpenJob(item.jobId)}
-            className="mt-2 flex items-center gap-1.5 text-xs text-primary hover:underline text-left"
-          >
-            <MapPin size={11} className="shrink-0"/>
+          <p className="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-1">
+            <MapPin size={10} className="shrink-0"/>
             <span className="truncate">
               {item.jobAddress || "Bez adresu"}
               {item.jobFlat ? ` m.${item.jobFlat}` : ""}
               {item.jobClient ? ` · ${item.jobClient}` : ""}
             </span>
-            <ChevronRight size={11} className="shrink-0"/>
+          </p>
+          <button
+            type="button"
+            onClick={() => onOpenInJobs(item.jobId, section)}
+            className="mt-2 inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
+          >
+            <Briefcase size={12}/>
+            Otwórz w Robotach
+            <span className="opacity-80">→ {sectionLabel}</span>
+            <ChevronRight size={11}/>
           </button>
         </div>
         <div className="flex flex-col items-end gap-1.5 shrink-0">
@@ -165,13 +177,8 @@ export function InspectorAdminView({
   setJobs,
   directory,
   adminUserId,
-  adminDisplayName = "Administrator",
   adminRole = "admin",
-  initialTab = "activity",
-  initialJobId,
-  onInitialJobConsumed,
-  contacts,
-  athPreviewEnabled,
+  onOpenJobInJobs,
   onAlertsSeen,
   returnNav,
 }: {
@@ -179,45 +186,17 @@ export function InspectorAdminView({
   setJobs: (v: JobWithActivity[] | ((p: JobWithActivity[]) => JobWithActivity[])) => void;
   directory: { id: string; name: string; phone: string; position?: string }[];
   adminUserId?: string;
-  adminDisplayName?: string;
   adminRole?: import("@/lib/admin-auth").AdminRole;
-  initialTab?: "activity" | "portfolio";
-  initialJobId?: string | null;
-  onInitialJobConsumed?: () => void;
-  contacts: EmailContact[];
-  athPreviewEnabled: boolean;
+  onOpenJobInJobs: (jobId: string, section: JobDetailSection) => void;
   onAlertsSeen?: () => void;
   returnNav?: { label: string; onBack: () => void };
 }) {
-  const [tab, setTab] = useState<"activity" | "portfolio">(initialTab);
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterKind>("all");
   const [feedPage, setFeedPage] = useState(0);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [statsStore, setStatsStore] = useState<InspectorStatsStore | null>(null);
   const [statsRefreshing, setStatsRefreshing] = useState(false);
-
-  useEffect(() => {
-    setTab(initialTab);
-  }, [initialTab]);
-
-  useEffect(() => {
-    if (!initialJobId) return;
-    if (jobs.some((j) => j.id === initialJobId)) {
-      setSelectedJobId(initialJobId);
-    }
-    onInitialJobConsumed?.();
-  }, [initialJobId, jobs, onInitialJobConsumed]);
-
-  const openJob = (jobId: string) => setSelectedJobId(jobId);
-
-  const selectedJob = jobs.find((j) => j.id === selectedJobId) ?? null;
-
-  const updateJob = (updated: JobWithActivity) => {
-    const next = normalizeJobWmFields(updated) as JobWithActivity;
-    setJobs((prev) => prev.map((j) => (j.id === next.id ? next : j)));
-  };
 
   const notesNeedingAdmin = useMemo(
     () => jobsWithInspectorNotesNeedingAdmin(jobs as JobWmJob[], getAdminJobNotesSeenAt(adminUserId)).length,
@@ -305,6 +284,7 @@ export function InspectorAdminView({
     total: feed.length,
     docs: feed.filter((i) => i.type === "inspector_document").length,
     files: feed.filter((i) => i.type === "inspector_file").length,
+    billingProposals: feed.filter((i) => i.type === "inspector_billing_proposal").length,
     stages: feed.filter((i) => i.type === "inspector_stage").length,
     notes: feed.filter((i) => i.type === "inspector_note").length,
     photos: feed.filter((i) => i.type === "inspector_photo").length,
@@ -323,32 +303,16 @@ export function InspectorAdminView({
     { key: "inspector_document", label: "Dokumenty" },
     { key: "inspector_file", label: "Pliki" },
     { key: "inspector_stage", label: "Etapy" },
-    { key: "inspector_note", label: "Notatki" },
+    { key: "inspector_note", label: "Notatki WM" },
     { key: "inspector_photo", label: "Zdjęcia" },
+    { key: "inspector_billing_proposal", label: "Propozycje billing" },
+    { key: "inspector_billing_note", label: "Uwagi billing" },
   ];
 
   const directoryContacts = useMemo(
     () => directory.map((d) => ({ name: d.name, phone: d.phone })),
     [directory],
   );
-
-  if (selectedJob) {
-    return (
-      <div className="flex flex-1 min-h-0 w-full overflow-hidden">
-        <InspectorAdminJobDetail
-          job={selectedJob}
-          onUpdate={updateJob}
-          onBack={() => setSelectedJobId(null)}
-          returnNav={returnNav}
-          actorName={adminDisplayName}
-          actorAdminRole={adminRole !== "inspector" ? adminRole : "admin"}
-          contacts={contacts}
-          athPreviewEnabled={athPreviewEnabled}
-          directory={directory}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-1 min-h-0 w-full overflow-hidden">
@@ -366,211 +330,175 @@ export function InspectorAdminView({
               <ArrowLeft size={16}/>Wróć do {returnNav.label}
             </button>
           )}
-          <div className="flex gap-2 flex-wrap">
-            <button
-              type="button"
-              onClick={() => setTab("activity")}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium ${tab === "activity" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
-            >
-              <ClipboardCheck size={13}/> Aktywność
-              {unseenCount > 0 && tab !== "activity" && (
-                <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-bold">{unseenCount}</span>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab("portfolio")}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium ${tab === "portfolio" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
-            >
-              <LayoutGrid size={13}/> Portfolio WM
-            </button>
+
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                <ClipboardCheck size={20} className="text-emerald-600 dark:text-emerald-400"/>
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-base font-semibold">Aktywność inspektora</h2>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                  Monitoring zmian z aplikacji inspektora. Akcje operacyjne — w zakładce Roboty.
+                </p>
+              </div>
+            </div>
+            {unseenCount > 0 && (
+              <button
+                type="button"
+                onClick={handleMarkSeen}
+                className="shrink-0 text-[11px] px-3 py-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 font-medium"
+              >
+                Oznacz przeczytane ({unseenCount})
+              </button>
+            )}
           </div>
 
-          {tab === "portfolio" ? (
-            <WmPortfolioView jobs={jobs as JobWmJob[]} onOpenJob={openJob} notesNeedingAdmin={notesNeedingAdmin} embedded/>
-          ) : (
-            <>
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-start gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
-                  <ClipboardCheck size={20} className="text-emerald-600 dark:text-emerald-400"/>
-                </div>
-                <div className="min-w-0">
-                  <h2 className="text-base font-semibold">Aktywność inspektora</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                    Wpisy z aplikacji inspektora: dokumenty, pliki, etapy WM, notatki. Kliknij adres — szczegóły roboty.
-                  </p>
-                </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {[
+              { label: "Wszystkie", value: stats.total },
+              { label: "Dokumenty", value: stats.docs },
+              { label: "Pliki", value: stats.files },
+              { label: "Propozycje billing", value: stats.billingProposals },
+              { label: "Roboty", value: stats.jobs },
+            ].map((s) => (
+              <div key={s.label} className="bg-secondary/50 rounded-xl px-3 py-2.5 border border-border">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{s.label}</p>
+                <p className="text-lg font-semibold mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{s.value}</p>
               </div>
-              {unseenCount > 0 && (
+            ))}
+          </div>
+
+          {loginStats && (
+            <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                  <LogIn size={12}/> Statystyki logowań i wejść
+                </p>
                 <button
                   type="button"
-                  onClick={handleMarkSeen}
-                  className="shrink-0 text-[11px] px-3 py-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 font-medium"
+                  onClick={refreshStats}
+                  disabled={statsRefreshing}
+                  className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg hover:bg-secondary disabled:opacity-50"
                 >
-                  Oznacz przeczytane ({unseenCount})
+                  <RefreshCw size={11} className={statsRefreshing ? "animate-spin" : ""}/>
+                  Odśwież
                 </button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {[
-                { label: "Wszystkie", value: stats.total },
-                { label: "Dokumenty", value: stats.docs },
-                { label: "Pliki", value: stats.files },
-                { label: "Roboty", value: stats.jobs },
-              ].map((s) => (
-                <div key={s.label} className="bg-secondary/50 rounded-xl px-3 py-2.5 border border-border">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{s.label}</p>
-                  <p className="text-lg font-semibold mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{s.value}</p>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center sm:text-left">
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Logowania (7 dni)</p>
+                  <p className="text-base font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{loginStats.loginsLast7Days}</p>
                 </div>
-              ))}
-            </div>
-
-            {loginStats && (
-              <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
-                    <LogIn size={12}/> Statystyki logowań i wejść
-                  </p>
-                  <button
-                    type="button"
-                    onClick={refreshStats}
-                    disabled={statsRefreshing}
-                    className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg hover:bg-secondary disabled:opacity-50"
-                  >
-                    <RefreshCw size={11} className={statsRefreshing ? "animate-spin" : ""}/>
-                    Odśwież
-                  </button>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Wejścia (7 dni)</p>
+                  <p className="text-base font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{loginStats.visitsLast7Days}</p>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center sm:text-left">
-                  <div>
-                    <p className="text-[10px] text-muted-foreground">Logowania (7 dni)</p>
-                    <p className="text-base font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{loginStats.loginsLast7Days}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground">Wejścia (7 dni)</p>
-                    <p className="text-base font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{loginStats.visitsLast7Days}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground">Ostatnie logowanie</p>
-                    <p className="text-[11px] font-medium mt-0.5">{fmtInspectorStatsTime(loginStats.lastLoginAt)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground">Ostatnie wejście</p>
-                    <p className="text-[11px] font-medium mt-0.5">{fmtInspectorStatsTime(loginStats.lastVisitAt)}</p>
-                  </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Ostatnie logowanie</p>
+                  <p className="text-[11px] font-medium mt-0.5">{fmtInspectorStatsTime(loginStats.lastLoginAt)}</p>
                 </div>
-                {loginStats.byUser.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-1 border-t border-emerald-500/10">
-                    {loginStats.byUser.map((u) => (
-                      <span key={u.userId} className="text-[10px] bg-secondary px-2 py-1 rounded-full text-muted-foreground">
-                        <Eye size={9} className="inline mr-0.5 -mt-px"/>
-                        {u.displayName}: {u.logins} log. / {u.visits} wej.
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Ostatnie wejście</p>
+                  <p className="text-[11px] font-medium mt-0.5">{fmtInspectorStatsTime(loginStats.lastVisitAt)}</p>
+                </div>
               </div>
-            )}
-
-            <div className="flex flex-col gap-2">
-              <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Szukaj adresu, klienta, inspektora…"
-                  className="w-full bg-secondary rounded-xl pl-9 pr-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
-                />
-              </div>
-              <div className="flex gap-1.5 flex-wrap">
-                {filterButtons.map((f) => (
-                  <button
-                    key={f.key}
-                    type="button"
-                    onClick={() => setFilter(f.key)}
-                    className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${filter === f.key ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
-                  >
-                    {f.key !== "all" && <Filter size={11}/>}
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {filtered.length === 0 ? (
-              <div className="text-center py-16 space-y-2">
-                <ClipboardCheck size={32} className="mx-auto text-muted-foreground/30"/>
-                <p className="text-sm text-muted-foreground">
-                  {feed.length === 0
-                    ? "Inspektor jeszcze nic nie zmienił — wpisy pojawią się po zaznaczeniu dokumentów lub wgraniu plików."
-                    : "Brak wyników dla wybranych filtrów."}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-[11px] text-muted-foreground px-1">
-                  Wpisy {feedRangeFrom}–{feedRangeTo} z {filtered.length}
-                  {filter !== "all" || search.trim() ? " (po filtrze)" : ""}
-                </p>
-                <div className="space-y-2">
-                  {pagedFeed.map((item) => (
-                    <FeedCard
-                      key={item.id}
-                      item={item}
-                      onOpenJob={openJob}
-                      onDelete={handleDeleteFeedItem}
-                      deleteConfirmId={deleteConfirmId}
-                      onDeleteConfirm={setDeleteConfirmId}
-                      onDeleteCancel={() => setDeleteConfirmId(null)}
-                      directoryContacts={directoryContacts}
-                      viewerRole={adminRole}
-                    />
+              {loginStats.byUser.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-1 border-t border-emerald-500/10">
+                  {loginStats.byUser.map((u) => (
+                    <span key={u.userId} className="text-[10px] bg-secondary px-2 py-1 rounded-full text-muted-foreground">
+                      <Eye size={9} className="inline mr-0.5 -mt-px"/>
+                      {u.displayName}: {u.logins} log. / {u.visits} wej.
+                    </span>
                   ))}
                 </div>
-                {feedTotalPages > 1 && (
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-border">
-                    <p className="text-xs text-muted-foreground">
-                      Strona <span className="font-semibold text-foreground">{safeFeedPage + 1}</span> z {feedTotalPages}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => { setFeedPage((p) => Math.max(0, p - 1)); setDeleteConfirmId(null); }}
-                        disabled={safeFeedPage === 0}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border border-border bg-card hover:bg-secondary disabled:opacity-40 disabled:pointer-events-none transition-colors"
-                      >
-                        <ChevronLeft size={14}/>
-                        Poprzednia
-                      </button>
-                      <div className="hidden sm:flex items-center gap-1">
-                        {Array.from({ length: feedTotalPages }, (_, i) => i).map((i) => (
-                          <button
-                            key={i}
-                            type="button"
-                            onClick={() => { setFeedPage(i); setDeleteConfirmId(null); }}
-                            className={`min-w-[2rem] h-8 rounded-lg text-xs font-medium transition-colors ${i === safeFeedPage ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}
-                          >
-                            {i + 1}
-                          </button>
-                        ))}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => { setFeedPage((p) => Math.min(feedTotalPages - 1, p + 1)); setDeleteConfirmId(null); }}
-                        disabled={safeFeedPage >= feedTotalPages - 1}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border border-border bg-card hover:bg-secondary disabled:opacity-40 disabled:pointer-events-none transition-colors"
-                      >
-                        Następna
-                        <ChevronRight size={14}/>
-                      </button>
-                    </div>
-                  </div>
-                )}
+              )}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2">
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Szukaj adresu, klienta, inspektora…"
+                className="w-full bg-secondary rounded-xl pl-9 pr-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
+              />
+            </div>
+            <div className="flex gap-1.5 flex-wrap">
+              {filterButtons.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setFilter(f.key)}
+                  className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${filter === f.key ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
+                >
+                  {f.key !== "all" && <Filter size={11}/>}
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filtered.length === 0 ? (
+            <div className="text-center py-16 space-y-2">
+              <ClipboardCheck size={32} className="mx-auto text-muted-foreground/30"/>
+              <p className="text-sm text-muted-foreground">
+                {feed.length === 0
+                  ? "Inspektor jeszcze nic nie zmienił — wpisy pojawią się po zaznaczeniu dokumentów lub wgraniu plików."
+                  : "Brak wyników dla wybranych filtrów."}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-[11px] text-muted-foreground px-1">
+                Wpisy {feedRangeFrom}–{feedRangeTo} z {filtered.length}
+                {filter !== "all" || search.trim() ? " (po filtrze)" : ""}
+              </p>
+              <div className="space-y-2">
+                {pagedFeed.map((item) => (
+                  <FeedCard
+                    key={item.id}
+                    item={item}
+                    onOpenInJobs={onOpenJobInJobs}
+                    onDelete={handleDeleteFeedItem}
+                    deleteConfirmId={deleteConfirmId}
+                    onDeleteConfirm={setDeleteConfirmId}
+                    onDeleteCancel={() => setDeleteConfirmId(null)}
+                    directoryContacts={directoryContacts}
+                    viewerRole={adminRole}
+                  />
+                ))}
               </div>
-            )}
-            </>
+              {feedTotalPages > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-border">
+                  <p className="text-xs text-muted-foreground">
+                    Strona <span className="font-semibold text-foreground">{safeFeedPage + 1}</span> z {feedTotalPages}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setFeedPage((p) => Math.max(0, p - 1)); setDeleteConfirmId(null); }}
+                      disabled={safeFeedPage === 0}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border border-border bg-card hover:bg-secondary disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                    >
+                      <ChevronLeft size={14}/>
+                      Poprzednia
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setFeedPage((p) => Math.min(feedTotalPages - 1, p + 1)); setDeleteConfirmId(null); }}
+                      disabled={safeFeedPage >= feedTotalPages - 1}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border border-border bg-card hover:bg-secondary disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                    >
+                      Następna
+                      <ChevronRight size={14}/>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

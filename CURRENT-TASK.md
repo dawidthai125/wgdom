@@ -4,49 +4,43 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-09  
-**Wersja UI (lokalnie):** **2.50.47** — Plan techniczny PDF 20.5A.9  
+**Wersja UI (lokalnie):** **2.50.48** — Inspektor admin simplification 20.5B.2  
 **Prod `origin/main`:** **`134431f`** · v2.50.46 · https://www.wgdom.fun  
-**Status:** **IMPLEMENT lokalny 20.5A.9** · **bez commit / push / deploy**  
-**Handoff:** [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)
+**Status:** **IMPLEMENT lokalny 20.5B.2** · **bez commit / push / deploy**
 
 ---
 
-## Sprint 20.5A.9 — Technical Drawing Workflow (**IMPLEMENT lokalny**)
+## Sprint 20.5B.2 — Inspector Admin Simplification (**IMPLEMENT lokalny**)
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja** | **2.50.47** |
-| **Zakres** | `plan_techniczny` PDF · sync `documents.rysunek` · admin upload · inspektor read-only |
+| **Wersja** | **2.50.48** |
+| **Zakres** | Feed hub admin · deep linki Roboty · email plików · Portfolio WM → Pulpit · DELETE `InspectorAdminJobDetail` |
+
+### Kluczowe pliki
+
+| Plik | Rola |
+|------|------|
+| `src/lib/inspector-feed-deeplink.ts` | Mapa typ feedu → sekcja Roboty |
+| `src/app/InspectorAdminView.tsx` | Feed monitoringu (bez karty roboty) |
+| `src/app/JobsView.tsx` | `initialJobSection` + `JobInspectorFilesPanel` w Pliki |
+| `src/app/DashboardView.tsx` | `WmPortfolioView` na Pulpicie |
+| `src/app/App.tsx` | `pendingJobSection` · `openJobInJobs` |
 
 ### Smoke / build (lokalnie)
 
 | Test | Wynik |
 |------|-------|
-| `smoke-test-technical-drawing-20.5a9.mjs` | **21/21 PASS** |
-| `smoke-test-media-separation-20.5a8.mjs` | **18/18 PASS** |
-| `smoke-test-inspector-billing-proposal-20.5a6.mjs` | **59/59 PASS** |
+| `smoke-test-inspector-admin-simplification-20.5b2.mjs` | uruchomić |
 | `npm run build` | **PASS** |
 
-### Kluczowe pliki
+### Następne (po commit)
 
-`job-documents.ts` · `JobsView.tsx` · `InspectorJobFileUpload.tsx` · `media-separation.ts` · `job-documents-pack.ts`
-
-### Następny
-
-Commit + deploy na polecenie użytkownika.
+- Deploy Vercel po push `main`
+- Weryfikacja prod: feed → Roboty, email plików, Portfolio na Pulpicie
 
 ---
 
-## Sprint 20.5A.8 — Media Library UX Scope A (**RELEASED** prod)
+## Sprint 20.5A.9 — Technical Drawing Workflow (**RELEASED lokalnie 2.50.47**)
 
-| Pole | Wartość |
-|------|---------|
-| **Wersja** | **2.50.46** |
-| **Commit** | **`134431f`** |
-| **Deploy** | **4990788355** |
-
----
-
-## Backlog (bez polecenia)
-
-- Generic attachments poza zlec/kosz/plan (osobny sprint)
+Pełny opis w [`CHANGELOG.md`](CHANGELOG.md) · commit oczekuje na polecenie użytkownika.

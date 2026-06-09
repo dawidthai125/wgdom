@@ -101,7 +101,7 @@ export type AdminViewRouterProps = {
     v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule",
     jobId?: string,
     payrollEmpId?: string,
-    inspectorTab?: "activity" | "portfolio",
+    jobSection?: import("@/app/JobDetailSectionNav").JobDetailSection,
   ) => void;
   onFixJobs: (jobs: Job[] | ((prev: Job[]) => Job[])) => void;
   setWeekFrom: (v: string) => void;
@@ -129,14 +129,13 @@ export type AdminViewRouterProps = {
   setJobs: (jobs: Job[] | ((prev: Job[]) => Job[])) => void;
   deleteJobsByIds: (ids: string[]) => Promise<void>;
   pendingJobId: string | null;
+  pendingJobSection: import("@/app/JobDetailSectionNav").JobDetailSection | null;
   onInitialJobConsumed: () => void;
-  onGoToInspector: (jobId?: string) => void;
+  onOpenJobInJobs: (jobId: string, section: import("@/app/JobDetailSectionNav").JobDetailSection) => void;
+  onGoToInspector: () => void;
   appSettings: AppSettings;
   onOpenTenderFromJobs: (tid: string) => void;
   jobsReturnNav: { label: string; onBack: () => void } | undefined;
-  inspectorInitialTab: "activity" | "portfolio";
-  pendingInspectorJobId: string | null;
-  onInitialInspectorJobConsumed: () => void;
   inspectorReturnNav: { label: string; onBack: () => void } | undefined;
   onOpenJobFromGallery: (id: string) => void;
   onOpenJobFromFiles: (id: string) => void;
@@ -203,14 +202,13 @@ export function AdminViewRouter({
   setJobs,
   deleteJobsByIds,
   pendingJobId,
+  pendingJobSection,
   onInitialJobConsumed,
+  onOpenJobInJobs,
   onGoToInspector,
   appSettings,
   onOpenTenderFromJobs,
   jobsReturnNav,
-  inspectorInitialTab,
-  pendingInspectorJobId,
-  onInitialInspectorJobConsumed,
   inspectorReturnNav,
   onOpenJobFromGallery,
   onOpenJobFromFiles,
@@ -382,6 +380,7 @@ export function AdminViewRouter({
               contacts={contacts}
               onManageContacts={() => onSetView("contacts")}
               initialJobId={pendingJobId}
+              initialJobSection={pendingJobSection}
               onInitialJobConsumed={onInitialJobConsumed}
               weekEmployees={productionWeekEmployees}
               weekFrom={weekFrom}
@@ -405,13 +404,8 @@ export function AdminViewRouter({
               setJobs={setJobs}
               directory={directory}
               adminUserId={adminSession?.id}
-              adminDisplayName={adminSession?.displayName || "Administrator"}
               adminRole={adminSession?.role}
-              initialTab={inspectorInitialTab}
-              initialJobId={pendingInspectorJobId}
-              onInitialJobConsumed={onInitialInspectorJobConsumed}
-              contacts={contacts}
-              athPreviewEnabled={appSettings.athPreviewEnabled}
+              onOpenJobInJobs={onOpenJobInJobs}
               onAlertsSeen={onAlertsSeen}
               returnNav={inspectorReturnNav}
             />

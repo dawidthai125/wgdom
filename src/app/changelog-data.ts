@@ -12,6 +12,18 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.48",
+    label: "Inspektor admin — monitoring + deep linki do Roboty (20.5B.2)",
+    items: [
+      { type: "improve", text: "Zakładka Inspektor (admin) — tylko feed aktywności, nieprzeczytane, KPI i statystyki logowań; akcje operacyjne w Robotach" },
+      { type: "improve", text: "Feed inspektora — „Otwórz w Robotach” z automatyczną sekcją (Dokumenty, Pliki, Zdjęcia, Przegląd/billing)" },
+      { type: "new", text: "Filtry feedu: Propozycje billing · Uwagi billing · KPI propozycji" },
+      { type: "improve", text: "Roboty → Pliki — wysyłka plików inspektora emailem (send-job-files-email), podgląd i usuwanie" },
+      { type: "improve", text: "Portfolio WM przeniesione na Pulpit; usunięto duplikat karty roboty w Inspektorze admin" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.47",
     label: "Plan techniczny PDF — workflow rysunku (20.5A.9)",
     items: [

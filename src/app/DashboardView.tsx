@@ -21,6 +21,7 @@ import {
   reportNeedsAdminAttention, jobTotalCost, todayDayKey, todayIsoDate,
   jobsForEmployeeOnDashboard, formatJobStreet,
 } from "@/app/app-domain";
+import type { JobDetailSection } from "@/app/JobDetailSectionNav";
 import { useAdminAccess } from "@/app/admin-access";
 import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import {
@@ -43,7 +44,10 @@ import {
   inferHandoverStage,
   computeWmPortfolioStats,
   jobsWithInspectorNotesNeedingAdmin,
+  type JobWmJob,
 } from "@/lib/job-wm";
+import { resolveInspectorFeedDeepLink } from "@/lib/inspector-feed-deeplink";
+import { WmPortfolioView } from "@/app/WmPortfolioView";
 import { jobMissingRequiredDocs } from "@/lib/job-list-status";
 import { getReportWorkScopeText } from "@/lib/work-scope-text";
 import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
@@ -78,7 +82,7 @@ export function DashboardView({
   savedWeeks: WeekSnapshot[];
   employeeLeaves?: EmployeeLeave[];
   recoverableCharges?: RecoverableCharge[];
-  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule" | "inspector" | "recoverablecharges", jobId?: string, payrollEmpId?: string, inspectorTab?: "activity" | "portfolio") => void;
+  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule" | "inspector" | "recoverablecharges", jobId?: string, payrollEmpId?: string, jobSection?: JobDetailSection) => void;
   onFixJobs: (updater: (prev: Job[]) => Job[]) => void;
   adminUserId?: string;
   alertsSeenTick: number;
@@ -457,7 +461,7 @@ export function DashboardView({
           </button>
           <button
             type="button"
-            onClick={() => onNavigate("inspector", undefined, undefined, "portfolio")}
+            onClick={() => document.getElementById("wm-portfolio")?.scrollIntoView({ behavior: "smooth", block: "start" })}
             className="bg-card border border-emerald-500/20 rounded-xl px-4 py-3 text-left hover:border-emerald-500/40 transition-colors"
           >
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
@@ -892,7 +896,7 @@ export function DashboardView({
                       <button
                         key={item.id}
                         type="button"
-                        onClick={() => onNavigate("inspector", item.jobId)}
+                        onClick={() => onNavigate("jobs", item.jobId, undefined, resolveInspectorFeedDeepLink(item).section)}
                         className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <span className="text-emerald-600 dark:text-emerald-400 font-medium">{item.actor}</span>
@@ -920,7 +924,7 @@ export function DashboardView({
                         {wmOverdueJobs.length}
                       </span>
                     </p>
-                    <button type="button" onClick={() => onNavigate("inspector", undefined, undefined, "portfolio")} className="text-xs text-primary hover:underline shrink-0">
+                    <button type="button" onClick={() => document.getElementById("wm-portfolio")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="text-xs text-primary hover:underline shrink-0">
                       Portfolio WM →
                     </button>
                   </div>
@@ -929,7 +933,7 @@ export function DashboardView({
                       <button
                         key={job.id}
                         type="button"
-                        onClick={() => onNavigate("inspector", job.id, undefined, "portfolio")}
+                        onClick={() => onNavigate("jobs", job.id, undefined, "summary")}
                         className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <span className="text-foreground">{job.address || "Bez adresu"}</span>
@@ -956,7 +960,7 @@ export function DashboardView({
                         {wmThisWeekJobs.length}
                       </span>
                     </p>
-                    <button type="button" onClick={() => onNavigate("inspector", undefined, undefined, "portfolio")} className="text-xs text-primary hover:underline shrink-0">
+                    <button type="button" onClick={() => document.getElementById("wm-portfolio")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="text-xs text-primary hover:underline shrink-0">
                       Portfolio WM →
                     </button>
                   </div>
@@ -965,7 +969,7 @@ export function DashboardView({
                       <button
                         key={job.id}
                         type="button"
-                        onClick={() => onNavigate("inspector", job.id, undefined, "portfolio")}
+                        onClick={() => onNavigate("jobs", job.id, undefined, "summary")}
                         className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <span className="text-foreground">{job.address || "Bez adresu"}</span>
@@ -1009,7 +1013,7 @@ export function DashboardView({
                         <button
                           key={job.id}
                           type="button"
-                          onClick={() => onNavigate("inspector", job.id)}
+                          onClick={() => onNavigate("jobs", job.id, undefined, "summary")}
                           className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
                         >
                           <span className="text-foreground">{job.address || "Bez adresu"}</span>
@@ -1219,6 +1223,15 @@ export function DashboardView({
               </div>
             )}
           </button>
+        </div>
+
+        <div id="wm-portfolio" className="scroll-mt-4">
+          <WmPortfolioView
+            jobs={jobs as JobWmJob[]}
+            notesNeedingAdmin={inspectorNotesPending.length}
+            embedded
+            onOpenJob={(jobId) => onNavigate("jobs", jobId, undefined, "summary")}
+          />
         </div>
 
       </div>

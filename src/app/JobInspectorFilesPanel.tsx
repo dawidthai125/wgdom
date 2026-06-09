@@ -73,6 +73,7 @@ export function JobInspectorFilesPanel({
   packSource,
   title = "Pliki roboty",
   uploadSlot,
+  hidePackButton = false,
   readOnly = false,
 }: {
   jobId: string;
@@ -87,6 +88,8 @@ export function JobInspectorFilesPanel({
   packSource?: JobPackSource;
   title?: string;
   uploadSlot?: ReactNode;
+  /** Ukryj przycisk ZIP gdy pack jest już w sekcji nadrzędnej (Roboty → Pliki). */
+  hidePackButton?: boolean;
   /** Inspektor: tylko podgląd i pobieranie (bez email, zaznaczania, usuwania). */
   readOnly?: boolean;
 }) {
@@ -147,7 +150,7 @@ export function JobInspectorFilesPanel({
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {uploadSlot}
-            {packSource && (
+            {packSource && !hidePackButton && (
             <button
               type="button"
               disabled={packBusy}
@@ -184,7 +187,7 @@ export function JobInspectorFilesPanel({
             <span className="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full text-muted-foreground">{items.length}</span>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {packSource && (
+            {packSource && !hidePackButton && (
               <button
                 type="button"
                 disabled={packBusy}

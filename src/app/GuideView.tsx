@@ -358,7 +358,8 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Dokumenty i zakresy", a:"Checklista dokumentów (zlecenie, zakres, kominiarz, pomiary…). Sekcja raportów pracowników: zakres prac, wymiary pomieszczeń, zdjęcia rysunków z opisami."},
               {q:"Galeria zdjęć", a:"Tylko zdjęcia zaakceptowane przez admina. Rozwiń robotę → „Pobierz galerię ZIP” (foldery: przed / w trakcie / po) lub „ZIP kategorii”. Nazwy plików: ulica, data, kategoria."},
               {q:"Kto zarządza kontem inspektora?", a:"Super Administrator (Dawid) w panelu ⚙ — zmiana hasła, dodawanie kolejnych inspektorów. Hasła sync w chmurze jak u adminów."},
-              {q:"Gdzie admin widzi zmiany inspektora?", a:"Pulpit → „Uwaga dziś” (nowe zmiany od ostatniego przeczytania) oraz zakładka Inspektor — oś czasu + statystyki logowań. W Robotach sekcja Zlecenie · Kosztorys na żywo."},
+              {q:"Gdzie admin widzi zmiany inspektora?", a:"Pulpit → „Uwaga dziś” (nowe zmiany) oraz zakładka Inspektor — feed aktywności + statystyki logowań. Klik „Otwórz w Robotach” na wpisie otwiera właściwą sekcję roboty (Dokumenty, Pliki, Zdjęcia, Przegląd/billing). Inspektor = monitoring; Roboty = działania."},
+              {q:"Inspektor (admin) vs Roboty — podział ról", a:"Zakładka Inspektor w panelu administratora służy wyłącznie do monitorowania aktywności inspektora terenowego (feed, nieprzeczytane, KPI). Upload plików, checklista dokumentów, odpowiedź WM, zatwierdzanie propozycji billing i wysyłka plików emailem — w zakładce Roboty. Portfolio WM jest na Pulpicie."},
               {q:"Instrukcja dla inspektora", a:"W panelu inspektora: przycisk Pomoc / baner przy pierwszym wejściu. Dymki ? przy sekcjach wyjaśniają co kliknąć. Instrukcja opisuje zlecenia, kosztorysy NORMA, dokumenty, zdjęcia i raporty."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">

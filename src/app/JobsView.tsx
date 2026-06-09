@@ -18,6 +18,7 @@ import { JobCostBreakdownPanel } from "@/app/JobCostBreakdownPanel";
 import { JobRecoverableChargesPanel, type BillingNotePendingFiles } from "@/app/JobRecoverableChargesPanel";
 import { JobCreateRecoverableChargeModal } from "@/app/JobCreateRecoverableChargeModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
+import { JobInspectorFilesPanel } from "@/app/JobInspectorFilesPanel";
 import { JobListPrimaryBadge, JobPhasePicker, applyJobPhase } from "@/app/JobListStatus";
 import { JobListCardV2 } from "@/app/JobListCardV2";
 import { JobListPanelHeader } from "@/app/JobListPanelHeader";
@@ -525,6 +526,7 @@ export function JobsView({
   contacts,
   onManageContacts,
   initialJobId,
+  initialJobSection,
   onInitialJobConsumed,
   weekEmployees,
   weekFrom,
@@ -544,10 +546,11 @@ export function JobsView({
   contacts: EmailContact[];
   onManageContacts: () => void;
   initialJobId?: string | null;
+  initialJobSection?: JobDetailSection | null;
   onInitialJobConsumed?: () => void;
   weekEmployees: WeekEmployee[];
   weekFrom: string;
-  onGoToInspector?: (jobId?: string) => void;
+  onGoToInspector?: () => void;
   athPreviewEnabled: boolean;
   returnNav?: { label: string; onBack: () => void };
   onOpenTender?: (tenderId: string) => void;
@@ -609,9 +612,10 @@ export function JobsView({
     if (!initialJobId) return;
     if (jobs.some((j) => j.id === initialJobId)) {
       setSelectedJobId(initialJobId);
+      if (initialJobSection) setDetailSection(initialJobSection);
     }
     onInitialJobConsumed?.();
-  }, [initialJobId, jobs, onInitialJobConsumed]);
+  }, [initialJobId, initialJobSection, jobs, onInitialJobConsumed]);
 
   const selectedJob = jobs.find(j=>j.id===selectedJobId)||null;
   const productionDirectory = useMemo(
@@ -861,6 +865,38 @@ export function JobsView({
     if (!selectedJob) return;
     if (item.previewItem.kind === "jobFile") {
       await handleDeleteJobFile(item.previewItem.file, item.id);
+    }
+  };
+
+  const handleDeleteInspectorFileItem = async (item: InspectorFileItem) => {
+    if (!selectedJob) return;
+    const label = item.kind === "jobFile"
+      ? item.file.filename
+      : (item.file.caption || "zdjęcie inspektora");
+    if (!window.confirm(`Usunąć „${label}”?\n\nPlik zostanie usunięty ze storage i zniknie wszędzie w aplikacji.`)) {
+      return;
+    }
+    const path = item.kind === "jobFile"
+      ? resolveJobFileStoragePath(item.file)
+      : item.file.path;
+    if (path) {
+      const { ok, error } = await deleteJobFile(path);
+      if (!ok) {
+        window.alert(error || "Nie udało się usunąć pliku ze storage");
+        return;
+      }
+    }
+    const now = new Date().toISOString();
+    if (item.kind === "jobFile") {
+      updateJob(
+        removeJobFileAttachment({ ...selectedJob, updatedAt: now }, item.file.id),
+        { type: "inspector_file", text: `Usunięto plik: ${label}` },
+      );
+    } else if (item.kind === "inspectorPhoto") {
+      updateJob(
+        { ...removeInspectorPhoto({ ...selectedJob, updatedAt: now }, item.file.id), updatedAt: now },
+        { type: "inspector_photo", text: `Usunięto zdjęcie: ${label}` },
+      );
     }
   };
 
@@ -1903,7 +1939,7 @@ export function JobsView({
                     return (
                       <button
                         type="button"
-                        onClick={() => onGoToInspector(selectedJob.id)}
+                        onClick={() => onGoToInspector()}
                         className="ml-auto text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
                       >
                         <ClipboardCheck size={11}/>
@@ -1950,7 +1986,7 @@ export function JobsView({
                 </div>
                 <button
                   type="button"
-                  onClick={() => onGoToInspector(selectedJob.id)}
+                  onClick={() => onGoToInspector()}
                   className="shrink-0 flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90 font-medium"
                 >
                   Szczegóły w Inspektorze
@@ -2059,6 +2095,20 @@ export function JobsView({
                 onPreview={(item) => setPreviewItem(item.previewItem)}
                 onDelete={handleDeleteCatalogItem}
                 deleteBusyId={fileDeleteBusy}
+              />
+              <JobInspectorFilesPanel
+                jobId={selectedJob.id}
+                jobAddress={selectedJob.address}
+                jobFlat={selectedJob.flatNumber}
+                jobFiles={selectedJob.jobFiles || []}
+                inspectorPhotos={selectedJob.inspectorPhotos || []}
+                athPreviewEnabled={athPreviewEnabled}
+                contacts={contacts}
+                packSource={selectedJob}
+                hidePackButton
+                title="Wyślij pliki emailem"
+                onEmailSent={(to) => updateJob(selectedJob, { type: "email_sent", text: `Wysłano pliki inspektora na ${to}` })}
+                onDeleteFile={handleDeleteInspectorFileItem}
               />
             </div>
             )}
