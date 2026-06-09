@@ -1,8 +1,10 @@
 # Release Report — Sprint 20.5A.6 (Billing Proposal B1)
 
 **Data:** 2026-06-09  
-**Wersja UI:** **2.50.44** (lokalnie)  
-**Prod baseline:** **2.50.43** (`61cb33b`) — **bez push / bez deploy**
+**Wersja UI:** **2.50.44** (prod)  
+**Commit:** **`99295e5`**  
+**Deploy:** **`4990132607`** — SUCCESS  
+**Production:** https://www.wgdom.fun
 
 ---
 
@@ -63,7 +65,9 @@ Admin → Zgłoszenia inspektora (JobRecoverableChargesPanel)
 | Check | Wynik |
 |-------|-------|
 | `npm run build` | **PASS** |
-| `smoke-test-inspector-billing-proposal-20.5a6.mjs` | **52/52 PASS** (T1–T17) |
+| `smoke-test-inspector-billing-proposal-20.5a6.mjs` | **59/59 PASS** (T1–T20) |
+| `smoke-prod-bundle-2.50.44.mjs` | **9/9 PASS** (wgdom.fun + wgdom.online) |
+| CI Mobile smoke run `27209115716` | **SUCCESS** |
 | `smoke-test-inspector-billing-20.5a3a.mjs` | **28/28 PASS** |
 | `smoke-test-inspector-billing-notes-20.5a4.mjs` | **28/28 PASS** |
 | `smoke-test-inspector-billing-evidence-20.5a5.mjs` | **30/30 PASS** |

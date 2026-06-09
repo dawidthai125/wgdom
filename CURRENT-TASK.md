@@ -4,43 +4,31 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-09  
-**Wersja UI (prod):** **2.50.43** · Polonizacja COMMAND CENTER (20.3B+ FULL)  
-**Wersja lokalna (branch):** **2.50.44** — Billing Proposal 20.5A.6 (**IMPLEMENT DONE, bez push/deploy**)  
-**Prod `origin/main` HEAD:** **`61cb33b`** · https://www.wgdom.fun  
-**Status:** **STABLE** (prod) · **20.5A.6 lokalnie gotowe do review**
+**Wersja UI (prod):** **2.50.44** — Billing Proposal 20.5A.6  
+**Prod `origin/main` HEAD:** **`99295e5`** · https://www.wgdom.fun  
+**Status:** **STABLE** · **RELEASED**
 
 ---
 
-## Release 2.50.44 — Billing Proposal 20.5A.6 (**LOKALNIE, bez deploy**)
+## Release 2.50.44 — Billing Proposal 20.5A.6 (**RELEASED**)
 
 | Pole | Wartość |
 |------|---------|
-| **Release** | **v2.50.44** (CHANGELOG lokalny) |
-| **Wariant** | **B1** — propozycja w `JobNote` / `kw-jobs` → admin approve → `RecoverableCharge` |
-| **Production** | *bez zmian* — prod nadal **2.50.43** |
-| **Handoff billing** | [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md) |
+| **Release** | **v2.50.44** |
+| **Commit** | **`99295e5`** — `feat(billing): add inspector billing proposal workflow (20.5A.6)` |
+| **Deploy** | GitHub **`4990132607`** — **SUCCESS** |
+| **Production** | https://www.wgdom.fun · https://www.wgdom.online |
+| **Raport** | [`docs/RELEASE-REPORT-20.5A.6.md`](docs/RELEASE-REPORT-20.5A.6.md) |
 
-### Zakres 20.5A.6
-
-| Element | Opis |
-|---------|------|
-| **Model** | `billing_proposal` w `JobNote`, `proposalStatus`, helpery w `job-wm.ts` |
-| **Inspektor** | CTA „Zgłoś pozycję”, modal + dowody, push tylko `kw-jobs` |
-| **Admin** | Sekcja „Zgłoszenia inspektora”, approve (modal prefill) / reject |
-| **Sync boundary** | Inspektor **nie** pisze `kw-recoverable-charges`; KPI rośnie dopiero po approve |
-
-### Smoke / build (lokalnie)
+### Smoke / prod
 
 | Test | Wynik |
 |------|-------|
 | `npm run build` | **PASS** |
-| `smoke-test-inspector-billing-proposal-20.5a6.mjs` | **52/52 PASS** |
+| `smoke-test-inspector-billing-proposal-20.5a6.mjs` | **59/59 PASS** |
 | Regresja 20.5A.2–5 | **PASS** |
-
-### Następne (po akceptacji)
-
-- Push `main` → Vercel auto-deploy
-- Test manualny na prod: inspektor zgłasza → admin zatwierdza → badge 💰
+| `smoke-prod-bundle-2.50.44.mjs` | **9/9 PASS** (obie domeny) |
+| CI Mobile smoke (run `27209115716`) | **SUCCESS** |
 
 ---
 
