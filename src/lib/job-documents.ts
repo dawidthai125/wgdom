@@ -27,6 +27,14 @@ export const DOC_LABELS: Record<DocType, string> = {
   zdjecia: "Zdjęcia",
 };
 
+/** UI — jak zaliczana jest pozycja checklisty (20.5B.6A; bez zmiany logiki sync). */
+export const RYSUNEK_PLAN_CHECKLIST_HELP =
+  "Pozycja może zostać zaliczona przez: wymiary pomieszczeń, obrys lokalu lub plan techniczny PDF.";
+
+/** UI — materiał źródłowy ekipy vs plan techniczny PDF (20.5B.6A). */
+export const JOB_DOCUMENTATION_SOURCE_HELP =
+  "Obrys lokalu i wymiary są materiałem źródłowym do wykonania planu technicznego. Nie są planem technicznym PDF.";
+
 /** Pliki przypisane do roboty (storage + checklist). */
 export type JobFileKind = "zlecenie" | "kosztorys" | "plan_techniczny";
 

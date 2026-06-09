@@ -2,6 +2,7 @@ import { CheckCircle2, Circle, ClipboardList } from "lucide-react";
 import { InspectorHint } from "@/app/InspectorHelp";
 import {
   DOC_LABELS,
+  RYSUNEK_PLAN_CHECKLIST_HELP,
   type DocType,
   REQUIRED_DOCS,
 } from "@/lib/job-documents";
@@ -72,7 +73,14 @@ export function InspectorDocChecklist({
                   }`}
                 >
                   {checked ? <CheckCircle2 size={14} className="shrink-0"/> : <Circle size={14} className="shrink-0"/>}
-                  <span className="leading-tight">{DOC_LABELS[doc]}</span>
+                  <span className="leading-tight min-w-0">
+                    <span>{DOC_LABELS[doc]}</span>
+                    {doc === "rysunek" && (
+                      <span className="block text-[10px] text-muted-foreground/80 font-normal mt-0.5 leading-snug">
+                        {RYSUNEK_PLAN_CHECKLIST_HELP}
+                      </span>
+                    )}
+                  </span>
                 </button>
               );
             })}

@@ -30,7 +30,7 @@ export function getJobSections(): InspectorJobSectionItem[] {
       { id: "files", label: "Pliki", short: "Pliki", icon: FileText },
       { id: "docs", label: "Dokumenty", short: "Dok.", icon: ClipboardList },
       { id: "team", label: "Pracownicy", short: "Ekipa", icon: Users },
-      { id: "reports", label: "Zakresy i wymiary", short: "Raporty", icon: Ruler },
+      { id: "reports", label: "Dokumentacja", short: "Dok.", icon: Ruler },
       { id: "photos", label: "Galeria zdjęć", short: "Zdjęcia", icon: ImagePlus },
     ];
   }

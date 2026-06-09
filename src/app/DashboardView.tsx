@@ -537,7 +537,7 @@ export function DashboardView({
                       </p>
                       <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                         <span className="text-foreground/90">Kliknij dokument</span> — czerwony = brak, zielony = odebrany.
-                        Zakres i rysunek/wymiary z raportu ekipy zaznaczają się same (Super Admin może zmienić po potwierdzeniu).
+                        Zakres i obrys/wymiary z dokumentacji ekipy zaznaczają się same (Super Admin może zmienić po potwierdzeniu).
                         Kliknij adres robota — pełna karta w Robotach. Wymagane: {REQUIRED_DOCS.length} poz.
                         {staleDocsJobs.length > 0 && (
                           <span className="text-amber-600 dark:text-amber-400 font-medium">
@@ -623,9 +623,9 @@ export function DashboardView({
                                   type="button"
                                   title={
                                     reportLocked && isSuperAdmin
-                                      ? `${DOC_LABELS[doc]} — z raportu (Super Admin: kliknij, aby zmienić status)`
+                                      ? `${DOC_LABELS[doc]} — z dokumentacji ekipy (Super Admin: kliknij, aby zmienić status)`
                                       : locked
-                                        ? `${DOC_LABELS[doc]} — potwierdzone raportem (nie można odznaczyć)`
+                                        ? `${DOC_LABELS[doc]} — potwierdzone dokumentacją ekipy (nie można odznaczyć)`
                                         : checked
                                           ? `${DOC_LABELS[doc]} — odebrane (kliknij, aby odznaczyć)`
                                           : `Oznacz jako odebrane: ${DOC_LABELS[doc]}`
@@ -833,7 +833,7 @@ export function DashboardView({
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-sm font-medium flex items-center gap-2">
                       <ClipboardList size={14} className="text-violet-400"/>
-                      Nowe raporty od pracowników
+                      Nowa dokumentacja od ekipy
                       <span className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full font-bold">
                         {pendingReports.length}
                       </span>
@@ -1111,7 +1111,7 @@ export function DashboardView({
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Roboty w trakcie</span>
                 {totalReportsActive > 0 && (
                   <span className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full font-medium">
-                    {totalReportsActive} rap.
+                    {totalReportsActive} dok.
                   </span>
                 )}
               </div>
@@ -1151,7 +1151,7 @@ export function DashboardView({
                             <span className="text-[9px] bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded-full">{pendingN} zdj.</span>
                           )}
                           {reportsN > 0 && (
-                            <span className="text-[9px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full">{reportsN} rap.</span>
+                            <span className="text-[9px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full">{reportsN} dok.</span>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">{job.client || "—"} · od {fmtDate(job.startDate)}</p>

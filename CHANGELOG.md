@@ -4,7 +4,15 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.54** (`changelog-data.ts`) · Roboty UX Pack 20.5B.5
+**Aktualna wersja UI:** **2.50.55** (`changelog-data.ts`) · Dokumentacja Robót Naming 20.5B.6A.1
+
+---
+
+## 2.50.55 (2026-06-09) — Dokumentacja Robót Naming Refresh (20.5B.6A.1)
+
+* **Improve:** Zakładka „Dokumentacja” zamiast „Raporty” — admin, pracownik, inspektor
+* **Improve:** Hint obrys/wymiary vs plan PDF; help przy „Rysunek/Plan”
+* **Improve:** Pulpit — „Nowa dokumentacja od ekipy”; HelpView FAQ
 
 ---
 

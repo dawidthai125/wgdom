@@ -14,7 +14,7 @@ function getJobDetailSections(): JobDetailNavItem[] {
       { id: "documents", label: "Dokumenty", icon: FileText },
       { id: "workers", label: "Pracownicy", icon: Users },
       { id: "photos", label: "Zdjęcia", icon: Camera },
-      { id: "reports", label: "Raporty", icon: ClipboardList },
+      { id: "reports", label: "Dokumentacja", icon: ClipboardList },
     ];
   }
   return jobDetailSectionsCache;

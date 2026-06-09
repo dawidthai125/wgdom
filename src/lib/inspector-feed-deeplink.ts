@@ -12,7 +12,7 @@ const SECTION_LABELS: Record<JobDetailSection, string> = {
   files: "Pliki",
   workers: "Pracownicy",
   photos: "Zdjęcia",
-  reports: "Raporty",
+  reports: "Dokumentacja",
 };
 
 export function inspectorFeedSectionLabel(section: JobDetailSection): string {

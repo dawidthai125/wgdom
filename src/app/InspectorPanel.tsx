@@ -1210,7 +1210,7 @@ export function InspectorPanel({
               {jobSection === "files" && "Zlecenie, kosztorys i wszystkie pliki — pobierz pojedynczo lub ZIP"}
               {jobSection === "docs" && "Checklist dokumentów wymaganych przy odbiorze"}
               {jobSection === "team" && "Kto pracował na robocie — numery telefonów"}
-              {jobSection === "reports" && "Raporty ekipy: zakres prac, wymiary, rysunki"}
+              {jobSection === "reports" && "Dokumentacja ekipy: zakres prac, wymiary, obrys lokalu"}
               {jobSection === "photos" && "Zdjęcia ekipy i własne zdjęcia inspektora"}
             </p>
           </div>
@@ -1498,12 +1498,12 @@ export function InspectorPanel({
             <div className="bg-card border border-border rounded-2xl overflow-hidden">
               <div className="px-4 py-3 border-b border-border">
                 <p className="text-sm font-semibold flex items-center gap-2">
-                  <Ruler size={15}/> Zakresy i wymiary
-                  <InspectorHint text="Raporty ekipy z budowy — zakres prac, metraże, zdjęcia rysunków. Rozwiń strzałką. Ważne przy odbiorze WM."/>
+                  <Ruler size={15}/> Dokumentacja robót
+                  <InspectorHint text="Dokumentacja ekipy z budowy — zakres prac, metraże, foto obrysu lokalu. Rozwiń strzałką. Ważne przy odbiorze WM i kosztorysie. To nie jest plan techniczny PDF."/>
                 </p>
               </div>
               {(selectedJob.workerReports || []).length === 0 ? (
-                <p className="px-4 py-6 text-xs text-muted-foreground text-center">Brak raportów od pracowników</p>
+                <p className="px-4 py-6 text-xs text-muted-foreground text-center">Brak dokumentacji od ekipy</p>
               ) : (
                 <div className="divide-y divide-border">
                   {[...(selectedJob.workerReports || [])].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt)).map((report) => {

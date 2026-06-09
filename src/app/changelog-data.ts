@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.55",
+    label: "Dokumentacja Robót — Naming Refresh (20.5B.6A.1)",
+    items: [
+      { type: "improve", text: "Roboty — zakładka „Dokumentacja” zamiast „Raporty”; ujednolicone nazewnictwo u admina, pracownika i inspektora" },
+      { type: "improve", text: "Hint: obrys/wymiary to materiał pod plan techniczny — nie plan PDF; help przy checklistie „Rysunek/Plan”" },
+      { type: "improve", text: "Pulpit — alert „Nowa dokumentacja od ekipy”; instrukcja HelpView z sekcją dokumentacja vs plan" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.54",
     label: "Roboty UX Pack (20.5B.5)",
     items: [

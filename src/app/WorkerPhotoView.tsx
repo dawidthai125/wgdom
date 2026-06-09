@@ -599,7 +599,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
   };
 
   const deleteMyReport = (reportId: string) => {
-    if (!window.confirm("Usunąć ten raport?")) return;
+    if (!window.confirm("Usunąć tę dokumentację?")) return;
     syncJobs((prev) =>
       prev.map((j) =>
         j.id === selectedJobId
@@ -662,7 +662,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
           <button
             type="button"
             onClick={() => setWorkerTab("jobs")}
-            title="Wybierz robotę, wgrywaj zdjęcia i raporty z budowy"
+            title="Wybierz robotę, wgrywaj zdjęcia i dokumentację robót"
             className={`flex-1 min-h-[48px] py-3.5 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors ${workerTab === "jobs" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
           >
             <MapPin size={14}/>Roboty
@@ -698,7 +698,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
           </button>
           {workerHelpOpen && (
             <div className="mt-1.5 px-3 py-2.5 rounded-xl border border-border bg-card text-[11px] text-muted-foreground leading-relaxed space-y-1.5">
-              <p><strong className="text-foreground/90">Roboty</strong> — na górze lista <strong>Twoje kontrakty</strong> (gdy admin przypisał Cię do planowej ekipy), poniżej wszystkie roboty w toku. Wybierz robotę → zdjęcia (galeria lub aparat), raport z wymiarami.</p>
+              <p><strong className="text-foreground/90">Roboty</strong> — na górze lista <strong>Twoje kontrakty</strong> (gdy admin przypisał Cię do planowej ekipy), poniżej wszystkie roboty w toku. Wybierz robotę → zdjęcia (galeria lub aparat), dokumentacja robót (zakres, wymiary, obrys).</p>
               <p><strong className="text-foreground/90">Grafik</strong> — Twój tydzień Pn–So: godziny z listy płac i adresy z wpisów na robotach.</p>
               <p><strong className="text-foreground/90">Wypłata</strong> — kwota na piątek, skan paragonu (chemia, paliwo) trafia do kosztów do zwrotu po akceptacji admina.</p>
               <p><strong className="text-foreground/90">Offline</strong> — zdjęcia bez sieci trafiają do kolejki i wysyłają się po powrocie zasięgu.</p>
@@ -1060,7 +1060,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                   <div className="border-b border-border pb-2">
                     <p className="text-sm font-bold text-foreground">Wszystkie roboty w toku</p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Zdjęcia i raporty — jak dotychczas
+                      Zdjęcia i dokumentacja — jak dotychczas
                     </p>
                   </div>
                   <div className="space-y-2">{activeJobs.map(renderWorkerJobCard)}</div>
@@ -1144,7 +1144,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
 
             {myReports.length > 0 && (
               <div>
-                <p className="text-sm font-semibold mb-3">Twoje raporty ({myReports.length})</p>
+                <p className="text-sm font-semibold mb-3">Twoja dokumentacja ({myReports.length})</p>
                 <div className="space-y-2">
                   {[...myReports].reverse().map((r) => (
                     <div key={r.id} className={`bg-card border rounded-xl px-4 py-3 text-sm ${editingReport?.id === r.id ? "border-violet-500/50" : "border-border"}`}>
@@ -1175,7 +1175,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
             <div className="bg-card border border-violet-500/25 rounded-2xl p-4">
               <p className="text-sm font-semibold flex items-center gap-2 mb-3">
                 <ClipboardList size={16} className="text-violet-400"/>
-                {editingReport ? "Edytuj raport" : "Raport z budowy"}
+                {editingReport ? "Edytuj dokumentację" : "Dokumentacja robót"}
               </p>
               <JobReportForm
                 key={`${selectedJob.id}-${editingReport?.id || "new"}`}
@@ -1184,8 +1184,8 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                 editReport={editingReport}
                 onCancelEdit={() => setEditingReport(null)}
                 onSaved={handleReportSaved}
-                submitLabel={editingReport ? "Zapisz zmiany" : "Wyślij raport do admina"}
-                description={editingReport ? undefined : "Zakres prac, wymiary i opisy — admin zobaczy przy tej robocie."}
+                submitLabel={editingReport ? "Zapisz zmiany" : "Wyślij dokumentację do admina"}
+                description={editingReport ? undefined : "Zakres prac, wymiary i obrys lokalu — admin zobaczy przy tej robocie."}
                 disabled={uploading}
               />
             </div>

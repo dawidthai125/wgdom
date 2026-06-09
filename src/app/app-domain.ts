@@ -1345,7 +1345,7 @@ export const ACTIVITY_LABELS: Record<JobActivityType, string> = {
   photo_upload: "Zdjęcie",
   photo_approved: "Akceptacja zdjęcia",
   photo_rejected: "Odrzucenie zdjęcia",
-  report_add: "Raport",
+  report_add: "Dokumentacja",
   report_edit: "Edycja raportu",
   report_delete: "Usunięcie raportu",
   status_change: "Status",

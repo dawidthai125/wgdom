@@ -49,6 +49,7 @@ import {
   applyJobFileKindUpload,
   resolveJobFileStoragePath,
   jobFileUploadActivityText,
+  RYSUNEK_PLAN_CHECKLIST_HELP,
   type JobFileKind,
   type JobFileAttachment,
 } from "@/lib/job-documents";
@@ -2070,7 +2071,12 @@ export function JobsView({
                         {optional&&<p className="text-[10px] text-muted-foreground/50 leading-none mt-0.5">opcjonalne</p>}
                         {checked && isReportSyncedDocLocked(selectedJob, doc) && (
                           <p className="text-[10px] text-green-600/80 dark:text-green-400/80 leading-none mt-0.5">
-                            {isSuperAdmin ? "z raportu · SA może zmienić" : "z raportu"}
+                            {isSuperAdmin ? "z dokumentacji ekipy · SA może zmienić" : "z dokumentacji ekipy"}
+                          </p>
+                        )}
+                        {doc === "rysunek" && (
+                          <p className="text-[10px] text-muted-foreground/80 leading-snug mt-1" title={RYSUNEK_PLAN_CHECKLIST_HELP}>
+                            {RYSUNEK_PLAN_CHECKLIST_HELP}
                           </p>
                         )}
                         {inspectorFile && (
@@ -2618,11 +2624,11 @@ export function JobsView({
                 ...selectedJob,
                 workerReports: [...jobWorkerReports(selectedJob), report],
                 reportDocSaOverride: clearReportDocSaOverrideFromReport(selectedJob.reportDocSaOverride, report),
-              }, { type: "report_add", text: `Dodano raport (${scopeTextLineCount(getReportWorkScopeText(report))} linii)` })}
+              }, { type: "report_add", text: `Dodano dokumentację (${scopeTextLineCount(getReportWorkScopeText(report))} linii)` })}
               onDelete={(reportId) => updateJob({
                 ...selectedJob,
                 workerReports: jobWorkerReports(selectedJob).filter(r => r.id !== reportId),
-              }, { type: "report_delete", text: "Usunięto raport" })}
+              }, { type: "report_delete", text: "Usunięto dokumentację" })}
             />
             )}
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { ClipboardList, Plus, ChevronUp, ChevronDown, Ruler, Trash2 } from "lucide-react";
+import { ClipboardList, Plus, ChevronUp, ChevronDown, Ruler, Trash2, Info } from "lucide-react";
 import { WorkScopeDisplay } from "@/app/WorkScopeEditor";
 import { JobReportForm } from "@/app/JobReportForm";
 import type { WorkerJobReport } from "@/app/app-domain";
@@ -8,6 +8,7 @@ import { getReportWorkScopeText, reportHasWorkScope, scopeTextLineCount } from "
 import type { AdminRole } from "@/lib/admin-auth";
 import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
+import { JOB_DOCUMENTATION_SOURCE_HELP } from "@/lib/job-documents";
 
 export function JobWorkerReportsPanel({
   jobId,
@@ -37,41 +38,51 @@ export function JobWorkerReportsPanel({
 
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden">
-      <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <ClipboardList size={13} className="text-muted-foreground"/>
-          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Raporty — zakres i wymiary</span>
-          {reports.length > 0 && (
-            <span className="bg-violet-500/15 text-violet-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
-              {reports.length}
-            </span>
-          )}
+      <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <ClipboardList size={13} className="text-muted-foreground shrink-0"/>
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Dokumentacja robót</span>
+            {reports.length > 0 && (
+              <span className="bg-violet-500/15 text-violet-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                {reports.length}
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-1 normal-case tracking-normal">
+            Zakres prac · Wymiary · Obrys lokalu
+          </p>
         </div>
         <button type="button" onClick={() => setShowForm((v) => !v)}
-          className="text-xs text-primary hover:text-primary/80 flex items-center gap-1">
-          <Plus size={12}/>{showForm ? "Ukryj formularz" : "Dodaj raport"}
+          className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 shrink-0">
+          <Plus size={12}/>{showForm ? "Ukryj formularz" : "Dodaj dokumentację"}
         </button>
+      </div>
+
+      <div className="px-5 py-3 border-b border-border bg-blue-500/5 flex gap-2">
+        <Info size={14} className="text-blue-500 shrink-0 mt-0.5"/>
+        <p className="text-[11px] text-muted-foreground leading-relaxed">{JOB_DOCUMENTATION_SOURCE_HELP}</p>
       </div>
 
       {showForm && (
         <div className="px-5 py-4 border-b border-border bg-violet-500/5">
           <p className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <ClipboardList size={14} className="text-violet-400"/>Nowy raport
+            <ClipboardList size={14} className="text-violet-400"/>Nowa dokumentacja
           </p>
           <JobReportForm
             jobId={jobId}
             authorName={authorName}
             authorAdminRole={authorAdminRole}
             onSaved={(report) => { onAddReport(report); setOpenId(report.id); }}
-            submitLabel="Zapisz raport"
-            description="Te same pola co w trybie pracownika — zakres prac, wymiary pomieszczeń lub foto rysunku."
+            submitLabel="Zapisz dokumentację"
+            description="Te same pola co w trybie pracownika — zakres prac, wymiary pomieszczeń lub foto obrysu lokalu."
           />
         </div>
       )}
 
       {sorted.length === 0 ? (
         <p className="px-5 py-4 text-sm text-muted-foreground">
-          Brak zapisanych raportów. Dodaj pierwszy powyżej lub poproś pracownika o wysłanie z telefonu.
+          Brak zapisanej dokumentacji. Dodaj pierwszą powyżej lub poproś pracownika o wysłanie z telefonu.
         </p>
       ) : (
         <div className="divide-y divide-border">
@@ -91,7 +102,7 @@ export function JobWorkerReportsPanel({
                       {fmtDate(report.submittedAt.slice(0, 10))}
                       {reportHasWorkScope(report) && ` · ${scopeTextLineCount(getReportWorkScopeText(report))} linii`}
                       {report.rooms.length > 0 && ` · ${report.rooms.length} pom.`}
-                      {report.sketch && " · rysunek"}
+                      {report.sketch && " · obrys"}
                     </p>
                   </div>
                   {isOpen ? <ChevronUp size={14} className="text-muted-foreground shrink-0"/> : <ChevronDown size={14} className="text-muted-foreground shrink-0"/>}
@@ -147,9 +158,9 @@ export function JobWorkerReportsPanel({
                     )}
                     {report.sketch && isMediaAttachmentAvailable(report.sketch) && (
                       <div>
-                        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Rysunek z wymiarami</p>
+                        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Obrys lokalu (foto)</p>
                         <a href={report.sketch.publicUrl} target="_blank" rel="noopener noreferrer" className="block max-w-xs">
-                          <JobPhotoImg src={report.sketch.publicUrl} alt="Rysunek" className="rounded-xl border border-border w-full object-contain bg-secondary max-h-64"/>
+                          <JobPhotoImg src={report.sketch.publicUrl} alt="Obrys lokalu" className="rounded-xl border border-border w-full object-contain bg-secondary max-h-64"/>
                         </a>
                         {report.sketchNote && <p className="text-xs text-muted-foreground mt-2 italic">{report.sketchNote}</p>}
                       </div>
@@ -159,10 +170,10 @@ export function JobWorkerReportsPanel({
                     )}
                     <button
                       type="button"
-                      onClick={() => { if (window.confirm("Usunąć ten raport?")) onDelete(report.id); }}
+                      onClick={() => { if (window.confirm("Usunąć tę dokumentację?")) onDelete(report.id); }}
                       className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1.5 transition-colors"
                     >
-                      <Trash2 size={12}/>Usuń raport
+                      <Trash2 size={12}/>Usuń wpis
                     </button>
                   </div>
                 )}

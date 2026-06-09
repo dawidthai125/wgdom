@@ -63,7 +63,7 @@ function getInspectorHelpSections(): InspectorHelpSection[] {
     id: "sections",
     icon: LayoutGrid,
     title: "Sekcje w robocie",
-    body: "Po wejściu w adres u góry masz kapsułki: WM, Pliki, Dok., Ekipa, Raporty, Zdjęcia — kliknij, żeby od razu przewinąć. Liczby na kapsułkach = braki lub nowe treści.",
+    body: "Po wejściu w adres u góry masz kapsułki: WM, Pliki, Dok., Ekipa, Dokumentacja, Zdjęcia — kliknij, żeby od razu przewinąć. Liczby na kapsułkach = braki lub nowe treści.",
   },
   {
     id: "start",
@@ -104,8 +104,8 @@ function getInspectorHelpSections(): InspectorHelpSection[] {
   {
     id: "reports",
     icon: Ruler,
-    title: "Zakresy i wymiary",
-    body: "Raporty od ekipy z budowy: co zrobiono (lista jak w notatniku), wymiary pomieszczeń, zdjęcia rysunków. Rozwiń wpis strzałką. To ważne przy odbiorze i kosztorysie.",
+    title: "Dokumentacja robót",
+    body: "Dokumentacja ekipy z budowy: zakres prac (lista jak w notatniku), wymiary pomieszczeń, foto obrysu lokalu. Rozwiń wpis strzałką. To materiał pod plan techniczny i kosztorys — nie mylić z planem PDF w Plikach.",
   },
   {
     id: "photos",
