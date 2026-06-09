@@ -1325,10 +1325,10 @@ export function JobsView({
         />
       </div>
 
-      {/* STREFA B — lista (~45%) | szczegóły (~55%) */}
+      {/* STREFA B — lista (~35%) | szczegóły (~65%) */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
       <div
-        className={`flex flex-col flex-[11] min-w-0 min-h-0 border-r border-border bg-card overflow-hidden transition-all duration-300 ${
+        className={`flex flex-col flex-[7] min-w-0 min-h-0 border-r border-border bg-card overflow-hidden transition-all duration-300 ${
           selectedJob ? "hidden sm:flex" : "flex"
         }`}
       >
@@ -1361,7 +1361,7 @@ export function JobsView({
       {selectedJob ? (
         <div className="flex flex-col flex-[13] min-w-0 min-h-0 overflow-hidden">
           <div ref={jobDetailHeaderRef} className="shrink-0 border-b border-border bg-background/95 backdrop-blur z-10">
-            <div className="w-full max-w-3xl md:max-w-4xl mx-auto px-4 sm:px-6 pt-3 pb-2 space-y-3">
+            <div className="w-full max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 pt-3 pb-2 space-y-3 md:pt-2 md:pb-1.5 md:space-y-2">
               <button onClick={()=>setSelectedJobId(null)} className="sm:hidden flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronRight size={14} className="rotate-180"/>Powrót do listy
               </button>
@@ -1395,11 +1395,11 @@ export function JobsView({
             </div>
           </div>
           <div className="flex-1 overflow-y-auto overscroll-contain">
-            <div className="w-full max-w-3xl md:max-w-4xl mx-auto px-4 sm:px-6 py-4 space-y-4">
+            <div className="w-full max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 py-4 space-y-4 md:py-3 md:space-y-3">
 
             {detailSection === "summary" && (
             <>
-            <div className="bg-card rounded-xl border border-border p-5 space-y-4">
+            <div className="bg-card rounded-xl border border-border p-5 space-y-4 md:p-4 md:space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2419,7 +2419,7 @@ export function JobsView({
       ) : (
         <div className="flex flex-col flex-[13] min-w-0 min-h-0 overflow-hidden">
           <div className="hidden sm:flex flex-col flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-6 py-3 sm:py-4">
-            <div className="shrink-0 w-full max-w-3xl md:max-w-4xl mx-auto">
+            <div className="shrink-0 w-full max-w-3xl md:max-w-none mx-auto">
               <JobsDetailEmptyState
                 onNewJob={addJob}
                 onAllFiles={() => setShowAllFiles(true)}
@@ -2428,7 +2428,7 @@ export function JobsView({
               />
             </div>
             <div
-              className="shrink-0 w-full max-w-3xl md:max-w-4xl mx-auto mt-3 pt-3 border-t border-border
+              className="shrink-0 w-full max-w-3xl md:max-w-none mx-auto mt-3 pt-3 border-t border-border
                 [&_aside]:h-auto [&_aside]:min-h-0 [&_aside]:bg-transparent
                 [&_aside>div:first-child]:hidden
                 [&_aside>div:last-child]:flex-none [&_aside>div:last-child]:overflow-visible [&_aside>div:last-child]:px-0 [&_aside>div:last-child]:pt-2 [&_aside>div:last-child]:pb-0"

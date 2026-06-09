@@ -71,7 +71,7 @@ export function JobDetailSectionNav({
           key={id}
           type="button"
           onClick={() => onSelect(id)}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
+          className={`flex items-center gap-1.5 md:gap-1 px-3 md:px-2.5 py-2 md:py-1.5 rounded-lg text-xs md:text-[11px] font-medium whitespace-nowrap shrink-0 transition-colors ${
             active === id
               ? id === "files"
                 ? "bg-emerald-600 text-white"

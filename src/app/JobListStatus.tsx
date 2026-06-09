@@ -54,9 +54,9 @@ export function JobPhasePicker({
   const phases: JobPhase[] = ["in_progress", "handover", "completed"];
 
   return (
-    <div className="rounded-xl border border-border bg-secondary/20 p-4 space-y-3">
+    <div className="rounded-xl border border-border bg-secondary/20 p-4 space-y-3 md:p-3 md:space-y-2">
       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status roboty</p>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 md:gap-1.5">
         {phases.map((p) => {
           const active = phase === p;
           const cls = PHASE_BUTTON_CLASS[p];
@@ -66,7 +66,7 @@ export function JobPhasePicker({
               type="button"
               title={JOB_PHASE_HINTS[p]}
               onClick={() => onPhaseChange(p)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-colors touch-manipulation ${
+              className={`flex items-center gap-2 px-4 py-2.5 md:px-3 md:py-2 rounded-xl md:rounded-lg text-sm md:text-xs font-medium border transition-colors touch-manipulation ${
                 active ? cls.active : cls.idle
               }`}
             >
@@ -171,7 +171,7 @@ export function JobListFilterBar({
             type="button"
             onClick={() => onFilter(t.id)}
             aria-pressed={filter === t.id}
-            className={`shrink-0 text-xs py-2 md:py-1.5 px-3 min-h-[44px] md:min-h-[32px] rounded-lg font-medium transition-colors touch-manipulation border whitespace-nowrap ${
+            className={`shrink-0 text-xs md:text-[11px] py-2 md:py-1 px-3 md:px-2.5 min-h-[44px] md:min-h-[28px] rounded-lg font-medium transition-colors touch-manipulation border whitespace-nowrap ${
               filter === t.id
                 ? "bg-primary/10 text-foreground border-primary/35"
                 : "text-muted-foreground border-border/60 hover:text-foreground hover:bg-secondary/60"

@@ -4,7 +4,17 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.30** (`changelog-data.ts`) · Roboty status + toolbar desktop · lokalnie (przed release)
+**Aktualna wersja UI:** **2.50.40** (`changelog-data.ts`) · Roboty UX Pack desktop · prod
+
+---
+
+## 2.50.40 (2026-06-08) — Roboty UX Pack (desktop workspace)
+
+* **Split 35/65** — lista `flex-[7]`, szczegóły `flex-[13]` na desktopie
+* **Detail full width** — `md:max-w-none`; mobile `max-w-3xl` bez zmian
+* **Toolbar md+** — KPI compact, grid Lista/Szukaj/Filtry; niższy pasek (~170–180px)
+* **Detail compact** — header, nav, phase picker, filter bar (md+)
+* Smoke: `smoke-test-jobs-ux-pack-2.50.40.mjs`
 
 ---
 

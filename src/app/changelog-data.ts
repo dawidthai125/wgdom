@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-08",
+    version: "2.50.40",
+    label: "Roboty — UX Pack (desktop workspace)",
+    items: [
+      { type: "improve", text: "Split lista/szczegóły 35/65 na desktopie — szerszy panel roboty (~+120px treści)" },
+      { type: "improve", text: "Szczegóły roboty — pełna szerokość kolumny (md:max-w-none); mobile bez zmian" },
+      { type: "improve", text: "Toolbar desktop — niższy KPI, Lista/Szukaj/Filtry w jednym wierszu; mobile 44px bez zmian" },
+      { type: "improve", text: "Kompaktowy detail header, zakładki sekcji i wybór fazy (md+)" },
+    ],
+  },
+  {
+    date: "2026-06-08",
     version: "2.50.30",
     label: "Roboty — status nowej roboty + toolbar desktop",
     items: [

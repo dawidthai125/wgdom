@@ -156,7 +156,7 @@ export function JobListPanelHeader({
   };
 
   return (
-    <div className="px-4 pt-4 pb-3 max-md:pt-3 max-md:pb-2 space-y-3 max-md:space-y-2 md:pt-2 md:pb-2 md:space-y-1.5 border-b border-border">
+    <div className="px-4 pt-4 pb-3 max-md:pt-3 max-md:pb-2 space-y-3 max-md:space-y-2 md:pt-2 md:pb-2 md:space-y-1 border-b border-border">
       {returnNav && (
         <button
           type="button"
@@ -194,7 +194,7 @@ export function JobListPanelHeader({
         role="group"
         aria-label="KPI robót"
       >
-        <div className="flex flex-nowrap gap-2.5 min-w-max pb-0.5">
+        <div className="flex flex-nowrap gap-2.5 md:gap-1.5 min-w-max pb-0.5">
           {KPI_ITEMS.map((item) => {
             const active = kpiActive(item);
             const count = opsKpi[item.countKey];
@@ -207,18 +207,18 @@ export function JobListPanelHeader({
                 onClick={() => onKpiClick(item)}
                 aria-pressed={active}
                 title={`${count} — ${item.label}`}
-                className={`shrink-0 flex items-center gap-2.5 min-w-[7.25rem] md:min-w-[6rem] px-3.5 md:px-3 py-3 max-md:py-2 md:py-1.5 rounded-2xl border text-left transition-colors touch-manipulation ${
+                className={`shrink-0 flex items-center gap-2.5 md:gap-1.5 min-w-[7.25rem] md:min-w-[5.25rem] px-3.5 md:px-2.5 py-3 max-md:py-2 md:py-1 rounded-2xl md:rounded-xl border text-left transition-colors touch-manipulation ${
                   active ? visual.active : `text-muted-foreground ${visual.idle} hover:text-foreground`
                 }`}
               >
                 <Icon
                   size={18}
-                  className={`shrink-0 md:w-4 md:h-4 ${active ? visual.iconActive : visual.iconIdle}`}
+                  className={`shrink-0 md:w-3.5 md:h-3.5 ${active ? visual.iconActive : visual.iconIdle}`}
                   aria-hidden
                 />
-                <span className="flex items-baseline gap-1.5 min-w-0 whitespace-nowrap leading-none">
-                  <span className="text-xl max-md:text-lg md:text-base font-bold tabular-nums tracking-tight">{count}</span>
-                  <span className="text-[11px] font-semibold leading-tight">{item.label}</span>
+                <span className="flex items-baseline gap-1.5 md:gap-1 min-w-0 whitespace-nowrap leading-none">
+                  <span className="text-xl max-md:text-lg md:text-sm font-bold tabular-nums tracking-tight">{count}</span>
+                  <span className="text-[11px] md:text-[10px] font-semibold leading-tight">{item.label}</span>
                 </span>
               </button>
             );
@@ -226,54 +226,57 @@ export function JobListPanelHeader({
         </div>
       </div>
 
-      <div
-        className="flex rounded-xl border border-border bg-secondary/40 p-0.5"
-        role="group"
-        aria-label="Widok listy robót"
-      >
-        {(["list", "queues"] as const).map((mode) => (
-          <button
-            key={mode}
-            type="button"
-            onClick={() => onListViewModeChange(mode)}
-            aria-pressed={listViewMode === mode}
-            className={`flex-1 px-3 py-2 md:py-1.5 rounded-[10px] text-xs font-semibold min-h-[44px] md:min-h-[32px] transition-colors touch-manipulation ${
-              listViewMode === mode
-                ? "bg-background text-foreground shadow-sm border border-border/60"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {mode === "list" ? "Lista" : "Kolejki"}
-          </button>
-        ))}
-      </div>
+      <div className="space-y-3 max-md:space-y-2 md:space-y-0 md:grid md:grid-cols-[minmax(9rem,auto)_1fr_auto] md:gap-2 md:items-center">
+        <div
+          className="flex rounded-xl border border-border bg-secondary/40 p-0.5"
+          role="group"
+          aria-label="Widok listy robót"
+        >
+          {(["list", "queues"] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => onListViewModeChange(mode)}
+              aria-pressed={listViewMode === mode}
+              className={`flex-1 px-3 py-2 md:py-1.5 rounded-[10px] text-xs font-semibold min-h-[44px] md:min-h-[32px] transition-colors touch-manipulation ${
+                listViewMode === mode
+                  ? "bg-background text-foreground shadow-sm border border-border/60"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {mode === "list" ? "Lista" : "Kolejki"}
+            </button>
+          ))}
+        </div>
 
-      <div className="relative w-full">
-        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-        <input
-          type="search"
-          placeholder="Szukaj adresu, klienta…"
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2.5 md:py-1.5 text-sm border border-transparent focus:border-primary focus:outline-none min-h-[40px] md:min-h-[32px]"
-        />
+        <div className="relative w-full min-w-0">
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <input
+            type="search"
+            placeholder="Szukaj adresu, klienta…"
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2.5 md:py-1.5 text-sm border border-transparent focus:border-primary focus:outline-none min-h-[40px] md:min-h-[32px]"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowMoreFilters((v) => !v)}
+          aria-expanded={showMoreFilters}
+          className={`w-full md:w-auto md:shrink-0 flex items-center justify-center gap-1 px-3 py-2 md:py-1.5 rounded-lg text-xs font-medium border min-h-[44px] md:min-h-[32px] touch-manipulation transition-colors ${
+            showMoreFilters || filtersActive
+              ? "bg-primary/10 text-foreground border-primary/35"
+              : "bg-secondary text-muted-foreground border-border hover:bg-secondary/80"
+          }`}
+        >
+          <span className="md:hidden">Filtry dodatkowe</span>
+          <span className="hidden md:inline">Filtry</span>
+          <ChevronDown size={14} className={`transition-transform ${showMoreFilters ? "rotate-180" : ""}`} />
+        </button>
       </div>
 
       <JobListFilterBar filter={filter} onFilter={onFilterChange} counts={filterCounts} />
-
-      <button
-        type="button"
-        onClick={() => setShowMoreFilters((v) => !v)}
-        aria-expanded={showMoreFilters}
-        className={`w-full flex items-center justify-center gap-1 px-3 py-2 md:py-1.5 rounded-lg text-xs font-medium border min-h-[44px] md:min-h-[32px] touch-manipulation transition-colors ${
-          showMoreFilters || filtersActive
-            ? "bg-primary/10 text-foreground border-primary/35"
-            : "bg-secondary text-muted-foreground border-border hover:bg-secondary/80"
-        }`}
-      >
-        Filtry dodatkowe
-        <ChevronDown size={14} className={`transition-transform ${showMoreFilters ? "rotate-180" : ""}`} />
-      </button>
 
       {showMoreFilters && (
         <div className="rounded-xl border border-border bg-secondary/25 p-3 space-y-3">

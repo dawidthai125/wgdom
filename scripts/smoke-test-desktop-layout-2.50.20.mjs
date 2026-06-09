@@ -65,10 +65,10 @@ assert(
   dashboard.includes("flex-1 min-w-0 overflow-y-auto overscroll-contain"),
 );
 
-// T5 — Roboty (lista + split mają min-w-0)
+// T5 — Roboty (lista + split mają min-w-0); 2.50.40: flex-[7]/flex-[13] = 35/65
 assert(
   "T5_jobs_list_min_w_0",
-  jobs.includes("flex-[11] min-w-0 min-h-0"),
+  jobs.includes("flex-[7] min-w-0 min-h-0"),
 );
 assert(
   "T5_jobs_internal_scroll",
