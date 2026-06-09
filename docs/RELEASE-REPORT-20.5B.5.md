@@ -2,8 +2,10 @@
 
 **Data:** 2026-06-09  
 **Wersja UI:** **2.50.54**  
-**Baseline:** v2.50.53 (`74890bd`)  
-**Status:** IMPLEMENT DONE · oczekuje commit/deploy
+**Commit:** **`ae35c56`**  
+**Deploy:** **`4995226877`** — **SUCCESS**  
+**CI Mobile:** run **`27232257123`** — **SUCCESS**  
+**Status:** **RELEASED**
 
 ---
 
@@ -11,14 +13,14 @@
 
 | Sub-sprint | Zakres |
 |------------|--------|
-| **20.5B.5A** | Domyślny filtr „W trakcie”; kolejność tabów faz |
-| **20.5B.5B** | Etykieta Socjalny (key `komunalny`) |
-| **20.5B.5C** | Pole `gasFurnaceStatus` (Zostaje / Wymiana / Brak) |
-| **20.5B.5D** | Docs — plan techniczny PDF = „Rysunek/Plan” |
+| **20.5B.5A** | Domyślny filtr „W trakcie”; kolejność tabów: W trakcie → Do odbioru → Zdane → Wszystkie |
+| **20.5B.5B** | Etykieta **Socjalny** (key `komunalny` bez migracji) |
+| **20.5B.5C** | Pole `gasFurnaceStatus` (Zostaje / Wymiana / Brak) — admin, inspektor, PDF/ZIP |
+| **20.5B.5D** | Docs — plan techniczny PDF = dokument odbiorowy „Rysunek/Plan” |
 
 ---
 
-## Zmienione pliki
+## Zmienione pliki (release)
 
 | Plik | 5A | 5B | 5C | 5D |
 |------|----|----|----|-----|
@@ -50,16 +52,44 @@
 | `smoke-test-jobs-2.0-midb.mjs` | **21/21 PASS** |
 | `smoke-test-jobs-ux-pack-2.50.40.mjs` | **15/15 PASS** |
 | `smoke-test-technical-drawing-20.5a9.mjs` | **21/21 PASS** |
+| GitHub Actions `#27232257123` | **SUCCESS** |
+| Vercel deploy `#4995226877` | **SUCCESS** |
+| Prod bundle `smoke-prod-bundle-2.50.54.mjs` | **15/15 PASS** × wgdom.fun + wgdom.online |
 
 **Supabase / KV / Edge:** brak zmian
 
 ---
 
-## Proponowany commit
+## Post-Deploy Smoke (bundle)
 
-```
-feat(jobs): Roboty UX pack — default filter, Socjalny, piec gazowy (20.5B.5)
+| Checklist | Wynik |
+|-----------|-------|
+| Roboty — domyślny filtr `in_progress` | **PASS** |
+| Tab order — W trakcie / Do odbioru / Zdane | **PASS** |
+| Typ lokalu „Socjalny” | **PASS** |
+| Pole „Piec gazowy” + opcje Zostaje/Wymiana/Brak | **PASS** |
+| `gasFurnaceStatus` w bundle | **PASS** |
+| PDF/ZIP readme „Piec gazowy:” | **PASS** |
+| InspectorPanel w bundle | **PASS** |
+| Wersja prod 2.50.54 | **PASS** |
+| Plan techniczny 20.5A.9 regresja | **PASS** (21/21 lokalnie) |
 
-Default list filter W trakcie, housing label Socjalny (key komunalny),
-optional gasFurnaceStatus meta field, docs for plan PDF = Rysunek/Plan.
+---
+
+## Baseline po wdrożeniu
+
+```text
+Version: 2.50.54
+Commit: ae35c56
+Deploy: 4995226877
+Status: RELEASED · STABLE
+
+Sprint 20.5B.5 — Roboty UX Pack
+
+✓ Roboty domyślnie otwierają się na „W trakcie”
+✓ Kolejność tabów: W trakcie → Do odbioru → Zdane → Wszystkie
+✓ Typ lokalu „Socjalny” (bez migracji danych)
+✓ Nowe pole „Piec gazowy”
+✓ Plan techniczny PDF = dokument odbiorowy „Rysunek/Plan”
+✓ Brak zmian sync, KV, Edge i REQUIRED_DOCS
 ```

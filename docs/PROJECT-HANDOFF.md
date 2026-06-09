@@ -9,27 +9,36 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **2.50.53** |
-| **Commit** | **`74890bd`** — `feat(dashboard): remove embedded Portfolio WM section (20.5B.4)` |
-| **Deploy** | **`4995023669`** — **SUCCESS** |
+| **Wersja UI** | **2.50.54** |
+| **Commit** | **`ae35c56`** — `feat(jobs): Roboty UX pack — default filter, Socjalny, piec gazowy (20.5B.5)` |
+| **Deploy** | **`4995226877`** — **SUCCESS** |
 | **Status** | **STABLE** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | **`74890bd`** |
+| **Repo `origin/main`** | **`ae35c56`** |
 
 **Brak aktywnych blockerów.** **Brak aktywnych incydentów.**
 
 ---
 
-## Ostatni release — 20.5B.4 / 2.50.53
+## Ostatni release — 20.5B.5 / 2.50.54
 
-**Dashboard WM Cleanup** — usunięcie embedded Portfolio WM z Pulpicu
+**Roboty UX Pack** — filtr, etykieta Socjalny, piec gazowy
 
 ### Funkcje
 
-- Pulpit krótszy — bez listy portfolio WM na dole
-- KPI „Aktywne WM” + alerty terminów odbioru — bez zmian
-- Skróty WM → **Roboty** (zamiast scroll do portfolio)
-- `WmPortfolioView` — bez zmian w panelu inspektora terenowego
+- Roboty domyślnie otwierają się na filtr **W trakcie**
+- Kolejność tabów: W trakcie → Do odbioru → Zdane → Wszystkie
+- Typ lokalu **Socjalny** (key `komunalny` — bez migracji KV)
+- Nowe pole meta **Piec gazowy** (Zostaje / Wymiana / Brak) — admin, inspektor, PDF/ZIP
+- Docs: plan techniczny PDF = dokument odbiorowy „Rysunek/Plan”
+
+**Raport:** [`RELEASE-REPORT-20.5B.5.md`](RELEASE-REPORT-20.5B.5.md)
+
+---
+
+## Poprzedni release — 20.5B.4 / 2.50.53
+
+**Dashboard WM Cleanup** — usunięcie embedded Portfolio WM z Pulpicu
 
 **Raport:** [`RELEASE-REPORT-20.5B.4.md`](RELEASE-REPORT-20.5B.4.md)
 
