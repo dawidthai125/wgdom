@@ -8,12 +8,11 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **v2.50.44** |
-| **Prod `origin/main` (feature)** | **`99295e5`** — `feat(billing): add inspector billing proposal workflow (20.5A.6)` |
-| **Deploy** | GitHub **`4990132607`** — **SUCCESS** |
-| **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Handoff** | [`PROJECT-HANDOFF.md`](PROJECT-HANDOFF.md) · [`RELEASE-REPORT-20.5A.6.md`](RELEASE-REPORT-20.5A.6.md) |
-| **Następny sprint** | **20.3C** / **Roboty 2.0 FULL** — tylko na polecenie |
+| **Wersja UI** | **v2.50.52** |
+| **Prod `origin/main`** | **`e6758e5`** — Generic Attachments 20.5A.10 |
+| **Handoff pliki roboty** | [`SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md) |
+| **Production** | https://www.wgdom.fun |
+| **Następny sprint** | **20.3C** / **Roboty 2.0 FULL** / **20.5A.11** — tylko na polecenie |
 
 ---
 

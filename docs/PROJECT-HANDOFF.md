@@ -9,65 +9,70 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **2.50.44** |
-| **Commit (feature)** | **`99295e5`** — `feat(billing): add inspector billing proposal workflow (20.5A.6)` |
-| **Deploy** | **`4990132607`** — **SUCCESS** |
+| **Wersja UI** | **2.50.52** |
+| **Commit** | **`e6758e5`** — `feat(jobs): generic file attachments with tombstone sync (20.5A.10)` |
+| **Deploy** | **`4994803137`** — **SUCCESS** |
 | **Status** | **STABLE** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo HEAD** | `f87f485` (docs post-release; feature = `99295e5`) |
+| **Repo `origin/main`** | **`e6758e5`** |
 
 **Brak aktywnych blockerów.** **Brak aktywnych incydentów.**
 
 ---
 
-## Ostatni release — 20.5A.6 / 2.50.44
+## Ostatni release — 20.5A.10 / 2.50.52
 
-**Inspector Billing Creation** (wariant **B1** — Billing Proposal)
+**Generic File Attachments** (wariant **B** — osobne `jobAttachments[]`)
 
 ### Funkcje
 
-- Billing Proposal Workflow
-- Proposal Evidence
-- Admin Approve / Reject
-- RecoverableCharge Creation
-- Approve Idempotency (P1 post-audit)
-- Duplicate Charge Protection
+- Sekcja **Załączniki ogólne** w Roboty → Pliki (admin upload/delete)
+- Typy: PDF, DOC/DOCX, XLS/XLSX, ZIP, RAR, DWG, TXT (max 25 MB)
+- Tombstone sync (`deletedJobAttachmentTombstones[]`) — wzorzec 20.5B.3
+- Email: grupy Dokumenty kontraktowe / Załączniki ogólne
+- **Załączniki ZIP** (`zalaczniki/`) obok Dokumenty ZIP
+- Preview: PDF, DOCX, XLSX
 
 ### Decyzja architektoniczna
 
 ```text
-Inspektor  → kw-jobs only          (JobNote context=billing_proposal)
-Admin      → kw-recoverable-charges (po approve — RecoverableCharge)
+jobFiles[]              — dokumenty kontraktowe (zlecenie, kosztorys, plan) — BEZ ZMIAN
+jobAttachments[]        — załączniki ogólne (20.5A.10) ★ NOWE
+photos/inspector/sketch — obrazy (tab Zdjęcia, media-separation) — BEZ ZMIAN
 ```
 
-**Bez dual-writer billing.** Inspektor **nie** wywołuje `pushRecoverableChargesToCloud`.
+**NIE rozszerzać `jobFiles[]` o `kind=generic`.** Brak migracji KV/Edge.
 
 ### Jakość (release)
 
 | Check | Wynik |
 |-------|-------|
 | Build | **PASS** |
-| Smoke 20.5A.6 | **59/59 PASS** |
-| Regresja 20.5A.2–5 | **PASS** |
-| Prod smoke | **9/9 PASS** (obie domeny) |
-| CI Mobile | run `27209115716` **SUCCESS** |
+| Smoke 20.5A.10 | **T1–T20 PASS** |
+| Regresja 20.5A.8/9, 20.5B.2/3 | **PASS** |
+| Prod bundle | **PASS** (`2.50.52`) |
+| CI Mobile | `#27230293447` **SUCCESS** |
 
-**Raport:** [`RELEASE-REPORT-20.5A.6.md`](RELEASE-REPORT-20.5A.6.md)  
-**Handoff billing:** [`SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](SESSION-HANDOFF-20.5A-BILLING-JOBS.md)
+**Raport:** [`RELEASE-REPORT-20.5A.10.md`](RELEASE-REPORT-20.5A.10.md)  
+**Handoff:** [`SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md)
 
-### Kluczowe pliki 20.5A.6
+### Kluczowe pliki 20.5A.10
 
 | Plik | Rola |
 |------|------|
-| `src/lib/job-wm.ts` | Model `billing_proposal`, approve/reject, merge |
-| `src/lib/recoverable-charges.ts` | `createChargeDraftFromProposal`, tag `proposal:{id}`, dedup lookup |
-| `src/lib/billing-evidence-upload.ts` | `uploadBillingProposalEvidence` |
-| `src/app/InspectorBillingProposalModal.tsx` | Formularz inspektora |
-| `src/app/BillingProposalReviewCard.tsx` | Karta propozycji + approve/reject |
-| `src/app/InspectorPanel.tsx` | Submit proposal → `kw-jobs` |
-| `src/app/JobsView.tsx` | Admin approve/reject + idempotency guards |
-| `scripts/smoke-test-inspector-billing-proposal-20.5a6.mjs` | Smoke T1–T20 |
-| `scripts/smoke-prod-bundle-2.50.44.mjs` | Prod bundle verify |
+| `src/lib/job-attachments.ts` | Model, walidacja, merge/tombstone |
+| `src/lib/job-attachment-upload.ts` | `uploadJobAttachment()` |
+| `src/lib/job-attachments-pack.ts` | ZIP załączników |
+| `src/lib/cloud-sync.ts` | `mergeJobsById` — attachments |
+| `src/app/JobGenericAttachmentsSection.tsx` | UI sekcji |
+| `src/app/JobFilesEmailModal.tsx` | Grupy email |
+| `scripts/smoke-test-generic-attachments-20.5a10.mjs` | Smoke |
+
+---
+
+## Poprzedni release — 20.5A.6 / 2.50.44 (Billing Proposal)
+
+Szczegóły → [`SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](SESSION-HANDOFF-20.5A-BILLING-JOBS.md) · [`RELEASE-REPORT-20.5A.6.md`](RELEASE-REPORT-20.5A.6.md)
 
 ---
 
@@ -75,6 +80,8 @@ Admin      → kw-recoverable-charges (po approve — RecoverableCharge)
 
 | Seria | Wersja | Handoff |
 |-------|--------|---------|
+| **Generic Attachments 20.5A.10** | **2.50.52 `e6758e5`** | [`SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md) |
+| File Consistency 20.5B.3 | 2.50.51 `09a8284` | ARCHITECTURE § 12.1.2 |
 | CC polonizacja 20.3B+ | 2.50.43 `61cb33b` | [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md) |
 | Desktop / mobile / MID-B | 2.50.x | [`SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md`](SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md) |
 | Billing 20.3A–20.5A.6 | 2.50.44 `99295e5` | [`SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](SESSION-HANDOFF-20.5A-BILLING-JOBS.md) |
@@ -87,9 +94,10 @@ Admin      → kw-recoverable-charges (po approve — RecoverableCharge)
 
 | Opcja | Opis |
 |-------|------|
+| **20.5A.11** | Inspektor read-only podgląd załączników ogólnych |
 | **20.3C** | Legacy CC + GuideView + retro-changelog |
 | **Roboty 2.0 FULL** | Audyt / implementacja pełna |
-| **P2 billing** | Dashboard alert prefiks proposal, orphan cleanup — poza scope 20.5A.6 |
+| **P2 billing** | Dashboard alert prefiks proposal — poza scope |
 
 ---
 
@@ -100,7 +108,7 @@ AUDIT → RCA → PLAN → IMPLEMENT
 ```
 
 1. **AUDIT** — read-only; mapa plików, sync boundaries, regresje
-2. **RCA** — decyzja GO/HOLD/NO-GO (np. wariant B1 vs direct create)
+2. **RCA** — decyzja GO/HOLD/NO-GO
 3. **PLAN** — zakres, etapy, smoke; akceptacja przed kodem
 4. **IMPLEMENT** — minimalny diff; chmura → CHANGELOG → HelpView → ARCHITECTURE
 
@@ -113,8 +121,9 @@ AUDIT → RCA → PLAN → IMPLEMENT
 ```text
 1. CURRENT-TASK.md
 2. AGENTS.md
-3. docs/ARCHITECTURE.md          (§ 11 sync, § Do rozliczenia, § 15.1 widoki)
-4. docs/PROJECT-HANDOFF.md       ← ten plik
-5. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md
-6. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md
+3. docs/PROJECT-HANDOFF.md              ← ten plik
+4. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← ★ pliki roboty
+5. docs/ARCHITECTURE.md                 (§ 11 sync, § 12.1.2 pliki, § 15.1 widoki)
+6. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md
+7. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md
 ```

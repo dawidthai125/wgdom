@@ -8,20 +8,21 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. CURRENT-TASK.md        ← ★ co na prod (v2.50.44, `99295e5`)
+2. CURRENT-TASK.md        ← ★ co na prod (v2.50.52, `e6758e5`)
 3. docs/PROJECT-HANDOFF.md  ← ★ baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT
-4. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← ★ CC polonizacja CLOSED + mapa widoków
-5. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
-6. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
-6. docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md  ← Sprint 20.1B CLOSED (saved ≠ closed)
-7. docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md  ← Sprint 20.1A CLOSED (odroczenie wypłaty)
-8. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← Performance 2.x CLOSED
-9. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-10. docs/ARCHITECTURE.md   ← pełna architektura (§ 12.1.3 CC, § 15.1 widoki admin)
-11. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
-12. docs/UI-LANGUAGE-AUDIT-20.3B.md  ← audyt polonizacji (CC zrealizowany w 20.3B+)
-13. CHANGELOG.md          ← CO już zrobiono (skrót)
-14. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+4. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← ★ ostatni release (pliki roboty)
+5. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← ★ CC polonizacja CLOSED + mapa widoków
+6. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
+7. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
+8. docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md  ← Sprint 20.1B CLOSED (saved ≠ closed)
+9. docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md  ← Sprint 20.1A CLOSED (odroczenie wypłaty)
+10. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← Performance 2.x CLOSED
+11. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+12. docs/ARCHITECTURE.md   ← pełna architektura (§ 12.1.2 pliki, § 12.1.3 CC, § 15.1 widoki admin)
+13. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
+14. docs/UI-LANGUAGE-AUDIT-20.3B.md  ← audyt polonizacji (CC zrealizowany w 20.3B+)
+15. CHANGELOG.md          ← CO już zrobiono (skrót)
+16. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -44,6 +45,7 @@
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
 | **docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md** | Performance 2.x **CLOSED** (`35614f0`) — startup 1119 KB, seria 2.2C→2.4A |
+| **docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md** | Generic Attachments **20.5A.10 CLOSED** (`e6758e5`, v2.50.52) — pliki roboty, trzy warstwy |
 | **docs/SESSION-HANDOFF-20.3B-CC-POLISH.md** | CC polonizacja **20.3B+ CLOSED** (`61cb33b`, v2.50.43) — mapa widoków, etykiety PL |
 | **docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md** | Seria **2.50.x CLOSED** — desktop scroll, mobile fix, MID-B, CI |
 | **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.6 CLOSED** (`99295e5`, v2.50.44) |
@@ -85,8 +87,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.44**) |
-| Prod `main` (app) | Billing Proposal 20.5A.6 · release **v2.50.44** (`99295e5`, deploy `4990132607`) |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.52**) |
+| Prod `main` (app) | Generic Attachments 20.5A.10 · release **v2.50.52** (`e6758e5`, deploy `4994803137`) |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |
 | Frontend deploy | push `main` → Vercel |
@@ -216,6 +218,18 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 - **Smoke:** `smoke-test-inspector-billing-proposal-20.5a6.mjs` (59), `smoke-prod-bundle-2.50.44.mjs`
 
 **Nie zmieniaj bez polecenia:** KV/sync/merge settlements, dashboard KPI (20.4C), payroll, leaves, granica inspektor read-only charges.
+
+---
+
+## 3g2. Generic File Attachments — Sprint 20.5A.10 (**CLOSED**, prod `e6758e5`, v2.50.52)
+
+- **Handoff:** [`docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md) — **czytaj najpierw** przy pracy nad plikami roboty
+- **Architektura:** **ARCHITECTURE.md § 12.1.2** — trzy warstwy: `jobFiles[]` / `jobAttachments[]` / obrazy
+- **Model:** `jobAttachments[]` + `deletedJobAttachmentTombstones[]` — **NIE** rozszerzać `jobFiles[]`
+- **Kluczowe pliki:** `job-attachments.ts`, `job-attachment-upload.ts`, `job-attachments-pack.ts`, `JobGenericAttachmentsSection.tsx`
+- **Smoke:** `smoke-test-generic-attachments-20.5a10.mjs` (T1–T20) + regresja 20.5A.8/9, 20.5B.2/3
+
+**Nie zmieniaj bez polecenia:** `jobFiles[]`, plan_techniczny, media-separation, tombstone 20.5B.3, billing sync.
 
 ---
 

@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.52** · Generic Attachments 20.5A.10 · lokalnie)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.52 — Generic File Attachments 20.5A.10)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.52** · Generic Attachments 20.5A.10 · prod `e6758e5`)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.52 — Generic File Attachments 20.5A.10 · docs handoff)
 
 ---
 
@@ -852,6 +852,10 @@ Priorytet w `resolveJobDraftDatesFromTender`:
 | `src/lib/photo-labels.ts` | Etykiety kategorii ekipy: `before` / `progress` / `after` + foldery ZIP |
 | `src/lib/photo-download.ts` | `collectJobPhotoPackEntries`, `downloadJobAllImagesZip`, galeria ekipy |
 | `src/lib/job-documents-pack.ts` | `collectJobDocumentPackEntries` — ZIP tylko dokumentów |
+| `src/lib/job-attachments-pack.ts` | `collectJobAttachmentPackEntries` — ZIP załączników ogólnych (`zalaczniki/`) |
+| `src/lib/job-attachments.ts` | Model `jobAttachments[]`, tombstone, merge, walidacja MIME |
+| `src/lib/job-attachment-upload.ts` | `uploadJobAttachment()` |
+| `src/app/JobGenericAttachmentsSection.tsx` | UI „Załączniki ogólne” (admin, Roboty → Pliki) |
 | `src/lib/photo-zip.ts` | Pakowanie wielu URL → ZIP (JSZip) |
 
 **Pobieranie (po rozwinięciu roboty w galerii):**

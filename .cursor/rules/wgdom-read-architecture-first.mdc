@@ -9,12 +9,13 @@ Komunikuj się z użytkownikiem po **polsku**.
 
 ## Zanim zaczniesz pracę w tym repo
 
-1. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — skrót: co na prod (**2.50.44**, `99295e5`).
+1. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — skrót: co na prod (**2.50.52**, `e6758e5`).
 2. **Przeczytaj [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)** — baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT.
-3. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md)** — billing 20.5A.6 **RELEASED**.
-4. **Przeczytaj [`docs/SESSION-HANDOFF-20.3B-CC-POLISH.md`](docs/SESSION-HANDOFF-20.3B-CC-POLISH.md)** — CC polonizacja **CLOSED** + mapa widoków admin.
-5. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — pełna architektura (§ 11 sync, § Do rozliczenia, § 15.1 widoki admin).
-6. Skrót wejścia: [`AGENTS.md`](AGENTS.md).
+3. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md)** — pliki roboty 20.5A.10 **RELEASED** (trzy warstwy plików).
+4. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md)** — billing 20.5A.6 **RELEASED**.
+5. **Przeczytaj [`docs/SESSION-HANDOFF-20.3B-CC-POLISH.md`](docs/SESSION-HANDOFF-20.3B-CC-POLISH.md)** — CC polonizacja **CLOSED** + mapa widoków admin.
+6. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — pełna architektura (§ 11 sync, § 12.1.2 pliki, § 15.1 widoki admin).
+7. Skrót wejścia: [`AGENTS.md`](AGENTS.md).
 
 Nie analizuj od zera całego `src/app/App.tsx` (~15k linii) — ARCHITECTURE.md opisuje system jako całość.
 
@@ -26,8 +27,11 @@ Stosuj [`.cursor/rules/wgdom-development.mdc`](wgdom-development.mdc): chmura �
 
 | Temat | Plik |
 |-------|------|
+| Generic Attachments 20.5A.10 | `docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md` |
 | CC polonizacja + mapa widoków | `docs/SESSION-HANDOFF-20.3B-CC-POLISH.md` |
 | Etykiety PL CC | `src/lib/tender-center-ui-labels-pl.ts` |
+| Pliki roboty (model) | `src/lib/job-attachments.ts`, `src/lib/job-documents.ts` |
+| Separacja obrazów vs docs | `src/lib/media-separation.ts` |
 | Sync / merge | `src/lib/cloud-sync.ts` |
 | Admin UI monolit | `src/app/App.tsx` |
 | Inspektor terenowy | `src/app/InspectorPanel.tsx` |
