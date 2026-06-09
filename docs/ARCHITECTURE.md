@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.52** · Generic Attachments 20.5A.10 · prod `e6758e5`)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.52 — Generic File Attachments 20.5A.10 · docs handoff)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.53** · Dashboard WM Cleanup 20.5B.4)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.53 — Dashboard WM Cleanup 20.5B.4)
 
 ---
 
@@ -278,7 +278,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 - Feed aktywności z `job-activity.ts` + filtry (w tym billing proposal/note)
 - CTA „Otwórz w Robotach” → `pendingJobId` + `pendingJobSection` (`inspector-feed-deeplink.ts`)
 - Nieprzeczytane + statystyki logowań — `inspector-stats.ts` · `kw-inspector-stats`
-- **Portfolio WM** — na Pulpicie (`WmPortfolioView` w `DashboardView`), nie w Inspektorze admin
+- **Dashboard WM** — KPI „Aktywne WM” + alerty terminów odbioru w „Uwaga dziś”; szczegóły w **Roboty** i **InspectorPanel** (zakładka Portfolio WM). Nie w Inspektorze admin (20.5B.2, 20.5B.4).
 - Akcje operacyjne (upload, checklista, approve billing, email plików) — wyłącznie **`JobsView`**
 
 **Panel terenowy** (`InspectorPanel.tsx`) — osobny flow, bez zmian w 20.5B.2.

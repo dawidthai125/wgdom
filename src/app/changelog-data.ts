@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.53",
+    label: "Dashboard WM Cleanup (20.5B.4)",
+    items: [
+      { type: "improve", text: "Pulpit — usunięto osadzone Portfolio WM; krótszy, bardziej operacyjny widok" },
+      { type: "improve", text: "KPI „Aktywne WM” pozostaje; alerty WM i skróty kierują do Roboty" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.52",
     label: "Załączniki ogólne roboty (20.5A.10)",
     items: [

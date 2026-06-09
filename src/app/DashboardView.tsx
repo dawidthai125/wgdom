@@ -44,10 +44,8 @@ import {
   inferHandoverStage,
   computeWmPortfolioStats,
   jobsWithInspectorNotesNeedingAdmin,
-  type JobWmJob,
 } from "@/lib/job-wm";
 import { resolveInspectorFeedDeepLink } from "@/lib/inspector-feed-deeplink";
-import { WmPortfolioView } from "@/app/WmPortfolioView";
 import { jobMissingRequiredDocs } from "@/lib/job-list-status";
 import { getReportWorkScopeText } from "@/lib/work-scope-text";
 import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
@@ -461,7 +459,7 @@ export function DashboardView({
           </button>
           <button
             type="button"
-            onClick={() => document.getElementById("wm-portfolio")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            onClick={() => onNavigate("jobs")}
             className="bg-card border border-emerald-500/20 rounded-xl px-4 py-3 text-left hover:border-emerald-500/40 transition-colors"
           >
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
@@ -471,7 +469,7 @@ export function DashboardView({
               {wmPortfolioStats.total}
             </p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              {wmPortfolioStats.overduePlanned > 0 ? `${wmPortfolioStats.overduePlanned} po terminie` : "Portfolio WM →"}
+              {wmPortfolioStats.overduePlanned > 0 ? `${wmPortfolioStats.overduePlanned} po terminie` : "Roboty →"}
             </p>
           </button>
           <div
@@ -924,8 +922,8 @@ export function DashboardView({
                         {wmOverdueJobs.length}
                       </span>
                     </p>
-                    <button type="button" onClick={() => document.getElementById("wm-portfolio")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="text-xs text-primary hover:underline shrink-0">
-                      Portfolio WM →
+                    <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline shrink-0">
+                      Roboty →
                     </button>
                   </div>
                   <div className="space-y-1.5">
@@ -960,8 +958,8 @@ export function DashboardView({
                         {wmThisWeekJobs.length}
                       </span>
                     </p>
-                    <button type="button" onClick={() => document.getElementById("wm-portfolio")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="text-xs text-primary hover:underline shrink-0">
-                      Portfolio WM →
+                    <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline shrink-0">
+                      Roboty →
                     </button>
                   </div>
                   <div className="space-y-1.5">
@@ -1223,15 +1221,6 @@ export function DashboardView({
               </div>
             )}
           </button>
-        </div>
-
-        <div id="wm-portfolio" className="scroll-mt-4">
-          <WmPortfolioView
-            jobs={jobs as JobWmJob[]}
-            notesNeedingAdmin={inspectorNotesPending.length}
-            embedded
-            onOpenJob={(jobId) => onNavigate("jobs", jobId, undefined, "summary")}
-          />
         </div>
 
       </div>

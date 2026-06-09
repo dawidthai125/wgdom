@@ -95,11 +95,11 @@ log("=== Sprint 20.5B.2 — Inspector Admin Simplification ===\n");
   assert("T9 KPI label Propozycje billing", adminView.includes('{ label: "Propozycje billing"'));
 }
 
-// T10 — Portfolio WM na Pulpicie
+// T10 — Portfolio WM poza Inspektor admin (20.5B.2 + 20.5B.4)
 {
   const dashboard = readSrc("src/app/DashboardView.tsx");
   const inspectorAdmin = readSrc("src/app/InspectorAdminView.tsx");
-  assert("T10 Dashboard has WmPortfolioView", dashboard.includes("WmPortfolioView") && dashboard.includes('id="wm-portfolio"'));
+  assert("T10 Dashboard no WmPortfolioView", !dashboard.includes("WmPortfolioView") && !dashboard.includes('id="wm-portfolio"'));
   assert("T10 InspectorAdminView no portfolio tab", !inspectorAdmin.includes("WmPortfolioView"));
   assert("T10 InspectorAdminView no portfolio tab UI", !inspectorAdmin.includes('setTab("portfolio")') && !inspectorAdmin.includes("Portfolio WM"));
 }

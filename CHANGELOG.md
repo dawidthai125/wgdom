@@ -4,7 +4,14 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.52** (`changelog-data.ts`) · Generic Attachments 20.5A.10 · prod **`e6758e5`**
+**Aktualna wersja UI:** **2.50.53** (`changelog-data.ts`) · Dashboard WM Cleanup 20.5B.4
+
+---
+
+## 2.50.53 (2026-06-09) — Dashboard WM Cleanup (20.5B.4)
+
+* **Improve:** Pulpit — usunięto osadzone Portfolio WM; KPI „Aktywne WM” + alerty WM pozostają
+* **Improve:** Skróty WM kierują do Roboty zamiast scroll do portfolio na Pulpicie
 
 ---
 
