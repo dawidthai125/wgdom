@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.49",
+    label: "Hotfix — ikona planu technicznego w katalogu plików (P0)",
+    items: [
+      { type: "fix", text: "Roboty → Pliki — naprawiono crash (React #130) po wgraniu planu technicznego PDF: brakująca ikona w CATEGORY_ICONS" },
+      { type: "fix", text: "Katalog plików — fallback FileText gdy typ pliku nieznany (JobFileCatalogRow, CompactFileRow)" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.48",
     label: "Inspektor admin — monitoring + deep linki do Roboty (20.5B.2)",
     items: [

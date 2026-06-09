@@ -4,7 +4,13 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.48** (`changelog-data.ts`) · Inspektor admin simplification 20.5B.2 · lokalnie (bez commit)
+**Aktualna wersja UI:** **2.50.49** (`changelog-data.ts`) · Hotfix plan_techniczny icon P0 · lokalnie (bez commit)
+
+---
+
+## 2.50.49 (2026-06-09) — Hotfix plan_techniczny icon (P0)
+
+* **Fix:** `JobAllFilesView` — `CATEGORY_ICONS.plan_techniczny` (Ruler) + fallback `FileText` — crash React #130 po upload planu PDF w Roboty
 
 ---
 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-  Search, Download, Eye, FileText, ClipboardList,
+  Search, Download, Eye, FileText, ClipboardList, Ruler,
   MapPin, ChevronRight, ChevronDown, ArrowLeft, FolderOpen, ExternalLink,
 } from "lucide-react";
 import {
@@ -21,7 +21,12 @@ import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 const CATEGORY_ICONS: Record<JobFileCategory, typeof FileText> = {
   zlecenie: FileText,
   kosztorys: ClipboardList,
+  plan_techniczny: Ruler,
 };
+
+function categoryIcon(category: JobFileCategory): typeof FileText {
+  return CATEGORY_ICONS[category] ?? FileText;
+}
 
 type CategoryFilter = "all" | JobFileCategory;
 
@@ -287,7 +292,7 @@ function CompactFileRow({
   item: JobFileCatalogItem;
   onPreview: () => void;
 }) {
-  const Icon = CATEGORY_ICONS[item.category];
+  const Icon = categoryIcon(item.category);
   const previewOk = canPreviewCatalogItem(item);
 
   return (
@@ -357,7 +362,7 @@ function JobFileCatalogRow({
   onDelete?: () => void;
   deleteBusy?: boolean;
 }) {
-  const Icon = CATEGORY_ICONS[item.category];
+  const Icon = categoryIcon(item.category);
   const previewOk = canPreviewCatalogItem(item);
 
   return (
