@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.46** · Media Library UX 20.5A.8 · lokalnie)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.46 — Media Library UX 20.5A.8 IMPLEMENT lokalny)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.47** · Plan techniczny 20.5A.9 · lokalnie)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.47 — Technical Drawing Workflow 20.5A.9)
 
 ---
 
@@ -833,7 +833,9 @@ Priorytet w `resolveJobDraftDatesFromTender`:
 
 **Widok:** `JobPhotosGalleryView` w `MediaView` (tab Zdjęcia) + sekcja Zdjęcia w `JobsView`.
 
-**Separacja mediów (20.5A.8):** tab **Zdjęcia** = ekipa (approved) + inspektor + rysunki raportów (`media-separation.ts`). Tab **Pliki** = tylko `jobFiles[]` (zlecenie/kosztorys). ZIP: **Zdjęcia ZIP** vs **Dokumenty ZIP**.
+**Separacja mediów (20.5A.8):** tab **Zdjęcia** = ekipa (approved) + inspektor + rysunki raportów (`media-separation.ts`). Tab **Pliki** = `jobFiles[]` (zlecenie, kosztorys, **plan techniczny**). ZIP: **Zdjęcia ZIP** vs **Dokumenty ZIP**.
+
+**Plan techniczny (20.5A.9):** `jobFiles[].kind === "plan_techniczny"` — PDF wgrywany przez **admina** w Robotach → Pliki roboty. Auto-zaznacza checklistę **`documents.rysunek`** (obok szkicu/wymiarów z `workerReports[]`). Inspektor: podgląd/pobranie, bez uploadu. Szkic terenowy pozostaje w `workerReports[].sketch` (obrazy, tab Zdjęcia).
 
 | Plik | Rola |
 |------|------|
@@ -964,7 +966,7 @@ WGDOM1/
 |-------|------------------|
 | `cloud-sync.ts` | Sync, merge, API, DATA_KEYS |
 | `admin-auth.ts` | Logowanie, role, hash SHA-256, sesja |
-| `job-documents.ts` | Typy dokumentów, jobFiles, toggle zlec/kosz, lock raportu |
+| `job-documents.ts` | Typy dokumentów, jobFiles (zlec/kosz/**plan_techniczny**), sync checklisty rysunek, lock raportu |
 | `job-wm.ts` | WM, odbiór, etapy, notatki inspektora/admina |
 | `job-activity.ts` | Feed inspektora, typy zdarzeń |
 | `job-list-status.ts` | Fazy robót, filtry, badge |

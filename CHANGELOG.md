@@ -4,7 +4,16 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.46** (`changelog-data.ts`) · Media Library UX 20.5A.8 · lokalnie (bez commit)
+**Aktualna wersja UI:** **2.50.47** (`changelog-data.ts`) · Plan techniczny PDF 20.5A.9 · lokalnie (bez commit)
+
+---
+
+## 2.50.47 (2026-06-09) — Plan techniczny PDF (20.5A.9)
+
+* **Nowy typ pliku** — `jobFiles[].kind: "plan_techniczny"` (PDF); upload admin w Robotach → Pliki roboty
+* **Checklist** — `documents.rysunek` auto ✅ ze szkicu/wymiarów raportu **lub** planu technicznego PDF
+* **Separacja** — szkic terenowy (JPG w raporcie) ≠ plan biurowy (PDF w Plikach); inspektor: podgląd/pobranie bez uploadu
+* **Smoke** — `smoke-test-technical-drawing-20.5a9.mjs` (21/21)
 
 ---
 

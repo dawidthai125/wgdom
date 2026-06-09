@@ -103,7 +103,10 @@ export function collectJobDocumentPackEntries(job: JobPackSource): PackFileEntry
   const dateFolder = (iso: string) => (iso || "").slice(0, 10) || "bez-daty";
 
   for (const f of collectJobDocuments(job)) {
-    const folder = f.kind === "zlecenie" ? "zlecenie" : "kosztorys";
+    const folder =
+      f.kind === "zlecenie" ? "zlecenie"
+      : f.kind === "plan_techniczny" ? "plan-techniczny"
+      : "kosztorys";
     add(`${folder}/${dateFolder(f.uploadedAt)}/${safeFilename(f.filename || `${f.kind}.pdf`)}`, f.publicUrl);
   }
 

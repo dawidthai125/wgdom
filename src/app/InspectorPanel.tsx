@@ -1388,6 +1388,47 @@ export function InspectorPanel({
                 );
               })}
             </div>
+              {(() => {
+                const planFile = latestJobFile(selectedJob, "plan_techniczny");
+                if (!planFile) {
+                  return (
+                    <div className="rounded-2xl border border-dashed border-border bg-card/50 p-4">
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">Plan techniczny (PDF)</p>
+                      <p className="text-[11px] text-muted-foreground">Plan techniczny wgrywa administrator w Robotach — tutaj tylko podgląd i pobranie.</p>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="rounded-2xl border border-green-500/30 bg-green-500/5 p-4 space-y-2">
+                    <p className="text-xs font-semibold">Plan techniczny (PDF)</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <a href={planFile.publicUrl} target="_blank" rel="noopener noreferrer" download={planFile.filename} className="text-xs text-primary hover:underline flex items-center gap-1 truncate min-w-0">
+                        <FileText size={12}/>{planFile.filename}
+                      </a>
+                      {isPdfFilename(planFile.filename) && (
+                        <button
+                          type="button"
+                          onClick={() => setPreviewItem({ kind: "jobFile", file: planFile })}
+                          className="flex items-center gap-1 text-[10px] px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 font-medium shrink-0"
+                        >
+                          <Eye size={12}/> Podgląd
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      Dodał:{" "}
+                      <AuthorAttribution
+                        name={planFile.uploadedBy}
+                        directory={directoryContacts}
+                        viewerRole="inspector"
+                        accentClass="text-muted-foreground font-medium"
+                      />
+                      {" · "}
+                      {new Date(planFile.uploadedAt).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
+                );
+              })()}
               <JobInspectorFilesPanel
                 jobId={selectedJob.id}
                 jobAddress={selectedJob.address}

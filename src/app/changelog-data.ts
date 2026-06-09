@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.47",
+    label: "Plan techniczny PDF — workflow rysunku (20.5A.9)",
+    items: [
+      { type: "new", text: "Roboty → Pliki roboty — „Dodaj plan techniczny” (PDF): osobny typ pliku obok zlecenia i kosztorysu; auto-zaznacza „Rysunek/Plan” w dokumentach do odbioru" },
+      { type: "improve", text: "Szkic terenowy (JPG z raportu ekipy) i plan techniczny PDF — rozdzielone semantycznie; koniec workaroundu wrzucania planu jako Zlecenie" },
+      { type: "improve", text: "Inspektor — podgląd i pobranie planu technicznego (upload tylko administrator w Robotach); plan w Plikach i Dokumenty ZIP, nie w Zdjęciach" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.46",
     label: "Media Library UX — separacja zdjęć i plików (20.5A.8)",
     items: [

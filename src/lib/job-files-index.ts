@@ -1,16 +1,14 @@
 /** Indeks dokumentów przypisanych do robot — wspólny katalog dla listy i widoku „Wszystkie pliki”. */
 
-import type { JobFileAttachment } from "@/lib/job-documents";
+import type { JobFileKind } from "@/lib/job-documents";
+import { JOB_FILE_KIND_LABELS } from "@/lib/job-documents";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { collectJobDocuments, countJobDocuments, type MediaSeparationSource } from "@/lib/media-separation";
 
-export type JobFileCategory = "zlecenie" | "kosztorys";
+export type JobFileCategory = JobFileKind;
 
-export const JOB_FILE_CATEGORY_LABELS: Record<JobFileCategory, string> = {
-  zlecenie: "Zlecenie",
-  kosztorys: "Kosztorys",
-};
+export const JOB_FILE_CATEGORY_LABELS = JOB_FILE_KIND_LABELS;
 
 export type JobFileCatalogItem = {
   id: string;
@@ -41,7 +39,7 @@ export function canPreviewCatalogItem(item: JobFileCatalogItem): boolean {
   return false;
 }
 
-/** Zbiera dokumenty z jednej roboty (zlecenie + kosztorys — bez obrazów). */
+/** Zbiera dokumenty z jednej roboty (zlecenie, kosztorys, plan techniczny — bez obrazów). */
 export function collectJobFileCatalog(job: JobFilesSource): JobFileCatalogItem[] {
   const items: JobFileCatalogItem[] = [];
   const base = {
@@ -52,7 +50,7 @@ export function collectJobFileCatalog(job: JobFilesSource): JobFileCatalogItem[]
   };
 
   for (const f of collectJobDocuments(job)) {
-    const category = f.kind as JobFileCategory;
+    const category = f.kind;
     items.push({
       ...base,
       id: `jf:${f.id}`,
@@ -79,7 +77,7 @@ export function collectAllJobFiles(jobs: JobFilesSource[]): JobFileCatalogItem[]
   return all.sort((a, b) => (b.uploadedAt || "").localeCompare(a.uploadedAt || ""));
 }
 
-/** Liczba dokumentów (zlecenie + kosztorys) — bez obrazów. */
+/** Liczba dokumentów (zlecenie + kosztorys + plan techniczny) — bez obrazów. */
 export function countJobFiles(job: JobFilesSource): number {
   return countJobDocuments(job);
 }

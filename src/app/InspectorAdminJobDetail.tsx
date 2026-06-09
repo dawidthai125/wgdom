@@ -408,6 +408,28 @@ export function InspectorAdminJobDetail({
                 )}
               </div>
 
+              {(() => {
+                const planFile = latestJobFile(job, "plan_techniczny");
+                if (!planFile) return null;
+                return (
+                  <div className="bg-card rounded-xl border border-green-500/30 overflow-hidden">
+                    <div className="px-5 py-3 border-b border-border flex items-center gap-2">
+                      <FileText size={13} className="text-emerald-600 dark:text-emerald-400"/>
+                      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Plan techniczny (PDF)</span>
+                    </div>
+                    <div className="p-4 space-y-2">
+                      <a href={planFile.publicUrl} target="_blank" rel="noopener noreferrer" download={planFile.filename} className="text-xs text-primary hover:underline flex items-center gap-1 truncate">
+                        <FileText size={12} className="shrink-0"/>{planFile.filename}
+                      </a>
+                      <p className="text-[10px] text-muted-foreground">
+                        Dodał: {planFile.uploadedBy} · {new Date(planFile.uploadedAt).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">Plan wgrywa administrator w Robotach — tutaj podgląd i pobranie.</p>
+                    </div>
+                  </div>
+                );
+              })()}
+
               <JobInspectorFilesPanel
                 jobId={job.id}
                 jobAddress={job.address}

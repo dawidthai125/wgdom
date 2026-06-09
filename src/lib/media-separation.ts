@@ -1,7 +1,7 @@
 /**
  * Sprint 20.5A.8 — separacja obrazów vs dokumentów (single source of truth).
  * Obrazy: photos[] approved, inspectorPhotos[], workerReports[].sketch
- * Dokumenty: jobFiles[] (zlecenie / kosztorys)
+ * Dokumenty: jobFiles[] (zlecenie / kosztorys / plan_techniczny)
  */
 
 import type { JobFileAttachment } from "@/lib/job-documents";
@@ -65,7 +65,7 @@ function extFromUrl(url: string, fallback: string): string {
   return fallback;
 }
 
-/** Dokumenty roboty — wyłącznie jobFiles (zlecenie / kosztorys). */
+/** Dokumenty roboty — wyłącznie jobFiles (zlecenie, kosztorys, plan techniczny). */
 export function collectJobDocuments(job: MediaSeparationSource): JobFileAttachment[] {
   return (job.jobFiles || []).filter(isMediaAttachmentAvailable);
 }

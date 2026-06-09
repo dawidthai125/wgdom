@@ -43,7 +43,8 @@ import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import {
   latestJobFile, syncJobDocuments, isReportSyncedDocLocked, confirmReportSyncedDocUncheck,
   applyReportDocDocumentToggle, clearReportDocSaOverrideFromReport, removeJobFileAttachment,
-  type InspectorJobFileKind,
+  jobFileUploadActivityText,
+  type JobFileKind,
 } from "@/lib/job-documents";
 import { deleteJobFile, uploadJobFile } from "@/lib/job-file-upload";
 import { collectJobFileCatalog, countJobFiles, type JobFileCatalogItem } from "@/lib/job-files-index";
@@ -863,7 +864,7 @@ export function JobsView({
     }
   };
 
-  const handleJobFileUpload = async (kind: "zlecenie" | "kosztorys", file: File) => {
+  const handleJobFileUpload = async (kind: JobFileKind, file: File) => {
     if (!selectedJob) return;
     setUploadBusy(kind);
     const actor = adminSession?.displayName || "Administrator";
@@ -871,14 +872,13 @@ export function JobsView({
     setUploadBusy(null);
     if (!attachment) return;
     updateJob(
-      {
+      syncJobDocuments({
         ...selectedJob,
         jobFiles: [...(selectedJob.jobFiles || []).filter((f) => f.kind !== kind), attachment],
-        documents: { ...selectedJob.documents, [kind]: true },
-      },
+      }),
       {
         type: "inspector_file",
-        text: `Wgrano ${kind === "zlecenie" ? "zlecenie" : "kosztorys"}: ${file.name}`,
+        text: jobFileUploadActivityText(kind, file.name),
         actor,
       },
     );
@@ -1977,9 +1977,11 @@ export function JobsView({
                 {DOCUMENT_TYPES.map(doc=>{
                   const checked = selectedJob.documents[doc];
                   const optional = doc === "zdjecia";
-                  const inspectorFile = (doc === "zlecenie" || doc === "kosztorys")
-                    ? latestJobFile(selectedJob, doc as InspectorJobFileKind)
-                    : undefined;
+                  const inspectorFile = doc === "rysunek"
+                    ? latestJobFile(selectedJob, "plan_techniczny")
+                    : (doc === "zlecenie" || doc === "kosztorys")
+                      ? latestJobFile(selectedJob, doc)
+                      : undefined;
                   return (
                     <button key={doc} onClick={()=>{
                       const next = !checked;
@@ -2036,14 +2038,15 @@ export function JobsView({
                 </button>
               </div>
               <div className="px-5 py-3 border-b border-border bg-secondary/20">
-                <p className="text-[11px] text-muted-foreground mb-2">Wgraj zlecenie (PDF) lub kosztorys (.ath / .nor / PDF):</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {(["zlecenie", "kosztorys"] as const).map((kind) => (
+                <p className="text-[11px] text-muted-foreground mb-2">Wgraj zlecenie (PDF), kosztorys (.ath / .nor / PDF) lub plan techniczny (PDF):</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {(["zlecenie", "kosztorys", "plan_techniczny"] as const).map((kind) => (
                     <InspectorJobFileUpload
                       key={kind}
                       kind={kind}
                       busy={uploadBusy === kind}
                       hasFile={!!latestJobFile(selectedJob, kind)}
+                      buttonLabel={kind === "plan_techniczny" ? (latestJobFile(selectedJob, kind) ? "Wgraj nową wersję planu" : "Dodaj plan techniczny") : undefined}
                       onPick={(f) => void handleJobFileUpload(kind, f)}
                       onError={(msg) => setUploadMsg(msg)}
                     />

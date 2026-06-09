@@ -1,10 +1,10 @@
 import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
-import type { InspectorJobFileKind, JobFileAttachment } from "@/lib/job-documents";
+import type { JobFileKind, JobFileAttachment } from "@/lib/job-documents";
 
 export async function uploadJobFile(
   jobId: string,
   file: File,
-  kind: InspectorJobFileKind,
+  kind: JobFileKind,
   uploadedBy: string,
 ): Promise<{ attachment: JobFileAttachment | null; error?: string }> {
   const ext = file.name.split(".").pop() || "pdf";

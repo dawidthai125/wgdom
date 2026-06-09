@@ -3,6 +3,7 @@ import {
   FileText, Download, Mail, Eye, ClipboardList, Camera, Upload, Package, Trash2,
 } from "lucide-react";
 import type { JobFileAttachment } from "@/lib/job-documents";
+import { JOB_FILE_KIND_LABELS } from "@/lib/job-documents";
 import type { InspectorPhotoEntry } from "@/lib/job-wm";
 import type { EmailContact } from "@/lib/email-contacts";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
@@ -21,7 +22,7 @@ export type InspectorFileItem =
 
 function fileLabel(item: InspectorFileItem): string {
   if (item.kind === "jobFile") {
-    return item.file.kind === "zlecenie" ? "Zlecenie" : "Kosztorys";
+    return JOB_FILE_KIND_LABELS[item.file.kind];
   }
   if (item.kind === "inspectorPhoto") return "Zdjęcie inspektora";
   return "Zdjęcie";

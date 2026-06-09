@@ -1,11 +1,10 @@
 import { Upload } from "lucide-react";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
 import {
-  type InspectorJobFileKind,
-  KOSZTORYS_PICKER_ACCEPT,
-  ZLECENIE_ACCEPT,
-  kosztorysUploadError,
-  zlecenieUploadError,
+  type JobFileKind,
+  JOB_FILE_KIND_LABELS,
+  jobFileUploadAccept,
+  jobFileUploadError,
 } from "@/lib/job-documents";
 
 export function InspectorJobFileUpload({
@@ -15,16 +14,20 @@ export function InspectorJobFileUpload({
   onPick,
   onError,
   className = "",
+  buttonLabel,
 }: {
-  kind: InspectorJobFileKind;
+  kind: JobFileKind;
   busy: boolean;
   hasFile: boolean;
   onPick: (file: File) => void;
   onError?: (message: string) => void;
   className?: string;
+  /** Np. „Dodaj plan techniczny” — domyślnie wg kind. */
+  buttonLabel?: string;
 }) {
-  const accept = kind === "zlecenie" ? ZLECENIE_ACCEPT : KOSZTORYS_PICKER_ACCEPT;
-  const label = busy ? "Wgrywanie…" : hasFile ? "Wgraj nową wersję" : "Wgraj plik";
+  const accept = jobFileUploadAccept(kind);
+  const defaultLabel = hasFile ? "Wgraj nową wersję" : `Wgraj ${JOB_FILE_KIND_LABELS[kind].toLowerCase()}`;
+  const label = busy ? "Wgrywanie…" : (buttonLabel ?? defaultLabel);
 
   return (
     <HiddenFileInput
@@ -32,7 +35,7 @@ export function InspectorJobFileUpload({
       onPick={(files) => {
         const file = files?.[0];
         if (!file) return;
-        const err = kind === "zlecenie" ? zlecenieUploadError(file.name) : kosztorysUploadError(file.name);
+        const err = jobFileUploadError(kind, file.name);
         if (err) {
           onError?.(err);
           return;

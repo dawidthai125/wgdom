@@ -1,6 +1,6 @@
 /** Aktywność na robocie — wspólne typy dla admina i inspektora. */
 
-import { DOC_LABELS, type DocType, type JobFileAttachment } from "@/lib/job-documents";
+import { DOC_LABELS, type DocType, type JobFileAttachment, JOB_FILE_KIND_LABELS } from "@/lib/job-documents";
 
 export type InspectorActivityType =
   | "inspector_document"
@@ -142,7 +142,7 @@ export function collectInspectorFeed(jobs: JobWithActivity[]): InspectorFeedItem
         jobStatus: job.status,
         actor: f.uploadedBy,
         type: "inspector_file",
-        text: `Wgrano ${f.kind === "zlecenie" ? "zlecenie" : "kosztorys"}: ${f.filename}`,
+        text: `Wgrano ${JOB_FILE_KIND_LABELS[f.kind].toLowerCase()}: ${f.filename}`,
         fileUrl: f.publicUrl,
         fileName: f.filename,
       });
@@ -175,5 +175,7 @@ export function inspectorDocToggleText(doc: DocType, checked: boolean): string {
 }
 
 export function inspectorFileUploadText(kind: JobFileAttachment["kind"], filename: string): string {
-  return `Wgrano ${kind === "zlecenie" ? "zlecenie PDF" : "kosztorys"}: ${filename}`;
+  if (kind === "zlecenie") return `Wgrano zlecenie PDF: ${filename}`;
+  if (kind === "plan_techniczny") return `Wgrano plan techniczny: ${filename}`;
+  return `Wgrano kosztorys: ${filename}`;
 }

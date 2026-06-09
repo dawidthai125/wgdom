@@ -1,4 +1,4 @@
-import type { JobFileAttachment } from "@/lib/job-documents";
+import { JOB_FILE_KIND_LABELS, type JobFileKind } from "@/lib/job-documents";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import { jobDisplayTitle } from "@/lib/job-gallery";
@@ -42,7 +42,7 @@ function previewOk(filename: string): boolean {
   return isPdfFilename(filename) || isKosztorysPreviewExt(filename);
 }
 
-/** Dokumenty roboty pogrupowane wg kategorii (zlecenie / kosztorys). */
+/** Dokumenty roboty pogrupowane wg kategorii (zlecenie / kosztorys / plan techniczny). */
 export function collectJobBrowserFileGroups(job: JobFilesBrowserSource): JobBrowserFileGroup[] {
   const byCategory = new Map<string, JobBrowserFile[]>();
 
@@ -53,7 +53,7 @@ export function collectJobBrowserFileGroups(job: JobFilesBrowserSource): JobBrow
   };
 
   for (const f of collectJobDocuments(job)) {
-    const category = f.kind === "zlecenie" ? "Zlecenie" : "Kosztorys";
+    const category = JOB_FILE_KIND_LABELS[f.kind as JobFileKind];
     const dateIso = dateIsoFromUploadedAt(f.uploadedAt);
     add(category, {
       id: `jf-${f.id}`,
@@ -67,7 +67,7 @@ export function collectJobBrowserFileGroups(job: JobFilesBrowserSource): JobBrow
     });
   }
 
-  const order = ["Zlecenie", "Kosztorys"];
+  const order = ["Zlecenie", "Kosztorys", "Plan techniczny"];
   const groups: JobBrowserFileGroup[] = [];
   for (const cat of order) {
     const files = byCategory.get(cat);
@@ -100,6 +100,7 @@ export type JobBrowserFileSummary = {
   total: number;
   zlecenie: number;
   kosztorys: number;
+  plan_techniczny: number;
 };
 
 export type JobFileSummaryChip = {
@@ -111,17 +112,20 @@ export type JobFileSummaryChip = {
 export function summarizeJobBrowserFiles(job: JobFilesBrowserSource): JobBrowserFileSummary {
   let zlecenie = 0;
   let kosztorys = 0;
+  let plan_techniczny = 0;
 
   for (const f of job.jobFiles || []) {
     if (!isMediaAttachmentAvailable(f)) continue;
     if (f.kind === "zlecenie") zlecenie++;
     else if (f.kind === "kosztorys") kosztorys++;
+    else if (f.kind === "plan_techniczny") plan_techniczny++;
   }
 
   return {
-    total: zlecenie + kosztorys,
+    total: zlecenie + kosztorys + plan_techniczny,
     zlecenie,
     kosztorys,
+    plan_techniczny,
   };
 }
 
@@ -146,6 +150,12 @@ export function jobFileSummaryChips(summary: JobBrowserFileSummary): JobFileSumm
     out.push({
       key: "kosztorys",
       label: plFileLabel(summary.kosztorys, "kosztorys", "kosztorysy", "kosztorysów"),
+    });
+  }
+  if (summary.plan_techniczny > 0) {
+    out.push({
+      key: "plan_techniczny",
+      label: plFileLabel(summary.plan_techniczny, "plan techniczny", "plany techniczne", "planów technicznych"),
     });
   }
   return out;

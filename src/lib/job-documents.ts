@@ -27,11 +27,15 @@ export const DOC_LABELS: Record<DocType, string> = {
   zdjecia: "Zdjęcia",
 };
 
+/** Pliki przypisane do roboty (storage + checklist). */
+export type JobFileKind = "zlecenie" | "kosztorys" | "plan_techniczny";
+
+/** Inspektor wgrywa tylko zlecenie/kosztorys — plan techniczny: admin w Robotach. */
 export type InspectorJobFileKind = "zlecenie" | "kosztorys";
 
 export interface JobFileAttachment {
   id: string;
-  kind: InspectorJobFileKind;
+  kind: JobFileKind;
   path: string;
   publicUrl: string;
   filename: string;
@@ -83,8 +87,47 @@ export function zlecenieUploadError(filename: string): string | null {
 export const KOSZTORYS_PICKER_ACCEPT = "*/*";
 export const KOSZTORYS_ACCEPT = ".pdf,.PDF,.nor,.NOR,.xml,.XML,.ath,.ATH,.doc,.docx,.xls,.xlsx";
 export const ZLECENIE_ACCEPT = ".pdf,.PDF";
+export const PLAN_TECHNICZNY_ACCEPT = ".pdf,.PDF";
 
 export const INSPECTOR_FILE_KINDS = ["zlecenie", "kosztorys"] as const;
+export const JOB_FILE_KINDS = ["zlecenie", "kosztorys", "plan_techniczny"] as const;
+
+export const JOB_FILE_KIND_LABELS: Record<JobFileKind, string> = {
+  zlecenie: "Zlecenie",
+  kosztorys: "Kosztorys",
+  plan_techniczny: "Plan techniczny",
+};
+
+export function isPlanTechnicznyUploadFilename(filename: string): boolean {
+  return /\.pdf$/i.test(filename);
+}
+
+export function planTechnicznyUploadError(filename: string): string | null {
+  if (isPlanTechnicznyUploadFilename(filename)) return null;
+  return "Plan techniczny musi być w formacie PDF.";
+}
+
+export function jobFileKindToDocType(kind: JobFileKind): DocType {
+  if (kind === "plan_techniczny") return "rysunek";
+  return kind;
+}
+
+export function jobFileUploadError(kind: JobFileKind, filename: string): string | null {
+  if (kind === "zlecenie") return zlecenieUploadError(filename);
+  if (kind === "kosztorys") return kosztorysUploadError(filename);
+  return planTechnicznyUploadError(filename);
+}
+
+export function jobFileUploadAccept(kind: JobFileKind): string {
+  if (kind === "zlecenie" || kind === "plan_techniczny") return ZLECENIE_ACCEPT;
+  return KOSZTORYS_PICKER_ACCEPT;
+}
+
+export function jobFileUploadActivityText(kind: JobFileKind, filename: string): string {
+  if (kind === "zlecenie") return `Wgrano zlecenie: ${filename}`;
+  if (kind === "kosztorys") return `Wgrano kosztorys: ${filename}`;
+  return `Wgrano plan techniczny: ${filename}`;
+}
 
 export type ReportSyncedDoc = "zakres" | "rysunek";
 
@@ -116,6 +159,10 @@ export function jobHasReportZakres(job: { workerReports?: WorkerReportDocSource[
 
 export function jobHasReportRysunek(job: { workerReports?: WorkerReportDocSource[] }): boolean {
   return (job.workerReports || []).some((report) => reportHasRysunek(report));
+}
+
+export function jobHasPlanTechniczny(job: { jobFiles?: JobFileAttachment[] }): boolean {
+  return !!latestJobFile(job, "plan_techniczny");
 }
 
 /** Zakres / rysunek z raportu — po zaznaczeniu nie można odznaczyć ręcznie (poza Super Adminem). */
@@ -191,7 +238,7 @@ export function applyReportDocDocumentToggle<T extends {
 
 export function latestJobFile(
   job: { jobFiles?: JobFileAttachment[] },
-  kind: InspectorJobFileKind,
+  kind: JobFileKind,
 ): JobFileAttachment | undefined {
   const files = (job.jobFiles || []).filter((f) => f.kind === kind && isMediaAttachmentAvailable(f));
   if (files.length === 0) return undefined;
@@ -210,6 +257,10 @@ export function syncJobDocumentsFromFiles<T extends {
       docs[kind] = true;
       changed = true;
     }
+  }
+  if (jobHasPlanTechniczny(job) && !docs.rysunek) {
+    docs.rysunek = true;
+    changed = true;
   }
   return changed ? { ...job, documents: docs } : job;
 }
@@ -313,7 +364,7 @@ export function mergeJobFiles(
   a: JobFileAttachment[] | undefined,
   b: JobFileAttachment[] | undefined,
 ): JobFileAttachment[] {
-  const byKind = new Map<InspectorJobFileKind, JobFileAttachment>();
+  const byKind = new Map<JobFileKind, JobFileAttachment>();
   for (const f of [...(a || []), ...(b || [])]) {
     const prev = byKind.get(f.kind);
     if (!prev || f.uploadedAt >= prev.uploadedAt) byKind.set(f.kind, f);
@@ -321,17 +372,24 @@ export function mergeJobFiles(
   return [...byKind.values()];
 }
 
-/** Usuń plik inspektora z jobFiles; odznacz dokument gdy brak pliku tego typu. */
+/** Usuń plik z jobFiles; odznacz checklistę gdy brak pliku (rysunek — przez sync z raportu). */
 export function removeJobFileAttachment<T extends {
   documents: Record<DocType, boolean>;
   jobFiles?: JobFileAttachment[];
+  workerReports?: WorkerReportDocSource[];
+  reportDocSaOverride?: ReportDocSaOverride;
 }>(job: T, fileId: string): T {
   const file = (job.jobFiles || []).find((f) => f.id === fileId);
   if (!file) return job;
   const jobFiles = (job.jobFiles || []).filter((f) => f.id !== fileId);
   const documents = { ...job.documents };
+  const docKey = jobFileKindToDocType(file.kind);
   if (!jobFiles.some((f) => f.kind === file.kind)) {
-    documents[file.kind] = false;
+    if (docKey === "rysunek") {
+      documents.rysunek = false;
+    } else {
+      documents[docKey] = false;
+    }
   }
   return syncJobDocuments({ ...job, jobFiles, documents });
 }

@@ -4,6 +4,7 @@ import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
 import { blobToBase64 } from "@/lib/payroll-export";
 import { contactsForJobs, type EmailContact } from "@/lib/email-contacts";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
+import { JOB_FILE_KIND_LABELS } from "@/lib/job-documents";
 
 function itemFilename(item: InspectorFileItem): string {
   if (item.kind === "jobFile") return item.file.filename;
@@ -17,7 +18,7 @@ function itemUrl(item: InspectorFileItem): string {
 
 function itemLabel(item: InspectorFileItem): string {
   if (item.kind === "jobFile") {
-    return item.file.kind === "zlecenie" ? "Zlecenie" : "Kosztorys";
+    return JOB_FILE_KIND_LABELS[item.file.kind];
   }
   return "Zdjęcie inspektora";
 }
