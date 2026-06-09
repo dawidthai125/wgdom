@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.43** · Polonizacja COMMAND CENTER 20.3B+)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.43 — CC polonizacja + mapa widoków admin § 15.1)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.44** · Billing Proposal 20.5A.6 — lokalnie, bez deploy)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.44 — billing proposal inspektor B1)
 
 ---
 
@@ -323,9 +323,11 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Menu** | **Do rozliczenia** (💰); **Media** = Zdjęcia + Pliki robot (jak Instrukcja/Zmiany) |
 | **Sync** | Admin: `pushRecoverableChargesToCloud()`; Inspektor: tylko odczyt LS + cloud merge; tombstone `kw-recoverable-charges-deleted-ids` |
 | **Inspektor uwagi (20.5A.4, v2.49.80)** | `JobNote.recoverableChargeId` + `context: billing` w `kw-jobs`; `activityLog` typ `inspector_billing_note`; wątek w `JobRecoverableChargesPanel`; bez push `kw-recoverable-charges` |
-| **Backlog** | 20.5A.5+ — zdjęcia do uwag billing, zgłoszenie nowej pozycji przez inspektora |
+| **Billing evidence (20.5A.5, v2.50.42)** | `JobNote.attachments[]`; `uploadBillingEvidence()` → `storage-upload` prefix `billing-evidence-`; inspektor/admin podgląd w wątku pozycji |
+| **Billing proposal (20.5A.6, v2.50.44)** | `JobNote.context: billing_proposal` + `proposalStatus` pending/approved/rejected w `kw-jobs`; inspektor `appendBillingProposalNote()` + dowody `uploadBillingProposalEvidence()`; admin approve → `createChargeDraftFromProposal()` + `appendRecoverableChargeCreate()` → `kw-recoverable-charges`; reject z `rejectedReason`; KPI/badge 💰 **nie** liczą propozycji pending |
+| **Backlog** | 20.3C legacy CC + GuideView · Roboty 2.0 FULL — tylko na polecenie |
 
-Pliki: `src/lib/recoverable-charges.ts`, `src/app/RecoverableChargesView.tsx`, `src/app/JobRecoverableChargesPanel.tsx`, `src/app/JobCreateRecoverableChargeModal.tsx`, `src/app/InspectorPanel.tsx`, `src/app/MediaView.tsx`.
+Pliki: `src/lib/recoverable-charges.ts`, `src/lib/job-wm.ts`, `src/lib/billing-evidence-upload.ts`, `src/app/RecoverableChargesView.tsx`, `src/app/JobRecoverableChargesPanel.tsx`, `src/app/JobCreateRecoverableChargeModal.tsx`, `src/app/InspectorBillingProposalModal.tsx`, `src/app/BillingProposalReviewCard.tsx`, `src/app/InspectorPanel.tsx`, `src/app/JobsView.tsx`, `src/app/MediaView.tsx`.
 
 **Nieobecności (Sprint 20.0A, v2.45.37, prod `778f616`):**
 

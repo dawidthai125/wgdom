@@ -1183,6 +1183,20 @@ export function finalizeRecoverableChargeDraftForSave(draft: RecoverableCharge):
   return { ...base, ...deriveChargeAmounts(base) };
 }
 
+/** Tag powiązania pozycji z propozycją inspektora (Sprint 20.5A.6). */
+export function recoverableChargeProposalTag(proposalId: string): string {
+  return `proposal:${proposalId.trim()}`;
+}
+
+/** Znajdź istniejącą pozycję utworzoną z propozycji (idempotencja approve). */
+export function findRecoverableChargeByProposalId(
+  charges: RecoverableCharge[],
+  proposalId: string,
+): RecoverableCharge | undefined {
+  const tag = recoverableChargeProposalTag(proposalId);
+  return charges.find((c) => (c.tags || []).includes(tag));
+}
+
 /** Dodaje nową pozycję na początku listy (create). */
 export function appendRecoverableChargeCreate(
   charges: RecoverableCharge[],
@@ -1190,4 +1204,34 @@ export function appendRecoverableChargeCreate(
 ): RecoverableCharge[] {
   const normalized = finalizeRecoverableChargeDraftForSave(draft);
   return [normalized, ...charges];
+}
+
+/** Draft pozycji z zatwierdzonej propozycji inspektora (Sprint 20.5A.6). */
+export function createChargeDraftFromProposal(
+  proposal: {
+    proposalTitle?: string;
+    text: string;
+    proposalAmount?: number;
+    sourceJobId?: string;
+    id: string;
+  },
+  job: Job,
+  directory: { id: string; name: string }[] = [],
+  adminName: string,
+  overrides?: Partial<Pick<RecoverableCharge, "title" | "description" | "amount">>,
+): RecoverableCharge {
+  const base = buildRecoverableChargeDraftFromJob(job, adminName, directory);
+  const description = (overrides?.description ?? proposal.text).trim();
+  const title = (overrides?.title ?? proposal.proposalTitle ?? description.slice(0, 80)).trim();
+  const amount = overrides?.amount ?? parseAmount(proposal.proposalAmount);
+  const tags = [recoverableChargeProposalTag(proposal.id)];
+  return {
+    ...base,
+    sourceJobId: proposal.sourceJobId?.trim() || job.id,
+    title,
+    description,
+    amount,
+    tags: [...new Set([...base.tags, ...tags])],
+    responsibleInspector: base.responsibleInspector || resolveJobResponsibleInspector(job, directory),
+  };
 }

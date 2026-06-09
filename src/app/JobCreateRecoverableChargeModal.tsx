@@ -17,22 +17,36 @@ export function JobCreateRecoverableChargeModal({
   createdByName,
   onClose,
   onSave,
+  title = "Dodaj do rozliczenia",
+  submitLabel = "Zapisz",
+  initialDraft,
 }: {
   job: Job;
   directory: { id: string; name: string }[];
   createdByName: string;
   onClose: () => void;
   onSave: (draft: RecoverableCharge) => boolean;
+  title?: string;
+  submitLabel?: string;
+  initialDraft?: RecoverableCharge;
 }) {
-  const [draft, setDraft] = useState(() => buildRecoverableChargeDraftFromJob(job, createdByName, directory));
+  const [draft, setDraft] = useState(() =>
+    initialDraft ?? buildRecoverableChargeDraftFromJob(job, createdByName, directory),
+  );
+  const [saving, setSaving] = useState(false);
   const validation = useMemo(() => validateRecoverableChargeDraft(draft), [draft]);
   const addressLabel = jobAddressForRecoverableCharge(job);
   const jobLabel = jobLabelForCharge(job);
 
   const handleSave = () => {
-    if (!validation.ok) return;
-    const ok = onSave({ ...draft, ...deriveChargeAmounts(draft) });
-    if (ok) onClose();
+    if (!validation.ok || saving) return;
+    setSaving(true);
+    try {
+      const ok = onSave({ ...draft, ...deriveChargeAmounts(draft) });
+      if (ok) onClose();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -44,7 +58,7 @@ export function JobCreateRecoverableChargeModal({
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <p id="job-rc-create-title" className="text-sm font-semibold">
-            Dodaj do rozliczenia
+            {title}
           </p>
           <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground">
             <X size={14} />
@@ -119,16 +133,16 @@ export function JobCreateRecoverableChargeModal({
         </div>
 
         <div className="shrink-0 px-5 py-4 border-t border-border flex gap-2" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
-          <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm border border-border hover:bg-secondary">
+          <button type="button" onClick={onClose} disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm border border-border hover:bg-secondary disabled:opacity-40">
             Anuluj
           </button>
           <button
             type="button"
             onClick={handleSave}
-            disabled={!validation.ok}
+            disabled={!validation.ok || saving}
             className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
           >
-            Zapisz
+            {submitLabel}
           </button>
         </div>
       </div>

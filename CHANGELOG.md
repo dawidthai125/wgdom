@@ -4,7 +4,16 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.43** (`changelog-data.ts`) · Polonizacja COMMAND CENTER (20.3B+)
+**Aktualna wersja UI:** **2.50.44** (`changelog-data.ts`) · Zgłoszenie pozycji billing przez inspektora (20.5A.6, lokalnie)
+
+---
+
+## 2.50.44 (2026-06-09) — Billing Proposal (20.5A.6)
+
+* **Inspektor** — Zgłoś pozycję (propozycja + dowody) gdy brak pozycji na robocie; tylko `kw-jobs`
+* **Admin** — Zatwierdź (modal → RecoverableCharge) / Odrzuć z powodem; KPI rośnie dopiero po approve
+* **Model** — `JobNote.context: billing_proposal`, `proposalStatus`, `createChargeDraftFromProposal()`
+* Smoke: `smoke-test-inspector-billing-proposal-20.5a6.mjs` (48) + regresja 20.5A.2–5
 
 ---
 

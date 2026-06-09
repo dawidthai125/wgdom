@@ -13,7 +13,22 @@
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Deploy CC** | GitHub **`4987528369`** — **SUCCESS** |
 | **Handoff CC** | [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md) |
-| **Następny sprint** | **20.5A.6** / **20.3C** / **Roboty 2.0 FULL** — tylko na polecenie |
+| **Następny sprint** | **20.3C** / **Roboty 2.0 FULL** — tylko na polecenie · **20.5A.6 IMPLEMENT lokalnie (bez deploy)** |
+
+---
+
+## Release 2.50.44 — Billing Proposal 20.5A.6 (**LOKALNIE, bez deploy**)
+
+| Pole | Wartość |
+|------|---------|
+| **Wersja** | **2.50.44** |
+| **Wariant** | **B1** — `JobNote.billing_proposal` → admin approve → `RecoverableCharge` |
+| **Raport** | [`RELEASE-REPORT-20.5A.6.md`](RELEASE-REPORT-20.5A.6.md) |
+| **Smoke** | `smoke-test-inspector-billing-proposal-20.5a6.mjs` — **52/52 PASS** |
+
+**Kluczowe pliki:** `job-wm.ts`, `InspectorBillingProposalModal.tsx`, `BillingProposalReviewCard.tsx`, `InspectorPanel.tsx`, `JobsView.tsx`.
+
+**Sync:** inspektor → tylko `kw-jobs`; approve → `commitRecoverableCharges`.
 
 ---
 

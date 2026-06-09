@@ -41,12 +41,15 @@ import {
   type RecoverableChargeJobStats,
 } from "@/lib/recoverable-charges";
 import { JobRecoverableChargesPanel } from "@/app/JobRecoverableChargesPanel";
+import { InspectorBillingProposalModal } from "@/app/InspectorBillingProposalModal";
 import {
   appendBillingJobNote,
+  appendBillingProposalNote,
   buildBillingJobNote,
+  buildBillingProposalNote,
   type JobNoteAttachment,
 } from "@/lib/job-wm";
-import { uploadBillingEvidence } from "@/lib/billing-evidence-upload";
+import { uploadBillingEvidence, uploadBillingProposalEvidence } from "@/lib/billing-evidence-upload";
 import type { BillingNotePendingFiles } from "@/app/JobRecoverableChargesPanel";
 import { recoverableChargeDescriptionLine } from "@/lib/recoverable-charges";
 import {
@@ -250,6 +253,7 @@ export function InspectorPanel({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
+  const [showBillingProposalModal, setShowBillingProposalModal] = useState(false);
   const [openReportId, setOpenReportId] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; label: string } | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -690,6 +694,49 @@ export function InspectorPanel({
     updateJob(appendBillingJobNote(job, note, title));
     setMsg("Uwaga wysłana do administratora");
   }, [displayName, recoverableCharges, selectedId, updateJob]);
+
+  const handleSubmitBillingProposal = useCallback(async (payload: {
+    title: string;
+    description: string;
+    amount: number;
+    files?: BillingNotePendingFiles;
+  }) => {
+    const job = jobsRef.current.find((j) => j.id === selectedId);
+    if (!job) throw new Error("Brak roboty");
+    const proposalId = crypto.randomUUID();
+
+    const attachments: JobNoteAttachment[] = [];
+    if (payload.files) {
+      for (const img of payload.files.images) {
+        const { attachment, error } = await uploadBillingProposalEvidence(job.id, proposalId, img, displayName);
+        if (error || !attachment) {
+          setMsg(error || "Błąd wgrywania zdjęcia");
+          throw new Error(error || "upload failed");
+        }
+        attachments.push(attachment);
+      }
+      if (payload.files.pdf) {
+        const { attachment, error } = await uploadBillingProposalEvidence(job.id, proposalId, payload.files.pdf, displayName);
+        if (error || !attachment) {
+          setMsg(error || "Błąd wgrywania PDF");
+          throw new Error(error || "upload failed");
+        }
+        attachments.push(attachment);
+      }
+    }
+
+    const note = buildBillingProposalNote({
+      id: proposalId,
+      jobId: job.id,
+      text: payload.description,
+      title: payload.title,
+      amount: payload.amount,
+      author: displayName,
+      attachments: attachments.length > 0 ? attachments : undefined,
+    });
+    updateJob(appendBillingProposalNote(job, note));
+    setMsg("Zgłoszenie wysłane do administratora");
+  }, [displayName, selectedId, updateJob]);
 
   const flushInspectorPhotoQueue = useCallback(async () => {
     if (!navigator.onLine || flushingPhotoQueueRef.current) return;
@@ -1229,11 +1276,22 @@ export function InspectorPanel({
               jobNotes={selectedJob.jobNotes}
               variant="inspector"
               jobsById={jobsById}
+              onCreateBillingProposal={() => setShowBillingProposalModal(true)}
               onAddBillingNote={handleAddBillingNote}
               billingNoteActorName={displayName}
               billingNoteActorRole="inspector"
               directory={directoryContacts}
             />
+
+            {showBillingProposalModal && (
+              <InspectorBillingProposalModal
+                job={selectedJob}
+                directory={directory}
+                authorName={displayName}
+                onClose={() => setShowBillingProposalModal(false)}
+                onSubmit={handleSubmitBillingProposal}
+              />
+            )}
 
             {jobInspectorHistory(selectedJob).length > 0 && (
               <div className="bg-card border border-border rounded-2xl p-4">

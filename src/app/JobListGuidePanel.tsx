@@ -129,6 +129,18 @@ export function JobListGuidePanel() {
           </p>
         </section>
 
+        <section className="space-y-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3">
+          <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <Wallet size={12} className="text-emerald-600 dark:text-emerald-400" />
+            Do rozliczenia — zgłoszenia inspektora (20.5A.6)
+          </h3>
+          <p className="text-muted-foreground">
+            Inspektor może zgłosić <strong className="text-foreground/80">nową pozycję</strong> (opis, kwota, dowody)
+            gdy na robocie nie ma jeszcze pozycji billing. Administrator zatwierdza lub odrzuca w sekcji{" "}
+            <strong className="text-foreground/80">Zgłoszenia inspektora</strong> — pozycja w module powstaje dopiero po zatwierdzeniu.
+          </p>
+        </section>
+
         <section className="space-y-2 rounded-xl border border-border bg-secondary/30 p-3">
           <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Wskazówka

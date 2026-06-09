@@ -17,11 +17,14 @@ import { parseSettlementNote } from "@/app/SettleChargeModal";
 import { AuthorAttribution } from "@/app/AuthorAttribution";
 import type { DirectoryEmployee } from "@/app/app-domain";
 import {
+  billingProposalsForJob,
   jobNotesForCharge,
+  pendingBillingProposalsForJob,
   type JobNote,
   type JobNoteAttachment,
   type JobNoteAuthorRole,
 } from "@/lib/job-wm";
+import { BillingProposalReviewCard } from "@/app/BillingProposalReviewCard";
 import {
   MAX_BILLING_EVIDENCE_IMAGES,
   MAX_BILLING_EVIDENCE_PDFS,
@@ -53,6 +56,9 @@ export function JobRecoverableChargesPanel({
   jobNotes,
   onOpenCharge,
   onCreateCharge,
+  onCreateBillingProposal,
+  onApproveBillingProposal,
+  onRejectBillingProposal,
   onAddBillingNote,
   billingNoteActorName,
   billingNoteActorRole,
@@ -65,6 +71,11 @@ export function JobRecoverableChargesPanel({
   jobNotes?: JobNote[];
   onOpenCharge?: (chargeId: string) => void;
   onCreateCharge?: () => void;
+  /** Sprint 20.5A.6 — inspektor otwiera modal zgłoszenia. */
+  onCreateBillingProposal?: () => void;
+  /** Sprint 20.5A.6 — admin zatwierdza propozycję (otwiera modal approve). */
+  onApproveBillingProposal?: (proposalId: string) => void;
+  onRejectBillingProposal?: (proposalId: string, reason: string) => void;
   /** Sprint 20.5A.4/5 — zapis uwagi billing (tylko kw-jobs). */
   onAddBillingNote?: (chargeId: string, text: string, files?: BillingNotePendingFiles) => void | Promise<void>;
   billingNoteActorName?: string;
@@ -82,6 +93,8 @@ export function JobRecoverableChargesPanel({
   const sourceOverflow = Math.max(0, sourceCharges.length - JOB_RECOVERABLE_CHARGES_LIST_LIMIT);
   const recoveredPreview = recoveredRows.slice(0, JOB_RECOVERABLE_CHARGES_LIST_LIMIT);
   const recoveredOverflow = Math.max(0, recoveredRows.length - JOB_RECOVERABLE_CHARGES_LIST_LIMIT);
+  const jobProposals = billingProposalsForJob(jobNotes, jobId);
+  const pendingProposals = pendingBillingProposalsForJob(jobNotes, jobId);
 
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -100,6 +113,17 @@ export function JobRecoverableChargesPanel({
           >
             <Plus size={12} />
             Dodaj do rozliczenia
+          </button>
+        )}
+        {isInspector && onCreateBillingProposal && (
+          <button
+            type="button"
+            onClick={onCreateBillingProposal}
+            className="shrink-0 flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-colors touch-manipulation min-h-[44px]"
+            data-billing-proposal-cta
+          >
+            <Plus size={12} />
+            Zgłoś pozycję
           </button>
         )}
       </div>
@@ -121,6 +145,30 @@ export function JobRecoverableChargesPanel({
           </>
         )}
       </div>
+
+      {jobProposals.length > 0 && (
+        <div className="px-5 py-3 border-b border-border/60 space-y-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            {isInspector ? "Twoje zgłoszenia" : "Zgłoszenia inspektora"}
+            {pendingProposals.length > 0 && (
+              <span className="ml-1.5 bg-amber-500/15 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded-full font-bold">
+                {pendingProposals.length}
+              </span>
+            )}
+          </p>
+          {jobProposals.slice(0, JOB_RECOVERABLE_CHARGES_LIST_LIMIT).map((proposal) => (
+            <BillingProposalReviewCard
+              key={proposal.id}
+              proposal={proposal}
+              directory={directory}
+              variant={isInspector ? "inspector" : "admin"}
+              onApprove={!isInspector ? onApproveBillingProposal : undefined}
+              onReject={!isInspector ? onRejectBillingProposal : undefined}
+              onOpenCharge={!isInspector ? onOpenCharge : undefined}
+            />
+          ))}
+        </div>
+      )}
 
       {sourcePreview.length > 0 && (
         <div className="px-5 py-3 border-b border-border/60 space-y-3">
@@ -200,10 +248,10 @@ export function JobRecoverableChargesPanel({
         </div>
       )}
 
-      {stats.chargeCount === 0 && stats.recoveredCount === 0 && (
+      {stats.chargeCount === 0 && stats.recoveredCount === 0 && jobProposals.length === 0 && (
         <p className="px-5 py-4 text-xs text-muted-foreground">
           {isInspector
-            ? "Brak pozycji powiązanych z tą robotą."
+            ? "Brak pozycji powiązanych z tą robotą — możesz zgłosić pozycję do rozliczenia."
             : "Brak pozycji powiązanych z tą robotą — dodaj pierwszą pozycję do odzyskania."}
         </p>
       )}

@@ -4,9 +4,43 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-09  
-**Wersja UI (prod):** **2.50.43** — Polonizacja COMMAND CENTER (20.3B+ FULL)  
+**Wersja UI (prod):** **2.50.43** · Polonizacja COMMAND CENTER (20.3B+ FULL)  
+**Wersja lokalna (branch):** **2.50.44** — Billing Proposal 20.5A.6 (**IMPLEMENT DONE, bez push/deploy**)  
 **Prod `origin/main` HEAD:** **`61cb33b`** · https://www.wgdom.fun  
-**Status:** **STABLE**
+**Status:** **STABLE** (prod) · **20.5A.6 lokalnie gotowe do review**
+
+---
+
+## Release 2.50.44 — Billing Proposal 20.5A.6 (**LOKALNIE, bez deploy**)
+
+| Pole | Wartość |
+|------|---------|
+| **Release** | **v2.50.44** (CHANGELOG lokalny) |
+| **Wariant** | **B1** — propozycja w `JobNote` / `kw-jobs` → admin approve → `RecoverableCharge` |
+| **Production** | *bez zmian* — prod nadal **2.50.43** |
+| **Handoff billing** | [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md) |
+
+### Zakres 20.5A.6
+
+| Element | Opis |
+|---------|------|
+| **Model** | `billing_proposal` w `JobNote`, `proposalStatus`, helpery w `job-wm.ts` |
+| **Inspektor** | CTA „Zgłoś pozycję”, modal + dowody, push tylko `kw-jobs` |
+| **Admin** | Sekcja „Zgłoszenia inspektora”, approve (modal prefill) / reject |
+| **Sync boundary** | Inspektor **nie** pisze `kw-recoverable-charges`; KPI rośnie dopiero po approve |
+
+### Smoke / build (lokalnie)
+
+| Test | Wynik |
+|------|-------|
+| `npm run build` | **PASS** |
+| `smoke-test-inspector-billing-proposal-20.5a6.mjs` | **52/52 PASS** |
+| Regresja 20.5A.2–5 | **PASS** |
+
+### Następne (po akceptacji)
+
+- Push `main` → Vercel auto-deploy
+- Test manualny na prod: inspektor zgłasza → admin zatwierdza → badge 💰
 
 ---
 

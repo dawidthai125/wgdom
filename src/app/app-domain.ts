@@ -1355,7 +1355,10 @@ export const ACTIVITY_LABELS: Record<JobActivityType, string> = {
   inspector_stage: "Inspektor · etap",
   inspector_note: "Inspektor · notatka",
   inspector_billing_note: "Inspektor · uwaga Do rozliczenia",
+  inspector_billing_proposal: "Inspektor · zgłoszenie Do rozliczenia",
   inspector_photo: "Inspektor · zdjęcie",
+  billing_proposal_approved: "Zaakceptowano zgłoszenie Do rozliczenia",
+  billing_proposal_rejected: "Odrzucono zgłoszenie Do rozliczenia",
 };
 
 export function jobDaysSinceStart(job: Job): number {

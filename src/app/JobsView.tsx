@@ -36,7 +36,7 @@ import { uploadPhoto, prepareWatermarkedPhoto } from "@/app/app-domain";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { LabelWithHint, VoiceNoteButton } from "@/app/app-ui";
-import { appendJobActivity, type JobActivityType } from "@/lib/job-activity";
+import { appendJobActivity, isInspectorActivityType, type JobActivityType } from "@/lib/job-activity";
 import { countBrowserFiles, jobHasBrowserFiles } from "@/lib/job-files-browser";
 import { downloadJobGalleryZip } from "@/lib/photo-download";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
@@ -71,8 +71,16 @@ import {
   normalizeJobWmFields, isWmClient, fmtPlannedHandover, HANDOVER_STAGE_LABELS,
   inferHandoverStage, removeInspectorPhoto, canShowStartExecutionButton, startJobExecution,
   assignExecutionTeam, appendBillingJobNote, buildBillingJobNote,
+  approveBillingProposalNote, rejectBillingProposalNote, updateJobBillingProposalNote,
+  billingProposalApprovedActivityText, billingProposalRejectedActivityText,
+  isBillingProposalNote, isBillingProposalPending, normalizeBillingProposalNote,
 } from "@/lib/job-wm";
-import { recoverableChargeDescriptionLine } from "@/lib/recoverable-charges";
+import {
+  recoverableChargeDescriptionLine,
+  createChargeDraftFromProposal,
+  finalizeRecoverableChargeDraftForSave,
+  findRecoverableChargeByProposalId,
+} from "@/lib/recoverable-charges";
 import {
   type Job, type WeekEmployee, type DirectoryEmployee, type PhotoEntry, type WorkEntry, type DocType,
   DOCUMENT_TYPES, DOC_LABELS, REQUIRED_DOCS, DEFAULT_JOB_ENTRY_HOURS,
@@ -581,6 +589,10 @@ export function JobsView({
   const [showAllFiles, setShowAllFiles] = useState(false);
   const [detailSection, setDetailSection] = useState<JobDetailSection>("summary");
   const [showCreateRecoverableCharge, setShowCreateRecoverableCharge] = useState(false);
+  const [approveProposalContext, setApproveProposalContext] = useState<{
+    proposalId: string;
+    draft: RecoverableCharge;
+  } | null>(null);
   const [uploadBusy, setUploadBusy] = useState<string | null>(null);
   const [uploadMsg, setUploadMsg] = useState("");
   const [photoUploadBusy, setPhotoUploadBusy] = useState(false);
@@ -728,6 +740,46 @@ export function JobsView({
     updateJob(appendBillingJobNote(selectedJob, note, title));
     toast.success("Odpowiedź wysłana do inspektora");
   }, [selectedJob, recoverableCharges, createdByName]);
+
+  const handleApproveBillingProposal = useCallback((proposalId: string) => {
+    if (!selectedJob) return;
+    const liveJob = jobs.find((j) => j.id === selectedJob.id) ?? selectedJob;
+    const proposal = (liveJob.jobNotes || []).find((n) => n.id === proposalId);
+    if (!proposal || !isBillingProposalNote(proposal)) return;
+    if (!isBillingProposalPending(proposal)) {
+      const n = normalizeBillingProposalNote(proposal);
+      toast.info(
+        n.proposalStatus === "approved" && n.approvedChargeId
+          ? "Zgłoszenie zostało już zatwierdzone"
+          : "Zgłoszenie nie oczekuje na zatwierdzenie",
+      );
+      return;
+    }
+    const existingCharge = findRecoverableChargeByProposalId(recoverableCharges, proposalId);
+    if (existingCharge) {
+      toast.info(`Pozycja już istnieje dla tego zgłoszenia (tag proposal:${proposalId})`);
+      return;
+    }
+    const draft = createChargeDraftFromProposal(proposal, liveJob, directory, createdByName);
+    setApproveProposalContext({ proposalId, draft });
+  }, [selectedJob, jobs, directory, createdByName, recoverableCharges]);
+
+  const handleRejectBillingProposal = useCallback((proposalId: string, reason: string) => {
+    if (!selectedJob) return;
+    const proposal = (selectedJob.jobNotes || []).find((n) => n.id === proposalId);
+    if (!proposal) return;
+    let job = updateJobBillingProposalNote(selectedJob, proposalId, (n) =>
+      rejectBillingProposalNote(n, reason, createdByName),
+    );
+    job = appendJobActivity(
+      job,
+      "billing_proposal_rejected",
+      billingProposalRejectedActivityText(proposal, reason),
+      createdByName,
+    );
+    updateJob(job);
+    toast.success("Zgłoszenie odrzucone");
+  }, [selectedJob, createdByName]);
 
   const appendJobPhotos = (entries: PhotoEntry[], activityText: string) => {
     if (!selectedJobId || entries.length === 0) return;
@@ -1755,11 +1807,88 @@ export function JobsView({
                   ? () => setShowCreateRecoverableCharge(true)
                   : undefined
               }
+              onApproveBillingProposal={
+                onChangeRecoverableCharges && onCommitRecoverableCharges
+                  ? handleApproveBillingProposal
+                  : undefined
+              }
+              onRejectBillingProposal={
+                onChangeRecoverableCharges && onCommitRecoverableCharges
+                  ? handleRejectBillingProposal
+                  : undefined
+              }
               onAddBillingNote={handleAddBillingNote}
               billingNoteActorName={createdByName}
               billingNoteActorRole="admin"
               directory={directory}
             />
+
+            {approveProposalContext && selectedJob && onChangeRecoverableCharges && onCommitRecoverableCharges && (
+              <JobCreateRecoverableChargeModal
+                key={approveProposalContext.proposalId}
+                job={selectedJob}
+                directory={directory}
+                createdByName={createdByName}
+                title="Zatwierdź zgłoszenie inspektora"
+                submitLabel="Zatwierdź i utwórz pozycję"
+                initialDraft={approveProposalContext.draft}
+                onClose={() => setApproveProposalContext(null)}
+                onSave={(draft) => {
+                  const validation = validateRecoverableChargeDraft(draft);
+                  if (!validation.ok) return false;
+                  const proposalId = approveProposalContext.proposalId;
+                  const liveJob = jobs.find((j) => j.id === selectedJob.id) ?? selectedJob;
+                  const proposal = (liveJob.jobNotes || []).find((n) => n.id === proposalId);
+                  if (!proposal || !isBillingProposalNote(proposal)) {
+                    toast.error("Nie znaleziono zgłoszenia");
+                    setApproveProposalContext(null);
+                    return false;
+                  }
+                  if (!isBillingProposalPending(proposal)) {
+                    const n = normalizeBillingProposalNote(proposal);
+                    toast.info(
+                      n.proposalStatus === "approved" && n.approvedChargeId
+                        ? "Zgłoszenie zostało już zatwierdzone"
+                        : "Zgłoszenie nie oczekuje na zatwierdzenie",
+                    );
+                    setApproveProposalContext(null);
+                    return false;
+                  }
+                  const existingCharge = findRecoverableChargeByProposalId(recoverableCharges, proposalId);
+                  if (existingCharge) {
+                    toast.info(
+                      `Pozycja już istnieje dla tego zgłoszenia (tag proposal:${proposalId}, id ${existingCharge.id})`,
+                    );
+                    setApproveProposalContext(null);
+                    return false;
+                  }
+                  const normalized = finalizeRecoverableChargeDraftForSave(draft);
+                  const next = appendRecoverableChargeCreate(recoverableCharges, normalized);
+                  onChangeRecoverableCharges(next);
+                  onCommitRecoverableCharges(next);
+                  try {
+                    let job = updateJobBillingProposalNote(
+                      liveJob,
+                      proposalId,
+                      (n) => approveBillingProposalNote(n, normalized.id, createdByName),
+                    );
+                    job = appendJobActivity(
+                      job,
+                      "billing_proposal_approved",
+                      billingProposalApprovedActivityText(proposal),
+                      createdByName,
+                    );
+                    updateJob(job);
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Nie udało się zaktualizować zgłoszenia");
+                    return false;
+                  }
+                  setApproveProposalContext(null);
+                  toast.success("Pozycja utworzona z zgłoszenia inspektora");
+                  return true;
+                }}
+              />
+            )}
 
             {showCreateRecoverableCharge && selectedJob && onChangeRecoverableCharges && onCommitRecoverableCharges && (
               <JobCreateRecoverableChargeModal

@@ -32,7 +32,15 @@ export const HANDOVER_STAGE_HINTS: Record<JobHandoverStage, string> = {
 
 export type JobNoteAuthorRole = "inspector" | "admin";
 
-export type JobNoteContext = "wm" | "billing";
+export type JobNoteContext = "wm" | "billing" | "billing_proposal";
+
+export type BillingProposalStatus = "pending" | "approved" | "rejected";
+
+export const BILLING_PROPOSAL_STATUS_LABELS: Record<BillingProposalStatus, string> = {
+  pending: "Oczekuje na administratora",
+  approved: "Zaakceptowano",
+  rejected: "Odrzucono",
+};
 
 /** Sprint 20.5A.5 — dowód wizualny przy uwadze billing (zdjęcie / PDF). */
 export interface JobNoteAttachment {
@@ -57,11 +65,58 @@ export interface JobNote {
   context?: JobNoteContext;
   /** Sprint 20.5A.5 — załączniki dowodowe (opcjonalne). */
   attachments?: JobNoteAttachment[];
+  /** Sprint 20.5A.6 — propozycja nowej pozycji Do rozliczenia (tylko context=billing_proposal). */
+  proposalStatus?: BillingProposalStatus;
+  proposalAmount?: number;
+  proposalTitle?: string;
+  sourceJobId?: string;
+  approvedChargeId?: string;
+  rejectedReason?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
 }
 
-/** Notatka powiązana z pozycją billing (nie WM). */
+/** Propozycja nowej pozycji billing (Sprint 20.5A.6). */
+export function isBillingProposalNote(note: JobNote): boolean {
+  return note.context === "billing_proposal";
+}
+
+/** Notatka powiązana z pozycją billing (nie WM, nie propozycja). */
 export function isBillingJobNote(note: JobNote): boolean {
+  if (isBillingProposalNote(note)) return false;
   return note.context === "billing" || Boolean(note.recoverableChargeId?.trim());
+}
+
+function parseProposalAmount(raw: unknown): number {
+  if (typeof raw === "number" && Number.isFinite(raw)) return +raw.toFixed(2);
+  if (typeof raw === "string") {
+    const n = parseFloat(raw.replace(",", ".").replace(/\s/g, ""));
+    return Number.isFinite(n) ? +n.toFixed(2) : 0;
+  }
+  return 0;
+}
+
+function parseProposalStatus(raw: unknown): BillingProposalStatus | undefined {
+  if (raw === "pending" || raw === "approved" || raw === "rejected") return raw;
+  return undefined;
+}
+
+/** Normalizacja pól propozycji billing przy merge / odczycie. */
+export function normalizeBillingProposalNote(note: JobNote): JobNote {
+  if (!isBillingProposalNote(note)) return note;
+  const amount = parseProposalAmount(note.proposalAmount);
+  const status = parseProposalStatus(note.proposalStatus) ?? "pending";
+  return {
+    ...note,
+    proposalStatus: status,
+    proposalAmount: amount,
+    proposalTitle: String(note.proposalTitle ?? "").trim(),
+    sourceJobId: String(note.sourceJobId ?? "").trim(),
+    approvedChargeId: String(note.approvedChargeId ?? "").trim() || undefined,
+    rejectedReason: String(note.rejectedReason ?? "").trim() || undefined,
+    reviewedBy: String(note.reviewedBy ?? "").trim() || undefined,
+    reviewedAt: String(note.reviewedAt ?? "").trim() || undefined,
+  };
 }
 
 /** Notatki WM / ogólne (bez powiązania z charge). */
@@ -74,8 +129,36 @@ export function jobNotesForCharge(notes: JobNote[] | undefined, chargeId: string
   const id = chargeId.trim();
   if (!id) return [];
   return (notes || [])
-    .filter((n) => n.recoverableChargeId?.trim() === id)
+    .filter((n) => !isBillingProposalNote(n) && n.recoverableChargeId?.trim() === id)
     .sort((a, b) => b.at.localeCompare(a.at));
+}
+
+/** Propozycje billing na robocie (najnowsze na górze). */
+export function billingProposalsForJob(notes: JobNote[] | undefined, jobId?: string): JobNote[] {
+  const jid = jobId?.trim();
+  return (notes || [])
+    .filter((n) => {
+      if (!isBillingProposalNote(n)) return false;
+      if (!jid) return true;
+      return (n.sourceJobId?.trim() || "") === jid;
+    })
+    .map(normalizeBillingProposalNote)
+    .sort((a, b) => b.at.localeCompare(a.at));
+}
+
+export function pendingBillingProposalsForJob(notes: JobNote[] | undefined, jobId?: string): JobNote[] {
+  return billingProposalsForJob(notes, jobId).filter((n) => n.proposalStatus === "pending");
+}
+
+/** Sprint 20.5A.6 P1 — tylko propozycje oczekujące na decyzję admina. */
+export function isBillingProposalPending(note: JobNote): boolean {
+  return normalizeBillingProposalNote(note).proposalStatus === "pending";
+}
+
+export function billingProposalDisplayTitle(note: JobNote): string {
+  const n = normalizeBillingProposalNote(note);
+  const title = n.proposalTitle?.trim() || n.text.trim().slice(0, 80);
+  return title || "Zgłoszenie Do rozliczenia";
 }
 
 export function buildBillingJobNote(params: {
@@ -104,6 +187,120 @@ export function billingNoteActivityText(chargeTitle: string, noteText: string, a
   const short = noteText.length > 60 ? `${noteText.slice(0, 60)}…` : noteText;
   const prefix = authorRole === "inspector" ? "Uwaga billing" : "Odpowiedź Do rozliczenia";
   return `${prefix} · ${title} · ${short}`;
+}
+
+export function buildBillingProposalNote(params: {
+  id?: string;
+  jobId: string;
+  text: string;
+  title?: string;
+  amount: number;
+  author: string;
+  attachments?: JobNoteAttachment[];
+}): JobNote {
+  const trimmed = params.text.trim();
+  const amount = parseProposalAmount(params.amount);
+  const attachments = params.attachments?.length ? params.attachments : undefined;
+  return normalizeBillingProposalNote({
+    id: params.id?.trim() || crypto.randomUUID(),
+    author: params.author,
+    authorRole: "inspector",
+    text: trimmed,
+    at: new Date().toISOString(),
+    context: "billing_proposal",
+    proposalStatus: "pending",
+    proposalAmount: amount,
+    proposalTitle: String(params.title ?? "").trim(),
+    sourceJobId: params.jobId.trim(),
+    attachments,
+  });
+}
+
+export function billingProposalActivityText(note: JobNote): string {
+  const n = normalizeBillingProposalNote(note);
+  const title = billingProposalDisplayTitle(n);
+  const short = n.text.length > 60 ? `${n.text.slice(0, 60)}…` : n.text;
+  const amount = n.proposalAmount != null && n.proposalAmount > 0
+    ? ` · ${n.proposalAmount.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PLN`
+    : "";
+  return `Zgłoszenie Do rozliczenia · ${title}${amount} · ${short}`;
+}
+
+/** Dodaje propozycję billing + wpis activityLog (tylko kw-jobs, Sprint 20.5A.6). */
+export function appendBillingProposalNote<T extends { jobNotes?: JobNote[]; activityLog?: JobActivity[] }>(
+  job: T,
+  note: JobNote,
+): T & { jobNotes: JobNote[]; activityLog: JobActivity[] } {
+  const normalized = normalizeBillingProposalNote(note);
+  return appendJobActivity(
+    { ...job, jobNotes: [normalized, ...(job.jobNotes || [])] },
+    "inspector_billing_proposal",
+    billingProposalActivityText(normalized),
+    normalized.author,
+  );
+}
+
+export function approveBillingProposalNote(
+  note: JobNote,
+  chargeId: string,
+  adminName: string,
+): JobNote {
+  const n = normalizeBillingProposalNote(note);
+  if (n.proposalStatus !== "pending") {
+    throw new Error("Zgłoszenie nie oczekuje na zatwierdzenie");
+  }
+  const id = chargeId.trim();
+  if (!id) throw new Error("Brak identyfikatora pozycji");
+  return normalizeBillingProposalNote({
+    ...n,
+    proposalStatus: "approved",
+    approvedChargeId: id,
+    reviewedBy: adminName.trim(),
+    reviewedAt: new Date().toISOString(),
+  });
+}
+
+export function rejectBillingProposalNote(
+  note: JobNote,
+  reason: string,
+  adminName: string,
+): JobNote {
+  const trimmed = reason.trim();
+  if (!trimmed) throw new Error("Podaj powód odrzucenia");
+  return normalizeBillingProposalNote({
+    ...note,
+    proposalStatus: "rejected",
+    rejectedReason: trimmed,
+    reviewedBy: adminName.trim(),
+    reviewedAt: new Date().toISOString(),
+  });
+}
+
+export function updateJobBillingProposalNote<T extends { jobNotes?: JobNote[] }>(
+  job: T,
+  proposalId: string,
+  updater: (note: JobNote) => JobNote,
+): T {
+  const pid = proposalId.trim();
+  let found = false;
+  const jobNotes = (job.jobNotes || []).map((n) => {
+    if (n.id !== pid || !isBillingProposalNote(n)) return n;
+    found = true;
+    return normalizeBillingProposalNote(updater(n));
+  });
+  if (!found) throw new Error("Nie znaleziono zgłoszenia");
+  return { ...job, jobNotes };
+}
+
+export function billingProposalApprovedActivityText(note: JobNote): string {
+  const title = billingProposalDisplayTitle(note);
+  return `Zaakceptowano zgłoszenie · ${title} · utworzono pozycję`;
+}
+
+export function billingProposalRejectedActivityText(note: JobNote, reason: string): string {
+  const title = billingProposalDisplayTitle(note);
+  const short = reason.length > 60 ? `${reason.slice(0, 60)}…` : reason;
+  return `Odrzucono zgłoszenie · ${title} · ${short}`;
 }
 
 /** Dodaje notatkę billing + wpis activityLog (tylko kw-jobs, Sprint 20.5A.4). */
@@ -271,9 +468,19 @@ export function applyHandoverStageToJob<T extends JobWmJob & { status: "in_progr
 export function mergeJobNotes(a: JobNote[] | undefined, b: JobNote[] | undefined): JobNote[] {
   const map = new Map<string, JobNote>();
   for (const n of [...(a || []), ...(b || [])]) {
-    if (n?.id) map.set(n.id, n);
+    if (!n?.id) continue;
+    const normalized = isBillingProposalNote(n) ? normalizeBillingProposalNote(n) : n;
+    map.set(n.id, normalized);
   }
   return [...map.values()].sort((x, y) => y.at.localeCompare(x.at)).slice(0, 100);
+}
+
+export function jobsWithPendingBillingProposals(jobs: JobWmJob[]): JobWmJob[] {
+  return jobs.filter((job) => pendingBillingProposalsForJob(job.jobNotes, job.id).length > 0);
+}
+
+export function countPendingBillingProposals(jobs: JobWmJob[]): number {
+  return jobs.reduce((sum, job) => sum + pendingBillingProposalsForJob(job.jobNotes, job.id).length, 0);
 }
 
 export function mergeInspectorPhotos(

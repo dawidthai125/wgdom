@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.44",
+    label: "Zgłoszenie pozycji Do rozliczenia — inspektor (20.5A.6)",
+    items: [
+      { type: "new", text: "Inspektor — „Zgłoś pozycję” gdy na robocie nie ma jeszcze pozycji billing; opis, kwota i dowody (zdjęcia/PDF)" },
+      { type: "new", text: "Administrator — sekcja Zgłoszenia inspektora: zatwierdź (tworzy pozycję) lub odrzuć z powodem" },
+      { type: "improve", text: "Propozycje w JobNote (context billing_proposal) — sync kw-jobs; pozycja powstaje dopiero po zatwierdzeniu admina (kw-recoverable-charges)" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.43",
     label: "Polonizacja COMMAND CENTER — pełny pakiet (20.3B+)",
     items: [

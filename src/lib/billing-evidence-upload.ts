@@ -42,6 +42,26 @@ export async function uploadBillingEvidence(
   file: File,
   uploadedBy: string,
 ): Promise<{ attachment: JobNoteAttachment | null; error?: string }> {
+  return uploadBillingAttachment(jobId, chargeId, file, uploadedBy, "charge");
+}
+
+/** Sprint 20.5A.6 — dowód przy propozycji billing (przed utworzeniem pozycji). */
+export async function uploadBillingProposalEvidence(
+  jobId: string,
+  proposalId: string,
+  file: File,
+  uploadedBy: string,
+): Promise<{ attachment: JobNoteAttachment | null; error?: string }> {
+  return uploadBillingAttachment(jobId, proposalId, file, uploadedBy, "proposal");
+}
+
+async function uploadBillingAttachment(
+  jobId: string,
+  entityId: string,
+  file: File,
+  uploadedBy: string,
+  entityKind: "charge" | "proposal",
+): Promise<{ attachment: JobNoteAttachment | null; error?: string }> {
   const validationError = validateBillingEvidenceFile(file);
   if (validationError) {
     return { attachment: null, error: validationError };
@@ -49,9 +69,10 @@ export async function uploadBillingEvidence(
 
   const isPdf = isPdfFile(file);
   const safeName = file.name.replace(/[^\w.\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ ]+/g, "_").slice(0, 60);
-  const chargePart = chargeId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 24);
+  const entityPart = entityId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 24);
   const fallbackName = isPdf ? "dowod.pdf" : "zdjecie.jpg";
-  const filename = `billing-evidence-${chargePart}-${Date.now()}-${safeName || fallbackName}`;
+  const prefix = entityKind === "proposal" ? "billing-proposal-" : "billing-evidence-";
+  const filename = `${prefix}${entityPart}-${Date.now()}-${safeName || fallbackName}`;
 
   try {
     const form = new FormData();
