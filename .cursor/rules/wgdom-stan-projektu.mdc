@@ -12,9 +12,11 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI (prod):** **2.50.52** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
-- **Prod (`main` / `origin/main`, app):** **`e6758e5`** · deploy **`4994803137`** · https://www.wgdom.fun · Generic Attachments 20.5A.10 **RELEASED**
+- **Aktualna wersja UI (prod):** **2.50.56** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
+- **Prod (`main` / `origin/main`, app):** **`1be7a80`** · deploy **`4995835869`** · https://www.wgdom.fun · Version Awareness 20.5B.7 **RELEASED**
 - **★ Handoff projektu:** [`docs/PROJECT-HANDOFF.md`](../../docs/PROJECT-HANDOFF.md) — baseline prod, proces AUDIT→RCA→PLAN→IMPLEMENT
+- **★ Handoff sesji 20.5B (CLOSED):** [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](../../docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md) — Roboty UX 20.5B.5, Dokumentacja naming 20.5B.6A.1, Version Awareness 20.5B.7
+- **★ Audyt operacyjny (GO):** [`docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](../../docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md) — worker → admin → inspektor
 - **★ Handoff Generic Attachments (CLOSED):** [`docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](../../docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md) — `jobAttachments[]`, trzy warstwy plików, email/ZIP
 - **★ Handoff CC polonizacja (CLOSED):** [`docs/SESSION-HANDOFF-20.3B-CC-POLISH.md`](../../docs/SESSION-HANDOFF-20.3B-CC-POLISH.md) — mapa widoków, etykiety PL, struktura OwnerDashboard
 - **★ Handoff Seria 2.50.x (CLOSED):** [`docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md`](../../docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md) — MID-B, Mobile Fix, CI P0, desktop scroll
@@ -26,7 +28,7 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **Handoff Performance 1.x CLOSED:** [`docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md`](../../docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md)
 - **Handoff incydent Roboty + 2.1B:** [`docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md`](../../docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md)
 - **Handoff sesji 2026-06 (Faza 8–9, audyty):** [`docs/SESSION-HANDOFF-2026-06.md`](../../docs/SESSION-HANDOFF-2026-06.md)
-- **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md) → [`docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](../../docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) § 12.1.2 + § 15.1 → [`docs/tender-center-7g-executive.md`](../../docs/tender-center-7g-executive.md)
+- **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md) → [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](../../docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) § 9.1 + § 12.1.2 + § 13.1 → [`docs/tender-center-7g-executive.md`](../../docs/tender-center-7g-executive.md)
 - **Testy użytkownika:** głównie **Vercel**, nie localhost
 - **Konto testowe pracownika:** imię `test`, tel. `+48 000 000 000` — tylko tryb pracownika, bez listy płac/grafiku/pulpitu
 
@@ -65,6 +67,25 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 
 **Nie zmieniaj bez polecenia:** `jobFiles[]`, plan_techniczny, media-separation, tombstone 20.5B.3, billing sync.
 
+## Seria 20.5B — Roboty UX + Dokumentacja + Version Awareness (CLOSED, prod `1be7a80`, 2026-06-09)
+
+| Sprint | Wersja | Commit | Skrót |
+|--------|--------|--------|-------|
+| **20.5B.7** | **2.50.56** | **`1be7a80`** | Version Awareness — `/version.json`, banner, manual refresh |
+| **20.5B.6A.1** | 2.50.55 | `782fe87` | Raporty → **Dokumentacja** (copy/UI only) |
+| **20.5B.5** | 2.50.54 | `ae35c56` | Filtr W trakcie, Socjalny, piec gazowy |
+| **20.5B.4** | 2.50.53 | — | Dashboard WM Cleanup |
+
+**Model dokumentacji:** `workerReports[]` — wymiary = `rooms[]`, obrys = `sketch` (≠ plan PDF `jobFiles[]` kind `plan_techniczny`).
+
+**Handoff:** [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](../../docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md) · **Audyt GO:** [`docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](../../docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md)
+
+**Kluczowe pliki:** `app-version-check.ts`, `AppUpdateBanner.tsx`, `JobWorkerReportsPanel.tsx`, `WorkerPhotoView.tsx`, `JobReportForm.tsx`
+
+**Smoke:** `smoke-test-app-version-check-20.5b7.mjs`, `smoke-test-job-documentation-labels-20.5b6a.mjs`, `smoke-prod-bundle-2.50.56.mjs`
+
+**Nie zmieniaj bez polecenia:** `workerReports[]` sync, auto-reload (20.5B.7C poza zakresem).
+
 ## Do rozliczenia + Roboty — Sprint 20.5A (CLOSED, prod `99295e5`, 2026-06-09)
 
 | Sprint | Commit | Wersja | Skrót |
@@ -84,10 +105,14 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 
 **Nie zmieniaj bez polecenia:** KV `kw-recoverable-charges`, sync/merge settlements, dashboard KPI 20.4C, granica inspektor → tylko `kw-jobs`.
 
-## Seria 2.50.x — MID-B + Mobile + Desktop + Billing + Pliki (CLOSED, prod `e6758e5`, 2026-06-09)
+## Seria 2.50.x — MID-B + Mobile + Desktop + Billing + Pliki (CLOSED, prod `1be7a80`, 2026-06-09)
 
 | Wersja | Commit | Skrót |
 |--------|--------|-------|
+| **2.50.56** | **`1be7a80`** | Version Awareness 20.5B.7 |
+| **2.50.55** | `782fe87` | Dokumentacja Naming 20.5B.6A.1 |
+| **2.50.54** | `ae35c56` | Roboty UX Pack 20.5B.5 |
+| **2.50.53** | — | Dashboard WM Cleanup 20.5B.4 |
 | **2.50.52** | **`e6758e5`** | Generic Attachments 20.5A.10 |
 | **2.50.51** | `09a8284` | File Consistency 20.5B.3 — tombstone jobFiles |
 | **2.50.50** | `7d055cf` | Hotfix delete plików kontraktowych P0 |

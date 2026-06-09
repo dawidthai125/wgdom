@@ -8,7 +8,21 @@
 **Current Baseline:** **RELEASED · STABLE**  
 **Prod `origin/main` (app):** **`1be7a80`** · https://www.wgdom.fun  
 **Deploy:** **`4995835869`**  
-**Status:** Sprint 20.5B.7 CLOSED
+**Status:** Sesja 20.5B **CLOSED** · audyt operacyjny **GO**
+
+---
+
+## Podsumowanie sesji 2026-06-09
+
+| Sprint | Wersja | Skrót |
+|--------|--------|-------|
+| **20.5B.7** | 2.50.56 | Version Awareness — banner odświeżenia |
+| **20.5B.6A.1** | 2.50.55 | Raporty → Dokumentacja (copy only) |
+| **20.5B.5** | 2.50.54 | Roboty UX Pack — filtr, Socjalny, piec |
+| **Audyt ops** | — | Worker/Admin/Inspector **GO** |
+
+**Handoff zbiorczy:** [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)  
+**Audyt:** [`docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md)
 
 ---
 
@@ -35,11 +49,12 @@ Wykrywanie nowej wersji po deployu — porównanie `APP_VERSION` z `/version.jso
 ```text
 1. CURRENT-TASK.md                    ← ten plik
 2. docs/PROJECT-HANDOFF.md            ← baseline prod
-3. docs/RELEASE-REPORT-20.5B.7.md      ← ★ ostatni release
-4. docs/RELEASE-REPORT-20.5B.6A.1.md  ← Dokumentacja Naming
-5. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md
-6. docs/ARCHITECTURE.md § 13.1
-7. AGENTS.md
+3. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← ★ ostatnia sesja
+4. docs/RELEASE-REPORT-20.5B.7.md      ← Version Awareness
+5. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← worker flow GO
+6. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md
+7. docs/ARCHITECTURE.md § 9.1 + § 13.1
+8. AGENTS.md
 ```
 
 ---
@@ -79,3 +94,16 @@ Wykrywanie nowej wersji po deployu — porównanie `APP_VERSION` z `/version.jso
 | **Commit** | **`782fe87`** |
 | **Deploy** | **`4995467947`** |
 | **Handoff** | [`RELEASE-REPORT-20.5B.6A.1.md`](docs/RELEASE-REPORT-20.5B.6A.1.md) |
+
+---
+
+## Audyt operacyjny — Worker & Inspector Readiness
+
+| Obszar | Wynik |
+|--------|-------|
+| Worker / Admin / Inspector | **PASS** |
+| **Final** | **GO** |
+
+Sprinty 20.5B.5–7 nie naruszyły pipeline upload/sync.
+
+**Raport:** [`docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md)

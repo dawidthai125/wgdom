@@ -18,6 +18,9 @@
 
 **Brak aktywnych blockerów.** **Brak aktywnych incydentów.**
 
+**Handoff sesji:** [`SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)  
+**Audyt operacyjny:** [`AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md) — worker/admin/inspektor **GO**
+
 ---
 
 ## Ostatni release — 20.5B.7 / 2.50.56
@@ -121,6 +124,7 @@ Szczegóły → [`SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](SESSION-HANDOFF-20.5A-
 
 | Seria | Wersja | Handoff |
 |-------|--------|---------|
+| **20.5B Roboty + Dokumentacja + Version** | **2.50.56 `1be7a80`** | [`SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md) |
 | **Generic Attachments 20.5A.10** | **2.50.52 `e6758e5`** | [`SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md) |
 | File Consistency 20.5B.3 | 2.50.51 `09a8284` | ARCHITECTURE § 12.1.2 |
 | CC polonizacja 20.3B+ | 2.50.43 `61cb33b` | [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md) |
@@ -135,10 +139,12 @@ Szczegóły → [`SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](SESSION-HANDOFF-20.5A-
 
 | Opcja | Opis |
 |-------|------|
+| **20.5B.7C** | Optional auto refresh — domyślnie OFF |
+| **20.5B.6A.2** | Kolejność tabów / worker sub-nav |
 | **20.5A.11** | Inspektor read-only podgląd załączników ogólnych |
 | **20.3C** | Legacy CC + GuideView + retro-changelog |
 | **Roboty 2.0 FULL** | Audyt / implementacja pełna |
-| **P2 billing** | Dashboard alert prefiks proposal — poza scope |
+| **E2E worker flow** | Pełny test: zdjęcie → dokumentacja → admin → inspektor |
 
 ---
 
@@ -163,8 +169,10 @@ AUDIT → RCA → PLAN → IMPLEMENT
 1. CURRENT-TASK.md
 2. AGENTS.md
 3. docs/PROJECT-HANDOFF.md              ← ten plik
-4. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← ★ pliki roboty
-5. docs/ARCHITECTURE.md                 (§ 11 sync, § 12.1.2 pliki, § 15.1 widoki)
-6. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md
-7. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md
+4. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← ★ ostatnia sesja
+5. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md
+6. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty
+7. docs/ARCHITECTURE.md                 (§ 9.1 dokumentacja, § 11 sync, § 12.1.2 pliki, § 13.1 wersja)
+8. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md
+9. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md
 ```

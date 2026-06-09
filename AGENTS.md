@@ -8,21 +8,20 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. CURRENT-TASK.md        ← ★ co na prod (v2.50.52, `e6758e5`)
+2. CURRENT-TASK.md        ← ★ co na prod (v2.50.56, `1be7a80`)
 3. docs/PROJECT-HANDOFF.md  ← ★ baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT
-4. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← ★ ostatni release (pliki roboty)
-5. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← ★ CC polonizacja CLOSED + mapa widoków
-6. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
-7. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
-8. docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md  ← Sprint 20.1B CLOSED (saved ≠ closed)
-9. docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md  ← Sprint 20.1A CLOSED (odroczenie wypłaty)
-10. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← Performance 2.x CLOSED
+4. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← ★ ostatnia sesja (20.5B.5–7)
+5. docs/RELEASE-REPORT-20.5B.7.md  ← Version Awareness (2.50.56)
+6. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
+7. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← CC polonizacja CLOSED + mapa widoków
+8. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
+9. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
+10. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← gotowość worker/admin/inspektor GO
 11. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-12. docs/ARCHITECTURE.md   ← pełna architektura (§ 12.1.2 pliki, § 12.1.3 CC, § 15.1 widoki admin)
+12. docs/ARCHITECTURE.md   ← pełna architektura (§ 9.1 dokumentacja, § 12.1.2 pliki, § 13.1 wersja)
 13. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
-14. docs/UI-LANGUAGE-AUDIT-20.3B.md  ← audyt polonizacji (CC zrealizowany w 20.3B+)
-15. CHANGELOG.md          ← CO już zrobiono (skrót)
-16. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+14. CHANGELOG.md          ← CO już zrobiono (skrót)
+15. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -45,6 +44,8 @@
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
 | **docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md** | Performance 2.x **CLOSED** (`35614f0`) — startup 1119 KB, seria 2.2C→2.4A |
+| **docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md** | Seria **20.5B.5–7 CLOSED** (`1be7a80`, v2.50.56) — Roboty UX, Dokumentacja naming, Version Awareness |
+| **docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md** | Audyt operacyjny worker/admin/inspektor — **GO** |
 | **docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md** | Generic Attachments **20.5A.10 CLOSED** (`e6758e5`, v2.50.52) — pliki roboty, trzy warstwy |
 | **docs/SESSION-HANDOFF-20.3B-CC-POLISH.md** | CC polonizacja **20.3B+ CLOSED** (`61cb33b`, v2.50.43) — mapa widoków, etykiety PL |
 | **docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md** | Seria **2.50.x CLOSED** — desktop scroll, mobile fix, MID-B, CI |
@@ -87,8 +88,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.52**) |
-| Prod `main` (app) | Generic Attachments 20.5A.10 · release **v2.50.52** (`e6758e5`, deploy `4994803137`) |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.56**) |
+| Prod `main` (app) | Version Awareness 20.5B.7 · release **v2.50.56** (`1be7a80`, deploy `4995835869`) |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |
 | Frontend deploy | push `main` → Vercel |
@@ -230,6 +231,26 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 - **Smoke:** `smoke-test-generic-attachments-20.5a10.mjs` (T1–T20) + regresja 20.5A.8/9, 20.5B.2/3
 
 **Nie zmieniaj bez polecenia:** `jobFiles[]`, plan_techniczny, media-separation, tombstone 20.5B.3, billing sync.
+
+---
+
+## 3g3. Seria 20.5B — Roboty UX + Dokumentacja + Version Awareness (**CLOSED**, prod `1be7a80`, v2.50.56)
+
+- **Handoff sesji:** [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md) — **czytaj najpierw** przy Roboty / dokumentacja / worker flow
+- **Audyt operacyjny:** [`docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md) — worker → admin → inspektor **GO**
+
+| Sprint | Wersja | Skrót |
+|--------|--------|-------|
+| **20.5B.7** | **2.50.56** | `/version.json`, banner odświeżenia, brak auto-reload |
+| **20.5B.6A.1** | 2.50.55 | Raporty → **Dokumentacja** (copy only) |
+| **20.5B.5** | 2.50.54 | Filtr W trakcie, Socjalny, piec gazowy, docs plan PDF |
+
+- **Model dokumentacji:** `workerReports[]` w `kw-jobs` — wymiary = `rooms[]`, obrys = `sketch` (≠ plan PDF w `jobFiles[]`)
+- **Kluczowe pliki:** `app-version-check.ts`, `AppUpdateBanner.tsx`, `JobWorkerReportsPanel.tsx`, `WorkerPhotoView.tsx`, `JobReportForm.tsx`
+- **ARCHITECTURE:** § 9.1 (workflow dokumentacji), § 13.1 (version awareness)
+- **Smoke:** `smoke-test-app-version-check-20.5b7.mjs`, `smoke-test-job-documentation-labels-20.5b6a.mjs`, `smoke-prod-bundle-2.50.56.mjs`
+
+**Nie zmieniaj bez polecenia:** `workerReports[]` sync, auto-reload (20.5B.7C poza zakresem), media-separation 20.5A.8.
 
 ---
 

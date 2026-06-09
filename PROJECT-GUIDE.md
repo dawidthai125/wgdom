@@ -15,6 +15,7 @@
 | § 1 | Szybki start, komendy |
 | § 2–3 | Stack, architektura wysokiego poziomu |
 | § 4–9 | Bootstrap, auth, panele (admin / inspektor / pracownik) |
+| § 9.1 | **Dokumentacja robót** — workerReports[], worker → admin → inspektor |
 | § 10 | Model danych (`Job`, `WeekEmployee`, klucze LS) |
 | § 11 | **Sync i merge** (`cloud-sync.ts`) — **KRYTYCZNE** |
 | § 12 | Supabase backend, endpointy, **§ 12.1.1 przetargi**, **§ 12.1.3 COMMAND CENTER + pulpit 7G + polonizacja 20.3B+** |
@@ -32,18 +33,17 @@
 
 ## Handoff sesji 2026-06-09 (agent AI)
 
-Po hasłach **„kontynuuj WGDOM”** / nowa sesja — najpierw [`CURRENT-TASK.md`](CURRENT-TASK.md), potem [`docs/SESSION-HANDOFF-20.3B-CC-POLISH.md`](docs/SESSION-HANDOFF-20.3B-CC-POLISH.md).
+Po hasłach **„kontynuuj WGDOM”** / nowa sesja — najpierw [`CURRENT-TASK.md`](CURRENT-TASK.md), potem [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md).
 
 | Temat | Dokument |
 |-------|----------|
-| **Prod v2.50.43 + CC polonizacja** | `SESSION-HANDOFF-20.3B-CC-POLISH.md` |
+| **Prod v2.50.56 — seria 20.5B** | `SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md` |
+| Worker/Inspector readiness GO | `AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md` |
+| Generic Attachments 20.5A.10 | `SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md` |
+| CC polonizacja | `SESSION-HANDOFF-20.3B-CC-POLISH.md` |
 | Billing + Roboty 20.5A | `SESSION-HANDOFF-20.5A-BILLING-JOBS.md` |
-| Stan prod Faza 8–9 | `SESSION-HANDOFF-2026-06.md` |
-| Roboty 2.0 (rekomendacja MIN) | `docs/jobs-2.0-product-audit.md` |
-| Martwy kod (7 plików legacy CC) | `docs/dead-code-audit-2026-06.md` |
-| Uprawnienia Przetargów | `docs/permissions-roles-audit-2026-06.md` |
 
-**Prod HEAD:** **`61cb33b`** · **UI:** **2.50.43** · **Nie implementować** 20.5A.6 / 20.3C / Roboty 2.0 bez polecenia.
+**Prod HEAD:** **`1be7a80`** · **UI:** **2.50.56** · **Nie implementować** 20.5B.7C / 20.3C / Roboty 2.0 FULL bez polecenia.
 
 ---
 

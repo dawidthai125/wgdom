@@ -3,7 +3,7 @@
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
 > **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.56** · Version Awareness 20.5B.7)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.56 — Version Awareness & Update Banner 20.5B.7)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.56 — § 9.1 dokumentacja robót + Version Awareness 20.5B.7)
 
 ---
 
@@ -296,6 +296,28 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 - **v2.35.15:** po pull zapisuje payroll/archive/week range do localStorage
 - Kolejka zdjęć offline: `src/lib/photo-queue.ts`
 - Privacy shield przy blur karty: `privacy-shield.ts`
+
+### 9.1 Dokumentacja robót — worker → admin → inspektor (20.5B.6A.1+)
+
+**Model:** `workerReports[]` w `Job` @ `kw-jobs` — **bez osobnego klucza KV**. Merge: `mergeJobsById` w `cloud-sync.ts`.
+
+| Rola | UI | Dane |
+|------|-----|------|
+| **Pracownik** | `WorkerPhotoView` → `JobReportForm` | zakres → `workScopeText`; wymiary → `rooms[]`; obrys → `sketch` |
+| **Admin** | `JobsView` tab **Dokumentacja** → `JobWorkerReportsPanel` | odczyt/zatwierdzenie raportów; tab **Zdjęcia** → `photos[]` |
+| **Inspektor** | `InspectorPanel` tab **Dokumentacja** + **Galeria** | raporty read-only; checklista `InspectorDocChecklist`; plan PDF = `jobFiles[]` kind `plan_techniczny` |
+
+**Semantyka (20.5A.8/9):**
+
+- **Zdjęcia ekipy** → `photos[]` (before/after/progress) — tab Zdjęcia
+- **Obrys** → `workerReports[].sketch` — upload „Foto rysunku”, **nie** tab Zdjęcia
+- **Plan techniczny PDF** → `jobFiles[]` kind `plan_techniczny` — dokument kontraktowy, **≠** sketch
+
+**Naming (20.5B.6A.1):** tab „Raporty” → **„Dokumentacja”** we wszystkich rolach (copy only).
+
+**Handoff:** [`SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md) · **Audyt GO:** [`AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md)
+
+**Pliki:** `JobReportForm.tsx`, `JobWorkerReportsPanel.tsx`, `job-documents.ts` (`JOB_DOCUMENTATION_SOURCE_HELP`, `RYSUNEK_PLAN_CHECKLIST_HELP`), `syncJobDocumentsFromReports()`
 
 ---
 
