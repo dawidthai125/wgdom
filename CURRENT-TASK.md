@@ -4,54 +4,50 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-09  
-**Wersja UI (prod):** **2.50.41** — Roboty Active Today badge  
-**Prod `origin/main` HEAD:** **`8a5d142`** · https://www.wgdom.fun  
+**Wersja UI (prod):** **2.50.43** — Polonizacja COMMAND CENTER (20.3B+ FULL)  
+**Prod `origin/main` HEAD:** **`61cb33b`** · https://www.wgdom.fun  
 **Status:** **STABLE**
 
 ---
 
-## Desktop Layout Fix 2.50.20 (**CLOSED**)
+## Release 2.50.43 — Polonizacja CC 20.3B+ FULL (**CLOSED**)
 
 | Pole | Wartość |
 |------|---------|
-| **Release** | **v2.50.20** |
-| **Commit** | **`5a664c2`** — `fix(layout): eliminate desktop double scrollbars in admin views (2.50.20)` |
+| **Release** | **v2.50.43** |
+| **Commit** | **`61cb33b`** — `feat(ui): complete command center polish translation pack (20.3B+)` |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Deploy** | GitHub deployment **`4981097719`** — **SUCCESS** |
-| **Handoff** | [`docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md`](docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md) |
+| **Deploy** | GitHub deployment **`4987528369`** — **SUCCESS** |
+| **Handoff** | [`docs/SESSION-HANDOFF-20.3B-CC-POLISH.md`](docs/SESSION-HANDOFF-20.3B-CC-POLISH.md) |
 
 ### Zakres
 
 | Element | Opis |
 |---------|------|
-| **Root cause** | md+ `overflow-y: auto` na `html/body` + wewnętrzny scroll widoków → podwójny scrollbar |
-| **Fix** | `overflow: hidden` na dokumencie; scroll tylko w panelach widoków |
-| **min-w-0** | `AdminViewRouter`, `DashboardView`, `MediaView` — brak poziomego scrolla okna |
-| **Mobile** | Bez zmian (`<768px`) |
-| **Pliki** | `index.html`, `mobile.css`, `AdminViewRouter`, `DashboardView`, `MediaView` |
-| **Smoke** | `smoke-test-desktop-layout-2.50.20.mjs` (13/13), `e2e/desktop-layout.spec.ts` |
+| **Centralizacja** | `src/lib/tender-center-ui-labels-pl.ts` |
+| **P0+P1** | OwnerDashboard, executive panel, lib CC, accordion, słownik, tooltips |
+| **Marka** | COMMAND CENTER AI — **zachowana** |
+| **Enumy** | GO/HOLD/NO-GO w danych — **bez zmian**; UI: STARTUJ/ANALIZUJ/ODPUŚĆ |
+| **Poza scope** | Legacy ImpactPanel/Radar, GuideView, retro-changelog |
 
-### Post-deploy (automatyczny)
+### Smoke / prod
 
-| Suite | Wynik |
-|-------|-------|
-| build lokalny | **PASS** |
-| smoke desktop-layout 2.50.20 | **13/13 PASS** |
-| audit:mobile | **36✓** |
-| Playwright prod | **39/39 PASS** (11 desktop + 28 mobile) |
-| regression 20.5A.x / MID-B / mobile-fix | **PASS** |
-| prod bundle 2.50.20 (obie domeny) | **PASS** |
+| Test | Wynik |
+|------|-------|
+| `smoke-test-ui-language-20.3b-full.mjs` | **39/39 PASS** |
+| `smoke-test-ui-language-20.3b.mjs` | **31/31 PASS** |
+| Regresja MID-B + mobile + billing 20.5A.5 | **PASS** |
+| `smoke-prod-bundle-2.50.43.mjs` | **ALL PASS** (obie domeny) |
 
-### Manual smoke prod (desktop A–F)
+---
 
-| Obszar | Status |
-|--------|--------|
-| A. Pulpit — jeden scroll | **Auto PASS** (CSS + static); ręcznie opcjonalnie |
-| B. Roboty Lista | **Auto PASS** |
-| C. Roboty Kolejki / MID-B | **21/21 PASS** |
-| D. Payroll — scroll w tabeli | **Auto PASS** |
-| E. Media | **Auto PASS** |
-| F. Billing 20.5A.3A/4 | **PASS** |
+## Release 2.50.42 — Billing Evidence Pack (**CLOSED**)
+
+| Pole | Wartość |
+|------|---------|
+| **Commit** | **`d3874ad`** |
+| **Deploy** | **`4986920110`** |
+| **Handoff** | [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md) |
 
 ---
 
@@ -59,22 +55,13 @@
 
 | Wersja | Commit | Skrót | Status |
 |--------|--------|-------|--------|
-| **2.50.20** Desktop Layout | **`5a664c2`** | Podwójny scrollbar admin — fix | **CLOSED** |
-| CI Mobile P0 | `74a013d` | audit + Playwright CI zielone | CLOSED |
-| **2.50.10** Mobile Fix Pack | `4427b7a` | Toolbar compact, touch 44px, kolejki | CLOSED |
-| **2.50.00** Roboty MID-B | `860e8d9` | Lista/Kolejki, filtr lidera | CLOSED |
-
----
-
-## Roboty 2.0 MID-B — kolejki operacyjne (**CLOSED**)
-
-| Pole | Wartość |
-|------|---------|
-| **Release** | **v2.50.00** |
-| **Commit** | **`860e8d9`** |
-| **Smoke** | `smoke-test-jobs-2.0-midb.mjs` **21/21** |
-
-Toggle Lista | Kolejki · 6 sekcji rozłącznych · filtr `executionLeadDirectoryId` · badge odbiorów.
+| **2.50.43** CC Polish FULL | **`61cb33b`** | 20.3B+ — Wnioski AI, Wyjaśnienia, Lejek ofert | **CLOSED** |
+| **2.50.42** Billing Evidence | `d3874ad` | 20.5A.5 — zdjęcia/PDF do uwag | CLOSED |
+| **2.50.41** Active Today | `8a5d142` | Badge „Aktywni dziś” | CLOSED |
+| **2.50.40** UX Pack | `c9baa1e` | Desktop workspace 35/65 | CLOSED |
+| **2.50.20** Desktop Layout | `5a664c2` | Podwójny scrollbar admin | CLOSED |
+| **2.50.10** Mobile Fix Pack | `4427b7a` | Toolbar compact, touch 44px | CLOSED |
+| **2.50.00** Roboty MID-B | `860e8d9` | Lista/Kolejki | CLOSED |
 
 ---
 
@@ -82,25 +69,32 @@ Toggle Lista | Kolejki · 6 sekcji rozłącznych · filtr `executionLeadDirector
 
 | Sprint | Wersja | Commit | Skrót |
 |--------|--------|--------|-------|
-| 20.5A.4 | 2.49.80 | `9990921` | Uwagi inspektora per pozycja billing |
-| 20.5A.3A | 2.49.70 | `4fec9cc` | Inspektor read-only billing review |
-| 20.5A.2 | 2.49.10 | `571b90b` | Create from job |
-| 20.5A.1 | 2.49.00 | `637f12c` | Badge 💰, KPI, deep link |
+| **20.5A.5** | 2.50.42 | `d3874ad` | Billing Evidence Pack |
+| 20.5A.4 | 2.49.80 | `9990921` | Uwagi inspektora per pozycja |
+| 20.5A.3A | 2.49.70 | `4fec9cc` | Inspektor read-only billing |
 
 Handoff: [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md)
 
-**Następny backlog:** 20.5A.5+ · 20.3B+ CC — tylko na polecenie.
+---
+
+## Polonizacja UI
+
+| Sprint | Wersja | Commit | Skrót |
+|--------|--------|--------|-------|
+| **20.3B+ FULL** | **2.50.43** | **`61cb33b`** | Pełny COMMAND CENTER aktywny |
+| **20.3B MIN** | 2.49.90 | `3d6a63e` | Pulpit CC częściowo, Media, inspektor |
+
+Handoff CC: [`docs/SESSION-HANDOFF-20.3B-CC-POLISH.md`](docs/SESSION-HANDOFF-20.3B-CC-POLISH.md) · audyt: [`docs/UI-LANGUAGE-AUDIT-20.3B.md`](docs/UI-LANGUAGE-AUDIT-20.3B.md)
 
 ---
 
-## Seria payroll 20.1A–20.1D (CLOSED)
+## Następny backlog (tylko na polecenie)
 
-| Sprint | Wersja | Opis |
-|--------|--------|------|
-| 20.1D | 2.49.60 | `isPayrollWeekClosedForUi` + blockers |
-| 20.1C.2 | 2.49.40 | Dashboard rollover blockers |
-| 20.1B | 2.45.39 | saved ≠ closed |
-| 20.1A | 2.45.38 | Odroczenie wypłaty ⏭ |
+| Opcja | Opis |
+|-------|------|
+| **20.5A.6** | Inspektor tworzy pozycję billing / polish evidence |
+| **20.3C** | Legacy CC + GuideView + retro-changelog |
+| **Roboty 2.0 FULL** | Audyt jobs |
 
 ---
 
@@ -108,8 +102,9 @@ Handoff: [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.
 
 ```text
 1. CURRENT-TASK.md (ten plik)
-2. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← ★ seria 2.50.x + desktop scroll
-3. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md
-4. docs/ARCHITECTURE.md § 6.2 (shell admin scroll)
+2. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md   ← ★ CC polonizacja + mapa widoków
+3. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md ← billing + roboty
+4. docs/ARCHITECTURE.md § 6 (shell) + § 12.1.3 (CC) + § 15.1 (struktura admin)
 5. AGENTS.md
+6. docs/tender-center-7g-executive.md         ← pulpit × CC
 ```

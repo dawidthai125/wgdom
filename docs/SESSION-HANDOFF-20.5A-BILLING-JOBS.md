@@ -4,15 +4,32 @@
 
 ---
 
-## Stan prod (2026-06-08)
+## Stan prod (2026-06-09)
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **v2.49.80** |
-| **Prod `origin/main`** | **`9990921`** — `feat(inspector): add billing notes workflow for recoverable charges (20.5A.4)` |
+| **Wersja UI** | **v2.50.43** |
+| **Prod `origin/main`** | **`61cb33b`** — `feat(ui): complete command center polish translation pack (20.3B+)` |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Vercel deploy** | **PASS** @ `9990921` |
-| **Następny sprint** | **20.5A.5+** — zdjęcia do uwag / zgłoszenie pozycji przez inspektora (tylko na polecenie) |
+| **Deploy CC** | GitHub **`4987528369`** — **SUCCESS** |
+| **Handoff CC** | [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md) |
+| **Następny sprint** | **20.5A.6** / **20.3C** / **Roboty 2.0 FULL** — tylko na polecenie |
+
+---
+
+## Release 2.50.43 — CC Polonizacja 20.3B+ (**CLOSED**, osobny handoff)
+
+Szczegóły → [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md)
+
+---
+
+## Release 2.50.42 — Billing Evidence Pack (**CLOSED**)
+
+| Pole | Wartość |
+|------|---------|
+| **Commit** | **`d3874ad`** |
+| **Deploy** | **`4986920110`** |
+| **Smoke** | `smoke-test-inspector-billing-evidence-20.5a5.mjs` (30/30), E2E prod PASS |
 
 ---
 
@@ -31,6 +48,7 @@
 | **20.5A.2** | 2.49.10 | `571b90b` | Create from job — modal na robocie |
 | **20.5A.3A** | 2.49.70 | `4fec9cc` | Inspektor read-only billing review na robocie |
 | **20.5A.4** | **2.49.80** | **`9990921`** | **Billing notes** — uwagi inspektora per pozycja |
+| **20.5A.5** | **2.50.42** | **`d3874ad`** | **Billing Evidence Pack** — zdjęcia/PDF do uwag, preview |
 
 ---
 
@@ -102,11 +120,33 @@
 
 ---
 
+## Sprint 20.5A.5 — Billing Evidence Pack
+
+**Commit:** `d3874ad` · **v2.50.42** · **Deploy:** `4986920110`
+
+| Element | Opis |
+|---------|------|
+| **Model** | `JobNoteAttachment` + `JobNote.attachments?` w `job-wm.ts` |
+| **Upload** | `billing-evidence-upload.ts` → `storage-upload`, max 3 zdjęć + 1 PDF (8 MB) |
+| **Inspektor** | `BillingNoteModal` — pickery, miniatury, „Wgrywanie dowodów…” |
+| **Admin / inspektor** | Wątek + `JobFilePreviewModal` (podgląd inline) |
+| **Sync** | Tylko `kw-jobs` (jak 20.5A.4) |
+
+**Smoke:** `scripts/smoke-test-inspector-billing-evidence-20.5a5.mjs` (30/30 PASS)  
+**E2E prod:** inspektor + admin + storage HEAD — PASS (2026-06-09)  
+**Post-release cleanup:** nota E2E + 3 pliki storage usunięte z Okulickiego 22 m.9
+
+**Poza scope (backlog):** usuwanie załączników po zapisie, upload admina, nowa pozycja billing przez inspektora.
+
+---
+
 ## Kluczowe pliki (20.5A)
 
 | Plik | Rola |
 |------|------|
 | `src/lib/recoverable-charges.ts` | Model, helpery, agregacja, draft from job |
+| `src/lib/job-wm.ts` | Model notatek billing + `JobNoteAttachment` (20.5A.5) |
+| `src/lib/billing-evidence-upload.ts` | Upload dowodów billing (20.5A.5) |
 | `src/app/JobRecoverableChargesPanel.tsx` | Karta 💰 na robocie |
 | `src/app/JobCreateRecoverableChargeModal.tsx` | Modal tworzenia (20.5A.2) |
 | `src/app/JobsView.tsx` | Wiring charges + modal |
@@ -154,7 +194,21 @@ Wszystkie **ALL PASS** przy closeout `571b90b`.
 - KV `kw-recoverable-charges`, sync, merge settlements
 - `deriveChargeAmounts()` / status wyliczany z ledgeru
 - Dashboard KPI (20.4C.1) — bez nowych kafelków w 20.5A
-- Payroll, leaves (poza planowanym 20.5A.5+)
+- Payroll, leaves (poza planowanym 20.5A.6+)
+
+---
+
+## Testy regresji (closeout 20.5A.5 / 2.50.42)
+
+```bash
+npm run build
+npx vite-node scripts/smoke-test-inspector-billing-evidence-20.5a5.mjs
+npx vite-node scripts/smoke-test-inspector-billing-notes-20.5a4.mjs
+npx vite-node scripts/smoke-test-jobs-2.0-midb.mjs
+npx vite-node scripts/smoke-test-mobile-fix-pack-2.50.1.mjs
+```
+
+Wszystkie **ALL PASS** przy closeout `d3874ad` (prod bundle **2.50.42**).
 
 ---
 

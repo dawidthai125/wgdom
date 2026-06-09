@@ -17,8 +17,10 @@
 | § 4–9 | Bootstrap, auth, panele (admin / inspektor / pracownik) |
 | § 10 | Model danych (`Job`, `WeekEmployee`, klucze LS) |
 | § 11 | **Sync i merge** (`cloud-sync.ts`) — **KRYTYCZNE** |
-| § 12 | Supabase backend, endpointy, **§ 12.1.1 przetargi**, **§ 12.1.3 COMMAND CENTER + pulpit 7G** |
+| § 12 | Supabase backend, endpointy, **§ 12.1.1 przetargi**, **§ 12.1.3 COMMAND CENTER + pulpit 7G + polonizacja 20.3B+** |
+| — | **[`docs/SESSION-HANDOFF-20.3B-CC-POLISH.md`](docs/SESSION-HANDOFF-20.3B-CC-POLISH.md)** — mapa widoków admin + struktura CC (AI) |
 | — | **[`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md)** — executive summary na pulpicie (AI) |
+| § 15.1 | **Mapa widoków admina** — router, menu, mobile nav |
 | § 13–14 | Vercel, PWA, mobile |
 | § 15–16 | Struktura katalogów, mapa `src/lib/` |
 | § 17 | Jak bezpiecznie rozbudować |
@@ -28,18 +30,20 @@
 
 ---
 
-## Handoff sesji 2026-06-04 (agent AI)
+## Handoff sesji 2026-06-09 (agent AI)
 
-Po hasłach **„kontynuuj WGDOM”** / nowa sesja — najpierw [`docs/SESSION-HANDOFF-2026-06.md`](docs/SESSION-HANDOFF-2026-06.md), potem [`CURRENT-TASK.md`](CURRENT-TASK.md).
+Po hasłach **„kontynuuj WGDOM”** / nowa sesja — najpierw [`CURRENT-TASK.md`](CURRENT-TASK.md), potem [`docs/SESSION-HANDOFF-20.3B-CC-POLISH.md`](docs/SESSION-HANDOFF-20.3B-CC-POLISH.md).
 
 | Temat | Dokument |
 |-------|----------|
-| Stan prod Faza 8–9 + UX `622bbbb` | `SESSION-HANDOFF-2026-06.md` |
+| **Prod v2.50.43 + CC polonizacja** | `SESSION-HANDOFF-20.3B-CC-POLISH.md` |
+| Billing + Roboty 20.5A | `SESSION-HANDOFF-20.5A-BILLING-JOBS.md` |
+| Stan prod Faza 8–9 | `SESSION-HANDOFF-2026-06.md` |
 | Roboty 2.0 (rekomendacja MIN) | `docs/jobs-2.0-product-audit.md` |
 | Martwy kod (7 plików legacy CC) | `docs/dead-code-audit-2026-06.md` |
 | Uprawnienia Przetargów | `docs/permissions-roles-audit-2026-06.md` |
 
-**Prod HEAD:** `622bbbb` · **UI:** 2.45.31 · **Nie implementować** 9.0.2 / Roboty 2.0 bez polecenia.
+**Prod HEAD:** **`61cb33b`** · **UI:** **2.50.43** · **Nie implementować** 20.5A.6 / 20.3C / Roboty 2.0 bez polecenia.
 
 ---
 

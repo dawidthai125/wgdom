@@ -8,24 +8,19 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← ★ Seria 2.50.x CLOSED (v2.50.20, `5a664c2`) — desktop scroll + mobile + MID-B
-3. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.4 CLOSED (v2.49.80, `9990921`)
-4. docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md  ← Sprint 20.1B CLOSED (saved ≠ closed)
-5. docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md  ← Sprint 20.1A CLOSED (odroczenie wypłaty, `f24fafe`)
-6. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← Performance 2.x CLOSED (wyniki końcowe)
-7. docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md  ← Performance 1.x CLOSED, a6cdb4a
-8. CURRENT-TASK.md        ← skrót: co na prod / co dalej
-9. docs/SESSION-HANDOFF-20.0A-EMPLOYEE-LEAVES.md  ← Sprint 20.0A CLOSED (nieobecności, `778f616`)
-10. docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md  ← incydent Roboty, RCA
-11. docs/SESSION-HANDOFF-2026-06.md  ← audyty, Faza 8–9, Roboty 2.0
-12. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-13. docs/ARCHITECTURE.md   ← pełna architektura (gdy coś niejasne)
-14. docs/SETTLEMENT-WORKFLOW-AUDIT-20.4A.md  ← audyt settlement ledger
-15. docs/INCIDENTS-2026-06.md  ← incydenty sync/payroll/admin + Roboty §11
-16. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
-17. docs/jobs-2.0-product-audit.md    ← rekomendacja rozwoju zakładki Roboty
-18. CHANGELOG.md          ← CO już zrobiono (skrót)
-19. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+2. CURRENT-TASK.md        ← ★ co na prod (v2.50.43, `61cb33b`)
+3. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← ★ CC polonizacja CLOSED + mapa widoków
+4. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.5 CLOSED
+5. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
+6. docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md  ← Sprint 20.1B CLOSED (saved ≠ closed)
+7. docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md  ← Sprint 20.1A CLOSED (odroczenie wypłaty)
+8. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← Performance 2.x CLOSED
+9. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+10. docs/ARCHITECTURE.md   ← pełna architektura (§ 12.1.3 CC, § 15.1 widoki admin)
+11. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
+12. docs/UI-LANGUAGE-AUDIT-20.3B.md  ← audyt polonizacji (CC zrealizowany w 20.3B+)
+13. CHANGELOG.md          ← CO już zrobiono (skrót)
+14. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -48,8 +43,9 @@
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
 | **docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md** | Performance 2.x **CLOSED** (`35614f0`) — startup 1119 KB, seria 2.2C→2.4A |
-| **docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md** | Seria **2.50.x CLOSED** (`5a664c2`, v2.50.20) — desktop scroll, mobile fix, MID-B, CI |
-| **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.4 CLOSED** (`9990921`, v2.49.80) |
+| **docs/SESSION-HANDOFF-20.3B-CC-POLISH.md** | CC polonizacja **20.3B+ CLOSED** (`61cb33b`, v2.50.43) — mapa widoków, etykiety PL |
+| **docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md** | Seria **2.50.x CLOSED** — desktop scroll, mobile fix, MID-B, CI |
+| **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.5 CLOSED** (`d3874ad`, v2.50.42) |
 | **docs/SETTLEMENT-WORKFLOW-AUDIT-20.4A.md** | Audyt settlement ledger — design 20.4A |
 | **docs/SETTLEMENT-REPORTING-AUDIT-20.4C.md** | Audyt reporting + dashboard KPI |
 | **docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md** | Sprint 20.1B **CLOSED** — saved ≠ closed, defer po zapisie, live vs snapshot |
@@ -87,8 +83,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.20**) |
-| Prod `main` (app) | Desktop Layout Fix · release **v2.50.20** (`5a664c2`) |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.43**) |
+| Prod `main` (app) | Polonizacja CC 20.3B+ · release **v2.50.43** (`61cb33b`) |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |
 | Frontend deploy | push `main` → Vercel |
@@ -102,7 +98,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 ## 3a. Moduł przetargów + COMMAND CENTER (skrót)
 
 - **Pulpit executive (7G):** [`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md) — `CommandCenterExecutivePanel`, `useCommandCenterExecutiveSnapshot`, legacy `tenderDashStats`
-- **Pełny CC:** `OwnerDashboard` + **ARCHITECTURE.md § 12.1.3**
+- **Pełny CC:** `OwnerDashboard` + **ARCHITECTURE.md § 12.1.3** + **handoff [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](docs/SESSION-HANDOFF-20.3B-CC-POLISH.md)**
+- **Etykiety PL:** `src/lib/tender-center-ui-labels-pl.ts` — źródło prawdy (20.3B+); marka COMMAND CENTER AI bez zmian
 - **Lista BZP / pipeline:** **ARCHITECTURE.md § 12.1.1**. Kluczowe pliki:
 
 - `src/lib/tenders-bzp.ts` — pipeline, typy, API klienta, scoring

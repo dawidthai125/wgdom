@@ -1,8 +1,9 @@
 # Sprint 20.3B — UI Language Policy Audit (Polonizacja statusów i etykiet)
 
+> **Status implementacji CC:** **CLOSED** — Sprint **20.3B+ FULL** · v2.50.43 · `61cb33b` · handoff: [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md)  
 > **Data audytu:** 2026-06-06  
-> **Tryb:** AUDYT + PLAN IMPLEMENTACJI — **bez zmian w kodzie, bez commitów, bez deploy**  
-> **Prod baseline:** v2.46.00 · Sprint 20.3A CLOSED  
+> **Tryb oryginalny:** AUDYT + PLAN — sekcja **Command Center** zrealizowana w 20.3B MIN + 20.3B+ FULL  
+> **Prod baseline (audyt):** v2.46.00 · Sprint 20.3A CLOSED  
 > **Zakres skanowania:** Payroll, Employee Leaves, Inspector, Do rozliczenia, Dashboard, Media, Command Center, GuideView, Changelog, Sidebar, Topbar
 
 ---

@@ -1,7 +1,8 @@
 # ETAP 7G — Pulpit admina × COMMAND CENTER AI (executive summary)
 
 > **Dla agentów AI:** czytaj ten plik przed zmianą pulpitu, `tenderDashStats` lub integracji CC.  
-> **Prod:** `main` @ **`88c25f8`** (UI **2.45.27**) · https://www.wgdom.fun  
+> **Prod:** `main` @ **`61cb33b`** (UI **2.50.43**) · https://www.wgdom.fun  
+> **Polonizacja CC:** [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md) — **CLOSED**  
 > **Faza 8:** **zamknięta** (8.0–8.4). **ETAP 8.5** / **Faza 9** — nie rozpoczynaj bez polecenia.
 
 ---
@@ -88,6 +89,8 @@ Nagłówek: **W&G DOM COMMAND CENTER AI** · *Centralny System Przetargów i Wyl
 **Action Center (pulpit):** `pickExecutiveActions(center, 3)` — tylko `CRITICAL` i `HIGH`, max **3** pozycje; „Pokaż wszystkie →” i główny przycisk → `onOpenCommandCenter()` (= `onOpenTenders`).
 
 **Ładowanie:** `pipeline.loading` → komunikat „Ładowanie COMMAND CENTER AI…”.
+
+**Polonizacja (20.3B+ FULL, v2.50.43):** etykiety kart executive po PL (Indeks kondycji, Zdolność finansowa, …); marka **COMMAND CENTER AI** bez zmian. Mapy: `src/lib/tender-center-ui-labels-pl.ts`, `DECISION_LABEL_PL`. Handoff: [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md). Smoke: `smoke-test-ui-language-20.3b-full.mjs`.
 
 ---
 
