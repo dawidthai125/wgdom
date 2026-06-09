@@ -8,27 +8,27 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **v2.50.43** |
-| **Prod `origin/main`** | **`61cb33b`** — `feat(ui): complete command center polish translation pack (20.3B+)` |
+| **Wersja UI** | **v2.50.44** |
+| **Prod `origin/main` (feature)** | **`99295e5`** — `feat(billing): add inspector billing proposal workflow (20.5A.6)` |
+| **Deploy** | GitHub **`4990132607`** — **SUCCESS** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Deploy CC** | GitHub **`4987528369`** — **SUCCESS** |
-| **Handoff CC** | [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md) |
-| **Następny sprint** | **20.3C** / **Roboty 2.0 FULL** — tylko na polecenie · **20.5A.6 IMPLEMENT lokalnie (bez deploy)** |
+| **Handoff** | [`PROJECT-HANDOFF.md`](PROJECT-HANDOFF.md) · [`RELEASE-REPORT-20.5A.6.md`](RELEASE-REPORT-20.5A.6.md) |
+| **Następny sprint** | **20.3C** / **Roboty 2.0 FULL** — tylko na polecenie |
 
 ---
 
-## Release 2.50.44 — Billing Proposal 20.5A.6 (**LOKALNIE, bez deploy**)
+## Release 2.50.44 — Billing Proposal 20.5A.6 (**RELEASED**)
 
 | Pole | Wartość |
 |------|---------|
 | **Wersja** | **2.50.44** |
 | **Wariant** | **B1** — `JobNote.billing_proposal` → admin approve → `RecoverableCharge` |
 | **Raport** | [`RELEASE-REPORT-20.5A.6.md`](RELEASE-REPORT-20.5A.6.md) |
-| **Smoke** | `smoke-test-inspector-billing-proposal-20.5a6.mjs` — **52/52 PASS** |
+| **Smoke** | `smoke-test-inspector-billing-proposal-20.5a6.mjs` — **59/59 PASS** |
 
-**Kluczowe pliki:** `job-wm.ts`, `InspectorBillingProposalModal.tsx`, `BillingProposalReviewCard.tsx`, `InspectorPanel.tsx`, `JobsView.tsx`.
+**Kluczowe pliki:** `job-wm.ts`, `InspectorBillingProposalModal.tsx`, `BillingProposalReviewCard.tsx`, `InspectorPanel.tsx`, `JobsView.tsx`, `recoverable-charges.ts` (tag `proposal:{id}`, idempotency).
 
-**Sync:** inspektor → tylko `kw-jobs`; approve → `commitRecoverableCharges`.
+**Sync:** inspektor → tylko `kw-jobs`; approve → `commitRecoverableCharges`. **Bez dual-writer.**
 
 ---
 

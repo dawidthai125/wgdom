@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.44** · Billing Proposal 20.5A.6 — lokalnie, bez deploy)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.44 — billing proposal inspektor B1)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.44** · Billing Proposal 20.5A.6 · prod `99295e5`)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.44 RELEASED — deploy `4990132607`)
 
 ---
 

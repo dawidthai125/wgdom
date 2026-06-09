@@ -8,10 +8,11 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. CURRENT-TASK.md        ← ★ co na prod (v2.50.43, `61cb33b`)
-3. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← ★ CC polonizacja CLOSED + mapa widoków
-4. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.5 CLOSED
-5. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
+2. CURRENT-TASK.md        ← ★ co na prod (v2.50.44, `99295e5`)
+3. docs/PROJECT-HANDOFF.md  ← ★ baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT
+4. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← ★ CC polonizacja CLOSED + mapa widoków
+5. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
+6. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
 6. docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md  ← Sprint 20.1B CLOSED (saved ≠ closed)
 7. docs/SESSION-HANDOFF-20.1A-DEFERRED-PAYROLL.md  ← Sprint 20.1A CLOSED (odroczenie wypłaty)
 8. docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md  ← Performance 2.x CLOSED
@@ -45,7 +46,8 @@
 | **docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md** | Performance 2.x **CLOSED** (`35614f0`) — startup 1119 KB, seria 2.2C→2.4A |
 | **docs/SESSION-HANDOFF-20.3B-CC-POLISH.md** | CC polonizacja **20.3B+ CLOSED** (`61cb33b`, v2.50.43) — mapa widoków, etykiety PL |
 | **docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md** | Seria **2.50.x CLOSED** — desktop scroll, mobile fix, MID-B, CI |
-| **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.5 CLOSED** (`d3874ad`, v2.50.42) |
+| **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.6 CLOSED** (`99295e5`, v2.50.44) |
+| **docs/PROJECT-HANDOFF.md** | Baseline prod, ostatni release, proces AUDIT→RCA→PLAN→IMPLEMENT |
 | **docs/SETTLEMENT-WORKFLOW-AUDIT-20.4A.md** | Audyt settlement ledger — design 20.4A |
 | **docs/SETTLEMENT-REPORTING-AUDIT-20.4C.md** | Audyt reporting + dashboard KPI |
 | **docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md** | Sprint 20.1B **CLOSED** — saved ≠ closed, defer po zapisie, live vs snapshot |
@@ -83,8 +85,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.43**) |
-| Prod `main` (app) | Polonizacja CC 20.3B+ · release **v2.50.43** (`61cb33b`) |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.44**) |
+| Prod `main` (app) | Billing Proposal 20.5A.6 · release **v2.50.44** (`99295e5`, deploy `4990132607`) |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |
 | Frontend deploy | push `main` → Vercel |
@@ -202,21 +204,18 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 
 ---
 
-## 3g. Do rozliczenia + Roboty — Sprint 20.5A (**CLOSED**, prod `9990921`, v2.49.80)
+## 3g. Do rozliczenia + Roboty — Sprint 20.5A (**CLOSED**, prod `99295e5`, v2.50.44)
 
-- **Handoff:** [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md) — **czytaj najpierw** przy pracy nad billing / roboty
-- **Architektura:** **ARCHITECTURE.md** § Do rozliczenia (2.47–2.49)
-- **20.5A.1** (`637f12c`): read-only — badge 💰, karta KPI, deep link `pendingRecoverableChargeId`
-- **20.5A.2** (`571b90b`): ➕ Dodaj do rozliczenia — modal na robocie, `buildRecoverableChargeDraftFromJob()`
-- **20.5A.3A** (`4fec9cc`): inspektor read-only billing review na robocie (kwoty, KPI, historia)
-- **20.5A.4** (`9990921`): uwagi inspektora per pozycja — `JobNote.recoverableChargeId`, push tylko `kw-jobs`
-- **Kluczowe pliki:** `recoverable-charges.ts`, `job-wm.ts`, `JobRecoverableChargesPanel.tsx`, `InspectorPanel.tsx`, `JobsView.tsx`
-- **Smoke:** `smoke-test-inspector-billing-notes-20.5a4.mjs`, `smoke-test-inspector-billing-20.5a3a.mjs`
-- **Audyty:** `docs/SETTLEMENT-*.md`, `docs/ADDITIONAL-BILLING-AUDIT-20.3A.md`, `docs/UI-LANGUAGE-AUDIT-20.3B.md`
+- **Handoff:** [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md) · [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)
+- **Architektura:** **ARCHITECTURE.md** § Do rozliczenia (2.47–2.50)
+- **20.5A.6** (`99295e5`, v2.50.44): Billing Proposal B1 — inspektor `kw-jobs`, admin approve → `kw-recoverable-charges`; idempotency P1
+- **20.5A.5** (`d3874ad`): dowody billing w uwagach (zdjęcia/PDF)
+- **20.5A.4** (`9990921`): uwagi inspektora per pozycja
+- **20.5A.3A** (`4fec9cc`): inspektor read-only billing review
+- **Kluczowe pliki:** `recoverable-charges.ts`, `job-wm.ts`, `InspectorBillingProposalModal.tsx`, `BillingProposalReviewCard.tsx`, `JobRecoverableChargesPanel.tsx`, `InspectorPanel.tsx`, `JobsView.tsx`
+- **Smoke:** `smoke-test-inspector-billing-proposal-20.5a6.mjs` (59), `smoke-prod-bundle-2.50.44.mjs`
 
-**Następny:** 20.5A.5+ (zdjęcia do uwag / zgłoszenie pozycji przez inspektora) — tylko na polecenie.
-
-**Nie zmieniaj bez polecenia:** KV/sync/merge settlements, dashboard KPI (20.4C), payroll, leaves.
+**Nie zmieniaj bez polecenia:** KV/sync/merge settlements, dashboard KPI (20.4C), payroll, leaves, granica inspektor read-only charges.
 
 ---
 

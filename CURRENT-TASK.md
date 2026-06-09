@@ -5,8 +5,19 @@
 
 **Ostatnia aktualizacja:** 2026-06-09  
 **Wersja UI (prod):** **2.50.44** — Billing Proposal 20.5A.6  
-**Prod `origin/main` HEAD:** **`99295e5`** · https://www.wgdom.fun  
-**Status:** **STABLE** · **RELEASED**
+**Prod `origin/main` HEAD:** **`f87f485`** (docs) · feature **`99295e5`** · https://www.wgdom.fun  
+**Status:** **STABLE** · **RELEASED**  
+**Handoff:** [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)
+
+---
+
+## Proces nowej pracy
+
+```text
+AUDIT → RCA → PLAN → IMPLEMENT
+```
+
+**Przed kodem:** [`CURRENT-TASK.md`](CURRENT-TASK.md) → [`AGENTS.md`](AGENTS.md) → [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
 ---
 
@@ -91,11 +102,12 @@
 
 | Sprint | Wersja | Commit | Skrót |
 |--------|--------|--------|-------|
+| **20.5A.6** | **2.50.44** | **`99295e5`** | Billing Proposal B1 — approve idempotency |
 | **20.5A.5** | 2.50.42 | `d3874ad` | Billing Evidence Pack |
 | 20.5A.4 | 2.49.80 | `9990921` | Uwagi inspektora per pozycja |
 | 20.5A.3A | 2.49.70 | `4fec9cc` | Inspektor read-only billing |
 
-Handoff: [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md)
+Handoff: [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md) · [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)
 
 ---
 
@@ -114,9 +126,9 @@ Handoff CC: [`docs/SESSION-HANDOFF-20.3B-CC-POLISH.md`](docs/SESSION-HANDOFF-20.
 
 | Opcja | Opis |
 |-------|------|
-| **20.5A.6** | Inspektor tworzy pozycję billing / polish evidence |
 | **20.3C** | Legacy CC + GuideView + retro-changelog |
 | **Roboty 2.0 FULL** | Audyt jobs |
+| **P2 billing** | Dashboard alert prefiks proposal, orphan cleanup (poza 20.5A.6) |
 
 ---
 
@@ -124,9 +136,10 @@ Handoff CC: [`docs/SESSION-HANDOFF-20.3B-CC-POLISH.md`](docs/SESSION-HANDOFF-20.
 
 ```text
 1. CURRENT-TASK.md (ten plik)
-2. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md   ← ★ CC polonizacja + mapa widoków
-3. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md ← billing + roboty
-4. docs/ARCHITECTURE.md § 6 (shell) + § 12.1.3 (CC) + § 15.1 (struktura admin)
-5. AGENTS.md
-6. docs/tender-center-7g-executive.md         ← pulpit × CC
+2. AGENTS.md
+3. docs/ARCHITECTURE.md § 11 (sync) + § Do rozliczenia + § 15.1
+4. docs/PROJECT-HANDOFF.md              ← ★ baseline prod 2.50.44
+5. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md
+6. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md
+7. docs/tender-center-7g-executive.md
 ```

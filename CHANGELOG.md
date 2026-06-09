@@ -4,7 +4,7 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.44** (`changelog-data.ts`) · Zgłoszenie pozycji billing przez inspektora (20.5A.6, lokalnie)
+**Aktualna wersja UI:** **2.50.44** (`changelog-data.ts`) · Billing Proposal 20.5A.6 · prod `99295e5`
 
 ---
 
