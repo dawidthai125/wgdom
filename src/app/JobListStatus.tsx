@@ -171,7 +171,7 @@ export function JobListFilterBar({
             type="button"
             onClick={() => onFilter(t.id)}
             aria-pressed={filter === t.id}
-            className={`shrink-0 text-xs py-2 px-3 min-h-[44px] rounded-lg font-medium transition-colors touch-manipulation border whitespace-nowrap ${
+            className={`shrink-0 text-xs py-2 md:py-1.5 px-3 min-h-[44px] md:min-h-[32px] rounded-lg font-medium transition-colors touch-manipulation border whitespace-nowrap ${
               filter === t.id
                 ? "bg-primary/10 text-foreground border-primary/35"
                 : "text-muted-foreground border-border/60 hover:text-foreground hover:bg-secondary/60"

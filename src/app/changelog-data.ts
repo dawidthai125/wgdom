@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-08",
+    version: "2.50.30",
+    label: "Roboty — status nowej roboty + toolbar desktop",
+    items: [
+      { type: "fix", text: "Nowa robota — status „W trakcie” zamiast błędnego „Do odbioru — braki” (etap awaiting_order nie mapuje już do fazy odbioru)" },
+      { type: "improve", text: "Roboty desktop — kompaktowy toolbar KPI/filtry (md+); mobile bez zmian (44px touch)" },
+      { type: "improve", text: "Szczegóły roboty — szerszy panel treści na desktopie (max-w-4xl)" },
+    ],
+  },
+  {
+    date: "2026-06-08",
     version: "2.50.20",
     label: "Desktop Layout Fix — jeden scroll w panelu admina",
     items: [

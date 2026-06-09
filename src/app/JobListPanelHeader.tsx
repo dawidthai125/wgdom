@@ -156,7 +156,7 @@ export function JobListPanelHeader({
   };
 
   return (
-    <div className="px-4 pt-4 pb-3 max-md:pt-3 max-md:pb-2 space-y-3 max-md:space-y-2 border-b border-border">
+    <div className="px-4 pt-4 pb-3 max-md:pt-3 max-md:pb-2 space-y-3 max-md:space-y-2 md:pt-2 md:pb-2 md:space-y-1.5 border-b border-border">
       {returnNav && (
         <button
           type="button"
@@ -172,7 +172,7 @@ export function JobListPanelHeader({
         <button
           type="button"
           onClick={onAddJob}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors min-h-[44px]"
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 md:py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors min-h-[44px] md:min-h-[36px]"
         >
           <Plus size={14} />
           Nowa robota
@@ -180,7 +180,7 @@ export function JobListPanelHeader({
         <button
           type="button"
           onClick={onShowAllFiles}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium border border-emerald-500/35 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-500/20 transition-colors min-h-[44px]"
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 md:py-2 rounded-xl text-sm font-medium border border-emerald-500/35 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-500/20 transition-colors min-h-[44px] md:min-h-[36px]"
         >
           <FolderOpen size={14} className="shrink-0" />
           <span className="truncate">
@@ -207,17 +207,17 @@ export function JobListPanelHeader({
                 onClick={() => onKpiClick(item)}
                 aria-pressed={active}
                 title={`${count} — ${item.label}`}
-                className={`shrink-0 flex items-center gap-2.5 min-w-[7.25rem] px-3.5 py-3 max-md:py-2 rounded-2xl border text-left transition-colors touch-manipulation ${
+                className={`shrink-0 flex items-center gap-2.5 min-w-[7.25rem] md:min-w-[6rem] px-3.5 md:px-3 py-3 max-md:py-2 md:py-1.5 rounded-2xl border text-left transition-colors touch-manipulation ${
                   active ? visual.active : `text-muted-foreground ${visual.idle} hover:text-foreground`
                 }`}
               >
                 <Icon
                   size={18}
-                  className={`shrink-0 ${active ? visual.iconActive : visual.iconIdle}`}
+                  className={`shrink-0 md:w-4 md:h-4 ${active ? visual.iconActive : visual.iconIdle}`}
                   aria-hidden
                 />
                 <span className="flex items-baseline gap-1.5 min-w-0 whitespace-nowrap leading-none">
-                  <span className="text-xl max-md:text-lg font-bold tabular-nums tracking-tight">{count}</span>
+                  <span className="text-xl max-md:text-lg md:text-base font-bold tabular-nums tracking-tight">{count}</span>
                   <span className="text-[11px] font-semibold leading-tight">{item.label}</span>
                 </span>
               </button>
@@ -237,7 +237,7 @@ export function JobListPanelHeader({
             type="button"
             onClick={() => onListViewModeChange(mode)}
             aria-pressed={listViewMode === mode}
-            className={`flex-1 px-3 py-2 rounded-[10px] text-xs font-semibold min-h-[44px] transition-colors touch-manipulation ${
+            className={`flex-1 px-3 py-2 md:py-1.5 rounded-[10px] text-xs font-semibold min-h-[44px] md:min-h-[32px] transition-colors touch-manipulation ${
               listViewMode === mode
                 ? "bg-background text-foreground shadow-sm border border-border/60"
                 : "text-muted-foreground hover:text-foreground"
@@ -255,7 +255,7 @@ export function JobListPanelHeader({
           placeholder="Szukaj adresu, klienta…"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none min-h-[40px]"
+          className="w-full bg-secondary rounded-lg pl-8 pr-3 py-2.5 md:py-1.5 text-sm border border-transparent focus:border-primary focus:outline-none min-h-[40px] md:min-h-[32px]"
         />
       </div>
 
@@ -265,7 +265,7 @@ export function JobListPanelHeader({
         type="button"
         onClick={() => setShowMoreFilters((v) => !v)}
         aria-expanded={showMoreFilters}
-        className={`w-full flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium border min-h-[44px] touch-manipulation transition-colors ${
+        className={`w-full flex items-center justify-center gap-1 px-3 py-2 md:py-1.5 rounded-lg text-xs font-medium border min-h-[44px] md:min-h-[32px] touch-manipulation transition-colors ${
           showMoreFilters || filtersActive
             ? "bg-primary/10 text-foreground border-primary/35"
             : "bg-secondary text-muted-foreground border-border hover:bg-secondary/80"

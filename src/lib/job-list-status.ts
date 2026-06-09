@@ -71,11 +71,8 @@ export function inferJobPhase(job: JobListStatusJob): JobPhase {
   if (job.jobPhase) return job.jobPhase;
   if (job.status === "completed" || job.keysHandedOver) return "completed";
   const stage = inferHandoverStage(job);
-  if (
-    stage === "ready_for_handover"
-    || stage === "docs_pending"
-    || stage === "awaiting_order"
-  ) {
+  // awaiting_order (brak zlecenia) ≠ faza odbioru — nowa robota ma być „W trakcie” (2.50.30)
+  if (stage === "ready_for_handover" || stage === "docs_pending") {
     return "handover";
   }
   if (!isWmClient(job.client)) {
