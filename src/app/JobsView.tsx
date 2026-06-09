@@ -83,6 +83,7 @@ import {
   duplicateWorkEntryWithPayrollHours, collectEntriesFromYesterday, groupWorkEntriesByEmployee, ACTIVITY_LABELS,
   calcWeekEmployee, workItemHasContent, roomHasContent, jobAddressKey, roomDisplayName,
   duplicateWorkEntry, payrollHoursForDirectoryOnDate, DEFAULT_MULTI_SITE_VISIT_HOURS,
+  jobActiveWorkerCountOnDate,
   PHOTO_LABEL_NAMES, PHOTO_LABEL_ORDER, getAppPhotoLabelSection, filterProductionActiveDirectory, MONTH_NAMES,
 } from "@/app/app-domain";
 import {
@@ -1249,6 +1250,10 @@ export function JobsView({
     const isSelected = job.id === selectedJobId;
     const isDupe = isDuplicateJob(job);
     const workerCount = new Set(job.workEntries.map((e) => e.directoryId || e.employeeName)).size;
+    const activeTodayCount =
+      inferJobPhase(job) !== "completed"
+        ? jobActiveWorkerCountOnDate(job, todayIso, directory)
+        : 0;
     const rcStats = recoverableStatsByJobId.get(job.id);
     return (
       <JobListCardV2
@@ -1257,6 +1262,7 @@ export function JobsView({
         selected={isSelected}
         isDuplicate={isDupe}
         workerCount={workerCount}
+        activeTodayCount={activeTodayCount}
         totalHoursLabel={fmtH(jobTotalHours(job))}
         costLabel={cost > 0 ? `${fmt(cost)} PLN` : null}
         bulkMode={bulkMode}

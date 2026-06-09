@@ -90,16 +90,16 @@ export function JobListGuidePanel() {
               termin / etap odbioru Wrocławskich Mieszkań.
             </li>
             <li>
-              <span className="inline-block text-[10px] bg-sky-500/12 text-sky-700 dark:text-sky-400 px-1.5 py-0.5 rounded-full font-medium mr-1.5">
-                Ekipa: N
+              <span className="inline-block text-[10px] bg-teal-500/12 text-teal-800 dark:text-teal-300 px-1.5 py-0.5 rounded-full font-medium mr-1.5">
+                Aktywni dziś: N
               </span>
-              liczba osób w planie realizacyjnym.
+              unikalni pracownicy z wpisem czasu na dziś (Pracownicy na robocie).
             </li>
             <li>
-              <span className="inline-block text-[10px] bg-amber-500/15 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded-full font-medium mr-1.5">
-                Ekipa: 0
+              <span className="inline-block text-[10px] text-muted-foreground mr-1.5">
+                X os. · Yh
               </span>
-              brak przypisanej ekipy.
+              łącznie osoby i godziny na robocie (cała historia wpisów).
             </li>
           </ul>
         </section>

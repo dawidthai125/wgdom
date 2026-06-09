@@ -7,8 +7,8 @@ import {
   jobMissingRequiredDocs,
   type JobListStatusJob,
 } from "@/lib/job-list-status";
-import { jobOpsExecutionCrewCount, jobOpsHasNoExecutionTeam, jobOpsIsBzpContract } from "@/lib/job-list-ops";
 import { resolveWorkerContractDateLabel } from "@/app/app-domain";
+import { jobOpsIsBzpContract } from "@/lib/job-list-ops";
 import { DOC_LABELS, DOCUMENT_TYPES, REQUIRED_DOCS } from "@/lib/job-documents";
 import { countJobFiles } from "@/lib/job-files-index";
 
@@ -27,6 +27,7 @@ export function JobListCardV2({
   selected,
   isDuplicate,
   workerCount,
+  activeTodayCount = 0,
   totalHoursLabel,
   costLabel,
   bulkMode,
@@ -46,6 +47,8 @@ export function JobListCardV2({
   selected: boolean;
   isDuplicate: boolean;
   workerCount: number;
+  /** Unikalni pracownicy z wpisów czasu na dziś (0 = badge ukryty). */
+  activeTodayCount?: number;
   totalHoursLabel: string;
   costLabel: string | null;
   bulkMode?: boolean;
@@ -65,9 +68,7 @@ export function JobListCardV2({
   const missingDocs = jobMissingRequiredDocs(job);
   const jobPhase = inferJobPhase(job);
   const fileCount = countJobFiles(job);
-  const executionCrewCount = jobOpsExecutionCrewCount(job);
   const contractDateLabel = resolveWorkerContractDateLabel(job);
-  const showNoTeamBadge = jobOpsHasNoExecutionTeam(job);
   const clientLine = [job.client?.trim() || null, contractDateLabel, leadName ? `Lider: ${leadName}` : null]
     .filter(Boolean)
     .join(" • ");
@@ -119,21 +120,19 @@ export function JobListCardV2({
           <p className="text-xs text-muted-foreground truncate mb-2">{clientLine}</p>
         )}
 
-        {/* Trzecia linia: BZP | Ekipa | WM | Meta | Klucze | Pliki (+ duplikat/os. jak V1) */}
+        {/* Trzecia linia: BZP | Aktywni dziś | WM | Meta | Klucze | Pliki */}
         <div className="flex items-center gap-1.5 flex-wrap mb-2.5 min-h-[1.25rem]">
           {jobOpsIsBzpContract(job) && (
             <span className="text-[10px] bg-violet-500/12 text-violet-700 dark:text-violet-400 px-1.5 py-0.5 rounded-full font-semibold">
               BZP
             </span>
           )}
-          {showNoTeamBadge && (
-            <span className="text-[10px] bg-amber-500/15 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded-full font-medium">
-              Ekipa: 0
-            </span>
-          )}
-          {executionCrewCount > 0 && (
-            <span className="text-[10px] bg-sky-500/12 text-sky-700 dark:text-sky-400 px-1.5 py-0.5 rounded-full font-medium">
-              Ekipa: {executionCrewCount}
+          {activeTodayCount > 0 && (
+            <span
+              title="Unikalni pracownicy z wpisem czasu na dziś"
+              className="text-[10px] bg-teal-500/12 text-teal-800 dark:text-teal-300 px-1.5 py-0.5 rounded-full font-medium"
+            >
+              Aktywni dziś: {activeTodayCount}
             </span>
           )}
           <JobWmPlannedBadge job={job} />

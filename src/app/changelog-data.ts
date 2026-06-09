@@ -11,6 +11,15 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-09",
+    version: "2.50.41",
+    label: "Roboty — badge Aktywni dziś",
+    items: [
+      { type: "improve", text: "Karta listy — badge „Aktywni dziś: N” z wpisów czasu na dziś zamiast mylącego „Ekipa: N” (plan kontraktu)" },
+      { type: "improve", text: "Badge widoczny tylko gdy N > 0; KPI „Bez ekipy” i kolejki MID-B bez zmian (plan executionAssigneeDirectoryIds)" },
+    ],
+  },
+  {
     date: "2026-06-08",
     version: "2.50.40",
     label: "Roboty — UX Pack (desktop workspace)",

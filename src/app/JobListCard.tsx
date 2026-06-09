@@ -7,7 +7,7 @@ import {
   jobMissingRequiredDocs,
   type JobListStatusJob,
 } from "@/lib/job-list-status";
-import { jobOpsExecutionCrewCount, jobOpsHasNoExecutionTeam, jobOpsIsBzpContract } from "@/lib/job-list-ops";
+import { jobOpsIsBzpContract } from "@/lib/job-list-ops";
 import { resolveWorkerContractDateLabel } from "@/app/app-domain";
 import { DOC_LABELS, DOCUMENT_TYPES, REQUIRED_DOCS } from "@/lib/job-documents";
 import { countJobFiles } from "@/lib/job-files-index";
@@ -26,6 +26,7 @@ export function JobListCard({
   selected,
   isDuplicate,
   workerCount,
+  activeTodayCount = 0,
   totalHoursLabel,
   costLabel,
   bulkMode,
@@ -42,6 +43,7 @@ export function JobListCard({
   selected: boolean;
   isDuplicate: boolean;
   workerCount: number;
+  activeTodayCount?: number;
   totalHoursLabel: string;
   costLabel: string | null;
   bulkMode?: boolean;
@@ -58,9 +60,7 @@ export function JobListCard({
   const missingDocs = jobMissingRequiredDocs(job);
   const jobPhase = inferJobPhase(job);
   const fileCount = countJobFiles(job);
-  const executionCrewCount = jobOpsExecutionCrewCount(job);
   const contractDateLabel = resolveWorkerContractDateLabel(job);
-  const showNoTeamBadge = jobOpsHasNoExecutionTeam(job);
   const clientLine = [job.client?.trim() || null, contractDateLabel].filter(Boolean).join(" • ");
 
   return (
@@ -110,14 +110,12 @@ export function JobListCard({
               BZP
             </span>
           )}
-          {showNoTeamBadge && (
-            <span className="text-[10px] bg-amber-500/15 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded-full font-medium">
-              Ekipa: 0
-            </span>
-          )}
-          {executionCrewCount > 0 && (
-            <span className="text-[10px] bg-sky-500/12 text-sky-700 dark:text-sky-400 px-1.5 py-0.5 rounded-full font-medium">
-              Ekipa: {executionCrewCount}
+          {activeTodayCount > 0 && (
+            <span
+              title="Unikalni pracownicy z wpisem czasu na dziś"
+              className="text-[10px] bg-teal-500/12 text-teal-800 dark:text-teal-300 px-1.5 py-0.5 rounded-full font-medium"
+            >
+              Aktywni dziś: {activeTodayCount}
             </span>
           )}
           <JobWmPlannedBadge job={job} />

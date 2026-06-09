@@ -4,7 +4,15 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.40** (`changelog-data.ts`) · Roboty UX Pack desktop · prod
+**Aktualna wersja UI:** **2.50.41** (`changelog-data.ts`) · Roboty Active Today badge · lokalnie
+
+---
+
+## 2.50.41 (2026-06-09) — Roboty Active Today badge
+
+* **Karta listy** — „Aktywni dziś: N” z `workEntries` na dziś zamiast „Ekipa: N”
+* **KPI MID-B** — bez zmian (`executionAssigneeDirectoryIds`)
+* Smoke: `smoke-test-jobs-active-today-2.50.41.mjs`
 
 ---
 

@@ -1632,6 +1632,27 @@ export function sortJobsActiveFirst(jobs: Job[]): Job[] {
   });
 }
 
+/** Roboty 2.50.41 — unikalni pracownicy z wpisów czasu na danej dacie (per robota). */
+export function jobActiveWorkerCountOnDate(
+  job: Pick<Job, "workEntries">,
+  dateIso: string,
+  directory: DirectoryEmployee[] = [],
+): number {
+  const keys = new Set<string>();
+  const entries = Array.isArray(job.workEntries) ? job.workEntries : [];
+  for (const we of entries) {
+    if (we.date !== dateIso) continue;
+    if (we.directoryId) {
+      const dir = directory.find((d) => d.id === we.directoryId);
+      if (dir && isTestDirectoryEmployee(dir)) continue;
+      keys.add(`d:${we.directoryId}`);
+    } else if (we.employeeName?.trim()) {
+      keys.add(`n:${normalizeEmpName(we.employeeName)}`);
+    }
+  }
+  return keys.size;
+}
+
 /** Sidebar / podgląd: ilu pracowników dziś na ilu aktywnych robotach (wpisy czasu pracy). */
 export function weekEmployeeWorkerKey(emp: Pick<WeekEmployee, "directoryId" | "name">): string | null {
   if (emp.directoryId) return `d:${emp.directoryId}`;
