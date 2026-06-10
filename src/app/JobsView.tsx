@@ -1440,8 +1440,8 @@ export function JobsView({
       {/* STREFA B — lista (~35%) | szczegóły (~65%) */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
       <div
-        className={`flex flex-col flex-[7] min-w-0 min-h-0 border-r border-border bg-card overflow-hidden transition-all duration-300 ${
-          selectedJob ? "hidden sm:flex" : "flex"
+        className={`flex flex-col min-w-0 min-h-0 border-r border-border bg-card overflow-hidden transition-all duration-300 ${
+          selectedJob ? "hidden sm:flex sm:flex-[7]" : "flex flex-1 sm:flex-[7]"
         }`}
       >
         <div className="flex-1 overflow-y-auto overscroll-contain">
@@ -2630,8 +2630,8 @@ export function JobsView({
         </div>
         </div>
       ) : (
-        <div className="flex flex-col flex-[13] min-w-0 min-h-0 overflow-hidden">
-          <div className="hidden sm:flex flex-col flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-6 py-3 sm:py-4">
+        <div className="hidden sm:flex flex-col flex-[13] min-w-0 min-h-0 overflow-hidden">
+          <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-6 py-3 sm:py-4">
             <div className="shrink-0 w-full max-w-3xl md:max-w-none mx-auto">
               <JobsDetailEmptyState
                 onNewJob={addJob}

@@ -8,7 +8,7 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. CURRENT-TASK.md        ← ★ co na prod (v2.50.64 · c7bc58f) + backup + następny krok
+2. CURRENT-TASK.md        ← ★ co na prod (v2.50.65 · 20.5Z.5C) + backup + następny krok
 3. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md  ← ★★ co zrobiliśmy + backup baseline (CZYTAJ NA START)
 4. docs/PROJECT-HANDOFF.md  ← baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT
 5. docs/BACKUP-REPORT-2.50.64.md  ← pre-feature backup + storage-full
@@ -101,8 +101,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.64**) |
-| Prod `main` (app) | Jobs 2.0 alignment 20.5Z.5A/5B · **v2.50.64** (`c7bc58f`) |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.65**) |
+| Prod `main` (app) | Mobile list fix 20.5Z.5C · **v2.50.65** · poprzedni prod **`c7bc58f`** (2.50.64) |
 | Git tag backup | **`pre-next-feature-2.50.64`** → `c7bc58f` |
 | E2E `main` | **20.5Z.2B** · **`8906485`** · `test:e2e:happy` + `test:e2e:version` · CI `#27260457990` |
 | E2E komendy | `npm run build` → `preview @4173` → `PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:happy` / `test:e2e:version` |

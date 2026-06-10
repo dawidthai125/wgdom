@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.64** · Dashboard handover alert 20.5Z.5B)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-10 (2.50.64 — pre-feature backup + storage audit)  
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.65** · Mobile Jobs List Width Fix 20.5Z.5C)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-10 (2.50.65 — mobile Roboty list layout)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
@@ -765,6 +765,7 @@ Audyt pełny MIN/MID/FULL: [`jobs-2.0-product-audit.md`](jobs-2.0-product-audit.
 | Chipy operacyjne | **Brak** drugiego rzędu pod KPI — Bez ekipy / BZP / WM tylko przez klik w kafelek KPI |
 | Filtry ▼ | Pracownik (`workEntries`), tryb masowy, legenda statusów |
 | Mobile | KPI i fazy: `overflow-x-auto` |
+| Mobile lista (`<640px`, 20.5Z.5C) | Bez wybranej roboty: lista `flex-1` (pełna szerokość); pusty panel szczegółów `hidden sm:flex flex-[13]`; od `sm`: split `sm:flex-[7]` / `flex-[13]` |
 
 #### Przepływ produktowy
 

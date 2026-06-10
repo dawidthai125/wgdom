@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-10",
+    version: "2.50.65",
+    label: "Mobile Jobs List Width Fix (20.5Z.5C)",
+    items: [
+      {
+        type: "fix",
+        text: "Roboty (mobile) — lista zajmuje pełną szerokość ekranu przy braku wybranej roboty; usunięto pustą kolumnę szczegółów (~65% viewportu)",
+      },
+      {
+        type: "fix",
+        text: "Poprawiona czytelność adresów robót na telefonach (<640px); split desktop/tablet 35/65 bez zmian",
+      },
+    ],
+  },
+  {
+    date: "2026-06-10",
     version: "2.50.64",
     label: "Dashboard Handover Alert (20.5Z.5B)",
     items: [

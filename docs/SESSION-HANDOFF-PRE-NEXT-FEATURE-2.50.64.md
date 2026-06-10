@@ -34,6 +34,7 @@ Email backup:      PARTIAL (rdzeń PASS, pełny ZIP > limit Resend)
 | 5 | **Backup hardening** — storage-full | archiwum | 140/140 obiektów, 54.15 MB |
 | 6 | **Backup hardening** — email | archiwum | rdzeń KV+docs na `dawid.thai@int.pl` |
 | 7 | **Audyt kompletności storage** | read-only | **STORAGE BACKUP COMPLETE 100%** |
+| 8 | **20.5Z.5C** — mobile lista Roboty full width | UI fix | v2.50.65 · `JobsView.tsx` · **RELEASED** |
 
 **Bez zmian:** sync/KV merge, Edge Functions (poza istniejącymi endpointami mail), model danych.
 
@@ -60,7 +61,18 @@ Email backup:      PARTIAL (rdzeń PASS, pełny ZIP > limit Resend)
 | **Pliki** | `src/app/DashboardView.tsx` |
 | **Smoke** | `npx vite-node scripts/smoke-test-dashboard-handover-alert-20.5z5b.mjs` (11/11) |
 
-**Commit release:** `c7bc58f` — `release(ui): Jobs 2.0 navigation and dashboard alignment (20.5Z.5A/5B)`
+### 20.5Z.5C — Mobile Jobs List Width Fix (v2.50.65) — **RELEASED**
+
+| Pole | Wartość |
+|------|---------|
+| **Problem** | Na mobile lista Roboty ~35% szerokości; pusta kolumna szczegółów ~65% |
+| **Fix** | `flex-1 sm:flex-[7]` lista; pusty wrapper `hidden sm:flex flex-[13]` |
+| **Zakres** | Mobile-only (`<640px`); desktop/tablet split 35/65 bez zmian |
+| **Pliki** | `src/app/JobsView.tsx` |
+| **Smoke** | `npx vite-node scripts/smoke-test-jobs-ux-pack-2.50.40.mjs` (16/16) |
+| **Raport** | [`RELEASE-REPORT-20.5Z.5C.md`](RELEASE-REPORT-20.5Z.5C.md) |
+
+**Commit release 5A/5B:** `c7bc58f` — `release(ui): Jobs 2.0 navigation and dashboard alignment (20.5Z.5A/5B)`
 
 ---
 

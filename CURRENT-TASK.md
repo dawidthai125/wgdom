@@ -4,9 +4,10 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-10  
-**Current Version:** **2.50.64**  
+**Current Version:** **2.50.65**  
 **Current Baseline:** **STABLE · E2E HARDENED · PWA HARDENED · PRE-FEATURE BACKUP SECURED**  
-**Prod `origin/main` (app):** **`c7bc58f`** · https://www.wgdom.fun · v2.50.64  
+**Prod `origin/main` (app):** **lokalnie 2.50.65** · poprzedni prod **`c7bc58f`** · v2.50.64  
+**★ Release 5C:** [`docs/RELEASE-REPORT-20.5Z.5C.md`](docs/RELEASE-REPORT-20.5Z.5C.md) — **DEPLOY READY** (push `main`)  
 **Git tag backup:** **`pre-next-feature-2.50.64`** → `c7bc58f`  
 **Deploy prod:** **`BxMBS2SFGiDxZmkHmwndVpr5RLin`**  
 **E2E `origin/main`:** **`8906485`** — E2E Version Awareness (20.5Z.2B) + Happy Path (`caf344e`)  
@@ -24,28 +25,40 @@
 ## Werdykt sesji
 
 ```text
-READY FOR NEXT FEATURE STREAM
+RELEASE READY — 20.5Z.5C (push main → Vercel)
 ```
 
-Prod **2.50.64** wdrożony · pre-feature backup **COMPLETE** · storage-full **100%** · dokumentacja zaktualizowana.
+Mobile Jobs List Width Fix **2.50.65** · build + smoke **PASS** · pre-feature backup baseline **zachowany** (`pre-next-feature-2.50.64`).
 
 ---
 
-## Ostatni release — 20.5Z.5A + 20.5Z.5B (**RELEASED**)
+## Ostatni release — 20.5Z.5C (**RELEASED** / **DEPLOY READY**)
 
-| Sprint | Wersja | Commit | Zakres |
-|--------|--------|--------|--------|
-| **20.5Z.5A** Admin Nav Jobs Badge | 2.50.63 | `c7bc58f` | Badge Roboty = W toku + Do odbioru (`countActiveJobsForNavBadge`) |
-| **20.5Z.5B** Dashboard Handover Alert | **2.50.64** | **`c7bc58f`** | Pulpit „Uwaga dziś” — Roboty do odbioru |
+| Sprint | Wersja | Zakres |
+|--------|--------|--------|
+| **20.5Z.5C** Mobile Jobs List Width | **2.50.65** | Roboty mobile `<640px` — lista pełna szerokość; pusty panel szczegółów `hidden sm:flex` |
 
-**Kluczowe pliki:** `job-list-ops.ts`, `admin-nav.ts`, `DashboardView.tsx`
+**Kluczowy plik:** `JobsView.tsx` (`flex-1 sm:flex-[7]`, wrapper empty detail `hidden sm:flex flex-[13]`)
 
 **Smoke:**
 
 ```bash
-npx vite-node scripts/smoke-test-admin-nav-jobs-badge-20.5z5a.mjs    # 8/8
-npx vite-node scripts/smoke-test-dashboard-handover-alert-20.5z5b.mjs  # 11/11
+npx vite-node scripts/smoke-test-jobs-ux-pack-2.50.40.mjs   # 16/16
+npm run build
 ```
+
+**Raport:** [`docs/RELEASE-REPORT-20.5Z.5C.md`](docs/RELEASE-REPORT-20.5Z.5C.md)
+
+---
+
+## Poprzedni release — 20.5Z.5A + 20.5Z.5B (**RELEASED**)
+
+| Sprint | Wersja | Commit | Zakres |
+|--------|--------|--------|--------|
+| **20.5Z.5A** Admin Nav Jobs Badge | 2.50.63 | `c7bc58f` | Badge Roboty = W toku + Do odbioru (`countActiveJobsForNavBadge`) |
+| **20.5Z.5B** Dashboard Handover Alert | 2.50.64 | `c7bc58f` | Pulpit „Uwaga dziś” — Roboty do odbioru |
+
+**Smoke 5A/5B:** `smoke-test-admin-nav-jobs-badge-20.5z5a.mjs` (8/8) · `smoke-test-dashboard-handover-alert-20.5z5b.mjs` (11/11)
 
 ---
 
@@ -77,6 +90,7 @@ npx vite-node scripts/smoke-test-dashboard-handover-alert-20.5z5b.mjs  # 11/11
 | 20.5Z.4A Jobs Cleanup | `640e3a9` | **COMPLETE** |
 | **20.5Z.5A** Nav badge | `c7bc58f` | **RELEASED** |
 | **20.5Z.5B** Handover alert | `c7bc58f` | **RELEASED** |
+| **20.5Z.5C** Mobile list width | lokalnie | **RELEASED** · **DEPLOY READY** |
 
 Audyt zamknięcia 20.5Z.3: **GO** · szczegóły: [`PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md)
 

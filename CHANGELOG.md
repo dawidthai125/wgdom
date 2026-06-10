@@ -4,10 +4,17 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.64** (`changelog-data.ts`) · Dashboard handover alert 20.5Z.5B  
+**Aktualna wersja UI:** **2.50.65** (`changelog-data.ts`) · Mobile Jobs List Width Fix 20.5Z.5C  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
+
+## 2.50.65 (2026-06-10) — Mobile Jobs List Width Fix (20.5Z.5C)
+
+* **Fix:** Admin → Roboty na urządzeniach mobilnych — lista robót pełna szerokość przy braku wybranej roboty
+* **Fix:** Usunięto pustą kolumnę szczegółów rezerwującą ~65% viewportu na `<640px`
+* **Fix:** Lepsza czytelność adresów robót na telefonach
+* **Improve:** Desktop i tabletowy split 35/65 bez zmian
 
 ## Docs (2026-06-10) — Pre-Next-Feature Handoff + Backup
 

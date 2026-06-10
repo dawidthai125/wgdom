@@ -19,8 +19,18 @@ const jobsSrc = read("src/app/JobsView.tsx");
 const navSrc = read("src/app/JobDetailSectionNav.tsx");
 
 const checks = [
-  ["split_list_flex_7", jobsSrc.includes("flex-[7] min-w-0 min-h-0")],
+  [
+    "split_list_flex_7",
+    jobsSrc.includes("sm:flex-[7]") &&
+      (jobsSrc.includes("flex flex-1 sm:flex-[7]") || jobsSrc.includes("hidden sm:flex sm:flex-[7]")),
+  ],
   ["split_detail_flex_13", jobsSrc.includes("flex-[13] min-w-0 min-h-0")],
+  [
+    "mobile_full_width_jobs_list",
+    jobsSrc.includes("flex flex-1 sm:flex-[7]") &&
+      jobsSrc.includes("hidden sm:flex flex-col flex-[13]") &&
+      jobsSrc.includes("hidden sm:flex sm:flex-[7]"),
+  ],
   ["detail_md_max_w_none", jobsSrc.includes("md:max-w-none") && !jobsSrc.includes("md:max-w-4xl")],
   ["mobile_max_w_3xl_preserved", jobsSrc.includes("max-w-3xl")],
   ["toolbar_md_space_y_1", headerSrc.includes("md:space-y-1")],

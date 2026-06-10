@@ -10,8 +10,8 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **2.50.64** |
-| **Commit (app)** | **`c7bc58f`** — `release(ui): Jobs 2.0 navigation and dashboard alignment (20.5Z.5A/5B)` |
+| **Wersja UI** | **2.50.65** |
+| **Commit (app)** | **lokalnie** — `fix(jobs): mobile jobs list full width (20.5Z.5C)` · poprzedni prod **`c7bc58f`** (2.50.64) |
 | **Git tag backup** | **`pre-next-feature-2.50.64`** → `c7bc58f` |
 | **Deploy** | **`BxMBS2SFGiDxZmkHmwndVpr5RLin`** — **SUCCESS** |
 | **Status** | **STABLE · PRE-FEATURE BACKUP SECURED · READY FOR NEXT FEATURE STREAM** |
@@ -30,27 +30,35 @@
 
 ---
 
-## Ostatni release — 20.5Z.5A + 20.5Z.5B (Jobs 2.0 alignment)
+## Ostatni release — 20.5Z.5C (Mobile Jobs List Width Fix)
 
-**Navigation badge + Dashboard handover alert** (UI-only, bez zmian sync/modelu)
+**Mobile-only layout fix** (`<640px`) — UI-only, bez zmian sync/modelu
 
 ### Zakres
 
-- **20.5Z.5A** — badge menu Roboty = `countActiveJobsForNavBadge()` (W toku + Do odbioru)
-- **20.5Z.5B** — Pulpit „Uwaga dziś” — jawny alert „Roboty do odbioru” (`jobMatchesListFilter` handover)
-- **attentionCount** — bez handover (nakładanie z `jobsMissingDocs`)
+- Lista robót pełna szerokość przy braku `selectedJob` (`flex-1 sm:flex-[7]`)
+- Pusty wrapper szczegółów ukryty na mobile (`hidden sm:flex flex-[13]`)
+- Desktop/tablet split 35/65 (`sm:flex-[7]` / `flex-[13]`) bez zmian
 
 ### Jakość
 
 | Check | Wynik |
 |-------|-------|
-| Vercel deploy | **SUCCESS** (`BxMBS2SFGiDxZmkHmwndVpr5RLin`) |
-| Prod `version.json` 2.50.64 | **PASS** |
-| Smoke 5A | **8/8 PASS** |
-| Smoke 5B | **11/11 PASS** |
-| Pre-feature backup + storage-full | **PASS** (140/140) |
+| `npm run build` | **PASS** |
+| Smoke jobs UX pack | **16/16 PASS** |
+| Viewport 390×844 | lista 100%, brak pustej kolumny |
 
-**Commit:** **`c7bc58f`**
+**Raport:** [`RELEASE-REPORT-20.5Z.5C.md`](RELEASE-REPORT-20.5Z.5C.md) · **Status:** **RELEASED** · **DEPLOY READY**
+
+---
+
+## Poprzedni release — 20.5Z.5A + 20.5Z.5B (Jobs 2.0 alignment)
+
+**Navigation badge + Dashboard handover alert** (UI-only)
+
+- **20.5Z.5A** — badge menu Roboty = `countActiveJobsForNavBadge()` (W toku + Do odbioru)
+- **20.5Z.5B** — Pulpit „Uwaga dziś” — alert „Roboty do odbioru”
+- **Commit prod:** **`c7bc58f`** · deploy **`BxMBS2SFGiDxZmkHmwndVpr5RLin`**
 
 ---
 
