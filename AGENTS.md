@@ -8,7 +8,7 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. CURRENT-TASK.md        ← ★ co na prod (v2.50.62, `381e4b0`) + E2E (`caf344e`)
+2. CURRENT-TASK.md        ← ★ co na prod (v2.50.62) + E2E (`caf344e`) + PWA (`46556a7`)
 3. docs/PROJECT-HANDOFF.md  ← ★ baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT
 4. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← ★ ostatnia sesja (Files Hub 20.5A.12)
 5. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
@@ -91,8 +91,9 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
 | Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.62**) |
-| Prod `main` (app) | JobAllFilesView Hub 20.5A.12B.1-full · **v2.50.62** (`381e4b0`, deploy `5000308828`) |
+| Prod `main` (app) | JobAllFilesView Hub 20.5A.12B.1-full · **v2.50.62** (`381e4b0`) |
 | E2E `main` | **20.5Z.1** E2E-HAPPY-PATH-001 · **`caf344e`** · CI `e2e-happy-path` SUCCESS |
+| PWA `main` | **20.5Z.2A** PWA hardening · **`46556a7`** · deploy **`5000728139`** · SW `wgdom-shell-2.50.62` |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |
 | Frontend deploy | push `main` → Vercel |

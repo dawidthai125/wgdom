@@ -12,10 +12,11 @@
 | **Wersja UI** | **2.50.62** |
 | **Commit (app)** | **`381e4b0`** — `feat(jobs): JobAllFilesView full hub alignment 20.5A.12B.1-full` |
 | **Commit (E2E)** | **`caf344e`** — `test(e2e): E2E-HAPPY-PATH-001 worker→admin→inspector 20.5Z.1` |
-| **Deploy** | **`5000308828`** — **SUCCESS** |
-| **Status** | **STABLE · E2E READY** |
+| **Commit (PWA)** | **`46556a7`** — `fix(pwa): versioned SW cache and version.json network-only 20.5Z.2A` |
+| **Deploy** | **`5000728139`** — **SUCCESS** |
+| **Status** | **STABLE · E2E READY · PWA HARDENED** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | **`caf344e`** (E2E) · app feature **`381e4b0`** |
+| **Repo `origin/main`** | **`46556a7`** (PWA) · app feature **`381e4b0`** |
 
 **Poprzedni baseline:** v2.50.61 · `1edf0f9` · deploy `5000212026` (Worker Report PDF 20.5A.12C)
 
@@ -24,7 +25,32 @@
 
 ---
 
-## Ostatni release — 20.5Z.1 / E2E-HAPPY-PATH-001
+## Ostatni release — 20.5Z.2A / PWA + Version Awareness Hardening
+
+**Platform Stabilization — spójność PWA × Version Awareness** (build/infra, bez zmian sync)
+
+### Zakres
+
+- **Versioned SW cache** — `dist/sw.js` generowany przy buildzie: `wgdom-shell-{APP_VERSION}`
+- **`version.json` network-only** — SW nie cache'uje, bez fallback do `index.html`
+- **Vercel** — `Cache-Control: no-store` dla `/version.json`
+- **Smoke** — `smoke-test-pwa-version-20.5z2a.mjs` (Z1–Z14)
+
+### Jakość (release)
+
+| Check | Wynik |
+|-------|-------|
+| Vercel deploy | **`#5000728139` SUCCESS** |
+| Prod SW `wgdom-shell-2.50.62` | **PASS** (wgdom.fun + wgdom.online) |
+| Prod `version.json` + `no-store` | **PASS** |
+| PWA smoke | **PASS** (Z1–Z14) |
+| Regresja Version / Files Hub / PDF | **PASS** |
+
+**Następny sprint:** **20.5Z.2B** — E2E Version Awareness
+
+---
+
+## Poprzedni release — 20.5Z.1 / E2E-HAPPY-PATH-001
 
 **Platform Stabilization — pierwszy gate E2E** (test-only, bez zmian app/sync)
 
@@ -46,8 +72,6 @@
 | Regresja Files Hub | **PASS** (`smoke-test-files-hub-20.5a12.mjs`) |
 | Regresja Worker PDF | **PASS** (`smoke-test-worker-report-pdf-20.5a12c.mjs`) |
 | Regresja Version | **PASS** (`smoke-test-app-version-check-20.5b7.mjs`) |
-
-**Następny sprint:** **20.5Z.2** — PWA + Version Awareness Audit
 
 ---
 

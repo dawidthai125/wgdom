@@ -5,10 +5,11 @@
 
 **Ostatnia aktualizacja:** 2026-06-10  
 **Current Version:** **2.50.62**  
-**Current Baseline:** **STABLE · E2E READY**  
+**Current Baseline:** **STABLE · E2E READY · PWA HARDENED**  
 **Prod `origin/main` (app):** **`381e4b0`** · https://www.wgdom.fun · v2.50.62  
 **E2E `origin/main`:** **`caf344e`** — E2E-HAPPY-PATH-001 (20.5Z.1)  
-**Deploy prod:** **`5000308828`**
+**PWA `origin/main`:** **`46556a7`** — PWA + Version Awareness (20.5Z.2A)  
+**Deploy prod:** **`5000728139`**
 
 ---
 
@@ -58,9 +59,24 @@
 
 ---
 
+## Sprint 20.5Z.2A — PWA + Version Awareness Hardening (**COMPLETE**)
+
+| Element | Status |
+|---------|--------|
+| Versioned Service Worker Cache | **COMPLETE** (`wgdom-shell-{APP_VERSION}`) |
+| `version.json` network-only w SW | **COMPLETE** |
+| Vercel `Cache-Control: no-store` | **COMPLETE** |
+| PWA Smoke Coverage | **COMPLETE** (Z1–Z14) |
+
+**Commit:** **`46556a7`** · **Deploy:** **`5000728139`** SUCCESS · **Prod SW:** `wgdom-shell-2.50.62`
+
+**Kluczowe pliki:** `scripts/sw.template.js`, `scripts/generate-service-worker.mjs`, `vite.config.ts`, `vercel.json`, `scripts/smoke-test-pwa-version-20.5z2a.mjs`
+
+---
+
 ## Następny etap
 
-**20.5Z.2 — PWA + Version Awareness Audit**
+**20.5Z.2B — E2E Version Awareness**
 
 ---
 
