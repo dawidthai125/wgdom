@@ -34,7 +34,7 @@ function readSrc(rel) {
 
 log("=== Sprint 20.5B.7 / 20.5B.7D — Version Awareness & Update Banner ===\n");
 
-assert("precheck changelog 2.50.60", readChangelogVersion() === "2.50.60");
+assert("precheck changelog 2.50.61", readChangelogVersion() === "2.50.61");
 
 // T1 — APP_VERSION
 assert(

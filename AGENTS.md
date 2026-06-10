@@ -8,7 +8,7 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. CURRENT-TASK.md        ← ★ co na prod (v2.50.60, `b653782`)
+2. CURRENT-TASK.md        ← ★ co na prod (v2.50.61, `1edf0f9`)
 3. docs/PROJECT-HANDOFF.md  ← ★ baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT
 4. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← ★ ostatnia sesja (Files Hub 20.5A.12)
 5. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
@@ -90,8 +90,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.60**) |
-| Prod `main` (app) | Cross-tab Version Awareness 20.5B.7D · **v2.50.60** (`b653782`, deploy `5000129417`) |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.61**) |
+| Prod `main` (app) | Worker Report PDF 20.5A.12C · **v2.50.61** (`1edf0f9`, deploy `5000212026`) |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |
 | Frontend deploy | push `main` → Vercel |

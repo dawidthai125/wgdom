@@ -9,21 +9,36 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **2.50.60** |
-| **Commit** | **`b653782`** — `feat(app): cross-tab update banner sync via localStorage (20.5B.7D)` |
-| **Deploy** | **`5000129417`** — **SUCCESS** |
+| **Wersja UI** | **2.50.61** |
+| **Commit** | **`1edf0f9`** — `feat(jobs): worker report PDF export per documentation entry (20.5A.12C)` |
+| **Deploy** | **`5000212026`** — **SUCCESS** |
 | **Status** | **RELEASED · STABLE** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | **`b653782`** |
+| **Repo `origin/main`** | **`1edf0f9`** |
 
-**Poprzedni baseline:** v2.50.59 · `123db88` · deploy `5000047410` (SMS P0 hotfix)
+**Poprzedni baseline:** v2.50.60 · `b653782` · deploy `5000129417` (Cross-tab Version Awareness 20.5B.7D)
 
 **Handoff sesji:** [`SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)  
 **Audyt operacyjny:** [`AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md) — worker/admin/inspektor **GO**
 
 ---
 
-## Ostatni release — 20.5B.7D / 2.50.60
+## Ostatni release — 20.5A.12C / 2.50.61
+
+**Worker Report PDF Export** — eksport pojedynczego wpisu dokumentacji ekipy do PDF (UI only)
+
+### Funkcje
+
+- **Eksportuj PDF** — Roboty → Dokumentacja (expand wpis) + Files Hub → Dokumentacja robót
+- **Zawartość:** adres, autor, daty, zakres, wymiary, obrys (base64 lub fallback), notatki
+- **Mobile:** `deliverPdfBlob` — iOS Safari / share sheet
+- **Bez zmian** sync, KV, Edge, `workerReports[]` model
+
+**Raport:** [`RELEASE-REPORT-20.5A.12C.md`](RELEASE-REPORT-20.5A.12C.md)
+
+---
+
+## Poprzedni release — 20.5B.7D / 2.50.60
 
 **Cross-tab Update Banner Sync** — Version Awareness propaguje wykrytą wersję między kartami (UI only)
 
