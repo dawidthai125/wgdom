@@ -5,8 +5,9 @@
 
 **Ostatnia aktualizacja:** 2026-06-10  
 **Current Version:** **2.50.62**  
-**Current Baseline:** **RELEASED · STABLE**  
+**Current Baseline:** **STABLE · E2E READY**  
 **Prod `origin/main` (app):** **`381e4b0`** · https://www.wgdom.fun · v2.50.62  
+**E2E `origin/main`:** **`caf344e`** — E2E-HAPPY-PATH-001 (20.5Z.1)  
 **Deploy prod:** **`5000308828`**
 
 ---
@@ -40,9 +41,26 @@
 
 ---
 
+## Sprint 20.5Z.1 — E2E-HAPPY-PATH-001 (**COMPLETE**)
+
+| Element | Status |
+|---------|--------|
+| Preview @ 4173 + LS seed | **COMPLETE** |
+| Cloud sync isolation | **COMPLETE** |
+| Worker → dokumentacja | **COMPLETE** |
+| Admin → dokumentacja + Files Hub | **COMPLETE** |
+| Inspector → dokumentacja | **COMPLETE** |
+| GitHub Actions `e2e-happy-path` | **COMPLETE** (`#27258082838` SUCCESS) |
+
+**Commit:** **`caf344e`** · **Smoke lokalny:** `npm run test:e2e:happy` PASS · **CI:** 1 passed
+
+**Kluczowe pliki:** `e2e/fixtures/e2e-seed.ts`, `e2e/helpers/`, `e2e/worker-admin-inspector-happy-path.spec.ts`, `.github/workflows/e2e-happy-path.yml`
+
+---
+
 ## Następny etap
 
-**20.5Z — Platform Stabilization Audit**
+**20.5Z.2 — PWA + Version Awareness Audit**
 
 ---
 

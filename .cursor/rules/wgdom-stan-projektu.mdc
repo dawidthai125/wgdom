@@ -14,7 +14,9 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
 - **Aktualna wersja UI (prod):** **2.50.62** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
 - **Prod (`main` / `origin/main`, app):** **`381e4b0`** (feature) · **`d3f1781`** (docs) · deploy **`5000308828`** · https://www.wgdom.fun · JobAllFilesView Hub 20.5A.12B.1-full **RELEASED**
+- **E2E (`origin/main`):** **`caf344e`** — **20.5Z.1 E2E-HAPPY-PATH-001** · Worker→Admin→Inspector · CI `#27258082838` **SUCCESS** · status **E2E READY**
 - **Seria 20.5A.12 Files Hub:** **COMPLETE** (12A + 12B + 12B.1-full + 12C)
+- **Seria 20.5Z.1 E2E:** **COMPLETE** — preview :4173, LS seed, cloud block, `npm run test:e2e:happy`
 - **★ Handoff projektu:** [`docs/PROJECT-HANDOFF.md`](../../docs/PROJECT-HANDOFF.md) — baseline prod, proces AUDIT→RCA→PLAN→IMPLEMENT
 - **★ Handoff Files Hub (CLOSED):** [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](../../docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md) — hub UI, liczniki SSOT, bez migracji danych
 - **★ Handoff sesji 20.5B (CLOSED):** [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](../../docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md) — Roboty UX 20.5B.5, Dokumentacja naming 20.5B.6A.1, Version Awareness 20.5B.7, Worker Mobile 20.5B.6A.4

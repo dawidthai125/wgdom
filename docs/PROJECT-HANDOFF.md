@@ -10,11 +10,12 @@
 | Pole | Wartość |
 |------|---------|
 | **Wersja UI** | **2.50.62** |
-| **Commit** | **`381e4b0`** — `feat(jobs): JobAllFilesView full hub alignment 20.5A.12B.1-full` |
+| **Commit (app)** | **`381e4b0`** — `feat(jobs): JobAllFilesView full hub alignment 20.5A.12B.1-full` |
+| **Commit (E2E)** | **`caf344e`** — `test(e2e): E2E-HAPPY-PATH-001 worker→admin→inspector 20.5Z.1` |
 | **Deploy** | **`5000308828`** — **SUCCESS** |
-| **Status** | **RELEASED · STABLE** |
+| **Status** | **STABLE · E2E READY** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | **`381e4b0`** |
+| **Repo `origin/main`** | **`caf344e`** (E2E) · app feature **`381e4b0`** |
 
 **Poprzedni baseline:** v2.50.61 · `1edf0f9` · deploy `5000212026` (Worker Report PDF 20.5A.12C)
 
@@ -23,7 +24,34 @@
 
 ---
 
-## Ostatni release — 20.5A.12B.1-full / 2.50.62
+## Ostatni release — 20.5Z.1 / E2E-HAPPY-PATH-001
+
+**Platform Stabilization — pierwszy gate E2E** (test-only, bez zmian app/sync)
+
+### Zakres
+
+- **Worker** → login, robota, zakres + Salon 4×3×2.6, „Wyślij dokumentację do admina”
+- **Admin** → Roboty, tab Dokumentacja (marker), tab Pliki (Files Hub)
+- **Inspector** → Roboty, sekcja Dokumentacja, expand raport, marker
+- **Preview** `127.0.0.1:4173` + **LocalStorage seed** (`e2e-seed.ts`)
+- **Cloud block** — `page.route` → 503 na sync endpoints
+- **CI:** `.github/workflows/e2e-happy-path.yml` · `npm run test:e2e:happy`
+
+### Jakość (release)
+
+| Check | Wynik |
+|-------|-------|
+| Lokalny E2E | **PASS** (1 test serial) |
+| CI `e2e-happy-path` | **`#27258082838` SUCCESS** (~63s) |
+| Regresja Files Hub | **PASS** (`smoke-test-files-hub-20.5a12.mjs`) |
+| Regresja Worker PDF | **PASS** (`smoke-test-worker-report-pdf-20.5a12c.mjs`) |
+| Regresja Version | **PASS** (`smoke-test-app-version-check-20.5b7.mjs`) |
+
+**Następny sprint:** **20.5Z.2** — PWA + Version Awareness Audit
+
+---
+
+## Poprzedni release — 20.5A.12B.1-full / 2.50.62
 
 **JobAllFilesView Full Hub Alignment** — kafle per adres zgodne z Files Hub (UI only)
 
