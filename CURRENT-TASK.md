@@ -14,11 +14,14 @@
 **Deploy prod:** **`5000967334`**  
 **CI E2E:** **`#27260457990`** SUCCESS (happy + version)
 
-**★ Handoff serii 20.5Z:** [`docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md)
+**★ Handoff końcowy 20.5Z:** [`docs/PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md)  
+**Handoff serii 20.5Z:** [`docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md)
 
 ---
 
-## Seria 20.5Z — Platform Stabilization (**CLOSED**)
+## Seria 20.5Z — Platform Stabilization (**COMPLETE**)
+
+> Oficjalny dokument zamknięcia: [`docs/PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md)
 
 | Sprint | Commit | Typ | Status |
 |--------|--------|-----|--------|
@@ -141,7 +144,8 @@
 
 1. [`AGENTS.md`](AGENTS.md)
 2. Ten plik
-3. [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)
-4. [`docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md) ← **★ ostatnia seria (E2E + PWA + Jobs)**
-5. [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md)
-6. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.2 + § 13.1
+3. [`docs/PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md) ← **★ oficjalny handoff końcowy 20.5Z**
+4. [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)
+5. [`docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md)
+6. [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md)
+7. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.2 + § 13.1
