@@ -59,16 +59,39 @@ Warstwa prezentacji **Files Hub** — jeden widok plików roboty bez migracji da
 | Check | wgdom.fun | wgdom.online |
 |-------|-----------|--------------|
 | `/version.json` = 2.50.58 | **PASS** | **PASS** |
-| Prod smoke 2.50.58 | **PASS** (21/21 required) | **PASS** |
+| Prod smoke 2.50.58 | **PASS** (22/22 required) | **PASS** |
 | CI Mobile smoke | **PASS** (run `27252163593`) | — |
 
 ---
 
 ## Version Awareness (20.5B.7 — pierwszy test prod)
 
-Scenariusz manualny: karta A przed deploy → deploy 2.50.58 → focus/visibility → banner „Dostępna nowa wersja WGDOM”.
+Deploy 2.50.58 był pierwszym realnym testem Version Awareness na produkcji.
 
-*(Wynik manualny — patrz raport końcowy release)*
+**Scenariusz manualny:** karta A przed deploy → deploy → focus/visibility → banner „Dostępna nowa wersja WGDOM” → „Odśwież teraz” → reload.
+
+**Automatyczna weryfikacja prod (smoke):** banner copy, `Odśwież teraz`, `visibilitychange`, `location.reload` — **PASS**.
+
+---
+
+## Dokumentacja dla agentów AI
+
+| Plik | Rola |
+|------|------|
+| [`SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](SESSION-HANDOFF-20.5A.12-FILES-HUB.md) | **★ Handoff sprintu** — pełny kontekst dla AI |
+| [`PROJECT-HANDOFF.md`](PROJECT-HANDOFF.md) | Baseline prod |
+| [`CURRENT-TASK.md`](../CURRENT-TASK.md) | Wznowienie sesji |
+| [`AGENTS.md`](../AGENTS.md) § 3g4 | Skrót Files Hub |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.2 | Architektura hub |
+
+---
+
+## Commity release
+
+| SHA | Opis |
+|-----|------|
+| `211364b` | feat(files): Files Hub consolidation (kod + smoke lokalny) |
+| `3d1cc33` | docs(release): prod smoke markers + handoff baseline |
 
 ---
 

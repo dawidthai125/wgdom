@@ -9,13 +9,14 @@ Komunikuj się z użytkownikiem po **polsku**.
 
 ## Zanim zaczniesz pracę w tym repo
 
-1. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — skrót: co na prod (**2.50.56**, `1be7a80`).
+1. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — skrót: co na prod (**2.50.58**, `211364b`).
 2. **Przeczytaj [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)** — baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT.
-3. **Przeczytaj [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)** — ostatnia sesja: 20.5B.5–7 **RELEASED**.
-4. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md)** — pliki roboty 20.5A.10 (trzy warstwy plików).
-5. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md)** — billing 20.5A.6 **RELEASED**.
-6. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § 9.1 dokumentacja robót, § 11 sync, § 12.1.2 pliki, § 13.1 wersja.
-7. Skrót wejścia: [`AGENTS.md`](AGENTS.md).
+3. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md)** — ostatnia sesja: Files Hub 20.5A.12 **RELEASED**.
+4. **Przeczytaj [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)** — Roboty UX, Version Awareness, Worker Mobile.
+5. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md)** — pliki roboty 20.5A.10 (trzy warstwy plików).
+6. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md)** — billing 20.5A.6 **RELEASED**.
+7. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § 9.1 dokumentacja robót, § 11 sync, § 12.1.2 Files Hub, § 13.1 wersja.
+8. Skrót wejścia: [`AGENTS.md`](AGENTS.md).
 
 Nie analizuj od zera całego `src/app/App.tsx` (~15k linii) — ARCHITECTURE.md opisuje system jako całość.
 
@@ -27,7 +28,8 @@ Stosuj [`.cursor/rules/wgdom-development.mdc`](wgdom-development.mdc): chmura �
 
 | Temat | Plik |
 |-------|------|
-| Seria 20.5B.5–7 (Roboty, Dokumentacja, Version) | `docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md` |
+| **Files Hub 20.5A.12** | `docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`, `files-hub-index.ts`, `JobFilesHub.tsx` |
+| Seria 20.5B.5–7 + Worker Mobile | `docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md` |
 | Worker/Inspector readiness | `docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md` |
 | Version Awareness 20.5B.7 | `src/lib/app-version-check.ts`, `src/app/AppUpdateBanner.tsx` |
 | Generic Attachments 20.5A.10 | `docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md` |

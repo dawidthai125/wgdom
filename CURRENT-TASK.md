@@ -23,7 +23,7 @@
 
 **SSOT:** `countFilesHubItems()` = jobFiles + workerReports + jobAttachments
 
-**Raport:** [`docs/RELEASE-REPORT-20.5A.12.md`](docs/RELEASE-REPORT-20.5A.12.md)
+**Handoff:** [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md) · [`docs/RELEASE-REPORT-20.5A.12.md`](docs/RELEASE-REPORT-20.5A.12.md)
 
 **Smoke:** `smoke-test-files-hub-20.5a12.mjs`, `smoke-prod-bundle-2.50.58.mjs`
 
@@ -48,5 +48,6 @@
 1. [`AGENTS.md`](AGENTS.md)
 2. Ten plik
 3. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.2 Files Hub
-4. [`docs/RELEASE-REPORT-20.5A.12.md`](docs/RELEASE-REPORT-20.5A.12.md)
-5. [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)
+4. [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md) — **pełny handoff sprintu**
+5. [`docs/RELEASE-REPORT-20.5A.12.md`](docs/RELEASE-REPORT-20.5A.12.md)
+6. [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)

@@ -3,7 +3,7 @@
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
 > **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.58** · Files Hub 20.5A.12)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.57 — § 9.1 worker progress flow 20.5B.6A.4)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.58 — § 12.1.2 Files Hub 20.5A.12)
 
 ---
 

@@ -12,10 +12,11 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI (prod):** **2.50.56** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
-- **Prod (`main` / `origin/main`, app):** **`1be7a80`** · deploy **`4995835869`** · https://www.wgdom.fun · Version Awareness 20.5B.7 **RELEASED**
+- **Aktualna wersja UI (prod):** **2.50.58** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
+- **Prod (`main` / `origin/main`, app):** **`211364b`** · deploy **`4999362359`** · https://www.wgdom.fun · Files Hub 20.5A.12 **RELEASED**
 - **★ Handoff projektu:** [`docs/PROJECT-HANDOFF.md`](../../docs/PROJECT-HANDOFF.md) — baseline prod, proces AUDIT→RCA→PLAN→IMPLEMENT
-- **★ Handoff sesji 20.5B (CLOSED):** [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](../../docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md) — Roboty UX 20.5B.5, Dokumentacja naming 20.5B.6A.1, Version Awareness 20.5B.7
+- **★ Handoff Files Hub (CLOSED):** [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](../../docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md) — hub UI, liczniki SSOT, bez migracji danych
+- **★ Handoff sesji 20.5B (CLOSED):** [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](../../docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md) — Roboty UX 20.5B.5, Dokumentacja naming 20.5B.6A.1, Version Awareness 20.5B.7, Worker Mobile 20.5B.6A.4
 - **★ Audyt operacyjny (GO):** [`docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](../../docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md) — worker → admin → inspektor
 - **★ Handoff Generic Attachments (CLOSED):** [`docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](../../docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md) — `jobAttachments[]`, trzy warstwy plików, email/ZIP
 - **★ Handoff CC polonizacja (CLOSED):** [`docs/SESSION-HANDOFF-20.3B-CC-POLISH.md`](../../docs/SESSION-HANDOFF-20.3B-CC-POLISH.md) — mapa widoków, etykiety PL, struktura OwnerDashboard
@@ -28,7 +29,7 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **Handoff Performance 1.x CLOSED:** [`docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md`](../../docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md)
 - **Handoff incydent Roboty + 2.1B:** [`docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md`](../../docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md)
 - **Handoff sesji 2026-06 (Faza 8–9, audyty):** [`docs/SESSION-HANDOFF-2026-06.md`](../../docs/SESSION-HANDOFF-2026-06.md)
-- **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md) → [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](../../docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) § 9.1 + § 12.1.2 + § 13.1 → [`docs/tender-center-7g-executive.md`](../../docs/tender-center-7g-executive.md)
+- **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md) → [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](../../docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) § 9.1 + § 12.1.2 + § 13.1 → [`docs/tender-center-7g-executive.md`](../../docs/tender-center-7g-executive.md)
 - **Testy użytkownika:** głównie **Vercel**, nie localhost
 - **Konto testowe pracownika:** imię `test`, tel. `+48 000 000 000` — tylko tryb pracownika, bez listy płac/grafiku/pulpitu
 
@@ -67,10 +68,30 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 
 **Nie zmieniaj bez polecenia:** `jobFiles[]`, plan_techniczny, media-separation, tombstone 20.5B.3, billing sync.
 
-## Seria 20.5B — Roboty UX + Dokumentacja + Version Awareness (CLOSED, prod `1be7a80`, 2026-06-09)
+## Files Hub Consolidation — Sprint 20.5A.12 (CLOSED, prod `211364b`, 2026-06-09)
+
+| Pole | Wartość |
+|------|---------|
+| **Wersja** | **2.50.58** |
+| **Commit** | **`211364b`** |
+| **Deploy** | **`4999362359`** |
+| **Zakres** | Files Hub UI (12A), unified counters (12B), JobAllFilesView nagłówek (12B.1-min), PDF stub (12C) |
+
+**Hub:** kontrakt + dokumentacja ekipy + załączniki + checklista (info). **SSOT:** `countFilesHubItems()`.
+
+**Kluczowe pliki:** `files-hub-index.ts`, `JobFilesHub.tsx`, `JobsView.tsx`, `MediaView.tsx`, `JobAllFilesView.tsx`
+
+**Handoff:** [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](../../docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md) · [`docs/RELEASE-REPORT-20.5A.12.md`](../../docs/RELEASE-REPORT-20.5A.12.md)
+
+**Smoke:** `smoke-test-files-hub-20.5a12.mjs`, `smoke-prod-bundle-2.50.58.mjs`
+
+**Nie zmieniaj bez polecenia:** sync/KV/Edge, modele danych. Kafle JobAllFilesView = tylko kontrakt (backlog 12B.1-full).
+
+## Seria 20.5B — Roboty UX + Dokumentacja + Version Awareness (CLOSED, prod `c983b9c`, 2026-06-09)
 
 | Sprint | Wersja | Commit | Skrót |
 |--------|--------|--------|-------|
+| **20.5B.6A.4** | 2.50.57 | `c983b9c` | Worker Mobile UX — progress flow |
 | **20.5B.7** | **2.50.56** | **`1be7a80`** | Version Awareness — `/version.json`, banner, manual refresh |
 | **20.5B.6A.1** | 2.50.55 | `782fe87` | Raporty → **Dokumentacja** (copy/UI only) |
 | **20.5B.5** | 2.50.54 | `ae35c56` | Filtr W trakcie, Socjalny, piec gazowy |
@@ -105,10 +126,12 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 
 **Nie zmieniaj bez polecenia:** KV `kw-recoverable-charges`, sync/merge settlements, dashboard KPI 20.4C, granica inspektor → tylko `kw-jobs`.
 
-## Seria 2.50.x — MID-B + Mobile + Desktop + Billing + Pliki (CLOSED, prod `1be7a80`, 2026-06-09)
+## Seria 2.50.x — MID-B + Mobile + Desktop + Billing + Pliki (CLOSED, prod `211364b`, 2026-06-09)
 
 | Wersja | Commit | Skrót |
 |--------|--------|-------|
+| **2.50.58** | **`211364b`** | Files Hub Consolidation 20.5A.12 |
+| **2.50.57** | `c983b9c` | Worker Mobile UX 20.5B.6A.4 |
 | **2.50.56** | **`1be7a80`** | Version Awareness 20.5B.7 |
 | **2.50.55** | `782fe87` | Dokumentacja Naming 20.5B.6A.1 |
 | **2.50.54** | `ae35c56` | Roboty UX Pack 20.5B.5 |

@@ -8,11 +8,12 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. CURRENT-TASK.md        ← ★ co na prod (v2.50.56, `1be7a80`)
+2. CURRENT-TASK.md        ← ★ co na prod (v2.50.58, `211364b`)
 3. docs/PROJECT-HANDOFF.md  ← ★ baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT
-4. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← ★ ostatnia sesja (20.5B.5–7)
-5. docs/RELEASE-REPORT-20.5B.7.md  ← Version Awareness (2.50.56)
-6. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
+4. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← ★ ostatnia sesja (Files Hub 20.5A.12)
+5. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
+6. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← Roboty UX, Version, Worker Mobile
+7. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
 7. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← CC polonizacja CLOSED + mapa widoków
 8. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
 9. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
@@ -44,7 +45,8 @@
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
 | **docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md** | Performance 2.x **CLOSED** (`35614f0`) — startup 1119 KB, seria 2.2C→2.4A |
-| **docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md** | Seria **20.5B.5–7 CLOSED** (`1be7a80`, v2.50.56) — Roboty UX, Dokumentacja naming, Version Awareness |
+| **docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md** | Files Hub **20.5A.12 CLOSED** (`211364b`, v2.50.58) — hub UI, liczniki SSOT, bez migracji danych |
+| **docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md** | Seria **20.5B.5–7 + 20.5B.6A.4** — Roboty UX, Dokumentacja naming, Version Awareness, Worker Mobile |
 | **docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md** | Audyt operacyjny worker/admin/inspektor — **GO** |
 | **docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md** | Generic Attachments **20.5A.10 CLOSED** (`e6758e5`, v2.50.52) — pliki roboty, trzy warstwy |
 | **docs/SESSION-HANDOFF-20.3B-CC-POLISH.md** | CC polonizacja **20.3B+ CLOSED** (`61cb33b`, v2.50.43) — mapa widoków, etykiety PL |
@@ -88,8 +90,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.56**) |
-| Prod `main` (app) | Version Awareness 20.5B.7 · release **v2.50.56** (`1be7a80`, deploy `4995835869`) |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.58**) |
+| Prod `main` (app) | Files Hub 20.5A.12 · release **v2.50.58** (`211364b`, deploy `4999362359`) |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |
 | Frontend deploy | push `main` → Vercel |
@@ -251,6 +253,18 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 - **Smoke:** `smoke-test-app-version-check-20.5b7.mjs`, `smoke-test-job-documentation-labels-20.5b6a.mjs`, `smoke-prod-bundle-2.50.56.mjs`
 
 **Nie zmieniaj bez polecenia:** `workerReports[]` sync, auto-reload (20.5B.7C poza zakresem), media-separation 20.5A.8.
+
+---
+
+## 3g4. Files Hub Consolidation — Sprint 20.5A.12 (**CLOSED**, prod `211364b`, v2.50.58)
+
+- **Handoff:** [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md) — **czytaj najpierw** przy Roboty → Pliki / liczniki / Media
+- **Architektura:** **ARCHITECTURE.md § 12.1.2** — Files Hub warstwa prezentacji
+- **SSOT liczników:** `countFilesHubItems()` = jobFiles + workerReports + jobAttachments (bez photos, bez checklisty)
+- **Kluczowe pliki:** `files-hub-index.ts`, `JobFilesHub.tsx`, `JobsView.tsx`, `MediaView.tsx`, `JobAllFilesView.tsx`
+- **Smoke:** `smoke-test-files-hub-20.5a12.mjs`, `smoke-prod-bundle-2.50.58.mjs`
+
+**Nie zmieniaj bez polecenia:** sync/KV/Edge, modele danych, semantyka ZIP/email. **12B.1-min:** kafle JobAllFilesView nadal tylko kontrakt — pełny hub w backlogu 12B.1-full.
 
 ---
 

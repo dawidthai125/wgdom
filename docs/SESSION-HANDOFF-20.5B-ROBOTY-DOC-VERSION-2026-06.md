@@ -4,6 +4,8 @@
 
 Handoff zbiorczy: Roboty UX Pack, audyt dokumentacji, naming refresh, version awareness, Worker Mobile UX, **Files Hub Consolidation**, gotowość operacyjna worker/inspektor.
 
+**★ Pełny handoff Files Hub:** [`SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](SESSION-HANDOFF-20.5A.12-FILES-HUB.md)
+
 ---
 
 ## ★ Baseline produkcyjny
