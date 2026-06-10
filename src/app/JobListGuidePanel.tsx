@@ -1,9 +1,7 @@
 import {
   HardHat,
   ClipboardCheck,
-  Users,
   Scale,
-  AlertTriangle,
   Building2,
   HelpCircle,
   Wallet,
@@ -45,27 +43,11 @@ export function JobListGuidePanel() {
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <Users size={14} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-              <span>
-                <strong className="text-foreground/90">Bez ekipy</strong>
-                {" — "}
-                brak przypisanej ekipy realizacyjnej (aktywne roboty).
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
               <Scale size={14} className="shrink-0 mt-0.5 text-violet-600 dark:text-violet-400" />
               <span>
                 <strong className="text-foreground/90">BZP</strong>
                 {" — "}
                 kontrakt powiązany z przetargiem (niezakończone).
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <AlertTriangle size={14} className="shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
-              <span>
-                <strong className="text-foreground/90">WM po terminie</strong>
-                {" — "}
-                planowany odbiór WM minął termin.
               </span>
             </li>
           </ul>
@@ -111,7 +93,7 @@ export function JobListGuidePanel() {
           </h3>
           <p className="text-muted-foreground">
             Przełącznik <strong className="text-foreground/80">Kolejki</strong> grupuje pilne roboty w sekcjach:
-            WM po terminie, BZP wymaga startu, Bez ekipy, Do odbioru — braki, Gotowe do zdania, Dokumenty &gt;7 dni.
+            BZP wymaga startu, Do odbioru — braki, Gotowe do zdania, Dokumenty &gt;7 dni.
             Każda robota w jednej sekcji. Puste sekcje można zwinąć.
           </p>
         </section>

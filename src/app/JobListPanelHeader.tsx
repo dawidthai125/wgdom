@@ -10,9 +10,7 @@ import {
   Trash2,
   HardHat,
   ClipboardCheck,
-  Users,
   Scale,
-  AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
 import { JobListFilterBar } from "@/app/JobListStatus";
@@ -27,12 +25,11 @@ import type { JobListFilter } from "@/lib/job-list-status";
 import type { DirectoryEmployee } from "@/app/app-domain";
 import { filterProductionActiveDirectory } from "@/app/app-domain";
 
+/** 20.5Z.4A — KPI widoczne w UI (logika noTeam/wmOverdue bez zmian w job-list-ops). */
 const KPI_ITEMS = [
   { key: "inProgress", label: "W toku", countKey: "inProgress" as const, phaseActive: "in_progress" as const, kind: "phase" as const },
   { key: "handover", label: "Do odbioru", countKey: "handover" as const, phaseActive: "handover" as const, kind: "phase" as const },
-  { key: "noTeam", label: "Bez ekipy", countKey: "noTeam" as const, chip: "no_team" as const, kind: "chip" as const },
   { key: "bzp", label: "BZP", countKey: "bzp" as const, chip: "bzp_only" as const, kind: "chip" as const },
-  { key: "wmOverdue", label: "WM po terminie", countKey: "wmOverdue" as const, chip: "wm_overdue" as const, kind: "chip" as const },
 ] as const;
 
 /** 2.1B MIN — tylko wizualizacja KPI (ikony + akcenty); bez wpływu na liczenie/filtry. */
@@ -54,26 +51,12 @@ const KPI_VISUAL: Record<
     iconIdle: "text-orange-600/70 dark:text-orange-400/70",
     iconActive: "text-orange-700 dark:text-orange-300",
   },
-  noTeam: {
-    icon: Users,
-    idle: "border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10",
-    active: "border-amber-500/45 bg-amber-500/15 text-amber-900 dark:text-amber-100",
-    iconIdle: "text-amber-600/70 dark:text-amber-400/70",
-    iconActive: "text-amber-700 dark:text-amber-300",
-  },
   bzp: {
     icon: Scale,
     idle: "border-violet-500/20 bg-violet-500/5 hover:bg-violet-500/10",
     active: "border-violet-500/45 bg-violet-500/15 text-violet-900 dark:text-violet-100",
     iconIdle: "text-violet-600/70 dark:text-violet-400/70",
     iconActive: "text-violet-700 dark:text-violet-300",
-  },
-  wmOverdue: {
-    icon: AlertTriangle,
-    idle: "border-red-500/20 bg-red-500/5 hover:bg-red-500/10",
-    active: "border-red-500/45 bg-red-500/15 text-red-900 dark:text-red-100",
-    iconIdle: "text-red-600/70 dark:text-red-400/70",
-    iconActive: "text-red-700 dark:text-red-300",
   },
 };
 
@@ -146,13 +129,7 @@ export function JobListPanelHeader({
       onTogglePhaseFilterFromKpi(item.phaseActive);
       return;
     }
-    onToggleOpsChip(
-      item.key === "noTeam"
-        ? opsChipForKpiKey("noTeam")
-        : item.key === "bzp"
-          ? opsChipForKpiKey("bzp")
-          : opsChipForKpiKey("wmOverdue"),
-    );
+    onToggleOpsChip(opsChipForKpiKey("bzp"));
   };
 
   return (

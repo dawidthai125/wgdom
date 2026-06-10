@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import type { JobQueueSection, JobQueueSectionId } from "@/lib/job-list-ops";
 
+/** 20.5Z.4A — ukryte sekcje kolejek (logika buildJobQueueSections bez zmian). */
+const HIDDEN_QUEUE_SECTION_IDS = new Set<JobQueueSectionId>(["wm_overdue", "no_team"]);
+
 const SECTION_ICONS: Record<JobQueueSectionId, LucideIcon> = {
   wm_overdue: AlertTriangle,
   bzp_needs_start: Scale,
@@ -44,7 +47,7 @@ export function JobQueueSections({
 
   return (
     <div className="pb-2">
-      {sections.map((section) => {
+      {sections.filter((section) => !HIDDEN_QUEUE_SECTION_IDS.has(section.id)).map((section) => {
         const Icon = SECTION_ICONS[section.id];
         const expanded = isExpanded(section);
         const count = section.jobs.length;
