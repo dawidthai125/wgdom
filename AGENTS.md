@@ -8,7 +8,7 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. CURRENT-TASK.md        ← ★ co na prod (v2.50.61, `1edf0f9`)
+2. CURRENT-TASK.md        ← ★ co na prod (v2.50.62, `381e4b0`)
 3. docs/PROJECT-HANDOFF.md  ← ★ baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT
 4. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← ★ ostatnia sesja (Files Hub 20.5A.12)
 5. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)

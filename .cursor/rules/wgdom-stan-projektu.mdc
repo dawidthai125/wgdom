@@ -12,8 +12,9 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI (prod):** **2.50.61** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
-- **Prod (`main` / `origin/main`, app):** **`1edf0f9`** · deploy **`5000212026`** · https://www.wgdom.fun · Worker Report PDF 20.5A.12C **RELEASED**
+- **Aktualna wersja UI (prod):** **2.50.62** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
+- **Prod (`main` / `origin/main`, app):** **`381e4b0`** · deploy *(po release)* · https://www.wgdom.fun · JobAllFilesView Hub 20.5A.12B.1-full **RELEASED**
+- **Seria 20.5A.12 Files Hub:** **COMPLETE** (12A + 12B + 12B.1-full + 12C)
 - **★ Handoff projektu:** [`docs/PROJECT-HANDOFF.md`](../../docs/PROJECT-HANDOFF.md) — baseline prod, proces AUDIT→RCA→PLAN→IMPLEMENT
 - **★ Handoff Files Hub (CLOSED):** [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](../../docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md) — hub UI, liczniki SSOT, bez migracji danych
 - **★ Handoff sesji 20.5B (CLOSED):** [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](../../docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md) — Roboty UX 20.5B.5, Dokumentacja naming 20.5B.6A.1, Version Awareness 20.5B.7, Worker Mobile 20.5B.6A.4

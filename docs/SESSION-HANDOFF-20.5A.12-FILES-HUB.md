@@ -104,11 +104,11 @@ countFilesHubItems(job) =
 | Media → **JobFilesBrowser** per job | `countFilesHubItems(job)` |
 | Admin nav badge **Media** | images + hub (admin-nav.ts) |
 | **JobAllFilesView** nagłówek „Pliki (N)” | `countAllFilesHubItems(jobs)` — **12B.1-min** |
-| **JobAllFilesView** kafle / expand | Nadal tylko `jobFiles[]` — **świadome ograniczenie** |
+| **JobAllFilesView** kafle / expand | **12B.1-full (v2.50.62)** — `groupHubContentByJob()`, 3 warstwy hub |
 
-### Znane ograniczenie (12B.1-min)
+### Status serii 20.5A.12
 
-`JobAllFilesView` — nagłówek i filtr „Wszystkie typy” używają hub count, ale **lista/kafle** nadal pokazują wyłącznie dokumenty kontraktowe. Pełna zgodność kafli = backlog **20.5A.12B.1-full**.
+**COMPLETE** — 12A + 12B + 12B.1-min + **12B.1-full** + 12C (PDF).
 
 ---
 
@@ -191,8 +191,8 @@ node scripts/smoke-prod-bundle-2.50.58.mjs
 
 | ID | Opis |
 |----|------|
-| **20.5A.12B.1-full** | Kafle `JobAllFilesView` z expand hub (raporty + załączniki per adres) |
-| **20.5A.12C** | Worker Report PDF Export — implementacja `worker-report-pdf.ts` |
+| **20.5A.12B.1-full** | **DONE** v2.50.62 — kafle `JobAllFilesView` hub-aligned |
+| **20.5A.12C** | **DONE** v2.50.61 — Worker Report PDF Export |
 
 ---
 

@@ -27,7 +27,7 @@ function assert(name, cond, detail = "") {
 
 console.log("=== Sprint 20.5A.12C — Worker Report PDF ===\n");
 
-assert("precheck changelog 2.50.61", readChangelogVersion() === "2.50.61");
+assert("precheck changelog 2.50.62", readChangelogVersion() === "2.50.62");
 
 const pdfSrc = readSrc("src/lib/worker-report-pdf.ts");
 assert("T1 exports toWorkerReportPdfSource", pdfSrc.includes("export function toWorkerReportPdfSource"));

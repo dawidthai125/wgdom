@@ -9,32 +9,35 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **2.50.61** |
-| **Commit** | **`1edf0f9`** — `feat(jobs): worker report PDF export per documentation entry (20.5A.12C)` |
-| **Deploy** | **`5000212026`** — **SUCCESS** |
+| **Wersja UI** | **2.50.62** |
+| **Commit** | **`381e4b0`** — `feat(jobs): JobAllFilesView full hub alignment 20.5A.12B.1-full` |
+| **Deploy** | *(uzupełnij po Vercel)* — **SUCCESS** |
 | **Status** | **RELEASED · STABLE** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | **`1edf0f9`** |
+| **Repo `origin/main`** | **`381e4b0`** |
 
-**Poprzedni baseline:** v2.50.60 · `b653782` · deploy `5000129417` (Cross-tab Version Awareness 20.5B.7D)
+**Poprzedni baseline:** v2.50.61 · `1edf0f9` · deploy `5000212026` (Worker Report PDF 20.5A.12C)
 
 **Handoff sesji:** [`SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)  
 **Audyt operacyjny:** [`AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md) — worker/admin/inspektor **GO**
 
 ---
 
-## Ostatni release — 20.5A.12C / 2.50.61
+## Ostatni release — 20.5A.12B.1-full / 2.50.62
 
-**Worker Report PDF Export** — eksport pojedynczego wpisu dokumentacji ekipy do PDF (UI only)
+**JobAllFilesView Full Hub Alignment** — kafle per adres zgodne z Files Hub (UI only)
 
 ### Funkcje
 
-- **Eksportuj PDF** — Roboty → Dokumentacja (expand wpis) + Files Hub → Dokumentacja robót
-- **Zawartość:** adres, autor, daty, zakres, wymiary, obrys (base64 lub fallback), notatki
-- **Mobile:** `deliverPdfBlob` — iOS Safari / share sheet
-- **Bez zmian** sync, KV, Edge, `workerReports[]` model
+- **Pliki wg adresów** — 3 warstwy: dokumenty kontraktowe, dokumentacja robót, załączniki ogólne
+- **SSOT:** `groupHubContentByJob()` w `files-hub-index.ts`
+- **Widoczność:** `jobHasFilesHubContent()` — roboty tylko z raportami/załącznikami widoczne
+- **Filtry:** Wszystkie / Kontrakt / Dokumentacja / Załączniki + plan techniczny
+- **Bez zmian** sync, KV, Edge, model danych
 
-**Raport:** [`RELEASE-REPORT-20.5A.12C.md`](RELEASE-REPORT-20.5A.12C.md)
+**Seria 20.5A.12 Files Hub:** **COMPLETE**
+
+**Raport:** [`RELEASE-REPORT-20.5A.12B.1-full.md`](RELEASE-REPORT-20.5A.12B.1-full.md)
 
 ---
 
