@@ -18,6 +18,7 @@
     "test:mobile:ui": "playwright test --ui",
     "test:mobile:report": "playwright show-report e2e-report",
     "test:e2e:happy": "playwright test --project=e2e-happy-path",
+    "test:e2e:jobs-mobile": "playwright test --project=e2e-happy-path jobs-mobile-layout.spec.ts",
     "test:e2e:version": "playwright test --project=e2e-version-awareness"
   },
   "dependencies": {
