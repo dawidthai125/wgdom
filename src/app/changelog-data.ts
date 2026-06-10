@@ -12,6 +12,14 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-10",
+    version: "2.50.61",
+    label: "Worker Report PDF Export (20.5A.12C)",
+    items: [
+      { type: "new", text: "Dokumentacja robót — eksport pojedynczego wpisu do PDF (zakres, wymiary, obrys, notatki); Roboty → Dokumentacja i Pliki → Files Hub" },
+    ],
+  },
+  {
+    date: "2026-06-10",
     version: "2.50.60",
     label: "Cross-tab Update Banner Sync (20.5B.7D)",
     items: [

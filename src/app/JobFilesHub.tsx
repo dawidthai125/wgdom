@@ -1,8 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   FileText, ClipboardList, Paperclip, CheckSquare, Package, ExternalLink,
-  Download, Ruler, ChevronRight,
+  Download, Ruler, ChevronRight, FileDown,
 } from "lucide-react";
+import type { Job } from "@/app/app-domain";
+import { normalizeWorkerReport } from "@/app/app-domain";
+import { downloadWorkerReportPdfForJob } from "@/lib/worker-report-pdf";
 import { JobFileCatalogList, type JobFileCatalogItem } from "@/app/JobAllFilesView";
 import { JobGenericAttachmentsSection } from "@/app/JobGenericAttachmentsSection";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
@@ -115,6 +118,18 @@ export function JobFilesHub({
   const attachments = useMemo(() => collectFilesHubAttachmentItems(job), [job]);
   const checklist = useMemo(() => getFilesHubChecklistSummary(job), [job]);
   const hubTotal = useMemo(() => countFilesHubItems(job), [job]);
+  const [pdfBusyId, setPdfBusyId] = useState<string | null>(null);
+
+  const exportReportPdf = (reportId: string) => {
+    const raw = job.workerReports?.find((r) => r.id === reportId);
+    if (!raw) return;
+    setPdfBusyId(reportId);
+    void downloadWorkerReportPdfForJob(job as Job, normalizeWorkerReport(raw))
+      .catch((e) => {
+        window.alert(e instanceof Error ? e.message : "Nie udało się wygenerować PDF");
+      })
+      .finally(() => setPdfBusyId(null));
+  };
 
   return (
     <div className="space-y-4">
@@ -208,17 +223,26 @@ export function JobFilesHub({
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 font-medium">Obrys</span>
                       )}
                     </div>
-                    {/* PDF export hook: downloadWorkerReportPdf(toWorkerReportPdfSource(job, report)) — 20.5A.12C */}
                   </div>
-                  {onGoToReports && (
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
                     <button
                       type="button"
-                      onClick={() => onGoToReports(report.id)}
-                      className="flex items-center gap-1 text-[11px] px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 font-medium shrink-0 min-h-[36px]"
+                      disabled={pdfBusyId === report.id}
+                      onClick={() => exportReportPdf(report.id)}
+                      className="flex items-center gap-1 text-[11px] px-3 py-2 rounded-lg bg-violet-600/90 hover:bg-violet-600 text-white font-medium min-h-[36px] disabled:opacity-50"
                     >
-                      Przejdź do dokumentacji<ChevronRight size={12}/>
+                      <FileDown size={12}/>{pdfBusyId === report.id ? "Generowanie…" : "Eksportuj PDF"}
                     </button>
-                  )}
+                    {onGoToReports && (
+                      <button
+                        type="button"
+                        onClick={() => onGoToReports(report.id)}
+                        className="flex items-center gap-1 text-[11px] px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 font-medium min-h-[36px]"
+                      >
+                        Przejdź do dokumentacji<ChevronRight size={12}/>
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

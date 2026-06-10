@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
-import { ClipboardList, Plus, ChevronUp, ChevronDown, Ruler, Trash2, Info } from "lucide-react";
+import { ClipboardList, Plus, ChevronUp, ChevronDown, Ruler, Trash2, Info, FileDown } from "lucide-react";
 import { WorkScopeDisplay } from "@/app/WorkScopeEditor";
 import { JobReportForm } from "@/app/JobReportForm";
-import type { WorkerJobReport } from "@/app/app-domain";
+import type { Job, WorkerJobReport } from "@/app/app-domain";
+import { downloadWorkerReportPdfForJob } from "@/lib/worker-report-pdf";
 import { fmtDate, roomDisplayName } from "@/app/app-domain";
 import { getReportWorkScopeText, reportHasWorkScope, scopeTextLineCount } from "@/lib/work-scope-text";
 import type { AdminRole } from "@/lib/admin-auth";
@@ -12,6 +13,7 @@ import { JOB_DOCUMENTATION_SOURCE_HELP } from "@/lib/job-documents";
 
 export function JobWorkerReportsPanel({
   jobId,
+  job,
   reports,
   authorName,
   authorAdminRole,
@@ -19,6 +21,7 @@ export function JobWorkerReportsPanel({
   onDelete,
 }: {
   jobId: string;
+  job: Pick<Job, "id" | "address" | "flatNumber">;
   reports: WorkerJobReport[];
   authorName: string;
   authorAdminRole: AdminRole;
@@ -27,6 +30,7 @@ export function JobWorkerReportsPanel({
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(true);
+  const [pdfBusyId, setPdfBusyId] = useState<string | null>(null);
   const sorted = useMemo(
     () => [...reports].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt)),
     [reports],
@@ -168,13 +172,30 @@ export function JobWorkerReportsPanel({
                     {report.updatedAt && (
                       <p className="text-[10px] text-muted-foreground">Edytowano: {fmtDate(report.updatedAt.slice(0, 10))}</p>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => { if (window.confirm("Usunąć tę dokumentację?")) onDelete(report.id); }}
-                      className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1.5 transition-colors"
-                    >
-                      <Trash2 size={12}/>Usuń wpis
-                    </button>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        disabled={pdfBusyId === report.id}
+                        onClick={() => {
+                          setPdfBusyId(report.id);
+                          void downloadWorkerReportPdfForJob(job as Job, report)
+                            .catch((e) => {
+                              window.alert(e instanceof Error ? e.message : "Nie udało się wygenerować PDF");
+                            })
+                            .finally(() => setPdfBusyId(null));
+                        }}
+                        className="text-xs text-primary hover:text-primary/80 flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                      >
+                        <FileDown size={12}/>{pdfBusyId === report.id ? "Generowanie…" : "Eksportuj PDF"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { if (window.confirm("Usunąć tę dokumentację?")) onDelete(report.id); }}
+                        className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1.5 transition-colors"
+                      >
+                        <Trash2 size={12}/>Usuń wpis
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

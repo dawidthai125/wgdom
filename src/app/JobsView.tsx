@@ -2610,6 +2610,7 @@ export function JobsView({
             {detailSection === "reports" && (
             <JobWorkerReportsPanel
               jobId={selectedJob.id}
+              job={selectedJob}
               authorName={adminSession?.displayName || "Administrator"}
               authorAdminRole={adminSession?.role && adminSession.role !== "inspector" ? adminSession.role : "admin"}
               reports={jobWorkerReports(selectedJob)}

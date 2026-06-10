@@ -22,7 +22,7 @@ function isMobileSafari(): boolean {
 }
 
 /** iOS Safari często blokuje `.download()` — share sheet lub nowa karta. */
-async function deliverPdfBlob(blob: Blob, filename: string): Promise<void> {
+export async function deliverPdfBlob(blob: Blob, filename: string): Promise<void> {
   const file = new File([blob], filename, { type: "application/pdf" });
   if (typeof navigator.share === "function" && typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
     await navigator.share({ files: [file], title: filename });
