@@ -15,6 +15,7 @@ import {
   type JobFileGroup,
   type JobFilesSource,
 } from "@/lib/job-files-index";
+import { countAllFilesHubItems, jobHasFilesHubContent, type FilesHubJobSource } from "@/lib/files-hub-index";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 
@@ -48,6 +49,16 @@ export function JobAllFilesView({
 
   const allGroups = useMemo(() => groupFilesByJob(jobs), [jobs]);
 
+  const hubJobsCount = useMemo(
+    () => jobs.filter((j) => jobHasFilesHubContent(j as FilesHubJobSource)).length,
+    [jobs],
+  );
+
+  const totalFiles = useMemo(
+    () => countAllFilesHubItems(jobs as FilesHubJobSource[]),
+    [jobs],
+  );
+
   const filteredGroups = useMemo((): JobFileGroup[] => {
     const q = search.trim().toLowerCase();
     return allGroups
@@ -75,8 +86,6 @@ export function JobAllFilesView({
       })
       .filter((g): g is JobFileGroup => g !== null);
   }, [allGroups, search, category]);
-
-  const totalFiles = useMemo(() => collectAllJobFiles(jobs).length, [jobs]);
 
   const categoryCounts = useMemo(() => {
     const map: Record<string, number> = { all: totalFiles };
@@ -113,7 +122,7 @@ export function JobAllFilesView({
               Pliki wg adresów
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {allGroups.length} {allGroups.length === 1 ? "robota z plikami" : "robót z plikami"}
+              {hubJobsCount} {hubJobsCount === 1 ? "robota z plikami" : "robót z plikami"}
               {totalFiles > 0 ? ` · ${totalFiles} plików łącznie` : ""}
             </p>
           </div>

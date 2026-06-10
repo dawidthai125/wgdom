@@ -4,12 +4,17 @@ import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import { jobDisplayTitle } from "@/lib/job-gallery";
 import {
   collectJobDocuments,
-  countJobDocuments,
   countAllJobsMediaItems,
   type MediaSeparationSource,
 } from "@/lib/media-separation";
+import {
+  countFilesHubItems,
+  jobHasFilesHubContent,
+  summarizeFilesHub,
+  type FilesHubJobSource,
+} from "@/lib/files-hub-index";
 
-export type JobFilesBrowserSource = MediaSeparationSource;
+export type JobFilesBrowserSource = FilesHubJobSource;
 
 export type JobBrowserFile = {
   id: string;
@@ -42,7 +47,7 @@ function previewOk(filename: string): boolean {
   return isPdfFilename(filename) || isKosztorysPreviewExt(filename);
 }
 
-/** Dokumenty roboty pogrupowane wg kategorii (zlecenie / kosztorys / plan techniczny). */
+/** Dokumenty kontraktowe pogrupowane wg kategorii (zlecenie / kosztorys / plan techniczny). */
 export function collectJobBrowserFileGroups(job: JobFilesBrowserSource): JobBrowserFileGroup[] {
   const byCategory = new Map<string, JobBrowserFile[]>();
 
@@ -89,7 +94,7 @@ export function collectJobBrowserFileGroups(job: JobFilesBrowserSource): JobBrow
 }
 
 export function jobHasBrowserFiles(job: JobFilesBrowserSource): boolean {
-  return collectJobBrowserFileGroups(job).some((g) => g.files.length > 0);
+  return jobHasFilesHubContent(job);
 }
 
 export function jobBrowserTitle(job: JobFilesBrowserSource): string {
@@ -101,6 +106,8 @@ export type JobBrowserFileSummary = {
   zlecenie: number;
   kosztorys: number;
   plan_techniczny: number;
+  reports: number;
+  attachments: number;
 };
 
 export type JobFileSummaryChip = {
@@ -108,8 +115,9 @@ export type JobFileSummaryChip = {
   label: string;
 };
 
-/** Liczba dokumentów wg typu — bez obrazów. */
+/** Podsumowanie Files Hub dla badge'ów na liście. */
 export function summarizeJobBrowserFiles(job: JobFilesBrowserSource): JobBrowserFileSummary {
+  const hub = summarizeFilesHub(job);
   let zlecenie = 0;
   let kosztorys = 0;
   let plan_techniczny = 0;
@@ -122,10 +130,12 @@ export function summarizeJobBrowserFiles(job: JobFilesBrowserSource): JobBrowser
   }
 
   return {
-    total: zlecenie + kosztorys + plan_techniczny,
+    total: hub.total,
     zlecenie,
     kosztorys,
     plan_techniczny,
+    reports: hub.reports,
+    attachments: hub.attachments,
   };
 }
 
@@ -137,7 +147,7 @@ function plFileLabel(n: number, one: string, few: string, many: string): string 
   return `${n} ${many}`;
 }
 
-/** Etykiety do badge'ów na liście (tylko niezerowe dokumenty). */
+/** Etykiety do badge'ów na liście (tylko niezerowe). */
 export function jobFileSummaryChips(summary: JobBrowserFileSummary): JobFileSummaryChip[] {
   const out: JobFileSummaryChip[] = [];
   if (summary.zlecenie > 0) {
@@ -158,11 +168,23 @@ export function jobFileSummaryChips(summary: JobBrowserFileSummary): JobFileSumm
       label: plFileLabel(summary.plan_techniczny, "plan techniczny", "plany techniczne", "planów technicznych"),
     });
   }
+  if (summary.reports > 0) {
+    out.push({
+      key: "reports",
+      label: plFileLabel(summary.reports, "dokumentacja", "dokumentacje", "dokumentacji"),
+    });
+  }
+  if (summary.attachments > 0) {
+    out.push({
+      key: "attachments",
+      label: plFileLabel(summary.attachments, "załącznik", "załączniki", "załączników"),
+    });
+  }
   return out;
 }
 
 export function countBrowserFiles(job: JobFilesBrowserSource): number {
-  return countJobDocuments(job);
+  return countFilesHubItems(job);
 }
 
 export { countAllJobsMediaItems };

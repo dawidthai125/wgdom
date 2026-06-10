@@ -25,11 +25,14 @@ export function JobGenericAttachmentsSection({
   uploadedBy,
   athPreviewEnabled,
   onJobUpdated,
+  embedded = false,
 }: {
   job: JobAttachmentsPackSource & { id: string };
   uploadedBy: string;
   athPreviewEnabled: boolean;
   onJobUpdated: (next: JobAttachmentsPackSource & { id: string }, activity?: { text: string }) => void;
+  /** W JobFilesHub — bez zewnętrznej karty i marginesu. */
+  embedded?: boolean;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadBusy, setUploadBusy] = useState(false);
@@ -90,7 +93,8 @@ export function JobGenericAttachmentsSection({
 
   return (
     <>
-      <div className="bg-card rounded-xl border border-border overflow-hidden mt-4">
+      <div className={embedded ? "" : "bg-card rounded-xl border border-border overflow-hidden mt-4"}>
+        {!embedded && (
         <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
             <Paperclip size={13} className="text-muted-foreground"/>
@@ -116,8 +120,32 @@ export function JobGenericAttachmentsSection({
             </button>
           )}
         </div>
+        )}
 
-        <div className="px-5 py-3 border-b border-border bg-secondary/20">
+        {embedded && (
+          <div className="px-5 py-2 border-b border-border flex items-center justify-end gap-2">
+            {jobAttachmentsPackHasFiles(job) && (
+              <button
+                type="button"
+                disabled={packBusy}
+                onClick={async () => {
+                  setPackBusy(true);
+                  try {
+                    const result = await downloadJobAttachmentsZip(job);
+                    if (!result.ok) setUploadMsg(result.error);
+                  } finally {
+                    setPackBusy(false);
+                  }
+                }}
+                className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 font-medium disabled:opacity-50"
+              >
+                <Package size={12}/>{packBusy ? "Pakowanie…" : "Załączniki ZIP"}
+              </button>
+            )}
+          </div>
+        )}
+
+        <div className={`px-5 py-3 border-b border-border bg-secondary/20 ${embedded ? "" : ""}`}>
           <p className="text-[11px] text-muted-foreground mb-2">
             PDF, DOC, DOCX, XLS, XLSX, ZIP, RAR, DWG, TXT — max 25 MB. Zdjęcia wrzucaj w zakładkę Zdjęcia.
           </p>

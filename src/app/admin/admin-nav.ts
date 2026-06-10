@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 import type { DirectoryEmployee, Job, WeekEmployee, WeekSnapshot } from "@/app/app-domain";
 import { filterProductionActiveDirectory } from "@/app/app-domain";
-import { countAllJobsMediaItems } from "@/lib/media-separation";
+import { countAllJobsImages } from "@/lib/media-separation";
+import { countAllFilesHubItems } from "@/lib/files-hub-index";
 import {
   countUnseenInspectorAlerts,
   getAdminJobNotesSeenAt,
@@ -150,10 +151,10 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
     {
       key: "media",
       label: "Zdjęcia i pliki",
-      hint: "Zdjęcia i pliki z robot — galeria, archiwum zdjęć oraz pobieranie ZIP dokumentów.",
+      hint: "Zdjęcia i pliki z robot — galeria, Files Hub (kontrakt, dokumentacja, załączniki), ZIP.",
       icon: FolderOpen,
       badge: (() => {
-        const n = countAllJobsMediaItems(jobs);
+        const n = countAllJobsImages(jobs) + countAllFilesHubItems(jobs);
         return n > 0 ? n : undefined;
       })(),
     },

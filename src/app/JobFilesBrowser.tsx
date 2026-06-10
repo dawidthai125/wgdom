@@ -1,60 +1,27 @@
 import { useMemo, useState, type RefObject } from "react";
 import {
-  FolderOpen, Search, ChevronRight, ChevronDown, Download, Package, Eye, FileText,
+  FolderOpen, Search, ChevronRight, ChevronDown, Package,
 } from "lucide-react";
 import {
-  collectJobBrowserFileGroups,
   countBrowserFiles,
   jobBrowserTitle,
   jobHasBrowserFiles,
   summarizeJobBrowserFiles,
   jobFileSummaryChips,
   type JobFilesBrowserSource,
-  type JobBrowserFile,
   type JobFileSummaryChip,
 } from "@/lib/job-files-browser";
+import { JobFilesHub } from "@/app/JobFilesHub";
 import { downloadJobDocumentsPack, type JobPackSource } from "@/lib/job-documents-pack";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
-import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
-
-function toPreviewItem(file: JobBrowserFile): InspectorFileItem | null {
-  if (file.id.startsWith("jf-")) {
-    return {
-      kind: "jobFile",
-      file: {
-        id: file.id.slice(3),
-        kind: file.category === "Zlecenie" ? "zlecenie" : "kosztorys",
-        filename: file.filename,
-        publicUrl: file.url,
-        uploadedBy: file.uploadedBy,
-        uploadedAt: file.dateIso,
-      },
-    };
-  }
-  if (file.id.startsWith("ip-")) {
-    return {
-      kind: "inspectorPhoto",
-      file: {
-        id: file.id.slice(3),
-        publicUrl: file.url,
-        uploadedBy: file.uploadedBy,
-        uploadedAt: file.dateIso,
-        caption: file.filename,
-        label: "before_handover",
-        path: "",
-      },
-    };
-  }
-  if (file.canPreview && (file.id.startsWith("cp-") || file.id.startsWith("sk-"))) {
-    return { kind: "imageUrl", url: file.url, filename: file.filename };
-  }
-  return null;
-}
 
 const CHIP_STYLE: Record<JobFileSummaryChip["key"], string> = {
   zlecenie: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
   kosztorys: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
+  plan_techniczny: "bg-teal-500/10 text-teal-700 dark:text-teal-400",
+  reports: "bg-violet-500/10 text-violet-700 dark:text-violet-400",
+  attachments: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
 };
 
 function JobFileSummaryBadges({ job }: { job: JobFilesBrowserSource }) {
@@ -156,7 +123,7 @@ export function JobFilesBrowser({
                 Pliki robot
               </h1>
               <p className={`${descCls} text-muted-foreground mt-1 leading-relaxed`}>
-                Zlecenia i kosztorysy — pobierz pojedynczo lub pakiet Dokumenty ZIP (bez zdjęć).
+                Kontrakt, dokumentacja ekipy i załączniki — podgląd read-only. Pełna obsługa w Robotach → Pliki.
               </p>
             </div>
           )}
@@ -167,7 +134,7 @@ export function JobFilesBrowser({
               <p className="text-lg font-bold text-primary mt-0.5">{jobsWithFiles.length}</p>
             </div>
             <div className="bg-card rounded-xl border border-border px-4 py-3">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Łącznie dokumentów</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Łącznie w hubie plików</p>
               <p className="text-lg font-bold mt-0.5">{totalFiles}</p>
             </div>
           </div>
@@ -192,7 +159,6 @@ export function JobFilesBrowser({
             <div className="space-y-3">
               {filtered.map((job) => {
                 const expanded = expandedIds.has(job.id);
-                const groups = collectJobBrowserFileGroups(job);
                 return (
                   <div key={job.id} className="bg-card rounded-xl border border-border overflow-hidden">
                     <button
@@ -230,58 +196,11 @@ export function JobFilesBrowser({
                             Otwórz robotę
                           </button>
                         </div>
-
-                        {groups.map((group) => (
-                          <div key={group.category}>
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-                              <FileText size={11}/>
-                              {group.category}
-                            </p>
-                            <div className="space-y-1.5">
-                              {group.files.map((file) => {
-                                const preview = toPreviewItem(file);
-                                const canPreview = file.canPreview && preview && (
-                                  preview.kind === "imageUrl" ||
-                                  isPdfFilename(file.filename) ||
-                                  isKosztorysPreviewExt(file.filename)
-                                );
-                                return (
-                                  <div
-                                    key={file.id}
-                                    className="flex items-center justify-between gap-2 bg-secondary/40 rounded-xl px-3 py-2.5"
-                                  >
-                                    <div className="min-w-0 flex-1">
-                                      <p className="text-xs font-medium truncate">{file.filename}</p>
-                                      <p className="text-[10px] text-muted-foreground mt-0.5">
-                                        {file.dateLabel} · {file.uploadedBy}
-                                      </p>
-                                    </div>
-                                    <div className="flex items-center gap-1 shrink-0">
-                                      {canPreview && preview && (
-                                        <button
-                                          type="button"
-                                          onClick={() => setPreviewItem(preview)}
-                                          className="flex items-center gap-1 text-[10px] px-2 py-1.5 rounded-lg bg-secondary font-medium min-h-[36px]"
-                                        >
-                                          <Eye size={11}/> Podgląd
-                                        </button>
-                                      )}
-                                      <a
-                                        href={file.url}
-                                        download={file.filename}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-1 text-[10px] px-2 py-1.5 rounded-lg bg-primary/90 text-primary-foreground font-medium min-h-[36px]"
-                                      >
-                                        <Download size={11}/>
-                                      </a>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
+                        <JobFilesHub
+                          job={job}
+                          mode="readonly"
+                          onPreviewContract={(item) => setPreviewItem(item.previewItem)}
+                        />
                       </div>
                     )}
                   </div>

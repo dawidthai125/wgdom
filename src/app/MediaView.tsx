@@ -3,7 +3,8 @@ import { FolderOpen, Images } from "lucide-react";
 import { JobPhotosGalleryView } from "@/app/JobPhotosGalleryView";
 import { JobFilesBrowser } from "@/app/JobFilesBrowser";
 import type { Job } from "@/app/app-domain";
-import { countAllJobsDocuments, countAllJobsImages } from "@/lib/media-separation";
+import { countAllFilesHubItems } from "@/lib/files-hub-index";
+import { countAllJobsImages } from "@/lib/media-separation";
 
 type MediaTab = "photos" | "files";
 
@@ -21,7 +22,7 @@ export function MediaView({
   const [tab, setTab] = useState<MediaTab>("photos");
 
   const photoTotal = useMemo(() => countAllJobsImages(jobs), [jobs]);
-  const docTotal = useMemo(() => countAllJobsDocuments(jobs), [jobs]);
+  const docTotal = useMemo(() => countAllFilesHubItems(jobs), [jobs]);
 
   return (
     <div className="flex-1 min-w-0 flex flex-col min-h-0 overflow-hidden">
@@ -32,7 +33,7 @@ export function MediaView({
           </div>
           <div>
             <h1 className="text-lg font-bold">Zdjęcia i pliki</h1>
-            <p className="text-xs text-muted-foreground">Zdjęcia (galeria) i dokumenty (zlecenie, kosztorys) — osobne ZIP</p>
+            <p className="text-xs text-muted-foreground">Zdjęcia (galeria) · Pliki: kontrakt, dokumentacja ekipy, załączniki — osobne ZIP</p>
           </div>
         </div>
         <div className="flex gap-1 p-1 bg-secondary rounded-xl">

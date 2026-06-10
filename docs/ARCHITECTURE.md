@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.56** · Version Awareness 20.5B.7)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.58** · Files Hub 20.5A.12)
 > **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.57 — § 9.1 worker progress flow 20.5B.6A.4)
 
 ---
@@ -870,8 +870,13 @@ Priorytet w `resolveJobDraftDatesFromTender`:
 
 **Załączniki ogólne (20.5A.10, v2.50.52):** osobne `jobAttachments[]` + `deletedJobAttachmentTombstones[]` — **nie** rozszerza `jobFiles[]`. Dozwolone: PDF, DOC/DOCX, XLS/XLSX, ZIP, RAR, DWG, TXT (max 25 MB); zablokowane obrazy (→ tab Zdjęcia). Storage: prefix `attachments-{ts}-` w `jobs/{jobId}/` (bez zmian Edge). UI: Roboty → Pliki → sekcja „Załączniki ogólne” (admin upload/delete). Email: grupy kontrakt / ogólne. ZIP: `downloadJobAttachmentsZip` → folder `zalaczniki/`. Merge: `mergeJobAttachments` + tombstone (wzorzec 20.5B.3). Pliki: `job-attachments.ts`, `job-attachment-upload.ts`, `job-attachments-pack.ts`, `JobGenericAttachmentsSection.tsx`.
 
+**Files Hub (20.5A.12, v2.50.58):** warstwa prezentacji read-only — **bez migracji danych**. `files-hub-index.ts` agreguje: `jobFiles[]` + `workerReports[]` (wpisy wirtualne) + `jobAttachments[]`. Checklista `documents{}` — sekcja informacyjna (X/9), **nie** wliczana do `countFilesHubItems()`. UI: `JobFilesHub.tsx` w Robotach → Pliki (pełna obsługa); Media → Pliki + `JobFilesBrowser` (read-only, link „Otwórz robotę”). Liczniki: badge Pliki, Media tab, admin nav = hub count. ZIP: bez zmian (Dokumenty / Załączniki / Zdjęcia osobno). Stub PDF: `worker-report-pdf.ts` → sprint 20.5A.12C.
+
 | Plik | Rola |
 |------|------|
+| `src/lib/files-hub-index.ts` | Agregacja hub, liczniki SSOT |
+| `src/app/JobFilesHub.tsx` | UI 4 sekcji hub |
+| `src/lib/worker-report-pdf.ts` | Stub model PDF (12C) |
 | `src/lib/media-separation.ts` | Single source: obrazy vs dokumenty, county |
 | `src/lib/photo-labels.ts` | Etykiety kategorii ekipy: `before` / `progress` / `after` + foldery ZIP |
 | `src/lib/photo-download.ts` | `collectJobPhotoPackEntries`, `downloadJobAllImagesZip`, galeria ekipy |

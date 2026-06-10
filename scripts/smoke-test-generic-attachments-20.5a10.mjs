@@ -148,7 +148,7 @@ assert("T10 mime_block_png", !isJobAttachmentAllowed("x.png"));
   assert("T15 pack_empty", !jobAttachmentsPackHasFiles(job));
 }
 
-assert("T16 ui_section", /Załączniki ogólne/.test(genericSectionSource) && /JobGenericAttachmentsSection/.test(jobsViewSource));
+assert("T16 ui_section", /Załączniki ogólne/.test(genericSectionSource) && (/JobGenericAttachmentsSection/.test(jobsViewSource) || /JobFilesHub/.test(jobsViewSource)));
 assert("T17 upload_wired", /uploadJobAttachment/.test(genericSectionSource));
 assert("T18 email_contract_group", /Dokumenty kontraktowe/.test(emailModalSource));
 assert("T18 email_generic_group", /Załączniki ogólne/.test(emailModalSource));

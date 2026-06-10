@@ -4,7 +4,15 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.57** (`changelog-data.ts`) · Worker Mobile UX 20.5B.6A.4
+**Aktualna wersja UI:** **2.50.58** (`changelog-data.ts`) · Files Hub 20.5A.12
+
+---
+
+## 2.50.58 (2026-06-09) — Files Hub Consolidation (20.5A.12)
+
+* **New:** Files Hub — kontrakt + dokumentacja ekipy + załączniki + checklista w Robotach → Pliki
+* **Improve:** Media → Pliki read-only z pełnym hubem; liczniki ujednolicone (bez photos/checklisty w count)
+* **Improve:** Stub PDF dokumentacji (`worker-report-pdf.ts`) pod sprint 20.5A.12C
 
 ---
 

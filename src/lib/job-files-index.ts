@@ -1,10 +1,15 @@
-/** Indeks dokumentów przypisanych do robot — wspólny katalog dla listy i widoku „Wszystkie pliki”. */
+/** Indeks dokumentów przypisanych do robot — wspólny katalog + Files Hub (20.5A.12). */
 
 import type { JobFileKind } from "@/lib/job-documents";
 import { JOB_FILE_KIND_LABELS } from "@/lib/job-documents";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
-import { collectJobDocuments, countJobDocuments, type MediaSeparationSource } from "@/lib/media-separation";
+import { collectJobDocuments, type MediaSeparationSource } from "@/lib/media-separation";
+import {
+  countFilesHubItems,
+  jobHasFilesHubContent,
+  type FilesHubJobSource,
+} from "@/lib/files-hub-index";
 
 export type JobFileCategory = JobFileKind;
 
@@ -77,9 +82,9 @@ export function collectAllJobFiles(jobs: JobFilesSource[]): JobFileCatalogItem[]
   return all.sort((a, b) => (b.uploadedAt || "").localeCompare(a.uploadedAt || ""));
 }
 
-/** Liczba dokumentów (zlecenie + kosztorys + plan techniczny) — bez obrazów. */
+/** Liczba elementów Files Hub — kontrakt + dokumentacja + załączniki. */
 export function countJobFiles(job: JobFilesSource): number {
-  return countJobDocuments(job);
+  return countFilesHubItems(job as FilesHubJobSource);
 }
 
 export type JobFileGroup = {

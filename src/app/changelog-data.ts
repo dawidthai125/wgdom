@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.58",
+    label: "Files Hub Consolidation (20.5A.12)",
+    items: [
+      { type: "new", text: "Pliki roboty — Files Hub: kontrakt, dokumentacja ekipy, załączniki ogólne i checklista odbiorowa w jednym widoku" },
+      { type: "improve", text: "Zdjęcia i pliki → Pliki — pełny podgląd read-only; upload tylko w Robotach → Pliki" },
+      { type: "improve", text: "Ujednolicone liczniki Pliki (jobFiles + workerReports + jobAttachments); ZIP pozostają osobno" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.57",
     label: "Worker Mobile UX (20.5B.6A.4)",
     items: [

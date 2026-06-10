@@ -397,7 +397,8 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Wymaga uwagi (alerty)", a:"System wykrywa pozycje wymagające działania: kwota pozostała ≥ 2 000 PLN, wiek > 90 dni, częściowe rozliczenie bez postępu > 60 dni, brak aktywności (edycja lub rozliczenie) > 60 dni. W module pełna lista z filtrami; na Pulpicie max 3 pozycje. Licznik Uwaga dziś na Pulpicie rośnie o +1 (nie o każdą pozycję)."},
               {q:"Analiza odzyskiwania (aging)", a:"W module, pod KPI, sekcja pokazuje pełny aging: ile pozycji i jaka suma PLN czeka w każdym przedziale wieku od utworzenia pozycji. Liczone są tylko pozycje otwarte i częściowo rozliczone — rozliczone w całości nie wchodzą do kubełków. Suma kubełków = kwota Do odzyskania na Pulpicie."},
               {q:"Statystyki odzyskiwania", a:"Pod agingiem: KPI odzyskane w bieżącym miesiącu i roku, średni czas pełnego zamknięcia pozycji (tylko rozliczone w całości) oraz liczba zamkniętych pozycji. Trzy rankingi TOP 5: największe do odzyskania, najstarsze nierozliczone, największe odzyskane. Klik w pozycję z listy otwiera szczegóły. Na Pulpicie link „Zobacz analizę odzyskiwania” prowadzi do modułu."},
-              {q:"Zdjęcia i pliki", a:"W menu „Zdjęcia i pliki” są dwie zakładki: Zdjęcia (galeria zaakceptowanych) i Pliki (zlecenia, kosztorysy, ZIP). Wcześniej były to osobne pozycje menu."},
+              {q:"Zdjęcia i pliki", a:"W menu „Zdjęcia i pliki” są dwie zakładki: Zdjęcia (galeria) i Pliki (Files Hub — read-only). Pliki pokazują dokumenty kontraktowe, dokumentację ekipy (workerReports) i załączniki ogólne oraz podgląd checklisty odbiorowej. Upload i edycja tylko w Robotach → Pliki. ZIP dokumentów, załączników i zdjęć pobierasz osobno."},
+              {q:"Files Hub — co to jest?", a:"Jeden widok plików roboty: (1) dokumenty kontraktowe — zlecenie, kosztorys, plan PDF, (2) dokumentacja robót — wpisy ekipy z linkiem do zakładki Dokumentacja, (3) załączniki ogólne, (4) checklista odbiorowa X/9 jako informacja. Licznik Pliki sumuje kontrakt + dokumentację + załączniki (bez zdjęć i bez checklisty)."},
               {q:"Czy to zmienia robotę lub listę płac?", a:"Nie. Pozycje są w osobnym zapisie chmurowym (kw-recoverable-charges). Roboty i payroll działają jak dotychczas."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
@@ -454,7 +455,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
             <li><strong>Lista płac</strong> — godziny (w tym dodatkowe), zaliczki, koszty do zwrotu, rozliczenia; eksport PDF/Word i wysyłka emailem</li>
             <li><strong>Archiwum</strong> — zapisane tygodnie</li>
             <li><strong>Roboty</strong> — adresy, dokumenty, materiały, raporty, wpisy czasu pracy</li>
-            <li><strong>Zdjęcia i pliki</strong> — zdjęcia (Storage + metadane w robocie) i pliki robot (jobFiles)</li>
+            <li><strong>Zdjęcia i pliki</strong> — galeria zdjęć + Files Hub (kontrakt, dokumentacja ekipy, załączniki)</li>
             <li><strong>Do rozliczenia</strong> — rejestr pozycji do odzyskania (<code>kw-recoverable-charges</code>)</li>
             <li><strong>Logowanie admina / inspektora</strong> — konta z hasłami jako hash SHA-256, sync w chmurze (<code>kw-admin-passwords</code>). Super Admin zmienia hasła w panelu ⚙. Pliki zlecenia/kosztorysu inspektora zapisują się przy robocie (<code>jobFiles</code>)</li>
           </ul>

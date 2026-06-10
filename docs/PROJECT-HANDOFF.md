@@ -9,21 +9,38 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **2.50.57** |
-| **Commit** | **`c983b9c`** — `feat(worker): mobile UX progress flow and forms (20.5B.6A.4)` |
-| **Deploy** | **`4998989024`** — **SUCCESS** |
+| **Wersja UI** | **2.50.58** |
+| **Commit** | *(po push — patrz raport release)* |
+| **Deploy** | *(po deploy — patrz raport release)* |
 | **Status** | **RELEASED · STABLE** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | **`c983b9c`** |
+| **Repo `origin/main`** | *(po push)* |
 
-**Poprzedni baseline:** v2.50.56 · `1be7a80` · deploy `4995835869`
+**Poprzedni baseline:** v2.50.57 · `c983b9c` · deploy `4998989024`
+
+**Handoff Files Hub:** [`RELEASE-REPORT-20.5A.12.md`](RELEASE-REPORT-20.5A.12.md)
 
 **Handoff sesji:** [`SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)  
 **Audyt operacyjny:** [`AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md) — worker/admin/inspektor **GO**
 
 ---
 
-## Ostatni release — 20.5B.6A.4 / 2.50.57
+## Ostatni release — 20.5A.12 / 2.50.58
+
+**Files Hub Consolidation** — jeden widok plików roboty, ujednolicone liczniki (UI only)
+
+### Funkcje
+
+- **Files Hub** — kontrakt (`jobFiles[]`) + dokumentacja ekipy (`workerReports[]`) + załączniki (`jobAttachments[]`) + checklista (info)
+- **SSOT liczników** — `countFilesHubItems()` / `countAllFilesHubItems()`
+- **Spójność** — Roboty → Pliki, Media → Pliki, JobListCard, admin-nav, JobAllFilesView nagłówek (12B.1-min)
+- **Bez zmian** sync, KV, Edge, modele danych
+
+**Raport:** [`RELEASE-REPORT-20.5A.12.md`](RELEASE-REPORT-20.5A.12.md)
+
+---
+
+## Poprzedni release — 20.5B.6A.4 / 2.50.57
 
 **Worker Mobile UX** — progress flow, CTA, mobile forms (UX only)
 

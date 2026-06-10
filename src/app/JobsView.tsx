@@ -19,14 +19,14 @@ import { JobRecoverableChargesPanel, type BillingNotePendingFiles } from "@/app/
 import { JobCreateRecoverableChargeModal } from "@/app/JobCreateRecoverableChargeModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobInspectorFilesPanel } from "@/app/JobInspectorFilesPanel";
-import { JobGenericAttachmentsSection } from "@/app/JobGenericAttachmentsSection";
 import { collectActiveJobAttachments } from "@/lib/job-attachments-pack";
 import { JobListPrimaryBadge, JobPhasePicker, applyJobPhase } from "@/app/JobListStatus";
 import { JobListCardV2 } from "@/app/JobListCardV2";
 import { JobListPanelHeader } from "@/app/JobListPanelHeader";
 import { JobQueueSections } from "@/app/JobQueueSections";
 import { JobListGuidePanel } from "@/app/JobListGuidePanel";
-import { JobAllFilesView, JobFileCatalogList } from "@/app/JobAllFilesView";
+import { JobAllFilesView } from "@/app/JobAllFilesView";
+import { JobFilesHub } from "@/app/JobFilesHub";
 import { JobDetailSectionNav, JobsDetailEmptyState, type JobDetailSection } from "@/app/JobDetailSectionNav";
 import { InspectorJobFileUpload } from "@/app/InspectorJobFileUpload";
 import { JobMetaPickers, JobMetaBadges } from "@/app/JobMetaPickers";
@@ -41,6 +41,7 @@ import { HiddenFileInput } from "@/app/HiddenFileInput";
 import { LabelWithHint, VoiceNoteButton } from "@/app/app-ui";
 import { appendJobActivity, isInspectorActivityType, type JobActivityType } from "@/lib/job-activity";
 import { countBrowserFiles, jobHasBrowserFiles } from "@/lib/job-files-browser";
+import { countFilesHubItems, countAllFilesHubItems } from "@/lib/files-hub-index";
 import { downloadJobGalleryZip } from "@/lib/photo-download";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import {
@@ -54,7 +55,7 @@ import {
   type JobFileAttachment,
 } from "@/lib/job-documents";
 import { deleteJobFile, uploadJobFile } from "@/lib/job-file-upload";
-import { collectJobFileCatalog, countJobFiles, type JobFileCatalogItem } from "@/lib/job-files-index";
+import { collectJobFileCatalog, type JobFileCatalogItem } from "@/lib/job-files-index";
 import { countJobImages } from "@/lib/media-separation";
 import {
   countJobsByListFilter, inferJobPhase, jobMissingRequiredDocs,
@@ -953,12 +954,17 @@ export function JobsView({
     [selectedJob],
   );
 
+  const selectedHubCount = useMemo(
+    () => (selectedJob ? countFilesHubItems(selectedJob) : 0),
+    [selectedJob],
+  );
+
   const selectedJobImageCount = useMemo(
     () => (selectedJob ? countJobImages(selectedJob) : 0),
     [selectedJob],
   );
 
-  const totalJobFilesCount = useMemo(() => jobs.reduce((s, j) => s + countJobFiles(j), 0), [jobs]);
+  const totalJobFilesCount = useMemo(() => countAllFilesHubItems(jobs), [jobs]);
 
   const openJob = (id: string, tab: JobDetailSection = "summary") => {
     setSelectedJobId(id);
@@ -1486,14 +1492,14 @@ export function JobsView({
                     className="shrink-0 flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-emerald-600/90 hover:bg-emerald-600 text-white font-medium transition-colors"
                   >
                     <FolderOpen size={12}/>
-                    Pliki{selectedJobCatalog.length > 0 ? ` (${selectedJobCatalog.length})` : ""}
+                    Pliki{selectedHubCount > 0 ? ` (${selectedHubCount})` : ""}
                   </button>
                 )}
               </div>
               <JobDetailSectionNav
                 active={detailSection}
                 onSelect={setDetailSection}
-                fileCount={selectedJobCatalog.length}
+                fileCount={selectedHubCount}
                 imageCount={selectedJobImageCount}
                 missingDocCount={selectedMissingDocCount}
                 pendingPhotoCount={selectedPendingPhotoCount}
@@ -2092,74 +2098,61 @@ export function JobsView({
             </div>
             )}
 
-            {detailSection === "files" && (
-            <div className="bg-card rounded-xl border border-emerald-500/25 overflow-hidden">
-              <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <FileText size={13} className="text-emerald-600 dark:text-emerald-400"/>
-                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pliki roboty</span>
-                  <span className="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full text-muted-foreground">{selectedJobCatalog.length}</span>
-                </div>
-                <button
-                  type="button"
-                  disabled={packBusy}
-                  onClick={async () => {
-                    setPackBusy(true);
-                    try { await downloadJobDocumentsPack(selectedJob); } finally { setPackBusy(false); }
+            {detailSection === "files" && selectedJob && (
+            <JobFilesHub
+              job={selectedJob}
+              mode="full"
+              contractItems={selectedJobCatalog}
+              onPreviewContract={(item) => setPreviewItem(item.previewItem)}
+              onDeleteContract={handleDeleteCatalogItem}
+              contractDeleteBusyId={fileDeleteBusy}
+              contractUploadSlot={(
+                <>
+                  <p className="text-[11px] text-muted-foreground mb-2">Wgraj zlecenie (PDF), kosztorys (.ath / .nor / PDF) lub plan techniczny (PDF):</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {(["zlecenie", "kosztorys", "plan_techniczny"] as const).map((kind) => (
+                      <InspectorJobFileUpload
+                        key={kind}
+                        kind={kind}
+                        busy={uploadBusy === kind}
+                        hasFile={!!latestJobFile(selectedJob, kind)}
+                        buttonLabel={kind === "plan_techniczny" ? (latestJobFile(selectedJob, kind) ? "Wgraj nową wersję planu" : "Dodaj plan techniczny") : undefined}
+                        onPick={(f) => void handleJobFileUpload(kind, f)}
+                        onError={(msg) => setUploadMsg(msg)}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+              contractUploadMsg={uploadMsg}
+              packBusy={packBusy}
+              onDownloadDocumentsPack={() => downloadJobDocumentsPack(selectedJob)}
+              emailPanel={(
+                <JobInspectorFilesPanel
+                  jobId={selectedJob.id}
+                  jobAddress={selectedJob.address}
+                  jobFlat={selectedJob.flatNumber}
+                  jobFiles={selectedJob.jobFiles || []}
+                  inspectorPhotos={selectedJob.inspectorPhotos || []}
+                  athPreviewEnabled={athPreviewEnabled}
+                  contacts={contacts}
+                  packSource={selectedJob}
+                  hidePackButton
+                  genericAttachments={collectActiveJobAttachments(selectedJob)}
+                  title="Wyślij pliki emailem"
+                  onEmailSent={(to, meta) => {
+                    const suffix = meta?.genericCount ? ` (+ ${meta.genericCount} załączników)` : "";
+                    updateJob(selectedJob, { type: "email_sent", text: `Wysłano pliki inspektora na ${to}${suffix}` });
                   }}
-                  className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-lg bg-emerald-600/90 text-white font-medium disabled:opacity-50"
-                >
-                  <Package size={12}/>{packBusy ? "Pakowanie…" : "Dokumenty ZIP"}
-                </button>
-              </div>
-              <div className="px-5 py-3 border-b border-border bg-secondary/20">
-                <p className="text-[11px] text-muted-foreground mb-2">Wgraj zlecenie (PDF), kosztorys (.ath / .nor / PDF) lub plan techniczny (PDF):</p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {(["zlecenie", "kosztorys", "plan_techniczny"] as const).map((kind) => (
-                    <InspectorJobFileUpload
-                      key={kind}
-                      kind={kind}
-                      busy={uploadBusy === kind}
-                      hasFile={!!latestJobFile(selectedJob, kind)}
-                      buttonLabel={kind === "plan_techniczny" ? (latestJobFile(selectedJob, kind) ? "Wgraj nową wersję planu" : "Dodaj plan techniczny") : undefined}
-                      onPick={(f) => void handleJobFileUpload(kind, f)}
-                      onError={(msg) => setUploadMsg(msg)}
-                    />
-                  ))}
-                </div>
-                {uploadMsg && <p className="text-xs text-destructive mt-2">{uploadMsg}</p>}
-              </div>
-              <JobFileCatalogList
-                items={selectedJobCatalog}
-                onPreview={(item) => setPreviewItem(item.previewItem)}
-                onDelete={handleDeleteCatalogItem}
-                deleteBusyId={fileDeleteBusy}
-              />
-              <JobInspectorFilesPanel
-                jobId={selectedJob.id}
-                jobAddress={selectedJob.address}
-                jobFlat={selectedJob.flatNumber}
-                jobFiles={selectedJob.jobFiles || []}
-                inspectorPhotos={selectedJob.inspectorPhotos || []}
-                athPreviewEnabled={athPreviewEnabled}
-                contacts={contacts}
-                packSource={selectedJob}
-                hidePackButton
-                genericAttachments={collectActiveJobAttachments(selectedJob)}
-                title="Wyślij pliki emailem"
-                onEmailSent={(to, meta) => {
-                  const suffix = meta?.genericCount ? ` (+ ${meta.genericCount} załączników)` : "";
-                  updateJob(selectedJob, { type: "email_sent", text: `Wysłano pliki inspektora na ${to}${suffix}` });
-                }}
-                onDeleteFile={handleDeleteInspectorFileItem}
-              />
-              <JobGenericAttachmentsSection
-                job={selectedJob}
-                uploadedBy={adminSession?.displayName || "Administrator"}
-                athPreviewEnabled={athPreviewEnabled}
-                onJobUpdated={(next, activity) => updateJob(next as Job, activity ? { type: "inspector_file", text: activity.text } : undefined)}
-              />
-            </div>
+                  onDeleteFile={handleDeleteInspectorFileItem}
+                />
+              )}
+              uploadedBy={adminSession?.displayName || "Administrator"}
+              athPreviewEnabled={athPreviewEnabled}
+              onJobUpdated={(next, activity) => updateJob(next as Job, activity ? { type: "inspector_file", text: activity.text } : undefined)}
+              onGoToReports={() => setDetailSection("reports")}
+              onGoToDocuments={() => setDetailSection("documents")}
+            />
             )}
 
             {detailSection === "workers" && (
