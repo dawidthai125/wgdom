@@ -174,7 +174,7 @@ export default defineConfig(() => {
 
         resolveDependencies(_filename, deps) {
 
-          const deferLazyPanels = /panel-(jobs|payroll|tenders|inspector-admin|inspector)\b/;
+          const deferLazyPanels = /panel-(jobs|payroll|tenders|inspector-admin|inspector|guide)\b/;
 
           return deps.filter((dep) => !deferLazyPanels.test(dep));
 
@@ -218,17 +218,8 @@ export default defineConfig(() => {
 
             }
 
-            if (
-
-              id.includes('/src/app/GuideView')
-
-              || id.includes('/src/app/changelog-data')
-
-            ) {
-
-              return 'panel-guide';
-
-            }
+            // GuideView + changelog-data — NIE wymuszaj panel-guide (20.6A.5):
+            // wymuszenie powodowało react-jsx-runtime w panel-guide → static import z entry → startup preload.
 
             // Performance 2.2C — panel-* manualChunks usunięte (eksperyment SCC)
 
