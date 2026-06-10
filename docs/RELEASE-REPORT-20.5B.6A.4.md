@@ -2,9 +2,9 @@
 
 **Data:** 2026-06-09  
 **Wersja UI:** **2.50.57**  
-**Commit:** _TBD po push_  
-**Deploy:** _TBD_  
-**Status:** **RELEASE IN PROGRESS**
+**Commit:** **`c983b9c`**  
+**Deploy:** **`4998989024`** — **SUCCESS**  
+**Status:** **RELEASED**
 
 ---
 
@@ -75,9 +75,9 @@ Uproszczenie pracy pracownika na telefonie — **UX only**, bez zmian modelu dan
 
 | Checklist | Wynik |
 |-----------|-------|
-| `smoke-prod-bundle-2.50.57.mjs` | _TBD_ |
-| `/version.json` = 2.50.57 | _TBD_ |
-| Worker Mobile UX w bundle | _TBD_ |
+| `smoke-prod-bundle-2.50.57.mjs` | **20/20 required PASS** (wgdom.fun + wgdom.online) |
+| `/version.json` = 2.50.57 | **PASS** |
+| Worker Mobile UX w bundle | **PASS** |
 
 ---
 

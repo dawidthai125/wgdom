@@ -5,20 +5,20 @@
 
 **Ostatnia aktualizacja:** 2026-06-09  
 **Current Version:** **2.50.57**  
-**Current Baseline:** **RELEASED · STABLE** (deploy w toku)  
-**Prod `origin/main` (app):** _TBD po push_ · https://www.wgdom.fun  
-**Deploy:** _TBD_  
-**Status:** Sprint **20.5B.6A.4** — **RELEASE IN PROGRESS**
+**Current Baseline:** **RELEASED · STABLE**  
+**Prod `origin/main` (app):** **`c983b9c`** · https://www.wgdom.fun  
+**Deploy:** **`4998989024`**  
+**Status:** Sprint **20.5B.6A.4** — **RELEASED**
 
 ---
 
-## Sprint 20.5B.6A.4 — Worker Mobile UX (**RELEASE**)
+## Sprint 20.5B.6A.4 — Worker Mobile UX (**RELEASED**)
 
 | Pole | Wartość |
 |------|---------|
 | **Wersja** | **2.50.57** |
-| **Commit** | _TBD_ |
-| **Deploy** | _TBD_ |
+| **Commit** | **`c983b9c`** |
+| **Deploy** | **`4998989024`** |
 | **Zakres** | Progress flow, CTA, baner, mobile forms (`layout="worker"`) |
 | **Model/sync** | **Bez zmian** |
 

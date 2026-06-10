@@ -10,11 +10,11 @@
 | Pole | Wartość |
 |------|---------|
 | **Wersja UI** | **2.50.57** |
-| **Commit** | _TBD — `feat(worker): mobile UX progress flow and forms (20.5B.6A.4)`_ |
-| **Deploy** | _TBD_ — **SUCCESS** (oczekiwane) |
-| **Status** | **RELEASED · STABLE** (po weryfikacji prod) |
+| **Commit** | **`c983b9c`** — `feat(worker): mobile UX progress flow and forms (20.5B.6A.4)` |
+| **Deploy** | **`4998989024`** — **SUCCESS** |
+| **Status** | **RELEASED · STABLE** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | _TBD_ |
+| **Repo `origin/main`** | **`c983b9c`** |
 
 **Poprzedni baseline:** v2.50.56 · `1be7a80` · deploy `4995835869`
 
