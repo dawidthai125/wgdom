@@ -22,6 +22,7 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **Seria 20.5Z.2B E2E Version Awareness:** **COMPLETE** — `version-awareness.spec.ts`, mock `/version.json`, cross-tab · `npm run test:e2e:version`
 - **Seria 20.5Z.2A PWA:** **COMPLETE** — build-time `dist/sw.js`, Vercel `no-store`, smoke Z1–Z14
 - **Seria 20.5Z.4A Jobs Cleanup:** **COMPLETE** — `JobListPanelHeader`, `JobListGuidePanel`, `JobQueueSections` · deploy **`5000967334`**
+- **★ Handoff serii 20.5Z (CLOSED):** [`docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](../../docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md) — E2E happy path, PWA, Jobs cleanup, VA E2E · CI `#27260457990`
 - **★ Handoff projektu:** [`docs/PROJECT-HANDOFF.md`](../../docs/PROJECT-HANDOFF.md) — baseline prod, proces AUDIT→RCA→PLAN→IMPLEMENT
 - **★ Handoff Files Hub (CLOSED):** [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](../../docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md) — hub UI, liczniki SSOT, bez migracji danych
 - **★ Handoff sesji 20.5B (CLOSED):** [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](../../docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md) — Roboty UX 20.5B.5, Dokumentacja naming 20.5B.6A.1, Version Awareness 20.5B.7, Worker Mobile 20.5B.6A.4

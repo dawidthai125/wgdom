@@ -10,7 +10,24 @@
 **E2E `origin/main`:** **`8906485`** — E2E Version Awareness (20.5Z.2B) + Happy Path (`caf344e`)  
 **PWA `origin/main`:** **`46556a7`** — PWA + Version Awareness (20.5Z.2A)  
 **Jobs Cleanup `origin/main`:** **`640e3a9`** — Jobs View Cleanup (20.5Z.4A)  
-**Deploy prod:** **`5000967334`**
+**Docs `origin/main`:** **`ca5fabb`** — release docs 20.5Z.2B  
+**Deploy prod:** **`5000967334`**  
+**CI E2E:** **`#27260457990`** SUCCESS (happy + version)
+
+**★ Handoff serii 20.5Z:** [`docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md)
+
+---
+
+## Seria 20.5Z — Platform Stabilization (**CLOSED**)
+
+| Sprint | Commit | Typ | Status |
+|--------|--------|-----|--------|
+| **20.5Z.1** E2E Happy Path | `caf344e` | test | CI `#27258082838` |
+| **20.5Z.2A** PWA hardening | `46556a7` | build | deploy `#5000728139` |
+| **20.5Z.4A** Jobs Cleanup | `640e3a9` | UI | deploy `#5000967334` |
+| **20.5Z.2B** E2E Version Awareness | `8906485` | test | CI `#27260457990` |
+
+**E2E lokalnie:** `npm run build` → `preview @4173` → `test:e2e:happy` + `test:e2e:version`
 
 ---
 
@@ -102,11 +119,15 @@
 | VA-004 cross-tab sync | **COMPLETE** |
 | CI `e2e-happy-path` (happy + version) | **COMPLETE** |
 
-**Commit:** **`8906485`** · **Test-only** — bez zmian `src/**`
+**Commit:** **`8906485`** · **CI:** `#27260457990` · **Test-only** — bez zmian `src/**`
 
 **Kluczowe pliki:** `e2e/version-awareness.spec.ts`, `e2e/helpers/version-awareness.ts`, `playwright.config.ts`, `.github/workflows/e2e-happy-path.yml`
 
+**Raport:** [`docs/RELEASE-REPORT-20.5Z.2B.md`](docs/RELEASE-REPORT-20.5Z.2B.md)
+
 **Smoke:** `npm run test:e2e:version` (VA-001…VA-004) · `npm run test:e2e:happy`
+
+**Pułapka E2E:** storage reset przez `addInitScript` (nie `evaluate` przed `goto`)
 
 ---
 
@@ -121,5 +142,6 @@
 1. [`AGENTS.md`](AGENTS.md)
 2. Ten plik
 3. [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)
-4. [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md)
-5. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.2
+4. [`docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md) ← **★ ostatnia seria (E2E + PWA + Jobs)**
+5. [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md)
+6. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.2 + § 13.1

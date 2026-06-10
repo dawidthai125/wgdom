@@ -10,19 +10,21 @@
 1. AGENTS.md              ← ten plik (JAK pracować)
 2. CURRENT-TASK.md        ← ★ co na prod (v2.50.62) + E2E (`8906485`) + PWA (`46556a7`) + Jobs Cleanup (`640e3a9`)
 3. docs/PROJECT-HANDOFF.md  ← ★ baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT
-4. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← ★ ostatnia sesja (Files Hub 20.5A.12)
-5. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
-6. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← Roboty UX, Version, Worker Mobile
-7. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
-7. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← CC polonizacja CLOSED + mapa widoków
-8. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
-9. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
-10. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← gotowość worker/admin/inspektor GO
-11. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-12. docs/ARCHITECTURE.md   ← pełna architektura (§ 9.1 dokumentacja, § 12.1.2 pliki, § 13.1 wersja)
-13. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
-14. CHANGELOG.md          ← CO już zrobiono (skrót)
-15. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+4. docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md  ← ★ seria 20.5Z CLOSED (E2E + PWA + Jobs + VA E2E)
+5. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← Files Hub 20.5A.12
+6. docs/RELEASE-REPORT-20.5Z.2B.md  ← E2E Version Awareness (20.5Z.2B)
+7. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
+8. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← Roboty UX, Version, Worker Mobile
+9. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
+10. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← CC polonizacja CLOSED + mapa widoków
+11. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
+12. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
+13. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← gotowość worker/admin/inspektor GO
+14. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+15. docs/ARCHITECTURE.md   ← pełna architektura (§ 9.1 dokumentacja, § 12.1.2 pliki, § 13.1 wersja)
+16. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
+17. CHANGELOG.md          ← CO już zrobiono (skrót)
+18. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -52,6 +54,7 @@
 | **docs/SESSION-HANDOFF-20.3B-CC-POLISH.md** | CC polonizacja **20.3B+ CLOSED** (`61cb33b`, v2.50.43) — mapa widoków, etykiety PL |
 | **docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md** | Seria **2.50.x CLOSED** — desktop scroll, mobile fix, MID-B, CI |
 | **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.6 CLOSED** (`99295e5`, v2.50.44) |
+| **docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md** | Seria **20.5Z CLOSED** — E2E happy path, PWA, Jobs cleanup, E2E Version Awareness |
 | **docs/PROJECT-HANDOFF.md** | Baseline prod, ostatni release, proces AUDIT→RCA→PLAN→IMPLEMENT |
 | **docs/SETTLEMENT-WORKFLOW-AUDIT-20.4A.md** | Audyt settlement ledger — design 20.4A |
 | **docs/SETTLEMENT-REPORTING-AUDIT-20.4C.md** | Audyt reporting + dashboard KPI |
@@ -92,7 +95,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
 | Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.62**) |
 | Prod `main` (app) | JobAllFilesView Hub 20.5A.12B.1-full · **v2.50.62** (`381e4b0`) |
-| E2E `main` | **20.5Z.2B** Version Awareness · **`8906485`** · VA-001…VA-004 + Happy Path (`caf344e`) · CI `e2e-happy-path` |
+| E2E `main` | **20.5Z.2B** · **`8906485`** · `test:e2e:happy` + `test:e2e:version` · CI `#27260457990` |
+| E2E komendy | `npm run build` → `preview @4173` → `PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:happy` / `test:e2e:version` |
 | PWA `main` | **20.5Z.2A** PWA hardening · **`46556a7`** · deploy **`5000728139`** · SW `wgdom-shell-2.50.62` |
 | Jobs Cleanup `main` | **20.5Z.4A** · **`640e3a9`** · deploy **`5000967334`** · ukryte KPI/kolejki Bez ekipy + WM po terminie |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |

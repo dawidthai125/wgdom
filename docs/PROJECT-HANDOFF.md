@@ -22,7 +22,8 @@
 
 **Poprzedni baseline:** v2.50.61 · `1edf0f9` · deploy `5000212026` (Worker Report PDF 20.5A.12C)
 
-**Handoff sesji:** [`SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)  
+**Handoff serii 20.5Z:** [`SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md) — E2E, PWA, Jobs Cleanup, Version Awareness E2E  
+**Handoff sesji 20.5B:** [`SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)  
 **Audyt operacyjny:** [`AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md) — worker/admin/inspektor **GO**
 
 ---
@@ -48,6 +49,8 @@
 | VA-001…VA-004 lokalnie | **PASS** (4/4) |
 | Happy Path | **PASS** |
 | Regresja build + Version + Files Hub + PDF | **PASS** |
+
+**Raport:** [`RELEASE-REPORT-20.5Z.2B.md`](RELEASE-REPORT-20.5Z.2B.md) · **Handoff:** [`SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md)
 
 ---
 
