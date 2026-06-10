@@ -11,6 +11,14 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-10",
+    version: "2.50.59",
+    label: "Hotfix SMS Pilne (P0)",
+    items: [
+      { type: "fix", text: "SMS pilne — naprawa crasha modala po refaktorze widoczności ról (20.5A.7); przywrócono etykietę nadawcy przez visibleSenderRoleLabel()" },
+    ],
+  },
+  {
     date: "2026-06-09",
     version: "2.50.58",
     label: "Files Hub Consolidation (20.5A.12)",

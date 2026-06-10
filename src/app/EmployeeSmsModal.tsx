@@ -474,7 +474,9 @@ export function EmployeeSmsModal({
               <h2 id="sms-modal-title" className="text-sm font-semibold truncate">SMS pilne</h2>
               <p className="text-[11px] text-muted-foreground truncate">
                 Nadawca: <span className="text-foreground/90 font-medium">{senderLabel}</span>
-                {sender?.role ? ` · ${safeAdminRoleLabel(sender.role)}` : ""}
+                {sender?.role && visibleSenderRoleLabel(viewerRole, sender.role)
+                  ? ` · ${visibleSenderRoleLabel(viewerRole, sender.role)}`
+                  : ""}
               </p>
             </div>
           </div>
