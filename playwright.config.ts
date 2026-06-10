@@ -19,6 +19,12 @@ export default defineConfig({
   },
   projects: [
     {
+      name: "e2e-happy-path",
+      use: { browserName: "chromium", viewport: { width: 390, height: 844 } },
+      testMatch: /worker-admin-inspector-happy-path\.spec\.ts/,
+      fullyParallel: false,
+    },
+    {
       name: "desktop-chrome",
       use: { browserName: "chromium", viewport: { width: 1920, height: 1080 } },
       testMatch: /desktop-(smoke|layout)\.spec\.ts/,

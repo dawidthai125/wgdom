@@ -16,7 +16,8 @@
     "audit:mobile": "node scripts/mobile-audit.mjs",
     "test:mobile": "playwright test",
     "test:mobile:ui": "playwright test --ui",
-    "test:mobile:report": "playwright show-report e2e-report"
+    "test:mobile:report": "playwright show-report e2e-report",
+    "test:e2e:happy": "playwright test --project=e2e-happy-path"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
