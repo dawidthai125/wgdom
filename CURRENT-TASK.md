@@ -3,11 +3,29 @@
 > **Aktualizuj ten plik na końcu każdej większej sesji z agentem AI.**  
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
-**Ostatnia aktualizacja:** 2026-06-09  
-**Current Version:** **2.50.58**  
+**Ostatnia aktualizacja:** 2026-06-10  
+**Current Version:** **2.50.60**  
 **Current Baseline:** **RELEASED · STABLE**  
-**Prod `origin/main` (app):** **`211364b`** · https://www.wgdom.fun · v2.50.58  
-**Deploy prod:** **`4999362359`**
+**Prod `origin/main` (app):** **`b653782`** · https://www.wgdom.fun · v2.50.60  
+**Deploy prod:** **`5000129417`**
+
+---
+
+## Sprint 20.5B.7D — Cross-tab Update Banner Sync (**RELEASED**)
+
+| Pole | Wartość |
+|------|---------|
+| **Wersja** | **2.50.60** |
+| **Zakres** | Version Awareness — banner sync między kartami (localStorage + storage event) |
+| **Model/sync** | **Bez zmian** — UI only |
+
+**Kluczowe pliki:** `app-version-check.ts`, `AppUpdateBanner.tsx`, `app-version.ts`
+
+**Klucz LS:** `wg-update-server-version`
+
+**Raport:** [`docs/RELEASE-REPORT-20.5B.7D.md`](docs/RELEASE-REPORT-20.5B.7D.md)
+
+**Smoke:** `smoke-test-app-version-check-20.5b7.mjs` (T1–T14), `smoke-prod-bundle-2.50.60.mjs`
 
 ---
 
@@ -16,30 +34,11 @@
 | Pole | Wartość |
 |------|---------|
 | **Wersja** | **2.50.58** |
-| **Zakres** | Files Hub UI (12A), unified counters (12B), 12B.1-min JobAllFilesView, PDF stub (12C) |
-| **Model/sync** | **Bez zmian** — warstwa prezentacji only |
+| **Commit** | **`211364b`** |
 
-**Kluczowe pliki:** `files-hub-index.ts`, `JobFilesHub.tsx`, `JobsView.tsx`, `MediaView.tsx`, `JobAllFilesView.tsx`
+**Handoff:** [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md)
 
-**SSOT:** `countFilesHubItems()` = jobFiles + workerReports + jobAttachments
-
-**Handoff:** [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md) · [`docs/RELEASE-REPORT-20.5A.12.md`](docs/RELEASE-REPORT-20.5A.12.md)
-
-**Smoke:** `smoke-test-files-hub-20.5a12.mjs`, `smoke-prod-bundle-2.50.58.mjs`
-
-**Backlog:** 20.5A.12B.1-full (kafle JobAllFilesView) · 20.5A.12C PDF export
-
----
-
-## Sprint 20.5B.6A.4 — Worker Mobile UX (**RELEASED**)
-
-| Pole | Wartość |
-|------|---------|
-| **Wersja** | **2.50.57** |
-| **Commit** | **`c983b9c`** |
-| **Deploy** | **`4998989024`** |
-
-**Raport:** [`docs/RELEASE-REPORT-20.5B.6A.4.md`](docs/RELEASE-REPORT-20.5B.6A.4.md)
+**Backlog:** 20.5A.12B.1-full · 20.5A.12C PDF export
 
 ---
 
@@ -47,7 +46,6 @@
 
 1. [`AGENTS.md`](AGENTS.md)
 2. Ten plik
-3. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.2 Files Hub
-4. [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md) — **pełny handoff sprintu**
-5. [`docs/RELEASE-REPORT-20.5A.12.md`](docs/RELEASE-REPORT-20.5A.12.md)
-6. [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)
+3. [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)
+4. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 13.1 Version Awareness
+5. [`docs/RELEASE-REPORT-20.5B.7D.md`](docs/RELEASE-REPORT-20.5B.7D.md)

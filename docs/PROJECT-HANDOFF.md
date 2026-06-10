@@ -1,6 +1,6 @@
 # W&G DOM — PROJECT HANDOFF
 
-> **Hasło:** „kontynuuj WGDOM” · **Data:** 2026-06-09  
+> **Hasło:** „kontynuuj WGDOM” · **Data:** 2026-06-10  
 > **Przed nową pracą:** [`CURRENT-TASK.md`](../CURRENT-TASK.md) → [`AGENTS.md`](../AGENTS.md) → [`ARCHITECTURE.md`](ARCHITECTURE.md)
 
 ---
@@ -9,23 +9,37 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **2.50.58** |
-| **Commit** | **`211364b`** — `feat(files): Files Hub consolidation with unified file counters (20.5A.12)` |
-| **Deploy** | **`4999362359`** — **SUCCESS** |
+| **Wersja UI** | **2.50.60** |
+| **Commit** | **`b653782`** — `feat(app): cross-tab update banner sync via localStorage (20.5B.7D)` |
+| **Deploy** | **`5000129417`** — **SUCCESS** |
 | **Status** | **RELEASED · STABLE** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | **`211364b`** |
+| **Repo `origin/main`** | **`b653782`** |
 
-**Poprzedni baseline:** v2.50.57 · `c983b9c` · deploy `4998989024`
-
-**Handoff Files Hub:** [`SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](SESSION-HANDOFF-20.5A.12-FILES-HUB.md) · [`RELEASE-REPORT-20.5A.12.md`](RELEASE-REPORT-20.5A.12.md)
+**Poprzedni baseline:** v2.50.59 · `123db88` · deploy `5000047410` (SMS P0 hotfix)
 
 **Handoff sesji:** [`SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)  
 **Audyt operacyjny:** [`AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md) — worker/admin/inspektor **GO**
 
 ---
 
-## Ostatni release — 20.5A.12 / 2.50.58
+## Ostatni release — 20.5B.7D / 2.50.60
+
+**Cross-tab Update Banner Sync** — Version Awareness propaguje wykrytą wersję między kartami (UI only)
+
+### Funkcje
+
+- **localStorage** `wg-update-server-version` — sygnał cross-tab
+- **storage event** — natychmiastowy banner w innych kartach
+- **Seed przy starcie** — nowa karta widzi pending update
+- **Cleanup** — gdy `APP_VERSION === stored`
+- **Zachowane:** polling 5 min, focus, visibilitychange, dismiss, manual reload
+
+**Raport:** [`RELEASE-REPORT-20.5B.7D.md`](RELEASE-REPORT-20.5B.7D.md)
+
+---
+
+## Poprzedni release — 20.5A.12 / 2.50.58
 
 **Files Hub Consolidation** — jeden widok plików roboty, ujednolicone liczniki (UI only)
 
