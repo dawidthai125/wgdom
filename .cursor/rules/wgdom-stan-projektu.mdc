@@ -14,11 +14,12 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
 - **Aktualna wersja UI (prod):** **2.50.62** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
 - **Prod (`main` / `origin/main`, app):** **`640e3a9`** (Jobs Cleanup) · deploy **`5000967334`** · https://www.wgdom.fun · v2.50.62 · status **RELEASED · STABLE · GO**
-- **E2E (`origin/main`):** **`caf344e`** — **20.5Z.1 E2E-HAPPY-PATH-001** · CI `#27258082838` **SUCCESS** · status **E2E READY**
+- **E2E (`origin/main`):** **`8906485`** — **20.5Z.2B E2E Version Awareness** · VA-001…VA-004 + Happy Path (`caf344e`) · CI `e2e-happy-path` · status **E2E HARDENED**
 - **PWA (`origin/main`):** **`46556a7`** — **20.5Z.2A** · `wgdom-shell-{APP_VERSION}` · `version.json` network-only · status **PWA HARDENED**
 - **Jobs Cleanup (`origin/main`):** **`640e3a9`** — **20.5Z.4A** · ukryte KPI/kolejki „Bez ekipy” + „WM po terminie” · UI-only
 - **Seria 20.5A.12 Files Hub:** **COMPLETE** (12A + 12B + 12B.1-full + 12C)
 - **Seria 20.5Z.1 E2E:** **COMPLETE** — preview :4173, LS seed, cloud block, `npm run test:e2e:happy`
+- **Seria 20.5Z.2B E2E Version Awareness:** **COMPLETE** — `version-awareness.spec.ts`, mock `/version.json`, cross-tab · `npm run test:e2e:version`
 - **Seria 20.5Z.2A PWA:** **COMPLETE** — build-time `dist/sw.js`, Vercel `no-store`, smoke Z1–Z14
 - **Seria 20.5Z.4A Jobs Cleanup:** **COMPLETE** — `JobListPanelHeader`, `JobListGuidePanel`, `JobQueueSections` · deploy **`5000967334`**
 - **★ Handoff projektu:** [`docs/PROJECT-HANDOFF.md`](../../docs/PROJECT-HANDOFF.md) — baseline prod, proces AUDIT→RCA→PLAN→IMPLEMENT

@@ -5,9 +5,9 @@
 
 **Ostatnia aktualizacja:** 2026-06-10  
 **Current Version:** **2.50.62**  
-**Current Baseline:** **STABLE · E2E READY · PWA HARDENED · JOBS CLEANUP**  
+**Current Baseline:** **STABLE · E2E HARDENED · PWA HARDENED · JOBS CLEANUP**  
 **Prod `origin/main` (app):** **`640e3a9`** · https://www.wgdom.fun · v2.50.62  
-**E2E `origin/main`:** **`caf344e`** — E2E-HAPPY-PATH-001 (20.5Z.1)  
+**E2E `origin/main`:** **`8906485`** — E2E Version Awareness (20.5Z.2B) + Happy Path (`caf344e`)  
 **PWA `origin/main`:** **`46556a7`** — PWA + Version Awareness (20.5Z.2A)  
 **Jobs Cleanup `origin/main`:** **`640e3a9`** — Jobs View Cleanup (20.5Z.4A)  
 **Deploy prod:** **`5000967334`**
@@ -92,9 +92,27 @@
 
 ---
 
+## Sprint 20.5Z.2B — E2E Version Awareness (**COMPLETE**)
+
+| Element | Status |
+|---------|--------|
+| VA-001 detekcja nowej wersji | **COMPLETE** |
+| VA-002 dismiss (Później) | **COMPLETE** |
+| VA-003 reload + cleanup | **COMPLETE** |
+| VA-004 cross-tab sync | **COMPLETE** |
+| CI `e2e-happy-path` (happy + version) | **COMPLETE** |
+
+**Commit:** **`8906485`** · **Test-only** — bez zmian `src/**`
+
+**Kluczowe pliki:** `e2e/version-awareness.spec.ts`, `e2e/helpers/version-awareness.ts`, `playwright.config.ts`, `.github/workflows/e2e-happy-path.yml`
+
+**Smoke:** `npm run test:e2e:version` (VA-001…VA-004) · `npm run test:e2e:happy`
+
+---
+
 ## Następny etap
 
-**20.5Z.2B — E2E Version Awareness**
+**Platform Stabilization — kolejny sprint na polecenie**
 
 ---
 

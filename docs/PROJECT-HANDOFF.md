@@ -11,13 +11,14 @@
 |------|---------|
 | **Wersja UI** | **2.50.62** |
 | **Commit (app)** | **`381e4b0`** — `feat(jobs): JobAllFilesView full hub alignment 20.5A.12B.1-full` |
-| **Commit (E2E)** | **`caf344e`** — `test(e2e): E2E-HAPPY-PATH-001 worker→admin→inspector 20.5Z.1` |
+| **Commit (E2E)** | **`8906485`** — `test(e2e): E2E Version Awareness VA-001 to VA-004 20.5Z.2B` |
+| **Commit (E2E Happy Path)** | **`caf344e`** — `test(e2e): E2E-HAPPY-PATH-001 worker→admin→inspector 20.5Z.1` |
 | **Commit (PWA)** | **`46556a7`** — `fix(pwa): versioned SW cache and version.json network-only 20.5Z.2A` |
 | **Commit (Jobs Cleanup)** | **`640e3a9`** — `fix(jobs): hide Bez ekipy and WM po terminie KPI UI 20.5Z.4A` |
 | **Deploy** | **`5000967334`** — **SUCCESS** |
-| **Status** | **STABLE · E2E READY · PWA HARDENED · JOBS CLEANUP** |
+| **Status** | **STABLE · E2E HARDENED · PWA HARDENED · JOBS CLEANUP** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | **`640e3a9`** (Jobs Cleanup) · app feature **`381e4b0`** |
+| **Repo `origin/main`** | **`8906485`** (E2E 2B) · app feature **`381e4b0`** · Jobs Cleanup **`640e3a9`** |
 
 **Poprzedni baseline:** v2.50.61 · `1edf0f9` · deploy `5000212026` (Worker Report PDF 20.5A.12C)
 
@@ -26,7 +27,31 @@
 
 ---
 
-## Ostatni release — 20.5Z.4A / Jobs View Cleanup
+## Ostatni release — 20.5Z.2B / E2E Version Awareness
+
+**Platform Stabilization — gate E2E dla Version Awareness** (test-only, bez zmian app/sync)
+
+### Zakres
+
+- **VA-001** — mock `/version.json` → banner „Dostępna nowa wersja WGDOM”
+- **VA-002** — dismiss „Później” → `sessionStorage` + banner hidden
+- **VA-003** — fazowy mock `9.99.99` → reload → `2.50.62` → cleanup cross-tab key
+- **VA-004** — `context.newPage()` cross-tab sync (natywny `storage` event)
+- **CI** — `e2e-happy-path.yml`: `test:e2e:happy` + `test:e2e:version` na preview @4173
+- **Bez zmian** — `src/**`, sync, KV, Edge, SW
+
+### Jakość (release)
+
+| Check | Wynik |
+|-------|-------|
+| CI `e2e-happy-path` | **`#27260457990` SUCCESS** (happy + version) |
+| VA-001…VA-004 lokalnie | **PASS** (4/4) |
+| Happy Path | **PASS** |
+| Regresja build + Version + Files Hub + PDF | **PASS** |
+
+---
+
+## Poprzedni release — 20.5Z.4A / Jobs View Cleanup
 
 **Roboty — ukrycie filtrów KPI/kolejek** (UI-only, bez zmian sync/modelu)
 
@@ -46,8 +71,6 @@
 | Prod bundle — brak `Bez ekipy` / `WM po terminie` | **PASS** |
 | Prod `version.json` 2.50.62 | **PASS** |
 | Regresja build + Files Hub + Version + Jobs 2.0 | **PASS** |
-
-**Następny sprint:** **20.5Z.2B** — E2E Version Awareness
 
 ---
 
