@@ -12,6 +12,14 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-10",
+    version: "2.50.60",
+    label: "Cross-tab Update Banner Sync (20.5B.7D)",
+    items: [
+      { type: "improve", text: "Version Awareness — wykryta nowa wersja w jednej karcie natychmiast pokazuje banner we wszystkich otwartych kartach (localStorage + storage event)" },
+    ],
+  },
+  {
+    date: "2026-06-10",
     version: "2.50.59",
     label: "Hotfix SMS Pilne (P0)",
     items: [

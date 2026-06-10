@@ -6,7 +6,13 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readChangelogVersion } from "./read-changelog-version.mjs";
-import { isNewerVersionAvailable } from "../src/lib/app-version-check.ts";
+import {
+  isNewerVersionAvailable,
+  CROSS_TAB_SERVER_VERSION_KEY,
+  resolveSeededServerVersion,
+  persistCrossTabServerVersion,
+  clearCrossTabServerVersion,
+} from "../src/lib/app-version-check.ts";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dir, "..");
@@ -26,9 +32,9 @@ function readSrc(rel) {
   return readFileSync(resolve(root, rel), "utf8");
 }
 
-log("=== Sprint 20.5B.7 — Version Awareness & Update Banner ===\n");
+log("=== Sprint 20.5B.7 / 20.5B.7D — Version Awareness & Update Banner ===\n");
 
-assert("precheck changelog 2.50.58", readChangelogVersion() === "2.50.58");
+assert("precheck changelog 2.50.60", readChangelogVersion() === "2.50.60");
 
 // T1 — APP_VERSION
 assert(
@@ -108,10 +114,59 @@ assert(
   readSrc("src/app/GuideView.tsx").includes("Dlaczego widzę komunikat o nowej wersji?"),
 );
 
+// T11 — cross-tab localStorage key (20.5B.7D)
+assert(
+  "T11 cross-tab key",
+  CROSS_TAB_SERVER_VERSION_KEY === "wg-update-server-version"
+    && readSrc("src/lib/app-version-check.ts").includes(CROSS_TAB_SERVER_VERSION_KEY),
+);
+
+// T12 — storage listener
+assert(
+  "T12 storage listener",
+  readSrc("src/lib/app-version-check.ts").includes('addEventListener("storage"')
+    && readSrc("src/lib/app-version-check.ts").includes("CROSS_TAB_SERVER_VERSION_KEY"),
+);
+
+// T13 — seed helpers (mock localStorage in Node)
+if (typeof globalThis.localStorage === "undefined") {
+  const store = new Map();
+  globalThis.localStorage = {
+    getItem: (k) => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => { store.set(k, String(v)); },
+    removeItem: (k) => { store.delete(k); },
+  };
+}
+
+{
+  let t13ok =
+    resolveSeededServerVersion("2.50.59") === null;
+  try {
+    localStorage.setItem(CROSS_TAB_SERVER_VERSION_KEY, "2.50.60");
+    t13ok =
+      t13ok
+      && resolveSeededServerVersion("2.50.59") === "2.50.60"
+      && resolveSeededServerVersion("2.50.60") === null;
+  } finally {
+    clearCrossTabServerVersion();
+  }
+  assert("T13 seed helpers", t13ok);
+}
+
+// T14 — persist only when newer
+{
+  persistCrossTabServerVersion("2.50.60", "2.50.59");
+  const afterNewer = localStorage.getItem(CROSS_TAB_SERVER_VERSION_KEY) === "2.50.60";
+  persistCrossTabServerVersion("2.50.59", "2.50.59");
+  const afterCaughtUp = localStorage.getItem(CROSS_TAB_SERVER_VERSION_KEY) === null;
+  clearCrossTabServerVersion();
+  assert("T14 persist helpers", afterNewer && afterCaughtUp);
+}
+
 const tKeys = Object.keys(results).filter((k) => k.startsWith("T"));
 const pass = tKeys.filter((k) => results[k] === "PASS").length;
-log(`\n=== ${pass}/${tKeys.length} PASS (T1–T10) ===`);
+log(`\n=== ${pass}/${tKeys.length} PASS (T1–T14) ===`);
 
-if (pass !== 10) {
-  throw new Error(`Expected 10/10 PASS, got ${pass}/10`);
+if (pass !== 14) {
+  throw new Error(`Expected 14/14 PASS, got ${pass}/14`);
 }

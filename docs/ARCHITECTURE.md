@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.58** · Files Hub 20.5A.12)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.58 — § 12.1.2 Files Hub 20.5A.12)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.60** · Cross-tab Version Awareness 20.5B.7D)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-10 (2.50.60 — § 13.1 cross-tab banner 20.5B.7D)
 
 ---
 
@@ -919,12 +919,12 @@ Inspektor ma analogiczny flow w `InspectorPhotoGallery.tsx` + `InspectorJobPhoto
 
 ---
 
-## 13.1 Version Awareness (20.5B.7)
+## 13.1 Version Awareness (20.5B.7 → 20.5B.7D)
 
 | Plik | Rola |
 |------|------|
 | `src/lib/app-version.ts` | `APP_VERSION` w main bundle (vite `define` z `CHANGELOG[0]`) |
-| `src/lib/app-version-check.ts` | Fetch `/version.json`, polling 5 min, `visibilitychange` + `focus` |
+| `src/lib/app-version-check.ts` | Fetch `/version.json`, polling 5 min, `visibilitychange` + `focus`, **cross-tab sync** (20.5B.7D) |
 | `src/app/AppUpdateBanner.tsx` | Globalny banner „Odśwież teraz” / „Później” (session dismiss) |
 | `dist/version.json` | Generowany przy buildzie — `{ "version": "2.50.x" }` |
 | `scripts/read-changelog-version.mjs` | Parser wersji z `changelog-data.ts` (build + smoke) |
@@ -932,9 +932,11 @@ Inspektor ma analogiczny flow w `InspectorPhotoGallery.tsx` + `InspectorJobPhoto
 
 **Flow:** karta ładuje bundle z wbudowanym `APP_VERSION`. Co 5 min (oraz przy powrocie do karty) klient pobiera `/version.json` z `cache: no-store`. Gdy `serverVersion !== APP_VERSION` → banner u góry ekranu. **Brak auto-reload** — użytkownik klika „Odśwież teraz” (`location.reload()`).
 
+**Cross-tab sync (20.5B.7D):** gdy karta wykryje nowszą wersję, zapisuje `localStorage["wg-update-server-version"]`. Pozostałe karty tej samej domeny odbierają `storage` event i ustawiają `serverVersion` bez czekania na polling/focus. Przy starcie hook seeduje stan z tego klucza (jeśli `stored !== APP_VERSION`). Gdy `APP_VERSION === stored` — klucz jest czyszczony. Dismiss (`sessionStorage`) pozostaje per karta.
+
 **Źródło prawdy wersji UI:** `CHANGELOG[0].version` w `changelog-data.ts` — przy release nowy wpis na górze; build automatycznie aktualizuje `version.json` i define.
 
-**Nie dotyczy:** sync, KV, Edge, auth.
+**Nie dotyczy:** sync, KV, Edge, auth. **Poza zakresem:** auto-reload (20.5B.7C), sync dismiss między kartami.
 
 ---
 
