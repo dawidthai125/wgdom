@@ -5,11 +5,12 @@
 
 **Ostatnia aktualizacja:** 2026-06-10  
 **Current Version:** **2.50.62**  
-**Current Baseline:** **STABLE · E2E READY · PWA HARDENED**  
-**Prod `origin/main` (app):** **`381e4b0`** · https://www.wgdom.fun · v2.50.62  
+**Current Baseline:** **STABLE · E2E READY · PWA HARDENED · JOBS CLEANUP**  
+**Prod `origin/main` (app):** **`640e3a9`** · https://www.wgdom.fun · v2.50.62  
 **E2E `origin/main`:** **`caf344e`** — E2E-HAPPY-PATH-001 (20.5Z.1)  
 **PWA `origin/main`:** **`46556a7`** — PWA + Version Awareness (20.5Z.2A)  
-**Deploy prod:** **`5000728139`**
+**Jobs Cleanup `origin/main`:** **`640e3a9`** — Jobs View Cleanup (20.5Z.4A)  
+**Deploy prod:** **`5000967334`**
 
 ---
 
@@ -71,6 +72,23 @@
 **Commit:** **`46556a7`** · **Deploy:** **`5000728139`** SUCCESS · **Prod SW:** `wgdom-shell-2.50.62`
 
 **Kluczowe pliki:** `scripts/sw.template.js`, `scripts/generate-service-worker.mjs`, `vite.config.ts`, `vercel.json`, `scripts/smoke-test-pwa-version-20.5z2a.mjs`
+
+---
+
+## Sprint 20.5Z.4A — Jobs View Cleanup (**COMPLETE**)
+
+| Element | Status |
+|---------|--------|
+| Ukrycie KPI „Bez ekipy” / „WM po terminie” | **COMPLETE** |
+| Legenda — bez wpisów ukrytych filtrów | **COMPLETE** |
+| Kolejki — `HIDDEN_QUEUE_SECTION_IDS` | **COMPLETE** |
+| Pozostałe filtry (W toku, Do odbioru, BZP) | **VISIBLE** |
+
+**Commit:** **`640e3a9`** · **Deploy:** **`5000967334`** SUCCESS · **Model/sync:** UI-only
+
+**Kluczowe pliki:** `JobListPanelHeader.tsx`, `JobListGuidePanel.tsx`, `JobQueueSections.tsx`
+
+**Smoke prod:** brak literałów `Bez ekipy` / `WM po terminie` w bundlu `JobsView-*.js`
 
 ---
 
