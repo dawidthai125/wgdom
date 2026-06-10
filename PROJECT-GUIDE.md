@@ -78,7 +78,7 @@ Operacje KV (Szymon/Paweł override, martwe URL) — tylko read-then-set ze snap
 
 - **Frontend:** push `main` → Vercel (automatycznie).
 - **Edge Function:** zmiany w `supabase/functions/**` → GitHub Action (`deploy-supabase.yml`).
-- Po zmianie cache PWA → podbij wersję w `public/sw.js`.
+- Po zmianie PWA / wersji UI → nowy wpis na górze `CHANGELOG` w `changelog-data.ts` + `npm run build` (generuje `dist/sw.js`, cache `wgdom-shell-{APP_VERSION}`). **Nie** edytuj `public/sw.js` (usunięty w 20.5Z.2A).
 
 ### Przetargi (stan v2.45.12)
 

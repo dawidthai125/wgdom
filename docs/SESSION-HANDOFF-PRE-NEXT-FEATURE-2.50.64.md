@@ -192,4 +192,19 @@ READY FOR NEXT FEATURE STREAM: YES
 
 ---
 
-*Handoff: 2026-06-10 · Baseline v2.50.64 · commit c7bc58f*
+## 10. Update po utworzeniu handoffu (2026-06-10)
+
+Po zamknięciu dokumentu pre-next-feature i backupu wykonano dodatkowy release:
+
+| Sprint | Wersja | Commit | Deploy |
+|--------|--------|--------|--------|
+| **20.5Z.5C** Mobile Jobs List Width Fix | **2.50.65** | **`6df03de`** | **`82hqixksgPYSD8c5LRbkwEEFusn5`** |
+
+**Status:** **RELEASED** · **Aktualny prod:** https://www.wgdom.fun · `version.json` → **2.50.65**  
+**Raport:** [`RELEASE-REPORT-20.5Z.5C.md`](RELEASE-REPORT-20.5Z.5C.md) · **SSOT sesji:** [`CURRENT-TASK.md`](../CURRENT-TASK.md)
+
+Tag `pre-next-feature-2.50.64` nadal wskazuje na **`c7bc58f`** (snapshot przed 5C) — zamierzone.
+
+---
+
+*Handoff utworzony: 2026-06-10 · Snapshot backup: v2.50.64 · commit c7bc58f · prod aktualny: v2.50.65 · 6df03de*

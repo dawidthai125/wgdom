@@ -102,12 +102,12 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
 | Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.65**) |
-| Prod `main` (app) | Mobile list fix 20.5Z.5C · **v2.50.65** · poprzedni prod **`c7bc58f`** (2.50.64) |
-| Git tag backup | **`pre-next-feature-2.50.64`** → `c7bc58f` |
+| Prod `main` (app) | **20.5Z.5C** · **v2.50.65** · commit **`6df03de`** · deploy **`82hqixksgPYSD8c5LRbkwEEFusn5`** |
+| Git tag backup | **`pre-next-feature-2.50.64`** → `c7bc58f` (snapshot przed 5C) |
 | E2E `main` | **20.5Z.2B** · **`8906485`** · `test:e2e:happy` + `test:e2e:version` · CI `#27260457990` |
 | E2E komendy | `npm run build` → `preview @4173` → `PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:happy` / `test:e2e:version` |
 | Seria 20.5Z | **COMPLETE** — audyt 20.5Z.3 **GO** · [`PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md) |
-| PWA `main` | **20.5Z.2A** PWA hardening · **`46556a7`** · deploy **`5000728139`** · SW `wgdom-shell-2.50.62` |
+| PWA prod | SW **`wgdom-shell-2.50.65`** · build-time z `CHANGELOG[0]` (20.5Z.2A infra · commit **`46556a7`**) |
 | Jobs Cleanup `main` | **20.5Z.4A** · **`640e3a9`** · deploy **`5000967334`** · ukryte KPI/kolejki Bez ekipy + WM po terminie |
 | Performance 2.x (baza) | commit **`35614f0`** · tag `v2.45.38-perf-2.4a` · seria **CLOSED** |
 | Payroll carry (łańcuch) | 20.0A `778f616` → 20.1A `f24fafe` → 20.1B **`74e65d9`** |

@@ -3,7 +3,7 @@
 **Data:** 2026-06-10  
 **Wersja UI:** **2.50.65**  
 **Sprint:** **20.5Z.5C** — Mobile-only layout fix (`<640px`)  
-**Status:** **RELEASED** (packaging) · **DEPLOY READY** (push `main` → Vercel)
+**Status:** **RELEASED** · deploy **`82hqixksgPYSD8c5LRbkwEEFusn5`**
 
 ---
 

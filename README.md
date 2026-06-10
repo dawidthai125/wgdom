@@ -15,13 +15,13 @@ React + Vite · Supabase · Vercel · PWA · Capacitor (Android/iOS)
 | **[`AGENTS.md`](AGENTS.md)** | **START HERE** — jak pracować (workflow agenta) |
 | **[`PROJECT-GUIDE.md`](PROJECT-GUIDE.md)** | Jak działa projekt + Known Issues |
 | **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** | Pełna architektura, sync, API, deploy |
-| **[`CHANGELOG.md`](CHANGELOG.md)** | Skrót ostatnich wersji (źródło prawdy: `App.tsx`) |
+| **[`CHANGELOG.md`](CHANGELOG.md)** | Skrót ostatnich wersji (źródło prawdy: `src/app/changelog-data.ts`) |
 | **[`CURRENT-TASK.md`](CURRENT-TASK.md)** | Wznowienie sesji — co skończone / co dalej |
 | [`guidelines/ROZWOJ.md`](guidelines/ROZWOJ.md) | Skrót reguł rozwoju |
 | [`docs/OPTIMIZATION.md`](docs/OPTIMIZATION.md) | Audyt wydajności Web + Mobile |
 | [`docs/MOBILE-NATIVE.md`](docs/MOBILE-NATIVE.md) | Capacitor, APK, PWA |
 
-Przy każdej zmianie aktualizuj **CHANGELOG** (`App.tsx` + `CHANGELOG.md`) i — gdy dotyczy architektury — **`docs/ARCHITECTURE.md`**. Na końcu sesji — **`CURRENT-TASK.md`**.
+Przy każdej zmianie aktualizuj **CHANGELOG** (`changelog-data.ts` + `CHANGELOG.md`) i — gdy dotyczy architektury — **`docs/ARCHITECTURE.md`**. Na końcu sesji — **`CURRENT-TASK.md`**.
 
 ---
 
@@ -45,4 +45,4 @@ npm run test:mobile
 
 - **Frontend:** `git push origin main` → Vercel  
 - **Supabase Edge Function:** zmiany w `supabase/functions/` → GitHub Actions  
-- **PWA:** po deploy podbij `wgdom-shell-vN` w `public/sw.js`
+- **PWA:** nowy wpis w `changelog-data.ts` (wersja UI) → `npm run build` generuje `dist/sw.js` z cache `wgdom-shell-{APP_VERSION}` (`scripts/generate-service-worker.mjs`)

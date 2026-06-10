@@ -11,15 +11,15 @@
 | Pole | Wartość |
 |------|---------|
 | **Wersja UI** | **2.50.65** |
-| **Commit (app)** | **lokalnie** — `fix(jobs): mobile jobs list full width (20.5Z.5C)` · poprzedni prod **`c7bc58f`** (2.50.64) |
-| **Git tag backup** | **`pre-next-feature-2.50.64`** → `c7bc58f` |
-| **Deploy** | **`BxMBS2SFGiDxZmkHmwndVpr5RLin`** — **SUCCESS** |
-| **Status** | **STABLE · PRE-FEATURE BACKUP SECURED · READY FOR NEXT FEATURE STREAM** |
+| **Commit (app)** | **`6df03de`** — `fix(jobs): mobile jobs list full width (20.5Z.5C) v2.50.65` |
+| **Git tag backup** | **`pre-next-feature-2.50.64`** → `c7bc58f` (snapshot przed 5C) |
+| **Deploy** | **`82hqixksgPYSD8c5LRbkwEEFusn5`** — **SUCCESS** |
+| **Status** | **RELEASED · STABLE · PRE-FEATURE BACKUP SECURED · READY FOR NEXT FEATURE STREAM** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Commit (E2E)** | **`8906485`** — 20.5Z.2B E2E Version Awareness |
 | **Commit (PWA)** | **`46556a7`** — 20.5Z.2A PWA hardening |
 
-**Poprzedni baseline:** v2.50.62 · `381e4b0` / `640e3a9` · deploy `5000967334`
+**Poprzedni baseline (app):** v2.50.64 · `c7bc58f` · deploy `BxMBS2SFGiDxZmkHmwndVpr5RLin`
 
 **★ Handoff pre-next-feature:** [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md) — 5A/5B, backup, storage audit  
 **★ Backup:** [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md`](AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md)  
@@ -48,7 +48,10 @@
 | Smoke jobs UX pack | **16/16 PASS** |
 | Viewport 390×844 | lista 100%, brak pustej kolumny |
 
-**Raport:** [`RELEASE-REPORT-20.5Z.5C.md`](RELEASE-REPORT-20.5Z.5C.md) · **Status:** **RELEASED** · **DEPLOY READY**
+| Commit | **`6df03de`** |
+| Deploy | **`82hqixksgPYSD8c5LRbkwEEFusn5`** |
+
+**Raport:** [`RELEASE-REPORT-20.5Z.5C.md`](RELEASE-REPORT-20.5Z.5C.md) · **Status:** **RELEASED**
 
 ---
 
@@ -214,7 +217,7 @@
 
 - **Files Hub** — kontrakt (`jobFiles[]`) + dokumentacja ekipy (`workerReports[]`) + załączniki (`jobAttachments[]`) + checklista (info)
 - **SSOT liczników** — `countFilesHubItems()` / `countAllFilesHubItems()`
-- **Spójność** — Roboty → Pliki, Media → Pliki, JobListCard, admin-nav, JobAllFilesView nagłówek (12B.1-min)
+- **Spójność** — Roboty → Pliki, Media → Pliki, `JobListCardV2`, admin-nav, JobAllFilesView nagłówek (12B.1-min)
 - **Bez zmian** sync, KV, Edge, modele danych
 
 **Raport:** [`RELEASE-REPORT-20.5A.12.md`](RELEASE-REPORT-20.5A.12.md)

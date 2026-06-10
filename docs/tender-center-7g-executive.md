@@ -111,7 +111,7 @@ Stary UX („Przetargi BZP” + lista `computeTenderDashboardAlerts`) **zastąpi
 1. **Podwójny load pipeline na pulpicie:** `App.tsx` (legacy stats) + `useTendersPipeline` w Providerze — osobne odczyty, ten sam storage.
 2. ~~**Trzeci load:** Classic `TendersView`~~ — **naprawione 8.0A** (wspólny pipeline + lekki R1 przy wejściu w Classic).
 3. **Bundle:** logika CC w chunku głównym pulpitu (`index-*.js`), nie tylko lazy `TenderCenterProView-*.js`.
-4. **PWA / `public/sw.js`:** po deployu możliwy stary cache assetów — hard refresh.
+4. **PWA / Service Worker:** po deployu możliwy stary cache assetów — hard refresh lub banner Version Awareness (`dist/sw.js`, `wgdom-shell-{APP_VERSION}`).
 5. **TDZ:** przy zmianach w `OwnerDashboard` / hooku — nie odwoływać się w `useMemo` do zmiennych zadeklarowanych **poniżej** (incydent `Cannot access 'C' before initialization`, fix `b95120a`).
 6. **7G.1:** OwnerDashboard — `financialCapacityEnabled: true`; sekcja „Co wymaga uwagi” max 5 + skrót; kolejność: briefing → okazja → capacity → hero → akcje.
 

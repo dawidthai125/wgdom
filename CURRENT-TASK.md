@@ -5,16 +5,16 @@
 
 **Ostatnia aktualizacja:** 2026-06-10  
 **Current Version:** **2.50.65**  
-**Current Baseline:** **STABLE · E2E HARDENED · PWA HARDENED · PRE-FEATURE BACKUP SECURED**  
-**Prod `origin/main` (app):** **lokalnie 2.50.65** · poprzedni prod **`c7bc58f`** · v2.50.64  
-**★ Release 5C:** [`docs/RELEASE-REPORT-20.5Z.5C.md`](docs/RELEASE-REPORT-20.5Z.5C.md) — **DEPLOY READY** (push `main`)  
-**Git tag backup:** **`pre-next-feature-2.50.64`** → `c7bc58f`  
-**Deploy prod:** **`BxMBS2SFGiDxZmkHmwndVpr5RLin`**  
+**Current Baseline:** **RELEASED · STABLE · E2E HARDENED · PWA HARDENED · PRE-FEATURE BACKUP SECURED**  
+**Prod `origin/main` (app):** **`6df03de`** · https://www.wgdom.fun · v2.50.65  
+**Deploy prod:** **`82hqixksgPYSD8c5LRbkwEEFusn5`** · **SUCCESS**  
+**Git tag backup:** **`pre-next-feature-2.50.64`** → `c7bc58f` (pre-5C snapshot)  
 **E2E `origin/main`:** **`8906485`** — E2E Version Awareness (20.5Z.2B) + Happy Path (`caf344e`)  
-**PWA `origin/main`:** **`46556a7`** — PWA + Version Awareness (20.5Z.2A)  
+**PWA `origin/main`:** **`46556a7`** — PWA + Version Awareness (20.5Z.2A) · prod SW **`wgdom-shell-2.50.65`**  
 **CI E2E:** **`#27260457990`** SUCCESS (happy + version)
 
-**★ Handoff pre-next-feature:** [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md) ← **START po backupie**  
+**★ Release 5C:** [`docs/RELEASE-REPORT-20.5Z.5C.md`](docs/RELEASE-REPORT-20.5Z.5C.md)  
+**★ Handoff pre-next-feature:** [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md) ← backup baseline  
 **★ Backup raport:** [`docs/BACKUP-REPORT-2.50.64.md`](docs/BACKUP-REPORT-2.50.64.md)  
 **★ Storage audit:** [`docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md`](docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md)  
 **★ Handoff końcowy 20.5Z:** [`docs/PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md)  
@@ -25,20 +25,22 @@
 ## Werdykt sesji
 
 ```text
-RELEASE READY — 20.5Z.5C (push main → Vercel)
+RELEASED
+STABLE
+READY FOR NEXT FEATURE STREAM
 ```
 
-Mobile Jobs List Width Fix **2.50.65** · build + smoke **PASS** · pre-feature backup baseline **zachowany** (`pre-next-feature-2.50.64`).
+Prod **2.50.65** wdrożony · pre-feature backup baseline **zachowany** (`pre-next-feature-2.50.64`).
 
 ---
 
-## Ostatni release — 20.5Z.5C (**RELEASED** / **DEPLOY READY**)
+## Ostatni release — 20.5Z.5C (**RELEASED**)
 
-| Sprint | Wersja | Zakres |
-|--------|--------|--------|
-| **20.5Z.5C** Mobile Jobs List Width | **2.50.65** | Roboty mobile `<640px` — lista pełna szerokość; pusty panel szczegółów `hidden sm:flex` |
+| Sprint | Wersja | Commit | Zakres |
+|--------|--------|--------|--------|
+| **20.5Z.5C** Mobile Jobs List Width Fix | **2.50.65** | **`6df03de`** | Roboty mobile `<640px` — lista pełna szerokość; pusty panel szczegółów `hidden sm:flex` |
 
-**Kluczowy plik:** `JobsView.tsx` (`flex-1 sm:flex-[7]`, wrapper empty detail `hidden sm:flex flex-[13]`)
+**Deploy:** **`82hqixksgPYSD8c5LRbkwEEFusn5`** · **Kluczowy plik:** `JobsView.tsx`
 
 **Smoke:**
 
@@ -90,7 +92,7 @@ npm run build
 | 20.5Z.4A Jobs Cleanup | `640e3a9` | **COMPLETE** |
 | **20.5Z.5A** Nav badge | `c7bc58f` | **RELEASED** |
 | **20.5Z.5B** Handover alert | `c7bc58f` | **RELEASED** |
-| **20.5Z.5C** Mobile list width | lokalnie | **RELEASED** · **DEPLOY READY** |
+| **20.5Z.5C** Mobile list width | `6df03de` | **RELEASED** |
 
 Audyt zamknięcia 20.5Z.3: **GO** · szczegóły: [`PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md)
 
@@ -98,9 +100,9 @@ Audyt zamknięcia 20.5Z.3: **GO** · szczegóły: [`PROJECT-HANDOFF-FINAL-20.5Z.
 
 ## Następny etap
 
-**Nowy stream feature** — baseline zabezpieczony tagiem `pre-next-feature-2.50.64`.
+**Nowy stream feature** — baseline zabezpieczony tagiem `pre-next-feature-2.50.64` · prod **2.50.65**.
 
-Propozycje z backlogu (tylko na polecenie): 20.3C legacy CC, Roboty 2.0 FULL, KV orphan cleanup.
+Propozycje z backlogu (tylko na polecenie): 20.3C legacy CC, Roboty 2.0 FULL, KV orphan cleanup, seria **20.6A** cleanup (docs dead code CI).
 
 ---
 
@@ -109,7 +111,7 @@ Propozycje z backlogu (tylko na polecenie): 20.3C legacy CC, Roboty 2.0 FULL, KV
 ```text
 1. AGENTS.md
 2. TEN PLIK (CURRENT-TASK.md)
-3. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md   ← ★ co zrobiliśmy + backup
+3. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md   ← backup + update 5C
 4. docs/PROJECT-HANDOFF.md
 5. docs/PROJECT-HANDOFF-FINAL-20.5Z.md
 6. docs/BACKUP-REPORT-2.50.64.md

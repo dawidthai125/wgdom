@@ -99,5 +99,5 @@ npm run test:mobile       # Playwright na wgdom.fun
 Przy optymalizacji wydajności:
 1. **Nie** importuj ciężkich modułów statycznie w `App.tsx` — lazy lub dynamic `import()`
 2. **pdfmake / pdf.js** — tylko on-demand (wzór: `loadPdfMake()`, analiza SWZ)
-3. Po zmianie bundla → podbij `wgdom-shell-vN` w `public/sw.js`
+3. Po zmianie wersji UI → wpis w `changelog-data.ts` + `npm run build` (SW: `dist/sw.js`, cache `wgdom-shell-{APP_VERSION}`)
 4. Uruchom `npm run build` i porównaj rozmiary `dist/assets/index-*.js`

@@ -26,17 +26,18 @@ Seria **20.5Z** domknęła warstwę **Platform Stabilization**: E2E gates, PWA h
 
 ## 2. PRODUCTION BASELINE
 
-> **Aktualizacja po pre-feature backup (2026-06-10):** prod przesunął się na **v2.50.64**. Szczegóły: [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
+> **Aktualizacja prod (2026-06-10):** **v2.50.65** · release **20.5Z.5C**. Backup snapshot: [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ```text
-Version:         2.50.64
-Deploy:          BxMBS2SFGiDxZmkHmwndVpr5RLin  (SUCCESS)
-Feature Commit:  c7bc58f     (20.5Z.5A/5B Jobs 2.0 alignment)
+Version:         2.50.65
+Deploy:          82hqixksgPYSD8c5LRbkwEEFusn5  (SUCCESS)
+Feature Commit:  6df03de     (20.5Z.5C Mobile Jobs List Width Fix)
+Poprzedni app:   c7bc58f     (20.5Z.5A/5B, v2.50.64)
 Git tag backup:  pre-next-feature-2.50.64 → c7bc58f
 E2E Commit:      8906485     (20.5Z.2B E2E Version Awareness)
 E2E Happy Path:  caf344e     (20.5Z.1)
 PWA Commit:      46556a7     (20.5Z.2A)
-Poprzedni app:   640e3a9     (20.5Z.4A Jobs Cleanup, v2.50.62)
+Prod SW:         wgdom-shell-2.50.65
 ```
 
 | Status | Wartość |
@@ -75,8 +76,21 @@ Poprzedni app:   640e3a9     (20.5Z.4A Jobs Cleanup, v2.50.62)
 | **20.5Z.2A** PWA hardening | build/infra | `46556a7` | Vercel `#5000728139` |
 | **20.5Z.4A** Jobs Cleanup | UI | `640e3a9` | Vercel `#5000967334` |
 | **20.5Z.2B** E2E Version Awareness | test | `8906485` | CI `#27260457990` |
+| **20.5Z.5A** Admin Nav Jobs Badge | UI | `c7bc58f` | Vercel `BxMBS2SFGiDxZmkHmwndVpr5RLin` |
+| **20.5Z.5B** Dashboard Handover Alert | UI | `c7bc58f` | v2.50.64 (bundle z 5A) |
+| **20.5Z.5C** Mobile Jobs List Width Fix | UI | `6df03de` | Vercel `82hqixksgPYSD8c5LRbkwEEFusn5` |
 
-**Raport 20.5Z.2B:** [`RELEASE-REPORT-20.5Z.2B.md`](RELEASE-REPORT-20.5Z.2B.md)
+**Raport 20.5Z.2B:** [`RELEASE-REPORT-20.5Z.2B.md`](RELEASE-REPORT-20.5Z.2B.md) · **5C:** [`RELEASE-REPORT-20.5Z.5C.md`](RELEASE-REPORT-20.5Z.5C.md)
+
+### 20.5Z.5C — Mobile Jobs List Width Fix (**RELEASED**)
+
+| Pole | Wartość |
+|------|---------|
+| **Wersja** | **2.50.65** |
+| **Commit** | **`6df03de`** |
+| **Deploy** | **`82hqixksgPYSD8c5LRbkwEEFusn5`** |
+| **Zakres** | Mobile-only (`<640px`) — lista Roboty pełna szerokość; `flex-1 sm:flex-[7]`; pusty panel `hidden sm:flex flex-[13]` |
+| **Status** | **RELEASED** |
 
 ---
 
@@ -207,7 +221,7 @@ Cross-tab (20.5B.7D): localStorage wg-update-server-version + storage event
 
 **Ważne:** `public/sw.js` **usunięty** — nie podbijać ręcznie; wystarczy wpis w `CHANGELOG[0]`.
 
-**Smoke:** `smoke-test-pwa-version-20.5z2a.mjs` (Z1–Z14) · Prod SW: `wgdom-shell-2.50.62`
+**Smoke:** `smoke-test-pwa-version-20.5z2a.mjs` (Z1–Z14) · Prod SW: `wgdom-shell-2.50.65` (cache z `CHANGELOG[0]` przy buildzie)
 
 ---
 
@@ -261,12 +275,12 @@ Wynik audytu **20.5Z.3** (READ ONLY):
 | Ryzyko | Poziom | Uwagi |
 |--------|--------|-------|
 | Stale localStorage nadpisuje KV (hasła admin, martwe URL) | **HIGH** | Known Issue P11/P15 — hard refresh po incydencie |
-| CI path gap — zmiana tylko `vercel.json`/`sw.template.js` bez triggera E2E | **MEDIUM** | Rozszerzyć `paths` w workflow |
+| CI path gap — `vercel.json`/`sw.template.js` bez triggera E2E | **LOW** | **Domknięte 20.6A.1** — `paths` w `e2e-happy-path.yml` |
 | PWA smoke Z1–Z14 poza CI | **MEDIUM** | Manualny |
 | Bulk auto-review raportów przy otwarciu roboty (admin) | **MEDIUM** | UX |
 | Sketch upload bez offline queue (worker) | **MEDIUM** | Słaba sieć |
 | Fragmentacja plików inspektora (detal vs global hub) | **MEDIUM** | UX |
-| Dryf `PROJECT-GUIDE.md` (stary baseline, `public/sw.js`) | **MEDIUM** | Docs debt |
+| Dryf dokumentacji SSOT | **LOW** | **20.6A.2** — PROJECT-GUIDE, README, handoffy |
 | Duplikat `loadPdfMake` w modułach PDF | **LOW** | Tech debt |
 | Settlement P0/P1 (CSV, dashboard KPI) | **LOW** | Osobny moduł billing — backlog 20.4C |
 
@@ -284,7 +298,7 @@ Kolejne prace **tylko na polecenie** użytkownika:
 | **Worker offline** | Kolejka offline dla sketch upload |
 | **Inspector UX** | Ujednolicenie detalu plików z Files Hub; PDF w sekcji reports |
 | **CI** | PWA smoke w CI; rozszerzenie `paths` workflow |
-| **Docs** | Aktualizacja `PROJECT-GUIDE.md` do v2.50.62 |
+| **Docs** | Utrzymanie SSOT po każdym release (CURRENT-TASK, handoffy) |
 | **20.5B.7C** | Optional auto refresh (domyślnie OFF) |
 | **20.5A.11** | Inspektor read-only załączniki w detalu roboty |
 | **20.3C** | Legacy CC + GuideView |
@@ -297,15 +311,16 @@ Kolejne prace **tylko na polecenie** użytkownika:
 
 ## 13. FINAL VERDICT
 
-Seria **20.5Z Platform Stabilization** jest **zakończona**. Platforma WGDOM v2.50.62 jest gotowa do kolejnego strumienia funkcji.
+Seria **20.5Z Platform Stabilization** jest **zakończona** (w tym **20.5Z.5C**). Platforma WGDOM **v2.50.65** jest gotowa do kolejnego strumienia funkcji.
 
 ```text
 20.5Z
 
-COMPLETE
+COMPLETE (+ 5A/5B/5C)
 
-WGDOM v2.50.62
+WGDOM v2.50.65
 
+RELEASED
 STABLE
 E2E HARDENED
 PWA HARDENED

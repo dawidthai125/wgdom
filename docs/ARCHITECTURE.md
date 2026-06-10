@@ -735,7 +735,7 @@ Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTST
 
 #### Roboty 2.0 MIN (lista admina, v2.45.32)
 
-Warstwa operacyjna **bez** nowych kluczy KV, syncu ani Edge. Logika w [`src/lib/job-list-ops.ts`](../src/lib/job-list-ops.ts); UI w `JobsView` + `JobListCard`.
+Warstwa operacyjna **bez** nowych kluczy KV, syncu ani Edge. Logika w [`src/lib/job-list-ops.ts`](../src/lib/job-list-ops.ts); UI w `JobsView` + `JobListCardV2`.
 
 | Element | Opis |
 |---------|------|
@@ -756,7 +756,7 @@ Audyt pełny MIN/MID/FULL: [`jobs-2.0-product-audit.md`](jobs-2.0-product-audit.
 |------|------|
 | `src/app/JobListPanelHeader.tsx` | Nagłówek listy: CTA w jednym rzędzie, KPI (5 kafelków, scroll poziomy), szukaj + **Filtry ▼**, `JobListFilterBar` |
 | `src/app/JobsView.tsx` | Podłączenie nagłówka; lista + detail bez zmian logiki filtrowania |
-| `src/app/JobListCard.tsx` | Hierarchia karty: adres+status → klient•termin → BZP→Ekipa→WM→meta → docs/koszt → alerty |
+| `src/app/JobListCardV2.tsx` | Hierarchia karty: adres+status → klient•termin → BZP→Ekipa→WM→meta → docs/koszt → alerty (`JobListCard.tsx` legacy — nieużywany) |
 | `src/app/JobListStatus.tsx` | Fazy w jednym rzędzie ze scroll (layout) |
 
 | UX | Opis |
@@ -816,7 +816,7 @@ Bez zmian: payroll, grafik (`workerTodayWorkInfo`, `scheduleCellFor`), Tender Ce
 | `src/lib/job-wm.ts` | `assignExecutionTeam`, merge pól ekipy przy sync |
 | `src/lib/cloud-sync.ts` | `mergeJobsById` — scalanie lead + union assignees |
 | `src/app/JobsView.tsx` | Select lidera + checkboxy ekipy w banerze kontraktu |
-| `src/app/JobListCard.tsx` | Badge „Ekipa: N” |
+| `src/app/JobListCardV2.tsx` | Badge operacyjne + recoverable na karcie listy |
 
 Bez zmian: payroll, grafik, portfolio WM, Tender Center, Executive, Supabase Edge, `workEntries`.
 
