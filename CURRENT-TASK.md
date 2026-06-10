@@ -10,7 +10,7 @@
 **E2E `origin/main`:** **`8906485`** — E2E Version Awareness (20.5Z.2B) + Happy Path (`caf344e`)  
 **PWA `origin/main`:** **`46556a7`** — PWA + Version Awareness (20.5Z.2A)  
 **Jobs Cleanup `origin/main`:** **`640e3a9`** — Jobs View Cleanup (20.5Z.4A)  
-**Docs `origin/main`:** **`ca5fabb`** — release docs 20.5Z.2B  
+**Docs `origin/main`:** **`794fcc4`** — PROJECT-HANDOFF-FINAL-20.5Z  
 **Deploy prod:** **`5000967334`**  
 **CI E2E:** **`#27260457990`** SUCCESS (happy + version)
 
@@ -134,9 +134,19 @@
 
 ---
 
+## Audyt zamknięcia — 20.5Z.3 (**GO**)
+
+Wszystkie obszary platformy: **PASS** (Worker, Admin, Inspector, Files Hub, PDF, Version Awareness, PWA, E2E, Operational).
+
+**Werdykt:** `20.5Z COMPLETE` · **READY FOR NEXT FEATURE STREAM**
+
+Szczegóły: [`docs/PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md) § 10–13
+
+---
+
 ## Następny etap
 
-**Platform Stabilization — kolejny sprint na polecenie**
+**Kolejny feature stream — na polecenie użytkownika** (brak otwartego sprintu)
 
 ---
 
