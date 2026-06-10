@@ -2,9 +2,9 @@
 
 **Data:** 2026-06-09  
 **Wersja UI:** **2.50.58**  
-**Commit:** *(uzupełnione po push)*  
-**Deploy:** *(uzupełnione po deploy)*  
-**Status:** **RELEASED**
+**Commit:** **`211364b`** — `feat(files): Files Hub consolidation with unified file counters (20.5A.12)`  
+**Deploy:** **`4999362359`** — **SUCCESS**  
+**Status:** **RELEASED · STABLE**
 
 ---
 
@@ -56,12 +56,11 @@ Warstwa prezentacji **Files Hub** — jeden widok plików roboty bez migracji da
 
 ## Prod verify
 
-*(Uzupełnione po deploy)*
-
-| Check | w gdom.fun | wgdom.online |
-|-------|------------|--------------|
-| `/version.json` = 2.50.58 | | |
-| Prod smoke 2.50.58 | | |
+| Check | wgdom.fun | wgdom.online |
+|-------|-----------|--------------|
+| `/version.json` = 2.50.58 | **PASS** | **PASS** |
+| Prod smoke 2.50.58 | **PASS** (21/21 required) | **PASS** |
+| CI Mobile smoke | **PASS** (run `27252163593`) | — |
 
 ---
 

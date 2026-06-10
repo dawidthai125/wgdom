@@ -1,6 +1,6 @@
 # SESSION HANDOFF — Seria 20.5B.5 → 20.5A.12 (2026-06-09)
 
-> **Status:** **CLOSED** · **Prod baseline:** v**2.50.58** · *(commit/deploy — patrz RELEASE-REPORT-20.5A.12)*
+> **Status:** **CLOSED** · **Prod baseline:** v**2.50.58** · commit **`211364b`** · deploy **`4999362359`**
 
 Handoff zbiorczy: Roboty UX Pack, audyt dokumentacji, naming refresh, version awareness, Worker Mobile UX, **Files Hub Consolidation**, gotowość operacyjna worker/inspektor.
 
@@ -10,12 +10,14 @@ Handoff zbiorczy: Roboty UX Pack, audyt dokumentacji, naming refresh, version aw
 
 ```text
 Version: 2.50.58
+App commit: 211364b
+Deploy: 4999362359
 Status: RELEASED · STABLE
 ```
 
 | Sprint | Wersja | Commit | Deploy | Raport |
 |--------|--------|--------|--------|--------|
-| **20.5A.12** Files Hub | 2.50.58 | *(release)* | *(release)* | [`RELEASE-REPORT-20.5A.12.md`](RELEASE-REPORT-20.5A.12.md) |
+| **20.5A.12** Files Hub | 2.50.58 | `211364b` | `4999362359` | [`RELEASE-REPORT-20.5A.12.md`](RELEASE-REPORT-20.5A.12.md) |
 | **20.5B.6A.4** Worker Mobile UX | 2.50.57 | `c983b9c` | `4998989024` | [`RELEASE-REPORT-20.5B.6A.4.md`](RELEASE-REPORT-20.5B.6A.4.md) |
 | **20.5B.7** Version Awareness | 2.50.56 | `1be7a80` | `4995835869` | [`RELEASE-REPORT-20.5B.7.md`](RELEASE-REPORT-20.5B.7.md) |
 | **20.5B.6A.1** Dokumentacja Naming | 2.50.55 | `782fe87` | `4995467947` | [`RELEASE-REPORT-20.5B.6A.1.md`](RELEASE-REPORT-20.5B.6A.1.md) |

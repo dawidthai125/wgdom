@@ -10,11 +10,11 @@
 | Pole | Wartość |
 |------|---------|
 | **Wersja UI** | **2.50.58** |
-| **Commit** | *(po push — patrz raport release)* |
-| **Deploy** | *(po deploy — patrz raport release)* |
+| **Commit** | **`211364b`** — `feat(files): Files Hub consolidation with unified file counters (20.5A.12)` |
+| **Deploy** | **`4999362359`** — **SUCCESS** |
 | **Status** | **RELEASED · STABLE** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | *(po push)* |
+| **Repo `origin/main`** | **`211364b`** |
 
 **Poprzedni baseline:** v2.50.57 · `c983b9c` · deploy `4998989024`
 

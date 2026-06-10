@@ -6,8 +6,8 @@
 **Ostatnia aktualizacja:** 2026-06-09  
 **Current Version:** **2.50.58**  
 **Current Baseline:** **RELEASED · STABLE**  
-**Prod `origin/main` (app):** *(po push — patrz raport release)* · https://www.wgdom.fun  
-**Deploy prod:** *(po deploy)*
+**Prod `origin/main` (app):** **`211364b`** · https://www.wgdom.fun · v2.50.58  
+**Deploy prod:** **`4999362359`**
 
 ---
 
