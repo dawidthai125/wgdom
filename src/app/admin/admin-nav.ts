@@ -25,6 +25,7 @@ import { jobsWithInspectorNotesNeedingAdmin } from "@/lib/job-wm";
 import type { EmailContact } from "@/lib/email-contacts";
 import { countUnsettledRecoverableCharges } from "@/lib/recoverable-charges";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
+import { countActiveJobsForNavBadge } from "@/lib/job-list-ops";
 
 export type View =
   | "dashboard"
@@ -117,14 +118,11 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
     {
       key: "jobs",
       label: "Roboty",
-      hint: "Adresy remontów: dokumenty, czas pracy, materiały, zdjęcia i raporty.",
+      hint: "Adresy remontów: dokumenty, czas pracy, materiały, zdjęcia i raporty. Badge = roboty W toku + Do odbioru (Jobs 2.0).",
       icon: MapPin,
       badge: (() => {
-        const pend = jobs.reduce(
-          (s, j) => s + (j.photos || []).filter((p) => p.status === "pending").length,
-          0,
-        );
-        return pend > 0 ? pend : jobs.filter((j) => j.status === "in_progress").length || undefined;
+        const n = countActiveJobsForNavBadge(jobs);
+        return n > 0 ? n : undefined;
       })(),
     },
     {

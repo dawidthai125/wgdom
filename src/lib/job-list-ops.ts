@@ -112,6 +112,11 @@ export function computeJobListOpsKpi(jobs: JobListOpsJob[]): JobListOpsKpi {
   };
 }
 
+/** SSOT badge menu admina Roboty — fazy operacyjne Jobs 2.0 (20.5Z.5A). */
+export function countActiveJobsForNavBadge(jobs: JobListOpsJob[]): number {
+  return countJobsByListFilter(jobs, "in_progress") + countJobsByListFilter(jobs, "handover");
+}
+
 export function jobMatchesOpsChip(
   job: JobListOpsJob,
   chip: JobOpsChip,

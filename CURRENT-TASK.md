@@ -4,7 +4,7 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-10  
-**Current Version:** **2.50.62**  
+**Current Version:** **2.50.64**  
 **Current Baseline:** **STABLE · E2E HARDENED · PWA HARDENED · JOBS CLEANUP**  
 **Prod `origin/main` (app):** **`640e3a9`** · https://www.wgdom.fun · v2.50.62  
 **E2E `origin/main`:** **`8906485`** — E2E Version Awareness (20.5Z.2B) + Happy Path (`caf344e`)  
@@ -29,8 +29,38 @@
 | **20.5Z.2A** PWA hardening | `46556a7` | build | deploy `#5000728139` |
 | **20.5Z.4A** Jobs Cleanup | `640e3a9` | UI | deploy `#5000967334` |
 | **20.5Z.2B** E2E Version Awareness | `8906485` | test | CI `#27260457990` |
+| **20.5Z.5A** Admin Nav Jobs Badge | *(lokalnie)* | UI | badge = W toku + Do odbioru |
+| **20.5Z.5B** Dashboard Handover Alert | *(lokalnie)* | UI | Uwaga dziś — Roboty do odbioru |
 
 **E2E lokalnie:** `npm run build` → `preview @4173` → `test:e2e:happy` + `test:e2e:version`
+
+---
+
+## Sprint 20.5Z.5B — Dashboard Handover Alert (**COMPLETE lokalnie**)
+
+| Pole | Wartość |
+|------|---------|
+| **Wersja** | **2.50.64** |
+| **Zakres** | Pulpit „Uwaga dziś” — alert Roboty do odbioru (`jobMatchesListFilter` handover) |
+| **attentionCount** | **Bez handover** (nakładanie z jobsMissingDocs) |
+
+**Kluczowe pliki:** `DashboardView.tsx`
+
+**Smoke:** `npx vite-node scripts/smoke-test-dashboard-handover-alert-20.5z5b.mjs`
+
+---
+
+## Sprint 20.5Z.5A — Admin Navigation Jobs Badge (**COMPLETE lokalnie**)
+
+| Pole | Wartość |
+|------|---------|
+| **Wersja** | **2.50.63** |
+| **Zakres** | Menu Roboty badge = `countActiveJobsForNavBadge()` (Jobs 2.0 W toku + Do odbioru) |
+| **Model/sync** | **Bez zmian** — UI-only |
+
+**Kluczowe pliki:** `job-list-ops.ts`, `admin-nav.ts`
+
+**Smoke:** `npx vite-node scripts/smoke-test-admin-nav-jobs-badge-20.5z5a.mjs`
 
 ---
 
@@ -146,7 +176,7 @@ Szczegóły: [`docs/PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-
 
 ## Następny etap
 
-**Kolejny feature stream — na polecenie użytkownika** (brak otwartego sprintu)
+**Deploy 20.5Z.5A + 20.5Z.5B** (push `main` → Vercel)
 
 ---
 

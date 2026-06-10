@@ -46,7 +46,12 @@ import {
   jobsWithInspectorNotesNeedingAdmin,
 } from "@/lib/job-wm";
 import { resolveInspectorFeedDeepLink } from "@/lib/inspector-feed-deeplink";
-import { jobMissingRequiredDocs } from "@/lib/job-list-status";
+import {
+  jobMatchesListFilter,
+  jobMissingRequiredDocs,
+  JOB_LIST_STATUS_CONFIG,
+  resolveJobListStatus,
+} from "@/lib/job-list-status";
 import { getReportWorkScopeText } from "@/lib/work-scope-text";
 import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
 import {
@@ -212,6 +217,20 @@ export function DashboardView({
   const wmOverdueJobs = useMemo(() => wmJobsWithOverduePlanned(jobs), [jobs]);
   const wmThisWeekJobs = useMemo(() => wmJobsPlannedThisWeek(jobs), [jobs]);
 
+  const handoverJobs = useMemo(
+    () =>
+      [...jobs.filter((j) => jobMatchesListFilter(j, "handover"))].sort((a, b) => {
+        const pa = a.plannedHandoverDate || "";
+        const pb = b.plannedHandoverDate || "";
+        if (pa && pb) return pa.localeCompare(pb);
+        if (pa) return -1;
+        if (pb) return 1;
+        return (b.startDate || "").localeCompare(a.startDate || "");
+      }),
+    [jobs],
+  );
+  const handoverJobCount = handoverJobs.length;
+
   const markInspectorAlertsSeen = () => {
     const ts = new Date().toISOString();
     markInspectorFeedSeen(adminUserId, ts).catch(() => {});
@@ -268,6 +287,10 @@ export function DashboardView({
     wmOverdueJobs.length +
     wmThisWeekJobs.length +
     recoverableChargesAttention;
+
+  /** 20.5Z.5B — handover poza attentionCount (nakładanie z jobsMissingDocs); sekcja informacyjna. */
+  const showUwagaDzis = attentionCount > 0 || handoverJobCount > 0;
+  const uwagaDzisHeaderBadge = attentionCount > 0 ? attentionCount : handoverJobCount;
 
   const handleFixConsistency = (alert: PayrollJobConsistencyAlert) => {
     onFixJobs((prev) => fixJobsForConsistencyAlert(prev, alert, weekEmployees, weekFrom, weekTo, directory));
@@ -516,12 +539,12 @@ export function DashboardView({
         )}
 
         {/* Uwaga dziś */}
-        {attentionCount > 0 && (
+        {showUwagaDzis && (
           <div className="bg-card border border-amber-500/20 rounded-xl overflow-hidden">
             <div className="px-5 py-3.5 border-b border-amber-500/15 flex items-center gap-2 bg-amber-500/5">
               <AlertTriangle size={14} className="text-amber-400 shrink-0"/>
               <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">Uwaga dziś</span>
-              <span className="text-[10px] bg-amber-500/15 text-amber-400 px-1.5 py-0.5 rounded-full font-bold ml-auto">{attentionCount}</span>
+              <span className="text-[10px] bg-amber-500/15 text-amber-400 px-1.5 py-0.5 rounded-full font-bold ml-auto">{uwagaDzisHeaderBadge}</span>
             </div>
             <div className="divide-y divide-border">
               {jobsMissingDocs.length > 0 && (
@@ -866,6 +889,56 @@ export function DashboardView({
                     ))}
                     {pendingReports.length > 5 && (
                       <p className="text-[10px] text-muted-foreground">+ {pendingReports.length - 5} więcej</p>
+                    )}
+                  </div>
+                </div>
+              )}
+              {handoverJobCount > 0 && (
+                <div className="px-5 py-3.5">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-sm font-medium flex items-center gap-2">
+                      <ClipboardCheck size={14} className="text-orange-400"/>
+                      Roboty do odbioru
+                      <span className="text-[10px] bg-orange-500/15 text-orange-400 px-1.5 py-0.5 rounded-full font-bold">
+                        {handoverJobCount}
+                      </span>
+                    </p>
+                    <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline">
+                      Roboty →
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    {handoverJobs.slice(0, 5).map((job) => {
+                      const statusKind = resolveJobListStatus(job);
+                      const statusLabel = JOB_LIST_STATUS_CONFIG[statusKind].label;
+                      return (
+                        <button
+                          key={job.id}
+                          type="button"
+                          onClick={() => onNavigate("jobs", job.id)}
+                          className="w-full text-left text-xs text-muted-foreground truncate hover:text-foreground transition-colors"
+                        >
+                          <span className="text-foreground">{job.address || "Bez adresu"}</span>
+                          {job.flatNumber ? ` m.${job.flatNumber}` : ""}
+                          {job.client ? (
+                            <>
+                              {" · "}
+                              <span className="text-foreground/90">{job.client}</span>
+                            </>
+                          ) : null}
+                          {" · "}
+                          <span className="text-orange-500/90">{statusLabel}</span>
+                          {job.plannedHandoverDate ? (
+                            <>
+                              {" · "}
+                              {fmtPlannedHandover(job.plannedHandoverDate)}
+                            </>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                    {handoverJobCount > 5 && (
+                      <p className="text-[10px] text-muted-foreground">+ {handoverJobCount - 5} więcej</p>
                     )}
                   </div>
                 </div>

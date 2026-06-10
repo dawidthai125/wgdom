@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.62** · JobAllFilesView Hub 20.5A.12B.1-full)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-10 (2.50.62 — § 13.1 / § 14 PWA 20.5Z.2A)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.64** · Dashboard handover alert 20.5Z.5B)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-10 (2.50.64 — Pulpit alert handover)
 
 ---
 
@@ -172,7 +172,7 @@ Filtr stosowany w `resolveAuthorContact()` (`content-author-contact.ts`) i `Auth
 
 | `view` | Opis | Główna funkcja w App.tsx |
 |--------|------|--------------------------|
-| `dashboard` | Pulpit: operacje (roboty, płace, WM) + **COMMAND CENTER executive** (7G) + „Uwaga dziś” | `DashboardView` |
+| `dashboard` | Pulpit: operacje (roboty, płace, WM) + **COMMAND CENTER executive** (7G) + „Uwaga dziś” (m.in. **Roboty do odbioru** 20.5Z.5B — `jobMatchesListFilter(handover)`, poza `attentionCount`) | `DashboardView` |
 | `payroll` | Lista płac | `PayrollView` |
 | `schedule` | Grafik tygodnia | `ScheduleView` |
 | `directory` | Kartoteka pracowników | `DirectoryView` |
@@ -1021,7 +1021,7 @@ WGDOM1/
 | `directory` | Pracownicy | *(App.tsx)* | Kartoteka |
 | `contacts` | Kontakty | *(App.tsx)* | E-mail klientów |
 | `archive` | Archiwum | *(App.tsx)* | Zapisane tygodnie |
-| `jobs` | Roboty | `JobsView.tsx` | MID-B, billing panel 20.5A |
+| `jobs` | Roboty | `JobsView.tsx` | MID-B, billing panel 20.5A · **badge menu** = `countActiveJobsForNavBadge()` (W toku + Do odbioru, 20.5Z.5A) |
 | `inspector` | Inspektor | `InspectorAdminView.tsx` | Feed zmian terenowych |
 | `recoverablecharges` | Do rozliczenia | `RecoverableChargesView.tsx` | Settlement 20.3A–20.4C |
 | `media` | Zdjęcia i pliki | `MediaView.tsx` | Galeria obrazów + dokumenty · liczniki · ZIP |

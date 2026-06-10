@@ -12,6 +12,28 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-10",
+    version: "2.50.64",
+    label: "Dashboard Handover Alert (20.5Z.5B)",
+    items: [
+      {
+        type: "improve",
+        text: "Pulpit — sekcja „Uwaga dziś”: alert „Roboty do odbioru” (faza Jobs 2.0) z listą adresów i klientów; klik otwiera robotę w module Roboty",
+      },
+    ],
+  },
+  {
+    date: "2026-06-10",
+    version: "2.50.63",
+    label: "Admin Navigation Jobs Badge Alignment (20.5Z.5A)",
+    items: [
+      {
+        type: "improve",
+        text: "Menu Roboty — badge liczy fazy operacyjne Jobs 2.0 (W toku + Do odbioru) zamiast legacy licznika zdjęć oczekujących na akceptację",
+      },
+    ],
+  },
+  {
+    date: "2026-06-10",
     version: "2.50.62",
     label: "JobAllFilesView Full Hub Alignment (20.5A.12B.1-full)",
     items: [
