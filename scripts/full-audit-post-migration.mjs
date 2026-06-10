@@ -144,7 +144,7 @@ async function prodSiteCheck() {
   out.hasOldSupabase = html.includes(OLD_REF);
   const sw = await fetch(`${PROD_SITE}/sw.js`);
   out.swOk = sw.ok;
-  out.swCache = sw.ok ? (await sw.text()).match(/wgdom-shell-v\d+/)?.[0] : null;
+  out.swCache = sw.ok ? (await sw.text()).match(/wgdom-shell-[^"]+/)?.[0] : null;
   const jobsChunk = html.match(/panel-jobs-[\w]+\.js/)?.[0];
   if (jobsChunk) {
     const jr = await fetch(`${PROD_SITE}/assets/${jobsChunk}`);

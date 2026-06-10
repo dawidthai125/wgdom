@@ -52,7 +52,7 @@ function grepFiles(dir, pattern, ext = ".tsx") {
 // ─── Pliki wymagane ───
 for (const f of [
   "public/manifest.webmanifest",
-  "public/sw.js",
+  "scripts/sw.template.js",
   "public/offline.html",
   "src/styles/mobile.css",
   "src/lib/capacitor-native.ts",
@@ -80,7 +80,7 @@ if (manifestRaw) {
 }
 
 // ─── SW precache ───
-const sw = read("public/sw.js") || "";
+const sw = read("scripts/sw.template.js") || "";
 sw.includes("offline.html") ? pass("sw", "offline.html w SW") : fail("sw", "SW nie cache'uje offline.html");
 sw.includes("apple-touch-icon") ? pass("sw", "apple-touch-icon w precache") : warn("sw", "Brak apple-touch-icon w precache");
 

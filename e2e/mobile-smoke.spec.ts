@@ -46,7 +46,7 @@ test.describe("Mobile smoke — PWA / web", () => {
     expect(res.ok()).toBeTruthy();
     const js = await res.text();
     expect(js).toContain("offline.html");
-    expect(js).toMatch(/wgdom-shell-v\d+/);
+    expect(js).toMatch(/wgdom-shell-/);
   });
 
   test("ikony PWA — 192 i 512 odpowiadają", async ({ request, baseURL }) => {

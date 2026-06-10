@@ -1,4 +1,5 @@
-const CACHE = "wgdom-shell-v25";
+/** Wygenerowany przy buildzie — CACHE z APP_VERSION (20.5Z.2A). Szablon: scripts/sw.template.js */
+const CACHE = "__SW_CACHE_NAME__";
 const PRECACHE = [
   "/",
   "/index.html",
@@ -27,6 +28,12 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+
+  // 20.5Z.2A — version.json: network-only (bez cache SW i bez fallback do index.html)
+  if (url.pathname === "/version.json") {
+    event.respondWith(fetch(event.request));
+    return;
+  }
 
   event.respondWith(
     fetch(event.request)

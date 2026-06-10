@@ -3,7 +3,7 @@
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
 > **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.62** · JobAllFilesView Hub 20.5A.12B.1-full)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-10 (2.50.62 — § 12.1.2 JobAllFilesView Full Hub Alignment)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-10 (2.50.62 — § 13.1 / § 14 PWA 20.5Z.2A)
 
 ---
 
@@ -67,7 +67,7 @@ Konfiguracja: `src/config/supabase.ts` → `isSupabaseConfigured()` — bez tych
 | Dane lokalne | `localStorage` + merge timestampów |
 | Chmura | Supabase Edge Function (Hono) + KV store + Storage |
 | Hosting UI | Vercel (SPA, auto-deploy z `main`) |
-| PWA | `public/sw.js`, `manifest.webmanifest` |
+| PWA | `scripts/sw.template.js` → `dist/sw.js`, `manifest.webmanifest` |
 | Native | Capacitor (Android/iOS) — WebView → www.wgdom.fun |
 | Testy E2E | Playwright (`e2e/`) |
 | PDF | pdfmake (lazy load), docx (dynamic import) |
@@ -919,11 +919,11 @@ Inspektor ma analogiczny flow w `InspectorPhotoGallery.tsx` + `InspectorJobPhoto
 - **Env vars** (Production + Preview): `VITE_SUPABASE_PROJECT_ID`, `VITE_SUPABASE_ANON_KEY`
 - Brak env → aplikacja działa offline-only ze starym LS, sync error w UI
 
-**Po deployu PWA:** podbij wersję cache w `public/sw.js` (`wgdom-shell-vN`) — inaczej użytkownicy mają stary JS do hard refresh.
+**PWA cache (20.5Z.2A):** `dist/sw.js` generowany przy buildzie z `scripts/sw.template.js` — `CACHE = wgdom-shell-{APP_VERSION}`. **Nie podbijaj ręcznie** — wystarczy wpis w `CHANGELOG[0]`.
 
 ---
 
-## 13.1 Version Awareness (20.5B.7 → 20.5B.7D)
+## 13.1 Version Awareness (20.5B.7 → 20.5B.7D → 20.5Z.2A)
 
 | Plik | Rola |
 |------|------|
@@ -932,9 +932,14 @@ Inspektor ma analogiczny flow w `InspectorPhotoGallery.tsx` + `InspectorJobPhoto
 | `src/app/AppUpdateBanner.tsx` | Globalny banner „Odśwież teraz” / „Później” (session dismiss) |
 | `dist/version.json` | Generowany przy buildzie — `{ "version": "2.50.x" }` |
 | `scripts/read-changelog-version.mjs` | Parser wersji z `changelog-data.ts` (build + smoke) |
-| `vite.config.ts` | Plugin `wgdom-version-json` + `__APP_VERSION__` define |
+| `vite.config.ts` | Plugin `wgdom-version-json` + `wgdom-service-worker` + `__APP_VERSION__` define |
+| `scripts/sw.template.js` | Szablon SW (precache shell, network-first assets) |
+| `scripts/generate-service-worker.mjs` | Render `dist/sw.js` z `wgdom-shell-{version}` |
+| `vercel.json` | `Cache-Control: no-store` dla `/version.json` |
 
 **Flow:** karta ładuje bundle z wbudowanym `APP_VERSION`. Co 5 min (oraz przy powrocie do karty) klient pobiera `/version.json` z `cache: no-store`. Gdy `serverVersion !== APP_VERSION` → banner u góry ekranu. **Brak auto-reload** — użytkownik klika „Odśwież teraz” (`location.reload()`).
+
+**20.5Z.2A — SW × version.json:** Service Worker **nie cache'uje** `/version.json` (network-only, bez fallback do `index.html`). Vercel dodatkowo wysyła `Cache-Control: no-store` dla tego pliku. Dzięki temu Version Awareness nie koliduje z precache SW.
 
 **Cross-tab sync (20.5B.7D):** gdy karta wykryje nowszą wersję, zapisuje `localStorage["wg-update-server-version"]`. Pozostałe karty tej samej domeny odbierają `storage` event i ustawiają `serverVersion` bez czekania na polling/focus. Przy starcie hook seeduje stan z tego klucza (jeśli `stored !== APP_VERSION`). Gdy `APP_VERSION === stored` — klucz jest czyszczony. Dismiss (`sessionStorage`) pozostaje per karta.
 
@@ -948,10 +953,12 @@ Inspektor ma analogiczny flow w `InspectorPhotoGallery.tsx` + `InspectorJobPhoto
 
 | Plik | Rola |
 |------|------|
-| `public/sw.js` | Shell cache (v20), network-first, `/assets/*`, fallback offline |
+| `scripts/sw.template.js` | Szablon Service Workera (źródło) |
+| `dist/sw.js` | **Generowany przy buildzie** — `CACHE = wgdom-shell-{APP_VERSION}`, network-first `/assets/*`, offline fallback |
 | `public/manifest.webmanifest` | standalone, ikony maskable |
 | `public/offline.html` | Brak sieci |
 | `src/lib/pwa-install.ts` | Rejestracja SW (**wyłączona** w Capacitor) |
+| `scripts/smoke-test-pwa-version-20.5z2a.mjs` | Smoke PWA + Version hardening (Z1–Z14) |
 | `src/styles/mobile.css` | 100dvh, touch 44px, input 16px, klawiatura |
 | `src/lib/mobile-keyboard.ts` | `--keyboard-inset`, scroll do focus |
 | `scripts/mobile-audit.mjs` | 36 statycznych checków |
