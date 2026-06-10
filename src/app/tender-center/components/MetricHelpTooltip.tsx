@@ -13,7 +13,8 @@ export type MetricHelpId =
   | "strategic-score"
   | "impact-score"
   | "financial-capacity"
-  | "forecast-90";
+  | "forecast-90"
+  | "offer-overload";
 
 export const METRIC_HELP: Record<
   MetricHelpId,
@@ -140,13 +141,34 @@ export const METRIC_HELP: Record<
     title: METRIC_LABEL_PL.forecast90,
     body: (
       <>
-        <p>Prognoza obłożenia firmy na najbliższe 3 miesiące.</p>
-        <p className="font-medium text-foreground/90">Pomaga wykrywać:</p>
+        <p>
+          Prognoza zajętych slotów równoległych realizacji na 30, 60 i 90 dni (scenariusz 50% wygranych GO).
+        </p>
+        <p className="font-medium text-foreground/90">Format:</p>
         <ul className="list-disc pl-4 space-y-0.5">
-          <li>przestoje</li>
-          <li>przeciążenie</li>
-          <li>potrzebę nowych kontraktów</li>
-          <li>potrzebę zatrudnienia</li>
+          <li>
+            <strong>4 / 4 slotów</strong> — wszystkie sloty zajęte
+          </li>
+          <li>
+            <strong>6 / 4 slotów (+2 ponad limit)</strong> — więcej kontraktów niż limit równoległych robót
+          </li>
+        </ul>
+        <p className="pt-1">To nie jest procent sukcesu — pokazuje obłożenie względem limitu z profilu firmy.</p>
+      </>
+    ),
+  },
+  "offer-overload": {
+    title: "Obciążenie ofert",
+    body: (
+      <>
+        <p>
+          Liczba ofert w przygotowaniu (zainteresowany + w przygotowaniu) w stosunku do limitu równoległych robót z
+          profilu firmy.
+        </p>
+        <p className="font-medium text-foreground/90">Format slotów:</p>
+        <ul className="list-disc pl-4 space-y-0.5">
+          <li>3 / 4 slotów — trzy oferty przy limicie czterech równoległych realizacji</li>
+          <li>(+N ponad limit) — więcej ofert niż bezpieczny limit równoległych startów</li>
         </ul>
       </>
     ),

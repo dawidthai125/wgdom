@@ -125,6 +125,7 @@ export function OwnerDashboard({
     pipeline,
     growthModeState,
     setGrowthMode: applyGrowthMode,
+    profile,
     health,
     healthExplanation,
     morningBriefing,
@@ -281,7 +282,10 @@ export function OwnerDashboard({
             <AccordionItem value="kpi">
               <AccordionTrigger>KPI rynku</AccordionTrigger>
               <AccordionContent>
-                <OpportunityOverview kpi={marketKpi} />
+                <OpportunityOverview
+                  kpi={marketKpi}
+                  maxConcurrentProjects={profile.maxConcurrentProjects}
+                />
               </AccordionContent>
             </AccordionItem>
 

@@ -1,5 +1,7 @@
 import { BarChart3, TrendingUp, Wallet, AlertTriangle, Shield } from "lucide-react";
 import type { TenderCenterMarketKpi } from "@/lib/tender-center-kpi";
+import { formatForecastSlots } from "@/lib/tender-center-forecast-display";
+import { MetricHelpTooltip } from "@/app/tender-center/components/MetricHelpTooltip";
 import { SECTION_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 
 function fmtPln(n: number): string {
@@ -16,12 +18,14 @@ function KpiTile({
   sub,
   icon: Icon,
   accent,
+  helpMetricId,
 }: {
   label: string;
   value: string;
   sub?: string;
   icon: typeof BarChart3;
   accent?: "primary" | "amber" | "violet" | "red";
+  helpMetricId?: "offer-overload";
 }) {
   const accentCls =
     accent === "amber"
@@ -39,6 +43,7 @@ function KpiTile({
       <div className="flex items-center gap-1.5 text-muted-foreground">
         <Icon size={12} />
         <span className="text-[10px] uppercase tracking-wider font-medium">{label}</span>
+        {helpMetricId && <MetricHelpTooltip metricId={helpMetricId} />}
       </div>
       <p
         className="text-lg font-semibold leading-tight"
@@ -51,7 +56,17 @@ function KpiTile({
   );
 }
 
-export function OpportunityOverview({ kpi }: { kpi: TenderCenterMarketKpi }) {
+export function OpportunityOverview({
+  kpi,
+  maxConcurrentProjects,
+}: {
+  kpi: TenderCenterMarketKpi;
+  maxConcurrentProjects: number;
+}) {
+  const preparingOfferCount = kpi.interestedCount + kpi.preparingCount;
+  const offerSlots = formatForecastSlots(preparingOfferCount, maxConcurrentProjects);
+  const overloadAccent = offerSlots.overBy > 0 || kpi.overloadIndex >= 1 ? "amber" : undefined;
+
   return (
     <section className="rounded-xl border border-border bg-card overflow-hidden">
       <div className="px-4 py-3 border-b border-border flex items-center gap-2">
@@ -95,10 +110,15 @@ export function OpportunityOverview({ kpi }: { kpi: TenderCenterMarketKpi }) {
         />
         <KpiTile
           label="Obciążenie ofert"
-          value={`${Math.round(kpi.overloadIndex * 100)}%`}
-          sub="Względem max równoległych projektów"
+          value={offerSlots.primaryLabel}
+          sub={
+            offerSlots.overLabel
+              ? `${offerSlots.overLabel} · oferty w przygotowaniu vs limit robót`
+              : "Oferty w przygotowaniu vs limit równoległych robót"
+          }
           icon={TrendingUp}
-          accent={kpi.overloadIndex >= 1 ? "amber" : undefined}
+          accent={overloadAccent}
+          helpMetricId="offer-overload"
         />
         <KpiTile
           label="Skuteczność"

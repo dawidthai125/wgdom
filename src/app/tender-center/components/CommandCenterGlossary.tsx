@@ -23,7 +23,7 @@ const GLOSSARY = [
   },
   {
     term: GLOSSARY_TERM_PL.forecast90,
-    text: "Prognoza obłożenia firmy na 30, 60 i 90 dni (scenariusz wygranych ofert). Pomaga wychwycić przestoje, przeciążenie i potrzebę nowych kontraktów lub zatrudnienia.",
+    text: "Prognoza zajętych slotów równoległych realizacji na 30, 60 i 90 dni (scenariusz 50% wygranych GO). Format „4 / 4 slotów” lub „6 / 4 (+2 ponad limit)” — obłożenie względem limitu z profilu, nie procent sukcesu. Pomaga wychwycić przestoje, przeciążenie i potrzebę nowych kontraktów lub zatrudnienia.",
   },
   {
     term: GLOSSARY_TERM_PL.growthMode,

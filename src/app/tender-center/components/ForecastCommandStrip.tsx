@@ -6,21 +6,22 @@ import {
   riskTone,
   utilizationBarTone,
 } from "@/lib/tender-center-forecast-90d";
+import { formatForecastSlots } from "@/lib/tender-center-forecast-display";
 import { MetricHelpTooltip } from "@/app/tender-center/components/MetricHelpTooltip";
 import { BASELINE_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 
 function HorizonTile({
   days,
-  utilizationPct,
-  risk,
   activeJobs,
+  maxConcurrentProjects,
+  risk,
 }: {
   days: number;
-  utilizationPct: number;
-  risk: keyof typeof FORECAST_RISK_LABEL_PL;
   activeJobs: number;
+  maxConcurrentProjects: number;
+  risk: keyof typeof FORECAST_RISK_LABEL_PL;
 }) {
-  const width = Math.min(100, Math.max(4, utilizationPct));
+  const slots = formatForecastSlots(activeJobs, maxConcurrentProjects);
 
   return (
     <div className="rounded-xl border border-border bg-secondary/25 px-3 py-3 space-y-2">
@@ -31,17 +32,23 @@ function HorizonTile({
         </span>
       </div>
       <p
-        className="text-3xl font-bold tabular-nums leading-none"
+        className="text-2xl font-bold tabular-nums leading-tight"
         style={{ fontFamily: "'JetBrains Mono', monospace" }}
       >
-        {utilizationPct}
-        <span className="text-lg text-muted-foreground">%</span>
+        {slots.primaryLabel}
       </p>
-      <p className="text-[10px] text-muted-foreground">Obłożenie · {activeJobs} równoległych</p>
+      {slots.overLabel && (
+        <p className="text-[11px] font-medium text-orange-600 dark:text-orange-400 tabular-nums">
+          {slots.overLabel}
+        </p>
+      )}
+      <p className="text-[10px] text-muted-foreground">
+        Równoległe realizacje · limit {slots.capacity} slotów
+      </p>
       <div className="h-2 rounded-full bg-secondary overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${utilizationBarTone(utilizationPct)}`}
-          style={{ width: `${width}%` }}
+          className={`h-full rounded-full transition-all ${utilizationBarTone(slots.utilizationPct)}`}
+          style={{ width: `${slots.barWidthPct}%` }}
         />
       </div>
     </div>
@@ -54,6 +61,10 @@ export function ForecastCommandStrip({ forecast }: { forecast: Forecast90DaysRes
   const h60 = primary.horizons.find((h) => h.days === 60);
   const h90 = primary.horizons.find((h) => h.days === 90);
   const horizons = [h30, h60, h90].filter(Boolean);
+  const maxConcurrent = forecast.maxConcurrentProjects;
+
+  const h90LowSlots =
+    h90 != null && formatForecastSlots(h90.activeJobs, maxConcurrent).utilizationPct < 30;
 
   return (
     <section className="rounded-xl border border-border bg-card overflow-hidden">
@@ -74,9 +85,9 @@ export function ForecastCommandStrip({ forecast }: { forecast: Forecast90DaysRes
             <HorizonTile
               key={h!.days}
               days={h!.days}
-              utilizationPct={h!.utilizationPct}
-              risk={h!.risk}
               activeJobs={h!.activeJobs}
+              maxConcurrentProjects={maxConcurrent}
+              risk={h!.risk}
             />
           ))}
         </div>
@@ -88,9 +99,9 @@ export function ForecastCommandStrip({ forecast }: { forecast: Forecast90DaysRes
           </p>
         )}
 
-        {h90 && h90.utilizationPct < 30 && (
+        {h90LowSlots && (
           <p className="text-xs text-center text-red-600 dark:text-red-400 font-medium">
-            Za 90 dni może być problem — obłożenie poniżej 30%.
+            Za 90 dni może być problem — poniżej 30% limitu równoległych slotów.
           </p>
         )}
       </div>
