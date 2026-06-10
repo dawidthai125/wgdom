@@ -11,7 +11,7 @@
 |------|---------|
 | **Wersja UI** | **2.50.62** |
 | **Commit** | **`381e4b0`** — `feat(jobs): JobAllFilesView full hub alignment 20.5A.12B.1-full` |
-| **Deploy** | *(uzupełnij po Vercel)* — **SUCCESS** |
+| **Deploy** | **`5000308828`** — **SUCCESS** |
 | **Status** | **RELEASED · STABLE** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Repo `origin/main`** | **`381e4b0`** |

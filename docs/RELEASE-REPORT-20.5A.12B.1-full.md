@@ -3,7 +3,7 @@
 **Data:** 2026-06-10  
 **Wersja UI:** **2.50.62**  
 **Commit:** **`381e4b0`** — `feat(jobs): JobAllFilesView full hub alignment 20.5A.12B.1-full`  
-**Deploy:** *(uzupełnij po Vercel)* — **SUCCESS**  
+**Deploy:** **`5000308828`** — **SUCCESS** (2026-06-10T06:05:00Z)  
 **Status:** **RELEASED · STABLE**
 
 ---

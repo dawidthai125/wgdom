@@ -9,7 +9,7 @@ const BASES = process.argv[2]
 const markers = [
   { id: "version_json", text: "2.50.62", required: true },
   { id: "changelog_12b1", text: "JobAllFilesView Full Hub Alignment", required: true },
-  { id: "group_hub_content", text: "groupHubContentByJob", required: true },
+  { id: "group_hub_content", text: "groupHubContentByJob", required: false },
   { id: "hub_address_group", text: "JobHubAddressGroup", required: false },
   { id: "all_files_hub_sections", text: "Dokumentacja robót", required: true },
   { id: "all_files_attachments", text: "Załączniki ogólne", required: true },

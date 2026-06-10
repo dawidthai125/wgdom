@@ -7,7 +7,7 @@
 **Current Version:** **2.50.62**  
 **Current Baseline:** **RELEASED · STABLE**  
 **Prod `origin/main` (app):** **`381e4b0`** · https://www.wgdom.fun · v2.50.62  
-**Deploy prod:** *(uzupełnij po Vercel)*
+**Deploy prod:** **`5000308828`**
 
 ---
 
