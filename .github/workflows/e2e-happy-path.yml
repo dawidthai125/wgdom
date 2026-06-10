@@ -51,9 +51,14 @@ jobs:
         env:
           PW_BASE_URL: http://127.0.0.1:4173
 
+      - name: E2E Version Awareness 20.5Z.2B
+        run: npm run test:e2e:version
+        env:
+          PW_BASE_URL: http://127.0.0.1:4173
+
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: e2e-happy-path-report
+          name: e2e-stabilization-report
           path: e2e-report/
           retention-days: 7

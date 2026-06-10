@@ -25,6 +25,12 @@ export default defineConfig({
       fullyParallel: false,
     },
     {
+      name: "e2e-version-awareness",
+      use: { browserName: "chromium", viewport: { width: 1280, height: 800 } },
+      testMatch: /version-awareness\.spec\.ts/,
+      fullyParallel: false,
+    },
+    {
       name: "desktop-chrome",
       use: { browserName: "chromium", viewport: { width: 1920, height: 1080 } },
       testMatch: /desktop-(smoke|layout)\.spec\.ts/,
