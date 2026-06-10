@@ -5,187 +5,99 @@
 
 **Ostatnia aktualizacja:** 2026-06-10  
 **Current Version:** **2.50.64**  
-**Current Baseline:** **STABLE · E2E HARDENED · PWA HARDENED · JOBS CLEANUP**  
-**Prod `origin/main` (app):** **`640e3a9`** · https://www.wgdom.fun · v2.50.62  
+**Current Baseline:** **STABLE · E2E HARDENED · PWA HARDENED · PRE-FEATURE BACKUP SECURED**  
+**Prod `origin/main` (app):** **`c7bc58f`** · https://www.wgdom.fun · v2.50.64  
+**Git tag backup:** **`pre-next-feature-2.50.64`** → `c7bc58f`  
+**Deploy prod:** **`BxMBS2SFGiDxZmkHmwndVpr5RLin`**  
 **E2E `origin/main`:** **`8906485`** — E2E Version Awareness (20.5Z.2B) + Happy Path (`caf344e`)  
 **PWA `origin/main`:** **`46556a7`** — PWA + Version Awareness (20.5Z.2A)  
-**Jobs Cleanup `origin/main`:** **`640e3a9`** — Jobs View Cleanup (20.5Z.4A)  
-**Docs `origin/main`:** **`794fcc4`** — PROJECT-HANDOFF-FINAL-20.5Z  
-**Deploy prod:** **`5000967334`**  
 **CI E2E:** **`#27260457990`** SUCCESS (happy + version)
 
+**★ Handoff pre-next-feature:** [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md) ← **START po backupie**  
+**★ Backup raport:** [`docs/BACKUP-REPORT-2.50.64.md`](docs/BACKUP-REPORT-2.50.64.md)  
+**★ Storage audit:** [`docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md`](docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md)  
 **★ Handoff końcowy 20.5Z:** [`docs/PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md)  
 **Handoff serii 20.5Z:** [`docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md)
 
 ---
 
+## Werdykt sesji
+
+```text
+READY FOR NEXT FEATURE STREAM
+```
+
+Prod **2.50.64** wdrożony · pre-feature backup **COMPLETE** · storage-full **100%** · dokumentacja zaktualizowana.
+
+---
+
+## Ostatni release — 20.5Z.5A + 20.5Z.5B (**RELEASED**)
+
+| Sprint | Wersja | Commit | Zakres |
+|--------|--------|--------|--------|
+| **20.5Z.5A** Admin Nav Jobs Badge | 2.50.63 | `c7bc58f` | Badge Roboty = W toku + Do odbioru (`countActiveJobsForNavBadge`) |
+| **20.5Z.5B** Dashboard Handover Alert | **2.50.64** | **`c7bc58f`** | Pulpit „Uwaga dziś” — Roboty do odbioru |
+
+**Kluczowe pliki:** `job-list-ops.ts`, `admin-nav.ts`, `DashboardView.tsx`
+
+**Smoke:**
+
+```bash
+npx vite-node scripts/smoke-test-admin-nav-jobs-badge-20.5z5a.mjs    # 8/8
+npx vite-node scripts/smoke-test-dashboard-handover-alert-20.5z5b.mjs  # 11/11
+```
+
+---
+
+## Pre-feature backup v2.50.64 (**COMPLETE**)
+
+| Element | Status |
+|---------|--------|
+| Git tag `pre-next-feature-2.50.64` | **PASS** |
+| KV + schema + edge snapshot | **PASS** |
+| Repo bundle + archive | **PASS** |
+| Storage manifest | **PASS** (140 obiektów) |
+| Storage-full binaria | **PASS** (140/140, 54.15 MB) |
+| Email rdzeń KV+docs | **PASS** (`dawid.thai@int.pl`) |
+| Email pełny ZIP 52.8 MB | **FAIL** (limit Resend 40 MB) |
+
+**Lokalnie (poza repo):** `C:\Users\dawid\Downloads\WGDOM-BACKUP-2.50.64*` — **nie commitować** `kv-data.json` (hashe adminów).
+
+**Skrypty:** `run-pre-feature-backup-2.50.64.mjs`, `run-storage-full-backup-2.50.64.mjs`, `send-pre-feature-backup-email-2.50.64.mjs`
+
+---
+
 ## Seria 20.5Z — Platform Stabilization (**COMPLETE**)
 
-> Oficjalny dokument zamknięcia: [`docs/PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md)
+| Sprint | Commit | Status |
+|--------|--------|--------|
+| 20.5Z.1 E2E Happy Path | `caf344e` | **COMPLETE** |
+| 20.5Z.2A PWA hardening | `46556a7` | **COMPLETE** |
+| 20.5Z.2B E2E Version Awareness | `8906485` | **COMPLETE** |
+| 20.5Z.4A Jobs Cleanup | `640e3a9` | **COMPLETE** |
+| **20.5Z.5A** Nav badge | `c7bc58f` | **RELEASED** |
+| **20.5Z.5B** Handover alert | `c7bc58f` | **RELEASED** |
 
-| Sprint | Commit | Typ | Status |
-|--------|--------|-----|--------|
-| **20.5Z.1** E2E Happy Path | `caf344e` | test | CI `#27258082838` |
-| **20.5Z.2A** PWA hardening | `46556a7` | build | deploy `#5000728139` |
-| **20.5Z.4A** Jobs Cleanup | `640e3a9` | UI | deploy `#5000967334` |
-| **20.5Z.2B** E2E Version Awareness | `8906485` | test | CI `#27260457990` |
-| **20.5Z.5A** Admin Nav Jobs Badge | *(lokalnie)* | UI | badge = W toku + Do odbioru |
-| **20.5Z.5B** Dashboard Handover Alert | *(lokalnie)* | UI | Uwaga dziś — Roboty do odbioru |
-
-**E2E lokalnie:** `npm run build` → `preview @4173` → `test:e2e:happy` + `test:e2e:version`
-
----
-
-## Sprint 20.5Z.5B — Dashboard Handover Alert (**COMPLETE lokalnie**)
-
-| Pole | Wartość |
-|------|---------|
-| **Wersja** | **2.50.64** |
-| **Zakres** | Pulpit „Uwaga dziś” — alert Roboty do odbioru (`jobMatchesListFilter` handover) |
-| **attentionCount** | **Bez handover** (nakładanie z jobsMissingDocs) |
-
-**Kluczowe pliki:** `DashboardView.tsx`
-
-**Smoke:** `npx vite-node scripts/smoke-test-dashboard-handover-alert-20.5z5b.mjs`
-
----
-
-## Sprint 20.5Z.5A — Admin Navigation Jobs Badge (**COMPLETE lokalnie**)
-
-| Pole | Wartość |
-|------|---------|
-| **Wersja** | **2.50.63** |
-| **Zakres** | Menu Roboty badge = `countActiveJobsForNavBadge()` (Jobs 2.0 W toku + Do odbioru) |
-| **Model/sync** | **Bez zmian** — UI-only |
-
-**Kluczowe pliki:** `job-list-ops.ts`, `admin-nav.ts`
-
-**Smoke:** `npx vite-node scripts/smoke-test-admin-nav-jobs-badge-20.5z5a.mjs`
-
----
-
-## Sprint 20.5A.12 — Files Hub (**COMPLETE**)
-
-| Element | Status |
-|---------|--------|
-| 12A Files Hub UI | **COMPLETE** (2.50.58) |
-| 12B liczniki SSOT | **COMPLETE** |
-| 12B.1-min nagłówek | **COMPLETE** |
-| **12B.1-full JobAllFilesView** | **COMPLETE** (2.50.62) |
-| 12C Worker Report PDF | **COMPLETE** (2.50.61) |
-
----
-
-## Sprint 20.5A.12B.1-full — JobAllFilesView Hub Alignment (**RELEASED**)
-
-| Pole | Wartość |
-|------|---------|
-| **Wersja** | **2.50.62** |
-| **Commit** | **`381e4b0`** |
-| **Zakres** | Kafle per adres — kontrakt + dokumentacja + załączniki (SSOT `files-hub-index.ts`) |
-| **Model/sync** | **Bez zmian** — UI-only |
-
-**Kluczowe pliki:** `files-hub-index.ts`, `JobAllFilesView.tsx`
-
-**Raport:** [`docs/RELEASE-REPORT-20.5A.12B.1-full.md`](docs/RELEASE-REPORT-20.5A.12B.1-full.md)
-
-**Smoke:** `smoke-test-files-hub-20.5a12.mjs` (T15–T22), `smoke-prod-bundle-2.50.62.mjs`
-
----
-
-## Sprint 20.5Z.1 — E2E-HAPPY-PATH-001 (**COMPLETE**)
-
-| Element | Status |
-|---------|--------|
-| Preview @ 4173 + LS seed | **COMPLETE** |
-| Cloud sync isolation | **COMPLETE** |
-| Worker → dokumentacja | **COMPLETE** |
-| Admin → dokumentacja + Files Hub | **COMPLETE** |
-| Inspector → dokumentacja | **COMPLETE** |
-| GitHub Actions `e2e-happy-path` | **COMPLETE** (`#27258082838` SUCCESS) |
-
-**Commit:** **`caf344e`** · **Smoke lokalny:** `npm run test:e2e:happy` PASS · **CI:** 1 passed
-
-**Kluczowe pliki:** `e2e/fixtures/e2e-seed.ts`, `e2e/helpers/`, `e2e/worker-admin-inspector-happy-path.spec.ts`, `.github/workflows/e2e-happy-path.yml`
-
----
-
-## Sprint 20.5Z.2A — PWA + Version Awareness Hardening (**COMPLETE**)
-
-| Element | Status |
-|---------|--------|
-| Versioned Service Worker Cache | **COMPLETE** (`wgdom-shell-{APP_VERSION}`) |
-| `version.json` network-only w SW | **COMPLETE** |
-| Vercel `Cache-Control: no-store` | **COMPLETE** |
-| PWA Smoke Coverage | **COMPLETE** (Z1–Z14) |
-
-**Commit:** **`46556a7`** · **Deploy:** **`5000728139`** SUCCESS · **Prod SW:** `wgdom-shell-2.50.62`
-
-**Kluczowe pliki:** `scripts/sw.template.js`, `scripts/generate-service-worker.mjs`, `vite.config.ts`, `vercel.json`, `scripts/smoke-test-pwa-version-20.5z2a.mjs`
-
----
-
-## Sprint 20.5Z.4A — Jobs View Cleanup (**COMPLETE**)
-
-| Element | Status |
-|---------|--------|
-| Ukrycie KPI „Bez ekipy” / „WM po terminie” | **COMPLETE** |
-| Legenda — bez wpisów ukrytych filtrów | **COMPLETE** |
-| Kolejki — `HIDDEN_QUEUE_SECTION_IDS` | **COMPLETE** |
-| Pozostałe filtry (W toku, Do odbioru, BZP) | **VISIBLE** |
-
-**Commit:** **`640e3a9`** · **Deploy:** **`5000967334`** SUCCESS · **Model/sync:** UI-only
-
-**Kluczowe pliki:** `JobListPanelHeader.tsx`, `JobListGuidePanel.tsx`, `JobQueueSections.tsx`
-
-**Smoke prod:** brak literałów `Bez ekipy` / `WM po terminie` w bundlu `JobsView-*.js`
-
----
-
-## Sprint 20.5Z.2B — E2E Version Awareness (**COMPLETE**)
-
-| Element | Status |
-|---------|--------|
-| VA-001 detekcja nowej wersji | **COMPLETE** |
-| VA-002 dismiss (Później) | **COMPLETE** |
-| VA-003 reload + cleanup | **COMPLETE** |
-| VA-004 cross-tab sync | **COMPLETE** |
-| CI `e2e-happy-path` (happy + version) | **COMPLETE** |
-
-**Commit:** **`8906485`** · **CI:** `#27260457990` · **Test-only** — bez zmian `src/**`
-
-**Kluczowe pliki:** `e2e/version-awareness.spec.ts`, `e2e/helpers/version-awareness.ts`, `playwright.config.ts`, `.github/workflows/e2e-happy-path.yml`
-
-**Raport:** [`docs/RELEASE-REPORT-20.5Z.2B.md`](docs/RELEASE-REPORT-20.5Z.2B.md)
-
-**Smoke:** `npm run test:e2e:version` (VA-001…VA-004) · `npm run test:e2e:happy`
-
-**Pułapka E2E:** storage reset przez `addInitScript` (nie `evaluate` przed `goto`)
-
----
-
-## Audyt zamknięcia — 20.5Z.3 (**GO**)
-
-Wszystkie obszary platformy: **PASS** (Worker, Admin, Inspector, Files Hub, PDF, Version Awareness, PWA, E2E, Operational).
-
-**Werdykt:** `20.5Z COMPLETE` · **READY FOR NEXT FEATURE STREAM**
-
-Szczegóły: [`docs/PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md) § 10–13
+Audyt zamknięcia 20.5Z.3: **GO** · szczegóły: [`PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md)
 
 ---
 
 ## Następny etap
 
-**Deploy 20.5Z.5A + 20.5Z.5B** (push `main` → Vercel)
+**Nowy stream feature** — baseline zabezpieczony tagiem `pre-next-feature-2.50.64`.
+
+Propozycje z backlogu (tylko na polecenie): 20.3C legacy CC, Roboty 2.0 FULL, KV orphan cleanup.
 
 ---
 
 ## Szybki start dla agenta
 
-1. [`AGENTS.md`](AGENTS.md)
-2. Ten plik
-3. [`docs/PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md) ← **★ oficjalny handoff końcowy 20.5Z**
-4. [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)
-5. [`docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md)
-6. [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md)
-7. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.2 + § 13.1
+```text
+1. AGENTS.md
+2. TEN PLIK (CURRENT-TASK.md)
+3. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md   ← ★ co zrobiliśmy + backup
+4. docs/PROJECT-HANDOFF.md
+5. docs/PROJECT-HANDOFF-FINAL-20.5Z.md
+6. docs/BACKUP-REPORT-2.50.64.md
+7. docs/ARCHITECTURE.md § 11 (sync) + § 12.1.2 (pliki)
+```

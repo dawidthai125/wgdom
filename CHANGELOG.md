@@ -4,9 +4,16 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.64** (`changelog-data.ts`) · Dashboard handover alert 20.5Z.5B
+**Aktualna wersja UI:** **2.50.64** (`changelog-data.ts`) · Dashboard handover alert 20.5Z.5B  
+**Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
+
+## Docs (2026-06-10) — Pre-Next-Feature Handoff + Backup
+
+* **Docs:** `SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`, `BACKUP-REPORT-2.50.64.md`, `AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md`
+* **Docs:** zaktualizowano `CURRENT-TASK.md`, `PROJECT-HANDOFF.md`, `AGENTS.md`, `ARCHITECTURE.md`, `BACKUP-SCHEDULE.md`
+* **Scripts:** `run-pre-feature-backup-2.50.64.mjs`, `run-storage-full-backup-2.50.64.mjs`, `send-pre-feature-backup-email-2.50.64.mjs`
 
 ## 2.50.64 (2026-06-10) — Dashboard Handover Alert (20.5Z.5B)
 

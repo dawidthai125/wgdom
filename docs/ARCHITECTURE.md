@@ -3,7 +3,8 @@
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
 > **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.64** · Dashboard handover alert 20.5Z.5B)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-10 (2.50.64 — Pulpit alert handover)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-10 (2.50.64 — pre-feature backup + storage audit)  
+> **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
 
@@ -592,7 +593,9 @@ Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTST
 | POST | `/tenders-bzp-attach-to-job` | Kopiowanie plików przetargu → roboty |
 | POST | `/tenders-external-discover` | **v2.44** — linki z ogłoszenia + crawl BIP/portali → pobranie plików do storage |
 
-**Storage bucket:** `make-0afb8820-photos` (public, auto-create)
+**Storage bucket:** `make-0afb8820-photos` (public, auto-create) — **jedyny bucket** w projekcie (audyt 2026-06-10: 140 obiektów, 54.15 MB). Frontend uploaduje wyłącznie przez Edge (`/storage-upload`, `/storage-delete`); bez bezpośredniego `supabase.storage` w `src/`.
+
+**Pre-feature backup (v2.50.64):** pełny eksport storage — [`AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md`](AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md) (**STORAGE BACKUP COMPLETE 100%**). Skrypty: `run-pre-feature-backup-2.50.64.mjs`, `run-storage-full-backup-2.50.64.mjs`.
 
 ### 12.1.1 Przetargi BZP (pipeline v2.37 → v2.45.12)
 

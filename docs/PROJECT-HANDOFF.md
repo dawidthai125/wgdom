@@ -1,7 +1,7 @@
 # W&G DOM — PROJECT HANDOFF
 
 > **Hasło:** „kontynuuj WGDOM” · **Data:** 2026-06-10  
-> **Przed nową pracą:** [`CURRENT-TASK.md`](../CURRENT-TASK.md) → [`AGENTS.md`](../AGENTS.md) → [`ARCHITECTURE.md`](ARCHITECTURE.md)  
+> **Przed nową pracą:** [`CURRENT-TASK.md`](../CURRENT-TASK.md) → [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md) → [`AGENTS.md`](../AGENTS.md)  
 > **★ Handoff końcowy serii 20.5Z:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md)
 
 ---
@@ -10,27 +10,64 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **2.50.62** |
-| **Commit (app)** | **`381e4b0`** — `feat(jobs): JobAllFilesView full hub alignment 20.5A.12B.1-full` |
-| **Commit (E2E)** | **`8906485`** — `test(e2e): E2E Version Awareness VA-001 to VA-004 20.5Z.2B` |
-| **Commit (E2E Happy Path)** | **`caf344e`** — `test(e2e): E2E-HAPPY-PATH-001 worker→admin→inspector 20.5Z.1` |
-| **Commit (PWA)** | **`46556a7`** — `fix(pwa): versioned SW cache and version.json network-only 20.5Z.2A` |
-| **Commit (Jobs Cleanup)** | **`640e3a9`** — `fix(jobs): hide Bez ekipy and WM po terminie KPI UI 20.5Z.4A` |
-| **Deploy** | **`5000967334`** — **SUCCESS** |
-| **Status** | **STABLE · E2E HARDENED · PWA HARDENED · JOBS CLEANUP** |
+| **Wersja UI** | **2.50.64** |
+| **Commit (app)** | **`c7bc58f`** — `release(ui): Jobs 2.0 navigation and dashboard alignment (20.5Z.5A/5B)` |
+| **Git tag backup** | **`pre-next-feature-2.50.64`** → `c7bc58f` |
+| **Deploy** | **`BxMBS2SFGiDxZmkHmwndVpr5RLin`** — **SUCCESS** |
+| **Status** | **STABLE · PRE-FEATURE BACKUP SECURED · READY FOR NEXT FEATURE STREAM** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | **`8906485`** (E2E 2B) · app feature **`381e4b0`** · Jobs Cleanup **`640e3a9`** |
+| **Commit (E2E)** | **`8906485`** — 20.5Z.2B E2E Version Awareness |
+| **Commit (PWA)** | **`46556a7`** — 20.5Z.2A PWA hardening |
 
-**Poprzedni baseline:** v2.50.61 · `1edf0f9` · deploy `5000212026` (Worker Report PDF 20.5A.12C)
+**Poprzedni baseline:** v2.50.62 · `381e4b0` / `640e3a9` · deploy `5000967334`
 
-**★ Handoff końcowy 20.5Z:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — oficjalne zamknięcie serii Platform Stabilization  
-**Handoff serii 20.5Z:** [`SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md) — E2E, PWA, Jobs Cleanup, Version Awareness E2E  
+**★ Handoff pre-next-feature:** [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md) — 5A/5B, backup, storage audit  
+**★ Backup:** [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md`](AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md)  
+**★ Handoff końcowy 20.5Z:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md)  
+**Handoff serii 20.5Z:** [`SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md)  
 **Handoff sesji 20.5B:** [`SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)  
-**Audyt operacyjny:** [`AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md) — worker/admin/inspektor **GO**
+**Audyt operacyjny:** [`AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md) — **GO**
 
 ---
 
-## Ostatni release — 20.5Z.2B / E2E Version Awareness
+## Ostatni release — 20.5Z.5A + 20.5Z.5B (Jobs 2.0 alignment)
+
+**Navigation badge + Dashboard handover alert** (UI-only, bez zmian sync/modelu)
+
+### Zakres
+
+- **20.5Z.5A** — badge menu Roboty = `countActiveJobsForNavBadge()` (W toku + Do odbioru)
+- **20.5Z.5B** — Pulpit „Uwaga dziś” — jawny alert „Roboty do odbioru” (`jobMatchesListFilter` handover)
+- **attentionCount** — bez handover (nakładanie z `jobsMissingDocs`)
+
+### Jakość
+
+| Check | Wynik |
+|-------|-------|
+| Vercel deploy | **SUCCESS** (`BxMBS2SFGiDxZmkHmwndVpr5RLin`) |
+| Prod `version.json` 2.50.64 | **PASS** |
+| Smoke 5A | **8/8 PASS** |
+| Smoke 5B | **11/11 PASS** |
+| Pre-feature backup + storage-full | **PASS** (140/140) |
+
+**Commit:** **`c7bc58f`**
+
+---
+
+## Pre-feature backup — 2.50.64
+
+| Element | Status |
+|---------|--------|
+| Tag `pre-next-feature-2.50.64` | **PASS** |
+| KV + schema + edge | **PASS** |
+| Storage-full | **PASS** (100% bucketa `make-0afb8820-photos`) |
+| Email rdzeń | **PASS** · pełny ZIP **FAIL** (Resend 40 MB) |
+
+**Raport:** [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md)
+
+---
+
+## Poprzedni release — 20.5Z.2B / E2E Version Awareness
 
 **Platform Stabilization — gate E2E dla Version Awareness** (test-only, bez zmian app/sync)
 

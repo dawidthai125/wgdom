@@ -40,6 +40,21 @@ Niedzielne backupy: GitHub → repo → **Actions** → run → **Artifacts** (9
 Wysyłka przez Edge Function `send-backup-email` (Resend).  
 Adres odbiorcy: sekret `BACKUP_EMAIL` na Supabase lub domyślnie `dawid.thai@int.pl`.
 
+## Pre-feature backup (punkt kontrolny przed nowym streamem)
+
+Przed rozpoczęciem nowego streamu feature wykonano pełny backup **v2.50.64** (2026-06-10):
+
+| Element | Skrypt / artefakt |
+|---------|-------------------|
+| Pełny backup KV + repo + docs | `node scripts/run-pre-feature-backup-2.50.64.mjs` |
+| Binaria storage (100% bucketa) | `node scripts/run-storage-full-backup-2.50.64.mjs` |
+| Email rdzeń (pod limit Resend) | `node scripts/send-pre-feature-backup-email-2.50.64.mjs --core-only` |
+| Git tag | `pre-next-feature-2.50.64` → commit `c7bc58f` |
+
+**Raporty:** [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
+
+**Uwaga:** artefakty lokalne (`WGDOM-BACKUP-2.50.64*`) zawierają hashe adminów — **nie commitować** do repo.
+
 ## Przywracanie
 
 ```powershell

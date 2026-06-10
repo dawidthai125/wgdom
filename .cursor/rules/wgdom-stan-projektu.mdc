@@ -12,8 +12,10 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI (prod):** **2.50.62** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
-- **Prod (`main` / `origin/main`, app):** **`640e3a9`** (Jobs Cleanup) · deploy **`5000967334`** · https://www.wgdom.fun · v2.50.62 · status **RELEASED · STABLE · GO · READY FOR NEXT FEATURE STREAM**
+- **Aktualna wersja UI (prod):** **2.50.64** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts)
+- **Prod (`main` / `origin/main`, app):** **`c7bc58f`** (20.5Z.5A/5B) · deploy **`BxMBS2SFGiDxZmkHmwndVpr5RLin`** · https://www.wgdom.fun · v2.50.64 · status **RELEASED · STABLE · PRE-FEATURE BACKUP SECURED · READY FOR NEXT FEATURE STREAM**
+- **Git tag backup:** **`pre-next-feature-2.50.64`** → `c7bc58f`
+- **★ Handoff pre-next-feature:** [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](../../docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md) · backup: [`docs/BACKUP-REPORT-2.50.64.md`](../../docs/BACKUP-REPORT-2.50.64.md) · storage audit: [`docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md`](../../docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md)
 - **E2E (`origin/main`):** **`8906485`** — **20.5Z.2B E2E Version Awareness** · VA-001…VA-004 + Happy Path (`caf344e`) · CI `e2e-happy-path` · status **E2E HARDENED**
 - **PWA (`origin/main`):** **`46556a7`** — **20.5Z.2A** · `wgdom-shell-{APP_VERSION}` · `version.json` network-only · status **PWA HARDENED**
 - **Jobs Cleanup (`origin/main`):** **`640e3a9`** — **20.5Z.4A** · ukryte KPI/kolejki „Bez ekipy” + „WM po terminie” · UI-only
@@ -22,6 +24,8 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **Seria 20.5Z.2B E2E Version Awareness:** **COMPLETE** — `version-awareness.spec.ts`, mock `/version.json`, cross-tab · `npm run test:e2e:version`
 - **Seria 20.5Z.2A PWA:** **COMPLETE** — build-time `dist/sw.js`, Vercel `no-store`, smoke Z1–Z14
 - **Seria 20.5Z.4A Jobs Cleanup:** **COMPLETE** — `JobListPanelHeader`, `JobListGuidePanel`, `JobQueueSections` · deploy **`5000967334`**
+- **Seria 20.5Z.5A/5B:** **RELEASED** (`c7bc58f`, v2.50.64) — badge Roboty + Pulpit handover alert
+- **Pre-feature backup 2.50.64:** **COMPLETE** — tag `pre-next-feature-2.50.64`, storage-full 140/140, email rdzeń PASS
 - **Seria 20.5Z Platform Stabilization:** **COMPLETE** — audyt 20.5Z.3 **GO** · brak otwartych sprintów w serii
 - **★★ Handoff końcowy 20.5Z:** [`docs/PROJECT-HANDOFF-FINAL-20.5Z.md`](../../docs/PROJECT-HANDOFF-FINAL-20.5Z.md) — oficjalne zamknięcie serii, baseline, architektura, readiness
 - **★ Handoff serii 20.5Z (szczegóły):** [`docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](../../docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md) — sprinty, komendy, pułapki E2E · CI `#27260457990`

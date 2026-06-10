@@ -26,16 +26,17 @@ Seria **20.5Z** domknęła warstwę **Platform Stabilization**: E2E gates, PWA h
 
 ## 2. PRODUCTION BASELINE
 
+> **Aktualizacja po pre-feature backup (2026-06-10):** prod przesunął się na **v2.50.64**. Szczegóły: [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
+
 ```text
-Version:         2.50.62
-Deploy:          5000967334  (SUCCESS)
-Feature Commit:  640e3a9     (20.5Z.4A Jobs Cleanup)
-App Feature:     381e4b0     (20.5A.12B.1-full JobAllFilesView Hub)
+Version:         2.50.64
+Deploy:          BxMBS2SFGiDxZmkHmwndVpr5RLin  (SUCCESS)
+Feature Commit:  c7bc58f     (20.5Z.5A/5B Jobs 2.0 alignment)
+Git tag backup:  pre-next-feature-2.50.64 → c7bc58f
 E2E Commit:      8906485     (20.5Z.2B E2E Version Awareness)
 E2E Happy Path:  caf344e     (20.5Z.1)
 PWA Commit:      46556a7     (20.5Z.2A)
-Docs Commit:     ca5fabb     (release docs 20.5Z.2B)
-Handoff Docs:    7dc4a5c     (SESSION-HANDOFF 20.5Z)
+Poprzedni app:   640e3a9     (20.5Z.4A Jobs Cleanup, v2.50.62)
 ```
 
 | Status | Wartość |
@@ -43,7 +44,8 @@ Handoff Docs:    7dc4a5c     (SESSION-HANDOFF 20.5Z)
 | **RELEASED** | TAK — prod https://www.wgdom.fun · https://www.wgdom.online |
 | **STABLE** | TAK |
 | **E2E HARDENED** | TAK — CI `#27260457990` |
-| **PWA HARDENED** | TAK — SW `wgdom-shell-2.50.62` |
+| **PWA HARDENED** | TAK — SW `wgdom-shell-{APP_VERSION}` |
+| **PRE-FEATURE BACKUP** | TAK — storage-full 100% |
 | **READY FOR NEXT FEATURE STREAM** | TAK |
 
 ---

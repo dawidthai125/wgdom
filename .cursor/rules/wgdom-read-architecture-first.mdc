@@ -9,14 +9,16 @@ Komunikuj się z użytkownikiem po **polsku**.
 
 ## Zanim zaczniesz pracę w tym repo
 
-1. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — skrót: co na prod (**2.50.58**, `211364b`).
-2. **Przeczytaj [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)** — baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT.
-3. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md)** — ostatnia sesja: Files Hub 20.5A.12 **RELEASED**.
-4. **Przeczytaj [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)** — Roboty UX, Version Awareness, Worker Mobile.
-5. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md)** — pliki roboty 20.5A.10 (trzy warstwy plików).
-6. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md)** — billing 20.5A.6 **RELEASED**.
-7. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § 9.1 dokumentacja robót, § 11 sync, § 12.1.2 Files Hub, § 13.1 wersja.
-8. Skrót wejścia: [`AGENTS.md`](AGENTS.md).
+1. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — skrót: co na prod (**2.50.64**, `c7bc58f`), backup, następny krok.
+2. **Przeczytaj [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)** — ★ co zrobiliśmy + pre-feature backup.
+3. **Przeczytaj [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)** — baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT.
+4. **Przeczytaj [`docs/BACKUP-REPORT-2.50.64.md`](docs/BACKUP-REPORT-2.50.64.md)** — backup baseline (jeśli dotyczy danych/storage).
+5. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md)** — Files Hub 20.5A.12 **RELEASED**.
+6. **Przeczytaj [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)** — Roboty UX, Version Awareness, Worker Mobile.
+7. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md)** — pliki roboty 20.5A.10 (trzy warstwy plików).
+8. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md)** — billing 20.5A.6 **RELEASED**.
+9. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § 9.1 dokumentacja robót, § 11 sync, § 12.1.2 Files Hub, § 13.1 wersja.
+10. Skrót wejścia: [`AGENTS.md`](AGENTS.md).
 
 Nie analizuj od zera całego `src/app/App.tsx` (~15k linii) — ARCHITECTURE.md opisuje system jako całość.
 

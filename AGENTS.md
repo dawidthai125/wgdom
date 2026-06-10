@@ -8,24 +8,27 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. CURRENT-TASK.md        ← ★ co na prod (v2.50.62) + E2E (`8906485`) + PWA (`46556a7`) + Jobs Cleanup (`640e3a9`)
-3. docs/PROJECT-HANDOFF-FINAL-20.5Z.md  ← ★★ oficjalny handoff końcowy serii 20.5Z (COMPLETE)
+2. CURRENT-TASK.md        ← ★ co na prod (v2.50.64 · c7bc58f) + backup + następny krok
+3. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md  ← ★★ co zrobiliśmy + backup baseline (CZYTAJ NA START)
 4. docs/PROJECT-HANDOFF.md  ← baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT
-5. docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md  ← seria 20.5Z — szczegóły sprintów
-6. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← Files Hub 20.5A.12
-7. docs/RELEASE-REPORT-20.5Z.2B.md  ← E2E Version Awareness (20.5Z.2B)
-8. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
-9. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← Roboty UX, Version, Worker Mobile
-10. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
-11. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← CC polonizacja CLOSED + mapa widoków
-12. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
-13. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
-14. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← gotowość worker/admin/inspektor GO
-15. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-16. docs/ARCHITECTURE.md   ← pełna architektura (§ 9.1 dokumentacja, § 12.1.2 pliki, § 13.1 wersja)
-17. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
-18. CHANGELOG.md          ← CO już zrobiono (skrót)
-19. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+5. docs/BACKUP-REPORT-2.50.64.md  ← pre-feature backup + storage-full
+6. docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md  ← audyt 100% storage
+7. docs/PROJECT-HANDOFF-FINAL-20.5Z.md  ← oficjalny handoff końcowy serii 20.5Z (COMPLETE)
+8. docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md  ← seria 20.5Z — szczegóły sprintów
+9. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← Files Hub 20.5A.12
+10. docs/RELEASE-REPORT-20.5Z.2B.md  ← E2E Version Awareness (20.5Z.2B)
+11. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
+12. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← Roboty UX, Version, Worker Mobile
+13. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
+14. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← CC polonizacja CLOSED + mapa widoków
+15. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
+16. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
+17. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← gotowość worker/admin/inspektor GO
+18. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+19. docs/ARCHITECTURE.md   ← pełna architektura (§ 9.1 dokumentacja, § 12.1.2 pliki, § 13.1 wersja)
+20. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
+21. CHANGELOG.md          ← CO już zrobiono (skrót)
+22. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -47,6 +50,9 @@
 | **docs/ARCHITECTURE.md** | Pełny techniczny przewodnik (living document) |
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
+| **docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md** | **★ Pre-next-feature** — 5A/5B, backup, storage, komendy |
+| **docs/BACKUP-REPORT-2.50.64.md** | Pre-feature backup v2.50.64 — artefakty, PASS/FAIL |
+| **docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md** | Audyt storage 100% — bucket, mapa kodu |
 | **docs/SESSION-HANDOFF-PERFORMANCE-2.x-2026-06.md** | Performance 2.x **CLOSED** (`35614f0`) — startup 1119 KB, seria 2.2C→2.4A |
 | **docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md** | Files Hub **20.5A.12 CLOSED** (`211364b`, v2.50.58) — hub UI, liczniki SSOT, bez migracji danych |
 | **docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md** | Seria **20.5B.5–7 + 20.5B.6A.4** — Roboty UX, Dokumentacja naming, Version Awareness, Worker Mobile |
@@ -95,8 +101,9 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.62**) |
-| Prod `main` (app) | JobAllFilesView Hub 20.5A.12B.1-full · **v2.50.62** (`381e4b0`) |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.64**) |
+| Prod `main` (app) | Jobs 2.0 alignment 20.5Z.5A/5B · **v2.50.64** (`c7bc58f`) |
+| Git tag backup | **`pre-next-feature-2.50.64`** → `c7bc58f` |
 | E2E `main` | **20.5Z.2B** · **`8906485`** · `test:e2e:happy` + `test:e2e:version` · CI `#27260457990` |
 | E2E komendy | `npm run build` → `preview @4173` → `PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:happy` / `test:e2e:version` |
 | Seria 20.5Z | **COMPLETE** — audyt 20.5Z.3 **GO** · [`PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md) |
