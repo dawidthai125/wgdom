@@ -13,6 +13,9 @@ on:
       - "public/**"
       - "index.html"
       - "vite.config.ts"
+      - "vercel.json"
+      - "scripts/sw.template.js"
+      - "scripts/generate-service-worker.mjs"
 
 jobs:
   e2e-happy-path:
