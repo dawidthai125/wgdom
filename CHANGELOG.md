@@ -4,7 +4,15 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.56** (`changelog-data.ts`) · Version Awareness 20.5B.7
+**Aktualna wersja UI:** **2.50.57** (`changelog-data.ts`) · Worker Mobile UX 20.5B.6A.4
+
+---
+
+## 2.50.57 (2026-06-09) — Worker Mobile UX (20.5B.6A.4)
+
+* **New:** Pasek postępu dokumentacji w trybie pracownika (Zdjęcia → Dokumentacja → Wymiary → Obrys)
+* **Improve:** Baner edukacyjny, CTA następnego kroku, klikalne kroki → scrollIntoView
+* **Improve:** Formularz worker mobile — większe touch targets (admin bez zmian)
 
 ---
 

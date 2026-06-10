@@ -9,21 +9,37 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **2.50.56** |
-| **Commit** | **`1be7a80`** — `feat(app): version awareness and update banner (20.5B.7)` |
-| **Deploy** | **`4995835869`** — **SUCCESS** |
-| **Status** | **RELEASED · STABLE** |
+| **Wersja UI** | **2.50.57** |
+| **Commit** | _TBD — `feat(worker): mobile UX progress flow and forms (20.5B.6A.4)`_ |
+| **Deploy** | _TBD_ — **SUCCESS** (oczekiwane) |
+| **Status** | **RELEASED · STABLE** (po weryfikacji prod) |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
-| **Repo `origin/main`** | **`1be7a80`** |
+| **Repo `origin/main`** | _TBD_ |
 
-**Brak aktywnych blockerów.** **Brak aktywnych incydentów.**
+**Poprzedni baseline:** v2.50.56 · `1be7a80` · deploy `4995835869`
 
 **Handoff sesji:** [`SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)  
 **Audyt operacyjny:** [`AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md) — worker/admin/inspektor **GO**
 
 ---
 
-## Ostatni release — 20.5B.7 / 2.50.56
+## Ostatni release — 20.5B.6A.4 / 2.50.57
+
+**Worker Mobile UX** — progress flow, CTA, mobile forms (UX only)
+
+### Funkcje
+
+- Pasek postępu dokumentacji (Zdjęcia → Dokumentacja → Wymiary → Obrys)
+- Wyliczanie z `myPhotos` + `myReports` — bez nowych pól
+- Baner edukacyjny + CTA następnego kroku
+- Klikalne kroki → scroll do sekcji
+- `JobReportForm layout="worker"` — touch 44px+ (admin bez zmian)
+
+**Raport:** [`RELEASE-REPORT-20.5B.6A.4.md`](RELEASE-REPORT-20.5B.6A.4.md)
+
+---
+
+## Poprzedni release — 20.5B.7 / 2.50.56
 
 **Version Awareness & Update Banner** — wykrywanie nowej wersji po deployu
 

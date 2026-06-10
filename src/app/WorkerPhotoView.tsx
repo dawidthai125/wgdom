@@ -62,6 +62,9 @@ import {
   resolveWorkerContractDateLabel,
 } from "@/app/app-domain";
 import { JobReportForm } from "@/app/JobReportForm";
+import { WorkerJobProgressFlow } from "@/app/WorkerJobProgressFlow";
+import { WorkerEducationBanner, WorkerStepCta } from "@/app/WorkerStepCta";
+import { computeWorkerJobProgress } from "@/lib/worker-job-progress";
 import { getReportWorkScopeText, reportHasWorkScope } from "@/lib/work-scope-text";
 import { syncJobDocuments, clearReportDocSaOverrideFromReport } from "@/lib/job-documents";
 import { queuePhoto, listQueuedPhotos, removeQueuedPhoto, queuedPhotoCount } from "@/lib/photo-queue";
@@ -637,6 +640,10 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
     ? filterAvailablePhotos((selectedJob.photos || []).filter((p) => p.uploadedBy === workerName))
     : [];
   const myReports = selectedJob ? jobWorkerReports(selectedJob).filter(r => r.workerName === workerName) : [];
+  const workerProgress = useMemo(
+    () => computeWorkerJobProgress(myPhotos, myReports),
+    [myPhotos, myReports],
+  );
 
   return (
     <div
@@ -1075,6 +1082,10 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
               <p className="text-xs text-muted-foreground mt-0.5">{selectedJob.client||"—"} · Rozpoczęto {fmtDate(selectedJob.startDate)}</p>
             </div>
 
+            <WorkerEducationBanner />
+            <WorkerJobProgressFlow steps={workerProgress.steps} />
+            <WorkerStepCta allComplete={workerProgress.allComplete} nextStep={workerProgress.nextStep} mode="action" />
+
             {uploading && (
               <div className="bg-primary/10 border border-primary/20 rounded-xl px-4 py-3 flex items-center gap-3">
                 <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0"/>
@@ -1085,6 +1096,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
             )}
             {uploadError && <p className="text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2">{uploadError}</p>}
 
+            <div id="worker-section-photos" className="scroll-mt-4 space-y-5">
             <div className="bg-card border border-primary/25 rounded-2xl p-4 space-y-4">
               <div>
                 <p className="text-sm font-semibold flex items-center gap-2"><ImagePlus size={16} className="text-primary"/>Galeria — wiele zdjęć</p>
@@ -1140,54 +1152,6 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                   </div>
                 </div>
               )}
-            </div>
-
-            {myReports.length > 0 && (
-              <div>
-                <p className="text-sm font-semibold mb-3">Twoja dokumentacja ({myReports.length})</p>
-                <div className="space-y-2">
-                  {[...myReports].reverse().map((r) => (
-                    <div key={r.id} className={`bg-card border rounded-xl px-4 py-3 text-sm ${editingReport?.id === r.id ? "border-violet-500/50" : "border-border"}`}>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="text-xs text-muted-foreground">{fmtDate(r.submittedAt.slice(0, 10))}{r.updatedAt && " · edyt."}</p>
-                          {reportHasWorkScope(r) && (
-                            <p className="text-xs text-foreground/90 mt-1 line-clamp-3 whitespace-pre-wrap">{getReportWorkScopeText(r)}</p>
-                          )}
-                        </div>
-                        <div className="flex gap-1 shrink-0">
-                          <button type="button" onClick={() => setEditingReport(normalizeWorkerReport(r))}
-                            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10" title="Edytuj">
-                            <Edit2 size={16}/>
-                          </button>
-                          <button type="button" onClick={() => deleteMyReport(r.id)}
-                            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10" title="Usuń">
-                            <Trash2 size={16}/>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="bg-card border border-violet-500/25 rounded-2xl p-4">
-              <p className="text-sm font-semibold flex items-center gap-2 mb-3">
-                <ClipboardList size={16} className="text-violet-400"/>
-                {editingReport ? "Edytuj dokumentację" : "Dokumentacja robót"}
-              </p>
-              <JobReportForm
-                key={`${selectedJob.id}-${editingReport?.id || "new"}`}
-                jobId={selectedJob.id}
-                authorName={workerName}
-                editReport={editingReport}
-                onCancelEdit={() => setEditingReport(null)}
-                onSaved={handleReportSaved}
-                submitLabel={editingReport ? "Zapisz zmiany" : "Wyślij dokumentację do admina"}
-                description={editingReport ? undefined : "Zakres prac, wymiary i obrys lokalu — admin zobaczy przy tej robocie."}
-                disabled={uploading}
-              />
             </div>
 
             <div>
@@ -1259,6 +1223,60 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
                 </div>
               </div>
             )}
+            </div>
+
+            <div id="worker-section-documentation" className="scroll-mt-4 space-y-4">
+            {myReports.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold mb-3">Twoja dokumentacja ({myReports.length})</p>
+                <div className="space-y-2">
+                  {[...myReports].reverse().map((r) => (
+                    <div key={r.id} className={`bg-card border rounded-xl px-4 py-3 text-sm ${editingReport?.id === r.id ? "border-violet-500/50" : "border-border"}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground">{fmtDate(r.submittedAt.slice(0, 10))}{r.updatedAt && " · edyt."}</p>
+                          {reportHasWorkScope(r) && (
+                            <p className="text-xs text-foreground/90 mt-1 line-clamp-3 whitespace-pre-wrap">{getReportWorkScopeText(r)}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          <button type="button" onClick={() => setEditingReport(normalizeWorkerReport(r))}
+                            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10" title="Edytuj">
+                            <Edit2 size={16}/>
+                          </button>
+                          <button type="button" onClick={() => deleteMyReport(r.id)}
+                            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10" title="Usuń">
+                            <Trash2 size={16}/>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="bg-card border border-violet-500/25 rounded-2xl p-4">
+              <p className="text-sm font-semibold flex items-center gap-2 mb-3">
+                <ClipboardList size={16} className="text-violet-400"/>
+                {editingReport ? "Edytuj dokumentację" : "Dokumentacja robót"}
+              </p>
+              <JobReportForm
+                key={`${selectedJob.id}-${editingReport?.id || "new"}`}
+                jobId={selectedJob.id}
+                authorName={workerName}
+                editReport={editingReport}
+                onCancelEdit={() => setEditingReport(null)}
+                onSaved={handleReportSaved}
+                submitLabel={editingReport ? "Zapisz zmiany" : "Wyślij dokumentację do admina"}
+                description={editingReport ? undefined : "Zakres prac, wymiary i obrys lokalu — admin zobaczy przy tej robocie."}
+                disabled={uploading}
+                layout="worker"
+              />
+            </div>
+            </div>
+
+            <WorkerStepCta allComplete={workerProgress.allComplete} nextStep={workerProgress.nextStep} mode="complete" />
           </div>
         )}
       </div>

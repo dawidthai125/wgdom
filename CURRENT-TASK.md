@@ -4,15 +4,31 @@
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
 **Ostatnia aktualizacja:** 2026-06-09  
-**Current Version:** **2.50.56**  
-**Current Baseline:** **RELEASED · STABLE**  
-**Prod `origin/main` (app):** **`1be7a80`** · https://www.wgdom.fun  
-**Deploy:** **`4995835869`**  
-**Status:** Sesja 20.5B **CLOSED** · audyt operacyjny **GO**
+**Current Version:** **2.50.57**  
+**Current Baseline:** **RELEASED · STABLE** (deploy w toku)  
+**Prod `origin/main` (app):** _TBD po push_ · https://www.wgdom.fun  
+**Deploy:** _TBD_  
+**Status:** Sprint **20.5B.6A.4** — **RELEASE IN PROGRESS**
 
 ---
 
-## Podsumowanie sesji 2026-06-09
+## Sprint 20.5B.6A.4 — Worker Mobile UX (**RELEASE**)
+
+| Pole | Wartość |
+|------|---------|
+| **Wersja** | **2.50.57** |
+| **Commit** | _TBD_ |
+| **Deploy** | _TBD_ |
+| **Zakres** | Progress flow, CTA, baner, mobile forms (`layout="worker"`) |
+| **Model/sync** | **Bez zmian** |
+
+**Raport:** [`docs/RELEASE-REPORT-20.5B.6A.4.md`](docs/RELEASE-REPORT-20.5B.6A.4.md)
+
+**Smoke lokalne:** 32/32 + regresja PASS · **Prod:** `smoke-prod-bundle-2.50.57.mjs`
+
+---
+
+## Poprzedni baseline prod (20.5B.7)
 
 | Sprint | Wersja | Skrót |
 |--------|--------|-------|

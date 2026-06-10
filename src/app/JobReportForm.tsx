@@ -17,6 +17,7 @@ export function JobReportForm({
   disabled = false,
   editReport = null,
   onCancelEdit,
+  layout = "default",
 }: {
   jobId: string;
   authorName: string;
@@ -27,7 +28,9 @@ export function JobReportForm({
   disabled?: boolean;
   editReport?: WorkerJobReport | null;
   onCancelEdit?: () => void;
+  layout?: "default" | "worker";
 }) {
+  const isWorker = layout === "worker";
   const [scopeText, setScopeText] = useState("");
   const [dimMode, setDimMode] = useState<"manual" | "sketch">("manual");
   const [reportRooms, setReportRooms] = useState<RoomDimension[]>([]);
@@ -158,7 +161,7 @@ export function JobReportForm({
   };
 
   return (
-    <div className="space-y-4">
+    <div className={isWorker ? "space-y-6" : "space-y-4"}>
       {isEdit && (
         <div className="flex items-center justify-between gap-2 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
           <p className="text-xs text-amber-400 font-medium">Edycja raportu</p>
@@ -173,7 +176,7 @@ export function JobReportForm({
       )}
       {error && <p className="text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2">{error}</p>}
 
-      <div>
+      <div id={isWorker ? "worker-section-scope" : undefined} className={isWorker ? "scroll-mt-4" : undefined}>
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Zakres wykonanych prac</p>
         <WorkScopeEditor
           value={scopeText}
@@ -183,17 +186,22 @@ export function JobReportForm({
         />
       </div>
 
-      <div>
+      <div id={isWorker ? "worker-section-dimensions" : undefined} className={isWorker ? "scroll-mt-4" : undefined}>
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
           <Ruler size={12}/>Wymiary mieszkania
         </p>
         <div className="flex gap-2 mb-3">
           <button type="button" onClick={() => setDimMode("manual")}
-            className={`flex-1 text-xs py-2 rounded-lg border transition-colors ${dimMode === "manual" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`}>
+            className={`flex-1 rounded-lg border transition-colors touch-manipulation ${
+              isWorker ? "min-h-[48px] text-sm px-3 py-2.5" : "text-xs py-2"
+            } ${dimMode === "manual" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`}>
             Wpisz wymiary
           </button>
           <button type="button" onClick={() => setDimMode("sketch")}
-            className={`flex-1 text-xs py-2 rounded-lg border transition-colors ${dimMode === "sketch" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`}>
+            id={isWorker && dimMode !== "sketch" ? "worker-section-sketch" : undefined}
+            className={`flex-1 rounded-lg border transition-colors touch-manipulation ${
+              isWorker ? "min-h-[48px] text-sm px-3 py-2.5" : "text-xs py-2"
+            } ${dimMode === "sketch" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`}>
             Foto rysunku
           </button>
         </div>
@@ -203,7 +211,11 @@ export function JobReportForm({
             <div className="flex flex-wrap gap-1.5">
               {(["salon", "pokoj", "kuchnia", "korytarz", "lazienka", "toaleta"] as RoomTypeKey[]).map((rt) => (
                 <button key={rt} type="button" onClick={() => addRoom(rt)}
-                  className="text-[11px] px-2.5 py-1 rounded-full border border-border text-muted-foreground hover:border-primary/40 hover:text-foreground">
+                  className={
+                    isWorker
+                      ? "text-sm min-h-[44px] px-3 py-2.5 rounded-full border border-border text-muted-foreground hover:border-primary/40 hover:text-foreground touch-manipulation"
+                      : "text-[11px] px-2.5 py-1 rounded-full border border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                  }>
                   + {ROOM_TYPE_LABELS[rt]}
                 </button>
               ))}
@@ -236,7 +248,9 @@ export function JobReportForm({
                                 placeholder="m"
                                 value={room[field]}
                                 onChange={(e) => updateRoom(room.id, { [field]: e.target.value })}
-                                className="w-full bg-background rounded-lg px-2 py-1.5 text-sm font-mono border border-border focus:border-primary focus:outline-none"
+                                className={`w-full bg-background rounded-lg font-mono border border-border focus:border-primary focus:outline-none ${
+                                  isWorker ? "px-3 py-3 text-base min-h-[44px]" : "px-2 py-1.5 text-sm"
+                                }`}
                               />
                             </div>
                           ))}
@@ -256,7 +270,7 @@ export function JobReportForm({
             )}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div id={isWorker ? "worker-section-sketch" : undefined} className={`space-y-3${isWorker ? " scroll-mt-4" : ""}`}>
             <div className="grid grid-cols-2 gap-2">
               <HiddenFileInput accept="image/*,.heic,.heif" capture="environment" onPick={onSketchPick}>
                 {(open) => (
@@ -318,7 +332,9 @@ export function JobReportForm({
       </div>
 
       <button type="button" onClick={handleSubmit} disabled={saving || disabled}
-        className="w-full py-3.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-600/90 disabled:opacity-50 transition-all">
+        className={`w-full rounded-xl bg-violet-600 text-white font-semibold hover:bg-violet-600/90 disabled:opacity-50 transition-all touch-manipulation ${
+          isWorker ? "min-h-[52px] py-3.5 text-base" : "py-3.5 text-sm"
+        }`}>
         {saving ? "Zapisywanie…" : submitLabel}
       </button>
     </div>

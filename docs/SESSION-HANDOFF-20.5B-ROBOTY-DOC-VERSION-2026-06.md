@@ -1,25 +1,42 @@
-# SESSION HANDOFF — Seria 20.5B.5 → 20.5B.7 (2026-06-09)
+# SESSION HANDOFF — Seria 20.5B.5 → 20.5B.6A.4 (2026-06-09)
 
-> **Status:** **CLOSED** · **Prod baseline:** v**2.50.56** · commit **`1be7a80`** · deploy **`4995835869`**
+> **Status:** **CLOSED** · **Prod baseline:** v**2.50.57** · commit _TBD_ · deploy _TBD_
 
-Handoff zbiorczy dla sprintów wykonanych w sesji 2026-06-09: Roboty UX Pack, audyt dokumentacji, naming refresh, version awareness, gotowość operacyjna worker/inspektor.
+Handoff zbiorczy: Roboty UX Pack, audyt dokumentacji, naming refresh, version awareness, **Worker Mobile UX**, gotowość operacyjna worker/inspektor.
 
 ---
 
 ## ★ Baseline produkcyjny
 
 ```text
-Version: 2.50.56
-App commit: 1be7a80
-Deploy: 4995835869
+Version: 2.50.57
+App commit: TBD
+Deploy: TBD
 Status: RELEASED · STABLE
 ```
 
 | Sprint | Wersja | Commit | Deploy | Raport |
 |--------|--------|--------|--------|--------|
+| **20.5B.6A.4** Worker Mobile UX | 2.50.57 | _TBD_ | _TBD_ | [`RELEASE-REPORT-20.5B.6A.4.md`](RELEASE-REPORT-20.5B.6A.4.md) |
 | **20.5B.7** Version Awareness | 2.50.56 | `1be7a80` | `4995835869` | [`RELEASE-REPORT-20.5B.7.md`](RELEASE-REPORT-20.5B.7.md) |
 | **20.5B.6A.1** Dokumentacja Naming | 2.50.55 | `782fe87` | `4995467947` | [`RELEASE-REPORT-20.5B.6A.1.md`](RELEASE-REPORT-20.5B.6A.1.md) |
 | **20.5B.5** Roboty UX Pack | 2.50.54 | `ae35c56` | `4995226877` | [`RELEASE-REPORT-20.5B.5.md`](RELEASE-REPORT-20.5B.5.md) |
+
+---
+
+## 20.5B.6A.4 — Worker Mobile UX (2.50.57)
+
+**Zakres:** UX only — **bez zmian** `workerReports[]`, sync, KV, Edge.
+
+| Sub | Co |
+|-----|-----|
+| **4A** | `computeWorkerJobProgress` + `WorkerJobProgressFlow` |
+| **4B** | `JobReportForm layout="worker"` — touch 44px+ |
+| **4C** | Baner edukacyjny, CTA, scroll do `#worker-section-*` |
+
+**Kluczowe pliki:** `worker-job-progress.ts`, `WorkerJobProgressFlow.tsx`, `WorkerStepCta.tsx`, `WorkerPhotoView.tsx`, `JobReportForm.tsx`
+
+**Smoke:** `smoke-test-worker-mobile-ux-20.5b6a4.mjs`, `smoke-prod-bundle-2.50.57.mjs`
 
 ---
 

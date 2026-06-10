@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-09",
+    version: "2.50.57",
+    label: "Worker Mobile UX (20.5B.6A.4)",
+    items: [
+      { type: "new", text: "Tryb pracownika — pasek postępu dokumentacji (Zdjęcia → Dokumentacja → Wymiary → Obrys) wyliczany z zapisanych danych" },
+      { type: "improve", text: "Baner edukacyjny i CTA prowadzące do kolejnego kroku; klikalne kroki scrollują do sekcji" },
+      { type: "improve", text: "Formularz dokumentacji na telefonie — większe pola, chipy pomieszczeń min. 44px (layout worker; admin bez zmian)" },
+    ],
+  },
+  {
+    date: "2026-06-09",
     version: "2.50.56",
     label: "Version Awareness & Update Banner (20.5B.7)",
     items: [

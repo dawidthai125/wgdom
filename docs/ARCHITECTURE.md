@@ -3,7 +3,7 @@
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
 > **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.56** · Version Awareness 20.5B.7)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.56 — § 9.1 dokumentacja robót + Version Awareness 20.5B.7)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-09 (2.50.57 — § 9.1 worker progress flow 20.5B.6A.4)
 
 ---
 
@@ -303,9 +303,11 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 
 | Rola | UI | Dane |
 |------|-----|------|
-| **Pracownik** | `WorkerPhotoView` → `JobReportForm` | zakres → `workScopeText`; wymiary → `rooms[]`; obrys → `sketch` |
+| **Pracownik** | `WorkerPhotoView` → `JobReportForm` (`layout="worker"`) | zakres → `workScopeText`; wymiary → `rooms[]`; obrys → `sketch` |
 | **Admin** | `JobsView` tab **Dokumentacja** → `JobWorkerReportsPanel` | odczyt/zatwierdzenie raportów; tab **Zdjęcia** → `photos[]` |
 | **Inspektor** | `InspectorPanel` tab **Dokumentacja** + **Galeria** | raporty read-only; checklista `InspectorDocChecklist`; plan PDF = `jobFiles[]` kind `plan_techniczny` |
+
+**Worker progress flow (20.5B.6A.4, UX only):** `computeWorkerJobProgress()` w `src/lib/worker-job-progress.ts` — postęp wyliczany **dynamicznie** z `myPhotos` (zdjęcia pracownika) i `myReports` (jego wpisy w `workerReports[]`): Zdjęcia → Dokumentacja (`workScopeText`) → Wymiary (`rooms[]`) → Obrys (`sketch`). UI: `WorkerJobProgressFlow`, `WorkerStepCta`, baner edukacyjny. **Brak nowych pól**, brak zapisu stanu progress, brak sticky UI. Klik kroku → `scrollIntoView` do `#worker-section-*`.
 
 **Semantyka (20.5A.8/9):**
 
