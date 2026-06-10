@@ -12,6 +12,12 @@ import {
   ACTION_PRIORITY_LABEL_PL,
   priorityTone,
 } from "@/lib/tender-center-action-center";
+import type { Forecast90DaysResult } from "@/lib/tender-center-forecast-90d";
+import {
+  formatActionCenterItemDescription,
+  formatActionCenterItemReason,
+  formatActionCenterItemTitle,
+} from "@/lib/tender-center-action-center-display";
 
 const URGENT_VISIBLE_MAX = 5;
 
@@ -100,17 +106,22 @@ function resolveTenderItem(
 
 function ActionRow({
   item,
+  forecast,
   onOpenTender,
   pipelineItems,
   onCreateJobFromTender,
   onOpenJob,
 }: {
   item: OwnerActionItem;
+  forecast?: Forecast90DaysResult | null;
   onOpenTender?: (tenderId: string) => void;
   pipelineItems?: TenderPipelineItem[];
   onCreateJobFromTender?: (item: TenderPipelineItem) => void;
   onOpenJob?: (jobId: string) => void;
 }) {
+  const title = formatActionCenterItemTitle(item, forecast);
+  const description = formatActionCenterItemDescription(item, forecast);
+  const reason = formatActionCenterItemReason(item, forecast);
   const tenderItem = isWonRealizationAction(item.id)
     ? resolveTenderItem(item.tenderId, pipelineItems)
     : null;
@@ -131,9 +142,9 @@ function ActionRow({
       </div>
 
       <div>
-        <p className="text-sm font-semibold leading-snug">{item.title}</p>
-        {item.description && (
-          <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{item.description}</p>
+        <p className="text-sm font-semibold leading-snug">{title}</p>
+        {description && (
+          <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{description}</p>
         )}
       </div>
 
@@ -166,7 +177,7 @@ function ActionRow({
       </div>
 
       <p className="text-[10px] text-muted-foreground">
-        <span className="opacity-70">Powód: </span>{item.reason}
+        <span className="opacity-70">Powód: </span>{reason}
         <span className="block text-[9px] mt-0.5 opacity-80">Źródło: {item.source}</span>
       </p>
     </article>
@@ -175,6 +186,7 @@ function ActionRow({
 
 function ActionRowCompact({
   item,
+  forecast,
   deadlineLabel,
   onOpenTender,
   pipelineItems,
@@ -182,12 +194,14 @@ function ActionRowCompact({
   onOpenJob,
 }: {
   item: OwnerActionItem;
+  forecast?: Forecast90DaysResult | null;
   deadlineLabel: string | null;
   onOpenTender?: (tenderId: string) => void;
   pipelineItems?: TenderPipelineItem[];
   onCreateJobFromTender?: (item: TenderPipelineItem) => void;
   onOpenJob?: (jobId: string) => void;
 }) {
+  const title = formatActionCenterItemTitle(item, forecast);
   const tenderItem = isWonRealizationAction(item.id)
     ? resolveTenderItem(item.tenderId, pipelineItems)
     : null;
@@ -200,7 +214,7 @@ function ActionRowCompact({
           {ACTION_PRIORITY_LABEL_PL[item.priority]}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold leading-snug">{item.title}</p>
+          <p className="text-xs font-semibold leading-snug">{title}</p>
           {deadlineLabel && (
             <p className="text-[10px] text-amber-700 dark:text-amber-400 mt-0.5 flex items-center gap-1">
               <Calendar size={10} className="shrink-0" />
@@ -257,6 +271,7 @@ function ActionRowCompact({
 export function ActionCenter({
   center,
   variant = "full",
+  forecast,
   onOpenTender,
   pipelineItems,
   onCreateJobFromTender,
@@ -264,6 +279,8 @@ export function ActionCenter({
 }: {
   center: ActionCenterResult;
   variant?: "full" | "urgent";
+  /** Prezentacja slotów dla akcji forecast (20.7C.2C). */
+  forecast?: Forecast90DaysResult | null;
   onOpenTender?: (tenderId: string) => void;
   /** Do etykiet terminu w widoku skróconym (variant urgent). */
   pipelineItems?: TenderPipelineItem[];
@@ -322,7 +339,9 @@ export function ActionCenter({
             <p className="text-[10px] font-semibold uppercase tracking-wide text-primary">
               Dzisiaj system rekomenduje
             </p>
-            <p className="text-sm font-semibold leading-snug">{center.primaryAction.title}</p>
+            <p className="text-sm font-semibold leading-snug">
+              {formatActionCenterItemTitle(center.primaryAction, forecast)}
+            </p>
             <p className="text-xs text-foreground/90">{center.primaryAction.recommendedAction}</p>
             <p className="text-[9px] text-muted-foreground">Źródło: {center.primaryAction.source}</p>
           </div>
@@ -347,6 +366,7 @@ export function ActionCenter({
                 <ActionRowCompact
                   key={item.id}
                   item={item}
+                  forecast={forecast}
                   deadlineLabel={deadlineLabel}
                   onOpenTender={onOpenTender}
                   pipelineItems={pipelineItems}
@@ -384,6 +404,7 @@ export function ActionCenter({
               <ActionRow
                 key={item.id}
                 item={item}
+                forecast={forecast}
                 onOpenTender={onOpenTender}
                 pipelineItems={pipelineItems}
                 onCreateJobFromTender={onCreateJobFromTender}

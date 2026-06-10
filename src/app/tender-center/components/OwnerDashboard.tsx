@@ -248,6 +248,7 @@ export function OwnerDashboard({
         <ActionCenter
           center={actionCenter}
           variant="urgent"
+          forecast={forecast90}
           onOpenTender={onOpenTender}
           pipelineItems={pipeline.items}
           onCreateJobFromTender={handleCreateJobFromTenderItem}

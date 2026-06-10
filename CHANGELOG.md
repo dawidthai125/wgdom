@@ -4,10 +4,19 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.65** (`changelog-data.ts`) · Mobile Jobs List Width Fix 20.5Z.5C  
+**Aktualna wersja UI:** **2.50.66** (`changelog-data.ts`) · Dashboard V2 Complete 20.7C.2  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
+
+## 2.50.66 (2026-06-10) — Dashboard V2 Complete (20.7C.2)
+
+* **New:** Hero DZIŚ — TOP 5 priorytetów nad KPI (unified ranking)
+* **New:** Hero dedupe engine vs Uwaga dziś
+* **New:** E2E `dashboard-hero.spec.ts`
+* **Improve:** Forecast / Action Center — prezentacja slotów zamiast %
+* **Improve:** Konsolidacja priorytetów na Pulpicie
+* **Improve:** Przetargi — skrót bez duplikatu listy akcji
 
 ## 2.50.65 (2026-06-10) — Mobile Jobs List Width Fix (20.5Z.5C)
 

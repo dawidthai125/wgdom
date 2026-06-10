@@ -63,6 +63,10 @@ import { listPayrollRolloverBlockers } from "@/lib/payroll-rollover";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import { computeRecoverableChargesAlerts } from "@/lib/recoverable-charges";
 import { RecoverableChargesDashboardCard } from "@/app/RecoverableChargesDashboardCard";
+import { HeroDzisPanel } from "@/app/HeroDzisPanel";
+import { useCommandCenterContextOptional } from "@/app/tender-center/context/CommandCenterContext";
+import { buildHeroToday, buildHeroTodayRankedAll } from "@/lib/dashboard-hero-today";
+import { getHeroCoveredUwagaSections } from "@/lib/dashboard-hero-consolidation";
 
 export function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
@@ -104,6 +108,7 @@ export function DashboardView({
   tenderJobUploadedBy?: string;
 }) {
   const { session: adminSession } = useAdminAccess();
+  const ccContext = useCommandCenterContextOptional();
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
   const todayKey = todayDayKey();
   const todayIso = todayIsoDate();
@@ -347,6 +352,53 @@ export function DashboardView({
     month: "long",
   });
 
+  const heroTodayInput = useMemo(
+    () => ({
+      operational: {
+        jobs,
+        weekEmployees,
+        weekFrom,
+        weekTo,
+        directory,
+        savedWeeks,
+        employeeLeaves,
+        recoverableCharges,
+        adminUserId,
+      },
+      actionCenter: ccContext?.snapshot.actionCenter,
+      health: ccContext?.snapshot.health,
+      financialCapacity: ccContext?.snapshot.financialCapacity,
+      forecast: ccContext?.snapshot.forecast90,
+      morningBriefingTone: ccContext?.snapshot.morningBriefing?.summaryTone,
+    }),
+    [
+      jobs,
+      weekEmployees,
+      weekFrom,
+      weekTo,
+      directory,
+      savedWeeks,
+      employeeLeaves,
+      recoverableCharges,
+      adminUserId,
+      ccContext?.snapshot.actionCenter,
+      ccContext?.snapshot.health,
+      ccContext?.snapshot.financialCapacity,
+      ccContext?.snapshot.forecast90,
+      ccContext?.snapshot.morningBriefing?.summaryTone,
+    ],
+  );
+
+  const heroToday = useMemo(
+    () => buildHeroToday(heroTodayInput),
+    [heroTodayInput],
+  );
+
+  const heroUwagaCovered = useMemo(() => {
+    const rankedAll = buildHeroTodayRankedAll(heroTodayInput);
+    return getHeroCoveredUwagaSections({ ...heroToday, items: rankedAll });
+  }, [heroToday, heroTodayInput]);
+
   return (
     <div className="flex-1 min-w-0 overflow-y-auto overscroll-contain">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6">
@@ -390,6 +442,13 @@ export function DashboardView({
             ))}
           </div>
         </div>
+
+        <HeroDzisPanel
+          hero={heroToday}
+          onNavigate={onNavigate}
+          onOpenTenders={onOpenTenders}
+          onOpenTender={onOpenTender}
+        />
 
         {showSaturdayBanner && (
           <div className="bg-primary/10 border border-primary/30 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -540,7 +599,7 @@ export function DashboardView({
 
         {/* Uwaga dziś */}
         {showUwagaDzis && (
-          <div className="bg-card border border-amber-500/20 rounded-xl overflow-hidden">
+          <div className="bg-card border border-amber-500/20 rounded-xl overflow-hidden" aria-label="Uwaga dziś">
             <div className="px-5 py-3.5 border-b border-amber-500/15 flex items-center gap-2 bg-amber-500/5">
               <AlertTriangle size={14} className="text-amber-400 shrink-0"/>
               <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">Uwaga dziś</span>
@@ -689,7 +748,7 @@ export function DashboardView({
                   )}
                 </div>
               )}
-              {needsUnsavedWeekAlert && (
+              {needsUnsavedWeekAlert && !heroUwagaCovered.has("payroll-unsaved") && (
                 <div className="px-5 py-3.5 flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-medium flex items-center gap-2 flex-wrap">
@@ -706,7 +765,7 @@ export function DashboardView({
                   </button>
                 </div>
               )}
-              {needsPayrollBlockerAlert && (
+              {needsPayrollBlockerAlert && !heroUwagaCovered.has("payroll-blockers") && (
                 <div className="px-5 py-3.5">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-sm font-medium flex items-center gap-2">
@@ -730,7 +789,7 @@ export function DashboardView({
                   </div>
                 </div>
               )}
-              {consistencyAlerts.length > 0 && (
+              {consistencyAlerts.length > 0 && !heroUwagaCovered.has("payroll-consistency") && (
                 <div className="px-5 py-3.5">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-sm font-medium flex items-center gap-2">
@@ -778,7 +837,7 @@ export function DashboardView({
                   </div>
                 </div>
               )}
-              {pendingPhotos.length > 0 && (
+              {pendingPhotos.length > 0 && !heroUwagaCovered.has("pending-photos") && (
                 <div className="px-5 py-3.5">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-sm font-medium flex items-center gap-2">
@@ -814,7 +873,7 @@ export function DashboardView({
                   </div>
                 </div>
               )}
-              {pendingReceipts.length > 0 && (
+              {pendingReceipts.length > 0 && !heroUwagaCovered.has("pending-receipts") && (
                 <div className="px-5 py-3.5">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-sm font-medium flex items-center gap-2">
@@ -851,7 +910,7 @@ export function DashboardView({
                   </div>
                 </div>
               )}
-              {pendingReports.length > 0 && (
+              {pendingReports.length > 0 && !heroUwagaCovered.has("pending-reports") && (
                 <div className="px-5 py-3.5">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-sm font-medium flex items-center gap-2">
@@ -893,7 +952,7 @@ export function DashboardView({
                   </div>
                 </div>
               )}
-              {handoverJobCount > 0 && (
+              {handoverJobCount > 0 && !heroUwagaCovered.has("handover-jobs") && (
                 <div className="px-5 py-3.5">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-sm font-medium flex items-center gap-2">
@@ -943,7 +1002,7 @@ export function DashboardView({
                   </div>
                 </div>
               )}
-              {unseenInspectorFeed.length > 0 && (
+              {unseenInspectorFeed.length > 0 && !heroUwagaCovered.has("inspector-feed") && (
                 <div className="px-5 py-3.5">
                   <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                     <p className="text-sm font-medium flex items-center gap-2">
@@ -985,7 +1044,7 @@ export function DashboardView({
                   </div>
                 </div>
               )}
-              {wmOverdueJobs.length > 0 && (
+              {wmOverdueJobs.length > 0 && !heroUwagaCovered.has("wm-overdue") && (
                 <div className="px-5 py-3.5">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-sm font-medium flex items-center gap-2">
@@ -1021,7 +1080,7 @@ export function DashboardView({
                   </div>
                 </div>
               )}
-              {wmThisWeekJobs.length > 0 && (
+              {wmThisWeekJobs.length > 0 && !heroUwagaCovered.has("wm-this-week") && (
                 <div className="px-5 py-3.5">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <p className="text-sm font-medium flex items-center gap-2">
@@ -1057,7 +1116,7 @@ export function DashboardView({
                   </div>
                 </div>
               )}
-              {inspectorNotesPending.length > 0 && (
+              {inspectorNotesPending.length > 0 && !heroUwagaCovered.has("inspector-notes") && (
                 <div className="px-5 py-3.5">
                   <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                     <p className="text-sm font-medium flex items-center gap-2">

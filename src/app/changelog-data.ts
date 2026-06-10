@@ -12,6 +12,19 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-10",
+    version: "2.50.66",
+    label: "Dashboard V2 Complete (20.7C.2)",
+    items: [
+      { type: "new", text: "Pulpit — Hero DZIŚ: TOP 5 priorytetów dnia nad KPI (unified ranking z operacyjnych alertów i Action Center)" },
+      { type: "new", text: "Hero dedupe engine — sekcje Uwaga dziś nie duplikują TOP 5 Hero; braki dokumentów pozostają z inline toggle" },
+      { type: "new", text: "E2E — dashboard-hero.spec.ts (Hero nad KPI, max 5, dedupe WM, mobile scroll, empty state)" },
+      { type: "improve", text: "Action Center i forecast — prezentacja obłożenia jako sloty (np. 13 / 4 slotów) zamiast % utilization" },
+      { type: "improve", text: "Konsolidacja priorytetów na Pulpicie — Hero jako główne źródło działań" },
+      { type: "improve", text: "Przetargi — skrót: usunięta lista „Najważniejsze akcje”; pozostają Pilne terminy, Wygrane bez roboty, CTA Command Center" },
+    ],
+  },
+  {
+    date: "2026-06-10",
     version: "2.50.65",
     label: "Mobile Jobs List Width Fix (20.5Z.5C)",
     items: [
