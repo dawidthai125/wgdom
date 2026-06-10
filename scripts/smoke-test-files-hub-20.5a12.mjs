@@ -14,6 +14,10 @@ import {
   countAllFilesHubItems,
   jobHasFilesHubContent,
   summarizeFilesHub,
+  groupHubContentByJob,
+  filterHubGroupByLayer,
+  filterHubGroupByContractCategory,
+  hubGroupSearchHaystack,
 } from "../src/lib/files-hub-index.ts";
 import { countJobDocuments } from "../src/lib/media-separation.ts";
 import { countJobImages } from "../src/lib/media-separation.ts";
@@ -146,23 +150,94 @@ assert(countJobImages(jobFixture) > 0, "T10 photos exist separately");
 assertEq("T11 countJobDocuments unchanged", countJobDocuments(jobFixture), 2);
 assertEq("T12 countFilesHub >= countJobDocuments", countFilesHubItems(jobFixture) >= countJobDocuments(jobFixture), true);
 
-// PDF stub
+// PDF export (12C)
 const pdfSource = toWorkerReportPdfSource(jobFixture, jobFixture.workerReports[0]);
 assert(pdfSource.reportId === "wr1" && pdfSource.workScopeText.includes("Malowanie"), "T12b pdf source mapping");
-let pdfThrows = false;
-try {
-  await downloadWorkerReportPdf(pdfSource);
-} catch (e) {
-  pdfThrows = String(e).includes("planned 20.5A.12C");
-}
-assert(pdfThrows, "T12c pdf stub throws");
+assert(typeof downloadWorkerReportPdf === "function", "T12c downloadWorkerReportPdf export");
 
-// T13–T15 bundle markers (source)
+// T13–T14 bundle markers (source)
 const hubIndex = readFileSync(resolve(root, "src/lib/files-hub-index.ts"), "utf8");
 const hubUi = readFileSync(resolve(root, "src/app/JobFilesHub.tsx"), "utf8");
-const jobsView = readFileSync(resolve(root, "src/app/JobsView.tsx"), "utf8");
+const allFilesView = readFileSync(resolve(root, "src/app/JobAllFilesView.tsx"), "utf8");
 assert(hubIndex.includes("countFilesHubItems"), "T13 files-hub-index marker");
 assert(hubUi.includes("Dokumentacja robót") && hubUi.includes("Checklista odbiorowa"), "T14 JobFilesHub sections");
-assert(jobsView.includes("JobFilesHub") && jobsView.includes("countFilesHubItems"), "T15 JobsView integration");
+
+// T15 — robot tylko z workerReports widoczna
+const reportsOnlyJob = {
+  id: "job-reports-only",
+  address: "ul. Raportowa 2",
+  flatNumber: "",
+  client: "Test",
+  documents: {},
+  jobFiles: [],
+  workerReports: [jobFixture.workerReports[0]],
+  jobAttachments: [],
+};
+const reportsOnlyGroups = groupHubContentByJob([reportsOnlyJob]);
+assertEq("T15 reports-only group count", reportsOnlyGroups.length, 1);
+assertEq("T15 reports-only reports", reportsOnlyGroups[0].reports.length, 1);
+
+// T16 — robot tylko z jobAttachments widoczna
+const attachmentsOnlyJob = {
+  id: "job-attach-only",
+  address: "ul. Załącznikowa 3",
+  flatNumber: "1",
+  client: "Test",
+  documents: {},
+  jobFiles: [],
+  workerReports: [],
+  jobAttachments: [jobFixture.jobAttachments[0]],
+};
+const attachOnlyGroups = groupHubContentByJob([attachmentsOnlyJob]);
+assertEq("T16 attachments-only group count", attachOnlyGroups.length, 1);
+assertEq("T16 attachments-only items", attachOnlyGroups[0].attachments.length, 1);
+
+// T17 — summary.total = kafel
+const hubGroups = groupHubContentByJob([jobFixture]);
+assertEq("T17 group summary total", hubGroups[0].summary.total, summarizeFilesHub(jobFixture).total);
+
+// T18 — filtr Dokumentacja
+const docFiltered = filterHubGroupByLayer(hubGroups[0], "reports");
+assert(docFiltered.contract.length === 0 && docFiltered.attachments.length === 0, "T18 reports filter strips other layers");
+assertEq("T18 reports filter keeps reports", docFiltered.reports.length, 2);
+
+// T19 — filtr Załączniki
+const attFiltered = filterHubGroupByLayer(hubGroups[0], "attachments");
+assert(attFiltered.contract.length === 0 && attFiltered.reports.length === 0, "T19 attachments filter strips other layers");
+assertEq("T19 attachments filter keeps attachments", attFiltered.attachments.length, 1);
+
+// T20 — plan_techniczny visible
+const planJob = {
+  ...jobFixture,
+  id: "job-plan",
+  jobFiles: [
+    ...jobFixture.jobFiles,
+    {
+      id: "jf-plan",
+      kind: "plan_techniczny",
+      path: "jobs/j1/plan.pdf",
+      publicUrl: "https://example.com/plan.pdf",
+      filename: "plan-techniczny.pdf",
+      uploadedBy: "Admin",
+      uploadedAt: "2026-06-09T12:00:00Z",
+    },
+  ],
+};
+const planContract = collectFilesHubContractItems(planJob);
+assert(planContract.some((c) => c.category === "plan_techniczny"), "T20 plan_techniczny in contract items");
+const planFiltered = filterHubGroupByContractCategory(groupHubContentByJob([planJob])[0], "plan_techniczny");
+assertEq("T20 plan_techniczny filter count", planFiltered.contract.length, 1);
+
+// T21 — JobAllFilesView hub alignment markers
+assert(
+  allFilesView.includes("groupHubContentByJob") &&
+    allFilesView.includes("Dokumentacja robót") &&
+    allFilesView.includes("Załączniki ogólne"),
+  "T21 JobAllFilesView hub sections",
+);
+
+// T22 — search haystack (workerName + workScopeText)
+const hay = hubGroupSearchHaystack(jobFixture, hubGroups[0]);
+assert(hay.includes("jan") && hay.includes("malowanie"), "T22 search haystack worker + scope");
 
 console.log("\n=== PASS — 20.5A.12 Files Hub ===");

@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.61** · Worker Report PDF 20.5A.12C)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-10 (2.50.61 — § 12.1.2 Worker Report PDF 20.5A.12C)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.62** · JobAllFilesView Hub 20.5A.12B.1-full)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-10 (2.50.62 — § 12.1.2 JobAllFilesView Full Hub Alignment)
 
 ---
 
@@ -873,6 +873,8 @@ Priorytet w `resolveJobDraftDatesFromTender`:
 **Files Hub (20.5A.12, v2.50.58):** warstwa prezentacji read-only — **bez migracji danych**. `files-hub-index.ts` agreguje: `jobFiles[]` + `workerReports[]` (wpisy wirtualne) + `jobAttachments[]`. Checklista `documents{}` — sekcja informacyjna (X/9), **nie** wliczana do `countFilesHubItems()`. UI: `JobFilesHub.tsx` w Robotach → Pliki (pełna obsługa); Media → Pliki + `JobFilesBrowser` (read-only, link „Otwórz robotę”). Liczniki: badge Pliki, Media tab, admin nav = hub count. ZIP: bez zmian (Dokumenty / Załączniki / Zdjęcia osobno).
 
 **Worker Report PDF (20.5A.12C, v2.50.61):** `worker-report-pdf.ts` — eksport pojedynczego `workerReports[]` wpisu do PDF (pdfMake lazy + `deliverPdfBlob`). UI: `JobWorkerReportsPanel` (Roboty → Dokumentacja) i `JobFilesHub` (sekcja Dokumentacja robót). Obrys: fetch URL → base64; fallback tekstowy przy błędzie. **Bez zmian** sync/modelu danych.
+
+**JobAllFilesView Hub Alignment (20.5A.12B.1-full, v2.50.62):** `JobAllFilesView` — kafle per adres z trzema warstwami hub (`groupHubContentByJob` w `files-hub-index.ts`): dokumenty kontraktowe, dokumentacja robót (eksport PDF + przejście do dokumentacji), załączniki ogólne (podgląd/pobierz). Widoczność robota = `jobHasFilesHubContent()` (nie tylko `jobFiles[]`). Filtry: Wszystkie / Kontrakt / Dokumentacja / Załączniki + zlecenie/kosztorys/plan techniczny.
 
 | Plik | Rola |
 |------|------|

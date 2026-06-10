@@ -1394,9 +1394,9 @@ export function JobsView({
           jobs={jobs}
           athPreviewEnabled={athPreviewEnabled}
           onBack={() => setShowAllFiles(false)}
-          onOpenJob={(jobId) => {
+          onOpenJob={(jobId, section = "files") => {
             setShowAllFiles(false);
-            openJob(jobId, "files");
+            openJob(jobId, section);
           }}
         />
       ) : (

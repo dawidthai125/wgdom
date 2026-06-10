@@ -135,6 +135,111 @@ export function jobHasFilesHubContent(job: FilesHubJobSource): boolean {
   return countFilesHubItems(job) > 0;
 }
 
+/** Grupa hub per adres — SSOT dla JobAllFilesView (20.5A.12B.1-full). */
+export type JobHubAddressGroup = {
+  jobId: string;
+  jobAddress: string;
+  jobFlat: string;
+  jobClient: string;
+  summary: FilesHubSummary;
+  contract: FilesHubContractItem[];
+  reports: FilesHubReportItem[];
+  attachments: FilesHubAttachmentItem[];
+  latestAt: string;
+};
+
+function hubLayerLatestAt(
+  contract: FilesHubContractItem[],
+  reports: FilesHubReportItem[],
+  attachments: FilesHubAttachmentItem[],
+): string {
+  const dates = [
+    ...contract.map((c) => c.uploadedAt || ""),
+    ...reports.map((r) => r.submittedAt || ""),
+    ...attachments.map((a) => a.uploadedAt || ""),
+  ];
+  return dates.reduce((max, d) => (d > max ? d : max), "");
+}
+
+/** Roboty z hub content, pogrupowane per adres (nie tylko jobFiles[]). */
+export function groupHubContentByJob(jobs: FilesHubJobSource[]): JobHubAddressGroup[] {
+  const groups: JobHubAddressGroup[] = [];
+  for (const job of jobs) {
+    if (!jobHasFilesHubContent(job)) continue;
+    const contract = collectFilesHubContractItems(job);
+    const reports = collectFilesHubReportItems(job);
+    const attachments = collectFilesHubAttachmentItems(job);
+    groups.push({
+      jobId: job.id,
+      jobAddress: job.address || "Bez adresu",
+      jobFlat: job.flatNumber || "",
+      jobClient: job.client || "—",
+      summary: summarizeFilesHub(job),
+      contract,
+      reports,
+      attachments,
+      latestAt: hubLayerLatestAt(contract, reports, attachments),
+    });
+  }
+  return groups.sort((a, b) => b.latestAt.localeCompare(a.latestAt));
+}
+
+export type HubLayerFilter = "all" | "contract" | "reports" | "attachments";
+
+/** Filtr warstwy hub na grupie (do JobAllFilesView i smoke). */
+export function filterHubGroupByLayer(
+  group: JobHubAddressGroup,
+  layer: HubLayerFilter,
+): JobHubAddressGroup {
+  if (layer === "all") return group;
+  if (layer === "contract") {
+    return { ...group, reports: [], attachments: [] };
+  }
+  if (layer === "reports") {
+    return { ...group, contract: [], attachments: [] };
+  }
+  return { ...group, contract: [], reports: [] };
+}
+
+/** Filtr kategorii kontraktowej (zlecenie / kosztorys / plan_techniczny). */
+export function filterHubGroupByContractCategory(
+  group: JobHubAddressGroup,
+  category: JobFileCatalogItem["category"],
+): JobHubAddressGroup {
+  return {
+    ...group,
+    contract: group.contract.filter((c) => c.category === category),
+    reports: [],
+    attachments: [],
+  };
+}
+
+/** Tekst do wyszukiwania — adres, pliki, autor raportu, zakres prac. */
+export function hubGroupSearchHaystack(job: FilesHubJobSource, group: JobHubAddressGroup): string {
+  const parts = [
+    group.jobAddress,
+    group.jobFlat,
+    group.jobClient,
+    ...group.contract.flatMap((c) => [c.filename, c.uploadedBy, c.categoryLabel]),
+    ...group.reports.flatMap((r) => [r.author, r.label]),
+    ...group.attachments.flatMap((a) => [a.filename, a.uploadedBy]),
+    ...(job.workerReports || []).flatMap((r) => [r.workerName || "", r.workScopeText || ""]),
+  ];
+  return parts.join(" ").toLowerCase();
+}
+
+export function countAllHubContractItems(jobs: FilesHubJobSource[]): number {
+  return jobs.reduce((s, j) => s + collectFilesHubContractItems(j).length, 0);
+}
+
+export function countAllHubReportItems(jobs: FilesHubJobSource[]): number {
+  return jobs.reduce((s, j) => s + collectFilesHubReportItems(j).length, 0);
+}
+
+export function countAllHubAttachmentItems(jobs: FilesHubJobSource[]): number {
+  return jobs.reduce((s, j) => s + collectFilesHubAttachmentItems(j).length, 0);
+}
+
 /** Pomocnicze — czy raport ma wymiary/obrys wg logiki odbiorowej (bez użycia w liczniku). */
 export function filesHubReportHasRysunek(report: NonNullable<FilesHubJobSource["workerReports"]>[number]): boolean {
   return reportHasRysunek(report);

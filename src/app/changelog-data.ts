@@ -12,6 +12,14 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-10",
+    version: "2.50.62",
+    label: "JobAllFilesView Full Hub Alignment (20.5A.12B.1-full)",
+    items: [
+      { type: "improve", text: "Roboty → Pliki wg adresów — pełna zgodność z Files Hub: dokumenty kontraktowe, dokumentacja robót (PDF) i załączniki ogólne per kafel adresu" },
+    ],
+  },
+  {
+    date: "2026-06-10",
     version: "2.50.61",
     label: "Worker Report PDF Export (20.5A.12C)",
     items: [
