@@ -1,4 +1,5 @@
-import { ChevronRight, Zap } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, ChevronRight, ChevronUp, Zap } from "lucide-react";
 import type { JobDetailSection } from "@/app/JobDetailSectionNav";
 import type {
   HeroTodayItem,
@@ -131,8 +132,68 @@ function HeroActionRow({
   );
 }
 
+function HeroCompactTopPreview({
+  item,
+  onNavigate,
+  onOpenTenders,
+  onOpenTender,
+}: {
+  item: HeroTodayItem;
+  onNavigate: HeroDzisPanelProps["onNavigate"];
+  onOpenTenders?: () => void;
+  onOpenTender?: (tenderId: string) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() =>
+        resolveHeroItemNavigation(item, { onNavigate, onOpenTenders, onOpenTender })
+      }
+      className="w-full text-left rounded-lg border border-border/80 bg-card/50 px-3 py-2.5 hover:border-primary/25 hover:bg-card transition-colors min-h-[44px] touch-manipulation flex items-center gap-2 min-w-0"
+    >
+      <span
+        className={`text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${priorityTone(item.priority)}`}
+      >
+        {ACTION_PRIORITY_LABEL_PL[item.priority]}
+      </span>
+      <span className="text-xs font-medium leading-snug truncate min-w-0 flex-1">{item.title}</span>
+      <ChevronRight size={14} className="text-muted-foreground shrink-0" />
+    </button>
+  );
+}
+
+function HeroItemsList({
+  items,
+  onNavigate,
+  onOpenTenders,
+  onOpenTender,
+}: {
+  items: HeroTodayItem[];
+  onNavigate: HeroDzisPanelProps["onNavigate"];
+  onOpenTenders?: () => void;
+  onOpenTender?: (tenderId: string) => void;
+}) {
+  return (
+    <ul className="flex flex-col gap-2.5 min-w-0">
+      {items.map((item) => (
+        <li key={item.id} className="min-w-0">
+          <HeroActionRow
+            item={item}
+            onNavigate={onNavigate}
+            onOpenTenders={onOpenTenders}
+            onOpenTender={onOpenTender}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export type HeroDzisPanelProps = {
   hero: HeroTodayResult;
+  variant?: "full" | "compact";
+  /** Compact wewnątrz Przetargi — skrót (bez zewnętrznej karty). */
+  embedded?: boolean;
   onNavigate: (
     v: HeroDzisNavigateView,
     jobId?: string,
@@ -143,12 +204,113 @@ export type HeroDzisPanelProps = {
   onOpenTender?: (tenderId: string) => void;
 };
 
+function HeroDzisCompactPanel({
+  hero,
+  embedded,
+  onNavigate,
+  onOpenTenders,
+  onOpenTender,
+}: Omit<HeroDzisPanelProps, "variant">) {
+  const [expanded, setExpanded] = useState(false);
+  const criticalBadge = formatHeroCriticalBadge(hero.criticalCount);
+  const highBadge = formatHeroHighBadge(hero.highCount);
+  const toneClasses = summaryToneClasses(hero.summaryTone);
+  const topItem = hero.items[0];
+  const hasItems = hero.items.length > 0;
+
+  const wrapperClass = embedded
+    ? `border-t border-border -mx-4 ${toneClasses}`
+    : `rounded-xl border overflow-hidden shadow-sm ${toneClasses}`;
+
+  return (
+    <section className={wrapperClass} aria-label="Hero DZIŚ">
+      <div className="px-3 sm:px-4 py-3 space-y-2 min-w-0">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Zap size={14} className="shrink-0 opacity-90" />
+            <span className="text-xs font-bold tracking-wide uppercase">DZIŚ</span>
+          </div>
+          {criticalBadge && (
+            <span className="text-[10px] font-semibold text-destructive shrink-0">🔴 {criticalBadge}</span>
+          )}
+          {highBadge && (
+            <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 shrink-0">
+              🟠 {highBadge}
+            </span>
+          )}
+        </div>
+
+        <p className="text-xs leading-snug opacity-95 line-clamp-2">{hero.headline}</p>
+
+        {!hasItems ? (
+          <p className="text-xs text-muted-foreground">Dziś nie ma pilnych spraw.</p>
+        ) : (
+          <>
+            {!expanded && topItem && (
+              <HeroCompactTopPreview
+                item={topItem}
+                onNavigate={onNavigate}
+                onOpenTenders={onOpenTenders}
+                onOpenTender={onOpenTender}
+              />
+            )}
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              aria-expanded={expanded}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-border bg-secondary/40 hover:bg-secondary/70 text-xs font-semibold transition-colors min-h-[44px] touch-manipulation"
+            >
+              {expanded ? "Ukryj priorytety" : "Pokaż priorytety"}
+              {expanded ? <ChevronUp size={16} className="shrink-0" /> : <ChevronDown size={16} className="shrink-0" />}
+            </button>
+            {expanded && (
+              <div className="pt-1">
+                <HeroItemsList
+                  items={hero.items}
+                  onNavigate={onNavigate}
+                  onOpenTenders={onOpenTenders}
+                  onOpenTender={onOpenTender}
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        {!hasItems && onOpenTenders && (
+          <button
+            type="button"
+            onClick={onOpenTenders}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline min-h-[44px] px-1 touch-manipulation"
+          >
+            Przejdź do Przetargów
+            <ChevronRight size={14} />
+          </button>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export function HeroDzisPanel({
   hero,
+  variant = "full",
+  embedded = false,
   onNavigate,
   onOpenTenders,
   onOpenTender,
 }: HeroDzisPanelProps) {
+  if (variant === "compact") {
+    return (
+      <HeroDzisCompactPanel
+        hero={hero}
+        embedded={embedded}
+        onNavigate={onNavigate}
+        onOpenTenders={onOpenTenders}
+        onOpenTender={onOpenTender}
+      />
+    );
+  }
+
   const criticalBadge = formatHeroCriticalBadge(hero.criticalCount);
   const highBadge = formatHeroHighBadge(hero.highCount);
   const toneClasses = summaryToneClasses(hero.summaryTone);
@@ -200,18 +362,12 @@ export function HeroDzisPanel({
             )}
           </div>
         ) : (
-          <ul className="flex flex-col gap-2.5 min-w-0">
-            {hero.items.map((item) => (
-              <li key={item.id} className="min-w-0">
-                <HeroActionRow
-                  item={item}
-                  onNavigate={onNavigate}
-                  onOpenTenders={onOpenTenders}
-                  onOpenTender={onOpenTender}
-                />
-              </li>
-            ))}
-          </ul>
+          <HeroItemsList
+            items={hero.items}
+            onNavigate={onNavigate}
+            onOpenTenders={onOpenTenders}
+            onOpenTender={onOpenTender}
+          />
         )}
       </div>
     </section>

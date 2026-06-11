@@ -443,13 +443,6 @@ export function DashboardView({
           </div>
         </div>
 
-        <HeroDzisPanel
-          hero={heroToday}
-          onNavigate={onNavigate}
-          onOpenTenders={onOpenTenders}
-          onOpenTender={onOpenTender}
-        />
-
         {showSaturdayBanner && (
           <div className="bg-primary/10 border border-primary/30 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -594,6 +587,20 @@ export function DashboardView({
             onNavigateToJobFromTender={onNavigateToJobFromTender}
             onOpenJob={onOpenJobFromTender}
             onCreateJobFromTender={onCreateJobFromTender}
+            heroToday={heroToday}
+            heroOnNavigate={onNavigate}
+            heroOnOpenTenders={onOpenTenders}
+            heroOnOpenTender={onOpenTender}
+          />
+        )}
+
+        {!canViewTenders && (
+          <HeroDzisPanel
+            hero={heroToday}
+            variant="compact"
+            onNavigate={onNavigate}
+            onOpenTenders={onOpenTenders}
+            onOpenTender={onOpenTender}
           />
         )}
 

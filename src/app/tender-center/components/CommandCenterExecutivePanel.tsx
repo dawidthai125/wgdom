@@ -1,9 +1,12 @@
 import { useMemo } from "react";
 import { AlertTriangle, Briefcase, ChevronRight } from "lucide-react";
+import { HeroDzisPanel, type HeroDzisNavigateView } from "@/app/HeroDzisPanel";
 import { COMMAND_CENTER_BRAND } from "@/app/tender-center/branding";
 import { useCommandCenterContext } from "@/app/tender-center/context/CommandCenterContext";
+import type { JobDetailSection } from "@/app/JobDetailSectionNav";
 import type { Job } from "@/app/app-domain";
 import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
+import type { HeroTodayResult } from "@/lib/dashboard-hero-today";
 
 const SHORTCUT_TITLE = "Przetargi — skrót";
 
@@ -15,6 +18,10 @@ export function CommandCenterExecutivePanel({
   onNavigateToJobFromTender: _onNavigateToJobFromTender,
   onOpenJob: _onOpenJob,
   onCreateJobFromTender: _onCreateJobFromTender,
+  heroToday,
+  heroOnNavigate,
+  heroOnOpenTenders,
+  heroOnOpenTender,
 }: {
   /** @deprecated ETAP 7H — dane z CommandCenterContext; props zachowane w DashboardView bez zmian sygnatury. */
   jobs?: unknown;
@@ -33,6 +40,15 @@ export function CommandCenterExecutivePanel({
     draft: ReturnType<typeof jobDraftFromTender>,
     item: TenderPipelineItem,
   ) => string | void;
+  heroToday?: HeroTodayResult;
+  heroOnNavigate?: (
+    v: HeroDzisNavigateView,
+    jobId?: string,
+    payrollEmpId?: string,
+    jobSection?: JobDetailSection,
+  ) => void;
+  heroOnOpenTenders?: () => void;
+  heroOnOpenTender?: (tenderId: string) => void;
 }) {
   void _onOpenTender;
   void _setJobs;
@@ -64,7 +80,7 @@ export function CommandCenterExecutivePanel({
           <div className="min-w-0">
             <h2 className="text-sm font-bold tracking-wide text-foreground">{SHORTCUT_TITLE}</h2>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              Liczniki pilnych spraw — szczegóły w Hero DZIŚ i {COMMAND_CENTER_BRAND.togglePro}
+              Liczniki pilnych spraw i priorytety dnia — szczegóły w {COMMAND_CENTER_BRAND.togglePro}
             </p>
           </div>
         </div>
@@ -118,6 +134,17 @@ export function CommandCenterExecutivePanel({
             <p className="text-[10px] text-muted-foreground mt-0.5">Wymagają utworzenia roboty</p>
           </div>
         </div>
+
+        {heroToday && heroOnNavigate && (
+          <HeroDzisPanel
+            hero={heroToday}
+            variant="compact"
+            embedded
+            onNavigate={heroOnNavigate}
+            onOpenTenders={heroOnOpenTenders}
+            onOpenTender={heroOnOpenTender}
+          />
+        )}
 
         <button
           type="button"

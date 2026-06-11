@@ -56,7 +56,7 @@ async function seedDashboardWithWmOverdue(
 test.describe.configure({ mode: "serial" });
 
 test.describe("Dashboard Hero DZIŚ — 20.7C.2C", () => {
-  test("A — Hero widoczny nad KPI (desktop)", async ({ page }) => {
+  test("A — KPI przed Hero DZIŚ (desktop)", async ({ page }) => {
     const seedArgs = buildE2eSeedArgs();
     await blockCloudSync(page);
     await page.addInitScript(applyE2eSeedInBrowser, seedArgs);
@@ -74,11 +74,11 @@ test.describe("Dashboard Hero DZIŚ — 20.7C.2C", () => {
     expect(heroBox).not.toBeNull();
     expect(kpiBox).not.toBeNull();
     if (heroBox && kpiBox) {
-      expect(heroBox.y).toBeLessThan(kpiBox.y);
+      expect(kpiBox.y).toBeLessThan(heroBox.y);
     }
   });
 
-  test("B — Hero renderuje maksymalnie 5 pozycji", async ({ page }) => {
+  test("B — po rozwinięciu accordion max 5 pozycji", async ({ page }) => {
     const seedArgs = buildE2eSeedArgs();
     await blockCloudSync(page);
     await page.addInitScript(applyE2eSeedInBrowser, seedArgs);
@@ -87,7 +87,9 @@ test.describe("Dashboard Hero DZIŚ — 20.7C.2C", () => {
     await seedDashboardWithWmOverdue(page, seedArgs);
     await loginAdmin(page);
 
-    const items = page.getByLabel("Hero DZIŚ").locator("ul li");
+    const hero = page.getByLabel("Hero DZIŚ");
+    await hero.getByRole("button", { name: /Pokaż priorytety/i }).click();
+    const items = hero.locator("ul li");
     await expect(items).toHaveCount(await items.count());
     const count = await items.count();
     expect(count).toBeLessThanOrEqual(5);
