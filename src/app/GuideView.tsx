@@ -32,6 +32,7 @@ import {
   Search,
   KeyRound,
   Mail,
+  Send,
 } from "lucide-react";
 import { useWheelScrollForward } from "@/lib/wheel-scroll-forward";
 import { CHANGELOG } from "@/app/changelog-data";
@@ -528,6 +529,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
             {icon:KeyRound, title:"Zapamiętaj hasło admina", desc:"Przy logowaniu administratora zaznacz „Zapamiętaj hasło na tym urządzeniu” — hasło zostaje zaszyfrowane lokalnie (nie w chmurze). Nie używaj na wspólnym komputerze."},
             {icon:FileDown, title:"PDF z roboty do wysłania klientowi", desc:"Każda robota ma przycisk PDF w nagłówku. Generuje profesjonalny dokument z listą dokumentów, czasem pracy i kosztami — można go od razu wysłać mailowo."},
             {icon:Mail, title:"Email z roboty — zdjęcia i raporty", desc:"Maile z biuro@wgdom.fun. W Kontaktach włącz uprawnienie „Roboty” — tylko te adresy pojawią się przy wysyłce z karty roboty. Wybierz treść (zdjęcia, raport) i wyślij."},
+            {icon:Send, title:"Kontakt z inspektorem — szablony A–D", desc:"W szczegółach roboty: przycisk „Kontakt z inspektorem”. W Kontaktach zaznacz „Inspektor WM” u odbiorcy. System sugeruje szablon (brak zlecenia/kosztorysu), pokazuje co mamy gotowe u nas i czego brakuje — wyślij emailem bez załączników."},
             {icon:Wallet, title:"Email listy płac — PDF i Word", desc:"W Liście płac: Email → wybierz odbiorcę z uprawnieniem „Lista płac” (ustawiasz w Kontaktach). Dołącz PDF i/lub Word; w treści maila tabela jak w PDF."},
           ].map((tip,i)=>(
             <div key={i} className="flex gap-4 bg-secondary/40 rounded-xl p-4 border border-border">

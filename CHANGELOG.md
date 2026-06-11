@@ -4,11 +4,20 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.68** (`changelog-data.ts`) · Dashboard IA Cleanup 20.7E  
+**Aktualna wersja UI:** **2.50.69** (`changelog-data.ts`) · Inspector Communication Templates 2.1.0  
 **★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
+
+---
+
+## 2.50.69 (2026-06-11) — Inspector Communication Templates (2.1.0)
+
+- Roboty: „Kontakt z inspektorem” — szablony A–D, auto-sugestia, email przez Resend (`send-job-email` + `mode: inspector_template`)
+- Kontakty: flaga `isInspector` — domyślny odbiorca
+- Treść: sekcje „Po naszej stronie dostępne” / „Brakuje” (zlecenie, kosztorys)
+- Historia: `email_sent` + nazwa szablonu
 
 ---
 

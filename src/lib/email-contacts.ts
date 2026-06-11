@@ -9,6 +9,8 @@ export interface EmailContact {
   allowJobs?: boolean;
   /** Email z listą płac (PDF/Word) */
   allowPayroll?: boolean;
+  /** Domyślny odbiorca „Kontakt z inspektorem” (Roboty 2.1) */
+  isInspector?: boolean;
   updatedAt?: string;
 }
 
@@ -39,4 +41,13 @@ export function contactsForJobs(contacts: EmailContact[]): EmailContact[] {
 
 export function contactsForPayroll(contacts: EmailContact[]): EmailContact[] {
   return contacts.filter((c) => c.email.trim() && contactAllowsPayroll(c));
+}
+
+export function contactIsInspector(c: EmailContact): boolean {
+  return c.isInspector === true;
+}
+
+/** Kontakty oznaczone jako inspektor WM (email wymagany). */
+export function contactsForInspector(contacts: EmailContact[]): EmailContact[] {
+  return contacts.filter((c) => c.email.trim() && contactIsInspector(c));
 }

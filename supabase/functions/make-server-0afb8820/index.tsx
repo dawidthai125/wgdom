@@ -1212,17 +1212,20 @@ type JobEmailPayload = {
   jobHeader: { address: string; flatNumber: string; client: string };
   photos: JobEmailPhoto[];
   reportSections: JobEmailReportSection[];
+  /** Roboty 2.1 — wiadomość tekstowa do inspektora (bez załączników). */
+  mode?: "inspector_template";
 };
 
 function buildJobEmailHtml(payload: JobEmailPayload): string {
-  const { jobHeader, photos, reportSections, introMessage } = payload;
+  const { jobHeader, photos, reportSections, introMessage, mode } = payload;
   const title = `${jobHeader.address || "Robota"}${jobHeader.flatNumber ? ` m.${jobHeader.flatNumber}` : ""}`;
   const parts: string[] = [];
+  const subtitle = mode === "inspector_template" ? "Wiadomość do inspektora" : "Materiały z roboty";
 
   parts.push(`<div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;color:#1a1a1a">`);
   parts.push(`<div style="background:#344254;color:#fff;padding:20px 24px;border-radius:8px 8px 0 0">`);
   parts.push(`<p style="margin:0;font-size:22px;font-weight:bold">W&amp;G DOM</p>`);
-  parts.push(`<p style="margin:6px 0 0;font-size:13px;color:#C0392B">Materiały z roboty</p></div>`);
+  parts.push(`<p style="margin:6px 0 0;font-size:13px;color:#C0392B">${subtitle}</p></div>`);
   parts.push(`<div style="border:1px solid #e5e7eb;border-top:none;padding:24px;border-radius:0 0 8px 8px">`);
 
   parts.push(`<h2 style="margin:0 0 4px;font-size:18px">${escapeHtml(title)}</h2>`);
@@ -1294,6 +1297,9 @@ function buildJobEmailHtml(payload: JobEmailPayload): string {
 }
 
 function jobEmailHasContent(payload: JobEmailPayload): boolean {
+  if (payload.mode === "inspector_template" && (payload.introMessage?.trim().length ?? 0) >= 40) {
+    return true;
+  }
   if (payload.photos.length > 0) return true;
   for (const sec of payload.reportSections) {
     if (sec.workItems && sec.workItems.length > 0) return true;

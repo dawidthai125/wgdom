@@ -19,6 +19,7 @@ import {
   contactsForPayroll,
   contactAllowsJobs,
   contactAllowsPayroll,
+  contactIsInspector,
 } from "@/lib/email-contacts";
 
 export function ContactsView({ contacts, onChange }: { contacts: EmailContact[]; onChange: (c: EmailContact[]) => void }) {
@@ -94,6 +95,10 @@ export function ContactsView({ contacts, onChange }: { contacts: EmailContact[];
                         <input type="checkbox" checked={contactAllowsPayroll(editContact)} onChange={(e) => update({ ...editContact, allowPayroll: e.target.checked })} className="rounded"/>
                         Lista płac — PDF i Word
                       </label>
+                      <label className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" checked={contactIsInspector(editContact)} onChange={(e) => update({ ...editContact, isInspector: e.target.checked })} className="rounded"/>
+                        Inspektor WM — domyślny odbiorca „Kontakt z inspektorem”
+                      </label>
                     </div>
                     <div className="flex items-center gap-2 pt-2">
                       <button type="button" onClick={() => setEditId(null)} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"><Check size={13}/>Zapisz</button>
@@ -119,6 +124,9 @@ export function ContactsView({ contacts, onChange }: { contacts: EmailContact[];
                         )}
                         {contactAllowsPayroll(contact) && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 font-medium">Lista płac</span>
+                        )}
+                        {contactIsInspector(contact) && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium">Inspektor</span>
                         )}
                         {!contactAllowsJobs(contact) && !contactAllowsPayroll(contact) && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">Brak uprawnień</span>

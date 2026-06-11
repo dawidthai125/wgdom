@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.68** · Dashboard IA Cleanup 20.7E)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-11 (workflow release/deploy A/B/C — [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md))
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.69** · Inspector Communication Templates 2.1.0)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-11 (Inspector Communication Templates 2.1.0)
 > **★ Dashboard V2 handoff:** [`SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -324,6 +324,24 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 
 **Pliki:** `JobReportForm.tsx`, `JobWorkerReportsPanel.tsx`, `job-documents.ts` (`JOB_DOCUMENTATION_SOURCE_HELP`, `RYSUNEK_PLAN_CHECKLIST_HELP`), `syncJobDocumentsFromReports()`
 
+### 9.2 Kontakt z inspektorem — szablony wiadomości (2.1.0, v2.50.69)
+
+**Cel:** z poziomu roboty wysłać email do inspektora WM z czytelnym podsumowaniem „po naszej stronie gotowe” vs „brakuje zlecenia/kosztorysu” — **bez załączników**, reuse `POST /send-job-email`.
+
+| Element | Opis |
+|---------|------|
+| **UI** | `JobsView` → przycisk „Kontakt z inspektorem” → `JobInspectorContactModal.tsx` |
+| **Odbiorca** | `EmailContact.isInspector` w `kw-contacts` (`email-contacts.ts`, `ContactsView` checkbox „Inspektor WM”); 1 kontakt = auto, 0 = blokada, >1 = wybór |
+| **Szablony A–D** | `inspector-message-templates.ts` — brak zlecenia/kosztorysu × faza (`inferJobPhase`, handover); **E (podziękowanie) poza MVP** |
+| **Auto-sugestia** | Priorytet: D > C > A > B wg `documents.zlecenie`, `documents.kosztorys`, fazy |
+| **Treść maila** | Sekcje „Po naszej stronie dostępne” (zdjęcia, plan techniczny, dokumentacja robót) i „Brakuje” (zlecenie/kosztorys) — wyliczane z job |
+| **Wysyłka** | Payload `{ mode: "inspector_template", introMessage, photos: [], reportSections: [] }` — Edge akceptuje intro ≥40 znaków bez zdjęć/raportów |
+| **Historia** | `activityLog` typ `email_sent` + tekst z `inspectorTemplateActivityText()` (nazwa szablonu) |
+
+**Pliki:** `src/lib/inspector-message-templates.ts`, `src/lib/email-contacts.ts`, `src/app/JobInspectorContactModal.tsx`, `src/app/JobsView.tsx`, `supabase/functions/make-server-0afb8820/index.tsx` (`send-job-email`).
+
+**Smoke:** `scripts/smoke-test-inspector-templates-2.1.mjs`
+
 ---
 
 ## 10. Model danych
@@ -580,7 +598,7 @@ Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTST
 | POST | `/storage-delete` | Usunięcie z bucket |
 | POST | `/kosztorys-preview` | Podgląd kosztorysu ATH |
 | POST | `/send-backup-email` | Mail backup |
-| POST | `/send-job-email` | Mail roboty |
+| POST | `/send-job-email` | Mail roboty (+ `mode: inspector_template` — szablony inspektora 2.1.0) |
 | POST | `/send-payroll-email` | Mail listy płac |
 | POST | `/send-job-files-email` | Mail plików |
 | GET | `/client-share` | Token podglądu klienta `?podglad=` |

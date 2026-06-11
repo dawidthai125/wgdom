@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-11",
+    version: "2.50.69",
+    label: "Inspector Communication Templates (2.1.0)",
+    items: [
+      { type: "new", text: "Roboty — „Kontakt z inspektorem” w szczegółach roboty: szablony A–D, auto-sugestia, wysyłka emailem (Resend)" },
+      { type: "new", text: "Kontakty — flaga „Inspektor WM” (domyślny odbiorca wiadomości z roboty)" },
+      { type: "improve", text: "Szablony pokazują „Po naszej stronie dostępne” (zdjęcia, plan, dokumentacja) oraz „Brakuje” (zlecenie/kosztorys)" },
+      { type: "improve", text: "Historia roboty — wpis email_sent z nazwą szablonu po wysłaniu do inspektora" },
+    ],
+  },
+  {
+    date: "2026-06-11",
     version: "2.50.68",
     label: "Dashboard IA Cleanup (20.7E)",
     items: [

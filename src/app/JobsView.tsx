@@ -82,6 +82,8 @@ import {
   scopeTextToWorkItems, workItemsToScopeText,
 } from "@/lib/work-scope-text";
 import { contactsForJobs, contactAllowsJobs, type EmailContact } from "@/lib/email-contacts";
+import { JobInspectorContactModal } from "@/app/JobInspectorContactModal";
+import { inspectorTemplateActivityText, type InspectorTemplateId } from "@/lib/inspector-message-templates";
 import { API_BASE, API_HEADERS, addDeletedJobId, getDeletedJobIds, pushJobsAfterDelete } from "@/lib/cloud-sync";
 import {
   normalizeJobWmFields, isWmClient, fmtPlannedHandover, HANDOVER_STAGE_LABELS,
@@ -588,6 +590,7 @@ export function JobsView({
   const [leadFilter, setLeadFilter] = useState<string>("");
   const [listViewMode, setListViewMode] = useState<JobListViewMode>("list");
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showInspectorContactModal, setShowInspectorContactModal] = useState(false);
   const [packBusy, setPackBusy] = useState(false);
   const [fileDeleteBusy, setFileDeleteBusy] = useState<string | null>(null);
 
@@ -1749,6 +1752,14 @@ export function JobsView({
                   </button>
                   <button
                     type="button"
+                    onClick={() => setShowInspectorContactModal(true)}
+                    title="Wyślij wiadomość do inspektora (szablony A–D)"
+                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-emerald-700/90 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    <MessageSquare size={12}/>Kontakt z inspektorem
+                  </button>
+                  <button
+                    type="button"
                     disabled={packBusy}
                     title="ZIP: zlecenie, kosztorys, zdjęcia, checklist dokumentów"
                     onClick={async () => {
@@ -2661,6 +2672,22 @@ export function JobsView({
           onClose={() => setShowEmailModal(false)}
           onManageContacts={() => { setShowEmailModal(false); onManageContacts(); }}
           onSent={(to) => updateJob(selectedJob, { type: "email_sent", text: `Wysłano materiały na ${to}` })}
+        />
+      )}
+      {showInspectorContactModal && selectedJob && (
+        <JobInspectorContactModal
+          job={selectedJob}
+          contacts={contacts}
+          senderName={createdByName}
+          onClose={() => setShowInspectorContactModal(false)}
+          onManageContacts={() => { setShowInspectorContactModal(false); onManageContacts(); }}
+          onSent={(templateId: InspectorTemplateId, to) =>
+            updateJob(selectedJob, {
+              type: "email_sent",
+              text: inspectorTemplateActivityText(templateId, to),
+              actor: createdByName,
+            })
+          }
         />
       )}
       {previewItem && (
