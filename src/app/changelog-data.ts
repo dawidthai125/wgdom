@@ -12,6 +12,14 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-11",
+    version: "2.50.71",
+    label: "Uwaga dziś — sort braków dokumentów",
+    items: [
+      { type: "improve", text: "Pulpit → „Uwaga dziś” → Braki dokumentów — lista sortuje roboty najbliższe domknięcia (najmniej braków na górze); stale ≥7 dni nadal pierwsze" },
+    ],
+  },
+  {
+    date: "2026-06-11",
     version: "2.50.70",
     label: "Default Inspector Recipient (2.1.1)",
     items: [

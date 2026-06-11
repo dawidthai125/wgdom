@@ -183,7 +183,7 @@ export function DashboardView({
         const staleA = jobDaysSinceStart(a) >= 7 ? 1 : 0;
         const staleB = jobDaysSinceStart(b) >= 7 ? 1 : 0;
         if (staleB !== staleA) return staleB - staleA;
-        const missDiff = jobMissingRequiredDocs(b).length - jobMissingRequiredDocs(a).length;
+        const missDiff = jobMissingRequiredDocs(a).length - jobMissingRequiredDocs(b).length;
         if (missDiff !== 0) return missDiff;
         return (a.address || "").localeCompare(b.address || "", "pl");
       }),
