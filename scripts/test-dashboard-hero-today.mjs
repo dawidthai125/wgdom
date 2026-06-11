@@ -224,6 +224,57 @@ assert(
   { wmSources: hero.items.map((i) => i.sourceIds) },
 );
 
+// --- Variant C: forecast overload excluded from Hero ---
+const heroForecastFilter = buildHeroToday({
+  operational: {
+    jobs: [],
+    weekEmployees: [],
+    weekFrom: "2026-06-02",
+    weekTo: "2026-06-07",
+    directory: [],
+    savedWeeks: [],
+    now: new Date("2026-06-10T12:00:00.000Z"),
+  },
+  actionCenter: {
+    actions: [
+      {
+        id: "forecast-30-critical",
+        priority: "CRITICAL",
+        category: "STAFF",
+        title: "Krytyczne obciążenie za 30 dni (325%)",
+        description: "Prognoza",
+        reason: "forecast",
+        source: "forecast",
+        recommendedAction: "Sprawdź Command Center.",
+      },
+      {
+        id: "alert-wm-overdue",
+        priority: "CRITICAL",
+        category: "BUSINESS",
+        title: "WM strategic overdue",
+        description: "WM",
+        reason: "wm",
+        source: "explain",
+        recommendedAction: "Uporządkuj terminy.",
+      },
+    ],
+    counts: { CRITICAL: 2, HIGH: 0, MEDIUM: 0, LOW: 0 },
+    primaryAction: null,
+    headline: "test",
+  },
+});
+
+assert(
+  "variant C: forecast-30-critical excluded from Hero",
+  !heroForecastFilter.items.some((i) => i.id === "hero-ac-forecast-30-critical"),
+  { ids: heroForecastFilter.items.map((i) => i.id) },
+);
+assert(
+  "variant C: alert-wm-overdue still in Hero",
+  heroForecastFilter.items.some((i) => i.id === "hero-ac-alert-wm-overdue"),
+  { ids: heroForecastFilter.items.map((i) => i.id) },
+);
+
 const failed = results.filter((r) => !r.pass);
 console.log(
   JSON.stringify(

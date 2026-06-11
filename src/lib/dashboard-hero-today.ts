@@ -790,11 +790,24 @@ function buildHeroHeadline(tone: SummaryTone, top: HeroTodayItem | undefined): s
   }
 }
 
+/** Action Center IDs excluded from Dashboard Hero (forecast overload — CC only). */
+export const HERO_EXCLUDED_ACTION_CENTER_IDS = new Set([
+  "forecast-30-critical",
+  "forecast-60-overload",
+  "alert-overload-60",
+]);
+
+export function filterHeroActionCenterActions(actions: OwnerActionItem[]): OwnerActionItem[] {
+  return actions.filter((a) => !HERO_EXCLUDED_ACTION_CENTER_IDS.has(a.id));
+}
+
 /** Pełna lista po rankingu (dedupe Uwaga dziś) — bez slice do 5. */
 export function buildHeroTodayRankedAll(input: HeroTodayInput): HeroTodayItem[] {
   const now = input.now ?? new Date();
   const operational = mapOperationalAlertsToHeroItems({ ...input.operational, now });
-  const tender = (input.actionCenter?.actions ?? []).map(mapOwnerActionToHeroItem);
+  const tender = filterHeroActionCenterActions(input.actionCenter?.actions ?? []).map(
+    mapOwnerActionToHeroItem,
+  );
   return mergeAndRankHeroItems([...operational, ...tender], 999);
 }
 
@@ -802,7 +815,9 @@ export function buildHeroTodayRankedAll(input: HeroTodayInput): HeroTodayItem[] 
 export function buildHeroToday(input: HeroTodayInput): HeroTodayResult {
   const now = input.now ?? new Date();
   const operational = mapOperationalAlertsToHeroItems({ ...input.operational, now });
-  const tender = (input.actionCenter?.actions ?? []).map(mapOwnerActionToHeroItem);
+  const tender = filterHeroActionCenterActions(input.actionCenter?.actions ?? []).map(
+    mapOwnerActionToHeroItem,
+  );
   const allMerged = mergeAndRankHeroItems([...operational, ...tender], 999);
   const items = allMerged.slice(0, HERO_TODAY_MAX_ITEMS);
   const { criticalCount, highCount, urgentCount } = countByPriority(allMerged);

@@ -12,6 +12,14 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-11",
+    version: "2.50.72",
+    label: "Hero — prognoza obciążenia tylko w Command Center",
+    items: [
+      { type: "improve", text: "Pulpit → „Najważniejsze dziś” — bez alertów prognozy obciążenia 30/60 dni; szczegóły i sloty pozostają w Przetargi → Command Center" },
+    ],
+  },
+  {
+    date: "2026-06-11",
     version: "2.50.71",
     label: "Uwaga dziś — sort braków dokumentów",
     items: [
