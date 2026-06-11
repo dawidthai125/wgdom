@@ -30,6 +30,8 @@ import {
   fmtDate,
   PREV_SAT_SHORT,
   getPrevSaturday,
+  extraCostStatus,
+  EXTRA_COST_STATUS_LABELS,
 } from "@/app/app-domain";
 
 /** Uzupełnia brakujące dni (stare archiwum / niepełny sync). */
