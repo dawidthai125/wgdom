@@ -8,29 +8,30 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. CURRENT-TASK.md        ← ★ co na prod + status sesji
-3. docs/WORKFLOW-RELEASE-DEPLOY.md  ← ★★ release/deploy A/B/C + VERIFY (oficjalny)
-4. docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md  ← Dashboard V2 + Hero
-5. docs/PROJECT-HANDOFF.md  ← baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT
-6. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md  ← backup baseline 2.50.64
-7. docs/BACKUP-REPORT-2.50.64.md  ← pre-feature backup + storage-full
-8. docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md  ← audyt 100% storage
-9. docs/PROJECT-HANDOFF-FINAL-20.5Z.md  ← oficjalny handoff końcowy serii 20.5Z (COMPLETE)
-10. docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md  ← seria 20.5Z — szczegóły sprintów
-11. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← Files Hub 20.5A.12
-12. docs/RELEASE-REPORT-20.5Z.2B.md  ← E2E Version Awareness (20.5Z.2B)
-13. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
-14. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← Roboty UX, Version, Worker Mobile
-15. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
-16. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← CC polonizacja CLOSED + mapa widoków
-17. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
-18. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
-19. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← gotowość worker/admin/inspektor GO
-20. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-21. docs/ARCHITECTURE.md   ← pełna architektura (§ 9.1 dokumentacja, § 12.1.2 pliki, § 13.1 wersja)
-22. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G + 20.7)
-23. CHANGELOG.md          ← CO już zrobiono (skrót)
-24. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+2. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.50.70, commity, decyzje)
+3. CURRENT-TASK.md        ← ★ status sesji / wznowienie (SESSION CLOSEOUT)
+4. docs/WORKFLOW-RELEASE-DEPLOY.md  ← ★★ release/deploy A/B/C + VERIFY (oficjalny)
+5. docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md  ← Dashboard V2 + Hero
+6. docs/PROJECT-HANDOFF.md  ← proces AUDIT→RCA→PLAN→IMPLEMENT (baseline → CURRENT)
+7. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md  ← backup baseline 2.50.64
+8. docs/BACKUP-REPORT-2.50.64.md  ← pre-feature backup + storage-full
+9. docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md  ← audyt 100% storage
+10. docs/PROJECT-HANDOFF-FINAL-20.5Z.md  ← oficjalny handoff końcowy serii 20.5Z (COMPLETE)
+11. docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md  ← seria 20.5Z — szczegóły sprintów
+12. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← Files Hub 20.5A.12
+13. docs/RELEASE-REPORT-20.5Z.2B.md  ← E2E Version Awareness (20.5Z.2B)
+14. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
+15. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← Roboty UX, Version, Worker Mobile
+16. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
+17. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← CC polonizacja CLOSED + mapa widoków
+18. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
+19. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
+20. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← gotowość worker/admin/inspektor GO
+21. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+22. docs/ARCHITECTURE.md   ← pełna architektura (§ 9.1 dokumentacja, § 9.2 inspektor email, § 12.1.2 pliki, § 13.1 wersja)
+23. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G + 20.7)
+24. CHANGELOG.md          ← CO już zrobiono (skrót)
+25. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -38,7 +39,7 @@
 - **Nie zgaduj architektury** — sprawdź `PROJECT-GUIDE.md` i `docs/ARCHITECTURE.md`.
 - **Nie zmieniaj syncu / merge** bez przeczytania ARCHITECTURE § 11.
 - **Przed większą zmianą** przeczytaj **Known Issues** w `PROJECT-GUIDE.md`.
-- **Na końcu sesji** zaktualizuj `CURRENT-TASK.md` (skończone / w trakcie / następne).
+- **Na końcu sesji** zaktualizuj `CURRENT-TASK.md` + `docs/PROJECT-HANDOFF-CURRENT.md` (baseline prod, commity, decyzje).
 - Hasło użytkownika: **„kontynuuj WGDOM”** → czytaj też `.cursor/rules/wgdom-stan-projektu.mdc`.
 
 ---
@@ -52,6 +53,7 @@
 | **docs/ARCHITECTURE.md** | Pełny techniczny przewodnik (living document) |
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
+| **docs/PROJECT-HANDOFF-CURRENT.md** | **★ SSOT baseline prod** — wersja, commity, releasy po 20.5Z, decyzje (np. 2.1.2 CANCELLED) |
 | **docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md** | **★ Pre-next-feature** — 5A/5B, backup, storage, komendy |
 | **docs/BACKUP-REPORT-2.50.64.md** | Pre-feature backup v2.50.64 — artefakty, PASS/FAIL |
 | **docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md** | Audyt storage 100% — bucket, mapa kodu |
@@ -66,7 +68,7 @@
 | **docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md** | **★★ Dashboard V2 COMPLETE** — Hero DZIŚ, konsolidacja, compression, mapa plików, E2E |
 | **docs/PROJECT-HANDOFF-FINAL-20.5Z.md** | **★ Oficjalny handoff końcowy 20.5Z** — baseline, architektura, E2E, PWA, readiness, werdykt COMPLETE |
 | **docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md** | Seria **20.5Z CLOSED** — szczegóły sprintów, komendy, pułapki E2E |
-| **docs/PROJECT-HANDOFF.md** | Baseline prod, ostatni release, proces AUDIT→RCA→PLAN→IMPLEMENT |
+| **docs/PROJECT-HANDOFF.md** | Proces AUDIT→RCA→PLAN→IMPLEMENT · baseline historyczny → użyj **PROJECT-HANDOFF-CURRENT** |
 | **docs/SETTLEMENT-WORKFLOW-AUDIT-20.4A.md** | Audyt settlement ledger — design 20.4A |
 | **docs/SETTLEMENT-REPORTING-AUDIT-20.4C.md** | Audyt reporting + dashboard KPI |
 | **docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md** | Sprint 20.1B **CLOSED** — saved ≠ closed, defer po zapisie, live vs snapshot |
@@ -91,7 +93,7 @@
 3. **`CHANGELOG.md`** — dopisz ostatnią wersję (skrót)
 4. Instrukcja użytkownika (`HelpView`, hinty) — jeśli widoczne w UI
 5. **`docs/ARCHITECTURE.md`** — sekcja dotycząca zmiany + data na górze
-6. **`CURRENT-TASK.md`** — na końcu większej sesji
+6. **`CURRENT-TASK.md`** + **`docs/PROJECT-HANDOFF-CURRENT.md`** — na końcu większej sesji
 7. Podsumowanie po **polsku**
 
 Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-development.mdc) · skrót: [`guidelines/ROZWOJ.md`](guidelines/ROZWOJ.md)
@@ -126,9 +128,10 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.67**) |
-| Prod `main` (app) | **20.7D.1** · **v2.50.67** · commit **`f94b530`** · Dashboard V2 COMPLETE |
-| Poprzedni | **20.7C.2** · **v2.50.66** · commit **`3e46ae8`** |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.70**) |
+| Prod `main` (app) | **2.1.1** · **v2.50.70** · commit **`ee2cd72`** · Inspector 2.1 COMPLETE · **2.1.2 CANCELLED** |
+| Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
+| SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
 | Dashboard V2 docs | [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md) |
 | Git tag backup | **`pre-next-feature-2.50.64`** → `c7bc58f` (snapshot przed 5C) |
 | E2E `main` | **20.5Z.2B** · **`8906485`** · `test:e2e:happy` + `test:e2e:version` · CI `#27260457990` |
@@ -340,6 +343,20 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 - **E2E:** `e2e/desktop-layout.spec.ts`, `e2e/desktop-smoke.spec.ts` — `npm run test:mobile` (39 testów)
 
 **Nie zmieniaj bez polecenia:** model scrollu dokumentu (2.50.20), mobile shell `<768px`, logika kolejek MID-B.
+
+---
+
+## 3j. Inspector Communication Templates — Sprint 2.1 (**CLOSED**, prod `ee2cd72`, v2.50.70)
+
+- **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) § Inspector 2.1
+- **Architektura:** **ARCHITECTURE.md § 9.2** — szablony A–D, `isInspector`, `isDefaultInspector`, Edge `inspector_template`
+- **2.1.0** (`5391d03`, v2.50.69): modal „Kontakt z inspektorem”, szablony, Resend
+- **2.1.1** (`ee2cd72`, v2.50.70): domyślny odbiorca inspektora w Kontaktach + modal UX
+- **2.1.2:** **CANCELLED** — nie implementować pełnej listy odbiorców z Kontaktów
+- **Kluczowe pliki:** `email-contacts.ts`, `ContactsView.tsx`, `JobInspectorContactModal.tsx`, `job-email.ts`
+- **Smoke:** `smoke-test-inspector-templates-2.1.mjs`
+
+**Nie zmieniaj bez polecenia:** architektura 2.1.0+2.1.1, filtr `isInspector`, sync kontaktów KV.
 
 ---
 

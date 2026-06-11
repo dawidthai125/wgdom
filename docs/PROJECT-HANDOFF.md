@@ -1,7 +1,8 @@
 # W&G DOM — PROJECT HANDOFF
 
-> **Hasło:** „kontynuuj WGDOM” · **Data:** 2026-06-10  
-> **Przed nową pracą:** [`CURRENT-TASK.md`](../CURRENT-TASK.md) → [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md) → [`AGENTS.md`](../AGENTS.md)  
+> **⚠️ Baseline prod przeniesiony do [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md)** — ten plik = proces AUDIT→RCA→PLAN→IMPLEMENT + historia releasów.  
+> **Hasło:** „kontynuuj WGDOM” · **Data:** 2026-06-10 (baseline zaktualizowany w CURRENT 2026-06-11)  
+> **Przed nową pracą:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) → [`CURRENT-TASK.md`](../CURRENT-TASK.md) → [`AGENTS.md`](../AGENTS.md)  
 > **★ Handoff końcowy serii 20.5Z:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md)
 
 ---

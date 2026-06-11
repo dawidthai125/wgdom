@@ -5,6 +5,7 @@
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
 **Aktualna wersja UI:** **2.50.70** (`changelog-data.ts`) · Default Inspector Recipient 2.1.1  
+**★ SSOT handoff:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../CURRENT-TASK.md)  
 **★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 

@@ -12,8 +12,9 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.50.67** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts) · **20.7D.1** Hero Compression
-- **Prod (`main` / `origin/main`, app):** **`f94b530`** (20.7D.1) · poprzedni **`3e46ae8`** (2.50.66 Dashboard V2) · https://www.wgdom.fun · status **DASHBOARD V2 COMPLETE**
+- **Aktualna wersja UI:** **2.50.70** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts) · **2.1.1** Default Inspector Recipient
+- **Prod (`main` / `origin/main`, app):** **`ee2cd72`** (2.1.1) · housekeeping **`77e1052`** · poprzedni **`5391d03`** (2.1.0) · https://www.wgdom.fun · **PRODUCTION VERIFIED**
+- **★★ Handoff SSOT (baseline prod):** [`docs/PROJECT-HANDOFF-CURRENT.md`](../../docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../../CURRENT-TASK.md)
 - **★★ Handoff Dashboard V2:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](../../docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md) — Hero DZIŚ, konsolidacja, compression, mapa plików
 - **Git tag backup:** **`pre-next-feature-2.50.64`** → `c7bc58f`
 - **★ Handoff pre-next-feature:** [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](../../docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md) · backup: [`docs/BACKUP-REPORT-2.50.64.md`](../../docs/BACKUP-REPORT-2.50.64.md) · storage audit: [`docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md`](../../docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md)
@@ -26,13 +27,14 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **Seria 20.5Z.2A PWA:** **COMPLETE** — build-time `dist/sw.js`, Vercel `no-store`, smoke Z1–Z14
 - **Seria 20.5Z.4A Jobs Cleanup:** **COMPLETE** — `JobListPanelHeader`, `JobListGuidePanel`, `JobQueueSections` · deploy **`5000967334`**
 - **Seria 20.5Z.5A/5B:** **RELEASED** (`c7bc58f`, v2.50.64) — badge Roboty + Pulpit handover alert
-- **Seria 20.7 Dashboard V2:** **COMPLETE** — 20.7C.2 (`3e46ae8` v2.50.66) + 20.7D.1 (`f94b530` v2.50.67) · [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](../../docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)
+- **Seria 20.7 Dashboard V2:** **COMPLETE** — 20.7C.2 (`3e46ae8` v2.50.66) + 20.7D.1 (`f94b530` v2.50.67) + 20.7E (`65f3a8d` v2.50.68) · [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](../../docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)
+- **Inspector Communication Templates 2.1:** **COMPLETE** — 2.1.0 (`5391d03` v2.50.69) + 2.1.1 (`ee2cd72` v2.50.70) · **2.1.2 CANCELLED** · ARCHITECTURE § 9.2 · smoke `smoke-test-inspector-templates-2.1.mjs`
 - **Seria 20.5Z.5C:** **RELEASED** (v2.50.65) — mobile Roboty lista pełna szerokość · [`docs/RELEASE-REPORT-20.5Z.5C.md`](../../docs/RELEASE-REPORT-20.5Z.5C.md)
 - **Pre-feature backup 2.50.64:** **COMPLETE** — tag `pre-next-feature-2.50.64`, storage-full 140/140, email rdzeń PASS
 - **Seria 20.5Z Platform Stabilization:** **COMPLETE** — audyt 20.5Z.3 **GO** · brak otwartych sprintów w serii
 - **★★ Handoff końcowy 20.5Z:** [`docs/PROJECT-HANDOFF-FINAL-20.5Z.md`](../../docs/PROJECT-HANDOFF-FINAL-20.5Z.md) — oficjalne zamknięcie serii, baseline, architektura, readiness
 - **★ Handoff serii 20.5Z (szczegóły):** [`docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](../../docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md) — sprinty, komendy, pułapki E2E · CI `#27260457990`
-- **★ Handoff projektu:** [`docs/PROJECT-HANDOFF.md`](../../docs/PROJECT-HANDOFF.md) — baseline prod, proces AUDIT→RCA→PLAN→IMPLEMENT
+- **★ Handoff projektu:** [`docs/PROJECT-HANDOFF-CURRENT.md`](../../docs/PROJECT-HANDOFF-CURRENT.md) — **SSOT baseline prod** · proces: [`docs/PROJECT-HANDOFF.md`](../../docs/PROJECT-HANDOFF.md)
 - **★ Handoff Files Hub (CLOSED):** [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](../../docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md) — hub UI, liczniki SSOT, bez migracji danych
 - **★ Handoff sesji 20.5B (CLOSED):** [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](../../docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md) — Roboty UX 20.5B.5, Dokumentacja naming 20.5B.6A.1, Version Awareness 20.5B.7, Worker Mobile 20.5B.6A.4
 - **★ Audyt operacyjny (GO):** [`docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](../../docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md) — worker → admin → inspektor

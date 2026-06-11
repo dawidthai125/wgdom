@@ -9,27 +9,32 @@ Komunikuj się z użytkownikiem po **polsku**.
 
 ## Zanim zaczniesz pracę w tym repo
 
-1. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — skrót: co na prod (**2.50.64**, `c7bc58f`), backup, następny krok.
-2. **Przeczytaj [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)** — ★ co zrobiliśmy + pre-feature backup.
-3. **Przeczytaj [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)** — baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT.
-4. **Przeczytaj [`docs/BACKUP-REPORT-2.50.64.md`](docs/BACKUP-REPORT-2.50.64.md)** — backup baseline (jeśli dotyczy danych/storage).
-5. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md)** — Files Hub 20.5A.12 **RELEASED**.
-6. **Przeczytaj [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)** — Roboty UX, Version Awareness, Worker Mobile.
-7. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md)** — pliki roboty 20.5A.10 (trzy warstwy plików).
-8. **Przeczytaj [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md)** — billing 20.5A.6 **RELEASED**.
-9. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § 9.1 dokumentacja robót, § 11 sync, § 12.1.2 Files Hub, § 13.1 wersja.
-10. Skrót wejścia: [`AGENTS.md`](AGENTS.md).
+1. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.50.70**, `ee2cd72`), commity, decyzje (np. 2.1.2 CANCELLED).
+2. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — status sesji / wznowienie (SESSION CLOSEOUT).
+3. **Przeczytaj [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)** — release/deploy A/B/C + verify `version.json`.
+4. **Przeczytaj [`AGENTS.md`](AGENTS.md)** — pełna lista handoffów i zakazy.
+5. **Przeczytaj [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)** — proces AUDIT→RCA→PLAN→IMPLEMENT (baseline historyczny).
+6. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § 9.1 dokumentacja robót, § 9.2 inspektor email, § 11 sync, § 12.1.2 Files Hub, § 13.1 wersja.
+7. **Tematycznie (gdy dotyczy zadania):**
+   - Dashboard V2 → [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)
+   - Files Hub → [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md)
+   - Roboty UX / Version → [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)
+   - Pliki roboty → [`docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md)
+   - Billing → [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md)
+   - Backup baseline → [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 Nie analizuj od zera całego `src/app/App.tsx` (~15k linii) — ARCHITECTURE.md opisuje system jako całość.
 
 ## Po każdej zmianie w kodzie
 
-Stosuj [`.cursor/rules/wgdom-development.mdc`](wgdom-development.mdc): chmura → CHANGELOG → HelpView → **aktualizacja `docs/ARCHITECTURE.md`** (gdy dotyczy) → podsumowanie.
+Stosuj [`.cursor/rules/wgdom-development.mdc`](wgdom-development.mdc): chmura → CHANGELOG → HelpView → **aktualizacja `docs/ARCHITECTURE.md`** (gdy dotyczy) → **`CURRENT-TASK.md` + `docs/PROJECT-HANDOFF-CURRENT.md`** na końcu sesji → podsumowanie.
 
 ## Kluczowe pliki (gdy ARCHITECTURE nie wystarcza)
 
 | Temat | Plik |
 |-------|------|
+| **Baseline prod (SSOT)** | `docs/PROJECT-HANDOFF-CURRENT.md`, `CURRENT-TASK.md` |
+| **Inspector email 2.1** | `docs/PROJECT-HANDOFF-CURRENT.md` § 2.1, `email-contacts.ts`, `JobInspectorContactModal.tsx`, ARCHITECTURE § 9.2 |
 | **Files Hub 20.5A.12** | `docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`, `files-hub-index.ts`, `JobFilesHub.tsx` |
 | Seria 20.5B.5–7 + Worker Mobile | `docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md` |
 | Worker/Inspector readiness | `docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md` |
