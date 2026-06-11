@@ -20,6 +20,7 @@ import {
   contactAllowsJobs,
   contactAllowsPayroll,
   contactIsInspector,
+  contactIsDefaultInspector,
 } from "@/lib/email-contacts";
 
 export function ContactsView({ contacts, onChange }: { contacts: EmailContact[]; onChange: (c: EmailContact[]) => void }) {
@@ -38,6 +39,32 @@ export function ContactsView({ contacts, onChange }: { contacts: EmailContact[];
   };
 
   const update = (updated: EmailContact) => onChange(contacts.map((c) => (c.id === updated.id ? updated : c)));
+
+  const setInspectorFlag = (contact: EmailContact, isInspector: boolean) => {
+    onChange(
+      contacts.map((c) =>
+        c.id === contact.id
+          ? { ...c, isInspector, isDefaultInspector: isInspector ? c.isDefaultInspector : false }
+          : c,
+      ),
+    );
+  };
+
+  const setDefaultInspector = (contact: EmailContact, isDefault: boolean) => {
+    if (isDefault) {
+      onChange(
+        contacts.map((c) => ({
+          ...c,
+          isInspector: c.id === contact.id ? true : c.isInspector,
+          isDefaultInspector: c.id === contact.id,
+        })),
+      );
+      return;
+    }
+    onChange(
+      contacts.map((c) => (c.id === contact.id ? { ...c, isDefaultInspector: false } : c)),
+    );
+  };
   const remove = (id: string) => {
     addDeletedContactId(id);
     onChange(contacts.filter((c) => c.id !== id));
@@ -96,9 +123,25 @@ export function ContactsView({ contacts, onChange }: { contacts: EmailContact[];
                         Lista płac — PDF i Word
                       </label>
                       <label className="flex items-center gap-2 text-sm cursor-pointer">
-                        <input type="checkbox" checked={contactIsInspector(editContact)} onChange={(e) => update({ ...editContact, isInspector: e.target.checked })} className="rounded"/>
-                        Inspektor WM — domyślny odbiorca „Kontakt z inspektorem”
+                        <input
+                          type="checkbox"
+                          checked={contactIsInspector(editContact)}
+                          onChange={(e) => setInspectorFlag(editContact, e.target.checked)}
+                          className="rounded"
+                        />
+                        Inspektor WM — odbiorca „Kontakt z inspektorem”
                       </label>
+                      {contactIsInspector(editContact) && (
+                        <label className="flex items-center gap-2 text-sm cursor-pointer ml-6">
+                          <input
+                            type="checkbox"
+                            checked={contactIsDefaultInspector(editContact)}
+                            onChange={(e) => setDefaultInspector(editContact, e.target.checked)}
+                            className="rounded"
+                          />
+                          Domyślny odbiorca inspektora
+                        </label>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 pt-2">
                       <button type="button" onClick={() => setEditId(null)} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"><Check size={13}/>Zapisz</button>
@@ -127,6 +170,9 @@ export function ContactsView({ contacts, onChange }: { contacts: EmailContact[];
                         )}
                         {contactIsInspector(contact) && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium">Inspektor</span>
+                        )}
+                        {contactIsDefaultInspector(contact) && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-700 dark:text-sky-300 font-medium">Domyślny</span>
                         )}
                         {!contactAllowsJobs(contact) && !contactAllowsPayroll(contact) && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">Brak uprawnień</span>

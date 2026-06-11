@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { X, MessageSquare, Send, Loader2, AlertTriangle } from "lucide-react";
+import { X, MessageSquare, Send, Loader2, ChevronDown } from "lucide-react";
 import type { Job } from "@/app/app-domain";
-import { contactsForInspector, type EmailContact } from "@/lib/email-contacts";
+import {
+  contactsForInspector,
+  contactIsDefaultInspector,
+  resolveDefaultInspectorContact,
+  type EmailContact,
+} from "@/lib/email-contacts";
 import {
   INSPECTOR_TEMPLATE_IDS,
   INSPECTOR_TEMPLATE_META,
@@ -32,11 +37,13 @@ export function JobInspectorContactModal({
   onSent?: (templateId: InspectorTemplateId, recipientEmail: string) => void;
 }) {
   const inspectorContacts = useMemo(() => contactsForInspector(contacts), [contacts]);
+  const defaultContact = useMemo(() => resolveDefaultInspectorContact(contacts), [contacts]);
   const suggested = useMemo(() => suggestInspectorTemplate(job), [job]);
   const readyMissing = useMemo(() => buildInspectorReadyMissingBlock(job), [job]);
 
   const [templateId, setTemplateId] = useState<InspectorTemplateId>(suggested);
   const [contactId, setContactId] = useState("");
+  const [showRecipientPicker, setShowRecipientPicker] = useState(false);
   const [subject, setSubject] = useState(() => inspectorTemplateSubject(suggested, job));
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
@@ -46,6 +53,9 @@ export function JobInspectorContactModal({
 
   const selectedContact = inspectorContacts.find((c) => c.id === contactId) || null;
   const recipientEmail = selectedContact?.email.trim() || "";
+  const isTestRecipient = Boolean(
+    defaultContact && selectedContact && selectedContact.id !== defaultContact.id,
+  );
 
   const applyTemplate = useCallback(
     (id: InspectorTemplateId, contactName: string) => {
@@ -61,10 +71,11 @@ export function JobInspectorContactModal({
   );
 
   useEffect(() => {
-    if (inspectorContacts.length === 1) {
-      setContactId(inspectorContacts[0].id);
-    }
-  }, [inspectorContacts]);
+    const def = resolveDefaultInspectorContact(contacts);
+    setContactId(def?.id ?? "");
+    setShowRecipientPicker(!def);
+    setBodyTouched(false);
+  }, [job.id, contacts]);
 
   useEffect(() => {
     if (!bodyTouched) {
@@ -170,31 +181,50 @@ export function JobInspectorContactModal({
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          {inspectorContacts.length > 1 && (
-            <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/25 rounded-lg px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
-              <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-              <span>Wybierz właściwego inspektora z listy.</span>
-            </div>
-          )}
-
           <div className="space-y-2">
             <label className="text-xs text-muted-foreground">Odbiorca</label>
-            {inspectorContacts.length === 1 ? (
-              <p className="text-sm bg-secondary/50 rounded-lg px-3 py-2.5">
-                {inspectorContacts[0].name || inspectorContacts[0].email}
-                <span className="text-xs text-muted-foreground block">{inspectorContacts[0].email}</span>
-              </p>
-            ) : (
+            {selectedContact && !showRecipientPicker && (
+              <div className="text-sm bg-secondary/50 rounded-lg px-3 py-2.5 space-y-1">
+                <p className="font-medium">{selectedContact.name || selectedContact.email}</p>
+                <p className="text-xs text-muted-foreground">{selectedContact.email}</p>
+                <p className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                  Inspektor
+                  {contactIsDefaultInspector(selectedContact) ? " · domyślny" : ""}
+                </p>
+              </div>
+            )}
+            {inspectorContacts.length > 1 && (
+              <button
+                type="button"
+                onClick={() => setShowRecipientPicker((v) => !v)}
+                className="flex items-center gap-1.5 text-xs text-primary hover:underline font-medium"
+              >
+                <ChevronDown size={14} className={`transition-transform ${showRecipientPicker ? "rotate-180" : ""}`} />
+                {showRecipientPicker ? "Ukryj listę odbiorców" : "Zmień odbiorcę"}
+              </button>
+            )}
+            {(showRecipientPicker || inspectorContacts.length === 1 || !selectedContact) && (
               <select
                 value={contactId}
-                onChange={(e) => setContactId(e.target.value)}
+                onChange={(e) => {
+                  setContactId(e.target.value);
+                  setBodyTouched(false);
+                }}
                 className="w-full bg-secondary rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-primary focus:outline-none"
               >
-                <option value="">— wybierz inspektora —</option>
+                {!contactId && <option value="">— wybierz inspektora —</option>}
                 {inspectorContacts.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name || c.email} ({c.email})</option>
+                  <option key={c.id} value={c.id}>
+                    {c.name || c.email} ({c.email})
+                    {contactIsDefaultInspector(c) ? " · domyślny" : ""}
+                  </option>
                 ))}
               </select>
+            )}
+            {isTestRecipient && selectedContact && (
+              <p className="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+                Wysyłka testowa — odbiorca: {selectedContact.name || selectedContact.email}
+              </p>
             )}
           </div>
 

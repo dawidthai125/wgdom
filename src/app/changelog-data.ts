@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-11",
+    version: "2.50.70",
+    label: "Default Inspector Recipient (2.1.1)",
+    items: [
+      { type: "new", text: "Kontakty — „Domyślny odbiorca inspektora” (badge Inspektor + Domyślny); tylko jeden aktywny na raz" },
+      { type: "improve", text: "„Kontakt z inspektorem” — modal startuje z domyślnym odbiorcą (Szymon lub oznaczony kontakt); „Zmień odbiorcę” dla wysyłki testowej" },
+      { type: "improve", text: "Przy wysyłce testowej do innego inspektora — podpowiedź „Wysyłka testowa”; powitanie w treści aktualizuje się po zmianie odbiorcy" },
+    ],
+  },
+  {
+    date: "2026-06-11",
     version: "2.50.69",
     label: "Inspector Communication Templates (2.1.0)",
     items: [

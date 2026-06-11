@@ -11,7 +11,12 @@ import {
   inspectorTemplateActivityText,
 } from "../src/lib/inspector-message-templates.ts";
 
-const { contactsForInspector } = await import("../src/lib/email-contacts.ts");
+const {
+  contactsForInspector,
+  resolveDefaultInspectorContact,
+  contactIsDefaultInspector,
+  applyDefaultInspectorContact,
+} = await import("../src/lib/email-contacts.ts");
 
 const baseJob = {
   id: "j1",
@@ -79,6 +84,34 @@ const contacts = [
 ];
 check("contactsForInspector count", contactsForInspector(contacts).length === 1);
 check("0 inspector block", contactsForInspector([{ id: "x", name: "", email: "", company: "", notes: "" }]).length === 0);
+
+const multiInspectors = [
+  { id: "sz", name: "Szymon", email: "sz@wm.pl", company: "", notes: "", isInspector: true, isDefaultInspector: true },
+  { id: "dw", name: "Dawid", email: "dw@wg.pl", company: "", notes: "", isInspector: true },
+];
+check("resolveDefault — marked Szymon", resolveDefaultInspectorContact(multiInspectors)?.id === "sz");
+
+const singleInspector = [{ id: "only", name: "Only", email: "o@t.pl", company: "", notes: "", isInspector: true }];
+check("resolveDefault — fallback single isInspector", resolveDefaultInspectorContact(singleInspector)?.id === "only");
+
+const multiUnmarked = [
+  { id: "a", name: "A", email: "a@t.pl", company: "", notes: "", isInspector: true },
+  { id: "b", name: "B", email: "b@t.pl", company: "", notes: "", isInspector: true },
+];
+check("resolveDefault — null when multiple unmarked", resolveDefaultInspectorContact(multiUnmarked) === null);
+
+check("contactIsDefaultInspector true", contactIsDefaultInspector({ id: "1", name: "", email: "x@t.pl", company: "", notes: "", isInspector: true, isDefaultInspector: true }));
+check("contactIsDefaultInspector false without isInspector", !contactIsDefaultInspector({ id: "1", name: "", email: "", company: "", notes: "", isDefaultInspector: true }));
+
+const applied = applyDefaultInspectorContact(multiUnmarked, "b");
+check("applyDefault — one marked", applied.filter((c) => c.isDefaultInspector).length === 1);
+check("applyDefault — b marked", applied.find((c) => c.id === "b")?.isDefaultInspector === true);
+
+const bodySz = mergeInspectorTemplateBody("A", baseJob, { contactName: "Szymon", senderName: "Dawid" });
+const bodyDw = mergeInspectorTemplateBody("A", baseJob, { contactName: "Dawid", senderName: "Dawid" });
+check("recipient change — Szymon in body", bodySz.includes("Szymon"));
+check("recipient change — Dawid in body", bodyDw.includes("Dawid"));
+check("recipient change — bodies differ", bodySz !== bodyDw);
 
 const failed = results.filter((r) => !r.pass);
 console.log(JSON.stringify({ test: "inspector-templates-2.1", pass: failed.length === 0, failed: failed.length, results }, null, 2));

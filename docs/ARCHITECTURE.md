@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.69** · Inspector Communication Templates 2.1.0)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-11 (Inspector Communication Templates 2.1.0)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.70** · Default Inspector Recipient 2.1.1)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-11 (Default Inspector Recipient 2.1.1)
 > **★ Dashboard V2 handoff:** [`SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -324,21 +324,23 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 
 **Pliki:** `JobReportForm.tsx`, `JobWorkerReportsPanel.tsx`, `job-documents.ts` (`JOB_DOCUMENTATION_SOURCE_HELP`, `RYSUNEK_PLAN_CHECKLIST_HELP`), `syncJobDocumentsFromReports()`
 
-### 9.2 Kontakt z inspektorem — szablony wiadomości (2.1.0, v2.50.69)
+### 9.2 Kontakt z inspektorem — szablony wiadomości (2.1.0 → 2.1.1, v2.50.70)
 
 **Cel:** z poziomu roboty wysłać email do inspektora WM z czytelnym podsumowaniem „po naszej stronie gotowe” vs „brakuje zlecenia/kosztorysu” — **bez załączników**, reuse `POST /send-job-email`.
 
 | Element | Opis |
 |---------|------|
 | **UI** | `JobsView` → przycisk „Kontakt z inspektorem” → `JobInspectorContactModal.tsx` |
-| **Odbiorca** | `EmailContact.isInspector` w `kw-contacts` (`email-contacts.ts`, `ContactsView` checkbox „Inspektor WM”); 1 kontakt = auto, 0 = blokada, >1 = wybór |
+| **Odbiorca** | `EmailContact.isInspector` w `kw-contacts`; **2.1.1:** `isDefaultInspector` — jeden domyślny (`resolveDefaultInspectorContact`: oznaczony → fallback 1× inspektor → null) |
+| **Kontakty UI** | Checkbox „Inspektor WM” + „Domyślny odbiorca inspektora” (tylko gdy inspektor); badge „Inspektor” + „Domyślny”; radio max jeden |
+| **Modal UX (2.1.1)** | Start z domyślnym odbiorcą, „Wyślij” od razu aktywne; „Zmień odbiorcę ▼” — pełna lista `isInspector`; hint „Wysyłka testowa” gdy inny niż domyślny; powitanie w treści po zmianie odbiorcy |
 | **Szablony A–D** | `inspector-message-templates.ts` — brak zlecenia/kosztorysu × faza (`inferJobPhase`, handover); **E (podziękowanie) poza MVP** |
 | **Auto-sugestia** | Priorytet: D > C > A > B wg `documents.zlecenie`, `documents.kosztorys`, fazy |
 | **Treść maila** | Sekcje „Po naszej stronie dostępne” (zdjęcia, plan techniczny, dokumentacja robót) i „Brakuje” (zlecenie/kosztorys) — wyliczane z job |
 | **Wysyłka** | Payload `{ mode: "inspector_template", introMessage, photos: [], reportSections: [] }` — Edge akceptuje intro ≥40 znaków bez zdjęć/raportów |
 | **Historia** | `activityLog` typ `email_sent` + tekst z `inspectorTemplateActivityText()` (nazwa szablonu) |
 
-**Pliki:** `src/lib/inspector-message-templates.ts`, `src/lib/email-contacts.ts`, `src/app/JobInspectorContactModal.tsx`, `src/app/JobsView.tsx`, `supabase/functions/make-server-0afb8820/index.tsx` (`send-job-email`).
+**Pliki:** `src/lib/inspector-message-templates.ts`, `src/lib/email-contacts.ts`, `src/app/JobInspectorContactModal.tsx`, `src/app/ContactsView.tsx`, `src/app/JobsView.tsx`, `supabase/functions/make-server-0afb8820/index.tsx` (`send-job-email`).
 
 **Smoke:** `scripts/smoke-test-inspector-templates-2.1.mjs`
 
