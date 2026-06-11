@@ -12,6 +12,14 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-11",
+    version: "2.50.73",
+    label: "Hero — wyłącznie alerty operacyjne",
+    items: [
+      { type: "improve", text: "Pulpit → „Najważniejsze dziś” — tylko WM, roboty, dokumenty, płace, inspektor i bieżące operacje; strategia (przetargi, prognoza, health) pozostaje w Command Center" },
+    ],
+  },
+  {
+    date: "2026-06-11",
     version: "2.50.72",
     label: "Hero — prognoza obciążenia tylko w Command Center",
     items: [

@@ -219,15 +219,40 @@ assert(
 assert("buildHeroToday: urgentCount", hero.urgentCount >= 1, { urgentCount: hero.urgentCount });
 assert("buildHeroToday: summaryTone", typeof hero.summaryTone === "string");
 assert(
-  "buildHeroToday: wm dedupe in result",
-  hero.items.filter((i) => i.sourceIds.includes("J01") && i.sourceIds.includes("T10")).length === 1,
-  { wmSources: hero.items.map((i) => i.sourceIds) },
+  "buildHeroToday: wm operational in result",
+  hero.items.some((i) => i.sourceIds.includes("J01") && !i.id.startsWith("hero-ac-")),
+  { wmSources: hero.items.map((i) => ({ id: i.id, sourceIds: i.sourceIds })) },
+);
+assert(
+  "buildHeroToday: no action center rows",
+  !hero.items.some((i) => i.id.startsWith("hero-ac-")),
+  { ids: hero.items.map((i) => i.id) },
 );
 
-// --- Variant C: forecast overload excluded from Hero ---
-const heroForecastFilter = buildHeroToday({
+// --- Variant 1A: Hero operational only — actionCenter ignored ---
+const heroOperationalOnly = buildHeroToday({
   operational: {
-    jobs: [],
+    jobs: [
+      {
+        id: "wm1",
+        address: "ul. Testowa 1",
+        flatNumber: "",
+        client: "Wrocławskie Mieszkania",
+        status: "in_progress",
+        startDate: "2026-01-01",
+        endDate: "2026-06-01",
+        plannedHandoverDate: "2026-05-01",
+        documents: { zlecenie: true, zakres: true, kosztorys: true },
+        keysHandedOver: false,
+        notes: "",
+        workEntries: [],
+        materials: [],
+        invoiceStatus: "pending",
+        invoiceNumber: "",
+        invoiceAmount: "",
+        photos: [],
+      },
+    ],
     weekEmployees: [],
     weekFrom: "2026-06-02",
     weekTo: "2026-06-07",
@@ -248,6 +273,27 @@ const heroForecastFilter = buildHeroToday({
         recommendedAction: "Sprawdź Command Center.",
       },
       {
+        id: "radar-deadline-3d-t1",
+        priority: "CRITICAL",
+        category: "TENDERS",
+        title: "Termin składania oferty za 2 dni",
+        description: "Przetarg test",
+        reason: "deadline",
+        source: "radar",
+        recommendedAction: "Przygotuj ofertę natychmiast.",
+        tenderId: "t1",
+      },
+      {
+        id: "health-critical",
+        priority: "CRITICAL",
+        category: "BUSINESS",
+        title: "Kondycja firmy krytyczna (35)",
+        description: "Health",
+        reason: "health",
+        source: "computeCompanyHealth()",
+        recommendedAction: "Wstrzymaj nowe oferty.",
+      },
+      {
         id: "alert-wm-overdue",
         priority: "CRITICAL",
         category: "BUSINESS",
@@ -258,21 +304,21 @@ const heroForecastFilter = buildHeroToday({
         recommendedAction: "Uporządkuj terminy.",
       },
     ],
-    counts: { CRITICAL: 2, HIGH: 0, MEDIUM: 0, LOW: 0 },
+    counts: { CRITICAL: 4, HIGH: 0, MEDIUM: 0, LOW: 0 },
     primaryAction: null,
     headline: "test",
   },
 });
 
 assert(
-  "variant C: forecast-30-critical excluded from Hero",
-  !heroForecastFilter.items.some((i) => i.id === "hero-ac-forecast-30-critical"),
-  { ids: heroForecastFilter.items.map((i) => i.id) },
+  "variant 1A: no hero-ac rows from actionCenter",
+  !heroOperationalOnly.items.some((i) => i.id.startsWith("hero-ac-")),
+  { ids: heroOperationalOnly.items.map((i) => i.id) },
 );
 assert(
-  "variant C: alert-wm-overdue still in Hero",
-  heroForecastFilter.items.some((i) => i.id === "hero-ac-alert-wm-overdue"),
-  { ids: heroForecastFilter.items.map((i) => i.id) },
+  "variant 1A: operational WM still in Hero",
+  heroOperationalOnly.items.some((i) => i.id === "hero-wm-overdue"),
+  { ids: heroOperationalOnly.items.map((i) => i.id) },
 );
 
 const failed = results.filter((r) => !r.pass);
