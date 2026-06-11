@@ -65,7 +65,7 @@ test.describe("Dashboard Hero DZIŚ — 20.7C.2C", () => {
     await seedDashboardWithWmOverdue(page, seedArgs);
     await loginAdmin(page);
 
-    const hero = page.getByLabel("Hero DZIŚ");
+    const hero = page.getByLabel("Najważniejsze dziś");
     await expect(hero).toBeVisible();
     await expect(page.getByText("Roboty w trakcie", { exact: true }).first()).toBeVisible();
 
@@ -87,7 +87,7 @@ test.describe("Dashboard Hero DZIŚ — 20.7C.2C", () => {
     await seedDashboardWithWmOverdue(page, seedArgs);
     await loginAdmin(page);
 
-    const hero = page.getByLabel("Hero DZIŚ");
+    const hero = page.getByLabel("Najważniejsze dziś");
     await hero.getByRole("button", { name: /Pokaż priorytety/i }).click();
     const items = hero.locator("ul li");
     await expect(items).toHaveCount(await items.count());
@@ -105,11 +105,12 @@ test.describe("Dashboard Hero DZIŚ — 20.7C.2C", () => {
     await seedDashboardWithWmOverdue(page, seedArgs);
     await loginAdmin(page);
 
-    const hero = page.getByLabel("Hero DZIŚ");
+    const hero = page.getByLabel("Najważniejsze dziś");
     await expect(hero).toContainText(/termin odbioru minął|po terminie/i);
 
     const uwagaDzis = page.getByLabel("Uwaga dziś");
     await expect(uwagaDzis).toBeVisible();
+    await uwagaDzis.getByRole("button", { name: /Pokaż szczegóły/i }).click();
     await expect(uwagaDzis.getByText("WM — termin odbioru minął")).toHaveCount(0);
   });
 
@@ -122,7 +123,7 @@ test.describe("Dashboard Hero DZIŚ — 20.7C.2C", () => {
     await seedDashboardWithWmOverdue(page, seedArgs);
     await loginAdmin(page);
 
-    await expect(page.getByLabel("Hero DZIŚ")).toBeVisible();
+    await expect(page.getByLabel("Najważniejsze dziś")).toBeVisible();
     const overflow = await page.evaluate(() => {
       const doc = document.documentElement;
       return doc.scrollWidth - doc.clientWidth;
@@ -173,7 +174,7 @@ test.describe("Dashboard Hero DZIŚ — 20.7C.2C", () => {
       timeout: 90_000,
     });
 
-    const hero = page.getByLabel("Hero DZIŚ");
+    const hero = page.getByLabel("Najważniejsze dziś");
     await expect(hero).toBeVisible();
     await expect(hero.getByText("Dziś nie ma pilnych spraw.")).toBeVisible();
   });

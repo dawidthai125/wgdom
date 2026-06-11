@@ -12,6 +12,19 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-11",
+    version: "2.50.68",
+    label: "Dashboard IA Cleanup (20.7E)",
+    items: [
+      { type: "improve", text: "Pulpit — „Najważniejsze dziś” jako osobna sekcja (cross-modułowe priorytety, nie w „Przetargi — skrót”)" },
+      { type: "improve", text: "„Najważniejsze dziś” — neutralna karta, ton dnia jako badge; accordion compact bez zmian rankera" },
+      { type: "improve", text: "„Uwaga dziś” — compact accordion (domyślnie zwinięta), skrót „Braki dokumentów: N” w nagłówku" },
+      { type: "improve", text: "Kolejność Pulpicu: KPI → Najważniejsze → Uwaga → Do odzyskania → Przetargi — skrót" },
+      { type: "improve", text: "„Przetargi — skrót” — tylko liczniki CC + CTA Command Center (bez priorytetów dnia)" },
+      { type: "improve", text: "KPI „Do ogarnięcia” — wskazówka „priorytety i szczegóły poniżej”" },
+    ],
+  },
+  {
+    date: "2026-06-11",
     version: "2.50.67",
     label: "Hero Compression (20.7D.1)",
     items: [

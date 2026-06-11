@@ -4,11 +4,22 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.67** (`changelog-data.ts`) · Hero Compression 20.7D.1  
+**Aktualna wersja UI:** **2.50.68** (`changelog-data.ts`) · Dashboard IA Cleanup 20.7E  
 **★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
+
+---
+
+## 2.50.68 (2026-06-11) — Dashboard IA Cleanup (20.7E)
+
+* **Improve:** „Najważniejsze dziś” — osobna sekcja Pulpicu (poza „Przetargi — skrót”)
+* **Improve:** Neutralna karta + ton dnia jako badge; accordion compact bez zmian rankera
+* **Improve:** „Uwaga dziś” — compact accordion, skrót „Braki dokumentów: N”
+* **Improve:** Kolejność: KPI → Najważniejsze → Uwaga → Do odzyskania → Przetargi — skrót
+* **Improve:** „Przetargi — skrót” — tylko CC liczniki + CTA
+* **Improve:** KPI „Do ogarnięcia” — „priorytety i szczegóły poniżej”
 
 ## 2.50.67 (2026-06-11) — Hero Compression (20.7D.1)
 

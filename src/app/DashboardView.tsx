@@ -1,8 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   MessageSquare, CalendarDays, Wallet, MapPin, Bell, LayoutGrid, Scale, AlertTriangle,
   FileText, CheckCircle2, Circle, Archive, Camera, Receipt, ClipboardList, ClipboardCheck,
-  Calendar, HardHat, KeyRound, TrendingUp,
+  Calendar, HardHat, KeyRound, TrendingUp, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
 import { CommandCenterExecutivePanel } from "@/app/tender-center/components/CommandCenterExecutivePanel";
@@ -66,7 +66,63 @@ import { RecoverableChargesDashboardCard } from "@/app/RecoverableChargesDashboa
 import { HeroDzisPanel } from "@/app/HeroDzisPanel";
 import { useCommandCenterContextOptional } from "@/app/tender-center/context/CommandCenterContext";
 import { buildHeroToday, buildHeroTodayRankedAll } from "@/lib/dashboard-hero-today";
-import { getHeroCoveredUwagaSections } from "@/lib/dashboard-hero-consolidation";
+import { getHeroCoveredUwagaSections, type UwagaDzisSectionId } from "@/lib/dashboard-hero-consolidation";
+
+function buildUwagaDzisCollapsedSummary(input: {
+  jobsMissingDocsCount: number;
+  heroUwagaCovered: Set<UwagaDzisSectionId>;
+  needsUnsavedWeekAlert: boolean;
+  needsPayrollBlockerAlert: boolean;
+  payrollRolloverBlockersCount: number;
+  consistencyAlertsCount: number;
+  pendingPhotosCount: number;
+  pendingReceiptsCount: number;
+  pendingReportsCount: number;
+  handoverJobCount: number;
+  unseenInspectorFeedCount: number;
+  wmOverdueJobsCount: number;
+  wmThisWeekJobsCount: number;
+  inspectorNotesPendingCount: number;
+}): string {
+  const parts: string[] = [];
+  if (input.jobsMissingDocsCount > 0) {
+    parts.push(`Braki dokumentów: ${input.jobsMissingDocsCount}`);
+  }
+  if (input.needsUnsavedWeekAlert && !input.heroUwagaCovered.has("payroll-unsaved")) {
+    parts.push("Tydzień niezapisany");
+  }
+  if (input.needsPayrollBlockerAlert && !input.heroUwagaCovered.has("payroll-blockers")) {
+    parts.push(`Wypłata sobotnia: ${input.payrollRolloverBlockersCount}`);
+  }
+  if (input.consistencyAlertsCount > 0 && !input.heroUwagaCovered.has("payroll-consistency")) {
+    parts.push(`Spójność płac: ${input.consistencyAlertsCount}`);
+  }
+  if (input.pendingPhotosCount > 0 && !input.heroUwagaCovered.has("pending-photos")) {
+    parts.push(`Zdjęcia: ${input.pendingPhotosCount}`);
+  }
+  if (input.pendingReceiptsCount > 0 && !input.heroUwagaCovered.has("pending-receipts")) {
+    parts.push(`Paragony: ${input.pendingReceiptsCount}`);
+  }
+  if (input.pendingReportsCount > 0 && !input.heroUwagaCovered.has("pending-reports")) {
+    parts.push(`Dokumentacja: ${input.pendingReportsCount}`);
+  }
+  if (input.handoverJobCount > 0 && !input.heroUwagaCovered.has("handover-jobs")) {
+    parts.push(`Do odbioru: ${input.handoverJobCount}`);
+  }
+  if (input.unseenInspectorFeedCount > 0 && !input.heroUwagaCovered.has("inspector-feed")) {
+    parts.push(`Inspektor: ${input.unseenInspectorFeedCount}`);
+  }
+  if (input.wmOverdueJobsCount > 0 && !input.heroUwagaCovered.has("wm-overdue")) {
+    parts.push(`WM po terminie: ${input.wmOverdueJobsCount}`);
+  }
+  if (input.wmThisWeekJobsCount > 0 && !input.heroUwagaCovered.has("wm-this-week")) {
+    parts.push(`WM w tygodniu: ${input.wmThisWeekJobsCount}`);
+  }
+  if (input.inspectorNotesPendingCount > 0 && !input.heroUwagaCovered.has("inspector-notes")) {
+    parts.push(`Notatki inspektora: ${input.inspectorNotesPendingCount}`);
+  }
+  return parts.slice(0, 4).join(" · ");
+}
 
 export function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
@@ -399,6 +455,44 @@ export function DashboardView({
     return getHeroCoveredUwagaSections({ ...heroToday, items: rankedAll });
   }, [heroToday, heroTodayInput]);
 
+  const [uwagaExpanded, setUwagaExpanded] = useState(false);
+
+  const uwagaCollapsedSummary = useMemo(
+    () =>
+      buildUwagaDzisCollapsedSummary({
+        jobsMissingDocsCount: jobsMissingDocs.length,
+        heroUwagaCovered,
+        needsUnsavedWeekAlert,
+        needsPayrollBlockerAlert,
+        payrollRolloverBlockersCount: payrollRolloverBlockers.length,
+        consistencyAlertsCount: consistencyAlerts.length,
+        pendingPhotosCount: pendingPhotos.length,
+        pendingReceiptsCount: pendingReceipts.length,
+        pendingReportsCount: pendingReports.length,
+        handoverJobCount,
+        unseenInspectorFeedCount: unseenInspectorFeed.length,
+        wmOverdueJobsCount: wmOverdueJobs.length,
+        wmThisWeekJobsCount: wmThisWeekJobs.length,
+        inspectorNotesPendingCount: inspectorNotesPending.length,
+      }),
+    [
+      jobsMissingDocs.length,
+      heroUwagaCovered,
+      needsUnsavedWeekAlert,
+      needsPayrollBlockerAlert,
+      payrollRolloverBlockers.length,
+      consistencyAlerts.length,
+      pendingPhotos.length,
+      pendingReceipts.length,
+      pendingReports.length,
+      handoverJobCount,
+      unseenInspectorFeed.length,
+      wmOverdueJobs.length,
+      wmThisWeekJobs.length,
+      inspectorNotesPending.length,
+    ],
+  );
+
   return (
     <div className="flex-1 min-w-0 overflow-y-auto overscroll-contain">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6">
@@ -562,63 +656,58 @@ export function DashboardView({
               {attentionCount}
             </p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              {attentionCount > 0 ? "patrz sekcja poniżej" : "wszystko OK"}
+              {attentionCount > 0 ? "priorytety i szczegóły poniżej" : "wszystko OK"}
             </p>
           </div>
         </div>
 
-        <RecoverableChargesDashboardCard
-          charges={recoverableCharges}
-          onOpenModule={() => onNavigate("recoverablecharges")}
+        <HeroDzisPanel
+          hero={heroToday}
+          variant="compact"
+          onNavigate={onNavigate}
+          onOpenTenders={onOpenTenders}
+          onOpenTender={onOpenTender}
         />
 
-        {canViewTenders && onOpenTenders && (
-          <CommandCenterExecutivePanel
-            jobs={jobs}
-            directory={directory}
-            weekEmployees={weekEmployees}
-            weekFrom={weekFrom}
-            weekTo={weekTo}
-            savedWeeks={savedWeeks}
-            onOpenCommandCenter={onOpenTenders}
-            onOpenTender={onOpenTender}
-            setJobs={setJobs}
-            tenderJobUploadedBy={tenderJobUploadedBy}
-            onNavigateToJobFromTender={onNavigateToJobFromTender}
-            onOpenJob={onOpenJobFromTender}
-            onCreateJobFromTender={onCreateJobFromTender}
-            heroToday={heroToday}
-            heroOnNavigate={onNavigate}
-            heroOnOpenTenders={onOpenTenders}
-            heroOnOpenTender={onOpenTender}
-          />
-        )}
-
-        {!canViewTenders && (
-          <HeroDzisPanel
-            hero={heroToday}
-            variant="compact"
-            onNavigate={onNavigate}
-            onOpenTenders={onOpenTenders}
-            onOpenTender={onOpenTender}
-          />
-        )}
-
-        {/* Uwaga dziś */}
+        {/* Uwaga dziś — compact accordion (20.7E) */}
         {showUwagaDzis && (
-          <div className="bg-card border border-amber-500/20 rounded-xl overflow-hidden" aria-label="Uwaga dziś">
-            <div className="px-5 py-3.5 border-b border-amber-500/15 flex items-center gap-2 bg-amber-500/5">
-              <AlertTriangle size={14} className="text-amber-400 shrink-0"/>
-              <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">Uwaga dziś</span>
-              <span className="text-[10px] bg-amber-500/15 text-amber-400 px-1.5 py-0.5 rounded-full font-bold ml-auto">{uwagaDzisHeaderBadge}</span>
+          <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm" aria-label="Uwaga dziś">
+            <div className="px-4 sm:px-5 py-3 border-b border-border bg-secondary/20">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <AlertTriangle size={14} className="text-amber-500 shrink-0"/>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-foreground">Uwaga dziś</span>
+                  <span className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-bold shrink-0">
+                    {uwagaDzisHeaderBadge}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setUwagaExpanded((v) => !v)}
+                  aria-expanded={uwagaExpanded}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline min-h-[44px] px-2 shrink-0 touch-manipulation"
+                >
+                  {uwagaExpanded ? "Ukryj szczegóły" : "Pokaż szczegóły"}
+                  {uwagaExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+              </div>
+              {!uwagaExpanded && uwagaCollapsedSummary && (
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{uwagaCollapsedSummary}</p>
+              )}
+              {!uwagaExpanded && !uwagaCollapsedSummary && handoverJobCount > 0 && (
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                  Roboty do odbioru: {handoverJobCount}
+                </p>
+              )}
             </div>
+            {uwagaExpanded && (
             <div className="divide-y divide-border">
               {jobsMissingDocs.length > 0 && (
-                <div className="px-4 sm:px-5 py-4 bg-yellow-500/[0.07] border-b border-yellow-500/15">
+                <div className="px-4 sm:px-5 py-4 border-b border-border border-l-4 border-l-amber-500/50">
                   <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold flex items-center gap-2 text-yellow-700 dark:text-yellow-300">
-                        <FileText size={15} className="shrink-0"/>
+                      <p className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                        <FileText size={15} className="shrink-0 text-amber-600 dark:text-amber-400"/>
                         Braki dokumentów — roboty aktywne
                         <span className="text-[10px] bg-yellow-500/20 text-yellow-800 dark:text-yellow-200 px-2 py-0.5 rounded-full font-bold">
                           {jobsMissingDocs.length} {jobsMissingDocs.length === 1 ? "robota" : jobsMissingDocs.length < 5 ? "roboty" : "robót"}
@@ -1167,7 +1256,31 @@ export function DashboardView({
                 </div>
               )}
             </div>
+            )}
           </div>
+        )}
+
+        <RecoverableChargesDashboardCard
+          charges={recoverableCharges}
+          onOpenModule={() => onNavigate("recoverablecharges")}
+        />
+
+        {canViewTenders && onOpenTenders && (
+          <CommandCenterExecutivePanel
+            jobs={jobs}
+            directory={directory}
+            weekEmployees={weekEmployees}
+            weekFrom={weekFrom}
+            weekTo={weekTo}
+            savedWeeks={savedWeeks}
+            onOpenCommandCenter={onOpenTenders}
+            onOpenTender={onOpenTender}
+            setJobs={setJobs}
+            tenderJobUploadedBy={tenderJobUploadedBy}
+            onNavigateToJobFromTender={onNavigateToJobFromTender}
+            onOpenJob={onOpenJobFromTender}
+            onCreateJobFromTender={onCreateJobFromTender}
+          />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
