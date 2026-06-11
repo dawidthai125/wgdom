@@ -78,7 +78,7 @@ Ready for new GPT / new Cursor agent
 AUDIT → RCA → PLAN → IMPLEMENT
 ```
 
-Workflow release: **A / B / C** — patrz [`WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md). Bez `vercel deploy`, bez pollingu API.
+Workflow release: **A / B / C** — patrz [`WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md). **VERIFY DEPLOY FAST:** jedno `curl version.json` po push, bez retry/sleep/polling API.
 
 ---
 
@@ -105,4 +105,4 @@ Nowy feature — tylko na polecenie użytkownika po AUDIT.
 
 1. [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 2. [`AGENTS.md`](AGENTS.md) → [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-3. `curl -s https://www.wgdom.fun/version.json` → oczekiwane **2.50.70**
+3. `curl -s https://www.wgdom.fun/version.json` → baseline **2.50.71** (jedno sprawdzenie; przy release: PASS lub DEPLOY PROPAGATING)

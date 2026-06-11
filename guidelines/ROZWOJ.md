@@ -70,5 +70,5 @@ npm run audit:mobile
 
 - **Frontend:** `git push origin main` → Vercel Git Integration (auto). **Nie** `vercel deploy` / `vercel --prod`.
 - **Backend:** push `supabase/functions/**` → workflow `deploy-supabase.yml`.
-- **VERIFY DEPLOY:** push OK + `version.json` prod + app OK — bez pollingu GitHub/Vercel.
+- **VERIFY DEPLOY FAST:** po push jedno `curl version.json` → PASS lub DEPLOY PROPAGATING → koniec raportu. Bez retry/sleep/polling GitHub/Vercel/`version.json`.
 - **PWA:** po release z bumpiem CHANGELOG → `npm run build` generuje `dist/sw.js` (`wgdom-shell-{APP_VERSION}`). **Nie** edytuj `public/sw.js`.

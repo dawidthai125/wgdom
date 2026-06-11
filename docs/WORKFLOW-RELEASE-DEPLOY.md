@@ -3,7 +3,7 @@
 > **Źródło prawdy** dla agentów AI, programistów i raportów końcowych sesji.  
 > **Hasło agenta:** „kontynuuj WGDOM” · **Powiązane:** [`AGENTS.md`](../AGENTS.md) · [`PROJECT-HANDOFF.md`](PROJECT-HANDOFF.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) § 13
 
-**Ostatnia aktualizacja:** 2026-06-11
+**Ostatnia aktualizacja:** 2026-06-11 · **VERIFY DEPLOY FAST**
 
 ---
 
@@ -49,23 +49,50 @@ curl -s https://www.wgdom.fun/version.json
 
 ---
 
-## 3. VERIFY DEPLOY (wyłącznie te 3 kroki)
+## 3. VERIFY DEPLOY FAST
 
-Po `git push origin main` uznaj deploy za poprawny, gdy:
+Po `git push origin main` agent wykonuje **dokładnie jedno** sprawdzenie prod i **kończy raport**. Bez oczekiwania na Vercel.
 
-1. **`git push` SUCCESS** — branch `main` zaktualizowany na GitHub
-2. **`version.json` pokazuje oczekiwaną wersję** — https://www.wgdom.fun/version.json (przy release z bumpiem CHANGELOG)
-3. **Aplikacja otwiera się poprawnie** — szybki smoke manualny lub znany test modułu
+### 3.1 Algorytm (obowiązkowy)
 
-**Jeśli `version.json` pokazuje nową wersję → deployment uznajemy za poprawny.**
+```bash
+curl -s https://www.wgdom.fun/version.json
+```
 
-### Nie wykonuj (zakazane w raportach i agentach)
+**Jednorazowo** — zaraz po push. Następnie:
 
+| Wynik `version.json` | **Deploy** | **PRODUCTION VERIFIED** | Dalsze działanie agenta |
+|----------------------|------------|---------------------------|-------------------------|
+| Oczekiwana wersja (przy bumpie CHANGELOG) | **PASS** | **TAK** | Zakończ raport |
+| Poprzednia wersja (Vercel jeszcze nie zbudował) | **DEPLOY PROPAGATING** | **NIE** | Zakończ raport — status oczekiwany po propagacji Vercel |
+| Push nie przeszedł | **FAIL** | **NIE** | Zakończ raport z błędem push |
+
+**Docs-only / brak bumpu CHANGELOG:** `version.json` może pozostać na poprzedniej wersji — przy push SUCCESS uznaj **Deploy: PASS**, **PRODUCTION VERIFIED: NIE DOTYCZY** (brak nowej wersji UI).
+
+**Opcjonalnie (nie blokuje werdyktu):** szybki manualny smoke aplikacji na prod — tylko gdy release tego wymaga; **nie** w pętli z `version.json`.
+
+### 3.2 Pojęcia werdyktu (rozdziel obowiązkowo w raporcie)
+
+| Pojęcie | Warunki | Blokuje RELEASE GO? |
+|---------|---------|---------------------|
+| **RELEASE GO** | build PASS · smoke PASS (jeśli B/C) · commit PASS · push PASS | — |
+| **PRODUCTION VERIFIED** | Jedno `curl` → `version.json` = oczekiwana wersja (przy bumpie) | Nie — to osobny wymiar |
+| **DEPLOY PROPAGATING** | push OK, ale `version.json` jeszcze stare | Nie — RELEASE GO możliwe; prod potwierdzi się po propagacji Vercel (~1–3 min) |
+
+**RELEASE GO** nie wymaga czekania na nową wersję na prod. **PRODUCTION VERIFIED** wymaga zgodności `version.json` w **tym jednym** sprawdzeniu.
+
+### 3.3 Zakazane (w raportach i u agentów)
+
+- **Retry loops** na `version.json` (drugi/trzeci `curl` po push)
+- **`sleep`**, `wait 30s` / `wait 60s`, oczekiwanie na propagację w tej samej sesji
+- **Polling** `version.json` w pętli
 - GitHub Deployments API polling
 - Vercel API polling
 - `gh api .../commits/{sha}/status` w pętli „wait for SUCCESS”
-- pętle `sleep` czekające na Vercel bot
-- raportowanie „Vercel deployment ID” jako warunek GO (informacyjnie OK, nie blokuje werdyktu)
+- Oczekiwanie na status SUCCESS deploymentu jako warunek zakończenia raportu
+- Raportowanie „Vercel deployment ID” jako warunek GO (informacyjnie OK, nie blokuje werdyktu)
+
+> **Uwaga:** Polling `/version.json` co 5 min w aplikacji (`useAppVersionCheck`) to **UX w przeglądarce** — nie dotyczy verify agenta po push.
 
 ---
 
@@ -79,7 +106,7 @@ Wybierz wariant według zakresu zmiany.
 build
 → commit
 → push
-→ verify version.json
+→ verify FAST (jedno curl version.json)
 → report
 ```
 
@@ -104,7 +131,7 @@ build
 → relevant smoke
 → commit
 → push
-→ verify version.json
+→ verify FAST (jedno curl version.json)
 → report
 ```
 
@@ -129,7 +156,7 @@ build
 → E2E
 → commit
 → push
-→ verify version.json
+→ verify FAST (jedno curl version.json)
 → report
 ```
 
@@ -160,10 +187,13 @@ Po każdym release / hotfix / housekeeping podaj:
 | **Smoke / E2E** | wynik (jeśli dotyczy) |
 | **Commit SHA** | krótki + pełny |
 | **Push** | SUCCESS / FAIL |
-| **`version.json`** | oczekiwana wersja vs prod |
-| **Deploy** | OK gdy push OK + version.json zgodny (lub docs-only bez bumpu) + app OK |
+| **RELEASE GO** | TAK / NIE (build + smoke + commit + push) |
+| **Verify** (jedno curl) | PASS / **DEPLOY PROPAGATING** / FAIL |
+| **`version.json`** | MATCH `2.50.x` / STALE `2.50.y` / N/A (docs-only bez bumpu) |
+| **Deploy** | PASS / **DEPLOY PROPAGATING** / FAIL |
+| **PRODUCTION VERIFIED** | TAK / NIE / NIE DOTYCZY |
 
-**Nie wymagane w raporcie:** status Vercel API, deployment ID, czas oczekiwania na bot.
+**Nie wymagane w raporcie:** status Vercel API, deployment ID, czas oczekiwania na bot, drugi `curl` po push.
 
 ---
 

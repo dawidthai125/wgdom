@@ -62,7 +62,8 @@ Skrót: `guidelines/ROZWOJ.md` · przewodnik: `PROJECT-GUIDE.md` · pełna archi
 **★ Źródło prawdy:** [`docs/WORKFLOW-RELEASE-DEPLOY.md`](../../docs/WORKFLOW-RELEASE-DEPLOY.md)
 
 - **Frontend prod:** wyłącznie `git push origin main` (Vercel Git Integration). **Zakaz:** `vercel deploy`, `vercel --prod`.
-- **VERIFY DEPLOY:** (1) push SUCCESS, (2) `version.json` prod = oczekiwana wersja, (3) app OK. **Bez** pollingu GitHub Deployments / Vercel API.
-- **A minor:** build → commit → push → verify → report
-- **B functional UI:** build → relevant smoke → commit → push → verify → report
-- **C major:** build → smoke → E2E → commit → push → verify → report
+- **VERIFY DEPLOY FAST:** po push **jedno** `curl -s https://www.wgdom.fun/version.json` → raport → **koniec**. PASS = wersja OK; STALE = **DEPLOY PROPAGATING** (RELEASE GO nadal OK). **Zakaz:** retry, sleep, polling `version.json`, GitHub/Vercel Deployments API.
+- **RELEASE GO** ≠ **PRODUCTION VERIFIED** — werdykty rozdziel w raporcie (patrz WORKFLOW § 3.2).
+- **A minor:** build → commit → push → verify FAST → report
+- **B functional UI:** build → relevant smoke → commit → push → verify FAST → report
+- **C major:** build → smoke → E2E → commit → push → verify FAST → report

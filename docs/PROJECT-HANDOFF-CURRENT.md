@@ -147,15 +147,17 @@ AUDIT → RCA → PLAN → IMPLEMENT
 
 | Wariant | Kroki |
 |---------|-------|
-| **A** Minor | build → commit → push → verify `version.json` |
-| **B** Standard | build → smoke → commit → push → verify |
-| **C** Major | build → smoke → E2E → commit → push → verify |
+| **A** Minor | build → commit → push → verify FAST |
+| **B** Standard | build → smoke → commit → push → verify FAST |
+| **C** Major | build → smoke → E2E → commit → push → verify FAST |
 
 **Frontend:** tylko `git push origin main` → Vercel Git Integration.
 
-**Zakazane:** `vercel deploy`, `vercel --prod`, polling GitHub/Vercel Deployments API.
+**VERIFY DEPLOY FAST:** po push **jedno** `curl version.json` → PASS lub **DEPLOY PROPAGATING** → koniec raportu.
 
-**Verify deploy:** push OK + `version.json` prod + app OK.
+**Zakazane:** `vercel deploy`, `vercel --prod`, retry/sleep/polling `version.json`, polling GitHub/Vercel Deployments API.
+
+**Werdykty:** **RELEASE GO** (build+smoke+push) ≠ **PRODUCTION VERIFIED** (`version.json` = oczekiwana wersja w jednym curl).
 
 **Backend Edge:** tylko gdy zmiana `supabase/functions/**` → GitHub Action `deploy-supabase.yml`.  
 2.1.0 wymagał deploy Edge dla `inspector_template`; **2.1.1 nie wymagał** deploy Supabase.

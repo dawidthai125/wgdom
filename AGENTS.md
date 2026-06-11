@@ -106,19 +106,25 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 
 **Frontend:** `git push origin main` → Vercel Git Integration (auto-build). **Nie** używaj `vercel deploy` / `vercel --prod`.
 
-**VERIFY DEPLOY** — tylko:
+**VERIFY DEPLOY FAST** — po push **jedno** `curl -s https://www.wgdom.fun/version.json`, potem **koniec raportu**:
 
-1. push SUCCESS  
-2. `https://www.wgdom.fun/version.json` = oczekiwana wersja (przy bumpie CHANGELOG)  
-3. aplikacja otwiera się poprawnie  
+| `version.json` | Deploy | PRODUCTION VERIFIED |
+|----------------|--------|---------------------|
+| Oczekiwana wersja | PASS | TAK |
+| Poprzednia wersja | **DEPLOY PROPAGATING** | NIE |
+| Push FAIL | FAIL | NIE |
 
-**Nie** polluj GitHub Deployments ani Vercel API. Jeśli `version.json` pokazuje nową wersję → deploy OK.
+**RELEASE GO** = build + smoke (B/C) + commit + push PASS — **nie czekaj** na propagację Vercel.
+
+**Zakazane:** retry/sleep/polling `version.json`, GitHub Deployments API, Vercel API, oczekiwanie na SUCCESS deployment.
+
+Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md) § 3.
 
 | Zakres | Workflow |
 |--------|----------|
-| **A — minor** (docs, hotfix import) | build → commit → push → verify version.json → report |
-| **B — functional UI** | build → relevant smoke → commit → push → verify version.json → report |
-| **C — major release** | build → smoke → E2E → commit → push → verify version.json → report |
+| **A — minor** (docs, hotfix import) | build → commit → push → verify FAST → report |
+| **B — functional UI** | build → relevant smoke → commit → push → verify FAST → report |
+| **C — major release** | build → smoke → E2E → commit → push → verify FAST → report |
 
 ---
 
