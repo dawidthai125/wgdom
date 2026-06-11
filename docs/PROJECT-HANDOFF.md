@@ -10,16 +10,17 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja UI** | **2.50.65** |
-| **Commit (app)** | **`6df03de`** — `fix(jobs): mobile jobs list full width (20.5Z.5C) v2.50.65` |
-| **Git tag backup** | **`pre-next-feature-2.50.64`** → `c7bc58f` (snapshot przed 5C) |
-| **Deploy** | **`82hqixksgPYSD8c5LRbkwEEFusn5`** — **SUCCESS** |
-| **Status** | **RELEASED · STABLE · PRE-FEATURE BACKUP SECURED · READY FOR NEXT FEATURE STREAM** |
+| **Wersja UI** | **2.50.67** |
+| **Commit (app)** | **`f94b530`** — `feat(dashboard): compress hero today panel (20.7D.1)` |
+| **Poprzedni** | **`3e46ae8`** — Dashboard V2 Complete (2.50.66) |
+| **Git tag backup** | **`pre-next-feature-2.50.64`** → `c7bc58f` |
+| **Status** | **RELEASED · STABLE · DASHBOARD V2 COMPLETE · HERO COMPRESSION** |
 | **Production** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Commit (E2E)** | **`8906485`** — 20.5Z.2B E2E Version Awareness |
 | **Commit (PWA)** | **`46556a7`** — 20.5Z.2A PWA hardening |
 
-**Poprzedni baseline (app):** v2.50.64 · `c7bc58f` · deploy `BxMBS2SFGiDxZmkHmwndVpr5RLin`
+**★★ Dashboard V2 handoff:** [`SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](SESSION-HANDOFF-20.7-DASHBOARD-V2.md) — Hero DZIŚ, konsolidacja, compression, architektura  
+**★ Release 20.7D.1:** [`RELEASE-REPORT-20.7D.1.md`](RELEASE-REPORT-20.7D.1.md) · **20.7C.2:** [`RELEASE-REPORT-20.7C.2.md`](RELEASE-REPORT-20.7C.2.md)
 
 **★ Handoff pre-next-feature:** [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md) — 5A/5B, backup, storage audit  
 **★ Backup:** [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md`](AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md)  
@@ -30,7 +31,30 @@
 
 ---
 
-## Ostatni release — 20.5Z.5C (Mobile Jobs List Width Fix)
+## Ostatni release — 20.7D.1 (Hero Compression)
+
+**UI-only** — KPI first, Hero compact accordion, merge Przetargi — skrót
+
+| Check | Wynik |
+|-------|-------|
+| `npm run build` | PASS |
+| `npm run test:e2e:happy` | 9/9 PASS |
+
+| Commit | **`f94b530`** |
+| **Raport:** [`RELEASE-REPORT-20.7D.1.md`](RELEASE-REPORT-20.7D.1.md) · **Status:** **RELEASED**
+
+---
+
+## Poprzedni release — 20.7C.2 (Dashboard V2 Complete)
+
+Hero DZIŚ SSOT (`buildHeroToday`), dedupe Uwaga dziś, Action Center sloty, E2E `dashboard-hero.spec.ts`
+
+| Commit | **`3e46ae8`** · v2.50.66 |
+| **Raport:** [`RELEASE-REPORT-20.7C.2.md`](RELEASE-REPORT-20.7C.2.md) · **Handoff:** [`SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](SESSION-HANDOFF-20.7-DASHBOARD-V2.md)
+
+---
+
+## Poprzedni release — 20.5Z.5C (Mobile Jobs List Width Fix)
 
 **Mobile-only layout fix** (`<640px`) — UI-only, bez zmian sync/modelu
 

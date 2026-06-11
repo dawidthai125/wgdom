@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-11",
+    version: "2.50.67",
+    label: "Hero Compression (20.7D.1)",
+    items: [
+      { type: "improve", text: "Pulpit — KPI jako pierwszy blok operacyjny (Hero nie dominuje nad foldem)" },
+      { type: "improve", text: "Hero DZIŚ — wariant compact accordion (domyślnie zwinięty, Pokaż priorytety, TOP 5 po rozwinięciu)" },
+      { type: "improve", text: "Przetargi — skrót — Hero compact wbudowany przed CTA Command Center" },
+      { type: "improve", text: "Admin bez Przetargów — standalone Hero compact między Do odzyskania a Uwaga dziś" },
+    ],
+  },
+  {
     date: "2026-06-10",
     version: "2.50.66",
     label: "Dashboard V2 Complete (20.7C.2)",

@@ -3,22 +3,18 @@
 > **Aktualizuj ten plik na końcu każdej większej sesji z agentem AI.**  
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
-**Ostatnia aktualizacja:** 2026-06-10  
-**Current Version:** **2.50.65**  
-**Current Baseline:** **RELEASED · STABLE · E2E HARDENED · PWA HARDENED · PRE-FEATURE BACKUP SECURED**  
-**Prod `origin/main` (app):** **`6df03de`** · https://www.wgdom.fun · v2.50.65  
-**Deploy prod:** **`82hqixksgPYSD8c5LRbkwEEFusn5`** · **SUCCESS**  
-**Git tag backup:** **`pre-next-feature-2.50.64`** → `c7bc58f` (pre-5C snapshot)  
-**E2E `origin/main`:** **`8906485`** — E2E Version Awareness (20.5Z.2B) + Happy Path (`caf344e`)  
-**PWA `origin/main`:** **`46556a7`** — PWA + Version Awareness (20.5Z.2A) · prod SW **`wgdom-shell-2.50.65`**  
-**CI E2E:** **`#27260457990`** SUCCESS (happy + version)
+**Ostatnia aktualizacja:** 2026-06-11  
+**Current Version:** **2.50.67**  
+**Current Baseline:** **RELEASED · STABLE · DASHBOARD V2 COMPLETE · HERO COMPRESSION**  
+**Prod `origin/main` (app):** **`f94b530`** · https://www.wgdom.fun · v2.50.67  
+**Poprzedni release:** **`3e46ae8`** — Dashboard V2 Complete (2.50.66)  
+**CI E2E:** **`#27322541521`** SUCCESS (happy) · **`#27322541526`** SUCCESS (mobile)
 
-**★ Release 5C:** [`docs/RELEASE-REPORT-20.5Z.5C.md`](docs/RELEASE-REPORT-20.5Z.5C.md)  
-**★ Handoff pre-next-feature:** [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md) ← backup baseline  
-**★ Backup raport:** [`docs/BACKUP-REPORT-2.50.64.md`](docs/BACKUP-REPORT-2.50.64.md)  
-**★ Storage audit:** [`docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md`](docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md)  
-**★ Handoff końcowy 20.5Z:** [`docs/PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md)  
-**Handoff serii 20.5Z:** [`docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md`](docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md)
+**★★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
+**★ Release 20.7D.1:** [`docs/RELEASE-REPORT-20.7D.1.md`](docs/RELEASE-REPORT-20.7D.1.md)  
+**★ Release 20.7C.2:** [`docs/RELEASE-REPORT-20.7C.2.md`](docs/RELEASE-REPORT-20.7C.2.md)  
+**★ Handoff pre-next-feature:** [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)  
+**★ Handoff końcowy 20.5Z:** [`docs/PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md)
 
 ---
 
@@ -27,93 +23,68 @@
 ```text
 RELEASED
 STABLE
+DASHBOARD V2 COMPLETE
+HERO COMPRESSION DEPLOYED
 READY FOR NEXT FEATURE STREAM
 ```
 
-Prod **2.50.65** wdrożony · pre-feature backup baseline **zachowany** (`pre-next-feature-2.50.64`).
-
 ---
 
-## Ostatni release — 20.5Z.5C (**RELEASED**)
+## Ostatni release — 20.7D.1 Hero Compression (**RELEASED**)
 
 | Sprint | Wersja | Commit | Zakres |
 |--------|--------|--------|--------|
-| **20.5Z.5C** Mobile Jobs List Width Fix | **2.50.65** | **`6df03de`** | Roboty mobile `<640px` — lista pełna szerokość; pusty panel szczegółów `hidden sm:flex` |
+| **20.7D.1** Hero Compression | **2.50.67** | **`f94b530`** | KPI first · Hero compact accordion · merge Przetargi — skrót · fallback bez Przetargów |
 
-**Deploy:** **`82hqixksgPYSD8c5LRbkwEEFusn5`** · **Kluczowy plik:** `JobsView.tsx`
+**Kluczowe pliki:** `HeroDzisPanel.tsx`, `DashboardView.tsx`, `CommandCenterExecutivePanel.tsx`, `e2e/dashboard-hero.spec.ts`
 
 **Smoke:**
 
 ```bash
-npx vite-node scripts/smoke-test-jobs-ux-pack-2.50.40.mjs   # 16/16
 npm run build
+npx vite-node scripts/test-dashboard-hero-today.mjs
+PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:happy
 ```
 
-**Raport:** [`docs/RELEASE-REPORT-20.5Z.5C.md`](docs/RELEASE-REPORT-20.5Z.5C.md)
+**Raport:** [`docs/RELEASE-REPORT-20.7D.1.md`](docs/RELEASE-REPORT-20.7D.1.md)
 
 ---
 
-## Poprzedni release — 20.5Z.5A + 20.5Z.5B (**RELEASED**)
+## Poprzedni release — 20.7C.2 Dashboard V2 Complete (**RELEASED**)
 
 | Sprint | Wersja | Commit | Zakres |
 |--------|--------|--------|--------|
-| **20.5Z.5A** Admin Nav Jobs Badge | 2.50.63 | `c7bc58f` | Badge Roboty = W toku + Do odbioru (`countActiveJobsForNavBadge`) |
-| **20.5Z.5B** Dashboard Handover Alert | 2.50.64 | `c7bc58f` | Pulpit „Uwaga dziś” — Roboty do odbioru |
+| **20.7C.2** Dashboard V2 | **2.50.66** | **`3e46ae8`** | Hero DZIŚ SSOT · dedupe Uwaga · Action Center sloty · E2E hero |
 
-**Smoke 5A/5B:** `smoke-test-admin-nav-jobs-badge-20.5z5a.mjs` (8/8) · `smoke-test-dashboard-handover-alert-20.5z5b.mjs` (11/11)
+**Lib SSOT:** `dashboard-hero-today.ts`, `dashboard-hero-consolidation.ts` — **nie zmieniać rankera bez nowego sprintu**
+
+**Raport:** [`docs/RELEASE-REPORT-20.7C.2.md`](docs/RELEASE-REPORT-20.7C.2.md)
+
+---
+
+## Seria 20.7 — podsumowanie
+
+| Etap | Status |
+|------|--------|
+| 20.7C.1 Command Center skrót cleanup | **RELEASED** (`070e52f`) |
+| 20.7C.2A lib Hero ranker | **RELEASED** (`3e46ae8`) |
+| 20.7C.2B HeroDzisPanel UI | **RELEASED** (`3e46ae8`) |
+| 20.7C.2C konsolidacja + E2E | **RELEASED** (`3e46ae8`) |
+| 20.7D audit Hero Compression | **DONE** (READ ONLY) |
+| 20.7D.1 implementacja accordion | **RELEASED** (`f94b530`) |
+
+**Pełna dokumentacja:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)
+
+---
+
+## Następny krok (propozycje — bez otwartego sprintu)
+
+- Aktualizacja `GuideView` / hintów Pulpitu (Hero compact, KPI first)
+- Nowy strumień funkcji po Dashboard V2 (decyzja właściciela)
+- Opcjonalny release tag `v2.50.67` po deploy Vercel
 
 ---
 
 ## Pre-feature backup v2.50.64 (**COMPLETE**)
 
-| Element | Status |
-|---------|--------|
-| Git tag `pre-next-feature-2.50.64` | **PASS** |
-| KV + schema + edge snapshot | **PASS** |
-| Repo bundle + archive | **PASS** |
-| Storage manifest | **PASS** (140 obiektów) |
-| Storage-full binaria | **PASS** (140/140, 54.15 MB) |
-| Email rdzeń KV+docs | **PASS** (`dawid.thai@int.pl`) |
-| Email pełny ZIP 52.8 MB | **FAIL** (limit Resend 40 MB) |
-
-**Lokalnie (poza repo):** `C:\Users\dawid\Downloads\WGDOM-BACKUP-2.50.64*` — **nie commitować** `kv-data.json` (hashe adminów).
-
-**Skrypty:** `run-pre-feature-backup-2.50.64.mjs`, `run-storage-full-backup-2.50.64.mjs`, `send-pre-feature-backup-email-2.50.64.mjs`
-
----
-
-## Seria 20.5Z — Platform Stabilization (**COMPLETE**)
-
-| Sprint | Commit | Status |
-|--------|--------|--------|
-| 20.5Z.1 E2E Happy Path | `caf344e` | **COMPLETE** |
-| 20.5Z.2A PWA hardening | `46556a7` | **COMPLETE** |
-| 20.5Z.2B E2E Version Awareness | `8906485` | **COMPLETE** |
-| 20.5Z.4A Jobs Cleanup | `640e3a9` | **COMPLETE** |
-| **20.5Z.5A** Nav badge | `c7bc58f` | **RELEASED** |
-| **20.5Z.5B** Handover alert | `c7bc58f` | **RELEASED** |
-| **20.5Z.5C** Mobile list width | `6df03de` | **RELEASED** |
-
-Audyt zamknięcia 20.5Z.3: **GO** · szczegóły: [`PROJECT-HANDOFF-FINAL-20.5Z.md`](docs/PROJECT-HANDOFF-FINAL-20.5Z.md)
-
----
-
-## Następny etap
-
-**Nowy stream feature** — baseline zabezpieczony tagiem `pre-next-feature-2.50.64` · prod **2.50.65**.
-
-Propozycje z backlogu (tylko na polecenie): 20.3C legacy CC, Roboty 2.0 FULL, KV orphan cleanup, seria **20.6A** cleanup (docs dead code CI).
-
----
-
-## Szybki start dla agenta
-
-```text
-1. AGENTS.md
-2. TEN PLIK (CURRENT-TASK.md)
-3. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md   ← backup + update 5C
-4. docs/PROJECT-HANDOFF.md
-5. docs/PROJECT-HANDOFF-FINAL-20.5Z.md
-6. docs/BACKUP-REPORT-2.50.64.md
-7. docs/ARCHITECTURE.md § 11 (sync) + § 12.1.2 (pliki)
-```
+Tag **`pre-next-feature-2.50.64`** · raport: [`docs/BACKUP-REPORT-2.50.64.md`](docs/BACKUP-REPORT-2.50.64.md)

@@ -2,8 +2,9 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.65** · Mobile Jobs List Width Fix 20.5Z.5C)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-10 (2.50.65 — mobile Roboty list layout)  
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.67** · Hero Compression 20.7D.1)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-11 (2.50.67 — Dashboard V2 Hero DZIŚ + compression)
+> **★ Dashboard V2 handoff:** [`SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
@@ -173,7 +174,7 @@ Filtr stosowany w `resolveAuthorContact()` (`content-author-contact.ts`) i `Auth
 
 | `view` | Opis | Główna funkcja w App.tsx |
 |--------|------|--------------------------|
-| `dashboard` | Pulpit: operacje (roboty, płace, WM) + **COMMAND CENTER executive** (7G) + „Uwaga dziś” (m.in. **Roboty do odbioru** 20.5Z.5B — `jobMatchesListFilter(handover)`, poza `attentionCount`) | `DashboardView` |
+| `dashboard` | Pulpit: **KPI first** · **Hero DZIŚ** (compact accordion, TOP 5 po expand) · Do odzyskania · **Przetargi — skrót** + embedded Hero · **Uwaga dziś** (dedupe z Hero) · operacje (20.7C–D) | `DashboardView` |
 | `payroll` | Lista płac | `PayrollView` |
 | `schedule` | Grafik tygodnia | `ScheduleView` |
 | `directory` | Kartoteka pracowników | `DirectoryView` |
@@ -695,12 +696,16 @@ Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTST
 
 **Pełny moduł:** `src/app/TenderCenterProView.tsx` → `src/app/tender-center/components/OwnerDashboard.tsx` (lazy chunk `TenderCenterProView-*.js`).
 
-**Pulpit (ETAP 7G):** `DashboardView` → `CommandCenterExecutivePanel` — ten sam silnik co CC przez `useCommandCenterExecutiveSnapshot`.
+**Pulpit (ETAP 7G + 20.7C/D):** `DashboardView` → `CommandCenterExecutivePanel` + **Hero DZIŚ** — silnik CC przez `CommandCenterProvider`; ranker Hero w `dashboard-hero-today.ts`.
 
 | Plik | Rola |
 |------|------|
+| `src/lib/dashboard-hero-today.ts` | **SSOT** `buildHeroToday()`, ranker TOP 5, mappers operacyjne + Action Center |
+| `src/lib/dashboard-hero-consolidation.ts` | Dedupe sekcji Uwaga dziś vs Hero (`getHeroCoveredUwagaSections`) |
+| `src/app/HeroDzisPanel.tsx` | UI Hero: `variant="full" \| "compact"` accordion, nawigacja |
 | `src/app/tender-center/hooks/useCommandCenterExecutiveSnapshot.ts` | Snapshot: health, briefing, action center, forecast, best opportunity, … |
-| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | Executive summary (5 kart + Action Center max 3) |
+| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | Przetargi — skrót + **embedded Hero compact** + CTA CC |
+| `src/lib/tender-center-action-center-display.ts` | Prezentacja slotów forecast w Action Center UI (bez %) |
 | `src/lib/tender-center-health.ts` | Health Index |
 | `src/lib/tender-center-morning-briefing.ts` | Morning Briefing |
 | `src/lib/tender-center-action-center.ts` | Action Center |

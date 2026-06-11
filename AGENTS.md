@@ -8,27 +8,28 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. CURRENT-TASK.md        ← ★ co na prod (v2.50.65 · 20.5Z.5C) + backup + następny krok
-3. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md  ← ★★ co zrobiliśmy + backup baseline (CZYTAJ NA START)
+2. CURRENT-TASK.md        ← ★ co na prod (v2.50.67 · 20.7D.1) + Dashboard V2 status
+3. docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md  ← ★★★ Dashboard V2 + Hero (CZYTAJ przy Pulpit/Hero)
 4. docs/PROJECT-HANDOFF.md  ← baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT
-5. docs/BACKUP-REPORT-2.50.64.md  ← pre-feature backup + storage-full
-6. docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md  ← audyt 100% storage
-7. docs/PROJECT-HANDOFF-FINAL-20.5Z.md  ← oficjalny handoff końcowy serii 20.5Z (COMPLETE)
-8. docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md  ← seria 20.5Z — szczegóły sprintów
-9. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← Files Hub 20.5A.12
-10. docs/RELEASE-REPORT-20.5Z.2B.md  ← E2E Version Awareness (20.5Z.2B)
-11. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
-12. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← Roboty UX, Version, Worker Mobile
-13. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
-14. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← CC polonizacja CLOSED + mapa widoków
-15. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
-16. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
-17. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← gotowość worker/admin/inspektor GO
-18. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-19. docs/ARCHITECTURE.md   ← pełna architektura (§ 9.1 dokumentacja, § 12.1.2 pliki, § 13.1 wersja)
-20. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G)
-21. CHANGELOG.md          ← CO już zrobiono (skrót)
-22. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+5. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md  ← backup baseline 2.50.64
+6. docs/BACKUP-REPORT-2.50.64.md  ← pre-feature backup + storage-full
+7. docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md  ← audyt 100% storage
+8. docs/PROJECT-HANDOFF-FINAL-20.5Z.md  ← oficjalny handoff końcowy serii 20.5Z (COMPLETE)
+9. docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md  ← seria 20.5Z — szczegóły sprintów
+10. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← Files Hub 20.5A.12
+11. docs/RELEASE-REPORT-20.5Z.2B.md  ← E2E Version Awareness (20.5Z.2B)
+12. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
+13. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← Roboty UX, Version, Worker Mobile
+14. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
+15. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← CC polonizacja CLOSED + mapa widoków
+16. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
+17. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
+18. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← gotowość worker/admin/inspektor GO
+19. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+20. docs/ARCHITECTURE.md   ← pełna architektura (§ 9.1 dokumentacja, § 12.1.2 pliki, § 13.1 wersja)
+21. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G + 20.7)
+22. CHANGELOG.md          ← CO już zrobiono (skrót)
+23. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -61,6 +62,7 @@
 | **docs/SESSION-HANDOFF-20.3B-CC-POLISH.md** | CC polonizacja **20.3B+ CLOSED** (`61cb33b`, v2.50.43) — mapa widoków, etykiety PL |
 | **docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md** | Seria **2.50.x CLOSED** — desktop scroll, mobile fix, MID-B, CI |
 | **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.6 CLOSED** (`99295e5`, v2.50.44) |
+| **docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md** | **★★ Dashboard V2 COMPLETE** — Hero DZIŚ, konsolidacja, compression, mapa plików, E2E |
 | **docs/PROJECT-HANDOFF-FINAL-20.5Z.md** | **★ Oficjalny handoff końcowy 20.5Z** — baseline, architektura, E2E, PWA, readiness, werdykt COMPLETE |
 | **docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md** | Seria **20.5Z CLOSED** — szczegóły sprintów, komendy, pułapki E2E |
 | **docs/PROJECT-HANDOFF.md** | Baseline prod, ostatni release, proces AUDIT→RCA→PLAN→IMPLEMENT |
@@ -101,8 +103,10 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.65**) |
-| Prod `main` (app) | **20.5Z.5C** · **v2.50.65** · commit **`6df03de`** · deploy **`82hqixksgPYSD8c5LRbkwEEFusn5`** |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.67**) |
+| Prod `main` (app) | **20.7D.1** · **v2.50.67** · commit **`f94b530`** · Dashboard V2 COMPLETE |
+| Poprzedni | **20.7C.2** · **v2.50.66** · commit **`3e46ae8`** |
+| Dashboard V2 docs | [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md) |
 | Git tag backup | **`pre-next-feature-2.50.64`** → `c7bc58f` (snapshot przed 5C) |
 | E2E `main` | **20.5Z.2B** · **`8906485`** · `test:e2e:happy` + `test:e2e:version` · CI `#27260457990` |
 | E2E komendy | `npm run build` → `preview @4173` → `PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:happy` / `test:e2e:version` |

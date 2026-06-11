@@ -4,10 +4,18 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.66** (`changelog-data.ts`) · Dashboard V2 Complete 20.7C.2  
+**Aktualna wersja UI:** **2.50.67** (`changelog-data.ts`) · Hero Compression 20.7D.1  
+**★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
+
+## 2.50.67 (2026-06-11) — Hero Compression (20.7D.1)
+
+* **Improve:** KPI first on dashboard — Hero no longer above KPI grid
+* **Improve:** Hero DZIŚ compact accordion (collapsed by default, expand for TOP 5)
+* **Improve:** Przetargi — skrót embeds Hero compact before Command Center CTA
+* **Improve:** Non-tenders admins get standalone Hero compact fallback
 
 ## 2.50.66 (2026-06-10) — Dashboard V2 Complete (20.7C.2)
 

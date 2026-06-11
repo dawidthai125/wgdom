@@ -21,8 +21,10 @@ Pełny moduł CC pozostaje w `TenderCenterProView` → `OwnerDashboard`.
 |------|------|
 | `src/app/tender-center/context/CommandCenterContext.tsx` | **ETAP 7H** — `CommandCenterProvider` + wspólny pipeline i snapshot |
 | `src/app/admin/AdminViewRouter.tsx` | Owija widoki admina w `CommandCenterProvider` gdy `canViewTendersNav` |
-| `src/app/DashboardView.tsx` | Renderuje `CommandCenterExecutivePanel` gdy `canViewTenders && onOpenTenders` |
-| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | UI executive: 5 kart + Action Center (max 3) + CTA — **odczyt z Context** |
+| `src/app/DashboardView.tsx` | KPI first · `CommandCenterExecutivePanel` + Hero fallback · dedupe Uwaga dziś |
+| `src/app/HeroDzisPanel.tsx` | Hero DZIŚ compact accordion (`variant="compact"`, `embedded` w skrócie) |
+| `src/lib/dashboard-hero-today.ts` | SSOT ranker `buildHeroToday()` — **nie zmieniać bez sprintu 2A** |
+| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | **Przetargi — skrót:** liczniki + Hero compact + CTA CC |
 | `src/app/tender-center/hooks/useCommandCenterExecutiveSnapshot.ts` | **ETAP 7H** — cienki odczyt `ctx.snapshot` (bez drugiego pipeline) |
 | `src/app/tender-center/components/OwnerDashboard.tsx` | Pełny CC; używa tego samego hooka |
 | `src/app/admin/AdminViewRouter.tsx` | `view === "dashboard"` → `DashboardView` |
@@ -74,21 +76,22 @@ useCommandCenterExecutiveSnapshot({
 
 ---
 
-## UI executive (`CommandCenterExecutivePanel`)
+## UI executive (`CommandCenterExecutivePanel`) — po 20.7C/D
 
-Nagłówek: **W&G DOM COMMAND CENTER AI** · *Centralny System Przetargów i Wyliczeń* (`COMMAND_CENTER_BRAND`).
+Nagłówek sekcji na Pulpicie: **Przetargi — skrót** (nie pełny CC).
 
-| Karta | Źródło |
-|-------|--------|
-| Priorytet dnia | `morningBriefing.headline`, `priorityAction` |
-| Health Index | `health.index`, `HEALTH_LABEL_PL[health.label]` |
-| Zdolność finansowa | `financialCapacity` (score + `recommendation`) lub „Brak danych okazji” |
-| Najlepsza okazja | `bestOpportunity` (tytuł, Opp, Strat, decyzja) |
-| Prognoza 90 dni | horyzonty 30 / 60 / 90 z `primaryForecastScenario(forecast90)` |
+| Element | Źródło |
+|---------|--------|
+| Pilne terminy | `marketKpi.urgentCount` |
+| Wygrane bez roboty | pipeline `won` bez `linkedJobId` |
+| **Hero DZIŚ compact** | `buildHeroToday()` → `HeroDzisPanel variant="compact" embedded` |
+| CTA | `onOpenCommandCenter()` → moduł Przetargi |
 
-**Action Center (pulpit):** `pickExecutiveActions(center, 3)` — tylko `CRITICAL` i `HIGH`, max **3** pozycje; „Pokaż wszystkie →” i główny przycisk → `onOpenCommandCenter()` (= `onOpenTenders`).
+**Pełny COMMAND CENTER AI** (`OwnerDashboard`): briefing, health, capacity, okazja, prognoza 90d, pełny Action Center — tylko w `view === "tenders"`.
 
-**Ładowanie:** `pipeline.loading` → komunikat „Ładowanie COMMAND CENTER AI…”.
+**Hero DZIŚ na Pulpicie:** priorytety dnia (TOP 5 po expand) — szczegóły w [`SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](SESSION-HANDOFF-20.7-DASHBOARD-V2.md).
+
+**Ładowanie:** `pipeline.loading` → „Ładowanie przetargów…”.
 
 **Polonizacja (20.3B+ FULL, v2.50.43):** etykiety kart executive po PL (Indeks kondycji, Zdolność finansowa, …); marka **COMMAND CENTER AI** bez zmian. Mapy: `src/lib/tender-center-ui-labels-pl.ts`, `DECISION_LABEL_PL`. Handoff: [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md). Smoke: `smoke-test-ui-language-20.3b-full.mjs`.
 
