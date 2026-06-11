@@ -119,18 +119,22 @@ InspectorPanel
 
 ### Deploy i testy
 
+**★ Oficjalny workflow A/B/C:** [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md)
+
+- **Frontend:** `git push origin main` → Vercel (Git Integration). **Bez** ręcznego `vercel deploy`.
+- **VERIFY DEPLOY:** push OK + `version.json` prod + app OK — **bez** pollingu deployment API.
+
+**Major release (C) — przykład komend:**
+
 ```bash
-# Build + preview (E2E)
 npm run build
 npm run preview -- --host 127.0.0.1 --port 4173
 PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:happy
 PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:version
-
-# Smoke regresja
 npx vite-node scripts/smoke-test-app-version-check-20.5b7.mjs
 npx vite-node scripts/smoke-test-files-hub-20.5a12.mjs
-npx vite-node scripts/smoke-test-worker-report-pdf-20.5a12c.mjs
-npx vite-node scripts/smoke-test-pwa-version-20.5z2a.mjs
+git push origin main
+curl -s https://www.wgdom.fun/version.json
 ```
 
 ---

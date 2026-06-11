@@ -3,7 +3,7 @@
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
 > **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.68** · Dashboard IA Cleanup 20.7E)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-11 (2.50.68 — Pulpit IA: Najważniejsze dziś standalone, Uwaga accordion)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-11 (workflow release/deploy A/B/C — [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md))
 > **★ Dashboard V2 handoff:** [`SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -43,7 +43,8 @@ npm run test:mobile      # Playwright na www.wgdom.fun (domyślnie)
 npm run audit:mobile     # statyczny audyt kodu mobile
 ```
 
-**Deploy frontendu:** `git push origin main` → Vercel auto-deploy z GitHub.  
+**Deploy frontendu:** `git push origin main` → Vercel Git Integration (auto-build). **Nie** używaj `vercel deploy` / `vercel --prod`.  
+**VERIFY DEPLOY:** push SUCCESS + `version.json` prod + app OK — bez pollingu GitHub/Vercel. Szczegóły: [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md).  
 **Deploy backendu:** push zmian w `supabase/functions/**` → GitHub Action `Deploy Supabase Edge Functions`.
 
 **Zmienne środowiskowe (Vite → frontend):**
@@ -922,11 +923,15 @@ Inspektor ma analogiczny flow w `InspectorPhotoGallery.tsx` + `InspectorJobPhoto
 
 ## 13. Vercel — frontend
 
-- Połączenie: GitHub repo `dawidthai125/wgdom` → branch `main` → auto-deploy
+**★ Workflow release A/B/C:** [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md)
+
+- Połączenie: GitHub repo `dawidthai125/wgdom` → branch `main` → **Vercel Git Integration** → auto-deploy po push
+- **Zakazane:** ręczny `vercel deploy` / `vercel --prod` — jedyny trigger prod: `git push origin main`
 - **Brak** `.vercel` w repo — projekt powiązany w dashboardzie Vercel
 - Build: `npm run build` → output `dist/`
 - **Env vars** (Production + Preview): `VITE_SUPABASE_PROJECT_ID`, `VITE_SUPABASE_ANON_KEY`
 - Brak env → aplikacja działa offline-only ze starym LS, sync error w UI
+- **Weryfikacja po push:** `curl https://www.wgdom.fun/version.json` — oczekiwana wersja = deploy OK (bez pollingu status API)
 
 **PWA cache (20.5Z.2A):** `dist/sw.js` generowany przy buildzie z `scripts/sw.template.js` — `CACHE = wgdom-shell-{APP_VERSION}`. **Nie podbijaj ręcznie** — wystarczy wpis w `CHANGELOG[0]`.
 

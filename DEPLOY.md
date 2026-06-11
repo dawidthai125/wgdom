@@ -30,6 +30,11 @@ Repozytorium utwórz na [github.com/new](https://github.com/new) (np. nazwa `wgd
 
 Po każdym `git push` na `main` Vercel zbuduje nową wersję (jak teraz localhost, tylko publicznie).
 
+**Oficjalny workflow release/deploy (A/B/C) i weryfikacja po push:** [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)
+
+- **Nie wykonuj** ręcznego `vercel deploy` / `vercel --prod` — deploy prod = push na `main`.
+- **VERIFY DEPLOY:** push SUCCESS + `version.json` prod + app OK (bez pollingu GitHub/Vercel).
+
 ## 3. Supabase (backend — auto-deploy przez GitHub)
 
 Frontend na Vercel **tylko** woła API. Edge Function zostaje na Supabase:

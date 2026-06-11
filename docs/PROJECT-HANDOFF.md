@@ -400,7 +400,11 @@ AUDIT → RCA → PLAN → IMPLEMENT
 3. **PLAN** — zakres, etapy, smoke; akceptacja przed kodem
 4. **IMPLEMENT** — minimalny diff; chmura → CHANGELOG → HelpView → ARCHITECTURE
 
-**Deploy:** push `main` → Vercel auto-deploy. **Supabase:** tylko gdy zmienia się Edge Function.
+**Deploy frontend:** `git push origin main` → Vercel Git Integration (auto). **Nie** `vercel deploy` / `vercel --prod`.
+
+**VERIFY DEPLOY:** push SUCCESS + `version.json` prod = oczekiwana wersja + app OK. **Bez** pollingu GitHub/Vercel.
+
+**Workflow release A/B/C:** [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md) · **Supabase:** tylko gdy zmienia się Edge Function.
 
 ---
 

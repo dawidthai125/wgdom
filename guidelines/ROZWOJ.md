@@ -66,6 +66,9 @@ npm run audit:mobile
 
 ## Deploy
 
-- **Frontend:** push `main` → Vercel auto-deploy. Env: `VITE_SUPABASE_*`.
-- **Backend:** push `supabase/functions/**` → workflow deploy-supabase.
-- **PWA:** po deploy podbij `wgdom-shell-vN` w `public/sw.js`.
+**★ Oficjalny workflow:** [`docs/WORKFLOW-RELEASE-DEPLOY.md`](../docs/WORKFLOW-RELEASE-DEPLOY.md)
+
+- **Frontend:** `git push origin main` → Vercel Git Integration (auto). **Nie** `vercel deploy` / `vercel --prod`.
+- **Backend:** push `supabase/functions/**` → workflow `deploy-supabase.yml`.
+- **VERIFY DEPLOY:** push OK + `version.json` prod + app OK — bez pollingu GitHub/Vercel.
+- **PWA:** po release z bumpiem CHANGELOG → `npm run build` generuje `dist/sw.js` (`wgdom-shell-{APP_VERSION}`). **Nie** edytuj `public/sw.js`.

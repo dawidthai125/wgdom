@@ -8,28 +8,29 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. CURRENT-TASK.md        ← ★ co na prod (v2.50.67 · 20.7D.1) + Dashboard V2 status
-3. docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md  ← ★★★ Dashboard V2 + Hero (CZYTAJ przy Pulpit/Hero)
-4. docs/PROJECT-HANDOFF.md  ← baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT
-5. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md  ← backup baseline 2.50.64
-6. docs/BACKUP-REPORT-2.50.64.md  ← pre-feature backup + storage-full
-7. docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md  ← audyt 100% storage
-8. docs/PROJECT-HANDOFF-FINAL-20.5Z.md  ← oficjalny handoff końcowy serii 20.5Z (COMPLETE)
-9. docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md  ← seria 20.5Z — szczegóły sprintów
-10. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← Files Hub 20.5A.12
-11. docs/RELEASE-REPORT-20.5Z.2B.md  ← E2E Version Awareness (20.5Z.2B)
-12. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
-13. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← Roboty UX, Version, Worker Mobile
-14. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
-15. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← CC polonizacja CLOSED + mapa widoków
-16. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
-17. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
-18. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← gotowość worker/admin/inspektor GO
-19. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-20. docs/ARCHITECTURE.md   ← pełna architektura (§ 9.1 dokumentacja, § 12.1.2 pliki, § 13.1 wersja)
-21. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G + 20.7)
-22. CHANGELOG.md          ← CO już zrobiono (skrót)
-23. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+2. CURRENT-TASK.md        ← ★ co na prod + status sesji
+3. docs/WORKFLOW-RELEASE-DEPLOY.md  ← ★★ release/deploy A/B/C + VERIFY (oficjalny)
+4. docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md  ← Dashboard V2 + Hero
+5. docs/PROJECT-HANDOFF.md  ← baseline prod + proces AUDIT→RCA→PLAN→IMPLEMENT
+6. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md  ← backup baseline 2.50.64
+7. docs/BACKUP-REPORT-2.50.64.md  ← pre-feature backup + storage-full
+8. docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md  ← audyt 100% storage
+9. docs/PROJECT-HANDOFF-FINAL-20.5Z.md  ← oficjalny handoff końcowy serii 20.5Z (COMPLETE)
+10. docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md  ← seria 20.5Z — szczegóły sprintów
+11. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← Files Hub 20.5A.12
+12. docs/RELEASE-REPORT-20.5Z.2B.md  ← E2E Version Awareness (20.5Z.2B)
+13. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
+14. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← Roboty UX, Version, Worker Mobile
+15. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
+16. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← CC polonizacja CLOSED + mapa widoków
+17. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
+18. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
+19. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← gotowość worker/admin/inspektor GO
+20. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+21. docs/ARCHITECTURE.md   ← pełna architektura (§ 9.1 dokumentacja, § 12.1.2 pliki, § 13.1 wersja)
+22. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G + 20.7)
+23. CHANGELOG.md          ← CO już zrobiono (skrót)
+24. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -94,6 +95,28 @@
 7. Podsumowanie po **polsku**
 
 Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-development.mdc) · skrót: [`guidelines/ROZWOJ.md`](guidelines/ROZWOJ.md)
+
+---
+
+## 2a. Release / deploy (obowiązkowy)
+
+**★ Źródło prawdy:** [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)
+
+**Frontend:** `git push origin main` → Vercel Git Integration (auto-build). **Nie** używaj `vercel deploy` / `vercel --prod`.
+
+**VERIFY DEPLOY** — tylko:
+
+1. push SUCCESS  
+2. `https://www.wgdom.fun/version.json` = oczekiwana wersja (przy bumpie CHANGELOG)  
+3. aplikacja otwiera się poprawnie  
+
+**Nie** polluj GitHub Deployments ani Vercel API. Jeśli `version.json` pokazuje nową wersję → deploy OK.
+
+| Zakres | Workflow |
+|--------|----------|
+| **A — minor** (docs, hotfix import) | build → commit → push → verify version.json → report |
+| **B — functional UI** | build → relevant smoke → commit → push → verify version.json → report |
+| **C — major release** | build → smoke → E2E → commit → push → verify version.json → report |
 
 ---
 

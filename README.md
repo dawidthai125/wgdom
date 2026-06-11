@@ -13,6 +13,7 @@ React + Vite · Supabase · Vercel · PWA · Capacitor (Android/iOS)
 | Dokument | Opis |
 |----------|------|
 | **[`AGENTS.md`](AGENTS.md)** | **START HERE** — jak pracować (workflow agenta) |
+| **[`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)** | **★ Release/deploy A/B/C** + VERIFY (oficjalny) |
 | **[`PROJECT-GUIDE.md`](PROJECT-GUIDE.md)** | Jak działa projekt + Known Issues |
 | **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** | Pełna architektura, sync, API, deploy |
 | **[`CHANGELOG.md`](CHANGELOG.md)** | Skrót ostatnich wersji (źródło prawdy: `src/app/changelog-data.ts`) |
@@ -43,6 +44,6 @@ npm run test:mobile
 
 ## Deploy
 
-- **Frontend:** `git push origin main` → Vercel  
+- **Frontend:** `git push origin main` → Vercel Git Integration — szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)
 - **Supabase Edge Function:** zmiany w `supabase/functions/` → GitHub Actions  
-- **PWA:** nowy wpis w `changelog-data.ts` (wersja UI) → `npm run build` generuje `dist/sw.js` z cache `wgdom-shell-{APP_VERSION}` (`scripts/generate-service-worker.mjs`)
+- **PWA:** nowy wpis w `changelog-data.ts` (wersja UI) → `npm run build` generuje `dist/sw.js` z cache `wgdom-shell-{APP_VERSION}`
