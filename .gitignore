@@ -47,3 +47,25 @@ _206_app.txt
 .env.vercel
 .env.vercel.*
 supabase/.temp/
+
+# Ephemeral smoke / integration output (P0)
+smoke-output*.txt
+integration-out.json
+integration-out-repaired.json
+
+# Manual UX audit screenshots — local only (P0)
+manual-ux-audit-*/
+
+# Local-only scripts — diag / RCA / dist smoke (P1; nie obejmuje smoke-prod-bundle-*)
+scripts/_check-*.mjs
+scripts/_verify-*.mjs
+scripts/smoke-dist-bundle-*.mjs
+scripts/pre-release-validate-*.mjs
+scripts/audit-localstorage-vs-kv*.mjs
+scripts/audit-prod-jobs-directory-rca*.mjs
+scripts/verify-jobs-mount-crash.mjs
+scripts/map-*.mjs
+scripts/find-map-sources.mjs
+scripts/locate-generated-symbols.mjs
+scripts/resolve-stack-sourcemap.mjs
+scripts/prove-phone-undefined-runtime.mjs
