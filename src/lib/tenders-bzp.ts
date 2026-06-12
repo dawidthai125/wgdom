@@ -952,7 +952,7 @@ export function resolveTenderDocumentDownload(
 ): { downloadUrl?: string; platform?: string; filename?: string } | null {
   const doc = docs?.find((d) => d.index === documentIndex);
   if (!doc) return null;
-  if (doc.platform && doc.downloadUrl) {
+  if (doc.downloadUrl) {
     return { downloadUrl: doc.downloadUrl, platform: doc.platform, filename: doc.filename };
   }
   return { filename: doc.filename };

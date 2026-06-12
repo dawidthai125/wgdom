@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.13",
+    label: "Przetargi — ATH ZIP trace + SSOT danych (P2-E.1B)",
+    items: [
+      { type: "fix", text: "Logintrade ZIP→ATH: faza kosztorysu, trace E2E, downloadUrl bez wymogu platform" },
+      { type: "fix", text: "Wadium SSOT — koniec „6%” vs „6 zł”; kryteria tylko z swzAnalysis (bez VAT/Cena 0%)" },
+      { type: "improve", text: "ATH z summaryLines akceptowany jako kosztorys; trace value per dokument" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.12",
     label: "Przetargi — Universal Dossier Engine (P2-E.1)",
     items: [

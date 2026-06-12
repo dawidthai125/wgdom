@@ -120,6 +120,25 @@ const confident = applyMetadataConfidence({
 assert("low confidence value cleared", confident.estimatedValuePln == null);
 assert("noise criteria cleared", (confident.awardCriteria?.length ?? 0) === 0);
 
+// P2-E.1B — wadium SSOT: percent bez wiarygodnej wartości → brak wadiumPln=6
+const wadiumOnly = applyMetadataConfidence({
+  ...parseSwzPlainText("Wysokość wadium: 6% wartości zamówienia.", { source: "pdf" }),
+  wadiumPercent: 6,
+  wadiumPln: 6,
+  wadiumRaw: "6% wartości zamówienia",
+  estimatedValuePln: null,
+  estimatedValueRaw: null,
+});
+assert("wadium pln cleared without value", wadiumOnly.wadiumPln == null);
+assert("wadium percent kept", wadiumOnly.wadiumPercent === 6);
+
+// P2-E.1B — Cena 0% filtered
+assert("cena 0 filtered", isFalsePositiveCriterion({ name: "Cena oferty", weightPct: 0, maxPoints: null, description: "" }));
+
+// P2-E.1B — VAT never in reliable criteria after fit-style filter
+const vatOnly = filterReliableAwardCriteria(extractAwardCriteria("VAT 8% stawka obniżona. Cena 0% w ofercie."));
+assert("vat and cena0 removed", vatOnly.length === 0);
+
 // scan summary UX
 const counts = countDocumentsByType(TBS_00266295_DOCUMENTS);
 assert("tbs pdf counted", counts.pdf >= 5);

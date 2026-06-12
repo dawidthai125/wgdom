@@ -6,6 +6,8 @@ import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { fmtPln, stripHtmlToText, formatSwzWadiumDisplay } from "@/lib/tenders-bzp-swz";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
+import { filterReliableAwardCriteria } from "@/lib/tender-metadata-confidence";
+import { resolveWadiumAmountPln } from "@/lib/tenders-wadium";
 
 export type TenderRequirementStatus = "met" | "partial" | "gap" | "unknown";
 
@@ -250,7 +252,9 @@ export function assessTenderFit(
   const swz = item.swzAnalysis;
   const combinedText = buildCombinedText(item, swz);
   const fromSwz = swz?.awardCriteria ?? [];
-  const awardCriteria = fromSwz.length > 0 ? fromSwz : extractAwardCriteria(combinedText);
+  const awardCriteria = fromSwz.length > 0
+    ? fromSwz
+    : filterReliableAwardCriteria(extractAwardCriteria(combinedText));
   const priceWeightPct = derivePriceWeightPct(awardCriteria);
   const requiredRefPln = extractRequiredReferencePln(combinedText);
   const requiredOcPln = extractRequiredOcPln(combinedText);
@@ -344,35 +348,36 @@ export function assessTenderFit(
     });
   }
 
-  // Wadium
-  const wadiumPct = swz?.wadiumPercent ?? null;
-  let wadium = swz?.wadiumPln ?? null;
-  if (wadium == null && wadiumPct != null && estVal != null) {
-    wadium = Math.round(estVal * wadiumPct / 100);
-  }
-  if (wadium != null) {
-    const ok = wadium <= profile.maxWadiumPln;
+  // Wadium — SSOT: formatSwzWadiumDisplay (percent gdy brak wiarygodnej wartości)
+  const wadiumDisplay = swz ? formatSwzWadiumDisplay(swz) : null;
+  const wadiumForLimit = resolveWadiumAmountPln(swz, estVal);
+  if (wadiumDisplay) {
+    const ok = wadiumForLimit == null || wadiumForLimit <= profile.maxWadiumPln;
     checks.push({
       id: "wadium",
       category: "Wadium",
       label: "Wadium",
-      required: fmtPln(wadium),
+      required: wadiumDisplay,
       companyHas: `do ${fmtPln(profile.maxWadiumPln)}`,
-      status: ok ? "met" : "gap",
+      status: wadiumForLimit == null ? "unknown" : ok ? "met" : "gap",
       impact: "high",
-      tip: ok ? undefined : "Wadium przekracza wasz limit płynności — negocjuj lub rezygnuj.",
+      tip: wadiumForLimit != null && !ok
+        ? "Wadium przekracza wasz limit płynności — negocjuj lub rezygnuj."
+        : undefined,
     });
-    if (ok) score += 5;
-    else {
-      score -= 18;
-      blockingIssues.push(`Wadium ${fmtPln(wadium)} > limit ${fmtPln(profile.maxWadiumPln)}`);
+    if (wadiumForLimit != null) {
+      if (ok) score += 5;
+      else {
+        score -= 18;
+        blockingIssues.push(`Wadium ${fmtPln(wadiumForLimit)} > limit ${fmtPln(profile.maxWadiumPln)}`);
+      }
     }
   } else {
     checks.push({
       id: "wadium",
       category: "Wadium",
       label: "Wadium",
-      required: (swz && formatSwzWadiumDisplay(swz)) || "Nie odczytano",
+      required: "Nie odczytano",
       companyHas: `do ${fmtPln(profile.maxWadiumPln)}`,
       status: "unknown",
       impact: "high",

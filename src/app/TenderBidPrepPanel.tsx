@@ -260,7 +260,7 @@ export function TenderBidPrepPanel({
       </div>
 
       <div className="px-3 pb-3 space-y-3 border-t border-border/60 pt-3">
-        <TenderFitPanel fit={fit} />
+        <TenderFitPanel fit={fit} awardCriteria={swz?.awardCriteria} />
         <TenderBidProposalPanel
           proposal={bidProposal}
           referenceValuePln={referenceValuePln}

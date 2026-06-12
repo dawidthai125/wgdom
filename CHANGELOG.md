@@ -4,12 +4,19 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.51.12** · **P2-E.1** Universal Dossier Engine  
+**Aktualna wersja UI:** **2.51.13** · **P2-E.1B** ATH ZIP trace + SSOT danych  
 **★ SSOT handoff:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../CURRENT-TASK.md)  
 **★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
+
+## 2.51.13 (2026-06-12) — P2-E.1B ATH ZIP trace + SSOT danych
+
+- **Fix:** Logintrade ZIP→inner ATH — faza kosztorysu przed metadanymi, trace E2E (`zip_opened`, `ath_parsed`, …), `downloadUrl` bez wymogu `platform`
+- **Fix:** Wadium SSOT — `wadiumPln` kasowane gdy brak wiarygodnej wartości; UI Fit/checklist używa `formatSwzWadiumDisplay`
+- **Fix:** Kryteria SSOT — `swzAnalysis.awardCriteria` w UI; fallback HTML przez `filterReliableAwardCriteria` (bez VAT/Cena 0%)
+- **Improve:** ATH z `summaryLines` akceptowany jako kosztorys; trace `value_document_trace` per dokument
 
 ## 2.51.12 (2026-06-12) — P2-E.1 Universal Dossier Engine
 

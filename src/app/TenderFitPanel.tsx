@@ -32,7 +32,14 @@ const STATUS_LABEL: Record<TenderRequirementStatus, string> = {
   unknown: "?",
 };
 
-export function TenderFitPanel({ fit }: { fit: TenderFitAssessment | null | undefined }) {
+export function TenderFitPanel({
+  fit,
+  awardCriteria: awardCriteriaOverride,
+}: {
+  fit: TenderFitAssessment | null | undefined;
+  /** P2-E.1B — SSOT kryteriów z swzAnalysis (nie tenderFit fallback HTML). */
+  awardCriteria?: TenderFitAssessment["awardCriteria"];
+}) {
   if (!fit) {
     return (
       <p className="text-xs text-muted-foreground rounded-xl border border-dashed border-border px-3 py-2">
@@ -40,6 +47,8 @@ export function TenderFitPanel({ fit }: { fit: TenderFitAssessment | null | unde
       </p>
     );
   }
+
+  const displayCriteria = awardCriteriaOverride ?? fit.awardCriteria;
 
   return (
     <div className="space-y-3">
@@ -77,7 +86,7 @@ export function TenderFitPanel({ fit }: { fit: TenderFitAssessment | null | unde
         )}
       </div>
 
-      {fit.awardCriteria.length > 0 && (
+      {displayCriteria.length > 0 && (
         <div className="rounded-xl border border-border overflow-hidden">
           <div className="px-3 py-2 bg-secondary/50 border-b border-border">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -93,7 +102,7 @@ export function TenderFitPanel({ fit }: { fit: TenderFitAssessment | null | unde
               </tr>
             </thead>
             <tbody>
-              {fit.awardCriteria.map((c, i) => (
+              {displayCriteria.map((c, i) => (
                 <tr key={`${c.name}-${i}`} className="border-t border-border/60">
                   <td className="px-2 py-1.5">
                     <span className="font-medium">{c.name}</span>

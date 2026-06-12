@@ -28,6 +28,8 @@ const RELIABLE_CRITERION_NAME_RE =
 export function isFalsePositiveCriterion(c: TenderAwardCriterion): boolean {
   const name = c.name.trim();
   if (FALSE_CRITERION_NAME_RE.some((re) => re.test(name))) return true;
+  if (c.weightPct === 0) return true;
+  if (c.weightPct != null && c.weightPct < 1) return true;
   if (c.weightPct != null && c.weightPct <= 23 && !RELIABLE_CRITERION_NAME_RE.test(name)) {
     if (/^\d/.test(name) || name.length < 6) return true;
   }
@@ -85,15 +87,33 @@ export function applyMetadataConfidence(analysis: TenderSwzAnalysis): TenderSwzA
     sourceFilename: analysis.sourceFilename,
   });
 
-  const wadiumConf = scoreWadiumConfidence(analysis);
+  const reliableValue = valueConf >= METADATA_CONFIDENCE_THRESHOLD && analysis.estimatedValuePln != null;
+
+  let wadiumPln = analysis.wadiumPln;
+  let wadiumPercent = analysis.wadiumPercent;
+  let wadiumRaw = analysis.wadiumRaw;
+
+  // P2-E.1B — bez wiarygodnej wartości nie trzymamy pochodnego wadiumPln (np. 6 zł z 6% × 100)
+  if (wadiumPercent != null && !reliableValue) {
+    wadiumPln = null;
+  }
+  if (wadiumPln != null && wadiumPln < 100) {
+    wadiumPln = null;
+  }
+  if (wadiumPercent != null && reliableValue && wadiumPln == null && analysis.estimatedValuePln != null) {
+    wadiumPln = Math.round(analysis.estimatedValuePln * wadiumPercent / 100);
+  }
+
+  const wadiumForScore = { wadiumPln, wadiumPercent, wadiumRaw };
+  const wadiumConf = scoreWadiumConfidence(wadiumForScore);
 
   return {
     ...analysis,
-    estimatedValuePln: valueConf >= METADATA_CONFIDENCE_THRESHOLD ? analysis.estimatedValuePln : null,
+    estimatedValuePln: reliableValue ? analysis.estimatedValuePln : null,
     estimatedValueRaw: valueConf >= METADATA_CONFIDENCE_THRESHOLD ? analysis.estimatedValueRaw : null,
     awardCriteria: criteriaConf >= METADATA_CONFIDENCE_THRESHOLD ? awardCriteria : [],
-    wadiumPln: wadiumConf >= METADATA_CONFIDENCE_THRESHOLD ? analysis.wadiumPln : null,
-    wadiumPercent: wadiumConf >= METADATA_CONFIDENCE_THRESHOLD ? analysis.wadiumPercent : null,
-    wadiumRaw: wadiumConf >= METADATA_CONFIDENCE_THRESHOLD ? analysis.wadiumRaw : null,
+    wadiumPln: wadiumConf >= METADATA_CONFIDENCE_THRESHOLD ? wadiumPln : null,
+    wadiumPercent: wadiumConf >= METADATA_CONFIDENCE_THRESHOLD ? wadiumPercent : null,
+    wadiumRaw: wadiumConf >= METADATA_CONFIDENCE_THRESHOLD ? wadiumRaw : null,
   };
 }

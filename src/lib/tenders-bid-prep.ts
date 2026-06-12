@@ -116,17 +116,17 @@ export function computeBidPrepChecks(
     {
       id: "criteria",
       label: "Kryteria oceny",
-      status: (fit?.awardCriteria?.length ?? 0) > 0 ? "ok" : fit ? "partial" : "missing",
-      display: (fit?.awardCriteria?.length ?? 0) > 0
-        ? fit!.awardCriteria.map((c) => {
+      status: (swz?.awardCriteria?.length ?? 0) > 0 ? "ok" : fit ? "partial" : "missing",
+      display: (swz?.awardCriteria?.length ?? 0) > 0
+        ? swz!.awardCriteria!.map((c) => {
           const w = c.weightPct != null ? ` ${c.weightPct}%` : c.maxPoints != null ? ` ${c.maxPoints} pkt` : "";
           return `${c.name}${w}`;
         }).slice(0, 3).join(" · ")
-          + (fit!.awardCriteria.length > 3 ? ` +${fit!.awardCriteria.length - 3}` : "")
+          + (swz!.awardCriteria!.length > 3 ? ` +${swz!.awardCriteria!.length - 3}` : "")
         : fit?.priceWeightPct != null
           ? `Cena ~${fit.priceWeightPct}%`
           : "Nie wykryto",
-      hint: !(fit?.awardCriteria?.length) ? "Wynik analizy SWZ/STWIOR/OPZ — po „Analizuj SWZ”" : undefined,
+      hint: !(swz?.awardCriteria?.length) ? "Wynik analizy SWZ/STWIOR/OPZ — po „Analizuj SWZ”" : undefined,
     },
     {
       id: "our-bid",

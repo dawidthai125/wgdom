@@ -1,4 +1,4 @@
-/** Trace pipeline analizy dossier przetargu (P2-E.0). */
+/** Trace pipeline analizy dossier przetargu (P2-E.0 / P2-E.1B). */
 
 export type DossierTraceStep =
   | "document_discovered"
@@ -7,7 +7,19 @@ export type DossierTraceStep =
   | "document_parsed"
   | "criteria_extracted"
   | "value_extracted"
-  | "cost_estimate_extracted";
+  | "cost_estimate_extracted"
+  | "cost_document_discovered"
+  | "zip_downloaded"
+  | "zip_opened"
+  | "zip_open_failed"
+  | "zip_inner_files_found"
+  | "ath_detected"
+  | "ath_bytes_loaded"
+  | "ath_parsed"
+  | "ath_parse_failed"
+  | "kosztorys_created"
+  | "dossier_updated"
+  | "value_document_trace";
 
 export interface DossierTraceEntry {
   step: DossierTraceStep;
@@ -17,7 +29,7 @@ export interface DossierTraceEntry {
 }
 
 const buffer: DossierTraceEntry[] = [];
-const MAX = 80;
+const MAX = 120;
 
 export function traceDossierPipeline(
   step: DossierTraceStep,

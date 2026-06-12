@@ -50,7 +50,7 @@ function previewItemForDoc(
     filename: opts?.displayName ?? doc.filename,
     contentType: doc.contentType,
     zipInnerPath: opts?.zipInnerPath,
-    downloadUrl: doc.platform ? doc.downloadUrl : undefined,
+    downloadUrl: doc.downloadUrl?.trim() || undefined,
   };
 }
 

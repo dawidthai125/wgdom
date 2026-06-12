@@ -14,7 +14,7 @@ import {
   parsePlnFromKosztorysTotal,
   scoreTenderFilename,
 } from "@/lib/tenders-bzp-filename";
-import { isPdfFilename } from "@/lib/ath-parser";
+import { isPdfFilename, isKosztorysPreviewExt, type AthPreviewResult } from "@/lib/ath-parser";
 import {
   classifyDocumentRole,
   is7zFilename,
@@ -23,7 +23,7 @@ import {
 } from "@/lib/tender-document-role";
 import { traceDossierPipeline } from "@/lib/tender-dossier-trace";
 import { enrichSwzFromText } from "@/lib/tenders-bzp-swz-enrich";
-import { applyMetadataConfidence } from "@/lib/tender-metadata-confidence";
+import { applyMetadataConfidence, scoreEstimatedValueConfidence } from "@/lib/tender-metadata-confidence";
 import { discoverBestCostDocument, type TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
 import { roleContributesMetadata } from "@/lib/tender-metadata-sources";
 import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
@@ -78,7 +78,40 @@ async function loadDocBytes(
 }
 
 function parentDownloadUrl(doc: TenderBzpDocument): string | undefined {
-  return doc.platform ? doc.downloadUrl : undefined;
+  return doc.downloadUrl?.trim() || undefined;
+}
+
+function candidateKey(c: TenderDocCandidate): string {
+  return `${c.documentIndex}|${c.zipInnerPath ?? ""}`;
+}
+
+function isKosztorysPreviewUsable(preview: AthPreviewResult): boolean {
+  if (preview.rows.length > 0) return true;
+  if (preview.totalValue?.trim()) return true;
+  if ((preview.summaryLines?.length ?? 0) > 0) return true;
+  return preview.ok && Boolean(preview.rawPreview?.trim());
+}
+
+/** P2-E.1B — kosztorys zawsze parsowany (standalone ATH + inner ZIP ATH). */
+function pickCostParseCandidates(
+  all: TenderDocCandidate[],
+  costDiscovery: TenderCostDiscoveryResult | null,
+): TenderDocCandidate[] {
+  const out = new Map<string, TenderDocCandidate>();
+  if (costDiscovery?.found) {
+    const match = all.find((c) => c.filename === costDiscovery.source);
+    if (match) out.set(candidateKey(match), match);
+  }
+  for (const c of all) {
+    if (classifyDocumentRole(c.filename) === "kosztorys") {
+      out.set(candidateKey(c), c);
+    }
+    const base = c.filename.split(" → ").pop() ?? c.filename;
+    if (isKosztorysPreviewExt(base)) {
+      out.set(candidateKey(c), c);
+    }
+  }
+  return [...out.values()];
 }
 
 export async function buildTenderDocCandidates(
@@ -99,20 +132,39 @@ export async function buildTenderDocCandidates(
     });
     if (isZipFilename(doc.filename)) {
       try {
+        traceDossierPipeline("zip_downloaded", doc.filename, {
+          documentIndex: doc.index,
+          downloadUrl: Boolean(dl),
+        });
         const { listZipFiles } = await loadDocParse();
         const zipBytes = await loadDocBytes(tenderId, doc.index, docs, dl);
+        traceDossierPipeline("zip_opened", doc.filename, { bytes: zipBytes.byteLength });
         const inner = await listZipFiles(zipBytes);
+        traceDossierPipeline("zip_inner_files_found", doc.filename, {
+          count: inner.length,
+          ath: inner.filter((e) => /\.ath$/i.test(e.filename)).map((e) => e.filename).slice(0, 5),
+        });
         for (const entry of inner.slice(0, ZIP_INNER_MAX)) {
+          const innerName = `${doc.filename} → ${entry.filename}`;
+          if (/\.ath$/i.test(entry.filename)) {
+            traceDossierPipeline("ath_detected", innerName, { path: entry.path, score: entry.score });
+          }
           candidates.push({
             documentIndex: doc.index,
-            filename: `${doc.filename} → ${entry.filename}`,
+            filename: innerName,
             zipInnerPath: entry.path,
             score: entry.score + (doc.isSwzHint ? 10 : 0),
             downloadUrl: dl,
             platform: doc.platform,
           });
         }
-      } catch { /* zip unreadable */ }
+      } catch (e) {
+        traceDossierPipeline("zip_open_failed", doc.filename, {
+          documentIndex: doc.index,
+          downloadUrl: Boolean(dl),
+          error: e instanceof Error ? e.message : String(e),
+        });
+      }
     }
   }
   return candidates.sort((a, b) => b.score - a.score);
@@ -196,19 +248,43 @@ export async function parseTenderDocumentCandidate(
     effectiveName = candidate.filename.split(" → ").pop() ?? candidate.filename;
   }
 
+  if (isKosztorysPreviewExt(effectiveName)) {
+    traceDossierPipeline("ath_bytes_loaded", candidate.filename, {
+      effectiveName,
+      bytes: bytes.byteLength,
+      zipInner: Boolean(candidate.zipInnerPath),
+      downloadUrl: Boolean(candidate.downloadUrl),
+    });
+  }
+
   let kosztorys: TenderKosztorysSnapshot | null = null;
   let estimatePln = opts?.ourEstimatePln ?? null;
 
   const kosztorysPreview = await parseDocumentToKosztorys(bytes, effectiveName);
-  if (kosztorysPreview?.ok && (kosztorysPreview.rows.length > 0 || kosztorysPreview.totalValue)) {
+  if (kosztorysPreview && isKosztorysPreviewUsable(kosztorysPreview)) {
+    traceDossierPipeline("ath_parsed", candidate.filename, {
+      ok: kosztorysPreview.ok,
+      rows: kosztorysPreview.rows.length,
+      totalValue: kosztorysPreview.totalValue ?? null,
+      summaryLines: kosztorysPreview.summaryLines?.length ?? 0,
+    });
     kosztorys = {
-      ...athPreviewToSnapshot(kosztorysPreview, effectiveName),
+      ...athPreviewToSnapshot({ ...kosztorysPreview, ok: true }, effectiveName),
       sourceDocumentIndex: candidate.documentIndex,
       zipInnerPath: candidate.zipInnerPath,
     };
+    traceDossierPipeline("kosztorys_created", candidate.filename, {
+      rowCount: kosztorys.rowCount,
+      totalValue: kosztorys.totalValue ?? null,
+    });
     if (estimatePln == null) {
       estimatePln = parsePlnFromKosztorysTotal(kosztorys.totalValue, kosztorys.currency);
     }
+  } else if (kosztorysPreview && isKosztorysPreviewExt(effectiveName)) {
+    traceDossierPipeline("ath_parse_failed", candidate.filename, {
+      ok: kosztorysPreview.ok,
+      warnings: kosztorysPreview.warnings?.slice(0, 3),
+    });
   }
 
   let swzFromDoc: TenderSwzAnalysis | null = null;
@@ -485,6 +561,8 @@ export async function parseTenderDossierDocuments(
   }
 
   const candidates = selectDossierCandidates(allCandidates);
+  const costCandidates = pickCostParseCandidates(allCandidates, costDiscovery);
+
   for (const doc of docs) {
     traceDossierPipeline("document_discovered", doc.filename, {
       index: doc.index,
@@ -504,6 +582,38 @@ export async function parseTenderDossierDocuments(
   let sourceFilename: string | undefined;
   let parsedCount = 0;
 
+  /** Faza 1 — kosztorys (standalone ATH + inner ZIP) zawsze przed metadanymi SWZ. */
+  for (const cand of costCandidates) {
+    try {
+      traceDossierPipeline("document_downloaded", cand.filename, {
+        documentIndex: cand.documentIndex,
+        phase: "cost",
+        downloadUrl: Boolean(cand.downloadUrl),
+      });
+      const parsed = await parseTenderDocumentCandidate(tenderId, cand, docs, {
+        ourEstimatePln: estimatePln,
+        mergeSwz: swzMerged,
+      });
+      parsedCount += 1;
+      if (parsed.kosztorys?.ok) {
+        const newRows = parsed.kosztorys.rows?.length ?? 0;
+        const oldRows = bestKosztorys?.rows?.length ?? 0;
+        if (!bestKosztorys?.ok || newRows > oldRows || !bestKosztorys.totalValue) {
+          bestKosztorys = parsed.kosztorys;
+          sourceDocumentIndex = parsed.sourceDocumentIndex;
+          zipInnerPath = parsed.zipInnerPath;
+          sourceFilename = parsed.sourceFilename;
+        }
+        if (parsed.estimatePln != null) {
+          estimatePln = parsed.estimatePln;
+          traceDossierPipeline("cost_estimate_extracted", cand.filename, { estimatePln });
+        }
+      }
+    } catch (e) {
+      warnings.push(`${cand.filename}: ${e instanceof Error ? e.message : "błąd kosztorysu"}`);
+    }
+  }
+
   for (const cand of candidates) {
     const role = classifyDocumentRole(cand.filename);
     traceDossierPipeline("document_classified", cand.filename, { role, score: cand.score });
@@ -513,6 +623,10 @@ export async function parseTenderDossierDocuments(
       || roleContributesMetadata(role, "wadium")
       || roleContributesMetadata(role, "implementationDeadline");
     if (!contributesMeta && role !== "kosztorys" && roleParsePriority(role) > 7) continue;
+    const skipDuplicateCost = costCandidates.some((cc) => candidateKey(cc) === candidateKey(cand))
+      && bestKosztorys?.ok
+      && classifyDocumentRole(cand.filename) === "kosztorys";
+    if (skipDuplicateCost) continue;
     try {
       traceDossierPipeline("document_downloaded", cand.filename, { documentIndex: cand.documentIndex });
       const parsed = await parseTenderDocumentCandidate(tenderId, cand, docs, {
@@ -541,6 +655,17 @@ export async function parseTenderDossierDocuments(
       }
 
       if (parsed.swzFromDoc) {
+        const valueConf = scoreEstimatedValueConfidence({
+          valuePln: parsed.swzFromDoc.estimatedValuePln,
+          valueRaw: parsed.swzFromDoc.estimatedValueRaw,
+          sourceFilename: parsed.swzFromDoc.sourceFilename,
+        });
+        traceDossierPipeline("value_document_trace", cand.filename, {
+          role,
+          valueFound: parsed.swzFromDoc.estimatedValuePln != null,
+          value: parsed.swzFromDoc.estimatedValuePln,
+          confidence: valueConf,
+        });
         if (parsed.swzFromDoc.estimatedValuePln != null) {
           traceDossierPipeline("value_extracted", cand.filename, {
             value: parsed.swzFromDoc.estimatedValuePln,
@@ -564,6 +689,15 @@ export async function parseTenderDossierDocuments(
   if (swzMerged) {
     swzMerged = applyMetadataConfidence(swzMerged);
   }
+
+  traceDossierPipeline("dossier_updated", sourceFilename ?? "dossier", {
+    kosztorysOk: Boolean(bestKosztorys?.ok),
+    estimatePln,
+    valuePln: swzMerged?.estimatedValuePln ?? null,
+    wadiumPercent: swzMerged?.wadiumPercent ?? null,
+    wadiumPln: swzMerged?.wadiumPln ?? null,
+    criteriaCount: swzMerged?.awardCriteria?.length ?? 0,
+  });
 
   return {
     kosztorys: bestKosztorys,
