@@ -88,6 +88,7 @@ import {
 import { saveAs } from "file-saver";
 import { consumePendingDeepLink, type DeepLinkRoute } from "@/lib/deep-link";
 import { initialAutoSyncSuppressUntil } from "@/lib/cloud-bootstrap";
+import { openTendersAtStrategyTab } from "@/lib/tenders-module-nav";
 import { onNativeAppResume, registerNativeBackHandler } from "@/lib/native-app-bridge";
 import { Toaster, toast } from "sonner";
 import { AppInnerWithAuth } from "@/app/AppInnerWithAuth";
@@ -1186,7 +1187,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           alertsSeenTick={alertsSeenTick}
           onAlertsSeen={() => setAlertsSeenTick((t) => t + 1)}
           onOpenSms={() => setShowSmsModal(true)}
-          onOpenTenders={() => setView("tenders")}
+          onOpenTenders={() => { openTendersAtStrategyTab(); setView("tenders"); }}
           onOpenTender={(tid) => { setPendingTenderId(tid); setView("tenders"); }}
           handleNavigate={handleNavigate}
           onFixJobs={setJobs}

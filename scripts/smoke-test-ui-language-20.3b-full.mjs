@@ -57,8 +57,8 @@ log("=== Sprint 20.3B+ FULL — UI Language smoke ===\n");
   assert("T2 module title PL", TENDERS_MODULE_LABELS.moduleTitle === "Przetargi");
   assert("T2 strategy view PL", TENDERS_MODULE_LABELS.strategyView === "Analiza przetargów");
   assert("T2 loading PL", TENDERS_MODULE_LABELS.loading === "Ładowanie przetargów…");
-  const exec = readSrc("src/app/tender-center/components/CommandCenterExecutivePanel.tsx");
-  assert("T2 CTA Przetargi", exec.includes("Otwórz Przetargi"));
+  const exec = readSrc("src/app/tenders/components/TendersShortcutPanel.tsx");
+  assert("T2 CTA Strategia", exec.includes("Przetargi →"));
   assert("T2 no COMMAND CENTER AI", lacksActiveUiString(exec, "COMMAND CENTER AI"));
 }
 
@@ -97,22 +97,20 @@ log("=== Sprint 20.3B+ FULL — UI Language smoke ===\n");
   assert("T5 BestOpportunity buttons PL", readSrc("src/app/tender-center/components/BestOpportunityCard.tsx").includes("{DECISION_LABEL_PL[d]}"));
 }
 
-// T6 — P1: accordion i sekcje (P1-B ETAP 1 — uproszczony dashboard)
+// T6 — P1-B ETAP 3 — moduł Przetargi 3.0
 {
-  const dash = readSrc("src/app/tender-center/components/OwnerDashboard.tsx");
-  assert("T6 no AI Insights accordion", lacksActiveUiString(dash, ">AI Insights<"));
-  assert("T6 no explainability section", lacksActiveUiString(dash, "SECTION_LABEL_PL.explainability"));
-  assert("T6 KPI rynku accordion", dash.includes("KPI rynku"));
-  assert("T6 auto-sync PL", dash.includes("SECTION_LABEL_PL.autoSync"));
-  assert("T6 direct decision flow", dash.includes("ownerDecisions.setOwnerDecision"));
+  const strategy = readSrc("src/app/tenders/components/TendersStrategyContent.tsx");
+  const module = readSrc("src/app/tenders/TendersModule.tsx");
+  assert("T6 strategy has KPI section", strategy.includes("KPI rynku"));
+  assert("T6 module has 5 tabs", module.includes('TENDERS_MODULE_LABELS.tabs'));
+  assert("T6 direct decision flow", strategy.includes("ownerDecisions.setOwnerDecision"));
 }
 
 // T7 — P1-B ETAP 1: usunięte moduły CC legacy
 {
   assert("T7 strategy alerts lib exists", readSrc("src/lib/tenders-strategy-alerts.ts").includes("buildOwnerStrategicAlerts"));
-  const proView = readSrc("src/app/TenderCenterProView.tsx");
-  assert("T7 pro view uses TENDERS_MODULE_LABELS", proView.includes("TENDERS_MODULE_LABELS"));
-  assert("T7 pro view no COMMAND CENTER", lacksActiveUiString(proView, "COMMAND CENTER AI"));
+  assert("T7 pro view uses TENDERS_MODULE_LABELS", readSrc("src/app/tenders/TendersModule.tsx").includes("TENDERS_MODULE_LABELS"));
+  assert("T7 no COMMAND CENTER in module", lacksActiveUiString(readSrc("src/app/tenders/TendersModule.tsx"), "COMMAND CENTER"));
 }
 
 // T8 — P1: lib dynamic strings

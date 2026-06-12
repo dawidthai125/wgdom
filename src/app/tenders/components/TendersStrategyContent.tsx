@@ -2,8 +2,7 @@ import { RefreshCw, AlertCircle, Layers } from "lucide-react";
 import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { GrowthModeState } from "@/lib/tender-center-growth-mode";
 import type { TenderScoringBundle } from "@/lib/tender-center-decision";
-import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
-import { useCommandCenterContext } from "@/app/tender-center/context/CommandCenterContext";
+import { useTendersContext, useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 import { useTenderJobFromPipeline } from "@/app/tender-center/hooks/useTenderJobFromPipeline";
 import { ActionCenter } from "@/app/tender-center/components/ActionCenter";
 import { OpportunityOverview } from "@/app/tender-center/components/OpportunityOverview";
@@ -36,7 +35,7 @@ export function TendersStrategyContent({
     item: TenderPipelineItem,
   ) => string | void;
 }) {
-  const { snapshot, ownerDecisions } = useCommandCenterContext();
+  const { snapshot, ownerDecisions } = useTendersContext();
   const tendersUi = useTendersContextOptional();
 
   const handleOpenTender = onOpenTender ?? tendersUi?.openTenderInList;

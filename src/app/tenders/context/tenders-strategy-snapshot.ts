@@ -7,27 +7,24 @@ import type {
 import type { CompanyHealthResult } from "@/lib/tender-center-health";
 import type { ActionCenterResult } from "@/lib/tender-center-action-center";
 import type { FinancialCapacityResult } from "@/lib/tender-center-financial-capacity";
-import type { Forecast90DaysResult, Forecast90DaysInput } from "@/lib/tender-center-forecast-90d";
+import type { Forecast90DaysInput, Forecast90DaysResult } from "@/lib/tender-center-forecast-90d";
 import type { TenderScoringBundle } from "@/lib/tender-center-decision";
 import type { UseTendersPipelineOptions } from "@/app/tender-center/hooks/useTendersPipeline";
 import { useTendersPipeline } from "@/app/tender-center/hooks/useTendersPipeline";
-import type { GrowthModeState, GrowthMode } from "@/lib/tender-center-growth-mode";
+import type { GrowthMode, GrowthModeState } from "@/lib/tender-center-growth-mode";
 import type { CompanyHealthInput } from "@/lib/tender-center-health";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
-import { useCommandCenterContextOptional } from "@/app/tender-center/context/CommandCenterContext";
 
-/** @deprecated ETAP 7H — pola wejściowe ignorowane przy aktywnym Providerze; zachowane dla typów. */
-export type CommandCenterExecutiveSnapshotInput = {
+export type TendersProviderInput = {
   jobs: Job[];
   directory: DirectoryEmployee[];
   productionWeekEmployees: WeekEmployee[];
   weekFrom: string;
   weekTo: string;
   savedWeeks: WeekSnapshot[];
-  financialCapacityEnabled?: boolean;
-} & UseTendersPipelineOptions;
+};
 
-export type CommandCenterExecutiveSnapshot = {
+export type TendersStrategySnapshot = {
   pipeline: ReturnType<typeof useTendersPipeline>;
   growthModeState: GrowthModeState;
   setGrowthMode: (mode: GrowthMode) => void;
@@ -41,7 +38,7 @@ export type CommandCenterExecutiveSnapshot = {
   financialCapacity: FinancialCapacityResult | null;
   marketKpi: ReturnType<typeof import("@/lib/tender-center-kpi").aggregateMarketKpi>;
   radarTop: TenderScoringBundle[];
-  portfolioCounts: ReturnType<typeof import("@/lib/tender-center-decision").countPortfolioDecisions>;
+  portfolioCounts: ReturnType<typeof import("@/lib/tender-center-decision").portfolioCountsFromScoredBundles>;
   ownerAlerts: ReturnType<typeof import("@/lib/tenders-strategy-alerts").buildOwnerStrategicAlerts>;
   goCandidates: TenderScoringBundle[];
   scoredForForecast: TenderScoringBundle[];
@@ -54,18 +51,4 @@ export type CommandCenterExecutiveSnapshot = {
   };
 };
 
-/**
- * ETAP 7H — odczyt ze wspólnego CommandCenterProvider.
- * Parametr `input` jest ignorowany gdy Provider jest aktywny.
- */
-export function useCommandCenterExecutiveSnapshot(
-  _input?: CommandCenterExecutiveSnapshotInput,
-): CommandCenterExecutiveSnapshot {
-  const ctx = useCommandCenterContextOptional();
-  if (!ctx) {
-    throw new Error(
-      "useCommandCenterExecutiveSnapshot wymaga CommandCenterProvider — Pulpit lub Przetargi (Performance 2.1B).",
-    );
-  }
-  return ctx.snapshot;
-}
+export type TendersStrategySnapshotOptions = TendersProviderInput & UseTendersPipelineOptions;

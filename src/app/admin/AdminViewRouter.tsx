@@ -15,7 +15,6 @@ import type { EmailContact } from "@/lib/email-contacts";
 import type { EmployeeLeave } from "@/lib/employee-leaves";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import type { View } from "@/app/admin/admin-nav";
-import { CommandCenterProvider } from "@/app/tender-center/context/CommandCenterContext";
 import { TendersProvider } from "@/app/tenders/context/TendersProvider";
 
 const PayrollView = lazy(() => import("@/app/PayrollView").then((m) => ({ default: m.PayrollView })));
@@ -64,40 +63,7 @@ function TendersProviderScope({
   );
 }
 
-/** Performance 2.1B — CC snapshot tylko na Pulpicie (COMMAND CENTER executive). */
-function CommandCenterProviderScope({
-  jobs,
-  directory,
-  productionWeekEmployees,
-  weekFrom,
-  weekTo,
-  savedWeeks,
-  children,
-}: {
-  jobs: Job[];
-  directory: DirectoryEmployee[];
-  productionWeekEmployees: WeekEmployee[];
-  weekFrom: string;
-  weekTo: string;
-  savedWeeks: WeekSnapshot[];
-  children: ReactNode;
-}) {
-  return (
-    <CommandCenterProvider
-      enabled
-      jobs={jobs}
-      directory={directory}
-      productionWeekEmployees={productionWeekEmployees}
-      weekFrom={weekFrom}
-      weekTo={weekTo}
-      savedWeeks={savedWeeks}
-    >
-      {children}
-    </CommandCenterProvider>
-  );
-}
-
-/** Widoki nadal zdefiniowane w App.tsx — przekazywane, żeby uniknąć zależności cyklicznej. */
+/** Pulpit + Przetargi — wspólny TendersProvider (snapshot strategiczny). */
 export type AdminEmbeddedViews = {
   DashboardView: ComponentType<Record<string, unknown>>;
   ScheduleView: ComponentType<Record<string, unknown>>;
@@ -313,7 +279,7 @@ export function AdminViewRouter({
       {view === "dashboard" && (
         <ViewErrorBoundary label="Pulpit">
           {canViewTendersNav ? (
-            <CommandCenterProviderScope {...ccProviderInput}>{dashboardView}</CommandCenterProviderScope>
+            <TendersProviderScope {...ccProviderInput}>{dashboardView}</TendersProviderScope>
           ) : (
             dashboardView
           )}

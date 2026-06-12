@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.0",
+    label: "Przetargi 3.0 — usunięcie Command Center z runtime",
+    items: [
+      { type: "improve", text: "ETAP 3 migracji — TendersProvider zastępuje CommandCenterProvider; moduł Przetargi (5 zakładek) jedynym wejściem strategicznym" },
+      { type: "improve", text: "Pulpit — skrót Przetargi (pilne terminy, wygrane bez roboty, wymagające decyzji) z CTA Przetargi → Strategia" },
+      { type: "improve", text: "Usunięto legacy: TenderCenterProView, OwnerDashboard, CommandCenterContext, CommandCenterExecutivePanel" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.50.76",
     label: "Przetargi 3.0 — moduł z zakładkami",
     items: [

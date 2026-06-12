@@ -1,5 +1,5 @@
 /**
- * W&G DOM COMMAND CENTER AI — etykiety UI po polsku (Sprint 20.3B+ FULL).
+ * W&G DOM Przetargi — etykiety UI po polsku (Sprint 20.3B+ FULL).
  * Presentation only — enumy GO/HOLD/NO-GO pozostają w modelu danych.
  */
 
@@ -66,9 +66,9 @@ export const SECTION_LABEL_PL = {
   authorLine: "Zaprojektowany i opracowany przez",
   aiInsights: "Wnioski AI",
   explainability: "Wyjaśnienia scoringu",
-  glossary: "Słownik pojęć COMMAND CENTER AI",
-  howToUse: "Jak korzystać z COMMAND CENTER AI",
-  about: "O COMMAND CENTER AI",
+  glossary: "Słownik pojęć przetargowych",
+  howToUse: "Jak korzystać z modułu Przetargi",
+  about: "O module Przetargi",
   morningBriefing: "Poranny raport",
   pipelineOffers: "Lejek ofert",
   headroom: "Rezerwa",

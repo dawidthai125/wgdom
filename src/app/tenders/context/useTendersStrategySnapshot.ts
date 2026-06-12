@@ -1,22 +1,6 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
-import { WGDOM_DEFERRED_BOOTSTRAP_EVENT } from "@/lib/cloud-sync";
-import type {
-  DirectoryEmployee,
-  Job,
-  WeekEmployee,
-  WeekSnapshot,
-} from "@/app/app-domain";
+import { useMemo, useState } from "react";
 import { useTendersPipeline } from "@/app/tender-center/hooks/useTendersPipeline";
-import { useOwnerTenderDecisions } from "@/app/tender-center/hooks/useOwnerTenderDecisions";
-import type { CommandCenterExecutiveSnapshot } from "@/app/tender-center/hooks/useCommandCenterExecutiveSnapshot";
+import type { useOwnerTenderDecisions } from "@/app/tender-center/hooks/useOwnerTenderDecisions";
 import { computeCompanyHealth, type CompanyHealthInput } from "@/lib/tender-center-health";
 import { aggregateMarketKpi } from "@/lib/tender-center-kpi";
 import {
@@ -42,32 +26,16 @@ import {
   type FinancialCapacityResult,
 } from "@/lib/tender-center-financial-capacity";
 import { computeTenderImpact } from "@/lib/tender-center-impact";
+import type {
+  TendersProviderInput,
+  TendersStrategySnapshot,
+} from "@/app/tenders/context/tenders-strategy-snapshot";
 
-export type CommandCenterProviderInput = {
-  jobs: Job[];
-  directory: DirectoryEmployee[];
-  productionWeekEmployees: WeekEmployee[];
-  weekFrom: string;
-  weekTo: string;
-  savedWeeks: WeekSnapshot[];
-};
-
-export type CommandCenterContextValue = {
-  snapshot: CommandCenterExecutiveSnapshot;
-  ownerDecisions: ReturnType<typeof useOwnerTenderDecisions>;
-  /** Alerty strategiczne — karmią Action Center (Priorytety). */
-  strategicAlerts: CommandCenterExecutiveSnapshot["ownerAlerts"];
-  profileVersion: number;
-  bumpProfileVersion: () => void;
-};
-
-const CommandCenterContext = createContext<CommandCenterContextValue | null>(null);
-
-function useCommandCenterSnapshot(
-  input: CommandCenterProviderInput,
+export function useTendersStrategySnapshot(
+  input: TendersProviderInput,
   profileVersion: number,
   ownerDecisions: ReturnType<typeof useOwnerTenderDecisions>,
-): CommandCenterExecutiveSnapshot {
+): TendersStrategySnapshot {
   const {
     jobs,
     directory,
@@ -290,86 +258,4 @@ function useCommandCenterSnapshot(
     scoredForForecast,
     scoringContext,
   };
-}
-
-export function CommandCenterProvider({
-  enabled,
-  children,
-  jobs,
-  directory,
-  productionWeekEmployees,
-  weekFrom,
-  weekTo,
-  savedWeeks,
-}: CommandCenterProviderInput & {
-  enabled: boolean;
-  children: ReactNode;
-}) {
-  const input = useMemo(
-    (): CommandCenterProviderInput => ({
-      jobs,
-      directory,
-      productionWeekEmployees,
-      weekFrom,
-      weekTo,
-      savedWeeks,
-    }),
-    [jobs, directory, productionWeekEmployees, weekFrom, weekTo, savedWeeks],
-  );
-
-  const [profileVersion, setProfileVersion] = useState(0);
-
-  const bumpProfileVersion = useCallback(() => {
-    setProfileVersion((v) => v + 1);
-  }, []);
-
-  useEffect(() => {
-    if (!enabled) return;
-    const onDeferredBootstrap = () => {
-      bumpProfileVersion();
-    };
-    window.addEventListener(WGDOM_DEFERRED_BOOTSTRAP_EVENT, onDeferredBootstrap);
-    return () => window.removeEventListener(WGDOM_DEFERRED_BOOTSTRAP_EVENT, onDeferredBootstrap);
-  }, [enabled, bumpProfileVersion]);
-
-  const ownerDecisions = useOwnerTenderDecisions();
-  const snapshot = useCommandCenterSnapshot(
-    input,
-    profileVersion,
-    ownerDecisions,
-  );
-
-  const value = useMemo(
-    (): CommandCenterContextValue => ({
-      snapshot,
-      ownerDecisions,
-      strategicAlerts: snapshot.ownerAlerts,
-      profileVersion,
-      bumpProfileVersion,
-    }),
-    [snapshot, ownerDecisions, profileVersion, bumpProfileVersion],
-  );
-
-  if (!enabled) {
-    return <>{children}</>;
-  }
-
-  return (
-    <CommandCenterContext.Provider value={value}>{children}</CommandCenterContext.Provider>
-  );
-}
-
-export function useCommandCenterContext(): CommandCenterContextValue {
-  const ctx = useContext(CommandCenterContext);
-  if (!ctx) {
-    throw new Error(
-      "useCommandCenterContext wymaga CommandCenterProvider (canViewTendersNav).",
-    );
-  }
-  return ctx;
-}
-
-/** Opcjonalny odczyt — null poza Providerem. */
-export function useCommandCenterContextOptional(): CommandCenterContextValue | null {
-  return useContext(CommandCenterContext);
 }

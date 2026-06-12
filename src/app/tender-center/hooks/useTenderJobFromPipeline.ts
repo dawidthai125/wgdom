@@ -8,13 +8,13 @@ export type UseTenderJobFromPipelineOptions = {
   uploadedBy: string;
   onNavigateToJob: (jobId: string) => void;
   onOpenJob: (jobId: string) => void;
-  /** Pipeline COMMAND CENTER — aktualizacja linkedJobId po utworzeniu. */
+  /** Pipeline przetargów — aktualizacja linkedJobId po utworzeniu. */
   pipeline?: {
     updateItem: (id: string, patch: Partial<TenderPipelineItem>) => void;
   };
 };
 
-/** Wspólny handler Classic + COMMAND CENTER (bez duplikacji executeCreateJobFromTender). */
+/** Wspólny handler listy i strategii (bez duplikacji executeCreateJobFromTender). */
 export function useTenderJobFromPipeline({
   setJobs,
   uploadedBy,

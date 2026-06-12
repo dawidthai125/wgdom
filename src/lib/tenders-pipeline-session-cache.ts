@@ -1,6 +1,6 @@
 /**
  * Performance 2.1C — sesyjny cache pipeline (module scope, TTL 60s).
- * Przetrwa unmount CommandCenterProvider (2.1B); współdzielony Pulpit ↔ Przetargi.
+ * Przetrwa unmount TendersProvider; współdzielony Pulpit ↔ Przetargi.
  */
 
 import { WGDOM_DEFERRED_BOOTSTRAP_EVENT } from "@/lib/cloud-sync";

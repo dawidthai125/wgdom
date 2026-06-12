@@ -5,7 +5,7 @@ import {
   ChevronDown, ChevronUp,
 } from "lucide-react";
 import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
-import { CommandCenterExecutivePanel } from "@/app/tender-center/components/CommandCenterExecutivePanel";
+import { TendersShortcutPanel } from "@/app/tenders/components/TendersShortcutPanel";
 import { appendJobActivity } from "@/lib/job-activity";
 import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import type {
@@ -760,21 +760,7 @@ export function DashboardView({
         />
 
         {canViewTenders && onOpenTenders && (
-          <CommandCenterExecutivePanel
-            jobs={jobs}
-            directory={directory}
-            weekEmployees={weekEmployees}
-            weekFrom={weekFrom}
-            weekTo={weekTo}
-            savedWeeks={savedWeeks}
-            onOpenCommandCenter={onOpenTenders}
-            onOpenTender={onOpenTender}
-            setJobs={setJobs}
-            tenderJobUploadedBy={tenderJobUploadedBy}
-            onNavigateToJobFromTender={onNavigateToJobFromTender}
-            onOpenJob={onOpenJobFromTender}
-            onCreateJobFromTender={onCreateJobFromTender}
-          />
+          <TendersShortcutPanel onOpenTendersStrategy={onOpenTenders} />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">

@@ -22,7 +22,7 @@ import { tenderListBidLine } from "@/lib/tenders-bid-prep";
 import { TendersMapPanel } from "@/app/TendersMapPanel";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
-import { useCommandCenterContext } from "@/app/tender-center/context/CommandCenterContext";
+import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import { getPipelineSessionCacheIfFresh } from "@/lib/tenders-pipeline-session-cache";
 
 function fmtDate(iso: string | null | undefined): string {
@@ -61,7 +61,7 @@ export function TendersView({
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId);
   const [showLegend, setShowLegend] = useState(false);
-  const { snapshot, bumpProfileVersion, profileVersion } = useCommandCenterContext();
+  const { snapshot, bumpProfileVersion, profileVersion } = useTendersContext();
   const pipeline = snapshot.pipeline;
   const r1Hydrated = useRef(false);
 

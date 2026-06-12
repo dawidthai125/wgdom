@@ -1,5 +1,5 @@
 /**
- * Wspólna logika tworzenia roboty z przetargu (Classic + COMMAND CENTER).
+ * Wspólna logika tworzenia roboty z przetargu (Lista + Strategia).
  * Nie modyfikuje jobDraftFromTender ani attachTenderAssetsToJob.
  */
 
