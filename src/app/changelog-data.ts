@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.10",
+    label: "Przetargi — fix ekstrakcji wadium ze SWZ",
+    items: [
+      { type: "fix", text: "Wadium ze SWZ — procent (6%, 3%, 1,5%) i kwoty tysięcy zł; koniec z „Tak 6” / „6 zł” w toast i dossier" },
+      { type: "improve", text: "Test regresji: scripts/test-wadium-extraction.mjs" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.9",
     label: "Przetargi — fix analizy SWZ Logintrade",
     items: [

@@ -102,27 +102,67 @@ export function parsePlnAmount(raw: string | null | undefined): { value: number 
   return { value: null, label: cleaned.slice(0, 120) || null };
 }
 
+function parsePercentToken(raw: string): number | null {
+  const n = parseFloat(raw.replace(",", "."));
+  if (!Number.isFinite(n) || n <= 0 || n > 20) return null;
+  return n;
+}
+
 function extractWadiumPercentLocal(text: string): number | null {
   const folded = text.replace(/\s+/g, " ");
   const patterns = [
-    /wadium[^.]{0,120}?(\d+[,.]?\d*)\s*%\s*(?:warto|szacunk|zamówienia)/i,
-    /(\d+[,.]?\d*)\s*%\s*[^.]{0,40}warto[^.]{0,40}zamówienia/i,
-    /wysokość wadium[^.]{0,80}(\d+[,.]?\d*)\s*%/i,
+    /wadium[^.]{0,400}?(\d+[,.]?\d*)\s*%\s*(?:warto|szacunk|zamówienia|netto|brutto)/i,
+    /(\d+[,.]?\d*)\s*%\s*[^.]{0,60}warto[^.]{0,60}zamówienia/i,
+    /wysokość wadium[^.]{0,120}(\d+[,.]?\d*)\s*%/i,
+    /wadium[^.]{0,400}?(\d+[,.]?\d*)\s*%/i,
   ];
   for (const p of patterns) {
     const m = folded.match(p);
     if (m?.[1]) {
-      const n = parseFloat(m[1].replace(",", "."));
-      if (Number.isFinite(n) && n > 0 && n <= 20) return n;
+      const n = parsePercentToken(m[1]);
+      if (n != null) return n;
     }
   }
   return null;
 }
 
+function extractTakPercentHint(snippet: string, window: string): number | null {
+  const scope = `${snippet} ${window}`.replace(/\s+/g, " ");
+  if (/%/.test(scope) || /\b(?:zł|PLN|pln)\b/i.test(scope)) return null;
+  const m = snippet.trim().match(/^tak\b[,\s]*(\d{1,2})$/i);
+  if (!m?.[1]) return null;
+  return parsePercentToken(m[1]);
+}
+
 function extractWadiumWindow(text: string): string {
   const folded = text.replace(/\s+/g, " ");
-  const m = folded.match(/(?:wysokość\s+)?wadium[^.]{0,240}/i);
+  const m = folded.match(/(?:wniesieni[ea]\s+)?(?:wysokość\s+)?wadium[^.]{0,480}/i);
   return m?.[0] ?? "";
+}
+
+export function isWeakWadiumRaw(raw: string | null | undefined): boolean {
+  if (!raw) return true;
+  const t = raw.trim();
+  if (/^tak\b[,\s]*(\d{1,2})$/i.test(t)) return true;
+  if (/^tak\b/i.test(t) && !/\d{3,}/.test(t) && !/%/.test(t)) return true;
+  if (/^nie\b/i.test(t)) return true;
+  if (/^\d{1,2}\s*(?:zł|PLN|pln)?$/i.test(t)) return true;
+  return false;
+}
+
+export function formatWadiumPercentLabel(percent: number): string {
+  const label = Number.isInteger(percent) ? String(percent) : String(percent).replace(".", ",");
+  return `${label}% wartości zamówienia`;
+}
+
+/** Etykieta wadium do UI/toast — pomija słabe „Tak 6”. */
+export function formatSwzWadiumDisplay(
+  swz: Pick<TenderSwzAnalysis, "wadiumRaw" | "wadiumPln" | "wadiumPercent">,
+): string | null {
+  if (swz.wadiumPercent != null) return formatWadiumPercentLabel(swz.wadiumPercent);
+  if (swz.wadiumPln != null && swz.wadiumPln >= 100) return fmtPln(swz.wadiumPln);
+  if (swz.wadiumRaw && !isWeakWadiumRaw(swz.wadiumRaw)) return swz.wadiumRaw;
+  return null;
 }
 
 /** Wadium — odróżnia „Tak/6%” od błędnego „6 zł” i nie myli z wartością zamówienia. */
@@ -139,12 +179,17 @@ export function parseWadiumFromSwzText(
     return { wadiumPln: null, wadiumRaw: null, wadiumPercent: null };
   }
 
-  const wadiumPercent = extractWadiumPercentLocal(ctx) ?? extractWadiumPercentLocal(window);
+  const wadiumPercent = extractWadiumPercentLocal(window)
+    ?? extractWadiumPercentLocal(ctx)
+    ?? extractTakPercentHint(snippet, window);
 
-  if (/%/.test(ctx) && wadiumPercent != null && estimatedValuePln != null) {
+  if (wadiumPercent != null) {
+    const wadiumPln = estimatedValuePln != null
+      ? Math.round(estimatedValuePln * wadiumPercent / 100)
+      : null;
     return {
-      wadiumPln: Math.round(estimatedValuePln * wadiumPercent / 100),
-      wadiumRaw: `${wadiumPercent}% wartości zamówienia`,
+      wadiumPln,
+      wadiumRaw: formatWadiumPercentLabel(wadiumPercent),
       wadiumPercent,
     };
   }
@@ -154,8 +199,8 @@ export function parseWadiumFromSwzText(
   const plnScope = window || ctx;
 
   const plnPatterns = [
-    /wadium[^.]{0,120}?([\d\s]{1,12}[,.]\d{2})\s*(?:zł|PLN|pln)/i,
-    /wadium[^.]{0,120}?([\d]{1,3}(?:\s[\d]{3})+(?:[,.]\d{2})?)\s*(?:zł|PLN|pln)?/i,
+    /wadium[^.]{0,160}?([\d\s]{1,12}[,.]\d{2})\s*(?:zł|PLN|pln)/i,
+    /wadium[^.]{0,160}?([\d]{1,3}(?:\s[\d]{3})+(?:[,.]\d{2})?)\s*(?:zł|PLN|pln)/i,
     /([\d\s]{1,12}[,.]\d{2})\s*(?:zł|PLN|pln)[^.]{0,40}wadium/i,
   ];
   for (const p of plnPatterns) {
@@ -171,29 +216,10 @@ export function parseWadiumFromSwzText(
     }
   }
 
-  if (wadiumPln == null && wadiumPercent != null && estimatedValuePln != null) {
-    wadiumPln = Math.round(estimatedValuePln * wadiumPercent / 100);
-    if (!wadiumRaw || /^tak\b/i.test(wadiumRaw)) {
-      wadiumRaw = `${wadiumPercent}% wartości zamówienia`;
-    }
-  }
+  if (wadiumRaw && isWeakWadiumRaw(wadiumRaw)) wadiumRaw = null;
+  if (wadiumPln != null && wadiumPln < 100) wadiumPln = null;
 
-  if (wadiumRaw && /^tak\b/i.test(wadiumRaw) && wadiumPln == null && wadiumPercent == null) {
-    wadiumRaw = null;
-  }
-  if (wadiumPln != null && wadiumPln < 100) {
-    wadiumPln = null;
-  }
-
-  return { wadiumPln, wadiumRaw, wadiumPercent };
-}
-
-export function isWeakWadiumRaw(raw: string | null | undefined): boolean {
-  if (!raw) return true;
-  const t = raw.trim();
-  if (/^tak\b/i.test(t) && !/\d{3,}/.test(t) && !/%/.test(t)) return true;
-  if (/^nie\b/i.test(t)) return true;
-  return false;
+  return { wadiumPln, wadiumRaw, wadiumPercent: null };
 }
 
 export function pickBetterWadiumPln(a: number | null | undefined, b: number | null | undefined): number | null {

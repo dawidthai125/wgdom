@@ -1,5 +1,5 @@
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
-import { fmtPln } from "@/lib/tenders-bzp-swz";
+import { fmtPln, formatSwzWadiumDisplay } from "@/lib/tenders-bzp-swz";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 
@@ -53,7 +53,7 @@ export function computeWadiumInfo(
   const percentOfValue = swz?.wadiumPercent
     ?? extractWadiumPercent(`${swz?.wadiumRaw ?? ""} ${item.noticeHtml ? "" : ""}`);
   const amountPln = resolveWadiumAmountPln(swz, referenceValuePln);
-  const raw = swz?.wadiumRaw ?? null;
+  const raw = formatSwzWadiumDisplay(swz ?? {}) ?? swz?.wadiumRaw ?? null;
   const exceedsProfileLimit = amountPln != null && amountPln > profileMaxWadiumPln;
   const blocked = exceedsProfileLimit;
 

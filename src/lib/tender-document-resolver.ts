@@ -7,7 +7,7 @@ import {
   type TenderKosztorysSnapshot,
 } from "@/lib/tenders-bzp-brief";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
-import { isWeakWadiumRaw, pickBetterWadiumPln } from "@/lib/tenders-bzp-swz";
+import { isWeakWadiumRaw, pickBetterWadiumPln, formatSwzWadiumDisplay } from "@/lib/tenders-bzp-swz";
 import {
   isDocxFilename,
   isZipFilename,
@@ -375,15 +375,20 @@ export function mergeSwzAnalysis(
   if (!primary && !fromDoc) return null;
   if (!primary) return fromDoc ?? null;
   if (!fromDoc) return primary;
+  const wadiumPercent = primary.wadiumPercent ?? fromDoc.wadiumPercent;
+  const wadiumPln = pickBetterWadiumPln(primary.wadiumPln, fromDoc.wadiumPln);
+  const rawCandidate = isWeakWadiumRaw(primary.wadiumRaw)
+    ? (fromDoc.wadiumRaw ?? primary.wadiumRaw)
+    : (primary.wadiumRaw ?? fromDoc.wadiumRaw);
+  const wadiumRaw = formatSwzWadiumDisplay({ wadiumPercent, wadiumPln, wadiumRaw: rawCandidate })
+    ?? (isWeakWadiumRaw(rawCandidate) ? null : rawCandidate);
   return {
     ...primary,
     estimatedValuePln: primary.estimatedValuePln ?? fromDoc.estimatedValuePln,
     estimatedValueRaw: primary.estimatedValueRaw ?? fromDoc.estimatedValueRaw,
-    wadiumPln: pickBetterWadiumPln(primary.wadiumPln, fromDoc.wadiumPln),
-    wadiumRaw: isWeakWadiumRaw(primary.wadiumRaw)
-      ? (fromDoc.wadiumRaw ?? primary.wadiumRaw)
-      : (primary.wadiumRaw ?? fromDoc.wadiumRaw),
-    wadiumPercent: primary.wadiumPercent ?? fromDoc.wadiumPercent,
+    wadiumPln,
+    wadiumRaw,
+    wadiumPercent,
     referenceRequirement: primary.referenceRequirement ?? fromDoc.referenceRequirement,
     qualificationHints: [...new Set([...primary.qualificationHints, ...fromDoc.qualificationHints])].slice(0, 8),
     implementationDeadlineRaw: primary.implementationDeadlineRaw ?? fromDoc.implementationDeadlineRaw,

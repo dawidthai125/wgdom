@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChevronDown, FileSpreadsheet, MapPin, Calendar, User, ClipboardList, Eye } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
-import { fmtPln, PROFITABILITY_LABELS } from "@/lib/tenders-bzp-swz";
+import { fmtPln, PROFITABILITY_LABELS, formatSwzWadiumDisplay } from "@/lib/tenders-bzp-swz";
 import type { TenderDossier } from "@/lib/tenders-bzp-brief";
 import { labelTenderState } from "@/lib/tenders-bzp";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
@@ -105,7 +105,7 @@ export function TenderDossierPanel({
             <InfoRow label="Wartość zamówienia" value={
               swz?.estimatedValuePln != null ? fmtPln(swz.estimatedValuePln) : swz?.estimatedValueRaw ?? undefined
             } />
-            <InfoRow label="Wadium" value={swz?.wadiumRaw} />
+            <InfoRow label="Wadium" value={swz ? formatSwzWadiumDisplay(swz) : undefined} />
             <InfoRow label="Płatności" value={brief?.paymentTerms} />
             {swz && (
               <InfoRow label="Ocena SWZ" value={PROFITABILITY_LABELS[swz.profitabilityHint]} />

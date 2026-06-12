@@ -4,12 +4,17 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.51.9** · **bugfix** Logintrade SWZ analysis  
+**Aktualna wersja UI:** **2.51.10** · **bugfix** wadium extraction SWZ  
 **★ SSOT handoff:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../CURRENT-TASK.md)  
 **★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
+
+## 2.51.10 (2026-06-12) — fix wadium extraction SWZ
+
+- **Fix:** `parseWadiumFromSwzText()` — procent vs kwota PLN vs wartość zamówienia; UI/toast bez „Tak 6”
+- **Test:** `scripts/test-wadium-extraction.mjs`
 
 ## 2.51.9 (2026-06-12) — fix Logintrade SWZ analysis
 

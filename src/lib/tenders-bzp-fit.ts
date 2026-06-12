@@ -4,7 +4,7 @@ import type { TenderCompanyProfile } from "@/lib/tenders-bzp-company";
 import { profileKnownBuyerKeywords } from "@/lib/tenders-bzp-company";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
-import { fmtPln, stripHtmlToText } from "@/lib/tenders-bzp-swz";
+import { fmtPln, stripHtmlToText, formatSwzWadiumDisplay } from "@/lib/tenders-bzp-swz";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 
 export type TenderRequirementStatus = "met" | "partial" | "gap" | "unknown";
@@ -372,7 +372,7 @@ export function assessTenderFit(
       id: "wadium",
       category: "Wadium",
       label: "Wadium",
-      required: swz?.wadiumRaw || "Nie odczytano",
+      required: (swz && formatSwzWadiumDisplay(swz)) || "Nie odczytano",
       companyHas: `do ${fmtPln(profile.maxWadiumPln)}`,
       status: "unknown",
       impact: "high",

@@ -1,6 +1,6 @@
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
-import { fmtPln } from "@/lib/tenders-bzp-swz";
+import { fmtPln, formatSwzWadiumDisplay } from "@/lib/tenders-bzp-swz";
 import type { TenderFitAssessment } from "@/lib/tenders-bzp-fit";
 import { estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
@@ -139,8 +139,8 @@ export function summarizeSwzFindings(swz: TenderSwzAnalysis): string {
   const parts: string[] = [];
   if (swz.estimatedValuePln != null) parts.push(`Wartość: ${fmtPln(swz.estimatedValuePln)}`);
   else if (swz.estimatedValueRaw) parts.push(`Wartość (tekst): ${swz.estimatedValueRaw.slice(0, 60)}`);
-  if (swz.wadiumRaw) parts.push(`Wadium: ${swz.wadiumRaw}`);
-  else if (swz.wadiumPln != null) parts.push(`Wadium: ${fmtPln(swz.wadiumPln)}`);
+  const wadiumLabel = formatSwzWadiumDisplay(swz);
+  if (wadiumLabel) parts.push(`Wadium: ${wadiumLabel}`);
   if (swz.implementationDeadlineRaw) {
     parts.push(`Realizacja: ${swz.implementationDeadlineRaw.slice(0, 50)}`);
   }
