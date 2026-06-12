@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.8",
+    label: "Przetargi — panel Wymaga uwagi (P2-D.3)",
+    items: [
+      { type: "new", text: "Strategia → „Wymaga uwagi” — agregat terminów ≤3 dni, zmian dokumentów i Q&A (max 10)" },
+      { type: "improve", text: "Bez nowych KPI/scoringów — wyłącznie changeMonitor + qaMonitor + deadline" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.7",
     label: "Przetargi — monitoring Q&A (P2-D.2)",
     items: [
