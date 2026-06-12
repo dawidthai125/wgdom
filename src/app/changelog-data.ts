@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.19",
+    label: "Przetargi — Wymagania formalne SWZ (P2-F.0)",
+    items: [
+      { type: "fix", text: "Sekcja „Wymagania formalne” — koniec losowych fragmentów PDF z regexów uprawnień" },
+      { type: "new", text: "Model FormalRequirement (personel, uprawnienia, członkostwo, doświadczenie) + detektory sekcji SWZ" },
+      { type: "improve", text: "UI: lista bulletów „Wymagane:” + dopasowanie do profilu firmy; filtr confidence < 0,55 + [FORMAL TRACE]" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.18",
     label: "Przetargi — Cost Status UX + ATH Classification (P2-E.5)",
     items: [

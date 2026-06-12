@@ -151,8 +151,16 @@ export function TenderFitPanel({
                         <span className="text-[10px] text-muted-foreground">{c.category}</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 mt-1 text-[10px]">
-                        <p><span className="text-muted-foreground">Wymaga: </span>{c.required}</p>
-                        <p><span className="text-muted-foreground">My: </span>{c.companyHas}</p>
+                        <div>
+                          <p className="text-muted-foreground mb-0.5">
+                            {c.id === "qualifications" ? "Wymagane:" : "Wymaga:"}
+                          </p>
+                          <p className="whitespace-pre-wrap">{c.required}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground mb-0.5">My:</p>
+                          <p className="whitespace-pre-wrap">{c.companyHas}</p>
+                        </div>
                       </div>
                       {c.tip && (
                         <p className="text-[10px] text-amber-700 dark:text-amber-400 mt-1">{c.tip}</p>

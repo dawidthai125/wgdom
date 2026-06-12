@@ -8,6 +8,15 @@ import { fmtPln, stripHtmlToText } from "@/lib/tenders-bzp-swz";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import { resolveWadiumAmountPln } from "@/lib/tenders-wadium";
 import {
+  aggregateFormalRequirementStatus,
+  extractFormalRequirements,
+  formatFormalRequirementsBullets,
+  formatFormalRequirementsProfileBullets,
+  FORMAL_REQUIREMENTS_UNKNOWN_LABEL,
+  isFormalRequirementGarbage,
+  matchFormalRequirementsToProfile,
+} from "@/lib/tender-formal-requirements";
+import {
   resolvedTenderValuePln,
   resolveTenderValue,
   resolvedAwardCriteria,
@@ -462,19 +471,34 @@ export function assessTenderFit(
     }
   }
 
-  // Kwalifikacje / licencje (heurystyka)
-  const qualText = (swz?.qualificationHints ?? []).join(" ");
-  if (qualText) {
-    const matched = profile.licenses.filter((l) => qualText.toLowerCase().includes(l.slice(0, 8).toLowerCase()));
+  // Kwalifikacje / wymagania formalne (P2-F.0)
+  const formalReqs = swz?.formalRequirements?.length
+    ? swz.formalRequirements
+    : extractFormalRequirements(buildCombinedText(item, swz));
+  if (formalReqs.length > 0) {
+    const matches = matchFormalRequirementsToProfile(formalReqs, profile);
     checks.push({
       id: "qualifications",
       category: "Kwalifikacje",
       label: "Wymagania formalne",
-      required: qualText.slice(0, 180),
-      companyHas: profile.licenses.join("; "),
-      status: matched.length > 0 ? "partial" : "unknown",
+      required: formatFormalRequirementsBullets(formalReqs),
+      companyHas: formatFormalRequirementsProfileBullets(matches),
+      status: aggregateFormalRequirementStatus(matches),
       impact: "medium",
-      tip: "Zweryfikuj wpisy i uprawnienia w pełnej SWZ.",
+      tip: matches.some((m) => m.status === "gap")
+        ? "Uzupełnij personel/uprawnienia lub zweryfikuj w pełnej SWZ."
+        : "Zweryfikuj wpisy i uprawnienia w załącznikach SWZ.",
+    });
+  } else if (swz && buildCombinedText(item, swz).length > 200) {
+    checks.push({
+      id: "qualifications",
+      category: "Kwalifikacje",
+      label: "Wymagania formalne",
+      required: FORMAL_REQUIREMENTS_UNKNOWN_LABEL,
+      companyHas: profile.licenses.slice(0, 3).join("; "),
+      status: "unknown",
+      impact: "medium",
+      tip: "Przejrzyj sekcję „Warunki udziału” w SWZ ręcznie.",
     });
   }
 

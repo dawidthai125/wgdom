@@ -1,5 +1,10 @@
 /** Parsowanie SWZ / ogłoszenia BZP — wadium, kwota, referencje, terminy (best-effort). */
 
+import {
+  extractFormalRequirements,
+  type FormalRequirement,
+} from "@/lib/tender-formal-requirements";
+
 export interface TenderCostLine {
   lp: string;
   description: string;
@@ -17,7 +22,10 @@ export interface TenderSwzAnalysis {
   wadiumPln: number | null;
   wadiumRaw: string | null;
   referenceRequirement: string | null;
+  /** @deprecated Używaj formalRequirements — zachowane dla merge/sync. */
   qualificationHints: string[];
+  /** P2-F.0 — wymagania formalne (personel, uprawnienia, członkostwo, doświadczenie). */
+  formalRequirements?: FormalRequirement[];
   /** Termin / okres realizacji zamówienia. */
   implementationDeadlineRaw: string | null;
   implementationDays: number | null;
@@ -339,15 +347,9 @@ export function parseSwzPlainText(
     /wykonanie zamówienia[:\s]+([^.;]{5,160})/i,
   ]);
 
-  const qualificationHints: string[] = [];
-  for (const p of [
-    /uprawnieni[^.]{10,200}\./gi,
-    /wpis[^.]{5,80}rejestr[^.]{5,120}\./gi,
-    /polisa[^.]{10,200}\./gi,
-  ]) {
-    const ms = folded.match(p);
-    if (ms) qualificationHints.push(...ms.slice(0, 2).map((s) => s.trim().slice(0, 200)));
-  }
+  const sourceText = text.length > 500 ? text : multiline;
+  const formalRequirements = extractFormalRequirements(sourceText);
+  const qualificationHints = formalRequirements.map((r) => r.label).slice(0, 5);
 
   const technicalRequirements = allMatches(multiline, /wymagania techniczne[^:]{0,40}[:\s]+([^.]{15,280}\.)/gi, 4);
   if (technicalRequirements.length === 0) {
@@ -379,6 +381,7 @@ export function parseSwzPlainText(
     wadiumPercent: wadiumParsed.wadiumPercent,
     referenceRequirement,
     qualificationHints: [...new Set(qualificationHints)].slice(0, 5),
+    formalRequirements,
     implementationDeadlineRaw,
     implementationDays,
     technicalRequirements: [...new Set(technicalRequirements)].slice(0, 6),

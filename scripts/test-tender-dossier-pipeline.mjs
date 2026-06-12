@@ -61,6 +61,12 @@ import {
 import { assessTenderFit } from "../src/lib/tenders-bzp-fit.ts";
 import { defaultCompanyProfile } from "../src/lib/tenders-bzp-company.ts";
 import { computeBidPrepChecks } from "../src/lib/tenders-bid-prep.ts";
+import {
+  extractFormalRequirements,
+  formatFormalRequirementsBullets,
+  isFormalRequirementGarbage,
+  FORMAL_REQUIREMENTS_UNKNOWN_LABEL,
+} from "../src/lib/tender-formal-requirements.ts";
 
 let pass = 0;
 let fail = 0;
@@ -558,6 +564,71 @@ const estReason7z = buildEstimateMissingReason({
   byType: { pdf: 8, docx: 0, xlsx: 0, zip: 0, ath: 0, sevenZip: 2, other: 5 },
 });
 assert("estimate reason 7z", estReason7z.includes("7Z"));
+
+// P2-F.0 — formal requirements extraction
+const swzLicense = extractFormalRequirements(
+  "Warunki udziału w postępowaniu. Wykonawca musi dysponować minimum jedną osobą z uprawnieniami budowlanymi.",
+);
+assert("p2f0 license budowlane", swzLicense.some((r) => r.type === "license" && r.label === "Uprawnienia budowlane"));
+
+const swzPiib = extractFormalRequirements(
+  "Zdolność zawodowa. Wykonawca wskaże osobę będącą członkiem Izby Inżynierów Budownictwa.",
+);
+assert("p2f0 membership piib", swzPiib.some((r) => r.type === "membership" && /PIIB|izby inżynierów/i.test(r.label)));
+
+const swzPersonnel = extractFormalRequirements(
+  "Osoby skierowane do realizacji: kierownik robót elektrycznych z uprawnieniami SEP.",
+);
+assert("p2f0 personnel elektr", swzPersonnel.some((r) => r.type === "personnel" && r.label.includes("elektrycznych")));
+
+assert("p2f0 garbage truncated", isFormalRequirementGarbage("uprawnienia budowlane 12"));
+assert("p2f0 garbage zamawiajacy", isFormalRequirementGarbage("uprawnieniem Zamawiającego do wglądu"));
+assert("p2f0 garbage czlonkostwo", isFormalRequirementGarbage("i będąca członkiem 1"));
+assert("p2f0 garbage numeracja", isFormalRequirementGarbage("12."));
+
+const tbsGarbageSwz = `
+Warunki udziału w postępowaniu
+uprawnienia budowlane 12
+uprawnieniem Zamawiającego do wglądu w dokumenty
+wobec którego wykonawca nie może rościć
+i będąca członkiem 1
+Kryteria oceny ofert
+`;
+const tbsFormal = extractFormalRequirements(tbsGarbageSwz);
+assert("p2f0 tbs no garbage reqs", tbsFormal.length === 0);
+const tbsParsed = parseSwzPlainText(tbsGarbageSwz, { source: "pdf" });
+assert("p2f0 tbs parse no hints garbage", !(tbsParsed.qualificationHints ?? []).some((h) => /budowlane 12|Zamawiającego/i.test(h)));
+
+const swzRich = parseSwzPlainText(
+  "Warunki udziału. Minimum jedna osoba z uprawnieniami budowlanymi oraz członek Izby Inżynierów Budownictwa. Kierownik robót sanitarnych.",
+  { source: "pdf" },
+);
+assert("p2f0 parse formalRequirements", (swzRich.formalRequirements?.length ?? 0) >= 2);
+const bullets = formatFormalRequirementsBullets(swzRich.formalRequirements ?? []);
+assert("p2f0 bullets format", bullets.startsWith("• ") && !bullets.includes("Wymaga:"));
+
+const fitItem = {
+  id: "p2f0-fit",
+  title: "Test formal",
+  organizationName: "TBS",
+  cpvCode: "45211341-1",
+  submittingOffersDate: "2026-12-01T00:00:00Z",
+  publicationDate: "2026-06-01T00:00:00Z",
+  status: "new",
+  swzAnalysis: swzRich,
+};
+const fit = assessTenderFit(fitItem, defaultCompanyProfile());
+const qualCheck = fit.requirementChecks.find((c) => c.id === "qualifications");
+assert("p2f0 fit qualifications check", qualCheck != null);
+assert("p2f0 fit required bullets", qualCheck?.required.includes("•"));
+assert("p2f0 fit no raw garbage", !qualCheck?.required.includes("budowlane 12"));
+
+const fitUnknown = assessTenderFit(
+  { ...fitItem, swzAnalysis: tbsParsed },
+  defaultCompanyProfile(),
+);
+const qualUnknown = fitUnknown.requirementChecks.find((c) => c.id === "qualifications");
+assert("p2f0 fit unknown fallback", qualUnknown?.required === FORMAL_REQUIREMENTS_UNKNOWN_LABEL || qualUnknown == null);
 
 // HOTFIX — parseTenderDossierDocuments musi mieć import roleContributesMetadata (P2-E.1 path)
 let dossierPipelineErr = null;

@@ -7,6 +7,7 @@ import type { TenderDossier } from "@/lib/tenders-bzp-brief";
 import { labelTenderState } from "@/lib/tenders-bzp";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { resolveTenderValue, resolvedCostStatusDisplay, resolvedWadiumDisplay, kosztorysHasPricedValue } from "@/lib/tender-data-ssot";
+import { formatFormalRequirementsBullets, FORMAL_REQUIREMENTS_UNKNOWN_LABEL } from "@/lib/tender-formal-requirements";
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value?.trim()) return null;
@@ -122,15 +123,20 @@ export function TenderDossierPanel({
           </div>
         )}
 
-        {(swz?.referenceRequirement || (swz?.qualificationHints?.length ?? 0) > 0) && (
+        {(swz?.referenceRequirement || (swz?.formalRequirements?.length ?? 0) > 0) && (
           <div className="rounded-lg bg-secondary/40 px-3 py-2 space-y-1">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Referencje i kwalifikacje</p>
             {swz?.referenceRequirement && (
               <p className="text-xs text-muted-foreground whitespace-pre-wrap">{swz.referenceRequirement}</p>
             )}
-            {swz?.qualificationHints?.map((h, i) => (
-              <p key={i} className="text-xs text-muted-foreground pl-2 border-l-2 border-border">{h}</p>
-            ))}
+            {(swz?.formalRequirements?.length ?? 0) > 0 ? (
+              <div className="text-xs text-muted-foreground whitespace-pre-wrap pl-2 border-l-2 border-border">
+                <p className="text-[10px] font-medium text-foreground/80 mb-1">Wymagane:</p>
+                {formatFormalRequirementsBullets(swz!.formalRequirements!)}
+              </div>
+            ) : swz?.referenceRequirement ? null : (
+              <p className="text-xs text-muted-foreground pl-2 border-l-2 border-border">{FORMAL_REQUIREMENTS_UNKNOWN_LABEL}</p>
+            )}
           </div>
         )}
 

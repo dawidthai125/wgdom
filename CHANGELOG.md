@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.51.19 — P2-F.0 Formal Requirements Extraction
+- Model FormalRequirement + detektory SWZ (personel/uprawnienia/członkostwo/doświadczenie)
+- Filtr śmieci PDF, UI bullet „Wymagane:”, dopasowanie profilu, [FORMAL TRACE]
+
 ## 2.51.18 — P2-E.5 Cost Status UX + ATH Classification
 - FOUND_WITH_VALUE / FOUND_NO_VALUE / NOT_FOUND — ATH bez cen ≠ „Kosztorys znaleziony”
 - classifyCostDocument(), [COST STATUS TRACE], UI przedmiar vs wyceniony
