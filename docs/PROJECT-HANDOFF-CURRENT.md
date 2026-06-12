@@ -1,16 +1,17 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-11  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-11 (aktualizacja Dashboard V3)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
 **Wejście dla nowego GPT / Cursor:**
 
 ```text
-1. docs/PROJECT-HANDOFF-CURRENT.md   ← TEN PLIK (baseline prod)
-2. CURRENT-TASK.md                    ← status sesji / wznowienie
-3. docs/WORKFLOW-RELEASE-DEPLOY.md  ← workflow A/B/C
-4. AGENTS.md → docs/ARCHITECTURE.md
+1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
+2. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← ★ Pulpit V3 (operacje)
+3. CURRENT-TASK.md                         ← status sesji / wznowienie
+4. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
+5. AGENTS.md → docs/ARCHITECTURE.md
 ```
 
 ---
@@ -32,27 +33,28 @@
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version:              2.50.70
-Feature commit (app):   ee2cd72   feat(jobs): default inspector recipient (2.1.1)
-Housekeeping:         77e1052   chore(git): ignore local audit and smoke artifacts
-Poprzedni feature:    5391d03   Inspector Communication Templates 2.1.0 (2.50.69)
-Git tag backup:       pre-next-feature-2.50.64 → c7bc58f
-E2E (origin/main):    8906485   20.5Z.2B E2E Version Awareness
-PWA (origin/main):    46556a7   20.5Z.2A
+Version:              2.50.74
+Feature commit (app):   5a54399   feat(dashboard): V3 operational layout without Hero
+Poprzedni (dashboard):  ad859e6   feat(dashboard): Hero operational only (2.50.73)
+Poprzedni feature:      ee2cd72   Default Inspector Recipient 2.1.1 (2.50.70)
+Git tag backup:         pre-next-feature-2.50.64 → c7bc58f
+E2E (origin/main):      8906485   20.5Z.2B E2E Version Awareness
+PWA (origin/main):      46556a7   20.5Z.2A
 ```
 
 | Status | Wartość |
 |--------|---------|
 | **RELEASED** | TAK |
 | **STABLE** | TAK |
-| **PRODUCTION VERIFIED** | TAK — `version.json` = **2.50.70** |
+| **PRODUCTION VERIFIED** | TAK — `version.json` = **2.50.74** |
+| **Dashboard V3 (P1-A)** | **COMPLETE** · handoff: [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md) |
 | **Inspector Communication Templates** | **2.1.0 + 2.1.1 COMPLETE** · **2.1.2 CANCELLED** |
 
 **Verify prod (bez pollingu API):**
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.50.70" }
+# oczekiwane: { "version": "2.50.74" }
 ```
 
 ---
@@ -71,24 +73,31 @@ Chronologia releasów aplikacyjnych na `main` po baseline **2.50.65** (20.5Z.5C)
 | **2.50.69** | 2.1.0 Inspector Communication Templates | `5391d03` | Szablony A–D, modal, `isInspector`, Edge `inspector_template` |
 | **2.50.70** | 2.1.1 Default Inspector Recipient | `ee2cd72` | `isDefaultInspector`, domyślny odbiorca, modal UX |
 | *(housekeeping)* | `.gitignore` P0+P1 | `77e1052` | untracked 49 → 19 (diag/smoke artifacts) |
+| **2.50.72–73** | Hero filtry operacyjne | `4426c72` / `ad859e6` | Prognoza tylko w CC; Hero bez CC |
+| **2.50.74** | **Dashboard V3 (P1-A)** | `5a54399` | Usunięto Hero; Braki + Pilne uwagi; liczniki policzalne |
 
-**Handoff Dashboard V2:** [`SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
+**Handoff Pulpit (SSOT):** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
+**Historyczny Dashboard V2:** [`SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](SESSION-HANDOFF-20.7-DASHBOARD-V2.md) — **nie przywracać** rankera Hero  
 **Architektura inspektor email:** [`ARCHITECTURE.md`](ARCHITECTURE.md) § 9.2
 
 ---
 
-## 4. SERIA 20.7 — Dashboard V2 (**COMPLETE**)
+## 4. DASHBOARD V3 — Pulpit operacyjny (**COMPLETE**, P1-A)
 
-| Etap | Wersja | Commit | Status |
-|------|--------|--------|--------|
-| 20.7C.1 | — | `070e52f` | CC executive simplify |
-| 20.7C.2 | 2.50.66 | `3e46ae8` | **Dashboard V2 COMPLETE** |
-| 20.7D.1 | 2.50.67 | `f94b530` | Hero Compression |
-| 20.7E | 2.50.68 | `65f3a8d` | Dashboard IA Cleanup |
+| Element | Wartość |
+|---------|---------|
+| **Wersja** | 2.50.74 · commit `5a54399` |
+| **Cel** | „Co muszę dzisiaj zrobić?” — bez strategii CC na Pulpicie |
+| **KPI** | Wypłata · Ekipa dziś · Aktywne WM · **Braki dokumentów** · **Pilne uwagi** |
+| **Sekcje** | Roboty → Braki dokumentów · Pilne uwagi na dziś (7 kategorii) · Przetargi — skrót |
+| **Liczniki SSOT** | `src/lib/dashboard-urgent-today.ts` · `buildUrgentTodayCategories()` |
+| **Usunięte** | Hero stack, `attentionCount`, KPI „Do ogarnięcia”, `RecoverableChargesDashboardCard` |
 
-**Kolejność Pulpicu (20.7E):** KPI → Najważniejsze dziś → Uwaga dziś (accordion) → Do odzyskania → Przetargi — skrót.
+**Kolejność Pulpicu (V3):** KPI → Braki dokumentów → Pilne uwagi → Przetargi — skrót → dolna siatka.
 
-**Nie zmieniaj bez polecenia:** ranker Hero (`dashboard-hero-today.ts`), dedupe Uwaga dziś, model scrollu 2.50.20.
+**Nie zmieniaj bez polecenia:** model liczników V3 (suma kategorii = badge), pełne listy bez `slice`, model scrollu 2.50.20.
+
+**Seria 20.7 (V2) — historyczna:** Hero DZIŚ, dedupe Uwaga — **zamknięta** przez V3.
 
 ---
 
@@ -176,6 +185,8 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | Version Awareness | `app-version-check.ts` · E2E `version-awareness.spec.ts` |
 | PWA | `sw.template.js` · `generate-service-worker.mjs` |
 | Kontakt inspektora § 9.2 | `inspector-message-templates.ts`, `email-contacts.ts`, `JobInspectorContactModal.tsx` |
+| **Pulpit V3** | `DashboardView.tsx`, `DashboardPilneUwagiSection.tsx`, `dashboard-urgent-today.ts` |
+| Command Center (strategia) | `TenderCenterProView` / `OwnerDashboard` — **nie** na Pulpicie (tylko skrót CC) |
 
 ---
 
@@ -198,6 +209,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | Happy path | `npm run build` → preview `:4173` → `PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:happy` |
 | Version | `PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:version` |
 | Inspector 2.1 | `npx vite-node scripts/smoke-test-inspector-templates-2.1.mjs` |
+| **Dashboard V3** | `npx vite-node scripts/test-dashboard-v3-counts.mjs` |
 | Mobile | `npm run test:mobile` |
 
 **Ostatni znany CI E2E:** `#27260457990` (20.5Z.2B) — regresja po 20.7/2.1 lokalnie: build + smoke 2.1 PASS.
@@ -215,22 +227,34 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 
 ---
 
-## 11. CO NIE ZMIENIAĆ BEZ POLECENIA
+## 11. BACKLOG PRODUKTOWY
+
+| Priorytet | Temat | Status |
+|-----------|-------|--------|
+| **P1-A** | Dashboard V3 Rework | **COMPLETE** (2.50.74) |
+| **P1-B** | Command Center Reassessment / Redesign | **OTWARTY** — nie blokuje V3 |
+| **P2** | Audit Center / Security Log (Super Admin) | **OTWARTY** — wymaga nowego modułu |
+
+---
+
+## 12. CO NIE ZMIENIAĆ BEZ POLECENIA
 
 - Sync/merge `kw-contacts`, `kw-jobs`, payroll guard
 - Model scrollu desktop 2.50.20, mobile shell
-- Dashboard Hero ranker / dedupe (20.7C–E)
+- **Przywracanie Hero / `attentionCount` / KPI „Do ogarnięcia”** — zamknięte przez V3
+- Podłączanie CC (forecast, health) do `DashboardView`
 - `inspector_template` Edge semantics (2.1.0)
 - Seria 20.5Z zamknięta — patrz FINAL handoff
 - **2.1.2** — plan odrzucony, nie wracać do pełnej listy kontaktów w modalu
 
 ---
 
-## 12. NASTĘPNY KROK (dla agenta)
+## 13. NASTĘPNY KROK (dla agenta)
 
 ```text
-Brak otwartego sprintu w Inspector Communication Templates.
-Nowy feature stream — tylko na polecenie użytkownika po AUDIT.
+Dashboard V3 (P1-A) — COMPLETE.
+Kolejny stream: P1-B (CC Reassessment) lub P2 (Audit Center) — tylko na polecenie po AUDIT.
+Inspector 2.1 — CLOSED (2.1.2 CANCELLED).
 ```
 
 Przy wznowieniu:
@@ -242,13 +266,14 @@ Przy wznowieniu:
 
 ---
 
-## 13. MAPA HANDOFFÓW (referencje)
+## 14. MAPA HANDOFFÓW (referencje)
 
 | Temat | Dokument |
 |-------|----------|
 | **★ Baseline prod (TEN)** | `PROJECT-HANDOFF-CURRENT.md` |
+| **★ Pulpit V3 (SSOT)** | `SESSION-HANDOFF-DASHBOARD-V3.md` |
 | Platform 20.5Z (architektura) | `PROJECT-HANDOFF-FINAL-20.5Z.md` |
-| Dashboard V2 | `SESSION-HANDOFF-20.7-DASHBOARD-V2.md` |
+| Dashboard V2 (historyczny) | `SESSION-HANDOFF-20.7-DASHBOARD-V2.md` |
 | Inspector 2.1 § 9.2 | `ARCHITECTURE.md` |
 | Workflow release | `WORKFLOW-RELEASE-DEPLOY.md` |
 | Backup pre-feature | `SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md` |
@@ -258,10 +283,11 @@ Przy wznowieniu:
 
 ---
 
-**Werdykt closeout sesji 2026-06-11:**
+**Werdykt closeout (aktualny):**
 
 ```text
-SESSION CLOSED · BASELINE 2.50.70 · STABLE · PRODUCTION VERIFIED
-Inspector 2.1.0 + 2.1.1 RELEASED · 2.1.2 CANCELLED
-Housekeeping 77e1052 · Ready for new GPT / new Cursor agent
+BASELINE 2.50.74 · STABLE · PRODUCTION VERIFIED
+Dashboard V3 (P1-A) COMPLETE · Inspector 2.1 CLOSED · 2.1.2 CANCELLED
+Backlog: P1-B CC Reassessment · P2 Audit Center
+Ready for new GPT / new Cursor agent
 ```

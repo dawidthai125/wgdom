@@ -4,7 +4,7 @@
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
 > **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.70** · Default Inspector Recipient 2.1.1)
 > **Ostatnia aktualizacja tego dokumentu:** 2026-06-11 (Default Inspector Recipient 2.1.1)
-> **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Dashboard V2 handoff:** [`SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
+> **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
@@ -175,7 +175,7 @@ Filtr stosowany w `resolveAuthorContact()` (`content-author-contact.ts`) i `Auth
 
 | `view` | Opis | Główna funkcja w App.tsx |
 |--------|------|--------------------------|
-| `dashboard` | Pulpit: **KPI** · **Najważniejsze dziś** (accordion, TOP 5) · **Uwaga dziś** (accordion, dedupe) · Do odzyskania · **Przetargi — skrót** (tylko CC) · operacje (20.7E) | `DashboardView` |
+| `dashboard` | Pulpit V3: **KPI** (5) · **Braki dokumentów** · **Pilne uwagi** (kategorie) · **Przetargi — skrót** (tylko CC) · dolna siatka operacyjna | `DashboardView` |
 | `payroll` | Lista płac | `PayrollView` |
 | `schedule` | Grafik tygodnia | `ScheduleView` |
 | `directory` | Kartoteka pracowników | `DirectoryView` |
@@ -374,9 +374,9 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Legacy** | `normalizeRecoverableCharges`: brak settlements → `[]`; legacy `settled` → syntetyczny wpis migracyjny; legacy `partial` → reset do `open` |
 | **Merge** | `mergeRecoverableCharges()` — union `settlements` po `id` (`mergeSettlementsById`), potem `deriveChargeAmounts()`; pola skalarne LWW po `updatedAt` |
 | **UI (20.4B, v2.47.10)** | `RecoverableChargesView.tsx` + `SettleChargeModal.tsx` — KPI (do rozliczenia / częściowo / odzyskano), Rozlicz, historia, status tylko do odczytu |
-| **Dashboard (20.4C.1, v2.48.00)** | `RecoverableChargesDashboardCard.tsx` na Pulpicie — KPI + skrót aging (20.4C.2A); klik → moduł |
+| **Dashboard V3 (v2.50.74)** | Kategoria **Do odzyskania** w Pilnych uwagach — `alerts.length` pozycji; klik → moduł. Karta `RecoverableChargesDashboardCard` **usunięta** |
 | **Reporting aging (20.4C.2A, v2.48.10)** | `computeRecoverableChargesReportingStats()` — jedno przejście; kubełki 0–30/31–60/61–90/90+ od `createdAt`; tylko open+partial; `RecoverableChargesAnalysisSection.tsx` w module |
-| **Alerty (20.4C.2B, v2.48.20)** | `computeRecoverableChargesAlerts()` — A kwota / B wiek>90 / C partial>60 / D brak aktywności>60; `RecoverableChargesAlertsSection.tsx`; `attentionCount` +1 na Pulpicie |
+| **Alerty (20.4C.2B, v2.48.20)** | `computeRecoverableChargesAlerts()` — A kwota / B wiek>90 / C partial>60 / D brak aktywności>60; `RecoverableChargesAlertsSection.tsx` w module; na Pulpicie V3: `alerts.length` (nie `attentionCount` 0/1) |
 | **Insights (20.4C.2C, v2.48.30)** | `computeRecoverableChargesTimeStats()` + `computeRecoverableChargesTopLists()`; `RecoverableChargesInsightsSection.tsx` — KPI miesiąc/rok + TOP 5 |
 | **Jobs integracja (20.5A.1, v2.49.00)** | `getRecoverableChargeJobStats()` — agregacja po `sourceJobId` / `targetJobId`; badge 💰 na `JobListCardV2`; `JobRecoverableChargesPanel.tsx` w Przeglądzie roboty; deep link `pendingRecoverableChargeId` → `RecoverableChargesView` |
 | **Create from job (20.5A.2, v2.49.10)** | `buildRecoverableChargeDraftFromJob()` + `JobCreateRecoverableChargeModal.tsx` — modal na robocie (bez nawigacji); `pendingRecoverableChargeCreatePreset` → moduł z auto-create; `finalizeRecoverableChargeDraftForSave()` współdzielony |
@@ -717,13 +717,12 @@ Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTST
 
 **Pełny moduł:** `src/app/TenderCenterProView.tsx` → `src/app/tender-center/components/OwnerDashboard.tsx` (lazy chunk `TenderCenterProView-*.js`).
 
-**Pulpit (ETAP 7G + 20.7E):** `DashboardView` → **Najważniejsze dziś** (`HeroDzisPanel`) + `CommandCenterExecutivePanel` (tylko CC) — silnik CC przez `CommandCenterProvider`; ranker w `dashboard-hero-today.ts` (bez zmian).
+**Pulpit V3 (2.50.74):** `DashboardView` → operacje (Braki + Pilne uwagi) + `CommandCenterExecutivePanel` (skrót CC). **Brak** Hero i coupling CC na Pulpicie. Strategia wyłącznie w module Przetargi (`OwnerDashboard`).
 
 | Plik | Rola |
 |------|------|
-| `src/lib/dashboard-hero-today.ts` | **SSOT** `buildHeroToday()`, ranker TOP 5, mappers operacyjne + Action Center |
-| `src/lib/dashboard-hero-consolidation.ts` | Dedupe sekcji Uwaga dziś vs Hero (`getHeroCoveredUwagaSections`) |
-| `src/app/HeroDzisPanel.tsx` | UI Hero: `variant="full" \| "compact"` accordion, nawigacja |
+| `src/lib/dashboard-urgent-today.ts` | **SSOT** liczników Pilnych uwag — `buildUrgentTodayCategories()` |
+| `src/app/DashboardPilneUwagiSection.tsx` | UI kategorii Pilnych uwag (pełne listy) |
 | `src/app/tender-center/hooks/useCommandCenterExecutiveSnapshot.ts` | Snapshot: health, briefing, action center, forecast, best opportunity, … |
 | `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | Przetargi — skrót: liczniki CC + CTA (bez Najważniejsze dziś) |
 | `src/lib/tender-center-action-center-display.ts` | Prezentacja slotów forecast w Action Center UI (bez %) |

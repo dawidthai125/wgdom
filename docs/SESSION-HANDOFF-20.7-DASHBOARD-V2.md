@@ -1,8 +1,11 @@
 # SESSION HANDOFF — Dashboard V2 (seria 20.7C + 20.7D)
 
+> **⚠ SUPERSEDED (historyczny):** Pulpit od **v2.50.74** = **Dashboard V3**.  
+> **SSOT Pulpicu:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md) — **nie przywracać** Hero / `attentionCount`.
+
 > **Hasło:** „kontynuuj WGDOM”  
 > **Data:** 2026-06-11  
-> **Status serii:** **COMPLETE** (Dashboard V2 funkcjonalnie ukończony + Hero Compression wdrożony)  
+> **Status serii:** **SUPERSEDED** przez Dashboard V3 (2.50.74)  
 > **★ CZYTAJ NA START** przy pracy na Pulpicie, Hero DZIŚ, Przetargi — skrót, Uwaga dziś
 
 **Powiązane:** [`AGENTS.md`](../AGENTS.md) · [`CURRENT-TASK.md`](../CURRENT-TASK.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.3 · [`tender-center-7g-executive.md`](tender-center-7g-executive.md)

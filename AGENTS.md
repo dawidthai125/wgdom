@@ -8,12 +8,13 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.50.70, commity, decyzje)
-3. CURRENT-TASK.md        ← ★ status sesji / wznowienie (SESSION CLOSEOUT)
-4. docs/WORKFLOW-RELEASE-DEPLOY.md  ← ★★ release/deploy A/B/C + VERIFY (oficjalny)
-5. docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md  ← Dashboard V2 + Hero
-6. docs/PROJECT-HANDOFF.md  ← proces AUDIT→RCA→PLAN→IMPLEMENT (baseline → CURRENT)
-7. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md  ← backup baseline 2.50.64
+2. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.50.74, commity, decyzje)
+3. docs/SESSION-HANDOFF-DASHBOARD-V3.md  ← ★★ Pulpit V3 — operacje, liczniki, backlog
+4. CURRENT-TASK.md        ← ★ status sesji / wznowienie
+5. docs/WORKFLOW-RELEASE-DEPLOY.md  ← ★★ release/deploy A/B/C + VERIFY (oficjalny)
+6. docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md  ← Dashboard V2 (historyczny — nie przywracać Hero)
+7. docs/PROJECT-HANDOFF.md  ← proces AUDIT→RCA→PLAN→IMPLEMENT (baseline → CURRENT)
+8. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md  ← backup baseline 2.50.64
 8. docs/BACKUP-REPORT-2.50.64.md  ← pre-feature backup + storage-full
 9. docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md  ← audyt 100% storage
 10. docs/PROJECT-HANDOFF-FINAL-20.5Z.md  ← oficjalny handoff końcowy serii 20.5Z (COMPLETE)
@@ -65,7 +66,8 @@
 | **docs/SESSION-HANDOFF-20.3B-CC-POLISH.md** | CC polonizacja **20.3B+ CLOSED** (`61cb33b`, v2.50.43) — mapa widoków, etykiety PL |
 | **docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md** | Seria **2.50.x CLOSED** — desktop scroll, mobile fix, MID-B, CI |
 | **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.6 CLOSED** (`99295e5`, v2.50.44) |
-| **docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md** | **★★ Dashboard V2 COMPLETE** — Hero DZIŚ, konsolidacja, compression, mapa plików, E2E |
+| **docs/SESSION-HANDOFF-DASHBOARD-V3.md** | **★★ Pulpit V3 (SSOT)** — operacje, liczniki, kategorie, backlog P1-B/P2 |
+| **docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md** | Dashboard V2 **historyczny** — Hero usunięty w V3 |
 | **docs/PROJECT-HANDOFF-FINAL-20.5Z.md** | **★ Oficjalny handoff końcowy 20.5Z** — baseline, architektura, E2E, PWA, readiness, werdykt COMPLETE |
 | **docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md** | Seria **20.5Z CLOSED** — szczegóły sprintów, komendy, pułapki E2E |
 | **docs/PROJECT-HANDOFF.md** | Proces AUDIT→RCA→PLAN→IMPLEMENT · baseline historyczny → użyj **PROJECT-HANDOFF-CURRENT** |
