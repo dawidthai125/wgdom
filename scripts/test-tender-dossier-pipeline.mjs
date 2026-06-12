@@ -94,6 +94,14 @@ import {
   buildAthQuickAccessContext,
   resolveAthPreviewItem,
 } from "../src/lib/tender-ath-quick-access.ts";
+import {
+  buildWorksRegister,
+  buildWorksRegisterTableRows,
+  projectToWorksRegisterEntry,
+  selectProjectsForTender,
+} from "../src/lib/tender-works-register.ts";
+import { buildWorksRegisterPdfDocDef } from "../src/lib/tender-works-register-pdf.ts";
+import { worksRegisterDocxRowCount } from "../src/lib/tender-works-register-docx.ts";
 
 let pass = 0;
 let fail = 0;
@@ -1008,6 +1016,70 @@ const swzRefMissing = checkExperienceQualification(
   profileNoRefs,
 );
 assert("p2f4 swz ref missing", swzRefMissing.some((c) => c.status === "MISSING" && /referenc/i.test(c.label)));
+
+// P2-F.5 — wykaz robót budowlanych
+const profileWorks = defaultCompanyQualificationProfile();
+profileWorks.experienceProjects = [
+  {
+    title: "Remont pustostanów ZZK",
+    category: "roboty ogólnobudowlane",
+    valuePln: 1_240_000,
+    year: 2023,
+    referenceStatus: "available",
+    referenceAvailable: true,
+    referenceFiles: [],
+    protocolFiles: [],
+  },
+  {
+    title: "Modernizacja klatek schodowych",
+    category: "remontowe",
+    valuePln: 890_000,
+    year: 2023,
+    referenceStatus: "unknown",
+    referenceAvailable: false,
+    referenceFiles: [],
+    protocolFiles: [],
+  },
+  {
+    title: "Maly remont",
+    category: "remontowe",
+    valuePln: 120_000,
+    year: 2024,
+    referenceStatus: "missing",
+    referenceAvailable: false,
+    referenceFiles: [],
+    protocolFiles: [],
+  },
+];
+const expReqWorks = extractExperienceRequirements(
+  "Minimum 2 roboty budowlane o wartości co najmniej 500 000 zł.",
+);
+const selWorks = selectProjectsForTender(expReqWorks, profileWorks);
+assert("p2f5 select 2 projects", selWorks.recommended.length === 2);
+assert("p2f5 top value first", selWorks.recommended[0].project.valuePln === 1_240_000);
+assert("p2f5 excludes small", !selWorks.recommended.some((r) => r.project.valuePln === 120_000));
+
+const profileEmptyWorks = defaultCompanyQualificationProfile();
+profileEmptyWorks.experienceProjects = [];
+const selEmpty = selectProjectsForTender(expReqWorks, profileEmptyWorks);
+assert("p2f5 empty selection", selEmpty.recommended.length === 0);
+
+const register = buildWorksRegister("tender-test-1", selWorks);
+assert("p2f5 register entries", register.entries.length === 2);
+const tableRows = buildWorksRegisterTableRows(register);
+assert("p2f5 pdf table rows", tableRows.length === 2 && tableRows[0][1].includes("ZZK"));
+const pdfDoc = buildWorksRegisterPdfDocDef(register);
+assert("p2f5 pdf doc content", pdfDoc.content?.length >= 4);
+assert("p2f5 docx row count", worksRegisterDocxRowCount(register) === 2);
+
+const entryMissing = projectToWorksRegisterEntry(profileWorks.experienceProjects[2]);
+assert("p2f5 missing ref status", entryMissing.referenceStatus === "missing");
+
+const selNoExp = selectProjectsForTender([], profileWorks);
+assert("p2f5 no exp reqs", selNoExp.recommended.length === 0 && selNoExp.requirement == null);
+
+const athStill = buildAthQuickAccessContext(mockTenderAth(221));
+assert("p2f5 ath regression", athStill.enabled === true);
 
 // HOTFIX — parseTenderDossierDocuments musi mieć import roleContributesMetadata (P2-E.1 path)
 let dossierPipelineErr = null;

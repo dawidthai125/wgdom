@@ -71,6 +71,14 @@ function filterMatchingProjects(
   });
 }
 
+/** P2-F.5 — realizacje pasujące do wymogu SWZ (eksport dla wykazu robót). */
+export function getMatchingExperienceProjects(
+  profile: CompanyQualificationProfile,
+  req: ExperienceRequirement,
+): CompanyExperienceProject[] {
+  return filterMatchingProjects(profile, req);
+}
+
 function fmtPln(n: number): string {
   return n.toLocaleString("pl-PL");
 }

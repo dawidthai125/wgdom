@@ -9,6 +9,10 @@ import {
 } from "@/lib/tender-participation-check";
 import { extractParticipationRequirements } from "@/lib/tender-participation-requirements";
 import { extractExperienceRequirements } from "@/lib/tender-experience-requirements";
+import {
+  fmtRegisterValuePln,
+  selectProjectsForTender,
+} from "@/lib/tender-works-register";
 
 const STATUS_ICON = {
   MATCH: CheckCircle2,
@@ -51,6 +55,18 @@ export function TenderParticipationPanel({
     const profile = loadCompanyQualificationProfileLocal();
     return checkTenderParticipation(requirements, profile, experienceRequirements);
   }, [swz?.participationRequirements, swz?.experienceRequirements, combinedText]);
+
+  const experienceRequirements = useMemo(() => {
+    if (swz?.experienceRequirements?.length) return swz.experienceRequirements;
+    if (combinedText?.trim()) return extractExperienceRequirements(combinedText);
+    return [];
+  }, [swz?.experienceRequirements, combinedText]);
+
+  const projectSelection = useMemo(() => {
+    if (experienceRequirements.length === 0) return null;
+    const profile = loadCompanyQualificationProfileLocal();
+    return selectProjectsForTender(experienceRequirements, profile);
+  }, [experienceRequirements]);
 
   if (!result) return null;
 
@@ -118,6 +134,26 @@ export function TenderParticipationPanel({
             <HelpCircle size={11} className="shrink-0 mt-0.5" />
             Uzupełnij profil wykonawcy (Przetargi → Profil firmy), aby zamienić „⚠” na twarde dopasowanie.
           </p>
+        )}
+
+        {projectSelection && projectSelection.recommended.length > 0 && (
+          <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-2.5 py-2 space-y-1">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-800 dark:text-emerald-300">
+              Rekomendowane realizacje
+            </p>
+            <ul className="space-y-1">
+              {projectSelection.recommended.map((rec) => (
+                <li key={rec.project.title} className="text-xs">
+                  <span className="text-emerald-700 dark:text-emerald-400 font-medium">
+                    ✓ {rec.project.title}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground block">
+                    {fmtRegisterValuePln(rec.project.valuePln)} · {rec.reason}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
     </div>

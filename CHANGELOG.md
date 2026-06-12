@@ -1,5 +1,8 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.51.24 — P2-F.5 Works Register Generator
+- selectProjectsForTender + PDF/DOCX wykaz robót + rekomendacje w warunkach udziału
+
 ## 2.51.23 — P2-F.4 References + ATH Quick Access
 - referenceFiles/protocolFiles upload + status referencji vs SWZ
 - Karta ofertowa: Otwórz przedmiar / Pobierz PDF (reuse ATH viewer)

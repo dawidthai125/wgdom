@@ -19,6 +19,7 @@ import {
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { TenderFitPanel } from "@/app/TenderFitPanel";
 import { TenderParticipationPanel } from "@/app/TenderParticipationPanel";
+import { TenderWorksRegisterPanel } from "@/app/TenderWorksRegisterPanel";
 import { TenderBidProposalPanel } from "@/app/TenderBidProposalPanel";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
@@ -325,6 +326,7 @@ export function TenderBidPrepPanel({
 
       <div className="px-3 pb-3 space-y-3 border-t border-border/60 pt-3">
         <TenderParticipationPanel swz={swz} />
+        <TenderWorksRegisterPanel tenderId={item.tenderId ?? item.id} swz={swz} />
         <TenderFitPanel fit={fit} awardCriteria={swz?.awardCriteria} />
         <TenderBidProposalPanel
           proposal={bidProposal}

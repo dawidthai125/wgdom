@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.24",
+    label: "Przetargi — Generator wykazu robót (P2-F.5)",
+    items: [
+      { type: "new", text: "Automatyczny wykaz robót budowlanych z profilu wykonawcy (selekcja vs wymogi SWZ)" },
+      { type: "new", text: "Rekomendowane realizacje w warunkach udziału + panel Generuj PDF / DOCX" },
+      { type: "new", text: "tender-works-register + PDF (pdfmake) + DOCX (edycja przed ofertą)" },
+      { type: "improve", text: "[WORKS REGISTER TRACE] — requiredProjects, selectedProjects, pdf/docx" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.23",
     label: "Przetargi — Referencje realizacji + ATH Quick Access (P2-F.4)",
     items: [
