@@ -35,20 +35,7 @@ import {
   computeForecast90Days,
   type Forecast90DaysInput,
 } from "@/lib/tender-center-forecast-90d";
-import {
-  explainHealth,
-  buildForecastExplainContext,
-  explainAllForecastHorizons,
-  buildOwnerStrategicAlerts,
-} from "@/lib/tender-center-explain";
-import { computeAiInsights, type AiInsightsResult } from "@/lib/tender-center-ai-insights";
-import { computeOwnerProfile, type OwnerProfile } from "@/lib/tender-center-owner-profile";
-import {
-  getLearningStats,
-  loadTenderLearning,
-  type LearningStats,
-} from "@/lib/tender-center-learning";
-import { buildMorningBriefing } from "@/lib/tender-center-morning-briefing";
+import { buildOwnerStrategicAlerts } from "@/lib/tenders-strategy-alerts";
 import { buildActionCenter } from "@/lib/tender-center-action-center";
 import {
   computeFinancialCapacity,
@@ -68,14 +55,9 @@ export type CommandCenterProviderInput = {
 export type CommandCenterContextValue = {
   snapshot: CommandCenterExecutiveSnapshot;
   ownerDecisions: ReturnType<typeof useOwnerTenderDecisions>;
-  /** strategicAlerts z explain — alias dla dokumentacji 7H */
+  /** Alerty strategiczne — karmią Action Center (Priorytety). */
   strategicAlerts: CommandCenterExecutiveSnapshot["ownerAlerts"];
-  learningStats: LearningStats;
-  ownerProfile: OwnerProfile;
-  aiInsights: AiInsightsResult;
-  learningRevision: number;
   profileVersion: number;
-  bumpLearningRevision: () => void;
   bumpProfileVersion: () => void;
 };
 
@@ -83,7 +65,6 @@ const CommandCenterContext = createContext<CommandCenterContextValue | null>(nul
 
 function useCommandCenterSnapshot(
   input: CommandCenterProviderInput,
-  learningRevision: number,
   profileVersion: number,
   ownerDecisions: ReturnType<typeof useOwnerTenderDecisions>,
 ): CommandCenterExecutiveSnapshot {
@@ -209,21 +190,6 @@ function useCommandCenterSnapshot(
     [forecastInput],
   );
 
-  const healthExplanation = useMemo(
-    () => explainHealth(healthInput, health, forecast90),
-    [healthInput, health, forecast90],
-  );
-
-  const forecastExplainContext = useMemo(() => {
-    const goItems = goCandidates.map((b) => b.item);
-    return buildForecastExplainContext(jobs, goItems);
-  }, [jobs, goCandidates]);
-
-  const forecastHorizonExplanations = useMemo(
-    () => explainAllForecastHorizons(forecast90, forecastExplainContext),
-    [forecast90, forecastExplainContext],
-  );
-
   const ownerAlerts = useMemo(
     () =>
       buildOwnerStrategicAlerts({
@@ -231,7 +197,6 @@ function useCommandCenterSnapshot(
         items: pipeline.items,
         goBundles: scoredForForecast,
         forecast: forecast90,
-        forecastContext: forecastExplainContext,
         profile,
         ownerStore: ownerDecisions.store,
         savedWeeks,
@@ -241,7 +206,6 @@ function useCommandCenterSnapshot(
       pipeline.items,
       scoredForForecast,
       forecast90,
-      forecastExplainContext,
       profile,
       ownerDecisions.store,
       savedWeeks,
@@ -259,20 +223,6 @@ function useCommandCenterSnapshot(
         strategicAlerts: ownerAlerts,
       }),
     [radarTop, scoredForForecast, health, forecast90, ownerDecisions.store, ownerAlerts],
-  );
-
-  const ownerDecisionProfile = useMemo(() => {
-    const { entries } = loadTenderLearning();
-    return computeOwnerProfile(entries);
-  }, [learningRevision]);
-
-  const aiInsights = useMemo(
-    () =>
-      computeAiInsights({
-        learningEntries: loadTenderLearning().entries,
-        ownerProfile: ownerDecisionProfile,
-      }),
-    [learningRevision, ownerDecisionProfile],
   );
 
   const financialCapacityComputed = useMemo((): FinancialCapacityResult | null => {
@@ -320,30 +270,6 @@ function useCommandCenterSnapshot(
     marketKpi,
   ]);
 
-  const morningBriefing = useMemo(
-    () =>
-      buildMorningBriefing({
-        health,
-        actionCenter,
-        forecast: forecast90,
-        financialCapacity: financialCapacityComputed,
-        ownerProfile: ownerDecisionProfile,
-        aiInsights,
-        bestOpportunity,
-        ownerName: profile.ownerName,
-      }),
-    [
-      health,
-      actionCenter,
-      forecast90,
-      financialCapacityComputed,
-      ownerDecisionProfile,
-      aiInsights,
-      bestOpportunity,
-      profile.ownerName,
-    ],
-  );
-
   return {
     pipeline,
     growthModeState,
@@ -351,13 +277,9 @@ function useCommandCenterSnapshot(
     profile,
     health,
     healthInput,
-    healthExplanation,
-    morningBriefing,
     actionCenter,
     forecast90,
     forecastInput,
-    forecastHorizonExplanations,
-    forecastExplainContext,
     bestOpportunity,
     financialCapacity: financialCapacityComputed,
     marketKpi,
@@ -395,12 +317,7 @@ export function CommandCenterProvider({
     [jobs, directory, productionWeekEmployees, weekFrom, weekTo, savedWeeks],
   );
 
-  const [learningRevision, setLearningRevision] = useState(0);
   const [profileVersion, setProfileVersion] = useState(0);
-
-  const bumpLearningRevision = useCallback(() => {
-    setLearningRevision((v) => v + 1);
-  }, []);
 
   const bumpProfileVersion = useCallback(() => {
     setProfileVersion((v) => v + 1);
@@ -418,25 +335,8 @@ export function CommandCenterProvider({
   const ownerDecisions = useOwnerTenderDecisions();
   const snapshot = useCommandCenterSnapshot(
     input,
-    learningRevision,
     profileVersion,
     ownerDecisions,
-  );
-
-  const learningStats = useMemo(() => getLearningStats(), [learningRevision]);
-
-  const ownerProfile = useMemo(() => {
-    const { entries } = loadTenderLearning();
-    return computeOwnerProfile(entries);
-  }, [learningRevision]);
-
-  const aiInsights = useMemo(
-    () =>
-      computeAiInsights({
-        learningEntries: loadTenderLearning().entries,
-        ownerProfile,
-      }),
-    [learningRevision, ownerProfile],
   );
 
   const value = useMemo(
@@ -444,25 +344,10 @@ export function CommandCenterProvider({
       snapshot,
       ownerDecisions,
       strategicAlerts: snapshot.ownerAlerts,
-      learningStats,
-      ownerProfile,
-      aiInsights,
-      learningRevision,
       profileVersion,
-      bumpLearningRevision,
       bumpProfileVersion,
     }),
-    [
-      snapshot,
-      ownerDecisions,
-      learningStats,
-      ownerProfile,
-      aiInsights,
-      learningRevision,
-      profileVersion,
-      bumpLearningRevision,
-      bumpProfileVersion,
-    ],
+    [snapshot, ownerDecisions, profileVersion, bumpProfileVersion],
   );
 
   if (!enabled) {

@@ -15,7 +15,7 @@ import {
   GLOSSARY_TERM_PL,
 } from "../src/lib/tender-center-ui-labels-pl.ts";
 import { DECISION_LABEL_PL } from "../src/lib/tender-center-decision.ts";
-import { COMMAND_CENTER_BRAND } from "../src/app/tender-center/branding.ts";
+import { TENDERS_MODULE_LABELS } from "../src/lib/tenders-module-labels.ts";
 import { WHAT_IF_PRESET_LABELS } from "../src/lib/tender-center-what-if.ts";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -52,13 +52,14 @@ log("=== Sprint 20.3B+ FULL — UI Language smoke ===\n");
   assert("T1 decision STARTUJ", DECISION_LABEL_PL.GO === "STARTUJ");
 }
 
-// T2 — Marka COMMAND CENTER AI bez zmian
+// T2 — Etykiety modułu Przetargi (P1-B ETAP 1 — bez COMMAND CENTER AI)
 {
-  assert("T2 brand title", COMMAND_CENTER_BRAND.title.includes("COMMAND CENTER AI"));
-  assert("T2 brand toggle", COMMAND_CENTER_BRAND.togglePro === "COMMAND CENTER AI");
-  assert("T2 authorLine PL", COMMAND_CENTER_BRAND.authorLine === "Zaprojektowany i opracowany przez");
+  assert("T2 module title PL", TENDERS_MODULE_LABELS.moduleTitle === "Przetargi");
+  assert("T2 strategy view PL", TENDERS_MODULE_LABELS.strategyView === "Analiza przetargów");
+  assert("T2 loading PL", TENDERS_MODULE_LABELS.loading === "Ładowanie przetargów…");
   const exec = readSrc("src/app/tender-center/components/CommandCenterExecutivePanel.tsx");
-  assert("T2 CTA brand preserved", exec.includes("Otwórz COMMAND CENTER AI"));
+  assert("T2 CTA Przetargi", exec.includes("Otwórz Przetargi"));
+  assert("T2 no COMMAND CENTER AI", lacksActiveUiString(exec, "COMMAND CENTER AI"));
 }
 
 // T3 — P0: brak kluczowych EN etykiet w aktywnych komponentach
@@ -91,43 +92,36 @@ log("=== Sprint 20.3B+ FULL — UI Language smoke ===\n");
 // T5 — P0: UI decyzji STARTUJ/ANALIZUJ/ODPUŚĆ
 {
   const portfolio = readSrc("src/app/tender-center/components/TenderPortfolioCounters.tsx");
-  const learning = readSrc("src/app/tender-center/components/LearningMemoryPanel.tsx");
   assert("T5 portfolio counters PL", portfolio.includes("DECISION_LABEL_PL.GO"));
   assert("T5 portfolio no raw GO counter", !portfolio.match(/label="GO"/));
-  assert("T5 learning counters PL", learning.includes('DECISION_LABEL_PL["NO-GO"]'));
   assert("T5 BestOpportunity buttons PL", readSrc("src/app/tender-center/components/BestOpportunityCard.tsx").includes("{DECISION_LABEL_PL[d]}"));
 }
 
-// T6 — P1: accordion i sekcje
+// T6 — P1: accordion i sekcje (P1-B ETAP 1 — uproszczony dashboard)
 {
   const dash = readSrc("src/app/tender-center/components/OwnerDashboard.tsx");
   assert("T6 no AI Insights accordion", lacksActiveUiString(dash, ">AI Insights<"));
-  assert("T6 explainability PL", dash.includes("SECTION_LABEL_PL.explainability"));
-  assert("T6 no Explainability raw", lacksActiveUiString(dash, ">Explainability<"));
+  assert("T6 no explainability section", lacksActiveUiString(dash, "SECTION_LABEL_PL.explainability"));
+  assert("T6 KPI rynku accordion", dash.includes("KPI rynku"));
   assert("T6 auto-sync PL", dash.includes("SECTION_LABEL_PL.autoSync"));
+  assert("T6 direct decision flow", dash.includes("ownerDecisions.setOwnerDecision"));
 }
 
-// T7 — P1: glossary, how-to, explainability
+// T7 — P1-B ETAP 1: usunięte moduły CC legacy
 {
-  const glossary = readSrc("src/app/tender-center/components/CommandCenterGlossary.tsx");
-  assert("T7 glossary uses GLOSSARY_TERM_PL", glossary.includes("GLOSSARY_TERM_PL"));
-  assert("T7 glossary no Health Index term", lacksActiveUiString(glossary, 'term: "Health Index"'));
-  const explain = readSrc("src/app/tender-center/components/CommandCenterExplainability.tsx");
-  assert("T7 explain health PL", explain.includes("METRIC_LABEL_PL.healthIndex"));
-  const howTo = readSrc("src/app/tender-center/components/HowToUseCommandCenter.tsx");
-  assert("T7 how-to uses DECISION_LABEL_PL", howTo.includes("DECISION_LABEL_PL.GO"));
+  assert("T7 strategy alerts lib exists", readSrc("src/lib/tenders-strategy-alerts.ts").includes("buildOwnerStrategicAlerts"));
+  const proView = readSrc("src/app/TenderCenterProView.tsx");
+  assert("T7 pro view uses TENDERS_MODULE_LABELS", proView.includes("TENDERS_MODULE_LABELS"));
+  assert("T7 pro view no COMMAND CENTER", lacksActiveUiString(proView, "COMMAND CENTER AI"));
 }
 
 // T8 — P1: lib dynamic strings
 {
-  const insights = readSrc("src/lib/tender-center-ai-insights.ts");
-  assert("T8 insights no raw GO highlight", lacksActiveUiString(insights, '"Najczęściej wybierasz decyzję GO."'));
-  assert("T8 insights uses METRIC_LABEL_PL", insights.includes("METRIC_LABEL_PL.opportunityScore"));
-  const morning = readSrc("src/lib/tender-center-morning-briefing.ts");
-  assert("T8 morning no HOLD — oceń", lacksActiveUiString(morning, '"HOLD — oceń ponownie"'));
   const whatIf = readSrc("src/lib/tender-center-what-if.ts");
   assert("T8 what-if baseline PL", WHAT_IF_PRESET_LABELS.baseline === BASELINE_LABEL_PL.baselineToday);
   assert("T8 what-if no Baseline EN", lacksActiveUiString(whatIf, '"Baseline (dziś)"'));
+  const actionCenter = readSrc("src/lib/tender-center-action-center.ts");
+  assert("T8 action center imports strategy alerts", actionCenter.includes("tenders-strategy-alerts"));
 }
 
 // T9 — Legacy poza scope — nie wymuszamy polonizacji

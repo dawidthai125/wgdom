@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { AlertTriangle, Briefcase, ChevronRight } from "lucide-react";
-import { COMMAND_CENTER_BRAND } from "@/app/tender-center/branding";
+import { TENDERS_MODULE_LABELS } from "@/lib/tenders-module-labels";
 import { useCommandCenterContext } from "@/app/tender-center/context/CommandCenterContext";
 import type { Job } from "@/app/app-domain";
 import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
@@ -64,7 +64,7 @@ export function CommandCenterExecutivePanel({
           <div className="min-w-0">
             <h2 className="text-sm font-bold tracking-wide text-foreground">{SHORTCUT_TITLE}</h2>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              Pilne terminy i wygrane bez roboty — pełna analiza w {COMMAND_CENTER_BRAND.togglePro}
+              Pilne terminy i wygrane bez roboty — pełna analiza w {TENDERS_MODULE_LABELS.strategyView}
             </p>
           </div>
         </div>
@@ -124,7 +124,7 @@ export function CommandCenterExecutivePanel({
           onClick={onOpenCommandCenter}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold transition-colors min-h-[44px]"
         >
-          Otwórz Command Center
+          Otwórz Przetargi
           <ChevronRight size={16} />
         </button>
       </div>

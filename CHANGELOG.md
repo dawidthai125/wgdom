@@ -4,12 +4,20 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.74** (`changelog-data.ts`) · Dashboard V3 — operacje bez Hero  
+**Aktualna wersja UI:** **2.50.75** (`changelog-data.ts`) · Przetargi ETAP 1 — CC cleanup phase 1  
 **★ SSOT handoff:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../CURRENT-TASK.md)  
 **★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
+
+---
+
+## 2.50.75 (2026-06-12) — Przetargi ETAP 1 — CC cleanup phase 1
+
+- Usunięto Morning Briefing, AI Insights, Learning, Owner Profile, Explainability UI, onboarding, branding CC
+- Decyzja GO/HOLD/NO-GO — bezpośredni zapis; alerty strategiczne → `tenders-strategy-alerts.ts`
+- Zachowano: pipeline BZP, prognoza 90d, financial capacity, health, portfel decyzji, Tender→Job
 
 ---
 

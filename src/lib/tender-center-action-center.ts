@@ -9,7 +9,7 @@ import type { TenderScoringBundle } from "@/lib/tender-center-decision";
 import type { Forecast90DaysResult } from "@/lib/tender-center-forecast-90d";
 import { collectGoCandidates, primaryForecastScenario } from "@/lib/tender-center-forecast-90d";
 import type { OwnerDecisionsStore } from "@/lib/tender-center-owner-decisions";
-import type { OwnerStrategicAlert } from "@/lib/tender-center-explain";
+import type { OwnerStrategicAlert } from "@/lib/tenders-strategy-alerts";
 import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
 import { BASELINE_LABEL_PL, METRIC_LABEL_PL, OPPORTUNITY_LABEL_PL, PIPELINE_LABEL_PL, STRATEGIC_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
 

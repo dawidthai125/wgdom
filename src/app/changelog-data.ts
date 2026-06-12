@@ -11,6 +11,15 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-12",
+    version: "2.50.75",
+    label: "Przetargi — ETAP 1 likwidacji Command Center",
+    items: [
+      { type: "improve", text: "Przetargi → Analiza przetargów — usunięto Morning Briefing, AI Insights, Learning, Owner Profile, Explainability, onboarding i branding COMMAND CENTER AI" },
+      { type: "improve", text: "Decyzja STARTUJ/ANALIZUJ/ODPUŚĆ — zapis bezpośredni bez dialogu powodu; zachowano prognozę 90d, zdolność finansową, health, pipeline BZP i portfel decyzji" },
+    ],
+  },
+  {
     date: "2026-06-11",
     version: "2.50.74",
     label: "Dashboard V3 — operacje bez Hero",

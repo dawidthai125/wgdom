@@ -20,7 +20,7 @@ const { defaultCompanyProfile } = await import("../src/lib/tenders-bzp-company.t
 const { computeCompanyHealth } = await import("../src/lib/tender-center-health.ts");
 const { computeForecast90Days } = await import("../src/lib/tender-center-forecast-90d.ts");
 const { scoreTender, rankTopTenderOpportunities } = await import("../src/lib/tender-center-decision.ts");
-const { buildOwnerStrategicAlerts } = await import("../src/lib/tender-center-explain.ts");
+const { buildOwnerStrategicAlerts } = await import("../src/lib/tenders-strategy-alerts.ts");
 const { buildActionCenter } = await import("../src/lib/tender-center-action-center.ts");
 
 const profile = defaultCompanyProfile();

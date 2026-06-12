@@ -9,7 +9,7 @@ import type {
 import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
 import { TendersView } from "@/app/TendersView";
 import { OwnerDashboard } from "@/app/tender-center/components/OwnerDashboard";
-import { COMMAND_CENTER_BRAND } from "@/app/tender-center/branding";
+import { TENDERS_MODULE_LABELS } from "@/lib/tenders-module-labels";
 
 export type TenderCenterViewMode = "pro" | "classic";
 
@@ -55,7 +55,7 @@ function TenderCenterViewToggle({
           }`}
         >
           <LayoutGrid size={14} />
-          {COMMAND_CENTER_BRAND.togglePro}
+          {TENDERS_MODULE_LABELS.strategyView}
         </button>
         <button
           type="button"
@@ -69,7 +69,7 @@ function TenderCenterViewToggle({
           }`}
         >
           <List size={14} />
-          {COMMAND_CENTER_BRAND.toggleClassic}
+          {TENDERS_MODULE_LABELS.classicView}
         </button>
       </div>
     </div>
