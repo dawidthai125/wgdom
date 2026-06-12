@@ -2596,22 +2596,38 @@ function normalizeBzpFilename(filename: string, index: number, contentType: stri
   return `Zalacznik_${index}${ext}`;
 }
 
+/** Lekki probe istnienia pliku — GET + natychmiastowe anulowanie body (HEAD zwraca 405 na e-Zamówieniach). */
+async function probeTenderDocumentMeta(
+  url: string,
+): Promise<{ contentType: string; contentDisposition: string | null } | null> {
+  const res = await fetch(url, { method: "GET", headers: EZAMOWIENIA_FETCH });
+  if (!res.ok) return null;
+  try {
+    await res.body?.cancel();
+  } catch {
+    /* anulowanie body — nie pobieramy całego pliku */
+  }
+  return {
+    contentType: res.headers.get("content-type") || "application/octet-stream",
+    contentDisposition: res.headers.get("content-disposition"),
+  };
+}
+
 async function probeTenderDocuments(tenderId: string): Promise<Record<string, unknown>[]> {
   const out: Record<string, unknown>[] = [];
   const base = "https://ezamowienia.gov.pl/mp-readmodels/api/Tender/DownloadDocument";
   for (let i = 1; i <= 25; i++) {
     const documentId = `${tenderId}_${i}`;
     const url = `${base}/${encodeURIComponent(tenderId)}/${encodeURIComponent(documentId)}`;
-    const res = await fetch(url, { method: "HEAD", headers: EZAMOWIENIA_FETCH });
-    if (!res.ok) break;
-    const ct = res.headers.get("content-type") || "application/octet-stream";
-    const rawName = parseDispositionFilename(res.headers.get("content-disposition"));
-    const filename = normalizeBzpFilename(rawName, i, ct);
+    const meta = await probeTenderDocumentMeta(url);
+    if (!meta) break;
+    const rawName = parseDispositionFilename(meta.contentDisposition);
+    const filename = normalizeBzpFilename(rawName, i, meta.contentType);
     out.push({
       index: i,
       documentId,
       filename,
-      contentType: ct.split(";")[0],
+      contentType: meta.contentType.split(";")[0],
       downloadUrl: url,
       isSwzHint: isSwzFilename(filename),
     });

@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.2",
+    label: "Przetargi — fix pobierania dokumentów e-Zamówienia (P2-A.1)",
+    items: [
+      { type: "fix", text: "Skan załączników BZP — GET zamiast HEAD na DownloadDocument (405 → dokumenty widoczne w Przetargach)" },
+      { type: "improve", text: "Probe metadanych pliku bez pobierania całej treści — anulowanie body po nagłówkach" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.1",
     label: "Przetargi 3.0 — cleanup nazewnictwa (ETAP 4)",
     items: [
