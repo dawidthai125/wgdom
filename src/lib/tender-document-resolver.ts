@@ -29,6 +29,7 @@ import { discoverBestCostDocument, type TenderCostDiscoveryResult } from "@/lib/
 import { enrichKosztorysSnapshotFromPreview, estimatePlnFromKosztorysSnapshot, traceCostPipeline } from "@/lib/tender-cost-snapshot";
 import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
 import { mergeFormalRequirements } from "@/lib/tender-formal-requirements";
+import { mergeParticipationRequirements } from "@/lib/tender-participation-requirements";
 
 const DOSSIER_MAX_CANDIDATES = 15;
 const ZIP_INNER_MAX = 20;
@@ -755,6 +756,10 @@ export function mergeSwzAnalysis(
     referenceRequirement: primary.referenceRequirement ?? fromDoc.referenceRequirement,
     qualificationHints: [...new Set([...primary.qualificationHints, ...fromDoc.qualificationHints])].slice(0, 8),
     formalRequirements: mergeFormalRequirements(primary.formalRequirements, fromDoc.formalRequirements),
+    participationRequirements: mergeParticipationRequirements(
+      primary.participationRequirements,
+      fromDoc.participationRequirements,
+    ),
     implementationDeadlineRaw: primary.implementationDeadlineRaw ?? fromDoc.implementationDeadlineRaw,
     implementationDays: primary.implementationDays ?? fromDoc.implementationDays,
     technicalRequirements: primary.technicalRequirements.length >= fromDoc.technicalRequirements.length

@@ -6,12 +6,14 @@ import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 export const TENDERS_COMPANY_PROFILE_KEY = "kw-tenders-company-profile";
+export const COMPANY_QUALIFICATION_PROFILE_KEY = "kw-company-profile";
 export const TENDERS_CUSTOM_KEYWORDS_KEY = "kw-tenders-custom-keywords";
 export const TENDERS_DELETED_IDS_KEY = "kw-tenders-deleted-ids";
 
 export const TENDER_DATA_KEYS = [
   TENDERS_PIPELINE_KEY,
   TENDERS_COMPANY_PROFILE_KEY,
+  COMPANY_QUALIFICATION_PROFILE_KEY,
   TENDERS_CUSTOM_KEYWORDS_KEY,
 ] as const;
 
@@ -134,6 +136,10 @@ export function mergeCompanyProfileForCloud(local: unknown, cloud: unknown): unk
   return ts(l.updatedAt) >= ts(c.updatedAt) ? l : c;
 }
 
+export function mergeCompanyQualificationProfileForCloud(local: unknown, cloud: unknown): unknown {
+  return mergeCompanyProfileForCloud(local, cloud);
+}
+
 function uniqWords(a: string[], b: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -168,6 +174,8 @@ export function mergeTenderDataKey(key: TenderDataKey, local: unknown, cloud: un
       return mergeTenderPipelineForCloud(local, cloud);
     case TENDERS_COMPANY_PROFILE_KEY:
       return mergeCompanyProfileForCloud(local, cloud);
+    case COMPANY_QUALIFICATION_PROFILE_KEY:
+      return mergeCompanyQualificationProfileForCloud(local, cloud);
     case TENDERS_CUSTOM_KEYWORDS_KEY:
       return mergeCustomKeywordsForCloud(local, cloud);
     default:

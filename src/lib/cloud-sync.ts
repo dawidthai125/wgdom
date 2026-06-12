@@ -19,6 +19,7 @@ import {
   mergeTenderDataKey,
   TENDERS_PIPELINE_KEY,
   TENDERS_COMPANY_PROFILE_KEY,
+  COMPANY_QUALIFICATION_PROFILE_KEY,
   TENDERS_CUSTOM_KEYWORDS_KEY,
   TENDERS_DELETED_IDS_KEY,
 } from "@/lib/tenders-sync";
@@ -38,6 +39,7 @@ export const DATA_KEYS = [
   "kw-recoverable-charges",
   "kw-tenders-pipeline",
   "kw-tenders-company-profile",
+  "kw-company-profile",
   "kw-tenders-custom-keywords",
 ] as const;
 
@@ -57,6 +59,7 @@ export const BOOTSTRAP_CORE_KEYS = [
 export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-tenders-pipeline",
   "kw-tenders-company-profile",
+  "kw-company-profile",
   "kw-tenders-custom-keywords",
   "kw-contacts",
   "kw-employee-leaves",
@@ -1377,6 +1380,8 @@ export function mergeDataKey(
       return mergeTenderDataKey(TENDERS_PIPELINE_KEY, local, cloud);
     case "kw-tenders-company-profile":
       return mergeTenderDataKey(TENDERS_COMPANY_PROFILE_KEY, local, cloud);
+    case "kw-company-profile":
+      return mergeTenderDataKey(COMPANY_QUALIFICATION_PROFILE_KEY, local, cloud);
     case "kw-tenders-custom-keywords":
       return mergeTenderDataKey(TENDERS_CUSTOM_KEYWORDS_KEY, local, cloud);
     case "kw-weekFrom":

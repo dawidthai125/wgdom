@@ -15,6 +15,7 @@ import {
 import { TenderDetailPanel } from "@/app/TenderDetailPanel";
 import { TendersLegend } from "@/app/TendersLegend";
 import { TenderCompanyProfilePanel } from "@/app/TenderCompanyProfilePanel";
+import { CompanyQualificationProfilePanel } from "@/app/CompanyQualificationProfilePanel";
 import { TenderKeywordsPanel } from "@/app/TenderKeywordsPanel";
 import { FIT_LABELS } from "@/lib/tenders-bzp-fit";
 import { PROFITABILITY_LABELS } from "@/lib/tenders-bzp-swz";
@@ -177,6 +178,7 @@ export function TendersView({
         {!listOnly && (
           <>
             <TenderCompanyProfilePanel onSaved={() => bumpProfileVersion()} />
+            <CompanyQualificationProfilePanel onSaved={() => bumpProfileVersion()} />
             <TenderKeywordsPanel onSaved={() => void pipeline.resyncKeywords()} />
 
             <TendersMapPanel

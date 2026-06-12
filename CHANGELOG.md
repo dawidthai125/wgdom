@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.51.20 — P2-F.1 Warunki udziału vs profil wykonawcy
+- kw-company-profile + Profil wykonawcy w ustawieniach przetargów
+- checkTenderParticipation: MATCH/MISSING/UNKNOWN, sekcja w karcie ofertowej
+
 ## 2.51.19 — P2-F.0 Formal Requirements Extraction
 - Model FormalRequirement + detektory SWZ (personel/uprawnienia/członkostwo/doświadczenie)
 - Filtr śmieci PDF, UI bullet „Wymagane:”, dopasowanie profilu, [FORMAL TRACE]

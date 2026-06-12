@@ -4,6 +4,11 @@ import {
   extractFormalRequirements,
   type FormalRequirement,
 } from "@/lib/tender-formal-requirements";
+import {
+  extractParticipationRequirements,
+  mergeParticipationRequirements,
+  type TenderParticipationRequirement,
+} from "@/lib/tender-participation-requirements";
 
 export interface TenderCostLine {
   lp: string;
@@ -26,6 +31,8 @@ export interface TenderSwzAnalysis {
   qualificationHints: string[];
   /** P2-F.0 — wymagania formalne (personel, uprawnienia, członkostwo, doświadczenie). */
   formalRequirements?: FormalRequirement[];
+  /** P2-F.1 — warunki udziału w postępowaniu (porównanie z profilem wykonawcy). */
+  participationRequirements?: TenderParticipationRequirement[];
   /** Termin / okres realizacji zamówienia. */
   implementationDeadlineRaw: string | null;
   implementationDays: number | null;
@@ -349,6 +356,7 @@ export function parseSwzPlainText(
 
   const sourceText = text.length > 500 ? text : multiline;
   const formalRequirements = extractFormalRequirements(sourceText);
+  const participationRequirements = extractParticipationRequirements(sourceText);
   const qualificationHints = formalRequirements.map((r) => r.label).slice(0, 5);
 
   const technicalRequirements = allMatches(multiline, /wymagania techniczne[^:]{0,40}[:\s]+([^.]{15,280}\.)/gi, 4);
@@ -382,6 +390,7 @@ export function parseSwzPlainText(
     referenceRequirement,
     qualificationHints: [...new Set(qualificationHints)].slice(0, 5),
     formalRequirements,
+    participationRequirements,
     implementationDeadlineRaw,
     implementationDays,
     technicalRequirements: [...new Set(technicalRequirements)].slice(0, 6),

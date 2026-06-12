@@ -16,6 +16,7 @@ import {
 } from "@/lib/tenders-actions";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { TenderFitPanel } from "@/app/TenderFitPanel";
+import { TenderParticipationPanel } from "@/app/TenderParticipationPanel";
 import { TenderBidProposalPanel } from "@/app/TenderBidProposalPanel";
 
 const STATUS_ICON = {
@@ -260,6 +261,7 @@ export function TenderBidPrepPanel({
       </div>
 
       <div className="px-3 pb-3 space-y-3 border-t border-border/60 pt-3">
+        <TenderParticipationPanel swz={swz} />
         <TenderFitPanel fit={fit} awardCriteria={swz?.awardCriteria} />
         <TenderBidProposalPanel
           proposal={bidProposal}

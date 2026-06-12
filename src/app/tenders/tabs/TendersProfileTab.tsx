@@ -1,5 +1,6 @@
 import { Building2 } from "lucide-react";
 import { TenderCompanyProfilePanel } from "@/app/TenderCompanyProfilePanel";
+import { CompanyQualificationProfilePanel } from "@/app/CompanyQualificationProfilePanel";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 
 export function TendersProfileTab() {
@@ -18,6 +19,7 @@ export function TendersProfileTab() {
         Limity wadium, równoległe roboty i dane ofertowe — wpływają na scoring i prognozę.
       </p>
       <TenderCompanyProfilePanel onSaved={() => bumpProfileVersion()} />
+      <CompanyQualificationProfilePanel onSaved={() => bumpProfileVersion()} />
     </div>
   );
 }

@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.20",
+    label: "Przetargi — Warunki udziału vs profil wykonawcy (P2-F.1)",
+    items: [
+      { type: "new", text: "Profil wykonawcy (kw-company-profile) — personel, uprawnienia, doświadczenie, OC, finanse, referencje" },
+      { type: "new", text: "Sekcja „Warunki udziału w postępowaniu” — MATCH / MISSING / UNKNOWN bez AI score" },
+      { type: "improve", text: "Możliwość startu: Spełnione / Wymaga weryfikacji / Braki formalne — twarde porównanie SWZ ↔ profil" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.19",
     label: "Przetargi — Wymagania formalne SWZ (P2-F.0)",
     items: [

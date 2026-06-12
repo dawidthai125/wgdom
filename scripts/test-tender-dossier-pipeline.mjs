@@ -67,6 +67,11 @@ import {
   isFormalRequirementGarbage,
   FORMAL_REQUIREMENTS_UNKNOWN_LABEL,
 } from "../src/lib/tender-formal-requirements.ts";
+import {
+  defaultCompanyQualificationProfile,
+} from "../src/lib/company-qualification-profile.ts";
+import { extractParticipationRequirements } from "../src/lib/tender-participation-requirements.ts";
+import { checkTenderParticipation } from "../src/lib/tender-participation-check.ts";
 
 let pass = 0;
 let fail = 0;
@@ -629,6 +634,55 @@ const fitUnknown = assessTenderFit(
 );
 const qualUnknown = fitUnknown.requirementChecks.find((c) => c.id === "qualifications");
 assert("p2f0 fit unknown fallback", qualUnknown?.required === FORMAL_REQUIREMENTS_UNKNOWN_LABEL || qualUnknown == null);
+
+// P2-F.1 — warunki udziału vs profil wykonawcy
+const profilePiib = defaultCompanyQualificationProfile();
+profilePiib.licenses.piib = true;
+
+const reqPiib = extractParticipationRequirements(
+  "Warunki udziału. Wykonawca wskaże osobę będącą członkiem Izby Inżynierów Budownictwa.",
+);
+const checkPiib = checkTenderParticipation(reqPiib, profilePiib);
+assert("p2f1 piib match", checkPiib?.matched.some((m) => /PIIB|izby/i.test(m.label)));
+
+const profileNoSan = defaultCompanyQualificationProfile();
+profileNoSan.personnel.kierownikSanitarny = false;
+const reqSan = extractParticipationRequirements(
+  "Osoby skierowane do realizacji: kierownik robót sanitarnych.",
+);
+const checkSan = checkTenderParticipation(reqSan, profileNoSan);
+assert("p2f1 sanitary missing", checkSan?.missing.some((m) => /sanitarn/i.test(m.label)));
+
+const profileEmptyExp = defaultCompanyQualificationProfile();
+profileEmptyExp.experience.similarProjectsCount = null;
+profileEmptyExp.experience.largestProjectPln = null;
+const reqExp = extractParticipationRequirements(
+  "Zdolność techniczna. Minimum 2 zakończone roboty o wartości co najmniej 500 000 zł.",
+);
+const checkExp = checkTenderParticipation(reqExp, profileEmptyExp);
+assert("p2f1 experience unknown", checkExp?.unknown.length >= 1 || checkExp?.overall === "needs_verification");
+
+const profileOc = defaultCompanyQualificationProfile();
+profileOc.insurance.ocPln = 2_000_000;
+const reqOc = extractParticipationRequirements(
+  "Warunki udziału. Polisa OC na sumę minimum 1 000 000 zł.",
+);
+const checkOc = checkTenderParticipation(reqOc, profileOc);
+assert("p2f1 oc match", checkOc?.matched.some((m) => m.status === "MATCH"));
+
+const checkEmpty = checkTenderParticipation([], profilePiib);
+assert("p2f1 no reqs null", checkEmpty == null);
+
+const tbsPart = extractParticipationRequirements(tbsGarbageSwz);
+assert("p2f1 tbs no garbage part", !tbsPart.some((r) => /budowlane 12|Zamawiającego/i.test(r.label)));
+const tbsPartCheck = checkTenderParticipation(tbsPart, profilePiib);
+assert("p2f1 tbs no false gaps", tbsPartCheck == null || tbsPartCheck.missing.length === 0);
+
+const swzPartParsed = parseSwzPlainText(
+  "Warunki udziału. Minimum jedna osoba z uprawnieniami budowlanymi oraz członek Izby Inżynierów Budownictwa.",
+  { source: "pdf" },
+);
+assert("p2f1 parse participationRequirements", (swzPartParsed.participationRequirements?.length ?? 0) >= 2);
 
 // HOTFIX — parseTenderDossierDocuments musi mieć import roleContributesMetadata (P2-E.1 path)
 let dossierPipelineErr = null;
