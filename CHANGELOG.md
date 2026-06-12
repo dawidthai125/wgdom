@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.52.0 — P2-G.1A Tender Cost Intelligence silnik
+- wgdom-cost-catalog.ts — 8 kategorii MVP, regiony wroclaw/dolnyslask
+- wgdom-ath-classifier.ts — classifyAthLineCategory()
+- wgdom-catalog-cost-engine.ts — computeFromCatalogRow(), aggregateCatalogDirectCost()
+- test-tender-cost-intelligence.mjs
+
 ## 2.51.25 — P2-F.4 hotfix ATH Quick Access Logintrade
 - downloadUrl w resolveAthPreviewItem + loadTenderBzpDocumentBytesResolved (ZIP → inner ATH)
 - Pełny podgląd dossier + trace platform/downloadUrlResolved

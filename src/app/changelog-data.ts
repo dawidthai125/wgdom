@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.52.0",
+    label: "Przetargi — Tender Cost Intelligence silnik (P2-G.1A)",
+    items: [
+      { type: "new", text: "WGDOM Cost Catalog — 8 kategorii MVP, regiony Wrocław / Dolny Śląsk (lib, seed lokalny)" },
+      { type: "new", text: "ATH Classifier — classifyAthLineCategory() z keywords katalogu" },
+      { type: "new", text: "Catalog Cost Engine — computeFromCatalogRow(), aggregateCatalogDirectCost()" },
+      { type: "improve", text: "Test regresji: scripts/test-tender-cost-intelligence.mjs" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.51.25",
     label: "Przetargi — fix ATH Quick Access Logintrade (P2-F.4 hotfix)",
     items: [

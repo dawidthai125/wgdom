@@ -1,0 +1,225 @@
+/**
+ * P2-G.1A — WGDOM Cost Catalog (MVP seed, bez chmury).
+ * Źródło stawek materiałowych i norm rbh per kategoria × j.m. × region.
+ */
+
+export type WgdomCostCategoryId =
+  | "MALOWANIE"
+  | "GK"
+  | "GLAZURA"
+  | "PODLOGI"
+  | "ELEKTRYKA"
+  | "HYDRAULIKA"
+  | "ROZBIORKI"
+  | "STOLARKA"
+  | "UNKNOWN";
+
+export type WgdomCostUnit = "m2" | "mb" | "szt" | "rbh" | "m3" | "kpl";
+
+export type WgdomCostRegion = "wroclaw" | "dolnyslask";
+
+export const WGDOM_COST_CATEGORY_IDS: WgdomCostCategoryId[] = [
+  "MALOWANIE",
+  "GK",
+  "GLAZURA",
+  "PODLOGI",
+  "ELEKTRYKA",
+  "HYDRAULIKA",
+  "ROZBIORKI",
+  "STOLARKA",
+];
+
+export interface WgdomCategoryRate {
+  unit: WgdomCostUnit;
+  materialPlnPerUnit: number;
+  laborRbhPerUnit: number;
+}
+
+export interface WgdomCostCategoryDef {
+  id: WgdomCostCategoryId;
+  labelPl: string;
+  rates: WgdomCategoryRate[];
+  keywords: string[];
+  marketRefNote?: string;
+}
+
+export interface WgdomUnknownFallback {
+  materialPlnPerUnit: number;
+  laborRbhPerUnit: number;
+  defaultUnit: WgdomCostUnit;
+}
+
+export interface WgdomCostCatalog {
+  schemaVersion: 1;
+  region: WgdomCostRegion;
+  regionMultiplier: number;
+  categories: WgdomCostCategoryDef[];
+  unknownFallback: WgdomUnknownFallback;
+  updatedAt: string;
+}
+
+export interface WgdomCostCatalogStore {
+  schemaVersion: 1;
+  activeRegion: WgdomCostRegion;
+  catalogs: Record<WgdomCostRegion, WgdomCostCatalog>;
+}
+
+const REGION_MULTIPLIERS: Record<WgdomCostRegion, number> = {
+  wroclaw: 1.0,
+  dolnyslask: 0.92,
+};
+
+/** Bazowe definicje kategorii (stawki przed mnożnikiem regionu w getCategoryRate). */
+const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<WgdomCostCategoryId, "UNKNOWN"> }[] = [
+  {
+    id: "MALOWANIE",
+    labelPl: "Malowanie",
+    rates: [{ unit: "m2", materialPlnPerUnit: 8, laborRbhPerUnit: 0.16 }],
+    keywords: ["malow", "emali", "farb", "gruntow", "tapet", "lakier"],
+    marketRefNote: "Pakiet materiałowy średni — farba + grunt",
+  },
+  {
+    id: "GK",
+    labelPl: "Gładzie / GK",
+    rates: [{ unit: "m2", materialPlnPerUnit: 12, laborRbhPerUnit: 0.26 }],
+    keywords: ["glad", "g-k", "regips", "szpachl", "tynk", "profil cd", "plyta gk"],
+  },
+  {
+    id: "GLAZURA",
+    labelPl: "Glazura / płytki",
+    rates: [{ unit: "m2", materialPlnPerUnit: 45, laborRbhPerUnit: 0.42 }],
+    keywords: ["glazur", "plytk", "kafel", "fugow", "hydroizol", "ceram"],
+  },
+  {
+    id: "ROZBIORKI",
+    labelPl: "Rozbiórki",
+    rates: [
+      { unit: "m2", materialPlnPerUnit: 3, laborRbhPerUnit: 0.14 },
+      { unit: "mb", materialPlnPerUnit: 8, laborRbhPerUnit: 0.1 },
+      { unit: "m3", materialPlnPerUnit: 25, laborRbhPerUnit: 0.35 },
+    ],
+    keywords: ["rozbior", "demonta", "wyburz", "skucie", "zdjec", "usuwanie"],
+  },
+  {
+    id: "PODLOGI",
+    labelPl: "Podłogi",
+    rates: [
+      { unit: "m2", materialPlnPerUnit: 55, laborRbhPerUnit: 0.32 },
+      { unit: "mb", materialPlnPerUnit: 18, laborRbhPerUnit: 0.12 },
+    ],
+    keywords: ["podlog", "parkiet", "panele", "wykladzin", "posadzk", "wylewka"],
+  },
+  {
+    id: "ELEKTRYKA",
+    labelPl: "Elektryka",
+    rates: [
+      { unit: "szt", materialPlnPerUnit: 85, laborRbhPerUnit: 1.2 },
+      { unit: "mb", materialPlnPerUnit: 22, laborRbhPerUnit: 0.18 },
+      { unit: "rbh", materialPlnPerUnit: 0, laborRbhPerUnit: 1 },
+    ],
+    keywords: ["elektr", "gniazd", "wlacznik", "oswietl", "przewod", "rozdziel", "instalac.*elektr"],
+  },
+  {
+    id: "HYDRAULIKA",
+    labelPl: "Hydraulika",
+    rates: [
+      { unit: "szt", materialPlnPerUnit: 120, laborRbhPerUnit: 1.5 },
+      { unit: "mb", materialPlnPerUnit: 35, laborRbhPerUnit: 0.22 },
+      { unit: "rbh", materialPlnPerUnit: 0, laborRbhPerUnit: 1 },
+    ],
+    keywords: ["hydrau", "rura", "kanaliz", "wod-kan", "armatur", "wc", "sanit", "instalac.*wod"],
+  },
+  {
+    id: "STOLARKA",
+    labelPl: "Stolarka",
+    rates: [
+      { unit: "szt", materialPlnPerUnit: 450, laborRbhPerUnit: 2.5 },
+      { unit: "mb", materialPlnPerUnit: 95, laborRbhPerUnit: 0.35 },
+    ],
+    keywords: ["drzwi", "okno", "osciezn", "stolark", "montaz drzwi", "montaz okien"],
+  },
+];
+
+const DEFAULT_UNKNOWN_FALLBACK: WgdomUnknownFallback = {
+  materialPlnPerUnit: 15,
+  laborRbhPerUnit: 0.2,
+  defaultUnit: "m2",
+};
+
+export function defaultWgdomCostCatalog(region: WgdomCostRegion = "wroclaw"): WgdomCostCatalog {
+  return {
+    schemaVersion: 1,
+    region,
+    regionMultiplier: REGION_MULTIPLIERS[region],
+    categories: BASE_CATEGORY_DEFS.map((c) => ({ ...c, rates: c.rates.map((r) => ({ ...r })) })),
+    unknownFallback: { ...DEFAULT_UNKNOWN_FALLBACK },
+    updatedAt: "2026-06-13T00:00:00.000Z",
+  };
+}
+
+export function defaultWgdomCostCatalogStore(): WgdomCostCatalogStore {
+  return {
+    schemaVersion: 1,
+    activeRegion: "wroclaw",
+    catalogs: {
+      wroclaw: defaultWgdomCostCatalog("wroclaw"),
+      dolnyslask: defaultWgdomCostCatalog("dolnyslask"),
+    },
+  };
+}
+
+/** Reguły klasyfikacji — keywords z seed katalogu (kolejność = priorytet). */
+export function getCatalogClassificationRules(
+  catalog: WgdomCostCatalog = defaultWgdomCostCatalog(),
+): { id: WgdomCostCategoryId; keywords: string[] }[] {
+  return catalog.categories.map((c) => ({ id: c.id, keywords: c.keywords }));
+}
+
+export function findCategoryDef(
+  catalog: WgdomCostCatalog,
+  categoryId: WgdomCostCategoryId,
+): WgdomCostCategoryDef | null {
+  if (categoryId === "UNKNOWN") return null;
+  return catalog.categories.find((c) => c.id === categoryId) ?? null;
+}
+
+/** Normalizacja j.m. z ATH do kanonicznej WgdomCostUnit. */
+export function normalizeWgdomCostUnit(raw: string | undefined | null): WgdomCostUnit | null {
+  if (!raw?.trim()) return null;
+  const u = raw.toLowerCase().replace(/\s/g, "").replace("²", "2");
+  if (/^(m2|m²|mp)$/.test(u)) return "m2";
+  if (/^(mb|m\.b\.|mb\.|m)$/.test(u)) return "mb";
+  if (/^(szt|szt\.|kpl|kompl)$/.test(u)) return "szt";
+  if (/^(rbh|r[\s-]?bh|r[\s-]?g|h|godz|m[gh]|rob(?:\.|-)?g(?:\.|-)?h)$/.test(u)) return "rbh";
+  if (/^(m3|m³)$/.test(u)) return "m3";
+  return null;
+}
+
+/**
+ * Stawka kategorii × j.m. z uwzględnieniem mnożnika regionu (materiał).
+ * Norma rbh bez mnożnika regionu.
+ */
+export function getCategoryRate(
+  catalog: WgdomCostCatalog,
+  categoryId: WgdomCostCategoryId,
+  unit: WgdomCostUnit,
+): WgdomCategoryRate | null {
+  const def = findCategoryDef(catalog, categoryId);
+  const base = def?.rates.find((r) => r.unit === unit) ?? null;
+  if (!base) return null;
+  return {
+    unit: base.unit,
+    materialPlnPerUnit: base.materialPlnPerUnit * catalog.regionMultiplier,
+    laborRbhPerUnit: base.laborRbhPerUnit,
+  };
+}
+
+/** Fallback rate dla UNKNOWN lub braku dopasowania j.m. */
+export function getUnknownFallbackRate(catalog: WgdomCostCatalog): WgdomCategoryRate {
+  const fb = catalog.unknownFallback;
+  return {
+    unit: fb.defaultUnit,
+    materialPlnPerUnit: fb.materialPlnPerUnit * catalog.regionMultiplier,
+    laborRbhPerUnit: fb.laborRbhPerUnit,
+  };
+}
