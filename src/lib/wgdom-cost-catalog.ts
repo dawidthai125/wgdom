@@ -1,5 +1,5 @@
 /**
- * P2-G.1A — WGDOM Cost Catalog (MVP seed, bez chmury).
+ * P2-G.1A — WGDOM Cost Catalog (MVP seed + chmura kw-wgdom-cost-catalog).
  * Źródło stawek materiałowych i norm rbh per kategoria × j.m. × region.
  */
 
@@ -62,6 +62,7 @@ export interface WgdomCostCatalogStore {
   schemaVersion: 1;
   activeRegion: WgdomCostRegion;
   catalogs: Record<WgdomCostRegion, WgdomCostCatalog>;
+  updatedAt?: string;
 }
 
 const REGION_MULTIPLIERS: Record<WgdomCostRegion, number> = {
@@ -165,6 +166,7 @@ export function defaultWgdomCostCatalogStore(): WgdomCostCatalogStore {
       wroclaw: defaultWgdomCostCatalog("wroclaw"),
       dolnyslask: defaultWgdomCostCatalog("dolnyslask"),
     },
+    updatedAt: "2026-06-13T00:00:00.000Z",
   };
 }
 

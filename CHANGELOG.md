@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.52.2 — P2-G.1C centrum wyceny UI + katalog chmura
+- Nasza wycena multi-linia + źródło + jakość
+- TenderBidProposalPanel badge/disclaimer/podstawa kalkulacji
+- TenderCompanyProfilePanel WGDOM Cost Catalog + kw-wgdom-cost-catalog
+
 ## 2.52.1 — P2-G.1B integracja kalkulatora catalog mode
 - catalogQuantities[] snapshot (250 poz.)
 - computeTenderBidProposal pricingMode catalog / ath_priced

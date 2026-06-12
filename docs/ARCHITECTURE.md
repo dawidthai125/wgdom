@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.52.1** · P2-G.1B)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.1B — integracja kalkulatora catalog mode)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.52.2** · P2-G.1C)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.1C — UI wyceny + katalog chmura)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -847,51 +847,60 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 
 **Nie zmieniaj bez polecenia:** merge `kw-company-profile`, semantyka `referenceStatus`, filtry śmieci PDF w parserach SWZ, reuse ATH viewer.
 
-### 12.1.6 P2-G — Tender Cost Intelligence (P2-G.1A — silnik, IN PROGRESS)
+### 12.1.6 P2-G — Tender Cost Intelligence (P2-G.1 COMPLETE)
 
-**Status:** **P2-G.1A COMPLETE** · **P2-G.1B COMPLETE** (integracja kalkulatora) · **P2-G.1C** (UI rozszerzone) — backlog.
+**Status:** **P2-G.1A + P2-G.1B + P2-G.1C COMPLETE** · prod backlog **2.52.2**
 
-**Cel:** autorska wycena przetargu z przedmiaru ATH **bez cen** (FOUND_NO_VALUE) — koszt wykonania + oferty min/rekom/agresywna przez rozszerzenie istniejącego kalkulatora (`tenders-bid-calculator.ts`), **nie** nowy moduł ofertowy.
+**Cel:** autorska wycena przetargu z przedmiaru ATH **bez cen** (FOUND_NO_VALUE) — koszt wykonania + oferty min/rekom/agresywna przez rozszerzenie `computeTenderBidProposal()`, **nie** nowy moduł ofertowy.
+
+**Źródła wyceny (UI):**
+
+| `pricingMode` | Badge | Jakość |
+|---------------|-------|--------|
+| `ath_priced` | Kosztorys ATH | Wysoka |
+| `catalog` | Katalog WGDOM | Średnia (Ograniczona gdy UNKNOWN >15%) |
+
+**Chmura:** `kw-wgdom-cost-catalog` — `WgdomCostCatalogStore` (regiony `wroclaw` / `dolnyslask`, 8 kategorii MVP). Sync: `DATA_KEYS`, `BOOTSTRAP_DEFERRED_KEYS`, merge w `tenders-sync.ts` · edycja: `TenderCompanyProfilePanel` → sekcja **WGDOM Cost Catalog**.
 
 **P2-G.1B — FOUND_NO_VALUE → catalog mode:**
 
 | Warunek | `pricingMode` | Wejście direct cost |
 |---------|---------------|---------------------|
-| Suma ATH / pozycje z kwotami > 0 | `ath_priced` | Istniejąca heurystyka R/M z kosztorysu |
-| Brak cen + `catalogQuantities[]` | `catalog` | `aggregateCatalogDirectCost()` → Kp, stałe, marża (reuse) |
+| Suma ATH / pozycje z kwotami > 0 | `ath_priced` | Heurystyka R/M z kosztorysu |
+| Brak cen + `catalogQuantities[]` | `catalog` | `aggregateCatalogDirectCost()` → reuse Kp, stałe, marża |
 
-**Snapshot:** `TenderKosztorysSnapshot.catalogQuantities[]` — `{ lp, description, unit, quantity }`, max **250** poz. (`CATALOG_QUANTITIES_CAP`), wypełniane w `athPreviewToSnapshot()`.
+**Snapshot:** `catalogQuantities[]` max **250** poz. w `athPreviewToSnapshot()`.
 
-**Kalkulator:** `resolveTenderBidPricingMode()`, `resolveCatalogQuantities()`, `computeTenderBidProposal()` — pole `pricingMode` w wyniku.
+**P2-G.1C — UI:**
 
-**Kafelek „Nasza wycena”:** gdy `bidProposal.ok` + `catalog` — tekst „Koszt wykonania · Propozycja” (`buildOurEstimateDisplaySsot`), bez pełnego UI P2-G.1C.
+| Element | Plik |
+|---------|------|
+| Kafelek „Nasza wycena” (multi-linia, źródło, status ok) | `tenders-bid-prep.ts`, `buildOurEstimateTileDisplay()` |
+| Badge źródła, podstawa kalkulacji, jakość, disclaimer | `TenderBidProposalPanel.tsx` |
+| Quality engine | `tender-bid-quality.ts` |
+| Persistencja katalogu | `wgdom-cost-catalog-store.ts` |
 
-**Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (P2-G.1A + P2-G.1B).
-
-**Źródła danych (hierarchia):**
-
-1. Lista płac WGDOM → `fullyLoadedHourly()` (`company-labor-cost.ts`)
-2. `TenderCompanyCostModel` (`kw-tenders-company-profile`)
-3. **WGDOM Cost Catalog** — seed lokalny (P2-G.1A); chmura `kw-wgdom-cost-catalog` — **P2-G.1B+**
-4. Referencje rynkowe — tylko pomocniczo (`marketRefNote`), bez scrapingu
-
-**P2-G.1A — moduły lib (bez UI, bez sync):**
+**Moduły lib:**
 
 | Plik | Rola |
 |------|------|
-| `wgdom-cost-catalog.ts` | Typy, 8 kategorii MVP + UNKNOWN, regiony `wroclaw` / `dolnyslask`, `defaultWgdomCostCatalog()`, `getCategoryRate()` |
-| `wgdom-ath-classifier.ts` | `classifyAthLineCategory(description, unit)` — keywords z seed katalogu, fallback UNKNOWN |
-| `wgdom-catalog-cost-engine.ts` | `computeFromCatalogRow()`, `aggregateCatalogDirectCost()` — material + labor → directCost |
+| `wgdom-cost-catalog.ts` | Typy, seed, `getCategoryRate()` |
+| `wgdom-cost-catalog-store.ts` | load/save/merge, `kw-wgdom-cost-catalog` |
+| `wgdom-ath-classifier.ts` | `classifyAthLineCategory()` |
+| `wgdom-catalog-cost-engine.ts` | `computeFromCatalogRow()`, `aggregateCatalogDirectCost()` |
+| `tenders-bid-calculator.ts` | `computeTenderBidProposal()` + `pricingMode` |
+| `tender-bid-quality.ts` | `assessBidQuality()`, `extractCalculationBasis()` |
 
-**Kategorie MVP:** MALOWANIE, GK, GLAZURA, PODLOGI, ELEKTRYKA, HYDRAULIKA, ROZBIORKI, STOLARKA.
+**Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (75+ asercji) · regresja P2-F: `test-tender-dossier-pipeline.mjs`
 
-**J.m. obsługiwane:** `m2`, `mb`, `szt`, `rbh` (+ `m3`, `kpl` w seed).
+**Źródła danych (hierarchia):**
 
-**Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs`
+1. Lista płac → `fullyLoadedHourly()`
+2. `TenderCompanyCostModel` (`kw-tenders-company-profile`)
+3. **WGDOM Cost Catalog** (`kw-wgdom-cost-catalog`)
+4. Referencje rynkowe — tylko pomocniczo, bez scrapingu
 
-**Nie w P2-G.1A/B:** chmura katalogu, badge źródła, disclaimer UI, klasyfikacja w UI — **P2-G.1C**.
-
-**Następny krok P2-G.1C:** badge źródła, edycja katalogu w profilu, `kw-wgdom-cost-catalog`, layout kafelka.
+**Nie zmieniaj bez polecenia:** merge katalogu, ścieżka `ath_priced`, ATH Quick Access, klasyfikator keywords bez migracji danych.
 
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 

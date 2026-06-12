@@ -8,6 +8,18 @@ import {
   loadCompanyProfile,
   saveCompanyProfile,
 } from "@/lib/tenders-bzp-company";
+import {
+  type WgdomCostCatalogStore,
+  type WgdomCostRegion,
+  loadWgdomCostCatalogStore,
+  saveWgdomCostCatalogStore,
+  restoreDefaultWgdomCostCatalogStore,
+  setActiveCatalogRegion,
+  updateCategoryPrimaryRates,
+  listEditableCategories,
+  WGDOM_COST_REGION_LABELS,
+} from "@/lib/wgdom-cost-catalog-store";
+import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
 
 function NumInput({
   label,
@@ -142,14 +154,16 @@ export function TenderCompanyProfilePanel({
 }) {
   const [open, setOpen] = useState(false);
   const [profile, setProfile] = useState<TenderCompanyProfile>(defaultCompanyProfile());
+  const [catalogStore, setCatalogStore] = useState<WgdomCostCatalogStore>(restoreDefaultWgdomCostCatalogStore());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    void loadCompanyProfile().then((p) => {
+    void Promise.all([loadCompanyProfile(), loadWgdomCostCatalogStore()]).then(([p, catalog]) => {
       if (!cancelled) {
         setProfile(p);
+        setCatalogStore(catalog);
         setLoading(false);
       }
     });
@@ -159,21 +173,31 @@ export function TenderCompanyProfilePanel({
   const save = useCallback(async () => {
     setSaving(true);
     try {
-      await saveCompanyProfile(profile);
+      await Promise.all([
+        saveCompanyProfile(profile),
+        saveWgdomCostCatalogStore(catalogStore),
+      ]);
       onSaved?.(profile);
-      toast.success("Profil firmy zapisany w chmurze");
+      toast.success("Profil firmy i katalog WGDOM zapisane w chmurze");
     } catch {
-      toast.error("Nie udało się zapisać profilu");
+      toast.error("Nie udało się zapisać profilu / katalogu");
     } finally {
       setSaving(false);
     }
-  }, [profile, onSaved]);
+  }, [profile, catalogStore, onSaved]);
 
   const reloadDefaults = useCallback(() => {
     const d = defaultCompanyProfile();
     setProfile(d);
     toast.message("Załadowano domyślny profil W&G DOM (CEIDG/wgdom.pl) — kliknij Zapisz");
   }, []);
+
+  const reloadCatalogDefaults = useCallback(() => {
+    setCatalogStore(restoreDefaultWgdomCostCatalogStore());
+    toast.message("Przywrócono domyślny katalog WGDOM — kliknij Zapisz profil");
+  }, []);
+
+  const catalogRows = listEditableCategories(catalogStore);
 
   return (
     <div className="rounded-xl border border-border overflow-hidden">
@@ -293,6 +317,80 @@ export function TenderCompanyProfilePanel({
                 <NumInput label="Chemia pomocnicza / tydz." value={profile.costModel.smallConsumablesWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, smallConsumablesWeeklyPln: v } })} step={10} />
                 <NumInput label="Ubezpieczenia / tydz." value={profile.costModel.insuranceWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, insuranceWeeklyPln: v } })} step={10} />
                 <NumInput label="Koordynacja / dojazdy / tydz." value={profile.costModel.supervisionWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, supervisionWeeklyPln: v } })} step={10} />
+                <p className="col-span-full text-[10px] font-semibold uppercase tracking-wide text-muted-foreground pt-1 border-t border-border">
+                  WGDOM Cost Catalog — wycena przedmiaru bez cen
+                </p>
+                <label className="block text-[10px] text-muted-foreground">
+                  Region aktywny
+                  <select
+                    value={catalogStore.activeRegion}
+                    onChange={(e) => setCatalogStore(setActiveCatalogRegion(catalogStore, e.target.value as WgdomCostRegion))}
+                    className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
+                  >
+                    {(Object.keys(WGDOM_COST_REGION_LABELS) as WgdomCostRegion[]).map((r) => (
+                      <option key={r} value={r}>{WGDOM_COST_REGION_LABELS[r]}</option>
+                    ))}
+                  </select>
+                </label>
+                <div className="col-span-full rounded-lg border border-border/60 overflow-hidden">
+                  <table className="w-full text-[10px]">
+                    <thead className="bg-secondary/60">
+                      <tr>
+                        <th className="text-left px-2 py-1.5 font-semibold">Kategoria</th>
+                        <th className="text-left px-2 py-1.5 font-semibold">j.m.</th>
+                        <th className="text-left px-2 py-1.5 font-semibold">Materiał zł/j.m.</th>
+                        <th className="text-left px-2 py-1.5 font-semibold">rbh/j.m.</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {catalogRows.map((row) => (
+                        <tr key={row.id} className="border-t border-border/40">
+                          <td className="px-2 py-1.5 font-medium">{row.labelPl}</td>
+                          <td className="px-2 py-1.5 text-muted-foreground">{row.unit}</td>
+                          <td className="px-2 py-1">
+                            <input
+                              type="number"
+                              min={0}
+                              step={1}
+                              value={row.materialPlnPerUnit}
+                              onChange={(e) => {
+                                const v = Number(e.target.value) || 0;
+                                setCatalogStore(updateCategoryPrimaryRates(
+                                  catalogStore,
+                                  row.id,
+                                  v,
+                                  row.laborRbhPerUnit,
+                                ));
+                              }}
+                              className="w-full bg-secondary rounded px-1.5 py-1 border border-border font-mono"
+                            />
+                          </td>
+                          <td className="px-2 py-1">
+                            <input
+                              type="number"
+                              min={0}
+                              step={0.01}
+                              value={row.laborRbhPerUnit}
+                              onChange={(e) => {
+                                const v = Number(e.target.value) || 0;
+                                setCatalogStore(updateCategoryPrimaryRates(
+                                  catalogStore,
+                                  row.id,
+                                  row.materialPlnPerUnit,
+                                  v,
+                                ));
+                              }}
+                              className="w-full bg-secondary rounded px-1.5 py-1 border border-border font-mono"
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="px-2 py-1.5 text-[10px] text-muted-foreground border-t border-border/40">
+                    {WGDOM_COST_CATEGORY_IDS.length} kategorii MVP · edycja per region ({WGDOM_COST_REGION_LABELS[catalogStore.activeRegion]})
+                  </p>
+                </div>
                 <NumInput label="Polisa OC (PLN)" value={profile.ocInsuranceMinPln} onChange={(v) => setProfile({ ...profile, ocInsuranceMinPln: v })} step={100000} />
                 <LinesInput
                   label="Prefiksy CPV"
@@ -320,6 +418,14 @@ export function TenderCompanyProfilePanel({
                 </label>
               </div>
               <div className="flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={reloadCatalogDefaults}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-xs font-medium hover:bg-secondary/80"
+                >
+                  <RefreshCw size={12} />
+                  Przywróć domyślne WGDOM
+                </button>
                 <button
                   type="button"
                   onClick={reloadDefaults}

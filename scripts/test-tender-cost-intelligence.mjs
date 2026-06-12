@@ -25,7 +25,21 @@ import {
   resolveCatalogQuantities,
   resolveTenderBidPricingMode,
 } from "../src/lib/tenders-bid-calculator.ts";
-import { buildOurEstimateDisplaySsot } from "../src/lib/tender-data-ssot.ts";
+import { buildOurEstimateDisplaySsot, buildOurEstimateTileDisplay } from "../src/lib/tender-data-ssot.ts";
+import {
+  assessBidQuality,
+  enrichBidProposalMeta,
+  extractCalculationBasis,
+  getBidSourceLabel,
+  TENDER_BID_DISCLAIMER,
+} from "../src/lib/tender-bid-quality.ts";
+import {
+  mergeWgdomCostCatalogStore,
+  normalizeWgdomCostCatalogStore,
+  restoreDefaultWgdomCostCatalogStore,
+  updateCategoryPrimaryRates,
+  WGDOM_COST_CATALOG_KEY,
+} from "../src/lib/wgdom-cost-catalog-store.ts";
 
 let passed = 0;
 let failed = 0;
@@ -270,6 +284,10 @@ const bidCatalog = computeTenderBidProposal({
 });
 assertEq(bidCatalog.ok, true, "AC-1 catalog 221 poz. ok === true");
 assertEq(bidCatalog.pricingMode, "catalog", "pricingMode catalog");
+assertEq(bidCatalog.sourceLabelPl, "Katalog WGDOM", "AC-7 source Katalog WGDOM");
+assertEq(bidCatalog.qualityLabelPl, "Średnia", "quality Średnia catalog");
+assert(bidCatalog.calculationBasis != null, "calculationBasis present");
+assertGt(bidCatalog.calculationBasis?.executionCostPln ?? 0, 0, "basis executionCost > 0");
 assertGt(bidCatalog.costPricePln ?? 0, 0, "AC-2 costPricePln > 0");
 assertGt(bidCatalog.recommendedBidPln ?? 0, 0, "AC-3 recommendedBidPln > 0");
 assertGte(
@@ -296,6 +314,8 @@ const bidPriced = computeTenderBidProposal({
 });
 assertEq(bidPriced.ok, true, "AC-4 ath_priced ok");
 assertEq(bidPriced.pricingMode, "ath_priced", "pricingMode ath_priced");
+assertEq(bidPriced.sourceLabelPl, "Kosztorys ATH", "AC-6 source Kosztorys ATH");
+assertEq(bidPriced.qualityLabelPl, "Wysoka", "quality Wysoka ath_priced");
 assertEq(bidPriced.costPricePln, 130_900, "ath_priced costPricePln baseline");
 assertEq(bidPriced.floorBidPln, 137_400, "ath_priced floorBidPln baseline");
 assertEq(bidPriced.recommendedBidPln, 137_400, "ath_priced recommended baseline");
@@ -305,28 +325,65 @@ assert(
   "ath_priced stack robocizna",
 );
 
-console.log("\n12. P2-G.1B — Nasza wycena display (catalog)");
-const displayCatalog = buildOurEstimateDisplaySsot({
+console.log("\n12. P2-G.1C — Nasza wycena tile (catalog)");
+const displayCatalog = buildOurEstimateTileDisplay({
   item: { tenderDossier: { kosztorys: noPriceK } },
-  bidProposalOk: bidCatalog.ok,
-  recommendedBidPln: bidCatalog.recommendedBidPln,
-  costPricePln: bidCatalog.costPricePln,
-  pricingMode: "catalog",
+  bidProposal: bidCatalog,
 });
 assert(
   !displayCatalog.display.includes("Nie można automatycznie"),
-  "kafelek bez komunikatu braku wyceny",
+  "AC-1 kafelek bez komunikatu braku wyceny",
 );
 assert(
-  displayCatalog.display.includes("Koszt wykonania"),
-  "display zawiera Koszt wykonania",
+  displayCatalog.lines?.some((l) => l.startsWith("Koszt wykonania:")),
+  "AC-1 linia Koszt wykonania",
 );
 assert(
-  displayCatalog.display.includes("Propozycja"),
-  "display zawiera Propozycja",
+  displayCatalog.lines?.some((l) => l.startsWith("Rekomendowana:")),
+  "AC-1 linia Rekomendowana",
+);
+assert(
+  displayCatalog.lines?.some((l) => l.includes("Katalog WGDOM")),
+  "AC-1 źródło Katalog WGDOM",
+);
+assertEq(displayCatalog.sourceLabel, "Katalog WGDOM", "sourceLabel catalog");
+
+console.log("\n13. P2-G.1C — tender-bid-quality");
+assertEq(getBidSourceLabel("catalog"), "Katalog WGDOM", "badge catalog");
+assertEq(getBidSourceLabel("ath_priced"), "Kosztorys ATH", "badge ath_priced");
+assertEq(assessBidQuality("ath_priced").level, "high", "quality high");
+assertEq(assessBidQuality("catalog", 0.05).level, "medium", "quality medium");
+assertEq(assessBidQuality("catalog", 0.2).level, "limited", "quality limited UNKNOWN>15%");
+assert(TENDER_BID_DISCLAIMER.includes("Autorska wycena WGDOM"), "disclaimer text");
+const enriched = enrichBidProposalMeta({ ...bidCatalog });
+assertEq(enriched.sourceLabelPl, "Katalog WGDOM", "enrich source");
+const basis = extractCalculationBasis(bidCatalog);
+assertGt(basis?.laborPln ?? 0, 0, "basis labor > 0");
+assertGt(basis?.materialPln ?? 0, 0, "basis material > 0");
+
+console.log("\n14. P2-G.1C — catalog store / cloud merge");
+assertEq(WGDOM_COST_CATALOG_KEY, "kw-wgdom-cost-catalog", "cloud key");
+const storeDefault = restoreDefaultWgdomCostCatalogStore();
+assertEq(storeDefault.activeRegion, "wroclaw", "default activeRegion");
+const edited = updateCategoryPrimaryRates(storeDefault, "MALOWANIE", 99, 0.25);
+const malRow = edited.catalogs.wroclaw.categories.find((c) => c.id === "MALOWANIE");
+assertEq(malRow?.rates[0]?.materialPlnPerUnit, 99, "edit material rate");
+const merged = mergeWgdomCostCatalogStore(edited, storeDefault);
+assert(
+  merged.catalogs.wroclaw.categories.find((c) => c.id === "MALOWANIE")?.rates[0]?.materialPlnPerUnit === 99,
+  "merge keeps newer local",
+);
+const normalized = normalizeWgdomCostCatalogStore({ schemaVersion: 1, activeRegion: "dolnyslask", catalogs: {} });
+assertEq(normalized.activeRegion, "dolnyslask", "normalize region");
+assertEq(normalized.catalogs.dolnyslask.regionMultiplier, 0.92, "normalize dolnyslask multiplier");
+const restored = restoreDefaultWgdomCostCatalogStore();
+assertEq(
+  restored.catalogs.wroclaw.categories.find((c) => c.id === "MALOWANIE")?.rates[0]?.materialPlnPerUnit,
+  8,
+  "AC-5 restore defaults MALOWANIE material",
 );
 
-console.log("\n13. P2-G.1B — brak ilości → fail");
+console.log("\n15. P2-G.1B — brak ilości → fail");
 const emptyK = {
   ...noPriceK,
   catalogQuantities: [],

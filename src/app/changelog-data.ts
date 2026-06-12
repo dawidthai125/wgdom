@@ -12,6 +12,18 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.52.2",
+    label: "Przetargi — centrum wyceny P2-G.1C (UI + katalog chmura)",
+    items: [
+      { type: "new", text: "Kafelek „Nasza wycena” — koszt wykonania, rekomendowana, minimalna, źródło (Katalog WGDOM / Kosztorys ATH)" },
+      { type: "new", text: "TenderBidProposalPanel — badge źródła, podstawa kalkulacji, jakość wyceny, disclaimer" },
+      { type: "new", text: "WGDOM Cost Catalog w Profil firmy — edycja stawek, regiony, Przywróć domyślne WGDOM" },
+      { type: "new", text: "Chmura kw-wgdom-cost-catalog — sync + merge (DATA_KEYS)" },
+      { type: "improve", text: "tender-bid-quality.mjs — test regresji 75+ asercji" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.52.1",
     label: "Przetargi — wycena z przedmiaru bez cen (P2-G.1B)",
     items: [

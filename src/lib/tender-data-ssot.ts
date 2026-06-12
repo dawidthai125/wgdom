@@ -10,6 +10,8 @@ import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
 import type { TenderDossierScanSummary } from "@/lib/tender-dossier-pipeline";
 import type { TenderCostDocumentType } from "@/lib/tender-cost-discovery";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
+import type { TenderBidPricingMode, TenderBidProposal } from "@/lib/tenders-bid-calculator";
+import { getBidSourceLabel } from "@/lib/tender-bid-quality";
 import type { TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
 
 function plnFromKosztorys(k: TenderKosztorysSnapshot | null | undefined): number | null {
@@ -286,14 +288,74 @@ export function resolvedWadiumDisplay(
   return formatSwzWadiumDisplay(swz);
 }
 
+export interface OurEstimateTileDisplay {
+  display: string;
+  lines?: string[];
+  sourceLabel?: string;
+  hint?: string;
+}
+
+export function buildOurEstimateTileDisplay(opts: {
+  item: TenderPipelineItem;
+  ourEstimatePln?: number | null;
+  bidProposal?: TenderBidProposal | null;
+}): OurEstimateTileDisplay {
+  const { item, ourEstimatePln, bidProposal } = opts;
+  if (ourEstimatePln != null) {
+    return { display: fmtPln(ourEstimatePln) };
+  }
+  if (bidProposal?.ok && bidProposal.recommendedBidPln != null) {
+    const source = bidProposal.sourceLabelPl ?? getBidSourceLabel(bidProposal.pricingMode);
+    if (bidProposal.pricingMode === "catalog" && bidProposal.costPricePln != null) {
+      const lines = [
+        `Koszt wykonania: ${fmtPln(bidProposal.costPricePln)}`,
+        `Rekomendowana: ${fmtPln(bidProposal.recommendedBidPln)}`,
+        bidProposal.floorBidPln != null ? `Minimalna: ${fmtPln(bidProposal.floorBidPln)}` : null,
+        source ? `Źródło: ${source}` : null,
+        "Autorska wycena orientacyjna",
+      ].filter(Boolean) as string[];
+      return {
+        display: lines.join(" · "),
+        lines,
+        sourceLabel: source ?? undefined,
+        hint: bidProposal.qualityDetailPl ?? "Autorska wycena WGDOM z przedmiaru bez cen",
+      };
+    }
+    if (bidProposal.pricingMode === "ath_priced") {
+      const lines = [
+        bidProposal.costPricePln != null
+          ? `Koszt wykonania: ${fmtPln(bidProposal.costPricePln)}`
+          : null,
+        `Rekomendowana: ${fmtPln(bidProposal.recommendedBidPln)}`,
+        bidProposal.floorBidPln != null ? `Minimalna: ${fmtPln(bidProposal.floorBidPln)}` : null,
+        source ? `Źródło: ${source}` : null,
+      ].filter(Boolean) as string[];
+      return {
+        display: lines.length > 0 ? lines.join(" · ") : `Propozycja: ${fmtPln(bidProposal.recommendedBidPln)}`,
+        lines: lines.length > 0 ? lines : undefined,
+        sourceLabel: source ?? undefined,
+      };
+    }
+    return { display: `Propozycja: ${fmtPln(bidProposal.recommendedBidPln)}` };
+  }
+  return buildOurEstimateDisplaySsot({
+    item,
+    ourEstimatePln,
+    recommendedBidPln: bidProposal?.recommendedBidPln,
+    costPricePln: bidProposal?.costPricePln,
+    bidProposalOk: bidProposal?.ok,
+    pricingMode: bidProposal?.pricingMode ?? null,
+  });
+}
+
 export function buildOurEstimateDisplaySsot(opts: {
   item: TenderPipelineItem;
   ourEstimatePln?: number | null;
   recommendedBidPln?: number | null;
   costPricePln?: number | null;
   bidProposalOk?: boolean;
-  pricingMode?: "ath_priced" | "catalog" | null;
-}): { display: string; hint?: string } {
+  pricingMode?: TenderBidPricingMode | null;
+}): OurEstimateTileDisplay {
   if (opts.ourEstimatePln != null) {
     return { display: fmtPln(opts.ourEstimatePln) };
   }

@@ -3,9 +3,11 @@
  */
 
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
+import { mergeWgdomCostCatalogStore } from "@/lib/wgdom-cost-catalog-store";
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 export const TENDERS_COMPANY_PROFILE_KEY = "kw-tenders-company-profile";
+export const WGDOM_COST_CATALOG_KEY = "kw-wgdom-cost-catalog";
 export const COMPANY_QUALIFICATION_PROFILE_KEY = "kw-company-profile";
 export const TENDERS_CUSTOM_KEYWORDS_KEY = "kw-tenders-custom-keywords";
 export const TENDERS_DELETED_IDS_KEY = "kw-tenders-deleted-ids";
@@ -13,6 +15,7 @@ export const TENDERS_DELETED_IDS_KEY = "kw-tenders-deleted-ids";
 export const TENDER_DATA_KEYS = [
   TENDERS_PIPELINE_KEY,
   TENDERS_COMPANY_PROFILE_KEY,
+  WGDOM_COST_CATALOG_KEY,
   COMPANY_QUALIFICATION_PROFILE_KEY,
   TENDERS_CUSTOM_KEYWORDS_KEY,
 ] as const;
@@ -140,6 +143,10 @@ export function mergeCompanyQualificationProfileForCloud(local: unknown, cloud: 
   return mergeCompanyProfileForCloud(local, cloud);
 }
 
+export function mergeWgdomCostCatalogForCloud(local: unknown, cloud: unknown): unknown {
+  return mergeWgdomCostCatalogStore(local, cloud);
+}
+
 function uniqWords(a: string[], b: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -174,6 +181,8 @@ export function mergeTenderDataKey(key: TenderDataKey, local: unknown, cloud: un
       return mergeTenderPipelineForCloud(local, cloud);
     case TENDERS_COMPANY_PROFILE_KEY:
       return mergeCompanyProfileForCloud(local, cloud);
+    case WGDOM_COST_CATALOG_KEY:
+      return mergeWgdomCostCatalogForCloud(local, cloud);
     case COMPANY_QUALIFICATION_PROFILE_KEY:
       return mergeCompanyQualificationProfileForCloud(local, cloud);
     case TENDERS_CUSTOM_KEYWORDS_KEY:

@@ -10,8 +10,10 @@ import {
   weeklyAncillaryLines,
   weeklyFixedOverheadShare,
 } from "@/lib/company-labor-cost";
-import { defaultWgdomCostCatalog } from "@/lib/wgdom-cost-catalog";
+import { defaultWgdomCostCatalog, type WgdomCostCatalog } from "@/lib/wgdom-cost-catalog";
 import { aggregateCatalogDirectCost } from "@/lib/wgdom-catalog-cost-engine";
+import { enrichBidProposalMeta, type TenderBidCalculationBasis, type TenderBidQualityLevel } from "@/lib/tender-bid-quality";
+import { getActiveCatalog, loadWgdomCostCatalogStoreLocal } from "@/lib/wgdom-cost-catalog-store";
 
 export type TenderBidPricingMode = "ath_priced" | "catalog";
 
@@ -33,6 +35,12 @@ export interface TenderBidProposal {
   assumptions: string[];
   warnings: string[];
   computedAt: string;
+  sourceLabelPl?: string | null;
+  qualityLevel?: TenderBidQualityLevel | null;
+  qualityLabelPl?: string | null;
+  qualityDetailPl?: string | null;
+  catalogUnknownPct?: number | null;
+  calculationBasis?: TenderBidCalculationBasis | null;
 }
 
 function parseQty(s: string | undefined): number {
@@ -218,8 +226,11 @@ export function computeTenderBidProposal(opts: {
   costModel: TenderCompanyCostModel;
   minProjectDays: number;
   maxConcurrentProjects: number;
+  /** Test / override — domyślnie katalog z localStorage. */
+  catalog?: WgdomCostCatalog;
 }): TenderBidProposal {
   const { kosztorys, swz, fit, costModel, minProjectDays, maxConcurrentProjects } = opts;
+  const catalog = opts.catalog ?? getActiveCatalog(loadWgdomCostCatalogStoreLocal());
   const assumptions: string[] = [];
   const warnings: string[] = [];
   const costStack: TenderBidCostLine[] = [];
@@ -261,6 +272,7 @@ export function computeTenderBidProposal(opts: {
   let referencePln = 0;
   let athMaterialPortion = 0;
   let athTotal: number | null = null;
+  let catalogUnknownPct: number | null = null;
 
   if (pricingMode === "ath_priced") {
     athTotal = parsePlnFromKosztorysTotal(kosztorys.totalValue, kosztorys.currency)
@@ -306,7 +318,6 @@ export function computeTenderBidProposal(opts: {
     });
   } else {
     const catalogRows = resolveCatalogQuantities(kosztorys);
-    const catalog = defaultWgdomCostCatalog("wroclaw");
     const agg = aggregateCatalogDirectCost(catalogRows, catalog, costModel);
 
     if (agg.totals.direct <= 0) {
@@ -329,6 +340,7 @@ export function computeTenderBidProposal(opts: {
     materialCostReal = agg.totals.material;
     hoursSum = agg.totals.laborHours;
     referencePln = agg.totals.direct;
+    catalogUnknownPct = agg.rowCount > 0 ? agg.unknownCount / agg.rowCount : null;
 
     assumptions.push(
       `Wycena katalogowa WGDOM — ${agg.rowCount} poz. przedmiaru (region: ${catalog.region}).`,
@@ -449,7 +461,7 @@ export function computeTenderBidProposal(opts: {
     );
   }
 
-  return {
+  const baseProposal: TenderBidProposal = {
     ok: true,
     pricingMode,
     recommendedBidPln: roundPln(recommended),
@@ -461,5 +473,11 @@ export function computeTenderBidProposal(opts: {
     assumptions,
     warnings,
     computedAt: new Date().toISOString(),
+    catalogUnknownPct: pricingMode === "catalog" ? catalogUnknownPct : null,
   };
+
+  return enrichBidProposalMeta(
+    baseProposal,
+    catalogUnknownPct,
+  );
 }

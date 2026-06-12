@@ -13,6 +13,7 @@ import {
   buildKosztorysChecklistDisplay,
   buildKosztorysChecklistHint,
   buildOurEstimateDisplaySsot,
+  buildOurEstimateTileDisplay,
   formatAwardCriteriaSummary,
   resolveTenderValue,
   resolvedAwardCriteria,
@@ -29,6 +30,8 @@ export interface BidPrepCheckItem {
   label: string;
   status: BidPrepItemStatus;
   display: string;
+  displayLines?: string[];
+  sourceLabel?: string;
   hint?: string;
 }
 
@@ -62,13 +65,10 @@ export function computeBidPrepChecks(
     + (item.externalDocDiscovery?.files?.length ?? 0);
   const platformDoc = resolveTenderPlatformDocumentStatus(item);
   const scanSummary = item.tenderDossier?.scanSummary;
-  const estimateDisplay = buildOurEstimateDisplaySsot({
+  const estimateDisplay = buildOurEstimateTileDisplay({
     item,
     ourEstimatePln: item.ourEstimatePln,
-    recommendedBidPln: bidProposal?.recommendedBidPln,
-    costPricePln: bidProposal?.costPricePln,
-    bidProposalOk: bidProposal?.ok,
-    pricingMode: bidProposal?.pricingMode ?? null,
+    bidProposal,
   });
   const kosztorysMissingDisplay = costStatus === "NOT_FOUND"
     ? (docCount > 0
@@ -143,14 +143,16 @@ export function computeBidPrepChecks(
       status: item.ourEstimatePln != null
         ? "ok"
         : bidProposal?.ok && bidProposal.recommendedBidPln != null
-          ? "partial"
+          ? "ok"
           : costStatus !== "NOT_FOUND"
             ? "partial"
             : "missing",
       display: estimateDisplay.display,
+      displayLines: estimateDisplay.lines,
+      sourceLabel: estimateDisplay.sourceLabel,
       hint: item.ourEstimatePln == null && !bidProposal?.ok
         ? bidProposal?.warnings?.[0] ?? estimateDisplay.hint
-        : undefined,
+        : estimateDisplay.hint,
     },
   ];
 

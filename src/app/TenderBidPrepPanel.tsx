@@ -285,9 +285,17 @@ export function TenderBidPrepPanel({
                     {check.label}
                   </p>
                   <p className={`text-xs font-medium mt-0.5 break-words ${STATUS_TEXT[check.status]}`}>
-                    {check.display}
+                    {check.displayLines?.length ? (
+                      <span className="block space-y-0.5">
+                        {check.displayLines.map((line) => (
+                          <span key={line} className="block">{line}</span>
+                        ))}
+                      </span>
+                    ) : (
+                      check.display
+                    )}
                   </p>
-                  {check.hint && check.status !== "ok" && (
+                  {check.hint && (check.status !== "ok" || check.id === "our-bid") && (
                     <p className="text-[10px] text-muted-foreground mt-1 leading-snug">{check.hint}</p>
                   )}
                   {showAthActions && (
