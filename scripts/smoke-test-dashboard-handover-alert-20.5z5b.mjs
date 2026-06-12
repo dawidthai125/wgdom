@@ -11,6 +11,7 @@ import {
   jobMatchesListFilter,
   jobMissingRequiredDocs,
 } from "../src/lib/job-list-status.ts";
+import { buildUrgentTodayCategories } from "../src/lib/dashboard-urgent-today.ts";
 
 const results = {};
 
@@ -62,9 +63,22 @@ function showHandoverAlert(jobs) {
   return filterHandoverJobs(jobs).length > 0;
 }
 
-/** Mirror DashboardView 20.5Z.5B — handover NIE w attentionCount. */
-function dashboardAttentionCount(jobs, pendingPhotos, pendingReports) {
-  return countJobsMissingDocs(jobs) + pendingPhotos + pendingReports;
+function urgentOdbiorCount(handoverCount) {
+  const { categories } = buildUrgentTodayCategories({
+    needsUnsavedWeekAlert: false,
+    payrollRolloverBlockersCount: 0,
+    consistencyAlertsCount: 0,
+    pendingReceiptsCount: 0,
+    pendingReportsCount: 0,
+    pendingPhotosCount: 0,
+    unseenInspectorFeedCount: 0,
+    inspectorNotesPendingCount: 0,
+    wmOverdueJobsCount: 0,
+    wmThisWeekJobsCount: 0,
+    handoverJobCount: handoverCount,
+    recoverableAlertsCount: 0,
+  });
+  return categories.find((c) => c.id === "odbior")?.count ?? 0;
 }
 
 const fresh = { ...defaultJob(), id: "in-progress-only" };
@@ -179,12 +193,31 @@ assert(
   `overlap=${overlap.length} — handover poza attentionCount`,
 );
 
-const attnWithHandover = dashboardAttentionCount(multi, 0, 0);
-const attnInflated = attnWithHandover + countJobsByListFilter(multi, "handover");
 assert(
-  "AUDIT_attentionCount_no_handover_inflation",
-  attnInflated > attnWithHandover,
-  "gdyby dodać handover do attentionCount — podwójne liczenie z jobsMissingDocs",
+  "V3_handover_in_odbior_category",
+  urgentOdbiorCount(2) === 2,
+  `odbior=${urgentOdbiorCount(2)}`,
+);
+
+const docsOnly = countJobsMissingDocs(multi);
+const urgentWithHandover = buildUrgentTodayCategories({
+  needsUnsavedWeekAlert: false,
+  payrollRolloverBlockersCount: 0,
+  consistencyAlertsCount: 0,
+  pendingReceiptsCount: 0,
+  pendingReportsCount: 0,
+  pendingPhotosCount: 0,
+  unseenInspectorFeedCount: 0,
+  inspectorNotesPendingCount: 0,
+  wmOverdueJobsCount: 0,
+  wmThisWeekJobsCount: 0,
+  handoverJobCount: countJobsByListFilter(multi, "handover"),
+  recoverableAlertsCount: 0,
+}).urgentTodayTotal;
+assert(
+  "V3_jobsMissingDocs_not_in_urgentTotal",
+  docsOnly > 0 && urgentWithHandover === countJobsByListFilter(multi, "handover"),
+  `docs=${docsOnly} urgent=${urgentWithHandover}`,
 );
 
 assert("AUDIT_handover_phase", inferJobPhase(handoverMissing) === "handover");

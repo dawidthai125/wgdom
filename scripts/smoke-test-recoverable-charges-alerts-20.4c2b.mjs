@@ -78,6 +78,7 @@ assert("D-aktywnosc-reason", statsD.alerts[0].reason === "Brak aktywności > 60 
 const many = computeRecoverableChargesAlerts([alertA, alertB, alertC, alertD], NOW);
 assert("E-attention-one", many.attentionCount === 1, String(many.attentionCount));
 assert("E-alert-list-len", many.alerts.length === 4, String(many.alerts.length));
+assert("E-v3-dashboard-count", many.alerts.length === 4, "Pulpit V3: kategoria Do odzyskania = alerts.length");
 
 // F — brak alertów
 const settled = applySettlement(

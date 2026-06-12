@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import {
-  MessageSquare, CalendarDays, Wallet, MapPin, Bell, LayoutGrid, Scale, AlertTriangle,
-  FileText, CheckCircle2, Circle, Archive, Camera, Receipt, ClipboardList, ClipboardCheck,
-  Calendar, HardHat, KeyRound, TrendingUp, ChevronDown, ChevronUp,
+  MessageSquare, CalendarDays, Wallet, MapPin, Bell, LayoutGrid,
+  FileText, CheckCircle2, Circle, Archive, Calendar, HardHat, KeyRound, TrendingUp,
+  ChevronDown, ChevronUp,
 } from "lucide-react";
 import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
 import { CommandCenterExecutivePanel } from "@/app/tender-center/components/CommandCenterExecutivePanel";
@@ -39,20 +39,13 @@ import {
   isWmClient,
   wmJobsWithOverduePlanned,
   wmJobsPlannedThisWeek,
-  fmtPlannedHandover,
-  HANDOVER_STAGE_LABELS,
-  inferHandoverStage,
   computeWmPortfolioStats,
   jobsWithInspectorNotesNeedingAdmin,
 } from "@/lib/job-wm";
-import { resolveInspectorFeedDeepLink } from "@/lib/inspector-feed-deeplink";
 import {
   jobMatchesListFilter,
   jobMissingRequiredDocs,
-  JOB_LIST_STATUS_CONFIG,
-  resolveJobListStatus,
 } from "@/lib/job-list-status";
-import { getReportWorkScopeText } from "@/lib/work-scope-text";
 import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
 import {
   biweeklyCashContextLine,
@@ -62,67 +55,11 @@ import {
 import { listPayrollRolloverBlockers } from "@/lib/payroll-rollover";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import { computeRecoverableChargesAlerts } from "@/lib/recoverable-charges";
-import { RecoverableChargesDashboardCard } from "@/app/RecoverableChargesDashboardCard";
-import { HeroDzisPanel } from "@/app/HeroDzisPanel";
-import { useCommandCenterContextOptional } from "@/app/tender-center/context/CommandCenterContext";
-import { buildHeroToday, buildHeroTodayRankedAll } from "@/lib/dashboard-hero-today";
-import { getHeroCoveredUwagaSections, type UwagaDzisSectionId } from "@/lib/dashboard-hero-consolidation";
-
-function buildUwagaDzisCollapsedSummary(input: {
-  jobsMissingDocsCount: number;
-  heroUwagaCovered: Set<UwagaDzisSectionId>;
-  needsUnsavedWeekAlert: boolean;
-  needsPayrollBlockerAlert: boolean;
-  payrollRolloverBlockersCount: number;
-  consistencyAlertsCount: number;
-  pendingPhotosCount: number;
-  pendingReceiptsCount: number;
-  pendingReportsCount: number;
-  handoverJobCount: number;
-  unseenInspectorFeedCount: number;
-  wmOverdueJobsCount: number;
-  wmThisWeekJobsCount: number;
-  inspectorNotesPendingCount: number;
-}): string {
-  const parts: string[] = [];
-  if (input.jobsMissingDocsCount > 0) {
-    parts.push(`Braki dokumentów: ${input.jobsMissingDocsCount}`);
-  }
-  if (input.needsUnsavedWeekAlert && !input.heroUwagaCovered.has("payroll-unsaved")) {
-    parts.push("Tydzień niezapisany");
-  }
-  if (input.needsPayrollBlockerAlert && !input.heroUwagaCovered.has("payroll-blockers")) {
-    parts.push(`Wypłata sobotnia: ${input.payrollRolloverBlockersCount}`);
-  }
-  if (input.consistencyAlertsCount > 0 && !input.heroUwagaCovered.has("payroll-consistency")) {
-    parts.push(`Spójność płac: ${input.consistencyAlertsCount}`);
-  }
-  if (input.pendingPhotosCount > 0 && !input.heroUwagaCovered.has("pending-photos")) {
-    parts.push(`Zdjęcia: ${input.pendingPhotosCount}`);
-  }
-  if (input.pendingReceiptsCount > 0 && !input.heroUwagaCovered.has("pending-receipts")) {
-    parts.push(`Paragony: ${input.pendingReceiptsCount}`);
-  }
-  if (input.pendingReportsCount > 0 && !input.heroUwagaCovered.has("pending-reports")) {
-    parts.push(`Dokumentacja: ${input.pendingReportsCount}`);
-  }
-  if (input.handoverJobCount > 0 && !input.heroUwagaCovered.has("handover-jobs")) {
-    parts.push(`Do odbioru: ${input.handoverJobCount}`);
-  }
-  if (input.unseenInspectorFeedCount > 0 && !input.heroUwagaCovered.has("inspector-feed")) {
-    parts.push(`Inspektor: ${input.unseenInspectorFeedCount}`);
-  }
-  if (input.wmOverdueJobsCount > 0 && !input.heroUwagaCovered.has("wm-overdue")) {
-    parts.push(`WM po terminie: ${input.wmOverdueJobsCount}`);
-  }
-  if (input.wmThisWeekJobsCount > 0 && !input.heroUwagaCovered.has("wm-this-week")) {
-    parts.push(`WM w tygodniu: ${input.wmThisWeekJobsCount}`);
-  }
-  if (input.inspectorNotesPendingCount > 0 && !input.heroUwagaCovered.has("inspector-notes")) {
-    parts.push(`Notatki inspektora: ${input.inspectorNotesPendingCount}`);
-  }
-  return parts.slice(0, 4).join(" · ");
-}
+import {
+  buildUrgentTodayCategories,
+  type UrgentCategoryId,
+} from "@/lib/dashboard-urgent-today";
+import { DashboardPilneUwagiSection } from "@/app/DashboardPilneUwagiSection";
 
 export function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
@@ -164,7 +101,6 @@ export function DashboardView({
   tenderJobUploadedBy?: string;
 }) {
   const { session: adminSession } = useAdminAccess();
-  const ccContext = useCommandCenterContextOptional();
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
   const todayKey = todayDayKey();
   const todayIso = todayIsoDate();
@@ -330,28 +266,43 @@ export function DashboardView({
       || (isCurrentPayrollWeek && (isFriday || isSaturday || isSunday))
     );
 
-  const recoverableChargesAttention = useMemo(
-    () => computeRecoverableChargesAlerts(recoverableCharges).attentionCount,
+  const recoverableAlertStats = useMemo(
+    () => computeRecoverableChargesAlerts(recoverableCharges),
     [recoverableCharges],
   );
 
-  const attentionCount =
-    (needsUnsavedWeekAlert ? 1 : 0) +
-    (needsPayrollBlockerAlert ? payrollRolloverBlockers.length : 0) +
-    consistencyAlerts.length +
-    jobsMissingDocs.length +
-    pendingPhotos.length +
-    pendingReceipts.length +
-    pendingReports.length +
-    unseenInspectorFeed.length +
-    inspectorNotesPending.length +
-    wmOverdueJobs.length +
-    wmThisWeekJobs.length +
-    recoverableChargesAttention;
-
-  /** 20.5Z.5B — handover poza attentionCount (nakładanie z jobsMissingDocs); sekcja informacyjna. */
-  const showUwagaDzis = attentionCount > 0 || handoverJobCount > 0;
-  const uwagaDzisHeaderBadge = attentionCount > 0 ? attentionCount : handoverJobCount;
+  const urgentToday = useMemo(
+    () =>
+      buildUrgentTodayCategories({
+        needsUnsavedWeekAlert,
+        payrollRolloverBlockersCount: needsPayrollBlockerAlert ? payrollRolloverBlockers.length : 0,
+        consistencyAlertsCount: consistencyAlerts.length,
+        pendingReceiptsCount: pendingReceipts.length,
+        pendingReportsCount: pendingReports.length,
+        pendingPhotosCount: pendingPhotos.length,
+        unseenInspectorFeedCount: unseenInspectorFeed.length,
+        inspectorNotesPendingCount: inspectorNotesPending.length,
+        wmOverdueJobsCount: wmOverdueJobs.length,
+        wmThisWeekJobsCount: wmThisWeekJobs.length,
+        handoverJobCount,
+        recoverableAlertsCount: recoverableAlertStats.alerts.length,
+      }),
+    [
+      needsUnsavedWeekAlert,
+      needsPayrollBlockerAlert,
+      payrollRolloverBlockers.length,
+      consistencyAlerts.length,
+      pendingReceipts.length,
+      pendingReports.length,
+      pendingPhotos.length,
+      unseenInspectorFeed.length,
+      inspectorNotesPending.length,
+      wmOverdueJobs.length,
+      wmThisWeekJobs.length,
+      handoverJobCount,
+      recoverableAlertStats.alerts.length,
+    ],
+  );
 
   const handleFixConsistency = (alert: PayrollJobConsistencyAlert) => {
     onFixJobs((prev) => fixJobsForConsistencyAlert(prev, alert, weekEmployees, weekFrom, weekTo, directory));
@@ -408,90 +359,31 @@ export function DashboardView({
     month: "long",
   });
 
-  const heroTodayInput = useMemo(
-    () => ({
-      operational: {
-        jobs,
-        weekEmployees,
-        weekFrom,
-        weekTo,
-        directory,
-        savedWeeks,
-        employeeLeaves,
-        recoverableCharges,
-        adminUserId,
-      },
-      actionCenter: ccContext?.snapshot.actionCenter,
-      health: ccContext?.snapshot.health,
-      financialCapacity: ccContext?.snapshot.financialCapacity,
-      forecast: ccContext?.snapshot.forecast90,
-      morningBriefingTone: ccContext?.snapshot.morningBriefing?.summaryTone,
-    }),
-    [
-      jobs,
-      weekEmployees,
-      weekFrom,
-      weekTo,
-      directory,
-      savedWeeks,
-      employeeLeaves,
-      recoverableCharges,
-      adminUserId,
-      ccContext?.snapshot.actionCenter,
-      ccContext?.snapshot.health,
-      ccContext?.snapshot.financialCapacity,
-      ccContext?.snapshot.forecast90,
-      ccContext?.snapshot.morningBriefing?.summaryTone,
-    ],
-  );
+  const [brakiExpanded, setBrakiExpanded] = useState(false);
+  const [pilneExpanded, setPilneExpanded] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Set<UrgentCategoryId>>(new Set());
 
-  const heroToday = useMemo(
-    () => buildHeroToday(heroTodayInput),
-    [heroTodayInput],
-  );
+  const toggleCategory = (id: UrgentCategoryId) => {
+    setExpandedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
-  const heroUwagaCovered = useMemo(() => {
-    const rankedAll = buildHeroTodayRankedAll(heroTodayInput);
-    return getHeroCoveredUwagaSections({ ...heroToday, items: rankedAll });
-  }, [heroToday, heroTodayInput]);
-
-  const [uwagaExpanded, setUwagaExpanded] = useState(false);
-
-  const uwagaCollapsedSummary = useMemo(
+  const pilneCollapsedSummary = useMemo(
     () =>
-      buildUwagaDzisCollapsedSummary({
-        jobsMissingDocsCount: jobsMissingDocs.length,
-        heroUwagaCovered,
-        needsUnsavedWeekAlert,
-        needsPayrollBlockerAlert,
-        payrollRolloverBlockersCount: payrollRolloverBlockers.length,
-        consistencyAlertsCount: consistencyAlerts.length,
-        pendingPhotosCount: pendingPhotos.length,
-        pendingReceiptsCount: pendingReceipts.length,
-        pendingReportsCount: pendingReports.length,
-        handoverJobCount,
-        unseenInspectorFeedCount: unseenInspectorFeed.length,
-        wmOverdueJobsCount: wmOverdueJobs.length,
-        wmThisWeekJobsCount: wmThisWeekJobs.length,
-        inspectorNotesPendingCount: inspectorNotesPending.length,
-      }),
-    [
-      jobsMissingDocs.length,
-      heroUwagaCovered,
-      needsUnsavedWeekAlert,
-      needsPayrollBlockerAlert,
-      payrollRolloverBlockers.length,
-      consistencyAlerts.length,
-      pendingPhotos.length,
-      pendingReceipts.length,
-      pendingReports.length,
-      handoverJobCount,
-      unseenInspectorFeed.length,
-      wmOverdueJobs.length,
-      wmThisWeekJobs.length,
-      inspectorNotesPending.length,
-    ],
+      urgentToday.categories
+        .filter((c) => c.count > 0)
+        .map((c) => `${c.label} (${c.count})`)
+        .join(" · "),
+    [urgentToday.categories],
   );
+
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="flex-1 min-w-0 overflow-y-auto overscroll-contain">
@@ -562,19 +454,8 @@ export function DashboardView({
           </div>
         )}
 
-        {/* Skróty liczbowe */}
+        {/* KPI operacyjne */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <button
-            type="button"
-            onClick={() => onNavigate("jobs")}
-            className="bg-card border border-border rounded-xl px-4 py-3 text-left hover:border-primary/30 transition-colors"
-          >
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Roboty w trakcie</p>
-            <p className="text-2xl font-bold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {activeJobs.length}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">{completedJobs.length} zdanych</p>
-          </button>
           <button
             type="button"
             onClick={() => onNavigate("payroll")}
@@ -641,628 +522,241 @@ export function DashboardView({
               {wmPortfolioStats.overduePlanned > 0 ? `${wmPortfolioStats.overduePlanned} po terminie` : "Roboty →"}
             </p>
           </button>
-          <div
-            className={`rounded-xl px-4 py-3 border ${
-              attentionCount > 0
-                ? "bg-amber-500/5 border-amber-500/25"
-                : "bg-card border-border"
+          <button
+            type="button"
+            onClick={() => {
+              scrollToSection("dashboard-braki-dokumentow");
+              if (jobsMissingDocs.length > 0) setBrakiExpanded(true);
+            }}
+            className={`rounded-xl px-4 py-3 text-left border transition-colors ${
+              jobsMissingDocs.length > 0
+                ? "bg-amber-500/5 border-amber-500/25 hover:border-amber-500/40"
+                : "bg-card border-border hover:border-primary/30"
             }`}
           >
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Do ogarnięcia</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Braki dokumentów</p>
             <p
-              className={`text-2xl font-bold ${attentionCount > 0 ? "text-amber-400" : "text-muted-foreground"}`}
+              className={`text-2xl font-bold ${jobsMissingDocs.length > 0 ? "text-amber-400" : "text-muted-foreground"}`}
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             >
-              {attentionCount}
+              {jobsMissingDocs.length}
             </p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              {attentionCount > 0 ? "priorytety i szczegóły poniżej" : "wszystko OK"}
+              {jobsMissingDocs.length > 0 ? "roboty bez kompletu" : "wszystko OK"}
             </p>
-          </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              scrollToSection("dashboard-pilne-uwagi");
+              if (urgentToday.urgentTodayTotal > 0) setPilneExpanded(true);
+            }}
+            className={`rounded-xl px-4 py-3 text-left border transition-colors ${
+              urgentToday.urgentTodayTotal > 0
+                ? "bg-amber-500/5 border-amber-500/25 hover:border-amber-500/40"
+                : "bg-card border-border hover:border-primary/30"
+            }`}
+          >
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Pilne uwagi</p>
+            <p
+              className={`text-2xl font-bold ${urgentToday.urgentTodayTotal > 0 ? "text-amber-400" : "text-muted-foreground"}`}
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              {urgentToday.urgentTodayTotal}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {urgentToday.urgentTodayTotal > 0 ? "kategorie poniżej" : "wszystko OK"}
+            </p>
+          </button>
         </div>
 
-        <HeroDzisPanel
-          hero={heroToday}
-          variant="compact"
-          onNavigate={onNavigate}
-          onOpenTenders={onOpenTenders}
-          onOpenTender={onOpenTender}
-        />
-
-        {/* Uwaga dziś — compact accordion (20.7E) */}
-        {showUwagaDzis && (
-          <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm" aria-label="Uwaga dziś">
+        {/* Roboty → Braki dokumentów */}
+        {jobsMissingDocs.length > 0 && (
+          <div
+            id="dashboard-braki-dokumentow"
+            className="bg-card border border-border rounded-xl overflow-hidden shadow-sm"
+            aria-label="Roboty — braki dokumentów"
+          >
             <div className="px-4 sm:px-5 py-3 border-b border-border bg-secondary/20">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <AlertTriangle size={14} className="text-amber-500 shrink-0"/>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-foreground">Uwaga dziś</span>
+                  <FileText size={14} className="text-amber-600 dark:text-amber-400 shrink-0"/>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-foreground">Roboty → Braki dokumentów</span>
                   <span className="text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-bold shrink-0">
-                    {uwagaDzisHeaderBadge}
+                    {jobsMissingDocs.length}
                   </span>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setUwagaExpanded((v) => !v)}
-                  aria-expanded={uwagaExpanded}
+                  onClick={() => setBrakiExpanded((v) => !v)}
+                  aria-expanded={brakiExpanded}
                   className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline min-h-[44px] px-2 shrink-0 touch-manipulation"
                 >
-                  {uwagaExpanded ? "Ukryj szczegóły" : "Pokaż szczegóły"}
-                  {uwagaExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  {brakiExpanded ? "Ukryj szczegóły" : "Pokaż szczegóły"}
+                  {brakiExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </button>
               </div>
-              {!uwagaExpanded && uwagaCollapsedSummary && (
-                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{uwagaCollapsedSummary}</p>
-              )}
-              {!uwagaExpanded && !uwagaCollapsedSummary && handoverJobCount > 0 && (
-                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                  Roboty do odbioru: {handoverJobCount}
-                </p>
-              )}
             </div>
-            {uwagaExpanded && (
-            <div className="divide-y divide-border">
-              {jobsMissingDocs.length > 0 && (
-                <div className="px-4 sm:px-5 py-4 border-b border-border border-l-4 border-l-amber-500/50">
-                  <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                        <FileText size={15} className="shrink-0 text-amber-600 dark:text-amber-400"/>
-                        Braki dokumentów — roboty aktywne
-                        <span className="text-[10px] bg-yellow-500/20 text-yellow-800 dark:text-yellow-200 px-2 py-0.5 rounded-full font-bold">
-                          {jobsMissingDocs.length} {jobsMissingDocs.length === 1 ? "robota" : jobsMissingDocs.length < 5 ? "roboty" : "robót"}
-                        </span>
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                        <span className="text-foreground/90">Kliknij dokument</span> — czerwony = brak, zielony = odebrany.
-                        Zakres i obrys/wymiary z dokumentacji ekipy zaznaczają się same (Super Admin może zmienić po potwierdzeniu).
-                        Kliknij adres robota — pełna karta w Robotach. Wymagane: {REQUIRED_DOCS.length} poz.
-                        {staleDocsJobs.length > 0 && (
-                          <span className="text-amber-600 dark:text-amber-400 font-medium">
-                            {" "}· {staleDocsJobs.length} {staleDocsJobs.length === 1 ? "trwa" : "trwają"} &gt;7 dni bez kompletu
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                    <button type="button" onClick={() => onNavigate("jobs")} className="text-xs font-medium text-primary hover:underline shrink-0 px-2 py-1">
-                      Wszystkie roboty →
-                    </button>
-                  </div>
-                  <div className="space-y-2.5 max-h-[min(70vh,520px)] overflow-y-auto overscroll-contain pr-0.5">
-                    {jobsMissingDocsSorted.slice(0, 12).map((job) => {
-                      const missing = jobMissingRequiredDocs(job);
-                      const done = REQUIRED_DOCS.length - missing.length;
-                      const pct = Math.round((done / REQUIRED_DOCS.length) * 100);
-                      const days = jobDaysSinceStart(job);
-                      const isStale = days >= 7;
-                      return (
-                        <div
-                          key={job.id}
-                          className={`rounded-xl border px-3.5 py-3 transition-colors ${
-                            isStale ? "border-amber-500/35 bg-amber-500/5" : "border-border bg-card/80"
-                          }`}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => onNavigate("jobs", job.id)}
-                            className="w-full text-left hover:opacity-90 transition-opacity"
-                          >
-                            <div className="flex flex-wrap items-start justify-between gap-2 gap-y-1">
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm font-semibold text-foreground leading-snug truncate">
-                                  {job.address || "Bez adresu"}
-                                  {job.flatNumber ? ` · m.${job.flatNumber}` : ""}
-                                </p>
-                                {(job.client || job.startDate) && (
-                                  <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                                    {job.client ? job.client : ""}
-                                    {job.client && job.startDate ? " · " : ""}
-                                    {job.startDate ? `od ${fmtDate(job.startDate)}` : ""}
-                                    {isStale && (
-                                      <span className="text-amber-600 dark:text-amber-400 font-medium">
-                                        {" "}· {days} dni w toku
-                                      </span>
-                                    )}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="shrink-0 text-right">
-                                <span
-                                  className={`inline-flex items-center text-xs font-bold px-2 py-0.5 rounded-lg ${
-                                    pct === 100
-                                      ? "bg-green-500/15 text-green-600 dark:text-green-400"
-                                      : pct >= 75
-                                        ? "bg-yellow-500/15 text-yellow-700 dark:text-yellow-300"
-                                        : "bg-red-500/15 text-red-600 dark:text-red-400"
-                                  }`}
-                                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                                >
-                                  {done}/{REQUIRED_DOCS.length}
-                                </span>
-                              </div>
-                            </div>
-                          </button>
-                          <div className="mt-2.5 h-1.5 rounded-full bg-border overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-300 ${
-                                pct === 100 ? "bg-green-500" : pct >= 75 ? "bg-yellow-500" : "bg-red-500"
-                              }`}
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                          <div className="mt-2.5 flex flex-wrap gap-1.5">
-                            {REQUIRED_DOCS.map((doc) => {
-                              const checked = job.documents[doc];
-                              const reportLocked = checked && isReportSyncedDocLocked(job, doc);
-                              const locked = reportLocked && !isSuperAdmin;
-                              return (
-                                <button
-                                  key={doc}
-                                  type="button"
-                                  title={
-                                    reportLocked && isSuperAdmin
-                                      ? `${DOC_LABELS[doc]} — z dokumentacji ekipy (Super Admin: kliknij, aby zmienić status)`
-                                      : locked
-                                        ? `${DOC_LABELS[doc]} — potwierdzone dokumentacją ekipy (nie można odznaczyć)`
-                                        : checked
-                                          ? `${DOC_LABELS[doc]} — odebrane (kliknij, aby odznaczyć)`
-                                          : `Oznacz jako odebrane: ${DOC_LABELS[doc]}`
-                                  }
-                                  onClick={() => toggleJobDocumentOnDashboard(job, doc)}
-                                  className={`inline-flex items-center gap-1 text-[11px] font-medium px-3 py-2.5 min-h-[44px] rounded-md border transition-all touch-manipulation ${
-                                    locked
-                                      ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 cursor-default"
-                                      : checked
-                                        ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 hover:bg-green-500/20 active:scale-[0.97]"
-                                        : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25 hover:bg-green-500/15 hover:text-green-700 hover:border-green-500/30 dark:hover:text-green-300 active:scale-[0.97]"
-                                  }`}
-                                >
-                                  {checked ? (
-                                    <CheckCircle2 size={10} className="shrink-0"/>
-                                  ) : (
-                                    <Circle size={10} className="shrink-0 opacity-70"/>
-                                  )}
-                                  {DOC_LABELS[doc]}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {jobsMissingDocsSorted.length > 12 && (
-                    <p className="text-[11px] text-muted-foreground mt-2.5">
-                      + {jobsMissingDocsSorted.length - 12} kolejnych — zobacz w zakładce Roboty
-                    </p>
-                  )}
-                  {jobsReadyToClose.length > 0 && (
-                    <p className="text-[11px] text-green-600 dark:text-green-400 mt-2 flex items-center gap-1.5">
-                      <CheckCircle2 size={12}/>
-                      {jobsReadyToClose.length} {jobsReadyToClose.length === 1 ? "robota gotowa" : "roboty gotowe"} do zdania (pełny komplet dokumentów)
-                    </p>
-                  )}
-                </div>
-              )}
-              {needsUnsavedWeekAlert && !heroUwagaCovered.has("payroll-unsaved") && (
-                <div className="px-5 py-3.5 flex items-center justify-between gap-3">
+            {brakiExpanded && (
+              <div className="px-4 sm:px-5 py-4 border-l-4 border-l-amber-500/50">
+                <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium flex items-center gap-2 flex-wrap">
-                      <Archive size={14} className="text-primary shrink-0"/>
-                      Tydzień niezapisany w archiwum
-                      <span className="text-xs text-muted-foreground font-normal">({fmtDate(weekFrom)} – {fmtDate(weekTo)})</span>
-                    </p>
                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                      W niedzielę (po {PAYROLL_WEEK_ROLLOVER_HOUR}:00 — nowy tydzień) tydzień zapisuje się automatycznie, gdy wszyscy rozliczeni. Zapisz ręcznie, jeśli auto-zapis nie zadziałał.
+                      <span className="text-foreground/90">Kliknij dokument</span> — czerwony = brak, zielony = odebrany.
+                      Kliknij adres robota — pełna karta w Robotach. Wymagane: {REQUIRED_DOCS.length} poz.
+                      {staleDocsJobs.length > 0 && (
+                        <span className="text-amber-600 dark:text-amber-400 font-medium">
+                          {" "}· {staleDocsJobs.length} {staleDocsJobs.length === 1 ? "trwa" : "trwają"} &gt;7 dni bez kompletu
+                        </span>
+                      )}
                     </p>
                   </div>
-                  <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline shrink-0">
-                    Zapisz tydzień →
+                  <button type="button" onClick={() => onNavigate("jobs")} className="text-xs font-medium text-primary hover:underline shrink-0 px-2 py-1">
+                    Wszystkie roboty →
                   </button>
                 </div>
-              )}
-              {needsPayrollBlockerAlert && !heroUwagaCovered.has("payroll-blockers") && (
-                <div className="px-5 py-3.5">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <Wallet size={14} className="text-yellow-400"/>
-                      Wypłata sobotnia bez rozliczenia
-                      <span className="text-[10px] bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded-full font-bold">
-                        {payrollRolloverBlockers.length}
-                      </span>
-                    </p>
-                    <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline">
-                      Lista płac →
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {payrollRolloverBlockers.slice(0, 8).map((e) => (
-                      <span key={e.id} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-muted-foreground">{e.name || "—"}</span>
-                    ))}
-                    {payrollRolloverBlockers.length > 8 && (
-                      <span className="text-[10px] text-muted-foreground">+ {payrollRolloverBlockers.length - 8}</span>
-                    )}
-                  </div>
-                </div>
-              )}
-              {consistencyAlerts.length > 0 && !heroUwagaCovered.has("payroll-consistency") && (
-                <div className="px-5 py-3.5">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <Scale size={14} className="text-orange-400"/>
-                      Spójność listy płac ↔ roboty
-                      <span className="text-[10px] bg-orange-500/15 text-orange-400 px-1.5 py-0.5 rounded-full font-bold">
-                        {consistencyAlerts.length}
-                      </span>
-                    </p>
-                    <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline">
-                      Lista płac →
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    {consistencyAlerts.slice(0, 8).map((a, i) => {
-                      const canFix =
-                        a.kind !== "payroll_only" ||
-                        jobs.some((j) => j.status === "in_progress");
-                      return (
-                        <div key={`${a.name}-${a.dateIso}-${i}`} className="flex items-start justify-between gap-3">
-                          <p className="text-xs text-muted-foreground leading-relaxed min-w-0 flex-1">
-                            {consistencyAlertMessage(a)}
-                          </p>
-                          <button
-                            type="button"
-                            disabled={!canFix}
-                            title={
-                              canFix
-                                ? a.multiSite
-                                  ? "Dopasuj sumę godzin — rozdziel między roboty (lista płac ma pierwszeństwo)"
-                                  : "Dopasuj roboty do godzin z listy płac"
-                                : "Brak aktywnej roboty — dodaj wpis ręcznie w Roboty"
-                            }
-                            onClick={() => handleFixConsistency(a)}
-                            className="shrink-0 text-[10px] px-2.5 py-1 rounded-lg bg-primary/15 text-primary hover:bg-primary/25 font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                          >
-                            Popraw
-                          </button>
-                        </div>
-                      );
-                    })}
-                    {consistencyAlerts.length > 8 && (
-                      <p className="text-[10px] text-muted-foreground">+ {consistencyAlerts.length - 8} więcej rozbieżności</p>
-                    )}
-                  </div>
-                </div>
-              )}
-              {pendingPhotos.length > 0 && !heroUwagaCovered.has("pending-photos") && (
-                <div className="px-5 py-3.5">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <Camera size={14} className="text-yellow-400"/>
-                      Zdjęcia od pracowników — do akceptacji
-                      <span className="text-[10px] bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded-full font-bold">
-                        {pendingPhotos.length}
-                      </span>
-                    </p>
-                    <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline">
-                      Roboty →
-                    </button>
-                  </div>
-                  <div className="space-y-1.5">
-                    {pendingPhotos.slice(0, 5).map(({ photo, job }) => (
-                      <button
-                        key={photo.id}
-                        type="button"
-                        onClick={() => onNavigate("jobs", job.id)}
-                        className="w-full text-left text-xs text-muted-foreground truncate hover:text-foreground transition-colors"
+                <div className="space-y-2.5 max-h-[min(70vh,520px)] overflow-y-auto overscroll-contain pr-0.5">
+                  {jobsMissingDocsSorted.map((job) => {
+                    const missing = jobMissingRequiredDocs(job);
+                    const done = REQUIRED_DOCS.length - missing.length;
+                    const pct = Math.round((done / REQUIRED_DOCS.length) * 100);
+                    const days = jobDaysSinceStart(job);
+                    const isStale = days >= 7;
+                    return (
+                      <div
+                        key={job.id}
+                        className={`rounded-xl border px-3.5 py-3 transition-colors ${
+                          isStale ? "border-amber-500/35 bg-amber-500/5" : "border-border bg-card/80"
+                        }`}
                       >
-                        <span className="text-foreground">{job.address || "Bez adresu"}</span>
-                        {" · "}
-                        <span className="text-foreground/90">{photo.uploadedBy}</span>
-                        {photo.caption ? ` — ${photo.caption}` : ""}
-                        {" · "}
-                        {fmtDate(photo.uploadedAt.slice(0, 10))}
-                      </button>
-                    ))}
-                    {pendingPhotos.length > 5 && (
-                      <p className="text-[10px] text-muted-foreground">+ {pendingPhotos.length - 5} więcej</p>
-                    )}
-                  </div>
-                </div>
-              )}
-              {pendingReceipts.length > 0 && !heroUwagaCovered.has("pending-receipts") && (
-                <div className="px-5 py-3.5">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <Receipt size={14} className="text-emerald-400"/>
-                      Paragony / faktury do akceptacji
-                      <span className="text-[10px] bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded-full font-bold">
-                        {pendingReceipts.length}
-                      </span>
-                    </p>
-                    <button type="button" onClick={() => onNavigate("payroll")} className="text-xs text-primary hover:underline">
-                      Lista płac →
-                    </button>
-                  </div>
-                  <div className="space-y-1.5">
-                    {pendingReceipts.slice(0, 5).map(({ cost, emp }) => (
-                      <button
-                        key={cost.id}
-                        type="button"
-                        onClick={() => onNavigate("payroll", undefined, emp.id)}
-                        className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <span className="text-foreground">{emp.name || "—"}</span>
-                        {cost.description ? ` — ${cost.description}` : ""}
-                        {" · "}
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(parseFloat(cost.amount) || 0)} PLN</span>
-                        {cost.submittedBy && cost.submittedBy !== emp.name && (
-                          <span className="text-muted-foreground"> · od {cost.submittedBy}</span>
-                        )}
-                      </button>
-                    ))}
-                    {pendingReceipts.length > 5 && (
-                      <p className="text-[10px] text-muted-foreground">+ {pendingReceipts.length - 5} więcej</p>
-                    )}
-                  </div>
-                </div>
-              )}
-              {pendingReports.length > 0 && !heroUwagaCovered.has("pending-reports") && (
-                <div className="px-5 py-3.5">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <ClipboardList size={14} className="text-violet-400"/>
-                      Nowa dokumentacja od ekipy
-                      <span className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full font-bold">
-                        {pendingReports.length}
-                      </span>
-                    </p>
-                    <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline">
-                      Roboty →
-                    </button>
-                  </div>
-                  <div className="space-y-1.5">
-                    {pendingReports.slice(0, 5).map(({ report, job }) => (
-                      <button
-                        key={report.id}
-                        type="button"
-                        onClick={() => {
-                          acknowledgeReport(job.id, report.id);
-                          onNavigate("jobs", job.id);
-                        }}
-                        className="w-full text-left text-xs text-muted-foreground truncate hover:text-foreground transition-colors"
-                      >
-                        <span className="text-foreground">{report.workerName}</span>
-                        {" · "}
-                        {job.address || "Bez adresu"}
-                        {getReportWorkScopeText(report).split("\n").find((l) => l.trim()) && ` — ${getReportWorkScopeText(report).split("\n").find((l) => l.trim())!.trim()}`}
-                        {" · "}
-                        {fmtDate((report.updatedAt || report.submittedAt).slice(0, 10))}
-                        {report.updatedAt && report.adminReviewedAt && report.updatedAt > report.adminReviewedAt && (
-                          <span className="text-violet-400"> · edyt.</span>
-                        )}
-                      </button>
-                    ))}
-                    {pendingReports.length > 5 && (
-                      <p className="text-[10px] text-muted-foreground">+ {pendingReports.length - 5} więcej</p>
-                    )}
-                  </div>
-                </div>
-              )}
-              {handoverJobCount > 0 && !heroUwagaCovered.has("handover-jobs") && (
-                <div className="px-5 py-3.5">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <ClipboardCheck size={14} className="text-orange-400"/>
-                      Roboty do odbioru
-                      <span className="text-[10px] bg-orange-500/15 text-orange-400 px-1.5 py-0.5 rounded-full font-bold">
-                        {handoverJobCount}
-                      </span>
-                    </p>
-                    <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline">
-                      Roboty →
-                    </button>
-                  </div>
-                  <div className="space-y-1.5">
-                    {handoverJobs.slice(0, 5).map((job) => {
-                      const statusKind = resolveJobListStatus(job);
-                      const statusLabel = JOB_LIST_STATUS_CONFIG[statusKind].label;
-                      return (
                         <button
-                          key={job.id}
                           type="button"
                           onClick={() => onNavigate("jobs", job.id)}
-                          className="w-full text-left text-xs text-muted-foreground truncate hover:text-foreground transition-colors"
+                          className="w-full text-left hover:opacity-90 transition-opacity"
                         >
-                          <span className="text-foreground">{job.address || "Bez adresu"}</span>
-                          {job.flatNumber ? ` m.${job.flatNumber}` : ""}
-                          {job.client ? (
-                            <>
-                              {" · "}
-                              <span className="text-foreground/90">{job.client}</span>
-                            </>
-                          ) : null}
-                          {" · "}
-                          <span className="text-orange-500/90">{statusLabel}</span>
-                          {job.plannedHandoverDate ? (
-                            <>
-                              {" · "}
-                              {fmtPlannedHandover(job.plannedHandoverDate)}
-                            </>
-                          ) : null}
+                          <div className="flex flex-wrap items-start justify-between gap-2 gap-y-1">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold text-foreground leading-snug truncate">
+                                {job.address || "Bez adresu"}
+                                {job.flatNumber ? ` · m.${job.flatNumber}` : ""}
+                              </p>
+                              {(job.client || job.startDate) && (
+                                <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                                  {job.client ? job.client : ""}
+                                  {job.client && job.startDate ? " · " : ""}
+                                  {job.startDate ? `od ${fmtDate(job.startDate)}` : ""}
+                                  {isStale && (
+                                    <span className="text-amber-600 dark:text-amber-400 font-medium">
+                                      {" "}· {days} dni w toku
+                                    </span>
+                                  )}
+                                </p>
+                              )}
+                            </div>
+                            <div className="shrink-0 text-right">
+                              <span
+                                className={`inline-flex items-center text-xs font-bold px-2 py-0.5 rounded-lg ${
+                                  pct === 100
+                                    ? "bg-green-500/15 text-green-600 dark:text-green-400"
+                                    : pct >= 75
+                                      ? "bg-yellow-500/15 text-yellow-700 dark:text-yellow-300"
+                                      : "bg-red-500/15 text-red-600 dark:text-red-400"
+                                }`}
+                                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                              >
+                                {done}/{REQUIRED_DOCS.length}
+                              </span>
+                            </div>
+                          </div>
                         </button>
-                      );
-                    })}
-                    {handoverJobCount > 5 && (
-                      <p className="text-[10px] text-muted-foreground">+ {handoverJobCount - 5} więcej</p>
-                    )}
-                  </div>
+                        <div className="mt-2.5 h-1.5 rounded-full bg-border overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-300 ${
+                              pct === 100 ? "bg-green-500" : pct >= 75 ? "bg-yellow-500" : "bg-red-500"
+                            }`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <div className="mt-2.5 flex flex-wrap gap-1.5">
+                          {REQUIRED_DOCS.map((doc) => {
+                            const checked = job.documents[doc];
+                            const reportLocked = checked && isReportSyncedDocLocked(job, doc);
+                            const locked = reportLocked && !isSuperAdmin;
+                            return (
+                              <button
+                                key={doc}
+                                type="button"
+                                title={
+                                  reportLocked && isSuperAdmin
+                                    ? `${DOC_LABELS[doc]} — z dokumentacji ekipy (Super Admin: kliknij, aby zmienić status)`
+                                    : locked
+                                      ? `${DOC_LABELS[doc]} — potwierdzone dokumentacją ekipy (nie można odznaczyć)`
+                                      : checked
+                                        ? `${DOC_LABELS[doc]} — odebrane (kliknij, aby odznaczyć)`
+                                        : `Oznacz jako odebrane: ${DOC_LABELS[doc]}`
+                                }
+                                onClick={() => toggleJobDocumentOnDashboard(job, doc)}
+                                className={`inline-flex items-center gap-1 text-[11px] font-medium px-3 py-2.5 min-h-[44px] rounded-md border transition-all touch-manipulation ${
+                                  locked
+                                    ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 cursor-default"
+                                    : checked
+                                      ? "bg-green-500/12 text-green-700 dark:text-green-300 border-green-500/35 hover:bg-green-500/20 active:scale-[0.97]"
+                                      : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25 hover:bg-green-500/15 hover:text-green-700 hover:border-green-500/30 dark:hover:text-green-300 active:scale-[0.97]"
+                                }`}
+                              >
+                                {checked ? (
+                                  <CheckCircle2 size={10} className="shrink-0"/>
+                                ) : (
+                                  <Circle size={10} className="shrink-0 opacity-70"/>
+                                )}
+                                {DOC_LABELS[doc]}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
-              {unseenInspectorFeed.length > 0 && !heroUwagaCovered.has("inspector-feed") && (
-                <div className="px-5 py-3.5">
-                  <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <ClipboardCheck size={14} className="text-emerald-500"/>
-                      Inspektor — nowe zmiany
-                      <span className="text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full font-bold">
-                        {unseenInspectorFeed.length}
-                      </span>
-                    </p>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button type="button" onClick={markInspectorAlertsSeen} className="text-[10px] text-muted-foreground hover:text-foreground">
-                        Oznacz przeczytane
-                      </button>
-                      <button type="button" onClick={() => onNavigate("inspector")} className="text-xs text-primary hover:underline">
-                        Inspektor →
-                      </button>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    {unseenInspectorFeed.slice(0, 6).map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => onNavigate("jobs", item.jobId, undefined, resolveInspectorFeedDeepLink(item).section)}
-                        className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">{item.actor}</span>
-                        {" · "}
-                        <span className="text-foreground/90">{item.text}</span>
-                        {" · "}
-                        <span className="text-foreground">{item.jobAddress || "Bez adresu"}</span>
-                        {" · "}
-                        {fmtDate(item.at.slice(0, 10))}
-                      </button>
-                    ))}
-                    {unseenInspectorFeed.length > 6 && (
-                      <p className="text-[10px] text-muted-foreground">+ {unseenInspectorFeed.length - 6} więcej w zakładce Inspektor</p>
-                    )}
-                  </div>
-                </div>
-              )}
-              {wmOverdueJobs.length > 0 && !heroUwagaCovered.has("wm-overdue") && (
-                <div className="px-5 py-3.5">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <Calendar size={14} className="text-red-400"/>
-                      WM — termin odbioru minął
-                      <span className="text-[10px] bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded-full font-bold">
-                        {wmOverdueJobs.length}
-                      </span>
-                    </p>
-                    <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline shrink-0">
-                      Roboty →
-                    </button>
-                  </div>
-                  <div className="space-y-1.5">
-                    {wmOverdueJobs.slice(0, 5).map((job) => (
-                      <button
-                        key={job.id}
-                        type="button"
-                        onClick={() => onNavigate("jobs", job.id, undefined, "summary")}
-                        className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <span className="text-foreground">{job.address || "Bez adresu"}</span>
-                        {job.flatNumber ? ` m.${job.flatNumber}` : ""}
-                        {" · "}
-                        <span className="text-red-400">{fmtPlannedHandover(job.plannedHandoverDate || "")}</span>
-                        {" · "}
-                        {HANDOVER_STAGE_LABELS[inferHandoverStage(job)]}
-                      </button>
-                    ))}
-                    {wmOverdueJobs.length > 5 && (
-                      <p className="text-[10px] text-muted-foreground">+ {wmOverdueJobs.length - 5} więcej</p>
-                    )}
-                  </div>
-                </div>
-              )}
-              {wmThisWeekJobs.length > 0 && !heroUwagaCovered.has("wm-this-week") && (
-                <div className="px-5 py-3.5">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <CalendarDays size={14} className="text-amber-400"/>
-                      WM — odbiór w tym tygodniu
-                      <span className="text-[10px] bg-amber-500/15 text-amber-400 px-1.5 py-0.5 rounded-full font-bold">
-                        {wmThisWeekJobs.length}
-                      </span>
-                    </p>
-                    <button type="button" onClick={() => onNavigate("jobs")} className="text-xs text-primary hover:underline shrink-0">
-                      Roboty →
-                    </button>
-                  </div>
-                  <div className="space-y-1.5">
-                    {wmThisWeekJobs.slice(0, 5).map((job) => (
-                      <button
-                        key={job.id}
-                        type="button"
-                        onClick={() => onNavigate("jobs", job.id, undefined, "summary")}
-                        className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <span className="text-foreground">{job.address || "Bez adresu"}</span>
-                        {job.flatNumber ? ` m.${job.flatNumber}` : ""}
-                        {" · "}
-                        <span className="text-amber-400">{fmtPlannedHandover(job.plannedHandoverDate || "")}</span>
-                        {" · "}
-                        {HANDOVER_STAGE_LABELS[inferHandoverStage(job)]}
-                      </button>
-                    ))}
-                    {wmThisWeekJobs.length > 5 && (
-                      <p className="text-[10px] text-muted-foreground">+ {wmThisWeekJobs.length - 5} więcej</p>
-                    )}
-                  </div>
-                </div>
-              )}
-              {inspectorNotesPending.length > 0 && !heroUwagaCovered.has("inspector-notes") && (
-                <div className="px-5 py-3.5">
-                  <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <MessageSquare size={14} className="text-violet-400"/>
-                      Notatki od inspektora
-                      <span className="text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full font-bold">
-                        {inspectorNotesPending.length}
-                      </span>
-                    </p>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button type="button" onClick={markInspectorAlertsSeen} className="text-[10px] text-muted-foreground hover:text-foreground">
-                        Oznacz przeczytane
-                      </button>
-                      <button type="button" onClick={() => onNavigate("inspector")} className="text-xs text-primary hover:underline">
-                        Inspektor →
-                      </button>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    {inspectorNotesPending.slice(0, 5).map((job) => {
-                      const last = (job.jobNotes || [])[0];
-                      if (!last) return null;
-                      return (
-                        <button
-                          key={job.id}
-                          type="button"
-                          onClick={() => onNavigate("jobs", job.id, undefined, "summary")}
-                          className="w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <span className="text-foreground">{job.address || "Bez adresu"}</span>
-                          {" · "}
-                          <span className="text-emerald-600 dark:text-emerald-400">{last.author}</span>
-                          {": "}
-                          {(last.context === "billing" || last.recoverableChargeId)
-                            ? `Do rozliczenia: ${last.text.length > 50 ? `${last.text.slice(0, 50)}…` : last.text}`
-                            : last.text.length > 60 ? `${last.text.slice(0, 60)}…` : last.text}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
+                {jobsReadyToClose.length > 0 && (
+                  <p className="text-[11px] text-green-600 dark:text-green-400 mt-2 flex items-center gap-1.5">
+                    <CheckCircle2 size={12}/>
+                    {jobsReadyToClose.length} {jobsReadyToClose.length === 1 ? "robota gotowa" : "roboty gotowe"} do zdania (pełny komplet dokumentów)
+                  </p>
+                )}
+              </div>
             )}
           </div>
         )}
 
-        <RecoverableChargesDashboardCard
-          charges={recoverableCharges}
-          onOpenModule={() => onNavigate("recoverablecharges")}
+        <DashboardPilneUwagiSection
+          urgentTodayTotal={urgentToday.urgentTodayTotal}
+          categories={urgentToday.categories}
+          pilneExpanded={pilneExpanded}
+          setPilneExpanded={setPilneExpanded}
+          expandedCategories={expandedCategories}
+          toggleCategory={toggleCategory}
+          pilneCollapsedSummary={pilneCollapsedSummary}
+          needsUnsavedWeekAlert={needsUnsavedWeekAlert}
+          needsPayrollBlockerAlert={needsPayrollBlockerAlert}
+          weekFrom={weekFrom}
+          weekTo={weekTo}
+          payrollRolloverBlockers={payrollRolloverBlockers}
+          consistencyAlerts={consistencyAlerts}
+          pendingPhotos={pendingPhotos}
+          pendingReceipts={pendingReceipts}
+          pendingReports={pendingReports}
+          handoverJobs={handoverJobs}
+          unseenInspectorFeed={unseenInspectorFeed}
+          wmOverdueJobs={wmOverdueJobs}
+          wmThisWeekJobs={wmThisWeekJobs}
+          inspectorNotesPending={inspectorNotesPending}
+          recoverableAlertStats={recoverableAlertStats}
+          jobs={jobs}
+          onNavigate={onNavigate}
+          acknowledgeReport={acknowledgeReport}
+          markInspectorAlertsSeen={markInspectorAlertsSeen}
+          handleFixConsistency={handleFixConsistency}
         />
 
         {canViewTenders && onOpenTenders && (

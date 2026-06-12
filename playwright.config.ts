@@ -21,7 +21,7 @@ export default defineConfig({
     {
       name: "e2e-happy-path",
       use: { browserName: "chromium", viewport: { width: 390, height: 844 } },
-      testMatch: /(worker-admin-inspector-happy-path|jobs-mobile-layout|dashboard-hero)\.spec\.ts/,
+      testMatch: /(worker-admin-inspector-happy-path|jobs-mobile-layout)\.spec\.ts/,
       fullyParallel: false,
     },
     {

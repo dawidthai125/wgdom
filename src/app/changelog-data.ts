@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-11",
+    version: "2.50.74",
+    label: "Dashboard V3 — operacje bez Hero",
+    items: [
+      { type: "improve", text: "Pulpit V3 — usunięto „Najważniejsze dziś”; operacje w sekcjach „Braki dokumentów” i „Pilne uwagi na dziś” (kategorie)" },
+      { type: "improve", text: "KPI — „Braki dokumentów” i „Pilne uwagi” zamiast „Do ogarnięcia”; liczniki = suma widocznych pozycji" },
+      { type: "improve", text: "Do odzyskania — w Pilnych uwagach (pełna lista alertów); osobna karta usunięta" },
+    ],
+  },
+  {
+    date: "2026-06-11",
     version: "2.50.73",
     label: "Hero — wyłącznie alerty operacyjne",
     items: [

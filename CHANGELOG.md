@@ -4,12 +4,21 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.50.73** (`changelog-data.ts`) · Hero — wyłącznie alerty operacyjne  
+**Aktualna wersja UI:** **2.50.74** (`changelog-data.ts`) · Dashboard V3 — operacje bez Hero  
 **★ SSOT handoff:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../CURRENT-TASK.md)  
 **★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
+
+---
+
+## 2.50.74 (2026-06-11) — Dashboard V3 — operacje bez Hero
+
+- Usunięto „Najważniejsze dziś” (Hero)
+- Sekcje: Braki dokumentów + Pilne uwagi (kategorie)
+- KPI: Braki dokumentów + Pilne uwagi zamiast Do ogarnięcia
+- Recoverable w Pilnych uwagach (liczba pozycji, nie osobna karta)
 
 ---
 
