@@ -16,6 +16,7 @@ import type { EmployeeLeave } from "@/lib/employee-leaves";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import type { View } from "@/app/admin/admin-nav";
 import { CommandCenterProvider } from "@/app/tender-center/context/CommandCenterContext";
+import { TendersProvider } from "@/app/tenders/context/TendersProvider";
 
 const PayrollView = lazy(() => import("@/app/PayrollView").then((m) => ({ default: m.PayrollView })));
 const JobsView = lazy(() => import("@/app/JobsView").then((m) => ({ default: m.JobsView })));
@@ -27,11 +28,43 @@ const MediaView = lazy(() => import("@/app/MediaView").then((m) => ({ default: m
 const RecoverableChargesView = lazy(() =>
   import("@/app/RecoverableChargesView").then((m) => ({ default: m.RecoverableChargesView })),
 );
-const TenderCenterProView = lazy(() =>
-  import("@/app/TenderCenterProView").then((m) => ({ default: m.TenderCenterProView })),
+const TendersModule = lazy(() =>
+  import("@/app/tenders/TendersModule").then((m) => ({ default: m.TendersModule })),
 );
 
-/** Performance 2.1B — CC snapshot tylko na Pulpicie i w Przetargach (COMMAND CENTER). */
+function TendersProviderScope({
+  jobs,
+  directory,
+  productionWeekEmployees,
+  weekFrom,
+  weekTo,
+  savedWeeks,
+  children,
+}: {
+  jobs: Job[];
+  directory: DirectoryEmployee[];
+  productionWeekEmployees: WeekEmployee[];
+  weekFrom: string;
+  weekTo: string;
+  savedWeeks: WeekSnapshot[];
+  children: ReactNode;
+}) {
+  return (
+    <TendersProvider
+      enabled
+      jobs={jobs}
+      directory={directory}
+      productionWeekEmployees={productionWeekEmployees}
+      weekFrom={weekFrom}
+      weekTo={weekTo}
+      savedWeeks={savedWeeks}
+    >
+      {children}
+    </TendersProvider>
+  );
+}
+
+/** Performance 2.1B — CC snapshot tylko na Pulpicie (COMMAND CENTER executive). */
 function CommandCenterProviderScope({
   jobs,
   directory,
@@ -452,9 +485,9 @@ export function AdminViewRouter({
       )}
       {view === "tenders" && canViewTendersNav && (
         <ViewErrorBoundary label="Przetargi">
-          <CommandCenterProviderScope {...ccProviderInput}>
+          <TendersProviderScope {...ccProviderInput}>
             <Suspense fallback={<ViewLoadFallback label="Ładowanie przetargów…" />}>
-              <TenderCenterProView
+              <TendersModule
                 showTestBadge={adminSession ? adminIsSuperAdmin(adminSession.role) : false}
                 athPreviewEnabled={appSettings.athPreviewEnabled}
                 initialExpandedId={pendingTenderId}
@@ -483,7 +516,7 @@ export function AdminViewRouter({
                 }
               />
             </Suspense>
-          </CommandCenterProviderScope>
+          </TendersProviderScope>
         </ViewErrorBoundary>
       )}
     </div>

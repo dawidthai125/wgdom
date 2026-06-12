@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.50.76",
+    label: "Przetargi 3.0 — moduł z zakładkami",
+    items: [
+      { type: "new", text: "Przetargi 3.0 — pięć zakładek: Lista, Strategia, Mapa, Profil firmy, Ustawienia" },
+      { type: "improve", text: "Strategia — najlepsza okazja, GO/HOLD/NO-GO, kondycja, prognoza 90d, zdolność finansowa, What If, portfel decyzji, priorytety i KPI rynku" },
+      { type: "improve", text: "TendersProvider — pipeline, decyzje właściciela i snapshot strategiczny (ETAP 2 migracji CC → Przetargi)" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.50.75",
     label: "Przetargi — ETAP 1 likwidacji Command Center",
     items: [

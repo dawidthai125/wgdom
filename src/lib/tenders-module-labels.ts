@@ -4,4 +4,13 @@ export const TENDERS_MODULE_LABELS = {
   strategyView: "Analiza przetargów",
   classicView: "Lista przetargów",
   loading: "Ładowanie przetargów…",
+  tabs: {
+    list: "Lista",
+    strategy: "Strategia",
+    map: "Mapa",
+    profile: "Profil firmy",
+    settings: "Ustawienia",
+  },
 } as const;
+
+export type TendersTabId = keyof typeof TENDERS_MODULE_LABELS.tabs;

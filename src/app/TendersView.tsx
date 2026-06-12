@@ -40,16 +40,24 @@ function daysUntil(iso: string | null): number | null {
 
 export function TendersView({
   showTestBadge = false,
+  listOnly = false,
+  hideModuleHeader = false,
   onCreateJobFromTender,
   onOpenJob,
   athPreviewEnabled = true,
   initialExpandedId = null,
+  onExpandedIdChange,
 }: {
   showTestBadge?: boolean;
+  /** ETAP 2 — lista bez mapy, profilu i słownika (osobne zakładki). */
+  listOnly?: boolean;
+  /** Ukryj nagłówek „Przetargi BZP” (moduł 3.0 ma własny). */
+  hideModuleHeader?: boolean;
   onCreateJobFromTender?: (draft: ReturnType<typeof jobDraftFromTender>, item: TenderPipelineItem) => string | void;
   onOpenJob?: (jobId: string) => void;
   athPreviewEnabled?: boolean;
   initialExpandedId?: string | null;
+  onExpandedIdChange?: (id: string | null) => void;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId);
   const [showLegend, setShowLegend] = useState(false);
@@ -66,17 +74,25 @@ export function TendersView({
   }, [pipeline.reloadFromStorage]);
 
   useEffect(() => {
-    if (initialExpandedId) setExpandedId(initialExpandedId);
-  }, [initialExpandedId]);
+    if (initialExpandedId) {
+      setExpandedId(initialExpandedId);
+      onExpandedIdChange?.(initialExpandedId);
+    }
+  }, [initialExpandedId, onExpandedIdChange]);
+
+  const setExpanded = (id: string | null) => {
+    setExpandedId(id);
+    onExpandedIdChange?.(id);
+  };
 
   const handleRemoveItem = async (id: string) => {
     const removed = await pipeline.removeItem(id);
-    if (removed) setExpandedId((e) => (e === id ? null : e));
+    if (removed) setExpanded(expandedId === id ? null : expandedId);
   };
 
   const handleBulkRemove = async () => {
     await pipeline.bulkRemove();
-    setExpandedId(null);
+    setExpanded(null);
   };
 
   if (pipeline.loading) {
@@ -93,6 +109,7 @@ export function TendersView({
         className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
         style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
       >
+        {!hideModuleHeader && (
         <div className="sticky top-0 z-20 px-4 sm:px-6 py-3 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -118,6 +135,7 @@ export function TendersView({
             </button>
           </div>
         </div>
+        )}
 
         <div className="px-4 sm:px-6 py-4 space-y-3">
         <div className="flex flex-wrap gap-2 text-xs">
@@ -156,14 +174,18 @@ export function TendersView({
         </button>
         {showLegend && <TendersLegend compact />}
 
-        <TenderCompanyProfilePanel onSaved={() => bumpProfileVersion()} />
-        <TenderKeywordsPanel onSaved={() => void pipeline.resyncKeywords()} />
+        {!listOnly && (
+          <>
+            <TenderCompanyProfilePanel onSaved={() => bumpProfileVersion()} />
+            <TenderKeywordsPanel onSaved={() => void pipeline.resyncKeywords()} />
 
-        <TendersMapPanel
-          items={pipeline.items}
-          selectedId={expandedId}
-          onSelect={(id) => setExpandedId(id)}
-        />
+            <TendersMapPanel
+              items={pipeline.items}
+              selectedId={expandedId}
+              onSelect={(id) => setExpanded(id)}
+            />
+          </>
+        )}
 
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -323,7 +345,7 @@ export function TendersView({
                 className="w-full text-left px-4 py-3.5 hover:bg-secondary/40 transition-colors flex gap-2"
                 onClick={() => {
                   const opening = expandedId !== item.id;
-                  setExpandedId(opening ? item.id : null);
+                  setExpanded(opening ? item.id : null);
                   if (opening && item.status === "new") {
                     pipeline.updateItem(item.id, { status: "seen" });
                   }
