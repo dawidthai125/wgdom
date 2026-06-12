@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.51.23 — P2-F.4 References + ATH Quick Access
+- referenceFiles/protocolFiles upload + status referencji vs SWZ
+- Karta ofertowa: Otwórz przedmiar / Pobierz PDF (reuse ATH viewer)
+
 ## 2.51.22 — P2-F.3 Company Experience Auto-Build
 - company-experience-discovery z Robót/faktur/kosztorysów ATH + UI „Odkryte realizacje”
 - referenceStatus unknown/available/missing + dedupe + zatwierdzenie → warunki udziału

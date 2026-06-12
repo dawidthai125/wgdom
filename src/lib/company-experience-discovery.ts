@@ -232,6 +232,8 @@ export function discoveredToExperienceProject(d: DiscoveredProject): CompanyExpe
     year: yearFromDate(d.endDate) ?? yearFromDate(d.startDate),
     referenceStatus: "unknown",
     referenceAvailable: false,
+    referenceFiles: [],
+    protocolFiles: [],
     sourceJobId: d.jobId,
     discoveredFrom: d.source,
   };

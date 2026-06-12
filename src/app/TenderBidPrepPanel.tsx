@@ -1,6 +1,8 @@
 import {
-  AlertCircle, CheckCircle2, HelpCircle, Loader2, RefreshCw, ClipboardList, FileDown, ShieldAlert, Trophy, CalendarPlus, BookOpen,
+  AlertCircle, CheckCircle2, HelpCircle, Loader2, RefreshCw, ClipboardList, FileDown, ShieldAlert, Trophy, CalendarPlus, BookOpen, Eye,
 } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { TenderFitAssessment } from "@/lib/tenders-bzp-fit";
@@ -18,6 +20,13 @@ import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { TenderFitPanel } from "@/app/TenderFitPanel";
 import { TenderParticipationPanel } from "@/app/TenderParticipationPanel";
 import { TenderBidProposalPanel } from "@/app/TenderBidProposalPanel";
+import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
+import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
+import {
+  buildAthQuickAccessContext,
+  downloadAthKosztorysPdf,
+  traceAthQuickAccess,
+} from "@/lib/tender-ath-quick-access";
 
 const STATUS_ICON = {
   ok: CheckCircle2,
@@ -53,6 +62,7 @@ export function TenderBidPrepPanel({
   awardResult,
   onFetchAward,
   fetchingAward,
+  athPreviewEnabled = true,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -69,7 +79,32 @@ export function TenderBidPrepPanel({
   awardResult?: TenderAwardResult | null;
   onFetchAward?: () => void;
   fetchingAward?: boolean;
+  athPreviewEnabled?: boolean;
 }) {
+  const [athPreview, setAthPreview] = useState<InspectorFileItem | null>(null);
+  const [athPdfBusy, setAthPdfBusy] = useState(false);
+  const athAccess = useMemo(() => buildAthQuickAccessContext(item), [item]);
+
+  const handleOpenAth = useCallback((previewItem: InspectorFileItem) => {
+    setAthPreview(previewItem);
+    traceAthQuickAccess({
+      source: "ATH",
+      rows: athAccess.rowCount,
+      viewerOpened: true,
+    });
+  }, [athAccess.rowCount]);
+
+  const handleDownloadAthPdf = useCallback(async () => {
+    setAthPdfBusy(true);
+    try {
+      await downloadAthKosztorysPdf(item, athPreviewEnabled);
+      toast.success("Pobrano PDF przedmiaru");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Błąd generowania PDF");
+    } finally {
+      setAthPdfBusy(false);
+    }
+  }, [item, athPreviewEnabled]);
   const profile = loadCompanyProfileLocal();
   const wadium = computeWadiumInfo(item, swz, profile.maxWadiumPln);
   const refMatch = computeReferenceMatchSummary(item, profile);
@@ -236,6 +271,7 @@ export function TenderBidPrepPanel({
       <div className="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
         {checks.map((check) => {
           const Icon = STATUS_ICON[check.status];
+          const showAthActions = check.id === "kosztorys" && athAccess.enabled && athAccess.previewItem;
           return (
             <div
               key={check.id}
@@ -252,6 +288,33 @@ export function TenderBidPrepPanel({
                   </p>
                   {check.hint && check.status !== "ok" && (
                     <p className="text-[10px] text-muted-foreground mt-1 leading-snug">{check.hint}</p>
+                  )}
+                  {showAthActions && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenAth(athAccess.previewItem!);
+                        }}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-medium hover:bg-primary/20"
+                      >
+                        <Eye size={11} />
+                        Otwórz przedmiar
+                      </button>
+                      <button
+                        type="button"
+                        disabled={athPdfBusy}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleDownloadAthPdf();
+                        }}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-secondary text-[10px] font-medium hover:bg-secondary/80 disabled:opacity-50"
+                      >
+                        {athPdfBusy ? <Loader2 size={11} className="animate-spin" /> : <FileDown size={11} />}
+                        Pobierz PDF
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -272,6 +335,14 @@ export function TenderBidPrepPanel({
           missingKosztorys={!item.tenderDossier?.kosztorys?.ok}
         />
       </div>
+
+      {athPreview && (
+        <JobFilePreviewModal
+          item={athPreview}
+          athPreviewEnabled={athPreviewEnabled}
+          onClose={() => setAthPreview(null)}
+        />
+      )}
     </div>
   );
 }

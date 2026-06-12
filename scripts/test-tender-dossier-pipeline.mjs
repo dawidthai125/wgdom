@@ -85,6 +85,15 @@ import {
   isDuplicateExperienceProject,
   resolveJobExperienceValue,
 } from "../src/lib/company-experience-discovery.ts";
+import {
+  projectHasConfirmedReference,
+  resolveExperienceReferenceUiStatus,
+} from "../src/lib/company-qualification-profile.ts";
+import { experienceDocumentUploadError } from "../src/lib/experience-reference-upload.ts";
+import {
+  buildAthQuickAccessContext,
+  resolveAthPreviewItem,
+} from "../src/lib/tender-ath-quick-access.ts";
 
 let pass = 0;
 let fail = 0;
@@ -872,6 +881,133 @@ assert("p2f3 classify elek", classifyProjectCategory("Instalacja elektryczna SEP
 
 const p2f2StillRef = checkReferenceRequirement(profileRef);
 assert("p2f3 p2f2 ref regression", p2f2StillRef.status === "MATCH");
+
+// P2-F.4 — referencje + ATH quick access
+assert("p2f4 upload pdf ok", experienceDocumentUploadError({ name: "ref.pdf", size: 1000 }) == null);
+assert("p2f4 upload xlsx fail", experienceDocumentUploadError({ name: "bad.xlsx", size: 1000 }) != null);
+
+const projWithRef = {
+  title: "A",
+  category: "remont",
+  valuePln: 600_000,
+  year: 2024,
+  referenceStatus: "unknown",
+  referenceAvailable: false,
+  referenceFiles: [{
+    id: "f1",
+    filename: "referencja.pdf",
+    path: "jobs/kw-company-experience/x.pdf",
+    publicUrl: "https://example.com/x.pdf",
+    uploadedAt: "2026-01-01T00:00:00Z",
+  }],
+  protocolFiles: [],
+};
+assert("p2f4 ref file confirms", projectHasConfirmedReference(projWithRef));
+assert("p2f4 ref ui available", resolveExperienceReferenceUiStatus(projWithRef) === "available");
+
+const projNoRef = {
+  ...projWithRef,
+  referenceFiles: [],
+  referenceStatus: "missing",
+  referenceAvailable: false,
+};
+assert("p2f4 ref ui missing", resolveExperienceReferenceUiStatus(projNoRef) === "missing");
+
+const profile2ref = defaultCompanyQualificationProfile();
+profile2ref.experienceProjects = [
+  projWithRef,
+  {
+    title: "B",
+    category: "remont",
+    valuePln: 700_000,
+    year: 2023,
+    referenceStatus: "unknown",
+    referenceAvailable: false,
+    referenceFiles: [],
+    protocolFiles: [],
+  },
+];
+const refReq2 = {
+  minProjects: 2,
+  minValuePln: 500_000,
+  category: null,
+  referenceRequired: true,
+  periodYears: null,
+  confidence: 0.9,
+  label: "2 realizacje + referencje",
+};
+const refPartial = checkReferenceRequirement(profile2ref, refReq2);
+assert("p2f4 ref missing 1 of 2", refPartial.status === "MISSING" && /Brakuje 1 referenc/i.test(refPartial.profileNote));
+
+profile2ref.experienceProjects[1].referenceFiles = [{
+  id: "f2",
+  filename: "ref2.pdf",
+  path: "p2",
+  publicUrl: "https://example.com/2.pdf",
+  uploadedAt: "2026-01-01T00:00:00Z",
+}];
+profile2ref.experienceProjects[1].referenceStatus = "available";
+profile2ref.experienceProjects[1].referenceAvailable = true;
+const refFull = checkReferenceRequirement(profile2ref, refReq2);
+assert("p2f4 ref match 2 of 2", refFull.status === "MATCH");
+
+function mockTenderAth(rowCount = 221, withValue = false) {
+  return {
+    tenderId: "t-ath-1",
+    bzpDocuments: [{ index: 0, filename: "zip.zip" }],
+    tenderDossier: {
+      kosztorys: {
+        ok: true,
+        rowCount,
+        rows: [],
+        przedmiar: [],
+        categories: [],
+        sourceFilename: "Logintrade.zip → k.ath",
+        sourceDocumentIndex: 0,
+        zipInnerPath: "k.ath",
+        totalValue: withValue ? "850 000,00" : null,
+        currency: "PLN",
+      },
+      scanSummary: {
+        kosztorysFound: true,
+        costDiscovery: { found: true, type: "zip_ath", source: "Logintrade" },
+      },
+    },
+  };
+}
+
+const athCtx = buildAthQuickAccessContext(mockTenderAth(221));
+assert("p2f4 ath quick access enabled", athCtx.enabled === true);
+assert("p2f4 ath rows", athCtx.rowCount === 221);
+assert("p2f4 ath preview item", athCtx.previewItem?.kind === "tenderBzp");
+assert("p2f4 ath zip inner", resolveAthPreviewItem(mockTenderAth())?.zipInnerPath === "k.ath");
+
+const noAth = buildAthQuickAccessContext({ tenderId: "x", tenderDossier: null });
+assert("p2f4 no ath buttons", noAth.enabled === false);
+
+const swzRefMatch = checkExperienceQualification(
+  extractExperienceRequirements(
+    "Minimum 2 roboty budowlane o wartości co najmniej 500 000 zł wraz z referencjami potwierdzającymi wykonanie.",
+  ),
+  profile2ref,
+);
+assert("p2f4 swz ref match", swzRefMatch.some((c) => c.status === "MATCH" && /referenc/i.test(c.label)));
+
+const profileNoRefs = defaultCompanyQualificationProfile();
+profileNoRefs.experienceProjects = profile2ref.experienceProjects.map((p) => ({
+  ...p,
+  referenceFiles: [],
+  protocolFiles: [],
+  referenceStatus: "missing",
+  referenceAvailable: false,
+}));
+const swzRefMissing = checkExperienceQualification(
+  extractExperienceRequirements(
+    "Wykonawca złoży referencje potwierdzające należyte wykonanie co najmniej 2 robót budowlanych.",
+  ),
+  profileNoRefs,
+);
+assert("p2f4 swz ref missing", swzRefMissing.some((c) => c.status === "MISSING" && /referenc/i.test(c.label)));
 
 // HOTFIX — parseTenderDossierDocuments musi mieć import roleContributesMetadata (P2-E.1 path)
 let dossierPipelineErr = null;

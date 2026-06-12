@@ -8,9 +8,20 @@ import { mergeCompanyQualificationProfileForCloud } from "@/lib/tenders-sync";
 import { defaultCompanyProfile, type TenderCompanyProfile } from "@/lib/tenders-bzp-company";
 
 export const COMPANY_QUALIFICATION_PROFILE_KEY = "kw-company-profile";
-export const QUALIFICATION_PROFILE_SCHEMA_VERSION = 3;
+export const QUALIFICATION_PROFILE_SCHEMA_VERSION = 4;
 
 export type ExperienceReferenceStatus = "unknown" | "available" | "missing";
+
+/** P2-F.4 — plik referencji / protokołu w storage. */
+export interface ExperienceDocumentFile {
+  id: string;
+  filename: string;
+  path: string;
+  publicUrl: string;
+  mimeType?: string;
+  uploadedAt: string;
+  uploadedBy?: string;
+}
 
 export interface CompanyExperienceProject {
   title: string;
@@ -21,10 +32,36 @@ export interface CompanyExperienceProject {
   referenceStatus: ExperienceReferenceStatus;
   /** Zgodność wsteczna — true tylko gdy referenceStatus === available. */
   referenceAvailable: boolean;
+  /** P2-F.4 — dokumenty potwierdzające wykonanie. */
+  referenceFiles: ExperienceDocumentFile[];
+  protocolFiles: ExperienceDocumentFile[];
   /** P2-F.3 — powiązanie z robotą (dedupe). */
   sourceJobId?: string;
   discoveredFrom?: string;
 }
+
+export type ExperienceReferenceUiStatus = "available" | "unverified" | "missing";
+
+export const EXPERIENCE_REFERENCE_UI: Record<
+  ExperienceReferenceUiStatus,
+  { emoji: string; label: string; className: string }
+> = {
+  available: {
+    emoji: "🟢",
+    label: "Referencja dostępna",
+    className: "text-emerald-700 dark:text-emerald-400",
+  },
+  unverified: {
+    emoji: "🟡",
+    label: "Niezweryfikowana",
+    className: "text-amber-700 dark:text-amber-400",
+  },
+  missing: {
+    emoji: "🔴",
+    label: "Brak referencji",
+    className: "text-red-700 dark:text-red-400",
+  },
+};
 
 export interface CompanyQualificationPersonnel {
   kierownikBudowy: boolean;
@@ -83,15 +120,44 @@ function seedExperienceProjects(p: TenderCompanyProfile): CompanyExperienceProje
       year: r.year ? parseInt(String(r.year).slice(0, 4), 10) || null : null,
       referenceStatus: "available" as const,
       referenceAvailable: true,
+      referenceFiles: [],
+      protocolFiles: [],
     }));
   if (fromRefs.length > 0) return fromRefs;
   return [];
 }
 
 export function projectHasConfirmedReference(p: CompanyExperienceProject): boolean {
+  if (p.referenceStatus === "missing" && (p.referenceFiles?.length ?? 0) === 0) return false;
+  if ((p.referenceFiles?.length ?? 0) > 0) return true;
   if (p.referenceStatus === "available") return true;
   if (p.referenceStatus === "missing") return false;
   return Boolean(p.referenceAvailable);
+}
+
+export function resolveExperienceReferenceUiStatus(
+  p: CompanyExperienceProject,
+): ExperienceReferenceUiStatus {
+  if (p.referenceStatus === "missing" && (p.referenceFiles?.length ?? 0) === 0) {
+    return "missing";
+  }
+  if (projectHasConfirmedReference(p)) return "available";
+  return "unverified";
+}
+
+function normalizeDocumentFiles(raw: ExperienceDocumentFile[] | undefined): ExperienceDocumentFile[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((f) => f && typeof f.filename === "string" && typeof f.publicUrl === "string")
+    .map((f) => ({
+      id: typeof f.id === "string" ? f.id : crypto.randomUUID(),
+      filename: String(f.filename),
+      path: String(f.path ?? ""),
+      publicUrl: String(f.publicUrl),
+      mimeType: typeof f.mimeType === "string" ? f.mimeType : undefined,
+      uploadedAt: f.uploadedAt ?? new Date().toISOString(),
+      uploadedBy: typeof f.uploadedBy === "string" ? f.uploadedBy : undefined,
+    }));
 }
 
 export function syncExperienceAggregates(profile: CompanyQualificationProfile): CompanyQualificationProfile {
@@ -171,13 +237,21 @@ function normalizeExperienceProjects(raw: CompanyExperienceProject[] | undefined
     .filter((p) => p && typeof p.title === "string")
     .map((p) => {
       const referenceStatus = normalizeReferenceStatus(p);
+      const referenceFiles = normalizeDocumentFiles(p.referenceFiles);
+      const protocolFiles = normalizeDocumentFiles(p.protocolFiles);
+      const hasRefFiles = referenceFiles.length > 0;
+      const effectiveStatus: ExperienceReferenceStatus = hasRefFiles
+        ? "available"
+        : referenceStatus;
       return {
         title: String(p.title).trim(),
         category: String(p.category ?? "roboty ogólnobudowlane").trim(),
         valuePln: p.valuePln != null && Number.isFinite(Number(p.valuePln)) ? Number(p.valuePln) : null,
         year: p.year != null && Number.isFinite(Number(p.year)) ? Number(p.year) : null,
-        referenceStatus,
-        referenceAvailable: referenceStatus === "available",
+        referenceStatus: effectiveStatus,
+        referenceAvailable: effectiveStatus === "available",
+        referenceFiles,
+        protocolFiles,
         sourceJobId: typeof p.sourceJobId === "string" ? p.sourceJobId : undefined,
         discoveredFrom: typeof p.discoveredFrom === "string" ? p.discoveredFrom : undefined,
       };

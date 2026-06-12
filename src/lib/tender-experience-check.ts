@@ -175,37 +175,69 @@ export function checkExperienceRequirement(
   };
 }
 
-/** Sprawdzenie wymogu referencji. */
+/** Sprawdzenie wymogu referencji — liczy referencje wśród realizacji pasujących do wymogu SWZ. */
 export function checkReferenceRequirement(
   profile: CompanyQualificationProfile,
+  experienceReq?: ExperienceRequirement | null,
 ): { status: ParticipationCheckStatus; label: string; profileNote: string } {
-  const projects = getProfileProjects(profile);
-  const withRef = projects.filter((p) => projectHasConfirmedReference(p));
-  if (withRef.length > 0) {
+  const requiredCount = experienceReq?.minProjects ?? 1;
+  const matching = experienceReq
+    ? filterMatchingProjects(profile, experienceReq)
+    : getProfileProjects(profile);
+  const withRef = matching.filter((p) => projectHasConfirmedReference(p));
+
+  if (withRef.length >= requiredCount && matching.length >= requiredCount) {
     return {
       status: "MATCH",
-      label: "Referencje potwierdzone w profilu",
-      profileNote: `${withRef.length} realizacji z referencją`,
+      label: "Referencje spełnione",
+      profileNote: requiredCount > 1
+        ? `${withRef.length} referencji dla ${matching.length} realizacji`
+        : `${withRef.length} realizacji z referencją`,
     };
   }
-  if (profile.references.count != null && profile.references.count > 0) {
+
+  if (matching.length >= requiredCount && withRef.length > 0 && withRef.length < requiredCount) {
+    const missing = requiredCount - withRef.length;
+    return {
+      status: "MISSING",
+      label: "Brakuje referencji",
+      profileNote: `Brakuje ${missing} referencji (${withRef.length}/${requiredCount})`,
+    };
+  }
+
+  if (withRef.length > 0) {
+    return {
+      status: "MISSING",
+      label: "Brakuje referencji",
+      profileNote: requiredCount > 1
+        ? `Brakuje ${Math.max(0, requiredCount - withRef.length)} referencji (${withRef.length}/${requiredCount})`
+        : "Brak wystarczających referencji w profilu",
+    };
+  }
+
+  const hasStructuredProjects = getProfileProjects(profile).length > 0;
+  if (!hasStructuredProjects && profile.references.count != null && profile.references.count >= requiredCount) {
     return {
       status: "MATCH",
       label: "Referencje w profilu",
       profileNote: `${profile.references.count} referencji w profilu`,
     };
   }
-  if (projects.length === 0 && profile.references.count == null) {
+
+  if (matching.length === 0 && getProfileProjects(profile).length === 0 && profile.references.count == null) {
     return {
       status: "UNKNOWN",
       label: "Referencje wymagane",
       profileNote: "Brak danych o referencjach w profilu firmy",
     };
   }
+
   return {
     status: "MISSING",
-    label: "Referencje wymagane",
-    profileNote: "Brak potwierdzonych referencji w profilu wykonawcy",
+    label: "Brakuje referencji",
+    profileNote: requiredCount > 1
+      ? `Brakuje ${requiredCount} referencji — brak potwierdzonych dokumentów w profilu`
+      : "Brak potwierdzonych referencji w profilu wykonawcy",
   };
 }
 
@@ -217,10 +249,13 @@ export function checkExperienceQualification(
   const items = requirements.map((req) => checkExperienceRequirement(req, profile));
   const anyRefRequired = requirements.some((r) => r.referenceRequired);
   if (anyRefRequired) {
-    const ref = checkReferenceRequirement(profile);
+    const refReq = requirements
+      .filter((r) => r.referenceRequired)
+      .sort((a, b) => b.minProjects - a.minProjects)[0];
+    const ref = checkReferenceRequirement(profile, refReq);
     items.push({
       requirement: {
-        minProjects: 1,
+        minProjects: refReq.minProjects,
         minValuePln: null,
         category: null,
         referenceRequired: true,
@@ -232,7 +267,7 @@ export function checkExperienceQualification(
       label: ref.label,
       profileNote: ref.profileNote,
       matchingProjects: 0,
-      requiredProjects: 1,
+      requiredProjects: refReq.minProjects,
       requiredValue: null,
       largestMatchPln: null,
     });

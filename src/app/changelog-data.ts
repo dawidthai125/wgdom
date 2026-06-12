@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.23",
+    label: "Przetargi — Referencje realizacji + ATH Quick Access (P2-F.4)",
+    items: [
+      { type: "new", text: "referenceFiles / protocolFiles — upload PDF/DOCX przy realizacjach w profilu wykonawcy" },
+      { type: "new", text: "Status referencji 🟢/🟡/🔴 + licznik brakujących referencji vs wymóg SWZ" },
+      { type: "new", text: "ATH Quick Access — Otwórz przedmiar + Pobierz PDF bez przechodzenia przez ZIP" },
+      { type: "improve", text: "[ATH QUICK ACCESS TRACE] — reuse JobFilePreviewModal + downloadKosztorysPdf" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.22",
     label: "Przetargi — Auto-build doświadczenia firmy (P2-F.3)",
     items: [

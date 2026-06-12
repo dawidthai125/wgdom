@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { ClipboardCheck, ChevronDown, Loader2, Plus, Save, Sparkles, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ClipboardCheck, ChevronDown, FileText, Loader2, Plus, Save, Sparkles, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import {
   approveDiscoveredProject,
@@ -9,11 +9,15 @@ import {
   type DiscoveredProject,
 } from "@/lib/company-experience-discovery";
 import {
+  type CompanyExperienceProject,
   type CompanyQualificationProfile,
+  EXPERIENCE_REFERENCE_UI,
   defaultCompanyQualificationProfile,
   loadCompanyQualificationProfile,
+  resolveExperienceReferenceUiStatus,
   saveCompanyQualificationProfile,
 } from "@/lib/company-qualification-profile";
+import { uploadExperienceDocument } from "@/lib/experience-reference-upload";
 
 function NumInput({
   label,
@@ -73,6 +77,9 @@ export function CompanyQualificationProfilePanel({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [discovered, setDiscovered] = useState<DiscoveredProject[]>([]);
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const refInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const protocolInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -114,6 +121,44 @@ export function CompanyQualificationProfilePanel({
       toast.error("Błąd zapisu profilu");
     } finally {
       setSaving(false);
+    }
+  }, [profile, onSaved]);
+
+  const handleUploadDocument = useCallback(async (
+    idx: number,
+    kind: "reference" | "protocol",
+    file: File,
+  ) => {
+    const key = `${kind}-${idx}`;
+    setUploadingKey(key);
+    try {
+      const { doc, error } = await uploadExperienceDocument(file);
+      if (!doc || error) {
+        toast.error(error ?? "Błąd uploadu");
+        return;
+      }
+      const proj = profile.experienceProjects[idx];
+      if (!proj) return;
+      const next = [...profile.experienceProjects];
+      const updated: CompanyExperienceProject = {
+        ...proj,
+        referenceFiles: kind === "reference"
+          ? [...(proj.referenceFiles ?? []), doc]
+          : (proj.referenceFiles ?? []),
+        protocolFiles: kind === "protocol"
+          ? [...(proj.protocolFiles ?? []), doc]
+          : (proj.protocolFiles ?? []),
+        referenceStatus: kind === "reference" ? "available" : proj.referenceStatus,
+        referenceAvailable: kind === "reference" ? true : proj.referenceAvailable,
+      };
+      next[idx] = updated;
+      const nextProfile = { ...profile, experienceProjects: next };
+      setProfile(nextProfile);
+      await saveCompanyQualificationProfile(nextProfile);
+      toast.success(kind === "reference" ? "Dodano referencję PDF" : "Dodano protokół odbioru");
+      onSaved?.();
+    } finally {
+      setUploadingKey(null);
     }
   }, [profile, onSaved]);
 
@@ -198,6 +243,8 @@ export function CompanyQualificationProfilePanel({
                           year: new Date().getFullYear(),
                           referenceStatus: "unknown",
                           referenceAvailable: false,
+                          referenceFiles: [],
+                          protocolFiles: [],
                         },
                       ],
                     })}
@@ -209,8 +256,24 @@ export function CompanyQualificationProfilePanel({
                 {profile.experienceProjects.length === 0 && (
                   <p className="text-[10px] text-muted-foreground">Brak wpisów — dodaj realizacje do twardego dopasowania SWZ.</p>
                 )}
-                {profile.experienceProjects.map((proj, idx) => (
+                {profile.experienceProjects.map((proj, idx) => {
+                  const refUi = resolveExperienceReferenceUiStatus(proj);
+                  const refDisplay = EXPERIENCE_REFERENCE_UI[refUi];
+                  return (
                   <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-2 rounded-lg bg-background/50 border border-border/40">
+                    <p className={`sm:col-span-2 text-[10px] font-medium ${refDisplay.className}`}>
+                      {refDisplay.emoji} {refDisplay.label}
+                      {(proj.referenceFiles?.length ?? 0) > 0 && (
+                        <span className="text-muted-foreground font-normal ml-1">
+                          · {proj.referenceFiles!.length} ref.
+                        </span>
+                      )}
+                      {(proj.protocolFiles?.length ?? 0) > 0 && (
+                        <span className="text-muted-foreground font-normal ml-1">
+                          · {proj.protocolFiles!.length} prot.
+                        </span>
+                      )}
+                    </p>
                     <input
                       placeholder="Nazwa realizacji"
                       value={proj.title}
@@ -278,6 +341,70 @@ export function CompanyQualificationProfilePanel({
                         <option value="missing">Brak</option>
                       </select>
                     </label>
+                    <div className="sm:col-span-2 flex flex-wrap gap-1.5">
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        className="hidden"
+                        ref={(el) => { refInputRefs.current[String(idx)] = el; }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) void handleUploadDocument(idx, "reference", file);
+                          e.target.value = "";
+                        }}
+                      />
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        className="hidden"
+                        ref={(el) => { protocolInputRefs.current[String(idx)] = el; }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) void handleUploadDocument(idx, "protocol", file);
+                          e.target.value = "";
+                        }}
+                      />
+                      <button
+                        type="button"
+                        disabled={uploadingKey === `reference-${idx}` || saving}
+                        onClick={() => refInputRefs.current[String(idx)]?.click()}
+                        className="text-[10px] px-2 py-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 inline-flex items-center gap-1"
+                      >
+                        {uploadingKey === `reference-${idx}` ? <Loader2 size={10} className="animate-spin" /> : <Upload size={10} />}
+                        Dodaj referencję PDF
+                      </button>
+                      <button
+                        type="button"
+                        disabled={uploadingKey === `protocol-${idx}` || saving}
+                        onClick={() => protocolInputRefs.current[String(idx)]?.click()}
+                        className="text-[10px] px-2 py-1 rounded-md bg-secondary hover:bg-secondary/80 disabled:opacity-50 inline-flex items-center gap-1"
+                      >
+                        {uploadingKey === `protocol-${idx}` ? <Loader2 size={10} className="animate-spin" /> : <FileText size={10} />}
+                        Dodaj protokół odbioru
+                      </button>
+                    </div>
+                    {(proj.referenceFiles?.length ?? 0) > 0 && (
+                      <ul className="sm:col-span-2 text-[10px] text-muted-foreground space-y-0.5">
+                        {proj.referenceFiles!.map((f) => (
+                          <li key={f.id}>
+                            <a href={f.publicUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                              {f.filename}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {(proj.protocolFiles?.length ?? 0) > 0 && (
+                      <ul className="sm:col-span-2 text-[10px] text-muted-foreground space-y-0.5">
+                        {proj.protocolFiles!.map((f) => (
+                          <li key={f.id}>
+                            <a href={f.publicUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                              Protokół: {f.filename}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     <button
                       type="button"
                       onClick={() => setProfile({
@@ -289,7 +416,8 @@ export function CompanyQualificationProfilePanel({
                       <Trash2 size={10} /> Usuń
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               {pendingDiscovered.length > 0 && (

@@ -575,6 +575,7 @@ export function TenderDetailPanel({
         awardResult={item.awardResult}
         onFetchAward={() => void handleFetchAward()}
         fetchingAward={fetchingAward}
+        athPreviewEnabled={athPreviewEnabled}
       />
 
       <p className="text-xs text-muted-foreground">
