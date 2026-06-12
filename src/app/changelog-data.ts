@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.9",
+    label: "Przetargi — fix analizy SWZ Logintrade",
+    items: [
+      { type: "fix", text: "Analiza SWZ z Logintrade — downloadUrl platformy + priorytet modyfikacji SWZ" },
+      { type: "fix", text: "Wadium — nie pokazuje „Tak 6” / „6 zł” gdy w SWZ jest procent lub kwota tysięcy" },
+      { type: "improve", text: "Trace pipeline SWZ: document_download → pdf_parsed → metadata_extracted → tender_updated" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.8",
     label: "Przetargi — panel Wymaga uwagi (P2-D.3)",
     items: [

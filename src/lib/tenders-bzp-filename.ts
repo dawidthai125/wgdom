@@ -24,6 +24,7 @@ export function scoreTenderFilename(name: string): number {
   const n = name.toLowerCase();
   let s = 0;
   if (/kosztorys|przedmiar|obmiar/.test(n)) s += 35;
+  if (/modyfik.*swz|swz.*modyfik|zmian.*swz/.test(n)) s += 30;
   if (/swz|opz|specyfikac|formularz/.test(n)) s += 22;
   if (/\.(ath|nor|xml)$/i.test(n)) s += 28;
   if (/\.xlsx?$/i.test(n)) s += 14;
@@ -94,4 +95,17 @@ export function isDocxFilename(name: string): boolean {
 
 export function isXlsxFilename(name: string): boolean {
   return /\.xlsx?$/i.test(name);
+}
+
+/** Najlepszy załącznik SWZ do analizy (modyfikacja > SWZ > inne). */
+export function pickBestSwzDocumentForAnalysis<T extends { index: number; filename: string; isSwzHint?: boolean }>(
+  docs: T[],
+): T | undefined {
+  if (!docs.length) return undefined;
+  const ranked = [...docs].sort((a, b) => {
+    const sa = scoreTenderFilename(a.filename) + (a.isSwzHint ? 18 : 0);
+    const sb = scoreTenderFilename(b.filename) + (b.isSwzHint ? 18 : 0);
+    return sb - sa;
+  });
+  return ranked[0];
 }

@@ -85,11 +85,123 @@ export function extractPdfText(bytes: Uint8Array): string {
 export function parsePlnAmount(raw: string | null | undefined): { value: number | null; label: string | null } {
   if (!raw) return { value: null, label: null };
   const cleaned = raw.replace(/\s+/g, " ").trim();
-  const m = cleaned.match(/([\d\s]+(?:[.,]\d{1,2})?)\s*(?:zł|PLN|pln)/i)
-    || cleaned.match(/([\d\s]+(?:[.,]\d{1,2})?)/);
-  if (!m) return { value: null, label: cleaned.slice(0, 120) || null };
-  const num = parseFloat(m[1].replace(/\s/g, "").replace(",", "."));
-  return Number.isFinite(num) ? { value: num, label: cleaned.slice(0, 120) } : { value: null, label: cleaned.slice(0, 120) };
+  const withCurrency = cleaned.match(/([\d\s]+(?:[.,]\d{1,2})?)\s*(?:zł|PLN|pln)/i);
+  if (withCurrency) {
+    const num = parseFloat(withCurrency[1].replace(/\s/g, "").replace(",", "."));
+    if (Number.isFinite(num) && num > 0) {
+      return { value: num, label: cleaned.slice(0, 120) || null };
+    }
+  }
+  const thousands = cleaned.match(/([\d]{1,3}(?:\s[\d]{3})+(?:[.,]\d{2})?)/);
+  if (thousands) {
+    const num = parseFloat(thousands[1].replace(/\s/g, "").replace(",", "."));
+    if (Number.isFinite(num) && num >= 100) {
+      return { value: num, label: cleaned.slice(0, 120) || null };
+    }
+  }
+  return { value: null, label: cleaned.slice(0, 120) || null };
+}
+
+function extractWadiumPercentLocal(text: string): number | null {
+  const folded = text.replace(/\s+/g, " ");
+  const patterns = [
+    /wadium[^.]{0,120}?(\d+[,.]?\d*)\s*%\s*(?:warto|szacunk|zamówienia)/i,
+    /(\d+[,.]?\d*)\s*%\s*[^.]{0,40}warto[^.]{0,40}zamówienia/i,
+    /wysokość wadium[^.]{0,80}(\d+[,.]?\d*)\s*%/i,
+  ];
+  for (const p of patterns) {
+    const m = folded.match(p);
+    if (m?.[1]) {
+      const n = parseFloat(m[1].replace(",", "."));
+      if (Number.isFinite(n) && n > 0 && n <= 20) return n;
+    }
+  }
+  return null;
+}
+
+function extractWadiumWindow(text: string): string {
+  const folded = text.replace(/\s+/g, " ");
+  const m = folded.match(/(?:wysokość\s+)?wadium[^.]{0,240}/i);
+  return m?.[0] ?? "";
+}
+
+/** Wadium — odróżnia „Tak/6%” od błędnego „6 zł” i nie myli z wartością zamówienia. */
+export function parseWadiumFromSwzText(
+  text: string,
+  wadiumSnippet: string | null,
+  estimatedValuePln: number | null,
+): { wadiumPln: number | null; wadiumRaw: string | null; wadiumPercent: number | null } {
+  const snippet = (wadiumSnippet || "").trim();
+  const window = extractWadiumWindow(text);
+  const ctx = snippet.length >= 5 ? snippet : (window || text.replace(/\s+/g, " ").slice(0, 400));
+
+  if (/^tak[,\s.]*$/i.test(snippet) || /^nie[,\s.]*$/i.test(snippet)) {
+    return { wadiumPln: null, wadiumRaw: null, wadiumPercent: null };
+  }
+
+  const wadiumPercent = extractWadiumPercentLocal(ctx) ?? extractWadiumPercentLocal(window);
+
+  if (/%/.test(ctx) && wadiumPercent != null && estimatedValuePln != null) {
+    return {
+      wadiumPln: Math.round(estimatedValuePln * wadiumPercent / 100),
+      wadiumRaw: `${wadiumPercent}% wartości zamówienia`,
+      wadiumPercent,
+    };
+  }
+
+  let wadiumPln: number | null = null;
+  let wadiumRaw: string | null = snippet || window || null;
+  const plnScope = window || ctx;
+
+  const plnPatterns = [
+    /wadium[^.]{0,120}?([\d\s]{1,12}[,.]\d{2})\s*(?:zł|PLN|pln)/i,
+    /wadium[^.]{0,120}?([\d]{1,3}(?:\s[\d]{3})+(?:[,.]\d{2})?)\s*(?:zł|PLN|pln)?/i,
+    /([\d\s]{1,12}[,.]\d{2})\s*(?:zł|PLN|pln)[^.]{0,40}wadium/i,
+  ];
+  for (const p of plnPatterns) {
+    const m = plnScope.match(p);
+    if (m?.[1]) {
+      const parsed = parsePlnAmount(`${m[1]} zł`);
+      if (parsed.value != null && parsed.value >= 100) {
+        if (estimatedValuePln != null && parsed.value >= estimatedValuePln * 0.5) continue;
+        wadiumPln = parsed.value;
+        wadiumRaw = m[0].trim().slice(0, 140);
+        break;
+      }
+    }
+  }
+
+  if (wadiumPln == null && wadiumPercent != null && estimatedValuePln != null) {
+    wadiumPln = Math.round(estimatedValuePln * wadiumPercent / 100);
+    if (!wadiumRaw || /^tak\b/i.test(wadiumRaw)) {
+      wadiumRaw = `${wadiumPercent}% wartości zamówienia`;
+    }
+  }
+
+  if (wadiumRaw && /^tak\b/i.test(wadiumRaw) && wadiumPln == null && wadiumPercent == null) {
+    wadiumRaw = null;
+  }
+  if (wadiumPln != null && wadiumPln < 100) {
+    wadiumPln = null;
+  }
+
+  return { wadiumPln, wadiumRaw, wadiumPercent };
+}
+
+export function isWeakWadiumRaw(raw: string | null | undefined): boolean {
+  if (!raw) return true;
+  const t = raw.trim();
+  if (/^tak\b/i.test(t) && !/\d{3,}/.test(t) && !/%/.test(t)) return true;
+  if (/^nie\b/i.test(t)) return true;
+  return false;
+}
+
+export function pickBetterWadiumPln(a: number | null | undefined, b: number | null | undefined): number | null {
+  if (a == null) return b ?? null;
+  if (b == null) return a ?? null;
+  if (a < 100 && b >= 100) return b;
+  if (b < 100 && a >= 100) return a;
+  return a;
 }
 
 function firstMatch(text: string, patterns: RegExp[]): string | null {
@@ -222,13 +334,13 @@ export function parseSwzPlainText(
   const tableExtracts = extractTableHints(text.length > 500 ? text : multiline);
   const costLines = parseStructuredCostLines(text.length > 500 ? text : multiline);
 
-  const { value: wadiumPln, label: wadiumLabel } = parsePlnAmount(wadiumRaw);
   const { value: estimatedValuePln, label: estLabel } = parsePlnAmount(valueRaw);
+  const wadiumParsed = parseWadiumFromSwzText(folded, wadiumRaw, estimatedValuePln);
   const implementationDays = parseImplementationDays(implementationDeadlineRaw);
 
   const { hint, note } = assessProfitability({
     estimatedValuePln,
-    wadiumPln,
+    wadiumPln: wadiumParsed.wadiumPln,
     ourEstimatePln: opts?.ourEstimatePln ?? null,
     implementationDays,
   });
@@ -236,8 +348,9 @@ export function parseSwzPlainText(
   return {
     estimatedValuePln,
     estimatedValueRaw: estLabel || valueRaw,
-    wadiumPln: wadiumPln ?? parsePlnAmount(wadiumLabel).value,
-    wadiumRaw: wadiumLabel || wadiumRaw,
+    wadiumPln: wadiumParsed.wadiumPln,
+    wadiumRaw: wadiumParsed.wadiumRaw,
+    wadiumPercent: wadiumParsed.wadiumPercent,
     referenceRequirement,
     qualificationHints: [...new Set(qualificationHints)].slice(0, 5),
     implementationDeadlineRaw,

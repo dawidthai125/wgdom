@@ -1,6 +1,5 @@
 /** Wybór i parsowanie najlepszego załącznika BZP (ATH/PDF/DOCX/XLSX/ZIP). */
 
-import type { TenderBzpDocument } from "@/lib/tenders-bzp";
 import { fetchTenderDocumentBytes, base64ToBytes, type TenderBzpDocument } from "@/lib/tenders-bzp";
 import {
   athPreviewToSnapshot,
@@ -8,6 +7,7 @@ import {
   type TenderKosztorysSnapshot,
 } from "@/lib/tenders-bzp-brief";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
+import { isWeakWadiumRaw, pickBetterWadiumPln } from "@/lib/tenders-bzp-swz";
 import {
   isDocxFilename,
   isZipFilename,
@@ -379,8 +379,11 @@ export function mergeSwzAnalysis(
     ...primary,
     estimatedValuePln: primary.estimatedValuePln ?? fromDoc.estimatedValuePln,
     estimatedValueRaw: primary.estimatedValueRaw ?? fromDoc.estimatedValueRaw,
-    wadiumPln: primary.wadiumPln ?? fromDoc.wadiumPln,
-    wadiumRaw: primary.wadiumRaw ?? fromDoc.wadiumRaw,
+    wadiumPln: pickBetterWadiumPln(primary.wadiumPln, fromDoc.wadiumPln),
+    wadiumRaw: isWeakWadiumRaw(primary.wadiumRaw)
+      ? (fromDoc.wadiumRaw ?? primary.wadiumRaw)
+      : (primary.wadiumRaw ?? fromDoc.wadiumRaw),
+    wadiumPercent: primary.wadiumPercent ?? fromDoc.wadiumPercent,
     referenceRequirement: primary.referenceRequirement ?? fromDoc.referenceRequirement,
     qualificationHints: [...new Set([...primary.qualificationHints, ...fromDoc.qualificationHints])].slice(0, 8),
     implementationDeadlineRaw: primary.implementationDeadlineRaw ?? fromDoc.implementationDeadlineRaw,

@@ -945,10 +945,28 @@ export function bytesToBlobUrl(bytes: Uint8Array, contentType?: string): string 
   return URL.createObjectURL(new Blob([bytes], { type: contentType || "application/octet-stream" }));
 }
 
+/** URL pobrania dla dokumentów spoza readmodels (Logintrade itd.). */
+export function resolveTenderDocumentDownload(
+  docs: TenderBzpDocument[] | undefined,
+  documentIndex: number,
+): { downloadUrl?: string; platform?: string; filename?: string } | null {
+  const doc = docs?.find((d) => d.index === documentIndex);
+  if (!doc) return null;
+  if (doc.platform && doc.downloadUrl) {
+    return { downloadUrl: doc.downloadUrl, platform: doc.platform, filename: doc.filename };
+  }
+  return { filename: doc.filename };
+}
+
 export async function loadTenderBzpDocumentBytes(
   tenderId: string,
   documentIndex: number,
+  downloadUrl?: string,
 ): Promise<{ bytes: Uint8Array; filename: string; contentType: string }> {
-  const { base64, filename, contentType } = await fetchTenderDocumentBytes(tenderId, documentIndex);
+  const { base64, filename, contentType } = await fetchTenderDocumentBytes(
+    tenderId,
+    documentIndex,
+    downloadUrl,
+  );
   return { bytes: base64ToBytes(base64), filename, contentType };
 }

@@ -2,14 +2,16 @@ import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { parseSwzPlainText, stripHtmlToText, extractTableHints } from "@/lib/tenders-bzp-swz";
 import { extractAwardCriteria } from "@/lib/tenders-bzp-fit";
 import { extractWadiumPercent } from "@/lib/tenders-wadium";
-import { displayTenderFilename } from "@/lib/tenders-bzp-filename";
+import { displayTenderFilename, pickBestSwzDocumentForAnalysis } from "@/lib/tenders-bzp-filename";
 import {
   analyzeTenderSwz,
   fetchTenderNoticeDetails,
   loadTenderBzpDocumentBytes,
+  resolveTenderDocumentDownload,
   type TenderBzpDocument,
 } from "@/lib/tenders-bzp";
 import { mergeSwzAnalysis } from "@/lib/tender-document-resolver";
+import { traceSwzPipeline } from "@/lib/tender-swz-trace";
 
 function enrichSwzFromText(
   text: string,
@@ -30,6 +32,69 @@ function enrichSwzFromText(
   };
 }
 
+async function analyzeFromDocumentIndex(opts: {
+  tenderId: string;
+  documentIndex: number;
+  bzpDocuments?: TenderBzpDocument[];
+  ourEstimatePln?: number | null;
+}): Promise<{ analysis: TenderSwzAnalysis; warnings: string[] } | null> {
+  const doc = opts.bzpDocuments?.find((d) => d.index === opts.documentIndex);
+  const filename = doc
+    ? displayTenderFilename(doc.filename, {
+      index: doc.index,
+      contentType: doc.contentType,
+      url: doc.downloadUrl,
+    })
+    : `Załącznik ${opts.documentIndex}`;
+  const access = resolveTenderDocumentDownload(opts.bzpDocuments, opts.documentIndex);
+  const downloadUrl = access?.downloadUrl;
+
+  try {
+    const { bytes } = await loadTenderBzpDocumentBytes(
+      opts.tenderId,
+      opts.documentIndex,
+      downloadUrl,
+    );
+    traceSwzPipeline("document_download", {
+      documentIndex: opts.documentIndex,
+      filename,
+      platform: access?.platform ?? "ezamowienia",
+      bytes: bytes.byteLength,
+    });
+
+    const { parseDocumentToSwzText } = await import("@/lib/tenders-bzp-doc-parse");
+    const parsed = await parseDocumentToSwzText(bytes, filename);
+    traceSwzPipeline("pdf_parsed", {
+      source: parsed.source,
+      textLength: parsed.text.length,
+      warnings: parsed.warnings,
+    });
+
+    const warnings = [...parsed.warnings];
+    if (parsed.text.length < 80) return null;
+
+    const base = parseSwzPlainText(parsed.text, {
+      source: parsed.source,
+      sourceFilename: filename,
+      ourEstimatePln: opts.ourEstimatePln ?? null,
+    });
+    const analysis = enrichSwzFromText(parsed.text, base);
+    traceSwzPipeline("metadata_extracted", {
+      estimatedValuePln: analysis.estimatedValuePln,
+      wadiumPln: analysis.wadiumPln,
+      wadiumPercent: analysis.wadiumPercent,
+      implementationDays: analysis.implementationDays,
+    });
+    return { analysis, warnings };
+  } catch (e) {
+    traceSwzPipeline("document_download", {
+      documentIndex: opts.documentIndex,
+      error: e instanceof Error ? e.message : String(e),
+    });
+    return null;
+  }
+}
+
 /** Analiza SWZ po stronie klienta — pdf.js dla PDF, pełniejsze kryteria i wadium. */
 export async function analyzeTenderSwzEnhanced(opts: {
   noticeNumber?: string;
@@ -43,26 +108,21 @@ export async function analyzeTenderSwzEnhanced(opts: {
   const warnings: string[] = [];
   let analysis: TenderSwzAnalysis | null = null;
 
-  if (opts.documentIndex && opts.tenderId) {
-    const doc = opts.bzpDocuments?.find((d) => d.index === opts.documentIndex);
-    const filename = doc
-      ? displayTenderFilename(doc.filename, {
-        index: doc.index,
-        contentType: doc.contentType,
-        url: doc.downloadUrl,
-      })
-      : `Załącznik ${opts.documentIndex}`;
-    const bytes = await loadTenderBzpDocumentBytes(opts.tenderId, opts.documentIndex);
-    const { parseDocumentToSwzText } = await import("@/lib/tenders-bzp-doc-parse");
-    const parsed = await parseDocumentToSwzText(bytes, filename);
-    warnings.push(...parsed.warnings);
-    if (parsed.text.length >= 80) {
-      const base = parseSwzPlainText(parsed.text, {
-        source: parsed.source,
-        sourceFilename: filename,
-        ourEstimatePln: opts.ourEstimatePln ?? null,
-      });
-      analysis = enrichSwzFromText(parsed.text, base);
+  const docIndex = opts.documentIndex
+    ?? (opts.tenderId && opts.bzpDocuments?.length
+      ? pickBestSwzDocumentForAnalysis(opts.bzpDocuments)?.index
+      : undefined);
+
+  if (docIndex && opts.tenderId) {
+    const fromDoc = await analyzeFromDocumentIndex({
+      tenderId: opts.tenderId,
+      documentIndex: docIndex,
+      bzpDocuments: opts.bzpDocuments,
+      ourEstimatePln: opts.ourEstimatePln ?? null,
+    });
+    if (fromDoc) {
+      analysis = fromDoc.analysis;
+      warnings.push(...fromDoc.warnings);
     }
   }
 
@@ -94,16 +154,6 @@ export async function analyzeTenderSwzEnhanced(opts: {
     }
   }
 
-  if (!analysis && opts.tenderId && opts.bzpDocuments?.length) {
-    const doc = opts.bzpDocuments.find((d) => d.isSwzHint) ?? opts.bzpDocuments[0];
-    if (doc) {
-      return analyzeTenderSwzEnhanced({
-        ...opts,
-        documentIndex: doc.index,
-      });
-    }
-  }
-
   if (!analysis && opts.noticeNumber) {
     try {
       analysis = await analyzeTenderSwz({
@@ -123,5 +173,11 @@ export async function analyzeTenderSwzEnhanced(opts: {
   }
 
   const merged = mergeSwzAnalysis(opts.existing ?? null, analysis);
-  return { analysis: merged, warnings };
+  traceSwzPipeline("tender_updated", {
+    estimatedValuePln: merged?.estimatedValuePln,
+    wadiumPln: merged?.wadiumPln,
+    wadiumRaw: merged?.wadiumRaw,
+    source: merged?.source,
+  });
+  return { analysis: merged!, warnings };
 }
