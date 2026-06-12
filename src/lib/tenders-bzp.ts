@@ -970,3 +970,13 @@ export async function loadTenderBzpDocumentBytes(
   );
   return { bytes: base64ToBytes(base64), filename, contentType };
 }
+
+/** P2-E.1 — pobieranie z automatycznym resolve downloadUrl (Logintrade itd.). */
+export async function loadTenderBzpDocumentBytesResolved(
+  tenderId: string,
+  documentIndex: number,
+  docs?: TenderBzpDocument[],
+): Promise<{ bytes: Uint8Array; filename: string; contentType: string }> {
+  const downloadUrl = resolveTenderDocumentDownload(docs, documentIndex)?.downloadUrl;
+  return loadTenderBzpDocumentBytes(tenderId, documentIndex, downloadUrl);
+}

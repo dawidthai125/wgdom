@@ -12,6 +12,7 @@ import { resolveTenderPlatformDocumentStatus } from "@/lib/tender-platform-aware
 import {
   buildEstimateMissingReason,
   buildKosztorysMissingMessage,
+  buildKosztorysStatusLine,
 } from "@/lib/tender-dossier-pipeline";
 
 export type BidPrepItemStatus = "ok" | "partial" | "missing";
@@ -52,17 +53,15 @@ export function computeBidPrepChecks(
     + (item.externalDocDiscovery?.files?.length ?? 0);
   const platformDoc = resolveTenderPlatformDocumentStatus(item);
   const scanSummary = item.tenderDossier?.scanSummary;
-  const kosztorysMissingDisplay = kosztorysOk
-    ? ""
-    : scanSummary
-      ? buildKosztorysMissingMessage(scanSummary).split("\n")[0] || "Kosztorys nie został odnaleziony"
-      : docCount > 0
-        ? "Kosztorys nie został odnaleziony"
-        : platformDoc.emptyMessage
-          ?? platformDoc.detailLines?.[0]
-          ?? "Brak plików";
+  const kosztorysMissingDisplay = scanSummary
+    ? buildKosztorysStatusLine(scanSummary).split("\n")[0] || "Nie znaleziono dokumentu kosztorysowego"
+    : docCount > 0
+      ? "Nie znaleziono dokumentu kosztorysowego"
+      : platformDoc.emptyMessage
+        ?? platformDoc.detailLines?.[0]
+        ?? "Brak plików";
   const kosztorysMissingHint = !kosztorysOk && scanSummary
-    ? buildKosztorysMissingMessage(scanSummary)
+    ? `${buildKosztorysMissingMessage(scanSummary)}`
     : !kosztorysOk && docCount === 0 && platformDoc.detailLines?.[1]
       ? platformDoc.detailLines[1]
       : !kosztorysOk
@@ -82,11 +81,9 @@ export function computeBidPrepChecks(
     {
       id: "value",
       label: "Wartość zamówienia",
-      status: valuePln != null ? "ok" : swz?.estimatedValueRaw ? "partial" : "missing",
-      display: valuePln != null
-        ? fmtPln(valuePln)
-        : swz?.estimatedValueRaw?.slice(0, 80) ?? "Nieznana",
-      hint: valuePln == null ? "Analizuj SWZ lub wgraj kosztorys PDF" : undefined,
+      status: valuePln != null ? "ok" : "missing",
+      display: valuePln != null ? fmtPln(valuePln) : "Nie wykryto",
+      hint: valuePln == null ? "Analizuj SWZ — wartość z SWZ/STWIOR/OPZ/kosztorysu" : undefined,
     },
     {
       id: "wadium",
@@ -110,7 +107,9 @@ export function computeBidPrepChecks(
       label: "Kosztorys / przedmiar",
       status: kosztorysOk ? "ok" : docCount > 0 ? "partial" : "missing",
       display: kosztorysOk
-        ? `${item.tenderDossier!.kosztorys!.totalValue || "?"} ${item.tenderDossier!.kosztorys!.currency || "PLN"}`
+        ? (scanSummary
+          ? buildKosztorysStatusLine(scanSummary).split("\n").join(" · ")
+          : `${item.tenderDossier!.kosztorys!.totalValue || "?"} ${item.tenderDossier!.kosztorys!.currency || "PLN"}`)
         : kosztorysMissingDisplay,
       hint: kosztorysMissingHint,
     },
@@ -126,8 +125,8 @@ export function computeBidPrepChecks(
           + (fit!.awardCriteria.length > 3 ? ` +${fit!.awardCriteria.length - 3}` : "")
         : fit?.priceWeightPct != null
           ? `Cena ~${fit.priceWeightPct}%`
-          : "Po analizie ogłoszenia",
-      hint: !(fit?.awardCriteria?.length) ? "Wynika z analizy tekstu ogłoszenia/SWZ" : undefined,
+          : "Nie wykryto",
+      hint: !(fit?.awardCriteria?.length) ? "Wynik analizy SWZ/STWIOR/OPZ — po „Analizuj SWZ”" : undefined,
     },
     {
       id: "our-bid",

@@ -5,7 +5,7 @@ import {
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import type { TenderBzpDocument, TenderPipelineItem, TenderUploadedFile } from "@/lib/tenders-bzp";
-import { loadTenderBzpDocumentBytes } from "@/lib/tenders-bzp";
+import { loadTenderBzpDocumentBytesResolved } from "@/lib/tenders-bzp";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import {
   isDocxFilename,
@@ -50,6 +50,7 @@ function previewItemForDoc(
     filename: opts?.displayName ?? doc.filename,
     contentType: doc.contentType,
     zipInnerPath: opts?.zipInnerPath,
+    downloadUrl: doc.platform ? doc.downloadUrl : undefined,
   };
 }
 
@@ -65,10 +66,12 @@ function previewItemForUpload(file: TenderUploadedFile): InspectorFileItem {
 function ZipInnerList({
   tenderId,
   doc,
+  allDocs,
   onPreview,
 }: {
   tenderId: string;
   doc: TenderBzpDocument;
+  allDocs: TenderBzpDocument[];
   onPreview: (item: InspectorFileItem) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -84,7 +87,7 @@ function ZipInnerList({
     setLoading(true);
     setError(null);
     try {
-      const { bytes } = await loadTenderBzpDocumentBytes(tenderId, doc.index);
+      const { bytes } = await loadTenderBzpDocumentBytesResolved(tenderId, doc.index, allDocs);
       const { listZipFiles } = await import("@/lib/tenders-bzp-doc-parse");
       const list = await listZipFiles(bytes);
       setEntries(list);
@@ -314,6 +317,7 @@ export function TenderAttachmentsPanel({
                   <ZipInnerList
                     tenderId={item.tenderId}
                     doc={{ ...doc, filename: name }}
+                    allDocs={docs}
                     onPreview={setPreview}
                   />
                 )}

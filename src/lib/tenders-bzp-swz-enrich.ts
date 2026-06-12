@@ -2,12 +2,13 @@ import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { parseSwzPlainText, extractTableHints } from "@/lib/tenders-bzp-swz";
 import { extractAwardCriteria } from "@/lib/tenders-bzp-fit";
 import { extractWadiumPercent } from "@/lib/tenders-wadium";
+import { filterReliableAwardCriteria } from "@/lib/tender-metadata-confidence";
 
 export function enrichSwzFromText(
   text: string,
   base: TenderSwzAnalysis,
 ): TenderSwzAnalysis {
-  const awardCriteria = extractAwardCriteria(text);
+  const awardCriteria = filterReliableAwardCriteria(extractAwardCriteria(text));
   const wadiumPercent = extractWadiumPercent(text);
   let wadiumPln = base.wadiumPln;
   if (wadiumPln == null && wadiumPercent != null && base.estimatedValuePln != null) {

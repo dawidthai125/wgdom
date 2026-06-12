@@ -18,7 +18,15 @@ export type InspectorFileItem =
   | { kind: "jobAttachment"; file: import("@/lib/job-attachments").JobAttachment }
   | { kind: "inspectorPhoto"; file: InspectorPhotoEntry }
   | { kind: "imageUrl"; url: string; filename: string }
-  | { kind: "tenderBzp"; tenderId: string; documentIndex: number; filename: string; contentType?: string; zipInnerPath?: string }
+  | {
+    kind: "tenderBzp";
+    tenderId: string;
+    documentIndex: number;
+    filename: string;
+    contentType?: string;
+    zipInnerPath?: string;
+    downloadUrl?: string;
+  }
   | { kind: "tenderUpload"; filename: string; publicUrl: string; path: string };
 
 function fileLabel(item: InspectorFileItem): string {

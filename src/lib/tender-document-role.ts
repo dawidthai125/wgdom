@@ -6,6 +6,7 @@ import { isKosztorysPreviewExt, isPdfFilename } from "@/lib/ath-parser";
 export type DocumentRole =
   | "swz"
   | "swz_modification"
+  | "opz"
   | "stwior"
   | "obmiar"
   | "przedmiar"
@@ -25,7 +26,10 @@ export function classifyDocumentRole(filename: string): DocumentRole {
   if (/przedmiar/.test(base)) return "przedmiar";
   if (/obmiar/.test(base)) return "obmiar";
   if (/kosztorys/.test(base) || isKosztorysPreviewExt(base)) return "kosztorys";
-  if (/^swz\b|[_\s-]swz[_\s.-]|opz|specyfikac/.test(base) && !/modyfik/.test(base)) return "swz";
+  if (/^opz\b|^opz[_\s.-]|[_\s-]opz[_\s.-]|opis przedmiotu zamówienia|opis przedmiotu/.test(base) && !/modyfik/.test(base)) {
+    return "opz";
+  }
+  if (/^swz\b|[_\s-]swz[_\s.-]|specyfikac/.test(base) && !/modyfik/.test(base)) return "swz";
   if (/formularz|ofert/.test(base) || isDocxFilename(base)) return "formularz";
   if (isXlsxFilename(base)) return "przedmiar";
   if (isPdfFilename(base) && /obmiar|przedmiar/.test(base)) return "obmiar";
@@ -38,16 +42,17 @@ export function roleParsePriority(role: DocumentRole): number {
   switch (role) {
     case "swz_modification": return 0;
     case "swz": return 1;
-    case "stwior": return 2;
-    case "kosztorys": return 3;
-    case "przedmiar": return 4;
-    case "obmiar": return 5;
-    case "formularz": return 6;
+    case "opz": return 2;
+    case "stwior": return 3;
+    case "kosztorys": return 4;
+    case "przedmiar": return 5;
+    case "obmiar": return 6;
+    case "formularz": return 7;
     default: return 9;
   }
 }
 
 export function shouldParseRoleForDossier(role: DocumentRole, score: number): boolean {
-  if (roleParsePriority(role) <= 6) return true;
+  if (roleParsePriority(role) <= 7) return true;
   return score >= 8;
 }

@@ -175,6 +175,7 @@ export function JobFilePreviewModal({
           const { bytes: outerBytes, filename: serverName, contentType } = await loadTenderBzpDocumentBytes(
             item.tenderId,
             item.documentIndex,
+            item.downloadUrl,
           );
           if (cancelled) return;
           const outerName = item.filename || serverName;
@@ -182,7 +183,7 @@ export function JobFilePreviewModal({
 
           const loadBytes = async (idx: number) => {
             if (idx === item.documentIndex) return outerBytes;
-            const r = await loadTenderBzpDocumentBytes(item.tenderId, idx);
+            const r = await loadTenderBzpDocumentBytes(item.tenderId, idx, item.downloadUrl);
             return r.bytes;
           };
           let bytes = await resolveDocumentBytes(loadBytes, item.documentIndex, outerName, zipInner);

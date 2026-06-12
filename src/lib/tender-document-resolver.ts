@@ -1,6 +1,6 @@
 /** Wybór i parsowanie najlepszego załącznika BZP (ATH/PDF/DOCX/XLSX/ZIP). */
 
-import { fetchTenderDocumentBytes, base64ToBytes, type TenderBzpDocument } from "@/lib/tenders-bzp";
+import { fetchTenderDocumentBytes, base64ToBytes, resolveTenderDocumentDownload, type TenderBzpDocument } from "@/lib/tenders-bzp";
 import {
   athPreviewToSnapshot,
   pickBestKosztorysDocument,
@@ -23,6 +23,9 @@ import {
 } from "@/lib/tender-document-role";
 import { traceDossierPipeline } from "@/lib/tender-dossier-trace";
 import { enrichSwzFromText } from "@/lib/tenders-bzp-swz-enrich";
+import { applyMetadataConfidence } from "@/lib/tender-metadata-confidence";
+import { discoverBestCostDocument, type TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
+import { roleContributesMetadata } from "@/lib/tender-metadata-sources";
 import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
 
 const DOSSIER_MAX_CANDIDATES = 15;
@@ -43,6 +46,7 @@ export interface TenderDocCandidate {
   zipInnerPath?: string;
   score: number;
   downloadUrl?: string;
+  platform?: string;
 }
 
 export interface TenderDocumentParseResult {
@@ -59,11 +63,22 @@ export interface TenderDossierParseResult extends TenderDocumentParseResult {
   scannedCount: number;
   parsedCount: number;
   warnings: string[];
+  costDiscovery: TenderCostDiscoveryResult | null;
 }
 
-async function loadDocBytes(tenderId: string, index: number, downloadUrl?: string): Promise<Uint8Array> {
-  const { base64 } = await fetchTenderDocumentBytes(tenderId, index, downloadUrl);
+async function loadDocBytes(
+  tenderId: string,
+  index: number,
+  docs: TenderBzpDocument[],
+  downloadUrl?: string,
+): Promise<Uint8Array> {
+  const resolved = downloadUrl ?? resolveTenderDocumentDownload(docs, index)?.downloadUrl;
+  const { base64 } = await fetchTenderDocumentBytes(tenderId, index, resolved);
   return base64ToBytes(base64);
+}
+
+function parentDownloadUrl(doc: TenderBzpDocument): string | undefined {
+  return doc.platform ? doc.downloadUrl : undefined;
 }
 
 export async function buildTenderDocCandidates(
@@ -72,18 +87,20 @@ export async function buildTenderDocCandidates(
 ): Promise<TenderDocCandidate[]> {
   const candidates: TenderDocCandidate[] = [];
   for (const doc of docs) {
+    const dl = parentDownloadUrl(doc);
     let score = scoreTenderFilename(doc.filename);
     if (doc.isSwzHint) score += 18;
     candidates.push({
       documentIndex: doc.index,
       filename: doc.filename,
       score,
-      downloadUrl: doc.platform ? doc.downloadUrl : undefined,
+      downloadUrl: dl,
+      platform: doc.platform,
     });
     if (isZipFilename(doc.filename)) {
       try {
         const { listZipFiles } = await loadDocParse();
-        const zipBytes = await loadDocBytes(tenderId, doc.index, doc.platform ? doc.downloadUrl : undefined);
+        const zipBytes = await loadDocBytes(tenderId, doc.index, docs, dl);
         const inner = await listZipFiles(zipBytes);
         for (const entry of inner.slice(0, ZIP_INNER_MAX)) {
           candidates.push({
@@ -91,6 +108,8 @@ export async function buildTenderDocCandidates(
             filename: `${doc.filename} → ${entry.filename}`,
             zipInnerPath: entry.path,
             score: entry.score + (doc.isSwzHint ? 10 : 0),
+            downloadUrl: dl,
+            platform: doc.platform,
           });
         }
       } catch { /* zip unreadable */ }
@@ -141,6 +160,7 @@ function selectDossierCandidates(candidates: TenderDocCandidate[]): TenderDocCan
 export async function parseTenderDocumentCandidate(
   tenderId: string,
   candidate: TenderDocCandidate,
+  docs: TenderBzpDocument[],
   opts?: { ourEstimatePln?: number | null; mergeSwz?: TenderSwzAnalysis | null },
 ): Promise<TenderDocumentParseResult> {
   const {
@@ -151,7 +171,12 @@ export async function parseTenderDocumentCandidate(
     resolveDocumentBytes,
   } = await loadDocParse();
 
-  const loadBytes = (idx: number) => loadDocBytes(tenderId, idx, candidate.downloadUrl);
+  const loadBytes = (idx: number) => loadDocBytes(
+    tenderId,
+    idx,
+    docs,
+    candidate.downloadUrl ?? resolveTenderDocumentDownload(docs, idx)?.downloadUrl,
+  );
   let bytes = await resolveDocumentBytes(
     loadBytes,
     candidate.documentIndex,
@@ -378,7 +403,7 @@ export async function parseBestTenderDocuments(
   let sourceFilename: string | undefined;
 
   for (const cand of toTry) {
-    const parsed = await parseTenderDocumentCandidate(tenderId, cand, {
+    const parsed = await parseTenderDocumentCandidate(tenderId, cand, docs, {
       ourEstimatePln: estimatePln,
       mergeSwz: opts?.existingSwz,
     });
@@ -407,8 +432,10 @@ export async function parseBestTenderDocuments(
         documentIndex: legacy.index,
         filename: legacy.filename,
         score: scoreTenderFilename(legacy.filename),
+        downloadUrl: parentDownloadUrl(legacy),
+        platform: legacy.platform,
       };
-      const parsed = await parseTenderDocumentCandidate(tenderId, cand, { ourEstimatePln: estimatePln });
+      const parsed = await parseTenderDocumentCandidate(tenderId, cand, docs, { ourEstimatePln: estimatePln });
       bestKosztorys = parsed.kosztorys;
       bestSwz = parsed.swzFromDoc;
       estimatePln = parsed.estimatePln ?? estimatePln;
@@ -444,9 +471,20 @@ export async function parseTenderDossierDocuments(
       scannedCount: 0,
       parsedCount: 0,
       warnings,
+      costDiscovery: null,
     };
   }
 
+  const allCandidates = await buildTenderDocCandidates(tenderId, docs);
+  const costDiscovery = discoverBestCostDocument(allCandidates);
+  if (costDiscovery.found) {
+    traceDossierPipeline("cost_document_discovered", costDiscovery.source, {
+      type: costDiscovery.type,
+      confidence: costDiscovery.confidence,
+    });
+  }
+
+  const candidates = selectDossierCandidates(allCandidates);
   for (const doc of docs) {
     traceDossierPipeline("document_discovered", doc.filename, {
       index: doc.index,
@@ -455,11 +493,9 @@ export async function parseTenderDossierDocuments(
     if (is7zFilename(doc.filename)) {
       traceDossierPipeline("document_classified", doc.filename, { role: "7z", supported: false });
       warnings.push(`Wykryto archiwum 7Z: ${doc.filename} — wymagane ręczne pobranie`);
-      continue;
     }
   }
 
-  const candidates = selectDossierCandidates(await buildTenderDocCandidates(tenderId, docs));
   let swzMerged = opts?.existingSwz ?? null;
   let bestKosztorys: TenderKosztorysSnapshot | null = null;
   let estimatePln = opts?.ourEstimatePln ?? null;
@@ -471,9 +507,15 @@ export async function parseTenderDossierDocuments(
   for (const cand of candidates) {
     const role = classifyDocumentRole(cand.filename);
     traceDossierPipeline("document_classified", cand.filename, { role, score: cand.score });
+    const contributesMeta =
+      roleContributesMetadata(role, "estimatedValue")
+      || roleContributesMetadata(role, "awardCriteria")
+      || roleContributesMetadata(role, "wadium")
+      || roleContributesMetadata(role, "implementationDeadline");
+    if (!contributesMeta && role !== "kosztorys" && roleParsePriority(role) > 7) continue;
     try {
       traceDossierPipeline("document_downloaded", cand.filename, { documentIndex: cand.documentIndex });
-      const parsed = await parseTenderDocumentCandidate(tenderId, cand, {
+      const parsed = await parseTenderDocumentCandidate(tenderId, cand, docs, {
         ourEstimatePln: estimatePln,
         mergeSwz: swzMerged,
       });
@@ -519,6 +561,10 @@ export async function parseTenderDossierDocuments(
     }
   }
 
+  if (swzMerged) {
+    swzMerged = applyMetadataConfidence(swzMerged);
+  }
+
   return {
     kosztorys: bestKosztorys,
     swzFromDoc: swzMerged,
@@ -530,6 +576,7 @@ export async function parseTenderDossierDocuments(
     scannedCount: candidates.length,
     parsedCount,
     warnings,
+    costDiscovery,
   };
 }
 

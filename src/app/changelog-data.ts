@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.12",
+    label: "Przetargi — Universal Dossier Engine (P2-E.1)",
+    items: [
+      { type: "new", text: "Wykrywanie kosztorysu ATH/NOR/XML/XLS/ZIP — uniwersalny engine niezależny od platformy" },
+      { type: "fix", text: "Logintrade ZIP → inner ATH: propagacja downloadUrl (podgląd + dossier)" },
+      { type: "improve", text: "Confidence layer (VAT/fałszywe kryteria); merge SWZ+STWIOR+OPZ; UX skanowania dokumentów" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.11",
     label: "Przetargi — pipeline dossier (P2-E.0)",
     items: [
