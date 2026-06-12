@@ -40,7 +40,7 @@ Stosuj [`.cursor/rules/wgdom-development.mdc`](wgdom-development.mdc): chmura �
 | Worker/Inspector readiness | `docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md` |
 | Version Awareness 20.5B.7 | `src/lib/app-version-check.ts`, `src/app/AppUpdateBanner.tsx` |
 | Generic Attachments 20.5A.10 | `docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md` |
-| CC polonizacja + mapa widoków | `docs/SESSION-HANDOFF-20.3B-CC-POLISH.md` |
+| CC archiwum (SUPERSEDED) | `docs/archive/command-center/` |
 | Etykiety PL CC | `src/lib/tenders-strategy-ui-labels-pl.ts` |
 | Pliki roboty (model) | `src/lib/job-attachments.ts`, `src/lib/job-documents.ts` |
 | Separacja obrazów vs docs | `src/lib/media-separation.ts` |
