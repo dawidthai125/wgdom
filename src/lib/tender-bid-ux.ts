@@ -54,6 +54,7 @@ export const PROFILE_SECTION_IDS = {
   costIntelligence: "profile-section-cost-intelligence",
   qualification: "profile-section-qualification",
   regions: "profile-section-regions",
+  classificationDictionary: "profile-section-classification-dictionary",
   advanced: "profile-section-advanced",
 } as const;
 
@@ -61,8 +62,24 @@ export const PROFILE_SECTION_TITLES = {
   costIntelligence: "Tender Cost Intelligence",
   qualification: "Profil kwalifikacyjny",
   regions: "Regiony działania",
+  classificationDictionary: "WGDOM Classification Dictionary",
   advanced: "Zaawansowane",
 } as const;
+
+export type ClassificationCoverageTone = "good" | "warn" | "bad";
+
+/** Cel WGDOM: 97%+ pokrycia — zielony >97, żółty 90–97, czerwony <90. */
+export function classificationCoverageTone(percent: number): ClassificationCoverageTone {
+  if (percent > 97) return "good";
+  if (percent >= 90) return "warn";
+  return "bad";
+}
+
+export function classificationCoverageToneClass(tone: ClassificationCoverageTone): string {
+  if (tone === "good") return "text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border-emerald-500/25";
+  if (tone === "warn") return "text-amber-800 dark:text-amber-200 bg-amber-500/10 border-amber-500/25";
+  return "text-red-700 dark:text-red-300 bg-red-500/10 border-red-500/25";
+}
 
 /** Pola modelu kosztów — krótkie opisy wpływu na wycenę. */
 export const COST_FIELD_HINTS: Record<string, string> = {

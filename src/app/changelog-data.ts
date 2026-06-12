@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.52.6",
+    label: "Przetargi — centrum wyceny P2-G.2A (Assisted Classification)",
+    items: [
+      { type: "new", text: "Słownik klasyfikacji użytkownika — przypisanie kategorii do pozycji UNKNOWN (uczenie z przetargów)" },
+      { type: "new", text: "Profil firmy → 🧠 WGDOM Classification Dictionary — edycja, usuwanie, sync chmura" },
+      { type: "improve", text: "Klasyfikator ATH — kolejność: katalog → słownik użytkownika → słownik branżowy" },
+      { type: "improve", text: "Pokrycie klasyfikacji z kolorem (cel 97%+) — natychmiastowa reklasyfikacja bez ponownej analizy SWZ" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.52.5",
     label: "Przetargi — centrum wyceny P2-G.1F (słownik branżowy)",
     items: [

@@ -9,6 +9,7 @@ import {
   normalizeWgdomCostUnit,
 } from "@/lib/wgdom-cost-catalog";
 import { matchConstructionDictionary } from "@/lib/wgdom-construction-dictionary";
+import { matchUserClassificationDictionary } from "@/lib/wgdom-user-classification-dictionary";
 
 /** Normalizacja PL znaków — wzorzec jak company-experience-discovery.ts fold(). */
 export function foldPolishText(s: string): string {
@@ -57,7 +58,7 @@ export function classifyAthLineCategoryWithoutDictionary(
 
 /**
  * Klasyfikuje opis pozycji ATH do kategorii WGDOM.
- * Kolejność: reguły katalogu → słownik branżowy → heurystyki STOLARKA.
+ * Kolejność: reguły katalogu → słownik użytkownika → słownik branżowy → heurystyki STOLARKA.
  */
 export function classifyAthLineCategory(
   description: string,
@@ -84,6 +85,9 @@ function classifyAthLineCategoryInternal(
       }
     }
   }
+
+  const userMatch = matchUserClassificationDictionary(hay);
+  if (userMatch) return userMatch;
 
   if (useDictionary) {
     const dictMatch = matchConstructionDictionary(hay);

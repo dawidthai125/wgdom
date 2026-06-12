@@ -21,6 +21,15 @@ import {
 } from "@/lib/wgdom-cost-catalog-store";
 import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
 import {
+  type WgdomUserClassificationDictionaryStore,
+  type UserClassificationCategory,
+  loadWgdomUserClassificationDictionaryStore,
+  saveWgdomUserClassificationDictionaryStore,
+  restoreDefaultUserClassificationDictionaryStore,
+  updateUserClassificationEntry,
+  removeUserClassificationEntry,
+} from "@/lib/wgdom-user-classification-dictionary";
+import {
   COST_FIELD_HINTS,
   PROFILE_SECTION_IDS,
   PROFILE_SECTION_TITLES,
@@ -191,15 +200,23 @@ export function TenderCompanyProfilePanel({
   const [open, setOpen] = useState(false);
   const [profile, setProfile] = useState<TenderCompanyProfile>(defaultCompanyProfile());
   const [catalogStore, setCatalogStore] = useState<WgdomCostCatalogStore>(restoreDefaultWgdomCostCatalogStore());
+  const [classificationDict, setClassificationDict] = useState<WgdomUserClassificationDictionaryStore>(
+    restoreDefaultUserClassificationDictionaryStore(),
+  );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    void Promise.all([loadCompanyProfile(), loadWgdomCostCatalogStore()]).then(([p, catalog]) => {
+    void Promise.all([
+      loadCompanyProfile(),
+      loadWgdomCostCatalogStore(),
+      loadWgdomUserClassificationDictionaryStore(),
+    ]).then(([p, catalog, dict]) => {
       if (!cancelled) {
         setProfile(p);
         setCatalogStore(catalog);
+        setClassificationDict(dict);
         setLoading(false);
       }
     });
@@ -212,15 +229,16 @@ export function TenderCompanyProfilePanel({
       await Promise.all([
         saveCompanyProfile(profile),
         saveWgdomCostCatalogStore(catalogStore),
+        saveWgdomUserClassificationDictionaryStore(classificationDict),
       ]);
       onSaved?.(profile);
-      toast.success("Profil firmy i katalog WGDOM zapisane w chmurze");
+      toast.success("Profil firmy, katalog i słownik klasyfikacji zapisane w chmurze");
     } catch {
-      toast.error("Nie udało się zapisać profilu / katalogu");
+      toast.error("Nie udało się zapisać profilu / katalogu / słownika");
     } finally {
       setSaving(false);
     }
-  }, [profile, catalogStore, onSaved]);
+  }, [profile, catalogStore, classificationDict, onSaved]);
 
   const reloadDefaults = useCallback(() => {
     const d = defaultCompanyProfile();
@@ -231,6 +249,11 @@ export function TenderCompanyProfilePanel({
   const reloadCatalogDefaults = useCallback(() => {
     setCatalogStore(restoreDefaultWgdomCostCatalogStore());
     toast.message("Przywrócono domyślny katalog WGDOM — kliknij Zapisz profil");
+  }, []);
+
+  const reloadClassificationDictDefaults = useCallback(() => {
+    setClassificationDict(restoreDefaultUserClassificationDictionaryStore());
+    toast.message("Przywrócono pusty słownik klasyfikacji — kliknij Zapisz profil");
   }, []);
 
   const catalogRows = listEditableCategories(catalogStore);
@@ -507,6 +530,82 @@ export function TenderCompanyProfilePanel({
                   value={profile.regions}
                   onChange={(regions) => setProfile({ ...profile, regions })}
                 />
+              </ProfileSection>
+
+              <ProfileSection
+                id={PROFILE_SECTION_IDS.classificationDictionary}
+                emoji="🧠"
+                title={PROFILE_SECTION_TITLES.classificationDictionary}
+                description="Frazy przypisane ręcznie z pozycji UNKNOWN — system uczy się z przetargów WGDOM (sync chmura)."
+              >
+                {classificationDict.entries.length === 0 ? (
+                  <p className="text-[10px] text-muted-foreground">
+                    Brak wpisów — przypisz kategorię przy pozycji UNKNOWN w inspektorze wyceny.
+                  </p>
+                ) : (
+                  <div className="rounded-lg border border-border/60 overflow-hidden">
+                    <table className="w-full text-[10px]">
+                      <thead className="bg-secondary/60">
+                        <tr>
+                          <th className="text-left px-2 py-1.5 font-semibold">Fraza</th>
+                          <th className="text-left px-2 py-1.5 font-semibold w-28">Kategoria</th>
+                          <th className="text-left px-2 py-1.5 font-semibold w-20">Źródło</th>
+                          <th className="text-right px-2 py-1.5 font-semibold w-16">Akcje</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {classificationDict.entries.map((entry) => (
+                          <tr key={entry.id} className="border-t border-border/40">
+                            <td className="px-2 py-1">
+                              <input
+                                value={entry.phrase}
+                                onChange={(e) => setClassificationDict(
+                                  updateUserClassificationEntry(classificationDict, entry.id, { phrase: e.target.value }),
+                                )}
+                                className="w-full bg-secondary rounded px-1.5 py-1 border border-border font-mono"
+                              />
+                            </td>
+                            <td className="px-2 py-1">
+                              <select
+                                value={entry.category}
+                                onChange={(e) => setClassificationDict(
+                                  updateUserClassificationEntry(classificationDict, entry.id, {
+                                    category: e.target.value as UserClassificationCategory,
+                                  }),
+                                )}
+                                className="w-full bg-secondary rounded px-1.5 py-1 border border-border"
+                              >
+                                {WGDOM_COST_CATEGORY_IDS.map((id) => (
+                                  <option key={id} value={id}>{id}</option>
+                                ))}
+                              </select>
+                            </td>
+                            <td className="px-2 py-1 text-muted-foreground">{entry.source}</td>
+                            <td className="px-2 py-1 text-right">
+                              <button
+                                type="button"
+                                onClick={() => setClassificationDict(
+                                  removeUserClassificationEntry(classificationDict, entry.id),
+                                )}
+                                className="text-red-600 hover:underline inline-flex items-center gap-0.5"
+                              >
+                                <Trash2 size={10} /> Usuń
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={reloadClassificationDictDefaults}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-secondary text-[10px] font-medium hover:bg-secondary/80"
+                >
+                  <RefreshCw size={11} />
+                  Przywróć domyślne (pusty słownik)
+                </button>
               </ProfileSection>
 
               <ProfileSection

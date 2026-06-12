@@ -12,6 +12,7 @@ import {
 } from "@/lib/wgdom-cost-catalog";
 import { classifyAthLineCategory, classifyAthLineCategoryWithoutDictionary, foldPolishText } from "@/lib/wgdom-ath-classifier";
 import { getConstructionDictionaryRules } from "@/lib/wgdom-construction-dictionary";
+import { getUserClassificationDictionaryCache } from "@/lib/wgdom-user-classification-dictionary";
 
 export const CLASSIFICATION_CATEGORY_ORDER: WgdomCostCategoryId[] = [
   "MALOWANIE",
@@ -198,6 +199,7 @@ function tokenizeDescription(desc: string): string[] {
 function buildKnownKeywordTokens(): Set<string> {
   const rules = getCatalogClassificationRules(defaultWgdomCostCatalog());
   const dictRules = getConstructionDictionaryRules();
+  const userEntries = getUserClassificationDictionaryCache().entries;
   const set = new Set<string>();
   for (const rule of [...rules, ...dictRules]) {
     for (const kw of rule.keywords) {
@@ -206,6 +208,12 @@ function buildKnownKeywordTokens(): Set<string> {
       for (const part of folded.split(/[^a-z0-9]+/)) {
         if (part.length >= 3) set.add(part);
       }
+    }
+  }
+  for (const e of userEntries) {
+    set.add(e.phrase);
+    for (const part of e.phrase.split(/[^a-z0-9]+/)) {
+      if (part.length >= 3) set.add(part);
     }
   }
   return set;

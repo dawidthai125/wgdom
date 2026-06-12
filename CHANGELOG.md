@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.52.6 — P2-G.2A Assisted Classification (user learning)
+- wgdom-user-classification-dictionary.ts + kw-wgdom-classification-dictionary
+- UNKNOWN Inspector: przypisz kategorię → natychmiastowa reklasyfikacja
+- Profil firmy: WGDOM Classification Dictionary (edycja, sync chmura)
+- Pokrycie klasyfikacji z kolorem (cel 97%+)
+
 ## 2.52.5 — P2-G.1F WGDOM Construction Dictionary
 - wgdom-construction-dictionary.ts 150+ terminów branżowych
 - classifyAthLineCategory + słownik, coverageDelta w inspektorze

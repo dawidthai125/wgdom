@@ -1,5 +1,6 @@
 import { AlertTriangle, Calculator, TrendingDown, TrendingUp, Zap } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import type { TenderCatalogQuantityLine } from "@/lib/tenders-bzp-brief";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import { TENDER_BID_DISCLAIMER } from "@/lib/tender-bid-quality";
@@ -8,11 +9,24 @@ import {
   buildClassificationSummary,
   buildUnknownRows,
 } from "@/lib/tender-classification-inspector";
-import { buildBidFlowExplanation, TENDER_BID_PROPOSAL_PANEL_ID } from "@/lib/tender-bid-ux";
+import {
+  buildBidFlowExplanation,
+  classificationCoverageTone,
+  classificationCoverageToneClass,
+  TENDER_BID_PROPOSAL_PANEL_ID,
+} from "@/lib/tender-bid-ux";
+import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
 import {
   loadWgdomCostCatalogStore,
   WGDOM_COST_REGION_LABELS,
 } from "@/lib/wgdom-cost-catalog-store";
+import {
+  assignUserCategoryFromAthLine,
+  loadWgdomUserClassificationDictionaryStore,
+  loadWgdomUserClassificationDictionaryStoreLocal,
+  saveWgdomUserClassificationDictionaryStore,
+  type UserClassificationCategory,
+} from "@/lib/wgdom-user-classification-dictionary";
 import { fmtPln } from "@/lib/tenders-bzp-swz";
 
 function qualityBadgeClass(level: TenderBidProposal["qualityLevel"]): string {
@@ -46,12 +60,16 @@ export function TenderBidProposalPanel({
   catalogQuantities?: TenderCatalogQuantityLine[] | null;
 }) {
   const [catalogRegionLabel, setCatalogRegionLabel] = useState(WGDOM_COST_REGION_LABELS.wroclaw);
+  const [dictRevision, setDictRevision] = useState(0);
+  const [assignCategoryByLp, setAssignCategoryByLp] = useState<Record<string, UserClassificationCategory>>({});
+  const [assignSavingLp, setAssignSavingLp] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    void loadWgdomCostCatalogStore().then((store) => {
+    loadWgdomUserClassificationDictionaryStoreLocal();
+    void Promise.all([loadWgdomCostCatalogStore(), loadWgdomUserClassificationDictionaryStore()]).then(([catalog]) => {
       if (!cancelled) {
-        setCatalogRegionLabel(WGDOM_COST_REGION_LABELS[store.activeRegion]);
+        setCatalogRegionLabel(WGDOM_COST_REGION_LABELS[catalog.activeRegion]);
       }
     });
     return () => { cancelled = true; };
@@ -63,7 +81,27 @@ export function TenderBidProposalPanel({
     const unknownRows = buildUnknownRows(catalogQuantities);
     const tuningHints = buildCatalogTuningHints(unknownRows);
     return { summary, unknownRows, tuningHints };
-  }, [proposal?.pricingMode, catalogQuantities]);
+  }, [proposal?.pricingMode, catalogQuantities, dictRevision]);
+
+  const handleAssignCategory = useCallback(async (row: { lp: string; description: string }) => {
+    const category = assignCategoryByLp[row.lp];
+    if (!category) {
+      toast.error("Wybierz kategorię przed zapisem");
+      return;
+    }
+    setAssignSavingLp(row.lp);
+    try {
+      const local = loadWgdomUserClassificationDictionaryStoreLocal();
+      const next = assignUserCategoryFromAthLine(local, row.description, category);
+      await saveWgdomUserClassificationDictionaryStore(next);
+      setDictRevision((v) => v + 1);
+      toast.success(`Przypisano ${category} — pokrycie klasyfikacji zaktualizowane`);
+    } catch {
+      toast.error("Nie udało się zapisać kategorii w słowniku");
+    } finally {
+      setAssignSavingLp(null);
+    }
+  }, [assignCategoryByLp]);
   if (!proposal?.ok) {
     const msg = proposal?.warnings?.[0]
       ?? (missingKosztorys
@@ -160,8 +198,17 @@ export function TenderBidProposalPanel({
               </strong>
             </p>
             <p>
-              <span className="text-muted-foreground">Pokrycie:</span>{" "}
-              <strong>{classification.summary.classifiedPercent.toFixed(1)}%</strong>
+              <span className="text-muted-foreground">Pokrycie klasyfikacji:</span>{" "}
+              <strong
+                className={`inline-flex items-center px-1.5 py-0.5 rounded border ${classificationCoverageToneClass(
+                  classificationCoverageTone(classification.summary.classifiedPercent),
+                )}`}
+              >
+                {classification.summary.classifiedPercent.toFixed(1)}%
+              </strong>
+              {classification.summary.classifiedPercent < 97 && (
+                <span className="text-muted-foreground font-normal"> · cel WGDOM 97%+</span>
+              )}
               {classification.summary.coverageDelta && (
                 <span className="text-emerald-700 dark:text-emerald-300 font-normal">
                   {" "}(+{classification.summary.coverageDelta.coverageDelta.toFixed(1)}%)
@@ -207,6 +254,7 @@ export function TenderBidProposalPanel({
                       <th className="text-left px-2 py-1 font-semibold">Opis</th>
                       <th className="text-left px-2 py-1 font-semibold w-12">Jm</th>
                       <th className="text-right px-2 py-1 font-semibold w-16">Ilość</th>
+                      <th className="text-left px-2 py-1 font-semibold min-w-[140px]">Przypisz kategorię</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -216,6 +264,31 @@ export function TenderBidProposalPanel({
                         <td className="px-2 py-1">{row.description}</td>
                         <td className="px-2 py-1 text-muted-foreground">{row.unit}</td>
                         <td className="px-2 py-1 text-right font-mono">{row.quantity.toLocaleString("pl-PL")}</td>
+                        <td className="px-2 py-1">
+                          <div className="flex flex-wrap items-center gap-1">
+                            <select
+                              value={assignCategoryByLp[row.lp] ?? ""}
+                              onChange={(e) => setAssignCategoryByLp((prev) => ({
+                                ...prev,
+                                [row.lp]: e.target.value as UserClassificationCategory,
+                              }))}
+                              className="flex-1 min-w-[88px] bg-secondary rounded px-1 py-0.5 border border-border text-[9px]"
+                            >
+                              <option value="">— wybierz —</option>
+                              {WGDOM_COST_CATEGORY_IDS.map((id) => (
+                                <option key={id} value={id}>{id}</option>
+                              ))}
+                            </select>
+                            <button
+                              type="button"
+                              disabled={assignSavingLp === row.lp || !assignCategoryByLp[row.lp]}
+                              onClick={() => void handleAssignCategory(row)}
+                              className="shrink-0 px-1.5 py-0.5 rounded bg-violet-600 text-white text-[9px] font-medium hover:bg-violet-700 disabled:opacity-40"
+                            >
+                              {assignSavingLp === row.lp ? "…" : "Zapisz"}
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

@@ -48,6 +48,7 @@ import {
   canNavigateToBidDetails,
   COST_FIELD_HINTS,
   OUR_ESTIMATE_TILE_NAV_HINT,
+  classificationCoverageTone,
   PROFILE_SECTION_IDS,
   PROFILE_SECTION_TITLES,
   TENDER_BID_PROPOSAL_PANEL_ID,
@@ -65,6 +66,20 @@ import {
   WGDOM_CONSTRUCTION_DICTIONARY,
   WGDOM_CONSTRUCTION_DICTIONARY_CATEGORY_ORDER,
 } from "../src/lib/wgdom-construction-dictionary.ts";
+import {
+  addUserClassificationEntry,
+  assignUserCategoryFromAthLine,
+  defaultUserClassificationDictionaryStore,
+  mergeWgdomUserClassificationDictionaryStore,
+  normalizeClassificationPhrase,
+  normalizeWgdomUserClassificationDictionaryStore,
+  phraseFromAthDescription,
+  removeUserClassificationEntry,
+  restoreDefaultUserClassificationDictionaryStore,
+  setUserClassificationDictionaryCache,
+  updateUserClassificationEntry,
+  WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY,
+} from "../src/lib/wgdom-user-classification-dictionary.ts";
 
 let passed = 0;
 let failed = 0;
@@ -567,6 +582,66 @@ for (const id of WGDOM_COST_CATEGORY_IDS) {
   assert(Array.isArray(WGDOM_CONSTRUCTION_DICTIONARY[id]), `dict array ${id}`);
   assertGte(WGDOM_CONSTRUCTION_DICTIONARY[id].length, 10, `dict ${id} min terms`);
 }
+
+console.log("\n19. P2-G.2A — Assisted Classification (User Learning)");
+assertEq(WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY, "kw-wgdom-classification-dictionary", "cloud key");
+const emptyDict = defaultUserClassificationDictionaryStore();
+assertEq(emptyDict.entries.length, 0, "default dict empty");
+assertEq(emptyDict.schemaVersion, 1, "dict schema v1");
+assertEq(normalizeClassificationPhrase("  Cokolik PCV  "), "cokolik pcv", "normalize phrase");
+assert(phraseFromAthDescription("Roboty ogólne budowlane").includes("roboty"), "phrase from ATH");
+const savedEntry = addUserClassificationEntry(emptyDict, "cokolik pcv", "PODLOGI", "manual");
+assertEq(savedEntry.entries.length, 1, "save dictionary entry");
+assertEq(savedEntry.entries[0].category, "PODLOGI", "entry category");
+assertEq(savedEntry.entries[0].source, "manual", "entry source manual");
+setUserClassificationDictionaryCache(savedEntry);
+assertEq(classifyAthLineCategory("Wykonanie cokolików PCV podłogowych", "mb"), "PODLOGI", "user dict match");
+assertEq(classifyAthLineCategoryWithoutDictionary("Wykonanie cokolików PCV podłogowych", "mb"), "PODLOGI", "user dict in withoutDictionary");
+const localDict = addUserClassificationEntry(emptyDict, "lamperia okienna", "MALOWANIE", "manual");
+const cloudDict = addUserClassificationEntry(emptyDict, "lamperia okienna", "STOLARKA", "manual");
+cloudDict.entries[0].updatedAt = new Date(Date.now() + 5000).toISOString();
+const mergedDict = mergeWgdomUserClassificationDictionaryStore(localDict, cloudDict);
+assertEq(mergedDict.entries[0].category, "STOLARKA", "cloud merge newer wins");
+const dupMerge = mergeWgdomUserClassificationDictionaryStore(
+  addUserClassificationEntry(emptyDict, "opaska scienna", "PODLOGI"),
+  addUserClassificationEntry(emptyDict, "opaska scienna", "GLAZURA"),
+);
+assertEq(dupMerge.entries.length, 1, "merge dedupe by phrase");
+setUserClassificationDictionaryCache(restoreDefaultUserClassificationDictionaryStore());
+const beforeUserLearn = buildClassificationSummary(mixedK.catalogQuantities);
+assertEq(beforeUserLearn.unknownRows, 10, "before user learn 10 UNKNOWN");
+assertEq(beforeUserLearn.classifiedRows, 211, "before user learn 211 classified");
+const learned = assignUserCategoryFromAthLine(
+  defaultUserClassificationDictionaryStore(),
+  "Roboty ogólne budowlane",
+  "ROZBIORKI",
+);
+setUserClassificationDictionaryCache(learned);
+const afterUserLearn = buildClassificationSummary(mixedK.catalogQuantities);
+assertEq(afterUserLearn.unknownRows, 0, "reclassification — 0 UNKNOWN after assign");
+assertEq(afterUserLearn.classifiedRows, 221, "coverage increase 211→221");
+assertGte(afterUserLearn.classifiedPercent, 99.9, "coverage ~100% after user learn");
+assertEq(classifyAthLineCategory("Roboty ogólne budowlane", "kpl"), "ROZBIORKI", "generic now classified");
+const afterUnknownList = buildUnknownRows(mixedK.catalogQuantities);
+assertEq(afterUnknownList.length, 0, "unknown rows empty after learn");
+const editedDict = updateUserClassificationEntry(learned, learned.entries[0].id, { category: "GK" });
+assertEq(editedDict.entries[0].category, "GK", "dictionary edit");
+const removed = removeUserClassificationEntry(editedDict, editedDict.entries[0].id);
+assertEq(removed.entries.length, 0, "dictionary delete");
+setUserClassificationDictionaryCache(removed);
+assertEq(classifyAthLineCategory("Roboty ogólne budowlane", "kpl"), "UNKNOWN", "after delete back to UNKNOWN");
+const normalizedBad = normalizeWgdomUserClassificationDictionaryStore({
+  entries: [{ phrase: "x", category: "INVALID" }, { phrase: "ok fraza", category: "GK" }],
+});
+assertEq(normalizedBad.entries.length, 1, "normalize drops invalid");
+assertEq(normalizedBad.entries[0].category, "GK", "normalize keeps valid");
+assertEq(classificationCoverageTone(98), "good", "coverage tone good >97");
+assertEq(classificationCoverageTone(97), "warn", "coverage tone warn at 97");
+assertEq(classificationCoverageTone(95), "warn", "coverage tone warn 90-97");
+assertEq(classificationCoverageTone(89), "bad", "coverage tone bad <90");
+assert(PROFILE_SECTION_IDS.classificationDictionary.includes("classification-dictionary"), "profile section id");
+assert(PROFILE_SECTION_TITLES.classificationDictionary.includes("Classification"), "profile section title");
+setUserClassificationDictionaryCache(restoreDefaultUserClassificationDictionaryStore());
 
 console.log(`\n---\nPASS: ${passed}  FAIL: ${failed}  TOTAL: ${passed + failed}`);
 if (failed > 0) {

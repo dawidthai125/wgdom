@@ -20,6 +20,7 @@ import {
   TENDERS_PIPELINE_KEY,
   TENDERS_COMPANY_PROFILE_KEY,
   WGDOM_COST_CATALOG_KEY,
+  WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY,
   COMPANY_QUALIFICATION_PROFILE_KEY,
   TENDERS_CUSTOM_KEYWORDS_KEY,
   TENDERS_DELETED_IDS_KEY,
@@ -27,6 +28,7 @@ import {
 import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-leaves";
 import { mergeRecoverableCharges, normalizeRecoverableCharges } from "@/lib/recoverable-charges";
 import { defaultWgdomCostCatalogStore } from "@/lib/wgdom-cost-catalog";
+import { defaultUserClassificationDictionaryStore } from "@/lib/wgdom-user-classification-dictionary";
 
 /** Klucze danych biznesowych — każdy nowy typ zapisu MUSI być tutaj. */
 export const DATA_KEYS = [
@@ -42,6 +44,7 @@ export const DATA_KEYS = [
   "kw-tenders-pipeline",
   "kw-tenders-company-profile",
   "kw-wgdom-cost-catalog",
+  "kw-wgdom-classification-dictionary",
   "kw-company-profile",
   "kw-tenders-custom-keywords",
 ] as const;
@@ -63,6 +66,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-tenders-pipeline",
   "kw-tenders-company-profile",
   "kw-wgdom-cost-catalog",
+  "kw-wgdom-classification-dictionary",
   "kw-company-profile",
   "kw-tenders-custom-keywords",
   "kw-contacts",
@@ -1386,6 +1390,8 @@ export function mergeDataKey(
       return mergeTenderDataKey(TENDERS_COMPANY_PROFILE_KEY, local, cloud);
     case "kw-wgdom-cost-catalog":
       return mergeTenderDataKey(WGDOM_COST_CATALOG_KEY, local, cloud);
+    case "kw-wgdom-classification-dictionary":
+      return mergeTenderDataKey(WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY, local, cloud);
     case "kw-company-profile":
       return mergeTenderDataKey(COMPANY_QUALIFICATION_PROFILE_KEY, local, cloud);
     case "kw-tenders-custom-keywords":
@@ -1579,6 +1585,7 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
   if (key === "kw-weekFrom" || key === "kw-weekTo") return "";
   if (key === TENDERS_COMPANY_PROFILE_KEY) return {};
   if (key === WGDOM_COST_CATALOG_KEY) return defaultWgdomCostCatalogStore();
+  if (key === WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY) return defaultUserClassificationDictionaryStore();
   if (key === TENDERS_CUSTOM_KEYWORDS_KEY) {
     return { action: [], scope: [], exclude: [], learnedFromCount: 0, updatedAt: "" };
   }

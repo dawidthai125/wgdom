@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.52.5** · P2-G.1F)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.1F — Construction Dictionary)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.52.6** · P2-G.2A)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.2A — Assisted Classification)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -849,7 +849,7 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 
 ### 12.1.6 P2-G — Tender Cost Intelligence (P2-G.1 COMPLETE)
 
-**Status:** **P2-G.1A–P2-G.1F COMPLETE** · prod backlog **2.52.5**
+**Status:** **P2-G.1A–P2-G.2A COMPLETE** · prod backlog **2.52.6**
 
 **Cel:** autorska wycena przetargu z przedmiaru ATH **bez cen** (FOUND_NO_VALUE) — koszt wykonania + oferty min/rekom/agresywna przez rozszerzenie `computeTenderBidProposal()`, **nie** nowy moduł ofertowy.
 
@@ -910,21 +910,36 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 
 **Źródła wiedzy:** KB.pl, słowniki budowlane, poradniki remontowe, UNKNOWN TBS/WM (P2-G.1E). **Bez** cen · **bez** zmian stawek katalogu · **bez** zmian `computeTenderBidProposal()`.
 
+**P2-G.2A — Assisted Classification (user learning):**
+
+| Element | Opis | Plik |
+|---------|------|------|
+| Słownik użytkownika | `{ phrase, category, source }` — wpisy z ręcznego przypisania UNKNOWN | `wgdom-user-classification-dictionary.ts` |
+| Chmura | `kw-wgdom-classification-dictionary` — load/save/merge (jak katalog kosztów) | `cloud-sync.ts`, `tenders-sync.ts` |
+| Klasyfikator | Katalog seed → **słownik użytkownika** → słownik branżowy → STOLARKA | `wgdom-ath-classifier.ts` |
+| UNKNOWN Inspector | Select kategorii + Zapisz przy każdej pozycji UNKNOWN | `TenderBidProposalPanel.tsx` |
+| Reclassification | `buildClassificationSummary()` natychmiast po zapisie — bez re-analizy SWZ | `tender-classification-inspector.ts` |
+| Zarządzanie | Profil firmy → 🧠 WGDOM Classification Dictionary (edycja, usuń, przywróć) | `TenderCompanyProfilePanel.tsx` |
+| Pokrycie | Metryka z kolorem: zielony &gt;97%, żółty 90–97%, czerwony &lt;90% | `tender-bid-ux.ts` |
+
+**Cel biznesowy:** pokrycie klasyfikacji 97–99% na realnych przetargach TBS/WM — bez rozbudowy wyłącznie słownika programisty.
+
 **Moduły lib:**
 
 | Plik | Rola |
 |------|------|
 | `wgdom-cost-catalog.ts` | Typy, seed, `getCategoryRate()` |
 | `wgdom-cost-catalog-store.ts` | load/save/merge, `kw-wgdom-cost-catalog` |
-| `wgdom-ath-classifier.ts` | `classifyAthLineCategory()` |
+| `wgdom-ath-classifier.ts` | `classifyAthLineCategory()` — katalog → user dict → branżowy |
 | `wgdom-catalog-cost-engine.ts` | `computeFromCatalogRow()`, `aggregateCatalogDirectCost()` |
 | `tenders-bid-calculator.ts` | `computeTenderBidProposal()` + `pricingMode` |
 | `tender-bid-quality.ts` | `assessBidQuality()`, `extractCalculationBasis()` |
-| `tender-bid-ux.ts` | P2-G.1D — nav hint, flow explanation, profile section IDs, field hints |
+| `tender-bid-ux.ts` | P2-G.1D/2A — nav hint, flow, profile sections, coverage tone |
 | `tender-classification-inspector.ts` | P2-G.1E — summary, UNKNOWN rows, catalog tuning hints, coverageDelta |
 | `wgdom-construction-dictionary.ts` | P2-G.1F — 150+ terminów branżowych, `matchConstructionDictionary()` |
+| `wgdom-user-classification-dictionary.ts` | P2-G.2A — user learning, `matchUserClassificationDictionary()` |
 
-**Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (150+ asercji) · regresja P2-F: `test-tender-dossier-pipeline.mjs`
+**Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (190+ asercji) · regresja P2-F: `test-tender-dossier-pipeline.mjs`
 
 **Źródła danych (hierarchia):**
 
