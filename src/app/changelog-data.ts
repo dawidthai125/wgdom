@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.52.5",
+    label: "Przetargi — centrum wyceny P2-G.1F (słownik branżowy)",
+    items: [
+      { type: "new", text: "WGDOM Construction Dictionary — 150+ terminów budowlanych (TBS/WM, KB.pl)" },
+      { type: "improve", text: "Klasyfikator ATH — lamperia, cokolik, ościeżnica, parapet, szlichta, odbojnica…" },
+      { type: "improve", text: "Inspektor klasyfikacji — coverageDelta przed/po słowniku branżowym" },
+      { type: "improve", text: "Pokrycie typowych przedmiarów TBS: ~82% → ~95% (bez zmian kalkulatora)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.52.4",
     label: "Przetargi — centrum wyceny P2-G.1E (Classification Inspector)",
     items: [

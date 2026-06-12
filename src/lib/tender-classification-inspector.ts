@@ -10,7 +10,8 @@ import {
   normalizeWgdomCostUnit,
   type WgdomCostCategoryId,
 } from "@/lib/wgdom-cost-catalog";
-import { classifyAthLineCategory, foldPolishText } from "@/lib/wgdom-ath-classifier";
+import { classifyAthLineCategory, classifyAthLineCategoryWithoutDictionary, foldPolishText } from "@/lib/wgdom-ath-classifier";
+import { getConstructionDictionaryRules } from "@/lib/wgdom-construction-dictionary";
 
 export const CLASSIFICATION_CATEGORY_ORDER: WgdomCostCategoryId[] = [
   "MALOWANIE",
@@ -37,6 +38,14 @@ export interface ClassificationCategorySummary {
   unitDistribution: ClassificationUnitDistribution[];
 }
 
+export interface ClassificationCoverageDelta {
+  classifiedPercentBefore: number;
+  classifiedPercentAfter: number;
+  coverageDelta: number;
+  unknownRowsBefore: number;
+  unknownRowsAfter: number;
+}
+
 export interface ClassificationSummary {
   totalRows: number;
   classifiedRows: number;
@@ -44,6 +53,8 @@ export interface ClassificationSummary {
   classifiedPercent: number;
   unknownPercent: number;
   categories: ClassificationCategorySummary[];
+  /** P2-G.1F — wzrost pokrycia dzięki słownikowi branżowemu */
+  coverageDelta?: ClassificationCoverageDelta;
 }
 
 export interface UnknownClassificationRow {
@@ -128,6 +139,18 @@ export function buildClassificationSummary(
   const classifiedPercent = totalRows > 0 ? (classifiedRows / totalRows) * 100 : 0;
   const unknownPercent = totalRows > 0 ? (unknownRows / totalRows) * 100 : 0;
 
+  let classifiedBefore = 0;
+  let unknownBefore = 0;
+  for (const row of rows) {
+    const qty = parseQuantity(row.quantity);
+    if (qty <= 0) continue;
+    const catBefore = classifyAthLineCategoryWithoutDictionary(row.description, row.unit);
+    if (catBefore === "UNKNOWN") unknownBefore += 1;
+    else classifiedBefore += 1;
+  }
+  const classifiedPercentBefore = totalRows > 0 ? (classifiedBefore / totalRows) * 100 : 0;
+  const coverageDeltaValue = classifiedPercent - classifiedPercentBefore;
+
   return {
     totalRows,
     classifiedRows,
@@ -135,6 +158,13 @@ export function buildClassificationSummary(
     classifiedPercent,
     unknownPercent,
     categories: CLASSIFICATION_CATEGORY_ORDER.map((id) => buckets.get(id)!),
+    coverageDelta: coverageDeltaValue > 0.05 ? {
+      classifiedPercentBefore,
+      classifiedPercentAfter: classifiedPercent,
+      coverageDelta: coverageDeltaValue,
+      unknownRowsBefore: unknownBefore,
+      unknownRowsAfter: unknownRows,
+    } : undefined,
   };
 }
 
@@ -167,8 +197,9 @@ function tokenizeDescription(desc: string): string[] {
 
 function buildKnownKeywordTokens(): Set<string> {
   const rules = getCatalogClassificationRules(defaultWgdomCostCatalog());
+  const dictRules = getConstructionDictionaryRules();
   const set = new Set<string>();
-  for (const rule of rules) {
+  for (const rule of [...rules, ...dictRules]) {
     for (const kw of rule.keywords) {
       const folded = foldPolishText(kw);
       set.add(folded);

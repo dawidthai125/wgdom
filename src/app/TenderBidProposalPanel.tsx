@@ -162,12 +162,25 @@ export function TenderBidProposalPanel({
             <p>
               <span className="text-muted-foreground">Pokrycie:</span>{" "}
               <strong>{classification.summary.classifiedPercent.toFixed(1)}%</strong>
+              {classification.summary.coverageDelta && (
+                <span className="text-emerald-700 dark:text-emerald-300 font-normal">
+                  {" "}(+{classification.summary.coverageDelta.coverageDelta.toFixed(1)}%)
+                </span>
+              )}
             </p>
             <p>
               <span className="text-muted-foreground">Region:</span>{" "}
               <strong>{catalogRegionLabel}</strong>
             </p>
           </div>
+          {classification.summary.coverageDelta && (
+            <p className="text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 rounded-lg px-2.5 py-1.5 border border-emerald-500/20">
+              Pokrycie zwiększone dzięki słownikowi branżowemu WGDOM:{" "}
+              {classification.summary.coverageDelta.classifiedPercentBefore.toFixed(1)}% →{" "}
+              {classification.summary.coverageDelta.classifiedPercentAfter.toFixed(1)}%
+              {" "}(−{classification.summary.coverageDelta.unknownRowsBefore - classification.summary.coverageDelta.unknownRowsAfter} UNKNOWN)
+            </p>
+          )}
           <div className="flex flex-wrap gap-1">
             {classification.summary.categories
               .filter((c) => c.id !== "UNKNOWN" && c.count > 0)

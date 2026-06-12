@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.52.5 — P2-G.1F WGDOM Construction Dictionary
+- wgdom-construction-dictionary.ts 150+ terminów branżowych
+- classifyAthLineCategory + słownik, coverageDelta w inspektorze
+- Pokrycie TBS/WM ~82%→~95% bez zmian kalkulatora
+
 ## 2.52.4 — P2-G.1E Classification Inspector
 - buildClassificationSummary / buildUnknownRows / buildCatalogTuningHints
 - TenderBidProposalPanel sekcja Klasyfikacja przedmiaru

@@ -8,6 +8,7 @@ import {
   getCatalogClassificationRules,
   normalizeWgdomCostUnit,
 } from "@/lib/wgdom-cost-catalog";
+import { matchConstructionDictionary } from "@/lib/wgdom-construction-dictionary";
 
 /** Normalizacja PL znaków — wzorzec jak company-experience-discovery.ts fold(). */
 export function foldPolishText(s: string): string {
@@ -45,12 +46,30 @@ function unitCategoryHint(unit: string | undefined): WgdomCostCategoryId | null 
 }
 
 /**
+ * Klasyfikacja bez słownika branżowego P2-G.1F — do pomiaru coverageDelta.
+ */
+export function classifyAthLineCategoryWithoutDictionary(
+  description: string,
+  unit?: string,
+): WgdomCostCategoryId {
+  return classifyAthLineCategoryInternal(description, unit, false);
+}
+
+/**
  * Klasyfikuje opis pozycji ATH do kategorii WGDOM.
- * Kolejność reguł = priorytet seed katalogu.
+ * Kolejność: reguły katalogu → słownik branżowy → heurystyki STOLARKA.
  */
 export function classifyAthLineCategory(
   description: string,
   unit?: string,
+): WgdomCostCategoryId {
+  return classifyAthLineCategoryInternal(description, unit, true);
+}
+
+function classifyAthLineCategoryInternal(
+  description: string,
+  unit: string | undefined,
+  useDictionary: boolean,
 ): WgdomCostCategoryId {
   const hay = foldPolishText(description || "");
   if (!hay.trim()) return "UNKNOWN";
@@ -64,6 +83,11 @@ export function classifyAthLineCategory(
         return rule.id;
       }
     }
+  }
+
+  if (useDictionary) {
+    const dictMatch = matchConstructionDictionary(hay);
+    if (dictMatch) return dictMatch;
   }
 
   const u = foldPolishText(unit || "");
