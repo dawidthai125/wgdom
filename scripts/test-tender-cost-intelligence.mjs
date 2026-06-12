@@ -1,8 +1,13 @@
 /**
- * P2-G.1A — Tender Cost Intelligence (katalog, klasyfikator, silnik kosztu).
+ * P2-G.1A + P2-G.1B — Tender Cost Intelligence (katalog + integracja kalkulatora).
  * npx vite-node scripts/test-tender-cost-intelligence.mjs
  */
 import { classifyAthLineCategory, foldPolishText } from "../src/lib/wgdom-ath-classifier.ts";
+import {
+  CATALOG_QUANTITIES_CAP,
+  athPreviewToSnapshot,
+  buildCatalogQuantitiesFromPreview,
+} from "../src/lib/tenders-bzp-brief.ts";
 import {
   defaultWgdomCostCatalog,
   defaultWgdomCostCatalogStore,
@@ -15,6 +20,12 @@ import {
   computeFromCatalogRow,
 } from "../src/lib/wgdom-catalog-cost-engine.ts";
 import { defaultCostModelFromPayroll } from "../src/lib/company-labor-cost.ts";
+import {
+  computeTenderBidProposal,
+  resolveCatalogQuantities,
+  resolveTenderBidPricingMode,
+} from "../src/lib/tenders-bid-calculator.ts";
+import { buildOurEstimateDisplaySsot } from "../src/lib/tender-data-ssot.ts";
 
 let passed = 0;
 let failed = 0;
@@ -35,6 +46,73 @@ function assertEq(actual, expected, label) {
 
 function assertGt(actual, min, label) {
   assert(actual > min, `${label} (${actual} > ${min})`);
+}
+
+function assertGte(actual, min, label) {
+  assert(actual >= min, `${label} (${actual} >= ${min})`);
+}
+
+const costModel = defaultCostModelFromPayroll();
+
+const CATALOG_DESCRIPTIONS = [
+  "Malowanie ścian farbą emulsyjną",
+  "Gładź gipsowa ścian",
+  "Układanie płytek ceramicznych",
+  "Wykładina podłogowa",
+  "Punkt gniazda wtyczkowego",
+  "Instalacja wod-kan",
+  "Demontaż posadzki",
+  "Montaż drzwi wewnętrznych",
+];
+
+function makeCatalogQuantities(count) {
+  return Array.from({ length: count }, (_, i) => ({
+    lp: String(i + 1),
+    description: CATALOG_DESCRIPTIONS[i % CATALOG_DESCRIPTIONS.length],
+    unit: i % 7 === 4 ? "szt" : "m2",
+    quantity: String(8 + (i % 12)),
+  }));
+}
+
+function makeNoPriceKosztorys(count = 221) {
+  const catalogQuantities = makeCatalogQuantities(count);
+  return {
+    ok: true,
+    sourceFilename: "tbs-przedmiar.ath",
+    rowCount: count,
+    rows: catalogQuantities.slice(0, 40).map((q) => ({
+      ...q,
+      unitPrice: "",
+      total: "",
+    })),
+    catalogQuantities,
+    totalValue: "",
+    currency: "PLN",
+    przedmiar: [],
+    categories: [],
+    warnings: [],
+    parsedAt: "2026-06-13T00:00:00.000Z",
+  };
+}
+
+function makePricedKosztorys() {
+  return {
+    ok: true,
+    sourceFilename: "priced.ath",
+    rowCount: 4,
+    rows: [
+      { lp: "1", description: "Malowanie ścian", unit: "m2", quantity: "500", unitPrice: "18", total: "9000" },
+      { lp: "2", description: "Gładź gipsowa", unit: "m2", quantity: "400", unitPrice: "22", total: "8800" },
+      { lp: "3", description: "Płytki podłogowe", unit: "m2", quantity: "120", unitPrice: "85", total: "10200" },
+      { lp: "4", description: "Montaż drzwi", unit: "szt", quantity: "12", unitPrice: "450", total: "5400" },
+    ],
+    totalValue: "33400",
+    currency: "PLN",
+    przedmiar: [],
+    categories: [],
+    warnings: [],
+    parsedAt: "2026-06-13T00:00:00.000Z",
+  };
 }
 
 console.log("P2-G.1A — Tender Cost Intelligence\n");
@@ -99,7 +177,6 @@ const store = defaultWgdomCostCatalogStore();
 assertEq(store.catalogs.dolnyslask.regionMultiplier, 0.92, "dolnyslask multiplier 0.92");
 
 console.log("\n5. Row cost");
-const costModel = defaultCostModelFromPayroll();
 const rowCost = computeFromCatalogRow(
   { description: "Malowanie ścian farbą emulsyjną", unit: "m2", quantity: "100" },
   catalogW,
@@ -150,6 +227,121 @@ assertEq(rowW.laborCost, rowD.laborCost, "labor cost same region-independent rat
 const rateW = getCategoryRate(catalogW, "MALOWANIE", "m2");
 const rateD = getCategoryRate(catalogD, "MALOWANIE", "m2");
 assert(rateD.materialPlnPerUnit < rateW.materialPlnPerUnit, "getCategoryRate dolnyslask material lower");
+
+console.log("\n8. P2-G.1B — Snapshot catalogQuantities");
+const preview221 = {
+  ok: true,
+  format: "text",
+  rows: makeCatalogQuantities(221).map((q) => ({
+    ...q,
+    code: "",
+    unitPrice: "",
+    total: "",
+  })),
+  warnings: [],
+};
+const snap = athPreviewToSnapshot(preview221, "tbs.ath");
+assertEq(snap.catalogQuantities?.length, 221, "snapshot catalogQuantities 221 poz.");
+assertEq(snap.rowCount, 221, "snapshot rowCount 221");
+assert(snap.rows.length <= 40, "snapshot rows UI cap 40");
+assertEq(buildCatalogQuantitiesFromPreview(preview221).length, 221, "buildCatalogQuantitiesFromPreview 221");
+assertEq(CATALOG_QUANTITIES_CAP, 250, "CATALOG_QUANTITIES_CAP 250");
+const snap250 = athPreviewToSnapshot(
+  { ...preview221, rows: makeCatalogQuantities(300).map((q) => ({ ...q, code: "", unitPrice: "", total: "" })) },
+  "big.ath",
+);
+assertEq(snap250.catalogQuantities?.length, 250, "snapshot cap 250 poz.");
+
+console.log("\n9. P2-G.1B — pricingMode resolve");
+const noPriceK = makeNoPriceKosztorys(221);
+const pricedK = makePricedKosztorys();
+assertEq(resolveTenderBidPricingMode(noPriceK), "catalog", "FOUND_NO_VALUE → catalog");
+assertEq(resolveTenderBidPricingMode(pricedK), "ath_priced", "priced → ath_priced");
+assertEq(resolveCatalogQuantities(noPriceK).length, 221, "resolveCatalogQuantities 221");
+
+console.log("\n10. P2-G.1B — computeTenderBidProposal catalog (221 poz.)");
+const bidCatalog = computeTenderBidProposal({
+  kosztorys: noPriceK,
+  swz: { estimatedValuePln: 1_200_000 } ,
+  fit: null,
+  costModel,
+  minProjectDays: 30,
+  maxConcurrentProjects: 2,
+});
+assertEq(bidCatalog.ok, true, "AC-1 catalog 221 poz. ok === true");
+assertEq(bidCatalog.pricingMode, "catalog", "pricingMode catalog");
+assertGt(bidCatalog.costPricePln ?? 0, 0, "AC-2 costPricePln > 0");
+assertGt(bidCatalog.recommendedBidPln ?? 0, 0, "AC-3 recommendedBidPln > 0");
+assertGte(
+  bidCatalog.recommendedBidPln ?? 0,
+  bidCatalog.floorBidPln ?? 0,
+  "recommended >= floor",
+);
+assertGt(bidCatalog.aggressiveBidPln ?? 0, 0, "aggressiveBidPln > 0");
+assertGt(bidCatalog.floorBidPln ?? 0, 0, "floorBidPln > 0");
+assert(bidCatalog.costStack.length >= 6, "costStack ma Kp + poboczne + stałe");
+assert(
+  bidCatalog.assumptions.some((a) => a.includes("katalogowa WGDOM")),
+  "assumption wycena katalogowa",
+);
+
+console.log("\n11. P2-G.1B — computeTenderBidProposal ath_priced regresja");
+const bidPriced = computeTenderBidProposal({
+  kosztorys: pricedK,
+  swz: { estimatedValuePln: 350_000, implementationDays: 60 },
+  fit: { priceWeightPct: 60 } ,
+  costModel,
+  minProjectDays: 30,
+  maxConcurrentProjects: 2,
+});
+assertEq(bidPriced.ok, true, "AC-4 ath_priced ok");
+assertEq(bidPriced.pricingMode, "ath_priced", "pricingMode ath_priced");
+assertEq(bidPriced.costPricePln, 130_900, "ath_priced costPricePln baseline");
+assertEq(bidPriced.floorBidPln, 137_400, "ath_priced floorBidPln baseline");
+assertEq(bidPriced.recommendedBidPln, 137_400, "ath_priced recommended baseline");
+assertEq(bidPriced.aggressiveBidPln, 133_300, "ath_priced aggressive baseline");
+assert(
+  bidPriced.costStack[0]?.label.includes("Robocizna"),
+  "ath_priced stack robocizna",
+);
+
+console.log("\n12. P2-G.1B — Nasza wycena display (catalog)");
+const displayCatalog = buildOurEstimateDisplaySsot({
+  item: { tenderDossier: { kosztorys: noPriceK } },
+  bidProposalOk: bidCatalog.ok,
+  recommendedBidPln: bidCatalog.recommendedBidPln,
+  costPricePln: bidCatalog.costPricePln,
+  pricingMode: "catalog",
+});
+assert(
+  !displayCatalog.display.includes("Nie można automatycznie"),
+  "kafelek bez komunikatu braku wyceny",
+);
+assert(
+  displayCatalog.display.includes("Koszt wykonania"),
+  "display zawiera Koszt wykonania",
+);
+assert(
+  displayCatalog.display.includes("Propozycja"),
+  "display zawiera Propozycja",
+);
+
+console.log("\n13. P2-G.1B — brak ilości → fail");
+const emptyK = {
+  ...noPriceK,
+  catalogQuantities: [],
+  rows: [],
+  rowCount: 0,
+};
+const bidEmpty = computeTenderBidProposal({
+  kosztorys: emptyK,
+  swz: null,
+  fit: null,
+  costModel,
+  minProjectDays: 30,
+  maxConcurrentProjects: 2,
+});
+assertEq(bidEmpty.ok, false, "brak ilości ok false");
 
 console.log(`\n---\nPASS: ${passed}  FAIL: ${failed}  TOTAL: ${passed + failed}`);
 if (failed > 0) {

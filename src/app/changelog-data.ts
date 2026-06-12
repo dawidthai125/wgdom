@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.52.1",
+    label: "Przetargi — wycena z przedmiaru bez cen (P2-G.1B)",
+    items: [
+      { type: "new", text: "catalogQuantities[] w snapshot ATH (do 250 poz.) — ilości pod wycenę katalogową" },
+      { type: "new", text: "computeTenderBidProposal — tryb catalog dla FOUND_NO_VALUE (reuse Kp, marża, oferty)" },
+      { type: "improve", text: "Kafelek „Nasza wycena” — koszt wykonania + propozycja gdy przedmiar bez cen" },
+      { type: "improve", text: "Test regresji P2-G.1B w test-tender-cost-intelligence.mjs" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.52.0",
     label: "Przetargi — Tender Cost Intelligence silnik (P2-G.1A)",
     items: [

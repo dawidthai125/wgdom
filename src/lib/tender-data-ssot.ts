@@ -290,12 +290,20 @@ export function buildOurEstimateDisplaySsot(opts: {
   item: TenderPipelineItem;
   ourEstimatePln?: number | null;
   recommendedBidPln?: number | null;
+  costPricePln?: number | null;
   bidProposalOk?: boolean;
+  pricingMode?: "ath_priced" | "catalog" | null;
 }): { display: string; hint?: string } {
   if (opts.ourEstimatePln != null) {
     return { display: fmtPln(opts.ourEstimatePln) };
   }
   if (opts.bidProposalOk && opts.recommendedBidPln != null) {
+    if (opts.pricingMode === "catalog" && opts.costPricePln != null) {
+      return {
+        display: `Koszt wykonania: ${fmtPln(opts.costPricePln)} · Propozycja: ${fmtPln(opts.recommendedBidPln)}`,
+        hint: "Autorska wycena WGDOM z przedmiaru bez cen",
+      };
+    }
     return { display: `Propozycja: ${fmtPln(opts.recommendedBidPln)}` };
   }
   const cost = resolvedCostStatus(opts.item);

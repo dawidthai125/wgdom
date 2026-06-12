@@ -1,6 +1,6 @@
 /** Propozycja ceny ofertowej — robocizna, materiały, Kp, ZUS, stałe, marża, konkurencja. */
 
-import type { TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
+import type { TenderCatalogQuantityLine, TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
 import type { TenderCompanyCostModel } from "@/lib/tenders-bzp-company";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { TenderFitAssessment } from "@/lib/tenders-bzp-fit";
@@ -10,6 +10,10 @@ import {
   weeklyAncillaryLines,
   weeklyFixedOverheadShare,
 } from "@/lib/company-labor-cost";
+import { defaultWgdomCostCatalog } from "@/lib/wgdom-cost-catalog";
+import { aggregateCatalogDirectCost } from "@/lib/wgdom-catalog-cost-engine";
+
+export type TenderBidPricingMode = "ath_priced" | "catalog";
 
 export interface TenderBidCostLine {
   label: string;
@@ -19,6 +23,7 @@ export interface TenderBidCostLine {
 
 export interface TenderBidProposal {
   ok: boolean;
+  pricingMode?: TenderBidPricingMode | null;
   recommendedBidPln: number | null;
   floorBidPln: number | null;
   aggressiveBidPln: number | null;
@@ -97,63 +102,61 @@ function fullyLoadedHourlyFromModel(model: TenderCompanyCostModel): number {
 function projectMonths(
   implementationDays: number | null | undefined,
   minProjectDays: number,
-  athTotalPln: number,
+  referencePln: number,
   model: TenderCompanyCostModel,
 ): number {
   if (implementationDays != null && implementationDays > 0) {
     return Math.max(implementationDays / 22, minProjectDays / 22, 0.5);
   }
   const dailyCapacity = model.activeWorkersOnSite * 8 * 0.72;
-  const impliedDays = dailyCapacity > 0 && athTotalPln > 0
-    ? athTotalPln / (dailyCapacity * fullyLoadedHourly(model) * 0.55)
+  const impliedDays = dailyCapacity > 0 && referencePln > 0
+    ? referencePln / (dailyCapacity * fullyLoadedHourly(model) * 0.55)
     : minProjectDays;
   return Math.max(impliedDays / 22, minProjectDays / 22, 0.5);
 }
 
-export function computeTenderBidProposal(opts: {
-  kosztorys: TenderKosztorysSnapshot | null | undefined;
-  swz: TenderSwzAnalysis | null | undefined;
-  fit: TenderFitAssessment | null | undefined;
-  costModel: TenderCompanyCostModel;
-  minProjectDays: number;
-  maxConcurrentProjects: number;
-}): TenderBidProposal {
-  const { kosztorys, swz, fit, costModel, minProjectDays, maxConcurrentProjects } = opts;
-  const assumptions: string[] = [];
-  const warnings: string[] = [];
-  const costStack: TenderBidCostLine[] = [];
-
-  const athTotal = kosztorys?.ok
-    ? (parsePlnFromKosztorysTotal(kosztorys.totalValue, kosztorys.currency)
-      ?? kosztorys.rows.reduce((s, r) => s + parseRowTotal(r.total), 0))
-    : null;
-
-  if (athTotal == null || athTotal <= 0) {
-    return {
-      ok: false,
-      recommendedBidPln: null,
-      floorBidPln: null,
-      aggressiveBidPln: null,
-      safeBidPln: null,
-      costPricePln: null,
-      costStack: [],
-      assumptions: [],
-      warnings: ["Brak kosztorysu ATH/XLSX — wczytaj załącznik, aby wyliczyć ofertę."],
-      computedAt: new Date().toISOString(),
-    };
+/** Ilości pod wycenę katalogową — snapshot lub fallback z wierszy UI (max 40). */
+export function resolveCatalogQuantities(
+  kosztorys: TenderKosztorysSnapshot | null | undefined,
+): TenderCatalogQuantityLine[] {
+  if (!kosztorys) return [];
+  if (kosztorys.catalogQuantities?.length) {
+    return kosztorys.catalogQuantities.filter((r) => parseQty(r.quantity) > 0);
   }
+  return kosztorys.rows
+    .filter((r) => r.description?.trim() && parseQty(r.quantity) > 0)
+    .map((r) => ({
+      lp: r.lp,
+      description: r.description,
+      unit: r.unit,
+      quantity: r.quantity,
+    }));
+}
 
-  const flHourly = fullyLoadedHourlyFromModel(costModel);
-  assumptions.push(
-    `${costModel.headcount} prac. (${costModel.activeWorkersOnSite} na budowie), `
-    + `stawka brutto ${costModel.avgGrossHourlyPln} zł/h (lista płac) + ZUS ${costModel.employerBurdenPct}% `
-    + `= ${flHourly.toFixed(2)} zł/h`,
-  );
-  assumptions.push(
-    `Indeksy rynkowe: materiały ×${(costModel.materialPriceIndexPct / 100).toFixed(2)}, `
-    + `robocizna norm ×${(costModel.laborNormIndexPct / 100).toFixed(2)}`,
-  );
+export function resolveTenderBidPricingMode(
+  kosztorys: TenderKosztorysSnapshot | null | undefined,
+): TenderBidPricingMode | null {
+  if (!kosztorys?.ok) return null;
+  const athTotal = parsePlnFromKosztorysTotal(kosztorys.totalValue, kosztorys.currency)
+    ?? kosztorys.rows.reduce((s, r) => s + parseRowTotal(r.total), 0);
+  if (athTotal != null && athTotal > 0) return "ath_priced";
+  if (resolveCatalogQuantities(kosztorys).length > 0) return "catalog";
+  return null;
+}
 
+function computeAthPricedDirectCosts(
+  kosztorys: TenderKosztorysSnapshot,
+  athTotal: number,
+  costModel: TenderCompanyCostModel,
+  flHourly: number,
+  assumptions: string[],
+  warnings: string[],
+): {
+  laborCostReal: number;
+  materialCostReal: number;
+  hoursSum: number;
+  athMaterialPortion: number;
+} {
   let laborCostReal = 0;
   let materialCostReal = 0;
   let hoursSum = 0;
@@ -161,7 +164,7 @@ export function computeTenderBidProposal(opts: {
   let athMaterialPortion = 0;
   let rowsUsed = 0;
 
-  for (const row of kosztorys!.rows) {
+  for (const row of kosztorys.rows) {
     const total = parseRowTotal(row.total);
     if (total <= 0) continue;
     rowsUsed += 1;
@@ -191,14 +194,13 @@ export function computeTenderBidProposal(opts: {
     materialCostReal = athMaterialPortion * (costModel.materialPriceIndexPct / 100);
     warnings.push("Brak pozycji z kwotami — użyto domyślnego podziału 54% robocizna / 46% materiały.");
   } else {
-    const partialSum = laborCostReal + materialCostReal;
     const athRowsSum = athLaborPortion + athMaterialPortion;
-    if (kosztorys!.rowCount > rowsUsed && athRowsSum > 0 && athTotal > athRowsSum * 1.03) {
+    if (kosztorys.rowCount > rowsUsed && athRowsSum > 0 && athTotal > athRowsSum * 1.03) {
       const scale = athTotal / athRowsSum;
       laborCostReal *= scale;
       materialCostReal *= scale;
       assumptions.push(
-        `Skalowanie do pełnej sumy kosztorysu (${kosztorys!.rowCount} poz., przeanalizowano ${rowsUsed}).`,
+        `Skalowanie do pełnej sumy kosztorysu (${kosztorys.rowCount} poz., przeanalizowano ${rowsUsed}).`,
       );
     }
     if (hoursSum > 0) {
@@ -206,17 +208,159 @@ export function computeTenderBidProposal(opts: {
     }
   }
 
+  return { laborCostReal, materialCostReal, hoursSum, athMaterialPortion };
+}
+
+export function computeTenderBidProposal(opts: {
+  kosztorys: TenderKosztorysSnapshot | null | undefined;
+  swz: TenderSwzAnalysis | null | undefined;
+  fit: TenderFitAssessment | null | undefined;
+  costModel: TenderCompanyCostModel;
+  minProjectDays: number;
+  maxConcurrentProjects: number;
+}): TenderBidProposal {
+  const { kosztorys, swz, fit, costModel, minProjectDays, maxConcurrentProjects } = opts;
+  const assumptions: string[] = [];
+  const warnings: string[] = [];
+  const costStack: TenderBidCostLine[] = [];
+
+  const pricingMode = resolveTenderBidPricingMode(kosztorys);
+
+  if (!pricingMode || !kosztorys?.ok) {
+    return {
+      ok: false,
+      pricingMode: null,
+      recommendedBidPln: null,
+      floorBidPln: null,
+      aggressiveBidPln: null,
+      safeBidPln: null,
+      costPricePln: null,
+      costStack: [],
+      assumptions: [],
+      warnings: kosztorys?.ok
+        ? ["Brak cen w kosztorysie i brak ilości do wyceny katalogowej — wczytaj przedmiar ATH."]
+        : ["Brak kosztorysu ATH/XLSX — wczytaj załącznik, aby wyliczyć ofertę."],
+      computedAt: new Date().toISOString(),
+    };
+  }
+
+  const flHourly = fullyLoadedHourlyFromModel(costModel);
+  assumptions.push(
+    `${costModel.headcount} prac. (${costModel.activeWorkersOnSite} na budowie), `
+    + `stawka brutto ${costModel.avgGrossHourlyPln} zł/h (lista płac) + ZUS ${costModel.employerBurdenPct}% `
+    + `= ${flHourly.toFixed(2)} zł/h`,
+  );
+  assumptions.push(
+    `Indeksy rynkowe: materiały ×${(costModel.materialPriceIndexPct / 100).toFixed(2)}, `
+    + `robocizna norm ×${(costModel.laborNormIndexPct / 100).toFixed(2)}`,
+  );
+
+  let laborCostReal = 0;
+  let materialCostReal = 0;
+  let hoursSum = 0;
+  let referencePln = 0;
+  let athMaterialPortion = 0;
+  let athTotal: number | null = null;
+
+  if (pricingMode === "ath_priced") {
+    athTotal = parsePlnFromKosztorysTotal(kosztorys.totalValue, kosztorys.currency)
+      ?? kosztorys.rows.reduce((s, r) => s + parseRowTotal(r.total), 0);
+    if (athTotal == null || athTotal <= 0) {
+      return {
+        ok: false,
+        pricingMode: null,
+        recommendedBidPln: null,
+        floorBidPln: null,
+        aggressiveBidPln: null,
+        safeBidPln: null,
+        costPricePln: null,
+        costStack: [],
+        assumptions: [],
+        warnings: ["Brak sumy kosztorysu inwestora — nie można wyliczyć oferty."],
+        computedAt: new Date().toISOString(),
+      };
+    }
+    referencePln = athTotal;
+    const athCosts = computeAthPricedDirectCosts(
+      kosztorys,
+      athTotal,
+      costModel,
+      flHourly,
+      assumptions,
+      warnings,
+    );
+    laborCostReal = athCosts.laborCostReal;
+    materialCostReal = athCosts.materialCostReal;
+    hoursSum = athCosts.hoursSum;
+    athMaterialPortion = athCosts.athMaterialPortion;
+
+    costStack.push({
+      label: "Robocizna (rynkowa + ZUS/składki pracodawcy)",
+      pln: roundPln(laborCostReal),
+      detail: hoursSum > 0 ? `${Math.round(hoursSum)} rbh × ${flHourly.toFixed(2)} zł` : undefined,
+    });
+    costStack.push({
+      label: "Materiały (indeks cen rynkowych)",
+      pln: roundPln(materialCostReal),
+      detail: `Norma ATH ${roundPln(athMaterialPortion)} zł × ${costModel.materialPriceIndexPct}%`,
+    });
+  } else {
+    const catalogRows = resolveCatalogQuantities(kosztorys);
+    const catalog = defaultWgdomCostCatalog("wroclaw");
+    const agg = aggregateCatalogDirectCost(catalogRows, catalog, costModel);
+
+    if (agg.totals.direct <= 0) {
+      return {
+        ok: false,
+        pricingMode: "catalog",
+        recommendedBidPln: null,
+        floorBidPln: null,
+        aggressiveBidPln: null,
+        safeBidPln: null,
+        costPricePln: null,
+        costStack: [],
+        assumptions: [],
+        warnings: ["Przedmiar bez cen — brak pozycji z dodatnią ilością do wyceny katalogowej."],
+        computedAt: new Date().toISOString(),
+      };
+    }
+
+    laborCostReal = agg.totals.labor;
+    materialCostReal = agg.totals.material;
+    hoursSum = agg.totals.laborHours;
+    referencePln = agg.totals.direct;
+
+    assumptions.push(
+      `Wycena katalogowa WGDOM — ${agg.rowCount} poz. przedmiaru (region: ${catalog.region}).`,
+    );
+    if (agg.unknownCount > 0) {
+      assumptions.push(`Pozycje niesklasyfikowane (UNKNOWN): ${agg.unknownCount} / ${agg.rowCount}.`);
+    }
+    if (agg.rowCount < kosztorys.rowCount) {
+      assumptions.push(
+        `Przeanalizowano ${agg.rowCount} z ${kosztorys.rowCount} poz. (limit snapshot ilości).`,
+      );
+    }
+    if (agg.unknownCount / Math.max(agg.rowCount, 1) > 0.15) {
+      warnings.push(
+        "Ponad 15% pozycji niesklasyfikowanych — wycena orientacyjna, zweryfikuj przed ofertą.",
+      );
+    }
+    warnings.push("Autorska wycena z katalogu WGDOM — przedmiar inwestora bez cen jednostkowych.");
+
+    costStack.push({
+      label: "Robocizna (katalog WGDOM + ZUS)",
+      pln: roundPln(laborCostReal),
+      detail: hoursSum > 0 ? `${Math.round(hoursSum)} rbh × ${flHourly.toFixed(2)} zł` : undefined,
+    });
+    costStack.push({
+      label: "Materiały (katalog WGDOM)",
+      pln: roundPln(materialCostReal),
+      detail: `Region ${catalog.region} × ${catalog.regionMultiplier}`,
+    });
+  }
+
   const directCost = laborCostReal + materialCostReal;
-  costStack.push({
-    label: "Robocizna (rynkowa + ZUS/składki pracodawcy)",
-    pln: roundPln(laborCostReal),
-    detail: hoursSum > 0 ? `${Math.round(hoursSum)} rbh × ${flHourly.toFixed(2)} zł` : undefined,
-  });
-  costStack.push({
-    label: "Materiały (indeks cen rynkowych)",
-    pln: roundPln(materialCostReal),
-    detail: `Norma ATH ${roundPln(athMaterialPortion)} zł × ${costModel.materialPriceIndexPct}%`,
-  });
 
   const kp = directCost * (costModel.kpPct / 100);
   costStack.push({
@@ -225,7 +369,7 @@ export function computeTenderBidProposal(opts: {
     detail: "Zaplecze budowy, logistyka, drobny transport",
   });
 
-  const months = projectMonths(swz?.implementationDays, minProjectDays, athTotal, costModel);
+  const months = projectMonths(swz?.implementationDays, minProjectDays, referencePln, costModel);
   const weeks = Math.max(months * 4.33, 1);
   const weeklyAncillaryTotal = weeklyAncillaryLines(costModel).reduce((s, l) => s + l.pln, 0);
   const ancillaryProject = weeklyAncillaryTotal * weeks;
@@ -267,7 +411,7 @@ export function computeTenderBidProposal(opts: {
     detail: `Próg opłacalności (${costModel.minMarginPct}% nad kosztem)`,
   });
 
-  const estVal = swz?.estimatedValuePln ?? athTotal;
+  const estVal = swz?.estimatedValuePln ?? athTotal ?? referencePln;
   const priceWeight = fit?.priceWeightPct ?? null;
 
   let recommended = floorBid;
@@ -294,7 +438,12 @@ export function computeTenderBidProposal(opts: {
 
   const safe = roundPln(recommended * 1.04);
 
-  if (Math.abs(recommended - athTotal) / athTotal > 0.25) {
+  if (
+    pricingMode === "ath_priced"
+    && athTotal != null
+    && athTotal > 0
+    && Math.abs(recommended - athTotal) / athTotal > 0.25
+  ) {
     warnings.push(
       `Rekomendacja odbiega >25% od sumy kosztorysu inwestora (${roundPln(athTotal).toLocaleString("pl-PL")} zł) — zweryfikuj indeksy i normy rbh.`,
     );
@@ -302,6 +451,7 @@ export function computeTenderBidProposal(opts: {
 
   return {
     ok: true,
+    pricingMode,
     recommendedBidPln: roundPln(recommended),
     floorBidPln: roundPln(floorBid),
     aggressiveBidPln: roundPln(aggressive),

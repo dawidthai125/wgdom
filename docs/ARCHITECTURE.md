@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.52.0** · P2-G.1A)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.1A — Tender Cost Intelligence silnik)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.52.1** · P2-G.1B)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.1B — integracja kalkulatora catalog mode)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -849,9 +849,24 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 
 ### 12.1.6 P2-G — Tender Cost Intelligence (P2-G.1A — silnik, IN PROGRESS)
 
-**Status:** **P2-G.1A COMPLETE** (lib + testy) · **P2-G.1B** (integracja `computeTenderBidProposal`) · **P2-G.1C** (UI) — backlog.
+**Status:** **P2-G.1A COMPLETE** · **P2-G.1B COMPLETE** (integracja kalkulatora) · **P2-G.1C** (UI rozszerzone) — backlog.
 
 **Cel:** autorska wycena przetargu z przedmiaru ATH **bez cen** (FOUND_NO_VALUE) — koszt wykonania + oferty min/rekom/agresywna przez rozszerzenie istniejącego kalkulatora (`tenders-bid-calculator.ts`), **nie** nowy moduł ofertowy.
+
+**P2-G.1B — FOUND_NO_VALUE → catalog mode:**
+
+| Warunek | `pricingMode` | Wejście direct cost |
+|---------|---------------|---------------------|
+| Suma ATH / pozycje z kwotami > 0 | `ath_priced` | Istniejąca heurystyka R/M z kosztorysu |
+| Brak cen + `catalogQuantities[]` | `catalog` | `aggregateCatalogDirectCost()` → Kp, stałe, marża (reuse) |
+
+**Snapshot:** `TenderKosztorysSnapshot.catalogQuantities[]` — `{ lp, description, unit, quantity }`, max **250** poz. (`CATALOG_QUANTITIES_CAP`), wypełniane w `athPreviewToSnapshot()`.
+
+**Kalkulator:** `resolveTenderBidPricingMode()`, `resolveCatalogQuantities()`, `computeTenderBidProposal()` — pole `pricingMode` w wyniku.
+
+**Kafelek „Nasza wycena”:** gdy `bidProposal.ok` + `catalog` — tekst „Koszt wykonania · Propozycja” (`buildOurEstimateDisplaySsot`), bez pełnego UI P2-G.1C.
+
+**Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (P2-G.1A + P2-G.1B).
 
 **Źródła danych (hierarchia):**
 
@@ -874,9 +889,9 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 
 **Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs`
 
-**Nie w P2-G.1A:** `computeTenderBidProposal` integration, kafelek „Nasza wycena”, `catalogQuantities` snapshot, chmura, UI profilu.
+**Nie w P2-G.1A/B:** chmura katalogu, badge źródła, disclaimer UI, klasyfikacja w UI — **P2-G.1C**.
 
-**Następny krok P2-G.1B:** `catalogQuantities[]` w dossier, ścieżka `pricingMode: "catalog"` w `computeTenderBidProposal()`, klucz `kw-wgdom-cost-catalog`.
+**Następny krok P2-G.1C:** badge źródła, edycja katalogu w profilu, `kw-wgdom-cost-catalog`, layout kafelka.
 
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 

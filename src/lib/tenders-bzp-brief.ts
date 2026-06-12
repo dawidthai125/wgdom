@@ -19,6 +19,16 @@ export interface TenderPrzedmiarLine {
   formula?: string;
 }
 
+/** Lekkie wiersze pod wycenę katalogową P2-G — bez cen, do 250 poz. */
+export interface TenderCatalogQuantityLine {
+  lp: string;
+  description: string;
+  unit: string;
+  quantity: string;
+}
+
+export const CATALOG_QUANTITIES_CAP = 250;
+
 export interface TenderKosztorysSnapshot {
   ok: boolean;
   sourceFilename: string;
@@ -31,6 +41,8 @@ export interface TenderKosztorysSnapshot {
   currency?: string;
   rowCount: number;
   rows: TenderCostLine[];
+  /** Ilości z ATH pod aggregateCatalogDirectCost (P2-G.1B). */
+  catalogQuantities?: TenderCatalogQuantityLine[];
   przedmiar: TenderPrzedmiarLine[];
   categories: { name: string; total: string }[];
   warnings: string[];
@@ -180,10 +192,25 @@ export function parseNoticeHtmlBrief(html: string): TenderBrief {
   };
 }
 
+export function buildCatalogQuantitiesFromPreview(
+  preview: AthPreviewResult,
+): TenderCatalogQuantityLine[] {
+  return preview.rows
+    .slice(0, CATALOG_QUANTITIES_CAP)
+    .filter((r) => r.description?.trim())
+    .map((r) => ({
+      lp: r.lp,
+      description: r.description,
+      unit: r.unit,
+      quantity: r.quantity,
+    }));
+}
+
 export function athPreviewToSnapshot(
   preview: AthPreviewResult,
   sourceFilename: string,
 ): TenderKosztorysSnapshot {
+  const catalogQuantities = buildCatalogQuantitiesFromPreview(preview);
   const rows: TenderCostLine[] = preview.rows.slice(0, 40).map((r) => ({
     lp: r.lp,
     description: r.description,
@@ -211,6 +238,7 @@ export function athPreviewToSnapshot(
     currency: preview.currency,
     rowCount: preview.rows.length,
     rows,
+    catalogQuantities,
     przedmiar: przedmiar.slice(0, 30),
     categories: (preview.categories ?? []).slice(0, 12).map((c) => ({
       name: c.name,

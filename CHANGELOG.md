@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.52.1 — P2-G.1B integracja kalkulatora catalog mode
+- catalogQuantities[] snapshot (250 poz.)
+- computeTenderBidProposal pricingMode catalog / ath_priced
+- Nasza wycena — koszt wykonania gdy FOUND_NO_VALUE
+
 ## 2.52.0 — P2-G.1A Tender Cost Intelligence silnik
 - wgdom-cost-catalog.ts — 8 kategorii MVP, regiony wroclaw/dolnyslask
 - wgdom-ath-classifier.ts — classifyAthLineCategory()

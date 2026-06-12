@@ -66,7 +66,9 @@ export function computeBidPrepChecks(
     item,
     ourEstimatePln: item.ourEstimatePln,
     recommendedBidPln: bidProposal?.recommendedBidPln,
+    costPricePln: bidProposal?.costPricePln,
     bidProposalOk: bidProposal?.ok,
+    pricingMode: bidProposal?.pricingMode ?? null,
   });
   const kosztorysMissingDisplay = costStatus === "NOT_FOUND"
     ? (docCount > 0
