@@ -8,6 +8,7 @@ import { fmtPln, stripHtmlToText, formatSwzWadiumDisplay } from "@/lib/tenders-b
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import { filterReliableAwardCriteria } from "@/lib/tender-metadata-confidence";
 import { resolveWadiumAmountPln } from "@/lib/tenders-wadium";
+import { buildValueOrderDisplay, resolveContractValuePln } from "@/lib/tender-cost-snapshot";
 
 export type TenderRequirementStatus = "met" | "partial" | "gap" | "unknown";
 
@@ -236,12 +237,7 @@ export function estimatedValuePlnFromItem(
   item: TenderPipelineItem,
   swz: TenderSwzAnalysis | null | undefined,
 ): number | null {
-  if (swz?.estimatedValuePln != null) return swz.estimatedValuePln;
-  const k = item.tenderDossier?.kosztorys;
-  if (k?.ok && k.totalValue) {
-    return parsePlnFromKosztorysTotal(k.totalValue, k.currency);
-  }
-  return null;
+  return resolveContractValuePln(item, swz);
 }
 
 export function assessTenderFit(
@@ -336,15 +332,21 @@ export function assessTenderFit(
       tip: tip ?? (estValSource === "kosztorys ATH" ? "Wartość z sumy kosztorysu — zweryfikuj z SWZ." : undefined),
     });
   } else {
+    const k = item.tenderDossier?.kosztorys;
+    const valueMsg = buildValueOrderDisplay({
+      valuePln: null,
+      kosztorysOk: Boolean(k?.ok),
+      kosztorysHasTotal: Boolean(k?.totalValue?.trim()),
+    });
     checks.push({
       id: "value",
       category: "Wartość",
       label: "Wartość zamówienia",
-      required: "Nie odczytano z SWZ",
+      required: valueMsg.display,
       companyHas: `${fmtPln(profile.minOrderValuePln)} – ${fmtPln(profile.maxOrderValuePln)}`,
-      status: "unknown",
+      status: k?.ok ? "unknown" : "unknown",
       impact: "medium",
-      tip: "Pobierz SWZ, kosztorys ATH lub uzupełnij szacunek ręcznie.",
+      tip: valueMsg.hint ?? "Pobierz SWZ, kosztorys ATH lub uzupełnij szacunek ręcznie.",
     });
   }
 

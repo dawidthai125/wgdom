@@ -12,6 +12,7 @@ import { classifyDocumentRole, is7zFilename } from "@/lib/tender-document-role";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { isDocxFilename, isXlsxFilename, isZipFilename } from "@/lib/tenders-bzp-filename";
 import { clearDossierTraceLog } from "@/lib/tender-dossier-trace";
+import { clearCostTraceLog, mergeKosztorysValueIntoSwz, plnFromKosztorysSnapshot, traceCostPipeline, traceCostUiState } from "@/lib/tender-cost-snapshot";
 import { applyMetadataConfidence } from "@/lib/tender-metadata-confidence";
 import type { TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
 import { costTypeDisplayLabel } from "@/lib/tender-cost-discovery";
@@ -107,11 +108,13 @@ export function buildKosztorysMissingMessage(summary: TenderDossierScanSummary):
 
 export function buildEstimateMissingReason(summary: TenderDossierScanSummary): string {
   if (summary.estimateFound) return "";
+  if (summary.kosztorysFound) {
+    return "Wycena wymaga ręcznego potwierdzenia — kosztorys bez automatycznej sumy";
+  }
   if (summary.sevenZipCount > 0 && summary.byType.ath === 0 && summary.byType.xlsx === 0) {
     return "Wykryto tylko archiwa 7Z — wymagane ręczne pobranie";
   }
-  if (!summary.kosztorysFound) return "Brak pliku kosztorysowego (ATH/NOR/XML/XLS/XLSX)";
-  return "Brak sumy w kosztorysie — uzupełnij ręcznie";
+  return "Brak pliku kosztorysowego (ATH/NOR/XML/XLS/XLSX)";
 }
 
 /** Pełna analiza: SWZ + dossier ze wszystkich załączników. */
@@ -126,6 +129,7 @@ export async function analyzeTenderWithDossier(opts: {
   existingKosztorys?: TenderKosztorysSnapshot | null;
 }): Promise<TenderDossierAnalysisResult> {
   clearDossierTraceLog();
+  clearCostTraceLog();
   const warnings: string[] = [];
   const docs = opts.bzpDocuments ?? [];
   const filenames = docs.map((d) => d.filename);
@@ -168,7 +172,19 @@ export async function analyzeTenderWithDossier(opts: {
     warnings.push(...dossier.warnings);
   }
 
+  merged = mergeKosztorysValueIntoSwz(merged, kosztorys);
   merged = applyMetadataConfidence(merged);
+
+  const kosztorysValuePln = plnFromKosztorysSnapshot(kosztorys);
+  if (estimatePln == null && kosztorysValuePln != null) {
+    estimatePln = kosztorysValuePln;
+    traceCostPipeline("estimate_created", kosztorys?.sourceFilename ?? "kosztorys", { estimatePln });
+  }
+  if (merged.estimatedValuePln != null) {
+    traceCostPipeline("estimated_value_created", kosztorys?.sourceFilename ?? "swz", {
+      value: merged.estimatedValuePln,
+    });
+  }
 
   const scanSummary: TenderDossierScanSummary = {
     totalDocuments: docs.length,
@@ -177,12 +193,21 @@ export async function analyzeTenderWithDossier(opts: {
     byType: countDocumentsByType(filenames),
     sevenZipCount: filenames.filter((f) => is7zFilename(f)).length,
     kosztorysFound: Boolean(kosztorys?.ok),
-    valueFound: merged.estimatedValuePln != null,
+    valueFound: merged.estimatedValuePln != null || kosztorysValuePln != null,
     criteriaFound: (merged.awardCriteria?.length ?? 0) > 0,
     estimateFound: estimatePln != null,
     costDiscovery,
     parsedAt: new Date().toISOString(),
   };
+
+  traceCostUiState(kosztorys?.sourceFilename ?? "dossier", {
+    kosztorysOk: Boolean(kosztorys?.ok),
+    totalValue: kosztorys?.totalValue ?? null,
+    rowCount: kosztorys?.rowCount ?? 0,
+    ourEstimatePln: estimatePln,
+    swzValue: merged.estimatedValuePln,
+    scanSummary,
+  });
 
   return { analysis: merged, kosztorys, estimatePln, scanSummary, warnings };
 }

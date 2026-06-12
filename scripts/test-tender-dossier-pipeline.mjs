@@ -30,6 +30,14 @@ import {
 } from "../src/lib/tender-metadata-confidence.ts";
 import { extractAwardCriteria } from "../src/lib/tenders-bzp-fit.ts";
 import { roleContributesMetadata } from "../src/lib/tender-metadata-sources.ts";
+import {
+  buildOurEstimateDisplay,
+  buildValueOrderDisplay,
+  extractTotalValueFromAthPreview,
+  mergeKosztorysValueIntoSwz,
+  plnFromKosztorysSnapshot,
+} from "../src/lib/tender-cost-snapshot.ts";
+import { computeBidPrepChecks } from "../src/lib/tenders-bid-prep.ts";
 
 let pass = 0;
 let fail = 0;
@@ -139,6 +147,104 @@ assert("cena 0 filtered", isFalsePositiveCriterion({ name: "Cena oferty", weight
 const vatOnly = filterReliableAwardCriteria(extractAwardCriteria("VAT 8% stawka obniżona. Cena 0% w ofercie."));
 assert("vat and cena0 removed", vatOnly.length === 0);
 
+// P2-E.2 — ATH summaryLines → totalValue
+const athPreview = {
+  ok: false,
+  format: "text",
+  rows: [],
+  summaryLines: [
+    { label: "WARTOŚĆ CAŁKOWITA (brutto)", value: "3 200 000,00 PLN", bold: true },
+  ],
+  warnings: [],
+};
+assert("extract total from summary", extractTotalValueFromAthPreview(athPreview) === "3 200 000,00");
+const snapPln = plnFromKosztorysSnapshot({
+  ok: true,
+  sourceFilename: "k.ath",
+  totalValue: "3 200 000,00",
+  currency: "PLN",
+  rowCount: 0,
+  rows: [],
+  przedmiar: [],
+  categories: [],
+  warnings: [],
+  parsedAt: new Date().toISOString(),
+});
+assert("snapshot pln", snapPln === 3200000);
+
+const mergedVal = mergeKosztorysValueIntoSwz(
+  parseSwzPlainText("Wadium 6% wartości zamówienia.", { source: "pdf" }),
+  {
+    ok: true,
+    sourceFilename: "zip → k.ath",
+    totalValue: "1 500 000,00",
+    currency: "PLN",
+    rowCount: 12,
+    rows: [],
+    przedmiar: [],
+    categories: [],
+    warnings: [],
+    parsedAt: new Date().toISOString(),
+  },
+);
+assert("merge kosztorys into swz", mergedVal.estimatedValuePln === 1500000);
+
+// P2-E.2 — no contradictory UI messages
+const estWhenKosztorys = buildOurEstimateDisplay({
+  ourEstimatePln: null,
+  kosztorysOk: true,
+  scanSummary: { kosztorysFound: true, estimateFound: false },
+});
+assert("our estimate no file msg when kosztorys", !estWhenKosztorys.display.includes("Brak pliku"));
+
+const valNoTotal = buildValueOrderDisplay({ valuePln: null, kosztorysOk: true, kosztorysHasTotal: false });
+assert("value no total in kosztorys", valNoTotal.display.includes("nie występuje"));
+
+const checks = computeBidPrepChecks(
+  {
+    id: "t1",
+    tenderId: "x",
+    title: "T",
+    status: "new",
+    submittingOffersDate: new Date().toISOString(),
+    tenderDossier: {
+      kosztorys: {
+        ok: true,
+        sourceFilename: "z → k.ath",
+        rowCount: 5,
+        rows: [],
+        przedmiar: [],
+        categories: [],
+        warnings: [],
+        parsedAt: new Date().toISOString(),
+      },
+      scanSummary: {
+        totalDocuments: 15,
+        scanned: 8,
+        parsed: 6,
+        byType: { pdf: 8, docx: 0, xlsx: 0, zip: 1, ath: 1, sevenZip: 0, other: 0 },
+        sevenZipCount: 0,
+        kosztorysFound: true,
+        valueFound: false,
+        criteriaFound: false,
+        estimateFound: false,
+        costDiscovery: { found: true, type: "zip_ath", source: "z → k.ath", confidence: 0.95 },
+        parsedAt: new Date().toISOString(),
+      },
+      brief: { fields: [], scopeDescription: null, location: null, procedureType: null, offerDeadline: null, offerOpening: null, contractPeriod: null, paymentTerms: null, contactInfo: null, additionalNotes: [], builtAt: "" },
+      builtAt: new Date().toISOString(),
+    },
+  },
+  parseSwzPlainText("Wadium 6% wartości zamówienia.", { source: "pdf" }),
+  null,
+  null,
+);
+const kosztCheck = checks.find((c) => c.id === "kosztorys");
+const bidCheck = checks.find((c) => c.id === "our-bid");
+assert("checklist kosztorys ok", kosztCheck?.status === "ok");
+assert("checklist bid not missing file", !bidCheck?.display.includes("Brak pliku kosztorysowego"));
+assert("checklist bid manual confirm", bidCheck?.display.includes("ręcznego"));
+
 // scan summary UX
 const counts = countDocumentsByType(TBS_00266295_DOCUMENTS);
 assert("tbs pdf counted", counts.pdf >= 5);
@@ -173,9 +279,17 @@ assert("missing msg scan block", missingMsg.includes("Przeskanowano:"));
 
 const estReason = buildEstimateMissingReason({
   ...summary,
+  kosztorysFound: true,
+  estimateFound: false,
+});
+assert("estimate reason kosztorys no file", !estReason.includes("Brak pliku kosztorysowego"));
+assert("estimate reason manual", estReason.includes("ręcznego"));
+
+const estReason7z = buildEstimateMissingReason({
+  ...summary,
   byType: { pdf: 8, docx: 0, xlsx: 0, zip: 0, ath: 0, sevenZip: 2, other: 5 },
 });
-assert("estimate reason 7z", estReason.includes("7Z"));
+assert("estimate reason 7z", estReason7z.includes("7Z"));
 
 // trace
 clearDossierTraceLog();

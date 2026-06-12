@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.14",
+    label: "Przetargi — Cost Snapshot Integration (P2-E.2)",
+    items: [
+      { type: "fix", text: "ATH ZIP → totalValue z summaryLines; wartość/kosztorys/wycena — spójne komunikaty UI" },
+      { type: "new", text: "[COST TRACE] zip_found → snapshot_created → estimate → ui_state" },
+      { type: "fix", text: "Koniec sprzeczności „Kosztorys znaleziony” + „Brak pliku kosztorysowego”" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.13",
     label: "Przetargi — ATH ZIP trace + SSOT danych (P2-E.1B)",
     items: [

@@ -4,16 +4,19 @@ import { fmtPln, formatSwzWadiumDisplay } from "@/lib/tenders-bzp-swz";
 import type { TenderFitAssessment } from "@/lib/tenders-bzp-fit";
 import { estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
-import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import { isTenderOpenForOffers, daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
 import { resolveTenderPlatformDocumentStatus } from "@/lib/tender-platform-awareness";
 import {
-  buildEstimateMissingReason,
   buildKosztorysMissingMessage,
   buildKosztorysStatusLine,
 } from "@/lib/tender-dossier-pipeline";
+import {
+  buildOurEstimateDisplay,
+  buildValueOrderDisplay,
+  resolveContractValuePln,
+} from "@/lib/tender-cost-snapshot";
 
 export type BidPrepItemStatus = "ok" | "partial" | "missing";
 
@@ -39,20 +42,27 @@ export function computeBidPrepChecks(
     })
     : null;
 
-  const valuePln = estimatedValuePlnFromItem(item, swz ?? null)
-    ?? parsePlnFromKosztorysTotal(
-      item.tenderDossier?.kosztorys?.totalValue,
-      item.tenderDossier?.kosztorys?.currency,
-    );
+  const k = item.tenderDossier?.kosztorys;
+  const kosztorysOk = Boolean(k?.ok);
+  const kosztorysHasTotal = Boolean(k?.totalValue?.trim());
+
+  const valuePln = resolveContractValuePln(item, swz ?? null);
 
   const profile = loadCompanyProfileLocal();
   const wadiumInfo = computeWadiumInfo(item, swz, profile.maxWadiumPln);
 
-  const kosztorysOk = Boolean(item.tenderDossier?.kosztorys?.ok);
   const docCount = (item.bzpDocuments?.length ?? 0) + (item.uploadedFile ? 1 : 0)
     + (item.externalDocDiscovery?.files?.length ?? 0);
   const platformDoc = resolveTenderPlatformDocumentStatus(item);
   const scanSummary = item.tenderDossier?.scanSummary;
+  const valueDisplay = buildValueOrderDisplay({ valuePln, kosztorysOk, kosztorysHasTotal });
+  const estimateDisplay = buildOurEstimateDisplay({
+    ourEstimatePln: item.ourEstimatePln,
+    kosztorysOk,
+    scanSummary,
+    recommendedBidPln: bidProposal?.recommendedBidPln,
+    bidProposalOk: bidProposal?.ok,
+  });
   const kosztorysMissingDisplay = scanSummary
     ? buildKosztorysStatusLine(scanSummary).split("\n")[0] || "Nie znaleziono dokumentu kosztorysowego"
     : docCount > 0
@@ -81,9 +91,9 @@ export function computeBidPrepChecks(
     {
       id: "value",
       label: "Wartość zamówienia",
-      status: valuePln != null ? "ok" : "missing",
-      display: valuePln != null ? fmtPln(valuePln) : "Nie wykryto",
-      hint: valuePln == null ? "Analizuj SWZ — wartość z SWZ/STWIOR/OPZ/kosztorysu" : undefined,
+      status: valuePln != null ? "ok" : kosztorysOk ? "partial" : "missing",
+      display: valueDisplay.display,
+      hint: valueDisplay.hint,
     },
     {
       id: "wadium",
@@ -135,17 +145,12 @@ export function computeBidPrepChecks(
         ? "ok"
         : bidProposal?.ok && bidProposal.recommendedBidPln != null
           ? "partial"
-          : "missing",
-      display: item.ourEstimatePln != null
-        ? fmtPln(item.ourEstimatePln)
-        : bidProposal?.ok && bidProposal.recommendedBidPln != null
-          ? `Propozycja: ${fmtPln(bidProposal.recommendedBidPln)}`
-          : scanSummary
-            ? buildEstimateMissingReason(scanSummary)
-            : "Uzupełnij po kosztorysie",
+          : kosztorysOk
+            ? "partial"
+            : "missing",
+      display: estimateDisplay.display,
       hint: item.ourEstimatePln == null && !bidProposal?.ok
-        ? bidProposal?.warnings?.[0]
-          ?? (scanSummary ? buildEstimateMissingReason(scanSummary) : "Wymaga kosztorysu ATH/XLSX")
+        ? bidProposal?.warnings?.[0] ?? estimateDisplay.hint
         : undefined,
     },
   ];

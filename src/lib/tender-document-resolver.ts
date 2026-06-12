@@ -25,7 +25,7 @@ import { traceDossierPipeline } from "@/lib/tender-dossier-trace";
 import { enrichSwzFromText } from "@/lib/tenders-bzp-swz-enrich";
 import { applyMetadataConfidence, scoreEstimatedValueConfidence } from "@/lib/tender-metadata-confidence";
 import { discoverBestCostDocument, type TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
-import { roleContributesMetadata } from "@/lib/tender-metadata-sources";
+import { enrichKosztorysSnapshotFromPreview, traceCostPipeline } from "@/lib/tender-cost-snapshot";
 import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
 
 const DOSSIER_MAX_CANDIDATES = 15;
@@ -144,10 +144,12 @@ export async function buildTenderDocCandidates(
           count: inner.length,
           ath: inner.filter((e) => /\.ath$/i.test(e.filename)).map((e) => e.filename).slice(0, 5),
         });
+        traceCostPipeline("zip_found", doc.filename, { innerCount: inner.length });
         for (const entry of inner.slice(0, ZIP_INNER_MAX)) {
           const innerName = `${doc.filename} → ${entry.filename}`;
           if (/\.ath$/i.test(entry.filename)) {
             traceDossierPipeline("ath_detected", innerName, { path: entry.path, score: entry.score });
+            traceCostPipeline("ath_found", innerName, { path: entry.path });
           }
           candidates.push({
             documentIndex: doc.index,
@@ -268,17 +270,31 @@ export async function parseTenderDocumentCandidate(
       totalValue: kosztorysPreview.totalValue ?? null,
       summaryLines: kosztorysPreview.summaryLines?.length ?? 0,
     });
-    kosztorys = {
-      ...athPreviewToSnapshot({ ...kosztorysPreview, ok: true }, effectiveName),
+    traceCostPipeline("ath_parsed", candidate.filename, {
+      rows: kosztorysPreview.rows.length,
+      totalValue: kosztorysPreview.totalValue ?? null,
+      summaryLines: kosztorysPreview.summaryLines?.length ?? 0,
+    });
+    const baseSnap = athPreviewToSnapshot({ ...kosztorysPreview, ok: true }, effectiveName);
+    kosztorys = enrichKosztorysSnapshotFromPreview(kosztorysPreview, {
+      ...baseSnap,
       sourceDocumentIndex: candidate.documentIndex,
       zipInnerPath: candidate.zipInnerPath,
-    };
+    });
     traceDossierPipeline("kosztorys_created", candidate.filename, {
       rowCount: kosztorys.rowCount,
       totalValue: kosztorys.totalValue ?? null,
     });
+    traceCostPipeline("snapshot_created", candidate.filename, {
+      rowCount: kosztorys.rowCount,
+      totalValue: kosztorys.totalValue ?? null,
+      ok: kosztorys.ok,
+    });
     if (estimatePln == null) {
       estimatePln = parsePlnFromKosztorysTotal(kosztorys.totalValue, kosztorys.currency);
+      if (estimatePln != null) {
+        traceCostPipeline("estimate_created", candidate.filename, { estimatePln });
+      }
     }
   } else if (kosztorysPreview && isKosztorysPreviewExt(effectiveName)) {
     traceDossierPipeline("ath_parse_failed", candidate.filename, {

@@ -4,6 +4,7 @@ import { stripHtmlToText, type TenderCostLine } from "@/lib/tenders-bzp-swz";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import type { TenderBzpDocument } from "@/lib/tenders-bzp";
 import type { AthPreviewResult } from "@/lib/ath-parser";
+import { extractTotalValueFromAthPreview } from "@/lib/tender-cost-snapshot";
 
 export type { TenderCostLine };
 
@@ -202,10 +203,11 @@ export function athPreviewToSnapshot(
     }
   }
   return {
-    ok: preview.ok,
+    ok: preview.ok || preview.rows.length > 0 || Boolean(preview.totalValue)
+      || (preview.summaryLines?.length ?? 0) > 0,
     sourceFilename,
     title: preview.title,
-    totalValue: preview.totalValue,
+    totalValue: preview.totalValue || extractTotalValueFromAthPreview(preview),
     currency: preview.currency,
     rowCount: preview.rows.length,
     rows,

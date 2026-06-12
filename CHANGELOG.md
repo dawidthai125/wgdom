@@ -4,12 +4,18 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.51.13** · **P2-E.1B** ATH ZIP trace + SSOT danych  
+**Aktualna wersja UI:** **2.51.14** · **P2-E.2** Cost Snapshot Integration  
 **★ SSOT handoff:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../CURRENT-TASK.md)  
 **★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
+
+## 2.51.14 (2026-06-12) — P2-E.2 Cost Snapshot Integration
+
+- **Fix:** ATH `summaryLines` → `totalValue`; merge wartości kosztorysu do `swzAnalysis`
+- **Fix:** spójne UI — koniec „Kosztorys znaleziony” + „Brak pliku kosztorysowego”
+- **New:** `[COST TRACE]` end-to-end (zip_found → ui_state)
 
 ## 2.51.13 (2026-06-12) — P2-E.1B ATH ZIP trace + SSOT danych
 
