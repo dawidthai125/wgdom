@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.11",
+    label: "Przetargi — pipeline dossier (P2-E.0)",
+    items: [
+      { type: "new", text: "„Analizuj SWZ” → pełne dossier: SWZ + STWIOR + przedmiary + ATH/XLS/ZIP (do 15 plików)" },
+      { type: "fix", text: "Merge awardCriteria + wartość z STWIOR; komunikat kosztorysu z podsumowaniem skanowania" },
+      { type: "improve", text: "7Z — jawny komunikat „wymagane ręczne pobranie”; trace Tender Dossier Analysis" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.10",
     label: "Przetargi — fix ekstrakcji wadium ze SWZ",
     items: [

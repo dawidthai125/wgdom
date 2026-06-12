@@ -240,6 +240,8 @@ export interface TenderDossier {
   kosztorys: TenderKosztorysSnapshot | null;
   /** Wyliczona propozycja ceny ofertowej. */
   bidProposal?: TenderBidProposal | null;
+  /** Podsumowanie skanowania załączników (P2-E.0). */
+  scanSummary?: import("@/lib/tender-dossier-pipeline").TenderDossierScanSummary | null;
   builtAt: string;
 }
 

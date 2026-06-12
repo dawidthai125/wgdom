@@ -19,7 +19,8 @@ import {
   suggestKeywordsFromPipeline,
 } from "@/lib/tenders-bzp-learn";
 import { parseNoticeHtmlBrief, mergeBriefWithItemTitle, athPreviewToSnapshot } from "@/lib/tenders-bzp-brief";
-import { parseBestTenderDocuments, mergeSwzAnalysis, parseExternalTenderDocuments } from "@/lib/tender-document-resolver";
+import { parseTenderDossierDocuments, mergeSwzAnalysis, parseExternalTenderDocuments } from "@/lib/tender-document-resolver";
+import { analyzeTenderWithDossier, dossierFromAnalysisResult } from "@/lib/tender-dossier-pipeline";
 import { discoverExternalTenderDocs, type TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import { summarizeSwzFindings } from "@/lib/tenders-bid-prep";
 import { analyzeTenderSwzEnhanced } from "@/lib/tenders-bzp-analyze-local";
@@ -268,13 +269,13 @@ export function TenderDetailPanel({
 
           if (docs.length && item.tenderId) {
             try {
-              const parsed = await parseBestTenderDocuments(item.tenderId, docs, {
+              const parsed = await parseTenderDossierDocuments(item.tenderId, docs, {
                 ourEstimatePln: estimatePln,
                 existingSwz: swz ?? undefined,
               });
               kosztorysSnap = parsed.kosztorys;
-              if (parsed.swzFromDoc) {
-                swzMerged = mergeSwzAnalysis(swz, parsed.swzFromDoc);
+              if (parsed.swzMerged) {
+                swzMerged = parsed.swzMerged;
                 if (!swz) onUpdate({ swzAnalysis: swzMerged });
               }
               if (parsed.estimatePln != null && item.ourEstimatePln == null) {
@@ -393,7 +394,13 @@ export function TenderDetailPanel({
   const runAnalysis = useCallback(async (docIndex?: number) => {
     setAnalyzing(true);
     try {
-      const { analysis: merged, warnings } = await analyzeTenderSwzEnhanced({
+      const brief = item.tenderDossier?.brief
+        ?? mergeBriefWithItemTitle(
+          item.noticeHtml ? parseNoticeHtmlBrief(item.noticeHtml) : parseNoticeHtmlBrief(""),
+          item.title,
+        );
+
+      const result = await analyzeTenderWithDossier({
         noticeNumber: item.noticeNumber || undefined,
         tenderId: item.tenderId,
         documentIndex: docIndex,
@@ -401,29 +408,28 @@ export function TenderDetailPanel({
         noticeHtml: item.noticeHtml,
         ourEstimatePln: item.ourEstimatePln ?? null,
         existing: item.swzAnalysis ?? null,
+        existingKosztorys: item.tenderDossier?.kosztorys ?? null,
       });
 
-      const brief = item.tenderDossier?.brief
-        ?? mergeBriefWithItemTitle(
-          item.noticeHtml ? parseNoticeHtmlBrief(item.noticeHtml) : parseNoticeHtmlBrief(""),
-          item.title,
-        );
+      const patch: Partial<TenderPipelineItem> = {
+        swzAnalysis: result.analysis,
+        tenderDossier: dossierFromAnalysisResult(brief, result),
+      };
+      if (result.estimatePln != null && item.ourEstimatePln == null) {
+        patch.ourEstimatePln = result.estimatePln;
+      }
+      onUpdate(patch);
 
-      onUpdate({
-        swzAnalysis: merged,
-        tenderDossier: {
-          brief,
-          kosztorys: item.tenderDossier?.kosztorys ?? null,
-          builtAt: new Date().toISOString(),
-        },
-      });
-
-      const summary = summarizeSwzFindings(merged);
-      const critN = merged.awardCriteria?.length ?? 0;
-      const extra = critN > 0 ? ` · ${critN} kryteriów` : "";
+      const summary = summarizeSwzFindings(result.analysis);
+      const critN = result.analysis.awardCriteria?.length ?? 0;
+      const extraParts: string[] = [];
+      if (critN > 0) extraParts.push(`${critN} kryteriów`);
+      if (result.scanSummary.kosztorysFound) extraParts.push("kosztorys ✓");
+      if (result.scanSummary.valueFound) extraParts.push("wartość ✓");
+      const extra = extraParts.length ? ` · ${extraParts.join(" · ")}` : "";
       if (summary) toast.success(`Analiza: ${summary}${extra}`);
-      else toast.message(`Analiza zakończona${extra} — sprawdź załączniki PDF jeśli brak kwoty`);
-      warnings.forEach((w) => toast.message(w));
+      else toast.message(`Analiza dossier zakończona${extra}`);
+      result.warnings.forEach((w) => toast.message(w));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Błąd analizy SWZ");
     } finally {

@@ -15,6 +15,18 @@ import {
   scoreTenderFilename,
 } from "@/lib/tenders-bzp-filename";
 import { isPdfFilename } from "@/lib/ath-parser";
+import {
+  classifyDocumentRole,
+  is7zFilename,
+  roleParsePriority,
+  shouldParseRoleForDossier,
+} from "@/lib/tender-document-role";
+import { traceDossierPipeline } from "@/lib/tender-dossier-trace";
+import { enrichSwzFromText } from "@/lib/tenders-bzp-swz-enrich";
+import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
+
+const DOSSIER_MAX_CANDIDATES = 15;
+const ZIP_INNER_MAX = 20;
 
 type DocParseModule = typeof import("@/lib/tenders-bzp-doc-parse");
 
@@ -42,6 +54,13 @@ export interface TenderDocumentParseResult {
   sourceFilename?: string;
 }
 
+export interface TenderDossierParseResult extends TenderDocumentParseResult {
+  swzMerged: TenderSwzAnalysis | null;
+  scannedCount: number;
+  parsedCount: number;
+  warnings: string[];
+}
+
 async function loadDocBytes(tenderId: string, index: number, downloadUrl?: string): Promise<Uint8Array> {
   const { base64 } = await fetchTenderDocumentBytes(tenderId, index, downloadUrl);
   return base64ToBytes(base64);
@@ -66,7 +85,7 @@ export async function buildTenderDocCandidates(
         const { listZipFiles } = await loadDocParse();
         const zipBytes = await loadDocBytes(tenderId, doc.index, doc.platform ? doc.downloadUrl : undefined);
         const inner = await listZipFiles(zipBytes);
-        for (const entry of inner.slice(0, 12)) {
+        for (const entry of inner.slice(0, ZIP_INNER_MAX)) {
           candidates.push({
             documentIndex: doc.index,
             filename: `${doc.filename} → ${entry.filename}`,
@@ -78,6 +97,45 @@ export async function buildTenderDocCandidates(
     }
   }
   return candidates.sort((a, b) => b.score - a.score);
+}
+
+function mergeAwardCriteria(
+  a: TenderSwzAnalysis["awardCriteria"],
+  b: TenderSwzAnalysis["awardCriteria"],
+): TenderAwardCriterion[] {
+  const combined = [...(a ?? []), ...(b ?? [])];
+  const seen = new Set<string>();
+  return combined.filter((c) => {
+    const key = `${c.name.toLowerCase()}|${c.weightPct ?? ""}|${c.maxPoints ?? ""}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 8);
+}
+
+function selectDossierCandidates(candidates: TenderDocCandidate[]): TenderDocCandidate[] {
+  const ranked = [...candidates].sort((a, b) => {
+    const ra = roleParsePriority(classifyDocumentRole(a.filename));
+    const rb = roleParsePriority(classifyDocumentRole(b.filename));
+    if (ra !== rb) return ra - rb;
+    return b.score - a.score;
+  });
+  const selected = new Map<string, TenderDocCandidate>();
+  for (const c of ranked) {
+    const role = classifyDocumentRole(c.filename);
+    if (!shouldParseRoleForDossier(role, c.score)) continue;
+    const key = `${c.documentIndex}|${c.zipInnerPath ?? ""}`;
+    selected.set(key, c);
+    if (selected.size >= DOSSIER_MAX_CANDIDATES) break;
+  }
+  if (selected.size < 5) {
+    for (const c of ranked) {
+      const key = `${c.documentIndex}|${c.zipInnerPath ?? ""}`;
+      selected.set(key, c);
+      if (selected.size >= DOSSIER_MAX_CANDIDATES) break;
+    }
+  }
+  return [...selected.values()];
 }
 
 export async function parseTenderDocumentCandidate(
@@ -132,10 +190,11 @@ export async function parseTenderDocumentCandidate(
   const canSwzText = isPdfFilename(effectiveName) || isDocxFilename(effectiveName);
   if (canSwzText) {
     const { text, source, warnings } = await parseDocumentToSwzText(bytes, effectiveName);
-    swzFromDoc = analyzeSwzFromDocumentText(text, source, {
+    const base = analyzeSwzFromDocumentText(text, source, {
       sourceFilename: effectiveName,
       ourEstimatePln: estimatePln,
     });
+    swzFromDoc = base ? enrichSwzFromText(text, base) : null;
     if (swzFromDoc && warnings.length) {
       swzFromDoc = {
         ...swzFromDoc,
@@ -153,10 +212,11 @@ export async function parseTenderDocumentCandidate(
 
   if (!kosztorys && isPdfFilename(effectiveName) && !swzFromDoc) {
     const { text, source, warnings } = await parseDocumentToSwzText(bytes, effectiveName);
-    swzFromDoc = analyzeSwzFromDocumentText(text, source, {
+    const base = analyzeSwzFromDocumentText(text, source, {
       sourceFilename: effectiveName,
       ourEstimatePln: estimatePln,
     });
+    swzFromDoc = base ? enrichSwzFromText(text, base) : null;
     if (swzFromDoc && warnings.length) {
       swzFromDoc = {
         ...swzFromDoc,
@@ -368,6 +428,111 @@ export async function parseBestTenderDocuments(
   };
 }
 
+/** Pełne parsowanie dossier — wiele dokumentów, merge SWZ + kosztorys (P2-E.0). */
+export async function parseTenderDossierDocuments(
+  tenderId: string,
+  docs: TenderBzpDocument[],
+  opts?: { ourEstimatePln?: number | null; existingSwz?: TenderSwzAnalysis | null },
+): Promise<TenderDossierParseResult> {
+  const warnings: string[] = [];
+  if (!docs.length) {
+    return {
+      kosztorys: null,
+      swzFromDoc: null,
+      swzMerged: opts?.existingSwz ?? null,
+      estimatePln: opts?.ourEstimatePln ?? null,
+      scannedCount: 0,
+      parsedCount: 0,
+      warnings,
+    };
+  }
+
+  for (const doc of docs) {
+    traceDossierPipeline("document_discovered", doc.filename, {
+      index: doc.index,
+      role: classifyDocumentRole(doc.filename),
+    });
+    if (is7zFilename(doc.filename)) {
+      traceDossierPipeline("document_classified", doc.filename, { role: "7z", supported: false });
+      warnings.push(`Wykryto archiwum 7Z: ${doc.filename} — wymagane ręczne pobranie`);
+      continue;
+    }
+  }
+
+  const candidates = selectDossierCandidates(await buildTenderDocCandidates(tenderId, docs));
+  let swzMerged = opts?.existingSwz ?? null;
+  let bestKosztorys: TenderKosztorysSnapshot | null = null;
+  let estimatePln = opts?.ourEstimatePln ?? null;
+  let sourceDocumentIndex: number | undefined;
+  let zipInnerPath: string | undefined;
+  let sourceFilename: string | undefined;
+  let parsedCount = 0;
+
+  for (const cand of candidates) {
+    const role = classifyDocumentRole(cand.filename);
+    traceDossierPipeline("document_classified", cand.filename, { role, score: cand.score });
+    try {
+      traceDossierPipeline("document_downloaded", cand.filename, { documentIndex: cand.documentIndex });
+      const parsed = await parseTenderDocumentCandidate(tenderId, cand, {
+        ourEstimatePln: estimatePln,
+        mergeSwz: swzMerged,
+      });
+      parsedCount += 1;
+      traceDossierPipeline("document_parsed", cand.filename, {
+        kosztorys: Boolean(parsed.kosztorys?.ok),
+        swz: Boolean(parsed.swzFromDoc),
+      });
+
+      if (parsed.kosztorys?.ok) {
+        const newRows = parsed.kosztorys.rows?.length ?? 0;
+        const oldRows = bestKosztorys?.rows?.length ?? 0;
+        if (!bestKosztorys?.ok || newRows > oldRows) {
+          bestKosztorys = parsed.kosztorys;
+          sourceDocumentIndex = parsed.sourceDocumentIndex;
+          zipInnerPath = parsed.zipInnerPath;
+          sourceFilename = parsed.sourceFilename;
+        }
+        if (parsed.estimatePln != null) {
+          estimatePln = parsed.estimatePln;
+          traceDossierPipeline("cost_estimate_extracted", cand.filename, { estimatePln });
+        }
+      }
+
+      if (parsed.swzFromDoc) {
+        if (parsed.swzFromDoc.estimatedValuePln != null) {
+          traceDossierPipeline("value_extracted", cand.filename, {
+            value: parsed.swzFromDoc.estimatedValuePln,
+          });
+        }
+        if ((parsed.swzFromDoc.awardCriteria?.length ?? 0) > 0) {
+          traceDossierPipeline("criteria_extracted", cand.filename, {
+            count: parsed.swzFromDoc.awardCriteria?.length,
+          });
+        }
+        swzMerged = mergeSwzAnalysis(swzMerged, parsed.swzFromDoc);
+        if (parsed.swzFromDoc.estimatedValuePln != null && estimatePln == null) {
+          estimatePln = parsed.swzFromDoc.estimatedValuePln;
+        }
+      }
+    } catch (e) {
+      warnings.push(`${cand.filename}: ${e instanceof Error ? e.message : "błąd parsowania"}`);
+    }
+  }
+
+  return {
+    kosztorys: bestKosztorys,
+    swzFromDoc: swzMerged,
+    swzMerged,
+    estimatePln,
+    sourceDocumentIndex,
+    zipInnerPath,
+    sourceFilename,
+    scannedCount: candidates.length,
+    parsedCount,
+    warnings,
+  };
+}
+
 export function mergeSwzAnalysis(
   primary: TenderSwzAnalysis | null | undefined,
   fromDoc: TenderSwzAnalysis | null | undefined,
@@ -382,6 +547,7 @@ export function mergeSwzAnalysis(
     : (primary.wadiumRaw ?? fromDoc.wadiumRaw);
   const wadiumRaw = formatSwzWadiumDisplay({ wadiumPercent, wadiumPln, wadiumRaw: rawCandidate })
     ?? (isWeakWadiumRaw(rawCandidate) ? null : rawCandidate);
+  const awardCriteria = mergeAwardCriteria(primary.awardCriteria, fromDoc.awardCriteria);
   return {
     ...primary,
     estimatedValuePln: primary.estimatedValuePln ?? fromDoc.estimatedValuePln,
@@ -389,6 +555,7 @@ export function mergeSwzAnalysis(
     wadiumPln,
     wadiumRaw,
     wadiumPercent,
+    awardCriteria: awardCriteria.length > 0 ? awardCriteria : primary.awardCriteria ?? fromDoc.awardCriteria,
     referenceRequirement: primary.referenceRequirement ?? fromDoc.referenceRequirement,
     qualificationHints: [...new Set([...primary.qualificationHints, ...fromDoc.qualificationHints])].slice(0, 8),
     implementationDeadlineRaw: primary.implementationDeadlineRaw ?? fromDoc.implementationDeadlineRaw,

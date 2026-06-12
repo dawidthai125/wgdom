@@ -9,6 +9,10 @@ import { isTenderOpenForOffers, daysUntilTenderDeadline } from "@/lib/tenders-bz
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
 import { resolveTenderPlatformDocumentStatus } from "@/lib/tender-platform-awareness";
+import {
+  buildEstimateMissingReason,
+  buildKosztorysMissingMessage,
+} from "@/lib/tender-dossier-pipeline";
 
 export type BidPrepItemStatus = "ok" | "partial" | "missing";
 
@@ -47,14 +51,23 @@ export function computeBidPrepChecks(
   const docCount = (item.bzpDocuments?.length ?? 0) + (item.uploadedFile ? 1 : 0)
     + (item.externalDocDiscovery?.files?.length ?? 0);
   const platformDoc = resolveTenderPlatformDocumentStatus(item);
-  const kosztorysMissingDisplay = docCount > 0
-    ? `${docCount} plik(ów) — nie sparsowano`
-    : platformDoc.emptyMessage
-      ?? platformDoc.detailLines?.[0]
-      ?? "Brak plików";
-  const kosztorysMissingHint = !kosztorysOk && docCount === 0 && platformDoc.detailLines?.[1]
-    ? platformDoc.detailLines[1]
-    : !kosztorysOk ? "Pobierz załączniki BZP, szukaj u zamawiającego lub wgraj ATH/PDF" : undefined;
+  const scanSummary = item.tenderDossier?.scanSummary;
+  const kosztorysMissingDisplay = kosztorysOk
+    ? ""
+    : scanSummary
+      ? buildKosztorysMissingMessage(scanSummary).split("\n")[0] || "Kosztorys nie został odnaleziony"
+      : docCount > 0
+        ? "Kosztorys nie został odnaleziony"
+        : platformDoc.emptyMessage
+          ?? platformDoc.detailLines?.[0]
+          ?? "Brak plików";
+  const kosztorysMissingHint = !kosztorysOk && scanSummary
+    ? buildKosztorysMissingMessage(scanSummary)
+    : !kosztorysOk && docCount === 0 && platformDoc.detailLines?.[1]
+      ? platformDoc.detailLines[1]
+      : !kosztorysOk
+        ? "Pobierz załączniki BZP, szukaj u zamawiającego lub wgraj ATH/PDF"
+        : undefined;
 
   const checks: BidPrepCheckItem[] = [
     {
@@ -106,8 +119,11 @@ export function computeBidPrepChecks(
       label: "Kryteria oceny",
       status: (fit?.awardCriteria?.length ?? 0) > 0 ? "ok" : fit ? "partial" : "missing",
       display: (fit?.awardCriteria?.length ?? 0) > 0
-        ? fit!.awardCriteria.map((c) => c.name).slice(0, 2).join(", ")
-          + (fit!.awardCriteria.length > 2 ? ` +${fit!.awardCriteria.length - 2}` : "")
+        ? fit!.awardCriteria.map((c) => {
+          const w = c.weightPct != null ? ` ${c.weightPct}%` : c.maxPoints != null ? ` ${c.maxPoints} pkt` : "";
+          return `${c.name}${w}`;
+        }).slice(0, 3).join(" · ")
+          + (fit!.awardCriteria.length > 3 ? ` +${fit!.awardCriteria.length - 3}` : "")
         : fit?.priceWeightPct != null
           ? `Cena ~${fit.priceWeightPct}%`
           : "Po analizie ogłoszenia",
@@ -125,9 +141,12 @@ export function computeBidPrepChecks(
         ? fmtPln(item.ourEstimatePln)
         : bidProposal?.ok && bidProposal.recommendedBidPln != null
           ? `Propozycja: ${fmtPln(bidProposal.recommendedBidPln)}`
-          : "Uzupełnij po kosztorysie",
+          : scanSummary
+            ? buildEstimateMissingReason(scanSummary)
+            : "Uzupełnij po kosztorysie",
       hint: item.ourEstimatePln == null && !bidProposal?.ok
-        ? bidProposal?.warnings?.[0] ?? "Wymaga kosztorysu ATH/XLSX"
+        ? bidProposal?.warnings?.[0]
+          ?? (scanSummary ? buildEstimateMissingReason(scanSummary) : "Wymaga kosztorysu ATH/XLSX")
         : undefined,
     },
   ];

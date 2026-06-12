@@ -1,7 +1,6 @@
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
-import { parseSwzPlainText, stripHtmlToText, extractTableHints } from "@/lib/tenders-bzp-swz";
-import { extractAwardCriteria } from "@/lib/tenders-bzp-fit";
-import { extractWadiumPercent } from "@/lib/tenders-wadium";
+import { parseSwzPlainText, stripHtmlToText } from "@/lib/tenders-bzp-swz";
+import { enrichSwzFromText } from "@/lib/tenders-bzp-swz-enrich";
 import { displayTenderFilename, pickBestSwzDocumentForAnalysis } from "@/lib/tenders-bzp-filename";
 import {
   analyzeTenderSwz,
@@ -13,24 +12,7 @@ import {
 import { mergeSwzAnalysis } from "@/lib/tender-document-resolver";
 import { traceSwzPipeline } from "@/lib/tender-swz-trace";
 
-function enrichSwzFromText(
-  text: string,
-  base: TenderSwzAnalysis,
-): TenderSwzAnalysis {
-  const awardCriteria = extractAwardCriteria(text);
-  const wadiumPercent = extractWadiumPercent(text);
-  let wadiumPln = base.wadiumPln;
-  if (wadiumPln == null && wadiumPercent != null && base.estimatedValuePln != null) {
-    wadiumPln = Math.round(base.estimatedValuePln * wadiumPercent / 100);
-  }
-  return {
-    ...base,
-    awardCriteria: awardCriteria.length > 0 ? awardCriteria : base.awardCriteria,
-    wadiumPercent: wadiumPercent ?? base.wadiumPercent,
-    wadiumPln,
-    tableExtracts: base.tableExtracts.length > 0 ? base.tableExtracts : extractTableHints(text),
-  };
-}
+export { enrichSwzFromText } from "@/lib/tenders-bzp-swz-enrich";
 
 async function analyzeFromDocumentIndex(opts: {
   tenderId: string;
