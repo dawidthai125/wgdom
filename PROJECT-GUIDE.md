@@ -19,8 +19,9 @@
 | § 10 | Model danych (`Job`, `WeekEmployee`, klucze LS) |
 | § 11 | **Sync i merge** (`cloud-sync.ts`) — **KRYTYCZNE** |
 | § 12 | Supabase backend, endpointy, **§ 12.1.1 przetargi**, **§ 12.1.3 COMMAND CENTER + pulpit 7G + polonizacja 20.3B+** |
-| — | **[`docs/SESSION-HANDOFF-20.3B-CC-POLISH.md`](docs/SESSION-HANDOFF-20.3B-CC-POLISH.md)** — mapa widoków admin + struktura CC (AI) |
-| — | **[`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md)** — executive summary na pulpicie (AI) |
+| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (v2.51.x, P1 CLOSED) |
+| — | **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.3** — Przetargi 3.0 (`TendersModule`) |
+| — | **[`docs/archive/command-center/`](docs/archive/command-center/)** — CC historyczny (SUPERSEDED) |
 | § 15.1 | **Mapa widoków admina** — router, menu, mobile nav |
 | § 13–14 | Vercel, PWA, mobile |
 | § 15–16 | Struktura katalogów, mapa `src/lib/` |
@@ -40,7 +41,8 @@ Po hasłach **„kontynuuj WGDOM”** / nowa sesja — najpierw [`CURRENT-TASK.m
 | **Prod v2.50.56 — seria 20.5B** | `SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md` |
 | Worker/Inspector readiness GO | `AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md` |
 | Generic Attachments 20.5A.10 | `SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md` |
-| CC polonizacja | `SESSION-HANDOFF-20.3B-CC-POLISH.md` |
+| Przetargi 3.0 | `PROJECT-HANDOFF-CURRENT.md` · `ARCHITECTURE.md` § 12.1.3 |
+| CC archiwum | `docs/archive/command-center/` |
 | Billing + Roboty 20.5A | `SESSION-HANDOFF-20.5A-BILLING-JOBS.md` |
 
 **Prod HEAD:** **`1be7a80`** · **UI:** **2.50.56** · **Nie implementować** 20.5B.7C / 20.3C / Roboty 2.0 FULL bez polecenia.

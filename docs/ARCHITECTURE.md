@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.51.1** · Przetargi 3.0 rename ETAP 4)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-12 (Command Center removed v2.51.0 · rename ETAP 4 v2.51.1)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.51.1** · P1 CLOSED)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-12 (P1 CLOSED — v2.51.x baseline · Command Center removed v2.51.0)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -31,7 +31,7 @@ Reguła Cursor: `.cursor/rules/wgdom-development.mdc`
 
 ## 1. Szybki start (5 minut)
 
-**Wznowienie po przerwie (agent AI):** [`CURRENT-TASK.md`](../CURRENT-TASK.md) → [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md) → [`SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](SESSION-HANDOFF-20.5A-BILLING-JOBS.md) → ten dokument § 11 (sync), § 12.1.3 (CC), § 15.1 (widoki admin).
+**Wznowienie po przerwie (agent AI):** [`CURRENT-TASK.md`](../CURRENT-TASK.md) → [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) → ten dokument § 11 (sync), § 12.1.3 (Przetargi 3.0), § 15.1 (widoki admin).
 
 ```bash
 cd WGDOM1
@@ -110,6 +110,55 @@ flowchart TB
   client <-->|read/write + merge| LS
 ```
 
+### 3.1 Domeny produktu (admin) — P1 baseline v2.51.x
+
+```text
+┌─────────────┐  ┌─────────────┐  ┌──────────────────┐  ┌─────────────────────────────┐
+│  Dashboard  │  │   Roboty    │  │ Do Rozliczenia   │  │         Przetargi           │
+│  (Pulpit)   │  │   (jobs)    │  │ (recoverable…)   │  │        (tenders)            │
+└──────┬──────┘  └─────────────┘  └──────────────────┘  └──────────────┬──────────────┘
+       │                                                              │
+       │ TendersShortcutPanel                                         │ TendersProvider
+       │ (skrót → Strategia)                                          ▼
+       │                                                    ┌─────────────────┐
+       └───────────────────────────────────────────────────│  TendersModule  │
+                                                            │ Lista · Strategia│
+                                                            │ Mapa · Profil   │
+                                                            │ Ustawienia      │
+                                                            └─────────────────┘
+```
+
+**Command Center removed in v2.51.0** — brak `CommandCenterProvider`, `TenderCenterProView`, `OwnerDashboard`.
+
+```mermaid
+flowchart LR
+  subgraph admin [Panel admina — domeny P1]
+    D[DashboardView]
+    J[JobsView]
+    R[RecoverableChargesView]
+    T[TendersModule]
+  end
+
+  subgraph tendersStack [Przetargi 3.0]
+    TP[TendersProvider]
+    TM[TendersModule]
+    L[Lista]
+    S[Strategia]
+    M[Mapa]
+    P[Profil firmy]
+    U[Ustawienia]
+    TP --> TM
+    TM --> L
+    TM --> S
+    TM --> M
+    TM --> P
+    TM --> U
+  end
+
+  D -->|TendersShortcutPanel| TP
+  T --> TP
+```
+
 **Zasada:** aplikacja to **offline-first SPA**. Prawda biznesowa = merge(localStorage, stan React, chmura) z regułami timestampów i tombstone'ów.
 
 ---
@@ -175,7 +224,7 @@ Filtr stosowany w `resolveAuthorContact()` (`content-author-contact.ts`) i `Auth
 
 | `view` | Opis | Główna funkcja w App.tsx |
 |--------|------|--------------------------|
-| `dashboard` | Pulpit V3: **KPI** (5) · **Braki dokumentów** · **Pilne uwagi** (kategorie) · **Przetargi — skrót** (tylko CC) · dolna siatka operacyjna | `DashboardView` |
+| `dashboard` | Pulpit V3: **KPI** (5) · **Braki dokumentów** · **Pilne uwagi** (kategorie) · **Przetargi — skrót** (`TendersShortcutPanel`) · dolna siatka operacyjna | `DashboardView` |
 | `payroll` | Lista płac | `PayrollView` |
 | `schedule` | Grafik tygodnia | `ScheduleView` |
 | `directory` | Kartoteka pracowników | `DirectoryView` |
@@ -697,7 +746,7 @@ Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTST
 
 - **Karta ofertowa** (`TenderBidPrepPanel`) — checklist, analiza SWZ, wadium + blokada, referencje, wynik BZP, porównanie cen, .ics terminu, pakiet PDF.
 - **Chipy „wymaga działania”** — filtry: termin bez wyceny, wadium, brak kosztorysu, referencje NIE, obciążenie zespołu.
-- **Pulpit admin (7G, historyczny)** — skrót przetargowy na Pulpicie (`TendersShortcutPanel`); pełna strategia w **Przetargi → Strategia**. Polonizacja: v2.50.43. Legacy `tenderDashStats` **usunięte** (Performance 1.1C, `a6cdb4a`). Archiwum: [`tender-center-7g-executive.md`](tender-center-7g-executive.md) (**SUPERSEDED**).
+- **Pulpit admin (7G, historyczny)** — skrót przetargowy na Pulpicie (`TendersShortcutPanel`); pełna strategia w **Przetargi → Strategia**. Polonizacja: v2.50.43. Legacy `tenderDashStats` **usunięte** (Performance 1.1C, `a6cdb4a`). Archiwum CC: [`archive/command-center/`](archive/command-center/) (**SUPERSEDED**).
 - **Mapa Wrocław** — kafelki **OpenStreetMap** (`tile.openstreetmap.org`) + markery; **nie** `staticmap.openstreetmap.de` (niedostępny). Panel domyślnie rozwinięty.
 - **Słownik słów kluczowych** — wbudowany w `tenders-bzp-keywords.ts` (~280 haseł) + opcjonalne własne w chmurze (`kw-tenders-custom-keywords`).
 
@@ -741,7 +790,7 @@ Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTST
 
 **Pipeline:** `src/app/tenders/strategy/hooks/useTendersPipeline.ts` — `loading=false` po pipeline+rescore; award/BZP w tle.
 
-**Dokumentacja historyczna (SUPERSEDED):** [`tender-center-7g-executive.md`](tender-center-7g-executive.md) · polonizacja: [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md)
+**Dokumentacja historyczna CC (SUPERSEDED):** [`archive/command-center/`](archive/command-center/)
 
 **Polonizacja UI (20.3B+ FULL, v2.50.43):** etykiety w `tenders-strategy-ui-labels-pl.ts`; enumy GO/HOLD/NO-GO bez zmian. **Smoke:** `scripts/smoke-test-ui-language-20.3b-full.mjs`, `smoke-test-ui-language-20.3b.mjs`.
 

@@ -3,50 +3,56 @@
 > **Aktualizuj ten plik na końcu każdej większej sesji z agentem AI.**  
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
-**Ostatnia aktualizacja:** 2026-06-12 · **P1-B ETAP 4 COMPLETE**  
-**Current Version:** **2.51.1**  
-**Current Baseline:** **Przetargi 3.0 — Command Center removed (v2.51.0) + rename ETAP 4**  
-**Prod `origin/main`:** v**2.51.1** · https://www.wgdom.fun
-
+**Ostatnia aktualizacja:** 2026-06-12 · **P1 CLOSED — Documentation closeout**  
 **★ Główny handoff (SSOT):** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)  
-**★ Pulpit V3:** [`docs/SESSION-HANDOFF-DASHBOARD-V3.md`](docs/SESSION-HANDOFF-DASHBOARD-V3.md)  
 **★ Workflow release/deploy:** [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)
 
 ---
 
-## Werdykt sesji
+## STATUS
 
 ```text
-P1-B ETAP 1–4 COMPLETE ✅
-Command Center removed in v2.51.0
-Rename cleanup v2.51.1
-Przetargi 3.0 — jedyna ścieżka strategii
-Backlog: P2 Audit Center (bez polecenia)
+Production: 2.51.1 (PRODUCTION VERIFIED)
+
+Dashboard V3 COMPLETE
+
+Przetargi 3.0 COMPLETE
+
+Command Center REMOVED (v2.51.0)
+
+P1 CLOSED
 ```
 
----
-
-## P1-B — Command Center → Przetargi 3.0 (CLOSED)
-
-| ETAP | Wersja | Status |
-|------|--------|--------|
-| 1 — CC legacy UI removal | 2.50.75 | COMPLETE |
-| 2 — TendersModule 5 tabs | 2.50.76 | COMPLETE |
-| 3 — Runtime CC removal | 2.51.0 | COMPLETE |
-| 4 — Rename cleanup | 2.51.1 | COMPLETE |
-
-**Command Center removed in v2.51.0** — brak runtime CC. ETAP 4: rename `tenders/strategy/`, `tenders-strategy-*` lib.
+**Baseline feature (P1):** v2.51.0 · commit `39b1892`  
+**Baseline rename (ETAP 4):** v2.51.1 · commit `45ad21e`  
+**Prod:** https://www.wgdom.fun
 
 ---
 
-## Commity baseline (P1-B)
+## OPEN BACKLOG
 
-| SHA | Opis |
-|-----|------|
-| *(ETAP 4)* | `refactor: finalize command center removal cleanup` |
-| **`39b1892`** | refactor: remove command center runtime architecture (2.51.0) |
-| **`58b4cd7`** | feat: introduce tenders 3.0 module architecture (2.50.76) |
-| **`098f651`** | refactor: remove command center phase 1 legacy modules (2.50.75) |
+```text
+P2
+Audit Center / Security Log
+
+P3
+Dalsze usprawnienia Przetargów
+```
+
+**Bez polecenia:** nie startować P2/P3 bez AUDIT → RCA → PLAN.
+
+---
+
+## Domeny produktu (aktualne)
+
+```text
+Dashboard
+Roboty
+Do Rozliczenia
+Przetargi
+```
+
+Strategia przetargowa wyłącznie: **Przetargi → Strategia** (`TendersModule`).
 
 ---
 
@@ -54,11 +60,13 @@ Backlog: P2 Audit Center (bez polecenia)
 
 - **2.1.2 CANCELLED** — pełna lista odbiorców inspektora z Kontaktów
 - **Dashboard V2 Hero** — nie przywracać (V3 SSOT)
-- **Command Center** — usunięty v2.51.0; archiwalne docs → SUPERSEDED
+- **Command Center** — usunięty v2.51.0; docs → [`docs/archive/command-center/`](docs/archive/command-center/)
 
 ---
 
-## Następne (bez polecenia)
+## Wznowienie pracy (agent)
 
-- P2 Audit Center / Security Log
-- Ewentualne rename skryptów test `test-tender-center-*` → `test-tenders-strategy-*` (kosmetyka)
+1. [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
+2. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+3. `curl -s https://www.wgdom.fun/version.json`
+4. Workflow A/B/C — [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)

@@ -1,6 +1,6 @@
 # Sprint 20.3B+ FULL — Polonizacja COMMAND CENTER (handoff dla AI)
 
-> **Hasło:** „kontynuuj WGDOM” → [`CURRENT-TASK.md`](../CURRENT-TASK.md) · [`AGENTS.md`](../AGENTS.md)
+> **SUPERSEDED** — Command Center removed in **v2.51.0**. Etykiety PL strategii: `src/lib/tenders-strategy-ui-labels-pl.ts` · [`ARCHITECTURE.md`](../../ARCHITECTURE.md) § 12.1.3.
 
 ---
 

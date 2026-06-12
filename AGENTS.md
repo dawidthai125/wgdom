@@ -24,13 +24,13 @@
 14. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
 15. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← Roboty UX, Version, Worker Mobile
 16. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
-17. docs/SESSION-HANDOFF-20.3B-CC-POLISH.md  ← CC polonizacja CLOSED + mapa widoków
+17. docs/archive/command-center/  ← CC historyczny (SUPERSEDED v2.51.0)
 18. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
 19. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
 20. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← gotowość worker/admin/inspektor GO
 21. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
 22. docs/ARCHITECTURE.md   ← pełna architektura (§ 9.1 dokumentacja, § 9.2 inspektor email, § 12.1.2 pliki, § 13.1 wersja)
-23. docs/tender-center-7g-executive.md  ← pulpit × COMMAND CENTER (ETAP 7G + 20.7)
+23. docs/ARCHITECTURE.md § 12.1.3  ← Przetargi 3.0 (TendersModule)
 24. CHANGELOG.md          ← CO już zrobiono (skrót)
 25. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
@@ -63,7 +63,7 @@
 | **docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md** | Seria **20.5B.5–7 + 20.5B.6A.4** — Roboty UX, Dokumentacja naming, Version Awareness, Worker Mobile |
 | **docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md** | Audyt operacyjny worker/admin/inspektor — **GO** |
 | **docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md** | Generic Attachments **20.5A.10 CLOSED** (`e6758e5`, v2.50.52) — pliki roboty, trzy warstwy |
-| **docs/SESSION-HANDOFF-20.3B-CC-POLISH.md** | CC polonizacja **20.3B+ CLOSED** (`61cb33b`, v2.50.43) — mapa widoków, etykiety PL |
+| **docs/archive/command-center/** | CC historyczny **SUPERSEDED** (v2.51.0) — polonizacja 20.3B archiwum |
 | **docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md** | Seria **2.50.x CLOSED** — desktop scroll, mobile fix, MID-B, CI |
 | **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.6 CLOSED** (`99295e5`, v2.50.44) |
 | **docs/SESSION-HANDOFF-DASHBOARD-V3.md** | **★★ Pulpit V3 (SSOT)** — operacje, liczniki, kategorie, backlog P1-B/P2 |
@@ -136,8 +136,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.50.70**) |
-| Prod `main` (app) | **2.1.1** · **v2.50.70** · commit **`ee2cd72`** · Inspector 2.1 COMPLETE · **2.1.2 CANCELLED** |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.51.1**) |
+| Prod `main` (app) | **v2.51.1** · P1 CLOSED · Przetargi 3.0 · CC removed |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
 | Dashboard V2 docs | [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md) |
@@ -159,8 +159,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 
 ## 3a. Moduł przetargów + COMMAND CENTER (skrót)
 
-- **Pulpit executive (7G):** [`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md) — `CommandCenterExecutivePanel`, `useCommandCenterExecutiveSnapshot`, legacy `tenderDashStats`
-- **Pełny CC:** `OwnerDashboard` + **ARCHITECTURE.md § 12.1.3** + **handoff [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](docs/SESSION-HANDOFF-20.3B-CC-POLISH.md)**
+- **Pulpit + Przetargi:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.3 — `TendersShortcutPanel`, `TendersModule`, `TendersProvider`
+- **CC archiwum:** [`docs/archive/command-center/`](docs/archive/command-center/) — **SUPERSEDED** (v2.51.0)
 - **Etykiety PL:** `src/lib/tenders-strategy-ui-labels-pl.ts` — źródło prawdy (20.3B+); marka COMMAND CENTER AI bez zmian
 - **Lista BZP / pipeline:** **ARCHITECTURE.md § 12.1.1**. Kluczowe pliki:
 

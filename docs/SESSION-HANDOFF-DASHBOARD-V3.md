@@ -1,6 +1,7 @@
 # SESSION HANDOFF — Dashboard V3 (P1-A)
 
 > **Status:** **COMPLETE** · **Wersja:** **2.50.74** · **Commit:** `5a54399`  
+> **Post-P1 (v2.51.0+):** skrót = `TendersShortcutPanel`; strategia = **Przetargi → Strategia**. Command Center **usunięty**.
 > **Data:** 2026-06-11 · **Workflow:** B (build → smoke → commit → push → verify FAST)  
 > **Zastępuje:** serię Hero / Dashboard V2 (`SESSION-HANDOFF-20.7-DASHBOARD-V2.md` — **historyczny**, nie przywracać rankera)
 
@@ -17,9 +18,9 @@
 | Warstwa | Gdzie |
 |---------|--------|
 | **Operacje** | Pulpit (`DashboardView`) |
-| **Strategia** | Command Center — **tylko** moduł Przetargi (`TenderCenterProView` / `OwnerDashboard`) |
+| **Strategia** | **Przetargi → Strategia** (`TendersModule` / `TendersStrategyContent`) |
 
-Dashboard **nie** pokazuje danych CC (health, forecast, briefing, action center). Brak `useCommandCenterContextOptional` na Pulpicie od V3.
+Dashboard **nie** pokazuje pełnej strategii (health, forecast, action center). Skrót: `TendersShortcutPanel` + CTA → Strategia.
 
 ---
 
@@ -36,7 +37,7 @@ Pilne uwagi na dziś            (#dashboard-pilne-uwagi)
   → kategorie (accordion 2-poziomowy):
      Płace · Dokumentacja ekipy · Zdjęcia · Inspektor · WM · Odbiory · Do odzyskania
 
-Przetargi — skrót              (CommandCenterExecutivePanel — bez zmian)
+Przetargi — skrót              (TendersShortcutPanel)
 
 Dolna siatka operacyjna        (Pracuje dziś · Roboty w trakcie · … — bez zmian)
 ```

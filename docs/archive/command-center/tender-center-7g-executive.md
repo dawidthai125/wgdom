@@ -1,6 +1,6 @@
 # ETAP 7G — Pulpit admina × Przetargi Strategia (executive summary)
 
-> **SUPERSEDED** — Command Center removed in **v2.51.0**. Aktualna architektura: **Przetargi 3.0** → [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.3, [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md).
+> **SUPERSEDED** — Command Center removed in **v2.51.0**. Aktualna architektura: **Przetargi 3.0** → [`ARCHITECTURE.md`](../../ARCHITECTURE.md) § 12.1.3, [`PROJECT-HANDOFF-CURRENT.md`](../../PROJECT-HANDOFF-CURRENT.md).
 
 > **Dla agentów AI:** czytaj ten plik przed zmianą pulpitu, `tenderDashStats` lub integracji CC.  
 > **Prod:** `main` @ **`61cb33b`** (UI **2.50.43**) · https://www.wgdom.fun  

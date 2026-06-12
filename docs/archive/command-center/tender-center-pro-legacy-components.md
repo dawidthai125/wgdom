@@ -1,5 +1,7 @@
 # Tender Center PRO — komponenty i dane legacy
 
+> **SUPERSEDED** — usunięte w P1-B (v2.51.0). Archiwum historyczne.
+
 ## Dane legacy — `tenderDashStats` (ETAP 7G)
 
 | Warstwa | Stan |

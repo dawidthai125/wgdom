@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-12 (P1-B ETAP 4 — rename cleanup)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-12 (P1 CLOSED — Documentation closeout)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -8,11 +8,36 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-2. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← ★ Pulpit V3 (operacje)
+2. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
 3. CURRENT-TASK.md                         ← status sesji / wznowienie
 4. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
 5. AGENTS.md → docs/ARCHITECTURE.md
 ```
+
+---
+
+## 1a. Completed Epics (P1 CLOSED)
+
+| Epic | Wersja | Status | SSOT |
+|------|--------|--------|------|
+| **Dashboard V3** | 2.50.74 (`5a54399`) | **COMPLETE** | [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md) |
+| **Command Center Removal** | 2.51.0 (`39b1892`) | **COMPLETE** | [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.3 |
+| **Przetargi 3.0** | 2.51.0–2.51.1 | **COMPLETE** | `TendersModule` · `TendersProvider` |
+
+**Command Center removed in v2.51.0** — archiwum docs: [`archive/command-center/`](archive/command-center/).
+
+### Architektura produktu (główne domeny)
+
+```text
+Dashboard
+Roboty
+Do Rozliczenia
+Przetargi
+```
+
+**Przetargi 3.0** — zakładki: Lista · Strategia · Mapa · Profil firmy · Ustawienia.  
+Strategia (GO/HOLD/NO-GO, prognoza, health) wyłącznie w **Przetargi → Strategia**.  
+Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 
 ---
 
@@ -33,23 +58,23 @@
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version:              2.51.1
-Feature commit (app):   (ETAP 4) refactor: finalize command center removal cleanup
-Poprzedni (P1-B ETAP 3): 39b1892   refactor: remove command center runtime architecture (2.51.0)
-Poprzedni (ETAP 2):       58b4cd7   feat: introduce tenders 3.0 module architecture (2.50.76)
+Version:              2.51.0          ← baseline feature P1 (CC removal)
+Current prod UI:      2.51.1          ← ETAP 4 rename cleanup
+Feature commit (P1):  39b1892         refactor: remove command center runtime architecture
+Docs/rename commit:   45ad21e         refactor: finalize command center removal cleanup
+Dashboard V3:           5a54399         feat(dashboard): V3 operational layout (2.50.74)
 Git tag backup:         pre-next-feature-2.50.64 → c7bc58f
-E2E (origin/main):      8906485   20.5Z.2B E2E Version Awareness
-PWA (origin/main):      46556a7   20.5Z.2A
+E2E (origin/main):      8906485         20.5Z.2B E2E Version Awareness
+PWA (origin/main):      46556a7         20.5Z.2A
 ```
 
 | Status | Wartość |
 |--------|---------|
 | **RELEASED** | TAK |
 | **STABLE** | TAK |
-| **PRODUCTION VERIFIED** | TAK — `version.json` = **2.51.1** (po deploy ETAP 4) |
-| **P1-B Przetargi 3.0** | **COMPLETE** (ETAP 1–4) · **Command Center removed in v2.51.0** |
-| **Dashboard V3 (P1-A)** | **COMPLETE** · handoff: [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md) |
-| **Inspector Communication Templates** | **2.1.0 + 2.1.1 COMPLETE** · **2.1.2 CANCELLED** |
+| **PRODUCTION VERIFIED** | TAK — `version.json` = **2.51.1** |
+| **P1 (Dashboard V3 + CC removal + Przetargi 3.0)** | **CLOSED** |
+| **Inspector 2.1** | **2.1.0 + 2.1.1 COMPLETE** · **2.1.2 CANCELLED** |
 
 **Verify prod (bez pollingu API):**
 
@@ -71,7 +96,7 @@ curl -s https://www.wgdom.fun/version.json
 | 3 | 2.51.0 | `TendersProvider` + `TendersShortcutPanel`; hard delete CC shell |
 | 4 | 2.51.1 | Rename: `src/app/tenders/strategy/`, lib `tenders-strategy-*` |
 
-**Architektura:** [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.3 · **SUPERSEDED:** [`tender-center-7g-executive.md`](tender-center-7g-executive.md)
+**Architektura:** [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.3 · **Archiwum CC (SUPERSEDED):** [`archive/command-center/`](archive/command-center/)
 
 ---
 
@@ -91,6 +116,9 @@ Chronologia releasów aplikacyjnych na `main` po baseline **2.50.65** (20.5Z.5C)
 | *(housekeeping)* | `.gitignore` P0+P1 | `77e1052` | untracked 49 → 19 (diag/smoke artifacts) |
 | **2.50.72–73** | Hero filtry operacyjne | `4426c72` / `ad859e6` | Prognoza tylko w CC; Hero bez CC |
 | **2.50.74** | **Dashboard V3 (P1-A)** | `5a54399` | Usunięto Hero; Braki + Pilne uwagi; liczniki policzalne |
+| **2.50.75–76** | P1-B ETAP 1–2 | `098f651` / `58b4cd7` | CC legacy UI out; TendersModule 5 zakładek |
+| **2.51.0** | P1-B ETAP 3 | `39b1892` | CC runtime removal; TendersProvider; TendersShortcutPanel |
+| **2.51.1** | P1-B ETAP 4 | `45ad21e` | Rename `tenders/strategy/`, `tenders-strategy-*` lib |
 
 **Handoff Pulpit (SSOT):** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 **Historyczny Dashboard V2:** [`SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](SESSION-HANDOFF-20.7-DASHBOARD-V2.md) — **nie przywracać** rankera Hero  
@@ -247,9 +275,9 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 
 | Priorytet | Temat | Status |
 |-----------|-------|--------|
-| **P1-A** | Dashboard V3 Rework | **COMPLETE** (2.50.74) |
-| **P1-B** | Przetargi 3.0 / CC removal | **CLOSED** (ETAP 1–4, v2.51.1) |
-| **P2** | Audit Center / Security Log (Super Admin) | **OTWARTY** — wymaga nowego modułu |
+| **P1** | Dashboard V3 + CC removal + Przetargi 3.0 | **CLOSED** (v2.51.x) |
+| **P2** | Audit Center / Security Log (Super Admin) | **OTWARTY** |
+| **P3** | Dalsze usprawnienia Przetargów | **OTWARTY** (bez polecenia) |
 
 ---
 
@@ -268,8 +296,8 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 ## 13. NASTĘPNY KROK (dla agenta)
 
 ```text
-Dashboard V3 (P1-A) — COMPLETE.
-Kolejny stream: P2 (Audit Center) — tylko na polecenie po AUDIT.
+P1 CLOSED (Dashboard V3 + Przetargi 3.0 + CC removed).
+Kolejny stream: P2 (Audit Center) lub P3 (Przetargi) — tylko na polecenie po AUDIT.
 Inspector 2.1 — CLOSED (2.1.2 CANCELLED).
 ```
 
@@ -295,15 +323,18 @@ Przy wznowieniu:
 | Backup pre-feature | `SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md` |
 | Billing / Roboty 20.5A | `SESSION-HANDOFF-20.5A-BILLING-JOBS.md` |
 | Files Hub | `SESSION-HANDOFF-20.5A.12-FILES-HUB.md` |
+| CC historyczny | `docs/archive/command-center/` (**SUPERSEDED**) |
+
 | Legacy PROJECT-HANDOFF | `PROJECT-HANDOFF.md` (częściowo nieaktualny baseline — używaj CURRENT) |
 
 ---
 
-**Werdykt closeout (aktualny):**
+**Werdykt closeout (P1):**
 
 ```text
-BASELINE 2.50.74 · STABLE · PRODUCTION VERIFIED
-Dashboard V3 (P1-A) COMPLETE · Inspector 2.1 CLOSED · 2.1.2 CANCELLED
-Backlog: P2 Audit Center
+BASELINE v2.51.x · STABLE · PRODUCTION VERIFIED (2.51.1)
+P1 CLOSED — Dashboard V3 · Przetargi 3.0 · Command Center REMOVED
+Inspector 2.1 CLOSED · 2.1.2 CANCELLED
+Open backlog: P2 Audit Center · P3 Przetargi
 Ready for new GPT / new Cursor agent
 ```

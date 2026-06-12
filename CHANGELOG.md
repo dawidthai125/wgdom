@@ -4,7 +4,7 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.51.1** (`changelog-data.ts`) · Przetargi 3.0 — ETAP 4 rename cleanup  
+**Aktualna wersja UI:** **2.51.1** · **P1 CLOSED** · WGDOM v2.51.x baseline  
 **★ SSOT handoff:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../CURRENT-TASK.md)  
 **★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
@@ -33,7 +33,7 @@
 ## 2.50.76 (2026-06-12) — Przetargi 3.0 — moduł z zakładkami
 
 - TendersModule: Lista · Strategia · Mapa · Profil firmy · Ustawienia
-- TendersProvider (wrap CommandCenterProvider + UI zakładek)
+- TendersProvider + TendersModule (ETAP 2 — tymczasowo nadal wrap CC; usunięte w 2.51.0)
 - Strategia = ex-OwnerDashboard; Lista = TendersView listOnly
 
 ---

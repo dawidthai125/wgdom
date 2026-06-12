@@ -12,10 +12,11 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.50.74** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts) · **Dashboard V3**
-- **Prod (`main` / `origin/main`, app):** **`5a54399`** (2.50.74 Dashboard V3) · poprzedni **`ad859e6`** (2.50.73) · https://www.wgdom.fun · **PRODUCTION VERIFIED**
+- **Aktualna wersja UI:** **2.51.1** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts) · **P1 CLOSED**
+- **Prod (`main` / `origin/main`, app):** **`45ad21e`** (2.51.1) · baseline feature **`39b1892`** (2.51.0 CC removal) · https://www.wgdom.fun · **PRODUCTION VERIFIED**
 - **★★ Handoff SSOT (baseline prod):** [`docs/PROJECT-HANDOFF-CURRENT.md`](../../docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../../CURRENT-TASK.md)
-- **★★ Handoff Pulpit V3:** [`docs/SESSION-HANDOFF-DASHBOARD-V3.md`](../../docs/SESSION-HANDOFF-DASHBOARD-V3.md) — operacje, liczniki, kategorie, backlog P1-B/P2
+- **★★ Handoff Pulpit V3 (COMPLETE):** [`docs/SESSION-HANDOFF-DASHBOARD-V3.md`](../../docs/SESSION-HANDOFF-DASHBOARD-V3.md)
+- **★ P1 CLOSED:** Dashboard V3 · Przetargi 3.0 · Command Center REMOVED (v2.51.0) · CC archiwum: [`docs/archive/command-center/`](../../docs/archive/command-center/)
 - **Handoff Dashboard V2 (historyczny):** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](../../docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md) — **nie przywracać** Hero
 - **Git tag backup:** **`pre-next-feature-2.50.64`** → `c7bc58f`
 - **★ Handoff pre-next-feature:** [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](../../docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md) · backup: [`docs/BACKUP-REPORT-2.50.64.md`](../../docs/BACKUP-REPORT-2.50.64.md) · storage audit: [`docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md`](../../docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md)
@@ -41,7 +42,7 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **★ Handoff sesji 20.5B (CLOSED):** [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](../../docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md) — Roboty UX 20.5B.5, Dokumentacja naming 20.5B.6A.1, Version Awareness 20.5B.7, Worker Mobile 20.5B.6A.4
 - **★ Audyt operacyjny (GO):** [`docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md`](../../docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md) — worker → admin → inspektor
 - **★ Handoff Generic Attachments (CLOSED):** [`docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](../../docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md) — `jobAttachments[]`, trzy warstwy plików, email/ZIP
-- **★ Handoff CC polonizacja (CLOSED):** [`docs/SESSION-HANDOFF-20.3B-CC-POLISH.md`](../../docs/SESSION-HANDOFF-20.3B-CC-POLISH.md) — mapa widoków, etykiety PL, struktura OwnerDashboard
+- **★ CC archiwum (SUPERSEDED):** [`docs/archive/command-center/`](../../docs/archive/command-center/)
 - **★ Handoff Seria 2.50.x (CLOSED):** [`docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md`](../../docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md) — MID-B, Mobile Fix, CI P0, desktop scroll
 - **★ Handoff Billing + Roboty (CLOSED):** [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](../../docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md) — 20.3A–**20.5A.6**, audyty, smoke
 - **Handoff Sprint 20.1B (CLOSED):** [`docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md`](../../docs/SESSION-HANDOFF-20.1B-CARRY-WORKFLOW.md) — saved ≠ closed, defer po „Zapisz tydzień”
@@ -51,7 +52,7 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **Handoff Performance 1.x CLOSED:** [`docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md`](../../docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md)
 - **Handoff incydent Roboty + 2.1B:** [`docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md`](../../docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md)
 - **Handoff sesji 2026-06 (Faza 8–9, audyty):** [`docs/SESSION-HANDOFF-2026-06.md`](../../docs/SESSION-HANDOFF-2026-06.md)
-- **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md) → [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](../../docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) § 9.1 + § 12.1.2 + § 13.1 → [`docs/tender-center-7g-executive.md`](../../docs/tender-center-7g-executive.md)
+- **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) § 12.1.3 (Przetargi 3.0)
 - **Testy użytkownika:** głównie **Vercel**, nie localhost
 - **Konto testowe pracownika:** imię `test`, tel. `+48 000 000 000` — tylko tryb pracownika, bez listy płac/grafiku/pulpitu
 
@@ -206,11 +207,11 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 
 ## ETAP 7G — Pulpit × COMMAND CENTER AI (prod `7d49be2`, 2026-06-03)
 
-- **Pulpit:** `DashboardView` → `CommandCenterExecutivePanel` (gdy `canViewTenders`)
-- **Hook:** `useCommandCenterExecutiveSnapshot` / Context snapshot
+- **Pulpit:** `DashboardView` → `TendersShortcutPanel` (gdy `canViewTenders`)
+- **Provider:** `TendersProvider` / `useTendersStrategySnapshot`
 - **Legacy:** `tenderDashStats` w `App.tsx` — fetch zostaje, **UI nie używa** (stabilizacja)
 - **Action Center na pulpicie:** max **3** × CRITICAL/HIGH; **8.3:** Win CTA + KPI
-- **Docs:** [`docs/tender-center-7g-executive.md`](../../docs/tender-center-7g-executive.md) · **ARCHITECTURE** § 12.1.3–12.1.4
+- **Docs:** [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) § 12.1.3 · CC archiwum: [`docs/archive/command-center/`](../../docs/archive/command-center/)
 
 ## v2.45.12 — mapa OSM + słownik (2026-05)
 
@@ -303,7 +304,7 @@ Worker sync: `syncWeekEmployees` → `pushKeysToCloud(["kw-week-employees"])`
 
 **Usunięte:** Hero, `attentionCount`, KPI „Do ogarnięcia”, `RecoverableChargesDashboardCard`.
 
-**Backlog:** P1-B Command Center Reassessment · P2 Audit Center — tylko na polecenie po AUDIT.
+**Backlog:** P2 Audit Center · P3 Przetargi — tylko na polecenie po AUDIT.
 
 ## Wcześniejsze ważne wersje
 
@@ -317,10 +318,10 @@ Worker sync: `syncWeekEmployees` → `pushKeysToCloud(["kw-week-employees"])`
 | Plik | Rola |
 |------|------|
 | `src/app/App.tsx` | UI, WorkerPhotoView, DashboardView (+ CC executive 7G), PhotoGallery, PayrollView |
-| `src/app/tenders/strategy/hooks/useCommandCenterExecutiveSnapshot.ts` | Snapshot CC (pulpit + OwnerDashboard) |
-| `src/app/tenders/strategy/components/CommandCenterExecutivePanel.tsx` | Executive summary na pulpicie (7G) |
+| `src/app/tenders/components/TendersShortcutPanel.tsx` | Skrót przetargowy na Pulpicie |
+| `src/app/tenders/TendersModule.tsx` | Przetargi 3.0 — 5 zakładek |
 | `src/lib/tenders-strategy-ui-labels-pl.ts` | Mapy etykiet PL COMMAND CENTER (20.3B+) |
-| `docs/SESSION-HANDOFF-20.3B-CC-POLISH.md` | CC polonizacja + mapa widoków dla AI |
+| `docs/archive/command-center/` | CC historyczny (SUPERSEDED v2.51.0) |
 | `src/app/InspectorPanel.tsx` | Panel inspektora — roboty, dokumenty, pliki |
 | `src/lib/job-documents.ts` | Typy dokumentów, jobFiles, accept MIME |
 | `src/lib/job-file-upload.ts` | Upload zlecenia/kosztorysu → storage-upload |
