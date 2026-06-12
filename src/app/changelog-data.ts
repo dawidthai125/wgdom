@@ -12,6 +12,14 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.16",
+    label: "Hotfix — Analizuj SWZ (roleContributesMetadata)",
+    items: [
+      { type: "fix", text: "Brakujący import roleContributesMetadata w tender-document-resolver — koniec błędu po „Analizuj SWZ”" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.15",
     label: "Przetargi — Tender Data SSOT Cleanup (P2-E.3)",
     items: [

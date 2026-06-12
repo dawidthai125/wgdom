@@ -1,5 +1,8 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.51.16 — Hotfix Analizuj SWZ
+- Import `roleContributesMetadata` w `tender-document-resolver.ts` (ReferenceError prod 2.51.15)
+
 ## 2.51.15 — P2-E.3 Tender Data SSOT Cleanup
 - `tender-data-ssot.ts`: resolvedTenderValuePln, resolvedCostStatus, resolvedAwardCriteria, [SSOT TRACE]
 - Jednolity komunikat braku wartości we wszystkich panelach

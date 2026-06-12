@@ -15,7 +15,7 @@ import {
   buildScanTypeSummary,
 } from "../src/lib/tender-dossier-pipeline.ts";
 import { TBS_00266295_DOCUMENTS } from "../src/lib/tender-analysis-coverage.ts";
-import { mergeSwzAnalysis } from "../src/lib/tender-document-resolver.ts";
+import { mergeSwzAnalysis, parseTenderDossierDocuments } from "../src/lib/tender-document-resolver.ts";
 import { enrichSwzFromText } from "../src/lib/tenders-bzp-swz-enrich.ts";
 import { parseSwzPlainText } from "../src/lib/tenders-bzp-swz.ts";
 import { clearDossierTraceLog, getDossierTraceLog, traceDossierPipeline } from "../src/lib/tender-dossier-trace.ts";
@@ -371,6 +371,27 @@ const estReason7z = buildEstimateMissingReason({
   byType: { pdf: 8, docx: 0, xlsx: 0, zip: 0, ath: 0, sevenZip: 2, other: 5 },
 });
 assert("estimate reason 7z", estReason7z.includes("7Z"));
+
+// HOTFIX — parseTenderDossierDocuments musi mieć import roleContributesMetadata (P2-E.1 path)
+let dossierPipelineErr = null;
+try {
+  await parseTenderDossierDocuments("hotfix-role-metadata", [{
+    index: 0,
+    documentId: "swz-0",
+    filename: "SWZ.pdf",
+    contentType: "application/pdf",
+    downloadUrl: "",
+    isSwzHint: true,
+  }]);
+} catch (e) {
+  dossierPipelineErr = e;
+}
+assert("hotfix roleContributesMetadata no ReferenceError", !(dossierPipelineErr instanceof ReferenceError));
+assert(
+  "hotfix analizuj swz dossier pipeline",
+  dossierPipelineErr == null
+    || !String(dossierPipelineErr.message ?? "").includes("roleContributesMetadata is not defined"),
+);
 
 // trace
 clearDossierTraceLog();

@@ -24,6 +24,7 @@ import {
 import { traceDossierPipeline } from "@/lib/tender-dossier-trace";
 import { enrichSwzFromText } from "@/lib/tenders-bzp-swz-enrich";
 import { applyMetadataConfidence, scoreEstimatedValueConfidence } from "@/lib/tender-metadata-confidence";
+import { roleContributesMetadata } from "@/lib/tender-metadata-sources";
 import { discoverBestCostDocument, type TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
 import { enrichKosztorysSnapshotFromPreview, traceCostPipeline } from "@/lib/tender-cost-snapshot";
 import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
