@@ -11,6 +11,7 @@ import { resolveTenderPlatformDocumentStatus } from "@/lib/tender-platform-aware
 import { buildKosztorysMissingMessage } from "@/lib/tender-dossier-pipeline";
 import {
   buildKosztorysChecklistDisplay,
+  buildKosztorysChecklistHint,
   buildOurEstimateDisplaySsot,
   formatAwardCriteriaSummary,
   resolveTenderValue,
@@ -69,18 +70,20 @@ export function computeBidPrepChecks(
   });
   const kosztorysMissingDisplay = costStatus === "NOT_FOUND"
     ? (docCount > 0
-      ? "Kosztorys nie znaleziony"
+      ? "Nie znaleziono kosztorysu."
       : platformDoc.emptyMessage
         ?? platformDoc.detailLines?.[0]
         ?? "Brak plików")
     : buildKosztorysChecklistDisplay(item);
-  const kosztorysMissingHint = !kosztorysOk && scanSummary
-    ? `${buildKosztorysMissingMessage(scanSummary)}`
-    : !kosztorysOk && docCount === 0 && platformDoc.detailLines?.[1]
-      ? platformDoc.detailLines[1]
-      : !kosztorysOk
-        ? "Pobierz załączniki BZP, szukaj u zamawiającego lub wgraj ATH/PDF"
-        : undefined;
+  const kosztorysMissingHint = costStatus === "NOT_FOUND"
+    ? (!kosztorysOk && scanSummary
+      ? `${buildKosztorysMissingMessage(scanSummary)}`
+      : !kosztorysOk && docCount === 0 && platformDoc.detailLines?.[1]
+        ? platformDoc.detailLines[1]
+        : !kosztorysOk
+          ? "Pobierz załączniki BZP, szukaj u zamawiającego lub wgraj ATH/PDF"
+          : undefined)
+    : buildKosztorysChecklistHint(item);
 
   const checks: BidPrepCheckItem[] = [
     {

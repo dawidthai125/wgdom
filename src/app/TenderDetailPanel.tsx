@@ -21,7 +21,7 @@ import {
 import { parseNoticeHtmlBrief, mergeBriefWithItemTitle, athPreviewToSnapshot } from "@/lib/tenders-bzp-brief";
 import { parseTenderDossierDocuments, mergeSwzAnalysis, parseExternalTenderDocuments } from "@/lib/tender-document-resolver";
 import { analyzeTenderWithDossier, dossierFromAnalysisResult } from "@/lib/tender-dossier-pipeline";
-import { traceSsotSnapshot } from "@/lib/tender-data-ssot";
+import { resolvedCostStatusDisplay, traceSsotSnapshot } from "@/lib/tender-data-ssot";
 import { discoverExternalTenderDocs, type TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import { summarizeSwzFindings } from "@/lib/tenders-bid-prep";
 import { analyzeTenderSwzEnhanced } from "@/lib/tenders-bzp-analyze-local";
@@ -432,7 +432,10 @@ export function TenderDetailPanel({
       const critN = result.analysis.awardCriteria?.length ?? 0;
       const extraParts: string[] = [];
       if (critN > 0) extraParts.push(`${critN} kryteriów`);
-      if (result.scanSummary.kosztorysFound) extraParts.push("kosztorys ✓");
+      if (result.scanSummary.kosztorysFound) {
+        const costUi = resolvedCostStatusDisplay(finalItem);
+        extraParts.push(costUi.display.replace(/\.$/, ""));
+      }
       if (result.scanSummary.valueFound) extraParts.push("wartość ✓");
       const extra = extraParts.length ? ` · ${extraParts.join(" · ")}` : "";
       if (summary) toast.success(`Analiza: ${summary}${extra}`);

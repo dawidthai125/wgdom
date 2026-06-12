@@ -109,7 +109,7 @@ export function buildKosztorysMissingMessage(summary: TenderDossierScanSummary):
 export function buildEstimateMissingReason(summary: TenderDossierScanSummary): string {
   if (summary.estimateFound) return "";
   if (summary.kosztorysFound) {
-    return "Wycena wymaga ręcznego potwierdzenia — kosztorys bez automatycznej sumy";
+    return "Nie można automatycznie wyliczyć wyceny — brak cen w kosztorysie/przedmiarze";
   }
   if (summary.sevenZipCount > 0 && summary.byType.ath === 0 && summary.byType.xlsx === 0) {
     return "Wykryto tylko archiwa 7Z — wymagane ręczne pobranie";

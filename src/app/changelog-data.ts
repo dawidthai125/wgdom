@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.18",
+    label: "Przetargi — Cost Status UX + ATH Classification (P2-E.5)",
+    items: [
+      { type: "fix", text: "FOUND_WITH_VALUE vs FOUND_NO_VALUE — koniec mylącego „Kosztorys znaleziony” przy ATH bez cen (wk=0)" },
+      { type: "new", text: "classifyCostDocument() — typ ATH/XLSX/XML/ZIP, priced, rowCount + [COST STATUS TRACE]" },
+      { type: "improve", text: "UI: „Przedmiar ATH (N poz.)” + „Nie można automatycznie wyliczyć wyceny” gdy brak cen w pliku" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.17",
     label: "Przetargi — ATH Value Recovery + TenderFit Refresh (P2-E.4)",
     items: [

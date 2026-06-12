@@ -168,16 +168,18 @@ export function buildOurEstimateDisplay(opts: {
     return { display: `Propozycja: ${fmtPln(opts.recommendedBidPln)}` };
   }
   const kosztorysFound = opts.scanSummary?.kosztorysFound ?? opts.kosztorysOk;
-  if (kosztorysFound) {
-    if (opts.scanSummary?.estimateFound) {
-      return {
-        display: "Wycena wymaga ręcznego potwierdzenia",
-        hint: "Suma z kosztorysu wykryta — wpisz „Nasz szacunek” po weryfikacji",
-      };
-    }
+  const hasPricedTotal = opts.scanSummary?.estimateFound
+    || (opts.kosztorysOk && opts.scanSummary?.valueFound);
+  if (kosztorysFound && !hasPricedTotal) {
+    return {
+      display: "Nie można automatycznie wyliczyć wyceny",
+      hint: "ATH nie zawiera cen jednostkowych ani wartości pozycji.",
+    };
+  }
+  if (kosztorysFound && hasPricedTotal) {
     return {
       display: "Wycena wymaga ręcznego potwierdzenia",
-      hint: "Kosztorys znaleziony — brak automatycznej sumy; wpisz „Nasz szacunek”",
+      hint: "Suma z kosztorysu wykryta — wpisz „Nasz szacunek” po weryfikacji",
     };
   }
   if (opts.scanSummary?.sevenZipCount && !kosztorysFound) {
@@ -252,6 +254,17 @@ export function mergeKosztorysValueIntoSwz(
     sourceFilename: swz.sourceFilename ?? kosztorys.sourceFilename,
   };
 }
+
+// Re-export P2-E.5 — klasyfikacja i trace statusu kosztorysu (SSOT w tender-data-ssot).
+export {
+  classifyCostDocument,
+  kosztorysHasPricedValue,
+  traceCostStatus,
+  getCostStatusTraceLog,
+  clearCostStatusTraceLog,
+  type ClassifiedCostDocument,
+  type CostDocumentUiType,
+} from "@/lib/tender-data-ssot";
 
 export function traceCostUiState(
   filename: string,

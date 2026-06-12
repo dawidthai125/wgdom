@@ -6,7 +6,7 @@ import { fmtPln, PROFITABILITY_LABELS } from "@/lib/tenders-bzp-swz";
 import type { TenderDossier } from "@/lib/tenders-bzp-brief";
 import { labelTenderState } from "@/lib/tenders-bzp";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
-import { resolveTenderValue, resolvedWadiumDisplay } from "@/lib/tender-data-ssot";
+import { resolveTenderValue, resolvedCostStatusDisplay, resolvedWadiumDisplay, kosztorysHasPricedValue } from "@/lib/tender-data-ssot";
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value?.trim()) return null;
@@ -68,6 +68,7 @@ export function TenderDossierPanel({
   const [showKosztorysRows, setShowKosztorysRows] = useState(false);
   const brief = dossier?.brief;
   const k = dossier?.kosztorys;
+  const costDisplay = resolvedCostStatusDisplay(item);
 
   const offerDeadline = brief?.offerDeadline || (item.submittingOffersDate ? new Date(item.submittingOffersDate).toLocaleString("pl-PL") : null);
 
@@ -145,12 +146,20 @@ export function TenderDossierPanel({
         {k?.ok && (
           <div className="space-y-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2.5">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <p className="text-xs font-semibold flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300">
-                <FileSpreadsheet size={13} />
-                Kosztorys: {k.sourceFilename}
-              </p>
+              <div className="space-y-0.5">
+                <p className="text-xs font-semibold flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300">
+                  <FileSpreadsheet size={13} />
+                  {costDisplay.display}
+                </p>
+                {costDisplay.hint && (
+                  <p className="text-[10px] text-muted-foreground whitespace-pre-wrap">
+                    {costDisplay.hint}
+                  </p>
+                )}
+                <p className="text-[10px] text-muted-foreground">{k.sourceFilename}</p>
+              </div>
               <div className="flex flex-wrap items-center gap-2">
-                {k.totalValue && (
+                {kosztorysHasPricedValue(k) && k.totalValue && (
                   <p className="text-sm font-bold font-mono text-emerald-700 dark:text-emerald-400">
                     {k.totalValue} {k.currency || "PLN"}
                     {k.rowCount > k.rows.length && ` · ${k.rowCount} poz.`}

@@ -1,5 +1,6 @@
 /**
  * P2-E.3 — Single Source of Truth dla danych przetargu (wartość, kosztorys, kryteria, wadium).
+ * P2-E.5 — FOUND_WITH_VALUE / FOUND_NO_VALUE (kosztorys bez cen ≠ kosztorys wyceniony).
  */
 
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
@@ -7,7 +8,7 @@ import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { fmtPln, formatSwzWadiumDisplay } from "@/lib/tenders-bzp-swz";
 import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
 import type { TenderDossierScanSummary } from "@/lib/tender-dossier-pipeline";
-import { costTypeDisplayLabel } from "@/lib/tender-cost-discovery";
+import type { TenderCostDocumentType } from "@/lib/tender-cost-discovery";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import type { TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
 
@@ -22,13 +23,101 @@ export const TENDER_VALUE_NOT_FOUND_LABEL =
 
 export type TenderValueSource = "swz" | "dossier" | "estimate" | "fallback";
 
-export type ResolvedCostStatus = "FOUND" | "FOUND_NO_VALUE" | "NOT_FOUND";
+/** P2-E.5 — kosztorys wyceniony vs przedmiar bez cen. */
+export type ResolvedCostStatus = "FOUND_WITH_VALUE" | "FOUND_NO_VALUE" | "NOT_FOUND";
 
 export interface ResolvedTenderValue {
   pln: number | null;
   source: TenderValueSource;
   display: string;
   hint?: string;
+}
+
+export interface ResolvedCostStatusDisplay {
+  display: string;
+  hint?: string;
+}
+
+/** P2-E.5 — typ dokumentu kosztorysowego do UI. */
+export type CostDocumentUiType = "ATH" | "XLSX" | "XML" | "ZIP";
+
+export interface ClassifiedCostDocument {
+  type: CostDocumentUiType;
+  priced: boolean;
+  rowCount: number;
+}
+
+const costStatusTraceBuffer: { at: string; detail: Record<string, unknown> }[] = [];
+const COST_STATUS_TRACE_MAX = 40;
+
+export function traceCostStatus(
+  status: ResolvedCostStatus,
+  classified: ClassifiedCostDocument | null,
+  totalValue?: string | null,
+): void {
+  const detail = {
+    status,
+    type: classified?.type ?? null,
+    rowCount: classified?.rowCount ?? 0,
+    totalValue: totalValue ?? null,
+    priced: classified?.priced ?? false,
+  };
+  costStatusTraceBuffer.unshift({ at: new Date().toISOString(), detail });
+  if (costStatusTraceBuffer.length > COST_STATUS_TRACE_MAX) {
+    costStatusTraceBuffer.length = COST_STATUS_TRACE_MAX;
+  }
+  if (typeof console !== "undefined" && console.debug) {
+    console.debug("[COST STATUS TRACE]", detail);
+  }
+}
+
+export function getCostStatusTraceLog(): typeof costStatusTraceBuffer {
+  return [...costStatusTraceBuffer];
+}
+
+export function clearCostStatusTraceLog(): void {
+  costStatusTraceBuffer.length = 0;
+}
+
+/** Czy snapshot kosztorysu ma wartość > 0 PLN (P2-E.5). */
+export function kosztorysHasPricedValue(
+  k: TenderKosztorysSnapshot | null | undefined,
+): boolean {
+  return plnFromKosztorys(k) != null;
+}
+
+function mapDiscoveryTypeToUi(
+  discoveryType: TenderCostDocumentType | undefined,
+  sourceFilename?: string,
+): CostDocumentUiType {
+  const t = discoveryType ?? "";
+  if (/^(ath|nor|zip_ath|zip_nor)$/.test(t)) return "ATH";
+  if (/^(xml|zip_xml)$/.test(t)) return "XML";
+  if (/^(xls|xlsx|zip_xls|zip_xlsx)$/.test(t)) return "XLSX";
+  if (/^zip_/.test(t)) return "ZIP";
+  const base = (sourceFilename ?? "").split(" → ").pop()?.toLowerCase() ?? "";
+  if (/\.(ath|nor)$/.test(base)) return "ATH";
+  if (/\.xml$/.test(base)) return "XML";
+  if (/\.xlsx$/.test(base)) return "XLSX";
+  if (/\.xls$/.test(base)) return "XLSX";
+  if (/\.zip$/.test(base)) return "ZIP";
+  return "ATH";
+}
+
+/** P2-E.5 — klasyfikacja dokumentu kosztorysowego (typ, wycena, liczba pozycji). */
+export function classifyCostDocument(item: TenderPipelineItem): ClassifiedCostDocument | null {
+  const k = item.tenderDossier?.kosztorys;
+  const scan = item.tenderDossier?.scanSummary;
+  const found = Boolean(k?.ok) || Boolean(scan?.kosztorysFound);
+  if (!found) return null;
+
+  const source = k?.sourceFilename ?? scan?.costDiscovery?.source ?? "";
+  const type = mapDiscoveryTypeToUi(scan?.costDiscovery?.type, source);
+  return {
+    type,
+    priced: kosztorysHasPricedValue(k),
+    rowCount: k?.rowCount ?? 0,
+  };
 }
 
 const ssotTraceBuffer: { at: string; detail: Record<string, unknown> }[] = [];
@@ -40,14 +129,19 @@ export function traceSsotSnapshot(
 ): void {
   const value = resolveTenderValue(item, swz);
   const cost = resolvedCostStatus(item);
+  const classified = classifyCostDocument(item);
+  traceCostStatus(cost, classified, item.tenderDossier?.kosztorys?.totalValue ?? null);
+  const costUi = resolvedCostStatusDisplay(item, cost);
   const detail = {
     resolvedTenderValuePln: value.pln,
     valueSource: value.source,
     valueDisplay: value.display,
     resolvedCostStatus: cost,
-    costLabel: resolvedCostStatusLabel(item, cost),
+    costLabel: costUi.display,
+    costHint: costUi.hint ?? null,
     resolvedAwardCriteria: resolvedAwardCriteria(swz).length,
     resolvedWadiumDisplay: resolvedWadiumDisplay(swz),
+    costClassification: classified,
   };
   ssotTraceBuffer.unshift({ at: new Date().toISOString(), detail });
   if (ssotTraceBuffer.length > SSOT_TRACE_MAX) ssotTraceBuffer.length = SSOT_TRACE_MAX;
@@ -107,7 +201,7 @@ export function resolveTenderValue(
       pln: null,
       source: "fallback",
       display: TENDER_VALUE_NOT_FOUND_LABEL,
-      hint: "Kosztorys znaleziony — brak sumy końcowej w pliku.",
+      hint: "Brak cen i wartości w pliku ATH — dokument zawiera zakres robót bez wyceny.",
     };
   }
   return {
@@ -123,24 +217,39 @@ export function resolvedCostStatus(item: TenderPipelineItem): ResolvedCostStatus
   const scan = item.tenderDossier?.scanSummary;
   const found = Boolean(k?.ok) || Boolean(scan?.kosztorysFound);
   if (!found) return "NOT_FOUND";
-  const hasTotal = Boolean(k?.totalValue?.trim()) || plnFromKosztorys(k) != null;
-  if (hasTotal) return "FOUND";
+  if (kosztorysHasPricedValue(k)) return "FOUND_WITH_VALUE";
   return "FOUND_NO_VALUE";
+}
+
+/** P2-E.5 — główny komunikat + opcjonalny hint (druga linia UI). */
+export function resolvedCostStatusDisplay(
+  item: TenderPipelineItem,
+  status: ResolvedCostStatus = resolvedCostStatus(item),
+): ResolvedCostStatusDisplay {
+  if (status === "NOT_FOUND") {
+    return { display: "Nie znaleziono kosztorysu." };
+  }
+
+  const classified = classifyCostDocument(item);
+  const docType = classified?.type ?? "ATH";
+  const rowCount = classified?.rowCount ?? item.tenderDossier?.kosztorys?.rowCount ?? 0;
+
+  if (status === "FOUND_WITH_VALUE") {
+    return { display: `Kosztorys wyceniony (${docType})` };
+  }
+
+  const rowSuffix = rowCount > 0 ? ` (${rowCount} pozycji)` : "";
+  return {
+    display: `Przedmiar ${docType} znaleziony${rowSuffix}`,
+    hint: "Brak cen i wartości w pliku.\nDokument zawiera zakres robót bez wyceny.",
+  };
 }
 
 export function resolvedCostStatusLabel(
   item: TenderPipelineItem,
   status: ResolvedCostStatus = resolvedCostStatus(item),
 ): string {
-  const scan = item.tenderDossier?.scanSummary;
-  if (status === "NOT_FOUND") return "Kosztorys nie znaleziony";
-  const typeLabel = scan?.costDiscovery?.found
-    ? costTypeDisplayLabel(scan.costDiscovery.type)
-    : "kosztorys";
-  if (status === "FOUND_NO_VALUE") {
-    return `Kosztorys znaleziony (${typeLabel}), brak wartości`;
-  }
-  return `Kosztorys znaleziony (${typeLabel})`;
+  return resolvedCostStatusDisplay(item, status).display;
 }
 
 /** SSOT kryteriów — wyłącznie swzAnalysis (bez fallback HTML). */
@@ -190,12 +299,16 @@ export function buildOurEstimateDisplaySsot(opts: {
     return { display: `Propozycja: ${fmtPln(opts.recommendedBidPln)}` };
   }
   const cost = resolvedCostStatus(opts.item);
-  if (cost === "FOUND" || cost === "FOUND_NO_VALUE") {
+  if (cost === "FOUND_NO_VALUE") {
+    return {
+      display: "Nie można automatycznie wyliczyć wyceny",
+      hint: "ATH nie zawiera cen jednostkowych ani wartości pozycji.",
+    };
+  }
+  if (cost === "FOUND_WITH_VALUE") {
     return {
       display: "Wycena wymaga ręcznego potwierdzenia",
-      hint: cost === "FOUND_NO_VALUE"
-        ? "Kosztorys bez sumy — wpisz „Nasz szacunek” po weryfikacji"
-        : "Suma z kosztorysu — wpisz „Nasz szacunek” po weryfikacji",
+      hint: "Suma z kosztorysu — wpisz „Nasz szacunek” po weryfikacji",
     };
   }
   const scan = opts.item.tenderDossier?.scanSummary;
@@ -212,15 +325,9 @@ export function buildOurEstimateDisplaySsot(opts: {
 }
 
 export function buildKosztorysChecklistDisplay(item: TenderPipelineItem): string {
-  const status = resolvedCostStatus(item);
-  if (status === "NOT_FOUND") {
-    const scan = item.tenderDossier?.scanSummary;
-    if (scan) {
-      return scan.kosztorysFound
-        ? resolvedCostStatusLabel(item, status)
-        : "Kosztorys nie znaleziony";
-    }
-    return "Kosztorys nie znaleziony";
-  }
-  return resolvedCostStatusLabel(item, status);
+  return resolvedCostStatusDisplay(item).display;
+}
+
+export function buildKosztorysChecklistHint(item: TenderPipelineItem): string | undefined {
+  return resolvedCostStatusDisplay(item).hint;
 }

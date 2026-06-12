@@ -42,13 +42,21 @@ import {
 } from "../src/lib/tender-cost-snapshot.ts";
 import {
   TENDER_VALUE_NOT_FOUND_LABEL,
+  clearCostStatusTraceLog,
   clearSsotTraceLog,
+  classifyCostDocument,
+  getCostStatusTraceLog,
   getSsotTraceLog,
+  kosztorysHasPricedValue,
   resolveTenderValue,
   resolvedAwardCriteria,
   resolvedCostStatus,
+  resolvedCostStatusDisplay,
+  resolvedCostStatusLabel,
   resolvedTenderValuePln,
+  traceCostStatus,
   traceSsotSnapshot,
+  buildOurEstimateDisplaySsot,
 } from "../src/lib/tender-data-ssot.ts";
 import { assessTenderFit } from "../src/lib/tenders-bzp-fit.ts";
 import { defaultCompanyProfile } from "../src/lib/tenders-bzp-company.ts";
@@ -336,7 +344,7 @@ const kosztCheck = checks.find((c) => c.id === "kosztorys");
 const bidCheck = checks.find((c) => c.id === "our-bid");
 assert("checklist kosztorys ok", kosztCheck?.status === "ok");
 assert("checklist bid not missing file", !bidCheck?.display.includes("Brak pliku kosztorysowego"));
-assert("checklist bid manual confirm", bidCheck?.display.includes("ręcznego"));
+assert("checklist bid no value manual", bidCheck?.display.includes("automatycznie"));
 
 // P2-E.3 — value / cost / criteria SSOT
 const baseItem = {
@@ -402,12 +410,108 @@ const valueCheck = checksUi.find((c) => c.id === "value");
 const kosztCheck2 = checksUi.find((c) => c.id === "kosztorys");
 assert("ui_consistency value label", valueCheck?.display === TENDER_VALUE_NOT_FOUND_LABEL);
 assert("ui_consistency no nie odczytano", !valueCheck?.display.includes("Nie odczytano"));
-assert("ui_consistency kosztorys found", kosztCheck2?.display.includes("znaleziony"));
+assert("ui_consistency kosztorys przedmiar", kosztCheck2?.display.includes("Przedmiar"));
 assert("ui_consistency no brak pliku when found", !checksUi.find((c) => c.id === "our-bid")?.display.includes("Brak pliku kosztorysowego"));
+assert("ui_consistency bid no auto estimate", checksUi.find((c) => c.id === "our-bid")?.display.includes("automatycznie"));
 
 clearSsotTraceLog();
 traceSsotSnapshot(athItem, swzWithValue);
 assert("ssot trace", getSsotTraceLog().length === 1);
+
+// P2-E.5 — cost status UX + ATH classification
+const pricedAthItem = {
+  ...baseItem,
+  tenderDossier: {
+    kosztorys: {
+      ok: true,
+      sourceFilename: "k.ath",
+      totalValue: "850 000,00",
+      currency: "PLN",
+      rowCount: 10,
+      rows: [],
+      przedmiar: [],
+      categories: [],
+      warnings: [],
+      parsedAt: new Date().toISOString(),
+    },
+    scanSummary: {
+      kosztorysFound: true,
+      estimateFound: true,
+      valueFound: true,
+      totalDocuments: 5,
+      scanned: 5,
+      parsed: 4,
+      byType: { pdf: 3, docx: 0, xlsx: 0, zip: 1, ath: 1, sevenZip: 0, other: 0 },
+      sevenZipCount: 0,
+      criteriaFound: false,
+      costDiscovery: { found: true, type: "ath", source: "k.ath", confidence: 0.98 },
+      parsedAt: new Date().toISOString(),
+    },
+    brief: { fields: [], scopeDescription: null, location: null, procedureType: null, offerDeadline: null, offerOpening: null, contractPeriod: null, paymentTerms: null, contactInfo: null, additionalNotes: [], builtAt: "" },
+    builtAt: new Date().toISOString(),
+  },
+};
+assert("p2e5 priced status", resolvedCostStatus(pricedAthItem) === "FOUND_WITH_VALUE");
+assert("p2e5 priced label", resolvedCostStatusLabel(pricedAthItem).includes("wyceniony"));
+assert("p2e5 priced classify", classifyCostDocument(pricedAthItem)?.priced === true);
+assert("p2e5 has priced value", kosztorysHasPricedValue(pricedAthItem.tenderDossier.kosztorys) === true);
+
+const tbsAthNoPrice = {
+  ...baseItem,
+  tenderDossier: {
+    kosztorys: {
+      ok: true,
+      sourceFilename: "Falzmanna 17-25.zip → Falzmanna 17-25.ATH",
+      totalValue: "0",
+      currency: "PLN",
+      rowCount: 221,
+      rows: [],
+      przedmiar: [],
+      categories: [],
+      warnings: [],
+      parsedAt: new Date().toISOString(),
+    },
+    scanSummary: {
+      kosztorysFound: true,
+      estimateFound: false,
+      valueFound: false,
+      totalDocuments: 15,
+      scanned: 8,
+      parsed: 6,
+      byType: { pdf: 8, docx: 0, xlsx: 0, zip: 1, ath: 1, sevenZip: 0, other: 0 },
+      sevenZipCount: 0,
+      criteriaFound: false,
+      costDiscovery: { found: true, type: "zip_ath", source: "Falzmanna 17-25.zip → Falzmanna 17-25.ATH", confidence: 0.98 },
+      parsedAt: new Date().toISOString(),
+    },
+    brief: { fields: [], scopeDescription: null, location: null, procedureType: null, offerDeadline: null, offerOpening: null, contractPeriod: null, paymentTerms: null, contactInfo: null, additionalNotes: [], builtAt: "" },
+    builtAt: new Date().toISOString(),
+  },
+};
+assert("p2e5 tbs wk0 status", resolvedCostStatus(tbsAthNoPrice) === "FOUND_NO_VALUE");
+assert("p2e5 tbs wk0 not with value", resolvedCostStatus(tbsAthNoPrice) !== "FOUND_WITH_VALUE");
+const tbsUi = resolvedCostStatusDisplay(tbsAthNoPrice);
+assert("p2e5 tbs przedmiar label", tbsUi.display.includes("Przedmiar ATH") && tbsUi.display.includes("221"));
+assert("p2e5 tbs hint brak cen", tbsUi.hint?.includes("Brak cen"));
+const tbsClass = classifyCostDocument(tbsAthNoPrice);
+assert("p2e5 tbs classify", tbsClass?.type === "ATH" && tbsClass.priced === false && tbsClass.rowCount === 221);
+const tbsEstimate = buildOurEstimateDisplaySsot({ item: tbsAthNoPrice });
+assert("p2e5 tbs estimate msg", tbsEstimate.display.includes("automatycznie"));
+assert("p2e5 tbs estimate hint", tbsEstimate.hint?.includes("cen jednostkowych"));
+assert("p2e5 zero total not priced", kosztorysHasPricedValue(tbsAthNoPrice.tenderDossier.kosztorys) === false);
+
+clearCostStatusTraceLog();
+traceCostStatus("FOUND_NO_VALUE", tbsClass, "0");
+assert("p2e5 cost status trace", getCostStatusTraceLog()[0]?.detail?.status === "FOUND_NO_VALUE");
+
+const tbsChecks = computeBidPrepChecks(tbsAthNoPrice, null, null, null);
+const tbsKoszt = tbsChecks.find((c) => c.id === "kosztorys");
+const tbsBid = tbsChecks.find((c) => c.id === "our-bid");
+assert("p2e5 ui kosztorys przedmiar", tbsKoszt?.display.includes("Przedmiar ATH"));
+assert("p2e5 ui no kosztorys znaleziony generic", !tbsKoszt?.display.includes("Kosztorys znaleziony"));
+assert("p2e5 ui bid no auto", tbsBid?.display.includes("automatycznie"));
+assert("p2e5 ui not found", resolvedCostStatus(baseItem) === "NOT_FOUND");
+assert("p2e5 not found label", resolvedCostStatusLabel(baseItem).includes("Nie znaleziono"));
 
 // scan summary UX
 const counts = countDocumentsByType(TBS_00266295_DOCUMENTS);
@@ -447,7 +551,7 @@ const estReason = buildEstimateMissingReason({
   estimateFound: false,
 });
 assert("estimate reason kosztorys no file", !estReason.includes("Brak pliku kosztorysowego"));
-assert("estimate reason manual", estReason.includes("ręcznego"));
+assert("estimate reason no auto", estReason.includes("automatycznie"));
 
 const estReason7z = buildEstimateMissingReason({
   ...summary,

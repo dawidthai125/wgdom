@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.51.18 — P2-E.5 Cost Status UX + ATH Classification
+- FOUND_WITH_VALUE / FOUND_NO_VALUE / NOT_FOUND — ATH bez cen ≠ „Kosztorys znaleziony”
+- classifyCostDocument(), [COST STATUS TRACE], UI przedmiar vs wyceniony
+
 ## 2.51.17 — P2-E.4 ATH Value Recovery + TenderFit Refresh
 - extractTotalValueFromAthPreview: netto summary + suma pozycji; estimatePln + tenderFit refresh po analizie
 
