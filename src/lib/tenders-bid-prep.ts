@@ -8,6 +8,7 @@ import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import { isTenderOpenForOffers, daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
+import { resolveTenderPlatformDocumentStatus } from "@/lib/tender-platform-awareness";
 
 export type BidPrepItemStatus = "ok" | "partial" | "missing";
 
@@ -45,6 +46,15 @@ export function computeBidPrepChecks(
   const kosztorysOk = Boolean(item.tenderDossier?.kosztorys?.ok);
   const docCount = (item.bzpDocuments?.length ?? 0) + (item.uploadedFile ? 1 : 0)
     + (item.externalDocDiscovery?.files?.length ?? 0);
+  const platformDoc = resolveTenderPlatformDocumentStatus(item);
+  const kosztorysMissingDisplay = docCount > 0
+    ? `${docCount} plik(ów) — nie sparsowano`
+    : platformDoc.emptyMessage
+      ?? platformDoc.detailLines?.[0]
+      ?? "Brak plików";
+  const kosztorysMissingHint = !kosztorysOk && docCount === 0 && platformDoc.detailLines?.[1]
+    ? platformDoc.detailLines[1]
+    : !kosztorysOk ? "Pobierz załączniki BZP, szukaj u zamawiającego lub wgraj ATH/PDF" : undefined;
 
   const checks: BidPrepCheckItem[] = [
     {
@@ -88,8 +98,8 @@ export function computeBidPrepChecks(
       status: kosztorysOk ? "ok" : docCount > 0 ? "partial" : "missing",
       display: kosztorysOk
         ? `${item.tenderDossier!.kosztorys!.totalValue || "?"} ${item.tenderDossier!.kosztorys!.currency || "PLN"}`
-        : docCount > 0 ? `${docCount} plik(ów) — nie sparsowano` : "Brak plików",
-      hint: !kosztorysOk ? "Pobierz załączniki BZP, szukaj u zamawiającego lub wgraj ATH/PDF" : undefined,
+        : kosztorysMissingDisplay,
+      hint: kosztorysMissingHint,
     },
     {
       id: "criteria",

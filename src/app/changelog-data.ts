@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.5",
+    label: "Przetargi — platform awareness dokumentów (P2-C.2)",
+    items: [
+      { type: "improve", text: "Zamiast „Brak plików” — komunikat z platformą (Logintrade, e-Zamówienia, platformazakupowa.pl, Open Nexus)" },
+      { type: "new", text: "Karta przetargu: „Źródło dokumentów” + CTA „Otwórz postępowanie” dla platformazakupowa.pl" },
+      { type: "improve", text: "Telemetria platformDetected / documentsFound / documentsMissingReason (bez PII, localStorage)" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.4",
     label: "Przetargi — off-platform document discovery (P2-A.3)",
     items: [

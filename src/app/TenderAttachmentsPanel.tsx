@@ -15,6 +15,11 @@ import {
   type ZipListedFile,
 } from "@/lib/tenders-bzp-filename";
 import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
+import {
+  detectTenderDocumentPlatform,
+  resolveTenderPlatformDocumentStatus,
+  type TenderPlatformDocumentStatus,
+} from "@/lib/tender-platform-awareness";
 import { Building2, ExternalLink, Globe } from "lucide-react";
 
 function docIcon(filename: string) {
@@ -167,10 +172,21 @@ export function TenderAttachmentsPanel({
     [docs],
   );
 
+  const platformStatus = useMemo(
+    () => resolveTenderPlatformDocumentStatus(item, { loadingDocs }),
+    [item, loadingDocs],
+  );
+
   const displayName = (filename: string, opts: { index?: number; contentType?: string; url?: string }) =>
     displayTenderFilename(filename, opts);
 
-  if (!item.tenderId && !hasUpload && externalFiles.length === 0) return null;
+  const showEmptyPlatformState = !loadingDocs
+    && docs.length === 0
+    && !hasUpload
+    && externalFiles.length === 0
+    && (item.documentsFetchedAt || detectTenderDocumentPlatform(item) !== "unknown" || Boolean(item.noticeHtml));
+
+  if (!item.tenderId && !hasUpload && externalFiles.length === 0 && !item.noticeHtml) return null;
 
   return (
     <>
@@ -185,6 +201,19 @@ export function TenderAttachmentsPanel({
               </span>
             )}
           </p>
+          {platformStatus.badge && (
+            <span
+              className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                platformStatus.badge.tone === "success"
+                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                  : platformStatus.badge.tone === "warn"
+                    ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                    : "bg-sky-500/10 text-sky-700 dark:text-sky-400"
+              }`}
+            >
+              {platformStatus.badge.text}
+            </span>
+          )}
           {onRefresh && item.tenderId && (
             <button
               type="button"
@@ -216,8 +245,16 @@ export function TenderAttachmentsPanel({
           </p>
         )}
 
-        {!loadingDocs && docs.length === 0 && item.documentsFetchedAt && !hasUpload && externalFiles.length === 0 && (
-          <p className="text-xs text-muted-foreground">Brak załączników w e-Zamówienia — wgraj SWZ ręcznie lub użyj „Szukaj u zamawiającego”.</p>
+        {!loadingDocs && platformStatus.successMessage && totalCount > 0 && (
+          <p className="text-xs text-emerald-700 dark:text-emerald-400">{platformStatus.successMessage}</p>
+        )}
+
+        {showEmptyPlatformState && (
+          <PlatformDocumentEmptyState
+            status={platformStatus}
+            onSearchExternal={onSearchExternal}
+            externalDiscovering={externalDiscovering}
+          />
         )}
 
         <ul className="space-y-1.5">
@@ -408,4 +445,52 @@ export function TenderAttachmentsPanel({
 function UploadIcon({ filename }: { filename: string }) {
   const Icon = isKosztorysPreviewExt(filename) ? ClipboardList : FileText;
   return <Icon size={13} className="shrink-0 text-muted-foreground" />;
+}
+
+function PlatformDocumentEmptyState({
+  status,
+  onSearchExternal,
+  externalDiscovering,
+}: {
+  status: TenderPlatformDocumentStatus;
+  onSearchExternal?: () => void;
+  externalDiscovering?: boolean;
+}) {
+  if (status.missingReason === "not_fetched_yet" && !status.emptyMessage && !status.detailLines?.length) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-lg border border-border/70 bg-secondary/25 px-3 py-2.5 space-y-2">
+      {status.emptyMessage && (
+        <p className="text-xs font-medium text-foreground">{status.emptyMessage}</p>
+      )}
+      {status.detailLines?.map((line) => (
+        <p key={line} className="text-xs text-muted-foreground leading-relaxed">{line}</p>
+      ))}
+      {status.proceedingUrl && status.proceedingButtonLabel && (
+        <a
+          href={status.proceedingUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20"
+        >
+          <ExternalLink size={12} />
+          {status.proceedingButtonLabel}
+        </a>
+      )}
+      {status.showSearchExternalHint && onSearchExternal && (
+        <button
+          type="button"
+          disabled={externalDiscovering}
+          onClick={(e) => { e.stopPropagation(); onSearchExternal(); }}
+          className="inline-flex items-center gap-1 text-xs text-sky-700 dark:text-sky-300 hover:underline disabled:opacity-50"
+        >
+          {externalDiscovering ? <Loader2 size={11} className="animate-spin" /> : <Building2 size={11} />}
+          {externalDiscovering ? "Szukam…" : "Szukaj u zamawiającego"}
+        </button>
+      )}
+    </div>
+  );
 }

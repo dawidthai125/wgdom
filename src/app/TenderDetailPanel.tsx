@@ -32,6 +32,10 @@ import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { TenderDossierPanel } from "@/app/TenderDossierPanel";
 import { TenderAttachmentsPanel } from "@/app/TenderAttachmentsPanel";
+import {
+  logPlatformDocumentTelemetry,
+  resolveTenderPlatformDocumentStatus,
+} from "@/lib/tender-platform-awareness";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { assessTenderFit, estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 import { computeTenderBidProposal } from "@/lib/tenders-bid-calculator";
@@ -67,6 +71,12 @@ export function TenderDetailPanel({
   const [showHtml, setShowHtml] = useState(false);
   const [docPreview, setDocPreview] = useState<InspectorFileItem | null>(null);
   const autoRanRef = useRef<Set<string>>(new Set());
+  const platformTelemetryRef = useRef<string | null>(null);
+
+  const platformDocStatus = useMemo(
+    () => resolveTenderPlatformDocumentStatus(item, { loadingDocs: loadingDocs || autoRunning }),
+    [item, loadingDocs, autoRunning],
+  );
 
   const applyExternalDiscovery = useCallback(async (discovery: TenderExternalDocDiscovery) => {
     let swzMerged = item.swzAnalysis ?? null;
@@ -282,6 +292,18 @@ export function TenderDetailPanel({
   const pipelineWinRate = computePipelineFunnel(allItems).winRate;
 
   useEffect(() => {
+    const key = `${item.id}|${item.documentsFetchedAt ?? ""}|${platformDocStatus.documentsFound}|${platformDocStatus.missingReason}`;
+    if (platformTelemetryRef.current === key) return;
+    if (platformDocStatus.missingReason === "loading") return;
+    platformTelemetryRef.current = key;
+    logPlatformDocumentTelemetry({
+      platformDetected: platformDocStatus.platform,
+      documentsFound: platformDocStatus.documentsFound,
+      documentsMissingReason: platformDocStatus.missingReason,
+    });
+  }, [item.id, item.documentsFetchedAt, platformDocStatus]);
+
+  useEffect(() => {
     if (!item.swzAnalysis && !item.noticeHtml) return;
     const fit = assessTenderFit(item, loadCompanyProfileLocal(), { pipelineWinRate });
     const prev = item.tenderFit;
@@ -495,6 +517,11 @@ export function TenderDetailPanel({
         onFetchAward={() => void handleFetchAward()}
         fetchingAward={fetchingAward}
       />
+
+      <p className="text-xs text-muted-foreground">
+        <span className="font-semibold text-foreground/80">Źródło dokumentów:</span>{" "}
+        {platformDocStatus.sourceLabel}
+      </p>
 
       <TenderAttachmentsPanel
         item={item}
