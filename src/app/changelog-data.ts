@@ -11,6 +11,16 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-13",
+    version: "2.51.25",
+    label: "Przetargi — fix ATH Quick Access Logintrade (P2-F.4 hotfix)",
+    items: [
+      { type: "fix", text: "ATH Quick Access — propagacja downloadUrl dla Logintrade ZIP → inner ATH (Otwórz przedmiar / Pobierz PDF)" },
+      { type: "fix", text: "Pełny podgląd kosztorysu w dossier — ten sam resolve downloadUrl co załączniki" },
+      { type: "improve", text: "[ATH QUICK ACCESS TRACE] — platform, downloadUrlResolved, zipInnerPath" },
+    ],
+  },
+  {
     date: "2026-06-12",
     version: "2.51.24",
     label: "Przetargi — Generator wykazu robót (P2-F.5)",

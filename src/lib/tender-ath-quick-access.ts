@@ -3,8 +3,12 @@
  */
 
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
-import type { TenderPipelineItem } from "@/lib/tenders-bzp";
-import { loadTenderBzpDocumentBytes } from "@/lib/tenders-bzp";
+import type { TenderBzpDocument, TenderPipelineItem } from "@/lib/tenders-bzp";
+import {
+  loadTenderBzpDocumentBytes,
+  loadTenderBzpDocumentBytesResolved,
+  resolveTenderDocumentDownload,
+} from "@/lib/tenders-bzp";
 import {
   fetchAndParseKosztorys,
   isKosztorysPreviewExt,
@@ -34,6 +38,25 @@ export function traceAthQuickAccess(detail: Record<string, unknown>): void {
   }
 }
 
+function resolveAthDownloadMeta(
+  item: TenderPipelineItem,
+  documentIndex: number,
+): { downloadUrl?: string; platform?: string } {
+  return resolveTenderDocumentDownload(item.bzpDocuments, documentIndex) ?? {};
+}
+
+async function loadTenderBzpBytesForAth(
+  tenderId: string,
+  documentIndex: number,
+  downloadUrl: string | undefined,
+  bzpDocuments: TenderBzpDocument[] | undefined,
+): Promise<{ bytes: Uint8Array; filename: string; contentType: string }> {
+  if (bzpDocuments?.length) {
+    return loadTenderBzpDocumentBytesResolved(tenderId, documentIndex, bzpDocuments);
+  }
+  return loadTenderBzpDocumentBytes(tenderId, documentIndex, downloadUrl);
+}
+
 /** Zbuduj kontekst ATH quick access — tylko ATH + FOUND_WITH_VALUE / FOUND_NO_VALUE. */
 export function buildAthQuickAccessContext(item: TenderPipelineItem): AthQuickAccessContext {
   const costStatus = resolvedCostStatus(item);
@@ -49,11 +72,19 @@ export function buildAthQuickAccessContext(item: TenderPipelineItem): AthQuickAc
     : k?.sourceFilename ?? null;
 
   if (enabled) {
+    const dl = k?.sourceDocumentIndex != null
+      ? resolveAthDownloadMeta(item, k.sourceDocumentIndex)
+      : {};
     traceAthQuickAccess({
       source: "ATH",
       rows: rowCount,
       costStatus,
       previewReady: previewItem != null,
+      platform: dl.platform ?? null,
+      downloadUrlResolved: Boolean(
+        previewItem?.kind === "tenderBzp" && previewItem.downloadUrl,
+      ),
+      zipInnerPath: k?.zipInnerPath ?? null,
     });
   }
 
@@ -71,12 +102,14 @@ export function buildAthQuickAccessContext(item: TenderPipelineItem): AthQuickAc
 export function resolveAthPreviewItem(item: TenderPipelineItem): InspectorFileItem | null {
   const k = item.tenderDossier?.kosztorys;
   if (k?.ok && k.sourceDocumentIndex != null && item.tenderId) {
+    const dl = resolveAthDownloadMeta(item, k.sourceDocumentIndex);
     return {
       kind: "tenderBzp",
       tenderId: item.tenderId,
       documentIndex: k.sourceDocumentIndex,
       filename: k.sourceFilename,
       zipInnerPath: k.zipInnerPath,
+      downloadUrl: dl.downloadUrl,
     };
   }
   if (item.uploadedFile && isKosztorysPreviewExt(item.uploadedFile.filename)) {
@@ -93,6 +126,7 @@ export function resolveAthPreviewItem(item: TenderPipelineItem): InspectorFileIt
 async function parseTenderBzpPreviewItem(
   previewItem: Extract<InspectorFileItem, { kind: "tenderBzp" }>,
   athPreviewEnabled: boolean,
+  bzpDocuments?: TenderBzpDocument[],
 ): Promise<AthPreviewResult> {
   if (!athPreviewEnabled) {
     return { ok: false, format: "unknown", rows: [], warnings: ["Podgląd ATH wyłączony w ustawieniach."] };
@@ -104,17 +138,26 @@ async function parseTenderBzpPreviewItem(
     resolveDocumentBytes,
   } = await import("@/lib/tenders-bzp-doc-parse");
 
-  const { bytes: outerBytes, filename: serverName } = await loadTenderBzpDocumentBytes(
+  const downloadUrl = previewItem.downloadUrl
+    ?? resolveTenderDocumentDownload(bzpDocuments, previewItem.documentIndex)?.downloadUrl;
+
+  const { bytes: outerBytes, filename: serverName } = await loadTenderBzpBytesForAth(
     previewItem.tenderId,
     previewItem.documentIndex,
-    previewItem.downloadUrl,
+    downloadUrl,
+    bzpDocuments,
   );
   const outerName = previewItem.filename || serverName;
   const zipInner = previewItem.zipInnerPath;
 
   const loadBytes = async (idx: number) => {
     if (idx === previewItem.documentIndex) return outerBytes;
-    const r = await loadTenderBzpDocumentBytes(previewItem.tenderId, idx, previewItem.downloadUrl);
+    const r = await loadTenderBzpBytesForAth(
+      previewItem.tenderId,
+      idx,
+      downloadUrl,
+      bzpDocuments,
+    );
     return r.bytes;
   };
 
@@ -146,6 +189,7 @@ async function parseTenderBzpPreviewItem(
 export async function loadAthPreviewResult(
   previewItem: InspectorFileItem,
   athPreviewEnabled: boolean,
+  bzpDocuments?: TenderBzpDocument[],
 ): Promise<AthPreviewResult> {
   if (previewItem.kind === "tenderUpload") {
     return fetchAndParseKosztorys(
@@ -155,7 +199,7 @@ export async function loadAthPreviewResult(
     );
   }
   if (previewItem.kind === "tenderBzp") {
-    return parseTenderBzpPreviewItem(previewItem, athPreviewEnabled);
+    return parseTenderBzpPreviewItem(previewItem, athPreviewEnabled, bzpDocuments);
   }
   return { ok: false, format: "unknown", rows: [], warnings: ["Brak podglądu dla tego typu pliku."] };
 }
@@ -168,7 +212,7 @@ export async function downloadAthKosztorysPdf(
   if (!ctx.previewItem || !ctx.filename) {
     throw new Error("Brak pliku ATH do pobrania");
   }
-  const parseResult = await loadAthPreviewResult(ctx.previewItem, athPreviewEnabled);
+  const parseResult = await loadAthPreviewResult(ctx.previewItem, athPreviewEnabled, item.bzpDocuments);
   if (!parseResult.ok || parseResult.rows.length === 0) {
     throw new Error(parseResult.warnings?.[0] ?? "Nie udało się sparsować ATH");
   }
@@ -178,5 +222,7 @@ export async function downloadAthKosztorysPdf(
     rows: parseResult.rows.length,
     viewerOpened: false,
     pdfDownloaded: true,
+    downloadUrlResolved: ctx.previewItem.kind === "tenderBzp" && Boolean(ctx.previewItem.downloadUrl),
+    zipInnerPath: ctx.previewItem.kind === "tenderBzp" ? ctx.previewItem.zipInnerPath ?? null : null,
   });
 }

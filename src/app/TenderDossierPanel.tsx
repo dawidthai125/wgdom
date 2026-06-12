@@ -6,6 +6,7 @@ import { fmtPln, PROFITABILITY_LABELS } from "@/lib/tenders-bzp-swz";
 import type { TenderDossier } from "@/lib/tenders-bzp-brief";
 import { labelTenderState } from "@/lib/tenders-bzp";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
+import { resolveAthPreviewItem } from "@/lib/tender-ath-quick-access";
 import { resolveTenderValue, resolvedCostStatusDisplay, resolvedWadiumDisplay, kosztorysHasPricedValue } from "@/lib/tender-data-ssot";
 import { formatFormalRequirementsBullets, FORMAL_REQUIREMENTS_UNKNOWN_LABEL } from "@/lib/tender-formal-requirements";
 
@@ -171,25 +172,23 @@ export function TenderDossierPanel({
                     {k.rowCount > k.rows.length && ` · ${k.rowCount} poz.`}
                   </p>
                 )}
-                {onOpenKosztorysPreview && k.sourceDocumentIndex != null && item.tenderId && (
+                {onOpenKosztorysPreview && k.sourceDocumentIndex != null && item.tenderId && (() => {
+                  const kosztorysPreview = resolveAthPreviewItem(item);
+                  if (!kosztorysPreview || kosztorysPreview.kind !== "tenderBzp") return null;
+                  return (
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onOpenKosztorysPreview({
-                        kind: "tenderBzp",
-                        tenderId: item.tenderId,
-                        documentIndex: k.sourceDocumentIndex!,
-                        filename: k.sourceFilename,
-                        zipInnerPath: k.zipInnerPath,
-                      });
+                      onOpenKosztorysPreview(kosztorysPreview);
                     }}
                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-medium hover:bg-primary/20"
                   >
                     <Eye size={11} />
                     Pełny podgląd
                   </button>
-                )}
+                  );
+                })()}
                 {onOpenKosztorysPreview && k.sourceDocumentIndex == null && item.uploadedFile && (
                   <button
                     type="button"

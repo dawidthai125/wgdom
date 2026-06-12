@@ -960,9 +960,19 @@ const refFull = checkReferenceRequirement(profile2ref, refReq2);
 assert("p2f4 ref match 2 of 2", refFull.status === "MATCH");
 
 function mockTenderAth(rowCount = 221, withValue = false) {
+  const logintradeUrl =
+    "https://platformazakupowa.logintrade.net/DocumentService,getAttachmentUnlogged,test.zip";
   return {
     tenderId: "t-ath-1",
-    bzpDocuments: [{ index: 0, filename: "zip.zip" }],
+    bzpDocuments: [{
+      index: 1,
+      documentId: "logintrade_1",
+      filename: "Logintrade.zip",
+      contentType: "application/zip",
+      downloadUrl: logintradeUrl,
+      isSwzHint: false,
+      platform: "logintrade",
+    }],
     tenderDossier: {
       kosztorys: {
         ok: true,
@@ -971,7 +981,7 @@ function mockTenderAth(rowCount = 221, withValue = false) {
         przedmiar: [],
         categories: [],
         sourceFilename: "Logintrade.zip → k.ath",
-        sourceDocumentIndex: 0,
+        sourceDocumentIndex: 1,
         zipInnerPath: "k.ath",
         totalValue: withValue ? "850 000,00" : null,
         currency: "PLN",
@@ -989,6 +999,17 @@ assert("p2f4 ath quick access enabled", athCtx.enabled === true);
 assert("p2f4 ath rows", athCtx.rowCount === 221);
 assert("p2f4 ath preview item", athCtx.previewItem?.kind === "tenderBzp");
 assert("p2f4 ath zip inner", resolveAthPreviewItem(mockTenderAth())?.zipInnerPath === "k.ath");
+const athPreviewResolved = resolveAthPreviewItem(mockTenderAth());
+assert(
+  "p2f4 ath logintrade downloadUrl",
+  athPreviewResolved?.kind === "tenderBzp"
+    && Boolean(athPreviewResolved.downloadUrl?.includes("logintrade")),
+);
+assert(
+  "p2f4 ath trace downloadUrlResolved",
+  buildAthQuickAccessContext(mockTenderAth(221)).previewItem?.kind === "tenderBzp"
+    && Boolean(buildAthQuickAccessContext(mockTenderAth(221)).previewItem?.downloadUrl),
+);
 
 const noAth = buildAthQuickAccessContext({ tenderId: "x", tenderDossier: null });
 assert("p2f4 no ath buttons", noAth.enabled === false);

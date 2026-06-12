@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.51.25 — P2-F.4 hotfix ATH Quick Access Logintrade
+- downloadUrl w resolveAthPreviewItem + loadTenderBzpDocumentBytesResolved (ZIP → inner ATH)
+- Pełny podgląd dossier + trace platform/downloadUrlResolved
+
 ## 2.51.24 — P2-F.5 Works Register Generator
 - selectProjectsForTender + PDF/DOCX wykaz robót + rekomendacje w warunkach udziału
 
