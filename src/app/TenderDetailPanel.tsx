@@ -170,11 +170,32 @@ export function TenderDetailPanel({
           }
         }
         if (item.tenderId && !docs.length) {
-          docs = await fetchTenderDocuments(item.tenderId);
+          docs = await fetchTenderDocuments(item.tenderId, item.noticeNumber || undefined);
           if (!cancelled) {
             patch.bzpDocuments = docs;
             patch.documentsFetchedAt = new Date().toISOString();
           }
+        }
+        if (
+          !cancelled
+          && item.tenderId
+          && docs.length === 0
+          && !item.externalDocDiscovery?.builtAt
+          && (html ?? item.noticeHtml)
+        ) {
+          try {
+            const discovery = await discoverExternalTenderDocs({
+              tenderId: item.tenderId,
+              noticeHtml: html ?? item.noticeHtml,
+              organizationName: item.organizationName,
+              priorityBuyerId: item.priorityBuyerId,
+              title: item.title,
+              bzpNumber: item.bzpNumber,
+            });
+            if (!cancelled) {
+              patch.externalDocDiscovery = discovery;
+            }
+          } catch { /* auto external discover best-effort */ }
         }
         if (Object.keys(patch).length > 0 && !cancelled) onUpdate(patch);
 
@@ -292,7 +313,7 @@ export function TenderDetailPanel({
     }
     setLoadingDocs(true);
     try {
-      const docs = await fetchTenderDocuments(item.tenderId);
+      const docs = await fetchTenderDocuments(item.tenderId, item.noticeNumber || undefined);
       onUpdate({
         bzpDocuments: docs,
         documentsFetchedAt: new Date().toISOString(),

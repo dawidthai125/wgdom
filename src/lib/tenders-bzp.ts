@@ -621,8 +621,14 @@ export async function fetchTenderNoticeDetails(noticeNumber: string): Promise<Te
   return data.details;
 }
 
-export async function fetchTenderDocuments(tenderId: string): Promise<TenderBzpDocument[]> {
-  const data = await tenderApiGet("/tenders-bzp-documents", { tenderId }) as {
+export async function fetchTenderDocuments(
+  tenderId: string,
+  noticeNumber?: string,
+): Promise<TenderBzpDocument[]> {
+  const data = await tenderApiGet("/tenders-bzp-documents", {
+    tenderId,
+    ...(noticeNumber ? { noticeNumber } : {}),
+  }) as {
     documents: TenderBzpDocument[];
   };
   return (data.documents || []).map((doc) => ({

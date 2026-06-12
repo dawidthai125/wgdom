@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.3",
+    label: "Przetargi — mp-client document discovery (P2-A.2)",
+    items: [
+      { type: "improve", text: "Skan załączników e-Zamówienia — pełny zakres 1–50 z lukami (SWZ po index gap, np. _10)" },
+      { type: "improve", text: "discoverMpClientDocuments — readmodels + próba listy mp-client (GetTenderDocuments)" },
+      { type: "improve", text: "Auto „Szukaj u zamawiającego” gdy readmodels zwraca 0 plików po rozwinięciu przetargu" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.2",
     label: "Przetargi — fix pobierania dokumentów e-Zamówienia (P2-A.1)",
     items: [

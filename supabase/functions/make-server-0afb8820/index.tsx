@@ -2616,11 +2616,12 @@ async function probeTenderDocumentMeta(
 async function probeTenderDocuments(tenderId: string): Promise<Record<string, unknown>[]> {
   const out: Record<string, unknown>[] = [];
   const base = "https://ezamowienia.gov.pl/mp-readmodels/api/Tender/DownloadDocument";
-  for (let i = 1; i <= 25; i++) {
+  const maxIndex = 50;
+  for (let i = 1; i <= maxIndex; i++) {
     const documentId = `${tenderId}_${i}`;
     const url = `${base}/${encodeURIComponent(tenderId)}/${encodeURIComponent(documentId)}`;
     const meta = await probeTenderDocumentMeta(url);
-    if (!meta) break;
+    if (!meta) continue;
     const rawName = parseDispositionFilename(meta.contentDisposition);
     const filename = normalizeBzpFilename(rawName, i, meta.contentType);
     out.push({
@@ -2633,6 +2634,67 @@ async function probeTenderDocuments(tenderId: string): Promise<Record<string, un
     });
   }
   return out;
+}
+
+/** P2-A.2 — readmodels (public) + mp-client list API (OAuth, gdy brak plików w readmodels). */
+async function discoverMpClientDocuments(
+  tenderId: string,
+  _noticeNumber?: string,
+): Promise<{
+  documents: Record<string, unknown>[];
+  source: "readmodels" | "mp-client-auth" | "none";
+  mpClientAuthRequired?: boolean;
+}> {
+  const documents = await probeTenderDocuments(tenderId);
+  if (documents.length > 0) {
+    return { documents, source: "readmodels" };
+  }
+
+  const listUrl =
+    `https://ezamowienia.gov.pl/mp-readmodels/api/Tender/GetTenderDocuments?tenderId=${encodeURIComponent(tenderId)}`;
+  const listRes = await fetch(listUrl, { headers: EZAMOWIENIA_FETCH });
+  if (listRes.status === 401 || listRes.status === 403) {
+    return { documents: [], source: "none", mpClientAuthRequired: true };
+  }
+  if (listRes.ok) {
+    try {
+      const payload = await listRes.json();
+      const rows = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.documents)
+          ? payload.documents
+          : Array.isArray(payload?.items)
+            ? payload.items
+            : [];
+      const mapped: Record<string, unknown>[] = [];
+      for (let i = 0; i < rows.length && i < 50; i++) {
+        const row = rows[i] as Record<string, unknown>;
+        const documentId = String(row.documentId || row.id || `${tenderId}_${i + 1}`);
+        const downloadUrl =
+          `https://ezamowienia.gov.pl/mp-readmodels/api/Tender/DownloadDocument/${encodeURIComponent(tenderId)}/${encodeURIComponent(documentId)}`;
+        const meta = await probeTenderDocumentMeta(downloadUrl);
+        if (!meta) continue;
+        const rawName = parseDispositionFilename(meta.contentDisposition)
+          || String(row.filename || row.name || row.title || "");
+        const filename = normalizeBzpFilename(rawName, i + 1, meta.contentType);
+        mapped.push({
+          index: Number(row.index ?? row.order ?? i + 1) || i + 1,
+          documentId,
+          filename,
+          contentType: meta.contentType.split(";")[0],
+          downloadUrl,
+          isSwzHint: isSwzFilename(filename),
+        });
+      }
+      if (mapped.length > 0) {
+        return { documents: mapped, source: "mp-client-auth" };
+      }
+    } catch {
+      /* nieparsowalna odpowiedź listy */
+    }
+  }
+
+  return { documents: [], source: "none" };
 }
 
 function extractPdfTextSimple(bytes: Uint8Array): string {
@@ -2683,9 +2745,20 @@ app.get("/make-server-0afb8820/tenders-bzp-notice", async (c) => {
 app.get("/make-server-0afb8820/tenders-bzp-documents", async (c) => {
   try {
     const tenderId = (c.req.query("tenderId") || "").trim();
+    const noticeNumber = (c.req.query("noticeNumber") || "").trim();
     if (!tenderId) return c.json({ ok: false, error: "Brak tenderId" }, 400);
-    const documents = await probeTenderDocuments(tenderId);
-    return c.json({ ok: true, tenderId, documents, count: documents.length });
+    const { documents, source, mpClientAuthRequired } = await discoverMpClientDocuments(
+      tenderId,
+      noticeNumber || undefined,
+    );
+    return c.json({
+      ok: true,
+      tenderId,
+      documents,
+      count: documents.length,
+      source,
+      mpClientAuthRequired: mpClientAuthRequired ?? false,
+    });
   } catch (e) {
     return c.json({ ok: false, error: e instanceof Error ? e.message : "documents error" }, 500);
   }

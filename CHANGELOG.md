@@ -4,17 +4,18 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.51.2** · **P2-A.1** fix e-Zamówienia document probe  
+**Aktualna wersja UI:** **2.51.3** · **P2-A.2** mp-client document discovery  
 **★ SSOT handoff:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../CURRENT-TASK.md)  
 **★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
 
-## 2.51.2 (2026-06-12) — P2-A.1 fix e-Zamówienia document probe
+## 2.51.3 (2026-06-12) — P2-A.2 mp-client document discovery
 
-- **Fix:** `probeTenderDocuments` — GET + cancel body zamiast HEAD (405) na `DownloadDocument`
-- **Smoke:** `scripts/smoke-test-ezamowienia-document-probe-p2a1.mjs`
+- **Improve:** gap-tolerant readmodels probe 1–50 (luki w numeracji `_9` → `_10` SWZ)
+- **Improve:** `discoverMpClientDocuments` + auto external discover przy 0 plikach
+- **Smoke:** `scripts/smoke-test-mp-client-document-discovery-p2a2.mjs`
 
 ---
 
