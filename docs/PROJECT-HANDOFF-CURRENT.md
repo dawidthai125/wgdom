@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-12 (P1 CLOSED — Documentation closeout)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-12 (P2-F CLOSED — Documentation closeout)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -8,18 +8,20 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-2. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
-3. CURRENT-TASK.md                         ← status sesji / wznowienie
-4. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
-5. AGENTS.md → docs/ARCHITECTURE.md
+2. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← P2-F kwalifikacja ofertowa (COMPLETE)
+3. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
+4. CURRENT-TASK.md                         ← status sesji / wznowienie
+5. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
+6. AGENTS.md → docs/ARCHITECTURE.md § 12.1.5
 ```
 
 ---
 
-## 1a. Completed Epics (P1 CLOSED)
+## 1a. Completed Epics (P1 + P2-F CLOSED)
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **P2-F Tender Qualification** | 2.51.19–**2.51.24** (`e015453`) | **COMPLETE** | [`SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md) |
 | **Dashboard V3** | 2.50.74 (`5a54399`) | **COMPLETE** | [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md) |
 | **Command Center Removal** | 2.51.0 (`39b1892`) | **COMPLETE** | [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.3 |
 | **Przetargi 3.0** | 2.51.0–2.51.1 | **COMPLETE** | `TendersModule` · `TendersProvider` |
@@ -32,7 +34,7 @@
 Dashboard
 Roboty
 Do Rozliczenia
-Przetargi
+Przetargi (+ Karta ofertowa P2-F, Profil wykonawcy)
 ```
 
 **Przetargi 3.0** — zakładki: Lista · Strategia · Mapa · Profil firmy · Ustawienia.  
@@ -58,8 +60,9 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version:              2.51.0          ← baseline feature P1 (CC removal)
-Current prod UI:      2.51.1          ← ETAP 4 rename cleanup
+Version:              2.51.24         ← baseline P2-F.5 Works Register
+Feature commit (P2-F.5): e015453      feat(tenders): works register generator (P2-F.5)
+Poprzedni P2-F:       77b352a         v2.51.23 P2-F.4
 Feature commit (P1):  39b1892         refactor: remove command center runtime architecture
 Docs/rename commit:   45ad21e         refactor: finalize command center removal cleanup
 Dashboard V3:           5a54399         feat(dashboard): V3 operational layout (2.50.74)
@@ -72,7 +75,8 @@ PWA (origin/main):      46556a7         20.5Z.2A
 |--------|---------|
 | **RELEASED** | TAK |
 | **STABLE** | TAK |
-| **PRODUCTION VERIFIED** | TAK — `version.json` = **2.51.1** |
+| **PRODUCTION VERIFIED** | Po propagacji — `version.json` = **2.51.24** |
+| **P2-F (Kwalifikacja ofertowa)** | **CLOSED** (F.0 → F.5) |
 | **P1 (Dashboard V3 + CC removal + Przetargi 3.0)** | **CLOSED** |
 | **Inspector 2.1** | **2.1.0 + 2.1.1 COMPLETE** · **2.1.2 CANCELLED** |
 
@@ -80,7 +84,7 @@ PWA (origin/main):      46556a7         20.5Z.2A
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.51.1" }
+# oczekiwane: { "version": "2.51.24" }
 ```
 
 ---
@@ -119,10 +123,36 @@ Chronologia releasów aplikacyjnych na `main` po baseline **2.50.65** (20.5Z.5C)
 | **2.50.75–76** | P1-B ETAP 1–2 | `098f651` / `58b4cd7` | CC legacy UI out; TendersModule 5 zakładek |
 | **2.51.0** | P1-B ETAP 3 | `39b1892` | CC runtime removal; TendersProvider; TendersShortcutPanel |
 | **2.51.1** | P1-B ETAP 4 | `45ad21e` | Rename `tenders/strategy/`, `tenders-strategy-*` lib |
+| **2.51.19** | P2-F.0 | `a2d0f8a` | Formal Requirements Extraction |
+| **2.51.20** | P2-F.1 | `28c5602` | Warunki udziału vs `kw-company-profile` |
+| **2.51.21** | P2-F.2 | `73683f8` | Experience & References Qualification |
+| **2.51.22** | P2-F.3 | `7dd7563` | Company Experience Auto-Build |
+| **2.51.23** | P2-F.4 | `77b352a` | Referencje upload + ATH Quick Access |
+| **2.51.24** | **P2-F.5** | **`e015453`** | Works Register Generator PDF/DOCX |
 
+**Handoff P2-F:** [`SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md)  
 **Handoff Pulpit (SSOT):** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 **Historyczny Dashboard V2:** [`SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](SESSION-HANDOFF-20.7-DASHBOARD-V2.md) — **nie przywracać** rankera Hero  
 **Architektura inspektor email:** [`ARCHITECTURE.md`](ARCHITECTURE.md) § 9.2
+
+---
+
+## 3a. P2-F — Tender Qualification Pipeline (**CLOSED**)
+
+| Pole | Wartość |
+|------|---------|
+| **Zakres** | P2-F.0–F.5 · SWZ → profil wykonawcy → dopasowanie → wykaz/referencje/ATH |
+| **Wersja końcowa** | **2.51.24** · commit **`e015453`** |
+| **Klucz chmury** | `kw-company-profile` — `CompanyQualificationProfile` schema **v4** |
+| **Handoff** | [`SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md) |
+| **Architektura** | [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.5 |
+| **Test regresji** | `npx vite-node scripts/test-tender-dossier-pipeline.mjs` (161 PASS) |
+
+**Kluczowe moduły:** `tender-formal-requirements.ts`, `tender-participation-check.ts`, `tender-experience-check.ts`, `company-experience-discovery.ts`, `tender-works-register.ts`, `tender-ath-quick-access.ts`.
+
+**UI:** `TenderBidPrepPanel.tsx`, `TenderParticipationPanel.tsx`, `TenderWorksRegisterPanel.tsx`, `CompanyQualificationProfilePanel.tsx`.
+
+**Nie zmieniaj bez polecenia:** merge `kw-company-profile`, semantyka `referenceStatus`, parsery SWZ, reuse ATH viewer.
 
 ---
 
@@ -231,6 +261,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | Kontakt inspektora § 9.2 | `inspector-message-templates.ts`, `email-contacts.ts`, `JobInspectorContactModal.tsx` |
 | **Pulpit V3** | `DashboardView.tsx`, `DashboardPilneUwagiSection.tsx`, `dashboard-urgent-today.ts` |
 | Przetargi (strategia) | `TendersModule` → zakładka **Strategia** — **nie** na Pulpicie (tylko `TendersShortcutPanel`) |
+| **P2-F Kwalifikacja ofertowa** | `kw-company-profile` · § 12.1.5 · [`SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md) |
 
 ---
 
@@ -253,6 +284,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | Happy path | `npm run build` → preview `:4173` → `PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:happy` |
 | Version | `PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:version` |
 | Inspector 2.1 | `npx vite-node scripts/smoke-test-inspector-templates-2.1.mjs` |
+| **P2-F regresja** | `npx vite-node scripts/test-tender-dossier-pipeline.mjs` (161) |
 | **Dashboard V3** | `npx vite-node scripts/test-dashboard-v3-counts.mjs` |
 | Mobile | `npm run test:mobile` |
 
@@ -276,7 +308,9 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | Priorytet | Temat | Status |
 |-----------|-------|--------|
 | **P1** | Dashboard V3 + CC removal + Przetargi 3.0 | **CLOSED** (v2.51.x) |
+| **P2-F** | Kwalifikacja ofertowa (F.0–F.5) | **CLOSED** (v2.51.19–2.51.24) |
 | **P2** | Audit Center / Security Log (Super Admin) | **OTWARTY** |
+| P2-F.6+ | investorName · auto-pakiet referencji | opcjonalnie, na polecenie |
 | **P3** | Dalsze usprawnienia Przetargów | **OTWARTY** (bez polecenia) |
 
 ---
@@ -290,23 +324,26 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 - `inspector_template` Edge semantics (2.1.0)
 - Seria 20.5Z zamknięta — patrz FINAL handoff
 - **2.1.2** — plan odrzucony, nie wracać do pełnej listy kontaktów w modalu
+- **P2-F merge/parsery** — `kw-company-profile`, filtry śmieci PDF SWZ, ATH viewer reuse
 
 ---
 
 ## 13. NASTĘPNY KROK (dla agenta)
 
 ```text
+P2-F CLOSED (F.0 → F.5 · v2.51.24).
 P1 CLOSED (Dashboard V3 + Przetargi 3.0 + CC removed).
-Kolejny stream: P2 (Audit Center) lub P3 (Przetargi) — tylko na polecenie po AUDIT.
+Kolejny stream: P2 (Audit Center) lub P2-F.6+ / P3 — tylko na polecenie po AUDIT.
 Inspector 2.1 — CLOSED (2.1.2 CANCELLED).
 ```
 
 Przy wznowieniu:
 
-1. Przeczytaj **ten plik** + `CURRENT-TASK.md`
-2. `curl -s https://www.wgdom.fun/version.json` — potwierdź baseline
-3. Stosuj workflow A/B/C z [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md)
-4. Hasło **„kontynuuj WGDOM”** → `.cursor/rules/wgdom-stan-projektu.mdc`
+1. Przeczytaj **ten plik** + [`SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md) (przy Przetargi) + `CURRENT-TASK.md`
+2. `curl -s https://www.wgdom.fun/version.json` — potwierdź baseline **2.51.24**
+3. `npx vite-node scripts/test-tender-dossier-pipeline.mjs` — przed release P2-F
+4. Stosuj workflow A/B/C z [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md)
+5. Hasło **„kontynuuj WGDOM”** → `.cursor/rules/wgdom-stan-projektu.mdc`
 
 ---
 
@@ -314,6 +351,7 @@ Przy wznowieniu:
 
 | Temat | Dokument |
 |-------|----------|
+| **★ P2-F Kwalifikacja ofertowa** | `SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md` |
 | **★ Baseline prod (TEN)** | `PROJECT-HANDOFF-CURRENT.md` |
 | **★ Pulpit V3 (SSOT)** | `SESSION-HANDOFF-DASHBOARD-V3.md` |
 | Platform 20.5Z (architektura) | `PROJECT-HANDOFF-FINAL-20.5Z.md` |
@@ -329,12 +367,13 @@ Przy wznowieniu:
 
 ---
 
-**Werdykt closeout (P1):**
+**Werdykt closeout (P2-F):**
 
 ```text
-BASELINE v2.51.x · STABLE · PRODUCTION VERIFIED (2.51.1)
+BASELINE v2.51.24 · STABLE · RELEASE GO (verify version.json)
+P2-F CLOSED — F.0 Formal → F.5 Works Register
 P1 CLOSED — Dashboard V3 · Przetargi 3.0 · Command Center REMOVED
 Inspector 2.1 CLOSED · 2.1.2 CANCELLED
-Open backlog: P2 Audit Center · P3 Przetargi
+Open backlog: P2 Audit Center · P3 Przetargi · P2-F.6+ optional
 Ready for new GPT / new Cursor agent
 ```

@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.51.4** · P2-A.3)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-12 (P1 CLOSED — v2.51.x baseline · Command Center removed v2.51.0)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.51.24** · P2-F.5)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-12 (P2-F CLOSED — kwalifikacja przetargowa v2.51.19–2.51.24)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -794,7 +794,58 @@ Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTST
 
 **Polonizacja UI (20.3B+ FULL, v2.50.43):** etykiety w `tenders-strategy-ui-labels-pl.ts`; enumy GO/HOLD/NO-GO bez zmian. **Smoke:** `scripts/smoke-test-ui-language-20.3b-full.mjs`, `smoke-test-ui-language-20.3b.mjs`.
 
-**Prod baseline:** v2.51.0 (`39b1892`) — usunięcie CC runtime; v2.51.1 — rename ETAP 4. Rozszerzenia Fazy 8 — § 12.1.4.
+**Prod baseline:** v2.51.0 (`39b1892`) — usunięcie CC runtime; v2.51.1 — rename ETAP 4. **Kwalifikacja ofertowa P2-F** — § 12.1.5. Rozszerzenia Fazy 8 — § 12.1.4.
+
+### 12.1.5 P2-F — Tender Qualification Pipeline (CLOSED, v2.51.19–2.51.24)
+
+> **★ Handoff SSOT:** [`SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md)
+
+**Status:** **COMPLETE** (P2-F.0 → P2-F.5) · prod **`e015453`** · **2.51.24**
+
+Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Karta ofertowa przetargu).
+
+| Wersja | Sprint | Commit | Skrót |
+|--------|--------|--------|-------|
+| 2.51.19 | P2-F.0 | `a2d0f8a` | Formal Requirements Extraction |
+| 2.51.20 | P2-F.1 | `28c5602` | Warunki udziału vs `kw-company-profile` |
+| 2.51.21 | P2-F.2 | `73683f8` | Experience & References Qualification |
+| 2.51.22 | P2-F.3 | `7dd7563` | Company Experience Auto-Build (Roboty/ATH) |
+| 2.51.23 | P2-F.4 | `77b352a` | Referencje upload + ATH Quick Access |
+| 2.51.24 | P2-F.5 | `e015453` | Works Register Generator PDF/DOCX |
+
+**Klucz chmury:** `kw-company-profile` — `CompanyQualificationProfile` schema **v4** (`company-qualification-profile.ts`); merge w `tenders-sync.ts`.
+
+**Moduły lib (parsowanie + silniki):**
+
+| Plik | Rola |
+|------|------|
+| `tender-formal-requirements.ts` | Wymagania formalne z SWZ (personel, uprawnienia, członkostwo) |
+| `tender-participation-requirements.ts` | Wymagania udziału z tekstu SWZ |
+| `tender-participation-check.ts` | MATCH/MISSING/UNKNOWN vs profil |
+| `tender-experience-requirements.ts` | Wymogi doświadczenia (minProjects, minValuePln, referenceRequired) |
+| `tender-experience-check.ts` | Porównanie `experienceProjects[]` ↔ SWZ; `getMatchingExperienceProjects()` |
+| `company-experience-discovery.ts` | Auto-odkrywanie realizacji z Robót/faktur/ATH |
+| `experience-reference-upload.ts` | Upload referencji/protokołów → storage |
+| `tender-ath-quick-access.ts` | Otwórz przedmiar / Pobierz PDF (reuse ATH viewer) |
+| `tender-works-register.ts` | Selekcja realizacji + model wykazu |
+| `tender-works-register-pdf.ts` / `-docx.ts` | Export wykazu robót |
+
+**UI:**
+
+| Komponent | Rola |
+|-----------|------|
+| `CompanyQualificationProfilePanel.tsx` | Profil wykonawcy — realizacje, odkryte, upload referencji |
+| `TenderParticipationPanel.tsx` | Warunki udziału + rekomendowane realizacje |
+| `TenderWorksRegisterPanel.tsx` | Wykaz robót — Generuj PDF/DOCX |
+| `TenderBidPrepPanel.tsx` | Karta ofertowa — agreguje panele P2-F |
+
+**Fundament (P2-E):** `tender-data-ssot.ts`, `tender-document-resolver.ts` — kosztorys ATH, SSOT checklist.
+
+**Test regresji:** `npx vite-node scripts/test-tender-dossier-pipeline.mjs` (161 testów, P2-E + P2-F.0–F.5).
+
+**Trace:** `[FORMAL TRACE]`, `[EXPERIENCE TRACE]`, `[EXPERIENCE DISCOVERY TRACE]`, `[ATH QUICK ACCESS TRACE]`, `[WORKS REGISTER TRACE]`.
+
+**Nie zmieniaj bez polecenia:** merge `kw-company-profile`, semantyka `referenceStatus`, filtry śmieci PDF w parserach SWZ, reuse ATH viewer.
 
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 

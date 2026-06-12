@@ -8,31 +8,32 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.50.74, commity, decyzje)
-3. docs/SESSION-HANDOFF-DASHBOARD-V3.md  ← ★★ Pulpit V3 — operacje, liczniki, backlog
-4. CURRENT-TASK.md        ← ★ status sesji / wznowienie
-5. docs/WORKFLOW-RELEASE-DEPLOY.md  ← ★★ release/deploy A/B/C + VERIFY (oficjalny)
-6. docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md  ← Dashboard V2 (historyczny — nie przywracać Hero)
-7. docs/PROJECT-HANDOFF.md  ← proces AUDIT→RCA→PLAN→IMPLEMENT (baseline → CURRENT)
-8. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md  ← backup baseline 2.50.64
-8. docs/BACKUP-REPORT-2.50.64.md  ← pre-feature backup + storage-full
-9. docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md  ← audyt 100% storage
-10. docs/PROJECT-HANDOFF-FINAL-20.5Z.md  ← oficjalny handoff końcowy serii 20.5Z (COMPLETE)
-11. docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md  ← seria 20.5Z — szczegóły sprintów
-12. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← Files Hub 20.5A.12
-13. docs/RELEASE-REPORT-20.5Z.2B.md  ← E2E Version Awareness (20.5Z.2B)
-14. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
-15. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← Roboty UX, Version, Worker Mobile
-16. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
-17. docs/archive/command-center/  ← CC historyczny (SUPERSEDED v2.51.0)
-18. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
-19. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
-20. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← gotowość worker/admin/inspektor GO
-21. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
-22. docs/ARCHITECTURE.md   ← pełna architektura (§ 9.1 dokumentacja, § 9.2 inspektor email, § 12.1.2 pliki, § 13.1 wersja)
-23. docs/ARCHITECTURE.md § 12.1.3  ← Przetargi 3.0 (TendersModule)
-24. CHANGELOG.md          ← CO już zrobiono (skrót)
-25. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
+2. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.51.24, commity, decyzje)
+3. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← ★★ P2-F kwalifikacja ofertowa (COMPLETE)
+4. docs/SESSION-HANDOFF-DASHBOARD-V3.md  ← ★★ Pulpit V3 — operacje, liczniki, backlog
+5. CURRENT-TASK.md        ← ★ status sesji / wznowienie
+6. docs/WORKFLOW-RELEASE-DEPLOY.md  ← ★★ release/deploy A/B/C + VERIFY (oficjalny)
+7. docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md  ← Dashboard V2 (historyczny — nie przywracać Hero)
+8. docs/PROJECT-HANDOFF.md  ← proces AUDIT→RCA→PLAN→IMPLEMENT (baseline → CURRENT)
+9. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md  ← backup baseline 2.50.64
+10. docs/BACKUP-REPORT-2.50.64.md  ← pre-feature backup + storage-full
+11. docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md  ← audyt 100% storage
+12. docs/PROJECT-HANDOFF-FINAL-20.5Z.md  ← oficjalny handoff końcowy serii 20.5Z (COMPLETE)
+13. docs/SESSION-HANDOFF-20.5Z-PLATFORM-STABILIZATION.md  ← seria 20.5Z — szczegóły sprintów
+14. docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md  ← Files Hub 20.5A.12
+15. docs/RELEASE-REPORT-20.5Z.2B.md  ← E2E Version Awareness (20.5Z.2B)
+16. docs/RELEASE-REPORT-20.5A.12.md  ← Files Hub Consolidation (2.50.58)
+17. docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md  ← Roboty UX, Version, Worker Mobile
+18. docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md  ← pliki roboty (trzy warstwy)
+19. docs/archive/command-center/  ← CC historyczny (SUPERSEDED v2.51.0)
+20. docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md  ← Billing + Roboty 20.3A–20.5A.6 CLOSED
+21. docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md  ← Seria 2.50.x CLOSED (desktop scroll + mobile + MID-B)
+22. docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md  ← gotowość worker/admin/inspektor GO
+23. PROJECT-GUIDE.md       ← JAK działa projekt (+ Known Issues)
+24. docs/ARCHITECTURE.md   ← pełna architektura (§ 12.1.5 P2-F, § 9.2 inspektor, § 11 sync)
+25. docs/ARCHITECTURE.md § 12.1.3  ← Przetargi 3.0 (TendersModule)
+26. CHANGELOG.md          ← CO już zrobiono (skrót)
+27. changelog-data.ts → CHANGELOG[]  ← źródło prawdy wersji + UI zakładka „Zmiany”
 ```
 
 ### WAŻNE
@@ -66,6 +67,7 @@
 | **docs/archive/command-center/** | CC historyczny **SUPERSEDED** (v2.51.0) — polonizacja 20.3B archiwum |
 | **docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md** | Seria **2.50.x CLOSED** — desktop scroll, mobile fix, MID-B, CI |
 | **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.6 CLOSED** (`99295e5`, v2.50.44) |
+| **docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md** | **★★ P2-F CLOSED** (v2.51.19–2.51.24) — kwalifikacja ofertowa, profil wykonawcy, wykaz robót |
 | **docs/SESSION-HANDOFF-DASHBOARD-V3.md** | **★★ Pulpit V3 (SSOT)** — operacje, liczniki, kategorie, backlog P1-B/P2 |
 | **docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md** | Dashboard V2 **historyczny** — Hero usunięty w V3 |
 | **docs/PROJECT-HANDOFF-FINAL-20.5Z.md** | **★ Oficjalny handoff końcowy 20.5Z** — baseline, architektura, E2E, PWA, readiness, werdykt COMPLETE |
@@ -136,8 +138,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.51.1**) |
-| Prod `main` (app) | **v2.51.1** · P1 CLOSED · Przetargi 3.0 · CC removed |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.51.24**) |
+| Prod `main` (app) | **v2.51.24** · P2-F CLOSED · P1 CLOSED · Przetargi 3.0 · CC removed |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
 | Dashboard V2 docs | [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md) |
@@ -365,6 +367,19 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 - **Smoke:** `smoke-test-inspector-templates-2.1.mjs`
 
 **Nie zmieniaj bez polecenia:** architektura 2.1.0+2.1.1, filtr `isInspector`, sync kontaktów KV.
+
+---
+
+## 3k. P2-F — Tender Qualification Pipeline (**CLOSED**, prod `e015453`, v2.51.24)
+
+- **Handoff SSOT:** [`docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md)
+- **Architektura:** **ARCHITECTURE.md § 12.1.5** — SWZ → profil → dopasowanie → wykaz/referencje/ATH
+- **P2-F.0–F.5** (`a2d0f8a` → `e015453`, v2.51.19–2.51.24): formal requirements, warunki udziału, doświadczenie, auto-build, referencje, wykaz PDF/DOCX
+- **Klucz chmury:** `kw-company-profile` — schema v4 (`company-qualification-profile.ts`)
+- **Kluczowe pliki:** `tender-participation-check.ts`, `tender-experience-check.ts`, `company-experience-discovery.ts`, `tender-works-register.ts`, `TenderBidPrepPanel.tsx`, `CompanyQualificationProfilePanel.tsx`
+- **Test:** `npx vite-node scripts/test-tender-dossier-pipeline.mjs` (161 PASS)
+
+**Nie zmieniaj bez polecenia:** merge profilu, `referenceStatus`, parsery SWZ, reuse ATH viewer.
 
 ---
 

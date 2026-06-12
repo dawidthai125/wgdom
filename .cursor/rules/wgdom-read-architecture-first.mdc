@@ -9,13 +9,14 @@ Komunikuj się z użytkownikiem po **polsku**.
 
 ## Zanim zaczniesz pracę w tym repo
 
-1. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.50.70**, `ee2cd72`), commity, decyzje (np. 2.1.2 CANCELLED).
+1. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.51.24**, `e015453`), commity, decyzje (np. 2.1.2 CANCELLED).
 2. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — status sesji / wznowienie (SESSION CLOSEOUT).
 3. **Przeczytaj [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)** — release/deploy A/B/C + verify `version.json`.
 4. **Przeczytaj [`AGENTS.md`](AGENTS.md)** — pełna lista handoffów i zakazy.
 5. **Przeczytaj [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)** — proces AUDIT→RCA→PLAN→IMPLEMENT (baseline historyczny).
-6. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § 9.1 dokumentacja robót, § 9.2 inspektor email, § 11 sync, § 12.1.2 Files Hub, § 13.1 wersja.
+6. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § 12.1.5 P2-F, § 9.2 inspektor, § 11 sync, § 12.1.2 Files Hub, § 13.1 wersja.
 7. **Tematycznie (gdy dotyczy zadania):**
+   - **P2-F Kwalifikacja ofertowa** → [`docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md)
    - Dashboard V2 → [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)
    - Files Hub → [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md)
    - Roboty UX / Version → [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)
@@ -33,6 +34,7 @@ Stosuj [`.cursor/rules/wgdom-development.mdc`](wgdom-development.mdc): chmura �
 
 | Temat | Plik |
 |-------|------|
+| **P2-F Kwalifikacja ofertowa** | `docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`, `company-qualification-profile.ts`, `TenderBidPrepPanel.tsx` |
 | **Baseline prod (SSOT)** | `docs/PROJECT-HANDOFF-CURRENT.md`, `CURRENT-TASK.md` |
 | **Inspector email 2.1** | `docs/PROJECT-HANDOFF-CURRENT.md` § 2.1, `email-contacts.ts`, `JobInspectorContactModal.tsx`, ARCHITECTURE § 9.2 |
 | **Files Hub 20.5A.12** | `docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`, `files-hub-index.ts`, `JobFilesHub.tsx` |
