@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.52.4",
+    label: "Przetargi — centrum wyceny P2-G.1E (Classification Inspector)",
+    items: [
+      { type: "new", text: "Inspektor klasyfikacji ATH — sklasyfikowane / UNKNOWN / pokrycie % + region katalogu" },
+      { type: "new", text: "Lista pozycji UNKNOWN (sort wg ilości) + sugestie rozbudowy katalogu WGDOM" },
+      { type: "improve", text: "Jakość wyceny z pokrycia klasyfikacji: Wysoka / Dobra / Średnia / Ograniczona" },
+      { type: "improve", text: "Komunikat przy UNKNOWN >15% — przejrzyj przed złożeniem oferty" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.52.3",
     label: "Przetargi — centrum wyceny P2-G.1D (UX + discoverability)",
     items: [

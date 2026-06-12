@@ -31,7 +31,10 @@ import {
   enrichBidProposalMeta,
   extractCalculationBasis,
   getBidSourceLabel,
+  coveragePercentFromUnknownFraction,
+  shouldShowUnknownReviewAdvice,
   TENDER_BID_DISCLAIMER,
+  TENDER_UNKNOWN_REVIEW_ADVICE,
 } from "../src/lib/tender-bid-quality.ts";
 import {
   mergeWgdomCostCatalogStore,
@@ -50,6 +53,12 @@ import {
   TENDER_BID_PROPOSAL_PANEL_ID,
 } from "../src/lib/tender-bid-ux.ts";
 import { computeBidPrepChecks } from "../src/lib/tenders-bid-prep.ts";
+import {
+  buildCatalogTuningHints,
+  buildClassificationSummary,
+  buildUnknownRows,
+  CLASSIFICATION_CATEGORY_ORDER,
+} from "../src/lib/tender-classification-inspector.ts";
 
 let passed = 0;
 let failed = 0;
@@ -109,6 +118,37 @@ function makeNoPriceKosztorys(count = 221) {
       unitPrice: "",
       total: "",
     })),
+    catalogQuantities,
+    totalValue: "",
+    currency: "PLN",
+    przedmiar: [],
+    categories: [],
+    warnings: [],
+    parsedAt: "2026-06-13T00:00:00.000Z",
+  };
+}
+
+/** 221 poz. z ~40 UNKNOWN (prod-like ~18%) — P2-G.1E inspektor. */
+function makeMixedUnknownKosztorys() {
+  const classified = makeCatalogQuantities(181);
+  const unknownTemplates = [
+    "Montaż lamperii przy oknach",
+    "Wykonanie cokolików aluminiowych",
+    "Parapetowanie wewnętrzne",
+    "Roboty ogólne budowlane",
+  ];
+  const unknown = Array.from({ length: 40 }, (_, i) => ({
+    lp: String(181 + i + 1),
+    description: unknownTemplates[i % unknownTemplates.length],
+    unit: "mb",
+    quantity: String(50 - (i % 15)),
+  }));
+  const catalogQuantities = [...classified, ...unknown];
+  return {
+    ok: true,
+    sourceFilename: "tbs-mixed.ath",
+    rowCount: catalogQuantities.length,
+    rows: catalogQuantities.slice(0, 40).map((q) => ({ ...q, unitPrice: "", total: "" })),
     catalogQuantities,
     totalValue: "",
     currency: "PLN",
@@ -295,7 +335,7 @@ const bidCatalog = computeTenderBidProposal({
 assertEq(bidCatalog.ok, true, "AC-1 catalog 221 poz. ok === true");
 assertEq(bidCatalog.pricingMode, "catalog", "pricingMode catalog");
 assertEq(bidCatalog.sourceLabelPl, "Katalog WGDOM", "AC-7 source Katalog WGDOM");
-assertEq(bidCatalog.qualityLabelPl, "Średnia", "quality Średnia catalog");
+assertEq(bidCatalog.qualityLabelPl, "Wysoka", "quality Wysoka catalog 100% coverage");
 assert(bidCatalog.calculationBasis != null, "calculationBasis present");
 assertGt(bidCatalog.calculationBasis?.executionCostPln ?? 0, 0, "basis executionCost > 0");
 assertGt(bidCatalog.costPricePln ?? 0, 0, "AC-2 costPricePln > 0");
@@ -362,8 +402,16 @@ console.log("\n13. P2-G.1C — tender-bid-quality");
 assertEq(getBidSourceLabel("catalog"), "Katalog WGDOM", "badge catalog");
 assertEq(getBidSourceLabel("ath_priced"), "Kosztorys ATH", "badge ath_priced");
 assertEq(assessBidQuality("ath_priced").level, "high", "quality high");
-assertEq(assessBidQuality("catalog", 0.05).level, "medium", "quality medium");
-assertEq(assessBidQuality("catalog", 0.2).level, "limited", "quality limited UNKNOWN>15%");
+assertEq(assessBidQuality("catalog", 0.05).level, "high", "quality high 95% coverage");
+assertEq(assessBidQuality("catalog", 0.08).level, "good", "quality good 92% coverage");
+assertEq(assessBidQuality("catalog", 0.12).level, "good", "quality good 88% coverage");
+assertEq(assessBidQuality("catalog", 0.16).level, "medium", "quality medium 84% coverage");
+assertEq(assessBidQuality("catalog", 0.2).level, "medium", "quality medium 80% coverage");
+assertEq(assessBidQuality("catalog", 0.35).level, "limited", "quality limited 65% coverage");
+assert(Math.abs(coveragePercentFromUnknownFraction(0.181) - 81.9) < 0.01, "coverage ~81.9%");
+assert(shouldShowUnknownReviewAdvice(0.18), "advice when UNKNOWN>15%");
+assert(!shouldShowUnknownReviewAdvice(0.15), "no advice at 15%");
+assert(TENDER_UNKNOWN_REVIEW_ADVICE.includes("niesklasyfikowane"), "advice text");
 assert(TENDER_BID_DISCLAIMER.includes("Autorska wycena WGDOM"), "disclaimer text");
 const enriched = enrichBidProposalMeta({ ...bidCatalog });
 assertEq(enriched.sourceLabelPl, "Katalog WGDOM", "enrich source");
@@ -435,6 +483,43 @@ const prepChecks = computeBidPrepChecks(
 const ourBidCheck = prepChecks.find((c) => c.id === "our-bid");
 assertEq(ourBidCheck?.navigateToBidDetails, true, "our-bid tile navigable");
 assertEq(ourBidCheck?.actionHint, OUR_ESTIMATE_TILE_NAV_HINT, "our-bid action hint");
+
+console.log("\n17. P2-G.1E — Classification Inspector");
+const mixedK = makeMixedUnknownKosztorys();
+assertEq(mixedK.catalogQuantities.length, 221, "mixed 221 poz.");
+const classSummary = buildClassificationSummary(mixedK.catalogQuantities);
+assertEq(classSummary.totalRows, 221, "summary totalRows");
+assertEq(classSummary.classifiedRows, 181, "summary classifiedRows");
+assertEq(classSummary.unknownRows, 40, "summary unknownRows");
+assert(Math.abs(classSummary.classifiedPercent - 81.9) < 0.2, "coverage ~81.9%");
+assert(Math.abs(classSummary.unknownPercent - 18.1) < 0.2, "unknown ~18.1%");
+assertEq(CLASSIFICATION_CATEGORY_ORDER.length, 9, "9 categories incl UNKNOWN");
+assert(classSummary.categories.some((c) => c.id === "UNKNOWN" && c.count === 40), "UNKNOWN bucket 40");
+assert(classSummary.categories.some((c) => c.id === "MALOWANIE" && c.count > 0), "MALOWANIE bucket");
+const malCat = classSummary.categories.find((c) => c.id === "MALOWANIE");
+assert(malCat?.unitDistribution?.length > 0, "unit distribution present");
+const unknownList = buildUnknownRows(mixedK.catalogQuantities);
+assertEq(unknownList.length, 40, "unknown rows count");
+assert(unknownList[0].quantity >= unknownList[unknownList.length - 1].quantity, "unknown sorted by qty desc");
+const sortedQtys = unknownList.map((r) => r.quantity);
+const expectedSorted = [...sortedQtys].sort((a, b) => b - a);
+assert(JSON.stringify(sortedQtys) === JSON.stringify(expectedSorted), "unknown qty sort order");
+const hints = buildCatalogTuningHints(unknownList);
+assert(hints.length > 0, "tuning hints non-empty");
+assert(hints[0].count >= hints[hints.length - 1]?.count, "hints sorted by count");
+assert(hints.some((h) => h.word === "lamperii" || h.word === "lamperi"), "hint lamperia/lamperii");
+const bidMixed = computeTenderBidProposal({
+  kosztorys: mixedK,
+  swz: { estimatedValuePln: 1_200_000 },
+  fit: null,
+  costModel,
+  minProjectDays: 30,
+  maxConcurrentProjects: 2,
+});
+assertEq(bidMixed.ok, true, "mixed catalog bid ok");
+assertEq(bidMixed.qualityLevel, "medium", "mixed ~82% → Średnia");
+assert(bidMixed.qualityDetailPl?.includes(TENDER_UNKNOWN_REVIEW_ADVICE), "mixed advice in detail");
+assertGt(bidMixed.catalogUnknownPct ?? 0, 0.15, "mixed unknown fraction >15%");
 
 console.log(`\n---\nPASS: ${passed}  FAIL: ${failed}  TOTAL: ${passed + failed}`);
 if (failed > 0) {

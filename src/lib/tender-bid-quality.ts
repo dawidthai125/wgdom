@@ -1,10 +1,10 @@
 /**
- * P2-G.1C — jakość wyceny, etykiety źródła, podstawa kalkulacji.
+ * P2-G.1C + P2-G.1E — jakość wyceny, etykiety źródła, podstawa kalkulacji.
  */
 
 import type { TenderBidPricingMode, TenderBidProposal, TenderBidCostLine } from "@/lib/tenders-bid-calculator";
 
-export type TenderBidQualityLevel = "high" | "medium" | "limited";
+export type TenderBidQualityLevel = "high" | "good" | "medium" | "limited";
 
 export interface TenderBidCalculationBasis {
   laborPln: number;
@@ -22,14 +22,34 @@ export interface TenderBidQualityInfo {
 
 const QUALITY_LABELS: Record<TenderBidQualityLevel, string> = {
   high: "Wysoka",
+  good: "Dobra",
   medium: "Średnia",
   limited: "Ograniczona",
 };
+
+export const TENDER_UNKNOWN_REVIEW_ADVICE =
+  "Warto przejrzeć pozycje niesklasyfikowane przed złożeniem oferty.";
 
 export function getBidSourceLabel(pricingMode: TenderBidPricingMode | null | undefined): string | null {
   if (pricingMode === "catalog") return "Katalog WGDOM";
   if (pricingMode === "ath_priced") return "Kosztorys ATH";
   return null;
+}
+
+/** Pokrycie klasyfikacji (0–100) z ułamka UNKNOWN (0–1). */
+export function coveragePercentFromUnknownFraction(catalogUnknownPct: number): number {
+  return Math.max(0, Math.min(100, (1 - catalogUnknownPct) * 100));
+}
+
+export function shouldShowUnknownReviewAdvice(catalogUnknownFraction: number): boolean {
+  return catalogUnknownFraction > 0.15;
+}
+
+function qualityLevelFromCoverage(coveragePct: number): TenderBidQualityLevel {
+  if (coveragePct >= 95) return "high";
+  if (coveragePct >= 85) return "good";
+  if (coveragePct >= 70) return "medium";
+  return "limited";
 }
 
 export function assessBidQuality(
@@ -40,18 +60,26 @@ export function assessBidQuality(
     return { level: "high", labelPl: QUALITY_LABELS.high };
   }
   if (pricingMode === "catalog") {
-    const pct = catalogUnknownPct ?? 0;
-    if (pct > 0.15) {
-      return {
-        level: "limited",
-        labelPl: QUALITY_LABELS.limited,
-        detailPl: `${Math.round(pct * 100)}% pozycji niesklasyfikowanych`,
-      };
+    const unknownFrac = catalogUnknownPct ?? 0;
+    const coveragePct = coveragePercentFromUnknownFraction(unknownFrac);
+    const level = qualityLevelFromCoverage(coveragePct);
+
+    const detailParts: string[] = [];
+    if (unknownFrac > 0) {
+      detailParts.push(
+        `${Math.round(unknownFrac * 100)}% pozycji niesklasyfikowanych · pokrycie ${coveragePct.toFixed(1)}%`,
+      );
+    } else {
+      detailParts.push(`Pokrycie klasyfikacji ${coveragePct.toFixed(1)}%`);
     }
+    if (shouldShowUnknownReviewAdvice(unknownFrac)) {
+      detailParts.push(TENDER_UNKNOWN_REVIEW_ADVICE);
+    }
+
     return {
-      level: "medium",
-      labelPl: QUALITY_LABELS.medium,
-      detailPl: "Przedmiar ATH bez cen — katalog WGDOM",
+      level,
+      labelPl: QUALITY_LABELS[level],
+      detailPl: detailParts.join(" · "),
     };
   }
   return { level: "limited", labelPl: QUALITY_LABELS.limited };

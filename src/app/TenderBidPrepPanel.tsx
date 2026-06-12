@@ -377,6 +377,7 @@ export function TenderBidPrepPanel({
           missingKosztorys={!item.tenderDossier?.kosztorys?.ok}
           breakdownOpen={bidBreakdownOpen}
           highlight={bidPanelHighlight}
+          catalogQuantities={item.tenderDossier?.kosztorys?.catalogQuantities}
         />
       </div>
 

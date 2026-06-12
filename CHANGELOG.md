@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.52.4 — P2-G.1E Classification Inspector
+- buildClassificationSummary / buildUnknownRows / buildCatalogTuningHints
+- TenderBidProposalPanel sekcja Klasyfikacja przedmiaru
+- Jakość wyceny z pokrycia % (Wysoka/Dobra/Średnia/Ograniczona)
+
 ## 2.52.3 — P2-G.1D UX wyceny discoverability + explainability
 - Kafelek Nasza wycena → scroll do TenderBidProposalPanel + hint
 - Panel: Skąd/Jak powstała wycena, breakdown domyślnie otwarty
