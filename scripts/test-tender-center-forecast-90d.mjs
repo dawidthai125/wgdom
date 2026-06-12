@@ -1,6 +1,6 @@
 /**
  * Tender Center PRO — test prognozy 90 dni ETAP 3B
- * Run: npx vite-node scripts/test-tender-center-forecast-90d.mjs
+ * Run: npx vite-node scripts/test-tenders-strategy-forecast-90d.mjs
  */
 
 if (typeof globalThis.DOMMatrix === "undefined") {
@@ -17,9 +17,9 @@ if (typeof globalThis.DOMMatrix === "undefined") {
 }
 
 const { defaultCompanyProfile } = await import("../src/lib/tenders-bzp-company.ts");
-const { computeForecast90Days, primaryForecastScenario } = await import("../src/lib/tender-center-forecast-90d.ts");
-const { scoreTender } = await import("../src/lib/tender-center-decision.ts");
-const { computeCompanyHealth } = await import("../src/lib/tender-center-health.ts");
+const { computeForecast90Days, primaryForecastScenario } = await import("../src/lib/tenders-strategy-forecast-90d.ts");
+const { scoreTender } = await import("../src/lib/tenders-strategy-decision.ts");
+const { computeCompanyHealth } = await import("../src/lib/tenders-strategy-health.ts");
 
 const profile = defaultCompanyProfile();
 const now = new Date("2026-06-02T12:00:00.000Z");
@@ -199,5 +199,5 @@ const examples = [];
 assert("3 scenarios always", examples.length === 3);
 
 const failed = results.filter((r) => !r.pass);
-console.log(JSON.stringify({ test: "tender-center-forecast-90d", results, examples, pass: failed.length === 0 }, null, 2));
+console.log(JSON.stringify({ test: "tenders-strategy-forecast-90d", results, examples, pass: failed.length === 0 }, null, 2));
 process.exit(failed.length === 0 ? 0 : 1);

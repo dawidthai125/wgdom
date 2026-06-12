@@ -52,7 +52,7 @@ UX FIX (bez bump UI)     → neutralny nagłówek morning briefing (622bbbb)
 
 | | |
 |---|---|
-| **Plik** | `src/lib/tender-center-morning-briefing.ts` → `buildGreeting()` |
+| **Plik** | `src/lib/tenders-strategy-morning-briefing.ts` → `buildGreeting()` |
 | **Stary tekst** | `Dzień dobry Iwona.` (pierwsze imię z `profile.ownerName`) |
 | **Nowy tekst** | `Dzienny raport operacyjny W&G` |
 | **UI** | `MorningBriefingCard.tsx` — linia pod nagłówkiem „Codzienny raport właściciela” |

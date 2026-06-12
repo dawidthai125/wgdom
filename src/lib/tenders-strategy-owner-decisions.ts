@@ -3,7 +3,7 @@
  * Tylko localStorage — bez KV i cloud-sync.
  */
 
-import type { TenderDecision } from "@/lib/tender-center-decision";
+import type { TenderDecision } from "@/lib/tenders-strategy-decision";
 
 export const TENDER_DECISIONS_STORAGE_KEY = "kw-tender-decisions";
 

@@ -1,11 +1,11 @@
 import { History } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
-import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
+import { DECISION_LABEL_PL } from "@/lib/tenders-strategy-decision";
 import type {
   OwnerDecisionStats,
   OwnerSystemAlignment,
   OwnerTenderDecisionRecord,
-} from "@/lib/tender-center-owner-decisions";
+} from "@/lib/tenders-strategy-owner-decisions";
 
 function fmtWhen(iso: string): string {
   const d = new Date(iso);

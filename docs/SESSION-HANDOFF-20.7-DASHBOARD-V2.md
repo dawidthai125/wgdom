@@ -67,8 +67,8 @@ STABLE · E2E HARDENED
 |------|------------------------|
 | `src/lib/dashboard-hero-today.ts` | `buildHeroToday()`, `buildHeroTodayRankedAll()`, ranker, mappers |
 | `src/lib/dashboard-hero-consolidation.ts` | `getHeroCoveredUwagaSections()` — dedupe vs Uwaga dziś |
-| `src/lib/tender-center-action-center.ts` | `buildActionCenter()` — **silnik** Action Center |
-| `src/lib/tender-center-action-center-display.ts` | Prezentacja slotów forecast w UI (bez %) |
+| `src/lib/tenders-strategy-action-center.ts` | `buildActionCenter()` — **silnik** Action Center |
+| `src/lib/tenders-strategy-action-center-display.ts` | Prezentacja slotów forecast w UI (bez %) |
 
 **Zasada:** zmiany UI (20.7D.1) **nie dotykają** powyższych silników.
 
@@ -113,11 +113,11 @@ Operacyjne alerty (WM, płace, dokumenty, inspektor…) → `mapOperationalAlert
 |------|------|
 | `src/app/DashboardView.tsx` | Layout Pulpicu, `heroTodayInput`, dedupe Uwaga, KPI |
 | `src/app/HeroDzisPanel.tsx` | `variant="full" \| "compact"`, `embedded`, nawigacja |
-| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | Przetargi — skrót + embedded Hero compact |
+| `src/app/tenders/strategy/components/CommandCenterExecutivePanel.tsx` | Przetargi — skrót + embedded Hero compact |
 | `src/lib/dashboard-hero-today.ts` | Ranker SSOT |
 | `src/lib/dashboard-hero-consolidation.ts` | Dedupe Uwaga dziś |
-| `src/lib/tender-center-action-center-display.ts` | Sloty w Action Center UI |
-| `src/app/tender-center/context/CommandCenterContext.tsx` | Snapshot CC dla Hero input |
+| `src/lib/tenders-strategy-action-center-display.ts` | Sloty w Action Center UI |
+| `src/app/tenders/strategy/context/CommandCenterContext.tsx` | Snapshot CC dla Hero input |
 | `e2e/dashboard-hero.spec.ts` | E2E Hero (A–E) |
 
 **Testy unit (vite-node):**

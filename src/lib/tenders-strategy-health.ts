@@ -25,13 +25,13 @@ import {
 import type { TenderCompanyProfile } from "@/lib/tenders-bzp-company";
 import { extractRequiredReferencePln } from "@/lib/tenders-bzp-fit";
 import { stripHtmlToText } from "@/lib/tenders-bzp-swz";
-import { aggregateMarketKpi, type TenderCenterMarketKpi } from "@/lib/tender-center-kpi";
+import { aggregateMarketKpi, type TendersStrategyMarketKpi } from "@/lib/tenders-strategy-kpi";
 import {
   type GrowthMode,
   healthWeightsForMode,
   type HealthDimensionWeights,
   suggestGrowthMode,
-} from "@/lib/tender-center-growth-mode";
+} from "@/lib/tenders-strategy-growth-mode";
 import { wmJobsPlannedThisWeek, wmJobsWithOverduePlanned } from "@/lib/job-wm";
 
 export type HealthDimension = "O" | "Z" | "F" | "R" | "D";
@@ -76,7 +76,7 @@ export interface CompanyHealthInput {
   savedWeeks?: WeekSnapshot[];
   now?: Date;
   /** Precomputed KPI — pomija redundantne aggregateMarketKpi (Performance 2.1A). */
-  marketKpi?: TenderCenterMarketKpi;
+  marketKpi?: TendersStrategyMarketKpi;
 }
 
 function clamp(n: number, min: number, max: number): number {
@@ -188,7 +188,7 @@ function computeFinancialScore(
   items: TenderPipelineItem[],
   jobs: Job[],
   profile: TenderCompanyProfile,
-  marketKpi?: TenderCenterMarketKpi,
+  marketKpi?: TendersStrategyMarketKpi,
 ): number {
   const kpi = marketKpi ?? aggregateMarketKpi(items, profile);
   const completed = jobs.filter((j) => j.status === "completed");

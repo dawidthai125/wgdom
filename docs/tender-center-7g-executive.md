@@ -1,4 +1,6 @@
-# ETAP 7G — Pulpit admina × COMMAND CENTER AI (executive summary)
+# ETAP 7G — Pulpit admina × Przetargi Strategia (executive summary)
+
+> **SUPERSEDED** — Command Center removed in **v2.51.0**. Aktualna architektura: **Przetargi 3.0** → [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.3, [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md).
 
 > **Dla agentów AI:** czytaj ten plik przed zmianą pulpitu, `tenderDashStats` lub integracji CC.  
 > **Prod:** `main` @ **`61cb33b`** (UI **2.50.43**) · https://www.wgdom.fun  
@@ -19,24 +21,24 @@ Pełny moduł CC pozostaje w `TenderCenterProView` → `OwnerDashboard`.
 
 | Plik | Rola |
 |------|------|
-| `src/app/tender-center/context/CommandCenterContext.tsx` | **ETAP 7H** — `CommandCenterProvider` + wspólny pipeline i snapshot |
+| `src/app/tenders/strategy/context/CommandCenterContext.tsx` | **ETAP 7H** — `CommandCenterProvider` + wspólny pipeline i snapshot |
 | `src/app/admin/AdminViewRouter.tsx` | Owija widoki admina w `CommandCenterProvider` gdy `canViewTendersNav` |
 | `src/app/DashboardView.tsx` | KPI first · `CommandCenterExecutivePanel` + Hero fallback · dedupe Uwaga dziś |
 | `src/app/HeroDzisPanel.tsx` | Hero DZIŚ compact accordion (`variant="compact"`, `embedded` w skrócie) |
 | `src/lib/dashboard-hero-today.ts` | SSOT ranker `buildHeroToday()` — **nie zmieniać bez sprintu 2A** |
-| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | **Przetargi — skrót:** liczniki + Hero compact + CTA CC |
-| `src/app/tender-center/hooks/useCommandCenterExecutiveSnapshot.ts` | **ETAP 7H** — cienki odczyt `ctx.snapshot` (bez drugiego pipeline) |
-| `src/app/tender-center/components/OwnerDashboard.tsx` | Pełny CC; używa tego samego hooka |
+| `src/app/tenders/strategy/components/CommandCenterExecutivePanel.tsx` | **Przetargi — skrót:** liczniki + Hero compact + CTA CC |
+| `src/app/tenders/strategy/hooks/useCommandCenterExecutiveSnapshot.ts` | **ETAP 7H** — cienki odczyt `ctx.snapshot` (bez drugiego pipeline) |
+| `src/app/tenders/strategy/components/OwnerDashboard.tsx` | Pełny CC; używa tego samego hooka |
 | `src/app/admin/AdminViewRouter.tsx` | `view === "dashboard"` → `DashboardView` |
 | `src/app/App.tsx` | `canViewTendersNav`, nawigacja `onOpenTenders` → `setView("tenders")` |
 
 ### Liby (bez duplikacji logiki w panelu)
 
-- `computeCompanyHealth` — `src/lib/tender-center-health.ts`
-- `buildMorningBriefing` — `src/lib/tender-center-morning-briefing.ts`
-- `buildActionCenter` — `src/lib/tender-center-action-center.ts`
-- `computeForecast90Days` — `src/lib/tender-center-forecast-90d.ts`
-- `rankTopTenderOpportunities` / `bestOpportunity` — `src/lib/tender-center-decision.ts`
+- `computeCompanyHealth` — `src/lib/tenders-strategy-health.ts`
+- `buildMorningBriefing` — `src/lib/tenders-strategy-morning-briefing.ts`
+- `buildActionCenter` — `src/lib/tenders-strategy-action-center.ts`
+- `computeForecast90Days` — `src/lib/tenders-strategy-forecast-90d.ts`
+- `rankTopTenderOpportunities` / `bestOpportunity` — `src/lib/tenders-strategy-decision.ts`
 - `computeTenderImpact` + `computeFinancialCapacity` — tylko gdy `financialCapacityEnabled: true` (pulpit)
 
 ---
@@ -93,7 +95,7 @@ Nagłówek sekcji na Pulpicie: **Przetargi — skrót** (nie pełny CC).
 
 **Ładowanie:** `pipeline.loading` → „Ładowanie przetargów…”.
 
-**Polonizacja (20.3B+ FULL, v2.50.43):** etykiety kart executive po PL (Indeks kondycji, Zdolność finansowa, …); marka **COMMAND CENTER AI** bez zmian. Mapy: `src/lib/tender-center-ui-labels-pl.ts`, `DECISION_LABEL_PL`. Handoff: [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md). Smoke: `smoke-test-ui-language-20.3b-full.mjs`.
+**Polonizacja (20.3B+ FULL, v2.50.43):** etykiety kart executive po PL (Indeks kondycji, Zdolność finansowa, …); marka **COMMAND CENTER AI** bez zmian. Mapy: `src/lib/tenders-strategy-ui-labels-pl.ts`, `DECISION_LABEL_PL`. Handoff: [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md). Smoke: `smoke-test-ui-language-20.3b-full.mjs`.
 
 ---
 
@@ -134,7 +136,7 @@ Stary UX („Przetargi BZP” + lista `computeTenderDashboardAlerts`) **zastąpi
 
 ## Smoke test po deploy 7G
 
-1. Pulpit (konto z przetargami): sekcja **W&G DOM COMMAND CENTER AI**.
+1. Pulpit (konto z przetargami): sekcja **W&G DOM — Przetargi Strategia**.
 2. **Otwórz COMMAND CENTER AI** → zakładka Przetargi, `OwnerDashboard` bez błędu init.
 3. Brak: `MetricHelpTooltip is not defined`, `Cannot access before initialization`, failed dynamic import chunka.
 4. Action Center na pulpicie: ≤ 3 wpisy CRITICAL/HIGH.

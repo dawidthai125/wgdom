@@ -1,17 +1,17 @@
 /**
- * W&G DOM COMMAND CENTER AI — Financial Command Center (ETAP 6E).
+ * W&G DOM — Przetargi Strategia — Financial capacity (Przetargi Strategia) (ETAP 6E).
  * Runtime only — zdolność finansowa względem wadium i skali firmy.
  */
 
 import type { Job } from "@/app/app-domain";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderCompanyProfile } from "@/lib/tenders-bzp-company";
-import type { GrowthMode } from "@/lib/tender-center-growth-mode";
-import type { CompanyHealthResult } from "@/lib/tender-center-health";
-import { aggregateMarketKpi, type TenderCenterMarketKpi } from "@/lib/tender-center-kpi";
-import type { TenderScoringBundle } from "@/lib/tender-center-decision";
-import type { TenderImpactResult, ContractScale } from "@/lib/tender-center-impact";
-import { METRIC_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
+import type { GrowthMode } from "@/lib/tenders-strategy-growth-mode";
+import type { CompanyHealthResult } from "@/lib/tenders-strategy-health";
+import { aggregateMarketKpi, type TendersStrategyMarketKpi } from "@/lib/tenders-strategy-kpi";
+import type { TenderScoringBundle } from "@/lib/tenders-strategy-decision";
+import type { TenderImpactResult, ContractScale } from "@/lib/tenders-strategy-impact";
+import { METRIC_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 
 export type FinancialCapacityClass =
   | "BARDZO WYSOKA"
@@ -57,7 +57,7 @@ export interface FinancialCapacityInput {
   growthMode: GrowthMode;
   pipelineItems: TenderPipelineItem[];
   /** Precomputed KPI (Performance 2.1A). */
-  marketKpi?: TenderCenterMarketKpi;
+  marketKpi?: TendersStrategyMarketKpi;
 }
 
 const GROWTH_BUFFER_MULT: Record<GrowthMode, number> = {
@@ -141,7 +141,7 @@ function computeEstimatedBuffer(
   jobs: Job[],
   pipelineItems: TenderPipelineItem[],
   contractValue: number | null,
-  marketKpi?: TenderCenterMarketKpi,
+  marketKpi?: TendersStrategyMarketKpi,
 ): number {
   const kpi = marketKpi ?? aggregateMarketKpi(pipelineItems, profile);
   const wadiumHeadroom = Math.max(0, kpi.wadiumHeadroomPln);

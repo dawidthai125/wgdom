@@ -1,7 +1,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 import type { TendersTabId } from "@/lib/tenders-module-labels";
 import type { TendersStrategySnapshot } from "@/app/tenders/context/tenders-strategy-snapshot";
-import type { useOwnerTenderDecisions } from "@/app/tender-center/hooks/useOwnerTenderDecisions";
+import type { useOwnerTenderDecisions } from "@/app/tenders/strategy/hooks/useOwnerTenderDecisions";
 
 export type TendersContextValue = {
   snapshot: TendersStrategySnapshot;

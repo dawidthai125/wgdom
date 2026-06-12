@@ -15,7 +15,7 @@ const markers = [
   { id: "pipeline_offers_pl", text: "Lejek ofert", required: true },
   { id: "decision_history_pl", text: "Historia decyzji", required: true },
   { id: "decision_startuj", text: "STARTUJ", required: true },
-  { id: "metric_labels_pl", text: "tender-center-ui-labels-pl", required: false },
+  { id: "metric_labels_pl", text: "tenders-strategy-ui-labels-pl", required: false },
   { id: "no_health_index_en", text: "Health Index", required: false, mustAbsent: true },
   { id: "no_ai_insights_en", text: ">AI Insights<", required: false, mustAbsent: true },
   { id: "billing_evidence", text: "billing-evidence-", required: true },

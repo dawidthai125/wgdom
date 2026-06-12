@@ -5,10 +5,10 @@ import {
   primaryForecastScenario,
   riskTone,
   utilizationBarTone,
-} from "@/lib/tender-center-forecast-90d";
-import { formatForecastSlots } from "@/lib/tender-center-forecast-display";
-import { MetricHelpTooltip } from "@/app/tender-center/components/MetricHelpTooltip";
-import { BASELINE_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
+} from "@/lib/tenders-strategy-forecast-90d";
+import { formatForecastSlots } from "@/lib/tenders-strategy-forecast-display";
+import { MetricHelpTooltip } from "@/app/tenders/strategy/components/MetricHelpTooltip";
+import { BASELINE_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 
 function HorizonTile({
   days,
@@ -55,7 +55,7 @@ function HorizonTile({
   );
 }
 
-export function ForecastCommandStrip({ forecast }: { forecast: Forecast90DaysResult }) {
+export function TendersStrategyForecastStrip({ forecast }: { forecast: Forecast90DaysResult }) {
   const primary = primaryForecastScenario(forecast);
   const h30 = primary.horizons.find((h) => h.days === 30);
   const h60 = primary.horizons.find((h) => h.days === 60);

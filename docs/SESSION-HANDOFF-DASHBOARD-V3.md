@@ -88,7 +88,7 @@ Użytkownik musi móc **ręcznie policzyć** wynik. Zakazane na Pulpicie:
 | `src/app/DashboardView.tsx` | Layout V3, KPI, sekcja Braki, orchestracja |
 | `src/app/DashboardPilneUwagiSection.tsx` | UI kategorii Pilnych uwag (pełne listy) |
 | `src/lib/dashboard-urgent-today.ts` | **SSOT** liczników kategorii + `urgentTodayTotal` |
-| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | Przetargi — skrót (CC, bez zmian V3) |
+| `src/app/tenders/strategy/components/CommandCenterExecutivePanel.tsx` | Przetargi — skrót (CC, bez zmian V3) |
 | `src/lib/recoverable-charges.ts` | `computeRecoverableChargesAlerts()` — moduł; na Pulpicie tylko `alerts.length` |
 
 ### Usunięte w V3 (nie przywracać)

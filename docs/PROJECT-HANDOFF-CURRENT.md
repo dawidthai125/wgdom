@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-11 (aktualizacja Dashboard V3)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-12 (P1-B ETAP 4 — rename cleanup)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -33,10 +33,10 @@
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version:              2.50.74
-Feature commit (app):   5a54399   feat(dashboard): V3 operational layout without Hero
-Poprzedni (dashboard):  ad859e6   feat(dashboard): Hero operational only (2.50.73)
-Poprzedni feature:      ee2cd72   Default Inspector Recipient 2.1.1 (2.50.70)
+Version:              2.51.1
+Feature commit (app):   (ETAP 4) refactor: finalize command center removal cleanup
+Poprzedni (P1-B ETAP 3): 39b1892   refactor: remove command center runtime architecture (2.51.0)
+Poprzedni (ETAP 2):       58b4cd7   feat: introduce tenders 3.0 module architecture (2.50.76)
 Git tag backup:         pre-next-feature-2.50.64 → c7bc58f
 E2E (origin/main):      8906485   20.5Z.2B E2E Version Awareness
 PWA (origin/main):      46556a7   20.5Z.2A
@@ -46,7 +46,8 @@ PWA (origin/main):      46556a7   20.5Z.2A
 |--------|---------|
 | **RELEASED** | TAK |
 | **STABLE** | TAK |
-| **PRODUCTION VERIFIED** | TAK — `version.json` = **2.50.74** |
+| **PRODUCTION VERIFIED** | TAK — `version.json` = **2.51.1** (po deploy ETAP 4) |
+| **P1-B Przetargi 3.0** | **COMPLETE** (ETAP 1–4) · **Command Center removed in v2.51.0** |
 | **Dashboard V3 (P1-A)** | **COMPLETE** · handoff: [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md) |
 | **Inspector Communication Templates** | **2.1.0 + 2.1.1 COMPLETE** · **2.1.2 CANCELLED** |
 
@@ -54,8 +55,23 @@ PWA (origin/main):      46556a7   20.5Z.2A
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.50.74" }
+# oczekiwane: { "version": "2.51.1" }
 ```
+
+---
+
+## 2a. P1-B — Przetargi 3.0 / Command Center removal (**CLOSED**)
+
+**Command Center removed in v2.51.0** — brak runtime `CommandCenterProvider`, `TenderCenterProView`, `OwnerDashboard`.
+
+| ETAP | Wersja | Skrót |
+|------|--------|-------|
+| 1 | 2.50.75 | Usunięcie legacy UI CC (Morning Briefing, AI Insights, …) |
+| 2 | 2.50.76 | `TendersModule` — 5 zakładek |
+| 3 | 2.51.0 | `TendersProvider` + `TendersShortcutPanel`; hard delete CC shell |
+| 4 | 2.51.1 | Rename: `src/app/tenders/strategy/`, lib `tenders-strategy-*` |
+
+**Architektura:** [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.3 · **SUPERSEDED:** [`tender-center-7g-executive.md`](tender-center-7g-executive.md)
 
 ---
 
@@ -186,7 +202,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | PWA | `sw.template.js` · `generate-service-worker.mjs` |
 | Kontakt inspektora § 9.2 | `inspector-message-templates.ts`, `email-contacts.ts`, `JobInspectorContactModal.tsx` |
 | **Pulpit V3** | `DashboardView.tsx`, `DashboardPilneUwagiSection.tsx`, `dashboard-urgent-today.ts` |
-| Command Center (strategia) | `TenderCenterProView` / `OwnerDashboard` — **nie** na Pulpicie (tylko skrót CC) |
+| Przetargi (strategia) | `TendersModule` → zakładka **Strategia** — **nie** na Pulpicie (tylko `TendersShortcutPanel`) |
 
 ---
 
@@ -232,7 +248,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | Priorytet | Temat | Status |
 |-----------|-------|--------|
 | **P1-A** | Dashboard V3 Rework | **COMPLETE** (2.50.74) |
-| **P1-B** | Command Center Reassessment / Redesign | **OTWARTY** — nie blokuje V3 |
+| **P1-B** | Przetargi 3.0 / CC removal | **CLOSED** (ETAP 1–4, v2.51.1) |
 | **P2** | Audit Center / Security Log (Super Admin) | **OTWARTY** — wymaga nowego modułu |
 
 ---
@@ -253,7 +269,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 
 ```text
 Dashboard V3 (P1-A) — COMPLETE.
-Kolejny stream: P1-B (CC Reassessment) lub P2 (Audit Center) — tylko na polecenie po AUDIT.
+Kolejny stream: P2 (Audit Center) — tylko na polecenie po AUDIT.
 Inspector 2.1 — CLOSED (2.1.2 CANCELLED).
 ```
 
@@ -288,6 +304,6 @@ Przy wznowieniu:
 ```text
 BASELINE 2.50.74 · STABLE · PRODUCTION VERIFIED
 Dashboard V3 (P1-A) COMPLETE · Inspector 2.1 CLOSED · 2.1.2 CANCELLED
-Backlog: P1-B CC Reassessment · P2 Audit Center
+Backlog: P2 Audit Center
 Ready for new GPT / new Cursor agent
 ```

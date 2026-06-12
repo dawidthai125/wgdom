@@ -4,12 +4,21 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.51.0** (`changelog-data.ts`) · Przetargi 3.0 — CC usunięty z runtime  
+**Aktualna wersja UI:** **2.51.1** (`changelog-data.ts`) · Przetargi 3.0 — ETAP 4 rename cleanup  
 **★ SSOT handoff:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../CURRENT-TASK.md)  
 **★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
+
+---
+
+## 2.51.1 (2026-06-12) — Przetargi 3.0 — ETAP 4 rename cleanup
+
+- `src/app/tender-center/` → `src/app/tenders/strategy/`
+- `tender-center-*` lib → `tenders-strategy-*`
+- CommandCenterHero → TendersStrategyHero; ForecastCommandStrip → TendersStrategyForecastStrip
+- ARCHITECTURE + handoff: Command Center removed in v2.51.0
 
 ---
 

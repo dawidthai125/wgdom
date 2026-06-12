@@ -17,7 +17,7 @@ import type {
 import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import { TENDERS_MODULE_LABELS, type TendersTabId } from "@/lib/tenders-module-labels";
-import { SECTION_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
+import { SECTION_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 import { TendersListTab } from "@/app/tenders/tabs/TendersListTab";
 import { TendersStrategyTab } from "@/app/tenders/tabs/TendersStrategyTab";
 import { TendersMapTab } from "@/app/tenders/tabs/TendersMapTab";

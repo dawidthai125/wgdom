@@ -4,14 +4,14 @@
  */
 
 import { daysUntilTenderDeadline } from "@/lib/tenders-bzp";
-import type { CompanyHealthResult } from "@/lib/tender-center-health";
-import type { TenderScoringBundle } from "@/lib/tender-center-decision";
-import type { Forecast90DaysResult } from "@/lib/tender-center-forecast-90d";
-import { collectGoCandidates, primaryForecastScenario } from "@/lib/tender-center-forecast-90d";
-import type { OwnerDecisionsStore } from "@/lib/tender-center-owner-decisions";
+import type { CompanyHealthResult } from "@/lib/tenders-strategy-health";
+import type { TenderScoringBundle } from "@/lib/tenders-strategy-decision";
+import type { Forecast90DaysResult } from "@/lib/tenders-strategy-forecast-90d";
+import { collectGoCandidates, primaryForecastScenario } from "@/lib/tenders-strategy-forecast-90d";
+import type { OwnerDecisionsStore } from "@/lib/tenders-strategy-owner-decisions";
 import type { OwnerStrategicAlert } from "@/lib/tenders-strategy-alerts";
-import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
-import { BASELINE_LABEL_PL, METRIC_LABEL_PL, OPPORTUNITY_LABEL_PL, PIPELINE_LABEL_PL, STRATEGIC_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
+import { DECISION_LABEL_PL } from "@/lib/tenders-strategy-decision";
+import { BASELINE_LABEL_PL, METRIC_LABEL_PL, OPPORTUNITY_LABEL_PL, PIPELINE_LABEL_PL, STRATEGIC_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 
 export type ActionPriority = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 
@@ -185,7 +185,7 @@ function actionsFromHealth(health: CompanyHealthResult): OwnerActionItem[] {
       title: "Lejek ofert przeciążony",
       description: `Równoległe oferty przekraczają komfortowy limit (${Math.round(health.overloadIndex * 100)}%).`,
       reason: "Zbyt wiele przetargów w statusie zainteresowany/w przygotowaniu",
-      source: "tender-center-kpi · overloadIndex",
+      source: "tenders-strategy-kpi · overloadIndex",
       recommendedAction: "Zamknij lub odpuszcz część ofert w przygotowaniu.",
     }));
   }
@@ -314,7 +314,7 @@ function actionsFromOwnerDecisions(
       title: `Rozbieżność: Ty ${DECISION_LABEL_PL.HOLD}, system ${DECISION_LABEL_PL.GO} — bliski termin`,
       description: holdVsGoUrgent[0].item.title.slice(0, 72),
       reason: "Decyzja właściciela vs rekomendacja scoringu",
-      source: "kw-tender-decisions · tender-center-decision",
+      source: "kw-tender-decisions · tenders-strategy-decision",
       recommendedAction: `Ponownie oceń przetarg lub potwierdź ${DECISION_LABEL_PL.HOLD} przed upływem terminu.`,
       tenderId: holdVsGoUrgent[0].item.id,
     }));

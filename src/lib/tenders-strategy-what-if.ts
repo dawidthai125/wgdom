@@ -3,16 +3,16 @@
  * Presety scenariuszy vs baseline (50% GO · obecny limit slotów). Runtime only.
  */
 
-import type { TenderScoringBundle } from "@/lib/tender-center-decision";
-import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
-import { BASELINE_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
+import type { TenderScoringBundle } from "@/lib/tenders-strategy-decision";
+import { DECISION_LABEL_PL } from "@/lib/tenders-strategy-decision";
+import { BASELINE_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 import type {
   Forecast90DaysInput,
   ForecastHorizon,
   ForecastScenarioId,
   ForecastScenarioResult,
-} from "@/lib/tender-center-forecast-90d";
-import { computeSingleForecastScenario } from "@/lib/tender-center-forecast-90d";
+} from "@/lib/tenders-strategy-forecast-90d";
+import { computeSingleForecastScenario } from "@/lib/tenders-strategy-forecast-90d";
 
 export type WhatIfPresetId =
   | "baseline"

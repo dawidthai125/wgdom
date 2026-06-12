@@ -17,13 +17,13 @@ if (typeof globalThis.DOMMatrix === "undefined") {
 }
 
 const { defaultCompanyProfile } = await import("../src/lib/tenders-bzp-company.ts");
-const { computeCompanyHealth } = await import("../src/lib/tender-center-health.ts");
-const { scoreTender } = await import("../src/lib/tender-center-decision.ts");
+const { computeCompanyHealth } = await import("../src/lib/tenders-strategy-health.ts");
+const { scoreTender } = await import("../src/lib/tenders-strategy-decision.ts");
 const {
   computeWhatIfComparison,
   computeAllWhatIfPresets,
   WHAT_IF_PRESET_ORDER,
-} = await import("../src/lib/tender-center-what-if.ts");
+} = await import("../src/lib/tenders-strategy-what-if.ts");
 
 const profile = defaultCompanyProfile();
 const now = new Date("2026-06-02T12:00:00.000Z");

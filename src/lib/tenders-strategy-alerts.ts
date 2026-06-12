@@ -10,15 +10,15 @@ import {
 } from "@/lib/tenders-bzp";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderCompanyProfile } from "@/lib/tenders-bzp-company";
-import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
-import { OPPORTUNITY_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
-import type { TenderScoringBundle } from "@/lib/tender-center-decision";
-import type { Forecast90DaysResult } from "@/lib/tender-center-forecast-90d";
+import { DECISION_LABEL_PL } from "@/lib/tenders-strategy-decision";
+import { OPPORTUNITY_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
+import type { TenderScoringBundle } from "@/lib/tenders-strategy-decision";
+import type { Forecast90DaysResult } from "@/lib/tenders-strategy-forecast-90d";
 import {
   collectGoCandidates,
   primaryForecastScenario,
-} from "@/lib/tender-center-forecast-90d";
-import type { OwnerDecisionsStore } from "@/lib/tender-center-owner-decisions";
+} from "@/lib/tenders-strategy-forecast-90d";
+import type { OwnerDecisionsStore } from "@/lib/tenders-strategy-owner-decisions";
 import { wmJobsWithOverduePlanned } from "@/lib/job-wm";
 
 export type OwnerAlertTone = "warning" | "info" | "danger" | "success";
@@ -110,7 +110,7 @@ export function buildOwnerStrategicAlerts(input: OwnerAlertsInput): OwnerStrateg
       id: "overload-60",
       tone: "danger",
       message: `Możliwe przeciążenie firmy za 60 dni (${h60.utilizationPct}% obłożenia)`,
-      source: "tender-center-forecast-90d · scenariusz C",
+      source: "tenders-strategy-forecast-90d · scenariusz C",
     });
   }
 
@@ -137,7 +137,7 @@ export function buildOwnerStrategicAlerts(input: OwnerAlertsInput): OwnerStrateg
         id: "no-high-quality",
         tone: "info",
         message: `Brak przetargów wysokiej jakości (${OPPORTUNITY_LABEL_PL.short} ≥65) — rozważ poszerzenie kryteriów`,
-        source: "tender-center-opportunity-score · pipeline",
+        source: "tenders-strategy-opportunity-score · pipeline",
       });
     } else {
       alerts.push({
@@ -155,7 +155,7 @@ export function buildOwnerStrategicAlerts(input: OwnerAlertsInput): OwnerStrateg
       id: "low-load-90",
       tone: "warning",
       message: `Niskie obłożenie za 90 dni (${h90.utilizationPct}%) — planuj akwizycję kontraktów`,
-      source: "tender-center-forecast-90d · scenariusz C",
+      source: "tenders-strategy-forecast-90d · scenariusz C",
     });
   }
 

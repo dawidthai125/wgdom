@@ -1,4 +1,4 @@
-/** Etykiety modułu Przetargi (ex-COMMAND CENTER branding). */
+/** Etykiety modułu Przetargi (moduł Przetargi — Strategia). */
 export const TENDERS_MODULE_LABELS = {
   moduleTitle: "Przetargi",
   strategyView: "Analiza przetargów",

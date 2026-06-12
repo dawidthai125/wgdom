@@ -11,10 +11,10 @@ import {
 } from "@/lib/tenders-bzp";
 import type { TenderCompanyProfile } from "@/lib/tenders-bzp-company";
 import { estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
-import type { GrowthMode } from "@/lib/tender-center-growth-mode";
-import { GROWTH_MODE_LABELS, minOpportunityScoreForMode } from "@/lib/tender-center-growth-mode";
-import type { CompanyHealthResult } from "@/lib/tender-center-health";
-import { aggregateMarketKpi, countPreparingOffers, type TenderCenterMarketKpi } from "@/lib/tender-center-kpi";
+import type { GrowthMode } from "@/lib/tenders-strategy-growth-mode";
+import { GROWTH_MODE_LABELS, minOpportunityScoreForMode } from "@/lib/tenders-strategy-growth-mode";
+import type { CompanyHealthResult } from "@/lib/tenders-strategy-health";
+import { aggregateMarketKpi, countPreparingOffers, type TendersStrategyMarketKpi } from "@/lib/tenders-strategy-kpi";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
 
 export type StrategicScoreLabel = "STARTUJ" | "ANALIZUJ" | "ODPUŚĆ";
@@ -33,7 +33,7 @@ export interface StrategicScoreContext {
   profile: TenderCompanyProfile;
   now?: Date;
   /** Precomputed KPI — pomija redundantne aggregateMarketKpi w scoreWadiumCapacity (Performance 2.1A). */
-  marketKpi?: TenderCenterMarketKpi;
+  marketKpi?: TendersStrategyMarketKpi;
 }
 
 function clamp(n: number, min: number, max: number): number {
@@ -138,7 +138,7 @@ function scoreWadiumCapacity(
   item: TenderPipelineItem,
   profile: TenderCompanyProfile,
   items: TenderPipelineItem[],
-  marketKpi?: TenderCenterMarketKpi,
+  marketKpi?: TendersStrategyMarketKpi,
 ): { pts: number; reason?: string } {
   const w = computeWadiumInfo(item, item.swzAnalysis ?? null, profile.maxWadiumPln);
   if (w.blocked) return { pts: 0, reason: "− brak headroomu na wadium" };

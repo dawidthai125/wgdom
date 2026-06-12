@@ -5,7 +5,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/app/components/ui/popover";
-import { METRIC_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
+import { METRIC_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 
 export type MetricHelpId =
   | "health-index"

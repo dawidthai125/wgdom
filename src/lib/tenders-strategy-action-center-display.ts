@@ -3,12 +3,12 @@
  * Sloty zamiast % dla akcji forecast; silnik buildActionCenter bez zmian.
  */
 
-import type { OwnerActionItem } from "@/lib/tender-center-action-center";
-import { formatForecastSlots } from "@/lib/tender-center-forecast-display";
+import type { OwnerActionItem } from "@/lib/tenders-strategy-action-center";
+import { formatForecastSlots } from "@/lib/tenders-strategy-forecast-display";
 import {
   primaryForecastScenario,
   type Forecast90DaysResult,
-} from "@/lib/tender-center-forecast-90d";
+} from "@/lib/tenders-strategy-forecast-90d";
 
 function forecastHorizonDaysFromActionId(id: string): number | null {
   if (id.includes("30")) return 30;

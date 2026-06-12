@@ -7,15 +7,15 @@ import {
   TrendingUp,
   Banknote,
 } from "lucide-react";
-import type { FinancialCapacityResult } from "@/lib/tender-center-financial-capacity";
-import { FINANCIAL_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
+import type { FinancialCapacityResult } from "@/lib/tenders-strategy-financial-capacity";
+import { FINANCIAL_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 import {
   capacityScoreTone,
   depositImpactTone,
   financialRecommendationTone,
   liquidityRiskTone,
-} from "@/lib/tender-center-financial-capacity";
-import { MetricHelpTooltip } from "@/app/tender-center/components/MetricHelpTooltip";
+} from "@/lib/tenders-strategy-financial-capacity";
+import { MetricHelpTooltip } from "@/app/tenders/strategy/components/MetricHelpTooltip";
 
 function fmtPln(n: number): string {
   return new Intl.NumberFormat("pl-PL", {

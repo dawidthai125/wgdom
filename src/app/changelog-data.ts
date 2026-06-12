@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.1",
+    label: "Przetargi 3.0 — cleanup nazewnictwa (ETAP 4)",
+    items: [
+      { type: "improve", text: "Rename techniczny — folder src/app/tenders/strategy/, lib tenders-strategy-* (ex tender-center-*)" },
+      { type: "improve", text: "TendersStrategyHero, TendersStrategyForecastStrip — spójne nazwy komponentów strategii" },
+      { type: "improve", text: "Dokumentacja — Command Center removed in v2.51.0; archiwalne handoffy oznaczone SUPERSEDED" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.0",
     label: "Przetargi 3.0 — usunięcie Command Center z runtime",
     items: [

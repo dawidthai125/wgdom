@@ -4,15 +4,15 @@ import type {
   WeekEmployee,
   WeekSnapshot,
 } from "@/app/app-domain";
-import type { CompanyHealthResult } from "@/lib/tender-center-health";
-import type { ActionCenterResult } from "@/lib/tender-center-action-center";
-import type { FinancialCapacityResult } from "@/lib/tender-center-financial-capacity";
-import type { Forecast90DaysInput, Forecast90DaysResult } from "@/lib/tender-center-forecast-90d";
-import type { TenderScoringBundle } from "@/lib/tender-center-decision";
-import type { UseTendersPipelineOptions } from "@/app/tender-center/hooks/useTendersPipeline";
-import { useTendersPipeline } from "@/app/tender-center/hooks/useTendersPipeline";
-import type { GrowthMode, GrowthModeState } from "@/lib/tender-center-growth-mode";
-import type { CompanyHealthInput } from "@/lib/tender-center-health";
+import type { CompanyHealthResult } from "@/lib/tenders-strategy-health";
+import type { ActionCenterResult } from "@/lib/tenders-strategy-action-center";
+import type { FinancialCapacityResult } from "@/lib/tenders-strategy-financial-capacity";
+import type { Forecast90DaysInput, Forecast90DaysResult } from "@/lib/tenders-strategy-forecast-90d";
+import type { TenderScoringBundle } from "@/lib/tenders-strategy-decision";
+import type { UseTendersPipelineOptions } from "@/app/tenders/strategy/hooks/useTendersPipeline";
+import { useTendersPipeline } from "@/app/tenders/strategy/hooks/useTendersPipeline";
+import type { GrowthMode, GrowthModeState } from "@/lib/tenders-strategy-growth-mode";
+import type { CompanyHealthInput } from "@/lib/tenders-strategy-health";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 
 export type TendersProviderInput = {
@@ -36,9 +36,9 @@ export type TendersStrategySnapshot = {
   forecastInput: Forecast90DaysInput;
   bestOpportunity: TenderScoringBundle | null;
   financialCapacity: FinancialCapacityResult | null;
-  marketKpi: ReturnType<typeof import("@/lib/tender-center-kpi").aggregateMarketKpi>;
+  marketKpi: ReturnType<typeof import("@/lib/tenders-strategy-kpi").aggregateMarketKpi>;
   radarTop: TenderScoringBundle[];
-  portfolioCounts: ReturnType<typeof import("@/lib/tender-center-decision").portfolioCountsFromScoredBundles>;
+  portfolioCounts: ReturnType<typeof import("@/lib/tenders-strategy-decision").portfolioCountsFromScoredBundles>;
   ownerAlerts: ReturnType<typeof import("@/lib/tenders-strategy-alerts").buildOwnerStrategicAlerts>;
   goCandidates: TenderScoringBundle[];
   scoredForForecast: TenderScoringBundle[];

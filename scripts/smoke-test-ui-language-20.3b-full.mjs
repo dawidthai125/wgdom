@@ -13,10 +13,10 @@ import {
   BASELINE_LABEL_PL,
   SECTION_LABEL_PL,
   GLOSSARY_TERM_PL,
-} from "../src/lib/tender-center-ui-labels-pl.ts";
-import { DECISION_LABEL_PL } from "../src/lib/tender-center-decision.ts";
+} from "../src/lib/tenders-strategy-ui-labels-pl.ts";
+import { DECISION_LABEL_PL } from "../src/lib/tenders-strategy-decision.ts";
 import { TENDERS_MODULE_LABELS } from "../src/lib/tenders-module-labels.ts";
-import { WHAT_IF_PRESET_LABELS } from "../src/lib/tender-center-what-if.ts";
+import { WHAT_IF_PRESET_LABELS } from "../src/lib/tenders-strategy-what-if.ts";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dir, "..");
@@ -64,11 +64,11 @@ log("=== Sprint 20.3B+ FULL — UI Language smoke ===\n");
 
 // T3 — P0: brak kluczowych EN etykiet w aktywnych komponentach
 {
-  const hero = readSrc("src/app/tender-center/components/CommandCenterHero.tsx");
-  const best = readSrc("src/app/tender-center/components/BestOpportunityCard.tsx");
-  const fin = readSrc("src/app/tender-center/components/FinancialCapacityPanel.tsx");
-  const forecast = readSrc("src/app/tender-center/components/ForecastCommandStrip.tsx");
-  const tooltip = readSrc("src/app/tender-center/components/MetricHelpTooltip.tsx");
+  const hero = readSrc("src/app/tenders/strategy/components/TendersStrategyHero.tsx");
+  const best = readSrc("src/app/tenders/strategy/components/BestOpportunityCard.tsx");
+  const fin = readSrc("src/app/tenders/strategy/components/FinancialCapacityPanel.tsx");
+  const forecast = readSrc("src/app/tenders/strategy/components/TendersStrategyForecastStrip.tsx");
+  const tooltip = readSrc("src/app/tenders/strategy/components/MetricHelpTooltip.tsx");
 
   assert("T3 hero no Health Index", lacksActiveUiString(hero, "Health Index"));
   assert("T3 hero uses METRIC_LABEL_PL", hero.includes("METRIC_LABEL_PL.healthIndex"));
@@ -82,19 +82,19 @@ log("=== Sprint 20.3B+ FULL — UI Language smoke ===\n");
 
 // T4 — P0: enumy GO/HOLD/NO-GO w modelu — lib bez zmian typów
 {
-  const decision = readSrc("src/lib/tender-center-decision.ts");
+  const decision = readSrc("src/lib/tenders-strategy-decision.ts");
   assert("T4 TenderDecision type intact", decision.includes('"GO" | "HOLD" | "NO-GO"'));
-  const action = readSrc("src/lib/tender-center-action-center.ts");
+  const action = readSrc("src/lib/tenders-strategy-action-center.ts");
   assert("T4 action compares GO enum", action.includes('b.decision === "GO"'));
   assert("T4 action reason uses PL label", action.includes("DECISION_LABEL_PL[b.decision]"));
 }
 
 // T5 — P0: UI decyzji STARTUJ/ANALIZUJ/ODPUŚĆ
 {
-  const portfolio = readSrc("src/app/tender-center/components/TenderPortfolioCounters.tsx");
+  const portfolio = readSrc("src/app/tenders/strategy/components/TenderPortfolioCounters.tsx");
   assert("T5 portfolio counters PL", portfolio.includes("DECISION_LABEL_PL.GO"));
   assert("T5 portfolio no raw GO counter", !portfolio.match(/label="GO"/));
-  assert("T5 BestOpportunity buttons PL", readSrc("src/app/tender-center/components/BestOpportunityCard.tsx").includes("{DECISION_LABEL_PL[d]}"));
+  assert("T5 BestOpportunity buttons PL", readSrc("src/app/tenders/strategy/components/BestOpportunityCard.tsx").includes("{DECISION_LABEL_PL[d]}"));
 }
 
 // T6 — P1-B ETAP 3 — moduł Przetargi 3.0
@@ -115,17 +115,17 @@ log("=== Sprint 20.3B+ FULL — UI Language smoke ===\n");
 
 // T8 — P1: lib dynamic strings
 {
-  const whatIf = readSrc("src/lib/tender-center-what-if.ts");
+  const whatIf = readSrc("src/lib/tenders-strategy-what-if.ts");
   assert("T8 what-if baseline PL", WHAT_IF_PRESET_LABELS.baseline === BASELINE_LABEL_PL.baselineToday);
   assert("T8 what-if no Baseline EN", lacksActiveUiString(whatIf, '"Baseline (dziś)"'));
-  const actionCenter = readSrc("src/lib/tender-center-action-center.ts");
+  const actionCenter = readSrc("src/lib/tenders-strategy-action-center.ts");
   assert("T8 action center imports strategy alerts", actionCenter.includes("tenders-strategy-alerts"));
 }
 
-// T9 — Legacy poza scope — nie wymuszamy polonizacji
+// T9 — Lib strategii + słownik
 {
-  const impact = readSrc("src/app/tender-center/components/ImpactPanel.tsx");
-  assert("T9 ImpactPanel untouched (legacy)", impact.includes("Impact Score"));
+  const impact = readSrc("src/lib/tenders-strategy-impact.ts");
+  assert("T9 impact lib exists", impact.includes("computeTenderImpact"));
   assert("T9 glossary term count", Object.keys(GLOSSARY_TERM_PL).length >= 10);
 }
 

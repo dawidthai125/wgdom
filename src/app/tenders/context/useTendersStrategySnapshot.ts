@@ -1,31 +1,31 @@
 import { useMemo, useState } from "react";
-import { useTendersPipeline } from "@/app/tender-center/hooks/useTendersPipeline";
-import type { useOwnerTenderDecisions } from "@/app/tender-center/hooks/useOwnerTenderDecisions";
-import { computeCompanyHealth, type CompanyHealthInput } from "@/lib/tender-center-health";
-import { aggregateMarketKpi } from "@/lib/tender-center-kpi";
+import { useTendersPipeline } from "@/app/tenders/strategy/hooks/useTendersPipeline";
+import type { useOwnerTenderDecisions } from "@/app/tenders/strategy/hooks/useOwnerTenderDecisions";
+import { computeCompanyHealth, type CompanyHealthInput } from "@/lib/tenders-strategy-health";
+import { aggregateMarketKpi } from "@/lib/tenders-strategy-kpi";
 import {
   loadGrowthMode,
   setGrowthMode,
   type GrowthMode,
   type GrowthModeState,
-} from "@/lib/tender-center-growth-mode";
+} from "@/lib/tenders-strategy-growth-mode";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import {
   portfolioCountsFromScoredBundles,
   scoreAllActionableTenderOpportunities,
-} from "@/lib/tender-center-decision";
+} from "@/lib/tenders-strategy-decision";
 import {
   collectGoCandidates,
   computeForecast90Days,
   type Forecast90DaysInput,
-} from "@/lib/tender-center-forecast-90d";
+} from "@/lib/tenders-strategy-forecast-90d";
 import { buildOwnerStrategicAlerts } from "@/lib/tenders-strategy-alerts";
-import { buildActionCenter } from "@/lib/tender-center-action-center";
+import { buildActionCenter } from "@/lib/tenders-strategy-action-center";
 import {
   computeFinancialCapacity,
   type FinancialCapacityResult,
-} from "@/lib/tender-center-financial-capacity";
-import { computeTenderImpact } from "@/lib/tender-center-impact";
+} from "@/lib/tenders-strategy-financial-capacity";
+import { computeTenderImpact } from "@/lib/tenders-strategy-impact";
 import type {
   TendersProviderInput,
   TendersStrategySnapshot,

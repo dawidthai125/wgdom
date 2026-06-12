@@ -24,7 +24,7 @@
 | **Marka** | **COMMAND CENTER AI** — **bez zmian** (świadomy wyjątek językowy) |
 | **Enumy danych** | `GO` / `HOLD` / `NO-GO` — **bez zmian** w modelu, KV, scoringu |
 | **UI decyzji** | `DECISION_LABEL_PL`: STARTUJ / ANALIZUJ / ODPUŚĆ |
-| **Centralizacja** | `src/lib/tender-center-ui-labels-pl.ts` — mapy metryk, sekcji, słownika |
+| **Centralizacja** | `src/lib/tenders-strategy-ui-labels-pl.ts` — mapy metryk, sekcji, słownika |
 | **Poza scope** | `ImpactPanel`, `OpportunityRadar`, `CompanyHealthCard`, `Forecast90Days` (legacy, nie montowane) |
 
 ### Smoke
@@ -49,7 +49,7 @@ Audyt wejściowy: [`docs/UI-LANGUAGE-AUDIT-20.3B.md`](UI-LANGUAGE-AUDIT-20.3B.md
 ## Architektura etykiet UI (20.3B+)
 
 ```text
-src/lib/tender-center-ui-labels-pl.ts   ← źródło prawdy etykiet PL (prezentacja)
+src/lib/tenders-strategy-ui-labels-pl.ts   ← źródło prawdy etykiet PL (prezentacja)
   ├── METRIC_LABEL_PL          (Indeks kondycji, Wynik okazji, …)
   ├── OPPORTUNITY_LABEL_PL / STRATEGIC_LABEL_PL / IMPACT_LABEL_PL
   ├── FINANCIAL_LABEL_PL / BASELINE_LABEL_PL / PIPELINE_LABEL_PL
@@ -57,13 +57,13 @@ src/lib/tender-center-ui-labels-pl.ts   ← źródło prawdy etykiet PL (prezent
   └── GLOSSARY_TERM_PL         (nagłówki słownika)
 
 Reuse (bez duplikacji):
-  DECISION_LABEL_PL            ← tender-center-decision.ts
+  DECISION_LABEL_PL            ← tenders-strategy-decision.ts
   ACTION_PRIORITY_LABEL_PL     ← tender-center-action-center.ts
   HEALTH_LABEL_PL              ← tender-center-health.ts
   CONTRACT_SCALE_LABEL_PL      ← tender-center-impact.ts
 ```
 
-**Zasada dla agentów:** nowe user-facing stringi w CC → najpierw mapa w `tender-center-ui-labels-pl.ts`, potem import w komponencie/lib. **Nie** porównywać wyświetlanego tekstu z enumem `GO`/`HOLD`/`NO-GO`.
+**Zasada dla agentów:** nowe user-facing stringi w CC → najpierw mapa w `tenders-strategy-ui-labels-pl.ts`, potem import w komponencie/lib. **Nie** porównywać wyświetlanego tekstu z enumem `GO`/`HOLD`/`NO-GO`.
 
 ---
 
@@ -100,7 +100,7 @@ Router: `src/app/admin/AdminViewRouter.tsx` · menu: `src/app/admin/admin-nav.ts
 
 | Sekcja UI | PL (po 20.3B+) |
 |-----------|----------------|
-| Nagłówek marki | W&G DOM COMMAND CENTER AI |
+| Nagłówek marki | W&G DOM — Przetargi Strategia |
 | Priorytet dnia | Morning briefing (dynamiczny PL) |
 | Karta 1 | Indeks kondycji |
 | Karta 2 | Zdolność finansowa |
@@ -119,9 +119,9 @@ Router: `src/app/admin/AdminViewRouter.tsx` · menu: `src/app/admin/admin-nav.ts
 2. `MorningBriefingCard` — Codzienny raport właściciela
 3. `BestOpportunityCard` — Okazja / Strategiczny / decyzja systemu (PL)
 4. `FinancialCapacityPanel` — Wynik zdolności finansowej
-5. `CommandCenterHero` — Indeks kondycji + Tryb rozwoju
+5. `TendersStrategyHero` — Indeks kondycji + Tryb rozwoju
 6. `ActionCenter` (variant urgent) — Co wymaga uwagi
-7. `ForecastCommandStrip` — Prognoza firmy · Scenariusz C · 50% startów
+7. `TendersStrategyForecastStrip` — Prognoza firmy · Scenariusz C · 50% startów
 8. `WhatIfPanel` — Co jeśli? · Stan bazowy
 9. `TenderPortfolioPanel` — Portfel (STARTUJ/ANALIZUJ/ODPUŚĆ) + Historia decyzji
 10. **Accordion „Pozostałe analizy”:**

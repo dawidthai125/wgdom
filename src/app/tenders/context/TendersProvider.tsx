@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { WGDOM_DEFERRED_BOOTSTRAP_EVENT } from "@/lib/cloud-sync";
-import { useOwnerTenderDecisions } from "@/app/tender-center/hooks/useOwnerTenderDecisions";
+import { useOwnerTenderDecisions } from "@/app/tenders/strategy/hooks/useOwnerTenderDecisions";
 import {
   TendersContextProvider,
   type TendersContextValue,

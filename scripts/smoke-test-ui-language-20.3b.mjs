@@ -8,8 +8,8 @@ import { fileURLToPath } from "node:url";
 import {
   RECOVERABLE_CHARGE_STATUS_LABELS,
 } from "../src/lib/recoverable-charges.ts";
-import { ACTION_PRIORITY_LABEL_PL } from "../src/lib/tender-center-action-center.ts";
-import { DECISION_LABEL_PL } from "../src/lib/tender-center-decision.ts";
+import { ACTION_PRIORITY_LABEL_PL } from "../src/lib/tenders-strategy-action-center.ts";
+import { DECISION_LABEL_PL } from "../src/lib/tenders-strategy-decision.ts";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dir, "..");
@@ -43,17 +43,17 @@ log("=== Sprint 20.3B MIN — UI Language smoke ===\n");
 
 // T2 — Centrum działań
 {
-  const exec = readSrc("src/app/tender-center/components/CommandCenterExecutivePanel.tsx");
-  const ac = readSrc("src/app/tender-center/components/ActionCenter.tsx");
-  assert("T2 executive Centrum działań", exec.includes("Centrum działań"));
-  assert("T2 executive no Action Center title", !exec.includes('>Action Center<'));
+  const shortcut = readSrc("src/app/tenders/components/TendersShortcutPanel.tsx");
+  const ac = readSrc("src/app/tenders/strategy/components/ActionCenter.tsx");
+  assert("T2 shortcut Przetargi skrót", shortcut.includes("Przetargi — skrót"));
+  assert("T2 shortcut CTA Strategia", shortcut.includes("Przetargi →"));
   assert("T2 ActionCenter title", ac.includes('"Centrum działań"'));
   assert("T2 ActionCenter no Action Center title", !ac.includes(': "Action Center"'));
 }
 
 // T3 — Priorytety PL
 {
-  const ac = readSrc("src/app/tender-center/components/ActionCenter.tsx");
+  const ac = readSrc("src/app/tenders/strategy/components/ActionCenter.tsx");
   assert("T3 map Krytyczne", ACTION_PRIORITY_LABEL_PL.CRITICAL === "Krytyczne");
   assert("T3 map Wysokie", ACTION_PRIORITY_LABEL_PL.HIGH === "Wysokie");
   assert("T3 map Średnie", ACTION_PRIORITY_LABEL_PL.MEDIUM === "Średnie");
@@ -65,20 +65,20 @@ log("=== Sprint 20.3B MIN — UI Language smoke ===\n");
 
 // T4 — Indeks kondycji
 {
-  const exec = readSrc("src/app/tender-center/components/CommandCenterExecutivePanel.tsx");
-  assert("T4 Indeks kondycji", exec.includes("Indeks kondycji"));
-  assert("T4 no Health Index label", !exec.includes("Health Index"));
+  const hero = readSrc("src/app/tenders/strategy/components/TendersStrategyHero.tsx");
+  assert("T4 Indeks kondycji", hero.includes("METRIC_LABEL_PL.healthIndex"));
+  assert("T4 no Health Index label", !hero.includes("Health Index"));
 }
 
 // T5 — Przyciski decyzji PL
 {
-  const best = readSrc("src/app/tender-center/components/BestOpportunityCard.tsx");
-  const dec = readSrc("src/app/tender-center/components/DecisionCenter.tsx");
+  const best = readSrc("src/app/tenders/strategy/components/BestOpportunityCard.tsx");
+  const portfolio = readSrc("src/app/tenders/strategy/components/TenderPortfolioCounters.tsx");
   assert("T5 map STARTUJ", DECISION_LABEL_PL.GO === "STARTUJ");
   assert("T5 map ANALIZUJ", DECISION_LABEL_PL.HOLD === "ANALIZUJ");
   assert("T5 map ODPUŚĆ", DECISION_LABEL_PL["NO-GO"] === "ODPUŚĆ");
   assert("T5 BestOpportunity buttons", best.includes("{DECISION_LABEL_PL[d]}"));
-  assert("T5 DecisionCenter buttons", dec.includes("{DECISION_LABEL_PL[d]}"));
+  assert("T5 portfolio counters PL", portfolio.includes("DECISION_LABEL_PL.GO"));
   assert("T5 BestOpportunity no raw GO button", !best.match(/>\s*\{d\}\s*<\/button>/));
 }
 
@@ -97,12 +97,12 @@ log("=== Sprint 20.3B MIN — UI Language smoke ===\n");
   assert("T7 no Admin role label", !rcv.includes(': "Admin"'));
 }
 
-// T8 — Executive KPI Okazja / Strategiczny
+// T8 — KPI Okazja / Strategiczny (Strategia)
 {
-  const exec = readSrc("src/app/tender-center/components/CommandCenterExecutivePanel.tsx");
-  assert("T8 Okazja label", exec.includes("Okazja {bestOpportunity.opportunity.score}"));
-  assert("T8 Strategiczny label", exec.includes("Strategiczny {bestOpportunity.strategic.score}"));
-  assert("T8 decision PL map", exec.includes("DECISION_LABEL_PL[bestOpportunity.decision]"));
+  const best = readSrc("src/app/tenders/strategy/components/BestOpportunityCard.tsx");
+  assert("T8 uses OPPORTUNITY_LABEL_PL", best.includes("OPPORTUNITY_LABEL_PL"));
+  assert("T8 uses STRATEGIC_LABEL_PL", best.includes("STRATEGIC_LABEL_PL"));
+  assert("T8 decision PL map", best.includes("DECISION_LABEL_PL[bundle.decision]"));
 }
 
 log("\n--- Podsumowanie ---");

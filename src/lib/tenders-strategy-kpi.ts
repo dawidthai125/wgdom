@@ -27,7 +27,7 @@ function bidValuePln(item: TenderPipelineItem): number | null {
   return null;
 }
 
-export interface TenderCenterMarketKpi {
+export interface TendersStrategyMarketKpi {
   openTendersCount: number;
   actionableCount: number;
   urgentCount: number;
@@ -51,7 +51,7 @@ export function countPreparingOffers(items: TenderPipelineItem[]): number {
 export function aggregateMarketKpi(
   items: TenderPipelineItem[],
   profile: TenderCompanyProfile,
-): TenderCenterMarketKpi {
+): TendersStrategyMarketKpi {
   const dash = computeTendersDashboardStats(items);
   const funnel = computePipelineFunnel(items);
   const open = items.filter((i) => isTenderOpenForOffers(i.submittingOffersDate));

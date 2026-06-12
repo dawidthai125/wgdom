@@ -37,7 +37,7 @@ Poprawa IA Pulpicu: „Najważniejsze dziś” jako osobna sekcja (poza „Przet
 
 - `src/app/DashboardView.tsx`
 - `src/app/HeroDzisPanel.tsx`
-- `src/app/tender-center/components/CommandCenterExecutivePanel.tsx`
+- `src/app/tenders/strategy/components/CommandCenterExecutivePanel.tsx`
 - `e2e/dashboard-hero.spec.ts`
 - `src/app/changelog-data.ts`, `GuideView.tsx`
 

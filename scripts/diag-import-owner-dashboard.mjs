@@ -8,7 +8,7 @@ if (typeof globalThis.DOMMatrix === "undefined") {
 const label = process.argv[2] ?? "baseline";
 console.log(`\n=== DIAG import OwnerDashboard [${label}] ===`);
 try {
-  const m = await import("../src/app/tender-center/components/OwnerDashboard.tsx");
+  const m = await import("../src/app/tenders/strategy/components/OwnerDashboard.tsx");
   console.log(`PASS — OwnerDashboard export: ${typeof m.OwnerDashboard}`);
 } catch (e) {
   console.error(`FAIL — ${e?.message ?? e}`);

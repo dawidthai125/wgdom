@@ -3,10 +3,10 @@
 > **Aktualizuj ten plik na końcu każdej większej sesji z agentem AI.**  
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
-**Ostatnia aktualizacja:** 2026-06-11 · **Dashboard V3 + docs**  
-**Current Version:** **2.50.74**  
-**Current Baseline:** **Dashboard V3 (P1-A) COMPLETE**  
-**Prod `origin/main`:** v**2.50.74** · https://www.wgdom.fun · **PRODUCTION VERIFIED**
+**Ostatnia aktualizacja:** 2026-06-12 · **P1-B ETAP 4 COMPLETE**  
+**Current Version:** **2.51.1**  
+**Current Baseline:** **Przetargi 3.0 — Command Center removed (v2.51.0) + rename ETAP 4**  
+**Prod `origin/main`:** v**2.51.1** · https://www.wgdom.fun
 
 **★ Główny handoff (SSOT):** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)  
 **★ Pulpit V3:** [`docs/SESSION-HANDOFF-DASHBOARD-V3.md`](docs/SESSION-HANDOFF-DASHBOARD-V3.md)  
@@ -17,58 +17,48 @@
 ## Werdykt sesji
 
 ```text
-BASELINE 2.50.74 · RELEASED · STABLE · PRODUCTION VERIFIED
-Dashboard V3 (P1-A) COMPLETE
-Inspector 2.1 CLOSED · 2.1.2 CANCELLED
-Backlog: P1-B CC Reassessment · P2 Audit Center
+P1-B ETAP 1–4 COMPLETE ✅
+Command Center removed in v2.51.0
+Rename cleanup v2.51.1
+Przetargi 3.0 — jedyna ścieżka strategii
+Backlog: P2 Audit Center (bez polecenia)
 ```
 
 ---
 
-## Commity baseline
+## P1-B — Command Center → Przetargi 3.0 (CLOSED)
+
+| ETAP | Wersja | Status |
+|------|--------|--------|
+| 1 — CC legacy UI removal | 2.50.75 | COMPLETE |
+| 2 — TendersModule 5 tabs | 2.50.76 | COMPLETE |
+| 3 — Runtime CC removal | 2.51.0 | COMPLETE |
+| 4 — Rename cleanup | 2.51.1 | COMPLETE |
+
+**Command Center removed in v2.51.0** — brak runtime CC. ETAP 4: rename `tenders/strategy/`, `tenders-strategy-*` lib.
+
+---
+
+## Commity baseline (P1-B)
 
 | SHA | Opis |
 |-----|------|
-| **`5a54399`** | feat(dashboard): V3 operational layout without Hero (2.50.74) |
-| **`ad859e6`** | feat(dashboard): Hero operational only (2.50.73) |
-| **`ee2cd72`** | feat(jobs): default inspector recipient (2.1.1) · v2.50.70 |
-| **`5391d03`** | feat(jobs): inspector communication templates (2.1.0) · v2.50.69 |
-
----
-
-## Dashboard V3 (2.50.74 · `5a54399`) — COMPLETE
-
-- Usunięto Hero stack, `attentionCount`, KPI „Do ogarnięcia”, kartę Recoverable
-- KPI: Wypłata · Ekipa · WM · Braki dokumentów · Pilne uwagi
-- Sekcje: Braki dokumentów + Pilne uwagi (7 kategorii) + Przetargi skrót
-- SSOT liczników: `src/lib/dashboard-urgent-today.ts`
-- Smoke: `test-dashboard-v3-counts.mjs` PASS
-
----
-
-## Backlog (otwarty)
-
-| Priorytet | Temat | Status |
-|-----------|-------|--------|
-| **P1-B** | Command Center Reassessment / Redesign | OTWARTY |
-| **P2** | Audit Center / Security Log | OTWARTY |
-
-**Bez polecenia:** nie startować P1-B ani P2 bez AUDIT → RCA → PLAN.
+| *(ETAP 4)* | `refactor: finalize command center removal cleanup` |
+| **`39b1892`** | refactor: remove command center runtime architecture (2.51.0) |
+| **`58b4cd7`** | feat: introduce tenders 3.0 module architecture (2.50.76) |
+| **`098f651`** | refactor: remove command center phase 1 legacy modules (2.50.75) |
 
 ---
 
 ## Decyzje wiążące
 
-- **Pulpit = operacje** · **CC = strategia** (moduł Przetargi)
-- **2.1.2 CANCELLED** — nie implementować
-- Workflow: `AUDIT → RCA → PLAN → IMPLEMENT`
-- Release: A/B/C — [`WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)
+- **2.1.2 CANCELLED** — pełna lista odbiorców inspektora z Kontaktów
+- **Dashboard V2 Hero** — nie przywracać (V3 SSOT)
+- **Command Center** — usunięty v2.51.0; archiwalne docs → SUPERSEDED
 
 ---
 
-## Szybki start (nowy agent)
+## Następne (bez polecenia)
 
-1. [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
-2. [`docs/SESSION-HANDOFF-DASHBOARD-V3.md`](docs/SESSION-HANDOFF-DASHBOARD-V3.md)
-3. [`AGENTS.md`](AGENTS.md) → [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-4. `curl -s https://www.wgdom.fun/version.json` → **2.50.74**
+- P2 Audit Center / Security Log
+- Ewentualne rename skryptów test `test-tender-center-*` → `test-tenders-strategy-*` (kosmetyka)

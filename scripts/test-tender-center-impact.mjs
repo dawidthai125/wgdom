@@ -1,5 +1,5 @@
 /**
- * W&G DOM COMMAND CENTER AI — test Impact Engine V2 ETAP 6D
+ * W&G DOM — Przetargi Strategia — test Impact Engine V2 ETAP 6D
  * Run: npx vite-node scripts/test-tender-center-impact.mjs
  */
 
@@ -17,11 +17,11 @@ if (typeof globalThis.DOMMatrix === "undefined") {
 }
 
 const { defaultCompanyProfile } = await import("../src/lib/tenders-bzp-company.ts");
-const { computeForecast90Days } = await import("../src/lib/tender-center-forecast-90d.ts");
-const { scoreTender } = await import("../src/lib/tender-center-decision.ts");
-const { computeCompanyHealth } = await import("../src/lib/tender-center-health.ts");
-const { computeTenderImpact } = await import("../src/lib/tender-center-impact.ts");
-const { collectGoCandidates } = await import("../src/lib/tender-center-forecast-90d.ts");
+const { computeForecast90Days } = await import("../src/lib/tenders-strategy-forecast-90d.ts");
+const { scoreTender } = await import("../src/lib/tenders-strategy-decision.ts");
+const { computeCompanyHealth } = await import("../src/lib/tenders-strategy-health.ts");
+const { computeTenderImpact } = await import("../src/lib/tenders-strategy-impact.ts");
+const { collectGoCandidates } = await import("../src/lib/tenders-strategy-forecast-90d.ts");
 
 const profile = defaultCompanyProfile();
 const now = new Date("2026-06-02T12:00:00.000Z");

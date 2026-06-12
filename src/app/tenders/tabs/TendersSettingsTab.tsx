@@ -2,7 +2,7 @@ import { Settings2 } from "lucide-react";
 import {
   GROWTH_MODE_LABELS,
   type GrowthMode,
-} from "@/lib/tender-center-growth-mode";
+} from "@/lib/tenders-strategy-growth-mode";
 import { TenderKeywordsPanel } from "@/app/TenderKeywordsPanel";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 

@@ -1,18 +1,18 @@
 import { RefreshCw, AlertCircle, Layers } from "lucide-react";
 import { jobDraftFromTender, type TenderPipelineItem } from "@/lib/tenders-bzp";
-import type { GrowthModeState } from "@/lib/tender-center-growth-mode";
-import type { TenderScoringBundle } from "@/lib/tender-center-decision";
+import type { GrowthModeState } from "@/lib/tenders-strategy-growth-mode";
+import type { TenderScoringBundle } from "@/lib/tenders-strategy-decision";
 import { useTendersContext, useTendersContextOptional } from "@/app/tenders/context/TendersContext";
-import { useTenderJobFromPipeline } from "@/app/tender-center/hooks/useTenderJobFromPipeline";
-import { ActionCenter } from "@/app/tender-center/components/ActionCenter";
-import { OpportunityOverview } from "@/app/tender-center/components/OpportunityOverview";
-import { CommandCenterHero } from "@/app/tender-center/components/CommandCenterHero";
-import { BestOpportunityCard } from "@/app/tender-center/components/BestOpportunityCard";
-import { ForecastCommandStrip } from "@/app/tender-center/components/ForecastCommandStrip";
-import { WhatIfPanel } from "@/app/tender-center/components/WhatIfPanel";
-import { FinancialCapacityPanel } from "@/app/tender-center/components/FinancialCapacityPanel";
-import { TenderPortfolioPanel } from "@/app/tender-center/components/TenderPortfolioCounters";
-import { SECTION_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
+import { useTenderJobFromPipeline } from "@/app/tenders/strategy/hooks/useTenderJobFromPipeline";
+import { ActionCenter } from "@/app/tenders/strategy/components/ActionCenter";
+import { OpportunityOverview } from "@/app/tenders/strategy/components/OpportunityOverview";
+import { TendersStrategyHero } from "@/app/tenders/strategy/components/TendersStrategyHero";
+import { BestOpportunityCard } from "@/app/tenders/strategy/components/BestOpportunityCard";
+import { TendersStrategyForecastStrip } from "@/app/tenders/strategy/components/TendersStrategyForecastStrip";
+import { WhatIfPanel } from "@/app/tenders/strategy/components/WhatIfPanel";
+import { FinancialCapacityPanel } from "@/app/tenders/strategy/components/FinancialCapacityPanel";
+import { TenderPortfolioPanel } from "@/app/tenders/strategy/components/TenderPortfolioCounters";
+import { SECTION_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 import type { Job } from "@/app/app-domain";
 
 export function TendersStrategyContent({
@@ -130,7 +130,7 @@ export function TendersStrategyContent({
 
         <FinancialCapacityPanel capacity={financialCapacity} />
 
-        <CommandCenterHero
+        <TendersStrategyHero
           health={health}
           growthMode={growthModeState.mode}
           suggestedMode={health.suggestedGrowthMode}
@@ -147,7 +147,7 @@ export function TendersStrategyContent({
           onOpenJob={openLinkedJob}
         />
 
-        <ForecastCommandStrip forecast={forecast90} />
+        <TendersStrategyForecastStrip forecast={forecast90} />
 
         <WhatIfPanel forecastInput={forecastInput} goCandidates={goCandidates} />
 

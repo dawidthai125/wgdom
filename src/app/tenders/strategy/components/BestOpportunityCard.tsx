@@ -1,13 +1,13 @@
 import { Target, ExternalLink, Calendar, Building2, Hash, Wallet } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
-import { TenderJobLinkButtons } from "@/app/tender-center/components/TenderJobLinkButtons";
-import { DECISION_LABEL_PL, type TenderDecision, type TenderScoringBundle } from "@/lib/tender-center-decision";
-import { topDecisionReasons } from "@/lib/tender-center-decision";
-import type { OwnerTenderDecisionRecord } from "@/lib/tender-center-owner-decisions";
+import { TenderJobLinkButtons } from "@/app/tenders/strategy/components/TenderJobLinkButtons";
+import { DECISION_LABEL_PL, type TenderDecision, type TenderScoringBundle } from "@/lib/tenders-strategy-decision";
+import { topDecisionReasons } from "@/lib/tenders-strategy-decision";
+import type { OwnerTenderDecisionRecord } from "@/lib/tenders-strategy-owner-decisions";
 import { daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 import { estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
-import { MetricHelpTooltip } from "@/app/tender-center/components/MetricHelpTooltip";
-import { OPPORTUNITY_LABEL_PL, PIPELINE_LABEL_PL, SECTION_LABEL_PL, STRATEGIC_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
+import { MetricHelpTooltip } from "@/app/tenders/strategy/components/MetricHelpTooltip";
+import { OPPORTUNITY_LABEL_PL, PIPELINE_LABEL_PL, SECTION_LABEL_PL, STRATEGIC_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 
 function fmtPln(n: number): string {
   return new Intl.NumberFormat("pl-PL", {

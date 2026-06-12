@@ -15,9 +15,9 @@ import {
 } from "@/app/app-domain";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderCompanyProfile } from "@/lib/tenders-bzp-company";
-import type { TenderScoringBundle } from "@/lib/tender-center-decision";
-import type { OwnerDecisionsStore } from "@/lib/tender-center-owner-decisions";
-import { loadOwnerDecisions } from "@/lib/tender-center-owner-decisions";
+import type { TenderScoringBundle } from "@/lib/tenders-strategy-decision";
+import type { OwnerDecisionsStore } from "@/lib/tenders-strategy-owner-decisions";
+import { loadOwnerDecisions } from "@/lib/tenders-strategy-owner-decisions";
 
 export type ForecastScenarioId = "none" | "all_go" | "half_go" | "custom";
 

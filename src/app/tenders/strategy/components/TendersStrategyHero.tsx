@@ -3,13 +3,13 @@ import {
   type CompanyHealthResult,
   HEALTH_LABEL_PL,
   type HealthLabel,
-} from "@/lib/tender-center-health";
+} from "@/lib/tenders-strategy-health";
 import {
   type GrowthMode,
   GROWTH_MODE_LABELS,
-} from "@/lib/tender-center-growth-mode";
-import { MetricHelpTooltip } from "@/app/tender-center/components/MetricHelpTooltip";
-import { METRIC_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
+} from "@/lib/tenders-strategy-growth-mode";
+import { MetricHelpTooltip } from "@/app/tenders/strategy/components/MetricHelpTooltip";
+import { METRIC_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 
 function labelTone(label: HealthLabel): string {
   switch (label) {
@@ -38,7 +38,7 @@ function modeTone(mode: GrowthMode, active: boolean): string {
   }
 }
 
-export function CommandCenterHero({
+export function TendersStrategyHero({
   health,
   growthMode,
   suggestedMode,

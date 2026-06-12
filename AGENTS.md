@@ -1,4 +1,4 @@
-﻿# W&G DOM — instrukcja dla agentów AI i programistów
+# W&G DOM — instrukcja dla agentów AI i programistów
 
 > **Zanim cokolwiek zmienisz — przeczytaj pliki poniżej w tej kolejności.**
 
@@ -161,7 +161,7 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 
 - **Pulpit executive (7G):** [`docs/tender-center-7g-executive.md`](docs/tender-center-7g-executive.md) — `CommandCenterExecutivePanel`, `useCommandCenterExecutiveSnapshot`, legacy `tenderDashStats`
 - **Pełny CC:** `OwnerDashboard` + **ARCHITECTURE.md § 12.1.3** + **handoff [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](docs/SESSION-HANDOFF-20.3B-CC-POLISH.md)**
-- **Etykiety PL:** `src/lib/tender-center-ui-labels-pl.ts` — źródło prawdy (20.3B+); marka COMMAND CENTER AI bez zmian
+- **Etykiety PL:** `src/lib/tenders-strategy-ui-labels-pl.ts` — źródło prawdy (20.3B+); marka COMMAND CENTER AI bez zmian
 - **Lista BZP / pipeline:** **ARCHITECTURE.md § 12.1.1**. Kluczowe pliki:
 
 - `src/lib/tenders-bzp.ts` — pipeline, typy, API klienta, scoring

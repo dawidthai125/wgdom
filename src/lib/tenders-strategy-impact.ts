@@ -1,5 +1,5 @@
 /**
- * W&G DOM COMMAND CENTER AI — Impact Engine V2 (ETAP 6C/6D).
+ * W&G DOM — Przetargi Strategia — Impact Engine V2 (ETAP 6C/6D).
  * Runtime only — symulacja wpływu wygranej względem skali firmy.
  */
 
@@ -17,19 +17,19 @@ import {
   type TenderDecision,
   type TenderScoringBundle,
   DECISION_LABEL_PL,
-} from "@/lib/tender-center-decision";
-import type { GrowthMode } from "@/lib/tender-center-growth-mode";
+} from "@/lib/tenders-strategy-decision";
+import type { GrowthMode } from "@/lib/tenders-strategy-growth-mode";
 import {
   type CompanyHealthInput,
   type CompanyHealthResult,
-} from "@/lib/tender-center-health";
-import { aggregateMarketKpi, type TenderCenterMarketKpi } from "@/lib/tender-center-kpi";
+} from "@/lib/tenders-strategy-health";
+import { aggregateMarketKpi, type TendersStrategyMarketKpi } from "@/lib/tenders-strategy-kpi";
 import {
   type Forecast90DaysInput,
   type Forecast90DaysResult,
   type ForecastScenarioResult,
   computeSingleForecastScenario,
-} from "@/lib/tender-center-forecast-90d";
+} from "@/lib/tenders-strategy-forecast-90d";
 import { stripHtmlToText } from "@/lib/tenders-bzp-swz";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
 
@@ -135,7 +135,7 @@ export interface TenderImpactInput {
   profile: TenderCompanyProfile;
   now?: Date;
   /** Precomputed KPI (Performance 2.1A). */
-  marketKpi?: TenderCenterMarketKpi;
+  marketKpi?: TendersStrategyMarketKpi;
   /** Scenariusz „none” z computeForecast90Days — pomija redundantny pass (Performance 2.1A). */
   beforeForecastScenario?: ForecastScenarioResult;
 }
@@ -204,7 +204,7 @@ export function computeCompanyScaleContext(
   items: TenderPipelineItem[],
   profile: TenderCompanyProfile,
   savedWeeks?: WeekSnapshot[],
-  marketKpi?: TenderCenterMarketKpi,
+  marketKpi?: TendersStrategyMarketKpi,
 ): CompanyScaleContext {
   const activePortfolioPln = activeJobsValuePln(jobs);
   const kpi = marketKpi ?? aggregateMarketKpi(items, profile);

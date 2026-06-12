@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
-import type { TenderDecision } from "@/lib/tender-center-decision";
-import type { TenderScoringBundle } from "@/lib/tender-center-decision";
+import type { TenderDecision } from "@/lib/tenders-strategy-decision";
+import type { TenderScoringBundle } from "@/lib/tenders-strategy-decision";
 import {
   computeLiveSystemAlignment,
   computeOwnerDecisionStats,
@@ -11,7 +11,7 @@ import {
   upsertOwnerDecision,
   type OwnerDecisionsStore,
   type OwnerTenderDecisionRecord,
-} from "@/lib/tender-center-owner-decisions";
+} from "@/lib/tenders-strategy-owner-decisions";
 
 export function useOwnerTenderDecisions() {
   const [store, setStore] = useState<OwnerDecisionsStore>(() => loadOwnerDecisions());

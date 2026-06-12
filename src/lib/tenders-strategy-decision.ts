@@ -5,17 +5,17 @@
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { isActionableTender, isTenderOpenForOffers } from "@/lib/tenders-bzp";
 import type { TenderCompanyProfile } from "@/lib/tenders-bzp-company";
-import type { GrowthMode } from "@/lib/tender-center-growth-mode";
-import { minOpportunityScoreForMode } from "@/lib/tender-center-growth-mode";
+import type { GrowthMode } from "@/lib/tenders-strategy-growth-mode";
+import { minOpportunityScoreForMode } from "@/lib/tenders-strategy-growth-mode";
 import {
   computeOpportunityScore,
   type OpportunityScoreResult,
-} from "@/lib/tender-center-opportunity-score";
+} from "@/lib/tenders-strategy-opportunity-score";
 import {
   computeStrategicScore,
   type StrategicScoreContext,
   type StrategicScoreResult,
-} from "@/lib/tender-center-strategic-score";
+} from "@/lib/tenders-strategy-strategic-score";
 
 export type TenderDecision = "GO" | "HOLD" | "NO-GO";
 

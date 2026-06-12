@@ -1,14 +1,14 @@
 import { Briefcase } from "lucide-react";
-import type { PortfolioDecisionCounts } from "@/lib/tender-center-decision";
-import { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
-import { PIPELINE_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
-import type { OwnerDecisionStats } from "@/lib/tender-center-owner-decisions";
+import type { PortfolioDecisionCounts } from "@/lib/tenders-strategy-decision";
+import { DECISION_LABEL_PL } from "@/lib/tenders-strategy-decision";
+import { PIPELINE_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
+import type { OwnerDecisionStats } from "@/lib/tenders-strategy-owner-decisions";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type {
   OwnerSystemAlignment,
   OwnerTenderDecisionRecord,
-} from "@/lib/tender-center-owner-decisions";
-import { DecisionHistory } from "@/app/tender-center/components/DecisionHistory";
+} from "@/lib/tenders-strategy-owner-decisions";
+import { DecisionHistory } from "@/app/tenders/strategy/components/DecisionHistory";
 
 function Counter({
   label,

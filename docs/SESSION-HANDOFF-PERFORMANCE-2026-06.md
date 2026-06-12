@@ -46,7 +46,7 @@ Usunięto duplikat fetchu statystyk BZP z `App.tsx` (useEffect `loadTendersPipel
 
 | Plik | Zmiana |
 |------|--------|
-| `src/app/tender-center/hooks/useTendersPipeline.ts` | fast path loading=false; award/BZP deferred |
+| `src/app/tenders/strategy/hooks/useTendersPipeline.ts` | fast path loading=false; award/BZP deferred |
 
 ### 2.3 Sprint 1.3A+ — CloudLoader lite bootstrap
 
@@ -58,7 +58,7 @@ Usunięto duplikat fetchu statystyk BZP z `App.tsx` (useEffect `loadTendersPipel
 |------|--------|
 | `src/lib/cloud-sync.ts` | `BOOTSTRAP_CORE_KEYS`, `BOOTSTRAP_DEFERRED_KEYS`, `fetchAndMergeDeferredBootstrap`, event |
 | `src/app/CloudLoader.tsx` | dwufazowy bootstrap |
-| `src/app/tender-center/context/CommandCenterContext.tsx` | listener event → `bumpProfileVersion()` |
+| `src/app/tenders/strategy/context/CommandCenterContext.tsx` | listener event → `bumpProfileVersion()` |
 
 **CORE (6):** `kw-directory`, `kw-week-employees`, `kw-archive`, `kw-weekFrom`, `kw-weekTo`, `kw-jobs`.
 
@@ -166,4 +166,4 @@ a213a65  Roboty 2.1B MIN: restore UI layout and card refresh
 5. docs/tender-center-7g-executive.md  ← CC na Pulpicie
 ```
 
-**Smoke po zmianach performance:** login admin → Pulpit → widoczna marka **„W&G DOM COMMAND CENTER AI”** (nie tylko placeholder).
+**Smoke po zmianach performance:** login admin → Pulpit → widoczna marka **„W&G DOM — Przetargi Strategia”** (nie tylko placeholder).

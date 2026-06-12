@@ -183,7 +183,7 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 
 | Sprint | Commit | Wersja | Skrót |
 |--------|--------|--------|-------|
-| **20.3B+ FULL** | **`61cb33b`** | **2.50.43** | Pełny CC aktywny + `tender-center-ui-labels-pl.ts` |
+| **20.3B+ FULL** | **`61cb33b`** | **2.50.43** | Pełny CC aktywny + `tenders-strategy-ui-labels-pl.ts` |
 | **20.3B MIN** | `3d6a63e` | 2.49.90 | Centrum działań, Indeks kondycji, STARTUJ/ANALIZUJ/ODPUŚĆ, Portfolio WM |
 
 **Smoke:** `smoke-test-ui-language-20.3b-full.mjs` (39) · **Handoff:** [`docs/SESSION-HANDOFF-20.3B-CC-POLISH.md`](../../docs/SESSION-HANDOFF-20.3B-CC-POLISH.md)
@@ -317,9 +317,9 @@ Worker sync: `syncWeekEmployees` → `pushKeysToCloud(["kw-week-employees"])`
 | Plik | Rola |
 |------|------|
 | `src/app/App.tsx` | UI, WorkerPhotoView, DashboardView (+ CC executive 7G), PhotoGallery, PayrollView |
-| `src/app/tender-center/hooks/useCommandCenterExecutiveSnapshot.ts` | Snapshot CC (pulpit + OwnerDashboard) |
-| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | Executive summary na pulpicie (7G) |
-| `src/lib/tender-center-ui-labels-pl.ts` | Mapy etykiet PL COMMAND CENTER (20.3B+) |
+| `src/app/tenders/strategy/hooks/useCommandCenterExecutiveSnapshot.ts` | Snapshot CC (pulpit + OwnerDashboard) |
+| `src/app/tenders/strategy/components/CommandCenterExecutivePanel.tsx` | Executive summary na pulpicie (7G) |
+| `src/lib/tenders-strategy-ui-labels-pl.ts` | Mapy etykiet PL COMMAND CENTER (20.3B+) |
 | `docs/SESSION-HANDOFF-20.3B-CC-POLISH.md` | CC polonizacja + mapa widoków dla AI |
 | `src/app/InspectorPanel.tsx` | Panel inspektora — roboty, dokumenty, pliki |
 | `src/lib/job-documents.ts` | Typy dokumentów, jobFiles, accept MIME |

@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.50.70** · Default Inspector Recipient 2.1.1)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-11 (Default Inspector Recipient 2.1.1)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.51.1** · Przetargi 3.0 rename ETAP 4)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-12 (Command Center removed v2.51.0 · rename ETAP 4 v2.51.1)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -186,7 +186,7 @@ Filtr stosowany w `resolveAuthorContact()` (`content-author-contact.ts`) i `Auth
 | `photos` | Galeria zdjęć (admin) — zaakceptowane zdjęcia ekipy; ZIP całej roboty / kategorii | `JobPhotosGalleryView` w `App.tsx` |
 | `jobfiles` | Pliki robót | `JobAllFilesView` / browser |
 | `guide` | Instrukcja + Changelog | `HelpView`, `ChangelogView` |
-| `tenders` | Przetargi: **COMMAND CENTER AI** (`TenderCenterProView` / `OwnerDashboard`) lub widok klasyczny | Super Admin zawsze; admin/moderator gdy `tendersTabForStaffEnabled` |
+| `tenders` | **Przetargi 3.0** — `TendersModule` (Lista, Strategia, Mapa, Profil, Ustawienia) | Super Admin zawsze; admin/moderator gdy `tendersTabForStaffEnabled` |
 
 Widoki nieaktywne są **odmontowywane** (`{view==="jobs"&&<JobsView/>}`) — scroll wewnątrz każdego widoku.
 
@@ -566,7 +566,7 @@ Test: `npx vite-node scripts/test-p15-admin-password-merge.mjs`
 
 **DEFERRED:** `kw-tenders-pipeline`, `kw-tenders-company-profile`, `kw-tenders-custom-keywords`, `kw-contacts`, `kw-employee-leaves`, `kw-recoverable-charges`.
 
-Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTSTRAP_EVENT`) → `CommandCenterContext` wywołuje `bumpProfileVersion()` (profil firmy w CC).
+Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTSTRAP_EVENT`) → `TendersProvider` wywołuje `bumpProfileVersion()` (profil firmy w module Przetargi).
 
 **Uwaga:** `useTendersPipeline` nadal może robić własny fetch pipeline przy mount CC — nie zakłada danych z fazy 1 CloudLoader.
 
@@ -697,7 +697,7 @@ Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTST
 
 - **Karta ofertowa** (`TenderBidPrepPanel`) — checklist, analiza SWZ, wadium + blokada, referencje, wynik BZP, porównanie cen, .ics terminu, pakiet PDF.
 - **Chipy „wymaga działania”** — filtry: termin bez wyceny, wadium, brak kosztorysu, referencje NIE, obciążenie zespołu.
-- **Pulpit admin (7G)** — **W&G DOM COMMAND CENTER AI** (executive summary): briefing, Indeks kondycji, capacity, okazja, prognoza 90d, Centrum działań (max 3). **20.3B+ FULL (v2.50.43):** pełna polonizacja aktywnego CC + lib dynamiczne; marka COMMAND CENTER AI bez zmian. Szczegóły → [`tender-center-7g-executive.md`](tender-center-7g-executive.md), [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md). Legacy `tenderDashStats` **usunięte** (Performance 1.1C, `a6cdb4a`).
+- **Pulpit admin (7G, historyczny)** — skrót przetargowy na Pulpicie (`TendersShortcutPanel`); pełna strategia w **Przetargi → Strategia**. Polonizacja: v2.50.43. Legacy `tenderDashStats` **usunięte** (Performance 1.1C, `a6cdb4a`). Archiwum: [`tender-center-7g-executive.md`](tender-center-7g-executive.md) (**SUPERSEDED**).
 - **Mapa Wrocław** — kafelki **OpenStreetMap** (`tile.openstreetmap.org`) + markery; **nie** `staticmap.openstreetmap.de` (niedostępny). Panel domyślnie rozwinięty.
 - **Słownik słów kluczowych** — wbudowany w `tenders-bzp-keywords.ts` (~280 haseł) + opcjonalne własne w chmurze (`kw-tenders-custom-keywords`).
 
@@ -713,46 +713,39 @@ Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTST
 
 **Zarządzanie sekcją (v2.45):** klucze `kw-tenders-*` w `DATA_KEYS`; merge w `tenders-sync.ts`; CSV, bulk, profil, słownik słów kluczowych.
 
-### 12.1.3 W&G DOM COMMAND CENTER AI + pulpit executive (ETAP 4–7G)
+### 12.1.3 Przetargi 3.0 — Strategia + skrót pulpitu
 
-**Pełny moduł:** `src/app/TenderCenterProView.tsx` → `src/app/tender-center/components/OwnerDashboard.tsx` (lazy chunk `TenderCenterProView-*.js`).
+> **Command Center removed in v2.51.0** — runtime CC usunięty; **v2.51.1** — rename `tender-center-*` → `tenders-strategy-*`, folder `src/app/tenders/strategy/`.
 
-**Pulpit V3 (2.50.74):** `DashboardView` → operacje (Braki + Pilne uwagi) + `CommandCenterExecutivePanel` (skrót CC). **Brak** Hero i coupling CC na Pulpicie. Strategia wyłącznie w module Przetargi (`OwnerDashboard`).
+**Moduł:** `src/app/tenders/TendersModule.tsx` — 5 zakładek (Lista, Strategia, Mapa, Profil firmy, Ustawienia).
 
-| Plik | Rola |
-|------|------|
-| `src/lib/dashboard-urgent-today.ts` | **SSOT** liczników Pilnych uwag — `buildUrgentTodayCategories()` |
-| `src/app/DashboardPilneUwagiSection.tsx` | UI kategorii Pilnych uwag (pełne listy) |
-| `src/app/tender-center/hooks/useCommandCenterExecutiveSnapshot.ts` | Snapshot: health, briefing, action center, forecast, best opportunity, … |
-| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | Przetargi — skrót: liczniki CC + CTA (bez Najważniejsze dziś) |
-| `src/lib/tender-center-action-center-display.ts` | Prezentacja slotów forecast w Action Center UI (bez %) |
-| `src/lib/tender-center-health.ts` | Health Index |
-| `src/lib/tender-center-morning-briefing.ts` | Morning Briefing |
-| `src/lib/tender-center-action-center.ts` | Action Center |
-| `src/lib/tender-center-forecast-90d.ts` | Prognoza 90 dni |
-| `src/lib/tender-center-decision.ts` | Scoring / najlepsza okazja |
-| `src/lib/tender-center-financial-capacity.ts` | Zdolność finansowa (pulpit: z impact najlepszej okazji) |
+**Provider:** `src/app/tenders/context/TendersProvider.tsx` — pipeline BZP, decyzje właściciela, snapshot strategii (`useTendersStrategySnapshot`).
 
-**Pipeline CC (1.2A):** `useTendersPipeline` — `loading=false` po pipeline+rescore; award/BZP w tle (nie blokują marki CC).
-
-**Dokumentacja AI:** [`docs/tender-center-7g-executive.md`](tender-center-7g-executive.md) · handoff polonizacji: [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md) · komponenty UI legacy 5A: [`tender-center-pro-legacy-components.md`](tender-center-pro-legacy-components.md)
-
-**Polonizacja UI (20.3B+ FULL, v2.50.43):**
+**Pulpit V3:** `DashboardView` → operacje (Braki + Pilne uwagi) + `TendersShortcutPanel` (pilne terminy, wygrane bez roboty, wymagające decyzji; CTA **Przetargi → Strategia**). Strategia wyłącznie w zakładce **Przetargi → Strategia** (`TendersStrategyContent`).
 
 | Plik | Rola |
 |------|------|
-| `src/lib/tender-center-ui-labels-pl.ts` | **Źródło prawdy** etykiet PL: metryki, sekcje accordion, słownik |
-| `src/lib/tender-center-decision.ts` | `DECISION_LABEL_PL` — STARTUJ / ANALIZUJ / ODPUŚĆ (enum GO/HOLD/NO-GO bez zmian) |
-| `src/lib/tender-center-action-center.ts` | Tytuły akcji + `ACTION_PRIORITY_LABEL_PL` |
-| `src/lib/tender-center-morning-briefing.ts` | Briefing dynamiczny PL |
-| `src/lib/tender-center-explain.ts` | Wyjaśnienia scoringu + alerty |
-| `src/lib/tender-center-ai-insights.ts` | Wnioski AI |
-| `src/lib/tender-center-financial-capacity.ts` | Mocne strony finansowe |
-| `src/lib/tender-center-what-if.ts` | Presety scenariuszy |
+| `src/lib/dashboard-urgent-today.ts` | **SSOT** liczników Pilnych uwag |
+| `src/app/DashboardPilneUwagiSection.tsx` | UI kategorii Pilnych uwag |
+| `src/app/tenders/components/TendersShortcutPanel.tsx` | Skrót przetargowy na Pulpicie |
+| `src/app/tenders/context/useTendersStrategySnapshot.ts` | Hook snapshot strategii |
+| `src/app/tenders/context/tenders-strategy-snapshot.ts` | Typ `TendersStrategySnapshot` |
+| `src/app/tenders/components/TendersStrategyContent.tsx` | UI zakładki Strategia |
+| `src/app/tenders/strategy/components/TendersStrategyHero.tsx` | Indeks kondycji + tryb wzrostu |
+| `src/app/tenders/strategy/components/ActionCenter.tsx` | Centrum działań |
+| `src/lib/tenders-strategy-action-center.ts` | Logika Action Center |
+| `src/lib/tenders-strategy-forecast-90d.ts` | Prognoza 90 dni |
+| `src/lib/tenders-strategy-decision.ts` | Scoring / GO·HOLD·NO-GO |
+| `src/lib/tenders-strategy-financial-capacity.ts` | Zdolność finansowa |
+| `src/lib/tenders-strategy-ui-labels-pl.ts` | Etykiety PL strategii |
 
-**Zasada:** marka **COMMAND CENTER AI** — świadomy wyjątek EN. Nowe stringi CC → najpierw mapa w `tender-center-ui-labels-pl.ts`. **Smoke:** `scripts/smoke-test-ui-language-20.3b-full.mjs` (39), `smoke-test-ui-language-20.3b.mjs` (31).
+**Pipeline:** `src/app/tenders/strategy/hooks/useTendersPipeline.ts` — `loading=false` po pipeline+rescore; award/BZP w tle.
 
-**Prod 7G:** commit `7d49be2`. Polonizacja CC: **`61cb33b`** (2.50.43). Rozszerzenia Fazy 8 (8.3 executive CTA) — § 12.1.4.
+**Dokumentacja historyczna (SUPERSEDED):** [`tender-center-7g-executive.md`](tender-center-7g-executive.md) · polonizacja: [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md)
+
+**Polonizacja UI (20.3B+ FULL, v2.50.43):** etykiety w `tenders-strategy-ui-labels-pl.ts`; enumy GO/HOLD/NO-GO bez zmian. **Smoke:** `scripts/smoke-test-ui-language-20.3b-full.mjs`, `smoke-test-ui-language-20.3b.mjs`.
+
+**Prod baseline:** v2.51.0 (`39b1892`) — usunięcie CC runtime; v2.51.1 — rename ETAP 4. Rozszerzenia Fazy 8 — § 12.1.4.
 
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 
@@ -820,7 +813,7 @@ Tender (pipeline BZP, status won)
 | `resolveWorkerContractStatusLabel` | `linkedTenderId` → `HANDOVER_STAGE_LABELS[inferHandoverStage]`; inaczej `JOB_LIST_STATUS_CONFIG[resolveJobListStatus].label` |
 | `resolveWorkerContractDateLabel` | `startDate` + `endDate` → `fmtDate` – `fmtDate`; tylko start → `Start: …`; brak dat → `null` |
 
-Bez zmian: payroll, grafik (`workerTodayWorkInfo`, `scheduleCellFor`), Tender Center, Executive, nowe klucze KV, Edge.
+Bez zmian: payroll, grafik (`workerTodayWorkInfo`, `scheduleCellFor`), moduł Przetargi, Executive KPI, nowe klucze KV, Edge.
 
 #### ETAP 8.5 MIN (Start Execution)
 
@@ -843,16 +836,16 @@ Bez zmian: payroll, grafik (`workerTodayWorkInfo`, `scheduleCellFor`), Tender Ce
 | `src/app/JobsView.tsx` | Select lidera + checkboxy ekipy w banerze kontraktu |
 | `src/app/JobListCardV2.tsx` | Badge operacyjne + recoverable na karcie listy |
 
-Bez zmian: payroll, grafik, portfolio WM, Tender Center, Executive, Supabase Edge, `workEntries`.
+Bez zmian: payroll, grafik, portfolio WM, moduł Przetargi, Executive, Supabase Edge, `workEntries`.
 
-Bez zmian: `executeCreateJobFromTender`, `TenderJobLinkButtons`, pipeline, Command Center.
+Bez zmian: `executeCreateJobFromTender`, `TenderJobLinkButtons`, pipeline, moduł Przetargi.
 
 #### Etapy i commity
 
 | Etap | Commit | UI | Zakres |
 |------|--------|-----|--------|
 | 8.0 | `d1b888e` | 2.45.22 | Wspólny create/open job — CC + Classic |
-| 8.0A | `5368016` | 2.45.23 | Jeden runtime pipeline (`CommandCenterProvider`) |
+| 8.0A | `5368016` | 2.45.23 | Jeden runtime pipeline (`TendersProvider`) |
 | 8.1 | `dd41581` | 2.45.24 | Mapowanie draftu: kwota, daty z umowy + `implementationDays` |
 | 8.2 | `8b6e822` | 2.45.25 | Baner realizacji, `plannedHandoverDate`, sync dokumentów |
 | 8.3 | `9bac507` | 2.45.26 | Executive: KPI „Wygrane bez roboty”, `TenderJobLinkButtons` |
@@ -864,12 +857,12 @@ Bez zmian: `executeCreateJobFromTender`, `TenderJobLinkButtons`, pipeline, Comma
 |------|------|
 | `src/lib/create-job-from-tender.ts` | `executeCreateJobFromTender` — Job + activity + attach async |
 | `src/lib/tenders-bzp.ts` | `jobDraftFromTender`, `resolveJobDraftDatesFromTender`, `resolveInvoiceAmountFromTender` |
-| `src/app/tender-center/hooks/useTenderJobFromPipeline.ts` | Create/open + `pipeline.updateItem(linkedJobId)` |
-| `src/app/tender-center/components/TenderJobLinkButtons.tsx` | UI przycisków (won) |
-| `src/app/tender-center/context/CommandCenterContext.tsx` | Jedyna instancja `useTendersPipeline` (8.0A) |
-| `src/app/TendersView.tsx` | Classic — ten sam pipeline z Context (8.0A) |
-| `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` | Pulpit executive + KPI (8.3) |
-| `src/app/admin/AdminViewRouter.tsx` | Handlery job → `DashboardView` + `TenderCenterProView` |
+| `src/app/tenders/strategy/hooks/useTenderJobFromPipeline.ts` | Create/open + `pipeline.updateItem(linkedJobId)` |
+| `src/app/tenders/strategy/components/TenderJobLinkButtons.tsx` | UI przycisków (won) |
+| `src/app/tenders/context/TendersProvider.tsx` | Jedyna instancja `useTendersPipeline` |
+| `src/app/TendersView.tsx` | Classic — ten sam pipeline z Context |
+| `src/app/tenders/components/TendersShortcutPanel.tsx` | Skrót pulpitu + KPI przetargowe |
+| `src/app/admin/AdminViewRouter.tsx` | `TendersProviderScope` → Dashboard + Przetargi |
 | `src/app/JobsView.tsx` | Baner „Realizacja kontraktu” (8.2) |
 
 #### Daty draftu (8.1 + 8.4)
@@ -885,7 +878,7 @@ Priorytet w `resolveJobDraftDatesFromTender`:
 
 #### Ograniczenia / stabilizacja
 
-- **Nie zmieniać** bez polecenia: `BOOTSTRAP_CORE_KEYS` / `BOOTSTRAP_DEFERRED_KEYS`, `CommandCenterProvider`, `linkedJobId`, `TenderJobLinkButtons` (tylko reuse). Zmiany w `useTendersPipeline` / CloudLoader — tylko z audytem (patrz [`SESSION-HANDOFF-PERFORMANCE-2026-06.md`](SESSION-HANDOFF-PERFORMANCE-2026-06.md)).
+- **Nie zmieniać** bez polecenia: `BOOTSTRAP_CORE_KEYS` / `BOOTSTRAP_DEFERRED_KEYS`, `TendersProvider`, `linkedJobId`, `TenderJobLinkButtons` (tylko reuse). Zmiany w `useTendersPipeline` / CloudLoader — tylko z audytem (patrz [`SESSION-HANDOFF-PERFORMANCE-2026-06.md`](SESSION-HANDOFF-PERFORMANCE-2026-06.md)).
 
 ### 12.1.2 Galeria zdjęć admin (v2.45.10 → 20.5A.8)
 
@@ -1059,11 +1052,11 @@ WGDOM1/
 | `recoverablecharges` | Do rozliczenia | `RecoverableChargesView.tsx` | Settlement 20.3A–20.4C |
 | `media` | Zdjęcia i pliki | `MediaView.tsx` | Galeria obrazów + dokumenty · liczniki · ZIP |
 | `guide` | Zmiany/Instrukcja | `GuideView.tsx` | Changelog + help |
-| `tenders` | Przetargi | `TenderCenterProView.tsx` | CC pełny + widok BZP |
+| `tenders` | Przetargi | `TendersModule.tsx` | Przetargi 3.0 — Lista, Strategia, Mapa, Profil, Ustawienia |
 
 **Mobile bottom nav (primary):** Pulpit · Lista Płac · Grafik · Roboty — reszta w „Więcej”.
 
-**COMMAND CENTER:** `CommandCenterProvider` owija `dashboard` + `tenders` gdy `canViewTendersNav` — jeden pipeline BZP. Pełna struktura sekcji CC → [`SESSION-HANDOFF-20.3B-CC-POLISH.md`](SESSION-HANDOFF-20.3B-CC-POLISH.md).
+**Przetargi 3.0:** `TendersProvider` owija `dashboard` + `tenders` gdy `canViewTendersNav` — jeden pipeline BZP. Strategia → zakładka **Strategia** w `TendersModule`.
 
 ---
 
@@ -1128,7 +1121,7 @@ WGDOM1/
 ### 17.5 Wydajność
 
 - **Nie** importuj pdfmake statycznie — użyj istniejących lazy loaderów.
-- Duże widoki admina: `React.lazy` w [`AdminViewRouter.tsx`](../src/app/admin/AdminViewRouter.tsx) (`JobsView`, `PayrollView`, `TenderCenterProView`, `InspectorAdminView`, …).
+- Duże widoki admina: `React.lazy` w [`AdminViewRouter.tsx`](../src/app/admin/AdminViewRouter.tsx) (`JobsView`, `PayrollView`, `TendersModule`, `InspectorAdminView`, …).
 - **`vite.config.ts` → `manualChunks`** (stan prod `35614f0`, Performance 2.x **CLOSED**):
   - **PROD:** `app-core`, `pdfjs`, `pdfmake`, `ui-vendor`, `panel-guide` — **bez** `shared-inspector` (usunięte w 2.4A) i **bez** `panel-*` (usunięte w 2.2C).
   - **Startup (2.4A):** entry + 3 modulepreload ≈ **1119 KB**, **4** requesty; brak `shared-inspector` i `pdfjs` w preload.

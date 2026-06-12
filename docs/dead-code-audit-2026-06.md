@@ -19,12 +19,12 @@
 
 | Plik | Powód |
 |------|--------|
-| `src/app/tender-center/components/CompanyHealthCard.tsx` | @legacy ETAP 5A, zero importów |
-| `src/app/tender-center/components/GrowthModeSelector.tsx` | j.w. |
-| `src/app/tender-center/components/OpportunityRadar.tsx` | j.w. |
-| `src/app/tender-center/components/Forecast90Days.tsx` | j.w. |
-| `src/app/tender-center/components/DecisionCenter.tsx` | j.w. |
-| `src/app/tender-center/components/ImpactPanel.tsx` | UI nigdy montowany; lib `computeTenderImpact` żywy |
+| `src/app/tenders/strategy/components/CompanyHealthCard.tsx` | @legacy ETAP 5A, zero importów |
+| `src/app/tenders/strategy/components/GrowthModeSelector.tsx` | j.w. |
+| `src/app/tenders/strategy/components/OpportunityRadar.tsx` | j.w. |
+| `src/app/tenders/strategy/components/Forecast90Days.tsx` | j.w. |
+| `src/app/tenders/strategy/components/DecisionCenter.tsx` | j.w. |
+| `src/app/tenders/strategy/components/ImpactPanel.tsx` | UI nigdy montowany; lib `computeTenderImpact` żywy |
 | `src/app/TenderExternalDocsPanel.tsx` | Zastąpione przez `TenderDetailPanel` + `discoverExternalTenderDocs` |
 
 Dokumentacja: [`tender-center-pro-legacy-components.md`](tender-center-pro-legacy-components.md)

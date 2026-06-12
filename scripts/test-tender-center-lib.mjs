@@ -26,13 +26,13 @@ const {
   healthWeightsForMode,
   suggestGrowthMode,
   minOpportunityScoreForMode,
-} = await import("../src/lib/tender-center-growth-mode.ts");
+} = await import("../src/lib/tenders-strategy-growth-mode.ts");
 const {
   aggregateMarketKpi,
   countPreparingOffers,
   sumOpenMarketValuePln,
-} = await import("../src/lib/tender-center-kpi.ts");
-const { computeCompanyHealth } = await import("../src/lib/tender-center-health.ts");
+} = await import("../src/lib/tenders-strategy-kpi.ts");
+const { computeCompanyHealth } = await import("../src/lib/tenders-strategy-health.ts");
 
 const profile = defaultCompanyProfile();
 

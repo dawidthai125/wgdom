@@ -3,11 +3,11 @@
  * Presentation only — enumy GO/HOLD/NO-GO pozostają w modelu danych.
  */
 
-export { DECISION_LABEL_PL } from "@/lib/tender-center-decision";
-export type { TenderDecision } from "@/lib/tender-center-decision";
-export { ACTION_PRIORITY_LABEL_PL, ACTION_CATEGORY_LABEL_PL } from "@/lib/tender-center-action-center";
-export { HEALTH_LABEL_PL } from "@/lib/tender-center-health";
-export { CONTRACT_SCALE_LABEL_PL } from "@/lib/tender-center-impact";
+export { DECISION_LABEL_PL } from "@/lib/tenders-strategy-decision";
+export type { TenderDecision } from "@/lib/tenders-strategy-decision";
+export { ACTION_PRIORITY_LABEL_PL, ACTION_CATEGORY_LABEL_PL } from "@/lib/tenders-strategy-action-center";
+export { HEALTH_LABEL_PL } from "@/lib/tenders-strategy-health";
+export { CONTRACT_SCALE_LABEL_PL } from "@/lib/tenders-strategy-impact";
 
 export const METRIC_LABEL_PL = {
   healthIndex: "Indeks kondycji",

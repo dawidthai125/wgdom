@@ -20,10 +20,10 @@ Komponenty oznaczone `@legacy` **nie są montowane** w `OwnerDashboard` po ETAPI
 
 | Plik | Zastąpiony przez | Można usunąć? |
 |------|------------------|---------------|
-| `CompanyHealthCard.tsx` | `CommandCenterHero.tsx` | Tak, po weryfikacji — logika health w lib |
-| `GrowthModeSelector.tsx` | Growth Mode pills w `CommandCenterHero` | Tak — duplikat UI |
+| `CompanyHealthCard.tsx` | `TendersStrategyHero.tsx` | Tak, po weryfikacji — logika health w lib |
+| `GrowthModeSelector.tsx` | Growth Mode pills w `TendersStrategyHero` | Tak — duplikat UI |
 | `OpportunityRadar.tsx` | `BestOpportunityCard.tsx` | Tak — top-1 wystarcza na dashboardzie |
-| `Forecast90Days.tsx` | `ForecastCommandStrip.tsx` | Rozważyć — pełna prognoza (scenariusze A/B) nie jest w PRO |
+| `Forecast90Days.tsx` | `TendersStrategyForecastStrip.tsx` | Rozważyć — pełna prognoza (scenariusze A/B) nie jest w PRO |
 | `DecisionCenter.tsx` | `BestOpportunityCard` (GO/HOLD/NO-GO) | Tak dla top-1; brak UI dla rank 2–5 w PRO |
 
 ## Zależności przed usunięciem

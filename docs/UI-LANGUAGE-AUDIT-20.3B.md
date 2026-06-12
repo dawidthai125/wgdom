@@ -213,9 +213,9 @@ Komponenty **nie** renderują surowych enumów (`GO`, `CRITICAL`, `open`) — za
 
 | Aktualnie (UI) | Propozycja PL | Lokalizacja |
 |----------------|---------------|-------------|
-| W&G DOM COMMAND CENTER AI (nagłówek sekcji) | *Marka — decyzja produktowa* albo: **Centrum dowodzenia W&G DOM** | `src/app/tender-center/branding.ts` |
-| Ładowanie COMMAND CENTER AI… | Ładowanie centrum dowodzenia… | `src/app/tender-center/components/CommandCenterExecutivePanel.tsx` |
-| Health Index | Indeks kondycji | `CommandCenterExecutivePanel.tsx`, `CommandCenterHero.tsx`, `CompanyHealthCard.tsx`, `MetricHelpTooltip.tsx` |
+| W&G DOM — Przetargi Strategia (nagłówek sekcji) | *Marka — decyzja produktowa* albo: **Centrum dowodzenia W&G DOM** | `src/app/tenders/strategy/branding.ts` |
+| Ładowanie COMMAND CENTER AI… | Ładowanie centrum dowodzenia… | `src/app/tenders/strategy/components/CommandCenterExecutivePanel.tsx` |
+| Health Index | Indeks kondycji | `CommandCenterExecutivePanel.tsx`, `TendersStrategyHero.tsx`, `CompanyHealthCard.tsx`, `MetricHelpTooltip.tsx` |
 | Action Center | Centrum działań | `CommandCenterExecutivePanel.tsx` |
 | CRITICAL · HIGH | Krytyczne · Wysokie | `CommandCenterExecutivePanel.tsx` |
 | {item.priority} surowe (CRITICAL, HIGH…) | Mapa `ACTION_PRIORITY_LABEL_PL` | `CommandCenterExecutivePanel.tsx`, `ActionCenter.tsx` |
@@ -257,12 +257,12 @@ Komponenty **nie** renderują surowych enumów (`GO`, `CRITICAL`, `open`) — za
 
 | Aktualnie (UI) | Propozycja PL | Lokalizacja (główne) |
 |----------------|---------------|----------------------|
-| Health Index | Indeks kondycji | `MetricHelpTooltip.tsx`, `CommandCenterHero.tsx`, `ImpactPanel.tsx`, `CommandCenterExplainability.tsx` |
+| Health Index | Indeks kondycji | `MetricHelpTooltip.tsx`, `TendersStrategyHero.tsx`, `ImpactPanel.tsx`, `CommandCenterExplainability.tsx` |
 | Opportunity Score / Opportunity | Wynik okazji / Okazja | `MetricHelpTooltip.tsx`, `BestOpportunityCard.tsx`, `OpportunityRadar.tsx` |
 | Strategic Score / Strategic | Wynik strategiczny / Strategiczny | j.w. |
 | Impact Score | Wynik wpływu | `MetricHelpTooltip.tsx`, `ImpactPanel.tsx` |
 | Financial Capacity / Financial Capacity Score | Zdolność finansowa / Wynik zdolności finansowej | `MetricHelpTooltip.tsx`, `FinancialCapacityPanel.tsx` |
-| Growth Mode | Tryb rozwoju | `CommandCenterHero.tsx`, `CommandCenterGlossary.tsx` |
+| Growth Mode | Tryb rozwoju | `TendersStrategyHero.tsx`, `CommandCenterGlossary.tsx` |
 | Forecast 90 dni | Prognoza 90 dni | OK — tytuł PL; treść help PL |
 | Morning Briefing | Poranny briefing | `HowToUseCommandCenter.tsx`, `CommandCenterGlossary.tsx` |
 | Insight (etykieta bloku) | Wniosek | `MorningBriefingCard.tsx` |
@@ -271,7 +271,7 @@ Komponenty **nie** renderują surowych enumów (`GO`, `CRITICAL`, `open`) — za
 | Cash Flow Impact | Wpływ na przepływy | `ImpactPanel.tsx` |
 | Team Impact | Wpływ na zespół | `ImpactPanel.tsx` |
 | Contract Scale | Skala kontraktu | `ImpactPanel.tsx` |
-| Scenariusz C · 50% GO | Scenariusz C · 50% startów | `ForecastCommandStrip.tsx` |
+| Scenariusz C · 50% GO | Scenariusz C · 50% startów | `TendersStrategyForecastStrip.tsx` |
 
 #### Decyzje i liczniki
 
@@ -294,11 +294,11 @@ Komponenty **nie** renderują surowych enumów (`GO`, `CRITICAL`, `open`) — za
 
 | Aktualnie (UI) | Propozycja PL | Lokalizacja |
 |----------------|---------------|-------------|
-| Opportunity ${score}, decyzja systemu ${decision} | Okazja ${score}, decyzja systemu ${etykietaPL} | `src/lib/tender-center-action-center.ts` |
+| Opportunity ${score}, decyzja systemu ${decision} | Okazja ${score}, decyzja systemu ${etykietaPL} | `src/lib/tenders-strategy-action-center.ts` |
 | pipeline.submittingOffersDate · Radar okazji | Termin składania · Radar okazji | `tender-center-action-center.ts` (pole `source`) |
 | Health Index krytyczny | Indeks kondycji krytyczny | `tender-center-action-center.ts` |
 | …przetargów GO bez decyzji… | …przetargów „Startuj" bez decyzji… | `tender-center-action-center.ts` |
-| Najczęściej wybierasz decyzję GO/HOLD/NO-GO | …Startuj / Analizuj / Odpuszczaj | `src/lib/tender-center-ai-insights.ts` |
+| Najczęściej wybierasz decyzję GO/HOLD/NO-GO | …Startuj / Analizuj / Odpuszczaj | `src/lib/tenders-strategy-ai-insights.ts` |
 | Średni Opportunity Score… | Średni wynik okazji… | `tender-center-ai-insights.ts` |
 | GO < 35% — ostrożna selekcja | Startuj < 35% — ostrożna selekcja | `OwnerProfilePanel.tsx` |
 
@@ -376,7 +376,7 @@ Wpisy w `changelog-data.ts` są **czytane przez użytkownika** w `GuideView` →
 | B1 | Nowy plik `src/lib/ui-labels-pl.ts` lub rozszerzenie istniejących map: metryki CC, priorytety (już częściowo są) | `tender-center-action-center.ts`, nowy moduł | unit optional |
 | B2 | Podmiana renderów: `item.priority` → `ACTION_PRIORITY_LABEL_PL` | `ActionCenter.tsx`, `CommandCenterExecutivePanel.tsx` | CC smoke |
 | B3 | Przyciski decyzji: wyświetlać `DECISION_LABEL_PL` zamiast GO/HOLD/NO-GO | `BestOpportunityCard.tsx`, `TenderPortfolioCounters.tsx`, `DecisionHistory.tsx` | manual CC |
-| B4 | Metryki: Health Index → Indeks kondycji itd. | `MetricHelpTooltip.tsx`, `CommandCenterHero.tsx`, `FinancialCapacityPanel.tsx`, `ImpactPanel.tsx`, `BestOpportunityCard.tsx` | visual QA |
+| B4 | Metryki: Health Index → Indeks kondycji itd. | `MetricHelpTooltip.tsx`, `TendersStrategyHero.tsx`, `FinancialCapacityPanel.tsx`, `ImpactPanel.tsx`, `BestOpportunityCard.tsx` | visual QA |
 | B5 | Teksty dynamiczne action-center + ai-insights | `tender-center-action-center.ts`, `tender-center-ai-insights.ts` | CC briefing |
 
 ### Faza C — Dokumentacja i changelog (0,5–1 dzień) — **COULD**
@@ -444,17 +444,17 @@ src/app/admin/admin-nav.ts
 src/app/MediaView.tsx
 src/app/admin/AdminViewRouter.tsx
 src/app/PayrollView.tsx
-src/app/tender-center/components/ActionCenter.tsx
-src/app/tender-center/components/CommandCenterExecutivePanel.tsx
-src/app/tender-center/components/CommandCenterHero.tsx
-src/app/tender-center/components/BestOpportunityCard.tsx
-src/app/tender-center/components/MetricHelpTooltip.tsx
-src/app/tender-center/components/FinancialCapacityPanel.tsx
-src/app/tender-center/components/ImpactPanel.tsx
-src/app/tender-center/components/TenderPortfolioCounters.tsx
-src/app/tender-center/components/OwnerDashboard.tsx
-src/lib/tender-center-action-center.ts
-src/lib/tender-center-ai-insights.ts
+src/app/tenders/strategy/components/ActionCenter.tsx
+src/app/tenders/strategy/components/CommandCenterExecutivePanel.tsx
+src/app/tenders/strategy/components/TendersStrategyHero.tsx
+src/app/tenders/strategy/components/BestOpportunityCard.tsx
+src/app/tenders/strategy/components/MetricHelpTooltip.tsx
+src/app/tenders/strategy/components/FinancialCapacityPanel.tsx
+src/app/tenders/strategy/components/ImpactPanel.tsx
+src/app/tenders/strategy/components/TenderPortfolioCounters.tsx
+src/app/tenders/strategy/components/OwnerDashboard.tsx
+src/lib/tenders-strategy-action-center.ts
+src/lib/tenders-strategy-ai-insights.ts
 src/app/GuideView.tsx
 src/app/changelog-data.ts (najnowsze wpisy)
 ```

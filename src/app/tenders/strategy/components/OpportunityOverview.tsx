@@ -1,8 +1,8 @@
 import { BarChart3, TrendingUp, Wallet, AlertTriangle, Shield } from "lucide-react";
-import type { TenderCenterMarketKpi } from "@/lib/tender-center-kpi";
-import { formatForecastSlots } from "@/lib/tender-center-forecast-display";
-import { MetricHelpTooltip } from "@/app/tender-center/components/MetricHelpTooltip";
-import { SECTION_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
+import type { TendersStrategyMarketKpi } from "@/lib/tenders-strategy-kpi";
+import { formatForecastSlots } from "@/lib/tenders-strategy-forecast-display";
+import { MetricHelpTooltip } from "@/app/tenders/strategy/components/MetricHelpTooltip";
+import { SECTION_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 
 function fmtPln(n: number): string {
   return new Intl.NumberFormat("pl-PL", {
@@ -60,7 +60,7 @@ export function OpportunityOverview({
   kpi,
   maxConcurrentProjects,
 }: {
-  kpi: TenderCenterMarketKpi;
+  kpi: TendersStrategyMarketKpi;
   maxConcurrentProjects: number;
 }) {
   const preparingOfferCount = kpi.interestedCount + kpi.preparingCount;

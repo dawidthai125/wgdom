@@ -12,7 +12,7 @@ const {
   computeLiveSystemAlignment,
   listOwnerDecisions,
   TENDER_DECISIONS_STORAGE_KEY,
-} = await import("../src/lib/tender-center-owner-decisions.ts");
+} = await import("../src/lib/tenders-strategy-owner-decisions.ts");
 
 const results = [];
 function assert(name, cond, detail = {}) {

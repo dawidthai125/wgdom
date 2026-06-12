@@ -5,19 +5,19 @@ import { daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 import {
   isWonRealizationAction,
   TenderJobLinkButtons,
-} from "@/app/tender-center/components/TenderJobLinkButtons";
-import type { ActionCenterResult, OwnerActionItem, ActionPriority } from "@/lib/tender-center-action-center";
+} from "@/app/tenders/strategy/components/TenderJobLinkButtons";
+import type { ActionCenterResult, OwnerActionItem, ActionPriority } from "@/lib/tenders-strategy-action-center";
 import {
   ACTION_CATEGORY_LABEL_PL,
   ACTION_PRIORITY_LABEL_PL,
   priorityTone,
-} from "@/lib/tender-center-action-center";
-import type { Forecast90DaysResult } from "@/lib/tender-center-forecast-90d";
+} from "@/lib/tenders-strategy-action-center";
+import type { Forecast90DaysResult } from "@/lib/tenders-strategy-forecast-90d";
 import {
   formatActionCenterItemDescription,
   formatActionCenterItemReason,
   formatActionCenterItemTitle,
-} from "@/lib/tender-center-action-center-display";
+} from "@/lib/tenders-strategy-action-center-display";
 
 const URGENT_VISIBLE_MAX = 5;
 

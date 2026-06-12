@@ -17,11 +17,11 @@ if (typeof globalThis.DOMMatrix === "undefined") {
 }
 
 const { defaultCompanyProfile } = await import("../src/lib/tenders-bzp-company.ts");
-const { computeCompanyHealth } = await import("../src/lib/tender-center-health.ts");
-const { computeForecast90Days } = await import("../src/lib/tender-center-forecast-90d.ts");
-const { scoreTender, rankTopTenderOpportunities } = await import("../src/lib/tender-center-decision.ts");
+const { computeCompanyHealth } = await import("../src/lib/tenders-strategy-health.ts");
+const { computeForecast90Days } = await import("../src/lib/tenders-strategy-forecast-90d.ts");
+const { scoreTender, rankTopTenderOpportunities } = await import("../src/lib/tenders-strategy-decision.ts");
 const { buildOwnerStrategicAlerts } = await import("../src/lib/tenders-strategy-alerts.ts");
-const { buildActionCenter } = await import("../src/lib/tender-center-action-center.ts");
+const { buildActionCenter } = await import("../src/lib/tenders-strategy-action-center.ts");
 
 const profile = defaultCompanyProfile();
 const now = new Date("2026-06-02T12:00:00.000Z");

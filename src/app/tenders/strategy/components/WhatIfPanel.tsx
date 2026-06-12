@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import { GitBranch } from "lucide-react";
-import type { TenderScoringBundle } from "@/lib/tender-center-decision";
-import type { Forecast90DaysInput } from "@/lib/tender-center-forecast-90d";
-import { utilizationBarTone } from "@/lib/tender-center-forecast-90d";
+import type { TenderScoringBundle } from "@/lib/tenders-strategy-decision";
+import type { Forecast90DaysInput } from "@/lib/tenders-strategy-forecast-90d";
+import { utilizationBarTone } from "@/lib/tenders-strategy-forecast-90d";
 import {
   computeWhatIfComparison,
   defaultCustomWinTenderIds,
@@ -11,8 +11,8 @@ import {
   WHAT_IF_PRESET_LABELS,
   WHAT_IF_PRESET_ORDER,
   type WhatIfPresetId,
-} from "@/lib/tender-center-what-if";
-import { BASELINE_LABEL_PL, PIPELINE_LABEL_PL } from "@/lib/tender-center-ui-labels-pl";
+} from "@/lib/tenders-strategy-what-if";
+import { BASELINE_LABEL_PL, PIPELINE_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 
 function deltaTone(delta: number): string {
   if (delta > 5) return "text-orange-600 dark:text-orange-400";
