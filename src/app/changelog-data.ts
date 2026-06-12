@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.7",
+    label: "Przetargi — monitoring Q&A (P2-D.2)",
+    items: [
+      { type: "new", text: "tender-qa-monitor — NEW_QA, QA_UPDATED, QA_BATCH + snapshot Q&A" },
+      { type: "new", text: "Strategia → „Nowe pytania i odpowiedzi” z podsumowaniem AI z nazw plików" },
+      { type: "improve", text: "Pulpit: kafel „Nowe Q&A” + TenderQaAlert HIGH (<24h lub ≥3 odpowiedzi)" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.6",
     label: "Przetargi — monitoring zmian dokumentacji (P2-D.1)",
     items: [

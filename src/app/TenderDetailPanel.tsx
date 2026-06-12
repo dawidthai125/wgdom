@@ -37,6 +37,7 @@ import {
   resolveTenderPlatformDocumentStatus,
 } from "@/lib/tender-platform-awareness";
 import { processTenderChangeMonitorUpdate } from "@/lib/tender-change-monitor";
+import { processTenderQaMonitorUpdate } from "@/lib/tender-qa-monitor";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { assessTenderFit, estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 import { computeTenderBidProposal } from "@/lib/tenders-bid-calculator";
@@ -135,9 +136,15 @@ export function TenderDetailPanel({
       { ...item, ...patch },
       { externalDocDiscovery: discovery },
     );
+    const { qaMonitor, newEvents: newQaEvents } = processTenderQaMonitorUpdate(
+      { ...item, ...patch },
+      { externalDocDiscovery: discovery },
+    );
     patch.changeMonitor = changeMonitor;
-    if (newEvents.length > 0) {
-      toast.warning(`Wykryto ${newEvents.length} zmian${newEvents.length === 1 ? "ę" : "y"} w dokumentacji`);
+    patch.qaMonitor = qaMonitor;
+    const totalNew = newEvents.length + newQaEvents.length;
+    if (totalNew > 0) {
+      toast.warning(`Wykryto ${totalNew} zmian${totalNew === 1 ? "ę" : "y"} w dokumentacji`);
     }
     onUpdate(patch);
   }, [item, onUpdate]);
@@ -196,13 +203,20 @@ export function TenderDetailPanel({
           }
         }
         if (!cancelled && patch.bzpDocuments) {
+          const merged = { ...item, ...patch };
           const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(
-            { ...item, ...patch },
+            merged,
+            { documents: patch.bzpDocuments as typeof docs },
+          );
+          const { qaMonitor, newEvents: newQaEvents } = processTenderQaMonitorUpdate(
+            merged,
             { documents: patch.bzpDocuments as typeof docs },
           );
           patch.changeMonitor = changeMonitor;
-          if (newEvents.length > 0) {
-            toast.warning(`Wykryto ${newEvents.length} zmian${newEvents.length === 1 ? "ę" : "y"} w dokumentacji`);
+          patch.qaMonitor = qaMonitor;
+          const totalNew = newEvents.length + newQaEvents.length;
+          if (totalNew > 0) {
+            toast.warning(`Wykryto ${totalNew} zmian${totalNew === 1 ? "ę" : "y"} w dokumentacji`);
           }
         }
         if (
@@ -356,13 +370,16 @@ export function TenderDetailPanel({
     try {
       const docs = await fetchTenderDocuments(item.tenderId, item.noticeNumber || undefined);
       const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(item, { documents: docs });
+      const { qaMonitor, newEvents: newQaEvents } = processTenderQaMonitorUpdate(item, { documents: docs });
+      const totalNew = newEvents.length + newQaEvents.length;
       onUpdate({
         bzpDocuments: docs,
         documentsFetchedAt: new Date().toISOString(),
         changeMonitor,
+        qaMonitor,
       });
-      if (newEvents.length > 0) {
-        toast.warning(`Wykryto ${newEvents.length} zmian${newEvents.length === 1 ? "ę" : "y"} w dokumentacji`);
+      if (totalNew > 0) {
+        toast.warning(`Wykryto ${totalNew} zmian${totalNew === 1 ? "ę" : "y"} w dokumentacji`);
       } else {
         toast.success(docs.length ? `Znaleziono ${docs.length} załączników` : "Brak załączników");
       }

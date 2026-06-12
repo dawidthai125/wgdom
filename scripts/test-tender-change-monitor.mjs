@@ -68,12 +68,12 @@ const second = processTenderChangeMonitorUpdate(
 );
 assert("NEW_DOCUMENT", second.newEvents.some((e) => e.type === "NEW_DOCUMENT"));
 
-// NEW_QA
+// QA doc nie generuje NEW_DOCUMENT w change monitor (P2-D.2 → qa-monitor)
 const thirdQa = processTenderChangeMonitorUpdate(
   { ...item, changeMonitor: second.changeMonitor, bzpDocuments: [docA, docC] },
   { documents: [docA, docC, docB] },
 );
-assert("NEW_QA", thirdQa.newEvents.some((e) => e.type === "NEW_QA"));
+assert("QA doc skipped in change monitor", !thirdQa.newEvents.some((e) => e.type === "NEW_DOCUMENT"));
 
 // DOCUMENT_UPDATED
 const docA2 = { ...docA, downloadUrl: "https://ez/u1-v2", filename: "SWZ_v2.pdf" };
@@ -85,8 +85,8 @@ assert("DOCUMENT_UPDATED", fourth.newEvents.some((e) => e.type === "DOCUMENT_UPD
 
 // DOCUMENT_REMOVED
 const fifth = processTenderChangeMonitorUpdate(
-  { ...item, changeMonitor: thirdQa.changeMonitor, bzpDocuments: [docA, docC, docB] },
-  { documents: [docA, docC] },
+  { ...item, changeMonitor: second.changeMonitor, bzpDocuments: [docA, docC] },
+  { documents: [docA] },
 );
 assert("DOCUMENT_REMOVED", fifth.newEvents.some((e) => e.type === "DOCUMENT_REMOVED"));
 

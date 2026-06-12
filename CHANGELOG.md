@@ -4,10 +4,18 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.51.6** · **P2-D.1** tender change monitoring  
+**Aktualna wersja UI:** **2.51.7** · **P2-D.2** Q&A monitoring  
 **★ SSOT handoff:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../CURRENT-TASK.md)  
 **★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
+
+---
+
+## 2.51.7 (2026-06-12) — P2-D.2 Q&A monitoring
+
+- `tender-qa-monitor.ts` — NEW_QA, QA_UPDATED, QA_BATCH + AI summary z nazw plików
+- Strategia → „Nowe pytania i odpowiedzi”
+- Pulpit → „Nowe Q&A” + TenderQaAlert HIGH
 
 ---
 

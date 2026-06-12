@@ -21,6 +21,7 @@ import {
 import type { OwnerDecisionsStore } from "@/lib/tenders-strategy-owner-decisions";
 import { wmJobsWithOverduePlanned } from "@/lib/job-wm";
 import { collectAllChangeEvents, formatRelativeChangeTime } from "@/lib/tender-change-monitor";
+import { collectAllQaEvents, formatRelativeQaTime } from "@/lib/tender-qa-monitor";
 
 export type OwnerAlertTone = "warning" | "info" | "danger" | "success";
 
@@ -180,6 +181,18 @@ export function buildOwnerStrategicAlerts(input: OwnerAlertsInput): OwnerStrateg
       tone: "warning",
       message: `${recentChanges.length} zmian(y) dokumentacji przetargów — ostatnia ${formatRelativeChangeTime(top.at, now)}`,
       source: "tender-change-monitor · snapshot diff",
+    });
+  }
+
+  const recentQa = collectAllQaEvents(input.items).filter(
+    (e) => now.getTime() - new Date(e.at).getTime() < 7 * 24 * 3600_000,
+  );
+  if (recentQa.length > 0) {
+    alerts.push({
+      id: "tender-qa-changes",
+      tone: "warning",
+      message: `${recentQa.length} nowych Q&A w przetargach — ostatnia ${formatRelativeQaTime(recentQa[0].at, now)}`,
+      source: "tender-qa-monitor · TenderQaAlert",
     });
   }
 

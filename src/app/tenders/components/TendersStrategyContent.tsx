@@ -13,6 +13,7 @@ import { WhatIfPanel } from "@/app/tenders/strategy/components/WhatIfPanel";
 import { FinancialCapacityPanel } from "@/app/tenders/strategy/components/FinancialCapacityPanel";
 import { TenderPortfolioPanel } from "@/app/tenders/strategy/components/TenderPortfolioCounters";
 import { TenderChangeMonitorPanel } from "@/app/tenders/strategy/components/TenderChangeMonitorPanel";
+import { TenderQaMonitorPanel } from "@/app/tenders/strategy/components/TenderQaMonitorPanel";
 import { SECTION_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 import type { Job } from "@/app/app-domain";
 
@@ -149,6 +150,11 @@ export function TendersStrategyContent({
         />
 
         <TenderChangeMonitorPanel
+          items={pipeline.items}
+          onOpenTender={handleOpenTender}
+        />
+
+        <TenderQaMonitorPanel
           items={pipeline.items}
           onOpenTender={handleOpenTender}
         />

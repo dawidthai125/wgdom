@@ -72,6 +72,9 @@ function mergePipelineItem(a: TenderPipelineItem, b: TenderPipelineItem): Tender
     changeMonitor: primary.changeMonitor?.events?.length
       ? primary.changeMonitor
       : secondary.changeMonitor ?? primary.changeMonitor,
+    qaMonitor: primary.qaMonitor?.events?.length
+      ? primary.qaMonitor
+      : secondary.qaMonitor ?? primary.qaMonitor,
     updatedAt: ts(a.updatedAt) >= ts(b.updatedAt) ? a.updatedAt : b.updatedAt,
   };
 }

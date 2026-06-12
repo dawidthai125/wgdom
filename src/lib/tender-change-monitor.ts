@@ -5,6 +5,7 @@
 import type { TenderBzpDocument, TenderPipelineItem } from "@/lib/tenders-bzp";
 import { fetchTenderDocuments, isActionableTender } from "@/lib/tenders-bzp";
 import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
+import { isQaDocumentFilename, processTenderQaMonitorUpdate } from "@/lib/tender-qa-monitor";
 
 export type TenderChangeEventType =
   | "NEW_DOCUMENT"
@@ -56,7 +57,6 @@ export interface TenderChangeMonitorState {
   unseenCount: number;
 }
 
-const QA_FILENAME_RE = /pytan|odpowied|wyjaśn|wyjasn|qa\b|modyfik|zmian|korekt|aneks|popraw/i;
 const MAX_EVENTS = 50;
 
 function simpleHash(input: string): string {
@@ -68,14 +68,12 @@ function simpleHash(input: string): string {
   return (h >>> 0).toString(16).padStart(8, "0");
 }
 
+export { isQaDocumentFilename } from "@/lib/tender-qa-monitor";
+
 export function normalizeTenderDeadline(iso: string | null | undefined): string | null {
   if (!iso?.trim()) return null;
   const d = new Date(iso.length <= 10 ? `${iso}T12:00:00` : iso);
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
-}
-
-export function isQaDocumentFilename(filename: string): boolean {
-  return QA_FILENAME_RE.test(filename);
 }
 
 function fingerprintFromBzp(doc: TenderBzpDocument): TenderDocumentFingerprint {
@@ -163,8 +161,9 @@ export function diffTenderChangeSnapshots(
     return p && p.hash !== d.hash;
   });
 
-  const newQa = newDocs.filter((d) => d.isQaHint);
   const newNonQa = newDocs.filter((d) => !d.isQaHint);
+  const updatedNonQa = updatedDocs.filter((d) => !d.isQaHint);
+  const removedNonQa = removedDocs.filter((d) => !d.isQaHint);
 
   if (newNonQa.length > 0) {
     events.push({
@@ -179,7 +178,7 @@ export function diffTenderChangeSnapshots(
     });
   }
 
-  for (const doc of updatedDocs) {
+  for (const doc of updatedNonQa) {
     events.push({
       id: eventId("DOCUMENT_UPDATED", `${item.id}-${doc.key}`, at),
       type: "DOCUMENT_UPDATED",
@@ -191,7 +190,7 @@ export function diffTenderChangeSnapshots(
     });
   }
 
-  for (const doc of removedDocs) {
+  for (const doc of removedNonQa) {
     events.push({
       id: eventId("DOCUMENT_REMOVED", `${item.id}-${doc.key}`, at),
       type: "DOCUMENT_REMOVED",
@@ -200,19 +199,6 @@ export function diffTenderChangeSnapshots(
       tenderTitle: item.title,
       bzpNumber: item.bzpNumber,
       summary: `Usunięto dokument: ${doc.filename}`,
-    });
-  }
-
-  if (newQa.length > 0) {
-    events.push({
-      id: eventId("NEW_QA", item.id, at),
-      type: "NEW_QA",
-      at,
-      tenderItemId: item.id,
-      tenderTitle: item.title,
-      bzpNumber: item.bzpNumber,
-      summary: `+${newQa.length} odpowied${newQa.length === 1 ? "ź" : "zi"} na pytania`,
-      details: newQa.map((d) => d.filename).slice(0, 3).join(", "),
     });
   }
 
@@ -357,16 +343,19 @@ export async function rescanPipelineDocumentChanges(
     try {
       const docs = await fetchTenderDocuments(item.tenderId, item.noticeNumber || undefined);
       const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(item, { documents: docs });
-      if (newEvents.length > 0 || docs.length !== (item.bzpDocuments?.length ?? 0)) {
+      const { qaMonitor, newEvents: newQaEvents } = processTenderQaMonitorUpdate(item, { documents: docs });
+      const totalNew = newEvents.length + newQaEvents.length;
+      if (totalNew > 0 || docs.length !== (item.bzpDocuments?.length ?? 0)) {
         updates.set(item.id, {
           ...item,
           bzpDocuments: docs,
           documentsFetchedAt: new Date().toISOString(),
           changeMonitor,
+          qaMonitor,
         });
-        newEventCount += newEvents.length;
+        newEventCount += totalNew;
       } else {
-        updates.set(item.id, { ...item, changeMonitor });
+        updates.set(item.id, { ...item, changeMonitor, qaMonitor });
       }
     } catch {
       /* best-effort */

@@ -18,6 +18,12 @@ import {
   changeEventPriority,
   formatRelativeChangeTime,
 } from "@/lib/tender-change-monitor";
+import {
+  collectAllQaEvents,
+  formatRelativeQaTime,
+  isUrgentQaEvent,
+  qaEventPriority,
+} from "@/lib/tender-qa-monitor";
 
 export type ActionPriority = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 
@@ -460,7 +466,9 @@ function actionsFromTenderChanges(
   if (!items?.length) return [];
   const cutoff = now.getTime() - 7 * 24 * 3600_000;
   const recent = collectAllChangeEvents(items).filter(
-    (e) => new Date(e.at).getTime() >= cutoff && !e.acknowledged,
+    (e) => new Date(e.at).getTime() >= cutoff
+      && !e.acknowledged
+      && e.type !== "NEW_QA",
   );
   const out: OwnerActionItem[] = [];
   for (const e of recent.slice(0, 8)) {
@@ -485,6 +493,34 @@ function actionsFromTenderChanges(
   return out;
 }
 
+function actionsFromTenderQa(
+  items: TenderPipelineItem[] | undefined,
+  now: Date,
+): OwnerActionItem[] {
+  if (!items?.length) return [];
+  const cutoff = now.getTime() - 7 * 24 * 3600_000;
+  const recent = collectAllQaEvents(items).filter(
+    (e) => new Date(e.at).getTime() >= cutoff && !e.acknowledged,
+  );
+  const out: OwnerActionItem[] = [];
+  for (const e of recent.slice(0, 6)) {
+    const titleShort = e.tenderTitle.length > 52 ? `${e.tenderTitle.slice(0, 52)}…` : e.tenderTitle;
+    const priority = isUrgentQaEvent(e, now) ? "HIGH" : qaEventPriority(e, now);
+    out.push(action({
+      id: `tender-qa-${e.id}`,
+      priority,
+      category: "TENDERS",
+      title: `Nowe Q&A — ${titleShort}`,
+      description: e.aiSummary ? `${e.summary}. ${e.aiSummary}` : e.summary,
+      reason: `${e.bzpNumber} · ${formatRelativeQaTime(e.at, now)}`,
+      source: "tender-qa-monitor · TenderQaAlert",
+      recommendedAction: "Pobierz odpowiedzi i zaktualizuj wycenę przed złożeniem oferty.",
+      tenderId: e.tenderItemId,
+    }));
+  }
+  return out;
+}
+
 function dedupeActions(actions: OwnerActionItem[]): OwnerActionItem[] {
   const seen = new Set<string>();
   const out: OwnerActionItem[] = [];
@@ -500,6 +536,7 @@ export function buildActionCenter(input: ActionCenterInput): ActionCenterResult 
   const now = input.now ?? new Date();
 
   const merged = dedupeActions([
+    ...actionsFromTenderQa(input.pipelineItems, now),
     ...actionsFromTenderChanges(input.pipelineItems, now),
     ...actionsFromWonRealization(input.scoredBundles),
     ...actionsFromRadar(input.radarTop, now),

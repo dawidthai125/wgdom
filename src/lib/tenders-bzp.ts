@@ -128,6 +128,8 @@ export interface TenderPipelineItem {
   awardFetchAttemptedAt?: string | null;
   /** P2-D.1 — snapshot dokumentów + historia zmian. */
   changeMonitor?: import("@/lib/tender-change-monitor").TenderChangeMonitorState | null;
+  /** P2-D.2 — snapshot Q&A + historia odpowiedzi. */
+  qaMonitor?: import("@/lib/tender-qa-monitor").TenderQaMonitorState | null;
 }
 
 export interface TenderEstimateSnapshot {
@@ -499,6 +501,7 @@ export function mergeTenderPipeline(
           estimateHistory: prev.estimateHistory ?? item.estimateHistory,
           awardResult: prev.awardResult ?? item.awardResult,
           changeMonitor: prev.changeMonitor ?? item.changeMonitor,
+          qaMonitor: prev.qaMonitor ?? item.qaMonitor,
         }
       : item);
   }

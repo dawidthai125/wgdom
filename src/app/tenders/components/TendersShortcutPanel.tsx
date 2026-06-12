@@ -1,8 +1,9 @@
 import { useMemo } from "react";
-import { AlertTriangle, Briefcase, ChevronRight, Scale } from "lucide-react";
+import { AlertTriangle, Briefcase, ChevronRight, HelpCircle, Scale } from "lucide-react";
 import { TENDERS_MODULE_LABELS } from "@/lib/tenders-module-labels";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import { tenderChangesSummary } from "@/app/tenders/strategy/components/TenderChangeMonitorPanel";
+import { qaMonitorSummary } from "@/lib/tender-qa-monitor";
 
 const SHORTCUT_TITLE = "Przetargi — skrót";
 
@@ -30,6 +31,11 @@ export function TendersShortcutPanel({
 
   const changeSummary = useMemo(
     () => tenderChangesSummary(pipeline.items),
+    [pipeline.items],
+  );
+
+  const qaSummary = useMemo(
+    () => qaMonitorSummary(pipeline.items),
     [pipeline.items],
   );
 
@@ -66,7 +72,7 @@ export function TendersShortcutPanel({
           </p>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
           <div
             className={`rounded-xl border px-3 py-2.5 ${
               marketKpi.urgentCount > 0
@@ -108,6 +114,30 @@ export function TendersShortcutPanel({
               {changeSummary.lastChangeRelative
                 ? `Ostatnia zmiana: ${changeSummary.lastChangeRelative}`
                 : "Zmiany dokumentacji (7 dni)"}
+            </p>
+          </div>
+
+          <div
+            className={`rounded-xl border px-3 py-2.5 ${
+              qaSummary.recentCount > 0
+                ? "border-violet-500/35 bg-violet-500/5"
+                : "border-border bg-secondary/20"
+            }`}
+          >
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+              <HelpCircle size={11} className={qaSummary.recentCount > 0 ? "text-violet-500" : "text-muted-foreground"} />
+              Nowe Q&A
+            </p>
+            <p
+              className="text-2xl font-bold tabular-nums mt-0.5"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              {qaSummary.recentCount}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {qaSummary.lastRelative
+                ? `Ostatnia: ${qaSummary.lastRelative}`
+                : "Odpowiedzi na pytania (7 dni)"}
             </p>
           </div>
 
