@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Building2, ChevronDown, Loader2, Plus, RefreshCw, Save, Trash2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -20,21 +20,29 @@ import {
   WGDOM_COST_REGION_LABELS,
 } from "@/lib/wgdom-cost-catalog-store";
 import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
+import {
+  COST_FIELD_HINTS,
+  PROFILE_SECTION_IDS,
+  PROFILE_SECTION_TITLES,
+} from "@/lib/tender-bid-ux";
 
 function NumInput({
   label,
   value,
   onChange,
   step = 1000,
+  hint,
 }: {
   label: string;
   value: number;
   onChange: (v: number) => void;
   step?: number;
+  hint?: string;
 }) {
   return (
     <label className="block text-[10px] text-muted-foreground">
-      {label}
+      <span className="font-medium text-foreground/90">{label}</span>
+      {hint && <span className="block font-normal opacity-80 mt-0.5 leading-snug">{hint}</span>}
       <input
         type="number"
         min={0}
@@ -44,6 +52,34 @@ function NumInput({
         className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
       />
     </label>
+  );
+}
+
+function ProfileSection({
+  id,
+  title,
+  emoji,
+  description,
+  children,
+}: {
+  id: string;
+  title: string;
+  emoji: string;
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section id={id} className="rounded-lg border border-border/70 bg-secondary/15 overflow-hidden">
+      <div className="px-2.5 py-2 border-b border-border/50 bg-secondary/30">
+        <h3 className="text-[11px] font-semibold text-foreground">
+          {emoji} {title}
+        </h3>
+        {description && (
+          <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">{description}</p>
+        )}
+      </div>
+      <div className="px-2.5 py-2.5 space-y-2">{children}</div>
+    </section>
   );
 }
 
@@ -234,91 +270,117 @@ export function TenderCompanyProfilePanel({
                 <p className="italic">{profile.formerOwnerNote}</p>
               </div>
 
-              <RefEditor
-                title="Referencje (wgdom.pl)"
-                items={profile.references}
-                onChange={(references) => setProfile({ ...profile, references })}
-              />
-              <RefEditor
-                title="Wygrane przetargi BZP"
-                items={profile.tenderWins}
-                onChange={(tenderWins) => setProfile({ ...profile, tenderWins })}
-              />
-              <RefEditor
-                title="Udział w przetargach"
-                items={profile.tenderParticipations}
-                onChange={(tenderParticipations) => setProfile({ ...profile, tenderParticipations })}
-              />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                <label className="block text-[10px] text-muted-foreground">
-                  NIP
-                  <input
-                    value={profile.nip}
-                    onChange={(e) => setProfile({ ...profile, nip: e.target.value })}
-                    className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border font-mono"
+              <ProfileSection
+                id={PROFILE_SECTION_IDS.costIntelligence}
+                emoji="💰"
+                title={PROFILE_SECTION_TITLES.costIntelligence}
+                description="Parametry wpływające na wycenę oferty — koszt rbh, Kp, marża, ryzyko i katalog stawek."
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  <NumInput
+                    label="Etaty / załoga"
+                    value={profile.costModel.headcount}
+                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, headcount: v } })}
+                    step={1}
                   />
-                </label>
-                <label className="block text-[10px] text-muted-foreground">
-                  REGON
-                  <input
-                    value={profile.regon}
-                    onChange={(e) => setProfile({ ...profile, regon: e.target.value })}
-                    className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border font-mono"
+                  <NumInput
+                    label="Osób na budowach"
+                    value={profile.costModel.activeWorkersOnSite}
+                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, activeWorkersOnSite: v } })}
+                    step={1}
                   />
-                </label>
-                <label className="block text-[10px] text-muted-foreground sm:col-span-2">
-                  Właścicielka / firma CEIDG
-                  <input
-                    value={profile.ownerName}
-                    onChange={(e) => setProfile({ ...profile, ownerName: e.target.value })}
-                    className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
+                  <NumInput
+                    label="Koszt roboczogodziny (brutto zł/rbh)"
+                    hint={COST_FIELD_HINTS.avgGrossHourlyPln}
+                    value={profile.costModel.avgGrossHourlyPln}
+                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, avgGrossHourlyPln: v } })}
+                    step={1}
                   />
-                </label>
-                <LinesInput
-                  label="Regiony / miasta działania"
-                  value={profile.regions}
-                  onChange={(regions) => setProfile({ ...profile, regions })}
-                />
-                <NumInput label="Min. wartość zamówienia (PLN)" value={profile.minOrderValuePln} onChange={(v) => setProfile({ ...profile, minOrderValuePln: v })} />
-                <NumInput label="Max. wartość zamówienia (PLN)" value={profile.maxOrderValuePln} onChange={(v) => setProfile({ ...profile, maxOrderValuePln: v })} step={10000} />
-                <NumInput label="Max. wadium (PLN)" value={profile.maxWadiumPln} onChange={(v) => setProfile({ ...profile, maxWadiumPln: v })} />
-                <NumInput label="Największa referencja (PLN)" value={profile.referenceExperiencePln} onChange={(v) => setProfile({ ...profile, referenceExperiencePln: v })} step={10000} />
-                <NumInput label="Łączna wartość referencji (PLN)" value={profile.totalReferencesPln} onChange={(v) => setProfile({ ...profile, totalReferencesPln: v })} step={10000} />
-                <NumInput label="Liczba referencji" value={profile.referenceCount} onChange={(v) => setProfile({ ...profile, referenceCount: v })} step={1} />
-                <NumInput label="Min. dni na realizację" value={profile.minProjectDays} onChange={(v) => setProfile({ ...profile, minProjectDays: v })} step={1} />
-                <NumInput label="Max. równoległych robót" value={profile.maxConcurrentProjects} onChange={(v) => setProfile({ ...profile, maxConcurrentProjects: v })} step={1} />
-                <p className="col-span-full text-[10px] font-semibold uppercase tracking-wide text-muted-foreground pt-1 border-t border-border">
-                  Model kosztów ofertowych
-                </p>
-                <NumInput label="Etaty / załoga" value={profile.costModel.headcount} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, headcount: v } })} step={1} />
-                <NumInput label="Osób na budowach" value={profile.costModel.activeWorkersOnSite} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, activeWorkersOnSite: v } })} step={1} />
-                <NumInput label="Stawka brutto rbh (zł)" value={profile.costModel.avgGrossHourlyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, avgGrossHourlyPln: v } })} step={1} />
-                <NumInput label="Obciążenie pracodawcy (%)" value={profile.costModel.employerBurdenPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, employerBurdenPct: v } })} step={1} />
-                <NumInput label="Stałe miesięczne (zł)" value={profile.costModel.fixedOverheadMonthlyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, fixedOverheadMonthlyPln: v } })} step={1000} />
-                <NumInput label="Indeks materiałów (%)" value={profile.costModel.materialPriceIndexPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, materialPriceIndexPct: v } })} step={1} />
-                <NumInput label="Indeks robocizny (%)" value={profile.costModel.laborNormIndexPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, laborNormIndexPct: v } })} step={1} />
-                <NumInput label="Kp (%)" value={profile.costModel.kpPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, kpPct: v } })} step={1} />
-                <NumInput label="Zysk (%)" value={profile.costModel.profitPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, profitPct: v } })} step={1} />
-                <NumInput label="Rezerwa ryzyka (%)" value={profile.costModel.riskReservePct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, riskReservePct: v } })} step={1} />
-                <NumInput label="Min. marża (%)" value={profile.costModel.minMarginPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, minMarginPct: v } })} step={1} />
-                <NumInput label="Rabat vs ref. przy 100% ceny (%)" value={profile.costModel.targetPriceDiscountPct} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, targetPriceDiscountPct: v } })} step={0.5} />
-                <p className="col-span-full text-[10px] font-semibold uppercase tracking-wide text-muted-foreground pt-1 border-t border-border">
+                  <NumInput
+                    label="ZUS / obciążenie pracodawcy (%)"
+                    hint={COST_FIELD_HINTS.employerBurdenPct}
+                    value={profile.costModel.employerBurdenPct}
+                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, employerBurdenPct: v } })}
+                    step={1}
+                  />
+                  <NumInput
+                    label="Koszty pośrednie Kp (%)"
+                    hint={COST_FIELD_HINTS.kpPct}
+                    value={profile.costModel.kpPct}
+                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, kpPct: v } })}
+                    step={1}
+                  />
+                  <NumInput
+                    label="Marża / zysk (%)"
+                    hint={COST_FIELD_HINTS.profitPct}
+                    value={profile.costModel.profitPct}
+                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, profitPct: v } })}
+                    step={1}
+                  />
+                  <NumInput
+                    label="Ryzyko / rezerwa (%)"
+                    hint={COST_FIELD_HINTS.riskReservePct}
+                    value={profile.costModel.riskReservePct}
+                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, riskReservePct: v } })}
+                    step={1}
+                  />
+                  <NumInput
+                    label="Min. marża (%)"
+                    hint={COST_FIELD_HINTS.minMarginPct}
+                    value={profile.costModel.minMarginPct}
+                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, minMarginPct: v } })}
+                    step={1}
+                  />
+                  <NumInput
+                    label="Stałe miesięczne firmy (zł)"
+                    hint={COST_FIELD_HINTS.fixedOverheadMonthlyPln}
+                    value={profile.costModel.fixedOverheadMonthlyPln}
+                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, fixedOverheadMonthlyPln: v } })}
+                    step={1000}
+                  />
+                  <NumInput
+                    label="Indeks materiałów (%)"
+                    hint={COST_FIELD_HINTS.materialPriceIndexPct}
+                    value={profile.costModel.materialPriceIndexPct}
+                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, materialPriceIndexPct: v } })}
+                    step={1}
+                  />
+                  <NumInput
+                    label="Indeks robocizny (%)"
+                    hint={COST_FIELD_HINTS.laborNormIndexPct}
+                    value={profile.costModel.laborNormIndexPct}
+                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, laborNormIndexPct: v } })}
+                    step={1}
+                  />
+                  <NumInput
+                    label="Rabat vs ref. przy 100% ceny (%)"
+                    hint={COST_FIELD_HINTS.targetPriceDiscountPct}
+                    value={profile.costModel.targetPriceDiscountPct}
+                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, targetPriceDiscountPct: v } })}
+                    step={0.5}
+                  />
+                </div>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground pt-1 border-t border-border/50">
                   Koszty poboczne tygodniowe (bez materiałów)
                 </p>
-                <NumInput label="Auta służbowe" value={profile.costModel.vehicleCount} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, vehicleCount: v } })} step={1} />
-                <NumInput label="Paliwo / auto / tydz. (zł)" value={profile.costModel.fuelPerVehicleWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, fuelPerVehicleWeeklyPln: v } })} step={10} />
-                <NumInput label="Serwis aut / tydz. (zł)" value={profile.costModel.vehicleMaintenanceWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, vehicleMaintenanceWeeklyPln: v } })} step={10} />
-                <NumInput label="Narzędzia / tydz. (zł)" value={profile.costModel.toolWearWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, toolWearWeeklyPln: v } })} step={10} />
-                <NumInput label="BHP / os. / tydz. (zł)" value={profile.costModel.bhpPerWorkerWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, bhpPerWorkerWeeklyPln: v } })} step={5} />
-                <NumInput label="Parkingi / drogi / tydz." value={profile.costModel.parkingTollsWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, parkingTollsWeeklyPln: v } })} step={10} />
-                <NumInput label="Telefony / tydz." value={profile.costModel.commsWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, commsWeeklyPln: v } })} step={10} />
-                <NumInput label="Gruz / kontenery / tydz." value={profile.costModel.wasteDisposalWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, wasteDisposalWeeklyPln: v } })} step={10} />
-                <NumInput label="Chemia pomocnicza / tydz." value={profile.costModel.smallConsumablesWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, smallConsumablesWeeklyPln: v } })} step={10} />
-                <NumInput label="Ubezpieczenia / tydz." value={profile.costModel.insuranceWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, insuranceWeeklyPln: v } })} step={10} />
-                <NumInput label="Koordynacja / dojazdy / tydz." value={profile.costModel.supervisionWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, supervisionWeeklyPln: v } })} step={10} />
-                <p className="col-span-full text-[10px] font-semibold uppercase tracking-wide text-muted-foreground pt-1 border-t border-border">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  <NumInput label="Auta służbowe" value={profile.costModel.vehicleCount} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, vehicleCount: v } })} step={1} />
+                  <NumInput label="Paliwo / auto / tydz. (zł)" value={profile.costModel.fuelPerVehicleWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, fuelPerVehicleWeeklyPln: v } })} step={10} />
+                  <NumInput label="Serwis aut / tydz. (zł)" value={profile.costModel.vehicleMaintenanceWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, vehicleMaintenanceWeeklyPln: v } })} step={10} />
+                  <NumInput label="Narzędzia / tydz. (zł)" value={profile.costModel.toolWearWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, toolWearWeeklyPln: v } })} step={10} />
+                  <NumInput label="BHP / os. / tydz. (zł)" value={profile.costModel.bhpPerWorkerWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, bhpPerWorkerWeeklyPln: v } })} step={5} />
+                  <NumInput label="Parkingi / drogi / tydz." value={profile.costModel.parkingTollsWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, parkingTollsWeeklyPln: v } })} step={10} />
+                  <NumInput label="Telefony / tydz." value={profile.costModel.commsWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, commsWeeklyPln: v } })} step={10} />
+                  <NumInput label="Gruz / kontenery / tydz." value={profile.costModel.wasteDisposalWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, wasteDisposalWeeklyPln: v } })} step={10} />
+                  <NumInput label="Chemia pomocnicza / tydz." value={profile.costModel.smallConsumablesWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, smallConsumablesWeeklyPln: v } })} step={10} />
+                  <NumInput label="Ubezpieczenia / tydz." value={profile.costModel.insuranceWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, insuranceWeeklyPln: v } })} step={10} />
+                  <NumInput label="Koordynacja / dojazdy / tydz." value={profile.costModel.supervisionWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, supervisionWeeklyPln: v } })} step={10} />
+                </div>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground pt-1 border-t border-border/50">
                   WGDOM Cost Catalog — wycena przedmiaru bez cen
+                </p>
+                <p className="text-[10px] text-muted-foreground leading-snug">
+                  {COST_FIELD_HINTS.catalogMaterial} · {COST_FIELD_HINTS.catalogLabor}
                 </p>
                 <label className="block text-[10px] text-muted-foreground">
                   Region aktywny
@@ -332,7 +394,7 @@ export function TenderCompanyProfilePanel({
                     ))}
                   </select>
                 </label>
-                <div className="col-span-full rounded-lg border border-border/60 overflow-hidden">
+                <div className="rounded-lg border border-border/60 overflow-hidden">
                   <table className="w-full text-[10px]">
                     <thead className="bg-secondary/60">
                       <tr>
@@ -391,32 +453,114 @@ export function TenderCompanyProfilePanel({
                     {WGDOM_COST_CATEGORY_IDS.length} kategorii MVP · edycja per region ({WGDOM_COST_REGION_LABELS[catalogStore.activeRegion]})
                   </p>
                 </div>
-                <NumInput label="Polisa OC (PLN)" value={profile.ocInsuranceMinPln} onChange={(v) => setProfile({ ...profile, ocInsuranceMinPln: v })} step={100000} />
-                <LinesInput
-                  label="Prefiksy CPV"
-                  value={profile.preferredCpvPrefixes}
-                  onChange={(preferredCpvPrefixes) => setProfile({ ...profile, preferredCpvPrefixes })}
+              </ProfileSection>
+
+              <ProfileSection
+                id={PROFILE_SECTION_IDS.qualification}
+                emoji="📋"
+                title={PROFILE_SECTION_TITLES.qualification}
+                description="Doświadczenie, referencje i uprawnienia — wpływają na kwalifikację ofertową (P2-F), nie na algorytm wyceny."
+              >
+                <RefEditor
+                  title="Referencje (wgdom.pl)"
+                  items={profile.references}
+                  onChange={(references) => setProfile({ ...profile, references })}
                 />
-                <LinesInput
-                  label="Licencje / uprawnienia"
-                  value={profile.licenses}
-                  onChange={(licenses) => setProfile({ ...profile, licenses })}
+                <RefEditor
+                  title="Wygrane przetargi BZP"
+                  items={profile.tenderWins}
+                  onChange={(tenderWins) => setProfile({ ...profile, tenderWins })}
                 />
-                <LinesInput
-                  label="Mocne strony / specjalizacja"
-                  value={profile.strengths}
-                  onChange={(strengths) => setProfile({ ...profile, strengths })}
+                <RefEditor
+                  title="Udział w przetargach"
+                  items={profile.tenderParticipations}
+                  onChange={(tenderParticipations) => setProfile({ ...profile, tenderParticipations })}
                 />
-                <label className="block text-[10px] text-muted-foreground col-span-full">
-                  Historia / notatki (np. ciągłość marki, wykluczenia)
-                  <textarea
-                    rows={3}
-                    value={`${profile.formerOwnerNote}\n\n${profile.notes}`.trim()}
-                    onChange={(e) => setProfile({ ...profile, notes: e.target.value })}
-                    className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  <NumInput label="Największa referencja (PLN)" value={profile.referenceExperiencePln} onChange={(v) => setProfile({ ...profile, referenceExperiencePln: v })} step={10000} />
+                  <NumInput label="Łączna wartość referencji (PLN)" value={profile.totalReferencesPln} onChange={(v) => setProfile({ ...profile, totalReferencesPln: v })} step={10000} />
+                  <NumInput label="Liczba referencji" value={profile.referenceCount} onChange={(v) => setProfile({ ...profile, referenceCount: v })} step={1} />
+                  <NumInput label="Polisa OC (PLN)" value={profile.ocInsuranceMinPln} onChange={(v) => setProfile({ ...profile, ocInsuranceMinPln: v })} step={100000} />
+                  <LinesInput
+                    label="Licencje / uprawnienia (PIIB, ISO…)"
+                    hint="Używane przy dopasowaniu wymagań formalnych SWZ."
+                    value={profile.licenses}
+                    onChange={(licenses) => setProfile({ ...profile, licenses })}
                   />
-                </label>
-              </div>
+                  <LinesInput
+                    label="Mocne strony / specjalizacja"
+                    value={profile.strengths}
+                    onChange={(strengths) => setProfile({ ...profile, strengths })}
+                  />
+                </div>
+              </ProfileSection>
+
+              <ProfileSection
+                id={PROFILE_SECTION_IDS.regions}
+                emoji="📍"
+                title={PROFILE_SECTION_TITLES.regions}
+                description="Regiony działania — wpływają na dopasowanie przetargów i mnożnik katalogu (Wrocław / Dolny Śląsk)."
+              >
+                <LinesInput
+                  label="Regiony / miasta działania"
+                  hint="Np. Wrocław, Dolny Śląsk, okolice."
+                  value={profile.regions}
+                  onChange={(regions) => setProfile({ ...profile, regions })}
+                />
+              </ProfileSection>
+
+              <ProfileSection
+                id={PROFILE_SECTION_IDS.advanced}
+                emoji="⚙️"
+                title={PROFILE_SECTION_TITLES.advanced}
+                description="Rzadziej używane — limity zamówień, CPV, dane rejestrowe. Nie zmieniają algorytmu wyceny."
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  <label className="block text-[10px] text-muted-foreground">
+                    NIP
+                    <input
+                      value={profile.nip}
+                      onChange={(e) => setProfile({ ...profile, nip: e.target.value })}
+                      className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border font-mono"
+                    />
+                  </label>
+                  <label className="block text-[10px] text-muted-foreground">
+                    REGON
+                    <input
+                      value={profile.regon}
+                      onChange={(e) => setProfile({ ...profile, regon: e.target.value })}
+                      className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border font-mono"
+                    />
+                  </label>
+                  <label className="block text-[10px] text-muted-foreground sm:col-span-2">
+                    Właścicielka / firma CEIDG
+                    <input
+                      value={profile.ownerName}
+                      onChange={(e) => setProfile({ ...profile, ownerName: e.target.value })}
+                      className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
+                    />
+                  </label>
+                  <NumInput label="Min. wartość zamówienia (PLN)" value={profile.minOrderValuePln} onChange={(v) => setProfile({ ...profile, minOrderValuePln: v })} />
+                  <NumInput label="Max. wartość zamówienia (PLN)" value={profile.maxOrderValuePln} onChange={(v) => setProfile({ ...profile, maxOrderValuePln: v })} step={10000} />
+                  <NumInput label="Max. wadium (PLN)" value={profile.maxWadiumPln} onChange={(v) => setProfile({ ...profile, maxWadiumPln: v })} />
+                  <NumInput label="Min. dni na realizację" value={profile.minProjectDays} onChange={(v) => setProfile({ ...profile, minProjectDays: v })} step={1} />
+                  <NumInput label="Max. równoległych robót" value={profile.maxConcurrentProjects} onChange={(v) => setProfile({ ...profile, maxConcurrentProjects: v })} step={1} />
+                  <LinesInput
+                    label="Prefiksy CPV"
+                    value={profile.preferredCpvPrefixes}
+                    onChange={(preferredCpvPrefixes) => setProfile({ ...profile, preferredCpvPrefixes })}
+                  />
+                  <label className="block text-[10px] text-muted-foreground col-span-full">
+                    Historia / notatki (np. ciągłość marki, wykluczenia)
+                    <textarea
+                      rows={3}
+                      value={`${profile.formerOwnerNote}\n\n${profile.notes}`.trim()}
+                      onChange={(e) => setProfile({ ...profile, notes: e.target.value })}
+                      className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
+                    />
+                  </label>
+                </div>
+              </ProfileSection>
               <div className="flex flex-wrap justify-end gap-2">
                 <button
                   type="button"

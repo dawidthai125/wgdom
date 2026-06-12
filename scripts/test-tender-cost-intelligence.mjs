@@ -40,6 +40,16 @@ import {
   updateCategoryPrimaryRates,
   WGDOM_COST_CATALOG_KEY,
 } from "../src/lib/wgdom-cost-catalog-store.ts";
+import {
+  buildBidFlowExplanation,
+  canNavigateToBidDetails,
+  COST_FIELD_HINTS,
+  OUR_ESTIMATE_TILE_NAV_HINT,
+  PROFILE_SECTION_IDS,
+  PROFILE_SECTION_TITLES,
+  TENDER_BID_PROPOSAL_PANEL_ID,
+} from "../src/lib/tender-bid-ux.ts";
+import { computeBidPrepChecks } from "../src/lib/tenders-bid-prep.ts";
 
 let passed = 0;
 let failed = 0;
@@ -399,6 +409,32 @@ const bidEmpty = computeTenderBidProposal({
   maxConcurrentProjects: 2,
 });
 assertEq(bidEmpty.ok, false, "brak ilości ok false");
+
+console.log("\n16. P2-G.1D — UX discoverability + explainability");
+assertEq(TENDER_BID_PROPOSAL_PANEL_ID, "tender-bid-proposal-panel", "panel anchor id");
+assert(OUR_ESTIMATE_TILE_NAV_HINT.includes("szczegóły"), "tile nav hint");
+assertEq(canNavigateToBidDetails(true, null), true, "nav when bid ok");
+assertEq(canNavigateToBidDetails(false, 100000), true, "nav when estimate set");
+assertEq(canNavigateToBidDetails(false, null), false, "no nav without data");
+const catalogFlow = buildBidFlowExplanation("catalog");
+assert(catalogFlow.length >= 6, "catalog flow steps");
+assert(catalogFlow.some((s) => s.includes("Katalog")), "catalog flow mentions catalog");
+const athFlow = buildBidFlowExplanation("ath_priced");
+assert(athFlow.some((s) => s.includes("ATH")), "ath flow mentions ATH");
+assert(PROFILE_SECTION_IDS.costIntelligence === "profile-section-cost-intelligence", "cost section id");
+assert(PROFILE_SECTION_TITLES.qualification === "Profil kwalifikacyjny", "qualification title");
+assert(COST_FIELD_HINTS.avgGrossHourlyPln.includes("wycen"), "rbh hint");
+assert(COST_FIELD_HINTS.profitPct.includes("ofert"), "profit hint");
+assert(COST_FIELD_HINTS.riskReservePct.includes("ryzyko"), "risk hint");
+const prepChecks = computeBidPrepChecks(
+  { ourEstimatePln: null, tenderDossier: { kosztorys: { ok: true } } },
+  null,
+  null,
+  bidCatalog,
+);
+const ourBidCheck = prepChecks.find((c) => c.id === "our-bid");
+assertEq(ourBidCheck?.navigateToBidDetails, true, "our-bid tile navigable");
+assertEq(ourBidCheck?.actionHint, OUR_ESTIMATE_TILE_NAV_HINT, "our-bid action hint");
 
 console.log(`\n---\nPASS: ${passed}  FAIL: ${failed}  TOTAL: ${passed + failed}`);
 if (failed > 0) {

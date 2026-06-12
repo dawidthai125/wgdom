@@ -28,6 +28,7 @@ import {
   downloadAthKosztorysPdf,
   traceAthQuickAccess,
 } from "@/lib/tender-ath-quick-access";
+import { TENDER_BID_PROPOSAL_PANEL_ID } from "@/lib/tender-bid-ux";
 
 const STATUS_ICON = {
   ok: CheckCircle2,
@@ -84,7 +85,21 @@ export function TenderBidPrepPanel({
 }) {
   const [athPreview, setAthPreview] = useState<InspectorFileItem | null>(null);
   const [athPdfBusy, setAthPdfBusy] = useState(false);
+  const [bidBreakdownOpen, setBidBreakdownOpen] = useState(true);
+  const [bidPanelHighlight, setBidPanelHighlight] = useState(false);
   const athAccess = useMemo(() => buildAthQuickAccessContext(item), [item]);
+
+  const scrollToBidDetails = useCallback(() => {
+    setBidBreakdownOpen(true);
+    setBidPanelHighlight(true);
+    requestAnimationFrame(() => {
+      document.getElementById(TENDER_BID_PROPOSAL_PANEL_ID)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      window.setTimeout(() => setBidPanelHighlight(false), 2200);
+    });
+  }, []);
 
   const handleOpenAth = useCallback((previewItem: InspectorFileItem) => {
     setAthPreview(previewItem);
@@ -273,10 +288,22 @@ export function TenderBidPrepPanel({
         {checks.map((check) => {
           const Icon = STATUS_ICON[check.status];
           const showAthActions = check.id === "kosztorys" && athAccess.enabled && athAccess.previewItem;
+          const clickable = check.id === "our-bid" && check.navigateToBidDetails;
           return (
             <div
               key={check.id}
-              className={`rounded-lg border px-2.5 py-2 ${STATUS_STYLE[check.status]}`}
+              role={clickable ? "button" : undefined}
+              tabIndex={clickable ? 0 : undefined}
+              onClick={clickable ? (e) => { e.stopPropagation(); scrollToBidDetails(); } : undefined}
+              onKeyDown={clickable ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  scrollToBidDetails();
+                }
+              } : undefined}
+              className={`rounded-lg border px-2.5 py-2 ${STATUS_STYLE[check.status]} ${
+                clickable ? "cursor-pointer hover:ring-2 hover:ring-violet-500/35 hover:shadow-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-violet-500/50" : ""
+              }`}
             >
               <div className="flex items-start gap-1.5">
                 <Icon size={12} className={`shrink-0 mt-0.5 ${STATUS_TEXT[check.status]}`} />
@@ -297,6 +324,11 @@ export function TenderBidPrepPanel({
                   </p>
                   {check.hint && (check.status !== "ok" || check.id === "our-bid") && (
                     <p className="text-[10px] text-muted-foreground mt-1 leading-snug">{check.hint}</p>
+                  )}
+                  {check.actionHint && (
+                    <p className="text-[10px] text-violet-700 dark:text-violet-300 mt-1 font-medium">
+                      {check.actionHint}
+                    </p>
                   )}
                   {showAthActions && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
@@ -343,6 +375,8 @@ export function TenderBidPrepPanel({
           teamHeadcount={teamHeadcount}
           onApplyRecommended={onApplyRecommended}
           missingKosztorys={!item.tenderDossier?.kosztorys?.ok}
+          breakdownOpen={bidBreakdownOpen}
+          highlight={bidPanelHighlight}
         />
       </div>
 

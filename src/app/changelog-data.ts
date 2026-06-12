@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.52.3",
+    label: "Przetargi — centrum wyceny P2-G.1D (UX + discoverability)",
+    items: [
+      { type: "improve", text: "Kafelek „Nasza wycena” — klik przenosi do szczegółów wyceny (scroll + hint)" },
+      { type: "improve", text: "TenderBidProposalPanel — „Skąd pochodzi wycena?”, „Jak powstała wycena?”, breakdown domyślnie rozwinięty" },
+      { type: "improve", text: "Profil firmy — 4 sekcje: Cost Intelligence, kwalifikacja, regiony, zaawansowane + opisy pól wyceny" },
+      { type: "new", text: "tender-bid-ux.ts — nawigacja, flow wyceny, segmentacja profilu (bez zmian kalkulatora)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.52.2",
     label: "Przetargi — centrum wyceny P2-G.1C (UI + katalog chmura)",
     items: [

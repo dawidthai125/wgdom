@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.52.3 — P2-G.1D UX wyceny discoverability + explainability
+- Kafelek Nasza wycena → scroll do TenderBidProposalPanel + hint
+- Panel: Skąd/Jak powstała wycena, breakdown domyślnie otwarty
+- Profil firmy: 4 sekcje + COST_FIELD_HINTS (bez zmian kalkulatora)
+
 ## 2.52.2 — P2-G.1C centrum wyceny UI + katalog chmura
 - Nasza wycena multi-linia + źródło + jakość
 - TenderBidProposalPanel badge/disclaimer/podstawa kalkulacji

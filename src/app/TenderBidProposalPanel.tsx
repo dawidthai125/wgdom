@@ -1,6 +1,7 @@
 import { AlertTriangle, Calculator, TrendingDown, TrendingUp, Zap } from "lucide-react";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import { TENDER_BID_DISCLAIMER } from "@/lib/tender-bid-quality";
+import { buildBidFlowExplanation, TENDER_BID_PROPOSAL_PANEL_ID } from "@/lib/tender-bid-ux";
 import { fmtPln } from "@/lib/tenders-bzp-swz";
 
 function qualityBadgeClass(level: TenderBidProposal["qualityLevel"]): string {
@@ -16,6 +17,8 @@ export function TenderBidProposalPanel({
   teamHeadcount,
   onApplyRecommended,
   missingKosztorys,
+  breakdownOpen = true,
+  highlight = false,
 }: {
   proposal: TenderBidProposal | null | undefined;
   referenceValuePln?: number | null;
@@ -23,6 +26,9 @@ export function TenderBidProposalPanel({
   teamHeadcount?: number | null;
   onApplyRecommended?: (pln: number) => void;
   missingKosztorys?: boolean;
+  /** P2-G.1D — breakdown domyślnie rozwinięty; sterowany z kafelka */
+  breakdownOpen?: boolean;
+  highlight?: boolean;
 }) {
   if (!proposal?.ok) {
     const msg = proposal?.warnings?.[0]
@@ -30,10 +36,13 @@ export function TenderBidProposalPanel({
         ? "Aby wyliczyć ofertę: pobierz kosztorys (ATH/XLSX/PDF) z załączników lub wgraj ręcznie."
         : "Kalkulator oferty — wczytaj i sparsuj kosztorys.");
     return (
-      <div className="rounded-xl border border-dashed border-violet-500/30 bg-violet-500/5 px-3 py-2.5 space-y-1">
+      <div
+        id={TENDER_BID_PROPOSAL_PANEL_ID}
+        className="rounded-xl border border-dashed border-violet-500/30 bg-violet-500/5 px-3 py-2.5 space-y-1"
+      >
         <p className="text-xs font-semibold text-violet-800 dark:text-violet-300 flex items-center gap-1.5">
           <Calculator size={13} />
-          Propozycja ceny ofertowej
+          💰 Szczegóły wyceny
         </p>
         <p className="text-[11px] text-muted-foreground">{msg}</p>
       </div>
@@ -44,34 +53,60 @@ export function TenderBidProposalPanel({
   if (rec == null) return null;
 
   const basis = proposal.calculationBasis;
+  const flowSteps = buildBidFlowExplanation(proposal.pricingMode);
 
   return (
-    <div id="tender-bid-proposal-panel" className="rounded-xl border border-violet-500/25 bg-violet-500/5 overflow-hidden space-y-0">
+    <div
+      id={TENDER_BID_PROPOSAL_PANEL_ID}
+      className={`rounded-xl border border-violet-500/25 bg-violet-500/5 overflow-hidden space-y-0 transition-shadow ${
+        highlight ? "ring-2 ring-violet-500/50 shadow-md" : ""
+      }`}
+    >
       <div className="px-3 py-2.5 border-b border-violet-500/15 flex flex-wrap items-center gap-2">
         <Calculator size={14} className="text-violet-600 dark:text-violet-400 shrink-0" />
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold text-violet-900 dark:text-violet-200">
-            Propozycja ceny ofertowej
+            💰 Szczegóły wyceny
           </p>
           <p className="text-[10px] text-muted-foreground">
             Robocizna + materiały + Kp + stałe ({teamHeadcount ?? 13} os.) + ZUS + marża
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5">
+        <p className="text-lg font-bold font-mono text-violet-700 dark:text-violet-300 w-full sm:w-auto sm:ml-auto">
+          {fmtPln(rec)}
+        </p>
+      </div>
+
+      <div className="px-3 py-2 border-b border-violet-500/10 space-y-2">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Skąd pochodzi wycena?
+        </p>
+        <div className="flex flex-wrap items-center gap-2 text-[10px]">
           {proposal.sourceLabelPl && (
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-800 dark:text-violet-200">
+            <span className="font-medium px-2 py-0.5 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-800 dark:text-violet-200">
               Źródło: {proposal.sourceLabelPl}
             </span>
           )}
           {proposal.qualityLabelPl && (
-            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${qualityBadgeClass(proposal.qualityLevel)}`}>
+            <span className={`font-medium px-2 py-0.5 rounded-full border ${qualityBadgeClass(proposal.qualityLevel)}`}>
               Jakość: {proposal.qualityLabelPl}
             </span>
           )}
         </div>
-        <p className="text-lg font-bold font-mono text-violet-700 dark:text-violet-300 w-full sm:w-auto sm:ml-auto">
-          {fmtPln(rec)}
+        {proposal.qualityDetailPl && (
+          <p className="text-[10px] text-muted-foreground">{proposal.qualityDetailPl}</p>
+        )}
+      </div>
+
+      <div className="px-3 py-2 border-b border-violet-500/10">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+          Jak powstała wycena?
         </p>
+        <ol className="text-[10px] text-muted-foreground space-y-0.5 list-decimal pl-4">
+          {flowSteps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ol>
       </div>
 
       <div className="px-3 py-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px]">
@@ -116,10 +151,28 @@ export function TenderBidProposalPanel({
               <strong className="font-mono text-violet-700 dark:text-violet-300">{fmtPln(basis.executionCostPln)}</strong>
             </p>
           </div>
-          {proposal.qualityDetailPl && (
-            <p className="text-[10px] text-muted-foreground mt-1.5">{proposal.qualityDetailPl}</p>
-          )}
         </div>
+      )}
+
+      {proposal.costStack.length > 0 && (
+        <details open={breakdownOpen} className="px-3 py-2 border-t border-violet-500/10 group">
+          <summary className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground cursor-pointer hover:text-foreground list-none flex items-center gap-1">
+            <span className="group-open:rotate-90 transition-transform inline-block">▸</span>
+            Pełny breakdown kosztów
+          </summary>
+          <table className="w-full text-[10px] mt-2">
+            <tbody>
+              {proposal.costStack.map((line) => (
+                <tr key={line.label} className="border-t border-border/40">
+                  <td className="py-1 pr-2 text-muted-foreground">{line.label}</td>
+                  <td className="py-1 text-right font-mono font-medium whitespace-nowrap">
+                    {fmtPln(line.pln)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </details>
       )}
 
       <p className="text-[10px] text-muted-foreground px-3 py-1.5 border-t border-violet-500/10 italic">
@@ -140,26 +193,6 @@ export function TenderBidProposalPanel({
             </span>
           )}
         </p>
-      )}
-
-      {proposal.costStack.length > 0 && (
-        <details className="px-3 pb-2">
-          <summary className="text-[10px] text-muted-foreground cursor-pointer hover:text-foreground py-1">
-            Pełny breakdown kosztów
-          </summary>
-          <table className="w-full text-[10px] mt-1">
-            <tbody>
-              {proposal.costStack.map((line) => (
-                <tr key={line.label} className="border-t border-border/40">
-                  <td className="py-1 pr-2 text-muted-foreground">{line.label}</td>
-                  <td className="py-1 text-right font-mono font-medium whitespace-nowrap">
-                    {fmtPln(line.pln)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </details>
       )}
 
       {proposal.floorBidPln != null && (

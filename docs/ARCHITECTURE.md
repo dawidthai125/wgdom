@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.52.2** · P2-G.1C)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.1C — UI wyceny + katalog chmura)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.52.3** · P2-G.1D)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.1D — UX wyceny discoverability + explainability)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -849,7 +849,7 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 
 ### 12.1.6 P2-G — Tender Cost Intelligence (P2-G.1 COMPLETE)
 
-**Status:** **P2-G.1A + P2-G.1B + P2-G.1C COMPLETE** · prod backlog **2.52.2**
+**Status:** **P2-G.1A + P2-G.1B + P2-G.1C + P2-G.1D COMPLETE** · prod backlog **2.52.3**
 
 **Cel:** autorska wycena przetargu z przedmiaru ATH **bez cen** (FOUND_NO_VALUE) — koszt wykonania + oferty min/rekom/agresywna przez rozszerzenie `computeTenderBidProposal()`, **nie** nowy moduł ofertowy.
 
@@ -880,6 +880,16 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 | Quality engine | `tender-bid-quality.ts` |
 | Persistencja katalogu | `wgdom-cost-catalog-store.ts` |
 
+**P2-G.1D — UX (discoverability + explainability, bez zmian algorytmu):**
+
+| Element | Opis | Plik |
+|---------|------|------|
+| Klik kafelka „Nasza wycena” | `scrollIntoView` → `#tender-bid-proposal-panel`, hint „Kliknij, aby zobaczyć szczegóły”, rozwinięcie breakdown | `TenderBidPrepPanel.tsx`, `tenders-bid-prep.ts`, `tender-bid-ux.ts` |
+| Szczegóły wyceny | Nagłówek „💰 Szczegóły wyceny”, sekcje „Skąd pochodzi wycena?” / „Jak powstała wycena?” (flow kroków), breakdown domyślnie otwarty | `TenderBidProposalPanel.tsx`, `buildBidFlowExplanation()` |
+| Profil firmy — segmentacja | 4 sekcje: Cost Intelligence · Profil kwalifikacyjny · Regiony · Zaawansowane; opisy pól wyceny (`COST_FIELD_HINTS`) | `TenderCompanyProfilePanel.tsx`, `PROFILE_SECTION_*` |
+
+**Nie zmieniaj bez polecenia:** merge katalogu, ścieżka `ath_priced`, ATH Quick Access, klasyfikator keywords bez migracji danych, **algorytm `computeTenderBidProposal()`** (1D = tylko UX).
+
 **Moduły lib:**
 
 | Plik | Rola |
@@ -890,8 +900,9 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 | `wgdom-catalog-cost-engine.ts` | `computeFromCatalogRow()`, `aggregateCatalogDirectCost()` |
 | `tenders-bid-calculator.ts` | `computeTenderBidProposal()` + `pricingMode` |
 | `tender-bid-quality.ts` | `assessBidQuality()`, `extractCalculationBasis()` |
+| `tender-bid-ux.ts` | P2-G.1D — nav hint, flow explanation, profile section IDs, field hints |
 
-**Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (75+ asercji) · regresja P2-F: `test-tender-dossier-pipeline.mjs`
+**Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (90+ asercji) · regresja P2-F: `test-tender-dossier-pipeline.mjs`
 
 **Źródła danych (hierarchia):**
 

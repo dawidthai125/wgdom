@@ -22,6 +22,7 @@ import {
   resolvedWadiumDisplay,
   traceSsotSnapshot,
 } from "@/lib/tender-data-ssot";
+import { OUR_ESTIMATE_TILE_NAV_HINT, canNavigateToBidDetails } from "@/lib/tender-bid-ux";
 
 export type BidPrepItemStatus = "ok" | "partial" | "missing";
 
@@ -33,6 +34,9 @@ export interface BidPrepCheckItem {
   displayLines?: string[];
   sourceLabel?: string;
   hint?: string;
+  /** P2-G.1D — kafelek klikalny → szczegóły wyceny */
+  navigateToBidDetails?: boolean;
+  actionHint?: string;
 }
 
 export function computeBidPrepChecks(
@@ -153,6 +157,10 @@ export function computeBidPrepChecks(
       hint: item.ourEstimatePln == null && !bidProposal?.ok
         ? bidProposal?.warnings?.[0] ?? estimateDisplay.hint
         : estimateDisplay.hint,
+      navigateToBidDetails: canNavigateToBidDetails(bidProposal?.ok, item.ourEstimatePln),
+      actionHint: canNavigateToBidDetails(bidProposal?.ok, item.ourEstimatePln)
+        ? OUR_ESTIMATE_TILE_NAV_HINT
+        : undefined,
     },
   ];
 
