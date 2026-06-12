@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.21",
+    label: "Przetargi — Doświadczenie i referencje (P2-F.2)",
+    items: [
+      { type: "new", text: "experienceProjects[] w profilu wykonawcy — lista realizacji z wartością, rokiem i referencją" },
+      { type: "new", text: "tender-experience-requirements + tender-experience-check — MATCH/MISSING/UNKNOWN dla robót podobnych" },
+      { type: "improve", text: "Sekcja Doświadczenie w warunkach udziału + [EXPERIENCE TRACE]" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.20",
     label: "Przetargi — Warunki udziału vs profil wykonawcy (P2-F.1)",
     items: [

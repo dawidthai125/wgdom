@@ -8,7 +8,15 @@ import { mergeCompanyQualificationProfileForCloud } from "@/lib/tenders-sync";
 import { defaultCompanyProfile, type TenderCompanyProfile } from "@/lib/tenders-bzp-company";
 
 export const COMPANY_QUALIFICATION_PROFILE_KEY = "kw-company-profile";
-export const QUALIFICATION_PROFILE_SCHEMA_VERSION = 1;
+export const QUALIFICATION_PROFILE_SCHEMA_VERSION = 2;
+
+export interface CompanyExperienceProject {
+  title: string;
+  category: string;
+  valuePln: number | null;
+  year: number | null;
+  referenceAvailable: boolean;
+}
 
 export interface CompanyQualificationPersonnel {
   kierownikBudowy: boolean;
@@ -49,10 +57,45 @@ export interface CompanyQualificationProfile {
   personnel: CompanyQualificationPersonnel;
   licenses: CompanyQualificationLicenses;
   experience: CompanyQualificationExperience;
+  /** P2-F.2 — lista realizacji do twardego dopasowania doświadczenia. */
+  experienceProjects: CompanyExperienceProject[];
   insurance: CompanyQualificationInsurance;
   finances: CompanyQualificationFinances;
   references: CompanyQualificationReferences;
   updatedAt: string;
+}
+
+function seedExperienceProjects(p: TenderCompanyProfile): CompanyExperienceProject[] {
+  const fromRefs = p.references
+    .filter((r) => r.scope || r.client)
+    .map((r) => ({
+      title: r.scope?.trim() || r.client.trim(),
+      category: "roboty ogólnobudowlane",
+      valuePln: r.valuePln ?? null,
+      year: r.year ? parseInt(String(r.year).slice(0, 4), 10) || null : null,
+      referenceAvailable: true,
+    }));
+  if (fromRefs.length > 0) return fromRefs;
+  return [];
+}
+
+function syncExperienceAggregates(profile: CompanyQualificationProfile): CompanyQualificationProfile {
+  const projects = profile.experienceProjects ?? [];
+  if (projects.length === 0) return profile;
+  const values = projects.map((p) => p.valuePln).filter((v): v is number => v != null && v > 0);
+  const refCount = projects.filter((p) => p.referenceAvailable).length;
+  return {
+    ...profile,
+    experience: {
+      ...profile.experience,
+      largestProjectPln: values.length ? Math.max(...values) : profile.experience.largestProjectPln,
+      similarProjectsCount: projects.length,
+    },
+    references: {
+      ...profile.references,
+      count: refCount > 0 ? refCount : profile.references.count,
+    },
+  };
 }
 
 export function defaultCompanyQualificationProfile(
@@ -93,22 +136,40 @@ export function defaultCompanyQualificationProfile(
     references: {
       count: p.referenceCount > 0 ? p.referenceCount : null,
     },
+    experienceProjects: seedExperienceProjects(p),
     updatedAt: new Date().toISOString(),
   };
 }
 
+function normalizeExperienceProjects(raw: CompanyExperienceProject[] | undefined): CompanyExperienceProject[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((p) => p && typeof p.title === "string")
+    .map((p) => ({
+      title: String(p.title).trim(),
+      category: String(p.category ?? "roboty ogólnobudowlane").trim(),
+      valuePln: p.valuePln != null && Number.isFinite(Number(p.valuePln)) ? Number(p.valuePln) : null,
+      year: p.year != null && Number.isFinite(Number(p.year)) ? Number(p.year) : null,
+      referenceAvailable: Boolean(p.referenceAvailable),
+    }))
+    .filter((p) => p.title.length > 0);
+}
+
 function normalizeProfile(raw: Partial<CompanyQualificationProfile>): CompanyQualificationProfile {
   const d = defaultCompanyQualificationProfile();
-  return {
+  const experienceProjects = normalizeExperienceProjects(raw.experienceProjects);
+  const merged: CompanyQualificationProfile = {
     schemaVersion: QUALIFICATION_PROFILE_SCHEMA_VERSION,
     personnel: { ...d.personnel, ...raw.personnel },
     licenses: { ...d.licenses, ...raw.licenses },
     experience: { ...d.experience, ...raw.experience },
+    experienceProjects: experienceProjects.length > 0 ? experienceProjects : d.experienceProjects,
     insurance: { ...d.insurance, ...raw.insurance },
     finances: { ...d.finances, ...raw.finances },
     references: { ...d.references, ...raw.references },
     updatedAt: raw.updatedAt ?? d.updatedAt,
   };
+  return syncExperienceAggregates(merged);
 }
 
 export function loadCompanyQualificationProfileLocal(): CompanyQualificationProfile {
@@ -139,11 +200,11 @@ export async function loadCompanyQualificationProfile(): Promise<CompanyQualific
 export async function saveCompanyQualificationProfile(
   profile: CompanyQualificationProfile,
 ): Promise<void> {
-  const next: CompanyQualificationProfile = {
+  const synced = syncExperienceAggregates({
     ...profile,
     schemaVersion: QUALIFICATION_PROFILE_SCHEMA_VERSION,
     updatedAt: new Date().toISOString(),
-  };
-  localStorage.setItem(COMPANY_QUALIFICATION_PROFILE_KEY, JSON.stringify(next));
-  await persistKey(COMPANY_QUALIFICATION_PROFILE_KEY, next);
+  });
+  localStorage.setItem(COMPANY_QUALIFICATION_PROFILE_KEY, JSON.stringify(synced));
+  await persistKey(COMPANY_QUALIFICATION_PROFILE_KEY, synced);
 }

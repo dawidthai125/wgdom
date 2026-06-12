@@ -30,6 +30,7 @@ import { enrichKosztorysSnapshotFromPreview, estimatePlnFromKosztorysSnapshot, t
 import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
 import { mergeFormalRequirements } from "@/lib/tender-formal-requirements";
 import { mergeParticipationRequirements } from "@/lib/tender-participation-requirements";
+import { mergeExperienceRequirements } from "@/lib/tender-experience-requirements";
 
 const DOSSIER_MAX_CANDIDATES = 15;
 const ZIP_INNER_MAX = 20;
@@ -759,6 +760,10 @@ export function mergeSwzAnalysis(
     participationRequirements: mergeParticipationRequirements(
       primary.participationRequirements,
       fromDoc.participationRequirements,
+    ),
+    experienceRequirements: mergeExperienceRequirements(
+      primary.experienceRequirements,
+      fromDoc.experienceRequirements,
     ),
     implementationDeadlineRaw: primary.implementationDeadlineRaw ?? fromDoc.implementationDeadlineRaw,
     implementationDays: primary.implementationDays ?? fromDoc.implementationDays,

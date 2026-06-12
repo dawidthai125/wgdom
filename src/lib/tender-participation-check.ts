@@ -3,6 +3,11 @@
  */
 
 import type { CompanyQualificationProfile } from "@/lib/company-qualification-profile";
+import {
+  checkExperienceQualification,
+  type ExperienceCheckItem,
+} from "@/lib/tender-experience-check";
+import type { ExperienceRequirement } from "@/lib/tender-experience-requirements";
 import type {
   ParticipationRequirementKey,
   TenderParticipationRequirement,
@@ -32,6 +37,7 @@ export interface ParticipationCheckResult {
   summaryLabel: string;
   summaryEmoji: string;
   requirements: TenderParticipationRequirement[];
+  experienceChecks: ExperienceCheckItem[];
   categories: ParticipationCategoryGroup[];
   matched: ParticipationCheckItem[];
   missing: ParticipationCheckItem[];
@@ -246,14 +252,42 @@ function computeOverall(
   return { overall: "fulfilled", summaryLabel: "Spełnione", summaryEmoji: "🟢" };
 }
 
+function experienceItemToParticipation(item: ExperienceCheckItem): ParticipationCheckItem {
+  return {
+    requirement: {
+      type: "experience",
+      label: item.label,
+      required: true,
+      key: "experienceProjects",
+      minProjects: item.requiredProjects,
+      minValuePln: item.requiredValue ?? undefined,
+      confidence: item.requirement.confidence,
+    },
+    status: item.status,
+    label: item.status === "MATCH" ? item.profileNote : item.label,
+    profileNote: item.profileNote,
+  };
+}
+
 /** Główny silnik porównania SWZ ↔ profil wykonawcy. */
 export function checkTenderParticipation(
   requirements: TenderParticipationRequirement[],
   profile: CompanyQualificationProfile,
+  experienceRequirements: ExperienceRequirement[] = [],
 ): ParticipationCheckResult | null {
-  if (requirements.length === 0) return null;
+  const nonExperienceReqs = requirements.filter((r) => r.type !== "experience" && r.type !== "reference");
+  const hasExperience = experienceRequirements.length > 0
+    || requirements.some((r) => r.type === "experience" || r.type === "reference");
+  if (nonExperienceReqs.length === 0 && !hasExperience) return null;
 
-  const items = requirements.map((req) => checkSingleRequirement(req, profile));
+  const experienceChecks = experienceRequirements.length > 0
+    ? checkExperienceQualification(experienceRequirements, profile)
+    : [];
+
+  const baseItems = nonExperienceReqs.map((req) => checkSingleRequirement(req, profile));
+  const experienceItems = experienceChecks.map(experienceItemToParticipation);
+  const items = [...baseItems, ...experienceItems];
+
   const matched = items.filter((i) => i.status === "MATCH");
   const missing = items.filter((i) => i.status === "MISSING");
   const unknown = items.filter((i) => i.status === "UNKNOWN");
@@ -279,7 +313,8 @@ export function checkTenderParticipation(
     overall,
     summaryLabel,
     summaryEmoji,
-    requirements,
+    requirements: nonExperienceReqs,
+    experienceChecks,
     categories,
     matched,
     missing,

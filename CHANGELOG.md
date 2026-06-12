@@ -1,5 +1,8 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.51.21 — P2-F.2 Experience & References Qualification
+- experienceProjects[] + parser SWZ doświadczenia/referencji + silnik MATCH/MISSING/UNKNOWN
+
 ## 2.51.20 — P2-F.1 Warunki udziału vs profil wykonawcy
 - kw-company-profile + Profil wykonawcy w ustawieniach przetargów
 - checkTenderParticipation: MATCH/MISSING/UNKNOWN, sekcja w karcie ofertowej

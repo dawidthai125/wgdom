@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ClipboardCheck, ChevronDown, Loader2, Save } from "lucide-react";
+import { ClipboardCheck, ChevronDown, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   type CompanyQualificationProfile,
@@ -138,6 +138,108 @@ export function CompanyQualificationProfilePanel({
                 <NumInput label="Największa realizacja (PLN)" value={profile.experience.largestProjectPln} onChange={(v) => setProfile({ ...profile, experience: { ...profile.experience, largestProjectPln: v } })} />
                 <NumInput label="Liczba podobnych realizacji" value={profile.experience.similarProjectsCount} onChange={(v) => setProfile({ ...profile, experience: { ...profile.experience, similarProjectsCount: v } })} step={1} />
                 <NumInput label="Lata działalności" value={profile.experience.yearsInBusiness} onChange={(v) => setProfile({ ...profile, experience: { ...profile.experience, yearsInBusiness: v } })} step={1} />
+              </div>
+
+              <div className="rounded-lg border border-border/60 bg-secondary/20 p-2.5 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Doświadczenie i referencje
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setProfile({
+                      ...profile,
+                      experienceProjects: [
+                        ...profile.experienceProjects,
+                        {
+                          title: "",
+                          category: "roboty ogólnobudowlane",
+                          valuePln: null,
+                          year: new Date().getFullYear(),
+                          referenceAvailable: false,
+                        },
+                      ],
+                    })}
+                    className="text-[10px] text-primary flex items-center gap-0.5 hover:underline"
+                  >
+                    <Plus size={10} /> Dodaj realizację
+                  </button>
+                </div>
+                {profile.experienceProjects.length === 0 && (
+                  <p className="text-[10px] text-muted-foreground">Brak wpisów — dodaj realizacje do twardego dopasowania SWZ.</p>
+                )}
+                {profile.experienceProjects.map((proj, idx) => (
+                  <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-2 rounded-lg bg-background/50 border border-border/40">
+                    <input
+                      placeholder="Nazwa realizacji"
+                      value={proj.title}
+                      onChange={(e) => {
+                        const next = [...profile.experienceProjects];
+                        next[idx] = { ...proj, title: e.target.value };
+                        setProfile({ ...profile, experienceProjects: next });
+                      }}
+                      className="sm:col-span-2 bg-secondary rounded px-2 py-1 text-[10px] border border-border"
+                    />
+                    <input
+                      placeholder="Typ robót"
+                      value={proj.category}
+                      onChange={(e) => {
+                        const next = [...profile.experienceProjects];
+                        next[idx] = { ...proj, category: e.target.value };
+                        setProfile({ ...profile, experienceProjects: next });
+                      }}
+                      className="bg-secondary rounded px-2 py-1 text-[10px] border border-border"
+                    />
+                    <input
+                      placeholder="Rok"
+                      type="number"
+                      min={1990}
+                      max={2100}
+                      value={proj.year ?? ""}
+                      onChange={(e) => {
+                        const next = [...profile.experienceProjects];
+                        next[idx] = { ...proj, year: e.target.value ? Number(e.target.value) : null };
+                        setProfile({ ...profile, experienceProjects: next });
+                      }}
+                      className="bg-secondary rounded px-2 py-1 text-[10px] border border-border"
+                    />
+                    <input
+                      placeholder="Wartość PLN"
+                      type="number"
+                      min={0}
+                      step={1000}
+                      value={proj.valuePln ?? ""}
+                      onChange={(e) => {
+                        const next = [...profile.experienceProjects];
+                        next[idx] = { ...proj, valuePln: e.target.value ? Number(e.target.value) : null };
+                        setProfile({ ...profile, experienceProjects: next });
+                      }}
+                      className="bg-secondary rounded px-2 py-1 text-[10px] border border-border"
+                    />
+                    <label className="flex items-center gap-2 text-[10px] sm:col-span-2">
+                      <input
+                        type="checkbox"
+                        checked={proj.referenceAvailable}
+                        onChange={(e) => {
+                          const next = [...profile.experienceProjects];
+                          next[idx] = { ...proj, referenceAvailable: e.target.checked };
+                          setProfile({ ...profile, experienceProjects: next });
+                        }}
+                      />
+                      Referencja dostępna (TAK/NIE)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setProfile({
+                        ...profile,
+                        experienceProjects: profile.experienceProjects.filter((_, i) => i !== idx),
+                      })}
+                      className="sm:col-span-2 text-[10px] text-red-600 flex items-center gap-1 justify-end hover:underline"
+                    >
+                      <Trash2 size={10} /> Usuń
+                    </button>
+                  </div>
+                ))}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

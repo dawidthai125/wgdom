@@ -8,6 +8,7 @@ import {
   type ParticipationCheckStatus,
 } from "@/lib/tender-participation-check";
 import { extractParticipationRequirements } from "@/lib/tender-participation-requirements";
+import { extractExperienceRequirements } from "@/lib/tender-experience-requirements";
 
 const STATUS_ICON = {
   MATCH: CheckCircle2,
@@ -41,10 +42,15 @@ export function TenderParticipationPanel({
       : combinedText?.trim()
         ? extractParticipationRequirements(combinedText)
         : [];
-    if (requirements.length === 0) return null;
+    const experienceRequirements = swz?.experienceRequirements?.length
+      ? swz.experienceRequirements
+      : combinedText?.trim()
+        ? extractExperienceRequirements(combinedText)
+        : [];
+    if (requirements.length === 0 && experienceRequirements.length === 0) return null;
     const profile = loadCompanyQualificationProfileLocal();
-    return checkTenderParticipation(requirements, profile);
-  }, [swz?.participationRequirements, combinedText]);
+    return checkTenderParticipation(requirements, profile, experienceRequirements);
+  }, [swz?.participationRequirements, swz?.experienceRequirements, combinedText]);
 
   if (!result) return null;
 

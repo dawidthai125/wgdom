@@ -101,14 +101,7 @@ function formalToParticipation(req: FormalRequirement): TenderParticipationRequi
     };
   }
   if (req.type === "experience") {
-    return {
-      type: "experience",
-      label: req.label,
-      required: true,
-      key: "experienceSimilar",
-      confidence: req.confidence,
-      sourceText: req.sourceText,
-    };
+    return null;
   }
   return null;
 }
@@ -167,42 +160,6 @@ function detectExtendedRequirements(text: string): TenderParticipationRequiremen
       key: "financialCapacity",
       confidence: 0.75,
     });
-  }
-
-  const expProject = parseMinProjects(text);
-  if (expProject != null) {
-    hits.push({
-      type: "experience",
-      label: `Minimum ${expProject} zakończonych robót`,
-      required: true,
-      key: "experienceProjects",
-      minProjects: expProject,
-      confidence: 0.86,
-    });
-  }
-
-  const valuePatterns = [
-    /(?:minimum|co najmniej)[^,.]{0,60}([\d\s.,]{4,20})\s*(?:zł|pln|zl)/gi,
-    /(?:wartosc|kwota)[^,.]{0,40}(?:minimum|co najmniej)[^,.]{0,40}([\d\s.,]{4,20})/gi,
-  ];
-  for (const re of valuePatterns) {
-    let match: RegExpExecArray | null;
-    while ((match = re.exec(text)) !== null) {
-      const pln = parsePlnAmount(match[1]).value;
-      if (pln != null && pln >= 50_000) {
-        hits.push({
-          type: "experience",
-          label: `Doświadczenie min. ${pln.toLocaleString("pl-PL")} zł`,
-          required: true,
-          key: "experienceValue",
-          minValuePln: pln,
-          confidence: 0.84,
-          sourceText: match[0].slice(0, 160),
-        });
-        break;
-      }
-    }
-    if (hits.some((h) => h.key === "experienceValue")) break;
   }
 
   const refM = f.match(/(?:minimum|co najmniej)\s+(\d{1,2})\s+referenc/i);

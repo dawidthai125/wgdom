@@ -71,7 +71,12 @@ import {
   defaultCompanyQualificationProfile,
 } from "../src/lib/company-qualification-profile.ts";
 import { extractParticipationRequirements } from "../src/lib/tender-participation-requirements.ts";
+import { extractExperienceRequirements } from "../src/lib/tender-experience-requirements.ts";
 import { checkTenderParticipation } from "../src/lib/tender-participation-check.ts";
+import {
+  checkExperienceQualification,
+  checkReferenceRequirement,
+} from "../src/lib/tender-experience-check.ts";
 
 let pass = 0;
 let fail = 0;
@@ -654,12 +659,13 @@ const checkSan = checkTenderParticipation(reqSan, profileNoSan);
 assert("p2f1 sanitary missing", checkSan?.missing.some((m) => /sanitarn/i.test(m.label)));
 
 const profileEmptyExp = defaultCompanyQualificationProfile();
+profileEmptyExp.experienceProjects = [];
 profileEmptyExp.experience.similarProjectsCount = null;
 profileEmptyExp.experience.largestProjectPln = null;
-const reqExp = extractParticipationRequirements(
+const expReqUnknown = extractExperienceRequirements(
   "Zdolność techniczna. Minimum 2 zakończone roboty o wartości co najmniej 500 000 zł.",
 );
-const checkExp = checkTenderParticipation(reqExp, profileEmptyExp);
+const checkExp = checkTenderParticipation([], profileEmptyExp, expReqUnknown);
 assert("p2f1 experience unknown", checkExp?.unknown.length >= 1 || checkExp?.overall === "needs_verification");
 
 const profileOc = defaultCompanyQualificationProfile();
@@ -683,6 +689,65 @@ const swzPartParsed = parseSwzPlainText(
   { source: "pdf" },
 );
 assert("p2f1 parse participationRequirements", (swzPartParsed.participationRequirements?.length ?? 0) >= 2);
+
+// P2-F.2 — doświadczenie i referencje
+const profileExpMatch = defaultCompanyQualificationProfile();
+profileExpMatch.experienceProjects = [
+  { title: "A", category: "roboty budowlane", valuePln: 600_000, year: 2024, referenceAvailable: true },
+  { title: "B", category: "roboty budowlane", valuePln: 700_000, year: 2023, referenceAvailable: true },
+  { title: "C", category: "roboty budowlane", valuePln: 550_000, year: 2022, referenceAvailable: false },
+];
+const expReq500 = extractExperienceRequirements(
+  "Zdolność zawodowa. Wykonawca musi wykazać minimum 2 roboty budowlane o wartości co najmniej 500 000 zł.",
+);
+const checkExpMatch = checkExperienceQualification(expReq500, profileExpMatch);
+assert("p2f2 match 3 projects", checkExpMatch.some((c) => c.status === "MATCH" && c.matchingProjects >= 2));
+
+const profileExpGap = defaultCompanyQualificationProfile();
+profileExpGap.experienceProjects = [
+  { title: "X", category: "roboty budowlane", valuePln: 1_300_000, year: 2024, referenceAvailable: true },
+];
+const expReq1M = extractExperienceRequirements(
+  "Minimum 2 roboty budowlane o wartości nie mniejszej niż 1 000 000 zł każda.",
+);
+const checkExpGap = checkExperienceQualification(expReq1M, profileExpGap);
+assert("p2f2 missing 1 of 2", checkExpGap.some((c) => c.status === "MISSING" && /znaleziono 1|Wymagane 2/i.test(c.profileNote)));
+
+const profileRef = defaultCompanyQualificationProfile();
+profileRef.experienceProjects = [
+  { title: "Ref", category: "remont", valuePln: 200_000, year: 2024, referenceAvailable: true },
+];
+const refReq = extractExperienceRequirements(
+  "Warunki udziału. Wykonawca złoży referencje potwierdzające należyte wykonanie.",
+);
+const refCheck = checkExperienceQualification(refReq, profileRef);
+assert("p2f2 ref match", refCheck.some((c) => c.status === "MATCH" && /referenc/i.test(c.label)));
+
+const profileNoRef = defaultCompanyQualificationProfile();
+profileNoRef.experienceProjects = [
+  { title: "No ref", category: "remont", valuePln: 200_000, year: 2024, referenceAvailable: false },
+];
+profileNoRef.references.count = null;
+const refCheckMissing = checkReferenceRequirement(profileNoRef);
+assert("p2f2 ref missing", refCheckMissing.status === "MISSING");
+
+const profileEmpty = defaultCompanyQualificationProfile();
+profileEmpty.experienceProjects = [];
+profileEmpty.experience.largestProjectPln = null;
+profileEmpty.experience.similarProjectsCount = null;
+const checkExpEmpty = checkExperienceQualification(expReq1M, profileEmpty);
+assert("p2f2 empty unknown", checkExpEmpty.some((c) => c.status === "UNKNOWN"));
+
+const tbsExp = extractExperienceRequirements(tbsGarbageSwz);
+assert("p2f2 tbs no garbage exp", tbsExp.length === 0 || !tbsExp.some((r) => /budowlane 12/i.test(r.label)));
+const p2f1Still = checkTenderParticipation(reqPiib, profilePiib, []);
+assert("p2f2 p2f1 regression piib", p2f1Still?.matched.some((m) => /PIIB|izby/i.test(m.label)));
+
+const swzExpParsed = parseSwzPlainText(
+  "Zdolność techniczna. Minimum 2 roboty budowlane o wartości co najmniej 500 000 zł.",
+  { source: "pdf" },
+);
+assert("p2f2 parse experienceRequirements", (swzExpParsed.experienceRequirements?.length ?? 0) >= 1);
 
 // HOTFIX — parseTenderDossierDocuments musi mieć import roleContributesMetadata (P2-E.1 path)
 let dossierPipelineErr = null;
