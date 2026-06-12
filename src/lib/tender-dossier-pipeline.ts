@@ -214,12 +214,13 @@ export async function analyzeTenderWithDossier(opts: {
 
 export function dossierFromAnalysisResult(
   brief: TenderDossier["brief"],
-  result: Pick<TenderDossierAnalysisResult, "kosztorys" | "scanSummary">,
+  result: Pick<TenderDossierAnalysisResult, "kosztorys" | "scanSummary" | "estimatePln">,
 ): TenderDossier {
   return {
     brief,
     kosztorys: result.kosztorys,
     scanSummary: result.scanSummary,
+    estimatePln: result.estimatePln ?? null,
     builtAt: new Date().toISOString(),
   };
 }

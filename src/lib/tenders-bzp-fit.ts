@@ -4,11 +4,16 @@ import type { TenderCompanyProfile } from "@/lib/tenders-bzp-company";
 import { profileKnownBuyerKeywords } from "@/lib/tenders-bzp-company";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
-import { fmtPln, stripHtmlToText, formatSwzWadiumDisplay } from "@/lib/tenders-bzp-swz";
+import { fmtPln, stripHtmlToText } from "@/lib/tenders-bzp-swz";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
-import { filterReliableAwardCriteria } from "@/lib/tender-metadata-confidence";
 import { resolveWadiumAmountPln } from "@/lib/tenders-wadium";
-import { buildValueOrderDisplay, resolveContractValuePln } from "@/lib/tender-cost-snapshot";
+import {
+  resolvedTenderValuePln,
+  resolveTenderValue,
+  resolvedAwardCriteria,
+  resolvedCostStatus,
+  resolvedWadiumDisplay,
+} from "@/lib/tender-data-ssot";
 
 export type TenderRequirementStatus = "met" | "partial" | "gap" | "unknown";
 
@@ -237,7 +242,7 @@ export function estimatedValuePlnFromItem(
   item: TenderPipelineItem,
   swz: TenderSwzAnalysis | null | undefined,
 ): number | null {
-  return resolveContractValuePln(item, swz);
+  return resolvedTenderValuePln(item, swz);
 }
 
 export function assessTenderFit(
@@ -247,10 +252,7 @@ export function assessTenderFit(
 ): TenderFitAssessment {
   const swz = item.swzAnalysis;
   const combinedText = buildCombinedText(item, swz);
-  const fromSwz = swz?.awardCriteria ?? [];
-  const awardCriteria = fromSwz.length > 0
-    ? fromSwz
-    : filterReliableAwardCriteria(extractAwardCriteria(combinedText));
+  const awardCriteria = resolvedAwardCriteria(swz);
   const priceWeightPct = derivePriceWeightPct(awardCriteria);
   const requiredRefPln = extractRequiredReferencePln(combinedText);
   const requiredOcPln = extractRequiredOcPln(combinedText);
@@ -304,10 +306,9 @@ export function assessTenderFit(
   if (cpvSt === "met") score += 6;
 
   // Wartość zamówienia
-  const estVal = estimatedValuePlnFromItem(item, swz);
-  const estValSource = swz?.estimatedValuePln != null
-    ? "SWZ"
-    : (item.tenderDossier?.kosztorys?.ok && estVal != null ? "kosztorys ATH" : null);
+  const resolvedValue = resolveTenderValue(item, swz);
+  const estVal = resolvedValue.pln;
+  const estValSource = resolvedValue.source;
   if (estVal != null) {
     let st: TenderRequirementStatus = "met";
     let tip: string | undefined;
@@ -329,29 +330,25 @@ export function assessTenderFit(
       companyHas: `${fmtPln(profile.minOrderValuePln)} – ${fmtPln(profile.maxOrderValuePln)}`,
       status: st,
       impact: st === "gap" ? "high" : "medium",
-      tip: tip ?? (estValSource === "kosztorys ATH" ? "Wartość z sumy kosztorysu — zweryfikuj z SWZ." : undefined),
+      tip: tip ?? (estValSource === "dossier" || estValSource === "estimate"
+        ? "Wartość z sumy kosztorysu — zweryfikuj z SWZ."
+        : undefined),
     });
   } else {
-    const k = item.tenderDossier?.kosztorys;
-    const valueMsg = buildValueOrderDisplay({
-      valuePln: null,
-      kosztorysOk: Boolean(k?.ok),
-      kosztorysHasTotal: Boolean(k?.totalValue?.trim()),
-    });
     checks.push({
       id: "value",
       category: "Wartość",
       label: "Wartość zamówienia",
-      required: valueMsg.display,
+      required: resolvedValue.display,
       companyHas: `${fmtPln(profile.minOrderValuePln)} – ${fmtPln(profile.maxOrderValuePln)}`,
-      status: k?.ok ? "unknown" : "unknown",
+      status: resolvedCostStatus(item) !== "NOT_FOUND" ? "unknown" : "unknown",
       impact: "medium",
-      tip: valueMsg.hint ?? "Pobierz SWZ, kosztorys ATH lub uzupełnij szacunek ręcznie.",
+      tip: resolvedValue.hint ?? "Pobierz SWZ, kosztorys ATH lub uzupełnij szacunek ręcznie.",
     });
   }
 
-  // Wadium — SSOT: formatSwzWadiumDisplay (percent gdy brak wiarygodnej wartości)
-  const wadiumDisplay = swz ? formatSwzWadiumDisplay(swz) : null;
+  // Wadium — SSOT: resolvedWadiumDisplay
+  const wadiumDisplay = resolvedWadiumDisplay(swz);
   const wadiumForLimit = resolveWadiumAmountPln(swz, estVal);
   if (wadiumDisplay) {
     const ok = wadiumForLimit == null || wadiumForLimit <= profile.maxWadiumPln;
@@ -556,7 +553,7 @@ export function assessTenderFit(
     winChance = Math.max(5, Math.min(85, Math.round(wc)));
     if (blockingIssues.length >= 2) {
       winChanceNote = "Niskie szanse — kilka wymagań poza profilem firmy.";
-    } else if (!swz?.estimatedValuePln && estVal != null) {
+    } else if (estValSource !== "swz" && estVal != null) {
       winChanceNote = "Szacunek na podstawie kosztorysu — zweryfikuj wartość w SWZ.";
     } else if (winChance >= 60) {
       winChanceNote = "Dobre dopasowanie — warto przygotować ofertę i kosztorys.";

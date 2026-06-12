@@ -244,6 +244,8 @@ export interface TenderDossier {
   bidProposal?: TenderBidProposal | null;
   /** Podsumowanie skanowania załączników (P2-E.0). */
   scanSummary?: import("@/lib/tender-dossier-pipeline").TenderDossierScanSummary | null;
+  /** Wartość z analizy kosztorysu (gdy brak w SWZ). P2-E.3 SSOT priorytet #3. */
+  estimatePln?: number | null;
   builtAt: string;
 }
 

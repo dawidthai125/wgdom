@@ -21,6 +21,7 @@ import {
 import { parseNoticeHtmlBrief, mergeBriefWithItemTitle, athPreviewToSnapshot } from "@/lib/tenders-bzp-brief";
 import { parseTenderDossierDocuments, mergeSwzAnalysis, parseExternalTenderDocuments } from "@/lib/tender-document-resolver";
 import { analyzeTenderWithDossier, dossierFromAnalysisResult } from "@/lib/tender-dossier-pipeline";
+import { traceSsotSnapshot } from "@/lib/tender-data-ssot";
 import { discoverExternalTenderDocs, type TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import { summarizeSwzFindings } from "@/lib/tenders-bid-prep";
 import { analyzeTenderSwzEnhanced } from "@/lib/tenders-bzp-analyze-local";
@@ -420,7 +421,10 @@ export function TenderDetailPanel({
       }
       onUpdate(patch);
 
-      const summary = summarizeSwzFindings(result.analysis);
+      const updatedItem = { ...item, ...patch };
+      traceSsotSnapshot(updatedItem, result.analysis);
+
+      const summary = summarizeSwzFindings(updatedItem, result.analysis);
       const critN = result.analysis.awardCriteria?.length ?? 0;
       const extraParts: string[] = [];
       if (critN > 0) extraParts.push(`${critN} kryteriów`);

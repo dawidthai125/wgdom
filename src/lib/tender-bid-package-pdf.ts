@@ -4,6 +4,7 @@ import type { TenderCompanyProfile } from "@/lib/tenders-bzp-company";
 import { fmtPln } from "@/lib/tenders-bzp-swz";
 import { computeBidPrepChecks } from "@/lib/tenders-bid-prep";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
+import { resolveTenderValue, resolvedAwardCriteria } from "@/lib/tender-data-ssot";
 
 async function loadPdfMake() {
   const pdfMake = (await import("pdfmake/build/pdfmake")).default;
@@ -42,7 +43,7 @@ export async function exportTenderBidPackagePdf(opts: {
   const wadium = computeWadiumInfo(item, swz, profile.maxWadiumPln);
   const ready = checks.filter((c) => c.status === "ok").length;
 
-  const criteriaRows = (swz?.awardCriteria ?? item.tenderFit?.awardCriteria ?? []).map((c) => [
+  const criteriaRows = resolvedAwardCriteria(swz).map((c) => [
     { text: c.name, fontSize: 9 },
     { text: c.weightPct != null ? `${c.weightPct}%` : "—", fontSize: 9, alignment: "right" },
     { text: c.maxPoints != null ? String(c.maxPoints) : "—", fontSize: 9, alignment: "right" },
@@ -93,7 +94,7 @@ export async function exportTenderBidPackagePdf(opts: {
           widths: ["*", "*"],
           body: [
             [{ text: "Termin ofert", style: "cellLabel" }, { text: fmtDate(item.submittingOffersDate), style: "cellVal" }],
-            [{ text: "Wartość (SWZ/kosztorys)", style: "cellLabel" }, { text: swz?.estimatedValuePln != null ? fmtPln(swz.estimatedValuePln) : (swz?.estimatedValueRaw ?? "—"), style: "cellVal" }],
+            [{ text: "Wartość (SWZ/kosztorys)", style: "cellLabel" }, { text: resolveTenderValue(item, swz).display, style: "cellVal" }],
             [{ text: "Wadium", style: "cellLabel" }, { text: wadium.summary, style: "cellVal", color: wadium.blocked ? C.red : C.navy }],
             [{ text: "Nasz szacunek", style: "cellLabel" }, { text: item.ourEstimatePln != null ? fmtPln(item.ourEstimatePln) : "—", style: "cellVal" }],
             [{ text: "Propozycja kalkulatora", style: "cellLabel" }, { text: bidProposal?.recommendedBidPln != null ? fmtPln(bidProposal.recommendedBidPln) : "—", style: "cellVal" }],

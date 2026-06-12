@@ -37,6 +37,16 @@ import {
   mergeKosztorysValueIntoSwz,
   plnFromKosztorysSnapshot,
 } from "../src/lib/tender-cost-snapshot.ts";
+import {
+  TENDER_VALUE_NOT_FOUND_LABEL,
+  clearSsotTraceLog,
+  getSsotTraceLog,
+  resolveTenderValue,
+  resolvedAwardCriteria,
+  resolvedCostStatus,
+  resolvedTenderValuePln,
+  traceSsotSnapshot,
+} from "../src/lib/tender-data-ssot.ts";
 import { computeBidPrepChecks } from "../src/lib/tenders-bid-prep.ts";
 
 let pass = 0;
@@ -198,7 +208,7 @@ const estWhenKosztorys = buildOurEstimateDisplay({
 assert("our estimate no file msg when kosztorys", !estWhenKosztorys.display.includes("Brak pliku"));
 
 const valNoTotal = buildValueOrderDisplay({ valuePln: null, kosztorysOk: true, kosztorysHasTotal: false });
-assert("value no total in kosztorys", valNoTotal.display.includes("nie występuje"));
+assert("value no total unified label", valNoTotal.display === TENDER_VALUE_NOT_FOUND_LABEL);
 
 const checks = computeBidPrepChecks(
   {
@@ -244,6 +254,77 @@ const bidCheck = checks.find((c) => c.id === "our-bid");
 assert("checklist kosztorys ok", kosztCheck?.status === "ok");
 assert("checklist bid not missing file", !bidCheck?.display.includes("Brak pliku kosztorysowego"));
 assert("checklist bid manual confirm", bidCheck?.display.includes("ręcznego"));
+
+// P2-E.3 — value / cost / criteria SSOT
+const baseItem = {
+  id: "ssot1",
+  tenderId: "x",
+  title: "T",
+  status: "new",
+  submittingOffersDate: new Date().toISOString(),
+};
+
+const swzWithValue = applyMetadataConfidence(parseSwzPlainText(
+  "Wartość zamówienia 1 500 000,00 zł. Wadium 6% wartości zamówienia. Cena — 60%. Termin realizacji — 30%.",
+  { source: "pdf" },
+));
+assert("value_ssot swz", resolvedTenderValuePln({ ...baseItem, swzAnalysis: swzWithValue }, swzWithValue) === 1500000);
+assert("value_ssot swz source", resolveTenderValue({ ...baseItem, swzAnalysis: swzWithValue }, swzWithValue).source === "swz");
+
+const athItem = {
+  ...baseItem,
+  tenderDossier: {
+    kosztorys: {
+      ok: true,
+      sourceFilename: "k.ath",
+      totalValue: "850 000,00",
+      currency: "PLN",
+      rowCount: 10,
+      rows: [],
+      przedmiar: [],
+      categories: [],
+      warnings: [],
+      parsedAt: new Date().toISOString(),
+    },
+    scanSummary: { kosztorysFound: true, estimateFound: true, valueFound: true, totalDocuments: 5, scanned: 5, parsed: 4, byType: { pdf: 3, docx: 0, xlsx: 0, zip: 1, ath: 1, sevenZip: 0, other: 0 }, sevenZipCount: 0, criteriaFound: false, costDiscovery: null, parsedAt: new Date().toISOString() },
+    estimatePln: 850000,
+    brief: { fields: [], scopeDescription: null, location: null, procedureType: null, offerDeadline: null, offerOpening: null, contractPeriod: null, paymentTerms: null, contactInfo: null, additionalNotes: [], builtAt: "" },
+    builtAt: new Date().toISOString(),
+  },
+};
+assert("value_ssot ath dossier", resolvedTenderValuePln(athItem, null) === 850000);
+assert("value_ssot ath display fmt", resolveTenderValue(athItem, null).display.includes("850"));
+
+const athNoValue = {
+  ...baseItem,
+  tenderDossier: {
+    ...athItem.tenderDossier,
+    kosztorys: { ...athItem.tenderDossier.kosztorys, totalValue: undefined },
+    estimatePln: null,
+  },
+};
+assert("value_ssot ath no value label", resolveTenderValue(athNoValue, null).display === TENDER_VALUE_NOT_FOUND_LABEL);
+assert("cost_ssot found_no_value", resolvedCostStatus(athNoValue) === "FOUND_NO_VALUE");
+assert("cost_ssot not_found", resolvedCostStatus(baseItem) === "NOT_FOUND");
+
+const criteriaSwz = applyMetadataConfidence({
+  ...parseSwzPlainText("Kryteria oceny ofert.", { source: "pdf" }),
+  awardCriteria: [{ name: "Cena", weightPct: 60 }, { name: "Termin realizacji", weightPct: 40 }],
+});
+assert("criteria_ssot from swz", resolvedAwardCriteria(criteriaSwz).length === 2);
+assert("criteria_ssot no html fallback", resolvedAwardCriteria(null).length === 0);
+
+const checksUi = computeBidPrepChecks(athNoValue, null, null, null);
+const valueCheck = checksUi.find((c) => c.id === "value");
+const kosztCheck2 = checksUi.find((c) => c.id === "kosztorys");
+assert("ui_consistency value label", valueCheck?.display === TENDER_VALUE_NOT_FOUND_LABEL);
+assert("ui_consistency no nie odczytano", !valueCheck?.display.includes("Nie odczytano"));
+assert("ui_consistency kosztorys found", kosztCheck2?.display.includes("znaleziony"));
+assert("ui_consistency no brak pliku when found", !checksUi.find((c) => c.id === "our-bid")?.display.includes("Brak pliku kosztorysowego"));
+
+clearSsotTraceLog();
+traceSsotSnapshot(athItem, swzWithValue);
+assert("ssot trace", getSsotTraceLog().length === 1);
 
 // scan summary UX
 const counts = countDocumentsByType(TBS_00266295_DOCUMENTS);

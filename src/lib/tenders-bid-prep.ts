@@ -1,6 +1,6 @@
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
-import { fmtPln, formatSwzWadiumDisplay } from "@/lib/tenders-bzp-swz";
+import { fmtPln } from "@/lib/tenders-bzp-swz";
 import type { TenderFitAssessment } from "@/lib/tenders-bzp-fit";
 import { estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
@@ -8,15 +8,18 @@ import { isTenderOpenForOffers, daysUntilTenderDeadline } from "@/lib/tenders-bz
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { computeWadiumInfo } from "@/lib/tenders-wadium";
 import { resolveTenderPlatformDocumentStatus } from "@/lib/tender-platform-awareness";
+import { buildKosztorysMissingMessage } from "@/lib/tender-dossier-pipeline";
 import {
-  buildKosztorysMissingMessage,
-  buildKosztorysStatusLine,
-} from "@/lib/tender-dossier-pipeline";
-import {
-  buildOurEstimateDisplay,
-  buildValueOrderDisplay,
-  resolveContractValuePln,
-} from "@/lib/tender-cost-snapshot";
+  buildKosztorysChecklistDisplay,
+  buildOurEstimateDisplaySsot,
+  formatAwardCriteriaSummary,
+  resolveTenderValue,
+  resolvedAwardCriteria,
+  resolvedCostStatus,
+  resolvedTenderValuePln,
+  resolvedWadiumDisplay,
+  traceSsotSnapshot,
+} from "@/lib/tender-data-ssot";
 
 export type BidPrepItemStatus = "ok" | "partial" | "missing";
 
@@ -44,9 +47,12 @@ export function computeBidPrepChecks(
 
   const k = item.tenderDossier?.kosztorys;
   const kosztorysOk = Boolean(k?.ok);
-  const kosztorysHasTotal = Boolean(k?.totalValue?.trim());
+  const costStatus = resolvedCostStatus(item);
 
-  const valuePln = resolveContractValuePln(item, swz ?? null);
+  traceSsotSnapshot(item, swz ?? null);
+
+  const valueResolved = resolveTenderValue(item, swz ?? null);
+  const valuePln = resolvedTenderValuePln(item, swz ?? null);
 
   const profile = loadCompanyProfileLocal();
   const wadiumInfo = computeWadiumInfo(item, swz, profile.maxWadiumPln);
@@ -55,21 +61,19 @@ export function computeBidPrepChecks(
     + (item.externalDocDiscovery?.files?.length ?? 0);
   const platformDoc = resolveTenderPlatformDocumentStatus(item);
   const scanSummary = item.tenderDossier?.scanSummary;
-  const valueDisplay = buildValueOrderDisplay({ valuePln, kosztorysOk, kosztorysHasTotal });
-  const estimateDisplay = buildOurEstimateDisplay({
+  const estimateDisplay = buildOurEstimateDisplaySsot({
+    item,
     ourEstimatePln: item.ourEstimatePln,
-    kosztorysOk,
-    scanSummary,
     recommendedBidPln: bidProposal?.recommendedBidPln,
     bidProposalOk: bidProposal?.ok,
   });
-  const kosztorysMissingDisplay = scanSummary
-    ? buildKosztorysStatusLine(scanSummary).split("\n")[0] || "Nie znaleziono dokumentu kosztorysowego"
-    : docCount > 0
-      ? "Nie znaleziono dokumentu kosztorysowego"
+  const kosztorysMissingDisplay = costStatus === "NOT_FOUND"
+    ? (docCount > 0
+      ? "Kosztorys nie znaleziony"
       : platformDoc.emptyMessage
         ?? platformDoc.detailLines?.[0]
-        ?? "Brak plików";
+        ?? "Brak plików")
+    : buildKosztorysChecklistDisplay(item);
   const kosztorysMissingHint = !kosztorysOk && scanSummary
     ? `${buildKosztorysMissingMessage(scanSummary)}`
     : !kosztorysOk && docCount === 0 && platformDoc.detailLines?.[1]
@@ -91,9 +95,9 @@ export function computeBidPrepChecks(
     {
       id: "value",
       label: "Wartość zamówienia",
-      status: valuePln != null ? "ok" : kosztorysOk ? "partial" : "missing",
-      display: valueDisplay.display,
-      hint: valueDisplay.hint,
+      status: valuePln != null ? "ok" : costStatus !== "NOT_FOUND" ? "partial" : "missing",
+      display: valueResolved.display,
+      hint: valueResolved.hint,
     },
     {
       id: "wadium",
@@ -115,28 +119,18 @@ export function computeBidPrepChecks(
     {
       id: "kosztorys",
       label: "Kosztorys / przedmiar",
-      status: kosztorysOk ? "ok" : docCount > 0 ? "partial" : "missing",
-      display: kosztorysOk
-        ? (scanSummary
-          ? buildKosztorysStatusLine(scanSummary).split("\n").join(" · ")
-          : `${item.tenderDossier!.kosztorys!.totalValue || "?"} ${item.tenderDossier!.kosztorys!.currency || "PLN"}`)
-        : kosztorysMissingDisplay,
+      status: costStatus !== "NOT_FOUND" ? "ok" : docCount > 0 ? "partial" : "missing",
+      display: kosztorysMissingDisplay,
       hint: kosztorysMissingHint,
     },
     {
       id: "criteria",
       label: "Kryteria oceny",
-      status: (swz?.awardCriteria?.length ?? 0) > 0 ? "ok" : fit ? "partial" : "missing",
-      display: (swz?.awardCriteria?.length ?? 0) > 0
-        ? swz!.awardCriteria!.map((c) => {
-          const w = c.weightPct != null ? ` ${c.weightPct}%` : c.maxPoints != null ? ` ${c.maxPoints} pkt` : "";
-          return `${c.name}${w}`;
-        }).slice(0, 3).join(" · ")
-          + (swz!.awardCriteria!.length > 3 ? ` +${swz!.awardCriteria!.length - 3}` : "")
-        : fit?.priceWeightPct != null
-          ? `Cena ~${fit.priceWeightPct}%`
-          : "Nie wykryto",
-      hint: !(swz?.awardCriteria?.length) ? "Wynik analizy SWZ/STWIOR/OPZ — po „Analizuj SWZ”" : undefined,
+      status: resolvedAwardCriteria(swz).length > 0 ? "ok" : fit ? "partial" : "missing",
+      display: formatAwardCriteriaSummary(resolvedAwardCriteria(swz)),
+      hint: resolvedAwardCriteria(swz).length === 0
+        ? "Wynik analizy SWZ/STWIOR/OPZ — po „Analizuj SWZ”"
+        : undefined,
     },
     {
       id: "our-bid",
@@ -145,7 +139,7 @@ export function computeBidPrepChecks(
         ? "ok"
         : bidProposal?.ok && bidProposal.recommendedBidPln != null
           ? "partial"
-          : kosztorysOk
+          : costStatus !== "NOT_FOUND"
             ? "partial"
             : "missing",
       display: estimateDisplay.display,
@@ -158,11 +152,12 @@ export function computeBidPrepChecks(
   return checks;
 }
 
-export function summarizeSwzFindings(swz: TenderSwzAnalysis): string {
+export function summarizeSwzFindings(item: TenderPipelineItem, swz: TenderSwzAnalysis): string {
   const parts: string[] = [];
-  if (swz.estimatedValuePln != null) parts.push(`Wartość: ${fmtPln(swz.estimatedValuePln)}`);
+  const value = resolveTenderValue(item, swz);
+  if (value.pln != null) parts.push(`Wartość: ${value.display}`);
   else if (swz.estimatedValueRaw) parts.push(`Wartość (tekst): ${swz.estimatedValueRaw.slice(0, 60)}`);
-  const wadiumLabel = formatSwzWadiumDisplay(swz);
+  const wadiumLabel = resolvedWadiumDisplay(swz);
   if (wadiumLabel) parts.push(`Wadium: ${wadiumLabel}`);
   if (swz.implementationDeadlineRaw) {
     parts.push(`Realizacja: ${swz.implementationDeadlineRaw.slice(0, 50)}`);

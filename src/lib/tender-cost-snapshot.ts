@@ -9,6 +9,11 @@ import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { fmtPln } from "@/lib/tenders-bzp-swz";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import type { TenderDossierScanSummary } from "@/lib/tender-dossier-pipeline";
+import {
+  resolveTenderValue,
+  resolvedTenderValuePln,
+  TENDER_VALUE_NOT_FOUND_LABEL,
+} from "@/lib/tender-data-ssot";
 
 export type CostTraceStep =
   | "zip_found"
@@ -83,41 +88,33 @@ export function plnFromKosztorysSnapshot(
   return parsePlnFromKosztorysTotal(k.totalValue, k.currency);
 }
 
-/** SSOT wartości zamówienia: SWZ → kosztorys → nasz szacunek z analizy. */
+/** SSOT wartości zamówienia — delegacja do tender-data-ssot. */
 export function resolveContractValuePln(
   item: TenderPipelineItem,
   swz: TenderSwzAnalysis | null | undefined,
-  estimatePln?: number | null,
+  _estimatePln?: number | null,
 ): number | null {
-  if (swz?.estimatedValuePln != null) return swz.estimatedValuePln;
-  const fromK = plnFromKosztorysSnapshot(item.tenderDossier?.kosztorys);
-  if (fromK != null) return fromK;
-  if (estimatePln != null) return estimatePln;
-  return null;
-}
-
-export function kosztorysHasParsedContent(k: TenderKosztorysSnapshot | null | undefined): boolean {
-  if (!k?.ok) return false;
-  return Boolean(k.totalValue?.trim()) || k.rowCount > 0;
+  return resolvedTenderValuePln(item, swz);
 }
 
 export function buildValueOrderDisplay(opts: {
   valuePln: number | null;
-  kosztorysOk: boolean;
-  kosztorysHasTotal: boolean;
+  kosztorysOk?: boolean;
+  kosztorysHasTotal?: boolean;
+  item?: TenderPipelineItem;
+  swz?: TenderSwzAnalysis | null;
 }): { display: string; hint?: string } {
+  if (opts.item != null) {
+    return resolveTenderValue(opts.item, opts.swz);
+  }
   if (opts.valuePln != null) {
     return { display: fmtPln(opts.valuePln) };
   }
-  if (opts.kosztorysOk && !opts.kosztorysHasTotal) {
-    return {
-      display: "Wartość nie występuje w kosztorysie",
-      hint: "Kosztorys sparsowany — brak sumy końcowej; uzupełnij ręcznie lub ze SWZ/STWIOR",
-    };
-  }
   return {
-    display: "Nie wykryto",
-    hint: "Analizuj SWZ — wartość z SWZ/STWIOR/OPZ/kosztorysu",
+    display: TENDER_VALUE_NOT_FOUND_LABEL,
+    hint: opts.kosztorysOk && !opts.kosztorysHasTotal
+      ? "Kosztorys znaleziony — brak sumy końcowej w pliku."
+      : "Analizuj SWZ — wartość z SWZ/STWIOR/OPZ/kosztorysu.",
   };
 }
 

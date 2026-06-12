@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.15",
+    label: "Przetargi — Tender Data SSOT Cleanup (P2-E.3)",
+    items: [
+      { type: "fix", text: "Jedno źródło prawdy: wartość, kosztorys, kryteria, wadium — koniec „Nie wykryto” vs „Nie odczytano z SWZ”" },
+      { type: "new", text: "resolvedTenderValuePln / resolvedCostStatus / resolvedAwardCriteria + [SSOT TRACE]" },
+      { type: "fix", text: "Karta przetargu, Fit, checklist, PDF — spójne komunikaty gdy brak wartości w dokumentach" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.14",
     label: "Przetargi — Cost Snapshot Integration (P2-E.2)",
     items: [

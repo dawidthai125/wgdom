@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.51.15 — P2-E.3 Tender Data SSOT Cleanup
+- `tender-data-ssot.ts`: resolvedTenderValuePln, resolvedCostStatus, resolvedAwardCriteria, [SSOT TRACE]
+- Jednolity komunikat braku wartości we wszystkich panelach
+
 > **Źródło prawdy:** tablica `CHANGELOG` w [`src/app/changelog-data.ts`](src/app/changelog-data.ts).  
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
