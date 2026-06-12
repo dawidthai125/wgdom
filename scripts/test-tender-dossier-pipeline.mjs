@@ -33,9 +33,12 @@ import { roleContributesMetadata } from "../src/lib/tender-metadata-sources.ts";
 import {
   buildOurEstimateDisplay,
   buildValueOrderDisplay,
+  enrichKosztorysSnapshotFromPreview,
+  estimatePlnFromKosztorysSnapshot,
   extractTotalValueFromAthPreview,
   mergeKosztorysValueIntoSwz,
   plnFromKosztorysSnapshot,
+  sumAthPreviewRows,
 } from "../src/lib/tender-cost-snapshot.ts";
 import {
   TENDER_VALUE_NOT_FOUND_LABEL,
@@ -47,6 +50,8 @@ import {
   resolvedTenderValuePln,
   traceSsotSnapshot,
 } from "../src/lib/tender-data-ssot.ts";
+import { assessTenderFit } from "../src/lib/tenders-bzp-fit.ts";
+import { defaultCompanyProfile } from "../src/lib/tenders-bzp-company.ts";
 import { computeBidPrepChecks } from "../src/lib/tenders-bid-prep.ts";
 
 let pass = 0;
@@ -168,6 +173,84 @@ const athPreview = {
   warnings: [],
 };
 assert("extract total from summary", extractTotalValueFromAthPreview(athPreview) === "3 200 000,00");
+
+// P2-E.4 — ATH netto summary + row fallback
+const athNettoPreview = {
+  ok: true,
+  format: "text",
+  rows: [],
+  summaryLines: [
+    { label: "Kosztorys netto (suma pozycji)", value: "892 450,50 PLN", bold: true },
+  ],
+  warnings: [],
+};
+assert("p2e4 netto summary totalValue", extractTotalValueFromAthPreview(athNettoPreview) === "892 450,50");
+
+const athRowsPreview = {
+  ok: true,
+  format: "text",
+  rows: [
+    { lp: "1", code: "", description: "A", unit: "m2", quantity: "10", unitPrice: "100,00", total: "1 000,00" },
+    { lp: "2", code: "", description: "B", unit: "m2", quantity: "5", unitPrice: "200,50", total: "1 002,50" },
+  ],
+  summaryLines: [],
+  warnings: [],
+};
+assert("p2e4 row sum fallback", extractTotalValueFromAthPreview(athRowsPreview) === "2 002,50");
+assert("p2e4 sumAthPreviewRows", sumAthPreviewRows(athRowsPreview) === "2 002,50");
+
+const enrichedSnap = enrichKosztorysSnapshotFromPreview(athNettoPreview, {
+  ok: true,
+  sourceFilename: "zip → k.ath",
+  rowCount: 0,
+  rows: [],
+  przedmiar: [],
+  categories: [],
+  warnings: [],
+  parsedAt: new Date().toISOString(),
+});
+assert("p2e4 enriched snapshot totalValue", enrichedSnap.totalValue === "892 450,50");
+const estFromSnap = estimatePlnFromKosztorysSnapshot(enrichedSnap, null, "k.ath");
+assert("p2e4 estimatePln from snapshot", estFromSnap === 892451);
+
+const athValueItem = {
+  id: "p2e4v",
+  tenderId: "x",
+  title: "T",
+  status: "new",
+  submittingOffersDate: new Date().toISOString(),
+  tenderDossier: {
+    kosztorys: enrichedSnap,
+    estimatePln: estFromSnap,
+    scanSummary: {
+      totalDocuments: 5,
+      scanned: 5,
+      parsed: 4,
+      byType: { pdf: 3, docx: 0, xlsx: 0, zip: 1, ath: 1, sevenZip: 0, other: 0 },
+      sevenZipCount: 0,
+      kosztorysFound: true,
+      valueFound: true,
+      criteriaFound: false,
+      estimateFound: true,
+      costDiscovery: { found: true, type: "zip_ath", source: "z → k.ath", confidence: 0.95 },
+      parsedAt: new Date().toISOString(),
+    },
+    brief: { fields: [], scopeDescription: null, location: null, procedureType: null, offerDeadline: null, offerOpening: null, contractPeriod: null, paymentTerms: null, contactInfo: null, additionalNotes: [], builtAt: "" },
+    builtAt: new Date().toISOString(),
+  },
+};
+assert("p2e4 resolvedTenderValuePln dossier", resolvedTenderValuePln(athValueItem, null) === 892451);
+
+const fitFresh = assessTenderFit(athValueItem, defaultCompanyProfile());
+const fitValueCheck = fitFresh.requirementChecks.find((c) => c.id === "value");
+assert("p2e4 fit no stale odczytano", !fitFresh.requirementChecks.some((c) => String(c.required).includes("Nie odczytano z SWZ")));
+assert("p2e4 fit value from dossier", fitValueCheck?.required.includes("892"));
+
+const checksSsot = computeBidPrepChecks(athValueItem, parseSwzPlainText("Wadium 6%.", { source: "pdf" }), fitFresh, null);
+const checklistValue = checksSsot.find((c) => c.id === "value");
+assert("p2e4 ui ssot checklist value", checklistValue?.display.includes("892"));
+assert("p2e4 ui ssot fit vs checklist", fitValueCheck?.required === checklistValue?.display);
+
 const snapPln = plnFromKosztorysSnapshot({
   ok: true,
   sourceFilename: "k.ath",

@@ -419,12 +419,16 @@ export function TenderDetailPanel({
       if (result.estimatePln != null && item.ourEstimatePln == null) {
         patch.ourEstimatePln = result.estimatePln;
       }
+
+      const updatedItem: TenderPipelineItem = { ...item, ...patch };
+      // P2-E.4 — zawsze odśwież tenderFit po ręcznej analizie (bez stale KV snapshot)
+      patch.tenderFit = assessTenderFit(updatedItem, loadCompanyProfileLocal(), { pipelineWinRate });
+      const finalItem: TenderPipelineItem = { ...updatedItem, tenderFit: patch.tenderFit };
+
       onUpdate(patch);
+      traceSsotSnapshot(finalItem, result.analysis);
 
-      const updatedItem = { ...item, ...patch };
-      traceSsotSnapshot(updatedItem, result.analysis);
-
-      const summary = summarizeSwzFindings(updatedItem, result.analysis);
+      const summary = summarizeSwzFindings(finalItem, result.analysis);
       const critN = result.analysis.awardCriteria?.length ?? 0;
       const extraParts: string[] = [];
       if (critN > 0) extraParts.push(`${critN} kryteriów`);
@@ -439,7 +443,7 @@ export function TenderDetailPanel({
     } finally {
       setAnalyzing(false);
     }
-  }, [item, onUpdate]);
+  }, [item, onUpdate, pipelineWinRate]);
 
   const handleFetchAward = useCallback(async () => {
     setFetchingAward(true);

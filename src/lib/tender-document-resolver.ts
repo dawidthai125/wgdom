@@ -26,7 +26,7 @@ import { enrichSwzFromText } from "@/lib/tenders-bzp-swz-enrich";
 import { applyMetadataConfidence, scoreEstimatedValueConfidence } from "@/lib/tender-metadata-confidence";
 import { roleContributesMetadata } from "@/lib/tender-metadata-sources";
 import { discoverBestCostDocument, type TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
-import { enrichKosztorysSnapshotFromPreview, traceCostPipeline } from "@/lib/tender-cost-snapshot";
+import { enrichKosztorysSnapshotFromPreview, estimatePlnFromKosztorysSnapshot, traceCostPipeline } from "@/lib/tender-cost-snapshot";
 import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
 
 const DOSSIER_MAX_CANDIDATES = 15;
@@ -292,10 +292,7 @@ export async function parseTenderDocumentCandidate(
       ok: kosztorys.ok,
     });
     if (estimatePln == null) {
-      estimatePln = parsePlnFromKosztorysTotal(kosztorys.totalValue, kosztorys.currency);
-      if (estimatePln != null) {
-        traceCostPipeline("estimate_created", candidate.filename, { estimatePln });
-      }
+      estimatePln = estimatePlnFromKosztorysSnapshot(kosztorys, estimatePln, candidate.filename);
     }
   } else if (kosztorysPreview && isKosztorysPreviewExt(effectiveName)) {
     traceDossierPipeline("ath_parse_failed", candidate.filename, {

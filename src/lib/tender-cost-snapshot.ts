@@ -49,9 +49,45 @@ export function clearCostTraceLog(): void {
 }
 
 const SUMMARY_VALUE_LABEL_RE =
-  /wartość całkowita|kosztorys brutto|razem brutto|suma końcowa|wartość robót|wartość netto|całkowit/i;
+  /wartość całkowita|kosztorys brutto|razem brutto|suma końcowa|wartość robót|wartość netto|całkowit|kosztorys netto|suma pozycji|razem netto|\bnetto\b|łączna wartość netto|wartość kosztorysu/i;
 
-/** Wyciąga totalValue z ATH — pole lub linie podsumowania. */
+function parseAthAmountToken(token: string | undefined): number {
+  if (!token?.trim() || token === "—") return 0;
+  const cleaned = token.replace(/\s/g, "").replace(",", ".");
+  const m = cleaned.match(/-?\d+(?:\.\d+)?/);
+  if (!m) return 0;
+  const n = parseFloat(m[0]);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function formatAthSumPln(n: number): string {
+  const fixed = n.toFixed(2);
+  const [intPart, dec] = fixed.split(".");
+  const withSpaces = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return `${withSpaces},${dec}`;
+}
+
+/** Suma pozycji ATH — total lub quantity × unitPrice (P2-E.4 fallback). */
+export function sumAthPreviewRows(preview: AthPreviewResult): string | undefined {
+  let sum = 0;
+  let counted = 0;
+  for (const row of preview.rows ?? []) {
+    let rowTotal = parseAthAmountToken(row.total);
+    if (rowTotal <= 0) {
+      const q = parseAthAmountToken(row.quantity);
+      const up = parseAthAmountToken(row.unitPrice);
+      if (q > 0 && up > 0) rowTotal = +(q * up).toFixed(2);
+    }
+    if (rowTotal > 0) {
+      sum += rowTotal;
+      counted += 1;
+    }
+  }
+  if (counted === 0 || sum <= 0) return undefined;
+  return formatAthSumPln(sum);
+}
+
+/** Wyciąga totalValue z ATH — pole, linie podsumowania lub suma pozycji. */
 export function extractTotalValueFromAthPreview(preview: AthPreviewResult): string | undefined {
   if (preview.totalValue?.trim()) return preview.totalValue.trim();
 
@@ -68,10 +104,10 @@ export function extractTotalValueFromAthPreview(preview: AthPreviewResult): stri
   const cats = preview.categories ?? [];
   if (cats.length > 0) {
     const last = cats[cats.length - 1];
-    if (last.total?.trim()) return last.total.trim();
+    if (last.total?.trim() && last.total !== "—") return last.total.trim();
   }
 
-  return undefined;
+  return sumAthPreviewRows(preview);
 }
 
 function plnTokenFromSummaryLine(line: AthPreviewSummaryLine): string | undefined {
@@ -156,6 +192,25 @@ export function buildOurEstimateDisplay(opts: {
   };
 }
 
+/** Ustawia estimatePln z snapshotu kosztorysu gdy brak (P2-E.4). */
+export function estimatePlnFromKosztorysSnapshot(
+  kosztorys: TenderKosztorysSnapshot | null | undefined,
+  currentEstimatePln?: number | null,
+  traceFilename?: string,
+): number | null {
+  if (currentEstimatePln != null) return currentEstimatePln;
+  if (!kosztorys?.ok || !kosztorys.totalValue?.trim()) return null;
+  const pln = parsePlnFromKosztorysTotal(kosztorys.totalValue, kosztorys.currency);
+  if (pln != null && traceFilename) {
+    traceCostPipeline("estimate_created", traceFilename, {
+      estimatePln: pln,
+      totalValue: kosztorys.totalValue,
+      source: "kosztorys_snapshot",
+    });
+  }
+  return pln;
+}
+
 /** Wzbogaca snapshot o totalValue z summaryLines ATH. */
 export function enrichKosztorysSnapshotFromPreview(
   preview: AthPreviewResult,
@@ -164,12 +219,20 @@ export function enrichKosztorysSnapshotFromPreview(
   const totalValue = snapshot.totalValue?.trim()
     || extractTotalValueFromAthPreview(preview)
     || undefined;
-  return {
+  const enriched: TenderKosztorysSnapshot = {
     ...snapshot,
     ok: true,
     totalValue,
     rowCount: snapshot.rowCount || preview.rows.length,
   };
+  if (totalValue && !snapshot.totalValue?.trim()) {
+    traceCostPipeline("snapshot_created", snapshot.sourceFilename, {
+      totalValue,
+      rowCount: enriched.rowCount,
+      source: "ath_preview_enrich",
+    });
+  }
+  return enriched;
 }
 
 /** Uzupełnia swzAnalysis wartością z kosztorysu gdy brak w SWZ. */

@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.17",
+    label: "Przetargi — ATH Value Recovery + TenderFit Refresh (P2-E.4)",
+    items: [
+      { type: "fix", text: "ATH: suma netto z summaryLines + fallback sumy pozycji → totalValue / estimatePln" },
+      { type: "fix", text: "Po „Analizuj SWZ” — wymuszone odświeżenie tenderFit (koniec starych komunikatów z KV)" },
+      { type: "improve", text: "[COST TRACE] estimate_created z kosztorysu po odzyskaniu wartości ATH" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.16",
     label: "Hotfix — Analizuj SWZ (roleContributesMetadata)",
     items: [

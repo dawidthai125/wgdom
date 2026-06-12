@@ -12,7 +12,7 @@ import { classifyDocumentRole, is7zFilename } from "@/lib/tender-document-role";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { isDocxFilename, isXlsxFilename, isZipFilename } from "@/lib/tenders-bzp-filename";
 import { clearDossierTraceLog } from "@/lib/tender-dossier-trace";
-import { clearCostTraceLog, mergeKosztorysValueIntoSwz, plnFromKosztorysSnapshot, traceCostPipeline, traceCostUiState } from "@/lib/tender-cost-snapshot";
+import { clearCostTraceLog, estimatePlnFromKosztorysSnapshot, mergeKosztorysValueIntoSwz, plnFromKosztorysSnapshot, traceCostPipeline, traceCostUiState } from "@/lib/tender-cost-snapshot";
 import { applyMetadataConfidence } from "@/lib/tender-metadata-confidence";
 import type { TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
 import { costTypeDisplayLabel } from "@/lib/tender-cost-discovery";
@@ -176,10 +176,11 @@ export async function analyzeTenderWithDossier(opts: {
   merged = applyMetadataConfidence(merged);
 
   const kosztorysValuePln = plnFromKosztorysSnapshot(kosztorys);
-  if (estimatePln == null && kosztorysValuePln != null) {
-    estimatePln = kosztorysValuePln;
-    traceCostPipeline("estimate_created", kosztorys?.sourceFilename ?? "kosztorys", { estimatePln });
-  }
+  estimatePln = estimatePlnFromKosztorysSnapshot(
+    kosztorys,
+    estimatePln,
+    kosztorys?.sourceFilename ?? "dossier",
+  );
   if (merged.estimatedValuePln != null) {
     traceCostPipeline("estimated_value_created", kosztorys?.sourceFilename ?? "swz", {
       value: merged.estimatedValuePln,

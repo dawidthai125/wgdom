@@ -1,5 +1,8 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.51.17 — P2-E.4 ATH Value Recovery + TenderFit Refresh
+- extractTotalValueFromAthPreview: netto summary + suma pozycji; estimatePln + tenderFit refresh po analizie
+
 ## 2.51.16 — Hotfix Analizuj SWZ
 - Import `roleContributesMetadata` w `tender-document-resolver.ts` (ReferenceError prod 2.51.15)
 
