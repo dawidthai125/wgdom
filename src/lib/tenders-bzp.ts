@@ -126,6 +126,8 @@ export interface TenderPipelineItem {
   awardResult?: import("@/lib/tenders-bzp-award").TenderAwardResult | null;
   /** Ostatnia próba pobrania wyniku z BZP (auto). */
   awardFetchAttemptedAt?: string | null;
+  /** P2-D.1 — snapshot dokumentów + historia zmian. */
+  changeMonitor?: import("@/lib/tender-change-monitor").TenderChangeMonitorState | null;
 }
 
 export interface TenderEstimateSnapshot {
@@ -496,6 +498,7 @@ export function mergeTenderPipeline(
           externalDocDiscovery: prev.externalDocDiscovery ?? item.externalDocDiscovery,
           estimateHistory: prev.estimateHistory ?? item.estimateHistory,
           awardResult: prev.awardResult ?? item.awardResult,
+          changeMonitor: prev.changeMonitor ?? item.changeMonitor,
         }
       : item);
   }

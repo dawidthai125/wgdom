@@ -36,6 +36,7 @@ import {
   shouldSkipAutoAwardPass,
 } from "@/lib/tenders-pipeline-session-cache";
 import { exportTendersPipelineCsv, getDeletedTenderIds } from "@/lib/tenders-sync";
+import { rescanPipelineDocumentChanges, applyBzpMergeChangeMonitor } from "@/lib/tender-change-monitor";
 import {
   computeActionChips,
   matchesQuickFilter,
@@ -100,22 +101,30 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
         return mapBzpToPipelineItem(n, prev);
       })
       .filter((m) => !deleted.has(m.id));
-    const merged = pruneExpiredUntouched(mergeTenderPipeline(baseItems, mapped));
+    const mergedRaw = pruneExpiredUntouched(mergeTenderPipeline(baseItems, mapped));
+    const merged = mergedRaw.map((item) => {
+      const prev = baseItems.find((p) => p.id === item.id);
+      if (!prev) return item;
+      const patch = applyBzpMergeChangeMonitor(prev, item);
+      return patch ? { ...item, ...patch } : item;
+    });
     const { items: withAwards, updated: awardsUpdated } = await autoFetchAwardResults(merged, 5);
-    await persist(withAwards);
+    const { items: withChanges, newEventCount } = await rescanPipelineDocumentChanges(withAwards, 3);
+    await persist(withChanges);
     markPipelineAutoAwardCompleted();
     markBzpSyncedAt();
     if (!silent) {
-      const actionableN = withAwards.filter((m) => isActionableTender(m)).length;
-      const priorityN = withAwards.filter(
+      const actionableN = withChanges.filter((m) => isActionableTender(m)).length;
+      const priorityN = withChanges.filter(
         (m) => isTenderOpenForOffers(m.submittingOffersDate) && m.priorityBuyerId,
       ).length;
       const awardNote = awardsUpdated > 0 ? ` · ${awardsUpdated} wynik(ów) BZP` : "";
+      const changeNote = newEventCount > 0 ? ` · ${newEventCount} zmian(y) dokumentacji` : "";
       toast.success(
-        `BZP: ${actionableN} aktywnych do rozważenia (w tym ${priorityN} od kluczowych zamawiających)${awardNote}`,
+        `BZP: ${actionableN} aktywnych do rozważenia (w tym ${priorityN} od kluczowych zamawiających)${awardNote}${changeNote}`,
       );
     }
-    return withAwards;
+    return withChanges;
   }, [persist]);
 
   useEffect(() => {

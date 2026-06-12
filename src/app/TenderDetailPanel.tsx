@@ -36,6 +36,7 @@ import {
   logPlatformDocumentTelemetry,
   resolveTenderPlatformDocumentStatus,
 } from "@/lib/tender-platform-awareness";
+import { processTenderChangeMonitorUpdate } from "@/lib/tender-change-monitor";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { assessTenderFit, estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 import { computeTenderBidProposal } from "@/lib/tenders-bid-calculator";
@@ -130,6 +131,14 @@ export function TenderDetailPanel({
     };
     if (swzMerged) patch.swzAnalysis = swzMerged;
     if (estimatePln != null && item.ourEstimatePln == null) patch.ourEstimatePln = estimatePln;
+    const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(
+      { ...item, ...patch },
+      { externalDocDiscovery: discovery },
+    );
+    patch.changeMonitor = changeMonitor;
+    if (newEvents.length > 0) {
+      toast.warning(`Wykryto ${newEvents.length} zmian${newEvents.length === 1 ? "ę" : "y"} w dokumentacji`);
+    }
     onUpdate(patch);
   }, [item, onUpdate]);
 
@@ -184,6 +193,16 @@ export function TenderDetailPanel({
           if (!cancelled) {
             patch.bzpDocuments = docs;
             patch.documentsFetchedAt = new Date().toISOString();
+          }
+        }
+        if (!cancelled && patch.bzpDocuments) {
+          const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(
+            { ...item, ...patch },
+            { documents: patch.bzpDocuments as typeof docs },
+          );
+          patch.changeMonitor = changeMonitor;
+          if (newEvents.length > 0) {
+            toast.warning(`Wykryto ${newEvents.length} zmian${newEvents.length === 1 ? "ę" : "y"} w dokumentacji`);
           }
         }
         if (
@@ -336,11 +355,17 @@ export function TenderDetailPanel({
     setLoadingDocs(true);
     try {
       const docs = await fetchTenderDocuments(item.tenderId, item.noticeNumber || undefined);
+      const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(item, { documents: docs });
       onUpdate({
         bzpDocuments: docs,
         documentsFetchedAt: new Date().toISOString(),
+        changeMonitor,
       });
-      toast.success(docs.length ? `Znaleziono ${docs.length} załączników` : "Brak załączników");
+      if (newEvents.length > 0) {
+        toast.warning(`Wykryto ${newEvents.length} zmian${newEvents.length === 1 ? "ę" : "y"} w dokumentacji`);
+      } else {
+        toast.success(docs.length ? `Znaleziono ${docs.length} załączników` : "Brak załączników");
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Błąd pobierania załączników");
     } finally {

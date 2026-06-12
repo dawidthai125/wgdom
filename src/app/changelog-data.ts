@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.6",
+    label: "Przetargi — monitoring zmian dokumentacji (P2-D.1)",
+    items: [
+      { type: "new", text: "Snapshot dokumentów + diff — wykrywanie nowych/zmienionych/usuniętych plików i zmiany terminu" },
+      { type: "new", text: "Strategia → „Zmiany w przetargach” z filtrami (dokumenty, termin, Q&A)" },
+      { type: "improve", text: "Pulpit skrót przetargów: „Pilne zmiany” + alerty Action Center (TenderChangeAlert)" },
+      { type: "improve", text: "Auto-rescan do 3 aktywnych przetargów po odświeżeniu BZP" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.5",
     label: "Przetargi — platform awareness dokumentów (P2-C.2)",
     items: [

@@ -12,6 +12,12 @@ import type { OwnerDecisionsStore } from "@/lib/tenders-strategy-owner-decisions
 import type { OwnerStrategicAlert } from "@/lib/tenders-strategy-alerts";
 import { DECISION_LABEL_PL } from "@/lib/tenders-strategy-decision";
 import { BASELINE_LABEL_PL, METRIC_LABEL_PL, OPPORTUNITY_LABEL_PL, PIPELINE_LABEL_PL, STRATEGIC_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
+import type { TenderPipelineItem } from "@/lib/tenders-bzp";
+import {
+  collectAllChangeEvents,
+  changeEventPriority,
+  formatRelativeChangeTime,
+} from "@/lib/tender-change-monitor";
 
 export type ActionPriority = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 
@@ -66,6 +72,7 @@ export interface ActionCenterInput {
   forecast: Forecast90DaysResult;
   ownerStore: OwnerDecisionsStore;
   strategicAlerts: OwnerStrategicAlert[];
+  pipelineItems?: TenderPipelineItem[];
   now?: Date;
 }
 
@@ -446,6 +453,38 @@ function actionsFromCapacity(forecast: Forecast90DaysResult): OwnerActionItem[] 
   return [];
 }
 
+function actionsFromTenderChanges(
+  items: TenderPipelineItem[] | undefined,
+  now: Date,
+): OwnerActionItem[] {
+  if (!items?.length) return [];
+  const cutoff = now.getTime() - 7 * 24 * 3600_000;
+  const recent = collectAllChangeEvents(items).filter(
+    (e) => new Date(e.at).getTime() >= cutoff && !e.acknowledged,
+  );
+  const out: OwnerActionItem[] = [];
+  for (const e of recent.slice(0, 8)) {
+    const priority = changeEventPriority(e.type);
+    const titleShort = e.tenderTitle.length > 52 ? `${e.tenderTitle.slice(0, 52)}…` : e.tenderTitle;
+    out.push(action({
+      id: `tender-change-${e.id}`,
+      priority,
+      category: "TENDERS",
+      title: e.type === "DEADLINE_CHANGED"
+        ? `Zmiana terminu — ${titleShort}`
+        : `Zmiana dokumentacji — ${titleShort}`,
+      description: e.summary,
+      reason: `${e.bzpNumber} · ${formatRelativeChangeTime(e.at, now)}`,
+      source: "tender-change-monitor · snapshot diff",
+      recommendedAction: e.type === "DEADLINE_CHANGED"
+        ? "Sprawdź nowy termin i zaktualizuj wycenę."
+        : "Pobierz nowe pliki i ponów analizę SWZ.",
+      tenderId: e.tenderItemId,
+    }));
+  }
+  return out;
+}
+
 function dedupeActions(actions: OwnerActionItem[]): OwnerActionItem[] {
   const seen = new Set<string>();
   const out: OwnerActionItem[] = [];
@@ -461,6 +500,7 @@ export function buildActionCenter(input: ActionCenterInput): ActionCenterResult 
   const now = input.now ?? new Date();
 
   const merged = dedupeActions([
+    ...actionsFromTenderChanges(input.pipelineItems, now),
     ...actionsFromWonRealization(input.scoredBundles),
     ...actionsFromRadar(input.radarTop, now),
     ...actionsFromHealth(input.health),

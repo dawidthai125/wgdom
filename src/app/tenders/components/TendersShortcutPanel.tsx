@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { AlertTriangle, Briefcase, ChevronRight, Scale } from "lucide-react";
 import { TENDERS_MODULE_LABELS } from "@/lib/tenders-module-labels";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
+import { tenderChangesSummary } from "@/app/tenders/strategy/components/TenderChangeMonitorPanel";
 
 const SHORTCUT_TITLE = "Przetargi — skrót";
 
@@ -25,6 +26,11 @@ export function TendersShortcutPanel({
         return b.opportunity.score >= 55;
       }).length,
     [scoredForForecast, ownerDecisions],
+  );
+
+  const changeSummary = useMemo(
+    () => tenderChangesSummary(pipeline.items),
+    [pipeline.items],
   );
 
   const handleOpenStrategy = () => {
@@ -60,7 +66,7 @@ export function TendersShortcutPanel({
           </p>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
           <div
             className={`rounded-xl border px-3 py-2.5 ${
               marketKpi.urgentCount > 0
@@ -79,6 +85,30 @@ export function TendersShortcutPanel({
               {marketKpi.urgentCount}
             </p>
             <p className="text-[10px] text-muted-foreground mt-0.5">Termin składania ≤7 dni</p>
+          </div>
+
+          <div
+            className={`rounded-xl border px-3 py-2.5 ${
+              changeSummary.urgentCount > 0
+                ? "border-orange-500/35 bg-orange-500/5"
+                : "border-border bg-secondary/20"
+            }`}
+          >
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+              <AlertTriangle size={11} className={changeSummary.urgentCount > 0 ? "text-orange-500" : "text-muted-foreground"} />
+              Pilne zmiany
+            </p>
+            <p
+              className="text-2xl font-bold tabular-nums mt-0.5"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              {changeSummary.urgentCount}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {changeSummary.lastChangeRelative
+                ? `Ostatnia zmiana: ${changeSummary.lastChangeRelative}`
+                : "Zmiany dokumentacji (7 dni)"}
+            </p>
           </div>
 
           <div

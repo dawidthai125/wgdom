@@ -12,6 +12,7 @@ import { TendersStrategyForecastStrip } from "@/app/tenders/strategy/components/
 import { WhatIfPanel } from "@/app/tenders/strategy/components/WhatIfPanel";
 import { FinancialCapacityPanel } from "@/app/tenders/strategy/components/FinancialCapacityPanel";
 import { TenderPortfolioPanel } from "@/app/tenders/strategy/components/TenderPortfolioCounters";
+import { TenderChangeMonitorPanel } from "@/app/tenders/strategy/components/TenderChangeMonitorPanel";
 import { SECTION_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 import type { Job } from "@/app/app-domain";
 
@@ -145,6 +146,11 @@ export function TendersStrategyContent({
           pipelineItems={pipeline.items}
           onCreateJobFromTender={handleCreateJobFromTenderItem}
           onOpenJob={openLinkedJob}
+        />
+
+        <TenderChangeMonitorPanel
+          items={pipeline.items}
+          onOpenTender={handleOpenTender}
         />
 
         <TendersStrategyForecastStrip forecast={forecast90} />

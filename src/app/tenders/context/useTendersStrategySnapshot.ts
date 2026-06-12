@@ -189,8 +189,9 @@ export function useTendersStrategySnapshot(
         forecast: forecast90,
         ownerStore: ownerDecisions.store,
         strategicAlerts: ownerAlerts,
+        pipelineItems: pipeline.items,
       }),
-    [radarTop, scoredForForecast, health, forecast90, ownerDecisions.store, ownerAlerts],
+    [radarTop, scoredForForecast, health, forecast90, ownerDecisions.store, ownerAlerts, pipeline.items],
   );
 
   const financialCapacityComputed = useMemo((): FinancialCapacityResult | null => {

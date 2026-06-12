@@ -20,6 +20,7 @@ import {
 } from "@/lib/tenders-strategy-forecast-90d";
 import type { OwnerDecisionsStore } from "@/lib/tenders-strategy-owner-decisions";
 import { wmJobsWithOverduePlanned } from "@/lib/job-wm";
+import { collectAllChangeEvents, formatRelativeChangeTime } from "@/lib/tender-change-monitor";
 
 export type OwnerAlertTone = "warning" | "info" | "danger" | "success";
 
@@ -166,6 +167,19 @@ export function buildOwnerStrategicAlerts(input: OwnerAlertsInput): OwnerStrateg
       tone: "danger",
       message: `${overdue} robot(y) z opóźnionym terminem odbioru WM`,
       source: "job-wm · plannedHandoverDate",
+    });
+  }
+
+  const recentChanges = collectAllChangeEvents(input.items).filter(
+    (e) => now.getTime() - new Date(e.at).getTime() < 7 * 24 * 3600_000,
+  );
+  if (recentChanges.length > 0) {
+    const top = recentChanges[0];
+    alerts.push({
+      id: "tender-doc-changes",
+      tone: "warning",
+      message: `${recentChanges.length} zmian(y) dokumentacji przetargów — ostatnia ${formatRelativeChangeTime(top.at, now)}`,
+      source: "tender-change-monitor · snapshot diff",
     });
   }
 
