@@ -1,7 +1,7 @@
 /** Wybór i parsowanie najlepszego załącznika BZP (ATH/PDF/DOCX/XLSX/ZIP). */
 
 import type { TenderBzpDocument } from "@/lib/tenders-bzp";
-import { loadTenderBzpDocumentBytes, base64ToBytes } from "@/lib/tenders-bzp";
+import { fetchTenderDocumentBytes, base64ToBytes, type TenderBzpDocument } from "@/lib/tenders-bzp";
 import {
   athPreviewToSnapshot,
   pickBestKosztorysDocument,
@@ -30,6 +30,7 @@ export interface TenderDocCandidate {
   filename: string;
   zipInnerPath?: string;
   score: number;
+  downloadUrl?: string;
 }
 
 export interface TenderDocumentParseResult {
@@ -41,8 +42,8 @@ export interface TenderDocumentParseResult {
   sourceFilename?: string;
 }
 
-async function loadDocBytes(tenderId: string, index: number): Promise<Uint8Array> {
-  const { base64 } = await loadTenderBzpDocumentBytes(tenderId, index);
+async function loadDocBytes(tenderId: string, index: number, downloadUrl?: string): Promise<Uint8Array> {
+  const { base64 } = await fetchTenderDocumentBytes(tenderId, index, downloadUrl);
   return base64ToBytes(base64);
 }
 
@@ -58,11 +59,12 @@ export async function buildTenderDocCandidates(
       documentIndex: doc.index,
       filename: doc.filename,
       score,
+      downloadUrl: doc.platform ? doc.downloadUrl : undefined,
     });
     if (isZipFilename(doc.filename)) {
       try {
         const { listZipFiles } = await loadDocParse();
-        const zipBytes = await loadDocBytes(tenderId, doc.index);
+        const zipBytes = await loadDocBytes(tenderId, doc.index, doc.platform ? doc.downloadUrl : undefined);
         const inner = await listZipFiles(zipBytes);
         for (const entry of inner.slice(0, 12)) {
           candidates.push({
@@ -91,7 +93,7 @@ export async function parseTenderDocumentCandidate(
     resolveDocumentBytes,
   } = await loadDocParse();
 
-  const loadBytes = (idx: number) => loadDocBytes(tenderId, idx);
+  const loadBytes = (idx: number) => loadDocBytes(tenderId, idx, candidate.downloadUrl);
   let bytes = await resolveDocumentBytes(
     loadBytes,
     candidate.documentIndex,

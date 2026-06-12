@@ -61,6 +61,9 @@ export interface TenderBzpDocument {
   contentType: string;
   downloadUrl: string;
   isSwzHint: boolean;
+  /** P2-A.3 — źródło poza readmodels (logintrade itd.). */
+  platform?: string;
+  sourcePageUrl?: string;
 }
 
 export interface TenderUploadedFile {
@@ -915,10 +918,12 @@ export async function attachTenderAssetsToJob(
 export async function fetchTenderDocumentBytes(
   tenderId: string,
   documentIndex: number,
+  downloadUrl?: string,
 ): Promise<{ base64: string; filename: string; contentType: string }> {
   const data = await tenderApiGet("/tenders-bzp-document-bytes", {
     tenderId,
     documentIndex: String(documentIndex),
+    ...(downloadUrl ? { downloadUrl } : {}),
   }) as { base64: string; filename: string; contentType: string };
   return data;
 }

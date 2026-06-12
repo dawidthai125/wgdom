@@ -4,10 +4,19 @@
 > UI (zakładka **Zmiany**) czyta stamtąd `CHANGELOG[0].version`.  
 > **Przy każdej nowej wersji:** dodaj wpis na górze w `changelog-data.ts` **oraz** zaktualizuj ten plik (ostatnie 5–10 wersji).
 
-**Aktualna wersja UI:** **2.51.3** · **P2-A.2** mp-client document discovery  
+**Aktualna wersja UI:** **2.51.4** · **P2-A.3** off-platform document discovery  
 **★ SSOT handoff:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../CURRENT-TASK.md)  
 **★ Dashboard V2 handoff:** [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)  
 **Backup baseline:** tag `pre-next-feature-2.50.64` · [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
+
+---
+
+## 2.51.4 (2026-06-12) — P2-A.3 off-platform document discovery
+
+- **Logintrade adapter** — `getAttachmentUnlogged` z HTML postępowania (publiczne PDF bez konta)
+- **Flow:** readmodels → mp-client → host detection → adapter → external discover fallback
+- **Edge:** `discoverTenderDocuments`, `tenders-bzp-document-bytes?downloadUrl=`
+- **Smoke:** `scripts/smoke-test-off-platform-document-discovery-p2a3.mjs`
 
 ---
 

@@ -2697,6 +2697,163 @@ async function discoverMpClientDocuments(
   return { documents: [], source: "none" };
 }
 
+type OffPlatformHost = "logintrade" | "platformazakupowa" | "smartpzp" | "opennexus";
+
+const OFF_PLATFORM_HOST_PRIORITY: OffPlatformHost[] = [
+  "logintrade",
+  "platformazakupowa",
+  "smartpzp",
+  "opennexus",
+];
+
+function detectOffPlatformHosts(text: string): OffPlatformHost[] {
+  if (!text?.trim()) return [];
+  const hosts: OffPlatformHost[] = [];
+  if (/logintrade\.net/i.test(text)) hosts.push("logintrade");
+  if (/platformazakupowa\.pl/i.test(text)) hosts.push("platformazakupowa");
+  if (/smartpzp\.pl/i.test(text)) hosts.push("smartpzp");
+  if (/opennexus\.pl|open-nexus/i.test(text)) hosts.push("opennexus");
+  return OFF_PLATFORM_HOST_PRIORITY.filter((h) => hosts.includes(h));
+}
+
+function extractLogintradePageUrls(noticeHtml: string): string[] {
+  const out = new Set<string>();
+  const pageRe =
+    /https?:\/\/[^\s"'<>]*logintrade\.net[^\s"'<>]*(?:zapytania_email|zapytania_oferta|bez_logowania)[^\s"'<>]*/gi;
+  for (const m of noticeHtml.matchAll(pageRe)) {
+    out.add(m[0].replace(/[.,;)]+$/g, ""));
+  }
+  for (const m of noticeHtml.matchAll(/https?:\/\/[^\s"'<>]+/gi)) {
+    const url = m[0].replace(/[.,;)]+$/g, "");
+    if (!/logintrade\.net/i.test(url)) continue;
+    if (/\/rejestracja\//i.test(url)) continue;
+    if (/zapytania_email|zapytania_oferta|bez_logowania|DocumentService/i.test(url)) {
+      out.add(url);
+    }
+  }
+  return [...out];
+}
+
+const LOGINTRADE_ATTACH_RE = /DocumentService,getAttachmentUnlogged[^"'<\s]+/gi;
+
+/** Logintrade — publiczne załączniki bez konta (getAttachmentUnlogged). */
+async function discoverLogintradeDocuments(noticeHtml: string): Promise<Record<string, unknown>[]> {
+  const pages = extractLogintradePageUrls(noticeHtml);
+  if (pages.length === 0) return [];
+
+  const docs: Record<string, unknown>[] = [];
+  const seen = new Set<string>();
+  let idx = 0;
+
+  for (const pageUrl of pages.slice(0, 3)) {
+    const html = await extFetchHtml(pageUrl);
+    if (!html) continue;
+    for (const m of html.matchAll(LOGINTRADE_ATTACH_RE)) {
+      const path = m[0];
+      let url: string;
+      try {
+        url = new URL(path, pageUrl).href;
+      } catch {
+        continue;
+      }
+      if (seen.has(url) || !extIsSafeUrl(url)) continue;
+      seen.add(url);
+      const meta = await probeTenderDocumentMeta(url);
+      if (!meta) continue;
+      idx += 1;
+      const rawName = parseDispositionFilename(meta.contentDisposition);
+      const filename = normalizeBzpFilename(rawName, idx, meta.contentType);
+      docs.push({
+        index: idx,
+        documentId: `logintrade_${idx}`,
+        filename,
+        contentType: meta.contentType.split(";")[0],
+        downloadUrl: url,
+        isSwzHint: isSwzFilename(filename),
+        platform: "logintrade",
+        sourcePageUrl: pageUrl,
+      });
+    }
+  }
+  return docs;
+}
+
+/** platformazakupowa.pl — SPA bez publicznego API listy dokumentów (audyt P2-A.3: brak). */
+async function discoverPlatformaZakupowaDocuments(_noticeHtml: string): Promise<Record<string, unknown>[]> {
+  return [];
+}
+
+async function discoverSmartPzpDocuments(_noticeHtml: string): Promise<Record<string, unknown>[]> {
+  return [];
+}
+
+async function discoverOpenNexusDocuments(_noticeHtml: string): Promise<Record<string, unknown>[]> {
+  return [];
+}
+
+async function discoverOffPlatformDocuments(
+  noticeHtml: string,
+): Promise<{ documents: Record<string, unknown>[]; source: OffPlatformHost | "none" }> {
+  const hosts = detectOffPlatformHosts(noticeHtml);
+  for (const host of hosts) {
+    let documents: Record<string, unknown>[] = [];
+    if (host === "logintrade") documents = await discoverLogintradeDocuments(noticeHtml);
+    else if (host === "platformazakupowa") documents = await discoverPlatformaZakupowaDocuments(noticeHtml);
+    else if (host === "smartpzp") documents = await discoverSmartPzpDocuments(noticeHtml);
+    else if (host === "opennexus") documents = await discoverOpenNexusDocuments(noticeHtml);
+    if (documents.length > 0) return { documents, source: host };
+  }
+  return { documents: [], source: "none" };
+}
+
+/** readmodels → mp-client → host detection → adapter platformy. */
+async function discoverTenderDocuments(
+  tenderId: string,
+  noticeNumber?: string,
+  noticeHtml?: string,
+): Promise<{
+  documents: Record<string, unknown>[];
+  source: string;
+  mpClientAuthRequired?: boolean;
+  offPlatformHost?: OffPlatformHost | null;
+}> {
+  const mp = await discoverMpClientDocuments(tenderId, noticeNumber);
+  if (mp.documents.length > 0) {
+    return { ...mp, source: mp.source, offPlatformHost: null };
+  }
+
+  let html = noticeHtml?.trim() || "";
+  if (!html && noticeNumber) {
+    try {
+      const enc = encodeURIComponent(noticeNumber);
+      const htmlRes = await fetch(
+        `https://ezamowienia.gov.pl/mo-board/api/v1/Board/GetNoticeHtmlBody?noticeNumber=${enc}`,
+        { headers: EZAMOWIENIA_FETCH },
+      );
+      if (htmlRes.ok) {
+        const raw = await htmlRes.text();
+        html = raw.startsWith('"') ? JSON.parse(raw) : raw;
+      }
+    } catch {
+      /* brak HTML — pomijamy adaptery */
+    }
+  }
+
+  if (html.length > 100) {
+    const off = await discoverOffPlatformDocuments(html);
+    if (off.documents.length > 0) {
+      return {
+        documents: off.documents,
+        source: off.source,
+        mpClientAuthRequired: mp.mpClientAuthRequired,
+        offPlatformHost: off.source,
+      };
+    }
+  }
+
+  return { ...mp, offPlatformHost: null };
+}
+
 function extractPdfTextSimple(bytes: Uint8Array): string {
   const raw = new TextDecoder("latin1").decode(bytes);
   const chunks: string[] = [];
@@ -2747,7 +2904,7 @@ app.get("/make-server-0afb8820/tenders-bzp-documents", async (c) => {
     const tenderId = (c.req.query("tenderId") || "").trim();
     const noticeNumber = (c.req.query("noticeNumber") || "").trim();
     if (!tenderId) return c.json({ ok: false, error: "Brak tenderId" }, 400);
-    const { documents, source, mpClientAuthRequired } = await discoverMpClientDocuments(
+    const { documents, source, mpClientAuthRequired, offPlatformHost } = await discoverTenderDocuments(
       tenderId,
       noticeNumber || undefined,
     );
@@ -2758,6 +2915,7 @@ app.get("/make-server-0afb8820/tenders-bzp-documents", async (c) => {
       count: documents.length,
       source,
       mpClientAuthRequired: mpClientAuthRequired ?? false,
+      offPlatformHost: offPlatformHost ?? null,
     });
   } catch (e) {
     return c.json({ ok: false, error: e instanceof Error ? e.message : "documents error" }, 500);
@@ -2976,8 +3134,26 @@ app.get("/make-server-0afb8820/tenders-bzp-document-bytes", async (c) => {
   try {
     const tenderId = (c.req.query("tenderId") || "").trim();
     const docIndex = parseInt(c.req.query("documentIndex") || "0", 10) || 0;
+    const downloadUrl = (c.req.query("downloadUrl") || "").trim();
+    if (downloadUrl && extIsSafeUrl(downloadUrl)) {
+      const res = await fetch(downloadUrl, { headers: EXTERNAL_FETCH_HEADERS });
+      if (!res.ok) return c.json({ ok: false, error: `Dokument HTTP ${res.status}` }, 502);
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      if (bytes.byteLength > 15 * 1024 * 1024) {
+        return c.json({ ok: false, error: "Plik zbyt duży (max 15 MB)" }, 413);
+      }
+      const filename = parseDispositionFilename(res.headers.get("content-disposition"));
+      const contentType = res.headers.get("content-type") || "application/octet-stream";
+      let binary = "";
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      const base64 = btoa(binary);
+      return c.json({ ok: true, base64, filename, contentType, size: bytes.byteLength });
+    }
     if (!tenderId || docIndex < 1) {
-      return c.json({ ok: false, error: "Podaj tenderId i documentIndex >= 1" }, 400);
+      return c.json({ ok: false, error: "Podaj tenderId i documentIndex >= 1 lub downloadUrl" }, 400);
     }
     const documentId = `${tenderId}_${docIndex}`;
     const url = `https://ezamowienia.gov.pl/mp-readmodels/api/Tender/DownloadDocument/${encodeURIComponent(tenderId)}/${encodeURIComponent(documentId)}`;
@@ -3298,6 +3474,12 @@ app.post("/make-server-0afb8820/tenders-external-discover", async (c) => {
 
     crawlQueue.push(...noticePages);
 
+    if (noticeHtml.length > 100) {
+      for (const ltPage of extractLogintradePageUrls(noticeHtml).slice(0, 2)) {
+        if (!crawlQueue.includes(ltPage)) crawlQueue.unshift(ltPage);
+      }
+    }
+
     if (fileCandidates.size === 0 && portalId) {
       const searchUrl = extBipSearchUrl(portalId, searchQuery);
       crawlQueue.push(searchUrl);
@@ -3317,6 +3499,31 @@ app.post("/make-server-0afb8820/tenders-external-discover", async (c) => {
       visited.add(pageUrl);
       const html = await extFetchHtml(pageUrl);
       if (!html) continue;
+      if (/logintrade\.net/i.test(pageUrl)) {
+        for (const m of html.matchAll(LOGINTRADE_ATTACH_RE)) {
+          let attachUrl: string;
+          try {
+            attachUrl = new URL(m[0], pageUrl).href;
+          } catch {
+            continue;
+          }
+          if (!extIsSafeUrl(attachUrl)) continue;
+          const meta = await probeTenderDocumentMeta(attachUrl);
+          if (!meta) continue;
+          const fn = normalizeBzpFilename(
+            parseDispositionFilename(meta.contentDisposition),
+            1,
+            meta.contentType,
+          );
+          addFile({
+            url: attachUrl,
+            filename: fn,
+            score: extScoreFilename(fn) + 40,
+            sourcePageUrl: pageUrl,
+            fromNotice: pageUrl.includes("notice") || false,
+          });
+        }
+      }
       for (const link of extExtractLinks(html, pageUrl)) {
         const matched = extMatchesTender(`${link.url} ${link.label}`, keywords);
         if (EXT_DOC_EXT_RE.test(link.url)) {

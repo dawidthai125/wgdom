@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.4",
+    label: "Przetargi — off-platform document discovery (P2-A.3)",
+    items: [
+      { type: "new", text: "Logintrade — auto-wykrywanie załączników getAttachmentUnlogged z ogłoszenia BZP (bez logowania)" },
+      { type: "improve", text: "Flow dokumentów: readmodels → mp-client → host detection → adapter platformy → fallback external discover" },
+      { type: "improve", text: "Pobieranie bajtów SWZ z platform zewn. — downloadUrl w tenders-bzp-document-bytes" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.3",
     label: "Przetargi — mp-client document discovery (P2-A.2)",
     items: [
