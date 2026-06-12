@@ -77,6 +77,14 @@ import {
   checkExperienceQualification,
   checkReferenceRequirement,
 } from "../src/lib/tender-experience-check.ts";
+import {
+  approveDiscoveredProject,
+  classifyProjectCategory,
+  discoverCompanyExperience,
+  discoverProjectFromJob,
+  isDuplicateExperienceProject,
+  resolveJobExperienceValue,
+} from "../src/lib/company-experience-discovery.ts";
 
 let pass = 0;
 let fail = 0;
@@ -748,6 +756,122 @@ const swzExpParsed = parseSwzPlainText(
   { source: "pdf" },
 );
 assert("p2f2 parse experienceRequirements", (swzExpParsed.experienceRequirements?.length ?? 0) >= 1);
+
+// P2-F.3 — auto-build doświadczenia z robót
+function mockJob(overrides = {}) {
+  return {
+    id: overrides.id ?? "job-1",
+    address: overrides.address ?? "ul. Testowa 1",
+    flatNumber: "",
+    client: overrides.client ?? "Wrocławskie Mieszkania",
+    startDate: overrides.startDate ?? "2023-01-15",
+    endDate: overrides.endDate ?? "2023-06-30",
+    status: overrides.status ?? "completed",
+    keysHandedOver: false,
+    notes: overrides.notes ?? "",
+    documents: { zlecenie: false, zakres: false, kosztorys: false, kominiarz: false, pomiary: false, oswiadczenia: false, gwarancje: false, rysunek: false, zdjecia: false },
+    workEntries: overrides.workEntries ?? [],
+    materials: overrides.materials ?? [],
+    invoiceStatus: overrides.invoiceStatus ?? "paid",
+    invoiceNumber: "",
+    invoiceAmount: overrides.invoiceAmount ?? "",
+    photos: [],
+    ...overrides,
+  };
+}
+
+const jobCompleted = mockJob({
+  id: "job-zzk",
+  notes: "Remont pustostanów ZZK",
+  invoiceAmount: "1240000",
+  invoiceStatus: "paid",
+  status: "completed",
+});
+const discCompleted = discoverProjectFromJob(jobCompleted);
+assert("p2f3 completed job discovered", discCompleted != null && discCompleted.valuePln === 1_240_000);
+assert("p2f3 completed title", /pustostan|ZZK/i.test(discCompleted.title));
+
+const jobAth = mockJob({
+  id: "job-ath",
+  notes: "Modernizacja klatek",
+  invoiceAmount: "",
+  invoiceStatus: "pending",
+  status: "in_progress",
+  documents: { zlecenie: false, zakres: false, kosztorys: true, kominiarz: false, pomiary: false, oswiadczenia: false, gwarancje: false, rysunek: false, zdjecia: false },
+});
+const athVal = resolveJobExperienceValue(jobAth, {
+  tenderKosztorysByJobId: { "job-ath": { totalValue: "890 000,00", currency: "PLN" } },
+});
+assert("p2f3 ath kosztorys value", athVal.valuePln === 890_000 && athVal.source === "kosztorys");
+
+const jobInvoice = mockJob({
+  id: "job-inv",
+  invoiceAmount: "450000",
+  invoiceStatus: "invoiced",
+});
+const invVal = resolveJobExperienceValue(jobInvoice);
+assert("p2f3 invoice aggregation", invVal.valuePln === 450_000 && invVal.source === "faktury");
+
+const profileDup = defaultCompanyQualificationProfile();
+profileDup.experienceProjects = [
+  {
+    title: "Remont pustostanów ZZK",
+    category: "roboty ogólnobudowlane",
+    valuePln: 1_240_000,
+    year: 2023,
+    referenceStatus: "unknown",
+    referenceAvailable: false,
+  },
+];
+const dupList = discoverCompanyExperience([jobCompleted], profileDup);
+assert("p2f3 duplicate filtered", dupList.length === 0);
+assert(
+  "p2f3 duplicate detect",
+  isDuplicateExperienceProject(
+    { title: "Remont pustostanów ZZK", valuePln: 1_240_000, endDate: "2023-06-30", startDate: null },
+    profileDup.experienceProjects,
+  ),
+);
+
+const profileApprove = defaultCompanyQualificationProfile();
+profileApprove.experienceProjects = [];
+const toApprove = discoverProjectFromJob(jobCompleted);
+const afterApprove = approveDiscoveredProject(profileApprove, toApprove);
+assert("p2f3 approve adds project", afterApprove.experienceProjects.length === 1);
+assert("p2f3 approve ref unknown", afterApprove.experienceProjects[0].referenceStatus === "unknown");
+assert("p2f3 approve aggregates largest", afterApprove.experience.largestProjectPln === 1_240_000);
+
+const profilePart = defaultCompanyQualificationProfile();
+profilePart.experienceProjects = afterApprove.experienceProjects;
+const partCheck = checkExperienceQualification(
+  extractExperienceRequirements(
+    "Minimum 2 roboty budowlane o wartości co najmniej 500 000 zł.",
+  ),
+  profilePart,
+);
+assert("p2f3 participation uses approved", partCheck.some((c) => c.status === "MISSING" && c.matchingProjects === 1));
+
+profilePart.experienceProjects.push({
+  title: "Modernizacja klatek schodowych",
+  category: "remontowe",
+  valuePln: 890_000,
+  year: 2023,
+  referenceStatus: "unknown",
+  referenceAvailable: false,
+});
+const partCheck2 = checkExperienceQualification(
+  extractExperienceRequirements(
+    "Minimum 2 roboty budowlane o wartości co najmniej 500 000 zł.",
+  ),
+  profilePart,
+);
+assert("p2f3 participation match 2", partCheck2.some((c) => c.status === "MATCH" && c.matchingProjects >= 2));
+
+assert("p2f3 classify remont", classifyProjectCategory("Remont łazienek i kuchni") === "remontowe");
+assert("p2f3 classify elek", classifyProjectCategory("Instalacja elektryczna SEP") === "elektryczne");
+
+const p2f2StillRef = checkReferenceRequirement(profileRef);
+assert("p2f3 p2f2 ref regression", p2f2StillRef.status === "MATCH");
 
 // HOTFIX — parseTenderDossierDocuments musi mieć import roleContributesMetadata (P2-E.1 path)
 let dossierPipelineErr = null;

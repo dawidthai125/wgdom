@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.51.22 — P2-F.3 Company Experience Auto-Build
+- company-experience-discovery z Robót/faktur/kosztorysów ATH + UI „Odkryte realizacje”
+- referenceStatus unknown/available/missing + dedupe + zatwierdzenie → warunki udziału
+
 ## 2.51.21 — P2-F.2 Experience & References Qualification
 - experienceProjects[] + parser SWZ doświadczenia/referencji + silnik MATCH/MISSING/UNKNOWN
 

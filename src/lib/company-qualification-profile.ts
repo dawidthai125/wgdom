@@ -8,14 +8,22 @@ import { mergeCompanyQualificationProfileForCloud } from "@/lib/tenders-sync";
 import { defaultCompanyProfile, type TenderCompanyProfile } from "@/lib/tenders-bzp-company";
 
 export const COMPANY_QUALIFICATION_PROFILE_KEY = "kw-company-profile";
-export const QUALIFICATION_PROFILE_SCHEMA_VERSION = 2;
+export const QUALIFICATION_PROFILE_SCHEMA_VERSION = 3;
+
+export type ExperienceReferenceStatus = "unknown" | "available" | "missing";
 
 export interface CompanyExperienceProject {
   title: string;
   category: string;
   valuePln: number | null;
   year: number | null;
+  /** P2-F.3 — domyślnie unknown; nie zakładamy referencji automatycznie. */
+  referenceStatus: ExperienceReferenceStatus;
+  /** Zgodność wsteczna — true tylko gdy referenceStatus === available. */
   referenceAvailable: boolean;
+  /** P2-F.3 — powiązanie z robotą (dedupe). */
+  sourceJobId?: string;
+  discoveredFrom?: string;
 }
 
 export interface CompanyQualificationPersonnel {
@@ -73,17 +81,24 @@ function seedExperienceProjects(p: TenderCompanyProfile): CompanyExperienceProje
       category: "roboty ogólnobudowlane",
       valuePln: r.valuePln ?? null,
       year: r.year ? parseInt(String(r.year).slice(0, 4), 10) || null : null,
+      referenceStatus: "available" as const,
       referenceAvailable: true,
     }));
   if (fromRefs.length > 0) return fromRefs;
   return [];
 }
 
-function syncExperienceAggregates(profile: CompanyQualificationProfile): CompanyQualificationProfile {
+export function projectHasConfirmedReference(p: CompanyExperienceProject): boolean {
+  if (p.referenceStatus === "available") return true;
+  if (p.referenceStatus === "missing") return false;
+  return Boolean(p.referenceAvailable);
+}
+
+export function syncExperienceAggregates(profile: CompanyQualificationProfile): CompanyQualificationProfile {
   const projects = profile.experienceProjects ?? [];
   if (projects.length === 0) return profile;
   const values = projects.map((p) => p.valuePln).filter((v): v is number => v != null && v > 0);
-  const refCount = projects.filter((p) => p.referenceAvailable).length;
+  const refCount = projects.filter((p) => projectHasConfirmedReference(p)).length;
   return {
     ...profile,
     experience: {
@@ -141,17 +156,32 @@ export function defaultCompanyQualificationProfile(
   };
 }
 
+function normalizeReferenceStatus(
+  raw: Partial<CompanyExperienceProject>,
+): ExperienceReferenceStatus {
+  const rs = raw.referenceStatus;
+  if (rs === "available" || rs === "missing" || rs === "unknown") return rs;
+  if (raw.referenceAvailable) return "available";
+  return "unknown";
+}
+
 function normalizeExperienceProjects(raw: CompanyExperienceProject[] | undefined): CompanyExperienceProject[] {
   if (!Array.isArray(raw)) return [];
   return raw
     .filter((p) => p && typeof p.title === "string")
-    .map((p) => ({
-      title: String(p.title).trim(),
-      category: String(p.category ?? "roboty ogólnobudowlane").trim(),
-      valuePln: p.valuePln != null && Number.isFinite(Number(p.valuePln)) ? Number(p.valuePln) : null,
-      year: p.year != null && Number.isFinite(Number(p.year)) ? Number(p.year) : null,
-      referenceAvailable: Boolean(p.referenceAvailable),
-    }))
+    .map((p) => {
+      const referenceStatus = normalizeReferenceStatus(p);
+      return {
+        title: String(p.title).trim(),
+        category: String(p.category ?? "roboty ogólnobudowlane").trim(),
+        valuePln: p.valuePln != null && Number.isFinite(Number(p.valuePln)) ? Number(p.valuePln) : null,
+        year: p.year != null && Number.isFinite(Number(p.year)) ? Number(p.year) : null,
+        referenceStatus,
+        referenceAvailable: referenceStatus === "available",
+        sourceJobId: typeof p.sourceJobId === "string" ? p.sourceJobId : undefined,
+        discoveredFrom: typeof p.discoveredFrom === "string" ? p.discoveredFrom : undefined,
+      };
+    })
     .filter((p) => p.title.length > 0);
 }
 

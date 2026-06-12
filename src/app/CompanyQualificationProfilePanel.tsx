@@ -1,6 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
-import { ClipboardCheck, ChevronDown, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ClipboardCheck, ChevronDown, Loader2, Plus, Save, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  approveDiscoveredProject,
+  discoverCompanyExperience,
+  fmtDiscoveredValuePln,
+  loadJobsForExperienceDiscovery,
+  type DiscoveredProject,
+} from "@/lib/company-experience-discovery";
 import {
   type CompanyQualificationProfile,
   defaultCompanyQualificationProfile,
@@ -65,6 +72,7 @@ export function CompanyQualificationProfilePanel({
   );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [discovered, setDiscovered] = useState<DiscoveredProject[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -76,6 +84,38 @@ export function CompanyQualificationProfilePanel({
     });
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    if (loading) return;
+    const jobs = loadJobsForExperienceDiscovery();
+    setDiscovered(discoverCompanyExperience(jobs, profile));
+  }, [loading, profile]);
+
+  const pendingDiscovered = useMemo(
+    () => discovered.filter((d) => !profile.experienceProjects.some(
+      (e) => e.sourceJobId && e.sourceJobId === d.jobId,
+    )),
+    [discovered, profile.experienceProjects],
+  );
+
+  const handleApproveDiscovered = useCallback(async (d: DiscoveredProject) => {
+    const next = approveDiscoveredProject(profile, d);
+    if (next.experienceProjects.length === profile.experienceProjects.length) {
+      toast.info("Ta realizacja jest już w profilu");
+      return;
+    }
+    setProfile(next);
+    setSaving(true);
+    try {
+      await saveCompanyQualificationProfile(next);
+      toast.success(`Dodano: ${d.title}`);
+      onSaved?.();
+    } catch {
+      toast.error("Błąd zapisu profilu");
+    } finally {
+      setSaving(false);
+    }
+  }, [profile, onSaved]);
 
   const handleSave = useCallback(async () => {
     setSaving(true);
@@ -156,6 +196,7 @@ export function CompanyQualificationProfilePanel({
                           category: "roboty ogólnobudowlane",
                           valuePln: null,
                           year: new Date().getFullYear(),
+                          referenceStatus: "unknown",
                           referenceAvailable: false,
                         },
                       ],
@@ -217,16 +258,25 @@ export function CompanyQualificationProfilePanel({
                       className="bg-secondary rounded px-2 py-1 text-[10px] border border-border"
                     />
                     <label className="flex items-center gap-2 text-[10px] sm:col-span-2">
-                      <input
-                        type="checkbox"
-                        checked={proj.referenceAvailable}
+                      <span className="text-muted-foreground shrink-0">Referencja:</span>
+                      <select
+                        value={proj.referenceStatus ?? "unknown"}
                         onChange={(e) => {
+                          const referenceStatus = e.target.value as "unknown" | "available" | "missing";
                           const next = [...profile.experienceProjects];
-                          next[idx] = { ...proj, referenceAvailable: e.target.checked };
+                          next[idx] = {
+                            ...proj,
+                            referenceStatus,
+                            referenceAvailable: referenceStatus === "available",
+                          };
                           setProfile({ ...profile, experienceProjects: next });
                         }}
-                      />
-                      Referencja dostępna (TAK/NIE)
+                        className="bg-secondary rounded px-2 py-1 text-[10px] border border-border flex-1"
+                      >
+                        <option value="unknown">Nieznane</option>
+                        <option value="available">Dostępna</option>
+                        <option value="missing">Brak</option>
+                      </select>
                     </label>
                     <button
                       type="button"
@@ -241,6 +291,42 @@ export function CompanyQualificationProfilePanel({
                   </div>
                 ))}
               </div>
+
+              {pendingDiscovered.length > 0 && (
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-2.5 space-y-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-200 flex items-center gap-1">
+                    <Sparkles size={11} />
+                    Odkryte realizacje
+                  </p>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">
+                    System znalazł realizacje w Robotach, fakturach i dokumentach. Zatwierdź jednym kliknięciem — bez automatycznego zapisu do profilu.
+                  </p>
+                  {pendingDiscovered.map((d) => (
+                    <div
+                      key={d.id}
+                      className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-background/60 border border-border/40"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{d.title}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {fmtDiscoveredValuePln(d.valuePln)} · {d.category}
+                          {d.confidence >= 0.85 && (
+                            <span className="ml-1 text-emerald-600">· wysoka pewność</span>
+                          )}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={saving}
+                        onClick={() => void handleApproveDiscovered(d)}
+                        className="shrink-0 px-2.5 py-1.5 rounded-lg bg-amber-600 text-white text-[10px] font-medium hover:bg-amber-700 disabled:opacity-50"
+                      >
+                        Dodaj do doświadczenia
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <NumInput label="Polisa OC (PLN)" value={profile.insurance.ocPln} onChange={(v) => setProfile({ ...profile, insurance: { ...profile.insurance, ocPln: v } })} />

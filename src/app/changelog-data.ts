@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-12",
+    version: "2.51.22",
+    label: "Przetargi — Auto-build doświadczenia firmy (P2-F.3)",
+    items: [
+      { type: "new", text: "Odkryte realizacje — automatyczne wykrywanie z Robót, faktur i kosztorysów ATH" },
+      { type: "new", text: "company-experience-discovery — klasyfikacja robót, priorytet wartości, deduplikacja" },
+      { type: "improve", text: "referenceStatus (unknown/available/missing) — bez auto-zakładania referencji" },
+      { type: "improve", text: "Zatwierdzenie jednym kliknięciem → natychmiastowy wpływ na warunki udziału" },
+    ],
+  },
+  {
+    date: "2026-06-12",
     version: "2.51.21",
     label: "Przetargi — Doświadczenie i referencje (P2-F.2)",
     items: [

@@ -6,6 +6,7 @@ import type {
   CompanyExperienceProject,
   CompanyQualificationProfile,
 } from "@/lib/company-qualification-profile";
+import { projectHasConfirmedReference } from "@/lib/company-qualification-profile";
 import type { ExperienceRequirement } from "@/lib/tender-experience-requirements";
 import type { ParticipationCheckStatus } from "@/lib/tender-participation-check";
 
@@ -179,7 +180,7 @@ export function checkReferenceRequirement(
   profile: CompanyQualificationProfile,
 ): { status: ParticipationCheckStatus; label: string; profileNote: string } {
   const projects = getProfileProjects(profile);
-  const withRef = projects.filter((p) => p.referenceAvailable);
+  const withRef = projects.filter((p) => projectHasConfirmedReference(p));
   if (withRef.length > 0) {
     return {
       status: "MATCH",
