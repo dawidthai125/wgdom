@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.53.7",
+    label: "Przetargi — P2-F.6 Offer Completeness Engine",
+    items: [
+      { type: "new", text: "Workspace Oferta — sekcja „Kompletność oferty” (skrót + rozwinięta checklista)" },
+      { type: "new", text: "Status gotowości: gotowa / wymaga uzupełnienia / niekompletna — reuse P2-F.1–F.5" },
+      { type: "improve", text: "Checklista krytyczne + dodatkowe: wykaz robót, referencje, profil, warunki, OC, pełnomocnictwo" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.53.6",
     label: "Przetargi — UX.1D Formal Details Compression",
     items: [

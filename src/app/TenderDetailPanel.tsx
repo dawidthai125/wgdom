@@ -35,6 +35,7 @@ import { TenderBidProposalPanel } from "@/app/TenderBidProposalPanel";
 import { TenderSummaryBar } from "@/app/TenderSummaryBar";
 import { TenderMonitoringBanner } from "@/app/TenderMonitoringBanner";
 import { TenderOfferSection } from "@/app/TenderOfferSection";
+import { TenderOfferCompletenessPanel } from "@/app/TenderOfferCompletenessPanel";
 import { TenderWorkspaceTabBar } from "@/app/TenderWorkspaceTabBar";
 import { TenderOverviewShortcuts } from "@/app/TenderOverviewShortcuts";
 import { TenderDocumentsWorkspace } from "@/app/TenderDocumentsWorkspace";
@@ -828,6 +829,7 @@ export function TenderDetailPanel({
 
       {activeWorkspace === "offer" && (
         <div className="space-y-3">
+          <TenderOfferCompletenessPanel swz={swz} combinedText={item.noticeHtml ?? undefined} />
           <TenderOfferSection
             item={item}
             bidProposal={bidProposal}
@@ -839,7 +841,6 @@ export function TenderDetailPanel({
             onFetchAward={() => void handleFetchAward()}
             fetchingAward={fetchingAward}
           />
-          {/* Sloty UX.1B: P2-F.6 Kompletność oferty · checklisty · formularze */}
         </div>
       )}
 

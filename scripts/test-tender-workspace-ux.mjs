@@ -28,6 +28,17 @@ import {
   buildTenderFormalDetailsSummary,
   hasTenderFormalDetailsSection,
 } from "../src/lib/tender-workspace-ux.ts";
+import {
+  TENDER_OFFER_COMPLETENESS_SECTION_ID,
+  buildOfferCompletenessSnapshot,
+  detectPowerOfAttorneyRequired,
+} from "../src/lib/offer-completeness.ts";
+import {
+  defaultCompanyQualificationProfile,
+  syncExperienceAggregates,
+} from "../src/lib/company-qualification-profile.ts";
+import { extractParticipationRequirements } from "../src/lib/tender-participation-requirements.ts";
+import { extractExperienceRequirements } from "../src/lib/tender-experience-requirements.ts";
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -252,5 +263,147 @@ assert(docsWsSrc.includes("swz?.parsedAt"), "T6: SWZ analysis banner intact");
 assert(hasTenderFormalDetailsSection(summaryItem, richSwz, null), "T7: formal section when dossier data");
 assert(docsWsSrc.includes("TenderDossierPanel"), "T7: dossier panel preserved");
 
-console.log(`\n=== UX.1A/1B/1C/1D: ${pass} PASS, ${fail} FAIL ===\n`);
+console.log("\n14. P2-F.6 — Offer Completeness Engine (T1–T10)");
+
+function refFile(id, name) {
+  return { id, filename: name, path: "", publicUrl: `https://example.com/${name}` };
+}
+
+function buildCompleteProfile() {
+  const p = defaultCompanyQualificationProfile();
+  p.personnel.kierownikBudowy = true;
+  p.licenses.piib = true;
+  p.insurance.ocPln = 2_000_000;
+  p.experienceProjects = [
+    {
+      title: "Remont A",
+      category: "roboty budowlane",
+      valuePln: 600_000,
+      year: 2024,
+      referenceStatus: "available",
+      referenceAvailable: true,
+      referenceFiles: [refFile("r1", "ref-a.pdf")],
+      protocolFiles: [],
+    },
+    {
+      title: "Remont B",
+      category: "roboty budowlane",
+      valuePln: 700_000,
+      year: 2023,
+      referenceStatus: "available",
+      referenceAvailable: true,
+      referenceFiles: [refFile("r2", "ref-b.pdf")],
+      protocolFiles: [],
+    },
+  ];
+  return syncExperienceAggregates(p);
+}
+
+const baseSwzText =
+  "Warunki udziału. Wykonawca wskaże członka Izby Inżynierów Budownictwa. "
+  + "Minimum 2 roboty budowlane o wartości co najmniej 500 000 zł. "
+  + "Wykonawca złoży referencje potwierdzające należyte wykonanie co najmniej 2 robót. "
+  + "Polisa OC na sumę minimum 1 000 000 zł.";
+
+function swzFromText(text) {
+  return {
+    participationRequirements: extractParticipationRequirements(text),
+    experienceRequirements: extractExperienceRequirements(text),
+    formalRequirements: [],
+  };
+}
+
+const completeSnap = buildOfferCompletenessSnapshot({
+  swz: swzFromText(baseSwzText),
+  profile: buildCompleteProfile(),
+});
+assert(completeSnap.readiness === "ready", "T1: complete offer → green");
+assert(completeSnap.readinessEmoji === "🟢", "T1: green emoji");
+assert(completeSnap.readyCount === completeSnap.totalCount, "T1: all checklist items ready");
+assert(completeSnap.totalCount === 6, "T1: six checklist items");
+
+const poaText = `${baseSwzText} Wykonawca dołączy pełnomocnictwo do reprezentacji.`;
+const poaSnap = buildOfferCompletenessSnapshot({
+  swz: {
+    ...swzFromText(baseSwzText),
+    formalRequirements: [{ type: "other", label: "Pełnomocnictwo do reprezentacji oferty" }],
+  },
+  profile: buildCompleteProfile(),
+});
+assert(poaSnap.readiness === "needs_work", "T2: missing POA → yellow global");
+assert(
+  poaSnap.items.find((i) => i.id === "power_of_attorney")?.status === "missing",
+  "T2: POA item missing",
+);
+
+const profileNoRefs = buildCompleteProfile();
+profileNoRefs.experienceProjects = profileNoRefs.experienceProjects.map((p) => ({
+  ...p,
+  referenceStatus: "missing",
+  referenceAvailable: false,
+  referenceFiles: [],
+}));
+const noRefSnap = buildOfferCompletenessSnapshot({
+  swz: swzFromText(baseSwzText),
+  profile: syncExperienceAggregates(profileNoRefs),
+});
+assert(noRefSnap.readiness === "incomplete", "T3: missing references → red");
+assert(
+  noRefSnap.items.find((i) => i.id === "references")?.status === "missing",
+  "T3: references item missing",
+);
+
+const profileNoWorks = buildCompleteProfile();
+profileNoWorks.experienceProjects = [];
+const noWorksSnap = buildOfferCompletenessSnapshot({
+  swz: swzFromText(baseSwzText),
+  profile: syncExperienceAggregates(profileNoWorks),
+});
+assert(noWorksSnap.readiness === "incomplete", "T4: missing works register → red");
+assert(
+  noWorksSnap.items.find((i) => i.id === "works_register")?.status === "missing",
+  "T4: works register item missing",
+);
+
+const partialProfile = buildCompleteProfile();
+const partialSnap = buildOfferCompletenessSnapshot({
+  swz: {
+    ...swzFromText(baseSwzText),
+    formalRequirements: [{ type: "other", label: "Pełnomocnictwo do reprezentacji oferty" }],
+  },
+  profile: partialProfile,
+});
+assert(partialSnap.readyCount === 5, "T5: 5/6 ready counter");
+assert(partialSnap.readyLabel === "5 / 6 gotowych", "T5: ready label");
+assert(partialSnap.totalCount === 6, "T5: six checklist items");
+
+const completenessPanelSrc = readSrc("src/app/TenderOfferCompletenessPanel.tsx");
+assert(completenessPanelSrc.includes('useState(false)'), "T6/T7: default collapsed");
+assert(completenessPanelSrc.includes("Pokaż szczegóły"), "T6: expand label");
+assert(completenessPanelSrc.includes("Ukryj szczegóły"), "T7: collapse label");
+assert(completenessPanelSrc.includes("expanded &&"), "T6: checklist when expanded");
+
+assert(
+  readSrc("src/app/TenderQualificationWorkspace.tsx").includes("TenderParticipationPanel"),
+  "T8: qualification participation panel intact",
+);
+assert(
+  readSrc("src/app/TenderQualificationWorkspace.tsx").includes("TenderWorksRegisterPanel"),
+  "T9: works register panel intact",
+);
+assert(
+  readSrc("src/app/TenderDetailPanel.tsx").includes("TenderOfferCompletenessPanel"),
+  "T10: completeness in offer workspace",
+);
+const detailOfferSrc = readSrc("src/app/TenderDetailPanel.tsx");
+const completenessJsxIdx = detailOfferSrc.indexOf("<TenderOfferCompletenessPanel");
+const offerSectionJsxIdx = detailOfferSrc.indexOf("<TenderOfferSection", completenessJsxIdx);
+assert(
+  completenessJsxIdx > 0 && offerSectionJsxIdx > completenessJsxIdx,
+  "T10: completeness before offer section",
+);
+assert(TENDER_OFFER_COMPLETENESS_SECTION_ID === "tender-offer-completeness-section", "P2-F.6 section id");
+assert(detectPowerOfAttorneyRequired(null, "pełnomocnictwo do reprezentacji"), "POA detect");
+
+console.log(`\n=== UX.1A/1B/1C/1D + P2-F.6: ${pass} PASS, ${fail} FAIL ===\n`);
 if (fail > 0) process.exit(1);

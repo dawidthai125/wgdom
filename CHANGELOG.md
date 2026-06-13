@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.53.7 — P2-F.6 Offer Completeness Engine
+- Workspace Oferta — „Kompletność oferty” (skrót + checklista krytyczne/dodatkowe)
+- Reuse P2-F.1–F.5: `offer-completeness.ts` · test: `test-tender-workspace-ux.mjs` § P2-F.6
+
 ## 2.53.6 — UX.1D Formal Details Compression
 - Szczegóły formalne domyślnie zwinięte — skrót max 5 linii + lazy render karty przetargu
 - Dokumenty przed skrótem formalnym w workspace Dokumenty

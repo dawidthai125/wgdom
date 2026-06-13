@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.6** · UX.1D)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (UX.1D — Formal Details Compression)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.7** · P2-F.6)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-F.6 — Offer Completeness Engine)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1188,7 +1188,7 @@ Architektura **5 workspace** w `TenderDetailPanel` — tylko reorganizacja UI (l
 | **Dokumenty** | Jakie dokumenty / SWZ? | `TenderDocumentsWorkspace` · attachments, dossier, HTML, SWZ meta |
 | **Kwalifikacja** | Czy spełniamy warunki? | `TenderQualificationWorkspace` · participation, works, fit, wadium, referencje |
 | **Wycena** | Za ile startować? | `TenderBidProposalPanel` · historia szacunku · sloty P2-G.3C/D/E |
-| **Oferta** | Co z ofertą? | `TenderOfferSection` · sloty P2-F.6 |
+| **Oferta** | Co z ofertą? | `TenderOfferCompletenessPanel` (P2-F.6) · `TenderOfferSection` |
 
 **SSOT tabs:** `TENDER_WORKSPACE_TAB_ORDER` w `tender-workspace-ux.ts` · mapowanie kafelków: `bidPrepTileToWorkspace()`.
 
@@ -1219,6 +1219,18 @@ Sekcja **Szczegóły formalne** w workspace Dokumenty — skrót domyślnie, pe�
 **Kolejność workspace Dokumenty:** załączniki → skrót formalny → meta SWZ → HTML BZP.
 
 **SSOT:** test: `scripts/test-tender-workspace-ux.mjs` § UX.1D
+
+**P2-F.6 — Offer Completeness Engine (v2.53.7):**
+
+Sekcja **Kompletność oferty** w workspace **Oferta** — odpowiedź na gotowość pakietu do złożenia (UI-only, bez nowych kluczy KV).
+
+- `src/lib/offer-completeness.ts` — `buildOfferCompletenessSnapshot()`, `buildOfferCompletenessChecklist()`, `resolveOfferReadinessStatus()`
+- `TenderOfferCompletenessPanel.tsx` — skrót (licznik + status) + rozwinięcie checklisty (wzorzec UX.1D)
+- Reuse SSOT: P2-F.1 warunki udziału · P2-F.2 referencje · P2-F.3 profil · P2-F.5 wykaz robót · polisa OC · pełnomocnictwo (heurystyka SWZ)
+
+**Status globalny:** 🟢 gotowa · 🟡 wymaga uzupełnienia (braki dodatkowe) · 🔴 niekompletna (braki krytyczne).
+
+**SSOT:** test: `scripts/test-tender-workspace-ux.mjs` § P2-F.6
 
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 
