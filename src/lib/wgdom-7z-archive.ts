@@ -1,6 +1,10 @@
 /** P2-H.3 — rozpakowywanie 7Z w przeglądarce (7z-wasm, LGPL). */
 
-import { scoreTenderFilename, type ZipListedFile } from "@/lib/tenders-bzp-filename";
+import {
+  isArchiveInnerListableFile,
+  scoreTenderFilename,
+  type ZipListedFile,
+} from "@/lib/tenders-bzp-filename";
 
 const extractCache = new Map<string, Map<string, Uint8Array>>();
 let extractSeq = 0;
@@ -58,6 +62,7 @@ export async function list7zFiles(bytes: Uint8Array): Promise<ZipListedFile[]> {
   for (const path of parseSltFilePaths(lines)) {
     if (shouldSkip7zPath(path)) continue;
     const filename = path.split("/").pop() || path;
+    if (!isArchiveInnerListableFile(filename)) continue;
     const score = scoreTenderFilename(filename);
     if (score >= 6) {
       out.push({ path, filename, score });

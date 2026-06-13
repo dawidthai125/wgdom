@@ -15,6 +15,7 @@ import {
 import { parseSwzPlainText, type TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import {
   is7zFilename,
+  isArchiveInnerListableFile,
   isDocxFilename,
   isXlsxFilename,
   isZipFilename,
@@ -22,6 +23,8 @@ import {
   type ZipListedFile,
 } from "@/lib/tenders-bzp-filename";
 import { list7zFiles, pickBestFrom7zBytes, read7zEntry } from "@/lib/wgdom-7z-archive";
+import { isPdfPrzedmiarCostFilename } from "@/lib/tender-cost-discovery";
+import { pdfPrzedmiarHeuristicToPreview } from "@/lib/pdf-przedmiar-heuristic";
 
 export type { ZipListedFile } from "@/lib/tenders-bzp-filename";
 export {
@@ -31,6 +34,7 @@ export {
   isXlsxFilename,
   isZipFilename,
   parsePlnFromKosztorysTotal,
+  isArchiveInnerListableFile,
   scoreTenderFilename,
 } from "@/lib/tenders-bzp-filename";
 export { list7zFiles, read7zEntry, pickBestFrom7zBytes } from "@/lib/wgdom-7z-archive";
@@ -57,6 +61,7 @@ export async function listZipFiles(bytes: Uint8Array): Promise<ZipListedFile[]> 
     if (file.dir) return;
     const filename = relativePath.split("/").pop() || relativePath;
     if (/^__MACOSX|\/.DS_Store$/i.test(relativePath)) return;
+    if (!isArchiveInnerListableFile(filename)) return;
     const score = scoreTenderFilename(filename);
     if (score >= 6) {
       out.push({ path: relativePath, filename, score });
@@ -227,6 +232,10 @@ export async function parseDocumentToKosztorys(
   }
   if (isXlsxFilename(filename)) {
     return parseXlsxToKosztorys(bytes, filename);
+  }
+  if (isPdfPrzedmiarCostFilename(filename)) {
+    const { text, likelyScan } = await extractPdfText(bytes);
+    return pdfPrzedmiarHeuristicToPreview(text, filename, { likelyScan });
   }
   return null;
 }

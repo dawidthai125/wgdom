@@ -25,7 +25,7 @@ import { traceDossierPipeline } from "@/lib/tender-dossier-trace";
 import { enrichSwzFromText } from "@/lib/tenders-bzp-swz-enrich";
 import { applyMetadataConfidence, scoreEstimatedValueConfidence } from "@/lib/tender-metadata-confidence";
 import { roleContributesMetadata } from "@/lib/tender-metadata-sources";
-import { discoverBestCostDocument, type TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
+import { discoverBestCostDocument, isPdfPrzedmiarCostFilename, type TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
 import { enrichKosztorysSnapshotFromPreview, estimatePlnFromKosztorysSnapshot, traceCostPipeline } from "@/lib/tender-cost-snapshot";
 import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
 import { mergeFormalRequirements } from "@/lib/tender-formal-requirements";
@@ -99,6 +99,7 @@ function candidateKey(c: TenderDocCandidate): string {
 }
 
 function isKosztorysPreviewUsable(preview: AthPreviewResult): boolean {
+  if (preview.documentType === "PDF_PRZEDMIAR" && preview.ok) return true;
   if (preview.rows.length > 0) return true;
   if (preview.totalValue?.trim()) return true;
   if ((preview.summaryLines?.length ?? 0) > 0) return true;
@@ -121,6 +122,9 @@ function pickCostParseCandidates(
     }
     const base = c.filename.split(" → ").pop() ?? c.filename;
     if (isKosztorysPreviewExt(base)) {
+      out.set(candidateKey(c), c);
+    }
+    if (isPdfPrzedmiarCostFilename(c.filename)) {
       out.set(candidateKey(c), c);
     }
   }
@@ -474,7 +478,14 @@ export async function parseExternalTenderFile(
   let estimatePln = opts?.ourEstimatePln ?? null;
 
   const kosztorysPreview = await parseDocumentToKosztorys(effectiveBytes, effectiveName);
-  if (kosztorysPreview?.ok && (kosztorysPreview.rows.length > 0 || kosztorysPreview.totalValue)) {
+  if (
+    kosztorysPreview?.ok
+    && (
+      kosztorysPreview.rows.length > 0
+      || kosztorysPreview.totalValue
+      || kosztorysPreview.documentType === "PDF_PRZEDMIAR"
+    )
+  ) {
     kosztorys = {
       ...athPreviewToSnapshot(kosztorysPreview, effectiveName),
       sourceDocumentIndex: undefined,

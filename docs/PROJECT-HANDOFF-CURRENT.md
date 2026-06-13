@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-13 (P2-H.3 7Z + handoff dokumentacji)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-13 (P2-H.5B PDF heurystyki · v2.55.9)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -63,12 +63,14 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version:              2.55.5         ← baseline P2-H.3 7Z Archive Support
+Version:              2.55.9         ← baseline P2-H.5B PDF przedmiar heurystyki
+Feature commit (P2-H.5B): (po push)   feat(tenders): extract KNR positions from PDF przedmiar
+P2-H.5A:              2.55.8         PDF przedmiar MVP discovery
+P2-H.6:               2.55.7         filtr folderów ZIP/7Z
+P2-H.4:               2.55.6         UX copy archiwów 7Z
 Feature commit (P2-H.3): d725c24      P2-H.3: obsługa archiwów 7Z w dossier
 P2-G.2D:              329d883         v2.55.4 klasyfikacja C.O.
 P2-G.2C:              5b257ce         v2.55.3 WM/ZZK wod-kan + gaz
-P2-H.2:               (2.55.2)        double ZIP unpack fix
-P2-H.1:               (2.55.0)        Marketplanet ezamawiajacy.pl
 UX.1B:                3b5da74         v2.53.4 workspace tabs
 P2-F baseline:        e015453         v2.51.24 P2-F.5 Works Register
 Feature commit (P1):  39b1892         CC removal + TendersProvider
@@ -81,8 +83,8 @@ E2E (origin/main):    8906485         20.5Z.2B
 |--------|---------|
 | **RELEASED** | TAK |
 | **STABLE** | TAK |
-| **PRODUCTION VERIFIED** | `version.json` = **2.55.5** |
-| **P2-H (Dokumenty / ZIP / 7Z / Marketplanet)** | **H.1–H.3 CLOSED** · **H.4 OPEN** (UX copy) |
+| **PRODUCTION VERIFIED** | `version.json` = **2.55.9** (po deploy) |
+| **P2-H (Dokumenty / ZIP / 7Z / PDF)** | **H.1–H.6 + H.5A + H.5B CLOSED** · **H.7 OPEN** (magic bytes) |
 | **UX.1 (Tender Workspace)** | **CLOSED** (UX.1A → UX.1B + ARCH-001) |
 | **P2-F (Kwalifikacja ofertowa)** | **CLOSED** (F.0 → F.5) |
 | **P2-G.2C/2D (Klasyfikacja WM/ZZK)** | **CLOSED** (v2.55.3–2.55.4) |
@@ -93,7 +95,7 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.55.5" }
+# oczekiwane: { "version": "2.55.9" }
 ```
 
 ---
@@ -148,6 +150,10 @@ Chronologia releasów aplikacyjnych na `main` po baseline **2.50.65** (20.5Z.5C)
 | **2.55.3** | P2-G.2C | `5b257ce` | Klasyfikacja WM/ZZK wod-kan + gaz |
 | **2.55.4** | P2-G.2D | `329d883` | Klasyfikacja C.O. |
 | **2.55.5** | **P2-H.3** | **`d725c24`** | **7Z archive support (7z-wasm)** |
+| **2.55.6** | P2-H.4 | — | UX copy archiwów 7Z |
+| **2.55.7** | P2-H.6 | — | Filtr folderów ZIP/7Z inner |
+| **2.55.8** | P2-H.5A | — | PDF przedmiar MVP discovery |
+| **2.55.9** | **P2-H.5B** | **(release)** | **Heurystyki KNR — pozycje z PDF bez OCR** |
 
 **Handoff P2-H:** [`SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)  
 **Handoff UX.1:** [`SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)  
@@ -195,22 +201,29 @@ Chronologia releasów aplikacyjnych na `main` po baseline **2.50.65** (20.5Z.5C)
 
 ---
 
-## 3c. P2-H — Tender Documents & Archives (**H.1–H.3 CLOSED**, H.4 OPEN)
+## 3c. P2-H — Tender Documents & Archives (**H.1–H.5B CLOSED**, H.7 OPEN)
 
 | Pole | Wartość |
 |------|---------|
-| **Zakres** | Marketplanet · ZIP fix · 7Z unpack · dossier inner candidates |
-| **Wersja końcowa** | **2.55.5** · commit **`d725c24`** |
+| **Wersja końcowa** | **2.55.9** |
 | **Handoff** | [`SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) |
+| **Kluczowe pliki** | `pdf-przedmiar-heuristic.ts`, `tender-cost-discovery.ts`, `wgdom-7z-archive.ts`, `tenders-bzp-doc-parse.ts` |
+
+**Stream funkcjonalnie zamknięty.** Pozostały backlog techniczny: **P2-H.7** (Edge magic bytes 7z).
+
+**Audyt referencyjny:** Kąty Wrocławskie — 7Z OK, `*_PR.pdf` wykrywany; P2-H.5B ekstrahuje pozycje KNR z natywnego tekstu PDF.
+
+| Pole | Wartość |
+|------|---------|
+| **Zakres** | Marketplanet · ZIP · 7Z · PDF przedmiar (discovery + heurystyki KNR) |
 | **Architektura** | [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.7 |
-| **Test 7Z** | `npx vite-node scripts/test-tender-7z-archive.mjs` (21 PASS) |
-| **Test dossier** | `npx vite-node scripts/test-tender-dossier-pipeline.mjs` (163 PASS) |
+| **Test 7Z** | `npx vite-node scripts/test-tender-7z-archive.mjs` (34 PASS) |
+| **Test dossier** | `npx vite-node scripts/test-tender-dossier-pipeline.mjs` (195 PASS) |
+| **Test PDF heuristic** | `npx vite-node scripts/test-pdf-przedmiar-heuristic.mjs` (26 PASS) |
 
-**Kluczowe moduły:** `wgdom-7z-archive.ts`, `tender-document-resolver.ts`, `tender-ezamawiajacy.ts`, `tenders-bzp-doc-parse.ts`, `tender-dossier-pipeline.ts`.
+**Kluczowe moduły:** `pdf-przedmiar-heuristic.ts`, `wgdom-7z-archive.ts`, `tender-document-resolver.ts`, `tender-cost-discovery.ts`, `tenders-bzp-doc-parse.ts`.
 
-**Następny krok (rekomendowany):** **P2-H.4** — UX copy rozróżniający unpack fail vs brak ATH/XLS w 7Z.
-
-**Audyt referencyjny:** Kąty Wrocławskie — 7Z OK, brak kosztorysu bo archiwum = PDF projektów (nie bug P2-H.3).
+**Następny krok (techniczny):** **P2-H.7** — Edge magic bytes dla `.7z`.
 
 ---
 
@@ -369,7 +382,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | **P1** | Dashboard V3 + CC removal + Przetargi 3.0 | **CLOSED** (v2.51.x) |
 | **P2-F** | Kwalifikacja ofertowa (F.0–F.5) | **CLOSED** (v2.51.19–2.51.24) |
 | **UX.1** | Tender Workspace (UX.1A/1B) | **CLOSED** (v2.53.1–2.53.4) |
-| **P2-H** | Dokumenty / ZIP / 7Z / Marketplanet | **H.1–H.3 CLOSED** (v2.55.0–2.55.5) · **H.4 OPEN** |
+| **P2-H** | Dokumenty / ZIP / 7Z / PDF przedmiar | **H.1–H.5B CLOSED** (v2.55.0–2.55.9) · **H.7 OPEN** |
 | **P2** | Audit Center / Security Log (Super Admin) | **OTWARTY** |
 | P2-G.3C/D/E | Benchmark rynku · AI Validation · RMS | **OTWARTY** → slot **Wycena** |
 | P2-F.6 | Kompletność oferty (checklist) | **OTWARTY** → slot **Oferta** |
@@ -396,8 +409,8 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 ## 13. NASTĘPNY KROK (dla agenta)
 
 ```text
-P2-H.3 CLOSED (v2.55.5 · d725c24).
-P2-H.4 OPEN — UX copy 7Z (rekomendowany następny krok w streamie dokumentów).
+P2-H stream CLOSED (v2.55.9 · P2-H.5B).
+P2-H.7 OPEN — Edge magic bytes 7z (techniczny hardening).
 UX.1 CLOSED · P2-F CLOSED · P1 CLOSED.
 Kolejny stream produktowy: P2-G.3C/D/E (Wycena) · P2-F.6 (Oferta) · P2 Audit Center — tylko na polecenie po AUDIT.
 Inspector 2.1 — CLOSED (2.1.2 CANCELLED).
@@ -406,7 +419,7 @@ Inspector 2.1 — CLOSED (2.1.2 CANCELLED).
 Przy wznowieniu:
 
 1. Przeczytaj **ten plik** + [`SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) (przy dokumentach) + `CURRENT-TASK.md`
-2. `curl -s https://www.wgdom.fun/version.json` — potwierdź baseline **2.55.5**
+2. `curl -s https://www.wgdom.fun/version.json` — potwierdź baseline **2.55.9**
 3. `npx vite-node scripts/test-tender-7z-archive.mjs` — przed zmianami ZIP/7Z
 4. `npx vite-node scripts/test-tender-dossier-pipeline.mjs` — przed release dossier
 5. Stosuj workflow A/B/C z [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md)
@@ -439,13 +452,13 @@ Przy wznowieniu:
 **Werdykt closeout (P2-F):**
 
 ```text
-BASELINE v2.55.5 · STABLE · RELEASE GO (verify version.json)
-P2-H.3 CLOSED — 7Z · Marketplanet · ZIP fix · dossier inner candidates
-P2-H.4 OPEN — UX copy 7Z (mylący komunikat karty ofertowej)
+BASELINE v2.55.9 · STABLE · RELEASE GO (verify version.json)
+P2-H stream CLOSED — Marketplanet · ZIP · 7Z · PDF przedmiar (discovery + heurystyki KNR)
+P2-H.7 OPEN — Edge magic bytes 7z
 UX.1 CLOSED — 5 workspace tabs · lazy render · Anti-CC · ARCH-001
 P2-F CLOSED — F.0 Formal → F.5 Works Register
 P1 CLOSED — Dashboard V3 · Przetargi 3.0 · Command Center REMOVED
 Inspector 2.1 CLOSED · 2.1.2 CANCELLED
-Open backlog: P2-H.4 · P2-G.3C/D/E (Wycena) · P2-F.6 (Oferta) · P2 Audit Center · P3 Przetargi
+Open backlog: P2-H.7 · P2-G.3C/D/E (Wycena) · P2-F.6 (Oferta) · P2 Audit Center · P3 Przetargi
 Ready for new GPT / new Cursor agent
 ```

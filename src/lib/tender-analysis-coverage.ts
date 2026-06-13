@@ -58,7 +58,7 @@ export interface CoverageTraceEntry {
 
 /** Tabela B — wsparcie typów plików w kodzie (stan 2.51.10). */
 export const FILE_TYPE_SUPPORT: FileTypeSupportRow[] = [
-  { ext: "pdf", label: "PDF", supported: true, swzAnalysis: true, kosztorys: false, notes: "SWZ/STWIOR tekst via pdf.js; brak ekstrakcji tabel kosztorysu z PDF" },
+  { ext: "pdf", label: "PDF", supported: true, swzAnalysis: true, kosztorys: true, notes: "SWZ tekst pdf.js; przedmiar PDF — heurystyki KNR/P2-H.5B (natywny tekst), skan → OCR backlog" },
   { ext: "doc", label: "DOC", supported: true, swzAnalysis: true, kosztorys: false, notes: "mammoth/DOCX fallback — tekst SWZ" },
   { ext: "docx", label: "DOCX", supported: true, swzAnalysis: true, kosztorys: false, notes: "mammoth — tekst SWZ" },
   { ext: "xls", label: "XLS", supported: true, swzAnalysis: false, kosztorys: true, notes: "XLSX.read — heurystyka przedmiaru" },
@@ -211,6 +211,6 @@ export const TBS_00266295_DOCUMENTS = [
 
 export const ANALYSIS_COVERAGE_GAPS = {
   sevenZipUnsupported: "Pliki .7z — rozpakowanie przez 7z-wasm (LGPL); outer pomijany gdy inner znaleziony",
-  pdfNoKosztorys: "PDF obmiaru/STWIOR — tekst SWZ OK, kosztorys wymaga ATH/XLS/XLSX",
+  pdfNoKosztorys: "PDF skan — likelyScan wymaga OCR; natywny tekst przedmiaru obsługiwany heurystyką P2-H.5B",
   criteriaTableLayout: "extractAwardCriteria — wzorce „Cena — 60%”; tabele PDF mogą nie pasować",
 } as const;

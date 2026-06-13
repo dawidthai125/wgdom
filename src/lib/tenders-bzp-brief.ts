@@ -47,6 +47,8 @@ export interface TenderKosztorysSnapshot {
   categories: { name: string; total: string }[];
   warnings: string[];
   parsedAt: string;
+  /** P2-H.5B — komunikat jakości PDF przedmiaru. */
+  pdfPrzedmiarCase?: 1 | 2 | 3;
 }
 
 export interface TenderBrief {
@@ -246,6 +248,7 @@ export function athPreviewToSnapshot(
     })),
     warnings: preview.warnings.slice(0, 5),
     parsedAt: new Date().toISOString(),
+    pdfPrzedmiarCase: preview.pdfPrzedmiarCase,
   };
 }
 

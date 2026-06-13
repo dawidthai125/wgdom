@@ -22,7 +22,13 @@ import { clearDossierTraceLog, getDossierTraceLog, traceDossierPipeline } from "
 import {
   classifyCostDocumentType,
   discoverBestCostDocument,
+  isPdfPrzedmiarCostFilename,
+  buildPdfPrzedmiarMvpSnapshot,
 } from "../src/lib/tender-cost-discovery.ts";
+import {
+  parsePdfPrzedmiarHeuristic,
+  PDF_PRZEDMIAR_UX_LINES,
+} from "../src/lib/pdf-przedmiar-heuristic.ts";
 import {
   applyMetadataConfidence,
   filterReliableAwardCriteria,
@@ -141,6 +147,94 @@ const discoveredXlsx = discoverBestCostDocument([
   { filename: "arch.zip → notatka.pdf", score: 5 },
 ]);
 assert("discover zip xlsx", discoveredXlsx.type === "zip_xlsx");
+
+// P2-H.5A — PDF przedmiar cost discovery (MVP)
+assert("isPdfPrzedmiar _PR", isPdfPrzedmiarCostFilename("Rynek_IS_W_PR_20260410.pdf"));
+assert("isPdfPrzedmiar przedmiar.pdf", isPdfPrzedmiarCostFilename("przedmiar.pdf"));
+assert("isPdfPrzedmiar obmiar.pdf", isPdfPrzedmiarCostFilename("obmiar.pdf"));
+assert("isPdfPrzedmiar kosztorys.pdf", isPdfPrzedmiarCostFilename("kosztorys.pdf"));
+assert("isPdfPrzedmiar inner 7z", isPdfPrzedmiarCostFilename("UMiG.7z → II. PRZEDMIARY/Rynek_IS_W_PR_20260410.pdf"));
+assert("isPdfPrzedmiar rejects swz", !isPdfPrzedmiarCostFilename("SWZ.pdf"));
+
+assert("classify pdf_przedmiar", classifyCostDocumentType("przedmiar.pdf").type === "pdf_przedmiar");
+assert("classify obmiar pdf", classifyCostDocumentType("obmiar.pdf").type === "pdf_przedmiar");
+assert("classify _PR pdf", classifyCostDocumentType("Ratusz KW Łazienki_budowlane_PR.pdf").type === "pdf_przedmiar");
+assert("classify UMiG _PR WC", classifyCostDocumentType("UMiG_Kąty Wrocławskie_PT_IE_PR WC.PDF").type === "pdf_przedmiar");
+assert("classify zip inner pdf pr", classifyCostDocumentType("arch.zip → przedmiar.pdf").type === "zip_pdf_przedmiar");
+assert("classify 7z inner pdf pr", classifyCostDocumentType("pakiet.7z → Rynek_IS_W_PR_20260410.pdf").type === "zip_pdf_przedmiar");
+assert("classify swz pdf none", classifyCostDocumentType("SWZ.pdf").type === "none");
+
+const discoveredPdfPr = discoverBestCostDocument([
+  { filename: "SWZ.pdf", score: 25 },
+  { filename: "UMiG.7z → II. PRZEDMIARY/Rynek_IS_W_PR_20260410.pdf", score: 35, zipInnerPath: "II. PRZEDMIARY/Rynek_IS_W_PR_20260410.pdf" },
+]);
+assert("discover pdf pr found", discoveredPdfPr.found === true);
+assert("discover pdf pr type", discoveredPdfPr.type === "zip_pdf_przedmiar");
+
+const discoveredAthOverPdf = discoverBestCostDocument([
+  { filename: "arch.7z → Rynek_IS_W_PR_20260410.pdf", score: 50, zipInnerPath: "Rynek_IS_W_PR_20260410.pdf" },
+  { filename: "arch.7z → Falzmanna 17-25.ATH", score: 12, zipInnerPath: "Falzmanna 17-25.ATH" },
+]);
+assert("discover ath beats pdf", discoveredAthOverPdf.type === "zip_ath");
+
+const discoveredXlsxOverPdf = discoverBestCostDocument([
+  { filename: "arch.zip → Rynek_IS_W_PR_20260410.pdf", score: 40 },
+  { filename: "arch.zip → przedmiar.xlsx", score: 20 },
+]);
+assert("discover xlsx beats pdf", discoveredXlsxOverPdf.type === "zip_xlsx");
+
+const pdfKosztorysSnap = buildPdfPrzedmiarMvpSnapshot("Rynek_IS_W_PR_20260410.pdf");
+assert("parse pdf przedmiar ok", pdfKosztorysSnap?.ok === true);
+assert("parse pdf przedmiar rows empty", (pdfKosztorysSnap?.rows?.length ?? -1) === 0);
+assert("parse pdf przedmiar sourceType", pdfKosztorysSnap?.documentType === "PDF_PRZEDMIAR");
+
+const pdfPrStatusSummary = {
+  totalDocuments: 15,
+  scanned: 8,
+  parsed: 6,
+  byType: { pdf: 5, docx: 2, xlsx: 0, zip: 0, ath: 0, sevenZip: 2, other: 0 },
+  sevenZipCount: 2,
+  sevenZUnpackOk: true,
+  sevenZInnerCount: 12,
+  kosztorysFound: true,
+  valueFound: false,
+  criteriaFound: false,
+  estimateFound: false,
+  costDiscovery: discoveredPdfPr,
+  parsedAt: new Date().toISOString(),
+};
+assert("pdf pr status line", buildKosztorysStatusLine(pdfPrStatusSummary).includes("Znaleziono przedmiar PDF"));
+assert("pdf pr no 7z missing ath", !buildKosztorysStatusLine(pdfPrStatusSummary).includes("Nie znaleziono kosztorysu ATH"));
+
+const pdfKosztorysOnlyName = classifyCostDocumentType("kosztorys.pdf");
+const pdfKosztorysStatus = buildKosztorysStatusLine({
+  kosztorysFound: true,
+  costDiscovery: { found: true, type: pdfKosztorysOnlyName.type, source: "kosztorys.pdf", confidence: 0.78 },
+  sevenZipCount: 0,
+  byType: { pdf: 1, docx: 0, xlsx: 0, zip: 0, ath: 0, sevenZip: 0, other: 0 },
+});
+assert("pdf kosztorys status line", pdfKosztorysStatus.includes("Znaleziono kosztorys w formacie PDF"));
+
+// P2-H.5B — heurystyki PDF przedmiaru
+const SAMPLE_KNR_TEXT = `
+Lp. Podstawa Opis J.m. Ilość
+1 KNR 401-01-01 Wykonanie tynków wewnętrznych m2 125,40
+2 KNR 202-08-03 Montaż drzwi szt 12
+`;
+const h5bParsed = parsePdfPrzedmiarHeuristic(SAMPLE_KNR_TEXT);
+assert("h5b case 1 rows", h5bParsed.uxCase === 1 && h5bParsed.rows.length === 2);
+assert("h5b swz guard", parsePdfPrzedmiarHeuristic("SWZ — przedmiot zamówienia, wadium 5%").uxCase === 2);
+assert("h5b scan case 3", parsePdfPrzedmiarHeuristic(SAMPLE_KNR_TEXT, { likelyScan: true }).uxCase === 3);
+
+const pdfRowsStatusSummary = {
+  ...pdfPrStatusSummary,
+  pdfPrzedmiarCase: 1,
+};
+assert("h5b status case 1", buildKosztorysStatusLine(pdfRowsStatusSummary).includes("Rozpoznano pozycje robót"));
+const pdfScanStatusSummary = { ...pdfPrStatusSummary, pdfPrzedmiarCase: 3 };
+assert("h5b status case 3", buildKosztorysStatusLine(pdfScanStatusSummary).includes(PDF_PRZEDMIAR_UX_LINES[3]));
+const pdfNoRowsStatusSummary = { ...pdfPrStatusSummary, pdfPrzedmiarCase: 2 };
+assert("h5b status case 2", buildKosztorysStatusLine(pdfNoRowsStatusSummary).includes("nie udało się odczytać pozycji"));
 
 // SWZ + STWIOR merge value
 const modText = "Wysokość wadium: 6% wartości zamówienia. Termin realizacji: 120 dni";

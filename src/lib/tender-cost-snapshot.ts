@@ -233,6 +233,7 @@ export function enrichKosztorysSnapshotFromPreview(
     ok: true,
     totalValue,
     rowCount: snapshot.rowCount || preview.rows.length,
+    pdfPrzedmiarCase: preview.pdfPrzedmiarCase ?? snapshot.pdfPrzedmiarCase,
   };
   if (totalValue && !snapshot.totalValue?.trim()) {
     traceCostPipeline("snapshot_created", snapshot.sourceFilename, {

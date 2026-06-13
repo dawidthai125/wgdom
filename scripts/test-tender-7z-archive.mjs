@@ -13,12 +13,13 @@ import {
 import {
   classifyCostDocumentType,
   discoverBestCostDocument,
+  isPdfPrzedmiarCostFilename,
 } from "../src/lib/tender-cost-discovery.ts";
 import {
   buildKosztorysStatusLine,
   countDocumentsByType,
 } from "../src/lib/tender-dossier-pipeline.ts";
-import { scoreTenderFilename } from "../src/lib/tenders-bzp-filename.ts";
+import { scoreTenderFilename, isArchiveInnerListableFile } from "../src/lib/tenders-bzp-filename.ts";
 import { isPdfFilename } from "../src/lib/ath-parser.ts";
 import { isXlsxFilename } from "../src/lib/tenders-bzp-filename.ts";
 
@@ -120,6 +121,37 @@ const scanUnpackNoAth = {
   costDiscovery: null,
 };
 assert("kosztorys status 7z no ath", buildKosztorysStatusLine(scanUnpackNoAth).includes("Nie znaleziono kosztorysu ATH"));
+
+// 8. P2-H.6 — folder / no-extension filter
+assert("inner listable rejects folder przedmiary", !isArchiveInnerListableFile("II. PRZEDMIARY"));
+assert("inner listable rejects stwior folder", !isArchiveInnerListableFile("III. STWiOR"));
+assert("inner listable rejects dokumentacja", !isArchiveInnerListableFile("Dokumentacja"));
+assert("inner listable accepts pr pdf", isArchiveInnerListableFile("Rynek_IS_W_PR_20260410.pdf"));
+assert("inner listable accepts ath", isArchiveInnerListableFile("sample.ath"));
+assert("folder przedmiary not in list7z", !listed.some((e) => e.filename === "II. PRZEDMIARY"));
+assert(
+  "przedmiary folder score would beat pdf without filter",
+  scoreTenderFilename("II. PRZEDMIARY") > scoreTenderFilename("Rynek_IS_W_PR_20260410.pdf"),
+);
+
+// 9. P2-H.5A — PDF przedmiar w 7Z (bez ATH)
+const prPdfInner = "II. PRZEDMIARY/Rynek_IS_W_PR_20260410.pdf";
+const prPdfCandidates = simulate7zCandidates(outerName, [
+  { filename: prPdfInner, path: prPdfInner, score: scoreTenderFilename("Rynek_IS_W_PR_20260410.pdf") },
+]);
+const prPdfCost = discoverBestCostDocument(prPdfCandidates);
+assert("discover 7z pdf pr found", prPdfCost.found === true);
+assert("discover 7z pdf pr type", prPdfCost.type === "zip_pdf_przedmiar");
+assert("classify 7z inner pdf pr", classifyCostDocumentType(`${outerName} → ${prPdfInner}`).type === "zip_pdf_przedmiar");
+assert("isPdfPrzedmiar inner path", isPdfPrzedmiarCostFilename(`${outerName} → ${prPdfInner}`));
+
+const prPdfStatus = buildKosztorysStatusLine({
+  kosztorysFound: true,
+  sevenZipCount: 1,
+  byType: countDocumentsByType([outerName]),
+  costDiscovery: prPdfCost,
+});
+assert("7z pdf pr status", prPdfStatus.includes("Znaleziono przedmiar PDF"));
 
 console.log(`\n7Z archive tests: ${pass} PASS, ${fail} FAIL`);
 process.exit(fail > 0 ? 1 : 0);

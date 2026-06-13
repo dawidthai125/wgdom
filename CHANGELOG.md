@@ -1,5 +1,18 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.55.9 — P2-H.5B PDF przedmiar (heurystyki)
+- `pdf-przedmiar-heuristic.ts` — sygnały KNR/Lp./J.m./ilość, ekstrakcja wierszy, `likelyScan` → OCR
+- `parseDocumentToKosztorys` — PDF przedmiar z tekstu pdf.js; UX case 1/2/3
+
+## 2.55.8 — P2-H.5A PDF przedmiar (MVP)
+- `pdf_przedmiar` / `zip_pdf_przedmiar` — `classifyCostDocumentType`, `discoverBestCostDocument`
+- `parseDocumentToKosztorys` — FOUND_NO_VALUE snapshot (`PDF_PRZEDMIAR`, rows `[]`)
+- UX: „Znaleziono przedmiar PDF” / „Znaleziono kosztorys w formacie PDF”
+
+## 2.55.7 — P2-H.6 filtr folderów ZIP/7Z
+- `isArchiveInnerListableFile()` — basename wymaga rozszerzenia 2–5 znaków
+- `listZipFiles` / `list7zFiles` — odrzucenie folderów logicznych (II. PRZEDMIARY itd.)
+
 ## 2.55.6 — P2-H.4 UX copy archiwów 7Z
 - scanSummary: `sevenZUnpackOk`, `sevenZInnerCount` z `parseTenderDossierDocuments`
 - `sevenZKosztorysMissingLine()` — CASE A błąd odczytu vs CASE B brak ATH/XLS/XLSX

@@ -94,6 +94,13 @@ export function is7zFilename(name: string): boolean {
   return /\.7z$/i.test(name);
 }
 
+/** P2-H.6 — inner ZIP/7Z: tylko rzeczywiste pliki z rozszerzeniem (nie foldery logiczne). */
+export function isArchiveInnerListableFile(filename: string): boolean {
+  const base = (filename.split("/").pop() ?? filename).trim();
+  if (!base || base.endsWith(".")) return false;
+  return /\.[a-z0-9]{2,5}$/i.test(base);
+}
+
 export function isDocxFilename(name: string): boolean {
   return /\.docx?$/i.test(name);
 }

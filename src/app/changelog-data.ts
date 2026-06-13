@@ -12,6 +12,33 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.55.9",
+    label: "Przetargi — P2-H.5B PDF przedmiar (heurystyki)",
+    items: [
+      { type: "new", text: "Heurystyczny odczyt pozycji z natywnych PDF przedmiaru — KNR/KNNR, Lp., J.m., ilości; bez OCR" },
+      { type: "improve", text: "UX: „Rozpoznano pozycje robót w PDF” / brak pozycji / skan wymaga OCR; ochrona przed false positive SWZ/STWIOR" },
+    ],
+  },
+  {
+    date: "2026-06-13",
+    version: "2.55.8",
+    label: "Przetargi — P2-H.5A PDF przedmiar (MVP)",
+    items: [
+      { type: "new", text: "Wykrywanie kosztorysu PDF — przedmiar.pdf, obmiar.pdf, *_PR.pdf w ZIP/7Z; status „Znaleziono przedmiar PDF” bez parsowania pozycji" },
+      { type: "improve", text: "Priorytet discovery: ATH/NOR/XML > XLS/XLSX > PDF przedmiar; fundament pod P2-H.5B (heurystyki KNR)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
+    version: "2.55.7",
+    label: "Przetargi — P2-H.6 filtr folderów ZIP/7Z",
+    items: [
+      { type: "fix", text: "listZipFiles / list7zFiles — pomijane wpisy bez rozszerzenia (np. „II. PRZEDMIARY”); inner ranking tylko na rzeczywistych plikach" },
+      { type: "improve", text: "Prerequisite P2-H.5 PDF przedmiar — foldery nie wygrywają nad plikami *_PR.pdf w archiwum" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.55.6",
     label: "Przetargi — P2-H.4 UX copy archiwów 7Z",
     items: [

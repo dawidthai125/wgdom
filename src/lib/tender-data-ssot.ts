@@ -100,6 +100,7 @@ function mapDiscoveryTypeToUi(
   if (/^(ath|nor|zip_ath|zip_nor)$/.test(t)) return "ATH";
   if (/^(xml|zip_xml)$/.test(t)) return "XML";
   if (/^(xls|xlsx|zip_xls|zip_xlsx)$/.test(t)) return "XLSX";
+  if (/^(pdf_przedmiar|zip_pdf_przedmiar)$/.test(t)) return "PDF";
   if (/^zip_/.test(t)) return "ZIP";
   const base = (sourceFilename ?? "").split(" → ").pop()?.toLowerCase() ?? "";
   if (/\.(ath|nor)$/.test(base)) return "ATH";

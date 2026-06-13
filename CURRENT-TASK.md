@@ -3,7 +3,7 @@
 > **Aktualizuj ten plik na końcu każdej większej sesji z agentem AI.**  
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
-**Ostatnia aktualizacja:** 2026-06-13 · **P2-H.4 CLOSED — UX copy 7Z (v2.55.6)**  
+**Ostatnia aktualizacja:** 2026-06-13 · **P2-H.5B CLOSED — PDF przedmiar heurystyki (v2.55.9)**  
 **★ Główny handoff (SSOT):** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)  
 **★ P2-H dokumenty/dossier:** [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)  
 **★ UX.1 handoff:** [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)  
@@ -15,46 +15,36 @@
 ## STATUS
 
 ```text
-Production: 2.55.6 (lokalnie — do release)
+Production: 2.55.9 (release P2-H.5B)
 
-P2-H.1–H.4 Tender Documents COMPLETE (Marketplanet · ZIP · 7Z · UX copy)
-P2-G.2C/2D Cost Classification COMPLETE (WM/ZZK wod-kan · gaz · C.O.)
-
-UX.1 Tender Workspace COMPLETE
-P2-F Tender Qualification COMPLETE
-Dashboard V3 COMPLETE
-Przetargi 3.0 COMPLETE
-P1 CLOSED
+P2-H stream funkcjonalnie CLOSED (H.1–H.6 + H.5A + H.5B)
+P2-G.2C/2D Cost Classification COMPLETE
+UX.1 · P2-F · Dashboard V3 · Przetargi 3.0 · P1 CLOSED
 ```
 
-**Baseline prod (app):** v2.55.5 · commit **`d725c24`** (P2-H.3 7Z)  
-**Poprzedni:** v2.55.4 · `329d883` (P2-G.2D C.O.)  
+**Baseline prod (app):** v2.55.9 · commit po push (P2-H.5B)  
+**Poprzedni:** v2.55.8 (P2-H.5A PDF discovery)  
 **Prod:** https://www.wgdom.fun
 
 ---
 
 ## SKOŃCZONE W OSTATNIEJ SESJI (2026-06-13)
 
-| Etap | Wersja | Commit | Skrót |
-|------|--------|--------|-------|
-| P2-H.1 | 2.55.0 | — | Marketplanet ezamawiajacy.pl discover + download |
-| P2-H.1 hotfix | 2.55.1 | — | sourcePageUrl → document-bytes |
-| P2-H.2 | 2.55.2 | — | Double ZIP unpack fix |
-| P2-G.2C | 2.55.3 | `5b257ce` | Klasyfikacja WM/ZZK wod-kan + gaz |
-| P2-G.2D | 2.55.4 | `329d883` | Klasyfikacja C.O. INSTALACJE_CO |
-| **P2-H.3** | **2.55.5** | **`d725c24`** | **7Z archive support (7z-wasm LGPL)** |
+| Etap | Wersja | Skrót |
+|------|--------|-------|
+| P2-H.4 | 2.55.6 | UX copy 7Z — unpack fail vs brak ATH/XLS |
+| P2-H.6 | 2.55.7 | Filtr folderów logicznych w listZipFiles/list7zFiles |
+| P2-H.5A | 2.55.8 | PDF przedmiar MVP — discovery + FOUND_NO_VALUE |
+| **P2-H.5B** | **2.55.9** | **Heurystyki KNR/KNNR — pozycje z natywnych PDF bez OCR** |
 
-**Audyt prod READ ONLY:** Kąty Wrocławskie — P2-H.3 **działa**; brak kosztorysu = archiwum bez ATH/XLS (tylko PDF).  
-**Dokumentacja:** `SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md` + aktualizacja SSOT.
+**Testy release:** heuristic 26 · 7z 34 · dossier 195 · cost-intelligence 357 · build PASS
 
 ---
 
 ## OPEN BACKLOG (priorytet dla agentów)
 
 ```text
-P2-H.5   PDF przedmiar (*_PR.pdf) w cost discovery                         ← backlog produktowy
-P2-H.6   list7zFiles — filtrować foldery bez rozszerzenia
-P2-H.7   Edge magic bytes dla .7z
+P2-H.7   Edge magic bytes dla .7z (techniczny hardening)
 
 P2-G.3C  Benchmark rynku        → workspace Wycena
 P2-G.3D  AI Validation          → workspace Wycena
@@ -78,35 +68,17 @@ Do Rozliczenia
 Przetargi
   ├── Moduł: Lista | Strategia | Mapa | Profil | Ustawienia
   └── Pojedynczy przetarg: 5 workspace (Przegląd · Dokumenty · Kwalifikacja · Wycena · Oferta)
-       └── Dokumenty: ZIP + 7Z inner · Marketplanet · Logintrade · BZP
 ```
 
 ---
 
-## Decyzje wiążące
-
-- **P2-H.3:** biblioteka **7z-wasm (LGPL)** — nie `archive-wasm` (GPL)
-- **Marketplanet:** `sourcePageUrl` obowiązkowe przy pobieraniu bajtów
-- **Inner archive:** pole `zipInnerPath` dla ZIP **i** 7Z (bez rename)
-- **UX.1 Anti-CC:** max **5** workspace; nowe funkcje → sub-sekcja w tabie
-- **ARCH-001:** zero static import `cloud-sync` w nowych lib merge
-- **2.1.2 CANCELLED** — pełna lista odbiorców inspektora z Kontaktów
-
----
-
-## Wznowienie pracy (agent) — kolejność czytania
-
-1. [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) — **przy dokumentach / ZIP / 7Z / dossier**
-2. [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md) — **przy workspace przetargu**
-3. [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
-4. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.7 · § UX.1B · § 11.6
-5. `curl -s https://www.wgdom.fun/version.json` → **2.55.5**
-
-**Testy przed release dokumentów:**
+## Komendy szybkie
 
 ```bash
+npm run build
+npx vite-node scripts/test-pdf-przedmiar-heuristic.mjs
 npx vite-node scripts/test-tender-7z-archive.mjs
 npx vite-node scripts/test-tender-dossier-pipeline.mjs
 npx vite-node scripts/test-tender-cost-intelligence.mjs
-npm run build
+curl -s https://www.wgdom.fun/version.json
 ```

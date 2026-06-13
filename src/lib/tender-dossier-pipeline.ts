@@ -15,7 +15,7 @@ import { clearDossierTraceLog } from "@/lib/tender-dossier-trace";
 import { clearCostTraceLog, estimatePlnFromKosztorysSnapshot, mergeKosztorysValueIntoSwz, plnFromKosztorysSnapshot, traceCostPipeline, traceCostUiState } from "@/lib/tender-cost-snapshot";
 import { applyMetadataConfidence } from "@/lib/tender-metadata-confidence";
 import type { TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
-import { costTypeDisplayLabel } from "@/lib/tender-cost-discovery";
+import { costTypeDisplayLabel, costTypeKosztorysFoundLine } from "@/lib/tender-cost-discovery";
 
 export interface TenderDossierScanCounts {
   pdf: number;
@@ -42,6 +42,8 @@ export interface TenderDossierScanSummary {
   criteriaFound: boolean;
   estimateFound: boolean;
   costDiscovery: TenderCostDiscoveryResult | null;
+  /** P2-H.5B — jakość odczytu PDF przedmiaru (1=pozycje, 2=brak, 3=skan). */
+  pdfPrzedmiarCase?: 1 | 2 | 3;
   parsedAt: string;
 }
 
@@ -104,8 +106,14 @@ export function sevenZKosztorysMissingLine(summary: TenderDossierScanSummary): s
 
 export function buildKosztorysStatusLine(summary: TenderDossierScanSummary): string {
   if (summary.kosztorysFound) {
-    const label = summary.costDiscovery?.found
-      ? costTypeDisplayLabel(summary.costDiscovery.type)
+    const disc = summary.costDiscovery;
+    if (disc?.found && (disc.type === "pdf_przedmiar" || disc.type === "zip_pdf_przedmiar")) {
+      return `Kosztorys:\n${costTypeKosztorysFoundLine(disc.type, disc.source, {
+        pdfCase: summary.pdfPrzedmiarCase,
+      })}`;
+    }
+    const label = disc?.found
+      ? costTypeDisplayLabel(disc.type)
       : "kosztorys";
     return `Kosztorys:\nZnaleziony ${label}`;
   }
@@ -216,6 +224,7 @@ export async function analyzeTenderWithDossier(opts: {
     criteriaFound: (merged.awardCriteria?.length ?? 0) > 0,
     estimateFound: estimatePln != null,
     costDiscovery,
+    pdfPrzedmiarCase: kosztorys?.pdfPrzedmiarCase,
     parsedAt: new Date().toISOString(),
   };
 
