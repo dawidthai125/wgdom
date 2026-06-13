@@ -1,4 +1,5 @@
-import { Target, ExternalLink, Calendar, Building2, Hash, Wallet } from "lucide-react";
+import { useState } from "react";
+import { Target, ExternalLink, Calendar, Building2, Hash, Wallet, ChevronDown, Star } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { TenderJobLinkButtons } from "@/app/tenders/strategy/components/TenderJobLinkButtons";
 import { DECISION_LABEL_PL, type TenderDecision, type TenderScoringBundle } from "@/lib/tenders-strategy-decision";
@@ -8,6 +9,7 @@ import { daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 import { estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 import { MetricHelpTooltip } from "@/app/tenders/strategy/components/MetricHelpTooltip";
 import { OPPORTUNITY_LABEL_PL, PIPELINE_LABEL_PL, SECTION_LABEL_PL, STRATEGIC_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
+import { buildBestOpportunityLite } from "@/lib/tender-strategy-ux";
 
 function fmtPln(n: number): string {
   return new Intl.NumberFormat("pl-PL", {
@@ -83,6 +85,7 @@ export function BestOpportunityCard({
   onOpenTender,
   onCreateJobFromTender,
   onOpenJob,
+  liteDefault = false,
 }: {
   bundle: TenderScoringBundle | null;
   ownerRecord?: OwnerTenderDecisionRecord | null;
@@ -90,16 +93,21 @@ export function BestOpportunityCard({
   onOpenTender?: (tenderId: string) => void;
   onCreateJobFromTender?: (item: TenderPipelineItem) => void;
   onOpenJob?: (jobId: string) => void;
+  /** UX.2S — domyślnie skrót, pełna analiza po rozwinięciu. */
+  liteDefault?: boolean;
 }) {
+  const [showFullAnalysis, setShowFullAnalysis] = useState(!liteDefault);
+  const lite = buildBestOpportunityLite(bundle, ownerRecord);
+
   return (
-    <section className="rounded-xl border border-border bg-card overflow-hidden">
+    <section className="rounded-xl border border-border bg-card overflow-hidden" data-testid="strategy-best-opportunity">
       <div className="px-4 py-3 border-b border-border flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Target size={16} className="text-primary" />
+          {liteDefault ? <Star size={16} className="text-amber-500" /> : <Target size={16} className="text-primary" />}
           <h2 className="text-sm font-semibold">Najlepsza okazja</h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {bundle && bundle.item.status === "won" && (
+          {showFullAnalysis && bundle && bundle.item.status === "won" && (
             <TenderJobLinkButtons
               item={bundle.item}
               onCreateJob={onCreateJobFromTender}
@@ -121,11 +129,50 @@ export function BestOpportunityCard({
       </div>
 
       <div className="p-4">
-        {!bundle ? (
+        {!bundle || !lite ? (
           <p className="text-sm text-muted-foreground text-center py-6">
             Brak aktywnych przetargów — odśwież {PIPELINE_LABEL_PL.pipeline} z BZP.
           </p>
+        ) : !showFullAnalysis ? (
+          <div className="space-y-3">
+            <p className="text-sm font-semibold leading-snug">{lite.title}</p>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs">
+              <div className="flex gap-x-1.5">
+                <dt className="text-muted-foreground shrink-0">Termin:</dt>
+                <dd className="font-medium">{lite.deadlineLabel}</dd>
+              </div>
+              <div className="flex gap-x-1.5">
+                <dt className="text-muted-foreground shrink-0">Rekomendacja:</dt>
+                <dd className="font-medium">{lite.systemDecisionLabel} · {lite.score} pkt</dd>
+              </div>
+              <div className="flex gap-x-1.5 sm:col-span-2">
+                <dt className="text-muted-foreground shrink-0">Moja decyzja:</dt>
+                <dd className="font-medium">{lite.ownerDecisionLabel ?? "— brak —"}</dd>
+              </div>
+            </dl>
+            <button
+              type="button"
+              onClick={() => setShowFullAnalysis(true)}
+              className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground font-medium"
+              data-testid="strategy-best-opportunity-expand"
+            >
+              <ChevronDown size={12} />
+              Pokaż analizę
+            </button>
+          </div>
         ) : (
+          <>
+            {liteDefault && (
+              <button
+                type="button"
+                onClick={() => setShowFullAnalysis(false)}
+                className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground font-medium mb-3"
+                data-testid="strategy-best-opportunity-collapse"
+              >
+                <ChevronDown size={12} className="rotate-180" />
+                Ukryj analizę
+              </button>
+            )}
           <article className="space-y-4">
             <div className="space-y-1">
               <p className="text-base sm:text-lg font-semibold leading-snug">{bundle.item.title}</p>
@@ -245,6 +292,7 @@ export function BestOpportunityCard({
               </div>
             )}
           </article>
+          </>
         )}
       </div>
     </section>

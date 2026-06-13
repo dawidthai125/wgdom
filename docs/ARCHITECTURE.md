@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.7** · P2-F.6)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-F.6 — Offer Completeness Engine)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.54.0** · UX.2S)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (UX.2S — Strategy Simplification)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1231,6 +1231,23 @@ Sekcja **Kompletność oferty** w workspace **Oferta** — odpowiedź na gotowo�
 **Status globalny:** 🟢 gotowa · 🟡 wymaga uzupełnienia (braki dodatkowe) · 🔴 niekompletna (braki krytyczne).
 
 **SSOT:** test: `scripts/test-tender-workspace-ux.mjs` § P2-F.6
+
+**UX.2S — Strategy Simplification (v2.54.0):**
+
+**Reguła:** Strategia = **centrum decyzji**, nie centrum analityki. Pierwszy ekran odpowiada: „Co mam zrobić dzisiaj?”
+
+**Decision Zone (góra):**
+- `StrategyKpiStrip` — 4 liczniki: decyzje · terminy ≤7d · monitoring · wygrane bez roboty
+- `StrategyDecisionsTodayPanel` — TOP 5 bez decyzji właściciela (score ↓, termin ↑)
+- `StrategyUrgentDeadlinesPanel` — ≤3d / ≤7d, TOP 5 + collapse
+- `StrategyMonitoringFeedPanel` — **jeden feed** (change + Q&A + docs + deadline), dedup `tenderItemId+kind+day`
+- `BestOpportunityCard` (`liteDefault`) — skrót + „Pokaż analizę”
+
+**Analytics Zone (domyślnie collapsed, lazy):** kondycja · zdolność finansowa · prognoza 30/60/90 · co-jeśli · portfel
+
+**Usunięte z osi UI (logika zostaje w lib):** ActionCenter, TendersAttentionPanel, TenderChangeMonitorPanel, TenderQaMonitorPanel, OpportunityOverview
+
+**SSOT:** `src/lib/tender-strategy-ux.ts` · test: `scripts/test-tender-strategy-ux.mjs`
 
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 

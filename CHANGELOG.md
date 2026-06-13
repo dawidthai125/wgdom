@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.54.0 — UX.2S Strategy Simplification
+- Strategia = centrum decyzji (KPI · decyzje · terminy · monitoring · okazja lite)
+- Usunięte z osi: Action Center, Attention, Change/Q&A osobno, KPI rynku
+- Analityka collapsed · test: `test-tender-strategy-ux.mjs`
+
 ## 2.53.7 — P2-F.6 Offer Completeness Engine
 - Workspace Oferta — „Kompletność oferty” (skrót + checklista krytyczne/dodatkowe)
 - Reuse P2-F.1–F.5: `offer-completeness.ts` · test: `test-tender-workspace-ux.mjs` § P2-F.6

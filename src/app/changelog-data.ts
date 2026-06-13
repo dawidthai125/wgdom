@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.54.0",
+    label: "Przetargi — UX.2S Strategy Simplification",
+    items: [
+      { type: "improve", text: "Strategia — centrum decyzji: KPI strip + wymaga decyzji + terminy + jeden feed monitoringu" },
+      { type: "improve", text: "Najlepsza okazja — tryb lite domyślnie, pełna analiza po „Pokaż analizę” (UX.1D)" },
+      { type: "improve", text: "Analityka (kondycja, finanse, prognoza, co-jeśli, portfel) — domyślnie zwinięta, lazy render" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.53.7",
     label: "Przetargi — P2-F.6 Offer Completeness Engine",
     items: [
