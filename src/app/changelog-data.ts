@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.55.2",
+    label: "Przetargi — P0 hotfix double ZIP unpack (Marketplanet dossier)",
+    items: [
+      { type: "fix", text: "parseTenderDocumentCandidate — jedno rozpakowanie ZIP (readZipEntry / pickBestFromZipBytes); usunięty double unpack powodujący JSZip „Can't find end of central directory”" },
+      { type: "improve", text: "selectDossierCandidates — pomijanie outer ZIP gdy istnieją inner kandydaci tego samego documentIndex" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.55.1",
     label: "Przetargi — P0 hotfix Marketplanet ZIP analysis wiring",
     items: [

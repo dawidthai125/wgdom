@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.55.2 — P0 hotfix double ZIP unpack (Marketplanet dossier)
+- parseTenderDocumentCandidate — jedno rozpakowanie ZIP; fix JSZip „Can't find end of central directory” po poprawnym pobraniu
+- selectDossierCandidates — skip outer ZIP gdy są inner kandydaci
+- test: `smoke-test-ezamawiajacy-p2h2-double-unpack.mjs`
+
 ## 2.55.1 — P0 hotfix Marketplanet ZIP analysis wiring
 - sourcePageUrl w loadDocBytes / analyze-local / JobFilePreviewModal (sesja replay)
 - Edge guard: repository/download bez sourcePageUrl → 502; walidacja PK/%PDF

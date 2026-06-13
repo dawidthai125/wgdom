@@ -196,8 +196,21 @@ function mergeAwardCriteria(
   }).slice(0, 8);
 }
 
+/** P2-H.2 — outer ZIP pomijany gdy buildTenderDocCandidates dodał inner wpisy. */
+function filterOuterZipWhenInnerExists(candidates: TenderDocCandidate[]): TenderDocCandidate[] {
+  const innerDocIndices = new Set(
+    candidates.filter((c) => c.zipInnerPath).map((c) => c.documentIndex),
+  );
+  return candidates.filter((c) => {
+    if (c.zipInnerPath) return true;
+    if (!isZipFilename(c.filename)) return true;
+    return !innerDocIndices.has(c.documentIndex);
+  });
+}
+
 function selectDossierCandidates(candidates: TenderDocCandidate[]): TenderDocCandidate[] {
-  const ranked = [...candidates].sort((a, b) => {
+  const filtered = filterOuterZipWhenInnerExists(candidates);
+  const ranked = [...filtered].sort((a, b) => {
     const ra = roleParsePriority(classifyDocumentRole(a.filename));
     const rb = roleParsePriority(classifyDocumentRole(b.filename));
     if (ra !== rb) return ra - rb;
@@ -232,7 +245,7 @@ export async function parseTenderDocumentCandidate(
     parseDocumentToKosztorys,
     parseDocumentToSwzText,
     pickBestFromZipBytes,
-    resolveDocumentBytes,
+    readZipEntry,
   } = await loadDocParse();
 
   const loadBytes = (idx: number) => loadDocBytes(
@@ -241,23 +254,29 @@ export async function parseTenderDocumentCandidate(
     docs,
     candidate.downloadUrl ?? resolveTenderDocumentDownload(docs, idx)?.downloadUrl,
   );
-  let bytes = await resolveDocumentBytes(
-    loadBytes,
-    candidate.documentIndex,
-    candidate.filename,
-    candidate.zipInnerPath,
-  );
 
-  let effectiveName = candidate.filename;
-  if (isZipFilename(candidate.filename.split(" → ")[0] ?? candidate.filename) && !candidate.zipInnerPath) {
-    const outerName = candidate.filename;
-    const picked = await pickBestFromZipBytes(bytes, outerName);
+  const outerBytes = await loadBytes(candidate.documentIndex);
+  let bytes: Uint8Array;
+  let effectiveName: string;
+
+  if (candidate.zipInnerPath) {
+    const inner = await readZipEntry(outerBytes, candidate.zipInnerPath);
+    bytes = inner ?? outerBytes;
+    effectiveName = candidate.filename.split(" → ").pop() ?? candidate.filename;
+  } else if (isZipFilename(candidate.filename)) {
+    const picked = await pickBestFromZipBytes(outerBytes, candidate.filename);
     if (picked) {
       bytes = picked.bytes;
-      effectiveName = picked.filename;
+      effectiveName = picked.filename.includes(" → ")
+        ? picked.filename.split(" → ").pop()!
+        : picked.filename;
+    } else {
+      bytes = outerBytes;
+      effectiveName = candidate.filename;
     }
-  } else if (candidate.zipInnerPath) {
-    effectiveName = candidate.filename.split(" → ").pop() ?? candidate.filename;
+  } else {
+    bytes = outerBytes;
+    effectiveName = candidate.filename;
   }
 
   if (isKosztorysPreviewExt(effectiveName)) {
