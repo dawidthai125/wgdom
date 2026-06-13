@@ -162,3 +162,124 @@ export function isTenderWorkspaceTabId(value: string): value is TenderWorkspaceT
 export function workspaceTabIndex(tab: TenderWorkspaceTabId): number {
   return TENDER_WORKSPACE_TAB_ORDER.indexOf(tab);
 }
+
+/** UX.1C — max pozycji w sekcji „Najważniejsze dokumenty”. */
+export const TENDER_DOC_TOP_LIMIT = 5;
+
+/** UX.1C — tier priorytetu wyświetlania (niższa liczba = wyżej). */
+export type TenderDocumentDisplayTier =
+  | "swz"
+  | "ath_przedmiar"
+  | "formularz_ofertowy"
+  | "stwior"
+  | "opz"
+  | "kosztorys"
+  | "wzor_umowy"
+  | "zalacznik_formalny"
+  | "pozostale";
+
+const TENDER_DOC_TIER_PRIORITY: Record<TenderDocumentDisplayTier, number> = {
+  swz: 1,
+  ath_przedmiar: 2,
+  formularz_ofertowy: 3,
+  stwior: 4,
+  opz: 5,
+  kosztorys: 6,
+  wzor_umowy: 7,
+  zalacznik_formalny: 8,
+  pozostale: 9,
+};
+
+const PL_DOC_TITLE_TOKEN_FIXES: ReadonlyArray<[RegExp, string]> = [
+  [/Zamowienia/gi, "Zamówienia"],
+  [/Zamowien/gi, "Zamówień"],
+  [/Warunkow/gi, "Warunków"],
+  [/Zalacznik/gi, "Załącznik"],
+  [/zalaczniki/gi, "załączniki"],
+  [/Formularz/gi, "Formularz"],
+  [/Przedmiar/gi, "Przedmiar"],
+  [/Obmiar/gi, "Obmiar"],
+  [/Kosztorys/gi, "Kosztorys"],
+  [/Specyfikacja/gi, "Specyfikacja"],
+  [/Wzor/gi, "Wzór"],
+  [/Umowy/gi, "Umowy"],
+  [/Oswiadczen/gi, "Oświadczen"],
+  [/Pelnomocnictw/gi, "Pełnomocnictw"],
+  [/Realizacji/gi, "Realizacji"],
+];
+
+/** UX.1C — czytelna nazwa pliku (tylko UI; oryginalna nazwa pliku bez zmian). */
+export function normalizeTenderDocumentTitle(filename: string): string {
+  const trimmed = (filename || "").trim();
+  if (!trimmed) return trimmed;
+
+  const extMatch = trimmed.match(/(\.[a-z0-9]{2,5})$/i);
+  const ext = extMatch?.[1] ?? "";
+  let base = ext ? trimmed.slice(0, -ext.length) : trimmed;
+  base = base.replace(/_/g, " ").replace(/\s+/g, " ").trim();
+
+  for (const [pattern, replacement] of PL_DOC_TITLE_TOKEN_FIXES) {
+    base = base.replace(pattern, replacement);
+  }
+
+  if (base.length > 0) {
+    base = base.charAt(0).toUpperCase() + base.slice(1);
+  }
+
+  return base + ext;
+}
+
+/** UX.1C — klasyfikacja tieru dokumentu do sortowania TOP N. */
+export function classifyTenderDocumentDisplayTier(
+  filename: string,
+  opts?: { isSwzHint?: boolean },
+): TenderDocumentDisplayTier {
+  const n = filename.toLowerCase();
+  if (
+    opts?.isSwzHint
+    || /swz|specyfikac|modyfik.*swz|swz.*modyfik|zmian.*swz/.test(n)
+  ) {
+    return "swz";
+  }
+  if (/\.(ath|nor|xml)$/i.test(filename) || /przedmiar|obmiar/.test(n)) {
+    return "ath_przedmiar";
+  }
+  if (/formularz|ofert/.test(n)) return "formularz_ofertowy";
+  if (/stwior|stwi/i.test(n)) return "stwior";
+  if (/opz/.test(n)) return "opz";
+  if (/kosztorys/.test(n)) return "kosztorys";
+  if (/wzor.*umow|umow.*wzor|projekt.*umow/.test(n)) return "wzor_umowy";
+  if (/zalacznik|aneks|oswiadczen|pelnomocnictw|referencj|jesp|piib|polisa/.test(n)) {
+    return "zalacznik_formalny";
+  }
+  return "pozostale";
+}
+
+export function tenderDocumentDisplayTierPriority(
+  filename: string,
+  opts?: { isSwzHint?: boolean },
+): number {
+  return TENDER_DOC_TIER_PRIORITY[classifyTenderDocumentDisplayTier(filename, opts)];
+}
+
+/** UX.1C — podział listy dokumentów: TOP N + reszta (collapsed w UI). */
+export function prioritizeTenderDocuments<T>(
+  items: T[],
+  getMeta: (item: T) => { filename: string; isSwzHint?: boolean; sortIndex?: number },
+  maxTop: number = TENDER_DOC_TOP_LIMIT,
+): { top: T[]; rest: T[] } {
+  if (items.length <= maxTop) {
+    return { top: items, rest: [] };
+  }
+
+  const sorted = [...items].sort((a, b) => {
+    const ma = getMeta(a);
+    const mb = getMeta(b);
+    const pa = tenderDocumentDisplayTierPriority(ma.filename, { isSwzHint: ma.isSwzHint });
+    const pb = tenderDocumentDisplayTierPriority(mb.filename, { isSwzHint: mb.isSwzHint });
+    if (pa !== pb) return pa - pb;
+    return (ma.sortIndex ?? 0) - (mb.sortIndex ?? 0);
+  });
+
+  return { top: sorted.slice(0, maxTop), rest: sorted.slice(maxTop) };
+}

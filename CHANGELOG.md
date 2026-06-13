@@ -1,9 +1,8 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-## 2.53.4 — UX.1B Tender Workspace Tabs
-- 5 workspace: Przegląd · Dokumenty · Kwalifikacja · Wycena · Oferta (lazy render)
-- TenderWorkspaceTabBar, TenderDocumentsWorkspace, TenderQualificationWorkspace, TenderOverviewShortcuts
-- Kafelki → workspace nav; Przegląd ≤ 1 ekran
+## 2.53.5 — UX.1C Tender Documents Prioritization
+- Czytelne nazwy plików (`normalizeTenderDocumentTitle`) — tylko UI
+- TOP 5 „Najważniejsze dokumenty” + zwinięte pozostałe w workspace Dokumenty
 
 ## 2.53.4 — UX.1B Tender Workspace Tabs
 - 5 workspace lazy render · handoff: `docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`

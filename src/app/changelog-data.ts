@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.53.5",
+    label: "Przetargi — UX.1C Tender Documents Prioritization",
+    items: [
+      { type: "improve", text: "Dokumenty — czytelne nazwy plików (polskie znaki, spacje zamiast podkreśleń)" },
+      { type: "improve", text: "Sekcja „Najważniejsze dokumenty” — TOP 5 (SWZ, ATH, formularz, STWIOR, OPZ…)" },
+      { type: "improve", text: "Pozostałe dokumenty domyślnie zwinięte — „Pokaż pozostałe dokumenty (X)”" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.53.4",
     label: "Przetargi — UX.1B Tender Workspace Tabs",
     items: [

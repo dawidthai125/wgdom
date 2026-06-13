@@ -141,7 +141,11 @@ function ZipInnerList({
   );
 }
 
-import { TENDER_ATTACHMENTS_SECTION_ID } from "@/lib/tender-workspace-ux";
+import {
+  TENDER_ATTACHMENTS_SECTION_ID,
+  normalizeTenderDocumentTitle,
+  prioritizeTenderDocuments,
+} from "@/lib/tender-workspace-ux";
 
 export function TenderAttachmentsPanel({
   item,
@@ -167,6 +171,7 @@ export function TenderAttachmentsPanel({
   sectionId?: string;
 }) {
   const [preview, setPreview] = useState<InspectorFileItem | null>(null);
+  const [showRestDocs, setShowRestDocs] = useState(false);
 
   const docs = item.bzpDocuments ?? [];
   const externalFiles = externalDiscovery?.files ?? [];
@@ -184,8 +189,50 @@ export function TenderAttachmentsPanel({
     [item, loadingDocs],
   );
 
-  const displayName = (filename: string, opts: { index?: number; contentType?: string; url?: string }) =>
-    displayTenderFilename(filename, opts);
+  const displayName = (
+    filename: string,
+    opts: { index?: number; contentType?: string; url?: string; prefix?: string },
+  ) => normalizeTenderDocumentTitle(displayTenderFilename(filename, opts));
+
+  type AttachmentRow =
+    | { kind: "bzp"; doc: TenderBzpDocument; name: string; sortIndex: number }
+    | { kind: "external"; file: (typeof externalFiles)[number]; name: string; sortIndex: number }
+    | { kind: "upload"; file: TenderUploadedFile; name: string; sortIndex: number };
+
+  const attachmentRows = useMemo((): AttachmentRow[] => {
+    const rows: AttachmentRow[] = sortedDocs.map((doc) => ({
+      kind: "bzp" as const,
+      doc,
+      name: displayName(doc.filename, { index: doc.index, contentType: doc.contentType, url: doc.downloadUrl }),
+      sortIndex: doc.index,
+    }));
+    externalFiles.forEach((file, idx) => {
+      rows.push({
+        kind: "external",
+        file,
+        name: displayName(file.filename, { index: idx + 1, url: file.publicUrl, prefix: "BIP" }),
+        sortIndex: 1000 + idx,
+      });
+    });
+    if (item.uploadedFile) {
+      rows.push({
+        kind: "upload",
+        file: item.uploadedFile,
+        name: normalizeTenderDocumentTitle(item.uploadedFile.filename),
+        sortIndex: 2000,
+      });
+    }
+    return rows;
+  }, [sortedDocs, externalFiles, item.uploadedFile]);
+
+  const { top: topAttachments, rest: restAttachments } = useMemo(
+    () => prioritizeTenderDocuments(attachmentRows, (row) => ({
+      filename: row.name,
+      isSwzHint: row.kind === "bzp" ? row.doc.isSwzHint : row.kind === "external" ? row.file.isSwzHint : false,
+      sortIndex: row.sortIndex,
+    })),
+    [attachmentRows],
+  );
 
   const showEmptyPlatformState = !loadingDocs
     && docs.length === 0
@@ -264,151 +311,55 @@ export function TenderAttachmentsPanel({
           />
         )}
 
+        {restAttachments.length > 0 && (
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground pt-0.5">
+            Najważniejsze dokumenty
+          </p>
+        )}
+
         <ul className="space-y-1.5">
-          {sortedDocs.map((doc) => {
-            const name = displayName(doc.filename, { index: doc.index, contentType: doc.contentType, url: doc.downloadUrl });
-            const Icon = docIcon(name);
-            const canPreview = canPreviewFilename(name);
-            const isZip = isZipFilename(name);
-            return (
-              <li
-                key={doc.documentId}
-                className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-secondary/20 px-2.5 py-1.5 text-xs"
-              >
-                <Icon size={13} className="shrink-0 text-muted-foreground" />
-                {doc.isSwzHint && (
-                  <span className="text-[10px] bg-violet-500/10 text-violet-600 dark:text-violet-400 px-1 rounded shrink-0">
-                    SWZ
-                  </span>
-                )}
-                <span className="truncate min-w-0 flex-1 font-medium" title={name}>
-                  {name}
-                </span>
-                {canPreview && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPreview(previewItemForDoc(item.tenderId, doc));
-                    }}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-medium shrink-0"
-                  >
-                    <Eye size={11} />
-                    Podgląd
-                  </button>
-                )}
-                <a
-                  href={doc.downloadUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary hover:bg-secondary/80 text-[10px] shrink-0"
-                >
-                  <Download size={11} />
-                  Pobierz
-                </a>
-                {onAnalyze && (
-                  <button
-                    type="button"
-                    disabled={analyzing}
-                    onClick={(e) => { e.stopPropagation(); onAnalyze(doc.index); }}
-                    className="text-[10px] text-muted-foreground hover:text-foreground underline shrink-0 disabled:opacity-50"
-                  >
-                    analiza
-                  </button>
-                )}
-                {isZip && item.tenderId && (
-                  <ZipInnerList
-                    tenderId={item.tenderId}
-                    doc={{ ...doc, filename: name }}
-                    allDocs={docs}
+          {topAttachments.map((row) => (
+            <AttachmentDocRow
+              key={attachmentRowKey(row)}
+              row={row}
+              item={item}
+              docs={docs}
+              analyzing={analyzing}
+              onAnalyze={onAnalyze}
+              onPreview={setPreview}
+            />
+          ))}
+        </ul>
+
+        {restAttachments.length > 0 && (
+          <div className="space-y-1.5">
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setShowRestDocs((v) => !v); }}
+              className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground font-medium"
+            >
+              <ChevronDown size={12} className={`transition-transform ${showRestDocs ? "rotate-180" : ""}`} />
+              {showRestDocs
+                ? "Ukryj pozostałe dokumenty"
+                : `Pokaż pozostałe dokumenty (${restAttachments.length})`}
+            </button>
+            {showRestDocs && (
+              <ul className="space-y-1.5">
+                {restAttachments.map((row) => (
+                  <AttachmentDocRow
+                    key={attachmentRowKey(row)}
+                    row={row}
+                    item={item}
+                    docs={docs}
+                    analyzing={analyzing}
+                    onAnalyze={onAnalyze}
                     onPreview={setPreview}
                   />
-                )}
-              </li>
-            );
-          })}
-
-          {externalFiles.map((file, idx) => {
-            const name = displayName(file.filename, { index: idx + 1, url: file.publicUrl, prefix: "BIP" });
-            const canPreview = canPreviewFilename(name);
-            return (
-              <li
-                key={file.id}
-                className="flex flex-wrap items-center gap-2 rounded-lg border border-sky-500/25 bg-sky-500/5 px-2.5 py-1.5 text-xs"
-              >
-                <FileText size={13} className="shrink-0 text-muted-foreground" />
-                <span className="text-[10px] bg-sky-500/10 text-sky-600 px-1 rounded shrink-0">BIP</span>
-                {file.isSwzHint && (
-                  <span className="text-[10px] bg-violet-500/10 text-violet-600 px-1 rounded shrink-0">SWZ</span>
-                )}
-                <span className="truncate min-w-0 flex-1 font-medium" title={name}>{name}</span>
-                {canPreview && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPreview({
-                        kind: "tenderUpload",
-                        filename: name,
-                        publicUrl: file.publicUrl,
-                        path: file.storagePath,
-                      });
-                    }}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-medium shrink-0"
-                  >
-                    <Eye size={11} />
-                    Podgląd
-                  </button>
-                )}
-                <a
-                  href={file.publicUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary hover:bg-secondary/80 text-[10px] shrink-0"
-                >
-                  <Download size={11} />
-                </a>
-              </li>
-            );
-          })}
-
-          {item.uploadedFile && (
-            <li className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-2.5 py-1.5 text-xs">
-              <UploadIcon filename={item.uploadedFile.filename} />
-              <span className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-1 rounded shrink-0">
-                Wgrany
-              </span>
-              <span className="truncate min-w-0 flex-1" title={item.uploadedFile.filename}>
-                {item.uploadedFile.filename}
-              </span>
-              {canPreviewFilename(item.uploadedFile.filename) && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPreview(previewItemForUpload(item.uploadedFile!));
-                  }}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-medium shrink-0"
-                >
-                  <Eye size={11} />
-                  Podgląd
-                </button>
-              )}
-              <a
-                href={item.uploadedFile.publicUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary hover:bg-secondary/80 text-[10px] shrink-0"
-              >
-                <Download size={11} />
-                Pobierz
-              </a>
-            </li>
-          )}
-        </ul>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
         {noticeLinks.length > 0 && (
           <div className="pt-1 space-y-1">
@@ -453,6 +404,153 @@ export function TenderAttachmentsPanel({
 function UploadIcon({ filename }: { filename: string }) {
   const Icon = isKosztorysPreviewExt(filename) ? ClipboardList : FileText;
   return <Icon size={13} className="shrink-0 text-muted-foreground" />;
+}
+
+function attachmentRowKey(row: {
+  kind: "bzp" | "external" | "upload";
+  doc?: TenderBzpDocument;
+  file?: { id?: string; filename: string; path?: string };
+}): string {
+  if (row.kind === "bzp" && row.doc) return `bzp:${row.doc.documentId}`;
+  if (row.kind === "external" && row.file && "id" in row.file) return `ext:${row.file.id}`;
+  if (row.kind === "upload" && row.file) return `up:${row.file.filename}:${row.file.path ?? ""}`;
+  return "unknown";
+}
+
+function AttachmentDocRow({
+  row,
+  item,
+  docs,
+  analyzing,
+  onAnalyze,
+  onPreview,
+}: {
+  row: {
+    kind: "bzp" | "external" | "upload";
+    doc?: TenderBzpDocument;
+    file?: TenderUploadedFile | (NonNullable<TenderPipelineItem["externalDocDiscovery"]>["files"][number]);
+    name: string;
+  };
+  item: TenderPipelineItem;
+  docs: TenderBzpDocument[];
+  analyzing?: boolean;
+  onAnalyze?: (documentIndex: number) => void;
+  onPreview: (item: InspectorFileItem) => void;
+}) {
+  const name = row.name;
+  const FileIcon = docIcon(name);
+  const canPreview = canPreviewFilename(name);
+  const isZip = row.kind === "bzp" && isZipFilename(name);
+  const borderClass = row.kind === "external"
+    ? "border-sky-500/25 bg-sky-500/5"
+    : row.kind === "upload"
+      ? "border-emerald-500/30 bg-emerald-500/5"
+      : "border-border/60 bg-secondary/20";
+
+  return (
+    <li className={`flex flex-wrap items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs ${borderClass}`}>
+      {row.kind === "upload" && row.file ? (
+        <UploadIcon filename={row.file.filename} />
+      ) : (
+        <FileIcon size={13} className="shrink-0 text-muted-foreground" />
+      )}
+      {row.kind === "external" && (
+        <span className="text-[10px] bg-sky-500/10 text-sky-600 px-1 rounded shrink-0">BIP</span>
+      )}
+      {row.kind === "upload" && (
+        <span className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-1 rounded shrink-0">
+          Wgrany
+        </span>
+      )}
+      {(row.kind === "bzp" && row.doc?.isSwzHint) || (row.kind === "external" && row.file && "isSwzHint" in row.file && row.file.isSwzHint) ? (
+        <span className="text-[10px] bg-violet-500/10 text-violet-600 dark:text-violet-400 px-1 rounded shrink-0">
+          SWZ
+        </span>
+      ) : null}
+      <span className="truncate min-w-0 flex-1 font-medium" title={name}>
+        {name}
+      </span>
+      {canPreview && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (row.kind === "bzp" && row.doc) {
+              onPreview(previewItemForDoc(item.tenderId, row.doc));
+            } else if (row.kind === "external" && row.file && "publicUrl" in row.file) {
+              onPreview({
+                kind: "tenderUpload",
+                filename: name,
+                publicUrl: row.file.publicUrl,
+                path: row.file.storagePath,
+              });
+            } else if (row.kind === "upload" && row.file) {
+              onPreview(previewItemForUpload(row.file as TenderUploadedFile));
+            }
+          }}
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-medium shrink-0"
+        >
+          <Eye size={11} />
+          Podgląd
+        </button>
+      )}
+      {row.kind === "bzp" && row.doc && (
+        <>
+          <a
+            href={row.doc.downloadUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary hover:bg-secondary/80 text-[10px] shrink-0"
+          >
+            <Download size={11} />
+            Pobierz
+          </a>
+          {onAnalyze && (
+            <button
+              type="button"
+              disabled={analyzing}
+              onClick={(e) => { e.stopPropagation(); onAnalyze(row.doc!.index); }}
+              className="text-[10px] text-muted-foreground hover:text-foreground underline shrink-0 disabled:opacity-50"
+            >
+              analiza
+            </button>
+          )}
+          {isZip && item.tenderId && (
+            <ZipInnerList
+              tenderId={item.tenderId}
+              doc={{ ...row.doc, filename: name }}
+              allDocs={docs}
+              onPreview={onPreview}
+            />
+          )}
+        </>
+      )}
+      {row.kind === "external" && row.file && "publicUrl" in row.file && (
+        <a
+          href={row.file.publicUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary hover:bg-secondary/80 text-[10px] shrink-0"
+        >
+          <Download size={11} />
+        </a>
+      )}
+      {row.kind === "upload" && row.file && "publicUrl" in row.file && (
+        <a
+          href={row.file.publicUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary hover:bg-secondary/80 text-[10px] shrink-0"
+        >
+          <Download size={11} />
+          Pobierz
+        </a>
+      )}
+    </li>
+  );
 }
 
 function PlatformDocumentEmptyState({

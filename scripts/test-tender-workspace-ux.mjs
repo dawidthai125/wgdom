@@ -21,6 +21,10 @@ import {
   bidPrepTileToWorkspace,
   resolveDefaultTenderWorkspace,
   isTenderWorkspaceTabId,
+  normalizeTenderDocumentTitle,
+  prioritizeTenderDocuments,
+  classifyTenderDocumentDisplayTier,
+  TENDER_DOC_TOP_LIMIT,
 } from "../src/lib/tender-workspace-ux.ts";
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
@@ -124,5 +128,90 @@ assert(readSrc("src/app/TenderOverviewShortcuts.tsx").includes("onNavigate"), "O
 assert(readSrc("src/app/TenderDocumentsWorkspace.tsx").includes("TenderAttachmentsPanel"), "DocumentsWorkspace");
 assert(readSrc("src/app/TenderQualificationWorkspace.tsx").includes("TenderParticipationPanel"), "QualificationWorkspace");
 
-console.log(`\n=== UX.1A/1B: ${pass} PASS, ${fail} FAIL ===\n`);
+console.log("\n10. UX.1C — friendly titles");
+assert(
+  normalizeTenderDocumentTitle("Specyfikacja_Warunkow_Zamowienia.pdf") === "Specyfikacja Warunków Zamówienia.pdf",
+  "normalize: SWZ filename PL chars",
+);
+assert(
+  normalizeTenderDocumentTitle("formularz_ofertowy.docx") === "Formularz ofertowy.docx",
+  "normalize: formularz underscore",
+);
+assert(
+  normalizeTenderDocumentTitle("zalacznik_nr_1.pdf") === "Załącznik nr 1.pdf",
+  "normalize: zalacznik nr",
+);
+
+console.log("\n11. UX.1C — document prioritization (T1–T4)");
+function mockDoc(filename, index, isSwzHint = false) {
+  return { filename, index, isSwzHint };
+}
+
+const threeDocs = [
+  mockDoc("info.pdf", 1),
+  mockDoc("formularz_ofertowy.docx", 2),
+  mockDoc("inne.pdf", 3),
+];
+const t1 = prioritizeTenderDocuments(threeDocs, (d) => ({
+  filename: d.filename,
+  isSwzHint: d.isSwzHint,
+  sortIndex: d.index,
+}));
+assert(t1.top.length === 3 && t1.rest.length === 0, "T1: 3 docs → all visible, no rest");
+
+const twelveDocs = Array.from({ length: 12 }, (_, i) =>
+  mockDoc(`plik_${i + 1}.pdf`, i + 1),
+);
+twelveDocs[0] = mockDoc("Specyfikacja_Warunkow_Zamowienia.pdf", 0, true);
+twelveDocs[1] = mockDoc("kosztorys.ath", 1);
+const t2 = prioritizeTenderDocuments(twelveDocs, (d) => ({
+  filename: d.filename,
+  isSwzHint: d.isSwzHint,
+  sortIndex: d.index,
+}));
+assert(t2.top.length === TENDER_DOC_TOP_LIMIT, "T2: 12 docs → top 5");
+assert(t2.rest.length === 7, "T2: 12 docs → rest 7");
+
+const swzPool = [
+  mockDoc("a.pdf", 1),
+  mockDoc("b.pdf", 2),
+  mockDoc("c.pdf", 3),
+  mockDoc("d.pdf", 4),
+  mockDoc("e.pdf", 5),
+  mockDoc("Specyfikacja_SWZ.pdf", 6, true),
+];
+const t3 = prioritizeTenderDocuments(swzPool, (d) => ({
+  filename: d.filename,
+  isSwzHint: d.isSwzHint,
+  sortIndex: d.index,
+}));
+assert(t3.top.some((d) => d.isSwzHint), "T3: SWZ always in TOP");
+
+const athPool = [
+  mockDoc("a.pdf", 1),
+  mockDoc("b.pdf", 2),
+  mockDoc("c.pdf", 3),
+  mockDoc("d.pdf", 4),
+  mockDoc("e.pdf", 5),
+  mockDoc("przedmiar_robot.ath", 6),
+];
+const t4 = prioritizeTenderDocuments(athPool, (d) => ({
+  filename: d.filename,
+  isSwzHint: d.isSwzHint,
+  sortIndex: d.index,
+}));
+assert(
+  t4.top.some((d) => classifyTenderDocumentDisplayTier(d.filename) === "ath_przedmiar"),
+  "T4: ATH always in TOP",
+);
+
+console.log("\n12. UX.1C — collapse UI + dossier (T5–T6)");
+const attachPanelSrc = readSrc("src/app/TenderAttachmentsPanel.tsx");
+assert(attachPanelSrc.includes("Najważniejsze dokumenty"), "T5: top section label");
+assert(attachPanelSrc.includes("Pokaż pozostałe dokumenty"), "T5: expand rest label");
+assert(attachPanelSrc.includes("Ukryj pozostałe dokumenty"), "T5: collapse rest label");
+assert(attachPanelSrc.includes("normalizeTenderDocumentTitle"), "UX.1C: friendly titles in panel");
+assert(readSrc("src/app/TenderDocumentsWorkspace.tsx").includes("TenderDossierPanel"), "T6: dossier panel intact");
+
+console.log(`\n=== UX.1A/1B/1C: ${pass} PASS, ${fail} FAIL ===\n`);
 if (fail > 0) process.exit(1);

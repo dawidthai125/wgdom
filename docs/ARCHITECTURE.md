@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.4** · UX.1B)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (UX.1B — Tender Workspace Tabs)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.5** · UX.1C)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (UX.1C — Tender Documents Prioritization)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1197,6 +1197,16 @@ Architektura **5 workspace** w `TenderDetailPanel` — tylko reorganizacja UI (l
 **ARCH-001:** shell i workspace komponenty = czysty UI (bez importu `cloud-sync`).
 
 **Handoff SSOT:** [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)
+
+**UX.1C — Tender Documents Prioritization (v2.53.5):**
+
+Workspace **Dokumenty** — tylko warstwa UI (`TenderAttachmentsPanel`), bez zmian pipeline SWZ/ATH/dossier/sync.
+
+- `normalizeTenderDocumentTitle()` — czytelne nazwy (PL znaki, `_` → spacja)
+- `prioritizeTenderDocuments()` — TOP 5 wg tierów: SWZ → ATH/przedmiar → formularz → STWIOR → OPZ → …
+- Pozostałe dokumenty domyślnie zwinięte — przycisk „Pokaż pozostałe dokumenty (X)”
+
+**SSOT:** `tender-workspace-ux.ts` · test: `scripts/test-tender-workspace-ux.mjs` § UX.1C
 
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 
