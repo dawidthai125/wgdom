@@ -116,7 +116,12 @@ export async function extractDocxText(bytes: Uint8Array): Promise<string> {
   }
 }
 
-export async function extractPdfText(bytes: Uint8Array): Promise<{ text: string; pageCount: number; likelyScan: boolean }> {
+export async function extractPdfText(bytes: Uint8Array): Promise<{
+  text: string;
+  pageCount: number;
+  likelyScan: boolean;
+  noTextLayer: boolean;
+}> {
   ensurePdfWorker();
   try {
     const loading = pdfjs.getDocument({ data: bytes.slice() });
@@ -133,10 +138,12 @@ export async function extractPdfText(bytes: Uint8Array): Promise<{ text: string;
       if (line) parts.push(line);
     }
     const text = parts.join("\n");
-    const likelyScan = pdf.numPages > 0 && text.replace(/\s/g, "").length < pdf.numPages * 80;
-    return { text, pageCount: pdf.numPages, likelyScan };
+    const charCount = text.replace(/\s/g, "").length;
+    const likelyScan = pdf.numPages > 0 && charCount < pdf.numPages * 80;
+    const noTextLayer = pdf.numPages === 0 || charCount === 0;
+    return { text, pageCount: pdf.numPages, likelyScan, noTextLayer };
   } catch {
-    return { text: "", pageCount: 0, likelyScan: false };
+    return { text: "", pageCount: 0, likelyScan: false, noTextLayer: true };
   }
 }
 
@@ -234,8 +241,8 @@ export async function parseDocumentToKosztorys(
     return parseXlsxToKosztorys(bytes, filename);
   }
   if (isPdfPrzedmiarCostFilename(filename)) {
-    const { text, likelyScan } = await extractPdfText(bytes);
-    return pdfPrzedmiarHeuristicToPreview(text, filename, { likelyScan });
+    const { text, likelyScan, noTextLayer } = await extractPdfText(bytes);
+    return pdfPrzedmiarHeuristicToPreview(text, filename, { likelyScan, noTextLayer });
   }
   return null;
 }

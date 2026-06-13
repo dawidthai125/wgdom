@@ -300,6 +300,7 @@ export function TenderDetailPanel({
               const parsed = await parseTenderDossierDocuments(item.tenderId, docs, {
                 ourEstimatePln: estimatePln,
                 existingSwz: swz ?? undefined,
+                tenderTitle: item.title,
               });
               kosztorysSnap = parsed.kosztorys;
               if (parsed.swzMerged) {
@@ -437,6 +438,7 @@ export function TenderDetailPanel({
         ourEstimatePln: item.ourEstimatePln ?? null,
         existing: item.swzAnalysis ?? null,
         existingKosztorys: item.tenderDossier?.kosztorys ?? null,
+        tenderTitle: item.title,
       });
 
       const patch: Partial<TenderPipelineItem> = {

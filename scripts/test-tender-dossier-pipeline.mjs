@@ -22,12 +22,14 @@ import { clearDossierTraceLog, getDossierTraceLog, traceDossierPipeline } from "
 import {
   classifyCostDocumentType,
   discoverBestCostDocument,
+  scoreCostTitleMatch,
   isPdfPrzedmiarCostFilename,
   buildPdfPrzedmiarMvpSnapshot,
 } from "../src/lib/tender-cost-discovery.ts";
 import {
   parsePdfPrzedmiarHeuristic,
   PDF_PRZEDMIAR_UX_LINES,
+  PDF_PRZEDMIAR_NO_TEXT_LAYER_LINE,
 } from "../src/lib/pdf-przedmiar-heuristic.ts";
 import {
   applyMetadataConfidence,
@@ -225,6 +227,29 @@ const h5bParsed = parsePdfPrzedmiarHeuristic(SAMPLE_KNR_TEXT);
 assert("h5b case 1 rows", h5bParsed.uxCase === 1 && h5bParsed.rows.length === 2);
 assert("h5b swz guard", parsePdfPrzedmiarHeuristic("SWZ — przedmiot zamówienia, wadium 5%").uxCase === 2);
 assert("h5b scan case 3", parsePdfPrzedmiarHeuristic(SAMPLE_KNR_TEXT, { likelyScan: true }).uxCase === 3);
+
+// P2-H.5C — brak warstwy tekstowej
+const h5cNoText = parsePdfPrzedmiarHeuristic("", { noTextLayer: true });
+assert("h5c no text case 3", h5cNoText.uxCase === 3);
+assert("h5c no text message", h5cNoText.warnings[0] === PDF_PRZEDMIAR_NO_TEXT_LAYER_LINE);
+
+const pdfNoTextStatusSummary = { ...pdfPrStatusSummary, pdfPrzedmiarCase: 3, pdfPrzedmiarNoTextLayer: true };
+assert("h5c status no text", buildKosztorysStatusLine(pdfNoTextStatusSummary).includes("warstwy tekstowej"));
+
+// P2-H.5D.2 — multi-ATH tie-break
+const zzkAthA = {
+  filename: "ZADANIE 1 - przedmiary (2).zip → Przewody wentylacyjne 2026.ath",
+  score: 28,
+  zipInnerPath: "Przedmiar robót branży budowlanej (dotyczy prawa opcji)/Przewody wentylacyjne 2026.ath",
+};
+const zzkAthB = {
+  filename: "ZADANIE 1 - przedmiary (2).zip → PIASKOWA  7  m 3  - SANITARNY - aktual - zest.ATH",
+  score: 28,
+  zipInnerPath: "Zadanie 1 - przedmiary/Piaskowa 7-3/PIASKOWA  7  m 3  - SANITARNY - aktual - zest.ATH",
+};
+assert("h5d deprioritize wentyl", scoreCostTitleMatch(zzkAthA) < scoreCostTitleMatch(zzkAthB));
+const h5dDisc = discoverBestCostDocument([zzkAthA, zzkAthB]);
+assert("h5d pick piaskowa", h5dDisc.source.includes("PIASKOWA"));
 
 const pdfRowsStatusSummary = {
   ...pdfPrStatusSummary,

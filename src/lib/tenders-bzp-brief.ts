@@ -49,6 +49,8 @@ export interface TenderKosztorysSnapshot {
   parsedAt: string;
   /** P2-H.5B — komunikat jakości PDF przedmiaru. */
   pdfPrzedmiarCase?: 1 | 2 | 3;
+  /** P2-H.5C — CASE 3: brak warstwy tekstowej (CAD). */
+  pdfPrzedmiarNoTextLayer?: boolean;
 }
 
 export interface TenderBrief {
@@ -249,6 +251,7 @@ export function athPreviewToSnapshot(
     warnings: preview.warnings.slice(0, 5),
     parsedAt: new Date().toISOString(),
     pdfPrzedmiarCase: preview.pdfPrzedmiarCase,
+    pdfPrzedmiarNoTextLayer: preview.pdfPrzedmiarNoTextLayer,
   };
 }
 

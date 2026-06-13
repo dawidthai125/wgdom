@@ -25,7 +25,7 @@ import { traceDossierPipeline } from "@/lib/tender-dossier-trace";
 import { enrichSwzFromText } from "@/lib/tenders-bzp-swz-enrich";
 import { applyMetadataConfidence, scoreEstimatedValueConfidence } from "@/lib/tender-metadata-confidence";
 import { roleContributesMetadata } from "@/lib/tender-metadata-sources";
-import { discoverBestCostDocument, isPdfPrzedmiarCostFilename, type TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
+import { classifyCostDocumentType, discoverBestCostDocument, isPdfPrzedmiarCostFilename, type TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
 import { enrichKosztorysSnapshotFromPreview, estimatePlnFromKosztorysSnapshot, traceCostPipeline } from "@/lib/tender-cost-snapshot";
 import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
 import { mergeFormalRequirements } from "@/lib/tender-formal-requirements";
@@ -656,7 +656,7 @@ export async function parseBestTenderDocuments(
 export async function parseTenderDossierDocuments(
   tenderId: string,
   docs: TenderBzpDocument[],
-  opts?: { ourEstimatePln?: number | null; existingSwz?: TenderSwzAnalysis | null },
+  opts?: { ourEstimatePln?: number | null; existingSwz?: TenderSwzAnalysis | null; tenderTitle?: string },
 ): Promise<TenderDossierParseResult> {
   const warnings: string[] = [];
   if (!docs.length) {
@@ -675,7 +675,7 @@ export async function parseTenderDossierDocuments(
   }
 
   const allCandidates = await buildTenderDocCandidates(tenderId, docs);
-  const costDiscovery = discoverBestCostDocument(allCandidates);
+  let costDiscovery = discoverBestCostDocument(allCandidates, { tenderTitle: opts?.tenderTitle });
   if (costDiscovery.found) {
     traceDossierPipeline("cost_document_discovered", costDiscovery.source, {
       type: costDiscovery.type,
@@ -720,6 +720,7 @@ export async function parseTenderDossierDocuments(
   let sourceDocumentIndex: number | undefined;
   let zipInnerPath: string | undefined;
   let sourceFilename: string | undefined;
+  let winningCostSource: string | undefined;
   let parsedCount = 0;
 
   /** Faza 1 — kosztorys (standalone ATH + inner ZIP) zawsze przed metadanymi SWZ. */
@@ -743,6 +744,7 @@ export async function parseTenderDossierDocuments(
           sourceDocumentIndex = parsed.sourceDocumentIndex;
           zipInnerPath = parsed.zipInnerPath;
           sourceFilename = parsed.sourceFilename;
+          winningCostSource = cand.filename;
         }
         if (parsed.estimatePln != null) {
           estimatePln = parsed.estimatePln;
@@ -787,6 +789,7 @@ export async function parseTenderDossierDocuments(
           sourceDocumentIndex = parsed.sourceDocumentIndex;
           zipInnerPath = parsed.zipInnerPath;
           sourceFilename = parsed.sourceFilename;
+          winningCostSource = cand.filename;
         }
         if (parsed.estimatePln != null) {
           estimatePln = parsed.estimatePln;
@@ -828,6 +831,20 @@ export async function parseTenderDossierDocuments(
 
   if (swzMerged) {
     swzMerged = applyMetadataConfidence(swzMerged);
+  }
+
+  /** P2-H.5D.1 — discovery metadata = faktyczne źródło pozycji z dossier. */
+  if (bestKosztorys?.ok && winningCostSource) {
+    const matchCand = allCandidates.find((c) => c.filename === winningCostSource);
+    if (matchCand) {
+      const { type, confidence } = classifyCostDocumentType(matchCand.filename);
+      costDiscovery = {
+        found: true,
+        type,
+        source: winningCostSource,
+        confidence: Math.min(0.99, confidence + (matchCand.score ?? 0) / 100 * 0.05),
+      };
+    }
   }
 
   traceDossierPipeline("dossier_updated", sourceFilename ?? "dossier", {

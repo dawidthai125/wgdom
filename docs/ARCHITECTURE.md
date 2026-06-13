@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.55.9** · P2-H.5B PDF heurystyki)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.55.10** · P2-H.5C/5D CLOSED)
 > **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-H.3 7Z + handoff dokumentacji)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
@@ -1164,9 +1164,9 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 
 **Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (357+ asercji) · regresja P2-F: `test-tender-dossier-pipeline.mjs`
 
-### 12.1.7 P2-H — Tender Documents, ZIP & 7Z Archives (H.1–H.5A, v2.55.0–2.55.8)
+### 12.1.7 P2-H — Tender Documents, ZIP & 7Z Archives (H.1–H.5D, v2.55.0–2.55.10)
 
-**Status:** **P2-H.1–H.4 CLOSED** · **P2-H.6 CLOSED** · **P2-H.5A CLOSED** · **P2-H.5B CLOSED** (heurystyki PDF)  
+**Status:** **P2-H STREAM FULLY CLOSED** (H.1–H.6 + H.5A–H.5D)  
 **Handoff SSOT:** [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)
 
 Seria **pobieranie i rozpakowywanie załączników** z platform off-BZP oraz archiwów ZIP/7Z w pipeline dossier.
@@ -1181,6 +1181,8 @@ Seria **pobieranie i rozpakowywanie załączników** z platform off-BZP oraz arc
 | **P2-H.6** | **2.55.7** | Filtr folderów w `listZipFiles` / `list7zFiles` (prerequisite P2-H.5) |
 | **P2-H.5A** | **2.55.8** | PDF przedmiar MVP — discovery + UX, bez pozycji/OCR |
 | **P2-H.5B** | **2.55.9** | Heurystyki PDF — KNR/KNNR, pozycje, `likelyScan` guard |
+| **P2-H.5C** | **2.55.10** | `noTextLayer` → CASE 3 (CAD bez tekstu) |
+| **P2-H.5D** | **2.55.10** | Multi-ATH tie-break + sync discovery ↔ dossier |
 
 **Pipeline inner candidates:**
 
@@ -1190,7 +1192,7 @@ buildTenderDocCandidates()
   → if .zip: listZipFiles + inner (max 20)
   → if .7z:  list7zFiles + inner (max 20)
   → filterOuterArchiveWhenInnerExists()  // pomija outer gdy są inner
-  → discoverBestCostDocument()           // ATH/NOR/XML/XLS/XLSX > PDF przedmiar
+  → discoverBestCostDocument({ tenderTitle })  // priority → confidence → titleMatch
   → parseTenderDocumentCandidate()       // readZipEntry | read7zEntry
 ```
 
@@ -1198,7 +1200,7 @@ buildTenderDocCandidates()
 
 **Pole `zipInnerPath`:** używane dla inner z **ZIP i 7Z** (bez rename).
 
-**Cost discovery (P2-H.5A/B):** typy `pdf_przedmiar` / `zip_pdf_przedmiar`. **P2-H.5B:** `parsePdfPrzedmiarHeuristic()` — min. 3 sygnały (KNR, Lp., Ilość, J.m., j.m.), ekstrakcja wierszy `category: UNKNOWN`; `likelyScan` → CASE 3 bez OCR. **Bez** rekonstrukcji tabel współrzędnych (P2-G.3D/E backlog).
+**Cost discovery (P2-H.5A–5D):** typy `pdf_przedmiar` / `zip_pdf_przedmiar`. **P2-H.5B:** heurystyki KNR. **P2-H.5C:** `noTextLayer` (pageCount=0 lub chars=0) → CASE 3 z komunikatem CAD/OCR. **P2-H.5D:** `scoreCostTitleMatch()` — depriorytetyzacja opcji/wentylacji; po dossier parse sync `costDiscovery.source` z faktycznym plikiem.
 
 **Kluczowe pliki:** `pdf-przedmiar-heuristic.ts`, `tender-cost-discovery.ts`, `tenders-bzp-doc-parse.ts`
 
@@ -1210,7 +1212,8 @@ buildTenderDocCandidates()
 
 | Skrypt | Zakres |
 |--------|--------|
-| `scripts/test-pdf-przedmiar-heuristic.mjs` | P2-H.5B heurystyki |
+| `scripts/test-pdf-przedmiar-heuristic.mjs` | P2-H.5B/5C heurystyki |
+| `scripts/test-tender-cost-discovery.mjs` | P2-H.5D multi-ATH tie-break |
 | `scripts/test-tender-7z-archive.mjs` | list/read/pick/candidates/cost + P2-H.5A PDF |
 | `scripts/test-tender-dossier-pipeline.mjs` | dossier + P2-F + P2-H.5A |
 | `scripts/smoke-test-ezamawiajacy-p2h1.mjs` | Marketplanet T1–T10 |

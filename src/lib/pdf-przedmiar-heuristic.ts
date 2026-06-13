@@ -35,6 +35,13 @@ export const PDF_PRZEDMIAR_UX_LINES: Record<PdfPrzedmiarUxCase, string> = {
   3: "PDF zawiera skan i wymaga OCR.",
 };
 
+/** P2-H.5C — brak warstwy tekstowej (CAD / pdf.js bez stron). */
+export const PDF_PRZEDMIAR_NO_TEXT_LAYER_LINE =
+  "PDF nie zawiera warstwy tekstowej (np. eksport CAD) i wymaga OCR lub pliku ATH/XLS.";
+
+export const PDF_PRZEDMIAR_NO_TEXT_LAYER_SHORT =
+  "PDF zawiera skan lub dane CAD bez tekstu.";
+
 function normalizePdfText(text: string): string {
   return text
     .replace(/\r\n/g, "\n")
@@ -129,12 +136,23 @@ export function extractPdfPrzedmiarRows(text: string): AthPreviewRow[] {
 /** Główna heurystyka P2-H.5B — tekst z extractPdfText(), bez OCR. */
 export function parsePdfPrzedmiarHeuristic(
   text: string,
-  opts?: { likelyScan?: boolean },
+  opts?: { likelyScan?: boolean; noTextLayer?: boolean },
 ): PdfPrzedmiarHeuristicResult {
   const warnings: string[] = [];
 
   if (opts?.likelyScan) {
     warnings.push(PDF_PRZEDMIAR_UX_LINES[3]);
+    return {
+      uxCase: 3,
+      rows: [],
+      signals: detectPdfPrzedmiarSignals(text),
+      signalCount: 0,
+      warnings,
+    };
+  }
+
+  if (opts?.noTextLayer) {
+    warnings.push(PDF_PRZEDMIAR_NO_TEXT_LAYER_LINE);
     return {
       uxCase: 3,
       rows: [],
@@ -166,7 +184,7 @@ export function parsePdfPrzedmiarHeuristic(
 export function pdfPrzedmiarHeuristicToPreview(
   text: string,
   filename: string,
-  opts?: { likelyScan?: boolean },
+  opts?: { likelyScan?: boolean; noTextLayer?: boolean },
 ): AthPreviewResult {
   const base = filename.split(" → ").pop() ?? filename;
   const parsed = parsePdfPrzedmiarHeuristic(text, opts);
@@ -178,5 +196,6 @@ export function pdfPrzedmiarHeuristicToPreview(
     rows: parsed.rows,
     warnings: parsed.warnings,
     pdfPrzedmiarCase: parsed.uxCase,
+    pdfPrzedmiarNoTextLayer: Boolean(opts?.noTextLayer && parsed.uxCase === 3),
   };
 }

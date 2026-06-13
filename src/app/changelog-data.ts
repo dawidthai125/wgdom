@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.55.10",
+    label: "Przetargi — P2-H.5C/5D PDF CAD + multi-ATH",
+    items: [
+      { type: "fix", text: "PDF przedmiar bez warstwy tekstowej (CAD) — CASE 3 zamiast mylącego „brak pozycji”; komunikat o OCR/ATH/XLS" },
+      { type: "improve", text: "Multi-ATH: tie-break po tytule przetargu + depriorytetyzacja opcji/wentylacji; sync discovery ↔ dossier" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.55.9",
     label: "Przetargi — P2-H.5B PDF przedmiar (heurystyki)",
     items: [

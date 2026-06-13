@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.55.10 — P2-H.5C/5D PDF CAD + multi-ATH
+- `noTextLayer` w `extractPdfText` → CASE 3 (CAD bez tekstu)
+- `scoreCostTitleMatch` + tie-break w `discoverBestCostDocument`
+- Sync `costDiscovery.source` z faktycznym źródłem dossier
+
 ## 2.55.9 — P2-H.5B PDF przedmiar (heurystyki)
 - `pdf-przedmiar-heuristic.ts` — sygnały KNR/Lp./J.m./ilość, ekstrakcja wierszy, `likelyScan` → OCR
 - `parseDocumentToKosztorys` — PDF przedmiar z tekstu pdf.js; UX case 1/2/3

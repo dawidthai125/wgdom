@@ -56,6 +56,8 @@ export interface AthPreviewResult {
   rawPreview?: string;
   /** P2-H.5B — UX case dla PDF przedmiaru (1=pozycje, 2=brak pozycji, 3=skan). */
   pdfPrzedmiarCase?: 1 | 2 | 3;
+  /** P2-H.5C — CASE 3 z powodu braku warstwy tekstowej (CAD), nie skanu. */
+  pdfPrzedmiarNoTextLayer?: boolean;
 }
 
 /** Ogólne komunikaty o ograniczeniach podglądu — nie pokazujemy przy udanym parsowaniu ani w PDF. */

@@ -44,6 +44,8 @@ export interface TenderDossierScanSummary {
   costDiscovery: TenderCostDiscoveryResult | null;
   /** P2-H.5B — jakość odczytu PDF przedmiaru (1=pozycje, 2=brak, 3=skan). */
   pdfPrzedmiarCase?: 1 | 2 | 3;
+  /** P2-H.5C — CASE 3 z powodu braku warstwy tekstowej. */
+  pdfPrzedmiarNoTextLayer?: boolean;
   parsedAt: string;
 }
 
@@ -110,6 +112,7 @@ export function buildKosztorysStatusLine(summary: TenderDossierScanSummary): str
     if (disc?.found && (disc.type === "pdf_przedmiar" || disc.type === "zip_pdf_przedmiar")) {
       return `Kosztorys:\n${costTypeKosztorysFoundLine(disc.type, disc.source, {
         pdfCase: summary.pdfPrzedmiarCase,
+        pdfNoTextLayer: summary.pdfPrzedmiarNoTextLayer,
       })}`;
     }
     const label = disc?.found
@@ -153,6 +156,7 @@ export async function analyzeTenderWithDossier(opts: {
   ourEstimatePln?: number | null;
   existing?: TenderSwzAnalysis | null;
   existingKosztorys?: TenderKosztorysSnapshot | null;
+  tenderTitle?: string;
 }): Promise<TenderDossierAnalysisResult> {
   clearDossierTraceLog();
   clearCostTraceLog();
@@ -184,6 +188,7 @@ export async function analyzeTenderWithDossier(opts: {
     const dossier = await parseTenderDossierDocuments(opts.tenderId, docs, {
       ourEstimatePln: estimatePln,
       existingSwz: merged,
+      tenderTitle: opts.tenderTitle,
     });
     if (dossier.swzMerged) merged = dossier.swzMerged;
     if (dossier.kosztorys?.ok) kosztorys = dossier.kosztorys;
@@ -225,6 +230,7 @@ export async function analyzeTenderWithDossier(opts: {
     estimateFound: estimatePln != null,
     costDiscovery,
     pdfPrzedmiarCase: kosztorys?.pdfPrzedmiarCase,
+    pdfPrzedmiarNoTextLayer: kosztorys?.pdfPrzedmiarNoTextLayer,
     parsedAt: new Date().toISOString(),
   };
 

@@ -97,6 +97,15 @@ assert("scan case 3", scanParsed.uxCase === 3);
 assert("scan no rows", scanParsed.rows.length === 0);
 assert("scan warning", scanParsed.warnings[0] === PDF_PRZEDMIAR_UX_LINES[3]);
 
+// P2-H.5C — brak warstwy tekstowej
+const noTextParsed = parsePdfPrzedmiarHeuristic("", { noTextLayer: true });
+assert("no text layer case 3", noTextParsed.uxCase === 3);
+assert("no text layer zero rows", noTextParsed.rows.length === 0);
+assert("no text layer warning", noTextParsed.warnings[0].includes("warstwy tekstowej"));
+
+const noTextPage0 = parsePdfPrzedmiarHeuristic("", { noTextLayer: true, likelyScan: false });
+assert("page0 chars0 case 3", noTextPage0.uxCase === 3);
+
 // Single line parser
 const line = parsePdfPrzedmiarLine("1 KNR 401-01-01 Tynk gipsowy na ścianach m2 12,5");
 assert("line parse ok", line?.code.includes("KNR"));

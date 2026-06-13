@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-13 (P2-H.5B PDF heurystyki · v2.55.9)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-13 (P2-H STREAM FULLY CLOSED · v2.55.10)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -63,9 +63,9 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version:              2.55.9         ← baseline P2-H.5B PDF przedmiar heurystyki
-Feature commit (P2-H.5B): (po push)   feat(tenders): extract KNR positions from PDF przedmiar
-P2-H.5A:              2.55.8         PDF przedmiar MVP discovery
+Version:              2.55.10        ← baseline P2-H.5C/5D (stream CLOSED)
+Feature commit (P2-H.5C/5D): (po push) fix(tenders): improve pdf no-text handling and multi-ath ranking
+P2-H.5B:              2.55.9         Heurystyki KNR PDF
 P2-H.6:               2.55.7         filtr folderów ZIP/7Z
 P2-H.4:               2.55.6         UX copy archiwów 7Z
 Feature commit (P2-H.3): d725c24      P2-H.3: obsługa archiwów 7Z w dossier
@@ -153,7 +153,8 @@ Chronologia releasów aplikacyjnych na `main` po baseline **2.50.65** (20.5Z.5C)
 | **2.55.6** | P2-H.4 | — | UX copy archiwów 7Z |
 | **2.55.7** | P2-H.6 | — | Filtr folderów ZIP/7Z inner |
 | **2.55.8** | P2-H.5A | — | PDF przedmiar MVP discovery |
-| **2.55.9** | **P2-H.5B** | **(release)** | **Heurystyki KNR — pozycje z PDF bez OCR** |
+| **2.55.10** | **P2-H.5C/5D** | **(release)** | **PDF noTextLayer CASE 3 + multi-ATH ranking + discovery sync** |
+| **2.55.9** | P2-H.5B | — | Heurystyki KNR — pozycje z PDF bez OCR |
 
 **Handoff P2-H:** [`SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)  
 **Handoff UX.1:** [`SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)  
@@ -382,7 +383,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | **P1** | Dashboard V3 + CC removal + Przetargi 3.0 | **CLOSED** (v2.51.x) |
 | **P2-F** | Kwalifikacja ofertowa (F.0–F.5) | **CLOSED** (v2.51.19–2.51.24) |
 | **UX.1** | Tender Workspace (UX.1A/1B) | **CLOSED** (v2.53.1–2.53.4) |
-| **P2-H** | Dokumenty / ZIP / 7Z / PDF przedmiar | **H.1–H.5B CLOSED** (v2.55.0–2.55.9) · **H.7 OPEN** |
+| **P2-H** | Dokumenty / ZIP / 7Z / PDF przedmiar | **STREAM FULLY CLOSED** (v2.55.0–2.55.10) |
 | **P2** | Audit Center / Security Log (Super Admin) | **OTWARTY** |
 | P2-G.3C/D/E | Benchmark rynku · AI Validation · RMS | **OTWARTY** → slot **Wycena** |
 | P2-F.6 | Kompletność oferty (checklist) | **OTWARTY** → slot **Oferta** |
@@ -409,7 +410,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 ## 13. NASTĘPNY KROK (dla agenta)
 
 ```text
-P2-H stream CLOSED (v2.55.9 · P2-H.5B).
+P2-H stream FULLY CLOSED (v2.55.10 · P2-H.5C/5D).
 P2-H.7 OPEN — Edge magic bytes 7z (techniczny hardening).
 UX.1 CLOSED · P2-F CLOSED · P1 CLOSED.
 Kolejny stream produktowy: P2-G.3C/D/E (Wycena) · P2-F.6 (Oferta) · P2 Audit Center — tylko na polecenie po AUDIT.
@@ -452,7 +453,7 @@ Przy wznowieniu:
 **Werdykt closeout (P2-F):**
 
 ```text
-BASELINE v2.55.9 · STABLE · RELEASE GO (verify version.json)
+BASELINE v2.55.10 · STABLE · RELEASE GO (verify version.json)
 P2-H stream CLOSED — Marketplanet · ZIP · 7Z · PDF przedmiar (discovery + heurystyki KNR)
 P2-H.7 OPEN — Edge magic bytes 7z
 UX.1 CLOSED — 5 workspace tabs · lazy render · Anti-CC · ARCH-001

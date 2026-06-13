@@ -6,6 +6,7 @@
 import type { AthPreviewResult } from "@/lib/ath-parser";
 import { isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { is7zFilename, isXlsxFilename, isZipFilename } from "@/lib/tenders-bzp-filename";
+import { PDF_PRZEDMIAR_NO_TEXT_LAYER_LINE } from "@/lib/pdf-przedmiar-heuristic";
 
 export type TenderCostDocumentType =
   | "ath"
@@ -122,9 +123,72 @@ const COST_TYPE_PRIORITY: Record<TenderCostDocumentType, number> = {
   none: 99,
 };
 
+const ATH_DEPRIORITY_RE = /prawo\s*opcji|wentylacyjne|ogólne|ogolne/i;
+
+function normalizeMatchHaystack(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/[^\p{L}\p{N}\s./-]+/gu, " ");
+}
+
+/** P2-H.5D.2 — dopasowanie inner ATH do tytułu przetargu + depriorytetyzacja opcji/wentylacji. */
+export function scoreCostTitleMatch(
+  candidate: TenderCostCandidate,
+  tenderTitle?: string,
+): number {
+  const hay = normalizeMatchHaystack(`${candidate.filename} ${candidate.zipInnerPath ?? ""}`);
+  let score = 0;
+
+  if (/prawo\s*opcji/i.test(hay)) score -= 20;
+  if (/wentylacyjne/i.test(hay)) score -= 15;
+  if (/ogólne|ogolne/i.test(hay)) score -= 10;
+
+  if (!tenderTitle?.trim()) return score;
+
+  const titleHay = normalizeMatchHaystack(tenderTitle);
+  const tokens = titleHay.split(/\s+/).filter((t) => t.length >= 4);
+  for (const token of tokens) {
+    if (hay.includes(token)) score += 6;
+  }
+
+  const lokMatch = titleHay.match(/\blok\.?\s*(\d+)\b/) ?? titleHay.match(/\bm\s*(\d+)\b/);
+  if (lokMatch) {
+    const lok = lokMatch[1];
+    if (
+      hay.includes(`lok ${lok}`)
+      || hay.includes(`lok. ${lok}`)
+      || hay.includes(`lok.${lok}`)
+      || hay.includes(`m ${lok}`)
+      || hay.includes(`m${lok}`)
+      || hay.includes(`${lok}-`)
+      || hay.includes(`-${lok}/`)
+    ) {
+      score += 12;
+    }
+  }
+
+  const streets = ["piaskowa", "rdestowa", "falzmanna", "pomorska", "lukasinskiego", "nowodworska", "sredzka", "srutowa"];
+  for (const street of streets) {
+    if (titleHay.includes(street) && hay.includes(street)) score += 15;
+  }
+
+  return score;
+}
+
+export interface DiscoverBestCostOptions {
+  tenderTitle?: string;
+}
+
+function confidenceTie(a: number, b: number): boolean {
+  return Math.abs(a - b) < 0.0001;
+}
+
 /** Priorytet: ATH/NOR/XML > XLS/XLSX > PDF przedmiar > pozostałe. */
 export function discoverBestCostDocument(
   candidates: TenderCostCandidate[],
+  opts?: DiscoverBestCostOptions,
 ): TenderCostDiscoveryResult {
   let best: TenderCostDiscoveryResult = {
     found: false,
@@ -132,6 +196,8 @@ export function discoverBestCostDocument(
     source: "",
     confidence: 0,
   };
+  let bestPriority = COST_TYPE_PRIORITY.none;
+  let bestTitleMatch = Number.NEGATIVE_INFINITY;
 
   for (const cand of candidates) {
     const { type, confidence } = classifyCostDocumentType(cand.filename);
@@ -139,12 +205,24 @@ export function discoverBestCostDocument(
     const scoreBoost = (cand.score ?? 0) / 100;
     const effective = Math.min(0.99, confidence + scoreBoost * 0.05);
     const priority = COST_TYPE_PRIORITY[type];
-    const bestPriority = COST_TYPE_PRIORITY[best.type];
+    const titleMatch = scoreCostTitleMatch(cand, opts?.tenderTitle);
+
+    if (!best.found) {
+      best = { found: true, type, source: cand.filename, confidence: effective };
+      bestPriority = priority;
+      bestTitleMatch = titleMatch;
+      continue;
+    }
+
     const better =
       priority < bestPriority
-      || (priority === bestPriority && effective > best.confidence);
+      || (priority === bestPriority && effective > best.confidence)
+      || (priority === bestPriority && confidenceTie(effective, best.confidence) && titleMatch > bestTitleMatch);
+
     if (better) {
       best = { found: true, type, source: cand.filename, confidence: effective };
+      bestPriority = priority;
+      bestTitleMatch = titleMatch;
     }
   }
 
@@ -185,11 +263,15 @@ export function buildPdfPrzedmiarMvpSnapshot(filename: string): AthPreviewResult
 export function costTypeKosztorysFoundLine(
   type: TenderCostDocumentType,
   source?: string,
-  opts?: { pdfCase?: 1 | 2 | 3 },
+  opts?: { pdfCase?: 1 | 2 | 3; pdfNoTextLayer?: boolean },
 ): string {
   if (type === "pdf_przedmiar" || type === "zip_pdf_przedmiar") {
     if (opts?.pdfCase === 1) return "Rozpoznano pozycje robót w PDF.";
-    if (opts?.pdfCase === 3) return "PDF zawiera skan i wymaga OCR.";
+    if (opts?.pdfCase === 3) {
+      return opts?.pdfNoTextLayer
+        ? PDF_PRZEDMIAR_NO_TEXT_LAYER_LINE
+        : "PDF zawiera skan i wymaga OCR.";
+    }
     if (opts?.pdfCase === 2) return "Znaleziono przedmiar PDF, ale nie udało się odczytać pozycji.";
     const base = (source ?? "").split(" → ").pop()?.toLowerCase() ?? "";
     if (/kosztorys/i.test(base) && !/przedmiar|obmiar|_pr/i.test(base)) {
