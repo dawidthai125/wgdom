@@ -41,6 +41,7 @@ import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { getActiveCatalog, loadWgdomCostCatalogStoreLocal } from "@/lib/wgdom-cost-catalog-store";
 import type { TenderPriceOverrideEntry } from "@/lib/tender-price-overrides";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
+import { buildLaborBenchmarkAlerts } from "@/lib/labor-benchmark";
 
 function qualityBadgeClass(level: TenderBidProposal["qualityLevel"]): string {
   if (level === "high") return "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/25";
@@ -113,6 +114,16 @@ export function TenderBidProposalPanel({
       priceOverrides,
     );
   }, [proposal?.pricingMode, catalogQuantities, dictRevision, priceOverrides]);
+
+  const laborBenchmarkAlerts = useMemo(() => {
+    if (!catalogLinePricing?.categorySummary.length) return null;
+    return buildLaborBenchmarkAlerts(
+      catalogLinePricing.categorySummary.map((row) => ({
+        ...row.laborBenchmark,
+        categoryLabel: row.categoryLabel,
+      })),
+    );
+  }, [catalogLinePricing]);
 
   const openPriceBase = useCallback(() => {
     tendersCtx?.setActiveTab("pricebase");
@@ -247,6 +258,25 @@ export function TenderBidProposalPanel({
           </div>
         </div>
       </div>
+
+      {laborBenchmarkAlerts && laborBenchmarkAlerts.outOfRangeCount > 0 && (
+        <details className="mx-3 mt-0 mb-0 rounded-lg border border-amber-500/30 bg-amber-500/8 px-2.5 py-2 text-[10px]">
+          <summary className="cursor-pointer font-semibold text-amber-800 dark:text-amber-200 flex items-center gap-1">
+            <AlertTriangle size={11} className="shrink-0" />
+            {laborBenchmarkAlerts.outOfRangeCount}{" "}
+            {laborBenchmarkAlerts.outOfRangeCount === 1 ? "kategoria poza" : "kategorie poza"} benchmarkiem robocizny
+          </summary>
+          <ul className="mt-1.5 space-y-1 list-none text-muted-foreground">
+            {laborBenchmarkAlerts.items.map((item) => (
+              <li key={item.categoryLabel}>
+                <strong className="text-foreground">{item.categoryLabel}</strong>
+                {" — "}{item.statusLabelPl}
+                {" · "}{item.ourLaborPlnPerUnit.toLocaleString("pl-PL")} zł vs {item.rangeLabelPl}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       <div className="px-3 py-2 border-b border-violet-500/10 grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-1 text-[10px]">
         <p>

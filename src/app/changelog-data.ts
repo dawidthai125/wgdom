@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.56.3",
+    label: "Przetargi — P3.3A benchmark robocizny MVP",
+    items: [
+      { type: "new", text: "Baza cen + Wycena — kolumna Benchmark robocizny (nasza vs zakres referencyjny, status OK/poza)" },
+      { type: "improve", text: "Alert hero: kategorie poza benchmarkiem (read-only, bez wpływu na kalkulator)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.56.2",
     label: "Przetargi — P3.5B override cen per przetarg",
     items: [

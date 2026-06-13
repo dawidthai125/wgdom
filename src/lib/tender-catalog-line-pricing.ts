@@ -17,6 +17,10 @@ import {
   buildTenderPriceOverrideLookup,
   type TenderPriceOverrideEntry,
 } from "@/lib/tender-price-overrides";
+import {
+  compareLaborRateToBenchmark,
+  type LaborBenchmarkComparison,
+} from "@/lib/labor-benchmark";
 
 export const CATALOG_LINE_PRICE_SOURCE_BASE = "Baza cen" as const;
 export const CATALOG_LINE_PRICE_SOURCE_CATALOG = "Katalog WGDOM" as const;
@@ -51,6 +55,8 @@ export interface CatalogCategoryCostSummaryRow {
   dominantUnit: WgdomCostUnit;
   hasMaterialOverride: boolean;
   hasLaborOverride: boolean;
+  avgLaborPlnPerUnit: number;
+  laborBenchmark: LaborBenchmarkComparison;
 }
 
 export interface CatalogLinePricingView {
@@ -185,6 +191,19 @@ export function buildCatalogLinePricingView(
         }
       }
       const matKey = `${categoryId}:${dominantUnit}`;
+      const catRows = rows.filter(
+        (r) => r.categoryId === categoryId && !r.isUnknown && r.laborPlnPerUnit != null,
+      );
+      const dominantRows = catRows.filter((r) => {
+        const u = r.unit.toLowerCase().replace("²", "2").replace(/\s/g, "");
+        if (dominantUnit === "m2") return /^(m2|mp)$/.test(u);
+        return u === dominantUnit || u === `${dominantUnit}.`;
+      });
+      const laborRows = dominantRows.length > 0 ? dominantRows : catRows;
+      const avgLaborPlnPerUnit = laborRows.length > 0
+        ? roundMoney(laborRows.reduce((s, r) => s + (r.laborPlnPerUnit ?? 0), 0) / laborRows.length)
+        : 0;
+      const laborBenchmark = compareLaborRateToBenchmark(avgLaborPlnPerUnit, categoryId, dominantUnit);
       return {
         categoryId,
         categoryLabel: categoryLabelFor(catalog, categoryId),
@@ -193,6 +212,8 @@ export function buildCatalogLinePricingView(
         dominantUnit,
         hasMaterialOverride: overrideLookup?.material.has(matKey) ?? false,
         hasLaborOverride: overrideLookup?.labor.has(matKey) ?? false,
+        avgLaborPlnPerUnit,
+        laborBenchmark,
       };
     })
     .sort((a, b) => b.totalCostPln - a.totalCostPln);

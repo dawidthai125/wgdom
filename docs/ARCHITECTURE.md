@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.2** · P3.5B)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P3.5B override cen per przetarg)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.3** · P3.3A)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P3.3A benchmark robocizny)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1139,9 +1139,14 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 
 **P3.5B — Override per przetarg (v2.56.2 CLOSED):** `kw-tender-price-overrides` · `TenderCategoryPriceOverrideModal` · silnik `computeFromCatalogRow(…, overrideLookup)` · hero KPI natychmiast po zapisie.
 
+**P3.3A — Benchmark robocizny MVP (v2.56.3 CLOSED):** `labor-benchmark.ts` + `labor-benchmark-data.ts` — porównanie read-only nasza robocizna vs zakres referencyjny; UI w Baza cen i Wycena; **bez wpływu na kalkulator**.
+
 | Element | Opis | Plik |
 |---------|------|------|
-| Store override | `TenderPriceOverrides` per `tenderId` — kategoria × materiał/robocizna × j.m. | `tender-price-overrides.ts` |
+| Zakresy MVP | Statyczne min/avg/max per kategoria benchmarku | `labor-benchmark-data.ts` |
+| Porównanie | below / ok / above / unavailable | `labor-benchmark.ts` |
+| UI Baza cen | Kolumna Benchmark + alert poza zakresem | `TenderPriceBasePanel.tsx` |
+| UI Wycena | Podsumowanie kategorii + hero alert | `TenderCatalogLinePricingSection.tsx`, `TenderBidProposalPanel.tsx` |
 | Chmura | `kw-tender-price-overrides` — `DATA_KEYS` + merge per tender | `cloud-sync.ts`, `tenders-sync.ts` |
 | UI edycji | Podsumowanie kategorii → Edytuj → modal global vs override | `TenderCatalogLinePricingSection.tsx`, `TenderCategoryPriceOverrideModal.tsx` |
 | Kalkulator | `computeTenderBidProposal({ priceOverrides })` | `tenders-bid-calculator.ts`, `wgdom-catalog-cost-engine.ts` |

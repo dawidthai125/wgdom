@@ -1,5 +1,8 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.56.3 — P3.3A benchmark robocizny MVP
+- `labor-benchmark.ts` + statyczne zakresy — porównanie read-only, bez wpływu na wycenę
+
 ## 2.56.2 — P3.5B override cen per przetarg
 - `kw-tender-price-overrides` — nadpisania materiał/robocizna per kategoria × tenderId
 - UI Edytuj w podsumowaniu kategorii; źródło Override; hero KPI natychmiast

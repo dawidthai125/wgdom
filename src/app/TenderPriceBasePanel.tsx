@@ -22,6 +22,13 @@ import {
 } from "@/lib/wgdom-cost-catalog-store";
 import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
 import { COST_FIELD_HINTS, PRICE_BASE_SECTION_ID } from "@/lib/tender-bid-ux";
+import {
+  compareLaborRateToBenchmark,
+  computeLaborPlnPerUnitFromRbh,
+  buildLaborBenchmarkAlerts,
+} from "@/lib/labor-benchmark";
+import { LaborBenchmarkCell } from "@/app/LaborBenchmarkUi";
+import { LABOR_BENCHMARK_SOURCE_LABEL } from "@/lib/labor-benchmark-data";
 
 function NumInput({
   label,
@@ -90,7 +97,17 @@ export function TenderPriceBasePanel({
     () => fullyLoadedHourly(profile.costModel),
     [profile.costModel],
   );
-  const laborNormFactor = profile.costModel.laborNormIndexPct / 100;
+
+  const benchmarkAlerts = useMemo(() => {
+    const comparisons = catalogRows.map((row) => {
+      const laborPln = computeLaborPlnPerUnitFromRbh(row.laborRbhPerUnit, profile.costModel);
+      return {
+        ...compareLaborRateToBenchmark(laborPln, row.id, row.unit),
+        categoryLabel: row.labelPl,
+      };
+    });
+    return buildLaborBenchmarkAlerts(comparisons);
+  }, [catalogRows, profile.costModel]);
 
   const save = useCallback(async () => {
     setSaving(true);
@@ -130,9 +147,27 @@ export function TenderPriceBasePanel({
         </p>
         <p className="text-[10px] text-muted-foreground mt-1 leading-snug">
           Własne stawki robocizny i materiałów używane przy wycenie przetargów (katalog WGDOM + parametry firmy).
-          To nie są ceny rynkowe ani benchmarki zewnętrzne.
+          Kolumna Benchmark to orientacyjny zakres robocizny ({LABOR_BENCHMARK_SOURCE_LABEL}) — nie zmienia wyceny.
         </p>
       </div>
+
+      {benchmarkAlerts.outOfRangeCount > 0 && (
+        <details className="rounded-lg border border-amber-500/30 bg-amber-500/8 px-2.5 py-2 text-[10px]">
+          <summary className="cursor-pointer font-semibold text-amber-800 dark:text-amber-200">
+            ⚠ {benchmarkAlerts.outOfRangeCount} {benchmarkAlerts.outOfRangeCount === 1 ? "kategoria" : "kategorie"} poza benchmarkiem robocizny
+          </summary>
+          <ul className="mt-1.5 space-y-1 list-none">
+            {benchmarkAlerts.items.map((item) => (
+              <li key={item.categoryLabel} className="text-muted-foreground">
+                <strong className="text-foreground">{item.categoryLabel}</strong>
+                {" — "}{item.statusLabelPl}
+                {" · nasza "}{item.ourLaborPlnPerUnit.toLocaleString("pl-PL")} zł
+                {" · rynek "}{item.rangeLabelPl}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       <label className="block text-[10px] text-muted-foreground max-w-xs">
         Region aktywny
@@ -162,12 +197,14 @@ export function TenderPriceBasePanel({
                 <th className="text-left px-2 py-1.5 font-semibold">j.m.</th>
                 <th className="text-left px-2 py-1.5 font-semibold">rbh/j.m.</th>
                 <th className="text-right px-2 py-1.5 font-semibold">Robocizna zł/j.m.</th>
+                <th className="text-left px-2 py-1.5 font-semibold min-w-[120px]">Benchmark</th>
                 <th className="text-right px-2 py-1.5 font-semibold">Aktualizacja</th>
               </tr>
             </thead>
             <tbody>
               {catalogRows.map((row) => {
-                const laborPln = Math.round(row.laborRbhPerUnit * flHourly * laborNormFactor * 100) / 100;
+                const laborPln = computeLaborPlnPerUnitFromRbh(row.laborRbhPerUnit, profile.costModel);
+                const benchmark = compareLaborRateToBenchmark(laborPln, row.id, row.unit);
                 return (
                   <tr key={`labor-${row.id}`} className="border-t border-border/40">
                     <td className="px-2 py-1.5 font-medium">{row.labelPl}</td>
@@ -192,6 +229,9 @@ export function TenderPriceBasePanel({
                     </td>
                     <td className="px-2 py-1.5 text-right font-mono font-medium tabular-nums">
                       {laborPln.toLocaleString("pl-PL")} zł
+                    </td>
+                    <td className="px-2 py-1.5 align-top">
+                      <LaborBenchmarkCell comparison={benchmark} showOurRate={false} />
                     </td>
                     <td className="px-2 py-1.5 text-right text-muted-foreground whitespace-nowrap">
                       {formatUpdatedAt(catalogUpdatedAt)}

@@ -6,6 +6,7 @@ import { fmtPln } from "@/lib/tenders-bzp-swz";
 import type { TenderCompanyCostModel } from "@/lib/tenders-bzp-company";
 import type { WgdomCostCatalog } from "@/lib/wgdom-cost-catalog";
 import { TenderCategoryPriceOverrideModal } from "@/app/TenderCategoryPriceOverrideModal";
+import { LaborBenchmarkCompactRow } from "@/app/LaborBenchmarkUi";
 
 function formatPerUnit(pln: number | null, unit: string): string {
   if (pln == null || !Number.isFinite(pln)) return "—";
@@ -89,6 +90,7 @@ export function TenderCatalogLinePricingSection({
                   <th className="text-left px-2 py-1 font-semibold">Kategoria</th>
                   <th className="text-right px-2 py-1 font-semibold">Pozycje</th>
                   <th className="text-right px-2 py-1 font-semibold">Koszt</th>
+                  <th className="text-left px-2 py-1 font-semibold min-w-[140px]">Robocizna / benchmark</th>
                   {canEdit && <th className="text-right px-2 py-1 font-semibold w-16">Akcja</th>}
                 </tr>
               </thead>
@@ -105,6 +107,16 @@ export function TenderCatalogLinePricingSection({
                     </td>
                     <td className="px-2 py-1 text-right tabular-nums">{row.positionCount}</td>
                     <td className="px-2 py-1 text-right font-mono tabular-nums">{fmtPln(row.totalCostPln)}</td>
+                    <td className="px-2 py-1 align-top">
+                      {row.laborBenchmark.status === "unavailable" ? (
+                        <span className="text-[9px] text-muted-foreground">—</span>
+                      ) : (
+                        <LaborBenchmarkCompactRow
+                          ourLaborPlnPerUnit={row.avgLaborPlnPerUnit}
+                          comparison={row.laborBenchmark}
+                        />
+                      )}
+                    </td>
                     {canEdit && (
                       <td className="px-2 py-1 text-right">
                         <button
