@@ -9,6 +9,7 @@ export const TENDERS_MODULE_LABELS = {
     strategy: "Strategia",
     map: "Mapa",
     profile: "Profil firmy",
+    pricebase: "Baza cen",
     settings: "Ustawienia",
   },
 } as const;

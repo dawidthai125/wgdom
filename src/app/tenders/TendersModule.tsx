@@ -7,6 +7,7 @@ import {
   Settings2,
   RefreshCw,
   Scale,
+  Tags,
 } from "lucide-react";
 import type {
   DirectoryEmployee,
@@ -22,6 +23,7 @@ import { TendersListTab } from "@/app/tenders/tabs/TendersListTab";
 import { TendersStrategyTab } from "@/app/tenders/tabs/TendersStrategyTab";
 import { TendersMapTab } from "@/app/tenders/tabs/TendersMapTab";
 import { TendersProfileTab } from "@/app/tenders/tabs/TendersProfileTab";
+import { TendersPriceBaseTab } from "@/app/tenders/tabs/TendersPriceBaseTab";
 import { TendersSettingsTab } from "@/app/tenders/tabs/TendersSettingsTab";
 
 const TAB_CONFIG: { id: TendersTabId; icon: typeof List }[] = [
@@ -29,6 +31,7 @@ const TAB_CONFIG: { id: TendersTabId; icon: typeof List }[] = [
   { id: "strategy", icon: LayoutGrid },
   { id: "map", icon: MapPin },
   { id: "profile", icon: Building2 },
+  { id: "pricebase", icon: Tags },
   { id: "settings", icon: Settings2 },
 ];
 
@@ -177,6 +180,7 @@ export function TendersModule({
         )}
         {activeTab === "map" && <TendersMapTab />}
         {activeTab === "profile" && <TendersProfileTab />}
+        {activeTab === "pricebase" && <TendersPriceBaseTab />}
         {activeTab === "settings" && <TendersSettingsTab />}
       </div>
     </div>

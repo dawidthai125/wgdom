@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.55.10** · P2-H.5C/5D CLOSED)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-H.3 7Z + handoff dokumentacji)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.0** · P3.1/P3.2.0)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P3.1 Wycena UX + P3.2.0 Baza cen)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -839,8 +839,9 @@ Audyt: `npm run audit:import-cycles` → JSON z `p0StaticImportViolations`, `cyc
 | `src/app/TenderAttachmentsPanel.tsx` | Załączniki e-Zamówienia + podgląd ZIP/PDF/ATH |
 | `src/app/TenderExternalDocsPanel.tsx` | **v2.44** — dokumenty u zamawiającego (BIP, linki z ogłoszenia) |
 | `src/app/TenderFitPanel.tsx` | Dopasowanie profilu, wymagania vs firma, referencje z luką PLN |
-| `src/app/TenderBidProposalPanel.tsx` | Propozycja ceny ofertowej (kalkulator) |
-| `src/app/TenderCompanyProfilePanel.tsx` | Profil firmy + model kosztów (schema **v6**) |
+| `src/app/TenderBidProposalPanel.tsx` | Propozycja ceny ofertowej (kalkulator) · P3.1 hero KPI |
+| `src/app/TenderPriceBasePanel.tsx` | Baza cen — katalog WGDOM + parametry wyceny (P3.2.0) |
+| `src/app/TenderCompanyProfilePanel.tsx` | Profil firmy + kwalifikacja (bez katalogu stawek) |
 | `src/lib/tender-document-resolver.ts` | Parsowanie najlepszego załącznika BZP + **`parseExternalTenderDocuments`** |
 | `src/lib/tenders-bzp-analyze-local.ts` | **v2.45.7** — analiza SWZ po stronie klienta (pdf.js, kryteria, tabele) |
 | `src/lib/tenders-bzp-award.ts` | **v2.45.7** — parser + fetch wyniku postępowania |
@@ -907,7 +908,7 @@ Audyt: `npm run audit:import-cycles` → JSON z `p0StaticImportViolations`, `cyc
 
 > **Command Center removed in v2.51.0** — runtime CC usunięty; **v2.51.1** — rename `tender-center-*` → `tenders-strategy-*`, folder `src/app/tenders/strategy/`.
 
-**Moduł:** `src/app/tenders/TendersModule.tsx` — 5 zakładek (Lista, Strategia, Mapa, Profil firmy, Ustawienia).
+**Moduł:** `src/app/tenders/TendersModule.tsx` — 6 zakładek (Lista, Strategia, Mapa, Profil firmy, **Baza cen**, Ustawienia).
 
 **Provider:** `src/app/tenders/context/TendersProvider.tsx` — pipeline BZP, decyzje właściciela, snapshot strategii (`useTendersStrategySnapshot`).
 
@@ -1026,8 +1027,9 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 | Element | Opis | Plik |
 |---------|------|------|
 | Klik kafelka „Nasza wycena” | `scrollIntoView` → `#tender-bid-proposal-panel`, hint „Kliknij, aby zobaczyć szczegóły”, rozwinięcie breakdown | `TenderBidPrepPanel.tsx`, `tenders-bid-prep.ts`, `tender-bid-ux.ts` |
-| Szczegóły wyceny | Nagłówek „💰 Szczegóły wyceny”, sekcje „Skąd pochodzi wycena?” / „Jak powstała wycena?” (flow kroków), breakdown domyślnie otwarty | `TenderBidProposalPanel.tsx`, `buildBidFlowExplanation()` |
-| Profil firmy — segmentacja | 4 sekcje: Cost Intelligence · Profil kwalifikacyjny · Regiony · Zaawansowane; opisy pól wyceny (`COST_FIELD_HINTS`) | `TenderCompanyProfilePanel.tsx`, `PROFILE_SECTION_*` |
+| Szczegóły wyceny | Hero KPI (koszt własny · marża · cena oferty), alerty, sekcja „Szczegóły” zwinięta | `TenderBidProposalPanel.tsx`, `computeBidMarginPct()` |
+| Baza cen | Zakładka Przetargi — robocizna/materiały per kategoria + parametry firmy | `TenderPriceBasePanel.tsx`, `kw-wgdom-cost-catalog` |
+| Profil firmy — segmentacja | Kwalifikacja · Regiony · Słownik · Kalibracja · operacje wyceny (załoga, poboczne) | `TenderCompanyProfilePanel.tsx` |
 
 **Nie zmieniaj bez polecenia:** merge katalogu, ścieżka `ath_priced`, ATH Quick Access, **algorytm `computeTenderBidProposal()`** (1D–1F = UX/inspekcja/słownik klasyfikatora).
 
@@ -1128,6 +1130,10 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 **Backlog:** split STOLARKA — tylko na polecenie po audycie misclassification.
 
 **P2-G.3B — Historical Cost Calibration (MIN):**
+
+**P3.1 — Wycena UX (v2.56.0 CLOSED):** Hero KPI bez scrollu; marża = `(recommended − costPrice) / costPrice`; breakdown domyślnie zwinięty (`breakdownOpen=false`).
+
+**P3.2.0 — Baza cen (v2.56.0 CLOSED):** Wydzielenie `kw-wgdom-cost-catalog` + parametry `costModel` (rbh, Kp, marża, indeksy) z Profilu firmy → zakładka **Baza cen**. Bez benchmarków rynkowych.
 
 | Element | Opis | Plik |
 |---------|------|------|

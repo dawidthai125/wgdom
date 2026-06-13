@@ -8,6 +8,25 @@ export const OUR_ESTIMATE_TILE_NAV_HINT = "Kliknij, aby zobaczyć szczegóły";
 
 export const TENDER_BID_PROPOSAL_PANEL_ID = "tender-bid-proposal-panel";
 
+export const PRICE_BASE_SECTION_ID = "tender-price-base-section";
+
+/** P3.1 — marża oferty względem kosztu własnego (bez zmiany algorytmu kalkulatora). */
+export function computeBidMarginPct(
+  recommendedBidPln: number | null | undefined,
+  costPricePln: number | null | undefined,
+): number | null {
+  if (recommendedBidPln == null || costPricePln == null) return null;
+  if (!Number.isFinite(recommendedBidPln) || !Number.isFinite(costPricePln)) return null;
+  if (costPricePln <= 0) return null;
+  return ((recommendedBidPln - costPricePln) / costPricePln) * 100;
+}
+
+export function formatBidMarginPct(pct: number | null | undefined): string {
+  if (pct == null || !Number.isFinite(pct)) return "—";
+  const sign = pct >= 0 ? "+" : "";
+  return `${sign}${pct.toFixed(1)}%`;
+}
+
 /** Kroki opisu „Jak powstała wycena?” — zależne od źródła. */
 export function buildBidFlowExplanation(
   pricingMode: TenderBidPricingMode | null | undefined,

@@ -24,6 +24,7 @@ function loadActiveTab(): TendersTabId {
       || raw === "strategy"
       || raw === "map"
       || raw === "profile"
+      || raw === "pricebase"
       || raw === "settings"
     ) {
       return raw;

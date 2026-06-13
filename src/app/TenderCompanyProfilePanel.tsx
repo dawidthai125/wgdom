@@ -9,18 +9,6 @@ import {
   saveCompanyProfile,
 } from "@/lib/tenders-bzp-company";
 import {
-  type WgdomCostCatalogStore,
-  type WgdomCostRegion,
-  loadWgdomCostCatalogStore,
-  saveWgdomCostCatalogStore,
-  restoreDefaultWgdomCostCatalogStore,
-  setActiveCatalogRegion,
-  updateCategoryPrimaryRates,
-  listEditableCategories,
-  WGDOM_COST_REGION_LABELS,
-} from "@/lib/wgdom-cost-catalog-store";
-import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
-import {
   type WgdomUserClassificationDictionaryStore,
   type UserClassificationCategory,
   loadWgdomUserClassificationDictionaryStore,
@@ -206,7 +194,6 @@ export function TenderCompanyProfilePanel({
 }) {
   const [open, setOpen] = useState(false);
   const [profile, setProfile] = useState<TenderCompanyProfile>(defaultCompanyProfile());
-  const [catalogStore, setCatalogStore] = useState<WgdomCostCatalogStore>(restoreDefaultWgdomCostCatalogStore());
   const [classificationDict, setClassificationDict] = useState<WgdomUserClassificationDictionaryStore>(
     restoreDefaultUserClassificationDictionaryStore(),
   );
@@ -218,13 +205,11 @@ export function TenderCompanyProfilePanel({
     let cancelled = false;
     void Promise.all([
       loadCompanyProfile(),
-      loadWgdomCostCatalogStore(),
       loadWgdomUserClassificationDictionaryStore(),
       loadTenderCalibrationStore(),
-    ]).then(([p, catalog, dict, calibration]) => {
+    ]).then(([p, dict, calibration]) => {
       if (!cancelled) {
         setProfile(p);
-        setCatalogStore(catalog);
         setClassificationDict(dict);
         setCalibrationStore(calibration);
         setLoading(false);
@@ -238,17 +223,16 @@ export function TenderCompanyProfilePanel({
     try {
       await Promise.all([
         saveCompanyProfile(profile),
-        saveWgdomCostCatalogStore(catalogStore),
         saveWgdomUserClassificationDictionaryStore(classificationDict),
       ]);
       onSaved?.(profile);
-      toast.success("Profil firmy, katalog i słownik klasyfikacji zapisane w chmurze");
+      toast.success("Profil firmy i słownik klasyfikacji zapisane w chmurze");
     } catch {
-      toast.error("Nie udało się zapisać profilu / katalogu / słownika");
+      toast.error("Nie udało się zapisać profilu / słownika");
     } finally {
       setSaving(false);
     }
-  }, [profile, catalogStore, classificationDict, onSaved]);
+  }, [profile, classificationDict, onSaved]);
 
   const reloadDefaults = useCallback(() => {
     const d = defaultCompanyProfile();
@@ -256,17 +240,11 @@ export function TenderCompanyProfilePanel({
     toast.message("Załadowano domyślny profil W&G DOM (CEIDG/wgdom.pl) — kliknij Zapisz");
   }, []);
 
-  const reloadCatalogDefaults = useCallback(() => {
-    setCatalogStore(restoreDefaultWgdomCostCatalogStore());
-    toast.message("Przywrócono domyślny katalog WGDOM — kliknij Zapisz profil");
-  }, []);
-
   const reloadClassificationDictDefaults = useCallback(() => {
     setClassificationDict(restoreDefaultUserClassificationDictionaryStore());
     toast.message("Przywrócono pusty słownik klasyfikacji — kliknij Zapisz profil");
   }, []);
 
-  const catalogRows = listEditableCategories(catalogStore);
   const calibrationSummary = calibrationStore ? buildCalibrationSummary(calibrationStore) : null;
   const calibrationHints = calibrationStore ? buildCatalogCalibrationHints(calibrationStore) : [];
 
@@ -305,11 +283,18 @@ export function TenderCompanyProfilePanel({
                 <p className="italic">{profile.formerOwnerNote}</p>
               </div>
 
+              <div className="rounded-lg bg-violet-500/8 border border-violet-500/20 px-2.5 py-2 text-[10px] text-muted-foreground">
+                <p>
+                  <strong className="text-foreground">Stawki robocizny, materiałów i parametry wyceny</strong>
+                  {" "}— edytuj w zakładce <strong className="text-violet-800 dark:text-violet-300">Przetargi → Baza cen</strong>.
+                </p>
+              </div>
+
               <ProfileSection
                 id={PROFILE_SECTION_IDS.costIntelligence}
-                emoji="💰"
-                title={PROFILE_SECTION_TITLES.costIntelligence}
-                description="Parametry wpływające na wycenę oferty — koszt rbh, Kp, marża, ryzyko i katalog stawek."
+                emoji="⚙️"
+                title="Parametry operacyjne wyceny"
+                description="Załoga, ZUS, koszty poboczne i rezerwy — uzupełnienie bazy cen (bez stawek kategorii)."
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   <NumInput
@@ -325,31 +310,10 @@ export function TenderCompanyProfilePanel({
                     step={1}
                   />
                   <NumInput
-                    label="Koszt roboczogodziny (brutto zł/rbh)"
-                    hint={COST_FIELD_HINTS.avgGrossHourlyPln}
-                    value={profile.costModel.avgGrossHourlyPln}
-                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, avgGrossHourlyPln: v } })}
-                    step={1}
-                  />
-                  <NumInput
                     label="ZUS / obciążenie pracodawcy (%)"
                     hint={COST_FIELD_HINTS.employerBurdenPct}
                     value={profile.costModel.employerBurdenPct}
                     onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, employerBurdenPct: v } })}
-                    step={1}
-                  />
-                  <NumInput
-                    label="Koszty pośrednie Kp (%)"
-                    hint={COST_FIELD_HINTS.kpPct}
-                    value={profile.costModel.kpPct}
-                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, kpPct: v } })}
-                    step={1}
-                  />
-                  <NumInput
-                    label="Marża / zysk (%)"
-                    hint={COST_FIELD_HINTS.profitPct}
-                    value={profile.costModel.profitPct}
-                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, profitPct: v } })}
                     step={1}
                   />
                   <NumInput
@@ -374,20 +338,6 @@ export function TenderCompanyProfilePanel({
                     step={1000}
                   />
                   <NumInput
-                    label="Indeks materiałów (%)"
-                    hint={COST_FIELD_HINTS.materialPriceIndexPct}
-                    value={profile.costModel.materialPriceIndexPct}
-                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, materialPriceIndexPct: v } })}
-                    step={1}
-                  />
-                  <NumInput
-                    label="Indeks robocizny (%)"
-                    hint={COST_FIELD_HINTS.laborNormIndexPct}
-                    value={profile.costModel.laborNormIndexPct}
-                    onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, laborNormIndexPct: v } })}
-                    step={1}
-                  />
-                  <NumInput
                     label="Rabat vs ref. przy 100% ceny (%)"
                     hint={COST_FIELD_HINTS.targetPriceDiscountPct}
                     value={profile.costModel.targetPriceDiscountPct}
@@ -410,83 +360,6 @@ export function TenderCompanyProfilePanel({
                   <NumInput label="Chemia pomocnicza / tydz." value={profile.costModel.smallConsumablesWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, smallConsumablesWeeklyPln: v } })} step={10} />
                   <NumInput label="Ubezpieczenia / tydz." value={profile.costModel.insuranceWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, insuranceWeeklyPln: v } })} step={10} />
                   <NumInput label="Koordynacja / dojazdy / tydz." value={profile.costModel.supervisionWeeklyPln} onChange={(v) => setProfile({ ...profile, costModel: { ...profile.costModel, supervisionWeeklyPln: v } })} step={10} />
-                </div>
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground pt-1 border-t border-border/50">
-                  WGDOM Cost Catalog — wycena przedmiaru bez cen
-                </p>
-                <p className="text-[10px] text-muted-foreground leading-snug">
-                  {COST_FIELD_HINTS.catalogMaterial} · {COST_FIELD_HINTS.catalogLabor}
-                </p>
-                <label className="block text-[10px] text-muted-foreground">
-                  Region aktywny
-                  <select
-                    value={catalogStore.activeRegion}
-                    onChange={(e) => setCatalogStore(setActiveCatalogRegion(catalogStore, e.target.value as WgdomCostRegion))}
-                    className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
-                  >
-                    {(Object.keys(WGDOM_COST_REGION_LABELS) as WgdomCostRegion[]).map((r) => (
-                      <option key={r} value={r}>{WGDOM_COST_REGION_LABELS[r]}</option>
-                    ))}
-                  </select>
-                </label>
-                <div className="rounded-lg border border-border/60 overflow-hidden">
-                  <table className="w-full text-[10px]">
-                    <thead className="bg-secondary/60">
-                      <tr>
-                        <th className="text-left px-2 py-1.5 font-semibold">Kategoria</th>
-                        <th className="text-left px-2 py-1.5 font-semibold">j.m.</th>
-                        <th className="text-left px-2 py-1.5 font-semibold">Materiał zł/j.m.</th>
-                        <th className="text-left px-2 py-1.5 font-semibold">rbh/j.m.</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {catalogRows.map((row) => (
-                        <tr key={row.id} className="border-t border-border/40">
-                          <td className="px-2 py-1.5 font-medium">{row.labelPl}</td>
-                          <td className="px-2 py-1.5 text-muted-foreground">{row.unit}</td>
-                          <td className="px-2 py-1">
-                            <input
-                              type="number"
-                              min={0}
-                              step={1}
-                              value={row.materialPlnPerUnit}
-                              onChange={(e) => {
-                                const v = Number(e.target.value) || 0;
-                                setCatalogStore(updateCategoryPrimaryRates(
-                                  catalogStore,
-                                  row.id,
-                                  v,
-                                  row.laborRbhPerUnit,
-                                ));
-                              }}
-                              className="w-full bg-secondary rounded px-1.5 py-1 border border-border font-mono"
-                            />
-                          </td>
-                          <td className="px-2 py-1">
-                            <input
-                              type="number"
-                              min={0}
-                              step={0.01}
-                              value={row.laborRbhPerUnit}
-                              onChange={(e) => {
-                                const v = Number(e.target.value) || 0;
-                                setCatalogStore(updateCategoryPrimaryRates(
-                                  catalogStore,
-                                  row.id,
-                                  row.materialPlnPerUnit,
-                                  v,
-                                ));
-                              }}
-                              className="w-full bg-secondary rounded px-1.5 py-1 border border-border font-mono"
-                            />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <p className="px-2 py-1.5 text-[10px] text-muted-foreground border-t border-border/40">
-                    {WGDOM_COST_CATEGORY_IDS.length} kategorii MVP · edycja per region ({WGDOM_COST_REGION_LABELS[catalogStore.activeRegion]})
-                  </p>
                 </div>
               </ProfileSection>
 
@@ -725,14 +598,6 @@ export function TenderCompanyProfilePanel({
                 </div>
               </ProfileSection>
               <div className="flex flex-wrap justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={reloadCatalogDefaults}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-xs font-medium hover:bg-secondary/80"
-                >
-                  <RefreshCw size={12} />
-                  Przywróć domyślne WGDOM
-                </button>
                 <button
                   type="button"
                   onClick={reloadDefaults}

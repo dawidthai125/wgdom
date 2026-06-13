@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.56.0",
+    label: "Przetargi — P3.1 Wycena UX + P3.2.0 Baza cen",
+    items: [
+      { type: "new", text: "Zakładka Przetargi → Baza cen — stawki robocizny i materiałów (katalog WGDOM) + parametry firmy" },
+      { type: "improve", text: "Wycena — hero KPI: koszt własny, marża, cena oferty; alerty; szczegóły zwinięte domyślnie" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.55.10",
     label: "Przetargi — P2-H.5C/5D PDF CAD + multi-ATH",
     items: [

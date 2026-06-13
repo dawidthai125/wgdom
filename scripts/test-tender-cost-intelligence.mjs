@@ -47,9 +47,12 @@ import {
 import {
   buildBidFlowExplanation,
   canNavigateToBidDetails,
+  computeBidMarginPct,
   COST_FIELD_HINTS,
+  formatBidMarginPct,
   OUR_ESTIMATE_TILE_NAV_HINT,
   classificationCoverageTone,
+  PRICE_BASE_SECTION_ID,
   PROFILE_SECTION_IDS,
   PROFILE_SECTION_TITLES,
   TENDER_BID_PROPOSAL_PANEL_ID,
@@ -534,6 +537,14 @@ const prepChecks = computeBidPrepChecks(
 const ourBidCheck = prepChecks.find((c) => c.id === "our-bid");
 assertEq(ourBidCheck?.navigateToBidDetails, true, "our-bid tile navigable");
 assertEq(ourBidCheck?.actionHint, OUR_ESTIMATE_TILE_NAV_HINT, "our-bid action hint");
+
+console.log("\n16b. P3.1 — margin KPI (presentation only)");
+assertEq(computeBidMarginPct(1_200_000, 1_000_000), 20, "margin 20%");
+assertEq(computeBidMarginPct(900_000, 1_000_000), -10, "margin negative");
+assertEq(computeBidMarginPct(1_000_000, 0), null, "margin zero cost");
+assert(formatBidMarginPct(18.4).includes("18.4"), "format margin");
+assertEq(formatBidMarginPct(null), "—", "format margin null");
+assertEq(PRICE_BASE_SECTION_ID, "tender-price-base-section", "price base section id");
 
 console.log("\n17. P2-G.1E — Classification Inspector");
 const mixedK = makeMixedUnknownKosztorys();

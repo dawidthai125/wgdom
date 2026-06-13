@@ -95,7 +95,7 @@ export function TenderDetailPanel({
   );
   const [showHtml, setShowHtml] = useState(false);
   const [docPreview, setDocPreview] = useState<InspectorFileItem | null>(null);
-  const [bidBreakdownOpen, setBidBreakdownOpen] = useState(true);
+  const [bidBreakdownOpen, setBidBreakdownOpen] = useState(false);
   const [bidPanelHighlight, setBidPanelHighlight] = useState(false);
   const [activeWorkspace, setActiveWorkspace] = useState<TenderWorkspaceTabId>(
     () => resolveDefaultTenderWorkspace(item),
@@ -598,7 +598,7 @@ export function TenderDetailPanel({
   const navigateWorkspace = useCallback((tab: TenderWorkspaceTabId) => {
     setActiveWorkspace(tab);
     if (tab === "valuation") {
-      setBidBreakdownOpen(true);
+      setBidBreakdownOpen(false);
       setBidPanelHighlight(true);
       window.setTimeout(() => setBidPanelHighlight(false), 2200);
     }

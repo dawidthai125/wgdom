@@ -3,9 +3,8 @@
 > **Aktualizuj ten plik na końcu każdej większej sesji z agentem AI.**  
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
-**Ostatnia aktualizacja:** 2026-06-13 · **P2-H STREAM FULLY CLOSED (v2.55.10)**  
+**Ostatnia aktualizacja:** 2026-06-13 · **P3.1 + P3.2.0 CLOSED (v2.56.0)**  
 **★ Główny handoff (SSOT):** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)  
-**★ P2-H dokumenty/dossier:** [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)  
 **★ Workflow release/deploy:** [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)
 
 ---
@@ -13,32 +12,29 @@
 ## STATUS
 
 ```text
-Production: 2.55.10 (release P2-H.5C + P2-H.5D)
+Production: 2.56.0 (P3 Foundation — Wycena UX + Baza cen)
 
-P2-H STREAM FULLY CLOSED (H.1–H.6 + H.5A + H.5B + H.5C + H.5D)
-P2-G.2C/2D Cost Classification COMPLETE
-UX.1 · P2-F · Dashboard V3 · Przetargi 3.0 · P1 CLOSED
+P3.1 UX Wycena — CLOSED
+P3.2.0 Baza cen — CLOSED
+P2-H STREAM FULLY CLOSED
+UX.1 · P2-F · Dashboard V3 · P1 CLOSED
 ```
 
-**Baseline prod (app):** v2.55.10 · commit po push (P2-H.5C/5D)  
-**Poprzedni:** v2.55.9 (P2-H.5B PDF heurystyki)  
+**Baseline prod (app):** v2.56.0 · commit po push P3 Foundation  
+**Poprzedni:** v2.55.10 (P2-H.5C/5D)  
 **Prod:** https://www.wgdom.fun
 
 ---
 
 ## SKOŃCZONE W OSTATNIEJ SESJI (2026-06-13)
 
-| Etap | Wersja | Skrót |
-|------|--------|-------|
-| **P2-H.5C** | **2.55.10** | PDF CAD bez text layer → CASE 3 (nie mylący CASE 2) |
-| **P2-H.5D.1** | **2.55.10** | Sync `costDiscovery.source` z faktycznym dossier |
-| **P2-H.5D.2** | **2.55.10** | Multi-ATH tie-break: tytuł + depriorytetyzacja opcji/wentylacji |
-
-**Testy release:** heuristic 30 · cost-discovery 8 · 7z 34 · dossier 200+ · cost-intelligence 357 · build PASS
+- **P3.1** — `TenderBidProposalPanel` hero KPI (koszt własny · marża · cena oferty), alerty max 3, szczegóły zwinięte
+- **P3.2.0** — zakładka **Przetargi → Baza cen** (`TenderPriceBasePanel`), reuse `kw-wgdom-cost-catalog` + `costModel`
+- Testy: cost-intelligence 363 PASS · dossier pipeline PASS · build OK
 
 ---
 
-## NASTĘPNE (tylko na polecenie)
+## NASTĘPNE (na polecenie)
 
-- **P2-G.3C** Benchmark kosztorysowy
-- OCR PDF przedmiarów (poza zakresem P2-H)
+- **P3.5** — auto podkładanie cen do pozycji kosztorysowych (per wiersz)
+- **P2-G.3C** — benchmark podobieństwa kosztorysów (fundament gotowy po P3)

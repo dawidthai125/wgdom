@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.56.0 — P3.1 Wycena UX + P3.2.0 Baza cen
+- Hero KPI Wycena: koszt własny, marża %, cena oferty; alerty; szczegóły zwinięte
+- Zakładka Przetargi → Baza cen (`TenderPriceBasePanel`, `kw-wgdom-cost-catalog`)
+
 ## 2.55.10 — P2-H.5C/5D PDF CAD + multi-ATH
 - `noTextLayer` w `extractPdfText` → CASE 3 (CAD bez tekstu)
 - `scoreCostTitleMatch` + tie-break w `discoverBestCostDocument`
