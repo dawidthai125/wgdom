@@ -36,6 +36,7 @@ async function analyzeFromDocumentIndex(opts: {
       opts.tenderId,
       opts.documentIndex,
       downloadUrl,
+      access?.sourcePageUrl,
     );
     traceSwzPipeline("document_download", {
       documentIndex: opts.documentIndex,

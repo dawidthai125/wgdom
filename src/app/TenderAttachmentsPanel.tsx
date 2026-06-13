@@ -51,6 +51,7 @@ function previewItemForDoc(
     contentType: doc.contentType,
     zipInnerPath: opts?.zipInnerPath,
     downloadUrl: doc.downloadUrl?.trim() || undefined,
+    sourcePageUrl: doc.sourcePageUrl?.trim() || undefined,
   };
 }
 
@@ -394,6 +395,7 @@ export function TenderAttachmentsPanel({
         <JobFilePreviewModal
           item={preview}
           athPreviewEnabled={athPreviewEnabled !== false}
+          bzpDocuments={allDocs}
           onClose={() => setPreview(null)}
         />
       )}

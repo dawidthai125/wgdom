@@ -848,6 +848,7 @@ export function TenderDetailPanel({
         <JobFilePreviewModal
           item={docPreview}
           athPreviewEnabled={athPreviewEnabled !== false}
+          bzpDocuments={item.bzpDocuments}
           onClose={() => setDocPreview(null)}
         />
       )}

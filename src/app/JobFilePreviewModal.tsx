@@ -24,7 +24,7 @@ import {
 } from "@/lib/ath-kosztorys-pdf";
 import { resolveJobFileStoragePath } from "@/lib/job-documents";
 import { resolveJobAttachmentStoragePath } from "@/lib/job-attachments";
-import { bytesToBlobUrl, loadTenderBzpDocumentBytes } from "@/lib/tenders-bzp";
+import { bytesToBlobUrl, loadTenderBzpDocumentBytes, loadTenderBzpDocumentBytesResolved, type TenderBzpDocument } from "@/lib/tenders-bzp";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 
@@ -56,10 +56,12 @@ export function JobFilePreviewModal({
   item,
   athPreviewEnabled,
   onClose,
+  bzpDocuments,
 }: {
   item: InspectorFileItem;
   athPreviewEnabled: boolean;
   onClose: () => void;
+  bzpDocuments?: TenderBzpDocument[];
 }) {
   const filename = previewFilename(item);
   const url = previewUrl(item);
@@ -172,8 +174,18 @@ export function JobFilePreviewModal({
             readZipEntry,
             resolveDocumentBytes,
           } = await import("@/lib/tenders-bzp-doc-parse");
-          const { bytes: outerBytes, filename: serverName, contentType } = await loadTenderBzpDocumentBytes(
-            item.tenderId,
+          const loadTenderBytes = (docIndex: number, fallbackDownloadUrl?: string) => {
+            if (bzpDocuments?.length) {
+              return loadTenderBzpDocumentBytesResolved(item.tenderId, docIndex, bzpDocuments);
+            }
+            return loadTenderBzpDocumentBytes(
+              item.tenderId,
+              docIndex,
+              fallbackDownloadUrl ?? item.downloadUrl,
+              item.sourcePageUrl,
+            );
+          };
+          const { bytes: outerBytes, filename: serverName, contentType } = await loadTenderBytes(
             item.documentIndex,
             item.downloadUrl,
           );
@@ -183,7 +195,7 @@ export function JobFilePreviewModal({
 
           const loadBytes = async (idx: number) => {
             if (idx === item.documentIndex) return outerBytes;
-            const r = await loadTenderBzpDocumentBytes(item.tenderId, idx, item.downloadUrl);
+            const r = await loadTenderBytes(idx, item.downloadUrl);
             return r.bytes;
           };
           let bytes = await resolveDocumentBytes(loadBytes, item.documentIndex, outerName, zipInner);

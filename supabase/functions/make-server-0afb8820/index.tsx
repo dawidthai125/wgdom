@@ -2596,6 +2596,21 @@ function normalizeBzpFilename(filename: string, index: number, contentType: stri
   return `Zalacznik_${index}${ext}`;
 }
 
+function assertDownloadMagicBytes(bytes: Uint8Array, filename: string | null, contentType: string): void {
+  const name = (filename || "").toLowerCase();
+  const ct = (contentType || "").toLowerCase();
+  const isZip = /\.zip$/i.test(name) || ct.includes("zip");
+  const isPdf = /\.pdf$/i.test(name) || ct.includes("pdf");
+  if (isZip && !(bytes[0] === 0x50 && bytes[1] === 0x4b)) {
+    throw new Error("invalid-download");
+  }
+  if (isPdf && !(
+    bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46
+  )) {
+    throw new Error("invalid-download");
+  }
+}
+
 /** Lekki probe istnienia pliku — GET + natychmiastowe anulowanie body (HEAD zwraca 405 na e-Zamówieniach). */
 async function probeTenderDocumentMeta(
   url: string,
@@ -3400,6 +3415,7 @@ app.get("/make-server-0afb8820/tenders-bzp-document-bytes", async (c) => {
     const sourcePageUrl = (c.req.query("sourcePageUrl") || "").trim();
 
     const encodeBytes = (bytes: Uint8Array, filename: string | null, contentType: string) => {
+      assertDownloadMagicBytes(bytes, filename, contentType);
       let binary = "";
       const chunk = 0x8000;
       for (let i = 0; i < bytes.length; i += chunk) {
@@ -3425,6 +3441,9 @@ app.get("/make-server-0afb8820/tenders-bzp-document-bytes", async (c) => {
     }
 
     if (downloadUrl && extIsSafeUrl(downloadUrl)) {
+      if (/\/repository\/download\//i.test(downloadUrl) && !sourcePageUrl) {
+        return c.json({ ok: false, error: "Marketplanet session replay required" }, 502);
+      }
       if (/\.ezamawiajacy\.pl.*\/repository\/download\//i.test(downloadUrl) && sourcePageUrl) {
         const ez = await downloadEzamawiajacyDocumentByIndex(sourcePageUrl, docIndex >= 1 ? docIndex : 1);
         if (ez) return encodeBytes(ez.bytes, ez.filename, ez.contentType);
@@ -3454,6 +3473,9 @@ app.get("/make-server-0afb8820/tenders-bzp-document-bytes", async (c) => {
     const contentType = res.headers.get("content-type") || "application/octet-stream";
     return encodeBytes(bytes, filename, contentType);
   } catch (e) {
+    if (e instanceof Error && e.message === "invalid-download") {
+      return c.json({ ok: false, error: "invalid-download" }, 502);
+    }
     return c.json({ ok: false, error: e instanceof Error ? e.message : "document-bytes error" }, 500);
   }
 });

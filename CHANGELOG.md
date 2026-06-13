@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.55.1 — P0 hotfix Marketplanet ZIP analysis wiring
+- sourcePageUrl w loadDocBytes / analyze-local / JobFilePreviewModal (sesja replay)
+- Edge guard: repository/download bez sourcePageUrl → 502; walidacja PK/%PDF
+- test: `smoke-test-ezamawiajacy-p2h1-hotfix.mjs`
+
 ## 2.55.0 — P2-H.1 Marketplanet (ezamawiajacy.pl)
 - Generic adapter `*.ezamawiajacy.pl` — sesja JSESSIONID + `repository/download`
 - WM / ZZM: auto-discovery dokumentów z ogłoszenia BZP; replay sesji przy pobieraniu bytes

@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.55.1",
+    label: "Przetargi — P0 hotfix Marketplanet ZIP analysis wiring",
+    items: [
+      { type: "fix", text: "Analiza ZIP/dossier/SWZ — przekazywanie sourcePageUrl do pobierania bajtów ezamawiajacy.pl (sesja JSESSIONID)" },
+      { type: "fix", text: "JobFilePreviewModal — loadTenderBzpDocumentBytesResolved dla dokumentów BZP z platformy Marketplanet" },
+      { type: "fix", text: "Edge document-bytes — guard 502 bez sourcePageUrl + walidacja magic bytes ZIP/PDF" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.55.0",
     label: "Przetargi — P2-H.1 Marketplanet (ezamawiajacy.pl)",
     items: [

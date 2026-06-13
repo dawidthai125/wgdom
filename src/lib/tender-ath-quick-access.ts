@@ -110,6 +110,7 @@ export function resolveAthPreviewItem(item: TenderPipelineItem): InspectorFileIt
       filename: k.sourceFilename,
       zipInnerPath: k.zipInnerPath,
       downloadUrl: dl.downloadUrl,
+      sourcePageUrl: resolveTenderDocumentDownload(item.bzpDocuments, k.sourceDocumentIndex)?.sourcePageUrl,
     };
   }
   if (item.uploadedFile && isKosztorysPreviewExt(item.uploadedFile.filename)) {

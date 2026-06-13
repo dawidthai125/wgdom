@@ -76,8 +76,14 @@ async function loadDocBytes(
   docs: TenderBzpDocument[],
   downloadUrl?: string,
 ): Promise<Uint8Array> {
-  const resolved = downloadUrl ?? resolveTenderDocumentDownload(docs, index)?.downloadUrl;
-  const { base64 } = await fetchTenderDocumentBytes(tenderId, index, resolved);
+  const access = resolveTenderDocumentDownload(docs, index);
+  const resolvedUrl = downloadUrl ?? access?.downloadUrl;
+  const { base64 } = await fetchTenderDocumentBytes(
+    tenderId,
+    index,
+    resolvedUrl,
+    access?.sourcePageUrl,
+  );
   return base64ToBytes(base64);
 }
 

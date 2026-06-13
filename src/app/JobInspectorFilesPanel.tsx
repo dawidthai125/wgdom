@@ -26,6 +26,7 @@ export type InspectorFileItem =
     contentType?: string;
     zipInnerPath?: string;
     downloadUrl?: string;
+    sourcePageUrl?: string;
   }
   | { kind: "tenderUpload"; filename: string; publicUrl: string; path: string };
 
