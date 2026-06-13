@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.53.6",
+    label: "Przetargi — UX.1D Formal Details Compression",
+    items: [
+      { type: "improve", text: "Szczegóły formalne — domyślnie skrót (wadium, termin, kryteria, warunki udziału)" },
+      { type: "improve", text: "Pełna karta przetargu dopiero po „Pokaż pełne szczegóły formalne” (lazy render)" },
+      { type: "improve", text: "Workspace Dokumenty: lista plików przed skrótem formalnym — krótszy pierwszy ekran" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.53.5",
     label: "Przetargi — UX.1C Tender Documents Prioritization",
     items: [

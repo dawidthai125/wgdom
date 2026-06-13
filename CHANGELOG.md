@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.53.6 — UX.1D Formal Details Compression
+- Szczegóły formalne domyślnie zwinięte — skrót max 5 linii + lazy render karty przetargu
+- Dokumenty przed skrótem formalnym w workspace Dokumenty
+
 ## 2.53.5 — UX.1C Tender Documents Prioritization
 - Czytelne nazwy plików (`normalizeTenderDocumentTitle`) — tylko UI
 - TOP 5 „Najważniejsze dokumenty” + zwinięte pozostałe w workspace Dokumenty

@@ -1,4 +1,5 @@
-import { ChevronDown, FileText, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, ClipboardList, FileText, Sparkles } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
@@ -8,6 +9,8 @@ import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import {
   TENDER_ATTACHMENTS_SECTION_ID,
   TENDER_FORMAL_DETAILS_SECTION_ID,
+  buildTenderFormalDetailsSummary,
+  hasTenderFormalDetailsSection,
 } from "@/lib/tender-workspace-ux";
 
 export function TenderDocumentsWorkspace({
@@ -45,6 +48,8 @@ export function TenderDocumentsWorkspace({
   onLearnKeywords: () => void;
   onOpenKosztorysPreview: (previewItem: InspectorFileItem) => void;
 }) {
+  const [showFullFormalDetails, setShowFullFormalDetails] = useState(false);
+
   const sourceLabel = swz?.source === "html"
     ? "ogłoszenie BZP"
     : swz?.source === "pdf"
@@ -53,12 +58,97 @@ export function TenderDocumentsWorkspace({
         ? "DOCX"
         : null;
 
+  const formalSummary = buildTenderFormalDetailsSummary(item, swz, item.tenderDossier);
+  const showFormalSection = hasTenderFormalDetailsSection(
+    item,
+    swz,
+    item.tenderDossier,
+    suggestions.length,
+  );
+
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
         <span className="font-semibold text-foreground/80">Źródło dokumentów:</span>{" "}
         {platformSourceLabel}
       </p>
+
+      <TenderAttachmentsPanel
+        item={item}
+        athPreviewEnabled={athPreviewEnabled}
+        loadingDocs={loadingDocs}
+        onRefresh={onRefresh}
+        onAnalyze={onAnalyze}
+        analyzing={analyzing}
+        externalDiscovery={item.externalDocDiscovery as TenderExternalDocDiscovery | null | undefined}
+        externalDiscovering={externalDiscovering}
+        onSearchExternal={onSearchExternal}
+        sectionId={TENDER_ATTACHMENTS_SECTION_ID}
+      />
+
+      {showFormalSection && (
+        <div id={TENDER_FORMAL_DETAILS_SECTION_ID} className="rounded-xl border border-border overflow-hidden scroll-mt-2">
+          <div className="px-3 py-2.5 bg-secondary/40 border-b border-border">
+            <p className="text-xs font-semibold flex items-center gap-1.5">
+              <ClipboardList size={13} className="text-muted-foreground shrink-0" />
+              Szczegóły formalne
+            </p>
+          </div>
+          <div className="px-3 py-2.5 space-y-2">
+            {formalSummary.length > 0 && (
+              <dl className="space-y-1 text-xs">
+                {formalSummary.map((line) => (
+                  <div key={line.label} className="flex flex-wrap gap-x-1.5 gap-y-0.5">
+                    <dt className="text-muted-foreground shrink-0">{line.label}:</dt>
+                    <dd className="text-foreground font-medium">{line.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setShowFullFormalDetails((v) => !v); }}
+              className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground font-medium"
+            >
+              <ChevronDown size={12} className={`transition-transform ${showFullFormalDetails ? "rotate-180" : ""}`} />
+              {showFullFormalDetails
+                ? "Ukryj pełne szczegóły formalne"
+                : "Pokaż pełne szczegóły formalne"}
+            </button>
+            {showFullFormalDetails && (
+              <div className="space-y-3 pt-1 border-t border-border/60">
+                <TenderDossierPanel
+                  item={item}
+                  dossier={item.tenderDossier}
+                  swz={swz}
+                  onOpenKosztorysPreview={onOpenKosztorysPreview}
+                />
+
+                {suggestions.length > 0 && (
+                  <div className="rounded-lg bg-secondary/50 px-3 py-2 space-y-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                      <Sparkles size={11} /> Propozycje słów kluczowych
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {suggestions.slice(0, 6).map((s) => (
+                        <span key={s} className="text-[10px] bg-background px-1.5 py-0.5 rounded border border-border">{s}</span>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      disabled={learning}
+                      onClick={(e) => { e.stopPropagation(); onLearnKeywords(); }}
+                      className="text-[10px] text-primary hover:underline"
+                    >
+                      {learning ? "Zapisywanie…" : "Ucz system z zaznaczonych przetargów"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {swz?.parsedAt && (
         <p className="text-[10px] text-muted-foreground rounded-lg border border-border/60 bg-secondary/20 px-3 py-2">
@@ -98,54 +188,6 @@ export function TenderDocumentsWorkspace({
           </ul>
         </details>
       )}
-
-      <TenderAttachmentsPanel
-        item={item}
-        athPreviewEnabled={athPreviewEnabled}
-        loadingDocs={loadingDocs}
-        onRefresh={onRefresh}
-        onAnalyze={onAnalyze}
-        analyzing={analyzing}
-        externalDiscovery={item.externalDocDiscovery as TenderExternalDocDiscovery | null | undefined}
-        externalDiscovering={externalDiscovering}
-        onSearchExternal={onSearchExternal}
-        sectionId={TENDER_ATTACHMENTS_SECTION_ID}
-      />
-
-      <div id={TENDER_FORMAL_DETAILS_SECTION_ID} className="rounded-xl border border-border overflow-hidden scroll-mt-2">
-        <div className="px-3 py-2.5 text-xs font-semibold bg-secondary/40 border-b border-border">
-          Szczegóły formalne
-        </div>
-        <div className="px-3 pb-3 pt-2 space-y-3">
-          <TenderDossierPanel
-            item={item}
-            dossier={item.tenderDossier}
-            swz={swz}
-            onOpenKosztorysPreview={onOpenKosztorysPreview}
-          />
-
-          {suggestions.length > 0 && (
-            <div className="rounded-lg bg-secondary/50 px-3 py-2 space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
-                <Sparkles size={11} /> Propozycje słów kluczowych
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {suggestions.slice(0, 6).map((s) => (
-                  <span key={s} className="text-[10px] bg-background px-1.5 py-0.5 rounded border border-border">{s}</span>
-                ))}
-              </div>
-              <button
-                type="button"
-                disabled={learning}
-                onClick={(e) => { e.stopPropagation(); onLearnKeywords(); }}
-                className="text-[10px] text-primary hover:underline"
-              >
-                {learning ? "Zapisywanie…" : "Ucz system z zaznaczonych przetargów"}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
 
       {item.noticeHtml && (
         <div className="rounded-lg border border-border overflow-hidden">

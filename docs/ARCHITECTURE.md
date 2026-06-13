@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.5** · UX.1C)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (UX.1C — Tender Documents Prioritization)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.6** · UX.1D)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (UX.1D — Formal Details Compression)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1207,6 +1207,18 @@ Workspace **Dokumenty** — tylko warstwa UI (`TenderAttachmentsPanel`), bez zmi
 - Pozostałe dokumenty domyślnie zwinięte — przycisk „Pokaż pozostałe dokumenty (X)”
 
 **SSOT:** `tender-workspace-ux.ts` · test: `scripts/test-tender-workspace-ux.mjs` § UX.1C
+
+**UX.1D — Formal Details Compression (v2.53.6):**
+
+Sekcja **Szczegóły formalne** w workspace Dokumenty — skrót domyślnie, pełna karta przetargu lazy.
+
+- `buildTenderFormalDetailsSummary()` — max 5 linii (wadium, termin, kryteria, warunki udziału, wartość)
+- `hasTenderFormalDetailsSection()` — czy renderować sekcję
+- Pełny `TenderDossierPanel` tylko po rozwinięciu — bez zmian pipeline/danych
+
+**Kolejność workspace Dokumenty:** załączniki → skrót formalny → meta SWZ → HTML BZP.
+
+**SSOT:** test: `scripts/test-tender-workspace-ux.mjs` § UX.1D
 
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 

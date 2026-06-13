@@ -5,7 +5,14 @@
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { TENDER_STATUS_LABELS } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
-import { resolveTenderValue } from "@/lib/tender-data-ssot";
+import type { TenderDossier } from "@/lib/tenders-bzp-brief";
+import {
+  resolveTenderValue,
+  resolvedWadiumDisplay,
+  resolvedAwardCriteria,
+  formatAwardCriteriaSummary,
+  TENDER_VALUE_NOT_FOUND_LABEL,
+} from "@/lib/tender-data-ssot";
 import { isTenderOpenForOffers, daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 
 export const TENDER_SUMMARY_BAR_ID = "tender-summary-bar";
@@ -282,4 +289,76 @@ export function prioritizeTenderDocuments<T>(
   });
 
   return { top: sorted.slice(0, maxTop), rest: sorted.slice(maxTop) };
+}
+
+/** UX.1D — linia skrótu sekcji „Szczegóły formalne”. */
+export interface TenderFormalDetailsSummaryLine {
+  label: string;
+  value: string;
+}
+
+export const TENDER_FORMAL_DETAILS_SUMMARY_MAX_LINES = 5;
+
+function resolveTenderOfferDeadlineDisplay(
+  item: TenderPipelineItem,
+  dossier?: TenderDossier | null,
+): string | null {
+  const briefDeadline = dossier?.brief?.offerDeadline?.trim();
+  if (briefDeadline) return briefDeadline;
+  if (!item.submittingOffersDate) return null;
+  return new Date(item.submittingOffersDate).toLocaleDateString("pl-PL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+/** UX.1D — kompaktowe podsumowanie formalne (max 5 linii, bez pustych pól). */
+export function buildTenderFormalDetailsSummary(
+  item: TenderPipelineItem,
+  swz: TenderSwzAnalysis | null | undefined,
+  dossier?: TenderDossier | null,
+): TenderFormalDetailsSummaryLine[] {
+  const lines: TenderFormalDetailsSummaryLine[] = [];
+
+  const wadium = resolvedWadiumDisplay(swz)?.trim();
+  if (wadium) lines.push({ label: "Wadium", value: wadium });
+
+  const deadline = resolveTenderOfferDeadlineDisplay(item, dossier);
+  if (deadline) lines.push({ label: "Termin składania", value: deadline });
+
+  const criteria = resolvedAwardCriteria(swz);
+  if (criteria.length > 0) {
+    lines.push({
+      label: "Kryteria",
+      value: formatAwardCriteriaSummary(criteria, 4),
+    });
+  }
+
+  const participationCount = swz?.formalRequirements?.length ?? 0;
+  if (participationCount > 0) {
+    lines.push({ label: "Warunki udziału", value: String(participationCount) });
+  }
+
+  if (lines.length < TENDER_FORMAL_DETAILS_SUMMARY_MAX_LINES) {
+    const valueResolved = resolveTenderValue(item, swz ?? null);
+    if (valueResolved.pln != null && valueResolved.display !== TENDER_VALUE_NOT_FOUND_LABEL) {
+      lines.push({ label: "Wartość", value: valueResolved.display });
+    }
+  }
+
+  return lines.slice(0, TENDER_FORMAL_DETAILS_SUMMARY_MAX_LINES);
+}
+
+/** UX.1D — czy sekcja formalna ma co pokazać (skrót lub pełny dossier). */
+export function hasTenderFormalDetailsSection(
+  item: TenderPipelineItem,
+  swz: TenderSwzAnalysis | null | undefined,
+  dossier?: TenderDossier | null,
+  suggestionsCount = 0,
+): boolean {
+  if (buildTenderFormalDetailsSummary(item, swz, dossier).length > 0) return true;
+  if (dossier?.brief || swz || dossier?.kosztorys?.ok) return true;
+  if (suggestionsCount > 0) return true;
+  return false;
 }

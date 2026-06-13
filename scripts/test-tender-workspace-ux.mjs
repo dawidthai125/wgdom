@@ -25,6 +25,8 @@ import {
   prioritizeTenderDocuments,
   classifyTenderDocumentDisplayTier,
   TENDER_DOC_TOP_LIMIT,
+  buildTenderFormalDetailsSummary,
+  hasTenderFormalDetailsSection,
 } from "../src/lib/tender-workspace-ux.ts";
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
@@ -213,5 +215,42 @@ assert(attachPanelSrc.includes("Ukryj pozostałe dokumenty"), "T5: collapse rest
 assert(attachPanelSrc.includes("normalizeTenderDocumentTitle"), "UX.1C: friendly titles in panel");
 assert(readSrc("src/app/TenderDocumentsWorkspace.tsx").includes("TenderDossierPanel"), "T6: dossier panel intact");
 
-console.log(`\n=== UX.1A/1B/1C: ${pass} PASS, ${fail} FAIL ===\n`);
+console.log("\n13. UX.1D — formal details compression (T1–T7)");
+const docsWsSrc = readSrc("src/app/TenderDocumentsWorkspace.tsx");
+assert(docsWsSrc.includes('useState(false)'), "T1: formal section default collapsed state");
+assert(docsWsSrc.includes("showFullFormalDetails &&"), "T1/T3: dossier lazy render when expanded");
+assert(docsWsSrc.includes("buildTenderFormalDetailsSummary"), "T2: formal summary helper");
+assert(docsWsSrc.includes("Pokaż pełne szczegóły formalne"), "T3: expand formal label");
+assert(docsWsSrc.includes("Ukryj pełne szczegóły formalne"), "T4: collapse formal label");
+assert(
+  docsWsSrc.indexOf("TenderAttachmentsPanel") < docsWsSrc.indexOf("TENDER_FORMAL_DETAILS_SECTION_ID"),
+  "UX.1D: documents before formal section",
+);
+
+const summaryItem = {
+  id: "t1",
+  submittingOffersDate: "2026-06-24T12:00:00Z",
+  title: "Test",
+};
+const sparseSummary = buildTenderFormalDetailsSummary(summaryItem, null, null);
+assert(sparseSummary.length === 1, "T5: sparse data → one line");
+assert(sparseSummary[0]?.label === "Termin składania", "T5: only deadline when no wadium");
+assert(!sparseSummary.some((l) => l.label === "Wadium"), "T5: no empty wadium row");
+
+const richSwz = {
+  wadiumPln: 15000,
+  wadiumRaw: "15 000 PLN",
+  awardCriteria: [{ name: "Cena", weightPct: 60 }, { name: "Termin", weightPct: 40 }],
+  formalRequirements: [{ type: "other", label: "A" }, { type: "other", label: "B" }, { type: "other", label: "C" }, { type: "other", label: "D" }],
+};
+const richSummary = buildTenderFormalDetailsSummary(summaryItem, richSwz, null);
+assert(richSummary.some((l) => l.label === "Wadium"), "T2: wadium in summary");
+assert(richSummary.some((l) => l.label === "Kryteria"), "T2: criteria in summary");
+assert(richSummary.some((l) => l.label === "Warunki udziału" && l.value === "4"), "T2: participation count");
+
+assert(docsWsSrc.includes("swz?.parsedAt"), "T6: SWZ analysis banner intact");
+assert(hasTenderFormalDetailsSection(summaryItem, richSwz, null), "T7: formal section when dossier data");
+assert(docsWsSrc.includes("TenderDossierPanel"), "T7: dossier panel preserved");
+
+console.log(`\n=== UX.1A/1B/1C/1D: ${pass} PASS, ${fail} FAIL ===\n`);
 if (fail > 0) process.exit(1);
