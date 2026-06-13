@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.56.6 — P3.4A historia materiałów
+- `material-history.ts` + `material-impact.ts` — trend i wpływ vs własna historia (90 dni)
+- Rozszerzenie `kw-wgdom-cost-catalog-history` o `materialPlnPerUnit`
+
 ## 2.56.5 — P3.3D benchmark impact
 - `labor-benchmark-impact.ts` — wpływ PLN = odchylenie stawki × ilość (read-only)
 - Wycena: hero Benchmark Impact + kolumny w podsumowaniu kategorii

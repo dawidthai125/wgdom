@@ -1,12 +1,11 @@
 /**
- * P3.3B — historia stawek robocizny Bazy cen (snapshots przy zapisie).
+ * P3.3B / P3.4A — historia stawek Bazy cen (robocizna + materiały, snapshots przy zapisie).
  */
 
 import { fetchKeysFromCloud, persistKey } from "@/lib/cloud-sync";
 import { fullyLoadedHourly } from "@/lib/company-labor-cost";
 import type { TenderCompanyCostModel } from "@/lib/tenders-bzp-company";
 import {
-  getActiveCatalog,
   listEditableCategories,
   type WgdomCostCatalogStore,
 } from "@/lib/wgdom-cost-catalog-store";
@@ -15,23 +14,31 @@ import type { WgdomCostCategoryId, WgdomCostRegion, WgdomCostUnit } from "@/lib/
 export const WGDOM_COST_CATALOG_HISTORY_KEY = "kw-wgdom-cost-catalog-history";
 
 export const COST_CATALOG_HISTORY_MAX_SNAPSHOTS = 100;
+export const LABOR_HISTORY_WINDOW_DAYS = 90;
+export const MATERIAL_HISTORY_WINDOW_DAYS = 90;
 
-export interface CostCatalogLaborRateEntry {
+/** @deprecated alias P3.3B */
+export type CostCatalogLaborRateEntry = CostCatalogRateEntry;
+/** @deprecated alias P3.3B */
+export type CostCatalogLaborSnapshot = CostCatalogSnapshot;
+
+export interface CostCatalogRateEntry {
   categoryId: WgdomCostCategoryId;
   unit: WgdomCostUnit;
   laborRbhPerUnit: number;
   laborPlnPerUnit: number;
+  materialPlnPerUnit: number;
 }
 
-export interface CostCatalogLaborSnapshot {
+export interface CostCatalogSnapshot {
   at: string;
   region: WgdomCostRegion;
-  rates: CostCatalogLaborRateEntry[];
+  rates: CostCatalogRateEntry[];
 }
 
 export interface WgdomCostCatalogHistoryStore {
   schemaVersion: 1;
-  snapshots: CostCatalogLaborSnapshot[];
+  snapshots: CostCatalogSnapshot[];
   updatedAt: string;
 }
 
@@ -49,29 +56,36 @@ export function defaultWgdomCostCatalogHistoryStore(): WgdomCostCatalogHistorySt
   };
 }
 
-function normalizeSnapshot(raw: unknown): CostCatalogLaborSnapshot | null {
+function normalizeRateEntry(raw: unknown): CostCatalogRateEntry | null {
   if (!raw || typeof raw !== "object") return null;
-  const s = raw as Partial<CostCatalogLaborSnapshot>;
+  const entry = raw as Partial<CostCatalogRateEntry>;
+  if (typeof entry.categoryId !== "string") return null;
+  const unit = entry.unit as WgdomCostUnit;
+  if (!["m2", "mb", "szt", "rbh", "m3", "kpl"].includes(unit)) return null;
+  const laborRbh = Number(entry.laborRbhPerUnit);
+  const laborPln = Number(entry.laborPlnPerUnit);
+  const materialPln = Number(entry.materialPlnPerUnit);
+  if (!Number.isFinite(laborRbh) || laborRbh < 0) return null;
+  if (!Number.isFinite(laborPln) || laborPln < 0) return null;
+  return {
+    categoryId: entry.categoryId as WgdomCostCategoryId,
+    unit,
+    laborRbhPerUnit: laborRbh,
+    laborPlnPerUnit: laborPln,
+    materialPlnPerUnit: Number.isFinite(materialPln) && materialPln >= 0 ? materialPln : 0,
+  };
+}
+
+function normalizeSnapshot(raw: unknown): CostCatalogSnapshot | null {
+  if (!raw || typeof raw !== "object") return null;
+  const s = raw as Partial<CostCatalogSnapshot>;
   if (typeof s.at !== "string" || !s.at) return null;
   const region: WgdomCostRegion = s.region === "dolnyslask" ? "dolnyslask" : "wroclaw";
-  const rates: CostCatalogLaborRateEntry[] = [];
+  const rates: CostCatalogRateEntry[] = [];
   if (Array.isArray(s.rates)) {
     for (const r of s.rates) {
-      if (!r || typeof r !== "object") continue;
-      const entry = r as Partial<CostCatalogLaborRateEntry>;
-      if (typeof entry.categoryId !== "string") continue;
-      const unit = entry.unit as WgdomCostUnit;
-      if (!["m2", "mb", "szt", "rbh", "m3", "kpl"].includes(unit)) continue;
-      const laborRbh = Number(entry.laborRbhPerUnit);
-      const laborPln = Number(entry.laborPlnPerUnit);
-      if (!Number.isFinite(laborRbh) || laborRbh < 0) continue;
-      if (!Number.isFinite(laborPln) || laborPln < 0) continue;
-      rates.push({
-        categoryId: entry.categoryId as WgdomCostCategoryId,
-        unit,
-        laborRbhPerUnit: laborRbh,
-        laborPlnPerUnit: laborPln,
-      });
+      const norm = normalizeRateEntry(r);
+      if (norm) rates.push(norm);
     }
   }
   if (rates.length === 0) return null;
@@ -82,7 +96,7 @@ export function normalizeWgdomCostCatalogHistoryStore(raw: unknown): WgdomCostCa
   const base = defaultWgdomCostCatalogHistoryStore();
   if (!raw || typeof raw !== "object") return base;
   const r = raw as Partial<WgdomCostCatalogHistoryStore>;
-  const snapshots: CostCatalogLaborSnapshot[] = [];
+  const snapshots: CostCatalogSnapshot[] = [];
   if (Array.isArray(r.snapshots)) {
     for (const s of r.snapshots) {
       const norm = normalizeSnapshot(s);
@@ -97,7 +111,7 @@ export function normalizeWgdomCostCatalogHistoryStore(raw: unknown): WgdomCostCa
   };
 }
 
-function snapshotKey(s: CostCatalogLaborSnapshot): string {
+function snapshotKey(s: CostCatalogSnapshot): string {
   return `${s.at}|${s.region}`;
 }
 
@@ -107,7 +121,7 @@ export function mergeWgdomCostCatalogHistoryStore(
 ): WgdomCostCatalogHistoryStore {
   const l = normalizeWgdomCostCatalogHistoryStore(local);
   const c = normalizeWgdomCostCatalogHistoryStore(cloud);
-  const map = new Map<string, CostCatalogLaborSnapshot>();
+  const map = new Map<string, CostCatalogSnapshot>();
   for (const s of [...l.snapshots, ...c.snapshots]) {
     const key = snapshotKey(s);
     const prev = map.get(key);
@@ -157,33 +171,14 @@ async function saveWgdomCostCatalogHistoryStore(store: WgdomCostCatalogHistorySt
   await persistKey(WGDOM_COST_CATALOG_HISTORY_KEY, next);
 }
 
-function laborRatesFingerprint(
+function ratesFingerprint(
   store: WgdomCostCatalogStore,
   region: WgdomCostRegion,
 ): string {
   const rows = listEditableCategories(store, region);
   return rows
-    .map((r) => `${r.id}:${r.unit}:${r.laborRbhPerUnit}`)
+    .map((r) => `${r.id}:${r.unit}:${r.laborRbhPerUnit}:${r.materialPlnPerUnit}`)
     .join("|");
-}
-
-export function buildLaborSnapshotFromCatalog(
-  store: WgdomCostCatalogStore,
-  costModel: TenderCompanyCostModel,
-  region?: WgdomCostRegion,
-): CostCatalogLaborSnapshot {
-  const targetRegion = region ?? store.activeRegion;
-  const rows = listEditableCategories(store, targetRegion);
-  return {
-    at: new Date().toISOString(),
-    region: targetRegion,
-    rates: rows.map((row) => ({
-      categoryId: row.id,
-      unit: row.unit,
-      laborRbhPerUnit: row.laborRbhPerUnit,
-      laborPlnPerUnit: computeLaborPlnPerUnitFromRbh(row.laborRbhPerUnit, costModel),
-    })),
-  };
 }
 
 export function hasLaborRateChange(
@@ -192,31 +187,34 @@ export function hasLaborRateChange(
   region?: WgdomCostRegion,
 ): boolean {
   const targetRegion = region ?? next.activeRegion;
-  return laborRatesFingerprint(previous, targetRegion) !== laborRatesFingerprint(next, targetRegion);
+  const prevRows = listEditableCategories(previous, targetRegion);
+  const nextRows = listEditableCategories(next, targetRegion);
+  const prevFp = prevRows.map((r) => `${r.id}:${r.unit}:${r.laborRbhPerUnit}`).join("|");
+  const nextFp = nextRows.map((r) => `${r.id}:${r.unit}:${r.laborRbhPerUnit}`).join("|");
+  return prevFp !== nextFp;
 }
 
-export async function appendCostCatalogHistoryIfLaborChanged(
+export function hasMaterialRateChange(
   previous: WgdomCostCatalogStore,
   next: WgdomCostCatalogStore,
-  costModel: TenderCompanyCostModel,
-): Promise<WgdomCostCatalogHistoryStore> {
-  const region = next.activeRegion;
-  if (!hasLaborRateChange(previous, next, region)) {
-    return loadWgdomCostCatalogHistoryLocal();
-  }
-  const history = loadWgdomCostCatalogHistoryLocal();
-  const snapshot = buildLaborSnapshotFromCatalog(next, costModel, region);
-  const snapshots = [snapshot, ...history.snapshots].slice(0, COST_CATALOG_HISTORY_MAX_SNAPSHOTS);
-  const updated: WgdomCostCatalogHistoryStore = {
-    schemaVersion: 1,
-    snapshots,
-    updatedAt: new Date().toISOString(),
-  };
-  await saveWgdomCostCatalogHistoryStore(updated);
-  return updated;
+  region?: WgdomCostRegion,
+): boolean {
+  const targetRegion = region ?? next.activeRegion;
+  const prevRows = listEditableCategories(previous, targetRegion);
+  const nextRows = listEditableCategories(next, targetRegion);
+  const prevFp = prevRows.map((r) => `${r.id}:${r.unit}:${r.materialPlnPerUnit}`).join("|");
+  const nextFp = nextRows.map((r) => `${r.id}:${r.unit}:${r.materialPlnPerUnit}`).join("|");
+  return prevFp !== nextFp;
 }
 
-export const LABOR_HISTORY_WINDOW_DAYS = 90;
+export function hasCatalogRateChange(
+  previous: WgdomCostCatalogStore,
+  next: WgdomCostCatalogStore,
+  region?: WgdomCostRegion,
+): boolean {
+  const targetRegion = region ?? next.activeRegion;
+  return ratesFingerprint(previous, targetRegion) !== ratesFingerprint(next, targetRegion);
+}
 
 function computeLaborPlnPerUnitFromRbh(
   laborRbhPerUnit: number,
@@ -227,6 +225,91 @@ function computeLaborPlnPerUnitFromRbh(
   return Math.round(laborRbhPerUnit * flHourly * laborNormFactor * 100) / 100;
 }
 
+export function buildCatalogSnapshotFromStore(
+  store: WgdomCostCatalogStore,
+  costModel: TenderCompanyCostModel,
+  region?: WgdomCostRegion,
+): CostCatalogSnapshot {
+  const targetRegion = region ?? store.activeRegion;
+  const rows = listEditableCategories(store, targetRegion);
+  return {
+    at: new Date().toISOString(),
+    region: targetRegion,
+    rates: rows.map((row) => ({
+      categoryId: row.id,
+      unit: row.unit,
+      laborRbhPerUnit: row.laborRbhPerUnit,
+      laborPlnPerUnit: computeLaborPlnPerUnitFromRbh(row.laborRbhPerUnit, costModel),
+      materialPlnPerUnit: row.materialPlnPerUnit,
+    })),
+  };
+}
+
+/** @deprecated użyj buildCatalogSnapshotFromStore */
+export function buildLaborSnapshotFromCatalog(
+  store: WgdomCostCatalogStore,
+  costModel: TenderCompanyCostModel,
+  region?: WgdomCostRegion,
+): CostCatalogSnapshot {
+  return buildCatalogSnapshotFromStore(store, costModel, region);
+}
+
+export async function appendCostCatalogHistoryIfRatesChanged(
+  previous: WgdomCostCatalogStore,
+  next: WgdomCostCatalogStore,
+  costModel: TenderCompanyCostModel,
+): Promise<WgdomCostCatalogHistoryStore> {
+  const region = next.activeRegion;
+  if (!hasCatalogRateChange(previous, next, region)) {
+    return loadWgdomCostCatalogHistoryLocal();
+  }
+  const history = loadWgdomCostCatalogHistoryLocal();
+  const snapshot = buildCatalogSnapshotFromStore(next, costModel, region);
+  const snapshots = [snapshot, ...history.snapshots].slice(0, COST_CATALOG_HISTORY_MAX_SNAPSHOTS);
+  const updated: WgdomCostCatalogHistoryStore = {
+    schemaVersion: 1,
+    snapshots,
+    updatedAt: new Date().toISOString(),
+  };
+  await saveWgdomCostCatalogHistoryStore(updated);
+  return updated;
+}
+
+/** @deprecated alias — zapis przy zmianie robocizny lub materiału */
+export async function appendCostCatalogHistoryIfLaborChanged(
+  previous: WgdomCostCatalogStore,
+  next: WgdomCostCatalogStore,
+  costModel: TenderCompanyCostModel,
+): Promise<WgdomCostCatalogHistoryStore> {
+  return appendCostCatalogHistoryIfRatesChanged(previous, next, costModel);
+}
+
+function findOldestRateInWindow(
+  history: WgdomCostCatalogHistoryStore,
+  region: WgdomCostRegion,
+  categoryId: WgdomCostCategoryId,
+  unit: WgdomCostUnit,
+  pickPln: (rate: CostCatalogRateEntry) => number,
+  windowDays: number,
+  now: number,
+): { plnPerUnit: number; at: string; daysAgo: number } | null {
+  const cutoff = now - windowDays * 24 * 60 * 60 * 1000;
+  const candidates = history.snapshots
+    .filter((s) => s.region === region && ts(s.at) >= cutoff && ts(s.at) <= now - 60_000)
+    .sort((a, b) => ts(a.at) - ts(b.at));
+
+  for (const snap of candidates) {
+    const rate = snap.rates.find((r) => r.categoryId === categoryId && r.unit === unit);
+    if (!rate) continue;
+    const pln = pickPln(rate);
+    if (pln > 0) {
+      const daysAgo = Math.round((now - ts(snap.at)) / (24 * 60 * 60 * 1000));
+      return { plnPerUnit: pln, at: snap.at, daysAgo };
+    }
+  }
+  return null;
+}
+
 export function findOldestLaborRateInWindow(
   history: WgdomCostCatalogHistoryStore,
   region: WgdomCostRegion,
@@ -235,21 +318,24 @@ export function findOldestLaborRateInWindow(
   windowDays = LABOR_HISTORY_WINDOW_DAYS,
   now = Date.now(),
 ): { laborPlnPerUnit: number; at: string; daysAgo: number } | null {
-  const cutoff = now - windowDays * 24 * 60 * 60 * 1000;
-  const candidates = history.snapshots
-    .filter((s) => s.region === region && ts(s.at) >= cutoff && ts(s.at) <= now - 60_000)
-    .sort((a, b) => ts(a.at) - ts(b.at));
+  const found = findOldestRateInWindow(
+    history, region, categoryId, unit, (r) => r.laborPlnPerUnit, windowDays, now,
+  );
+  if (!found) return null;
+  return { laborPlnPerUnit: found.plnPerUnit, at: found.at, daysAgo: found.daysAgo };
+}
 
-  for (const snap of candidates) {
-    const rate = snap.rates.find((r) => r.categoryId === categoryId && r.unit === unit);
-    if (rate && rate.laborPlnPerUnit > 0) {
-      const daysAgo = Math.round((now - ts(snap.at)) / (24 * 60 * 60 * 1000));
-      return {
-        laborPlnPerUnit: rate.laborPlnPerUnit,
-        at: snap.at,
-        daysAgo,
-      };
-    }
-  }
-  return null;
+export function findOldestMaterialRateInWindow(
+  history: WgdomCostCatalogHistoryStore,
+  region: WgdomCostRegion,
+  categoryId: WgdomCostCategoryId,
+  unit: WgdomCostUnit,
+  windowDays = MATERIAL_HISTORY_WINDOW_DAYS,
+  now = Date.now(),
+): { materialPlnPerUnit: number; at: string; daysAgo: number } | null {
+  const found = findOldestRateInWindow(
+    history, region, categoryId, unit, (r) => r.materialPlnPerUnit, windowDays, now,
+  );
+  if (!found) return null;
+  return { materialPlnPerUnit: found.plnPerUnit, at: found.at, daysAgo: found.daysAgo };
 }

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.56.6",
+    label: "Przetargi — P3.4A historia materiałów i wpływ",
+    items: [
+      { type: "new", text: "Historia materiałów w kw-wgdom-cost-catalog-history (snapshot przy zmianie stawki)" },
+      { type: "new", text: "Baza cen — materiały: Nasza / historia 90 dni / trend ↗↘→" },
+      { type: "new", text: "Wycena → Pozycje: materiały — źródło, historia, trend, wpływ vs firma (read-only)" },
+      { type: "improve", text: "Hero alert: Wpływ materiałów (historia firmy) — bez benchmarku rynku i API zewnętrznych" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.56.5",
     label: "Przetargi — P3.3D benchmark impact",
     items: [

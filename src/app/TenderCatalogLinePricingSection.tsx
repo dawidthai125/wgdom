@@ -7,11 +7,17 @@ import type { TenderCompanyCostModel } from "@/lib/tenders-bzp-company";
 import type { WgdomCostCatalog } from "@/lib/wgdom-cost-catalog";
 import { TenderCategoryPriceOverrideModal } from "@/app/TenderCategoryPriceOverrideModal";
 import { LaborBenchmarkStatusBadge } from "@/app/LaborBenchmarkUi";
+import { MaterialHistoryCell } from "@/app/MaterialHistoryUi";
 import {
   formatLaborBenchmarkDeviationShort,
   formatLaborBenchmarkImpactPln,
   laborBenchmarkImpactClass,
 } from "@/lib/labor-benchmark-impact";
+import {
+  formatMaterialDeviationShort,
+  formatMaterialImpactPln,
+  materialImpactClass,
+} from "@/lib/material-impact";
 
 function formatPerUnit(pln: number | null, unit: string): string {
   if (pln == null || !Number.isFinite(pln)) return "—";
@@ -168,14 +174,71 @@ export function TenderCatalogLinePricingSection({
           <p className="px-2.5 py-1 text-[9px] text-muted-foreground border-t border-border/30">
             Koszt direct (materiał + robocizna): {fmtPln(view.classifiedDirectTotalPln)}
             {" · "}{view.classifiedPositionCount} poz. sklasyfikowanych
-            {" · "}Wpływ = odchylenie stawki robocizny × ilość (read-only)
+            {" · "}Wpływ rbh = odchylenie vs benchmark × ilość (read-only)
+          </p>
+        </div>
+      )}
+
+      {view.categorySummary.length > 0 && (
+        <div className="rounded-lg border border-border/60 overflow-hidden">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground px-2.5 py-1.5 bg-secondary/40 border-b border-border/40">
+            Materiały — historia firmy i wpływ (bez benchmarku rynku)
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[10px] min-w-[560px]">
+              <thead className="bg-secondary/30">
+                <tr>
+                  <th className="text-left px-2 py-1 font-semibold">Kategoria</th>
+                  <th className="text-right px-2 py-1 font-semibold">Materiał</th>
+                  <th className="text-left px-2 py-1 font-semibold">Źródło</th>
+                  <th className="text-left px-2 py-1 font-semibold min-w-[120px]">Historia / trend</th>
+                  <th className="text-right px-2 py-1 font-semibold">Odchylenie</th>
+                  <th className="text-right px-2 py-1 font-semibold">Wpływ mat.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...view.categorySummary]
+                  .sort((a, b) => b.materialImpact.impactPln - a.materialImpact.impactPln)
+                  .map((row) => (
+                    <tr key={`mat-${row.categoryId}`} className="border-t border-border/30">
+                      <td className="px-2 py-1 font-medium">{row.categoryLabel}</td>
+                      <td className="px-2 py-1 text-right font-mono tabular-nums">
+                        {row.avgMaterialPlnPerUnit > 0
+                          ? `${row.avgMaterialPlnPerUnit.toLocaleString("pl-PL")} zł/${unitSuffix(row.dominantUnit)}`
+                          : "—"}
+                      </td>
+                      <td className="px-2 py-1 text-muted-foreground">{row.materialSourceLabel}</td>
+                      <td className="px-2 py-1 align-top">
+                        <MaterialHistoryCell
+                          view={row.materialHistory}
+                          impact={row.materialImpact}
+                          compact
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-right font-mono tabular-nums">
+                        {row.materialImpact.unavailable || row.materialImpact.deviationPerUnit === 0
+                          ? "—"
+                          : formatMaterialDeviationShort(row.materialImpact.deviationPerUnit)}
+                      </td>
+                      <td className={`px-2 py-1 text-right font-mono font-medium tabular-nums ${materialImpactClass(row.materialImpact.impactPln)}`}>
+                        {row.materialImpact.unavailable || row.materialImpact.impactPln === 0
+                          ? "—"
+                          : formatMaterialImpactPln(row.materialImpact.impactPln)}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="px-2.5 py-1 text-[9px] text-muted-foreground border-t border-border/30">
+            Wpływ materiałów = (nasza stawka − historia firmy 90 dni) × ilość — read-only
           </p>
         </div>
       )}
 
       <div className="rounded-lg border border-border/60 overflow-hidden">
         <div className="overflow-x-auto max-h-64 overflow-y-auto">
-          <table className="w-full text-[10px] min-w-[700px]">
+          <table className="w-full text-[10px] min-w-[820px]">
             <thead className="bg-secondary/50 sticky top-0 z-[1]">
               <tr>
                 <th className="text-left px-2 py-1 font-semibold w-8">Lp.</th>
@@ -184,13 +247,17 @@ export function TenderCatalogLinePricingSection({
                 <th className="text-left px-2 py-1 font-semibold w-10">J.m.</th>
                 <th className="text-right px-2 py-1 font-semibold w-14">Ilość</th>
                 <th className="text-right px-2 py-1 font-semibold w-16">Materiał</th>
+                <th className="text-left px-2 py-1 font-semibold w-16">Źródło M</th>
+                <th className="text-left px-2 py-1 font-semibold w-20">Mat. trend</th>
                 <th className="text-right px-2 py-1 font-semibold w-16">Robocizna</th>
                 <th className="text-left px-2 py-1 font-semibold w-20">Źródło ceny</th>
                 <th className="text-right px-2 py-1 font-semibold w-14">Razem</th>
               </tr>
             </thead>
             <tbody>
-              {view.rows.map((row) => (
+              {view.rows.map((row) => {
+                const catSummary = view.categorySummary.find((c) => c.categoryId === row.categoryId);
+                return (
                 <tr
                   key={`${row.lp}-${row.description}`}
                   className={`border-t border-border/30 ${row.isUnknown ? "bg-amber-500/5" : ""}`}
@@ -211,6 +278,19 @@ export function TenderCatalogLinePricingSection({
                   <td className="px-2 py-1 text-right font-mono tabular-nums">
                     {row.isUnknown ? "—" : formatPerUnit(row.materialPlnPerUnit, row.unit)}
                   </td>
+                  <td className="px-2 py-1 text-[9px] text-muted-foreground">
+                    {row.isUnknown ? "—" : (row.materialSource ?? "—")}
+                  </td>
+                  <td className="px-2 py-1 text-[9px]">
+                    {!row.isUnknown && catSummary?.materialHistory.trend ? (
+                      <span className="text-muted-foreground">
+                        {catSummary.materialHistory.trend.icon}{" "}
+                        {catSummary.materialHistory.trend.labelPl}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </td>
                   <td className="px-2 py-1 text-right font-mono tabular-nums">
                     {row.isUnknown ? "—" : formatPerUnit(row.laborPlnPerUnit, row.unit)}
                   </td>
@@ -218,12 +298,8 @@ export function TenderCatalogLinePricingSection({
                     {row.isUnknown ? (
                       "—"
                     ) : (
-                      <span>
-                        <span className="block">M: {row.materialSource ?? "—"}</span>
-                        <span className="block">R: {row.laborSource ?? "—"}</span>
-                        <span className="block font-medium text-foreground mt-0.5">
-                          {rowSourceLabel(row.materialSource, row.laborSource)}
-                        </span>
+                      <span className="font-medium text-foreground">
+                        {rowSourceLabel(row.materialSource, row.laborSource)}
                       </span>
                     )}
                   </td>
@@ -231,7 +307,8 @@ export function TenderCatalogLinePricingSection({
                     {row.isUnknown ? "—" : formatPerUnit(row.lineTotalPln, row.unit)}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

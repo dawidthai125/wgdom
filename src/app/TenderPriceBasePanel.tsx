@@ -31,11 +31,13 @@ import {
 import { LaborBenchmarkCell, LaborBenchmarkSourcePanel } from "@/app/LaborBenchmarkUi";
 import { LABOR_BENCHMARK_SOURCE_LABEL } from "@/lib/labor-benchmark-data";
 import {
-  appendCostCatalogHistoryIfLaborChanged,
+  appendCostCatalogHistoryIfRatesChanged,
   loadWgdomCostCatalogHistory,
   loadWgdomCostCatalogHistoryLocal,
   type WgdomCostCatalogHistoryStore,
 } from "@/lib/wgdom-cost-catalog-history";
+import { buildMaterialRateHistoryView } from "@/lib/material-history";
+import { MaterialHistoryCell } from "@/app/MaterialHistoryUi";
 import { loadWgdomCostCatalogStoreLocal } from "@/lib/wgdom-cost-catalog-store";
 
 function NumInput({
@@ -145,7 +147,7 @@ export function TenderPriceBasePanel({
         saveCompanyProfile(profile),
         saveWgdomCostCatalogStore(catalogStore),
       ]);
-      const history = await appendCostCatalogHistoryIfLaborChanged(
+      const history = await appendCostCatalogHistoryIfRatesChanged(
         previousCatalog,
         catalogStore,
         profile.costModel,
@@ -291,21 +293,30 @@ export function TenderPriceBasePanel({
         <div className="px-2.5 py-2 border-b border-border/50 bg-secondary/30">
           <h3 className="text-[11px] font-semibold">Materiały</h3>
           <p className="text-[10px] text-muted-foreground mt-0.5">
-            Stawka materiału na jednostkę miary (zł/j.m.) per kategoria robót.
+            Stawka materiału na jednostkę miary (zł/j.m.) — historia i trend z własnej Bazy cen (90 dni).
           </p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-[10px] min-w-[420px]">
+          <table className="w-full text-[10px] min-w-[520px]">
             <thead className="bg-secondary/60">
               <tr>
                 <th className="text-left px-2 py-1.5 font-semibold">Kategoria</th>
                 <th className="text-left px-2 py-1.5 font-semibold">j.m.</th>
                 <th className="text-left px-2 py-1.5 font-semibold">Materiał zł/j.m.</th>
+                <th className="text-left px-2 py-1.5 font-semibold min-w-[140px]">Historia / trend</th>
                 <th className="text-right px-2 py-1.5 font-semibold">Aktualizacja</th>
               </tr>
             </thead>
             <tbody>
-              {catalogRows.map((row) => (
+              {catalogRows.map((row) => {
+                const materialHistory = buildMaterialRateHistoryView(
+                  row.materialPlnPerUnit,
+                  row.id,
+                  row.unit,
+                  catalogHistory,
+                  catalogStore.activeRegion,
+                );
+                return (
                 <tr key={`mat-${row.id}`} className="border-t border-border/40">
                   <td className="px-2 py-1.5 font-medium">{row.labelPl}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{row.unit}</td>
@@ -327,11 +338,15 @@ export function TenderPriceBasePanel({
                       className="w-full max-w-[88px] bg-secondary rounded px-1.5 py-1 border border-border font-mono"
                     />
                   </td>
+                  <td className="px-2 py-1.5 align-top">
+                    <MaterialHistoryCell view={materialHistory} />
+                  </td>
                   <td className="px-2 py-1.5 text-right text-muted-foreground whitespace-nowrap">
                     {formatUpdatedAt(catalogUpdatedAt)}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

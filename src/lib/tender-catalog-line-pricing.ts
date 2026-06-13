@@ -26,6 +26,16 @@ import {
   sumLaborQuantityForCategory,
   type LaborBenchmarkImpactResult,
 } from "@/lib/labor-benchmark-impact";
+import { buildMaterialRateHistoryView, type MaterialRateHistoryView } from "@/lib/material-history";
+import {
+  computeMaterialHistoryImpact,
+  sumMaterialQuantityForCategory,
+  type MaterialHistoryImpactResult,
+} from "@/lib/material-impact";
+import {
+  loadWgdomCostCatalogHistoryLocal,
+  type WgdomCostCatalogHistoryStore,
+} from "@/lib/wgdom-cost-catalog-history";
 
 export const CATALOG_LINE_PRICE_SOURCE_BASE = "Baza cen" as const;
 export const CATALOG_LINE_PRICE_SOURCE_CATALOG = "Katalog WGDOM" as const;
@@ -64,6 +74,11 @@ export interface CatalogCategoryCostSummaryRow {
   laborQuantity: number;
   laborBenchmark: LaborBenchmarkComparison;
   laborImpact: LaborBenchmarkImpactResult;
+  avgMaterialPlnPerUnit: number;
+  materialQuantity: number;
+  materialSourceLabel: CatalogLinePriceSource;
+  materialHistory: MaterialRateHistoryView;
+  materialImpact: MaterialHistoryImpactResult;
 }
 
 export interface CatalogLinePricingView {
@@ -118,6 +133,7 @@ export function buildCatalogLinePricingView(
   catalog: WgdomCostCatalog = defaultWgdomCostCatalog(),
   costModel: TenderCompanyCostModel = defaultCostModelFromPayroll(),
   priceOverrides: TenderPriceOverrideEntry[] | null | undefined = null,
+  catalogHistory: WgdomCostCatalogHistoryStore | null = loadWgdomCostCatalogHistoryLocal(),
 ): CatalogLinePricingView | null {
   if (!catalogQuantities?.length) return null;
 
@@ -207,17 +223,40 @@ export function buildCatalogLinePricingView(
         return u === dominantUnit || u === `${dominantUnit}.`;
       });
       const laborRows = dominantRows.length > 0 ? dominantRows : catRows;
+      const materialRows = dominantRows.length > 0
+        ? dominantRows.filter((r) => r.materialPlnPerUnit != null)
+        : rows.filter((r) => r.categoryId === categoryId && !r.isUnknown && r.materialPlnPerUnit != null);
       const avgLaborPlnPerUnit = laborRows.length > 0
         ? roundMoney(laborRows.reduce((s, r) => s + (r.laborPlnPerUnit ?? 0), 0) / laborRows.length)
         : 0;
+      const avgMaterialPlnPerUnit = materialRows.length > 0
+        ? roundMoney(materialRows.reduce((s, r) => s + (r.materialPlnPerUnit ?? 0), 0) / materialRows.length)
+        : 0;
       const laborBenchmark = compareLaborRateToBenchmark(avgLaborPlnPerUnit, categoryId, dominantUnit);
       const laborQuantity = sumLaborQuantityForCategory(rows, categoryId, dominantUnit);
+      const materialQuantity = sumMaterialQuantityForCategory(rows, categoryId, dominantUnit);
       const laborImpact = computeLaborBenchmarkImpact(
         avgLaborPlnPerUnit,
         laborBenchmark,
         laborQuantity,
         categoryLabelFor(catalog, categoryId),
       );
+      const materialHistory = buildMaterialRateHistoryView(
+        avgMaterialPlnPerUnit,
+        categoryId,
+        dominantUnit,
+        catalogHistory,
+        catalog.region,
+      );
+      const materialImpact = computeMaterialHistoryImpact(
+        avgMaterialPlnPerUnit,
+        materialHistory,
+        materialQuantity,
+        categoryLabelFor(catalog, categoryId),
+      );
+      const materialSourceLabel: CatalogLinePriceSource = overrideLookup?.material.has(matKey)
+        ? CATALOG_LINE_PRICE_SOURCE_OVERRIDE
+        : CATALOG_LINE_PRICE_SOURCE_BASE;
       return {
         categoryId,
         categoryLabel: categoryLabelFor(catalog, categoryId),
@@ -230,6 +269,11 @@ export function buildCatalogLinePricingView(
         laborQuantity,
         laborBenchmark,
         laborImpact,
+        avgMaterialPlnPerUnit,
+        materialQuantity,
+        materialSourceLabel,
+        materialHistory,
+        materialImpact,
       };
     })
     .sort((a, b) => {

@@ -47,6 +47,11 @@ import {
   formatLaborBenchmarkImpactPln,
   laborBenchmarkImpactClass,
 } from "@/lib/labor-benchmark-impact";
+import {
+  buildMaterialHistoryImpactSummary,
+  formatMaterialImpactPln,
+  materialImpactClass,
+} from "@/lib/material-impact";
 
 function qualityBadgeClass(level: TenderBidProposal["qualityLevel"]): string {
   if (level === "high") return "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/25";
@@ -119,6 +124,20 @@ export function TenderBidProposalPanel({
       priceOverrides,
     );
   }, [proposal?.pricingMode, catalogQuantities, dictRevision, priceOverrides]);
+
+  const materialHistoryImpact = useMemo(() => {
+    if (!catalogLinePricing?.categorySummary.length) return null;
+    return buildMaterialHistoryImpactSummary(
+      catalogLinePricing.categorySummary.map((row) => ({
+        categoryId: row.categoryId,
+        categoryLabel: row.categoryLabel,
+        avgMaterialPlnPerUnit: row.avgMaterialPlnPerUnit,
+        dominantUnit: row.dominantUnit,
+        historyView: row.materialHistory,
+        quantity: row.materialQuantity,
+      })),
+    );
+  }, [catalogLinePricing]);
 
   const laborBenchmarkImpact = useMemo(() => {
     if (!catalogLinePricing?.categorySummary.length) return null;
@@ -277,6 +296,40 @@ export function TenderBidProposalPanel({
           </div>
         </div>
       </div>
+
+      {materialHistoryImpact && materialHistoryImpact.changedCount > 0 && (
+        <details className="mx-3 mt-2 rounded-lg border border-sky-500/35 bg-sky-500/8 px-2.5 py-2 text-[10px]">
+          <summary className="cursor-pointer font-semibold text-sky-900 dark:text-sky-200 flex items-center gap-1 flex-wrap">
+            <TrendingUp size={11} className="shrink-0" />
+            <span>Wpływ materiałów (historia firmy)</span>
+            <span className="text-muted-foreground font-normal">
+              — {materialHistoryImpact.changedCount}{" "}
+              {materialHistoryImpact.changedCount === 1 ? "kategoria zmieniona" : "kategorie zmienione"}
+              {" · "}Wpływ:{" "}
+              <strong className={materialImpactClass(materialHistoryImpact.totalImpactPln)}>
+                {formatMaterialImpactPln(materialHistoryImpact.totalImpactPln)}
+              </strong>
+            </span>
+          </summary>
+          <ul className="mt-1.5 space-y-1 list-none text-muted-foreground">
+            {materialHistoryImpact.rows
+              .filter((r) => !r.unavailable && r.impactPln !== 0)
+              .map((row) => (
+                <li key={row.categoryId}>
+                  <strong className="text-foreground">{row.categoryLabel}</strong>
+                  {" · "}{row.ourMaterialPlnPerUnit.toLocaleString("pl-PL")} zł
+                  {row.historicalPlnPerUnit != null && (
+                    <> vs {row.historicalPlnPerUnit.toLocaleString("pl-PL")} zł ({row.historyDaysAgo} dni temu)</>
+                  )}
+                  {" · "}
+                  <span className={`font-mono font-medium ${materialImpactClass(row.impactPln)}`}>
+                    {formatMaterialImpactPln(row.impactPln)}
+                  </span>
+                </li>
+              ))}
+          </ul>
+        </details>
+      )}
 
       {laborBenchmarkImpact && laborBenchmarkImpact.outOfRangeCount > 0 && (
         <details className="mx-3 mt-2 rounded-lg border border-orange-500/35 bg-orange-500/8 px-2.5 py-2 text-[10px]">
