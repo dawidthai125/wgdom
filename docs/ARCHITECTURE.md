@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.52.7** · P2-G.2B)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.2B — Cost Category Expansion CORE)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.52.8** · P2-G.2D)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.2D — Phrase-Based Classification)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -849,7 +849,7 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 
 ### 12.1.6 P2-G — Tender Cost Intelligence (P2-G.1 COMPLETE)
 
-**Status:** **P2-G.1A–P2-G.2B COMPLETE** · prod backlog **2.52.7**
+**Status:** **P2-G.1A–P2-G.2D COMPLETE** · prod backlog **2.52.8**
 
 **Cel:** autorska wycena przetargu z przedmiaru ATH **bez cen** (FOUND_NO_VALUE) — koszt wykonania + oferty min/rekom/agresywna przez rozszerzenie `computeTenderBidProposal()`, **nie** nowy moduł ofertowy.
 
@@ -935,7 +935,20 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 | Migracja user dict | ROZBIORKI + fraza gruz/odpad → TRANSPORT_UTYLIZACJA przy normalize | `wgdom-user-classification-dictionary.ts` |
 | Inspektor | Nowe kubełki w `CLASSIFICATION_CATEGORY_ORDER` | `tender-classification-inspector.ts` |
 
-**Backlog P2-G.2C:** split GK / STOLARKA — tylko na polecenie po audycie misclassification.
+**Backlog P2-G.2C:** GLADZIE_TYNKI / WYPOSAZENIE — tylko na polecenie po P2-G.2D.
+
+**P2-G.2D — Phrase-Based Classification (frazy robocze, nie tokeny):**
+
+| Element | Opis | Plik |
+|---------|------|------|
+| Phrase rules | ~60 reguł `contains` / `prefix` po `foldPolishText()` — obsługa odmian (np. katownika aluminiowego) | `wgdom-phrase-rules.ts` |
+| Pipeline | katalog seed → **user dict** → **phrase rules** → słownik branżowy → STOLARKA → UNKNOWN | `wgdom-ath-classifier.ts` |
+| Priorytet | User dictionary zawsze przed phrase rules | j.w. |
+| Inspektor | `buildUnknownPhraseHints()` — top frazy UNKNOWN (wpływ = suma ilości) | `tender-classification-inspector.ts` |
+| UI | „Top nieznane frazy” w `TenderBidProposalPanel` | j.w. |
+| Kalkulator | **Bez zmian** — tylko lepsza klasyfikacja pozycji ATH | — |
+
+**Backlog P2-G.2C:** split GK → GLADZIE_TYNKI — po 2D.
 
 **Moduły lib:**
 
@@ -943,13 +956,14 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 |------|------|
 | `wgdom-cost-catalog.ts` | Typy, seed, `getCategoryRate()` |
 | `wgdom-cost-catalog-store.ts` | load/save/merge, `kw-wgdom-cost-catalog` |
-| `wgdom-ath-classifier.ts` | `classifyAthLineCategory()` — katalog → user dict → branżowy |
+| `wgdom-ath-classifier.ts` | `classifyAthLineCategory()` — katalog → user dict → phrase rules → branżowy |
 | `wgdom-catalog-cost-engine.ts` | `computeFromCatalogRow()`, `aggregateCatalogDirectCost()` |
 | `tenders-bid-calculator.ts` | `computeTenderBidProposal()` + `pricingMode` |
 | `tender-bid-quality.ts` | `assessBidQuality()`, `extractCalculationBasis()` |
 | `tender-bid-ux.ts` | P2-G.1D/2A — nav hint, flow, profile sections, coverage tone |
 | `tender-classification-inspector.ts` | P2-G.1E — summary, UNKNOWN rows, catalog tuning hints, coverageDelta |
 | `wgdom-construction-dictionary.ts` | P2-G.1F — 150+ terminów branżowych, `matchConstructionDictionary()` |
+| `wgdom-phrase-rules.ts` | P2-G.2D — reguły fraz roboczych, `matchWgdomPhraseRules()` |
 | `wgdom-user-classification-dictionary.ts` | P2-G.2A — user learning, `matchUserClassificationDictionary()` |
 
 **Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (220+ asercji) · regresja P2-F: `test-tender-dossier-pipeline.mjs`

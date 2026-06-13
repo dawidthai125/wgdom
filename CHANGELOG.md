@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.52.8 — P2-G.2D Phrase-Based Classification
+- wgdom-phrase-rules.ts (~60 reguł contains/prefix, odmiany PL)
+- pipeline: katalog → user dict → phrase rules → słownik branżowy
+- inspektor: Top nieznane frazy (zamiast tokenów)
+
 ## 2.52.7 — P2-G.2B Cost Category Expansion CORE
 - TRANSPORT_UTYLIZACJA + WENTYLACJA (10 kategorii MVP)
 - gruz/odpady → transport (≠ ROZBIORKI); wentylacja; pomiary zerowania → ELEKTRYKA

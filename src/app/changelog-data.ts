@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.52.8",
+    label: "Przetargi — centrum wyceny P2-G.2D (Phrase-Based Classification)",
+    items: [
+      { type: "new", text: "Reguły fraz roboczych (~60) — narożniki, pomiary, wentylacja, transport (odmiany PL bez stemmera)" },
+      { type: "improve", text: "Klasyfikator ATH: katalog → user dict → phrase rules → słownik branżowy" },
+      { type: "improve", text: "Inspektor UNKNOWN — „Top nieznane frazy” zamiast pojedynczych tokenów (30x30x2)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.52.7",
     label: "Przetargi — centrum wyceny P2-G.2B (Cost Category Expansion CORE)",
     items: [

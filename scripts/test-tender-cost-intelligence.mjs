@@ -58,9 +58,16 @@ import { computeBidPrepChecks } from "../src/lib/tenders-bid-prep.ts";
 import {
   buildCatalogTuningHints,
   buildClassificationSummary,
+  buildUnknownPhraseHints,
   buildUnknownRows,
   CLASSIFICATION_CATEGORY_ORDER,
 } from "../src/lib/tender-classification-inspector.ts";
+import {
+  countWgdomPhraseRules,
+  findWgdomPhraseRule,
+  matchWgdomPhraseRules,
+  wgdomPhrasePatternMatches,
+} from "../src/lib/wgdom-phrase-rules.ts";
 import {
   countConstructionDictionaryTerms,
   matchConstructionDictionary,
@@ -764,6 +771,61 @@ const summaryVent = buildClassificationSummary([
 ]);
 assert(summaryVent.categories.some((c) => c.id === "WENTYLACJA" && c.count === 1), "inspector WENTYLACJA bucket");
 assert(summaryVent.categories.some((c) => c.id === "TRANSPORT_UTYLIZACJA" && c.count === 1), "inspector TRANSPORT bucket");
+
+console.log("\n21. P2-G.2D — Phrase-Based Classification");
+assertGte(countWgdomPhraseRules(), 40, "AC-D1 at least 40 phrase rules");
+assert(countWgdomPhraseRules() <= 75, "phrase rules bounded");
+assertEq(
+  classifyAthLineCategory("Narożniki z kątownika aluminiowego 30x30x2 mm", "mb"),
+  "GK",
+  "AC-D3 narożniki katownik → GK phrase rule",
+);
+assertEq(
+  classifyAthLineCategory("Narożniki aluminiowe 25x25", "mb"),
+  "GK",
+  "narożniki aluminiowe phrase",
+);
+const tabliczkiRule = findWgdomPhraseRule(foldPolishText("Przykręcanie tabliczek opisowych"));
+assert(tabliczkiRule != null, "AC-D4 tabliczki phrase rule match");
+assertEq(tabliczkiRule?.pattern, "przykrecanie tabliczek opisow", "tabliczki rule pattern");
+assertEq(
+  classifyAthLineCategory("Przykręcanie tabliczek opisowych", "szt"),
+  "UNKNOWN",
+  "tabliczki still UNKNOWN until WYPOSAZENIE 2C",
+);
+assertEq(
+  classifyAthLineCategory("Pomiar skuteczności zerowania instalacji", "kpl"),
+  "ELEKTRYKA",
+  "AC-D3/D pomiar zerowania phrase",
+);
+assert(wgdomPhrasePatternMatches("narozniki z katownika aluminiowego", "narozniki z katownika aluminiow", "prefix"), "prefix inflection match");
+assert(!wgdomPhrasePatternMatches("xnarozniki z katownika", "narozniki z katownika", "prefix"), "prefix word boundary");
+assertEq(matchWgdomPhraseRules(foldPolishText("Wywiezienie gruzu budowlany")), "TRANSPORT_UTYLIZACJA", "phrase transport");
+const phraseHintRows = [
+  { lp: "1", description: "Przykręcanie tabliczek opisowych", unit: "szt", quantity: 5 },
+  { lp: "2", description: "Przykręcanie tabliczek opisowych", unit: "szt", quantity: 5 },
+  { lp: "3", description: "Oznaczenia pomieszczeń numerami", unit: "szt", quantity: 3 },
+];
+const phraseHints = buildUnknownPhraseHints(phraseHintRows, 5);
+assert(phraseHints.length >= 2, "AC-D5 phrase hints aggregated");
+assert(phraseHints[0].phrase.length > 10, "AC-D5 full phrase not token");
+assert(!phraseHints.some((h) => /^(30x30|lokatorskie|aluminiowego)$/i.test(h.phrase)), "AC-D5 no bare tokens");
+assert(phraseHints.some((h) => h.phrase.toLowerCase().includes("tablicz")), "AC-D5 tabliczki phrase");
+const tabliczkiHint = phraseHints.find((h) => h.phrase.toLowerCase().includes("tablicz"));
+assert(tabliczkiHint && tabliczkiHint.count === 2, "AC-D5 tabliczki count aggregated");
+assert((tabliczkiHint?.impact ?? 0) === 10, "AC-D5 impact sum quantity");
+setUserClassificationDictionaryCache(
+  addUserClassificationEntry(restoreDefaultUserClassificationDictionaryStore(), "narozniki z katownika aluminiowego", "ROZBIORKI"),
+);
+assertEq(
+  classifyAthLineCategory("Narożniki z kątownika aluminiowego 30x30x2 mm", "mb"),
+  "ROZBIORKI",
+  "AC-D2 user dict beats phrase GK rule",
+);
+setUserClassificationDictionaryCache(restoreDefaultUserClassificationDictionaryStore());
+assertEq(classifyAthLineCategory("Wywiezienie gruzu", "m3"), "TRANSPORT_UTYLIZACJA", "AC-D6 2B regression gruz");
+assertEq(classifyAthLineCategory("Obsadzenie kratek wentylacyjnych", "szt"), "WENTYLACJA", "AC-D6 2B regression wentylacja");
+assertEq(classifyAthLineCategory("Demontaż posadzki", "m2"), "ROZBIORKI", "AC-D6 2B regression demontaż");
 
 console.log(`\n---\nPASS: ${passed}  FAIL: ${failed}  TOTAL: ${passed + failed}`);
 if (failed > 0) {

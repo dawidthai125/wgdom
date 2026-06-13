@@ -299,12 +299,12 @@ export function TenderBidProposalPanel({
           {classification.tuningHints.length > 0 && (
             <div className="rounded-lg border border-border/50 bg-background/40 px-2.5 py-2">
               <p className="text-[10px] font-semibold text-muted-foreground mb-1">
-                Sugestie rozbudowy katalogu WGDOM
+                Top nieznane frazy
               </p>
               <ul className="text-[10px] space-y-0.5">
                 {classification.tuningHints.map((h) => (
-                  <li key={h.word} className="flex justify-between gap-2">
-                    <span className="font-medium">&quot;{h.word}&quot;</span>
+                  <li key={h.phrase} className="flex justify-between gap-2">
+                    <span className="font-medium">&quot;{h.phrase}&quot;</span>
                     <span className="text-muted-foreground shrink-0">{h.count} wystąpień</span>
                   </li>
                 ))}

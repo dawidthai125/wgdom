@@ -5,14 +5,11 @@
 
 import type { TenderCatalogQuantityLine } from "@/lib/tenders-bzp-brief";
 import {
-  defaultWgdomCostCatalog,
-  getCatalogClassificationRules,
   normalizeWgdomCostUnit,
   type WgdomCostCategoryId,
 } from "@/lib/wgdom-cost-catalog";
-import { classifyAthLineCategory, classifyAthLineCategoryWithoutDictionary, foldPolishText } from "@/lib/wgdom-ath-classifier";
-import { getConstructionDictionaryRules } from "@/lib/wgdom-construction-dictionary";
-import { getUserClassificationDictionaryCache } from "@/lib/wgdom-user-classification-dictionary";
+import { classifyAthLineCategory, classifyAthLineCategoryWithoutDictionary } from "@/lib/wgdom-ath-classifier";
+import { phraseFromAthDescription } from "@/lib/wgdom-user-classification-dictionary";
 
 export const CLASSIFICATION_CATEGORY_ORDER: WgdomCostCategoryId[] = [
   "MALOWANIE",
@@ -68,16 +65,12 @@ export interface UnknownClassificationRow {
 }
 
 export interface CatalogTuningHint {
-  word: string;
+  /** Pełna fraza robocza (do wyświetlenia). */
+  phrase: string;
   count: number;
+  /** Suma ilości z pozycji UNKNOWN (wpływ na wycenę). */
+  impact: number;
 }
-
-const STOP_WORDS = new Set([
-  "oraz", "przy", "bez", "nad", "pod", "przez", "dla", "jak", "tylko", "lub",
-  "or", "na", "do", "ze", "za", "po", "od", "ku", "u", "w", "z", "i", "o", "a",
-  "robot", "roboty", "wykon", "wykonanie", "montaz", "demontaz", "material",
-  "materialy", "prace", "prac", "budowl", "wewnetrz", "zewnetrz", "lacznie",
-]);
 
 function parseQuantity(qty: string | undefined | null): number {
   const s = String(qty ?? "").replace(/\s/g, "").replace(",", ".");
@@ -192,60 +185,52 @@ export function buildUnknownRows(
   return unknown;
 }
 
-function tokenizeDescription(desc: string): string[] {
-  return foldPolishText(desc)
-    .split(/[^a-z0-9]+/)
-    .filter((w) => w.length >= 4 && !STOP_WORDS.has(w));
+function displayPhraseFromDescription(description: string): string {
+  const trimmed = description.trim();
+  if (!trimmed) return "";
+  if (trimmed.length <= 88) return trimmed;
+  const cut = trimmed.slice(0, 88);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > 24 ? cut.slice(0, lastSpace) : cut).trim();
 }
 
-function buildKnownKeywordTokens(): Set<string> {
-  const rules = getCatalogClassificationRules(defaultWgdomCostCatalog());
-  const dictRules = getConstructionDictionaryRules();
-  const userEntries = getUserClassificationDictionaryCache().entries;
-  const set = new Set<string>();
-  for (const rule of [...rules, ...dictRules]) {
-    for (const kw of rule.keywords) {
-      const folded = foldPolishText(kw);
-      set.add(folded);
-      for (const part of folded.split(/[^a-z0-9]+/)) {
-        if (part.length >= 3) set.add(part);
-      }
+/** Top nieznane frazy z opisów UNKNOWN — sort: wpływ (suma ilości × liczba wystąpień). */
+export function buildUnknownPhraseHints(
+  unknownRows: UnknownClassificationRow[],
+  limit = 8,
+): CatalogTuningHint[] {
+  const buckets = new Map<string, { phrase: string; count: number; impact: number }>();
+
+  for (const row of unknownRows) {
+    const key = phraseFromAthDescription(row.description);
+    if (!key || key.length < 6) continue;
+    const prev = buckets.get(key);
+    if (prev) {
+      prev.count += 1;
+      prev.impact += row.quantity;
+    } else {
+      buckets.set(key, {
+        phrase: displayPhraseFromDescription(row.description),
+        count: 1,
+        impact: row.quantity,
+      });
     }
   }
-  for (const e of userEntries) {
-    set.add(e.phrase);
-    for (const part of e.phrase.split(/[^a-z0-9]+/)) {
-      if (part.length >= 3) set.add(part);
-    }
-  }
-  return set;
+
+  return [...buckets.values()]
+    .map(({ phrase, count, impact }) => ({
+      phrase,
+      count,
+      impact: Math.round(impact * 100) / 100,
+    }))
+    .sort((a, b) => b.impact * b.count - a.impact * a.count || b.count - a.count || a.phrase.localeCompare(b.phrase, "pl"))
+    .slice(0, limit);
 }
 
-function isKnownToken(token: string, known: Set<string>): boolean {
-  if (known.has(token)) return true;
-  for (const k of known) {
-    if (k.length >= 4 && (token.includes(k) || k.includes(token))) return true;
-  }
-  return false;
-}
-
-/** Top słowa z opisów UNKNOWN — sugestie rozbudowy katalogu / klasyfikatora. */
+/** @deprecated alias — P2-G.2D używa fraz zamiast tokenów. */
 export function buildCatalogTuningHints(
   unknownRows: UnknownClassificationRow[],
   limit = 8,
 ): CatalogTuningHint[] {
-  const known = buildKnownKeywordTokens();
-  const counts = new Map<string, number>();
-
-  for (const row of unknownRows) {
-    for (const token of tokenizeDescription(row.description)) {
-      if (isKnownToken(token, known)) continue;
-      counts.set(token, (counts.get(token) ?? 0) + 1);
-    }
-  }
-
-  return [...counts.entries()]
-    .map(([word, count]) => ({ word, count }))
-    .sort((a, b) => b.count - a.count || a.word.localeCompare(b.word, "pl"))
-    .slice(0, limit);
+  return buildUnknownPhraseHints(unknownRows, limit);
 }
