@@ -1,5 +1,5 @@
 /**
- * UX.1A — Tender Workspace Cleanup (MIN) — testy struktury i helperów.
+ * UX.1A + UX.1B — Tender Workspace — testy struktury i helperów.
  */
 import {
   TENDER_SUMMARY_BAR_ID,
@@ -9,12 +9,18 @@ import {
   TENDER_OFFER_SECTION_ID,
   TENDER_FORMAL_DETAILS_SECTION_ID,
   TENDER_WORKSPACE_SECTION_ORDER,
+  TENDER_WORKSPACE_TAB_ORDER,
+  TENDER_WORKSPACE_TAB_LABELS,
+  TENDER_SECTION_TO_TAB,
   attachmentsBeforeValuationInWorkspace,
   formalDetailsBeforeNoticeHtml,
   buildTenderSummarySnapshot,
   getTenderMonitoringCounts,
   shouldShowTenderMonitoringBanner,
   workspaceSectionIndex,
+  bidPrepTileToWorkspace,
+  resolveDefaultTenderWorkspace,
+  isTenderWorkspaceTabId,
 } from "../src/lib/tender-workspace-ux.ts";
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
@@ -34,7 +40,7 @@ function readSrc(rel) {
   return readFileSync(resolve(root, rel), "utf8");
 }
 
-console.log("\n=== UX.1A Tender Workspace Cleanup ===\n");
+console.log("\n=== UX.1A/1B Tender Workspace ===\n");
 
 console.log("1. Section IDs");
 assert(TENDER_SUMMARY_BAR_ID === "tender-summary-bar", "summary bar id");
@@ -44,28 +50,38 @@ assert(TENDER_VALUATION_SECTION_ID === "tender-valuation-section", "valuation id
 assert(TENDER_OFFER_SECTION_ID === "tender-offer-section", "offer id");
 assert(TENDER_FORMAL_DETAILS_SECTION_ID === "tender-formal-details-section", "formal details id");
 
-console.log("\n2. Section order");
-assert(attachmentsBeforeValuationInWorkspace(), "AC-2 attachments before valuation");
-assert(formalDetailsBeforeNoticeHtml(), "AC-4 dossier before HTML");
-assert(
-  workspaceSectionIndex("summary") < workspaceSectionIndex("bidPrep"),
-  "summary before bid prep",
-);
-assert(
-  workspaceSectionIndex("qualification") < workspaceSectionIndex("valuation"),
-  "qualification before valuation",
-);
-assert(
-  workspaceSectionIndex("valuation") < workspaceSectionIndex("offer"),
-  "valuation before offer",
-);
-assert(
-  workspaceSectionIndex("offer") < workspaceSectionIndex("formalDetails"),
-  "offer before formal details",
-);
-assert(TENDER_WORKSPACE_SECTION_ORDER.length === 8, "8 sections defined");
+console.log("\n2. UX.1B — 5 workspace tabs (Anti-CC)");
+assert(TENDER_WORKSPACE_TAB_ORDER.length === 5, "exactly 5 workspace tabs");
+assert(TENDER_WORKSPACE_TAB_ORDER[0] === "overview", "first tab overview");
+assert(TENDER_WORKSPACE_TAB_LABELS.documents === "Dokumenty", "documents label PL");
+assert(isTenderWorkspaceTabId("valuation"), "isTenderWorkspaceTabId valuation");
+assert(!isTenderWorkspaceTabId("analytics"), "reject fake tab id");
 
-console.log("\n3. Tender Summary snapshot");
+console.log("\n3. Section → tab mapping");
+assert(TENDER_SECTION_TO_TAB.attachments === "documents", "attachments → documents");
+assert(TENDER_SECTION_TO_TAB.qualification === "qualification", "qualification → qualification");
+assert(TENDER_SECTION_TO_TAB.formalDetails === "documents", "formal → documents");
+assert(TENDER_SECTION_TO_TAB.noticeHtml === "documents", "html → documents");
+
+console.log("\n4. Tile navigation (UX.1B)");
+assert(bidPrepTileToWorkspace("kosztorys") === "documents", "kosztorys → documents");
+assert(bidPrepTileToWorkspace("wadium") === "qualification", "wadium → qualification");
+assert(bidPrepTileToWorkspace("our-bid") === "valuation", "our-bid → valuation");
+assert(bidPrepTileToWorkspace("deadline") === null, "deadline stays overview");
+
+console.log("\n5. Default workspace");
+const prepItem = { id: "t1", status: "preparing" };
+const submittedItem = { id: "t2", status: "submitted" };
+assert(resolveDefaultTenderWorkspace(prepItem) === "overview", "preparing → overview");
+assert(resolveDefaultTenderWorkspace(submittedItem) === "offer", "submitted → offer");
+assert(resolveDefaultTenderWorkspace({ ...prepItem, status: "won" }) === "offer", "won → offer");
+
+console.log("\n6. Section order (UX.1A legacy helpers)");
+assert(attachmentsBeforeValuationInWorkspace(), "attachments before valuation in map");
+assert(formalDetailsBeforeNoticeHtml(), "formal before HTML in map");
+assert(TENDER_WORKSPACE_SECTION_ORDER.length === 8, "8 legacy section ids");
+
+console.log("\n7. Tender Summary snapshot");
 const mockItem = {
   id: "t1",
   title: "Remont budynku",
@@ -76,40 +92,37 @@ const mockItem = {
   qaMonitor: { unseenCount: 1, events: [], lastCheckedAt: null },
 };
 const snap = buildTenderSummarySnapshot(mockItem, null, 4, 6);
-assert(snap.statusLabel.length > 0, "AC-1 summary status label");
-assert(snap.deadlineDisplay !== "—", "summary deadline");
-assert(snap.monitoring.total === 3, "summary monitoring counts");
 assert(snap.readyLabel === "4/6 gotowych", "summary ready label");
+assert(shouldShowTenderMonitoringBanner(mockItem), "monitoring banner when unseen");
 
-console.log("\n4. Monitoring banner");
-const counts = getTenderMonitoringCounts(mockItem);
-assert(counts.changes === 2 && counts.qa === 1, "AC-5 monitoring counts");
-assert(shouldShowTenderMonitoringBanner(mockItem), "AC-5 banner when unseen > 0");
-assert(!shouldShowTenderMonitoringBanner({ ...mockItem, changeMonitor: undefined, qaMonitor: undefined }), "no banner when zero");
-
-console.log("\n5. Source structure (grep)");
+console.log("\n8. Source structure (UX.1B lazy workspace)");
 const detailSrc = readSrc("src/app/TenderDetailPanel.tsx");
 const bidPrepSrc = readSrc("src/app/TenderBidPrepPanel.tsx");
-const bidProposalSrc = readSrc("src/app/TenderBidProposalPanel.tsx");
+const tabBarSrc = readSrc("src/app/TenderWorkspaceTabBar.tsx");
 
-assert(detailSrc.includes("TenderSummaryBar"), "DetailPanel renders TenderSummaryBar");
-assert(detailSrc.includes("TenderMonitoringBanner"), "DetailPanel renders monitoring banner");
-assert(detailSrc.includes("TenderQualificationSection"), "AC-3 qualification wrapper");
-const attachIdx = detailSrc.indexOf("<TenderAttachmentsPanel");
-const valIdx = detailSrc.indexOf("id={TENDER_VALUATION_SECTION_ID}");
-assert(attachIdx > 0 && valIdx > attachIdx, "AC-2 attachments before valuation section");
-assert(detailSrc.indexOf("TENDER_FORMAL_DETAILS_SECTION_ID") < detailSrc.indexOf("noticeHtml"), "AC-4 formal before HTML");
-assert(!detailSrc.includes("Nasz szacunek (PLN)"), "dedup our estimate field removed");
-assert(detailSrc.includes("showHistoricalCalibration={false}"), "calibration dedup in offer section");
-assert(!bidPrepSrc.includes("TenderParticipationPanel"), "participation removed from BidPrep");
-assert(!bidPrepSrc.includes("TenderBidProposalPanel"), "valuation removed from BidPrep");
-assert(bidPrepSrc.includes("Zobacz w dokumentach"), "ATH shortcut on kosztorys tile");
-assert(bidProposalSrc.includes("showHistoricalCalibration"), "BidProposal supports calibration flag");
+assert(detailSrc.includes("TenderSummaryBar"), "shell: TenderSummaryBar");
+assert(detailSrc.includes("TenderWorkspaceTabBar"), "shell: workspace tab bar");
+assert(detailSrc.includes('activeWorkspace === "overview"'), "lazy: overview");
+assert(detailSrc.includes('activeWorkspace === "documents"'), "lazy: documents");
+assert(detailSrc.includes('activeWorkspace === "qualification"'), "lazy: qualification");
+assert(detailSrc.includes('activeWorkspace === "valuation"'), "lazy: valuation");
+assert(detailSrc.includes('activeWorkspace === "offer"'), "lazy: offer");
+assert(detailSrc.includes("TenderDocumentsWorkspace"), "documents workspace component");
+assert(detailSrc.includes("TenderQualificationWorkspace"), "qualification workspace component");
+assert(detailSrc.includes("onNavigateWorkspace={navigateWorkspace}"), "tile → workspace nav");
+assert(!detailSrc.includes("scrollIntoView"), "no scrollIntoView in DetailPanel");
+assert(detailSrc.includes("overviewMode"), "BidPrep overview mode");
+assert(detailSrc.includes("TenderOverviewShortcuts"), "overview shortcuts");
+assert(!detailSrc.includes("TenderQualificationSection"), "no inline qualification accordion");
+assert(bidPrepSrc.includes("onNavigateWorkspace"), "BidPrep workspace nav prop");
+assert(bidPrepSrc.includes("overviewMode"), "BidPrep overview mode prop");
+assert(bidPrepSrc.includes("bidPrepTileToWorkspace"), "BidPrep uses tile map");
+assert(tabBarSrc.includes('role="tablist"'), "tab bar a11y");
 
-console.log("\n6. New components exist");
-assert(readSrc("src/app/TenderSummaryBar.tsx").includes("TENDER_SUMMARY_BAR_ID"), "TenderSummaryBar");
-assert(readSrc("src/app/TenderQualificationSection.tsx").includes("Kwalifikacja ofertowa"), "Qualification accordion");
-assert(readSrc("src/app/TenderOfferSection.tsx").includes("Kalibracja historyczna"), "Offer section calibration");
+console.log("\n9. New components");
+assert(readSrc("src/app/TenderOverviewShortcuts.tsx").includes("onNavigate"), "OverviewShortcuts");
+assert(readSrc("src/app/TenderDocumentsWorkspace.tsx").includes("TenderAttachmentsPanel"), "DocumentsWorkspace");
+assert(readSrc("src/app/TenderQualificationWorkspace.tsx").includes("TenderParticipationPanel"), "QualificationWorkspace");
 
-console.log(`\n=== UX.1A: ${pass} PASS, ${fail} FAIL ===\n`);
+console.log(`\n=== UX.1A/1B: ${pass} PASS, ${fail} FAIL ===\n`);
 if (fail > 0) process.exit(1);

@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.3** · ARCH-001)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (ARCH-001 — Circular Dependency Prevention)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.4** · UX.1B)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (UX.1B — Tender Workspace Tabs)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1176,6 +1176,25 @@ Reorganizacja **ekranu pojedynczego przetargu** (`TenderDetailPanel`) — bez za
 **Przygotowanie pod UX.1B:** stałe sekcji w `tender-workspace-ux.ts` (`TENDER_WORKSPACE_SECTION_ORDER`) — przyszłe zakładki workspace mapują na te same bloki.
 
 **Test:** `npx vite-node scripts/test-tender-workspace-ux.mjs` · regresja: `test-tender-cost-intelligence.mjs`, `test-tender-dossier-pipeline.mjs`
+
+**UX.1B — Tender Workspace Tabs (v2.53.4):**
+
+Architektura **5 workspace** w `TenderDetailPanel` — tylko reorganizacja UI (lazy render), bez zmian algorytmów.
+
+| Workspace | Pytanie | Komponenty |
+|-----------|---------|------------|
+| **Shell** | — | `TenderSummaryBar` + `TenderWorkspaceTabBar` |
+| **Przegląd** | Czy warto startować? | Monitoring, akcje, `TenderBidPrepPanel` (overview), skróty, notatki — **≤ 1 viewport** |
+| **Dokumenty** | Jakie dokumenty / SWZ? | `TenderDocumentsWorkspace` · attachments, dossier, HTML, SWZ meta |
+| **Kwalifikacja** | Czy spełniamy warunki? | `TenderQualificationWorkspace` · participation, works, fit, wadium, referencje |
+| **Wycena** | Za ile startować? | `TenderBidProposalPanel` · historia szacunku · sloty P2-G.3C/D/E |
+| **Oferta** | Co z ofertą? | `TenderOfferSection` · sloty P2-F.6 |
+
+**SSOT tabs:** `TENDER_WORKSPACE_TAB_ORDER` w `tender-workspace-ux.ts` · mapowanie kafelków: `bidPrepTileToWorkspace()`.
+
+**Anti-CC:** max **5** workspace · nowe funkcje → sub-sekcja w istniejącym tabie · brak KPI/AI dashboard w detail.
+
+**ARCH-001:** shell i workspace komponenty = czysty UI (bez importu `cloud-sync`).
 
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 

@@ -1,5 +1,5 @@
 /**
- * UX.1A — Tender Workspace Cleanup: sekcje, summary, monitoring (bez logiki wyceny).
+ * UX.1A/1B — Tender Workspace: sekcje, summary, monitoring, zakładki workspace (UI only).
  */
 
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
@@ -99,4 +99,66 @@ export function attachmentsBeforeValuationInWorkspace(): boolean {
 /** UX.1A: dossier przed HTML. */
 export function formalDetailsBeforeNoticeHtml(): boolean {
   return workspaceSectionIndex("formalDetails") < workspaceSectionIndex("noticeHtml");
+}
+
+/** UX.1B — max 5 workspace (Anti-CC). */
+export const TENDER_WORKSPACE_TAB_ORDER = [
+  "overview",
+  "documents",
+  "qualification",
+  "valuation",
+  "offer",
+] as const;
+
+export type TenderWorkspaceTabId = (typeof TENDER_WORKSPACE_TAB_ORDER)[number];
+
+export const TENDER_WORKSPACE_TAB_LABELS: Record<TenderWorkspaceTabId, string> = {
+  overview: "Przegląd",
+  documents: "Dokumenty",
+  qualification: "Kwalifikacja",
+  valuation: "Wycena",
+  offer: "Oferta",
+};
+
+/** Mapowanie sekcji UX.1A → zakładka UX.1B. */
+export const TENDER_SECTION_TO_TAB: Record<TenderWorkspaceSectionId, TenderWorkspaceTabId> = {
+  summary: "overview",
+  bidPrep: "overview",
+  attachments: "documents",
+  qualification: "qualification",
+  valuation: "valuation",
+  offer: "offer",
+  formalDetails: "documents",
+  noticeHtml: "documents",
+};
+
+/** Kafelek gotowości → docelowy workspace (UX.1B — bez scrollIntoView). */
+export function bidPrepTileToWorkspace(checkId: string): TenderWorkspaceTabId | null {
+  switch (checkId) {
+    case "kosztorys":
+      return "documents";
+    case "wadium":
+    case "criteria":
+      return "qualification";
+    case "our-bid":
+      return "valuation";
+    default:
+      return null;
+  }
+}
+
+/** Domyślny workspace po wejściu w przetarg. */
+export function resolveDefaultTenderWorkspace(item: TenderPipelineItem): TenderWorkspaceTabId {
+  if (item.status === "submitted" || item.status === "won" || item.status === "lost") {
+    return "offer";
+  }
+  return "overview";
+}
+
+export function isTenderWorkspaceTabId(value: string): value is TenderWorkspaceTabId {
+  return (TENDER_WORKSPACE_TAB_ORDER as readonly string[]).includes(value);
+}
+
+export function workspaceTabIndex(tab: TenderWorkspaceTabId): number {
+  return TENDER_WORKSPACE_TAB_ORDER.indexOf(tab);
 }

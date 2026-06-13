@@ -1,0 +1,172 @@
+import { ChevronDown, FileText, Sparkles } from "lucide-react";
+import type { TenderPipelineItem } from "@/lib/tenders-bzp";
+import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
+import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
+import { TenderAttachmentsPanel } from "@/app/TenderAttachmentsPanel";
+import { TenderDossierPanel } from "@/app/TenderDossierPanel";
+import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
+import {
+  TENDER_ATTACHMENTS_SECTION_ID,
+  TENDER_FORMAL_DETAILS_SECTION_ID,
+} from "@/lib/tender-workspace-ux";
+
+export function TenderDocumentsWorkspace({
+  item,
+  swz,
+  platformSourceLabel,
+  athPreviewEnabled,
+  loadingDocs,
+  analyzing,
+  externalDiscovering,
+  showHtml,
+  onToggleHtml,
+  suggestions,
+  learning,
+  onRefresh,
+  onAnalyze,
+  onSearchExternal,
+  onLearnKeywords,
+  onOpenKosztorysPreview,
+}: {
+  item: TenderPipelineItem;
+  swz: TenderSwzAnalysis | null | undefined;
+  platformSourceLabel: string;
+  athPreviewEnabled?: boolean;
+  loadingDocs?: boolean;
+  analyzing?: boolean;
+  externalDiscovering?: boolean;
+  showHtml: boolean;
+  onToggleHtml: () => void;
+  suggestions: string[];
+  learning?: boolean;
+  onRefresh: () => void;
+  onAnalyze: (documentIndex: number) => void;
+  onSearchExternal: () => void;
+  onLearnKeywords: () => void;
+  onOpenKosztorysPreview: (previewItem: InspectorFileItem) => void;
+}) {
+  const sourceLabel = swz?.source === "html"
+    ? "ogłoszenie BZP"
+    : swz?.source === "pdf"
+      ? `PDF${swz.sourceFilename ? `: ${swz.sourceFilename}` : ""}`
+      : swz?.source === "docx"
+        ? "DOCX"
+        : null;
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        <span className="font-semibold text-foreground/80">Źródło dokumentów:</span>{" "}
+        {platformSourceLabel}
+      </p>
+
+      {swz?.parsedAt && (
+        <p className="text-[10px] text-muted-foreground rounded-lg border border-border/60 bg-secondary/20 px-3 py-2">
+          Ostatnia analiza SWZ: {new Date(swz.parsedAt).toLocaleString("pl-PL")}
+          {sourceLabel && <> · źródło: {sourceLabel}</>}
+          {swz.profitabilityNote && (
+            <> · <span className={
+              swz.profitabilityHint === "good" ? "text-emerald-600"
+                : swz.profitabilityHint === "risky" ? "text-red-600" : "text-amber-600"
+            }>{swz.profitabilityNote}</span></>
+          )}
+        </p>
+      )}
+
+      {(swz?.awardCriteria?.length ?? 0) > 0 && (
+        <div className="rounded-lg border border-border/60 bg-secondary/20 px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+            Kryteria z analizy SWZ
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {swz!.awardCriteria!.map((c) => (
+              <span key={c.name} className="text-[10px] bg-violet-500/10 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded">
+                {c.name}{c.weightPct != null ? ` ${c.weightPct}%` : ""}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {(swz?.tableExtracts?.length ?? 0) > 0 && (
+        <details className="rounded-lg border border-border/60 bg-secondary/20 px-3 py-2 text-[10px] text-muted-foreground">
+          <summary className="cursor-pointer hover:text-foreground font-medium">
+            Fragmenty tabel z PDF ({swz!.tableExtracts!.length})
+          </summary>
+          <ul className="mt-1 space-y-0.5 list-disc pl-4 max-h-40 overflow-y-auto">
+            {swz!.tableExtracts!.map((t) => <li key={t}>{t}</li>)}
+          </ul>
+        </details>
+      )}
+
+      <TenderAttachmentsPanel
+        item={item}
+        athPreviewEnabled={athPreviewEnabled}
+        loadingDocs={loadingDocs}
+        onRefresh={onRefresh}
+        onAnalyze={onAnalyze}
+        analyzing={analyzing}
+        externalDiscovery={item.externalDocDiscovery as TenderExternalDocDiscovery | null | undefined}
+        externalDiscovering={externalDiscovering}
+        onSearchExternal={onSearchExternal}
+        sectionId={TENDER_ATTACHMENTS_SECTION_ID}
+      />
+
+      <div id={TENDER_FORMAL_DETAILS_SECTION_ID} className="rounded-xl border border-border overflow-hidden scroll-mt-2">
+        <div className="px-3 py-2.5 text-xs font-semibold bg-secondary/40 border-b border-border">
+          Szczegóły formalne
+        </div>
+        <div className="px-3 pb-3 pt-2 space-y-3">
+          <TenderDossierPanel
+            item={item}
+            dossier={item.tenderDossier}
+            swz={swz}
+            onOpenKosztorysPreview={onOpenKosztorysPreview}
+          />
+
+          {suggestions.length > 0 && (
+            <div className="rounded-lg bg-secondary/50 px-3 py-2 space-y-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                <Sparkles size={11} /> Propozycje słów kluczowych
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {suggestions.slice(0, 6).map((s) => (
+                  <span key={s} className="text-[10px] bg-background px-1.5 py-0.5 rounded border border-border">{s}</span>
+                ))}
+              </div>
+              <button
+                type="button"
+                disabled={learning}
+                onClick={(e) => { e.stopPropagation(); onLearnKeywords(); }}
+                className="text-[10px] text-primary hover:underline"
+              >
+                {learning ? "Zapisywanie…" : "Ucz system z zaznaczonych przetargów"}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {item.noticeHtml && (
+        <div className="rounded-lg border border-border overflow-hidden">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onToggleHtml(); }}
+            className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium bg-secondary/50 hover:bg-secondary/80"
+          >
+            <span className="flex items-center gap-1.5"><FileText size={12} /> Ogłoszenie HTML (BZP)</span>
+            <ChevronDown size={14} className={`transition-transform ${showHtml ? "rotate-180" : ""}`} />
+          </button>
+          {showHtml && (
+            <iframe
+              title="Ogłoszenie BZP"
+              sandbox=""
+              srcDoc={item.noticeHtml}
+              className="w-full h-64 sm:h-80 bg-white text-black border-t border-border"
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

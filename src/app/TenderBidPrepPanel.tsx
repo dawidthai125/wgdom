@@ -15,6 +15,8 @@ import {
 } from "@/lib/tenders-actions";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { TENDER_BID_PROPOSAL_PANEL_ID } from "@/lib/tender-bid-ux";
+import type { TenderWorkspaceTabId } from "@/lib/tender-workspace-ux";
+import { bidPrepTileToWorkspace } from "@/lib/tender-workspace-ux";
 
 const STATUS_ICON = {
   ok: CheckCircle2,
@@ -47,6 +49,8 @@ export function TenderBidPrepPanel({
   onUpdateOurEstimate,
   onScrollToAttachments,
   onScrollToBidDetails,
+  onNavigateWorkspace,
+  overviewMode = false,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -62,6 +66,10 @@ export function TenderBidPrepPanel({
   /** UX.1A — skrót ATH → załączniki. */
   onScrollToAttachments?: () => void;
   onScrollToBidDetails?: () => void;
+  /** UX.1B — nawigacja workspace zamiast scroll. */
+  onNavigateWorkspace?: (tab: TenderWorkspaceTabId) => void;
+  /** UX.1B — Przegląd: bez bloków przeniesionych do Dokumentów/Kwalifikacji. */
+  overviewMode?: boolean;
 }) {
   const profile = loadCompanyProfileLocal();
   const wadium = computeWadiumInfo(item, swz, profile.maxWadiumPln);
@@ -73,6 +81,10 @@ export function TenderBidPrepPanel({
   );
 
   const scrollToBidDetails = useCallback(() => {
+    if (onNavigateWorkspace) {
+      onNavigateWorkspace("valuation");
+      return;
+    }
     if (onScrollToBidDetails) {
       onScrollToBidDetails();
       return;
@@ -81,7 +93,20 @@ export function TenderBidPrepPanel({
       behavior: "smooth",
       block: "start",
     });
-  }, [onScrollToBidDetails]);
+  }, [onNavigateWorkspace, onScrollToBidDetails]);
+
+  const navigateFromTile = useCallback((checkId: string) => {
+    const tab = bidPrepTileToWorkspace(checkId);
+    if (tab && onNavigateWorkspace) {
+      onNavigateWorkspace(tab);
+      return;
+    }
+    if (checkId === "kosztorys" && onScrollToAttachments) {
+      onScrollToAttachments();
+      return;
+    }
+    if (checkId === "our-bid") scrollToBidDetails();
+  }, [onNavigateWorkspace, onScrollToAttachments, scrollToBidDetails]);
 
   const sourceLabel = swz?.source === "html"
     ? "ogłoszenie BZP"
@@ -136,13 +161,13 @@ export function TenderBidPrepPanel({
         </div>
       )}
 
-      {!wadium.blocked && wadium.amountPln != null && (
+      {!overviewMode && !wadium.blocked && wadium.amountPln != null && (
         <p className="text-[10px] text-muted-foreground px-3 pt-2">
           Wadium: {wadium.summary}
         </p>
       )}
 
-      {refMatch.status !== "unknown" && (
+      {!overviewMode && refMatch.status !== "unknown" && (
         <p className={`text-[10px] px-3 pt-1.5 ${
           refMatch.status === "ok" ? "text-emerald-700 dark:text-emerald-400"
             : refMatch.status === "partial" ? "text-amber-700 dark:text-amber-400"
@@ -153,7 +178,7 @@ export function TenderBidPrepPanel({
         </p>
       )}
 
-      {item.submittingOffersDate && isTenderOpenForOffers(item.submittingOffersDate) && (
+      {!overviewMode && item.submittingOffersDate && isTenderOpenForOffers(item.submittingOffersDate) && (
         <div className="px-3 pt-1">
           <button
             type="button"
@@ -166,7 +191,7 @@ export function TenderBidPrepPanel({
         </div>
       )}
 
-      {swz?.parsedAt && (
+      {!overviewMode && swz?.parsedAt && (
         <p className="text-[10px] text-muted-foreground px-3 py-1.5 border-b border-border/60 bg-secondary/20">
           Ostatnia analiza: {new Date(swz.parsedAt).toLocaleString("pl-PL")}
           {sourceLabel && <> · źródło: {sourceLabel}</>}
@@ -179,7 +204,7 @@ export function TenderBidPrepPanel({
         </p>
       )}
 
-      {(swz?.awardCriteria?.length ?? 0) > 0 && (
+      {!overviewMode && (swz?.awardCriteria?.length ?? 0) > 0 && (
         <div className="px-3 pb-2">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
             Kryteria z analizy SWZ
@@ -194,7 +219,7 @@ export function TenderBidPrepPanel({
         </div>
       )}
 
-      {(swz?.tableExtracts?.length ?? 0) > 0 && (
+      {!overviewMode && (swz?.tableExtracts?.length ?? 0) > 0 && (
         <details className="px-3 pb-2 text-[10px] text-muted-foreground">
           <summary className="cursor-pointer hover:text-foreground">Fragmenty tabel z PDF ({swz!.tableExtracts!.length})</summary>
           <ul className="mt-1 space-y-0.5 list-disc pl-4 max-h-24 overflow-y-auto">
@@ -208,22 +233,28 @@ export function TenderBidPrepPanel({
           const Icon = STATUS_ICON[check.status];
           const isOurBid = check.id === "our-bid";
           const isKosztorys = check.id === "kosztorys";
-          const clickable = isOurBid && check.navigateToBidDetails && !isOurBid;
+          const navTab = bidPrepTileToWorkspace(check.id);
           const bidNav = isOurBid && check.navigateToBidDetails;
+          const tileNav = Boolean(navTab || bidNav);
           return (
             <div
               key={check.id}
-              role={bidNav ? "button" : undefined}
-              tabIndex={bidNav ? 0 : undefined}
-              onClick={bidNav ? (e) => { e.stopPropagation(); scrollToBidDetails(); } : undefined}
-              onKeyDown={bidNav ? (e) => {
+              role={tileNav ? "button" : undefined}
+              tabIndex={tileNav ? 0 : undefined}
+              onClick={tileNav ? (e) => {
+                e.stopPropagation();
+                if (isOurBid && bidNav) scrollToBidDetails();
+                else if (navTab) navigateFromTile(check.id);
+              } : undefined}
+              onKeyDown={tileNav ? (e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
-                  scrollToBidDetails();
+                  if (isOurBid && bidNav) scrollToBidDetails();
+                  else if (navTab) navigateFromTile(check.id);
                 }
               } : undefined}
               className={`rounded-lg border px-2.5 py-2 ${STATUS_STYLE[check.status]} ${
-                bidNav ? "cursor-pointer hover:ring-2 hover:ring-violet-500/35 hover:shadow-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-violet-500/50" : ""
+                tileNav ? "cursor-pointer hover:ring-2 hover:ring-violet-500/35 hover:shadow-sm transition-shadow focus:outline-none focus:ring-2 focus:ring-violet-500/50" : ""
               }`}
             >
               <div className="flex items-start gap-1.5">
@@ -277,12 +308,12 @@ export function TenderBidPrepPanel({
                       {check.actionHint}
                     </button>
                   )}
-                  {isKosztorys && hasKosztorysShortcut && onScrollToAttachments && (
+                  {isKosztorys && hasKosztorysShortcut && (onNavigateWorkspace || onScrollToAttachments) && (
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onScrollToAttachments();
+                        navigateFromTile("kosztorys");
                       }}
                       className="text-[10px] text-primary mt-2 font-medium hover:underline"
                     >

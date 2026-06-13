@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.53.4",
+    label: "Przetargi — UX.1B Tender Workspace Tabs",
+    items: [
+      { type: "improve", text: "5 zakładek workspace przetargu: Przegląd · Dokumenty · Kwalifikacja · Wycena · Oferta (lazy render)" },
+      { type: "improve", text: "Sticky shell: podsumowanie + tabs — bez scroll-bingu całego przetargu" },
+      { type: "improve", text: "Kafelki gotowości przełączają workspace (bez scrollIntoView)" },
+      { type: "improve", text: "Przegląd ≤ 1 ekran: skróty wadium/fit/referencje; pełne panele w dedykowanych zakładkach" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.53.3",
     label: "ARCH-001 — Circular Dependency Prevention (Lessons Learned)",
     items: [

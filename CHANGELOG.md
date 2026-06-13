@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.53.4 — UX.1B Tender Workspace Tabs
+- 5 workspace: Przegląd · Dokumenty · Kwalifikacja · Wycena · Oferta (lazy render)
+- TenderWorkspaceTabBar, TenderDocumentsWorkspace, TenderQualificationWorkspace, TenderOverviewShortcuts
+- Kafelki → workspace nav; Przegląd ≤ 1 ekran
+
 ## 2.53.3 — ARCH-001 Circular Dependency Prevention
 - ARCHITECTURE § 11.6 — P0 ARCH RULE, Lessons Learned v2.53.1, raport ryzyka
 - scripts/audit-import-cycles.mjs — audyt cykli src/lib
