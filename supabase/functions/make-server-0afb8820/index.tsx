@@ -2222,9 +2222,34 @@ function isNewConstructionTitle(title: string): boolean {
   return !BZP_RENOVATION_SIGNALS.some((s) => t.includes(s));
 }
 
+const RENOVATION_BUDOWA_STEMS = ["prze", "roz", "nad"];
+
+function matchesBzpExcludeKeyword(title: string, keyword: string): boolean {
+  const t = title.toLowerCase();
+  const k = keyword.toLowerCase();
+  let from = 0;
+  while (from <= t.length - k.length) {
+    const idx = t.indexOf(k, from);
+    if (idx === -1) return false;
+    if (k.startsWith("budowa")) {
+      const stem = idx > 0 ? t.slice(0, idx) : "";
+      if (RENOVATION_BUDOWA_STEMS.some((s: string) => stem.endsWith(s))) {
+        from = idx + 1;
+        continue;
+      }
+      if (idx > 0 && /[a-ząćęłńóśźż0-9]/.test(t[idx - 1]!)) {
+        from = idx + 1;
+        continue;
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
 function isExcludedBzpTitle(title: string): boolean {
   const t = title.toLowerCase();
-  if (BZP_EXCLUDE_KEYWORDS.some((ex) => t.includes(ex))) return true;
+  if (BZP_EXCLUDE_KEYWORDS.some((ex) => matchesBzpExcludeKeyword(t, ex))) return true;
   return isNewConstructionTitle(t);
 }
 

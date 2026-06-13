@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.9** · P3.6)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P3.6 strategic client filters)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.10** · WM exclude fix)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P1 WM przebudowa false exclude)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -905,6 +905,8 @@ Audyt: `npm run audit:import-cycles` → JSON z `p0StaticImportViolations`, `cyc
 **Zarządzanie sekcją (v2.45):** klucze `kw-tenders-*` w `DATA_KEYS`; merge w `tenders-sync.ts`; CSV, bulk, profil, słownik słów kluczowych.
 
 **P3.6 — filtry klientów strategicznych (v2.56.9, UX only):** `src/lib/tenders-strategic-client-filters.ts` — SSOT dopasowania WM · ZZK (`priorityBuyerId=zik`) · MOPS · TBS · Gminy (gmina/ZIM) · Uczelnie (heurystyka nazwy, Wrocław). Chipy z licznikiem na `TendersView`; stan w `useTendersPipeline.strategicClientFilter`. Audyty: `audit-p2g3c-classification-prod.mjs`, `audit-p2h5-pdf-przedmiar.mjs`, `audit-p2h-full-regression.mjs` importują ten moduł. **Bez** zmian pipeline/sync/Edge.
+
+**P1 WM false exclude (v2.56.10):** `matchesTenderExcludeKeyword()` w `tenders-bzp-keywords.ts` + mirror `matchesBzpExcludeKeyword()` w Edge `index.tsx` — frazy `budowa budynk*` wymagają granicy słowa; `przebudowa` / `rozbudowa` / `nadbudowa` nie trafiają w exclude nowej budowy. Test: `test-tender-exclude-renovation-budowa.mjs`.
 
 ### 12.1.3 Przetargi 3.0 — Strategia + skrót pulpitu
 

@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.56.10",
+    label: "Przetargi — fix false exclude przebudowa WM",
+    items: [
+      { type: "fix", text: "Filtr wykluczeń BZP — „przebudowa/rozbudowa/nadbudowa budynku” nie jest już mylona z „budowa budynku” (granica słowa)" },
+      { type: "fix", text: "Sync Edge + klient — remonty WM (np. Sępa Szarzyńskiego) wracają do pipeline po odświeżeniu BZP" },
+      { type: "improve", text: "Test regresji: test-tender-exclude-renovation-budowa.mjs — WM/ZZK/TBS/Gminy" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.56.9",
     label: "Przetargi — P3.6 filtry klientów strategicznych",
     items: [

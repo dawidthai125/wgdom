@@ -1,5 +1,7 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.56.10 — fix false exclude przebudowa WM (P1 pipeline)
+
 ## 2.56.9 — P3.6 filtry klientów strategicznych (WM/ZZK/MOPS/TBS/Gminy/Uczelnie)
 
 ## 2.56.8 — P2-G.3C benchmark klasyfikacji prod

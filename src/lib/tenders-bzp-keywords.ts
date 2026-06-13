@@ -292,6 +292,36 @@ export const TENDER_EXCLUDE_KEYWORDS = [
   "nawierzchni sportowej",
 ] as const;
 
+/** „Prze-/roz-/nad-budowa” to remont, nie nowa inwestycja — nie łapać exclude „budowa*”. */
+const RENOVATION_BUDOWA_STEMS = ["prze", "roz", "nad"] as const;
+
+/**
+ * Dopasowanie frazy wykluczenia z granicą słowa dla „budowa*”.
+ * Zapobiega false exclude: „przebudowa budynku” ≠ „budowa budynku”.
+ */
+export function matchesTenderExcludeKeyword(title: string, keyword: string): boolean {
+  const t = title.toLowerCase();
+  const k = keyword.toLowerCase();
+  let from = 0;
+  while (from <= t.length - k.length) {
+    const idx = t.indexOf(k, from);
+    if (idx === -1) return false;
+    if (k.startsWith("budowa")) {
+      const stem = idx > 0 ? t.slice(0, idx) : "";
+      if (RENOVATION_BUDOWA_STEMS.some((s) => stem.endsWith(s))) {
+        from = idx + 1;
+        continue;
+      }
+      if (idx > 0 && /[a-ząćęłńóśźż0-9]/.test(t[idx - 1]!)) {
+        from = idx + 1;
+        continue;
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
 /** Luźniejsze hinty dla kluczowych zamawiających Wrocławia (gdy brak słowa „remont” w tytule). */
 export const TENDER_PRIORITY_BUILDING_HINTS = [
   ...TENDER_ACTION_KEYWORDS,
@@ -342,6 +372,6 @@ export function isExcludedTenderTitle(
 ): boolean {
   const t = title.toLowerCase();
   const ex = customExclude?.length ? customExclude : TENDER_EXCLUDE_KEYWORDS;
-  if (ex.some((e) => t.includes(e))) return true;
+  if (ex.some((e) => matchesTenderExcludeKeyword(t, e))) return true;
   return isNewConstructionTitle(t);
 }
