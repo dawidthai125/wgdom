@@ -24,6 +24,7 @@ import {
   COMPANY_QUALIFICATION_PROFILE_KEY,
   TENDERS_CUSTOM_KEYWORDS_KEY,
   TENDER_CALIBRATION_KEY,
+  TENDER_PRICE_OVERRIDES_KEY,
   TENDERS_DELETED_IDS_KEY,
 } from "@/lib/tenders-sync";
 import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-leaves";
@@ -49,6 +50,7 @@ export const DATA_KEYS = [
   "kw-company-profile",
   "kw-tenders-custom-keywords",
   "kw-tender-calibration",
+  "kw-tender-price-overrides",
 ] as const;
 
 export type DataKey = (typeof DATA_KEYS)[number];
@@ -72,6 +74,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-company-profile",
   "kw-tenders-custom-keywords",
   "kw-tender-calibration",
+  "kw-tender-price-overrides",
   "kw-contacts",
   "kw-employee-leaves",
   "kw-recoverable-charges",
@@ -1401,6 +1404,8 @@ export function mergeDataKey(
       return mergeTenderDataKey(TENDERS_CUSTOM_KEYWORDS_KEY, local, cloud);
     case "kw-tender-calibration":
       return mergeTenderDataKey(TENDER_CALIBRATION_KEY, local, cloud);
+    case "kw-tender-price-overrides":
+      return mergeTenderDataKey(TENDER_PRICE_OVERRIDES_KEY, local, cloud);
     case "kw-weekFrom":
     case "kw-weekTo":
       return typeof local === "string" && local ? local : (typeof cloud === "string" && cloud ? cloud : local ?? cloud);

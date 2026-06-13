@@ -12,6 +12,10 @@ import {
 } from "@/lib/company-labor-cost";
 import { defaultWgdomCostCatalog, type WgdomCostCatalog } from "@/lib/wgdom-cost-catalog";
 import { aggregateCatalogDirectCost, aggregateHasTransportUtillizationLines } from "@/lib/wgdom-catalog-cost-engine";
+import {
+  buildTenderPriceOverrideLookup,
+  type TenderPriceOverrideEntry,
+} from "@/lib/tender-price-overrides";
 import { enrichBidProposalMeta, type TenderBidCalculationBasis, type TenderBidQualityLevel } from "@/lib/tender-bid-quality";
 import { getActiveCatalog, loadWgdomCostCatalogStoreLocal } from "@/lib/wgdom-cost-catalog-store";
 
@@ -228,6 +232,8 @@ export function computeTenderBidProposal(opts: {
   maxConcurrentProjects: number;
   /** Test / override — domyślnie katalog z localStorage. */
   catalog?: WgdomCostCatalog;
+  /** P3.5B — nadpisania cen per przetarg (nie zmieniają globalnej Bazy cen). */
+  priceOverrides?: TenderPriceOverrideEntry[] | null;
 }): TenderBidProposal {
   const { kosztorys, swz, fit, costModel, minProjectDays, maxConcurrentProjects } = opts;
   const catalog = opts.catalog ?? getActiveCatalog(loadWgdomCostCatalogStoreLocal());
@@ -319,7 +325,8 @@ export function computeTenderBidProposal(opts: {
     });
   } else {
     const catalogRows = resolveCatalogQuantities(kosztorys);
-    const agg = aggregateCatalogDirectCost(catalogRows, catalog, costModel);
+    const overrideLookup = buildTenderPriceOverrideLookup(opts.priceOverrides);
+    const agg = aggregateCatalogDirectCost(catalogRows, catalog, costModel, overrideLookup);
 
     if (agg.totals.direct <= 0) {
       return {
@@ -344,6 +351,9 @@ export function computeTenderBidProposal(opts: {
     catalogUnknownPct = agg.rowCount > 0 ? agg.unknownCount / agg.rowCount : null;
     excludeWeeklyWasteDisposal = aggregateHasTransportUtillizationLines(agg);
 
+    if (overrideLookup && (overrideLookup.material.size > 0 || overrideLookup.labor.size > 0)) {
+      assumptions.push("Nadpisania cen per przetarg — część stawek z Override (poza globalną Bazą cen).");
+    }
     assumptions.push(
       `Wycena katalogowa WGDOM — ${agg.rowCount} poz. przedmiaru (region: ${catalog.region}).`,
     );

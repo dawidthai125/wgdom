@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.56.2 — P3.5B override cen per przetarg
+- `kw-tender-price-overrides` — nadpisania materiał/robocizna per kategoria × tenderId
+- UI Edytuj w podsumowaniu kategorii; źródło Override; hero KPI natychmiast
+
 ## 2.56.1 — P3.5 ceny per pozycja kosztorysu
 - `tender-catalog-line-pricing.ts` + UI w Wycena → Pozycje kosztorysowe (read-only)
 - UNKNOWN bez cen; podsumowanie kategorii; źródło Baza cen / Katalog WGDOM

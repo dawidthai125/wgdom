@@ -18,6 +18,7 @@ import {
   normalizeWgdomCostUnit,
 } from "@/lib/wgdom-cost-catalog";
 import { classifyAthLineCategory } from "@/lib/wgdom-ath-classifier";
+import type { TenderPriceOverrideLookup } from "@/lib/tender-price-overrides";
 
 export interface CatalogQuantityRow {
   description: string;
@@ -36,7 +37,11 @@ export interface CatalogRowCost {
   directCost: number;
   unmatched?: boolean;
   usedFallback?: boolean;
+  materialSource?: CatalogPriceSource;
+  laborSource?: CatalogPriceSource;
 }
+
+export type CatalogPriceSource = "base" | "catalog" | "override";
 
 export interface CatalogDirectCostTotals {
   material: number;
@@ -98,6 +103,7 @@ export function computeFromCatalogRow(
   row: CatalogQuantityRow,
   catalog: WgdomCostCatalog = defaultWgdomCostCatalog(),
   costModel: TenderCompanyCostModel = defaultCostModelFromPayroll(),
+  overrideLookup: TenderPriceOverrideLookup | null = null,
 ): CatalogRowCost {
   const quantity = parseQty(row.quantity);
   const category = classifyAthLineCategory(row.description, row.unit);
@@ -107,14 +113,37 @@ export function computeFromCatalogRow(
   const laborNormFactor = costModel.laborNormIndexPct / 100;
   const materialIndexFactor = costModel.materialPriceIndexPct / 100;
 
+  const overrideKey = category !== "UNKNOWN" ? `${category}:${unit}` : null;
+  const matOverride = overrideKey ? overrideLookup?.material.get(overrideKey) : undefined;
+  const labOverride = overrideKey ? overrideLookup?.labor.get(overrideKey) : undefined;
+
   let laborHours = quantity * rate.laborRbhPerUnit;
   const normalizedUnit = normalizeWgdomCostUnit(row.unit);
   if (normalizedUnit === "rbh") {
     laborHours = quantity;
   }
 
-  const materialCost = roundPln(quantity * rate.materialPlnPerUnit * materialIndexFactor);
-  const laborCost = roundPln(laborHours * flHourly * laborNormFactor);
+  let materialCost: number;
+  let laborCost: number;
+  let materialSource: CatalogPriceSource;
+  let laborSource: CatalogPriceSource;
+
+  if (matOverride != null) {
+    materialCost = roundPln(quantity * matOverride);
+    materialSource = "override";
+  } else {
+    materialCost = roundPln(quantity * rate.materialPlnPerUnit * materialIndexFactor);
+    materialSource = usedFallback ? "catalog" : "base";
+  }
+
+  if (labOverride != null) {
+    laborCost = roundPln(quantity * labOverride);
+    laborSource = "override";
+  } else {
+    laborCost = roundPln(laborHours * flHourly * laborNormFactor);
+    laborSource = usedFallback ? "catalog" : "base";
+  }
+
   const directCost = roundPln(materialCost + laborCost);
 
   const unmatched = normalizedUnit != null && normalizedUnit !== unit && !usedFallback;
@@ -129,6 +158,8 @@ export function computeFromCatalogRow(
     directCost,
     unmatched: unmatched || undefined,
     usedFallback: usedFallback || category === "UNKNOWN" || undefined,
+    materialSource,
+    laborSource,
   };
 }
 
@@ -139,8 +170,9 @@ export function aggregateCatalogDirectCost(
   rows: CatalogQuantityRow[],
   catalog: WgdomCostCatalog = defaultWgdomCostCatalog(),
   costModel: TenderCompanyCostModel = defaultCostModelFromPayroll(),
+  overrideLookup: TenderPriceOverrideLookup | null = null,
 ): AggregateCatalogDirectCostResult {
-  const lines = rows.map((row) => computeFromCatalogRow(row, catalog, costModel));
+  const lines = rows.map((row) => computeFromCatalogRow(row, catalog, costModel, overrideLookup));
 
   let material = 0;
   let laborHours = 0;

@@ -39,6 +39,7 @@ import { buildCatalogLinePricingView } from "@/lib/tender-catalog-line-pricing";
 import { TenderCatalogLinePricingSection } from "@/app/TenderCatalogLinePricingSection";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { getActiveCatalog, loadWgdomCostCatalogStoreLocal } from "@/lib/wgdom-cost-catalog-store";
+import type { TenderPriceOverrideEntry } from "@/lib/tender-price-overrides";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 
 function qualityBadgeClass(level: TenderBidProposal["qualityLevel"]): string {
@@ -61,6 +62,9 @@ export function TenderBidProposalPanel({
   submittedBidPln,
   awardValuePln,
   showHistoricalCalibration = true,
+  tenderId,
+  priceOverrides,
+  onPriceOverridesChanged,
 }: {
   proposal: TenderBidProposal | null | undefined;
   referenceValuePln?: number | null;
@@ -75,6 +79,10 @@ export function TenderBidProposalPanel({
   submittedBidPln?: number | null;
   awardValuePln?: number | null;
   showHistoricalCalibration?: boolean;
+  /** P3.5B — nadpisania cen per przetarg */
+  tenderId?: string;
+  priceOverrides?: TenderPriceOverrideEntry[];
+  onPriceOverridesChanged?: () => void;
 }) {
   const [catalogRegionLabel, setCatalogRegionLabel] = useState(WGDOM_COST_REGION_LABELS.wroclaw);
   const [dictRevision, setDictRevision] = useState(0);
@@ -98,8 +106,13 @@ export function TenderBidProposalPanel({
     if (proposal?.pricingMode !== "catalog" || !catalogQuantities?.length) return null;
     const profile = loadCompanyProfileLocal();
     const catalog = getActiveCatalog(loadWgdomCostCatalogStoreLocal());
-    return buildCatalogLinePricingView(catalogQuantities, catalog, profile.costModel);
-  }, [proposal?.pricingMode, catalogQuantities, dictRevision]);
+    return buildCatalogLinePricingView(
+      catalogQuantities,
+      catalog,
+      profile.costModel,
+      priceOverrides,
+    );
+  }, [proposal?.pricingMode, catalogQuantities, dictRevision, priceOverrides]);
 
   const openPriceBase = useCallback(() => {
     tendersCtx?.setActiveTab("pricebase");
@@ -307,6 +320,10 @@ export function TenderBidProposalPanel({
               <div className="px-2.5 pb-2.5 border-t border-violet-500/15">
                 <TenderCatalogLinePricingSection
                   view={catalogLinePricing}
+                  tenderId={tenderId}
+                  catalog={getActiveCatalog(loadWgdomCostCatalogStoreLocal())}
+                  costModel={loadCompanyProfileLocal().costModel}
+                  onOverridesChanged={onPriceOverridesChanged}
                   onOpenPriceBase={tendersCtx ? openPriceBase : undefined}
                   onOpenClassificationDict={tendersCtx ? openClassificationDict : undefined}
                 />

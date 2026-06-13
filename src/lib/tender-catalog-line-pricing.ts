@@ -8,17 +8,24 @@ import { defaultCostModelFromPayroll } from "@/lib/company-labor-cost";
 import type { TenderCatalogQuantityLine } from "@/lib/tenders-bzp-brief";
 import {
   computeFromCatalogRow,
+  type CatalogPriceSource,
   type CatalogQuantityRow,
 } from "@/lib/wgdom-catalog-cost-engine";
-import type { WgdomCostCatalog, WgdomCostCategoryId } from "@/lib/wgdom-cost-catalog";
+import type { WgdomCostCatalog, WgdomCostCategoryId, WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
 import { defaultWgdomCostCatalog, findCategoryDef } from "@/lib/wgdom-cost-catalog";
+import {
+  buildTenderPriceOverrideLookup,
+  type TenderPriceOverrideEntry,
+} from "@/lib/tender-price-overrides";
 
 export const CATALOG_LINE_PRICE_SOURCE_BASE = "Baza cen" as const;
 export const CATALOG_LINE_PRICE_SOURCE_CATALOG = "Katalog WGDOM" as const;
+export const CATALOG_LINE_PRICE_SOURCE_OVERRIDE = "Override" as const;
 
 export type CatalogLinePriceSource =
   | typeof CATALOG_LINE_PRICE_SOURCE_BASE
-  | typeof CATALOG_LINE_PRICE_SOURCE_CATALOG;
+  | typeof CATALOG_LINE_PRICE_SOURCE_CATALOG
+  | typeof CATALOG_LINE_PRICE_SOURCE_OVERRIDE;
 
 export interface CatalogLinePricingRow {
   lp: string;
@@ -41,6 +48,9 @@ export interface CatalogCategoryCostSummaryRow {
   categoryLabel: string;
   positionCount: number;
   totalCostPln: number;
+  dominantUnit: WgdomCostUnit;
+  hasMaterialOverride: boolean;
+  hasLaborOverride: boolean;
 }
 
 export interface CatalogLinePricingView {
@@ -69,8 +79,13 @@ function categoryLabelFor(
   return findCategoryDef(catalog, categoryId)?.labelPl ?? categoryId;
 }
 
-function priceSourceForLine(usedFallback: boolean | undefined): CatalogLinePriceSource {
-  return usedFallback ? CATALOG_LINE_PRICE_SOURCE_CATALOG : CATALOG_LINE_PRICE_SOURCE_BASE;
+function priceSourceForLine(
+  engineSource: CatalogPriceSource | undefined,
+  usedFallback: boolean | undefined,
+): CatalogLinePriceSource {
+  if (engineSource === "override") return CATALOG_LINE_PRICE_SOURCE_OVERRIDE;
+  if (engineSource === "catalog" || usedFallback) return CATALOG_LINE_PRICE_SOURCE_CATALOG;
+  return CATALOG_LINE_PRICE_SOURCE_BASE;
 }
 
 function toCatalogQuantityRow(line: TenderCatalogQuantityLine): CatalogQuantityRow {
@@ -89,18 +104,20 @@ export function buildCatalogLinePricingView(
   catalogQuantities: TenderCatalogQuantityLine[] | null | undefined,
   catalog: WgdomCostCatalog = defaultWgdomCostCatalog(),
   costModel: TenderCompanyCostModel = defaultCostModelFromPayroll(),
+  priceOverrides: TenderPriceOverrideEntry[] | null | undefined = null,
 ): CatalogLinePricingView | null {
   if (!catalogQuantities?.length) return null;
 
+  const overrideLookup = buildTenderPriceOverrideLookup(priceOverrides);
   const rows: CatalogLinePricingRow[] = [];
-  const categoryAgg = new Map<WgdomCostCategoryId, { count: number; total: number }>();
+  const categoryAgg = new Map<WgdomCostCategoryId, { count: number; total: number; units: Map<WgdomCostUnit, number> }>();
   let unassignedCount = 0;
   let classifiedPositionCount = 0;
   let classifiedDirectTotalPln = 0;
 
   for (const line of catalogQuantities) {
     const qty = parseQty(line.quantity);
-    const cost = computeFromCatalogRow(toCatalogQuantityRow(line), catalog, costModel);
+    const cost = computeFromCatalogRow(toCatalogQuantityRow(line), catalog, costModel, overrideLookup);
     const isUnknown = cost.category === "UNKNOWN";
 
     if (isUnknown) {
@@ -128,12 +145,16 @@ export function buildCatalogLinePricingView(
 
     const materialPlnPerUnit = qty > 0 ? roundMoney(cost.materialCost / qty) : null;
     const laborPlnPerUnit = qty > 0 ? roundMoney(cost.laborCost / qty) : null;
-    const source = priceSourceForLine(cost.usedFallback);
+    const materialSource = priceSourceForLine(cost.materialSource, cost.usedFallback);
+    const laborSource = priceSourceForLine(cost.laborSource, cost.usedFallback);
 
-    const prev = categoryAgg.get(cost.category) ?? { count: 0, total: 0 };
+    const prev = categoryAgg.get(cost.category) ?? { count: 0, total: 0, units: new Map<WgdomCostUnit, number>() };
+    const unitCount = prev.units.get(cost.unit) ?? 0;
+    prev.units.set(cost.unit, unitCount + 1);
     categoryAgg.set(cost.category, {
       count: prev.count + 1,
       total: roundMoney(prev.total + cost.directCost),
+      units: prev.units,
     });
 
     rows.push({
@@ -147,19 +168,33 @@ export function buildCatalogLinePricingView(
       materialPlnPerUnit,
       laborPlnPerUnit,
       lineTotalPln: roundMoney((materialPlnPerUnit ?? 0) + (laborPlnPerUnit ?? 0)),
-      materialSource: source,
-      laborSource: source,
+      materialSource,
+      laborSource,
       isUnknown: false,
     });
   }
 
   const categorySummary: CatalogCategoryCostSummaryRow[] = [...categoryAgg.entries()]
-    .map(([categoryId, agg]) => ({
-      categoryId,
-      categoryLabel: categoryLabelFor(catalog, categoryId),
-      positionCount: agg.count,
-      totalCostPln: agg.total,
-    }))
+    .map(([categoryId, agg]) => {
+      let dominantUnit: WgdomCostUnit = "m2";
+      let maxUnitCount = 0;
+      for (const [unit, count] of agg.units) {
+        if (count > maxUnitCount) {
+          maxUnitCount = count;
+          dominantUnit = unit;
+        }
+      }
+      const matKey = `${categoryId}:${dominantUnit}`;
+      return {
+        categoryId,
+        categoryLabel: categoryLabelFor(catalog, categoryId),
+        positionCount: agg.count,
+        totalCostPln: agg.total,
+        dominantUnit,
+        hasMaterialOverride: overrideLookup?.material.has(matKey) ?? false,
+        hasLaborOverride: overrideLookup?.labor.has(matKey) ?? false,
+      };
+    })
     .sort((a, b) => b.totalCostPln - a.totalCostPln);
 
   return {

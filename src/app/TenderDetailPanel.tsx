@@ -60,6 +60,10 @@ import { processTenderQaMonitorUpdate } from "@/lib/tender-qa-monitor";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { assessTenderFit, estimatedValuePlnFromItem } from "@/lib/tenders-bzp-fit";
 import { computeTenderBidProposal } from "@/lib/tenders-bid-calculator";
+import {
+  getTenderPriceOverrides,
+  loadTenderPriceOverridesStoreLocal,
+} from "@/lib/tender-price-overrides";
 
 export function TenderDetailPanel({
   item,
@@ -97,6 +101,7 @@ export function TenderDetailPanel({
   const [docPreview, setDocPreview] = useState<InspectorFileItem | null>(null);
   const [bidBreakdownOpen, setBidBreakdownOpen] = useState(false);
   const [bidPanelHighlight, setBidPanelHighlight] = useState(false);
+  const [priceOverridesRevision, setPriceOverridesRevision] = useState(0);
   const [activeWorkspace, setActiveWorkspace] = useState<TenderWorkspaceTabId>(
     () => resolveDefaultTenderWorkspace(item),
   );
@@ -551,6 +556,12 @@ export function TenderDetailPanel({
   const suggestions = suggestKeywordsFromPipeline(allItems);
   const swz = item.swzAnalysis;
 
+  const tenderPriceOverrides = useMemo(() => {
+    void priceOverridesRevision;
+    const store = loadTenderPriceOverridesStoreLocal();
+    return getTenderPriceOverrides(store, item.id);
+  }, [item.id, priceOverridesRevision]);
+
   const bidProposal = useMemo(() => {
     const profile = loadCompanyProfileLocal();
     return computeTenderBidProposal({
@@ -560,8 +571,9 @@ export function TenderDetailPanel({
       costModel: profile.costModel,
       minProjectDays: profile.minProjectDays,
       maxConcurrentProjects: profile.maxConcurrentProjects,
+      priceOverrides: tenderPriceOverrides.overrides,
     });
-  }, [item.tenderDossier?.kosztorys, item.tenderFit, swz]);
+  }, [item.tenderDossier?.kosztorys, item.tenderFit, swz, tenderPriceOverrides.overrides]);
 
   const referenceValuePln = estimatedValuePlnFromItem(item, swz)
     ?? parsePlnFromKosztorysTotal(
@@ -806,6 +818,9 @@ export function TenderDetailPanel({
             highlight={bidPanelHighlight}
             catalogQuantities={item.tenderDossier?.kosztorys?.catalogQuantities}
             showHistoricalCalibration={false}
+            tenderId={item.id}
+            priceOverrides={tenderPriceOverrides.overrides}
+            onPriceOverridesChanged={() => setPriceOverridesRevision((v) => v + 1)}
           />
           {(item.estimateHistory?.length ?? 0) > 0 && (
             <details className="rounded-lg border border-border/60 bg-secondary/20 px-3 py-2 text-[10px]">

@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.56.2",
+    label: "Przetargi — P3.5B override cen per przetarg",
+    items: [
+      { type: "new", text: "Wycena → Pozycje kosztorysowe: nadpisanie stawek materiał/robocizna per kategoria (tylko ten przetarg)" },
+      { type: "new", text: "Źródło ceny: Baza cen / Override — hero KPI przelicza się natychmiast po zapisie" },
+      { type: "improve", text: "Chmura kw-tender-price-overrides — sync per tenderId bez zmiany globalnej Bazy cen" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.56.1",
     label: "Przetargi — P3.5 ceny per pozycja kosztorysu",
     items: [

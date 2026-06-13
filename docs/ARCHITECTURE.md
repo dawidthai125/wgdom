@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.1** · P3.5)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P3.5 ceny per pozycja)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.2** · P3.5B)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P3.5B override cen per przetarg)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1137,8 +1137,14 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 
 **P3.5 — Ceny per pozycja (v2.56.1 CLOSED):** `buildCatalogLinePricingView()` + `TenderCatalogLinePricingSection` w Wycena → Szczegóły (read-only, UNKNOWN bez cen w podsumowaniu).
 
+**P3.5B — Override per przetarg (v2.56.2 CLOSED):** `kw-tender-price-overrides` · `TenderCategoryPriceOverrideModal` · silnik `computeFromCatalogRow(…, overrideLookup)` · hero KPI natychmiast po zapisie.
+
 | Element | Opis | Plik |
 |---------|------|------|
+| Store override | `TenderPriceOverrides` per `tenderId` — kategoria × materiał/robocizna × j.m. | `tender-price-overrides.ts` |
+| Chmura | `kw-tender-price-overrides` — `DATA_KEYS` + merge per tender | `cloud-sync.ts`, `tenders-sync.ts` |
+| UI edycji | Podsumowanie kategorii → Edytuj → modal global vs override | `TenderCatalogLinePricingSection.tsx`, `TenderCategoryPriceOverrideModal.tsx` |
+| Kalkulator | `computeTenderBidProposal({ priceOverrides })` | `tenders-bid-calculator.ts`, `wgdom-catalog-cost-engine.ts` |
 | Pola pipeline | `submittedBidPln`, `submittedAt` (optional, null = brak) | `tenders-bzp.ts` |
 | Snapshot | `HistoricalCostSnapshot` — recommended, submitted, cost, award, tenderType, categories | `tender-cost-calibration.ts` |
 | Chmura | `kw-tender-calibration` — merge by snapshot id, max 500 | `tender-cost-calibration.ts`, `cloud-sync.ts` |
