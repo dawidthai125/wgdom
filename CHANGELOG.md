@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.53.1 — UX.1A Tender Workspace Cleanup (MIN)
+- Sticky Tender Summary + banner monitoringu → Strategia
+- Kolejność: karta → załączniki → kwalifikacja → wycena → oferta → formalia → HTML
+- Deduplikacja wyceny/kalibracji/ATH; przygotowanie pod UX.1B workspace tabs
+
 ## 2.53.0 — P2-G.3B Historical Cost Calibration (MIN)
 - submittedBidPln + submittedAt na pipeline przetargu
 - HistoricalCostSnapshot + kw-tender-calibration (sync chmura)

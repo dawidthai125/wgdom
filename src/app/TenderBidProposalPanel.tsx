@@ -52,6 +52,7 @@ export function TenderBidProposalPanel({
   catalogQuantities,
   submittedBidPln,
   awardValuePln,
+  showHistoricalCalibration = true,
 }: {
   proposal: TenderBidProposal | null | undefined;
   referenceValuePln?: number | null;
@@ -68,6 +69,8 @@ export function TenderBidProposalPanel({
   submittedBidPln?: number | null;
   /** P2-G.3B — kwota przyznana (wynik postępowania) */
   awardValuePln?: number | null;
+  /** UX.1A — kalibracja tylko w sekcji Oferta (deduplikacja) */
+  showHistoricalCalibration?: boolean;
 }) {
   const [catalogRegionLabel, setCatalogRegionLabel] = useState(WGDOM_COST_REGION_LABELS.wroclaw);
   const [dictRevision, setDictRevision] = useState(0);
@@ -143,7 +146,9 @@ export function TenderBidProposalPanel({
   const submittedVsAward = submittedBidPln != null && awardValuePln != null
     ? computeCalibrationDelta(submittedBidPln, awardValuePln)
     : null;
-  const showCalibration = submittedBidPln != null && Number.isFinite(submittedBidPln);
+  const showCalibration = showHistoricalCalibration
+    && submittedBidPln != null
+    && Number.isFinite(submittedBidPln);
 
   return (
     <div

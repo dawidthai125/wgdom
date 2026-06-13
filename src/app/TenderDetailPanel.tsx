@@ -6,8 +6,6 @@ import {
 import { toast } from "sonner";
 import {
   type TenderPipelineItem,
-  type TenderPipelineStatus,
-  TENDER_STATUS_LABELS,
   fetchTenderDocuments,
   fetchTenderNoticeDetails,
   uploadTenderFile,
@@ -32,7 +30,19 @@ import { summarizeSwzFindings } from "@/lib/tenders-bid-prep";
 import { analyzeTenderSwzEnhanced } from "@/lib/tenders-bzp-analyze-local";
 import { fetchTenderAwardResult } from "@/lib/tenders-bzp-award";
 import { exportTenderBidPackagePdf } from "@/lib/tender-bid-package-pdf";
-import { TenderBidPrepPanel } from "@/app/TenderBidPrepPanel";
+import { TenderBidPrepPanel, computeBidPrepChecks } from "@/app/TenderBidPrepPanel";
+import { TenderBidProposalPanel } from "@/app/TenderBidProposalPanel";
+import { TenderSummaryBar } from "@/app/TenderSummaryBar";
+import { TenderMonitoringBanner } from "@/app/TenderMonitoringBanner";
+import { TenderQualificationSection } from "@/app/TenderQualificationSection";
+import { TenderOfferSection } from "@/app/TenderOfferSection";
+import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
+import {
+  TENDER_ATTACHMENTS_SECTION_ID,
+  TENDER_FORMAL_DETAILS_SECTION_ID,
+  TENDER_VALUATION_SECTION_ID,
+} from "@/lib/tender-workspace-ux";
+import { TENDER_BID_PROPOSAL_PANEL_ID } from "@/lib/tender-bid-ux";
 import { fetchAndParseKosztorys, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
@@ -83,8 +93,11 @@ export function TenderDetailPanel({
   );
   const [showHtml, setShowHtml] = useState(false);
   const [docPreview, setDocPreview] = useState<InspectorFileItem | null>(null);
+  const [bidBreakdownOpen, setBidBreakdownOpen] = useState(true);
+  const [bidPanelHighlight, setBidPanelHighlight] = useState(false);
   const autoRanRef = useRef<Set<string>>(new Set());
   const platformTelemetryRef = useRef<string | null>(null);
+  const tendersCtx = useTendersContextOptional();
 
   const platformDocStatus = useMemo(
     () => resolveTenderPlatformDocumentStatus(item, { loadingDocs: loadingDocs || autoRunning }),
@@ -565,7 +578,30 @@ export function TenderDetailPanel({
     }
   }, [item, bidProposal]);
 
-  const canEditSubmittedBid = item.status === "submitted" || item.status === "won" || item.status === "lost";
+  const bidPrepChecks = useMemo(
+    () => computeBidPrepChecks(item, swz, item.tenderFit, bidProposal),
+    [item, swz, item.tenderFit, bidProposal],
+  );
+  const readyCount = bidPrepChecks.filter((c) => c.status === "ok").length;
+
+  const scrollToAttachments = useCallback(() => {
+    document.getElementById(TENDER_ATTACHMENTS_SECTION_ID)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, []);
+
+  const scrollToBidDetails = useCallback(() => {
+    setBidBreakdownOpen(true);
+    setBidPanelHighlight(true);
+    requestAnimationFrame(() => {
+      document.getElementById(TENDER_BID_PROPOSAL_PANEL_ID)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      window.setTimeout(() => setBidPanelHighlight(false), 2200);
+    });
+  }, []);
 
   const handleSaveSubmittedBid = useCallback(async () => {
     const pln = submittedBidDraft ? Number(submittedBidDraft) : null;
@@ -601,56 +637,20 @@ export function TenderDetailPanel({
         </p>
       )}
 
-      <TenderBidPrepPanel
+      <TenderSummaryBar
         item={item}
         swz={swz}
-        fit={item.tenderFit}
-        bidProposal={bidProposal}
-        referenceValuePln={referenceValuePln}
-        ourEstimatePln={item.ourEstimatePln}
-        teamHeadcount={loadCompanyProfileLocal().costModel.headcount}
-        analyzing={analyzing}
-        onAnalyze={() => void runAnalysis()}
-        onApplyRecommended={(pln) => onUpdate(patchOurEstimatePln(item, pln, "propozycja kalkulatora"))}
-        onExportPdf={() => void handleExportPdf()}
-        exportingPdf={exportingPdf}
-        awardResult={item.awardResult}
-        onFetchAward={() => void handleFetchAward()}
-        fetchingAward={fetchingAward}
-        athPreviewEnabled={athPreviewEnabled}
+        readyCount={readyCount}
+        readyTotal={bidPrepChecks.length}
+        onStatusChange={(status) => onUpdate({ status })}
       />
 
-      <p className="text-xs text-muted-foreground">
-        <span className="font-semibold text-foreground/80">Źródło dokumentów:</span>{" "}
-        {platformDocStatus.sourceLabel}
-      </p>
-
-      <TenderAttachmentsPanel
+      <TenderMonitoringBanner
         item={item}
-        athPreviewEnabled={athPreviewEnabled}
-        loadingDocs={loadingDocs || autoRunning}
-        onRefresh={() => void loadDocuments()}
-        onAnalyze={(idx) => void runAnalysis(idx)}
-        analyzing={analyzing}
-        externalDiscovery={item.externalDocDiscovery}
-        externalDiscovering={externalDiscovering}
-        onSearchExternal={() => void runExternalDiscovery()}
+        onOpenStrategy={tendersCtx?.openTendersStrategy}
       />
 
       <div className="flex flex-wrap items-center gap-2">
-        <label className="text-xs text-muted-foreground flex items-center gap-2">
-          Status
-          <select
-            value={item.status}
-            onChange={(e) => onUpdate({ status: e.target.value as TenderPipelineStatus })}
-            className="bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {(Object.keys(TENDER_STATUS_LABELS) as TenderPipelineStatus[]).map((s) => (
-              <option key={s} value={s}>{TENDER_STATUS_LABELS[s]}</option>
-            ))}
-          </select>
-        </label>
         <a
           href={item.ezamowieniaUrl}
           target="_blank"
@@ -707,55 +707,69 @@ export function TenderDetailPanel({
         )}
       </div>
 
-      <label className="text-xs text-muted-foreground flex items-center gap-2">
-        Nasz szacunek (PLN)
-        <input
-          type="number"
-          min="0"
-          step="1000"
-          value={item.ourEstimatePln ?? ""}
-          onChange={(e) => {
-            const pln = e.target.value ? Number(e.target.value) : null;
-            onUpdate(patchOurEstimatePln(item, pln, "ręczna edycja"));
-          }}
-          className="w-28 bg-secondary rounded-lg px-2 py-1 text-xs border border-border"
-          onClick={(e) => e.stopPropagation()}
-        />
-      </label>
+      <TenderBidPrepPanel
+        item={item}
+        swz={swz}
+        fit={item.tenderFit}
+        bidProposal={bidProposal}
+        ourEstimatePln={item.ourEstimatePln}
+        analyzing={analyzing}
+        onAnalyze={() => void runAnalysis()}
+        onExportPdf={() => void handleExportPdf()}
+        exportingPdf={exportingPdf}
+        onUpdateOurEstimate={(pln) => onUpdate(patchOurEstimatePln(item, pln, "ręczna edycja"))}
+        onScrollToAttachments={scrollToAttachments}
+        onScrollToBidDetails={scrollToBidDetails}
+      />
 
-      {canEditSubmittedBid && (
-        <div className="rounded-lg border border-teal-500/25 bg-teal-500/5 px-3 py-2 space-y-2">
-          <p className="text-[10px] font-semibold text-teal-800 dark:text-teal-200">
-            Oferta złożona (PLN) — kalibracja historyczna
-          </p>
-          <div className="flex flex-wrap items-center gap-2">
-            <input
-              type="number"
-              min="0"
-              step="1000"
-              value={submittedBidDraft}
-              onChange={(e) => setSubmittedBidDraft(e.target.value)}
-              placeholder="Kwota złożonej oferty"
-              className="w-36 bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border font-mono"
-              onClick={(e) => e.stopPropagation()}
-            />
-            <button
-              type="button"
-              disabled={savingSubmittedBid}
-              onClick={(e) => { e.stopPropagation(); void handleSaveSubmittedBid(); }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-medium hover:bg-teal-700 disabled:opacity-50"
-            >
-              {savingSubmittedBid ? <Loader2 size={12} className="animate-spin" /> : null}
-              Zapisz ofertę złożoną
-            </button>
-          </div>
-          {item.submittedAt && (
-            <p className="text-[10px] text-muted-foreground">
-              Ostatni zapis: {new Date(item.submittedAt).toLocaleString("pl-PL")}
-            </p>
-          )}
-        </div>
-      )}
+      <p className="text-xs text-muted-foreground">
+        <span className="font-semibold text-foreground/80">Źródło dokumentów:</span>{" "}
+        {platformDocStatus.sourceLabel}
+      </p>
+
+      <TenderAttachmentsPanel
+        item={item}
+        athPreviewEnabled={athPreviewEnabled}
+        loadingDocs={loadingDocs || autoRunning}
+        onRefresh={() => void loadDocuments()}
+        onAnalyze={(idx) => void runAnalysis(idx)}
+        analyzing={analyzing}
+        externalDiscovery={item.externalDocDiscovery}
+        externalDiscovering={externalDiscovering}
+        onSearchExternal={() => void runExternalDiscovery()}
+      />
+
+      <TenderQualificationSection item={item} swz={swz} fit={item.tenderFit} />
+
+      <section id={TENDER_VALUATION_SECTION_ID} className="scroll-mt-2 space-y-2">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground px-0.5">
+          Wycena
+        </p>
+        <TenderBidProposalPanel
+          proposal={bidProposal}
+          referenceValuePln={referenceValuePln}
+          ourEstimatePln={item.ourEstimatePln}
+          teamHeadcount={loadCompanyProfileLocal().costModel.headcount}
+          onApplyRecommended={(pln) => onUpdate(patchOurEstimatePln(item, pln, "propozycja kalkulatora"))}
+          missingKosztorys={!item.tenderDossier?.kosztorys?.ok}
+          breakdownOpen={bidBreakdownOpen}
+          highlight={bidPanelHighlight}
+          catalogQuantities={item.tenderDossier?.kosztorys?.catalogQuantities}
+          showHistoricalCalibration={false}
+        />
+      </section>
+
+      <TenderOfferSection
+        item={item}
+        bidProposal={bidProposal}
+        awardResult={item.awardResult}
+        submittedBidDraft={submittedBidDraft}
+        onSubmittedBidDraftChange={setSubmittedBidDraft}
+        onSaveSubmittedBid={() => void handleSaveSubmittedBid()}
+        savingSubmittedBid={savingSubmittedBid}
+        onFetchAward={() => void handleFetchAward()}
+        fetchingAward={fetchingAward}
+      />
 
       {(item.estimateHistory?.length ?? 0) > 0 && (
         <details className="rounded-lg border border-border/60 bg-secondary/20 px-3 py-2 text-[10px]">
@@ -785,9 +799,13 @@ export function TenderDetailPanel({
         onClick={(e) => e.stopPropagation()}
       />
 
-      <details className="rounded-xl border border-border overflow-hidden group">
-        <summary className="px-3 py-2.5 text-xs font-medium bg-secondary/40 hover:bg-secondary/60 cursor-pointer list-none flex items-center justify-between">
-          <span>Pełna karta przetargu i ogłoszenie BZP</span>
+      <details
+        id={TENDER_FORMAL_DETAILS_SECTION_ID}
+        open
+        className="rounded-xl border border-border overflow-hidden group scroll-mt-2"
+      >
+        <summary className="px-3 py-2.5 text-xs font-semibold bg-secondary/40 hover:bg-secondary/60 cursor-pointer list-none flex items-center justify-between">
+          <span>📑 Szczegóły formalne</span>
           <ChevronDown size={14} className="transition-transform group-open:rotate-180 shrink-0" />
         </summary>
         <div className="px-3 pb-3 pt-2 space-y-3 border-t border-border">
@@ -797,27 +815,6 @@ export function TenderDetailPanel({
             swz={swz}
             onOpenKosztorysPreview={(previewItem) => setDocPreview(previewItem)}
           />
-
-          {item.noticeHtml && (
-            <div className="rounded-lg border border-border overflow-hidden">
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setShowHtml((v) => !v); }}
-                className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium bg-secondary/50 hover:bg-secondary/80"
-              >
-                <span className="flex items-center gap-1.5"><FileText size={12} /> Pełne ogłoszenie BZP</span>
-                <ChevronDown size={14} className={`transition-transform ${showHtml ? "rotate-180" : ""}`} />
-              </button>
-              {showHtml && (
-                <iframe
-                  title="Ogłoszenie BZP"
-                  sandbox=""
-                  srcDoc={item.noticeHtml}
-                  className="w-full h-64 sm:h-80 bg-white text-black border-t border-border"
-                />
-              )}
-            </div>
-          )}
 
           {suggestions.length > 0 && (
             <div className="rounded-lg bg-secondary/50 px-3 py-2 space-y-2">
@@ -841,6 +838,27 @@ export function TenderDetailPanel({
           )}
         </div>
       </details>
+
+      {item.noticeHtml && (
+        <div className="rounded-lg border border-border overflow-hidden">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setShowHtml((v) => !v); }}
+            className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium bg-secondary/50 hover:bg-secondary/80"
+          >
+            <span className="flex items-center gap-1.5"><FileText size={12} /> Ogłoszenie HTML (BZP)</span>
+            <ChevronDown size={14} className={`transition-transform ${showHtml ? "rotate-180" : ""}`} />
+          </button>
+          {showHtml && (
+            <iframe
+              title="Ogłoszenie BZP"
+              sandbox=""
+              srcDoc={item.noticeHtml}
+              className="w-full h-64 sm:h-80 bg-white text-black border-t border-border"
+            />
+          )}
+        </div>
+      )}
 
       {docPreview && (
         <JobFilePreviewModal

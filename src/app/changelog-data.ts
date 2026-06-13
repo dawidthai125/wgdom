@@ -12,6 +12,18 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.53.1",
+    label: "Przetargi — UX.1A Tender Workspace Cleanup (MIN)",
+    items: [
+      { type: "improve", text: "Sticky Tender Summary — status, termin, wartość, pilne (monitoring) bez scrollowania" },
+      { type: "improve", text: "Nowa kolejność sekcji: karta → dokumenty → kwalifikacja → wycena → oferta → formalia → HTML" },
+      { type: "improve", text: "Accordion „Kwalifikacja ofertowa” — Warunki udziału + Wykaz robót + Fit (domyślnie otwarty)" },
+      { type: "improve", text: "Deduplikacja: jedna edycja „Nasza wycena” (kafelek), kalibracja tylko w sekcji Oferta, ATH primary w Dokumentach" },
+      { type: "improve", text: "Banner ⚠ nowe zmiany/Q&A → link do zakładki Strategia (sygnał, bez pełnego monitora per-przetarg)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.53.0",
     label: "Przetargi — centrum wyceny P2-G.3B (Historical Cost Calibration MIN)",
     items: [

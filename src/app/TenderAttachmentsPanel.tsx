@@ -141,6 +141,8 @@ function ZipInnerList({
   );
 }
 
+import { TENDER_ATTACHMENTS_SECTION_ID } from "@/lib/tender-workspace-ux";
+
 export function TenderAttachmentsPanel({
   item,
   athPreviewEnabled,
@@ -151,6 +153,7 @@ export function TenderAttachmentsPanel({
   externalDiscovery,
   externalDiscovering,
   onSearchExternal,
+  sectionId = TENDER_ATTACHMENTS_SECTION_ID,
 }: {
   item: TenderPipelineItem;
   athPreviewEnabled?: boolean;
@@ -161,6 +164,7 @@ export function TenderAttachmentsPanel({
   externalDiscovery?: TenderExternalDocDiscovery | null;
   externalDiscovering?: boolean;
   onSearchExternal?: () => void;
+  sectionId?: string;
 }) {
   const [preview, setPreview] = useState<InspectorFileItem | null>(null);
 
@@ -193,7 +197,7 @@ export function TenderAttachmentsPanel({
 
   return (
     <>
-      <div className="space-y-2">
+      <div id={sectionId} className="space-y-2 scroll-mt-2">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
             <Paperclip size={11} />

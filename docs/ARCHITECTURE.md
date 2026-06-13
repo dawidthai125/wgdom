@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.0** · P2-G.3B)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.3B — Historical Cost Calibration)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.1** · UX.1A)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (UX.1A — Tender Workspace Cleanup)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -973,7 +973,7 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 | Chmura | `kw-tender-calibration` — merge by snapshot id, max 500 | `tender-cost-calibration.ts`, `cloud-sync.ts` |
 | Analityka | `buildCalibrationSummary()`, `computeCalibrationDelta()` | j.w. |
 | Hints | `buildCatalogCalibrationHints()` — N≥10, **read-only** (bez auto-zmiany katalogu) | j.w. |
-| UI wycena | 📈 Kalibracja historyczna w `TenderBidProposalPanel` | j.w. |
+| UI wycena | 📈 Kalibracja historyczna w sekcji **Oferta** (`TenderOfferSection`; dedup z panelu wyceny UX.1A) | j.w. |
 | UI profil | 🎯 Kalibracja WGDOM w `TenderCompanyProfilePanel` | j.w. |
 | Zapis oferty | Status submitted/won/lost → „Zapisz ofertę złożoną” + snapshot | `TenderDetailPanel.tsx` |
 
@@ -995,6 +995,7 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 | `wgdom-phrase-rules.ts` | P2-G.2D — reguły fraz roboczych, `matchWgdomPhraseRules()` |
 | `wgdom-user-classification-dictionary.ts` | P2-G.2A — user learning, `matchUserClassificationDictionary()` |
 | `tender-cost-calibration.ts` | P2-G.3B — historical snapshots, calibration summary, catalog hints |
+| `tender-workspace-ux.ts` | UX.1A — sekcje workspace, summary snapshot, monitoring counts |
 
 **Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (320+ asercji) · regresja P2-F: `test-tender-dossier-pipeline.mjs`
 
@@ -1006,6 +1007,33 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 4. Referencje rynkowe — tylko pomocniczo, bez scrapingu
 
 **Nie zmieniaj bez polecenia:** merge katalogu, ścieżka `ath_priced`, ATH Quick Access, klasyfikator keywords bez migracji danych.
+
+**UX.1A — Tender Workspace Cleanup (MIN, v2.53.1):**
+
+Reorganizacja **ekranu pojedynczego przetargu** (`TenderDetailPanel`) — bez zakładek workspace (UX.1B), bez zmian algorytmów wyceny/P2-F.
+
+| Kolejność sekcji | Komponent / ID |
+|------------------|----------------|
+| 1. Tender Summary (sticky) | `TenderSummaryBar` · `#tender-summary-bar` |
+| 2. Karta ofertowa + 6 kafelków | `TenderBidPrepPanel` (tylko header + tiles) |
+| 3. Dokumenty / Załączniki | `TenderAttachmentsPanel` · `#tender-attachments-section` — **primary ATH** |
+| 4. Kwalifikacja ofertowa | `TenderQualificationSection` · accordion open: Participation + Works + Fit |
+| 5. Wycena | `TenderBidProposalPanel` · `#tender-valuation-section` |
+| 6. Oferta | `TenderOfferSection` · złożona + wynik BZP + kalibracja |
+| 7. Szczegóły formalne | accordion 📑 · `TenderDossierPanel` · `#tender-formal-details-section` |
+| 8. Ogłoszenie HTML | na końcu (poza accordionem) |
+
+**Deduplikacja UX.1A:**
+
+- **Nasza wycena** — jeden input na kafelku `our-bid` (usunięte osobne pole PLN).
+- **Kalibracja** — tylko w `TenderOfferSection`; `TenderBidProposalPanel` ma `showHistoricalCalibration={false}`.
+- **ATH** — pełny podgląd/PDF w Załącznikach; kafelek kosztorysu → skrót „Zobacz w dokumentach”.
+
+**Monitoring:** banner gdy `changeMonitor.unseenCount > 0` lub `qaMonitor.unseenCount > 0` → `openTendersStrategy()` (sygnał, bez pełnego monitora per-przetarg).
+
+**Przygotowanie pod UX.1B:** stałe sekcji w `tender-workspace-ux.ts` (`TENDER_WORKSPACE_SECTION_ORDER`) — przyszłe zakładki workspace mapują na te same bloki.
+
+**Test:** `npx vite-node scripts/test-tender-workspace-ux.mjs` · regresja: `test-tender-cost-intelligence.mjs`, `test-tender-dossier-pipeline.mjs`
 
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 
