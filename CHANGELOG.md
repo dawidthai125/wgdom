@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.56.4 — P3.3B benchmark robocizny PRO
+- `LaborBenchmarkEdition` — metadata źródeł, data, pokrycie
+- `kw-wgdom-cost-catalog-history` — snapshoty przy zmianie rbh; trend 90 dni
+- UI triple view + panel Źródło benchmarku w Baza cen
+
 ## 2.56.3 — P3.3A benchmark robocizny MVP
 - `labor-benchmark.ts` + statyczne zakresy — porównanie read-only, bez wpływu na wycenę
 

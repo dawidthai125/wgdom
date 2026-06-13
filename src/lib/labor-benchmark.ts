@@ -1,17 +1,36 @@
 /**
- * P3.3A — porównanie stawki robocizny vs zakres referencyjny (read-only).
+ * P3.3A/3.3B — porównanie stawki robocizny vs zakres referencyjny (read-only).
  */
 
 import { fullyLoadedHourly } from "@/lib/company-labor-cost";
 import type { TenderCompanyCostModel } from "@/lib/tenders-bzp-company";
-import type { WgdomCostCategoryId, WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
+import type { WgdomCostCategoryId, WgdomCostRegion, WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
+import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
 import {
+  ACTIVE_LABOR_BENCHMARK_EDITION,
+  getActiveLaborBenchmarkEdition,
   LABOR_BENCHMARK_RANGES,
   type LaborBenchmarkCategoryId,
+  type LaborBenchmarkEdition,
   type LaborBenchmarkRange,
 } from "@/lib/labor-benchmark-data";
+import {
+  findOldestLaborRateInWindow,
+  type WgdomCostCatalogHistoryStore,
+} from "@/lib/wgdom-cost-catalog-history";
 
 export type LaborBenchmarkStatus = "below" | "ok" | "above" | "unavailable";
+
+export type LaborRateTrendDirection = "up" | "down" | "flat";
+
+export interface LaborRateTrend {
+  direction: LaborRateTrendDirection;
+  icon: string;
+  labelPl: string;
+  pctChange: number;
+  historicalPlnPerUnit: number;
+  daysAgo: number;
+}
 
 export interface LaborBenchmarkComparison {
   wgdomCategoryId: WgdomCostCategoryId;
@@ -22,11 +41,16 @@ export interface LaborBenchmarkComparison {
   status: LaborBenchmarkStatus;
   statusLabelPl: string;
   rangeLabelPl: string;
+  trend: LaborRateTrend | null;
+  historyPlnPerUnit: number | null;
+  historyDaysAgo: number | null;
 }
 
 const WGDOM_TO_BENCHMARK: Partial<Record<WgdomCostCategoryId, LaborBenchmarkCategoryId>> = {
   MALOWANIE: "MALOWANIE",
   GK: "GK",
+  GLADZIE_TYNKI: "GLADZIE_TYNKI",
+  ROZBIORKI: "ROZBIORKI",
   ELEKTRYKA: "ELEKTRYKA",
   HYDRAULIKA: "HYDRAULIKA",
   INSTALACJE_CO: "CO",
@@ -35,11 +59,12 @@ const WGDOM_TO_BENCHMARK: Partial<Record<WgdomCostCategoryId, LaborBenchmarkCate
   PODLOGI: "POSADZKI",
   GLAZURA: "POSADZKI",
   STOLARKA: "STOLARKA",
-  ROZBIORKI: "OGOLNOBUDOWLANE",
   WENTYLACJA: "INNE",
   WYPOSAZENIE: "INNE",
   TRANSPORT_UTYLIZACJA: "INNE",
 };
+
+const TREND_FLAT_THRESHOLD_PCT = 1;
 
 function unitLabel(unit: WgdomCostUnit): string {
   if (unit === "m2") return "m²";
@@ -76,31 +101,113 @@ export function formatLaborBenchmarkRange(range: LaborBenchmarkRange): string {
   return `${range.min}–${range.max} zł/${unitLabel(range.unit)}`;
 }
 
+export function computeLaborRateTrend(
+  currentPlnPerUnit: number,
+  historicalPlnPerUnit: number,
+  daysAgo: number,
+): LaborRateTrend | null {
+  if (
+    !Number.isFinite(currentPlnPerUnit)
+    || !Number.isFinite(historicalPlnPerUnit)
+    || currentPlnPerUnit <= 0
+    || historicalPlnPerUnit <= 0
+    || daysAgo < 0
+  ) {
+    return null;
+  }
+  const pctChange = Math.round(
+    ((currentPlnPerUnit - historicalPlnPerUnit) / historicalPlnPerUnit) * 1000,
+  ) / 10;
+
+  let direction: LaborRateTrendDirection;
+  let icon: string;
+  let labelPl: string;
+
+  if (Math.abs(pctChange) < TREND_FLAT_THRESHOLD_PCT) {
+    direction = "flat";
+    icon = "→";
+    labelPl = "bez zmian";
+  } else if (pctChange > 0) {
+    direction = "up";
+    icon = "↗";
+    labelPl = `+${pctChange}%`;
+  } else {
+    direction = "down";
+    icon = "↘";
+    labelPl = `${pctChange}%`;
+  }
+
+  return {
+    direction,
+    icon,
+    labelPl,
+    pctChange,
+    historicalPlnPerUnit,
+    daysAgo,
+  };
+}
+
+export function enrichLaborBenchmarkWithHistory(
+  comparison: Omit<LaborBenchmarkComparison, "trend" | "historyPlnPerUnit" | "historyDaysAgo">,
+  history: WgdomCostCatalogHistoryStore | null | undefined,
+  region: WgdomCostRegion,
+): LaborBenchmarkComparison {
+  if (!history || comparison.status === "unavailable") {
+    return { ...comparison, trend: null, historyPlnPerUnit: null, historyDaysAgo: null };
+  }
+  const past = findOldestLaborRateInWindow(
+    history,
+    region,
+    comparison.wgdomCategoryId,
+    comparison.unit,
+  );
+  if (!past) {
+    return { ...comparison, trend: null, historyPlnPerUnit: null, historyDaysAgo: null };
+  }
+  const trend = computeLaborRateTrend(
+    comparison.ourLaborPlnPerUnit,
+    past.laborPlnPerUnit,
+    past.daysAgo,
+  );
+  return {
+    ...comparison,
+    trend,
+    historyPlnPerUnit: past.laborPlnPerUnit,
+    historyDaysAgo: past.daysAgo,
+  };
+}
+
 export function compareLaborRateToBenchmark(
   ourLaborPlnPerUnit: number,
   wgdomCategoryId: WgdomCostCategoryId,
   unit: WgdomCostUnit,
+  options?: {
+    history?: WgdomCostCatalogHistoryStore | null;
+    region?: WgdomCostRegion;
+  },
 ): LaborBenchmarkComparison {
   const benchmarkCategoryId = mapWgdomCategoryToLaborBenchmark(wgdomCategoryId);
   const range = benchmarkCategoryId
     ? getLaborBenchmarkRange(benchmarkCategoryId, unit)
     : null;
 
+  const base = {
+    wgdomCategoryId,
+    benchmarkCategoryId,
+    ourLaborPlnPerUnit,
+    unit,
+    range,
+    status: "unavailable" as LaborBenchmarkStatus,
+    statusLabelPl: "Brak benchmarku",
+    rangeLabelPl: "—",
+  };
+
   if (
     range == null
     || !Number.isFinite(ourLaborPlnPerUnit)
     || ourLaborPlnPerUnit <= 0
   ) {
-    return {
-      wgdomCategoryId,
-      benchmarkCategoryId,
-      ourLaborPlnPerUnit,
-      unit,
-      range: null,
-      status: "unavailable",
-      statusLabelPl: "Brak benchmarku",
-      rangeLabelPl: "—",
-    };
+    return enrichLaborBenchmarkWithHistory(base, options?.history, options?.region ?? "wroclaw");
   }
 
   let status: LaborBenchmarkStatus;
@@ -116,15 +223,37 @@ export function compareLaborRateToBenchmark(
     statusLabelPl = "W normie";
   }
 
+  return enrichLaborBenchmarkWithHistory(
+    {
+      ...base,
+      status,
+      statusLabelPl,
+      rangeLabelPl: formatLaborBenchmarkRange(range),
+    },
+    options?.history,
+    options?.region ?? "wroclaw",
+  );
+}
+
+export interface LaborBenchmarkCoverage {
+  covered: number;
+  total: number;
+  labelPl: string;
+}
+
+export function computeLaborBenchmarkCoverage(
+  rows: Array<{ id: WgdomCostCategoryId; unit: WgdomCostUnit; laborPlnPerUnit: number }>,
+): LaborBenchmarkCoverage {
+  const total = WGDOM_COST_CATEGORY_IDS.length;
+  let covered = 0;
+  for (const row of rows) {
+    const cmp = compareLaborRateToBenchmark(row.laborPlnPerUnit, row.id, row.unit);
+    if (cmp.status !== "unavailable") covered += 1;
+  }
   return {
-    wgdomCategoryId,
-    benchmarkCategoryId,
-    ourLaborPlnPerUnit,
-    unit,
-    range,
-    status,
-    statusLabelPl,
-    rangeLabelPl: formatLaborBenchmarkRange(range),
+    covered,
+    total,
+    labelPl: `${covered} / ${total} kategorii`,
   };
 }
 
@@ -171,3 +300,9 @@ export function laborBenchmarkStatusClass(status: LaborBenchmarkStatus): string 
   if (status === "above") return "text-orange-700 dark:text-orange-400";
   return "text-muted-foreground";
 }
+
+export function getLaborBenchmarkEdition(region?: WgdomCostRegion): LaborBenchmarkEdition {
+  return getActiveLaborBenchmarkEdition(region ?? ACTIVE_LABOR_BENCHMARK_EDITION.region);
+}
+
+export { ACTIVE_LABOR_BENCHMARK_EDITION };

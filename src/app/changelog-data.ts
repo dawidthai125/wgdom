@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.56.4",
+    label: "Przetargi — P3.3B benchmark robocizny PRO",
+    items: [
+      { type: "new", text: "Baza cen — panel Źródło benchmarku (edycja, data, 3 źródła, pokrycie kategorii)" },
+      { type: "new", text: "Historia własnych stawek robocizny (kw-wgdom-cost-catalog-history) + trend ↗↘→ vs 90 dni" },
+      { type: "improve", text: "Triple view: Nasza / Rynek / historia firmy — bez wpływu na kalkulator" },
+      { type: "improve", text: "Rozszerzone mapowanie benchmarku: Gładzie/tynki, Rozbiórki" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.56.3",
     label: "Przetargi — P3.3A benchmark robocizny MVP",
     items: [

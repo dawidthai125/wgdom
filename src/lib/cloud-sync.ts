@@ -25,6 +25,7 @@ import {
   TENDERS_CUSTOM_KEYWORDS_KEY,
   TENDER_CALIBRATION_KEY,
   TENDER_PRICE_OVERRIDES_KEY,
+  WGDOM_COST_CATALOG_HISTORY_KEY,
   TENDERS_DELETED_IDS_KEY,
 } from "@/lib/tenders-sync";
 import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-leaves";
@@ -51,6 +52,7 @@ export const DATA_KEYS = [
   "kw-tenders-custom-keywords",
   "kw-tender-calibration",
   "kw-tender-price-overrides",
+  "kw-wgdom-cost-catalog-history",
 ] as const;
 
 export type DataKey = (typeof DATA_KEYS)[number];
@@ -75,6 +77,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-tenders-custom-keywords",
   "kw-tender-calibration",
   "kw-tender-price-overrides",
+  "kw-wgdom-cost-catalog-history",
   "kw-contacts",
   "kw-employee-leaves",
   "kw-recoverable-charges",
@@ -1406,6 +1409,8 @@ export function mergeDataKey(
       return mergeTenderDataKey(TENDER_CALIBRATION_KEY, local, cloud);
     case "kw-tender-price-overrides":
       return mergeTenderDataKey(TENDER_PRICE_OVERRIDES_KEY, local, cloud);
+    case "kw-wgdom-cost-catalog-history":
+      return mergeTenderDataKey(WGDOM_COST_CATALOG_HISTORY_KEY, local, cloud);
     case "kw-weekFrom":
     case "kw-weekTo":
       return typeof local === "string" && local ? local : (typeof cloud === "string" && cloud ? cloud : local ?? cloud);

@@ -53,9 +53,13 @@ const above = compareLaborRateToBenchmark(30, "MALOWANIE", "m2");
 assertEq(above.status, "above", "above range");
 assertEq(above.statusLabelPl, "Powyżej rynku", "above label");
 
-const noBench = compareLaborRateToBenchmark(ourMalowanie, "GLADZIE_TYNKI", "m2");
-assertEq(noBench.status, "unavailable", "no benchmark gladzie");
-assertEq(noBench.statusLabelPl, "Brak benchmarku", "unavailable label");
+assertEq(mapWgdomCategoryToLaborBenchmark("GLADZIE_TYNKI"), "GLADZIE_TYNKI", "map gladzie");
+const gladzieBench = compareLaborRateToBenchmark(28, "GLADZIE_TYNKI", "m2");
+assertEq(gladzieBench.status, "ok", "gladzie has benchmark");
+assert(gladzieBench.range != null, "gladzie range exists");
+
+const rozbiórki = compareLaborRateToBenchmark(20, "ROZBIORKI", "m2");
+assertEq(rozbiórki.status, "ok", "rozbiórki within range");
 
 const unitMismatch = compareLaborRateToBenchmark(50, "MALOWANIE", "szt");
 assertEq(unitMismatch.status, "unavailable", "unit mismatch");

@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.3** · P3.3A)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.4** · P3.3B)
 > **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P3.3A benchmark robocizny)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
@@ -1138,6 +1138,15 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 **P3.5 — Ceny per pozycja (v2.56.1 CLOSED):** `buildCatalogLinePricingView()` + `TenderCatalogLinePricingSection` w Wycena → Szczegóły (read-only, UNKNOWN bez cen w podsumowaniu).
 
 **P3.5B — Override per przetarg (v2.56.2 CLOSED):** `kw-tender-price-overrides` · `TenderCategoryPriceOverrideModal` · silnik `computeFromCatalogRow(…, overrideLookup)` · hero KPI natychmiast po zapisie.
+
+**P3.3B — Benchmark robocizny PRO (v2.56.4 CLOSED):** `LaborBenchmarkEdition` + `kw-wgdom-cost-catalog-history` — transparentność źródeł, historia własnych stawek, trend 90 dni; **bez wpływu na kalkulator**.
+
+| Element | Opis | Plik |
+|---------|------|------|
+| Edycja PRO | editionId, effectiveFrom, sources[], methodology | `labor-benchmark-data.ts` |
+| Historia firmy | Snapshots przy zapisie Bazy cen (ring 100) | `wgdom-cost-catalog-history.ts` |
+| Triple view | Nasza / Rynek / N dni temu + trend ↗↘→ | `LaborBenchmarkUi.tsx`, `TenderPriceBasePanel.tsx` |
+| Pokrycie | KPI X / 15 kategorii | `computeLaborBenchmarkCoverage()` |
 
 **P3.3A — Benchmark robocizny MVP (v2.56.3 CLOSED):** `labor-benchmark.ts` + `labor-benchmark-data.ts` — porównanie read-only nasza robocizna vs zakres referencyjny; UI w Baza cen i Wycena; **bez wpływu na kalkulator**.
 

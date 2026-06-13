@@ -26,9 +26,17 @@ import {
   compareLaborRateToBenchmark,
   computeLaborPlnPerUnitFromRbh,
   buildLaborBenchmarkAlerts,
+  computeLaborBenchmarkCoverage,
 } from "@/lib/labor-benchmark";
-import { LaborBenchmarkCell } from "@/app/LaborBenchmarkUi";
+import { LaborBenchmarkCell, LaborBenchmarkSourcePanel } from "@/app/LaborBenchmarkUi";
 import { LABOR_BENCHMARK_SOURCE_LABEL } from "@/lib/labor-benchmark-data";
+import {
+  appendCostCatalogHistoryIfLaborChanged,
+  loadWgdomCostCatalogHistory,
+  loadWgdomCostCatalogHistoryLocal,
+  type WgdomCostCatalogHistoryStore,
+} from "@/lib/wgdom-cost-catalog-history";
+import { loadWgdomCostCatalogStoreLocal } from "@/lib/wgdom-cost-catalog-store";
 
 function NumInput({
   label,
@@ -75,15 +83,23 @@ export function TenderPriceBasePanel({
 }) {
   const [profile, setProfile] = useState<TenderCompanyProfile>(defaultCompanyProfile());
   const [catalogStore, setCatalogStore] = useState<WgdomCostCatalogStore>(restoreDefaultWgdomCostCatalogStore());
+  const [catalogHistory, setCatalogHistory] = useState<WgdomCostCatalogHistoryStore>(
+    loadWgdomCostCatalogHistoryLocal(),
+  );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    void Promise.all([loadCompanyProfile(), loadWgdomCostCatalogStore()]).then(([p, catalog]) => {
+    void Promise.all([
+      loadCompanyProfile(),
+      loadWgdomCostCatalogStore(),
+      loadWgdomCostCatalogHistory(),
+    ]).then(([p, catalog, history]) => {
       if (!cancelled) {
         setProfile(p);
         setCatalogStore(catalog);
+        setCatalogHistory(history);
         setLoading(false);
       }
     });
@@ -98,24 +114,43 @@ export function TenderPriceBasePanel({
     [profile.costModel],
   );
 
+  const benchmarkCoverage = useMemo(() => {
+    const rows = catalogRows.map((row) => ({
+      id: row.id,
+      unit: row.unit,
+      laborPlnPerUnit: computeLaborPlnPerUnitFromRbh(row.laborRbhPerUnit, profile.costModel),
+    }));
+    return computeLaborBenchmarkCoverage(rows);
+  }, [catalogRows, profile.costModel]);
+
   const benchmarkAlerts = useMemo(() => {
     const comparisons = catalogRows.map((row) => {
       const laborPln = computeLaborPlnPerUnitFromRbh(row.laborRbhPerUnit, profile.costModel);
       return {
-        ...compareLaborRateToBenchmark(laborPln, row.id, row.unit),
+        ...compareLaborRateToBenchmark(laborPln, row.id, row.unit, {
+          history: catalogHistory,
+          region: catalogStore.activeRegion,
+        }),
         categoryLabel: row.labelPl,
       };
     });
     return buildLaborBenchmarkAlerts(comparisons);
-  }, [catalogRows, profile.costModel]);
+  }, [catalogRows, profile.costModel, catalogHistory, catalogStore.activeRegion]);
 
   const save = useCallback(async () => {
     setSaving(true);
     try {
+      const previousCatalog = loadWgdomCostCatalogStoreLocal();
       await Promise.all([
         saveCompanyProfile(profile),
         saveWgdomCostCatalogStore(catalogStore),
       ]);
+      const history = await appendCostCatalogHistoryIfLaborChanged(
+        previousCatalog,
+        catalogStore,
+        profile.costModel,
+      );
+      setCatalogHistory(history);
       onSaved?.();
       toast.success("Baza cen zapisana w chmurze");
     } catch {
@@ -150,6 +185,11 @@ export function TenderPriceBasePanel({
           Kolumna Benchmark to orientacyjny zakres robocizny ({LABOR_BENCHMARK_SOURCE_LABEL}) — nie zmienia wyceny.
         </p>
       </div>
+
+      <LaborBenchmarkSourcePanel
+        region={catalogStore.activeRegion}
+        coverageLabel={benchmarkCoverage.labelPl}
+      />
 
       {benchmarkAlerts.outOfRangeCount > 0 && (
         <details className="rounded-lg border border-amber-500/30 bg-amber-500/8 px-2.5 py-2 text-[10px]">
@@ -204,7 +244,10 @@ export function TenderPriceBasePanel({
             <tbody>
               {catalogRows.map((row) => {
                 const laborPln = computeLaborPlnPerUnitFromRbh(row.laborRbhPerUnit, profile.costModel);
-                const benchmark = compareLaborRateToBenchmark(laborPln, row.id, row.unit);
+                const benchmark = compareLaborRateToBenchmark(laborPln, row.id, row.unit, {
+                  history: catalogHistory,
+                  region: catalogStore.activeRegion,
+                });
                 return (
                   <tr key={`labor-${row.id}`} className="border-t border-border/40">
                     <td className="px-2 py-1.5 font-medium">{row.labelPl}</td>
@@ -231,7 +274,7 @@ export function TenderPriceBasePanel({
                       {laborPln.toLocaleString("pl-PL")} zł
                     </td>
                     <td className="px-2 py-1.5 align-top">
-                      <LaborBenchmarkCell comparison={benchmark} showOurRate={false} />
+                      <LaborBenchmarkCell comparison={benchmark} showTripleView />
                     </td>
                     <td className="px-2 py-1.5 text-right text-muted-foreground whitespace-nowrap">
                       {formatUpdatedAt(catalogUpdatedAt)}

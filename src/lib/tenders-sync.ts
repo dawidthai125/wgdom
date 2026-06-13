@@ -10,6 +10,10 @@ import {
   mergeTenderPriceOverridesStore,
   TENDER_PRICE_OVERRIDES_KEY,
 } from "@/lib/tender-price-overrides";
+import {
+  mergeWgdomCostCatalogHistoryStore,
+  WGDOM_COST_CATALOG_HISTORY_KEY,
+} from "@/lib/wgdom-cost-catalog-history";
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 export const TENDERS_COMPANY_PROFILE_KEY = "kw-tenders-company-profile";
@@ -19,12 +23,14 @@ export const COMPANY_QUALIFICATION_PROFILE_KEY = "kw-company-profile";
 export const TENDERS_CUSTOM_KEYWORDS_KEY = "kw-tenders-custom-keywords";
 export { TENDER_CALIBRATION_KEY } from "@/lib/tender-cost-calibration";
 export { TENDER_PRICE_OVERRIDES_KEY } from "@/lib/tender-price-overrides";
+export { WGDOM_COST_CATALOG_HISTORY_KEY } from "@/lib/wgdom-cost-catalog-history";
 export const TENDERS_DELETED_IDS_KEY = "kw-tenders-deleted-ids";
 
 export const TENDER_DATA_KEYS = [
   TENDERS_PIPELINE_KEY,
   TENDERS_COMPANY_PROFILE_KEY,
   WGDOM_COST_CATALOG_KEY,
+  WGDOM_COST_CATALOG_HISTORY_KEY,
   WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY,
   COMPANY_QUALIFICATION_PROFILE_KEY,
   TENDERS_CUSTOM_KEYWORDS_KEY,
@@ -173,6 +179,10 @@ export function mergeTenderPriceOverridesForCloud(local: unknown, cloud: unknown
   return mergeTenderPriceOverridesStore(local, cloud);
 }
 
+export function mergeWgdomCostCatalogHistoryForCloud(local: unknown, cloud: unknown): unknown {
+  return mergeWgdomCostCatalogHistoryStore(local, cloud);
+}
+
 function uniqWords(a: string[], b: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -219,6 +229,8 @@ export function mergeTenderDataKey(key: TenderDataKey, local: unknown, cloud: un
       return mergeTenderCalibrationForCloud(local, cloud);
     case TENDER_PRICE_OVERRIDES_KEY:
       return mergeTenderPriceOverridesForCloud(local, cloud);
+    case WGDOM_COST_CATALOG_HISTORY_KEY:
+      return mergeWgdomCostCatalogHistoryForCloud(local, cloud);
     default:
       return local ?? cloud;
   }
