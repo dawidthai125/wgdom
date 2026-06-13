@@ -137,6 +137,25 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "instalacja gazowa", category: "INSTALACJE_GAZ", match: "contains" },
   { pattern: "instalacje gazowe", category: "INSTALACJE_GAZ", match: "contains" },
 
+  // —— Instalacje centralnego ogrzewania ——
+  { pattern: "wymiana zaworu grzejnikowego", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "wymiana zaworu przelotowego", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "montaz glowicy termostatycznej", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "montaz zaworow termostatycznych", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "spuszczenie wody z ukladu c.o.", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "spuszczenie wody z ukladu co", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "montaz grzejnika drabinkowego", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "grzejniki konwektorowe", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "grzejnik konwektorowy", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "wymiana grzejnika", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "montaz grzejnika", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "odpowietrzenie instalacji c.o.", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "odpowietrzenie instalacji co", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "regulacja instalacji centralnego ogrzewania", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "regulacja instalacji c.o.", category: "INSTALACJE_CO", match: "prefix" },
+  { pattern: "instalacja c.o.", category: "INSTALACJE_CO", match: "contains" },
+  { pattern: "centralne ogrzewanie", category: "INSTALACJE_CO", match: "contains" },
+
   // —— WYPOSAZENIE pomocnicze + AGD ——
   { pattern: "wymiana kuchni gazowej", category: "WYPOSAZENIE", match: "prefix" },
   { pattern: "montaz kuchni gazowej", category: "WYPOSAZENIE", match: "prefix" },
@@ -208,4 +227,4 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "montaz parapetu", category: "STOLARKA", match: "contains" },
 ];
 
-export const WGDOM_PHRASE_RULES_VERSION = "2C.1";
+export const WGDOM_PHRASE_RULES_VERSION = "2D.1";

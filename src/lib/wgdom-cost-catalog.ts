@@ -14,6 +14,7 @@ export type WgdomCostCategoryId =
   | "PODLOGI"
   | "ELEKTRYKA"
   | "INSTALACJE_GAZ"
+  | "INSTALACJE_CO"
   | "HYDRAULIKA"
   | "WENTYLACJA"
   | "STOLARKA"
@@ -36,6 +37,7 @@ export const WGDOM_COST_CATEGORY_IDS: WgdomCostCategoryId[] = [
   "PODLOGI",
   "ELEKTRYKA",
   "INSTALACJE_GAZ",
+  "INSTALACJE_CO",
   "HYDRAULIKA",
   "WENTYLACJA",
   "STOLARKA",
@@ -183,6 +185,25 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
       "miedziane lutowane",
     ],
     marketRefNote: "P2-G.2C — instalacje gazowe (≠ wyposażenie AGD/kuchnia)",
+  },
+  {
+    id: "INSTALACJE_CO",
+    labelPl: "Instalacje centralnego ogrzewania",
+    rates: [
+      { unit: "szt", materialPlnPerUnit: 130, laborRbhPerUnit: 1.5 },
+      { unit: "mb", materialPlnPerUnit: 38, laborRbhPerUnit: 0.24 },
+      { unit: "rbh", materialPlnPerUnit: 0, laborRbhPerUnit: 1 },
+    ],
+    keywords: [
+      "grzejnik", "grzejnikow", "grzejniki", "grzejnikowe",
+      "konwektor", "drabinkow",
+      "glowic.* termostat", "termostatycz",
+      "zawor grzejnik", "zawor przelot", "przelotow", "zawor.* co",
+      "instalac.* co", "instalac.* c.o", "centralne ogrzew", "uklad co", "uklad c.o",
+      "napelnienie instal", "spuszczenie wod", "odpowietrzenie instalacji co",
+      "ogrzewanie wodne", "wymiana grzejnik", "montaz grzejnik", "regulacja instalacji co",
+    ],
+    marketRefNote: "P2-G.2D — C.O. WM/ZZK/MOPS (≠ wod-kan HYDRAULIKA)",
   },
   {
     id: "HYDRAULIKA",

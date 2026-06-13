@@ -546,7 +546,7 @@ assert(classSummary.classifiedPercent >= 95, "coverage ≥95% after dict");
 assert(classSummary.coverageDelta != null, "coverageDelta present");
 assert(Math.abs(classSummary.coverageDelta.classifiedPercentBefore - 81.9) < 0.2, "before ~81.9%");
 assert(classSummary.coverageDelta.coverageDelta > 10, "delta >10pp");
-assertEq(CLASSIFICATION_CATEGORY_ORDER.length, 15, "15 categories incl UNKNOWN");
+assertEq(CLASSIFICATION_CATEGORY_ORDER.length, 16, "16 categories incl UNKNOWN");
 assert(classSummary.categories.some((c) => c.id === "UNKNOWN" && c.count === 10), "UNKNOWN bucket 10");
 assert(classSummary.categories.some((c) => c.id === "MALOWANIE" && c.count > 0), "MALOWANIE bucket");
 const malCat = classSummary.categories.find((c) => c.id === "MALOWANIE");
@@ -583,7 +583,7 @@ assertEq(bidMixed.costPricePln, bidMixedRepeat.costPricePln, "AC-6 calculator id
 console.log("\n18. P2-G.1F — Construction Dictionary");
 const dictCount = countConstructionDictionaryTerms();
 assertGte(dictCount, 150, "AC-2 dictionary 150+ terms");
-assertEq(WGDOM_CONSTRUCTION_DICTIONARY_CATEGORY_ORDER.length, 14, "14 dict categories");
+assertEq(WGDOM_CONSTRUCTION_DICTIONARY_CATEGORY_ORDER.length, 15, "15 dict categories");
 assert(WGDOM_CONSTRUCTION_DICTIONARY.MALOWANIE.includes("lamperia"), "dict has lamperia");
 assert(WGDOM_CONSTRUCTION_DICTIONARY.PODLOGI.includes("cokolik"), "dict has cokolik");
 assertEq(classifyAthLineCategory("Montaż lamperii przy oknach", "mb"), "MALOWANIE", "AC-3 lamperia → MALOWANIE");
@@ -670,10 +670,11 @@ assert(PROFILE_SECTION_TITLES.classificationDictionary.includes("Classification"
 setUserClassificationDictionaryCache(restoreDefaultUserClassificationDictionaryStore());
 
 console.log("\n20. P2-G.2B — Cost Category Expansion (CORE)");
-assertEq(WGDOM_COST_CATEGORY_IDS.length, 14, "14 MVP categories");
+assertEq(WGDOM_COST_CATEGORY_IDS.length, 15, "15 MVP categories");
 assert(WGDOM_COST_CATEGORY_IDS.includes("GLADZIE_TYNKI"), "has GLADZIE_TYNKI");
 assert(WGDOM_COST_CATEGORY_IDS.includes("WYPOSAZENIE"), "has WYPOSAZENIE");
 assert(WGDOM_COST_CATEGORY_IDS.includes("INSTALACJE_GAZ"), "has INSTALACJE_GAZ");
+assert(WGDOM_COST_CATEGORY_IDS.includes("INSTALACJE_CO"), "has INSTALACJE_CO");
 assert(WGDOM_COST_CATEGORY_IDS.includes("ROBOTY_OGOLNOBUDOWLANE"), "has ROBOTY_OGOLNOBUDOWLANE");
 assert(WGDOM_COST_CATEGORY_IDS.includes("TRANSPORT_UTYLIZACJA"), "has TRANSPORT_UTYLIZACJA");
 assert(WGDOM_COST_CATEGORY_IDS.includes("WENTYLACJA"), "has WENTYLACJA");
@@ -714,7 +715,7 @@ const oldStoreSnapshot = {
   },
 };
 const migratedCatalog = normalizeWgdomCostCatalogStore(oldStoreSnapshot);
-assertEq(migratedCatalog.catalogs.wroclaw.categories.length, 14, "AC-6 migrate catalog to 14 cats");
+assertEq(migratedCatalog.catalogs.wroclaw.categories.length, 15, "AC-6 migrate catalog to 15 cats");
 assert(migratedCatalog.catalogs.wroclaw.categories.some((c) => c.id === "GLADZIE_TYNKI"), "AC-6 gladzie in migrated");
 assert(migratedCatalog.catalogs.wroclaw.categories.some((c) => c.id === "WYPOSAZENIE"), "AC-6 wyposazenie in migrated");
 assert(migratedCatalog.catalogs.wroclaw.categories.some((c) => c.id === "TRANSPORT_UTYLIZACJA"), "AC-6 transport in migrated");
@@ -797,7 +798,7 @@ assert(summaryVent.categories.some((c) => c.id === "TRANSPORT_UTYLIZACJA" && c.c
 
 console.log("\n21. P2-G.2D — Phrase-Based Classification");
 assertGte(countWgdomPhraseRules(), 40, "AC-D1 at least 40 phrase rules");
-assert(countWgdomPhraseRules() <= 100, "phrase rules bounded");
+assert(countWgdomPhraseRules() <= 120, "phrase rules bounded");
 assertEq(
   classifyAthLineCategory("Narożniki z kątownika aluminiowego 30x30x2 mm", "mb"),
   "GLADZIE_TYNKI",
@@ -913,7 +914,7 @@ const old10CatStore = {
   },
 };
 const migrated12 = normalizeWgdomCostCatalogStore(old10CatStore);
-assertEq(migrated12.catalogs.wroclaw.categories.length, 14, "AC-C6 old 10-cat store → 14");
+assertEq(migrated12.catalogs.wroclaw.categories.length, 15, "AC-C6 old 10-cat store → 15");
 const summary2c = buildClassificationSummary([
   { lp: "1", description: "Narożniki z kątownika aluminiowego", unit: "mb", quantity: "50" },
   { lp: "2", description: "Przykręcanie tabliczek opisowych", unit: "szt", quantity: "8" },
@@ -1070,6 +1071,33 @@ assertEq(
   classifyAthLineCategory("Wymiana ustępu z miską porcelanową", "szt"),
   "HYDRAULIKA",
   "P2-G.2C ustep kompakt dict",
+);
+
+console.log("\n24. P2-G.2D — WM/ZZK/MOPS classification expansion (centralne ogrzewanie C.O.)");
+const p2g2dCoCases = [
+  ["Wymiana zaworu grzejnikowego", "szt", "INSTALACJE_CO"],
+  ["Wymiana zaworu przelotowego", "szt", "INSTALACJE_CO"],
+  ["Montaż głowicy termostatycznej", "szt", "INSTALACJE_CO"],
+  ["Spuszczenie wody z układu c.o.", "kpl", "INSTALACJE_CO"],
+  ["Montaż grzejnika drabinkowego", "szt", "INSTALACJE_CO"],
+  ["Grzejnik konwektorowy stalowy", "szt", "INSTALACJE_CO"],
+  ["Wymiana grzejnika", "szt", "INSTALACJE_CO"],
+  ["Odpowietrzenie instalacji c.o.", "kpl", "INSTALACJE_CO"],
+  ["Regulacja instalacji centralnego ogrzewania", "kpl", "INSTALACJE_CO"],
+  ["Montaż zaworów termostatycznych", "szt", "INSTALACJE_CO"],
+];
+for (const [desc, unit, expected] of p2g2dCoCases) {
+  assertEq(classifyAthLineCategory(desc, unit), expected, `P2-G.2D CO: ${desc.slice(0, 48)} → ${expected}`);
+}
+assertEq(
+  classifyAthLineCategory("Wymiana zaworu grzejnikowego o śr. 15 mm", "szt"),
+  "INSTALACJE_CO",
+  "P2-G.2D CO zawor grzejnikowy phrase",
+);
+assertEq(
+  classifyAthLineCategory("Grzejniki konwektorowe stalowe", "szt"),
+  "INSTALACJE_CO",
+  "P2-G.2D CO konwektory dict",
 );
 
 console.log(`\n---\nPASS: ${passed}  FAIL: ${failed}  TOTAL: ${passed + failed}`);

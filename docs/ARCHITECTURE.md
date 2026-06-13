@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.55.3** · P2-G.2C)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.55.4** · P2-G.2D C.O.)
 > **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-H.1 — Marketplanet ezamawiajacy.pl)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
@@ -1088,6 +1088,16 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 | Katalog MVP | 12 → **14** kategorii (`WGDOM_COST_CATEGORY_IDS`) | `wgdom-cost-catalog.ts` |
 | Inspektor | 15 kubełków (14 + UNKNOWN) w `CLASSIFICATION_CATEGORY_ORDER` | `tender-classification-inspector.ts` |
 | Test regresji | §23 — 15 pozycji WM/ZZK | `test-tender-cost-intelligence.mjs` |
+
+**P2-G.2D — WM/ZZK/MOPS C.O. expansion (v2.55.4):**
+
+| Element | Opis | Plik |
+|---------|------|------|
+| **INSTALACJE_CO** | Nowa kategoria — grzejniki, głowice, zawory C.O., spuszczenie/odpowietrzenie układu | `wgdom-cost-catalog.ts`, `wgdom-construction-dictionary.ts`, `wgdom-phrase-rules.ts` |
+| **HYDRAULIKA** | Terminy C.O. przeniesione z HYDRAULIKA (≠ duplikat) | j.w. |
+| Katalog MVP | 14 → **15** kategorii | `wgdom-cost-catalog.ts` |
+| Inspektor | 16 kubełków (15 + UNKNOWN) | `tender-classification-inspector.ts` |
+| Test regresji | §24 — 10 pozycji C.O. | `test-tender-cost-intelligence.mjs` |
 
 **P2-G.2C — Work Category Refinement (GLADZIE_TYNKI + WYPOSAZENIE, v2.52.9):**
 

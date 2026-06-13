@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.55.4 — P2-G.2D klasyfikacja C.O. (WM/ZZK/MOPS)
+- INSTALACJE_CO (15 kategorii) — grzejniki, głowice termostatyczne, zawory C.O., spuszczenie/odpowietrzenie
+- Słownik + phrase rules · test: `test-tender-cost-intelligence.mjs` §24
+
 ## 2.55.3 — P2-G.2C klasyfikacja WM/ZZK (wod-kan + gaz + biały montaż)
 - HYDRAULIKA rozszerzona (wod-kan) · INSTALACJE_GAZ + ROBOTY_OGOLNOBUDOWLANE (14 kategorii)
 - Słownik + phrase rules: rurociągi PVC/PP, WC, gaz, przebicia, kuchnie gazowe → WYPOSAZENIE

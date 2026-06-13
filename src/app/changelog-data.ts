@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.55.4",
+    label: "Przetargi — P2-G.2D klasyfikacja C.O. (WM/ZZK/MOPS)",
+    items: [
+      { type: "improve", text: "Klasyfikator ATH — nowa kategoria INSTALACJE_CO (grzejniki, głowice, zawory, spuszczenie/odpowietrzenie układu C.O.)" },
+      { type: "improve", text: "Słownik branżowy + reguły fraz — remonty mieszkań komunalnych (centralne ogrzewanie)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.55.3",
     label: "Przetargi — P2-G.2C klasyfikacja WM/ZZK (wod-kan + gaz + biały montaż)",
     items: [

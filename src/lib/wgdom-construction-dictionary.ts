@@ -122,9 +122,8 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "mieszacz", "mieszacz termostatyczny", "deska ustępowa", "deska ustepowa", "miska ustępowa",
     "miska ustepowa", "miska wiszaca", "brodzik", "brodzik akrylowy", "kabina prysznicowa",
     "parawan prysznicowy", "odplyw liniowy", "odplyw punktowy", "syfon podlogowy",
-    "instalacja wodna", "instalacja kanalizacyjna", "instalacja c.o.", "instalacja co",
-    "grzejnik plytowy", "grzejnik konwektorowy", "grzejnik lazienkowy", "zawor termostatyczny",
-    "odpowietrznik automatyczny", "filtr wody", "reduktor cisnienia", "zbiornik wyrównawczy",
+    "instalacja wodna", "instalacja kanalizacyjna",
+    "filtr wody", "reduktor cisnienia", "zbiornik wyrównawczy",
     "pompa ciepla instalacja", "uzupelnienie instalacji wod-kan", "próba szczelnosci",
     "próba cisnieniowa", "przeplywomierz", "zawor antyzalaniowy",
   ],
@@ -136,6 +135,26 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "rurociagi gazowe", "rurociag gazowy", "miedziane lutowane", "rura gazowa",
     "podejscie do gazomierza", "podejscia do gazomierza",
     "przylacze do kuchenki gazowej", "przylaczenie kuchenki gazowej",
+  ],
+  INSTALACJE_CO: [
+    "grzejnik", "grzejnikowy", "grzejniki", "grzejnikowe",
+    "konwektor", "konwektorowy", "konwektory", "konwektorowe",
+    "drabinkowy", "grzejnik drabinkowy", "grzejnik plytowy", "grzejnik konwektorowy",
+    "grzejnik lazienkowy", "grzejniki konwektorowe",
+    "glowica termostatyczna", "glowice termostatyczne", "glowica",
+    "termostat", "termostatyczny", "termostatyczne", "termostatycznych",
+    "zawor grzejnikowy", "zawory grzejnikowe", "zaworu grzejnikowego",
+    "zawor przelotowy", "zawory przelotowe", "zawor c.o.", "zawor co",
+    "instalacja c.o.", "instalacja co", "instalacji c.o.", "instalacji co",
+    "centralne ogrzewanie", "uklad c.o.", "uklad co", "ukladu c.o.",
+    "napelnienie instalacji", "napelnienie instalacji c.o.",
+    "spuszczenie wody", "spuszczenie wody z ukladu", "spuszczenie wody z ukladu c.o.",
+    "odpowietrzenie instalacji", "odpowietrzenie instalacji c.o.",
+    "odpowietrznik automatyczny", "odpowietrznik",
+    "ogrzewanie wodne", "wymiana grzejnika", "montaz grzejnika",
+    "regulacja instalacji c.o.", "regulacja instalacji centralnego ogrzewania",
+    "montaz zaworow termostatycznych", "montaz glowicy termostatycznej",
+    "wymiana zaworu grzejnikowego", "wymiana zaworu przelotowego",
   ],
   WENTYLACJA: [
     "kratka wentylacyjna", "kratki wentylacyjne", "kratka wentylacyjna scienna",
@@ -266,4 +285,4 @@ export function listConstructionDictionarySample(limitPerCategory = 5): Record<D
   return out;
 }
 
-export const WGDOM_CONSTRUCTION_DICTIONARY_VERSION = "2C.1";
+export const WGDOM_CONSTRUCTION_DICTIONARY_VERSION = "2D.1";
