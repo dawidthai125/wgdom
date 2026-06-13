@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-13 (P2-G.3C · v2.56.8)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-13 (P3.6 + P1 WM · v2.56.10)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -8,21 +8,24 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-2. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
-3. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← ★★ UX.1A/1B workspace + ARCH-001
-4. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← P2-F kwalifikacja ofertowa (COMPLETE)
-5. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
-6. CURRENT-TASK.md                         ← status sesji / wznowienie
-7. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
-8. AGENTS.md → docs/ARCHITECTURE.md § 12.1.7 · § UX.1B · § 12.1.5
+2. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM
+3. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
+4. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← ★★ UX.1A/1B workspace + ARCH-001
+5. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← P2-F kwalifikacja ofertowa (COMPLETE)
+6. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
+7. CURRENT-TASK.md                         ← status sesji / wznowienie
+8. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
+9. AGENTS.md → docs/ARCHITECTURE.md § 12.1.1–12.1.7 · § UX.1B · § 15.1
 ```
 
 ---
 
-## 1a. Completed Epics (P1 + P2-F CLOSED)
+## 1a. Completed Epics (P1 + P2-F + P3 CLOSED)
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **P3 Wycena · Baza cen · filtry** | 2.56.0–**2.56.10** (`7acbecf`) | **P3.0–P3.6 CLOSED** | [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) |
+| **P2-H Tender Documents** | 2.55.0–**2.55.10** | **CLOSED** (H.7 OPEN) | [`SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) |
 | **UX.1 Tender Workspace** | 2.53.1–**2.53.4** (`3b5da74`) | **COMPLETE** | [`SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md) |
 | **P2-F Tender Qualification** | 2.51.19–**2.51.24** (`e015453`) | **COMPLETE** | [`SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md) |
 | **Dashboard V3** | 2.50.74 (`5a54399`) | **COMPLETE** | [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md) |
@@ -37,10 +40,10 @@
 Dashboard
 Roboty
 Do Rozliczenia
-Przetargi (+ Karta ofertowa P2-F, Profil wykonawcy)
+Przetargi (+ Karta ofertowa P2-F, Wycena P3, Baza cen, Profil wykonawcy)
 ```
 
-**Przetargi 3.0** — zakładki: Lista · Strategia · Mapa · Profil firmy · Ustawienia.  
+**Przetargi 3.0** — zakładki: Lista · Strategia · Mapa · Profil firmy · **Baza cen** · Ustawienia.  
 Strategia (GO/HOLD/NO-GO, prognoza, health) wyłącznie w **Przetargi → Strategia**.  
 Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 
@@ -63,12 +66,17 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version:              2.56.8        ← baseline P2-G.3C classification benchmark
-P3 UX Stabilization:  2.56.7         Wycena cleanup + słowniki 3.1
+Version:              2.56.10       ← baseline P1 WM false exclude + P3.6 filtry
+Feature commit (P1):  7acbecf        fix(tenders): prevent renovation projects from new-build exclusion
+P3.6:                 2.56.9         Filtry klientów strategicznych (d3ecbe4)
+P2-G.3C:              2.56.8         Benchmark klasyfikacji prod (66a619e)
+P3 UX Stabilization:  2.56.7         Wycena cleanup + słowniki 3.1 (9759ef9)
+P3.4A:                2.56.6         Historia materiałów
 P3.3D:                2.56.5         Benchmark Impact
 P3.3B:                2.56.4         Benchmark robocizny PRO
 P3.3A:                2.56.3         Benchmark robocizny MVP
-Feature commit (P2-H.5C/5D): (po push) fix(tenders): improve pdf no-text handling and multi-ath ranking
+P3.5B / P3.5 / P3.2:  2.56.0–2.56.2  Override · pozycje · Baza cen
+Feature commit (P2-H.5C/5D): 0683e05  PDF no-text CASE 3 + multi-ATH ranking
 P2-H.5B:              2.55.9         Heurystyki KNR PDF
 P2-H.6:               2.55.7         filtr folderów ZIP/7Z
 P2-H.4:               2.55.6         UX copy archiwów 7Z
@@ -87,8 +95,10 @@ E2E (origin/main):    8906485         20.5Z.2B
 |--------|---------|
 | **RELEASED** | TAK |
 | **STABLE** | TAK |
-| **PRODUCTION VERIFIED** | `version.json` = **2.55.9** (po deploy) |
-| **P2-H (Dokumenty / ZIP / 7Z / PDF)** | **H.1–H.6 + H.5A + H.5B CLOSED** · **H.7 OPEN** (magic bytes) |
+| **PRODUCTION VERIFIED** | `version.json` = **2.56.10** |
+| **P3 (Wycena / Baza cen / filtry)** | **P3.0–P3.6 CLOSED** · benchmark materiałów rynku **HOLD** |
+| **P1 WM pipeline** | **CLOSED** (v2.56.10 false exclude przebudowa) |
+| **P2-H (Dokumenty / ZIP / 7Z / PDF)** | **H.1–H.6 + H.5A–H.5D CLOSED** · **H.7 OPEN** (magic bytes) |
 | **UX.1 (Tender Workspace)** | **CLOSED** (UX.1A → UX.1B + ARCH-001) |
 | **P2-F (Kwalifikacja ofertowa)** | **CLOSED** (F.0 → F.5) |
 | **P2-G.2C/2D (Klasyfikacja WM/ZZK)** | **CLOSED** (v2.55.3–2.55.4) |
@@ -99,7 +109,7 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.55.9" }
+# oczekiwane: { "version": "2.56.10" }
 ```
 
 ---
@@ -158,11 +168,15 @@ Chronologia releasów aplikacyjnych na `main` po baseline **2.50.65** (20.5Z.5C)
 | **2.55.7** | P2-H.6 | — | Filtr folderów ZIP/7Z inner |
 | **2.55.8** | P2-H.5A | — | PDF przedmiar MVP discovery |
 | **2.56.3** | **P3.3A** | **(release)** | **Benchmark robocizny MVP (read-only)** |
+| **2.56.8** | **P2-G.3C** | **`66a619e`** | **Klasyfikacja prod UNKNOWN 16→0** |
+| **2.56.9** | **P3.6** | **`d3ecbe4`** | **Filtry klientów strategicznych** |
+| **2.56.10** | **P1 WM** | **`7acbecf`** | **Fix false exclude przebudowa budynku** |
 | **2.56.2** | **P3.5B** | **f74fe1b** | **Override cen per przetarg** |
 | **2.56.1** | **P3.5** | **16b792e** | **Ceny per pozycja kosztorysu (read-only)** |
 | **2.55.10** | **P2-H.5C/5D** | **0683e05** | **PDF noTextLayer CASE 3 + multi-ATH ranking + discovery sync** |
 | **2.55.9** | P2-H.5B | — | Heurystyki KNR — pozycje z PDF bez OCR |
 
+**Handoff P3+BZP:** [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md)  
 **Handoff P2-H:** [`SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)  
 **Handoff UX.1:** [`SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)  
 **Handoff P2-F:** [`SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md)  
@@ -232,6 +246,43 @@ Chronologia releasów aplikacyjnych na `main` po baseline **2.50.65** (20.5Z.5C)
 **Kluczowe moduły:** `pdf-przedmiar-heuristic.ts`, `wgdom-7z-archive.ts`, `tender-document-resolver.ts`, `tender-cost-discovery.ts`, `tenders-bzp-doc-parse.ts`.
 
 **Następny krok (techniczny):** **P2-H.7** — Edge magic bytes dla `.7z`.
+
+---
+
+## 3d. P3 — Wycena · Baza cen · Filtry (**P3.0–P3.6 CLOSED**)
+
+| Pole | Wartość |
+|------|---------|
+| **Wersja końcowa** | **2.56.10** (P1 WM) · P3.6 **2.56.9** |
+| **Handoff** | [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) |
+| **Architektura** | [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.1 · § 12.1.3 · sekcja P3 w § 12.1.5+ |
+
+**Zamknięte sprinty:** P3.1 Hero KPI Wycena · P3.2.0 Baza cen · P3.5 pozycje · P3.5B override · P3.3A–3.3D benchmark rbh · P3.4A historia materiałów · P2-G.3C klasyfikacja prod · **P3.6 filtry strategiczne**.
+
+**Kluczowe moduły:** `wgdom-cost-catalog.ts`, `tender-bid-proposal.ts`, `tender-catalog-line-pricing.ts`, `tender-price-overrides.ts`, `labor-benchmark*.ts`, `material-history.ts`, `tenders-strategic-client-filters.ts`.
+
+**Klucze chmury:** `kw-wgdom-cost-catalog`, `kw-wgdom-cost-catalog-history`, `kw-tender-price-overrides`, `kw-tenders-pipeline`.
+
+**Testy:** `test-tenders-strategic-client-filters.mjs` (52) · `audit-p2g3c-classification-prod.mjs`.
+
+**HOLD:** benchmark materiałów rynku (KB.pl / Leroy Merlin — audyt NO GO live).
+
+**Nie zmieniaj bez polecenia:** benchmarki read-only nie wpływają na kalkulator; P3.6 filtry = UX-only.
+
+---
+
+## 3e. P1 — BZP Pipeline WM false exclude (**CLOSED** v2.56.10)
+
+| Pole | Wartość |
+|------|---------|
+| **Commit** | **`7acbecf`** |
+| **Problem** | `"przebudowa budynku"` mylone z exclude `"budowa budynku"` → score=0 |
+| **Fix** | `matchesTenderExcludeKeyword()` w `tenders-bzp-keywords.ts` + `matchesBzpExcludeKeyword()` w Edge |
+| **Deploy** | **Vercel + Supabase** — oba wymagane przy zmianie exclude |
+| **Test** | `test-tender-exclude-renovation-budowa.mjs` (18 PASS) |
+| **Audyt** | `audit-wm-exclude-120d.mjs` — 1 odzyskany aktywny WM (Sępa Szarzyńskiego) |
+
+**Nie zmieniaj bez polecenia:** granica słowa `prze`/`roz`/`nad` + `budowa`; mirror klient↔Edge.
 
 ---
 
@@ -339,7 +390,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | PWA | `sw.template.js` · `generate-service-worker.mjs` |
 | Kontakt inspektora § 9.2 | `inspector-message-templates.ts`, `email-contacts.ts`, `JobInspectorContactModal.tsx` |
 | **Pulpit V3** | `DashboardView.tsx`, `DashboardPilneUwagiSection.tsx`, `dashboard-urgent-today.ts` |
-| Przetargi (strategia) | `TendersModule` → zakładka **Strategia** — **nie** na Pulpicie (tylko `TendersShortcutPanel`) |
+| Przetargi (strategia + lista + wycena) | `TendersModule` · `SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md` |
 | **P2-F Kwalifikacja ofertowa** | `kw-company-profile` · § 12.1.5 · [`SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md) |
 
 ---
@@ -363,8 +414,11 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | Happy path | `npm run build` → preview `:4173` → `PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:happy` |
 | Version | `PW_BASE_URL=http://127.0.0.1:4173 npm run test:e2e:version` |
 | Inspector 2.1 | `npx vite-node scripts/smoke-test-inspector-templates-2.1.mjs` |
-| **P2-H regresja 7Z** | `npx vite-node scripts/test-tender-7z-archive.mjs` (21) |
-| **P2-F regresja** | `npx vite-node scripts/test-tender-dossier-pipeline.mjs` (163) |
+| **P2-H regresja 7Z** | `npx vite-node scripts/test-tender-7z-archive.mjs` |
+| **P3.6 filtry** | `npx vite-node scripts/test-tenders-strategic-client-filters.mjs` (52) |
+| **P1 WM exclude** | `npx vite-node scripts/test-tender-exclude-renovation-budowa.mjs` (18) |
+| **P2-G.3C klasyfikacja** | `npx vite-node scripts/audit-p2g3c-classification-prod.mjs` |
+| **P2-F regresja** | `npx vite-node scripts/test-tender-dossier-pipeline.mjs` |
 | **Dashboard V3** | `npx vite-node scripts/test-dashboard-v3-counts.mjs` |
 | Mobile | `npm run test:mobile` |
 
@@ -390,12 +444,13 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | **P1** | Dashboard V3 + CC removal + Przetargi 3.0 | **CLOSED** (v2.51.x) |
 | **P2-F** | Kwalifikacja ofertowa (F.0–F.5) | **CLOSED** (v2.51.19–2.51.24) |
 | **UX.1** | Tender Workspace (UX.1A/1B) | **CLOSED** (v2.53.1–2.53.4) |
-| **P2-H** | Dokumenty / ZIP / 7Z / PDF przedmiar | **STREAM FULLY CLOSED** (v2.55.0–2.55.10) |
+| **P2-H** | Dokumenty / ZIP / 7Z / PDF przedmiar | **STREAM CLOSED** (v2.55.0–2.55.10) · H.7 OPEN |
+| **P3** | Wycena · Baza cen · benchmarki · filtry | **P3.0–P3.6 CLOSED** · materiały rynkowe **HOLD** |
 | **P2** | Audit Center / Security Log (Super Admin) | **OTWARTY** |
-| P2-G.3C/D/E | Benchmark rynku · AI Validation · RMS | **OTWARTY** → slot **Wycena** |
+| P2-G.3D/E | Benchmark jakości · RMS · AI validation | **OTWARTY** → slot **Wycena** |
 | P2-F.6 | Kompletność oferty (checklist) | **OTWARTY** → slot **Oferta** |
 | P2-F.6+ | investorName w profilu · auto-pakiet referencji | opcjonalnie, na polecenie |
-| **P3** | Dalsze usprawnienia Przetargów | **OTWARTY** (bez polecenia) |
+| P3.7+ | Dalsze usprawnienia listy Przetargów | **OTWARTY** (bez polecenia) |
 
 ---
 
@@ -417,21 +472,23 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 ## 13. NASTĘPNY KROK (dla agenta)
 
 ```text
-P2-H stream FULLY CLOSED (v2.55.10 · P2-H.5C/5D).
-P2-H.7 OPEN — Edge magic bytes 7z (techniczny hardening).
+P2-H stream CLOSED (v2.55.10) · P2-H.7 OPEN (Edge magic bytes 7z).
+P3.0–P3.6 CLOSED · P1 WM false exclude CLOSED (v2.56.10).
 UX.1 CLOSED · P2-F CLOSED · P1 CLOSED.
-Kolejny stream produktowy: P2-G.3C/D/E (Wycena) · P2-F.6 (Oferta) · P2 Audit Center — tylko na polecenie po AUDIT.
+Kolejny stream: P2-G.3D/E (Wycena) · P2-F.6 (Oferta) · P2 Audit Center — tylko na polecenie po AUDIT.
+Benchmark materiałów rynku HOLD (audyt KB/Leroy NO GO live).
 Inspector 2.1 — CLOSED (2.1.2 CANCELLED).
 ```
 
 Przy wznowieniu:
 
-1. Przeczytaj **ten plik** + [`SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) (przy dokumentach) + `CURRENT-TASK.md`
-2. `curl -s https://www.wgdom.fun/version.json` — potwierdź baseline **2.55.9**
-3. `npx vite-node scripts/test-tender-7z-archive.mjs` — przed zmianami ZIP/7Z
-4. `npx vite-node scripts/test-tender-dossier-pipeline.mjs` — przed release dossier
-5. Stosuj workflow A/B/C z [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md)
-5. Hasło **„kontynuuj WGDOM”** → `.cursor/rules/wgdom-stan-projektu.mdc`
+1. Przeczytaj **ten plik** + [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) + `CURRENT-TASK.md`
+2. `curl -s https://www.wgdom.fun/version.json` — potwierdź baseline **2.56.10**
+3. Przed zmianami Przetargów: `test-tenders-strategic-client-filters.mjs` + `test-tender-exclude-renovation-budowa.mjs`
+4. Przed zmianami ZIP/7Z: `test-tender-7z-archive.mjs`
+5. Przed release dossier: `test-tender-dossier-pipeline.mjs`
+6. Stosuj workflow A/B/C z [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md)
+7. Hasło **„kontynuuj WGDOM”** → `.cursor/rules/wgdom-stan-projektu.mdc`
 
 ---
 
@@ -439,6 +496,7 @@ Przy wznowieniu:
 
 | Temat | Dokument |
 |-------|----------|
+| **★ P3 Wycena · BZP · filtry** | `SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md` |
 | **★ P2-H Dokumenty / 7Z / Marketplanet** | `SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md` |
 | **★ UX.1 Tender Workspace** | `SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md` |
 | **★ P2-F Kwalifikacja ofertowa** | `SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md` |

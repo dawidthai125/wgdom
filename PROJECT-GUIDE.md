@@ -19,7 +19,8 @@
 | § 10 | Model danych (`Job`, `WeekEmployee`, klucze LS) |
 | § 11 | **Sync i merge** (`cloud-sync.ts`) — **KRYTYCZNE** |
 | § 12 | Supabase backend, endpointy, **§ 12.1.1 przetargi**, **§ 12.1.3 COMMAND CENTER + pulpit 7G + polonizacja 20.3B+** |
-| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (v2.51.x, P1 CLOSED) |
+| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (v2.56.10) |
+| — | **[`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md)** — ★★ P3 wycena · BZP · filtry |
 | — | **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.3** — Przetargi 3.0 (`TendersModule`) |
 | — | **[`docs/archive/command-center/`](docs/archive/command-center/)** — CC historyczny (SUPERSEDED) |
 | § 15.1 | **Mapa widoków admina** — router, menu, mobile nav |
@@ -32,9 +33,25 @@
 
 ---
 
-## Handoff sesji 2026-06-09 (agent AI)
+## Handoff sesji 2026-06-13 (agent AI)
 
-Po hasłach **„kontynuuj WGDOM”** / nowa sesja — najpierw [`CURRENT-TASK.md`](CURRENT-TASK.md), potem [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md).
+Po hasłach **„kontynuuj WGDOM”** / nowa sesja — najpierw [`CURRENT-TASK.md`](CURRENT-TASK.md), potem [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md), potem [`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md).
+
+| Temat | Dokument |
+|-------|----------|
+| **Prod v2.56.10 — P3 + BZP** | `SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md` |
+| **SSOT baseline prod** | `PROJECT-HANDOFF-CURRENT.md` |
+| P2-H dokumenty ZIP/7Z/PDF | `SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md` |
+| UX.1 workspace 5 tabs | `SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md` |
+| P2-F kwalifikacja | `SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md` |
+| Przetargi 3.0 architektura | `ARCHITECTURE.md` § 12.1.1–12.1.7 |
+| Worker/Inspector readiness GO | `AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md` |
+
+**Prod HEAD:** **`7acbecf`** · **UI:** **2.56.10** · **Nie implementować** P2-G.3D/E · P2-F.6 · benchmark materiałów rynku bez polecenia po AUDIT.
+
+---
+
+## Handoff sesji 2026-06-09 (historyczny)
 
 | Temat | Dokument |
 |-------|----------|

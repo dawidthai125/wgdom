@@ -1,8 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
 ## 2.56.10 — fix false exclude przebudowa WM (P1 pipeline)
+- `matchesTenderExcludeKeyword()` — granica słowa; mirror Edge
+- Handoff: `docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md` § 7
 
 ## 2.56.9 — P3.6 filtry klientów strategicznych (WM/ZZK/MOPS/TBS/Gminy/Uczelnie)
+- SSOT: `tenders-strategic-client-filters.ts` · Handoff § 6
 
 ## 2.56.8 — P2-G.3C benchmark klasyfikacji prod
 - Audyt prod KV: 303 poz. ATH (ZZK×2, Falzmanna) — seed UNKNOWN 16→0

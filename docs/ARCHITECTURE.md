@@ -3,7 +3,7 @@
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
 > **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.10** · WM exclude fix)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P1 WM przebudowa false exclude)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (dokumentacja handoff P3+BZP dla agentów AI)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -31,7 +31,20 @@ Reguła Cursor: `.cursor/rules/wgdom-development.mdc`
 
 ## 1. Szybki start (5 minut)
 
-**Wznowienie po przerwie (agent AI):** [`CURRENT-TASK.md`](../CURRENT-TASK.md) → [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) → ten dokument § 11 (sync), § 12.1.3 (Przetargi 3.0), § 15.1 (widoki admin).
+### Onboarding agenta AI (pełna ścieżka)
+
+```text
+AGENTS.md
+  → PROJECT-HANDOFF-CURRENT.md     (baseline 2.56.10)
+  → SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md   (P3 + BZP + filtry)
+  → CURRENT-TASK.md
+  → ARCHITECTURE.md § 11 (sync) · § 12.1 (przetargi) · § 15.1 (widoki)
+  → WORKFLOW-RELEASE-DEPLOY.md
+```
+
+**Hasło użytkownika „kontynuuj WGDOM”:** dodatkowo `.cursor/rules/wgdom-stan-projektu.mdc`.
+
+**Wznowienie po przerwie:** [`CURRENT-TASK.md`](../CURRENT-TASK.md) → [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) → ten dokument § 11 (sync), § 12.1.3 (Przetargi 3.0), § 15.1 (widoki admin).
 
 ```bash
 cd WGDOM1
@@ -904,9 +917,9 @@ Audyt: `npm run audit:import-cycles` → JSON z `p0StaticImportViolations`, `cyc
 
 **Zarządzanie sekcją (v2.45):** klucze `kw-tenders-*` w `DATA_KEYS`; merge w `tenders-sync.ts`; CSV, bulk, profil, słownik słów kluczowych.
 
-**P3.6 — filtry klientów strategicznych (v2.56.9, UX only):** `src/lib/tenders-strategic-client-filters.ts` — SSOT dopasowania WM · ZZK (`priorityBuyerId=zik`) · MOPS · TBS · Gminy (gmina/ZIM) · Uczelnie (heurystyka nazwy, Wrocław). Chipy z licznikiem na `TendersView`; stan w `useTendersPipeline.strategicClientFilter`. Audyty: `audit-p2g3c-classification-prod.mjs`, `audit-p2h5-pdf-przedmiar.mjs`, `audit-p2h-full-regression.mjs` importują ten moduł. **Bez** zmian pipeline/sync/Edge.
+**P3.6 — filtry klientów strategicznych (v2.56.9, UX only):** `src/lib/tenders-strategic-client-filters.ts` — SSOT dopasowania WM · ZZK (`priorityBuyerId=zik`) · MOPS · TBS · Gminy (gmina/ZIM) · Uczelnie (heurystyka nazwy, Wrocław). Chipy z licznikiem na `TendersView`; stan w `useTendersPipeline.strategicClientFilter`. Handoff: [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) § 6. **Bez** zmian pipeline/sync/Edge.
 
-**P1 WM false exclude (v2.56.10):** `matchesTenderExcludeKeyword()` w `tenders-bzp-keywords.ts` + mirror `matchesBzpExcludeKeyword()` w Edge `index.tsx` — frazy `budowa budynk*` wymagają granicy słowa; `przebudowa` / `rozbudowa` / `nadbudowa` nie trafiają w exclude nowej budowy. Test: `test-tender-exclude-renovation-budowa.mjs`.
+**P1 WM false exclude (v2.56.10):** `matchesTenderExcludeKeyword()` w `tenders-bzp-keywords.ts` + mirror `matchesBzpExcludeKeyword()` w Edge `index.tsx` — frazy `budowa budynk*` wymagają granicy słowa; `przebudowa` / `rozbudowa` / `nadbudowa` nie trafiają w exclude nowej budowy. Handoff: [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) § 7. Test: `test-tender-exclude-renovation-budowa.mjs`.
 
 ### 12.1.3 Przetargi 3.0 — Strategia + skrót pulpitu
 
