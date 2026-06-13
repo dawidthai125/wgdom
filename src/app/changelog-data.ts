@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.52.9",
+    label: "Przetargi — centrum wyceny P2-G.2C (Work Category Refinement)",
+    items: [
+      { type: "new", text: "Kategorie GLADZIE_TYNKI + WYPOSAZENIE — węższe kubełki kosztowe (≠ szeroki GK)" },
+      { type: "improve", text: "Narożniki mb, gładzie, szpachlowanie → GLADZIE_TYNKI; tabliczki opisowe → WYPOSAZENIE" },
+      { type: "improve", text: "GK = tylko zabudowa sucha (płyty, profile CD/UD); migracja user dict i katalogu 10→12 kat." },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.52.8",
     label: "Przetargi — centrum wyceny P2-G.2D (Phrase-Based Classification)",
     items: [

@@ -12,16 +12,18 @@ import { classifyAthLineCategory, classifyAthLineCategoryWithoutDictionary } fro
 import { phraseFromAthDescription } from "@/lib/wgdom-user-classification-dictionary";
 
 export const CLASSIFICATION_CATEGORY_ORDER: WgdomCostCategoryId[] = [
-  "MALOWANIE",
-  "GK",
-  "GLAZURA",
   "ROZBIORKI",
+  "TRANSPORT_UTYLIZACJA",
+  "GK",
+  "GLADZIE_TYNKI",
+  "MALOWANIE",
+  "GLAZURA",
   "PODLOGI",
   "ELEKTRYKA",
   "HYDRAULIKA",
   "WENTYLACJA",
-  "TRANSPORT_UTYLIZACJA",
   "STOLARKA",
+  "WYPOSAZENIE",
   "UNKNOWN",
 ];
 

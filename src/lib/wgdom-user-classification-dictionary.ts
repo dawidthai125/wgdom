@@ -64,12 +64,19 @@ export function phraseFromAthDescription(description: string): string {
 const USER_DICT_TRANSPORT_PHRASE_RE =
   /gruz|odpad|utyliz|transport|kontener|skladowisko|wywoz|wywiezienie|zagospodarowanie/;
 
+/** P2-G.2C — remap GK → GLADZIE_TYNKI tylko dla fraz wykończeniowych (nie cały GK). */
+const USER_DICT_GLADZIE_FROM_GK_RE =
+  /gladz|glad|szpachl|tynk|naroznik|tynkar|listwa tynkar|szlifowanie gladzi|katownik aluminiow/;
+
 export function migrateUserClassificationCategory(
   phrase: string,
   category: UserClassificationCategory,
 ): UserClassificationCategory {
   if (category === "ROZBIORKI" && USER_DICT_TRANSPORT_PHRASE_RE.test(phrase)) {
     return "TRANSPORT_UTYLIZACJA";
+  }
+  if (category === "GK" && USER_DICT_GLADZIE_FROM_GK_RE.test(phrase)) {
+    return "GLADZIE_TYNKI";
   }
   return category;
 }

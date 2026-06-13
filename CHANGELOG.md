@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.52.9 — P2-G.2C Work Category Refinement
+- GLADZIE_TYNKI (m²/mb) + WYPOSAZENIE (szt/kpl) — 12 kategorii MVP
+- split GK: zabudowa sucha vs gładzie/tynki/narożniki
+- phrase rules + dict + user dict migrate GK→GLADZIE_TYNKI (selektywnie)
+
 ## 2.52.8 — P2-G.2D Phrase-Based Classification
 - wgdom-phrase-rules.ts (~60 reguł contains/prefix, odmiany PL)
 - pipeline: katalog → user dict → phrase rules → słownik branżowy

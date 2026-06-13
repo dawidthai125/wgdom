@@ -223,8 +223,8 @@ assertEq(
 );
 assertEq(
   classifyAthLineCategory("Gładź gipsowa ścian", "m2"),
-  "GK",
-  "GK — gładź gipsowa",
+  "GLADZIE_TYNKI",
+  "GLADZIE_TYNKI — gładź gipsowa",
 );
 assertEq(
   classifyAthLineCategory("Układanie płytek ceramicznych na ścianie", "m2"),
@@ -529,7 +529,7 @@ assert(classSummary.classifiedPercent >= 95, "coverage ≥95% after dict");
 assert(classSummary.coverageDelta != null, "coverageDelta present");
 assert(Math.abs(classSummary.coverageDelta.classifiedPercentBefore - 81.9) < 0.2, "before ~81.9%");
 assert(classSummary.coverageDelta.coverageDelta > 10, "delta >10pp");
-assertEq(CLASSIFICATION_CATEGORY_ORDER.length, 11, "11 categories incl UNKNOWN");
+assertEq(CLASSIFICATION_CATEGORY_ORDER.length, 13, "13 categories incl UNKNOWN");
 assert(classSummary.categories.some((c) => c.id === "UNKNOWN" && c.count === 10), "UNKNOWN bucket 10");
 assert(classSummary.categories.some((c) => c.id === "MALOWANIE" && c.count > 0), "MALOWANIE bucket");
 const malCat = classSummary.categories.find((c) => c.id === "MALOWANIE");
@@ -566,7 +566,7 @@ assertEq(bidMixed.costPricePln, bidMixedRepeat.costPricePln, "AC-6 calculator id
 console.log("\n18. P2-G.1F — Construction Dictionary");
 const dictCount = countConstructionDictionaryTerms();
 assertGte(dictCount, 150, "AC-2 dictionary 150+ terms");
-assertEq(WGDOM_CONSTRUCTION_DICTIONARY_CATEGORY_ORDER.length, 10, "10 dict categories");
+assertEq(WGDOM_CONSTRUCTION_DICTIONARY_CATEGORY_ORDER.length, 12, "12 dict categories");
 assert(WGDOM_CONSTRUCTION_DICTIONARY.MALOWANIE.includes("lamperia"), "dict has lamperia");
 assert(WGDOM_CONSTRUCTION_DICTIONARY.PODLOGI.includes("cokolik"), "dict has cokolik");
 assertEq(classifyAthLineCategory("Montaż lamperii przy oknach", "mb"), "MALOWANIE", "AC-3 lamperia → MALOWANIE");
@@ -653,7 +653,9 @@ assert(PROFILE_SECTION_TITLES.classificationDictionary.includes("Classification"
 setUserClassificationDictionaryCache(restoreDefaultUserClassificationDictionaryStore());
 
 console.log("\n20. P2-G.2B — Cost Category Expansion (CORE)");
-assertEq(WGDOM_COST_CATEGORY_IDS.length, 10, "10 MVP categories");
+assertEq(WGDOM_COST_CATEGORY_IDS.length, 12, "12 MVP categories");
+assert(WGDOM_COST_CATEGORY_IDS.includes("GLADZIE_TYNKI"), "has GLADZIE_TYNKI");
+assert(WGDOM_COST_CATEGORY_IDS.includes("WYPOSAZENIE"), "has WYPOSAZENIE");
 assert(WGDOM_COST_CATEGORY_IDS.includes("TRANSPORT_UTYLIZACJA"), "has TRANSPORT_UTYLIZACJA");
 assert(WGDOM_COST_CATEGORY_IDS.includes("WENTYLACJA"), "has WENTYLACJA");
 assertEq(classifyAthLineCategory("Wywiezienie gruzu", "m3"), "TRANSPORT_UTYLIZACJA", "AC-1 wywiezienie gruzu");
@@ -693,7 +695,9 @@ const oldStoreSnapshot = {
   },
 };
 const migratedCatalog = normalizeWgdomCostCatalogStore(oldStoreSnapshot);
-assertEq(migratedCatalog.catalogs.wroclaw.categories.length, 10, "AC-6 migrate catalog to 10 cats");
+assertEq(migratedCatalog.catalogs.wroclaw.categories.length, 12, "AC-6 migrate catalog to 12 cats");
+assert(migratedCatalog.catalogs.wroclaw.categories.some((c) => c.id === "GLADZIE_TYNKI"), "AC-6 gladzie in migrated");
+assert(migratedCatalog.catalogs.wroclaw.categories.some((c) => c.id === "WYPOSAZENIE"), "AC-6 wyposazenie in migrated");
 assert(migratedCatalog.catalogs.wroclaw.categories.some((c) => c.id === "TRANSPORT_UTYLIZACJA"), "AC-6 transport in migrated");
 assert(migratedCatalog.catalogs.wroclaw.categories.some((c) => c.id === "WENTYLACJA"), "AC-6 vent in migrated");
 const gruzRows = [{ description: "Wywiezienie gruzu", unit: "m3", quantity: "10" }];
@@ -777,12 +781,12 @@ assertGte(countWgdomPhraseRules(), 40, "AC-D1 at least 40 phrase rules");
 assert(countWgdomPhraseRules() <= 75, "phrase rules bounded");
 assertEq(
   classifyAthLineCategory("Narożniki z kątownika aluminiowego 30x30x2 mm", "mb"),
-  "GK",
-  "AC-D3 narożniki katownik → GK phrase rule",
+  "GLADZIE_TYNKI",
+  "AC-D3 narożniki katownik → GLADZIE_TYNKI phrase rule",
 );
 assertEq(
   classifyAthLineCategory("Narożniki aluminiowe 25x25", "mb"),
-  "GK",
+  "GLADZIE_TYNKI",
   "narożniki aluminiowe phrase",
 );
 const tabliczkiRule = findWgdomPhraseRule(foldPolishText("Przykręcanie tabliczek opisowych"));
@@ -790,8 +794,8 @@ assert(tabliczkiRule != null, "AC-D4 tabliczki phrase rule match");
 assertEq(tabliczkiRule?.pattern, "przykrecanie tabliczek opisow", "tabliczki rule pattern");
 assertEq(
   classifyAthLineCategory("Przykręcanie tabliczek opisowych", "szt"),
-  "UNKNOWN",
-  "tabliczki still UNKNOWN until WYPOSAZENIE 2C",
+  "WYPOSAZENIE",
+  "tabliczki → WYPOSAZENIE after 2C",
 );
 assertEq(
   classifyAthLineCategory("Pomiar skuteczności zerowania instalacji", "kpl"),
@@ -820,12 +824,85 @@ setUserClassificationDictionaryCache(
 assertEq(
   classifyAthLineCategory("Narożniki z kątownika aluminiowego 30x30x2 mm", "mb"),
   "ROZBIORKI",
-  "AC-D2 user dict beats phrase GK rule",
+  "AC-D2 user dict beats phrase GLADZIE_TYNKI rule",
 );
 setUserClassificationDictionaryCache(restoreDefaultUserClassificationDictionaryStore());
 assertEq(classifyAthLineCategory("Wywiezienie gruzu", "m3"), "TRANSPORT_UTYLIZACJA", "AC-D6 2B regression gruz");
 assertEq(classifyAthLineCategory("Obsadzenie kratek wentylacyjnych", "szt"), "WENTYLACJA", "AC-D6 2B regression wentylacja");
 assertEq(classifyAthLineCategory("Demontaż posadzki", "m2"), "ROZBIORKI", "AC-D6 2B regression demontaż");
+
+console.log("\n22. P2-G.2C — Work Category Refinement");
+assertEq(classifyAthLineCategory("Narożniki z kątownika aluminiowego 30x30x2 mm", "mb"), "GLADZIE_TYNKI", "AC-C1 narożniki aluminiowe");
+assertEq(classifyAthLineCategory("Narożnik tynkarski", "mb"), "GLADZIE_TYNKI", "AC-C1 narożnik tynkarski");
+assertEq(classifyAthLineCategory("Szpachlowanie ścian", "m2"), "GLADZIE_TYNKI", "AC-C2 szpachlowanie");
+assertEq(classifyAthLineCategory("Montaż profili CD", "mb"), "GK", "AC-C3 montaż profili CD → GK");
+assertEq(classifyAthLineCategory("Przykręcanie tabliczek opisowych", "szt"), "WYPOSAZENIE", "AC-C4 tabliczki");
+assertEq(classifyAthLineCategory("Etykiety pomieszczeń", "szt"), "WYPOSAZENIE", "etykiety pomieszczeń");
+const gladDef = defaultWgdomCostCatalog().categories.find((c) => c.id === "GLADZIE_TYNKI");
+const wyposDef = defaultWgdomCostCatalog().categories.find((c) => c.id === "WYPOSAZENIE");
+assert(gladDef?.rates.some((r) => r.unit === "m2"), "AC-C5 gladzie m2 rate");
+assert(gladDef?.rates.some((r) => r.unit === "mb"), "AC-C5 gladzie mb rate");
+assert(wyposDef?.rates.some((r) => r.unit === "szt"), "AC-C5 wyposazenie szt");
+assert(wyposDef?.rates.some((r) => r.unit === "kpl"), "AC-C5 wyposazenie kpl");
+const narMbRow = computeFromCatalogRow(
+  { description: "Narożniki z kątownika aluminiowego", unit: "mb", quantity: "100" },
+  defaultWgdomCostCatalog(),
+  costModel,
+);
+assertEq(narMbRow.category, "GLADZIE_TYNKI", "AC-C5 category");
+assertEq(narMbRow.unit, "mb", "AC-C5 unit mb");
+assert(!narMbRow.usedFallback, "AC-C5 no m2 fallback for mb narożniki");
+const gkMbRow = computeFromCatalogRow(
+  { description: "Montaż profili CD", unit: "mb", quantity: "50" },
+  defaultWgdomCostCatalog(),
+  costModel,
+);
+assertEq(gkMbRow.category, "GK", "GK profiles still GK");
+assert(!WGDOM_CONSTRUCTION_DICTIONARY.GK.includes("szpachlowanie"), "GK dict no szpachlowanie");
+assert(WGDOM_CONSTRUCTION_DICTIONARY.GLADZIE_TYNKI.includes("szpachlowanie"), "gladzie dict has szpachlowanie");
+assert(WGDOM_CONSTRUCTION_DICTIONARY.WYPOSAZENIE.includes("tabliczki opisowe"), "wyposazenie dict tabliczki");
+assertEq(
+  migrateUserClassificationCategory("gladz gipsowa scian", "GK"),
+  "GLADZIE_TYNKI",
+  "AC-C6 user dict migrate gladz GK→GLADZIE_TYNKI",
+);
+assertEq(
+  migrateUserClassificationCategory("montaz profili cd", "GK"),
+  "GK",
+  "AC-C6 user dict keep GK profiles",
+);
+const migratedUserGlad = normalizeWgdomUserClassificationDictionaryStore({
+  schemaVersion: 1,
+  entries: [{ id: "u2", phrase: "narozniki tynkarskie", category: "GK", source: "manual" }],
+});
+assertEq(migratedUserGlad.entries[0].category, "GLADZIE_TYNKI", "AC-C6 normalize migrate naroznik");
+const old10CatStore = {
+  schemaVersion: 1,
+  activeRegion: "wroclaw",
+  catalogs: {
+    wroclaw: {
+      schemaVersion: 1,
+      region: "wroclaw",
+      regionMultiplier: 1,
+      categories: defaultWgdomCostCatalog("wroclaw").categories.filter(
+        (c) => !["GLADZIE_TYNKI", "WYPOSAZENIE"].includes(c.id),
+      ),
+      unknownFallback: defaultWgdomCostCatalog().unknownFallback,
+      updatedAt: "2026-06-01T00:00:00.000Z",
+    },
+    dolnyslask: defaultWgdomCostCatalog("dolnyslask"),
+  },
+};
+const migrated12 = normalizeWgdomCostCatalogStore(old10CatStore);
+assertEq(migrated12.catalogs.wroclaw.categories.length, 12, "AC-C6 old 10-cat store → 12");
+const summary2c = buildClassificationSummary([
+  { lp: "1", description: "Narożniki z kątownika aluminiowego", unit: "mb", quantity: "50" },
+  { lp: "2", description: "Przykręcanie tabliczek opisowych", unit: "szt", quantity: "8" },
+  { lp: "3", description: "Montaż profili CD", unit: "mb", quantity: "120" },
+]);
+assert(summary2c.categories.some((c) => c.id === "GLADZIE_TYNKI" && c.count === 1), "inspector GLADZIE_TYNKI bucket");
+assert(summary2c.categories.some((c) => c.id === "WYPOSAZENIE" && c.count === 1), "inspector WYPOSAZENIE bucket");
+assert(summary2c.categories.some((c) => c.id === "GK" && c.count === 1), "inspector GK bucket");
 
 console.log(`\n---\nPASS: ${passed}  FAIL: ${failed}  TOTAL: ${passed + failed}`);
 if (failed > 0) {

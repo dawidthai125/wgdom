@@ -84,24 +84,26 @@ export function countWgdomPhraseRules(): number {
  * prefix — obsługa odmian PL (np. katownika aluminiowego ← katownik aluminiow).
  */
 export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
-  // —— GK / wykończenie ścian (narożniki, gładzie) ——
-  { pattern: "narozniki z katownika aluminiow", category: "GK", match: "prefix" },
-  { pattern: "montaz naroznikow z katownika", category: "GK", match: "prefix" },
-  { pattern: "wzmocnienie naroznikow katownikiem", category: "GK", match: "prefix" },
-  { pattern: "narozniki aluminiowe", category: "GK", match: "prefix" },
-  { pattern: "narozniki tynkarskie", category: "GK", match: "prefix" },
-  { pattern: "listwy tynkarskie", category: "GK", match: "contains" },
-  { pattern: "listwa tynkarska", category: "GK", match: "contains" },
-  { pattern: "montaz listwy tynkarskiej", category: "GK", match: "prefix" },
-  { pattern: "obrobka naroznikow", category: "GK", match: "contains" },
-  { pattern: "wzmocnienie naroznikow", category: "GK", match: "contains" },
-  { pattern: "szlifowanie gladzi", category: "GK", match: "prefix" },
-  { pattern: "szpachlowanie scian", category: "GK", match: "prefix" },
-  { pattern: "szpachlowanie sufitow", category: "GK", match: "prefix" },
-  { pattern: "gladzie gipsowe", category: "GK", match: "prefix" },
-  { pattern: "gladz gipsowa", category: "GK", match: "prefix" },
-  { pattern: "tynk wapienny", category: "GK", match: "contains" },
-  { pattern: "tynk gipsowy", category: "GK", match: "contains" },
+  // —— GLADZIE_TYNKI — wykończenie ścian (narożniki, gładzie) ——
+  { pattern: "narozniki z katownika aluminiow", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "montaz naroznikow z katownika", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "wzmocnienie naroznikow katownikiem", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "narozniki aluminiowe", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "narozniki tynkarskie", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "listwy tynkarskie", category: "GLADZIE_TYNKI", match: "contains" },
+  { pattern: "listwa tynkarska", category: "GLADZIE_TYNKI", match: "contains" },
+  { pattern: "montaz listwy tynkarskiej", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "obrobka naroznikow", category: "GLADZIE_TYNKI", match: "contains" },
+  { pattern: "wzmocnienie naroznikow", category: "GLADZIE_TYNKI", match: "contains" },
+  { pattern: "szlifowanie gladzi", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "szpachlowanie scian", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "szpachlowanie sufitow", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "gladzie gipsowe", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "gladz gipsowa", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "tynk wapienny", category: "GLADZIE_TYNKI", match: "contains" },
+  { pattern: "tynk gipsowy", category: "GLADZIE_TYNKI", match: "contains" },
+
+  // —— GK — zabudowa sucha ——
   { pattern: "montaz profili cd", category: "GK", match: "contains" },
   { pattern: "zabudowa sciany gk", category: "GK", match: "prefix" },
   { pattern: "zabudowa gk", category: "GK", match: "contains" },
@@ -109,12 +111,14 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "montaz plyty gk", category: "GK", match: "prefix" },
   { pattern: "regips sciany", category: "GK", match: "contains" },
 
-  // —— Wyposażenie pomocnicze (UNKNOWN do P2-G.2C — detekcja frazy, bez kubełka) ——
-  { pattern: "przykrecanie tabliczek opisow", category: "UNKNOWN", match: "prefix" },
-  { pattern: "montaz tabliczek opisow", category: "UNKNOWN", match: "prefix" },
-  { pattern: "tabliczki opisowe", category: "UNKNOWN", match: "contains" },
-  { pattern: "oznaczenie pomieszczen", category: "UNKNOWN", match: "prefix" },
-  { pattern: "oznaczenia pomieszczen", category: "UNKNOWN", match: "prefix" },
+  // —— WYPOSAZENIE pomocnicze ——
+  { pattern: "przykrecanie tabliczek opisow", category: "WYPOSAZENIE", match: "prefix" },
+  { pattern: "montaz tabliczek opisow", category: "WYPOSAZENIE", match: "prefix" },
+  { pattern: "tabliczki opisowe", category: "WYPOSAZENIE", match: "contains" },
+  { pattern: "etykiety pomieszczen", category: "WYPOSAZENIE", match: "prefix" },
+  { pattern: "etykieta pomieszczenia", category: "WYPOSAZENIE", match: "prefix" },
+  { pattern: "oznaczenie pomieszczen", category: "WYPOSAZENIE", match: "prefix" },
+  { pattern: "oznaczenia pomieszczen", category: "WYPOSAZENIE", match: "prefix" },
 
   // —— Elektryka ——
   { pattern: "pomiar skutecznosci zerowania", category: "ELEKTRYKA", match: "contains" },
@@ -176,4 +180,4 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "montaz miski ustepowej", category: "HYDRAULIKA", match: "prefix" },
 ];
 
-export const WGDOM_PHRASE_RULES_VERSION = "2D.0";
+export const WGDOM_PHRASE_RULES_VERSION = "2C.0";

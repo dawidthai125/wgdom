@@ -4,33 +4,38 @@
  */
 
 export type WgdomCostCategoryId =
-  | "MALOWANIE"
+  | "ROZBIORKI"
+  | "TRANSPORT_UTYLIZACJA"
   | "GK"
+  | "GLADZIE_TYNKI"
+  | "MALOWANIE"
   | "GLAZURA"
   | "PODLOGI"
   | "ELEKTRYKA"
   | "HYDRAULIKA"
   | "WENTYLACJA"
-  | "TRANSPORT_UTYLIZACJA"
-  | "ROZBIORKI"
   | "STOLARKA"
+  | "WYPOSAZENIE"
   | "UNKNOWN";
 
 export type WgdomCostUnit = "m2" | "mb" | "szt" | "rbh" | "m3" | "kpl";
 
 export type WgdomCostRegion = "wroclaw" | "dolnyslask";
 
+/** Kolejność = priorytet klasyfikacji seed katalogu (P2-G.2C). */
 export const WGDOM_COST_CATEGORY_IDS: WgdomCostCategoryId[] = [
-  "MALOWANIE",
-  "GK",
-  "GLAZURA",
   "ROZBIORKI",
+  "TRANSPORT_UTYLIZACJA",
+  "GK",
+  "GLADZIE_TYNKI",
+  "MALOWANIE",
+  "GLAZURA",
   "PODLOGI",
   "ELEKTRYKA",
   "HYDRAULIKA",
   "WENTYLACJA",
-  "TRANSPORT_UTYLIZACJA",
   "STOLARKA",
+  "WYPOSAZENIE",
 ];
 
 export interface WgdomCategoryRate {
@@ -77,25 +82,6 @@ const REGION_MULTIPLIERS: Record<WgdomCostRegion, number> = {
 /** Bazowe definicje kategorii (kolejność = priorytet klasyfikacji katalogu). */
 const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<WgdomCostCategoryId, "UNKNOWN"> }[] = [
   {
-    id: "MALOWANIE",
-    labelPl: "Malowanie",
-    rates: [{ unit: "m2", materialPlnPerUnit: 8, laborRbhPerUnit: 0.16 }],
-    keywords: ["malow", "emali", "farb", "gruntow", "tapet", "lakier"],
-    marketRefNote: "Pakiet materiałowy średni — farba + grunt",
-  },
-  {
-    id: "GK",
-    labelPl: "Gładzie / GK",
-    rates: [{ unit: "m2", materialPlnPerUnit: 12, laborRbhPerUnit: 0.26 }],
-    keywords: ["glad", "g-k", "regips", "szpachl", "tynk", "profil cd", "plyta gk"],
-  },
-  {
-    id: "GLAZURA",
-    labelPl: "Glazura / płytki",
-    rates: [{ unit: "m2", materialPlnPerUnit: 45, laborRbhPerUnit: 0.42 }],
-    keywords: ["glazur", "plytk", "kafel", "fugow", "hydroizol", "ceram"],
-  },
-  {
     id: "ROZBIORKI",
     labelPl: "Rozbiórki",
     rates: [
@@ -104,6 +90,48 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
       { unit: "m3", materialPlnPerUnit: 25, laborRbhPerUnit: 0.35 },
     ],
     keywords: ["rozbior", "demonta", "wyburz", "skucie", "zdjec", "usuwanie"],
+  },
+  {
+    id: "TRANSPORT_UTYLIZACJA",
+    labelPl: "Transport i utylizacja",
+    rates: [
+      { unit: "m3", materialPlnPerUnit: 45, laborRbhPerUnit: 0.08 },
+      { unit: "kpl", materialPlnPerUnit: 800, laborRbhPerUnit: 2.0 },
+    ],
+    keywords: ["gruz", "wywoz", "wywiezienie", "transport", "utyliz", "odpad", "kontener", "skladowisko", "zagospodarowanie"],
+    marketRefNote: "P2-G.2B — wywóz gruzu/odpadów (≠ rozbiórka)",
+  },
+  {
+    id: "GK",
+    labelPl: "Zabudowa GK",
+    rates: [{ unit: "m2", materialPlnPerUnit: 14, laborRbhPerUnit: 0.28 }],
+    keywords: ["g-k", "regips", "profil cd", "profil ud", "plyta gk", "sufit podwiesz", "zabudowa gk", "sciana dzialowa", "plyta g-k"],
+    marketRefNote: "P2-G.2C — płyty GK, profile CD/UD, sufity (≠ gładzie/tynki)",
+  },
+  {
+    id: "GLADZIE_TYNKI",
+    labelPl: "Gładzie / tynki",
+    rates: [
+      /* MVP konserwatywne — wykończenie ścian m² */
+      { unit: "m2", materialPlnPerUnit: 12, laborRbhPerUnit: 0.26 },
+      /* narożniki, listwy — mb */
+      { unit: "mb", materialPlnPerUnit: 8, laborRbhPerUnit: 0.12 },
+    ],
+    keywords: ["glad", "szpachl", "tynk", "listwa tynkar", "szlifowanie gladzi", "naroznik tynkar", "naroznik aluminiow"],
+    marketRefNote: "P2-G.2C — gładzie, szpachlowanie, tynki, narożniki mb",
+  },
+  {
+    id: "MALOWANIE",
+    labelPl: "Malowanie",
+    rates: [{ unit: "m2", materialPlnPerUnit: 8, laborRbhPerUnit: 0.16 }],
+    keywords: ["malow", "emali", "farb", "gruntow", "tapet", "lakier"],
+    marketRefNote: "Pakiet materiałowy średni — farba + grunt",
+  },
+  {
+    id: "GLAZURA",
+    labelPl: "Glazura / płytki",
+    rates: [{ unit: "m2", materialPlnPerUnit: 45, laborRbhPerUnit: 0.42 }],
+    keywords: ["glazur", "plytk", "kafel", "fugow", "hydroizol", "ceram"],
   },
   {
     id: "PODLOGI",
@@ -141,23 +169,11 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
     id: "WENTYLACJA",
     labelPl: "Wentylacja",
     rates: [
-      /* MVP konserwatywne — kratki/anemostaty, montaż niskiej intensywności rbh */
       { unit: "szt", materialPlnPerUnit: 65, laborRbhPerUnit: 0.8 },
       { unit: "mb", materialPlnPerUnit: 35, laborRbhPerUnit: 0.15 },
     ],
     keywords: ["wentyl", "kratk", "nawiew", "wywiew", "anemostat", "kanal wentyl"],
-    marketRefNote: "P2-G.2B — kratki, nawiewniki (bez instalacji kanałów pełnych)",
-  },
-  {
-    id: "TRANSPORT_UTYLIZACJA",
-    labelPl: "Transport i utylizacja",
-    rates: [
-      /* MVP konserwatywne — fracht/kontener dominuje materiał; niski rbh ekipy wykończeniowej */
-      { unit: "m3", materialPlnPerUnit: 45, laborRbhPerUnit: 0.08 },
-      { unit: "kpl", materialPlnPerUnit: 800, laborRbhPerUnit: 2.0 },
-    ],
-    keywords: ["gruz", "wywoz", "wywiezienie", "transport", "utyliz", "odpad", "kontener", "skladowisko", "zagospodarowanie"],
-    marketRefNote: "P2-G.2B — wywóz gruzu/odpadów (≠ rozbiórka); anti-double-count vs wasteDisposalWeeklyPln",
+    marketRefNote: "P2-G.2B — kratki, nawiewniki",
   },
   {
     id: "STOLARKA",
@@ -167,6 +183,17 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
       { unit: "mb", materialPlnPerUnit: 95, laborRbhPerUnit: 0.35 },
     ],
     keywords: ["drzwi", "okno", "osciezn", "stolark", "montaz drzwi", "montaz okien"],
+  },
+  {
+    id: "WYPOSAZENIE",
+    labelPl: "Wyposażenie pomocnicze",
+    rates: [
+      /* MVP — tabliczki, oznaczenia; niski materiał, krótki rbh */
+      { unit: "szt", materialPlnPerUnit: 15, laborRbhPerUnit: 0.3 },
+      { unit: "kpl", materialPlnPerUnit: 120, laborRbhPerUnit: 1.0 },
+    ],
+    keywords: ["tabliczk", "oznaczen", "oznakow", "numeracja pomieszczen", "etykiet", "wyposazen"],
+    marketRefNote: "P2-G.2C — tabliczki opisowe, oznaczenia pomieszczeń",
   },
 ];
 

@@ -30,20 +30,26 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "farba do metalu", "farba podlogowa epoksydowa", "malowanie posadzki",
   ],
   GK: [
-    "szlichty", "szlicht", "szlichta cementowa",
-    "gladz gipsowa", "gladz startowa", "gladz finish", "gladz wykonczeniowa",
-    "masa szpachlowa", "masa gipsowa", "szpachlowanie", "szpachlowanie scian",
     "regips", "plyta g-k", "plyta gk", "plyta kartonowa", "plyta kartonowo gipsowa",
-    "profil cd", "profil scienny", "profil sufitowy", "katownik scienny", "katownik aluminiowy",
+    "profil cd", "profil ud", "profil scienny", "profil sufitowy",
     "sufit podwieszany", "zabudowa gk", "sciana dzialowa gk", "sciana dzialowa",
-    "rygiel scienny", "wzmocnienie naroznikow", "tasmy spoinowe", "siatka szklana",
-    "tynk gipsowy", "tynk wapienny", "tynk cementowo wapienny", "wyrównanie scian",
-    "wyrownanie scian", "wyrownanie sciany", "obrobka naroznikow", "listwa scienna gk",
-    "wypelnienie szczelin", "szpachlowka", "gips szlifierski", "gips budowlany",
-    "montaz profili cd", "montaz plyty gk", "obudowa rur gk", "obudowa instalacji gk",
+    "rygiel scienny", "tasmy spoinowe", "siatka szklana",
+    "montaz profili cd", "montaz profili ud", "montaz plyty gk", "obudowa rur gk", "obudowa instalacji gk",
     "sufit kasetonowy", "sufit armstrong", "wklad sufitowy", "panele sufitowe",
     "zabudowa komina gk", "zabudowa wnęki", "zabudowa wnęki gk", "wzmocnienie otworu gk",
-    "naprawa tynku", "uzupelnienie tynku", "skuwanie tynku lekki", "grunto scian gk",
+    "grunto scian gk", "listwa scienna gk",
+  ],
+  GLADZIE_TYNKI: [
+    "szlichty", "szlicht", "szlichta cementowa",
+    "gladz gipsowa", "gladz startowa", "gladz finish", "gladz wykonczeniowa",
+    "gladzie gipsowe", "masa szpachlowa", "masa gipsowa", "szpachlowanie", "szpachlowanie scian",
+    "szpachlowka", "gips szlifierski", "gips budowlany",
+    "tynk gipsowy", "tynk wapienny", "tynk cementowo wapienny",
+    "wyrównanie scian", "wyrownanie scian", "wyrownanie sciany",
+    "katownik scienny", "katownik aluminiowy", "naroznik tynkarski", "naroznik aluminiowy",
+    "wzmocnienie naroznikow", "obrobka naroznikow", "listwa tynkarska", "listwy tynkarskie",
+    "szlifowanie gladzi", "wypelnienie szczelin",
+    "naprawa tynku", "uzupelnienie tynku",
   ],
   GLAZURA: [
     "fugowanie", "fuga", "fugi", "spoina", "spoiny", "klinkier", "gres", "gres porcelanowy",
@@ -161,6 +167,14 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "okno pcv", "okno drewniane", "drzwi wewnetrzne", "drzwi zewnetrzne", "drzwi antywlamaniowe",
     "drzwi techniczne", "drzwi rewizyjne", "kontaktownik drzwiowy", "samozamykacz",
   ],
+  WYPOSAZENIE: [
+    "tabliczka", "tabliczki", "tabliczka opisowa", "tabliczki opisowe",
+    "przykrecanie tabliczek opisowych", "montaz tabliczek opisowych",
+    "oznaczenie", "oznaczenia", "oznaczenie pomieszczen", "oznaczenia pomieszczen",
+    "oznakowanie", "oznakowanie pomieszczen", "numeracja pomieszczen",
+    "etykieta pomieszczenia", "etykiety pomieszczen", "etykiety drzwiowe",
+    "wyposazenie pomocnicze", "oznaczniki pomieszczen",
+  ],
 };
 
 /** Kolejność przeszukiwania — zgodna z katalogiem WGDOM. */
@@ -227,4 +241,4 @@ export function listConstructionDictionarySample(limitPerCategory = 5): Record<D
   return out;
 }
 
-export const WGDOM_CONSTRUCTION_DICTIONARY_VERSION = "2B.0";
+export const WGDOM_CONSTRUCTION_DICTIONARY_VERSION = "2C.0";
