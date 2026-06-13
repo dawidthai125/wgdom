@@ -97,12 +97,12 @@ export function TendersStrategyContent({
   const kpiCounts = useMemo(
     () => buildStrategyKpiCounts({
       scoredBundles: scoredForForecast,
-      ownerStore: ownerDecisions,
+      ownerStore: ownerDecisions.store,
       marketKpi,
       pipelineItems: pipeline.items,
       monitoringFeed,
     }),
-    [scoredForForecast, ownerDecisions, marketKpi, pipeline.items, monitoringFeed],
+    [scoredForForecast, ownerDecisions.store, marketKpi, pipeline.items, monitoringFeed],
   );
 
   const healthSummary = buildStrategyHealthSummary(health, growthModeState.mode);
@@ -160,7 +160,7 @@ export function TendersStrategyContent({
         <div className="space-y-4" data-testid="strategy-decision-zone">
           <StrategyDecisionsTodayPanel
             scoredBundles={scoredForForecast}
-            ownerStore={ownerDecisions}
+            ownerStore={ownerDecisions.store}
             onOpenTender={handleOpenTender}
           />
 

@@ -230,5 +230,43 @@ const lite = buildBestOpportunityLite(mockBundle(mockPipelineItem()), null);
 assert(lite?.title.length > 0, "T6: lite summary title");
 assert(lite?.systemDecisionLabel != null, "T6: lite recommendation");
 
-console.log(`\n=== UX.2S: ${pass} PASS, ${fail} FAIL ===\n`);
+console.log("\nP0 2.54.1 — OwnerDecision store wiring + defensive");
+assert(strategySrc.includes("ownerStore: ownerDecisions.store"), "P0: KPI uses ownerDecisions.store");
+assert(strategySrc.includes("ownerStore={ownerDecisions.store}"), "P0: decisions panel uses .store");
+assert(!strategySrc.includes("ownerStore={ownerDecisions}"), "P0: no raw hook passed to panel");
+assert(!strategySrc.includes("ownerStore: ownerDecisions,"), "P0: no raw hook in buildStrategyKpiCounts");
+
+let p0Crash = false;
+try {
+  buildStrategyKpiCounts({
+    scoredBundles: bundlesKpi,
+    ownerStore: {},
+    marketKpi,
+    pipelineItems: itemsKpi,
+  });
+  buildStrategyDecisionsToday(decisionBundles, {});
+} catch {
+  p0Crash = true;
+}
+assert(!p0Crash, "P0 T2/T3: empty ownerStore — brak crash");
+const withOwner = buildStrategyKpiCounts({
+  scoredBundles: [bundlesKpi[0]],
+  ownerStore: {
+    byId: {
+      [bundlesKpi[0].item.id]: {
+        id: bundlesKpi[0].item.id,
+        decision: "GO",
+        systemDecision: "GO",
+        opportunityScore: 80,
+        strategicScore: 70,
+        at: new Date().toISOString(),
+      },
+    },
+  },
+  marketKpi,
+  pipelineItems: itemsKpi,
+});
+assert(withOwner.pendingDecisions === 0, "P0 T2: owner decision present — excluded from pending");
+
+console.log(`\n=== UX.2S + P0 2.54.1: ${pass} PASS, ${fail} FAIL ===\n`);
 if (fail > 0) process.exit(1);

@@ -133,7 +133,8 @@ function isPendingDecisionBundle(
   bundle: TenderScoringBundle,
   ownerStore: Pick<OwnerDecisionsStore, "byId">,
 ): boolean {
-  if (ownerStore.byId[bundle.item.id]) return false;
+  const byId = ownerStore?.byId ?? {};
+  if (byId[bundle.item.id]) return false;
   if (!isTenderOpenForOffers(bundle.item.submittingOffersDate)) return false;
   if (bundle.item.status === "ignored" || bundle.item.status === "lost") return false;
   return bundle.opportunity.score >= STRATEGY_MIN_DECISION_SCORE
@@ -173,6 +174,7 @@ export function buildStrategyDecisionsToday(
   ownerStore: Pick<OwnerDecisionsStore, "byId">,
   now = new Date(),
 ): StrategyDecisionTodayItem[] {
+  const byId = ownerStore?.byId ?? {};
   return scoredBundles
     .filter((b) => isPendingDecisionBundle(b, ownerStore))
     .map((b) => ({
@@ -181,7 +183,7 @@ export function buildStrategyDecisionsToday(
       bzpNumber: b.item.bzpNumber,
       score: b.opportunity.score,
       systemDecision: b.decision,
-      ownerDecision: ownerStore.byId[b.item.id]?.decision ?? null,
+      ownerDecision: byId[b.item.id]?.decision ?? null,
       daysUntilDeadline: daysUntilTenderDeadline(b.item.submittingOffersDate, now),
     }))
     .sort((a, b) => {

@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.54.1",
+    label: "Przetargi — P0 OwnerDecision Store Wiring Fix",
+    items: [
+      { type: "fix", text: "Strategia — naprawa crash przy wejściu (ownerDecisions.store zamiast hooka)" },
+      { type: "fix", text: "Kompletność KPI/decyzji — defensywny fallback gdy brak ownerStore.byId" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.54.0",
     label: "Przetargi — UX.2S Strategy Simplification",
     items: [

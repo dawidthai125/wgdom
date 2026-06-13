@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.54.1 — P0 OwnerDecision Store Wiring Fix
+- Strategia crash fix: `ownerDecisions.store` w KPI + Wymaga decyzji dziś
+- Defensywny `byId ?? {}` w `tender-strategy-ux.ts`
+
 ## 2.54.0 — UX.2S Strategy Simplification
 - Strategia = centrum decyzji (KPI · decyzje · terminy · monitoring · okazja lite)
 - Usunięte z osi: Action Center, Attention, Change/Q&A osobno, KPI rynku
