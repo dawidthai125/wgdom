@@ -7,8 +7,10 @@ import {
   extractLogintradePageUrls,
   type OffPlatformHost,
 } from "@/lib/tender-platform-adapters";
+import { extractEzamawiajacyPageUrls } from "@/lib/tender-ezamawiajacy";
 
 export type TenderDocumentPlatform =
+  | "ezamawiajacy"
   | "logintrade"
   | "ezamowienia"
   | "platformazakupowa"
@@ -16,6 +18,7 @@ export type TenderDocumentPlatform =
   | "unknown";
 
 export type DocumentsMissingReason =
+  | "found_ezamawiajacy"
   | "found_logintrade"
   | "found_ezamowienia"
   | "found_external"
@@ -24,6 +27,7 @@ export type DocumentsMissingReason =
   | "missing_opennexus_auth"
   | "missing_ezamowienia_empty"
   | "missing_logintrade_empty"
+  | "missing_ezamawiajacy_empty"
   | "missing_unknown"
   | "loading"
   | "not_fetched_yet";
@@ -91,6 +95,7 @@ function docPlatformFromFiles(item: TenderPipelineItem): OffPlatformHost | null 
       .map((d) => d.platform)
       .filter(Boolean) as string[],
   );
+  if (platforms.has("ezamawiajacy")) return "ezamawiajacy";
   if (platforms.has("logintrade")) return "logintrade";
   if (platforms.has("platformazakupowa")) return "platformazakupowa";
   return null;
@@ -100,9 +105,13 @@ function docPlatformFromFiles(item: TenderPipelineItem): OffPlatformHost | null 
 export function detectTenderDocumentPlatform(item: TenderPipelineItem): TenderDocumentPlatform {
   const text = noticeText(item);
   const fromDocs = docPlatformFromFiles(item);
+  if (fromDocs === "ezamawiajacy") return "ezamawiajacy";
   if (fromDocs === "logintrade") return "logintrade";
 
   const hosts = detectOffPlatformHosts(text);
+  if (hosts.includes("ezamawiajacy") || extractEzamawiajacyPageUrls(text).length > 0) {
+    return "ezamawiajacy";
+  }
   if (hosts.includes("platformazakupowa") || /platformazakupowa\.pl/i.test(text)) {
     return "platformazakupowa";
   }
@@ -121,6 +130,7 @@ export function detectTenderDocumentPlatform(item: TenderPipelineItem): TenderDo
 }
 
 const PLATFORM_LABELS: Record<TenderDocumentPlatform, string> = {
+  ezamawiajacy: "Marketplanet (ezamawiajacy.pl)",
   logintrade: "Logintrade",
   ezamowienia: "e-Zamówienia",
   platformazakupowa: "platformazakupowa.pl",
@@ -140,6 +150,8 @@ export function resolveTenderPlatformDocumentStatus(
   const hasUpload = Boolean(item.uploadedFile);
   const logintradeDocs = (item.bzpDocuments ?? []).some((d) => d.platform === "logintrade")
     || (platform === "logintrade" && bzpCount > 0);
+  const ezamawiajacyDocs = (item.bzpDocuments ?? []).some((d) => d.platform === "ezamawiajacy")
+    || (platform === "ezamawiajacy" && bzpCount > 0);
 
   if (opts?.loadingDocs) {
     return {
@@ -169,6 +181,20 @@ export function resolveTenderPlatformDocumentStatus(
       documentsFound,
       missingReason: "found_external",
       successMessage: `Pobrano ${externalCount} plik(ów) u zamawiającego.`,
+    };
+  }
+
+  if (ezamawiajacyDocs && bzpCount > 0) {
+    return {
+      platform: "ezamawiajacy",
+      platformLabel: "Marketplanet",
+      sourceLabel: "ezamawiajacy.pl",
+      documentsFound,
+      missingReason: "found_ezamawiajacy",
+      badge: { text: "✓ Marketplanet", tone: "success" },
+      successMessage: "Dokumenty pobrane automatycznie z platformy ezamawiajacy.pl.",
+      proceedingUrl: extractEzamawiajacyPageUrls(text)[0],
+      proceedingButtonLabel: extractEzamawiajacyPageUrls(text)[0] ? "Otwórz postępowanie" : undefined,
     };
   }
 
@@ -245,6 +271,23 @@ export function resolveTenderPlatformDocumentStatus(
       ],
       proceedingUrl: proceedingUrl ?? undefined,
       proceedingButtonLabel: proceedingUrl ? "Otwórz postępowanie" : undefined,
+    };
+  }
+
+  if (platform === "ezamawiajacy") {
+    const scanned = Boolean(item.documentsFetchedAt);
+    return {
+      platform: "ezamawiajacy",
+      platformLabel: "Marketplanet",
+      sourceLabel: "ezamawiajacy.pl",
+      documentsFound: 0,
+      missingReason: scanned ? "missing_ezamawiajacy_empty" : "not_fetched_yet",
+      emptyMessage: scanned
+        ? "Brak załączników na ezamawiajacy.pl — sprawdź link w ogłoszeniu lub wgraj SWZ ręcznie."
+        : undefined,
+      showSearchExternalHint: scanned,
+      proceedingUrl: extractEzamawiajacyPageUrls(text)[0],
+      proceedingButtonLabel: extractEzamawiajacyPageUrls(text)[0] ? "Otwórz postępowanie" : undefined,
     };
   }
 

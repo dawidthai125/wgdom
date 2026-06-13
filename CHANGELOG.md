@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.55.0 — P2-H.1 Marketplanet (ezamawiajacy.pl)
+- Generic adapter `*.ezamawiajacy.pl` — sesja JSESSIONID + `repository/download`
+- WM / ZZM: auto-discovery dokumentów z ogłoszenia BZP; replay sesji przy pobieraniu bytes
+- Priorytet ezamawiajacy przed BIP · test: `smoke-test-ezamawiajacy-p2h1.mjs`
+
 ## 2.54.1 — P0 OwnerDecision Store Wiring Fix
 - Strategia crash fix: `ownerDecisions.store` w KPI + Wymaga decyzji dziś
 - Defensywny `byId ?? {}` w `tender-strategy-ux.ts`

@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.55.0",
+    label: "Przetargi — P2-H.1 Marketplanet (ezamawiajacy.pl)",
+    items: [
+      { type: "new", text: "Adapter generic *.ezamawiajacy.pl — sesja JSESSIONID + repository/download (WM, ZZM)" },
+      { type: "new", text: "Automatyczne pobieranie SWZ/załączników PDF, DOCX, XLS, ZIP z platformy Marketplanet" },
+      { type: "improve", text: "Priorytet ezamawiajacy przed BIP w „Szukaj u zamawiającego” i discover dokumentów" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.54.1",
     label: "Przetargi — P0 OwnerDecision Store Wiring Fix",
     items: [

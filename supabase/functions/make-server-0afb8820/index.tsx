@@ -2697,9 +2697,10 @@ async function discoverMpClientDocuments(
   return { documents: [], source: "none" };
 }
 
-type OffPlatformHost = "logintrade" | "platformazakupowa" | "smartpzp" | "opennexus";
+type OffPlatformHost = "ezamawiajacy" | "logintrade" | "platformazakupowa" | "smartpzp" | "opennexus";
 
 const OFF_PLATFORM_HOST_PRIORITY: OffPlatformHost[] = [
+  "ezamawiajacy",
   "logintrade",
   "platformazakupowa",
   "smartpzp",
@@ -2709,11 +2710,271 @@ const OFF_PLATFORM_HOST_PRIORITY: OffPlatformHost[] = [
 function detectOffPlatformHosts(text: string): OffPlatformHost[] {
   if (!text?.trim()) return [];
   const hosts: OffPlatformHost[] = [];
+  if (/\.ezamawiajacy\.pl/i.test(text)) hosts.push("ezamawiajacy");
   if (/logintrade\.net/i.test(text)) hosts.push("logintrade");
   if (/platformazakupowa\.pl/i.test(text)) hosts.push("platformazakupowa");
   if (/smartpzp\.pl/i.test(text)) hosts.push("smartpzp");
   if (/opennexus\.pl|open-nexus/i.test(text)) hosts.push("opennexus");
   return OFF_PLATFORM_HOST_PRIORITY.filter((h) => hosts.includes(h));
+}
+
+const EZAMAWIAJACY_PAGE_RE =
+  /https?:\/\/[a-z0-9-]+\.ezamawiajacy\.pl\/pn\/[A-Za-z0-9_]+\/demand\/\d+\/notice\/public\/details/gi;
+const EZAMAWIAJACY_REPO_RE = /\/repository\/download\/[A-Za-z0-9]+/g;
+const EZAMAWIAJACY_FETCH_UA = "WGDOM/2.55.0 ezamawiajacy";
+
+function extractEzamawiajacyPageUrls(noticeHtml: string): string[] {
+  const out = new Set<string>();
+  for (const m of noticeHtml.matchAll(EZAMAWIAJACY_PAGE_RE)) {
+    out.add(m[0].replace(/[.,;)]+$/g, ""));
+  }
+  for (const m of noticeHtml.matchAll(/https?:\/\/[^\s"'<>]+/gi)) {
+    const url = m[0].replace(/[.,;)]+$/g, "");
+    if (!/\.ezamawiajacy\.pl/i.test(url)) continue;
+    if (/\/demand\/\d+\/notice\/public\/details/i.test(url)) out.add(url);
+  }
+  return [...out];
+}
+
+function parseEzamawiajacyRepoTokens(html: string): string[] {
+  return [...new Set([...html.matchAll(EZAMAWIAJACY_REPO_RE)].map((m) => m[0]))];
+}
+
+function parseEzamawiajacyAttachmentsFromHtml(html: string): { tokenPath: string; label?: string }[] {
+  const out = new Map<string, { tokenPath: string; label?: string }>();
+  const add = (tokenPath: string, label?: string) => {
+    if (!tokenPath.includes("/repository/download/")) return;
+    const prev = out.get(tokenPath);
+    if (!prev || (label && !prev.label)) out.set(tokenPath, { tokenPath, label: label?.trim() || prev?.label });
+  };
+  for (const t of parseEzamawiajacyRepoTokens(html)) add(t);
+  for (const m of html.matchAll(
+    /<a[^>]+href=["']([^"']*\/repository\/download\/[A-Za-z0-9]+)["'][^>]*>([\s\S]*?)<\/a>/gi,
+  )) {
+    const label = m[2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    add(m[1].startsWith("/") ? m[1] : `/${m[1].split("/").slice(-3).join("/")}`, label);
+  }
+  for (const block of html.match(/attachmentWidget[\s\S]{0,4000}/gi) ?? []) {
+    for (const t of parseEzamawiajacyRepoTokens(block)) add(t);
+  }
+  for (const block of html.match(/mpFrm3[\s\S]{0,6000}/gi) ?? []) {
+    for (const t of parseEzamawiajacyRepoTokens(block)) add(t);
+  }
+  for (const m of html.matchAll(/downloadPostUrl["'\s:=]+([^"'\\s>]+)/gi)) {
+    const token = m[1].match(EZAMAWIAJACY_REPO_RE)?.[0];
+    if (token) add(token);
+  }
+  return [...out.values()];
+}
+
+function extractEzamawiajacyFolderUrls(html: string, baseUrl: string): string[] {
+  const out = new Set<string>();
+  let origin: string;
+  try {
+    origin = new URL(baseUrl).origin;
+  } catch {
+    return [];
+  }
+  for (const m of html.matchAll(/href=["']([^"']*\?folder=\d+[^"']*)["']/gi)) {
+    try {
+      out.add(new URL(m[1], baseUrl).href);
+    } catch {
+      /* skip */
+    }
+  }
+  return [...out];
+}
+
+function parseSetCookieHeader(headers: Headers): string {
+  const withGetSetCookie = headers as Headers & { getSetCookie?: () => string[] };
+  if (typeof withGetSetCookie.getSetCookie === "function") {
+    return withGetSetCookie.getSetCookie().map((c) => c.split(";")[0]).filter(Boolean).join("; ");
+  }
+  const raw = headers.get("set-cookie");
+  if (!raw) return "";
+  return raw.split(/,(?=[^;]+?=)/).map((c) => c.split(";")[0].trim()).filter(Boolean).join("; ");
+}
+
+async function openEzamawiajacyPageSession(pageUrl: string): Promise<{
+  pageUrl: string;
+  finalUrl: string;
+  cookie: string;
+  html: string;
+} | null> {
+  try {
+    const res = await fetch(pageUrl, {
+      headers: { Accept: "text/html,*/*", "User-Agent": EZAMAWIAJACY_FETCH_UA },
+      redirect: "follow",
+      signal: AbortSignal.timeout(25000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    return { pageUrl, finalUrl: res.url, cookie: parseSetCookieHeader(res.headers), html };
+  } catch {
+    return null;
+  }
+}
+
+async function collectEzamawiajacyAttachments(
+  session: { finalUrl: string; cookie: string; html: string },
+): Promise<{ tokenPath: string; label?: string }[]> {
+  const refs = new Map<string, { tokenPath: string; label?: string }>();
+  for (const a of parseEzamawiajacyAttachmentsFromHtml(session.html)) refs.set(a.tokenPath, a);
+  for (const folderUrl of extractEzamawiajacyFolderUrls(session.html, session.finalUrl).slice(0, 4)) {
+    try {
+      const res = await fetch(folderUrl, {
+        headers: {
+          Accept: "text/html,*/*",
+          "User-Agent": EZAMAWIAJACY_FETCH_UA,
+          Cookie: session.cookie,
+          Referer: session.finalUrl,
+        },
+        redirect: "follow",
+        signal: AbortSignal.timeout(20000),
+      });
+      if (!res.ok) continue;
+      const html = await res.text();
+      for (const a of parseEzamawiajacyAttachmentsFromHtml(html)) refs.set(a.tokenPath, a);
+    } catch {
+      /* next */
+    }
+  }
+  return [...refs.values()];
+}
+
+async function probeEzamawiajacyDocumentMeta(
+  origin: string,
+  tokenPath: string,
+  session: { cookie: string; finalUrl: string },
+): Promise<{ contentType: string; contentDisposition: string | null } | null> {
+  if (!session.cookie?.trim()) return null;
+  const downloadUrl = origin + tokenPath;
+  try {
+    const res = await fetch(downloadUrl, {
+      method: "GET",
+      headers: {
+        Accept: "*/*",
+        "User-Agent": EZAMAWIAJACY_FETCH_UA,
+        Cookie: session.cookie,
+        Referer: session.finalUrl,
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(25000),
+    });
+    if (!res.ok) return null;
+    const ct = res.headers.get("content-type") || "application/octet-stream";
+    const cd = res.headers.get("content-disposition");
+    try {
+      await res.body?.cancel();
+    } catch {
+      /* probe */
+    }
+    if (ct.includes("html") && !cd) return null;
+    return { contentType: ct, contentDisposition: cd };
+  } catch {
+    return null;
+  }
+}
+
+async function downloadEzamawiajacyDocumentByIndex(
+  sourcePageUrl: string,
+  documentIndex: number,
+): Promise<{ bytes: Uint8Array; filename: string; contentType: string } | null> {
+  const session = await openEzamawiajacyPageSession(sourcePageUrl);
+  if (!session?.cookie) return null;
+  const origin = new URL(session.finalUrl).origin;
+  const attachments = await collectEzamawiajacyAttachments(session);
+  const ref = attachments[documentIndex - 1];
+  if (!ref) return null;
+  return downloadEzamawiajacyToken(origin, ref, session);
+}
+
+async function downloadEzamawiajacyToken(
+  origin: string,
+  ref: { tokenPath: string; label?: string },
+  session: { cookie: string; finalUrl: string },
+): Promise<{ bytes: Uint8Array; filename: string; contentType: string } | null> {
+  const downloadUrl = origin + ref.tokenPath;
+  try {
+    const res = await fetch(downloadUrl, {
+      headers: {
+        Accept: "*/*",
+        "User-Agent": EZAMAWIAJACY_FETCH_UA,
+        Cookie: session.cookie,
+        Referer: session.finalUrl,
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(35000),
+    });
+    if (!res.ok) return null;
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    if (bytes.byteLength < 100 || bytes.byteLength > 15 * 1024 * 1024) return null;
+    const ct = res.headers.get("content-type") || "application/octet-stream";
+    if (ct.includes("html")) {
+      const text = new TextDecoder().decode(bytes.slice(0, 400));
+      if (/nie zosta[ał] znaleziony|404|Podany plik/i.test(text)) return null;
+    }
+    const rawName = parseDispositionFilename(res.headers.get("content-disposition")) || ref.label || null;
+    const filename = normalizeBzpFilename(rawName || "", 1, ct);
+    return { bytes, filename, contentType: ct.split(";")[0] };
+  } catch {
+    return null;
+  }
+}
+
+async function downloadEzamawiajacyDocumentByUrl(
+  sourcePageUrl: string,
+  downloadUrl: string,
+): Promise<{ bytes: Uint8Array; filename: string; contentType: string } | null> {
+  const session = await openEzamawiajacyPageSession(sourcePageUrl);
+  if (!session?.cookie) return null;
+  const origin = new URL(session.finalUrl).origin;
+  const tokenPath = downloadUrl.match(EZAMAWIAJACY_REPO_RE)?.[0];
+  if (!tokenPath) return null;
+  const attachments = await collectEzamawiajacyAttachments(session);
+  const ref = attachments.find((a) => a.tokenPath === tokenPath) ?? { tokenPath };
+  return downloadEzamawiajacyToken(origin, ref, session);
+}
+
+/** Marketplanet *.ezamawiajacy.pl — sesja JSESSIONID + repository/download. */
+async function discoverEzamawiajacyDocuments(noticeHtml: string): Promise<Record<string, unknown>[]> {
+  const pages = extractEzamawiajacyPageUrls(noticeHtml);
+  if (pages.length === 0) return [];
+
+  const docs: Record<string, unknown>[] = [];
+  const seen = new Set<string>();
+  let idx = 0;
+
+  for (const pageUrl of pages.slice(0, 2)) {
+    const session = await openEzamawiajacyPageSession(pageUrl);
+    if (!session?.cookie) continue;
+    const origin = new URL(session.finalUrl).origin;
+    const attachments = await collectEzamawiajacyAttachments(session);
+
+    for (const ref of attachments.slice(0, 30)) {
+      const meta = await probeEzamawiajacyDocumentMeta(origin, ref.tokenPath, session);
+      if (!meta) continue;
+      const rawName = parseDispositionFilename(meta.contentDisposition) || ref.label || "";
+      const filename = normalizeBzpFilename(rawName, idx + 1, meta.contentType);
+      const key = `${filename}|${ref.tokenPath}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      idx += 1;
+      const downloadUrl = origin + ref.tokenPath;
+      if (!extIsSafeUrl(downloadUrl)) continue;
+      docs.push({
+        index: idx,
+        documentId: `ezamawiajacy_${idx}`,
+        filename,
+        contentType: meta.contentType.split(";")[0],
+        downloadUrl,
+        isSwzHint: isSwzFilename(filename),
+        platform: "ezamawiajacy",
+        sourcePageUrl: pageUrl,
+      });
+    }
+  }
+  return docs;
 }
 
 function extractLogintradePageUrls(noticeHtml: string): string[] {
@@ -2797,7 +3058,8 @@ async function discoverOffPlatformDocuments(
   const hosts = detectOffPlatformHosts(noticeHtml);
   for (const host of hosts) {
     let documents: Record<string, unknown>[] = [];
-    if (host === "logintrade") documents = await discoverLogintradeDocuments(noticeHtml);
+    if (host === "ezamawiajacy") documents = await discoverEzamawiajacyDocuments(noticeHtml);
+    else if (host === "logintrade") documents = await discoverLogintradeDocuments(noticeHtml);
     else if (host === "platformazakupowa") documents = await discoverPlatformaZakupowaDocuments(noticeHtml);
     else if (host === "smartpzp") documents = await discoverSmartPzpDocuments(noticeHtml);
     else if (host === "opennexus") documents = await discoverOpenNexusDocuments(noticeHtml);
@@ -3135,7 +3397,38 @@ app.get("/make-server-0afb8820/tenders-bzp-document-bytes", async (c) => {
     const tenderId = (c.req.query("tenderId") || "").trim();
     const docIndex = parseInt(c.req.query("documentIndex") || "0", 10) || 0;
     const downloadUrl = (c.req.query("downloadUrl") || "").trim();
+    const sourcePageUrl = (c.req.query("sourcePageUrl") || "").trim();
+
+    const encodeBytes = (bytes: Uint8Array, filename: string | null, contentType: string) => {
+      let binary = "";
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      return c.json({
+        ok: true,
+        base64: btoa(binary),
+        filename,
+        contentType,
+        size: bytes.byteLength,
+      });
+    };
+
+    if (
+      sourcePageUrl
+      && /\.ezamawiajacy\.pl/i.test(sourcePageUrl)
+      && docIndex >= 1
+    ) {
+      const ez = await downloadEzamawiajacyDocumentByIndex(sourcePageUrl, docIndex);
+      if (!ez) return c.json({ ok: false, error: "Nie udało się pobrać dokumentu ezamawiajacy" }, 502);
+      return encodeBytes(ez.bytes, ez.filename, ez.contentType);
+    }
+
     if (downloadUrl && extIsSafeUrl(downloadUrl)) {
+      if (/\.ezamawiajacy\.pl.*\/repository\/download\//i.test(downloadUrl) && sourcePageUrl) {
+        const ez = await downloadEzamawiajacyDocumentByIndex(sourcePageUrl, docIndex >= 1 ? docIndex : 1);
+        if (ez) return encodeBytes(ez.bytes, ez.filename, ez.contentType);
+      }
       const res = await fetch(downloadUrl, { headers: EXTERNAL_FETCH_HEADERS });
       if (!res.ok) return c.json({ ok: false, error: `Dokument HTTP ${res.status}` }, 502);
       const bytes = new Uint8Array(await res.arrayBuffer());
@@ -3144,13 +3437,7 @@ app.get("/make-server-0afb8820/tenders-bzp-document-bytes", async (c) => {
       }
       const filename = parseDispositionFilename(res.headers.get("content-disposition"));
       const contentType = res.headers.get("content-type") || "application/octet-stream";
-      let binary = "";
-      const chunk = 0x8000;
-      for (let i = 0; i < bytes.length; i += chunk) {
-        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-      }
-      const base64 = btoa(binary);
-      return c.json({ ok: true, base64, filename, contentType, size: bytes.byteLength });
+      return encodeBytes(bytes, filename, contentType);
     }
     if (!tenderId || docIndex < 1) {
       return c.json({ ok: false, error: "Podaj tenderId i documentIndex >= 1 lub downloadUrl" }, 400);
@@ -3165,13 +3452,7 @@ app.get("/make-server-0afb8820/tenders-bzp-document-bytes", async (c) => {
     }
     const filename = parseDispositionFilename(res.headers.get("content-disposition"));
     const contentType = res.headers.get("content-type") || "application/octet-stream";
-    let binary = "";
-    const chunk = 0x8000;
-    for (let i = 0; i < bytes.length; i += chunk) {
-      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-    }
-    const base64 = btoa(binary);
-    return c.json({ ok: true, base64, filename, contentType, size: bytes.byteLength });
+    return encodeBytes(bytes, filename, contentType);
   } catch (e) {
     return c.json({ ok: false, error: e instanceof Error ? e.message : "document-bytes error" }, 500);
   }
@@ -3475,6 +3756,9 @@ app.post("/make-server-0afb8820/tenders-external-discover", async (c) => {
     crawlQueue.push(...noticePages);
 
     if (noticeHtml.length > 100) {
+      for (const ezPage of extractEzamawiajacyPageUrls(noticeHtml).slice(0, 2)) {
+        if (!crawlQueue.includes(ezPage)) crawlQueue.unshift(ezPage);
+      }
       for (const ltPage of extractLogintradePageUrls(noticeHtml).slice(0, 2)) {
         if (!crawlQueue.includes(ltPage)) crawlQueue.unshift(ltPage);
       }
@@ -3499,6 +3783,31 @@ app.post("/make-server-0afb8820/tenders-external-discover", async (c) => {
       visited.add(pageUrl);
       const html = await extFetchHtml(pageUrl);
       if (!html) continue;
+      if (/\.ezamawiajacy\.pl/i.test(pageUrl)) {
+        const session = await openEzamawiajacyPageSession(pageUrl);
+        if (session?.cookie) {
+          const origin = new URL(session.finalUrl).origin;
+          const attachments = await collectEzamawiajacyAttachments(session);
+          for (const ref of attachments.slice(0, 20)) {
+            const meta = await probeEzamawiajacyDocumentMeta(origin, ref.tokenPath, session);
+            if (!meta) continue;
+            const fn = normalizeBzpFilename(
+              parseDispositionFilename(meta.contentDisposition) || ref.label || "",
+              1,
+              meta.contentType,
+            );
+            const attachUrl = origin + ref.tokenPath;
+            if (!extIsSafeUrl(attachUrl)) continue;
+            addFile({
+              url: attachUrl,
+              filename: fn,
+              score: extScoreFilename(fn) + 45,
+              sourcePageUrl: pageUrl,
+              fromNotice: true,
+            });
+          }
+        }
+      }
       if (/logintrade\.net/i.test(pageUrl)) {
         for (const m of html.matchAll(LOGINTRADE_ATTACH_RE)) {
           let attachUrl: string;
@@ -3560,19 +3869,37 @@ app.post("/make-server-0afb8820/tenders-external-discover", async (c) => {
 
     for (const cand of topFiles) {
       try {
-        const res = await fetch(cand.url, {
-          headers: EXTERNAL_FETCH_HEADERS,
-          redirect: "follow",
-          signal: AbortSignal.timeout(35000),
-        });
-        if (!res.ok) continue;
-        const bytes = new Uint8Array(await res.arrayBuffer());
+        let bytes: Uint8Array | null = null;
+        let fn = cand.filename;
+        let contentType = "application/octet-stream";
+
+        if (
+          /\.ezamawiajacy\.pl.*\/repository\/download\//i.test(cand.url)
+          && cand.sourcePageUrl
+        ) {
+          const ez = await downloadEzamawiajacyDocumentByUrl(cand.sourcePageUrl, cand.url);
+          if (ez) {
+            bytes = ez.bytes;
+            fn = ez.filename;
+            contentType = ez.contentType;
+          }
+        } else {
+          const res = await fetch(cand.url, {
+            headers: EXTERNAL_FETCH_HEADERS,
+            redirect: "follow",
+            signal: AbortSignal.timeout(35000),
+          });
+          if (!res.ok) continue;
+          bytes = new Uint8Array(await res.arrayBuffer());
+          fn = parseDispositionFilename(res.headers.get("content-disposition")) || cand.filename;
+          contentType = res.headers.get("content-type")?.split(";")[0] || "application/octet-stream";
+        }
+        if (!bytes) continue;
         if (bytes.byteLength < 100 || bytes.byteLength > 15 * 1024 * 1024) continue;
-        const fn = parseDispositionFilename(res.headers.get("content-disposition")) || cand.filename;
         const safeName = fn.replace(/[^a-zA-Z0-9._-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/gi, "_").slice(0, 100);
         const storagePath = `tenders/${tenderId}/external/${Date.now()}-${safeName}`;
         const { error } = await supabase.storage.from(PHOTOS_BUCKET).upload(storagePath, bytes, {
-          contentType: contentTypeForUploadedFile(fn, res.headers.get("content-type") || ""),
+          contentType: contentTypeForUploadedFile(fn, contentType),
           upsert: true,
         });
         if (error) continue;
@@ -3581,7 +3908,7 @@ app.post("/make-server-0afb8820/tenders-external-discover", async (c) => {
           id: crypto.randomUUID(),
           url: cand.url,
           filename: fn,
-          contentType: res.headers.get("content-type")?.split(";")[0] || "application/octet-stream",
+          contentType,
           storagePath,
           publicUrl: pub.publicUrl,
           isSwzHint: extIsSwzFilename(fn),

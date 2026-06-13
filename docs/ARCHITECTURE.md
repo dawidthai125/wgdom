@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.54.0** · UX.2S)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (UX.2S — Strategy Simplification)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.55.0** · P2-H.1)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-H.1 — Marketplanet ezamawiajacy.pl)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -796,13 +796,13 @@ Audyt: `npm run audit:import-cycles` → JSON z `p0StaticImportViolations`, `cyc
 | GET/POST | `/sms-*` | SMS bulk, nadawcy, historia |
 | GET | `/tenders-bzp-search` | Proxy BZP — `?days=30&pages=4&province=PL02`, filtr remont/modernizacja |
 | GET | `/tenders-bzp-notice` | HTML ogłoszenia BZP — `?noticeNumber=` |
-| GET | `/tenders-bzp-documents` | Skan załączników — `?tenderId=&noticeNumber=` (readmodels 1–50 → mp-client → **v2.51.4** off-platform: Logintrade `getAttachmentUnlogged`) |
+| GET | `/tenders-bzp-documents` | Skan załączników — `?tenderId=&noticeNumber=` (readmodels → mp-client → off-platform: **v2.55.0** `*.ezamawiajacy.pl` → Logintrade → …) |
 | GET | `/tenders-bzp-analyze-swz` | Analiza SWZ z HTML/PDF (serwer) — `?noticeNumber=` lub `?tenderId=&documentIndex=` |
 | GET | `/tenders-bzp-award-result` | **v2.45.7** — wynik postępowania z BZP — `?bzpNumber=` / `?moIdentifier=` |
-| GET | `/tenders-bzp-document-bytes` | Pobranie załącznika jako base64 — e-Zamówienia lub `?downloadUrl=` (platformy zewn., **v2.51.4**) |
+| GET | `/tenders-bzp-document-bytes` | Pobranie załącznika base64 — e-Zamówienia, `?downloadUrl=` lub **v2.55.0** `?sourcePageUrl=` (ezamawiajacy sesja replay) |
 | POST | `/tenders-bzp-upload` | Upload SWZ/kosztorysu do storage `tenders/{id}/` |
 | POST | `/tenders-bzp-attach-to-job` | Kopiowanie plików przetargu → roboty |
-| POST | `/tenders-external-discover` | **v2.44** — linki z ogłoszenia + crawl BIP/portali → pobranie plików do storage |
+| POST | `/tenders-external-discover` | **v2.44** — linki z ogłoszenia + **v2.55.0** ezamawiajacy (priorytet) + Logintrade + crawl BIP |
 
 **Storage bucket:** `make-0afb8820-photos` (public, auto-create) — **jedyny bucket** w projekcie (audyt 2026-06-10: 140 obiektów, 54.15 MB). Frontend uploaduje wyłącznie przez Edge (`/storage-upload`, `/storage-delete`); bez bezpośredniego `supabase.storage` w `src/`.
 

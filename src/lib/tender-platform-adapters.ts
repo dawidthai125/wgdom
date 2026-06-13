@@ -2,17 +2,24 @@
  * P2-A.3 — wykrywanie hostów platform zamówień poza e-Zamówieniami (notice HTML / plain URL).
  */
 
-export type OffPlatformHost = "logintrade" | "platformazakupowa" | "smartpzp" | "opennexus";
+export type OffPlatformHost =
+  | "ezamawiajacy"
+  | "logintrade"
+  | "platformazakupowa"
+  | "smartpzp"
+  | "opennexus";
 
 export const OFF_PLATFORM_HOST_PATTERNS: Record<OffPlatformHost, RegExp> = {
+  ezamawiajacy: /\.ezamawiajacy\.pl/i,
   logintrade: /logintrade\.net/i,
   platformazakupowa: /platformazakupowa\.pl/i,
   smartpzp: /smartpzp\.pl/i,
   opennexus: /opennexus\.pl|open-nexus/i,
 };
 
-/** Kolejność priorytetu adapterów (ROI wg audytu P2-A.3). */
+/** Kolejność priorytetu adapterów (P2-H.1: ezamawiajacy przed logintrade). */
 export const OFF_PLATFORM_HOST_PRIORITY: OffPlatformHost[] = [
+  "ezamawiajacy",
   "logintrade",
   "platformazakupowa",
   "smartpzp",

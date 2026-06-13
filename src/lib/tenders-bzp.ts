@@ -943,11 +943,13 @@ export async function fetchTenderDocumentBytes(
   tenderId: string,
   documentIndex: number,
   downloadUrl?: string,
+  sourcePageUrl?: string,
 ): Promise<{ base64: string; filename: string; contentType: string }> {
   const data = await tenderApiGet("/tenders-bzp-document-bytes", {
     tenderId,
     documentIndex: String(documentIndex),
     ...(downloadUrl ? { downloadUrl } : {}),
+    ...(sourcePageUrl ? { sourcePageUrl } : {}),
   }) as { base64: string; filename: string; contentType: string };
   return data;
 }
@@ -967,34 +969,46 @@ export function bytesToBlobUrl(bytes: Uint8Array, contentType?: string): string 
 export function resolveTenderDocumentDownload(
   docs: TenderBzpDocument[] | undefined,
   documentIndex: number,
-): { downloadUrl?: string; platform?: string; filename?: string } | null {
+): { downloadUrl?: string; platform?: string; filename?: string; sourcePageUrl?: string } | null {
   const doc = docs?.find((d) => d.index === documentIndex);
   if (!doc) return null;
   if (doc.downloadUrl) {
-    return { downloadUrl: doc.downloadUrl, platform: doc.platform, filename: doc.filename };
+    return {
+      downloadUrl: doc.downloadUrl,
+      platform: doc.platform,
+      filename: doc.filename,
+      sourcePageUrl: doc.sourcePageUrl,
+    };
   }
-  return { filename: doc.filename };
+  return { filename: doc.filename, sourcePageUrl: doc.sourcePageUrl };
 }
 
 export async function loadTenderBzpDocumentBytes(
   tenderId: string,
   documentIndex: number,
   downloadUrl?: string,
+  sourcePageUrl?: string,
 ): Promise<{ bytes: Uint8Array; filename: string; contentType: string }> {
   const { base64, filename, contentType } = await fetchTenderDocumentBytes(
     tenderId,
     documentIndex,
     downloadUrl,
+    sourcePageUrl,
   );
   return { bytes: base64ToBytes(base64), filename, contentType };
 }
 
-/** P2-E.1 — pobieranie z automatycznym resolve downloadUrl (Logintrade itd.). */
+/** P2-E.1 / P2-H.1 — pobieranie z resolve downloadUrl + sourcePageUrl (Logintrade / ezamawiajacy). */
 export async function loadTenderBzpDocumentBytesResolved(
   tenderId: string,
   documentIndex: number,
   docs?: TenderBzpDocument[],
 ): Promise<{ bytes: Uint8Array; filename: string; contentType: string }> {
-  const downloadUrl = resolveTenderDocumentDownload(docs, documentIndex)?.downloadUrl;
-  return loadTenderBzpDocumentBytes(tenderId, documentIndex, downloadUrl);
+  const resolved = resolveTenderDocumentDownload(docs, documentIndex);
+  return loadTenderBzpDocumentBytes(
+    tenderId,
+    documentIndex,
+    resolved?.downloadUrl,
+    resolved?.sourcePageUrl,
+  );
 }

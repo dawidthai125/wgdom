@@ -157,7 +157,7 @@ export function scoreExternalLink(url: string, label: string): number {
     s += scoreTenderFilename(decodeURIComponent(url.split("/").pop()?.split("?")[0] || ""));
   }
 
-  if (/bip\.|\.gov\.|wroclaw|mpwik|mops|egospodarka|platformazakupowa|ezamowienia\.com|logintrade|e-propublico|smartpzp/.test(hay)) {
+  if (/bip\.|\.gov\.|wroclaw|mpwik|mops|egospodarka|platformazakupowa|ezamowienia\.com|logintrade|ezamawiajacy|e-propublico|smartpzp/.test(hay)) {
     s += 12;
   }
   if (/przetarg|zamowien|postepow|dokumentac|swz|specyfikac|kosztorys|platforma|ofert/.test(hay)) {
