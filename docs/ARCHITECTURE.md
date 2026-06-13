@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.55.4** · P2-G.2D C.O.)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-H.1 — Marketplanet ezamawiajacy.pl)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.55.5** · P2-H.3 7Z)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-H.3 7Z + handoff dokumentacji)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -845,7 +845,8 @@ Audyt: `npm run audit:import-cycles` → JSON z `p0StaticImportViolations`, `cyc
 | `src/lib/tenders-bzp-analyze-local.ts` | **v2.45.7** — analiza SWZ po stronie klienta (pdf.js, kryteria, tabele) |
 | `src/lib/tenders-bzp-award.ts` | **v2.45.7** — parser + fetch wyniku postępowania |
 | `src/lib/tender-bid-package-pdf.ts` | **v2.45.7** — eksport „Pakiet wyceny” PDF (pdfmake) |
-| `src/lib/tenders-bzp-doc-parse.ts` | PDF (pdf.js), DOCX, XLSX, ZIP → kosztorys / tekst SWZ |
+| `src/lib/tenders-bzp-doc-parse.ts` | PDF (pdf.js), DOCX, XLSX, ZIP, **7Z** → kosztorys / tekst SWZ |
+| `src/lib/wgdom-7z-archive.ts` | **P2-H.3** — rozpakowywanie .7z (7z-wasm LGPL) |
 | `src/lib/tenders-bzp-swz.ts` | Analiza SWZ (wartość, wadium, kryteria, tabele) |
 | `src/lib/tenders-bzp-fit.ts` | Dopasowanie przetarg ↔ profil, `estimatedValuePlnFromItem` |
 | `src/lib/tenders-bzp-brief.ts` | Brief z HTML ogłoszenia |
@@ -1161,7 +1162,57 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 | `tender-cost-calibration.ts` | P2-G.3B — historical snapshots, calibration summary, catalog hints |
 | `tender-workspace-ux.ts` | UX.1A — sekcje workspace, summary snapshot, monitoring counts |
 
-**Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (320+ asercji) · regresja P2-F: `test-tender-dossier-pipeline.mjs`
+**Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (357+ asercji) · regresja P2-F: `test-tender-dossier-pipeline.mjs`
+
+### 12.1.7 P2-H — Tender Documents, ZIP & 7Z Archives (H.1–H.3 COMPLETE, v2.55.0–2.55.5)
+
+**Status:** **P2-H.1–H.3 CLOSED** · **P2-H.4 OPEN** (UX copy 7Z)  
+**Handoff SSOT:** [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)
+
+Seria **pobieranie i rozpakowywanie załączników** z platform off-BZP oraz archiwów ZIP/7Z w pipeline dossier.
+
+| Sprint | Wersja | Skrót |
+|--------|--------|-------|
+| P2-H.1 | 2.55.0 | Adapter `*.ezamawiajacy.pl` (Marketplanet) — JSESSIONID + repository/download |
+| P2-H.1 hotfix | 2.55.1 | `sourcePageUrl` w `tenders-bzp-document-bytes` + preview |
+| P2-H.2 | 2.55.2 | Single ZIP unpack · `filterOuterArchiveWhenInnerExists` |
+| **P2-H.3** | **2.55.5** | **7Z** — `list7zFiles` / `read7zEntry` / `pickBestFrom7zBytes` |
+
+**Pipeline inner candidates:**
+
+```text
+buildTenderDocCandidates()
+  → outer doc
+  → if .zip: listZipFiles + inner (max 20)
+  → if .7z:  list7zFiles + inner (max 20)
+  → filterOuterArchiveWhenInnerExists()  // pomija outer gdy są inner
+  → discoverBestCostDocument()           // ATH/NOR/XML/XLS/XLSX only
+  → parseTenderDocumentCandidate()       // readZipEntry | read7zEntry
+```
+
+**7Z — biblioteka:** `7z-wasm@1.2.0` (**LGPL**, OK komercyjnie). Odrzucono `archive-wasm` (GPL-3.0).
+
+**Pole `zipInnerPath`:** używane dla inner z **ZIP i 7Z** (bez rename).
+
+**Cost discovery:** inner `"outer.7z → plik.ath"` → typ `zip_ath`. PDF przedmiaru (`*_PR.pdf`) **nie** jest kosztorysem (backlog P2-H.5).
+
+**UI:** `TenderAttachmentsPanel` — „Pokaż pliki w ZIP/7Z” · `JobFilePreviewModal` — auto-extract outer archiwum.
+
+**Komunikat karty ofertowej:** `buildKosztorysStatusLine()` — „Wykryto wyłącznie archiwum 7Z” gdy brak outer ATH/XLS **nawet po udanym unpack** → backlog **P2-H.4**.
+
+**Testy:**
+
+| Skrypt | Zakres |
+|--------|--------|
+| `scripts/test-tender-7z-archive.mjs` | list/read/pick/candidates/cost (21) |
+| `scripts/test-tender-dossier-pipeline.mjs` | dossier + P2-F (163) |
+| `scripts/smoke-test-ezamawiajacy-p2h1.mjs` | Marketplanet T1–T10 |
+| `scripts/smoke-test-ezamawiajacy-p2h2-double-unpack.mjs` | ZIP double unpack |
+| `scripts/fixtures/test.7z` | Fixture ATH+XLSX+PDF |
+
+**Audyt prod (Kąty Wrocławskie):** P2-H.3 działa; archiwum 14 MB = PDF projektów bez ATH/XLS — nie bug unpack.
+
+**Nie zmieniaj bez polecenia:** merge ZIP/7Z w resolver, semantyka `zipInnerPath`, lazy chunk 7z-wasm, wymóg `sourcePageUrl` Marketplanet.
 
 **Źródła danych (hierarchia):**
 

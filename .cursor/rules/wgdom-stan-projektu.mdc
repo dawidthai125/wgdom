@@ -12,9 +12,10 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.53.4** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts) · **UX.1 CLOSED**
-- **Prod (`main` / `origin/main`, app):** **`3b5da74`** (2.53.4 UX.1B) · poprzedni **`53451ed`** (2.53.3 ARCH-001) · https://www.wgdom.fun · **RELEASE GO**
+- **Aktualna wersja UI:** **2.55.5** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts) · **P2-H.3 CLOSED**
+- **Prod (`main` / `origin/main`, app):** **`d725c24`** (2.55.5 P2-H.3 7Z) · poprzedni **`329d883`** (2.55.4 P2-G.2D) · https://www.wgdom.fun · **RELEASE GO**
 - **★★ Handoff SSOT (baseline prod):** [`docs/PROJECT-HANDOFF-CURRENT.md`](../../docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../../CURRENT-TASK.md)
+- **★★ Handoff P2-H (COMPLETE H.1–H.3):** [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](../../docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) — Marketplanet · ZIP · 7Z · dossier
 - **★★ Handoff UX.1 (COMPLETE):** [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](../../docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md) — 5 workspace tabs · lazy render · Anti-CC · ARCH-001
 - **★★ Handoff P2-F (COMPLETE):** [`docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](../../docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md) — kwalifikacja ofertowa F.0–F.5
 - **★★ Handoff Pulpit V3 (COMPLETE):** [`docs/SESSION-HANDOFF-DASHBOARD-V3.md`](../../docs/SESSION-HANDOFF-DASHBOARD-V3.md)
@@ -59,7 +60,27 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **Testy użytkownika:** głównie **Vercel**, nie localhost
 - **Konto testowe pracownika:** imię `test`, tel. `+48 000 000 000` — tylko tryb pracownika, bez listy płac/grafiku/pulpitu
 
-## UX.1 — Tender Workspace (CLOSED, prod `3b5da74`, v2.53.4, 2026-06-13)
+ ## P2-H — Tender Documents & 7Z (CLOSED H.1–H.3, prod `d725c24`, v2.55.5, 2026-06-13)
+ 
+ **Status:** **H.1–H.3 CLOSED** · **H.4 OPEN** (UX copy 7Z)
+ 
+ | Etap | Wersja | Skrót |
+ |---|-----|----|
+ | P2-H.1 | 2.55.0 | Marketplanet ezamawiajacy.pl |
+ | P2-H.2 | 2.55.2 | Double ZIP unpack fix |
+ | **P2-H.3** | **2.55.5** | **7z-wasm (LGPL) — inner ATH/PDF/XLSX jak ZIP** |
+ 
+ **Handoff:** [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](../../docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)
+ 
+ **Kluczowe pliki:** `wgdom-7z-archive.ts`, `tender-document-resolver.ts`, `tender-ezamawiajacy.ts`, `tenders-bzp-doc-parse.ts`
+ 
+ **Test:** `npx vite-node scripts/test-tender-7z-archive.mjs` · audyt Kąty: 7Z OK, brak ATH = PDF w archiwum
+ 
+ **Nie zmieniaj bez polecenia:** `zipInnerPath` semantyka, `sourcePageUrl` Marketplanet, lazy 7z-wasm chunk.
+ 
+ ---
+ 
+ ## UX.1 — Tender Workspace (CLOSED, prod `3b5da74`, v2.53.4, 2026-06-13)
 
 **Status:** **CLOSED** (UX.1A → UX.1B + ARCH-001 + P0 hotfix)
 
