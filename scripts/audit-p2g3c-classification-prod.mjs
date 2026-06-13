@@ -19,11 +19,17 @@ const OUT_JSON = process.argv.includes("--json")
 
 setUserClassificationDictionaryCache(restoreDefaultUserClassificationDictionaryStore());
 
+import {
+  STRATEGIC_CLIENT_FILTERS,
+  matchesStrategicClientFilter,
+} from "../src/lib/tenders-strategic-client-filters.ts";
+
 const BUYER_BUCKETS = [
-  { id: "wm", label: "Wrocławskie Mieszkania", test: (i) => /wrocławskie\s+mieszkania/i.test(i.organizationName || "") || i.priorityBuyerLabel === "Wrocławskie Mieszkania" },
-  { id: "zzk", label: "ZZK", test: (i) => /zarząd\s+zasobu\s+komunalnego|^zzk\b/i.test(i.organizationName || "") || /\bzzk\b/i.test(i.title || "") },
-  { id: "mops", label: "MOPS", test: (i) => /miejski\s+ośrodek\s+pomocy|mops/i.test(i.organizationName || "") },
-  { id: "uwr", label: "Uniwersytet Wrocławski", test: (i) => /uniwersytet.*wrocław|uwr/i.test(i.organizationName || "") || /uniwersytet.*wrocław/i.test(i.title || "") },
+  ...STRATEGIC_CLIENT_FILTERS.map((f) => ({
+    id: f.id,
+    label: f.shortLabel,
+    test: (i) => matchesStrategicClientFilter(i, f.id),
+  })),
   { id: "other", label: "Inne prod (losowe)", test: () => true },
 ];
 

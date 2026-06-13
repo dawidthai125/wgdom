@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   RefreshCw, Search, Scale, MapPin, Calendar, Building2,
   Filter, AlertCircle, HelpCircle, Download, Trash2, CheckSquare, Square,
+  MoreHorizontal, ChevronDown,
 } from "lucide-react";
 import {
   type TenderPipelineItem,
@@ -62,6 +63,7 @@ export function TendersView({
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId);
   const [showLegend, setShowLegend] = useState(false);
+  const [showMoreActions, setShowMoreActions] = useState(false);
   const { snapshot, bumpProfileVersion, profileVersion } = useTendersContext();
   const pipeline = snapshot.pipeline;
   const r1Hydrated = useRef(false);
@@ -190,22 +192,38 @@ export function TendersView({
         )}
 
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={pipeline.toggleBulkMode}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-xs font-medium hover:bg-secondary/80"
-          >
-            {pipeline.bulkMode ? <CheckSquare size={13} /> : <Square size={13} />}
-            {pipeline.bulkMode ? "Tryb masowy" : "Zaznacz wiele"}
-          </button>
-          <button
-            type="button"
-            onClick={pipeline.exportCsv}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-xs font-medium hover:bg-secondary/80"
-          >
-            <Download size={13} />
-            Eksport CSV
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowMoreActions((v) => !v)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-xs font-medium hover:bg-secondary/80"
+              aria-expanded={showMoreActions}
+            >
+              <MoreHorizontal size={13} />
+              Więcej
+              <ChevronDown size={12} className={showMoreActions ? "rotate-180 transition-transform" : "transition-transform"} />
+            </button>
+            {showMoreActions && (
+              <div className="absolute left-0 top-full z-30 mt-1 min-w-[11rem] rounded-xl border border-border bg-card shadow-lg py-1">
+                <button
+                  type="button"
+                  onClick={() => { pipeline.toggleBulkMode(); setShowMoreActions(false); }}
+                  className="w-full text-left px-3 py-2 text-xs hover:bg-secondary/60 flex items-center gap-2"
+                >
+                  {pipeline.bulkMode ? <CheckSquare size={13} /> : <Square size={13} />}
+                  {pipeline.bulkMode ? "Wyłącz tryb masowy" : "Zaznacz wiele"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { pipeline.exportCsv(); setShowMoreActions(false); }}
+                  className="w-full text-left px-3 py-2 text-xs hover:bg-secondary/60 flex items-center gap-2"
+                >
+                  <Download size={13} />
+                  Eksport CSV
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {pipeline.bulkMode && pipeline.selectedIds.size > 0 && (
@@ -274,6 +292,42 @@ export function TendersView({
           </div>
         )}
 
+        <div className="flex flex-wrap gap-1.5 items-center">
+          <span className="text-[10px] text-muted-foreground mr-1">Klienci strategiczni:</span>
+          {pipeline.strategicClientFilters.map((chip) => {
+            const count = pipeline.strategicClientCounts[chip.id];
+            const active = pipeline.strategicClientFilter === chip.id;
+            const disabled = count === 0;
+            return (
+              <button
+                key={chip.id}
+                type="button"
+                disabled={disabled}
+                title={chip.label}
+                onClick={() => pipeline.setStrategicClientFilter(active ? null : chip.id)}
+                className={`text-[10px] font-medium px-2 py-1 rounded-lg border transition-colors ${
+                  disabled
+                    ? "opacity-40 cursor-not-allowed border-border text-muted-foreground"
+                    : active
+                      ? "bg-orange-500/15 text-orange-800 dark:text-orange-300 border-orange-500/30 ring-2 ring-orange-500/30"
+                      : "bg-orange-500/8 text-orange-700 dark:text-orange-400 border-orange-500/20 hover:opacity-90"
+                }`}
+              >
+                {chip.shortLabel} ({count})
+              </button>
+            );
+          })}
+          {pipeline.strategicClientFilter && (
+            <button
+              type="button"
+              onClick={() => pipeline.setStrategicClientFilter(null)}
+              className="text-[10px] text-muted-foreground hover:text-foreground underline px-1"
+            >
+              Wyczyść klienta
+            </button>
+          )}
+        </div>
+
         {pipeline.autoAwardRunning && (
           <p className="text-[10px] text-muted-foreground">Sprawdzam wyniki zakończonych postępowań…</p>
         )}
@@ -314,6 +368,15 @@ export function TendersView({
             </select>
           </div>
         </div>
+
+        <p className="text-[11px] text-muted-foreground tabular-nums">
+          Wyświetlono <strong className="text-foreground">{pipeline.filtered.length}</strong>
+          {" "}
+          {pipeline.filtered.length === 1 ? "przetarg" : pipeline.filtered.length < 5 ? "przetargi" : "przetargów"}
+          {pipeline.items.length !== pipeline.filtered.length && (
+            <> z <strong className="text-foreground">{pipeline.items.length}</strong> w pipeline</>
+          )}
+        </p>
         </div>
 
         <div className="px-4 sm:px-6 pb-4 space-y-3">

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.56.9",
+    label: "Przetargi — P3.6 filtry klientów strategicznych",
+    items: [
+      { type: "new", text: "Lista Przetargów — szybkie filtry: WM, ZZK, MOPS, TBS, Gminy, Uczelnie z licznikiem przetargów" },
+      { type: "improve", text: "Licznik „Wyświetlono X przetargów” pod filtrami listy" },
+      { type: "improve", text: "„Zaznacz wiele” i „Eksport CSV” przeniesione do menu „Więcej” (funkcje zachowane)" },
+      { type: "improve", text: "Audyty prod — wspólna logika klientów strategicznych (SSOT: tenders-strategic-client-filters.ts)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.56.8",
     label: "Przetargi — P2-G.3C benchmark klasyfikacji prod",
     items: [

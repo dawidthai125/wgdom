@@ -43,6 +43,12 @@ import {
   autoFetchAwardResults,
   type TenderQuickFilter,
 } from "@/lib/tenders-actions";
+import {
+  countStrategicClientFilters,
+  matchesStrategicClientFilter,
+  STRATEGIC_CLIENT_FILTERS,
+  type StrategicClientFilterId,
+} from "@/lib/tenders-strategic-client-filters";
 
 export type TenderPipelineLocalFilter =
   | "actionable"
@@ -73,6 +79,7 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<TenderPipelineStatus>("ignored");
   const [quickFilter, setQuickFilter] = useState<TenderQuickFilter | null>(null);
+  const [strategicClientFilter, setStrategicClientFilter] = useState<StrategicClientFilterId | null>(null);
   const [autoAwardRunning, setAutoAwardRunning] = useState(false);
 
   const bzpSettings = useMemo(() => loadAppSettingsLocal(), []);
@@ -308,6 +315,7 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
         if (preparing < loadCompanyProfileLocal().maxConcurrentProjects) return false;
         if (!["preparing", "interested"].includes(i.status)) return false;
       } else if (quickFilter && !matchesQuickFilter(i, quickFilter)) return false;
+      if (strategicClientFilter && !matchesStrategicClientFilter(i, strategicClientFilter)) return false;
       if (!q) return true;
       return (
         i.title.toLowerCase().includes(q)
@@ -317,7 +325,12 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
       );
     });
     return sortTendersByUrgency(list);
-  }, [items, search, localFilter, statusFilter, quickFilter, profileVersion]);
+  }, [items, search, localFilter, statusFilter, quickFilter, strategicClientFilter, profileVersion]);
+
+  const strategicClientCounts = useMemo(
+    () => countStrategicClientFilters(items),
+    [items],
+  );
 
   const exportCsv = useCallback(() => {
     const blob = new Blob([exportTendersPipelineCsv(filtered)], { type: "text/csv;charset=utf-8" });
@@ -395,6 +408,10 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
     setStatusFilter,
     quickFilter,
     setQuickFilter,
+    strategicClientFilter,
+    setStrategicClientFilter,
+    strategicClientCounts,
+    strategicClientFilters: STRATEGIC_CLIENT_FILTERS,
     bulkMode,
     setBulkMode,
     toggleBulkMode,
