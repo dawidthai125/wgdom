@@ -12,9 +12,10 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.51.24** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts) · **P2-F CLOSED**
-- **Prod (`main` / `origin/main`, app):** **`e015453`** (2.51.24 P2-F.5) · poprzedni **`77b352a`** (2.51.23) · https://www.wgdom.fun · **RELEASE GO**
+- **Aktualna wersja UI:** **2.53.4** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts) · **UX.1 CLOSED**
+- **Prod (`main` / `origin/main`, app):** **`3b5da74`** (2.53.4 UX.1B) · poprzedni **`53451ed`** (2.53.3 ARCH-001) · https://www.wgdom.fun · **RELEASE GO**
 - **★★ Handoff SSOT (baseline prod):** [`docs/PROJECT-HANDOFF-CURRENT.md`](../../docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../../CURRENT-TASK.md)
+- **★★ Handoff UX.1 (COMPLETE):** [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](../../docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md) — 5 workspace tabs · lazy render · Anti-CC · ARCH-001
 - **★★ Handoff P2-F (COMPLETE):** [`docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](../../docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md) — kwalifikacja ofertowa F.0–F.5
 - **★★ Handoff Pulpit V3 (COMPLETE):** [`docs/SESSION-HANDOFF-DASHBOARD-V3.md`](../../docs/SESSION-HANDOFF-DASHBOARD-V3.md)
 - **★ P1 CLOSED:** Dashboard V3 · Przetargi 3.0 · Command Center REMOVED (v2.51.0) · CC archiwum: [`docs/archive/command-center/`](../../docs/archive/command-center/)
@@ -54,9 +55,32 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **Handoff Performance 1.x CLOSED:** [`docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md`](../../docs/SESSION-HANDOFF-PERFORMANCE-2026-06.md)
 - **Handoff incydent Roboty + 2.1B:** [`docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md`](../../docs/SESSION-HANDOFF-ROBOTY-INCIDENT-2026-06.md)
 - **Handoff sesji 2026-06 (Faza 8–9, audyty):** [`docs/SESSION-HANDOFF-2026-06.md`](../../docs/SESSION-HANDOFF-2026-06.md)
-- **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) § 12.1.3 (Przetargi 3.0)
+- **★ Pełna architektura (CZYTAJ NA START):** [`AGENTS.md`](../../AGENTS.md) → [`CURRENT-TASK.md`](../../CURRENT-TASK.md) → [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) § UX.1B · § 12.1.3 · § 11.6 ARCH-001
 - **Testy użytkownika:** głównie **Vercel**, nie localhost
 - **Konto testowe pracownika:** imię `test`, tel. `+48 000 000 000` — tylko tryb pracownika, bez listy płac/grafiku/pulpitu
+
+## UX.1 — Tender Workspace (CLOSED, prod `3b5da74`, v2.53.4, 2026-06-13)
+
+**Status:** **CLOSED** (UX.1A → UX.1B + ARCH-001 + P0 hotfix)
+
+| Etap | Wersja | Commit | Skrót |
+|------|--------|--------|-------|
+| UX.1A | 2.53.1 | `8615d0b` | Reorganizacja sekcji, sticky summary, dedup |
+| P0 hotfix | 2.53.2 | `7392c82` | Cykl ESM app-core → biały ekran |
+| ARCH-001 | 2.53.3 | `53451ed` | audit-import-cycles · ARCHITECTURE § 11.6 |
+| **UX.1B** | **2.53.4** | **`3b5da74`** | **5 workspace tabs · lazy render** |
+
+**5 workspace:** Przegląd · Dokumenty · Kwalifikacja · Wycena · Oferta — **max 5, Anti-CC**.
+
+**Kluczowe pliki:** `tender-workspace-ux.ts`, `TenderDetailPanel.tsx`, `TenderWorkspaceTabBar.tsx`, `TenderDocumentsWorkspace.tsx`, `TenderQualificationWorkspace.tsx`.
+
+**Handoff:** [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](../../docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)
+
+**Nie zmieniaj bez polecenia:** struktura 5 tabs, lazy render, P0 UX RULE (Przegląd ≤ 1 ekran), dedup wycena/kalibracja/ATH, static import cloud-sync w lib (ARCH-001).
+
+**Backlog w slotach:** P2-G.3C/D/E → Wycena · P2-F.6 → Oferta.
+
+---
 
 ## FAZA 8–9 — Tender → Job → Ekipa → Pracownik (CLOSED, prod `622bbbb`, 2026-06-04)
 

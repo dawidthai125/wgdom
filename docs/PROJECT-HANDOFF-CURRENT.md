@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-12 (P2-F CLOSED — Documentation closeout)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-13 (UX.1 Tender Workspace CLOSED)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -8,11 +8,12 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-2. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← P2-F kwalifikacja ofertowa (COMPLETE)
-3. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
-4. CURRENT-TASK.md                         ← status sesji / wznowienie
-5. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
-6. AGENTS.md → docs/ARCHITECTURE.md § 12.1.5
+2. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← ★★ UX.1A/1B workspace + ARCH-001
+3. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← P2-F kwalifikacja ofertowa (COMPLETE)
+4. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
+5. CURRENT-TASK.md                         ← status sesji / wznowienie
+6. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
+7. AGENTS.md → docs/ARCHITECTURE.md § UX.1B · § 12.1.5
 ```
 
 ---
@@ -21,6 +22,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **UX.1 Tender Workspace** | 2.53.1–**2.53.4** (`3b5da74`) | **COMPLETE** | [`SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md) |
 | **P2-F Tender Qualification** | 2.51.19–**2.51.24** (`e015453`) | **COMPLETE** | [`SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md) |
 | **Dashboard V3** | 2.50.74 (`5a54399`) | **COMPLETE** | [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md) |
 | **Command Center Removal** | 2.51.0 (`39b1892`) | **COMPLETE** | [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.3 |
@@ -60,11 +62,14 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version:              2.51.24         ← baseline P2-F.5 Works Register
-Feature commit (P2-F.5): e015453      feat(tenders): works register generator (P2-F.5)
+Version:              2.53.4         ← baseline UX.1B Workspace Tabs
+Feature commit (UX.1B): 3b5da74      feat(tenders): UX.1B workspace tabs with lazy render
+UX.1A:                8615d0b         v2.53.1 tender workspace cleanup MIN
+P0 hotfix:            7392c82         v2.53.2 circular import app-core
+ARCH-001:             53451ed         v2.53.3 import cycles audit
+P2-F baseline:        e015453         v2.51.24 P2-F.5 Works Register
 Poprzedni P2-F:       77b352a         v2.51.23 P2-F.4
 Feature commit (P1):  39b1892         refactor: remove command center runtime architecture
-Docs/rename commit:   45ad21e         refactor: finalize command center removal cleanup
 Dashboard V3:           5a54399         feat(dashboard): V3 operational layout (2.50.74)
 Git tag backup:         pre-next-feature-2.50.64 → c7bc58f
 E2E (origin/main):      8906485         20.5Z.2B E2E Version Awareness
@@ -75,7 +80,8 @@ PWA (origin/main):      46556a7         20.5Z.2A
 |--------|---------|
 | **RELEASED** | TAK |
 | **STABLE** | TAK |
-| **PRODUCTION VERIFIED** | Po propagacji — `version.json` = **2.51.24** |
+| **PRODUCTION VERIFIED** | `version.json` = **2.53.4** |
+| **UX.1 (Tender Workspace)** | **CLOSED** (UX.1A → UX.1B + ARCH-001) |
 | **P2-F (Kwalifikacja ofertowa)** | **CLOSED** (F.0 → F.5) |
 | **P1 (Dashboard V3 + CC removal + Przetargi 3.0)** | **CLOSED** |
 | **Inspector 2.1** | **2.1.0 + 2.1.1 COMPLETE** · **2.1.2 CANCELLED** |
@@ -84,7 +90,7 @@ PWA (origin/main):      46556a7         20.5Z.2A
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.51.24" }
+# oczekiwane: { "version": "2.53.4" }
 ```
 
 ---
@@ -129,7 +135,12 @@ Chronologia releasów aplikacyjnych na `main` po baseline **2.50.65** (20.5Z.5C)
 | **2.51.22** | P2-F.3 | `7dd7563` | Company Experience Auto-Build |
 | **2.51.23** | P2-F.4 | `77b352a` | Referencje upload + ATH Quick Access |
 | **2.51.24** | **P2-F.5** | **`e015453`** | Works Register Generator PDF/DOCX |
+| **2.53.1** | UX.1A | `8615d0b` | Tender Workspace Cleanup MIN |
+| **2.53.2** | P0 hotfix | `7392c82` | Cykl ESM app-core (biały ekran) |
+| **2.53.3** | ARCH-001 | `53451ed` | Circular dependency prevention |
+| **2.53.4** | **UX.1B** | **`3b5da74`** | **5 workspace tabs · lazy render** |
 
+**Handoff UX.1:** [`SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)  
 **Handoff P2-F:** [`SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md)  
 **Handoff Pulpit (SSOT):** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 **Historyczny Dashboard V2:** [`SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](SESSION-HANDOFF-20.7-DASHBOARD-V2.md) — **nie przywracać** rankera Hero  
@@ -153,6 +164,24 @@ Chronologia releasów aplikacyjnych na `main` po baseline **2.50.65** (20.5Z.5C)
 **UI:** `TenderBidPrepPanel.tsx`, `TenderParticipationPanel.tsx`, `TenderWorksRegisterPanel.tsx`, `CompanyQualificationProfilePanel.tsx`.
 
 **Nie zmieniaj bez polecenia:** merge `kw-company-profile`, semantyka `referenceStatus`, parsery SWZ, reuse ATH viewer.
+
+---
+
+## 3b. UX.1 — Tender Workspace (**CLOSED**)
+
+| Pole | Wartość |
+|------|---------|
+| **Zakres** | UX.1A reorganizacja sekcji → UX.1B 5 workspace tabs · ARCH-001 · P0 hotfix cykli ESM |
+| **Wersja końcowa** | **2.53.4** · commit **`3b5da74`** |
+| **Handoff** | [`SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md) |
+| **Architektura** | [`ARCHITECTURE.md`](ARCHITECTURE.md) § UX.1A/1B · § 11.6 ARCH-001 |
+| **Test regresji** | `npx vite-node scripts/test-tender-workspace-ux.mjs` (48 PASS) |
+
+**Kluczowe pliki:** `tender-workspace-ux.ts`, `TenderDetailPanel.tsx`, `TenderWorkspaceTabBar.tsx`, `TenderDocumentsWorkspace.tsx`, `TenderQualificationWorkspace.tsx`, `TenderOverviewShortcuts.tsx`.
+
+**5 workspace:** Przegląd · Dokumenty · Kwalifikacja · Wycena · Oferta — **max 5, lazy render, Anti-CC**.
+
+**Nie zmieniaj bez polecenia:** struktura 5 tabs, P0 UX RULE (Przegląd ≤ 1 ekran), dedup UX.1A (wycena/kalibracja/ATH), lazy mount ciężkich paneli.
 
 ---
 
@@ -309,8 +338,11 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 |-----------|-------|--------|
 | **P1** | Dashboard V3 + CC removal + Przetargi 3.0 | **CLOSED** (v2.51.x) |
 | **P2-F** | Kwalifikacja ofertowa (F.0–F.5) | **CLOSED** (v2.51.19–2.51.24) |
+| **UX.1** | Tender Workspace (UX.1A/1B) | **CLOSED** (v2.53.1–2.53.4) |
 | **P2** | Audit Center / Security Log (Super Admin) | **OTWARTY** |
-| P2-F.6+ | investorName · auto-pakiet referencji | opcjonalnie, na polecenie |
+| P2-G.3C/D/E | Benchmark rynku · AI Validation · RMS | **OTWARTY** → slot **Wycena** |
+| P2-F.6 | Kompletność oferty (checklist) | **OTWARTY** → slot **Oferta** |
+| P2-F.6+ | investorName w profilu · auto-pakiet referencji | opcjonalnie, na polecenie |
 | **P3** | Dalsze usprawnienia Przetargów | **OTWARTY** (bez polecenia) |
 
 ---
@@ -325,23 +357,27 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 - Seria 20.5Z zamknięta — patrz FINAL handoff
 - **2.1.2** — plan odrzucony, nie wracać do pełnej listy kontaktów w modalu
 - **P2-F merge/parsery** — `kw-company-profile`, filtry śmieci PDF SWZ, ATH viewer reuse
+- **UX.1 workspace model** — max 5 tabs, lazy render, Anti-CC; nie doklejać paneli na scroll
+- **ARCH-001** — brak static import cloud-sync w nowych lib w drzewie merge
 
 ---
 
 ## 13. NASTĘPNY KROK (dla agenta)
 
 ```text
+UX.1 CLOSED (UX.1A → UX.1B · v2.53.4).
 P2-F CLOSED (F.0 → F.5 · v2.51.24).
 P1 CLOSED (Dashboard V3 + Przetargi 3.0 + CC removed).
-Kolejny stream: P2 (Audit Center) lub P2-F.6+ / P3 — tylko na polecenie po AUDIT.
+Kolejny stream: P2-G.3C/D/E (Wycena tab) · P2-F.6 (Oferta tab) · P2 Audit Center — tylko na polecenie po AUDIT.
 Inspector 2.1 — CLOSED (2.1.2 CANCELLED).
 ```
 
 Przy wznowieniu:
 
-1. Przeczytaj **ten plik** + [`SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md) (przy Przetargi) + `CURRENT-TASK.md`
-2. `curl -s https://www.wgdom.fun/version.json` — potwierdź baseline **2.51.24**
-3. `npx vite-node scripts/test-tender-dossier-pipeline.mjs` — przed release P2-F
+1. Przeczytaj **ten plik** + [`SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md) (przy Przetargi) + `CURRENT-TASK.md`
+2. `curl -s https://www.wgdom.fun/version.json` — potwierdź baseline **2.53.4**
+3. `npx vite-node scripts/test-tender-workspace-ux.mjs` — przed release Przetargi UX
+4. `npx vite-node scripts/test-tender-dossier-pipeline.mjs` — przed release P2-F
 4. Stosuj workflow A/B/C z [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md)
 5. Hasło **„kontynuuj WGDOM”** → `.cursor/rules/wgdom-stan-projektu.mdc`
 
@@ -351,6 +387,7 @@ Przy wznowieniu:
 
 | Temat | Dokument |
 |-------|----------|
+| **★ UX.1 Tender Workspace** | `SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md` |
 | **★ P2-F Kwalifikacja ofertowa** | `SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md` |
 | **★ Baseline prod (TEN)** | `PROJECT-HANDOFF-CURRENT.md` |
 | **★ Pulpit V3 (SSOT)** | `SESSION-HANDOFF-DASHBOARD-V3.md` |
@@ -370,10 +407,11 @@ Przy wznowieniu:
 **Werdykt closeout (P2-F):**
 
 ```text
-BASELINE v2.51.24 · STABLE · RELEASE GO (verify version.json)
+BASELINE v2.53.4 · STABLE · RELEASE GO (verify version.json)
+UX.1 CLOSED — 5 workspace tabs · lazy render · Anti-CC · ARCH-001
 P2-F CLOSED — F.0 Formal → F.5 Works Register
 P1 CLOSED — Dashboard V3 · Przetargi 3.0 · Command Center REMOVED
 Inspector 2.1 CLOSED · 2.1.2 CANCELLED
-Open backlog: P2 Audit Center · P3 Przetargi · P2-F.6+ optional
+Open backlog: P2-G.3C/D/E (Wycena) · P2-F.6 (Oferta) · P2 Audit Center · P3 Przetargi
 Ready for new GPT / new Cursor agent
 ```

@@ -1196,6 +1196,8 @@ Architektura **5 workspace** w `TenderDetailPanel` — tylko reorganizacja UI (l
 
 **ARCH-001:** shell i workspace komponenty = czysty UI (bez importu `cloud-sync`).
 
+**Handoff SSOT:** [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)
+
 ### 12.1.4 FAZA 8 — Tender → Job → Execution Ready → Executive (CLOSED)
 
 **Status:** **CLOSED** (8.0–8.4, 8.5 MIN/FULL, 9.0, 9.0.1). **9.0.2+** — nie rozpoczęte bez polecenia.

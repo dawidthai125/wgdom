@@ -8,11 +8,12 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.51.24, commity, decyzje)
-3. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← ★★ P2-F kwalifikacja ofertowa (COMPLETE)
-4. docs/SESSION-HANDOFF-DASHBOARD-V3.md  ← ★★ Pulpit V3 — operacje, liczniki, backlog
-5. CURRENT-TASK.md        ← ★ status sesji / wznowienie
-6. docs/WORKFLOW-RELEASE-DEPLOY.md  ← ★★ release/deploy A/B/C + VERIFY (oficjalny)
+2. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.53.4, commity, decyzje)
+3. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← ★★ UX.1A/1B workspace + ARCH-001 (COMPLETE)
+4. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← ★★ P2-F kwalifikacja ofertowa (COMPLETE)
+5. docs/SESSION-HANDOFF-DASHBOARD-V3.md  ← ★★ Pulpit V3 — operacje, liczniki, backlog
+6. CURRENT-TASK.md        ← ★ status sesji / wznowienie
+7. docs/WORKFLOW-RELEASE-DEPLOY.md  ← ★★ release/deploy A/B/C + VERIFY (oficjalny)
 7. docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md  ← Dashboard V2 (historyczny — nie przywracać Hero)
 8. docs/PROJECT-HANDOFF.md  ← proces AUDIT→RCA→PLAN→IMPLEMENT (baseline → CURRENT)
 9. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md  ← backup baseline 2.50.64
@@ -55,7 +56,8 @@
 | **docs/ARCHITECTURE.md** | Pełny techniczny przewodnik (living document) |
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
-| **docs/PROJECT-HANDOFF-CURRENT.md** | **★ SSOT baseline prod** — wersja, commity, releasy po 20.5Z, decyzje (np. 2.1.2 CANCELLED) |
+| **docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md** | **★★ UX.1 Tender Workspace CLOSED** (2.53.1–2.53.4) — 5 tabs, lazy render, Anti-CC, ARCH-001 |
+| **docs/PROJECT-HANDOFF-CURRENT.md** | **★ SSOT baseline prod** — wersja, commity, releasy po 20.5Z, decyzje |
 | **docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md** | **★ Pre-next-feature** — 5A/5B, backup, storage, komendy |
 | **docs/BACKUP-REPORT-2.50.64.md** | Pre-feature backup v2.50.64 — artefakty, PASS/FAIL |
 | **docs/AUDIT-STORAGE-BACKUP-COMPLETENESS-2.50.64.md** | Audyt storage 100% — bucket, mapa kodu |
@@ -67,6 +69,7 @@
 | **docs/archive/command-center/** | CC historyczny **SUPERSEDED** (v2.51.0) — polonizacja 20.3B archiwum |
 | **docs/SESSION-HANDOFF-2.50-DESKTOP-LAYOUT.md** | Seria **2.50.x CLOSED** — desktop scroll, mobile fix, MID-B, CI |
 | **docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md** | Billing + Roboty **20.3A–20.5A.6 CLOSED** (`99295e5`, v2.50.44) |
+| **docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md** | **UX.1 CLOSED** (2.53.1–2.53.4) — 5 workspace tabs, lazy render, Anti-CC, ARCH-001 |
 | **docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md** | **★★ P2-F CLOSED** (v2.51.19–2.51.24) — kwalifikacja ofertowa, profil wykonawcy, wykaz robót |
 | **docs/SESSION-HANDOFF-DASHBOARD-V3.md** | **★★ Pulpit V3 (SSOT)** — operacje, liczniki, kategorie, backlog P1-B/P2 |
 | **docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md** | Dashboard V2 **historyczny** — Hero usunięty w V3 |
@@ -138,8 +141,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.51.24**) |
-| Prod `main` (app) | **v2.51.24** · P2-F CLOSED · P1 CLOSED · Przetargi 3.0 · CC removed |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.53.4**) |
+| Prod `main` (app) | **v2.53.4** · UX.1 CLOSED · P2-F CLOSED · P1 CLOSED · Przetargi 3.0 · CC removed |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
 | Dashboard V2 docs | [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md) |
