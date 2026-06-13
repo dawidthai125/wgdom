@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.56.8",
+    label: "Przetargi — P2-G.3C benchmark klasyfikacji prod",
+    items: [
+      { type: "improve", text: "Audyt prod KV (WM/ZZK/MOPS/UWr) — metryki pokrycia ATH + TOP UNKNOWN + raport JSON" },
+      { type: "improve", text: "Mapowania prod: zerwanie/uzupełnienie cokolików, brodziki, kabiny, przyłącza gazowe, oprawy, roboty przygotowawcze" },
+      { type: "fix", text: "Seed katalogu: rozdzielenie tapetowania (MALOWANIE) vs ściąganie tapety (ROZBIORKI)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.56.7",
     label: "Przetargi — P3 stabilizacja wyceny i klasyfikacji",
     items: [

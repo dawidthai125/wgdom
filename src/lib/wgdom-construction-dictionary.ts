@@ -68,6 +68,7 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "brodzik plytkowany", "parawan prysznicowy plytki", "silikon sanitarny",
     "uszczelnienie spoin", "impregnacja plytek", "czyszczenie fug", "renowacja fug",
     "montaz listwy plytkowej", "wyciecie otworu w plytce", "zabezpieczenie hydroizolacja",
+    "uzupelnienie cokolikow", "cokolik z plytek",
     "membrana uszczelniajaca", "taśma uszczelniajaca", "taśma w kącie", "narożnik uszczelniajacy",
   ],
   PODLOGI: [
@@ -109,6 +110,8 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "zerowanie", "skutecznosc zerowania", "pomiar skutecznosci zerowania",
     "pomiar skuteczności zerowania", "pomiary elektryczne", "protokol pomiarowy",
     "odbior instalacji elektrycznej", "odbior instalacji", "pierwszy pomiar skutecznosci",
+    "demontaz opraw", "montaz opraw", "wymiana opraw", "oprawy oswietleniowe",
+    "plafonier", "plafoniery", "demontaz plafonier", "montaz plafonier",
   ],
   HYDRAULIKA: [
     "rurociag", "rurociagi", "rurociagi z rur", "kanalizacja", "kanalizacyjne", "kanalizacyjny",
@@ -127,8 +130,8 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "zawor kulowy", "zawor odcinajacy", "zawor czerpalny", "pion kanalizacyjny",
     "pion wodociagowy", "rura pex", "rura miedziana", "rura stalowa", "rura pvc",
     "mieszacz", "mieszacz termostatyczny", "deska ustępowa", "deska ustepowa", "miska ustępowa",
-    "miska ustepowa", "miska wiszaca", "brodzik", "brodzik akrylowy", "kabina prysznicowa",
-    "parawan prysznicowy", "odplyw liniowy", "odplyw punktowy", "syfon podlogowy",
+    "miska ustepowa", "miska wiszaca",     "brodzik", "brodzik akrylowy", "brodzik natryskowy", "brodzikow natryskowych", "kabina prysznicowa",
+    "kabiny prysznicowej", "parawan prysznicowy", "odplyw liniowy", "odplyw punktowy", "syfon podlogowy",
     "instalacja wodna", "instalacja kanalizacyjna",
     "filtr wody", "reduktor cisnienia", "zbiornik wyrównawczy",
     "pompa ciepla instalacja", "uzupelnienie instalacji wod-kan", "próba szczelnosci",
@@ -138,7 +141,8 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "gazowy", "gazowa", "gazowe", "gazomierz", "gazomierza", "gazomierze",
     "zawor gazowy", "zaworu gazowego", "zawory gazowe",
     "instalacja gazowa", "instalacje gazowe", "instalacji gazowej",
-    "przylacze gazowe", "przylacza gazowe", "przylacze elastyczne",
+    "przylacze gazowe", "przylacza gazowe", "przylacze elastyczne", "przylacze elastyczne metalowe",
+    "kuchenka gazowa", "kuchenki gazowej",
     "rurociagi gazowe", "rurociag gazowy", "miedziane lutowane", "rura gazowa",
     "podejscie do gazomierza", "podejscia do gazomierza",
     "przylacze do kuchenki gazowej", "przylaczenie kuchenki gazowej",
@@ -193,6 +197,7 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "wiercenie otworu rozbiórkowe", "piłowanie otworu", "rozbiórka zabudowy",
     "demontaz drzwi", "demontaz okien", "demontaz okna", "sciagniecie tapety", "wykucie fug",
     "rozborka zabudowy", "rozbiórka instalacji", "rozbiórka drzwi", "rozbiórka okien",
+    "zerwanie cokolika", "zerwanie posadzki",
   ],
   ROBOTY_OGOLNOBUDOWLANE: [
     "przebicie otworow", "przebicie otworu", "przebicia otworow", "przebicia w scianach",
@@ -200,6 +205,7 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "zamurowanie otworu", "zamurowanie przebicia", "otwor w scianie", "otwory w scianach",
     "zagospodarowanie terenu", "zagospodarowanie dzialki", "nasadzenia drzew", "nasadzenia krzewow",
     "wykonanie trawnika", "trawnik rolkowy", "siew trawnika", "chodnik betonowy",
+    "roboty przygotowawcze", "przygotowanie stanowiska roboczego",
     "pokrycie dachowe", "pokrycia dachowe", "blachodachowka", "papa termozgrzewalna",
     "wymiana pokrycia dachowego", "remont pokrycia dachowego", "rynna dachowa", "obrobka blacharska",
   ],
@@ -299,4 +305,4 @@ export function listConstructionDictionarySample(limitPerCategory = 5): Record<D
   return out;
 }
 
-export const WGDOM_CONSTRUCTION_DICTIONARY_VERSION = "3.1";
+export const WGDOM_CONSTRUCTION_DICTIONARY_VERSION = "3.2";

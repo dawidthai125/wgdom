@@ -125,6 +125,10 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "regips sciany", category: "GK", match: "contains" },
 
   // —— Hydraulika / wod-kan (INSTALACJE_WODKAN → HYDRAULIKA) ——
+  { pattern: "montaz brodzikow natryskowych", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "wymiana brodzikow natryskowych", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "montaz kabiny prysznicowej", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "wymiana kabiny prysznicowej", category: "HYDRAULIKA", match: "prefix" },
   { pattern: "wymiana podejscia doplywowego do zaworu czerpalnego", category: "HYDRAULIKA", match: "prefix" },
   { pattern: "wymiana podejscia doplywowego", category: "HYDRAULIKA", match: "prefix" },
   { pattern: "wymiana podejscia pvc", category: "HYDRAULIKA", match: "prefix" },
@@ -142,6 +146,8 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "montaz miski ustepowej", category: "HYDRAULIKA", match: "prefix" },
 
   // —— Instalacje gazowe ——
+  { pattern: "przylacze elastyczne metalowe", category: "INSTALACJE_GAZ", match: "prefix" },
+  { pattern: "przylacze elastyczne", category: "INSTALACJE_GAZ", match: "prefix" },
   { pattern: "rurociagi gazowe miedziane", category: "INSTALACJE_GAZ", match: "prefix" },
   { pattern: "rurociagi w instalacjach gazowych", category: "INSTALACJE_GAZ", match: "prefix" },
   { pattern: "wymiana zaworu gazowego", category: "INSTALACJE_GAZ", match: "prefix" },
@@ -181,6 +187,12 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "oznaczenia pomieszczen", category: "WYPOSAZENIE", match: "prefix" },
 
   // —— Elektryka ——
+  { pattern: "demontaz opraw", category: "ELEKTRYKA", match: "contains" },
+  { pattern: "demontaz plafonier", category: "ELEKTRYKA", match: "contains" },
+  { pattern: "montaz plafonier", category: "ELEKTRYKA", match: "contains" },
+  { pattern: "montaz opraw", category: "ELEKTRYKA", match: "contains" },
+  { pattern: "wymiana opraw", category: "ELEKTRYKA", match: "contains" },
+  { pattern: "oprawy oswietleniowe", category: "ELEKTRYKA", match: "contains" },
   { pattern: "pomiar skutecznosci zerowania", category: "ELEKTRYKA", match: "contains" },
   { pattern: "pierwszy pomiar skutecznosci", category: "ELEKTRYKA", match: "prefix" },
   { pattern: "pomiary elektryczne", category: "ELEKTRYKA", match: "contains" },
@@ -227,6 +239,8 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "licowanie posadzki", category: "PODLOGI", match: "contains" },
 
   // —— Roboty ogólnobudowlane ——
+  { pattern: "roboty przygotowawcze", category: "ROBOTY_OGOLNOBUDOWLANE", match: "contains" },
+  { pattern: "przygotowanie stanowiska roboczego", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
   { pattern: "zagospodarowanie terenu", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
   { pattern: "zagospodarowanie dzialki", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
   { pattern: "nasadzenia drzew", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
@@ -251,6 +265,8 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "sciagniecie tapety", category: "ROZBIORKI", match: "contains" },
   { pattern: "wykucie fug", category: "ROZBIORKI", match: "contains" },
   { pattern: "rozborka zabudowy", category: "ROZBIORKI", match: "contains" },
+  { pattern: "zerwanie cokolika", category: "ROZBIORKI", match: "contains" },
+  { pattern: "uzupelnienie cokolikow", category: "GLAZURA", match: "prefix" },
   { pattern: "demontaz posadzki", category: "ROZBIORKI", match: "contains" },
   { pattern: "skuwanie plytek", category: "ROZBIORKI", match: "contains" },
   { pattern: "skuwanie tynku", category: "ROZBIORKI", match: "contains" },
@@ -267,4 +283,4 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "montaz parapetu", category: "STOLARKA", match: "contains" },
 ];
 
-export const WGDOM_PHRASE_RULES_VERSION = "3.1";
+export const WGDOM_PHRASE_RULES_VERSION = "3.2";

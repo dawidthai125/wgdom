@@ -1,0 +1,25 @@
+{
+  "generatedAt": "2026-06-13T22:00:00.000Z",
+  "baselineVersion": "2.56.7",
+  "source": "live-kv",
+  "athPrzedmiarTenders": 3,
+  "globalAth": {
+    "totalRows": 303,
+    "classifiedRows": 303,
+    "unknownRows": 0,
+    "classifiedPercent": 100,
+    "unknownPercent": 0,
+    "seedUnknownRows": 16,
+    "seedUnknownPercent": 5.3
+  },
+  "topUnknownSeed": [
+    { "description": "Zerwanie cokolika wys. 5-10cm", "count": 5 },
+    { "description": "Uzupełnienie cokolików o długości ponad 1 m z płytek gresowych 10x30 cm", "count": 5 },
+    { "description": "Przyłącze  elastyczne  metalowe długości 1,0m do  kuchenki  gazowej.", "count": 2 },
+    { "description": "Montaż  brodzików natryskowych.", "count": 1 },
+    { "description": "Montaż  kabiny  prysznicowej  brodzika.", "count": 1 },
+    { "description": "Wymiana  brodzików natryskowych.", "count": 1 },
+    { "description": "Wymiana  kabiny  prysznicowej  brodzika.", "count": 1 }
+  ],
+  "note": "Pełny klasyfikator 100% już na v2.56.7; luka w warstwie seed (katalog+frazy) = 16 poz. na 303"
+}

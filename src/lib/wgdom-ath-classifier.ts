@@ -16,6 +16,7 @@ import { matchUserClassificationDictionary } from "@/lib/wgdom-user-classificati
 export function foldPolishText(s: string): string {
   return s
     .toLowerCase()
+    .replace(/\s+/g, " ")
     .replace(/ą/g, "a")
     .replace(/ć/g, "c")
     .replace(/ę/g, "e")

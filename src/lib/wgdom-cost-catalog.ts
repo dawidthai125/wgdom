@@ -95,7 +95,7 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
       { unit: "mb", materialPlnPerUnit: 8, laborRbhPerUnit: 0.1 },
       { unit: "m3", materialPlnPerUnit: 25, laborRbhPerUnit: 0.35 },
     ],
-    keywords: ["rozbior", "demonta", "wyburz", "skucie", "zdjec", "usuwanie", "sciagniecie tapety", "skuwanie tapety"],
+    keywords: ["rozbior", "demontaz posadz", "demontaz drzwi", "demontaz okien", "demontaz okna", "demontaz instalac", "demontaz grzejnik", "demontaz podlog", "demontaz scian", "demontaz sufit", "demontaz armat", "demontaz obudow", "demontaz wan", "demontaz umywalk", "wyburz", "skucie", "zdjec", "usuwanie", "sciagniecie tapety", "skuwanie tapety", "zerwanie cokolik", "zerwanie posadzki"],
   },
   {
     id: "ROBOTY_OGOLNOBUDOWLANE",
@@ -105,7 +105,7 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
       { unit: "mb", materialPlnPerUnit: 18, laborRbhPerUnit: 0.2 },
       { unit: "m2", materialPlnPerUnit: 12, laborRbhPerUnit: 0.18 },
     ],
-    keywords: ["przebicie otwor", "przebicia otwor", "zamurowanie", "zamurowania", "zamurowanie przebic", "zagospodarowanie terenu", "zagospodarowanie dzialki", "nasadzenia", "trawnik", "pokrycie dachowe", "blachodachowka"],
+    keywords: ["przebicie otwor", "przebicia otwor", "zamurowanie", "zamurowania", "zamurowanie przebic", "zagospodarowanie terenu", "zagospodarowanie dzialki", "nasadzenia", "trawnik", "pokrycie dachowe", "blachodachowka", "roboty przygotowawcze", "przygotowanie stanowiska"],
     marketRefNote: "P2-G.2C — przebicia, zamurowania (WM/ZZK/MOPS pustostany)",
   },
   {
@@ -141,14 +141,14 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
     id: "MALOWANIE",
     labelPl: "Malowanie",
     rates: [{ unit: "m2", materialPlnPerUnit: 8, laborRbhPerUnit: 0.16 }],
-    keywords: ["malow", "emali", "farb", "gruntow", "tapet", "lakier"],
+    keywords: ["malow", "emali", "farb", "gruntow", "tapetow", "lakier"],
     marketRefNote: "Pakiet materiałowy średni — farba + grunt",
   },
   {
     id: "GLAZURA",
     labelPl: "Glazura / płytki",
     rates: [{ unit: "m2", materialPlnPerUnit: 45, laborRbhPerUnit: 0.42 }],
-    keywords: ["glazur", "plytk", "kafel", "fugow", "hydroizol", "ceram"],
+    keywords: ["glazur", "plytk", "kafel", "fugow", "hydroizol", "ceram", "uzupelnienie cokolik", "cokolik.*plytk"],
   },
   {
     id: "PODLOGI",
@@ -169,7 +169,7 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
     ],
     keywords: [
       "elektr", "gniazd", "wlacznik", "oswietl", "przewod", "rozdziel", "instalac.*elektr",
-      "zerow", "pomiar", "protokol", "odbior instal", "skutecznosci zerowania",
+      "zerow", "pomiar", "protokol", "odbior instal", "skutecznosci zerowania", "opraw", "demontaz opraw", "plafonier", "demontaz plafonier",
     ],
   },
   {
@@ -182,7 +182,7 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
     ],
     keywords: [
       "instalac.*gaz", "gazomier", "zawor gaz", "przylacze gaz", "rurociag.*gaz",
-      "miedziane lutowane",
+      "miedziane lutowane", "przylacze elastyczne", "kuchenka gazowa", "kuchenki gazowej",
     ],
     marketRefNote: "P2-G.2C — instalacje gazowe (≠ wyposażenie AGD/kuchnia)",
   },
@@ -216,7 +216,7 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
     keywords: [
       "hydrau", "rura", "rurociag", "kanaliz", "wod-kan", "wodociag", "armatur", "wc", "sanit",
       "instalac.*wod", "bateri", "umywalk", "zlewozmywak", "ustep", "miska ustep", "polipropylen",
-      "thermaflex", "zawor czerpal", "podejscie doplyw", "pvc",
+      "thermaflex", "zawor czerpal", "podejscie doplyw", "pvc", "brodzik", "kabina prysznic", "natryskow",
     ],
   },
   {

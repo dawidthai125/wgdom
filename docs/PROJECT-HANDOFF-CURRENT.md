@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-13 (P3 UX Stabilization · v2.56.7)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-13 (P2-G.3C · v2.56.8)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -63,8 +63,8 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version:              2.56.7        ← baseline P3 UX Stabilization (wycena + klasyfikacja)
-P3.4A:                2.56.6         Historia materiałów + wpływ
+Version:              2.56.8        ← baseline P2-G.3C classification benchmark
+P3 UX Stabilization:  2.56.7         Wycena cleanup + słowniki 3.1
 P3.3D:                2.56.5         Benchmark Impact
 P3.3B:                2.56.4         Benchmark robocizny PRO
 P3.3A:                2.56.3         Benchmark robocizny MVP

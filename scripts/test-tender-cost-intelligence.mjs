@@ -1132,6 +1132,23 @@ for (const [desc, unit, expected] of p3StabCases) {
 }
 assertEq(classifyAthLineCategory("Roboty ogólne budowlane", "kpl"), "UNKNOWN", "P3 stab generic still UNKNOWN");
 
+console.log("\n26. P2-G.3C — prod classification benchmark (ZZK/Falzmanna)");
+const p3g3cProdCases = [
+  ["Zerwanie cokolika wys. 5-10cm", "mb", "ROZBIORKI"],
+  ["Uzupełnienie cokolików o długości ponad 1 m z płytek gresowych", "mb", "GLAZURA"],
+  ["Przyłącze elastyczne metalowe długości 1,0m do kuchenki gazowej", "szt", "INSTALACJE_GAZ"],
+  ["Montaż brodzików natryskowych", "szt", "HYDRAULIKA"],
+  ["Wymiana kabiny prysznicowej brodzika", "szt", "HYDRAULIKA"],
+  ["Demontaż plafonier przykręcanych", "szt", "ELEKTRYKA"],
+  ["Demontaż opraw oświetleniowych", "szt", "ELEKTRYKA"],
+  ["Roboty przygotowawcze na budowie", "kpl", "ROBOTY_OGOLNOBUDOWLANE"],
+  ["Wywóz gruzu budowlanego", "m3", "TRANSPORT_UTYLIZACJA"],
+];
+for (const [desc, unit, expected] of p3g3cProdCases) {
+  assertEq(classifyAthLineCategory(desc, unit), expected, `P2-G.3C prod: ${desc.slice(0, 40)} → ${expected}`);
+  assertEq(classifyAthLineCategoryWithoutDictionary(desc, unit), expected, `P2-G.3C seed: ${desc.slice(0, 40)} → ${expected}`);
+}
+
 console.log(`\n---\nPASS: ${passed}  FAIL: ${failed}  TOTAL: ${passed + failed}`);
 if (failed > 0) {
   process.exit(1);

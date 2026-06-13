@@ -1,0 +1,109 @@
+{
+  "generatedAt": "2026-06-13T22:49:54.540Z",
+  "source": "live-kv",
+  "pipelineItems": 89,
+  "tendersWithCatalog": 3,
+  "athPrzedmiarTenders": 3,
+  "excludedFormXlsx": [],
+  "globalAth": {
+    "tendersWithKosztorys": 3,
+    "totalRows": 303,
+    "classifiedRows": 303,
+    "unknownRows": 0,
+    "classifiedPercent": 100,
+    "unknownPercent": 0,
+    "seedUnknownRows": 0,
+    "seedUnknownPercent": 0
+  },
+  "byBucket": {
+    "wm": {
+      "label": "Wrocławskie Mieszkania",
+      "tendersWithKosztorys": 0,
+      "totalRows": 0,
+      "classifiedRows": 0,
+      "unknownRows": 0,
+      "classifiedPercent": 0,
+      "unknownPercent": 0,
+      "seedUnknownRows": 0,
+      "seedUnknownPercent": 0,
+      "tenders": []
+    },
+    "zzk": {
+      "label": "ZZK",
+      "tendersWithKosztorys": 2,
+      "totalRows": 82,
+      "classifiedRows": 82,
+      "unknownRows": 0,
+      "classifiedPercent": 100,
+      "unknownPercent": 0,
+      "seedUnknownRows": 0,
+      "seedUnknownPercent": 0,
+      "tenders": [
+        {
+          "title": "Remont gminnych lokali mieszkalnych – pustostanów położonych we Wrocławiu – 2 Za",
+          "rows": 41,
+          "unknown": 0,
+          "seedUnknown": 0,
+          "coverage": 100,
+          "file": "PIASKOWA  7  m 3  - SANITARNY - aktual - zest.ATH"
+        },
+        {
+          "title": "ZZK-NZ/241/3408/51/26 Remont gminnych lokali mieszkalnych –pustostanów położonyc",
+          "rows": 41,
+          "unknown": 0,
+          "seedUnknown": 0,
+          "coverage": 100,
+          "file": "RDESTOWA  7  m 9 - SANITARNY - zest.ATH"
+        }
+      ]
+    },
+    "mops": {
+      "label": "MOPS",
+      "tendersWithKosztorys": 0,
+      "totalRows": 0,
+      "classifiedRows": 0,
+      "unknownRows": 0,
+      "classifiedPercent": 0,
+      "unknownPercent": 0,
+      "seedUnknownRows": 0,
+      "seedUnknownPercent": 0,
+      "tenders": []
+    },
+    "uwr": {
+      "label": "Uniwersytet Wrocławski",
+      "tendersWithKosztorys": 0,
+      "totalRows": 0,
+      "classifiedRows": 0,
+      "unknownRows": 0,
+      "classifiedPercent": 0,
+      "unknownPercent": 0,
+      "seedUnknownRows": 0,
+      "seedUnknownPercent": 0,
+      "tenders": []
+    },
+    "other": {
+      "label": "Inne prod (losowe)",
+      "tendersWithKosztorys": 1,
+      "totalRows": 221,
+      "classifiedRows": 221,
+      "unknownRows": 0,
+      "classifiedPercent": 100,
+      "unknownPercent": 0,
+      "seedUnknownRows": 0,
+      "seedUnknownPercent": 0,
+      "tenders": [
+        {
+          "title": "Modernizacja klatek schodowych z wymianą oświetlenia w budynkach mieszkalnych we",
+          "rows": 221,
+          "unknown": 0,
+          "seedUnknown": 0,
+          "coverage": 100,
+          "file": "Falzmanna 17-25.ATH"
+        }
+      ]
+    }
+  },
+  "topUnknownFull": [],
+  "topUnknownSeed": [],
+  "phraseHints": []
+}

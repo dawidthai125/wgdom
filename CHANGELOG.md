@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.56.8 — P2-G.3C benchmark klasyfikacji prod
+- Audyt prod KV: 303 poz. ATH (ZZK×2, Falzmanna) — seed UNKNOWN 16→0
+- Mapowania: cokoliki, brodziki, kabiny, przyłącza gaz, plafoniery, roboty przygotowawcze
+- `foldPolishText` normalizuje wielokrotne spacje (ATH prod)
+
 ## 2.56.7 — P3 stabilizacja wyceny i klasyfikacji
 - Wycena UX: 1 alert, zwinięte Benchmark/Materiały/Pozycje/Szczegóły
 - Słowniki klasyfikacji 3.1: bruk, dachy, izolacje, zagospodarowanie, rozbiórki
