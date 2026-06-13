@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-13 (P3.3A · v2.56.3)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-13 (P3 UX Stabilization · v2.56.7)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -63,10 +63,11 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version:              2.56.3        ← baseline P3.3A (benchmark robocizny MVP)
-P3.5B:                2.56.2         Override cen per przetarg
-P3.5:                 2.56.1         Ceny per pozycja kosztorysu
-P3.1/P3.2.0:          2.56.0         Wycena hero KPI + zakładka Baza cen
+Version:              2.56.7        ← baseline P3 UX Stabilization (wycena + klasyfikacja)
+P3.4A:                2.56.6         Historia materiałów + wpływ
+P3.3D:                2.56.5         Benchmark Impact
+P3.3B:                2.56.4         Benchmark robocizny PRO
+P3.3A:                2.56.3         Benchmark robocizny MVP
 Feature commit (P2-H.5C/5D): (po push) fix(tenders): improve pdf no-text handling and multi-ath ranking
 P2-H.5B:              2.55.9         Heurystyki KNR PDF
 P2-H.6:               2.55.7         filtr folderów ZIP/7Z

@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.6** · P3.4A)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P3.3A benchmark robocizny)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.7** · P3 UX Stabilization)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P3 UX Stabilization)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1130,6 +1130,14 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 **Backlog:** split STOLARKA — tylko na polecenie po audycie misclassification.
 
 **P2-G.3B — Historical Cost Calibration (MIN):**
+
+**P3 UX Stabilization (v2.56.7 CLOSED):** uproszczenie Wyceny + jakość klasyfikacji; **benchmark materiałów rynku HOLD**.
+
+| Element | Opis | Plik |
+|---------|------|------|
+| Wycena UX | 1 główny alert; „Pokaż pozostałe alerty”; Benchmark/Materiały/Pozycje/Szczegóły zwinięte | `TenderBidProposalPanel.tsx` |
+| Słowniki 3.1 | Bruk → PODLOGI; dachy/zagospodarowanie → ROBOTY_OGOLNOBUDOWLANE; izolacje/tynki → GLADZIE_TYNKI | `wgdom-phrase-rules.ts`, `wgdom-construction-dictionary.ts` |
+| HOLD | Brak Leroy/Castorama/OBI/crawlerów/API zewnętrznych dla materiałów | — |
 
 **P3.1 — Wycena UX (v2.56.0 CLOSED):** Hero KPI bez scrollu; marża = `(recommended − costPrice) / costPrice`; breakdown domyślnie zwinięty (`breakdownOpen=false`).
 

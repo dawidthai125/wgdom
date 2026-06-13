@@ -809,7 +809,7 @@ assert(summaryVent.categories.some((c) => c.id === "TRANSPORT_UTYLIZACJA" && c.c
 
 console.log("\n21. P2-G.2D — Phrase-Based Classification");
 assertGte(countWgdomPhraseRules(), 40, "AC-D1 at least 40 phrase rules");
-assert(countWgdomPhraseRules() <= 120, "phrase rules bounded");
+assert(countWgdomPhraseRules() <= 175, "phrase rules bounded");
 assertEq(
   classifyAthLineCategory("Narożniki z kątownika aluminiowego 30x30x2 mm", "mb"),
   "GLADZIE_TYNKI",
@@ -1110,6 +1110,27 @@ assertEq(
   "INSTALACJE_CO",
   "P2-G.2D CO konwektory dict",
 );
+
+console.log("\n25. P3 UX Stabilization — classification coverage (v2.56.7)");
+const p3StabCases = [
+  ["Układanie kostki brukowej na podsypce", "m2", "PODLOGI"],
+  ["Nawierzchnia brukowa z kostki betonowej", "m2", "PODLOGI"],
+  ["Zagospodarowanie terenu wokół budynku", "kpl", "ROBOTY_OGOLNOBUDOWLANE"],
+  ["Wykonanie trawnika rolkowego", "m2", "ROBOTY_OGOLNOBUDOWLANE"],
+  ["Wymiana pokrycia dachowego blachodachówką", "m2", "ROBOTY_OGOLNOBUDOWLANE"],
+  ["Papa termozgrzewalna na dachu płaskim", "m2", "ROBOTY_OGOLNOBUDOWLANE"],
+  ["Izolacja termiczna ściany zewnętrznej styropianem", "m2", "GLADZIE_TYNKI"],
+  ["Ocieplenie ścian wełną mineralną", "m2", "GLADZIE_TYNKI"],
+  ["Tynk maszynowy na ścianach", "m2", "GLADZIE_TYNKI"],
+  ["Demontaż drzwi wewnętrznych starych", "szt", "ROZBIORKI"],
+  ["Ściągnięcie tapety ze ścian", "m2", "ROZBIORKI"],
+  ["Osadzenie okna PCV w ościeżnicy", "szt", "STOLARKA"],
+  ["Montaż framugi drzwiowej", "szt", "STOLARKA"],
+];
+for (const [desc, unit, expected] of p3StabCases) {
+  assertEq(classifyAthLineCategory(desc, unit), expected, `P3 stab: ${desc.slice(0, 42)} → ${expected}`);
+}
+assertEq(classifyAthLineCategory("Roboty ogólne budowlane", "kpl"), "UNKNOWN", "P3 stab generic still UNKNOWN");
 
 console.log(`\n---\nPASS: ${passed}  FAIL: ${failed}  TOTAL: ${passed + failed}`);
 if (failed > 0) {

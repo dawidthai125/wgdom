@@ -102,6 +102,19 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "gladz gipsowa", category: "GLADZIE_TYNKI", match: "prefix" },
   { pattern: "tynk wapienny", category: "GLADZIE_TYNKI", match: "contains" },
   { pattern: "tynk gipsowy", category: "GLADZIE_TYNKI", match: "contains" },
+  { pattern: "tynk maszynowy", category: "GLADZIE_TYNKI", match: "contains" },
+  { pattern: "tynk reczny", category: "GLADZIE_TYNKI", match: "contains" },
+  { pattern: "tynkowanie scian", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "wykonanie tynku", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "gladzenie scian", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "wykonanie gladzi", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "izolacja termiczna", category: "GLADZIE_TYNKI", match: "contains" },
+  { pattern: "izolacja sciany", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "izolacja scian", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "welna mineralna", category: "GLADZIE_TYNKI", match: "contains" },
+  { pattern: "styropian sciany", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "ocieplenie sciany", category: "GLADZIE_TYNKI", match: "prefix" },
+  { pattern: "ocieplenie scian", category: "GLADZIE_TYNKI", match: "prefix" },
 
   // —— GK — zabudowa sucha ——
   { pattern: "montaz profili cd", category: "GK", match: "contains" },
@@ -203,28 +216,55 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "hydroizolacja pod plytki", category: "GLAZURA", match: "prefix" },
 
   // —— Podłogi ——
+  { pattern: "ukladanie kostki brukowej", category: "PODLOGI", match: "prefix" },
+  { pattern: "ukladanie kostki", category: "PODLOGI", match: "prefix" },
+  { pattern: "nawierzchnia brukowa", category: "PODLOGI", match: "contains" },
+  { pattern: "podklad pod kostke", category: "PODLOGI", match: "prefix" },
+  { pattern: "roboty brukarskie", category: "PODLOGI", match: "contains" },
   { pattern: "ukladanie paneli podlogowych", category: "PODLOGI", match: "prefix" },
   { pattern: "montaz cokolika", category: "PODLOGI", match: "contains" },
   { pattern: "wylewka samopoziomujaca", category: "PODLOGI", match: "contains" },
   { pattern: "licowanie posadzki", category: "PODLOGI", match: "contains" },
 
   // —— Roboty ogólnobudowlane ——
+  { pattern: "zagospodarowanie terenu", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
+  { pattern: "zagospodarowanie dzialki", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
+  { pattern: "nasadzenia drzew", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
+  { pattern: "nasadzenia krzewow", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
+  { pattern: "wykonanie trawnika", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
+  { pattern: "pokrycie dachowe", category: "ROBOTY_OGOLNOBUDOWLANE", match: "contains" },
+  { pattern: "wymiana pokrycia dachowego", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
+  { pattern: "remont pokrycia dachowego", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
+  { pattern: "blachodachowka", category: "ROBOTY_OGOLNOBUDOWLANE", match: "contains" },
+  { pattern: "papa termozgrzewalna", category: "ROBOTY_OGOLNOBUDOWLANE", match: "contains" },
   { pattern: "przebicie otworow w scianach", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
   { pattern: "przebicie otworow", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
   { pattern: "zamurowanie przebic", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
   { pattern: "zamurowanie otworow", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
 
   // —— Rozbiórki ——
+  { pattern: "demontaz drzwi", category: "ROZBIORKI", match: "contains" },
+  { pattern: "demontaz okien", category: "ROZBIORKI", match: "contains" },
+  { pattern: "demontaz okna", category: "ROZBIORKI", match: "contains" },
+  { pattern: "demontaz instalacji elektrycznej", category: "ROZBIORKI", match: "prefix" },
+  { pattern: "demontaz instalacji", category: "ROZBIORKI", match: "contains" },
+  { pattern: "sciagniecie tapety", category: "ROZBIORKI", match: "contains" },
+  { pattern: "wykucie fug", category: "ROZBIORKI", match: "contains" },
+  { pattern: "rozborka zabudowy", category: "ROZBIORKI", match: "contains" },
   { pattern: "demontaz posadzki", category: "ROZBIORKI", match: "contains" },
   { pattern: "skuwanie plytek", category: "ROZBIORKI", match: "contains" },
   { pattern: "skuwanie tynku", category: "ROZBIORKI", match: "contains" },
   { pattern: "rozbiorka sciany dzialowej", category: "ROZBIORKI", match: "prefix" },
 
   // —— Stolarka ——
+  { pattern: "osadzenie okna", category: "STOLARKA", match: "contains" },
+  { pattern: "osadzenie okien", category: "STOLARKA", match: "contains" },
+  { pattern: "montaz framugi", category: "STOLARKA", match: "contains" },
+  { pattern: "montaz framug", category: "STOLARKA", match: "contains" },
   { pattern: "montaz oscieznic", category: "STOLARKA", match: "contains" },
   { pattern: "wymiana drzwi", category: "STOLARKA", match: "contains" },
   { pattern: "wymiana okien", category: "STOLARKA", match: "contains" },
   { pattern: "montaz parapetu", category: "STOLARKA", match: "contains" },
 ];
 
-export const WGDOM_PHRASE_RULES_VERSION = "2D.1";
+export const WGDOM_PHRASE_RULES_VERSION = "3.1";

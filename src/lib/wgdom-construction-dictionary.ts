@@ -50,6 +50,10 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "wzmocnienie naroznikow", "obrobka naroznikow", "listwa tynkarska", "listwy tynkarskie",
     "szlifowanie gladzi", "wypelnienie szczelin",
     "naprawa tynku", "uzupelnienie tynku",
+    "tynk maszynowy", "tynk reczny", "tynkowanie scian", "tynkowanie",
+    "izolacja termiczna", "izolacja sciany", "izolacja scian", "izolacja scian zewnetrznych",
+    "welna mineralna", "styropian sciany", "styropian fasadowy", "ocieplenie sciany", "ocieplenie scian",
+    "piana pur", "folia paroizolacyjna sciany", "klej do styropianu",
   ],
   GLAZURA: [
     "fugowanie", "fuga", "fugi", "spoina", "spoiny", "klinkier", "gres", "gres porcelanowy",
@@ -84,6 +88,9 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "renowacja posadzki", "naprawa posadzki", "uzupelnienie posadzki", "posadzka terrazzo",
     "posadzka epoksydowa", "posadzka przemyslowa", "posadzka betonowa polerowana",
     "izolacja podlogowa", "folia paroizolacyjna pod posadzke", "styropian pod posadzke",
+    "kostka brukowa", "kostki brukowe", "ukladanie kostki", "ukladanie kostki brukowej",
+    "nawierzchnia brukowa", "podklad pod kostke", "roboty brukarskie", "podsypka piaskowa",
+    "obrzeza brukowe", "obrzeze brukowe", "krawężnik", "kraweznik betonowy",
   ],
   ELEKTRYKA: [
     "puszka instalacyjna", "puszki instalacyjne", "puszka podtynkowa", "puszka natynkowa",
@@ -184,11 +191,17 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "usuwanie fug", "usuwanie kleju", "usuwanie warstw", "sciąganie posadzki",
     "sciąganie parkietu", "sciąganie plytek", "sciąganie tynku", "rozciecie sciany",
     "wiercenie otworu rozbiórkowe", "piłowanie otworu", "rozbiórka zabudowy",
+    "demontaz drzwi", "demontaz okien", "demontaz okna", "sciagniecie tapety", "wykucie fug",
+    "rozborka zabudowy", "rozbiórka instalacji", "rozbiórka drzwi", "rozbiórka okien",
   ],
   ROBOTY_OGOLNOBUDOWLANE: [
     "przebicie otworow", "przebicie otworu", "przebicia otworow", "przebicia w scianach",
     "zamurowanie", "zamurowania", "zamurowanie przebic", "zamurowanie otworow",
     "zamurowanie otworu", "zamurowanie przebicia", "otwor w scianie", "otwory w scianach",
+    "zagospodarowanie terenu", "zagospodarowanie dzialki", "nasadzenia drzew", "nasadzenia krzewow",
+    "wykonanie trawnika", "trawnik rolkowy", "siew trawnika", "chodnik betonowy",
+    "pokrycie dachowe", "pokrycia dachowe", "blachodachowka", "papa termozgrzewalna",
+    "wymiana pokrycia dachowego", "remont pokrycia dachowego", "rynna dachowa", "obrobka blacharska",
   ],
   STOLARKA: [
     "oscieznica", "oscieznic", "oscieznica stalowa", "oscieznica drewniana",
@@ -208,6 +221,7 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "listwa przypokojowa", "listwa ościeżnicowa", "maskownica ościeżnicy",
     "okno pcv", "okno drewniane", "drzwi wewnetrzne", "drzwi zewnetrzne", "drzwi antywlamaniowe",
     "drzwi techniczne", "drzwi rewizyjne", "kontaktownik drzwiowy", "samozamykacz",
+    "osadzenie okna", "osadzenie okien", "montaz framugi", "montaz framug",
   ],
   WYPOSAZENIE: [
     "tabliczka", "tabliczki", "tabliczka opisowa", "tabliczki opisowe",
@@ -285,4 +299,4 @@ export function listConstructionDictionarySample(limitPerCategory = 5): Record<D
   return out;
 }
 
-export const WGDOM_CONSTRUCTION_DICTIONARY_VERSION = "2D.1";
+export const WGDOM_CONSTRUCTION_DICTIONARY_VERSION = "3.1";

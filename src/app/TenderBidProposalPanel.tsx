@@ -219,7 +219,7 @@ export function TenderBidProposalPanel({
     if (proposal.qualityDetailPl && proposal.qualityLevel !== "high") {
       list.push(proposal.qualityDetailPl);
     }
-    return { top: list.slice(0, 3), more: list.slice(3) };
+    return { top: list.slice(0, 1), more: list.slice(1) };
   })();
 
   if (!proposal?.ok) {
@@ -362,57 +362,6 @@ export function TenderBidProposalPanel({
         </details>
       )}
 
-      {laborBenchmarkAlerts && laborBenchmarkAlerts.outOfRangeCount > 0 && (
-        <details className="mx-3 mt-0 mb-0 rounded-lg border border-amber-500/30 bg-amber-500/8 px-2.5 py-2 text-[10px]">
-          <summary className="cursor-pointer font-semibold text-amber-800 dark:text-amber-200 flex items-center gap-1">
-            <AlertTriangle size={11} className="shrink-0" />
-            {laborBenchmarkAlerts.outOfRangeCount}{" "}
-            {laborBenchmarkAlerts.outOfRangeCount === 1 ? "kategoria poza" : "kategorie poza"} benchmarkiem robocizny
-          </summary>
-          <ul className="mt-1.5 space-y-1 list-none text-muted-foreground">
-            {laborBenchmarkAlerts.items.map((item) => (
-              <li key={item.categoryLabel}>
-                <strong className="text-foreground">{item.categoryLabel}</strong>
-                {" — "}{item.statusLabelPl}
-                {" · "}{item.ourLaborPlnPerUnit.toLocaleString("pl-PL")} zł vs {item.rangeLabelPl}
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
-
-      <div className="px-3 py-2 border-b border-violet-500/10 grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-1 text-[10px]">
-        <p>
-          <span className="text-muted-foreground">Źródło:</span>{" "}
-          <strong>{proposal.sourceLabelPl ?? "—"}</strong>
-        </p>
-        <p>
-          <span className="text-muted-foreground">Jakość:</span>{" "}
-          {proposal.qualityLabelPl ? (
-            <span className={`inline-flex px-1.5 py-0.5 rounded border font-medium ${qualityBadgeClass(proposal.qualityLevel)}`}>
-              {proposal.qualityLabelPl}
-            </span>
-          ) : (
-            <strong>—</strong>
-          )}
-        </p>
-        <p>
-          <span className="text-muted-foreground">Ref. SWZ:</span>{" "}
-          {referenceValuePln != null ? (
-            <>
-              <strong className="font-mono">{fmtPln(referenceValuePln)}</strong>
-              {refDeltaPct != null && (
-                <span className={refDeltaPct <= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}>
-                  {" "}({refDeltaPct > 0 ? "+" : ""}{refDeltaPct.toFixed(1)}%)
-                </span>
-              )}
-            </>
-          ) : (
-            <strong>—</strong>
-          )}
-        </p>
-      </div>
-
       {bidAlerts.top.length > 0 && (
         <div className="px-3 py-2 border-b border-violet-500/10 space-y-1.5">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Alerty wyceny</p>
@@ -424,7 +373,9 @@ export function TenderBidProposalPanel({
           ))}
           {bidAlerts.more.length > 0 && (
             <details className="text-[10px] text-muted-foreground">
-              <summary className="cursor-pointer hover:text-foreground">Więcej alertów ({bidAlerts.more.length})</summary>
+              <summary className="cursor-pointer hover:text-foreground">
+                Pokaż pozostałe alerty ({bidAlerts.more.length})
+              </summary>
               <ul className="mt-1 space-y-1 list-none">
                 {bidAlerts.more.map((w) => (
                   <li key={w} className="flex items-start gap-1.5 bg-amber-500/5 rounded px-2 py-1">
@@ -444,6 +395,57 @@ export function TenderBidProposalPanel({
           Szczegóły
         </summary>
         <div className="mt-2 space-y-3 pb-1">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-1 text-[10px]">
+            <p>
+              <span className="text-muted-foreground">Źródło:</span>{" "}
+              <strong>{proposal.sourceLabelPl ?? "—"}</strong>
+            </p>
+            <p>
+              <span className="text-muted-foreground">Jakość:</span>{" "}
+              {proposal.qualityLabelPl ? (
+                <span className={`inline-flex px-1.5 py-0.5 rounded border font-medium ${qualityBadgeClass(proposal.qualityLevel)}`}>
+                  {proposal.qualityLabelPl}
+                </span>
+              ) : (
+                <strong>—</strong>
+              )}
+            </p>
+            <p>
+              <span className="text-muted-foreground">Ref. SWZ:</span>{" "}
+              {referenceValuePln != null ? (
+                <>
+                  <strong className="font-mono">{fmtPln(referenceValuePln)}</strong>
+                  {refDeltaPct != null && (
+                    <span className={refDeltaPct <= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}>
+                      {" "}({refDeltaPct > 0 ? "+" : ""}{refDeltaPct.toFixed(1)}%)
+                    </span>
+                  )}
+                </>
+              ) : (
+                <strong>—</strong>
+              )}
+            </p>
+          </div>
+
+          {laborBenchmarkAlerts && laborBenchmarkAlerts.outOfRangeCount > 0 && (
+            <details className="rounded-lg border border-amber-500/30 bg-amber-500/8 px-2.5 py-2 text-[10px]">
+              <summary className="cursor-pointer font-semibold text-amber-800 dark:text-amber-200 flex items-center gap-1">
+                <AlertTriangle size={11} className="shrink-0" />
+                {laborBenchmarkAlerts.outOfRangeCount}{" "}
+                {laborBenchmarkAlerts.outOfRangeCount === 1 ? "kategoria poza" : "kategorie poza"} benchmarkiem robocizny
+              </summary>
+              <ul className="mt-1.5 space-y-1 list-none text-muted-foreground">
+                {laborBenchmarkAlerts.items.map((item) => (
+                  <li key={item.categoryLabel}>
+                    <strong className="text-foreground">{item.categoryLabel}</strong>
+                    {" — "}{item.statusLabelPl}
+                    {" · "}{item.ourLaborPlnPerUnit.toLocaleString("pl-PL")} zł vs {item.rangeLabelPl}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+
           {catalogLinePricing && (
             <details className="rounded-lg border border-violet-500/20 bg-violet-500/5 overflow-hidden group/lines">
               <summary className="cursor-pointer px-2.5 py-2 text-[10px] font-semibold text-violet-900 dark:text-violet-200 hover:bg-violet-500/10 list-none flex items-center gap-1">

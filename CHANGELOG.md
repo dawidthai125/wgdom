@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.56.7 — P3 stabilizacja wyceny i klasyfikacji
+- Wycena UX: 1 alert, zwinięte Benchmark/Materiały/Pozycje/Szczegóły
+- Słowniki klasyfikacji 3.1: bruk, dachy, izolacje, zagospodarowanie, rozbiórki
+- Benchmark materiałów rynku: HOLD
+
 ## 2.56.6 — P3.4A historia materiałów
 - `material-history.ts` + `material-impact.ts` — trend i wpływ vs własna historia (90 dni)
 - Rozszerzenie `kw-wgdom-cost-catalog-history` o `materialPlnPerUnit`

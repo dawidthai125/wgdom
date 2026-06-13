@@ -95,7 +95,7 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
       { unit: "mb", materialPlnPerUnit: 8, laborRbhPerUnit: 0.1 },
       { unit: "m3", materialPlnPerUnit: 25, laborRbhPerUnit: 0.35 },
     ],
-    keywords: ["rozbior", "demonta", "wyburz", "skucie", "zdjec", "usuwanie"],
+    keywords: ["rozbior", "demonta", "wyburz", "skucie", "zdjec", "usuwanie", "sciagniecie tapety", "skuwanie tapety"],
   },
   {
     id: "ROBOTY_OGOLNOBUDOWLANE",
@@ -105,7 +105,7 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
       { unit: "mb", materialPlnPerUnit: 18, laborRbhPerUnit: 0.2 },
       { unit: "m2", materialPlnPerUnit: 12, laborRbhPerUnit: 0.18 },
     ],
-    keywords: ["przebicie otwor", "przebicia otwor", "zamurowanie", "zamurowania", "zamurowanie przebic"],
+    keywords: ["przebicie otwor", "przebicia otwor", "zamurowanie", "zamurowania", "zamurowanie przebic", "zagospodarowanie terenu", "zagospodarowanie dzialki", "nasadzenia", "trawnik", "pokrycie dachowe", "blachodachowka"],
     marketRefNote: "P2-G.2C — przebicia, zamurowania (WM/ZZK/MOPS pustostany)",
   },
   {
@@ -115,7 +115,7 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
       { unit: "m3", materialPlnPerUnit: 45, laborRbhPerUnit: 0.08 },
       { unit: "kpl", materialPlnPerUnit: 800, laborRbhPerUnit: 2.0 },
     ],
-    keywords: ["gruz", "wywoz", "wywiezienie", "transport", "utyliz", "odpad", "kontener", "skladowisko", "zagospodarowanie"],
+    keywords: ["gruz", "wywoz", "wywiezienie", "transport", "utyliz", "odpad", "kontener", "skladowisko", "zagospodarowanie odpad"],
     marketRefNote: "P2-G.2B — wywóz gruzu/odpadów (≠ rozbiórka)",
   },
   {

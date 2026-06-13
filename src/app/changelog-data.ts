@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.56.7",
+    label: "Przetargi — P3 stabilizacja wyceny i klasyfikacji",
+    items: [
+      { type: "improve", text: "Wycena — mniej scrollu: 1 główny alert, pozostałe pod „Pokaż pozostałe alerty”; Benchmark/Materiały/Pozycje/Szczegóły domyślnie zwinięte" },
+      { type: "improve", text: "Klasyfikacja — rozszerzone słowniki: rozbiórki, gładzie/tynki, stolarka, dachy, izolacje, bruk, zagospodarowanie terenu (UNKNOWN ↓)" },
+      { type: "fix", text: "Benchmark materiałów rynku — HOLD (Leroy/Castorama/OBI/crawlery poza zakresem)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.56.6",
     label: "Przetargi — P3.4A historia materiałów i wpływ",
     items: [
