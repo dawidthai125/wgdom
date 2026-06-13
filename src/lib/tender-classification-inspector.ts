@@ -13,6 +13,7 @@ import { phraseFromAthDescription } from "@/lib/wgdom-user-classification-dictio
 
 export const CLASSIFICATION_CATEGORY_ORDER: WgdomCostCategoryId[] = [
   "ROZBIORKI",
+  "ROBOTY_OGOLNOBUDOWLANE",
   "TRANSPORT_UTYLIZACJA",
   "GK",
   "GLADZIE_TYNKI",
@@ -20,6 +21,7 @@ export const CLASSIFICATION_CATEGORY_ORDER: WgdomCostCategoryId[] = [
   "GLAZURA",
   "PODLOGI",
   "ELEKTRYKA",
+  "INSTALACJE_GAZ",
   "HYDRAULIKA",
   "WENTYLACJA",
   "STOLARKA",

@@ -104,6 +104,15 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "odbior instalacji elektrycznej", "odbior instalacji", "pierwszy pomiar skutecznosci",
   ],
   HYDRAULIKA: [
+    "rurociag", "rurociagi", "rurociagi z rur", "kanalizacja", "kanalizacyjne", "kanalizacyjny",
+    "pvc", "pp", "polipropylen", "polipropylenowych", "podejscie doplywowe", "podejscia doplywowe",
+    "zawor czerpalny", "zaworu czerpalnego", "zawory czerpalne",
+    "bateria", "baterii", "baterie", "bateria umywalkowa", "bateria wannowa", "bateria prysznicowa",
+    "hydrant", "umywalka", "umywalki", "zlewozmywak", "zlewozmywaka", "zlewozmywaki",
+    "kompakt", "kompakt wc", "ustep", "ustepu", "wc", "miska ustępowa", "miska ustepowa",
+    "miska wiszaca", "pluczka", "pluczki", "wodociag", "wodociagowy", "wodociagowe",
+    "wodne", "ciepla woda", "zimna woda", "thermaflex", "otulina", "otuliny",
+    "izolacja rurociagow", "izolacja rurociągów",
     "syfon", "syfony", "syfon umywalkowy", "syfon wannowy", "syfon prysznicowy",
     "bateria umywalkowa", "bateria wannowa", "bateria prysznicowa", "bateria bidetowa",
     "odpowietrzenie", "odpowietrzenie instalacji", "kolano kanalizacyjne", "kolano 90",
@@ -118,6 +127,15 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "odpowietrznik automatyczny", "filtr wody", "reduktor cisnienia", "zbiornik wyrównawczy",
     "pompa ciepla instalacja", "uzupelnienie instalacji wod-kan", "próba szczelnosci",
     "próba cisnieniowa", "przeplywomierz", "zawor antyzalaniowy",
+  ],
+  INSTALACJE_GAZ: [
+    "gazowy", "gazowa", "gazowe", "gazomierz", "gazomierza", "gazomierze",
+    "zawor gazowy", "zaworu gazowego", "zawory gazowe",
+    "instalacja gazowa", "instalacje gazowe", "instalacji gazowej",
+    "przylacze gazowe", "przylacza gazowe", "przylacze elastyczne",
+    "rurociagi gazowe", "rurociag gazowy", "miedziane lutowane", "rura gazowa",
+    "podejscie do gazomierza", "podejscia do gazomierza",
+    "przylacze do kuchenki gazowej", "przylaczenie kuchenki gazowej",
   ],
   WENTYLACJA: [
     "kratka wentylacyjna", "kratki wentylacyjne", "kratka wentylacyjna scienna",
@@ -148,6 +166,11 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "sciąganie parkietu", "sciąganie plytek", "sciąganie tynku", "rozciecie sciany",
     "wiercenie otworu rozbiórkowe", "piłowanie otworu", "rozbiórka zabudowy",
   ],
+  ROBOTY_OGOLNOBUDOWLANE: [
+    "przebicie otworow", "przebicie otworu", "przebicia otworow", "przebicia w scianach",
+    "zamurowanie", "zamurowania", "zamurowanie przebic", "zamurowanie otworow",
+    "zamurowanie otworu", "zamurowanie przebicia", "otwor w scianie", "otwory w scianach",
+  ],
   STOLARKA: [
     "oscieznica", "oscieznic", "oscieznica stalowa", "oscieznica drewniana",
     "oscieznica regulowana", "oscieznica zewnetrzna", "oscieznica wewnetrzna",
@@ -174,6 +197,8 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "oznakowanie", "oznakowanie pomieszczen", "numeracja pomieszczen",
     "etykieta pomieszczenia", "etykiety pomieszczen", "etykiety drzwiowe",
     "wyposazenie pomocnicze", "oznaczniki pomieszczen",
+    "kuchnia gazowa", "kuchnie gazowe", "kuchenka gazowa", "kuchenki gazowe",
+    "piekarnik", "piekarniki", "agd", "sprzet agd", "urzadzenia agd",
   ],
 };
 
@@ -241,4 +266,4 @@ export function listConstructionDictionarySample(limitPerCategory = 5): Record<D
   return out;
 }
 
-export const WGDOM_CONSTRUCTION_DICTIONARY_VERSION = "2C.0";
+export const WGDOM_CONSTRUCTION_DICTIONARY_VERSION = "2C.1";

@@ -111,7 +111,35 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "montaz plyty gk", category: "GK", match: "prefix" },
   { pattern: "regips sciany", category: "GK", match: "contains" },
 
-  // —— WYPOSAZENIE pomocnicze ——
+  // —— Hydraulika / wod-kan (INSTALACJE_WODKAN → HYDRAULIKA) ——
+  { pattern: "wymiana podejscia doplywowego do zaworu czerpalnego", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "wymiana podejscia doplywowego", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "wymiana podejscia pvc", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "rurociagi pp ciepla i zimna woda", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "rurociagi z rur polipropylenowych", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "izolacja thermaflex", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "wymiana ustepu kompakt", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "wymiana ustepu z miska porcelanowa", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "wymiana ustepu z miska", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "wymiana zlewozmywaka", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "wymiana baterii", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "montaz baterii", category: "HYDRAULIKA", match: "prefix" },
+  { pattern: "instalacja wod-kan", category: "HYDRAULIKA", match: "contains" },
+  { pattern: "montaz umywalki", category: "HYDRAULIKA", match: "contains" },
+  { pattern: "montaz miski ustepowej", category: "HYDRAULIKA", match: "prefix" },
+
+  // —— Instalacje gazowe ——
+  { pattern: "rurociagi gazowe miedziane", category: "INSTALACJE_GAZ", match: "prefix" },
+  { pattern: "rurociagi w instalacjach gazowych", category: "INSTALACJE_GAZ", match: "prefix" },
+  { pattern: "wymiana zaworu gazowego", category: "INSTALACJE_GAZ", match: "prefix" },
+  { pattern: "przylacze do kuchenki gazowej", category: "INSTALACJE_GAZ", match: "prefix" },
+  { pattern: "podejscie do gazomierza", category: "INSTALACJE_GAZ", match: "prefix" },
+  { pattern: "instalacja gazowa", category: "INSTALACJE_GAZ", match: "contains" },
+  { pattern: "instalacje gazowe", category: "INSTALACJE_GAZ", match: "contains" },
+
+  // —— WYPOSAZENIE pomocnicze + AGD ——
+  { pattern: "wymiana kuchni gazowej", category: "WYPOSAZENIE", match: "prefix" },
+  { pattern: "montaz kuchni gazowej", category: "WYPOSAZENIE", match: "prefix" },
   { pattern: "przykrecanie tabliczek opisow", category: "WYPOSAZENIE", match: "prefix" },
   { pattern: "montaz tabliczek opisow", category: "WYPOSAZENIE", match: "prefix" },
   { pattern: "tabliczki opisowe", category: "WYPOSAZENIE", match: "contains" },
@@ -161,6 +189,12 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "wylewka samopoziomujaca", category: "PODLOGI", match: "contains" },
   { pattern: "licowanie posadzki", category: "PODLOGI", match: "contains" },
 
+  // —— Roboty ogólnobudowlane ——
+  { pattern: "przebicie otworow w scianach", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
+  { pattern: "przebicie otworow", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
+  { pattern: "zamurowanie przebic", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
+  { pattern: "zamurowanie otworow", category: "ROBOTY_OGOLNOBUDOWLANE", match: "prefix" },
+
   // —— Rozbiórki ——
   { pattern: "demontaz posadzki", category: "ROZBIORKI", match: "contains" },
   { pattern: "skuwanie plytek", category: "ROZBIORKI", match: "contains" },
@@ -172,12 +206,6 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "wymiana drzwi", category: "STOLARKA", match: "contains" },
   { pattern: "wymiana okien", category: "STOLARKA", match: "contains" },
   { pattern: "montaz parapetu", category: "STOLARKA", match: "contains" },
-
-  // —— Hydraulika ——
-  { pattern: "montaz baterii", category: "HYDRAULIKA", match: "prefix" },
-  { pattern: "instalacja wod-kan", category: "HYDRAULIKA", match: "contains" },
-  { pattern: "montaz umywalki", category: "HYDRAULIKA", match: "contains" },
-  { pattern: "montaz miski ustepowej", category: "HYDRAULIKA", match: "prefix" },
 ];
 
-export const WGDOM_PHRASE_RULES_VERSION = "2C.0";
+export const WGDOM_PHRASE_RULES_VERSION = "2C.1";

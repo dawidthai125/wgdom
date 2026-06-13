@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.55.3 — P2-G.2C klasyfikacja WM/ZZK (wod-kan + gaz + biały montaż)
+- HYDRAULIKA rozszerzona (wod-kan) · INSTALACJE_GAZ + ROBOTY_OGOLNOBUDOWLANE (14 kategorii)
+- Słownik + phrase rules: rurociągi PVC/PP, WC, gaz, przebicia, kuchnie gazowe → WYPOSAZENIE
+- test: `test-tender-cost-intelligence.mjs` §23
+
 ## 2.55.2 — P0 hotfix double ZIP unpack (Marketplanet dossier)
 - parseTenderDocumentCandidate — jedno rozpakowanie ZIP; fix JSZip „Can't find end of central directory” po poprawnym pobraniu
 - selectDossierCandidates — skip outer ZIP gdy są inner kandydaci

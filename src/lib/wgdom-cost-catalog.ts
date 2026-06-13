@@ -5,6 +5,7 @@
 
 export type WgdomCostCategoryId =
   | "ROZBIORKI"
+  | "ROBOTY_OGOLNOBUDOWLANE"
   | "TRANSPORT_UTYLIZACJA"
   | "GK"
   | "GLADZIE_TYNKI"
@@ -12,6 +13,7 @@ export type WgdomCostCategoryId =
   | "GLAZURA"
   | "PODLOGI"
   | "ELEKTRYKA"
+  | "INSTALACJE_GAZ"
   | "HYDRAULIKA"
   | "WENTYLACJA"
   | "STOLARKA"
@@ -25,6 +27,7 @@ export type WgdomCostRegion = "wroclaw" | "dolnyslask";
 /** Kolejność = priorytet klasyfikacji seed katalogu (P2-G.2C). */
 export const WGDOM_COST_CATEGORY_IDS: WgdomCostCategoryId[] = [
   "ROZBIORKI",
+  "ROBOTY_OGOLNOBUDOWLANE",
   "TRANSPORT_UTYLIZACJA",
   "GK",
   "GLADZIE_TYNKI",
@@ -32,6 +35,7 @@ export const WGDOM_COST_CATEGORY_IDS: WgdomCostCategoryId[] = [
   "GLAZURA",
   "PODLOGI",
   "ELEKTRYKA",
+  "INSTALACJE_GAZ",
   "HYDRAULIKA",
   "WENTYLACJA",
   "STOLARKA",
@@ -90,6 +94,17 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
       { unit: "m3", materialPlnPerUnit: 25, laborRbhPerUnit: 0.35 },
     ],
     keywords: ["rozbior", "demonta", "wyburz", "skucie", "zdjec", "usuwanie"],
+  },
+  {
+    id: "ROBOTY_OGOLNOBUDOWLANE",
+    labelPl: "Roboty ogólnobudowlane",
+    rates: [
+      { unit: "szt", materialPlnPerUnit: 25, laborRbhPerUnit: 0.45 },
+      { unit: "mb", materialPlnPerUnit: 18, laborRbhPerUnit: 0.2 },
+      { unit: "m2", materialPlnPerUnit: 12, laborRbhPerUnit: 0.18 },
+    ],
+    keywords: ["przebicie otwor", "przebicia otwor", "zamurowanie", "zamurowania", "zamurowanie przebic"],
+    marketRefNote: "P2-G.2C — przebicia, zamurowania (WM/ZZK/MOPS pustostany)",
   },
   {
     id: "TRANSPORT_UTYLIZACJA",
@@ -156,14 +171,32 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
     ],
   },
   {
+    id: "INSTALACJE_GAZ",
+    labelPl: "Instalacje gazowe",
+    rates: [
+      { unit: "szt", materialPlnPerUnit: 140, laborRbhPerUnit: 1.6 },
+      { unit: "mb", materialPlnPerUnit: 42, laborRbhPerUnit: 0.28 },
+      { unit: "rbh", materialPlnPerUnit: 0, laborRbhPerUnit: 1 },
+    ],
+    keywords: [
+      "instalac.*gaz", "gazomier", "zawor gaz", "przylacze gaz", "rurociag.*gaz",
+      "miedziane lutowane",
+    ],
+    marketRefNote: "P2-G.2C — instalacje gazowe (≠ wyposażenie AGD/kuchnia)",
+  },
+  {
     id: "HYDRAULIKA",
-    labelPl: "Hydraulika",
+    labelPl: "Hydraulika / wod-kan",
     rates: [
       { unit: "szt", materialPlnPerUnit: 120, laborRbhPerUnit: 1.5 },
       { unit: "mb", materialPlnPerUnit: 35, laborRbhPerUnit: 0.22 },
       { unit: "rbh", materialPlnPerUnit: 0, laborRbhPerUnit: 1 },
     ],
-    keywords: ["hydrau", "rura", "kanaliz", "wod-kan", "armatur", "wc", "sanit", "instalac.*wod"],
+    keywords: [
+      "hydrau", "rura", "rurociag", "kanaliz", "wod-kan", "wodociag", "armatur", "wc", "sanit",
+      "instalac.*wod", "bateri", "umywalk", "zlewozmywak", "ustep", "miska ustep", "polipropylen",
+      "thermaflex", "zawor czerpal", "podejscie doplyw", "pvc",
+    ],
   },
   {
     id: "WENTYLACJA",
@@ -192,8 +225,11 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
       { unit: "szt", materialPlnPerUnit: 15, laborRbhPerUnit: 0.3 },
       { unit: "kpl", materialPlnPerUnit: 120, laborRbhPerUnit: 1.0 },
     ],
-    keywords: ["tabliczk", "oznaczen", "oznakow", "numeracja pomieszczen", "etykiet", "wyposazen"],
-    marketRefNote: "P2-G.2C — tabliczki opisowe, oznaczenia pomieszczeń",
+    keywords: [
+      "tabliczk", "oznaczen", "oznakow", "numeracja pomieszczen", "etykiet", "wyposazen",
+      "kuchni gaz", "kuchnia gaz", "piekarnik", "agd",
+    ],
+    marketRefNote: "P2-G.2C — tabliczki, oznaczenia; kuchnie gazowe / AGD (≠ instalacja gazowa)",
   },
 ];
 

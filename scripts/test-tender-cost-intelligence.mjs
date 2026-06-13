@@ -546,7 +546,7 @@ assert(classSummary.classifiedPercent >= 95, "coverage ≥95% after dict");
 assert(classSummary.coverageDelta != null, "coverageDelta present");
 assert(Math.abs(classSummary.coverageDelta.classifiedPercentBefore - 81.9) < 0.2, "before ~81.9%");
 assert(classSummary.coverageDelta.coverageDelta > 10, "delta >10pp");
-assertEq(CLASSIFICATION_CATEGORY_ORDER.length, 13, "13 categories incl UNKNOWN");
+assertEq(CLASSIFICATION_CATEGORY_ORDER.length, 15, "15 categories incl UNKNOWN");
 assert(classSummary.categories.some((c) => c.id === "UNKNOWN" && c.count === 10), "UNKNOWN bucket 10");
 assert(classSummary.categories.some((c) => c.id === "MALOWANIE" && c.count > 0), "MALOWANIE bucket");
 const malCat = classSummary.categories.find((c) => c.id === "MALOWANIE");
@@ -583,7 +583,7 @@ assertEq(bidMixed.costPricePln, bidMixedRepeat.costPricePln, "AC-6 calculator id
 console.log("\n18. P2-G.1F — Construction Dictionary");
 const dictCount = countConstructionDictionaryTerms();
 assertGte(dictCount, 150, "AC-2 dictionary 150+ terms");
-assertEq(WGDOM_CONSTRUCTION_DICTIONARY_CATEGORY_ORDER.length, 12, "12 dict categories");
+assertEq(WGDOM_CONSTRUCTION_DICTIONARY_CATEGORY_ORDER.length, 14, "14 dict categories");
 assert(WGDOM_CONSTRUCTION_DICTIONARY.MALOWANIE.includes("lamperia"), "dict has lamperia");
 assert(WGDOM_CONSTRUCTION_DICTIONARY.PODLOGI.includes("cokolik"), "dict has cokolik");
 assertEq(classifyAthLineCategory("Montaż lamperii przy oknach", "mb"), "MALOWANIE", "AC-3 lamperia → MALOWANIE");
@@ -670,9 +670,11 @@ assert(PROFILE_SECTION_TITLES.classificationDictionary.includes("Classification"
 setUserClassificationDictionaryCache(restoreDefaultUserClassificationDictionaryStore());
 
 console.log("\n20. P2-G.2B — Cost Category Expansion (CORE)");
-assertEq(WGDOM_COST_CATEGORY_IDS.length, 12, "12 MVP categories");
+assertEq(WGDOM_COST_CATEGORY_IDS.length, 14, "14 MVP categories");
 assert(WGDOM_COST_CATEGORY_IDS.includes("GLADZIE_TYNKI"), "has GLADZIE_TYNKI");
 assert(WGDOM_COST_CATEGORY_IDS.includes("WYPOSAZENIE"), "has WYPOSAZENIE");
+assert(WGDOM_COST_CATEGORY_IDS.includes("INSTALACJE_GAZ"), "has INSTALACJE_GAZ");
+assert(WGDOM_COST_CATEGORY_IDS.includes("ROBOTY_OGOLNOBUDOWLANE"), "has ROBOTY_OGOLNOBUDOWLANE");
 assert(WGDOM_COST_CATEGORY_IDS.includes("TRANSPORT_UTYLIZACJA"), "has TRANSPORT_UTYLIZACJA");
 assert(WGDOM_COST_CATEGORY_IDS.includes("WENTYLACJA"), "has WENTYLACJA");
 assertEq(classifyAthLineCategory("Wywiezienie gruzu", "m3"), "TRANSPORT_UTYLIZACJA", "AC-1 wywiezienie gruzu");
@@ -712,7 +714,7 @@ const oldStoreSnapshot = {
   },
 };
 const migratedCatalog = normalizeWgdomCostCatalogStore(oldStoreSnapshot);
-assertEq(migratedCatalog.catalogs.wroclaw.categories.length, 12, "AC-6 migrate catalog to 12 cats");
+assertEq(migratedCatalog.catalogs.wroclaw.categories.length, 14, "AC-6 migrate catalog to 14 cats");
 assert(migratedCatalog.catalogs.wroclaw.categories.some((c) => c.id === "GLADZIE_TYNKI"), "AC-6 gladzie in migrated");
 assert(migratedCatalog.catalogs.wroclaw.categories.some((c) => c.id === "WYPOSAZENIE"), "AC-6 wyposazenie in migrated");
 assert(migratedCatalog.catalogs.wroclaw.categories.some((c) => c.id === "TRANSPORT_UTYLIZACJA"), "AC-6 transport in migrated");
@@ -795,7 +797,7 @@ assert(summaryVent.categories.some((c) => c.id === "TRANSPORT_UTYLIZACJA" && c.c
 
 console.log("\n21. P2-G.2D — Phrase-Based Classification");
 assertGte(countWgdomPhraseRules(), 40, "AC-D1 at least 40 phrase rules");
-assert(countWgdomPhraseRules() <= 75, "phrase rules bounded");
+assert(countWgdomPhraseRules() <= 100, "phrase rules bounded");
 assertEq(
   classifyAthLineCategory("Narożniki z kątownika aluminiowego 30x30x2 mm", "mb"),
   "GLADZIE_TYNKI",
@@ -911,7 +913,7 @@ const old10CatStore = {
   },
 };
 const migrated12 = normalizeWgdomCostCatalogStore(old10CatStore);
-assertEq(migrated12.catalogs.wroclaw.categories.length, 12, "AC-C6 old 10-cat store → 12");
+assertEq(migrated12.catalogs.wroclaw.categories.length, 14, "AC-C6 old 10-cat store → 14");
 const summary2c = buildClassificationSummary([
   { lp: "1", description: "Narożniki z kątownika aluminiowego", unit: "mb", quantity: "50" },
   { lp: "2", description: "Przykręcanie tabliczek opisowych", unit: "szt", quantity: "8" },
@@ -1038,6 +1040,37 @@ assert(defaultTenderCalibrationStore().schemaVersion === 1, "AC-B8 default schem
 assert(defaultTenderCalibrationStore().snapshots.length === 0, "AC-B8 default empty");
 assert(TENDER_DATA_KEYS.includes("kw-tender-calibration"), "AC-B8 in TENDER_DATA_KEYS");
 assert(formatCalibrationDeltaPct(null) === "—", "AC-B3 format null delta");
+
+console.log("\n23. P2-G.2C — WM/ZZK/MOPS classification expansion (wod-kan + gaz + biały montaż)");
+const p2g2cCases = [
+  ["Wymiana podejścia dopływowego do zaworu czerpalnego", "mb", "HYDRAULIKA"],
+  ["Wymiana podejścia PVC 50 mm", "mb", "HYDRAULIKA"],
+  ["Rurociągi PP ciepła i zimna woda", "mb", "HYDRAULIKA"],
+  ["Izolacja Thermaflex", "mb", "HYDRAULIKA"],
+  ["Wymiana ustępu kompakt", "szt", "HYDRAULIKA"],
+  ["Wymiana zlewozmywaka", "szt", "HYDRAULIKA"],
+  ["Wymiana baterii", "szt", "HYDRAULIKA"],
+  ["Rurociągi gazowe miedziane", "mb", "INSTALACJE_GAZ"],
+  ["Wymiana zaworu gazowego", "szt", "INSTALACJE_GAZ"],
+  ["Przyłącze do kuchenki gazowej", "szt", "INSTALACJE_GAZ"],
+  ["Podejście do gazomierza", "szt", "INSTALACJE_GAZ"],
+  ["Przebicie otworów", "szt", "ROBOTY_OGOLNOBUDOWLANE"],
+  ["Zamurowanie przebić", "m2", "ROBOTY_OGOLNOBUDOWLANE"],
+  ["Wymiana kuchni gazowej 4 palnikowej", "szt", "WYPOSAZENIE"],
+];
+for (const [desc, unit, expected] of p2g2cCases) {
+  assertEq(classifyAthLineCategory(desc, unit), expected, `P2-G.2C: ${desc.slice(0, 48)} → ${expected}`);
+}
+assertEq(
+  classifyAthLineCategory("Rurociągi w instalacjach gazowych miedziane lutowane", "mb"),
+  "INSTALACJE_GAZ",
+  "P2-G.2C gaz rurociągi phrase",
+);
+assertEq(
+  classifyAthLineCategory("Wymiana ustępu z miską porcelanową", "szt"),
+  "HYDRAULIKA",
+  "P2-G.2C ustep kompakt dict",
+);
 
 console.log(`\n---\nPASS: ${passed}  FAIL: ${failed}  TOTAL: ${passed + failed}`);
 if (failed > 0) {

@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.55.3",
+    label: "Przetargi — P2-G.2C klasyfikacja WM/ZZK (wod-kan + gaz + biały montaż)",
+    items: [
+      { type: "improve", text: "Klasyfikator ATH — rozszerzenie HYDRAULIKA (wod-kan), nowe kategorie INSTALACJE_GAZ i ROBOTY_OGOLNOBUDOWLANE, wyposażenie AGD/kuchnie gazowe" },
+      { type: "improve", text: "Słownik branżowy + reguły fraz — pustostany komunalne WM/ZZK/MOPS (rurociągi, WC, gaz, przebicia)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.55.2",
     label: "Przetargi — P0 hotfix double ZIP unpack (Marketplanet dossier)",
     items: [
