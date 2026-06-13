@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.53.2",
+    label: "HOTFIX P0 — biały ekran (cykl importów app-core)",
+    items: [
+      { type: "fix", text: "P0: naprawiono ReferenceError „Cannot access before initialization” — cykl cloud-sync ↔ tender-cost-calibration przy starcie aplikacji" },
+      { type: "fix", text: "tender-cost-calibration: lazy import cloud-sync; session-cache: lokalna stała zdarzenia bootstrap (bez importu cloud-sync)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.53.1",
     label: "Przetargi — UX.1A Tender Workspace Cleanup (MIN)",
     items: [

@@ -3,10 +3,12 @@
  * Przetrwa unmount TendersProvider; współdzielony Pulpit ↔ Przetargi.
  */
 
-import { WGDOM_DEFERRED_BOOTSTRAP_EVENT } from "@/lib/cloud-sync";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TendersCustomKeywords } from "@/lib/tenders-bzp-learn";
 import { loadCustomKeywordsLocal } from "@/lib/tenders-bzp-learn";
+
+/** Musi być identyczny z WGDOM_DEFERRED_BOOTSTRAP_EVENT w cloud-sync.ts (bez importu — unikamy cyklu app-core). */
+const WGDOM_DEFERRED_BOOTSTRAP_EVENT = "wgdom-deferred-bootstrap";
 
 export const PIPELINE_SESSION_CACHE_TTL_MS = 60_000;
 export const PIPELINE_AUTO_AWARD_SESSION_TTL_MS = 60_000;

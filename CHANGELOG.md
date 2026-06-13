@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.53.2 — HOTFIX P0 biały ekran (cykl importów app-core)
+- ReferenceError at startup — cloud-sync ↔ tender-cost-calibration cycle
+- lazy import cloud-sync w kalibracji; session-cache bez importu cloud-sync
+
 ## 2.53.1 — UX.1A Tender Workspace Cleanup (MIN)
 - Sticky Tender Summary + banner monitoringu → Strategia
 - Kolejność: karta → załączniki → kwalifikacja → wycena → oferta → formalia → HTML

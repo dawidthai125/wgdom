@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.1** · UX.1A)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (UX.1A — Tender Workspace Cleanup)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.2** · HOTFIX P0)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (HOTFIX P0 — cykl importów app-core)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -978,6 +978,8 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 | Zapis oferty | Status submitted/won/lost → „Zapisz ofertę złożoną” + snapshot | `TenderDetailPanel.tsx` |
 
 **Zasada:** uczenie na ofertach **W&G we Wrocławiu** — własne dane first; bez Sekocenbud/Intercenbud/AI API.
+
+**Stabilność app-core (2.53.2 HOTFIX):** `tender-cost-calibration.ts` **nie importuje** `cloud-sync` na poziomie modułu (tylko `import()` w async load/save). `tenders-pipeline-session-cache.ts` używa lokalnej stałej `"wgdom-deferred-bootstrap"` zamiast importu z `cloud-sync` — unika cyklu `cloud-sync → tenders-sync → tender-cost-calibration → tenders-bzp → session-cache → cloud-sync` przy starcie aplikacji.
 
 **Moduły lib:**
 

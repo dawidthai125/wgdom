@@ -3,9 +3,7 @@
  * Własna baza wiedzy kosztowej W&G — uczenie z realnych ofert, bez zewnętrznych API.
  */
 
-import { fetchKeysFromCloud, persistKey } from "@/lib/cloud-sync";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
-import { matchPriorityBuyer } from "@/lib/tenders-bzp";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import { buildClassificationSummary } from "@/lib/tender-classification-inspector";
 import type { WgdomCostCategoryId } from "@/lib/wgdom-cost-catalog";
@@ -83,12 +81,12 @@ export function defaultTenderCalibrationStore(): TenderCalibrationStore {
 
 export function inferTenderType(item: Pick<TenderPipelineItem, "priorityBuyerId" | "priorityBuyerLabel" | "organizationName" | "organizationCity">): string {
   if (item.priorityBuyerLabel) return item.priorityBuyerLabel;
-  const matched = matchPriorityBuyer(item.organizationName, item.organizationCity);
-  if (matched) return matched.label;
-  const org = (item.organizationName || "").toLowerCase();
-  if (/wspólnot|wspolnot/.test(org)) return "Wspólnota";
   if (item.priorityBuyerId === "wm") return "Wrocławskie Mieszkania";
   if (item.priorityBuyerId === "tbs") return "TBS Wrocław";
+  const org = (item.organizationName || "").toLowerCase();
+  if (/wspólnot|wspolnot/.test(org)) return "Wspólnota";
+  if (/wrocławskie\s+mieszkania|wroclawskie\s+mieszkania/.test(org)) return "Wrocławskie Mieszkania";
+  if (/budownictwa\s+społecznego|budownictwa\s+spolecznego/.test(org)) return "TBS Wrocław";
   return "Inne (Dolny Śląsk)";
 }
 
@@ -300,6 +298,7 @@ export function loadTenderCalibrationStoreLocal(): TenderCalibrationStore {
 export async function loadTenderCalibrationStore(): Promise<TenderCalibrationStore> {
   try {
     const local = loadTenderCalibrationStoreLocal();
+    const { fetchKeysFromCloud } = await import("@/lib/cloud-sync");
     const [cloud] = await fetchKeysFromCloud([TENDER_CALIBRATION_KEY]);
     if (cloud == null || typeof cloud !== "object") return local;
     const merged = mergeTenderCalibrationStore(local, cloud);
@@ -320,6 +319,7 @@ export async function saveTenderCalibrationStore(store: TenderCalibrationStore):
   try {
     localStorage.setItem(TENDER_CALIBRATION_KEY, JSON.stringify(next));
   } catch { /* ignore */ }
+  const { persistKey } = await import("@/lib/cloud-sync");
   await persistKey(TENDER_CALIBRATION_KEY, next);
 }
 
