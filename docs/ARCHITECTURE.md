@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.2** · HOTFIX P0)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (HOTFIX P0 — cykl importów app-core)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.3** · ARCH-001)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (ARCH-001 — Circular Dependency Prevention)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -620,6 +620,146 @@ Po zakończeniu fazy 2: event `wgdom-deferred-bootstrap` (`WGDOM_DEFERRED_BOOTST
 **Uwaga:** `useTendersPipeline` nadal może robić własny fetch pipeline przy mount CC — nie zakłada danych z fazy 1 CloudLoader.
 
 **Dokumentacja sesji:** [`SESSION-HANDOFF-PERFORMANCE-2026-06.md`](SESSION-HANDOFF-PERFORMANCE-2026-06.md)
+
+---
+
+### 11.6 ARCH-001 — Circular Dependency Prevention (2026-06-13)
+
+**Status:** obowiązuje od v2.53.3 · wynik incydentu P0 v2.53.1 → hotfix v2.53.2
+
+#### Incydent (v2.53.1)
+
+| Pole | Wartość |
+|------|---------|
+| **Wersja** | 2.53.1 (UX.1A) |
+| **Objaw** | Biały ekran — aplikacja nie renderuje się |
+| **Błąd** | `Uncaught ReferenceError: Cannot access '…' before initialization` (minifikacja: `Pa`) |
+| **Chunk** | `app-core` (Vite manualChunk: `cloud-sync.ts`) |
+| **Root cause** | **ESM circular dependency** + **Temporal Dead Zone (TDZ)** przy inicjalizacji modułu |
+
+#### Łańcuch awarii (uproszczony)
+
+```text
+cloud-sync (inicjalizacja…)
+  → tenders-sync
+    → tender-cost-calibration
+      → cloud-sync          ← cykl #1 (static import)
+      → tenders-bzp
+        → tenders-pipeline-session-cache
+          → cloud-sync      ← cykl #2 (WGDOM_DEFERRED_BOOTSTRAP_EVENT)
+```
+
+Przy starcie aplikacji `session-cache` rejestruje `window.addEventListener` używając eksportu z `cloud-sync`, który **nie zdążył** zostać zainicjalizowany → crash przed pierwszym renderem React.
+
+#### Naprawa (v2.53.2)
+
+- `tender-cost-calibration.ts` — `fetchKeysFromCloud` / `persistKey` tylko przez **`import()` dynamiczny** (async).
+- `tenders-pipeline-session-cache.ts` — lokalna stała `"wgdom-deferred-bootstrap"` (bez importu z `cloud-sync`).
+- Usunięty value-import `matchPriorityBuyer` z `tenders-bzp` w kalibracji (tylko `import type`).
+
+---
+
+#### ★ P0 ARCH RULE (obowiązkowa)
+
+**`cloud-sync` nie może być importowany na poziomie modułu (static `import`) przez:**
+
+| Kategoria | Przykłady |
+|-----------|-----------|
+| **Modele domenowe** | `tenders-bzp`, `recoverable-charges`, `employee-leaves` |
+| **Feature modules** | `tender-cost-calibration`, `tenders-bzp-company`, store katalogów |
+| **Sync participants** | Moduły importowane **przez** `cloud-sync.ts` do merge (bezpośrednio lub w drzewie zależności) |
+| **Cloud-sync consumers w cyklu** | Każdy moduł w drzewie `cloud-sync → … → moduł → cloud-sync` |
+
+**Zakazane relacje:**
+
+```text
+cloud-sync ↔ domena
+cloud-sync ↔ feature
+cloud-sync ↔ sync participant
+cloud-sync ↔ cloud-sync consumer (static, w tym samym drzewie init)
+```
+
+**Dozwolone:**
+
+| Wzorzec | Przykład |
+|---------|----------|
+| UI → cloud-sync | `CloudLoader.tsx`, `App.tsx`, panele zapisu |
+| Bootstrap → cloud-sync | Faza CORE/DEFERRED w `CloudLoader` |
+| Orchestrator → cloud-sync | Jednokierunkowo: tylko cloud-sync importuje merge helpery |
+| **Dynamic `import()`** | `await import("@/lib/cloud-sync")` w funkcjach async |
+| **Dependency injection** | Przekazanie `persistKey` / callback z warstwy UI (preferowane przy nowych modułach) |
+
+**Niedozwolone (przykłady):**
+
+```text
+❌ cloud-sync → tenders-sync → tender-cost-calibration → cloud-sync (static)
+❌ cloud-sync → … → tenders-bzp → session-cache → cloud-sync (static)
+```
+
+**Dlaczego:** ESM ładuje moduły w kolejności zależności; cykl powoduje, że binding `const` / `let` jest w **TDZ** w momencie użycia → `ReferenceError` → **white screen** bez error boundary (crash przed React).
+
+---
+
+#### Lessons Learned — P0 White Screen (v2.53.1)
+
+1. **Objaw:** Pusty `#root`, brak UI — błąd tylko w konsoli przeglądarki.
+2. **Root cause:** Cykl importów w chunku startowym (`app-core`), nie błąd React ani UX.1A layout.
+3. **Naprawa:** Rozbić cykl — dynamic import lub lokalna stała zamiast importu z orchestratora.
+4. **Jak unikać:**
+   - Przed dodaniem `import … from cloud-sync` w `src/lib/**` — sprawdź, czy moduł jest w drzewie zależności `cloud-sync.ts`.
+   - Merge helpery (`tenders-sync`, `employee-leaves`, …) **nigdy** nie importują cloud-sync.
+   - Unikaj **top-level side effects** (`window.addEventListener`, async I/O) w modułach lib współdzielonych z app-core.
+   - Uruchom `node scripts/audit-import-cycles.mjs` przed release’em dotykającym sync/lib.
+   - `madge --circular src/` może nie wykryć cykli runtime TDZ — testuj **preview build** + ładowanie strony logowania.
+
+---
+
+#### Audyt repo (ARCH-001, read-only 2026-06-13)
+
+**Skrypt:** `node scripts/audit-import-cycles.mjs` — skan `src/lib`, cykle ESM, naruszenia P0, module-level listeners.
+
+**Module-level `window.addEventListener` w `src/lib`:**
+
+| Plik | Uwagi |
+|------|--------|
+| `tenders-pipeline-session-cache.ts` | Fix 2.53.2 — lokalna stała zdarzenia; **backlog:** przenieść rejestrację do `TendersProvider` init |
+
+**Top-level static import `cloud-sync` w `src/lib` (consumers — OK poza drzewem merge):**
+
+`admin-auth`, `app-settings`, `ath-parser`, `billing-evidence-upload`, `company-qualification-profile`, `experience-reference-upload`, `inspector-stats`, `job-*-upload`, `local-data-backup`, `tenders-admin`, `tenders-bzp`, `tenders-bzp-award`, `tenders-bzp-company`, `tenders-bzp-learn`, `tender-external-docs`, `weekly-backup-email`, `wgdom-cost-catalog-store`, `wgdom-user-classification-dictionary` — **bezpieczne**, o ile nie trafią do drzewa init `cloud-sync` (lazy / po bootstrap).
+
+**Dynamic import cloud-sync (wzorzec P0-safe):**
+
+- `tender-cost-calibration.ts` — load/save store
+
+**P0 static import w drzewie `cloud-sync` (audyt 2026-06-13 — backlog refaktor, nie blokuje prod po 2.53.2):**
+
+| Moduł | Uwaga |
+|-------|--------|
+| `wgdom-user-classification-dictionary.ts` | cloud-sync importuje `defaultStore`; moduł importuje `persistKey` — **latentny cykl** |
+| `wgdom-cost-catalog-store.ts` | Store poza merge default; static cloud-sync — refaktor → dynamic import |
+| `job-file-upload.ts` | W reachability przez job-documents chain — refaktor → API_BASE only lub dynamic |
+
+Audyt: `npm run audit:import-cycles` → JSON z `p0StaticImportViolations`, `cyclesFound`, `moduleLevelWindowListeners`.
+
+---
+
+#### Raport ryzyka (ARCH-001)
+
+| Moduł | Ryzyko | Powód | Zalecenie |
+|-------|--------|-------|-----------|
+| `cloud-sync.ts` | **HIGH** | Centralny orchestrator, chunk app-core | Nie importować consumerów; trzymać merge helpery czyste |
+| `tenders-sync.ts` | **HIGH** | Bezpośredni sync participant | Zero importu cloud-sync; płytkie zależności |
+| `tender-cost-calibration.ts` | **MEDIUM** | Historyczny cykl P0 (naprawiony) | Zachować dynamic import; unikać value-import z `tenders-bzp` |
+| `tenders-pipeline-session-cache.ts` | **MEDIUM** | Module-level listener + łańcuch z `tenders-bzp` | Stała zdarzenia lokalna; rozważyć init w Provider |
+| `tenders-bzp.ts` | **MEDIUM** | Static cloud-sync + session-cache | Nie łączyć z drzewem merge cloud-sync |
+| `tenders-bzp-learn.ts` | **MEDIUM** | cloud-sync + używany przez pipeline | Rozważyć lazy persist przy refaktorze |
+| `wgdom-user-classification-dictionary.ts` | **HIGH** | cloud-sync ↔ dictionary (static obie strony) | Backlog: dynamic import jak kalibracja |
+| `wgdom-cost-catalog-store.ts` | **MEDIUM** | Store + static cloud-sync w reachability | Dynamic import persist |
+| `job-file-upload.ts` | **MEDIUM** | cloud-sync w drzewie job-documents | Import tylko API_BASE lub lazy |
+| `recoverable-charges.ts` | **LOW** | Merge participant, brak cloud-sync | Utrzymać separację |
+| `employee-leaves.ts` | **LOW** | Merge participant, brak cloud-sync | Utrzymać separację |
+| `payroll-cycle.ts` / billing lib | **LOW** | Poza drzewem cloud-sync | Brak akcji |
 
 ---
 

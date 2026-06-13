@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.53.3",
+    label: "ARCH-001 — Circular Dependency Prevention (Lessons Learned)",
+    items: [
+      { type: "improve", text: "ARCHITECTURE § 11.6 ARCH-001 — P0 ARCH RULE, wzorce dozwolone/zakazane, Lessons Learned z incydentu v2.53.1" },
+      { type: "improve", text: "scripts/audit-import-cycles.mjs — audyt cykli ESM i naruszeń P0 w src/lib" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.53.2",
     label: "HOTFIX P0 — biały ekran (cykl importów app-core)",
     items: [
