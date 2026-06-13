@@ -21,6 +21,11 @@ import {
   compareLaborRateToBenchmark,
   type LaborBenchmarkComparison,
 } from "@/lib/labor-benchmark";
+import {
+  computeLaborBenchmarkImpact,
+  sumLaborQuantityForCategory,
+  type LaborBenchmarkImpactResult,
+} from "@/lib/labor-benchmark-impact";
 
 export const CATALOG_LINE_PRICE_SOURCE_BASE = "Baza cen" as const;
 export const CATALOG_LINE_PRICE_SOURCE_CATALOG = "Katalog WGDOM" as const;
@@ -56,7 +61,9 @@ export interface CatalogCategoryCostSummaryRow {
   hasMaterialOverride: boolean;
   hasLaborOverride: boolean;
   avgLaborPlnPerUnit: number;
+  laborQuantity: number;
   laborBenchmark: LaborBenchmarkComparison;
+  laborImpact: LaborBenchmarkImpactResult;
 }
 
 export interface CatalogLinePricingView {
@@ -204,6 +211,13 @@ export function buildCatalogLinePricingView(
         ? roundMoney(laborRows.reduce((s, r) => s + (r.laborPlnPerUnit ?? 0), 0) / laborRows.length)
         : 0;
       const laborBenchmark = compareLaborRateToBenchmark(avgLaborPlnPerUnit, categoryId, dominantUnit);
+      const laborQuantity = sumLaborQuantityForCategory(rows, categoryId, dominantUnit);
+      const laborImpact = computeLaborBenchmarkImpact(
+        avgLaborPlnPerUnit,
+        laborBenchmark,
+        laborQuantity,
+        categoryLabelFor(catalog, categoryId),
+      );
       return {
         categoryId,
         categoryLabel: categoryLabelFor(catalog, categoryId),
@@ -213,10 +227,17 @@ export function buildCatalogLinePricingView(
         hasMaterialOverride: overrideLookup?.material.has(matKey) ?? false,
         hasLaborOverride: overrideLookup?.labor.has(matKey) ?? false,
         avgLaborPlnPerUnit,
+        laborQuantity,
         laborBenchmark,
+        laborImpact,
       };
     })
-    .sort((a, b) => b.totalCostPln - a.totalCostPln);
+    .sort((a, b) => {
+      if (b.laborImpact.impactPln !== a.laborImpact.impactPln) {
+        return b.laborImpact.impactPln - a.laborImpact.impactPln;
+      }
+      return b.totalCostPln - a.totalCostPln;
+    });
 
   return {
     rows,

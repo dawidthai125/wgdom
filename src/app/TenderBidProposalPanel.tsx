@@ -42,6 +42,11 @@ import { getActiveCatalog, loadWgdomCostCatalogStoreLocal } from "@/lib/wgdom-co
 import type { TenderPriceOverrideEntry } from "@/lib/tender-price-overrides";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 import { buildLaborBenchmarkAlerts } from "@/lib/labor-benchmark";
+import {
+  buildLaborBenchmarkImpactSummary,
+  formatLaborBenchmarkImpactPln,
+  laborBenchmarkImpactClass,
+} from "@/lib/labor-benchmark-impact";
 
 function qualityBadgeClass(level: TenderBidProposal["qualityLevel"]): string {
   if (level === "high") return "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/25";
@@ -114,6 +119,20 @@ export function TenderBidProposalPanel({
       priceOverrides,
     );
   }, [proposal?.pricingMode, catalogQuantities, dictRevision, priceOverrides]);
+
+  const laborBenchmarkImpact = useMemo(() => {
+    if (!catalogLinePricing?.categorySummary.length) return null;
+    return buildLaborBenchmarkImpactSummary(
+      catalogLinePricing.categorySummary.map((row) => ({
+        categoryId: row.categoryId,
+        categoryLabel: row.categoryLabel,
+        avgLaborPlnPerUnit: row.avgLaborPlnPerUnit,
+        dominantUnit: row.dominantUnit,
+        laborBenchmark: row.laborBenchmark,
+        quantity: row.laborQuantity,
+      })),
+    );
+  }, [catalogLinePricing]);
 
   const laborBenchmarkAlerts = useMemo(() => {
     if (!catalogLinePricing?.categorySummary.length) return null;
@@ -258,6 +277,37 @@ export function TenderBidProposalPanel({
           </div>
         </div>
       </div>
+
+      {laborBenchmarkImpact && laborBenchmarkImpact.outOfRangeCount > 0 && (
+        <details className="mx-3 mt-2 rounded-lg border border-orange-500/35 bg-orange-500/8 px-2.5 py-2 text-[10px]">
+          <summary className="cursor-pointer font-semibold text-orange-900 dark:text-orange-200 flex items-center gap-1 flex-wrap">
+            <AlertTriangle size={11} className="shrink-0" />
+            <span>Benchmark Impact</span>
+            <span className="text-muted-foreground font-normal">
+              — {laborBenchmarkImpact.outOfRangeCount}{" "}
+              {laborBenchmarkImpact.outOfRangeCount === 1 ? "kategoria poza" : "kategorie poza"} zakresem
+              {" · "}Wpływ:{" "}
+              <strong className={laborBenchmarkImpactClass(laborBenchmarkImpact.totalImpactPln)}>
+                {formatLaborBenchmarkImpactPln(laborBenchmarkImpact.totalImpactPln)}
+              </strong>
+            </span>
+          </summary>
+          <ul className="mt-1.5 space-y-1 list-none text-muted-foreground">
+            {laborBenchmarkImpact.rows
+              .filter((r) => !r.unavailable && r.status !== "ok" && r.impactPln !== 0)
+              .map((row) => (
+                <li key={row.categoryId}>
+                  <strong className="text-foreground">{row.categoryLabel}</strong>
+                  {" · "}{row.ourLaborPlnPerUnit.toLocaleString("pl-PL")} zł vs {row.rangeLabelPl}
+                  {" · "}
+                  <span className={`font-mono font-medium ${laborBenchmarkImpactClass(row.impactPln)}`}>
+                    {formatLaborBenchmarkImpactPln(row.impactPln)}
+                  </span>
+                </li>
+              ))}
+          </ul>
+        </details>
+      )}
 
       {laborBenchmarkAlerts && laborBenchmarkAlerts.outOfRangeCount > 0 && (
         <details className="mx-3 mt-0 mb-0 rounded-lg border border-amber-500/30 bg-amber-500/8 px-2.5 py-2 text-[10px]">

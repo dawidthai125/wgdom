@@ -6,11 +6,22 @@ import { fmtPln } from "@/lib/tenders-bzp-swz";
 import type { TenderCompanyCostModel } from "@/lib/tenders-bzp-company";
 import type { WgdomCostCatalog } from "@/lib/wgdom-cost-catalog";
 import { TenderCategoryPriceOverrideModal } from "@/app/TenderCategoryPriceOverrideModal";
-import { LaborBenchmarkCompactRow } from "@/app/LaborBenchmarkUi";
+import { LaborBenchmarkStatusBadge } from "@/app/LaborBenchmarkUi";
+import {
+  formatLaborBenchmarkDeviationShort,
+  formatLaborBenchmarkImpactPln,
+  laborBenchmarkImpactClass,
+} from "@/lib/labor-benchmark-impact";
 
 function formatPerUnit(pln: number | null, unit: string): string {
   if (pln == null || !Number.isFinite(pln)) return "—";
   return `${pln.toLocaleString("pl-PL", { maximumFractionDigits: 2 })} zł`;
+}
+
+function unitSuffix(unit: string): string {
+  if (unit === "m2") return "m²";
+  if (unit === "m3") return "m³";
+  return unit;
 }
 
 function rowSourceLabel(materialSource: string | null, laborSource: string | null): string {
@@ -81,16 +92,19 @@ export function TenderCatalogLinePricingSection({
       {view.categorySummary.length > 0 && (
         <div className="rounded-lg border border-border/60 overflow-hidden">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground px-2.5 py-1.5 bg-secondary/40 border-b border-border/40">
-            Podsumowanie kategorii (bez UNKNOWN)
+            Podsumowanie kategorii (bez UNKNOWN) — ranking wpływu benchmarku
           </p>
           <div className="overflow-x-auto">
-            <table className="w-full text-[10px] min-w-[360px]">
+            <table className="w-full text-[10px] min-w-[520px]">
               <thead className="bg-secondary/30">
                 <tr>
                   <th className="text-left px-2 py-1 font-semibold">Kategoria</th>
                   <th className="text-right px-2 py-1 font-semibold">Pozycje</th>
                   <th className="text-right px-2 py-1 font-semibold">Koszt</th>
-                  <th className="text-left px-2 py-1 font-semibold min-w-[140px]">Robocizna / benchmark</th>
+                  <th className="text-right px-2 py-1 font-semibold">Nasza rbh</th>
+                  <th className="text-left px-2 py-1 font-semibold">Benchmark</th>
+                  <th className="text-right px-2 py-1 font-semibold">Odchylenie</th>
+                  <th className="text-right px-2 py-1 font-semibold">Wpływ</th>
                   {canEdit && <th className="text-right px-2 py-1 font-semibold w-16">Akcja</th>}
                 </tr>
               </thead>
@@ -107,15 +121,32 @@ export function TenderCatalogLinePricingSection({
                     </td>
                     <td className="px-2 py-1 text-right tabular-nums">{row.positionCount}</td>
                     <td className="px-2 py-1 text-right font-mono tabular-nums">{fmtPln(row.totalCostPln)}</td>
+                    <td className="px-2 py-1 text-right font-mono tabular-nums">
+                      {row.laborBenchmark.status === "unavailable"
+                        ? "—"
+                        : `${row.avgLaborPlnPerUnit.toLocaleString("pl-PL")} zł/${unitSuffix(row.dominantUnit)}`}
+                    </td>
                     <td className="px-2 py-1 align-top">
                       {row.laborBenchmark.status === "unavailable" ? (
                         <span className="text-[9px] text-muted-foreground">—</span>
                       ) : (
-                        <LaborBenchmarkCompactRow
-                          ourLaborPlnPerUnit={row.avgLaborPlnPerUnit}
-                          comparison={row.laborBenchmark}
-                        />
+                        <div className="space-y-0.5">
+                          <span className="font-mono tabular-nums">{row.laborBenchmark.rangeLabelPl}</span>
+                          <p>
+                            <LaborBenchmarkStatusBadge comparison={row.laborBenchmark} compact />
+                          </p>
+                        </div>
                       )}
+                    </td>
+                    <td className="px-2 py-1 text-right font-mono tabular-nums">
+                      {row.laborImpact.unavailable || row.laborImpact.deviationPerUnit === 0
+                        ? "—"
+                        : formatLaborBenchmarkDeviationShort(row.laborImpact.deviationPerUnit)}
+                    </td>
+                    <td className={`px-2 py-1 text-right font-mono font-medium tabular-nums ${laborBenchmarkImpactClass(row.laborImpact.impactPln)}`}>
+                      {row.laborImpact.unavailable || row.laborImpact.impactPln === 0
+                        ? "—"
+                        : formatLaborBenchmarkImpactPln(row.laborImpact.impactPln)}
                     </td>
                     {canEdit && (
                       <td className="px-2 py-1 text-right">
@@ -137,6 +168,7 @@ export function TenderCatalogLinePricingSection({
           <p className="px-2.5 py-1 text-[9px] text-muted-foreground border-t border-border/30">
             Koszt direct (materiał + robocizna): {fmtPln(view.classifiedDirectTotalPln)}
             {" · "}{view.classifiedPositionCount} poz. sklasyfikowanych
+            {" · "}Wpływ = odchylenie stawki robocizny × ilość (read-only)
           </p>
         </div>
       )}

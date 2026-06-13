@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.56.5 — P3.3D benchmark impact
+- `labor-benchmark-impact.ts` — wpływ PLN = odchylenie stawki × ilość (read-only)
+- Wycena: hero Benchmark Impact + kolumny w podsumowaniu kategorii
+
 ## 2.56.4 — P3.3B benchmark robocizny PRO
 - `LaborBenchmarkEdition` — metadata źródeł, data, pokrycie
 - `kw-wgdom-cost-catalog-history` — snapshoty przy zmianie rbh; trend 90 dni

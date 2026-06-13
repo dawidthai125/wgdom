@@ -4,6 +4,11 @@ import {
   laborBenchmarkStatusIcon,
 } from "@/lib/labor-benchmark";
 import {
+  formatLaborBenchmarkImpactPln,
+  laborBenchmarkImpactClass,
+  type LaborBenchmarkImpactResult,
+} from "@/lib/labor-benchmark-impact";
+import {
   formatLaborBenchmarkEditionDate,
   getActiveLaborBenchmarkEdition,
   type LaborBenchmarkEdition,
@@ -59,10 +64,12 @@ export function LaborBenchmarkCell({
   comparison,
   showOurRate = true,
   showTripleView = false,
+  impact,
 }: {
   comparison: LaborBenchmarkComparison;
   showOurRate?: boolean;
   showTripleView?: boolean;
+  impact?: LaborBenchmarkImpactResult | null;
 }) {
   if (comparison.status === "unavailable") {
     return <span className="text-muted-foreground text-[9px]">Brak benchmarku</span>;
@@ -92,6 +99,14 @@ export function LaborBenchmarkCell({
           </p>
         )}
         <TrendLine trend={comparison.trend} />
+        {impact && !impact.unavailable && impact.quantity > 0 && impact.impactPln !== 0 && (
+          <p>
+            <span className="text-muted-foreground">Wpływ:</span>{" "}
+            <strong className={`font-mono tabular-nums ${laborBenchmarkImpactClass(impact.impactPln)}`}>
+              {formatLaborBenchmarkImpactPln(impact.impactPln)}
+            </strong>
+          </p>
+        )}
         <p>
           <span className="text-muted-foreground">Status:</span>{" "}
           <LaborBenchmarkStatusBadge comparison={comparison} />

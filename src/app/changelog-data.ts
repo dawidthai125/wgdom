@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.56.5",
+    label: "Przetargi — P3.3D benchmark impact",
+    items: [
+      { type: "new", text: "Wycena — Benchmark Impact: wpływ finansowy odchyleń robocizny vs rynek (read-only)" },
+      { type: "new", text: "Podsumowanie kategorii: Benchmark, Odchylenie, Wpływ — ranking malejąco po impact" },
+      { type: "improve", text: "Hero alert pod KPI: kategorie poza zakresem + suma wpływu PLN — bez zmiany wyceny" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.56.4",
     label: "Przetargi — P3.3B benchmark robocizny PRO",
     items: [
