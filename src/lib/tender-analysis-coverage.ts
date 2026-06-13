@@ -4,6 +4,7 @@
  */
 
 import {
+  is7zFilename,
   isDocxFilename,
   isXlsxFilename,
   isZipFilename,
@@ -65,8 +66,8 @@ export const FILE_TYPE_SUPPORT: FileTypeSupportRow[] = [
   { ext: "ath", label: "ATH", supported: true, swzAnalysis: false, kosztorys: true, notes: "parseKosztorysBytes (NORMA/Athenasoft)" },
   { ext: "nor", label: "NOR", supported: true, swzAnalysis: false, kosztorys: true, notes: "jak ATH" },
   { ext: "xml", label: "XML", supported: true, swzAnalysis: false, kosztorys: true, notes: "kosztorys XML" },
-  { ext: "zip", label: "ZIP", supported: true, swzAnalysis: true, kosztorys: true, notes: "JSZip — tylko najlepszy plik wewn.; max 12 wpisów" },
-  { ext: "7z", label: "7Z", supported: false, swzAnalysis: false, kosztorys: false, notes: "Brak implementacji — pliki ignorowane" },
+  { ext: "zip", label: "ZIP", supported: true, swzAnalysis: true, kosztorys: true, notes: "JSZip — tylko najlepszy plik wewn.; max 20 wpisów" },
+  { ext: "7z", label: "7Z", supported: true, swzAnalysis: true, kosztorys: true, notes: "7z-wasm (LGPL) — inner ATH/PDF/XLSX jak ZIP; max 20 wpisów" },
 ];
 
 export function extOfFilename(filename: string): string {
@@ -95,13 +96,14 @@ export function fileCapabilities(filename: string): {
   supported: boolean;
 } {
   const ext = extOfFilename(filename);
-  if (ext === "7z") return { swzText: false, kosztorys: false, supported: false };
+  if (ext === "7z" || is7zFilename(filename)) return { swzText: true, kosztorys: true, supported: true };
   if (isZipFilename(filename)) return { swzText: true, kosztorys: true, supported: true };
   return {
     swzText: isPdfFilename(filename) || isDocxFilename(filename),
     kosztorys: isKosztorysPreviewExt(filename) || isXlsxFilename(filename),
     supported: isPdfFilename(filename) || isDocxFilename(filename)
-      || isKosztorysPreviewExt(filename) || isXlsxFilename(filename) || isZipFilename(filename),
+      || isKosztorysPreviewExt(filename) || isXlsxFilename(filename) || isZipFilename(filename)
+      || is7zFilename(filename),
   };
 }
 
@@ -156,7 +158,7 @@ export function buildDocumentCoverageRows(
     if (isSwzRun) notes.push("Cel „Analizuj SWZ” (1 plik)");
     if (isParseCand && !isSwzRun) notes.push("Kandydat parseBestTenderDocuments");
     if (isParseCand && !cap.kosztorys && isPdfFilename(filename)) notes.push("PDF — tylko tekst SWZ, bez kosztorysu");
-    if (extOfFilename(filename) === "7z") notes.push("7Z — brak parsera");
+    if (extOfFilename(filename) === "7z") notes.push("7Z — rozpakowanie inner ATH/PDF/XLSX (P2-H.3)");
 
     return {
       filename,
@@ -164,7 +166,7 @@ export function buildDocumentCoverageRows(
       docType: classifyDocumentType(filename),
       score,
       detected: true,
-      downloaded: cap.supported || isZipFilename(filename),
+      downloaded: cap.supported || isZipFilename(filename) || is7zFilename(filename),
       swzAnalyzed: isSwzRun && cap.swzText,
       kosztorysParsed: isKosztorysHit,
       valueExtracted: isSwzRun && Boolean(opts?.extractedValue),
@@ -208,7 +210,7 @@ export const TBS_00266295_DOCUMENTS = [
 ];
 
 export const ANALYSIS_COVERAGE_GAPS = {
-  sevenZipUnsupported: "Pliki .7z — brak parsera; jawny komunikat + ręczne pobranie (P2-E.0)",
+  sevenZipUnsupported: "Pliki .7z — rozpakowanie przez 7z-wasm (LGPL); outer pomijany gdy inner znaleziony",
   pdfNoKosztorys: "PDF obmiaru/STWIOR — tekst SWZ OK, kosztorys wymaga ATH/XLS/XLSX",
   criteriaTableLayout: "extractAwardCriteria — wzorce „Cena — 60%”; tabele PDF mogą nie pasować",
 } as const;

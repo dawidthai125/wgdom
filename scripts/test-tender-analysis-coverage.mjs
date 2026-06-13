@@ -27,7 +27,7 @@ function assert(name, cond) {
 // B — wsparcie typów
 assert("pdf swz supported", FILE_TYPE_SUPPORT.find((r) => r.ext === "pdf")?.swzAnalysis === true);
 assert("ath kosztorys supported", FILE_TYPE_SUPPORT.find((r) => r.ext === "ath")?.kosztorys === true);
-assert("7z not supported", FILE_TYPE_SUPPORT.find((r) => r.ext === "7z")?.supported === false);
+assert("7z supported", FILE_TYPE_SUPPORT.find((r) => r.ext === "7z")?.supported === true);
 assert("zip supported", FILE_TYPE_SUPPORT.find((r) => r.ext === "zip")?.supported === true);
 
 // A — TBS 00266295 coverage simulation
@@ -39,7 +39,7 @@ const selected = candidates.filter((c) => c.selected);
 assert("tbs parse candidates <= 6", selected.length <= 6);
 assert("tbs ath in candidates", selected.some((c) => /\.ath$/i.test(c.filename)));
 assert("tbs xlsx in candidates", selected.some((c) => /\.xlsx$/i.test(c.filename)));
-assert("tbs 7z not in capabilities", fileCapabilities("dokumentacja.7z").supported === false);
+assert("tbs 7z in capabilities", fileCapabilities("dokumentacja.7z").supported === true);
 
 const coverageRows = buildDocumentCoverageRows(TBS_00266295_DOCUMENTS, {
   swzAnalysisTarget: swzTarget,
@@ -52,7 +52,7 @@ const coverageRows = buildDocumentCoverageRows(TBS_00266295_DOCUMENTS, {
 const trace = buildCoverageTraceReport(coverageRows);
 assert("tbs trace 15 docs", trace.length === 15);
 assert("tbs only 1 swz analyzed", coverageRows.filter((r) => r.swzAnalyzed).length === 1);
-assert("tbs 7z not downloaded", coverageRows.find((r) => r.ext === "7z")?.downloaded === false);
+assert("tbs 7z downloaded", coverageRows.find((r) => r.ext === "7z")?.downloaded === true);
 
 console.log("\n--- TBS 00266295 Analysis Coverage (symulacja) ---");
 for (const r of coverageRows) {

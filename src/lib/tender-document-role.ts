@@ -1,6 +1,8 @@
 /** Klasyfikacja roli dokumentu przetargowego (P2-E.0). */
 
-import { isDocxFilename, isXlsxFilename, isZipFilename } from "@/lib/tenders-bzp-filename";
+import { is7zFilename, isDocxFilename, isXlsxFilename, isZipFilename } from "@/lib/tenders-bzp-filename";
+
+export { is7zFilename };
 import { isKosztorysPreviewExt, isPdfFilename } from "@/lib/ath-parser";
 
 export type DocumentRole =
@@ -13,10 +15,6 @@ export type DocumentRole =
   | "kosztorys"
   | "formularz"
   | "unknown";
-
-export function is7zFilename(name: string): boolean {
-  return /\.7z$/i.test(name);
-}
 
 export function classifyDocumentRole(filename: string): DocumentRole {
   const n = filename.toLowerCase();

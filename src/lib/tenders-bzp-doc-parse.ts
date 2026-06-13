@@ -1,4 +1,4 @@
-/** Parsowanie załączników przetargowych: PDF (pdf.js), DOCX, XLSX, ZIP. Ładowany dynamicznie. */
+/** Parsowanie załączników przetargowych: PDF (pdf.js), DOCX, XLSX, ZIP, 7Z. Ładowany dynamicznie. */
 
 import JSZip from "jszip";
 import mammoth from "mammoth";
@@ -14,22 +14,26 @@ import {
 } from "@/lib/ath-parser";
 import { parseSwzPlainText, type TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import {
+  is7zFilename,
   isDocxFilename,
   isXlsxFilename,
   isZipFilename,
   scoreTenderFilename,
   type ZipListedFile,
 } from "@/lib/tenders-bzp-filename";
+import { list7zFiles, pickBestFrom7zBytes, read7zEntry } from "@/lib/wgdom-7z-archive";
 
 export type { ZipListedFile } from "@/lib/tenders-bzp-filename";
 export {
   displayTenderFilename,
+  is7zFilename,
   isDocxFilename,
   isXlsxFilename,
   isZipFilename,
   parsePlnFromKosztorysTotal,
   scoreTenderFilename,
 } from "@/lib/tenders-bzp-filename";
+export { list7zFiles, read7zEntry, pickBestFrom7zBytes } from "@/lib/wgdom-7z-archive";
 
 export interface ResolvedTenderFile {
   bytes: Uint8Array;
@@ -266,12 +270,22 @@ export async function resolveDocumentBytes(
   zipInnerPath?: string,
 ): Promise<Uint8Array> {
   const outer = await loadBytes(documentIndex);
+  const outerBase = filename.split(" → ")[0] ?? filename;
   if (zipInnerPath) {
-    const inner = await readZipEntry(outer, zipInnerPath);
-    if (inner) return inner;
+    if (is7zFilename(outerBase)) {
+      const inner = await read7zEntry(outer, zipInnerPath);
+      if (inner) return inner;
+    } else {
+      const inner = await readZipEntry(outer, zipInnerPath);
+      if (inner) return inner;
+    }
   }
   if (isZipFilename(filename) && !zipInnerPath) {
     const picked = await pickBestFromZipBytes(outer, filename);
+    if (picked) return picked.bytes;
+  }
+  if (is7zFilename(filename) && !zipInnerPath) {
+    const picked = await pickBestFrom7zBytes(outer, filename);
     if (picked) return picked.bytes;
   }
   return outer;

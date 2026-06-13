@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.55.5",
+    label: "Przetargi — P2-H.3 obsługa archiwów 7Z",
+    items: [
+      { type: "new", text: "Rozpakowywanie .7z (7z-wasm LGPL) — inner ATH/PDF/XLSX jak ZIP; dossier, kosztorys, podgląd załączników" },
+      { type: "improve", text: "TenderAttachmentsPanel — „Pokaż pliki w 7Z”; JobFilePreviewModal — podgląd plików z archiwum 7Z" },
+      { type: "fix", text: "Usunięty fałszywy komunikat „Wykryto wyłącznie archiwum 7Z” gdy kosztorys jest wewnątrz archiwum" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.55.4",
     label: "Przetargi — P2-G.2D klasyfikacja C.O. (WM/ZZK/MOPS)",
     items: [

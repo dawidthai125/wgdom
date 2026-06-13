@@ -8,6 +8,7 @@ import type { TenderBzpDocument, TenderPipelineItem, TenderUploadedFile } from "
 import { loadTenderBzpDocumentBytesResolved } from "@/lib/tenders-bzp";
 import { isPdfFilename, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import {
+  is7zFilename,
   isDocxFilename,
   isXlsxFilename,
   isZipFilename,
@@ -23,7 +24,7 @@ import {
 import { Building2, ExternalLink, Globe } from "lucide-react";
 
 function docIcon(filename: string) {
-  if (isZipFilename(filename)) return Archive;
+  if (isZipFilename(filename) || is7zFilename(filename)) return Archive;
   if (isKosztorysPreviewExt(filename)) return ClipboardList;
   return FileText;
 }
@@ -34,6 +35,7 @@ function canPreviewFilename(name: string): boolean {
   if (isDocxFilename(name)) return true;
   if (isXlsxFilename(name)) return true;
   if (isZipFilename(name)) return true;
+  if (is7zFilename(name)) return true;
   if (/\.(jpe?g|png|gif|webp)$/i.test(name)) return true;
   return false;
 }
@@ -64,21 +66,24 @@ function previewItemForUpload(file: TenderUploadedFile): InspectorFileItem {
   };
 }
 
-function ZipInnerList({
+function ArchiveInnerList({
   tenderId,
   doc,
   allDocs,
   onPreview,
+  archiveKind,
 }: {
   tenderId: string;
   doc: TenderBzpDocument;
   allDocs: TenderBzpDocument[];
   onPreview: (item: InspectorFileItem) => void;
+  archiveKind: "zip" | "7z";
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [entries, setEntries] = useState<ZipListedFile[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const label = archiveKind === "7z" ? "7Z" : "ZIP";
 
   const load = async () => {
     if (entries) {
@@ -89,12 +94,12 @@ function ZipInnerList({
     setError(null);
     try {
       const { bytes } = await loadTenderBzpDocumentBytesResolved(tenderId, doc.index, allDocs);
-      const { listZipFiles } = await import("@/lib/tenders-bzp-doc-parse");
-      const list = await listZipFiles(bytes);
+      const { listZipFiles, list7zFiles } = await import("@/lib/tenders-bzp-doc-parse");
+      const list = archiveKind === "7z" ? await list7zFiles(bytes) : await listZipFiles(bytes);
       setEntries(list);
       setOpen(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Nie udało się odczytać ZIP");
+      setError(e instanceof Error ? e.message : `Nie udało się odczytać ${label}`);
     } finally {
       setLoading(false);
     }
@@ -109,7 +114,7 @@ function ZipInnerList({
         className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground disabled:opacity-50"
       >
         {loading ? <Loader2 size={10} className="animate-spin" /> : <ChevronDown size={10} className={open ? "rotate-180" : ""} />}
-        {open ? "Ukryj pliki w ZIP" : "Pokaż pliki w ZIP"}
+        {open ? `Ukryj pliki w ${label}` : `Pokaż pliki w ${label}`}
       </button>
       {error && <p className="text-[10px] text-amber-600 mt-0.5">{error}</p>}
       {open && entries && (
@@ -443,6 +448,7 @@ function AttachmentDocRow({
   const FileIcon = docIcon(name);
   const canPreview = canPreviewFilename(name);
   const isZip = row.kind === "bzp" && isZipFilename(name);
+  const is7z = row.kind === "bzp" && is7zFilename(name);
   const borderClass = row.kind === "external"
     ? "border-sky-500/25 bg-sky-500/5"
     : row.kind === "upload"
@@ -519,11 +525,21 @@ function AttachmentDocRow({
             </button>
           )}
           {isZip && item.tenderId && (
-            <ZipInnerList
+            <ArchiveInnerList
               tenderId={item.tenderId}
               doc={{ ...row.doc, filename: name }}
               allDocs={docs}
               onPreview={onPreview}
+              archiveKind="zip"
+            />
+          )}
+          {is7z && item.tenderId && (
+            <ArchiveInnerList
+              tenderId={item.tenderId}
+              doc={{ ...row.doc, filename: name }}
+              allDocs={docs}
+              onPreview={onPreview}
+              archiveKind="7z"
             />
           )}
         </>

@@ -9,6 +9,7 @@ import {
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { isWeakWadiumRaw, pickBetterWadiumPln, formatSwzWadiumDisplay } from "@/lib/tenders-bzp-swz";
 import {
+  is7zFilename,
   isDocxFilename,
   isZipFilename,
   parsePlnFromKosztorysTotal,
@@ -17,7 +18,6 @@ import {
 import { isPdfFilename, isKosztorysPreviewExt, type AthPreviewResult } from "@/lib/ath-parser";
 import {
   classifyDocumentRole,
-  is7zFilename,
   roleParsePriority,
   shouldParseRoleForDossier,
 } from "@/lib/tender-document-role";
@@ -178,6 +178,44 @@ export async function buildTenderDocCandidates(
         });
       }
     }
+    if (is7zFilename(doc.filename)) {
+      try {
+        traceDossierPipeline("7z_downloaded", doc.filename, {
+          documentIndex: doc.index,
+          downloadUrl: Boolean(dl),
+        });
+        const { list7zFiles } = await loadDocParse();
+        const archiveBytes = await loadDocBytes(tenderId, doc.index, docs, dl);
+        traceDossierPipeline("7z_opened", doc.filename, { bytes: archiveBytes.byteLength });
+        const inner = await list7zFiles(archiveBytes);
+        traceDossierPipeline("7z_inner_files_found", doc.filename, {
+          count: inner.length,
+          ath: inner.filter((e) => /\.ath$/i.test(e.filename)).map((e) => e.filename).slice(0, 5),
+        });
+        traceCostPipeline("7z_found", doc.filename, { innerCount: inner.length });
+        for (const entry of inner.slice(0, ZIP_INNER_MAX)) {
+          const innerName = `${doc.filename} → ${entry.filename}`;
+          if (/\.ath$/i.test(entry.filename)) {
+            traceDossierPipeline("ath_detected", innerName, { path: entry.path, score: entry.score });
+            traceCostPipeline("ath_found", innerName, { path: entry.path });
+          }
+          candidates.push({
+            documentIndex: doc.index,
+            filename: innerName,
+            zipInnerPath: entry.path,
+            score: entry.score + (doc.isSwzHint ? 10 : 0),
+            downloadUrl: dl,
+            platform: doc.platform,
+          });
+        }
+      } catch (e) {
+        traceDossierPipeline("7z_open_failed", doc.filename, {
+          documentIndex: doc.index,
+          downloadUrl: Boolean(dl),
+          error: e instanceof Error ? e.message : String(e),
+        });
+      }
+    }
   }
   return candidates.sort((a, b) => b.score - a.score);
 }
@@ -196,20 +234,22 @@ function mergeAwardCriteria(
   }).slice(0, 8);
 }
 
-/** P2-H.2 — outer ZIP pomijany gdy buildTenderDocCandidates dodał inner wpisy. */
-function filterOuterZipWhenInnerExists(candidates: TenderDocCandidate[]): TenderDocCandidate[] {
+/** P2-H.2/H.3 — outer ZIP/7Z pomijany gdy buildTenderDocCandidates dodał inner wpisy. */
+function filterOuterArchiveWhenInnerExists(candidates: TenderDocCandidate[]): TenderDocCandidate[] {
   const innerDocIndices = new Set(
     candidates.filter((c) => c.zipInnerPath).map((c) => c.documentIndex),
   );
   return candidates.filter((c) => {
     if (c.zipInnerPath) return true;
-    if (!isZipFilename(c.filename)) return true;
-    return !innerDocIndices.has(c.documentIndex);
+    if (isZipFilename(c.filename) || is7zFilename(c.filename)) {
+      return !innerDocIndices.has(c.documentIndex);
+    }
+    return true;
   });
 }
 
 function selectDossierCandidates(candidates: TenderDocCandidate[]): TenderDocCandidate[] {
-  const filtered = filterOuterZipWhenInnerExists(candidates);
+  const filtered = filterOuterArchiveWhenInnerExists(candidates);
   const ranked = [...filtered].sort((a, b) => {
     const ra = roleParsePriority(classifyDocumentRole(a.filename));
     const rb = roleParsePriority(classifyDocumentRole(b.filename));
@@ -244,7 +284,9 @@ export async function parseTenderDocumentCandidate(
     analyzeSwzFromDocumentText,
     parseDocumentToKosztorys,
     parseDocumentToSwzText,
+    pickBestFrom7zBytes,
     pickBestFromZipBytes,
+    read7zEntry,
     readZipEntry,
   } = await loadDocParse();
 
@@ -255,16 +297,32 @@ export async function parseTenderDocumentCandidate(
     candidate.downloadUrl ?? resolveTenderDocumentDownload(docs, idx)?.downloadUrl,
   );
 
+  const outerDoc = docs.find((d) => d.index === candidate.documentIndex);
+  const outerName = outerDoc?.filename ?? candidate.filename.split(" → ")[0] ?? candidate.filename;
+
   const outerBytes = await loadBytes(candidate.documentIndex);
   let bytes: Uint8Array;
   let effectiveName: string;
 
   if (candidate.zipInnerPath) {
-    const inner = await readZipEntry(outerBytes, candidate.zipInnerPath);
+    const inner = is7zFilename(outerName)
+      ? await read7zEntry(outerBytes, candidate.zipInnerPath)
+      : await readZipEntry(outerBytes, candidate.zipInnerPath);
     bytes = inner ?? outerBytes;
     effectiveName = candidate.filename.split(" → ").pop() ?? candidate.filename;
   } else if (isZipFilename(candidate.filename)) {
     const picked = await pickBestFromZipBytes(outerBytes, candidate.filename);
+    if (picked) {
+      bytes = picked.bytes;
+      effectiveName = picked.filename.includes(" → ")
+        ? picked.filename.split(" → ").pop()!
+        : picked.filename;
+    } else {
+      bytes = outerBytes;
+      effectiveName = candidate.filename;
+    }
+  } else if (is7zFilename(candidate.filename)) {
+    const picked = await pickBestFrom7zBytes(outerBytes, candidate.filename);
     if (picked) {
       bytes = picked.bytes;
       effectiveName = picked.filename.includes(" → ")
@@ -388,6 +446,7 @@ export async function parseExternalTenderFile(
     analyzeSwzFromDocumentText,
     parseDocumentToKosztorys,
     parseDocumentToSwzText,
+    pickBestFrom7zBytes,
     pickBestFromZipBytes,
   } = await loadDocParse();
 
@@ -396,6 +455,12 @@ export async function parseExternalTenderFile(
 
   if (isZipFilename(filename)) {
     const picked = await pickBestFromZipBytes(bytes, filename);
+    if (picked) {
+      effectiveBytes = picked.bytes;
+      effectiveName = picked.filename;
+    }
+  } else if (is7zFilename(filename)) {
+    const picked = await pickBestFrom7zBytes(bytes, filename);
     if (picked) {
       effectiveBytes = picked.bytes;
       effectiveName = picked.filename;
@@ -602,6 +667,15 @@ export async function parseTenderDossierDocuments(
     });
   }
 
+  const sevenZDocIndices = new Set(
+    docs.filter((d) => is7zFilename(d.filename)).map((d) => d.index),
+  );
+  const sevenZWithInner = new Set(
+    allCandidates
+      .filter((c) => c.zipInnerPath && sevenZDocIndices.has(c.documentIndex))
+      .map((c) => c.documentIndex),
+  );
+
   const candidates = selectDossierCandidates(allCandidates);
   const costCandidates = pickCostParseCandidates(allCandidates, costDiscovery);
 
@@ -611,8 +685,11 @@ export async function parseTenderDossierDocuments(
       role: classifyDocumentRole(doc.filename),
     });
     if (is7zFilename(doc.filename)) {
-      traceDossierPipeline("document_classified", doc.filename, { role: "7z", supported: false });
-      warnings.push(`Wykryto archiwum 7Z: ${doc.filename} — wymagane ręczne pobranie`);
+      const supported = sevenZWithInner.has(doc.index);
+      traceDossierPipeline("document_classified", doc.filename, { role: "7z", supported });
+      if (!supported) {
+        warnings.push(`Wykryto archiwum 7Z: ${doc.filename} — nie udało się odczytać zawartości`);
+      }
     }
   }
 

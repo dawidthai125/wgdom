@@ -133,8 +133,10 @@ async function parseTenderBzpPreviewItem(
     return { ok: false, format: "unknown", rows: [], warnings: ["Podgląd ATH wyłączony w ustawieniach."] };
   }
   const {
+    list7zFiles,
     listZipFiles,
     parseDocumentToKosztorys,
+    read7zEntry,
     readZipEntry,
     resolveDocumentBytes,
   } = await import("@/lib/tenders-bzp-doc-parse");
@@ -171,6 +173,15 @@ async function parseTenderBzpPreviewItem(
     const entries = await listZipFiles(outerBytes);
     if (entries.length > 0) {
       const inner = await readZipEntry(outerBytes, entries[0].path);
+      if (inner) {
+        bytes = inner;
+        name = entries[0].filename;
+      }
+    }
+  } else if (/\.7z$/i.test(outerName) && !zipInner) {
+    const entries = await list7zFiles(outerBytes);
+    if (entries.length > 0) {
+      const inner = await read7zEntry(outerBytes, entries[0].path);
       if (inner) {
         bytes = inner;
         name = entries[0].filename;

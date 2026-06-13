@@ -31,6 +31,7 @@ export function scoreTenderFilename(name: string): number {
   if (/\.docx?$/i.test(n)) s += 12;
   if (/\.pdf$/i.test(n)) s += 8;
   if (/\.zip$/i.test(n)) s += 6;
+  if (/\.7z$/i.test(n)) s += 6;
   return s;
 }
 
@@ -87,6 +88,10 @@ export function displayTenderFilename(
 
 export function isZipFilename(name: string): boolean {
   return /\.zip$/i.test(name);
+}
+
+export function is7zFilename(name: string): boolean {
+  return /\.7z$/i.test(name);
 }
 
 export function isDocxFilename(name: string): boolean {

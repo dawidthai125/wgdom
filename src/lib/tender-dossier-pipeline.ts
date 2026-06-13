@@ -134,12 +134,6 @@ export async function analyzeTenderWithDossier(opts: {
   const docs = opts.bzpDocuments ?? [];
   const filenames = docs.map((d) => d.filename);
 
-  for (const doc of docs) {
-    if (is7zFilename(doc.filename)) {
-      warnings.push(`Wykryto archiwum 7Z: ${doc.filename} — wymagane ręczne pobranie`);
-    }
-  }
-
   const { analysis: swzPass, warnings: swzWarnings } = await analyzeTenderSwzEnhanced({
     noticeNumber: opts.noticeNumber,
     tenderId: opts.tenderId,

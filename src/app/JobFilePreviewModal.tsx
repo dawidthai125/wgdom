@@ -10,6 +10,7 @@ import {
   type AthPreviewResult,
 } from "@/lib/ath-parser";
 import {
+  is7zFilename,
   isDocxFilename,
   isXlsxFilename,
   isZipFilename,
@@ -169,8 +170,10 @@ export function JobFilePreviewModal({
           const {
             extractDocxText,
             extractPdfText,
+            list7zFiles,
             listZipFiles,
             parseDocumentToKosztorys,
+            read7zEntry,
             readZipEntry,
             resolveDocumentBytes,
           } = await import("@/lib/tenders-bzp-doc-parse");
@@ -208,6 +211,16 @@ export function JobFilePreviewModal({
             if (!cancelled) setZipEntries(entries);
             if (entries.length > 0) {
               const inner = await readZipEntry(outerBytes, entries[0].path);
+              if (inner) {
+                bytes = inner;
+                name = entries[0].filename;
+              }
+            }
+          } else if (is7zFilename(outerName) && !zipInner) {
+            const entries = await list7zFiles(outerBytes);
+            if (!cancelled) setZipEntries(entries);
+            if (entries.length > 0) {
+              const inner = await read7zEntry(outerBytes, entries[0].path);
               if (inner) {
                 bytes = inner;
                 name = entries[0].filename;

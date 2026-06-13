@@ -3,7 +3,7 @@
  */
 
 import { isKosztorysPreviewExt } from "@/lib/ath-parser";
-import { isXlsxFilename, isZipFilename } from "@/lib/tenders-bzp-filename";
+import { is7zFilename, isXlsxFilename, isZipFilename } from "@/lib/tenders-bzp-filename";
 
 export type TenderCostDocumentType =
   | "ath"
@@ -79,7 +79,7 @@ export function classifyCostDocumentType(filename: string): {
   if (isKosztorysPreviewExt(base)) {
     return { type: inZip ? "zip_ath" : "ath", confidence: 0.85 };
   }
-  if (isZipFilename(base) && !inZip) {
+  if ((isZipFilename(base) || is7zFilename(base)) && !inZip) {
     return { type: "none", confidence: 0.3 };
   }
   return { type: "none", confidence: 0 };

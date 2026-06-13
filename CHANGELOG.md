@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.55.5 — P2-H.3 obsługa archiwów 7Z
+- 7z-wasm (LGPL) — list7zFiles / read7zEntry / pickBestFrom7zBytes; inner ATH/PDF/XLSX jak ZIP
+- buildTenderDocCandidates + parseTenderDocumentCandidate + filterOuterArchiveWhenInnerExists
+- UI: „Pokaż pliki w 7Z”, JobFilePreviewModal inner preview
+- test: `test-tender-7z-archive.mjs` · fixture: `scripts/fixtures/test.7z`
+
 ## 2.55.4 — P2-G.2D klasyfikacja C.O. (WM/ZZK/MOPS)
 - INSTALACJE_CO (15 kategorii) — grzejniki, głowice termostatyczne, zawory C.O., spuszczenie/odpowietrzenie
 - Słownik + phrase rules · test: `test-tender-cost-intelligence.mjs` §24
