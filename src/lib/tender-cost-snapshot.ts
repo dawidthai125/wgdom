@@ -8,7 +8,11 @@ import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { fmtPln } from "@/lib/tenders-bzp-swz";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
-import type { TenderDossierScanSummary } from "@/lib/tender-dossier-pipeline";
+import {
+  type TenderDossierScanSummary,
+  isSevenZUnpackOk,
+  sevenZKosztorysMissingLine,
+} from "@/lib/tender-dossier-pipeline";
 import {
   resolveTenderValue,
   resolvedTenderValuePln,
@@ -182,10 +186,13 @@ export function buildOurEstimateDisplay(opts: {
       hint: "Suma z kosztorysu wykryta — wpisz „Nasz szacunek” po weryfikacji",
     };
   }
-  if (opts.scanSummary?.sevenZipCount && !kosztorysFound) {
+  const sevenZLine = opts.scanSummary ? sevenZKosztorysMissingLine(opts.scanSummary) : null;
+  if (sevenZLine) {
     return {
-      display: "Wykryto tylko archiwa 7Z",
-      hint: "Wymagane ręczne pobranie kosztorysu",
+      display: sevenZLine,
+      hint: isSevenZUnpackOk(opts.scanSummary!)
+        ? "Archiwum rozpakowane — w dokumentacji zamawiającego brak pliku kosztorysowego"
+        : "Sprawdź integralność pliku lub pobierz archiwum ręcznie",
     };
   }
   return {

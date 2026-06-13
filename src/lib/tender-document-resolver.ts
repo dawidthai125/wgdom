@@ -68,6 +68,9 @@ export interface TenderDossierParseResult extends TenderDocumentParseResult {
   parsedCount: number;
   warnings: string[];
   costDiscovery: TenderCostDiscoveryResult | null;
+  /** P2-H.4 — co najmniej jedno archiwum 7Z rozpakowane z listą plików wewnętrznych. */
+  sevenZUnpackOk?: boolean;
+  sevenZInnerCount?: number;
 }
 
 async function loadDocBytes(
@@ -655,6 +658,8 @@ export async function parseTenderDossierDocuments(
       parsedCount: 0,
       warnings,
       costDiscovery: null,
+      sevenZUnpackOk: false,
+      sevenZInnerCount: 0,
     };
   }
 
@@ -675,6 +680,11 @@ export async function parseTenderDossierDocuments(
       .filter((c) => c.zipInnerPath && sevenZDocIndices.has(c.documentIndex))
       .map((c) => c.documentIndex),
   );
+
+  const sevenZInnerCount = allCandidates.filter(
+    (c) => c.zipInnerPath && sevenZDocIndices.has(c.documentIndex),
+  ).length;
+  const sevenZUnpackOk = sevenZDocIndices.size === 0 || sevenZWithInner.size > 0;
 
   const candidates = selectDossierCandidates(allCandidates);
   const costCandidates = pickCostParseCandidates(allCandidates, costDiscovery);
@@ -830,6 +840,8 @@ export async function parseTenderDossierDocuments(
     parsedCount,
     warnings,
     costDiscovery,
+    sevenZUnpackOk,
+    sevenZInnerCount,
   };
 }
 

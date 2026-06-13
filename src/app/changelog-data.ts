@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.55.6",
+    label: "Przetargi — P2-H.4 UX copy archiwów 7Z",
+    items: [
+      { type: "fix", text: "Kosztorys/Dokumenty — rozróżnienie błędu odczytu archiwum 7Z od braku pliku ATH/XLS/XLSX w poprawnie rozpakowanym archiwum" },
+      { type: "improve", text: "Komunikaty UX: „Błąd odczytu archiwum 7Z…” vs „Nie znaleziono kosztorysu ATH/XLS/XLSX w archiwum 7Z”" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.55.5",
     label: "Przetargi — P2-H.3 obsługa archiwów 7Z",
     items: [

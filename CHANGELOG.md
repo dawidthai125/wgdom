@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.55.6 — P2-H.4 UX copy archiwów 7Z
+- scanSummary: `sevenZUnpackOk`, `sevenZInnerCount` z `parseTenderDossierDocuments`
+- `sevenZKosztorysMissingLine()` — CASE A błąd odczytu vs CASE B brak ATH/XLS/XLSX
+- UI: `buildKosztorysStatusLine`, `buildEstimateMissingReason`, cost-snapshot, data-ssot
+
 ## 2.55.5 — P2-H.3 obsługa archiwów 7Z
 - 7z-wasm (LGPL) — list7zFiles / read7zEntry / pickBestFrom7zBytes; inner ATH/PDF/XLSX jak ZIP
 - buildTenderDocCandidates + parseTenderDocumentCandidate + filterOuterArchiveWhenInnerExists

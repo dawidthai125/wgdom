@@ -104,10 +104,22 @@ assert("kosztorys status found", buildKosztorysStatusLine(scanWithKosztorys).inc
 const scanWithoutUnpack = {
   kosztorysFound: false,
   sevenZipCount: 1,
+  sevenZUnpackOk: false,
+  sevenZInnerCount: 0,
   byType: countDocumentsByType([outerName]),
   costDiscovery: null,
 };
-assert("kosztorys status 7z only when fail", buildKosztorysStatusLine(scanWithoutUnpack).includes("7Z"));
+assert("kosztorys status 7z unpack fail", buildKosztorysStatusLine(scanWithoutUnpack).includes("Błąd odczytu"));
+
+const scanUnpackNoAth = {
+  kosztorysFound: false,
+  sevenZipCount: 1,
+  sevenZUnpackOk: true,
+  sevenZInnerCount: 3,
+  byType: countDocumentsByType([outerName]),
+  costDiscovery: null,
+};
+assert("kosztorys status 7z no ath", buildKosztorysStatusLine(scanUnpackNoAth).includes("Nie znaleziono kosztorysu ATH"));
 
 console.log(`\n7Z archive tests: ${pass} PASS, ${fail} FAIL`);
 process.exit(fail > 0 ? 1 : 0);

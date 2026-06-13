@@ -559,12 +559,25 @@ const counts = countDocumentsByType(TBS_00266295_DOCUMENTS);
 assert("tbs pdf counted", counts.pdf >= 5);
 assert("tbs has 7z", counts.sevenZip >= 1);
 
+/** P2-H.4 — scenariusz 7Z bez standalone ATH/XLS na liście zewnętrznej (np. Kąty). */
+const byType7zScenario = {
+  pdf: counts.pdf,
+  docx: 2,
+  xlsx: 0,
+  zip: counts.zip,
+  ath: 0,
+  sevenZip: counts.sevenZip,
+  other: counts.other,
+};
+
 const summary = {
   totalDocuments: 15,
   scanned: 8,
   parsed: 6,
-  byType: { ...counts, docx: 2 },
+  byType: byType7zScenario,
   sevenZipCount: 2,
+  sevenZUnpackOk: true,
+  sevenZInnerCount: 12,
   kosztorysFound: false,
   valueFound: false,
   criteriaFound: false,
@@ -577,7 +590,13 @@ assert("scan has PDF line", scanLines.includes("PDF:"));
 assert("scan has DOC line", scanLines.includes("DOC/DOCX:"));
 
 const missingStatus = buildKosztorysStatusLine(summary);
-assert("missing status", missingStatus.includes("Nie znaleziono"));
+assert("missing status 7z unpack ok no ath", missingStatus.includes("Nie znaleziono kosztorysu ATH"));
+
+const summaryNo7z = { ...summary, sevenZipCount: 0, sevenZUnpackOk: undefined, sevenZInnerCount: undefined, byType: { ...summary.byType, sevenZip: 0 } };
+assert("missing status generic", buildKosztorysStatusLine(summaryNo7z).includes("Nie znaleziono dokumentu kosztorysowego"));
+
+const summary7zFail = { ...summary, sevenZUnpackOk: false, sevenZInnerCount: 0 };
+assert("missing status 7z unpack fail", buildKosztorysStatusLine(summary7zFail).includes("Błąd odczytu"));
 
 const foundSummary = { ...summary, kosztorysFound: true, costDiscovery: discovered };
 const foundStatus = buildKosztorysStatusLine(foundSummary);
@@ -594,11 +613,19 @@ const estReason = buildEstimateMissingReason({
 assert("estimate reason kosztorys no file", !estReason.includes("Brak pliku kosztorysowego"));
 assert("estimate reason no auto", estReason.includes("automatycznie"));
 
-const estReason7z = buildEstimateMissingReason({
+const estReason7zOk = buildEstimateMissingReason({
   ...summary,
   byType: { pdf: 8, docx: 0, xlsx: 0, zip: 0, ath: 0, sevenZip: 2, other: 5 },
 });
-assert("estimate reason 7z", estReason7z.includes("7Z"));
+assert("estimate reason 7z ok no ath", estReason7zOk.includes("Nie znaleziono kosztorysu ATH"));
+
+const estReason7zFail = buildEstimateMissingReason({
+  ...summary,
+  sevenZUnpackOk: false,
+  sevenZInnerCount: 0,
+  byType: { pdf: 8, docx: 0, xlsx: 0, zip: 0, ath: 0, sevenZip: 2, other: 5 },
+});
+assert("estimate reason 7z unpack fail", estReason7zFail.includes("Błąd odczytu"));
 
 // P2-F.0 — formal requirements extraction
 const swzLicense = extractFormalRequirements(

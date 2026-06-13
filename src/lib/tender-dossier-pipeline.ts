@@ -33,6 +33,10 @@ export interface TenderDossierScanSummary {
   parsed: number;
   byType: TenderDossierScanCounts;
   sevenZipCount: number;
+  /** P2-H.4 — true gdy co najmniej jedno archiwum 7Z dało listę plików wewnętrznych. */
+  sevenZUnpackOk?: boolean;
+  /** P2-H.4 — liczba inner candidates z archiwów 7Z (max ZIP_INNER_MAX na archiwum). */
+  sevenZInnerCount?: number;
   kosztorysFound: boolean;
   valueFound: boolean;
   criteriaFound: boolean;
@@ -82,6 +86,22 @@ export function buildScanTypeSummary(summary: TenderDossierScanSummary): string 
   return lines.join("\n");
 }
 
+/** P2-H.4 — backward compat: stare scanSummary bez pól 7Z inferują z innerCount. */
+export function isSevenZUnpackOk(summary: TenderDossierScanSummary): boolean {
+  if (summary.sevenZUnpackOk != null) return summary.sevenZUnpackOk;
+  return (summary.sevenZInnerCount ?? 0) > 0;
+}
+
+/** P2-H.4 — komunikat gdy 7Z bez kosztorysu; null gdy nie dotyczy. */
+export function sevenZKosztorysMissingLine(summary: TenderDossierScanSummary): string | null {
+  if (!summary.sevenZipCount || summary.kosztorysFound) return null;
+  if (summary.byType.ath > 0 || summary.byType.xlsx > 0) return null;
+  if (!isSevenZUnpackOk(summary)) {
+    return "Błąd odczytu archiwum 7Z. Analiza kosztorysu jest niedostępna.";
+  }
+  return "Nie znaleziono kosztorysu ATH/XLS/XLSX w archiwum 7Z.";
+}
+
 export function buildKosztorysStatusLine(summary: TenderDossierScanSummary): string {
   if (summary.kosztorysFound) {
     const label = summary.costDiscovery?.found
@@ -89,9 +109,8 @@ export function buildKosztorysStatusLine(summary: TenderDossierScanSummary): str
       : "kosztorys";
     return `Kosztorys:\nZnaleziony ${label}`;
   }
-  if (summary.sevenZipCount > 0 && summary.byType.ath === 0 && summary.byType.xlsx === 0) {
-    return "Kosztorys:\nWykryto wyłącznie archiwum 7Z";
-  }
+  const sevenZLine = sevenZKosztorysMissingLine(summary);
+  if (sevenZLine) return `Kosztorys:\n${sevenZLine}`;
   return "Kosztorys:\nNie znaleziono dokumentu kosztorysowego";
 }
 
@@ -111,9 +130,8 @@ export function buildEstimateMissingReason(summary: TenderDossierScanSummary): s
   if (summary.kosztorysFound) {
     return "Nie można automatycznie wyliczyć wyceny — brak cen w kosztorysie/przedmiarze";
   }
-  if (summary.sevenZipCount > 0 && summary.byType.ath === 0 && summary.byType.xlsx === 0) {
-    return "Wykryto tylko archiwa 7Z — wymagane ręczne pobranie";
-  }
+  const sevenZLine = sevenZKosztorysMissingLine(summary);
+  if (sevenZLine) return sevenZLine;
   return "Brak pliku kosztorysowego (ATH/NOR/XML/XLS/XLSX)";
 }
 
@@ -151,6 +169,8 @@ export async function analyzeTenderWithDossier(opts: {
   let scanned = 0;
   let parsed = 0;
   let costDiscovery: TenderCostDiscoveryResult | null = null;
+  let sevenZUnpackOk: boolean | undefined;
+  let sevenZInnerCount: number | undefined;
 
   if (opts.tenderId && docs.length > 0) {
     const dossier = await parseTenderDossierDocuments(opts.tenderId, docs, {
@@ -163,6 +183,8 @@ export async function analyzeTenderWithDossier(opts: {
     scanned = dossier.scannedCount;
     parsed = dossier.parsedCount;
     costDiscovery = dossier.costDiscovery;
+    sevenZUnpackOk = dossier.sevenZUnpackOk;
+    sevenZInnerCount = dossier.sevenZInnerCount;
     warnings.push(...dossier.warnings);
   }
 
@@ -187,6 +209,8 @@ export async function analyzeTenderWithDossier(opts: {
     parsed,
     byType: countDocumentsByType(filenames),
     sevenZipCount: filenames.filter((f) => is7zFilename(f)).length,
+    sevenZUnpackOk,
+    sevenZInnerCount,
     kosztorysFound: Boolean(kosztorys?.ok),
     valueFound: merged.estimatedValuePln != null || kosztorysValuePln != null,
     criteriaFound: (merged.awardCriteria?.length ?? 0) > 0,

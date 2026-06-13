@@ -3,7 +3,7 @@
 > **Aktualizuj ten plik na końcu każdej większej sesji z agentem AI.**  
 > Hasło w Cursorze: **„kontynuuj WGDOM”** → [`.cursor/rules/wgdom-stan-projektu.mdc`](.cursor/rules/wgdom-stan-projektu.mdc)
 
-**Ostatnia aktualizacja:** 2026-06-13 · **P2-H.3 CLOSED — dokumentacja handoff**  
+**Ostatnia aktualizacja:** 2026-06-13 · **P2-H.4 CLOSED — UX copy 7Z (v2.55.6)**  
 **★ Główny handoff (SSOT):** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)  
 **★ P2-H dokumenty/dossier:** [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)  
 **★ UX.1 handoff:** [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)  
@@ -15,9 +15,9 @@
 ## STATUS
 
 ```text
-Production: 2.55.5 (RELEASE GO — PRODUCTION VERIFIED)
+Production: 2.55.6 (lokalnie — do release)
 
-P2-H.1–H.3 Tender Documents COMPLETE (Marketplanet · ZIP fix · 7Z)
+P2-H.1–H.4 Tender Documents COMPLETE (Marketplanet · ZIP · 7Z · UX copy)
 P2-G.2C/2D Cost Classification COMPLETE (WM/ZZK wod-kan · gaz · C.O.)
 
 UX.1 Tender Workspace COMPLETE
@@ -52,7 +52,6 @@ P1 CLOSED
 ## OPEN BACKLOG (priorytet dla agentów)
 
 ```text
-P2-H.4   UX copy 7Z — rozróżnić „unpack fail” vs „brak ATH/XLS w archiwum”  ← REKOMENDOWANY
 P2-H.5   PDF przedmiar (*_PR.pdf) w cost discovery                         ← backlog produktowy
 P2-H.6   list7zFiles — filtrować foldery bez rozszerzenia
 P2-H.7   Edge magic bytes dla .7z

@@ -7,7 +7,11 @@ import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { fmtPln, formatSwzWadiumDisplay } from "@/lib/tenders-bzp-swz";
 import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
-import type { TenderDossierScanSummary } from "@/lib/tender-dossier-pipeline";
+import {
+  type TenderDossierScanSummary,
+  isSevenZUnpackOk,
+  sevenZKosztorysMissingLine,
+} from "@/lib/tender-dossier-pipeline";
 import type { TenderCostDocumentType } from "@/lib/tender-cost-discovery";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import type { TenderBidPricingMode, TenderBidProposal } from "@/lib/tenders-bid-calculator";
@@ -382,10 +386,13 @@ export function buildOurEstimateDisplaySsot(opts: {
     };
   }
   const scan = opts.item.tenderDossier?.scanSummary;
-  if (scan?.sevenZipCount && scan.byType.ath === 0 && scan.byType.xlsx === 0) {
+  const sevenZLine = scan ? sevenZKosztorysMissingLine(scan) : null;
+  if (sevenZLine) {
     return {
-      display: "Wykryto tylko archiwa 7Z",
-      hint: "Wymagane ręczne pobranie kosztorysu",
+      display: sevenZLine,
+      hint: isSevenZUnpackOk(scan!)
+        ? "Archiwum rozpakowane — w dokumentacji zamawiającego brak pliku kosztorysowego"
+        : "Sprawdź integralność pliku lub pobierz archiwum ręcznie",
     };
   }
   return {
