@@ -10,6 +10,8 @@ export type WgdomCostCategoryId =
   | "PODLOGI"
   | "ELEKTRYKA"
   | "HYDRAULIKA"
+  | "WENTYLACJA"
+  | "TRANSPORT_UTYLIZACJA"
   | "ROZBIORKI"
   | "STOLARKA"
   | "UNKNOWN";
@@ -22,10 +24,12 @@ export const WGDOM_COST_CATEGORY_IDS: WgdomCostCategoryId[] = [
   "MALOWANIE",
   "GK",
   "GLAZURA",
+  "ROZBIORKI",
   "PODLOGI",
   "ELEKTRYKA",
   "HYDRAULIKA",
-  "ROZBIORKI",
+  "WENTYLACJA",
+  "TRANSPORT_UTYLIZACJA",
   "STOLARKA",
 ];
 
@@ -70,7 +74,7 @@ const REGION_MULTIPLIERS: Record<WgdomCostRegion, number> = {
   dolnyslask: 0.92,
 };
 
-/** Bazowe definicje kategorii (stawki przed mnożnikiem regionu w getCategoryRate). */
+/** Bazowe definicje kategorii (kolejność = priorytet klasyfikacji katalogu). */
 const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<WgdomCostCategoryId, "UNKNOWN"> }[] = [
   {
     id: "MALOWANIE",
@@ -118,7 +122,10 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
       { unit: "mb", materialPlnPerUnit: 22, laborRbhPerUnit: 0.18 },
       { unit: "rbh", materialPlnPerUnit: 0, laborRbhPerUnit: 1 },
     ],
-    keywords: ["elektr", "gniazd", "wlacznik", "oswietl", "przewod", "rozdziel", "instalac.*elektr"],
+    keywords: [
+      "elektr", "gniazd", "wlacznik", "oswietl", "przewod", "rozdziel", "instalac.*elektr",
+      "zerow", "pomiar", "protokol", "odbior instal", "skutecznosci zerowania",
+    ],
   },
   {
     id: "HYDRAULIKA",
@@ -129,6 +136,28 @@ const BASE_CATEGORY_DEFS: Omit<WgdomCostCategoryDef, "id"> & { id: Exclude<Wgdom
       { unit: "rbh", materialPlnPerUnit: 0, laborRbhPerUnit: 1 },
     ],
     keywords: ["hydrau", "rura", "kanaliz", "wod-kan", "armatur", "wc", "sanit", "instalac.*wod"],
+  },
+  {
+    id: "WENTYLACJA",
+    labelPl: "Wentylacja",
+    rates: [
+      /* MVP konserwatywne — kratki/anemostaty, montaż niskiej intensywności rbh */
+      { unit: "szt", materialPlnPerUnit: 65, laborRbhPerUnit: 0.8 },
+      { unit: "mb", materialPlnPerUnit: 35, laborRbhPerUnit: 0.15 },
+    ],
+    keywords: ["wentyl", "kratk", "nawiew", "wywiew", "anemostat", "kanal wentyl"],
+    marketRefNote: "P2-G.2B — kratki, nawiewniki (bez instalacji kanałów pełnych)",
+  },
+  {
+    id: "TRANSPORT_UTYLIZACJA",
+    labelPl: "Transport i utylizacja",
+    rates: [
+      /* MVP konserwatywne — fracht/kontener dominuje materiał; niski rbh ekipy wykończeniowej */
+      { unit: "m3", materialPlnPerUnit: 45, laborRbhPerUnit: 0.08 },
+      { unit: "kpl", materialPlnPerUnit: 800, laborRbhPerUnit: 2.0 },
+    ],
+    keywords: ["gruz", "wywoz", "wywiezienie", "transport", "utyliz", "odpad", "kontener", "skladowisko", "zagospodarowanie"],
+    marketRefNote: "P2-G.2B — wywóz gruzu/odpadów (≠ rozbiórka); anti-double-count vs wasteDisposalWeeklyPln",
   },
   {
     id: "STOLARKA",

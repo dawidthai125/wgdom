@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.52.7 — P2-G.2B Cost Category Expansion CORE
+- TRANSPORT_UTYLIZACJA + WENTYLACJA (10 kategorii MVP)
+- gruz/odpady → transport (≠ ROZBIORKI); wentylacja; pomiary zerowania → ELEKTRYKA
+- anti-double-count wasteDisposalWeeklyPln gdy gruz w przedmiarze
+- migracja kw-wgdom-cost-catalog + user dict remap ROZBIORKI→TRANSPORT
+
 ## 2.52.6 — P2-G.2A Assisted Classification (user learning)
 - wgdom-user-classification-dictionary.ts + kw-wgdom-classification-dictionary
 - UNKNOWN Inspector: przypisz kategorię → natychmiastowa reklasyfikacja

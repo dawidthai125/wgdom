@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.52.7",
+    label: "Przetargi — centrum wyceny P2-G.2B (Cost Category Expansion CORE)",
+    items: [
+      { type: "new", text: "Kategorie TRANSPORT_UTYLIZACJA + WENTYLACJA — właściwe kubełki kosztowe (gruz, kratki)" },
+      { type: "improve", text: "Słownik branżowy — gruz/odpady → transport; pomiary zerowania → ELEKTRYKA" },
+      { type: "fix", text: "Anti-double-count — pozycje gruzu w przedmiarze wyłączają tygodniowy wywóz z Kp pobocznych" },
+      { type: "improve", text: "Migracja katalogu i user dict — stare profile bez utraty danych (10 kategorii MVP)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.52.6",
     label: "Przetargi — centrum wyceny P2-G.2A (Assisted Classification)",
     items: [

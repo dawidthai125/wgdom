@@ -93,6 +93,9 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "montaz gniazda", "montaz wlacznika", "montaz oprawy", "przewod instalacyjny",
     "przewod linka", "przewod h07", "przewod ppoż", "kabel zasilajacy", "kabel zasilajacy yky",
     "instalacja odgromowa", "odprowadzenie piorunowe", "ogniwo kontrolne",
+    "zerowanie", "skutecznosc zerowania", "pomiar skutecznosci zerowania",
+    "pomiar skuteczności zerowania", "pomiary elektryczne", "protokol pomiarowy",
+    "odbior instalacji elektrycznej", "odbior instalacji", "pierwszy pomiar skutecznosci",
   ],
   HYDRAULIKA: [
     "syfon", "syfony", "syfon umywalkowy", "syfon wannowy", "syfon prysznicowy",
@@ -110,11 +113,26 @@ export const WGDOM_CONSTRUCTION_DICTIONARY: Record<DictCategory, readonly string
     "pompa ciepla instalacja", "uzupelnienie instalacji wod-kan", "próba szczelnosci",
     "próba cisnieniowa", "przeplywomierz", "zawor antyzalaniowy",
   ],
+  WENTYLACJA: [
+    "kratka wentylacyjna", "kratki wentylacyjne", "kratka wentylacyjna scienna",
+    "wentylacja", "wentylacja grawitacyjna", "wentylacja mechaniczna",
+    "nawiewnik", "nawiewniki", "wywiewnik", "wywiewniki", "anemostat", "anemostaty",
+    "kanał wentylacyjny", "kanal wentylacyjny", "kanał wentylacji", "kanal wentylacji",
+    "obsadzenie kratek wentylacyjnych", "montaz kratki wentylacyjnej", "montaz kratek wentylacyjnych",
+    "rewizja wentylacji", "czerpnia", "wyrzutnia", "klapa rewizyjna wentylacji",
+  ],
+  TRANSPORT_UTYLIZACJA: [
+    "gruz", "gruzu", "odpady", "odpadow", "odpad", "odpady budowlane",
+    "wywiezienie gruzu", "wywoz gruzu", "wynos gruzu", "transport gruzu",
+    "utylizacja", "utylizacja gruzu", "utylizacja odpadow", "zagospodarowanie odpadow",
+    "zagospodarowanie odpadów", "kontener", "kontener na gruz", "kontenery na gruz",
+    "skladowisko", "składowisko", "wywiezienie odpadow", "transport odpadow",
+    "usuniecie gruzu", "odwoz gruzu", "frakt gruzu", "wywozka gruzu",
+  ],
   ROZBIORKI: [
     "skuwanie tynku", "skuwanie plytek", "skuwanie posadzki", "skuwanie glazury",
     "skuwanie farby", "skuwanie tapety", "rozbiorka sciany", "rozbiorka scianki",
     "rozbiorka sciany dzialowej", "rozbiorka posadzki", "rozbiorka stropu",
-    "wynos gruzu", "transport gruzu", "utylizacja gruzu", "kontener na gruz",
     "wykuwanie otworow", "wykuwanie bruzd", "ciecie betonu", "frezowanie posadzki",
     "rozciecie posadzki", "demontaz instalacji", "demontaz armatury", "demontaz grzejnika",
     "demontaz wanien", "demontaz umywalki", "demontaz drzwi starych", "demontaz okien starych",
@@ -151,6 +169,11 @@ export const WGDOM_CONSTRUCTION_DICTIONARY_CATEGORY_ORDER: DictCategory[] = [
 ] as DictCategory[];
 
 let _foldedCache: Record<DictCategory, string[]> | null = null;
+
+/** Reset cache po zmianie słownika (testy / hot reload). */
+export function resetConstructionDictionaryCache(): void {
+  _foldedCache = null;
+}
 
 function foldedTerms(): Record<DictCategory, string[]> {
   if (_foldedCache) return _foldedCache;
@@ -204,4 +227,4 @@ export function listConstructionDictionarySample(limitPerCategory = 5): Record<D
   return out;
 }
 
-export const WGDOM_CONSTRUCTION_DICTIONARY_VERSION = "1F.0";
+export const WGDOM_CONSTRUCTION_DICTIONARY_VERSION = "2B.0";

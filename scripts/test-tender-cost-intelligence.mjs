@@ -17,9 +17,10 @@ import {
 } from "../src/lib/wgdom-cost-catalog.ts";
 import {
   aggregateCatalogDirectCost,
+  aggregateHasTransportUtillizationLines,
   computeFromCatalogRow,
 } from "../src/lib/wgdom-catalog-cost-engine.ts";
-import { defaultCostModelFromPayroll } from "../src/lib/company-labor-cost.ts";
+import { defaultCostModelFromPayroll, weeklyAncillaryLines } from "../src/lib/company-labor-cost.ts";
 import {
   computeTenderBidProposal,
   resolveCatalogQuantities,
@@ -78,6 +79,7 @@ import {
   restoreDefaultUserClassificationDictionaryStore,
   setUserClassificationDictionaryCache,
   updateUserClassificationEntry,
+  migrateUserClassificationCategory,
   WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY,
 } from "../src/lib/wgdom-user-classification-dictionary.ts";
 
@@ -261,7 +263,7 @@ console.log("\n4. Catalog seed");
 const catalogW = defaultWgdomCostCatalog("wroclaw");
 assertEq(catalogW.schemaVersion, 1, "schemaVersion 1");
 assertEq(catalogW.regionMultiplier, 1.0, "wroclaw multiplier 1.0");
-assertEq(catalogW.categories.length, WGDOM_COST_CATEGORY_IDS.length, "8 kategorii MVP");
+assertEq(catalogW.categories.length, WGDOM_COST_CATEGORY_IDS.length, "10 kategorii MVP");
 const store = defaultWgdomCostCatalogStore();
 assertEq(store.catalogs.dolnyslask.regionMultiplier, 0.92, "dolnyslask multiplier 0.92");
 
@@ -520,7 +522,7 @@ assert(classSummary.classifiedPercent >= 95, "coverage ≥95% after dict");
 assert(classSummary.coverageDelta != null, "coverageDelta present");
 assert(Math.abs(classSummary.coverageDelta.classifiedPercentBefore - 81.9) < 0.2, "before ~81.9%");
 assert(classSummary.coverageDelta.coverageDelta > 10, "delta >10pp");
-assertEq(CLASSIFICATION_CATEGORY_ORDER.length, 9, "9 categories incl UNKNOWN");
+assertEq(CLASSIFICATION_CATEGORY_ORDER.length, 11, "11 categories incl UNKNOWN");
 assert(classSummary.categories.some((c) => c.id === "UNKNOWN" && c.count === 10), "UNKNOWN bucket 10");
 assert(classSummary.categories.some((c) => c.id === "MALOWANIE" && c.count > 0), "MALOWANIE bucket");
 const malCat = classSummary.categories.find((c) => c.id === "MALOWANIE");
@@ -557,7 +559,7 @@ assertEq(bidMixed.costPricePln, bidMixedRepeat.costPricePln, "AC-6 calculator id
 console.log("\n18. P2-G.1F — Construction Dictionary");
 const dictCount = countConstructionDictionaryTerms();
 assertGte(dictCount, 150, "AC-2 dictionary 150+ terms");
-assertEq(WGDOM_CONSTRUCTION_DICTIONARY_CATEGORY_ORDER.length, 8, "8 dict categories");
+assertEq(WGDOM_CONSTRUCTION_DICTIONARY_CATEGORY_ORDER.length, 10, "10 dict categories");
 assert(WGDOM_CONSTRUCTION_DICTIONARY.MALOWANIE.includes("lamperia"), "dict has lamperia");
 assert(WGDOM_CONSTRUCTION_DICTIONARY.PODLOGI.includes("cokolik"), "dict has cokolik");
 assertEq(classifyAthLineCategory("Montaż lamperii przy oknach", "mb"), "MALOWANIE", "AC-3 lamperia → MALOWANIE");
@@ -642,6 +644,126 @@ assertEq(classificationCoverageTone(89), "bad", "coverage tone bad <90");
 assert(PROFILE_SECTION_IDS.classificationDictionary.includes("classification-dictionary"), "profile section id");
 assert(PROFILE_SECTION_TITLES.classificationDictionary.includes("Classification"), "profile section title");
 setUserClassificationDictionaryCache(restoreDefaultUserClassificationDictionaryStore());
+
+console.log("\n20. P2-G.2B — Cost Category Expansion (CORE)");
+assertEq(WGDOM_COST_CATEGORY_IDS.length, 10, "10 MVP categories");
+assert(WGDOM_COST_CATEGORY_IDS.includes("TRANSPORT_UTYLIZACJA"), "has TRANSPORT_UTYLIZACJA");
+assert(WGDOM_COST_CATEGORY_IDS.includes("WENTYLACJA"), "has WENTYLACJA");
+assertEq(classifyAthLineCategory("Wywiezienie gruzu", "m3"), "TRANSPORT_UTYLIZACJA", "AC-1 wywiezienie gruzu");
+assertEq(classifyAthLineCategory("Zagospodarowanie odpadów budowlanych", "m3"), "TRANSPORT_UTYLIZACJA", "AC-2 zagospodarowanie odpadów");
+assertEq(classifyAthLineCategory("Transport i utylizacja gruzu", "m3"), "TRANSPORT_UTYLIZACJA", "transport gruzu not ROZBIORKI");
+assertEq(classifyAthLineCategory("Obsadzenie kratek wentylacyjnych", "szt"), "WENTYLACJA", "AC-3 kratki wentylacyjne");
+assertEq(classifyAthLineCategory("Montaż kratki wentylacyjnej", "szt"), "WENTYLACJA", "kratka wentylacyjna");
+assertEq(
+  classifyAthLineCategory("Pierwszy pomiar skuteczności zerowania", "kpl"),
+  "ELEKTRYKA",
+  "AC-4 pomiar zerowania",
+);
+assertEq(classifyAthLineCategory("Demontaż posadzki", "m2"), "ROZBIORKI", "demontaż still ROZBIORKI");
+assertEq(matchConstructionDictionary(foldPolishText("transport gruzu")), "TRANSPORT_UTYLIZACJA", "dict transport gruzu");
+assert(!WGDOM_CONSTRUCTION_DICTIONARY.ROZBIORKI.includes("transport gruzu"), "gruz removed from ROZBIORKI dict");
+const transportDef = defaultWgdomCostCatalog().categories.find((c) => c.id === "TRANSPORT_UTYLIZACJA");
+const ventDef = defaultWgdomCostCatalog().categories.find((c) => c.id === "WENTYLACJA");
+assert(transportDef?.rates.some((r) => r.unit === "m3"), "AC-5 transport m3 rate");
+assert(transportDef?.rates.some((r) => r.unit === "kpl"), "AC-5 transport kpl rate");
+assert(ventDef?.rates.some((r) => r.unit === "szt"), "AC-5 vent szt rate");
+assert(ventDef?.rates.some((r) => r.unit === "mb"), "AC-5 vent mb rate");
+const oldStoreSnapshot = {
+  schemaVersion: 1,
+  activeRegion: "wroclaw",
+  catalogs: {
+    wroclaw: {
+      schemaVersion: 1,
+      region: "wroclaw",
+      regionMultiplier: 1,
+      categories: defaultWgdomCostCatalog("wroclaw").categories.filter(
+        (c) => !["WENTYLACJA", "TRANSPORT_UTYLIZACJA"].includes(c.id),
+      ),
+      unknownFallback: defaultWgdomCostCatalog().unknownFallback,
+      updatedAt: "2026-06-01T00:00:00.000Z",
+    },
+    dolnyslask: defaultWgdomCostCatalog("dolnyslask"),
+  },
+};
+const migratedCatalog = normalizeWgdomCostCatalogStore(oldStoreSnapshot);
+assertEq(migratedCatalog.catalogs.wroclaw.categories.length, 10, "AC-6 migrate catalog to 10 cats");
+assert(migratedCatalog.catalogs.wroclaw.categories.some((c) => c.id === "TRANSPORT_UTYLIZACJA"), "AC-6 transport in migrated");
+assert(migratedCatalog.catalogs.wroclaw.categories.some((c) => c.id === "WENTYLACJA"), "AC-6 vent in migrated");
+const gruzRows = [{ description: "Wywiezienie gruzu", unit: "m3", quantity: "10" }];
+const aggGruz = aggregateCatalogDirectCost(gruzRows, defaultWgdomCostCatalog(), costModel);
+assertEq(aggGruz.lines[0].category, "TRANSPORT_UTYLIZACJA", "aggregate gruz category");
+assert(aggregateHasTransportUtillizationLines(aggGruz), "has transport lines flag");
+const costModelDefault = defaultCostModelFromPayroll();
+const ancillaryFull = weeklyAncillaryLines(costModelDefault).reduce((s, l) => s + l.pln, 0);
+const ancillaryNoWaste = weeklyAncillaryLines(costModelDefault, { excludeWasteDisposal: true }).reduce((s, l) => s + l.pln, 0);
+assertEq(ancillaryFull - ancillaryNoWaste, costModelDefault.wasteDisposalWeeklyPln, "AC-9 waste line isolated");
+const gruzKosztorys = {
+  ok: true,
+  sourceFilename: "gruz.ath",
+  rowCount: 1,
+  rows: [],
+  catalogQuantities: [{ lp: "1", description: "Wywiezienie gruzu", unit: "m3", quantity: "10" }],
+  totalValue: "",
+  currency: "PLN",
+  przedmiar: [],
+  categories: [],
+  warnings: [],
+  parsedAt: "2026-06-13T00:00:00.000Z",
+};
+const paintKosztorys = {
+  ok: true,
+  sourceFilename: "paint.ath",
+  rowCount: 1,
+  rows: [],
+  catalogQuantities: [{ lp: "1", description: "Malowanie ścian", unit: "m2", quantity: "500" }],
+  totalValue: "",
+  currency: "PLN",
+  przedmiar: [],
+  categories: [],
+  warnings: [],
+  parsedAt: "2026-06-13T00:00:00.000Z",
+};
+const bidGruz = computeTenderBidProposal({
+  kosztorys: gruzKosztorys,
+  swz: { estimatedValuePln: 500_000 },
+  fit: null,
+  costModel: costModelDefault,
+  minProjectDays: 30,
+  maxConcurrentProjects: 2,
+});
+const bidPaint = computeTenderBidProposal({
+  kosztorys: paintKosztorys,
+  swz: { estimatedValuePln: 500_000 },
+  fit: null,
+  costModel: costModelDefault,
+  minProjectDays: 30,
+  maxConcurrentProjects: 2,
+});
+assertEq(bidGruz.ok, true, "gruz bid ok");
+const poboczneGruz = bidGruz.costStack.find((l) => l.label.includes("poboczne"));
+const pobocznePaint = bidPaint.costStack.find((l) => l.label.includes("poboczne"));
+assert(poboczneGruz && pobocznePaint, "poboczne lines present");
+assertLt(poboczneGruz.pln, pobocznePaint.pln, "AC-9 gruz bid excludes weekly waste share");
+assert(bidGruz.assumptions.some((a) => a.includes("wywóz gruzu")), "AC-9 assumption note");
+assertEq(
+  migrateUserClassificationCategory("wywiezienie gruzu", "ROZBIORKI"),
+  "TRANSPORT_UTYLIZACJA",
+  "user dict migrate transport phrase",
+);
+const migratedUser = normalizeWgdomUserClassificationDictionaryStore({
+  schemaVersion: 1,
+  entries: [{ id: "u1", phrase: "wywiezienie gruzu", category: "ROZBIORKI", source: "manual" }],
+});
+assertEq(migratedUser.entries[0].category, "TRANSPORT_UTYLIZACJA", "user dict normalize migrate");
+setUserClassificationDictionaryCache(migratedUser);
+assertEq(classifyAthLineCategory("Wywiezienie gruzu budowlany", "m3"), "TRANSPORT_UTYLIZACJA", "user dict works after migrate");
+setUserClassificationDictionaryCache(restoreDefaultUserClassificationDictionaryStore());
+const summaryVent = buildClassificationSummary([
+  { lp: "1", description: "Obsadzenie kratek wentylacyjnych", unit: "szt", quantity: "8" },
+  { lp: "2", description: "Wywiezienie gruzu", unit: "m3", quantity: "12" },
+]);
+assert(summaryVent.categories.some((c) => c.id === "WENTYLACJA" && c.count === 1), "inspector WENTYLACJA bucket");
+assert(summaryVent.categories.some((c) => c.id === "TRANSPORT_UTYLIZACJA" && c.count === 1), "inspector TRANSPORT bucket");
 
 console.log(`\n---\nPASS: ${passed}  FAIL: ${failed}  TOTAL: ${passed + failed}`);
 if (failed > 0) {

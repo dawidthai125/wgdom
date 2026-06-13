@@ -174,3 +174,11 @@ export function aggregateCatalogDirectCost(
     rowCount: rows.length,
   };
 }
+
+/** P2-G.2B — czy wycena katalogowa zawiera pozycje transportu/utylizacji (anti-double-count gruzu). */
+export function aggregateHasTransportUtillizationLines(
+  result: AggregateCatalogDirectCostResult | CatalogRowCost[],
+): boolean {
+  const lines = Array.isArray(result) ? result : result.lines;
+  return lines.some((l) => l.category === "TRANSPORT_UTYLIZACJA");
+}

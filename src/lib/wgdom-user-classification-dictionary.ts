@@ -60,6 +60,20 @@ export function phraseFromAthDescription(description: string): string {
   return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trim();
 }
 
+/** P2-G.2B — remap wpisów user dict z ROZBIORKI → TRANSPORT gdy fraza dotyczy gruzu/odpadów. */
+const USER_DICT_TRANSPORT_PHRASE_RE =
+  /gruz|odpad|utyliz|transport|kontener|skladowisko|wywoz|wywiezienie|zagospodarowanie/;
+
+export function migrateUserClassificationCategory(
+  phrase: string,
+  category: UserClassificationCategory,
+): UserClassificationCategory {
+  if (category === "ROZBIORKI" && USER_DICT_TRANSPORT_PHRASE_RE.test(phrase)) {
+    return "TRANSPORT_UTYLIZACJA";
+  }
+  return category;
+}
+
 export function defaultUserClassificationDictionaryStore(): WgdomUserClassificationDictionaryStore {
   return {
     schemaVersion: 1,
@@ -85,10 +99,12 @@ export function normalizeWgdomUserClassificationDictionaryStore(
       if (!phrase || phrase.length < 2 || seen.has(phrase)) continue;
       if (!isUserClassificationCategory(String(e.category ?? ""))) continue;
       seen.add(phrase);
+      const rawCategory = e.category as UserClassificationCategory;
+      const category = migrateUserClassificationCategory(phrase, rawCategory);
       entries.push({
         id: typeof e.id === "string" && e.id ? e.id : newEntryId(),
         phrase,
-        category: e.category as UserClassificationCategory,
+        category,
         source: e.source === "imported" ? "imported" : "manual",
         updatedAt: typeof e.updatedAt === "string" ? e.updatedAt : new Date().toISOString(),
       });

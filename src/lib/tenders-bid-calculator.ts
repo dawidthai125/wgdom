@@ -11,7 +11,7 @@ import {
   weeklyFixedOverheadShare,
 } from "@/lib/company-labor-cost";
 import { defaultWgdomCostCatalog, type WgdomCostCatalog } from "@/lib/wgdom-cost-catalog";
-import { aggregateCatalogDirectCost } from "@/lib/wgdom-catalog-cost-engine";
+import { aggregateCatalogDirectCost, aggregateHasTransportUtillizationLines } from "@/lib/wgdom-catalog-cost-engine";
 import { enrichBidProposalMeta, type TenderBidCalculationBasis, type TenderBidQualityLevel } from "@/lib/tender-bid-quality";
 import { getActiveCatalog, loadWgdomCostCatalogStoreLocal } from "@/lib/wgdom-cost-catalog-store";
 
@@ -273,6 +273,7 @@ export function computeTenderBidProposal(opts: {
   let athMaterialPortion = 0;
   let athTotal: number | null = null;
   let catalogUnknownPct: number | null = null;
+  let excludeWeeklyWasteDisposal = false;
 
   if (pricingMode === "ath_priced") {
     athTotal = parsePlnFromKosztorysTotal(kosztorys.totalValue, kosztorys.currency)
@@ -341,10 +342,16 @@ export function computeTenderBidProposal(opts: {
     hoursSum = agg.totals.laborHours;
     referencePln = agg.totals.direct;
     catalogUnknownPct = agg.rowCount > 0 ? agg.unknownCount / agg.rowCount : null;
+    excludeWeeklyWasteDisposal = aggregateHasTransportUtillizationLines(agg);
 
     assumptions.push(
       `Wycena katalogowa WGDOM — ${agg.rowCount} poz. przedmiaru (region: ${catalog.region}).`,
     );
+    if (excludeWeeklyWasteDisposal) {
+      assumptions.push(
+        "Pozycje transportu/utylizacji w przedmiarze — tygodniowy wywóz gruzu (udział) pominięty w Kp pobocznych.",
+      );
+    }
     if (agg.unknownCount > 0) {
       assumptions.push(`Pozycje niesklasyfikowane (UNKNOWN): ${agg.unknownCount} / ${agg.rowCount}.`);
     }
@@ -383,7 +390,9 @@ export function computeTenderBidProposal(opts: {
 
   const months = projectMonths(swz?.implementationDays, minProjectDays, referencePln, costModel);
   const weeks = Math.max(months * 4.33, 1);
-  const weeklyAncillaryTotal = weeklyAncillaryLines(costModel).reduce((s, l) => s + l.pln, 0);
+  const weeklyAncillaryTotal = weeklyAncillaryLines(costModel, {
+    excludeWasteDisposal: excludeWeeklyWasteDisposal,
+  }).reduce((s, l) => s + l.pln, 0);
   const ancillaryProject = weeklyAncillaryTotal * weeks;
   costStack.push({
     label: "Koszty poboczne tygodniowe (paliwo, narzędzia, BHP…)",

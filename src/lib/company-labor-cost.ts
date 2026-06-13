@@ -69,10 +69,13 @@ export function fullyLoadedHourly(model: TenderCompanyCostModel): number {
 }
 
 /** Koszty poboczne tygodniowe (bez materiałów budowlanych). */
-export function weeklyAncillaryLines(model: TenderCompanyCostModel): WeeklyAncillaryLine[] {
+export function weeklyAncillaryLines(
+  model: TenderCompanyCostModel,
+  options?: { excludeWasteDisposal?: boolean },
+): WeeklyAncillaryLine[] {
   const n = model.headcount;
   const v = model.vehicleCount;
-  return [
+  const lines: WeeklyAncillaryLine[] = [
     {
       id: "fuel",
       label: "Paliwo — auta służbowe",
@@ -129,6 +132,10 @@ export function weeklyAncillaryLines(model: TenderCompanyCostModel): WeeklyAncil
       pln: model.supervisionWeeklyPln,
     },
   ];
+  if (options?.excludeWasteDisposal) {
+    return lines.filter((l) => l.id !== "waste");
+  }
+  return lines;
 }
 
 export function weeklyOperatingCost(model: TenderCompanyCostModel): WeeklyOperatingCost {

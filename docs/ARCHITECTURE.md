@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.52.6** · P2-G.2A)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.2A — Assisted Classification)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.52.7** · P2-G.2B)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.2B — Cost Category Expansion CORE)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -849,7 +849,7 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 
 ### 12.1.6 P2-G — Tender Cost Intelligence (P2-G.1 COMPLETE)
 
-**Status:** **P2-G.1A–P2-G.2A COMPLETE** · prod backlog **2.52.6**
+**Status:** **P2-G.1A–P2-G.2B COMPLETE** · prod backlog **2.52.7**
 
 **Cel:** autorska wycena przetargu z przedmiaru ATH **bez cen** (FOUND_NO_VALUE) — koszt wykonania + oferty min/rekom/agresywna przez rozszerzenie `computeTenderBidProposal()`, **nie** nowy moduł ofertowy.
 
@@ -860,7 +860,7 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 | `ath_priced` | Kosztorys ATH | Wysoka |
 | `catalog` | Katalog WGDOM | Średnia (Ograniczona gdy UNKNOWN >15%) |
 
-**Chmura:** `kw-wgdom-cost-catalog` — `WgdomCostCatalogStore` (regiony `wroclaw` / `dolnyslask`, 8 kategorii MVP). Sync: `DATA_KEYS`, `BOOTSTRAP_DEFERRED_KEYS`, merge w `tenders-sync.ts` · edycja: `TenderCompanyProfilePanel` → sekcja **WGDOM Cost Catalog**.
+**Chmura:** `kw-wgdom-cost-catalog` — `WgdomCostCatalogStore` (regiony `wroclaw` / `dolnyslask`, **10 kategorii MVP**). Sync: `DATA_KEYS`, `BOOTSTRAP_DEFERRED_KEYS`, merge w `tenders-sync.ts` · edycja: `TenderCompanyProfilePanel` → sekcja **WGDOM Cost Catalog**.
 
 **P2-G.1B — FOUND_NO_VALUE → catalog mode:**
 
@@ -924,6 +924,19 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 
 **Cel biznesowy:** pokrycie klasyfikacji 97–99% na realnych przetargach TBS/WM — bez rozbudowy wyłącznie słownika programisty.
 
+**P2-G.2B — Cost Category Expansion CORE (poprawność kubełka, nie pokrycie %):**
+
+| Element | Opis | Plik |
+|---------|------|------|
+| **TRANSPORT_UTYLIZACJA** | Wywóz gruzu/odpadów — normy m³/kpl (≠ rozbiórka) | `wgdom-cost-catalog.ts` |
+| **WENTYLACJA** | Kratki, nawiewniki, anemostaty — normy szt/mb | j.w. |
+| Słownik | Terminy gruzu przeniesione z ROZBIORKI; wentylacja; pomiary zerowania → ELEKTRYKA | `wgdom-construction-dictionary.ts` |
+| Anti-double-count | Gdy przedmiar ma TRANSPORT_UTYLIZACJA → `weeklyAncillaryLines({ excludeWasteDisposal: true })` | `tenders-bid-calculator.ts`, `company-labor-cost.ts` |
+| Migracja user dict | ROZBIORKI + fraza gruz/odpad → TRANSPORT_UTYLIZACJA przy normalize | `wgdom-user-classification-dictionary.ts` |
+| Inspektor | Nowe kubełki w `CLASSIFICATION_CATEGORY_ORDER` | `tender-classification-inspector.ts` |
+
+**Backlog P2-G.2C:** split GK / STOLARKA — tylko na polecenie po audycie misclassification.
+
 **Moduły lib:**
 
 | Plik | Rola |
@@ -939,7 +952,7 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 | `wgdom-construction-dictionary.ts` | P2-G.1F — 150+ terminów branżowych, `matchConstructionDictionary()` |
 | `wgdom-user-classification-dictionary.ts` | P2-G.2A — user learning, `matchUserClassificationDictionary()` |
 
-**Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (190+ asercji) · regresja P2-F: `test-tender-dossier-pipeline.mjs`
+**Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (220+ asercji) · regresja P2-F: `test-tender-dossier-pipeline.mjs`
 
 **Źródła danych (hierarchia):**
 
