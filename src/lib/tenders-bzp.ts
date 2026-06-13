@@ -126,6 +126,10 @@ export interface TenderPipelineItem {
   awardResult?: import("@/lib/tenders-bzp-award").TenderAwardResult | null;
   /** Ostatnia próba pobrania wyniku z BZP (auto). */
   awardFetchAttemptedAt?: string | null;
+  /** P2-G.3B — kwota oferty faktycznie złożonej (PLN). */
+  submittedBidPln?: number | null;
+  /** P2-G.3B — kiedy zapisano złożoną ofertę (ISO). */
+  submittedAt?: string | null;
   /** P2-D.1 — snapshot dokumentów + historia zmian. */
   changeMonitor?: import("@/lib/tender-change-monitor").TenderChangeMonitorState | null;
   /** P2-D.2 — snapshot Q&A + historia odpowiedzi. */
@@ -136,6 +140,20 @@ export interface TenderEstimateSnapshot {
   pln: number;
   at: string;
   note?: string;
+}
+
+/** P2-G.3B — zapis złożonej oferty (pipeline item patch). */
+export function patchSubmittedBidPln(
+  item: TenderPipelineItem,
+  pln: number | null,
+): Partial<TenderPipelineItem> {
+  if (pln == null || !Number.isFinite(pln) || pln <= 0) {
+    return { submittedBidPln: null, submittedAt: null };
+  }
+  return {
+    submittedBidPln: pln,
+    submittedAt: new Date().toISOString(),
+  };
 }
 
 export function patchOurEstimatePln(

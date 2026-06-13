@@ -13,7 +13,12 @@ import {
   uploadTenderFile,
   computePipelineFunnel,
   patchOurEstimatePln,
+  patchSubmittedBidPln,
 } from "@/lib/tenders-bzp";
+import {
+  recordSubmittedBidCalibration,
+  syncCalibrationAwardFromItem,
+} from "@/lib/tender-cost-calibration";
 import {
   learnKeywordsFromPipeline,
   suggestKeywordsFromPipeline,
@@ -72,6 +77,10 @@ export function TenderDetailPanel({
   const [externalDiscovering, setExternalDiscovering] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [fetchingAward, setFetchingAward] = useState(false);
+  const [savingSubmittedBid, setSavingSubmittedBid] = useState(false);
+  const [submittedBidDraft, setSubmittedBidDraft] = useState<string>(
+    () => (item.submittedBidPln != null ? String(item.submittedBidPln) : ""),
+  );
   const [showHtml, setShowHtml] = useState(false);
   const [docPreview, setDocPreview] = useState<InspectorFileItem | null>(null);
   const autoRanRef = useRef<Set<string>>(new Set());
@@ -448,6 +457,10 @@ export function TenderDetailPanel({
     }
   }, [item, onUpdate, pipelineWinRate]);
 
+  useEffect(() => {
+    setSubmittedBidDraft(item.submittedBidPln != null ? String(item.submittedBidPln) : "");
+  }, [item.id, item.submittedBidPln]);
+
   const handleFetchAward = useCallback(async () => {
     setFetchingAward(true);
     try {
@@ -458,6 +471,7 @@ export function TenderDetailPanel({
       });
       if (result) {
         onUpdate({ awardResult: result });
+        void syncCalibrationAwardFromItem({ ...item, awardResult: result });
         toast.success(result.isUs ? "Wygraliśmy to postępowanie!" : `Wynik: ${result.winnerName}`);
       } else {
         toast.message("Brak ogłoszenia o wyniku w BZP — postępowanie może być w toku");
@@ -550,6 +564,34 @@ export function TenderDetailPanel({
       setExportingPdf(false);
     }
   }, [item, bidProposal]);
+
+  const canEditSubmittedBid = item.status === "submitted" || item.status === "won" || item.status === "lost";
+
+  const handleSaveSubmittedBid = useCallback(async () => {
+    const pln = submittedBidDraft ? Number(submittedBidDraft) : null;
+    if (pln == null || !Number.isFinite(pln) || pln <= 0) {
+      toast.error("Podaj poprawną kwotę oferty złożonej (PLN)");
+      return;
+    }
+    setSavingSubmittedBid(true);
+    try {
+      const patch = patchSubmittedBidPln(item, pln);
+      const nextStatus = item.status === "preparing" || item.status === "interested"
+        ? "submitted" as const
+        : item.status;
+      onUpdate({ ...patch, status: nextStatus });
+      await recordSubmittedBidCalibration({
+        item: { ...item, ...patch, status: nextStatus },
+        bidProposal,
+        submittedBidPln: pln,
+      });
+      toast.success("Zapisano ofertę złożoną — snapshot kalibracji w chmurze");
+    } catch {
+      toast.error("Nie udało się zapisać oferty / kalibracji");
+    } finally {
+      setSavingSubmittedBid(false);
+    }
+  }, [item, bidProposal, submittedBidDraft, onUpdate]);
 
   return (
     <div className="px-4 pb-4 pt-2 border-t border-border space-y-3">
@@ -680,6 +722,40 @@ export function TenderDetailPanel({
           onClick={(e) => e.stopPropagation()}
         />
       </label>
+
+      {canEditSubmittedBid && (
+        <div className="rounded-lg border border-teal-500/25 bg-teal-500/5 px-3 py-2 space-y-2">
+          <p className="text-[10px] font-semibold text-teal-800 dark:text-teal-200">
+            Oferta złożona (PLN) — kalibracja historyczna
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="number"
+              min="0"
+              step="1000"
+              value={submittedBidDraft}
+              onChange={(e) => setSubmittedBidDraft(e.target.value)}
+              placeholder="Kwota złożonej oferty"
+              className="w-36 bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border font-mono"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button
+              type="button"
+              disabled={savingSubmittedBid}
+              onClick={(e) => { e.stopPropagation(); void handleSaveSubmittedBid(); }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-medium hover:bg-teal-700 disabled:opacity-50"
+            >
+              {savingSubmittedBid ? <Loader2 size={12} className="animate-spin" /> : null}
+              Zapisz ofertę złożoną
+            </button>
+          </div>
+          {item.submittedAt && (
+            <p className="text-[10px] text-muted-foreground">
+              Ostatni zapis: {new Date(item.submittedAt).toLocaleString("pl-PL")}
+            </p>
+          )}
+        </div>
+      )}
 
       {(item.estimateHistory?.length ?? 0) > 0 && (
         <details className="rounded-lg border border-border/60 bg-secondary/20 px-3 py-2 text-[10px]">

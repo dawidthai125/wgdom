@@ -89,6 +89,23 @@ import {
   migrateUserClassificationCategory,
   WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY,
 } from "../src/lib/wgdom-user-classification-dictionary.ts";
+import {
+  appendHistoricalCostSnapshot,
+  buildCalibrationSummary,
+  buildCatalogCalibrationHints,
+  buildHistoricalCostSnapshot,
+  CALIBRATION_HINTS_MIN_SNAPSHOTS,
+  computeCalibrationDelta,
+  defaultTenderCalibrationStore,
+  formatCalibrationDeltaPct,
+  inferTenderType,
+  mergeTenderCalibrationStore,
+  normalizeTenderCalibrationStore,
+  TENDER_CALIBRATION_KEY,
+  updateCalibrationAwardForTender,
+} from "../src/lib/tender-cost-calibration.ts";
+import { patchSubmittedBidPln } from "../src/lib/tenders-bzp.ts";
+import { TENDER_DATA_KEYS } from "../src/lib/tenders-sync.ts";
 
 let passed = 0;
 let failed = 0;
@@ -903,6 +920,124 @@ const summary2c = buildClassificationSummary([
 assert(summary2c.categories.some((c) => c.id === "GLADZIE_TYNKI" && c.count === 1), "inspector GLADZIE_TYNKI bucket");
 assert(summary2c.categories.some((c) => c.id === "WYPOSAZENIE" && c.count === 1), "inspector WYPOSAZENIE bucket");
 assert(summary2c.categories.some((c) => c.id === "GK" && c.count === 1), "inspector GK bucket");
+
+// --- P2-G.3B Historical Cost Calibration ---
+console.log("\nP2-G.3B — Historical Cost Calibration");
+
+assertEq(TENDER_CALIBRATION_KEY, "kw-tender-calibration", "AC-B8 calibration key");
+
+const deltaRecSub = computeCalibrationDelta(272000, 285000);
+assert(deltaRecSub != null, "AC-B3 delta exists");
+assertEq(Math.round(deltaRecSub.pct * 10) / 10, 4.8, "AC-B3 recommended vs submitted %");
+assertEq(deltaRecSub.pln, 13000, "AC-B3 recommended vs submitted PLN");
+
+const deltaSubAward = computeCalibrationDelta(285000, 278000);
+assert(deltaSubAward != null, "AC-B4 delta exists");
+assert(Math.abs(deltaSubAward.pct + 2.5) < 0.2, "AC-B4 submitted vs award ~-2.5%");
+
+const patchSub = patchSubmittedBidPln(
+  { id: "t1", submittedBidPln: null, submittedAt: null },
+  285000,
+);
+assertEq(patchSub.submittedBidPln, 285000, "AC-B1 patch submittedBidPln");
+assert(typeof patchSub.submittedAt === "string", "AC-B1 patch submittedAt");
+
+const mockItem = {
+  id: "tender-cal-1",
+  title: "Remont klatki TBS",
+  status: "submitted",
+  organizationName: "Budownictwa Społecznego Wrocław",
+  organizationCity: "Wrocław",
+  priorityBuyerId: "tbs",
+  priorityBuyerLabel: "TBS Wrocław",
+  tenderDossier: {
+    kosztorys: makeNoPriceKosztorys(12),
+  },
+  awardResult: null,
+};
+
+const mockProposal = computeTenderBidProposal({
+  kosztorys: mockItem.tenderDossier.kosztorys,
+  costModel,
+});
+const calSnap = buildHistoricalCostSnapshot({
+  item: mockItem,
+  bidProposal: mockProposal,
+  submittedBidPln: 285000,
+});
+assert(calSnap.recommendedBidPln != null, "AC-B2 snapshot recommended");
+assertEq(calSnap.submittedBidPln, 285000, "AC-B2 snapshot submitted");
+assert(calSnap.categories.length > 0, "AC-B2 snapshot categories");
+assertEq(inferTenderType(mockItem), "TBS Wrocław", "AC-B2 tender type Wrocław");
+
+let calStore = appendHistoricalCostSnapshot(defaultTenderCalibrationStore(), calSnap);
+assertEq(calStore.snapshots.length, 1, "AC-B2 store append");
+
+calStore = updateCalibrationAwardForTender(calStore, "tender-cal-1", 278000);
+assertEq(calStore.snapshots[0].awardValuePln, 278000, "AC-B4 award on snapshot");
+
+for (let i = 0; i < 11; i++) {
+  const s = buildHistoricalCostSnapshot({
+    item: { ...mockItem, id: `t-${i}` },
+    bidProposal: { ...mockProposal, recommendedBidPln: 200000 + i * 1000, costPricePln: 170000 },
+    submittedBidPln: 210000 + i * 1100,
+  });
+  s.categories = [
+    { id: "GLADZIE_TYNKI", count: 5, quantity: 120 },
+    { id: "MALOWANIE", count: 3, quantity: 80 },
+  ];
+  calStore = appendHistoricalCostSnapshot(calStore, s);
+}
+const summary3b = buildCalibrationSummary(calStore);
+assertGte(summary3b.withSubmitted, 10, "AC-B5 summary count");
+assert(summary3b.recommendedVsSubmitted?.pct != null, "AC-B5 avg rec vs sub");
+
+const hints3b = buildCatalogCalibrationHints(calStore, CALIBRATION_HINTS_MIN_SNAPSHOTS);
+assert(hints3b.length >= 1, "AC-B6 hints when N>=10");
+assert(!hints3b[0].suggestionPl.includes("automat"), "AC-B7 hints read-only text");
+
+const emptyHints = buildCatalogCalibrationHints(defaultTenderCalibrationStore(), 10);
+assertEq(emptyHints.length, 0, "AC-B6 no hints below N");
+
+const mergedCal = mergeTenderCalibrationStore(
+  { schemaVersion: 1, snapshots: [calSnap], updatedAt: "2026-06-13T10:00:00.000Z" },
+  { schemaVersion: 1, snapshots: [], updatedAt: "2026-06-12T00:00:00.000Z" },
+);
+assertEq(mergedCal.snapshots.length, 1, "AC-B8 merge keeps local");
+
+const normCal = normalizeTenderCalibrationStore({ schemaVersion: 1, snapshots: [{ tenderId: "x", submittedBidPln: -1 }] });
+assertEq(normCal.snapshots.length, 0, "AC-B8 normalize rejects invalid");
+
+assertEq(formatCalibrationDeltaPct({ pct: 5.6, pln: 100, basePln: 1, comparePln: 2 }), "+5.6%", "AC-B3 format pct");
+assertEq(PROFILE_SECTION_IDS.calibration, "profile-section-calibration", "AC-B5 profile section id");
+assertEq(PROFILE_SECTION_TITLES.calibration, "Kalibracja WGDOM", "AC-B5 profile section title");
+
+const deltaRecAward = computeCalibrationDelta(272000, 278000);
+assert(deltaRecAward != null, "AC-B3 rec vs award delta");
+assert(Math.abs(deltaRecAward.pct - 2.2) < 0.2, "AC-B3 rec vs award ~+2.2%");
+
+const patchClear = patchSubmittedBidPln({ id: "t2" }, null);
+assertEq(patchClear.submittedBidPln, null, "AC-B1 clear submitted");
+assertEq(patchClear.submittedAt, null, "AC-B1 clear submittedAt");
+
+const latestOnly = buildCalibrationSummary(calStore);
+assertGte(latestOnly.snapshotCount, 12, "AC-B5 total snapshots in store");
+
+const hintStoreSmall = appendHistoricalCostSnapshot(defaultTenderCalibrationStore(), calSnap);
+const hintsSmall = buildCatalogCalibrationHints(hintStoreSmall, 10);
+assertEq(hintsSmall.length, 0, "AC-B6 single snapshot no hints");
+
+assert(inferTenderType({ organizationName: "Wspólnota Mieszkaniowa Test", organizationCity: "Wrocław", priorityBuyerId: null, priorityBuyerLabel: null }) === "Wspólnota", "AC-B2 wspolnota type");
+
+const subVsAwardSummary = computeCalibrationDelta(285000, 278000);
+assert(subVsAwardSummary.pln === -7000, "AC-B4 submitted vs award PLN");
+
+assert(buildHistoricalCostSnapshot({ item: mockItem, bidProposal: null, submittedBidPln: 100000 }).costPricePln === null, "AC-B2 null proposal cost");
+assert(buildHistoricalCostSnapshot({ item: mockItem, bidProposal: mockProposal, submittedBidPln: 100000 }).tenderId === "tender-cal-1", "AC-B2 tenderId");
+assert(defaultTenderCalibrationStore().schemaVersion === 1, "AC-B8 default schema");
+assert(defaultTenderCalibrationStore().snapshots.length === 0, "AC-B8 default empty");
+assert(TENDER_DATA_KEYS.includes("kw-tender-calibration"), "AC-B8 in TENDER_DATA_KEYS");
+assert(formatCalibrationDeltaPct(null) === "—", "AC-B3 format null delta");
 
 console.log(`\n---\nPASS: ${passed}  FAIL: ${failed}  TOTAL: ${passed + failed}`);
 if (failed > 0) {

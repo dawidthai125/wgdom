@@ -378,6 +378,8 @@ export function TenderBidPrepPanel({
           breakdownOpen={bidBreakdownOpen}
           highlight={bidPanelHighlight}
           catalogQuantities={item.tenderDossier?.kosztorys?.catalogQuantities}
+          submittedBidPln={item.submittedBidPln}
+          awardValuePln={awardResult?.awardValuePln ?? item.awardResult?.awardValuePln}
         />
       </div>
 

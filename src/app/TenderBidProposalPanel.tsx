@@ -28,6 +28,10 @@ import {
   type UserClassificationCategory,
 } from "@/lib/wgdom-user-classification-dictionary";
 import { fmtPln } from "@/lib/tenders-bzp-swz";
+import {
+  computeCalibrationDelta,
+  formatCalibrationDeltaPct,
+} from "@/lib/tender-cost-calibration";
 
 function qualityBadgeClass(level: TenderBidProposal["qualityLevel"]): string {
   if (level === "high") return "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/25";
@@ -46,6 +50,8 @@ export function TenderBidProposalPanel({
   breakdownOpen = true,
   highlight = false,
   catalogQuantities,
+  submittedBidPln,
+  awardValuePln,
 }: {
   proposal: TenderBidProposal | null | undefined;
   referenceValuePln?: number | null;
@@ -58,6 +64,10 @@ export function TenderBidProposalPanel({
   highlight?: boolean;
   /** P2-G.1E — pozycje ATH pod inspektor klasyfikacji */
   catalogQuantities?: TenderCatalogQuantityLine[] | null;
+  /** P2-G.3B — oferta faktycznie złożona */
+  submittedBidPln?: number | null;
+  /** P2-G.3B — kwota przyznana (wynik postępowania) */
+  awardValuePln?: number | null;
 }) {
   const [catalogRegionLabel, setCatalogRegionLabel] = useState(WGDOM_COST_REGION_LABELS.wroclaw);
   const [dictRevision, setDictRevision] = useState(0);
@@ -127,6 +137,14 @@ export function TenderBidProposalPanel({
   const basis = proposal.calculationBasis;
   const flowSteps = buildBidFlowExplanation(proposal.pricingMode);
 
+  const recVsSubmitted = submittedBidPln != null
+    ? computeCalibrationDelta(rec, submittedBidPln)
+    : null;
+  const submittedVsAward = submittedBidPln != null && awardValuePln != null
+    ? computeCalibrationDelta(submittedBidPln, awardValuePln)
+    : null;
+  const showCalibration = submittedBidPln != null && Number.isFinite(submittedBidPln);
+
   return (
     <div
       id={TENDER_BID_PROPOSAL_PANEL_ID}
@@ -180,6 +198,39 @@ export function TenderBidProposalPanel({
           ))}
         </ol>
       </div>
+
+      {showCalibration && (
+        <div className="px-3 py-2 border-b border-violet-500/10 space-y-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            📈 Kalibracja historyczna
+          </p>
+          <div className="text-[10px] space-y-1">
+            <p>
+              <span className="text-muted-foreground">WGDOM rekomendował:</span>{" "}
+              <strong className="font-mono">{fmtPln(rec)}</strong>
+            </p>
+            <p>
+              <span className="text-muted-foreground">Złożono:</span>{" "}
+              <strong className="font-mono">{fmtPln(submittedBidPln!)}</strong>
+              {recVsSubmitted && (
+                <span className="text-muted-foreground">
+                  {" "}· Różnica: <strong>{formatCalibrationDeltaPct(recVsSubmitted)}</strong>
+                  {recVsSubmitted.pln != null && (
+                    <span> ({recVsSubmitted.pln >= 0 ? "+" : ""}{recVsSubmitted.pln.toLocaleString("pl-PL")} zł)</span>
+                  )}
+                </span>
+              )}
+            </p>
+            {awardValuePln != null && submittedVsAward && (
+              <p>
+                <span className="text-muted-foreground">Przyznano:</span>{" "}
+                <strong className="font-mono">{fmtPln(awardValuePln)}</strong>
+                {" "}· Różnica: <strong>{formatCalibrationDeltaPct(submittedVsAward)}</strong>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       {classification && (
         <div className="px-3 py-2 border-b border-violet-500/10 space-y-2">

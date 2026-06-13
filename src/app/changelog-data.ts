@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.53.0",
+    label: "Przetargi — centrum wyceny P2-G.3B (Historical Cost Calibration MIN)",
+    items: [
+      { type: "new", text: "submittedBidPln + submittedAt — zapis faktycznej oferty złożonej (status Złożona/Wygrany/Przegrany)" },
+      { type: "new", text: "HistoricalCostSnapshot + kw-tender-calibration — własna baza kalibracji W&G (sync chmura)" },
+      { type: "new", text: "📈 Kalibracja historyczna w panelu wyceny — rekomendacja vs złożono vs przyznano" },
+      { type: "new", text: "Profil firmy → 🎯 Kalibracja WGDOM — średnie delty + sugestie katalogu (N≥10, read-only)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.52.9",
     label: "Przetargi — centrum wyceny P2-G.2C (Work Category Refinement)",
     items: [

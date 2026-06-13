@@ -5,6 +5,7 @@
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { mergeWgdomCostCatalogStore } from "@/lib/wgdom-cost-catalog-store";
 import { mergeWgdomUserClassificationDictionaryStore } from "@/lib/wgdom-user-classification-dictionary";
+import { mergeTenderCalibrationStore, TENDER_CALIBRATION_KEY } from "@/lib/tender-cost-calibration";
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 export const TENDERS_COMPANY_PROFILE_KEY = "kw-tenders-company-profile";
@@ -12,6 +13,7 @@ export const WGDOM_COST_CATALOG_KEY = "kw-wgdom-cost-catalog";
 export const WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY = "kw-wgdom-classification-dictionary";
 export const COMPANY_QUALIFICATION_PROFILE_KEY = "kw-company-profile";
 export const TENDERS_CUSTOM_KEYWORDS_KEY = "kw-tenders-custom-keywords";
+export { TENDER_CALIBRATION_KEY } from "@/lib/tender-cost-calibration";
 export const TENDERS_DELETED_IDS_KEY = "kw-tenders-deleted-ids";
 
 export const TENDER_DATA_KEYS = [
@@ -21,6 +23,7 @@ export const TENDER_DATA_KEYS = [
   WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY,
   COMPANY_QUALIFICATION_PROFILE_KEY,
   TENDERS_CUSTOM_KEYWORDS_KEY,
+  TENDER_CALIBRATION_KEY,
 ] as const;
 
 export type TenderDataKey = (typeof TENDER_DATA_KEYS)[number];
@@ -83,6 +86,8 @@ function mergePipelineItem(a: TenderPipelineItem, b: TenderPipelineItem): Tender
     qaMonitor: primary.qaMonitor?.events?.length
       ? primary.qaMonitor
       : secondary.qaMonitor ?? primary.qaMonitor,
+    submittedBidPln: primary.submittedBidPln ?? secondary.submittedBidPln,
+    submittedAt: primary.submittedAt ?? secondary.submittedAt,
     updatedAt: ts(a.updatedAt) >= ts(b.updatedAt) ? a.updatedAt : b.updatedAt,
   };
 }
@@ -154,6 +159,10 @@ export function mergeWgdomUserClassificationDictionaryForCloud(local: unknown, c
   return mergeWgdomUserClassificationDictionaryStore(local, cloud);
 }
 
+export function mergeTenderCalibrationForCloud(local: unknown, cloud: unknown): unknown {
+  return mergeTenderCalibrationStore(local, cloud);
+}
+
 function uniqWords(a: string[], b: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -196,6 +205,8 @@ export function mergeTenderDataKey(key: TenderDataKey, local: unknown, cloud: un
       return mergeCompanyQualificationProfileForCloud(local, cloud);
     case TENDERS_CUSTOM_KEYWORDS_KEY:
       return mergeCustomKeywordsForCloud(local, cloud);
+    case TENDER_CALIBRATION_KEY:
+      return mergeTenderCalibrationForCloud(local, cloud);
     default:
       return local ?? cloud;
   }

@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.53.0 — P2-G.3B Historical Cost Calibration (MIN)
+- submittedBidPln + submittedAt na pipeline przetargu
+- HistoricalCostSnapshot + kw-tender-calibration (sync chmura)
+- tender-cost-calibration.ts — delty, summary, hints (N≥10, read-only)
+- UI: Kalibracja historyczna (panel wyceny) + 🎯 Kalibracja WGDOM (profil firmy)
+
 ## 2.52.9 — P2-G.2C Work Category Refinement
 - GLADZIE_TYNKI (m²/mb) + WYPOSAZENIE (szt/kpl) — 12 kategorii MVP
 - split GK: zabudowa sucha vs gładzie/tynki/narożniki

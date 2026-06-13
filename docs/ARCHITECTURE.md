@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.52.9** · P2-G.2C)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.2C — Work Category Refinement)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.53.0** · P2-G.3B)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P2-G.3B — Historical Cost Calibration)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -849,7 +849,7 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 
 ### 12.1.6 P2-G — Tender Cost Intelligence (P2-G.1 COMPLETE)
 
-**Status:** **P2-G.1A–P2-G.2C COMPLETE** · prod backlog **2.52.9**
+**Status:** **P2-G.1A–P2-G.3B COMPLETE** · prod backlog **2.53.0**
 
 **Cel:** autorska wycena przetargu z przedmiaru ATH **bez cen** (FOUND_NO_VALUE) — koszt wykonania + oferty min/rekom/agresywna przez rozszerzenie `computeTenderBidProposal()`, **nie** nowy moduł ofertowy.
 
@@ -964,6 +964,21 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 
 **Backlog:** split STOLARKA — tylko na polecenie po audycie misclassification.
 
+**P2-G.3B — Historical Cost Calibration (MIN):**
+
+| Element | Opis | Plik |
+|---------|------|------|
+| Pola pipeline | `submittedBidPln`, `submittedAt` (optional, null = brak) | `tenders-bzp.ts` |
+| Snapshot | `HistoricalCostSnapshot` — recommended, submitted, cost, award, tenderType, categories | `tender-cost-calibration.ts` |
+| Chmura | `kw-tender-calibration` — merge by snapshot id, max 500 | `tender-cost-calibration.ts`, `cloud-sync.ts` |
+| Analityka | `buildCalibrationSummary()`, `computeCalibrationDelta()` | j.w. |
+| Hints | `buildCatalogCalibrationHints()` — N≥10, **read-only** (bez auto-zmiany katalogu) | j.w. |
+| UI wycena | 📈 Kalibracja historyczna w `TenderBidProposalPanel` | j.w. |
+| UI profil | 🎯 Kalibracja WGDOM w `TenderCompanyProfilePanel` | j.w. |
+| Zapis oferty | Status submitted/won/lost → „Zapisz ofertę złożoną” + snapshot | `TenderDetailPanel.tsx` |
+
+**Zasada:** uczenie na ofertach **W&G we Wrocławiu** — własne dane first; bez Sekocenbud/Intercenbud/AI API.
+
 **Moduły lib:**
 
 | Plik | Rola |
@@ -979,8 +994,9 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 | `wgdom-construction-dictionary.ts` | P2-G.1F — 150+ terminów branżowych, `matchConstructionDictionary()` |
 | `wgdom-phrase-rules.ts` | P2-G.2D — reguły fraz roboczych, `matchWgdomPhraseRules()` |
 | `wgdom-user-classification-dictionary.ts` | P2-G.2A — user learning, `matchUserClassificationDictionary()` |
+| `tender-cost-calibration.ts` | P2-G.3B — historical snapshots, calibration summary, catalog hints |
 
-**Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (280+ asercji) · regresja P2-F: `test-tender-dossier-pipeline.mjs`
+**Test:** `npx vite-node scripts/test-tender-cost-intelligence.mjs` (320+ asercji) · regresja P2-F: `test-tender-dossier-pipeline.mjs`
 
 **Źródła danych (hierarchia):**
 

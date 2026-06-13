@@ -55,6 +55,7 @@ export const PROFILE_SECTION_IDS = {
   qualification: "profile-section-qualification",
   regions: "profile-section-regions",
   classificationDictionary: "profile-section-classification-dictionary",
+  calibration: "profile-section-calibration",
   advanced: "profile-section-advanced",
 } as const;
 
@@ -63,6 +64,7 @@ export const PROFILE_SECTION_TITLES = {
   qualification: "Profil kwalifikacyjny",
   regions: "Regiony działania",
   classificationDictionary: "WGDOM Classification Dictionary",
+  calibration: "Kalibracja WGDOM",
   advanced: "Zaawansowane",
 } as const;
 

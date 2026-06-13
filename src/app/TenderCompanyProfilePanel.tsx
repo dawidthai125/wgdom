@@ -34,6 +34,13 @@ import {
   PROFILE_SECTION_IDS,
   PROFILE_SECTION_TITLES,
 } from "@/lib/tender-bid-ux";
+import {
+  buildCalibrationSummary,
+  buildCatalogCalibrationHints,
+  formatCalibrationDeltaPct,
+  loadTenderCalibrationStore,
+  type TenderCalibrationStore,
+} from "@/lib/tender-cost-calibration";
 
 function NumInput({
   label,
@@ -203,6 +210,7 @@ export function TenderCompanyProfilePanel({
   const [classificationDict, setClassificationDict] = useState<WgdomUserClassificationDictionaryStore>(
     restoreDefaultUserClassificationDictionaryStore(),
   );
+  const [calibrationStore, setCalibrationStore] = useState<TenderCalibrationStore | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -212,11 +220,13 @@ export function TenderCompanyProfilePanel({
       loadCompanyProfile(),
       loadWgdomCostCatalogStore(),
       loadWgdomUserClassificationDictionaryStore(),
-    ]).then(([p, catalog, dict]) => {
+      loadTenderCalibrationStore(),
+    ]).then(([p, catalog, dict, calibration]) => {
       if (!cancelled) {
         setProfile(p);
         setCatalogStore(catalog);
         setClassificationDict(dict);
+        setCalibrationStore(calibration);
         setLoading(false);
       }
     });
@@ -257,6 +267,8 @@ export function TenderCompanyProfilePanel({
   }, []);
 
   const catalogRows = listEditableCategories(catalogStore);
+  const calibrationSummary = calibrationStore ? buildCalibrationSummary(calibrationStore) : null;
+  const calibrationHints = calibrationStore ? buildCatalogCalibrationHints(calibrationStore) : [];
 
   return (
     <div className="rounded-xl border border-border overflow-hidden">
@@ -606,6 +618,58 @@ export function TenderCompanyProfilePanel({
                   <RefreshCw size={11} />
                   Przywróć domyślne (pusty słownik)
                 </button>
+              </ProfileSection>
+
+              <ProfileSection
+                id={PROFILE_SECTION_IDS.calibration}
+                emoji="🎯"
+                title={PROFILE_SECTION_TITLES.calibration}
+                description="Uczenie z realnych ofert W&G — porównanie rekomendacji WGDOM, oferty złożonej i wyniku postępowania (tylko odczyt)."
+              >
+                {!calibrationSummary || calibrationSummary.withSubmitted === 0 ? (
+                  <p className="text-[10px] text-muted-foreground">
+                    Brak danych — zapisz „Ofertę złożoną” przy przetargu ze statusem Złożona / Wygrany / Przegrany.
+                  </p>
+                ) : (
+                  <div className="space-y-2 text-[10px]">
+                    <p>
+                      <strong>{calibrationSummary.withSubmitted}</strong> przetargów z zapisaną ofertą
+                      {calibrationSummary.withAward > 0 && (
+                        <span className="text-muted-foreground">
+                          {" "}· {calibrationSummary.withAward} z wynikiem BZP
+                        </span>
+                      )}
+                    </p>
+                    {calibrationSummary.recommendedVsSubmitted && (
+                      <p>
+                        <span className="text-muted-foreground">WGDOM → Oferta:</span>{" "}
+                        <strong>{formatCalibrationDeltaPct(calibrationSummary.recommendedVsSubmitted)}</strong>
+                      </p>
+                    )}
+                    {calibrationSummary.submittedVsAward && (
+                      <p>
+                        <span className="text-muted-foreground">Oferta → Wygrana:</span>{" "}
+                        <strong>{formatCalibrationDeltaPct(calibrationSummary.submittedVsAward)}</strong>
+                      </p>
+                    )}
+                    {calibrationHints.length > 0 && (
+                      <div className="rounded-lg border border-amber-500/25 bg-amber-500/5 px-2.5 py-2 space-y-1">
+                        <p className="font-semibold text-amber-800 dark:text-amber-200">
+                          Sugestie katalogu (N≥10, tylko podgląd)
+                        </p>
+                        <ul className="space-y-0.5">
+                          {calibrationHints.map((h) => (
+                            <li key={h.categoryId}>
+                              <strong>{h.categoryId}</strong>
+                              {" "}— średnio {formatCalibrationDeltaPct({ pct: h.avgDeltaPct, pln: null, basePln: null, comparePln: null })}
+                              {" · "}{h.suggestionPl}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
               </ProfileSection>
 
               <ProfileSection

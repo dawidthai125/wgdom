@@ -23,6 +23,7 @@ import {
   WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY,
   COMPANY_QUALIFICATION_PROFILE_KEY,
   TENDERS_CUSTOM_KEYWORDS_KEY,
+  TENDER_CALIBRATION_KEY,
   TENDERS_DELETED_IDS_KEY,
 } from "@/lib/tenders-sync";
 import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-leaves";
@@ -47,6 +48,7 @@ export const DATA_KEYS = [
   "kw-wgdom-classification-dictionary",
   "kw-company-profile",
   "kw-tenders-custom-keywords",
+  "kw-tender-calibration",
 ] as const;
 
 export type DataKey = (typeof DATA_KEYS)[number];
@@ -69,6 +71,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-wgdom-classification-dictionary",
   "kw-company-profile",
   "kw-tenders-custom-keywords",
+  "kw-tender-calibration",
   "kw-contacts",
   "kw-employee-leaves",
   "kw-recoverable-charges",
@@ -1396,6 +1399,8 @@ export function mergeDataKey(
       return mergeTenderDataKey(COMPANY_QUALIFICATION_PROFILE_KEY, local, cloud);
     case "kw-tenders-custom-keywords":
       return mergeTenderDataKey(TENDERS_CUSTOM_KEYWORDS_KEY, local, cloud);
+    case "kw-tender-calibration":
+      return mergeTenderDataKey(TENDER_CALIBRATION_KEY, local, cloud);
     case "kw-weekFrom":
     case "kw-weekTo":
       return typeof local === "string" && local ? local : (typeof cloud === "string" && cloud ? cloud : local ?? cloud);
