@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-13",
+    version: "2.56.1",
+    label: "Przetargi — P3.5 ceny per pozycja kosztorysu",
+    items: [
+      { type: "new", text: "Wycena → Szczegóły → Pozycje kosztorysowe: kategoria, stawki materiał/robocizna, źródło Baza cen, podsumowanie kategorii" },
+      { type: "improve", text: "UNKNOWN bez cen w podglądzie + linki do Bazy cen i słownika klasyfikacji (read-only)" },
+    ],
+  },
+  {
+    date: "2026-06-13",
     version: "2.56.0",
     label: "Przetargi — P3.1 Wycena UX + P3.2.0 Baza cen",
     items: [

@@ -1,5 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+## 2.56.1 — P3.5 ceny per pozycja kosztorysu
+- `tender-catalog-line-pricing.ts` + UI w Wycena → Pozycje kosztorysowe (read-only)
+- UNKNOWN bez cen; podsumowanie kategorii; źródło Baza cen / Katalog WGDOM
+
 ## 2.56.0 — P3.1 Wycena UX + P3.2.0 Baza cen
 - Hero KPI Wycena: koszt własny, marża %, cena oferty; alerty; szczegóły zwinięte
 - Zakładka Przetargi → Baza cen (`TenderPriceBasePanel`, `kw-wgdom-cost-catalog`)

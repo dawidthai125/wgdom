@@ -15,6 +15,7 @@ import {
   classificationCoverageToneClass,
   computeBidMarginPct,
   formatBidMarginPct,
+  PROFILE_SECTION_IDS,
   TENDER_BID_PROPOSAL_PANEL_ID,
 } from "@/lib/tender-bid-ux";
 import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
@@ -34,6 +35,11 @@ import {
   computeCalibrationDelta,
   formatCalibrationDeltaPct,
 } from "@/lib/tender-cost-calibration";
+import { buildCatalogLinePricingView } from "@/lib/tender-catalog-line-pricing";
+import { TenderCatalogLinePricingSection } from "@/app/TenderCatalogLinePricingSection";
+import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
+import { getActiveCatalog, loadWgdomCostCatalogStoreLocal } from "@/lib/wgdom-cost-catalog-store";
+import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 
 function qualityBadgeClass(level: TenderBidProposal["qualityLevel"]): string {
   if (level === "high") return "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/25";
@@ -85,6 +91,29 @@ export function TenderBidProposalPanel({
     });
     return () => { cancelled = true; };
   }, []);
+
+  const tendersCtx = useTendersContextOptional();
+
+  const catalogLinePricing = useMemo(() => {
+    if (proposal?.pricingMode !== "catalog" || !catalogQuantities?.length) return null;
+    const profile = loadCompanyProfileLocal();
+    const catalog = getActiveCatalog(loadWgdomCostCatalogStoreLocal());
+    return buildCatalogLinePricingView(catalogQuantities, catalog, profile.costModel);
+  }, [proposal?.pricingMode, catalogQuantities, dictRevision]);
+
+  const openPriceBase = useCallback(() => {
+    tendersCtx?.setActiveTab("pricebase");
+  }, [tendersCtx]);
+
+  const openClassificationDict = useCallback(() => {
+    tendersCtx?.setActiveTab("profile");
+    window.setTimeout(() => {
+      document.getElementById(PROFILE_SECTION_IDS.classificationDictionary)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 120);
+  }, [tendersCtx]);
 
   const classification = useMemo(() => {
     if (proposal?.pricingMode !== "catalog" || !catalogQuantities?.length) return null;
@@ -269,6 +298,22 @@ export function TenderBidProposalPanel({
           Szczegóły
         </summary>
         <div className="mt-2 space-y-3 pb-1">
+          {catalogLinePricing && (
+            <details className="rounded-lg border border-violet-500/20 bg-violet-500/5 overflow-hidden group/lines">
+              <summary className="cursor-pointer px-2.5 py-2 text-[10px] font-semibold text-violet-900 dark:text-violet-200 hover:bg-violet-500/10 list-none flex items-center gap-1">
+                <span className="group-open/lines:rotate-90 transition-transform inline-block">▸</span>
+                Pozycje kosztorysowe ({catalogLinePricing.rows.length})
+              </summary>
+              <div className="px-2.5 pb-2.5 border-t border-violet-500/15">
+                <TenderCatalogLinePricingSection
+                  view={catalogLinePricing}
+                  onOpenPriceBase={tendersCtx ? openPriceBase : undefined}
+                  onOpenClassificationDict={tendersCtx ? openClassificationDict : undefined}
+                />
+              </div>
+            </details>
+          )}
+
           <div>
             <p className="text-[10px] font-semibold text-muted-foreground mb-1">Jak powstała wycena?</p>
             <ol className="text-[10px] text-muted-foreground space-y-0.5 list-decimal pl-4">

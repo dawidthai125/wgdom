@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-13 (P3.1 + P3.2.0 · v2.56.0)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-13 (P3.5 · v2.56.1)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -63,7 +63,8 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version:              2.56.0        ← baseline P3 Foundation (Wycena UX + Baza cen)
+Version:              2.56.1        ← baseline P3.5 (ceny per pozycja kosztorysu)
+P3.1/P3.2.0:          2.56.0         Wycena hero KPI + zakładka Baza cen
 Feature commit (P2-H.5C/5D): (po push) fix(tenders): improve pdf no-text handling and multi-ath ranking
 P2-H.5B:              2.55.9         Heurystyki KNR PDF
 P2-H.6:               2.55.7         filtr folderów ZIP/7Z
@@ -153,7 +154,8 @@ Chronologia releasów aplikacyjnych na `main` po baseline **2.50.65** (20.5Z.5C)
 | **2.55.6** | P2-H.4 | — | UX copy archiwów 7Z |
 | **2.55.7** | P2-H.6 | — | Filtr folderów ZIP/7Z inner |
 | **2.55.8** | P2-H.5A | — | PDF przedmiar MVP discovery |
-| **2.56.0** | **P3.1/P3.2.0** | **(release)** | **Wycena hero KPI + zakładka Baza cen** |
+| **2.56.1** | **P3.5** | **(release)** | **Ceny per pozycja kosztorysu (read-only)** |
+| **2.56.0** | **P3.1/P3.2.0** | **75c3b8b** | **Wycena hero KPI + zakładka Baza cen** |
 | **2.55.10** | **P2-H.5C/5D** | **0683e05** | **PDF noTextLayer CASE 3 + multi-ATH ranking + discovery sync** |
 | **2.55.9** | P2-H.5B | — | Heurystyki KNR — pozycje z PDF bez OCR |
 

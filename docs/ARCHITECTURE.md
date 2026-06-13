@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.0** · P3.1/P3.2.0)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P3.1 Wycena UX + P3.2.0 Baza cen)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.1** · P3.5)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (P3.5 ceny per pozycja)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1134,6 +1134,8 @@ Pipeline **SWZ → profil wykonawcy → dopasowanie → dokumenty ofertowe** (Ka
 **P3.1 — Wycena UX (v2.56.0 CLOSED):** Hero KPI bez scrollu; marża = `(recommended − costPrice) / costPrice`; breakdown domyślnie zwinięty (`breakdownOpen=false`).
 
 **P3.2.0 — Baza cen (v2.56.0 CLOSED):** Wydzielenie `kw-wgdom-cost-catalog` + parametry `costModel` (rbh, Kp, marża, indeksy) z Profilu firmy → zakładka **Baza cen**. Bez benchmarków rynkowych.
+
+**P3.5 — Ceny per pozycja (v2.56.1 CLOSED):** `buildCatalogLinePricingView()` + `TenderCatalogLinePricingSection` w Wycena → Szczegóły (read-only, UNKNOWN bez cen w podsumowaniu).
 
 | Element | Opis | Plik |
 |---------|------|------|
