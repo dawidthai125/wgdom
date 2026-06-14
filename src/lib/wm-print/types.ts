@@ -83,13 +83,26 @@ export interface WmPrintSettings {
 export const WM_PRINT_TEMPLATES_KEY = "kw-wm-print-templates";
 export const WM_PRINT_JOB_DOCS_KEY = "kw-wm-print-job-docs";
 export const WM_PRINT_SETTINGS_KEY = "kw-wm-print-settings";
+export const WM_PRINT_JOB_STATUSES_KEY = "kw-wm-print-job-statuses";
 export const WM_PRINT_DELETED_TEMPLATE_IDS_KEY = "kw-wm-print-deleted-template-ids";
 export const WM_PRINT_DELETED_JOB_DOC_IDS_KEY = "kw-wm-print-deleted-job-doc-ids";
+
+/** P1.1 — status procesu odbiorowego WM (niezależny od statusu robota). */
+export type WmPrintJobWmStatus = "in_progress" | "ready_for_handover" | "handed_over";
+
+export type WmPrintWmStatusFilter = "all" | WmPrintJobWmStatus;
+
+export interface WmPrintJobWmStatusEntry {
+  jobId: string;
+  status: WmPrintJobWmStatus;
+  updatedAt: string;
+}
 
 export const WM_PRINT_BACKUP_KEYS = [
   WM_PRINT_TEMPLATES_KEY,
   WM_PRINT_JOB_DOCS_KEY,
   WM_PRINT_SETTINGS_KEY,
+  WM_PRINT_JOB_STATUSES_KEY,
   WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
   WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
 ] as const;

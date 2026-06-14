@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.3** WM Druk multi-upload
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.4** WM Druk statusy P1.1
+
+## 2.59.4 — Odbiory WM Druk P1.1 (statusy procesu WM)
+- Status WM per robota · sekcje · filtry · sync `kw-wm-print-job-statuses` · test `test-wm-print-p1-1-statuses.mjs`
 
 ## 2.59.3 — Odbiory WM Druk P1.0.3 (multi-upload)
 - Dodaj pliki: multiple, drag & drop, append, liczniki · test `test-wm-print-p1-0-3.mjs`

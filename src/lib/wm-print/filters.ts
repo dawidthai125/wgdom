@@ -28,3 +28,8 @@ export function wmPrintJobStatusLabel(job: Job): string {
   if (job.invoiceStatus === "invoiced") return "Zafakturowane";
   return "W trakcie";
 }
+
+/** Etykieta statusu systemowego robota (oddzielnie od statusu WM Odbiorów). */
+export function wmPrintJobSystemStatusLabel(job: Job): string {
+  return wmPrintJobStatusLabel(job);
+}

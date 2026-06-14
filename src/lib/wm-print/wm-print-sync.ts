@@ -4,15 +4,18 @@ import {
   pushKeysToCloud,
 } from "@/lib/cloud-sync";
 import { normalizeWmPrintJobDocuments } from "@/lib/wm-print/job-documents";
+import { mergeWmPrintJobStatuses, normalizeWmPrintJobStatuses } from "@/lib/wm-print/job-wm-status";
 import { mergeWmPrintSettings, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
 import { normalizeWmPrintTemplates, migrateWmPrintTemplate, getWmPrintTemplateFiles } from "@/lib/wm-print/templates";
 import {
   WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
   WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
   WM_PRINT_JOB_DOCS_KEY,
+  WM_PRINT_JOB_STATUSES_KEY,
   WM_PRINT_SETTINGS_KEY,
   WM_PRINT_TEMPLATES_KEY,
   type WmPrintJobDocument,
+  type WmPrintJobWmStatusEntry,
   type WmPrintSettings,
   type WmPrintTemplate,
 } from "@/lib/wm-print/types";
@@ -105,6 +108,7 @@ export async function pushWmPrintToCloud(
   templates: WmPrintTemplate[],
   jobDocs: WmPrintJobDocument[],
   settings: WmPrintSettings,
+  jobStatuses: WmPrintJobWmStatusEntry[],
   deletedTemplateIds: string[],
   deletedJobDocIds: string[],
 ): Promise<void> {
@@ -112,12 +116,12 @@ export async function pushWmPrintToCloud(
     WM_PRINT_TEMPLATES_KEY,
     WM_PRINT_JOB_DOCS_KEY,
     WM_PRINT_SETTINGS_KEY,
+    WM_PRINT_JOB_STATUSES_KEY,
     WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
     WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
   ];
-  const values = [templates, jobDocs, settings, deletedTemplateIds, deletedJobDocIds];
+  const values = [templates, jobDocs, settings, jobStatuses, deletedTemplateIds, deletedJobDocIds];
   persistWmPrintLocal(keys, values);
-  // Bez pushKeysToCloudSafe — union merge przywracał usunięte pliki z chmury
   await pushKeysToCloud(keys, values);
 }
 
@@ -125,15 +129,17 @@ export async function syncWmPrintFromCloud(): Promise<{
   templates: WmPrintTemplate[];
   jobDocs: WmPrintJobDocument[];
   settings: WmPrintSettings;
+  jobStatuses: WmPrintJobWmStatusEntry[];
 }> {
   const keys = [
     WM_PRINT_TEMPLATES_KEY,
     WM_PRINT_JOB_DOCS_KEY,
     WM_PRINT_SETTINGS_KEY,
+    WM_PRINT_JOB_STATUSES_KEY,
     WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
     WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
   ];
-  const [cloud] = await fetchKeysFromCloud(keys);
+  const cloud = await fetchKeysFromCloud(keys);
   const localTemplates = normalizeWmPrintTemplates(
     JSON.parse(localStorage.getItem(WM_PRINT_TEMPLATES_KEY) || "[]"),
   );
@@ -143,17 +149,21 @@ export async function syncWmPrintFromCloud(): Promise<{
   const localSettings = normalizeWmPrintSettings(
     JSON.parse(localStorage.getItem(WM_PRINT_SETTINGS_KEY) || "null"),
   );
+  const localStatuses = normalizeWmPrintJobStatuses(
+    JSON.parse(localStorage.getItem(WM_PRINT_JOB_STATUSES_KEY) || "[]"),
+  );
   const delTpl = getDeletedWmPrintTemplateIds();
   const delDoc = getDeletedWmPrintJobDocIds();
 
   const templates = mergeWmPrintTemplates(localTemplates, cloud?.[0], delTpl);
   const jobDocs = mergeWmPrintJobDocuments(localDocs, cloud?.[1], delDoc);
   const settings = mergeWmPrintSettings(localSettings, normalizeWmPrintSettings(cloud?.[2]));
+  const jobStatuses = mergeWmPrintJobStatuses(localStatuses, cloud?.[3]);
 
   persistWmPrintLocal(
-    [WM_PRINT_TEMPLATES_KEY, WM_PRINT_JOB_DOCS_KEY, WM_PRINT_SETTINGS_KEY],
-    [templates, jobDocs, settings],
+    [WM_PRINT_TEMPLATES_KEY, WM_PRINT_JOB_DOCS_KEY, WM_PRINT_SETTINGS_KEY, WM_PRINT_JOB_STATUSES_KEY],
+    [templates, jobDocs, settings, jobStatuses],
   );
 
-  return { templates, jobDocs, settings };
+  return { templates, jobDocs, settings, jobStatuses };
 }

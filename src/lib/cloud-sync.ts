@@ -49,6 +49,7 @@ import {
 } from "@/lib/wm-print/wm-print-sync";
 import { normalizeWmPrintTemplates } from "@/lib/wm-print/templates";
 import { normalizeWmPrintJobDocuments } from "@/lib/wm-print/job-documents";
+import { mergeWmPrintJobStatuses, normalizeWmPrintJobStatuses } from "@/lib/wm-print/job-wm-status";
 import { mergeWmPrintSettings, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
 import { defaultWgdomCostCatalogStore } from "@/lib/wgdom-cost-catalog";
 import { defaultUserClassificationDictionaryStore } from "@/lib/wgdom-user-classification-dictionary";
@@ -68,6 +69,7 @@ export const DATA_KEYS = [
   "kw-wm-print-templates",
   "kw-wm-print-job-docs",
   "kw-wm-print-settings",
+  "kw-wm-print-job-statuses",
   "kw-tenders-pipeline",
   "kw-tenders-company-profile",
   "kw-wgdom-cost-catalog",
@@ -109,6 +111,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-wm-print-templates",
   "kw-wm-print-job-docs",
   "kw-wm-print-settings",
+  "kw-wm-print-job-statuses",
 ] as const satisfies readonly DataKey[];
 
 export const WGDOM_DEFERRED_BOOTSTRAP_EVENT = "wgdom-deferred-bootstrap";
@@ -1478,6 +1481,8 @@ export function mergeDataKey(
       );
     case "kw-wm-print-settings":
       return mergeWmPrintSettings(normalizeWmPrintSettings(local), normalizeWmPrintSettings(cloud));
+    case "kw-wm-print-job-statuses":
+      return mergeWmPrintJobStatuses(normalizeWmPrintJobStatuses(local), cloud);
     case "kw-tenders-pipeline":
       return mergeTenderDataKey(TENDERS_PIPELINE_KEY, local, cloud);
     case "kw-tenders-company-profile":

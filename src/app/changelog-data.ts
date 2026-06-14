@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.4",
+    label: "Odbiory WM Druk — statusy procesu WM P1.1",
+    items: [
+      { type: "new", text: "Status WM per robota: W TRAKCIE · GOTOWE DO ODBIORU · ZDANE — niezależny od statusu robota" },
+      { type: "new", text: "Odbiory: sekcje z licznikami, filtr WM, dropdown i szybkie przeniesienie statusu" },
+      { type: "improve", text: "Sync kw-wm-print-job-statuses (LS/chmura/backup); migracja domyślna W TRAKCIE; test P1.1 statuses" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.59.3",
     label: "Odbiory WM Druk — multi-upload P1.0.3",
     items: [

@@ -5,6 +5,7 @@ import {
   Trash2,
   ChevronUp,
   ChevronDown,
+  ChevronRight,
   FileText,
   Download,
   Package,
@@ -21,10 +22,19 @@ import { jobDisplayTitle } from "@/app/app-domain";
 import { computeWmPrintCompleteness } from "@/lib/wm-print/completeness";
 import {
   jobMatchesWmPrintFilter,
-  wmPrintJobStatusLabel,
+  wmPrintJobSystemStatusLabel,
   WM_PRINT_FILTER_LABELS,
 } from "@/lib/wm-print/filters";
-import type { WmPrintJobFilter } from "@/lib/wm-print/types";
+import {
+  getWmPrintJobWmStatus,
+  groupWmPrintJobsByWmStatus,
+  jobMatchesWmPrintWmStatusFilter,
+  setWmPrintJobWmStatus,
+  WM_PRINT_WM_STATUS_FILTER_LABELS,
+  WM_PRINT_WM_STATUS_LABELS,
+  WM_PRINT_WM_STATUS_ORDER,
+} from "@/lib/wm-print/job-wm-status";
+import type { WmPrintJobFilter, WmPrintJobWmStatus, WmPrintWmStatusFilter } from "@/lib/wm-print/types";
 import {
   addWmPrintJobDocument,
   deleteWmPrintJobDocumentLogical,
@@ -51,6 +61,7 @@ import type {
   WmPrintDateMode,
   WmPrintGenerateOptions,
   WmPrintJobDocument,
+  WmPrintJobWmStatusEntry,
   WmPrintSettings,
   WmPrintTemplate,
   WmPrintTemplateFile,
@@ -71,31 +82,38 @@ export function WmPrintView({
   jobs,
   templates,
   jobDocs,
+  jobStatuses,
   settings,
   uploadedBy,
   onChangeTemplates,
   onChangeJobDocs,
+  onChangeJobStatuses,
   onChangeSettings,
   onCommit,
 }: {
   jobs: Job[];
   templates: WmPrintTemplate[];
   jobDocs: WmPrintJobDocument[];
+  jobStatuses: WmPrintJobWmStatusEntry[];
   settings: WmPrintSettings;
   uploadedBy: string;
-  onChangeTemplates: (next: WmPrintTemplate[]) => void;
-  onChangeJobDocs: (next: WmPrintJobDocument[]) => void;
-  onChangeSettings: (next: WmPrintSettings) => void;
+  onChangeTemplates: (next: WmPrintTemplate[] | ((prev: WmPrintTemplate[]) => WmPrintTemplate[])) => void;
+  onChangeJobDocs: (next: WmPrintJobDocument[] | ((prev: WmPrintJobDocument[]) => WmPrintJobDocument[])) => void;
+  onChangeJobStatuses: (next: WmPrintJobWmStatusEntry[] | ((prev: WmPrintJobWmStatusEntry[]) => WmPrintJobWmStatusEntry[])) => void;
+  onChangeSettings: (next: WmPrintSettings | ((prev: WmPrintSettings) => WmPrintSettings)) => void;
   onCommit: (
     nextTemplates?: WmPrintTemplate[],
     nextJobDocs?: WmPrintJobDocument[],
     nextSettings?: WmPrintSettings,
+    nextJobStatuses?: WmPrintJobWmStatusEntry[],
     deletedTemplateId?: string,
     deletedJobDocId?: string,
   ) => void;
 }) {
   const [tab, setTab] = useState<Tab>("odbiory");
   const [filter, setFilter] = useState<WmPrintJobFilter>("all");
+  const [wmStatusFilter, setWmStatusFilter] = useState<WmPrintWmStatusFilter>("all");
+  const [collapsedWmSections, setCollapsedWmSections] = useState<Set<WmPrintJobWmStatus>>(new Set());
   const [search, setSearch] = useState("");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [dateMode, setDateMode] = useState<WmPrintDateMode>("today");
@@ -113,13 +131,18 @@ export function WmPrintView({
     const q = search.trim().toLowerCase();
     return jobs
       .filter((j) => jobMatchesWmPrintFilter(j, filter))
+      .filter((j) => jobMatchesWmPrintWmStatusFilter(jobStatuses, j.id, wmStatusFilter))
       .filter((j) => {
         if (!q) return true;
         const label = jobDisplayTitle(j).toLowerCase();
         return label.includes(q) || (j.address || "").toLowerCase().includes(q);
-      })
-      .sort((a, b) => (jobDisplayTitle(a)).localeCompare(jobDisplayTitle(b), "pl"));
-  }, [jobs, filter, search]);
+      });
+  }, [jobs, filter, wmStatusFilter, jobStatuses, search]);
+
+  const groupedJobs = useMemo(
+    () => groupWmPrintJobsByWmStatus(filteredJobs, jobStatuses),
+    [filteredJobs, jobStatuses],
+  );
 
   const selectedJob = selectedJobId ? jobs.find((j) => j.id === selectedJobId) ?? null : null;
   const selectedJobDocs = selectedJob ? getWmPrintJobDocumentsForJob(jobDocs, selectedJob.id) : [];
@@ -133,10 +156,63 @@ export function WmPrintView({
     tpl = templates,
     docs = jobDocs,
     sett = normalizedSettings,
+    sts = jobStatuses,
     delTpl?: string,
     delDoc?: string,
   ) => {
-    onCommit(tpl, docs, sett, delTpl, delDoc);
+    onCommit(tpl, docs, sett, sts, delTpl, delDoc);
+  };
+
+  const handleWmStatusChange = (jobId: string, status: WmPrintJobWmStatus) => {
+    let next: WmPrintJobWmStatusEntry[] | null = null;
+    onChangeJobStatuses((prev) => {
+      next = setWmPrintJobWmStatus(prev, jobId, status);
+      return next;
+    });
+    if (next) commitAll(templates, jobDocs, normalizedSettings, next);
+    toast.success(`Status WM: ${WM_PRINT_WM_STATUS_LABELS[status]}`);
+  };
+
+  const toggleWmSection = (status: WmPrintJobWmStatus) => {
+    setCollapsedWmSections((prev) => {
+      const n = new Set(prev);
+      if (n.has(status)) n.delete(status);
+      else n.add(status);
+      return n;
+    });
+  };
+
+  const renderJobRow = (job: Job) => {
+    const comp = computeWmPrintCompleteness(job, templates, jobDocs);
+    const docCount = getWmPrintJobDocumentsForJob(jobDocs, job.id).length;
+    const active = selectedJobId === job.id;
+    const wmStatus = getWmPrintJobWmStatus(jobStatuses, job.id);
+    return (
+      <button
+        key={job.id}
+        type="button"
+        onClick={() => setSelectedJobId(job.id)}
+        className={`w-full text-left px-4 py-3 transition-colors ${active ? "bg-primary/8" : "hover:bg-secondary/60"}`}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="font-medium text-sm truncate">{jobDisplayTitle(job)}</p>
+            <p className="text-xs text-primary/90 font-medium">{WM_PRINT_WM_STATUS_LABELS[wmStatus]}</p>
+            <p className="text-[10px] text-muted-foreground">Robota: {wmPrintJobSystemStatusLabel(job)}</p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-xs font-medium">{comp.percent}%</p>
+            <p className="text-[10px] text-muted-foreground">{docCount} dok.</p>
+          </div>
+        </div>
+        {comp.missing.length > 0 && (
+          <p className="text-[10px] text-orange-600 dark:text-orange-400 mt-1 truncate">
+            Brakuje: {comp.missing.slice(0, 3).join(", ")}
+            {comp.missing.length > 3 ? "…" : ""}
+          </p>
+        )}
+      </button>
+    );
   };
 
   const handleGenerateZip = async (job: Job, onlySelected = false) => {
@@ -363,47 +439,50 @@ export function WmPrintView({
                   value={filter}
                   onChange={(e) => setFilter(e.target.value as WmPrintJobFilter)}
                   className="px-3 py-2 rounded-lg border border-border bg-card text-sm"
+                  title="Filtr statusu robota"
                 >
                   {(Object.keys(WM_PRINT_FILTER_LABELS) as WmPrintJobFilter[]).map((k) => (
                     <option key={k} value={k}>
-                      {WM_PRINT_FILTER_LABELS[k]}
+                      Robota: {WM_PRINT_FILTER_LABELS[k]}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={wmStatusFilter}
+                  onChange={(e) => setWmStatusFilter(e.target.value as WmPrintWmStatusFilter)}
+                  className="px-3 py-2 rounded-lg border border-border bg-card text-sm"
+                  title="Filtr statusu WM"
+                >
+                  {(Object.keys(WM_PRINT_WM_STATUS_FILTER_LABELS) as WmPrintWmStatusFilter[]).map((k) => (
+                    <option key={k} value={k}>
+                      WM: {WM_PRINT_WM_STATUS_FILTER_LABELS[k]}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
+              <div className="rounded-xl border border-border overflow-hidden">
                 {filteredJobs.length === 0 ? (
-                  <p className="p-4 text-sm text-muted-foreground">Brak robót dla wybranego filtra.</p>
+                  <p className="p-4 text-sm text-muted-foreground">Brak robót dla wybranych filtrów.</p>
                 ) : (
-                  filteredJobs.map((job) => {
-                    const comp = computeWmPrintCompleteness(job, templates, jobDocs);
-                    const docCount = getWmPrintJobDocumentsForJob(jobDocs, job.id).length;
-                    const active = selectedJobId === job.id;
+                  WM_PRINT_WM_STATUS_ORDER.map((status) => {
+                    const sectionJobs = groupedJobs[status];
+                    if (sectionJobs.length === 0) return null;
+                    const collapsed = collapsedWmSections.has(status);
                     return (
-                      <button
-                        key={job.id}
-                        type="button"
-                        onClick={() => setSelectedJobId(job.id)}
-                        className={`w-full text-left px-4 py-3 transition-colors ${active ? "bg-primary/8" : "hover:bg-secondary/60"}`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="font-medium text-sm truncate">{jobDisplayTitle(job)}</p>
-                            <p className="text-xs text-muted-foreground">{wmPrintJobStatusLabel(job)}</p>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-xs font-medium">{comp.percent}%</p>
-                            <p className="text-[10px] text-muted-foreground">{docCount} dok.</p>
-                          </div>
-                        </div>
-                        {comp.missing.length > 0 && (
-                          <p className="text-[10px] text-orange-600 dark:text-orange-400 mt-1 truncate">
-                            Brakuje: {comp.missing.slice(0, 3).join(", ")}
-                            {comp.missing.length > 3 ? "…" : ""}
-                          </p>
+                      <div key={status} className="border-b border-border last:border-b-0">
+                        <button
+                          type="button"
+                          onClick={() => toggleWmSection(status)}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 bg-secondary/40 hover:bg-secondary/70 text-left text-sm font-semibold"
+                        >
+                          {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                          {WM_PRINT_WM_STATUS_LABELS[status]} ({sectionJobs.length})
+                        </button>
+                        {!collapsed && (
+                          <div className="divide-y divide-border">{sectionJobs.map((job) => renderJobRow(job))}</div>
                         )}
-                      </button>
+                      </div>
                     );
                   })
                 )}
@@ -417,7 +496,38 @@ export function WmPrintView({
                 <>
                   <div>
                     <h2 className="font-semibold text-sm">{jobDisplayTitle(selectedJob)}</h2>
-                    <p className="text-xs text-muted-foreground">{wmPrintJobStatusLabel(selectedJob)}</p>
+                    <p className="text-xs text-muted-foreground">Robota: {wmPrintJobSystemStatusLabel(selectedJob)}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Status WM</p>
+                    <select
+                      value={getWmPrintJobWmStatus(jobStatuses, selectedJob.id)}
+                      onChange={(e) =>
+                        handleWmStatusChange(selectedJob.id, e.target.value as WmPrintJobWmStatus)
+                      }
+                      className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-sm"
+                    >
+                      {WM_PRINT_WM_STATUS_ORDER.map((s) => (
+                        <option key={s} value={s}>
+                          {WM_PRINT_WM_STATUS_LABELS[s]}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="flex flex-wrap gap-1">
+                      {WM_PRINT_WM_STATUS_ORDER.filter(
+                        (s) => s !== getWmPrintJobWmStatus(jobStatuses, selectedJob.id),
+                      ).map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => handleWmStatusChange(selectedJob.id, s)}
+                          className="text-xs px-2 py-1 rounded border border-border hover:bg-secondary"
+                        >
+                          {WM_PRINT_WM_STATUS_LABELS[s]}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   {(() => {
