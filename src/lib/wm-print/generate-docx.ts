@@ -10,6 +10,23 @@ export function listDocxXmlPartPaths(zip: JSZip): string[] {
     .sort();
 }
 
+const WT_TEXT_RE = /^(<w:t(?:\s[^>]*)?>)([^<]*)(<\/w:t>)$/;
+
+/** Escapuje treść wstawianą do <w:t> (nie modyfikuje atrybutów tagu). */
+export function escapeWmPrintDocxTextContent(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+/** Podmienia wyłącznie tekst wewnątrz <w:t>…</w:t>, tagi bez zmian (P0.1A). */
+export function setWtTextContent(wtFull: string, newText: string): string {
+  const m = wtFull.match(WT_TEXT_RE);
+  if (!m) return wtFull;
+  return `${m[1]}${escapeWmPrintDocxTextContent(newText)}${m[3]}`;
+}
+
 /** Pojedynczy akapit DOCX — scala <w:t> przed podmianą (fix split-run Word, P0-C). */
 export function substituteParagraphWmPrintVariables(
   paragraphXml: string,
@@ -33,11 +50,44 @@ export function substituteParagraphWmPrintVariables(
   for (let i = 0; i < runs.length; i++) {
     const r = runs[i];
     result += paragraphXml.slice(cursor, r.start);
-    result += i === 0 ? r.full.replace(r.text, substituted) : r.full.replace(r.text, "");
+    result += setWtTextContent(r.full, i === 0 ? substituted : "");
     cursor = r.start + r.full.length;
   }
   result += paragraphXml.slice(cursor);
   return result;
+}
+
+export interface WmPrintDocxXmlValidation {
+  ok: boolean;
+  issues: string[];
+}
+
+/** Walidacja fragmentu DOCX XML — bilans tagów (P0.1A). */
+export function validateWmPrintDocxXml(xml: string): WmPrintDocxXmlValidation {
+  const issues: string[] = [];
+  const pairs: [string, string][] = [
+    ["w:t", "</w:t>"],
+    ["w:r", "</w:r>"],
+  ];
+  for (const [open, close] of pairs) {
+    const o = (xml.match(new RegExp(`<${open}\\b`, "g")) || []).length;
+    const c = (xml.match(new RegExp(close, "g")) || []).length;
+    if (o !== c) issues.push(`${open} imbalance: ${o}/${c}`);
+  }
+  if (/<w:txml:space/i.test(xml)) issues.push("corrupt w:t tag (w:txml:space)");
+  return { ok: issues.length === 0, issues };
+}
+
+export async function validateWmPrintDocxBytes(bytes: Uint8Array): Promise<WmPrintDocxXmlValidation> {
+  const zip = await JSZip.loadAsync(bytes);
+  const issues: string[] = [];
+  for (const path of listDocxXmlPartPaths(zip)) {
+    const xml = await zip.file(path)?.async("string");
+    if (!xml) continue;
+    const v = validateWmPrintDocxXml(xml);
+    if (!v.ok) issues.push(`${path}: ${v.issues.join("; ")}`);
+  }
+  return { ok: issues.length === 0, issues };
 }
 
 export function substituteWmPrintVariablesInDocxXml(

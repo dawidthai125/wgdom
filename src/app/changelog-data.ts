@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.10",
+    label: "Odbiory WM Druk — P0.1A fix DOCX XML (regresja 2.59.9)",
+    items: [
+      { type: "fix", text: "DOCX: bezpieczne czyszczenie <w:t> — bez uszkadzania xml:space=\"preserve\" (Word Office Open XML)" },
+      { type: "fix", text: "Split-run + proofErr: podmiana placeholderów zachowana, tagi XML poprawne" },
+      { type: "improve", text: "Test P0.1A na produkcyjnych szablonach kierownika i zatrudnieniu" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.59.9",
     label: "Odbiory WM Druk — P0 fix generatorów DOCX/PDF",
     items: [

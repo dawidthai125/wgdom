@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.9** WM Druk P0 generatory
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.10** WM Druk P0.1A DOCX
+
+## 2.59.10 — Odbiory WM Druk P0.1A fix DOCX XML
+- Bezpieczne czyszczenie `<w:t>` (regresja 2.59.9) · split-run + proofErr · test `test-wm-print-p0-1a-docx-fix.mjs`
 
 ## 2.59.9 — Odbiory WM Druk P0 fix generatorów
 - PDF statyczne copy-as-is · ZI bez flatten · DOCX split-run · testy `test-wm-print-p0-*.mjs`
