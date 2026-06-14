@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.7** WM Druk P1.0.5
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.8** WM Druk P1.0.5A
+
+## 2.59.8 — Odbiory WM Druk P1.0.5A (deduplikacja kompletności)
+- Fix duplikatów braków · % po unikalnych slotach · UI Brakuje (N) · test `test-wm-print-p1-0-5a.mjs`
 
 ## 2.59.7 — Odbiory WM Druk P1.0.5 (kompletność vs konfiguracja)
 - Kompletność robota tylko ze slotów job_upload · Stan konfiguracji w Szablony · test `test-wm-print-p1-0-5.mjs`

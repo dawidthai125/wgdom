@@ -180,6 +180,30 @@ export function WmPrintView({
     });
   };
 
+  const renderMissingSummary = (missing: string[], compact = false) => {
+    if (missing.length === 0) return null;
+    if (compact) {
+      return (
+        <p className="text-[10px] text-orange-600 dark:text-orange-400 mt-1">
+          Brakuje ({missing.length})
+        </p>
+      );
+    }
+    return (
+      <div className="text-xs text-muted-foreground space-y-1">
+        <p className="font-medium">Brakuje ({missing.length})</p>
+        <ul className="space-y-0.5 pl-1">
+          {missing.map((name) => (
+            <li key={name} className="flex items-start gap-1.5">
+              <span className="text-muted-foreground shrink-0">•</span>
+              <span>{name}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
   const renderJobRow = (job: Job) => {
     const comp = computeWmPrintCompleteness(job, templates, jobDocs);
     const docCount = getWmPrintJobDocumentsForJob(jobDocs, job.id).length;
@@ -201,12 +225,7 @@ export function WmPrintView({
             <p className="text-[10px] text-muted-foreground">{docCount} dok.</p>
           </div>
         </div>
-        {comp.missing.length > 0 && (
-          <p className="text-[10px] text-orange-600 dark:text-orange-400 mt-1 truncate">
-            Brakuje: {comp.missing.slice(0, 3).join(", ")}
-            {comp.missing.length > 3 ? "…" : ""}
-          </p>
-        )}
+        {renderMissingSummary(comp.missing, true)}
       </button>
     );
   };
@@ -499,11 +518,7 @@ export function WmPrintView({
                             style={{ width: `${comp.percent}%` }}
                           />
                         </div>
-                        {comp.missing.length > 0 && (
-                          <p className="text-xs text-muted-foreground">
-                            Brakuje: {comp.missing.join(", ")}
-                          </p>
-                        )}
+                        {renderMissingSummary(comp.missing)}
                       </div>
                     );
                   })()}

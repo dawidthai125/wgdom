@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.8",
+    label: "Odbiory WM Druk — fix duplikatów kompletności P1.0.5A",
+    items: [
+      { type: "fix", text: "Kompletność robota: deduplikacja slotów po nazwie — brak podwójnych pozycji w liście braków" },
+      { type: "fix", text: "% liczony po unikalnych typach dokumentów (nie zawyża liczby braków)" },
+      { type: "improve", text: "UI: Brakuje (N) + lista punktowana zamiast powtórzonego tekstu" },
+      { type: "improve", text: "Test test-wm-print-p1-0-5a.mjs" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.59.7",
     label: "Odbiory WM Druk — kompletność P1.0.5",
     items: [
