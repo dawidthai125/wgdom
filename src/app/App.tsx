@@ -1115,7 +1115,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       dashboard: "Pulpit",
       payroll: "Lista płac",
       schedule: "Grafik",
-      directory: "Pracownicy i kontakty",
+      directory: "Kadry",
       inspector: "Inspektor",
       archive: "Archiwum",
       jobs: "Roboty",
@@ -1145,7 +1145,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       dashboard: "Pulpit",
       payroll: "Lista płac",
       schedule: "Grafik",
-      directory: "Pracownicy i kontakty",
+      directory: "Kadry",
       inspector: "Inspektor",
       archive: "Archiwum",
       jobs: "Roboty",
@@ -1205,12 +1205,6 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         view={view}
         navItems={navItems}
         onGoToView={goToView}
-        productionWeekEmployees={productionWeekEmployees}
-        weekFrom={weekFrom}
-        weekTo={weekTo}
-        todayFieldStats={todayFieldStats}
-        totalNet={totalNet}
-        payrollCashSplitSidebar={payrollCashSplitSidebar}
       />
 
       <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden">

@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.57.2** Notatki P1 ACK (pre-commit)
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.57.3** Sidebar Kadry (pre-commit)
+
+## 2.57.3 — Sidebar cleanup + Kadry
+- Kadry (ex Pracownicy i kontakty) · usunięto KPI „Bieżący tydzień” z sidebara · w-60 · dark scrollbar
 
 ## 2.57.2 — Notatki operacyjne P1 (ACK + badge + banner)
 - ACK jawne · auto-ACK autora · badge menu + banner · status Przeczytali/Nie przeczytali · fix contentRev przy edycji tytułu

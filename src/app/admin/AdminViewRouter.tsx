@@ -382,7 +382,7 @@ export function AdminViewRouter({
         </ViewErrorBoundary>
       )}
       {(view === "directory" || view === "contacts") && (
-        <ViewErrorBoundary label="Pracownicy i kontakty">
+        <ViewErrorBoundary label="Kadry">
           <TeamDirectoryContactsView
             tab={view === "contacts" ? "contacts" : "directory"}
             onTabChange={(tab) => onSetView(tab === "contacts" ? "contacts" : "directory")}

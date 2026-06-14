@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.57.3",
+    label: "Sidebar cleanup + Kadry",
+    items: [
+      { type: "improve", text: "Menu boczne — moduł „Kadry” (zakładki Pracownicy | Kontakty bez zmian danych i routingu)" },
+      { type: "improve", text: "Sidebar — usunięto duplikat KPI „Bieżący tydzień” (dane na Pulpicie); szerokość +16 px (w-60)" },
+      { type: "improve", text: "Scrollbar sidebara — ciemny, cienki, półprzezroczysty (dark theme WGDOM)" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.57.2",
     label: "Notatki operacyjne — ACK (P1)",
     items: [

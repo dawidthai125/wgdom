@@ -33,9 +33,9 @@ const withoutTenders = buildAdminNavItems({ ...input, canViewTendersNav: false }
 console.log("T1 — brak osobnej pozycji Kontakty w menu");
 assert(!withTenders.some((n) => n.key === "contacts"), "contacts not in nav items");
 
-console.log("T2 — jedna pozycja directory z etykietą");
+console.log("T2 — jedna pozycja directory z etykietą Kadry");
 const dirItem = withTenders.find((n) => n.key === "directory");
-assert(dirItem?.label === "Pracownicy i kontakty", `label = ${dirItem?.label}`);
+assert(dirItem?.label === "Kadry", `label = ${dirItem?.label}`);
 
 console.log("T3 — liczba pozycji menu (przy tenders)");
 assert(withTenders.length === 12, `count with tenders = ${withTenders.length} (expected 12)`);

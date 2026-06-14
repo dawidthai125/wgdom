@@ -111,8 +111,8 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
     },
     {
       key: "directory",
-      label: "Pracownicy i kontakty",
-      hint: "Kartoteka pracowników (stawki, telefon, PIN) oraz adresy e-mail klientów — do wysyłki z robot i listy płac.",
+      label: "Kadry",
+      hint: "Kartoteka pracowników (stawki, telefon, PIN) oraz kontakty e-mail — zakładki Pracownicy i Kontakty.",
       icon: Users,
       badge: filterProductionActiveDirectory(directory).length,
     },

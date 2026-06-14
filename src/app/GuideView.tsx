@@ -288,11 +288,11 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
     {
       id:"directory",
       icon:Users,
-      title:"Pracownicy i kontakty",
-      subtitle:"Kartoteka pracowników oraz adresy e-mail",
+      title:"Kadry",
+      subtitle:"Pracownicy i kontakty e-mail",
       content:(
         <div className="space-y-4">
-          <p className="text-sm text-foreground/90 leading-relaxed">Menu <strong>Pracownicy i kontakty</strong> ma dwie zakładki: <strong>Pracownicy</strong> (kartoteka, stawki, PIN) i <strong>Kontakty</strong> (adresy e-mail do wysyłki z robot i listy płac). Dane synchronizują się osobno w chmurze (<code>kw-directory</code> i <code>kw-contacts</code>).</p>
+          <p className="text-sm text-foreground/90 leading-relaxed">Menu <strong>Kadry</strong> ma dwie zakładki: <strong>Pracownicy</strong> (kartoteka, stawki, PIN) i <strong>Kontakty</strong> (adresy e-mail do wysyłki z robot i listy płac). Dane synchronizują się osobno w chmurze (<code>kw-directory</code> i <code>kw-contacts</code>).</p>
           <div className="space-y-3">
             {[
               {q:"Gdzie są kontakty e-mail?", a:"W tym samym module — zakładka Kontakty. Z listy płac lub roboty skrót „Zarządzaj kontaktami” otwiera od razu tę zakładkę."},
@@ -498,7 +498,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
           <p className="text-sm text-foreground/90 leading-relaxed">Wszystko co dodajesz w aplikacji jako dane firmy zapisuje się <strong>lokalnie i w chmurze</strong>. Nie musisz klikać „Zapisz do chmury” — dzieje się to samo po każdej zmianie (ikona chmurki u góry).</p>
           <ul className="text-sm text-muted-foreground space-y-2 list-disc pl-5 leading-relaxed">
             <li><strong>Pracownicy</strong> — kartoteka, stawki, telefony, hash kodu pracownika (nie widać kodu — tylko zapisany)</li>
-            <li><strong>Pracownicy i kontakty</strong> — kartoteka (<code>kw-directory</code>) + zakładka Kontakty e-mail (<code>kw-contacts</code>)</li>
+            <li><strong>Kadry</strong> — kartoteka (<code>kw-directory</code>) + zakładka Kontakty e-mail (<code>kw-contacts</code>)</li>
             <li><strong>Lista płac</strong> — godziny (w tym dodatkowe), zaliczki, koszty do zwrotu, rozliczenia; eksport PDF/Word i wysyłka emailem</li>
             <li><strong>Archiwum</strong> — zapisane tygodnie</li>
             <li><strong>Roboty</strong> — adresy, dokumenty, materiały, raporty, wpisy czasu pracy</li>
