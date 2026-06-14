@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.57.0** · Notatki Operacyjne P0)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-14 (Notatki Operacyjne P0 + dokumentacja handoff)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.57.1** · menu Pracownicy i kontakty)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-14 (v2.57.1 menu cleanup)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1727,8 +1727,7 @@ WGDOM1/
 | `dashboard` | Pulpit | `DashboardView.tsx` | CC executive gdy `canViewTenders` |
 | `payroll` | Lista Płac | `PayrollView.tsx` | Carry 20.1A–20.1D |
 | `schedule` | Grafik | *(App.tsx)* | Tydzień Pn–So |
-| `directory` | Pracownicy | *(App.tsx)* | Kartoteka |
-| `contacts` | Kontakty | *(App.tsx)* | E-mail klientów |
+| `directory` / `contacts` | Pracownicy i kontakty | `TeamDirectoryContactsView.tsx` | Zakładki: kartoteka · e-mail (routing wewnętrzny `contacts`) |
 | `archive` | Archiwum | *(App.tsx)* | Zapisane tygodnie |
 | `jobs` | Roboty | `JobsView.tsx` | MID-B, billing panel 20.5A · **badge menu** = `countActiveJobsForNavBadge()` (W toku + Do odbioru, 20.5Z.5A) |
 | `operationalnotes` | Notatki operacyjne | `OperationalNotesView.tsx` | P0 — CRUD, komentarze, archiwum · panel w Roboty → Przegląd |

@@ -4,7 +4,6 @@ import {
   FileText,
   CalendarDays,
   Users,
-  Mail,
   Archive,
   MapPin,
   ClipboardCheck,
@@ -64,12 +63,16 @@ export type BuildAdminNavItemsInput = {
   adminUserId: string | undefined;
 };
 
+export function isNavItemActive(navKey: View, currentView: View): boolean {
+  if (navKey === "directory") return currentView === "directory" || currentView === "contacts";
+  return navKey === currentView;
+}
+
 export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem[] {
   const {
     canViewTendersNav,
     productionWeekEmployees,
     directory,
-    contacts,
     savedWeeks,
     jobs,
     recoverableCharges,
@@ -98,17 +101,10 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
     },
     {
       key: "directory",
-      label: "Pracownicy",
-      hint: "Kartoteka: dane, stawki, telefony, kod 4-cyfrowy, konto testowe, archiwum.",
+      label: "Pracownicy i kontakty",
+      hint: "Kartoteka pracowników (stawki, telefon, PIN) oraz adresy e-mail klientów — do wysyłki z robot i listy płac.",
       icon: Users,
       badge: filterProductionActiveDirectory(directory).length,
-    },
-    {
-      key: "contacts",
-      label: "Kontakty",
-      hint: "Adresy e-mail klientów i współpracowników — do wysyłki z robot.",
-      icon: Mail,
-      badge: contacts.filter((c) => c.email.trim()).length || undefined,
     },
     {
       key: "archive",

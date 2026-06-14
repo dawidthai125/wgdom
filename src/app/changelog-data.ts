@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.57.1",
+    label: "Menu — Pracownicy i kontakty",
+    items: [
+      { type: "improve", text: "Menu boczne — połączone pozycje Pracownicy + Kontakty w jeden moduł „Pracownicy i kontakty” (mniej pozycji, brak scrollbara)" },
+      { type: "improve", text: "Moduł z zakładkami: Pracownicy | Kontakty — bez zmian modelu danych i syncu (kw-directory, kw-contacts)" },
+      { type: "improve", text: "Skróty z listy płac i robot („Zarządzaj kontaktami”) otwierają zakładkę Kontakty w tym samym module" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.57.0",
     label: "Notatki Operacyjne (P0)",
     items: [

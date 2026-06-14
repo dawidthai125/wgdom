@@ -18,6 +18,7 @@ import type { OperationalNote } from "@/lib/operational-notes";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
 import type { View } from "@/app/admin/admin-nav";
+import { TeamDirectoryContactsView } from "@/app/TeamDirectoryContactsView";
 import { TendersProvider } from "@/app/tenders/context/TendersProvider";
 
 const PayrollView = lazy(() => import("@/app/PayrollView").then((m) => ({ default: m.PayrollView })));
@@ -379,23 +380,22 @@ export function AdminViewRouter({
           />
         </ViewErrorBoundary>
       )}
-      {view === "directory" && (
-        <ViewErrorBoundary label="Pracownicy">
-          <DirectoryView
+      {(view === "directory" || view === "contacts") && (
+        <ViewErrorBoundary label="Pracownicy i kontakty">
+          <TeamDirectoryContactsView
+            tab={view === "contacts" ? "contacts" : "directory"}
+            onTabChange={(tab) => onSetView(tab === "contacts" ? "contacts" : "directory")}
             directory={directory}
             savedWeeks={savedWeeks}
             employeeLeaves={employeeLeaves}
-            onChange={setDirectory}
-            onCommit={commitDirectory}
+            onDirectoryChange={setDirectory}
+            onDirectoryCommit={commitDirectory}
             onLeavesChange={setEmployeeLeaves}
             onLeavesCommit={commitEmployeeLeaves}
             onOpenSms={onOpenSms}
+            contacts={contacts}
+            onContactsChange={setContacts}
           />
-        </ViewErrorBoundary>
-      )}
-      {view === "contacts" && (
-        <ViewErrorBoundary label="Kontakty">
-          <ContactsView contacts={contacts} onChange={setContacts} />
         </ViewErrorBoundary>
       )}
       {view === "archive" && (

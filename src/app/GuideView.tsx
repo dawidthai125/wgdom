@@ -286,13 +286,14 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
     {
       id:"directory",
       icon:Users,
-      title:"Pracownicy",
-      subtitle:"Kartoteka — dane osobowe i stawki",
+      title:"Pracownicy i kontakty",
+      subtitle:"Kartoteka pracowników oraz adresy e-mail",
       content:(
         <div className="space-y-4">
-          <p className="text-sm text-foreground/90 leading-relaxed">Kartoteka to główna baza pracowników. Dane wpisane tutaj będą dostępne w Liście Płac i Robotach — nie musisz wpisywać ich za każdym razem.</p>
+          <p className="text-sm text-foreground/90 leading-relaxed">Menu <strong>Pracownicy i kontakty</strong> ma dwie zakładki: <strong>Pracownicy</strong> (kartoteka, stawki, PIN) i <strong>Kontakty</strong> (adresy e-mail do wysyłki z robot i listy płac). Dane synchronizują się osobno w chmurze (<code>kw-directory</code> i <code>kw-contacts</code>).</p>
           <div className="space-y-3">
             {[
+              {q:"Gdzie są kontakty e-mail?", a:"W tym samym module — zakładka Kontakty. Z listy płac lub roboty skrót „Zarządzaj kontaktami” otwiera od razu tę zakładkę."},
               {q:"Jak dodać nowego pracownika?", a:'Kliknij "Nowy pracownik". Wpisz imię i nazwisko, telefon, stanowisko (np. Murarz, Elektryk, Kierowca) i domyślną stawkę godzinową. Data zatrudnienia jest opcjonalna.'},
               {q:"Telefon i kod pracownika", a:"Numer w kartotece (np. +48 501 234 567) — pracownik wpisuje 9 ostatnich cyfr przy logowaniu. Dodatkowo ustawia osobisty kod 4 cyfry (jak PIN do karty) przy pierwszym logowaniu — chroni wypłatę przed podglądem przez kolegów. Administrator może ustawić lub zresetować kod w edycji pracownika."},
               {q:"Reset kodu pracownika", a:"Pracownicy → edytuj → sekcja „Kod pracownika” → Resetuj kod. Pracownik ustawi nowy kod przy następnym logowaniu (telefon zostaje bez zmian)."},
@@ -495,7 +496,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
           <p className="text-sm text-foreground/90 leading-relaxed">Wszystko co dodajesz w aplikacji jako dane firmy zapisuje się <strong>lokalnie i w chmurze</strong>. Nie musisz klikać „Zapisz do chmury” — dzieje się to samo po każdej zmianie (ikona chmurki u góry).</p>
           <ul className="text-sm text-muted-foreground space-y-2 list-disc pl-5 leading-relaxed">
             <li><strong>Pracownicy</strong> — kartoteka, stawki, telefony, hash kodu pracownika (nie widać kodu — tylko zapisany)</li>
-            <li><strong>Kontakty</strong> — odbiorcy email z uprawnieniami: Roboty (materiały z budowy) lub Lista płac</li>
+            <li><strong>Pracownicy i kontakty</strong> — kartoteka (<code>kw-directory</code>) + zakładka Kontakty e-mail (<code>kw-contacts</code>)</li>
             <li><strong>Lista płac</strong> — godziny (w tym dodatkowe), zaliczki, koszty do zwrotu, rozliczenia; eksport PDF/Word i wysyłka emailem</li>
             <li><strong>Archiwum</strong> — zapisane tygodnie</li>
             <li><strong>Roboty</strong> — adresy, dokumenty, materiały, raporty, wpisy czasu pracy</li>

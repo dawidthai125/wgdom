@@ -19,6 +19,7 @@ import type { AdminSession } from "@/lib/admin-auth";
 import { adminIsSuperAdmin, adminRoleLabel } from "@/lib/admin-auth";
 import { topbarRoleTooltipVisible } from "@/lib/role-visibility";
 import type { AdminNavItem, View } from "@/app/admin/admin-nav";
+import { isNavItemActive } from "@/app/admin/admin-nav";
 
 const CompanyMusicPlayer = lazy(() =>
   import("@/app/components/CompanyMusicPlayer").then((m) => ({ default: m.CompanyMusicPlayer })),
@@ -90,7 +91,7 @@ export function AdminTopbar({
             <button
               key={key}
               onClick={() => onGoToView(key)}
-              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${view === key ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-secondary"}`}
+              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${isNavItemActive(key, view) ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-secondary"}`}
             >
               <Icon size={12} />
               {label}

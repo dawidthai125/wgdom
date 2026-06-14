@@ -5,6 +5,7 @@ import { fmt, fmtDate } from "@/app/app-domain";
 import type { WeekEmployee } from "@/app/app-domain";
 import type { computePayrollCashSplit } from "@/lib/payroll-cycle";
 import type { AdminNavItem, View } from "@/app/admin/admin-nav";
+import { isNavItemActive } from "@/app/admin/admin-nav";
 
 type PayrollCashSplit = ReturnType<typeof computePayrollCashSplit>;
 
@@ -48,13 +49,13 @@ export function AdminSidebar({
             <NavItemWithHint key={key} hint={hint}>
               <button
                 onClick={() => onGoToView(key)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${view === key ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isNavItemActive(key, view) ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}
               >
                 <Icon size={15} />
                 <span className="flex-1 text-left">{label}</span>
                 {badge !== undefined && badge > 0 && (
                   <span
-                    className={`text-xs px-1.5 py-0.5 rounded-full ${view === key ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"}`}
+                    className={`text-xs px-1.5 py-0.5 rounded-full ${isNavItemActive(key, view) ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"}`}
                   >
                     {badge}
                   </span>

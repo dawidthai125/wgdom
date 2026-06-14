@@ -1,5 +1,6 @@
 import { Menu, X } from "lucide-react";
 import type { AdminNavItem, View } from "@/app/admin/admin-nav";
+import { isNavItemActive } from "@/app/admin/admin-nav";
 
 export type AdminMobileNavProps = {
   view: View;
@@ -98,7 +99,7 @@ export function AdminMobileNav({
                   key={key}
                   type="button"
                   onClick={() => onGoToView(key)}
-                  className={`flex flex-col items-center justify-center gap-1.5 min-h-[72px] rounded-xl border transition-colors ${view === key ? "bg-primary/15 border-primary/40 text-primary" : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground"}`}
+                  className={`flex flex-col items-center justify-center gap-1.5 min-h-[72px] rounded-xl border transition-colors ${isNavItemActive(key, view) ? "bg-primary/15 border-primary/40 text-primary" : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground"}`}
                 >
                   <div className="relative">
                     <Icon size={20} />

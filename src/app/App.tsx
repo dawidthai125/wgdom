@@ -4,7 +4,7 @@ import { AdminTopbar } from "@/app/admin/AdminTopbar";
 import { GlobalSearchPanel } from "@/app/admin/GlobalSearchPanel";
 import { AdminViewRouter } from "@/app/admin/AdminViewRouter";
 import { AdminMobileNav } from "@/app/admin/AdminMobileNav";
-import { buildAdminNavItems, splitMobileNav, type View } from "@/app/admin/admin-nav";
+import { buildAdminNavItems, splitMobileNav, isNavItemActive, type View } from "@/app/admin/admin-nav";
 import { ContactsView } from "@/app/ContactsView";
 import { DirectoryView } from "@/app/DirectoryView";
 import { ArchiveView } from "@/app/ArchiveView";
@@ -1061,7 +1061,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   );
 
   const { mobileNavPrimary, mobileNavMore } = useMemo(() => splitMobileNav(navItems), [navItems]);
-  const mobileMoreActive = mobileNavMore.some((n) => n.key === view);
+  const mobileMoreActive = mobileNavMore.some((n) => isNavItemActive(n.key, view));
 
   const payrollCashSplitSidebar = useMemo(
     () => computePayrollCashSplitWithCarry(productionWeekEmployees, directory, weekFrom, weekTo, savedWeeks),
@@ -1091,7 +1091,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       dashboard: "Pulpit",
       payroll: "Lista płac",
       schedule: "Grafik",
-      directory: "Kartoteka",
+      directory: "Pracownicy i kontakty",
       inspector: "Inspektor",
       archive: "Archiwum",
       jobs: "Roboty",
@@ -1121,7 +1121,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       dashboard: "Pulpit",
       payroll: "Lista płac",
       schedule: "Grafik",
-      directory: "Kartoteka",
+      directory: "Pracownicy i kontakty",
       inspector: "Inspektor",
       archive: "Archiwum",
       jobs: "Roboty",

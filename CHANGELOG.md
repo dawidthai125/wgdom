@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.57.0** Notatki Operacyjne P0 · **GO COMMIT** (pre-push prod: 2.56.10)
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.57.1** Menu cleanup (pre-commit)
+
+## 2.57.1 — Menu: Pracownicy i kontakty
+- Jedna pozycja menu + zakładki Pracownicy | Kontakty · routing `directory` / `contacts` bez zmian KV
 
 ## 2.57.0 — Notatki Operacyjne (P0)
 - Moduł `OperationalNotesView` + panel `JobOperationalNotesPanel` · 4 klucze KV · ACL staff
