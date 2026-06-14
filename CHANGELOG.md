@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.10** WM Druk P0.1A DOCX
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.11** WM Druk P0.1B ZI
+
+## 2.59.11 — Odbiory WM Druk P0.1B fix ZI XFA
+- Mapowanie TextField2[8/9/10] · indeks fallback · test `test-wm-print-p0-1b-zi-fix.mjs`
 
 ## 2.59.10 — Odbiory WM Druk P0.1A fix DOCX XML
 - Bezpieczne czyszczenie `<w:t>` (regresja 2.59.9) · split-run + proofErr · test `test-wm-print-p0-1a-docx-fix.mjs`

@@ -33,9 +33,9 @@ export function seedWmPrintTemplatesIfEmpty(existing: WmPrintTemplate[]): WmPrin
     ...(s.kind === "generated" && s.name === "ZI"
       ? {
           pdfFieldMapping: {
-            Ulica: "JOB_STREET",
-            "Numer budynku": "JOB_BUILDING",
-            "Numer lokalu": "JOB_APARTMENT",
+            "form1[0].Page1[0].TextField2[10]": "JOB_STREET",
+            "form1[0].Page1[0].TextField2[9]": "JOB_BUILDING",
+            "form1[0].Page1[0].TextField2[8]": "JOB_APARTMENT",
           },
         }
       : {}),

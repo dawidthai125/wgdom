@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.11",
+    label: "Odbiory WM Druk — P0.1B fix ZI (mapowanie XFA)",
+    items: [
+      { type: "fix", text: "ZI pdf_form: mapowanie pól XFA TextField2[8/9/10] → lokal/budynek/ulica" },
+      { type: "fix", text: "ZI: fallback indeks PDFTextField po usunięciu XFA przez pdf-lib; polskie znaki bez WinAnsi" },
+      { type: "improve", text: "Test prod ZI: Sępa Szarzyńskiego 83/7 — test-wm-print-p0-1b-zi-fix.mjs" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.59.10",
     label: "Odbiory WM Druk — P0.1A fix DOCX XML (regresja 2.59.9)",
     items: [

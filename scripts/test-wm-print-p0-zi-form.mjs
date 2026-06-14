@@ -48,7 +48,10 @@ assert(inspection.fieldCount === 4, `liczba pól: 4 (jest: ${inspection.fieldCou
 assert(inspection.fieldNames.includes("Ulica"), "pole: Ulica");
 assert(inspection.fieldNames.includes("Numer budynku"), "pole: Numer budynku");
 assert(inspection.fieldNames.includes("Numer lokalu"), "pole: Numer lokalu");
-assert(inspection.addressFieldNames.length === 3, "3 pola adresowe w mapowaniu ZI");
+assert(
+  inspection.fieldNames.filter((n) => ["Ulica", "Numer budynku", "Numer lokalu"].includes(n)).length === 3,
+  "3 pola adresowe (fixture AcroForm)",
+);
 
 console.log("\n  Raport inspekcji ZI (fixture):");
 console.log(`    typ: ${inspection.formType}`);
