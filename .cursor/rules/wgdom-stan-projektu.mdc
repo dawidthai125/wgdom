@@ -12,9 +12,10 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.56.10** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts) · **P3.6 + P1 WM CLOSED**
-- **Prod (`main` / `origin/main`, app):** **`7acbecf`** (2.56.10 WM exclude) · poprzedni **`d3ecbe4`** (2.56.9 P3.6) · https://www.wgdom.fun · **RELEASE GO**
+- **Aktualna wersja UI:** **2.58.1** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts) · **Notatki operacyjne COMPLETE**
+- **Prod (`main` / `origin/main`, app):** **`1f8e2bd`** (2.58.1 backup notatki) · poprzedni **`7c291d9`** (2.58.0 P2A) · https://www.wgdom.fun · **RELEASE GO**
 - **★★ Handoff SSOT (baseline prod):** [`docs/PROJECT-HANDOFF-CURRENT.md`](../../docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../../CURRENT-TASK.md)
+- **★★ Handoff Notatki operacyjne (COMPLETE):** [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](../../docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md) — P0→P2C+HF · KV · ACL · testy · backlog P3
 - **★★ Handoff P3 (Wycena · BZP · filtry):** [`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](../../docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) — baza cen · benchmarki · P3.6 · P1 WM
 - **★★ Handoff P2-H (COMPLETE H.1–H.6):** [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](../../docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) — Marketplanet · ZIP · 7Z · dossier
 - **★★ Handoff UX.1 (COMPLETE):** [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](../../docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md) — 5 workspace tabs · lazy render · Anti-CC · ARCH-001
@@ -82,6 +83,29 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
  **Test:** `test-tenders-strategic-client-filters.mjs` · `test-tender-exclude-renovation-budowa.mjs`
  
  **Nie zmieniaj bez polecenia:** P3.6 UX-only; exclude granica słowa P1; benchmarki read-only bez wpływu na kalkulator.
+ 
+ ---
+ 
+ ## Notatki operacyjne — P0→P2C+HF (COMPLETE, prod `1f8e2bd`, v2.58.1, 2026-06-14)
+ 
+ **Status:** **COMPLETE** · backlog **P3 Export OPEN**
+ 
+ | Faza | Wersja | Skrót |
+ |---|-----|----|
+ | P0 | 2.57.0 | Moduł admin, CRUD, sync 4× KV |
+ | P1 | 2.57.2 | ACK, badge, banner |
+ | P2B | 2.57.4 | Widget Pulpit |
+ | P2C | 2.57.5 | Audit UI Super Admin |
+ | P2A | 2.58.0 | Inspektor UI overlay |
+ | HF | 2.58.1 | Backup completeness 4 kluczy |
+ 
+ **Handoff:** [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](../../docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md)
+ 
+ **Kluczowe pliki:** `operational-notes.ts`, `OperationalNotesView.tsx`, `InspectorPanel.tsx`, `cloud-sync.ts` (`OPERATIONAL_NOTES_BACKUP_KEYS`)
+ 
+ **Test:** `test-operational-notes-p0.mjs` … `test-operational-notes-hotfix-2.58.1.mjs`
+ 
+ **Nie zmieniaj bez polecenia:** ≠ `job.notes` / `job.jobNotes[]`; ACL inspektor; brak zapisu do `kw-jobs`.
  
  ---
  

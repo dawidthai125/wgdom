@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-14 (Notatki Operacyjne P0 · v2.57.0 pre-commit)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-14 (Notatki operacyjne **COMPLETE** · v2.58.1 · `1f8e2bd`)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -8,14 +8,15 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-2. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM
-3. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
-4. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← ★★ UX.1A/1B workspace + ARCH-001
-5. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← P2-F kwalifikacja ofertowa (COMPLETE)
-6. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
-7. CURRENT-TASK.md                         ← status sesji / wznowienie
-8. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
-9. AGENTS.md → docs/ARCHITECTURE.md § 12.1.1–12.1.7 · § UX.1B · § 15.1
+2. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← ★★ Notatki operacyjne P0→HF (COMPLETE)
+3. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM
+4. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
+5. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← ★★ UX.1A/1B workspace + ARCH-001
+6. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← P2-F kwalifikacja ofertowa (COMPLETE)
+7. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
+8. CURRENT-TASK.md                         ← status sesji / wznowienie
+9. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
+10. AGENTS.md → docs/ARCHITECTURE.md § Notatki · § 12.1.1–12.1.7 · § UX.1B · § 15.1
 ```
 
 ---
@@ -25,7 +26,7 @@
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
 | **P3 Wycena · Baza cen · filtry** | 2.56.0–**2.56.10** (`7acbecf`) | **P3.0–P3.6 CLOSED** | [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) |
-| **Notatki operacyjne P0** | **2.57.0** (pre-commit) | **P0 CLOSED** · P1/P2/P3 OPEN | [`ARCHITECTURE.md`](ARCHITECTURE.md) § 10.1 · ten dokument § 3f |
+| **Notatki operacyjne** | **2.57.0–2.58.1** (`1f8e2bd`) | **COMPLETE** (P0→P2C+HF) · P3 Export OPEN | [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](SESSION-HANDOFF-OPERATIONAL-NOTES.md) |
 | **P2-H Tender Documents** | 2.55.0–**2.55.10** | **CLOSED** (H.7 OPEN) | [`SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) |
 | **UX.1 Tender Workspace** | 2.53.1–**2.53.4** (`3b5da74`) | **COMPLETE** | [`SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md) |
 | **P2-F Tender Qualification** | 2.51.19–**2.51.24** (`e015453`) | **COMPLETE** | [`SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md) |
@@ -40,7 +41,7 @@
 ```text
 Dashboard
 Roboty
-Notatki operacyjne          ← P0 v2.57.0 (nowy moduł)
+Notatki operacyjne          ← COMPLETE v2.58.1 (admin · ACK · widget · audit · inspektor · backup)
 Do Rozliczenia
 Przetargi (+ Karta ofertowa P2-F, Wycena P3, Baza cen, Profil wykonawcy)
 ```
@@ -68,10 +69,13 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (repo / docelowa):  2.57.0        ← Notatki Operacyjne P0 (pre-commit)
-Version (prod obecnie):     2.56.10       ← do verify po push
-Feature commit (prod):      7acbecf        fix(tenders): WM false exclude + P3.6
-Notatki operacyjne P0:      2.57.0         CRUD · komentarze · archiwum · audit · sync · job link
+Version (repo / prod):      2.58.1        ← Notatki HF backup completeness
+Feature commit (prod):      1f8e2bd        fix(notatki): v2.58.1 backup completeness
+Notatki P2A:                7c291d9        v2.58.0 Inspektor UI
+Notatki P2C:                b56e628        v2.57.5 Audit UI
+Notatki P2B:                60876a8        v2.57.4 Widget Pulpit
+Notatki P0:                 2.57.0         CRUD · sync · job link
+Poprzedni prod (P3):        7acbecf        v2.56.10 WM false exclude + P3.6
 P3.6:                       2.56.9         Filtry klientów strategicznych (d3ecbe4)
 P2-G.3C:              2.56.8         Benchmark klasyfikacji prod (66a619e)
 P3 UX Stabilization:  2.56.7         Wycena cleanup + słowniki 3.1 (9759ef9)
@@ -97,11 +101,11 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 | Status | Wartość |
 |--------|---------|
-| **RELEASE GO (2.57.0)** | **TAK** — build + testy + docs; **pre-commit** |
-| **RELEASED (prod)** | **2.56.10** — do push v2.57.0 |
+| **RELEASE GO (2.58.1)** | **TAK** — pushed `1f8e2bd` |
+| **RELEASED (prod)** | **2.58.1** — verify `version.json` |
 | **STABLE** | TAK |
-| **PRODUCTION VERIFIED** | `version.json` = **2.56.10** (prod) · **2.57.0** po push |
-| **Notatki operacyjne P0** | **CLOSED** · P1/P2/P3 **OPEN** |
+| **PRODUCTION VERIFIED** | `version.json` = **2.58.1** (lub DEPLOY PROPAGATING po push) |
+| **Notatki operacyjne** | **COMPLETE** (P0→P2C+HF) · **P3 Export OPEN** |
 | **P3 (Wycena / Baza cen / filtry)** | **P3.0–P3.6 CLOSED** · benchmark materiałów rynku **HOLD** |
 | **P1 WM pipeline** | **CLOSED** (v2.56.10 false exclude przebudowa) |
 | **P2-H (Dokumenty / ZIP / 7Z / PDF)** | **H.1–H.6 + H.5A–H.5D CLOSED** · **H.7 OPEN** (magic bytes) |
@@ -115,8 +119,7 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# prod obecnie: { "version": "2.56.10" }
-# po push 2.57.0: { "version": "2.57.0" }
+# oczekiwane: { "version": "2.58.1" }
 ```
 
 ---
@@ -294,54 +297,60 @@ Chronologia releasów aplikacyjnych na `main` po baseline **2.50.65** (20.5Z.5C)
 
 ---
 
-## 3f. Notatki operacyjne — P0 (**CLOSED** v2.57.0)
+## 3f. Notatki operacyjne — P0→P2C+HF (**COMPLETE** v2.58.1)
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja** | **2.57.0** (pre-commit) |
-| **Status P0** | **CLOSED** — GO RELEASE · GO COMMIT |
-| **Architektura** | [`ARCHITECTURE.md`](ARCHITECTURE.md) § 10.1 (Notatki operacyjne) · § 15.1 (`operationalnotes`) |
-| **Test regresji** | `npx vite-node scripts/test-operational-notes-p0.mjs` (**24 PASS**) |
+| **Wersja** | **2.58.1** · commit **`1f8e2bd`** |
+| **Status streamu** | **COMPLETE** — P0 · P1 · P2A · P2B · P2C · HF |
+| **Handoff dedykowany** | [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](SESSION-HANDOFF-OPERATIONAL-NOTES.md) |
+| **Architektura** | [`ARCHITECTURE.md`](ARCHITECTURE.md) — sekcja Notatki operacyjne · § 15.1 (`operationalnotes`) |
 
-### Zakres P0 (zaimplementowane)
+### Timeline faz
 
-| Obszar | Opis |
-|--------|------|
-| **Moduł admin** | `OperationalNotesView.tsx` — lista Aktywne/Archiwum, szczegóły, formularz, komentarze |
-| **CRUD** | Tworzenie, edycja treści, wersje (`contentRev` + `revisions[]`) |
-| **Komentarze** | Wątek pod notatką; bump `lastActivityAt` |
-| **Archiwum** | Archiwizuj / Przywróć (status `active` / `archived`) |
-| **Logical delete** | Usuń + tombstone — notatka nie wraca z chmury |
-| **Audit log** | Append-only w `kw-operational-notes-audit-log` (cap 3000) |
-| **Cloud sync** | 4 klucze KV — merge LWW, push/pull, backup |
-| **Powiązanie z robotą** | `linkedJobId` · panel `JobOperationalNotesPanel` · deep link + `returnNav` |
-| **ACL P0** | super_admin / admin / moderator — pełny CRUD; inspektor — tylko lib (bez UI admin) |
-| **UX P0-H.1** | „Uwagi wewnętrzne (robota)” · powrót do roboty · Wersja N · toasty |
+| Faza | Wersja | Zakres |
+|------|--------|--------|
+| **P0** | 2.57.0 | Moduł admin, CRUD, komentarze, archiwum, audit log, sync 4× KV, panel Roboty |
+| **P1** | 2.57.2 | ACK, badge menu, banner, read status, `contentRev` |
+| **P2B** | 2.57.4 | Widget KPI na Pulpicie |
+| **P2C** | 2.57.5 | Audit UI (Sheet, Super Admin) |
+| **P2A** | 2.58.0 | Inspektor UI — overlay, header badge, sync w `InspectorPanel` |
+| **HF** | 2.58.1 | Backup completeness — export/import/email/snapshot 4 kluczy |
 
-### Klucze chmury (4)
+### Klucze chmury (4) — SSOT backup `OPERATIONAL_NOTES_BACKUP_KEYS`
 
 | Klucz | Zawartość |
 |-------|-----------|
 | `kw-operational-notes` | Tablica `OperationalNote[]` |
 | `kw-operational-notes-audit-log` | Audit entries (cap 3000) |
-| `kw-operational-notes-read-state` | Read receipts (szkielet P1) |
+| `kw-operational-notes-read-state` | Read receipts / ACK |
 | `kw-operational-notes-deleted-ids` | Tombstone logical delete |
 
 **Osobna domena:** ≠ `job.notes` (uwagi wewnętrzne roboty) ≠ `job.jobNotes[]` (WM / billing).
 
 ### Kluczowe pliki
 
-`src/lib/operational-notes.ts` · `operational-notes-audit.ts` · `operational-notes-read-state.ts` · `OperationalNotesView.tsx` · `JobOperationalNotesPanel.tsx` · `cloud-sync.ts` · `App.tsx` · `admin-nav.ts` · `AdminViewRouter.tsx` · `JobsView.tsx`
+`operational-notes.ts` · `operational-notes-read-state.ts` · `operational-notes-audit.ts` · `operational-notes-audit-filters.ts` · `operational-notes-dashboard.ts` · `OperationalNotesView.tsx` · `OperationalNotesAuditPanel.tsx` · `DashboardOperationalNotesWidget.tsx` · `JobOperationalNotesPanel.tsx` · `InspectorPanel.tsx` · `cloud-sync.ts` · `admin-nav.ts`
+
+### Testy regresji
+
+```bash
+npx vite-node scripts/test-operational-notes-p0.mjs
+npx vite-node scripts/test-operational-notes-p1.mjs
+npx vite-node scripts/test-operational-notes-p2b.mjs
+npx vite-node scripts/test-operational-notes-p2c.mjs
+npx vite-node scripts/test-operational-notes-p2a.mjs
+npx vite-node scripts/test-operational-notes-hotfix-2.58.1.mjs
+```
 
 ### Następne etapy (OPEN — tylko na polecenie)
 
 | Etap | Zakres |
 |------|--------|
-| **P1** | ACK (read receipts UI) + Banner + Badge menu |
-| **P2** | Inspektor UI + Dashboard widget + Audit UI on-screen |
-| **P3** | PDF + DOCX + Email Export (ręczny export; **bez** auto-notify e-mail) |
+| **P3 Export** | PDF + DOCX + Email Export (ręczny; **bez** auto-notify) |
+| **P2A.1** | Panel notatek w detalu roboty inspektora (opcjonalny) |
 
-**Nie zmieniaj bez polecenia:** model KV, merge sync, granica od `job.notes` / `jobNotes`, brak zapisu do `kw-jobs`.
+**Nie zmieniaj bez polecenia:** model KV, merge sync, granica od `job.notes` / `jobNotes`, ACL inspektora (create/comment/ACK only), brak zapisu do `kw-jobs`.
 
 ---
 
@@ -507,7 +516,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | **UX.1** | Tender Workspace (UX.1A/1B) | **CLOSED** (v2.53.1–2.53.4) |
 | **P2-H** | Dokumenty / ZIP / 7Z / PDF przedmiar | **STREAM CLOSED** (v2.55.0–2.55.10) · H.7 OPEN |
 | **P3** | Wycena · Baza cen · benchmarki · filtry | **P3.0–P3.6 CLOSED** · materiały rynkowe **HOLD** |
-| **Notatki operacyjne** | P0 moduł admin | **P0 CLOSED** (v2.57.0) · **P1/P2/P3 OPEN** |
+| **Notatki operacyjne** | P0→P2C+HF admin/inspektor/backup | **COMPLETE** (v2.58.1) · **P3 Export OPEN** |
 | **P2** | Audit Center / Security Log (Super Admin) | **OTWARTY** |
 | P2-G.3D/E | Benchmark jakości · RMS · AI validation | **OTWARTY** → slot **Wycena** |
 | P2-F.6 | Kompletność oferty (checklist) | **OTWARTY** → slot **Oferta** |
@@ -528,44 +537,43 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 - **P2-F merge/parsery** — `kw-company-profile`, filtry śmieci PDF SWZ, ATH viewer reuse
 - **UX.1 workspace model** — max 5 tabs, lazy render, Anti-CC; nie doklejać paneli na scroll
 - **ARCH-001** — brak static import cloud-sync w nowych lib w drzewie merge
-- **Notatki operacyjne P0** — nie mieszać z `job.notes` / `job.jobNotes[]`; nie zapisywać do `kw-jobs`
+- **Notatki operacyjne** — nie mieszać z `job.notes` / `job.jobNotes[]`; nie zapisywać do `kw-jobs`; ACL inspektora bez edit/delete
 
 ---
 
 ## 13. NASTĘPNY KROK (dla agenta)
 
-**Ostatni release (repo):** **v2.57.0 Notatki Operacyjne P0** — **GO COMMIT** (pre-commit).
+**Ostatni release (repo):** **v2.58.1 Notatki operacyjne HF** — commit **`1f8e2bd`**.
 
-**Priorytet produktu (Przetargi):** moduł Przetargi **PRODUCTION READY** — audyty na realnych postępowaniach na polecenie biznesowe.
+**Priorytet produktu (Notatki):** stream **COMPLETE** — następny krok **P3 Export** tylko na polecenie.
 
-**Notatki operacyjne — roadmap (OPEN):**
+**Notatki operacyjne — roadmap:**
 
 ```text
-P0 CLOSED (v2.57.0) — CRUD · komentarze · archiwum · audit · sync · job link
-P1 OPEN — ACK + Banner + Badge menu
-P2 OPEN — Inspektor UI + Dashboard widget + Audit UI on-screen
+P0→P2C+HF COMPLETE (v2.58.1) — admin · ACK · widget · audit · inspektor · backup 4× KV
 P3 OPEN — PDF + DOCX + Email Export (ręczny, bez auto-notify)
+P2A.1 OPEN (opcjonalny) — panel w detalu roboty inspektora
 ```
 
 ```text
 P2-H stream CLOSED (v2.55.10) · P2-H.7 OPEN (Edge magic bytes 7z).
 P3.0–P3.6 CLOSED · P1 WM false exclude CLOSED (v2.56.10).
-Notatki operacyjne P0 CLOSED (v2.57.0 pre-commit).
+Notatki operacyjne COMPLETE (v2.58.1).
 UX.1 CLOSED · P2-F CLOSED · P1 CLOSED.
-Backlog techniczny (na polecenie): P2-G.3D/E · P2-F.6 · P2 Audit Center · Notatki P1–P3.
+Backlog techniczny (na polecenie): P2-G.3D/E · P2-F.6 · P2 Audit Center · Notatki P3 Export.
 Benchmark materiałów rynku HOLD · Leroy/Castorama/OBI/KB scraping — NO GO.
 Inspector 2.1 — CLOSED (2.1.2 CANCELLED).
 ```
 
 Przy wznowieniu:
 
-1. Przeczytaj **ten plik** + `CURRENT-TASK.md`
-2. `curl -s https://www.wgdom.fun/version.json` — prod **2.56.10**; po push oczekiwane **2.57.0**
-3. Przed zmianami Notatki operacyjne: `test-operational-notes-p0.mjs`
+1. Przeczytaj **ten plik** + [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](SESSION-HANDOFF-OPERATIONAL-NOTES.md) + `CURRENT-TASK.md`
+2. `curl -s https://www.wgdom.fun/version.json` — prod **2.58.1**
+3. Przed zmianami Notatki: testy z handoffu operacyjnego (P0–HF)
 4. Przed zmianami Przetargów: `test-tenders-strategic-client-filters.mjs` + `test-tender-exclude-renovation-budowa.mjs`
 5. Przed zmianami ZIP/7Z: `test-tender-7z-archive.mjs`
 6. Przed release dossier: `test-tender-dossier-pipeline.mjs`
-7. Stosuj workflow **B** (functional UI) dla v2.57.0 — [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md)
+7. Stosuj workflow **B** (functional UI) — [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md)
 8. Hasło **„kontynuuj WGDOM”** → `.cursor/rules/wgdom-stan-projektu.mdc`
 
 ---
@@ -574,6 +582,7 @@ Przy wznowieniu:
 
 | Temat | Dokument |
 |-------|----------|
+| **★ Notatki operacyjne (COMPLETE)** | `SESSION-HANDOFF-OPERATIONAL-NOTES.md` |
 | **★ P3 Wycena · BZP · filtry** | `SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md` |
 | **★ P2-H Dokumenty / 7Z / Marketplanet** | `SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md` |
 | **★ UX.1 Tender Workspace** | `SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md` |
@@ -593,15 +602,15 @@ Przy wznowieniu:
 
 ---
 
-**Werdykt closeout (2026-06-13):**
+**Werdykt closeout (2026-06-14):**
 
 ```text
-BASELINE v2.56.10 · PRODUCTION VERIFIED (version.json)
-Moduł Przetargi: PRODUCTION READY — workflow Przetarg → dokumentacja → kosztorys → klasyfikacja → wycena → oferta
-P3.0–P3.6 CLOSED · P1 WM false exclude CLOSED · P2-G.3C CLOSED (UNKNOWN 0%)
-P2-H stream CLOSED (H.1–H.6 + H.5A/B/C/D) · H.7 OPEN (Edge magic bytes 7z)
-UX.1 CLOSED · P2-F CLOSED · P1 CLOSED · Inspector 2.1 CLOSED (2.1.2 CANCELLED)
-Priorytet kolejnych prac: REALNE PRZETARGI (audyty operacyjne) zamiast nowych funkcji
-Open backlog (tylko na polecenie): P2-H.7 · P2-G.3D/E · P2-F.6 · benchmark materiałów HOLD · P2 Audit Center
+BASELINE v2.58.1 · Notatki operacyjne COMPLETE (P0→P2C+HF)
+COMMIT 1f8e2bd · RELEASE GO
+P3 Export OPEN (tylko na polecenie)
+Moduł Przetargi: PRODUCTION READY
+P3.0–P3.6 CLOSED · P1 WM CLOSED · P2-H stream CLOSED (H.7 OPEN)
+UX.1 CLOSED · P2-F CLOSED · P1 CLOSED · Inspector 2.1 CLOSED
+Open backlog (na polecenie): P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6 · P2 Audit Center
 Ready for new GPT / new Cursor agent
 ```

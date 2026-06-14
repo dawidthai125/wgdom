@@ -8,14 +8,15 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.56.10, commity, decyzje)
-3. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP · P3.6 · P1 WM
-4. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
-5. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← ★★ UX.1A/1B workspace + ARCH-001 (COMPLETE)
-6. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← ★★ P2-F kwalifikacja ofertowa (COMPLETE)
-7. docs/SESSION-HANDOFF-DASHBOARD-V3.md  ← ★★ Pulpit V3 — operacje, liczniki, backlog
-8. CURRENT-TASK.md        ← ★ status sesji / wznowienie
-9. docs/WORKFLOW-RELEASE-DEPLOY.md  ← ★★ release/deploy A/B/C + VERIFY (oficjalny)
+2. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.58.1, commity, decyzje)
+3. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← ★★ Notatki operacyjne P0→HF (COMPLETE)
+4. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP · P3.6 · P1 WM
+5. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
+6. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← ★★ UX.1A/1B workspace + ARCH-001 (COMPLETE)
+7. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← ★★ P2-F kwalifikacja ofertowa (COMPLETE)
+8. docs/SESSION-HANDOFF-DASHBOARD-V3.md  ← ★★ Pulpit V3 — operacje, liczniki, backlog
+9. CURRENT-TASK.md        ← ★ status sesji / wznowienie
+10. docs/WORKFLOW-RELEASE-DEPLOY.md  ← ★★ release/deploy A/B/C + VERIFY (oficjalny)
 10. docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md  ← Dashboard V2 (historyczny — nie przywracać Hero)
 11. docs/PROJECT-HANDOFF.md  ← proces AUDIT→RCA→PLAN→IMPLEMENT (baseline → CURRENT)
 11. docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md  ← backup baseline 2.50.64
@@ -58,6 +59,7 @@
 | **docs/ARCHITECTURE.md** | Pełny techniczny przewodnik (living document) |
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
+| **docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md** | **★★ Notatki operacyjne COMPLETE** (v2.57.0–2.58.1) — P0→P2C+HF, KV, ACL, testy, backlog P3 |
 | **docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md** | **★★ P3 wycena · BZP pipeline · P3.6 filtry · P1 WM** (2.56.0–2.56.10) |
 | **docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md** | **★★ P2-H dokumenty / ZIP / 7Z / Marketplanet** (H.1–H.6 CLOSED) |
 | **docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md** | **★★ UX.1 Tender Workspace CLOSED** (2.53.1–2.53.4) — 5 tabs, lazy render, Anti-CC, ARCH-001 |
@@ -145,8 +147,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.56.10**) |
-| Prod `main` (app) | **v2.56.10** · P3.6 + P1 WM · P2-H CLOSED · UX.1 CLOSED · P2-F CLOSED · P1 CLOSED |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.58.1**) |
+| Prod `main` (app) | **v2.58.1** · Notatki operacyjne COMPLETE · P3.6 + P1 WM · P2-H CLOSED · UX.1 · P2-F · P1 CLOSED |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
 | Dashboard V2 docs | [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md) |
@@ -387,6 +389,21 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 - **Test:** `npx vite-node scripts/test-tender-dossier-pipeline.mjs` (161 PASS)
 
 **Nie zmieniaj bez polecenia:** merge profilu, `referenceStatus`, parsery SWZ, reuse ATH viewer.
+
+---
+
+## 3l. Notatki operacyjne — P0→P2C+HF (**COMPLETE**, prod `1f8e2bd`, v2.58.1)
+
+- **Handoff SSOT:** [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md)
+- **Architektura:** **ARCHITECTURE.md** — sekcja Notatki operacyjne · § 15.1 (`operationalnotes`)
+- **Fazy CLOSED:** P0 (2.57.0) · P1 (2.57.2) · P2B (2.57.4) · P2C (2.57.5) · P2A (2.58.0) · HF backup (2.58.1)
+- **4 klucze KV:** `kw-operational-notes` · read-state · audit-log · deleted-ids — SSOT `OPERATIONAL_NOTES_BACKUP_KEYS`
+- **Kluczowe pliki:** `operational-notes.ts`, `OperationalNotesView.tsx`, `InspectorPanel.tsx`, `DashboardOperationalNotesWidget.tsx`, `JobOperationalNotesPanel.tsx`
+- **Test:** `test-operational-notes-p0.mjs` … `test-operational-notes-hotfix-2.58.1.mjs` (6 skryptów)
+
+**Nie zmieniaj bez polecenia:** granica od `job.notes` / `job.jobNotes[]`; ACL inspektor (create/comment/ACK only); brak zapisu do `kw-jobs`.
+
+**Backlog OPEN:** P3 Export (PDF/DOCX/Email) · P2A.1 panel inspektora w detalu roboty — tylko na polecenie.
 
 ---
 
