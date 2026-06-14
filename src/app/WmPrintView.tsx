@@ -33,11 +33,13 @@ import {
 import { downloadWmPrintTemplateFileGenerated, downloadWmPrintZip } from "@/lib/wm-print/generate-zip";
 import {
   addWmPrintTemplateFile,
+  addWmPrintTemplateFiles,
   createWmPrintTemplate,
   countWmPrintTemplateFiles,
   deleteWmPrintTemplateLogical,
   getWmPrintTemplateFiles,
   isWmPrintPdfFileName,
+  isWmPrintTemplateUploadFileAccepted,
   removeWmPrintTemplateFile,
   reorderWmPrintTemplates,
   updateWmPrintTemplate,
@@ -161,25 +163,67 @@ export function WmPrintView({
     else toast.error(res.error || "Błąd generowania");
   };
 
-  const handleTemplateFilePick = async (file: File, templateId: string) => {
-    setBusy(true);
-    const fileId = crypto.randomUUID();
-    const up = await uploadWmPrintTemplateFile(templateId, file, fileId);
-    if ("error" in up) {
-      setBusy(false);
-      toast.error(up.error);
+  const wmPrintFilesAddedLabel = (n: number): string => {
+    if (n === 1) return "1 plik";
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${n} pliki`;
+    return `${n} plików`;
+  };
+
+  const handleTemplateFilesPick = async (fileList: FileList | File[], templateId: string) => {
+    const template = templates.find((t) => t.id === templateId);
+    if (!template) return;
+    const picked = [...fileList].filter((f) => f.size > 0);
+    if (picked.length === 0) return;
+
+    const rejected = picked.filter((f) => !isWmPrintTemplateUploadFileAccepted(f.name, template.type));
+    if (rejected.length > 0) {
+      toast.error(
+        `Nieobsługiwany format (${template.type}): ${rejected.map((f) => f.name).join(", ")}`,
+      );
       return;
     }
-    const next = addWmPrintTemplateFile(templates, templateId, {
-      id: fileId,
-      storagePath: up.path,
-      storageUrl: up.publicUrl,
-      originalFileName: file.name,
+
+    setBusy(true);
+    const uploaded: Array<{
+      id: string;
+      storagePath: string;
+      storageUrl: string;
+      originalFileName: string;
+    }> = [];
+
+    for (const file of picked) {
+      const fileId = crypto.randomUUID();
+      const up = await uploadWmPrintTemplateFile(templateId, file, fileId);
+      if ("error" in up) {
+        toast.error(`${file.name}: ${up.error}`);
+        continue;
+      }
+      uploaded.push({
+        id: fileId,
+        storagePath: up.path,
+        storageUrl: up.publicUrl,
+        originalFileName: file.name,
+      });
+    }
+
+    if (uploaded.length === 0) {
+      setBusy(false);
+      return;
+    }
+
+    let next: WmPrintTemplate[] | null = null;
+    let added = 0;
+    onChangeTemplates((prev) => {
+      const result = addWmPrintTemplateFiles(prev, templateId, uploaded);
+      added = result.added;
+      next = result.templates;
+      return next;
     });
-    onChangeTemplates(next);
-    commitAll(next);
+    if (next) commitAll(next);
     setBusy(false);
-    toast.success(`Dodano plik: ${file.name}`);
+    toast.success(`Dodano ${wmPrintFilesAddedLabel(added)} do grupy ${template.name}`);
   };
 
   const handleRemoveTemplateFile = (templateId: string, fileId: string) => {
@@ -657,8 +701,32 @@ export function WmPrintView({
                             className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-border hover:bg-secondary"
                           >
                             <Plus size={12} />
-                            Dodaj plik
+                            Dodaj pliki
                           </button>
+                          <div
+                            role="button"
+                            tabIndex={0}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const dropped = [...e.dataTransfer.files];
+                              if (dropped.length > 0) void handleTemplateFilesPick(dropped, t.id);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                setPendingTemplateUploadId(t.id);
+                                templateFileRef.current?.click();
+                              }
+                            }}
+                            className="w-full text-xs px-2 py-2 rounded-lg border border-dashed border-border/80 text-muted-foreground hover:bg-secondary/40 text-center cursor-pointer"
+                          >
+                            Przeciągnij pliki tutaj lub wybierz „Dodaj pliki”
+                          </div>
                         </div>
                       )}
                       {t.kind === "generated" && groupFiles.length > 0 && (
@@ -771,13 +839,14 @@ export function WmPrintView({
       <input
         ref={templateFileRef}
         type="file"
+        multiple
         className="hidden"
         accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         onChange={(e) => {
-          const file = e.target.files?.[0];
+          const files = e.target.files ? [...e.target.files] : [];
           e.target.value = "";
-          if (!file || !pendingTemplateUploadId) return;
-          void handleTemplateFilePick(file, pendingTemplateUploadId);
+          if (files.length === 0 || !pendingTemplateUploadId) return;
+          void handleTemplateFilesPick(files, pendingTemplateUploadId);
           setPendingTemplateUploadId(null);
         }}
       />

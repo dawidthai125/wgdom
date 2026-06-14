@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.3",
+    label: "Odbiory WM Druk — multi-upload P1.0.3",
+    items: [
+      { type: "new", text: "Szablony: „Dodaj pliki” — wielokrotny wybór (CTRL/SHIFT), wiele plików jednym działaniem" },
+      { type: "new", text: "Drag & drop wielu plików do grupy szablonu; komunikat „Dodano N plików do grupy …”" },
+      { type: "improve", text: "Append bez nadpisywania; duplikat po id pomijany; test test-wm-print-p1-0-3.mjs" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.59.2",
     label: "Odbiory WM Druk — fix usuwania pliku z grupy",
     items: [

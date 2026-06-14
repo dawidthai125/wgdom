@@ -126,25 +126,50 @@ export function addWmPrintTemplateFile(
   templateId: string,
   file: Omit<WmPrintTemplateFile, "id" | "sortOrder" | "uploadedAt"> & { id?: string },
 ): WmPrintTemplate[] {
+  return addWmPrintTemplateFiles(templates, templateId, [file]).templates;
+}
+
+/** P1.0.3 — wiele plików naraz; pomija duplikaty po id (ta sama nazwa OK). */
+export function addWmPrintTemplateFiles(
+  templates: WmPrintTemplate[],
+  templateId: string,
+  files: Array<Omit<WmPrintTemplateFile, "sortOrder" | "uploadedAt"> & { id?: string }>,
+): { templates: WmPrintTemplate[]; added: number; skipped: number } {
   const now = new Date().toISOString();
-  return templates.map((t) => {
+  let added = 0;
+  let skipped = 0;
+  const nextTemplates = templates.map((t) => {
     if (t.id !== templateId) return t;
-    const files = getWmPrintTemplateFiles(t);
-    const maxOrder = files.reduce((m, f) => Math.max(m, f.sortOrder), 0);
-    const entry: WmPrintTemplateFile = {
-      id: file.id ?? crypto.randomUUID(),
-      storagePath: file.storagePath,
-      storageUrl: file.storageUrl,
-      originalFileName: file.originalFileName,
-      sortOrder: maxOrder + 10,
-      uploadedAt: now,
-    };
+    const current = getWmPrintTemplateFiles(t);
+    const seenIds = new Set(current.map((f) => f.id));
+    const newEntries: WmPrintTemplateFile[] = [];
+    let maxOrder = current.reduce((m, f) => Math.max(m, f.sortOrder), 0);
+    for (const file of files) {
+      const id = file.id ?? crypto.randomUUID();
+      if (seenIds.has(id)) {
+        skipped++;
+        continue;
+      }
+      seenIds.add(id);
+      maxOrder += 10;
+      newEntries.push({
+        id,
+        storagePath: file.storagePath,
+        storageUrl: file.storageUrl,
+        originalFileName: file.originalFileName,
+        sortOrder: maxOrder,
+        uploadedAt: now,
+      });
+      added++;
+    }
+    if (newEntries.length === 0) return migrateWmPrintTemplate(t);
     return migrateWmPrintTemplate({
       ...t,
-      files: [...files, entry],
+      files: [...current, ...newEntries],
       updatedAt: now,
     });
   });
+  return { templates: nextTemplates, added, skipped };
 }
 
 export function removeWmPrintTemplateFile(
@@ -206,4 +231,10 @@ export function wmPrintTemplateAcceptMime(type: WmPrintTemplateType): string {
 
 export function isWmPrintPdfFileName(name: string): boolean {
   return /\.pdf$/i.test(name);
+}
+
+export function isWmPrintTemplateUploadFileAccepted(fileName: string, type: WmPrintTemplateType): boolean {
+  const lower = fileName.toLowerCase();
+  if (type === "docx") return lower.endsWith(".docx");
+  return lower.endsWith(".pdf");
 }

@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.2** WM Druk delete fix
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.3** WM Druk multi-upload
+
+## 2.59.3 — Odbiory WM Druk P1.0.3 (multi-upload)
+- Dodaj pliki: multiple, drag & drop, append, liczniki · test `test-wm-print-p1-0-3.mjs`
 
 ## 2.59.2 — Odbiory WM Druk fix usuwania pliku z grupy
 - Single-click delete: files[] autorytatywne, merge LWW, push bez union safe-merge
