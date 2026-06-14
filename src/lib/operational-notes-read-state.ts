@@ -2,6 +2,12 @@
 
 import type { AdminAccount, AdminSession } from "@/lib/admin-auth";
 import {
+  appendOperationalNotesAuditLog,
+  buildOperationalNoteAuditEntry,
+  type OperationalNoteAuditEntry,
+} from "@/lib/operational-notes-audit";
+import { buildOperationalNoteAckAuditDetail } from "@/lib/operational-notes-audit-filters";
+import {
   canViewOperationalNote,
   filterOperationalNotesForViewer,
   type OperationalNote,
@@ -114,6 +120,30 @@ export function ackOperationalNote(
     ackAt: at,
     contentRevAtAck: note.contentRev,
   });
+}
+
+export function ackOperationalNoteWithAudit(
+  readState: OperationalNoteReadReceipt[],
+  auditLog: OperationalNoteAuditEntry[],
+  note: OperationalNote,
+  session: AdminSession,
+  at: string = new Date().toISOString(),
+): { readState: OperationalNoteReadReceipt[]; auditLog: OperationalNoteAuditEntry[] } {
+  const nextReadState = ackOperationalNote(readState, note, session.id, at);
+  const ackEntry = buildOperationalNoteAuditEntry({
+    action: "ack",
+    userId: session.id,
+    displayName: session.displayName,
+    role: session.role,
+    noteId: note.id,
+    noteTitleSnapshot: note.title,
+    detail: buildOperationalNoteAckAuditDetail(note.contentRev),
+    at,
+  });
+  return {
+    readState: nextReadState,
+    auditLog: appendOperationalNotesAuditLog(auditLog, ackEntry),
+  };
 }
 
 export function buildAuthorAutoAckReceipt(

@@ -13,7 +13,8 @@ export type OperationalNoteAuditAction =
   | "restore"
   | "delete"
   | "share_toggle"
-  | "job_link_change";
+  | "job_link_change"
+  | "ack";
 
 export interface OperationalNoteAuditEntry {
   id: string;
@@ -36,6 +37,7 @@ const VALID_ACTIONS = new Set<string>([
   "delete",
   "share_toggle",
   "job_link_change",
+  "ack",
 ]);
 
 function parseAuditEntry(raw: unknown): OperationalNoteAuditEntry | null {

@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.57.5",
+    label: "Notatki operacyjne — Audit UI (P2C)",
+    items: [
+      { type: "new", text: "Audit notatek operacyjnych — przycisk „Audyt” (Sheet) wyłącznie dla Super Admina" },
+      { type: "new", text: "Historia działań: filtry akcji/użytkownika/notatki, wyszukiwanie, paginacja 50/strona" },
+      { type: "improve", text: "ACK zapisuje wpis audit (akcja ack) — także auto-ACK autora przy utworzeniu notatki" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.57.4",
     label: "Notatki operacyjne — Pulpit (P2B)",
     items: [

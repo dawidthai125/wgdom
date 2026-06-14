@@ -13,15 +13,18 @@ import {
   EyeOff,
   ArrowLeft,
   CheckCircle2,
+  History,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
 import type { AdminSession } from "@/lib/admin-auth";
 import { getAllAdminAccounts } from "@/lib/admin-auth";
+import { OperationalNotesAuditPanel } from "@/app/OperationalNotesAuditPanel";
+import { canAccessOperationalNotesAudit } from "@/lib/operational-notes-audit-filters";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
 import {
-  ackOperationalNote,
+  ackOperationalNoteWithAudit,
   isOperationalNoteAcked,
   resolveOperationalNoteReadStatus,
 } from "@/lib/operational-notes-read-state";
@@ -101,6 +104,9 @@ export function OperationalNotesView({
   const [draftShare, setDraftShare] = useState(false);
   const [draftJobId, setDraftJobId] = useState("");
   const [commentText, setCommentText] = useState("");
+  const [auditOpen, setAuditOpen] = useState(false);
+
+  const showAuditUi = canAccessOperationalNotesAudit(session);
 
   const visible = useMemo(
     () => filterOperationalNotesForViewer(notes, session),
@@ -168,9 +174,15 @@ export function OperationalNotesView({
 
   const handleAck = () => {
     if (!session || !selected) return;
-    const nextReadState = ackOperationalNote(readState, selected, session.id);
+    const { readState: nextReadState, auditLog: nextAudit } = ackOperationalNoteWithAudit(
+      readState,
+      auditLog,
+      selected,
+      session,
+    );
     onChangeReadState(nextReadState);
-    onCommit(undefined, undefined, undefined, nextReadState);
+    onChangeAuditLog(nextAudit);
+    onCommit(undefined, nextAudit, undefined, nextReadState);
     toast.success("Potwierdzono przeczytanie");
   };
 
@@ -210,8 +222,18 @@ export function OperationalNotesView({
         shareWithInspector: draftShare,
       });
       const created = result.notes[0];
-      const nextReadState = created ? ackOperationalNote(readState, created, session.id) : readState;
-      applyMutation(result, undefined, nextReadState);
+      const applied = applyOperationalNoteMutation(notes, auditLog, result);
+      let nextAudit = applied.auditLog;
+      let nextReadState = readState;
+      if (created) {
+        const acked = ackOperationalNoteWithAudit(readState, applied.auditLog, created, session);
+        nextAudit = acked.auditLog;
+        nextReadState = acked.readState;
+      }
+      onChangeNotes(applied.notes);
+      onChangeAuditLog(nextAudit);
+      onChangeReadState(nextReadState);
+      onCommit(applied.notes, nextAudit, undefined, nextReadState);
       setSelectedId(created?.id ?? null);
       setFormMode(null);
       toast.success("Utworzono notatkę operacyjną");
@@ -335,20 +357,32 @@ export function OperationalNotesView({
       <div className="md:w-80 lg:w-96 shrink-0 flex flex-col min-h-0 border border-border rounded-xl bg-card overflow-hidden">
         <div className="p-3 border-b border-border space-y-2">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold flex items-center gap-1.5">
-              <ScrollText size={15} className="text-primary" />
+            <h3 className="text-sm font-semibold flex items-center gap-1.5 min-w-0">
+              <ScrollText size={15} className="text-primary shrink-0" />
               Notatki operacyjne
             </h3>
-            {canCreateOperationalNote(session) && (
-              <button
-                type="button"
-                onClick={() => openCreate()}
-                className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground font-medium"
-              >
-                <Plus size={13} />
-                Nowa
-              </button>
-            )}
+            <div className="flex items-center gap-1 shrink-0">
+              {canCreateOperationalNote(session) && (
+                <button
+                  type="button"
+                  onClick={() => openCreate()}
+                  className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground font-medium"
+                >
+                  <Plus size={13} />
+                  Nowa
+                </button>
+              )}
+              {showAuditUi && (
+                <button
+                  type="button"
+                  onClick={() => setAuditOpen(true)}
+                  className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 font-medium"
+                >
+                  <History size={13} />
+                  Audyt
+                </button>
+              )}
+            </div>
           </div>
           <div className="flex gap-1">
             {(["active", "archived"] as Tab[]).map((t) => (
@@ -675,6 +709,15 @@ export function OperationalNotesView({
         )}
       </div>
     </div>
+      {showAuditUi && (
+        <OperationalNotesAuditPanel
+          auditLog={auditLog}
+          session={session}
+          open={auditOpen}
+          onOpenChange={setAuditOpen}
+          initialNoteId={selectedId}
+        />
+      )}
     </div>
   );
 }

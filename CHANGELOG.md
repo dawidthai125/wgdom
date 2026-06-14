@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.57.4** Dashboard widget notatki (pre-commit)
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.57.5** Audit UI notatki (pre-commit)
+
+## 2.57.5 — Notatki operacyjne P2C (Audit UI)
+- Sheet Audyt (Super Admin only) · filtry akcji/użytkownika/notatki · wyszukiwanie · paginacja 50 · ACK → wpis audit
 
 ## 2.57.4 — Notatki operacyjne P2B (Dashboard widget)
 - Widget na Pulpicie: Łącznie · Nieprzeczytane · Od inspektora · ostatnia aktywność · klik → Notatki operacyjne

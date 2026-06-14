@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.57.1** · menu Pracownicy i kontakty)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-14 (v2.57.1 menu cleanup)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.57.5** · notatki Audit UI P2C)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-14 (v2.57.5 notatki Audit UI P2C)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -439,12 +439,15 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Udostępnienie inspektorowi** | `shareWithInspector` — widoczność dla roli inspektor (lib); toggle w UI admin |
 | **Archiwum** | `archiveOperationalNote` / `restoreOperationalNote` — bez hard delete |
 | **Logical delete** | `deleteOperationalNoteLogical` + tombstone `kw-operational-notes-deleted-ids` |
-| **Audit log** | `kw-operational-notes-audit-log` — append-only, cap 3000 (`operational-notes-audit.ts`); akcje create/edit/comment/archive/restore/delete/share/link |
-| **Read state (szkielet P1)** | `kw-operational-notes-read-state` — merge w sync; badge/ACK UI poza P0 |
+| **Audit log** | `kw-operational-notes-audit-log` — append-only, cap 3000 (`operational-notes-audit.ts`); akcje: create, update, comment, archive, restore, delete, share_toggle, job_link_change, **ack** (P2C v2.57.5) |
+| **Audit UI (P2C, v2.57.5)** | Przycisk **Audyt** w `OperationalNotesView` → Sheet `OperationalNotesAuditPanel` — **Super Admin only** (`canAccessOperationalNotesAudit`); filtry akcji/użytkownika/notatki + wyszukiwanie; paginacja 50 (`operational-notes-audit-filters.ts`); brak 3. taba i osobnego menu |
+| **ACK → audit (P2C)** | `ackOperationalNoteWithAudit()` — przy ręcznym ACK i auto-ACK autora przy create zapisuje wpis `action: ack` z `detail: Potwierdził wersję N` |
+| **Read state (P1)** | `kw-operational-notes-read-state` — merge w sync; badge/banner ACK (P1) |
+| **Dashboard widget (P2B, v2.57.4)** | `DashboardOperationalNotesWidget` + `computeOperationalNotesDashboardSummary()` na Pulpicie — KPI per użytkownik |
 | **Sync** | `pushOperationalNotesToCloud()`, `pullOperationalNotesAuxFromCloud()`, `mergeOperationalNotes()` — LWW po `updatedAt` / `lastActivityAt` |
 | **Menu** | **Notatki operacyjne** — między Roboty a Inspektor (`operationalnotes`) |
 
-Pliki: `src/lib/operational-notes.ts`, `src/lib/operational-notes-audit.ts`, `src/lib/operational-notes-read-state.ts`, `src/app/OperationalNotesView.tsx`, `src/app/JobOperationalNotesPanel.tsx`, `src/app/App.tsx`, `src/app/admin/admin-nav.ts`.
+Pliki: `src/lib/operational-notes.ts`, `src/lib/operational-notes-audit.ts`, `src/lib/operational-notes-audit-filters.ts`, `src/lib/operational-notes-read-state.ts`, `src/lib/operational-notes-dashboard.ts`, `src/app/OperationalNotesView.tsx`, `src/app/OperationalNotesAuditPanel.tsx`, `src/app/DashboardOperationalNotesWidget.tsx`, `src/app/JobOperationalNotesPanel.tsx`, `src/app/App.tsx`, `src/app/admin/admin-nav.ts`.
 
 **Do rozliczenia (Sprint 20.3A + 20.4A Foundation, v2.47.00):**
 
@@ -1762,8 +1765,9 @@ WGDOM1/
 | `inspector-dashboard.ts` | Statystyki pulpitu inspektora |
 | `email-contacts.ts` | Kontakty mailingowe |
 | `operational-notes.ts` | **P0 v2.57.0** — notatki operacyjne: model, ACL, mutacje, merge |
-| `operational-notes-audit.ts` | Audit log notatek (append, cap 3000) |
-| `operational-notes-read-state.ts` | Read receipts (szkielet P1) |
+| `operational-notes-audit.ts` | Audit log notatek (append, cap 3000, akcja ack P2C) |
+| `operational-notes-audit-filters.ts` | **P2C v2.57.5** — ACL Super Admin, filtry, paginacja audit UI |
+| `operational-notes-read-state.ts` | Read receipts + `ackOperationalNoteWithAudit` (P2C) |
 | `deep-link.ts` | `wgdom://`, `?open=job`, custom events |
 | `native-app-bridge.ts` | Przycisk Wstecz Android, resume |
 | `capacitor-native.ts` | Status bar, splash, `isNativeApp()` |
@@ -1827,6 +1831,7 @@ WGDOM1/
 | `npm run test:mobile` | Playwright — domyślnie **https://www.wgdom.fun** |
 | `PW_BASE_URL=http://127.0.0.1:4173 npm run test:mobile` | Testy na lokalnym preview |
 | `npx vite-node scripts/test-operational-notes-p0.mjs` | P0 Notatki operacyjne — lib ACL, merge, tombstone (24 testy) |
+| `npx vite-node scripts/test-operational-notes-p2c.mjs` | P2C Audit UI — ack audit, filtry, paginacja, ACL Super Admin (36 testów) |
 
 **GitHub Actions:**
 
