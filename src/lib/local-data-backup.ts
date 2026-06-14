@@ -1,18 +1,26 @@
 /** Lokalne kopie zapasowe przed synchronizacją z chmurą (to urządzenie). */
 
-import { DATA_KEYS, type DataKey } from "@/lib/cloud-sync";
+import { DATA_KEYS, OPERATIONAL_NOTES_BACKUP_AUX_KEYS, type DataKey } from "@/lib/cloud-sync";
 
 const SNAPSHOT_KEY = "kw-local-snapshot-bundle";
 const SNAPSHOT_PREV_KEY = "kw-local-snapshot-bundle-prev";
 
 export interface LocalDataSnapshot {
   at: string;
-  data: Partial<Record<DataKey, unknown>>;
+  data: Partial<Record<DataKey, unknown>> & Record<string, unknown>;
 }
 
-export function readLocalDataBundle(): Partial<Record<DataKey, unknown>> {
-  const bundle: Partial<Record<DataKey, unknown>> = {};
+export function readLocalDataBundle(): Partial<Record<DataKey, unknown>> & Record<string, unknown> {
+  const bundle: Partial<Record<DataKey, unknown>> & Record<string, unknown> = {};
   for (const key of DATA_KEYS) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) bundle[key] = JSON.parse(raw);
+    } catch {
+      /* ignore */
+    }
+  }
+  for (const key of OPERATIONAL_NOTES_BACKUP_AUX_KEYS) {
     try {
       const raw = localStorage.getItem(key);
       if (raw) bundle[key] = JSON.parse(raw);

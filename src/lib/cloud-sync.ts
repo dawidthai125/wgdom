@@ -178,6 +178,21 @@ export const OPERATIONAL_NOTES_DELETED_IDS_KEY = "kw-operational-notes-deleted-i
 
 export { OPERATIONAL_NOTES_KEY, OPERATIONAL_NOTES_READ_STATE_KEY, OPERATIONAL_NOTES_AUDIT_LOG_KEY };
 
+/** Pełny zestaw KV notatek operacyjnych w backupie UI / email (v2.58.1). */
+export const OPERATIONAL_NOTES_BACKUP_KEYS = [
+  OPERATIONAL_NOTES_KEY,
+  OPERATIONAL_NOTES_READ_STATE_KEY,
+  OPERATIONAL_NOTES_AUDIT_LOG_KEY,
+  OPERATIONAL_NOTES_DELETED_IDS_KEY,
+] as const;
+
+/** Klucze poza DATA_KEYS (`kw-operational-notes` jest już w DATA_KEYS). */
+export const OPERATIONAL_NOTES_BACKUP_AUX_KEYS = [
+  OPERATIONAL_NOTES_READ_STATE_KEY,
+  OPERATIONAL_NOTES_AUDIT_LOG_KEY,
+  OPERATIONAL_NOTES_DELETED_IDS_KEY,
+] as const;
+
 function jobIdOf(j: unknown): string | undefined {
   if (!j || typeof j !== "object" || !("id" in j)) return undefined;
   return String((j as { id: string }).id);

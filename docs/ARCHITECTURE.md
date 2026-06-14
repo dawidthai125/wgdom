@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.58.0** · notatki Inspektor UI P2A)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-14 (v2.58.0 notatki Inspektor UI P2A — **P2 CLOSED**)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.58.1** · hotfix backup notatki operacyjne)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-14 (v2.58.1 backup completeness notatki operacyjne)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -447,6 +447,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Read state (P1)** | `kw-operational-notes-read-state` — merge w sync; badge/banner ACK (P1) |
 | **Dashboard widget (P2B, v2.57.4)** | `DashboardOperationalNotesWidget` + `computeOperationalNotesDashboardSummary()` na Pulpicie — KPI per użytkownik |
 | **Sync** | `pushOperationalNotesToCloud()`, `pullOperationalNotesAuxFromCloud()`, `mergeOperationalNotes()` — LWW po `updatedAt` / `lastActivityAt` |
+| **Backup completeness (v2.58.1 HF)** | SSOT `OPERATIONAL_NOTES_BACKUP_KEYS` w `cloud-sync.ts` — 4 klucze w: export/import UI (`App.tsx`), snapshot lokalny (`local-data-backup.ts`), email tygodniowy (`EMAIL_KV_KEYS` w `backup-lib.mjs`), full backup niedzielny (via spread EMAIL) |
 | **Menu** | **Notatki operacyjne** — między Roboty a Inspektor (`operationalnotes`) |
 
 Pliki: `src/lib/operational-notes.ts`, `src/lib/operational-notes-audit.ts`, `src/lib/operational-notes-audit-filters.ts`, `src/lib/operational-notes-read-state.ts`, `src/lib/operational-notes-dashboard.ts`, `src/app/OperationalNotesView.tsx`, `src/app/OperationalNotesAuditPanel.tsx`, `src/app/DashboardOperationalNotesWidget.tsx`, `src/app/JobOperationalNotesPanel.tsx`, `src/app/InspectorPanel.tsx`, `src/app/AppInnerWithAuth.tsx`, `src/app/App.tsx`, `src/app/admin/admin-nav.ts`.
@@ -1835,6 +1836,7 @@ WGDOM1/
 | `npx vite-node scripts/test-operational-notes-p0.mjs` | P0 Notatki operacyjne — lib ACL, merge, tombstone (24 testy) |
 | `npx vite-node scripts/test-operational-notes-p2a.mjs` | P2A Inspektor UI — ACL, sync wiring, header badge (38 testów) |
 | `npx vite-node scripts/test-operational-notes-p2c.mjs` | P2C Audit UI — ack audit, filtry, paginacja, ACL Super Admin (36 testów) |
+| `npx vite-node scripts/test-operational-notes-hotfix-2.58.1.mjs` | HF v2.58.1 — backup completeness UI/email/snapshot (28 testów) |
 
 **GitHub Actions:**
 

@@ -25,6 +25,10 @@ export const EMAIL_KV_KEYS = [
   "kw-jobs-prev",
   "kw-week-employees-prev",
   "kw-archive-prev",
+  "kw-operational-notes",
+  "kw-operational-notes-read-state",
+  "kw-operational-notes-deleted-ids",
+  "kw-operational-notes-audit-log",
 ];
 
 /** Pełny backup niedzielny — aktualne + kopie + metadane. */
@@ -40,10 +44,6 @@ export function fullBackupKvKeys(isoDate = new Date().toISOString().slice(0, 10)
     "kw-archive-deleted-ids",
     "kw-employee-leaves",
     "kw-recoverable-charges",
-    "kw-operational-notes",
-    "kw-operational-notes-read-state",
-    "kw-operational-notes-deleted-ids",
-    "kw-operational-notes-audit-log",
     "kw-employee-leaves-deleted-ids",
     "kw-recoverable-charges-deleted-ids",
     "kw-jobs-prev2",

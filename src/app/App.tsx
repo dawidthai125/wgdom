@@ -57,10 +57,15 @@ import {
   pullOperationalNotesAuxFromCloud,
   getDeletedOperationalNoteIds,
   addDeletedOperationalNoteId,
+  mergeDeletedOperationalNoteIds,
+  normalizeDeletedOperationalNoteIds,
+  OPERATIONAL_NOTES_BACKUP_AUX_KEYS,
   ADMIN_PASSWORDS_KEY,
   ADMIN_USERS_CONFIG_KEY,
   isSupabaseConfigured,
 } from "@/lib/cloud-sync";
+import { mergeOperationalNotesAuditLog } from "@/lib/operational-notes-audit";
+import { mergeOperationalNotesReadState } from "@/lib/operational-notes-read-state";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
 import { adminCanViewTendersTab } from "@/lib/admin-auth";
@@ -544,8 +549,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   // Backup
   const exportBackup = () => {
     const data: Record<string,unknown> = {};
-    [...DATA_KEYS, ADMIN_PASSWORDS_KEY, ADMIN_USERS_CONFIG_KEY].forEach(k=>{
-      const v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v);
+    [...DATA_KEYS, ...OPERATIONAL_NOTES_BACKUP_AUX_KEYS, ADMIN_PASSWORDS_KEY, ADMIN_USERS_CONFIG_KEY].forEach((k) => {
+      const v = localStorage.getItem(k);
+      if (v) data[k] = JSON.parse(v);
     });
     saveAs(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),`backup-${new Date().toISOString().slice(0,10)}.json`);
   };
@@ -582,9 +588,31 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           const local = JSON.parse(localStorage.getItem("kw-recoverable-charges") || "[]");
           data["kw-recoverable-charges"] = mergeRecoverableCharges(local, data["kw-recoverable-charges"], getDeletedRecoverableChargeIds());
         }
+        let mergedOpDeleted = getDeletedOperationalNoteIds();
+        if (data["kw-operational-notes-deleted-ids"] != null) {
+          mergedOpDeleted = mergeDeletedOperationalNoteIds(
+            mergedOpDeleted,
+            normalizeDeletedOperationalNoteIds(data["kw-operational-notes-deleted-ids"]),
+          );
+          data["kw-operational-notes-deleted-ids"] = mergedOpDeleted;
+        }
         if (data["kw-operational-notes"] != null) {
           const local = JSON.parse(localStorage.getItem("kw-operational-notes") || "[]");
-          data["kw-operational-notes"] = mergeOperationalNotes(local, data["kw-operational-notes"], getDeletedOperationalNoteIds());
+          data["kw-operational-notes"] = mergeOperationalNotes(local, data["kw-operational-notes"], mergedOpDeleted);
+        }
+        if (data["kw-operational-notes-read-state"] != null) {
+          const local = JSON.parse(localStorage.getItem("kw-operational-notes-read-state") || "[]");
+          data["kw-operational-notes-read-state"] = mergeOperationalNotesReadState(
+            local,
+            data["kw-operational-notes-read-state"],
+          );
+        }
+        if (data["kw-operational-notes-audit-log"] != null) {
+          const local = JSON.parse(localStorage.getItem("kw-operational-notes-audit-log") || "[]");
+          data["kw-operational-notes-audit-log"] = mergeOperationalNotesAuditLog(
+            local,
+            data["kw-operational-notes-audit-log"],
+          );
         }
         if (data[TENDERS_PIPELINE_KEY] != null) {
           const local = JSON.parse(localStorage.getItem(TENDERS_PIPELINE_KEY) || "[]");
@@ -609,6 +637,15 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             }
           });
           await pushAllDataToCloud(bundle);
+          const opNotesRaw = localStorage.getItem("kw-operational-notes");
+          if (opNotesRaw != null || data["kw-operational-notes-read-state"] != null || data["kw-operational-notes-audit-log"] != null) {
+            await pushOperationalNotesToCloud(
+              opNotesRaw ? JSON.parse(opNotesRaw) : [],
+              getDeletedOperationalNoteIds(),
+              JSON.parse(localStorage.getItem("kw-operational-notes-read-state") || "[]"),
+              JSON.parse(localStorage.getItem("kw-operational-notes-audit-log") || "[]"),
+            );
+          }
         } catch { /* reload i tak wczyta */ }
         window.location.reload();
       } catch { alert("Błąd importu pliku."); }

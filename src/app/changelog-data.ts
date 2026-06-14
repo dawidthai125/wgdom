@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.58.1",
+    label: "Notatki operacyjne — Hotfix Backup Completeness",
+    items: [
+      { type: "fix", text: "Eksport backup UI — pełny stan modułu: notes + read-state + audit-log + deleted-ids (SSOT OPERATIONAL_NOTES_BACKUP_KEYS)" },
+      { type: "fix", text: "Import backup — merge 4 kluczy notatek + push aux do chmury; snapshot lokalny i email tygodniowy (EMAIL_KV_KEYS) uzupełnione" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.58.0",
     label: "Notatki operacyjne — Inspektor UI (P2A)",
     items: [

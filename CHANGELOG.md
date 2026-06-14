@@ -1,6 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.58.0** Inspektor UI notatki (P2A)
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.58.1** Hotfix backup notatki
+
+## 2.58.1 — Notatki operacyjne HF (Backup Completeness)
+- Export/import UI + local snapshot + EMAIL_KV_KEYS — 4 klucze KV (notes, read-state, audit-log, deleted-ids)
+- Test: `scripts/test-operational-notes-hotfix-2.58.1.mjs` · **HF CLOSED**
 
 ## 2.58.0 — Notatki operacyjne P2A (Inspektor UI)
 - Panel inspektora: ikona Notatki operacyjne + badge unread · overlay `OperationalNotesView variant=inspector`
