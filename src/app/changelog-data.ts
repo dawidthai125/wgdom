@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.7",
+    label: "Odbiory WM Druk — kompletność P1.0.5",
+    items: [
+      { type: "fix", text: "Kompletność robota: tylko sloty wgrywane per robota (Kominiarz, Gaz…) — bez „brak szablonu” globalnych grup" },
+      { type: "new", text: "Szablony → Stan konfiguracji: N/M skonfigurowanych, lista brakujących grup (generated bez plików)" },
+      { type: "improve", text: "Braki konfiguracji modułu nie obniżają % kompletności przy robocie" },
+      { type: "improve", text: "Test test-wm-print-p1-0-5.mjs" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.59.6",
     label: "Odbiory WM Druk — domyślne zaznaczenie P1.0.4",
     items: [

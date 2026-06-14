@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
 import { jobDisplayTitle } from "@/app/app-domain";
 import { computeWmPrintCompleteness } from "@/lib/wm-print/completeness";
+import { computeWmPrintConfigurationStatus } from "@/lib/wm-print/configuration-status";
 import {
   jobMatchesWmPrintFilter,
   wmPrintJobStatusLabel,
@@ -123,6 +124,11 @@ export function WmPrintView({
   const [pendingJobDocTemplateId, setPendingJobDocTemplateId] = useState<string | null>(null);
 
   const normalizedSettings = useMemo(() => normalizeWmPrintSettings(settings), [settings]);
+
+  const configurationStatus = useMemo(
+    () => computeWmPrintConfigurationStatus(templates),
+    [templates],
+  );
 
   const filteredJobs = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -677,6 +683,47 @@ export function WmPrintView({
 
         {tab === "szablony" && (
           <div className="space-y-4 max-w-3xl">
+            <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+              <p className="text-sm font-semibold">Stan konfiguracji</p>
+              <p className="text-sm text-muted-foreground">
+                Szablony: {configurationStatus.configured} / {configurationStatus.total} skonfigurowanych
+              </p>
+              {configurationStatus.complete ? (
+                <p className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">
+                  ✓ Wszystkie wymagane grupy skonfigurowane
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Brakuje grup</p>
+                  <ul className="space-y-1">
+                    {configurationStatus.missing.map((name) => (
+                      <li key={name} className="text-sm text-orange-700 dark:text-orange-400">
+                        ✗ {name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {!configurationStatus.complete && configurationStatus.configured > 0 && (
+                <div className="space-y-1 pt-1 border-t border-border">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Grupy skonfigurowane
+                  </p>
+                  <ul className="space-y-0.5">
+                    {templates
+                      .filter((t) => t.enabled)
+                      .sort((a, b) => a.sortOrder - b.sortOrder)
+                      .filter((t) => !configurationStatus.missing.includes(t.name))
+                      .map((t) => (
+                        <li key={t.id} className="text-sm text-emerald-700 dark:text-emerald-400">
+                          ✓ {t.name}
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"

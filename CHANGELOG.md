@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.6** WM Druk P1.0.4
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.7** WM Druk P1.0.5
+
+## 2.59.7 — Odbiory WM Druk P1.0.5 (kompletność vs konfiguracja)
+- Kompletność robota tylko ze slotów job_upload · Stan konfiguracji w Szablony · test `test-wm-print-p1-0-5.mjs`
 
 ## 2.59.6 — Odbiory WM Druk P1.0.4 (domyślne zaznaczenie)
 - Wszystkie aktywne szablony zaznaczone domyślnie · Zaznacz/Odznacz wszystko · licznik · ZIP z wyboru · test `test-wm-print-p1-0-4.mjs`
