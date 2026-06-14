@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.57.0** Notatki Operacyjne P0 · **GO COMMIT** (pre-push prod: 2.56.10)
+
+## 2.57.0 — Notatki Operacyjne (P0)
+- Moduł `OperationalNotesView` + panel `JobOperationalNotesPanel` · 4 klucze KV · ACL staff
+- Komentarze, archiwum, logical delete, audit-log (cap 3000), cloud sync
+- Test: `scripts/test-operational-notes-p0.mjs`
+
 ## 2.56.10 — fix false exclude przebudowa WM (P1 pipeline)
 - `matchesTenderExcludeKeyword()` — granica słowa; mirror Edge
 - Handoff: `docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md` § 7

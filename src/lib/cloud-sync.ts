@@ -30,6 +30,17 @@ import {
 } from "@/lib/tenders-sync";
 import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-leaves";
 import { mergeRecoverableCharges, normalizeRecoverableCharges } from "@/lib/recoverable-charges";
+import { mergeOperationalNotes, normalizeOperationalNotes, OPERATIONAL_NOTES_KEY } from "@/lib/operational-notes";
+import {
+  mergeOperationalNotesAuditLog,
+  normalizeOperationalNotesAuditLog,
+  OPERATIONAL_NOTES_AUDIT_LOG_KEY,
+} from "@/lib/operational-notes-audit";
+import {
+  mergeOperationalNotesReadState,
+  normalizeOperationalNotesReadState,
+  OPERATIONAL_NOTES_READ_STATE_KEY,
+} from "@/lib/operational-notes-read-state";
 import { defaultWgdomCostCatalogStore } from "@/lib/wgdom-cost-catalog";
 import { defaultUserClassificationDictionaryStore } from "@/lib/wgdom-user-classification-dictionary";
 
@@ -44,6 +55,7 @@ export const DATA_KEYS = [
   "kw-contacts",
   "kw-employee-leaves",
   "kw-recoverable-charges",
+  "kw-operational-notes",
   "kw-tenders-pipeline",
   "kw-tenders-company-profile",
   "kw-wgdom-cost-catalog",
@@ -81,6 +93,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-contacts",
   "kw-employee-leaves",
   "kw-recoverable-charges",
+  "kw-operational-notes",
 ] as const satisfies readonly DataKey[];
 
 export const WGDOM_DEFERRED_BOOTSTRAP_EVENT = "wgdom-deferred-bootstrap";
@@ -161,6 +174,9 @@ export const CONTACTS_DELETED_IDS_KEY = "kw-contacts-deleted-ids";
 export const ARCHIVE_DELETED_IDS_KEY = "kw-archive-deleted-ids";
 export const EMPLOYEE_LEAVES_DELETED_IDS_KEY = "kw-employee-leaves-deleted-ids";
 export const RECOVERABLE_CHARGES_DELETED_IDS_KEY = "kw-recoverable-charges-deleted-ids";
+export const OPERATIONAL_NOTES_DELETED_IDS_KEY = "kw-operational-notes-deleted-ids";
+
+export { OPERATIONAL_NOTES_KEY, OPERATIONAL_NOTES_READ_STATE_KEY, OPERATIONAL_NOTES_AUDIT_LOG_KEY };
 
 function jobIdOf(j: unknown): string | undefined {
   if (!j || typeof j !== "object" || !("id" in j)) return undefined;
@@ -340,6 +356,28 @@ export function addDeletedRecoverableChargeId(id: string): string[] {
 }
 
 export function mergeDeletedRecoverableChargeIds(local: string[], cloud: string[]): string[] {
+  return mergeDeletedJobIds(local, cloud);
+}
+
+export function normalizeDeletedOperationalNoteIds(raw: unknown): string[] {
+  return normalizeDeletedJobIds(raw);
+}
+
+export function getDeletedOperationalNoteIds(): string[] {
+  return getDeletedIdsFromKey(OPERATIONAL_NOTES_DELETED_IDS_KEY);
+}
+
+export function saveDeletedOperationalNoteIds(ids: string[]): void {
+  saveDeletedIdsToKey(OPERATIONAL_NOTES_DELETED_IDS_KEY, ids);
+}
+
+export function addDeletedOperationalNoteId(id: string): string[] {
+  const next = [...new Set([...getDeletedOperationalNoteIds(), id])].slice(-500);
+  saveDeletedOperationalNoteIds(next);
+  return next;
+}
+
+export function mergeDeletedOperationalNoteIds(local: string[], cloud: string[]): string[] {
   return mergeDeletedJobIds(local, cloud);
 }
 
@@ -1377,6 +1415,7 @@ export function mergeDataKey(
   deletedArchiveIds: string[] = getDeletedArchiveIds(),
   deletedEmployeeLeaveIds: string[] = getDeletedEmployeeLeaveIds(),
   deletedRecoverableChargeIds: string[] = getDeletedRecoverableChargeIds(),
+  deletedOperationalNoteIds: string[] = getDeletedOperationalNoteIds(),
 ): unknown {
   switch (key) {
     case "kw-jobs":
@@ -1393,6 +1432,8 @@ export function mergeDataKey(
       return mergeEmployeeLeaves(local, cloud, deletedEmployeeLeaveIds);
     case "kw-recoverable-charges":
       return mergeRecoverableCharges(local, cloud, deletedRecoverableChargeIds);
+    case "kw-operational-notes":
+      return mergeOperationalNotes(local, cloud, deletedOperationalNoteIds);
     case "kw-tenders-pipeline":
       return mergeTenderDataKey(TENDERS_PIPELINE_KEY, local, cloud);
     case "kw-tenders-company-profile":
@@ -1525,6 +1566,7 @@ export function mergeAllDataKeys(
   deletedArchiveIds: string[] = getDeletedArchiveIds(),
   deletedEmployeeLeaveIds: string[] = getDeletedEmployeeLeaveIds(),
   deletedRecoverableChargeIds: string[] = getDeletedRecoverableChargeIds(),
+  deletedOperationalNoteIds: string[] = getDeletedOperationalNoteIds(),
 ): unknown[] {
   return DATA_KEYS.map((key, i) =>
     mergeDataKey(
@@ -1537,6 +1579,7 @@ export function mergeAllDataKeys(
       deletedArchiveIds,
       deletedEmployeeLeaveIds,
       deletedRecoverableChargeIds,
+      deletedOperationalNoteIds,
     ),
   );
 }
@@ -1587,6 +1630,7 @@ export function dataKeyRichness(key: DataKey, value: unknown): number {
     case "kw-contacts":
     case "kw-employee-leaves":
     case "kw-recoverable-charges":
+    case "kw-operational-notes":
       return normalizeArrayValue(value).reduce((s, e) => s + recordRichness(e), 0);
     default:
       return value != null && value !== "" ? 1 : 0;
@@ -1611,7 +1655,7 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
 function sanitizeValueForCloud(key: string, value: unknown): unknown {
   const coerced = coerceValueForCloudKey(key, value);
   if (key === "kw-jobs") return normalizeJobsValue(coerced);
-  if (key === "kw-week-employees" || key === "kw-archive" || key === "kw-directory" || key === "kw-contacts" || key === "kw-employee-leaves" || key === "kw-recoverable-charges") {
+  if (key === "kw-week-employees" || key === "kw-archive" || key === "kw-directory" || key === "kw-contacts" || key === "kw-employee-leaves" || key === "kw-recoverable-charges" || key === "kw-operational-notes") {
     return normalizeArrayValue(coerced);
   }
   return coerced;
@@ -1791,6 +1835,94 @@ export async function pushRecoverableChargesToCloud(
   await pushKeysToCloud(["kw-recoverable-charges", RECOVERABLE_CHARGES_DELETED_IDS_KEY], [merged, mergedDeleted]);
 }
 
+export async function pushOperationalNotesToCloud(
+  notes: unknown[],
+  deletedIds: string[] = getDeletedOperationalNoteIds(),
+  readState: unknown[] = [],
+  auditLog: unknown[] = [],
+): Promise<void> {
+  if (!isSupabaseConfigured() || !API_BASE) return;
+  let cloudDeleted: string[] = [];
+  let cloudNotes: unknown[] = [];
+  let cloudReadState: unknown[] = [];
+  let cloudAudit: unknown[] = [];
+  try {
+    const fetched = await fetchKeysFromCloud([
+      OPERATIONAL_NOTES_KEY,
+      OPERATIONAL_NOTES_DELETED_IDS_KEY,
+      OPERATIONAL_NOTES_READ_STATE_KEY,
+      OPERATIONAL_NOTES_AUDIT_LOG_KEY,
+    ]);
+    cloudNotes = normalizeOperationalNotes(fetched[0]);
+    cloudDeleted = normalizeDeletedOperationalNoteIds(fetched[1]);
+    cloudReadState = normalizeOperationalNotesReadState(fetched[2]);
+    cloudAudit = normalizeOperationalNotesAuditLog(fetched[3]);
+  } catch { /* offline */ }
+  const mergedDeleted = mergeDeletedOperationalNoteIds(deletedIds, cloudDeleted);
+  saveDeletedOperationalNoteIds(mergedDeleted);
+  const mergedNotes = mergeOperationalNotes(notes, cloudNotes, mergedDeleted);
+  const mergedReadState = mergeOperationalNotesReadState(readState, cloudReadState);
+  const mergedAudit = mergeOperationalNotesAuditLog(auditLog, cloudAudit);
+  try {
+    localStorage.setItem(OPERATIONAL_NOTES_KEY, JSON.stringify(mergedNotes));
+    localStorage.setItem(OPERATIONAL_NOTES_READ_STATE_KEY, JSON.stringify(mergedReadState));
+    localStorage.setItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY, JSON.stringify(mergedAudit));
+  } catch { /* ignore */ }
+  await pushKeysToCloud(
+    [
+      OPERATIONAL_NOTES_KEY,
+      OPERATIONAL_NOTES_DELETED_IDS_KEY,
+      OPERATIONAL_NOTES_READ_STATE_KEY,
+      OPERATIONAL_NOTES_AUDIT_LOG_KEY,
+    ],
+    [mergedNotes, mergedDeleted, mergedReadState, mergedAudit],
+  );
+}
+
+export async function pullOperationalNotesAuxFromCloud(): Promise<{
+  readState: ReturnType<typeof normalizeOperationalNotesReadState>;
+  auditLog: ReturnType<typeof normalizeOperationalNotesAuditLog>;
+  deletedIds: string[];
+}> {
+  if (!isSupabaseConfigured() || !API_BASE) {
+    try {
+      const rawRead = localStorage.getItem(OPERATIONAL_NOTES_READ_STATE_KEY);
+      const rawAudit = localStorage.getItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY);
+      return {
+        readState: normalizeOperationalNotesReadState(rawRead ? JSON.parse(rawRead) : []),
+        auditLog: normalizeOperationalNotesAuditLog(rawAudit ? JSON.parse(rawAudit) : []),
+        deletedIds: getDeletedOperationalNoteIds(),
+      };
+    } catch {
+      return { readState: [], auditLog: [], deletedIds: getDeletedOperationalNoteIds() };
+    }
+  }
+  try {
+    const rawRead = localStorage.getItem(OPERATIONAL_NOTES_READ_STATE_KEY);
+    const rawAudit = localStorage.getItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY);
+    const localRead = rawRead ? JSON.parse(rawRead) : [];
+    const localAudit = rawAudit ? JSON.parse(rawAudit) : [];
+    const fetched = await fetchKeysFromCloud([
+      OPERATIONAL_NOTES_DELETED_IDS_KEY,
+      OPERATIONAL_NOTES_READ_STATE_KEY,
+      OPERATIONAL_NOTES_AUDIT_LOG_KEY,
+    ]);
+    const mergedDeleted = mergeDeletedOperationalNoteIds(getDeletedOperationalNoteIds(), normalizeDeletedOperationalNoteIds(fetched[0]));
+    saveDeletedOperationalNoteIds(mergedDeleted);
+    const readState = mergeOperationalNotesReadState(localRead, fetched[1]);
+    const auditLog = mergeOperationalNotesAuditLog(localAudit, fetched[2]);
+    localStorage.setItem(OPERATIONAL_NOTES_READ_STATE_KEY, JSON.stringify(readState));
+    localStorage.setItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY, JSON.stringify(auditLog));
+    return { readState, auditLog, deletedIds: mergedDeleted };
+  } catch {
+    return {
+      readState: [],
+      auditLog: [],
+      deletedIds: getDeletedOperationalNoteIds(),
+    };
+  }
+}
+
 export async function computeMergedDataBundle(
   values: unknown[],
 ): Promise<{ merged: unknown[]; cloudReachable: boolean }> {
@@ -1804,6 +1936,7 @@ export async function computeMergedDataBundle(
   let cloudArchiveDeleted: string[] = [];
   let cloudLeavesDeleted: string[] = [];
   let cloudChargesDeleted: string[] = [];
+  let cloudOpNotesDeleted: string[] = [];
   let cloudReachable = false;
   try {
     const fetched = await fetchKeysFromCloud([
@@ -1814,6 +1947,7 @@ export async function computeMergedDataBundle(
       ARCHIVE_DELETED_IDS_KEY,
       EMPLOYEE_LEAVES_DELETED_IDS_KEY,
       RECOVERABLE_CHARGES_DELETED_IDS_KEY,
+      OPERATIONAL_NOTES_DELETED_IDS_KEY,
     ]);
     cloudValues = fetched.slice(0, keys.length);
     cloudDeleted = normalizeDeletedJobIds(fetched[keys.length]);
@@ -1822,6 +1956,7 @@ export async function computeMergedDataBundle(
     cloudArchiveDeleted = normalizeDeletedJobIds(fetched[keys.length + 3]);
     cloudLeavesDeleted = normalizeDeletedEmployeeLeaveIds(fetched[keys.length + 4]);
     cloudChargesDeleted = normalizeDeletedRecoverableChargeIds(fetched[keys.length + 5]);
+    cloudOpNotesDeleted = normalizeDeletedOperationalNoteIds(fetched[keys.length + 6]);
     cloudReachable = true;
   } catch {
     /* offline — scal tylko lokalne źródła */
@@ -1838,6 +1973,8 @@ export async function computeMergedDataBundle(
   saveDeletedEmployeeLeaveIds(mergedLeavesDeleted);
   const mergedChargesDeleted = mergeDeletedRecoverableChargeIds(getDeletedRecoverableChargeIds(), cloudChargesDeleted);
   saveDeletedRecoverableChargeIds(mergedChargesDeleted);
+  const mergedOpNotesDeleted = mergeDeletedOperationalNoteIds(getDeletedOperationalNoteIds(), cloudOpNotesDeleted);
+  saveDeletedOperationalNoteIds(mergedOpNotesDeleted);
   let merged = mergeAllDataKeys(
     valuesForMerge,
     cloudValues,
@@ -1847,6 +1984,7 @@ export async function computeMergedDataBundle(
     mergedArchiveDeleted,
     mergedLeavesDeleted,
     mergedChargesDeleted,
+    mergedOpNotesDeleted,
   );
   merged = alignWeekRangeInMerged(merged, valuesForMerge, cloudValues);
   merged = sanitizeWeekEmployeesForTargetRange(merged, valuesForMerge, cloudValues);
@@ -1877,7 +2015,7 @@ export async function pullAndMergeDataBundle(values: unknown[]): Promise<unknown
 /** Zapis już scalonego bundle do chmury (bez ponownego merge). */
 export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<void> {
   await pushKeysToCloud(
-    [...DATA_KEYS, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY, EMPLOYEE_LEAVES_DELETED_IDS_KEY, RECOVERABLE_CHARGES_DELETED_IDS_KEY],
+    [...DATA_KEYS, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY, EMPLOYEE_LEAVES_DELETED_IDS_KEY, RECOVERABLE_CHARGES_DELETED_IDS_KEY, OPERATIONAL_NOTES_DELETED_IDS_KEY],
     [
       ...merged,
       getDeletedJobIds(),
@@ -1886,6 +2024,7 @@ export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<vo
       getDeletedArchiveIds(),
       getDeletedEmployeeLeaveIds(),
       getDeletedRecoverableChargeIds(),
+      getDeletedOperationalNoteIds(),
     ],
     {
       replaceJobsKeys: ["kw-jobs"],

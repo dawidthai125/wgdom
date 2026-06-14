@@ -12,6 +12,7 @@ import {
   BookOpen,
   Scale,
   Wallet,
+  ScrollText,
 } from "lucide-react";
 import type { DirectoryEmployee, Job, WeekEmployee, WeekSnapshot } from "@/app/app-domain";
 import { filterProductionActiveDirectory } from "@/app/app-domain";
@@ -35,6 +36,7 @@ export type View =
   | "contacts"
   | "archive"
   | "jobs"
+  | "operationalnotes"
   | "inspector"
   | "media"
   | "recoverablecharges"
@@ -124,6 +126,12 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
         const n = countActiveJobsForNavBadge(jobs);
         return n > 0 ? n : undefined;
       })(),
+    },
+    {
+      key: "operationalnotes",
+      label: "Notatki operacyjne",
+      hint: "Baza wiedzy operacyjnej — globalne i powiązane z robotami. Osobna domena od notatek WM.",
+      icon: ScrollText,
     },
     {
       key: "inspector",

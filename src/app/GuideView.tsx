@@ -203,6 +203,37 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
       ),
     },
     {
+      id:"operationalnotes",
+      icon:ScrollText,
+      title:"Notatki operacyjne",
+      subtitle:"Baza wiedzy operacyjnej — osobna od uwag na robocie",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">
+            Menu <strong>Notatki operacyjne</strong> to wspólna baza wiedzy firmy — procedury, ustalenia, kontekst operacyjny. Notatki mogą być <strong>globalne</strong> albo <strong>powiązane z konkretną robotą</strong>. Zapis synchronizuje się w chmurze (<code>kw-operational-notes</code>).
+          </p>
+          <div className="space-y-3">
+            {[
+              {q:"Czym różnią się od „Uwagi wewnętrzne (robota)”?", a:"W Roboty → Przegląd pole „Uwagi wewnętrzne (robota)” to krótki tekst przy tej jednej robocie (pole job.notes) — np. kod do domofonu. Notatki operacyjne to osobny moduł: tytuł, treść, komentarze, archiwum, wersje treści. Możesz je przypisać do roboty, ale żyją poza kartą roboty i są widoczne w całej bazie wiedzy."},
+              {q:"Jak utworzyć notatkę z roboty?", a:"Roboty → wybierz robotę → Przegląd → sekcja „Notatki operacyjne” → Nowa notatka. Robota jest już wybrana w formularzu. Po zapisie możesz wrócić strzałką „Wróć do …” — otworzy się ta sama robota."},
+              {q:"Komentarze", a:"W szczegółach notatki dodajesz komentarze pod treścią — np. doprecyzowanie ustalenia. Enter lub Wyślij zapisuje. Komentarze nie zastępują edycji treści głównej."},
+              {q:"Archiwum", a:"Archiwizuj starą notatkę, gdy nie jest już aktywna, ale chcesz ją zachować. Zakładka Archiwum w module — stamtąd możesz Przywrócić. Archiwum ≠ usunięcie: usunięta notatka znika z list (logical delete) i nie wraca z chmury."},
+              {q:"Kto ma dostęp?", a:"Super Administrator, Administrator i Moderator — pełny dostęp w module (tworzenie, edycja, archiwum, usuwanie). Inspektor terenowy — osobny panel (poza zakresem tej instrukcji admina)."},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
       id:"tenders",
       icon:Scale,
       title:"Przetargi BZP",
@@ -470,6 +501,7 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
             <li><strong>Roboty</strong> — adresy, dokumenty, materiały, raporty, wpisy czasu pracy</li>
             <li><strong>Zdjęcia i pliki</strong> — galeria zdjęć + Files Hub (kontrakt, dokumentacja ekipy, załączniki)</li>
             <li><strong>Do rozliczenia</strong> — rejestr pozycji do odzyskania (<code>kw-recoverable-charges</code>)</li>
+            <li><strong>Notatki operacyjne</strong> — baza wiedzy operacyjnej (<code>kw-operational-notes</code>)</li>
             <li><strong>Logowanie admina / inspektora</strong> — konta z hasłami jako hash SHA-256, sync w chmurze (<code>kw-admin-passwords</code>). Super Admin zmienia hasła w panelu ⚙. Pliki zlecenia/kosztorysu inspektora zapisują się przy robocie (<code>jobFiles</code>)</li>
           </ul>
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">

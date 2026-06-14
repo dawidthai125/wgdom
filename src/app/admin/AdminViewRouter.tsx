@@ -14,6 +14,9 @@ import type { AppSettings } from "@/lib/app-settings";
 import type { EmailContact } from "@/lib/email-contacts";
 import type { EmployeeLeave } from "@/lib/employee-leaves";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
+import type { OperationalNote } from "@/lib/operational-notes";
+import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
+import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
 import type { View } from "@/app/admin/admin-nav";
 import { TendersProvider } from "@/app/tenders/context/TendersProvider";
 
@@ -26,6 +29,9 @@ const GuideView = lazy(() => import("@/app/GuideView").then((m) => ({ default: m
 const MediaView = lazy(() => import("@/app/MediaView").then((m) => ({ default: m.MediaView })));
 const RecoverableChargesView = lazy(() =>
   import("@/app/RecoverableChargesView").then((m) => ({ default: m.RecoverableChargesView })),
+);
+const OperationalNotesView = lazy(() =>
+  import("@/app/OperationalNotesView").then((m) => ({ default: m.OperationalNotesView })),
 );
 const TendersModule = lazy(() =>
   import("@/app/tenders/TendersModule").then((m) => ({ default: m.TendersModule })),
@@ -90,6 +96,21 @@ export type AdminViewRouterProps = {
   recoverableCharges: RecoverableCharge[];
   setRecoverableCharges: (v: RecoverableCharge[] | ((prev: RecoverableCharge[]) => RecoverableCharge[])) => void;
   commitRecoverableCharges: (next?: RecoverableCharge[], deletedId?: string) => void;
+  operationalNotes: OperationalNote[];
+  setOperationalNotes: (v: OperationalNote[] | ((prev: OperationalNote[]) => OperationalNote[])) => void;
+  operationalNotesReadState: OperationalNoteReadReceipt[];
+  setOperationalNotesReadState: (
+    v: OperationalNoteReadReceipt[] | ((prev: OperationalNoteReadReceipt[]) => OperationalNoteReadReceipt[]),
+  ) => void;
+  operationalNotesAuditLog: OperationalNoteAuditEntry[];
+  setOperationalNotesAuditLog: (
+    v: OperationalNoteAuditEntry[] | ((prev: OperationalNoteAuditEntry[]) => OperationalNoteAuditEntry[]),
+  ) => void;
+  commitOperationalNotes: (
+    nextNotes?: OperationalNote[],
+    nextAudit?: OperationalNoteAuditEntry[],
+    deletedId?: string,
+  ) => void;
   adminSession: AdminSession | null | undefined;
   alertsSeenTick: number;
   onAlertsSeen: () => void;
@@ -148,6 +169,13 @@ export type AdminViewRouterProps = {
   onInitialRecoverableChargeCreatePresetConsumed: () => void;
   onOpenRecoverableChargeFromJobs: (chargeId: string) => void;
   onOpenRecoverableChargeCreateFromJobs: (preset: Partial<RecoverableCharge>) => void;
+  pendingOperationalNoteId: string | null;
+  onInitialOperationalNoteConsumed: () => void;
+  pendingOperationalNoteCreatePreset: { linkedJobId?: string; linkedJobNameSnapshot?: string; title?: string } | null;
+  onInitialOperationalNoteCreatePresetConsumed: () => void;
+  onOpenOperationalNoteFromJobs: (noteId: string, fromJobId?: string) => void;
+  onOpenOperationalNoteCreateFromJobs: (preset: { linkedJobId?: string; linkedJobNameSnapshot?: string; title?: string }) => void;
+  operationalNotesReturnNav: { label: string; onBack: () => void } | undefined;
 };
 
 export function AdminViewRouter({
@@ -221,6 +249,20 @@ export function AdminViewRouter({
   onInitialRecoverableChargeCreatePresetConsumed,
   onOpenRecoverableChargeFromJobs,
   onOpenRecoverableChargeCreateFromJobs,
+  operationalNotes,
+  setOperationalNotes,
+  operationalNotesReadState,
+  setOperationalNotesReadState,
+  operationalNotesAuditLog,
+  setOperationalNotesAuditLog,
+  commitOperationalNotes,
+  pendingOperationalNoteId,
+  onInitialOperationalNoteConsumed,
+  pendingOperationalNoteCreatePreset,
+  onInitialOperationalNoteCreatePresetConsumed,
+  onOpenOperationalNoteFromJobs,
+  onOpenOperationalNoteCreateFromJobs,
+  operationalNotesReturnNav,
 }: AdminViewRouterProps) {
   const { DashboardView, ScheduleView, DirectoryView, ContactsView, ArchiveView } = embedded;
 
@@ -391,6 +433,30 @@ export function AdminViewRouter({
               onOpenRecoverableCharge={onOpenRecoverableChargeFromJobs}
               onChangeRecoverableCharges={setRecoverableCharges}
               onCommitRecoverableCharges={(next) => commitRecoverableCharges(next)}
+              operationalNotes={operationalNotes}
+              adminSession={adminSession}
+              onOpenOperationalNote={onOpenOperationalNoteFromJobs}
+              onCreateOperationalNoteFromJob={onOpenOperationalNoteCreateFromJobs}
+            />
+          </Suspense>
+        </ViewErrorBoundary>
+      )}
+      {view === "operationalnotes" && (
+        <ViewErrorBoundary label="Notatki operacyjne">
+          <Suspense fallback={<ViewLoadFallback label="Ładowanie notatek…" />}>
+            <OperationalNotesView
+              notes={operationalNotes}
+              jobs={jobs}
+              session={adminSession}
+              auditLog={operationalNotesAuditLog}
+              onChangeNotes={setOperationalNotes}
+              onChangeAuditLog={setOperationalNotesAuditLog}
+              onCommit={commitOperationalNotes}
+              initialNoteId={pendingOperationalNoteId}
+              onInitialNoteConsumed={onInitialOperationalNoteConsumed}
+              initialCreatePreset={pendingOperationalNoteCreatePreset}
+              onInitialCreatePresetConsumed={onInitialOperationalNoteCreatePresetConsumed}
+              returnNav={operationalNotesReturnNav}
             />
           </Suspense>
         </ViewErrorBoundary>

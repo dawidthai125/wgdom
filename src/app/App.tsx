@@ -53,6 +53,10 @@ import {
   pushPayrollWeekAfterRollover,
   pushEmployeeLeavesToCloud,
   pushRecoverableChargesToCloud,
+  pushOperationalNotesToCloud,
+  pullOperationalNotesAuxFromCloud,
+  getDeletedOperationalNoteIds,
+  addDeletedOperationalNoteId,
   ADMIN_PASSWORDS_KEY,
   ADMIN_USERS_CONFIG_KEY,
   isSupabaseConfigured,
@@ -99,6 +103,9 @@ import type { EmployeeLeave } from "@/lib/employee-leaves";
 import { mergeEmployeeLeaves } from "@/lib/employee-leaves";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import { mergeRecoverableCharges } from "@/lib/recoverable-charges";
+import { mergeOperationalNotes, jobLabelForOperationalNote, type OperationalNote } from "@/lib/operational-notes";
+import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
+import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
 import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
 import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosedForUi } from "@/lib/payroll-cycle";
 import { hasPayrollRolloverBlockers } from "@/lib/payroll-rollover";
@@ -115,6 +122,15 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [contacts, setContacts] = useLocalStorage<EmailContact[]>("kw-contacts", []);
   const [employeeLeaves, setEmployeeLeaves] = useLocalStorage<EmployeeLeave[]>("kw-employee-leaves", []);
   const [recoverableCharges, setRecoverableCharges] = useLocalStorage<RecoverableCharge[]>("kw-recoverable-charges", []);
+  const [operationalNotes, setOperationalNotes] = useLocalStorage<OperationalNote[]>("kw-operational-notes", []);
+  const [operationalNotesReadState, setOperationalNotesReadState] = useLocalStorage<OperationalNoteReadReceipt[]>(
+    "kw-operational-notes-read-state",
+    [],
+  );
+  const [operationalNotesAuditLog, setOperationalNotesAuditLog] = useLocalStorage<OperationalNoteAuditEntry[]>(
+    "kw-operational-notes-audit-log",
+    [],
+  );
   const [view, setView] = useState<View>("dashboard");
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
   const [pendingJobSection, setPendingJobSection] = useState<import("@/app/JobDetailSectionNav").JobDetailSection | null>(null);
@@ -124,6 +140,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [pendingRecoverableChargeId, setPendingRecoverableChargeId] = useState<string | null>(null);
   const [pendingRecoverableChargeCreatePreset, setPendingRecoverableChargeCreatePreset] =
     useState<Partial<RecoverableCharge> | null>(null);
+  const [pendingOperationalNoteId, setPendingOperationalNoteId] = useState<string | null>(null);
+  const [pendingOperationalNoteCreatePreset, setPendingOperationalNoteCreatePreset] = useState<{
+    linkedJobId?: string;
+    linkedJobNameSnapshot?: string;
+    title?: string;
+  } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [globalSearch, setGlobalSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -215,6 +237,19 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     pushRecoverableChargesToCloud(payload, deletedIds).catch(() => {});
   }, [recoverableCharges]);
 
+  const commitOperationalNotes = useCallback((
+    nextNotes?: OperationalNote[],
+    nextAudit?: OperationalNoteAuditEntry[],
+    deletedId?: string,
+  ) => {
+    const notesPayload = nextNotes ?? operationalNotes;
+    const auditPayload = nextAudit ?? operationalNotesAuditLog;
+    let deletedIds = getDeletedOperationalNoteIds();
+    if (deletedId) deletedIds = addDeletedOperationalNoteId(deletedId);
+    suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    pushOperationalNotesToCloud(notesPayload, deletedIds, operationalNotesReadState, auditPayload).catch(() => {});
+  }, [operationalNotes, operationalNotesAuditLog, operationalNotesReadState]);
+
   const clearAutoSyncTimers = useCallback(() => {
     if (syncTimerRef.current) {
       clearTimeout(syncTimerRef.current);
@@ -232,11 +267,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [clearAutoSyncTimers]);
 
   const adminDataBundle = useCallback(
-    () => [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges] as unknown[],
-    [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges],
+    () => [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes] as unknown[],
+    [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes],
   );
 
   const applyAdminDataBundle = useCallback((merged: unknown[]) => {
+    const opNotesIdx = DATA_KEYS.indexOf("kw-operational-notes");
     const [dir, emps, arch, wf, wt, jbs, cont, leaves, charges] = merged;
     suppressAutoSyncUntilRef.current = Date.now() + 4500;
     remoteMergeInFlightRef.current = true;
@@ -269,10 +305,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           : (charges as RecoverableCharge[]);
         setRecoverableCharges(filtered);
       }
+      if (opNotesIdx >= 0 && Array.isArray(merged[opNotesIdx])) {
+        const tombstones = new Set(getDeletedOperationalNoteIds());
+        const raw = merged[opNotesIdx] as OperationalNote[];
+        const filtered = tombstones.size ? raw.filter((n) => !tombstones.has(n.id)) : raw;
+        setOperationalNotes(filtered);
+      }
     } finally {
       setSkipApplyWriteTimestamps(false);
     }
-  }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts, setEmployeeLeaves, setRecoverableCharges]);
+  }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts, setEmployeeLeaves, setRecoverableCharges, setOperationalNotes]);
 
   const deleteJobsByIds = useCallback(async (ids: string[]) => {
     const unique = [...new Set(ids.filter(Boolean))];
@@ -308,12 +350,17 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     try {
       const merged = await pullAndMergeDataBundle(adminDataBundle());
       applyAdminDataBundle(merged);
+      try {
+        const aux = await pullOperationalNotesAuxFromCloud();
+        setOperationalNotesReadState(aux.readState);
+        setOperationalNotesAuditLog(aux.auditLog);
+      } catch { /* offline */ }
     } catch {
       /* offline — zostaw lokalne dane */
     } finally {
       pullInFlightRef.current = false;
     }
-  }, [adminDataBundle, applyAdminDataBundle, clearAutoSyncTimers]);
+  }, [adminDataBundle, applyAdminDataBundle, clearAutoSyncTimers, setOperationalNotesReadState, setOperationalNotesAuditLog]);
 
   const pushToCloud = pushAllDataToCloud;
 
@@ -338,7 +385,19 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     try {
       const merged = await pullAndMergeDataBundle(adminDataBundle());
       applyAdminDataBundle(merged);
+      try {
+        const aux = await pullOperationalNotesAuxFromCloud();
+        setOperationalNotesReadState(aux.readState);
+        setOperationalNotesAuditLog(aux.auditLog);
+      } catch { /* offline */ }
       await pushMergedDataBundleToCloud(merged);
+      const opIdx = DATA_KEYS.indexOf("kw-operational-notes");
+      await pushOperationalNotesToCloud(
+        opIdx >= 0 ? merged[opIdx] : operationalNotes,
+        getDeletedOperationalNoteIds(),
+        operationalNotesReadState,
+        operationalNotesAuditLog,
+      );
       setSyncStatus("saved");
       if (opts?.toastSuccess) toast.success("Zsynchronizowano z chmurą");
       setTimeout(() => setSyncStatus("idle"), 2500);
@@ -348,7 +407,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       setSyncError(msg);
       toast.error("Nie udało się wysłać do chmury", { description: msg, id: "admin-cloud-sync" });
     }
-  }, [adminDataBundle, applyAdminDataBundle, jobs]);
+  }, [adminDataBundle, applyAdminDataBundle, jobs, operationalNotes, operationalNotesReadState, operationalNotesAuditLog]);
 
   const fireDeferredAutoSync = useCallback(() => {
     suppressWakeTimerRef.current = null;
@@ -455,7 +514,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     scheduleAutoCloudSync();
     remoteMergeInFlightRef.current = false;
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, scheduleAutoCloudSync]);
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, scheduleAutoCloudSync]);
 
   useEffect(() => () => clearAutoSyncTimers(), [clearAutoSyncTimers]);
 
@@ -517,6 +576,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         if (data["kw-recoverable-charges"] != null) {
           const local = JSON.parse(localStorage.getItem("kw-recoverable-charges") || "[]");
           data["kw-recoverable-charges"] = mergeRecoverableCharges(local, data["kw-recoverable-charges"], getDeletedRecoverableChargeIds());
+        }
+        if (data["kw-operational-notes"] != null) {
+          const local = JSON.parse(localStorage.getItem("kw-operational-notes") || "[]");
+          data["kw-operational-notes"] = mergeOperationalNotes(local, data["kw-operational-notes"], getDeletedOperationalNoteIds());
         }
         if (data[TENDERS_PIPELINE_KEY] != null) {
           const local = JSON.parse(localStorage.getItem(TENDERS_PIPELINE_KEY) || "[]");
@@ -1034,6 +1097,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       jobs: "Roboty",
       media: "Zdjęcia i pliki",
       recoverablecharges: "Do rozliczenia",
+      operationalnotes: "Notatki operacyjne",
       guide: "Instrukcja",
       tenders: "Przetargi",
     };
@@ -1183,6 +1247,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           recoverableCharges={recoverableCharges}
           setRecoverableCharges={setRecoverableCharges}
           commitRecoverableCharges={commitRecoverableCharges}
+          operationalNotes={operationalNotes}
+          setOperationalNotes={setOperationalNotes}
+          operationalNotesReadState={operationalNotesReadState}
+          setOperationalNotesReadState={setOperationalNotesReadState}
+          operationalNotesAuditLog={operationalNotesAuditLog}
+          setOperationalNotesAuditLog={setOperationalNotesAuditLog}
+          commitOperationalNotes={commitOperationalNotes}
           adminSession={adminSession}
           alertsSeenTick={alertsSeenTick}
           onAlertsSeen={() => setAlertsSeenTick((t) => t + 1)}
@@ -1244,6 +1315,50 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             setViewReturn({ view: "jobs", label: "Roboty" });
             setView("recoverablecharges");
           }}
+          pendingOperationalNoteId={pendingOperationalNoteId}
+          onInitialOperationalNoteConsumed={() => setPendingOperationalNoteId(null)}
+          pendingOperationalNoteCreatePreset={pendingOperationalNoteCreatePreset}
+          onInitialOperationalNoteCreatePresetConsumed={() => setPendingOperationalNoteCreatePreset(null)}
+          onOpenOperationalNoteFromJobs={(noteId, fromJobId) => {
+            if (noteId) setPendingOperationalNoteId(noteId);
+            else setPendingOperationalNoteId(null);
+            if (fromJobId) {
+              setPendingJobId(fromJobId);
+              const job = jobs.find((j) => j.id === fromJobId);
+              setViewReturn({ view: "jobs", label: job ? jobLabelForOperationalNote(job) : "Roboty" });
+            } else {
+              setViewReturn({ view: "jobs", label: "Roboty" });
+            }
+            setView("operationalnotes");
+          }}
+          onOpenOperationalNoteCreateFromJobs={(preset) => {
+            setPendingOperationalNoteCreatePreset(preset);
+            const jobId = preset.linkedJobId;
+            if (jobId) {
+              setPendingJobId(jobId);
+              const job = jobs.find((j) => j.id === jobId);
+              setViewReturn({
+                view: "jobs",
+                label: job ? jobLabelForOperationalNote(job) : preset.linkedJobNameSnapshot?.trim() || "Roboty",
+              });
+            } else {
+              setViewReturn({ view: "jobs", label: "Roboty" });
+            }
+            setView("operationalnotes");
+          }}
+          operationalNotesReturnNav={
+            viewReturn?.view === "jobs"
+              ? {
+                  label: viewReturn.label,
+                  onBack: () => {
+                    setView("jobs");
+                    setViewReturn(null);
+                    setPendingOperationalNoteId(null);
+                    setPendingOperationalNoteCreatePreset(null);
+                  },
+                }
+              : undefined
+          }
         />
 
         <AdminMobileNav

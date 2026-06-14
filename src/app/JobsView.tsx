@@ -16,6 +16,12 @@ import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { JobCostBreakdownPanel } from "@/app/JobCostBreakdownPanel";
 import { JobRecoverableChargesPanel, type BillingNotePendingFiles } from "@/app/JobRecoverableChargesPanel";
+import {
+  JobOperationalNotesPanel,
+  operationalNoteCreatePresetForJob,
+} from "@/app/JobOperationalNotesPanel";
+import type { AdminSession } from "@/lib/admin-auth";
+import type { OperationalNote } from "@/lib/operational-notes";
 import { JobCreateRecoverableChargeModal } from "@/app/JobCreateRecoverableChargeModal";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import { JobInspectorFilesPanel } from "@/app/JobInspectorFilesPanel";
@@ -553,6 +559,10 @@ export function JobsView({
   onOpenRecoverableCharge,
   onChangeRecoverableCharges,
   onCommitRecoverableCharges,
+  operationalNotes = [],
+  adminSession: adminSessionProp,
+  onOpenOperationalNote,
+  onCreateOperationalNoteFromJob,
 }: {
   jobs: Job[];
   setJobs: (v: Job[] | ((p: Job[]) => Job[])) => void;
@@ -573,8 +583,13 @@ export function JobsView({
   onOpenRecoverableCharge?: (chargeId: string) => void;
   onChangeRecoverableCharges?: (next: RecoverableCharge[]) => void;
   onCommitRecoverableCharges?: (next: RecoverableCharge[]) => void;
+  operationalNotes?: OperationalNote[];
+  adminSession?: AdminSession | null;
+  onOpenOperationalNote?: (noteId: string, fromJobId?: string) => void;
+  onCreateOperationalNoteFromJob?: (preset: { linkedJobId?: string; linkedJobNameSnapshot?: string }) => void;
 }) {
-  const { canViewRates, session: adminSession } = useAdminAccess();
+  const { canViewRates, session: adminSessionFromCtx } = useAdminAccess();
+  const adminSession = adminSessionProp ?? adminSessionFromCtx;
   const createdByName = adminSession?.displayName || "Administrator";
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -1794,7 +1809,7 @@ export function JobsView({
               {/* Notes */}
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <label className="text-xs text-muted-foreground flex-1">Notatki</label>
+                  <label className="text-xs text-muted-foreground flex-1">Uwagi wewnętrzne (robota)</label>
                   <VoiceNoteButton focusRef={jobNotesRef} onResult={text=>updateJob({...selectedJob,notes:(selectedJob.notes?selectedJob.notes+" ":"")+text})}/>
                 </div>
                 <textarea ref={jobNotesRef} value={selectedJob.notes} onChange={e=>updateJob({...selectedJob,notes:e.target.value})} placeholder="Uwagi, informacje dodatkowe..." rows={3} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors resize-none"/>
@@ -1891,6 +1906,17 @@ export function JobsView({
               directory={directory}
               viewerRole={adminSession?.role ?? "admin"}
             />
+
+            {onOpenOperationalNote && onCreateOperationalNoteFromJob && (
+              <JobOperationalNotesPanel
+                job={selectedJob}
+                notes={operationalNotes}
+                session={adminSession}
+                onOpenNote={(noteId) => onOpenOperationalNote(noteId, selectedJob.id)}
+                onCreateNote={() => onCreateOperationalNoteFromJob(operationalNoteCreatePresetForJob(selectedJob))}
+                onOpenModule={() => onOpenOperationalNote("", selectedJob.id)}
+              />
+            )}
 
             {approveProposalContext && selectedJob && onChangeRecoverableCharges && onCommitRecoverableCharges && (
               <JobCreateRecoverableChargeModal

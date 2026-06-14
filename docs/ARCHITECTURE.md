@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.56.10** · WM exclude fix)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-13 (dokumentacja handoff P3+BZP dla agentów AI)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.57.0** · Notatki Operacyjne P0)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-14 (Notatki Operacyjne P0 + dokumentacja handoff)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -426,6 +426,25 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | `kw-contacts` | Kontakty e-mail | Admin |
 | `kw-employee-leaves` | Nieobecności pracowników (urlop / L4 / bezpłatny, tygodnie Pn–So) | Admin |
 | `kw-recoverable-charges` | Pozycje do rozliczenia / odzyskania (Sprint 20.3A) | Admin (write); Inspektor (read-only, 20.5A.3A) |
+| `kw-operational-notes` | Notatki operacyjne — baza wiedzy (P0, v2.57.0) | Admin staff (write); inspektor ACL w lib (UI P2) |
+
+**Notatki operacyjne (P0, v2.57.0):**
+
+| Aspekt | Opis |
+|--------|------|
+| **Osobna domena** | **≠** `job.notes` (Uwagi wewnętrzne roboty) **≠** `job.jobNotes[]` (WM / billing) |
+| **Model** | Tablica `OperationalNote[]` w `kw-operational-notes` — tytuł, treść, `contentRev`, komentarze, `revisions[]` (tylko edycja treści), status `active` / `archived` |
+| **Powiązanie z robotą** | Opcjonalne `linkedJobId` + `linkedJobNameSnapshot`; panel `JobOperationalNotesPanel` w Roboty → Przegląd; deep link + `returnNav` do tej samej roboty |
+| **ACL (P0)** | `super_admin` / `admin` / `moderator` — pełny CRUD w module admin; inspektor — `canView` / `canComment` / `canCreate` w lib, **bez UI** w admin panel (P2) |
+| **Udostępnienie inspektorowi** | `shareWithInspector` — widoczność dla roli inspektor (lib); toggle w UI admin |
+| **Archiwum** | `archiveOperationalNote` / `restoreOperationalNote` — bez hard delete |
+| **Logical delete** | `deleteOperationalNoteLogical` + tombstone `kw-operational-notes-deleted-ids` |
+| **Audit log** | `kw-operational-notes-audit-log` — append-only, cap 3000 (`operational-notes-audit.ts`); akcje create/edit/comment/archive/restore/delete/share/link |
+| **Read state (szkielet P1)** | `kw-operational-notes-read-state` — merge w sync; badge/ACK UI poza P0 |
+| **Sync** | `pushOperationalNotesToCloud()`, `pullOperationalNotesAuxFromCloud()`, `mergeOperationalNotes()` — LWW po `updatedAt` / `lastActivityAt` |
+| **Menu** | **Notatki operacyjne** — między Roboty a Inspektor (`operationalnotes`) |
+
+Pliki: `src/lib/operational-notes.ts`, `src/lib/operational-notes-audit.ts`, `src/lib/operational-notes-read-state.ts`, `src/app/OperationalNotesView.tsx`, `src/app/JobOperationalNotesPanel.tsx`, `src/app/App.tsx`, `src/app/admin/admin-nav.ts`.
 
 **Do rozliczenia (Sprint 20.3A + 20.4A Foundation, v2.47.00):**
 
@@ -535,6 +554,7 @@ Pliki 20.1B: `src/lib/payroll-cycle.ts`, `src/app/PayrollView.tsx`, `src/app/App
 | `kw-archive-deleted-ids` | Usunięte tygodnie archiwum |
 | `kw-employee-leaves-deleted-ids` | Usunięte nieobecności (Sprint 20.0A) — merge i Edge batch-set filtrują te ID |
 | `kw-recoverable-charges-deleted-ids` | Usunięte pozycje do rozliczenia (Sprint 20.3A) |
+| `kw-operational-notes-deleted-ids` | Logicznie usunięte notatki operacyjne (P0, v2.57.0) |
 
 ### 10.3 Klucze konfiguracyjne (chmura przez `persistKey`)
 
@@ -1711,6 +1731,7 @@ WGDOM1/
 | `contacts` | Kontakty | *(App.tsx)* | E-mail klientów |
 | `archive` | Archiwum | *(App.tsx)* | Zapisane tygodnie |
 | `jobs` | Roboty | `JobsView.tsx` | MID-B, billing panel 20.5A · **badge menu** = `countActiveJobsForNavBadge()` (W toku + Do odbioru, 20.5Z.5A) |
+| `operationalnotes` | Notatki operacyjne | `OperationalNotesView.tsx` | P0 — CRUD, komentarze, archiwum · panel w Roboty → Przegląd |
 | `inspector` | Inspektor | `InspectorAdminView.tsx` | Feed zmian terenowych |
 | `recoverablecharges` | Do rozliczenia | `RecoverableChargesView.tsx` | Settlement 20.3A–20.4C |
 | `media` | Zdjęcia i pliki | `MediaView.tsx` | Galeria obrazów + dokumenty · liczniki · ZIP |
@@ -1741,6 +1762,9 @@ WGDOM1/
 | `inspector-stats.ts` | Statystyki logowań inspektorów |
 | `inspector-dashboard.ts` | Statystyki pulpitu inspektora |
 | `email-contacts.ts` | Kontakty mailingowe |
+| `operational-notes.ts` | **P0 v2.57.0** — notatki operacyjne: model, ACL, mutacje, merge |
+| `operational-notes-audit.ts` | Audit log notatek (append, cap 3000) |
+| `operational-notes-read-state.ts` | Read receipts (szkielet P1) |
 | `deep-link.ts` | `wgdom://`, `?open=job`, custom events |
 | `native-app-bridge.ts` | Przycisk Wstecz Android, resume |
 | `capacitor-native.ts` | Status bar, splash, `isNativeApp()` |
@@ -1803,6 +1827,7 @@ WGDOM1/
 | `npm run audit:mobile` | Statyczny audyt 36 reguł |
 | `npm run test:mobile` | Playwright — domyślnie **https://www.wgdom.fun** |
 | `PW_BASE_URL=http://127.0.0.1:4173 npm run test:mobile` | Testy na lokalnym preview |
+| `npx vite-node scripts/test-operational-notes-p0.mjs` | P0 Notatki operacyjne — lib ACL, merge, tombstone (24 testy) |
 
 **GitHub Actions:**
 

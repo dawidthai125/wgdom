@@ -11,6 +11,19 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-14",
+    version: "2.57.0",
+    label: "Notatki Operacyjne (P0)",
+    items: [
+      { type: "new", text: "Moduł Notatki operacyjne — baza wiedzy operacyjnej (globalne i powiązane z robotami), menu między Roboty a Inspektor" },
+      { type: "new", text: "CRUD notatek: tytuł, treść, komentarze, historia wersji treści, archiwum i przywracanie" },
+      { type: "new", text: "Powiązanie z robotą (linkedJobId) — panel w Roboty → Przegląd + deep link z powrotem do tej samej roboty" },
+      { type: "new", text: "Chmura: kw-operational-notes + audit-log + read-state + tombstone logical delete (sync i backup)" },
+      { type: "improve", text: "Roboty → Przegląd: pole job.notes jako „Uwagi wewnętrzne (robota)” — rozróżnienie od Notatek operacyjnych" },
+      { type: "improve", text: "ACL P0: super_admin / admin / moderator — pełny dostęp; inspektor — tylko w lib (UI P2)" },
+    ],
+  },
+  {
     date: "2026-06-13",
     version: "2.56.10",
     label: "Przetargi — fix false exclude przebudowa WM",
