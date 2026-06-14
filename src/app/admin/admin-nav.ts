@@ -12,6 +12,7 @@ import {
   Scale,
   Wallet,
   ScrollText,
+  Printer,
 } from "lucide-react";
 import type { DirectoryEmployee, Job, WeekEmployee, WeekSnapshot } from "@/app/app-domain";
 import type { AdminSession } from "@/lib/admin-auth";
@@ -39,6 +40,7 @@ export type View =
   | "contacts"
   | "archive"
   | "jobs"
+  | "wmprint"
   | "operationalnotes"
   | "inspector"
   | "media"
@@ -134,6 +136,22 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
       })(),
     },
     {
+      key: "wmprint",
+      label: "Odbiory WM Druk",
+      hint: "Szablony dokumentów WM, dokumenty per robota i generowanie paczek ZIP do przekazania.",
+      icon: Printer,
+    },
+    ...(canViewTendersNav
+      ? [
+          {
+            key: "tenders" as const,
+            label: "Przetargi",
+            hint: "Wrocław — aktywne remonty budynków (mieszkania, biura, uczelnie).",
+            icon: Scale,
+          },
+        ]
+      : []),
+    {
       key: "operationalnotes",
       label: "Notatki operacyjne",
       hint: "Baza wiedzy operacyjnej — globalne i powiązane z robotami. Osobna domena od notatek WM.",
@@ -180,16 +198,6 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
       hint: "Historia wersji aplikacji i pomoc krok po kroku.",
       icon: BookOpen,
     },
-    ...(canViewTendersNav
-      ? [
-          {
-            key: "tenders" as const,
-            label: "Przetargi",
-            hint: "Wrocław — aktywne remonty budynków (mieszkania, biura, uczelnie).",
-            icon: Scale,
-          },
-        ]
-      : []),
   ];
 }
 

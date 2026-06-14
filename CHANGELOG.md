@@ -1,6 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.58.1** Hotfix backup notatki
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.0** Odbiory WM Druk P1
+
+## 2.59.0 — Odbiory WM Druk (P1)
+- Nowy moduł menu: Odbiory WM Druk — szablony, dokumenty per robota, ZIP, kompletność
+- Zmienne {{DATE}}/{{JOB_*}} · sync `kw-wm-print-*` · test `test-wm-print-p1.mjs`
 
 ## 2.58.1 — Notatki operacyjne HF (Backup Completeness)
 - Export/import UI + local snapshot + EMAIL_KV_KEYS — 4 klucze KV (notes, read-state, audit-log, deleted-ids)

@@ -41,6 +41,15 @@ import {
   normalizeOperationalNotesReadState,
   OPERATIONAL_NOTES_READ_STATE_KEY,
 } from "@/lib/operational-notes-read-state";
+import {
+  mergeWmPrintJobDocuments,
+  mergeWmPrintTemplates,
+  getDeletedWmPrintTemplateIds,
+  getDeletedWmPrintJobDocIds,
+} from "@/lib/wm-print/wm-print-sync";
+import { normalizeWmPrintTemplates } from "@/lib/wm-print/templates";
+import { normalizeWmPrintJobDocuments } from "@/lib/wm-print/job-documents";
+import { mergeWmPrintSettings, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
 import { defaultWgdomCostCatalogStore } from "@/lib/wgdom-cost-catalog";
 import { defaultUserClassificationDictionaryStore } from "@/lib/wgdom-user-classification-dictionary";
 
@@ -56,6 +65,9 @@ export const DATA_KEYS = [
   "kw-employee-leaves",
   "kw-recoverable-charges",
   "kw-operational-notes",
+  "kw-wm-print-templates",
+  "kw-wm-print-job-docs",
+  "kw-wm-print-settings",
   "kw-tenders-pipeline",
   "kw-tenders-company-profile",
   "kw-wgdom-cost-catalog",
@@ -94,6 +106,9 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-employee-leaves",
   "kw-recoverable-charges",
   "kw-operational-notes",
+  "kw-wm-print-templates",
+  "kw-wm-print-job-docs",
+  "kw-wm-print-settings",
 ] as const satisfies readonly DataKey[];
 
 export const WGDOM_DEFERRED_BOOTSTRAP_EVENT = "wgdom-deferred-bootstrap";
@@ -1449,6 +1464,20 @@ export function mergeDataKey(
       return mergeRecoverableCharges(local, cloud, deletedRecoverableChargeIds);
     case "kw-operational-notes":
       return mergeOperationalNotes(local, cloud, deletedOperationalNoteIds);
+    case "kw-wm-print-templates":
+      return mergeWmPrintTemplates(
+        normalizeWmPrintTemplates(local),
+        cloud,
+        getDeletedWmPrintTemplateIds(),
+      );
+    case "kw-wm-print-job-docs":
+      return mergeWmPrintJobDocuments(
+        normalizeWmPrintJobDocuments(local),
+        cloud,
+        getDeletedWmPrintJobDocIds(),
+      );
+    case "kw-wm-print-settings":
+      return mergeWmPrintSettings(normalizeWmPrintSettings(local), normalizeWmPrintSettings(cloud));
     case "kw-tenders-pipeline":
       return mergeTenderDataKey(TENDERS_PIPELINE_KEY, local, cloud);
     case "kw-tenders-company-profile":

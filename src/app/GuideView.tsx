@@ -28,6 +28,7 @@ import {
   LayoutDashboard,
   Calendar,
   Wallet,
+  Printer,
   Clock,
   Search,
   KeyRound,
@@ -188,6 +189,37 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Uwagi inspektora do pozycji (2.49.80)", a:"W Przeglądzie roboty — karta Do rozliczenia pokazuje wątek uwag per pozycja. Odpowiedz inspektorowi bez zmiany kwot rozliczenia. Na Pulpicie nowe uwagi billing mają prefiks „Do rozliczenia”. W module Do rozliczenia — sekcja Uwagi inspektora przy pozycji z roboty."},
               {q:"Billing Evidence Pack — dowody billing (20.5A.5)", a:"W wątku uwag przy pozycji inspektor może dołączyć zdjęcia (do 3) i PDF (1) jako dowód rozliczeniowy. Kliknij miniaturę lub nazwę PDF — podgląd inline bez pobierania. Załączniki nie zmieniają kwot ani statusu pozycji."},
               {q:"Zgłoszenia inspektora — nowa pozycja (20.5A.6)", a:"Gdy na robocie nie ma jeszcze pozycji Do rozliczenia, inspektor może kliknąć Zgłoś pozycję — opis, kwota i dowody trafiają jako propozycja (sync kw-jobs). Administrator w sekcji Zgłoszenia inspektora zatwierdza (tworzy pozycję w module) lub odrzuca z powodem. KPI i badge 💰 rosną dopiero po zatwierdzeniu."},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id:"wmprint",
+      icon:Printer,
+      title:"Odbiory WM Druk",
+      subtitle:"Szablony dokumentów WM i paczki ZIP per robota",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">
+            Moduł <strong>Odbiory WM Druk</strong> (menu pod Robotami) służy do kompletowania dokumentacji przekazywanej do WM Wrocław. Działa dla robót <strong>aktywnych i zakończonych</strong> — nie tylko przy odbiorze końcowym.
+          </p>
+          <div className="space-y-3">
+            {[
+              {q:"Zakładki modułu", a:"Odbiory — lista wszystkich robót z kompletnością i generowaniem ZIP. Szablony — biblioteka dokumentów (DOCX, PDF, PDF formularz) z kolejnością i włącz/wyłącz. Ustawienia — domyślne miasto (JOB_CITY) i przyrostek nazwy ZIP."},
+              {q:"Zmienne w szablonach", a:"W plikach szablonów użyj: {{DATE}}, {{YEAR}}, {{JOB_ADDRESS}}, {{JOB_STREET}}, {{JOB_BUILDING}}, {{JOB_APARTMENT}}, {{JOB_CITY}}. Data: dzisiejsza lub własna (format 14.06.2026 r.). Adres Gorlicka 26 m.6 → ulica Gorlicka, budynek 26, lokal 6, pełny Gorlicka 26/6."},
+              {q:"Generowanie", a:"Generuj komplet — ZIP ze wszystkimi włączonymi szablonami i dokumentami robót. Generuj wybrane — tylko zaznaczone pozycje. Pojedynczy dokument — ikona pobierz przy szablonie generowanym. Nazwa ZIP np. GORLICKA_26_6_ODBIOR_WM.zip."},
+              {q:"Dokumenty per robota", a:"Sloty „wgrywane per robota” (Kominiarz, Gaz, Pomiary…) — wgraj PDF przy wybranej robocie. Dodatkowe pliki bez szablonu — przycisk Dodaj dokument. Sync: kw-wm-print-job-docs w chmurze."},
+              {q:"PDF formularz (ZI)", a:"Szablon typu PDF Formularz — pola formularza (Ulica, Numer budynku, Numer lokalu) są wypełniane automatycznie z adresu roboty."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-secondary/30">

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.0",
+    label: "Odbiory WM Druk — moduł P1",
+    items: [
+      { type: "new", text: "Menu Odbiory WM Druk — szablony DOCX/PDF/formularz, dokumenty per robota, kompletność i generowanie ZIP" },
+      { type: "new", text: "Zmienne {{DATE}}, {{JOB_ADDRESS}}, {{JOB_STREET}}, {{JOB_BUILDING}}, {{JOB_APARTMENT}}, {{JOB_CITY}} — podstawianie przy generowaniu" },
+      { type: "new", text: "Biblioteka szablonów — dodawanie, usuwanie, kolejność, włącz/wyłącz bez zmian w kodzie" },
+      { type: "new", text: "Sync chmura: kw-wm-print-templates, kw-wm-print-job-docs, kw-wm-print-settings" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.58.1",
     label: "Notatki operacyjne — Hotfix Backup Completeness",
     items: [

@@ -17,6 +17,7 @@ import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import type { OperationalNote } from "@/lib/operational-notes";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
+import type { WmPrintJobDocument, WmPrintSettings, WmPrintTemplate } from "@/lib/wm-print/types";
 import type { View } from "@/app/admin/admin-nav";
 import { TeamDirectoryContactsView } from "@/app/TeamDirectoryContactsView";
 import { TendersProvider } from "@/app/tenders/context/TendersProvider";
@@ -33,6 +34,9 @@ const RecoverableChargesView = lazy(() =>
 );
 const OperationalNotesView = lazy(() =>
   import("@/app/OperationalNotesView").then((m) => ({ default: m.OperationalNotesView })),
+);
+const WmPrintView = lazy(() =>
+  import("@/app/WmPrintView").then((m) => ({ default: m.WmPrintView })),
 );
 const TendersModule = lazy(() =>
   import("@/app/tenders/TendersModule").then((m) => ({ default: m.TendersModule })),
@@ -112,6 +116,19 @@ export type AdminViewRouterProps = {
     nextAudit?: OperationalNoteAuditEntry[],
     deletedId?: string,
     nextReadState?: OperationalNoteReadReceipt[],
+  ) => void;
+  wmPrintTemplates: WmPrintTemplate[];
+  setWmPrintTemplates: (v: WmPrintTemplate[] | ((prev: WmPrintTemplate[]) => WmPrintTemplate[])) => void;
+  wmPrintJobDocs: WmPrintJobDocument[];
+  setWmPrintJobDocs: (v: WmPrintJobDocument[] | ((prev: WmPrintJobDocument[]) => WmPrintJobDocument[])) => void;
+  wmPrintSettings: WmPrintSettings;
+  setWmPrintSettings: (v: WmPrintSettings | ((prev: WmPrintSettings) => WmPrintSettings)) => void;
+  commitWmPrint: (
+    nextTemplates?: WmPrintTemplate[],
+    nextJobDocs?: WmPrintJobDocument[],
+    nextSettings?: WmPrintSettings,
+    deletedTemplateId?: string,
+    deletedJobDocId?: string,
   ) => void;
   adminSession: AdminSession | null | undefined;
   alertsSeenTick: number;
@@ -258,6 +275,13 @@ export function AdminViewRouter({
   operationalNotesAuditLog,
   setOperationalNotesAuditLog,
   commitOperationalNotes,
+  wmPrintTemplates,
+  setWmPrintTemplates,
+  wmPrintJobDocs,
+  setWmPrintJobDocs,
+  wmPrintSettings,
+  setWmPrintSettings,
+  commitWmPrint,
   pendingOperationalNoteId,
   onInitialOperationalNoteConsumed,
   pendingOperationalNoteCreatePreset,
@@ -441,6 +465,23 @@ export function AdminViewRouter({
               operationalNotesReadState={operationalNotesReadState}
               onOpenOperationalNote={onOpenOperationalNoteFromJobs}
               onCreateOperationalNoteFromJob={onOpenOperationalNoteCreateFromJobs}
+            />
+          </Suspense>
+        </ViewErrorBoundary>
+      )}
+      {view === "wmprint" && (
+        <ViewErrorBoundary label="Odbiory WM Druk">
+          <Suspense fallback={<ViewLoadFallback label="Ładowanie Odbiorów WM…" />}>
+            <WmPrintView
+              jobs={jobs}
+              templates={wmPrintTemplates}
+              jobDocs={wmPrintJobDocs}
+              settings={wmPrintSettings}
+              uploadedBy={adminSession?.displayName || "Administrator"}
+              onChangeTemplates={setWmPrintTemplates}
+              onChangeJobDocs={setWmPrintJobDocs}
+              onChangeSettings={setWmPrintSettings}
+              onCommit={commitWmPrint}
             />
           </Suspense>
         </ViewErrorBoundary>
