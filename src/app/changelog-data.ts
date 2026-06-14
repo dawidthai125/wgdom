@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.9",
+    label: "Odbiory WM Druk — P0 fix generatorów DOCX/PDF",
+    items: [
+      { type: "fix", text: "PDF statyczne (Izba, SEP, Uprawnienia…): copy-as-is do ZIP — bez latin1 replace i uszkodzeń" },
+      { type: "fix", text: "ZI pdf_form: wyłączono flatten(); wypełnianie tylko Ulica/Numer budynku/Numer lokalu" },
+      { type: "fix", text: "DOCX: podmiana split-run Word ({{JOB_ADDRESS}} rozbite na runy) — scala <w:t> w akapicie" },
+      { type: "improve", text: "Testy P0: test-wm-print-p0-static-pdf, p0-zi-form, p0-docx-runs" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.59.8",
     label: "Odbiory WM Druk — fix duplikatów kompletności P1.0.5A",
     items: [

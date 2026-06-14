@@ -2,8 +2,8 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import type { Job } from "@/app/app-domain";
 import { wmPrintZipBaseName } from "@/lib/wm-print/address-vars";
-import { generateDocxFromTemplate, generatePdfTextFromTemplate } from "@/lib/wm-print/generate-docx";
-import { generatePdfFormFromTemplate, generatePdfPlainFromTemplate } from "@/lib/wm-print/generate-pdf";
+import { generateDocxFromTemplate } from "@/lib/wm-print/generate-docx";
+import { copyStaticPdfTemplate, generatePdfFormFromTemplate } from "@/lib/wm-print/generate-pdf";
 import { getWmPrintJobDocumentsForJob } from "@/lib/wm-print/job-documents";
 import { getEnabledWmPrintTemplates, getWmPrintTemplateFiles } from "@/lib/wm-print/templates";
 import { fetchWmPrintFileBytes } from "@/lib/wm-print/upload";
@@ -46,11 +46,7 @@ export async function generateFromTemplateBytes(
   if (t.type === "docx") return generateDocxFromTemplate(sourceBytes, vars);
   if (t.type === "pdf_form") return generatePdfFormFromTemplate(sourceBytes, vars, t.pdfFieldMapping);
   if (t.type === "pdf") {
-    try {
-      return await generatePdfPlainFromTemplate(sourceBytes, vars);
-    } catch {
-      return generatePdfTextFromTemplate(sourceBytes, vars);
-    }
+    return copyStaticPdfTemplate(sourceBytes);
   }
   return null;
 }

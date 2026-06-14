@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.8** WM Druk P1.0.5A
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.9** WM Druk P0 generatory
+
+## 2.59.9 — Odbiory WM Druk P0 fix generatorów
+- PDF statyczne copy-as-is · ZI bez flatten · DOCX split-run · testy `test-wm-print-p0-*.mjs`
 
 ## 2.59.8 — Odbiory WM Druk P1.0.5A (deduplikacja kompletności)
 - Fix duplikatów braków · % po unikalnych slotach · UI Brakuje (N) · test `test-wm-print-p1-0-5a.mjs`
