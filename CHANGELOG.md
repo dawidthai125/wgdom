@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.12** WM Druk P0.1C ZI overlay
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.13** WM Druk P0.1D ZI /AP
+
+## 2.59.13 — Odbiory WM Druk P0.1D fix ZI /AP widgetów
+
+- ZI hybrid: `updateAppearances(Noto)` tylko pola 8/9/10 — viewer widzi wartości zamiast {{JOB_*}}
+- Usunięto overlay content-stream P0.1C (pod warstwą widgetów)
 
 ## 2.59.12 — Odbiory WM Druk P0.1C fix ZI widoczny tekst (XFA overlay)
 

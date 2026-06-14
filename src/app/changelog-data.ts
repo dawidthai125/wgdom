@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.13",
+    label: "Odbiory WM Druk — P0.1D fix ZI widoczny tekst (/AP widgetów)",
+    items: [
+      { type: "fix", text: "ZI hybrid/XFA: updateAppearances(Noto) na polach 8/9/10 — naprawa warstwy /AP nad overlay P0.1C" },
+      { type: "fix", text: "Usunięto nieskuteczny overlay content-stream (był pod widgetami AcroForm)" },
+      { type: "improve", text: "Forensic P0.1D: audit-p0-1d-out + test-wm-print-p0-1d-zi-visual.mjs" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.59.12",
     label: "Odbiory WM Druk — P0.1C fix ZI widoczny tekst (XFA overlay)",
     items: [

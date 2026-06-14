@@ -1,5 +1,5 @@
 import fontkit from "@pdf-lib/fontkit";
-import { PDFDocument, PDFTextField, rgb } from "pdf-lib";
+import { PDFDocument, PDFTextField } from "pdf-lib";
 import type { WmPrintVariableKey } from "@/lib/wm-print/types";
 
 /** Pola ZI — zweryfikowane nazwy XFA/AcroForm (P0.1B). */
@@ -208,51 +208,21 @@ function fillPdfFormFieldMapping(
 }
 
 /**
- * P0.1C — XFA/hybrid: pdf-lib zapisuje /V, ale viewer pokazuje stare XFA placeholdery.
- * Rysujemy tekst na stronie (białe tło + Noto Sans) w prostokątach widgetów 8/9/10.
+ * P0.1D — hybrid XFA: odśwież /AP tylko pól adresowych 8/9/10 (Noto Sans).
+ * P0.1C overlay był pod warstwą widgetów — viewer pokazywał stare placeholdery z /AP.
  */
-async function paintZiHybridFormVisibleText(
+async function finalizeZiHybridForm(
   pdfDoc: PDFDocument,
-  vars: Record<WmPrintVariableKey, string>,
+  form: ReturnType<PDFDocument["getForm"]>,
 ): Promise<void> {
-  const page = pdfDoc.getPages()[0];
-  if (!page) return;
-
   pdfDoc.registerFontkit(fontkit);
   const font = await pdfDoc.embedFont(await loadWmPrintZiPdfFontBytes());
-  const form = pdfDoc.getForm();
-
-  const entries: { idx: number; varKey: WmPrintVariableKey }[] = [
-    { idx: WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_STREET!, varKey: "JOB_STREET" },
-    { idx: WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_BUILDING!, varKey: "JOB_BUILDING" },
-    { idx: WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_APARTMENT!, varKey: "JOB_APARTMENT" },
-  ];
-
-  for (const { idx, varKey } of entries) {
-    const value = vars[varKey] ?? "";
-    if (!value) continue;
-    const field = getZiTextFieldByIndex(form, idx);
-    if (!field) continue;
-
-    for (const widget of field.acroField.getWidgets()) {
-      const rect = widget.getRectangle();
-      const fontSize = Math.min(11, Math.max(8, rect.height - 3));
-      page.drawRectangle({
-        x: rect.x,
-        y: rect.y,
-        width: rect.width,
-        height: rect.height,
-        color: rgb(1, 1, 1),
-        borderWidth: 0,
-      });
-      page.drawText(value, {
-        x: rect.x + 2,
-        y: rect.y + (rect.height - fontSize) / 2,
-        size: fontSize,
-        font,
-        color: rgb(0, 0, 0),
-      });
-    }
+  for (const idx of [
+    WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_STREET!,
+    WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_BUILDING!,
+    WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_APARTMENT!,
+  ]) {
+    getZiTextFieldByIndex(form, idx)?.updateAppearances(font);
   }
 }
 
@@ -273,7 +243,7 @@ export async function generatePdfFormFromTemplate(
   fillPdfFormFieldMapping(form, mapping, vars);
 
   if (formType === "hybrid" || formType === "xfa") {
-    await paintZiHybridFormVisibleText(pdfDoc, vars);
+    await finalizeZiHybridForm(pdfDoc, form);
   } else {
     try {
       pdfDoc.registerFontkit(fontkit);
@@ -303,7 +273,7 @@ export async function diagnoseZiPdfFieldFill(
 
   const formType = detectWmPrintPdfFormType(templateBytes);
   if (formType === "hybrid" || formType === "xfa") {
-    await paintZiHybridFormVisibleText(pdfDoc, vars);
+    await finalizeZiHybridForm(pdfDoc, form);
   }
 
   const out = await pdfDoc.save({ useObjectStreams: false });

@@ -81,8 +81,8 @@ assert(diag.placeholdersInOutput["{{JOB_STREET}}"] === 0, "brak {{JOB_STREET}} w
 
 const out = await generatePdfFormFromTemplate(templateBytes, vars);
 await PDFDocument.load(out, { ignoreEncryption: true });
-assert(out.length > templateBytes.length + 10_000, "output większy (embed font + overlay)");
-assert(true, "generatePdfFormFromTemplate: PDF ładuje się po P0.1C");
+assert(out.length > templateBytes.length, "output większy od szablonu (font /AP)");
+assert(true, "generatePdfFormFromTemplate P0.1D: PDF ładuje się");
 
 console.log(`\n${pass} PASS · ${fail} FAIL`);
 if (fail > 0) process.exit(1);
