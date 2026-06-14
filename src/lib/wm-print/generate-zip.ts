@@ -125,18 +125,16 @@ export async function buildWmPrintFilesForJob(
     }
   }
 
-  if (!selectedTemplateIds?.length) {
-    for (const doc of jobDocList.filter((d) => !d.templateId)) {
-      const bytes = await fetchBytes(doc.publicUrl);
-      const ext = extFromFileName(doc.originalFileName, "pdf");
-      files.push({
-        fileName: `${slugWmPrintFileName(doc.name)}.${ext}`,
-        bytes,
-        mimeType: mimeForExt(ext),
-        jobDocId: doc.id,
-        sortOrder: 9000 + files.length,
-      });
-    }
+  for (const doc of jobDocList.filter((d) => !d.templateId)) {
+    const bytes = await fetchBytes(doc.storageUrl);
+    const ext = extFromFileName(doc.originalFileName, "pdf");
+    files.push({
+      fileName: `${slugWmPrintFileName(doc.name)}.${ext}`,
+      bytes,
+      mimeType: mimeForExt(ext),
+      jobDocId: doc.id,
+      sortOrder: 9000 + files.length,
+    });
   }
 
   return files.sort((a, b) => a.sortOrder - b.sortOrder);

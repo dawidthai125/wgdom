@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.5** WM Druk P1.1 korekta
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.6** WM Druk P1.0.4
+
+## 2.59.6 — Odbiory WM Druk P1.0.4 (domyślne zaznaczenie)
+- Wszystkie aktywne szablony zaznaczone domyślnie · Zaznacz/Odznacz wszystko · licznik · ZIP z wyboru · test `test-wm-print-p1-0-4.mjs`
 
 ## 2.59.5 — Odbiory WM Druk P1.1 correction (grupowanie po statusie robota)
 - Usunięto niezależny status WM i kw-wm-print-job-statuses · sekcje z jobPhase · test `test-wm-print-p1-1-status-grouping.mjs`

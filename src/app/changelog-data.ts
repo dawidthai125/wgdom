@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.6",
+    label: "Odbiory WM Druk — domyślne zaznaczenie P1.0.4",
+    items: [
+      { type: "improve", text: "Dokumenty przypisane: wszystkie aktywne szablony zaznaczone domyślnie — odznaczasz tylko wyjątki" },
+      { type: "new", text: "Zaznacz wszystko / Odznacz wszystko + licznik Wybrane: N / M" },
+      { type: "improve", text: "Generuj komplet (ZIP) używa zaznaczonych szablonów; dokumenty robota bez slotu zawsze w paczce" },
+      { type: "improve", text: "Test test-wm-print-p1-0-4.mjs" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.59.5",
     label: "Odbiory WM Druk — P1.1 korekta grupowania",
     items: [

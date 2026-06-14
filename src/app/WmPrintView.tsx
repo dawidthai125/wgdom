@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   Plus,
@@ -54,6 +54,13 @@ import {
   wmPrintTemplateGroupLabel,
 } from "@/lib/wm-print/templates";
 import { DEFAULT_WM_PRINT_SETTINGS, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
+import {
+  countWmPrintTemplateSelection,
+  createDefaultWmPrintTemplateSelection,
+  deselectAllWmPrintTemplates,
+  selectAllWmPrintTemplates,
+  toggleWmPrintTemplateSelection,
+} from "@/lib/wm-print/template-selection";
 import type {
   WmPrintDateMode,
   WmPrintGenerateOptions,
@@ -133,6 +140,16 @@ export function WmPrintView({
   const selectedJob = selectedJobId ? jobs.find((j) => j.id === selectedJobId) ?? null : null;
   const selectedJobDocs = selectedJob ? getWmPrintJobDocumentsForJob(jobDocs, selectedJob.id) : [];
 
+  const selectionCount = useMemo(
+    () => countWmPrintTemplateSelection(templates, selectedTemplateIds),
+    [templates, selectedTemplateIds],
+  );
+
+  useEffect(() => {
+    if (!selectedJobId) return;
+    setSelectedTemplateIds(createDefaultWmPrintTemplateSelection(templates));
+  }, [selectedJobId]);
+
   const genOpts = (): WmPrintGenerateOptions => ({
     dateMode,
     customDate: dateMode === "custom" ? new Date(customDate + "T12:00:00") : undefined,
@@ -188,10 +205,20 @@ export function WmPrintView({
     );
   };
 
-  const handleGenerateZip = async (job: Job, onlySelected = false) => {
+  const handleGenerateZip = async (job: Job) => {
+    if (selectedTemplateIds.size === 0) {
+      toast.error("Zaznacz co najmniej jeden dokument szablonu");
+      return;
+    }
     setBusy(true);
-    const ids = onlySelected && selectedTemplateIds.size > 0 ? [...selectedTemplateIds] : undefined;
-    const res = await downloadWmPrintZip(job, templates, jobDocs, normalizedSettings, genOpts(), ids);
+    const res = await downloadWmPrintZip(
+      job,
+      templates,
+      jobDocs,
+      normalizedSettings,
+      genOpts(),
+      [...selectedTemplateIds],
+    );
     setBusy(false);
     if (res.ok) toast.success("Pobrano paczkę ZIP");
     else toast.error(res.error || "Błąd generowania ZIP");
@@ -341,12 +368,7 @@ export function WmPrintView({
   };
 
   const toggleTemplateSelection = (id: string) => {
-    setSelectedTemplateIds((prev) => {
-      const n = new Set(prev);
-      if (n.has(id)) n.delete(id);
-      else n.add(id);
-      return n;
-    });
+    setSelectedTemplateIds((prev) => toggleWmPrintTemplateSelection(prev, id));
   };
 
   const moveTemplate = (id: string, dir: -1 | 1) => {
@@ -513,21 +535,12 @@ export function WmPrintView({
                   <div className="flex flex-col gap-2">
                     <button
                       type="button"
-                      disabled={busy}
-                      onClick={() => handleGenerateZip(selectedJob, false)}
+                      disabled={busy || selectedTemplateIds.size === 0}
+                      onClick={() => handleGenerateZip(selectedJob)}
                       className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50"
                     >
                       {busy ? <Loader2 size={16} className="animate-spin" /> : <Package size={16} />}
                       Generuj komplet (ZIP)
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy || selectedTemplateIds.size === 0}
-                      onClick={() => handleGenerateZip(selectedJob, true)}
-                      className="flex items-center justify-center gap-2 w-full py-2 rounded-xl border border-border text-sm font-medium disabled:opacity-50"
-                    >
-                      <Download size={14} />
-                      Generuj wybrane ({selectedTemplateIds.size})
                     </button>
                     <button
                       type="button"
@@ -543,7 +556,28 @@ export function WmPrintView({
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">Dokumenty przypisane</p>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs font-medium text-muted-foreground">Dokumenty przypisane</p>
+                      <p className="text-xs text-muted-foreground">
+                        Wybrane: {selectionCount.selected} / {selectionCount.total}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTemplateIds(selectAllWmPrintTemplates(templates))}
+                        className="text-[10px] px-2 py-1 rounded border border-border hover:bg-secondary"
+                      >
+                        Zaznacz wszystko
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTemplateIds(deselectAllWmPrintTemplates())}
+                        className="text-[10px] px-2 py-1 rounded border border-border hover:bg-secondary"
+                      >
+                        Odznacz wszystko
+                      </button>
+                    </div>
                     <ul className="space-y-1 max-h-48 overflow-y-auto">
                       {templates
                         .filter((t) => t.enabled)
