@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.57.4",
+    label: "Notatki operacyjne — Pulpit (P2B)",
+    items: [
+      { type: "new", text: "Pulpit — widget Notatki operacyjne: Łącznie, Nieprzeczytane, Od inspektora, ostatnia aktywność" },
+      { type: "improve", text: "Klik w widget → moduł Notatki operacyjne · liczniki per użytkownik (ACL + ACK)" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.57.3",
     label: "Sidebar cleanup + Kadry",
     items: [

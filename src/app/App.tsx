@@ -1135,7 +1135,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [view]);
 
   const handleNavigate = useCallback((
-    v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule",
+    v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule" | "operationalnotes",
     jobId?: string,
     payrollEmpId?: string,
     jobSection?: import("@/app/JobDetailSectionNav").JobDetailSection,
@@ -1149,6 +1149,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       inspector: "Inspektor",
       archive: "Archiwum",
       jobs: "Roboty",
+      operationalnotes: "Notatki operacyjne",
     };
     if ((dest === "jobs" || dest === "inspector") && view !== dest) {
       setViewReturn({ view, label: returnLabels[view] ?? "Wstecz" });

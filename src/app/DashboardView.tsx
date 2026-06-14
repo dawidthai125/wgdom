@@ -60,11 +60,20 @@ import {
   type UrgentCategoryId,
 } from "@/lib/dashboard-urgent-today";
 import { DashboardPilneUwagiSection } from "@/app/DashboardPilneUwagiSection";
+import { DashboardOperationalNotesWidget } from "@/app/DashboardOperationalNotesWidget";
+import {
+  canShowOperationalNotesDashboardWidget,
+  computeOperationalNotesDashboardSummary,
+} from "@/lib/operational-notes-dashboard";
+import type { OperationalNote } from "@/lib/operational-notes";
+import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
 
 export function DashboardView({
   jobs, directory, weekEmployees, weekFrom, weekTo, savedWeeks,
   employeeLeaves = [],
   recoverableCharges = [],
+  operationalNotes = [],
+  operationalNotesReadState = [],
   onNavigate, onFixJobs, adminUserId, alertsSeenTick, onAlertsSeen, onOpenSms,
   onOpenTenders,
   onOpenTender,
@@ -82,7 +91,9 @@ export function DashboardView({
   savedWeeks: WeekSnapshot[];
   employeeLeaves?: EmployeeLeave[];
   recoverableCharges?: RecoverableCharge[];
-  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule" | "inspector" | "recoverablecharges", jobId?: string, payrollEmpId?: string, jobSection?: JobDetailSection) => void;
+  operationalNotes?: OperationalNote[];
+  operationalNotesReadState?: OperationalNoteReadReceipt[];
+  onNavigate: (v: "payroll" | "directory" | "archive" | "jobs" | "schedule" | "inspector" | "recoverablecharges" | "operationalnotes", jobId?: string, payrollEmpId?: string, jobSection?: JobDetailSection) => void;
   onFixJobs: (updater: (prev: Job[]) => Job[]) => void;
   adminUserId?: string;
   alertsSeenTick: number;
@@ -102,6 +113,11 @@ export function DashboardView({
 }) {
   const { session: adminSession } = useAdminAccess();
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
+  const showOperationalNotesWidget = canShowOperationalNotesDashboardWidget(adminSession);
+  const operationalNotesSummary = useMemo(
+    () => computeOperationalNotesDashboardSummary(operationalNotes, operationalNotesReadState, adminSession),
+    [operationalNotes, operationalNotesReadState, adminSession],
+  );
   const todayKey = todayDayKey();
   const todayIso = todayIsoDate();
   const workingToday = weekEmployees.filter((e) => todayKey && dayTotalHours(e.days[todayKey]) > 0);
@@ -569,6 +585,13 @@ export function DashboardView({
             </p>
           </button>
         </div>
+
+        {showOperationalNotesWidget && (
+          <DashboardOperationalNotesWidget
+            summary={operationalNotesSummary}
+            onOpen={() => onNavigate("operationalnotes")}
+          />
+        )}
 
         {/* Roboty → Braki dokumentów */}
         {jobsMissingDocs.length > 0 && (

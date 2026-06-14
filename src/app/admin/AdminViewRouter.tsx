@@ -120,7 +120,7 @@ export type AdminViewRouterProps = {
   onOpenTenders: () => void;
   onOpenTender: (tid: string) => void;
   handleNavigate: (
-    v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule",
+    v: View | "payroll" | "directory" | "archive" | "jobs" | "schedule" | "operationalnotes",
     jobId?: string,
     payrollEmpId?: string,
     jobSection?: import("@/app/JobDetailSectionNav").JobDetailSection,
@@ -287,6 +287,8 @@ export function AdminViewRouter({
       savedWeeks={savedWeeks}
       employeeLeaves={employeeLeaves}
       recoverableCharges={recoverableCharges}
+      operationalNotes={operationalNotes}
+      operationalNotesReadState={operationalNotesReadState}
       onNavigate={handleNavigate}
       onFixJobs={onFixJobs}
       adminUserId={adminSession?.id}

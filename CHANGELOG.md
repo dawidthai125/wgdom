@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.57.3** Sidebar Kadry (pre-commit)
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.57.4** Dashboard widget notatki (pre-commit)
+
+## 2.57.4 — Notatki operacyjne P2B (Dashboard widget)
+- Widget na Pulpicie: Łącznie · Nieprzeczytane · Od inspektora · ostatnia aktywność · klik → Notatki operacyjne
 
 ## 2.57.3 — Sidebar cleanup + Kadry
 - Kadry (ex Pracownicy i kontakty) · usunięto KPI „Bieżący tydzień” z sidebara · w-60 · dark scrollbar
