@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.4** WM Druk statusy P1.1
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.5** WM Druk P1.1 korekta
+
+## 2.59.5 — Odbiory WM Druk P1.1 correction (grupowanie po statusie robota)
+- Usunięto niezależny status WM i kw-wm-print-job-statuses · sekcje z jobPhase · test `test-wm-print-p1-1-status-grouping.mjs`
 
 ## 2.59.4 — Odbiory WM Druk P1.1 (statusy procesu WM)
 - Status WM per robota · sekcje · filtry · sync `kw-wm-print-job-statuses` · test `test-wm-print-p1-1-statuses.mjs`

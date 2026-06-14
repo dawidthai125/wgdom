@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.5",
+    label: "Odbiory WM Druk — P1.1 korekta grupowania",
+    items: [
+      { type: "fix", text: "Usunięto niezależny status WM — sekcje Odbiorów wyłącznie z statusu robota (W trakcie / Do odbioru / Zdane)" },
+      { type: "fix", text: "Usunięto dropdown Status WM, przyciski przeniesienia i sync kw-wm-print-job-statuses" },
+      { type: "improve", text: "Filtr: Wszystkie · W trakcie · Do odbioru · Zdane — zmiana w Robotach automatycznie przenosi robotę między sekcjami" },
+      { type: "improve", text: "Test test-wm-print-p1-1-status-grouping.mjs" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.59.4",
     label: "Odbiory WM Druk — statusy procesu WM P1.1",
     items: [

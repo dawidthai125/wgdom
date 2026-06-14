@@ -17,7 +17,7 @@ import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import type { OperationalNote } from "@/lib/operational-notes";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
-import type { WmPrintJobDocument, WmPrintJobWmStatusEntry, WmPrintSettings, WmPrintTemplate } from "@/lib/wm-print/types";
+import type { WmPrintJobDocument, WmPrintSettings, WmPrintTemplate } from "@/lib/wm-print/types";
 import type { View } from "@/app/admin/admin-nav";
 import { TeamDirectoryContactsView } from "@/app/TeamDirectoryContactsView";
 import { TendersProvider } from "@/app/tenders/context/TendersProvider";
@@ -123,13 +123,10 @@ export type AdminViewRouterProps = {
   setWmPrintJobDocs: (v: WmPrintJobDocument[] | ((prev: WmPrintJobDocument[]) => WmPrintJobDocument[])) => void;
   wmPrintSettings: WmPrintSettings;
   setWmPrintSettings: (v: WmPrintSettings | ((prev: WmPrintSettings) => WmPrintSettings)) => void;
-  wmPrintJobStatuses: WmPrintJobWmStatusEntry[];
-  setWmPrintJobStatuses: (v: WmPrintJobWmStatusEntry[] | ((prev: WmPrintJobWmStatusEntry[]) => WmPrintJobWmStatusEntry[])) => void;
   commitWmPrint: (
     nextTemplates?: WmPrintTemplate[],
     nextJobDocs?: WmPrintJobDocument[],
     nextSettings?: WmPrintSettings,
-    nextJobStatuses?: WmPrintJobWmStatusEntry[],
     deletedTemplateId?: string,
     deletedJobDocId?: string,
   ) => void;
@@ -284,8 +281,6 @@ export function AdminViewRouter({
   setWmPrintJobDocs,
   wmPrintSettings,
   setWmPrintSettings,
-  wmPrintJobStatuses,
-  setWmPrintJobStatuses,
   commitWmPrint,
   pendingOperationalNoteId,
   onInitialOperationalNoteConsumed,
@@ -481,12 +476,10 @@ export function AdminViewRouter({
               jobs={jobs}
               templates={wmPrintTemplates}
               jobDocs={wmPrintJobDocs}
-              jobStatuses={wmPrintJobStatuses}
               settings={wmPrintSettings}
               uploadedBy={adminSession?.displayName || "Administrator"}
               onChangeTemplates={setWmPrintTemplates}
               onChangeJobDocs={setWmPrintJobDocs}
-              onChangeJobStatuses={setWmPrintJobStatuses}
               onChangeSettings={setWmPrintSettings}
               onCommit={commitWmPrint}
             />
