@@ -43,9 +43,10 @@ export async function generateFromTemplateBytes(
   sourceBytes: Uint8Array,
   vars: Record<WmPrintVariableKey, string>,
 ): Promise<Uint8Array | null> {
-  if (t.type === "docx") return generateDocxFromTemplate(sourceBytes, vars);
-  if (t.type === "pdf_form") return generatePdfFormFromTemplate(sourceBytes, vars, t.pdfFieldMapping);
-  if (t.type === "pdf") {
+  const type = t.name === "ZI" ? "pdf_form" : t.type;
+  if (type === "docx") return generateDocxFromTemplate(sourceBytes, vars);
+  if (type === "pdf_form") return generatePdfFormFromTemplate(sourceBytes, vars, t.pdfFieldMapping);
+  if (type === "pdf") {
     return copyStaticPdfTemplate(sourceBytes);
   }
   return null;

@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.11** WM Druk P0.1B ZI
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.12** WM Druk P0.1C ZI overlay
+
+## 2.59.12 — Odbiory WM Druk P0.1C fix ZI widoczny tekst (XFA overlay)
+
+- ZI hybrid/XFA: białe tło + Noto Sans w prostokątach pól 8/9/10 (viewer widzi adres)
+- Brak cichego copy-as-is przy błędzie fill; ZI zawsze `pdf_form`
+- `diagnoseZiPdfFieldFill` + test forensic P0.1C
 
 ## 2.59.11 — Odbiory WM Druk P0.1B fix ZI XFA
 - Mapowanie TextField2[8/9/10] · indeks fallback · test `test-wm-print-p0-1b-zi-fix.mjs`

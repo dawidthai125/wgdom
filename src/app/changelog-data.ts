@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.12",
+    label: "Odbiory WM Druk — P0.1C fix ZI widoczny tekst (XFA overlay)",
+    items: [
+      { type: "fix", text: "ZI XFA/hybrid: overlay Noto Sans na polach 8/9/10 — viewer widzi adres zamiast {{JOB_*}}" },
+      { type: "fix", text: "ZI: usunięto cichy fallback copy-as-is; szablon ZI zawsze pdf_form" },
+      { type: "improve", text: "Diagnostyka ZI: diagnoseZiPdfFieldFill + test-wm-print-p0-1c-zi-forensic.mjs" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.59.11",
     label: "Odbiory WM Druk — P0.1B fix ZI (mapowanie XFA)",
     items: [
