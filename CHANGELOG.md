@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.57.5** Audit UI notatki (pre-commit)
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.58.0** Inspektor UI notatki (P2A)
+
+## 2.58.0 — Notatki operacyjne P2A (Inspektor UI)
+- Panel inspektora: ikona Notatki operacyjne + badge unread · overlay `OperationalNotesView variant=inspector`
+- Create/comment/ACK/read status · sync 4× KV · ACL bez edit/archive/delete/share/audyt
+- Test: `scripts/test-operational-notes-p2a.mjs` · **P2 CLOSED**
 
 ## 2.57.5 — Notatki operacyjne P2C (Audit UI)
 - Sheet Audyt (Super Admin only) · filtry akcji/użytkownika/notatki · wyszukiwanie · paginacja 50 · ACK → wpis audit

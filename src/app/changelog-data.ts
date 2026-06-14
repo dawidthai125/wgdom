@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.58.0",
+    label: "Notatki operacyjne — Inspektor UI (P2A)",
+    items: [
+      { type: "new", text: "Panel inspektora — Notatki operacyjne: ikona w headerze z badge nieprzeczytanych (bez nowej zakładki bottom nav)" },
+      { type: "new", text: "Inspektor: lista aktywnych notatek, tworzenie, komentarze, ACK, historia wersji, status Przeczytali/Nie przeczytali" },
+      { type: "improve", text: "Sync chmury w InspectorPanel — kw-operational-notes + read-state + audit-log + tombstones (merge jak admin)" },
+      { type: "improve", text: "ACL defense in depth — inspektor bez edycji/archiwum/usuwania/share (lib + UI variant=inspector)" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.57.5",
     label: "Notatki operacyjne — Audit UI (P2C)",
     items: [

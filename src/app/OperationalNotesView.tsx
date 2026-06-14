@@ -31,6 +31,7 @@ import {
 import {
   type OperationalNote,
   filterOperationalNotesForViewer,
+  filterOperationalNotesForInspectorActive,
   resolveOperationalNoteJobLabel,
   canEditOperationalNote,
   canCommentOperationalNote,
@@ -74,6 +75,7 @@ export function OperationalNotesView({
   initialCreatePreset,
   onInitialCreatePresetConsumed,
   returnNav,
+  variant = "admin",
 }: {
   notes: OperationalNote[];
   jobs: Job[];
@@ -94,7 +96,9 @@ export function OperationalNotesView({
   initialCreatePreset?: { linkedJobId?: string; linkedJobNameSnapshot?: string; title?: string } | null;
   onInitialCreatePresetConsumed?: () => void;
   returnNav?: { label: string; onBack: () => void };
+  variant?: "admin" | "inspector";
 }) {
+  const isInspectorVariant = variant === "inspector";
   const [tab, setTab] = useState<Tab>("active");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -106,17 +110,19 @@ export function OperationalNotesView({
   const [commentText, setCommentText] = useState("");
   const [auditOpen, setAuditOpen] = useState(false);
 
-  const showAuditUi = canAccessOperationalNotesAudit(session);
+  const showAuditUi = !isInspectorVariant && canAccessOperationalNotesAudit(session);
 
   const visible = useMemo(
-    () => filterOperationalNotesForViewer(notes, session),
-    [notes, session],
+    () => (isInspectorVariant
+      ? filterOperationalNotesForInspectorActive(notes, session)
+      : filterOperationalNotesForViewer(notes, session)),
+    [notes, session, isInspectorVariant],
   );
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return visible
-      .filter((n) => (tab === "active" ? n.status === "active" : n.status === "archived"))
+      .filter((n) => (isInspectorVariant || tab === "active" ? n.status === "active" : n.status === "archived"))
       .filter((n) => {
         if (!q) return true;
         const jobLabel = resolveOperationalNoteJobLabel(n, jobs).toLowerCase();
@@ -127,7 +133,7 @@ export function OperationalNotesView({
           jobLabel.includes(q)
         );
       });
-  }, [visible, tab, search, jobs]);
+  }, [visible, tab, search, jobs, isInspectorVariant]);
 
   const selected = selectedId ? notes.find((n) => n.id === selectedId) ?? null : null;
 
@@ -384,6 +390,7 @@ export function OperationalNotesView({
               )}
             </div>
           </div>
+          {!isInspectorVariant && (
           <div className="flex gap-1">
             {(["active", "archived"] as Tab[]).map((t) => (
               <button
@@ -398,6 +405,7 @@ export function OperationalNotesView({
               </button>
             ))}
           </div>
+          )}
           <div className="relative">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -489,7 +497,7 @@ export function OperationalNotesView({
                 ))}
               </select>
             </div>
-            {canToggleShareOperationalNote(session) && (
+            {canToggleShareOperationalNote(session) && !isInspectorVariant && (
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <input
                   type="checkbox"
@@ -531,7 +539,7 @@ export function OperationalNotesView({
                   )}
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  {canEditOperationalNote(session) && (
+                  {canEditOperationalNote(session) && !isInspectorVariant && (
                     <button
                       type="button"
                       onClick={() => openEdit(selected)}
@@ -540,7 +548,7 @@ export function OperationalNotesView({
                       Edytuj
                     </button>
                   )}
-                  {selected.status === "active" && canArchiveOperationalNote(session) && (
+                  {selected.status === "active" && canArchiveOperationalNote(session) && !isInspectorVariant && (
                     <button
                       type="button"
                       onClick={() => handleArchive(selected)}
@@ -549,7 +557,7 @@ export function OperationalNotesView({
                       <Archive size={12} /> Archiwizuj
                     </button>
                   )}
-                  {selected.status === "archived" && canArchiveOperationalNote(session) && (
+                  {selected.status === "archived" && canArchiveOperationalNote(session) && !isInspectorVariant && (
                     <button
                       type="button"
                       onClick={() => handleRestore(selected)}
@@ -558,7 +566,7 @@ export function OperationalNotesView({
                       <ArchiveRestore size={12} /> Przywróć
                     </button>
                   )}
-                  {canDeleteOperationalNote(session) && (
+                  {canDeleteOperationalNote(session) && !isInspectorVariant && (
                     <button
                       type="button"
                       onClick={() => handleDelete(selected)}
@@ -569,7 +577,7 @@ export function OperationalNotesView({
                   )}
                 </div>
               </div>
-              {canToggleShareOperationalNote(session) && (
+              {canToggleShareOperationalNote(session) && !isInspectorVariant && (
                 <button
                   type="button"
                   onClick={() => {

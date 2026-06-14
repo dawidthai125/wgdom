@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 import { CompanyMusicPlayer } from "@/app/components/CompanyMusicPlayer";
 import { JobPhotoImg } from "@/app/JobPhotoImg";
@@ -32,7 +32,32 @@ import {
   mergeDeletedRecoverableChargeIds,
   saveDeletedRecoverableChargeIds,
   normalizeDeletedRecoverableChargeIds,
+  pushOperationalNotesToCloud,
+  getDeletedOperationalNoteIds,
+  mergeDeletedOperationalNoteIds,
+  saveDeletedOperationalNoteIds,
+  normalizeDeletedOperationalNoteIds,
+  OPERATIONAL_NOTES_KEY,
+  OPERATIONAL_NOTES_DELETED_IDS_KEY,
+  OPERATIONAL_NOTES_READ_STATE_KEY,
+  OPERATIONAL_NOTES_AUDIT_LOG_KEY,
+  addDeletedOperationalNoteId,
 } from "@/lib/cloud-sync";
+import type { Job } from "@/app/app-domain";
+import type { AdminSession } from "@/lib/admin-auth";
+import {
+  mergeOperationalNotes,
+  normalizeOperationalNotes,
+  type OperationalNote,
+} from "@/lib/operational-notes";
+import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
+import { mergeOperationalNotesAuditLog, normalizeOperationalNotesAuditLog } from "@/lib/operational-notes-audit";
+import {
+  countUnreadOperationalNotes,
+  mergeOperationalNotesReadState,
+  normalizeOperationalNotesReadState,
+  type OperationalNoteReadReceipt,
+} from "@/lib/operational-notes-read-state";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import {
   getRecoverableChargeJobStats,
@@ -114,6 +139,10 @@ import {
   type InspectorJobSection,
   type InspectorMainTab,
 } from "@/app/InspectorNavigation";
+
+const OperationalNotesView = lazy(() =>
+  import("@/app/OperationalNotesView").then((m) => ({ default: m.OperationalNotesView })),
+);
 
 const TAB_RETURN_LABELS: Record<InspectorMainTab, string> = {
   dashboard: "Pulpitu",
@@ -238,17 +267,21 @@ function uniqueWorkersOnJob(job: InspectorJob, directory: DirectoryEmployee[]): 
 }
 
 export function InspectorPanel({
-  inspectorId,
-  displayName,
+  session,
   onLogout,
 }: {
-  inspectorId: string;
-  displayName: string;
+  session: AdminSession;
   onLogout: () => void;
 }) {
+  const inspectorId = session.id;
+  const displayName = session.displayName;
   const [jobs, setJobs] = useState<InspectorJob[]>([]);
   const [directory, setDirectory] = useState<DirectoryEmployee[]>([]);
   const [recoverableCharges, setRecoverableCharges] = useState<RecoverableCharge[]>([]);
+  const [operationalNotes, setOperationalNotes] = useState<OperationalNote[]>([]);
+  const [operationalNotesReadState, setOperationalNotesReadState] = useState<OperationalNoteReadReceipt[]>([]);
+  const [operationalNotesAuditLog, setOperationalNotesAuditLog] = useState<OperationalNoteAuditEntry[]>([]);
+  const [operationalNotesOpen, setOperationalNotesOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "completed">("active");
@@ -280,6 +313,13 @@ export function InspectorPanel({
   const lastAppliedJobsJsonRef = useRef<string | null>(null);
   const lastAppliedDirJsonRef = useRef<string | null>(null);
   const lastAppliedChargesJsonRef = useRef<string | null>(null);
+  const lastAppliedOpNotesJsonRef = useRef<string | null>(null);
+  const operationalNotesRef = useRef(operationalNotes);
+  operationalNotesRef.current = operationalNotes;
+  const operationalNotesReadStateRef = useRef(operationalNotesReadState);
+  operationalNotesReadStateRef.current = operationalNotesReadState;
+  const operationalNotesAuditLogRef = useRef(operationalNotesAuditLog);
+  operationalNotesAuditLogRef.current = operationalNotesAuditLog;
   const [previewItem, setPreviewItem] = useState<InspectorFileItem | null>(null);
   const [athPreviewEnabled, setAthPreviewEnabled] = useState(() => loadAppSettingsLocal().athPreviewEnabled);
   const [jobSection, setJobSection] = useState<InspectorJobSection>("wm");
@@ -317,6 +357,26 @@ export function InspectorPanel({
         setRecoverableCharges(cachedCharges);
       }
     } catch { /* ignore */ }
+    try {
+      const cachedOpNotes = normalizeOperationalNotes(JSON.parse(localStorage.getItem(OPERATIONAL_NOTES_KEY) || "[]"));
+      if (cachedOpNotes.length > 0) {
+        const json = JSON.stringify(cachedOpNotes);
+        lastAppliedOpNotesJsonRef.current = json;
+        setOperationalNotes(cachedOpNotes);
+      }
+    } catch { /* ignore */ }
+    try {
+      const cachedRead = normalizeOperationalNotesReadState(
+        JSON.parse(localStorage.getItem(OPERATIONAL_NOTES_READ_STATE_KEY) || "[]"),
+      );
+      if (cachedRead.length > 0) setOperationalNotesReadState(cachedRead);
+    } catch { /* ignore */ }
+    try {
+      const cachedAudit = normalizeOperationalNotesAuditLog(
+        JSON.parse(localStorage.getItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY) || "[]"),
+      );
+      if (cachedAudit.length > 0) setOperationalNotesAuditLog(cachedAudit);
+    } catch { /* ignore */ }
     setLoading(false);
   }, []);
 
@@ -347,6 +407,49 @@ export function InspectorPanel({
           setPushFailed(false);
           setLastSyncedAt(new Date());
         }
+      })
+      .catch(() => {
+        pushPendingRef.current -= 1;
+        if (pushPendingRef.current <= 0) pushPendingRef.current = 0;
+        setSyncPending(true);
+        setPushFailed(true);
+      });
+  }, []);
+
+  const operationalNotesUnread = useMemo(
+    () => countUnreadOperationalNotes(operationalNotes, operationalNotesReadState, session),
+    [operationalNotes, operationalNotesReadState, session],
+  );
+
+  const commitInspectorOperationalNotes = useCallback((
+    nextNotes?: OperationalNote[],
+    nextAudit?: OperationalNoteAuditEntry[],
+    deletedId?: string,
+    nextReadState?: OperationalNoteReadReceipt[],
+  ) => {
+    const notesPayload = nextNotes ?? operationalNotesRef.current;
+    const auditPayload = nextAudit ?? operationalNotesAuditLogRef.current;
+    const readStatePayload = nextReadState ?? operationalNotesReadStateRef.current;
+    if (nextNotes) setOperationalNotes(nextNotes);
+    if (nextAudit) setOperationalNotesAuditLog(nextAudit);
+    if (nextReadState) setOperationalNotesReadState(nextReadState);
+    let deletedIds = getDeletedOperationalNoteIds();
+    if (deletedId) deletedIds = addDeletedOperationalNoteId(deletedId);
+    pushPendingRef.current += 1;
+    setSyncPending(true);
+    setPushFailed(false);
+    pushOperationalNotesToCloud(notesPayload, deletedIds, readStatePayload, auditPayload)
+      .then(() => {
+        pushPendingRef.current -= 1;
+        if (pushPendingRef.current <= 0) {
+          pushPendingRef.current = 0;
+          setSyncPending(false);
+          setPushFailed(false);
+          setLastSyncedAt(new Date());
+        }
+        try {
+          lastAppliedOpNotesJsonRef.current = JSON.stringify(notesPayload);
+        } catch { /* ignore */ }
       })
       .catch(() => {
         pushPendingRef.current -= 1;
@@ -486,6 +589,10 @@ export function InspectorPanel({
         cloudDirDeletedRaw,
         cloudChargesRaw,
         cloudChargesDeletedRaw,
+        cloudOpNotesRaw,
+        cloudOpNotesDeletedRaw,
+        cloudOpReadRaw,
+        cloudOpAuditRaw,
       ] = await fetchKeysFromCloud([
         "kw-jobs",
         "kw-directory",
@@ -493,6 +600,10 @@ export function InspectorPanel({
         DIRECTORY_DELETED_IDS_KEY,
         "kw-recoverable-charges",
         RECOVERABLE_CHARGES_DELETED_IDS_KEY,
+        OPERATIONAL_NOTES_KEY,
+        OPERATIONAL_NOTES_DELETED_IDS_KEY,
+        OPERATIONAL_NOTES_READ_STATE_KEY,
+        OPERATIONAL_NOTES_AUDIT_LOG_KEY,
       ]);
       const mergedJobsDeleted = mergeDeletedJobIds(getDeletedJobIds(), normalizeDeletedJobIds(cloudJobsDeletedRaw));
       saveDeletedJobIds(mergedJobsDeleted);
@@ -547,6 +658,40 @@ export function InspectorPanel({
         setRecoverableCharges(mergedCharges);
         try { localStorage.setItem("kw-recoverable-charges", nextChargesJson); } catch { /* ignore */ }
       }
+      const mergedOpNotesDeleted = mergeDeletedOperationalNoteIds(
+        getDeletedOperationalNoteIds(),
+        normalizeDeletedOperationalNoteIds(cloudOpNotesDeletedRaw),
+      );
+      saveDeletedOperationalNoteIds(mergedOpNotesDeleted);
+      let localOpNotes: OperationalNote[] = [];
+      try {
+        localOpNotes = normalizeOperationalNotes(JSON.parse(localStorage.getItem(OPERATIONAL_NOTES_KEY) || "[]"));
+      } catch { /* ignore */ }
+      const mergedOpNotes = mergeOperationalNotes(localOpNotes, cloudOpNotesRaw, mergedOpNotesDeleted);
+      const nextOpNotesJson = JSON.stringify(mergedOpNotes);
+      if (lastAppliedOpNotesJsonRef.current !== nextOpNotesJson) {
+        lastAppliedOpNotesJsonRef.current = nextOpNotesJson;
+        setOperationalNotes(mergedOpNotes);
+        try { localStorage.setItem(OPERATIONAL_NOTES_KEY, nextOpNotesJson); } catch { /* ignore */ }
+      }
+      let localOpRead: OperationalNoteReadReceipt[] = [];
+      try {
+        localOpRead = normalizeOperationalNotesReadState(
+          JSON.parse(localStorage.getItem(OPERATIONAL_NOTES_READ_STATE_KEY) || "[]"),
+        );
+      } catch { /* ignore */ }
+      const mergedOpRead = mergeOperationalNotesReadState(localOpRead, cloudOpReadRaw);
+      setOperationalNotesReadState(mergedOpRead);
+      try { localStorage.setItem(OPERATIONAL_NOTES_READ_STATE_KEY, JSON.stringify(mergedOpRead)); } catch { /* ignore */ }
+      let localOpAudit: OperationalNoteAuditEntry[] = [];
+      try {
+        localOpAudit = normalizeOperationalNotesAuditLog(
+          JSON.parse(localStorage.getItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY) || "[]"),
+        );
+      } catch { /* ignore */ }
+      const mergedOpAudit = mergeOperationalNotesAuditLog(localOpAudit, cloudOpAuditRaw);
+      setOperationalNotesAuditLog(mergedOpAudit);
+      try { localStorage.setItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY, JSON.stringify(mergedOpAudit)); } catch { /* ignore */ }
       setLastSyncedAt(new Date());
       setPushFailed(false);
       if (pushPendingRef.current <= 0) setSyncPending(false);
@@ -558,6 +703,13 @@ export function InspectorPanel({
         setJobs(normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]")).map(normalizeJob));
         setDirectory(JSON.parse(localStorage.getItem("kw-directory") || "[]"));
         setRecoverableCharges(normalizeRecoverableCharges(JSON.parse(localStorage.getItem("kw-recoverable-charges") || "[]")));
+        setOperationalNotes(normalizeOperationalNotes(JSON.parse(localStorage.getItem(OPERATIONAL_NOTES_KEY) || "[]")));
+        setOperationalNotesReadState(normalizeOperationalNotesReadState(
+          JSON.parse(localStorage.getItem(OPERATIONAL_NOTES_READ_STATE_KEY) || "[]"),
+        ));
+        setOperationalNotesAuditLog(normalizeOperationalNotesAuditLog(
+          JSON.parse(localStorage.getItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY) || "[]"),
+        ));
       } catch { /* ignore */ }
       if (!silent) setMsg("Nie udało się odświeżyć danych");
     } finally {
@@ -980,7 +1132,7 @@ export function InspectorPanel({
   };
 
   return (
-    <div className="flex flex-col bg-background text-foreground" style={{ fontFamily: "'Inter', sans-serif", height: "100dvh" }}>
+    <div className="relative flex flex-col bg-background text-foreground" style={{ fontFamily: "'Inter', sans-serif", height: "100dvh" }}>
       <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card shrink-0 gap-2" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
         <div className="flex items-center gap-2 min-w-0">
           <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-7 w-auto shrink-0"/>
@@ -1014,6 +1166,20 @@ export function InspectorPanel({
           >
             <RefreshCw size={14} className={syncing ? "animate-spin" : ""}/>
             <span className="hidden sm:inline">{syncing ? "…" : "Odśwież"}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setOperationalNotesOpen(true)}
+            className="relative p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-secondary"
+            title={operationalNotesUnread > 0 ? `Notatki operacyjne · ${operationalNotesUnread} nieprzeczytanych` : "Notatki operacyjne"}
+            aria-label={operationalNotesUnread > 0 ? `Notatki operacyjne, ${operationalNotesUnread} nieprzeczytanych` : "Notatki operacyjne"}
+          >
+            <ScrollText size={16} className={operationalNotesUnread > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}/>
+            {operationalNotesUnread > 0 && (
+              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center leading-none">
+                {operationalNotesUnread > 9 ? "9+" : operationalNotesUnread}
+              </span>
+            )}
           </button>
           <button
             type="button"
@@ -1639,6 +1805,32 @@ export function InspectorPanel({
         duration={4000}
         style={{ top: "calc(env(safe-area-inset-top, 0px) + 4.25rem)" }}
       />
+
+      {operationalNotesOpen && (
+        <div
+          className="absolute inset-0 z-40 flex flex-col bg-background"
+          style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+        >
+          <Suspense fallback={<div className="flex-1 flex items-center justify-center"><p className="text-sm text-muted-foreground">Ładowanie notatek…</p></div>}>
+            <OperationalNotesView
+              variant="inspector"
+              notes={operationalNotes}
+              jobs={jobs}
+              session={session}
+              auditLog={operationalNotesAuditLog}
+              readState={operationalNotesReadState}
+              onChangeReadState={setOperationalNotesReadState}
+              onChangeNotes={setOperationalNotes}
+              onChangeAuditLog={setOperationalNotesAuditLog}
+              onCommit={commitInspectorOperationalNotes}
+              returnNav={{
+                label: "inspektora",
+                onBack: () => setOperationalNotesOpen(false),
+              }}
+            />
+          </Suspense>
+        </div>
+      )}
     </div>
   );
 }

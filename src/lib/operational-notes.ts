@@ -254,6 +254,18 @@ export function filterOperationalNotesForViewer(
   return notes.filter((n) => canViewOperationalNote(n, session));
 }
 
+/** Inspektor — tylko aktywne notatki widoczne wg ACL (P2A). */
+export function filterOperationalNotesForInspectorActive(
+  notes: OperationalNote[],
+  session: AdminSession | null | undefined,
+): OperationalNote[] {
+  return filterOperationalNotesForViewer(notes, session).filter((n) => n.status === "active");
+}
+
+function inspectorStaffMutationBlocked(session: AdminSession): boolean {
+  return adminIsInspector(session.role);
+}
+
 export function filterOperationalNotesForJob(
   notes: OperationalNote[],
   jobId: string,
@@ -354,6 +366,9 @@ export function updateOperationalNoteContent(input: {
   title: string;
   content: string;
 }): OperationalNoteMutationResult {
+  if (inspectorStaffMutationBlocked(input.session)) {
+    return { notes: input.notes, auditEntries: [] };
+  }
   const existing = input.notes.find((n) => n.id === input.noteId);
   if (!existing) return { notes: input.notes, auditEntries: [] };
   const now = new Date().toISOString();
@@ -427,6 +442,9 @@ export function archiveOperationalNote(input: {
   session: AdminSession;
   noteId: string;
 }): OperationalNoteMutationResult {
+  if (inspectorStaffMutationBlocked(input.session)) {
+    return { notes: input.notes, auditEntries: [] };
+  }
   const existing = input.notes.find((n) => n.id === input.noteId);
   if (!existing || existing.status === "archived") return { notes: input.notes, auditEntries: [] };
   const now = new Date().toISOString();
@@ -449,6 +467,9 @@ export function restoreOperationalNote(input: {
   session: AdminSession;
   noteId: string;
 }): OperationalNoteMutationResult {
+  if (inspectorStaffMutationBlocked(input.session)) {
+    return { notes: input.notes, auditEntries: [] };
+  }
   const existing = input.notes.find((n) => n.id === input.noteId);
   if (!existing || existing.status !== "archived") return { notes: input.notes, auditEntries: [] };
   const now = new Date().toISOString();
@@ -472,6 +493,9 @@ export function setOperationalNoteShare(input: {
   noteId: string;
   shareWithInspector: boolean;
 }): OperationalNoteMutationResult {
+  if (inspectorStaffMutationBlocked(input.session)) {
+    return { notes: input.notes, auditEntries: [] };
+  }
   const existing = input.notes.find((n) => n.id === input.noteId);
   if (!existing || existing.shareWithInspector === input.shareWithInspector) {
     return { notes: input.notes, auditEntries: [] };
@@ -497,6 +521,9 @@ export function setOperationalNoteJobLink(input: {
   linkedJobId?: string;
   linkedJobNameSnapshot?: string;
 }): OperationalNoteMutationResult {
+  if (inspectorStaffMutationBlocked(input.session)) {
+    return { notes: input.notes, auditEntries: [] };
+  }
   const existing = input.notes.find((n) => n.id === input.noteId);
   if (!existing) return { notes: input.notes, auditEntries: [] };
   const nextJobId = input.linkedJobId?.trim() || undefined;
@@ -526,6 +553,9 @@ export function deleteOperationalNoteLogical(input: {
   session: AdminSession;
   noteId: string;
 }): { notes: OperationalNote[]; auditEntries: OperationalNoteAuditEntry[]; deletedId: string } {
+  if (inspectorStaffMutationBlocked(input.session)) {
+    return { notes: input.notes, auditEntries: [], deletedId: "" };
+  }
   const existing = input.notes.find((n) => n.id === input.noteId);
   if (!existing) return { notes: input.notes, auditEntries: [], deletedId: "" };
   return {

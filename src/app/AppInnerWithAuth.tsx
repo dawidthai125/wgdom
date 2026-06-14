@@ -97,7 +97,7 @@ export function AppInnerWithAuth() {
   if (appMode === "inspector" && inspectorSession) {
     return (
       <Suspense fallback={<div className="min-h-[100dvh] flex items-center justify-center bg-background"><p className="text-sm text-muted-foreground">Ładowanie panelu inspektora…</p></div>}>
-        <InspectorPanel inspectorId={inspectorSession.id} displayName={inspectorSession.displayName} onLogout={logout}/>
+        <InspectorPanel session={inspectorSession} onLogout={logout}/>
       </Suspense>
     );
   }

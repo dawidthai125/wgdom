@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.57.5** · notatki Audit UI P2C)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-14 (v2.57.5 notatki Audit UI P2C)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.58.0** · notatki Inspektor UI P2A)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-14 (v2.58.0 notatki Inspektor UI P2A — **P2 CLOSED**)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -426,7 +426,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | `kw-contacts` | Kontakty e-mail | Admin |
 | `kw-employee-leaves` | Nieobecności pracowników (urlop / L4 / bezpłatny, tygodnie Pn–So) | Admin |
 | `kw-recoverable-charges` | Pozycje do rozliczenia / odzyskania (Sprint 20.3A) | Admin (write); Inspektor (read-only, 20.5A.3A) |
-| `kw-operational-notes` | Notatki operacyjne — baza wiedzy (P0, v2.57.0) | Admin staff (write); inspektor ACL w lib (UI P2) |
+| `kw-operational-notes` | Notatki operacyjne — baza wiedzy (P0, v2.57.0) | Admin staff (write); inspektor read/create/comment/ACK (P2A v2.58.0) |
 
 **Notatki operacyjne (P0, v2.57.0):**
 
@@ -435,8 +435,10 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Osobna domena** | **≠** `job.notes` (Uwagi wewnętrzne roboty) **≠** `job.jobNotes[]` (WM / billing) |
 | **Model** | Tablica `OperationalNote[]` w `kw-operational-notes` — tytuł, treść, `contentRev`, komentarze, `revisions[]` (tylko edycja treści), status `active` / `archived` |
 | **Powiązanie z robotą** | Opcjonalne `linkedJobId` + `linkedJobNameSnapshot`; panel `JobOperationalNotesPanel` w Roboty → Przegląd; deep link + `returnNav` do tej samej roboty |
-| **ACL (P0)** | `super_admin` / `admin` / `moderator` — pełny CRUD w module admin; inspektor — `canView` / `canComment` / `canCreate` w lib, **bez UI** w admin panel (P2) |
-| **Udostępnienie inspektorowi** | `shareWithInspector` — widoczność dla roli inspektor (lib); toggle w UI admin |
+| **ACL (P0 + P2A)** | `super_admin` / `admin` / `moderator` — pełny CRUD w module admin; inspektor — `canView` / `canComment` / `canCreate` / ACK; **bez** edit/archive/delete/share (guardy lib `inspectorStaffMutationBlocked`) |
+| **Inspektor UI (P2A, v2.58.0)** | `OperationalNotesView` z `variant="inspector"` w overlay `InspectorPanel` — ikona ScrollText + badge unread w headerze (bez 6. taba bottom nav); lista tylko **aktywnych** (`filterOperationalNotesForInspectorActive`); brak Archiwum, Audytu, Edytuj, Usuń, share toggle |
+| **Inspektor sync (P2A)** | `InspectorPanel` — fetch/merge/push tych samych 4 kluczy co admin: `pushOperationalNotesToCloud()`, merge notes/read-state/audit/tombstones przy `refreshFromCloud` |
+| **Udostępnienie inspektorowi** | `shareWithInspector` — widoczność dla roli inspektor; przy create inspektora **auto `true`** (lib); toggle w UI admin |
 | **Archiwum** | `archiveOperationalNote` / `restoreOperationalNote` — bez hard delete |
 | **Logical delete** | `deleteOperationalNoteLogical` + tombstone `kw-operational-notes-deleted-ids` |
 | **Audit log** | `kw-operational-notes-audit-log` — append-only, cap 3000 (`operational-notes-audit.ts`); akcje: create, update, comment, archive, restore, delete, share_toggle, job_link_change, **ack** (P2C v2.57.5) |
@@ -447,7 +449,7 @@ Inspektor **nie** syncuje payroll / archive / contacts — celowo.
 | **Sync** | `pushOperationalNotesToCloud()`, `pullOperationalNotesAuxFromCloud()`, `mergeOperationalNotes()` — LWW po `updatedAt` / `lastActivityAt` |
 | **Menu** | **Notatki operacyjne** — między Roboty a Inspektor (`operationalnotes`) |
 
-Pliki: `src/lib/operational-notes.ts`, `src/lib/operational-notes-audit.ts`, `src/lib/operational-notes-audit-filters.ts`, `src/lib/operational-notes-read-state.ts`, `src/lib/operational-notes-dashboard.ts`, `src/app/OperationalNotesView.tsx`, `src/app/OperationalNotesAuditPanel.tsx`, `src/app/DashboardOperationalNotesWidget.tsx`, `src/app/JobOperationalNotesPanel.tsx`, `src/app/App.tsx`, `src/app/admin/admin-nav.ts`.
+Pliki: `src/lib/operational-notes.ts`, `src/lib/operational-notes-audit.ts`, `src/lib/operational-notes-audit-filters.ts`, `src/lib/operational-notes-read-state.ts`, `src/lib/operational-notes-dashboard.ts`, `src/app/OperationalNotesView.tsx`, `src/app/OperationalNotesAuditPanel.tsx`, `src/app/DashboardOperationalNotesWidget.tsx`, `src/app/JobOperationalNotesPanel.tsx`, `src/app/InspectorPanel.tsx`, `src/app/AppInnerWithAuth.tsx`, `src/app/App.tsx`, `src/app/admin/admin-nav.ts`.
 
 **Do rozliczenia (Sprint 20.3A + 20.4A Foundation, v2.47.00):**
 
@@ -1831,6 +1833,7 @@ WGDOM1/
 | `npm run test:mobile` | Playwright — domyślnie **https://www.wgdom.fun** |
 | `PW_BASE_URL=http://127.0.0.1:4173 npm run test:mobile` | Testy na lokalnym preview |
 | `npx vite-node scripts/test-operational-notes-p0.mjs` | P0 Notatki operacyjne — lib ACL, merge, tombstone (24 testy) |
+| `npx vite-node scripts/test-operational-notes-p2a.mjs` | P2A Inspektor UI — ACL, sync wiring, header badge (38 testów) |
 | `npx vite-node scripts/test-operational-notes-p2c.mjs` | P2C Audit UI — ack audit, filtry, paginacja, ACL Super Admin (36 testów) |
 
 **GitHub Actions:**
