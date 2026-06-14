@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.1",
+    label: "Odbiory WM Druk — multi-file groups (P1.0.1)",
+    items: [
+      { type: "new", text: "Grupy szablonów — wiele plików w jednej kategorii (Uprawnienia (3), Gaz (2)…) z licznikiem" },
+      { type: "new", text: "Szablony: Dodaj plik (append), Usuń/Pobierz/Podgląd PDF per plik — bez nadpisywania" },
+      { type: "improve", text: "ZIP i generator — wszystkie pliki z grupy; migracja legacy single-file → files[1]" },
+      { type: "improve", text: "Odbiory: wiele dokumentów per slot job_upload; test test-wm-print-p1-1.mjs" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.59.0",
     label: "Odbiory WM Druk — moduł P1",
     items: [

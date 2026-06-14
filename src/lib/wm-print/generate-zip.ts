@@ -5,7 +5,7 @@ import { wmPrintZipBaseName } from "@/lib/wm-print/address-vars";
 import { generateDocxFromTemplate, generatePdfTextFromTemplate } from "@/lib/wm-print/generate-docx";
 import { generatePdfFormFromTemplate, generatePdfPlainFromTemplate } from "@/lib/wm-print/generate-pdf";
 import { getWmPrintJobDocumentsForJob } from "@/lib/wm-print/job-documents";
-import { getEnabledWmPrintTemplates } from "@/lib/wm-print/templates";
+import { getEnabledWmPrintTemplates, getWmPrintTemplateFiles } from "@/lib/wm-print/templates";
 import { fetchWmPrintFileBytes } from "@/lib/wm-print/upload";
 import type {
   WmPrintGenerateOptions,
@@ -13,12 +13,14 @@ import type {
   WmPrintJobDocument,
   WmPrintSettings,
   WmPrintTemplate,
+  WmPrintTemplateFile,
   WmPrintVariableKey,
 } from "@/lib/wm-print/types";
 import { buildWmPrintVariableMap } from "@/lib/wm-print/variables";
 
-function slugFileName(name: string): string {
-  return name
+export function slugWmPrintFileName(name: string): string {
+  const base = name.replace(/\.[^.]+$/, "");
+  return base
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-zA-Z0-9]+/g, "-")
@@ -26,9 +28,9 @@ function slugFileName(name: string): string {
     .slice(0, 60);
 }
 
-function extForTemplate(t: WmPrintTemplate): string {
-  if (t.type === "docx") return "docx";
-  return "pdf";
+function extFromFileName(name: string, fallback: string): string {
+  const ext = name.split(".").pop()?.toLowerCase();
+  return ext && ext.length <= 5 ? ext : fallback;
 }
 
 function mimeForExt(ext: string): string {
@@ -36,23 +38,36 @@ function mimeForExt(ext: string): string {
   return "application/pdf";
 }
 
-async function generateFromTemplate(
+export async function generateFromTemplateBytes(
   t: WmPrintTemplate,
+  sourceBytes: Uint8Array,
   vars: Record<WmPrintVariableKey, string>,
 ): Promise<Uint8Array | null> {
-  if (!t.storageUrl) return null;
-  const bytes = await fetchWmPrintFileBytes(t.storageUrl);
-  if (t.type === "docx") return generateDocxFromTemplate(bytes, vars);
-  if (t.type === "pdf_form") return generatePdfFormFromTemplate(bytes, vars, t.pdfFieldMapping);
+  if (t.type === "docx") return generateDocxFromTemplate(sourceBytes, vars);
+  if (t.type === "pdf_form") return generatePdfFormFromTemplate(sourceBytes, vars, t.pdfFieldMapping);
   if (t.type === "pdf") {
     try {
-      return await generatePdfPlainFromTemplate(bytes, vars);
+      return await generatePdfPlainFromTemplate(sourceBytes, vars);
     } catch {
-      return generatePdfTextFromTemplate(bytes, vars);
+      return generatePdfTextFromTemplate(sourceBytes, vars);
     }
   }
   return null;
 }
+
+export function buildWmPrintZipEntryName(
+  groupOrder: number,
+  fileIndex: number,
+  originalFileName: string,
+  fallbackExt: string,
+): string {
+  const ext = extFromFileName(originalFileName, fallbackExt);
+  const slug = slugWmPrintFileName(originalFileName) || `plik-${fileIndex + 1}`;
+  const prefix = String(groupOrder).padStart(2, "0");
+  return `${prefix}-${slug}.${ext}`;
+}
+
+export type WmPrintBytesFetcher = (url: string) => Promise<Uint8Array>;
 
 export async function buildWmPrintFilesForJob(
   job: Job,
@@ -61,6 +76,7 @@ export async function buildWmPrintFilesForJob(
   settings: WmPrintSettings,
   opts: WmPrintGenerateOptions,
   selectedTemplateIds?: string[],
+  fetchBytes: WmPrintBytesFetcher = fetchWmPrintFileBytes,
 ): Promise<WmPrintGeneratedFile[]> {
   const vars = buildWmPrintVariableMap(job, settings, opts);
   const enabled = getEnabledWmPrintTemplates(templates);
@@ -73,40 +89,48 @@ export async function buildWmPrintFilesForJob(
 
   for (const t of pool) {
     if (t.kind === "job_upload") {
-      const doc = jobDocList.find((d) => d.templateId === t.id) ?? jobDocList.find((d) => d.name === t.name);
-      if (!doc) continue;
-      const bytes = await fetchWmPrintFileBytes(doc.publicUrl);
-      const ext = doc.originalFileName.split(".").pop()?.toLowerCase() ?? "pdf";
-      files.push({
-        fileName: `${String(t.sortOrder).padStart(2, "0")}-${slugFileName(t.name)}.${ext}`,
-        bytes,
-        mimeType: mimeForExt(ext),
-        templateId: t.id,
-        jobDocId: doc.id,
-        sortOrder: t.sortOrder,
-      });
+      const docs = jobDocList.filter((d) => d.templateId === t.id);
+      const fallbackDocs = docs.length > 0 ? docs : jobDocList.filter((d) => d.name === t.name);
+      for (let idx = 0; idx < fallbackDocs.length; idx++) {
+        const doc = fallbackDocs[idx];
+        const bytes = await fetchBytes(doc.publicUrl);
+        const ext = extFromFileName(doc.originalFileName, "pdf");
+        files.push({
+          fileName: buildWmPrintZipEntryName(t.sortOrder, idx, doc.originalFileName, ext),
+          bytes,
+          mimeType: mimeForExt(ext),
+          templateId: t.id,
+          jobDocId: doc.id,
+          sortOrder: t.sortOrder + idx * 0.01,
+        });
+      }
       continue;
     }
 
-    if (!t.storageUrl) continue;
-    const bytes = await generateFromTemplate(t, vars);
-    if (!bytes) continue;
-    const ext = extForTemplate(t);
-    files.push({
-      fileName: `${String(t.sortOrder).padStart(2, "0")}-${slugFileName(t.name)}.${ext}`,
-      bytes,
-      mimeType: mimeForExt(ext),
-      templateId: t.id,
-      sortOrder: t.sortOrder,
-    });
+    const groupFiles = getWmPrintTemplateFiles(t);
+    for (let idx = 0; idx < groupFiles.length; idx++) {
+      const tf = groupFiles[idx];
+      const sourceBytes = await fetchBytes(tf.storageUrl);
+      const generated = await generateFromTemplateBytes(t, sourceBytes, vars);
+      if (!generated) continue;
+      const ext = extFromFileName(tf.originalFileName, t.type === "docx" ? "docx" : "pdf");
+      files.push({
+        fileName: buildWmPrintZipEntryName(t.sortOrder, idx, tf.originalFileName, ext),
+        bytes: generated,
+        mimeType: mimeForExt(ext),
+        templateId: t.id,
+        templateFileId: tf.id,
+        sortOrder: t.sortOrder + idx * 0.01,
+      });
+    }
   }
 
   if (!selectedTemplateIds?.length) {
     for (const doc of jobDocList.filter((d) => !d.templateId)) {
-      const bytes = await fetchWmPrintFileBytes(doc.publicUrl);
-      const ext = doc.originalFileName.split(".").pop()?.toLowerCase() ?? "pdf";
+      const bytes = await fetchBytes(doc.publicUrl);
+      const ext = extFromFileName(doc.originalFileName, "pdf");
       files.push({
-        fileName: `${slugFileName(doc.name)}.${ext}`,
+        fileName: `${slugWmPrintFileName(doc.name)}.${ext}`,
         bytes,
         mimeType: mimeForExt(ext),
         jobDocId: doc.id,
@@ -143,16 +167,17 @@ export async function downloadWmPrintZip(
   }
 }
 
-export async function downloadWmPrintSingleFile(
+export async function downloadWmPrintTemplateFileGenerated(
   job: Job,
   template: WmPrintTemplate,
+  templateFile: WmPrintTemplateFile,
   jobDocs: WmPrintJobDocument[],
   settings: WmPrintSettings,
   opts: WmPrintGenerateOptions,
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     const files = await buildWmPrintFilesForJob(job, [template], jobDocs, settings, opts, [template.id]);
-    const f = files[0];
+    const f = files.find((x) => x.templateFileId === templateFile.id) ?? files[0];
     if (!f) return { ok: false, error: "Nie udało się wygenerować dokumentu" };
     const blob = new Blob([f.bytes], { type: f.mimeType });
     saveAs(blob, f.fileName);

@@ -6,7 +6,6 @@ import {
   ChevronUp,
   ChevronDown,
   FileText,
-  Upload,
   Download,
   Package,
   Settings,
@@ -14,6 +13,7 @@ import {
   ToggleLeft,
   ToggleRight,
   Loader2,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
@@ -30,13 +30,19 @@ import {
   deleteWmPrintJobDocumentLogical,
   getWmPrintJobDocumentsForJob,
 } from "@/lib/wm-print/job-documents";
-import { downloadWmPrintSingleFile, downloadWmPrintZip } from "@/lib/wm-print/generate-zip";
+import { downloadWmPrintTemplateFileGenerated, downloadWmPrintZip } from "@/lib/wm-print/generate-zip";
 import {
+  addWmPrintTemplateFile,
   createWmPrintTemplate,
+  countWmPrintTemplateFiles,
   deleteWmPrintTemplateLogical,
+  getWmPrintTemplateFiles,
+  isWmPrintPdfFileName,
+  removeWmPrintTemplateFile,
   reorderWmPrintTemplates,
   updateWmPrintTemplate,
   wmPrintTemplateFileLabel,
+  wmPrintTemplateGroupLabel,
 } from "@/lib/wm-print/templates";
 import { DEFAULT_WM_PRINT_SETTINGS, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
 import type {
@@ -45,11 +51,12 @@ import type {
   WmPrintJobDocument,
   WmPrintSettings,
   WmPrintTemplate,
+  WmPrintTemplateFile,
   WmPrintTemplateType,
   WmPrintVariableKey,
 } from "@/lib/wm-print/types";
 import { WM_PRINT_VARIABLE_KEYS, WM_PRINT_VARIABLE_LABELS } from "@/lib/wm-print/types";
-import { uploadWmPrintJobDocumentFile, uploadWmPrintTemplateFile } from "@/lib/wm-print/upload";
+import { fetchWmPrintFileBytes, uploadWmPrintJobDocumentFile, uploadWmPrintTemplateFile } from "@/lib/wm-print/upload";
 import { formatWmPrintDate } from "@/lib/wm-print/variables";
 import {
   addDeletedWmPrintJobDocId,
@@ -139,23 +146,32 @@ export function WmPrintView({
     else toast.error(res.error || "Błąd generowania ZIP");
   };
 
-  const handleGenerateSingle = async (job: Job, template: WmPrintTemplate) => {
+  const handleGenerateSingle = async (job: Job, template: WmPrintTemplate, templateFile: WmPrintTemplateFile) => {
     setBusy(true);
-    const res = await downloadWmPrintSingleFile(job, template, jobDocs, normalizedSettings, genOpts());
+    const res = await downloadWmPrintTemplateFileGenerated(
+      job,
+      template,
+      templateFile,
+      jobDocs,
+      normalizedSettings,
+      genOpts(),
+    );
     setBusy(false);
-    if (res.ok) toast.success(`Pobrano: ${template.name}`);
+    if (res.ok) toast.success(`Pobrano: ${templateFile.originalFileName}`);
     else toast.error(res.error || "Błąd generowania");
   };
 
   const handleTemplateFilePick = async (file: File, templateId: string) => {
     setBusy(true);
-    const up = await uploadWmPrintTemplateFile(templateId, file);
+    const fileId = crypto.randomUUID();
+    const up = await uploadWmPrintTemplateFile(templateId, file, fileId);
     if ("error" in up) {
       setBusy(false);
       toast.error(up.error);
       return;
     }
-    const next = updateWmPrintTemplate(templates, templateId, {
+    const next = addWmPrintTemplateFile(templates, templateId, {
+      id: fileId,
       storagePath: up.path,
       storageUrl: up.publicUrl,
       originalFileName: file.name,
@@ -163,7 +179,43 @@ export function WmPrintView({
     onChangeTemplates(next);
     commitAll(next);
     setBusy(false);
-    toast.success("Wgrano szablon");
+    toast.success(`Dodano plik: ${file.name}`);
+  };
+
+  const handleRemoveTemplateFile = (templateId: string, fileId: string) => {
+    const next = removeWmPrintTemplateFile(templates, templateId, fileId);
+    onChangeTemplates(next);
+    commitAll(next);
+    toast.success("Usunięto plik z grupy");
+  };
+
+  const handleDownloadTemplateFileRaw = async (tf: WmPrintTemplateFile) => {
+    try {
+      setBusy(true);
+      const bytes = await fetchWmPrintFileBytes(tf.storageUrl);
+      const blob = new Blob([bytes], {
+        type: tf.originalFileName.endsWith(".docx")
+          ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          : "application/pdf",
+      });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = tf.originalFileName;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch {
+      toast.error("Nie udało się pobrać pliku");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handlePreviewTemplateFile = (tf: WmPrintTemplateFile) => {
+    if (!isWmPrintPdfFileName(tf.originalFileName)) {
+      toast.message("Podgląd dostępny tylko dla PDF");
+      return;
+    }
+    window.open(tf.storageUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleJobDocUpload = async (file: File, job: Job, templateId?: string, name?: string) => {
@@ -411,50 +463,67 @@ export function WmPrintView({
                         .sort((a, b) => a.sortOrder - b.sortOrder)
                         .map((t) => {
                           const checked = selectedTemplateIds.has(t.id);
-                          const jobDoc =
-                            t.kind === "job_upload"
-                              ? selectedJobDocs.find((d) => d.templateId === t.id)
-                              : null;
+                          const groupFiles = getWmPrintTemplateFiles(t);
+                          const jobDocsForSlot = selectedJobDocs.filter((d) => d.templateId === t.id);
+                          const fileCount =
+                            t.kind === "job_upload" ? jobDocsForSlot.length : groupFiles.length;
                           return (
-                            <li
-                              key={t.id}
-                              className="flex items-center gap-2 text-xs py-1 border-b border-border/50 last:border-0"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() => toggleTemplateSelection(t.id)}
-                              />
-                              <span className="flex-1 truncate">{t.name}</span>
-                              {t.kind === "generated" && t.storageUrl && (
-                                <button
-                                  type="button"
-                                  title="Generuj pojedynczy"
-                                  disabled={busy}
-                                  onClick={() => handleGenerateSingle(selectedJob, t)}
-                                  className="p-1 rounded hover:bg-secondary"
-                                >
-                                  <Download size={12} />
-                                </button>
-                              )}
-                              {t.kind === "job_upload" && (
-                                <>
-                                  {jobDoc ? (
-                                    <span className="text-emerald-600">✓</span>
-                                  ) : (
+                            <li key={t.id} className="py-1 border-b border-border/50 last:border-0 space-y-0.5">
+                              <div className="flex items-center gap-2 text-xs">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => toggleTemplateSelection(t.id)}
+                                />
+                                <span className="flex-1 truncate font-medium">
+                                  {t.name} ({fileCount})
+                                </span>
+                                {t.kind === "job_upload" && (
+                                  <button
+                                    type="button"
+                                    className="text-primary text-[10px]"
+                                    onClick={() => {
+                                      setPendingJobDocTemplateId(t.id);
+                                      jobDocFileRef.current?.click();
+                                    }}
+                                  >
+                                    + plik
+                                  </button>
+                                )}
+                              </div>
+                              {t.kind === "generated" &&
+                                groupFiles.map((tf) => (
+                                  <div key={tf.id} className="flex items-center gap-2 text-[10px] pl-5 text-muted-foreground">
+                                    <span className="flex-1 truncate">{tf.originalFileName}</span>
                                     <button
                                       type="button"
-                                      className="text-primary text-[10px]"
-                                      onClick={() => {
-                                        setPendingJobDocTemplateId(t.id);
-                                        jobDocFileRef.current?.click();
-                                      }}
+                                      title="Generuj z danymi roboty"
+                                      disabled={busy}
+                                      onClick={() => handleGenerateSingle(selectedJob, t, tf)}
+                                      className="p-0.5 rounded hover:bg-secondary"
                                     >
-                                      Wgraj
+                                      <Download size={10} />
                                     </button>
-                                  )}
-                                </>
-                              )}
+                                  </div>
+                                ))}
+                              {t.kind === "job_upload" &&
+                                jobDocsForSlot.map((d) => (
+                                  <div key={d.id} className="flex items-center gap-2 text-[10px] pl-5 text-muted-foreground">
+                                    <span className="flex-1 truncate">{d.originalFileName}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const { docs, deletedId } = deleteWmPrintJobDocumentLogical(jobDocs, d.id);
+                                        addDeletedWmPrintJobDocId(deletedId);
+                                        onChangeJobDocs(docs);
+                                        commitAll(templates, docs, normalizedSettings, undefined, deletedId);
+                                      }}
+                                      className="p-0.5 text-destructive"
+                                    >
+                                      <Trash2 size={10} />
+                                    </button>
+                                  </div>
+                                ))}
                             </li>
                           );
                         })}
@@ -519,8 +588,10 @@ export function WmPrintView({
             </p>
 
             <div className="rounded-xl border border-border divide-y divide-border">
-              {[...templates].sort((a, b) => a.sortOrder - b.sortOrder).map((t) => (
-                <div key={t.id} className="p-4 space-y-2">
+              {[...templates].sort((a, b) => a.sortOrder - b.sortOrder).map((t) => {
+                const groupFiles = getWmPrintTemplateFiles(t);
+                return (
+                <div key={t.id} className="p-4 space-y-3">
                   <div className="flex items-start gap-2">
                     <div className="flex flex-col gap-0.5">
                       <button type="button" onClick={() => moveTemplate(t.id, -1)} className="p-0.5 hover:bg-secondary rounded">
@@ -538,6 +609,9 @@ export function WmPrintView({
                           onBlur={() => commitAll()}
                           className="flex-1 min-w-[160px] font-medium text-sm px-2 py-1 rounded border border-border bg-background"
                         />
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {wmPrintTemplateGroupLabel(t)}
+                        </span>
                         <button
                           type="button"
                           onClick={() => {
@@ -555,7 +629,7 @@ export function WmPrintView({
                         {t.kind === "job_upload" ? "Wgrywany per robota" : t.type.toUpperCase()} · {wmPrintTemplateFileLabel(t)}
                       </p>
                       {t.kind === "generated" && (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2 items-center">
                           <select
                             value={t.type}
                             onChange={(e) => {
@@ -579,16 +653,54 @@ export function WmPrintView({
                             }}
                             className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-border hover:bg-secondary"
                           >
-                            <Upload size={12} />
-                            Wgraj plik
+                            <Plus size={12} />
+                            Dodaj plik
                           </button>
                         </div>
+                      )}
+                      {t.kind === "generated" && groupFiles.length > 0 && (
+                        <ul className="space-y-1 rounded-lg border border-border/60 divide-y divide-border/40">
+                          {groupFiles.map((tf) => (
+                            <li key={tf.id} className="flex items-center gap-2 px-2 py-1.5 text-xs">
+                              <span className="flex-1 truncate">{tf.originalFileName}</span>
+                              {isWmPrintPdfFileName(tf.originalFileName) && (
+                                <button
+                                  type="button"
+                                  title="Podgląd PDF"
+                                  onClick={() => handlePreviewTemplateFile(tf)}
+                                  className="p-1 rounded hover:bg-secondary text-muted-foreground"
+                                >
+                                  <Eye size={12} />
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                title="Pobierz"
+                                onClick={() => void handleDownloadTemplateFileRaw(tf)}
+                                className="p-1 rounded hover:bg-secondary"
+                              >
+                                <Download size={12} />
+                              </button>
+                              <button
+                                type="button"
+                                title="Usuń plik"
+                                onClick={() => {
+                                  if (!confirm(`Usunąć „${tf.originalFileName}" z grupy?`)) return;
+                                  handleRemoveTemplateFile(t.id, tf.id);
+                                }}
+                                className="p-1 rounded hover:bg-destructive/10 text-destructive"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
                       )}
                     </div>
                     <button
                       type="button"
                       onClick={() => {
-                        if (!confirm(`Usunąć szablon „${t.name}"?`)) return;
+                        if (!confirm(`Usunąć całą grupę „${t.name}"?`)) return;
                         const { templates: next, deletedId } = deleteWmPrintTemplateLogical(templates, t.id);
                         addDeletedWmPrintTemplateId(deletedId);
                         onChangeTemplates(next);
@@ -600,7 +712,8 @@ export function WmPrintView({
                     </button>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           </div>
         )}

@@ -5,9 +5,11 @@ const WM_PRINT_STORAGE_JOB_ID = "wm-print";
 export async function uploadWmPrintTemplateFile(
   templateId: string,
   file: File,
+  fileId?: string,
 ): Promise<{ path: string; publicUrl: string } | { error: string }> {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
-  const safeName = `template-${templateId}.${ext}`.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const fid = fileId ?? crypto.randomUUID();
+  const safeName = `template-${templateId}-${fid}.${ext}`.replace(/[^a-zA-Z0-9._-]/g, "_");
 
   try {
     const form = new FormData();

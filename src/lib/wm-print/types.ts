@@ -32,6 +32,16 @@ export const WM_PRINT_VARIABLE_LABELS: Record<WmPrintVariableKey, string> = {
   JOB_CITY: "Miasto",
 };
 
+/** Pojedynczy plik w grupie szablonów (multi-file group). */
+export interface WmPrintTemplateFile {
+  id: string;
+  storagePath: string;
+  storageUrl: string;
+  originalFileName: string;
+  sortOrder: number;
+  uploadedAt: string;
+}
+
 export interface WmPrintTemplate {
   id: string;
   name: string;
@@ -40,6 +50,9 @@ export interface WmPrintTemplate {
   type: WmPrintTemplateType;
   enabled: boolean;
   sortOrder: number;
+  /** P1.0.1 — wiele plików w grupie */
+  files?: WmPrintTemplateFile[];
+  /** @deprecated P1 — migrowane do files[] */
   storagePath?: string;
   storageUrl?: string;
   originalFileName?: string;
@@ -93,6 +106,7 @@ export interface WmPrintGeneratedFile {
   bytes: Uint8Array;
   mimeType: string;
   templateId?: string;
+  templateFileId?: string;
   jobDocId?: string;
   sortOrder: number;
 }

@@ -1,6 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.0** Odbiory WM Druk P1
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.1** WM Druk multi-file
+
+## 2.59.1 — Odbiory WM Druk P1.0.1 (multi-file groups)
+- Grupy szablonów: wiele plików, liczniki, ZIP ze wszystkich plików grupy
+- Migracja legacy single-file → files[1] · test `test-wm-print-p1-1.mjs`
 
 ## 2.59.0 — Odbiory WM Druk (P1)
 - Nowy moduł menu: Odbiory WM Druk — szablony, dokumenty per robota, ZIP, kompletność

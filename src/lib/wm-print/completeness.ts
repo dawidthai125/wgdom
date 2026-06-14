@@ -1,6 +1,5 @@
 import type { Job } from "@/app/app-domain";
-import { getEnabledWmPrintTemplates } from "@/lib/wm-print/templates";
-import { jobDocsForCompleteness } from "@/lib/wm-print/settings";
+import { getEnabledWmPrintTemplates, countWmPrintTemplateFiles } from "@/lib/wm-print/templates";
 import type { WmPrintCompleteness, WmPrintJobDocument, WmPrintTemplate } from "@/lib/wm-print/types";
 
 export function computeWmPrintCompleteness(
@@ -14,13 +13,13 @@ export function computeWmPrintCompleteness(
 
   for (const t of enabled) {
     if (t.kind === "job_upload") {
-      const doc = jobDocsForCompleteness(jobDocs, job.id, t.id);
-      if (doc) {
+      const linked = jobDocs.filter((d) => d.jobId === job.id && d.templateId === t.id);
+      if (linked.length > 0) {
         present += 1;
       } else {
         missing.push(t.name);
       }
-    } else if (t.storageUrl) {
+    } else if (countWmPrintTemplateFiles(t) > 0) {
       present += 1;
     } else {
       missing.push(`${t.name} (brak szablonu)`);

@@ -6,7 +6,7 @@ import {
 } from "@/lib/cloud-sync";
 import { normalizeWmPrintJobDocuments } from "@/lib/wm-print/job-documents";
 import { mergeWmPrintSettings, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
-import { normalizeWmPrintTemplates } from "@/lib/wm-print/templates";
+import { normalizeWmPrintTemplates, mergeWmPrintTemplateFiles, migrateWmPrintTemplate, getWmPrintTemplateFiles } from "@/lib/wm-print/templates";
 import {
   WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
   WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
@@ -58,8 +58,28 @@ export function mergeWmPrintTemplates(
   deletedIds: string[],
 ): WmPrintTemplate[] {
   const tomb = new Set(deletedIds);
-  const merged = mergeRecordsById(local, normalizeWmPrintTemplates(cloud)) as WmPrintTemplate[];
-  return merged.filter((t) => !tomb.has(t.id)).sort((a, b) => a.sortOrder - b.sortOrder);
+  const localNorm = local.map(migrateWmPrintTemplate);
+  const cloudNorm = normalizeWmPrintTemplates(cloud);
+  const map = new Map<string, WmPrintTemplate>();
+  const ingest = (list: WmPrintTemplate[]) => {
+    for (const t of list) {
+      if (!t?.id || tomb.has(t.id)) continue;
+      const prev = map.get(t.id);
+      if (!prev) {
+        map.set(t.id, migrateWmPrintTemplate(t));
+        continue;
+      }
+      const mergedFiles = mergeWmPrintTemplateFiles(
+        getWmPrintTemplateFiles(prev),
+        getWmPrintTemplateFiles(t),
+      );
+      const pick = (prev.updatedAt || "") >= (t.updatedAt || "") ? prev : t;
+      map.set(t.id, migrateWmPrintTemplate({ ...prev, ...t, ...pick, files: mergedFiles }));
+    }
+  };
+  ingest(localNorm);
+  ingest(cloudNorm);
+  return [...map.values()].sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
 export function mergeWmPrintJobDocuments(
