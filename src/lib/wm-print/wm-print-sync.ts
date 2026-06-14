@@ -1,12 +1,11 @@
 import {
   fetchKeysFromCloud,
   mergeRecordsById,
-  persistKey,
   pushKeysToCloud,
 } from "@/lib/cloud-sync";
 import { normalizeWmPrintJobDocuments } from "@/lib/wm-print/job-documents";
 import { mergeWmPrintSettings, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
-import { normalizeWmPrintTemplates, mergeWmPrintTemplateFiles, migrateWmPrintTemplate, getWmPrintTemplateFiles } from "@/lib/wm-print/templates";
+import { normalizeWmPrintTemplates, migrateWmPrintTemplate, getWmPrintTemplateFiles } from "@/lib/wm-print/templates";
 import {
   WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
   WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
@@ -69,11 +68,11 @@ export function mergeWmPrintTemplates(
         map.set(t.id, migrateWmPrintTemplate(t));
         continue;
       }
-      const mergedFiles = mergeWmPrintTemplateFiles(
-        getWmPrintTemplateFiles(prev),
-        getWmPrintTemplateFiles(t),
-      );
-      const pick = (prev.updatedAt || "") >= (t.updatedAt || "") ? prev : t;
+      const localWins = (prev.updatedAt || "") >= (t.updatedAt || "");
+      const mergedFiles = localWins
+        ? getWmPrintTemplateFiles(prev)
+        : getWmPrintTemplateFiles(t);
+      const pick = localWins ? prev : t;
       map.set(t.id, migrateWmPrintTemplate({ ...prev, ...t, ...pick, files: mergedFiles }));
     }
   };
@@ -92,6 +91,16 @@ export function mergeWmPrintJobDocuments(
   return merged.filter((d) => !tomb.has(d.id));
 }
 
+function persistWmPrintLocal(keys: string[], values: unknown[]): void {
+  keys.forEach((key, i) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(values[i]));
+    } catch {
+      /* ignore quota */
+    }
+  });
+}
+
 export async function pushWmPrintToCloud(
   templates: WmPrintTemplate[],
   jobDocs: WmPrintJobDocument[],
@@ -99,21 +108,17 @@ export async function pushWmPrintToCloud(
   deletedTemplateIds: string[],
   deletedJobDocIds: string[],
 ): Promise<void> {
-  persistKey(WM_PRINT_TEMPLATES_KEY, templates);
-  persistKey(WM_PRINT_JOB_DOCS_KEY, jobDocs);
-  persistKey(WM_PRINT_SETTINGS_KEY, settings);
-  persistKey(WM_PRINT_DELETED_TEMPLATE_IDS_KEY, deletedTemplateIds);
-  persistKey(WM_PRINT_DELETED_JOB_DOC_IDS_KEY, deletedJobDocIds);
-  await pushKeysToCloud(
-    [
-      WM_PRINT_TEMPLATES_KEY,
-      WM_PRINT_JOB_DOCS_KEY,
-      WM_PRINT_SETTINGS_KEY,
-      WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
-      WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
-    ],
-    [templates, jobDocs, settings, deletedTemplateIds, deletedJobDocIds],
-  );
+  const keys = [
+    WM_PRINT_TEMPLATES_KEY,
+    WM_PRINT_JOB_DOCS_KEY,
+    WM_PRINT_SETTINGS_KEY,
+    WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
+    WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
+  ];
+  const values = [templates, jobDocs, settings, deletedTemplateIds, deletedJobDocIds];
+  persistWmPrintLocal(keys, values);
+  // Bez pushKeysToCloudSafe — union merge przywracał usunięte pliki z chmury
+  await pushKeysToCloud(keys, values);
 }
 
 export async function syncWmPrintFromCloud(): Promise<{
@@ -145,9 +150,10 @@ export async function syncWmPrintFromCloud(): Promise<{
   const jobDocs = mergeWmPrintJobDocuments(localDocs, cloud?.[1], delDoc);
   const settings = mergeWmPrintSettings(localSettings, normalizeWmPrintSettings(cloud?.[2]));
 
-  persistKey(WM_PRINT_TEMPLATES_KEY, templates);
-  persistKey(WM_PRINT_JOB_DOCS_KEY, jobDocs);
-  persistKey(WM_PRINT_SETTINGS_KEY, settings);
+  persistWmPrintLocal(
+    [WM_PRINT_TEMPLATES_KEY, WM_PRINT_JOB_DOCS_KEY, WM_PRINT_SETTINGS_KEY],
+    [templates, jobDocs, settings],
+  );
 
   return { templates, jobDocs, settings };
 }

@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.2",
+    label: "Odbiory WM Druk — fix usuwania pliku z grupy",
+    items: [
+      { type: "fix", text: "Szablony: usunięcie pliku działa za pierwszym kliknięciem — bez podwójnego potwierdzenia" },
+      { type: "fix", text: "Migracja files[] autorytatywne (brak odtwarzania legacy storageUrl); merge/sync LWW zamiast union" },
+      { type: "fix", text: "Push WM Druk bez pushKeysToCloudSafe — usunięte pliki nie wracały z chmury" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.59.1",
     label: "Odbiory WM Druk — multi-file groups (P1.0.1)",
     items: [

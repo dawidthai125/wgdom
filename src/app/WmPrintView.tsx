@@ -183,9 +183,12 @@ export function WmPrintView({
   };
 
   const handleRemoveTemplateFile = (templateId: string, fileId: string) => {
-    const next = removeWmPrintTemplateFile(templates, templateId, fileId);
-    onChangeTemplates(next);
-    commitAll(next);
+    let next: WmPrintTemplate[] | null = null;
+    onChangeTemplates((prev) => {
+      next = removeWmPrintTemplateFile(prev, templateId, fileId);
+      return next;
+    });
+    if (next) commitAll(next);
     toast.success("Usunięto plik z grupy");
   };
 

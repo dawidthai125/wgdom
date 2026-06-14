@@ -3,17 +3,24 @@ import type { WmPrintTemplate, WmPrintTemplateFile, WmPrintTemplateType } from "
 
 const LEGACY_FILE_SUFFIX = "-legacy-0";
 
+/** Usuwa pola legacy single-file — JSON.stringify nie kasuje `undefined`. */
+export function purgeLegacyWmPrintTemplateFields(t: WmPrintTemplate): WmPrintTemplate {
+  const copy = { ...t };
+  delete copy.storagePath;
+  delete copy.storageUrl;
+  delete copy.originalFileName;
+  return copy;
+}
+
 /** P1.0.1 — single file → files[1] bez utraty danych. */
 export function migrateWmPrintTemplate(t: WmPrintTemplate): WmPrintTemplate {
-  const existing = Array.isArray(t.files) ? t.files.filter((f) => f?.id && f.storageUrl) : [];
-  if (existing.length > 0) {
-    return {
+  // files[] jest autorytatywne (także pusta tablica) — nie odtwarzaj legacy po usunięciu
+  if (Array.isArray(t.files)) {
+    const existing = t.files.filter((f) => f?.id && f.storageUrl);
+    return purgeLegacyWmPrintTemplateFields({
       ...t,
       files: [...existing].sort((a, b) => a.sortOrder - b.sortOrder),
-      storagePath: undefined,
-      storageUrl: undefined,
-      originalFileName: undefined,
-    };
+    });
   }
   if (t.storageUrl && t.originalFileName) {
     const legacyFile: WmPrintTemplateFile = {
@@ -24,15 +31,12 @@ export function migrateWmPrintTemplate(t: WmPrintTemplate): WmPrintTemplate {
       sortOrder: 10,
       uploadedAt: t.updatedAt || t.createdAt || new Date().toISOString(),
     };
-    return {
+    return purgeLegacyWmPrintTemplateFields({
       ...t,
       files: [legacyFile],
-      storagePath: undefined,
-      storageUrl: undefined,
-      originalFileName: undefined,
-    };
+    });
   }
-  return { ...t, files: [] };
+  return purgeLegacyWmPrintTemplateFields({ ...t, files: [] });
 }
 
 export function getWmPrintTemplateFiles(t: WmPrintTemplate): WmPrintTemplateFile[] {
@@ -148,10 +152,15 @@ export function removeWmPrintTemplateFile(
   templateId: string,
   fileId: string,
 ): WmPrintTemplate[] {
+  const now = new Date().toISOString();
   return templates.map((t) => {
-    if (t.id !== templateId) return t;
+    if (t.id !== templateId) return migrateWmPrintTemplate(t);
     const files = getWmPrintTemplateFiles(t).filter((f) => f.id !== fileId);
-    return migrateWmPrintTemplate({ ...t, files, updatedAt: new Date().toISOString() });
+    return purgeLegacyWmPrintTemplateFields({
+      ...migrateWmPrintTemplate(t),
+      files,
+      updatedAt: now,
+    });
   });
 }
 

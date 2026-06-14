@@ -8,7 +8,9 @@ import {
   removeWmPrintTemplateFile,
   getWmPrintTemplateFiles,
   countWmPrintTemplateFiles,
+  purgeLegacyWmPrintTemplateFields,
 } from "../src/lib/wm-print/templates.ts";
+import { mergeWmPrintTemplates } from "../src/lib/wm-print/wm-print-sync.ts";
 import { buildWmPrintFilesForJob, buildWmPrintZipEntryName } from "../src/lib/wm-print/generate-zip.ts";
 import { generateDocxFromTemplate } from "../src/lib/wm-print/generate-docx.ts";
 
@@ -166,6 +168,69 @@ const out = await generateDocxFromTemplate(docxBytes, {
 const outZip = await JSZip.loadAsync(out);
 const xml = (await outZip.file("word/document.xml")?.async("string")) ?? "";
 assert(xml.includes("Gorlicka 26/6"), "generowanie multi-file: zmienne OK");
+
+// P1.0.1 hotfix — single-click delete: legacy storageUrl + files[] + JSON roundtrip
+const dirtyLegacy = {
+  id: "grp-dirty",
+  name: "Oświadczenia",
+  kind: "generated",
+  type: "docx",
+  enabled: true,
+  sortOrder: 50,
+  storageUrl: "https://example.com/stale.pdf",
+  originalFileName: "stale.pdf",
+  files: [
+    {
+      id: "grp-dirty-legacy-0",
+      storagePath: "a",
+      storageUrl: "https://example.com/a.pdf",
+      originalFileName: "A.pdf",
+      sortOrder: 10,
+      uploadedAt: "2026-06-01T00:00:00Z",
+    },
+    {
+      id: "mid",
+      storagePath: "b",
+      storageUrl: "https://example.com/b.pdf",
+      originalFileName: "B.pdf",
+      sortOrder: 20,
+      uploadedAt: "2026-06-02T00:00:00Z",
+    },
+    {
+      id: "c",
+      storagePath: "c",
+      storageUrl: "https://example.com/c.pdf",
+      originalFileName: "C.pdf",
+      sortOrder: 30,
+      uploadedAt: "2026-06-03T00:00:00Z",
+    },
+  ],
+  createdAt: "2026-06-01T00:00:00Z",
+  updatedAt: "2026-06-01T00:00:00Z",
+};
+let dirtyRemoved = removeWmPrintTemplateFile([dirtyLegacy], "grp-dirty", "mid");
+dirtyRemoved = JSON.parse(JSON.stringify(dirtyRemoved));
+assert(countWmPrintTemplateFiles(dirtyRemoved[0]) === 2, "single-click: 3 → 2 po usunięciu środkowego");
+assert(!dirtyRemoved[0].storageUrl, "single-click: legacy storageUrl wyczyszczone");
+assert(
+  !getWmPrintTemplateFiles(dirtyRemoved[0]).some((f) => f.id === "mid"),
+  "single-click: środkowy plik usunięty",
+);
+
+// Pusta files[] nie odtwarza legacy
+const emptied = purgeLegacyWmPrintTemplateFields({
+  ...migrateWmPrintTemplate(dirtyLegacy),
+  files: [],
+  updatedAt: "2026-06-14T12:00:00Z",
+});
+assert(countWmPrintTemplateFiles(emptied) === 0, "files[]=[] nie odtwarza legacy");
+
+// Merge LWW — lokalne usunięcie wygrywa z chmurą (union nie przywraca pliku)
+const cloudTpl = JSON.parse(JSON.stringify(dirtyLegacy));
+const localTpl = dirtyRemoved[0];
+localTpl.updatedAt = "2026-06-14T12:00:00Z";
+const merged = mergeWmPrintTemplates([localTpl], [cloudTpl], []);
+assert(countWmPrintTemplateFiles(merged[0]) === 2, "merge LWW: lokalne 2 pliki, nie union 3");
 
 console.log(`\n${pass} PASS · ${fail} FAIL`);
 if (fail > 0) process.exit(1);

@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.1** WM Druk multi-file
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.2** WM Druk delete fix
+
+## 2.59.2 — Odbiory WM Druk fix usuwania pliku z grupy
+- Single-click delete: files[] autorytatywne, merge LWW, push bez union safe-merge
 
 ## 2.59.1 — Odbiory WM Druk P1.0.1 (multi-file groups)
 - Grupy szablonów: wiele plików, liczniki, ZIP ze wszystkich plików grupy
