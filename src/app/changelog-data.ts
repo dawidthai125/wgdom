@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.57.2",
+    label: "Notatki operacyjne — ACK (P1)",
+    items: [
+      { type: "new", text: "Potwierdzenie przeczytania (✓ Potwierdzam przeczytanie) — tylko świadome ACK, otwarcie notatki ≠ przeczytanie" },
+      { type: "new", text: "Badge menu Notatki operacyjne + globalny banner „Nieprzeczytane: N” — tylko aktywne notatki widoczne dla użytkownika" },
+      { type: "new", text: "Status przeczytania w detalu notatki — listy Przeczytali / Nie przeczytali (ACL + shareWithInspector)" },
+      { type: "improve", text: "Auto-ACK autora przy utworzeniu · reset ACK przy contentRev++ (edycja tytułu/treści, komentarz, archiwum, share, robota)" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.57.1",
     label: "Menu — Pracownicy i kontakty",
     items: [

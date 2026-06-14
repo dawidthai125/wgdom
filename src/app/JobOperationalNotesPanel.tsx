@@ -6,6 +6,8 @@ import {
   filterOperationalNotesForJob,
   jobLabelForOperationalNote,
 } from "@/lib/operational-notes";
+import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
+import { isOperationalNoteAcked } from "@/lib/operational-notes-read-state";
 
 function fmtDateShort(iso: string): string {
   if (!iso) return "—";
@@ -18,6 +20,7 @@ export function JobOperationalNotesPanel({
   job,
   notes,
   session,
+  readState = [],
   onOpenNote,
   onCreateNote,
   onOpenModule,
@@ -25,6 +28,7 @@ export function JobOperationalNotesPanel({
   job: Job;
   notes: OperationalNote[];
   session: AdminSession | null | undefined;
+  readState?: OperationalNoteReadReceipt[];
   onOpenNote: (noteId: string) => void;
   onCreateNote: () => void;
   onOpenModule: () => void;
@@ -57,21 +61,27 @@ export function JobOperationalNotesPanel({
         <p className="text-xs text-muted-foreground">Brak aktywnych notatek przypisanych do tej roboty.</p>
       ) : (
         <ul className="space-y-2">
-          {linked.slice(0, 8).map((note) => (
+          {linked.slice(0, 8).map((note) => {
+            const unread = session ? !isOperationalNoteAcked(note, session.id, readState) : false;
+            return (
             <li key={note.id}>
               <button
                 type="button"
                 onClick={() => onOpenNote(note.id)}
                 className="w-full text-left rounded-lg border border-border px-3 py-2 hover:bg-secondary/60 transition-colors"
               >
-                <p className="text-sm font-medium truncate">{note.title}</p>
+                <div className="flex items-center gap-2 min-w-0">
+                  {unread && <span className="shrink-0 w-2 h-2 rounded-full bg-amber-400" title="Nieprzeczytana" />}
+                  <p className="text-sm font-medium truncate flex-1">{note.title}</p>
+                </div>
                 <p className="text-[10px] text-muted-foreground mt-0.5">
                   {note.authorDisplayName} · {fmtDateShort(note.lastActivityAt)}
                   {note.comments.length > 0 ? ` · ${note.comments.length} kom.` : ""}
                 </p>
               </button>
             </li>
-          ))}
+          );
+          })}
           {linked.length > 8 && (
             <p className="text-[10px] text-muted-foreground">+ {linked.length - 8} więcej w module Notatki operacyjne</p>
           )}

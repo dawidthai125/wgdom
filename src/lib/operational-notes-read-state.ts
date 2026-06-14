@@ -1,4 +1,11 @@
-/** Stan przeczytania notatek operacyjnych — KV `kw-operational-notes-read-state` (ACK w P1). */
+/** Stan przeczytania notatek operacyjnych — KV `kw-operational-notes-read-state` (P1 ACK). */
+
+import type { AdminAccount, AdminSession } from "@/lib/admin-auth";
+import {
+  canViewOperationalNote,
+  filterOperationalNotesForViewer,
+  type OperationalNote,
+} from "@/lib/operational-notes";
 
 export const OPERATIONAL_NOTES_READ_STATE_KEY = "kw-operational-notes-read-state";
 
@@ -8,6 +15,17 @@ export interface OperationalNoteReadReceipt {
   ackAt: string;
   contentRevAtAck: number;
 }
+
+export type OperationalNoteReadStatusEntry = {
+  userId: string;
+  displayName: string;
+  ackAt?: string;
+};
+
+export type OperationalNoteReadStatusSplit = {
+  read: OperationalNoteReadStatusEntry[];
+  unread: OperationalNoteReadStatusEntry[];
+};
 
 function receiptKey(noteId: string, userId: string): string {
   return `${noteId}:${userId}`;
@@ -55,4 +73,114 @@ export function mergeOperationalNotesReadState(
     byKey.set(key, nextAck >= prevAck ? item : prev);
   }
   return [...byKey.values()];
+}
+
+export function getOperationalNoteReceipt(
+  readState: OperationalNoteReadReceipt[],
+  noteId: string,
+  userId: string,
+): OperationalNoteReadReceipt | undefined {
+  return readState.find((r) => r.noteId === noteId && r.userId === userId);
+}
+
+export function isOperationalNoteAcked(
+  note: OperationalNote,
+  userId: string,
+  readState: OperationalNoteReadReceipt[],
+): boolean {
+  const receipt = getOperationalNoteReceipt(readState, note.id, userId);
+  return receipt != null && receipt.contentRevAtAck === note.contentRev;
+}
+
+export function upsertOperationalNoteReceipt(
+  readState: OperationalNoteReadReceipt[],
+  receipt: OperationalNoteReadReceipt,
+): OperationalNoteReadReceipt[] {
+  const key = receiptKey(receipt.noteId, receipt.userId);
+  const next = readState.filter((r) => receiptKey(r.noteId, r.userId) !== key);
+  next.push(receipt);
+  return next;
+}
+
+export function ackOperationalNote(
+  readState: OperationalNoteReadReceipt[],
+  note: OperationalNote,
+  userId: string,
+  at: string = new Date().toISOString(),
+): OperationalNoteReadReceipt[] {
+  return upsertOperationalNoteReceipt(readState, {
+    noteId: note.id,
+    userId,
+    ackAt: at,
+    contentRevAtAck: note.contentRev,
+  });
+}
+
+export function buildAuthorAutoAckReceipt(
+  note: OperationalNote,
+  at: string = new Date().toISOString(),
+): OperationalNoteReadReceipt {
+  return {
+    noteId: note.id,
+    userId: note.authorUserId,
+    ackAt: at,
+    contentRevAtAck: note.contentRev,
+  };
+}
+
+function accountToSession(account: AdminAccount): AdminSession {
+  return {
+    id: account.id,
+    login: account.login,
+    displayName: account.displayName,
+    role: account.role,
+  };
+}
+
+export function resolveOperationalNoteAudience(
+  note: OperationalNote,
+  accounts: AdminAccount[],
+): AdminAccount[] {
+  return accounts.filter((account) => canViewOperationalNote(note, accountToSession(account)));
+}
+
+export function resolveOperationalNoteReadStatus(
+  note: OperationalNote,
+  readState: OperationalNoteReadReceipt[],
+  accounts: AdminAccount[],
+): OperationalNoteReadStatusSplit {
+  const read: OperationalNoteReadStatusEntry[] = [];
+  const unread: OperationalNoteReadStatusEntry[] = [];
+
+  for (const account of resolveOperationalNoteAudience(note, accounts)) {
+    const receipt = getOperationalNoteReceipt(readState, note.id, account.id);
+    const entry: OperationalNoteReadStatusEntry = {
+      userId: account.id,
+      displayName: account.displayName,
+      ackAt: receipt?.ackAt,
+    };
+    if (receipt && receipt.contentRevAtAck === note.contentRev) {
+      read.push(entry);
+    } else {
+      unread.push({ userId: account.id, displayName: account.displayName });
+    }
+  }
+
+  read.sort((a, b) => a.displayName.localeCompare(b.displayName, "pl"));
+  unread.sort((a, b) => a.displayName.localeCompare(b.displayName, "pl"));
+  return { read, unread };
+}
+
+export function countUnreadOperationalNotes(
+  notes: OperationalNote[],
+  readState: OperationalNoteReadReceipt[],
+  session: AdminSession | null | undefined,
+  options?: { includeArchived?: boolean },
+): number {
+  if (!session) return 0;
+  const includeArchived = options?.includeArchived === true;
+  return filterOperationalNotesForViewer(notes, session).filter((note) => {
+    if (!includeArchived && note.status !== "active") return false;
+    return !isOperationalNoteAcked(note, session.id, readState);
+  }).length;
 }

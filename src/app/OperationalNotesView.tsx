@@ -12,11 +12,19 @@ import {
   Eye,
   EyeOff,
   ArrowLeft,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
 import type { AdminSession } from "@/lib/admin-auth";
+import { getAllAdminAccounts } from "@/lib/admin-auth";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
+import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
+import {
+  ackOperationalNote,
+  isOperationalNoteAcked,
+  resolveOperationalNoteReadStatus,
+} from "@/lib/operational-notes-read-state";
 import {
   type OperationalNote,
   filterOperationalNotesForViewer,
@@ -53,6 +61,8 @@ export function OperationalNotesView({
   jobs,
   session,
   auditLog,
+  readState,
+  onChangeReadState,
   onChangeNotes,
   onChangeAuditLog,
   onCommit,
@@ -66,9 +76,16 @@ export function OperationalNotesView({
   jobs: Job[];
   session: AdminSession | null | undefined;
   auditLog: OperationalNoteAuditEntry[];
+  readState: OperationalNoteReadReceipt[];
+  onChangeReadState: (next: OperationalNoteReadReceipt[]) => void;
   onChangeNotes: (next: OperationalNote[]) => void;
   onChangeAuditLog: (next: OperationalNoteAuditEntry[]) => void;
-  onCommit: (nextNotes?: OperationalNote[], nextAudit?: OperationalNoteAuditEntry[], deletedId?: string) => void;
+  onCommit: (
+    nextNotes?: OperationalNote[],
+    nextAudit?: OperationalNoteAuditEntry[],
+    deletedId?: string,
+    nextReadState?: OperationalNoteReadReceipt[],
+  ) => void;
   initialNoteId?: string | null;
   onInitialNoteConsumed?: () => void;
   initialCreatePreset?: { linkedJobId?: string; linkedJobNameSnapshot?: string; title?: string } | null;
@@ -108,6 +125,15 @@ export function OperationalNotesView({
 
   const selected = selectedId ? notes.find((n) => n.id === selectedId) ?? null : null;
 
+  const adminAccounts = useMemo(() => getAllAdminAccounts(), []);
+
+  const selectedReadStatus = useMemo(() => {
+    if (!selected) return null;
+    return resolveOperationalNoteReadStatus(selected, readState, adminAccounts);
+  }, [selected, readState, adminAccounts]);
+
+  const selectedAcked = selected && session ? isOperationalNoteAcked(selected, session.id, readState) : false;
+
   useEffect(() => {
     if (!initialNoteId) return;
     const note = notes.find((n) => n.id === initialNoteId);
@@ -131,11 +157,21 @@ export function OperationalNotesView({
   const applyMutation = (
     result: ReturnType<typeof createOperationalNote>,
     deletedId?: string,
+    nextReadState?: OperationalNoteReadReceipt[],
   ) => {
     const applied = applyOperationalNoteMutation(notes, auditLog, result);
     onChangeNotes(applied.notes);
     onChangeAuditLog(applied.auditLog);
-    onCommit(applied.notes, applied.auditLog, deletedId);
+    if (nextReadState) onChangeReadState(nextReadState);
+    onCommit(applied.notes, applied.auditLog, deletedId, nextReadState);
+  };
+
+  const handleAck = () => {
+    if (!session || !selected) return;
+    const nextReadState = ackOperationalNote(readState, selected, session.id);
+    onChangeReadState(nextReadState);
+    onCommit(undefined, undefined, undefined, nextReadState);
+    toast.success("Potwierdzono przeczytanie");
   };
 
   const openCreate = (preset?: { linkedJobId?: string; linkedJobNameSnapshot?: string }) => {
@@ -173,8 +209,9 @@ export function OperationalNotesView({
         linkedJobNameSnapshot: jobSnapshot,
         shareWithInspector: draftShare,
       });
-      applyMutation(result);
       const created = result.notes[0];
+      const nextReadState = created ? ackOperationalNote(readState, created, session.id) : readState;
+      applyMutation(result, undefined, nextReadState);
       setSelectedId(created?.id ?? null);
       setFormMode(null);
       toast.success("Utworzono notatkę operacyjną");
@@ -341,7 +378,9 @@ export function OperationalNotesView({
           {filtered.length === 0 ? (
             <p className="p-4 text-xs text-muted-foreground text-center">Brak notatek w tej sekcji.</p>
           ) : (
-            filtered.map((note) => (
+            filtered.map((note) => {
+              const acked = session ? isOperationalNoteAcked(note, session.id, readState) : true;
+              return (
               <button
                 key={note.id}
                 type="button"
@@ -353,7 +392,16 @@ export function OperationalNotesView({
                   selectedId === note.id ? "bg-primary/10" : ""
                 }`}
               >
-                <p className="text-sm font-medium truncate">{note.title || "Bez tytułu"}</p>
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm font-medium truncate flex-1">{note.title || "Bez tytułu"}</p>
+                  <span
+                    className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                      acked ? "text-muted-foreground bg-secondary/80" : "text-amber-400 bg-amber-500/15"
+                    }`}
+                  >
+                    {acked ? "Przeczytana" : "Nieprzeczytana"}
+                  </span>
+                </div>
                 <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
                   {note.authorDisplayName} · {fmtDate(note.lastActivityAt)}
                 </p>
@@ -364,7 +412,8 @@ export function OperationalNotesView({
                   </p>
                 )}
               </button>
-            ))
+            );
+            })
           )}
         </div>
       </div>
@@ -505,9 +554,62 @@ export function OperationalNotesView({
                   {selected.shareWithInspector ? "Widoczna dla inspektora" : "Ukryta przed inspektorem"}
                 </button>
               )}
+              {!selectedAcked && (
+                <button
+                  type="button"
+                  onClick={handleAck}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-primary text-primary-foreground min-h-[44px] w-full sm:w-auto justify-center"
+                >
+                  <CheckCircle2 size={14} />
+                  Potwierdzam przeczytanie
+                </button>
+              )}
+              {selectedAcked && (
+                <p className="text-xs text-emerald-400 flex items-center gap-1.5">
+                  <CheckCircle2 size={14} />
+                  Przeczytano (wersja {selected.contentRev})
+                </p>
+              )}
             </div>
             <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4">
               <div className="text-sm whitespace-pre-wrap leading-relaxed">{selected.content || "—"}</div>
+
+              {selectedReadStatus && (
+                <div className="border border-border rounded-lg p-3 space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Status przeczytania
+                  </p>
+                  {selectedReadStatus.read.length > 0 && (
+                    <div>
+                      <p className="text-[11px] text-muted-foreground mb-1">Przeczytali:</p>
+                      <ul className="text-sm space-y-0.5">
+                        {selectedReadStatus.read.map((entry) => (
+                          <li key={entry.userId} className="flex items-center gap-1.5 text-emerald-400/90">
+                            <CheckCircle2 size={12} className="shrink-0" />
+                            {entry.displayName}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {selectedReadStatus.unread.length > 0 && (
+                    <div>
+                      <p className="text-[11px] text-muted-foreground mb-1">Nie przeczytali:</p>
+                      <ul className="text-sm space-y-0.5">
+                        {selectedReadStatus.unread.map((entry) => (
+                          <li key={entry.userId} className="flex items-center gap-1.5 text-muted-foreground">
+                            <span className="text-amber-400">•</span>
+                            {entry.displayName}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {selectedReadStatus.read.length === 0 && selectedReadStatus.unread.length === 0 && (
+                    <p className="text-xs text-muted-foreground">Brak odbiorców w audience tej notatki.</p>
+                  )}
+                </div>
+              )}
 
               {selected.revisions.length > 0 && (
                 <div className="border border-border rounded-lg p-3 space-y-2">

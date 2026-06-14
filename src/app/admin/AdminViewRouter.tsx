@@ -111,6 +111,7 @@ export type AdminViewRouterProps = {
     nextNotes?: OperationalNote[],
     nextAudit?: OperationalNoteAuditEntry[],
     deletedId?: string,
+    nextReadState?: OperationalNoteReadReceipt[],
   ) => void;
   adminSession: AdminSession | null | undefined;
   alertsSeenTick: number;
@@ -435,6 +436,7 @@ export function AdminViewRouter({
               onCommitRecoverableCharges={(next) => commitRecoverableCharges(next)}
               operationalNotes={operationalNotes}
               adminSession={adminSession}
+              operationalNotesReadState={operationalNotesReadState}
               onOpenOperationalNote={onOpenOperationalNoteFromJobs}
               onCreateOperationalNoteFromJob={onOpenOperationalNoteCreateFromJobs}
             />
@@ -449,6 +451,8 @@ export function AdminViewRouter({
               jobs={jobs}
               session={adminSession}
               auditLog={operationalNotesAuditLog}
+              readState={operationalNotesReadState}
+              onChangeReadState={setOperationalNotesReadState}
               onChangeNotes={setOperationalNotes}
               onChangeAuditLog={setOperationalNotesAuditLog}
               onCommit={commitOperationalNotes}

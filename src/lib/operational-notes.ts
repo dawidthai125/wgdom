@@ -361,7 +361,7 @@ export function updateOperationalNoteContent(input: {
   const titleChanged = existing.title !== input.title.trim();
   if (!contentChanged && !titleChanged) return { notes: input.notes, auditEntries: [] };
 
-  const nextContentRev = contentChanged ? existing.contentRev + 1 : existing.contentRev;
+  const nextContentRev = contentChanged || titleChanged ? existing.contentRev + 1 : existing.contentRev;
   const revisions = contentChanged
     ? [
         ...existing.revisions,

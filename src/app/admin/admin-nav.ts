@@ -14,6 +14,10 @@ import {
   ScrollText,
 } from "lucide-react";
 import type { DirectoryEmployee, Job, WeekEmployee, WeekSnapshot } from "@/app/app-domain";
+import type { AdminSession } from "@/lib/admin-auth";
+import type { OperationalNote } from "@/lib/operational-notes";
+import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
+import { countUnreadOperationalNotes } from "@/lib/operational-notes-read-state";
 import { filterProductionActiveDirectory } from "@/app/app-domain";
 import { countAllJobsImages } from "@/lib/media-separation";
 import { countAllFilesHubItems } from "@/lib/files-hub-index";
@@ -61,6 +65,9 @@ export type BuildAdminNavItemsInput = {
   jobs: Job[];
   recoverableCharges: RecoverableCharge[];
   adminUserId: string | undefined;
+  operationalNotes?: OperationalNote[];
+  operationalNotesReadState?: OperationalNoteReadReceipt[];
+  adminSession?: AdminSession | null;
 };
 
 export function isNavItemActive(navKey: View, currentView: View): boolean {
@@ -77,6 +84,9 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
     jobs,
     recoverableCharges,
     adminUserId,
+    operationalNotes = [],
+    operationalNotesReadState = [],
+    adminSession,
   } = input;
 
   return [
@@ -128,6 +138,10 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
       label: "Notatki operacyjne",
       hint: "Baza wiedzy operacyjnej — globalne i powiązane z robotami. Osobna domena od notatek WM.",
       icon: ScrollText,
+      badge: (() => {
+        const n = countUnreadOperationalNotes(operationalNotes, operationalNotesReadState, adminSession);
+        return n > 0 ? n : undefined;
+      })(),
     },
     {
       key: "inspector",

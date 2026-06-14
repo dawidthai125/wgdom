@@ -106,6 +106,8 @@ import { mergeRecoverableCharges } from "@/lib/recoverable-charges";
 import { mergeOperationalNotes, jobLabelForOperationalNote, type OperationalNote } from "@/lib/operational-notes";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
+import { countUnreadOperationalNotes } from "@/lib/operational-notes-read-state";
+import { OperationalNotesUnreadBanner } from "@/app/OperationalNotesUnreadBanner";
 import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
 import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosedForUi } from "@/lib/payroll-cycle";
 import { hasPayrollRolloverBlockers } from "@/lib/payroll-rollover";
@@ -241,14 +243,17 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     nextNotes?: OperationalNote[],
     nextAudit?: OperationalNoteAuditEntry[],
     deletedId?: string,
+    nextReadState?: OperationalNoteReadReceipt[],
   ) => {
     const notesPayload = nextNotes ?? operationalNotes;
     const auditPayload = nextAudit ?? operationalNotesAuditLog;
+    const readStatePayload = nextReadState ?? operationalNotesReadState;
+    if (nextReadState) setOperationalNotesReadState(nextReadState);
     let deletedIds = getDeletedOperationalNoteIds();
     if (deletedId) deletedIds = addDeletedOperationalNoteId(deletedId);
     suppressAutoSyncUntilRef.current = Date.now() + 4500;
-    pushOperationalNotesToCloud(notesPayload, deletedIds, operationalNotesReadState, auditPayload).catch(() => {});
-  }, [operationalNotes, operationalNotesAuditLog, operationalNotesReadState]);
+    pushOperationalNotesToCloud(notesPayload, deletedIds, readStatePayload, auditPayload).catch(() => {});
+  }, [operationalNotes, operationalNotesAuditLog, operationalNotesReadState, setOperationalNotesReadState]);
 
   const clearAutoSyncTimers = useCallback(() => {
     if (syncTimerRef.current) {
@@ -1056,8 +1061,27 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         jobs,
         recoverableCharges,
         adminUserId: adminSession?.id,
+        operationalNotes,
+        operationalNotesReadState,
+        adminSession,
       }),
-    [canViewTendersNav, productionWeekEmployees, directory, contacts, savedWeeks, jobs, recoverableCharges, adminSession?.id],
+    [
+      canViewTendersNav,
+      productionWeekEmployees,
+      directory,
+      contacts,
+      savedWeeks,
+      jobs,
+      recoverableCharges,
+      adminSession,
+      operationalNotes,
+      operationalNotesReadState,
+    ],
+  );
+
+  const operationalNotesUnreadCount = useMemo(
+    () => countUnreadOperationalNotes(operationalNotes, operationalNotesReadState, adminSession),
+    [operationalNotes, operationalNotesReadState, adminSession],
   );
 
   const { mobileNavPrimary, mobileNavMore } = useMemo(() => splitMobileNav(navItems), [navItems]);
@@ -1211,6 +1235,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           onToggleSearch={() => setShowSearch((v) => !v)}
           onOpenAdminSettings={() => setShowAdminSettings(true)}
           onLogout={onLogout}
+        />
+
+        <OperationalNotesUnreadBanner
+          count={operationalNotesUnreadCount}
+          onGoToNotes={() => goToView("operationalnotes")}
         />
 
         {showSearch && (

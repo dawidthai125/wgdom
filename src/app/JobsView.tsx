@@ -560,6 +560,7 @@ export function JobsView({
   onChangeRecoverableCharges,
   onCommitRecoverableCharges,
   operationalNotes = [],
+  operationalNotesReadState = [],
   adminSession: adminSessionProp,
   onOpenOperationalNote,
   onCreateOperationalNoteFromJob,
@@ -584,6 +585,7 @@ export function JobsView({
   onChangeRecoverableCharges?: (next: RecoverableCharge[]) => void;
   onCommitRecoverableCharges?: (next: RecoverableCharge[]) => void;
   operationalNotes?: OperationalNote[];
+  operationalNotesReadState?: import("@/lib/operational-notes-read-state").OperationalNoteReadReceipt[];
   adminSession?: AdminSession | null;
   onOpenOperationalNote?: (noteId: string, fromJobId?: string) => void;
   onCreateOperationalNoteFromJob?: (preset: { linkedJobId?: string; linkedJobNameSnapshot?: string }) => void;
@@ -1912,6 +1914,7 @@ export function JobsView({
                 job={selectedJob}
                 notes={operationalNotes}
                 session={adminSession}
+                readState={operationalNotesReadState}
                 onOpenNote={(noteId) => onOpenOperationalNote(noteId, selectedJob.id)}
                 onCreateNote={() => onCreateOperationalNoteFromJob(operationalNoteCreatePresetForJob(selectedJob))}
                 onOpenModule={() => onOpenOperationalNote("", selectedJob.id)}
