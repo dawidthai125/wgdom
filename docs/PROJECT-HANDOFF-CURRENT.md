@@ -75,7 +75,7 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 
 ```text
 Version (repo / prod):      2.59.22       ← ZI Tauron 2026 RELEASE GO
-Feature commit (prod):      (see release report)  feat: ZI Tauron 2026 + preservation
+Feature commit (prod):      9434787        v2.59.22 ZI Tauron 2026 + preservation
 WM Druk P0.2A (prev):       1a8c892        v2.59.19 strip demo (superseded by ZI 2026)
 WM Druk hotfix:             01211d6        v2.59.18 normalizeWmPrintTemplates runtime
 WM Druk cleanup:            16ee8f8        v2.59.17 KV 99→15 templates
