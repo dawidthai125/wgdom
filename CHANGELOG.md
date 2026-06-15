@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.13** WM Druk P0.1D ZI /AP
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.14** WM Druk P0.1E ZI Edge
+
+## 2.59.14 — Odbiory WM Druk P0.1E fix ZI Edge (cover + hidden widgets)
+
+- ZI hybrid: biały cover + Noto na stronie + ukrycie widgetów 8/9/10 — Edge bez {{JOB_*}}
+- Forensic P0.1E: /V OK ale tło Im0 nad widgetami w Edge
 
 ## 2.59.13 — Odbiory WM Druk P0.1D fix ZI /AP widgetów
 

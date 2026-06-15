@@ -12,6 +12,16 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-14",
+    version: "2.59.14",
+    label: "Odbiory WM Druk — P0.1E fix ZI Edge (cover strony + ukrycie widgetów)",
+    items: [
+      { type: "fix", text: "ZI hybrid/XFA: biały cover + Noto na stronie pól 8/9/10 — Edge nie pokazuje już {{JOB_*}} z tła Im0" },
+      { type: "fix", text: "Ukrycie widgetów adresowych (F=Hidden) po narysowaniu tekstu na content stream strony" },
+      { type: "improve", text: "Forensic P0.1E: audit-p0-1e-out + test-wm-print-p0-1e-zi-edge.mjs" },
+    ],
+  },
+  {
+    date: "2026-06-14",
     version: "2.59.13",
     label: "Odbiory WM Druk — P0.1D fix ZI widoczny tekst (/AP widgetów)",
     items: [

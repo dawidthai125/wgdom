@@ -1,5 +1,5 @@
 import fontkit from "@pdf-lib/fontkit";
-import { PDFDocument, PDFTextField } from "pdf-lib";
+import { PDFDocument, PDFName, PDFNumber, PDFTextField, rgb } from "pdf-lib";
 import type { WmPrintVariableKey } from "@/lib/wm-print/types";
 
 /** Pola ZI — zweryfikowane nazwy XFA/AcroForm (P0.1B). */
@@ -207,22 +207,65 @@ function fillPdfFormFieldMapping(
   return filled;
 }
 
+function pdfPageForWidget(
+  pdfDoc: PDFDocument,
+  widget: ReturnType<PDFTextField["acroField"]["getWidgets"]>[number],
+) {
+  const pages = pdfDoc.getPages();
+  const pageRef = widget.P();
+  if (!pageRef) return pages[0];
+  return pages.find((p) => p.ref.tag === pageRef.tag) ?? pages[0];
+}
+
 /**
- * P0.1D — hybrid XFA: odśwież /AP tylko pól adresowych 8/9/10 (Noto Sans).
- * P0.1C overlay był pod warstwą widgetów — viewer pokazywał stare placeholdery z /AP.
+ * P0.1E — hybrid XFA: /V + /AP Noto, potem biały cover + tekst na stronie i ukrycie widgetów.
+ * Edge (i część viewerów) nadal pokazuje placeholdery {{JOB_*}} z warstwy statycznej Im0/content
+ * mimo poprawnego /AP — widgety AcroForm są nad tłem, a AP bez pełnego wypełnienia nie zasłania grafiki.
  */
 async function finalizeZiHybridForm(
   pdfDoc: PDFDocument,
   form: ReturnType<PDFDocument["getForm"]>,
+  vars: Record<WmPrintVariableKey, string>,
 ): Promise<void> {
   pdfDoc.registerFontkit(fontkit);
   const font = await pdfDoc.embedFont(await loadWmPrintZiPdfFontBytes());
-  for (const idx of [
-    WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_STREET!,
-    WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_BUILDING!,
-    WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_APARTMENT!,
-  ]) {
-    getZiTextFieldByIndex(form, idx)?.updateAppearances(font);
+
+  const addressFields: [WmPrintVariableKey, number][] = [
+    ["JOB_STREET", WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_STREET!],
+    ["JOB_BUILDING", WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_BUILDING!],
+    ["JOB_APARTMENT", WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_APARTMENT!],
+  ];
+
+  for (const [varKey, idx] of addressFields) {
+    const field = getZiTextFieldByIndex(form, idx);
+    if (!field) continue;
+    field.updateAppearances(font);
+
+    const widget = field.acroField.getWidgets()[0];
+    if (!widget) continue;
+
+    const rect = widget.getRectangle();
+    const page = pdfPageForWidget(pdfDoc, widget);
+    const text = vars[varKey] ?? "";
+
+    page.drawRectangle({
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+      color: rgb(1, 1, 1),
+      borderWidth: 0,
+    });
+    page.drawText(text, {
+      x: rect.x + 2,
+      y: rect.y + rect.height * 0.28,
+      size: 8,
+      font,
+      color: rgb(0, 0, 0),
+    });
+
+    /** Ukryj widget — viewer nie renderuje starej warstwy placeholderów nad coverem strony. */
+    widget.dict.set(PDFName.of("F"), PDFNumber.of(2));
   }
 }
 
@@ -243,7 +286,7 @@ export async function generatePdfFormFromTemplate(
   fillPdfFormFieldMapping(form, mapping, vars);
 
   if (formType === "hybrid" || formType === "xfa") {
-    await finalizeZiHybridForm(pdfDoc, form);
+    await finalizeZiHybridForm(pdfDoc, form, vars);
   } else {
     try {
       pdfDoc.registerFontkit(fontkit);
@@ -273,7 +316,7 @@ export async function diagnoseZiPdfFieldFill(
 
   const formType = detectWmPrintPdfFormType(templateBytes);
   if (formType === "hybrid" || formType === "xfa") {
-    await finalizeZiHybridForm(pdfDoc, form);
+    await finalizeZiHybridForm(pdfDoc, form, vars);
   }
 
   const out = await pdfDoc.save({ useObjectStreams: false });
