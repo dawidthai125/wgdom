@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.17** WM Druk P0 cleanup EXECUTED
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.18** WM Druk P0 hotfix parse
+
+## 2.59.18 — Odbiory WM Druk P0 hotfix parseWmPrintTemplates runtime
+- `cloud-sync.ts` merge templates: użyty zaimportowany `normalizeWmPrintTemplates`
 
 ## 2.59.17 — Odbiory WM Druk P0 cleanup template pollution EXECUTED
 - Prod KV `kw-wm-print-templates`: 99→15, 84 tombstone, canonical ZI OK
