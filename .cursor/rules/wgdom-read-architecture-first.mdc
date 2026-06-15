@@ -9,18 +9,19 @@ Komunikuj się z użytkownikiem po **polsku**.
 
 ## Zanim zaczniesz pracę w tym repo
 
-1. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.59.18**, `01211d6`), commity, decyzje.
-2. **Przeczytaj [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)** — ★★ Odbiory WM Druk (P0 pollution CLOSED · ZI PDF OPEN).
-3. **Przeczytaj [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md)** — ★★ Notatki operacyjne P0→HF (COMPLETE).
-4. **Przeczytaj [`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md)** — ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM.
-5. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — status sesji / wznowienie (SESSION CLOSEOUT).
-5. **Przeczytaj [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)** — release/deploy A/B/C + verify `version.json`.
-6. **Przeczytaj [`AGENTS.md`](AGENTS.md)** — pełna lista handoffów i zakazy.
-7. **Przeczytaj [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)** — proces AUDIT→RCA→PLAN→IMPLEMENT (baseline historyczny).
-8. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § UX.1B workspace, § 11.6 ARCH-001, § 12.1.5 P2-F, § **12.1.7 P2-H**, § 9.2 inspektor, § 11 sync.
-9. **Tematycznie (gdy dotyczy zadania):**
+1. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.59.19**, `1a8c892`), commity, decyzje.
+2. **Przeczytaj [`audit/ZI-FINAL-HANDOFF.md`](audit/ZI-FINAL-HANDOFF.md)** — ★★★ ZI PDF investigation (RCA CLOSED · §3 NO-GO · audit inventory).
+3. **Przeczytaj [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)** — ★★ Odbiory WM Druk (P0 infra CLOSED · ZI §3 OPEN).
+4. **Przeczytaj [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md)** — ★★ Notatki operacyjne P0→HF (COMPLETE).
+5. **Przeczytaj [`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md)** — ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM.
+6. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — status sesji / wznowienie (SESSION CLOSEOUT).
+7. **Przeczytaj [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)** — release/deploy A/B/C + verify `version.json`.
+8. **Przeczytaj [`AGENTS.md`](AGENTS.md)** — pełna lista handoffów i zakazy.
+9. **Przeczytaj [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)** — proces AUDIT→RCA→PLAN→IMPLEMENT (baseline historyczny).
+10. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § UX.1B workspace, § 11.6 ARCH-001, § 12.1.5 P2-F, § **12.1.7 P2-H**, § 9.2 inspektor, § 11 sync.
+11. **Tematycznie (gdy dotyczy zadania):**
  - **P2-H Dokumenty / ZIP / 7Z / Marketplanet** → [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)
- - **Odbiory WM Druk** → [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)
+ - **Odbiory WM Druk / ZI PDF** → [`audit/ZI-FINAL-HANDOFF.md`](audit/ZI-FINAL-HANDOFF.md) + [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)
  - **Notatki operacyjne** → [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md)
    - **P3 Wycena · BZP · filtry** → [`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md)
    - **UX.1 Tender Workspace** → [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)
@@ -42,7 +43,7 @@ Stosuj [`.cursor/rules/wgdom-development.mdc`](wgdom-development.mdc): chmura �
 
 | Temat | Plik |
 |-------|------|
-| **Odbiory WM Druk (P0 CLOSED · ZI OPEN)** | `docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`, `src/lib/wm-print/*`, `WmPrintView.tsx` |
+| **Odbiory WM Druk (P0 infra CLOSED · ZI §3 OPEN)** | `audit/ZI-FINAL-HANDOFF.md`, `docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`, `src/lib/wm-print/*`, `WmPrintView.tsx` |
 | **Notatki operacyjne (COMPLETE)** | `docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`, `operational-notes.ts`, `OperationalNotesView.tsx`, `InspectorPanel.tsx` |
 | **P2-H Dokumenty przetargowe** | `docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`, `wgdom-7z-archive.ts`, `tender-document-resolver.ts` |
 | **P3 Wycena · BZP pipeline** | `docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`, `tenders-strategic-client-filters.ts`, `tenders-bzp-keywords.ts` |

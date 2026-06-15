@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-15 (WM Druk P0.3A **2.59.20** pending deploy · prod **2.59.19** · `1a8c892`)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-15 (ZI Investigation **CLOSED · NO-GO** · prod **2.59.19** · `1a8c892`)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -8,16 +8,17 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-2. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (P0 **COMPLETE**)
-3. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← ★★ Notatki operacyjne P0→HF (COMPLETE)
-4. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM
-5. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
-6. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← ★★ UX.1A/1B workspace + ARCH-001
-7. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← P2-F kwalifikacja ofertowa (COMPLETE)
-8. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
-9. CURRENT-TASK.md                         ← status sesji / wznowienie
-10. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
-11. AGENTS.md → docs/ARCHITECTURE.md § 12.1.8 WM Druk · § Notatki · § 12.1.1–12.1.7
+2. audit/ZI-FINAL-HANDOFF.md              ← ★★★ ZI PDF investigation SSOT (START dla ZI)
+3. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (P0 infra CLOSED · ZI §3 OPEN)
+4. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← ★★ Notatki operacyjne P0→HF (COMPLETE)
+5. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM
+6. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
+7. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← ★★ UX.1A/1B workspace + ARCH-001
+8. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← P2-F kwalifikacja ofertowa (COMPLETE)
+9. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
+10. CURRENT-TASK.md                         ← status sesji / wznowienie
+11. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
+12. AGENTS.md → docs/ARCHITECTURE.md § 12.1.8 WM Druk · § Notatki · § 12.1.1–12.1.7
 ```
 
 ---
@@ -26,7 +27,8 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
-| **Odbiory WM Druk P0** | 2.59.15–**2.59.20** (P0.3A pending) | **COMPLETE** | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) |
+| **Odbiory WM Druk P0 infra** | 2.59.15–**2.59.19** | **CLOSED** (pollution/KV/runtime) | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) |
+| **ZI PDF §3 (Tauron hybrid)** | — | **OPEN · NO-GO** · RCA **CLOSED** | [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md) |
 | **P3 Wycena · Baza cen · filtry** | 2.56.0–**2.56.10** (`7acbecf`) | **P3.0–P3.6 CLOSED** | [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) |
 | **Notatki operacyjne** | **2.57.0–2.58.1** (`1f8e2bd`) | **COMPLETE** (P0→P2C+HF) · P3 Export OPEN | [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](SESSION-HANDOFF-OPERATIONAL-NOTES.md) |
 | **P2-H Tender Documents** | 2.55.0–**2.55.10** | **CLOSED** (H.7 OPEN) | [`SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) |
@@ -111,11 +113,12 @@ E2E (origin/main):    8906485         20.5Z.2B
 | **RELEASED (prod)** | **2.59.19** — verify `version.json` |
 | **STABLE** | TAK (moduł wmprint) |
 | **PRODUCTION VERIFIED** | `version.json` = **2.59.19** |
-| **WM Druk P0** | **COMPLETE** (2.59.15–2.59.19) |
+| **WM Druk P0 infra** | **CLOSED** (2.59.15–2.59.19) |
 | **WM Druk P0 pollution** | **CLOSED** |
 | **WM Druk KV cleanup** | **CLOSED** (99→15) |
 | **WM Druk runtime hotfix** | **CLOSED** (2.59.18) |
-| **ZI PDF placeholdery (ZI-PDF-001)** | **CLOSED** (v2.59.19 P0.2A) |
+| **ZI Investigation RCA** | **CLOSED** (P0.1F→P0.4B) — [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md) |
+| **ZI §3 adres PDF (Tauron)** | **OPEN · NO-GO** — brak prod fix |
 | **Notatki operacyjne** | **COMPLETE** (P0→P2C+HF) · **P3 Export OPEN** |
 | **P3 (Wycena / Baza cen / filtry)** | **P3.0–P3.6 CLOSED** · benchmark materiałów rynku **HOLD** |
 | **P1 WM pipeline** | **CLOSED** (v2.56.10 false exclude przebudowa) |

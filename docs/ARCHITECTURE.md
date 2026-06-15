@@ -2,8 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.59.20** · WM Druk P0.3A ZI §3 mapping)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-15 (v2.59.20 WM Druk P0.3A · ZI-PDF-001 fix §3)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-15 (ZI Investigation closeout · WM Druk § 12.1.8)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1330,9 +1329,10 @@ buildTenderDocCandidates()
 
 ### 12.1.8 Odbiory WM Druk (`wmprint`, v2.59.x)
 
-**Status:** Moduł **GO** · **WM DRUK P0 COMPLETE** (2.59.20) · Template Pollution **CLOSED** · KV Cleanup **CLOSED** · Runtime Hotfix **CLOSED** · **ZI-PDF-001 CLOSED** (P0.3A §3)
+**Status:** Moduł **GO** (UI, ZIP, KV, sync) · P0 pollution/KV/runtime **CLOSED** · **ZI §3 adres PDF OPEN · NO-GO** · RCA P0.1F→P0.4B **CLOSED**
 
-**Handoff SSOT:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)
+**Handoff modułu:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)  
+**★★ SSOT śledztwa ZI:** [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
 
 Moduł admina do generowania pakietów dokumentów odbiorowych WM — ZIP per robota, szablony DOCX/PDF form, upload dokumentów.
 
@@ -1367,11 +1367,13 @@ generate-zip.ts → buildWmPrintFilesForJob()
   pdf       → copyStaticPdfTemplate
 ```
 
-**P0.3A (2.59.20) — ZI-PDF-001 fix §3:** Adres WM w polach §3 `TextField2[10/9/8]` @ y≈142 (pdflib index 24/23/22). P0.2A błędnie traktowało te pola jako demo ULICA/BUD/LOK i ukrywało je; legacy §1 `TextField5[0]` / `imie[0]` / `nazwisko[1]` filtrowane z KV. `stripZiDemoDesignerFields` = no-op od P0.3A.
+**P0.3A (repo lokalnie) — mapowanie §3:** `TextField2[10/9/8]` → JOB_* @ y≈142 (pdflib 24/23/22, widgety 429/428/427). **UX §3 nadal FAIL** — hybrid LiveCycle; Edge renderuje streams 380..387; append overlay martwy (P0.3R).
 
-**Testy:** `test-wm-print-p0-seed-guard.mjs` · `test-wm-print-template-cleanup.mjs` · **`test-wm-print-p0-2a-zi-demo-strip.mjs`**
+**ZI Investigation (2026-06-15):** Pełne RCA P0.3AA→P0.4B. Zamknięte: ciphertext, AP RE, XFA, overlay, flatten PoC. **Nie wdrażać** `generatePdfZiFlattenPoC` bez nowego szablonu.
 
-**Nie zmieniaj bez polecenia:** canonical ZI UUID, seed guard, merge po UUID, tombstone deleted-ids.
+**Testy:** `test-wm-print-p0-seed-guard.mjs` · `test-wm-print-template-cleanup.mjs` · `audit-p0-4a-flatten-poc.mjs` (forensic only)
+
+**Nie zmieniaj bez polecenia:** canonical ZI UUID, seed guard, merge po UUID, tombstone deleted-ids. **Nie** wracać do ciphertext/AP/overlay na obecnym SSOT.
 
 **Źródła danych (hierarchia):**
 

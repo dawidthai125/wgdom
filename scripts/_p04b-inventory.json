@@ -1,0 +1,1682 @@
+{
+  "summary": {
+    "count": 207,
+    "totalBytes": 51672287,
+    "byCategory": {
+      "KEEP": 82,
+      "ARCHIVE": 21,
+      "DELETE": 104
+    },
+    "bytesByCategory": {
+      "KEEP": 12557162,
+      "ARCHIVE": 8186752,
+      "DELETE": 30928373
+    },
+    "byType": {
+      "json": 63,
+      "pdf": 134,
+      "zip": 4,
+      "txt": 1,
+      "js": 3,
+      "md": 2
+    }
+  },
+  "rows": [
+    {
+      "file": "audit/_inventory-temp.json",
+      "size": 819,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/_test-clean.pdf",
+      "size": 279574,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/_tmp-burntest.pdf",
+      "size": 589045,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/_tmp-p03l-current-kv.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/_tmp-p03l-live.pdf",
+      "size": 284591,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/final-zi-from-zip.pdf",
+      "size": 590665,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-1f2-proof.mjs"
+    },
+    {
+      "file": "audit/p0-1f-reconcile-report.json",
+      "size": 2151,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-1f-failed-reconcile.mjs"
+    },
+    {
+      "file": "audit/p0-1f2-proof-report.json",
+      "size": 1031,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-1f2-proof.mjs"
+    },
+    {
+      "file": "audit/p0-1f2-proof.zip",
+      "size": 590883,
+      "date": "2026-06-15",
+      "type": "zip",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-1f2-proof.mjs"
+    },
+    {
+      "file": "audit/p0-1f4-layer-report.json",
+      "size": 2201,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-1f4-layer-dump.mjs"
+    },
+    {
+      "file": "audit/p0-1f4-template-raw.pdf",
+      "size": 281671,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-1f4-layer-dump.mjs"
+    },
+    {
+      "file": "audit/p0-1g-debug-overlay.pdf",
+      "size": 279601,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-1g-debug-overlay.mjs"
+    },
+    {
+      "file": "audit/p0-2b-wm-address-rca-report.json",
+      "size": 5569,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/p0-2c-wm-visible-proof-report.json",
+      "size": 1720,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-2c-wm-visible-proof.mjs"
+    },
+    {
+      "file": "audit/p0-3-old-vs-new-template-report.json",
+      "size": 57061,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/p0-3aa-payload-limit-report.json",
+      "size": 10263,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3aa-payload-limit.mjs"
+    },
+    {
+      "file": "audit/p0-3ab-ciphertext-model-report.json",
+      "size": 14025,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ab-ciphertext-model.mjs"
+    },
+    {
+      "file": "audit/p0-3ac-field-capacity-mapping-report.json",
+      "size": 14111,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ac-field-capacity-mapping.mjs"
+    },
+    {
+      "file": "audit/p0-3ad-business-mapping-report.json",
+      "size": 9389,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ad-business-mapping.mjs"
+    },
+    {
+      "file": "audit/p0-3ae-real-capacity-report.json",
+      "size": 13784,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ae-real-capacity.mjs"
+    },
+    {
+      "file": "audit/p0-3af-verify-p0-3g-report.json",
+      "size": 4732,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3af-verify-p0-3g.mjs"
+    },
+    {
+      "file": "audit/p0-3ag-address-field-discovery.json",
+      "size": 13731,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/p0-3ag-adobe-saved-forensic-report.json",
+      "size": 91466,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ag-adobe-saved-forensic.mjs"
+    },
+    {
+      "file": "audit/p0-3ag-executive-summary.json",
+      "size": 811,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/p0-3ah-field-pairing-report.json",
+      "size": 35506,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ah-field-pairing.mjs"
+    },
+    {
+      "file": "audit/p0-3ai-true-capacity-report.json",
+      "size": 9487,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ai-true-capacity.mjs"
+    },
+    {
+      "file": "audit/p0-3aj-replicate-user-save-report.json",
+      "size": 998410,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3aj-replicate-user-save.mjs"
+    },
+    {
+      "file": "audit/p0-3ak-ap-render-path-report.json",
+      "size": 72444,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ak-ap-render-path.mjs"
+    },
+    {
+      "file": "audit/p0-3ak-variants/p0-3ak-A1_clearV.pdf",
+      "size": 294266,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ak-check-a1.mjs"
+    },
+    {
+      "file": "audit/p0-3ak-variants/p0-3ak-A2_removeAP.pdf",
+      "size": 294215,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ak-check-a2.mjs"
+    },
+    {
+      "file": "audit/p0-3ak-variants/p0-3ak-A2b_oldAP.pdf",
+      "size": 294266,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ak-dump-body.mjs"
+    },
+    {
+      "file": "audit/p0-3ak-variants/p0-3ak-A3_altV.pdf",
+      "size": 294266,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3ak-ap-render-path-report.json"
+    },
+    {
+      "file": "audit/p0-3ak-variants/p0-3ak-A4_emptyAP.pdf",
+      "size": 294370,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3ak-ap-render-path-report.json"
+    },
+    {
+      "file": "audit/p0-3ak-variants/p0-3ak-C-clone-830-to-429.pdf",
+      "size": 294266,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ak-ap-render-path.mjs"
+    },
+    {
+      "file": "audit/p0-3b-rca-prod-gen.txt",
+      "size": 8451,
+      "date": "2026-06-15",
+      "type": "txt",
+      "category": "KEEP",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/p0-3d-edge-experiment-report.json",
+      "size": 2711,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3d-edge-experiment.mjs"
+    },
+    {
+      "file": "audit/p0-3d-local-validation-manifest.json",
+      "size": 704,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3d-local-validation.mjs"
+    },
+    {
+      "file": "audit/p0-3e-variant-b-readonly-report.json",
+      "size": 3290,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/p0-3f-local-validation-manifest.json",
+      "size": 532,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3af-verify-p0-3g.mjs"
+    },
+    {
+      "file": "audit/p0-3g-hard-rca-report.json",
+      "size": 5115,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3af-verify-p0-3g.mjs"
+    },
+    {
+      "file": "audit/p0-3h-visible-vs-invisible-report.json",
+      "size": 10096,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3h-final.mjs"
+    },
+    {
+      "file": "audit/p0-3i-ap-preservation-report.json",
+      "size": 3914,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-3i-ap-preservation-forensic.mjs"
+    },
+    {
+      "file": "audit/p0-3j-original-ap-report.json",
+      "size": 1446,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-3j-original-ap.mjs"
+    },
+    {
+      "file": "audit/p0-3k-ap-content-rca-report.json",
+      "size": 3641,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3k-ap-content-rca.mjs"
+    },
+    {
+      "file": "audit/p0-3k-pdfjs-fieldvalues.json",
+      "size": 2062,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/_tmp-p0-3k-pdfjs.mjs"
+    },
+    {
+      "file": "audit/p0-3k-v-encoding-report.json",
+      "size": 1784,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/_tmp-p0-3k-v-encoding.mjs"
+    },
+    {
+      "file": "audit/p0-3l-source-of-truth-report.json",
+      "size": 4935,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3l-source-of-truth.mjs"
+    },
+    {
+      "file": "audit/p0-3m-live-template-forensic-report.json",
+      "size": 58520,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3m-live-template-forensic.mjs"
+    },
+    {
+      "file": "audit/p0-3n-j-vs-f-differential-report.json",
+      "size": 8450,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3n-j-vs-f-differential.mjs"
+    },
+    {
+      "file": "audit/p0-3o-a-overlay-colors-report.json",
+      "size": 4218,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-3o-a-overlay-colors.mjs"
+    },
+    {
+      "file": "audit/p0-3p-page-identity-report.json",
+      "size": 5733,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3p-page-identity.mjs"
+    },
+    {
+      "file": "audit/p0-3q-content-injection-report.json",
+      "size": 4349,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-3q-content-injection.mjs"
+    },
+    {
+      "file": "audit/p0-3r-root-cause-confirmed-report.json",
+      "size": 4450,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/p0-3s-stream-ownership-report.json",
+      "size": 32109,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3s-stream-ownership.mjs"
+    },
+    {
+      "file": "audit/p0-3t-ap-switch-report.json",
+      "size": 12220,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-3t-ap-switch.mjs"
+    },
+    {
+      "file": "audit/p0-3u-hard-reset-forensic-report.json",
+      "size": 171866,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3u-hard-reset-forensic.mjs"
+    },
+    {
+      "file": "audit/p0-3v-dawid-vs-sepa-report.json",
+      "size": 15757,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3v-dawid-vs-sepa.mjs"
+    },
+    {
+      "file": "audit/p0-3w-xfa-dataset-diff-report.json",
+      "size": 4707,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3w-xfa-dataset-diff.mjs"
+    },
+    {
+      "file": "audit/p0-3x-xfa-extraction-report.json",
+      "size": 14588,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3x-xfa-extraction.mjs"
+    },
+    {
+      "file": "audit/p0-3y-designer-v-rca-report.json",
+      "size": 26642,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3y-designer-v-rca.mjs"
+    },
+    {
+      "file": "audit/p0-3z-ciphertext-prove-report.json",
+      "size": 7059,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3z-ciphertext-prove.mjs"
+    },
+    {
+      "file": "audit/p0-4a-flatten-poc-report.json",
+      "size": 3382,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-4a-flatten-poc.mjs"
+    },
+    {
+      "file": "audit/p0-template-pollution-report.json",
+      "size": 79216,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-template-pollution.mjs"
+    },
+    {
+      "file": "audit/prod-app-core.js",
+      "size": 279669,
+      "date": "2026-06-15",
+      "type": "js",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/prod-index.js",
+      "size": 721400,
+      "date": "2026-06-15",
+      "type": "js",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/prod-WmPrintView.js",
+      "size": 554630,
+      "date": "2026-06-15",
+      "type": "js",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/probe-prod-wmprint-chunk.mjs"
+    },
+    {
+      "file": "audit/SEPA_SZARZYNSKIEGO_83_7_ODBIOR_WM_P0-3D-LOCAL.zip",
+      "size": 576035,
+      "date": "2026-06-15",
+      "type": "zip",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3d-local-validation-manifest.json"
+    },
+    {
+      "file": "audit/SEPA_SZARZYNSKIEGO_83_7_ODBIOR_WM_P0-3F-LOCAL.zip",
+      "size": 592107,
+      "date": "2026-06-15",
+      "type": "zip",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3af-verify-p0-3g-report.json"
+    },
+    {
+      "file": "audit/template-cleanup-backup.json",
+      "size": 40158,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/cleanup-wm-print-template-pollution.mjs"
+    },
+    {
+      "file": "audit/template-cleanup-execute-report.json",
+      "size": 5927,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/cleanup-wm-print-template-pollution.mjs"
+    },
+    {
+      "file": "audit/template-cleanup-report.json",
+      "size": 30910,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/cleanup-wm-print-template-pollution.mjs"
+    },
+    {
+      "file": "audit/trace-full.zip",
+      "size": 1992245,
+      "date": "2026-06-15",
+      "type": "zip",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-1f-zi-hard-trace.mjs"
+    },
+    {
+      "file": "audit/TRACE-REPORT.json",
+      "size": 1257,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-1f-zi-hard-trace.mjs"
+    },
+    {
+      "file": "audit/zi-before-zip.pdf",
+      "size": 590665,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-1f-zi-hard-trace.mjs"
+    },
+    {
+      "file": "audit/zi-from-pipeline.pdf",
+      "size": 590665,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-1f-zi-hard-trace.mjs"
+    },
+    {
+      "file": "audit/zi-live-template.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ag-adobe-saved-forensic.mjs"
+    },
+    {
+      "file": "audit/zi-new-job-fields.pdf",
+      "size": 280202,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3l-source-of-truth.mjs"
+    },
+    {
+      "file": "audit/zi-new-template-fields-pdfjs.json",
+      "size": 12233,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-zi-pdfjs-fields.mjs"
+    },
+    {
+      "file": "audit/zi-new-template-forensic-report.json",
+      "size": 36623,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3l-source-of-truth.mjs"
+    },
+    {
+      "file": "audit/zi-new-template-FORENSIC.md",
+      "size": 7155,
+      "date": "2026-06-15",
+      "type": "md",
+      "category": "KEEP",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-new-template-prod.pdf",
+      "size": 284591,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3aa-payload-limit.mjs"
+    },
+    {
+      "file": "audit/zi-new-template-xfa-deep.json",
+      "size": 1193,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-zi-xfa-deep.mjs"
+    },
+    {
+      "file": "audit/zi-old-template.pdf",
+      "size": 280202,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3l-source-of-truth.mjs"
+    },
+    {
+      "file": "audit/zi-p0-2a-publish-report.json",
+      "size": 646,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/publish-wm-print-zi-template-p0-2a.mjs"
+    },
+    {
+      "file": "audit/zi-p0-2a-smoke-sepa-83-7.pdf",
+      "size": 591762,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/test-wm-print-p0-2a-zi-demo-strip.mjs"
+    },
+    {
+      "file": "audit/zi-p0-2c-proof-sepa-83-7.pdf",
+      "size": 591774,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-2c-wm-visible-proof.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3a-smoke-sepa-83-7.pdf",
+      "size": 590236,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3b-prod-forensic.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3aa-probe-w429.pdf",
+      "size": 284592,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3ai-true-capacity-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-probe-w55.pdf",
+      "size": 284593,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3ai-true-capacity-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-probe-w61.pdf",
+      "size": 284592,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3ai-true-capacity-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-probe-w64.pdf",
+      "size": 284594,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3ai-true-capacity-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w429-1234567890.pdf",
+      "size": 280207,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w429-ABCDEF.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w429-Thai_Thanh.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w429-ULICA.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w55-1234567890.pdf",
+      "size": 280208,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w55-ABCDEFGHIJ.pdf",
+      "size": 280208,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w55-ABCDEFGHIJK.pdf",
+      "size": 280208,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w55-Thai_Thanh.pdf",
+      "size": 280208,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w55-Thai_ThanhXX.pdf",
+      "size": 280208,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w55-Thai_ThanX.pdf",
+      "size": 280208,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w64-1234567890.pdf",
+      "size": 280207,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w64-ABCDEF.pdf",
+      "size": 280207,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w64-Dawid.pdf",
+      "size": 280209,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w64-DawidX.pdf",
+      "size": 280209,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w67-ABCDEFGH.pdf",
+      "size": 280207,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w67-Str__a.pdf",
+      "size": 280208,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w67-Str__aX.pdf",
+      "size": 280208,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3aa-w67-Str__aXY.pdf",
+      "size": 280208,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3aa-payload-limit-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3ab-sepa-szar-zeropad.pdf",
+      "size": 280267,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-p0-3ab-sepa-szar.pdf",
+      "size": 280267,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ab-ciphertext-model.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3ab-w427-7.pdf",
+      "size": 280259,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3ab-ciphertext-model-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3ab-w427-LOK-zeropad.pdf",
+      "size": 280258,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-p0-3ab-w427-LOK.pdf",
+      "size": 280258,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-p0-3ab-w428-83.pdf",
+      "size": 280268,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3ab-ciphertext-model-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3ab-w428-BUD-zeropad.pdf",
+      "size": 280276,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-p0-3ab-w428-BUD.pdf",
+      "size": 280276,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-p0-3ab-w429-7-zeropad.pdf",
+      "size": 280261,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-p0-3ab-w429-7.pdf",
+      "size": 280264,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3ab-ciphertext-model-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3ab-w429-SEPA_83-zeropad.pdf",
+      "size": 280258,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-p0-3ab-w429-SEPA_83.pdf",
+      "size": 280258,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-p0-3ab-w429-SEPA.pdf",
+      "size": 280258,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3ab-ciphertext-model-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3ab-w429-SEPASZAR-zeropad.pdf",
+      "size": 280258,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-p0-3ab-w429-SEPASZAR.pdf",
+      "size": 280258,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-p0-3ag-adobe-saved.pdf",
+      "size": 294266,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ag-adobe-saved-forensic.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3aj-adobe-v-swap.pdf",
+      "size": 294524,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3aj-adobe-v-swap.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3aj-proof-from-template-graft.pdf",
+      "size": 294266,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3aj-replicate-user-save.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3aj-proof-no-ap.pdf",
+      "size": 294215,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3aj-no-ap-test.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3aj-proof-test-111-222.pdf",
+      "size": 294266,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3aj-inplace-proof.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3aj-vonly-test.pdf",
+      "size": 280603,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3aj-vonly-test.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3b-prod-template-gen.pdf",
+      "size": 591762,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3b-gen-prod-template.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3c-flatten-sim.pdf",
+      "size": 575817,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-p0-3d-baseline-no-fix.pdf",
+      "size": 591762,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3d-edge-experiment.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3d-local-wgdom-sepa-83-7.pdf",
+      "size": 575817,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3d-local-validation.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3d-variant-a-flatten-no-overlay.pdf",
+      "size": 574798,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3d-edge-experiment.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3d-variant-a-flatten.pdf",
+      "size": 575817,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3d-edge-experiment.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3d-variant-b-strip-annots.pdf",
+      "size": 591889,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3d-edge-experiment.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3f-local-wgdom-sepa-83-7.pdf",
+      "size": 591889,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3ad-business-mapping.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3f-smoke-sepa-83-7.pdf",
+      "size": 591889,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/test-wm-print-p0-3f-strip-section3-annots.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3i-baseline-full-pipeline.pdf",
+      "size": 591889,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-3i-ap-preservation-forensic.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3i-no-updateAppearances.pdf",
+      "size": 279688,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-3i-ap-preservation-forensic.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3j-original-ap.pdf",
+      "size": 279688,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3k-ap-content-rca.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3m-f-full-pipeline.pdf",
+      "size": 590239,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3m-live-template-forensic.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3m-j-original-ap.pdf",
+      "size": 278039,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3m-live-template-forensic.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3o-overlay-colors.pdf",
+      "size": 285528,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-3o-a-overlay-colors.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3p-page-marker.pdf",
+      "size": 280220,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3p-page-identity.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3q-append.pdf",
+      "size": 279341,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-3q-content-injection.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3q-replace.pdf",
+      "size": 279706,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3s-stream-ownership.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3s-hide-380.pdf",
+      "size": 279465,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3s-stream-ownership-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3s-hide-381.pdf",
+      "size": 279561,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3s-stream-ownership-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3s-hide-382.pdf",
+      "size": 279577,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3s-stream-ownership-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3s-hide-383.pdf",
+      "size": 279577,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3s-stream-ownership-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3s-hide-384.pdf",
+      "size": 279481,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3s-stream-ownership-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3s-hide-385.pdf",
+      "size": 279625,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3s-stream-ownership-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3s-hide-386.pdf",
+      "size": 279529,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3s-stream-ownership-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3s-hide-387.pdf",
+      "size": 279657,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3s-stream-ownership-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3s-hide-all-streams.pdf",
+      "size": 275030,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/_tmp-p03s-hide-all.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3t-a-original.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-3t-ap-switch.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3t-b-setText-no-ua.pdf",
+      "size": 278039,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-3t-ap-switch.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3t-c-updateAppearances-noto-ap.pdf",
+      "size": 588996,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-3t-ap-switch.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3t-d-ua-restore-ap801.pdf",
+      "size": 588996,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/experiment-p0-3t-ap-switch.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3u-attached-source.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3aa-payload-limit.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3w-settext-sepa-experiment.pdf",
+      "size": 278039,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3w-xfa-dataset-diff.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3x-exp-a-acro-v-only.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3x-xfa-extraction.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3x-exp-a2-cleartext-v-only.pdf",
+      "size": 280190,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3x-xfa-extraction.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3x-exp-b-xfa-flip-35.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3x-xfa-extraction.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3x-exp-c-both.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3x-xfa-extraction.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3y-exp5a-ulica-gets-dawid-v.pdf",
+      "size": 280207,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3y-designer-v-rca.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3y-exp5b-dawid-gets-ulica-v.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3y-designer-v-rca.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3y-exp5c-swap-ulica-bud.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3y-designer-v-rca.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3z-7-s1.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-7-s2.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-7-s4.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-83-s1.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-83-s2.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-83-s4.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-AAAAA-s1.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-AAAAA-s2.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-AAAAA-s4.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-BBBBB-s1.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-BBBBB-s2.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-BBBBB-s4.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-S_pa_Szarzy_skiego-s1.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-S_pa_Szarzy_skiego-s2.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-S_pa_Szarzy_skiego-s4.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-S_pa-s1.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-S_pa-s2.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-S_pa-s4.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-TEST-s1.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-TEST-s2.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-TEST-s4.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-test.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3z-ciphertext-prove.mjs"
+    },
+    {
+      "file": "audit/zi-p0-3z-XXXXX-s1.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-XXXXX-s2.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-3z-XXXXX-s4.pdf",
+      "size": 280206,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3z-ciphertext-prove-report.json"
+    },
+    {
+      "file": "audit/zi-p0-4a-flatten-poc-sepa-83-7.pdf",
+      "size": 571973,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-4a-flatten-poc.mjs"
+    },
+    {
+      "file": "audit/zi-rca-ulica-bud-lok-REPORT.md",
+      "size": 7283,
+      "date": "2026-06-15",
+      "type": "md",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md"
+    },
+    {
+      "file": "audit/zi-rca-ulica-bud-lok-zi-new-template-prod.json",
+      "size": 10090,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-rca-ulica-bud-lok-zi-p0-2c-proof-sepa-83-7.json",
+      "size": 5931,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-rca-ulica-bud-lok-zi-p0-3a-smoke-sepa-83-7.json",
+      "size": 5984,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "DELETE",
+      "lastRef": "—"
+    },
+    {
+      "file": "audit/zi-rca-ulica-bud-lok-zi-p0-3b-prod-template-gen.json",
+      "size": 5934,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/p0-3b-rca-prod-gen.txt"
+    },
+    {
+      "file": "audit/zi-rca-ulica-bud-lok-zi-smoke-sepa-83-7.json",
+      "size": 6126,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/audit/zi-rca-ulica-bud-lok-REPORT.md"
+    },
+    {
+      "file": "audit/zi-smoke-sepa-83-7-deep.json",
+      "size": 18,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "DELETE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-zi-smoke-deep.mjs"
+    },
+    {
+      "file": "audit/zi-smoke-sepa-83-7-report.json",
+      "size": 2958,
+      "date": "2026-06-15",
+      "type": "json",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-zi-smoke-readonly.mjs"
+    },
+    {
+      "file": "audit/zi-smoke-sepa-83-7.pdf",
+      "size": 591889,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "KEEP",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-zi-rca-ulica-bud-lok.mjs"
+    },
+    {
+      "file": "audit/zi-template-job-fields.pdf",
+      "size": 127946,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/audit-p0-3l-source-of-truth.mjs"
+    },
+    {
+      "file": "audit/zi-template-p0-2a-cleaned.pdf",
+      "size": 284591,
+      "date": "2026-06-15",
+      "type": "pdf",
+      "category": "ARCHIVE",
+      "lastRef": "C:/Users/dawid/Downloads/WGDOM1/scripts/publish-wm-print-zi-template-p0-2a.mjs"
+    }
+  ]
+}

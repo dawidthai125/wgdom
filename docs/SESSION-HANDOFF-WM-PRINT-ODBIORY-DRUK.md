@@ -1,6 +1,8 @@
 # SESSION HANDOFF — Odbiory WM Druk (`wmprint`)
 
-> **★★ Handoff modułu WM Druk** · **Data closeout:** 2026-06-15 · **Prod:** v**2.59.19** · **Commit:** **`1a8c892`** · **Stream P0 COMPLETE**
+> **★★ Handoff modułu WM Druk** · **Data closeout:** 2026-06-15 · **Prod:** v**2.59.19** · **Commit:** **`1a8c892`**
+> **P0 pollution/KV/runtime:** **CLOSED** · **ZI §3 adres PDF:** **NO-GO** · **Śledztwo RCA P0.1F→P0.4B:** **CLOSED**
+> **★★ SSOT śledztwa ZI:** [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
 > **Hasło agenta:** „kontynuuj WGDOM”
 
 ---
@@ -144,67 +146,103 @@ Artefakty audytu: `audit/p0-1f2-proof.zip`, `scripts/audit-p0-1f*.mjs`, `audit/z
 
 ---
 
-## 5a. P0.2A — ZI-PDF-001 CLOSEOUT (v2.59.19 · `1a8c892`)
+## 5a. P0.2A — demo ULICA/BUD/LOK (v2.59.19 · historyczny)
 
-### Root cause
+Usunięto placeholdery demo @ y≈142. **P0.3A** skorygowało mapowanie na właściwe pola §3. **Śledztwo P0.3A→P0.4B** wykazało, że **adres §3 nadal nie renderuje się** w Edge/Chrome/Adobe — patrz §5b.
 
-Edge renderował widoczne widgety demo:
+---
 
-- `TextField2[8]`
-- `TextField2[9]`
-- `TextField2[10]`
+## 5b. ZI Investigation — RCA P0.3A→P0.4B (**CLOSED · NO-GO**)
 
-z wartościami:
+**★★ SSOT:** [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md) · inventory: `scripts/_p04b-inventory.json`
 
-- ULICA
-- BUD
-- LOK
+### Problem biznesowy (OPEN)
 
-Widgety znajdowały się w `/Annots` i były renderowane nad overlayem WM (obj 427/428/429, F=4).
+W sekcji **§3 OKREŚLENIE OBIEKTU** (y≈142) wygenerowany PDF ZI **nie pokazuje** adresu robocy (ulica / budynek / lokal) w Edge, Chrome, Adobe Reader ani wydruku.
 
-### Fix
+### Business mapping — **POTWIERDZONY (nie kwestionować)**
 
-- `stripZiDemoDesignerFields()` — wyczyść `/V`, ukryj widget (`/F=2`) @ y≈142
-- `cleanZiTemplateDemoFields()` — oczyszczenie źródłowego szablonu
-- Aktualizacja szablonu w storage/KV (`2155cec9-…`)
-- `pdfFieldMapping` WM zaktualizowany (`TextField5[0]` / `imie[0]` / `nazwisko[1]`)
+| Zmienna | Qualified name | Widget | pdf-lib idx | y rect |
+|---------|----------------|--------|-------------|--------|
+| JOB_STREET | TextField2[10] | **429** | 24 | ≈142 |
+| JOB_BUILDING | TextField2[9] | **428** | 23 | ≈142 |
+| JOB_APARTMENT | TextField2[8] | **427** | 22 | ≈142 |
 
-### Rezultat
+### Szablon SSOT (hybrid LiveCycle)
 
-- brak `{{JOB_*}}`
-- brak ULICA/BUD/LOK
-- poprawne dane WM (np. Sępa Szarzyńskiego / 83 / 7)
-- Edge PASS
+| Plik | SHA256 (prefix) | Rola |
+|------|-----------------|------|
+| `audit/zi-live-template.pdf` | `1d756452…` | SSOT attached/KV |
+| `audit/zi-p0-3u-attached-source.pdf` | identyczny | kopia ZIP |
+| `audit/zi-p0-3ag-adobe-saved.pdf` | `38c98105…` | referencja Adobe user save (421/420/419 @ y≈440) |
 
-### Status
+### Co zrobiliśmy (skrót chronologii)
 
-**ZI-PDF-001 = CLOSED**
+| Faza | Skrót | Werdykt |
+|------|-------|---------|
+| P0.1F–1G | `/V` OK, overlay, debug colors | UX FAIL |
+| P0.2A | strip demo ULICA/BUD/LOK | częściowy — superseded P0.3A |
+| P0.3A | mapowanie §3 TextField2[8/9/10] | mapping OK, UX nadal FAIL |
+| P0.3AA–AI | ciphertext capacity 5/3/3 | **CLOSED** — twarda granica |
+| P0.3AJ | replicate Adobe save | partial — wymaga AP 808–833 |
+| P0.3AK | AP render dominance | **CLOSED** — AP rebuild niemożliwy bez Adobe SDK |
+| P0.3M–R | Edge render path streams 380..387 | append **martwy**, replace 387 partial |
+| P0.3F | strip §3 annots + overlay | **FAIL** UX |
+| P0.4A | flatten + burn-in PoC | **FAIL** manual (adres niewidoczny, pola znikają) |
+| P0.4B | audit inventory + ten handoff | **CLOSED** |
 
-Smoke: `scripts/test-wm-print-p0-2a-zi-demo-strip.mjs` (14/14 PASS)
+### Zamknięte ścieżki — **NIE WRACAĆ** bez nowego twardego dowodu
+
+Ciphertext path · Adobe encrypted `/V` RE · AP reverse engineering · XFA datasets · Overlay · Contents append · Contents replace (full) · AP clone · Flatten pdf-lib PoC
+
+### Architektura renderingu Edge (ustalone P0.3R)
+
+```text
+Page obj 365 (viewer page 1)
+  /Contents [380..387]  ← Edge maluje z TEJ stosy (LiveCycle Designer)
+  pdf-lib append stream ← IGNOROWANY przez Edge
+  Widget AP 429/428/427 ← ciphertext; capacity 5/3/3
+```
+
+### Kod prod (stan repo — bez wdrożenia fix ZI)
+
+`generate-pdf.ts`: `generatePdfFormFromTemplate` — setText + `finalizeZiHybridForm` (overlay) + `stripSection3WidgetAnnots`.  
+Eksperyment (nie prod): `generatePdfZiFlattenPoC` — **nie wdrażać** (P0.4A FAIL).
 
 ---
 
 ## 6. CO BĘDZIEMY ROBIĆ (backlog — priorytety)
 
-### P0 — CLOSED
+### P0 — moduł WM Druk (infra)
 
 | ID | Temat | Status |
 |----|-------|--------|
-| **ZI-PDF-001** | Demo ULICA/BUD/LOK + placeholdery w PDF ZI | **CLOSED** (2.59.19 P0.2A) |
+| Template pollution | seed guard + KV cleanup | **CLOSED** (2.59.15–17) |
+| Runtime hotfix | normalizeWmPrintTemplates | **CLOSED** (2.59.18) |
+| **ZI §3 adres PDF** | Hybrid LiveCycle — brak prod fix | **OPEN · NO-GO** |
 
-**RCA:** Edge renderował widgety demo `TextField2[8/9/10]` @ y≈142 (F=4) nad overlayem WM. Fix: `stripZiDemoDesignerFields` + oczyszczony szablon w storage.
+### P1 — następne kroki ZI (nowa sesja — **nowe podejście**)
 
-### P1 — stabilizacja
+| Priorytet | Kierunek | Uwagi |
+|-----------|----------|-------|
+| **P1** | **Nowy szablon ZI** (plain AcroForm od Tauron / re-export Designer) | najniższe ryzyko |
+| **P2** | Adobe PDF Services / oficjalny save-path | koszt + infra |
+| **P3** | Surgical patch strumienia 387 | wysokie ryzyko regresji etykiet |
+| **P4** | Obejście procesowe (ZI poza automatyzacją WGDOM) | decyzja biznesowa |
+
+**Nie kontynuować:** ciphertext, AP graft, overlay append, flatten pdf-lib na obecnym SSOT.
+
+### P1 — stabilizacja WM Druk (poza ZI)
 
 | Temat | Status |
 |-------|--------|
 | Regresja smoke prod WM Druk (wejście, ZIP, Szablony) | OPEN |
-| Sync localStorage po cleanup (stare 99 UUID u klientów) | monitorować — merge+tombstone powinno wystarczyć |
-| Usunięcie debug overlay z `generate-pdf.ts` jeśli nieużywane | backlog |
+| Audit cleanup `audit/` (207 plików) | plan w ZI-FINAL-HANDOFF §9 — **nie wykonano** |
+| Sync localStorage po cleanup | monitorować |
 
 ### P2 — rozwój (tylko na polecenie)
 
-- Więcej mapowań PDF form per szablon (nie tylko ZI hardcoded)
+- Więcej mapowań PDF form per szablon
 - E2E Playwright modułu wmprint
 - Export email pakietu odbiorowego
 
@@ -212,43 +250,54 @@ Smoke: `scripts/test-wm-print-p0-2a-zi-demo-strip.mjs` (14/14 PASS)
 
 ## 7. ZI PDF — stan techniczny (dla następnego agenta)
 
-### Canonical template (prod po P0.2A)
+### Start here
+
+1. [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
+2. [`CURRENT-TASK.md`](../CURRENT-TASK.md)
+3. Ten plik §5b
+
+### Canonical template KV
 
 ```text
 UUID: 26f02c78-871c-4d65-aeac-d0ca06bf060c
-fileId: 2155cec9-6ca1-4eec-af1c-7b4d346487a3 (poprzedni c616f1bb-…)
+fileId: 2155cec9-6ca1-4eec-af1c-7b4d346487a3
 name: ZI
 type: pdf_form (override w generate-zip.ts)
 ```
 
-### Mapowanie pól WM (`generate-pdf.ts` — P0.2A)
+### Mapowanie prod (`generate-pdf.ts` — P0.3A)
 
 ```text
-TextField5[0]  → JOB_STREET   (pdf-lib index 10)
-imie[0]        → JOB_BUILDING (index 9)
-nazwisko[1]    → JOB_APARTMENT (index 8)
+TextField2[10] → JOB_STREET     (pdflib 24, widget 429)
+TextField2[9]  → JOB_BUILDING  (pdflib 23, widget 428)
+TextField2[8]  → JOB_APARTMENT (pdflib 22, widget 427)
 ```
 
-Demo projektanta @ y≈142 (`TextField2[8/9/10]`) — **strip** przy generacji i w szablonie storage (puste /V, widget /F=2).
+Legacy §1 (`TextField5[0]` / `imie[0]` / `nazwisko[1]`) — **filtrowane** z KV (`WM_PRINT_ZI_LEGACY_WM_FIELD_QNAMES`).
 
-Legacy map `WM_PRINT_ZI_PDF_FIELD_MAP` (TextField2 indeksy) — bez zmian w kodzie wypełniania.
+### Pipeline prod (obecny — UX §3 FAIL)
 
-### Pipeline ZI (`finalizeZiHybridForm`)
+```text
+generatePdfFormFromTemplate()
+  → setText (§3 + inne pola)
+  → finalizeZiHybridForm (Noto overlay @ widget rects)   ← Edge ignoruje append
+  → stripSection3WidgetAnnots
+```
 
-1. `setText` na polach AcroForm
-2. `updateAppearances(font)` — Noto Sans z `/public/fonts/NotoSans-Regular.ttf`
-3. **Visual overlay** — `drawRectangle` + `drawText` na współrzędnych widgetów (P0.1C/1D/1E)
-4. Opcjonalnie P0.1G: `wmPrintZiDebugColorOverlay` — kolorowe boxy zamiast tekstu (tylko test)
+### Kluczowe raporty audit (KEEP)
+
+`p0-3ad-business-mapping-report.json` · `p0-3r-root-cause-confirmed-report.json` · `p0-3ak-ap-render-path-report.json` · `p0-4a-flatten-poc-report.json`
 
 ### Znane pułapki
 
 | Pułapka | Skutek |
 |---------|--------|
-| Template pollution (naprawione 2.59.15+) | Duplikaty UUID w KV — nie seedować z normalize/parse |
-| `parseWmPrintTemplates` bez importu w cloud-sync | Toast runtime — używać `normalizeWmPrintTemplates` |
-| batch-set API | Format `{ keys, values }` — **nie** `{ entries }` |
-| XFA w szablonie ZI | pdf-lib strip XFA → indeksy zamiast qualified names |
-| Edge vs Acrobat vs audyt bytes | Różne warstwy wizualne — `/V` OK ≠ UI OK |
+| `/V` OK w audycie bytes | **≠** widoczny tekst w Edge |
+| pdf-lib append na page 365 | Edge **ignoruje** nowe streamy po 380..387 |
+| Hybrid LiveCycle ciphertext | max 5/3/3 znaków na §3 — za mało na „Sępa Szarzyńskiego" |
+| flatten() pdf-lib | psuje część pól; nie rozwiązuje §3 |
+| Template pollution (2.59.15+) | naprawione — nie seedować ponownie |
+| `parseWmPrintTemplates` bez importu | używać `normalizeWmPrintTemplates` w cloud-sync |
 
 ---
 
@@ -287,16 +336,18 @@ npm run build
 
 ---
 
-## 9a. Werdykt sesji
+## 9a. Werdykt sesji (2026-06-15 closeout)
 
 ```text
-WM DRUK P0               COMPLETE (2.59.15–2.59.19)
-P0 Template Pollution     CLOSED (seed guard + cleanup 99→15 + hotfix 2.59.18)
-KV Cleanup                CLOSED (2.59.17)
+WM DRUK P0 infra          CLOSED (2.59.15–2.59.19) — pollution, KV, runtime
+P0 Template Pollution     CLOSED
+KV Cleanup                CLOSED (99→15)
 Runtime Hotfix            CLOSED (2.59.18)
-ZI-PDF-001                CLOSED (2.59.19 P0.2A — demo strip + clean template)
-Moduł wmprint UI          GO
-Prod KV templates         15 rekordów, ZI file 2155cec9-…
+ZI Investigation RCA      CLOSED (P0.1F→P0.4B) — brak prod fix
+ZI §3 adres PDF           OPEN · NO-GO
+Moduł wmprint UI          GO (poza ZI §3)
+Reszta WGDOM              GO
+Audit katalog             207 plików ~49 MB — cleanup plan only
 ```
 
-**Następny agent:** P1 regresja Edge ZIP end-to-end; nie revertować strip demo bez RCA.
+**Następny agent:** Czytaj `audit/ZI-FINAL-HANDOFF.md` → szukaj **nowego** kierunku (P1: nowy szablon). **Nie** uruchamiaj eksperymentów ciphertext/AP/XFA/overlay/flatten na SSOT.

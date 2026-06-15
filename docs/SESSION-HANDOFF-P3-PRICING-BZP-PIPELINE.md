@@ -231,23 +231,44 @@ supabase/functions/make-server-0afb8820/index.tsx
 
 ---
 
-## 11. Co będziemy robić (backlog — tylko na polecenie)
+## 11. Priorytety kolejnych prac (strategia produktu)
 
-| Priorytet | Temat | Status |
-|-----------|-------|--------|
-| P2-H.7 | Edge magic bytes 7z | OPEN (techniczny) |
-| P2-G.3D/E | Benchmark jakości / RMS / AI validation | OPEN → slot Wycena |
-| P2-F.6 | Kompletność oferty (checklist) | OPEN → slot Oferta |
-| P3.7+ | Dalsze filtry/lista przetargów | OPEN |
-| Benchmark materiałów rynku | KB/Leroy integracja | **HOLD** (audyt NO GO live) |
-| P2 Audit Center | Security log Super Admin | OPEN |
-| Kolejny UNKNOWN sweep | Gdy nowe ATH w pipeline | na żądanie |
+**Obecny werdykt:** moduł **Przetargi = PRODUCTION READY**. Workflow end-to-end działa produkcyjnie.
+
+**Priorytet:** **realne przetargi** (audyty operacyjne na żywych postępowaniach) **zamiast** nowych funkcji.
+
+| Priorytet | Temat | Co sprawdzać |
+|-----------|-------|--------------|
+| **P1** | Audyty nowych przetargów | Znalezienie kosztorysu · klasyfikacja · wycena · UNKNOWN na rzeczywistych postępowaniach |
+| **P2** | Kalibracja wyceny | Porównanie względem wygranych i przegranych ofert (`tender-cost-calibration.ts`) |
+| **P3** | Rozwój Bazy Cen | Uzupełnianie katalogu na podstawie historii firmy (nie integracji zewnętrznych) |
+
+### Backlog techniczny (tylko na polecenie po AUDIT)
+
+| Temat | Status |
+|-------|--------|
+| P2-H.7 — Edge magic bytes 7z | OPEN (techniczny) |
+| P2-G.3D/E — benchmark jakości / RMS | OPEN → slot Wycena |
+| P2-F.6 — kompletność oferty (checklist) | OPEN → slot Oferta |
+| P3.7+ — dalsze filtry/lista | OPEN |
+| Benchmark materiałów rynku (KB/Leroy) | **HOLD** |
+| P2 Audit Center — security log | OPEN |
+| Kolejny UNKNOWN sweep | gdy nowe ATH w pipeline |
 
 **Proces:** `AUDIT → RCA → PLAN → IMPLEMENT` — brak kodu bez audytu.
 
 ---
 
-## 12. Czego NIE zmieniać bez polecenia
+## 12. Czego NIE robić / NIE zmieniać bez polecenia
+
+### Zakazy produktowe (bez osobnej decyzji biznesowej)
+
+- Command Center reworki · nowe dashboardy
+- Leroy API · Castorama API · OBI API · scraping KB.pl
+- Benchmark materiałów rynku (integracja zewnętrzna)
+- OCR PDF · nowe crawlery
+
+### Zakazy techniczne
 
 - Merge/sync `kw-tenders-pipeline`, `kw-wgdom-cost-catalog`, payroll guard
 - Struktura 5 workspace tabs (UX.1B), lazy render, Anti-CC
@@ -262,11 +283,12 @@ supabase/functions/make-server-0afb8820/index.tsx
 
 ```text
 BASELINE v2.56.10 · PRODUCTION VERIFIED (version.json)
-P3.0–P3.6 CLOSED (wycena, baza cen, benchmarki, filtry strategiczne)
-P1 WM false exclude CLOSED (Edge + klient)
-P2-G.3C CLOSED (klasyfikacja prod UNKNOWN 0%)
-P2-H stream CLOSED (H.1–H.6 + H.5A/B/C/D)
-UX.1 CLOSED · P2-F CLOSED · P1 CLOSED
-OPEN: P2-H.7 · P2-G.3D/E · P2-F.6 · benchmark materiałów HOLD · P2 Audit Center
+Moduł Przetargi: PRODUCTION READY
+Workflow: Przetarg → dokumentacja → kosztorys → klasyfikacja → wycena → oferta — działa produkcyjnie
+P3.0–P3.6 CLOSED · P1 WM false exclude CLOSED · P2-G.3C CLOSED (UNKNOWN 0%)
+P2-H stream CLOSED (H.1–H.6 + H.5A/B/C/D) · UX.1 CLOSED · P2-F CLOSED · P1 CLOSED
+Klienci strategiczni aktywni: WM · ZZK · MOPS · TBS · Gminy · Uczelnie
+Priorytet: REALNE PRZETARGI (audyty operacyjne P1/P2/P3) zamiast nowych funkcji
+OPEN (na polecenie): P2-H.7 · P2-G.3D/E · P2-F.6 · benchmark materiałów HOLD · P2 Audit Center
 Ready for new GPT / new Cursor agent
 ```

@@ -1,8 +1,14 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.20** WM Druk P0.3A ZI §3 mapping
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.59.19** · **ZI §3 OPEN**
 
-## 2.59.20 — Odbiory WM Druk P0.3A ZI §3 adres obiektu
+## Docs 2026-06-15 — ZI Investigation closeout (P0.4B)
+
+- **`audit/ZI-FINAL-HANDOFF.md`** — SSOT śledztwa ZI (RCA CLOSED, NO-GO, audit inventory, rekomendacje)
+- Zaktualizowano: `SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`, `PROJECT-HANDOFF-CURRENT.md`, `ARCHITECTURE.md` §12.1.8, `AGENTS.md`, `CURRENT-TASK.md`
+- Inventory: `scripts/_p04b-inventory.json` · `scripts/_readonly-p04b-inventory.mjs`
+
+## 2.59.20 — Odbiory WM Druk P0.3A ZI §3 adres obiektu (repo lokalnie — UX nadal FAIL)
 - `generate-pdf.ts`: JOB_* → TextField2[10/9/8] @ y≈142; pdflib index 24/23/22; bez strip §3; filtr legacy §1 KV
 
 ## 2.59.19 — Odbiory WM Druk P0.2A ZI demo ULICA/BUD/LOK strip
