@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-15 (ZI Investigation closeout · WM Druk § 12.1.8)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-15 (ZI Tauron 2026 RELEASE · WM Druk § 12.1.8)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1329,10 +1329,10 @@ buildTenderDocCandidates()
 
 ### 12.1.8 Odbiory WM Druk (`wmprint`, v2.59.x)
 
-**Status:** Moduł **GO** (UI, ZIP, KV, sync) · P0 pollution/KV/runtime **CLOSED** · **ZI §3 adres PDF OPEN · NO-GO** · RCA P0.1F→P0.4B **CLOSED**
+**Status:** Moduł **GO** (UI, ZIP, KV, sync) · P0 pollution/KV/runtime **CLOSED** · **ZI Tauron 2026 RELEASE GO (2.59.22)** · ZI LiveCycle 2021 **CLOSED**
 
 **Handoff modułu:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)  
-**★★ SSOT śledztwa ZI:** [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
+**★★ SSOT ZI prod:** [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) · historyczne RCA: [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
 
 Moduł admina do generowania pakietów dokumentów odbiorowych WM — ZIP per robota, szablony DOCX/PDF form, upload dokumentów.
 
@@ -1363,17 +1363,14 @@ Moduł admina do generowania pakietów dokumentów odbiorowych WM — ZIP per ro
 ```text
 generate-zip.ts → buildWmPrintFilesForJob()
   DOCX      → generate-docx.ts ({{VAR}})
-  pdf_form  → generate-pdf.ts (ZI: §3 TextField2[10/9/8] pdflib idx 24/23/22 · P0.3A)
+  pdf_form  → generate-pdf-zi-tauron2026.ts gdy name===ZI (Tauron 2026 · §4 pola 99/111/112 + preservation)
+  pdf_form  → generate-pdf.ts (inne formularze AcroForm)
   pdf       → copyStaticPdfTemplate
 ```
 
-**P0.3A (repo lokalnie) — mapowanie §3:** `TextField2[10/9/8]` → JOB_* @ y≈142 (pdflib 24/23/22, widgety 429/428/427). **UX §3 nadal FAIL** — hybrid LiveCycle; Edge renderuje streams 380..387; append overlay martwy (P0.3R).
+**ZI Tauron 2026 (2.59.22):** FormMaker AcroForm · mapping §4: `Pole tekstowe 99/111/112` → JOB_STREET/BUILDING/APARTMENT · preservation: pdf.js graft ze szyfrowanego WM `ZI.pdf` · bundled `public/wm-print/zi-tauron-2026-template.pdf` · smoke: `test-wm-print-zi-2026-smoke.mjs` + `test-wm-print-zi-2026-preservation-smoke.mjs`.
 
-**ZI Investigation (2026-06-15):** Pełne RCA P0.3AA→P0.4B. Zamknięte: ciphertext, AP RE, XFA, overlay, flatten PoC. **Nie wdrażać** `generatePdfZiFlattenPoC` bez nowego szablonu.
-
-**Testy:** `test-wm-print-p0-seed-guard.mjs` · `test-wm-print-template-cleanup.mjs` · `audit-p0-4a-flatten-poc.mjs` (forensic only)
-
-**Nie zmieniaj bez polecenia:** canonical ZI UUID, seed guard, merge po UUID, tombstone deleted-ids. **Nie** wracać do ciphertext/AP/overlay na obecnym SSOT.
+**ZI LiveCycle (2021): CLOSED** — nie wracać do XFA, ciphertext, AP, flatten, TextField2[*], widgety 429/428/427.
 
 **Źródła danych (hierarchia):**
 

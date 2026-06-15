@@ -1,6 +1,16 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.59.19** · **ZI §3 OPEN**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.22** · **ZI Tauron 2026 RELEASE GO**
+
+## 2.59.22 — Odbiory WM Druk ZI Tauron 2026 (GO)
+- `generate-pdf-zi-tauron2026.ts` + `zi-tauron2026-form-extract.ts`: Tauron 2026 §4 mapping **99/111/112** + preservation (pdf.js graft na szyfrowanym WM ZI.pdf)
+- `public/wm-print/zi-tauron-2026-template.pdf` — bundled SSOT (decrypted blank)
+- Legacy LiveCycle CLOSED → `audit/archive/legacy-zi-livecycle-2021/`
+- Smoke: `test-wm-print-zi-2026-smoke.mjs` · `test-wm-print-zi-2026-preservation-smoke.mjs`
+- SSOT: `docs/ZI-2026-HANDOFF.md`
+
+## 2.59.21 — Odbiory WM Druk ZI Tauron 2026 (dev, superseded)
+- Pierwszy generator Tauron 2026 — zastąpiony przez 2.59.22 (mapping + preservation)
 
 ## Docs 2026-06-15 — ZI Investigation closeout (P0.4B)
 

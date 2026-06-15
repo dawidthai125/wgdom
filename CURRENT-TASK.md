@@ -1,65 +1,39 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-15 · **SESSION CLOSEOUT — ZI Investigation CLOSED (NO-GO)**
+**Ostatnia aktualizacja:** 2026-06-15 · **SESSION CLOSEOUT — ZI Tauron 2026 RELEASE GO (2.59.22)**
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod (`main`)** | **2.59.19** · commit **`1a8c892`** |
-| **Stream WM Druk P0 pollution** | **CLOSED** (2.59.17–18) |
-| **ZI PDF §3 adres obiektu** | **NO-GO — NIE ROZWIĄZANE** |
-| **Śledztwo ZI (RCA P0.1F→P0.4B)** | **CLOSED** — brak prod fix |
-| **Commit / push / deploy** | **Brak w tej sesji closeout** |
+| **Wersja prod (`main`)** | **2.59.22** (po push tej sesji) |
+| **Stream WM Druk P0 pollution** | **CLOSED** (2.59.15–18) |
+| **ZI Tauron 2026** | **RELEASE GO** — mapping 99/111/112 + preservation gate |
+| **ZI LiveCycle 2021** | **CLOSED** — nie wracać do XFA/ciphertext/AP |
+| **Śledztwo ZI (RCA P0.1F→P0.4B)** | **CLOSED** — superseded by ZI 2026 |
 
-## ★★ START HERE — ZI (nowy chat / agent)
+## ★★ START HERE — ZI (SSOT prod)
 
-**SSOT śledztwa:** [`audit/ZI-FINAL-HANDOFF.md`](audit/ZI-FINAL-HANDOFF.md)
+**Implementacja:** [`docs/ZI-2026-HANDOFF.md`](docs/ZI-2026-HANDOFF.md)
 
-**Nie wracać bez nowego twardego dowodu do:**
+**Mapping §4 (Tauron 2026):**
 
-- Ciphertext path · Adobe encrypted `/V` · AP reverse engineering · XFA datasets
-- Overlay path · Contents append · Contents replace · AP clone
-- Flatten PoC (P0.4A = **FAIL** manual)
+| Zmienna | Pole PDF |
+|---------|----------|
+| JOB_STREET | Pole tekstowe 99 |
+| JOB_BUILDING | Pole tekstowe 111 |
+| JOB_APARTMENT | Pole tekstowe 112 |
 
-**Szukaj:** nowe podejście biznesowe lub techniczne (np. nowy szablon Tauron, Adobe PDF Services, workflow poza hybrid LiveCycle).
+**Preservation:** aktywny `ZI.pdf` z WM Druk → pdf.js graft + patch §4.
 
-## Potwierdzony business mapping (§3)
+**Smoke:**
 
-| Zmienna | Pole | Widget |
-|---------|------|--------|
-| JOB_STREET | TextField2[10] | 429 |
-| JOB_BUILDING | TextField2[9] | 428 |
-| JOB_APARTMENT | TextField2[8] | 427 |
-
-Sekcja: **§3 OKREŚLENIE OBIEKTU ZGŁASZANEGO DO PRZYŁĄCZENIA** @ y≈142 — mapping **poprawny**.
-
-## SSOT pliki (audit)
-
-| Plik | Rola |
-|------|------|
-| `audit/ZI-FINAL-HANDOFF.md` | Final handoff RCA + plan cleanup |
-| `audit/zi-live-template.pdf` | SSOT szablon (SHA256 `1d756452…`) |
-| `audit/zi-p0-3u-attached-source.pdf` | Kopia attached = live SSOT |
-| `audit/zi-p0-3ag-adobe-saved.pdf` | Adobe user save (referencja) |
-
-## Audit katalog
-
-- **207 plików · ~49 MB**
-- Plan reorganizacji w `ZI-FINAL-HANDOFF.md` §9 — **NIE wykonano** (brak git mv / delete / archiwizacji)
-- Inventory: `scripts/_p04b-inventory.json` · `scripts/_readonly-p04b-inventory.mjs`
-
-## WGDOM poza ZI
-
-Reszta projektu **działa**. Problem **ograniczony do ZI PDF**.
-
-**Handoff modułu WM Druk:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) — wymaga aktualizacji werdyktu ZI w osobnej sesji (po decyzji biznesowej).
-
-## WZNOWIENIE (nowy chat)
-
-```text
-1. Przeczytaj audit/ZI-FINAL-HANDOFF.md
-2. Nie uruchamiaj eksperymentów ciphertext/AP/XFA/overlay/flatten
-3. RCA = zakończone — szukaj nowego kierunku (P1: nowy szablon / P2: Adobe Services)
-4. Audit cleanup — dopiero po akceptacji planu §9 (osobna sesja)
+```bash
+npx vite-node scripts/test-wm-print-zi-2026-smoke.mjs
+npx vite-node scripts/test-wm-print-zi-2026-preservation-smoke.mjs
+npm run build
 ```
+
+**Nie wracać bez nowego dowodu do:** XFA · LiveCycle · ciphertext · AP RE · flatten · overlay · TextField2[*] · widgety 429/428/427
+
+**Historyczne RCA:** [`audit/ZI-FINAL-HANDOFF.md`](audit/ZI-FINAL-HANDOFF.md)

@@ -1,8 +1,11 @@
 import fontkit from "@pdf-lib/fontkit";
-import { PDFDocument, PDFTextField, rgb } from "pdf-lib";
+import { PDFArray, PDFDocument, PDFName, PDFRef, PDFTextField, rgb } from "pdf-lib";
 import type { WmPrintVariableKey } from "@/lib/wm-print/types";
 
-/** Pola ZI §3 — adres obiektu (P0.3A): TextField2[10/9/8] @ y≈142. */
+/**
+ * @deprecated Legacy LiveCycle ZI (2021) — CLOSED. Prod ZI używa `generatePdfZiTauron2026()` (Tauron 2026).
+ * Pola §3 LiveCycle — nie używać dla nowych wdrożeń.
+ */
 export const WM_PRINT_ZI_PDF_FIELD_MAP: Record<string, WmPrintVariableKey> = {
   "form1[0].Page1[0].TextField2[10]": "JOB_STREET",
   "form1[0].Page1[0].TextField2[9]": "JOB_BUILDING",
@@ -266,6 +269,58 @@ function pdfPageForWidget(
  * Edge (i część viewerów) nadal pokazuje placeholdery {{JOB_*}} z warstwy statycznej Im0/content
  * mimo poprawnego /AP — widgety AcroForm są nad tłem, a AP bez pełnego wypełnienia nie zasłania grafiki.
  */
+/**
+ * P0.3F — usuń widgety §3 z /Annots strony (Edge nie renderuje AP; zasłaniają overlay 811).
+ * Pola TextField2[10/9/8] zostają w AcroForm z /V — znikają tylko adnotacje wizualne.
+ */
+export function stripSection3WidgetAnnots(
+  pdfDoc: PDFDocument,
+  form: ReturnType<PDFDocument["getForm"]>,
+): number {
+  const targetRects: { x: number; y: number }[] = [];
+  for (const idx of Object.values(WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX)) {
+    if (typeof idx !== "number") continue;
+    const field = getZiTextFieldByIndex(form, idx);
+    const widget = field?.acroField.getWidgets()[0];
+    if (!widget) continue;
+    const rect = widget.getRectangle();
+    targetRects.push({ x: rect.x, y: rect.y });
+  }
+
+  const tol = WM_PRINT_ZI_DEMO_FIELD_Y_TOLERANCE;
+  let removed = 0;
+  for (const page of pdfDoc.getPages()) {
+    const annotsObj = page.node.lookup(PDFName.of("Annots"));
+    if (!(annotsObj instanceof PDFArray)) continue;
+
+    const kept: PDFRef[] = [];
+    for (let i = 0; i < annotsObj.size(); i++) {
+      const entry = annotsObj.get(i);
+      if (!(entry instanceof PDFRef)) continue;
+
+      const annotDict = pdfDoc.context.lookup(entry);
+      const rectObj = annotDict?.lookup?.(PDFName.of("Rect"));
+      let drop = false;
+      if (rectObj instanceof PDFArray && rectObj.size() >= 2) {
+        const ax = rectObj.get(0).asNumber();
+        const ay = rectObj.get(1).asNumber();
+        drop = targetRects.some((t) => Math.abs(ax - t.x) < tol && Math.abs(ay - t.y) < tol);
+      }
+
+      if (drop) {
+        removed++;
+        continue;
+      }
+      kept.push(entry);
+    }
+
+    if (kept.length === 0) page.node.delete(PDFName.of("Annots"));
+    else page.node.set(PDFName.of("Annots"), pdfDoc.context.obj(kept));
+  }
+
+  return removed;
+}
+
 async function finalizeZiHybridForm(
   pdfDoc: PDFDocument,
   form: ReturnType<PDFDocument["getForm"]>,
@@ -361,6 +416,7 @@ export async function generatePdfFormFromTemplate(
 
   if (formType === "hybrid" || formType === "xfa") {
     await finalizeZiHybridForm(pdfDoc, form, vars);
+    stripSection3WidgetAnnots(pdfDoc, form);
   } else {
     try {
       pdfDoc.registerFontkit(fontkit);
@@ -391,6 +447,7 @@ export async function diagnoseZiPdfFieldFill(
   const formType = detectWmPrintPdfFormType(templateBytes);
   if (formType === "hybrid" || formType === "xfa") {
     await finalizeZiHybridForm(pdfDoc, form, vars);
+    stripSection3WidgetAnnots(pdfDoc, form);
   }
 
   const out = await pdfDoc.save({ useObjectStreams: false });
@@ -448,4 +505,199 @@ export async function diagnoseZiPdfFieldFill(
       "7": countUtf8(out, "7"),
     },
   };
+}
+
+/** §3 burn-in — stałe rect z profilu P0.3AD (widgety 429/428/427, y≈142). */
+export const WM_PRINT_ZI_SECTION3_BURN_IN_RECTS: Record<
+  WmPrintVariableKey,
+  { x: number; y: number; width: number; height: number }
+> = {
+  JOB_STREET: { x: 25.336, y: 142.735992, width: 363.33, height: 16.187 },
+  JOB_BUILDING: { x: 398.835, y: 142.735992, width: 77.85, height: 16.669 },
+  JOB_APARTMENT: { x: 488.835, y: 142.735992, width: 79.831, height: 16.669 },
+};
+
+const WM_PRINT_ZI_SECTION3_FIELD_NAMES = new Set(Object.keys(WM_PRINT_ZI_PDF_FIELD_MAP));
+
+function stripXfaFromAcroForm(pdfDoc: PDFDocument): boolean {
+  const acroRef = pdfDoc.catalog.get(PDFName.of("AcroForm"));
+  if (!acroRef) return false;
+  const acroDict = pdfDoc.context.lookup(acroRef);
+  if (!acroDict?.has?.(PDFName.of("XFA"))) return false;
+  acroDict.delete(PDFName.of("XFA"));
+  return true;
+}
+
+function removeZiSection3FormFields(form: ReturnType<PDFDocument["getForm"]>): number {
+  let removed = 0;
+  for (const fieldName of WM_PRINT_ZI_SECTION3_FIELD_NAMES) {
+    try {
+      form.removeField(form.getField(fieldName));
+      removed++;
+    } catch {
+      /* fallback indeks pdf-lib */
+    }
+  }
+  for (const idx of [24, 23, 22]) {
+    try {
+      const field = getZiTextFieldByIndex(form, idx);
+      if (field) {
+        form.removeField(field);
+        removed++;
+      }
+    } catch {
+      /* już usunięte */
+    }
+  }
+  return removed;
+}
+
+async function burnInZiSection3Address(
+  pdfDoc: PDFDocument,
+  form: ReturnType<PDFDocument["getForm"]>,
+  vars: Record<WmPrintVariableKey, string>,
+): Promise<void> {
+  pdfDoc.registerFontkit(fontkit);
+  const font = await pdfDoc.embedFont(await loadWmPrintZiPdfFontBytes());
+  const pages = pdfDoc.getPages();
+  const page = pages[0];
+
+  const entries: [WmPrintVariableKey, number][] = [
+    ["JOB_STREET", WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_STREET!],
+    ["JOB_BUILDING", WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_BUILDING!],
+    ["JOB_APARTMENT", WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_APARTMENT!],
+  ];
+
+  for (const [varKey, idx] of entries) {
+    const field = getZiTextFieldByIndex(form, idx);
+    const widget = field?.acroField.getWidgets()[0];
+    const fallback = WM_PRINT_ZI_SECTION3_BURN_IN_RECTS[varKey];
+    const rect = widget?.getRectangle() ?? {
+      x: fallback.x,
+      y: fallback.y,
+      width: fallback.width,
+      height: fallback.height,
+    };
+    const targetPage = widget ? pdfPageForWidget(pdfDoc, widget) : page;
+    const text = vars[varKey] ?? "";
+
+    targetPage.drawRectangle({
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+      color: rgb(1, 1, 1),
+      borderWidth: 0,
+    });
+    targetPage.drawText(text, {
+      x: rect.x + 2,
+      y: rect.y + rect.height * 0.28,
+      size: 8,
+      font,
+      color: rgb(0, 0, 0),
+    });
+  }
+}
+
+/**
+ * P0.4A — flatten PoC: burn-in §3 na content stream, bez setText/updateAppearances/ciphertext/AP §3.
+ * Widgety 429/428/427 nie są wypełniane — flatten pozostałych pól, potem drawText na wierzchu.
+ */
+export async function generatePdfZiFlattenPoC(
+  templateBytes: Uint8Array,
+  vars: Record<WmPrintVariableKey, string>,
+  fieldMapping?: Partial<Record<string, WmPrintVariableKey>>,
+): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.load(templateBytes, { ignoreEncryption: true });
+  const kvMapping = Object.fromEntries(
+    Object.entries(fieldMapping ?? {}).filter(([name]) => !WM_PRINT_ZI_LEGACY_WM_FIELD_QNAMES.has(name)),
+  );
+  const mapping: Record<string, WmPrintVariableKey> = {
+    ...kvMapping,
+    ...WM_PRINT_ZI_PDF_FIELD_MAP,
+  };
+
+  const form = pdfDoc.getForm();
+  form.updateFieldAppearances = () => {};
+
+  for (const [fieldName, varKey] of Object.entries(mapping)) {
+    if (WM_PRINT_ZI_SECTION3_FIELD_NAMES.has(fieldName)) continue;
+    setZiTextFieldValue(form, fieldName, vars[varKey] ?? "");
+  }
+
+  stripSection3WidgetAnnots(pdfDoc, form);
+  removeZiSection3FormFields(form);
+  stripXfaFromAcroForm(pdfDoc);
+
+  try {
+    form.flatten();
+  } catch {
+    /* brak pól do spłaszczenia */
+  }
+
+  /** Burn-in na końcu — musi być ostatni stream w /Contents (nad Im0 i FlatWidget). */
+  await burnInZiSection3Address(pdfDoc, form, vars);
+
+  const saved = await pdfDoc.save({ useObjectStreams: false });
+  return ensureBurnInStreamLastInContents(saved);
+}
+
+/** P0.4A — pdf-lib po flatten zostawia burn-in jako osierocony obj; dopnij go na koniec /Contents. */
+export async function ensureBurnInStreamLastInContents(pdfBytes: Uint8Array): Promise<Uint8Array> {
+  if (typeof window !== "undefined") return pdfBytes;
+
+  const { default: zlib } = await import("node:zlib");
+  const raw = Buffer.from(pdfBytes);
+  const latin = raw.toString("latin1");
+
+  const sepaMarker = "003600DB00530044";
+  let burnInObj: string | null = null;
+  const streamRe = /(\d+) 0 obj[\s\S]*?stream\r?\n/g;
+  let sm: RegExpExecArray | null;
+  while ((sm = streamRe.exec(latin)) !== null) {
+    const start = sm.index + sm[0].length;
+    const end = latin.indexOf("endstream", start);
+    if (end < 0) continue;
+    try {
+      const body = zlib.inflateSync(raw.subarray(start, end)).toString("latin1");
+      if (body.includes(sepaMarker) && body.includes("142.735992")) {
+        burnInObj = sm[1];
+        break;
+      }
+    } catch {
+      /* skip */
+    }
+  }
+  if (!burnInObj) return pdfBytes;
+
+  const pageMatch = latin.match(/(\d+) 0 obj[\s\S]*?\/Type\s*\/Page\b[\s\S]*?\/MediaBox/);
+  if (!pageMatch) return pdfBytes;
+  const pageObj = pageMatch[1];
+  const pageBodyMatch = latin.match(new RegExp(`\\n${pageObj} 0 obj([\\s\\S]*?)endobj`));
+  if (!pageBodyMatch) return pdfBytes;
+  const pageBody = pageBodyMatch[1];
+
+  const inlineArray = pageBody.match(/\/Contents\s*\[([\s\S]*?)\]/);
+  if (inlineArray) {
+    const refs = [...inlineArray[1].matchAll(/(\d+)\s+0\s+R/g)].map((m) => m[1]);
+    if (refs.includes(burnInObj)) {
+      if (refs[refs.length - 1] === burnInObj) return pdfBytes;
+      const without = refs.filter((r) => r !== burnInObj);
+      const newArray = `[${[...without, burnInObj].join(" 0 R ")} 0 R]`;
+      const patched = latin.replace(inlineArray[0], `/Contents ${newArray}`);
+      return new Uint8Array(Buffer.from(patched, "binary"));
+    }
+    const newArray = inlineArray[0].replace(/\]\s*$/, ` ${burnInObj} 0 R]`);
+    return new Uint8Array(Buffer.from(latin.replace(inlineArray[0], newArray), "binary"));
+  }
+
+  const singleRef = pageBody.match(/\/Contents\s+(\d+)\s+0\s+R/);
+  if (singleRef && singleRef[1] !== burnInObj) {
+    const newContents = `/Contents [${singleRef[1]} 0 R ${burnInObj} 0 R]`;
+    return new Uint8Array(
+      Buffer.from(latin.replace(singleRef[0], newContents), "binary"),
+    );
+  }
+
+  return pdfBytes;
 }

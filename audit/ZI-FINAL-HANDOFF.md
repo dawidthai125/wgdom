@@ -1,8 +1,8 @@
 # ZI PDF — Final Handoff (P0.4B)
 
-> **Data:** 2026-06-15 · **Status:** **Śledztwo ZI CLOSED — brak rozwiązania prod**  
-> **Werdykt biznesowy:** §3 adres (ulica/budynek/lokal) **niewidoczny** w viewerach docelowych · **P0.4A Flatten PoC = FAIL**  
-> **Tryb:** READ ONLY closeout · bez implementacji · bez commit/push/deploy
+> **Data:** 2026-06-15 · **Status:** **Legacy LiveCycle CLOSED — zastąpione ZI Tauron 2026**  
+> **Nowy SSOT prod:** [`docs/ZI-2026-HANDOFF.md`](../docs/ZI-2026-HANDOFF.md) · generator: `generatePdfZiTauron2026()`  
+> **Werdykt historyczny:** §3 na LiveCycle **niewidoczny** w viewerach · **P0.4A Flatten PoC = FAIL**
 
 ---
 

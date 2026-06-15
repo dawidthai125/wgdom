@@ -33,9 +33,9 @@ export function createWmPrintSeedTemplates(): WmPrintTemplate[] {
     ...(s.kind === "generated" && s.name === "ZI"
       ? {
           pdfFieldMapping: {
-            "form1[0].Page1[0].TextField2[10]": "JOB_STREET",
-            "form1[0].Page1[0].TextField2[9]": "JOB_BUILDING",
-            "form1[0].Page1[0].TextField2[8]": "JOB_APARTMENT",
+            "Pole tekstowe 99": "JOB_STREET",
+            "Pole tekstowe 111": "JOB_BUILDING",
+            "Pole tekstowe 112": "JOB_APARTMENT",
           },
         }
       : {}),

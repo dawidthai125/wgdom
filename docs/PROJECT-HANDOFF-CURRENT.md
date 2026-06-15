@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-15 (ZI Investigation **CLOSED · NO-GO** · prod **2.59.19** · `1a8c892`)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-15 (ZI Tauron 2026 **RELEASE GO** · prod **2.59.22**)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -8,8 +8,8 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-2. audit/ZI-FINAL-HANDOFF.md              ← ★★★ ZI PDF investigation SSOT (START dla ZI)
-3. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (P0 infra CLOSED · ZI §3 OPEN)
+2. docs/ZI-2026-HANDOFF.md              ← ★★★ ZI Tauron 2026 prod SSOT
+3. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (P0 CLOSED · ZI 2026 GO)
 4. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← ★★ Notatki operacyjne P0→HF (COMPLETE)
 5. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM
 6. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
@@ -28,7 +28,8 @@
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
 | **Odbiory WM Druk P0 infra** | 2.59.15–**2.59.19** | **CLOSED** (pollution/KV/runtime) | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) |
-| **ZI PDF §3 (Tauron hybrid)** | — | **OPEN · NO-GO** · RCA **CLOSED** | [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md) |
+| **ZI Tauron 2026** | **2.59.22** | **RELEASE GO** · preservation + §4 mapping | [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) |
+| **ZI LiveCycle investigation** | — | **CLOSED** · superseded | [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md) |
 | **P3 Wycena · Baza cen · filtry** | 2.56.0–**2.56.10** (`7acbecf`) | **P3.0–P3.6 CLOSED** | [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) |
 | **Notatki operacyjne** | **2.57.0–2.58.1** (`1f8e2bd`) | **COMPLETE** (P0→P2C+HF) · P3 Export OPEN | [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](SESSION-HANDOFF-OPERATIONAL-NOTES.md) |
 | **P2-H Tender Documents** | 2.55.0–**2.55.10** | **CLOSED** (H.7 OPEN) | [`SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) |
@@ -73,8 +74,9 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (repo / prod):      2.59.19       ← WM Druk P0.2A ZI-PDF-001 CLOSED
-Feature commit (prod):      1a8c892        fix: P0.2A strip ZI demo ULICA/BUD/LOK
+Version (repo / prod):      2.59.22       ← ZI Tauron 2026 RELEASE GO
+Feature commit (prod):      (see release report)  feat: ZI Tauron 2026 + preservation
+WM Druk P0.2A (prev):       1a8c892        v2.59.19 strip demo (superseded by ZI 2026)
 WM Druk hotfix:             01211d6        v2.59.18 normalizeWmPrintTemplates runtime
 WM Druk cleanup:            16ee8f8        v2.59.17 KV 99→15 templates
 WM Druk seed guard:         0c6b804        v2.59.15 template pollution fix
@@ -109,11 +111,12 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 | Status | Wartość |
 |--------|---------|
-| **RELEASE GO (2.59.19)** | **TAK** — pushed `1a8c892` |
-| **RELEASED (prod)** | **2.59.19** — verify `version.json` |
-| **STABLE** | TAK (moduł wmprint) |
-| **PRODUCTION VERIFIED** | `version.json` = **2.59.19** |
+| **RELEASE GO (2.59.22)** | **TAK** — ZI Tauron 2026 |
+| **RELEASED (prod)** | **2.59.22** — verify `version.json` |
+| **STABLE** | TAK (moduł wmprint · ZI 2026) |
+| **PRODUCTION VERIFIED** | po push — jedno `curl version.json` |
 | **WM Druk P0 infra** | **CLOSED** (2.59.15–2.59.19) |
+| **ZI Tauron 2026** | **RELEASE GO** (2.59.22) |
 | **WM Druk P0 pollution** | **CLOSED** |
 | **WM Druk KV cleanup** | **CLOSED** (99→15) |
 | **WM Druk runtime hotfix** | **CLOSED** (2.59.18) |

@@ -1,8 +1,8 @@
 # SESSION HANDOFF — Odbiory WM Druk (`wmprint`)
 
-> **★★ Handoff modułu WM Druk** · **Data closeout:** 2026-06-15 · **Prod:** v**2.59.19** · **Commit:** **`1a8c892`**
-> **P0 pollution/KV/runtime:** **CLOSED** · **ZI §3 adres PDF:** **NO-GO** · **Śledztwo RCA P0.1F→P0.4B:** **CLOSED**
-> **★★ SSOT śledztwa ZI:** [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
+> **★★ Handoff modułu WM Druk** · **Data closeout:** 2026-06-15 · **Prod:** v**2.59.22** (ZI Tauron 2026 RELEASE GO)
+> **P0 pollution/KV/runtime:** **CLOSED** · **ZI LiveCycle RCA:** **CLOSED** · **ZI Tauron 2026:** **RELEASE GO** · SSOT: [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md)
+> **Historyczne RCA LiveCycle:** [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
 > **Hasło agenta:** „kontynuuj WGDOM”
 
 ---
@@ -152,7 +152,24 @@ Usunięto placeholdery demo @ y≈142. **P0.3A** skorygowało mapowanie na wła�
 
 ---
 
-## 5b. ZI Investigation — RCA P0.3A→P0.4B (**CLOSED · NO-GO**)
+## 5c. ZI Tauron 2026 (**RELEASE GO · v2.59.22**)
+
+**★★ SSOT:** [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) · preservation: [`audit/tauron-audit-2026-06-15/ZI-2026-PRESERVATION-GATE-REPORT.md`](../audit/tauron-audit-2026-06-15/ZI-2026-PRESERVATION-GATE-REPORT.md)
+
+| Element | Wartość |
+|---------|---------|
+| Formularz | Tauron ZI 2026 (FormMaker AcroForm, bez XFA) |
+| Generator | `generatePdfZiTauron2026()` + `zi-tauron2026-form-extract.ts` |
+| Mapping §4 | `Pole tekstowe 99/111/112` → JOB_STREET / JOB_BUILDING / JOB_APARTMENT |
+| Preservation | pdf.js graft ze szyfrowanego WM `ZI.pdf` · patch tylko §4 |
+| Bundled | `public/wm-print/zi-tauron-2026-template.pdf` |
+| Smoke | `test-wm-print-zi-2026-smoke.mjs` · `test-wm-print-zi-2026-preservation-smoke.mjs` |
+
+Legacy LiveCycle: **CLOSED** → `audit/archive/legacy-zi-livecycle-2021/`
+
+---
+
+## 5b. ZI Investigation — RCA P0.3A→P0.4B (**CLOSED · superseded by ZI 2026**)
 
 **★★ SSOT:** [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md) · inventory: `scripts/_p04b-inventory.json`
 

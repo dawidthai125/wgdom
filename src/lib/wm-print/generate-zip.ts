@@ -4,6 +4,10 @@ import type { Job } from "@/app/app-domain";
 import { wmPrintZipBaseName } from "@/lib/wm-print/address-vars";
 import { generateDocxFromTemplate } from "@/lib/wm-print/generate-docx";
 import { copyStaticPdfTemplate, generatePdfFormFromTemplate } from "@/lib/wm-print/generate-pdf";
+import {
+  detectLegacyLiveCycleZiForm,
+  generatePdfZiTauron2026,
+} from "@/lib/wm-print/generate-pdf-zi-tauron2026";
 import { getWmPrintJobDocumentsForJob } from "@/lib/wm-print/job-documents";
 import { getEnabledWmPrintTemplates, getWmPrintTemplateFiles } from "@/lib/wm-print/templates";
 import { fetchWmPrintFileBytes } from "@/lib/wm-print/upload";
@@ -45,7 +49,17 @@ export async function generateFromTemplateBytes(
 ): Promise<Uint8Array | null> {
   const type = t.name === "ZI" ? "pdf_form" : t.type;
   if (type === "docx") return generateDocxFromTemplate(sourceBytes, vars);
-  if (type === "pdf_form") return generatePdfFormFromTemplate(sourceBytes, vars, t.pdfFieldMapping);
+  if (type === "pdf_form") {
+    if (t.name === "ZI") {
+      if (detectLegacyLiveCycleZiForm(sourceBytes)) {
+        throw new Error(
+          "Szablon ZI LiveCycle (2021) nie jest obsługiwany. Wgraj formularz Tauron ZI 2026 (zi.ashx).",
+        );
+      }
+      return generatePdfZiTauron2026(sourceBytes, vars);
+    }
+    return generatePdfFormFromTemplate(sourceBytes, vars, t.pdfFieldMapping);
+  }
   if (type === "pdf") {
     return copyStaticPdfTemplate(sourceBytes);
   }

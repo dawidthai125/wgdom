@@ -12,6 +12,40 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-15",
+    version: "2.59.22",
+    label: "Odbiory WM Druk — ZI Tauron 2026 (GO)",
+    items: [
+      {
+        type: "new",
+        text: "ZI: formularz Tauron 2026 (FormMaker) — §4: Pole tekstowe 99/111/112 → ulica/budynek/lokal z adresu roboty",
+      },
+      {
+        type: "fix",
+        text: "ZI: preservation gate — wypełniony szablon WM (szyfrowany R6) zachowuje dane użytkownika; dopisuje tylko §4 (pdf.js + pdf-lib)",
+      },
+      {
+        type: "improve",
+        text: "ZI LiveCycle 2021 CLOSED — archiwum audit/archive/legacy-zi-livecycle-2021/ · guard przy starym szablonie",
+      },
+    ],
+  },
+  {
+    date: "2026-06-15",
+    version: "2.59.21",
+    label: "Odbiory WM Druk — ZI Tauron 2026 (dev)",
+    items: [
+      {
+        type: "new",
+        text: "ZI: pierwszy generator Tauron 2026 (FormMaker) — superseded przez 2.59.22",
+      },
+      {
+        type: "improve",
+        text: "ZI: legacy LiveCycle (2021) oznaczony CLOSED — archiwum audit/ + guard przy starym szablonie",
+      },
+    ],
+  },
+  {
+    date: "2026-06-15",
     version: "2.59.20",
     label: "Odbiory WM Druk — P0.3A ZI §3 adres obiektu",
     items: [
