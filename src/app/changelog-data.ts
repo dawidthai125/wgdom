@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-15",
+    version: "2.59.16",
+    label: "Odbiory WM Druk — P0 cleanup template pollution (skrypt KV)",
+    items: [
+      { type: "fix", text: "Skrypt cleanup-wm-print-template-pollution.mjs — backup, KEEP/DELETE, dry-run / --execute" },
+      { type: "improve", text: "planWmPrintTemplateCleanup: filesCount>0 + najstarszy per name; test-wm-print-template-cleanup.mjs" },
+    ],
+  },
+  {
+    date: "2026-06-15",
     version: "2.59.15",
     label: "Odbiory WM Druk — P0 fix template pollution (seed guard)",
     items: [

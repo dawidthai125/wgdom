@@ -1,0 +1,890 @@
+{
+  "generatedAt": "2026-06-15T06:09:37.760Z",
+  "mode": "dry-run",
+  "countBefore": 99,
+  "countAfter": 15,
+  "deleteCount": 84,
+  "keepCount": 15,
+  "keep": [
+    {
+      "id": "184220d8-d6f6-4fee-851b-a0f27e9f5306",
+      "name": "Gaz",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T16:29:03.222Z",
+      "updatedAt": "2026-06-14T21:15:30.156Z",
+      "reason": "najstarszy per name"
+    },
+    {
+      "id": "2c2915b7-7247-4d58-a031-ef14d0428578",
+      "name": "Izba",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:23:37.799Z",
+      "updatedAt": "2026-06-14T22:23:37.799Z",
+      "reason": "najstarszy per name"
+    },
+    {
+      "id": "8e1fdbaa-8b80-4702-a9c3-6145f3ce92ef",
+      "name": "Kominiarz",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T16:29:03.222Z",
+      "updatedAt": "2026-06-14T21:15:30.156Z",
+      "reason": "najstarszy per name"
+    },
+    {
+      "id": "c8ec0bd6-f6a6-42ce-94d5-9605e7c00217",
+      "name": "Oświadczenia",
+      "filesCount": 4,
+      "createdAt": "2026-06-14T16:29:03.222Z",
+      "updatedAt": "2026-06-14T22:23:15.812Z",
+      "reason": "filesCount>0"
+    },
+    {
+      "id": "6bd4bd73-fbe3-4028-87fd-9a672cc39e74",
+      "name": "Oświadczenie bezrobotny",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:23:37.799Z",
+      "updatedAt": "2026-06-14T22:23:37.799Z",
+      "reason": "najstarszy per name"
+    },
+    {
+      "id": "f0edc96c-574c-4c4a-90eb-3029e99765a8",
+      "name": "Oświadczenie kierownika",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:23:37.799Z",
+      "updatedAt": "2026-06-14T22:23:37.799Z",
+      "reason": "najstarszy per name"
+    },
+    {
+      "id": "8cfe5811-2c71-4f4f-aded-d0ade3830bb8",
+      "name": "Oświadczenie o zatrudnieniu",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:23:37.799Z",
+      "updatedAt": "2026-06-14T22:23:37.799Z",
+      "reason": "najstarszy per name"
+    },
+    {
+      "id": "3fe9703e-c6eb-4ef5-b48e-fd9fa1da3401",
+      "name": "Oświadczenie podwykonawcy",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:23:37.799Z",
+      "updatedAt": "2026-06-14T22:23:37.799Z",
+      "reason": "najstarszy per name"
+    },
+    {
+      "id": "41d35959-1029-4592-a20b-dff2bf2bad5a",
+      "name": "Pomiary elektryczne",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T16:29:03.222Z",
+      "updatedAt": "2026-06-14T21:15:30.156Z",
+      "reason": "najstarszy per name"
+    },
+    {
+      "id": "ab53714c-4dcc-40e1-bbff-f5d553c2c108",
+      "name": "SEP",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:23:37.799Z",
+      "updatedAt": "2026-06-14T22:23:37.799Z",
+      "reason": "najstarszy per name"
+    },
+    {
+      "id": "37f4bf7f-538c-4f6a-816d-cb0e664a506a",
+      "name": "Uprawnienia",
+      "filesCount": 3,
+      "createdAt": "2026-06-14T16:29:03.222Z",
+      "updatedAt": "2026-06-14T21:15:30.156Z",
+      "reason": "filesCount>0"
+    },
+    {
+      "id": "851d53ac-7d0f-4771-aa07-7e900bd3bf1a",
+      "name": "Wentylacja",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:23:37.799Z",
+      "updatedAt": "2026-06-14T22:23:37.799Z",
+      "reason": "najstarszy per name"
+    },
+    {
+      "id": "c3c69a6d-e480-43b8-89cb-080b8c3a4822",
+      "name": "Wzorcowanie",
+      "filesCount": 2,
+      "createdAt": "2026-06-14T16:29:03.222Z",
+      "updatedAt": "2026-06-14T21:15:30.156Z",
+      "reason": "filesCount>0"
+    },
+    {
+      "id": "5cce0431-905d-4417-98d2-c2ccced7d997",
+      "name": "Zaswiadczenia",
+      "filesCount": 1,
+      "createdAt": "2026-06-14T20:13:13.873Z",
+      "updatedAt": "2026-06-14T21:15:30.156Z",
+      "reason": "filesCount>0"
+    },
+    {
+      "id": "e911d6a5-3728-4089-bb9a-a4adec6e9c20",
+      "name": "ZI",
+      "filesCount": 1,
+      "createdAt": "2026-06-14T16:29:03.222Z",
+      "updatedAt": "2026-06-14T21:15:30.156Z",
+      "reason": "filesCount>0"
+    }
+  ],
+  "delete": [
+    {
+      "id": "5c84de3d-2136-4c6c-962e-e792b639378c",
+      "name": "Gaz",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:23:37.799Z",
+      "updatedAt": "2026-06-14T22:23:37.799Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "dcebce04-254d-4078-a48d-81b810face0d",
+      "name": "Gaz",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:45:59.810Z",
+      "updatedAt": "2026-06-14T22:45:59.810Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "2de8c8b1-6427-4438-bf9f-20851dae88b7",
+      "name": "Gaz",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:46:13.552Z",
+      "updatedAt": "2026-06-14T22:46:13.552Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "7ee2756e-8530-4a39-8e56-c3f169e9c4a9",
+      "name": "Gaz",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T03:15:32.454Z",
+      "updatedAt": "2026-06-15T03:15:32.454Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "39d76af9-b0df-451d-8d5c-17da221d4299",
+      "name": "Gaz",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T04:36:21.774Z",
+      "updatedAt": "2026-06-15T04:36:21.774Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "d17c9ba0-cad7-4732-bf02-75d8da60e7a3",
+      "name": "Gaz",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:01:40.163Z",
+      "updatedAt": "2026-06-15T05:01:40.163Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "a437aaed-ff07-46fa-90b2-8b92a2cf1a51",
+      "name": "Gaz",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:13:37.066Z",
+      "updatedAt": "2026-06-15T05:13:37.066Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "0e7b4332-22e8-48f6-9815-d3fb65abc948",
+      "name": "Izba",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:45:59.810Z",
+      "updatedAt": "2026-06-14T22:45:59.810Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "57363963-203f-4cba-9a7f-8813bc285366",
+      "name": "Izba",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:46:13.552Z",
+      "updatedAt": "2026-06-14T22:46:13.552Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "a94bc622-58d4-4daa-91af-def8e564f561",
+      "name": "Izba",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T03:15:32.454Z",
+      "updatedAt": "2026-06-15T03:15:32.454Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "e0dd72cc-0172-486c-96ea-a262f514dcb1",
+      "name": "Izba",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T04:36:21.774Z",
+      "updatedAt": "2026-06-15T04:36:21.774Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "1f9ad440-9375-4074-b46c-b7bf61cbbf12",
+      "name": "Izba",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:01:40.163Z",
+      "updatedAt": "2026-06-15T05:01:40.163Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "3ec3e472-436f-410d-8e61-24060d3a62d6",
+      "name": "Izba",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:13:37.066Z",
+      "updatedAt": "2026-06-15T05:13:37.066Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "55c4f637-c94b-4760-ba33-f064c364d053",
+      "name": "Kominiarz",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:23:37.799Z",
+      "updatedAt": "2026-06-14T22:23:37.799Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "db297cac-8e8e-4137-b8db-1fe81b76d8bf",
+      "name": "Kominiarz",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:45:59.810Z",
+      "updatedAt": "2026-06-14T22:45:59.810Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "b964ed66-7e62-4490-88f9-9fc19349b670",
+      "name": "Kominiarz",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:46:13.552Z",
+      "updatedAt": "2026-06-14T22:46:13.552Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "f1a58100-f763-4fc8-867c-06d12a535891",
+      "name": "Kominiarz",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T03:15:32.454Z",
+      "updatedAt": "2026-06-15T03:15:32.454Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "36ebbf35-0e49-476b-a852-e7c3fc50da22",
+      "name": "Kominiarz",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T04:36:21.774Z",
+      "updatedAt": "2026-06-15T04:36:21.774Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "93cdeeb1-2c31-44ee-a5c2-acdf9c3fe341",
+      "name": "Kominiarz",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:01:40.163Z",
+      "updatedAt": "2026-06-15T05:01:40.163Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "0e6759ee-7168-48c3-8536-4f70d30dd8e8",
+      "name": "Kominiarz",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:13:37.066Z",
+      "updatedAt": "2026-06-15T05:13:37.066Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "bcb4b03f-ea58-4024-a069-24c0255f1fdf",
+      "name": "Oświadczenie bezrobotny",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:45:59.810Z",
+      "updatedAt": "2026-06-14T22:45:59.810Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "5240cfa8-711c-41ab-8593-ac060a19c154",
+      "name": "Oświadczenie bezrobotny",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:46:13.552Z",
+      "updatedAt": "2026-06-14T22:46:13.552Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "0a00075e-79ce-4db3-8adb-4aa387f9636e",
+      "name": "Oświadczenie bezrobotny",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T03:15:32.454Z",
+      "updatedAt": "2026-06-15T03:15:32.454Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "a3740871-3564-4fb0-bf8a-4f9720519d98",
+      "name": "Oświadczenie bezrobotny",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T04:36:21.774Z",
+      "updatedAt": "2026-06-15T04:36:21.774Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "9ddcc1e7-5cfb-440c-881e-093830d3cbf8",
+      "name": "Oświadczenie bezrobotny",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:01:40.163Z",
+      "updatedAt": "2026-06-15T05:01:40.163Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "e7060f0b-8742-40db-acef-854c531a412e",
+      "name": "Oświadczenie bezrobotny",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:13:37.066Z",
+      "updatedAt": "2026-06-15T05:13:37.066Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "7c9f5716-9284-4ed0-92c1-eafa3fcec08a",
+      "name": "Oświadczenie kierownika",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:45:59.810Z",
+      "updatedAt": "2026-06-14T22:45:59.810Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "d6d7381a-afa8-4047-b308-cd506b488910",
+      "name": "Oświadczenie kierownika",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:46:13.552Z",
+      "updatedAt": "2026-06-14T22:46:13.552Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "09ad0b39-d7b8-4668-bf8f-27c7afefdbfd",
+      "name": "Oświadczenie kierownika",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T03:15:32.454Z",
+      "updatedAt": "2026-06-15T03:15:32.454Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "4ec916b6-c4f6-4a07-baec-dee2a3d18ee9",
+      "name": "Oświadczenie kierownika",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T04:36:21.774Z",
+      "updatedAt": "2026-06-15T04:36:21.774Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "04729a7c-e643-4810-8687-948efea14d56",
+      "name": "Oświadczenie kierownika",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:01:40.163Z",
+      "updatedAt": "2026-06-15T05:01:40.163Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "7b4b1da4-370e-4d49-b06d-c77c83784e84",
+      "name": "Oświadczenie kierownika",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:13:37.066Z",
+      "updatedAt": "2026-06-15T05:13:37.066Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "2109af44-5c9f-4001-9d0e-dd82d35d75b1",
+      "name": "Oświadczenie o zatrudnieniu",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:45:59.810Z",
+      "updatedAt": "2026-06-14T22:45:59.810Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "57bf611a-fa70-4403-8de1-c752eff6fe37",
+      "name": "Oświadczenie o zatrudnieniu",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:46:13.552Z",
+      "updatedAt": "2026-06-14T22:46:13.552Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "1939138a-9398-4718-a0d1-4d12f966b45d",
+      "name": "Oświadczenie o zatrudnieniu",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T03:15:32.454Z",
+      "updatedAt": "2026-06-15T03:15:32.454Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "0aa1280e-04ca-48b7-b128-2c1cfccd8458",
+      "name": "Oświadczenie o zatrudnieniu",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T04:36:21.774Z",
+      "updatedAt": "2026-06-15T04:36:21.774Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "2ae42277-e714-4e6c-900c-65bb0d623cae",
+      "name": "Oświadczenie o zatrudnieniu",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:01:40.163Z",
+      "updatedAt": "2026-06-15T05:01:40.163Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "5bfb2f02-3cfd-4338-979b-72ab7321f212",
+      "name": "Oświadczenie o zatrudnieniu",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:13:37.066Z",
+      "updatedAt": "2026-06-15T05:13:37.066Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "0a90d0ab-4745-4826-b470-a8cf911c7eac",
+      "name": "Oświadczenie podwykonawcy",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:45:59.810Z",
+      "updatedAt": "2026-06-14T22:45:59.810Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "4e78b2e6-a651-4198-9fba-7e4b6280ca3a",
+      "name": "Oświadczenie podwykonawcy",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:46:13.552Z",
+      "updatedAt": "2026-06-14T22:46:13.552Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "5bcbc212-82b4-4343-9e26-33b8aa23ffca",
+      "name": "Oświadczenie podwykonawcy",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T03:15:32.454Z",
+      "updatedAt": "2026-06-15T03:15:32.454Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "83f54401-f3bc-4187-9350-4f68025a6d7a",
+      "name": "Oświadczenie podwykonawcy",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T04:36:21.774Z",
+      "updatedAt": "2026-06-15T04:36:21.774Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "1d6d885c-21f5-42bf-9493-a12236bd9f18",
+      "name": "Oświadczenie podwykonawcy",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:01:40.163Z",
+      "updatedAt": "2026-06-15T05:01:40.163Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "c9208486-402e-454f-98fb-5b3bc6feff60",
+      "name": "Oświadczenie podwykonawcy",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:13:37.066Z",
+      "updatedAt": "2026-06-15T05:13:37.066Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "2384d237-cf2e-48a6-8797-a042dc030dfe",
+      "name": "Pomiary elektryczne",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:23:37.799Z",
+      "updatedAt": "2026-06-14T22:23:37.799Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "4dcb1d8d-032b-4dec-b458-8b3b42e40e88",
+      "name": "Pomiary elektryczne",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:45:59.810Z",
+      "updatedAt": "2026-06-14T22:45:59.810Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "192c33ef-c627-4695-a095-83ba68738ab6",
+      "name": "Pomiary elektryczne",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:46:13.552Z",
+      "updatedAt": "2026-06-14T22:46:13.552Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "8cbb1698-943c-4fd2-bfb4-77309bde89f4",
+      "name": "Pomiary elektryczne",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T03:15:32.454Z",
+      "updatedAt": "2026-06-15T03:15:32.454Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "2a7032fc-1086-4e81-a7e7-5c07a8ab2ce3",
+      "name": "Pomiary elektryczne",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T04:36:21.774Z",
+      "updatedAt": "2026-06-15T04:36:21.774Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "f69fdbb9-efef-4349-b748-c6e970fbb387",
+      "name": "Pomiary elektryczne",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:01:40.163Z",
+      "updatedAt": "2026-06-15T05:01:40.163Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "5d247f6c-c056-4a6c-95ee-b8f58d1b604d",
+      "name": "Pomiary elektryczne",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:13:37.066Z",
+      "updatedAt": "2026-06-15T05:13:37.066Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "0cd9048b-7e4d-422d-be4c-d33aabb33724",
+      "name": "SEP",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:45:59.810Z",
+      "updatedAt": "2026-06-14T22:45:59.810Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "71ca44ab-f872-4546-8805-74155f99f980",
+      "name": "SEP",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:46:13.552Z",
+      "updatedAt": "2026-06-14T22:46:13.552Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "5c8765da-b06a-496c-ad5a-2f887dca9898",
+      "name": "SEP",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T03:15:32.454Z",
+      "updatedAt": "2026-06-15T03:15:32.454Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "f05e299d-609c-4fb0-86a4-056417f51bd7",
+      "name": "SEP",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T04:36:21.774Z",
+      "updatedAt": "2026-06-15T04:36:21.774Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "8dc7a8e9-8e1e-4f47-9fd0-c23a3b8ad725",
+      "name": "SEP",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:01:40.163Z",
+      "updatedAt": "2026-06-15T05:01:40.163Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "e05b19af-f20a-45d9-9a75-3e9f6c0aaa9f",
+      "name": "SEP",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:13:37.066Z",
+      "updatedAt": "2026-06-15T05:13:37.066Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "39c0fe7b-bbc1-47b2-b2e2-fded27f46c1b",
+      "name": "Uprawnienia",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:23:37.799Z",
+      "updatedAt": "2026-06-14T22:23:37.799Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "c11bb4d5-df30-416f-9571-6d84a299fe21",
+      "name": "Uprawnienia",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:45:59.810Z",
+      "updatedAt": "2026-06-14T22:45:59.810Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "036ae071-22e4-4773-9c15-80dffb7689c1",
+      "name": "Uprawnienia",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:46:13.552Z",
+      "updatedAt": "2026-06-14T22:46:13.552Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "2acae344-cd66-4e83-a1d3-f6e20a97ceee",
+      "name": "Uprawnienia",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T03:15:32.454Z",
+      "updatedAt": "2026-06-15T03:15:32.454Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "64fa58a9-6a28-47d2-b72e-97ed9de1f358",
+      "name": "Uprawnienia",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T04:36:21.774Z",
+      "updatedAt": "2026-06-15T04:36:21.774Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "aa7c0efc-d709-405f-9ee4-dcfdb0ae7d8d",
+      "name": "Uprawnienia",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:01:40.163Z",
+      "updatedAt": "2026-06-15T05:01:40.163Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "9a314542-5347-4cea-93a4-651d88cb489e",
+      "name": "Uprawnienia",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:13:37.066Z",
+      "updatedAt": "2026-06-15T05:13:37.066Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "a589c304-e96b-48a1-a19b-1c25426b3175",
+      "name": "Wentylacja",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:45:59.810Z",
+      "updatedAt": "2026-06-14T22:45:59.810Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "aeb75878-9398-43ce-8114-3838800e8339",
+      "name": "Wentylacja",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:46:13.552Z",
+      "updatedAt": "2026-06-14T22:46:13.552Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "1e5af9ce-166b-424d-b2a8-c073431bc158",
+      "name": "Wentylacja",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T03:15:32.454Z",
+      "updatedAt": "2026-06-15T03:15:32.454Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "d2360d00-8390-4931-82f2-25a06f0386ec",
+      "name": "Wentylacja",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T04:36:21.774Z",
+      "updatedAt": "2026-06-15T04:36:21.774Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "57d43ded-ef1d-4728-8a43-a3d1222a4187",
+      "name": "Wentylacja",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:01:40.163Z",
+      "updatedAt": "2026-06-15T05:01:40.163Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "842c7522-3474-4e9f-905f-91eeb24b858f",
+      "name": "Wentylacja",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:13:37.066Z",
+      "updatedAt": "2026-06-15T05:13:37.066Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "6ed09a00-0e92-4fa1-8db4-7f0032930d80",
+      "name": "Wzorcowanie",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:23:37.799Z",
+      "updatedAt": "2026-06-14T22:23:37.799Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "47908841-402c-4b2f-9a8e-2427c162026e",
+      "name": "Wzorcowanie",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:45:59.810Z",
+      "updatedAt": "2026-06-14T22:45:59.810Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "47e6c8dc-3abb-4438-b466-a711e2e809b7",
+      "name": "Wzorcowanie",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:46:13.552Z",
+      "updatedAt": "2026-06-14T22:46:13.552Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "61e20002-dd56-420b-a0a7-220076e24b25",
+      "name": "Wzorcowanie",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T03:15:32.454Z",
+      "updatedAt": "2026-06-15T03:15:32.454Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "7eaa29ec-0e83-46b2-89c5-d2ea13c670a6",
+      "name": "Wzorcowanie",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T04:36:21.774Z",
+      "updatedAt": "2026-06-15T04:36:21.774Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "58ec0604-e78b-4d6f-986c-e01fbe968e70",
+      "name": "Wzorcowanie",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:01:40.163Z",
+      "updatedAt": "2026-06-15T05:01:40.163Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "4bda0376-8862-4d87-a2ee-92b12d170467",
+      "name": "Wzorcowanie",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:13:37.066Z",
+      "updatedAt": "2026-06-15T05:13:37.066Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "a37e78e8-2681-451f-989a-9ff2e4693c2a",
+      "name": "ZI",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:23:37.799Z",
+      "updatedAt": "2026-06-14T22:23:37.799Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "ac97ff42-0339-422d-8bdc-9b7cad134ad0",
+      "name": "ZI",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:45:59.810Z",
+      "updatedAt": "2026-06-14T22:45:59.810Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "cc1d0cba-f999-49cd-b697-0eb079d2b259",
+      "name": "ZI",
+      "filesCount": 0,
+      "createdAt": "2026-06-14T22:46:13.552Z",
+      "updatedAt": "2026-06-14T22:46:13.552Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "d559b0dc-9ec7-47d5-8085-c9687e2f83b8",
+      "name": "ZI",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T03:15:32.454Z",
+      "updatedAt": "2026-06-15T03:15:32.454Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "476e2acb-3d7b-4c13-82af-f93802ef756e",
+      "name": "ZI",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T04:36:21.774Z",
+      "updatedAt": "2026-06-15T04:36:21.774Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "ce4e1e8f-f74a-4334-aec2-f999757f6ea3",
+      "name": "ZI",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:01:40.163Z",
+      "updatedAt": "2026-06-15T05:01:40.163Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    },
+    {
+      "id": "4cac9a79-10a8-4455-84c0-8202ed0da0fd",
+      "name": "ZI",
+      "filesCount": 0,
+      "createdAt": "2026-06-15T05:13:37.066Z",
+      "updatedAt": "2026-06-15T05:13:37.066Z",
+      "reason": "filesCount=0 + starszy rekord tej samej nazwy"
+    }
+  ],
+  "deleteIds": [
+    "5c84de3d-2136-4c6c-962e-e792b639378c",
+    "dcebce04-254d-4078-a48d-81b810face0d",
+    "2de8c8b1-6427-4438-bf9f-20851dae88b7",
+    "7ee2756e-8530-4a39-8e56-c3f169e9c4a9",
+    "39d76af9-b0df-451d-8d5c-17da221d4299",
+    "d17c9ba0-cad7-4732-bf02-75d8da60e7a3",
+    "a437aaed-ff07-46fa-90b2-8b92a2cf1a51",
+    "0e7b4332-22e8-48f6-9815-d3fb65abc948",
+    "57363963-203f-4cba-9a7f-8813bc285366",
+    "a94bc622-58d4-4daa-91af-def8e564f561",
+    "e0dd72cc-0172-486c-96ea-a262f514dcb1",
+    "1f9ad440-9375-4074-b46c-b7bf61cbbf12",
+    "3ec3e472-436f-410d-8e61-24060d3a62d6",
+    "55c4f637-c94b-4760-ba33-f064c364d053",
+    "db297cac-8e8e-4137-b8db-1fe81b76d8bf",
+    "b964ed66-7e62-4490-88f9-9fc19349b670",
+    "f1a58100-f763-4fc8-867c-06d12a535891",
+    "36ebbf35-0e49-476b-a852-e7c3fc50da22",
+    "93cdeeb1-2c31-44ee-a5c2-acdf9c3fe341",
+    "0e6759ee-7168-48c3-8536-4f70d30dd8e8",
+    "bcb4b03f-ea58-4024-a069-24c0255f1fdf",
+    "5240cfa8-711c-41ab-8593-ac060a19c154",
+    "0a00075e-79ce-4db3-8adb-4aa387f9636e",
+    "a3740871-3564-4fb0-bf8a-4f9720519d98",
+    "9ddcc1e7-5cfb-440c-881e-093830d3cbf8",
+    "e7060f0b-8742-40db-acef-854c531a412e",
+    "7c9f5716-9284-4ed0-92c1-eafa3fcec08a",
+    "d6d7381a-afa8-4047-b308-cd506b488910",
+    "09ad0b39-d7b8-4668-bf8f-27c7afefdbfd",
+    "4ec916b6-c4f6-4a07-baec-dee2a3d18ee9",
+    "04729a7c-e643-4810-8687-948efea14d56",
+    "7b4b1da4-370e-4d49-b06d-c77c83784e84",
+    "2109af44-5c9f-4001-9d0e-dd82d35d75b1",
+    "57bf611a-fa70-4403-8de1-c752eff6fe37",
+    "1939138a-9398-4718-a0d1-4d12f966b45d",
+    "0aa1280e-04ca-48b7-b128-2c1cfccd8458",
+    "2ae42277-e714-4e6c-900c-65bb0d623cae",
+    "5bfb2f02-3cfd-4338-979b-72ab7321f212",
+    "0a90d0ab-4745-4826-b470-a8cf911c7eac",
+    "4e78b2e6-a651-4198-9fba-7e4b6280ca3a",
+    "5bcbc212-82b4-4343-9e26-33b8aa23ffca",
+    "83f54401-f3bc-4187-9350-4f68025a6d7a",
+    "1d6d885c-21f5-42bf-9493-a12236bd9f18",
+    "c9208486-402e-454f-98fb-5b3bc6feff60",
+    "2384d237-cf2e-48a6-8797-a042dc030dfe",
+    "4dcb1d8d-032b-4dec-b458-8b3b42e40e88",
+    "192c33ef-c627-4695-a095-83ba68738ab6",
+    "8cbb1698-943c-4fd2-bfb4-77309bde89f4",
+    "2a7032fc-1086-4e81-a7e7-5c07a8ab2ce3",
+    "f69fdbb9-efef-4349-b748-c6e970fbb387",
+    "5d247f6c-c056-4a6c-95ee-b8f58d1b604d",
+    "0cd9048b-7e4d-422d-be4c-d33aabb33724",
+    "71ca44ab-f872-4546-8805-74155f99f980",
+    "5c8765da-b06a-496c-ad5a-2f887dca9898",
+    "f05e299d-609c-4fb0-86a4-056417f51bd7",
+    "8dc7a8e9-8e1e-4f47-9fd0-c23a3b8ad725",
+    "e05b19af-f20a-45d9-9a75-3e9f6c0aaa9f",
+    "39c0fe7b-bbc1-47b2-b2e2-fded27f46c1b",
+    "c11bb4d5-df30-416f-9571-6d84a299fe21",
+    "036ae071-22e4-4773-9c15-80dffb7689c1",
+    "2acae344-cd66-4e83-a1d3-f6e20a97ceee",
+    "64fa58a9-6a28-47d2-b72e-97ed9de1f358",
+    "aa7c0efc-d709-405f-9ee4-dcfdb0ae7d8d",
+    "9a314542-5347-4cea-93a4-651d88cb489e",
+    "a589c304-e96b-48a1-a19b-1c25426b3175",
+    "aeb75878-9398-43ce-8114-3838800e8339",
+    "1e5af9ce-166b-424d-b2a8-c073431bc158",
+    "d2360d00-8390-4931-82f2-25a06f0386ec",
+    "57d43ded-ef1d-4728-8a43-a3d1222a4187",
+    "842c7522-3474-4e9f-905f-91eeb24b858f",
+    "6ed09a00-0e92-4fa1-8db4-7f0032930d80",
+    "47908841-402c-4b2f-9a8e-2427c162026e",
+    "47e6c8dc-3abb-4438-b466-a711e2e809b7",
+    "61e20002-dd56-420b-a0a7-220076e24b25",
+    "7eaa29ec-0e83-46b2-89c5-d2ea13c670a6",
+    "58ec0604-e78b-4d6f-986c-e01fbe968e70",
+    "4bda0376-8862-4d87-a2ee-92b12d170467",
+    "a37e78e8-2681-451f-989a-9ff2e4693c2a",
+    "ac97ff42-0339-422d-8bdc-9b7cad134ad0",
+    "cc1d0cba-f999-49cd-b697-0eb079d2b259",
+    "d559b0dc-9ec7-47d5-8085-c9687e2f83b8",
+    "476e2acb-3d7b-4c13-82af-f93802ef756e",
+    "ce4e1e8f-f74a-4334-aec2-f999757f6ea3",
+    "4cac9a79-10a8-4455-84c0-8202ed0da0fd"
+  ]
+}
