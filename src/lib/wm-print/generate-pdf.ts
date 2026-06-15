@@ -10,8 +10,9 @@ export const WM_PRINT_ZI_PDF_FIELD_MAP: Record<string, WmPrintVariableKey> = {
 };
 
 /**
- * pdf-lib po usunięciu XFA nie zna qualified names — indeks PDFTextField (P0.1B).
- * TextField2[8]=lokal, [9]=budynek, [10]=ulica.
+ * pdf-lib po usunięciu XFA nie zna qualified names — indeks PDFTextField (P0.1B / P0.2A).
+ * Indeksy 8/9/10 = blok WM @ y≈655/592: nazwisko[1] / imie[0] / TextField5[0].
+ * (≠ demo TextField2[8/9/10] @ y≈142 z ULICA/BUD/LOK — strip P0.2A).
  */
 export const WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX: Partial<Record<WmPrintVariableKey, number>> = {
   JOB_APARTMENT: 8,
@@ -19,9 +20,27 @@ export const WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX: Partial<Record<WmPrintVariableKey
   JOB_STREET: 10,
 };
 
+/** P0.2A — qualified names bloku WM (pdf.js); wypełnianie przez indeksy powyżej. */
+export const WM_PRINT_ZI_WM_FIELD_QNAMES: Record<string, WmPrintVariableKey> = {
+  "form1[0].Page1[0].TextField5[0]": "JOB_STREET",
+  "form1[0].Page1[0].imie[0]": "JOB_BUILDING",
+  "form1[0].Page1[0].nazwisko[1]": "JOB_APARTMENT",
+};
+
+/** P0.2A — pas Y pól demo projektanta (ULICA/BUD/LOK), RCA zi-rca-ulica-bud-lok. */
+export const WM_PRINT_ZI_DEMO_FIELD_RECT_Y = 142.735992;
+export const WM_PRINT_ZI_DEMO_FIELD_Y_TOLERANCE = 2;
+
 const ZI_PDF_FONT_PATH = "/fonts/NotoSans-Regular.ttf";
 
 let cachedZiPdfFontBytes: Uint8Array | null = null;
+
+/** P0.1G — debug overlay: czerwony/zielony/niebieski box bez drawText (tylko test). */
+export let wmPrintZiDebugColorOverlay = false;
+
+export function setWmPrintZiDebugColorOverlay(enabled: boolean): void {
+  wmPrintZiDebugColorOverlay = enabled;
+}
 
 export type WmPrintPdfFormType = "acroform" | "xfa" | "hybrid" | "none" | "unknown";
 
@@ -132,6 +151,36 @@ function getZiTextFieldByIndex(form: ReturnType<PDFDocument["getForm"]>, index: 
   return field instanceof PDFTextField ? field : null;
 }
 
+export function isZiDemoDesignerFieldRect(y: number): boolean {
+  return Math.abs(y - WM_PRINT_ZI_DEMO_FIELD_RECT_Y) <= WM_PRINT_ZI_DEMO_FIELD_Y_TOLERANCE;
+}
+
+/** P0.2A — usuń widoczne ULICA/BUD/LOK z demo @ y≈142 (wyczyść /V, ukryj widget /F=2). */
+export function stripZiDemoDesignerFields(form: ReturnType<PDFDocument["getForm"]>): number {
+  form.updateFieldAppearances = () => {};
+  let stripped = 0;
+
+  for (const field of form.getFields()) {
+    if (!(field instanceof PDFTextField)) continue;
+    const widget = field.acroField.getWidgets()[0];
+    if (!widget) continue;
+    const { y } = widget.getRectangle();
+    if (!isZiDemoDesignerFieldRect(y)) continue;
+
+    field.setText("");
+    widget.dict.set(PDFName.of("F"), PDFNumber.of(2));
+    stripped++;
+  }
+
+  return stripped;
+}
+
+export async function cleanZiTemplateDemoFields(templateBytes: Uint8Array): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.load(templateBytes, { ignoreEncryption: true });
+  stripZiDemoDesignerFields(pdfDoc.getForm());
+  return pdfDoc.save({ useObjectStreams: false });
+}
+
 function setZiTextFieldValue(
   form: ReturnType<PDFDocument["getForm"]>,
   fieldName: string,
@@ -227,25 +276,53 @@ async function finalizeZiHybridForm(
   form: ReturnType<PDFDocument["getForm"]>,
   vars: Record<WmPrintVariableKey, string>,
 ): Promise<void> {
-  pdfDoc.registerFontkit(fontkit);
-  const font = await pdfDoc.embedFont(await loadWmPrintZiPdfFontBytes());
-
   const addressFields: [WmPrintVariableKey, number][] = [
     ["JOB_STREET", WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_STREET!],
     ["JOB_BUILDING", WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_BUILDING!],
     ["JOB_APARTMENT", WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_APARTMENT!],
   ];
 
+  const debugColors: Partial<Record<WmPrintVariableKey, ReturnType<typeof rgb>>> = wmPrintZiDebugColorOverlay
+    ? {
+        JOB_STREET: rgb(1, 0, 0),
+        JOB_BUILDING: rgb(0, 1, 0),
+        JOB_APARTMENT: rgb(0, 0, 1),
+      }
+    : {};
+
+  let font: Awaited<ReturnType<PDFDocument["embedFont"]>> | null = null;
+  if (!wmPrintZiDebugColorOverlay) {
+    pdfDoc.registerFontkit(fontkit);
+    font = await pdfDoc.embedFont(await loadWmPrintZiPdfFontBytes());
+  }
+
   for (const [varKey, idx] of addressFields) {
     const field = getZiTextFieldByIndex(form, idx);
     if (!field) continue;
-    field.updateAppearances(font);
 
     const widget = field.acroField.getWidgets()[0];
     if (!widget) continue;
 
     const rect = widget.getRectangle();
     const page = pdfPageForWidget(pdfDoc, widget);
+
+    if (wmPrintZiDebugColorOverlay) {
+      const boxColor = debugColors[varKey];
+      if (boxColor) {
+        page.drawRectangle({
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+          color: boxColor,
+          borderWidth: 0,
+          opacity: 1,
+        });
+      }
+      continue;
+    }
+
+    field.updateAppearances(font!);
     const text = vars[varKey] ?? "";
 
     page.drawRectangle({
@@ -297,6 +374,8 @@ export async function generatePdfFormFromTemplate(
     }
   }
 
+  stripZiDemoDesignerFields(form);
+
   return pdfDoc.save({ useObjectStreams: false });
 }
 
@@ -318,6 +397,8 @@ export async function diagnoseZiPdfFieldFill(
   if (formType === "hybrid" || formType === "xfa") {
     await finalizeZiHybridForm(pdfDoc, form, vars);
   }
+
+  stripZiDemoDesignerFields(form);
 
   const out = await pdfDoc.save({ useObjectStreams: false });
   const reloaded = await PDFDocument.load(out, { ignoreEncryption: true });

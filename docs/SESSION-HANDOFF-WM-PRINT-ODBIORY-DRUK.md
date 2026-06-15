@@ -1,6 +1,6 @@
 # SESSION HANDOFF — Odbiory WM Druk (`wmprint`)
 
-> **★★ Handoff modułu WM Druk** · **Data closeout:** 2026-06-15 · **Prod:** v**2.59.18** · commit **`01211d6`**
+> **★★ Handoff modułu WM Druk** · **Data closeout:** 2026-06-15 · **Prod:** v**2.59.19** · **ZI-PDF-001 CLOSED**
 > **Hasło agenta:** „kontynuuj WGDOM”
 
 ---
@@ -134,6 +134,7 @@ Artefakty audytu: `audit/p0-1f2-proof.zip`, `scripts/audit-p0-1f*.mjs`, `audit/p
 | **2.59.16** | `afef743` | Skrypt cleanup + testy + dry-run |
 | **2.59.17** | `16ee8f8` | **EXECUTE** prod KV: 99→15, 84 tombstone |
 | **2.59.18** | `01211d6` | Hotfix `parseWmPrintTemplates is not defined` w `cloud-sync.ts` |
+| **2.59.19** | *(push sesji)* | **P0.2A** — strip demo ULICA/BUD/LOK @ y≈142; clean szablon ZI w storage/KV |
 
 **Root cause pollution:** `App.tsx` seedował 13 rekordów przy pustym localStorage mimo pełnej chmury → merge po UUID → burst +13.
 
@@ -143,15 +144,15 @@ Artefakty audytu: `audit/p0-1f2-proof.zip`, `scripts/audit-p0-1f*.mjs`, `audit/p
 
 ## 6. CO BĘDZIEMY ROBIĆ (backlog — priorytety)
 
-### P0 — OPEN (bloker produkcyjny)
+### P0 — CLOSED
 
-| ID | Temat | Opis |
-|----|-------|------|
-| **ZI-PDF-001** | **Placeholdery w PDF ZI** | Użytkownik widzi `{{JOB_APARTM` / `{{JOB_BUILDIN` / `{{JOB_STREET}}` w Edge/Acrobat mimo poprawnych `/V` w audycie. Wymaga RCA warstw AP/XFA/Im0 + fix wizualny (nie tylko setText). |
+| ID | Temat | Status |
+|----|-------|--------|
+| **ZI-PDF-001** | Demo ULICA/BUD/LOK + placeholdery w PDF ZI | **CLOSED** (2.59.19 P0.2A) |
 
-**Nie ruszać bez audytu:** kolejne iteracje P0.1H powinny zaczynać od porównania **tego samego pliku** (pipeline output vs user download), nie `final-zi-from-zip.pdf` vs prod PDF.
+**RCA:** Edge renderował widgety demo `TextField2[8/9/10]` @ y≈142 (F=4) nad overlayem WM. Fix: `stripZiDemoDesignerFields` + oczyszczony szablon w storage.
 
-### P1 — stabilizacja (po ZI fix)
+### P1 — stabilizacja
 
 | Temat | Status |
 |-------|--------|
@@ -169,24 +170,26 @@ Artefakty audytu: `audit/p0-1f2-proof.zip`, `scripts/audit-p0-1f*.mjs`, `audit/p
 
 ## 7. ZI PDF — stan techniczny (dla następnego agenta)
 
-### Canonical template
+### Canonical template (prod po P0.2A)
 
 ```text
-UUID: e911d6a5-3728-4089-bb9a-a4adec6e9c20
+UUID: 26f02c78-871c-4d65-aeac-d0ca06bf060c
+fileId: 2155cec9-6ca1-4eec-af1c-7b4d346487a3 (poprzedni c616f1bb-…)
 name: ZI
 type: pdf_form (override w generate-zip.ts)
-Plik: 1× PDF w files[] — upload użytkownika (formularz WM)
 ```
 
-### Mapowanie pól (`generate-pdf.ts`)
+### Mapowanie pól WM (`generate-pdf.ts` — P0.2A)
 
 ```text
-TextField2[8]  → JOB_APARTMENT
-TextField2[9]  → JOB_BUILDING
-TextField2[10] → JOB_STREET
+TextField5[0]  → JOB_STREET   (pdf-lib index 10)
+imie[0]        → JOB_BUILDING (index 9)
+nazwisko[1]    → JOB_APARTMENT (index 8)
 ```
 
-Po usunięciu XFA pdf-lib używa **indeksów** (`WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX`), nie qualified names.
+Demo projektanta @ y≈142 (`TextField2[8/9/10]`) — **strip** przy generacji i w szablonie storage (puste /V, widget /F=2).
+
+Legacy map `WM_PRINT_ZI_PDF_FIELD_MAP` (TextField2 indeksy) — bez zmian w kodzie wypełniania.
 
 ### Pipeline ZI (`finalizeZiHybridForm`)
 
@@ -220,8 +223,11 @@ npx vite-node scripts/test-wm-print-template-cleanup.mjs
 npx vite-node scripts/cleanup-wm-print-template-pollution.mjs
 npx vite-node scripts/cleanup-wm-print-template-pollution.mjs --execute
 
-# Audyt ZI (read-only)
-npx vite-node scripts/audit-p0-1f2-proof.mjs
+# P0.2A demo strip
+npx vite-node scripts/test-wm-print-p0-2a-zi-demo-strip.mjs
+
+# Publish clean template (OPERACYJNE)
+npx vite-node scripts/publish-wm-print-zi-template-p0-2a.mjs --execute
 
 npm run build
 ```
@@ -230,7 +236,7 @@ npm run build
 
 ## 9. Czego NIE zmieniać bez polecenia
 
-- **Canonical ZI UUID** `e911d6a5-…` i plik PDF w storage
+- **Canonical ZI UUID** `26f02c78-…` — nie zmieniać UUID; plik PDF w storage można podmienić skryptem publish P0.2A
 - Seed guard semantics (local+cloud empty only)
 - `parseWmPrintTemplates` — nie wywoływać auto-seedu; w `cloud-sync` używać **normalizeWmPrintTemplates**
 - Merge po UUID — nie zmieniać na merge po name (dedupe tylko przy push)
@@ -243,9 +249,9 @@ npm run build
 
 ```text
 P0 Template Pollution     CLOSED (seed guard + cleanup 99→15 + hotfix 2.59.18)
-ZI PDF placeholdery       OPEN — P0 bloker, następna sesja
-Moduł wmprint UI          GO po 2.59.18 (wejście, Szablony, Ustawienia)
-Prod KV templates         15 rekordów, canonical ZI OK
+ZI-PDF-001                CLOSED (2.59.19 P0.2A — demo strip + clean template)
+Moduł wmprint UI          GO
+Prod KV templates         15 rekordów, ZI file 2155cec9-…
 ```
 
-**Następny agent:** zacznij od § 6 P0 ZI-PDF-001 + audyt `scripts/audit-p0-1f2-proof.mjs` + porównanie z prod download.
+**Następny agent:** P1 regresja Edge ZIP end-to-end; nie revertować strip demo bez RCA.

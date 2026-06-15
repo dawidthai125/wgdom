@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.59.18** · WM Druk P0 hotfix)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-15 (v2.59.18 WM Druk · template pollution CLOSED · ZI PDF OPEN)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.59.19** · WM Druk P0.2A ZI demo strip)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-15 (v2.59.19 WM Druk P0.2A · ZI-PDF-001 CLOSED)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1330,7 +1330,7 @@ buildTenderDocCandidates()
 
 ### 12.1.8 Odbiory WM Druk (`wmprint`, v2.59.x)
 
-**Status:** Moduł **GO** po 2.59.18 · **P0 Template Pollution CLOSED** · **ZI PDF placeholdery OPEN**
+**Status:** Moduł **GO** po 2.59.19 · **P0 Template Pollution CLOSED** · **ZI-PDF-001 CLOSED** (P0.2A)
 
 **Handoff SSOT:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)
 
@@ -1356,20 +1356,20 @@ Moduł admina do generowania pakietów dokumentów odbiorowych WM — ZIP per ro
 
 **Seed guard (2.59.15):** `maybeExecuteWmPrintSeed()` — bootstrap 13 slotów **tylko** gdy local **i** chmura puste. `parseWmPrintTemplates` = parse bez auto-seedu.
 
-**Prod KV (po cleanup 2.59.17):** 15 rekordów (było 99). Canonical ZI: `e911d6a5-3728-4089-bb9a-a4adec6e9c20`.
+**Prod KV (po cleanup 2.59.17):** 15 rekordów (było 99). Canonical ZI: **`26f02c78-871c-4d65-aeac-d0ca06bf060c`** (plik `2155cec9-…` po P0.2A clean).
 
 **Generowanie:**
 
 ```text
 generate-zip.ts → buildWmPrintFilesForJob()
   DOCX      → generate-docx.ts ({{VAR}})
-  pdf_form  → generate-pdf.ts (ZI: TextField2[8/9/10], XFA strip, updateAppearances, visual overlay)
+  pdf_form  → generate-pdf.ts (ZI: WM indeksy 8/9/10 + strip demo @ y≈142 P0.2A)
   pdf       → copyStaticPdfTemplate
 ```
 
-**OPEN — ZI-PDF-001:** Użytkownik widzi placeholdery `{{JOB_*}}` w Edge/Acrobat mimo poprawnych `/V` w audycie pipeline. Następna sesja: RCA warstw AP/Im0, nie kolejny setText-only fix.
+**P0.2A (2.59.19) — ZI-PDF-001 fix:** Edge pokazywał ULICA/BUD/LOK z pól demo `TextField2[8/9/10]` @ y≈142 (widget /F=4 nad overlayem). `stripZiDemoDesignerFields` czyści `/V` + ukrywa widget (`/F=2`); szablon w storage oczyszczony skryptem `publish-wm-print-zi-template-p0-2a.mjs`. WM: `TextField5[0]` / `imie[0]` / `nazwisko[1]` — bez zmian.
 
-**Testy:** `test-wm-print-p0-seed-guard.mjs` · `test-wm-print-template-cleanup.mjs` · `cleanup-wm-print-template-pollution.mjs`
+**Testy:** `test-wm-print-p0-seed-guard.mjs` · `test-wm-print-template-cleanup.mjs` · **`test-wm-print-p0-2a-zi-demo-strip.mjs`**
 
 **Nie zmieniaj bez polecenia:** canonical ZI UUID, seed guard, merge po UUID, tombstone deleted-ids.
 

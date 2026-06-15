@@ -1,0 +1,14 @@
+{
+  "generatedAt": "2026-06-15T06:50:21.959Z",
+  "execute": true,
+  "templateId": "26f02c78-871c-4d65-aeac-d0ca06bf060c",
+  "previousFileId": "c616f1bb-aaa2-4698-aac6-25fcb5066bff",
+  "newFileId": "2155cec9-6ca1-4eec-af1c-7b4d346487a3",
+  "storageUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/wm-print/template-26f02c78-871c-4d65-aeac-d0ca06bf060c-2155cec9-6ca1-4eec-af1c-7b4d346487a3.pdf",
+  "bytes": 279574,
+  "pdfFieldMapping": {
+    "form1[0].Page1[0].TextField5[0]": "JOB_STREET",
+    "form1[0].Page1[0].imie[0]": "JOB_BUILDING",
+    "form1[0].Page1[0].nazwisko[1]": "JOB_APARTMENT"
+  }
+}

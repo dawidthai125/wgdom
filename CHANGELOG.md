@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.18** WM Druk docs handoff
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.19** WM Druk P0.2A ZI demo strip
+
+## 2.59.19 — Odbiory WM Druk P0.2A ZI demo ULICA/BUD/LOK strip
+- `generate-pdf.ts`: `stripZiDemoDesignerFields` — wyczyść/ukryj demo @ y≈142; oczyszczony szablon w storage
 
 ## 2.59.18 — Docs: SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK + ARCHITECTURE § 12.1.8
 

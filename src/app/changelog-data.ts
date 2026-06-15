@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-15",
+    version: "2.59.19",
+    label: "Odbiory WM Druk — P0.2A ZI demo ULICA/BUD/LOK strip",
+    items: [
+      {
+        type: "fix",
+        text: "ZI PDF: ukrycie pól demo projektanta (TextField2[8/9/10] @ y≈142) — Edge nie pokazuje ULICA/BUD/LOK zamiast adresu WM",
+      },
+    ],
+  },
+  {
+    date: "2026-06-15",
     version: "2.59.18",
     label: "Odbiory WM Druk — P0 hotfix parseWmPrintTemplates runtime",
     items: [
