@@ -1330,7 +1330,7 @@ buildTenderDocCandidates()
 
 ### 12.1.8 Odbiory WM Druk (`wmprint`, v2.59.x)
 
-**Status:** Moduł **GO** po 2.59.19 · **P0 Template Pollution CLOSED** · **ZI-PDF-001 CLOSED** (P0.2A)
+**Status:** Moduł **GO** · **WM DRUK P0 COMPLETE** (2.59.19) · Template Pollution **CLOSED** · KV Cleanup **CLOSED** · Runtime Hotfix **CLOSED** · **ZI-PDF-001 CLOSED**
 
 **Handoff SSOT:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)
 

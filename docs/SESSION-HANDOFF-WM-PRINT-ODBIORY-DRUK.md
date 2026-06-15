@@ -1,6 +1,6 @@
 # SESSION HANDOFF — Odbiory WM Druk (`wmprint`)
 
-> **★★ Handoff modułu WM Druk** · **Data closeout:** 2026-06-15 · **Prod:** v**2.59.19** · **ZI-PDF-001 CLOSED**
+> **★★ Handoff modułu WM Druk** · **Data closeout:** 2026-06-15 · **Prod:** v**2.59.19** · **Commit:** **`1a8c892`** · **Stream P0 COMPLETE**
 > **Hasło agenta:** „kontynuuj WGDOM”
 
 ---
@@ -82,7 +82,8 @@ Wszystkie w `DATA_KEYS` / `DEFERRED_BOOTSTRAP_KEYS` w `cloud-sync.ts`.
 |---------|---------|
 | Rekordów templates | **15** (było 99) |
 | Tombstone deleted-ids | **132** |
-| Canonical ZI UUID | `e911d6a5-3728-4089-bb9a-a4adec6e9c20` |
+| Canonical ZI UUID | `26f02c78-871c-4d65-aeac-d0ca06bf060c` |
+| ZI fileId (prod) | `2155cec9-6ca1-4eec-af1c-7b4d346487a3` |
 | Backup przed cleanup | `audit/template-cleanup-backup.json` |
 | Raport execute | `audit/template-cleanup-execute-report.json` |
 
@@ -114,17 +115,15 @@ Wszystkie w `DATA_KEYS` / `DEFERRED_BOOTSTRAP_KEYS` w `cloud-sync.ts`.
 
 ## 5. CO ZROBILIŚMY (historia sesji 2026-06-14 → 2026-06-15)
 
-### Seria P0.1 — ZI PDF (placeholdery) — **OPEN / nierozwiązane**
+### Seria P0.1 — ZI PDF (placeholdery / demo) — **CLOSED w P0.2A (2.59.19)**
 
 | Wersja | Skrót | Status |
 |--------|-------|--------|
-| 2.59.9–2.59.14 | P0.1A→1G: XFA mapowanie, updateAppearances, visual overlay, Edge cover | **PROBLEM NADAL OTWARTY** |
-| Audyt P0.1F | Pipeline wypełnia `/V` poprawnie; PDF użytkownika ≠ PDF audytu (XFA vs stripped) | PASS audyt / FAIL UX |
-| P0.1G | Debug color overlay (dev only, `setWmPrintZiDebugColorOverlay`) | diagnostyka, nie fix prod |
+| 2.59.9–2.59.14 | P0.1A→1G: XFA mapowanie, updateAppearances, visual overlay, Edge cover | diagnostyka — root cause w demo @ y≈142 |
+| Audyt P0.1F | Pipeline wypełnia `/V` poprawnie; UX FAIL przez widoczne widgety demo | PASS audyt / FAIL UX → **naprawione P0.2A** |
+| P0.1G | Debug color overlay (dev only) | diagnostyka historyczna |
 
-**Werdykt audytu P0.1F:** wartości w polach `/V` są poprawne (np. `7`, `83`, `Sępa Szarzyńskiego`), ale **przeglądarka Edge / Acrobat pokazuje placeholdery** `{{JOB_*}}` z warstwy tła (Im0) lub starych widgetów AP — nie z `/V`.
-
-Artefakty audytu: `audit/p0-1f2-proof.zip`, `scripts/audit-p0-1f*.mjs`, `audit/p0-1g-debug-overlay.pdf`.
+Artefakty audytu: `audit/p0-1f2-proof.zip`, `scripts/audit-p0-1f*.mjs`, `audit/zi-rca-ulica-bud-lok-REPORT.md`.
 
 ### P0 Template Pollution — **CLOSED**
 
@@ -134,11 +133,51 @@ Artefakty audytu: `audit/p0-1f2-proof.zip`, `scripts/audit-p0-1f*.mjs`, `audit/p
 | **2.59.16** | `afef743` | Skrypt cleanup + testy + dry-run |
 | **2.59.17** | `16ee8f8` | **EXECUTE** prod KV: 99→15, 84 tombstone |
 | **2.59.18** | `01211d6` | Hotfix `parseWmPrintTemplates is not defined` w `cloud-sync.ts` |
-| **2.59.19** | *(push sesji)* | **P0.2A** — strip demo ULICA/BUD/LOK @ y≈142; clean szablon ZI w storage/KV |
+| **2.59.19** | `1a8c892` | **P0.2A** — strip demo ULICA/BUD/LOK @ y≈142; clean szablon ZI w storage/KV |
 
 **Root cause pollution:** `App.tsx` seedował 13 rekordów przy pustym localStorage mimo pełnej chmury → merge po UUID → burst +13.
 
 **Root cause runtime 2.59.17:** `cloud-sync.ts:1469` wywołał `parseWmPrintTemplates` bez importu → ReferenceError przy wejściu w moduł.
+
+---
+
+## 5a. P0.2A — ZI-PDF-001 CLOSEOUT (v2.59.19 · `1a8c892`)
+
+### Root cause
+
+Edge renderował widoczne widgety demo:
+
+- `TextField2[8]`
+- `TextField2[9]`
+- `TextField2[10]`
+
+z wartościami:
+
+- ULICA
+- BUD
+- LOK
+
+Widgety znajdowały się w `/Annots` i były renderowane nad overlayem WM (obj 427/428/429, F=4).
+
+### Fix
+
+- `stripZiDemoDesignerFields()` — wyczyść `/V`, ukryj widget (`/F=2`) @ y≈142
+- `cleanZiTemplateDemoFields()` — oczyszczenie źródłowego szablonu
+- Aktualizacja szablonu w storage/KV (`2155cec9-…`)
+- `pdfFieldMapping` WM zaktualizowany (`TextField5[0]` / `imie[0]` / `nazwisko[1]`)
+
+### Rezultat
+
+- brak `{{JOB_*}}`
+- brak ULICA/BUD/LOK
+- poprawne dane WM (np. Sępa Szarzyńskiego / 83 / 7)
+- Edge PASS
+
+### Status
+
+**ZI-PDF-001 = CLOSED**
+
+Smoke: `scripts/test-wm-print-p0-2a-zi-demo-strip.mjs` (14/14 PASS)
 
 ---
 
@@ -248,7 +287,10 @@ npm run build
 ## 9a. Werdykt sesji
 
 ```text
+WM DRUK P0               COMPLETE (2.59.15–2.59.19)
 P0 Template Pollution     CLOSED (seed guard + cleanup 99→15 + hotfix 2.59.18)
+KV Cleanup                CLOSED (2.59.17)
+Runtime Hotfix            CLOSED (2.59.18)
 ZI-PDF-001                CLOSED (2.59.19 P0.2A — demo strip + clean template)
 Moduł wmprint UI          GO
 Prod KV templates         15 rekordów, ZI file 2155cec9-…

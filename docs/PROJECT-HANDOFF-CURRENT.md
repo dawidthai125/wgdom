@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-15 (WM Druk P0.2A **ZI-PDF-001 CLOSED** · v2.59.19)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-15 (WM Druk P0 **COMPLETE** · v2.59.19 · `1a8c892`)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -8,7 +8,7 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-2. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (P0 pollution + ZI-PDF-001 CLOSED)
+2. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (P0 **COMPLETE**)
 3. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← ★★ Notatki operacyjne P0→HF (COMPLETE)
 4. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM
 5. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
@@ -26,7 +26,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
-| **Odbiory WM Druk P0** | 2.59.15–**2.59.19** | **Pollution CLOSED** · **ZI-PDF-001 CLOSED** (P0.2A) | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) |
+| **Odbiory WM Druk P0** | 2.59.15–**2.59.19** (`1a8c892`) | **COMPLETE** | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) |
 | **P3 Wycena · Baza cen · filtry** | 2.56.0–**2.56.10** (`7acbecf`) | **P3.0–P3.6 CLOSED** | [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) |
 | **Notatki operacyjne** | **2.57.0–2.58.1** (`1f8e2bd`) | **COMPLETE** (P0→P2C+HF) · P3 Export OPEN | [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](SESSION-HANDOFF-OPERATIONAL-NOTES.md) |
 | **P2-H Tender Documents** | 2.55.0–**2.55.10** | **CLOSED** (H.7 OPEN) | [`SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) |
@@ -71,8 +71,9 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (repo / prod):      2.59.18       ← WM Druk P0 hotfix parseWmPrintTemplates
-Feature commit (prod):      01211d6        fix: P0 hotfix WM Druk runtime
+Version (repo / prod):      2.59.19       ← WM Druk P0.2A ZI-PDF-001 CLOSED
+Feature commit (prod):      1a8c892        fix: P0.2A strip ZI demo ULICA/BUD/LOK
+WM Druk hotfix:             01211d6        v2.59.18 normalizeWmPrintTemplates runtime
 WM Druk cleanup:            16ee8f8        v2.59.17 KV 99→15 templates
 WM Druk seed guard:         0c6b804        v2.59.15 template pollution fix
 Notatki HF:                 1f8e2bd        v2.58.1 backup completeness
@@ -106,12 +107,15 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 | Status | Wartość |
 |--------|---------|
-| **RELEASE GO (2.59.18)** | **TAK** — pushed `01211d6` |
-| **RELEASED (prod)** | **2.59.18** — verify `version.json` |
-| **STABLE** | TAK (moduł wmprint) · ZI PDF UX **OPEN** |
-| **PRODUCTION VERIFIED** | `version.json` = **2.59.18** (lub DEPLOY PROPAGATING) |
-| **WM Druk P0 pollution** | **CLOSED** (seed guard + cleanup 99→15 + hotfix) |
-| **ZI PDF placeholdery** | **OPEN** (ZI-PDF-001) — P0.1A–1G audyt PASS / UX FAIL |
+| **RELEASE GO (2.59.19)** | **TAK** — pushed `1a8c892` |
+| **RELEASED (prod)** | **2.59.19** — verify `version.json` |
+| **STABLE** | TAK (moduł wmprint) |
+| **PRODUCTION VERIFIED** | `version.json` = **2.59.19** |
+| **WM Druk P0** | **COMPLETE** (2.59.15–2.59.19) |
+| **WM Druk P0 pollution** | **CLOSED** |
+| **WM Druk KV cleanup** | **CLOSED** (99→15) |
+| **WM Druk runtime hotfix** | **CLOSED** (2.59.18) |
+| **ZI PDF placeholdery (ZI-PDF-001)** | **CLOSED** (v2.59.19 P0.2A) |
 | **Notatki operacyjne** | **COMPLETE** (P0→P2C+HF) · **P3 Export OPEN** |
 | **P3 (Wycena / Baza cen / filtry)** | **P3.0–P3.6 CLOSED** · benchmark materiałów rynku **HOLD** |
 | **P1 WM pipeline** | **CLOSED** (v2.56.10 false exclude przebudowa) |
@@ -126,7 +130,7 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.58.1" }
+# oczekiwane: { "version": "2.59.19" }
 ```
 
 ---
@@ -189,11 +193,16 @@ Chronologia releasów aplikacyjnych na `main` po baseline **2.50.65** (20.5Z.5C)
 | **2.56.9** | **P3.6** | **`d3ecbe4`** | **Filtry klientów strategicznych** |
 | **2.56.10** | **P1 WM** | **`7acbecf`** | **Fix false exclude przebudowa budynku** |
 | **2.57.0** | **Notatki operacyjne P0** | **(pre-commit)** | **Moduł · CRUD · komentarze · archiwum · audit · sync · job link** |
+| **2.59.15** | WM Druk seed guard | `0c6b804` | Anti-pollution — seed tylko local+cloud puste |
+| **2.59.17** | WM Druk KV cleanup | `16ee8f8` | Templates 99→15, tombstone |
+| **2.59.18** | WM Druk runtime hotfix | `01211d6` | `normalizeWmPrintTemplates` w cloud-sync |
+| **2.59.19** | **WM Druk P0.2A ZI-PDF-001** | **`1a8c892`** | **Strip demo ULICA/BUD/LOK + clean template storage/KV** |
 | **2.56.2** | **P3.5B** | **f74fe1b** | **Override cen per przetarg** |
 | **2.56.1** | **P3.5** | **16b792e** | **Ceny per pozycja kosztorysu (read-only)** |
 | **2.55.10** | **P2-H.5C/5D** | **0683e05** | **PDF noTextLayer CASE 3 + multi-ATH ranking + discovery sync** |
 | **2.55.9** | P2-H.5B | — | Heurystyki KNR — pozycje z PDF bez OCR |
 
+**Handoff WM Druk:** [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)  
 **Handoff P3+BZP:** [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md)  
 **Handoff P2-H:** [`SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)  
 **Handoff UX.1:** [`SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)  
@@ -361,6 +370,37 @@ npx vite-node scripts/test-operational-notes-hotfix-2.58.1.mjs
 
 ---
 
+## 3g. Odbiory WM Druk — P0 (**COMPLETE** v2.59.19)
+
+| Pole | Wartość |
+|------|---------|
+| **Zakres** | P0 pollution · KV cleanup · runtime hotfix · ZI-PDF-001 (P0.2A demo strip) |
+| **Wersja końcowa** | **2.59.19** · commit **`1a8c892`** |
+| **Handoff** | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) |
+| **Architektura** | [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.8 |
+
+**Stan końcowy:**
+
+```text
+Template Pollution      CLOSED
+KV Cleanup              CLOSED
+Runtime Hotfix          CLOSED
+ZI-PDF-001              CLOSED
+Stream WM DRUK P0       COMPLETE
+```
+
+**Test regresji:**
+
+```bash
+npx vite-node scripts/test-wm-print-p0-2a-zi-demo-strip.mjs
+npx vite-node scripts/test-wm-print-p0-seed-guard.mjs
+npx vite-node scripts/test-wm-print-template-cleanup.mjs
+```
+
+**Nie zmieniaj bez polecenia:** seed guard, merge po UUID, canonical ZI UUID `26f02c78-…`, strip demo @ y≈142 bez RCA.
+
+---
+
 ## 4. DASHBOARD V3 — Pulpit operacyjny (**COMPLETE**, P1-A)
 
 | Element | Wartość |
@@ -524,6 +564,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | **P2-H** | Dokumenty / ZIP / 7Z / PDF przedmiar | **STREAM CLOSED** (v2.55.0–2.55.10) · H.7 OPEN |
 | **P3** | Wycena · Baza cen · benchmarki · filtry | **P3.0–P3.6 CLOSED** · materiały rynkowe **HOLD** |
 | **Notatki operacyjne** | P0→P2C+HF admin/inspektor/backup | **COMPLETE** (v2.58.1) · **P3 Export OPEN** |
+| **WM Druk P0** | Odbiory WM Druk — pollution + ZI PDF | **COMPLETE** (v2.59.19) |
 | **P2** | Audit Center / Security Log (Super Admin) | **OTWARTY** |
 | P2-G.3D/E | Benchmark jakości · RMS · AI validation | **OTWARTY** → slot **Wycena** |
 | P2-F.6 | Kompletność oferty (checklist) | **OTWARTY** → slot **Oferta** |
@@ -550,9 +591,9 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 
 ## 13. NASTĘPNY KROK (dla agenta)
 
-**Ostatni release (repo):** **v2.58.1 Notatki operacyjne HF** — commit **`1f8e2bd`**.
+**Ostatni release (repo):** **v2.59.19 WM Druk P0.2A ZI-PDF-001 CLOSED** — commit **`1a8c892`**.
 
-**Priorytet produktu (Notatki):** stream **COMPLETE** — następny krok **P3 Export** tylko na polecenie.
+**Priorytet produktu (WM Druk):** stream **P0 COMPLETE** — P1 regresja Edge ZIP tylko na polecenie.
 
 **Notatki operacyjne — roadmap:**
 
@@ -563,19 +604,20 @@ P2A.1 OPEN (opcjonalny) — panel w detalu roboty inspektora
 ```
 
 ```text
+WM DRUK P0 COMPLETE (2.59.19) — pollution · KV cleanup · runtime hotfix · ZI-PDF-001 CLOSED
 P2-H stream CLOSED (v2.55.10) · P2-H.7 OPEN (Edge magic bytes 7z).
 P3.0–P3.6 CLOSED · P1 WM false exclude CLOSED (v2.56.10).
 Notatki operacyjne COMPLETE (v2.58.1).
 UX.1 CLOSED · P2-F CLOSED · P1 CLOSED.
-Backlog techniczny (na polecenie): P2-G.3D/E · P2-F.6 · P2 Audit Center · Notatki P3 Export.
+Backlog techniczny (na polecenie): P2-G.3D/E · P2-F.6 · P2 Audit Center · Notatki P3 Export · WM Druk P1 regresja.
 Benchmark materiałów rynku HOLD · Leroy/Castorama/OBI/KB scraping — NO GO.
 Inspector 2.1 — CLOSED (2.1.2 CANCELLED).
 ```
 
 Przy wznowieniu:
 
-1. Przeczytaj **ten plik** + [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](SESSION-HANDOFF-OPERATIONAL-NOTES.md) + `CURRENT-TASK.md`
-2. `curl -s https://www.wgdom.fun/version.json` — prod **2.58.1**
+1. Przeczytaj **ten plik** + [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) + `CURRENT-TASK.md`
+2. `curl -s https://www.wgdom.fun/version.json` — prod **2.59.19**
 3. Przed zmianami Notatki: testy z handoffu operacyjnego (P0–HF)
 4. Przed zmianami Przetargów: `test-tenders-strategic-client-filters.mjs` + `test-tender-exclude-renovation-budowa.mjs`
 5. Przed zmianami ZIP/7Z: `test-tender-7z-archive.mjs`
@@ -589,6 +631,7 @@ Przy wznowieniu:
 
 | Temat | Dokument |
 |-------|----------|
+| **★ WM Druk P0 (COMPLETE)** | `SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md` |
 | **★ Notatki operacyjne (COMPLETE)** | `SESSION-HANDOFF-OPERATIONAL-NOTES.md` |
 | **★ P3 Wycena · BZP · filtry** | `SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md` |
 | **★ P2-H Dokumenty / 7Z / Marketplanet** | `SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md` |
@@ -609,7 +652,17 @@ Przy wznowieniu:
 
 ---
 
-**Werdykt closeout (2026-06-14):**
+**Werdykt closeout (2026-06-15 — WM Druk P0):**
+
+```text
+BASELINE v2.59.19 · WM DRUK P0 COMPLETE
+COMMIT 1a8c892 · RELEASE GO · PRODUCTION VERIFIED
+Template Pollution CLOSED · KV Cleanup CLOSED · Runtime Hotfix CLOSED · ZI-PDF-001 CLOSED
+Open backlog (na polecenie): WM Druk P1 regresja · P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6
+Ready for new GPT / new Cursor agent
+```
+
+**Werdykt closeout (2026-06-14 — Notatki):**
 
 ```text
 BASELINE v2.58.1 · Notatki operacyjne COMPLETE (P0→P2C+HF)
