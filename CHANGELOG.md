@@ -1,6 +1,8 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.18** WM Druk P0 hotfix parse
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.18** WM Druk docs handoff
+
+## 2.59.18 — Docs: SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK + ARCHITECTURE § 12.1.8
 
 ## 2.59.18 — Odbiory WM Druk P0 hotfix parseWmPrintTemplates runtime
 - `cloud-sync.ts` merge templates: użyty zaimportowany `normalizeWmPrintTemplates`

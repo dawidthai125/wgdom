@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.58.1** · hotfix backup notatki operacyjne)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-14 (v2.58.1 backup completeness notatki operacyjne)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.59.18** · WM Druk P0 hotfix)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-15 (v2.59.18 WM Druk · template pollution CLOSED · ZI PDF OPEN)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1328,6 +1328,51 @@ buildTenderDocCandidates()
 
 **Nie zmieniaj bez polecenia:** merge ZIP/7Z w resolver, semantyka `zipInnerPath`, lazy chunk 7z-wasm, wymóg `sourcePageUrl` Marketplanet.
 
+### 12.1.8 Odbiory WM Druk (`wmprint`, v2.59.x)
+
+**Status:** Moduł **GO** po 2.59.18 · **P0 Template Pollution CLOSED** · **ZI PDF placeholdery OPEN**
+
+**Handoff SSOT:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)
+
+Moduł admina do generowania pakietów dokumentów odbiorowych WM — ZIP per robota, szablony DOCX/PDF form, upload dokumentów.
+
+| Element | Wartość |
+|---------|---------|
+| **View** | `wmprint` → `WmPrintView.tsx` (lazy) |
+| **Domena** | `src/lib/wm-print/*` |
+| **Storage** | bucket `make-0afb8820-photos`, prefix `wm-print/` |
+
+**Klucze KV:**
+
+| Klucz | Model |
+|-------|-------|
+| `kw-wm-print-templates` | `WmPrintTemplate[]` — merge po UUID |
+| `kw-wm-print-job-docs` | `WmPrintJobDocument[]` |
+| `kw-wm-print-settings` | `WmPrintSettings` |
+| `kw-wm-print-deleted-template-ids` | tombstone szablonów |
+| `kw-wm-print-deleted-job-doc-ids` | tombstone dokumentów robót |
+
+**Sync:** `wm-print-sync.ts` · merge w `cloud-sync.ts` case `kw-wm-print-templates` — **`normalizeWmPrintTemplates(local)`** (nie `parseWmPrintTemplates` bez importu).
+
+**Seed guard (2.59.15):** `maybeExecuteWmPrintSeed()` — bootstrap 13 slotów **tylko** gdy local **i** chmura puste. `parseWmPrintTemplates` = parse bez auto-seedu.
+
+**Prod KV (po cleanup 2.59.17):** 15 rekordów (było 99). Canonical ZI: `e911d6a5-3728-4089-bb9a-a4adec6e9c20`.
+
+**Generowanie:**
+
+```text
+generate-zip.ts → buildWmPrintFilesForJob()
+  DOCX      → generate-docx.ts ({{VAR}})
+  pdf_form  → generate-pdf.ts (ZI: TextField2[8/9/10], XFA strip, updateAppearances, visual overlay)
+  pdf       → copyStaticPdfTemplate
+```
+
+**OPEN — ZI-PDF-001:** Użytkownik widzi placeholdery `{{JOB_*}}` w Edge/Acrobat mimo poprawnych `/V` w audycie pipeline. Następna sesja: RCA warstw AP/Im0, nie kolejny setText-only fix.
+
+**Testy:** `test-wm-print-p0-seed-guard.mjs` · `test-wm-print-template-cleanup.mjs` · `cleanup-wm-print-template-pollution.mjs`
+
+**Nie zmieniaj bez polecenia:** canonical ZI UUID, seed guard, merge po UUID, tombstone deleted-ids.
+
 **Źródła danych (hierarchia):**
 
 1. Lista płac → `fullyLoadedHourly()`
@@ -1742,6 +1787,7 @@ WGDOM1/
 | `media` | Zdjęcia i pliki | `MediaView.tsx` | Galeria obrazów + dokumenty · liczniki · ZIP |
 | `guide` | Zmiany/Instrukcja | `GuideView.tsx` | Changelog + help |
 | `tenders` | Przetargi | `TendersModule.tsx` | Przetargi 3.0 — Lista, Strategia, Mapa, Profil, Ustawienia |
+| `wmprint` | Odbiory WM Druk | `WmPrintView.tsx` | ZIP odbiorowy, szablony, ustawienia · lazy chunk |
 
 **Mobile bottom nav (primary):** Pulpit · Lista Płac · Grafik · Roboty — reszta w „Więcej”.
 
@@ -1771,6 +1817,7 @@ WGDOM1/
 | `operational-notes-audit.ts` | Audit log notatek (append, cap 3000, akcja ack P2C) |
 | `operational-notes-audit-filters.ts` | **P2C v2.57.5** — ACL Super Admin, filtry, paginacja audit UI |
 | `operational-notes-read-state.ts` | Read receipts + `ackOperationalNoteWithAudit` (P2C) |
+| `wm-print/*.ts` | **Odbiory WM Druk** — szablony, ZIP, PDF form ZI, sync KV · handoff: `SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md` |
 | `deep-link.ts` | `wgdom://`, `?open=job`, custom events |
 | `native-app-bridge.ts` | Przycisk Wstecz Android, resume |
 | `capacitor-native.ts` | Status bar, splash, `isNativeApp()` |

@@ -12,9 +12,10 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.58.1** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts) · **Notatki operacyjne COMPLETE**
-- **Prod (`main` / `origin/main`, app):** **`1f8e2bd`** (2.58.1 backup notatki) · poprzedni **`7c291d9`** (2.58.0 P2A) · https://www.wgdom.fun · **RELEASE GO**
+- **Aktualna wersja UI:** **2.59.18** — `CHANGELOG[0].version` w [`changelog-data.ts`](../../src/app/changelog-data.ts) · **WM Druk P0 pollution CLOSED · ZI PDF OPEN**
+- **Prod (`main` / `origin/main`, app):** **`01211d6`** (2.59.18 WM Druk hotfix) · poprzedni **`16ee8f8`** (2.59.17 cleanup) · https://www.wgdom.fun · **RELEASE GO**
 - **★★ Handoff SSOT (baseline prod):** [`docs/PROJECT-HANDOFF-CURRENT.md`](../../docs/PROJECT-HANDOFF-CURRENT.md) · sesja: [`CURRENT-TASK.md`](../../CURRENT-TASK.md)
+- **★★ Handoff Odbiory WM Druk:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](../../docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) — P0 pollution CLOSED · **ZI PDF placeholdery OPEN**
 - **★★ Handoff Notatki operacyjne (COMPLETE):** [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](../../docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md) — P0→P2C+HF · KV · ACL · testy · backlog P3
 - **★★ Handoff P3 (Wycena · BZP · filtry):** [`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](../../docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) — baza cen · benchmarki · P3.6 · P1 WM
 - **★★ Handoff P2-H (COMPLETE H.1–H.6):** [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](../../docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) — Marketplanet · ZIP · 7Z · dossier
@@ -106,6 +107,24 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
  **Test:** `test-operational-notes-p0.mjs` … `test-operational-notes-hotfix-2.58.1.mjs`
  
  **Nie zmieniaj bez polecenia:** ≠ `job.notes` / `job.jobNotes[]`; ACL inspektor; brak zapisu do `kw-jobs`.
+ 
+ ---
+ 
+ ## Odbiory WM Druk — P0 pollution CLOSED · ZI PDF OPEN (prod `01211d6`, v2.59.18, 2026-06-15)
+ 
+ **Status:** **P0 Template Pollution CLOSED** · **ZI-PDF-001 OPEN**
+ 
+ | Etap | Wersja | Skrót |
+ |---|-----|----|
+ | Seed guard | 2.59.15 | parse bez auto-seedu; seed tylko local+cloud puste |
+ | KV cleanup | 2.59.17 | prod 99→15, 84 tombstone |
+ | Hotfix | 2.59.18 | cloud-sync normalizeWmPrintTemplates |
+ 
+ **Handoff:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](../../docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) · **ARCHITECTURE § 12.1.8**
+ 
+ **Kluczowe pliki:** `WmPrintView.tsx`, `src/lib/wm-print/*`, `generate-pdf.ts`, `generate-zip.ts`
+ 
+ **OPEN:** PDF ZI placeholdery `{{JOB_*}}` w Edge — audyt `/V` OK, UX FAIL (P0.1A–1G)
  
  ---
  

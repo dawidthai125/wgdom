@@ -1,67 +1,70 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-14 · **SESSION CLOSEOUT — Notatki operacyjne COMPLETE (P0→P2C+HF)**
+**Ostatnia aktualizacja:** 2026-06-15 · **SESSION CLOSEOUT — Odbiory WM Druk P0**
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod (repo `main`)** | **2.58.1** · commit **`1f8e2bd`** |
-| **Poprzedni feature** | 2.58.0 P2A Inspektor UI · `7c291d9` |
-| **Stream Notatki operacyjne** | **COMPLETE** (P0 · P1 · P2A · P2B · P2C · HF) |
-| **RELEASE GO** | **TAK** — ostatni push v2.58.1 |
-| **PRODUCTION VERIFIED** | Sprawdź `version.json` — może być DEPLOY PROPAGATING po push |
+| **Wersja prod (repo `main`)** | **2.59.18** · commit **`01211d6`** |
+| **Poprzedni feature** | WM Druk cleanup EXECUTED · `16ee8f8` |
+| **Stream WM Druk P0** | Template pollution **CLOSED** · ZI PDF **OPEN** |
+| **RELEASE GO** | **TAK** — hotfix 2.59.18 pushed |
+| **PRODUCTION VERIFIED** | Sprawdź `version.json` — może być DEPLOY PROPAGATING |
 
-## SKOŃCZONE — Notatki operacyjne (v2.57.0 → v2.58.1)
+## SKOŃCZONE — Odbiory WM Druk P0 (v2.59.15 → v2.59.18)
 
-| Faza | Wersja | Status |
+| Etap | Wersja | Status |
 |------|--------|--------|
-| **P0** — moduł admin, CRUD, sync | 2.57.0 | **CLOSED** |
-| **P1** — ACK, badge, banner | 2.57.2 | **CLOSED** |
-| **P2B** — widget Pulpit | 2.57.4 | **CLOSED** |
-| **P2C** — Audit UI Super Admin | 2.57.5 | **CLOSED** |
-| **P2A** — Inspektor UI + sync | 2.58.0 | **CLOSED** |
-| **HF** — backup completeness | 2.58.1 | **CLOSED** |
+| Seed guard (anti-pollution) | 2.59.15 | **CLOSED** |
+| Cleanup script + dry-run | 2.59.16 | **CLOSED** |
+| Prod KV cleanup 99→15 | 2.59.17 | **CLOSED** |
+| Hotfix `parseWmPrintTemplates` runtime | 2.59.18 | **CLOSED** |
 
-**★ Handoff SSOT modułu:** [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md)
+**★ Handoff SSOT modułu:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)
 
-### Testy regresji (wszystkie PASS przy ostatnim release)
+### Testy regresji WM Druk
 
 ```bash
-npx vite-node scripts/test-operational-notes-p0.mjs
-npx vite-node scripts/test-operational-notes-p1.mjs
-npx vite-node scripts/test-operational-notes-p2b.mjs
-npx vite-node scripts/test-operational-notes-p2c.mjs
-npx vite-node scripts/test-operational-notes-p2a.mjs
-npx vite-node scripts/test-operational-notes-hotfix-2.58.1.mjs
+npx vite-node scripts/test-wm-print-p0-seed-guard.mjs
+npx vite-node scripts/test-wm-print-template-cleanup.mjs
 npm run build
 ```
 
+## OTWARTE — P0 bloker
+
+| ID | Temat | Status |
+|----|-------|--------|
+| **ZI-PDF-001** | PDF ZI pokazuje placeholdery `{{JOB_*}}` w Edge/Acrobat mimo poprawnych `/V` w audycie | **OPEN** |
+
+Seria P0.1A–1G (2.59.9–2.59.14) — audyt PASS, UX FAIL. Następna sesja: RCA warstw AP/Im0, ten sam plik pipeline vs user download.
+
+Artefakty: `audit/p0-1f2-proof.zip`, `scripts/audit-p0-1f*.mjs`.
+
 ## NASTĘPNE — tylko na polecenie
 
-| Priorytet | Temat | Status |
-|-----------|-------|--------|
-| **P3 Export** | PDF · DOCX · Email (ręczny) | **OPEN** |
-| **P2A.1** | Panel notatek w detalu roboty inspektora | **OPEN** (opcjonalny) |
-| **Przetargi** | P2-G.3D/E · P2-F.6 · P2-H.7 · P3.7+ | backlog — handoff P3 |
-| **P2 Audit Center** | Security log Super Admin | **OPEN** |
+| Priorytet | Temat |
+|-----------|-------|
+| **P0** | ZI PDF placeholdery (ZI-PDF-001) |
+| P3 Export | PDF · DOCX · Email notatki operacyjne |
+| Przetargi backlog | P2-G.3D/E · P2-F.6 · P2-H.7 |
 
-## POPRZEDNIE RELEASY (bez zmian · CLOSED)
+## POPRZEDNIE RELEASY (CLOSED)
 
-- **P3 Wycena · BZP · filtry** — v2.56.0–2.56.10 · [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md)
-- **P2-H / UX.1 / P2-F / Dashboard V3** — handoffy w [`PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
+- **Notatki operacyjne** — v2.57.0–2.58.1 · [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md)
+- **P3 / P2-H / UX.1 / P2-F** — [`PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
 
 ## WZNOWIENIE (checklist agenta)
 
 ```text
-1. AGENTS.md → PROJECT-HANDOFF-CURRENT.md → SESSION-HANDOFF-OPERATIONAL-NOTES.md
-2. CURRENT-TASK.md (ten plik) → docs/ARCHITECTURE.md (Notatki operacyjne)
-3. curl -s https://www.wgdom.fun/version.json  → baseline 2.58.1+
-4. Hasło „kontynuuj WGDOM” → .cursor/rules/wgdom-stan-projektu.mdc
-5. WORKFLOW-RELEASE-DEPLOY.md — workflow A/B/C
+1. AGENTS.md → PROJECT-HANDOFF-CURRENT.md
+2. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ WM Druk
+3. CURRENT-TASK.md (ten plik) → docs/ARCHITECTURE.md § 12.1.8
+4. curl -s https://www.wgdom.fun/version.json  → baseline 2.59.18+
+5. Hasło „kontynuuj WGDOM” → .cursor/rules/wgdom-stan-projektu.mdc
 ```
 
 ## COMMIT / PUSH
 
-Ostatni release modułu: **`1f8e2bd`** `fix(notatki): v2.58.1 backup completeness`  
-Kolejna praca: **P3 Export** lub inny backlog — dopiero po poleceniu użytkownika.
+Ostatni release: **`01211d6`** `fix: P0 hotfix WM Druk parseWmPrintTemplates runtime (2.59.18)`  
+Kolejna praca: **ZI-PDF-001** — dopiero po poleceniu użytkownika.
