@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-15",
+    version: "2.59.23",
+    label: "Odbiory WM Druk — hotfix ZI pdf.js worker (P0)",
+    items: [
+      {
+        type: "fix",
+        text: "ZI ZIP: konfiguracja GlobalWorkerOptions.workerSrc dla pdf.js (preservation graft) — naprawa błędu „No GlobalWorkerOptions.workerSrc specified”",
+      },
+    ],
+  },
+  {
+    date: "2026-06-15",
     version: "2.59.22",
     label: "Odbiory WM Druk — ZI Tauron 2026 (GO)",
     items: [

@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.22** · **ZI Tauron 2026 RELEASE GO**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.23** · **ZI hotfix P0**
+
+## 2.59.23 — Hotfix ZI pdf.js worker (P0)
+- `zi-tauron2026-form-extract.ts`: `GlobalWorkerOptions.workerSrc` — fix ZIP „No GlobalWorkerOptions.workerSrc specified”
 
 ## 2.59.22 — Odbiory WM Druk ZI Tauron 2026 (GO)
 - `generate-pdf-zi-tauron2026.ts` + `zi-tauron2026-form-extract.ts`: Tauron 2026 §4 mapping **99/111/112** + preservation (pdf.js graft na szyfrowanym WM ZI.pdf)
