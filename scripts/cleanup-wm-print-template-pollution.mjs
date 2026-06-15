@@ -7,11 +7,13 @@
  * npx vite-node scripts/cleanup-wm-print-template-pollution.mjs
  * npx vite-node scripts/cleanup-wm-print-template-pollution.mjs --execute
  */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadEnv } from "vite";
 import { planWmPrintTemplateCleanup } from "../src/lib/wm-print/template-cleanup.ts";
-import { parseWmPrintTemplates } from "../src/lib/wm-print/templates.ts";
+import { countWmPrintTemplateFiles, parseWmPrintTemplates } from "../src/lib/wm-print/templates.ts";
+
+const CANONICAL_ZI_ID = "e911d6a5-3728-4089-bb9a-a4adec6e9c20";
 
 const env = loadEnv("", process.cwd(), "");
 const BASE = `https://${env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/make-server-0afb8820`;
@@ -30,11 +32,11 @@ async function batchGet(keys) {
   return res.json();
 }
 
-async function batchSet(entries) {
+async function batchSet(keys, values) {
   const res = await fetch(`${BASE}/batch-set`, {
     method: "POST",
     headers: { Authorization: `Bearer ${ANON}`, apikey: ANON, "Content-Type": "application/json" },
-    body: JSON.stringify({ entries }),
+    body: JSON.stringify({ keys, values }),
   });
   if (!res.ok) throw new Error(`batch-set ${res.status}: ${await res.text()}`);
   return res.text();
@@ -117,18 +119,72 @@ for (const d of plan.delete) {
   if (!newDeletedIds.includes(d.id)) newDeletedIds.push(d.id);
 }
 
-await batchSet([
-  { key: TEMPLATES_KEY, value: plan.keptTemplates },
-  { key: DELETED_IDS_KEY, value: newDeletedIds },
-]);
+await batchSet(
+  [TEMPLATES_KEY, DELETED_IDS_KEY],
+  [plan.keptTemplates, newDeletedIds],
+);
 
-const verify = await batchGet([TEMPLATES_KEY]);
+const verify = await batchGet([TEMPLATES_KEY, DELETED_IDS_KEY]);
 const afterRaw = verify.values?.[0];
-const countAfter = Array.isArray(afterRaw) ? afterRaw.length : 0;
+const afterDeletedRaw = verify.values?.[1];
+const afterTemplates = parseWmPrintTemplates(Array.isArray(afterRaw) ? afterRaw : []);
+const countAfter = afterTemplates.length;
+
+const backup = JSON.parse(readFileSync(backupPath, "utf8"));
+const backupTemplates = parseWmPrintTemplates(backup.templates);
+const backupWithFiles = backupTemplates.filter((t) => countWmPrintTemplateFiles(t) > 0);
+
+const checks = [];
+function check(cond, msg) {
+  checks.push({ pass: !!cond, msg });
+  return cond;
+}
+
+const zi = afterTemplates.find((t) => t.id === CANONICAL_ZI_ID);
+check(!!zi, `canonical ZI ${CANONICAL_ZI_ID} present`);
+check(countAfter === 15, `count after = 15 (got ${countAfter})`);
+check(countBefore === 99, `count before = 99 (got ${countBefore})`);
+
+for (const bt of backupWithFiles) {
+  const at = afterTemplates.find((t) => t.id === bt.id);
+  const filesBefore = countWmPrintTemplateFiles(bt);
+  const filesAfter = at ? countWmPrintTemplateFiles(at) : 0;
+  check(!!at, `KEEP with files: ${bt.name} (${bt.id})`);
+  check(filesAfter === filesBefore, `files preserved: ${bt.name} ${filesBefore}→${filesAfter}`);
+  if (at) {
+    check(at.sortOrder === bt.sortOrder, `sortOrder preserved: ${bt.name}`);
+    check(at.enabled === bt.enabled, `enabled preserved: ${bt.name}`);
+  }
+}
+
+const failed = checks.filter((c) => !c.pass);
+const executeReportPath = join(auditDir, "template-cleanup-execute-report.json");
+writeFileSync(
+  executeReportPath,
+  JSON.stringify(
+    {
+      executedAt: new Date().toISOString(),
+      before: countBefore,
+      after: countAfter,
+      deleted: plan.delete.length,
+      failed: failed.length,
+      canonicalZi: zi ? "Present" : "Missing",
+      checks,
+      deleteIds: plan.delete.map((d) => d.id),
+      tombstoneCount: Array.isArray(afterDeletedRaw) ? afterDeletedRaw.length : 0,
+    },
+    null,
+    2,
+  ),
+);
 
 console.log("\n4. EXECUTE — zapis OK");
 console.log(`   Audit końcowy: przed=${countBefore}  po=${countAfter}  usunięto=${countBefore - countAfter}`);
-if (countAfter !== plan.keptTemplates.length) {
-  console.error(`   UWAGA: oczekiwano ${plan.keptTemplates.length}, KV ma ${countAfter}`);
+console.log(`   Raport: ${executeReportPath}`);
+console.log(`   Canonical ZI: ${zi ? "Present" : "Missing"}`);
+for (const c of checks) console.log(`   ${c.pass ? "✓" : "✗"} ${c.msg}`);
+
+if (countAfter !== plan.keptTemplates.length || failed.length > 0) {
+  console.error(`\nVERIFY FAIL: ${failed.length} check(s)`);
   process.exit(1);
 }

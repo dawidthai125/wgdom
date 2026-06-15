@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-06-15T06:09:37.760Z",
-  "mode": "dry-run",
+  "generatedAt": "2026-06-15T06:13:54.362Z",
+  "mode": "execute",
   "countBefore": 99,
   "countAfter": 15,
   "deleteCount": 84,

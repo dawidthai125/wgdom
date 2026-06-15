@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.16** WM Druk P0 template cleanup script
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.17** WM Druk P0 cleanup EXECUTED
+
+## 2.59.17 — Odbiory WM Druk P0 cleanup template pollution EXECUTED
+- Prod KV `kw-wm-print-templates`: 99→15, 84 tombstone, canonical ZI OK
 
 ## 2.59.16 — Odbiory WM Druk P0 cleanup template pollution (skrypt KV)
 - `cleanup-wm-print-template-pollution.mjs` — backup, raport KEEP/DELETE, `--execute` po akceptacji

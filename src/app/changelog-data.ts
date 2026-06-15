@@ -12,6 +12,15 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-15",
+    version: "2.59.17",
+    label: "Odbiory WM Druk — P0 cleanup template pollution EXECUTED",
+    items: [
+      { type: "fix", text: "Prod KV cleanup: 99→15 szablonów, 84 duplikatów usuniętych + tombstone deleted-ids" },
+      { type: "fix", text: "cleanup script: poprawny batch-set keys/values + raport execute z weryfikacją canonical ZI" },
+    ],
+  },
+  {
+    date: "2026-06-15",
     version: "2.59.16",
     label: "Odbiory WM Druk — P0 cleanup template pollution (skrypt KV)",
     items: [
