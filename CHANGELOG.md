@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.19** WM Druk P0.2A ZI demo strip
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.20** WM Druk P0.3A ZI §3 mapping
+
+## 2.59.20 — Odbiory WM Druk P0.3A ZI §3 adres obiektu
+- `generate-pdf.ts`: JOB_* → TextField2[10/9/8] @ y≈142; pdflib index 24/23/22; bez strip §3; filtr legacy §1 KV
 
 ## 2.59.19 — Odbiory WM Druk P0.2A ZI demo ULICA/BUD/LOK strip
 - `generate-pdf.ts`: `stripZiDemoDesignerFields` — wyczyść/ukryj demo @ y≈142; oczyszczony szablon w storage

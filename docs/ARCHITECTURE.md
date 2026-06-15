@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.59.19** · WM Druk P0.2A ZI demo strip)
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-15 (v2.59.19 WM Druk P0.2A · ZI-PDF-001 CLOSED)
+> **Aktualna wersja UI:** `CHANGELOG[0].version` w [`src/app/changelog-data.ts`](../src/app/changelog-data.ts) (**2.59.20** · WM Druk P0.3A ZI §3 mapping)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-15 (v2.59.20 WM Druk P0.3A · ZI-PDF-001 fix §3)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1330,7 +1330,7 @@ buildTenderDocCandidates()
 
 ### 12.1.8 Odbiory WM Druk (`wmprint`, v2.59.x)
 
-**Status:** Moduł **GO** · **WM DRUK P0 COMPLETE** (2.59.19) · Template Pollution **CLOSED** · KV Cleanup **CLOSED** · Runtime Hotfix **CLOSED** · **ZI-PDF-001 CLOSED**
+**Status:** Moduł **GO** · **WM DRUK P0 COMPLETE** (2.59.20) · Template Pollution **CLOSED** · KV Cleanup **CLOSED** · Runtime Hotfix **CLOSED** · **ZI-PDF-001 CLOSED** (P0.3A §3)
 
 **Handoff SSOT:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)
 
@@ -1363,11 +1363,11 @@ Moduł admina do generowania pakietów dokumentów odbiorowych WM — ZIP per ro
 ```text
 generate-zip.ts → buildWmPrintFilesForJob()
   DOCX      → generate-docx.ts ({{VAR}})
-  pdf_form  → generate-pdf.ts (ZI: WM indeksy 8/9/10 + strip demo @ y≈142 P0.2A)
+  pdf_form  → generate-pdf.ts (ZI: §3 TextField2[10/9/8] pdflib idx 24/23/22 · P0.3A)
   pdf       → copyStaticPdfTemplate
 ```
 
-**P0.2A (2.59.19) — ZI-PDF-001 fix:** Edge pokazywał ULICA/BUD/LOK z pól demo `TextField2[8/9/10]` @ y≈142 (widget /F=4 nad overlayem). `stripZiDemoDesignerFields` czyści `/V` + ukrywa widget (`/F=2`); szablon w storage oczyszczony skryptem `publish-wm-print-zi-template-p0-2a.mjs`. WM: `TextField5[0]` / `imie[0]` / `nazwisko[1]` — bez zmian.
+**P0.3A (2.59.20) — ZI-PDF-001 fix §3:** Adres WM w polach §3 `TextField2[10/9/8]` @ y≈142 (pdflib index 24/23/22). P0.2A błędnie traktowało te pola jako demo ULICA/BUD/LOK i ukrywało je; legacy §1 `TextField5[0]` / `imie[0]` / `nazwisko[1]` filtrowane z KV. `stripZiDemoDesignerFields` = no-op od P0.3A.
 
 **Testy:** `test-wm-print-p0-seed-guard.mjs` · `test-wm-print-template-cleanup.mjs` · **`test-wm-print-p0-2a-zi-demo-strip.mjs`**
 

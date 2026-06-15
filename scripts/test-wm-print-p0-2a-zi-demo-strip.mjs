@@ -1,5 +1,5 @@
 /**
- * P0.2A — strip demo ULICA/BUD/LOK @ y≈142 + WM fill smoke.
+ * P0.2A/P0.3A — §3 WM fill; strip demo no-op od P0.3A.
  * npx vite-node scripts/test-wm-print-p0-2a-zi-demo-strip.mjs
  */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -99,12 +99,7 @@ assert(
 
 const cleanedTpl = await cleanZiTemplateDemoFields(copyPdfBytes(templateBytes));
 writeFileSync(join(AUDIT, "zi-template-p0-2a-cleaned.pdf"), cleanedTpl);
-assert(cleanedTpl.length > 1000, `clean template: ${cleanedTpl.length} B`);
-const demoAfterClean = await pdfjsDemoFields(cleanedTpl);
-assert(
-  demoAfterClean.length === 0 || demoAfterClean.every((f) => !f.fieldValue || f.fieldValue === ""),
-  "clean template: demo fieldValue puste",
-);
+assert(cleanedTpl.length === templateBytes.length, "clean template: no-op (P0.3A)");
 
 const vars = buildWmPrintVariableMap(JOB, DEFAULT_WM_PRINT_SETTINGS, {
   dateMode: "custom",
@@ -129,17 +124,17 @@ for (const f of demoAfter) {
 
 const doc = await PDFDocument.load(out, { ignoreEncryption: true });
 const tfs = doc.getForm().getFields().filter((f) => f instanceof PDFTextField);
-const idxApt = WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_APARTMENT ?? 8;
-const idxBud = WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_BUILDING ?? 9;
-const idxStreet = WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_STREET ?? 10;
-assert(tfs[idxApt]?.getText() === EXPECT.apartment, "WM LOK /V index 8");
-assert(tfs[idxBud]?.getText() === EXPECT.building, "WM BUD /V index 9");
-assert(tfs[idxStreet]?.getText() === EXPECT.street, "WM ULICA /V index 10");
+const idxApt = WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_APARTMENT ?? 22;
+const idxBud = WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_BUILDING ?? 23;
+const idxStreet = WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX.JOB_STREET ?? 24;
+assert(tfs[idxApt]?.getText() === EXPECT.apartment, "WM LOK /V index 22");
+assert(tfs[idxBud]?.getText() === EXPECT.building, "WM BUD /V index 23");
+assert(tfs[idxStreet]?.getText() === EXPECT.street, "WM ULICA /V index 24");
 
 const stripped = stripZiDemoDesignerFields(
   (await PDFDocument.load(copyPdfBytes(templateBytes), { ignoreEncryption: true })).getForm(),
 );
-assert(stripped === 3, `stripZiDemoDesignerFields usuwa 3 pola (jest ${stripped})`);
+assert(stripped === 0, `stripZiDemoDesignerFields no-op P0.3A (jest ${stripped})`);
 
 console.log(`\n=== ${pass} PASS / ${fail} FAIL ===`);
 if (fail > 0) process.exit(1);

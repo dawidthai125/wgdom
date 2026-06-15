@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-15",
+    version: "2.59.20",
+    label: "Odbiory WM Druk — P0.3A ZI §3 adres obiektu",
+    items: [
+      {
+        type: "fix",
+        text: "ZI PDF: adres WM w polach §3 TextField2[10/9/8] (y≈142) — nie w §1 TextField5/imie/nazwisko; bez ukrywania pól §3",
+      },
+    ],
+  },
+  {
+    date: "2026-06-15",
     version: "2.59.19",
     label: "Odbiory WM Druk — P0.2A ZI demo ULICA/BUD/LOK strip",
     items: [

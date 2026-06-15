@@ -1,8 +1,8 @@
 import fontkit from "@pdf-lib/fontkit";
-import { PDFDocument, PDFName, PDFNumber, PDFTextField, rgb } from "pdf-lib";
+import { PDFDocument, PDFTextField, rgb } from "pdf-lib";
 import type { WmPrintVariableKey } from "@/lib/wm-print/types";
 
-/** Pola ZI — zweryfikowane nazwy XFA/AcroForm (P0.1B). */
+/** Pola ZI §3 — adres obiektu (P0.3A): TextField2[10/9/8] @ y≈142. */
 export const WM_PRINT_ZI_PDF_FIELD_MAP: Record<string, WmPrintVariableKey> = {
   "form1[0].Page1[0].TextField2[10]": "JOB_STREET",
   "form1[0].Page1[0].TextField2[9]": "JOB_BUILDING",
@@ -10,24 +10,36 @@ export const WM_PRINT_ZI_PDF_FIELD_MAP: Record<string, WmPrintVariableKey> = {
 };
 
 /**
- * pdf-lib po usunięciu XFA nie zna qualified names — indeks PDFTextField (P0.1B / P0.2A).
- * Indeksy 8/9/10 = blok WM @ y≈655/592: nazwisko[1] / imie[0] / TextField5[0].
- * (≠ demo TextField2[8/9/10] @ y≈142 z ULICA/BUD/LOK — strip P0.2A).
+ * pdf-lib po strip XFA — indeks PDFTextField (≠ numer w nazwie TextField2[N]).
+ * P0.3A: §3 @ y≈142 — 24=ulica, 23=budynek, 22=lokal (hybrid zi-old-template).
  */
+export const WM_PRINT_ZI_PDF_FIELD_PDFLIB_INDEX: Record<string, number> = {
+  "form1[0].Page1[0].TextField2[10]": 24,
+  "form1[0].Page1[0].TextField2[9]": 23,
+  "form1[0].Page1[0].TextField2[8]": 22,
+};
+
 export const WM_PRINT_ZI_PDF_FIELD_TEXT_INDEX: Partial<Record<WmPrintVariableKey, number>> = {
-  JOB_APARTMENT: 8,
-  JOB_BUILDING: 9,
-  JOB_STREET: 10,
+  JOB_STREET: 24,
+  JOB_BUILDING: 23,
+  JOB_APARTMENT: 22,
 };
 
-/** P0.2A — qualified names bloku WM (pdf.js); wypełnianie przez indeksy powyżej. */
+/** pdf.js qualified names §3 — SSOT KV pdfFieldMapping (P0.3A). */
 export const WM_PRINT_ZI_WM_FIELD_QNAMES: Record<string, WmPrintVariableKey> = {
-  "form1[0].Page1[0].TextField5[0]": "JOB_STREET",
-  "form1[0].Page1[0].imie[0]": "JOB_BUILDING",
-  "form1[0].Page1[0].nazwisko[1]": "JOB_APARTMENT",
+  "form1[0].Page1[0].TextField2[10]": "JOB_STREET",
+  "form1[0].Page1[0].TextField2[9]": "JOB_BUILDING",
+  "form1[0].Page1[0].TextField2[8]": "JOB_APARTMENT",
 };
 
-/** P0.2A — pas Y pól demo projektanta (ULICA/BUD/LOK), RCA zi-rca-ulica-bud-lok. */
+/** §1 zgłaszający — nie mapować na JOB_* (P0.3A). */
+export const WM_PRINT_ZI_LEGACY_WM_FIELD_QNAMES = new Set([
+  "form1[0].Page1[0].TextField5[0]",
+  "form1[0].Page1[0].imie[0]",
+  "form1[0].Page1[0].nazwisko[1]",
+]);
+
+/** @deprecated P0.3A — TextField2[8/9/10] to pola §3, nie demo. */
 export const WM_PRINT_ZI_DEMO_FIELD_RECT_Y = 142.735992;
 export const WM_PRINT_ZI_DEMO_FIELD_Y_TOLERANCE = 2;
 
@@ -140,45 +152,28 @@ export async function generatePdfPlainFromTemplate(
   return copyStaticPdfTemplate(templateBytes);
 }
 
-function parseTextFieldIndexFromName(name: string): number | null {
-  const m = name.match(/\[(\d+)\]$/);
-  return m ? Number(m[1]) : null;
-}
-
 function getZiTextFieldByIndex(form: ReturnType<PDFDocument["getForm"]>, index: number): PDFTextField | null {
   const textFields = form.getFields().filter((f) => f instanceof PDFTextField);
   const field = textFields[index];
   return field instanceof PDFTextField ? field : null;
 }
 
-export function isZiDemoDesignerFieldRect(y: number): boolean {
-  return Math.abs(y - WM_PRINT_ZI_DEMO_FIELD_RECT_Y) <= WM_PRINT_ZI_DEMO_FIELD_Y_TOLERANCE;
+function getZiPdfLibIndexForFieldName(fieldName: string): number | null {
+  const idx = WM_PRINT_ZI_PDF_FIELD_PDFLIB_INDEX[fieldName];
+  return typeof idx === "number" ? idx : null;
 }
 
-/** P0.2A — usuń widoczne ULICA/BUD/LOK z demo @ y≈142 (wyczyść /V, ukryj widget /F=2). */
-export function stripZiDemoDesignerFields(form: ReturnType<PDFDocument["getForm"]>): number {
-  form.updateFieldAppearances = () => {};
-  let stripped = 0;
+export function isZiDemoDesignerFieldRect(_y: number): boolean {
+  return false;
+}
 
-  for (const field of form.getFields()) {
-    if (!(field instanceof PDFTextField)) continue;
-    const widget = field.acroField.getWidgets()[0];
-    if (!widget) continue;
-    const { y } = widget.getRectangle();
-    if (!isZiDemoDesignerFieldRect(y)) continue;
-
-    field.setText("");
-    widget.dict.set(PDFName.of("F"), PDFNumber.of(2));
-    stripped++;
-  }
-
-  return stripped;
+/** P0.3A — no-op: TextField2[8/9/10] @ y≈142 to pola §3, nie demo. */
+export function stripZiDemoDesignerFields(_form: ReturnType<PDFDocument["getForm"]>): number {
+  return 0;
 }
 
 export async function cleanZiTemplateDemoFields(templateBytes: Uint8Array): Promise<Uint8Array> {
-  const pdfDoc = await PDFDocument.load(templateBytes, { ignoreEncryption: true });
-  stripZiDemoDesignerFields(pdfDoc.getForm());
-  return pdfDoc.save({ useObjectStreams: false });
+  return templateBytes.slice();
 }
 
 function setZiTextFieldValue(
@@ -193,13 +188,13 @@ function setZiTextFieldValue(
     byName.setText(value);
     return { executed: true, field: byName };
   } catch {
-    /* fallback indeks z nazwy TextField2[N] */
+    /* fallback indeks pdf-lib (≠ numer w TextField2[N]) */
   }
 
-  const idx = parseTextFieldIndexFromName(fieldName);
-  if (idx !== null && textFields[idx]) {
-    textFields[idx].setText(value);
-    return { executed: true, field: textFields[idx] };
+  const mappedIdx = getZiPdfLibIndexForFieldName(fieldName);
+  if (mappedIdx !== null && textFields[mappedIdx]) {
+    textFields[mappedIdx].setText(value);
+    return { executed: true, field: textFields[mappedIdx] };
   }
 
   return { executed: false, field: null };
@@ -213,7 +208,7 @@ export function fillZiPdfFieldsWithLog(
   const log: ZiPdfFieldFillLogRow[] = [];
 
   for (const [fieldName, varKey] of Object.entries(WM_PRINT_ZI_PDF_FIELD_MAP)) {
-    const idx = parseTextFieldIndexFromName(fieldName);
+    const idx = getZiPdfLibIndexForFieldName(fieldName);
     const fieldBefore = idx !== null ? getZiTextFieldByIndex(form, idx) : null;
     const valueBefore = fieldBefore?.getText();
     const value = vars[varKey] ?? "";
@@ -341,8 +336,7 @@ async function finalizeZiHybridForm(
       color: rgb(0, 0, 0),
     });
 
-    /** Ukryj widget — viewer nie renderuje starej warstwy placeholderów nad coverem strony. */
-    widget.dict.set(PDFName.of("F"), PDFNumber.of(2));
+    /** P0.2C experiment — nie ukrywaj widgetów WM (/F=2 usunięte). */
   }
 }
 
@@ -353,9 +347,12 @@ export async function generatePdfFormFromTemplate(
 ): Promise<Uint8Array> {
   const formType = detectWmPrintPdfFormType(templateBytes);
   const pdfDoc = await PDFDocument.load(templateBytes, { ignoreEncryption: true });
-  /** Legacy KV może mieć stare klucze (Ulica…) — SSOT mapowania ZI wygrywa. */
+  const kvMapping = Object.fromEntries(
+    Object.entries(fieldMapping ?? {}).filter(([name]) => !WM_PRINT_ZI_LEGACY_WM_FIELD_QNAMES.has(name)),
+  );
+  /** Legacy KV może mieć stare klucze — SSOT mapowania ZI §3 wygrywa. */
   const mapping: Record<string, WmPrintVariableKey> = {
-    ...(fieldMapping ?? {}),
+    ...kvMapping,
     ...WM_PRINT_ZI_PDF_FIELD_MAP,
   };
 
@@ -373,8 +370,6 @@ export async function generatePdfFormFromTemplate(
       /* czysty AcroForm bez czcionki — /V wystarczy */
     }
   }
-
-  stripZiDemoDesignerFields(form);
 
   return pdfDoc.save({ useObjectStreams: false });
 }
@@ -398,14 +393,12 @@ export async function diagnoseZiPdfFieldFill(
     await finalizeZiHybridForm(pdfDoc, form, vars);
   }
 
-  stripZiDemoDesignerFields(form);
-
   const out = await pdfDoc.save({ useObjectStreams: false });
   const reloaded = await PDFDocument.load(out, { ignoreEncryption: true });
   const reForm = reloaded.getForm();
 
   const afterSave = Object.entries(WM_PRINT_ZI_PDF_FIELD_MAP).map(([fieldName]) => {
-    const idx = parseTextFieldIndexFromName(fieldName);
+    const idx = getZiPdfLibIndexForFieldName(fieldName);
     const field = idx !== null ? getZiTextFieldByIndex(reForm, idx) : null;
     return { field: fieldName, index: idx, getText: field?.getText() };
   });

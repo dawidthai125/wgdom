@@ -133,7 +133,10 @@ Artefakty audytu: `audit/p0-1f2-proof.zip`, `scripts/audit-p0-1f*.mjs`, `audit/z
 | **2.59.16** | `afef743` | Skrypt cleanup + testy + dry-run |
 | **2.59.17** | `16ee8f8` | **EXECUTE** prod KV: 99→15, 84 tombstone |
 | **2.59.18** | `01211d6` | Hotfix `parseWmPrintTemplates is not defined` w `cloud-sync.ts` |
-| **2.59.19** | `1a8c892` | **P0.2A** — strip demo ULICA/BUD/LOK @ y≈142; clean szablon ZI w storage/KV |
+| **2.59.19** | `1a8c892` | **P0.2A** — strip demo ULICA/BUD/LOK @ y≈142; clean szablon ZI w storage/KV (**superseded P0.3A**) |
+| **2.59.20** | pending | **P0.3A** — §3 TextField2[10/9/8] pdflib 24/23/22; bez strip §3; filtr legacy §1 KV |
+
+**Root cause P0.3A:** P0.2A myliło pola §3 z demo; właściwy adres WM = TextField2[8/9/10] @ y≈142, nie TextField5/imie/nazwisko @ §1.
 
 **Root cause pollution:** `App.tsx` seedował 13 rekordów przy pustym localStorage mimo pełnej chmury → merge po UUID → burst +13.
 
