@@ -1,4 +1,3 @@
-import { seedWmPrintTemplatesIfEmpty } from "@/lib/wm-print/default-templates";
 import type { WmPrintTemplate, WmPrintTemplateFile, WmPrintTemplateType } from "@/lib/wm-print/types";
 
 const LEGACY_FILE_SUFFIX = "-legacy-0";
@@ -52,9 +51,10 @@ export function wmPrintTemplateGroupLabel(t: WmPrintTemplate): string {
   return `${t.name} (${n})`;
 }
 
-export function normalizeWmPrintTemplates(raw: unknown): WmPrintTemplate[] {
-  if (!Array.isArray(raw)) return seedWmPrintTemplatesIfEmpty([]);
-  const parsed = raw
+/** Parse + migrate — bez seedu (P0 anti-pollution). */
+export function parseWmPrintTemplates(raw: unknown): WmPrintTemplate[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
     .filter((t): t is WmPrintTemplate => !!t && typeof t === "object" && typeof (t as WmPrintTemplate).id === "string")
     .map((t) =>
       migrateWmPrintTemplate({
@@ -64,8 +64,32 @@ export function normalizeWmPrintTemplates(raw: unknown): WmPrintTemplate[] {
         enabled: t.enabled !== false,
         sortOrder: typeof t.sortOrder === "number" ? t.sortOrder : 0,
       }),
-    );
-  return seedWmPrintTemplatesIfEmpty(parsed).sort((a, b) => a.sortOrder - b.sortOrder);
+    )
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+/** Alias parse — nie tworzy nowych UUID / seed burst. */
+export function normalizeWmPrintTemplates(raw: unknown): WmPrintTemplate[] {
+  return parseWmPrintTemplates(raw);
+}
+
+function pickPreferredWmPrintTemplate(a: WmPrintTemplate, b: WmPrintTemplate): WmPrintTemplate {
+  const aFiles = countWmPrintTemplateFiles(a);
+  const bFiles = countWmPrintTemplateFiles(b);
+  if (aFiles !== bFiles) return aFiles > bFiles ? a : b;
+  return (a.updatedAt || "") >= (b.updatedAt || "") ? a : b;
+}
+
+/** Guard przed push — jedna grupa na unikalną nazwę (preferuj rekord z plikami). */
+export function dedupeWmPrintTemplatesByName(templates: WmPrintTemplate[]): WmPrintTemplate[] {
+  const byName = new Map<string, WmPrintTemplate>();
+  for (const t of templates) {
+    const key = (t.name || "").trim();
+    if (!key) continue;
+    const prev = byName.get(key);
+    byName.set(key, prev ? pickPreferredWmPrintTemplate(prev, t) : migrateWmPrintTemplate(t));
+  }
+  return [...byName.values()].sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
 export function mergeWmPrintTemplateFiles(

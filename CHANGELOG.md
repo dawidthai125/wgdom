@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.14** WM Druk P0.1E ZI Edge
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **2.59.15** WM Druk P0 template pollution fix
+
+## 2.59.15 — Odbiory WM Druk P0 fix template pollution (seed guard)
+- Seed tylko gdy local+chmura puste; `parseWmPrintTemplates` bez auto-seedu; dedupe name przed push KV
 
 ## 2.59.14 — Odbiory WM Druk P0.1E fix ZI Edge (cover + hidden widgets)
 

@@ -11,6 +11,16 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-15",
+    version: "2.59.15",
+    label: "Odbiory WM Druk — P0 fix template pollution (seed guard)",
+    items: [
+      { type: "fix", text: "Seed WM Druk tylko gdy local i chmura puste — koniec duplikatów UUID przy pustym localStorage" },
+      { type: "fix", text: "parseWmPrintTemplates bez auto-seedu; guard unikalności name przed push do KV" },
+      { type: "improve", text: "Logi WM PRINT SEED SKIPPED / EXECUTED + test-wm-print-p0-seed-guard.mjs" },
+    ],
+  },
+  {
     date: "2026-06-14",
     version: "2.59.14",
     label: "Odbiory WM Druk — P0.1E fix ZI Edge (cover strony + ukrycie widgetów)",

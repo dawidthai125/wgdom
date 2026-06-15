@@ -116,7 +116,6 @@ import { OperationalNotesUnreadBanner } from "@/app/OperationalNotesUnreadBanner
 import { computePayrollCashSplitWithCarry } from "@/lib/payroll-carry-forward";
 import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosedForUi } from "@/lib/payroll-cycle";
 import { hasPayrollRolloverBlockers } from "@/lib/payroll-rollover";
-import { normalizeWmPrintTemplates } from "@/lib/wm-print/templates";
 import { normalizeWmPrintJobDocuments } from "@/lib/wm-print/job-documents";
 import { DEFAULT_WM_PRINT_SETTINGS, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
 import type { WmPrintJobDocument, WmPrintSettings, WmPrintTemplate } from "@/lib/wm-print/types";
@@ -125,6 +124,7 @@ import {
   addDeletedWmPrintTemplateId,
   getDeletedWmPrintJobDocIds,
   getDeletedWmPrintTemplateIds,
+  maybeExecuteWmPrintSeed,
   pushWmPrintToCloud,
 } from "@/lib/wm-print/wm-print-sync";
 
@@ -555,18 +555,25 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     queueMicrotask(() => { autoSyncMountSettledRef.current = true; });
   }, []);
 
+  const wmPrintSeedCheckedRef = useRef(false);
+
   useEffect(() => {
-    if (wmPrintTemplates.length > 0) return;
-    const seeded = normalizeWmPrintTemplates([]);
-    setWmPrintTemplates(seeded);
-    pushWmPrintToCloud(
-      seeded,
-      normalizeWmPrintJobDocuments(wmPrintJobDocs),
-      normalizeWmPrintSettings(wmPrintSettings),
-      getDeletedWmPrintTemplateIds(),
-      getDeletedWmPrintJobDocIds(),
-    ).catch(() => {});
-  }, [wmPrintTemplates.length, setWmPrintTemplates, wmPrintJobDocs, wmPrintSettings]);
+    if (wmPrintSeedCheckedRef.current) return;
+    wmPrintSeedCheckedRef.current = true;
+    void (async () => {
+      const result = await maybeExecuteWmPrintSeed();
+      if (!result.seeded) return;
+      setWmPrintTemplates(result.templates);
+      suppressAutoSyncUntilRef.current = Date.now() + 4500;
+      pushWmPrintToCloud(
+        result.templates,
+        normalizeWmPrintJobDocuments(wmPrintJobDocs),
+        normalizeWmPrintSettings(wmPrintSettings),
+        getDeletedWmPrintTemplateIds(),
+        getDeletedWmPrintJobDocIds(),
+      ).catch(() => {});
+    })();
+  }, [setWmPrintTemplates, wmPrintJobDocs, wmPrintSettings]);
 
   // Auto-save to cloud on any data change (debounced 2s, only after initial sync; nie w ukrytej karcie)
   useEffect(() => {

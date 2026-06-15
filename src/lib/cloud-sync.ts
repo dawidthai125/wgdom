@@ -1466,7 +1466,7 @@ export function mergeDataKey(
       return mergeOperationalNotes(local, cloud, deletedOperationalNoteIds);
     case "kw-wm-print-templates":
       return mergeWmPrintTemplates(
-        normalizeWmPrintTemplates(local),
+        parseWmPrintTemplates(local),
         cloud,
         getDeletedWmPrintTemplateIds(),
       );

@@ -3,9 +3,15 @@ import {
   mergeRecordsById,
   pushKeysToCloud,
 } from "@/lib/cloud-sync";
+import { createWmPrintSeedTemplates } from "@/lib/wm-print/default-templates";
 import { normalizeWmPrintJobDocuments } from "@/lib/wm-print/job-documents";
 import { mergeWmPrintSettings, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
-import { normalizeWmPrintTemplates, migrateWmPrintTemplate, getWmPrintTemplateFiles } from "@/lib/wm-print/templates";
+import {
+  dedupeWmPrintTemplatesByName,
+  migrateWmPrintTemplate,
+  getWmPrintTemplateFiles,
+  parseWmPrintTemplates,
+} from "@/lib/wm-print/templates";
 import {
   WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
   WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
@@ -58,7 +64,7 @@ export function mergeWmPrintTemplates(
 ): WmPrintTemplate[] {
   const tomb = new Set(deletedIds);
   const localNorm = local.map(migrateWmPrintTemplate);
-  const cloudNorm = normalizeWmPrintTemplates(cloud);
+  const cloudNorm = parseWmPrintTemplates(cloud);
   const map = new Map<string, WmPrintTemplate>();
   const ingest = (list: WmPrintTemplate[]) => {
     for (const t of list) {
@@ -108,6 +114,13 @@ export async function pushWmPrintToCloud(
   deletedTemplateIds: string[],
   deletedJobDocIds: string[],
 ): Promise<void> {
+  const deduped = dedupeWmPrintTemplatesByName(templates);
+  if (deduped.length !== templates.length) {
+    console.warn("[WM PRINT] name uniqueness guard", {
+      before: templates.length,
+      after: deduped.length,
+    });
+  }
   const keys = [
     WM_PRINT_TEMPLATES_KEY,
     WM_PRINT_JOB_DOCS_KEY,
@@ -115,9 +128,45 @@ export async function pushWmPrintToCloud(
     WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
     WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
   ];
-  const values = [templates, jobDocs, settings, deletedTemplateIds, deletedJobDocIds];
+  const values = [deduped, jobDocs, settings, deletedTemplateIds, deletedJobDocIds];
   persistWmPrintLocal(keys, values);
   await pushKeysToCloud(keys, values);
+}
+
+export type WmPrintSeedResult = {
+  seeded: boolean;
+  templates: WmPrintTemplate[];
+};
+
+/** Bootstrap seed — tylko gdy local i cloud są puste (P0 anti-pollution). */
+export async function maybeExecuteWmPrintSeed(): Promise<WmPrintSeedResult> {
+  let localRaw: unknown = [];
+  try {
+    localRaw = JSON.parse(localStorage.getItem(WM_PRINT_TEMPLATES_KEY) || "[]");
+  } catch {
+    localRaw = [];
+  }
+  const localTemplates = parseWmPrintTemplates(localRaw);
+
+  let cloudTemplates: WmPrintTemplate[] = [];
+  try {
+    const cloud = await fetchKeysFromCloud([WM_PRINT_TEMPLATES_KEY]);
+    cloudTemplates = parseWmPrintTemplates(cloud?.[0]);
+  } catch {
+    /* offline — traktuj jak niepustą chmurę jeśli local ma dane */
+  }
+
+  if (localTemplates.length > 0 || cloudTemplates.length > 0) {
+    console.info("WM PRINT SEED SKIPPED", {
+      localCount: localTemplates.length,
+      cloudCount: cloudTemplates.length,
+    });
+    return { seeded: false, templates: localTemplates.length > 0 ? localTemplates : cloudTemplates };
+  }
+
+  const seeded = createWmPrintSeedTemplates();
+  console.info("WM PRINT SEED EXECUTED", { count: seeded.length });
+  return { seeded: true, templates: seeded };
 }
 
 export async function syncWmPrintFromCloud(): Promise<{
@@ -133,7 +182,7 @@ export async function syncWmPrintFromCloud(): Promise<{
     WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
   ];
   const cloud = await fetchKeysFromCloud(keys);
-  const localTemplates = normalizeWmPrintTemplates(
+  const localTemplates = parseWmPrintTemplates(
     JSON.parse(localStorage.getItem(WM_PRINT_TEMPLATES_KEY) || "[]"),
   );
   const localDocs = normalizeWmPrintJobDocuments(

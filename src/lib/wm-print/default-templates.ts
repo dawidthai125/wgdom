@@ -18,8 +18,8 @@ const SEED: Seed[] = [
   { name: "Wentylacja", kind: "job_upload" },
 ];
 
-export function seedWmPrintTemplatesIfEmpty(existing: WmPrintTemplate[]): WmPrintTemplate[] {
-  if (existing.length > 0) return existing;
+/** Pełny seed 13 slotów — tylko gdy local i cloud są puste (bootstrap). */
+export function createWmPrintSeedTemplates(): WmPrintTemplate[] {
   const now = new Date().toISOString();
   return SEED.map((s, i) => ({
     id: crypto.randomUUID(),
@@ -40,4 +40,10 @@ export function seedWmPrintTemplatesIfEmpty(existing: WmPrintTemplate[]): WmPrin
         }
       : {}),
   }));
+}
+
+/** @deprecated Użyj createWmPrintSeedTemplates() — nie wywoływać z normalize/merge. */
+export function seedWmPrintTemplatesIfEmpty(existing: WmPrintTemplate[]): WmPrintTemplate[] {
+  if (existing.length > 0) return existing;
+  return createWmPrintSeedTemplates();
 }
