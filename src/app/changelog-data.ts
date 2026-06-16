@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-15",
+    version: "2.59.25",
+    label: "Odbiory WM Druk — housekeeping kodu (P0.5B)",
+    items: [
+      {
+        type: "improve",
+        text: "WM Druk: wydzielenie modułów czcionki PDF i statycznych skanów; oznaczenia @deprecated dla ścieżki legacy LiveCycle — bez zmiany ZIP/ZI/DOCX",
+      },
+    ],
+  },
+  {
+    date: "2026-06-15",
     version: "2.59.24",
     label: "Odbiory WM Druk — cleanup legacy ZI slot (P0)",
     items: [

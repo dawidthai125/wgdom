@@ -3,7 +3,8 @@ import { saveAs } from "file-saver";
 import type { Job } from "@/app/app-domain";
 import { wmPrintZipBaseName } from "@/lib/wm-print/address-vars";
 import { generateDocxFromTemplate } from "@/lib/wm-print/generate-docx";
-import { copyStaticPdfTemplate, generatePdfFormFromTemplate } from "@/lib/wm-print/generate-pdf";
+import { generatePdfFormFromTemplate } from "@/lib/wm-print/generate-pdf";
+import { copyStaticPdfTemplate } from "@/lib/wm-print/wm-print-pdf-static";
 import {
   detectLegacyLiveCycleZiForm,
   generatePdfZiTauron2026,
@@ -58,6 +59,7 @@ export async function generateFromTemplateBytes(
       }
       return generatePdfZiTauron2026(sourceBytes, vars);
     }
+    /** Martwa gałąź prod (KV: jedyny pdf_form = ZI). Zachowana dla bezpieczeństwa API. */
     return generatePdfFormFromTemplate(sourceBytes, vars, t.pdfFieldMapping);
   }
   if (type === "pdf") {

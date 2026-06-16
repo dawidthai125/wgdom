@@ -1,6 +1,17 @@
+/**
+ * Legacy LiveCycle ZI (2021) — pdf-lib / overlay / flatten PoC.
+ *
+ * Prod ZI: `generate-pdf-zi-tauron2026.ts` + `zi-tauron2026-form-extract.ts`.
+ * Aktywne w prod: re-export `copyStaticPdfTemplate`, `loadWmPrintZiPdfFontBytes` (moduły pomocnicze).
+ * Reszta tego pliku: audyty P0.1–P0.4A — nie importować z UI.
+ */
 import fontkit from "@pdf-lib/fontkit";
 import { PDFArray, PDFDocument, PDFName, PDFRef, PDFTextField, rgb } from "pdf-lib";
 import type { WmPrintVariableKey } from "@/lib/wm-print/types";
+import { loadWmPrintZiPdfFontBytes } from "@/lib/wm-print/wm-print-pdf-fonts";
+
+export { loadWmPrintZiPdfFontBytes } from "@/lib/wm-print/wm-print-pdf-fonts";
+export { copyStaticPdfTemplate, generatePdfPlainFromTemplate } from "@/lib/wm-print/wm-print-pdf-static";
 
 /**
  * @deprecated Legacy LiveCycle ZI (2021) — CLOSED. Prod ZI używa `generatePdfZiTauron2026()` (Tauron 2026).
@@ -46,10 +57,6 @@ export const WM_PRINT_ZI_LEGACY_WM_FIELD_QNAMES = new Set([
 export const WM_PRINT_ZI_DEMO_FIELD_RECT_Y = 142.735992;
 export const WM_PRINT_ZI_DEMO_FIELD_Y_TOLERANCE = 2;
 
-const ZI_PDF_FONT_PATH = "/fonts/NotoSans-Regular.ttf";
-
-let cachedZiPdfFontBytes: Uint8Array | null = null;
-
 /** P0.1G — debug overlay: czerwony/zielony/niebieski box bez drawText (tylko test). */
 export let wmPrintZiDebugColorOverlay = false;
 
@@ -91,24 +98,6 @@ function ziMappingKeys(): Set<string> {
   return new Set(Object.keys(WM_PRINT_ZI_PDF_FIELD_MAP));
 }
 
-export async function loadWmPrintZiPdfFontBytes(): Promise<Uint8Array> {
-  if (cachedZiPdfFontBytes) return cachedZiPdfFontBytes;
-
-  if (typeof window === "undefined") {
-    const { readFileSync } = await import("node:fs");
-    const { join } = await import("node:path");
-    cachedZiPdfFontBytes = new Uint8Array(
-      readFileSync(join(process.cwd(), "public", "fonts", "NotoSans-Regular.ttf")),
-    );
-    return cachedZiPdfFontBytes;
-  }
-
-  const res = await fetch(ZI_PDF_FONT_PATH);
-  if (!res.ok) throw new Error(`Nie można wczytać czcionki ZI (${res.status})`);
-  cachedZiPdfFontBytes = new Uint8Array(await res.arrayBuffer());
-  return cachedZiPdfFontBytes;
-}
-
 export async function inspectWmPrintPdfForm(bytes: Uint8Array): Promise<WmPrintPdfFormInspection> {
   const detected = detectWmPrintPdfFormType(bytes);
 
@@ -141,18 +130,6 @@ export async function inspectWmPrintPdfForm(bytes: Uint8Array): Promise<WmPrintP
   } catch {
     return { formType: "unknown", fieldCount: 0, fieldNames: [], addressFieldNames: [] };
   }
-}
-
-/** P0-A — statyczne skany PDF: kopia bajt-w-bajt, bez modyfikacji. */
-export function copyStaticPdfTemplate(templateBytes: Uint8Array): Uint8Array {
-  return templateBytes.slice();
-}
-
-export async function generatePdfPlainFromTemplate(
-  templateBytes: Uint8Array,
-  _vars: Record<WmPrintVariableKey, string>,
-): Promise<Uint8Array> {
-  return copyStaticPdfTemplate(templateBytes);
 }
 
 function getZiTextFieldByIndex(form: ReturnType<PDFDocument["getForm"]>, index: number): PDFTextField | null {
@@ -395,6 +372,10 @@ async function finalizeZiHybridForm(
   }
 }
 
+/**
+ * @deprecated Legacy LiveCycle pdf_form. Prod: tylko ZI → `generatePdfZiTauron2026()`.
+ * Gałąź w `generate-zip.ts` martwa w KV (brak pdf_form poza ZI).
+ */
 export async function generatePdfFormFromTemplate(
   templateBytes: Uint8Array,
   vars: Record<WmPrintVariableKey, string>,

@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.24** · **WM Druk ZI cleanup P0**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.25** · **WM Druk P0.5B housekeeping**
+
+## 2.59.25 — WM Druk housekeeping kodu (P0.5B)
+- `wm-print-pdf-fonts.ts` + `wm-print-pdf-static.ts`: wydzielenie aktywnych helperów prod
+- `generate-pdf.ts`: re-exporty + `@deprecated` legacy LiveCycle — zero zmiany ZIP/ZI/DOCX
+- Raport: [`audit/P0.5B-HOUSEKEEPING-REPORT.md`](audit/P0.5B-HOUSEKEEPING-REPORT.md)
 
 ## 2.59.24 — WM Druk legacy ZI slot cleanup (P0)
 - KV: tombstone `26f02c78…` · jeden aktywny ZI Tauron 2026 (`2b22da48…`)

@@ -4,7 +4,7 @@
  */
 import fontkit from "@pdf-lib/fontkit";
 import { PDFCheckBox, PDFDocument, PDFName, PDFRadioGroup, PDFTextField, type PDFForm } from "pdf-lib";
-import { loadWmPrintZiPdfFontBytes } from "@/lib/wm-print/generate-pdf";
+import { loadWmPrintZiPdfFontBytes } from "@/lib/wm-print/wm-print-pdf-fonts";
 import type { WmPrintVariableKey } from "@/lib/wm-print/types";
 import { extractZiTauron2026FormFieldsPdfJs } from "@/lib/wm-print/zi-tauron2026-form-extract";
 
