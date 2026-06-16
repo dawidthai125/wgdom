@@ -20,6 +20,7 @@
     "test:mobile:report": "playwright show-report e2e-report",
     "test:e2e:happy": "playwright test --project=e2e-happy-path",
     "test:e2e:jobs-mobile": "playwright test --project=e2e-happy-path jobs-mobile-layout.spec.ts",
+    "test:e2e:mobile-auth": "playwright test --project=e2e-mobile-auth-iphone-se --project=e2e-mobile-auth-iphone-14 --project=e2e-mobile-auth-pixel-7 --project=e2e-mobile-auth-ipad-mini",
     "test:e2e:version": "playwright test --project=e2e-version-awareness"
   },
   "dependencies": {

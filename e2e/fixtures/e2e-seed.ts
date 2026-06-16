@@ -12,6 +12,12 @@ export const E2E_ADMIN_PASS = "e2e-z1-admin-pass";
 export const E2E_INSPECTOR_PASS = "e2e-z1-insp-pass";
 export const E2E_MARKER = "• E2E-HAPPY-PATH-001 zakres testowy";
 
+export const E2E_NOTE_ID = "e2e-note-001";
+export const E2E_NOTE_TITLE = "E2E Notatka operacyjna Z1";
+export const E2E_TENDER_ID = "e2e-tender-001";
+export const E2E_TENDER_TITLE = "E2E Przetarg Z1";
+export const E2E_WM_ZI_TEMPLATE_ID = "e2e-wm-zi-template-001";
+
 export function hashWorkerPin(pin: string): string {
   return createHash("sha256").update(`wgdom-worker-pin-v1:${pin}`).digest("hex");
 }
@@ -44,6 +50,11 @@ export type E2eSeedArgs = {
   inspectorHash: string;
   weekFrom: string;
   weekTo: string;
+  noteId: string;
+  noteTitle: string;
+  tenderId: string;
+  tenderTitle: string;
+  wmZiTemplateId: string;
 };
 
 export function buildE2eSeedArgs(): E2eSeedArgs {
@@ -60,6 +71,11 @@ export function buildE2eSeedArgs(): E2eSeedArgs {
     inspectorHash: hashAdminPassword("Szymon", E2E_INSPECTOR_PASS),
     weekFrom: from,
     weekTo: to,
+    noteId: E2E_NOTE_ID,
+    noteTitle: E2E_NOTE_TITLE,
+    tenderId: E2E_TENDER_ID,
+    tenderTitle: E2E_TENDER_TITLE,
+    wmZiTemplateId: E2E_WM_ZI_TEMPLATE_ID,
   };
 }
 
@@ -141,4 +157,89 @@ export function applyE2eSeedInBrowser(args: E2eSeedArgs): void {
     activityLog: [],
   };
   localStorage.setItem("kw-jobs", JSON.stringify([job]));
+
+  const seedNow = new Date().toISOString();
+
+  localStorage.setItem(
+    "kw-operational-notes",
+    JSON.stringify([
+      {
+        id: args.noteId,
+        title: args.noteTitle,
+        content: "E2E seed — notatka operacyjna smoke (read-only).",
+        authorUserId: "dawid",
+        authorDisplayName: "Dawid",
+        authorRole: "super_admin",
+        createdAt: seedNow,
+        updatedAt: seedNow,
+        lastActivityAt: seedNow,
+        lastActivityByUserId: "dawid",
+        status: "active",
+        shareWithInspector: false,
+        contentRev: 1,
+        comments: [],
+        revisions: [],
+      },
+    ]),
+  );
+  localStorage.setItem("kw-operational-notes-read-state", JSON.stringify([]));
+  localStorage.setItem("kw-operational-notes-audit-log", JSON.stringify([]));
+  localStorage.setItem("kw-operational-notes-deleted-ids", JSON.stringify([]));
+
+  localStorage.setItem(
+    "kw-tenders-pipeline",
+    JSON.stringify([
+      {
+        id: args.tenderId,
+        bzpNumber: "E2E-BZP-001",
+        noticeNumber: "E2E-NOTICE-001",
+        title: args.tenderTitle,
+        organizationName: "E2E Org WM",
+        organizationCity: "Wrocław",
+        organizationProvince: "dolnośląskie",
+        cpvCode: "45000000",
+        publicationDate: args.weekFrom,
+        submittingOffersDate: null,
+        orderType: "works",
+        tenderId: "e2e-tender-ext-001",
+        moIdentifier: "E2E-MO-001",
+        status: "interested",
+        notes: "",
+        relevanceScore: 50,
+        matchedKeywords: ["e2e"],
+        isWroclaw: true,
+        priorityBuyerId: null,
+        priorityBuyerLabel: null,
+        addedAt: seedNow,
+        updatedAt: seedNow,
+        ezamowieniaUrl: "",
+      },
+    ]),
+  );
+
+  localStorage.setItem(
+    "kw-wm-print-templates",
+    JSON.stringify([
+      {
+        id: args.wmZiTemplateId,
+        name: "ZI",
+        kind: "generated",
+        type: "pdf_form",
+        enabled: true,
+        sortOrder: 50,
+        createdAt: seedNow,
+        updatedAt: seedNow,
+        pdfFieldMapping: {
+          "Pole tekstowe 99": "JOB_STREET",
+          "Pole tekstowe 111": "JOB_BUILDING",
+          "Pole tekstowe 112": "JOB_APARTMENT",
+        },
+      },
+    ]),
+  );
+  localStorage.setItem("kw-wm-print-job-docs", JSON.stringify([]));
+  localStorage.setItem(
+    "kw-wm-print-settings",
+    JSON.stringify({ defaultCity: "Wrocław", zipNameSuffix: "ODBIOR_WM" }),
+  );
 }
