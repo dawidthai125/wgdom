@@ -131,6 +131,6 @@ Scenariusz manualny (prod): utwórz 3 raporty → Katalog → zaznacz 2 → Pobi
 
 | Pole | Wartość |
 |------|---------|
-| Commit hash | _(po push)_ |
-| Deploy | push `main` → Vercel |
-| `version.json` | _(VERIFY FAST)_ |
+| Commit hash | `2634aa5` |
+| Deploy | **RELEASE GO** (push `main` → Vercel) |
+| `version.json` | **2.59.36** at verify — **DEPLOY PROPAGATING** (oczekiwana: **2.59.37**) |
