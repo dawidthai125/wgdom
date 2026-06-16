@@ -93,6 +93,6 @@ Scenariusz (manual / testy Node):
 | `AdminViewRouter.tsx` | wire deep-link |
 | `scripts/test-electrical-measurements-registry-ux-p3a.mjs` | **NOWY** |
 
-| Commit hash | _(po push)_ |
-| Deploy | push `main` → Vercel |
-| `version.json` | _(VERIFY FAST)_ |
+| Commit hash | `e6b168d` |
+| Deploy | **RELEASE GO** (push `main` → Vercel) |
+| `version.json` | **2.59.38** at verify — **DEPLOY PROPAGATING** (oczekiwana: **2.59.39**) |
