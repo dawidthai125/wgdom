@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.30",
+    label: "Pomiary Elektryczne — EM-P1B generator DOCX",
+    items: [
+      {
+        type: "new",
+        text: "Roboty → Pomiary Elektryczne: generowanie 5 dokumentów Word (Protokół, Dane informacyjne, RCD, ADSC, Rezystancja) — pojedynczy DOCX bez ZIP",
+      },
+      {
+        type: "improve",
+        text: "EM-P1B: szablony public/em-measurements + XML row cloning (RCD/ADSC/Rezystancja) + payload z preview.ts SSOT",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.29",
     label: "Hotfix sync — mergeRecoverableCharges import (P0-HOTFIX-001)",
     items: [

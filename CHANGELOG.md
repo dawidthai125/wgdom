@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.29** · **P0-HOTFIX-001**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.30** · **EM-P1B DOCX generator**
+
+## 2.59.30 — Pomiary Elektryczne EM-P1B (generator DOCX)
+- 5× DOCX: Protokół, Dane informacyjne, RCD, ADSC, Rezystancja — XML row cloning + payload SSOT
+- UI: przyciski „Generuj …” per dokument w panelu Roboty
+- Szablony: `public/em-measurements/*.template.docx` · smoke `test-electrical-measurements-p1.mjs` 32/32
 
 ## 2.59.29 — Hotfix sync mergeRecoverableCharges (P0-HOTFIX-001)
 - Przywrócony import `mergeRecoverableCharges` / `normalizeRecoverableCharges` w `cloud-sync.ts` (regresja EM-P0 b563ea8)

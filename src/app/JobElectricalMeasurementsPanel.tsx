@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, Gauge, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, FileDown, Gauge, Loader2, Plus, Trash2 } from "lucide-react";
 import type { Job } from "@/app/app-domain";
 import { filterElectricalMeasurementsForJob } from "@/lib/electrical-measurements/merge";
+import {
+  downloadEmDocxDocument,
+  EM_DOCX_DOCUMENT_KINDS,
+  emDocxDocumentKindLabel,
+  type EmDocxDocumentKind,
+} from "@/lib/electrical-measurements/generate-em-docx";
 import {
   buildElectricalMeasurementPreview,
   buildJobElectricalMeasurementsSummary,
@@ -49,6 +55,8 @@ export function JobElectricalMeasurementsPanel({
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detailsExpanded, setDetailsExpanded] = useState(true);
+  const [generatingKind, setGeneratingKind] = useState<EmDocxDocumentKind | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   useEffect(() => {
     if (jobReports.length === 0) {
@@ -84,6 +92,27 @@ export function JobElectricalMeasurementsPanel({
   const patchSelected = (patch: Parameters<typeof touchElectricalMeasurement>[1]) => {
     if (!selected) return;
     persist(touchElectricalMeasurement(selected, patch));
+  };
+
+  const handleGenerateDocx = async (kind: EmDocxDocumentKind) => {
+    if (!selected) return;
+    setGenerateError(null);
+    setGeneratingKind(kind);
+    try {
+      await downloadEmDocxDocument(kind, { measurement: selected, job });
+    } catch (e) {
+      setGenerateError(e instanceof Error ? e.message : "Nie udało się wygenerować DOCX");
+    } finally {
+      setGeneratingKind(null);
+    }
+  };
+
+  const docxButtonLabels: Record<EmDocxDocumentKind, string> = {
+    protokol: "Generuj Protokół",
+    "dane-informacyjne": "Generuj Dane Informacyjne",
+    "parametry-rcd": "Generuj RCD",
+    "badanie-adsc": "Generuj ADSC",
+    "badanie-rezystancji": "Generuj Rezystancję",
   };
 
   return (
@@ -338,13 +367,43 @@ export function JobElectricalMeasurementsPanel({
               </section>
 
               {preview && (
-                <section className="space-y-3 rounded-lg border border-dashed border-border bg-secondary/20 p-3">
-                  <h4 className="text-xs font-semibold text-foreground">Podgląd (tylko odczyt)</h4>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-                    <span>Liczba dokumentów: {preview.summary.documentCount}</span>
-                    <span>Liczba obwodów: {preview.summary.circuitCount}</span>
-                    <span>Liczba RCD: {preview.summary.rcdCount}</span>
-                  </div>
+                <>
+                  <section className="space-y-2 rounded-lg border border-border p-3">
+                    <h4 className="text-xs font-semibold text-foreground">Generuj dokumenty Word</h4>
+                    <p className="text-[10px] text-muted-foreground">
+                      Pobierz pojedynczy plik DOCX na podstawie danych raportu (bez ZIP).
+                    </p>
+                    {generateError && (
+                      <p className="text-[11px] text-destructive">{generateError}</p>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {EM_DOCX_DOCUMENT_KINDS.map((kind) => (
+                        <button
+                          key={kind}
+                          type="button"
+                          disabled={generatingKind !== null}
+                          title={emDocxDocumentKindLabel(kind)}
+                          onClick={() => handleGenerateDocx(kind)}
+                          className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary disabled:opacity-50"
+                        >
+                          {generatingKind === kind ? (
+                            <Loader2 size={11} className="animate-spin" />
+                          ) : (
+                            <FileDown size={11} />
+                          )}
+                          {docxButtonLabels[kind]}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+
+                  <section className="space-y-3 rounded-lg border border-dashed border-border bg-secondary/20 p-3">
+                    <h4 className="text-xs font-semibold text-foreground">Podgląd (tylko odczyt)</h4>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                      <span>Liczba dokumentów: {preview.summary.documentCount}</span>
+                      <span>Liczba obwodów: {preview.summary.circuitCount}</span>
+                      <span>Liczba RCD: {preview.summary.rcdCount}</span>
+                    </div>
 
                   <div>
                     <p className="text-[10px] font-medium text-muted-foreground mb-1">Ochrona przed porażeniem</p>
@@ -377,6 +436,7 @@ export function JobElectricalMeasurementsPanel({
                     )}
                   </div>
                 </section>
+                </>
               )}
             </div>
           )}
