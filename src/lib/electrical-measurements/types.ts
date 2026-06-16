@@ -15,6 +15,17 @@ export interface ElectricalMeasurementRegistryEntry {
   status: ElectricalMeasurementRegistryStatus;
 }
 
+/** EM-P1.6B — stan rejestru RAP (wpisy + baseline roczny). */
+export interface ElectricalMeasurementRegistryState {
+  v: 1;
+  /** Ostatni numer RAP poza WGDOM / ustalony baseline per rok (np. 2026 → 44). */
+  baselineByYear: Record<string, number>;
+  entries: ElectricalMeasurementRegistryEntry[];
+  /** Wersja jednorazowej naprawy baseline (EM-P1.6B). */
+  repairVersion?: number;
+  updatedAt?: string;
+}
+
 /** EM-P1.7 — globalne ustawienia domyślne (WM Druk → Ustawienia). */
 export interface ElectricalMeasurementSettings {
   technicianName: string;

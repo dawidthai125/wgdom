@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.36",
+    label: "Pomiary Elektryczne — EM-P1.6B naprawa baseline RAP",
+    items: [
+      {
+        type: "fix",
+        text: "Rejestr RAP: usunięcie raportów testowych (Kleczkowska, Brochów), baseline 2026→44 — kolejny numer RAP-45-2026",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.35",
     label: "Pomiary Elektryczne — EM-P1.7 domyślne ustawienia",
     items: [

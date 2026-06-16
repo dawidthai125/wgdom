@@ -45,7 +45,7 @@ import {
 import { isMeasurementMetaFieldsEditable } from "@/lib/electrical-measurements/settings";
 import type {
   ElectricalMeasurement,
-  ElectricalMeasurementRegistryEntry,
+  ElectricalMeasurementRegistryState,
   ElectricalMeasurementSettings,
 } from "@/lib/electrical-measurements/types";
 import {
@@ -74,14 +74,14 @@ export function JobElectricalMeasurementsPanel({
 }: {
   job: Job;
   measurements: ElectricalMeasurement[];
-  registry: ElectricalMeasurementRegistryEntry[];
+  registry: ElectricalMeasurementRegistryState;
   measurementSettings: ElectricalMeasurementSettings;
   adminSession?: AdminSession | null;
   onChangeMeasurements: (next: ElectricalMeasurement[]) => void;
-  onChangeRegistry: (next: ElectricalMeasurementRegistryEntry[]) => void;
+  onChangeRegistry: (next: ElectricalMeasurementRegistryState) => void;
   onCommit: (
     nextMeasurements: ElectricalMeasurement[],
-    nextRegistry: ElectricalMeasurementRegistryEntry[],
+    nextRegistry: ElectricalMeasurementRegistryState,
   ) => void;
 }) {
   const jobReports = useMemo(
@@ -125,7 +125,7 @@ export function JobElectricalMeasurementsPanel({
 
   const persistBundle = (
     nextMeasurement: ElectricalMeasurement,
-    nextRegistry: ElectricalMeasurementRegistryEntry[] = registry,
+    nextRegistry: ElectricalMeasurementRegistryState = registry,
   ) => {
     const nextAll = upsertElectricalMeasurement(measurements, nextMeasurement);
     onChangeMeasurements(nextAll);

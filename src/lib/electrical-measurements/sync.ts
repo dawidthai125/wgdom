@@ -1,5 +1,8 @@
 import { pushKeysToCloud } from "@/lib/cloud-sync";
-import { mergeElectricalMeasurementRegistry, normalizeElectricalMeasurementRegistry } from "@/lib/electrical-measurements/registry";
+import {
+  mergeElectricalMeasurementRegistry,
+  normalizeElectricalMeasurementRegistryState,
+} from "@/lib/electrical-measurements/registry";
 import { normalizeElectricalMeasurements } from "@/lib/electrical-measurements/normalize";
 import {
   mergeElectricalMeasurementSettings,
@@ -10,7 +13,7 @@ import {
   ELECTRICAL_MEASUREMENT_SETTINGS_KEY,
   ELECTRICAL_MEASUREMENTS_KEY,
   type ElectricalMeasurement,
-  type ElectricalMeasurementRegistryEntry,
+  type ElectricalMeasurementRegistryState,
   type ElectricalMeasurementSettings,
 } from "@/lib/electrical-measurements/types";
 
@@ -33,9 +36,9 @@ export async function pushElectricalMeasurementsToCloud(
 }
 
 export async function pushElectricalMeasurementRegistryToCloud(
-  registry: ElectricalMeasurementRegistryEntry[],
+  registry: ElectricalMeasurementRegistryState,
 ): Promise<void> {
-  const normalized = normalizeElectricalMeasurementRegistry(registry);
+  const normalized = normalizeElectricalMeasurementRegistryState(registry);
   try {
     localStorage.setItem(ELECTRICAL_MEASUREMENT_REGISTRY_KEY, JSON.stringify(normalized));
   } catch {
@@ -58,10 +61,10 @@ export async function pushElectricalMeasurementSettingsToCloud(
 
 export async function pushElectricalMeasurementsBundleToCloud(
   measurements: ElectricalMeasurement[],
-  registry: ElectricalMeasurementRegistryEntry[],
+  registry: ElectricalMeasurementRegistryState,
 ): Promise<void> {
   const normMeasurements = normalizeElectricalMeasurements(measurements);
-  const normRegistry = normalizeElectricalMeasurementRegistry(registry);
+  const normRegistry = normalizeElectricalMeasurementRegistryState(registry);
   try {
     localStorage.setItem(ELECTRICAL_MEASUREMENTS_KEY, JSON.stringify(normMeasurements));
     localStorage.setItem(ELECTRICAL_MEASUREMENT_REGISTRY_KEY, JSON.stringify(normRegistry));
@@ -74,7 +77,7 @@ export async function pushElectricalMeasurementsBundleToCloud(
   );
 }
 
-export { mergeElectricalMeasurementRegistry, normalizeElectricalMeasurementRegistry };
+export { mergeElectricalMeasurementRegistry, normalizeElectricalMeasurementRegistryState };
 export {
   mergeElectricalMeasurementSettings,
   normalizeElectricalMeasurementSettings,

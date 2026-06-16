@@ -92,7 +92,7 @@ import {
 } from "@/lib/wm-print/history";
 import type { WmPrintTab } from "@/lib/wm-print/wm-print-tabs";
 import { WM_PRINT_TABS } from "@/lib/wm-print/wm-print-tabs";
-import type { ElectricalMeasurement, ElectricalMeasurementRegistryEntry, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
+import type { ElectricalMeasurement, ElectricalMeasurementRegistryState, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
 import {
   DEFAULT_ELECTRICAL_MEASUREMENT_SETTINGS,
   normalizeElectricalMeasurementSettings,
@@ -155,10 +155,10 @@ export function WmPrintView({
   onChangeElectricalMeasurements: (next: ElectricalMeasurement[]) => void;
   onCommitElectricalMeasurements: (
     nextMeasurements?: ElectricalMeasurement[],
-    nextRegistry?: ElectricalMeasurementRegistryEntry[],
+    nextRegistry?: ElectricalMeasurementRegistryState,
   ) => void;
-  electricalMeasurementRegistry: ElectricalMeasurementRegistryEntry[];
-  onChangeElectricalMeasurementRegistry: (next: ElectricalMeasurementRegistryEntry[]) => void;
+  electricalMeasurementRegistry: ElectricalMeasurementRegistryState;
+  onChangeElectricalMeasurementRegistry: (next: ElectricalMeasurementRegistryState) => void;
   electricalMeasurementSettings: ElectricalMeasurementSettings;
   onChangeElectricalMeasurementSettings: (next: ElectricalMeasurementSettings) => void;
   onCommitElectricalMeasurementSettings: (next?: ElectricalMeasurementSettings) => void;

@@ -19,7 +19,7 @@ import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
 import type { WmPrintHistoryEntry } from "@/lib/wm-print/history";
 import type { WmPrintJobDocument, WmPrintSettings, WmPrintTemplate } from "@/lib/wm-print/types";
-import type { ElectricalMeasurement, ElectricalMeasurementRegistryEntry, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
+import type { ElectricalMeasurement, ElectricalMeasurementRegistryState, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
 import type { View } from "@/app/admin/admin-nav";
 import { TeamDirectoryContactsView } from "@/app/TeamDirectoryContactsView";
 import { TendersProvider } from "@/app/tenders/context/TendersProvider";
@@ -139,11 +139,11 @@ export type AdminViewRouterProps = {
   setElectricalMeasurements: (
     v: ElectricalMeasurement[] | ((prev: ElectricalMeasurement[]) => ElectricalMeasurement[]),
   ) => void;
-  electricalMeasurementRegistry: ElectricalMeasurementRegistryEntry[];
+  electricalMeasurementRegistry: ElectricalMeasurementRegistryState;
   setElectricalMeasurementRegistry: (
     v:
-      | ElectricalMeasurementRegistryEntry[]
-      | ((prev: ElectricalMeasurementRegistryEntry[]) => ElectricalMeasurementRegistryEntry[]),
+      | ElectricalMeasurementRegistryState
+      | ((prev: ElectricalMeasurementRegistryState) => ElectricalMeasurementRegistryState),
   ) => void;
   electricalMeasurementSettings: ElectricalMeasurementSettings;
   setElectricalMeasurementSettings: (
@@ -152,7 +152,7 @@ export type AdminViewRouterProps = {
   commitElectricalMeasurementSettings: (next?: ElectricalMeasurementSettings) => void;
   commitElectricalMeasurements: (
     nextMeasurements?: ElectricalMeasurement[],
-    nextRegistry?: ElectricalMeasurementRegistryEntry[],
+    nextRegistry?: ElectricalMeasurementRegistryState,
   ) => void;
   pendingWmPrintNav: import("@/lib/wm-print/wm-print-tabs").WmPrintPendingNavigation | null;
   onInitialWmPrintNavigationConsumed: () => void;

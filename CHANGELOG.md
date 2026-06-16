@@ -1,6 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.35** · **EM-P1.7**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.36** · **EM-P1.6B**
+
+## 2.59.36 — Pomiary Elektryczne EM-P1.6B (baseline RAP repair)
+
+- Fix: baseline RAP 2026→44, purge test Kleczkowska/Brochów (RAP-1/2-2026), next RAP-45-2026
 
 ## 2.59.35 — Pomiary Elektryczne EM-P1.7 (domyślne ustawienia)
 - `kw-electrical-measurement-settings` — pomiarowiec, model/numer miernika

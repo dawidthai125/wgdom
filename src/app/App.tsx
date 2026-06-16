@@ -129,7 +129,7 @@ import {
   maybeExecuteWmPrintSeed,
   pushWmPrintToCloud,
 } from "@/lib/wm-print/wm-print-sync";
-import type { ElectricalMeasurement, ElectricalMeasurementRegistryEntry, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
+import type { ElectricalMeasurement, ElectricalMeasurementRegistryState, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
 import {
   ELECTRICAL_MEASUREMENT_REGISTRY_KEY,
   ELECTRICAL_MEASUREMENT_SETTINGS_KEY,
@@ -140,9 +140,12 @@ import {
   pushElectricalMeasurementSettingsToCloud,
 } from "@/lib/electrical-measurements/sync";
 import {
+  createEmptyRegistryState,
   ensureRegistryWithMigration,
+  normalizeElectricalMeasurementRegistryState,
   registryNeedsMigrationFromMeasurements,
 } from "@/lib/electrical-measurements/registry";
+import { applyRapRegistryBaselineRepairP16B } from "@/lib/electrical-measurements/registry-baseline-repair";
 import { DEFAULT_ELECTRICAL_MEASUREMENT_SETTINGS } from "@/lib/electrical-measurements/settings";
 
 function AppInner({onLogout}: {onLogout?: ()=>void}) {
@@ -178,8 +181,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     [],
   );
   const [electricalMeasurementRegistry, setElectricalMeasurementRegistry] = useLocalStorage<
-    ElectricalMeasurementRegistryEntry[]
-  >(ELECTRICAL_MEASUREMENT_REGISTRY_KEY, []);
+    ElectricalMeasurementRegistryState
+  >(ELECTRICAL_MEASUREMENT_REGISTRY_KEY, createEmptyRegistryState());
   const [electricalMeasurementSettings, setElectricalMeasurementSettings] =
     useLocalStorage<ElectricalMeasurementSettings>(
       ELECTRICAL_MEASUREMENT_SETTINGS_KEY,
@@ -341,10 +344,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   );
 
   const commitElectricalMeasurements = useCallback(
-    (nextMeasurements?: ElectricalMeasurement[], nextRegistry?: ElectricalMeasurementRegistryEntry[]) => {
+    (nextMeasurements?: ElectricalMeasurement[], nextRegistry?: ElectricalMeasurementRegistryState) => {
       const payload = nextMeasurements ?? electricalMeasurements;
       const registryPayload = ensureRegistryWithMigration(
-        nextRegistry ?? electricalMeasurementRegistry,
+        normalizeElectricalMeasurementRegistryState(nextRegistry ?? electricalMeasurementRegistry),
         payload,
       );
       if (nextRegistry !== undefined || registryNeedsMigrationFromMeasurements(electricalMeasurementRegistry, payload)) {
@@ -357,10 +360,32 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   );
 
   useEffect(() => {
+    if (Array.isArray(electricalMeasurementRegistry)) {
+      const normalized = normalizeElectricalMeasurementRegistryState(electricalMeasurementRegistry);
+      setElectricalMeasurementRegistry(ensureRegistryWithMigration(normalized, electricalMeasurements));
+      return;
+    }
     if (!registryNeedsMigrationFromMeasurements(electricalMeasurementRegistry, electricalMeasurements)) return;
-    const migrated = ensureRegistryWithMigration(electricalMeasurementRegistry, electricalMeasurements);
-    setElectricalMeasurementRegistry(migrated);
+    setElectricalMeasurementRegistry(
+      ensureRegistryWithMigration(electricalMeasurementRegistry, electricalMeasurements),
+    );
   }, [electricalMeasurements, electricalMeasurementRegistry, setElectricalMeasurementRegistry]);
+
+  const rapBaselineRepairDoneRef = useRef(false);
+  useEffect(() => {
+    if (rapBaselineRepairDoneRef.current) return;
+    if (jobs.length === 0) return;
+    rapBaselineRepairDoneRef.current = true;
+    const normalizedRegistry = normalizeElectricalMeasurementRegistryState(electricalMeasurementRegistry);
+    const normalizedMeasurements = electricalMeasurements;
+    const repaired = applyRapRegistryBaselineRepairP16B(normalizedRegistry, normalizedMeasurements, jobs);
+    if (!repaired.changed) return;
+    const registryPayload = ensureRegistryWithMigration(repaired.state, repaired.measurements);
+    setElectricalMeasurements(repaired.measurements);
+    setElectricalMeasurementRegistry(registryPayload);
+    suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    pushElectricalMeasurementsBundleToCloud(repaired.measurements, registryPayload).catch(() => {});
+  }, [jobs, electricalMeasurements, electricalMeasurementRegistry, setElectricalMeasurements, setElectricalMeasurementRegistry]);
 
   const onInitialWmPrintNavigationConsumed = useCallback(() => setPendingWmPrintNav(null), []);
 

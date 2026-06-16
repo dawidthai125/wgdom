@@ -31,7 +31,7 @@ import {
 import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-leaves";
 import { mergeRecoverableCharges, normalizeRecoverableCharges } from "@/lib/recoverable-charges";
 import { mergeElectricalMeasurements } from "@/lib/electrical-measurements/merge";
-import { mergeElectricalMeasurementRegistry } from "@/lib/electrical-measurements/registry";
+import { mergeElectricalMeasurementRegistry, createEmptyRegistryState } from "@/lib/electrical-measurements/registry";
 import { mergeElectricalMeasurementSettings, normalizeElectricalMeasurementSettings } from "@/lib/electrical-measurements/settings";
 import { normalizeElectricalMeasurements } from "@/lib/electrical-measurements/normalize";
 import {
@@ -1712,7 +1712,7 @@ export function dataKeyRichness(key: DataKey, value: unknown): number {
     case "kw-operational-notes":
     case "kw-electrical-measurements":
     case "kw-electrical-measurement-registry":
-      return normalizeArrayValue(value).reduce((s, e) => s + recordRichness(e), 0);
+      return normalizeArrayValue(value).length + (typeof value === "object" && value && "entries" in value ? recordRichness(value) : 0);
     default:
       return value != null && value !== "" ? 1 : 0;
   }
@@ -1730,6 +1730,7 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
     return { action: [], scope: [], exclude: [], learnedFromCount: 0, updatedAt: "" };
   }
   if (key === ELECTRICAL_MEASUREMENT_SETTINGS_KEY) return normalizeElectricalMeasurementSettings(null);
+  if (key === ELECTRICAL_MEASUREMENT_REGISTRY_KEY) return createEmptyRegistryState();
   if (key.startsWith("kw-")) return [];
   return {};
 }
@@ -1741,6 +1742,9 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
     return normalizeArrayValue(coerced);
   }
   if (key === ELECTRICAL_MEASUREMENT_SETTINGS_KEY) return normalizeElectricalMeasurementSettings(coerced);
+  if (key === ELECTRICAL_MEASUREMENT_REGISTRY_KEY) {
+    return mergeElectricalMeasurementRegistry(coerced, coerced);
+  }
   return coerced;
 }
 

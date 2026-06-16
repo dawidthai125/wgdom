@@ -1,10 +1,12 @@
 /**
  * EM-P1.6 — trwały rejestr numerów RAP (1 numer ↔ 1 jobId, bez zwrotu do puli).
+ * EM-P1.6B — baseline roczny (ostatni numer poza WGDOM).
  */
 
 import type {
   ElectricalMeasurement,
   ElectricalMeasurementRegistryEntry,
+  ElectricalMeasurementRegistryState,
   ElectricalMeasurementRegistryStatus,
 } from "@/lib/electrical-measurements/types";
 
@@ -23,7 +25,11 @@ export function parseRapNumber(rapNumber: string): { sequence: number; year: num
   return { sequence, year };
 }
 
-export function normalizeElectricalMeasurementRegistry(
+export function createEmptyRegistryState(): ElectricalMeasurementRegistryState {
+  return { v: 1, baselineByYear: {}, entries: [], repairVersion: 0 };
+}
+
+export function normalizeElectricalMeasurementRegistryEntries(
   raw: unknown,
 ): ElectricalMeasurementRegistryEntry[] {
   if (!Array.isArray(raw)) return [];
@@ -49,57 +55,108 @@ export function normalizeElectricalMeasurementRegistry(
   return out;
 }
 
+/** @deprecated alias — użyj normalizeElectricalMeasurementRegistryState */
+export function normalizeElectricalMeasurementRegistry(raw: unknown): ElectricalMeasurementRegistryEntry[] {
+  return normalizeElectricalMeasurementRegistryState(raw).entries;
+}
+
+export function normalizeElectricalMeasurementRegistryState(
+  raw: unknown,
+): ElectricalMeasurementRegistryState {
+  if (Array.isArray(raw)) {
+    return {
+      v: 1,
+      baselineByYear: {},
+      entries: normalizeElectricalMeasurementRegistryEntries(raw),
+      repairVersion: 0,
+    };
+  }
+  if (!raw || typeof raw !== "object") return createEmptyRegistryState();
+  const r = raw as Partial<ElectricalMeasurementRegistryState>;
+  const baselineByYear: Record<string, number> = {};
+  if (r.baselineByYear && typeof r.baselineByYear === "object") {
+    for (const [k, v] of Object.entries(r.baselineByYear)) {
+      const n = Number(v);
+      if (Number.isFinite(n) && n >= 0) baselineByYear[String(k)] = Math.floor(n);
+    }
+  }
+  return {
+    v: 1,
+    baselineByYear,
+    entries: normalizeElectricalMeasurementRegistryEntries(r.entries ?? []),
+    repairVersion: typeof r.repairVersion === "number" ? r.repairVersion : 0,
+    updatedAt: typeof r.updatedAt === "string" ? r.updatedAt : undefined,
+  };
+}
+
 export function mergeElectricalMeasurementRegistry(
   local: unknown,
   cloud: unknown,
-): ElectricalMeasurementRegistryEntry[] {
+): ElectricalMeasurementRegistryState {
+  const l = normalizeElectricalMeasurementRegistryState(local);
+  const c = normalizeElectricalMeasurementRegistryState(cloud);
+  const baselineByYear: Record<string, number> = { ...l.baselineByYear };
+  for (const [year, seq] of Object.entries(c.baselineByYear)) {
+    baselineByYear[year] = Math.max(baselineByYear[year] ?? 0, seq);
+  }
+
   const byJobId = new Map<string, ElectricalMeasurementRegistryEntry>();
-  for (const e of [
-    ...normalizeElectricalMeasurementRegistry(local),
-    ...normalizeElectricalMeasurementRegistry(cloud),
-  ]) {
+  for (const e of [...l.entries, ...c.entries]) {
     const prev = byJobId.get(e.jobId);
     if (!prev || e.assignedAt >= prev.assignedAt) byJobId.set(e.jobId, e);
   }
-  return [...byJobId.values()].sort((a, b) => b.assignedAt.localeCompare(a.assignedAt));
+
+  const repairVersion = Math.max(l.repairVersion ?? 0, c.repairVersion ?? 0);
+  const updatedAt = [l.updatedAt, c.updatedAt].filter(Boolean).sort().pop();
+
+  return {
+    v: 1,
+    baselineByYear,
+    entries: [...byJobId.values()].sort((a, b) => b.assignedAt.localeCompare(a.assignedAt)),
+    repairVersion,
+    updatedAt,
+  };
 }
 
 export function getRegistryEntryForJob(
-  registry: ElectricalMeasurementRegistryEntry[],
+  state: ElectricalMeasurementRegistryState,
   jobId: string,
 ): ElectricalMeasurementRegistryEntry | undefined {
   if (!jobId) return undefined;
-  return registry.find((e) => e.jobId === jobId);
+  return state.entries.find((e) => e.jobId === jobId);
 }
 
 export function getMaxSequenceForYear(
-  registry: ElectricalMeasurementRegistryEntry[],
+  state: ElectricalMeasurementRegistryState,
   year: number,
 ): number {
-  let max = 0;
-  for (const e of registry) {
+  let max = state.baselineByYear[String(year)] ?? 0;
+  for (const e of state.entries) {
     if (e.year === year && e.sequence > max) max = e.sequence;
   }
   return max;
 }
 
 function upsertRegistryEntry(
-  registry: ElectricalMeasurementRegistryEntry[],
+  state: ElectricalMeasurementRegistryState,
   entry: ElectricalMeasurementRegistryEntry,
-): ElectricalMeasurementRegistryEntry[] {
-  const rest = registry.filter((e) => e.jobId !== entry.jobId);
-  return [entry, ...rest];
+): ElectricalMeasurementRegistryState {
+  return {
+    ...state,
+    entries: [entry, ...state.entries.filter((e) => e.jobId !== entry.jobId)],
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 /** Przydziel lub odtwórz numer RAP dla roboty (nigdy nowy numer jeśli wpis już istnieje). */
 export function assignRapForJob(
-  registry: ElectricalMeasurementRegistryEntry[],
+  state: ElectricalMeasurementRegistryState,
   jobId: string,
   options?: { now?: Date },
-): { registry: ElectricalMeasurementRegistryEntry[]; entry: ElectricalMeasurementRegistryEntry } {
+): { registry: ElectricalMeasurementRegistryState; entry: ElectricalMeasurementRegistryEntry } {
   const now = options?.now ?? new Date();
   const year = now.getFullYear();
-  const existing = getRegistryEntryForJob(registry, jobId);
+  const existing = getRegistryEntryForJob(state, jobId);
 
   if (existing) {
     const next: ElectricalMeasurementRegistryEntry = {
@@ -107,10 +164,10 @@ export function assignRapForJob(
       status: "ACTIVE",
       assignedAt: now.toISOString(),
     };
-    return { registry: upsertRegistryEntry(registry, next), entry: next };
+    return { registry: upsertRegistryEntry(state, next), entry: next };
   }
 
-  const sequence = getMaxSequenceForYear(registry, year) + 1;
+  const sequence = getMaxSequenceForYear(state, year) + 1;
   const entry: ElectricalMeasurementRegistryEntry = {
     jobId,
     rapNumber: formatRapNumber(sequence, year),
@@ -119,25 +176,25 @@ export function assignRapForJob(
     assignedAt: now.toISOString(),
     status: "ACTIVE",
   };
-  return { registry: upsertRegistryEntry(registry, entry), entry };
+  return { registry: upsertRegistryEntry(state, entry), entry };
 }
 
 /** Usunięcie raportu — wpis zostaje, status CANCELLED. */
 export function cancelRegistryForJob(
-  registry: ElectricalMeasurementRegistryEntry[],
+  state: ElectricalMeasurementRegistryState,
   jobId: string,
-): ElectricalMeasurementRegistryEntry[] {
-  const existing = getRegistryEntryForJob(registry, jobId);
-  if (!existing) return registry;
-  return upsertRegistryEntry(registry, { ...existing, status: "CANCELLED" });
+): ElectricalMeasurementRegistryState {
+  const existing = getRegistryEntryForJob(state, jobId);
+  if (!existing) return state;
+  return upsertRegistryEntry(state, { ...existing, status: "CANCELLED" });
 }
 
 /** Migracja — istniejące raporty z numerem RAP → wpisy registry (bez utraty). */
 export function migrateRegistryFromMeasurements(
-  registry: ElectricalMeasurementRegistryEntry[],
+  state: ElectricalMeasurementRegistryState,
   measurements: ElectricalMeasurement[],
-): ElectricalMeasurementRegistryEntry[] {
-  let next = [...registry];
+): ElectricalMeasurementRegistryState {
+  let next = { ...state, entries: [...state.entries] };
   const byJob = new Map<string, ElectricalMeasurement[]>();
   for (const m of measurements) {
     const parsed = parseRapNumber(m.reportNumber);
@@ -166,18 +223,18 @@ export function migrateRegistryFromMeasurements(
 }
 
 export function ensureRegistryWithMigration(
-  registry: ElectricalMeasurementRegistryEntry[],
+  state: ElectricalMeasurementRegistryState,
   measurements: ElectricalMeasurement[],
-): ElectricalMeasurementRegistryEntry[] {
-  return migrateRegistryFromMeasurements(registry, measurements);
+): ElectricalMeasurementRegistryState {
+  return migrateRegistryFromMeasurements(state, measurements);
 }
 
 export function registryNeedsMigrationFromMeasurements(
-  registry: ElectricalMeasurementRegistryEntry[],
+  state: ElectricalMeasurementRegistryState,
   measurements: ElectricalMeasurement[],
 ): boolean {
   for (const m of measurements) {
-    if (parseRapNumber(m.reportNumber) && !getRegistryEntryForJob(registry, m.jobId)) return true;
+    if (parseRapNumber(m.reportNumber) && !getRegistryEntryForJob(state, m.jobId)) return true;
   }
   return false;
 }
@@ -186,21 +243,20 @@ export function registryStatusLabel(status: ElectricalMeasurementRegistryStatus)
   return status === "ACTIVE" ? "Aktywny" : "Anulowany";
 }
 
-/** Czy roboty wolno przydzielić nowy numer (vs. tylko odtworzenie istniejącego). */
 export function jobHasRegistryEntry(
-  registry: ElectricalMeasurementRegistryEntry[],
+  state: ElectricalMeasurementRegistryState,
   jobId: string,
 ): boolean {
-  return getRegistryEntryForJob(registry, jobId) != null;
+  return getRegistryEntryForJob(state, jobId) != null;
 }
 
 /** Test helper — symulacja resetu rocznego. */
 export function allocateFirstRapForYear(
-  registry: ElectricalMeasurementRegistryEntry[],
+  state: ElectricalMeasurementRegistryState,
   jobId: string,
   year: number,
-): { registry: ElectricalMeasurementRegistryEntry[]; entry: ElectricalMeasurementRegistryEntry } {
-  const sequence = getMaxSequenceForYear(registry, year) + 1;
+): { registry: ElectricalMeasurementRegistryState; entry: ElectricalMeasurementRegistryEntry } {
+  const sequence = getMaxSequenceForYear(state, year) + 1;
   const entry: ElectricalMeasurementRegistryEntry = {
     jobId,
     rapNumber: formatRapNumber(sequence, year),
@@ -209,5 +265,5 @@ export function allocateFirstRapForYear(
     assignedAt: new Date(`${year}-01-02T12:00:00.000Z`).toISOString(),
     status: "ACTIVE",
   };
-  return { registry: upsertRegistryEntry(registry, entry), entry };
+  return { registry: upsertRegistryEntry(state, entry), entry };
 }

@@ -6,6 +6,7 @@ import {
   assignRapForJob,
   allocateFirstRapForYear,
   cancelRegistryForJob,
+  createEmptyRegistryState,
   formatRapNumber,
   getMaxSequenceForYear,
   getRegistryEntryForJob,
@@ -13,6 +14,7 @@ import {
   migrateRegistryFromMeasurements,
   parseRapNumber,
   registryNeedsMigrationFromMeasurements,
+  normalizeElectricalMeasurementRegistry,
 } from "../src/lib/electrical-measurements/registry.ts";
 import {
   createEmptyElectricalMeasurement,
@@ -20,7 +22,6 @@ import {
   touchElectricalMeasurement,
   upsertElectricalMeasurement,
 } from "../src/lib/electrical-measurements/report.ts";
-import { normalizeElectricalMeasurementRegistry } from "../src/lib/electrical-measurements/registry.ts";
 
 let passed = 0;
 let failed = 0;
@@ -47,7 +48,7 @@ console.log("=== P16-T01 format / parse RAP ===");
 
 console.log("\n=== P16-T02 pierwszy RAP dla roboty ===");
 {
-  let reg = [];
+  let reg = createEmptyRegistryState();
   const r1 = assignRapForJob(reg, JOB_A, { now: new Date("2026-06-16T10:00:00Z") });
   reg = r1.registry;
   assert(r1.entry.rapNumber.startsWith("RAP-") && r1.entry.rapNumber.endsWith("-2026"), "P16-T02 RAP rok 2026");
@@ -56,7 +57,7 @@ console.log("\n=== P16-T02 pierwszy RAP dla roboty ===");
 
 console.log("\n=== P16-T03 kolejny RAP — inna robota ===");
 {
-  let reg = [];
+  let reg = createEmptyRegistryState();
   const a = assignRapForJob(reg, JOB_A, { now: new Date("2026-06-16T10:00:00Z") });
   reg = a.registry;
   const seqA = a.entry.sequence;
@@ -66,7 +67,7 @@ console.log("\n=== P16-T03 kolejny RAP — inna robota ===");
 
 console.log("\n=== P16-T04 reset roczny ===");
 {
-  let reg = [];
+  let reg = createEmptyRegistryState();
   const y2026 = assignRapForJob(reg, JOB_A, { now: new Date("2026-12-31T10:00:00Z") });
   reg = y2026.registry;
   const y2027 = assignRapForJob(reg, JOB_B, { now: new Date("2027-01-02T10:00:00Z") });
@@ -77,7 +78,7 @@ console.log("\n=== P16-T04 reset roczny ===");
 
 console.log("\n=== P16-T05 ponowne utworzenie — ten sam RAP ===");
 {
-  let reg = [];
+  let reg = createEmptyRegistryState();
   const first = assignRapForJob(reg, JOB_A, { now: new Date("2026-06-16T10:00:00Z") });
   reg = first.registry;
   const rap = first.entry.rapNumber;
@@ -91,7 +92,7 @@ console.log("\n=== P16-T05 ponowne utworzenie — ten sam RAP ===");
 
 console.log("\n=== P16-T06 smoke A/B — delete + recreate ===");
 {
-  let reg = [];
+  let reg = createEmptyRegistryState();
   let measurements = [];
   const createFor = (jobId) => {
     const { registry, entry } = assignRapForJob(reg, jobId, { now: new Date("2026-06-16T12:00:00Z") });
@@ -119,11 +120,12 @@ console.log("\n=== P16-T07 migracja legacy ===");
   const legacy = touchElectricalMeasurement(createEmptyElectricalMeasurement(JOB_A, "RAP-44-2026"), {
     reportNumber: "RAP-44-2026",
   });
-  const migrated = migrateRegistryFromMeasurements([], [legacy]);
-  assert(migrated.length === 1, "P16-T07 jeden wpis");
-  assert(migrated[0].rapNumber === "RAP-44-2026", "P16-T07 RAP-44-2026");
-  assert(migrated[0].jobId === JOB_A, "P16-T07 jobId");
-  assert(registryNeedsMigrationFromMeasurements([], [legacy]), "P16-T07 needs migration");
+  const empty = createEmptyRegistryState();
+  const migrated = migrateRegistryFromMeasurements(empty, [legacy]);
+  assert(migrated.entries.length === 1, "P16-T07 jeden wpis");
+  assert(migrated.entries[0].rapNumber === "RAP-44-2026", "P16-T07 RAP-44-2026");
+  assert(migrated.entries[0].jobId === JOB_A, "P16-T07 jobId");
+  assert(registryNeedsMigrationFromMeasurements(empty, [legacy]), "P16-T07 needs migration");
   assert(!registryNeedsMigrationFromMeasurements(migrated, [legacy]), "P16-T07 po migracji OK");
 }
 
@@ -150,13 +152,13 @@ console.log("\n=== P16-T08 merge sync ===");
     },
   ];
   const merged = mergeElectricalMeasurementRegistry(local, cloud);
-  assert(merged.length === 2, "P16-T08 merge 2 wpisy");
+  assert(merged.entries.length === 2, "P16-T08 merge 2 wpisy");
   assert(getMaxSequenceForYear(merged, 2026) === 46, "P16-T08 max seq po merge");
 }
 
 console.log("\n=== P16-T09 checklist — registry bez nowego numeru ===");
 {
-  let reg = [];
+  let reg = createEmptyRegistryState();
   const assigned = assignRapForJob(reg, JOB_A, { now: new Date("2026-06-16T10:00:00Z") });
   reg = assigned.registry;
   reg = cancelRegistryForJob(reg, JOB_A);
@@ -175,5 +177,18 @@ console.log("\n=== P16-T10 normalize roundtrip ===");
   assert(raw.length === 1 && raw[0].sequence === 12, "P16-T10 normalize");
 }
 
-console.log(`\n=== EM-P1.6: ${passed} PASS, ${failed} FAIL ===`);
+console.log("\n=== P16-T11 baseline roczny ===");
+{
+  const reg = {
+    v: 1,
+    baselineByYear: { "2026": 44 },
+    entries: [],
+    repairVersion: 0,
+  };
+  assert(getMaxSequenceForYear(reg, 2026) === 44, "P16-T11 baseline 44");
+  const next = assignRapForJob(reg, JOB_A, { now: new Date("2026-06-16T10:00:00Z") });
+  assert(next.entry.rapNumber === "RAP-45-2026", "P16-T11 następny RAP-45-2026");
+}
+
+console.log(`\n=== P16 SUMMARY: ${passed} PASS, ${failed} FAIL ===`);
 process.exit(failed > 0 ? 1 : 0);
