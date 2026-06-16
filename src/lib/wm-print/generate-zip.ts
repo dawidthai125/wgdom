@@ -19,7 +19,11 @@ import type {
 import { appendMeasurementDocxToZip } from "@/lib/electrical-measurements/measurement-catalog-zip";
 import { EM_DOCX_DOCUMENT_KINDS } from "@/lib/electrical-measurements/generate-em-docx";
 import type { CatalogZipTemplateLoader } from "@/lib/electrical-measurements/measurement-catalog-zip";
-import { getProductionMeasurementForJob } from "@/lib/electrical-measurements/measurement-catalog";
+import {
+  buildMeasurementCatalogRows,
+  getProductionMeasurementForJob,
+} from "@/lib/electrical-measurements/measurement-catalog";
+import { appendMeasurementIndexFiles } from "@/lib/electrical-measurements/measurement-index-export";
 import type {
   WmPrintGenerateOptions,
   WmPrintGeneratedFile,
@@ -208,6 +212,12 @@ export async function buildWmPrintDeliveryZipBytes(
       delivery?.measurementTemplateLoader,
     );
     pomiaryCount = EM_DOCX_DOCUMENT_KINDS.length;
+    const indexRows = buildMeasurementCatalogRows(
+      [measurement],
+      delivery!.registry!,
+      [job],
+    );
+    appendMeasurementIndexFiles(zip, indexRows, WM_PRINT_ZIP_FOLDER_POMIARY);
   }
 
   const bytes = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });

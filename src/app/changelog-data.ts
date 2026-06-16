@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.41",
+    label: "Pomiary Elektryczne — EM-P3.5 INDEX-POMIARY export",
+    items: [
+      {
+        type: "new",
+        text: "ZIP pomiarów i paczka odbiorowa: INDEX-POMIARY.txt + INDEX-POMIARY.csv (RAP, adres, data, status) generowane na żywo",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.40",
     label: "Pomiary Elektryczne — EM-P3 integracja ZIP odbiorowy WM Druk",
     items: [

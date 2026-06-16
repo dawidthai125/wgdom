@@ -8,9 +8,10 @@ import type { Job } from "@/app/app-domain";
 import {
   buildCatalogIndexTxt,
   catalogRowsWithDocuments,
-  catalogZipFolderName,
   type MeasurementCatalogRow,
 } from "@/lib/electrical-measurements/measurement-catalog";
+import { appendMeasurementIndexFiles } from "@/lib/electrical-measurements/measurement-index-export";
+import { catalogZipFolderName } from "@/lib/electrical-measurements/measurement-docx-names";
 import {
   EM_DOCX_DOCUMENT_KINDS,
   generateEmDocxBytes,
@@ -62,6 +63,7 @@ export async function buildSingleRapZipBytes(
   }
   const zip = new JSZip();
   await appendMeasurementDocxToZip(zip, "", row.measurement, job, templateLoader);
+  appendMeasurementIndexFiles(zip, [row]);
   return zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
 }
 
@@ -94,6 +96,7 @@ export async function buildMultiRapArchiveZipBytes(
   }
 
   zip.file("INDEX.txt", buildCatalogIndexTxt(packRows));
+  appendMeasurementIndexFiles(zip, packRows);
   return zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
 }
 

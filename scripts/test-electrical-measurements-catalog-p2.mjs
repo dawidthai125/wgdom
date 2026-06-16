@@ -148,9 +148,11 @@ console.log("\n=== P2-T05 ZIP pojedynczy ===");
   const bytes = await buildSingleRapZipBytes(row, job, loader);
   const zip = await JSZip.loadAsync(bytes);
   const names = Object.keys(zip.files).filter((n) => !zip.files[n].dir);
-  assert(names.length === 5, "P2-T05 pięć DOCX");
+  assert(names.length === 7, "P2-T05 pięć DOCX + INDEX-POMIARY txt/csv");
   assert(names.includes("RAP-45-2026-PROTOKOL.docx"), "P2-T05 PROTOKOL");
   assert(names.includes("RAP-45-2026-RCD.docx"), "P2-T05 RCD");
+  assert(names.includes("INDEX-POMIARY.txt"), "P2-T05 INDEX-POMIARY.txt");
+  assert(names.includes("INDEX-POMIARY.csv"), "P2-T05 INDEX-POMIARY.csv");
   assert(catalogSingleZipDownloadName("RAP-45-2026", row.address).includes("Kleczkowska"), "P2-T05 nazwa ZIP z adresem");
 }
 

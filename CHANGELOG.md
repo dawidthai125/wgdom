@@ -1,6 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.40** · **EM-P3**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.41** · **EM-P3.5**
+
+## 2.59.41 — Pomiary Elektryczne EM-P3.5 (INDEX-POMIARY export)
+
+- New: INDEX-POMIARY.txt + INDEX-POMIARY.csv w ZIP katalogu i w folderze Pomiary/ paczki odbiorowej
 
 ## 2.59.40 — Pomiary Elektryczne EM-P3 (integracja ZIP odbiorowy)
 
