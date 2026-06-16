@@ -91,9 +91,9 @@ Numery **RAP-45-2026** i **RAP-46-2026** pozostają wolne — nie przypisane do 
 
 | Pole | Wartość |
 |------|---------|
-| Commit hash | _(uzupełnione po push)_ |
-| Deploy | push `main` → Vercel Git Integration |
-| `version.json` | _(VERIFY FAST po push)_ |
+| Commit hash | `bb3d142` |
+| Deploy | push `main` → Vercel — **RELEASE GO** |
+| `version.json` | **2.59.36** — **PRODUCTION VERIFIED** |
 
 ---
 
