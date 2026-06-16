@@ -124,6 +124,6 @@ Przy „Pobierz ZIP odbiorowy” dołączyć tylko **produkcyjny** RAP roboty (`
 
 | Pole | Wartość |
 |------|---------|
-| Commit hash | _(po push)_ |
-| Deploy | push `main` → Vercel |
-| `version.json` | _(VERIFY FAST)_ |
+| Commit hash | `872d817` |
+| Deploy | **RELEASE GO** (push `main` → Vercel) |
+| `version.json` | **2.59.37** at verify — **DEPLOY PROPAGATING** (oczekiwana: **2.59.38**) |
