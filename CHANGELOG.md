@@ -1,6 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.31** · **EM-UX-001**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.32** · **P0-HOTFIX-002**
+
+## 2.59.32 — Notatki operacyjne P0-HOTFIX-002 (read-state race)
+- Fix: `runCloudSync` push aux używa `aux.readState` / `aux.auditLog` po pull (nie stale closure)
+- Smoke: `test-operational-notes-sync-race-p0.mjs`
 
 ## 2.59.31 — Pomiary Elektryczne EM-UX-001 (WM Druk)
 - UI Pomiary przeniesione z Roboty → WM Druk (zakładka Pomiary)

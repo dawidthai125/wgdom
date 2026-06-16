@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.32",
+    label: "Notatki operacyjne — P0-HOTFIX-002 read-state race",
+    items: [
+      {
+        type: "fix",
+        text: "Auto-sync chmury: potwierdzenia przeczytania (ACK) notatek operacyjnych nie cofają się po synchronizacji — push aux używa stanu po pull, nie starego closure",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.31",
     label: "Pomiary Elektryczne — EM-UX-001 przeniesienie do WM Druk",
     items: [

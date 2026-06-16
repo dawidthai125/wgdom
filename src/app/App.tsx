@@ -453,8 +453,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     try {
       const merged = await pullAndMergeDataBundle(adminDataBundle());
       applyAdminDataBundle(merged);
+      let opReadState = operationalNotesReadState;
+      let opAuditLog = operationalNotesAuditLog;
       try {
         const aux = await pullOperationalNotesAuxFromCloud();
+        opReadState = aux.readState;
+        opAuditLog = aux.auditLog;
         setOperationalNotesReadState(aux.readState);
         setOperationalNotesAuditLog(aux.auditLog);
       } catch { /* offline */ }
@@ -463,8 +467,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       await pushOperationalNotesToCloud(
         opIdx >= 0 ? merged[opIdx] : operationalNotes,
         getDeletedOperationalNoteIds(),
-        operationalNotesReadState,
-        operationalNotesAuditLog,
+        opReadState,
+        opAuditLog,
       );
       setSyncStatus("saved");
       if (opts?.toastSuccess) toast.success("Zsynchronizowano z chmurą");
