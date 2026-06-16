@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.33** · **EM-P1.5**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.34** · **EM-P1.6**
+
+## 2.59.34 — Pomiary Elektryczne EM-P1.6 (Rejestr RAP)
+- Rejestr `kw-electrical-measurement-registry` — numer RAP przypisany 1× do jobId, bez zwrotu do puli
+- UI: numer RAP read-only, status, data przypisania; recreate po usunięciu; checklista Pomiary
+- Smoke: `test-electrical-measurements-registry-p16.mjs`
 
 ## 2.59.33 — Pomiary Elektryczne EM-P1.5 (Measurement Value Engine)
 - Seed RNG: wartości ADSC/RCD/Rezystancja generowane raz, zapis w `valueSet`

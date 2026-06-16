@@ -1,6 +1,18 @@
 /** Pomiary elektryczne — typy domeny (≠ WM Druk). */
 
 export const ELECTRICAL_MEASUREMENTS_KEY = "kw-electrical-measurements";
+export const ELECTRICAL_MEASUREMENT_REGISTRY_KEY = "kw-electrical-measurement-registry";
+
+export type ElectricalMeasurementRegistryStatus = "ACTIVE" | "CANCELLED";
+
+export interface ElectricalMeasurementRegistryEntry {
+  jobId: string;
+  rapNumber: string;
+  year: number;
+  sequence: number;
+  assignedAt: string;
+  status: ElectricalMeasurementRegistryStatus;
+}
 
 /** Docelowo: domyślne wartości z ustawień firmy (EM-P0.5). */
 export interface ElectricalMeasurementDefaultsHint {

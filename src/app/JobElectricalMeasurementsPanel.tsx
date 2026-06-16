@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, FileDown, Gauge, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
 import type { Job } from "@/app/app-domain";
+import type { AdminSession } from "@/lib/admin-auth";
+import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import { filterElectricalMeasurementsForJob } from "@/lib/electrical-measurements/merge";
 import {
   downloadEmDocxDocument,
@@ -17,6 +19,7 @@ import {
   addElectricalMeasurementRcd,
   createEmptyElectricalMeasurement,
   recalculateElectricalMeasurementValues,
+  removeElectricalMeasurement,
   removeElectricalMeasurementCircuit,
   removeElectricalMeasurementRcd,
   touchElectricalMeasurement,
@@ -33,7 +36,13 @@ import {
   resolveAdscSupplyValues,
   resolveRcdValues,
 } from "@/lib/electrical-measurements/measurement-value-engine";
-import type { ElectricalMeasurement } from "@/lib/electrical-measurements/types";
+import {
+  assignRapForJob,
+  cancelRegistryForJob,
+  getRegistryEntryForJob,
+  registryStatusLabel,
+} from "@/lib/electrical-measurements/registry";
+import type { ElectricalMeasurement, ElectricalMeasurementRegistryEntry } from "@/lib/electrical-measurements/types";
 import {
   BREAKER_TYPES,
   CIRCUIT_TYPE_LABELS,
@@ -43,16 +52,30 @@ import {
   SUPPLY_TYPES,
 } from "@/lib/electrical-measurements/types";
 
+function isEmAdministrator(session?: AdminSession | null): boolean {
+  if (!session) return false;
+  return session.role === "admin" || adminIsSuperAdmin(session.role);
+}
+
 export function JobElectricalMeasurementsPanel({
   job,
   measurements,
+  registry,
+  adminSession,
   onChangeMeasurements,
-  onCommitMeasurements,
+  onChangeRegistry,
+  onCommit,
 }: {
   job: Job;
   measurements: ElectricalMeasurement[];
+  registry: ElectricalMeasurementRegistryEntry[];
+  adminSession?: AdminSession | null;
   onChangeMeasurements: (next: ElectricalMeasurement[]) => void;
-  onCommitMeasurements: (next: ElectricalMeasurement[]) => void;
+  onChangeRegistry: (next: ElectricalMeasurementRegistryEntry[]) => void;
+  onCommit: (
+    nextMeasurements: ElectricalMeasurement[],
+    nextRegistry: ElectricalMeasurementRegistryEntry[],
+  ) => void;
 }) {
   const jobReports = useMemo(
     () => filterElectricalMeasurementsForJob(measurements, job.id),
@@ -84,19 +107,53 @@ export function JobElectricalMeasurementsPanel({
     ? [...selected.circuits].sort((a, b) => a.sortOrder - b.sortOrder)
     : [];
 
-  const persist = (nextMeasurement: ElectricalMeasurement) => {
+  const registryEntry = useMemo(
+    () => getRegistryEntryForJob(registry, job.id),
+    [registry, job.id],
+  );
+  const pomiaryChecklistDone = job.documents?.pomiary === true;
+  const showPomiaryCompletedBlock =
+    pomiaryChecklistDone && jobReports.length === 0 && registryEntry != null;
+  const isAdmin = isEmAdministrator(adminSession);
+
+  const persistBundle = (
+    nextMeasurement: ElectricalMeasurement,
+    nextRegistry: ElectricalMeasurementRegistryEntry[] = registry,
+  ) => {
     const nextAll = upsertElectricalMeasurement(measurements, nextMeasurement);
     onChangeMeasurements(nextAll);
-    onCommitMeasurements(nextAll);
+    onChangeRegistry(nextRegistry);
+    onCommit(nextAll, nextRegistry);
+  };
+
+  const persist = (nextMeasurement: ElectricalMeasurement) => {
+    persistBundle(nextMeasurement, registry);
   };
 
   const handleCreateReport = () => {
-    const created = createEmptyElectricalMeasurement(job.id);
+    const { registry: nextRegistry, entry } = assignRapForJob(registry, job.id);
+    const created = createEmptyElectricalMeasurement(job.id, entry.rapNumber);
     const nextAll = upsertElectricalMeasurement(measurements, created);
     onChangeMeasurements(nextAll);
-    onCommitMeasurements(nextAll);
+    onChangeRegistry(nextRegistry);
+    onCommit(nextAll, nextRegistry);
     setSelectedId(created.id);
     setDetailsExpanded(true);
+  };
+
+  const handleRecreateReport = () => {
+    if (!registryEntry) return;
+    handleCreateReport();
+  };
+
+  const handleDeleteReport = () => {
+    if (!selected) return;
+    const nextAll = removeElectricalMeasurement(measurements, selected.id);
+    const nextRegistry = cancelRegistryForJob(registry, job.id);
+    onChangeMeasurements(nextAll);
+    onChangeRegistry(nextRegistry);
+    onCommit(nextAll, nextRegistry);
+    setSelectedId(nextAll.filter((m) => m.jobId === job.id)[0]?.id ?? null);
   };
 
   const patchSelected = (patch: Parameters<typeof touchElectricalMeasurement>[1]) => {
@@ -150,22 +207,63 @@ export function JobElectricalMeasurementsPanel({
               {detailsExpanded ? "Zwiń" : "Rozwiń"}
             </button>
           )}
-          <button
-            type="button"
-            onClick={handleCreateReport}
-            className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-primary/90 hover:bg-primary text-primary-foreground font-medium"
-          >
-            <Plus size={12} />
-            Nowy raport
-          </button>
+          {!showPomiaryCompletedBlock && (
+            <button
+              type="button"
+              onClick={handleCreateReport}
+              className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-primary/90 hover:bg-primary text-primary-foreground font-medium"
+            >
+              <Plus size={12} />
+              Nowy raport
+            </button>
+          )}
+          {showPomiaryCompletedBlock && isAdmin && (
+            <button
+              type="button"
+              onClick={handleRecreateReport}
+              className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-primary/90 hover:bg-primary text-primary-foreground font-medium"
+            >
+              <Plus size={12} />
+              Utwórz raport ponownie
+            </button>
+          )}
         </div>
       </div>
 
-      {jobReports.length === 0 ? (
+      {registryEntry && (
+        <div className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-[11px] space-y-0.5">
+          <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+            <span>
+              <span className="text-muted-foreground">Numer RAP: </span>
+              <span className="font-medium font-mono">{registryEntry.rapNumber}</span>
+            </span>
+            <span>
+              <span className="text-muted-foreground">Status: </span>
+              <span className="font-medium">{registryStatusLabel(registryEntry.status)}</span>
+            </span>
+            <span>
+              <span className="text-muted-foreground">Data przypisania: </span>
+              <span>{new Date(registryEntry.assignedAt).toLocaleString("pl-PL")}</span>
+            </span>
+          </div>
+        </div>
+      )}
+
+      {showPomiaryCompletedBlock && (
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-900 dark:text-emerald-100">
+          Pomiary zostały wykonane.
+          {registryEntry && (
+            <span className="block mt-0.5 font-medium font-mono">Numer: {registryEntry.rapNumber}</span>
+          )}
+        </div>
+      )}
+
+      {jobReports.length === 0 && !showPomiaryCompletedBlock ? (
         <p className="text-xs text-muted-foreground">
-          Brak raportów pomiarowych dla tej roboty. Kliknij „Nowy raport”, aby rozpocząć.
+          Brak raportów pomiarowych dla tej roboty. Kliknij „Nowy raport”, aby rozpocząć — numer RAP zostanie
+          przypisany automatycznie.
         </p>
-      ) : (
+      ) : jobReports.length === 0 ? null : (
         <>
           <div className="flex flex-wrap items-center gap-2">
             <label className="text-[11px] text-muted-foreground">Raport:</label>
@@ -186,16 +284,26 @@ export function JobElectricalMeasurementsPanel({
           {detailsExpanded && selected && (
             <div className="space-y-4">
               <section className="space-y-2 rounded-lg border border-border p-3">
-                <h4 className="text-xs font-semibold text-foreground">1. Dane pomiaru</h4>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="text-xs font-semibold text-foreground">1. Dane pomiaru</h4>
+                  <button
+                    type="button"
+                    onClick={handleDeleteReport}
+                    className="text-[11px] text-destructive flex items-center gap-1 hover:underline"
+                  >
+                    <Trash2 size={11} />
+                    Usuń raport
+                  </button>
+                </div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <label className="space-y-0.5">
-                    <span className="text-[10px] text-muted-foreground">Numer raportu</span>
+                    <span className="text-[10px] text-muted-foreground">Numer raportu (RAP)</span>
                     <input
                       type="text"
+                      readOnly
                       value={selected.reportNumber}
-                      onChange={(e) => patchSelected({ reportNumber: e.target.value })}
-                      placeholder="np. RAP-12-2026"
-                      className="w-full text-xs rounded-lg border border-border bg-background px-2 py-1.5"
+                      title="Numer przypisany trwale z rejestru RAP"
+                      className="w-full text-xs rounded-lg border border-border bg-secondary/40 px-2 py-1.5 font-mono cursor-not-allowed"
                     />
                   </label>
                   <label className="space-y-0.5">

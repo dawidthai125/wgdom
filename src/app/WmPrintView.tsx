@@ -92,7 +92,7 @@ import {
 } from "@/lib/wm-print/history";
 import type { WmPrintTab } from "@/lib/wm-print/wm-print-tabs";
 import { WM_PRINT_TABS } from "@/lib/wm-print/wm-print-tabs";
-import type { ElectricalMeasurement } from "@/lib/electrical-measurements/types";
+import type { ElectricalMeasurement, ElectricalMeasurementRegistryEntry } from "@/lib/electrical-measurements/types";
 
 const TAB_ICONS: Record<WmPrintTab, typeof ClipboardList> = {
   odbiory: ClipboardList,
@@ -118,6 +118,8 @@ export function WmPrintView({
   electricalMeasurements,
   onChangeElectricalMeasurements,
   onCommitElectricalMeasurements,
+  electricalMeasurementRegistry,
+  onChangeElectricalMeasurementRegistry,
   initialTab,
   initialJobId,
   onInitialNavigationConsumed,
@@ -143,7 +145,12 @@ export function WmPrintView({
   ) => void;
   electricalMeasurements: ElectricalMeasurement[];
   onChangeElectricalMeasurements: (next: ElectricalMeasurement[]) => void;
-  onCommitElectricalMeasurements: (next: ElectricalMeasurement[]) => void;
+  onCommitElectricalMeasurements: (
+    nextMeasurements?: ElectricalMeasurement[],
+    nextRegistry?: ElectricalMeasurementRegistryEntry[],
+  ) => void;
+  electricalMeasurementRegistry: ElectricalMeasurementRegistryEntry[];
+  onChangeElectricalMeasurementRegistry: (next: ElectricalMeasurementRegistryEntry[]) => void;
   initialTab?: WmPrintTab | null;
   initialJobId?: string | null;
   onInitialNavigationConsumed?: () => void;
@@ -773,8 +780,13 @@ export function WmPrintView({
                 <JobElectricalMeasurementsPanel
                   job={selectedJob}
                   measurements={electricalMeasurements}
+                  registry={electricalMeasurementRegistry}
+                  adminSession={adminSession}
                   onChangeMeasurements={onChangeElectricalMeasurements}
-                  onCommitMeasurements={onCommitElectricalMeasurements}
+                  onChangeRegistry={onChangeElectricalMeasurementRegistry}
+                  onCommit={(nextMeasurements, nextRegistry) =>
+                    onCommitElectricalMeasurements(nextMeasurements, nextRegistry)
+                  }
                 />
               )}
             </div>

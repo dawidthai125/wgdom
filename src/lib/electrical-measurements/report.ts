@@ -27,12 +27,12 @@ function renumberCircuitSortOrder(circuits: ElectricalMeasurementCircuit[]): Ele
   return sorted.map((c, i) => ({ ...c, sortOrder: i + 2 }));
 }
 
-export function createEmptyElectricalMeasurement(jobId: string): ElectricalMeasurement {
+export function createEmptyElectricalMeasurement(jobId: string, reportNumber = ""): ElectricalMeasurement {
   const now = new Date().toISOString();
   const base: ElectricalMeasurement = {
     id: crypto.randomUUID(),
     jobId,
-    reportNumber: "",
+    reportNumber,
     measurementDate: localIsoDate(),
     technicianName: "",
     meterModel: "",

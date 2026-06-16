@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.34",
+    label: "Pomiary Elektryczne — EM-P1.6 Rejestr RAP",
+    items: [
+      {
+        type: "new",
+        text: "WM Druk → Pomiary: trwały rejestr numerów RAP (1 numer ↔ 1 robota) — automatyczny przydział przy utworzeniu raportu, ponowne utworzenie z tym samym numerem, reset roczny, sync kw-electrical-measurement-registry",
+      },
+      {
+        type: "improve",
+        text: "Checklista Pomiary: gdy zaznaczone i brak raportu — komunikat z numerem RAP; administrator może utworzyć raport ponownie bez nowego numeru",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.33",
     label: "Pomiary Elektryczne — EM-P1.5 Measurement Value Engine",
     items: [

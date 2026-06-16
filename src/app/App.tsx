@@ -129,9 +129,18 @@ import {
   maybeExecuteWmPrintSeed,
   pushWmPrintToCloud,
 } from "@/lib/wm-print/wm-print-sync";
-import type { ElectricalMeasurement } from "@/lib/electrical-measurements/types";
-import { ELECTRICAL_MEASUREMENTS_KEY } from "@/lib/electrical-measurements/types";
-import { pushElectricalMeasurementsToCloud } from "@/lib/electrical-measurements/sync";
+import type { ElectricalMeasurement, ElectricalMeasurementRegistryEntry } from "@/lib/electrical-measurements/types";
+import {
+  ELECTRICAL_MEASUREMENT_REGISTRY_KEY,
+  ELECTRICAL_MEASUREMENTS_KEY,
+} from "@/lib/electrical-measurements/types";
+import {
+  pushElectricalMeasurementsBundleToCloud,
+} from "@/lib/electrical-measurements/sync";
+import {
+  ensureRegistryWithMigration,
+  registryNeedsMigrationFromMeasurements,
+} from "@/lib/electrical-measurements/registry";
 
 function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const { session: adminSession, canViewRates } = useAdminAccess();
@@ -165,6 +174,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     ELECTRICAL_MEASUREMENTS_KEY,
     [],
   );
+  const [electricalMeasurementRegistry, setElectricalMeasurementRegistry] = useLocalStorage<
+    ElectricalMeasurementRegistryEntry[]
+  >(ELECTRICAL_MEASUREMENT_REGISTRY_KEY, []);
   const [view, setView] = useState<View>("dashboard");
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
   const [pendingJobSection, setPendingJobSection] = useState<import("@/app/JobDetailSectionNav").JobDetailSection | null>(null);
@@ -310,11 +322,27 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     pushWmPrintToCloud(tpl, docs, sett, delTpl, delDoc, hist).catch(() => {});
   }, [wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory]);
 
-  const commitElectricalMeasurements = useCallback((next?: ElectricalMeasurement[]) => {
-    const payload = next ?? electricalMeasurements;
-    suppressAutoSyncUntilRef.current = Date.now() + 4500;
-    pushElectricalMeasurementsToCloud(payload).catch(() => {});
-  }, [electricalMeasurements]);
+  const commitElectricalMeasurements = useCallback(
+    (nextMeasurements?: ElectricalMeasurement[], nextRegistry?: ElectricalMeasurementRegistryEntry[]) => {
+      const payload = nextMeasurements ?? electricalMeasurements;
+      const registryPayload = ensureRegistryWithMigration(
+        nextRegistry ?? electricalMeasurementRegistry,
+        payload,
+      );
+      if (nextRegistry !== undefined || registryNeedsMigrationFromMeasurements(electricalMeasurementRegistry, payload)) {
+        setElectricalMeasurementRegistry(registryPayload);
+      }
+      suppressAutoSyncUntilRef.current = Date.now() + 4500;
+      pushElectricalMeasurementsBundleToCloud(payload, registryPayload).catch(() => {});
+    },
+    [electricalMeasurements, electricalMeasurementRegistry, setElectricalMeasurementRegistry],
+  );
+
+  useEffect(() => {
+    if (!registryNeedsMigrationFromMeasurements(electricalMeasurementRegistry, electricalMeasurements)) return;
+    const migrated = ensureRegistryWithMigration(electricalMeasurementRegistry, electricalMeasurements);
+    setElectricalMeasurementRegistry(migrated);
+  }, [electricalMeasurements, electricalMeasurementRegistry, setElectricalMeasurementRegistry]);
 
   const onInitialWmPrintNavigationConsumed = useCallback(() => setPendingWmPrintNav(null), []);
 
@@ -607,7 +635,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     scheduleAutoCloudSync();
     remoteMergeInFlightRef.current = false;
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, electricalMeasurements, scheduleAutoCloudSync]);
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, electricalMeasurements, electricalMeasurementRegistry, scheduleAutoCloudSync]);
 
   useEffect(() => () => clearAutoSyncTimers(), [clearAutoSyncTimers]);
 
@@ -1409,6 +1437,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           commitWmPrint={commitWmPrint}
           electricalMeasurements={electricalMeasurements}
           setElectricalMeasurements={setElectricalMeasurements}
+          electricalMeasurementRegistry={electricalMeasurementRegistry}
+          setElectricalMeasurementRegistry={setElectricalMeasurementRegistry}
           commitElectricalMeasurements={commitElectricalMeasurements}
           pendingWmPrintNav={pendingWmPrintNav}
           onInitialWmPrintNavigationConsumed={onInitialWmPrintNavigationConsumed}
