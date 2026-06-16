@@ -6,6 +6,14 @@ export const ELECTRICAL_MEASUREMENT_SETTINGS_KEY = "kw-electrical-measurement-se
 
 export type ElectricalMeasurementRegistryStatus = "ACTIVE" | "CANCELLED";
 
+/** EM-P2 — status w katalogu pomiarów (EM-P1.8: TESTOWY). */
+export type ElectricalMeasurementCatalogStatus = "ACTIVE" | "CANCELLED" | "TEST";
+
+/** EM-P1.8 prep — flagi raportu (bez pełnej implementacji). */
+export interface ElectricalMeasurementFlags {
+  test?: boolean;
+}
+
 export interface ElectricalMeasurementRegistryEntry {
   jobId: string;
   rapNumber: string;
@@ -136,6 +144,8 @@ export interface ElectricalMeasurement {
   valueSet?: ElectricalMeasurementValueSet;
   /** EM-P1.7 — false = pola pomiarowiec/miernik tylko odczyt (domyślnie przy nowym raporcie). */
   metaFieldsOverridden?: boolean;
+  /** EM-P1.8 prep — m.in. raport testowy (katalog: TESTOWY). */
+  flags?: ElectricalMeasurementFlags;
   createdAt: string;
   updatedAt: string;
 }

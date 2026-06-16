@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.37",
+    label: "Pomiary Elektryczne — EM-P2 Katalog Pomiarów",
+    items: [
+      {
+        type: "new",
+        text: "WM Druk → Katalog Pomiarów: lista RAP, filtry, szczegóły, pobieranie DOCX i ZIP (pojedynczy + wielokrotny z INDEX.txt)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.36",
     label: "Pomiary Elektryczne — EM-P1.6B naprawa baseline RAP",
     items: [

@@ -1,6 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.36** · **EM-P1.6B**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.37** · **EM-P2**
+
+## 2.59.37 — Pomiary Elektryczne EM-P2 (Katalog Pomiarów)
+
+- New: WM Druk → Katalog Pomiarów — lista RAP, filtry, DOCX/ZIP pojedynczy + wielokrotny, INDEX.txt
 
 ## 2.59.36 — Pomiary Elektryczne EM-P1.6B (baseline RAP repair)
 

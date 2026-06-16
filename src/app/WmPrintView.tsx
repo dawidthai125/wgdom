@@ -17,11 +17,13 @@ import {
   Eye,
   History,
   Gauge,
+  Library,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
 import { jobDisplayTitle } from "@/app/app-domain";
 import { JobElectricalMeasurementsPanel } from "@/app/JobElectricalMeasurementsPanel";
+import { MeasurementCatalogPanel } from "@/app/MeasurementCatalogPanel";
 import { WmPrintHistoryPanel } from "@/app/WmPrintHistoryPanel";
 import type { AdminSession } from "@/lib/admin-auth";
 import { computeWmPrintCompleteness } from "@/lib/wm-print/completeness";
@@ -102,6 +104,7 @@ import {
 const TAB_ICONS: Record<WmPrintTab, typeof ClipboardList> = {
   odbiory: ClipboardList,
   pomiary: Gauge,
+  katalog: Library,
   szablony: FileText,
   historia: History,
   ustawienia: Settings,
@@ -803,6 +806,18 @@ export function WmPrintView({
               )}
             </div>
           </div>
+        )}
+
+        {tab === "katalog" && (
+          <MeasurementCatalogPanel
+            jobs={jobs}
+            measurements={electricalMeasurements}
+            registry={electricalMeasurementRegistry}
+            onOpenJob={(jobId) => {
+              setSelectedJobId(jobId);
+              setTab("pomiary");
+            }}
+          />
         )}
 
         {tab === "szablony" && (
