@@ -79,10 +79,19 @@
 |------|--------|
 | IMPLEMENT (docs) | **DONE** |
 | BUILD (`npm run build`) | **PASS** |
-| COMMIT | **`2846632`** |
-| PUSH | pending |
-| VERIFY DEPLOY FAST | pending |
+| COMMIT | **`596a72e`** |
+| PUSH | **PASS** → `origin/main` |
+| VERIFY DEPLOY FAST | **PASS** — `version.json` = **2.59.24** |
 | RAPORT (ten plik) | **DONE** |
+
+### VERIFY DEPLOY FAST (2026-06-16)
+
+```text
+GET https://www.wgdom.fun/version.json
+→ { "version": "2.59.24" }
+```
+
+**RELEASE GO:** TAK (docs-only — wersja UI bez zmian) · **PRODUCTION VERIFIED:** TAK
 
 ---
 
