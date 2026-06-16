@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.38** · **EM-P2.5**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.39** · **EM-P3A**
+
+## 2.59.39 — Pomiary Elektryczne EM-P3A (Katalog UX + Rejestr RAP)
+
+- Improve: ZIP pojedynczy `RAP-X-YYYY_ADRES.zip`, kolumna Robota, wyszukiwanie RAP, deep-link do Roboty
+- New: zakładka Rejestr RAP w Katalogu Pomiarów
 
 ## 2.59.38 — Pomiary Elektryczne EM-P2.5 (raporty testowe)
 

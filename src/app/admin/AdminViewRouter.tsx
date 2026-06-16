@@ -540,6 +540,7 @@ export function AdminViewRouter({
               initialTab={pendingWmPrintNav?.tab ?? null}
               initialJobId={pendingWmPrintNav?.jobId ?? null}
               onInitialNavigationConsumed={onInitialWmPrintNavigationConsumed}
+              onOpenJobInJobs={(jobId) => onOpenJobInJobs(jobId, "summary")}
             />
           </Suspense>
         </ViewErrorBoundary>

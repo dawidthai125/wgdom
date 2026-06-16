@@ -116,7 +116,7 @@ export async function downloadCatalogSingleZip(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     const blob = await buildSingleRapZipBlob(row, job);
-    saveAs(blob, catalogSingleZipDownloadName(row.rapNumber));
+    saveAs(blob, catalogSingleZipDownloadName(row.rapNumber, row.address));
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Błąd generowania ZIP" };

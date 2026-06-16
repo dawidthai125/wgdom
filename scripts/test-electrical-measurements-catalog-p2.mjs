@@ -151,7 +151,7 @@ console.log("\n=== P2-T05 ZIP pojedynczy ===");
   assert(names.length === 5, "P2-T05 pięć DOCX");
   assert(names.includes("RAP-45-2026-PROTOKOL.docx"), "P2-T05 PROTOKOL");
   assert(names.includes("RAP-45-2026-RCD.docx"), "P2-T05 RCD");
-  assert(catalogSingleZipDownloadName("RAP-45-2026") === "RAP-45-2026.zip", "P2-T05 nazwa ZIP");
+  assert(catalogSingleZipDownloadName("RAP-45-2026", row.address).includes("Kleczkowska"), "P2-T05 nazwa ZIP z adresem");
 }
 
 console.log("\n=== P2-T06 ZIP wielokrotny + INDEX ===");
@@ -227,6 +227,7 @@ console.log("\n=== P2-T09 INDEX line format ===");
       sequence: 45,
       measurementDate: "2026-06-16",
       address: "A",
+      jobName: "A",
       jobTitle: "A",
       jobId: JOB_A,
       technicianName: "",

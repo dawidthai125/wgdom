@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.39",
+    label: "Pomiary Elektryczne — EM-P3A Katalog UX + Rejestr RAP",
+    items: [
+      {
+        type: "improve",
+        text: "Katalog Pomiarów: ZIP pojedynczy RAP-X-YYYY_ADRES.zip, kolumna Robota, wyszukiwanie RAP (45/RAP-45), filtry, deep-link do Roboty",
+      },
+      {
+        type: "new",
+        text: "WM Druk → Katalog → zakładka Rejestr RAP — wieloletnie archiwum numerów z adresem i robotą",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.38",
     label: "Pomiary Elektryczne — EM-P2.5 Raporty testowe",
     items: [

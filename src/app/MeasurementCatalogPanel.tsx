@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Download, Loader2, Package, Search } from "lucide-react";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
+import { RapRegistryPanel } from "@/app/RapRegistryPanel";
 import {
   buildMeasurementCatalogRows,
   catalogAvailableYears,
@@ -12,6 +13,7 @@ import {
 } from "@/lib/electrical-measurements/measurement-catalog";
 import {
   catalogDocxFileName,
+  catalogSingleZipDownloadName,
   downloadCatalogMultiZip,
   downloadCatalogSingleZip,
 } from "@/lib/electrical-measurements/measurement-catalog-zip";
@@ -46,11 +48,97 @@ export function MeasurementCatalogPanel({
   measurements,
   registry,
   onOpenJob,
+  onOpenJobInJobs,
+}: {
+  jobs: Job[];
+  measurements: ElectricalMeasurement[];
+  registry: ElectricalMeasurementRegistryState;
+  /** WM Druk → Pomiary (ta sama roboty). */
+  onOpenJob?: (jobId: string) => void;
+  /** Roboty → szczegóły roboty (deep-link). */
+  onOpenJobInJobs?: (jobId: string) => void;
+}) {
+  const [subView, setSubView] = useState<"katalog" | "rejestr">("katalog");
+
+  const openJobDetails = (jobId: string) => {
+    if (onOpenJobInJobs) onOpenJobInJobs(jobId);
+    else onOpenJob?.(jobId);
+  };
+
+  if (subView === "rejestr") {
+    return (
+      <div className="space-y-4">
+        <CatalogSubTabs subView={subView} onChange={setSubView} />
+        <RapRegistryPanel
+          jobs={jobs}
+          measurements={measurements}
+          registry={registry}
+          onOpenJobInJobs={onOpenJobInJobs ? openJobDetails : undefined}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <CatalogSubTabs subView={subView} onChange={setSubView} />
+      <MeasurementCatalogMain
+        jobs={jobs}
+        measurements={measurements}
+        registry={registry}
+        onOpenJob={onOpenJob}
+        openJobDetails={openJobDetails}
+        hasJobDeepLink={Boolean(onOpenJobInJobs || onOpenJob)}
+      />
+    </div>
+  );
+}
+
+function CatalogSubTabs({
+  subView,
+  onChange,
+}: {
+  subView: "katalog" | "rejestr";
+  onChange: (v: "katalog" | "rejestr") => void;
+}) {
+  return (
+    <div className="flex gap-1 p-1 rounded-lg bg-secondary/60 w-fit">
+      <button
+        type="button"
+        onClick={() => onChange("katalog")}
+        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+          subView === "katalog" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        Katalog
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange("rejestr")}
+        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+          subView === "rejestr" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        Rejestr RAP
+      </button>
+    </div>
+  );
+}
+
+function MeasurementCatalogMain({
+  jobs,
+  measurements,
+  registry,
+  onOpenJob,
+  openJobDetails,
+  hasJobDeepLink,
 }: {
   jobs: Job[];
   measurements: ElectricalMeasurement[];
   registry: ElectricalMeasurementRegistryState;
   onOpenJob?: (jobId: string) => void;
+  openJobDetails: (jobId: string) => void;
+  hasJobDeepLink: boolean;
 }) {
   const allRows = useMemo(
     () => buildMeasurementCatalogRows(measurements, registry, jobs),
@@ -123,8 +211,9 @@ export function MeasurementCatalogPanel({
     setBusy(true);
     const res = await downloadCatalogSingleZip(selectedRow, selectedJob);
     setBusy(false);
-    if (res.ok) toast.success(`Pobrano ${selectedRow.rapNumber}.zip`);
-    else toast.error(res.error);
+    if (res.ok) {
+      toast.success(`Pobrano ${catalogSingleZipDownloadName(selectedRow.rapNumber, selectedRow.address)}`);
+    } else toast.error(res.error);
   };
 
   const handleMultiZip = async () => {
@@ -159,11 +248,11 @@ export function MeasurementCatalogPanel({
             </select>
           </div>
           <div className="flex-1 min-w-[140px]">
-            <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Numer RAP</label>
+            <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Wyszukaj RAP</label>
             <input
               value={filters.rapQuery ?? ""}
               onChange={(e) => setFilters((f) => ({ ...f, rapQuery: e.target.value }))}
-              placeholder="RAP-45-2026"
+              placeholder="45 · RAP-45 · RAP-45-2026"
               className="mt-0.5 w-full px-3 py-2 rounded-lg border border-border bg-card text-sm"
             />
           </div>
@@ -178,6 +267,15 @@ export function MeasurementCatalogPanel({
                 className="w-full pl-8 pr-3 py-2 rounded-lg border border-border bg-card text-sm"
               />
             </div>
+          </div>
+          <div className="flex-1 min-w-[140px]">
+            <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Robota</label>
+            <input
+              value={filters.jobQuery ?? ""}
+              onChange={(e) => setFilters((f) => ({ ...f, jobQuery: e.target.value }))}
+              placeholder="Zakres / id…"
+              className="mt-0.5 w-full px-3 py-2 rounded-lg border border-border bg-card text-sm"
+            />
           </div>
           <div>
             <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Status</label>
@@ -234,14 +332,15 @@ export function MeasurementCatalogPanel({
                   <th className="px-3 py-2 font-medium">Numer RAP</th>
                   <th className="px-3 py-2 font-medium hidden sm:table-cell">Data</th>
                   <th className="px-3 py-2 font-medium">Adres</th>
-                  <th className="px-3 py-2 font-medium hidden md:table-cell">Pomiarowiec</th>
+                  <th className="px-3 py-2 font-medium hidden md:table-cell">Robota</th>
+                  <th className="px-3 py-2 font-medium hidden lg:table-cell">Pomiarowiec</th>
                   <th className="px-3 py-2 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {filteredRows.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
+                    <td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">
                       Brak raportów w katalogu.
                     </td>
                   </tr>
@@ -264,10 +363,43 @@ export function MeasurementCatalogPanel({
                             aria-label={`Zaznacz ${row.rapNumber}`}
                           />
                         </td>
-                        <td className="px-3 py-2.5 font-medium font-mono text-xs">{row.rapNumber}</td>
+                        <td className="px-3 py-2.5 font-medium font-mono text-xs">
+                          {hasJobDeepLink ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openJobDetails(row.jobId);
+                              }}
+                              className="text-primary hover:underline"
+                            >
+                              {row.rapNumber}
+                            </button>
+                          ) : (
+                            row.rapNumber
+                          )}
+                        </td>
                         <td className="px-3 py-2.5 text-muted-foreground hidden sm:table-cell">{row.measurementDate}</td>
-                        <td className="px-3 py-2.5 truncate max-w-[180px]">{row.address}</td>
-                        <td className="px-3 py-2.5 truncate max-w-[140px] hidden md:table-cell text-muted-foreground">
+                        <td className="px-3 py-2.5 truncate max-w-[180px]">
+                          {hasJobDeepLink ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openJobDetails(row.jobId);
+                              }}
+                              className="text-left truncate max-w-full hover:text-primary hover:underline"
+                            >
+                              {row.address}
+                            </button>
+                          ) : (
+                            row.address
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5 truncate max-w-[140px] hidden md:table-cell text-muted-foreground" title={row.jobName}>
+                          {row.jobName}
+                        </td>
+                        <td className="px-3 py-2.5 truncate max-w-[140px] hidden lg:table-cell text-muted-foreground">
                           {row.technicianName}
                         </td>
                         <td className="px-3 py-2.5">
@@ -306,16 +438,37 @@ export function MeasurementCatalogPanel({
                 <dd>{selectedRow.measurementDate}</dd>
               </div>
               <div>
+                <dt className="text-xs text-muted-foreground">Adres</dt>
+                <dd>
+                  {hasJobDeepLink ? (
+                    <button type="button" onClick={() => openJobDetails(selectedRow.jobId)} className="text-primary hover:underline">
+                      {selectedRow.address}
+                    </button>
+                  ) : (
+                    selectedRow.address
+                  )}
+                </dd>
+              </div>
+              <div>
                 <dt className="text-xs text-muted-foreground">Robota</dt>
                 <dd className="flex items-center gap-2 flex-wrap">
-                  <span>{selectedRow.jobTitle}</span>
+                  <span>{selectedRow.jobName}</span>
+                  {hasJobDeepLink && (
+                    <button
+                      type="button"
+                      onClick={() => openJobDetails(selectedRow.jobId)}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Otwórz w Robotach
+                    </button>
+                  )}
                   {onOpenJob && (
                     <button
                       type="button"
                       onClick={() => onOpenJob(selectedRow.jobId)}
-                      className="text-xs text-primary hover:underline"
+                      className="text-xs text-muted-foreground hover:underline"
                     >
-                      Otwórz w Pomiary
+                      Pomiary WM
                     </button>
                   )}
                 </dd>

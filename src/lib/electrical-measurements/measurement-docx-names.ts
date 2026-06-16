@@ -29,6 +29,23 @@ function slugReportNumber(reportNumber: string): string {
     .replace(/^-|-$/g, "");
 }
 
+/** Slug adresu do nazw ZIP / folderów archiwum (EM-P3A). */
+export function catalogAddressSlug(address: string): string {
+  return String(address || "adres")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 48);
+}
+
+/** Nazwa folderu w archiwum ZIP: RAP-45-2026_Kleczkowska_26_m3 */
+export function catalogZipFolderName(rapNumber: string, address: string): string {
+  const rap = slugReportNumber(rapNumber);
+  const addr = catalogAddressSlug(address);
+  return `${rap}_${addr || "adres"}`;
+}
+
 export function measurementDocxFileName(
   reportNumber: string,
   kind: EmDocxDocumentKind,
@@ -48,8 +65,16 @@ export function measurementDocxFileNameForMeasurement(
   });
 }
 
-export function measurementZipDownloadName(reportNumber: string): string {
-  return `${slugReportNumber(reportNumber)}.zip`;
+export function measurementZipDownloadName(reportNumber: string, address?: string): string {
+  const rap = slugReportNumber(reportNumber);
+  if (address?.trim()) {
+    return `${rap}_${catalogAddressSlug(address)}.zip`;
+  }
+  return `${rap}.zip`;
 }
 
-export { measurementDocxFileName as catalogDocxFileName, measurementZipDownloadName as catalogSingleZipDownloadName };
+export function catalogSingleZipDownloadName(reportNumber: string, address?: string): string {
+  return measurementZipDownloadName(reportNumber, address);
+}
+
+export { measurementDocxFileName as catalogDocxFileName };

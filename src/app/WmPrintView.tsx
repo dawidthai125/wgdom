@@ -134,6 +134,7 @@ export function WmPrintView({
   initialTab,
   initialJobId,
   onInitialNavigationConsumed,
+  onOpenJobInJobs,
 }: {
   jobs: Job[];
   templates: WmPrintTemplate[];
@@ -168,6 +169,7 @@ export function WmPrintView({
   initialTab?: WmPrintTab | null;
   initialJobId?: string | null;
   onInitialNavigationConsumed?: () => void;
+  onOpenJobInJobs?: (jobId: string) => void;
 }) {
   const [tab, setTab] = useState<WmPrintTab>("odbiory");
   const [filter, setFilter] = useState<WmPrintJobFilter>("all");
@@ -817,6 +819,7 @@ export function WmPrintView({
               setSelectedJobId(jobId);
               setTab("pomiary");
             }}
+            onOpenJobInJobs={onOpenJobInJobs}
           />
         )}
 
