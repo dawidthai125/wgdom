@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.42** · **EM-P1.6C**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.43** · **EM-P1R**
+
+## 2.59.43 — Pomiary Elektryczne EM-P1R (Template Rebuild SSOT Word)
+
+- **fix:** 5 szablonów DOCX z oryginalnych formularzy Desktop — layout 1:1, legendy, orientacja
+- **improve:** Retire `build-em-docx-templates.mjs` → `templatize-em-p1r-from-ssot.mjs`
+- **test:** `test-electrical-measurements-p1.mjs` (32 PASS) · `test-em-p1r-visual-smoke.mjs` (60 PASS)
 
 ## 2.59.42 — Pomiary Elektryczne EM-P1.6C (Registry Repair V2)
 

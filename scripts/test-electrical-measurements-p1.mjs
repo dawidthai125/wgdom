@@ -97,7 +97,7 @@ const protokol = await generateEmDocxBytes(
 const protText = await docxText(protokol);
 assert(protokol.length > 5000, "T01 protokol bytes");
 assert(protText.includes("RAP-43-2026"), "T01 RAP_NO");
-assert(protText.includes("Sonel MPI 520"), "T01 METER_MODEL");
+assert(protText.includes("Sępa") || protText.includes("Szarzyńskiego"), "T01 ADDRESS (SSOT protokół bez miernika)");
 assert(!protText.includes("{{RAP_NO}}"), "T01 brak placeholdera RAP_NO");
 const protVal = await validateEmDocxBytes(protokol);
 assert(protVal.ok, "T01 XML valid");

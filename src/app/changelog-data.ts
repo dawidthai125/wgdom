@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.43",
+    label: "Pomiary Elektryczne — EM-P1R Template Rebuild (SSOT Word)",
+    items: [
+      {
+        type: "fix",
+        text: "5 szablonów DOCX odbudowane z oryginalnych formularzy Word (Desktop SSOT) — zachowany układ tabel, legendy, orientacja; placeholdery zgodne z EM-P1.5",
+      },
+      {
+        type: "improve",
+        text: "Retire build-em-docx-templates.mjs — templatyzacja przez scripts/templatize-em-p1r-from-ssot.mjs (chirurgiczna edycja XML, nie generowanie layoutu)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.42",
     label: "Pomiary Elektryczne — EM-P1.6C Registry Repair V2",
     items: [

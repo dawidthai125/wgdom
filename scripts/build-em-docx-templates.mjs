@@ -1,5 +1,6 @@
 /**
  * EM-P1B — buduje 5 szablonów DOCX w public/em-measurements/
+ * ★ RETIRED (EM-P1R 2026-06-16) — użyj: node scripts/templatize-em-p1r-from-ssot.mjs
  * Uruchom: node scripts/build-em-docx-templates.mjs
  */
 import fs from "node:fs";
