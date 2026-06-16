@@ -98,6 +98,6 @@ npm run build → PASS (13.93s)
 | `GuideView.tsx` | instrukcja |
 | `scripts/test-electrical-measurements-integration-p3.mjs` | testy |
 
-| Commit hash | _(po push)_ |
-| Deploy | push `main` → Vercel |
-| `version.json` | _(VERIFY FAST)_ |
+| Commit hash | `fa12d79` |
+| Deploy | **RELEASE GO** (push `main` → Vercel) |
+| `version.json` | **2.59.39** at verify — **DEPLOY PROPAGATING** (oczekiwana: **2.59.40**) |
