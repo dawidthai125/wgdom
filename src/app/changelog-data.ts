@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.27",
+    label: "Pomiary Elektryczne — fundament EM-P0",
+    items: [
+      {
+        type: "new",
+        text: "Roboty: panel Pomiary Elektryczne — wiele raportów pomiarowych na jedną robotę (numer, data, pomiarowiec, miernik, zasilanie, obwody, RCD)",
+      },
+      {
+        type: "new",
+        text: "Podgląd read-only: liczba dokumentów (5), obwodów i RCD oraz wiersze ADSC / rezystancja / RCD",
+      },
+      {
+        type: "improve",
+        text: "Sync chmura: nowy klucz kw-electrical-measurements (bez generatora DOCX — EM-P1)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.26",
     label: "Odbiory WM Druk — historia generowania (WM-HISTORY-001)",
     items: [

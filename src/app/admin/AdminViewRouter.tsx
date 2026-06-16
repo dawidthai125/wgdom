@@ -19,6 +19,7 @@ import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
 import type { WmPrintHistoryEntry } from "@/lib/wm-print/history";
 import type { WmPrintJobDocument, WmPrintSettings, WmPrintTemplate } from "@/lib/wm-print/types";
+import type { ElectricalMeasurement } from "@/lib/electrical-measurements/types";
 import type { View } from "@/app/admin/admin-nav";
 import { TeamDirectoryContactsView } from "@/app/TeamDirectoryContactsView";
 import { TendersProvider } from "@/app/tenders/context/TendersProvider";
@@ -134,6 +135,11 @@ export type AdminViewRouterProps = {
     deletedJobDocId?: string,
     nextHistory?: WmPrintHistoryEntry[],
   ) => void;
+  electricalMeasurements: ElectricalMeasurement[];
+  setElectricalMeasurements: (
+    v: ElectricalMeasurement[] | ((prev: ElectricalMeasurement[]) => ElectricalMeasurement[]),
+  ) => void;
+  commitElectricalMeasurements: (next?: ElectricalMeasurement[]) => void;
   adminSession: AdminSession | null | undefined;
   alertsSeenTick: number;
   onAlertsSeen: () => void;
@@ -288,6 +294,9 @@ export function AdminViewRouter({
   wmPrintHistory,
   setWmPrintHistory,
   commitWmPrint,
+  electricalMeasurements,
+  setElectricalMeasurements,
+  commitElectricalMeasurements,
   pendingOperationalNoteId,
   onInitialOperationalNoteConsumed,
   pendingOperationalNoteCreatePreset,
@@ -473,6 +482,9 @@ export function AdminViewRouter({
               onCreateOperationalNoteFromJob={onOpenOperationalNoteCreateFromJobs}
               wmPrintHistory={wmPrintHistory}
               onOpenWmPrint={() => onSetView("wmprint")}
+              electricalMeasurements={electricalMeasurements}
+              onChangeElectricalMeasurements={setElectricalMeasurements}
+              onCommitElectricalMeasurements={commitElectricalMeasurements}
             />
           </Suspense>
         </ViewErrorBoundary>

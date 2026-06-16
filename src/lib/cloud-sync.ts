@@ -29,7 +29,9 @@ import {
   TENDERS_DELETED_IDS_KEY,
 } from "@/lib/tenders-sync";
 import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-leaves";
-import { mergeRecoverableCharges, normalizeRecoverableCharges } from "@/lib/recoverable-charges";
+import { mergeElectricalMeasurements } from "@/lib/electrical-measurements/merge";
+import { normalizeElectricalMeasurements } from "@/lib/electrical-measurements/normalize";
+import { ELECTRICAL_MEASUREMENTS_KEY } from "@/lib/electrical-measurements/types";
 import { mergeOperationalNotes, normalizeOperationalNotes, OPERATIONAL_NOTES_KEY } from "@/lib/operational-notes";
 import {
   mergeOperationalNotesAuditLog,
@@ -79,6 +81,7 @@ export const DATA_KEYS = [
   "kw-wm-print-job-docs",
   "kw-wm-print-settings",
   "kw-wm-print-history",
+  "kw-electrical-measurements",
   "kw-tenders-pipeline",
   "kw-tenders-company-profile",
   "kw-wgdom-cost-catalog",
@@ -121,6 +124,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-wm-print-job-docs",
   "kw-wm-print-settings",
   "kw-wm-print-history",
+  "kw-electrical-measurements",
 ] as const satisfies readonly DataKey[];
 
 export const WGDOM_DEFERRED_BOOTSTRAP_EVENT = "wgdom-deferred-bootstrap";
@@ -1492,6 +1496,8 @@ export function mergeDataKey(
       return mergeWmPrintSettings(normalizeWmPrintSettings(local), normalizeWmPrintSettings(cloud));
     case "kw-wm-print-history":
       return mergeWmPrintHistory(normalizeWmPrintHistory(local), cloud);
+    case "kw-electrical-measurements":
+      return mergeElectricalMeasurements(local, cloud);
     case "kw-tenders-pipeline":
       return mergeTenderDataKey(TENDERS_PIPELINE_KEY, local, cloud);
     case "kw-tenders-company-profile":
@@ -1689,6 +1695,7 @@ export function dataKeyRichness(key: DataKey, value: unknown): number {
     case "kw-employee-leaves":
     case "kw-recoverable-charges":
     case "kw-operational-notes":
+    case "kw-electrical-measurements":
       return normalizeArrayValue(value).reduce((s, e) => s + recordRichness(e), 0);
     default:
       return value != null && value !== "" ? 1 : 0;
@@ -1713,7 +1720,7 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
 function sanitizeValueForCloud(key: string, value: unknown): unknown {
   const coerced = coerceValueForCloudKey(key, value);
   if (key === "kw-jobs") return normalizeJobsValue(coerced);
-  if (key === "kw-week-employees" || key === "kw-archive" || key === "kw-directory" || key === "kw-contacts" || key === "kw-employee-leaves" || key === "kw-recoverable-charges" || key === "kw-operational-notes") {
+  if (key === "kw-week-employees" || key === "kw-archive" || key === "kw-directory" || key === "kw-contacts" || key === "kw-employee-leaves" || key === "kw-recoverable-charges" || key === "kw-operational-notes" || key === ELECTRICAL_MEASUREMENTS_KEY) {
     return normalizeArrayValue(coerced);
   }
   return coerced;

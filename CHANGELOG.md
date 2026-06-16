@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.26** · **WM-HISTORY-001**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.27** · **EM-P0**
+
+## 2.59.27 — Pomiary Elektryczne fundament (EM-P0)
+- Domena `src/lib/electrical-measurements/*` + klucz `kw-electrical-measurements`
+- Panel Roboty: wiele raportów pomiarowych per robota, preview read-only
+- Stub `generate-em-docx.ts` (TODO EM-P1)
+- Smoke: `test-electrical-measurements-p0.mjs`
 
 ## 2.59.26 — WM Druk historia generowania (WM-HISTORY-001)
 - Klucz `kw-wm-print-history` (cap 1000) — metadane PDF/DOCX/ZIP po sukcesie generacji

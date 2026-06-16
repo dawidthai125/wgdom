@@ -129,6 +129,9 @@ import {
   maybeExecuteWmPrintSeed,
   pushWmPrintToCloud,
 } from "@/lib/wm-print/wm-print-sync";
+import type { ElectricalMeasurement } from "@/lib/electrical-measurements/types";
+import { ELECTRICAL_MEASUREMENTS_KEY } from "@/lib/electrical-measurements/types";
+import { pushElectricalMeasurementsToCloud } from "@/lib/electrical-measurements/sync";
 
 function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const { session: adminSession, canViewRates } = useAdminAccess();
@@ -158,6 +161,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     DEFAULT_WM_PRINT_SETTINGS,
   );
   const [wmPrintHistory, setWmPrintHistory] = useLocalStorage<WmPrintHistoryEntry[]>(WM_PRINT_HISTORY_KEY, []);
+  const [electricalMeasurements, setElectricalMeasurements] = useLocalStorage<ElectricalMeasurement[]>(
+    ELECTRICAL_MEASUREMENTS_KEY,
+    [],
+  );
   const [view, setView] = useState<View>("dashboard");
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
   const [pendingJobSection, setPendingJobSection] = useState<import("@/app/JobDetailSectionNav").JobDetailSection | null>(null);
@@ -299,6 +306,12 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     suppressAutoSyncUntilRef.current = Date.now() + 4500;
     pushWmPrintToCloud(tpl, docs, sett, delTpl, delDoc, hist).catch(() => {});
   }, [wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory]);
+
+  const commitElectricalMeasurements = useCallback((next?: ElectricalMeasurement[]) => {
+    const payload = next ?? electricalMeasurements;
+    suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    pushElectricalMeasurementsToCloud(payload).catch(() => {});
+  }, [electricalMeasurements]);
 
   const clearAutoSyncTimers = useCallback(() => {
     if (syncTimerRef.current) {
@@ -585,7 +598,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     scheduleAutoCloudSync();
     remoteMergeInFlightRef.current = false;
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, scheduleAutoCloudSync]);
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, electricalMeasurements, scheduleAutoCloudSync]);
 
   useEffect(() => () => clearAutoSyncTimers(), [clearAutoSyncTimers]);
 
@@ -1385,6 +1398,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           wmPrintHistory={wmPrintHistory}
           setWmPrintHistory={setWmPrintHistory}
           commitWmPrint={commitWmPrint}
+          electricalMeasurements={electricalMeasurements}
+          setElectricalMeasurements={setElectricalMeasurements}
+          commitElectricalMeasurements={commitElectricalMeasurements}
           adminSession={adminSession}
           alertsSeenTick={alertsSeenTick}
           onAlertsSeen={() => setAlertsSeenTick((t) => t + 1)}
