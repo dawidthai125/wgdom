@@ -9,32 +9,26 @@ Komunikuj się z użytkownikiem po **polsku**.
 
 ## Zanim zaczniesz pracę w tym repo
 
-1. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.59.24**, `65051a3`), commity, decyzje.
-2. **Przeczytaj [`docs/ZI-2026-HANDOFF.md`](docs/ZI-2026-HANDOFF.md)** — ★★★ ZI Tauron 2026 prod SSOT (PRODUCTION STABLE).
-3. **Przeczytaj [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)** — ★★ Odbiory WM Druk (P0 CLOSED · ZI 2026 STABLE).
-4. **Przeczytaj [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md)** — werdykt prod ZI 2026.
-5. **Przeczytaj [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md)** — ★★ Notatki operacyjne P0→HF (COMPLETE).
-6. **Przeczytaj [`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md)** — ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM.
-7. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — status sesji / wznowienie (SESSION CLOSEOUT).
-8. **Przeczytaj [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)** — release/deploy A/B/C + verify `version.json`.
-9. **Przeczytaj [`AGENTS.md`](AGENTS.md)** — pełna lista handoffów i zakazy.
-10. **Przeczytaj [`docs/PROJECT-HANDOFF.md`](docs/PROJECT-HANDOFF.md)** — proces AUDIT→RCA→PLAN→IMPLEMENT (baseline historyczny).
-11. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § UX.1B workspace, § 11.6 ARCH-001, § 12.1.5 P2-F, § **12.1.7 P2-H**, § 9.2 inspektor, § 11 sync.
+1. **Przeczytaj [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)** — ★★ mapa systemu (widoki, sync, WM Druk, workflow).
+2. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.59.25**, `2b03c9d`).
+3. **Przeczytaj [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md)** — ★★ POST ZI · WM Druk COMPLETE.
+4. **Przeczytaj [`docs/ZI-2026-HANDOFF.md`](docs/ZI-2026-HANDOFF.md)** — ★★★ ZI Tauron 2026 prod SSOT.
+5. **Przeczytaj [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)** — ★★ Odbiory WM Druk (COMPLETE).
+6. **Przeczytaj [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md)** — ★★ Notatki operacyjne P0→HF (COMPLETE).
+7. **Przeczytaj [`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md)** — ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM.
+8. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — status sesji / wznowienie.
+9. **Przeczytaj [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)** — release/deploy A/B/C + verify `version.json`.
+10. **Przeczytaj [`AGENTS.md`](AGENTS.md)** — pełna lista handoffów i zakazy.
+11. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § 11 sync · § **12.1.8 WM Druk** · § 12.1.9 UX.1 · § 15.1 widoki.
 12. **Tematycznie (gdy dotyczy zadania):**
- - **P2-H Dokumenty / ZIP / 7Z / Marketplanet** → [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)
- - **Odbiory WM Druk / ZI PDF** → [`docs/ZI-2026-HANDOFF.md`](docs/ZI-2026-HANDOFF.md) + [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)
+ - **Odbiory WM Druk / ZI PDF** → [`docs/ZI-2026-HANDOFF.md`](docs/ZI-2026-HANDOFF.md) + [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md)
+ - **P2-H Dokumenty / ZIP / 7Z** → [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)
  - **Notatki operacyjne** → [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md)
-   - **P3 Wycena · BZP · filtry** → [`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md)
-   - **UX.1 Tender Workspace** → [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)
-   - **P2-F Kwalifikacja ofertowa** → [`docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md)
-   - Dashboard V2 → [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md)
-   - Files Hub → [`docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`](docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md)
-   - Roboty UX / Version → [`docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md`](docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md)
-   - Pliki roboty → [`docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md`](docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md)
-   - Billing → [`docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md`](docs/SESSION-HANDOFF-20.5A-BILLING-JOBS.md)
-   - Backup baseline → [`docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
+ - **P3 Wycena · BZP · filtry** → [`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md)
+ - **UX.1 Tender Workspace** → [`docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`](docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md)
+ - **P2-F Kwalifikacja ofertowa** → [`docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`](docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md)
 
-Nie analizuj od zera całego `src/app/App.tsx` (~15k linii) — ARCHITECTURE.md opisuje system jako całość.
+Nie analizuj od zera całego `src/app/App.tsx` (~15k linii) — ARCHITECTURE.md + AGENT-ONBOARDING opisują system jako całość.
 
 ## Po każdej zmianie w kodzie
 
@@ -44,25 +38,11 @@ Stosuj [`.cursor/rules/wgdom-development.mdc`](wgdom-development.mdc): chmura �
 
 | Temat | Plik |
 |-------|------|
- | **Odbiory WM Druk (P0 CLOSED · ZI 2026 STABLE)** | `docs/ZI-2026-HANDOFF.md`, `docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`, `src/lib/wm-print/*`, `WmPrintView.tsx` |
-| **Notatki operacyjne (COMPLETE)** | `docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`, `operational-notes.ts`, `OperationalNotesView.tsx`, `InspectorPanel.tsx` |
-| **P2-H Dokumenty przetargowe** | `docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`, `wgdom-7z-archive.ts`, `tender-document-resolver.ts` |
-| **P3 Wycena · BZP pipeline** | `docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`, `tenders-strategic-client-filters.ts`, `tenders-bzp-keywords.ts` |
-| **UX.1 Tender Workspace** | `docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md`, `tender-workspace-ux.ts`, `TenderDetailPanel.tsx`, `TenderWorkspaceTabBar.tsx` |
-| **P2-F Kwalifikacja ofertowa** | `docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md`, `company-qualification-profile.ts`, `TenderBidPrepPanel.tsx` |
+| **Onboarding agenta** | `docs/AGENT-ONBOARDING.md` |
+| **Odbiory WM Druk (COMPLETE · ZI 2026 STABLE)** | `docs/ZI-2026-HANDOFF.md`, `docs/MASTER-HANDOFF-POST-ZI-2026.md`, `src/lib/wm-print/*`, `WmPrintView.tsx` |
+| **Notatki operacyjne (COMPLETE)** | `docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`, `operational-notes.ts`, `OperationalNotesView.tsx` |
+| **P2-H Dokumenty przetargowe** | `docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`, `wgdom-7z-archive.ts` |
+| **P3 Wycena · BZP pipeline** | `docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`, `tenders-strategic-client-filters.ts` |
 | **Baseline prod (SSOT)** | `docs/PROJECT-HANDOFF-CURRENT.md`, `CURRENT-TASK.md` |
-| **Inspector email 2.1** | `docs/PROJECT-HANDOFF-CURRENT.md` § 2.1, `email-contacts.ts`, `JobInspectorContactModal.tsx`, ARCHITECTURE § 9.2 |
-| **Files Hub 20.5A.12** | `docs/SESSION-HANDOFF-20.5A.12-FILES-HUB.md`, `files-hub-index.ts`, `JobFilesHub.tsx` |
-| Seria 20.5B.5–7 + Worker Mobile | `docs/SESSION-HANDOFF-20.5B-ROBOTY-DOC-VERSION-2026-06.md` |
-| Worker/Inspector readiness | `docs/AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md` |
-| Version Awareness 20.5B.7 | `src/lib/app-version-check.ts`, `src/app/AppUpdateBanner.tsx` |
-| Generic Attachments 20.5A.10 | `docs/SESSION-HANDOFF-20.5A.10-GENERIC-ATTACHMENTS.md` |
-| CC archiwum (SUPERSEDED) | `docs/archive/command-center/` |
-| Etykiety PL CC | `src/lib/tenders-strategy-ui-labels-pl.ts` |
-| Pliki roboty (model) | `src/lib/job-attachments.ts`, `src/lib/job-documents.ts` |
-| Separacja obrazów vs docs | `src/lib/media-separation.ts` |
-| Sync / merge | `src/lib/cloud-sync.ts` |
-| Admin UI monolit | `src/app/App.tsx` |
-| Inspektor terenowy | `src/app/InspectorPanel.tsx` |
-| Backend API | `supabase/functions/make-server-0afb8820/index.tsx` |
-| Auth / role | `src/lib/admin-auth.ts` |
+| **Sync / merge** | `src/lib/cloud-sync.ts`, ARCHITECTURE § 11 |
+| **Backend API** | `supabase/functions/make-server-0afb8820/index.tsx` |

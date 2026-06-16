@@ -19,9 +19,11 @@
 | § 10 | Model danych (`Job`, `WeekEmployee`, klucze LS) |
 | § 11 | **Sync i merge** (`cloud-sync.ts`) — **KRYTYCZNE** |
 | § 12 | Supabase backend, endpointy, **§ 12.1.1 przetargi**, **§ 12.1.3 COMMAND CENTER + pulpit 7G + polonizacja 20.3B+** |
-| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (v2.56.10) |
-| — | **[`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md)** — ★★ P3 wycena · BZP · filtry |
-| — | **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.3** — Przetargi 3.0 (`TendersModule`) |
+| — | **[`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)** — ★★ mapa systemu dla agentów AI |
+| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (v2.59.25) |
+| — | **[`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md)** — POST ZI · WM Druk COMPLETE |
+| — | **[`docs/ZI-2026-HANDOFF.md`](docs/ZI-2026-HANDOFF.md)** — ZI Tauron 2026 prod |
+| — | **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.8** — Odbiory WM Druk |
 | — | **[`docs/archive/command-center/`](docs/archive/command-center/)** — CC historyczny (SUPERSEDED) |
 | § 15.1 | **Mapa widoków admina** — router, menu, mobile nav |
 | § 13–14 | Vercel, PWA, mobile |
@@ -33,23 +35,30 @@
 
 ---
 
-## Handoff sesji 2026-06-13 (agent AI)
+## Handoff sesji 2026-06-16 (POST ZI-2026)
 
-Po hasłach **„kontynuuj WGDOM”** / nowa sesja — najpierw [`CURRENT-TASK.md`](CURRENT-TASK.md), potem [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md), potem [`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md).
+Po hasłach **„kontynuuj WGDOM”** / nowa sesja:
+
+1. [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)
+2. [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
+3. [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md)
+4. [`CURRENT-TASK.md`](CURRENT-TASK.md)
 
 | Temat | Dokument |
 |-------|----------|
-| **Prod v2.56.10 — P3 + BZP** | `SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md` |
+| **Prod v2.59.25 — WM Druk COMPLETE** | `MASTER-HANDOFF-POST-ZI-2026.md` |
+| **ZI Tauron 2026** | `ZI-2026-HANDOFF.md` |
 | **SSOT baseline prod** | `PROJECT-HANDOFF-CURRENT.md` |
-| P2-H dokumenty ZIP/7Z/PDF | `SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md` |
-| UX.1 workspace 5 tabs | `SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md` |
-| P2-F kwalifikacja | `SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md` |
-| Przetargi 3.0 architektura | `ARCHITECTURE.md` § 12.1.1–12.1.7 |
-| Worker/Inspector readiness GO | `AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md` |
+| Notatki operacyjne | `SESSION-HANDOFF-OPERATIONAL-NOTES.md` |
+| P3 Wycena · BZP | `SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md` |
+| Przetargi 3.0 | `ARCHITECTURE.md` § 12.1.3 |
+| Worker/Inspector GO | `AUDIT-WORKER-INSPECTOR-READINESS-20.5B.md` |
 
-**Prod HEAD:** **`7acbecf`** · **UI:** **2.56.10** · **Nie implementować** P2-G.3D/E · P2-F.6 · benchmark materiałów rynku bez polecenia po AUDIT.
+**Prod HEAD:** **`2b03c9d`** · **UI:** **2.59.25** · **WM Druk stream COMPLETE** · nowe funkcje WM Druk tylko po AUDIT+PLAN z użytkownikiem.
 
 ---
+
+## Handoff sesji 2026-06-13 (historyczny — P3)
 
 ## Handoff sesji 2026-06-09 (historyczny)
 
@@ -134,6 +143,8 @@ Pełna lista pułapek → **ARCHITECTURE.md § 11.3, § 17**.
 | Plik | Rola |
 |------|------|
 | [`AGENTS.md`](AGENTS.md) | **Jak pracować** nad projektem (workflow agenta) |
+| [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) | **Mapa systemu** — start dla nowego agenta |
+| [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md) | **POST ZI-2026** — skrót stanu prod |
 | [`CHANGELOG.md`](CHANGELOG.md) | **Co zrobiono** — skrót ostatnich wersji |
 | [`CURRENT-TASK.md`](CURRENT-TASK.md) | **Gdzie skończyliśmy** — wznowienie sesji |
 | [`docs/INCIDENTS-2026-06.md`](docs/INCIDENTS-2026-06.md) | **Incydenty sync/payroll/admin** — czerwiec 2026 |

@@ -1,17 +1,28 @@
 # audit/ — katalog śledztw i walidacji WGDOM
 
-> **Ostatnia aktualizacja:** 2026-06-15 · **ZI Tauron 2026 PRODUCTION STABLE** (prod **2.59.24**)
+> **Ostatnia aktualizacja:** 2026-06-16 · **POST ZI-2026** · prod **2.59.25** · **PRODUCTION VERIFIED**
 
 ---
 
-## START HERE — ZI (prod)
+## START HERE — agent AI
+
+| Kolejność | Dokument |
+|-----------|----------|
+| 1 | [`../docs/AGENT-ONBOARDING.md`](../docs/AGENT-ONBOARDING.md) — mapa systemu |
+| 2 | [`../docs/MASTER-HANDOFF-POST-ZI-2026.md`](../docs/MASTER-HANDOFF-POST-ZI-2026.md) — skrót POST ZI |
+| 3 | [`../docs/ZI-2026-HANDOFF.md`](../docs/ZI-2026-HANDOFF.md) — SSOT generatora ZI |
+
+---
+
+## ZI Tauron 2026 (prod)
 
 | Dokument | Rola |
 |----------|------|
-| [`../docs/ZI-2026-HANDOFF.md`](../docs/ZI-2026-HANDOFF.md) | **★★★ SSOT implementacji** — generator, mapping, preservation |
-| [`tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) | **★★ Werdykt prod** — ZIP Sępa 83/7, PASS |
-| [`POST-ZI-DOCS-CLEANUP-REPORT.md`](POST-ZI-DOCS-CLEANUP-REPORT.md) | Raport ujednolicenia dokumentacji (P0.5A) |
-| [`POST-ZI-CLEANUP-AUDIT.md`](POST-ZI-CLEANUP-AUDIT.md) | Plan housekeeping kodu/audit (P0.5 backlog) |
+| [`../docs/ZI-2026-HANDOFF.md`](../docs/ZI-2026-HANDOFF.md) | **★★★ SSOT implementacji** |
+| [`tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) | Werdykt prod — ZIP Sępa 83/7 |
+| [`P0.5B-HOUSEKEEPING-REPORT.md`](P0.5B-HOUSEKEEPING-REPORT.md) | Housekeeping kodu WM Druk (2.59.25) |
+| [`POST-ZI-DOCS-CLEANUP-REPORT.md`](POST-ZI-DOCS-CLEANUP-REPORT.md) | Ujednolicenie dokumentacji (P0.5A) |
+| [`POST-ZI-CLEANUP-AUDIT.md`](POST-ZI-CLEANUP-AUDIT.md) | Backlog Medium/High (legacy split) |
 
 ### Canonical vs legacy
 
@@ -39,23 +50,8 @@ Katalog [`tauron-audit-2026-06-15/`](tauron-audit-2026-06-15/) — library audit
 
 ---
 
-## Seria P0 WM Druk (pollution / demo strip)
+## Reguły
 
-Pliki `p0-*`, `zi-p0-*`, `zi-smoke-*` — eksperymenty i RCA **LiveCycle** (P0.1F→P0.4B). Traktować jako **archiwum** — nie jako SSOT prod po 2.59.22.
-
----
-
-## Zasady
-
-1. **Nowy agent ZI** → czytaj `docs/ZI-2026-HANDOFF.md`, nie `ZI-FINAL-HANDOFF.md` jako pierwsze źródło.
-2. **Nie kasować** `ZI-FINAL-HANDOFF.md` — most historyczny do Tauron 2026.
-3. **Cleanup plików binarnych** — plan w `POST-ZI-CLEANUP-AUDIT.md` § reorganizacja; tylko na polecenie.
-4. Skrypty tymczasowe: `scripts/_tmp-p03*.mjs` — diagnostyka sesji; nie prod.
-
----
-
-## Powiązane docs
-
-- [`../docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](../docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)
-- [`../docs/RELEASE-REPORT-ZI-2026.md`](../docs/RELEASE-REPORT-ZI-2026.md)
-- [`../docs/PROJECT-HANDOFF-CURRENT.md`](../docs/PROJECT-HANDOFF-CURRENT.md)
+- Większość plików `*.pdf` / `*.zip` w `audit/` to **artefakty lokalne** — nie commitować bez potrzeby.
+- Skrypty regresji prod: `scripts/test-wm-print-zi-2026-*.mjs` (patrz `AGENT-ONBOARDING.md` § 6).
+- **Nie wracać** do śledztwa LiveCycle bez nowego dowodu biznesowego.

@@ -1,7 +1,8 @@
 # ZI Tauron 2026 — Handoff implementacji
 
 > **Status:** **PRODUCTION STABLE** — zastępuje legacy LiveCycle ZI (CLOSED)  
-> **Data:** 2026-06-15 · **Prod:** **2.59.24** · commit `65051a3`  
+> **Data:** 2026-06-16 · **Prod:** **2.59.25** · commit `2b03c9d` (P0.5B) · ZI core `9434787` (2.59.22)  
+> **Master handoff:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Walidacja prod:** [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md)
 
 ---
@@ -48,7 +49,8 @@
 |---------|------|
 | **Nowa ścieżka** | `src/lib/wm-print/generate-pdf-zi-tauron2026.ts` → `generatePdfZiTauron2026()` |
 | **Routing** | `generate-zip.ts` → `generateFromTemplateBytes()` gdy `t.name === "ZI"` |
-| **Legacy (CLOSED)** | `generate-pdf.ts` → `generatePdfFormFromTemplate`, `finalizeZiHybridForm` — nie używać dla ZI |
+| **Legacy (CLOSED)** | `generate-pdf.ts` → `generatePdfFormFromTemplate`, overlay, flatten — **nie używać dla ZI** |
+| **Housekeeping P0.5B** | `wm-print-pdf-fonts.ts` · `wm-print-pdf-static.ts` — aktywne helpery prod wydzielone z legacy pliku |
 
 ---
 
@@ -97,6 +99,8 @@ Gate prod (manual): Edge · Chrome · Adobe — dane użytkownika + adres §4 **
 
 ## Powiązane
 
+- [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)
 - [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)
+- [`audit/P0.5B-HOUSEKEEPING-REPORT.md`](../audit/P0.5B-HOUSEKEEPING-REPORT.md)
 - [`audit/tauron-audit-2026-06-15/ZI-2026-LIBRARY-AUDIT-REPORT.md`](../audit/tauron-audit-2026-06-15/ZI-2026-LIBRARY-AUDIT-REPORT.md)
 - [`docs/ZI-2026-IMPACT-REPORT.md`](ZI-2026-IMPACT-REPORT.md)

@@ -1,6 +1,7 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-16 (ZI Tauron 2026 **PRODUCTION STABLE** · prod **2.59.24**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-16 (POST ZI-2026 · prod **2.59.25** · **PRODUCTION VERIFIED**)  
+> **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -8,17 +9,18 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-2. docs/ZI-2026-HANDOFF.md              ← ★★★ ZI Tauron 2026 prod SSOT
-3. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (P0 CLOSED · ZI 2026 STABLE)
-4. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← ★★ Notatki operacyjne P0→HF (COMPLETE)
-5. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM
-6. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
-7. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← ★★ UX.1A/1B workspace + ARCH-001
-8. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← P2-F kwalifikacja ofertowa (COMPLETE)
-9. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
-10. CURRENT-TASK.md                         ← status sesji / wznowienie
-11. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
-12. AGENTS.md → docs/ARCHITECTURE.md § 12.1.8 WM Druk · § Notatki · § 12.1.1–12.1.7
+2. docs/MASTER-HANDOFF-POST-ZI-2026.md    ← ★★ skrót POST ZI-2026 (WM Druk COMPLETE)
+3. docs/ZI-2026-HANDOFF.md              ← ★★★ ZI Tauron 2026 prod SSOT
+4. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (COMPLETE)
+5. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← ★★ Notatki operacyjne P0→HF (COMPLETE)
+6. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM
+7. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
+8. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← ★★ UX.1A/1B workspace + ARCH-001
+9. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← P2-F kwalifikacja ofertowa (COMPLETE)
+10. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
+11. CURRENT-TASK.md                         ← status sesji / wznowienie
+12. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
+13. AGENTS.md → docs/ARCHITECTURE.md § 12.1.8 WM Druk · § Notatki · § 12.1.1–12.1.7
 ```
 
 ---
@@ -28,7 +30,7 @@
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
 | **Odbiory WM Druk P0 infra** | 2.59.15–**2.59.19** | **CLOSED** (pollution/KV/runtime) | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) |
-| **ZI Tauron 2026** | **2.59.22–2.59.24** | **PRODUCTION STABLE** · preservation + §4 mapping + prod validation | [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) |
+| **ZI Tauron 2026** | **2.59.22–2.59.25** | **PRODUCTION STABLE** · preservation + §4 + P0.5B housekeeping | [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) |
 | **ZI LiveCycle 2021** | — | **CLOSED** · tombstone `26f02c78…` | [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md) |
 | **P3 Wycena · Baza cen · filtry** | 2.56.0–**2.56.10** (`7acbecf`) | **P3.0–P3.6 CLOSED** | [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) |
 | **Notatki operacyjne** | **2.57.0–2.58.1** (`1f8e2bd`) | **COMPLETE** (P0→P2C+HF) · P3 Export OPEN | [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](SESSION-HANDOFF-OPERATIONAL-NOTES.md) |
@@ -74,8 +76,11 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (repo / prod):      2.59.24       ← ZI Tauron 2026 PRODUCTION STABLE
-Feature commit (prod):      65051a3        v2.59.24 tombstone sync + legacy ZI KV cleanup
+Version (repo / prod):      2.59.25       ← POST ZI-2026 · P0.5B housekeeping
+Feature commit (prod):      2b03c9d        v2.59.25 wm-print-pdf-fonts/static split
+WM Druk P0.5B:              2b03c9d        v2.59.25 housekeeping (zero behavior change)
+WM Druk tombstone:          65051a3        v2.59.24 tombstone sync + legacy ZI KV cleanup
+DOCX title layout:          26a553b        v2.59.24 szablony Oświadczenia (KV only)
 ZI pdf.js worker:           5302498        v2.59.23 preservation graft worker fix
 ZI Tauron 2026:             9434787        v2.59.22 generator + preservation gate
 WM Druk P0.2A (prev):       1a8c892        v2.59.19 strip demo (superseded by ZI 2026)
@@ -113,12 +118,13 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 | Status | Wartość |
 |--------|---------|
-| **RELEASE GO (2.59.24)** | **TAK** — ZI Tauron 2026 PRODUCTION STABLE |
-| **RELEASED (prod)** | **2.59.24** — verify `version.json` |
-| **STABLE** | TAK (moduł wmprint · ZI 2026) |
+| **RELEASE GO (2.59.25)** | **TAK** — POST ZI-2026 · WM Druk COMPLETE |
+| **RELEASED (prod)** | **2.59.25** — verify `version.json` |
+| **STABLE** | TAK (moduł wmprint · ZI 2026 · P0.5B) |
 | **PRODUCTION VERIFIED** | TAK — [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) |
 | **WM Druk P0 infra** | **CLOSED** (2.59.15–2.59.19) |
-| **ZI Tauron 2026** | **PRODUCTION STABLE** (2.59.22–2.59.24) |
+| **WM Druk P0.5 cleanup** | **CLOSED** (P0.5A docs · P0.5B housekeeping **2.59.25**) |
+| **ZI Tauron 2026** | **PRODUCTION STABLE** (2.59.22–2.59.25) |
 | **ZI LiveCycle 2021** | **CLOSED** — legacy slot `26f02c78…` **TOMBSTONE** |
 | **Canonical ZI template (prod KV)** | **`2b22da48-46dc-42a0-8236-d42b5b5562dc`** · plik `ZI.pdf` |
 | **WM Druk P0 pollution** | **CLOSED** |
@@ -139,7 +145,7 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.59.24" }
+# oczekiwane: { "version": "2.59.25" }
 ```
 
 ---
@@ -206,6 +212,10 @@ Chronologia releasów aplikacyjnych na `main` po baseline **2.50.65** (20.5Z.5C)
 | **2.59.17** | WM Druk KV cleanup | `16ee8f8` | Templates 99→15, tombstone |
 | **2.59.18** | WM Druk runtime hotfix | `01211d6` | `normalizeWmPrintTemplates` w cloud-sync |
 | **2.59.19** | **WM Druk P0.2A ZI-PDF-001** | **`1a8c892`** | **Strip demo ULICA/BUD/LOK + clean template storage/KV** |
+| **2.59.22** | ZI Tauron 2026 | `9434787` | Generator + preservation gate · mapping §4 |
+| **2.59.23** | ZI pdf.js worker hotfix | `5302498` | Preservation graft worker |
+| **2.59.24** | WM Druk tombstone + DOCX layout | `65051a3` / `26a553b` | Legacy ZI slot cleanup · Oświadczenia title fix (KV) |
+| **2.59.25** | **P0.5B housekeeping** | **`2b03c9d`** | `wm-print-pdf-fonts` · `wm-print-pdf-static` — zero behavior change |
 | **2.56.2** | **P3.5B** | **f74fe1b** | **Override cen per przetarg** |
 | **2.56.1** | **P3.5** | **16b792e** | **Ceny per pozycja kosztorysu (read-only)** |
 | **2.55.10** | **P2-H.5C/5D** | **0683e05** | **PDF noTextLayer CASE 3 + multi-ATH ranking + discovery sync** |
@@ -379,14 +389,15 @@ npx vite-node scripts/test-operational-notes-hotfix-2.58.1.mjs
 
 ---
 
-## 3g. Odbiory WM Druk — P0 + ZI Tauron 2026 (**COMPLETE** v2.59.24)
+## 3g. Odbiory WM Druk — P0 + ZI Tauron 2026 + P0.5 (**COMPLETE** v2.59.25)
 
 | Pole | Wartość |
 |------|---------|
 | **Zakres P0** | pollution · KV cleanup · runtime hotfix · ZI-PDF-001 (P0.2A demo strip) |
 | **Zakres ZI 2026** | Tauron FormMaker · mapping §4 · preservation gate · prod validation |
-| **Wersja końcowa** | **2.59.24** · commit **`65051a3`** |
-| **Handoff** | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) · [`ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) |
+| **Zakres P0.5** | docs cleanup (P0.5A) · kod housekeeping (P0.5B) · DOCX title layout (szablony KV) |
+| **Wersja końcowa** | **2.59.25** · commit **`2b03c9d`** |
+| **Handoff** | [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md) · [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) · [`ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) |
 | **Architektura** | [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.8 |
 | **Prod validation** | [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) |
 
@@ -398,8 +409,11 @@ KV Cleanup              CLOSED (8 templates · 1× ZI aktywny)
 Runtime Hotfix          CLOSED
 ZI LiveCycle 2021       CLOSED (tombstone 26f02c78…)
 ZI Tauron 2026          PRODUCTION STABLE
+P0.5 cleanup            CLOSED (docs + housekeeping)
 Stream WM DRUK          COMPLETE
 ```
+
+**Moduły prod (po P0.5B):** `wm-print-pdf-fonts.ts` · `wm-print-pdf-static.ts` · `generate-pdf-zi-tauron2026.ts` · `generate-pdf.ts` (legacy — nie ruszać)
 
 **Canonical ZI (prod KV):** `2b22da48-46dc-42a0-8236-d42b5b5562dc` · `ZI.pdf`  
 **Mapping §4:** 99→JOB_STREET · 111→JOB_BUILDING · 112→JOB_APARTMENT
@@ -581,7 +595,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | **P2-H** | Dokumenty / ZIP / 7Z / PDF przedmiar | **STREAM CLOSED** (v2.55.0–2.55.10) · H.7 OPEN |
 | **P3** | Wycena · Baza cen · benchmarki · filtry | **P3.0–P3.6 CLOSED** · materiały rynkowe **HOLD** |
 | **Notatki operacyjne** | P0→P2C+HF admin/inspektor/backup | **COMPLETE** (v2.58.1) · **P3 Export OPEN** |
-| **WM Druk** | Odbiory WM Druk — pollution + ZI Tauron 2026 | **COMPLETE** (v2.59.24) |
+| **WM Druk** | Odbiory WM Druk — pollution + ZI 2026 + P0.5 | **COMPLETE** (v2.59.25) |
 | **P2** | Audit Center / Security Log (Super Admin) | **OTWARTY** |
 | P2-G.3D/E | Benchmark jakości · RMS · AI validation | **OTWARTY** → slot **Wycena** |
 | P2-F.6 | Kompletność oferty (checklist) | **OTWARTY** → slot **Oferta** |
@@ -608,9 +622,9 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 
 ## 13. NASTĘPNY KROK (dla agenta)
 
-**Ostatni release (repo):** **v2.59.24 ZI Tauron 2026 PRODUCTION STABLE** — commit **`65051a3`**.
+**Ostatni release (repo):** **v2.59.25 POST ZI-2026** — commit **`2b03c9d`** (P0.5B housekeeping).
 
-**Priorytet produktu (WM Druk):** stream **COMPLETE** — ZI LiveCycle **CLOSED** · ZI Tauron 2026 **STABLE** · opcjonalny housekeeping P0.5 (kod/audit) tylko na polecenie.
+**Priorytet produktu (WM Druk):** stream **COMPLETE** — nowe funkcje **tylko po AUDIT + PLAN** z użytkownikiem. ZI LiveCycle **CLOSED** · ZI Tauron 2026 **STABLE**.
 
 **Notatki operacyjne — roadmap:**
 
@@ -621,7 +635,7 @@ P2A.1 OPEN (opcjonalny) — panel w detalu roboty inspektora
 ```
 
 ```text
-WM DRUK COMPLETE (2.59.24) — pollution · KV · ZI 2026 STABLE · legacy tombstone
+WM DRUK COMPLETE (2.59.25) — ZI 2026 STABLE · P0.5 CLOSED · legacy tombstone
 P2-H stream CLOSED (v2.55.10) · P2-H.7 OPEN (Edge magic bytes 7z).
 P3.0–P3.6 CLOSED · P1 WM false exclude CLOSED (v2.56.10).
 Notatki operacyjne COMPLETE (v2.58.1).
@@ -633,8 +647,8 @@ Inspector 2.1 — CLOSED (2.1.2 CANCELLED).
 
 Przy wznowieniu:
 
-1. Przeczytaj **ten plik** + [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) + `CURRENT-TASK.md`
-2. `curl -s https://www.wgdom.fun/version.json` — prod **2.59.24**
+1. Przeczytaj **ten plik** + [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md) + `CURRENT-TASK.md`
+2. `curl -s https://www.wgdom.fun/version.json` — prod **2.59.25**
 3. Przed zmianami Notatki: testy z handoffu operacyjnego (P0–HF)
 4. Przed zmianami Przetargów: `test-tenders-strategic-client-filters.mjs` + `test-tender-exclude-renovation-budowa.mjs`
 5. Przed zmianami ZIP/7Z: `test-tender-7z-archive.mjs`
@@ -648,7 +662,10 @@ Przy wznowieniu:
 
 | Temat | Dokument |
 |-------|----------|
-| **★ WM Druk P0 (COMPLETE)** | `SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md` |
+| **★★ Onboarding agenta AI** | [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) |
+| **★★ POST ZI-2026 (skrót)** | [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md) |
+| **★★ ZI Tauron 2026 prod** | [`ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) |
+| **★ WM Druk (COMPLETE)** | `SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md` |
 | **★ Notatki operacyjne (COMPLETE)** | `SESSION-HANDOFF-OPERATIONAL-NOTES.md` |
 | **★ P3 Wycena · BZP · filtry** | `SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md` |
 | **★ P2-H Dokumenty / 7Z / Marketplanet** | `SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md` |
@@ -672,7 +689,7 @@ Przy wznowieniu:
 **Werdykt closeout (2026-06-16 — ZI Tauron 2026 STABLE):**
 
 ```text
-BASELINE v2.59.24 · WM DRUK COMPLETE · ZI TAURON 2026 PRODUCTION STABLE
+BASELINE v2.59.25 · WM DRUK COMPLETE · ZI TAURON 2026 PRODUCTION STABLE · POST ZI-2026
 COMMIT 65051a3 · RELEASE GO · PRODUCTION VERIFIED (FINAL-ZI-2026-PROD-VALIDATION)
 ZI LiveCycle 2021 CLOSED (tombstone 26f02c78…) · canonical ZI 2b22da48… / ZI.pdf
 Open backlog (na polecenie): P0.5 code cleanup · P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6

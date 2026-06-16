@@ -2,8 +2,8 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-16 (ZI Tauron 2026 PRODUCTION STABLE · WM Druk § 12.1.8)
-> **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-16 (POST ZI-2026 · v2.59.25 · WM Druk COMPLETE · § 12.1.8)
+> **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 ---
@@ -34,10 +34,12 @@ Reguła Cursor: `.cursor/rules/wgdom-development.mdc`
 
 ```text
 AGENTS.md
-  → PROJECT-HANDOFF-CURRENT.md     (baseline 2.56.10)
-  → SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md   (P3 + BZP + filtry)
+  → docs/AGENT-ONBOARDING.md         (mapa systemu — START)
+  → PROJECT-HANDOFF-CURRENT.md       (baseline 2.59.25)
+  → MASTER-HANDOFF-POST-ZI-2026.md   (WM Druk COMPLETE)
+  → ZI-2026-HANDOFF.md               (generator ZI prod)
   → CURRENT-TASK.md
-  → ARCHITECTURE.md § 11 (sync) · § 12.1 (przetargi) · § 15.1 (widoki)
+  → ARCHITECTURE.md § 11 (sync) · § 12.1.8 (WM Druk) · § 15.1 (widoki)
   → WORKFLOW-RELEASE-DEPLOY.md
 ```
 
@@ -1327,60 +1329,66 @@ buildTenderDocCandidates()
 
 **Nie zmieniaj bez polecenia:** merge ZIP/7Z w resolver, semantyka `zipInnerPath`, lazy chunk 7z-wasm, wymóg `sourcePageUrl` Marketplanet.
 
-### 12.1.8 Odbiory WM Druk (`wmprint`, v2.59.x)
+### 12.1.8 Odbiory WM Druk (`wmprint`, v2.59.25)
 
-**Status:** Moduł **GO** (UI, ZIP, KV, sync) · P0 pollution/KV/runtime **CLOSED** · **ZI Tauron 2026 PRODUCTION STABLE (2.59.24)** · ZI LiveCycle 2021 **CLOSED**
+**Status:** Moduł **COMPLETE** · ZIP · DOCX · preservation · sync **PASS** · **ZI Tauron 2026 PRODUCTION STABLE** · ZI LiveCycle 2021 **CLOSED** · P0.5 **DONE**
 
-**Handoff modułu:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)  
-**★★ SSOT ZI prod:** [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) · validation: [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) · historyczne RCA: [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
+**Handoff:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md) · [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) · [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) § 6  
+**★★ SSOT ZI:** [`ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) · validation: [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) · P0.5B: [`audit/P0.5B-HOUSEKEEPING-REPORT.md`](../audit/P0.5B-HOUSEKEEPING-REPORT.md)
 
-Moduł admina do generowania pakietów dokumentów odbiorowych WM — ZIP per robota, szablony DOCX/PDF form, upload dokumentów.
+Moduł admina do generowania pakietów dokumentów odbiorowych WM — ZIP per robota, szablony DOCX/PDF, upload dokumentów.
 
 | Element | Wartość |
 |---------|---------|
 | **View** | `wmprint` → `WmPrintView.tsx` (lazy) |
-| **Domena** | `src/lib/wm-print/*` |
+| **Domena** | `src/lib/wm-print/*` (19 plików TS) |
 | **Storage** | bucket `make-0afb8820-photos`, prefix `wm-print/` |
 
-**Klucze KV:**
+**Klucze KV:** `kw-wm-print-templates` · `kw-wm-print-job-docs` · `kw-wm-print-settings` · `kw-wm-print-deleted-template-ids` · `kw-wm-print-deleted-job-doc-ids`
 
-| Klucz | Model |
-|-------|-------|
-| `kw-wm-print-templates` | `WmPrintTemplate[]` — merge po UUID |
-| `kw-wm-print-job-docs` | `WmPrintJobDocument[]` |
-| `kw-wm-print-settings` | `WmPrintSettings` |
-| `kw-wm-print-deleted-template-ids` | tombstone szablonów |
-| `kw-wm-print-deleted-job-doc-ids` | tombstone dokumentów robót |
+**Sync:** `wm-print-sync.ts` · tombstone merge z chmury (2.59.24) · `cloud-sync.ts` → `normalizeWmPrintTemplates(local)`.
 
-**Sync:** `wm-print-sync.ts` · merge tombstone `kw-wm-print-deleted-template-ids` w bootstrap (2.59.24) · merge w `cloud-sync.ts` case `kw-wm-print-templates` — **`normalizeWmPrintTemplates(local)`** (nie `parseWmPrintTemplates` bez importu).
+**Seed guard (2.59.15):** `maybeExecuteWmPrintSeed()` — 13 slotów tylko gdy local **i** chmura puste.
 
-**Seed guard (2.59.15):** `maybeExecuteWmPrintSeed()` — bootstrap 13 slotów **tylko** gdy local **i** chmura puste. `parseWmPrintTemplates` = parse bez auto-seedu.
+**Prod KV:** **8** templates · **1× ZI** · canonical **`2b22da48-…`** · legacy **`26f02c78-…`** = **TOMBSTONE**.
 
-**Prod KV (po cleanup 2.59.24):** **8** rekordów templates · **1× aktywny ZI**. Canonical: **`2b22da48-46dc-42a0-8236-d42b5b5562dc`** · plik **`ZI.pdf`**. Legacy LiveCycle slot **`26f02c78-871c-4d65-aeac-d0ca06bf060c`** — **TOMBSTONE** (147 deleted-ids).
+**Pliki prod vs legacy:**
+
+| Plik | Prod | Rola |
+|------|------|------|
+| `generate-zip.ts` | ✓ | Routing ZIP · dedupe |
+| `generate-pdf-zi-tauron2026.ts` | ✓ | Generator ZI 2026 |
+| `zi-tauron2026-form-extract.ts` | ✓ | Preservation pdf.js |
+| `wm-print-pdf-fonts.ts` | ✓ | Noto loader (P0.5B) |
+| `wm-print-pdf-static.ts` | ✓ | Statyczne PDF (P0.5B) |
+| `generate-docx.ts` | ✓ | Oświadczenia DOCX |
+| `wm-print-sync.ts` | ✓ | Tombstone · seed |
+| `generate-pdf.ts` | legacy | LiveCycle — nie ruszać bez audytu |
 
 **Generowanie:**
 
 ```text
 generate-zip.ts → buildWmPrintFilesForJob()
-  dedupeWmPrintTemplatesByName(getEnabledWmPrintTemplates(...))   ← 2.59.24
-  DOCX      → generate-docx.ts ({{VAR}})
-  ZI        → detectLegacyLiveCycleZiForm guard → generatePdfZiTauron2026 (§4 99/111/112 + preservation)
-  pdf_form  → generate-pdf.ts (legacy — brak innych pdf_form w prod poza ZI)
-  pdf       → copyStaticPdfTemplate
+  dedupeWmPrintTemplatesByName(...)
+  DOCX  → generate-docx.ts (osobny akapit po {{DATE}} w Oświadczeniach)
+  ZI    → detectLegacyLiveCycleZiForm → generatePdfZiTauron2026 + preservation §4
+  pdf   → wm-print-pdf-static.ts
+  pdf_form → generate-pdf.ts (martwa gałąź KV poza ZI)
 ```
 
-**ZI Tauron 2026 (2.59.24):** FormMaker AcroForm · mapping §4: `Pole tekstowe 99/111/112` → JOB_STREET/BUILDING/APARTMENT · preservation: pdf.js graft ze szyfrowanego WM `ZI.pdf` · bundled `public/wm-print/zi-tauron-2026-template.pdf` · smoke: `test-wm-print-zi-2026-smoke.mjs` + `test-wm-print-zi-2026-preservation-smoke.mjs` + `test-wm-print-zi-zip-post-cleanup.mjs`.
+**ZI §4 mapping:** 99 → JOB_STREET · 111 → JOB_BUILDING · 112 → JOB_APARTMENT · bundled `public/wm-print/zi-tauron-2026-template.pdf`.
 
-**ZI LiveCycle (2021): CLOSED** — nie wracać do XFA, ciphertext, AP, flatten, TextField2[*], widgety 429/428/427.
+**Smoke:** `test-wm-print-zi-2026-smoke.mjs` · `test-wm-print-zi-2026-preservation-smoke.mjs` · `test-wm-print-zi-zip-post-cleanup.mjs` · `test-wm-print-p0-1a-docx-fix.mjs`.
 
-**Źródła danych (hierarchia):**
+**ZI LiveCycle: CLOSED** — nie wracać do XFA, ciphertext, AP, flatten, overlay, TextField2[*], widgety 429/428/427.
 
-1. Lista płac → `fullyLoadedHourly()`
-2. `TenderCompanyCostModel` (`kw-tenders-company-profile`)
-3. **WGDOM Cost Catalog** (`kw-wgdom-cost-catalog`)
-4. Referencje rynkowe — tylko pomocniczo, bez scrapingu
+**PRODUCTION CRITICAL:** `generatePdfZiTauron2026` · preservation gate · `detectLegacyLiveCycleZiForm` · tombstone sync · dedupe ZIP · pdf.js worker.
 
-**Nie zmieniaj bez polecenia:** merge katalogu, ścieżka `ath_priced`, ATH Quick Access, klasyfikator keywords bez migracji danych.
+**Nie zmieniaj bez polecenia:** seed guard, canonical ZI UUID, routing ZI, merge tombstone.
+
+---
+
+### 12.1.9 UX.1 — Tender Workspace (v2.53.x)
 
 **UX.1A — Tender Workspace Cleanup (MIN, v2.53.1):**
 
@@ -1817,7 +1825,7 @@ WGDOM1/
 | `operational-notes-audit.ts` | Audit log notatek (append, cap 3000, akcja ack P2C) |
 | `operational-notes-audit-filters.ts` | **P2C v2.57.5** — ACL Super Admin, filtry, paginacja audit UI |
 | `operational-notes-read-state.ts` | Read receipts + `ackOperationalNoteWithAudit` (P2C) |
-| `wm-print/*.ts` | **Odbiory WM Druk** — szablony, ZIP, PDF form ZI, sync KV · handoff: `SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md` |
+| `wm-print/*.ts` | **Odbiory WM Druk** — szablony, ZIP, ZI 2026, DOCX, sync · [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) § 6 · § 12.1.8 |
 | `deep-link.ts` | `wgdom://`, `?open=job`, custom events |
 | `native-app-bridge.ts` | Przycisk Wstecz Android, resume |
 | `capacitor-native.ts` | Status bar, splash, `isNativeApp()` |
