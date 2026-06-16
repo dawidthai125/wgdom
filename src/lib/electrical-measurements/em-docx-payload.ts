@@ -2,15 +2,24 @@ import { jobDisplayTitle } from "@/app/app-domain";
 import type { Job } from "@/app/app-domain";
 import type { EmDocxRowCloneSpec } from "@/lib/electrical-measurements/em-docx-xml";
 import {
+  resolveAdscCircuitValues,
+  resolveAdscSupplyValues,
+  resolveRcdValues,
+  resolveResistanceCircuitValues,
+  resolveResistanceSupplyValues,
+} from "@/lib/electrical-measurements/measurement-value-engine";
+import {
   buildAdscPreview,
-  buildResistancePreview,
   buildRcdPreview,
+  buildResistancePreview,
+  resistanceRowLabels,
 } from "@/lib/electrical-measurements/preview";
 import type {
-  CircuitType,
   ElectricalMeasurement,
   ElectricalMeasurementCircuit,
+  ResistanceMeasurementValues,
 } from "@/lib/electrical-measurements/types";
+
 export interface EmDocxGeneratorOptions {
   defaults?: {
     technicianName?: string;
@@ -19,7 +28,6 @@ export interface EmDocxGeneratorOptions {
   };
 }
 
-/** EM-P1B — payload generatora DOCX (SSOT między preview a szablonami). */
 export interface ElectricalMeasurementDocxPayload {
   scalars: Record<string, string>;
   rowSpecs: EmDocxRowCloneSpec[];
@@ -66,43 +74,23 @@ function addYearsIso(iso: string, years: number): string {
   return formatPlDate(`${y}${d.slice(4)}`);
 }
 
-function circuitInAmps(type: CircuitType): string {
-  if (type === "lighting-1f") return "10";
-  return "16";
-}
-
-function circuitIaAmps(breakerType: string, type: CircuitType): string {
-  if (breakerType === "C") return "250";
-  return type === "lighting-1f" ? "50" : "80";
-}
-
-function circuitZaOhm(type: CircuitType): string {
-  return type === "lighting-1f" ? "4,88" : "2,88";
-}
-
-function defaultRcdCircuitName(measurement: ElectricalMeasurement): string {
-  const circuits = sortedCircuits(measurement);
-  if (circuits.length === 0) return "Obwody gniazd";
-  const names = [...new Set(circuits.map((c) => c.displayName))];
-  return names.length === 1 ? names[0] : "Obwody gniazd";
-}
-
-function resistanceDefaults() {
+function resistanceToRow(prefix: "" | "SUPPLY_", v: ResistanceMeasurementValues): Record<string, string> {
+  const p = prefix ? `ROW_${prefix}` : "ROW_";
   return {
-    ROW_L1L2: "",
-    ROW_L2L3: "",
-    ROW_L1L3: "",
-    ROW_L1L2_ALT: "",
-    ROW_L1PE: ">50",
-    ROW_L2PE: "",
-    ROW_L3PE: "",
-    ROW_L1N: ">50",
-    ROW_L2N: "",
-    ROW_L3N: "",
-    ROW_NPE: ">50",
-    ROW_RA: ">50",
-    ROW_U_ISO: "500",
-    ROW_ASSESSMENT: "Pozytywna",
+    [`${p}L1L2`]: v.l1l2,
+    [`${p}L2L3`]: v.l2l3,
+    [`${p}L1L3`]: v.l1l3,
+    [`${p}L1L2_ALT`]: v.l1l2Alt,
+    [`${p}L1PE`]: v.l1pe,
+    [`${p}L2PE`]: v.l2pe,
+    [`${p}L3PE`]: v.l3pe,
+    [`${p}L1N`]: v.l1n,
+    [`${p}L2N`]: v.l2n,
+    [`${p}L3N`]: v.l3n,
+    [`${p}NPE`]: v.npe,
+    [`${p}RA`]: v.ra,
+    [`${p}U_ISO`]: v.uIso,
+    [`${p}ASSESSMENT`]: v.assessment,
   };
 }
 
@@ -134,88 +122,106 @@ function buildBaseScalars(
   return scalars;
 }
 
-function buildAdscSupplyRow(): Record<string, string> {
+function buildAdscSupplyRow(measurement: ElectricalMeasurement): Record<string, string> {
+  const v = resolveAdscSupplyValues(measurement);
   return {
     ROW_SUPPLY_LP: "1",
     ROW_SUPPLY_SYMBOL: "",
     ROW_SUPPLY_POINT: "Zasilanie",
-    ROW_SUPPLY_BREAKER: "S301 1p",
-    ROW_SUPPLY_BREAKER_TYPE: "C",
-    ROW_SUPPLY_IN: "25",
-    ROW_SUPPLY_IA: "250",
-    ROW_SUPPLY_ZS: "0,34",
-    ROW_SUPPLY_ZA: "0,92",
-    ROW_SUPPLY_ASSESSMENT: "POZYTYWNA",
+    ROW_SUPPLY_BREAKER: v.breakerLabel,
+    ROW_SUPPLY_BREAKER_TYPE: v.breakerType,
+    ROW_SUPPLY_IN: v.inAmps,
+    ROW_SUPPLY_IA: v.iaAmps,
+    ROW_SUPPLY_ZS: v.zs,
+    ROW_SUPPLY_ZA: v.za,
+    ROW_SUPPLY_ASSESSMENT: v.assessment,
   };
 }
 
-function buildAdscCircuitRow(c: ElectricalMeasurementCircuit): Record<string, string> {
+function buildAdscCircuitRow(measurement: ElectricalMeasurement, c: ElectricalMeasurementCircuit): Record<string, string> {
+  const v = resolveAdscCircuitValues(measurement, c);
   return {
     ROW_LP: String(c.sortOrder),
     ROW_SYMBOL: "",
     ROW_POINT: c.displayName,
-    ROW_BREAKER: "S301 1p",
-    ROW_BREAKER_TYPE: c.breakerType,
-    ROW_IN: circuitInAmps(c.type),
-    ROW_IA: circuitIaAmps(c.breakerType, c.type),
-    ROW_ZS: "0,33",
-    ROW_ZA: circuitZaOhm(c.type),
-    ROW_ASSESSMENT: "POZYTYWNA",
+    ROW_BREAKER: v.breakerLabel,
+    ROW_BREAKER_TYPE: v.breakerType,
+    ROW_IN: v.inAmps,
+    ROW_IA: v.iaAmps,
+    ROW_ZS: v.zs,
+    ROW_ZA: v.za,
+    ROW_ASSESSMENT: v.assessment,
   };
 }
 
-function buildResistanceSupplyRow(label: string): Record<string, string> {
+function buildResistanceSupplyRow(measurement: ElectricalMeasurement, label: string): Record<string, string> {
+  const v = resolveResistanceSupplyValues(measurement);
   return {
     ROW_SUPPLY_LP: "1",
     ROW_SUPPLY_CIRCUIT_NAME: label,
-    ...Object.fromEntries(
-      Object.entries(resistanceDefaults()).map(([k, v]) => [k.replace("ROW_", "ROW_SUPPLY_"), v]),
-    ),
+    ...resistanceToRow("SUPPLY_", v),
   };
 }
 
-function buildResistanceCircuitRow(lp: number, label: string): Record<string, string> {
+function buildResistanceCircuitRow(
+  measurement: ElectricalMeasurement,
+  lp: number,
+  label: string,
+  circuit: ElectricalMeasurementCircuit,
+): Record<string, string> {
+  const v = resolveResistanceCircuitValues(measurement, circuit);
   return {
     ROW_LP: String(lp),
     ROW_CIRCUIT_NAME: label,
-    ...resistanceDefaults(),
+    ...resistanceToRow("", v),
   };
 }
 
-function buildRcdRow(lp: number, symbol: string, deviceType: string, circuitName: string): Record<string, string> {
+function buildRcdRow(measurement: ElectricalMeasurement, lp: number, rcd: { id: string; symbol: string; deviceType: string }): Record<string, string> {
+  const v = resolveRcdValues(measurement, rcd as import("@/lib/electrical-measurements/types").ElectricalMeasurementRcd);
   return {
     ROW_LP: String(lp),
-    ROW_SYMBOL: symbol,
-    ROW_CIRCUIT_NAME: circuitName,
-    ROW_RCD_TYPE: deviceType,
-    ROW_RCD_AC_TYPE: "AC",
-    ROW_SELECTIVE: "NIE",
-    ROW_IAN: "30",
-    ROW_IA: "18",
-    ROW_TA: "300",
-    ROW_TRCD: "13",
-    ROW_UD: "2",
-    ROW_RS: "0,33",
-    ROW_TEST: "Zadziałał",
-    ROW_ASSESSMENT: "Pozytywna",
+    ROW_SYMBOL: rcd.symbol,
+    ROW_CIRCUIT_NAME: v.circuitName,
+    ROW_RCD_TYPE: rcd.deviceType,
+    ROW_RCD_AC_TYPE: v.rcdAcType,
+    ROW_SELECTIVE: v.selective,
+    ROW_IAN: v.ian,
+    ROW_IA: v.ia,
+    ROW_TA: v.ta,
+    ROW_TRCD: v.trcd,
+    ROW_UD: v.ud,
+    ROW_RS: v.rs,
+    ROW_TEST: v.testResult,
+    ROW_ASSESSMENT: v.assessment,
   };
 }
 
-/** Weryfikacja parity z preview.ts — etykiety wierszy muszą się zgadzać. */
+/** Parity etykiet + kluczowych wartości preview ↔ payload. */
 export function assertPreviewParity(measurement: ElectricalMeasurement): boolean {
-  const adsc = buildAdscPreview(measurement);
-  const resistance = buildResistancePreview(measurement);
-  const rcd = buildRcdPreview(measurement);
+  const adscPreview = buildAdscPreview(measurement);
+  const resistancePreview = buildResistancePreview(measurement);
+  const rcdPreview = buildRcdPreview(measurement);
+  const payload = buildElectricalMeasurementDocxPayload(measurement, { address: "", flatNumber: "" });
+  const internal = payload as EmDocxPayloadInternal;
+
+  const supplyRow = internal._adsc[0]?.rows[0];
+  const supply = resolveAdscSupplyValues(measurement);
+  if (!supplyRow || supplyRow.ROW_SUPPLY_ZS !== supply.zs) return false;
+  if (!adscPreview[0]?.includes(supply.zs)) return false;
+
   const circuits = sortedCircuits(measurement);
-  if (adsc[0] !== "1. Zasilanie") return false;
-  for (let i = 0; i < circuits.length; i++) {
-    const expected = `${circuits[i].sortOrder}. ${circuits[i].displayName}`;
-    if (adsc[i + 1] !== expected) return false;
-  }
-  if (resistance.length !== 1 + circuits.length) return false;
+  if (internal._adsc[1]?.rows.length !== circuits.length) return false;
+
+  if (resistancePreview.length !== 1 + circuits.length) return false;
+  if (rcdPreview.length !== measurement.rcds.length) return false;
+
   for (let i = 0; i < measurement.rcds.length; i++) {
     const r = measurement.rcds[i];
-    if (rcd[i] !== `${r.symbol} → ${r.deviceType}`) return false;
+    const v = resolveRcdValues(measurement, r);
+    const row = internal._rcd[0]?.rows[i];
+    if (!row || row.ROW_RS !== v.rs) return false;
+    if (!rcdPreview[i]?.includes(v.rs)) return false;
   }
   return true;
 }
@@ -227,25 +233,21 @@ export function buildElectricalMeasurementDocxPayload(
 ): ElectricalMeasurementDocxPayload {
   const scalars = buildBaseScalars(measurement, job, options);
   const circuits = sortedCircuits(measurement);
-  const resistanceLabels = buildResistancePreview(measurement);
-  const rcdCircuitName = defaultRcdCircuitName(measurement);
+  const resistanceLabels = resistanceRowLabels(measurement);
 
-  const adscSupply = buildAdscSupplyRow();
-  const adscCircuits = circuits.map((c) => buildAdscCircuitRow(c));
+  const adscSupply = buildAdscSupplyRow(measurement);
+  const adscCircuits = circuits.map((c) => buildAdscCircuitRow(measurement, c));
 
-  const resistanceSupply = buildResistanceSupplyRow(resistanceLabels[0] ?? "Obwód YDY 3x4mm²");
-  const resistanceCircuits = resistanceLabels.slice(1).map((label, i) =>
-    buildResistanceCircuitRow(i + 2, label),
+  const resistanceSupply = buildResistanceSupplyRow(measurement, resistanceLabels[0] ?? "Obwód YDY 3x4mm²");
+  const resistanceCircuits = circuits.map((c, i) =>
+    buildResistanceCircuitRow(measurement, i + 2, resistanceLabels[i + 1] ?? c.displayName, c),
   );
 
-  const rcdRows = measurement.rcds.map((r, i) =>
-    buildRcdRow(i + 1, r.symbol, r.deviceType, rcdCircuitName),
-  );
+  const rcdRows = measurement.rcds.map((r, i) => buildRcdRow(measurement, i + 1, r));
 
   return {
     scalars,
     rowSpecs: [],
-    /** Rozszerzone spec per dokument — ustawiane w generate-em-docx per kind */
     _adsc: [
       { marker: "ROW_SUPPLY_LP", rows: [adscSupply], substituteInPlace: true },
       { marker: "ROW_LP", rows: adscCircuits },

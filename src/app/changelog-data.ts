@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.33",
+    label: "Pomiary Elektryczne — EM-P1.5 Measurement Value Engine",
+    items: [
+      {
+        type: "new",
+        text: "WM Druk → Pomiary: silnik wartości pomiarowych — losowanie seed (raz przy utworzeniu / przeliczeniu), sekcja Wyniki pomiarów z korektą Zs/Rs, preview i DOCX ze zapisanych wartości",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.32",
     label: "Notatki operacyjne — P0-HOTFIX-002 read-state race",
     items: [

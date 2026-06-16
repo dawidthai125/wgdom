@@ -33,6 +33,62 @@ export interface ElectricalMeasurementRcd {
   deviceType: RcdDeviceType;
 }
 
+/** EM-P1.5 — wartości ADSC (zapisane po generowaniu / korekcie ręcznej). */
+export interface AdscMeasurementValues {
+  zs: string;
+  za: string;
+  inAmps: string;
+  iaAmps: string;
+  breakerType: BreakerType;
+  breakerLabel: string;
+  assessment: string;
+}
+
+/** EM-P1.5 — macierz rezystancji jednego wiersza tabeli. */
+export interface ResistanceMeasurementValues {
+  l1l2: string;
+  l2l3: string;
+  l1l3: string;
+  l1l2Alt: string;
+  l1pe: string;
+  l2pe: string;
+  l3pe: string;
+  l1n: string;
+  l2n: string;
+  l3n: string;
+  npe: string;
+  ra: string;
+  uIso: string;
+  assessment: string;
+}
+
+/** EM-P1.5 — parametry RCD jednego wiersza. */
+export interface RcdMeasurementValues {
+  circuitName: string;
+  rs: string;
+  ian: string;
+  ia: string;
+  ta: string;
+  trcd: string;
+  ud: string;
+  testResult: string;
+  assessment: string;
+  rcdAcType: string;
+  selective: string;
+}
+
+/** EM-P1.5 — zestaw wartości wygenerowanych raz (seed) i zapisywany w raporcie. */
+export interface ElectricalMeasurementValueSet {
+  v: 1;
+  seed: string;
+  generatedAt: string;
+  adscSupply: AdscMeasurementValues;
+  adscByCircuitId: Record<string, AdscMeasurementValues>;
+  resistanceSupply: ResistanceMeasurementValues;
+  resistanceByCircuitId: Record<string, ResistanceMeasurementValues>;
+  rcdByRcdId: Record<string, RcdMeasurementValues>;
+}
+
 export interface ElectricalMeasurement {
   id: string;
   jobId: string;
@@ -44,6 +100,8 @@ export interface ElectricalMeasurement {
   supplyType: SupplyType;
   circuits: ElectricalMeasurementCircuit[];
   rcds: ElectricalMeasurementRcd[];
+  /** Wartości pomiarowe — generowane raz, edytowalne ręcznie (EM-P1.5). */
+  valueSet?: ElectricalMeasurementValueSet;
   createdAt: string;
   updatedAt: string;
 }

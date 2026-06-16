@@ -126,10 +126,11 @@ const preview = buildElectricalMeasurementPreview(previewBase);
 assert(preview.summary.documentCount === EM_DOCUMENT_COUNT, "T07 documentCount = 5");
 assert(preview.summary.circuitCount === 2, "T07 circuitCount");
 assert(preview.summary.rcdCount === 1, "T07 rcdCount");
-assert(buildAdscPreview(previewBase)[0] === "1. Zasilanie", "T07 buildAdscPreview zasilanie");
+assert(buildAdscPreview(previewBase)[0].startsWith("1. Zasilanie"), "T07 buildAdscPreview zasilanie");
 assert(buildAdscPreview(previewBase).some((l) => l.includes("400V")), "T07 ADSC 400V");
 assert(buildResistancePreview(previewBase)[0].includes("5x4"), "T07 buildResistancePreview zasilanie");
-assert(buildRcdPreview(previewBase)[0] === "RCD1 → P302", "T07 buildRcdPreview");
+assert(buildRcdPreview(previewBase)[0].startsWith("RCD1 → P302"), "T07 buildRcdPreview");
+assert(preview.summary.hasGeneratedValues, "T07 hasGeneratedValues");
 assert(preview.adsc.length === previewBase.circuits.length + 1, "T07 bundle adsc");
 
 console.log("\n=== T08 job summary ===");

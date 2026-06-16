@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.32** · **P0-HOTFIX-002**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.33** · **EM-P1.5**
+
+## 2.59.33 — Pomiary Elektryczne EM-P1.5 (Measurement Value Engine)
+- Seed RNG: wartości ADSC/RCD/Rezystancja generowane raz, zapis w `valueSet`
+- UI: Wyniki pomiarów + Przelicz + korekta Zs/Rs · preview/DOCX ze zapisu
+- Smoke: `test-electrical-measurements-p15.mjs`
 
 ## 2.59.32 — Notatki operacyjne P0-HOTFIX-002 (read-state race)
 - Fix: `runCloudSync` push aux używa `aux.readState` / `aux.auditLog` po pull (nie stale closure)

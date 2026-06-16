@@ -8,6 +8,7 @@ import type {
   SupplyType,
 } from "@/lib/electrical-measurements/types";
 import { defaultCircuitDisplayName } from "@/lib/electrical-measurements/types";
+import { applyGeneratedValuesToMeasurement } from "@/lib/electrical-measurements/measurement-value-engine";
 
 export function localIsoDate(d = new Date()): string {
   const y = d.getFullYear();
@@ -28,7 +29,7 @@ function renumberCircuitSortOrder(circuits: ElectricalMeasurementCircuit[]): Ele
 
 export function createEmptyElectricalMeasurement(jobId: string): ElectricalMeasurement {
   const now = new Date().toISOString();
-  return {
+  const base: ElectricalMeasurement = {
     id: crypto.randomUUID(),
     jobId,
     reportNumber: "",
@@ -42,6 +43,12 @@ export function createEmptyElectricalMeasurement(jobId: string): ElectricalMeasu
     createdAt: now,
     updatedAt: now,
   };
+  return applyGeneratedValuesToMeasurement(base);
+}
+
+/** EM-P1.5 — ponowne losowanie (seed z id + numer raportu). */
+export function recalculateElectricalMeasurementValues(m: ElectricalMeasurement): ElectricalMeasurement {
+  return applyGeneratedValuesToMeasurement(m);
 }
 
 export function touchElectricalMeasurement(

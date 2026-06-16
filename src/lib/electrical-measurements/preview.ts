@@ -1,10 +1,18 @@
 import type { CircuitType, ElectricalMeasurement, SupplyType } from "@/lib/electrical-measurements/types";
 import { EM_DOCUMENT_COUNT } from "@/lib/electrical-measurements/types";
+import {
+  resolveAdscCircuitValues,
+  resolveAdscSupplyValues,
+  resolveRcdValues,
+  resolveResistanceCircuitValues,
+  resolveResistanceSupplyValues,
+} from "@/lib/electrical-measurements/measurement-value-engine";
 
 export interface ElectricalMeasurementPreviewSummary {
   documentCount: number;
   circuitCount: number;
   rcdCount: number;
+  hasGeneratedValues: boolean;
 }
 
 export interface JobElectricalMeasurementsSummary {
@@ -35,27 +43,51 @@ function circuitResistanceLabel(type: CircuitType, supplyType: SupplyType): stri
   return "Obwód Gniazd YDY 3x2,5mm²";
 }
 
-/** SSOT — ochrona przed porażeniem (ADSC). UI + EM-P1 DOCX. */
+function formatAdscLine(label: string, zs: string, za: string, inA: string, ia: string): string {
+  return `${label} — Zs=${zs} Ω, Za=${za} Ω, I=${inA} A, Ia=${ia} A`;
+}
+
+function formatResistanceLine(label: string, ra: string, l1n: string): string {
+  const parts = [`Ra=${ra} MΩ`];
+  if (l1n) parts.push(`L1-N=${l1n} MΩ`);
+  return `${label} — ${parts.join(", ")}`;
+}
+
+function formatRcdLine(symbol: string, deviceType: string, rs: string): string {
+  return `${symbol} → ${deviceType} — Rs=${rs} Ω`;
+}
+
+/** SSOT preview — tylko zapisane wartości (resolve, bez losowania). */
 export function buildAdscPreview(measurement: ElectricalMeasurement): string[] {
-  const lines: string[] = ["1. Zasilanie"];
+  const supply = resolveAdscSupplyValues(measurement);
+  const lines: string[] = [
+    formatAdscLine("1. Zasilanie", supply.zs, supply.za, supply.inAmps, supply.iaAmps),
+  ];
   for (const c of sortedCircuits(measurement)) {
-    lines.push(`${c.sortOrder}. ${c.displayName}`);
+    const v = resolveAdscCircuitValues(measurement, c);
+    lines.push(formatAdscLine(`${c.sortOrder}. ${c.displayName}`, v.zs, v.za, v.inAmps, v.iaAmps));
   }
   return lines;
 }
 
-/** SSOT — rezystancja obwodów. UI + EM-P1 DOCX. */
 export function buildResistancePreview(measurement: ElectricalMeasurement): string[] {
-  const lines: string[] = [supplyResistanceLabel(measurement.supplyType)];
+  const supplyLabel = supplyResistanceLabel(measurement.supplyType);
+  const supply = resolveResistanceSupplyValues(measurement);
+  const lines: string[] = [formatResistanceLine(supplyLabel, supply.ra, supply.l1n)];
+
   for (const c of sortedCircuits(measurement)) {
-    lines.push(circuitResistanceLabel(c.type, measurement.supplyType));
+    const label = circuitResistanceLabel(c.type, measurement.supplyType);
+    const v = resolveResistanceCircuitValues(measurement, c);
+    lines.push(formatResistanceLine(label, v.ra, v.l1n));
   }
   return lines;
 }
 
-/** SSOT — parametry RCD. UI + EM-P1 DOCX. */
 export function buildRcdPreview(measurement: ElectricalMeasurement): string[] {
-  return measurement.rcds.map((r) => `${r.symbol} → ${r.deviceType}`);
+  return measurement.rcds.map((r) => {
+    const v = resolveRcdValues(measurement, r);
+    return formatRcdLine(r.symbol, r.deviceType, v.rs);
+  });
 }
 
 export function buildElectricalMeasurementPreviewSummary(
@@ -65,10 +97,10 @@ export function buildElectricalMeasurementPreviewSummary(
     documentCount: EM_DOCUMENT_COUNT,
     circuitCount: measurement.circuits.length,
     rcdCount: measurement.rcds.length,
+    hasGeneratedValues: measurement.valueSet != null,
   };
 }
 
-/** Podsumowanie job — widoczne w panelu nawet przy zwiniętej liście raportów. */
 export function buildJobElectricalMeasurementsSummary(
   reports: ElectricalMeasurement[],
 ): JobElectricalMeasurementsSummary {
@@ -88,4 +120,13 @@ export function buildElectricalMeasurementPreview(
     resistance: buildResistancePreview(measurement),
     rcd: buildRcdPreview(measurement),
   };
+}
+
+/** Etykiety wierszy rezystancji (DOCX ROW_CIRCUIT_NAME) — bez wartości. */
+export function resistanceRowLabels(measurement: ElectricalMeasurement): string[] {
+  const lines: string[] = [supplyResistanceLabel(measurement.supplyType)];
+  for (const c of sortedCircuits(measurement)) {
+    lines.push(circuitResistanceLabel(c.type, measurement.supplyType));
+  }
+  return lines;
 }

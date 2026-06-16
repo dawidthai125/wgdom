@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, FileDown, Gauge, Loader2, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, FileDown, Gauge, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
 import type { Job } from "@/app/app-domain";
 import { filterElectricalMeasurementsForJob } from "@/lib/electrical-measurements/merge";
 import {
@@ -16,6 +16,7 @@ import {
   addElectricalMeasurementCircuit,
   addElectricalMeasurementRcd,
   createEmptyElectricalMeasurement,
+  recalculateElectricalMeasurementValues,
   removeElectricalMeasurementCircuit,
   removeElectricalMeasurementRcd,
   touchElectricalMeasurement,
@@ -23,6 +24,15 @@ import {
   updateElectricalMeasurementRcd,
   upsertElectricalMeasurement,
 } from "@/lib/electrical-measurements/report";
+import {
+  hasGeneratedMeasurementValues,
+  patchAdscCircuitValues,
+  patchAdscSupplyValues,
+  patchRcdValues,
+  resolveAdscCircuitValues,
+  resolveAdscSupplyValues,
+  resolveRcdValues,
+} from "@/lib/electrical-measurements/measurement-value-engine";
 import type { ElectricalMeasurement } from "@/lib/electrical-measurements/types";
 import {
   BREAKER_TYPES,
@@ -366,6 +376,87 @@ export function JobElectricalMeasurementsPanel({
                 )}
               </section>
 
+              <section className="space-y-2 rounded-lg border border-primary/25 bg-primary/5 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="text-xs font-semibold text-foreground">5. Wyniki pomiarów</h4>
+                  <button
+                    type="button"
+                    onClick={() => selected && persist(recalculateElectricalMeasurementValues(selected))}
+                    className="text-[11px] text-primary flex items-center gap-1 hover:underline font-medium"
+                    title="Ponowne losowanie wartości (seed raportu)"
+                  >
+                    <RefreshCw size={11} />
+                    Przelicz wartości
+                  </button>
+                </div>
+                {!hasGeneratedMeasurementValues(selected) ? (
+                  <p className="text-[11px] text-muted-foreground">
+                    Brak wygenerowanych wartości — kliknij „Przelicz wartości”.
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-[10px] text-muted-foreground">
+                      Wygenerowano: {new Date(selected.valueSet!.generatedAt).toLocaleString("pl-PL")}
+                      {selected.circuits.length !== Object.keys(selected.valueSet!.adscByCircuitId).length && (
+                        <span className="text-amber-600 dark:text-amber-400 ml-1">
+                          · Dodano obwody — przelicz wartości
+                        </span>
+                      )}
+                    </p>
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-medium text-muted-foreground">ADSC — Zs [Ω]</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[10px] text-muted-foreground w-24 shrink-0">Zasilanie</span>
+                        <input
+                          type="text"
+                          value={resolveAdscSupplyValues(selected).zs}
+                          onChange={(e) =>
+                            persist(patchAdscSupplyValues(selected, { zs: e.target.value }))
+                          }
+                          className="w-16 text-xs rounded border border-border bg-background px-2 py-1 font-mono"
+                        />
+                      </div>
+                      {sortedCircuits.map((c) => (
+                        <div key={c.id} className="flex flex-wrap items-center gap-2">
+                          <span className="text-[10px] text-muted-foreground w-24 shrink-0 truncate" title={c.displayName}>
+                            #{c.sortOrder} {c.displayName}
+                          </span>
+                          <input
+                            type="text"
+                            value={resolveAdscCircuitValues(selected, c).zs}
+                            onChange={(e) =>
+                              persist(patchAdscCircuitValues(selected, c.id, { zs: e.target.value }))
+                            }
+                            className="w-16 text-xs rounded border border-border bg-background px-2 py-1 font-mono"
+                          />
+                          <span className="text-[10px] text-muted-foreground">
+                            Za={resolveAdscCircuitValues(selected, c).za} · I={resolveAdscCircuitValues(selected, c).inAmps}A
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {selected.rcds.length > 0 && (
+                      <div className="space-y-2 pt-1">
+                        <p className="text-[10px] font-medium text-muted-foreground">RCD — Rs [Ω]</p>
+                        {selected.rcds.map((r) => (
+                          <div key={r.id} className="flex flex-wrap items-center gap-2">
+                            <span className="text-[10px] text-muted-foreground w-16 shrink-0">{r.symbol}</span>
+                            <input
+                              type="text"
+                              value={resolveRcdValues(selected, r).rs}
+                              onChange={(e) =>
+                                persist(patchRcdValues(selected, r.id, { rs: e.target.value }))
+                              }
+                              className="w-16 text-xs rounded border border-border bg-background px-2 py-1 font-mono"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </section>
+
               {preview && (
                 <>
                   <section className="space-y-2 rounded-lg border border-border p-3">
@@ -398,7 +489,7 @@ export function JobElectricalMeasurementsPanel({
                   </section>
 
                   <section className="space-y-3 rounded-lg border border-dashed border-border bg-secondary/20 p-3">
-                    <h4 className="text-xs font-semibold text-foreground">Podgląd (tylko odczyt)</h4>
+                    <h4 className="text-xs font-semibold text-foreground">Podgląd (zapisane wartości)</h4>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
                       <span>Liczba dokumentów: {preview.summary.documentCount}</span>
                       <span>Liczba obwodów: {preview.summary.circuitCount}</span>

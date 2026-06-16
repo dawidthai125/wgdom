@@ -158,7 +158,7 @@ assert(assertPreviewParity(mAdsc), "T07 assertPreviewParity");
 const payload = buildElectricalMeasurementDocxPayload(mAdsc, JOB);
 assert(payload.scalars.RAP_NO === "RAP-43-2026", "T07 payload RAP_NO");
 const adscPreview = buildAdscPreview(mAdsc);
-assert(adscPreview.includes("2. Obwód gniazd 230V"), "T07 adsc preview line");
+assert(adscPreview.some((l) => l.includes("Obwód gniazd 230V")), "T07 adsc preview line");
 
 console.log("\n=== T08 many circuits ===");
 const mMany = buildSampleMeasurement({ circuits: 7, rcds: 2, reportNumber: "RAP-99-2026" });
