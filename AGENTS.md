@@ -9,16 +9,17 @@
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
 2. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (START dla nowego agenta)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.59.25)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.59.44)
 4. docs/MASTER-HANDOFF-POST-ZI-2026.md  ← POST ZI · WM Druk COMPLETE
-5. docs/ZI-2026-HANDOFF.md  ← ZI Tauron 2026 prod SSOT
-6. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← Odbiory WM Druk
-7. CURRENT-TASK.md        ← status sesji
-8. docs/WORKFLOW-RELEASE-DEPLOY.md  ← release/deploy + VERIFY
-9. docs/ARCHITECTURE.md   ← pełna architektura (§ 11 sync · § 12.1.8 WM Druk · § 15.1 widoki)
-10. PROJECT-GUIDE.md      ← skrót + Known Issues
-11. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← Notatki operacyjne
-12. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← P3 wycena · BZP
+5. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md  ← ★★ Pomiary Elektryczne EM-P1R
+6. docs/ZI-2026-HANDOFF.md  ← ZI Tauron 2026 prod SSOT
+7. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← Odbiory WM Druk
+8. CURRENT-TASK.md        ← status sesji
+9. docs/WORKFLOW-RELEASE-DEPLOY.md  ← release/deploy + VERIFY
+10. docs/ARCHITECTURE.md   ← § 12.1.8 WM Druk · § 12.1.10 EM · § 15.1 widoki
+11. PROJECT-GUIDE.md      ← skrót + Known Issues
+12. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← Notatki operacyjne
+13. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← P3 wycena · BZP
 … (pozostałe handoffy tematyczne — patrz § 1 poniżej)
 ```
 
@@ -49,6 +50,7 @@
 | **docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md** | **★★ P3 wycena · BZP pipeline · P3.6 filtry · P1 WM** (2.56.0–2.56.10) |
 | **docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md** | **★★ P2-H dokumenty / ZIP / 7Z / Marketplanet** (H.1–H.6 CLOSED) |
 | **docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md** | **★★ UX.1 Tender Workspace CLOSED** (2.53.1–2.53.4) — 5 tabs, lazy render, Anti-CC, ARCH-001 |
+| **docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md** | **★★ Pomiary Elektryczne EM-P1R** — DOCX SSOT Word · rejestr RAP · katalog |
 | **docs/PROJECT-HANDOFF-CURRENT.md** | **★ SSOT baseline prod** — wersja, commity, releasy po 20.5Z, decyzje |
 | **docs/SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md** | **★ Pre-next-feature** — 5A/5B, backup, storage, komendy |
 | **docs/BACKUP-REPORT-2.50.64.md** | Pre-feature backup v2.50.64 — artefakty, PASS/FAIL |
@@ -133,8 +135,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.59.25**) |
-| Prod `main` (app) | **v2.59.25** · WM Druk COMPLETE · **ZI Tauron 2026 PRODUCTION STABLE** · Notatki COMPLETE · P3.6 + P1 WM |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.59.44**) |
+| Prod `main` (app) | **v2.59.44** · EM-P1R COMPLETE · WM Druk COMPLETE · ZI 2026 STABLE |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
 | Dashboard V2 docs | [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md) |

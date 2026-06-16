@@ -2,6 +2,11 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.44** · **EM-P1R-HF001**
 
+## 2.59.44 — Docs: EM handoff + agent onboarding (no code change)
+
+- **docs:** `SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md` — SSOT modułu EM dla agentów AI
+- **docs:** PROJECT-HANDOFF-CURRENT, CURRENT-TASK, ARCHITECTURE §12.1.10, AGENT-ONBOARDING, AGENTS.md
+
 ## 2.59.44 — Pomiary Elektryczne EM-P1R-HOTFIX-001 (ADDRESS parity)
 
 - **fix:** 4 szablony pomiarowych — `Miejsce pomiaru: {{ADDRESS}}` zamiast hardcoded Sępa 83/7

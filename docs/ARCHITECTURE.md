@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-16 (EM-P0 final · v2.59.28 · § 12.1.10)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-16 (EM-P1R **v2.59.44** · § 12.1.10 Pomiary Elektryczne)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1390,9 +1390,11 @@ generate-zip.ts → buildWmPrintFilesForJob()
 
 ---
 
-### 12.1.10 Pomiary Elektryczne (`JobElectricalMeasurementsPanel`, v2.59.28)
+### 12.1.10 Pomiary Elektryczne (`WmPrintView` · `JobElectricalMeasurementsPanel`, v2.59.44)
 
-**Status:** **EM-P0 FOUNDATION COMPLETE** · model + UI + preview SSOT · **bez DOCX/ZIP/WM Druk**
+**Status:** **EM-P0→P1R COMPLETE** · generator DOCX **PRODUCTION STABLE** · szablony Word SSOT
+
+**Handoff SSOT:** [`SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md)
 
 **Domena:** `src/lib/electrical-measurements/*`
 
@@ -1402,23 +1404,30 @@ generate-zip.ts → buildWmPrintFilesForJob()
 | `normalize.ts` | Parse — uzupełnia `displayName`/`sortOrder` dla starych rekordów |
 | `merge.ts` | Merge LWW per `id`, filter per `jobId` |
 | `report.ts` | CRUD raportów, obwodów (z sortOrder), RCD |
-| `preview.ts` | **SSOT** — `buildAdscPreview` · `buildResistancePreview` · `buildRcdPreview` · `buildJobElectricalMeasurementsSummary` |
-| `sync.ts` | Push `kw-electrical-measurements` |
-| `generate-em-docx.ts` | **STUB** — TODO EM-P1 |
+| `preview.ts` | **SSOT etykiet** — `buildAdscPreview` · `buildResistancePreview` · `buildRcdPreview` |
+| `measurement-value-engine.ts` | **SSOT wartości** — seed, Zs/Rs, oceny (EM-P1.5) |
+| `em-docx-payload.ts` | `buildElectricalMeasurementDocxPayload` — `scalars.ADDRESS = jobDisplayTitle(job)` |
+| `em-docx-xml.ts` | Substitute `{{PLACEHOLDER}}` + `expandEmDocxTemplateRows` |
+| `generate-em-docx.ts` | Orkiestracja 5 dokumentów DOCX |
+| `registry.ts` | Rejestr RAP (1 numer ↔ 1 robota) |
+| `measurement-catalog.ts` | Katalog Pomiarów (WM Druk) |
+| `measurement-catalog-zip.ts` | ZIP katalogu + integracja WM Druk odbiorowy |
+| `sync.ts` | Push `kw-electrical-measurements` + registry + settings |
 
-**Circuit model (EM-P1-ready):** `id`, `type`, `breakerType`, **`displayName`**, **`sortOrder`** (2+; 1 = Zasilanie w ADSC).
+**Szablony:** `public/em-measurements/*.template.docx` (5 plików · Desktop Word SSOT · EM-P1R)  
+**Regeneracja:** `node scripts/templatize-em-p1r-from-ssot.mjs` · **RETIRED:** `build-em-docx-templates.mjs`
+
+**Circuit model:** `id`, `type`, `breakerType`, **`displayName`**, **`sortOrder`** (2+; 1 = Zasilanie w ADSC).
 
 **Model:** `ElectricalMeasurement` — **wiele raportów na jedną robotę** (`jobId` bez unique).
 
-**Klucz KV:** `kw-electrical-measurements`
+**Klucze KV:** `kw-electrical-measurements` · `kw-electrical-measurement-registry` · `kw-electrical-measurement-settings`
 
-**UI:** Roboty → **Pomiary Elektryczne** — job summary (Raporty/Obwody/RCD) zawsze widoczne · zwijanie szczegółów · preview tylko renderuje wynik `preview.ts`.
+**UI:** WM Druk → **Pomiary** (pełny UI) · Roboty → **Pomiary Elektryczne** (skrót + deep link)
 
-**Smoke:** `test-electrical-measurements-p0.mjs`
+**Smoke:** `test-electrical-measurements-p1.mjs` · `test-em-p1r-visual-smoke.mjs` · `test-em-p1r-hotfix-001-address-parity.mjs`
 
-**EM-P1 (OPEN):** generator DOCX korzysta z tych samych funkcji preview.
-
-**Nie zmieniaj bez polecenia:** semantyka wielu raportów per job, preview SSOT, brak integracji WM Druk w P0.
+**Nie zmieniaj bez polecenia:** preview SSOT, value engine, kontrakt placeholderów P1.5, szablony Word 1:1 layout, semantyka rejestru RAP/TEST-RAP.
 
 ---
 

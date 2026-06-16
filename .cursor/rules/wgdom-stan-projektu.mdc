@@ -12,10 +12,10 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.59.25** (prod) · **WM Druk COMPLETE · ZI Tauron 2026 PRODUCTION STABLE**
-- **Prod (`main` / `origin/main`, app):** **`2b03c9d`** (2.59.25) · https://www.wgdom.fun
+- **Aktualna wersja UI:** **2.59.44** (prod) · **EM-P1R COMPLETE** · **WM Druk COMPLETE · ZI Tauron 2026 STABLE**
+- **Prod (`main` / `origin/main`, app):** **`26251ff`** (2.59.44) · https://www.wgdom.fun
 - **★★ Master handoff POST ZI:** [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](../../docs/MASTER-HANDOFF-POST-ZI-2026.md)
-- **★★ Handoff Odbiory WM Druk:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](../../docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) — P0 pollution CLOSED · **ZI Tauron 2026 STABLE**
+- **★★ Handoff Pomiary Elektryczne (EM-P1R):** [`docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](../../docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md) — DOCX SSOT Word · rejestr RAP · katalog · ZIP odbiorowy
 - **★★ SSOT ZI prod:** [`docs/ZI-2026-HANDOFF.md`](../../docs/ZI-2026-HANDOFF.md) · walidacja: [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md)
 - **★★ Historyczne RCA LiveCycle:** [`audit/ZI-FINAL-HANDOFF.md`](../../audit/ZI-FINAL-HANDOFF.md) — superseded by ZI 2026
 - **★★ Handoff Notatki operacyjne (COMPLETE):** [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](../../docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md) — P0→P2C+HF · KV · ACL · testy · backlog P3
@@ -132,6 +132,28 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
  **Kluczowe pliki:** `WmPrintView.tsx`, `generate-pdf-zi-tauron2026.ts`, `generate-zip.ts`, `wm-print-sync.ts`
  
  **Nie** wracać do LiveCycle/ciphertext/AP/overlay/flatten bez nowego dowodu.
+ 
+ ---
+ 
+ ## Pomiary Elektryczne — EM-P1R COMPLETE (prod `26251ff`, v2.59.44, 2026-06-16)
+ 
+ **Status:** **EM-P0→P1R COMPLETE** · generator 5× DOCX **PRODUCTION STABLE** · szablony Word Desktop SSOT
+ 
+ | Etap | Wersja | Skrót |
+ |---|-----|----|
+ | P0 Foundation | 2.59.28 | model + preview SSOT |
+ | P1B/P1.5 | 2.59.30–33 | generator DOCX + value engine |
+ | P1.6/P1.7 | 2.59.34–36, 42 | rejestr RAP + registry repair |
+ | EM-UX-001 | 2.59.31 | UI → WM Druk zakładka Pomiary |
+ | P2/P3 | 2.59.37–41 | katalog + ZIP odbiorowy + INDEX-POMIARY |
+ | **EM-P1R** | **2.59.43** | szablony z oryginalnych Word (nie build-em-docx-templates) |
+ | **HF001** | **2.59.44** | ADDRESS parity — `{{ADDRESS}}` we wszystkich 5 DOCX |
+ 
+ **Handoff:** [`docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](../../docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md) · **ARCHITECTURE § 12.1.10**
+ 
+ **Kluczowe pliki:** `src/lib/electrical-measurements/*`, `public/em-measurements/*.template.docx`, `templatize-em-p1r-from-ssot.mjs`
+ 
+ **Nie** używać `build-em-docx-templates.mjs` · **Nie** zmieniać layout szablonów 1:1 bez audytu.
  
  ---
  

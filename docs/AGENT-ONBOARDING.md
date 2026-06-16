@@ -1,7 +1,7 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.59.25** · https://www.wgdom.fun · **POST ZI-2026** · WM Druk **COMPLETE**
+> **Prod:** **2.59.44** · https://www.wgdom.fun · **POST ZI-2026** · WM Druk **COMPLETE** · EM-P1R **COMPLETE**
 
 ---
 
@@ -11,11 +11,12 @@
 1. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
 2. docs/PROJECT-HANDOFF-CURRENT.md    ← baseline prod, commity, releasy
 3. docs/MASTER-HANDOFF-POST-ZI-2026.md ← skrót POST ZI · WM Druk COMPLETE
-4. docs/ZI-2026-HANDOFF.md            ← SSOT generatora ZI Tauron 2026
-5. CURRENT-TASK.md                    ← status sesji / backlog
-6. docs/ARCHITECTURE.md               ← pełna architektura (living document)
-7. AGENTS.md                          ← workflow, zakazy, lista handoffów
-8. docs/WORKFLOW-RELEASE-DEPLOY.md    ← release A/B/C + VERIFY FAST
+4. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md ← ★★ Pomiary Elektryczne EM-P1R
+5. docs/ZI-2026-HANDOFF.md            ← SSOT generatora ZI Tauron 2026
+6. CURRENT-TASK.md                    ← status sesji / backlog
+7. docs/ARCHITECTURE.md               ← pełna architektura (living document)
+8. AGENTS.md                          ← workflow, zakazy, lista handoffów
+9. docs/WORKFLOW-RELEASE-DEPLOY.md    ← release A/B/C + VERIFY FAST
 ```
 
 **Hasło użytkownika „kontynuuj WGDOM”:** dodatkowo `.cursor/rules/wgdom-stan-projektu.mdc`.
@@ -76,7 +77,7 @@ Pełna tabela: **ARCHITECTURE.md § 15.1**.
 | `jobs` | Roboty | `JobsView.tsx` |
 | `operationalnotes` | Notatki operacyjne | `OperationalNotesView.tsx` |
 | `tenders` | Przetargi | `TendersModule.tsx` (5 zakładek) |
-| `wmprint` | Odbiory WM Druk | `WmPrintView.tsx` |
+| `wmprint` | Odbiory WM Druk + **Pomiary** | `WmPrintView.tsx` |
 | `recoverablecharges` | Do rozliczenia | `RecoverableChargesView.tsx` |
 | `media` | Zdjęcia i pliki | `MediaView.tsx` |
 | `inspector` | Inspektor (admin feed) | `InspectorAdminView.tsx` |
@@ -100,6 +101,36 @@ Router: `AdminViewRouter.tsx` · mobile: `mobile.css`, bottom nav 4 pozycje.
 | Bootstrap | `CloudLoader.tsx` — P11 payroll, P15 admin passwords |
 
 **Incydenty:** `docs/INCIDENTS-2026-06.md`
+
+---
+
+## 6b. Moduł Pomiary Elektryczne (EM) — EM-P1R COMPLETE
+
+**Status:** **PRODUCTION STABLE** · v2.59.30–**2.59.44** · generator 5× DOCX Word SSOT
+
+| Dokument | Rola |
+|----------|------|
+| [`SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md) | **★★ SSOT modułu EM** |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.10 | Architektura techniczna |
+| [`audit/EM-P1R-TEMPLATE-REBUILD-REPORT.md`](../audit/EM-P1R-TEMPLATE-REBUILD-REPORT.md) | Raport P1R |
+| [`audit/EM-P1R-HOTFIX-001-ADDRESS-PARITY-REPORT.md`](../audit/EM-P1R-HOTFIX-001-ADDRESS-PARITY-REPORT.md) | Fix adresu |
+
+### Kluczowe pliki
+
+```text
+src/lib/electrical-measurements/     domena (preview, payload, DOCX, registry)
+public/em-measurements/*.template.docx   szablony Word (Desktop SSOT)
+scripts/templatize-em-p1r-from-ssot.mjs  regeneracja szablonów
+```
+
+### Smoke EM
+
+```bash
+npx vite-node scripts/test-electrical-measurements-p1.mjs
+npx vite-node scripts/test-em-p1r-hotfix-001-address-parity.mjs
+```
+
+**Nie ruszać:** `build-em-docx-templates.mjs` (retired) · layout szablonów 1:1 · `preview.ts` / value engine SSOT
 
 ---
 
@@ -238,4 +269,4 @@ curl -s https://www.wgdom.fun/version.json   # VERIFY FAST
 
 ---
 
-*Ostatnia aktualizacja: 2026-06-16 · POST ZI-2026 · v2.59.25*
+*Ostatnia aktualizacja: 2026-06-16 · EM-P1R v2.59.44 · POST ZI-2026*

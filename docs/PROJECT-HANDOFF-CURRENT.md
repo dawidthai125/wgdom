@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-16 (POST ZI-2026 · prod **2.59.25** · **PRODUCTION VERIFIED**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-16 (EM-P1R **2.59.44** · WM Druk **2.59.25** · **PRODUCTION VERIFIED**)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -11,16 +11,17 @@
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
 2. docs/MASTER-HANDOFF-POST-ZI-2026.md    ← ★★ skrót POST ZI-2026 (WM Druk COMPLETE)
 3. docs/ZI-2026-HANDOFF.md              ← ★★★ ZI Tauron 2026 prod SSOT
-4. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (COMPLETE)
-5. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← ★★ Notatki operacyjne P0→HF (COMPLETE)
-6. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM
-7. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
-8. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← ★★ UX.1A/1B workspace + ARCH-001
-9. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← P2-F kwalifikacja ofertowa (COMPLETE)
-10. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
-11. CURRENT-TASK.md                         ← status sesji / wznowienie
-12. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
-13. AGENTS.md → docs/ARCHITECTURE.md § 12.1.8 WM Druk · § Notatki · § 12.1.1–12.1.7
+4. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md  ← ★★ Pomiary Elektryczne EM-P1R (2.59.44)
+5. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (COMPLETE)
+6. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← ★★ Notatki operacyjne P0→HF (COMPLETE)
+7. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM
+8. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
+9. docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md  ← ★★ UX.1A/1B workspace + ARCH-001
+10. docs/SESSION-HANDOFF-P2-F-TENDER-QUALIFICATION.md  ← P2-F kwalifikacja ofertowa (COMPLETE)
+11. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
+12. CURRENT-TASK.md                         ← status sesji / wznowienie
+13. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
+14. AGENTS.md → docs/ARCHITECTURE.md § 12.1.8 WM Druk · § 12.1.10 EM · § Notatki
 ```
 
 ---
@@ -31,6 +32,7 @@
 |------|--------|--------|------|
 | **Odbiory WM Druk P0 infra** | 2.59.15–**2.59.19** | **CLOSED** (pollution/KV/runtime) | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) |
 | **ZI Tauron 2026** | **2.59.22–2.59.25** | **PRODUCTION STABLE** · preservation + §4 + P0.5B housekeeping | [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) |
+| **Pomiary Elektryczne EM-P1R** | **2.59.30–2.59.44** | **COMPLETE** · DOCX SSOT Word · rejestr RAP · katalog · ZIP odbiorowy | [`SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md) |
 | **ZI LiveCycle 2021** | — | **CLOSED** · tombstone `26f02c78…` | [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md) |
 | **P3 Wycena · Baza cen · filtry** | 2.56.0–**2.56.10** (`7acbecf`) | **P3.0–P3.6 CLOSED** | [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) |
 | **Notatki operacyjne** | **2.57.0–2.58.1** (`1f8e2bd`) | **COMPLETE** (P0→P2C+HF) · P3 Export OPEN | [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](SESSION-HANDOFF-OPERATIONAL-NOTES.md) |
@@ -51,6 +53,7 @@ Roboty
 Notatki operacyjne          ← COMPLETE v2.58.1 (admin · ACK · widget · audit · inspektor · backup)
 Do Rozliczenia
 Przetargi (+ Karta ofertowa P2-F, Wycena P3, Baza cen, Profil wykonawcy)
+WM Druk (+ Pomiary Elektryczne, Katalog RAP, ZIP odbiorowy)   ← EM-P1R v2.59.44
 ```
 
 **Przetargi 3.0** — zakładki: Lista · Strategia · Mapa · Profil firmy · **Baza cen** · Ustawienia.  
@@ -76,8 +79,11 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (repo / prod):      2.59.25       ← POST ZI-2026 · P0.5B housekeeping
-Feature commit (prod):      2b03c9d        v2.59.25 wm-print-pdf-fonts/static split
+Version (repo / prod):      2.59.44       ← EM-P1R-HF001 ADDRESS parity
+Feature commit (prod):      26251ff        v2.59.44 EM templates {{ADDRESS}} fix
+EM-P1R templates:           d6268b1        v2.59.43 SSOT Word rebuild
+EM-P1.6C registry:         b79c949        v2.59.42 registry repair V2
+POST ZI / WM Druk baseline:  2b03c9d        v2.59.25 wm-print housekeeping
 WM Druk P0.5B:              2b03c9d        v2.59.25 housekeeping (zero behavior change)
 WM Druk tombstone:          65051a3        v2.59.24 tombstone sync + legacy ZI KV cleanup
 DOCX title layout:          26a553b        v2.59.24 szablony Oświadczenia (KV only)
@@ -118,8 +124,9 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 | Status | Wartość |
 |--------|---------|
-| **RELEASE GO (2.59.25)** | **TAK** — POST ZI-2026 · WM Druk COMPLETE |
-| **RELEASED (prod)** | **2.59.25** — verify `version.json` |
+| **RELEASE GO (2.59.44)** | **TAK** — EM-P1R + HF001 |
+| **RELEASED (prod)** | **2.59.44** — verify `version.json` |
+| **Pomiary Elektryczne** | **COMPLETE** EM-P0→P1R · **PRODUCTION STABLE** (DOCX SSOT Word) |
 | **STABLE** | TAK (moduł wmprint · ZI 2026 · P0.5B) |
 | **PRODUCTION VERIFIED** | TAK — [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) |
 | **WM Druk P0 infra** | **CLOSED** (2.59.15–2.59.19) |
@@ -145,7 +152,7 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.59.25" }
+# oczekiwane: { "version": "2.59.44" }
 ```
 
 ---
