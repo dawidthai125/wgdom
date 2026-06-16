@@ -46,6 +46,7 @@ import {
   getWmPrintJobDocumentsForJob,
 } from "@/lib/wm-print/job-documents";
 import { downloadWmPrintTemplateFileGenerated, downloadWmPrintZip } from "@/lib/wm-print/generate-zip";
+import { getProductionMeasurementForJob } from "@/lib/electrical-measurements/measurement-catalog";
 import {
   addWmPrintTemplateFile,
   addWmPrintTemplateFiles,
@@ -207,6 +208,20 @@ export function WmPrintView({
 
   const selectedJob = selectedJobId ? jobs.find((j) => j.id === selectedJobId) ?? null : null;
   const selectedJobDocs = selectedJob ? getWmPrintJobDocumentsForJob(jobDocs, selectedJob.id) : [];
+
+  const activeProductionMeasurement = useMemo(
+    () =>
+      selectedJob
+        ? getProductionMeasurementForJob(electricalMeasurements, electricalMeasurementRegistry, selectedJob.id)
+        : null,
+    [selectedJob, electricalMeasurements, electricalMeasurementRegistry],
+  );
+
+  const [includeMeasurementsInZip, setIncludeMeasurementsInZip] = useState(false);
+
+  useEffect(() => {
+    setIncludeMeasurementsInZip(activeProductionMeasurement != null);
+  }, [selectedJob?.id, activeProductionMeasurement]);
 
   const selectionCount = useMemo(
     () => countWmPrintTemplateSelection(templates, selectedTemplateIds),
@@ -379,12 +394,21 @@ export function WmPrintView({
       normalizedSettings,
       genOpts(),
       [...selectedTemplateIds],
+      {
+        includeMeasurements: includeMeasurementsInZip,
+        measurements: electricalMeasurements,
+        registry: electricalMeasurementRegistry,
+      },
     );
     setBusy(false);
     if (res.ok) {
       const { userId, userName } = historyActor();
       recordHistory(buildWmPrintHistoryZipEntry(job, userId, userName));
-      toast.success("Pobrano paczkę ZIP");
+      toast.success(
+        res.pomiaryCount && res.pomiaryCount > 0
+          ? `Pobrano paczkę ZIP (Odbiory + ${res.pomiaryCount} pomiarów)`
+          : "Pobrano paczkę ZIP",
+      );
     } else toast.error(res.error || "Błąd generowania ZIP");
   };
 
@@ -640,6 +664,26 @@ export function WmPrintView({
                       />
                     )}
                   </div>
+
+                  <label className="flex items-start gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5"
+                      checked={includeMeasurementsInZip}
+                      disabled={!activeProductionMeasurement || busy}
+                      onChange={(e) => setIncludeMeasurementsInZip(e.target.checked)}
+                    />
+                    <span>
+                      Dołącz dokumenty pomiarowe
+                      {activeProductionMeasurement ? (
+                        <span className="block text-xs text-muted-foreground font-mono">
+                          {activeProductionMeasurement.reportNumber} → folder Pomiary/
+                        </span>
+                      ) : (
+                        <span className="block text-xs text-muted-foreground">Brak aktywnego RAP produkcyjnego</span>
+                      )}
+                    </span>
+                  </label>
 
                   <div className="flex flex-col gap-2">
                     <button

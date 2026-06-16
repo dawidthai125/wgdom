@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.40",
+    label: "Pomiary Elektryczne — EM-P3 integracja ZIP odbiorowy WM Druk",
+    items: [
+      {
+        type: "new",
+        text: "WM Druk → Odbiory → Generuj komplet (ZIP): opcjonalnie folder Pomiary/ z 5× DOCX aktywnego RAP (TEST-RAP ignorowany)",
+      },
+      {
+        type: "improve",
+        text: "Paczka odbiorowa: struktura Odbiory/ + Pomiary/, checkbox „Dołącz dokumenty pomiarowe” (domyślnie ON gdy aktywny RAP)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.39",
     label: "Pomiary Elektryczne — EM-P3A Katalog UX + Rejestr RAP",
     items: [

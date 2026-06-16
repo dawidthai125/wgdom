@@ -11,6 +11,7 @@ import type {
   ElectricalMeasurementRegistryStatus,
 } from "@/lib/electrical-measurements/types";
 import { getRegistryEntryForJob, parseRapNumber } from "@/lib/electrical-measurements/registry";
+import { filterElectricalMeasurementsForJob } from "@/lib/electrical-measurements/merge";
 import { isTestMeasurement, parseTestReportNumber } from "@/lib/electrical-measurements/test-report";
 import { catalogZipFolderName } from "@/lib/electrical-measurements/measurement-docx-names";
 
@@ -283,6 +284,35 @@ export function rapRegistryAvailableYears(rows: RapRegistryRow[]): number[] {
   const years = new Set<number>();
   for (const r of rows) years.add(r.year);
   return [...years].sort((a, b) => b - a);
+}
+
+/**
+ * EM-P3 — aktywny raport produkcyjny roboty (bez TEST-RAP, bez ANULOWANY registry).
+ * SSOT lookup dla ZIP odbiorowego WM Druk.
+ */
+export function getProductionMeasurementForJob(
+  measurements: ElectricalMeasurement[],
+  registry: ElectricalMeasurementRegistryState,
+  jobId: string,
+): ElectricalMeasurement | null {
+  if (!jobId) return null;
+  const reg = getRegistryEntryForJob(registry, jobId);
+  if (reg?.status === "CANCELLED") return null;
+
+  for (const m of filterElectricalMeasurementsForJob(measurements, jobId)) {
+    if (isTestMeasurement(m)) continue;
+    if (!parseRapNumber(m.reportNumber)) continue;
+    return m;
+  }
+  return null;
+}
+
+export function hasActiveProductionMeasurementForJob(
+  measurements: ElectricalMeasurement[],
+  registry: ElectricalMeasurementRegistryState,
+  jobId: string,
+): boolean {
+  return getProductionMeasurementForJob(measurements, registry, jobId) != null;
 }
 
 export function catalogAvailableYears(rows: MeasurementCatalogRow[]): number[] {

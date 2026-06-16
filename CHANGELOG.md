@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.39** · **EM-P3A**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.40** · **EM-P3**
+
+## 2.59.40 — Pomiary Elektryczne EM-P3 (integracja ZIP odbiorowy)
+
+- New: WM Druk ZIP odbiorowy — folder Pomiary/ z 5× DOCX aktywnego RAP produkcyjnego
+- Improve: struktura Odbiory/ + Pomiary/, checkbox domyślnie ON przy aktywnym RAP; TEST-RAP ignorowany
 
 ## 2.59.39 — Pomiary Elektryczne EM-P3A (Katalog UX + Rejestr RAP)
 
