@@ -1,0 +1,50 @@
+{
+  "generatedAt": "2026-06-16T05:45:00.991Z",
+  "execute": true,
+  "files": [
+    {
+      "templateId": "c8ec0bd6-f6a6-42ce-94d5-9605e7c00217",
+      "templateName": "Oświadczenia",
+      "previousFileId": "76f9aeb7-c38c-44f4-82a3-0caf311151e7",
+      "newFileId": "80af5ca3-a5e3-4382-a58b-09302a465ec3",
+      "originalFileName": "Oświadczenie bezrobotny umowa 154.docx",
+      "needsFix": true,
+      "bytes": 12780,
+      "storageUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/wm-print/template-c8ec0bd6-f6a6-42ce-94d5-9605e7c00217-80af5ca3-a5e3-4382-a58b-09302a465ec3.docx",
+      "localPath": "C:\\Users\\dawid\\Downloads\\WGDOM1\\audit\\wm-print-docx-fixed\\Oświadczenie bezrobotny umowa 154.docx"
+    },
+    {
+      "templateId": "c8ec0bd6-f6a6-42ce-94d5-9605e7c00217",
+      "templateName": "Oświadczenia",
+      "previousFileId": "301d981a-8bfa-4ac3-b1d8-8c520094e7ef",
+      "newFileId": "a4ff0658-118e-4e1b-b5eb-e5a7e8dc804f",
+      "originalFileName": "Oświadczenie kierownik.docx",
+      "needsFix": true,
+      "bytes": 13686,
+      "storageUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/wm-print/template-c8ec0bd6-f6a6-42ce-94d5-9605e7c00217-a4ff0658-118e-4e1b-b5eb-e5a7e8dc804f.docx",
+      "localPath": "C:\\Users\\dawid\\Downloads\\WGDOM1\\audit\\wm-print-docx-fixed\\Oświadczenie kierownik.docx"
+    },
+    {
+      "templateId": "c8ec0bd6-f6a6-42ce-94d5-9605e7c00217",
+      "templateName": "Oświadczenia",
+      "previousFileId": "758e45ee-7716-4fb5-b2d7-1db63db02dc9",
+      "newFileId": "ff19a9be-d3ad-4912-9072-f91c6cc121c6",
+      "originalFileName": "Oświadczenie o zatrudnieniu.docx",
+      "needsFix": true,
+      "bytes": 10438,
+      "storageUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/wm-print/template-c8ec0bd6-f6a6-42ce-94d5-9605e7c00217-ff19a9be-d3ad-4912-9072-f91c6cc121c6.docx",
+      "localPath": "C:\\Users\\dawid\\Downloads\\WGDOM1\\audit\\wm-print-docx-fixed\\Oświadczenie o zatrudnieniu.docx"
+    },
+    {
+      "templateId": "c8ec0bd6-f6a6-42ce-94d5-9605e7c00217",
+      "templateName": "Oświadczenia",
+      "previousFileId": "aff98a48-4db8-44f8-9810-0b0947a37860",
+      "newFileId": "69674d91-fb67-4702-abd4-42425656dfc1",
+      "originalFileName": "Oświadczenie podwyk.docx",
+      "needsFix": true,
+      "bytes": 14699,
+      "storageUrl": "https://bdpygdvfgbggermvqtys.supabase.co/storage/v1/object/public/make-0afb8820-photos/jobs/wm-print/template-c8ec0bd6-f6a6-42ce-94d5-9605e7c00217-69674d91-fb67-4702-abd4-42425656dfc1.docx",
+      "localPath": "C:\\Users\\dawid\\Downloads\\WGDOM1\\audit\\wm-print-docx-fixed\\Oświadczenie podwyk.docx"
+    }
+  ]
+}
