@@ -17,7 +17,7 @@ import {
   measurementsHaveTestRapNumbers,
   nextRapSequencePreview,
   RAP_BASELINE_LAST_SEQUENCE_2026,
-  RAP_BASELINE_REPAIR_VERSION,
+  RAP_BASELINE_REPAIR_VERSION_P16B,
   registryStateHasTestRapNumbers,
   TEST_RAP_NUMBERS_TO_PURGE,
 } from "../src/lib/electrical-measurements/registry-baseline-repair.ts";
@@ -77,7 +77,7 @@ console.log("\n=== P16B-T03 naprawa — usuwa testy + baseline 44 ===");
 
   const repaired = applyRapRegistryBaselineRepairP16B(state, measurements, TEST_JOBS);
   assert(repaired.changed, "P16B-T03 changed");
-  assert(repaired.state.repairVersion === RAP_BASELINE_REPAIR_VERSION, "P16B-T03 repairVersion");
+  assert(repaired.state.repairVersion === RAP_BASELINE_REPAIR_VERSION_P16B, "P16B-T03 repairVersion");
   assert(
     getBaselineSequenceForYear(repaired.state, 2026) === RAP_BASELINE_LAST_SEQUENCE_2026,
     "P16B-T03 baseline lastNumber=44",
@@ -93,7 +93,7 @@ console.log("\n=== P16B-T04 idempotentność ===");
 {
   let state = createEmptyRegistryState();
   state.baselineByYear = { "2026": 44 };
-  state.repairVersion = RAP_BASELINE_REPAIR_VERSION;
+  state.repairVersion = RAP_BASELINE_REPAIR_VERSION_P16B;
   const measurements = [createEmptyElectricalMeasurement(JOB_REAL, "RAP-40-2026")];
   const again = applyRapRegistryBaselineRepairP16B(state, measurements, TEST_JOBS);
   assert(!again.changed, "P16B-T04 drugi raz — skip");
@@ -103,7 +103,7 @@ console.log("\n=== P16B-T05 nowy raport = RAP-45-2026 ===");
 {
   let state = createEmptyRegistryState();
   state.baselineByYear = { "2026": 44 };
-  state.repairVersion = RAP_BASELINE_REPAIR_VERSION;
+  state.repairVersion = RAP_BASELINE_REPAIR_VERSION_P16B;
   assert(nextRapSequencePreview(state, 2026) === 45, "P16B-T05 preview 45");
   const r45 = assignRapForJob(state, JOB_REAL, { now: new Date("2026-06-16T12:00:00Z") });
   assert(r45.entry.rapNumber === "RAP-45-2026", "P16B-T05 RAP-45-2026");
@@ -114,7 +114,7 @@ console.log("\n=== P16B-T06 kolejny raport = RAP-46-2026 ===");
 {
   let state = createEmptyRegistryState();
   state.baselineByYear = { "2026": 44 };
-  state.repairVersion = RAP_BASELINE_REPAIR_VERSION;
+  state.repairVersion = RAP_BASELINE_REPAIR_VERSION_P16B;
   state = assignRapForJob(state, JOB_REAL, { now: new Date("2026-06-16T12:00:00Z") }).registry;
   const r46 = assignRapForJob(state, "job-next-p16b", { now: new Date("2026-06-16T12:01:00Z") });
   assert(r46.entry.rapNumber === "RAP-46-2026", "P16B-T06 RAP-46-2026");
@@ -125,7 +125,7 @@ console.log("\n=== P16B-T07 brak przypisania 45/46 do testowych robot ===");
 {
   let state = createEmptyRegistryState();
   state.baselineByYear = { "2026": 44 };
-  state.repairVersion = RAP_BASELINE_REPAIR_VERSION;
+  state.repairVersion = RAP_BASELINE_REPAIR_VERSION_P16B;
   const repaired = applyRapRegistryBaselineRepairP16B(state, [], TEST_JOBS);
   assert(!repaired.state.entries.some((e) => e.jobId === JOB_KLE), "P16B-T07 brak wpisu Kleczkowska");
   assert(!repaired.state.entries.some((e) => e.jobId === JOB_BRO), "P16B-T07 brak wpisu Brochów");

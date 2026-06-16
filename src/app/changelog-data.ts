@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.42",
+    label: "Pomiary Elektryczne — EM-P1.6C Registry Repair V2",
+    items: [
+      {
+        type: "fix",
+        text: "Jednorazowa naprawa prod KV: usunięcie RAP-2-2026 (Brochów), sierocy Cygan bez numeru, baseline 2026=44, repairVersion 2 — katalog i rejestr RAP startują od zera",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.41",
     label: "Pomiary Elektryczne — EM-P3.5 INDEX-POMIARY export",
     items: [

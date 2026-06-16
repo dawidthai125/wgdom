@@ -145,7 +145,7 @@ import {
   normalizeElectricalMeasurementRegistryState,
   registryNeedsMigrationFromMeasurements,
 } from "@/lib/electrical-measurements/registry";
-import { applyRapRegistryBaselineRepairP16B } from "@/lib/electrical-measurements/registry-baseline-repair";
+import { applyRapRegistryBaselineRepairP16C } from "@/lib/electrical-measurements/registry-baseline-repair";
 import { DEFAULT_ELECTRICAL_MEASUREMENT_SETTINGS } from "@/lib/electrical-measurements/settings";
 
 function AppInner({onLogout}: {onLogout?: ()=>void}) {
@@ -378,7 +378,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     rapBaselineRepairDoneRef.current = true;
     const normalizedRegistry = normalizeElectricalMeasurementRegistryState(electricalMeasurementRegistry);
     const normalizedMeasurements = electricalMeasurements;
-    const repaired = applyRapRegistryBaselineRepairP16B(normalizedRegistry, normalizedMeasurements, jobs);
+    const repaired = applyRapRegistryBaselineRepairP16C(normalizedRegistry, normalizedMeasurements, jobs);
     if (!repaired.changed) return;
     const registryPayload = ensureRegistryWithMigration(repaired.state, repaired.measurements);
     setElectricalMeasurements(repaired.measurements);

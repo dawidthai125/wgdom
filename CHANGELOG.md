@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.41** · **EM-P3.5**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.42** · **EM-P1.6C**
+
+## 2.59.42 — Pomiary Elektryczne EM-P1.6C (Registry Repair V2)
+
+- **fix:** Jednorazowa naprawa prod KV — usuwa RAP-2-2026 (Brochów), sierocy Cygan bez numeru; `baselineByYear.2026=44`, `repairVersion=2`; katalog/rejestr startują od zera; następny RAP = **RAP-45-2026**
+- **test:** `scripts/test-electrical-measurements-registry-repair-v2.mjs`
 
 ## 2.59.41 — Pomiary Elektryczne EM-P3.5 (INDEX-POMIARY export)
 
