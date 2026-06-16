@@ -83,6 +83,6 @@ npm run build → PASS
 
 ---
 
-| Commit hash | _(po push)_ |
-| Deploy | push `main` → Vercel |
-| `version.json` | _(VERIFY FAST)_ |
+| Commit hash | `afaf018` |
+| Deploy | **RELEASE GO** (push `main` → Vercel) |
+| `version.json` | **2.59.40** at verify — **DEPLOY PROPAGATING** (oczekiwana: **2.59.41**) |
