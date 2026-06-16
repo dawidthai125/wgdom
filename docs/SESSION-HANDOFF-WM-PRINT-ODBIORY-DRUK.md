@@ -1,7 +1,8 @@
 # SESSION HANDOFF — Odbiory WM Druk (`wmprint`)
 
-> **★★ Handoff modułu WM Druk** · **Data closeout:** 2026-06-15 · **Prod:** v**2.59.22** (ZI Tauron 2026 RELEASE GO)
-> **P0 pollution/KV/runtime:** **CLOSED** · **ZI LiveCycle RCA:** **CLOSED** · **ZI Tauron 2026:** **RELEASE GO** · SSOT: [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md)
+> **★★ Handoff modułu WM Druk** · **Data closeout:** 2026-06-16 · **Prod:** v**2.59.24** (ZI Tauron 2026 **PRODUCTION STABLE**)
+> **P0 pollution/KV/runtime:** **CLOSED** · **ZI LiveCycle 2021:** **CLOSED (tombstone)** · **ZI Tauron 2026:** **PRODUCTION STABLE** · SSOT: [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md)
+> **Prod validation:** [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md)
 > **Historyczne RCA LiveCycle:** [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
 > **Hasło agenta:** „kontynuuj WGDOM”
 
@@ -47,16 +48,17 @@ wm-print-sync.ts
 
 WmPrintView.tsx
   Odbiory → downloadWmPrintZip() / downloadWmPrintTemplateFileGenerated()
-    → generate-zip.ts → generate-docx.ts | generate-pdf.ts
+    → generate-zip.ts → generate-docx.ts | generate-pdf-zi-tauron2026.ts | generate-pdf.ts (legacy)
 ```
 
 ### Generowanie ZIP (ścieżka produkcyjna)
 
 ```text
 buildWmPrintFilesForJob(job, templates, jobDocs, settings, opts)
+  → dedupeWmPrintTemplatesByName(getEnabledWmPrintTemplates(...))   ← 2.59.24
   → dla każdego włączonego szablonu:
       DOCX     → generateDocxFromTemplate (placeholdery {{VAR}})
-      pdf_form → generatePdfFormFromTemplate (ZI + AcroForm)
+      ZI       → detectLegacyLiveCycle guard → generatePdfZiTauron2026 (§4 99/111/112 + preservation)
       pdf      → copyStaticPdfTemplate (bez zmian)
   → dołącza job_upload docs z wmPrintJobDocs[]
   → JSZip → saveAs
@@ -78,16 +80,17 @@ buildWmPrintFilesForJob(job, templates, jobDocs, settings, opts)
 
 Wszystkie w `DATA_KEYS` / `DEFERRED_BOOTSTRAP_KEYS` w `cloud-sync.ts`.
 
-### Stan prod po cleanup (2026-06-15)
+### Stan prod po cleanup (2026-06-16)
 
 | Metryka | Wartość |
 |---------|---------|
-| Rekordów templates | **15** (było 99) |
-| Tombstone deleted-ids | **132** |
-| Canonical ZI UUID | `26f02c78-871c-4d65-aeac-d0ca06bf060c` |
-| ZI fileId (prod) | `2155cec9-6ca1-4eec-af1c-7b4d346487a3` |
-| Backup przed cleanup | `audit/template-cleanup-backup.json` |
-| Raport execute | `audit/template-cleanup-execute-report.json` |
+| Rekordów templates | **8** (było 99 → 15 → 8) |
+| Aktywnych slotów ZI | **1** |
+| Tombstone deleted-ids | **147** (w tym legacy LiveCycle) |
+| **Canonical ZI UUID** | **`2b22da48-46dc-42a0-8236-d42b5b5562dc`** · plik **`ZI.pdf`** |
+| **Legacy ZI UUID (tombstone)** | **`26f02c78-871c-4d65-aeac-d0ca06bf060c`** — usunięty z templates |
+| Backup legacy cleanup | `audit/tauron-audit-2026-06-15/p0-wm-druk-zi-legacy-cleanup-backup.json` |
+| Raport execute | `audit/tauron-audit-2026-06-15/p0-wm-druk-zi-legacy-cleanup-report.json` |
 
 ---
 
@@ -102,7 +105,9 @@ Wszystkie w `DATA_KEYS` / `DEFERRED_BOOTSTRAP_KEYS` w `cloud-sync.ts`.
 | `template-cleanup.ts` | planWmPrintTemplateCleanup — KEEP/DELETE (operacyjny cleanup KV) |
 | `generate-zip.ts` | ZIP pakietu, orchestracja generatorów |
 | `generate-docx.ts` | DOCX — zamiana `{{VAR}}` |
-| `generate-pdf.ts` | **ZI PDF form** — pdf-lib, XFA strip, updateAppearances, visual overlay |
+| `generate-pdf.ts` | **Legacy LiveCycle (2021) CLOSED** — font loader + `copyStaticPdfTemplate`; nie używać dla ZI |
+| `generate-pdf-zi-tauron2026.ts` | **Generator ZI prod** — Tauron 2026 · guard LiveCycle |
+| `zi-tauron2026-form-extract.ts` | pdf.js preservation graft (szyfrowany WM ZI.pdf) |
 | `variables.ts` | `buildWmPrintVariableMap`, format dat |
 | `address-vars.ts` | JOB_STREET, JOB_BUILDING, JOB_APARTMENT z job |
 | `upload.ts` | Upload szablonów/dokumentów → storage |
@@ -152,28 +157,37 @@ Usunięto placeholdery demo @ y≈142. **P0.3A** skorygowało mapowanie na wła�
 
 ---
 
-## 5c. ZI Tauron 2026 (**RELEASE GO · v2.59.22**)
+## 5c. ZI Tauron 2026 (**PRODUCTION STABLE · v2.59.24**)
 
-**★★ SSOT:** [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) · preservation: [`audit/tauron-audit-2026-06-15/ZI-2026-PRESERVATION-GATE-REPORT.md`](../audit/tauron-audit-2026-06-15/ZI-2026-PRESERVATION-GATE-REPORT.md)
+**★★ SSOT:** [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) · validation: [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md)
+
+| Wersja | Commit | Skrót |
+|--------|--------|-------|
+| **2.59.22** | `9434787` | Generator + preservation gate + mapping §4 |
+| **2.59.23** | `5302498` | pdf.js worker dla preservation w ZIP |
+| **2.59.24** | `65051a3` | Tombstone sync · legacy slot cleanup KV · dedupe ZIP |
 
 | Element | Wartość |
 |---------|---------|
 | Formularz | Tauron ZI 2026 (FormMaker AcroForm, bez XFA) |
+| Canonical templateId | **`2b22da48-46dc-42a0-8236-d42b5b5562dc`** · `ZI.pdf` |
 | Generator | `generatePdfZiTauron2026()` + `zi-tauron2026-form-extract.ts` |
 | Mapping §4 | `Pole tekstowe 99/111/112` → JOB_STREET / JOB_BUILDING / JOB_APARTMENT |
 | Preservation | pdf.js graft ze szyfrowanego WM `ZI.pdf` · patch tylko §4 |
 | Bundled | `public/wm-print/zi-tauron-2026-template.pdf` |
-| Smoke | `test-wm-print-zi-2026-smoke.mjs` · `test-wm-print-zi-2026-preservation-smoke.mjs` |
+| Smoke | `test-wm-print-zi-2026-smoke.mjs` · `test-wm-print-zi-2026-preservation-smoke.mjs` · `test-wm-print-zi-zip-post-cleanup.mjs` |
 
-Legacy LiveCycle: **CLOSED** → `audit/archive/legacy-zi-livecycle-2021/`
+Legacy LiveCycle slot **`26f02c78…`**: **TOMBSTONE** → `audit/archive/legacy-zi-livecycle-2021/`
 
 ---
 
-## 5b. ZI Investigation — RCA P0.3A→P0.4B (**CLOSED · superseded by ZI 2026**)
+## 5b. ZI Investigation — RCA P0.3A→P0.4B (**CLOSED · historyczne · superseded by ZI 2026**)
 
-**★★ SSOT:** [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md) · inventory: `scripts/_p04b-inventory.json`
+**★★ SSOT historyczne:** [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
 
-### Problem biznesowy (OPEN)
+> **Uwaga dla agentów:** poniższe opisuje **stary** formularz LiveCycle i problem §3 @ y≈142. **Nie** stosować do prod po 2.59.22. Aktualny adres obiektu = **§4** pola 99/111/112 (Tauron 2026).
+
+### Problem biznesowy (historyczny — CLOSED)
 
 W sekcji **§3 OKREŚLENIE OBIEKTU** (y≈142) wygenerowany PDF ZI **nie pokazuje** adresu robocy (ulica / budynek / lokal) w Edge, Chrome, Adobe Reader ani wydruku.
 
@@ -230,32 +244,22 @@ Eksperyment (nie prod): `generatePdfZiFlattenPoC` — **nie wdrażać** (P0.4A F
 
 ## 6. CO BĘDZIEMY ROBIĆ (backlog — priorytety)
 
-### P0 — moduł WM Druk (infra)
+### P0 — moduł WM Druk (infra + ZI)
 
 | ID | Temat | Status |
 |----|-------|--------|
 | Template pollution | seed guard + KV cleanup | **CLOSED** (2.59.15–17) |
 | Runtime hotfix | normalizeWmPrintTemplates | **CLOSED** (2.59.18) |
-| **ZI §3 adres PDF** | Hybrid LiveCycle — brak prod fix | **OPEN · NO-GO** |
+| **ZI Tauron 2026** | migracja + preservation + prod validation | **PRODUCTION STABLE** (2.59.22–24) |
+| Legacy LiveCycle slot | tombstone + KV cleanup | **CLOSED** (2.59.24) |
 
-### P1 — następne kroki ZI (nowa sesja — **nowe podejście**)
+### P1 — backlog (tylko na polecenie)
 
 | Priorytet | Kierunek | Uwagi |
 |-----------|----------|-------|
-| **P1** | **Nowy szablon ZI** (plain AcroForm od Tauron / re-export Designer) | najniższe ryzyko |
-| **P2** | Adobe PDF Services / oficjalny save-path | koszt + infra |
-| **P3** | Surgical patch strumienia 387 | wysokie ryzyko regresji etykiet |
-| **P4** | Obejście procesowe (ZI poza automatyzacją WGDOM) | decyzja biznesowa |
-
-**Nie kontynuować:** ciphertext, AP graft, overlay append, flatten pdf-lib na obecnym SSOT.
-
-### P1 — stabilizacja WM Druk (poza ZI)
-
-| Temat | Status |
-|-------|--------|
-| Regresja smoke prod WM Druk (wejście, ZIP, Szablony) | OPEN |
-| Audit cleanup `audit/` (207 plików) | plan w ZI-FINAL-HANDOFF §9 — **nie wykonano** |
-| Sync localStorage po cleanup | monitorować |
+| **P0.5** | Housekeeping kodu/audit (split `generate-pdf.ts`) | plan: [`audit/POST-ZI-CLEANUP-AUDIT.md`](../audit/POST-ZI-CLEANUP-AUDIT.md) |
+| **P1** | §4 górny wiersz (pola 95/96/97) — dual-fill | OPEN produktowy · nie blokuje prod |
+| **P2** | E2E Playwright modułu wmprint | backlog |
 
 ### P2 — rozwój (tylko na polecenie)
 
@@ -265,24 +269,53 @@ Eksperyment (nie prod): `generatePdfZiFlattenPoC` — **nie wdrażać** (P0.4A F
 
 ---
 
-## 7. ZI PDF — stan techniczny (dla następnego agenta)
+## 7. ZI PDF — stan techniczny prod (Tauron 2026)
 
-### Start here
+### Start here (prod)
 
-1. [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
-2. [`CURRENT-TASK.md`](../CURRENT-TASK.md)
-3. Ten plik §5b
+1. [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) — **SSOT implementacji**
+2. [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) — werdykt prod
+3. [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md) — tylko historyczne RCA LiveCycle
 
-### Canonical template KV
+### Canonical template KV (prod)
+
+```text
+UUID: 2b22da48-46dc-42a0-8236-d42b5b5562dc
+file: ZI.pdf (Tauron 2026 · FormMaker)
+name: ZI
+type: pdf_form (override w generate-zip.ts)
+enabled: true
+```
+
+### Legacy template (tombstone)
 
 ```text
 UUID: 26f02c78-871c-4d65-aeac-d0ca06bf060c
-fileId: 2155cec9-6ca1-4eec-af1c-7b4d346487a3
-name: ZI
-type: pdf_form (override w generate-zip.ts)
+status: TOMBSTONE (kw-wm-print-deleted-template-ids)
 ```
 
-### Mapowanie prod (`generate-pdf.ts` — P0.3A)
+### Mapowanie prod (`generate-pdf-zi-tauron2026.ts`)
+
+```text
+Pole tekstowe 99  → JOB_STREET
+Pole tekstowe 111 → JOB_BUILDING
+Pole tekstowe 112 → JOB_APARTMENT
+```
+
+### Pipeline prod (ZIP)
+
+```text
+generateFromTemplateBytes() gdy name === "ZI"
+  → detectLegacyLiveCycleZiForm? throw
+  → generatePdfZiTauron2026()
+      → pdf.js graft (preservation)
+      → patch §4 (99/111/112)
+```
+
+### Historyczne mapowanie LiveCycle (nie używać)
+
+<details>
+<summary>TextField2[8/9/10] — tylko archiwum RCA</summary>
 
 ```text
 TextField2[10] → JOB_STREET     (pdflib 24, widget 429)
@@ -290,29 +323,23 @@ TextField2[9]  → JOB_BUILDING  (pdflib 23, widget 428)
 TextField2[8]  → JOB_APARTMENT (pdflib 22, widget 427)
 ```
 
-Legacy §1 (`TextField5[0]` / `imie[0]` / `nazwisko[1]`) — **filtrowane** z KV (`WM_PRINT_ZI_LEGACY_WM_FIELD_QNAMES`).
+Patrz [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md).
+</details>
 
-### Pipeline prod (obecny — UX §3 FAIL)
+### Walidacja prod
 
-```text
-generatePdfFormFromTemplate()
-  → setText (§3 + inne pola)
-  → finalizeZiHybridForm (Noto overlay @ widget rects)   ← Edge ignoruje append
-  → stripSection3WidgetAnnots
-```
+[`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) — **PRODUCTION VERIFIED** (ZIP Sępa 83/7, preservation + mapping PASS).
 
 ### Kluczowe raporty audit (KEEP)
 
-`p0-3ad-business-mapping-report.json` · `p0-3r-root-cause-confirmed-report.json` · `p0-3ak-ap-render-path-report.json` · `p0-4a-flatten-poc-report.json`
+`tauron-audit-2026-06-15/*` · `p0-3ad-business-mapping-report.json` (historyczne LiveCycle) · `POST-ZI-CLEANUP-AUDIT.md`
 
-### Znane pułapki
+### Znane pułapki (prod)
 
 | Pułapka | Skutek |
 |---------|--------|
-| `/V` OK w audycie bytes | **≠** widoczny tekst w Edge |
-| pdf-lib append na page 365 | Edge **ignoruje** nowe streamy po 380..387 |
-| Hybrid LiveCycle ciphertext | max 5/3/3 znaków na §3 — za mało na „Sępa Szarzyńskiego" |
-| flatten() pdf-lib | psuje część pól; nie rozwiązuje §3 |
+| Legacy LiveCycle w KV | **Guard** `detectLegacyLiveCycleZiForm` + tombstone UUID |
+| R6 encrypted template | pdf-lib wymaga odszyfrowanej bazy + pdf.js graft |
 | Template pollution (2.59.15+) | naprawione — nie seedować ponownie |
 | `parseWmPrintTemplates` bez importu | używać `normalizeWmPrintTemplates` w cloud-sync |
 
@@ -334,6 +361,11 @@ npx vite-node scripts/cleanup-wm-print-template-pollution.mjs --execute
 # P0.2A demo strip
 npx vite-node scripts/test-wm-print-p0-2a-zi-demo-strip.mjs
 
+# ZI Tauron 2026 (prod)
+npx vite-node scripts/test-wm-print-zi-2026-smoke.mjs
+npx vite-node scripts/test-wm-print-zi-2026-preservation-smoke.mjs
+npx vite-node scripts/test-wm-print-zi-2026-tombstone-smoke.mjs
+
 # Publish clean template (OPERACYJNE)
 npx vite-node scripts/publish-wm-print-zi-template-p0-2a.mjs --execute
 
@@ -344,27 +376,28 @@ npm run build
 
 ## 9. Czego NIE zmieniać bez polecenia
 
-- **Canonical ZI UUID** `26f02c78-…` — nie zmieniać UUID; plik PDF w storage można podmienić skryptem publish P0.2A
+- **Canonical ZI UUID** `2b22da48-46dc-42a0-8236-d42b5b5562dc` — nie podmieniać na legacy `26f02c78-…`
+- **Legacy tombstone** `26f02c78-…` — nie przywracać do KV bez pełnego audytu
 - Seed guard semantics (local+cloud empty only)
 - `parseWmPrintTemplates` — nie wywoływać auto-seedu; w `cloud-sync` używać **normalizeWmPrintTemplates**
 - Merge po UUID — nie zmieniać na merge po name (dedupe tylko przy push)
 - Tombstone `deleted-template-ids` — nie czyścić bez backupu
-- Pola `TextField2[8/9/10]` — zmiana tylko po audycie qualified names
+- Pola §4 Tauron **99/111/112** — zmiana tylko po audycie + smoke preservation
 
 ---
 
-## 9a. Werdykt sesji (2026-06-15 closeout)
+## 9a. Werdykt sesji (2026-06-15 closeout · aktualizacja P0.5A)
 
 ```text
 WM DRUK P0 infra          CLOSED (2.59.15–2.59.19) — pollution, KV, runtime
 P0 Template Pollution     CLOSED
-KV Cleanup                CLOSED (99→15)
+KV Cleanup                CLOSED (99→8, 1× ZI canonical)
 Runtime Hotfix            CLOSED (2.59.18)
-ZI Investigation RCA      CLOSED (P0.1F→P0.4B) — brak prod fix
-ZI §3 adres PDF           OPEN · NO-GO
-Moduł wmprint UI          GO (poza ZI §3)
+ZI LiveCycle 2021         CLOSED — tombstone 26f02c78-…
+ZI Tauron 2026            PRODUCTION STABLE (2.59.22–24)
+Prod validation           PASS — FINAL-ZI-2026-PROD-VALIDATION.md
+Moduł wmprint UI          GO
 Reszta WGDOM              GO
-Audit katalog             207 plików ~49 MB — cleanup plan only
 ```
 
-**Następny agent:** Czytaj `audit/ZI-FINAL-HANDOFF.md` → szukaj **nowego** kierunku (P1: nowy szablon). **Nie** uruchamiaj eksperymentów ciphertext/AP/XFA/overlay/flatten na SSOT.
+**Następny agent:** Czytaj [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) → walidacja [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md). **Nie** wracać do LiveCycle/ciphertext/AP bez nowego dowodu.

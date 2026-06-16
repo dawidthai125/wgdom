@@ -1,21 +1,44 @@
-# RELEASE REPORT — ZI Tauron 2026 (v2.59.22)
+# RELEASE REPORT — ZI Tauron 2026 (v2.59.22 → v2.59.24)
 
 **Data:** 2026-06-15  
 **Workflow:** B functional UI (build + smoke) → commit → push → VERIFY DEPLOY FAST
 
 ---
 
-## Werdykt
+## Werdykt końcowy (prod)
 
 | Status | Wynik |
 |--------|-------|
-| **RELEASE GO** | **TAK** |
-| **PRODUCTION VERIFIED** | **TAK** — `version.json` = **2.59.22** |
-| **DEPLOY PROPAGATING** | NIE |
+| **ZI Tauron 2026** | **PRODUCTION STABLE** |
+| **RELEASE GO** | **TAK** (2.59.22–24) |
+| **PRODUCTION VERIFIED** | **TAK** — `version.json` = **2.59.24** |
+| **Prod validation (ZIP)** | **PASS** — [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) |
 
 ---
 
-## Commit
+## v2.59.24 — legacy tombstone + KV cleanup
+
+| Pole | Wartość |
+|------|---------|
+| **Hash** | `65051a3` |
+| **Message** | `fix(wm-print): tombstone legacy ZI + KV cleanup (v2.59.24)` |
+
+**Zakres:** usunięcie legacy LiveCycle slot z KV · tombstone merge w `cloud-sync.ts` / `wm-print-sync.ts` · dedupe ZIP · smoke tombstone.
+
+**Canonical UUID:** `2b22da48-46dc-42a0-8236-d42b5b5562dc` · legacy `26f02c78-…` = **TOMBSTONE**
+
+---
+
+## v2.59.23 — preservation pdf.js worker
+
+| Pole | Wartość |
+|------|---------|
+| **Hash** | `5302498` |
+| **Message** | hotfix pdf.js worker dla preservation graft |
+
+---
+
+## v2.59.22 — generator + preservation gate (RELEASE GO)
 
 | Pole | Wartość |
 |------|---------|
@@ -82,10 +105,10 @@
 
 ```text
 GET https://www.wgdom.fun/version.json
-→ { "version": "2.59.22" }
+→ { "version": "2.59.24" }
 ```
 
-**PRODUCTION VERIFIED:** TAK
+**PRODUCTION VERIFIED:** TAK (2026-06-15 closeout)
 
 ---
 

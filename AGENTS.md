@@ -8,9 +8,9 @@
 
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
-2. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.59.19, commity, decyzje)
-3. audit/ZI-FINAL-HANDOFF.md        ← ★★★ ZI PDF investigation SSOT (START dla tematu ZI)
-4. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (P0 infra CLOSED · ZI §3 OPEN)
+2. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.59.24, commity, decyzje)
+3. docs/ZI-2026-HANDOFF.md            ← ★★★ ZI Tauron 2026 prod SSOT (PRODUCTION STABLE)
+4. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (P0 CLOSED · ZI 2026 STABLE)
 5. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← ★★ Notatki operacyjne P0→HF (COMPLETE)
 6. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP · P3.6 · P1 WM
 7. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
@@ -61,8 +61,9 @@
 | **docs/ARCHITECTURE.md** | Pełny techniczny przewodnik (living document) |
 | **CHANGELOG.md** | Co zostało zrobione? (skrót dla AI) |
 | **CURRENT-TASK.md** | Gdzie skończyliśmy? (wznowienie po nowym koncie / miesiącu) |
-| **audit/ZI-FINAL-HANDOFF.md** | **★★★ ZI PDF investigation** — RCA CLOSED, §3 NO-GO, audit inventory, rekomendacje |
-| **docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md** | **★★ Odbiory WM Druk** — P0 infra CLOSED, ZI §3 OPEN, architektura, testy |
+| **audit/ZI-FINAL-HANDOFF.md** | **Historyczne RCA LiveCycle 2021** — CLOSED · superseded by ZI 2026 |
+| **docs/ZI-2026-HANDOFF.md** | **★★★ ZI Tauron 2026 prod SSOT** — PRODUCTION STABLE |
+| **docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md** | **★★ Odbiory WM Druk** — P0 CLOSED · ZI 2026 STABLE |
 | **docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md** | **★★ Notatki operacyjne COMPLETE** (v2.57.0–2.58.1) — P0→P2C+HF, KV, ACL, testy, backlog P3 |
 | **docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md** | **★★ P3 wycena · BZP pipeline · P3.6 filtry · P1 WM** (2.56.0–2.56.10) |
 | **docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md** | **★★ P2-H dokumenty / ZIP / 7Z / Marketplanet** (H.1–H.6 CLOSED) |
@@ -151,8 +152,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.59.18**) |
-| Prod `main` (app) | **v2.59.19** · WM Druk P0 infra CLOSED · **ZI §3 OPEN** · Notatki COMPLETE · P3.6 + P1 WM |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.59.24**) |
+| Prod `main` (app) | **v2.59.24** · WM Druk COMPLETE · **ZI Tauron 2026 PRODUCTION STABLE** · Notatki COMPLETE · P3.6 + P1 WM |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
 | Dashboard V2 docs | [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md) |

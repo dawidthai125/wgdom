@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-15 (ZI Tauron 2026 **RELEASE GO** · prod **2.59.22**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-16 (ZI Tauron 2026 **PRODUCTION STABLE** · prod **2.59.24**)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
 
@@ -9,7 +9,7 @@
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
 2. docs/ZI-2026-HANDOFF.md              ← ★★★ ZI Tauron 2026 prod SSOT
-3. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (P0 CLOSED · ZI 2026 GO)
+3. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (P0 CLOSED · ZI 2026 STABLE)
 4. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← ★★ Notatki operacyjne P0→HF (COMPLETE)
 5. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM
 6. docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md  ← ★★ P2-H dokumenty · ZIP · 7Z · Marketplanet
@@ -28,8 +28,8 @@
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
 | **Odbiory WM Druk P0 infra** | 2.59.15–**2.59.19** | **CLOSED** (pollution/KV/runtime) | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) |
-| **ZI Tauron 2026** | **2.59.22** | **RELEASE GO** · preservation + §4 mapping | [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) |
-| **ZI LiveCycle investigation** | — | **CLOSED** · superseded | [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md) |
+| **ZI Tauron 2026** | **2.59.22–2.59.24** | **PRODUCTION STABLE** · preservation + §4 mapping + prod validation | [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) |
+| **ZI LiveCycle 2021** | — | **CLOSED** · tombstone `26f02c78…` | [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md) |
 | **P3 Wycena · Baza cen · filtry** | 2.56.0–**2.56.10** (`7acbecf`) | **P3.0–P3.6 CLOSED** | [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) |
 | **Notatki operacyjne** | **2.57.0–2.58.1** (`1f8e2bd`) | **COMPLETE** (P0→P2C+HF) · P3 Export OPEN | [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](SESSION-HANDOFF-OPERATIONAL-NOTES.md) |
 | **P2-H Tender Documents** | 2.55.0–**2.55.10** | **CLOSED** (H.7 OPEN) | [`SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) |
@@ -74,8 +74,10 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (repo / prod):      2.59.22       ← ZI Tauron 2026 RELEASE GO
-Feature commit (prod):      9434787        v2.59.22 ZI Tauron 2026 + preservation
+Version (repo / prod):      2.59.24       ← ZI Tauron 2026 PRODUCTION STABLE
+Feature commit (prod):      65051a3        v2.59.24 tombstone sync + legacy ZI KV cleanup
+ZI pdf.js worker:           5302498        v2.59.23 preservation graft worker fix
+ZI Tauron 2026:             9434787        v2.59.22 generator + preservation gate
 WM Druk P0.2A (prev):       1a8c892        v2.59.19 strip demo (superseded by ZI 2026)
 WM Druk hotfix:             01211d6        v2.59.18 normalizeWmPrintTemplates runtime
 WM Druk cleanup:            16ee8f8        v2.59.17 KV 99→15 templates
@@ -111,17 +113,18 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 | Status | Wartość |
 |--------|---------|
-| **RELEASE GO (2.59.22)** | **TAK** — ZI Tauron 2026 |
-| **RELEASED (prod)** | **2.59.22** — verify `version.json` |
+| **RELEASE GO (2.59.24)** | **TAK** — ZI Tauron 2026 PRODUCTION STABLE |
+| **RELEASED (prod)** | **2.59.24** — verify `version.json` |
 | **STABLE** | TAK (moduł wmprint · ZI 2026) |
-| **PRODUCTION VERIFIED** | po push — jedno `curl version.json` |
+| **PRODUCTION VERIFIED** | TAK — [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) |
 | **WM Druk P0 infra** | **CLOSED** (2.59.15–2.59.19) |
-| **ZI Tauron 2026** | **RELEASE GO** (2.59.22) |
+| **ZI Tauron 2026** | **PRODUCTION STABLE** (2.59.22–2.59.24) |
+| **ZI LiveCycle 2021** | **CLOSED** — legacy slot `26f02c78…` **TOMBSTONE** |
+| **Canonical ZI template (prod KV)** | **`2b22da48-46dc-42a0-8236-d42b5b5562dc`** · plik `ZI.pdf` |
 | **WM Druk P0 pollution** | **CLOSED** |
-| **WM Druk KV cleanup** | **CLOSED** (99→15) |
+| **WM Druk KV cleanup** | **CLOSED** (99→15→8 po legacy slot cleanup) |
 | **WM Druk runtime hotfix** | **CLOSED** (2.59.18) |
 | **ZI Investigation RCA** | **CLOSED** (P0.1F→P0.4B) — [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md) |
-| **ZI §3 adres PDF (Tauron)** | **OPEN · NO-GO** — brak prod fix |
 | **Notatki operacyjne** | **COMPLETE** (P0→P2C+HF) · **P3 Export OPEN** |
 | **P3 (Wycena / Baza cen / filtry)** | **P3.0–P3.6 CLOSED** · benchmark materiałów rynku **HOLD** |
 | **P1 WM pipeline** | **CLOSED** (v2.56.10 false exclude przebudowa) |
@@ -136,7 +139,7 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.59.19" }
+# oczekiwane: { "version": "2.59.24" }
 ```
 
 ---
@@ -376,34 +379,42 @@ npx vite-node scripts/test-operational-notes-hotfix-2.58.1.mjs
 
 ---
 
-## 3g. Odbiory WM Druk — P0 (**COMPLETE** v2.59.19)
+## 3g. Odbiory WM Druk — P0 + ZI Tauron 2026 (**COMPLETE** v2.59.24)
 
 | Pole | Wartość |
 |------|---------|
-| **Zakres** | P0 pollution · KV cleanup · runtime hotfix · ZI-PDF-001 (P0.2A demo strip) |
-| **Wersja końcowa** | **2.59.19** · commit **`1a8c892`** |
-| **Handoff** | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) |
+| **Zakres P0** | pollution · KV cleanup · runtime hotfix · ZI-PDF-001 (P0.2A demo strip) |
+| **Zakres ZI 2026** | Tauron FormMaker · mapping §4 · preservation gate · prod validation |
+| **Wersja końcowa** | **2.59.24** · commit **`65051a3`** |
+| **Handoff** | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) · [`ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) |
 | **Architektura** | [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.8 |
+| **Prod validation** | [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) |
 
 **Stan końcowy:**
 
 ```text
 Template Pollution      CLOSED
-KV Cleanup              CLOSED
+KV Cleanup              CLOSED (8 templates · 1× ZI aktywny)
 Runtime Hotfix          CLOSED
-ZI-PDF-001              CLOSED
-Stream WM DRUK P0       COMPLETE
+ZI LiveCycle 2021       CLOSED (tombstone 26f02c78…)
+ZI Tauron 2026          PRODUCTION STABLE
+Stream WM DRUK          COMPLETE
 ```
+
+**Canonical ZI (prod KV):** `2b22da48-46dc-42a0-8236-d42b5b5562dc` · `ZI.pdf`  
+**Mapping §4:** 99→JOB_STREET · 111→JOB_BUILDING · 112→JOB_APARTMENT
 
 **Test regresji:**
 
 ```bash
-npx vite-node scripts/test-wm-print-p0-2a-zi-demo-strip.mjs
+npx vite-node scripts/test-wm-print-zi-2026-smoke.mjs
+npx vite-node scripts/test-wm-print-zi-2026-preservation-smoke.mjs
+npx vite-node scripts/test-wm-print-zi-zip-post-cleanup.mjs
 npx vite-node scripts/test-wm-print-p0-seed-guard.mjs
 npx vite-node scripts/test-wm-print-template-cleanup.mjs
 ```
 
-**Nie zmieniaj bez polecenia:** seed guard, merge po UUID, canonical ZI UUID `26f02c78-…`, strip demo @ y≈142 bez RCA.
+**Nie zmieniaj bez polecenia:** seed guard, merge po UUID, tombstone sync, dedupe ZIP, canonical ZI **`2b22da48…`**, guard `detectLegacyLiveCycleZiForm`.
 
 ---
 
@@ -570,7 +581,7 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 | **P2-H** | Dokumenty / ZIP / 7Z / PDF przedmiar | **STREAM CLOSED** (v2.55.0–2.55.10) · H.7 OPEN |
 | **P3** | Wycena · Baza cen · benchmarki · filtry | **P3.0–P3.6 CLOSED** · materiały rynkowe **HOLD** |
 | **Notatki operacyjne** | P0→P2C+HF admin/inspektor/backup | **COMPLETE** (v2.58.1) · **P3 Export OPEN** |
-| **WM Druk P0** | Odbiory WM Druk — pollution + ZI PDF | **COMPLETE** (v2.59.19) |
+| **WM Druk** | Odbiory WM Druk — pollution + ZI Tauron 2026 | **COMPLETE** (v2.59.24) |
 | **P2** | Audit Center / Security Log (Super Admin) | **OTWARTY** |
 | P2-G.3D/E | Benchmark jakości · RMS · AI validation | **OTWARTY** → slot **Wycena** |
 | P2-F.6 | Kompletność oferty (checklist) | **OTWARTY** → slot **Oferta** |
@@ -597,9 +608,9 @@ Pełny opis: [`ARCHITECTURE.md`](ARCHITECTURE.md) · fundament platformy: [`PROJ
 
 ## 13. NASTĘPNY KROK (dla agenta)
 
-**Ostatni release (repo):** **v2.59.19 WM Druk P0.2A ZI-PDF-001 CLOSED** — commit **`1a8c892`**.
+**Ostatni release (repo):** **v2.59.24 ZI Tauron 2026 PRODUCTION STABLE** — commit **`65051a3`**.
 
-**Priorytet produktu (WM Druk):** stream **P0 COMPLETE** — P1 regresja Edge ZIP tylko na polecenie.
+**Priorytet produktu (WM Druk):** stream **COMPLETE** — ZI LiveCycle **CLOSED** · ZI Tauron 2026 **STABLE** · opcjonalny housekeeping P0.5 (kod/audit) tylko na polecenie.
 
 **Notatki operacyjne — roadmap:**
 
@@ -610,7 +621,7 @@ P2A.1 OPEN (opcjonalny) — panel w detalu roboty inspektora
 ```
 
 ```text
-WM DRUK P0 COMPLETE (2.59.19) — pollution · KV cleanup · runtime hotfix · ZI-PDF-001 CLOSED
+WM DRUK COMPLETE (2.59.24) — pollution · KV · ZI 2026 STABLE · legacy tombstone
 P2-H stream CLOSED (v2.55.10) · P2-H.7 OPEN (Edge magic bytes 7z).
 P3.0–P3.6 CLOSED · P1 WM false exclude CLOSED (v2.56.10).
 Notatki operacyjne COMPLETE (v2.58.1).
@@ -623,7 +634,7 @@ Inspector 2.1 — CLOSED (2.1.2 CANCELLED).
 Przy wznowieniu:
 
 1. Przeczytaj **ten plik** + [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) + `CURRENT-TASK.md`
-2. `curl -s https://www.wgdom.fun/version.json` — prod **2.59.19**
+2. `curl -s https://www.wgdom.fun/version.json` — prod **2.59.24**
 3. Przed zmianami Notatki: testy z handoffu operacyjnego (P0–HF)
 4. Przed zmianami Przetargów: `test-tenders-strategic-client-filters.mjs` + `test-tender-exclude-renovation-budowa.mjs`
 5. Przed zmianami ZIP/7Z: `test-tender-7z-archive.mjs`
@@ -658,13 +669,13 @@ Przy wznowieniu:
 
 ---
 
-**Werdykt closeout (2026-06-15 — WM Druk P0):**
+**Werdykt closeout (2026-06-16 — ZI Tauron 2026 STABLE):**
 
 ```text
-BASELINE v2.59.19 · WM DRUK P0 COMPLETE
-COMMIT 1a8c892 · RELEASE GO · PRODUCTION VERIFIED
-Template Pollution CLOSED · KV Cleanup CLOSED · Runtime Hotfix CLOSED · ZI-PDF-001 CLOSED
-Open backlog (na polecenie): WM Druk P1 regresja · P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6
+BASELINE v2.59.24 · WM DRUK COMPLETE · ZI TAURON 2026 PRODUCTION STABLE
+COMMIT 65051a3 · RELEASE GO · PRODUCTION VERIFIED (FINAL-ZI-2026-PROD-VALIDATION)
+ZI LiveCycle 2021 CLOSED (tombstone 26f02c78…) · canonical ZI 2b22da48… / ZI.pdf
+Open backlog (na polecenie): P0.5 code cleanup · P3 Export notatki · P2-H.7 · P2-G.3D/E · P2-F.6
 Ready for new GPT / new Cursor agent
 ```
 

@@ -1,16 +1,19 @@
-# ZI-2026 — raport wpływu (ETAP 3)
+# ZI-2026 — raport wpływu (ETAP 3 · aktualizacja 2.59.24)
 
-**Data:** 2026-06-15
+**Data:** 2026-06-15 · **Prod:** **2.59.24** · **Status:** PRODUCTION STABLE
 
 ## Pliki prod (zmienione / nowe)
 
 | Plik | Zmiana |
 |------|--------|
-| `src/lib/wm-print/generate-pdf-zi-tauron2026.ts` | **NOWY** — `generatePdfZiTauron2026()`, mapping **99/111/112** |
-| `src/lib/wm-print/generate-zip.ts` | Routing ZI → nowy generator; guard legacy LiveCycle |
-| `src/lib/wm-print/default-templates.ts` | Seed mapping Tauron 2026 |
+| `generate-pdf-zi-tauron2026.ts` | **NOWY** — `generatePdfZiTauron2026()`, mapping **99/111/112** |
+| `generate-zip.ts` | Routing ZI → nowy generator; guard legacy LiveCycle; dedupe ZIP (2.59.24) |
+| `default-templates.ts` | Seed mapping Tauron 2026 |
+| `zi-tauron2026-form-extract.ts` | pdf.js preservation graft |
+| `wm-print-sync.ts` | Tombstone merge · dedupe templates (2.59.24) |
+| `cloud-sync.ts` | KV tombstone merge `deleted-template-ids` (2.59.24) |
 | `public/wm-print/zi-tauron-2026-template.pdf` | **NOWY** — bundled SSOT (qpdf decrypt blank) |
-| `src/lib/wm-print/generate-pdf.ts` | `@deprecated` — bez zmian logiki (legacy inne pdf_form) |
+| `generate-pdf.ts` | `@deprecated` dla ZI — bez zmian logiki (legacy inne pdf_form) |
 
 ## Pliki prod (bez zmian — legacy)
 
@@ -19,7 +22,6 @@
 | `generate-pdf.ts` | `generatePdfFormFromTemplate`, `finalizeZiHybridForm` | Nadal importowane; **nie** dla `t.name === "ZI"` |
 | `WmPrintView.tsx` | UI Odbiory WM Druk | Bez zmian — korzysta z `buildWmPrintFilesForJob` |
 | `wm-print/upload.ts` | Upload szablonów KV | Admin może wgrać encrypted blank — fallback bundled |
-| `cloud-sync.ts` | KV `kw-wm-print-templates` | Istniejące mappingi LiveCycle w KV — guard error lub wymiana pliku |
 
 ## Wywołania `generatePdfFormFromTemplate`
 
@@ -44,11 +46,12 @@
 | `inspectWmPrintPdfForm` | Diagnostyka — nadal hybrid dla starych plików |
 | Nowy: `detectZiTauron2026Form` / `detectLegacyLiveCycleZiForm` | Routing ZI 2026 |
 
-## KV / operacje admin
+## KV / operacje admin (stan prod 2.59.24)
 
-1. **Wymagana wymiana pliku ZI** w panelu szablonów na blank Tauron 2026 (`zi.ashx`) — lub poleganie na bundled fallback.
-2. **pdfFieldMapping w KV** — stare klucze `TextField2[*]` ignorowane; seed nowy 99/102/111.
-3. **Guard:** upload LiveCycle → czytelny błąd przy generacji ZIP.
+1. **Jeden aktywny ZI** — UUID `2b22da48-…` · plik `ZI.pdf` (Tauron 2026).
+2. **Legacy slot** `26f02c78-…` — **TOMBSTONE** w `kw-wm-print-deleted-template-ids`.
+3. **pdfFieldMapping** — pola **99 / 111 / 112** (§4 dolny wiersz).
+4. **Guard:** upload LiveCycle → błąd przy generacji ZIP.
 
 ## Testy
 
@@ -59,6 +62,7 @@ npm run build
 
 ## Dokumentacja
 
-- `docs/ZI-2026-HANDOFF.md` — SSOT implementacji
-- `audit/ZI-FINAL-HANDOFF.md` — legacy RCA CLOSED
+- `docs/ZI-2026-HANDOFF.md` — SSOT implementacji prod
+- `audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md` — werdykt prod
+- `audit/ZI-FINAL-HANDOFF.md` — legacy RCA CLOSED (historyczne)
 - `audit/archive/legacy-zi-livecycle-2021/` — archiwum

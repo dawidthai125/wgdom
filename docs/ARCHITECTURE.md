@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-15 (ZI Tauron 2026 RELEASE · WM Druk § 12.1.8)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-16 (ZI Tauron 2026 PRODUCTION STABLE · WM Druk § 12.1.8)
 > **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ Pulpit V3:** [`SESSION-HANDOFF-DASHBOARD-V3.md`](SESSION-HANDOFF-DASHBOARD-V3.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1329,10 +1329,10 @@ buildTenderDocCandidates()
 
 ### 12.1.8 Odbiory WM Druk (`wmprint`, v2.59.x)
 
-**Status:** Moduł **GO** (UI, ZIP, KV, sync) · P0 pollution/KV/runtime **CLOSED** · **ZI Tauron 2026 RELEASE GO (2.59.22)** · ZI LiveCycle 2021 **CLOSED**
+**Status:** Moduł **GO** (UI, ZIP, KV, sync) · P0 pollution/KV/runtime **CLOSED** · **ZI Tauron 2026 PRODUCTION STABLE (2.59.24)** · ZI LiveCycle 2021 **CLOSED**
 
 **Handoff modułu:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md)  
-**★★ SSOT ZI prod:** [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) · historyczne RCA: [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
+**★★ SSOT ZI prod:** [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) · validation: [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) · historyczne RCA: [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
 
 Moduł admina do generowania pakietów dokumentów odbiorowych WM — ZIP per robota, szablony DOCX/PDF form, upload dokumentów.
 
@@ -1352,23 +1352,24 @@ Moduł admina do generowania pakietów dokumentów odbiorowych WM — ZIP per ro
 | `kw-wm-print-deleted-template-ids` | tombstone szablonów |
 | `kw-wm-print-deleted-job-doc-ids` | tombstone dokumentów robót |
 
-**Sync:** `wm-print-sync.ts` · merge w `cloud-sync.ts` case `kw-wm-print-templates` — **`normalizeWmPrintTemplates(local)`** (nie `parseWmPrintTemplates` bez importu).
+**Sync:** `wm-print-sync.ts` · merge tombstone `kw-wm-print-deleted-template-ids` w bootstrap (2.59.24) · merge w `cloud-sync.ts` case `kw-wm-print-templates` — **`normalizeWmPrintTemplates(local)`** (nie `parseWmPrintTemplates` bez importu).
 
 **Seed guard (2.59.15):** `maybeExecuteWmPrintSeed()` — bootstrap 13 slotów **tylko** gdy local **i** chmura puste. `parseWmPrintTemplates` = parse bez auto-seedu.
 
-**Prod KV (po cleanup 2.59.17):** 15 rekordów (było 99). Canonical ZI: **`26f02c78-871c-4d65-aeac-d0ca06bf060c`** (plik `2155cec9-…` po P0.2A clean).
+**Prod KV (po cleanup 2.59.24):** **8** rekordów templates · **1× aktywny ZI**. Canonical: **`2b22da48-46dc-42a0-8236-d42b5b5562dc`** · plik **`ZI.pdf`**. Legacy LiveCycle slot **`26f02c78-871c-4d65-aeac-d0ca06bf060c`** — **TOMBSTONE** (147 deleted-ids).
 
 **Generowanie:**
 
 ```text
 generate-zip.ts → buildWmPrintFilesForJob()
+  dedupeWmPrintTemplatesByName(getEnabledWmPrintTemplates(...))   ← 2.59.24
   DOCX      → generate-docx.ts ({{VAR}})
-  pdf_form  → generate-pdf-zi-tauron2026.ts gdy name===ZI (Tauron 2026 · §4 pola 99/111/112 + preservation)
-  pdf_form  → generate-pdf.ts (inne formularze AcroForm)
+  ZI        → detectLegacyLiveCycleZiForm guard → generatePdfZiTauron2026 (§4 99/111/112 + preservation)
+  pdf_form  → generate-pdf.ts (legacy — brak innych pdf_form w prod poza ZI)
   pdf       → copyStaticPdfTemplate
 ```
 
-**ZI Tauron 2026 (2.59.22):** FormMaker AcroForm · mapping §4: `Pole tekstowe 99/111/112` → JOB_STREET/BUILDING/APARTMENT · preservation: pdf.js graft ze szyfrowanego WM `ZI.pdf` · bundled `public/wm-print/zi-tauron-2026-template.pdf` · smoke: `test-wm-print-zi-2026-smoke.mjs` + `test-wm-print-zi-2026-preservation-smoke.mjs`.
+**ZI Tauron 2026 (2.59.24):** FormMaker AcroForm · mapping §4: `Pole tekstowe 99/111/112` → JOB_STREET/BUILDING/APARTMENT · preservation: pdf.js graft ze szyfrowanego WM `ZI.pdf` · bundled `public/wm-print/zi-tauron-2026-template.pdf` · smoke: `test-wm-print-zi-2026-smoke.mjs` + `test-wm-print-zi-2026-preservation-smoke.mjs` + `test-wm-print-zi-zip-post-cleanup.mjs`.
 
 **ZI LiveCycle (2021): CLOSED** — nie wracać do XFA, ciphertext, AP, flatten, TextField2[*], widgety 429/428/427.
 

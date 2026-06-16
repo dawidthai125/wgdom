@@ -1,7 +1,18 @@
 # ZI Tauron 2026 — Handoff implementacji
 
-> **Status:** **RELEASE GO** — zastępuje legacy LiveCycle ZI (CLOSED)  
-> **Data:** 2026-06-15 · **Prod:** **2.59.22**
+> **Status:** **PRODUCTION STABLE** — zastępuje legacy LiveCycle ZI (CLOSED)  
+> **Data:** 2026-06-15 · **Prod:** **2.59.24** · commit `65051a3`  
+> **Walidacja prod:** [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md)
+
+---
+
+## Canonical template (KV prod)
+
+| Pole | Wartość |
+|------|---------|
+| **UUID** | `2b22da48-46dc-42a0-8236-d42b5b5562dc` |
+| **Plik** | `ZI.pdf` (Tauron 2026 · FormMaker) |
+| **Legacy UUID (tombstone)** | `26f02c78-871c-4d65-aeac-d0ca06bf060c` |
 
 ---
 
@@ -74,6 +85,7 @@ RCA SSOT: [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md)
 ```bash
 npx vite-node scripts/test-wm-print-zi-2026-smoke.mjs
 npx vite-node scripts/test-wm-print-zi-2026-preservation-smoke.mjs
+npx vite-node scripts/test-wm-print-zi-2026-tombstone-smoke.mjs
 ```
 
 Mapping: **Sępa Szarzyńskiego / 83 / 7** → **99 / 111 / 112**.  

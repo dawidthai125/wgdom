@@ -12,10 +12,11 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.59.19** (prod) · repo może mieć 2.59.20 lokalnie · **WM Druk P0 infra CLOSED · ZI §3 OPEN**
-- **Prod (`main` / `origin/main`, app):** **`1a8c892`** (2.59.19) · https://www.wgdom.fun
-- **★★ Handoff Odbiory WM Druk:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](../../docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) — P0 pollution CLOSED · **ZI §3 NO-GO**
-- **★★ SSOT śledztwa ZI:** [`audit/ZI-FINAL-HANDOFF.md`](../../audit/ZI-FINAL-HANDOFF.md)
+- **Aktualna wersja UI:** **2.59.24** (prod) · **WM Druk P0 infra CLOSED · ZI Tauron 2026 PRODUCTION STABLE**
+- **Prod (`main` / `origin/main`, app):** **`65051a3`** (2.59.24) · https://www.wgdom.fun
+- **★★ Handoff Odbiory WM Druk:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](../../docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) — P0 pollution CLOSED · **ZI Tauron 2026 STABLE**
+- **★★ SSOT ZI prod:** [`docs/ZI-2026-HANDOFF.md`](../../docs/ZI-2026-HANDOFF.md) · walidacja: [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md)
+- **★★ Historyczne RCA LiveCycle:** [`audit/ZI-FINAL-HANDOFF.md`](../../audit/ZI-FINAL-HANDOFF.md) — superseded by ZI 2026
 - **★★ Handoff Notatki operacyjne (COMPLETE):** [`docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md`](../../docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md) — P0→P2C+HF · KV · ACL · testy · backlog P3
 - **★★ Handoff P3 (Wycena · BZP · filtry):** [`docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](../../docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) — baza cen · benchmarki · P3.6 · P1 WM
 - **★★ Handoff P2-H (COMPLETE H.1–H.6):** [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](../../docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) — Marketplanet · ZIP · 7Z · dossier
@@ -110,23 +111,25 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
  
  ---
  
- ## Odbiory WM Druk — P0 infra CLOSED · ZI §3 OPEN (prod `1a8c892`, v2.59.19, 2026-06-15)
+ ## Odbiory WM Druk — P0 infra CLOSED · ZI Tauron 2026 STABLE (prod `65051a3`, v2.59.24, 2026-06-15)
  
- **Status:** **P0 Template Pollution CLOSED** · **ZI §3 adres PDF OPEN · NO-GO** · **RCA P0.1F→P0.4B CLOSED**
+ **Status:** **P0 Template Pollution CLOSED** · **ZI Tauron 2026 PRODUCTION STABLE** · **ZI LiveCycle 2021 CLOSED (tombstone)**
  
  | Etap | Wersja | Skrót |
  |---|-----|----|
  | Seed guard | 2.59.15 | parse bez auto-seedu; seed tylko local+cloud puste |
- | KV cleanup | 2.59.17 | prod 99→15, 84 tombstone |
+ | KV cleanup | 2.59.17 | prod 99→15, 84 tombstone (historyczne) |
  | Hotfix | 2.59.18 | cloud-sync normalizeWmPrintTemplates |
  | P0.2A | 2.59.19 | demo strip (historyczny) |
- | ZI Investigation | P0.3A→P0.4B | RCA CLOSED — brak prod fix |
+ | ZI Tauron 2026 | 2.59.22–24 | generator + preservation + prod validation + legacy tombstone |
  
- **Handoff:** [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](../../docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) · **★★ [`audit/ZI-FINAL-HANDOFF.md`](../../audit/ZI-FINAL-HANDOFF.md)** · **ARCHITECTURE § 12.1.8**
+ **Handoff:** [`docs/ZI-2026-HANDOFF.md`](../../docs/ZI-2026-HANDOFF.md) · [`docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](../../docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) · **ARCHITECTURE § 12.1.8**
  
- **Kluczowe pliki:** `WmPrintView.tsx`, `src/lib/wm-print/*`, `generate-pdf.ts`, `generate-zip.ts`
+ **Canonical ZI UUID:** `2b22da48-46dc-42a0-8236-d42b5b5562dc` · legacy `26f02c78-…` = **TOMBSTONE**
  
- **OPEN:** §3 adres obiektu w PDF ZI — Edge/Chrome/Adobe FAIL. **Nie** wracać do ciphertext/AP/overlay/flatten bez nowego dowodu.
+ **Kluczowe pliki:** `WmPrintView.tsx`, `generate-pdf-zi-tauron2026.ts`, `generate-zip.ts`, `wm-print-sync.ts`
+ 
+ **Nie** wracać do LiveCycle/ciphertext/AP/overlay/flatten bez nowego dowodu.
  
  ---
  
