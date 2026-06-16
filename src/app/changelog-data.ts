@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.44",
+    label: "Pomiary Elektryczne — EM-P1R-HOTFIX-001 ADDRESS parity",
+    items: [
+      {
+        type: "fix",
+        text: "Szablony ADSC / Rezystancja / RCD / Dane — „Miejsce pomiaru” używa {{ADDRESS}} zamiast hardcoded adresu testowego (Sępa); parity z Protokołem",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.43",
     label: "Pomiary Elektryczne — EM-P1R Template Rebuild (SSOT Word)",
     items: [

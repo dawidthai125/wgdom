@@ -63,6 +63,24 @@ function applyParagraphReplacements(xml, pairs) {
   return xml.replace(/<w:p\b[\s\S]*?<\/w:p>/g, (para) => replaceParagraphText(para, pairs));
 }
 
+function paragraphCombinedText(paragraphXml) {
+  let combined = "";
+  const re = /<w:t(\s[^>]*)?>([^<]*)<\/w:t>/g;
+  let m;
+  while ((m = re.exec(paragraphXml)) !== null) combined += m[2];
+  return combined;
+}
+
+/** EM-P1R-HF001: „Miejsce pomiaru:” musi być {{ADDRESS}} — SSOT ma split-run + Sarzyński (nie Szarzyński). */
+function applyMiejscePomiaruPlaceholder(xml) {
+  return xml.replace(/<w:p\b[\s\S]*?<\/w:p>/g, (para) => {
+    const combined = paragraphCombinedText(para);
+    if (!combined.includes("Miejsce pomiaru:")) return para;
+    if (combined.includes("{{ADDRESS}}")) return para;
+    return replaceParagraphText(para, [[combined, "Miejsce pomiaru: {{ADDRESS}}"]]);
+  });
+}
+
 function replaceCellText(cellXml, newText) {
   const escaped = escapeXml(newText);
   let first = true;
@@ -237,6 +255,10 @@ function headerScalarPairs({ includeExecutor = true } = {}) {
       "Pomiarowiec: {{TECHNICIAN}} {{TECHNICIAN_LICENSE}}",
     ],
     [
+      "Miejsce pomiaru: Wrocław, ul. Sępa Sarzyńskiego 83/7",
+      "Miejsce pomiaru: {{ADDRESS}}",
+    ],
+    [
       "Miejsce pomiaru: Wrocław, ul. Sępa Szarzyńskiego 83/7",
       "Miejsce pomiaru: {{ADDRESS}}",
     ],
@@ -252,7 +274,9 @@ function headerScalarPairs({ includeExecutor = true } = {}) {
 }
 
 function applyHeaderScalars(xml, opts) {
-  return applyParagraphReplacements(xml, headerScalarPairs(opts));
+  let out = applyParagraphReplacements(xml, headerScalarPairs(opts));
+  out = applyMiejscePomiaruPlaceholder(out);
+  return out;
 }
 
 const PROTOCOL_PAIRS = [

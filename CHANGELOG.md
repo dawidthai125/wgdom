@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.43** · **EM-P1R**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.44** · **EM-P1R-HF001**
+
+## 2.59.44 — Pomiary Elektryczne EM-P1R-HOTFIX-001 (ADDRESS parity)
+
+- **fix:** 4 szablony pomiarowych — `Miejsce pomiaru: {{ADDRESS}}` zamiast hardcoded Sępa 83/7
+- **test:** `test-em-p1r-hotfix-001-address-parity.mjs` (23 PASS)
 
 ## 2.59.43 — Pomiary Elektryczne EM-P1R (Template Rebuild SSOT Word)
 
