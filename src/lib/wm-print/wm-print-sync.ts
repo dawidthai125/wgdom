@@ -40,6 +40,24 @@ export function addDeletedWmPrintTemplateId(id: string): string[] {
   return next;
 }
 
+export function mergeDeletedWmPrintTemplateIds(local: string[], cloud: string[]): string[] {
+  const norm = (raw: unknown) =>
+    Array.isArray(raw) ? raw.filter((x): x is string => typeof x === "string") : [];
+  return [...new Set([...norm(local), ...norm(cloud)])].slice(-500);
+}
+
+export function saveDeletedWmPrintTemplateIds(ids: string[]): void {
+  localStorage.setItem(WM_PRINT_DELETED_TEMPLATE_IDS_KEY, JSON.stringify(ids.slice(-500)));
+}
+
+export function mergeDeletedWmPrintJobDocIds(local: string[], cloud: string[]): string[] {
+  return mergeDeletedWmPrintTemplateIds(local, cloud);
+}
+
+export function saveDeletedWmPrintJobDocIds(ids: string[]): void {
+  localStorage.setItem(WM_PRINT_DELETED_JOB_DOC_IDS_KEY, JSON.stringify(ids.slice(-500)));
+}
+
 export function getDeletedWmPrintJobDocIds(): string[] {
   try {
     const raw = localStorage.getItem(WM_PRINT_DELETED_JOB_DOC_IDS_KEY);
@@ -191,8 +209,16 @@ export async function syncWmPrintFromCloud(): Promise<{
   const localSettings = normalizeWmPrintSettings(
     JSON.parse(localStorage.getItem(WM_PRINT_SETTINGS_KEY) || "null"),
   );
-  const delTpl = getDeletedWmPrintTemplateIds();
-  const delDoc = getDeletedWmPrintJobDocIds();
+  const delTpl = mergeDeletedWmPrintTemplateIds(
+    getDeletedWmPrintTemplateIds(),
+    Array.isArray(cloud?.[3]) ? cloud[3] : [],
+  );
+  const delDoc = mergeDeletedWmPrintJobDocIds(
+    getDeletedWmPrintJobDocIds(),
+    Array.isArray(cloud?.[4]) ? cloud[4] : [],
+  );
+  saveDeletedWmPrintTemplateIds(delTpl);
+  saveDeletedWmPrintJobDocIds(delDoc);
 
   const templates = mergeWmPrintTemplates(localTemplates, cloud?.[0], delTpl);
   const jobDocs = mergeWmPrintJobDocuments(localDocs, cloud?.[1], delDoc);

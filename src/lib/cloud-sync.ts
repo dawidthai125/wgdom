@@ -46,10 +46,18 @@ import {
   mergeWmPrintTemplates,
   getDeletedWmPrintTemplateIds,
   getDeletedWmPrintJobDocIds,
+  mergeDeletedWmPrintTemplateIds,
+  mergeDeletedWmPrintJobDocIds,
+  saveDeletedWmPrintTemplateIds,
+  saveDeletedWmPrintJobDocIds,
 } from "@/lib/wm-print/wm-print-sync";
 import { normalizeWmPrintTemplates } from "@/lib/wm-print/templates";
 import { normalizeWmPrintJobDocuments } from "@/lib/wm-print/job-documents";
 import { mergeWmPrintSettings, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
+import {
+  WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
+  WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
+} from "@/lib/wm-print/types";
 import { defaultWgdomCostCatalogStore } from "@/lib/wgdom-cost-catalog";
 import { defaultUserClassificationDictionaryStore } from "@/lib/wgdom-user-classification-dictionary";
 
@@ -1981,6 +1989,8 @@ export async function computeMergedDataBundle(
   let cloudLeavesDeleted: string[] = [];
   let cloudChargesDeleted: string[] = [];
   let cloudOpNotesDeleted: string[] = [];
+  let cloudWmTplDeleted: string[] = [];
+  let cloudWmDocDeleted: string[] = [];
   let cloudReachable = false;
   try {
     const fetched = await fetchKeysFromCloud([
@@ -1992,6 +2002,8 @@ export async function computeMergedDataBundle(
       EMPLOYEE_LEAVES_DELETED_IDS_KEY,
       RECOVERABLE_CHARGES_DELETED_IDS_KEY,
       OPERATIONAL_NOTES_DELETED_IDS_KEY,
+      WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
+      WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
     ]);
     cloudValues = fetched.slice(0, keys.length);
     cloudDeleted = normalizeDeletedJobIds(fetched[keys.length]);
@@ -2001,6 +2013,8 @@ export async function computeMergedDataBundle(
     cloudLeavesDeleted = normalizeDeletedEmployeeLeaveIds(fetched[keys.length + 4]);
     cloudChargesDeleted = normalizeDeletedRecoverableChargeIds(fetched[keys.length + 5]);
     cloudOpNotesDeleted = normalizeDeletedOperationalNoteIds(fetched[keys.length + 6]);
+    cloudWmTplDeleted = mergeDeletedWmPrintTemplateIds([], fetched[keys.length + 7]);
+    cloudWmDocDeleted = mergeDeletedWmPrintJobDocIds([], fetched[keys.length + 8]);
     cloudReachable = true;
   } catch {
     /* offline — scal tylko lokalne źródła */
@@ -2019,6 +2033,10 @@ export async function computeMergedDataBundle(
   saveDeletedRecoverableChargeIds(mergedChargesDeleted);
   const mergedOpNotesDeleted = mergeDeletedOperationalNoteIds(getDeletedOperationalNoteIds(), cloudOpNotesDeleted);
   saveDeletedOperationalNoteIds(mergedOpNotesDeleted);
+  const mergedWmTplDeleted = mergeDeletedWmPrintTemplateIds(getDeletedWmPrintTemplateIds(), cloudWmTplDeleted);
+  saveDeletedWmPrintTemplateIds(mergedWmTplDeleted);
+  const mergedWmDocDeleted = mergeDeletedWmPrintJobDocIds(getDeletedWmPrintJobDocIds(), cloudWmDocDeleted);
+  saveDeletedWmPrintJobDocIds(mergedWmDocDeleted);
   let merged = mergeAllDataKeys(
     valuesForMerge,
     cloudValues,

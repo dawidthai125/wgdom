@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-15",
+    version: "2.59.24",
+    label: "Odbiory WM Druk — cleanup legacy ZI slot (P0)",
+    items: [
+      {
+        type: "fix",
+        text: "WM Druk: usunięcie duplikatu slotu ZI LiveCycle z KV + tombstone; merge tombstone z chmury; dedupe nazw przy generacji ZIP",
+      },
+    ],
+  },
+  {
+    date: "2026-06-15",
     version: "2.59.23",
     label: "Odbiory WM Druk — hotfix ZI pdf.js worker (P0)",
     items: [

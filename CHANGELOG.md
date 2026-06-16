@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.23** · **ZI hotfix P0**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.24** · **WM Druk ZI cleanup P0**
+
+## 2.59.24 — WM Druk legacy ZI slot cleanup (P0)
+- KV: tombstone `26f02c78…` · jeden aktywny ZI Tauron 2026 (`2b22da48…`)
+- `cloud-sync.ts`: merge `kw-wm-print-deleted-template-ids` z chmury przy pull
+- `generate-zip.ts`: `dedupeWmPrintTemplatesByName` przed generacją ZIP
 
 ## 2.59.23 — Hotfix ZI pdf.js worker (P0)
 - `zi-tauron2026-form-extract.ts`: `GlobalWorkerOptions.workerSrc` — fix ZIP „No GlobalWorkerOptions.workerSrc specified”

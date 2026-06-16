@@ -9,7 +9,7 @@ import {
   generatePdfZiTauron2026,
 } from "@/lib/wm-print/generate-pdf-zi-tauron2026";
 import { getWmPrintJobDocumentsForJob } from "@/lib/wm-print/job-documents";
-import { getEnabledWmPrintTemplates, getWmPrintTemplateFiles } from "@/lib/wm-print/templates";
+import { getEnabledWmPrintTemplates, getWmPrintTemplateFiles, dedupeWmPrintTemplatesByName } from "@/lib/wm-print/templates";
 import { fetchWmPrintFileBytes } from "@/lib/wm-print/upload";
 import type {
   WmPrintGenerateOptions,
@@ -90,7 +90,7 @@ export async function buildWmPrintFilesForJob(
   fetchBytes: WmPrintBytesFetcher = fetchWmPrintFileBytes,
 ): Promise<WmPrintGeneratedFile[]> {
   const vars = buildWmPrintVariableMap(job, settings, opts);
-  const enabled = getEnabledWmPrintTemplates(templates);
+  const enabled = dedupeWmPrintTemplatesByName(getEnabledWmPrintTemplates(templates));
   const pool = selectedTemplateIds?.length
     ? enabled.filter((t) => selectedTemplateIds.includes(t.id))
     : enabled;
