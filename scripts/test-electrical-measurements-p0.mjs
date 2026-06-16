@@ -8,7 +8,13 @@ import {
   mergeElectricalMeasurements,
   serializeElectricalMeasurementsForStorage,
 } from "../src/lib/electrical-measurements/merge.ts";
-import { buildElectricalMeasurementPreview } from "../src/lib/electrical-measurements/preview.ts";
+import {
+  buildAdscPreview,
+  buildElectricalMeasurementPreview,
+  buildJobElectricalMeasurementsSummary,
+  buildRcdPreview,
+  buildResistancePreview,
+} from "../src/lib/electrical-measurements/preview.ts";
 import {
   addElectricalMeasurementCircuit,
   addElectricalMeasurementRcd,
@@ -67,12 +73,16 @@ assert(forJob.length === 2, "T03 dwa raporty na jedną robotę");
 assert(forJob.every((r) => r.jobId === JOB_A), "T03 oba mają ten sam jobId");
 assert(filterElectricalMeasurementsForJob(store, JOB_B).length === 0, "T03 inna robota pusta");
 
-console.log("\n=== T04 circuits ===");
+console.log("\n=== T04 circuits (displayName + sortOrder) ===");
 let withCircuit = addElectricalMeasurementCircuit(m1, "socket-1f", "B");
 withCircuit = addElectricalMeasurementCircuit(withCircuit, "lighting-1f", "C");
 assert(withCircuit.circuits.length === 2, "T04 dwa obwody");
+assert(withCircuit.circuits[0].displayName === "Obwód gniazd 230V", "T04 displayName socket-1f");
+assert(withCircuit.circuits[0].sortOrder === 2, "T04 pierwszy sortOrder 2");
+assert(withCircuit.circuits[1].sortOrder === 3, "T04 drugi sortOrder 3");
 withCircuit = removeElectricalMeasurementCircuit(withCircuit, withCircuit.circuits[0].id);
 assert(withCircuit.circuits.length === 1, "T04 delete circuit");
+assert(withCircuit.circuits[0].sortOrder === 2, "T04 renumber po delete");
 
 console.log("\n=== T05 RCD ===");
 let withRcd = addElectricalMeasurementRcd(withCircuit, "P302");
@@ -100,7 +110,7 @@ const mergedCloudWins = mergeElectricalMeasurements(
 );
 assert(mergedCloudWins[0]?.reportNumber === "NOWY", "T06 cloud newer wins");
 
-console.log("\n=== T07 preview ===");
+console.log("\n=== T07 preview SSOT ===");
 const previewBase = touchElectricalMeasurement(
   addElectricalMeasurementRcd(
     addElectricalMeasurementCircuit(
@@ -116,17 +126,28 @@ const preview = buildElectricalMeasurementPreview(previewBase);
 assert(preview.summary.documentCount === EM_DOCUMENT_COUNT, "T07 documentCount = 5");
 assert(preview.summary.circuitCount === 2, "T07 circuitCount");
 assert(preview.summary.rcdCount === 1, "T07 rcdCount");
-assert(preview.adscLines[0] === "1. Zasilanie", "T07 ADSC zasilanie");
-assert(preview.adscLines.some((l) => l.includes("400V")), "T07 ADSC 400V");
-assert(preview.resistanceLines[0].includes("5x4"), "T07 rezystancja zasilanie");
-assert(preview.rcdLines[0] === "RCD1 → P302", "T07 RCD line");
+assert(buildAdscPreview(previewBase)[0] === "1. Zasilanie", "T07 buildAdscPreview zasilanie");
+assert(buildAdscPreview(previewBase).some((l) => l.includes("400V")), "T07 ADSC 400V");
+assert(buildResistancePreview(previewBase)[0].includes("5x4"), "T07 buildResistancePreview zasilanie");
+assert(buildRcdPreview(previewBase)[0] === "RCD1 → P302", "T07 buildRcdPreview");
+assert(preview.adsc.length === previewBase.circuits.length + 1, "T07 bundle adsc");
 
-console.log("\n=== T08 persistence roundtrip ===");
+console.log("\n=== T08 job summary ===");
+const jobSummary = buildJobElectricalMeasurementsSummary(forJob);
+assert(jobSummary.reportCount === 2, "T08 reportCount");
+assert(jobSummary.circuitCount >= 0, "T08 circuitCount aggregate");
+
+console.log("\n=== T09 persistence roundtrip ===");
 const persisted = serializeElectricalMeasurementsForStorage(store);
 const reloaded = normalizeElectricalMeasurements(JSON.parse(JSON.stringify(persisted)));
-assert(reloaded.length === store.length, "T08 reload count");
-assert(reloaded.some((r) => r.reportNumber === "RAP-12-2026"), "T08 reload m1");
-assert(reloaded.some((r) => r.reportNumber === "RAP-03-2028"), "T08 reload m2");
+assert(reloaded.length === store.length, "T09 reload count");
+assert(reloaded.some((r) => r.reportNumber === "RAP-12-2026"), "T09 reload m1");
+assert(reloaded.some((r) => r.reportNumber === "RAP-03-2028"), "T09 reload m2");
+const withCircuits = reloaded.find((r) => r.circuits.length > 0);
+if (withCircuits?.circuits[0]) {
+  assert(typeof withCircuits.circuits[0].displayName === "string", "T09 displayName persisted");
+  assert(typeof withCircuits.circuits[0].sortOrder === "number", "T09 sortOrder persisted");
+}
 
 console.log(`\n=== WYNIK: ${passed} PASS, ${failed} FAIL ===`);
 if (failed > 0) process.exit(1);

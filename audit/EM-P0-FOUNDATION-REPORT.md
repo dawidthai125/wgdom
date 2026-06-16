@@ -1,22 +1,25 @@
-# EM-P0 — Pomiary Elektryczne — Foundation Report
+# EM-P0 — Pomiary Elektryczne — Foundation Report (FINAL)
 
 **Data:** 2026-06-16  
-**Wersja:** 2.59.27  
+**Wersja:** 2.59.28 (korekty 4–6 na bazie 2.59.27)  
 **Werdykt:** **PASS** — EM-P0 COMPLETE
 
 ---
 
 ## 1. Executive Summary
 
-Zaimplementowano fundament domeny **Pomiary Elektryczne** (Electrical Measurements):
+Fundament domeny **Pomiary Elektryczne** — model, storage, sync, UI, preview SSOT.
 
-- Model danych z **wieloma raportami na jedną robotę** (korekta 1)
-- Pola `technicianName`, `meterModel`, `meterSerialNumber` od P0 — ręcznie, architektura pod przyszłe domyślne (korekta 2)
-- Panel UI w Robotach + podgląd read-only ze statystykami dokumentów/obwodów/RCD (korekta 3)
-- Sync chmura `kw-electrical-measurements`
-- Stub generatora DOCX (`generate-em-docx.ts`) — **TODO EM-P1**
+Korekty finalne:
 
-**Bez:** DOCX, ZIP, integracji WM Druk.
+| # | Zakres |
+|---|--------|
+| 1–3 | Wiele raportów per job · pola miernika · statystyki preview |
+| **4** | Circuit: `displayName` + `sortOrder` — gotowe pod EM-P1 |
+| **5** | Preview SSOT: `buildAdscPreview` / `buildResistancePreview` / `buildRcdPreview` |
+| **6** | Job summary: Raporty/Obwody/RCD zawsze widoczne + zwijanie szczegółów |
+
+**Bez:** DOCX, ZIP, WM Druk.
 
 ---
 
@@ -24,93 +27,69 @@ Zaimplementowano fundament domeny **Pomiary Elektryczne** (Electrical Measuremen
 
 ```text
 src/lib/electrical-measurements/
-  types.ts
-  normalize.ts
+  types.ts          — model + defaultCircuitDisplayName()
+  normalize.ts      — parse + backfill displayName/sortOrder
   merge.ts
-  report.ts
-  preview.ts
+  report.ts         — CRUD + renumber sortOrder
+  preview.ts        — SSOT (UI + przyszły DOCX)
   sync.ts
-  generate-em-docx.ts   ← STUB (EM-P1)
+  generate-em-docx.ts  STUB
 ```
-
-**UI:** `src/app/JobElectricalMeasurementsPanel.tsx` → `JobsView.tsx`
-
-**Wzorzec sync:** recoverable charges / operational notes (KV array, LWW merge per `id`).
 
 ---
 
 ## 3. Storage
 
-| Klucz | Rola |
-|-------|------|
-| `kw-electrical-measurements` | Tablica `ElectricalMeasurement[]` |
-
-Zintegrowany z:
-
-- `DATA_KEYS`
-- `BOOTSTRAP_DEFERRED_KEYS`
-- `mergeKeyData()` w `cloud-sync.ts`
-- `commitElectricalMeasurements()` w `App.tsx`
+Klucz `kw-electrical-measurements` w `DATA_KEYS`, `BOOTSTRAP_DEFERRED_KEYS`, merge LWW w `cloud-sync.ts`.
 
 ---
 
 ## 4. Model danych
 
+**Circuit (EM-P1-ready):**
+
 ```ts
-ElectricalMeasurement {
-  id, jobId                    // wiele rekordów per jobId — BEZ unique
-  reportNumber, measurementDate
-  technicianName, meterModel, meterSerialNumber
-  supplyType: "ydy-3x4" | "ydy-5x4"
-  circuits: { id, type, breakerType }[]
-  rcds: { id, symbol, deviceType }[]
-  createdAt, updatedAt
-}
+{ id, type, breakerType, displayName, sortOrder }
 ```
 
-**Circuit types:** `socket-1f`, `lighting-1f`, `socket-3f`  
-**Breaker:** `B`, `C`  
-**RCD device:** `P302`, `P304`
+**ElectricalMeasurement:** wiele na `jobId`, pełne pola pomiarowca/miernika, `circuits[]`, `rcds[]`.
+
+Normalize uzupełnia brakujące `displayName`/`sortOrder` — brak migracji KV.
 
 ---
 
 ## 5. UI
 
-Sekcja **Pomiary Elektryczne** w szczegółach roboty:
+Panel **Pomiary Elektryczne** w Robotach:
 
-1. **Dane pomiaru** — numer, data (domyślnie dziś), pomiarowiec, model/nr miernika
-2. **Zasilanie** — radio YDY 3×4 / 5×4
-3. **Obwody** — dodaj/usuń, typ, wyłącznik B/C
-4. **RCD** — dodaj/usuń, symbol, P302/P304
-5. **Wybór raportu** — select + „Nowy raport” (multi-report per job)
-
-Zapis natychmiastowy → localStorage + push chmura.
+- **Job summary** (zawsze): Raporty · Obwody · RCD
+- Select raportu + Nowy raport
+- Zwiń/Rozwiń szczegóły edycji
+- 4 sekcje edycji + preview read-only
 
 ---
 
-## 6. Preview
+## 6. Preview (SSOT)
 
-Read-only, nad sekcjami podglądu:
+```ts
+buildAdscPreview(measurement)       → string[]
+buildResistancePreview(measurement) → string[]
+buildRcdPreview(measurement)         → string[]
+buildJobElectricalMeasurementsSummary(reports)
+buildElectricalMeasurementPreview(measurement)  // bundle dla UI
+```
 
-- `Liczba dokumentów: 5` (stała `EM_DOCUMENT_COUNT` — docelowe 5 DOCX w EM-P1)
-- `Liczba obwodów: X`
-- `Liczba RCD: Y`
+UI **nie** buduje własnej logiki wierszy — tylko renderuje wynik preview.
 
-Bloki:
-
-- **Ochrona przed porażeniem** — Zasilanie + obwody (230V/400V)
-- **Rezystancja** — YDY zasilanie + etykiety per obwód
-- **RCD** — `RCD1 → P302` format
+Przepływ EM-P1: `model → preview.ts → DOCX + UI`.
 
 ---
 
 ## 7. Build
 
 ```bash
-npm run build
+npm run build → PASS
 ```
-
-**Wynik:** PASS (2026-06-16)
 
 ---
 
@@ -120,38 +99,25 @@ npm run build
 npx vite-node scripts/test-electrical-measurements-p0.mjs
 ```
 
-**Wynik:** **26/26 PASS**
-
-Pokrycie: normalize, create/update, multi-report per job, circuits, RCD, merge LWW, preview, JSON roundtrip.
+**Wynik:** 30+/30 PASS (normalize, CRUD, multi-report, circuit fields, preview SSOT, job summary, persistence).
 
 ---
 
 ## 9. Ograniczenia P0
 
-- Brak generatora DOCX (stub only)
-- Brak ZIP / pobierania pakietu
-- Brak integracji WM Druk
-- Brak ustawień globalnych domyślnych (pomiarowiec/miernik) — pola ręczne
-- Brak usuwania całego raportu w UI (można dodawać wiele; delete raportu = backlog)
+- Brak generatora DOCX (stub)
+- Brak ZIP / WM Druk
+- Brak globalnych domyślnych ustawień miernika
+- `displayName` edytowalne w modelu — UI edycji displayName = EM-P1 (typ zmienia domyślną etykietę)
 
 ---
 
 ## 10. Plan EM-P1
 
-Generator DOCX na podstawie modelu:
+Generator DOCX (5 dokumentów) korzysta z `preview.ts` + `generate-em-docx.ts`.
 
-| Dokument | Kind |
-|----------|------|
-| Protokół z pomiarów ochronnych | `protokol` |
-| Dane informacyjne | `dane-informacyjne` |
-| Badanie ochrony przed porażeniem | `badanie-adsc` |
-| Badanie rezystancji obwodów | `badanie-rezystancji` |
-| Parametry RCD | `parametry-rcd` |
-
-Implementacja w `generate-em-docx.ts` — interfejsy `EmDocxGeneratorInput` / `EmDocxGeneratorOptions` gotowe.
-
-**EM-P0.5 (opcjonalnie):** domyślne wartości z ustawień firmy via `ElectricalMeasurementDefaultsHint`.
+Interfejsy `EmDocxGeneratorInput` / `EmDocxGeneratorOptions` gotowe.
 
 ---
 
-*Raport wygenerowany po IMPLEMENT → BUILD → SMOKE EM-P0.*
+*EM-P0 FINAL · 2026-06-16*

@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Gauge, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Gauge, Plus, Trash2 } from "lucide-react";
 import type { Job } from "@/app/app-domain";
 import { filterElectricalMeasurementsForJob } from "@/lib/electrical-measurements/merge";
-import { buildElectricalMeasurementPreview } from "@/lib/electrical-measurements/preview";
+import {
+  buildElectricalMeasurementPreview,
+  buildJobElectricalMeasurementsSummary,
+} from "@/lib/electrical-measurements/preview";
 import {
   addElectricalMeasurementCircuit,
   addElectricalMeasurementRcd,
@@ -39,8 +42,13 @@ export function JobElectricalMeasurementsPanel({
     () => filterElectricalMeasurementsForJob(measurements, job.id),
     [measurements, job.id],
   );
+  const jobSummary = useMemo(
+    () => buildJobElectricalMeasurementsSummary(jobReports),
+    [jobReports],
+  );
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [detailsExpanded, setDetailsExpanded] = useState(true);
 
   useEffect(() => {
     if (jobReports.length === 0) {
@@ -54,6 +62,9 @@ export function JobElectricalMeasurementsPanel({
 
   const selected = jobReports.find((r) => r.id === selectedId) ?? null;
   const preview = selected ? buildElectricalMeasurementPreview(selected) : null;
+  const sortedCircuits = selected
+    ? [...selected.circuits].sort((a, b) => a.sortOrder - b.sortOrder)
+    : [];
 
   const persist = (nextMeasurement: ElectricalMeasurement) => {
     const nextAll = upsertElectricalMeasurement(measurements, nextMeasurement);
@@ -67,6 +78,7 @@ export function JobElectricalMeasurementsPanel({
     onChangeMeasurements(nextAll);
     onCommitMeasurements(nextAll);
     setSelectedId(created.id);
+    setDetailsExpanded(true);
   };
 
   const patchSelected = (patch: Parameters<typeof touchElectricalMeasurement>[1]) => {
@@ -75,25 +87,39 @@ export function JobElectricalMeasurementsPanel({
   };
 
   return (
-    <div className="bg-card rounded-xl border border-border p-4 md:p-3 space-y-4">
+    <div className="bg-card rounded-xl border border-border p-4 md:p-3 space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
+        <div className="space-y-1 min-w-0">
           <h3 className="text-sm font-semibold flex items-center gap-1.5">
             <Gauge size={14} className="text-primary shrink-0" />
             Pomiary Elektryczne
           </h3>
-          <p className="text-[11px] text-muted-foreground mt-0.5">
-            Wiele raportów pomiarowych na jedną robotę — protokoły DOCX w EM-P1.
-          </p>
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+            <span>Raporty: {jobSummary.reportCount}</span>
+            <span>Obwody: {jobSummary.circuitCount}</span>
+            <span>RCD: {jobSummary.rcdCount}</span>
+          </div>
         </div>
-        <button
-          type="button"
-          onClick={handleCreateReport}
-          className="shrink-0 flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-primary/90 hover:bg-primary text-primary-foreground font-medium"
-        >
-          <Plus size={12} />
-          Nowy raport
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {jobReports.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setDetailsExpanded((v) => !v)}
+              className="text-[11px] text-muted-foreground flex items-center gap-1 hover:text-foreground"
+            >
+              {detailsExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              {detailsExpanded ? "Zwiń" : "Rozwiń"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleCreateReport}
+            className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-primary/90 hover:bg-primary text-primary-foreground font-medium"
+          >
+            <Plus size={12} />
+            Nowy raport
+          </button>
+        </div>
       </div>
 
       {jobReports.length === 0 ? (
@@ -116,12 +142,9 @@ export function JobElectricalMeasurementsPanel({
                 </option>
               ))}
             </select>
-            <span className="text-[10px] text-muted-foreground">
-              {jobReports.length} raport{jobReports.length === 1 ? "" : jobReports.length < 5 ? "y" : "ów"} dla roboty
-            </span>
           </div>
 
-          {selected && (
+          {detailsExpanded && selected && (
             <div className="space-y-4">
               <section className="space-y-2 rounded-lg border border-border p-3">
                 <h4 className="text-xs font-semibold text-foreground">1. Dane pomiaru</h4>
@@ -204,12 +227,13 @@ export function JobElectricalMeasurementsPanel({
                     Dodaj obwód
                   </button>
                 </div>
-                {selected.circuits.length === 0 ? (
+                {sortedCircuits.length === 0 ? (
                   <p className="text-[11px] text-muted-foreground">Brak obwodów — dodaj pierwszy.</p>
                 ) : (
                   <ul className="space-y-2">
-                    {selected.circuits.map((c) => (
+                    {sortedCircuits.map((c) => (
                       <li key={c.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-border px-2 py-1.5">
+                        <span className="text-[10px] text-muted-foreground w-5 shrink-0">#{c.sortOrder}</span>
                         <select
                           value={c.type}
                           onChange={(e) =>
@@ -325,7 +349,7 @@ export function JobElectricalMeasurementsPanel({
                   <div>
                     <p className="text-[10px] font-medium text-muted-foreground mb-1">Ochrona przed porażeniem</p>
                     <ul className="text-xs space-y-0.5">
-                      {preview.adscLines.map((line) => (
+                      {preview.adsc.map((line) => (
                         <li key={line}>{line}</li>
                       ))}
                     </ul>
@@ -334,7 +358,7 @@ export function JobElectricalMeasurementsPanel({
                   <div>
                     <p className="text-[10px] font-medium text-muted-foreground mb-1">Rezystancja</p>
                     <ul className="text-xs space-y-0.5">
-                      {preview.resistanceLines.map((line, i) => (
+                      {preview.resistance.map((line, i) => (
                         <li key={`${line}-${i}`}>{line}</li>
                       ))}
                     </ul>
@@ -342,11 +366,11 @@ export function JobElectricalMeasurementsPanel({
 
                   <div>
                     <p className="text-[10px] font-medium text-muted-foreground mb-1">RCD</p>
-                    {preview.rcdLines.length === 0 ? (
+                    {preview.rcd.length === 0 ? (
                       <p className="text-xs text-muted-foreground">—</p>
                     ) : (
                       <ul className="text-xs space-y-0.5">
-                        {preview.rcdLines.map((line) => (
+                        {preview.rcd.map((line) => (
                           <li key={line}>{line}</li>
                         ))}
                       </ul>

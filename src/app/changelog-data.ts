@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.28",
+    label: "Pomiary Elektryczne — EM-P0 final (korekty 4–6)",
+    items: [
+      {
+        type: "improve",
+        text: "Obwody EM: displayName + sortOrder w modelu — gotowe pod generator DOCX (EM-P1) bez migracji",
+      },
+      {
+        type: "improve",
+        text: "Preview SSOT: buildAdscPreview / buildResistancePreview / buildRcdPreview — UI i przyszły DOCX z jednego źródła",
+      },
+      {
+        type: "improve",
+        text: "Panel Pomiary Elektryczne: podsumowanie Raporty/Obwody/RCD zawsze widoczne + zwijanie szczegółów raportu",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.27",
     label: "Pomiary Elektryczne — fundament EM-P0",
     items: [

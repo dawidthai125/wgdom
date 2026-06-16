@@ -1,4 +1,3 @@
-import { CIRCUIT_TYPE_LABELS } from "@/lib/electrical-measurements/types";
 import type { CircuitType, ElectricalMeasurement, SupplyType } from "@/lib/electrical-measurements/types";
 import { EM_DOCUMENT_COUNT } from "@/lib/electrical-measurements/types";
 
@@ -8,18 +7,22 @@ export interface ElectricalMeasurementPreviewSummary {
   rcdCount: number;
 }
 
-export interface ElectricalMeasurementPreviewBundle {
-  summary: ElectricalMeasurementPreviewSummary;
-  adscLines: string[];
-  resistanceLines: string[];
-  rcdLines: string[];
+export interface JobElectricalMeasurementsSummary {
+  reportCount: number;
+  circuitCount: number;
+  rcdCount: number;
 }
 
-const ADSC_LABELS: Record<CircuitType, string> = {
-  "socket-1f": "Obwód gniazd 230V",
-  "lighting-1f": "Oświetlenie 230V",
-  "socket-3f": "Obwód gniazd 400V",
-};
+export interface ElectricalMeasurementPreviewBundle {
+  summary: ElectricalMeasurementPreviewSummary;
+  adsc: string[];
+  resistance: string[];
+  rcd: string[];
+}
+
+function sortedCircuits(measurement: ElectricalMeasurement) {
+  return [...measurement.circuits].sort((a, b) => a.sortOrder - b.sortOrder);
+}
 
 function supplyResistanceLabel(supplyType: SupplyType): string {
   return supplyType === "ydy-5x4" ? "Obwód YDY 5x4mm²" : "Obwód YDY 3x4mm²";
@@ -32,25 +35,26 @@ function circuitResistanceLabel(type: CircuitType, supplyType: SupplyType): stri
   return "Obwód Gniazd YDY 3x2,5mm²";
 }
 
-export function buildAdscPreviewLines(measurement: ElectricalMeasurement): string[] {
+/** SSOT — ochrona przed porażeniem (ADSC). UI + EM-P1 DOCX. */
+export function buildAdscPreview(measurement: ElectricalMeasurement): string[] {
   const lines: string[] = ["1. Zasilanie"];
-  let lp = 2;
-  for (const c of measurement.circuits) {
-    lines.push(`${lp}. ${ADSC_LABELS[c.type]}`);
-    lp++;
+  for (const c of sortedCircuits(measurement)) {
+    lines.push(`${c.sortOrder}. ${c.displayName}`);
   }
   return lines;
 }
 
-export function buildResistancePreviewLines(measurement: ElectricalMeasurement): string[] {
+/** SSOT — rezystancja obwodów. UI + EM-P1 DOCX. */
+export function buildResistancePreview(measurement: ElectricalMeasurement): string[] {
   const lines: string[] = [supplyResistanceLabel(measurement.supplyType)];
-  for (const c of measurement.circuits) {
+  for (const c of sortedCircuits(measurement)) {
     lines.push(circuitResistanceLabel(c.type, measurement.supplyType));
   }
   return lines;
 }
 
-export function buildRcdPreviewLines(measurement: ElectricalMeasurement): string[] {
+/** SSOT — parametry RCD. UI + EM-P1 DOCX. */
+export function buildRcdPreview(measurement: ElectricalMeasurement): string[] {
   return measurement.rcds.map((r) => `${r.symbol} → ${r.deviceType}`);
 }
 
@@ -64,18 +68,24 @@ export function buildElectricalMeasurementPreviewSummary(
   };
 }
 
+/** Podsumowanie job — widoczne w panelu nawet przy zwiniętej liście raportów. */
+export function buildJobElectricalMeasurementsSummary(
+  reports: ElectricalMeasurement[],
+): JobElectricalMeasurementsSummary {
+  return {
+    reportCount: reports.length,
+    circuitCount: reports.reduce((sum, r) => sum + r.circuits.length, 0),
+    rcdCount: reports.reduce((sum, r) => sum + r.rcds.length, 0),
+  };
+}
+
 export function buildElectricalMeasurementPreview(
   measurement: ElectricalMeasurement,
 ): ElectricalMeasurementPreviewBundle {
   return {
     summary: buildElectricalMeasurementPreviewSummary(measurement),
-    adscLines: buildAdscPreviewLines(measurement),
-    resistanceLines: buildResistancePreviewLines(measurement),
-    rcdLines: buildRcdPreviewLines(measurement),
+    adsc: buildAdscPreview(measurement),
+    resistance: buildResistancePreview(measurement),
+    rcd: buildRcdPreview(measurement),
   };
-}
-
-/** Etykieta obwodu do listy UI (debug). */
-export function circuitTypeShortLabel(type: CircuitType): string {
-  return CIRCUIT_TYPE_LABELS[type];
 }

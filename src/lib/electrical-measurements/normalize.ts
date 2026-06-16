@@ -10,16 +10,26 @@ import type {
 import {
   BREAKER_TYPES,
   CIRCUIT_TYPES,
+  defaultCircuitDisplayName,
   RCD_DEVICE_TYPES,
   SUPPLY_TYPES,
 } from "@/lib/electrical-measurements/types";
 
-function parseCircuit(raw: unknown): ElectricalMeasurementCircuit | null {
+function renumberCircuitSortOrder(circuits: ElectricalMeasurementCircuit[]): ElectricalMeasurementCircuit[] {
+  const sorted = [...circuits].sort((a, b) => a.sortOrder - b.sortOrder);
+  return sorted.map((c, i) => ({ ...c, sortOrder: i + 2 }));
+}
+
+function parseCircuit(raw: unknown, fallbackOrder: number): ElectricalMeasurementCircuit | null {
   if (!raw || typeof raw !== "object") return null;
   const r = raw as Partial<ElectricalMeasurementCircuit>;
   if (!r.id || !r.type || !CIRCUIT_TYPES.includes(r.type as CircuitType)) return null;
+  const type = r.type as CircuitType;
   const breakerType = BREAKER_TYPES.includes(r.breakerType as BreakerType) ? (r.breakerType as BreakerType) : "B";
-  return { id: String(r.id), type: r.type as CircuitType, breakerType };
+  const sortOrder =
+    typeof r.sortOrder === "number" && Number.isFinite(r.sortOrder) ? Math.max(2, Math.floor(r.sortOrder)) : fallbackOrder;
+  const displayName = String(r.displayName ?? "").trim() || defaultCircuitDisplayName(type);
+  return { id: String(r.id), type, breakerType, displayName, sortOrder };
 }
 
 function parseRcd(raw: unknown): ElectricalMeasurementRcd | null {
@@ -39,10 +49,10 @@ export function parseElectricalMeasurement(raw: unknown): ElectricalMeasurement 
   const supplyType = SUPPLY_TYPES.includes(r.supplyType as SupplyType) ? (r.supplyType as SupplyType) : "ydy-3x4";
   const circuits: ElectricalMeasurementCircuit[] = [];
   if (Array.isArray(r.circuits)) {
-    for (const c of r.circuits) {
-      const parsed = parseCircuit(c);
+    r.circuits.forEach((c, i) => {
+      const parsed = parseCircuit(c, i + 2);
       if (parsed) circuits.push(parsed);
-    }
+    });
   }
   const rcds: ElectricalMeasurementRcd[] = [];
   if (Array.isArray(r.rcds)) {
@@ -61,7 +71,7 @@ export function parseElectricalMeasurement(raw: unknown): ElectricalMeasurement 
     meterModel: String(r.meterModel ?? ""),
     meterSerialNumber: String(r.meterSerialNumber ?? ""),
     supplyType,
-    circuits,
+    circuits: renumberCircuitSortOrder(circuits),
     rcds,
     createdAt: String(r.createdAt ?? now),
     updatedAt: String(r.updatedAt ?? r.createdAt ?? now),

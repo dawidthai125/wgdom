@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-16 (EM-P0 · v2.59.27 · § 12.1.10)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-16 (EM-P0 final · v2.59.28 · § 12.1.10)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1390,37 +1390,35 @@ generate-zip.ts → buildWmPrintFilesForJob()
 
 ---
 
-### 12.1.10 Pomiary Elektryczne (`JobElectricalMeasurementsPanel`, v2.59.27)
+### 12.1.10 Pomiary Elektryczne (`JobElectricalMeasurementsPanel`, v2.59.28)
 
-**Status:** **EM-P0 FOUNDATION** · model + UI + preview · **bez DOCX/ZIP/WM Druk**
+**Status:** **EM-P0 FOUNDATION COMPLETE** · model + UI + preview SSOT · **bez DOCX/ZIP/WM Druk**
 
 **Domena:** `src/lib/electrical-measurements/*`
 
 | Plik | Rola |
 |------|------|
-| `types.ts` | Model, enumy, `EM_DOCUMENT_COUNT` |
-| `normalize.ts` | Parse / sanitize |
+| `types.ts` | Model, enumy, `defaultCircuitDisplayName()` |
+| `normalize.ts` | Parse — uzupełnia `displayName`/`sortOrder` dla starych rekordów |
 | `merge.ts` | Merge LWW per `id`, filter per `jobId` |
-| `report.ts` | CRUD raportów, obwodów, RCD |
-| `preview.ts` | Podgląd ADSC / rezystancja / RCD + statystyki |
+| `report.ts` | CRUD raportów, obwodów (z sortOrder), RCD |
+| `preview.ts` | **SSOT** — `buildAdscPreview` · `buildResistancePreview` · `buildRcdPreview` · `buildJobElectricalMeasurementsSummary` |
 | `sync.ts` | Push `kw-electrical-measurements` |
 | `generate-em-docx.ts` | **STUB** — TODO EM-P1 |
 
+**Circuit model (EM-P1-ready):** `id`, `type`, `breakerType`, **`displayName`**, **`sortOrder`** (2+; 1 = Zasilanie w ADSC).
+
 **Model:** `ElectricalMeasurement` — **wiele raportów na jedną robotę** (`jobId` bez unique).
 
-Pola: `reportNumber`, `measurementDate`, `technicianName`, `meterModel`, `meterSerialNumber`, `supplyType` (`ydy-3x4` \| `ydy-5x4`), `circuits[]`, `rcds[]`, `createdAt`, `updatedAt`.
+**Klucz KV:** `kw-electrical-measurements`
 
-**Klucz KV:** `kw-electrical-measurements` — `DATA_KEYS` + `BOOTSTRAP_DEFERRED_KEYS` + merge w `cloud-sync.ts`.
-
-**UI:** Roboty → szczegóły roboty → sekcja **Pomiary Elektryczne** — wybór raportu, „Nowy raport”, 4 sekcje edycji + podgląd read-only.
-
-**Preview:** `Liczba dokumentów: 5` (stała EM-P1) · liczba obwodów · liczba RCD · wiersze ADSC / rezystancja / RCD.
+**UI:** Roboty → **Pomiary Elektryczne** — job summary (Raporty/Obwody/RCD) zawsze widoczne · zwijanie szczegółów · preview tylko renderuje wynik `preview.ts`.
 
 **Smoke:** `test-electrical-measurements-p0.mjs`
 
-**EM-P1 (OPEN):** generator DOCX — protokół, dane informacyjne, ADSC, rezystancja, RCD.
+**EM-P1 (OPEN):** generator DOCX korzysta z tych samych funkcji preview.
 
-**Nie zmieniaj bez polecenia:** semantyka wielu raportów per job, klucz KV, brak integracji WM Druk w P0.
+**Nie zmieniaj bez polecenia:** semantyka wielu raportów per job, preview SSOT, brak integracji WM Druk w P0.
 
 ---
 

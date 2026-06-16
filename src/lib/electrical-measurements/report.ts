@@ -7,12 +7,23 @@ import type {
   RcdDeviceType,
   SupplyType,
 } from "@/lib/electrical-measurements/types";
+import { defaultCircuitDisplayName } from "@/lib/electrical-measurements/types";
 
 export function localIsoDate(d = new Date()): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+}
+
+function nextCircuitSortOrder(circuits: ElectricalMeasurementCircuit[]): number {
+  if (circuits.length === 0) return 2;
+  return Math.max(...circuits.map((c) => c.sortOrder)) + 1;
+}
+
+function renumberCircuitSortOrder(circuits: ElectricalMeasurementCircuit[]): ElectricalMeasurementCircuit[] {
+  const sorted = [...circuits].sort((a, b) => a.sortOrder - b.sortOrder);
+  return sorted.map((c, i) => ({ ...c, sortOrder: i + 2 }));
 }
 
 export function createEmptyElectricalMeasurement(jobId: string): ElectricalMeasurement {
@@ -75,6 +86,8 @@ export function addElectricalMeasurementCircuit(
     id: crypto.randomUUID(),
     type,
     breakerType,
+    displayName: defaultCircuitDisplayName(type),
+    sortOrder: nextCircuitSortOrder(m.circuits),
   };
   return touchElectricalMeasurement(m, { circuits: [...m.circuits, circuit] });
 }
@@ -82,10 +95,17 @@ export function addElectricalMeasurementCircuit(
 export function updateElectricalMeasurementCircuit(
   m: ElectricalMeasurement,
   circuitId: string,
-  patch: Partial<Pick<ElectricalMeasurementCircuit, "type" | "breakerType">>,
+  patch: Partial<Pick<ElectricalMeasurementCircuit, "type" | "breakerType" | "displayName" | "sortOrder">>,
 ): ElectricalMeasurement {
   return touchElectricalMeasurement(m, {
-    circuits: m.circuits.map((c) => (c.id === circuitId ? { ...c, ...patch } : c)),
+    circuits: m.circuits.map((c) => {
+      if (c.id !== circuitId) return c;
+      const next = { ...c, ...patch };
+      if (patch.type && patch.type !== c.type && patch.displayName === undefined) {
+        next.displayName = defaultCircuitDisplayName(patch.type);
+      }
+      return next;
+    }),
   });
 }
 
@@ -94,7 +114,7 @@ export function removeElectricalMeasurementCircuit(
   circuitId: string,
 ): ElectricalMeasurement {
   return touchElectricalMeasurement(m, {
-    circuits: m.circuits.filter((c) => c.id !== circuitId),
+    circuits: renumberCircuitSortOrder(m.circuits.filter((c) => c.id !== circuitId)),
   });
 }
 

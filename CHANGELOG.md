@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.27** · **EM-P0**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.28** · **EM-P0 final**
+
+## 2.59.28 — Pomiary Elektryczne EM-P0 final (korekty 4–6)
+- Circuit: `displayName` + `sortOrder` — bez migracji pod EM-P1
+- Preview SSOT: `buildAdscPreview` / `buildResistancePreview` / `buildRcdPreview`
+- Panel: job summary Raporty/Obwody/RCD + zwijanie szczegółów
 
 ## 2.59.27 — Pomiary Elektryczne fundament (EM-P0)
 - Domena `src/lib/electrical-measurements/*` + klucz `kw-electrical-measurements`

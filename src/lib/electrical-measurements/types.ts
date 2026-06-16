@@ -21,6 +21,10 @@ export interface ElectricalMeasurementCircuit {
   id: string;
   type: CircuitType;
   breakerType: BreakerType;
+  /** Etykieta wiersza ADSC/DOCX — domyślnie z typu, edytowalna w EM-P1. */
+  displayName: string;
+  /** Kolejność w dokumentach (2+; 1 = Zasilanie). */
+  sortOrder: number;
 }
 
 export interface ElectricalMeasurementRcd {
@@ -58,6 +62,17 @@ export const CIRCUIT_TYPE_LABELS: Record<CircuitType, string> = {
   "lighting-1f": "Oświetlenie 1F",
   "socket-3f": "Gniazdo 3F",
 };
+
+/** Domyślne etykiety ADSC/DOCX per typ obwodu (EM-P1 SSOT). */
+export const CIRCUIT_ADSC_DISPLAY_NAMES: Record<CircuitType, string> = {
+  "socket-1f": "Obwód gniazd 230V",
+  "lighting-1f": "Oświetlenie 230V",
+  "socket-3f": "Obwód gniazd 400V",
+};
+
+export function defaultCircuitDisplayName(type: CircuitType): string {
+  return CIRCUIT_ADSC_DISPLAY_NAMES[type];
+}
 
 export const BREAKER_TYPES: BreakerType[] = ["B", "C"];
 
