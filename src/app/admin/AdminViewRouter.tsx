@@ -140,6 +140,9 @@ export type AdminViewRouterProps = {
     v: ElectricalMeasurement[] | ((prev: ElectricalMeasurement[]) => ElectricalMeasurement[]),
   ) => void;
   commitElectricalMeasurements: (next?: ElectricalMeasurement[]) => void;
+  pendingWmPrintNav: import("@/lib/wm-print/wm-print-tabs").WmPrintPendingNavigation | null;
+  onInitialWmPrintNavigationConsumed: () => void;
+  onOpenWmPrintMeasurements: (jobId: string) => void;
   adminSession: AdminSession | null | undefined;
   alertsSeenTick: number;
   onAlertsSeen: () => void;
@@ -297,6 +300,9 @@ export function AdminViewRouter({
   electricalMeasurements,
   setElectricalMeasurements,
   commitElectricalMeasurements,
+  pendingWmPrintNav,
+  onInitialWmPrintNavigationConsumed,
+  onOpenWmPrintMeasurements,
   pendingOperationalNoteId,
   onInitialOperationalNoteConsumed,
   pendingOperationalNoteCreatePreset,
@@ -482,9 +488,8 @@ export function AdminViewRouter({
               onCreateOperationalNoteFromJob={onOpenOperationalNoteCreateFromJobs}
               wmPrintHistory={wmPrintHistory}
               onOpenWmPrint={() => onSetView("wmprint")}
+              onOpenWmPrintMeasurements={onOpenWmPrintMeasurements}
               electricalMeasurements={electricalMeasurements}
-              onChangeElectricalMeasurements={setElectricalMeasurements}
-              onCommitElectricalMeasurements={commitElectricalMeasurements}
             />
           </Suspense>
         </ViewErrorBoundary>
@@ -505,6 +510,12 @@ export function AdminViewRouter({
               onChangeSettings={setWmPrintSettings}
               onChangeHistory={setWmPrintHistory}
               onCommit={commitWmPrint}
+              electricalMeasurements={electricalMeasurements}
+              onChangeElectricalMeasurements={setElectricalMeasurements}
+              onCommitElectricalMeasurements={commitElectricalMeasurements}
+              initialTab={pendingWmPrintNav?.tab ?? null}
+              initialJobId={pendingWmPrintNav?.jobId ?? null}
+              onInitialNavigationConsumed={onInitialWmPrintNavigationConsumed}
             />
           </Suspense>
         </ViewErrorBoundary>

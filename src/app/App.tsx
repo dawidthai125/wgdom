@@ -180,6 +180,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     linkedJobNameSnapshot?: string;
     title?: string;
   } | null>(null);
+  const [pendingWmPrintNav, setPendingWmPrintNav] = useState<
+    import("@/lib/wm-print/wm-print-tabs").WmPrintPendingNavigation | null
+  >(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [globalSearch, setGlobalSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -312,6 +315,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     suppressAutoSyncUntilRef.current = Date.now() + 4500;
     pushElectricalMeasurementsToCloud(payload).catch(() => {});
   }, [electricalMeasurements]);
+
+  const onInitialWmPrintNavigationConsumed = useCallback(() => setPendingWmPrintNav(null), []);
 
   const clearAutoSyncTimers = useCallback(() => {
     if (syncTimerRef.current) {
@@ -1401,6 +1406,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           electricalMeasurements={electricalMeasurements}
           setElectricalMeasurements={setElectricalMeasurements}
           commitElectricalMeasurements={commitElectricalMeasurements}
+          pendingWmPrintNav={pendingWmPrintNav}
+          onInitialWmPrintNavigationConsumed={onInitialWmPrintNavigationConsumed}
+          onOpenWmPrintMeasurements={(jobId) => {
+            setPendingWmPrintNav({ tab: "pomiary", jobId });
+            setViewReturn({ view: "jobs", label: "Roboty" });
+            setView("wmprint");
+          }}
           adminSession={adminSession}
           alertsSeenTick={alertsSeenTick}
           onAlertsSeen={() => setAlertsSeenTick((t) => t + 1)}

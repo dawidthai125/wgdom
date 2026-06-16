@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.31",
+    label: "Pomiary Elektryczne — EM-UX-001 przeniesienie do WM Druk",
+    items: [
+      {
+        type: "improve",
+        text: "WM Druk: nowa zakładka Pomiary — pełny UI raportów pomiarowych, obwodów, RCD i generowania DOCX (Wariant A: wybór roboty → edycja)",
+      },
+      {
+        type: "improve",
+        text: "Roboty: Pomiary Elektryczne — tylko skrót Raporty/Obwody/RCD + „Otwórz w WM Druk” z kontekstem roboty",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.30",
     label: "Pomiary Elektryczne — EM-P1B generator DOCX",
     items: [

@@ -16,10 +16,12 @@ import {
   Loader2,
   Eye,
   History,
+  Gauge,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
 import { jobDisplayTitle } from "@/app/app-domain";
+import { JobElectricalMeasurementsPanel } from "@/app/JobElectricalMeasurementsPanel";
 import { WmPrintHistoryPanel } from "@/app/WmPrintHistoryPanel";
 import type { AdminSession } from "@/lib/admin-auth";
 import { computeWmPrintCompleteness } from "@/lib/wm-print/completeness";
@@ -88,8 +90,17 @@ import {
   buildWmPrintHistoryZipEntry,
   type WmPrintHistoryEntry,
 } from "@/lib/wm-print/history";
+import type { WmPrintTab } from "@/lib/wm-print/wm-print-tabs";
+import { WM_PRINT_TABS } from "@/lib/wm-print/wm-print-tabs";
+import type { ElectricalMeasurement } from "@/lib/electrical-measurements/types";
 
-type Tab = "odbiory" | "szablony" | "historia" | "ustawienia";
+const TAB_ICONS: Record<WmPrintTab, typeof ClipboardList> = {
+  odbiory: ClipboardList,
+  pomiary: Gauge,
+  szablony: FileText,
+  historia: History,
+  ustawienia: Settings,
+};
 
 export function WmPrintView({
   jobs,
@@ -104,6 +115,12 @@ export function WmPrintView({
   onChangeSettings,
   onChangeHistory,
   onCommit,
+  electricalMeasurements,
+  onChangeElectricalMeasurements,
+  onCommitElectricalMeasurements,
+  initialTab,
+  initialJobId,
+  onInitialNavigationConsumed,
 }: {
   jobs: Job[];
   templates: WmPrintTemplate[];
@@ -124,8 +141,14 @@ export function WmPrintView({
     deletedJobDocId?: string,
     nextHistory?: WmPrintHistoryEntry[],
   ) => void;
+  electricalMeasurements: ElectricalMeasurement[];
+  onChangeElectricalMeasurements: (next: ElectricalMeasurement[]) => void;
+  onCommitElectricalMeasurements: (next: ElectricalMeasurement[]) => void;
+  initialTab?: WmPrintTab | null;
+  initialJobId?: string | null;
+  onInitialNavigationConsumed?: () => void;
 }) {
-  const [tab, setTab] = useState<Tab>("odbiory");
+  const [tab, setTab] = useState<WmPrintTab>("odbiory");
   const [filter, setFilter] = useState<WmPrintJobFilter>("all");
   const [collapsedSections, setCollapsedSections] = useState<Set<JobPhase>>(new Set());
   const [search, setSearch] = useState("");
@@ -171,6 +194,13 @@ export function WmPrintView({
     if (!selectedJobId) return;
     setSelectedTemplateIds(createDefaultWmPrintTemplateSelection(templates));
   }, [selectedJobId]);
+
+  useEffect(() => {
+    if (!initialTab && !initialJobId) return;
+    if (initialTab) setTab(initialTab);
+    if (initialJobId) setSelectedJobId(initialJobId);
+    onInitialNavigationConsumed?.();
+  }, [initialTab, initialJobId, onInitialNavigationConsumed]);
 
   const genOpts = (): WmPrintGenerateOptions => ({
     dateMode,
@@ -257,6 +287,61 @@ export function WmPrintView({
       </button>
     );
   };
+
+  const renderJobListColumn = () => (
+    <div className="space-y-3 min-h-0">
+      <div className="flex flex-wrap gap-2 items-center">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Szukaj adresu…"
+            className="w-full pl-8 pr-3 py-2 rounded-lg border border-border bg-card text-sm"
+          />
+        </div>
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value as WmPrintJobFilter)}
+          className="px-3 py-2 rounded-lg border border-border bg-card text-sm"
+          title="Filtr statusu robota"
+        >
+          {(Object.keys(WM_PRINT_FILTER_LABELS) as WmPrintJobFilter[]).map((k) => (
+            <option key={k} value={k}>
+              {WM_PRINT_FILTER_LABELS[k]}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="rounded-xl border border-border overflow-hidden">
+        {filteredJobs.length === 0 ? (
+          <p className="p-4 text-sm text-muted-foreground">Brak robót dla wybranych filtrów.</p>
+        ) : (
+          WM_PRINT_SECTION_ORDER.map((phase) => {
+            const sectionJobs = groupedJobs[phase];
+            if (sectionJobs.length === 0) return null;
+            const collapsed = collapsedSections.has(phase);
+            return (
+              <div key={phase} className="border-b border-border last:border-b-0">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(phase)}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 bg-secondary/40 hover:bg-secondary/70 text-left text-sm font-semibold"
+                >
+                  {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                  {WM_PRINT_SECTION_LABELS[phase]} ({sectionJobs.length})
+                </button>
+                {!collapsed && (
+                  <div className="divide-y divide-border">{sectionJobs.map((job) => renderJobRow(job))}</div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
 
   const handleGenerateZip = async (job: Job) => {
     if (selectedTemplateIds.size === 0) {
@@ -449,18 +534,13 @@ export function WmPrintView({
         <div>
           <h1 className="text-lg font-semibold">Odbiory WM Druk</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Szablony dokumentów, dokumenty per robota i generowanie paczek ZIP dla WM Wrocław.
+            Odbiory dokumentów, pomiary elektryczne, szablony i paczki ZIP dla WM Wrocław.
           </p>
         </div>
         <div className="flex flex-wrap gap-1">
-          {(
-            [
-              { key: "odbiory" as const, label: "Odbiory", icon: ClipboardList },
-              { key: "szablony" as const, label: "Szablony", icon: FileText },
-              { key: "historia" as const, label: "Historia", icon: History },
-              { key: "ustawienia" as const, label: "Ustawienia", icon: Settings },
-            ] as const
-          ).map(({ key, label, icon: Icon }) => (
+          {WM_PRINT_TABS.map(({ key, label }) => {
+            const Icon = TAB_ICONS[key];
+            return (
             <button
               key={key}
               type="button"
@@ -472,65 +552,15 @@ export function WmPrintView({
               <Icon size={14} />
               {label}
             </button>
-          ))}
+            );
+          })}
         </div>
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4">
         {tab === "odbiory" && (
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 min-h-0">
-            <div className="space-y-3 min-h-0">
-              <div className="flex flex-wrap gap-2 items-center">
-                <div className="relative flex-1 min-w-[200px]">
-                  <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Szukaj adresu…"
-                    className="w-full pl-8 pr-3 py-2 rounded-lg border border-border bg-card text-sm"
-                  />
-                </div>
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value as WmPrintJobFilter)}
-                  className="px-3 py-2 rounded-lg border border-border bg-card text-sm"
-                  title="Filtr statusu robota"
-                >
-                  {(Object.keys(WM_PRINT_FILTER_LABELS) as WmPrintJobFilter[]).map((k) => (
-                    <option key={k} value={k}>
-                      {WM_PRINT_FILTER_LABELS[k]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="rounded-xl border border-border overflow-hidden">
-                {filteredJobs.length === 0 ? (
-                  <p className="p-4 text-sm text-muted-foreground">Brak robót dla wybranych filtrów.</p>
-                ) : (
-                  WM_PRINT_SECTION_ORDER.map((phase) => {
-                    const sectionJobs = groupedJobs[phase];
-                    if (sectionJobs.length === 0) return null;
-                    const collapsed = collapsedSections.has(phase);
-                    return (
-                      <div key={phase} className="border-b border-border last:border-b-0">
-                        <button
-                          type="button"
-                          onClick={() => toggleSection(phase)}
-                          className="w-full flex items-center gap-2 px-4 py-2.5 bg-secondary/40 hover:bg-secondary/70 text-left text-sm font-semibold"
-                        >
-                          {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-                          {WM_PRINT_SECTION_LABELS[phase]} ({sectionJobs.length})
-                        </button>
-                        {!collapsed && (
-                          <div className="divide-y divide-border">{sectionJobs.map((job) => renderJobRow(job))}</div>
-                        )}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
+            {renderJobListColumn()}
 
             <div className="rounded-xl border border-border bg-card p-4 space-y-4 lg:sticky lg:top-0 self-start">
               {!selectedJob ? (
@@ -726,6 +756,26 @@ export function WmPrintView({
                     </ul>
                   </div>
                 </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {tab === "pomiary" && (
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 min-h-0">
+            {renderJobListColumn()}
+            <div className="min-w-0">
+              {!selectedJob ? (
+                <p className="text-sm text-muted-foreground rounded-xl border border-border bg-card p-4">
+                  Wybierz robotę z listy, aby edytować raporty pomiarowe i generować DOCX.
+                </p>
+              ) : (
+                <JobElectricalMeasurementsPanel
+                  job={selectedJob}
+                  measurements={electricalMeasurements}
+                  onChangeMeasurements={onChangeElectricalMeasurements}
+                  onCommitMeasurements={onCommitElectricalMeasurements}
+                />
               )}
             </div>
           </div>

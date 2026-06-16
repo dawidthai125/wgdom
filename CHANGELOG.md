@@ -1,6 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.30** · **EM-P1B DOCX generator**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.31** · **EM-UX-001**
+
+## 2.59.31 — Pomiary Elektryczne EM-UX-001 (WM Druk)
+- UI Pomiary przeniesione z Roboty → WM Druk (zakładka Pomiary)
+- Roboty: skrót + „Otwórz w WM Druk” · deep link z kontekstem roboty
 
 ## 2.59.30 — Pomiary Elektryczne EM-P1B (generator DOCX)
 - 5× DOCX: Protokół, Dane informacyjne, RCD, ADSC, Rezystancja — XML row cloning + payload SSOT

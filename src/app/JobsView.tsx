@@ -21,7 +21,7 @@ import {
   operationalNoteCreatePresetForJob,
 } from "@/app/JobOperationalNotesPanel";
 import { JobWmPrintHistoryPanel } from "@/app/JobWmPrintHistoryPanel";
-import { JobElectricalMeasurementsPanel } from "@/app/JobElectricalMeasurementsPanel";
+import { JobElectricalMeasurementsSummaryPanel } from "@/app/JobElectricalMeasurementsSummaryPanel";
 import type { AdminSession } from "@/lib/admin-auth";
 import type { OperationalNote } from "@/lib/operational-notes";
 import { JobCreateRecoverableChargeModal } from "@/app/JobCreateRecoverableChargeModal";
@@ -568,9 +568,8 @@ export function JobsView({
   onCreateOperationalNoteFromJob,
   wmPrintHistory = [],
   onOpenWmPrint,
+  onOpenWmPrintMeasurements,
   electricalMeasurements = [],
-  onChangeElectricalMeasurements,
-  onCommitElectricalMeasurements,
 }: {
   jobs: Job[];
   setJobs: (v: Job[] | ((p: Job[]) => Job[])) => void;
@@ -598,13 +597,8 @@ export function JobsView({
   onCreateOperationalNoteFromJob?: (preset: { linkedJobId?: string; linkedJobNameSnapshot?: string }) => void;
   wmPrintHistory?: import("@/lib/wm-print/history").WmPrintHistoryEntry[];
   onOpenWmPrint?: () => void;
+  onOpenWmPrintMeasurements?: (jobId: string) => void;
   electricalMeasurements?: import("@/lib/electrical-measurements/types").ElectricalMeasurement[];
-  onChangeElectricalMeasurements?: (
-    next: import("@/lib/electrical-measurements/types").ElectricalMeasurement[],
-  ) => void;
-  onCommitElectricalMeasurements?: (
-    next: import("@/lib/electrical-measurements/types").ElectricalMeasurement[],
-  ) => void;
 }) {
   const { canViewRates, session: adminSessionFromCtx } = useAdminAccess();
   const adminSession = adminSessionProp ?? adminSessionFromCtx;
@@ -1945,12 +1939,11 @@ export function JobsView({
               />
             )}
 
-            {onChangeElectricalMeasurements && onCommitElectricalMeasurements && (
-              <JobElectricalMeasurementsPanel
+            {onOpenWmPrintMeasurements && (
+              <JobElectricalMeasurementsSummaryPanel
                 job={selectedJob}
                 measurements={electricalMeasurements}
-                onChangeMeasurements={onChangeElectricalMeasurements}
-                onCommitMeasurements={onCommitElectricalMeasurements}
+                onOpenInWmPrint={onOpenWmPrintMeasurements}
               />
             )}
 
