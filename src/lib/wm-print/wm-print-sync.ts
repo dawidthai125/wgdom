@@ -13,6 +13,12 @@ import {
   parseWmPrintTemplates,
 } from "@/lib/wm-print/templates";
 import {
+  mergeWmPrintHistory,
+  normalizeWmPrintHistory,
+  WM_PRINT_HISTORY_KEY,
+  type WmPrintHistoryEntry,
+} from "@/lib/wm-print/history";
+import {
   WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
   WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
   WM_PRINT_JOB_DOCS_KEY,
@@ -22,6 +28,9 @@ import {
   type WmPrintSettings,
   type WmPrintTemplate,
 } from "@/lib/wm-print/types";
+
+export { mergeWmPrintHistory, normalizeWmPrintHistory, WM_PRINT_HISTORY_KEY };
+export type { WmPrintHistoryEntry };
 
 export function getDeletedWmPrintTemplateIds(): string[] {
   try {
@@ -131,6 +140,9 @@ export async function pushWmPrintToCloud(
   settings: WmPrintSettings,
   deletedTemplateIds: string[],
   deletedJobDocIds: string[],
+  history: WmPrintHistoryEntry[] = normalizeWmPrintHistory(
+    JSON.parse(localStorage.getItem(WM_PRINT_HISTORY_KEY) || "[]"),
+  ),
 ): Promise<void> {
   const deduped = dedupeWmPrintTemplatesByName(templates);
   if (deduped.length !== templates.length) {
@@ -139,14 +151,16 @@ export async function pushWmPrintToCloud(
       after: deduped.length,
     });
   }
+  const historyNorm = normalizeWmPrintHistory(history);
   const keys = [
     WM_PRINT_TEMPLATES_KEY,
     WM_PRINT_JOB_DOCS_KEY,
     WM_PRINT_SETTINGS_KEY,
     WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
     WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
+    WM_PRINT_HISTORY_KEY,
   ];
-  const values = [deduped, jobDocs, settings, deletedTemplateIds, deletedJobDocIds];
+  const values = [deduped, jobDocs, settings, deletedTemplateIds, deletedJobDocIds, historyNorm];
   persistWmPrintLocal(keys, values);
   await pushKeysToCloud(keys, values);
 }
@@ -191,6 +205,7 @@ export async function syncWmPrintFromCloud(): Promise<{
   templates: WmPrintTemplate[];
   jobDocs: WmPrintJobDocument[];
   settings: WmPrintSettings;
+  history: WmPrintHistoryEntry[];
 }> {
   const keys = [
     WM_PRINT_TEMPLATES_KEY,
@@ -198,6 +213,7 @@ export async function syncWmPrintFromCloud(): Promise<{
     WM_PRINT_SETTINGS_KEY,
     WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
     WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
+    WM_PRINT_HISTORY_KEY,
   ];
   const cloud = await fetchKeysFromCloud(keys);
   const localTemplates = parseWmPrintTemplates(
@@ -223,11 +239,15 @@ export async function syncWmPrintFromCloud(): Promise<{
   const templates = mergeWmPrintTemplates(localTemplates, cloud?.[0], delTpl);
   const jobDocs = mergeWmPrintJobDocuments(localDocs, cloud?.[1], delDoc);
   const settings = mergeWmPrintSettings(localSettings, normalizeWmPrintSettings(cloud?.[2]));
+  const localHistory = normalizeWmPrintHistory(
+    JSON.parse(localStorage.getItem(WM_PRINT_HISTORY_KEY) || "[]"),
+  );
+  const history = mergeWmPrintHistory(localHistory, cloud?.[5]);
 
   persistWmPrintLocal(
-    [WM_PRINT_TEMPLATES_KEY, WM_PRINT_JOB_DOCS_KEY, WM_PRINT_SETTINGS_KEY],
-    [templates, jobDocs, settings],
+    [WM_PRINT_TEMPLATES_KEY, WM_PRINT_JOB_DOCS_KEY, WM_PRINT_SETTINGS_KEY, WM_PRINT_HISTORY_KEY],
+    [templates, jobDocs, settings, history],
   );
 
-  return { templates, jobDocs, settings };
+  return { templates, jobDocs, settings, history };
 }

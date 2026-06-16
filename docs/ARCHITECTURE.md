@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-16 (POST ZI-2026 · v2.59.25 · WM Druk COMPLETE · § 12.1.8)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-16 (WM-HISTORY-001 · v2.59.26 · § 12.1.8)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1329,9 +1329,9 @@ buildTenderDocCandidates()
 
 **Nie zmieniaj bez polecenia:** merge ZIP/7Z w resolver, semantyka `zipInnerPath`, lazy chunk 7z-wasm, wymóg `sourcePageUrl` Marketplanet.
 
-### 12.1.8 Odbiory WM Druk (`wmprint`, v2.59.25)
+### 12.1.8 Odbiory WM Druk (`wmprint`, v2.59.26)
 
-**Status:** Moduł **COMPLETE** · ZIP · DOCX · preservation · sync **PASS** · **ZI Tauron 2026 PRODUCTION STABLE** · ZI LiveCycle 2021 **CLOSED** · P0.5 **DONE**
+**Status:** Moduł **COMPLETE** · ZIP · DOCX · preservation · sync **PASS** · **ZI Tauron 2026 PRODUCTION STABLE** · **Historia generowania WM-HISTORY-001**
 
 **Handoff:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md) · [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) · [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) § 6  
 **★★ SSOT ZI:** [`ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) · validation: [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) · P0.5B: [`audit/P0.5B-HOUSEKEEPING-REPORT.md`](../audit/P0.5B-HOUSEKEEPING-REPORT.md)
@@ -1344,7 +1344,7 @@ Moduł admina do generowania pakietów dokumentów odbiorowych WM — ZIP per ro
 | **Domena** | `src/lib/wm-print/*` (19 plików TS) |
 | **Storage** | bucket `make-0afb8820-photos`, prefix `wm-print/` |
 
-**Klucze KV:** `kw-wm-print-templates` · `kw-wm-print-job-docs` · `kw-wm-print-settings` · `kw-wm-print-deleted-template-ids` · `kw-wm-print-deleted-job-doc-ids`
+**Klucze KV:** `kw-wm-print-templates` · `kw-wm-print-job-docs` · `kw-wm-print-settings` · `kw-wm-print-history` (cap **1000**, metadane only) · `kw-wm-print-deleted-template-ids` · `kw-wm-print-deleted-job-doc-ids`
 
 **Sync:** `wm-print-sync.ts` · tombstone merge z chmury (2.59.24) · `cloud-sync.ts` → `normalizeWmPrintTemplates(local)`.
 
@@ -1378,7 +1378,9 @@ generate-zip.ts → buildWmPrintFilesForJob()
 
 **ZI §4 mapping:** 99 → JOB_STREET · 111 → JOB_BUILDING · 112 → JOB_APARTMENT · bundled `public/wm-print/zi-tauron-2026-template.pdf`.
 
-**Smoke:** `test-wm-print-zi-2026-smoke.mjs` · `test-wm-print-zi-2026-preservation-smoke.mjs` · `test-wm-print-zi-zip-post-cleanup.mjs` · `test-wm-print-p0-1a-docx-fix.mjs`.
+**Smoke:** `test-wm-print-zi-2026-smoke.mjs` · `test-wm-print-zi-2026-preservation-smoke.mjs` · `test-wm-print-zi-zip-post-cleanup.mjs` · `test-wm-print-p0-1a-docx-fix.mjs` · **`test-wm-print-history-001.mjs`**
+
+**Historia generowania (WM-HISTORY-001):** `src/lib/wm-print/history.ts` · wpis po `res.ok` (PDF/DOCX/ZIP) · UI: zakładka Historia + `JobWmPrintHistoryPanel` w Robotach · **bez** blobów/URL/plików.
 
 **ZI LiveCycle: CLOSED** — nie wracać do XFA, ciphertext, AP, flatten, overlay, TextField2[*], widgety 429/428/427.
 

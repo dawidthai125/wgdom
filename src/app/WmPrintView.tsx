@@ -15,10 +15,13 @@ import {
   ToggleRight,
   Loader2,
   Eye,
+  History,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
 import { jobDisplayTitle } from "@/app/app-domain";
+import { WmPrintHistoryPanel } from "@/app/WmPrintHistoryPanel";
+import type { AdminSession } from "@/lib/admin-auth";
 import { computeWmPrintCompleteness } from "@/lib/wm-print/completeness";
 import { computeWmPrintConfigurationStatus } from "@/lib/wm-print/configuration-status";
 import {
@@ -79,34 +82,47 @@ import {
   addDeletedWmPrintJobDocId,
   addDeletedWmPrintTemplateId,
 } from "@/lib/wm-print/wm-print-sync";
+import {
+  appendWmPrintHistory,
+  buildWmPrintHistoryTemplateEntry,
+  buildWmPrintHistoryZipEntry,
+  type WmPrintHistoryEntry,
+} from "@/lib/wm-print/history";
 
-type Tab = "odbiory" | "szablony" | "ustawienia";
+type Tab = "odbiory" | "szablony" | "historia" | "ustawienia";
 
 export function WmPrintView({
   jobs,
   templates,
   jobDocs,
   settings,
+  history,
+  adminSession,
   uploadedBy,
   onChangeTemplates,
   onChangeJobDocs,
   onChangeSettings,
+  onChangeHistory,
   onCommit,
 }: {
   jobs: Job[];
   templates: WmPrintTemplate[];
   jobDocs: WmPrintJobDocument[];
   settings: WmPrintSettings;
+  history: WmPrintHistoryEntry[];
+  adminSession?: AdminSession | null;
   uploadedBy: string;
   onChangeTemplates: (next: WmPrintTemplate[] | ((prev: WmPrintTemplate[]) => WmPrintTemplate[])) => void;
   onChangeJobDocs: (next: WmPrintJobDocument[] | ((prev: WmPrintJobDocument[]) => WmPrintJobDocument[])) => void;
   onChangeSettings: (next: WmPrintSettings | ((prev: WmPrintSettings) => WmPrintSettings)) => void;
+  onChangeHistory: (next: WmPrintHistoryEntry[] | ((prev: WmPrintHistoryEntry[]) => WmPrintHistoryEntry[])) => void;
   onCommit: (
     nextTemplates?: WmPrintTemplate[],
     nextJobDocs?: WmPrintJobDocument[],
     nextSettings?: WmPrintSettings,
     deletedTemplateId?: string,
     deletedJobDocId?: string,
+    nextHistory?: WmPrintHistoryEntry[],
   ) => void;
 }) {
   const [tab, setTab] = useState<Tab>("odbiory");
@@ -167,8 +183,20 @@ export function WmPrintView({
     sett = normalizedSettings,
     delTpl?: string,
     delDoc?: string,
+    hist = history,
   ) => {
-    onCommit(tpl, docs, sett, delTpl, delDoc);
+    onCommit(tpl, docs, sett, delTpl, delDoc, hist);
+  };
+
+  const historyActor = () => ({
+    userId: adminSession?.id ?? "unknown",
+    userName: adminSession?.displayName ?? uploadedBy,
+  });
+
+  const recordHistory = (entry: WmPrintHistoryEntry) => {
+    const next = appendWmPrintHistory(history, entry);
+    onChangeHistory(next);
+    commitAll(templates, jobDocs, normalizedSettings, undefined, undefined, next);
   };
 
   const toggleSection = (phase: JobPhase) => {
@@ -245,8 +273,11 @@ export function WmPrintView({
       [...selectedTemplateIds],
     );
     setBusy(false);
-    if (res.ok) toast.success("Pobrano paczkę ZIP");
-    else toast.error(res.error || "Błąd generowania ZIP");
+    if (res.ok) {
+      const { userId, userName } = historyActor();
+      recordHistory(buildWmPrintHistoryZipEntry(job, userId, userName));
+      toast.success("Pobrano paczkę ZIP");
+    } else toast.error(res.error || "Błąd generowania ZIP");
   };
 
   const handleGenerateSingle = async (job: Job, template: WmPrintTemplate, templateFile: WmPrintTemplateFile) => {
@@ -260,8 +291,11 @@ export function WmPrintView({
       genOpts(),
     );
     setBusy(false);
-    if (res.ok) toast.success(`Pobrano: ${templateFile.originalFileName}`);
-    else toast.error(res.error || "Błąd generowania");
+    if (res.ok) {
+      const { userId, userName } = historyActor();
+      recordHistory(buildWmPrintHistoryTemplateEntry(job, template, userId, userName));
+      toast.success(`Pobrano: ${templateFile.originalFileName}`);
+    } else toast.error(res.error || "Błąd generowania");
   };
 
   const wmPrintFilesAddedLabel = (n: number): string => {
@@ -423,6 +457,7 @@ export function WmPrintView({
             [
               { key: "odbiory" as const, label: "Odbiory", icon: ClipboardList },
               { key: "szablony" as const, label: "Szablony", icon: FileText },
+              { key: "historia" as const, label: "Historia", icon: History },
               { key: "ustawienia" as const, label: "Ustawienia", icon: Settings },
             ] as const
           ).map(({ key, label, icon: Icon }) => (
@@ -922,6 +957,12 @@ export function WmPrintView({
               );
               })}
             </div>
+          </div>
+        )}
+
+        {tab === "historia" && (
+          <div className="max-w-5xl">
+            <WmPrintHistoryPanel history={history} />
           </div>
         )}
 

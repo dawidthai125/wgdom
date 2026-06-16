@@ -11,6 +11,25 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-16",
+    version: "2.59.26",
+    label: "Odbiory WM Druk — historia generowania (WM-HISTORY-001)",
+    items: [
+      {
+        type: "new",
+        text: "WM Druk: zakładka Historia — kto, kiedy i jaki dokument (PDF/DOCX/ZIP) wygenerował dla roboty; tylko metadane, bez plików",
+      },
+      {
+        type: "new",
+        text: "Roboty: sekcja Historia WM Druk w szczegółach roboty (ostatnie 8 wpisów + link do pełnej historii)",
+      },
+      {
+        type: "improve",
+        text: "Sync chmura: nowy klucz kw-wm-print-history (cap 1000 wpisów)",
+      },
+    ],
+  },
+  {
     date: "2026-06-15",
     version: "2.59.25",
     label: "Odbiory WM Druk — housekeeping kodu (P0.5B)",

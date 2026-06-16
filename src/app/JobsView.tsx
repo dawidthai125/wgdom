@@ -20,6 +20,7 @@ import {
   JobOperationalNotesPanel,
   operationalNoteCreatePresetForJob,
 } from "@/app/JobOperationalNotesPanel";
+import { JobWmPrintHistoryPanel } from "@/app/JobWmPrintHistoryPanel";
 import type { AdminSession } from "@/lib/admin-auth";
 import type { OperationalNote } from "@/lib/operational-notes";
 import { JobCreateRecoverableChargeModal } from "@/app/JobCreateRecoverableChargeModal";
@@ -564,6 +565,8 @@ export function JobsView({
   adminSession: adminSessionProp,
   onOpenOperationalNote,
   onCreateOperationalNoteFromJob,
+  wmPrintHistory = [],
+  onOpenWmPrint,
 }: {
   jobs: Job[];
   setJobs: (v: Job[] | ((p: Job[]) => Job[])) => void;
@@ -589,6 +592,8 @@ export function JobsView({
   adminSession?: AdminSession | null;
   onOpenOperationalNote?: (noteId: string, fromJobId?: string) => void;
   onCreateOperationalNoteFromJob?: (preset: { linkedJobId?: string; linkedJobNameSnapshot?: string }) => void;
+  wmPrintHistory?: import("@/lib/wm-print/history").WmPrintHistoryEntry[];
+  onOpenWmPrint?: () => void;
 }) {
   const { canViewRates, session: adminSessionFromCtx } = useAdminAccess();
   const adminSession = adminSessionProp ?? adminSessionFromCtx;
@@ -1918,6 +1923,14 @@ export function JobsView({
                 onOpenNote={(noteId) => onOpenOperationalNote(noteId, selectedJob.id)}
                 onCreateNote={() => onCreateOperationalNoteFromJob(operationalNoteCreatePresetForJob(selectedJob))}
                 onOpenModule={() => onOpenOperationalNote("", selectedJob.id)}
+              />
+            )}
+
+            {onOpenWmPrint && (
+              <JobWmPrintHistoryPanel
+                job={selectedJob}
+                history={wmPrintHistory}
+                onOpenModule={onOpenWmPrint}
               />
             )}
 

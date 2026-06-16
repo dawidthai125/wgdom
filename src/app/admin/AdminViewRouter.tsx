@@ -17,6 +17,7 @@ import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import type { OperationalNote } from "@/lib/operational-notes";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
+import type { WmPrintHistoryEntry } from "@/lib/wm-print/history";
 import type { WmPrintJobDocument, WmPrintSettings, WmPrintTemplate } from "@/lib/wm-print/types";
 import type { View } from "@/app/admin/admin-nav";
 import { TeamDirectoryContactsView } from "@/app/TeamDirectoryContactsView";
@@ -123,12 +124,15 @@ export type AdminViewRouterProps = {
   setWmPrintJobDocs: (v: WmPrintJobDocument[] | ((prev: WmPrintJobDocument[]) => WmPrintJobDocument[])) => void;
   wmPrintSettings: WmPrintSettings;
   setWmPrintSettings: (v: WmPrintSettings | ((prev: WmPrintSettings) => WmPrintSettings)) => void;
+  wmPrintHistory: WmPrintHistoryEntry[];
+  setWmPrintHistory: (v: WmPrintHistoryEntry[] | ((prev: WmPrintHistoryEntry[]) => WmPrintHistoryEntry[])) => void;
   commitWmPrint: (
     nextTemplates?: WmPrintTemplate[],
     nextJobDocs?: WmPrintJobDocument[],
     nextSettings?: WmPrintSettings,
     deletedTemplateId?: string,
     deletedJobDocId?: string,
+    nextHistory?: WmPrintHistoryEntry[],
   ) => void;
   adminSession: AdminSession | null | undefined;
   alertsSeenTick: number;
@@ -281,6 +285,8 @@ export function AdminViewRouter({
   setWmPrintJobDocs,
   wmPrintSettings,
   setWmPrintSettings,
+  wmPrintHistory,
+  setWmPrintHistory,
   commitWmPrint,
   pendingOperationalNoteId,
   onInitialOperationalNoteConsumed,
@@ -465,6 +471,8 @@ export function AdminViewRouter({
               operationalNotesReadState={operationalNotesReadState}
               onOpenOperationalNote={onOpenOperationalNoteFromJobs}
               onCreateOperationalNoteFromJob={onOpenOperationalNoteCreateFromJobs}
+              wmPrintHistory={wmPrintHistory}
+              onOpenWmPrint={() => onSetView("wmprint")}
             />
           </Suspense>
         </ViewErrorBoundary>
@@ -477,10 +485,13 @@ export function AdminViewRouter({
               templates={wmPrintTemplates}
               jobDocs={wmPrintJobDocs}
               settings={wmPrintSettings}
+              history={wmPrintHistory}
+              adminSession={adminSession}
               uploadedBy={adminSession?.displayName || "Administrator"}
               onChangeTemplates={setWmPrintTemplates}
               onChangeJobDocs={setWmPrintJobDocs}
               onChangeSettings={setWmPrintSettings}
+              onChangeHistory={setWmPrintHistory}
               onCommit={commitWmPrint}
             />
           </Suspense>

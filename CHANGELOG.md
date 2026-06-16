@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.25** · **WM Druk P0.5B housekeeping**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.26** · **WM-HISTORY-001**
+
+## 2.59.26 — WM Druk historia generowania (WM-HISTORY-001)
+- Klucz `kw-wm-print-history` (cap 1000) — metadane PDF/DOCX/ZIP po sukcesie generacji
+- Zakładka Historia w WM Druk + panel Historia WM Druk w Robotach
+- Smoke: `test-wm-print-history-001.mjs`
 
 ## 2.59.25 — WM Druk housekeeping kodu (P0.5B)
 - `wm-print-pdf-fonts.ts` + `wm-print-pdf-static.ts`: wydzielenie aktywnych helperów prod

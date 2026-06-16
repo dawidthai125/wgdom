@@ -118,6 +118,8 @@ import { getPayrollWeekRange, getPayrollClosingWeekRange, isPayrollWeekClosedFor
 import { hasPayrollRolloverBlockers } from "@/lib/payroll-rollover";
 import { normalizeWmPrintJobDocuments } from "@/lib/wm-print/job-documents";
 import { DEFAULT_WM_PRINT_SETTINGS, normalizeWmPrintSettings } from "@/lib/wm-print/settings";
+import type { WmPrintHistoryEntry } from "@/lib/wm-print/history";
+import { normalizeWmPrintHistory, WM_PRINT_HISTORY_KEY } from "@/lib/wm-print/history";
 import type { WmPrintJobDocument, WmPrintSettings, WmPrintTemplate } from "@/lib/wm-print/types";
 import {
   addDeletedWmPrintJobDocId,
@@ -155,6 +157,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     "kw-wm-print-settings",
     DEFAULT_WM_PRINT_SETTINGS,
   );
+  const [wmPrintHistory, setWmPrintHistory] = useLocalStorage<WmPrintHistoryEntry[]>(WM_PRINT_HISTORY_KEY, []);
   const [view, setView] = useState<View>("dashboard");
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
   const [pendingJobSection, setPendingJobSection] = useState<import("@/app/JobDetailSectionNav").JobDetailSection | null>(null);
@@ -283,17 +286,19 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     nextSettings?: WmPrintSettings,
     deletedTemplateId?: string,
     deletedJobDocId?: string,
+    nextHistory?: WmPrintHistoryEntry[],
   ) => {
     const tpl = nextTemplates ?? wmPrintTemplates;
     const docs = nextJobDocs ?? wmPrintJobDocs;
     const sett = nextSettings ?? wmPrintSettings;
+    const hist = normalizeWmPrintHistory(nextHistory ?? wmPrintHistory);
     let delTpl = getDeletedWmPrintTemplateIds();
     let delDoc = getDeletedWmPrintJobDocIds();
     if (deletedTemplateId) delTpl = addDeletedWmPrintTemplateId(deletedTemplateId);
     if (deletedJobDocId) delDoc = addDeletedWmPrintJobDocId(deletedJobDocId);
     suppressAutoSyncUntilRef.current = Date.now() + 4500;
-    pushWmPrintToCloud(tpl, docs, sett, delTpl, delDoc).catch(() => {});
-  }, [wmPrintTemplates, wmPrintJobDocs, wmPrintSettings]);
+    pushWmPrintToCloud(tpl, docs, sett, delTpl, delDoc, hist).catch(() => {});
+  }, [wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory]);
 
   const clearAutoSyncTimers = useCallback(() => {
     if (syncTimerRef.current) {
@@ -571,15 +576,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         normalizeWmPrintSettings(wmPrintSettings),
         getDeletedWmPrintTemplateIds(),
         getDeletedWmPrintJobDocIds(),
+        normalizeWmPrintHistory(wmPrintHistory),
       ).catch(() => {});
     })();
-  }, [setWmPrintTemplates, wmPrintJobDocs, wmPrintSettings]);
+  }, [setWmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory]);
 
   // Auto-save to cloud on any data change (debounced 2s, only after initial sync; nie w ukrytej karcie)
   useEffect(() => {
     scheduleAutoCloudSync();
     remoteMergeInFlightRef.current = false;
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, scheduleAutoCloudSync]);
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, scheduleAutoCloudSync]);
 
   useEffect(() => () => clearAutoSyncTimers(), [clearAutoSyncTimers]);
 
@@ -1376,6 +1382,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           setWmPrintJobDocs={setWmPrintJobDocs}
           wmPrintSettings={wmPrintSettings}
           setWmPrintSettings={setWmPrintSettings}
+          wmPrintHistory={wmPrintHistory}
+          setWmPrintHistory={setWmPrintHistory}
           commitWmPrint={commitWmPrint}
           adminSession={adminSession}
           alertsSeenTick={alertsSeenTick}
