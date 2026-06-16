@@ -135,6 +135,17 @@ export type AdminViewRouterProps = {
     deletedJobDocId?: string,
     nextHistory?: WmPrintHistoryEntry[],
   ) => void;
+  deliveryPackagePublications: import("@/lib/delivery-package-publications/types").DeliveryPackagePublication[];
+  setDeliveryPackagePublications: (
+    v:
+      | import("@/lib/delivery-package-publications/types").DeliveryPackagePublication[]
+      | ((
+          prev: import("@/lib/delivery-package-publications/types").DeliveryPackagePublication[],
+        ) => import("@/lib/delivery-package-publications/types").DeliveryPackagePublication[]),
+  ) => void;
+  commitDeliveryPackagePublications: (
+    next?: import("@/lib/delivery-package-publications/types").DeliveryPackagePublication[],
+  ) => void;
   electricalMeasurements: ElectricalMeasurement[];
   setElectricalMeasurements: (
     v: ElectricalMeasurement[] | ((prev: ElectricalMeasurement[]) => ElectricalMeasurement[]),
@@ -311,6 +322,9 @@ export function AdminViewRouter({
   wmPrintHistory,
   setWmPrintHistory,
   commitWmPrint,
+  deliveryPackagePublications,
+  setDeliveryPackagePublications,
+  commitDeliveryPackagePublications,
   electricalMeasurements,
   setElectricalMeasurements,
   electricalMeasurementRegistry,
@@ -529,6 +543,9 @@ export function AdminViewRouter({
               onChangeSettings={setWmPrintSettings}
               onChangeHistory={setWmPrintHistory}
               onCommit={commitWmPrint}
+              deliveryPackagePublications={deliveryPackagePublications}
+              onChangeDeliveryPackagePublications={setDeliveryPackagePublications}
+              onCommitDeliveryPackagePublications={commitDeliveryPackagePublications}
               electricalMeasurements={electricalMeasurements}
               onChangeElectricalMeasurements={setElectricalMeasurements}
               onCommitElectricalMeasurements={commitElectricalMeasurements}

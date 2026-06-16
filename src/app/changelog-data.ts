@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.45",
+    label: "Inspektor P1A — Published Delivery Package (admin publish)",
+    items: [
+      {
+        type: "new",
+        text: "WM Druk → Odbiory: „Opublikuj dla inspektora” — upload zweryfikowanego ZIP odbiorowego do chmury (kv-delivery-package-publications); inspektor bez dostępu do generatorów WM Druk",
+      },
+      {
+        type: "new",
+        text: "Publikacja: wersjonowanie (supersede poprzedniej ACTIVE), fingerprint wejść generacji (ZI, checklista, RAP, dokumenty WM) — zapis pod P1C stale detection",
+      },
+      {
+        type: "improve",
+        text: "Panel Odbiory: podgląd ostatniej publikacji (data, autor, liczba plików, rozmiar, status)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.44",
     label: "Pomiary Elektryczne — EM-P1R-HOTFIX-001 ADDRESS parity",
     items: [

@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.44** · **EM-P1R-HF001**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.45** · **INSPECTOR-P1A**
+
+## 2.59.45 — Inspektor P1A Published Delivery Package (admin publish)
+
+- **new:** WM Druk → „Opublikuj dla inspektora” — upload ZIP + `kw-delivery-package-publications`
+- **new:** fingerprint wejść generacji, supersede ACTIVE, metadata (pliki, rozmiar)
+- **test:** `test-delivery-package-publications-p1a.mjs`
 
 ## 2.59.44 — Docs: EM handoff + agent onboarding (no code change)
 

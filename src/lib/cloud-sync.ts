@@ -71,6 +71,9 @@ import {
 } from "@/lib/wm-print/types";
 import { defaultWgdomCostCatalogStore } from "@/lib/wgdom-cost-catalog";
 import { defaultUserClassificationDictionaryStore } from "@/lib/wgdom-user-classification-dictionary";
+import {
+  mergeDeliveryPackagePublications,
+} from "@/lib/delivery-package-publications/merge";
 
 /** Klucze danych biznesowych — każdy nowy typ zapisu MUSI być tutaj. */
 export const DATA_KEYS = [
@@ -88,6 +91,7 @@ export const DATA_KEYS = [
   "kw-wm-print-job-docs",
   "kw-wm-print-settings",
   "kw-wm-print-history",
+  "kw-delivery-package-publications",
   "kw-electrical-measurements",
   "kw-electrical-measurement-registry",
   "kw-electrical-measurement-settings",
@@ -133,6 +137,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-wm-print-job-docs",
   "kw-wm-print-settings",
   "kw-wm-print-history",
+  "kw-delivery-package-publications",
   "kw-electrical-measurements",
   "kw-electrical-measurement-registry",
   "kw-electrical-measurement-settings",
@@ -1507,6 +1512,8 @@ export function mergeDataKey(
       return mergeWmPrintSettings(normalizeWmPrintSettings(local), normalizeWmPrintSettings(cloud));
     case "kw-wm-print-history":
       return mergeWmPrintHistory(normalizeWmPrintHistory(local), cloud);
+    case "kw-delivery-package-publications":
+      return mergeDeliveryPackagePublications(local, cloud);
     case "kw-electrical-measurements":
       return mergeElectricalMeasurements(local, cloud);
     case "kw-electrical-measurement-registry":

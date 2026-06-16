@@ -147,6 +147,9 @@ import {
 } from "@/lib/electrical-measurements/registry";
 import { applyRapRegistryBaselineRepairP16C } from "@/lib/electrical-measurements/registry-baseline-repair";
 import { DEFAULT_ELECTRICAL_MEASUREMENT_SETTINGS } from "@/lib/electrical-measurements/settings";
+import type { DeliveryPackagePublication } from "@/lib/delivery-package-publications/types";
+import { DELIVERY_PACKAGE_PUBLICATIONS_KEY } from "@/lib/delivery-package-publications/types";
+import { pushDeliveryPackagePublicationsToCloud } from "@/lib/delivery-package-publications/publication";
 
 function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const { session: adminSession, canViewRates } = useAdminAccess();
@@ -176,6 +179,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     DEFAULT_WM_PRINT_SETTINGS,
   );
   const [wmPrintHistory, setWmPrintHistory] = useLocalStorage<WmPrintHistoryEntry[]>(WM_PRINT_HISTORY_KEY, []);
+  const [deliveryPackagePublications, setDeliveryPackagePublications] = useLocalStorage<DeliveryPackagePublication[]>(
+    DELIVERY_PACKAGE_PUBLICATIONS_KEY,
+    [],
+  );
   const [electricalMeasurements, setElectricalMeasurements] = useLocalStorage<ElectricalMeasurement[]>(
     ELECTRICAL_MEASUREMENTS_KEY,
     [],
@@ -332,6 +339,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     suppressAutoSyncUntilRef.current = Date.now() + 4500;
     pushWmPrintToCloud(tpl, docs, sett, delTpl, delDoc, hist).catch(() => {});
   }, [wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory]);
+
+  const commitDeliveryPackagePublications = useCallback((next?: DeliveryPackagePublication[]) => {
+    const payload = next ?? deliveryPackagePublications;
+    suppressAutoSyncUntilRef.current = Date.now() + 4500;
+    pushDeliveryPackagePublicationsToCloud(payload)
+      .then((merged) => setDeliveryPackagePublications(merged))
+      .catch(() => {});
+  }, [deliveryPackagePublications, setDeliveryPackagePublications]);
 
   const commitElectricalMeasurementSettings = useCallback(
     (next?: ElectricalMeasurementSettings) => {
@@ -678,7 +693,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     scheduleAutoCloudSync();
     remoteMergeInFlightRef.current = false;
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, electricalMeasurements, electricalMeasurementRegistry, electricalMeasurementSettings, scheduleAutoCloudSync]);
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, deliveryPackagePublications, electricalMeasurements, electricalMeasurementRegistry, electricalMeasurementSettings, scheduleAutoCloudSync]);
 
   useEffect(() => () => clearAutoSyncTimers(), [clearAutoSyncTimers]);
 
@@ -1478,6 +1493,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           wmPrintHistory={wmPrintHistory}
           setWmPrintHistory={setWmPrintHistory}
           commitWmPrint={commitWmPrint}
+          deliveryPackagePublications={deliveryPackagePublications}
+          setDeliveryPackagePublications={setDeliveryPackagePublications}
+          commitDeliveryPackagePublications={commitDeliveryPackagePublications}
           electricalMeasurements={electricalMeasurements}
           setElectricalMeasurements={setElectricalMeasurements}
           electricalMeasurementRegistry={electricalMeasurementRegistry}

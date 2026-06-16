@@ -9,6 +9,7 @@ import {
   FileText,
   Download,
   Package,
+  Share2,
   Settings,
   ClipboardList,
   ToggleLeft,
@@ -45,7 +46,7 @@ import {
   deleteWmPrintJobDocumentLogical,
   getWmPrintJobDocumentsForJob,
 } from "@/lib/wm-print/job-documents";
-import { downloadWmPrintTemplateFileGenerated, downloadWmPrintZip } from "@/lib/wm-print/generate-zip";
+import { downloadWmPrintTemplateFileGenerated, downloadWmPrintZip, buildWmPrintDeliveryZipBytes } from "@/lib/wm-print/generate-zip";
 import { getProductionMeasurementForJob } from "@/lib/electrical-measurements/measurement-catalog";
 import {
   addWmPrintTemplateFile,
@@ -101,6 +102,14 @@ import {
   normalizeElectricalMeasurementSettings,
   touchElectricalMeasurementSettings,
 } from "@/lib/electrical-measurements/settings";
+import type { DeliveryPackagePublication } from "@/lib/delivery-package-publications/types";
+import {
+  buildDeliveryPackageGenerationFingerprint,
+  deliveryPackageStatusLabel,
+  getActiveDeliveryPackagePublication,
+  publishDeliveryPackageForJob,
+} from "@/lib/delivery-package-publications/publication";
+import { formatDeliveryPackageFileSize } from "@/lib/delivery-package-publications/storage";
 
 const TAB_ICONS: Record<WmPrintTab, typeof ClipboardList> = {
   odbiory: ClipboardList,
@@ -124,6 +133,9 @@ export function WmPrintView({
   onChangeSettings,
   onChangeHistory,
   onCommit,
+  deliveryPackagePublications,
+  onChangeDeliveryPackagePublications,
+  onCommitDeliveryPackagePublications,
   electricalMeasurements,
   onChangeElectricalMeasurements,
   onCommitElectricalMeasurements,
@@ -156,6 +168,11 @@ export function WmPrintView({
     deletedJobDocId?: string,
     nextHistory?: WmPrintHistoryEntry[],
   ) => void;
+  deliveryPackagePublications: DeliveryPackagePublication[];
+  onChangeDeliveryPackagePublications: (
+    next: DeliveryPackagePublication[] | ((prev: DeliveryPackagePublication[]) => DeliveryPackagePublication[]),
+  ) => void;
+  onCommitDeliveryPackagePublications: (next?: DeliveryPackagePublication[]) => void;
   electricalMeasurements: ElectricalMeasurement[];
   onChangeElectricalMeasurements: (next: ElectricalMeasurement[]) => void;
   onCommitElectricalMeasurements: (
@@ -215,6 +232,11 @@ export function WmPrintView({
         ? getProductionMeasurementForJob(electricalMeasurements, electricalMeasurementRegistry, selectedJob.id)
         : null,
     [selectedJob, electricalMeasurements, electricalMeasurementRegistry],
+  );
+
+  const activeDeliveryPublication = useMemo(
+    () => (selectedJob ? getActiveDeliveryPackagePublication(deliveryPackagePublications, selectedJob.id) : null),
+    [selectedJob, deliveryPackagePublications],
   );
 
   const [includeMeasurementsInZip, setIncludeMeasurementsInZip] = useState(false);
@@ -410,6 +432,73 @@ export function WmPrintView({
           : "Pobrano paczkę ZIP",
       );
     } else toast.error(res.error || "Błąd generowania ZIP");
+  };
+
+  const handlePublishForInspector = async (job: Job) => {
+    if (selectedTemplateIds.size === 0) {
+      toast.error("Zaznacz co najmniej jeden dokument szablonu");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { bytes, odbiorCount, pomiaryCount } = await buildWmPrintDeliveryZipBytes(
+        job,
+        templates,
+        jobDocs,
+        normalizedSettings,
+        genOpts(),
+        [...selectedTemplateIds],
+        fetchWmPrintFileBytes,
+        {
+          includeMeasurements: includeMeasurementsInZip,
+          measurements: electricalMeasurements,
+          registry: electricalMeasurementRegistry,
+        },
+      );
+
+      const { payload, hash } = await buildDeliveryPackageGenerationFingerprint({
+        job,
+        templates,
+        jobDocs,
+        settings: normalizedSettings,
+        opts: genOpts(),
+        selectedTemplateIds: [...selectedTemplateIds],
+        includeMeasurements: includeMeasurementsInZip,
+        measurements: electricalMeasurements,
+        registry: electricalMeasurementRegistry,
+      });
+
+      const { userId, userName } = historyActor();
+      const result = await publishDeliveryPackageForJob({
+        publications: deliveryPackagePublications,
+        job,
+        settings: normalizedSettings,
+        zipBytes: bytes,
+        odbiorFileCount: odbiorCount,
+        pomiaryFileCount: pomiaryCount,
+        includesMeasurements: includeMeasurementsInZip && pomiaryCount > 0,
+        fingerprintHash: hash,
+        fingerprintPayload: payload,
+        publishedByUserId: userId,
+        publishedByUserName: userName,
+      });
+
+      if (!result.ok) {
+        toast.error(result.error || "Nie udało się opublikować pakietu");
+        return;
+      }
+
+      onChangeDeliveryPackagePublications(result.nextPublications);
+      onCommitDeliveryPackagePublications(result.nextPublications);
+      recordHistory(buildWmPrintHistoryZipEntry(job, userId, userName));
+      toast.success(
+        `Opublikowano pakiet v${result.publication.zipVersion} dla inspektora (${result.publication.fileCount} plików)`,
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Błąd publikacji pakietu");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleGenerateSingle = async (job: Job, template: WmPrintTemplate, templateFile: WmPrintTemplateFile) => {
@@ -695,6 +784,36 @@ export function WmPrintView({
                       {busy ? <Loader2 size={16} className="animate-spin" /> : <Package size={16} />}
                       Generuj komplet (ZIP)
                     </button>
+                    <button
+                      type="button"
+                      disabled={busy || selectedTemplateIds.size === 0}
+                      onClick={() => handlePublishForInspector(selectedJob)}
+                      className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 text-sm font-medium disabled:opacity-50 hover:bg-emerald-500/15"
+                    >
+                      {busy ? <Loader2 size={16} className="animate-spin" /> : <Share2 size={16} />}
+                      Opublikuj dla inspektora
+                    </button>
+                    <p className="text-[10px] text-muted-foreground px-0.5">
+                      Publikacja zapisuje zweryfikowany ZIP w chmurze — inspektor pobierze go w osobnym module (bez WM Druk).
+                    </p>
+                    {activeDeliveryPublication && (
+                      <div className="rounded-xl border border-border bg-secondary/30 px-3 py-2.5 text-xs space-y-1">
+                        <p className="font-semibold text-foreground">Ostatnia publikacja</p>
+                        <p className="text-muted-foreground">
+                          {new Date(activeDeliveryPublication.publishedAt).toLocaleString("pl-PL")}
+                          {" · "}
+                          {activeDeliveryPublication.publishedByUserName}
+                        </p>
+                        <p className="text-muted-foreground">
+                          ZIP odbiorowy · v{activeDeliveryPublication.zipVersion} ·{" "}
+                          {activeDeliveryPublication.fileCount} plików ·{" "}
+                          {formatDeliveryPackageFileSize(activeDeliveryPublication.fileSizeBytes)}
+                        </p>
+                        <p className="text-muted-foreground">
+                          Status: {deliveryPackageStatusLabel(activeDeliveryPublication.status)}
+                        </p>
+                      </div>
+                    )}
                     <button
                       type="button"
                       onClick={() => {
