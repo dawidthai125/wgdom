@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.34** · **EM-P1.6**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.35** · **EM-P1.7**
+
+## 2.59.35 — Pomiary Elektryczne EM-P1.7 (domyślne ustawienia)
+- `kw-electrical-measurement-settings` — pomiarowiec, model/numer miernika
+- WM Druk → Ustawienia → sekcja Pomiary; auto-fill nowych raportów; nadpisanie per raport
+- Smoke: `test-electrical-measurements-settings-p17.mjs`
 
 ## 2.59.34 — Pomiary Elektryczne EM-P1.6 (Rejestr RAP)
 - Rejestr `kw-electrical-measurement-registry` — numer RAP przypisany 1× do jobId, bez zwrotu do puli

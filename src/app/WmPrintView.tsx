@@ -92,7 +92,12 @@ import {
 } from "@/lib/wm-print/history";
 import type { WmPrintTab } from "@/lib/wm-print/wm-print-tabs";
 import { WM_PRINT_TABS } from "@/lib/wm-print/wm-print-tabs";
-import type { ElectricalMeasurement, ElectricalMeasurementRegistryEntry } from "@/lib/electrical-measurements/types";
+import type { ElectricalMeasurement, ElectricalMeasurementRegistryEntry, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
+import {
+  DEFAULT_ELECTRICAL_MEASUREMENT_SETTINGS,
+  normalizeElectricalMeasurementSettings,
+  touchElectricalMeasurementSettings,
+} from "@/lib/electrical-measurements/settings";
 
 const TAB_ICONS: Record<WmPrintTab, typeof ClipboardList> = {
   odbiory: ClipboardList,
@@ -120,6 +125,9 @@ export function WmPrintView({
   onCommitElectricalMeasurements,
   electricalMeasurementRegistry,
   onChangeElectricalMeasurementRegistry,
+  electricalMeasurementSettings,
+  onChangeElectricalMeasurementSettings,
+  onCommitElectricalMeasurementSettings,
   initialTab,
   initialJobId,
   onInitialNavigationConsumed,
@@ -151,6 +159,9 @@ export function WmPrintView({
   ) => void;
   electricalMeasurementRegistry: ElectricalMeasurementRegistryEntry[];
   onChangeElectricalMeasurementRegistry: (next: ElectricalMeasurementRegistryEntry[]) => void;
+  electricalMeasurementSettings: ElectricalMeasurementSettings;
+  onChangeElectricalMeasurementSettings: (next: ElectricalMeasurementSettings) => void;
+  onCommitElectricalMeasurementSettings: (next?: ElectricalMeasurementSettings) => void;
   initialTab?: WmPrintTab | null;
   initialJobId?: string | null;
   onInitialNavigationConsumed?: () => void;
@@ -781,6 +792,7 @@ export function WmPrintView({
                   job={selectedJob}
                   measurements={electricalMeasurements}
                   registry={electricalMeasurementRegistry}
+                  measurementSettings={electricalMeasurementSettings}
                   adminSession={adminSession}
                   onChangeMeasurements={onChangeElectricalMeasurements}
                   onChangeRegistry={onChangeElectricalMeasurementRegistry}
@@ -1029,48 +1041,123 @@ export function WmPrintView({
         )}
 
         {tab === "ustawienia" && (
-          <div className="max-w-md space-y-4">
-            <div>
-              <label className="text-sm font-medium">Domyślne miasto ({"{{JOB_CITY}}"})</label>
-              <input
-                value={normalizedSettings.defaultCity}
-                onChange={(e) => onChangeSettings({ ...normalizedSettings, defaultCity: e.target.value })}
-                onBlur={() => commitAll(templates, jobDocs, normalizedSettings)}
-                className="mt-1 w-full px-3 py-2 rounded-lg border border-border text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Przyrostek nazwy ZIP</label>
-              <input
-                value={normalizedSettings.zipNameSuffix}
-                onChange={(e) => onChangeSettings({ ...normalizedSettings, zipNameSuffix: e.target.value })}
-                onBlur={() => commitAll(templates, jobDocs, normalizedSettings)}
-                className="mt-1 w-full px-3 py-2 rounded-lg border border-border text-sm"
-                placeholder="ODBIOR_WM"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Przykład: GORLICKA_26_6_ODBIOR_WM.zip
-              </p>
-            </div>
-            <div className="rounded-lg border border-border p-3 space-y-1">
-              <p className="text-sm font-medium">Zmienne systemowe V1</p>
-              {WM_PRINT_VARIABLE_KEYS.map((k: WmPrintVariableKey) => (
-                <p key={k} className="text-xs text-muted-foreground">
-                  <code className="text-foreground">{`{{${k}}}`}</code> — {WM_PRINT_VARIABLE_LABELS[k]}
+          <div className="max-w-md space-y-6">
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Domyślne miasto ({"{{JOB_CITY}}"})</label>
+                <input
+                  value={normalizedSettings.defaultCity}
+                  onChange={(e) => onChangeSettings({ ...normalizedSettings, defaultCity: e.target.value })}
+                  onBlur={() => commitAll(templates, jobDocs, normalizedSettings)}
+                  className="mt-1 w-full px-3 py-2 rounded-lg border border-border text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Przyrostek nazwy ZIP</label>
+                <input
+                  value={normalizedSettings.zipNameSuffix}
+                  onChange={(e) => onChangeSettings({ ...normalizedSettings, zipNameSuffix: e.target.value })}
+                  onBlur={() => commitAll(templates, jobDocs, normalizedSettings)}
+                  className="mt-1 w-full px-3 py-2 rounded-lg border border-border text-sm"
+                  placeholder="ODBIOR_WM"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Przykład: GORLICKA_26_6_ODBIOR_WM.zip
                 </p>
-              ))}
+              </div>
+              <div className="rounded-lg border border-border p-3 space-y-1">
+                <p className="text-sm font-medium">Zmienne systemowe V1</p>
+                {WM_PRINT_VARIABLE_KEYS.map((k: WmPrintVariableKey) => (
+                  <p key={k} className="text-xs text-muted-foreground">
+                    <code className="text-foreground">{`{{${k}}}`}</code> — {WM_PRINT_VARIABLE_LABELS[k]}
+                  </p>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  onChangeSettings({ ...DEFAULT_WM_PRINT_SETTINGS });
+                  commitAll(templates, jobDocs, DEFAULT_WM_PRINT_SETTINGS);
+                  toast.success("Przywrócono ustawienia domyślne");
+                }}
+                className="text-sm text-muted-foreground hover:text-foreground underline"
+              >
+                Przywróć domyślne (odbiory)
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                onChangeSettings({ ...DEFAULT_WM_PRINT_SETTINGS });
-                commitAll(templates, jobDocs, DEFAULT_WM_PRINT_SETTINGS);
-                toast.success("Przywrócono ustawienia domyślne");
-              }}
-              className="text-sm text-muted-foreground hover:text-foreground underline"
-            >
-              Przywróć domyślne
-            </button>
+
+            <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+              <h3 className="text-sm font-semibold flex items-center gap-1.5">
+                <Gauge size={14} className="text-primary" />
+                Pomiary Elektryczne
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Domyślne wartości podstawiane automatycznie przy tworzeniu nowego raportu pomiarowego.
+              </p>
+              <div>
+                <label className="text-sm font-medium">Pomiarowiec</label>
+                <input
+                  value={normalizeElectricalMeasurementSettings(electricalMeasurementSettings).technicianName}
+                  onChange={(e) =>
+                    onChangeElectricalMeasurementSettings({
+                      ...normalizeElectricalMeasurementSettings(electricalMeasurementSettings),
+                      technicianName: e.target.value,
+                    })
+                  }
+                  className="mt-1 w-full px-3 py-2 rounded-lg border border-border text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Model miernika</label>
+                <input
+                  value={normalizeElectricalMeasurementSettings(electricalMeasurementSettings).meterModel}
+                  onChange={(e) =>
+                    onChangeElectricalMeasurementSettings({
+                      ...normalizeElectricalMeasurementSettings(electricalMeasurementSettings),
+                      meterModel: e.target.value,
+                    })
+                  }
+                  className="mt-1 w-full px-3 py-2 rounded-lg border border-border text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Numer miernika</label>
+                <input
+                  value={normalizeElectricalMeasurementSettings(electricalMeasurementSettings).meterSerialNumber}
+                  onChange={(e) =>
+                    onChangeElectricalMeasurementSettings({
+                      ...normalizeElectricalMeasurementSettings(electricalMeasurementSettings),
+                      meterSerialNumber: e.target.value,
+                    })
+                  }
+                  className="mt-1 w-full px-3 py-2 rounded-lg border border-border text-sm"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = touchElectricalMeasurementSettings({}, electricalMeasurementSettings);
+                  onChangeElectricalMeasurementSettings(next);
+                  onCommitElectricalMeasurementSettings(next);
+                  toast.success("Zapisano ustawienia pomiarów");
+                }}
+                className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
+              >
+                Zapisz ustawienia
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = { ...DEFAULT_ELECTRICAL_MEASUREMENT_SETTINGS, updatedAt: new Date().toISOString() };
+                  onChangeElectricalMeasurementSettings(next);
+                  onCommitElectricalMeasurementSettings(next);
+                  toast.success("Przywrócono domyślne ustawienia pomiarów");
+                }}
+                className="block text-sm text-muted-foreground hover:text-foreground underline"
+              >
+                Przywróć domyślne (pomiary)
+              </button>
+            </div>
           </div>
         )}
       </div>

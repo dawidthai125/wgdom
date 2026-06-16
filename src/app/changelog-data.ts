@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.35",
+    label: "Pomiary Elektryczne — EM-P1.7 domyślne ustawienia",
+    items: [
+      {
+        type: "new",
+        text: "WM Druk → Ustawienia → Pomiary Elektryczne: globalne domyślne pomiarowiec/miernik (sync kw-electrical-measurement-settings), auto-podstawianie przy nowym raporcie, nadpisanie per raport",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.34",
     label: "Pomiary Elektryczne — EM-P1.6 Rejestr RAP",
     items: [

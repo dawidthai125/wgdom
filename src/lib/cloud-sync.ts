@@ -32,9 +32,11 @@ import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-lea
 import { mergeRecoverableCharges, normalizeRecoverableCharges } from "@/lib/recoverable-charges";
 import { mergeElectricalMeasurements } from "@/lib/electrical-measurements/merge";
 import { mergeElectricalMeasurementRegistry } from "@/lib/electrical-measurements/registry";
+import { mergeElectricalMeasurementSettings, normalizeElectricalMeasurementSettings } from "@/lib/electrical-measurements/settings";
 import { normalizeElectricalMeasurements } from "@/lib/electrical-measurements/normalize";
 import {
   ELECTRICAL_MEASUREMENT_REGISTRY_KEY,
+  ELECTRICAL_MEASUREMENT_SETTINGS_KEY,
   ELECTRICAL_MEASUREMENTS_KEY,
 } from "@/lib/electrical-measurements/types";
 import { mergeOperationalNotes, normalizeOperationalNotes, OPERATIONAL_NOTES_KEY } from "@/lib/operational-notes";
@@ -88,6 +90,7 @@ export const DATA_KEYS = [
   "kw-wm-print-history",
   "kw-electrical-measurements",
   "kw-electrical-measurement-registry",
+  "kw-electrical-measurement-settings",
   "kw-tenders-pipeline",
   "kw-tenders-company-profile",
   "kw-wgdom-cost-catalog",
@@ -132,6 +135,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-wm-print-history",
   "kw-electrical-measurements",
   "kw-electrical-measurement-registry",
+  "kw-electrical-measurement-settings",
 ] as const satisfies readonly DataKey[];
 
 export const WGDOM_DEFERRED_BOOTSTRAP_EVENT = "wgdom-deferred-bootstrap";
@@ -1507,6 +1511,8 @@ export function mergeDataKey(
       return mergeElectricalMeasurements(local, cloud);
     case "kw-electrical-measurement-registry":
       return mergeElectricalMeasurementRegistry(local, cloud);
+    case "kw-electrical-measurement-settings":
+      return mergeElectricalMeasurementSettings(local, cloud);
     case "kw-tenders-pipeline":
       return mergeTenderDataKey(TENDERS_PIPELINE_KEY, local, cloud);
     case "kw-tenders-company-profile":
@@ -1723,6 +1729,7 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
   if (key === TENDERS_CUSTOM_KEYWORDS_KEY) {
     return { action: [], scope: [], exclude: [], learnedFromCount: 0, updatedAt: "" };
   }
+  if (key === ELECTRICAL_MEASUREMENT_SETTINGS_KEY) return normalizeElectricalMeasurementSettings(null);
   if (key.startsWith("kw-")) return [];
   return {};
 }
@@ -1733,6 +1740,7 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
   if (key === "kw-week-employees" || key === "kw-archive" || key === "kw-directory" || key === "kw-contacts" || key === "kw-employee-leaves" || key === "kw-recoverable-charges" || key === "kw-operational-notes" || key === ELECTRICAL_MEASUREMENTS_KEY || key === ELECTRICAL_MEASUREMENT_REGISTRY_KEY) {
     return normalizeArrayValue(coerced);
   }
+  if (key === ELECTRICAL_MEASUREMENT_SETTINGS_KEY) return normalizeElectricalMeasurementSettings(coerced);
   return coerced;
 }
 

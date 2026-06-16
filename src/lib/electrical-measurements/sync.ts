@@ -2,13 +2,23 @@ import { pushKeysToCloud } from "@/lib/cloud-sync";
 import { mergeElectricalMeasurementRegistry, normalizeElectricalMeasurementRegistry } from "@/lib/electrical-measurements/registry";
 import { normalizeElectricalMeasurements } from "@/lib/electrical-measurements/normalize";
 import {
+  mergeElectricalMeasurementSettings,
+  normalizeElectricalMeasurementSettings,
+} from "@/lib/electrical-measurements/settings";
+import {
   ELECTRICAL_MEASUREMENT_REGISTRY_KEY,
+  ELECTRICAL_MEASUREMENT_SETTINGS_KEY,
   ELECTRICAL_MEASUREMENTS_KEY,
   type ElectricalMeasurement,
   type ElectricalMeasurementRegistryEntry,
+  type ElectricalMeasurementSettings,
 } from "@/lib/electrical-measurements/types";
 
-export { ELECTRICAL_MEASUREMENTS_KEY, ELECTRICAL_MEASUREMENT_REGISTRY_KEY };
+export {
+  ELECTRICAL_MEASUREMENTS_KEY,
+  ELECTRICAL_MEASUREMENT_REGISTRY_KEY,
+  ELECTRICAL_MEASUREMENT_SETTINGS_KEY,
+};
 
 export async function pushElectricalMeasurementsToCloud(
   measurements: ElectricalMeasurement[],
@@ -34,6 +44,18 @@ export async function pushElectricalMeasurementRegistryToCloud(
   await pushKeysToCloud([ELECTRICAL_MEASUREMENT_REGISTRY_KEY], [normalized]);
 }
 
+export async function pushElectricalMeasurementSettingsToCloud(
+  settings: ElectricalMeasurementSettings,
+): Promise<void> {
+  const normalized = normalizeElectricalMeasurementSettings(settings);
+  try {
+    localStorage.setItem(ELECTRICAL_MEASUREMENT_SETTINGS_KEY, JSON.stringify(normalized));
+  } catch {
+    /* ignore quota */
+  }
+  await pushKeysToCloud([ELECTRICAL_MEASUREMENT_SETTINGS_KEY], [normalized]);
+}
+
 export async function pushElectricalMeasurementsBundleToCloud(
   measurements: ElectricalMeasurement[],
   registry: ElectricalMeasurementRegistryEntry[],
@@ -53,3 +75,7 @@ export async function pushElectricalMeasurementsBundleToCloud(
 }
 
 export { mergeElectricalMeasurementRegistry, normalizeElectricalMeasurementRegistry };
+export {
+  mergeElectricalMeasurementSettings,
+  normalizeElectricalMeasurementSettings,
+} from "@/lib/electrical-measurements/settings";

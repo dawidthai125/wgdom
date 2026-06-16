@@ -2,6 +2,7 @@
 
 export const ELECTRICAL_MEASUREMENTS_KEY = "kw-electrical-measurements";
 export const ELECTRICAL_MEASUREMENT_REGISTRY_KEY = "kw-electrical-measurement-registry";
+export const ELECTRICAL_MEASUREMENT_SETTINGS_KEY = "kw-electrical-measurement-settings";
 
 export type ElectricalMeasurementRegistryStatus = "ACTIVE" | "CANCELLED";
 
@@ -14,7 +15,15 @@ export interface ElectricalMeasurementRegistryEntry {
   status: ElectricalMeasurementRegistryStatus;
 }
 
-/** Docelowo: domyślne wartości z ustawień firmy (EM-P0.5). */
+/** EM-P1.7 — globalne ustawienia domyślne (WM Druk → Ustawienia). */
+export interface ElectricalMeasurementSettings {
+  technicianName: string;
+  meterModel: string;
+  meterSerialNumber: string;
+  updatedAt: string;
+}
+
+/** @deprecated użyj ElectricalMeasurementSettings — alias kompatybilności */
 export interface ElectricalMeasurementDefaultsHint {
   technicianName?: string;
   meterModel?: string;
@@ -114,6 +123,8 @@ export interface ElectricalMeasurement {
   rcds: ElectricalMeasurementRcd[];
   /** Wartości pomiarowe — generowane raz, edytowalne ręcznie (EM-P1.5). */
   valueSet?: ElectricalMeasurementValueSet;
+  /** EM-P1.7 — false = pola pomiarowiec/miernik tylko odczyt (domyślnie przy nowym raporcie). */
+  metaFieldsOverridden?: boolean;
   createdAt: string;
   updatedAt: string;
 }

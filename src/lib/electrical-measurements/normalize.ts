@@ -173,6 +173,7 @@ export function parseElectricalMeasurement(raw: unknown): ElectricalMeasurement 
     circuits: renumberCircuitSortOrder(circuits),
     rcds,
     valueSet,
+    metaFieldsOverridden: r.metaFieldsOverridden === true ? true : r.metaFieldsOverridden === false ? false : undefined,
     createdAt: String(r.createdAt ?? now),
     updatedAt: String(r.updatedAt ?? r.createdAt ?? now),
   };

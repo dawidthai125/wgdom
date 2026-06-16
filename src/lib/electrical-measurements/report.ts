@@ -4,6 +4,7 @@ import type {
   ElectricalMeasurement,
   ElectricalMeasurementCircuit,
   ElectricalMeasurementRcd,
+  ElectricalMeasurementSettings,
   RcdDeviceType,
   SupplyType,
 } from "@/lib/electrical-measurements/types";
@@ -27,19 +28,24 @@ function renumberCircuitSortOrder(circuits: ElectricalMeasurementCircuit[]): Ele
   return sorted.map((c, i) => ({ ...c, sortOrder: i + 2 }));
 }
 
-export function createEmptyElectricalMeasurement(jobId: string, reportNumber = ""): ElectricalMeasurement {
+export function createEmptyElectricalMeasurement(
+  jobId: string,
+  reportNumber = "",
+  settings?: Pick<ElectricalMeasurementSettings, "technicianName" | "meterModel" | "meterSerialNumber">,
+): ElectricalMeasurement {
   const now = new Date().toISOString();
   const base: ElectricalMeasurement = {
     id: crypto.randomUUID(),
     jobId,
     reportNumber,
     measurementDate: localIsoDate(),
-    technicianName: "",
-    meterModel: "",
-    meterSerialNumber: "",
+    technicianName: settings?.technicianName ?? "",
+    meterModel: settings?.meterModel ?? "",
+    meterSerialNumber: settings?.meterSerialNumber ?? "",
     supplyType: "ydy-3x4",
     circuits: [],
     rcds: [],
+    metaFieldsOverridden: settings ? false : undefined,
     createdAt: now,
     updatedAt: now,
   };

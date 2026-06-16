@@ -19,7 +19,7 @@ import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
 import type { WmPrintHistoryEntry } from "@/lib/wm-print/history";
 import type { WmPrintJobDocument, WmPrintSettings, WmPrintTemplate } from "@/lib/wm-print/types";
-import type { ElectricalMeasurement, ElectricalMeasurementRegistryEntry } from "@/lib/electrical-measurements/types";
+import type { ElectricalMeasurement, ElectricalMeasurementRegistryEntry, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
 import type { View } from "@/app/admin/admin-nav";
 import { TeamDirectoryContactsView } from "@/app/TeamDirectoryContactsView";
 import { TendersProvider } from "@/app/tenders/context/TendersProvider";
@@ -145,6 +145,11 @@ export type AdminViewRouterProps = {
       | ElectricalMeasurementRegistryEntry[]
       | ((prev: ElectricalMeasurementRegistryEntry[]) => ElectricalMeasurementRegistryEntry[]),
   ) => void;
+  electricalMeasurementSettings: ElectricalMeasurementSettings;
+  setElectricalMeasurementSettings: (
+    v: ElectricalMeasurementSettings | ((prev: ElectricalMeasurementSettings) => ElectricalMeasurementSettings),
+  ) => void;
+  commitElectricalMeasurementSettings: (next?: ElectricalMeasurementSettings) => void;
   commitElectricalMeasurements: (
     nextMeasurements?: ElectricalMeasurement[],
     nextRegistry?: ElectricalMeasurementRegistryEntry[],
@@ -310,6 +315,9 @@ export function AdminViewRouter({
   setElectricalMeasurements,
   electricalMeasurementRegistry,
   setElectricalMeasurementRegistry,
+  electricalMeasurementSettings,
+  setElectricalMeasurementSettings,
+  commitElectricalMeasurementSettings,
   commitElectricalMeasurements,
   pendingWmPrintNav,
   onInitialWmPrintNavigationConsumed,
@@ -526,6 +534,9 @@ export function AdminViewRouter({
               onCommitElectricalMeasurements={commitElectricalMeasurements}
               electricalMeasurementRegistry={electricalMeasurementRegistry}
               onChangeElectricalMeasurementRegistry={setElectricalMeasurementRegistry}
+              electricalMeasurementSettings={electricalMeasurementSettings}
+              onChangeElectricalMeasurementSettings={setElectricalMeasurementSettings}
+              onCommitElectricalMeasurementSettings={commitElectricalMeasurementSettings}
               initialTab={pendingWmPrintNav?.tab ?? null}
               initialJobId={pendingWmPrintNav?.jobId ?? null}
               onInitialNavigationConsumed={onInitialWmPrintNavigationConsumed}

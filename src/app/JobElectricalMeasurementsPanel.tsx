@@ -42,7 +42,12 @@ import {
   getRegistryEntryForJob,
   registryStatusLabel,
 } from "@/lib/electrical-measurements/registry";
-import type { ElectricalMeasurement, ElectricalMeasurementRegistryEntry } from "@/lib/electrical-measurements/types";
+import { isMeasurementMetaFieldsEditable } from "@/lib/electrical-measurements/settings";
+import type {
+  ElectricalMeasurement,
+  ElectricalMeasurementRegistryEntry,
+  ElectricalMeasurementSettings,
+} from "@/lib/electrical-measurements/types";
 import {
   BREAKER_TYPES,
   CIRCUIT_TYPE_LABELS,
@@ -61,6 +66,7 @@ export function JobElectricalMeasurementsPanel({
   job,
   measurements,
   registry,
+  measurementSettings,
   adminSession,
   onChangeMeasurements,
   onChangeRegistry,
@@ -69,6 +75,7 @@ export function JobElectricalMeasurementsPanel({
   job: Job;
   measurements: ElectricalMeasurement[];
   registry: ElectricalMeasurementRegistryEntry[];
+  measurementSettings: ElectricalMeasurementSettings;
   adminSession?: AdminSession | null;
   onChangeMeasurements: (next: ElectricalMeasurement[]) => void;
   onChangeRegistry: (next: ElectricalMeasurementRegistryEntry[]) => void;
@@ -132,7 +139,7 @@ export function JobElectricalMeasurementsPanel({
 
   const handleCreateReport = () => {
     const { registry: nextRegistry, entry } = assignRapForJob(registry, job.id);
-    const created = createEmptyElectricalMeasurement(job.id, entry.rapNumber);
+    const created = createEmptyElectricalMeasurement(job.id, entry.rapNumber, measurementSettings);
     const nextAll = upsertElectricalMeasurement(measurements, created);
     onChangeMeasurements(nextAll);
     onChangeRegistry(nextRegistry);
@@ -154,6 +161,13 @@ export function JobElectricalMeasurementsPanel({
     onChangeRegistry(nextRegistry);
     onCommit(nextAll, nextRegistry);
     setSelectedId(nextAll.filter((m) => m.jobId === job.id)[0]?.id ?? null);
+  };
+
+  const metaFieldsEditable = selected ? isMeasurementMetaFieldsEditable(selected) : false;
+
+  const handleEnableMetaOverride = () => {
+    if (!selected) return;
+    persist(touchElectricalMeasurement(selected, { metaFieldsOverridden: true }));
   };
 
   const patchSelected = (patch: Parameters<typeof touchElectricalMeasurement>[1]) => {
@@ -319,30 +333,48 @@ export function JobElectricalMeasurementsPanel({
                     <span className="text-[10px] text-muted-foreground">Pomiarowiec</span>
                     <input
                       type="text"
+                      readOnly={!metaFieldsEditable}
                       value={selected.technicianName}
                       onChange={(e) => patchSelected({ technicianName: e.target.value })}
-                      className="w-full text-xs rounded-lg border border-border bg-background px-2 py-1.5"
+                      className={`w-full text-xs rounded-lg border border-border px-2 py-1.5 ${
+                        metaFieldsEditable ? "bg-background" : "bg-secondary/40 cursor-not-allowed"
+                      }`}
                     />
                   </label>
                   <label className="space-y-0.5">
                     <span className="text-[10px] text-muted-foreground">Model miernika</span>
                     <input
                       type="text"
+                      readOnly={!metaFieldsEditable}
                       value={selected.meterModel}
                       onChange={(e) => patchSelected({ meterModel: e.target.value })}
-                      className="w-full text-xs rounded-lg border border-border bg-background px-2 py-1.5"
+                      className={`w-full text-xs rounded-lg border border-border px-2 py-1.5 ${
+                        metaFieldsEditable ? "bg-background" : "bg-secondary/40 cursor-not-allowed"
+                      }`}
                     />
                   </label>
                   <label className="space-y-0.5 sm:col-span-2">
                     <span className="text-[10px] text-muted-foreground">Numer miernika</span>
                     <input
                       type="text"
+                      readOnly={!metaFieldsEditable}
                       value={selected.meterSerialNumber}
                       onChange={(e) => patchSelected({ meterSerialNumber: e.target.value })}
-                      className="w-full text-xs rounded-lg border border-border bg-background px-2 py-1.5"
+                      className={`w-full text-xs rounded-lg border border-border px-2 py-1.5 ${
+                        metaFieldsEditable ? "bg-background" : "bg-secondary/40 cursor-not-allowed"
+                      }`}
                     />
                   </label>
                 </div>
+                {!metaFieldsEditable && (
+                  <button
+                    type="button"
+                    onClick={handleEnableMetaOverride}
+                    className="text-[11px] text-primary hover:underline font-medium"
+                  >
+                    Nadpisz dla tego raportu
+                  </button>
+                )}
               </section>
 
               <section className="space-y-2 rounded-lg border border-border p-3">

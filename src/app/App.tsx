@@ -129,18 +129,21 @@ import {
   maybeExecuteWmPrintSeed,
   pushWmPrintToCloud,
 } from "@/lib/wm-print/wm-print-sync";
-import type { ElectricalMeasurement, ElectricalMeasurementRegistryEntry } from "@/lib/electrical-measurements/types";
+import type { ElectricalMeasurement, ElectricalMeasurementRegistryEntry, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
 import {
   ELECTRICAL_MEASUREMENT_REGISTRY_KEY,
+  ELECTRICAL_MEASUREMENT_SETTINGS_KEY,
   ELECTRICAL_MEASUREMENTS_KEY,
 } from "@/lib/electrical-measurements/types";
 import {
   pushElectricalMeasurementsBundleToCloud,
+  pushElectricalMeasurementSettingsToCloud,
 } from "@/lib/electrical-measurements/sync";
 import {
   ensureRegistryWithMigration,
   registryNeedsMigrationFromMeasurements,
 } from "@/lib/electrical-measurements/registry";
+import { DEFAULT_ELECTRICAL_MEASUREMENT_SETTINGS } from "@/lib/electrical-measurements/settings";
 
 function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const { session: adminSession, canViewRates } = useAdminAccess();
@@ -177,6 +180,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [electricalMeasurementRegistry, setElectricalMeasurementRegistry] = useLocalStorage<
     ElectricalMeasurementRegistryEntry[]
   >(ELECTRICAL_MEASUREMENT_REGISTRY_KEY, []);
+  const [electricalMeasurementSettings, setElectricalMeasurementSettings] =
+    useLocalStorage<ElectricalMeasurementSettings>(
+      ELECTRICAL_MEASUREMENT_SETTINGS_KEY,
+      DEFAULT_ELECTRICAL_MEASUREMENT_SETTINGS,
+    );
   const [view, setView] = useState<View>("dashboard");
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
   const [pendingJobSection, setPendingJobSection] = useState<import("@/app/JobDetailSectionNav").JobDetailSection | null>(null);
@@ -321,6 +329,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     suppressAutoSyncUntilRef.current = Date.now() + 4500;
     pushWmPrintToCloud(tpl, docs, sett, delTpl, delDoc, hist).catch(() => {});
   }, [wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory]);
+
+  const commitElectricalMeasurementSettings = useCallback(
+    (next?: ElectricalMeasurementSettings) => {
+      const payload = next ?? electricalMeasurementSettings;
+      suppressAutoSyncUntilRef.current = Date.now() + 4500;
+      setElectricalMeasurementSettings(payload);
+      pushElectricalMeasurementSettingsToCloud(payload).catch(() => {});
+    },
+    [electricalMeasurementSettings, setElectricalMeasurementSettings],
+  );
 
   const commitElectricalMeasurements = useCallback(
     (nextMeasurements?: ElectricalMeasurement[], nextRegistry?: ElectricalMeasurementRegistryEntry[]) => {
@@ -635,7 +653,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     scheduleAutoCloudSync();
     remoteMergeInFlightRef.current = false;
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, electricalMeasurements, electricalMeasurementRegistry, scheduleAutoCloudSync]);
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, electricalMeasurements, electricalMeasurementRegistry, electricalMeasurementSettings, scheduleAutoCloudSync]);
 
   useEffect(() => () => clearAutoSyncTimers(), [clearAutoSyncTimers]);
 
@@ -1439,6 +1457,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           setElectricalMeasurements={setElectricalMeasurements}
           electricalMeasurementRegistry={electricalMeasurementRegistry}
           setElectricalMeasurementRegistry={setElectricalMeasurementRegistry}
+          electricalMeasurementSettings={electricalMeasurementSettings}
+          setElectricalMeasurementSettings={setElectricalMeasurementSettings}
+          commitElectricalMeasurementSettings={commitElectricalMeasurementSettings}
           commitElectricalMeasurements={commitElectricalMeasurements}
           pendingWmPrintNav={pendingWmPrintNav}
           onInitialWmPrintNavigationConsumed={onInitialWmPrintNavigationConsumed}
