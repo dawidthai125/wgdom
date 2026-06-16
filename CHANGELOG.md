@@ -1,6 +1,9 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.28** · **EM-P0 final**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.29** · **P0-HOTFIX-001**
+
+## 2.59.29 — Hotfix sync mergeRecoverableCharges (P0-HOTFIX-001)
+- Przywrócony import `mergeRecoverableCharges` / `normalizeRecoverableCharges` w `cloud-sync.ts` (regresja EM-P0 b563ea8)
 
 ## 2.59.28 — Pomiary Elektryczne EM-P0 final (korekty 4–6)
 - Circuit: `displayName` + `sortOrder` — bez migracji pod EM-P1

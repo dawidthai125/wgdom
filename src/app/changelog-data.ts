@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.29",
+    label: "Hotfix sync — mergeRecoverableCharges import (P0-HOTFIX-001)",
+    items: [
+      {
+        type: "fix",
+        text: "Sync chmura: przywrócony brakujący import mergeRecoverableCharges w cloud-sync.ts (regresja EM-P0) — pełny auto-sync admina bez toastu błędu",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.28",
     label: "Pomiary Elektryczne — EM-P0 final (korekty 4–6)",
     items: [

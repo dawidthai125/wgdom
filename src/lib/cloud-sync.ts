@@ -29,6 +29,7 @@ import {
   TENDERS_DELETED_IDS_KEY,
 } from "@/lib/tenders-sync";
 import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-leaves";
+import { mergeRecoverableCharges, normalizeRecoverableCharges } from "@/lib/recoverable-charges";
 import { mergeElectricalMeasurements } from "@/lib/electrical-measurements/merge";
 import { normalizeElectricalMeasurements } from "@/lib/electrical-measurements/normalize";
 import { ELECTRICAL_MEASUREMENTS_KEY } from "@/lib/electrical-measurements/types";
