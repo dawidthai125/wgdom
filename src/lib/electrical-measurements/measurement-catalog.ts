@@ -10,6 +10,7 @@ import type {
   ElectricalMeasurementRegistryState,
 } from "@/lib/electrical-measurements/types";
 import { getRegistryEntryForJob, parseRapNumber } from "@/lib/electrical-measurements/registry";
+import { isTestMeasurement, parseTestReportNumber } from "@/lib/electrical-measurements/test-report";
 
 export interface MeasurementCatalogRow {
   /** Id raportu (measurement.id) lub syntetyczny dla wpisu registry-only. */
@@ -46,7 +47,7 @@ export function resolveMeasurementCatalogStatus(
   measurement: ElectricalMeasurement | null | undefined,
   registryStatus?: "ACTIVE" | "CANCELLED",
 ): ElectricalMeasurementCatalogStatus {
-  if (measurement?.flags?.test) return "TEST";
+  if (isTestMeasurement(measurement ?? undefined)) return "TEST";
   if (!measurement && registryStatus === "CANCELLED") return "CANCELLED";
   if (registryStatus === "CANCELLED") return "CANCELLED";
   if (measurement) return "ACTIVE";
@@ -84,11 +85,12 @@ export function buildMeasurementCatalogRows(
     const job = jobById.get(m.jobId);
     const reg = getRegistryEntryForJob(registry, m.jobId);
     const parsed = parseRapNumber(m.reportNumber);
+    const testParsed = parseTestReportNumber(m.reportNumber);
     rows.push({
       id: m.id,
       rapNumber: m.reportNumber,
-      year: parsed?.year ?? new Date(m.measurementDate).getFullYear(),
-      sequence: parsed?.sequence ?? 0,
+      year: parsed?.year ?? (testParsed ? new Date(m.measurementDate).getFullYear() : new Date(m.measurementDate).getFullYear()),
+      sequence: parsed?.sequence ?? testParsed?.sequence ?? 0,
       measurementDate: m.measurementDate,
       address: jobAddressLine(job),
       jobTitle: job ? jobDisplayTitle(job as Job) : m.jobId,

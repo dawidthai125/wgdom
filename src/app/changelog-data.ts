@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.38",
+    label: "Pomiary Elektryczne — EM-P2.5 Raporty testowe",
+    items: [
+      {
+        type: "new",
+        text: "WM Druk → Pomiary: „Nowy raport testowy” (TEST-RAP-NNN) — bez registry RAP, bez wpływu na checklistę, status TESTOWY w katalogu",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.37",
     label: "Pomiary Elektryczne — EM-P2 Katalog Pomiarów",
     items: [

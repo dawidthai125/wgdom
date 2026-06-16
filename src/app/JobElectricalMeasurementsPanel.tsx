@@ -42,6 +42,11 @@ import {
   getRegistryEntryForJob,
   registryStatusLabel,
 } from "@/lib/electrical-measurements/registry";
+import {
+  createTestElectricalMeasurement,
+  isTestMeasurement,
+  jobHasProductionMeasurement,
+} from "@/lib/electrical-measurements/test-report";
 import { isMeasurementMetaFieldsEditable } from "@/lib/electrical-measurements/settings";
 import type {
   ElectricalMeasurement,
@@ -88,6 +93,15 @@ export function JobElectricalMeasurementsPanel({
     () => filterElectricalMeasurementsForJob(measurements, job.id),
     [measurements, job.id],
   );
+  const productionReports = useMemo(
+    () => jobReports.filter((r) => !isTestMeasurement(r)),
+    [jobReports],
+  );
+  const testReports = useMemo(
+    () => jobReports.filter((r) => isTestMeasurement(r)),
+    [jobReports],
+  );
+
   const jobSummary = useMemo(
     () => buildJobElectricalMeasurementsSummary(jobReports),
     [jobReports],
@@ -120,8 +134,10 @@ export function JobElectricalMeasurementsPanel({
   );
   const pomiaryChecklistDone = job.documents?.pomiary === true;
   const showPomiaryCompletedBlock =
-    pomiaryChecklistDone && jobReports.length === 0 && registryEntry != null;
+    pomiaryChecklistDone && productionReports.length === 0 && registryEntry != null;
   const isAdmin = isEmAdministrator(adminSession);
+  const hasProductionReport = jobHasProductionMeasurement(measurements, job.id);
+  const selectedIsTest = selected ? isTestMeasurement(selected) : false;
 
   const persistBundle = (
     nextMeasurement: ElectricalMeasurement,
@@ -135,6 +151,15 @@ export function JobElectricalMeasurementsPanel({
 
   const persist = (nextMeasurement: ElectricalMeasurement) => {
     persistBundle(nextMeasurement, registry);
+  };
+
+  const handleCreateTestReport = () => {
+    const created = createTestElectricalMeasurement(job.id, measurements, measurementSettings);
+    const nextAll = upsertElectricalMeasurement(measurements, created);
+    onChangeMeasurements(nextAll);
+    onCommit(nextAll, registry);
+    setSelectedId(created.id);
+    setDetailsExpanded(true);
   };
 
   const handleCreateReport = () => {
@@ -156,10 +181,15 @@ export function JobElectricalMeasurementsPanel({
   const handleDeleteReport = () => {
     if (!selected) return;
     const nextAll = removeElectricalMeasurement(measurements, selected.id);
-    const nextRegistry = cancelRegistryForJob(registry, job.id);
-    onChangeMeasurements(nextAll);
-    onChangeRegistry(nextRegistry);
-    onCommit(nextAll, nextRegistry);
+    if (isTestMeasurement(selected)) {
+      onChangeMeasurements(nextAll);
+      onCommit(nextAll, registry);
+    } else {
+      const nextRegistry = cancelRegistryForJob(registry, job.id);
+      onChangeMeasurements(nextAll);
+      onChangeRegistry(nextRegistry);
+      onCommit(nextAll, nextRegistry);
+    }
     setSelectedId(nextAll.filter((m) => m.jobId === job.id)[0]?.id ?? null);
   };
 
@@ -206,6 +236,7 @@ export function JobElectricalMeasurementsPanel({
           </h3>
           <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
             <span>Raporty: {jobSummary.reportCount}</span>
+            {testReports.length > 0 && <span>Test: {testReports.length}</span>}
             <span>Obwody: {jobSummary.circuitCount}</span>
             <span>RCD: {jobSummary.rcdCount}</span>
           </div>
@@ -221,7 +252,7 @@ export function JobElectricalMeasurementsPanel({
               {detailsExpanded ? "Zwiń" : "Rozwiń"}
             </button>
           )}
-          {!showPomiaryCompletedBlock && (
+          {!showPomiaryCompletedBlock && !hasProductionReport && (
             <button
               type="button"
               onClick={handleCreateReport}
@@ -231,6 +262,14 @@ export function JobElectricalMeasurementsPanel({
               Nowy raport
             </button>
           )}
+          <button
+            type="button"
+            onClick={handleCreateTestReport}
+            className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-100 font-medium hover:bg-amber-500/15"
+          >
+            <Plus size={12} />
+            Nowy raport testowy
+          </button>
           {showPomiaryCompletedBlock && isAdmin && (
             <button
               type="button"
@@ -244,7 +283,7 @@ export function JobElectricalMeasurementsPanel({
         </div>
       </div>
 
-      {registryEntry && (
+      {registryEntry && !selectedIsTest && (
         <div className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-[11px] space-y-0.5">
           <div className="flex flex-wrap gap-x-4 gap-y-0.5">
             <span>
@@ -274,8 +313,8 @@ export function JobElectricalMeasurementsPanel({
 
       {jobReports.length === 0 && !showPomiaryCompletedBlock ? (
         <p className="text-xs text-muted-foreground">
-          Brak raportów pomiarowych dla tej roboty. Kliknij „Nowy raport”, aby rozpocząć — numer RAP zostanie
-          przypisany automatycznie.
+          Brak raportów pomiarowych dla tej roboty. „Nowy raport” — numer RAP z rejestru. „Nowy raport
+          testowy” — TEST-RAP bez wpływu na numerację produkcyjną.
         </p>
       ) : jobReports.length === 0 ? null : (
         <>
@@ -289,6 +328,7 @@ export function JobElectricalMeasurementsPanel({
               {jobReports.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.reportNumber.trim() || "Bez numeru"}
+                  {isTestMeasurement(r) ? " [TEST]" : ""}
                   {r.measurementDate ? ` · ${r.measurementDate}` : ""}
                 </option>
               ))}
@@ -297,6 +337,11 @@ export function JobElectricalMeasurementsPanel({
 
           {detailsExpanded && selected && (
             <div className="space-y-4">
+              {selectedIsTest && (
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-100">
+                  Raport testowy — bez wpisu w rejestrze RAP, bez wpływu na checklistę odbiorową.
+                </div>
+              )}
               <section className="space-y-2 rounded-lg border border-border p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h4 className="text-xs font-semibold text-foreground">1. Dane pomiaru</h4>
@@ -311,12 +356,18 @@ export function JobElectricalMeasurementsPanel({
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <label className="space-y-0.5">
-                    <span className="text-[10px] text-muted-foreground">Numer raportu (RAP)</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {selectedIsTest ? "Numer raportu (TEST)" : "Numer raportu (RAP)"}
+                    </span>
                     <input
                       type="text"
                       readOnly
                       value={selected.reportNumber}
-                      title="Numer przypisany trwale z rejestru RAP"
+                      title={
+                        selectedIsTest
+                          ? "Raport testowy — bez wpisu w rejestrze RAP"
+                          : "Numer przypisany trwale z rejestru RAP"
+                      }
                       className="w-full text-xs rounded-lg border border-border bg-secondary/40 px-2 py-1.5 font-mono cursor-not-allowed"
                     />
                   </label>

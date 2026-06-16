@@ -11,6 +11,7 @@ import {
   validateEmDocxBytes,
 } from "@/lib/electrical-measurements/em-docx-xml";
 import type { ElectricalMeasurement } from "@/lib/electrical-measurements/types";
+import { measurementDocxFileNameForMeasurement } from "@/lib/electrical-measurements/measurement-docx-names";
 
 export type EmDocxDocumentKind =
   | "protokol"
@@ -47,19 +48,8 @@ export function emDocxDocumentKindLabel(kind: EmDocxDocumentKind): string {
   return labels[kind];
 }
 
-function emDocxOutputFileName(kind: EmDocxDocumentKind, rapNo: string): string {
-  const slug = (rapNo || "RAP")
-    .replace(/[^\w\-]+/g, "-")
-    .replace(/-+/g, "-")
-    .slice(0, 40);
-  const suffix: Record<EmDocxDocumentKind, string> = {
-    protokol: "Protokol",
-    "dane-informacyjne": "Dane-informacyjne",
-    "badanie-adsc": "ADSC",
-    "badanie-rezystancji": "Rezystancja",
-    "parametry-rcd": "RCD",
-  };
-  return `${slug}-${suffix[kind]}.docx`;
+function emDocxOutputFileName(kind: EmDocxDocumentKind, measurement: Pick<ElectricalMeasurement, "reportNumber" | "flags">): string {
+  return measurementDocxFileNameForMeasurement(measurement, kind);
 }
 
 export function emDocxTemplateUrl(kind: EmDocxDocumentKind): string {
@@ -126,7 +116,7 @@ export async function downloadEmDocxDocument(
   options?: EmDocxGeneratorOptions,
 ): Promise<void> {
   const bytes = await generateEmDocxBytes(kind, input, options);
-  const name = emDocxOutputFileName(kind, input.measurement.reportNumber);
+  const name = emDocxOutputFileName(kind, input.measurement);
   saveAs(new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }), name);
 }
 

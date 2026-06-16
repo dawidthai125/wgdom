@@ -9,6 +9,7 @@ import type {
   ElectricalMeasurementRegistryState,
   ElectricalMeasurementRegistryStatus,
 } from "@/lib/electrical-measurements/types";
+import { isTestMeasurement } from "@/lib/electrical-measurements/test-report";
 
 const RAP_RE = /^RAP-(\d+)-(\d{4})$/i;
 
@@ -197,6 +198,7 @@ export function migrateRegistryFromMeasurements(
   let next = { ...state, entries: [...state.entries] };
   const byJob = new Map<string, ElectricalMeasurement[]>();
   for (const m of measurements) {
+    if (isTestMeasurement(m)) continue;
     const parsed = parseRapNumber(m.reportNumber);
     if (!parsed || !m.jobId) continue;
     const list = byJob.get(m.jobId) ?? [];
@@ -234,6 +236,7 @@ export function registryNeedsMigrationFromMeasurements(
   measurements: ElectricalMeasurement[],
 ): boolean {
   for (const m of measurements) {
+    if (isTestMeasurement(m)) continue;
     if (parseRapNumber(m.reportNumber) && !getRegistryEntryForJob(state, m.jobId)) return true;
   }
   return false;

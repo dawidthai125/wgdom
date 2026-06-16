@@ -1,6 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.37** · **EM-P2**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.38** · **EM-P2.5**
+
+## 2.59.38 — Pomiary Elektryczne EM-P2.5 (raporty testowe)
+
+- New: TEST-RAP-NNN — bez registry, bez wpływu na numerację produkcyjną, status TESTOWY w katalogu
 
 ## 2.59.37 — Pomiary Elektryczne EM-P2 (Katalog Pomiarów)
 

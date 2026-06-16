@@ -20,21 +20,12 @@ import {
 import type { ElectricalMeasurement } from "@/lib/electrical-measurements/types";
 import { localIsoDate } from "@/lib/electrical-measurements/report";
 
-const CATALOG_DOCX_SUFFIX: Record<EmDocxDocumentKind, string> = {
-  protokol: "PROTOKOL",
-  "dane-informacyjne": "DANE-INFORMACYJNE",
-  "badanie-adsc": "ADSC",
-  "badanie-rezystancji": "REZYSTANCJA",
-  "parametry-rcd": "RCD",
-};
+import {
+  catalogSingleZipDownloadName,
+  measurementDocxFileNameForMeasurement,
+} from "@/lib/electrical-measurements/measurement-docx-names";
 
-export function catalogDocxFileName(rapNumber: string, kind: EmDocxDocumentKind): string {
-  const rap = String(rapNumber || "RAP")
-    .replace(/[^\w\-]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-  return `${rap}-${CATALOG_DOCX_SUFFIX[kind]}.docx`;
-}
+export { catalogDocxFileName, catalogSingleZipDownloadName } from "@/lib/electrical-measurements/measurement-docx-names";
 
 export type CatalogZipTemplateLoader = (kind: EmDocxDocumentKind) => Promise<Uint8Array>;
 
@@ -55,7 +46,7 @@ export async function appendMeasurementDocxToZip(
 
   for (const kind of EM_DOCX_DOCUMENT_KINDS) {
     const bytes = await generateEmDocxBytes(kind, { measurement, job }, undefined, loader);
-    const fileName = catalogDocxFileName(measurement.reportNumber, kind);
+    const fileName = measurementDocxFileNameForMeasurement(measurement, kind);
     const path = zipPathPrefix ? `${zipPathPrefix}/${fileName}` : fileName;
     zip.file(path, bytes);
   }
@@ -113,14 +104,6 @@ export async function buildMultiRapArchiveZipBlob(
 ): Promise<Blob> {
   const bytes = await buildMultiRapArchiveZipBytes(rows, jobs, templateLoader);
   return new Blob([bytes], { type: "application/zip" });
-}
-
-export function catalogSingleZipDownloadName(rapNumber: string): string {
-  const rap = String(rapNumber || "RAP")
-    .replace(/[^\w\-]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-  return `${rap}.zip`;
 }
 
 export function catalogMultiZipDownloadName(date = new Date()): string {

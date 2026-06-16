@@ -174,6 +174,7 @@ export function parseElectricalMeasurement(raw: unknown): ElectricalMeasurement 
     rcds,
     valueSet,
     metaFieldsOverridden: r.metaFieldsOverridden === true ? true : r.metaFieldsOverridden === false ? false : undefined,
+    flags: r.flags && typeof r.flags === "object" && (r.flags as { test?: boolean }).test === true ? { test: true } : undefined,
     createdAt: String(r.createdAt ?? now),
     updatedAt: String(r.updatedAt ?? r.createdAt ?? now),
   };
