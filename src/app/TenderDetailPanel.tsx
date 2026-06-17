@@ -43,6 +43,7 @@ import { TenderOfferSection } from "@/app/TenderOfferSection";
 import { TenderOfferCompletenessPanel } from "@/app/TenderOfferCompletenessPanel";
 import { TenderWorkspaceTabBar } from "@/app/TenderWorkspaceTabBar";
 import { TenderOverviewShortcuts } from "@/app/TenderOverviewShortcuts";
+import { TenderAnalysisStatusStrip } from "@/app/TenderAnalysisStatusStrip";
 import { TenderDocumentsWorkspace } from "@/app/TenderDocumentsWorkspace";
 import { TenderQualificationWorkspace } from "@/app/TenderQualificationWorkspace";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
@@ -617,8 +618,10 @@ export function TenderDetailPanel({
   }, [item, bidProposal, computeBidProposalNow]);
 
   const bidPrepChecks = useMemo(
-    () => computeBidPrepChecks(item, swz, item.tenderFit, bidProposal),
-    [item, swz, item.tenderFit, bidProposal],
+    () => computeBidPrepChecks(item, swz, item.tenderFit, bidProposal, {
+      pricingDeferred: activeWorkspace === "overview",
+    }),
+    [item, swz, item.tenderFit, bidProposal, activeWorkspace],
   );
   const readyCount = bidPrepChecks.filter((c) => c.status === "ok").length;
 
@@ -700,6 +703,14 @@ export function TenderDetailPanel({
           <TenderMonitoringBanner
             item={item}
             onOpenStrategy={tendersCtx?.openTendersStrategy}
+          />
+
+          <TenderAnalysisStatusStrip
+            item={item}
+            swz={swz}
+            bidProposal={bidProposal}
+            dossierBuilding={dossierBuilding}
+            autoRunning={autoRunning}
           />
 
           <div className="flex flex-wrap items-center gap-2">

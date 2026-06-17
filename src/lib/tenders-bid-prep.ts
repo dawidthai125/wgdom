@@ -10,6 +10,13 @@ import { computeWadiumInfo } from "@/lib/tenders-wadium";
 import { resolveTenderPlatformDocumentStatus } from "@/lib/tender-platform-awareness";
 import { buildKosztorysMissingMessage } from "@/lib/tender-dossier-pipeline";
 import {
+  isKosztorysAwaitingHeavyParse,
+  isPricingAwaitingLazyEvaluation,
+  KOSZTORYS_AWAITING_PARSE_HINT,
+  KOSZTORYS_AWAITING_PARSE_LABEL,
+  countTenderAttachments,
+} from "@/lib/tender-analysis-status-ux";
+import {
   buildKosztorysChecklistDisplay,
   buildKosztorysChecklistHint,
   buildOurEstimateDisplaySsot,
@@ -44,6 +51,7 @@ export function computeBidPrepChecks(
   swz: TenderSwzAnalysis | null | undefined,
   fit: TenderFitAssessment | null | undefined,
   bidProposal: TenderBidProposal | null | undefined,
+  opts?: { pricingDeferred?: boolean },
 ): BidPrepCheckItem[] {
   const days = daysUntilTenderDeadline(item.submittingOffersDate);
   const offerOpen = isTenderOpenForOffers(item.submittingOffersDate);
@@ -65,30 +73,36 @@ export function computeBidPrepChecks(
   const profile = loadCompanyProfileLocal();
   const wadiumInfo = computeWadiumInfo(item, swz, profile.maxWadiumPln);
 
-  const docCount = (item.bzpDocuments?.length ?? 0) + (item.uploadedFile ? 1 : 0)
-    + (item.externalDocDiscovery?.files?.length ?? 0);
+  const docCount = countTenderAttachments(item);
   const platformDoc = resolveTenderPlatformDocumentStatus(item);
   const scanSummary = item.tenderDossier?.scanSummary;
+  const kosztorysAwaiting = isKosztorysAwaitingHeavyParse(item);
+  const pricingDeferred = opts?.pricingDeferred ?? false;
   const estimateDisplay = buildOurEstimateTileDisplay({
     item,
     ourEstimatePln: item.ourEstimatePln,
     bidProposal,
+    pricingDeferred,
   });
   const kosztorysMissingDisplay = costStatus === "NOT_FOUND"
-    ? (docCount > 0
-      ? "Nie znaleziono kosztorysu."
-      : platformDoc.emptyMessage
-        ?? platformDoc.detailLines?.[0]
-        ?? "Brak plików")
+    ? (kosztorysAwaiting
+      ? KOSZTORYS_AWAITING_PARSE_LABEL
+      : docCount > 0
+        ? "Nie znaleziono kosztorysu."
+        : platformDoc.emptyMessage
+          ?? platformDoc.detailLines?.[0]
+          ?? "Brak plików")
     : buildKosztorysChecklistDisplay(item);
   const kosztorysMissingHint = costStatus === "NOT_FOUND"
-    ? (!kosztorysOk && scanSummary
-      ? `${buildKosztorysMissingMessage(scanSummary)}`
-      : !kosztorysOk && docCount === 0 && platformDoc.detailLines?.[1]
-        ? platformDoc.detailLines[1]
-        : !kosztorysOk
-          ? "Pobierz załączniki BZP, szukaj u zamawiającego lub wgraj ATH/PDF"
-          : undefined)
+    ? (kosztorysAwaiting
+      ? KOSZTORYS_AWAITING_PARSE_HINT
+      : !kosztorysOk && scanSummary
+        ? `${buildKosztorysMissingMessage(scanSummary)}`
+        : !kosztorysOk && docCount === 0 && platformDoc.detailLines?.[1]
+          ? platformDoc.detailLines[1]
+          : !kosztorysOk
+            ? "Pobierz załączniki BZP, szukaj u zamawiającego lub wgraj ATH/PDF"
+            : undefined)
     : buildKosztorysChecklistHint(item);
 
   const checks: BidPrepCheckItem[] = [
@@ -128,7 +142,7 @@ export function computeBidPrepChecks(
     {
       id: "kosztorys",
       label: "Kosztorys / przedmiar",
-      status: costStatus !== "NOT_FOUND" ? "ok" : docCount > 0 ? "partial" : "missing",
+      status: costStatus !== "NOT_FOUND" ? "ok" : kosztorysAwaiting || docCount > 0 ? "partial" : "missing",
       display: kosztorysMissingDisplay,
       hint: kosztorysMissingHint,
     },
@@ -148,9 +162,13 @@ export function computeBidPrepChecks(
         ? "ok"
         : bidProposal?.ok && bidProposal.recommendedBidPln != null
           ? "ok"
-          : costStatus !== "NOT_FOUND"
+          : isPricingAwaitingLazyEvaluation(item, bidProposal, undefined, pricingDeferred)
             ? "partial"
-            : "missing",
+            : costStatus !== "NOT_FOUND"
+              ? "partial"
+              : isKosztorysAwaitingHeavyParse(item)
+                ? "partial"
+                : "missing",
       display: estimateDisplay.display,
       displayLines: estimateDisplay.lines,
       sourceLabel: estimateDisplay.sourceLabel,

@@ -12,6 +12,16 @@ import {
   isSevenZUnpackOk,
   sevenZKosztorysMissingLine,
 } from "@/lib/tender-dossier-pipeline";
+import {
+  isKosztorysAwaitingHeavyParse,
+  isPricingAwaitingLazyEvaluation,
+  KOSZTORYS_AWAITING_PARSE_HINT,
+  KOSZTORYS_AWAITING_PARSE_LABEL,
+  PRICING_AWAITING_TAB_HINT,
+  PRICING_AWAITING_TAB_LABEL,
+  PRICING_NEEDS_ANALYSIS_HINT,
+  PRICING_NEEDS_ANALYSIS_LABEL,
+} from "@/lib/tender-analysis-status-ux";
 import type { TenderCostDocumentType } from "@/lib/tender-cost-discovery";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import type { TenderBidPricingMode, TenderBidProposal } from "@/lib/tenders-bid-calculator";
@@ -233,6 +243,12 @@ export function resolvedCostStatusDisplay(
   item: TenderPipelineItem,
   status: ResolvedCostStatus = resolvedCostStatus(item),
 ): ResolvedCostStatusDisplay {
+  if (status === "NOT_FOUND" && isKosztorysAwaitingHeavyParse(item)) {
+    return {
+      display: KOSZTORYS_AWAITING_PARSE_LABEL,
+      hint: KOSZTORYS_AWAITING_PARSE_HINT,
+    };
+  }
   if (status === "NOT_FOUND") {
     return { display: "Nie znaleziono kosztorysu." };
   }
@@ -304,8 +320,10 @@ export function buildOurEstimateTileDisplay(opts: {
   item: TenderPipelineItem;
   ourEstimatePln?: number | null;
   bidProposal?: TenderBidProposal | null;
+  /** P3-UX-003 — true na Przeglądzie (lazy wycena). */
+  pricingDeferred?: boolean;
 }): OurEstimateTileDisplay {
-  const { item, ourEstimatePln, bidProposal } = opts;
+  const { item, ourEstimatePln, bidProposal, pricingDeferred } = opts;
   if (ourEstimatePln != null) {
     return { display: fmtPln(ourEstimatePln) };
   }
@@ -350,6 +368,7 @@ export function buildOurEstimateTileDisplay(opts: {
     costPricePln: bidProposal?.costPricePln,
     bidProposalOk: bidProposal?.ok,
     pricingMode: bidProposal?.pricingMode ?? null,
+    pricingDeferred,
   });
 }
 
@@ -360,6 +379,7 @@ export function buildOurEstimateDisplaySsot(opts: {
   costPricePln?: number | null;
   bidProposalOk?: boolean;
   pricingMode?: TenderBidPricingMode | null;
+  pricingDeferred?: boolean;
 }): OurEstimateTileDisplay {
   if (opts.ourEstimatePln != null) {
     return { display: fmtPln(opts.ourEstimatePln) };
@@ -374,6 +394,18 @@ export function buildOurEstimateDisplaySsot(opts: {
     return { display: `Propozycja: ${fmtPln(opts.recommendedBidPln)}` };
   }
   const cost = resolvedCostStatus(opts.item);
+  if (isKosztorysAwaitingHeavyParse(opts.item)) {
+    return {
+      display: PRICING_AWAITING_TAB_LABEL,
+      hint: PRICING_AWAITING_TAB_HINT,
+    };
+  }
+  if (isPricingAwaitingLazyEvaluation(opts.item, undefined, opts.bidProposalOk, opts.pricingDeferred)) {
+    return {
+      display: PRICING_NEEDS_ANALYSIS_LABEL,
+      hint: PRICING_NEEDS_ANALYSIS_HINT,
+    };
+  }
   if (cost === "FOUND_NO_VALUE") {
     return {
       display: "Nie można automatycznie wyliczyć wyceny",
