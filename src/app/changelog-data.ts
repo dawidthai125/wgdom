@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-17",
+    version: "2.59.51",
+    label: "Przetargi — Stabilizacja i wydajność (P3-AUDIT-001)",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi: naprawa utraty dokumentów przy auto-pipeline — functional updateItem(), eliminacja stale closure",
+      },
+      {
+        type: "fix",
+        text: "Klasyfikacja ATH: redukcja UNKNOWN z 10,9% do 0% — filtr szumu XLSX/SWZ, bootstrap słownika użytkownika, phrase rules v3.3",
+      },
+      {
+        type: "improve",
+        text: "Wydajność przetargów: cache dokumentów, PDF i ZIP; lazy dossier i lazy wycena; szybsze otwieranie przetargów",
+      },
+    ],
+  },
+  {
+    date: "2026-06-17",
     version: "2.59.50",
     label: "Przetargi — P3-AUDIT-001-FIX-A (utrata dokumentów)",
     items: [
