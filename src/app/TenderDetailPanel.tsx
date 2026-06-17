@@ -22,12 +22,17 @@ import {
   suggestKeywordsFromPipeline,
 } from "@/lib/tenders-bzp-learn";
 import { parseNoticeHtmlBrief, mergeBriefWithItemTitle, athPreviewToSnapshot } from "@/lib/tenders-bzp-brief";
-import { parseTenderDossierDocuments, mergeSwzAnalysis, parseExternalTenderDocuments } from "@/lib/tender-document-resolver";
-import { analyzeTenderWithDossier, dossierFromAnalysisResult } from "@/lib/tender-dossier-pipeline";
+import { mergeSwzAnalysis, parseExternalTenderDocuments } from "@/lib/tender-document-resolver";
+import {
+  analyzeTenderWithDossier,
+  dossierFromAnalysisResult,
+  buildTenderDossierHeavy,
+  tenderDossierHeavyParseDone,
+  analyzeSwzFromNoticeHtmlOnly,
+} from "@/lib/tender-dossier-pipeline";
 import { resolvedCostStatusDisplay, traceSsotSnapshot } from "@/lib/tender-data-ssot";
 import { discoverExternalTenderDocs, type TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import { summarizeSwzFindings } from "@/lib/tenders-bid-prep";
-import { analyzeTenderSwzEnhanced } from "@/lib/tenders-bzp-analyze-local";
 import { fetchTenderAwardResult } from "@/lib/tenders-bzp-award";
 import { exportTenderBidPackagePdf } from "@/lib/tender-bid-package-pdf";
 import { TenderBidPrepPanel, computeBidPrepChecks } from "@/app/TenderBidPrepPanel";
@@ -90,6 +95,7 @@ export function TenderDetailPanel({
   const [uploading, setUploading] = useState(false);
   const [learning, setLearning] = useState(false);
   const [autoRunning, setAutoRunning] = useState(false);
+  const [dossierBuilding, setDossierBuilding] = useState(false);
   const [externalDiscovering, setExternalDiscovering] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [fetchingAward, setFetchingAward] = useState(false);
@@ -106,6 +112,7 @@ export function TenderDetailPanel({
     () => resolveDefaultTenderWorkspace(item),
   );
   const autoRanRef = useRef<Set<string>>(new Set());
+  const dossierInflightRef = useRef<string | null>(null);
   const platformTelemetryRef = useRef<string | null>(null);
   const tendersCtx = useTendersContextOptional();
 
@@ -275,18 +282,12 @@ export function TenderDetailPanel({
           } catch { /* auto external discover best-effort */ }
         }
         let swz = item.swzAnalysis ?? null;
-        if (!swz && !cancelled && (item.noticeNumber || item.tenderId)) {
-          try {
-            const { analysis } = await analyzeTenderSwzEnhanced({
-              noticeNumber: item.noticeNumber || undefined,
-              tenderId: item.tenderId,
-              bzpDocuments: docs.length ? docs : item.bzpDocuments,
-              noticeHtml: html ?? item.noticeHtml,
-              ourEstimatePln: item.ourEstimatePln ?? null,
-            });
-            swz = analysis;
-            patch.swzAnalysis = swz;
-          } catch { /* auto-analiza best-effort */ }
+        if (!swz && !cancelled && html) {
+          const lightSwz = analyzeSwzFromNoticeHtmlOnly(html, item.ourEstimatePln ?? null);
+          if (lightSwz) {
+            swz = lightSwz;
+            patch.swzAnalysis = lightSwz;
+          }
         }
 
         if (!item.tenderDossier && !cancelled) {
@@ -294,52 +295,11 @@ export function TenderDetailPanel({
             html ? parseNoticeHtmlBrief(html) : parseNoticeHtmlBrief(""),
             item.title,
           );
-          let kosztorysSnap = null;
-          let swzMerged = swz;
-          let estimatePln = item.ourEstimatePln ?? null;
-
-          if (docs.length && item.tenderId) {
-            try {
-              const parsed = await parseTenderDossierDocuments(item.tenderId, docs, {
-                ourEstimatePln: estimatePln,
-                existingSwz: swz ?? undefined,
-                tenderTitle: item.title,
-              });
-              kosztorysSnap = parsed.kosztorys;
-              if (parsed.swzMerged) {
-                swzMerged = parsed.swzMerged;
-              }
-              if (parsed.estimatePln != null && item.ourEstimatePln == null) {
-                estimatePln = parsed.estimatePln;
-              }
-            } catch { /* brak kosztorysu */ }
-          }
-
-          if (item.uploadedFile && athPreviewEnabled && isKosztorysPreviewExt(item.uploadedFile.filename)) {
-            try {
-              const preview = await fetchAndParseKosztorys(
-                item.uploadedFile.publicUrl,
-                item.uploadedFile.filename,
-                item.uploadedFile.path,
-              );
-              kosztorysSnap = athPreviewToSnapshot(preview, item.uploadedFile.filename);
-              if (estimatePln == null) {
-                estimatePln = parsePlnFromKosztorysTotal(kosztorysSnap.totalValue, kosztorysSnap.currency);
-              }
-            } catch { /* ignore */ }
-          }
-
           patch.tenderDossier = {
             brief,
-            kosztorys: kosztorysSnap,
+            kosztorys: null,
             builtAt: new Date().toISOString(),
           };
-          if (estimatePln != null && item.ourEstimatePln == null) {
-            patch.ourEstimatePln = estimatePln;
-          }
-          if (swzMerged) {
-            patch.swzAnalysis = swzMerged;
-          }
         }
 
         if (Object.keys(patch).length > 0 && !cancelled) onUpdate(patch);
@@ -352,6 +312,57 @@ export function TenderDetailPanel({
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- once per item id on expand
   }, [item.id]);
+
+  /** P3-FIX-C — ciężkie parsowanie dossier dopiero po wejściu w Dokumenty / Wycena. */
+  useEffect(() => {
+    const wantsHeavyDossier = activeWorkspace === "documents" || activeWorkspace === "valuation";
+    if (!wantsHeavyDossier) return;
+    if (tenderDossierHeavyParseDone(item.tenderDossier)) return;
+    if (!item.tenderId || !(item.bzpDocuments?.length)) return;
+    if (dossierInflightRef.current === item.id) return;
+
+    let cancelled = false;
+    dossierInflightRef.current = item.id;
+    (async () => {
+      setDossierBuilding(true);
+      try {
+        const built = await buildTenderDossierHeavy({
+          item,
+          docs: item.bzpDocuments ?? [],
+          noticeHtml: item.noticeHtml,
+          existingSwz: item.swzAnalysis ?? null,
+          existingDossier: item.tenderDossier ?? null,
+          athPreviewEnabled,
+        });
+        if (cancelled) return;
+        const patch: Partial<TenderPipelineItem> = {
+          tenderDossier: built.tenderDossier,
+        };
+        if (built.swzAnalysis) patch.swzAnalysis = built.swzAnalysis;
+        if (built.ourEstimatePln != null && item.ourEstimatePln == null) {
+          patch.ourEstimatePln = built.ourEstimatePln;
+        }
+        onUpdate(patch);
+      } catch {
+        /* best-effort lazy dossier */
+      } finally {
+        if (dossierInflightRef.current === item.id) dossierInflightRef.current = null;
+        if (!cancelled) setDossierBuilding(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- lazy dossier on tab + docs ready
+  }, [
+    activeWorkspace,
+    item.id,
+    item.tenderId,
+    item.documentsFetchedAt,
+    item.bzpDocuments,
+    item.tenderDossier?.builtAt,
+    item.tenderDossier?.kosztorys?.ok,
+    item.tenderDossier?.scanSummary?.parsedAt,
+    athPreviewEnabled,
+  ]);
 
   const pipelineWinRate = computePipelineFunnel(allItems).winRate;
 
@@ -558,7 +569,9 @@ export function TenderDetailPanel({
     return getTenderPriceOverrides(store, item.id);
   }, [item.id, priceOverridesRevision]);
 
-  const bidProposal = useMemo(() => {
+  const valuationWorkspaceActive = activeWorkspace === "valuation" || activeWorkspace === "offer";
+
+  const computeBidProposalNow = useCallback(() => {
     const profile = loadCompanyProfileLocal();
     return computeTenderBidProposal({
       kosztorys: item.tenderDossier?.kosztorys,
@@ -569,7 +582,17 @@ export function TenderDetailPanel({
       maxConcurrentProjects: profile.maxConcurrentProjects,
       priceOverrides: tenderPriceOverrides.overrides,
     });
-  }, [item.tenderDossier?.kosztorys, item.tenderFit, swz, tenderPriceOverrides.overrides]);
+  }, [
+    item.tenderDossier?.kosztorys,
+    item.tenderFit,
+    swz,
+    tenderPriceOverrides.overrides,
+  ]);
+
+  const bidProposal = useMemo(() => {
+    if (!valuationWorkspaceActive) return null;
+    return computeBidProposalNow();
+  }, [valuationWorkspaceActive, computeBidProposalNow]);
 
   const referenceValuePln = estimatedValuePlnFromItem(item, swz)
     ?? parsePlnFromKosztorysTotal(
@@ -583,7 +606,7 @@ export function TenderDetailPanel({
       await exportTenderBidPackagePdf({
         item,
         profile: loadCompanyProfileLocal(),
-        bidProposal,
+        bidProposal: bidProposal ?? computeBidProposalNow(),
       });
       toast.success("Pobrano pakiet wyceny PDF");
     } catch (e) {
@@ -591,7 +614,7 @@ export function TenderDetailPanel({
     } finally {
       setExportingPdf(false);
     }
-  }, [item, bidProposal]);
+  }, [item, bidProposal, computeBidProposalNow]);
 
   const bidPrepChecks = useMemo(
     () => computeBidPrepChecks(item, swz, item.tenderFit, bidProposal),
@@ -639,7 +662,7 @@ export function TenderDetailPanel({
       onUpdate({ ...patch, status: nextStatus });
       await recordSubmittedBidCalibration({
         item: { ...item, ...patch, status: nextStatus },
-        bidProposal,
+        bidProposal: bidProposal ?? computeBidProposalNow(),
         submittedBidPln: pln,
       });
       toast.success("Zapisano ofertę złożoną — snapshot kalibracji w chmurze");
@@ -648,7 +671,7 @@ export function TenderDetailPanel({
     } finally {
       setSavingSubmittedBid(false);
     }
-  }, [item, bidProposal, submittedBidDraft, onUpdate]);
+  }, [item, bidProposal, computeBidProposalNow, submittedBidDraft, onUpdate]);
 
   return (
     <div className="px-4 pb-4 pt-2 border-t border-border space-y-3">
@@ -775,7 +798,7 @@ export function TenderDetailPanel({
           swz={swz}
           platformSourceLabel={platformDocStatus.sourceLabel}
           athPreviewEnabled={athPreviewEnabled}
-          loadingDocs={loadingDocs || autoRunning}
+          loadingDocs={loadingDocs || autoRunning || dossierBuilding}
           analyzing={analyzing}
           externalDiscovering={externalDiscovering}
           showHtml={showHtml}
@@ -803,6 +826,11 @@ export function TenderDetailPanel({
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground px-0.5">
             Wycena
           </p>
+          {dossierBuilding && (
+            <p className="text-[10px] text-muted-foreground flex items-center gap-2 px-0.5">
+              <Loader2 size={11} className="animate-spin" /> Przetwarzanie dokumentów pod wycenę…
+            </p>
+          )}
           <TenderBidProposalPanel
             proposal={bidProposal}
             referenceValuePln={referenceValuePln}

@@ -24,6 +24,12 @@ import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { isKosztorysUploadFilename, type JobFileAttachment } from "@/lib/job-documents";
 import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import { displayTenderFilename } from "@/lib/tenders-bzp-filename";
+import {
+  getTenderDocumentBytesCached,
+  setTenderDocumentBytesCached,
+  tenderDocumentBytesCacheKey,
+} from "@/lib/tender-document-bytes-cache";
+import { recordTenderDocumentFetch } from "@/lib/tender-pipeline-metrics";
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 
@@ -945,12 +951,23 @@ export async function fetchTenderDocumentBytes(
   downloadUrl?: string,
   sourcePageUrl?: string,
 ): Promise<{ base64: string; filename: string; contentType: string }> {
+  const cacheKey = tenderDocumentBytesCacheKey(
+    tenderId,
+    documentIndex,
+    downloadUrl,
+    sourcePageUrl,
+  );
+  const cached = getTenderDocumentBytesCached(cacheKey);
+  if (cached) return cached;
+
+  recordTenderDocumentFetch();
   const data = await tenderApiGet("/tenders-bzp-document-bytes", {
     tenderId,
     documentIndex: String(documentIndex),
     ...(downloadUrl ? { downloadUrl } : {}),
     ...(sourcePageUrl ? { sourcePageUrl } : {}),
   }) as { base64: string; filename: string; contentType: string };
+  setTenderDocumentBytesCached(cacheKey, data);
   return data;
 }
 

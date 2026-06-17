@@ -25,6 +25,7 @@ import {
 import { list7zFiles, pickBestFrom7zBytes, read7zEntry } from "@/lib/wgdom-7z-archive";
 import { isPdfPrzedmiarCostFilename } from "@/lib/tender-cost-discovery";
 import { pdfPrzedmiarHeuristicToPreview } from "@/lib/pdf-przedmiar-heuristic";
+import { recordTenderPdfExtract, recordTenderZipLoad } from "@/lib/tender-pipeline-metrics";
 
 export type { ZipListedFile } from "@/lib/tenders-bzp-filename";
 export {
@@ -48,6 +49,44 @@ export interface ResolvedTenderFile {
 
 let pdfWorkerReady = false;
 
+const ZIP_CACHE_MAX = 24;
+const PDF_TEXT_CACHE_MAX = 32;
+const zipInstanceCache = new Map<string, Promise<JSZip>>();
+const pdfTextCache = new Map<string, Promise<{
+  text: string;
+  pageCount: number;
+  likelyScan: boolean;
+  noTextLayer: boolean;
+}>>();
+
+function bytesFingerprint(bytes: Uint8Array): string {
+  const n = Math.min(24, bytes.length);
+  let h = bytes.byteLength;
+  for (let i = 0; i < n; i += 1) h = (Math.imul(h, 31) + bytes[i]!) | 0;
+  return `b-${h}-${bytes.byteLength}`;
+}
+
+function cacheSet<K, V>(map: Map<K, V>, key: K, value: V, max: number): void {
+  if (map.has(key)) map.delete(key);
+  map.set(key, value);
+  while (map.size > max) {
+    const oldest = map.keys().next().value;
+    if (oldest == null) break;
+    map.delete(oldest);
+  }
+}
+
+async function loadZipCached(bytes: Uint8Array): Promise<JSZip> {
+  const key = bytesFingerprint(bytes);
+  let pending = zipInstanceCache.get(key);
+  if (!pending) {
+    recordTenderZipLoad();
+    pending = JSZip.loadAsync(bytes);
+    cacheSet(zipInstanceCache, key, pending, ZIP_CACHE_MAX);
+  }
+  return pending;
+}
+
 function ensurePdfWorker(): void {
   if (pdfWorkerReady) return;
   pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
@@ -55,7 +94,7 @@ function ensurePdfWorker(): void {
 }
 
 export async function listZipFiles(bytes: Uint8Array): Promise<ZipListedFile[]> {
-  const zip = await JSZip.loadAsync(bytes);
+  const zip = await loadZipCached(bytes);
   const out: ZipListedFile[] = [];
   zip.forEach((relativePath, file) => {
     if (file.dir) return;
@@ -71,7 +110,7 @@ export async function listZipFiles(bytes: Uint8Array): Promise<ZipListedFile[]> 
 }
 
 export async function readZipEntry(bytes: Uint8Array, innerPath: string): Promise<Uint8Array | null> {
-  const zip = await JSZip.loadAsync(bytes);
+  const zip = await loadZipCached(bytes);
   const file = zip.file(innerPath);
   if (!file) return null;
   return new Uint8Array(await file.async("arraybuffer"));
@@ -122,6 +161,22 @@ export async function extractPdfText(bytes: Uint8Array): Promise<{
   likelyScan: boolean;
   noTextLayer: boolean;
 }> {
+  const key = bytesFingerprint(bytes);
+  let pending = pdfTextCache.get(key);
+  if (!pending) {
+    pending = extractPdfTextUncached(bytes);
+    cacheSet(pdfTextCache, key, pending, PDF_TEXT_CACHE_MAX);
+  }
+  return pending;
+}
+
+async function extractPdfTextUncached(bytes: Uint8Array): Promise<{
+  text: string;
+  pageCount: number;
+  likelyScan: boolean;
+  noTextLayer: boolean;
+}> {
+  recordTenderPdfExtract();
   ensurePdfWorker();
   try {
     const loading = pdfjs.getDocument({ data: bytes.slice() });
