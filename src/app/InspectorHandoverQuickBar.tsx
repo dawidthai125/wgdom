@@ -32,10 +32,10 @@ export function InspectorHandoverQuickBar({
             type="button"
             disabled={disabled}
             onClick={() => onAction(id)}
-            className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-medium min-h-[44px] touch-manipulation transition-colors ${
+            className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-medium min-h-[44px] touch-manipulation transition-colors ${
               id === "download_package" && packageReady
                 ? "bg-primary text-primary-foreground"
-                : "bg-secondary/80 text-foreground border border-border hover:bg-secondary"
+                : "bg-secondary text-foreground border border-border hover:bg-secondary/80"
             } disabled:opacity-50`}
           >
             <Icon size={14} />

@@ -97,10 +97,10 @@ import { InspectorProgressBar } from "@/app/InspectorProgressBar";
 import { InspectorQuickPhotoFab } from "@/app/InspectorQuickPhotoFab";
 import {
   computeInspectionProgress,
-  inspectionPriority,
-  INSPECTION_PRIORITY_EMOJI,
   sortJobsByInspectionPriority,
 } from "@/lib/inspector-dashboard";
+import { JobListPrimaryBadge } from "@/app/JobListStatus";
+import { DeliveryPackageStatusBadge } from "@/app/DeliveryPackageStatusBadge";
 import { uploadJobFile, deleteJobFile } from "@/lib/job-file-upload";
 import { uploadInspectorPhoto } from "@/lib/job-photo-upload";
 import { computeInspectorDashboardStats } from "@/lib/inspector-dashboard";
@@ -1243,7 +1243,7 @@ export function InspectorPanel({
           <ImageWithFallback src={logoSrc} alt="W&G DOM" className="h-7 w-auto shrink-0"/>
           <div className="min-w-0">
             <p className="text-sm font-semibold truncate">{displayName}</p>
-            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate">Inspektor WM · W&G DOM</p>
+            <p className="text-[10px] text-muted-foreground font-medium truncate">Inspektor WM · W&G DOM</p>
             <SyncStatusBadge syncing={syncing} syncPending={syncPending} pushFailed={pushFailed} lastSyncedAt={lastSyncedAt} onRetry={handleCloudSyncClick}/>
           </div>
         </div>
@@ -1289,7 +1289,7 @@ export function InspectorPanel({
           <button
             type="button"
             onClick={() => setHelpOpen(true)}
-            className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 px-3 py-2.5 min-h-[44px] rounded-lg"
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary px-3 py-2.5 min-h-[44px] rounded-lg"
             title="Instrukcja"
           >
             <BookOpen size={14}/><span className="hidden sm:inline">Pomoc</span>
@@ -1456,33 +1456,28 @@ export function InspectorPanel({
         </div>
       ) : (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-4 py-2 shrink-0 space-y-2">
-            <button type="button" onClick={closeJob} className="flex items-center gap-2 text-sm font-medium text-primary min-h-[44px]">
+          <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border shrink-0">
+            <div className="w-full max-w-3xl md:max-w-none mx-auto px-4 sm:px-6 pt-3 pb-2 space-y-3 md:pt-2 md:pb-1.5 md:space-y-2">
+            <button type="button" onClick={closeJob} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors min-h-[44px]">
               <ArrowLeft size={16}/>Wróć do {jobReturnNav?.label ?? "listy robót"}
             </button>
-            <div className="pb-1 space-y-2">
-              <p className="text-sm font-semibold truncate leading-snug">
-                {INSPECTION_PRIORITY_EMOJI[inspectionPriority(selectedJob)] && (
-                  <span className="mr-1">{INSPECTION_PRIORITY_EMOJI[inspectionPriority(selectedJob)]}</span>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1 space-y-1">
+                <h2 className="text-base font-semibold truncate leading-tight">
+                  {selectedJob.address || "Bez adresu"}{selectedJob.flatNumber && ` m.${selectedJob.flatNumber}`}
+                </h2>
+                {selectedJob.client && (
+                  <p className="text-xs text-muted-foreground truncate">{selectedJob.client}</p>
                 )}
-                {selectedJob.address || "Bez adresu"}{selectedJob.flatNumber && ` m.${selectedJob.flatNumber}`}
-              </p>
-              <p className="text-[11px] text-muted-foreground truncate">{selectedJob.client || "—"}</p>
-              <InspectorProgressBar percent={computeInspectionProgress(selectedJob).percent}/>
-              <JobMetaBadges job={selectedJob}/>
-              {deliveryPackageStatus && (
-                <div
-                  className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${
-                    deliveryPackageStatus.ready
-                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-                      : "bg-red-500/10 text-red-600 dark:text-red-400"
-                  }`}
-                  title="Status opublikowanego pakietu odbiorowego"
-                >
-                  <span aria-hidden>{deliveryPackageStatus.emoji}</span>
-                  {deliveryPackageStatus.label}
+                <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                  <JobListPrimaryBadge job={selectedJob}/>
+                  {deliveryPackageStatus && (
+                    <DeliveryPackageStatusBadge ready={deliveryPackageStatus.ready}/>
+                  )}
                 </div>
-              )}
+                <InspectorProgressBar percent={computeInspectionProgress(selectedJob).percent} className="pt-1"/>
+                <JobMetaBadges job={selectedJob}/>
+              </div>
             </div>
             <InspectorHandoverQuickBar
               packageReady={deliveryPackageStatus?.ready ?? false}
@@ -1502,10 +1497,11 @@ export function InspectorPanel({
               {jobSection === "reports" && "Dokumentacja ekipy: zakres prac, wymiary, obrys lokalu"}
               {jobSection === "photos" && "Zdjęcia ekipy i własne zdjęcia inspektora"}
             </p>
+            </div>
           </div>
 
           <PullToRefreshIndicator pull={jobPull.pull} refreshing={jobPull.refreshing} ready={jobPull.ready}/>
-          <div ref={jobScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-5 max-w-2xl mx-auto w-full" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
+          <div ref={jobScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 space-y-4 max-w-3xl md:max-w-none mx-auto w-full md:py-3 md:space-y-3" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
             {msg && <p className="text-xs text-primary bg-primary/10 rounded-lg px-3 py-2">{msg}</p>}
 
             <InspectorDeliveryPackagePanel
@@ -1547,13 +1543,11 @@ export function InspectorPanel({
               </div>
             )}
 
-            <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+            <div className="bg-card border border-border rounded-xl p-5 space-y-4 md:p-4 md:space-y-3">
               <div className="flex flex-wrap items-center gap-2">
                 <JobWmStageBadge job={selectedJob}/>
                 <JobWmPlannedBadge job={selectedJob}/>
-                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${selectedJob.status === "completed" ? "bg-green-500/15 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
-                  {selectedJob.status === "completed" ? "Zdana" : "W trakcie"}
-                </span>
+                <JobListPrimaryBadge job={selectedJob}/>
               </div>
               <p className="text-xs text-muted-foreground">
                 Start {fmtDate(selectedJob.startDate)}{selectedJob.endDate && ` · koniec ${fmtDate(selectedJob.endDate)}`}
@@ -1569,8 +1563,8 @@ export function InspectorPanel({
               <InspectorQuickActions items={jobQuickActions} onSelect={scrollToJobSection}/>
             </div>
 
-            <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 px-0.5">Odbiór WM — etap, notatki, zdjęcia</p>
+            <div className="space-y-3 md:space-y-2">
+              <p className="text-sm font-semibold px-0.5">Odbiór WM — etap, notatki, zdjęcia</p>
             <JobWmPanel
               job={selectedJob}
               onUpdate={updateJob}
@@ -1607,7 +1601,7 @@ export function InspectorPanel({
             )}
 
             {jobInspectorHistory(selectedJob).length > 0 && (
-              <div className="bg-card border border-border rounded-2xl p-4">
+              <div className="bg-card border border-border rounded-xl p-4">
                 <p className="text-sm font-semibold mb-3 flex items-center gap-2">
                   <ScrollText size={15}/> Ostatnie zmiany
                 </p>
@@ -1634,7 +1628,7 @@ export function InspectorPanel({
 
             {jobSection === "files" && (
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-0.5">Zlecenie i kosztorys</p>
+              <p className="text-sm font-semibold px-0.5">Zlecenie i kosztorys</p>
             <div className="grid sm:grid-cols-2 gap-3">
               {(["zlecenie", "kosztorys"] as const).map((kind) => {
                 const label = kind === "zlecenie" ? "Zlecenie (PDF)" : "Kosztorys (NORMA/ATH/PDF)";
@@ -1644,7 +1638,7 @@ export function InspectorPanel({
                 const file = latestJobFile(selectedJob, kind);
                 const checked = selectedJob.documents[kind];
                 return (
-                  <div key={kind} className={`rounded-2xl border p-4 space-y-3 ${checked ? "border-green-500/30 bg-green-500/5" : "border-border bg-card"}`}>
+                  <div key={kind} className={`rounded-xl border p-4 space-y-3 ${checked ? "border-green-500/30 bg-green-500/5" : "border-border bg-card"}`}>
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-sm font-semibold flex items-center">{label}<InspectorHint text={hint}/></p>
                       <button
@@ -1703,14 +1697,14 @@ export function InspectorPanel({
                 const planFile = latestJobFile(selectedJob, "plan_techniczny");
                 if (!planFile) {
                   return (
-                    <div className="rounded-2xl border border-dashed border-border bg-card/50 p-4">
+                    <div className="rounded-xl border border-dashed border-border bg-card/50 p-4">
                       <p className="text-xs font-semibold text-muted-foreground mb-1">Plan techniczny (PDF)</p>
                       <p className="text-[11px] text-muted-foreground">Plan techniczny wgrywa administrator w Robotach — tutaj tylko podgląd i pobranie.</p>
                     </div>
                   );
                 }
                 return (
-                  <div className="rounded-2xl border border-green-500/30 bg-green-500/5 p-4 space-y-2">
+                  <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-4 space-y-2">
                     <p className="text-xs font-semibold">Plan techniczny (PDF)</p>
                     <div className="flex items-center gap-2 flex-wrap">
                       <a href={planFile.publicUrl} target="_blank" rel="noopener noreferrer" download={planFile.filename} className="text-xs text-primary hover:underline flex items-center gap-1 truncate min-w-0">
@@ -1763,7 +1757,7 @@ export function InspectorPanel({
             )}
 
             {jobSection === "team" && (
-            <div className="bg-card border border-border rounded-2xl p-4">
+            <div className="bg-card border border-border rounded-xl p-4">
               <p className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <Users size={15}/> Pracownicy na robocie
                 <InspectorHint text="Kto był przypisany do tego adresu — możesz zadzwonić. Bez wypłat i stawek."/>
@@ -1791,7 +1785,7 @@ export function InspectorPanel({
             )}
 
             {jobSection === "reports" && (
-            <div className="bg-card border border-border rounded-2xl overflow-hidden">
+            <div className="bg-card border border-border rounded-xl overflow-hidden">
               <div className="px-4 py-3 border-b border-border">
                 <p className="text-sm font-semibold flex items-center gap-2">
                   <Ruler size={15}/> Dokumentacja robót
@@ -1893,7 +1887,7 @@ export function InspectorPanel({
             )}
 
             {selectedJob.notes && jobSection === "wm" && (
-              <div className="bg-card border border-border rounded-2xl p-4">
+              <div className="bg-card border border-border rounded-xl p-4">
                 <p className="text-xs font-medium text-muted-foreground mb-1">Notatki</p>
                 <p className="text-sm whitespace-pre-wrap">{selectedJob.notes}</p>
               </div>

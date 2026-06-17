@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.47** · **INSPECTOR-UX-002**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.48** · **INSPECTOR-DESIGN-002**
+
+## 2.59.48 — Inspektor DESIGN-002 Design System Alignment
+
+- **improve:** section pills jak JobDetailSectionNav · badge pakietu bez emoji · typografia sticky header + JobListPrimaryBadge · karty rounded-xl / spacing admin
+- **test:** `test-inspector-design-002.mjs`
 
 ## 2.59.47 — Inspektor UX-002 Quick Wins
 

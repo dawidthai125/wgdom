@@ -57,8 +57,9 @@ console.log("=== UX002-T01 status render — brak pakietu ===");
 {
   const status = inspectorDeliveryPackageStatusDisplay([], JOB_ID);
   assert(status.ready === false, "not ready");
-  assert(status.emoji === "🔴", "red emoji");
+  assert(status.badgeClass.includes("border-red"), "danger badge class");
   assert(status.label === "BRAK PAKIETU", "BRAK label");
+  assert(!("emoji" in status), "no emoji field");
 }
 
 console.log("=== UX002-T02 status render — pakiet gotowy ===");
@@ -83,7 +84,7 @@ console.log("=== UX002-T02 status render — pakiet gotowy ===");
   }).nextPublications;
   const status = inspectorDeliveryPackageStatusDisplay(pubs, JOB_ID);
   assert(status.ready === true, "ready");
-  assert(status.emoji === "🟢", "green emoji");
+  assert(status.badgeClass.includes("border-emerald"), "success badge class");
   assert(status.label === "PAKIET GOTOWY", "GOTOWY label");
 }
 

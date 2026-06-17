@@ -13,6 +13,7 @@ import {
 } from "@/lib/delivery-package-publications/publication";
 import { formatDeliveryPackageFileSize } from "@/lib/delivery-package-publications/storage";
 import { INSPECTOR_DELIVERY_PACKAGE_PANEL_ID } from "@/lib/inspector-handover-ux";
+import { DeliveryPackageStatusBadge } from "@/app/DeliveryPackageStatusBadge";
 import type { DeliveryPackagePublication } from "@/lib/delivery-package-publications/types";
 
 export function InspectorDeliveryPackagePanel({
@@ -59,7 +60,7 @@ export function InspectorDeliveryPackagePanel({
   };
 
   return (
-    <div id={panelId} className="bg-card border border-border rounded-2xl p-4 space-y-3 scroll-mt-3">
+    <div id={panelId} className="bg-card border border-border rounded-xl p-4 space-y-3 md:p-4 md:space-y-3 scroll-mt-3">
       <div className="flex items-start gap-2">
         <Package size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
@@ -68,15 +69,7 @@ export function InspectorDeliveryPackagePanel({
             Gotowy ZIP opublikowany przez administratora — bez generatorów WM Druk.
           </p>
         </div>
-        <span
-          className={`text-[10px] font-semibold px-2 py-1 rounded-full shrink-0 ${
-            publication
-              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-              : "bg-secondary text-muted-foreground"
-          }`}
-        >
-          {publication ? "PAKIET GOTOWY" : "BRAK PAKIETU"}
-        </span>
+        <DeliveryPackageStatusBadge ready={!!publication} />
       </div>
 
       {publication ? (

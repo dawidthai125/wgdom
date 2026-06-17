@@ -1,13 +1,12 @@
 import { MessageSquare } from "lucide-react";
 import { JobMetaBadges } from "@/app/JobMetaPickers";
+import { JobListPrimaryBadge } from "@/app/JobListStatus";
 import { JobWmStageBadge, JobWmPlannedBadge } from "@/app/JobWmPanel";
 import { InspectorProgressBar } from "@/app/InspectorProgressBar";
 import {
   collectMissingHandoverItems,
   computeInspectionProgress,
   getLastInspectorActivity,
-  inspectionPriority,
-  INSPECTION_PRIORITY_EMOJI,
   type InspectorDashboardJob,
 } from "@/lib/inspector-dashboard";
 
@@ -48,8 +47,6 @@ export function InspectorJobCard({
   recoverableToRecoverAmount?: number;
 }) {
   const progress = computeInspectionProgress(job);
-  const priority = inspectionPriority(job);
-  const emoji = INSPECTION_PRIORITY_EMOJI[priority];
   const missing = collectMissingHandoverItems(job, 3);
   const lastActivity = getLastInspectorActivity(job);
 
@@ -57,25 +54,20 @@ export function InspectorJobCard({
     <button
       type="button"
       onClick={onSelect}
-      className={`w-full text-left bg-card border rounded-2xl p-4 hover:border-primary/40 transition-colors active:scale-[0.99] touch-manipulation ${
+      className={`w-full text-left bg-card border rounded-xl p-4 hover:border-primary/30 transition-colors active:scale-[0.99] touch-manipulation ${
         hasAdminReply ? "border-violet-500/40 ring-1 ring-violet-500/20" : "border-border"
       }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-sm truncate leading-tight">
-            {emoji && <span className="mr-1" aria-hidden>{emoji}</span>}
             {job.address || "Bez adresu"}
             {job.flatNumber && <span className="text-muted-foreground font-normal"> m.{job.flatNumber}</span>}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5 truncate">{job.client || "—"}</p>
           {!compact && <div className="mt-1"><JobMetaBadges job={job}/></div>}
         </div>
-        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${
-          job.status === "completed" ? "bg-green-500/15 text-green-400" : "bg-yellow-500/10 text-yellow-400"
-        }`}>
-          {job.status === "completed" ? "Zdana" : "W trakcie"}
-        </span>
+        <JobListPrimaryBadge job={job}/>
       </div>
 
       <div className="mt-2.5">

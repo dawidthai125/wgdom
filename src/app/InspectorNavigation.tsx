@@ -107,37 +107,47 @@ export function InspectorJobSectionNav({
   onSelect: (id: InspectorJobSection) => void;
   badges?: Partial<Record<InspectorJobSection, number>>;
 }) {
+  const sectionBadge = (id: InspectorJobSection) => {
+    const n = badges?.[id];
+    if (typeof n !== "number" || n <= 0) return null;
+    const warn = id === "docs" || id === "photos";
+    return (
+      <span
+        className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+          active === id
+            ? warn
+              ? "bg-amber-400/30 text-amber-950"
+              : "bg-primary-foreground/20"
+            : warn
+              ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
+              : "bg-background text-muted-foreground"
+        }`}
+      >
+        {n > 9 ? "9+" : n}
+      </span>
+    );
+  };
+
   return (
-    <div className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur border-b border-border/80">
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 px-0.5">Sekcja roboty</p>
-      <div className="flex gap-1.5 overflow-x-auto overscroll-x-contain pb-0.5 scrollbar-none" style={{ WebkitOverflowScrolling: "touch" }}>
-        {getJobSections().map(({ id, label, icon: Icon }) => {
-          const on = active === id;
-          const badge = badges?.[id];
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => onSelect(id)}
-              className={`relative shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-full text-xs font-medium transition-colors min-h-[44px] touch-manipulation ${
-                on
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-secondary/80 text-muted-foreground hover:text-foreground hover:bg-secondary"
-              }`}
-            >
-          <Icon size={13}/>
+    <div className="flex gap-1 overflow-x-auto overscroll-x-contain pb-0.5 scrollbar-none -mx-1 px-1">
+      {getJobSections().map(({ id, label, icon: Icon }) => (
+        <button
+          key={id}
+          type="button"
+          onClick={() => onSelect(id)}
+          className={`flex items-center gap-1.5 md:gap-1 px-3 md:px-2.5 py-2 md:py-1.5 min-h-[44px] md:min-h-0 rounded-lg text-xs md:text-[11px] font-medium whitespace-nowrap shrink-0 transition-colors touch-manipulation ${
+            active === id
+              ? id === "files"
+                ? "bg-emerald-600 text-white"
+                : "bg-primary text-primary-foreground"
+              : "bg-secondary text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Icon size={12} />
           {label}
-              {badge != null && badge > 0 && (
-                <span className={`ml-0.5 min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold flex items-center justify-center ${
-                  on ? "bg-primary-foreground/20 text-primary-foreground" : "bg-violet-600 text-white"
-                }`}>
-                  {badge > 9 ? "9+" : badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+          {sectionBadge(id)}
+        </button>
+      ))}
     </div>
   );
 }

@@ -145,9 +145,9 @@ export function InspectorDashboard({
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 md:space-y-6">
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold">{inspectorGreeting(displayName)}</h2>
+        <h2 className="text-xl font-bold tracking-tight">{inspectorGreeting(displayName)}</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           {allClear
             ? "Wszystko na bieżąco — brak pilnych kontroli na dziś."
@@ -177,7 +177,7 @@ export function InspectorDashboard({
             >
               <div className="flex items-center gap-1.5 mb-1">
                 <Icon size={13} className="text-muted-foreground shrink-0"/>
-                <p className="text-[9px] uppercase tracking-wider text-muted-foreground leading-tight">{label}</p>
+                <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
               </div>
               <p
                 className={`text-xl font-semibold tabular-nums ${valueCls}`}

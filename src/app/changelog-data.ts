@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.48",
+    label: "Inspektor DESIGN-002 — Design System Alignment",
+    items: [
+      {
+        type: "improve",
+        text: "Inspektor: pills sekcji roboty jak w Adminie (JobDetailSectionNav) — rounded-lg, emerald na Plikach, te same stany active/hover",
+      },
+      {
+        type: "improve",
+        text: "Status pakietu odbiorowego: badge CSS (PAKIET GOTOWY / BRAK PAKIETU) bez emoji — wspólny komponent DeliveryPackageStatusBadge",
+      },
+      {
+        type: "improve",
+        text: "Nagłówek roboty inspektora: typografia i badge statusu jak Roboty admin (JobListPrimaryBadge, text-base, spacing V3)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.47",
     label: "Inspektor UX-002 — Quick Wins odbioru WM",
     items: [
