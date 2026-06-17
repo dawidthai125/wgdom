@@ -809,7 +809,7 @@ assert(summaryVent.categories.some((c) => c.id === "TRANSPORT_UTYLIZACJA" && c.c
 
 console.log("\n21. P2-G.2D — Phrase-Based Classification");
 assertGte(countWgdomPhraseRules(), 40, "AC-D1 at least 40 phrase rules");
-assert(countWgdomPhraseRules() <= 175, "phrase rules bounded");
+assert(countWgdomPhraseRules() <= 185, "phrase rules bounded");
 assertEq(
   classifyAthLineCategory("Narożniki z kątownika aluminiowego 30x30x2 mm", "mb"),
   "GLADZIE_TYNKI",

@@ -10,7 +10,10 @@ import {
 } from "@/lib/wgdom-cost-catalog";
 import { matchConstructionDictionary } from "@/lib/wgdom-construction-dictionary";
 import { matchWgdomPhraseRules } from "@/lib/wgdom-phrase-rules";
-import { matchUserClassificationDictionary } from "@/lib/wgdom-user-classification-dictionary";
+import {
+  ensureUserClassificationDictionaryCacheHydrated,
+  matchUserClassificationDictionary,
+} from "@/lib/wgdom-user-classification-dictionary";
 
 /** Normalizacja PL znaków — wzorzec jak company-experience-discovery.ts fold(). */
 export function foldPolishText(s: string): string {
@@ -74,6 +77,7 @@ function classifyAthLineCategoryInternal(
   unit: string | undefined,
   useDictionary: boolean,
 ): WgdomCostCategoryId {
+  ensureUserClassificationDictionaryCacheHydrated();
   const hay = foldPolishText(description || "");
   if (!hay.trim()) return "UNKNOWN";
 

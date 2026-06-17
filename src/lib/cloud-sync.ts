@@ -70,7 +70,10 @@ import {
   WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
 } from "@/lib/wm-print/types";
 import { defaultWgdomCostCatalogStore } from "@/lib/wgdom-cost-catalog";
-import { defaultUserClassificationDictionaryStore } from "@/lib/wgdom-user-classification-dictionary";
+import {
+  defaultUserClassificationDictionaryStore,
+  refreshUserClassificationDictionaryCacheFromLocalStorage,
+} from "@/lib/wgdom-user-classification-dictionary";
 import {
   mergeDeliveryPackagePublications,
 } from "@/lib/delivery-package-publications/merge";
@@ -1574,6 +1577,9 @@ function persistBootstrapMergedKey(key: DataKey, merged: unknown): void {
   if (!bootstrapMergedShouldPersist(key, merged)) return;
   try {
     localStorage.setItem(key, JSON.stringify(merged));
+    if (key === WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY) {
+      refreshUserClassificationDictionaryCacheFromLocalStorage();
+    }
   } catch { /* ignore */ }
 }
 

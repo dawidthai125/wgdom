@@ -5,6 +5,7 @@ import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import type { TenderBzpDocument } from "@/lib/tenders-bzp";
 import type { AthPreviewResult } from "@/lib/ath-parser";
 import { extractTotalValueFromAthPreview } from "@/lib/tender-cost-snapshot";
+import { isLikelyCatalogQuantityRow } from "@/lib/tender-catalog-quantity-filter";
 
 export type { TenderCostLine };
 
@@ -201,7 +202,7 @@ export function buildCatalogQuantitiesFromPreview(
 ): TenderCatalogQuantityLine[] {
   return preview.rows
     .slice(0, CATALOG_QUANTITIES_CAP)
-    .filter((r) => r.description?.trim())
+    .filter((r) => isLikelyCatalogQuantityRow(r.description ?? ""))
     .map((r) => ({
       lp: r.lp,
       description: r.description,

@@ -29,6 +29,7 @@ export interface WgdomUserClassificationDictionaryStore {
 }
 
 let _cache: WgdomUserClassificationDictionaryStore = defaultUserClassificationDictionaryStore();
+let _cacheHydratedFromStorage = false;
 
 function ts(iso: string | undefined | null): number {
   if (!iso) return 0;
@@ -159,6 +160,18 @@ export function setUserClassificationDictionaryCache(
 
 export function getUserClassificationDictionaryCache(): WgdomUserClassificationDictionaryStore {
   return _cache;
+}
+
+/** Odśwież cache z localStorage (np. po deferred bootstrap merge). */
+export function refreshUserClassificationDictionaryCacheFromLocalStorage(): void {
+  loadWgdomUserClassificationDictionaryStoreLocal();
+  _cacheHydratedFromStorage = true;
+}
+
+/** Lazy bootstrap — klasyfikator widzi wpisy user dict bez mountu panelu Wyceny. */
+export function ensureUserClassificationDictionaryCacheHydrated(): void {
+  if (_cacheHydratedFromStorage) return;
+  refreshUserClassificationDictionaryCacheFromLocalStorage();
 }
 
 /** Dopasowanie słownika użytkownika (sync — wymaga wcześniejszego cache). */

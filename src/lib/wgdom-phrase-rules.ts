@@ -281,6 +281,18 @@ export const WGDOM_PHRASE_RULES: WgdomPhraseRule[] = [
   { pattern: "wymiana drzwi", category: "STOLARKA", match: "contains" },
   { pattern: "wymiana okien", category: "STOLARKA", match: "contains" },
   { pattern: "montaz parapetu", category: "STOLARKA", match: "contains" },
+
+  // —— P3-FIX-B — ATH z audytu live (bezpieczne, wysoka pewność) ——
+  { pattern: "montaz listew przysciennych", category: "PODLOGI", match: "prefix" },
+  { pattern: "uzupelnienie listew przysciennych", category: "PODLOGI", match: "prefix" },
+  { pattern: "listew przysciennych", category: "PODLOGI", match: "contains" },
+  { pattern: "odgrzybianie scian", category: "MALOWANIE", match: "prefix" },
+  { pattern: "zalozenie na nowym miejscu klam", category: "STOLARKA", match: "prefix" },
+  { pattern: "wymiana na nowym miejscu zamk", category: "STOLARKA", match: "prefix" },
+  { pattern: "nawietrzak", category: "WENTYLACJA", match: "contains" },
+  { pattern: "rozebranie scianki", category: "ROZBIORKI", match: "prefix" },
+  { pattern: "numeru porzadkowego lokalu", category: "WYPOSAZENIE", match: "contains" },
+  { pattern: "roboty branzy budowlanej", category: "ROBOTY_OGOLNOBUDOWLANE", match: "contains" },
 ];
 
-export const WGDOM_PHRASE_RULES_VERSION = "3.2";
+export const WGDOM_PHRASE_RULES_VERSION = "3.3";
