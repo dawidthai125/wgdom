@@ -274,8 +274,6 @@ export function TenderDetailPanel({
             }
           } catch { /* auto external discover best-effort */ }
         }
-        if (Object.keys(patch).length > 0 && !cancelled) onUpdate(patch);
-
         let swz = item.swzAnalysis ?? null;
         if (!swz && !cancelled && (item.noticeNumber || item.tenderId)) {
           try {
@@ -287,7 +285,7 @@ export function TenderDetailPanel({
               ourEstimatePln: item.ourEstimatePln ?? null,
             });
             swz = analysis;
-            onUpdate({ swzAnalysis: swz });
+            patch.swzAnalysis = swz;
           } catch { /* auto-analiza best-effort */ }
         }
 
@@ -310,7 +308,6 @@ export function TenderDetailPanel({
               kosztorysSnap = parsed.kosztorys;
               if (parsed.swzMerged) {
                 swzMerged = parsed.swzMerged;
-                if (!swz) onUpdate({ swzAnalysis: swzMerged });
               }
               if (parsed.estimatePln != null && item.ourEstimatePln == null) {
                 estimatePln = parsed.estimatePln;
@@ -332,21 +329,20 @@ export function TenderDetailPanel({
             } catch { /* ignore */ }
           }
 
-          const dossierPatch: Partial<TenderPipelineItem> = {
-            tenderDossier: {
-              brief,
-              kosztorys: kosztorysSnap,
-              builtAt: new Date().toISOString(),
-            },
+          patch.tenderDossier = {
+            brief,
+            kosztorys: kosztorysSnap,
+            builtAt: new Date().toISOString(),
           };
           if (estimatePln != null && item.ourEstimatePln == null) {
-            dossierPatch.ourEstimatePln = estimatePln;
+            patch.ourEstimatePln = estimatePln;
           }
-          if (swzMerged && swzMerged !== swz) {
-            dossierPatch.swzAnalysis = swzMerged;
+          if (swzMerged) {
+            patch.swzAnalysis = swzMerged;
           }
-          onUpdate(dossierPatch);
         }
+
+        if (Object.keys(patch).length > 0 && !cancelled) onUpdate(patch);
       } catch {
         /* auto-analiza best-effort */
       } finally {

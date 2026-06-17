@@ -245,12 +245,16 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
     }
   }, [items, runBzpMerge]);
 
+  /** P3-AUDIT-001-FIX-A — functional update; bez stale closure na items. */
   const updateItem = useCallback((id: string, patch: Partial<TenderPipelineItem>) => {
-    const next = items.map((i) =>
-      i.id === id ? { ...i, ...patch, updatedAt: new Date().toISOString() } : i,
-    );
-    void persist(next);
-  }, [items, persist]);
+    setItems((prev) => {
+      const next = prev.map((i) =>
+        i.id === id ? { ...i, ...patch, updatedAt: new Date().toISOString() } : i,
+      );
+      void persist(next);
+      return next;
+    });
+  }, [persist]);
 
   const removeItem = useCallback(async (id: string) => {
     if (!window.confirm("Usunąć przetarg z listy pipeline? (nie wróci przy sync BZP)")) return false;
