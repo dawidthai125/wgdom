@@ -14,6 +14,7 @@ import {
   TENDER_VALUE_NOT_FOUND_LABEL,
 } from "@/lib/tender-data-ssot";
 import { isTenderOpenForOffers, daysUntilTenderDeadline } from "@/lib/tenders-bzp";
+import { TENDER_OWNER_TAB_LABELS } from "@/lib/tender-owner-language-pl";
 
 export const TENDER_SUMMARY_BAR_ID = "tender-summary-bar";
 export const TENDER_ATTACHMENTS_SECTION_ID = "tender-attachments-section";
@@ -50,6 +51,8 @@ export interface TenderSummarySnapshot {
   valueDisplay: string;
   monitoring: TenderMonitoringCounts;
   readyLabel: string | null;
+  /** P5-004 — ukryj termin w nagłówku (duplikat Owner Risk). */
+  hideDeadlineField?: boolean;
 }
 
 export function getTenderMonitoringCounts(item: TenderPipelineItem): TenderMonitoringCounts {
@@ -67,6 +70,7 @@ export function buildTenderSummarySnapshot(
   swz: TenderSwzAnalysis | null | undefined,
   readyCount?: number,
   readyTotal?: number,
+  opts?: { hideReadyLabel?: boolean; hideDeadlineField?: boolean },
 ): TenderSummarySnapshot {
   const offerOpen = isTenderOpenForOffers(item.submittingOffersDate);
   const days = daysUntilTenderDeadline(item.submittingOffersDate);
@@ -88,9 +92,10 @@ export function buildTenderSummarySnapshot(
     offerOpen,
     valueDisplay: valueResolved.display,
     monitoring: getTenderMonitoringCounts(item),
-    readyLabel: readyCount != null && readyTotal != null
-      ? `${readyCount}/${readyTotal} gotowych`
-      : null,
+    readyLabel: opts?.hideReadyLabel || readyCount == null || readyTotal == null
+      ? null
+      : `${readyCount}/${readyTotal} gotowych`,
+    hideDeadlineField: Boolean(opts?.hideDeadlineField),
   };
 }
 
@@ -120,11 +125,7 @@ export const TENDER_WORKSPACE_TAB_ORDER = [
 export type TenderWorkspaceTabId = (typeof TENDER_WORKSPACE_TAB_ORDER)[number];
 
 export const TENDER_WORKSPACE_TAB_LABELS: Record<TenderWorkspaceTabId, string> = {
-  overview: "Przegląd",
-  documents: "Dokumenty",
-  qualification: "Kwalifikacja",
-  valuation: "Wycena",
-  offer: "Oferta",
+  ...TENDER_OWNER_TAB_LABELS,
 };
 
 /** Mapowanie sekcji UX.1A → zakładka UX.1B. */

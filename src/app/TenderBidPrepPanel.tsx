@@ -17,6 +17,11 @@ import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { TENDER_BID_PROPOSAL_PANEL_ID } from "@/lib/tender-bid-ux";
 import type { TenderWorkspaceTabId } from "@/lib/tender-workspace-ux";
 import { bidPrepTileToWorkspace } from "@/lib/tender-workspace-ux";
+import {
+  TENDER_OWNER_HINT_COPY,
+  TENDER_OWNER_OPERATOR_COPY,
+  TENDER_OWNER_TILE_LABELS,
+} from "@/lib/tender-owner-language-pl";
 
 const STATUS_ICON = {
   ok: CheckCircle2,
@@ -51,6 +56,7 @@ export function TenderBidPrepPanel({
   onScrollToBidDetails,
   onNavigateWorkspace,
   overviewMode = false,
+  collapseTiles = false,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
@@ -70,6 +76,8 @@ export function TenderBidPrepPanel({
   onNavigateWorkspace?: (tab: TenderWorkspaceTabId) => void;
   /** UX.1B — Przegląd: bez bloków przeniesionych do Dokumentów/Kwalifikacji. */
   overviewMode?: boolean;
+  /** P5-004 — zwinięta checklista kafelków (operator w Więcej). */
+  collapseTiles?: boolean;
 }) {
   const profile = loadCompanyProfileLocal();
   const wadium = computeWadiumInfo(item, swz, profile.maxWadiumPln);
@@ -126,9 +134,9 @@ export function TenderBidPrepPanel({
       <div className="px-3 py-2.5 bg-primary/5 border-b border-primary/15 flex flex-wrap items-center gap-2">
         <ClipboardList size={15} className="text-primary shrink-0" />
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold">Karta ofertowa</p>
+          <p className="text-xs font-semibold">{TENDER_OWNER_OPERATOR_COPY.bidPrepPanelTitle}</p>
           <p className="text-[10px] text-muted-foreground">
-            {readyCount}/{checks.length} elementów gotowych do wyceny
+            {TENDER_OWNER_OPERATOR_COPY.bidPrepReadyLine(readyCount, checks.length)}
           </p>
         </div>
         <button
@@ -136,10 +144,10 @@ export function TenderBidPrepPanel({
           disabled={analyzing || !canAnalyze}
           onClick={(e) => { e.stopPropagation(); onAnalyze(); }}
           className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-violet-600 text-white text-[10px] font-medium hover:bg-violet-700 disabled:opacity-50"
-          title={!canAnalyze ? "Brak numeru ogłoszenia i załączników" : "PDF SWZ (pdf.js) + kryteria + wadium"}
+          title={!canAnalyze ? "Brak numeru ogłoszenia i załączników" : TENDER_OWNER_HINT_COPY.analyzeDocumentsTitle}
         >
           {analyzing ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
-          {analyzing ? "Analizuję…" : "Analizuj SWZ"}
+          {analyzing ? TENDER_OWNER_OPERATOR_COPY.analyzingDocuments : TENDER_OWNER_OPERATOR_COPY.analyzeDocuments}
         </button>
         {onExportPdf && (
           <button
@@ -149,7 +157,7 @@ export function TenderBidPrepPanel({
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-secondary text-[10px] font-medium hover:bg-secondary/80 disabled:opacity-50"
           >
             {exportingPdf ? <Loader2 size={11} className="animate-spin" /> : <FileDown size={11} />}
-            Pakiet PDF
+            {TENDER_OWNER_OPERATOR_COPY.exportSummaryPdf}
           </button>
         )}
       </div>
@@ -228,8 +236,24 @@ export function TenderBidPrepPanel({
         </details>
       )}
 
-      <div className="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-        {checks.map((check) => {
+      {collapseTiles ? (
+        <details className="border-t border-border/60">
+          <summary className="px-3 py-2.5 cursor-pointer text-[10px] font-medium text-muted-foreground hover:text-foreground">
+            {TENDER_OWNER_OPERATOR_COPY.detailChecklistSummary(checks.length, readyCount)}
+          </summary>
+          <div className="p-3 pt-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {checks.map((check) => renderCheckTile(check))}
+          </div>
+        </details>
+      ) : (
+        <div className="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          {checks.map((check) => renderCheckTile(check))}
+        </div>
+      )}
+    </div>
+  );
+
+  function renderCheckTile(check: ReturnType<typeof computeBidPrepChecks>[number]) {
           const Icon = STATUS_ICON[check.status];
           const isOurBid = check.id === "our-bid";
           const isKosztorys = check.id === "kosztorys";
@@ -324,10 +348,7 @@ export function TenderBidPrepPanel({
               </div>
             </div>
           );
-        })}
-      </div>
-    </div>
-  );
+  }
 }
 
 /** Eksport pomocniczy dla paska podsumowania. */

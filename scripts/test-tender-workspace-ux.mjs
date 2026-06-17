@@ -70,7 +70,11 @@ assert(TENDER_FORMAL_DETAILS_SECTION_ID === "tender-formal-details-section", "fo
 console.log("\n2. UX.1B — 5 workspace tabs (Anti-CC)");
 assert(TENDER_WORKSPACE_TAB_ORDER.length === 5, "exactly 5 workspace tabs");
 assert(TENDER_WORKSPACE_TAB_ORDER[0] === "overview", "first tab overview");
+assert(TENDER_WORKSPACE_TAB_LABELS.overview === "Decyzja", "overview tab Decyzja");
 assert(TENDER_WORKSPACE_TAB_LABELS.documents === "Dokumenty", "documents label PL");
+assert(TENDER_WORKSPACE_TAB_LABELS.qualification === "Kwalifikacja", "P5-005B qualification module tab");
+assert(TENDER_WORKSPACE_TAB_LABELS.valuation === "Wycena", "P5-005B valuation module tab");
+assert(TENDER_WORKSPACE_TAB_LABELS.offer === "Oferta", "P5-005B offer module tab");
 assert(isTenderWorkspaceTabId("valuation"), "isTenderWorkspaceTabId valuation");
 assert(!isTenderWorkspaceTabId("analytics"), "reject fake tab id");
 
@@ -128,8 +132,9 @@ assert(detailSrc.includes("TenderDocumentsWorkspace"), "documents workspace comp
 assert(detailSrc.includes("TenderQualificationWorkspace"), "qualification workspace component");
 assert(detailSrc.includes("onNavigateWorkspace={navigateWorkspace}"), "tile → workspace nav");
 assert(!detailSrc.includes("scrollIntoView"), "no scrollIntoView in DetailPanel");
-assert(detailSrc.includes("overviewMode"), "BidPrep overview mode");
-assert(detailSrc.includes("TenderOverviewShortcuts"), "overview shortcuts");
+assert(detailSrc.includes("TenderOwnerView"), "P5 owner view on overview");
+assert(detailSrc.includes("moreSection"), "Więcej section in owner view");
+assert(!detailSrc.includes("TenderOverviewShortcuts"), "overview shortcuts moved out of main");
 assert(!detailSrc.includes("TenderQualificationSection"), "no inline qualification accordion");
 assert(bidPrepSrc.includes("onNavigateWorkspace"), "BidPrep workspace nav prop");
 assert(bidPrepSrc.includes("overviewMode"), "BidPrep overview mode prop");

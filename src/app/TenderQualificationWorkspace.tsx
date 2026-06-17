@@ -10,6 +10,7 @@ import { TenderParticipationPanel } from "@/app/TenderParticipationPanel";
 import { TenderWorksRegisterPanel } from "@/app/TenderWorksRegisterPanel";
 import { TenderFitPanel } from "@/app/TenderFitPanel";
 import { TENDER_QUALIFICATION_SECTION_ID } from "@/lib/tender-workspace-ux";
+import { TENDER_OWNER_WORKSPACE_SECTION_COPY } from "@/lib/tender-owner-language-pl";
 
 export function TenderQualificationWorkspace({
   item,
@@ -27,7 +28,7 @@ export function TenderQualificationWorkspace({
   return (
     <div id={TENDER_QUALIFICATION_SECTION_ID} className="space-y-3 scroll-mt-2">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground px-0.5">
-        Kwalifikacja ofertowa
+        {TENDER_OWNER_WORKSPACE_SECTION_COPY.qualification}
       </p>
 
       <div className="rounded-xl border border-border bg-card px-3 py-2.5 space-y-2">

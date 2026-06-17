@@ -18,6 +18,7 @@ import {
   PROFILE_SECTION_IDS,
   TENDER_BID_PROPOSAL_PANEL_ID,
 } from "@/lib/tender-bid-ux";
+import { TENDER_OWNER_VALUATION_COPY } from "@/lib/tender-owner-language-pl";
 import { WGDOM_COST_CATEGORY_IDS } from "@/lib/wgdom-cost-catalog";
 import {
   loadWgdomCostCatalogStore,
@@ -273,23 +274,23 @@ export function TenderBidProposalPanel({
       <div className="px-3 py-3 border-b border-violet-500/15">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
           <Calculator size={12} className="text-violet-600" />
-          Wycena
+          {TENDER_OWNER_VALUATION_COPY.panelTitle}
         </p>
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="rounded-lg bg-background/70 border border-border/60 px-2 py-2">
-            <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Koszt własny</p>
+            <p className="text-[9px] uppercase tracking-wide text-muted-foreground">{TENDER_OWNER_VALUATION_COPY.costPrice}</p>
             <p className="text-sm sm:text-base font-bold font-mono text-foreground mt-0.5 tabular-nums">
               {costPrice != null ? fmtPln(costPrice) : "—"}
             </p>
           </div>
           <div className="rounded-lg bg-background/70 border border-border/60 px-2 py-2">
-            <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Marża</p>
+            <p className="text-[9px] uppercase tracking-wide text-muted-foreground">{TENDER_OWNER_VALUATION_COPY.margin}</p>
             <p className="text-sm sm:text-base font-bold font-mono text-foreground mt-0.5 tabular-nums">
               {formatBidMarginPct(marginPct)}
             </p>
           </div>
           <div className="rounded-lg bg-violet-500/15 border border-violet-500/30 px-2 py-2">
-            <p className="text-[9px] uppercase tracking-wide text-violet-800 dark:text-violet-300">Cena oferty</p>
+            <p className="text-[9px] uppercase tracking-wide text-violet-800 dark:text-violet-300">{TENDER_OWNER_VALUATION_COPY.offerPrice}</p>
             <p className="text-sm sm:text-base font-bold font-mono text-violet-700 dark:text-violet-300 mt-0.5 tabular-nums">
               {fmtPln(rec)}
             </p>
@@ -364,7 +365,7 @@ export function TenderBidProposalPanel({
 
       {bidAlerts.top.length > 0 && (
         <div className="px-3 py-2 border-b border-violet-500/10 space-y-1.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Alerty wyceny</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{TENDER_OWNER_VALUATION_COPY.pricingAlerts}</p>
           {bidAlerts.top.map((w) => (
             <div key={w} className="flex items-start gap-1.5 text-[10px] text-amber-700 dark:text-amber-400 bg-amber-500/10 rounded-lg px-2 py-1.5">
               <AlertTriangle size={11} className="shrink-0 mt-0.5" />
@@ -467,7 +468,7 @@ export function TenderBidProposalPanel({
           )}
 
           <div>
-            <p className="text-[10px] font-semibold text-muted-foreground mb-1">Jak powstała wycena?</p>
+            <p className="text-[10px] font-semibold text-muted-foreground mb-1">{TENDER_OWNER_VALUATION_COPY.howPriceBuilt}</p>
             <ol className="text-[10px] text-muted-foreground space-y-0.5 list-decimal pl-4">
               {flowSteps.map((step) => (
                 <li key={step}>{step}</li>
@@ -561,7 +562,7 @@ export function TenderBidProposalPanel({
 
           {classification && (
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold text-muted-foreground">Klasyfikacja przedmiaru</p>
+              <p className="text-[10px] font-semibold text-muted-foreground">{TENDER_OWNER_VALUATION_COPY.unknownPositions}</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">
                 <p>
                   <span className="text-muted-foreground">Sklasyfikowane:</span>{" "}

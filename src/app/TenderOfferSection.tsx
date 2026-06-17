@@ -7,6 +7,7 @@ import {
   computeCalibrationDelta,
   formatCalibrationDeltaPct,
 } from "@/lib/tender-cost-calibration";
+import { TENDER_OWNER_WORKSPACE_SECTION_COPY } from "@/lib/tender-owner-language-pl";
 import { TENDER_OFFER_SECTION_ID } from "@/lib/tender-workspace-ux";
 import { fmtPln } from "@/lib/tenders-bzp-swz";
 
@@ -45,7 +46,7 @@ export function TenderOfferSection({
   if (!hasContent && !canEditSubmittedBid) {
     return (
       <section id={TENDER_OFFER_SECTION_ID} className="rounded-xl border border-dashed border-border/60 px-3 py-2.5">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Oferta</p>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">{TENDER_OWNER_WORKSPACE_SECTION_COPY.offer}</p>
         <p className="text-[10px] text-muted-foreground">
           Po złożeniu oferty ustaw status „Złożona oferta” i zapisz kwotę — kalibracja pojawi się tutaj.
         </p>
@@ -56,7 +57,7 @@ export function TenderOfferSection({
   return (
     <section id={TENDER_OFFER_SECTION_ID} className="rounded-xl border border-teal-500/25 bg-teal-500/5 overflow-hidden space-y-0">
       <div className="px-3 py-2 border-b border-teal-500/15">
-        <p className="text-xs font-semibold text-teal-900 dark:text-teal-200">Oferta i wynik</p>
+        <p className="text-xs font-semibold text-teal-900 dark:text-teal-200">{TENDER_OWNER_WORKSPACE_SECTION_COPY.offerResult}</p>
       </div>
 
       <div className="px-3 py-2.5 space-y-3">

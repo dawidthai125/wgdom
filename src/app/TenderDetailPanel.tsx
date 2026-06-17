@@ -42,8 +42,10 @@ import { TenderMonitoringBanner } from "@/app/TenderMonitoringBanner";
 import { TenderOfferSection } from "@/app/TenderOfferSection";
 import { TenderOfferCompletenessPanel } from "@/app/TenderOfferCompletenessPanel";
 import { TenderWorkspaceTabBar } from "@/app/TenderWorkspaceTabBar";
-import { TenderOverviewShortcuts } from "@/app/TenderOverviewShortcuts";
 import { TenderAnalysisStatusStrip } from "@/app/TenderAnalysisStatusStrip";
+import { TenderOwnerView } from "@/app/TenderOwnerView";
+import { resolvedCostStatus } from "@/lib/tender-data-ssot";
+import { isKosztorysAwaitingHeavyParse } from "@/lib/tender-analysis-status-ux";
 import { TenderDocumentsWorkspace } from "@/app/TenderDocumentsWorkspace";
 import { TenderQualificationWorkspace } from "@/app/TenderQualificationWorkspace";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
@@ -53,6 +55,7 @@ import {
   resolveDefaultTenderWorkspace,
   type TenderWorkspaceTabId,
 } from "@/lib/tender-workspace-ux";
+import { TENDER_OWNER_WORKSPACE_SECTION_COPY } from "@/lib/tender-owner-language-pl";
 import { fetchAndParseKosztorys, isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
@@ -595,6 +598,12 @@ export function TenderDetailPanel({
     return computeBidProposalNow();
   }, [valuationWorkspaceActive, computeBidProposalNow]);
 
+  const ownerFinanceProposal = useMemo(() => {
+    if (resolvedCostStatus(item) === "NOT_FOUND") return null;
+    if (isKosztorysAwaitingHeavyParse(item)) return null;
+    return computeBidProposalNow();
+  }, [item, computeBidProposalNow]);
+
   const referenceValuePln = estimatedValuePlnFromItem(item, swz)
     ?? parsePlnFromKosztorysTotal(
       item.tenderDossier?.kosztorys?.totalValue,
@@ -641,14 +650,17 @@ export function TenderDetailPanel({
   const workspaceBadges = useMemo(() => {
     const badges: Partial<Record<TenderWorkspaceTabId, string>> = {};
     const mon = getTenderMonitoringCounts(item);
-    if (mon.total > 0) badges.overview = String(mon.total);
+    // P5-004 — monitoring już w nagłówku (Pilne); bez badge na Przeglądzie.
+    if (mon.total > 0 && activeWorkspace !== "overview") {
+      badges.overview = String(mon.total);
+    }
     if (bidPrepChecks.some((c) => c.id === "kosztorys" && c.status !== "ok")) {
       badges.documents = "!";
     }
     const wadiumCheck = bidPrepChecks.find((c) => c.id === "wadium");
     if (wadiumCheck?.status === "partial") badges.qualification = "!";
     return badges;
-  }, [item, bidPrepChecks]);
+  }, [item, bidPrepChecks, activeWorkspace]);
 
   const handleSaveSubmittedBid = useCallback(async () => {
     const pln = submittedBidDraft ? Number(submittedBidDraft) : null;
@@ -690,6 +702,7 @@ export function TenderDetailPanel({
         readyCount={readyCount}
         readyTotal={bidPrepChecks.length}
         onStatusChange={(status) => onUpdate({ status })}
+        ownerViewCompact={activeWorkspace === "overview"}
       />
 
       <TenderWorkspaceTabBar
@@ -700,96 +713,103 @@ export function TenderDetailPanel({
 
       {activeWorkspace === "overview" && (
         <div className="space-y-3 max-h-[calc(100vh-12rem)] overflow-y-auto">
-          <TenderMonitoringBanner
+          <TenderOwnerView
             item={item}
-            onOpenStrategy={tendersCtx?.openTendersStrategy}
-          />
-
-          <TenderAnalysisStatusStrip
-            item={item}
-            swz={swz}
-            bidProposal={bidProposal}
-            dossierBuilding={dossierBuilding}
-            autoRunning={autoRunning}
-          />
-
-          <div className="flex flex-wrap items-center gap-2">
-            <a
-              href={item.ezamowieniaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ExternalLink size={12} />
-              e-Zamówienia
-            </a>
-            <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-xs font-medium cursor-pointer hover:bg-secondary/80">
-              {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
-              Wgraj SWZ
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx,.ath,.nor,.xml,.xlsx,.xls,.zip"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) void handleUpload(f);
-                  e.target.value = "";
-                }}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </label>
-            {(item.status === "won" || item.status === "preparing") && onCreateJob && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (item.linkedJobId && onOpenJob) {
-                    onOpenJob(item.linkedJobId);
-                    return;
-                  }
-                  const jobId = onCreateJob(item);
-                  if (jobId) onUpdate({ linkedJobId: jobId, status: item.status === "won" ? "won" : item.status });
-                  toast.success("Utworzono robótę z przetargu");
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-medium hover:bg-emerald-500/20"
-              >
-                <Briefcase size={12} />
-                {item.linkedJobId ? "Otwórz robotę" : "Utwórz robotę"}
-              </button>
-            )}
-            {onRemove && (
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); onRemove(); }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-700 dark:text-red-400 text-xs font-medium hover:bg-red-500/20"
-              >
-                <Trash2 size={12} />
-                Usuń
-              </button>
-            )}
-          </div>
-
-          <TenderOverviewShortcuts
-            item={item}
+            allItems={allItems}
             swz={swz}
             fit={item.tenderFit}
+            ownerFinanceProposal={ownerFinanceProposal}
             onNavigate={navigateWorkspace}
-          />
+            onOpenPreview={(previewItem) => setDocPreview(previewItem)}
+            moreSection={(
+              <>
+                <TenderMonitoringBanner
+                  item={item}
+                  onOpenStrategy={tendersCtx?.openTendersStrategy}
+                />
 
-          <TenderBidPrepPanel
-            item={item}
-            swz={swz}
-            fit={item.tenderFit}
-            bidProposal={bidProposal}
-            ourEstimatePln={item.ourEstimatePln}
-            analyzing={analyzing}
-            onAnalyze={() => void runAnalysis()}
-            onExportPdf={() => void handleExportPdf()}
-            exportingPdf={exportingPdf}
-            onUpdateOurEstimate={(pln) => onUpdate(patchOurEstimatePln(item, pln, "ręczna edycja"))}
-            onNavigateWorkspace={navigateWorkspace}
-            overviewMode
+                <TenderAnalysisStatusStrip
+                  item={item}
+                  swz={swz}
+                  bidProposal={ownerFinanceProposal}
+                  dossierBuilding={dossierBuilding}
+                  autoRunning={autoRunning}
+                  ownerMoreContext
+                />
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <a
+                    href={item.ezamowieniaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <ExternalLink size={12} />
+                    e-Zamówienia
+                  </a>
+                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-xs font-medium cursor-pointer hover:bg-secondary/80">
+                    {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                    Wgraj SWZ
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,.ath,.nor,.xml,.xlsx,.xls,.zip"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) void handleUpload(f);
+                        e.target.value = "";
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </label>
+                  {(item.status === "won" || item.status === "preparing") && onCreateJob && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (item.linkedJobId && onOpenJob) {
+                          onOpenJob(item.linkedJobId);
+                          return;
+                        }
+                        const jobId = onCreateJob(item);
+                        if (jobId) onUpdate({ linkedJobId: jobId, status: item.status === "won" ? "won" : item.status });
+                        toast.success("Utworzono robótę z przetargu");
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-medium hover:bg-emerald-500/20"
+                    >
+                      <Briefcase size={12} />
+                      {item.linkedJobId ? "Otwórz robotę" : "Utwórz robotę"}
+                    </button>
+                  )}
+                  {onRemove && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-700 dark:text-red-400 text-xs font-medium hover:bg-red-500/20"
+                    >
+                      <Trash2 size={12} />
+                      Usuń
+                    </button>
+                  )}
+                </div>
+
+                <TenderBidPrepPanel
+                  item={item}
+                  swz={swz}
+                  fit={item.tenderFit}
+                  bidProposal={ownerFinanceProposal}
+                  ourEstimatePln={item.ourEstimatePln}
+                  analyzing={analyzing}
+                  onAnalyze={() => void runAnalysis()}
+                  onExportPdf={() => void handleExportPdf()}
+                  exportingPdf={exportingPdf}
+                  onUpdateOurEstimate={(pln) => onUpdate(patchOurEstimatePln(item, pln, "ręczna edycja"))}
+                  onNavigateWorkspace={navigateWorkspace}
+                  collapseTiles
+                />
+              </>
+            )}
           />
 
           <textarea
@@ -835,11 +855,11 @@ export function TenderDetailPanel({
       {activeWorkspace === "valuation" && (
         <section id={TENDER_VALUATION_SECTION_ID} className="scroll-mt-2 space-y-2">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground px-0.5">
-            Wycena
+            {TENDER_OWNER_WORKSPACE_SECTION_COPY.valuation}
           </p>
           {dossierBuilding && (
             <p className="text-[10px] text-muted-foreground flex items-center gap-2 px-0.5">
-              <Loader2 size={11} className="animate-spin" /> Przetwarzanie dokumentów pod wycenę…
+              <Loader2 size={11} className="animate-spin" /> {TENDER_OWNER_WORKSPACE_SECTION_COPY.valuationProcessing}
             </p>
           )}
           <TenderBidProposalPanel

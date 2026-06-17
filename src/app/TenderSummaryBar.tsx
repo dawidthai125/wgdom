@@ -5,6 +5,7 @@ import {
   buildTenderSummarySnapshot,
   TENDER_SUMMARY_BAR_ID,
 } from "@/lib/tender-workspace-ux";
+import { TENDER_OWNER_OPERATOR_COPY } from "@/lib/tender-owner-language-pl";
 
 export function TenderSummaryBar({
   item,
@@ -12,14 +13,20 @@ export function TenderSummaryBar({
   readyCount,
   readyTotal,
   onStatusChange,
+  ownerViewCompact = false,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
   readyCount?: number;
   readyTotal?: number;
   onStatusChange?: (status: TenderPipelineStatus) => void;
+  /** P5-004 — mniej szumu na Przeglądzie (Owner View). */
+  ownerViewCompact?: boolean;
 }) {
-  const snap = buildTenderSummarySnapshot(item, swz, readyCount, readyTotal);
+  const snap = buildTenderSummarySnapshot(item, swz, readyCount, readyTotal, {
+    hideReadyLabel: ownerViewCompact,
+    hideDeadlineField: ownerViewCompact,
+  });
 
   return (
     <div
@@ -30,7 +37,9 @@ export function TenderSummaryBar({
         Przetarg
       </p>
       <p className="text-xs font-semibold leading-snug line-clamp-2">{item.title}</p>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1.5 text-[10px]">
+      <div className={`grid gap-x-3 gap-y-1.5 text-[10px] ${
+        snap.hideDeadlineField ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2 sm:grid-cols-4"
+      }`}>
         <div>
           <span className="text-muted-foreground">Status</span>
           {onStatusChange ? (
@@ -48,12 +57,14 @@ export function TenderSummaryBar({
             <p className="font-medium mt-0.5">{snap.statusLabel}</p>
           )}
         </div>
-        <div>
-          <span className="text-muted-foreground">Termin</span>
-          <p className={`font-medium mt-0.5 ${!snap.offerOpen && item.submittingOffersDate ? "text-amber-700 dark:text-amber-300" : ""}`}>
-            {snap.deadlineDisplay}
-          </p>
-        </div>
+        {!snap.hideDeadlineField && (
+          <div>
+            <span className="text-muted-foreground">Termin</span>
+            <p className={`font-medium mt-0.5 ${!snap.offerOpen && item.submittingOffersDate ? "text-amber-700 dark:text-amber-300" : ""}`}>
+              {snap.deadlineDisplay}
+            </p>
+          </div>
+        )}
         <div>
           <span className="text-muted-foreground">Wartość</span>
           <p className="font-medium mt-0.5 truncate" title={snap.valueDisplay}>{snap.valueDisplay}</p>
@@ -75,7 +86,8 @@ export function TenderSummaryBar({
       </div>
       {snap.readyLabel && (
         <p className="text-[10px] text-muted-foreground">
-          Gotowość oferty: <strong className="text-foreground">{snap.readyLabel}</strong>
+          {TENDER_OWNER_OPERATOR_COPY.summaryReadyPrefix}{" "}
+          <strong className="text-foreground">{snap.readyLabel}</strong>
         </p>
       )}
     </div>

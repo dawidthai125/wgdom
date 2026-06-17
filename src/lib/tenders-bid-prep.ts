@@ -16,6 +16,7 @@ import {
   KOSZTORYS_AWAITING_PARSE_LABEL,
   countTenderAttachments,
 } from "@/lib/tender-analysis-status-ux";
+import { TENDER_OWNER_HINT_COPY, TENDER_OWNER_TILE_LABELS } from "@/lib/tender-owner-language-pl";
 import {
   buildKosztorysChecklistDisplay,
   buildKosztorysChecklistHint,
@@ -108,7 +109,7 @@ export function computeBidPrepChecks(
   const checks: BidPrepCheckItem[] = [
     {
       id: "deadline",
-      label: "Termin ofert",
+      label: TENDER_OWNER_TILE_LABELS.deadline,
       status: !deadlineStr ? "missing" : offerOpen ? "ok" : "partial",
       display: deadlineStr
         ? (offerOpen && days != null && days >= 0 ? `${deadlineStr} (${days} d.)` : deadlineStr)
@@ -117,14 +118,14 @@ export function computeBidPrepChecks(
     },
     {
       id: "value",
-      label: "Wartość zamówienia",
+      label: TENDER_OWNER_TILE_LABELS.value,
       status: valuePln != null ? "ok" : costStatus !== "NOT_FOUND" ? "partial" : "missing",
       display: valueResolved.display,
       hint: valueResolved.hint,
     },
     {
       id: "wadium",
-      label: "Wadium",
+      label: TENDER_OWNER_TILE_LABELS.wadium,
       status: wadiumInfo.blocked
         ? "partial"
         : wadiumInfo.amountPln != null || wadiumInfo.raw
@@ -141,23 +142,23 @@ export function computeBidPrepChecks(
     },
     {
       id: "kosztorys",
-      label: "Kosztorys / przedmiar",
+      label: TENDER_OWNER_TILE_LABELS.kosztorys,
       status: costStatus !== "NOT_FOUND" ? "ok" : kosztorysAwaiting || docCount > 0 ? "partial" : "missing",
       display: kosztorysMissingDisplay,
       hint: kosztorysMissingHint,
     },
     {
       id: "criteria",
-      label: "Kryteria oceny",
+      label: TENDER_OWNER_TILE_LABELS.criteria,
       status: resolvedAwardCriteria(swz).length > 0 ? "ok" : fit ? "partial" : "missing",
       display: formatAwardCriteriaSummary(resolvedAwardCriteria(swz)),
       hint: resolvedAwardCriteria(swz).length === 0
-        ? "Wynik analizy SWZ/STWIOR/OPZ — po „Analizuj SWZ”"
+        ? TENDER_OWNER_HINT_COPY.criteriaAfterAnalyze
         : undefined,
     },
     {
       id: "our-bid",
-      label: "Nasza wycena",
+      label: TENDER_OWNER_TILE_LABELS.ourBid,
       status: item.ourEstimatePln != null
         ? "ok"
         : bidProposal?.ok && bidProposal.recommendedBidPln != null

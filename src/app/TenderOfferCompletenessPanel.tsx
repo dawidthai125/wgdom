@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ChevronDown, ClipboardCheck } from "lucide-react";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
+import { TENDER_OWNER_WORKSPACE_SECTION_COPY } from "@/lib/tender-owner-language-pl";
 import {
   TENDER_OFFER_COMPLETENESS_SECTION_ID,
   buildOfferCompletenessSnapshot,
@@ -59,7 +60,7 @@ export function TenderOfferCompletenessPanel({
       <div className="px-3 py-2.5 bg-secondary/40 border-b border-border">
         <p className="text-xs font-semibold flex items-center gap-1.5">
           <ClipboardCheck size={13} className="text-muted-foreground shrink-0" />
-          Kompletność oferty
+          {TENDER_OWNER_WORKSPACE_SECTION_COPY.offerCompleteness}
         </p>
       </div>
       <div className="px-3 py-2.5 space-y-2">

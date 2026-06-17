@@ -7,6 +7,7 @@ import {
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
+import { TENDER_OWNER_WORKSPACE_SECTION_COPY } from "@/lib/tender-owner-language-pl";
 
 const STATE_CLASS: Record<TenderAnalysisStepState, string> = {
   ready: "text-emerald-600 dark:text-emerald-400",
@@ -33,12 +34,15 @@ export function TenderAnalysisStatusStrip({
   bidProposal,
   dossierBuilding,
   autoRunning,
+  ownerMoreContext = false,
 }: {
   item: TenderPipelineItem;
   swz?: TenderSwzAnalysis | null;
   bidProposal?: TenderBidProposal | null;
   dossierBuilding?: boolean;
   autoRunning?: boolean;
+  /** P5-004 — w Więcej pomiń kroki duplikujące Owner View. */
+  ownerMoreContext?: boolean;
 }) {
   const rows = buildTenderAnalysisStatusRows({
     item,
@@ -47,14 +51,17 @@ export function TenderAnalysisStatusStrip({
     dossierBuilding,
     autoRunning,
   });
+  const visibleRows = ownerMoreContext
+    ? rows.filter((r) => r.id === "notice" || r.id === "documents")
+    : rows;
 
   return (
     <div className="rounded-lg border border-border/60 bg-secondary/20 px-3 py-2">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
-        Status analizy
+        {TENDER_OWNER_WORKSPACE_SECTION_COPY.analysisProgress}
       </p>
       <div className="flex flex-wrap gap-x-4 gap-y-1">
-        {rows.map((row) => {
+        {visibleRows.map((row) => {
           const Icon = rowIcon(row, { dossierBuilding, autoRunning });
           const spin = row.state === "pending" && Icon === Loader2;
           return (
