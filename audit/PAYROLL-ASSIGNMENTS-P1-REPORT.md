@@ -96,4 +96,10 @@ npx vite-node scripts/test-payroll-assignments-p1.mjs → 16/16 PASS
 
 ## Git / Deploy
 
-*(uzupełnione po commit/push)*
+| Pole | Wartość |
+|------|---------|
+| Commit | `94ad114` |
+| Push | `main` → origin PASS |
+| VERIFY DEPLOY FAST | `version.json` → **2.59.49** |
+| PRODUCTION VERIFIED | **TAK** |
+| RELEASE GO | **TAK** |

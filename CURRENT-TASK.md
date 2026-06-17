@@ -1,64 +1,78 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-16 · **EM-P1R-HF001 (2.59.44)**
+**Ostatnia aktualizacja:** 2026-06-16 · **PAYROLL-ASSIGNMENTS-P1 (2.59.49)**
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod (`main`)** | **2.59.44** · **PRODUCTION VERIFIED** |
-| **Commit prod (EM)** | **`26251ff`** — ADDRESS parity 5× DOCX |
-| **Stream WM Druk** | **COMPLETE** — ZIP · DOCX · preservation · sync · P0.5 |
-| **ZI Tauron 2026** | **PRODUCTION STABLE** |
-| **Pomiary Elektryczne** | **COMPLETE** EM-P0→P1R · szablony Word SSOT · rejestr RAP · katalog · ZIP odbiorowy |
+| **Wersja prod (`main`)** | **2.59.49** · **PRODUCTION VERIFIED** |
+| **Commit prod (PAYROLL-P1)** | **`94ad114`** — Przydziały robót z Listy Płac |
+| **Poprzedni prod (EM)** | **`26251ff`** — v2.59.44 EM-P1R-HF001 |
+| **Stream WM Druk** | **COMPLETE** — ZI Tauron 2026 STABLE |
+| **Pomiary Elektryczne** | **COMPLETE** EM-P0→P1R |
+| **Lista Płac · Przydziały** | **P1 CLOSED** |
 
-## ★★ START HERE
+## ★★ START HERE (nowy agent)
 
 | Temat | Dokument |
 |-------|----------|
 | **Baseline prod** | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
+| **★ Przydziały robót (P1)** | [`docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md`](docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md) |
 | **Pomiary Elektryczne (EM)** | [`docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md) |
 | **WM Druk / POST ZI** | [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md) |
-| **ZI SSOT** | [`docs/ZI-2026-HANDOFF.md`](docs/ZI-2026-HANDOFF.md) |
 | **Onboarding agenta** | [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
-| **Architektura** | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.8 WM · § 12.1.10 EM |
+| **Architektura** | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 10.2 · § 12.1.8 WM · § 12.1.10 EM |
 
-## Ukończone w sesji EM (2026-06-16)
+## Ukończone w sesji 2026-06-16
 
-| Faza | Wersja | Commit | Raport |
-|------|--------|--------|--------|
-| EM-P1.6C Registry Repair V2 | 2.59.42 | `b79c949` | [`audit/EM-P1.6C-REGISTRY-REPAIR-V2-REPORT.md`](audit/EM-P1.6C-REGISTRY-REPAIR-V2-REPORT.md) |
-| EM-P1R Template Rebuild | 2.59.43 | `d6268b1` | [`audit/EM-P1R-TEMPLATE-REBUILD-REPORT.md`](audit/EM-P1R-TEMPLATE-REBUILD-REPORT.md) |
-| EM-P1R-HF001 ADDRESS parity | 2.59.44 | `26251ff` | [`audit/EM-P1R-HOTFIX-001-ADDRESS-PARITY-REPORT.md`](audit/EM-P1R-HOTFIX-001-ADDRESS-PARITY-REPORT.md) |
+| Faza | Wersja | Commit | Handoff / raport |
+|------|--------|--------|------------------|
+| INSPECTOR-P1B Pakiet odbiorowy | 2.59.46 | `e6d7e8e` | `audit/INSPECTOR-P1B-*` |
+| INSPECTOR-UX-002 Quick wins | 2.59.47 | `27a2ab5` | — |
+| INSPECTOR-DESIGN-002 Alignment | 2.59.48 | `2081dc8` | `audit/INSPECTOR-DESIGN-002-*` |
+| **PAYROLL-ASSIGNMENTS-P1** | **2.59.49** | **`94ad114`** | [`docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md`](docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md) · [`audit/PAYROLL-ASSIGNMENTS-P1-REPORT.md`](audit/PAYROLL-ASSIGNMENTS-P1-REPORT.md) |
 
-## Smoke regresji EM
+## Smoke — Przydziały robót (P1)
 
 ```bash
 npm run build
+npx vite-node scripts/test-payroll-assignments-p1.mjs
+npx vite-node scripts/test-dashboard-v3-counts.mjs
+```
+
+## Smoke regresji EM (bez zmian w P1)
+
+```bash
 npx vite-node scripts/test-electrical-measurements-p1.mjs
-npx vite-node scripts/test-em-p1r-visual-smoke.mjs
 npx vite-node scripts/test-em-p1r-hotfix-001-address-parity.mjs
-npx vite-node scripts/test-electrical-measurements-registry-repair-v2.mjs
 ```
 
 ## Smoke regresji WM Druk (ZI)
 
 ```bash
 npx vite-node scripts/test-wm-print-zi-2026-smoke.mjs
-npx vite-node scripts/test-wm-print-zi-2026-preservation-smoke.mjs
-npx vite-node scripts/test-wm-print-zi-zip-post-cleanup.mjs
 ```
 
 ## Następny krok (produkt)
 
-**EM-P1R CLOSED · WM Druk stabilne.**
+**PAYROLL-ASSIGNMENTS-P1 CLOSED.** Przed kolejną funkcją: **AUDIT → PLAN → IMPLEMENT → BUILD → SMOKE → COMMIT → PUSH → VERIFY → RAPORT**
 
-Przed nową funkcją: **AUDIT → PLAN → IMPLEMENT → BUILD → SMOKE → COMMIT → PUSH → VERIFY → RAPORT**
+**Backlog OPEN (ustalić z użytkownikiem):**
 
-**Backlog otwarty (ustalić z użytkownikiem):**
-
-- Nowe funkcje Pomiary Elektryczne (poza DOCX SSOT)
-- Nowe funkcje Odbiory WM Druk
-- Notatki operacyjne P3 Export
+- **PAYROLL-ASSIGNMENTS-P2** — patrz §11 w [`SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md`](docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md) (badge w Sumach, kopiowanie tygodnia, activity log, …)
+- Notatki operacyjne **P3 Export** (PDF/DOCX/Email)
+- **P2-H.7** Edge magic bytes 7z
+- Nowe funkcje Pomiary Elektryczne / WM Druk (poza SSOT)
 - Audit Center / Security Log
-- P2-H.7 Edge magic bytes 7z
+
+## Szybka mapa — gdzie co edytować (Lista Płac)
+
+| Co | Plik |
+|----|------|
+| Tryby Sumy / Szczegóły / Przydziały | `PayrollView.tsx` → `payrollListMode` |
+| Panel godzin pracownika | `WeekEmployeeDetail.tsx` |
+| Panel przydziałów do robót | `PayrollJobAssignmentsPanel.tsx` |
+| Logika spójności + mutacje jobs | `src/lib/payroll-job-assignments.ts` |
+| Algorytm spójności (SSOT) | `app-domain.ts` → `payrollJobConsistencyAlerts` |
+| Edycja przydziałów (Roboty) | `JobsView.tsx` → sekcja Pracownicy |

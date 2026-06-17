@@ -12,8 +12,9 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.59.44** (prod) · **EM-P1R COMPLETE** · **WM Druk COMPLETE · ZI Tauron 2026 STABLE**
-- **Prod (`main` / `origin/main`, app):** **`26251ff`** (2.59.44) · https://www.wgdom.fun
+- **Aktualna wersja UI:** **2.59.49** (prod) · **PAYROLL-ASSIGNMENTS-P1** · **EM-P1R COMPLETE** · **WM Druk COMPLETE · ZI Tauron 2026 STABLE**
+- **Prod (`main` / `origin/main`, app):** **`94ad114`** (2.59.49) · https://www.wgdom.fun
+- **★★ Handoff Przydziały robót (P1):** [`docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md`](../../docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md) — Lista Płac → edycja `workEntries[]` · bez nowego KV
 - **★★ Master handoff POST ZI:** [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](../../docs/MASTER-HANDOFF-POST-ZI-2026.md)
 - **★★ Handoff Pomiary Elektryczne (EM-P1R):** [`docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](../../docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md) — DOCX SSOT Word · rejestr RAP · katalog · ZIP odbiorowy
 - **★★ SSOT ZI prod:** [`docs/ZI-2026-HANDOFF.md`](../../docs/ZI-2026-HANDOFF.md) · walidacja: [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md)
@@ -154,6 +155,27 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
  **Kluczowe pliki:** `src/lib/electrical-measurements/*`, `public/em-measurements/*.template.docx`, `templatize-em-p1r-from-ssot.mjs`
  
  **Nie** używać `build-em-docx-templates.mjs` · **Nie** zmieniać layout szablonów 1:1 bez audytu.
+ 
+ ---
+ 
+ ## Lista Płac — Przydziały robót PAYROLL-ASSIGNMENTS-P1 (prod `94ad114`, v2.59.49, 2026-06-16)
+ 
+ **Status:** **P1 CLOSED** · edycja `job.workEntries[]` z Listy Płac · **bez** nowego KV · **bez** zmian godzin/wypłat
+ 
+ | Element | Skrót |
+ |---|-----|
+ | Tab UI | Sumy · Szczegóły dni · **Przydziały robót** (`payrollListMode`) |
+ | SSOT godzin | `emp.days` — tylko odczyt w panelu przydziałów |
+ | SSOT przydziałów | `job.workEntries[]` w `kw-jobs` — jak Roboty → Pracownicy |
+ | Spójność | reuse `payrollJobConsistencyAlerts` — badge 🟢🟡🔴 |
+ 
+ **Handoff:** [`docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md`](../../docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md) · **ARCHITECTURE § 10.1**
+ 
+ **Kluczowe pliki:** `PayrollView.tsx`, `PayrollJobAssignmentsPanel.tsx`, `payroll-job-assignments.ts`, `JobsView.tsx` (wzorcowa edycja)
+ 
+ **Test:** `npx vite-node scripts/test-payroll-assignments-p1.mjs`
+ 
+ **Nie** zmieniać modelu wypłat/grafiku/sobót/zaliczek bez briefu · backlog P2 tylko na polecenie
  
  ---
  

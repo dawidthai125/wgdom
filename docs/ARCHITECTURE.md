@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-16 (INSPECTOR-UX-002 **v2.59.47** · § 12.1.11)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-16 (PAYROLL-ASSIGNMENTS-P1 **v2.59.49** · § 10.1 Przydziały robót)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -548,6 +548,24 @@ Pliki 20.1B: `src/lib/payroll-cycle.ts`, `src/app/PayrollView.tsx`, `src/app/App
 | **Fix** | `isPayrollWeekClosedForUi(week, hasRolloverBlockers)` — calendar behind + blockers → **nie** closed |
 | **UI** | `PayrollView`, `App.tsx` snapshot refresh, `payroll-leave-overlay` biweekly |
 | **Smoke** | `scripts/smoke-test-payroll-week-closed-20.1d.mjs` (T1–T6) |
+
+**Lista Płac — Przydziały robót (PAYROLL-ASSIGNMENTS-P1, v2.59.49, prod `94ad114` — CLOSED):**
+
+| Aspekt | Opis |
+|--------|------|
+| **Cel** | Edycja `job.workEntries[]` z Listy Płac — alternatywny widok do Roboty → Pracownicy |
+| **SSOT godzin** | `dayBaseHoursOnly(emp.days[dayKey])` — **tylko odczyt** w panelu przydziałów |
+| **SSOT przydziałów** | `Job.workEntries[]` w `kw-jobs` — ten sam model co `JobsView` |
+| **UI tryby** | `PayrollView.payrollListMode`: `summary` \| `detailed` \| `assignments` (localStorage `wg-payroll-list-mode`) |
+| **Panel** | `assignments` + wybrany pracownik → `PayrollJobAssignmentsPanel`; inaczej → `WeekEmployeeDetail` |
+| **Spójność** | Reuse `payrollJobConsistencyAlerts`, `jobHoursComparableToPayrollBase`, `jobSitesForEmployeeOnDate` — **bez duplikacji** Dashboard |
+| **Badge** | 🟢🟡🔴 na liście (tryb assignments) — `employeePayrollAssignmentBadge()` |
+| **Filtr robót** | Dropdown: `inferJobPhase !== "completed"` (`jobsForPayrollAssignmentDropdown`) |
+| **Kopia wczoraj** | `copyEmployeeAssignmentsFromPreviousDay` + `distributeHoursAcrossEntries` |
+| **Zapis** | `onSetJobs={setJobs}` w `AdminViewRouter` → sync jak Roboty |
+| **Zakaz** | Brak nowego KV; brak zmian wypłat/grafiku/sobót/zaliczek |
+
+Pliki: `src/lib/payroll-job-assignments.ts`, `src/app/PayrollJobAssignmentsPanel.tsx`, `src/app/PayrollView.tsx`, `src/app/admin/AdminViewRouter.tsx`, `src/app/app-domain.ts` (algorytm spójności), `src/app/JobsView.tsx` (wzorcowa edycja). Handoff: [`SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md`](SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md). Smoke: `scripts/test-payroll-assignments-p1.mjs`.
 
 **Nowy typ danych → MUSISZ:** dodać do `DATA_KEYS`, hook stanu w adminie, merge w `mergeDataKey`, push/pull paths, tombstone przy DELETE.
 
@@ -1856,7 +1874,7 @@ WGDOM1/
 | `View` key | Etykieta UI | Komponent | Uwagi |
 |------------|-------------|-----------|-------|
 | `dashboard` | Pulpit | `DashboardView.tsx` | CC executive gdy `canViewTenders` |
-| `payroll` | Lista Płac | `PayrollView.tsx` | Carry 20.1A–20.1D |
+| `payroll` | Lista Płac | `PayrollView.tsx` | Carry 20.1A–20.1D · **Przydziały robót P1** (2.59.49) |
 | `schedule` | Grafik | *(App.tsx)* | Tydzień Pn–So |
 | `directory` / `contacts` | Pracownicy i kontakty | `TeamDirectoryContactsView.tsx` | Zakładki: kartoteka · e-mail (routing wewnętrzny `contacts`) |
 | `archive` | Archiwum | *(App.tsx)* | Zapisane tygodnie |
@@ -1890,6 +1908,7 @@ WGDOM1/
 | `media-separation.ts` | **20.5A.8** — `collectJobImages()` / `collectJobDocuments()`, county |
 | `photo-queue.ts` | Kolejka offline zdjęć (worker + inspector) |
 | `payroll-export.ts` / `payroll-cycle.ts` | PDF/Word listy płac, cykle tygodni |
+| `payroll-job-assignments.ts` | **P1 v2.59.49** — edycja `workEntries` z Listy Płac, badge spójności, mutacje jobs |
 | `inspector-stats.ts` | Statystyki logowań inspektorów |
 | `inspector-dashboard.ts` | Statystyki pulpitu inspektora |
 | `email-contacts.ts` | Kontakty mailingowe |

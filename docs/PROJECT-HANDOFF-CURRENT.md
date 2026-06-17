@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-16 (EM-P1R **2.59.44** · WM Druk **2.59.25** · **PRODUCTION VERIFIED**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-16 (PAYROLL-ASSIGNMENTS-P1 **2.59.49** · EM-P1R **2.59.44** · WM Druk **2.59.25** · **PRODUCTION VERIFIED**)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -12,6 +12,7 @@
 2. docs/MASTER-HANDOFF-POST-ZI-2026.md    ← ★★ skrót POST ZI-2026 (WM Druk COMPLETE)
 3. docs/ZI-2026-HANDOFF.md              ← ★★★ ZI Tauron 2026 prod SSOT
 4. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md  ← ★★ Pomiary Elektryczne EM-P1R (2.59.44)
+4b. docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md  ← ★★ Lista Płac · Przydziały robót P1 (2.59.49)
 5. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← ★★ Odbiory WM Druk (COMPLETE)
 6. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← ★★ Notatki operacyjne P0→HF (COMPLETE)
 7. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← ★★ P3 wycena · BZP pipeline · P3.6 · P1 WM
@@ -33,6 +34,7 @@
 | **Odbiory WM Druk P0 infra** | 2.59.15–**2.59.19** | **CLOSED** (pollution/KV/runtime) | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) |
 | **ZI Tauron 2026** | **2.59.22–2.59.25** | **PRODUCTION STABLE** · preservation + §4 + P0.5B housekeeping | [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) |
 | **Pomiary Elektryczne EM-P1R** | **2.59.30–2.59.44** | **COMPLETE** · DOCX SSOT Word · rejestr RAP · katalog · ZIP odbiorowy | [`SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md) |
+| **Lista Płac · Przydziały robót P1** | **2.59.49** (`94ad114`) | **CLOSED** · edycja `workEntries[]` z LP · bez nowego KV | [`SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md`](SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md) |
 | **ZI LiveCycle 2021** | — | **CLOSED** · tombstone `26f02c78…` | [`audit/ZI-FINAL-HANDOFF.md`](../audit/ZI-FINAL-HANDOFF.md) |
 | **P3 Wycena · Baza cen · filtry** | 2.56.0–**2.56.10** (`7acbecf`) | **P3.0–P3.6 CLOSED** | [`SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md`](SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md) |
 | **Notatki operacyjne** | **2.57.0–2.58.1** (`1f8e2bd`) | **COMPLETE** (P0→P2C+HF) · P3 Export OPEN | [`SESSION-HANDOFF-OPERATIONAL-NOTES.md`](SESSION-HANDOFF-OPERATIONAL-NOTES.md) |
@@ -79,8 +81,9 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (repo / prod):      2.59.44       ← EM-P1R-HF001 ADDRESS parity
-Feature commit (prod):      26251ff        v2.59.44 EM templates {{ADDRESS}} fix
+Version (repo / prod):      2.59.49       ← PAYROLL-ASSIGNMENTS-P1 Przydziały robót
+Feature commit (prod):      94ad114        v2.59.49 Lista Płac → Przydziały robót P1
+EM-P1R-HF001 (prev):        26251ff        v2.59.44 EM templates {{ADDRESS}} fix
 EM-P1R templates:           d6268b1        v2.59.43 SSOT Word rebuild
 EM-P1.6C registry:         b79c949        v2.59.42 registry repair V2
 POST ZI / WM Druk baseline:  2b03c9d        v2.59.25 wm-print housekeeping
@@ -124,8 +127,8 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 | Status | Wartość |
 |--------|---------|
-| **RELEASE GO (2.59.44)** | **TAK** — EM-P1R + HF001 |
-| **RELEASED (prod)** | **2.59.44** — verify `version.json` |
+| **RELEASE GO (2.59.49)** | **TAK** — PAYROLL-ASSIGNMENTS-P1 |
+| **RELEASED (prod)** | **2.59.49** — verify `version.json` |
 | **Pomiary Elektryczne** | **COMPLETE** EM-P0→P1R · **PRODUCTION STABLE** (DOCX SSOT Word) |
 | **STABLE** | TAK (moduł wmprint · ZI 2026 · P0.5B) |
 | **PRODUCTION VERIFIED** | TAK — [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) |
@@ -152,7 +155,7 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.59.44" }
+# oczekiwane: { "version": "2.59.49" }
 ```
 
 ---

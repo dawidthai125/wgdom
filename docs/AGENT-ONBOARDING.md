@@ -1,7 +1,7 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.59.44** · https://www.wgdom.fun · **POST ZI-2026** · WM Druk **COMPLETE** · EM-P1R **COMPLETE**
+> **Prod:** **2.59.49** · https://www.wgdom.fun · **POST ZI-2026** · WM Druk **COMPLETE** · EM-P1R **COMPLETE** · **PAYROLL-ASSIGNMENTS-P1**
 
 ---
 
@@ -14,7 +14,8 @@
 4. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md ← ★★ Pomiary Elektryczne EM-P1R
 5. docs/ZI-2026-HANDOFF.md            ← SSOT generatora ZI Tauron 2026
 6. CURRENT-TASK.md                    ← status sesji / backlog
-7. docs/ARCHITECTURE.md               ← pełna architektura (living document)
+7. docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md  ← ★ Przydziały robót z Listy Płac (P1)
+8. docs/ARCHITECTURE.md               ← pełna architektura (living document)
 8. AGENTS.md                          ← workflow, zakazy, lista handoffów
 9. docs/WORKFLOW-RELEASE-DEPLOY.md    ← release A/B/C + VERIFY FAST
 ```
@@ -72,7 +73,7 @@ Pełna tabela: **ARCHITECTURE.md § 15.1**.
 | `view` (router) | Etykieta | Plik główny |
 |-----------------|----------|-------------|
 | `dashboard` | Pulpit | `DashboardView.tsx` |
-| `payroll` | Lista Płac | `PayrollView.tsx` |
+| `payroll` | Lista Płac | `PayrollView.tsx` | Sumy · Szczegóły dni · **Przydziały robót** (2.59.49) |
 | `schedule` | Grafik | `App.tsx` |
 | `jobs` | Roboty | `JobsView.tsx` |
 | `operationalnotes` | Notatki operacyjne | `OperationalNotesView.tsx` |
@@ -131,6 +132,36 @@ npx vite-node scripts/test-em-p1r-hotfix-001-address-parity.mjs
 ```
 
 **Nie ruszać:** `build-em-docx-templates.mjs` (retired) · layout szablonów 1:1 · `preview.ts` / value engine SSOT
+
+---
+
+## 6c. Lista Płac — Przydziały robót (PAYROLL-ASSIGNMENTS-P1)
+
+**Status:** **P1 CLOSED** · v**2.59.49** · prod **`94ad114`**
+
+| Dokument | Rola |
+|----------|------|
+| [`SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md`](SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md) | **★★ SSOT feature** — architektura, pliki, backlog P2 |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) § 10.1 | Blok techniczny w sekcji payroll |
+| [`audit/PAYROLL-ASSIGNMENTS-P1-REPORT.md`](../audit/PAYROLL-ASSIGNMENTS-P1-REPORT.md) | Raport release |
+
+### Kluczowe pliki
+
+```text
+src/app/PayrollView.tsx              payrollListMode: summary | detailed | assignments
+src/app/PayrollJobAssignmentsPanel.tsx   panel boczny edycji workEntries
+src/lib/payroll-job-assignments.ts   mutacje jobs, badge, footer spójności
+src/app/app-domain.ts                payrollJobConsistencyAlerts (SSOT — nie duplikować)
+src/app/JobsView.tsx                 wzorcowa edycja Roboty → Pracownicy
+```
+
+### Smoke
+
+```bash
+npx vite-node scripts/test-payroll-assignments-p1.mjs
+```
+
+**Nie ruszać bez briefu:** model godzin `emp.days` · wypłaty · grafik · nowy KV · duplikat algorytmu spójności
 
 ---
 
@@ -269,4 +300,4 @@ curl -s https://www.wgdom.fun/version.json   # VERIFY FAST
 
 ---
 
-*Ostatnia aktualizacja: 2026-06-16 · EM-P1R v2.59.44 · POST ZI-2026*
+*Ostatnia aktualizacja: 2026-06-16 · PAYROLL-ASSIGNMENTS-P1 v2.59.49 · EM-P1R · POST ZI-2026*
