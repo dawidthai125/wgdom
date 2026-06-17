@@ -12,16 +12,24 @@ import {
   deliveryPackageStatusLabel,
 } from "@/lib/delivery-package-publications/publication";
 import { formatDeliveryPackageFileSize } from "@/lib/delivery-package-publications/storage";
+import { INSPECTOR_DELIVERY_PACKAGE_PANEL_ID } from "@/lib/inspector-handover-ux";
 import type { DeliveryPackagePublication } from "@/lib/delivery-package-publications/types";
 
 export function InspectorDeliveryPackagePanel({
   jobId,
   publications,
+  panelId = INSPECTOR_DELIVERY_PACKAGE_PANEL_ID,
+  downloadBusy: downloadBusyProp,
+  onDownload,
 }: {
   jobId: string;
   publications: DeliveryPackagePublication[];
+  panelId?: string;
+  downloadBusy?: boolean;
+  onDownload?: () => void | Promise<void>;
 }) {
-  const [downloading, setDownloading] = useState(false);
+  const [downloadingLocal, setDownloadingLocal] = useState(false);
+  const downloading = downloadBusyProp ?? downloadingLocal;
   const [manifestOpen, setManifestOpen] = useState(false);
 
   const publication = useMemo(
@@ -36,9 +44,13 @@ export function InspectorDeliveryPackagePanel({
 
   const handleDownload = async () => {
     if (!publication) return;
-    setDownloading(true);
+    if (onDownload) {
+      await onDownload();
+      return;
+    }
+    setDownloadingLocal(true);
     const res = await downloadPublishedDeliveryPackageZip(publication);
-    setDownloading(false);
+    setDownloadingLocal(false);
     if (res.ok) {
       toast.success(`Pobrano: ${publication.fileName}`);
     } else {
@@ -47,7 +59,7 @@ export function InspectorDeliveryPackagePanel({
   };
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+    <div id={panelId} className="bg-card border border-border rounded-2xl p-4 space-y-3 scroll-mt-3">
       <div className="flex items-start gap-2">
         <Package size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">

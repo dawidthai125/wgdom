@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.46** · **INSPECTOR-P1B**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.47** · **INSPECTOR-UX-002**
+
+## 2.59.47 — Inspektor UX-002 Quick Wins
+
+- **improve:** sticky status pakietu + pakiet above the fold + skróty Pobierz/Checklista/Zdjęcia
+- **test:** `test-inspector-ux-002.mjs`
 
 ## 2.59.46 — Inspektor P1B Pakiet odbiorowy (download + manifest)
 

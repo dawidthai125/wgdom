@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.47",
+    label: "Inspektor UX-002 — Quick Wins odbioru WM",
+    items: [
+      {
+        type: "improve",
+        text: "Robota inspektora: sticky chip 🟢 PAKIET GOTOWY / 🔴 BRAK PAKIETU w nagłówku — widoczny we wszystkich sekcjach",
+      },
+      {
+        type: "improve",
+        text: "Pakiet odbiorowy nad treścią sekcji (above the fold) + pasek skrótów: Pobierz pakiet · Checklista · Zdjęcia",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.46",
     label: "Inspektor P1B — Pakiet odbiorowy (download + manifest)",
     items: [

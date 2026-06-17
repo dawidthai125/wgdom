@@ -140,6 +140,16 @@ import {
   type InspectorMainTab,
 } from "@/app/InspectorNavigation";
 import { InspectorDeliveryPackagePanel } from "@/app/InspectorDeliveryPackagePanel";
+import { InspectorHandoverQuickBar } from "@/app/InspectorHandoverQuickBar";
+import {
+  downloadPublishedDeliveryPackageZip,
+  inspectorDeliveryPackageForJob,
+} from "@/lib/delivery-package-publications/inspector-access";
+import {
+  inspectorDeliveryPackageStatusDisplay,
+  INSPECTOR_DELIVERY_PACKAGE_PANEL_ID,
+  type InspectorHandoverQuickActionId,
+} from "@/lib/inspector-handover-ux";
 import {
   DELIVERY_PACKAGE_PUBLICATIONS_KEY,
   type DeliveryPackagePublication,
@@ -289,6 +299,7 @@ export function InspectorPanel({
   const [operationalNotesReadState, setOperationalNotesReadState] = useState<OperationalNoteReadReceipt[]>([]);
   const [operationalNotesAuditLog, setOperationalNotesAuditLog] = useState<OperationalNoteAuditEntry[]>([]);
   const [deliveryPackagePublications, setDeliveryPackagePublications] = useState<DeliveryPackagePublication[]>([]);
+  const [packageDownloadBusy, setPackageDownloadBusy] = useState(false);
   const [operationalNotesOpen, setOperationalNotesOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -862,6 +873,51 @@ export function InspectorPanel({
 
   const selectedJob = jobs.find((j) => j.id === selectedId) || null;
 
+  const deliveryPackageStatus = useMemo(
+    () =>
+      selectedJob
+        ? inspectorDeliveryPackageStatusDisplay(deliveryPackagePublications, selectedJob.id)
+        : null,
+    [selectedJob, deliveryPackagePublications],
+  );
+
+  const handlePackageDownload = useCallback(async () => {
+    if (!selectedJob) return;
+    const publication = inspectorDeliveryPackageForJob(deliveryPackagePublications, selectedJob.id);
+    if (!publication) {
+      document.getElementById(INSPECTOR_DELIVERY_PACKAGE_PANEL_ID)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      return;
+    }
+    setPackageDownloadBusy(true);
+    const res = await downloadPublishedDeliveryPackageZip(publication);
+    setPackageDownloadBusy(false);
+    if (res.ok) {
+      toast.success(`Pobrano: ${publication.fileName}`);
+    } else {
+      toast.error(res.error);
+    }
+  }, [selectedJob, deliveryPackagePublications]);
+
+  const handleHandoverQuickAction = useCallback(
+    (id: InspectorHandoverQuickActionId) => {
+      if (id === "download_package") {
+        void handlePackageDownload();
+        return;
+      }
+      if (id === "checklist") {
+        scrollToJobSection("docs");
+        return;
+      }
+      if (id === "photos") {
+        scrollToJobSection("photos");
+      }
+    },
+    [handlePackageDownload, scrollToJobSection],
+  );
+
   const handleAddBillingNote = useCallback(async (chargeId: string, text: string, files?: BillingNotePendingFiles) => {
     const job = jobsRef.current.find((j) => j.id === selectedId);
     if (!job) throw new Error("Brak roboty");
@@ -1414,7 +1470,25 @@ export function InspectorPanel({
               <p className="text-[11px] text-muted-foreground truncate">{selectedJob.client || "—"}</p>
               <InspectorProgressBar percent={computeInspectionProgress(selectedJob).percent}/>
               <JobMetaBadges job={selectedJob}/>
+              {deliveryPackageStatus && (
+                <div
+                  className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${
+                    deliveryPackageStatus.ready
+                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                      : "bg-red-500/10 text-red-600 dark:text-red-400"
+                  }`}
+                  title="Status opublikowanego pakietu odbiorowego"
+                >
+                  <span aria-hidden>{deliveryPackageStatus.emoji}</span>
+                  {deliveryPackageStatus.label}
+                </div>
+              )}
             </div>
+            <InspectorHandoverQuickBar
+              packageReady={deliveryPackageStatus?.ready ?? false}
+              downloadBusy={packageDownloadBusy}
+              onAction={handleHandoverQuickAction}
+            />
             <InspectorJobSectionNav
               active={jobSection}
               badges={jobSectionBadges}
@@ -1433,6 +1507,13 @@ export function InspectorPanel({
           <PullToRefreshIndicator pull={jobPull.pull} refreshing={jobPull.refreshing} ready={jobPull.ready}/>
           <div ref={jobScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-5 max-w-2xl mx-auto w-full" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
             {msg && <p className="text-xs text-primary bg-primary/10 rounded-lg px-3 py-2">{msg}</p>}
+
+            <InspectorDeliveryPackagePanel
+              jobId={selectedJob.id}
+              publications={deliveryPackagePublications}
+              downloadBusy={packageDownloadBusy}
+              onDownload={handlePackageDownload}
+            />
 
             {jobSection === "wm" && (
             <>
@@ -1490,10 +1571,6 @@ export function InspectorPanel({
 
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 px-0.5">Odbiór WM — etap, notatki, zdjęcia</p>
-            <InspectorDeliveryPackagePanel
-              jobId={selectedJob.id}
-              publications={deliveryPackagePublications}
-            />
             <JobWmPanel
               job={selectedJob}
               onUpdate={updateJob}
