@@ -11,6 +11,25 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-17",
+    version: "2.59.50",
+    label: "Przetargi — P3-AUDIT-001-FIX-A (utrata dokumentów)",
+    items: [
+      {
+        type: "fix",
+        text: "Przetargi: naprawa utraty dokumentów przy auto-pipeline — functional updateItem(), eliminacja stale closure",
+      },
+      {
+        type: "fix",
+        text: "Auto-pipeline: jeden zbiorczy patch zamiast wielu partial onUpdate — ochrona bzpDocuments, externalDocDiscovery, tenderDossier",
+      },
+      {
+        type: "improve",
+        text: "Smoke regresji T1–T6 — wielokrotne patchy pipeline nie gubią załączników BZP",
+      },
+    ],
+  },
+  {
     date: "2026-06-16",
     version: "2.59.49",
     label: "Lista Płac — Przydziały robót (PAYROLL-ASSIGNMENTS-P1)",
