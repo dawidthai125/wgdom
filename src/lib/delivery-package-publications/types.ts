@@ -6,6 +6,18 @@ export const DELIVERY_PACKAGE_PUBLICATIONS_CAP = 500;
 
 export type DeliveryPackagePublicationStatus = "ACTIVE" | "SUPERSEDED" | "REVOKED";
 
+export type DeliveryPackageManifestFolder = "Odbiory" | "Pomiary";
+
+/** Wpis manifestu — tylko metadane pliku w opublikowanym ZIP (bez regeneracji). */
+export interface DeliveryPackageManifestEntry {
+  folder: DeliveryPackageManifestFolder;
+  fileName: string;
+  relativePath: string;
+  displayLabel: string;
+  mimeType: string;
+  sizeBytes?: number;
+}
+
 /** Wejścia generacji ZIP — zapisane przy publikacji (P1C: porównanie stale). */
 export interface DeliveryPackageGenerationFingerprint {
   schemaVersion: 1;
@@ -46,6 +58,9 @@ export interface DeliveryPackagePublication {
   odbiorFileCount: number;
   pomiaryFileCount: number;
   includesMeasurements: boolean;
+
+  /** Lista plików w opublikowanym ZIP — read-only dla inspektora (P1B). */
+  manifest: DeliveryPackageManifestEntry[];
 
   status: DeliveryPackagePublicationStatus;
 

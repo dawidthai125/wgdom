@@ -1,5 +1,6 @@
 import type {
   DeliveryPackageGenerationFingerprint,
+  DeliveryPackageManifestEntry,
   DeliveryPackagePublication,
   DeliveryPackagePublicationStatus,
 } from "@/lib/delivery-package-publications/types";
@@ -44,6 +45,31 @@ function parseFingerprint(raw: unknown): DeliveryPackageGenerationFingerprint | 
   };
 }
 
+function parseManifestEntry(raw: unknown): DeliveryPackageManifestEntry | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Partial<DeliveryPackageManifestEntry>;
+  if (!r.fileName || !r.relativePath) return null;
+  const folder = r.folder === "Pomiary" ? "Pomiary" : "Odbiory";
+  return {
+    folder,
+    fileName: String(r.fileName),
+    relativePath: String(r.relativePath),
+    displayLabel: String(r.displayLabel ?? r.fileName),
+    mimeType: String(r.mimeType ?? "application/octet-stream"),
+    sizeBytes: typeof r.sizeBytes === "number" ? r.sizeBytes : undefined,
+  };
+}
+
+function parseManifest(raw: unknown): DeliveryPackageManifestEntry[] {
+  if (!Array.isArray(raw)) return [];
+  const out: DeliveryPackageManifestEntry[] = [];
+  for (const item of raw) {
+    const parsed = parseManifestEntry(item);
+    if (parsed) out.push(parsed);
+  }
+  return out;
+}
+
 function parseStatus(raw: unknown): DeliveryPackagePublicationStatus {
   const s = String(raw ?? "ACTIVE");
   return VALID_STATUS.has(s) ? (s as DeliveryPackagePublicationStatus) : "ACTIVE";
@@ -74,6 +100,7 @@ export function parseDeliveryPackagePublication(raw: unknown): DeliveryPackagePu
     odbiorFileCount: typeof r.odbiorFileCount === "number" ? r.odbiorFileCount : 0,
     pomiaryFileCount: typeof r.pomiaryFileCount === "number" ? r.pomiaryFileCount : 0,
     includesMeasurements: r.includesMeasurements === true,
+    manifest: parseManifest(r.manifest),
     status: parseStatus(r.status),
     createdAt: String(r.createdAt ?? r.publishedAt ?? now),
     updatedAt: String(r.updatedAt ?? r.publishedAt ?? now),

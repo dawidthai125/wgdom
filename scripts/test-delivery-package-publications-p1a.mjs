@@ -87,6 +87,16 @@ console.log("=== P1A-T01 normalize + parse ===");
     odbiorFileCount: 12,
     pomiaryFileCount: 6,
     includesMeasurements: true,
+    manifest: [
+      {
+        folder: "Odbiory",
+        fileName: "01-ZI.pdf",
+        relativePath: "Odbiory/01-ZI.pdf",
+        displayLabel: "ZI",
+        mimeType: "application/pdf",
+        sizeBytes: 120000,
+      },
+    ],
     status: "ACTIVE",
     createdAt: "2026-06-16T12:00:00.000Z",
     updatedAt: "2026-06-16T12:00:00.000Z",
@@ -151,6 +161,7 @@ console.log("=== P1A-T03 create + supersede + ACTIVE uniqueness ===");
     odbiorFileCount: 5,
     pomiaryFileCount: 0,
     includesMeasurements: false,
+    manifest: [],
   });
   publications = first.nextPublications;
   assert(getActiveDeliveryPackagePublication(publications, JOB_ID)?.zipVersion === 1, "first active v1");
@@ -172,6 +183,7 @@ console.log("=== P1A-T03 create + supersede + ACTIVE uniqueness ===");
     odbiorFileCount: 6,
     pomiaryFileCount: 0,
     includesMeasurements: false,
+    manifest: [],
   });
   publications = second.nextPublications;
   const active = getActiveDeliveryPackagePublication(publications, JOB_ID);

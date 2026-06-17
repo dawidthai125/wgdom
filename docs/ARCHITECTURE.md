@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-16 (INSPECTOR-P1A **v2.59.45** · § 12.1.11 Published Delivery Package)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-16 (INSPECTOR-P1B **v2.59.46** · § 12.1.11 Published Delivery Package)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1429,29 +1429,32 @@ generate-zip.ts → buildWmPrintFilesForJob()
 
 **Nie zmieniaj bez polecenia:** preview SSOT, value engine, kontrakt placeholderów P1.5, szablony Word 1:1 layout, semantyka rejestru RAP/TEST-RAP.
 
-### 12.1.11 Inspektor — Published Delivery Package (INSPECTOR-P1A, v2.59.45)
+### 12.1.11 Inspektor — Published Delivery Package (INSPECTOR-P1A/P1B, v2.59.45–46)
 
-**Status:** **P1A COMPLETE** (admin publish + storage) · **P1B OPEN** (inspektor download) · **P1C OPEN** (stale KPI)
+**Status:** **P1A COMPLETE** (admin publish + storage) · **P1B COMPLETE** (inspektor download + manifest) · **P1C OPEN** (stale KPI)
 
 **Plan:** [`audit/INSPECTOR-P1-PUBLISHED-DELIVERY-PACKAGE-PLAN.md`](../audit/INSPECTOR-P1-PUBLISHED-DELIVERY-PACKAGE-PLAN.md)
 
-Inspektor **nie** dostaje WM Druk. Admin generuje ZIP w `WmPrintView`, weryfikuje i **publikuje** immutable artefakt do storage + KV.
+Inspektor **nie** dostaje WM Druk. Admin generuje ZIP w `WmPrintView`, weryfikuje i **publikuje** immutable artefakt do storage + KV. Inspektor pobiera **ten sam ZIP** z `InspectorDeliveryPackagePanel` (read-only sync KV).
 
 | Element | Wartość |
 |---------|---------|
-| **Domena** | `src/lib/delivery-package-publications/*` |
+| **Domena** | `src/lib/delivery-package-publications/*` · `InspectorDeliveryPackagePanel.tsx` |
 | **KV** | `kw-delivery-package-publications` (cap 500) |
 | **Storage** | `delivery-package-v{N}-*.zip` via `/storage-upload` (jobId = robota) |
-| **UI admin** | WM Druk → Odbiory → „Opublikuj dla inspektora” obok „Generuj komplet (ZIP)” |
+| **UI admin** | WM Druk → Odbiory → „Opublikuj dla inspektora” |
+| **UI inspektor** | Robota → Odbiór WM → **Pakiet odbiorowy** (status, metadane, pobierz, manifest) |
 | **Status publikacji** | `ACTIVE` · `SUPERSEDED` · `REVOKED` — max **1 ACTIVE** / jobId |
 
-**Fingerprint:** `generationFingerprint` (SHA-256 wejść: szablony, ZI/date, WM job-docs, checklista `documents{}`, aktywny RAP) — zapis P1A; porównanie stale w **P1C**.
+**Manifest:** zapis przy publikacji (`buildDeliveryPackageManifestFromZipBytes`) — foldery Odbiory/Pomiary, INDEX, lista plików read-only dla inspektora.
 
-**Sync:** `mergeDeliveryPackagePublications` w `cloud-sync.ts` · `pushDeliveryPackagePublicationsToCloud` · `BOOTSTRAP_DEFERRED_KEYS`.
+**Fingerprint:** `generationFingerprint` — zapis P1A; porównanie stale w **P1C**.
 
-**Smoke:** `npx vite-node scripts/test-delivery-package-publications-p1a.mjs`
+**Sync:** admin `pushDeliveryPackagePublicationsToCloud` · inspektor **read-only** merge w `InspectorPanel` (bez push).
 
-**Nie zmieniaj bez polecenia:** inspektor bez generatorów WM Druk; publikacja ≠ `kw-wm-print-history` (generacja lokalna).
+**Smoke:** `test-delivery-package-publications-p1a.mjs` · `test-inspector-delivery-package-p1b.mjs`
+
+**Nie zmieniaj bez polecenia:** inspektor bez generatorów WM Druk; pobieranie = `zipPublicUrl` (bez regeneracji).
 
 ---
 

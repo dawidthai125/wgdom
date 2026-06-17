@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.45** · **INSPECTOR-P1A**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.46** · **INSPECTOR-P1B**
+
+## 2.59.46 — Inspektor P1B Pakiet odbiorowy (download + manifest)
+
+- **new:** InspectorPanel → Pakiet odbiorowy — status, metadane, pobierz ZIP, manifest read-only
+- **new:** sync read-only `kw-delivery-package-publications` w inspektorze; manifest przy publikacji admin
+- **test:** `test-inspector-delivery-package-p1b.mjs`
 
 ## 2.59.45 — Inspektor P1A Published Delivery Package (admin publish)
 

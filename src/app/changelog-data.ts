@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.46",
+    label: "Inspektor P1B — Pakiet odbiorowy (download + manifest)",
+    items: [
+      {
+        type: "new",
+        text: "Panel Inspektor → Robota → Odbiór WM: sekcja „Pakiet odbiorowy” — status GOTOWY/BRAK, metadane publikacji, pobieranie opublikowanego ZIP (bez regeneracji, bez WM Druk)",
+      },
+      {
+        type: "new",
+        text: "„Pokaż zawartość” — read-only manifest folderów Odbiory/Pomiary (INDEX, DOCX, PDF); sync read-only kw-delivery-package-publications w InspectorPanel",
+      },
+      {
+        type: "improve",
+        text: "Publikacja admin: zapis manifestu plików z opublikowanego ZIP (P1A rozszerzenie)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.45",
     label: "Inspektor P1A — Published Delivery Package (admin publish)",
     items: [

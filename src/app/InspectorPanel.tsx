@@ -139,6 +139,13 @@ import {
   type InspectorJobSection,
   type InspectorMainTab,
 } from "@/app/InspectorNavigation";
+import { InspectorDeliveryPackagePanel } from "@/app/InspectorDeliveryPackagePanel";
+import {
+  DELIVERY_PACKAGE_PUBLICATIONS_KEY,
+  type DeliveryPackagePublication,
+} from "@/lib/delivery-package-publications/types";
+import { mergeDeliveryPackagePublications } from "@/lib/delivery-package-publications/merge";
+import { normalizeDeliveryPackagePublications } from "@/lib/delivery-package-publications/normalize";
 
 const OperationalNotesView = lazy(() =>
   import("@/app/OperationalNotesView").then((m) => ({ default: m.OperationalNotesView })),
@@ -281,6 +288,7 @@ export function InspectorPanel({
   const [operationalNotes, setOperationalNotes] = useState<OperationalNote[]>([]);
   const [operationalNotesReadState, setOperationalNotesReadState] = useState<OperationalNoteReadReceipt[]>([]);
   const [operationalNotesAuditLog, setOperationalNotesAuditLog] = useState<OperationalNoteAuditEntry[]>([]);
+  const [deliveryPackagePublications, setDeliveryPackagePublications] = useState<DeliveryPackagePublication[]>([]);
   const [operationalNotesOpen, setOperationalNotesOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -314,6 +322,7 @@ export function InspectorPanel({
   const lastAppliedDirJsonRef = useRef<string | null>(null);
   const lastAppliedChargesJsonRef = useRef<string | null>(null);
   const lastAppliedOpNotesJsonRef = useRef<string | null>(null);
+  const lastAppliedDeliveryPubsJsonRef = useRef<string | null>(null);
   const operationalNotesRef = useRef(operationalNotes);
   operationalNotesRef.current = operationalNotes;
   const operationalNotesReadStateRef = useRef(operationalNotesReadState);
@@ -376,6 +385,16 @@ export function InspectorPanel({
         JSON.parse(localStorage.getItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY) || "[]"),
       );
       if (cachedAudit.length > 0) setOperationalNotesAuditLog(cachedAudit);
+    } catch { /* ignore */ }
+    try {
+      const cachedPubs = normalizeDeliveryPackagePublications(
+        JSON.parse(localStorage.getItem(DELIVERY_PACKAGE_PUBLICATIONS_KEY) || "[]"),
+      );
+      if (cachedPubs.length > 0) {
+        const json = JSON.stringify(cachedPubs);
+        lastAppliedDeliveryPubsJsonRef.current = json;
+        setDeliveryPackagePublications(cachedPubs);
+      }
     } catch { /* ignore */ }
     setLoading(false);
   }, []);
@@ -593,6 +612,7 @@ export function InspectorPanel({
         cloudOpNotesDeletedRaw,
         cloudOpReadRaw,
         cloudOpAuditRaw,
+        cloudDeliveryPubsRaw,
       ] = await fetchKeysFromCloud([
         "kw-jobs",
         "kw-directory",
@@ -604,6 +624,7 @@ export function InspectorPanel({
         OPERATIONAL_NOTES_DELETED_IDS_KEY,
         OPERATIONAL_NOTES_READ_STATE_KEY,
         OPERATIONAL_NOTES_AUDIT_LOG_KEY,
+        DELIVERY_PACKAGE_PUBLICATIONS_KEY,
       ]);
       const mergedJobsDeleted = mergeDeletedJobIds(getDeletedJobIds(), normalizeDeletedJobIds(cloudJobsDeletedRaw));
       saveDeletedJobIds(mergedJobsDeleted);
@@ -692,6 +713,22 @@ export function InspectorPanel({
       const mergedOpAudit = mergeOperationalNotesAuditLog(localOpAudit, cloudOpAuditRaw);
       setOperationalNotesAuditLog(mergedOpAudit);
       try { localStorage.setItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY, JSON.stringify(mergedOpAudit)); } catch { /* ignore */ }
+      let localDeliveryPubs: DeliveryPackagePublication[] = [];
+      try {
+        localDeliveryPubs = normalizeDeliveryPackagePublications(
+          JSON.parse(localStorage.getItem(DELIVERY_PACKAGE_PUBLICATIONS_KEY) || "[]"),
+        );
+      } catch { /* ignore */ }
+      const mergedDeliveryPubs = mergeDeliveryPackagePublications(
+        localDeliveryPubs,
+        normalizeDeliveryPackagePublications(cloudDeliveryPubsRaw),
+      );
+      const nextDeliveryPubsJson = JSON.stringify(mergedDeliveryPubs);
+      if (lastAppliedDeliveryPubsJsonRef.current !== nextDeliveryPubsJson) {
+        lastAppliedDeliveryPubsJsonRef.current = nextDeliveryPubsJson;
+        setDeliveryPackagePublications(mergedDeliveryPubs);
+        try { localStorage.setItem(DELIVERY_PACKAGE_PUBLICATIONS_KEY, nextDeliveryPubsJson); } catch { /* ignore */ }
+      }
       setLastSyncedAt(new Date());
       setPushFailed(false);
       if (pushPendingRef.current <= 0) setSyncPending(false);
@@ -709,6 +746,9 @@ export function InspectorPanel({
         ));
         setOperationalNotesAuditLog(normalizeOperationalNotesAuditLog(
           JSON.parse(localStorage.getItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY) || "[]"),
+        ));
+        setDeliveryPackagePublications(normalizeDeliveryPackagePublications(
+          JSON.parse(localStorage.getItem(DELIVERY_PACKAGE_PUBLICATIONS_KEY) || "[]"),
         ));
       } catch { /* ignore */ }
       if (!silent) setMsg("Nie udało się odświeżyć danych");
@@ -750,6 +790,15 @@ export function InspectorPanel({
           if (lastAppliedChargesJsonRef.current !== json) {
             lastAppliedChargesJsonRef.current = json;
             setRecoverableCharges(parsed);
+          }
+        } catch { /* ignore */ }
+      } else if (e.key === DELIVERY_PACKAGE_PUBLICATIONS_KEY) {
+        try {
+          const parsed = normalizeDeliveryPackagePublications(JSON.parse(e.newValue));
+          const json = JSON.stringify(parsed);
+          if (lastAppliedDeliveryPubsJsonRef.current !== json) {
+            lastAppliedDeliveryPubsJsonRef.current = json;
+            setDeliveryPackagePublications(parsed);
           }
         } catch { /* ignore */ }
       }
@@ -1441,6 +1490,10 @@ export function InspectorPanel({
 
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 px-0.5">Odbiór WM — etap, notatki, zdjęcia</p>
+            <InspectorDeliveryPackagePanel
+              jobId={selectedJob.id}
+              publications={deliveryPackagePublications}
+            />
             <JobWmPanel
               job={selectedJob}
               onUpdate={updateJob}

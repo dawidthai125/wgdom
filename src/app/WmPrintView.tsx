@@ -109,6 +109,7 @@ import {
   getActiveDeliveryPackagePublication,
   publishDeliveryPackageForJob,
 } from "@/lib/delivery-package-publications/publication";
+import { buildDeliveryPackageManifestFromZipBytes } from "@/lib/delivery-package-publications/manifest";
 import { formatDeliveryPackageFileSize } from "@/lib/delivery-package-publications/storage";
 
 const TAB_ICONS: Record<WmPrintTab, typeof ClipboardList> = {
@@ -468,6 +469,8 @@ export function WmPrintView({
         registry: electricalMeasurementRegistry,
       });
 
+      const manifest = await buildDeliveryPackageManifestFromZipBytes(bytes);
+
       const { userId, userName } = historyActor();
       const result = await publishDeliveryPackageForJob({
         publications: deliveryPackagePublications,
@@ -479,6 +482,7 @@ export function WmPrintView({
         includesMeasurements: includeMeasurementsInZip && pomiaryCount > 0,
         fingerprintHash: hash,
         fingerprintPayload: payload,
+        manifest,
         publishedByUserId: userId,
         publishedByUserName: userName,
       });

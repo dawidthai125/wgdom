@@ -17,6 +17,7 @@ import { normalizeDeliveryPackagePublications } from "@/lib/delivery-package-pub
 import {
   DELIVERY_PACKAGE_PUBLICATIONS_KEY,
   type DeliveryPackageGenerationFingerprint,
+  type DeliveryPackageManifestEntry,
   type DeliveryPackagePublication,
 } from "@/lib/delivery-package-publications/types";
 import { uploadDeliveryPackageZip } from "@/lib/delivery-package-publications/storage";
@@ -171,6 +172,7 @@ export function applyDeliveryPackagePublication(input: {
   odbiorFileCount: number;
   pomiaryFileCount: number;
   includesMeasurements: boolean;
+  manifest: DeliveryPackageManifestEntry[];
 }): { nextPublications: DeliveryPackagePublication[]; publication: DeliveryPackagePublication } {
   const now = new Date().toISOString();
   const id = crypto.randomUUID();
@@ -193,6 +195,7 @@ export function applyDeliveryPackagePublication(input: {
     odbiorFileCount: input.odbiorFileCount,
     pomiaryFileCount: input.pomiaryFileCount,
     includesMeasurements: input.includesMeasurements,
+    manifest: input.manifest,
     status: "ACTIVE",
     createdAt: now,
     updatedAt: now,
@@ -223,6 +226,7 @@ export async function publishDeliveryPackageForJob(input: {
   includesMeasurements: boolean;
   fingerprintHash: string;
   fingerprintPayload: DeliveryPackageGenerationFingerprint;
+  manifest: DeliveryPackageManifestEntry[];
   publishedByUserId: string;
   publishedByUserName: string;
 }): Promise<
@@ -251,6 +255,7 @@ export async function publishDeliveryPackageForJob(input: {
     publishedByUserName: input.publishedByUserName,
     fingerprintHash: input.fingerprintHash,
     fingerprintPayload: input.fingerprintPayload,
+    manifest: input.manifest,
     storagePath: uploaded.path,
     zipPublicUrl: uploaded.publicUrl,
     fileName,
