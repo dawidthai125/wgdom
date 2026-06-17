@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-16",
+    version: "2.59.49",
+    label: "Lista Płac — Przydziały robót (PAYROLL-ASSIGNMENTS-P1)",
+    items: [
+      {
+        type: "new",
+        text: "Lista Płac: przełącznik „Przydziały robót” — przypisywanie pracowników do robót bez przechodzenia do Roboty (ta sama baza workEntries[])",
+      },
+      {
+        type: "new",
+        text: "Panel przydziałów: wiele robót dziennie, walidacja spójności LP↔Roboty (✅/❌), badge 🟢🟡🔴 na liście pracowników",
+      },
+      {
+        type: "new",
+        text: "Skrót „Kopiuj przydziały z poprzedniego dnia” — proporcje wczoraj, suma = godziny z listy płac",
+      },
+    ],
+  },
+  {
+    date: "2026-06-16",
     version: "2.59.48",
     label: "Inspektor DESIGN-002 — Design System Alignment",
     items: [

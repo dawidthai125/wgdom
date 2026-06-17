@@ -420,6 +420,7 @@ export function AdminViewRouter({
               employeeLeaves={employeeLeaves}
               contacts={contacts}
               jobs={jobs}
+              onSetJobs={setJobs}
               onWeekChange={(f, t) => {
                 setWeekFrom(f);
                 setWeekTo(t);

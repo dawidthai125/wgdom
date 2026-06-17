@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.48** · **INSPECTOR-DESIGN-002**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.49** · **PAYROLL-ASSIGNMENTS-P1**
+
+## 2.59.49 — Lista Płac Przydziały robót (PAYROLL-ASSIGNMENTS-P1)
+
+- Nowy przełącznik **Przydziały robót** w Liście Płac — edycja `workEntries[]` bez wchodzenia w Roboty
+- Walidacja spójności LP↔Roboty (reuse `payrollJobConsistencyAlerts`), badge 🟢🟡🔴
+- Smoke: `scripts/test-payroll-assignments-p1.mjs`
 
 ## 2.59.48 — Inspektor DESIGN-002 Design System Alignment
 

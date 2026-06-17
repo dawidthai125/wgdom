@@ -83,6 +83,12 @@ import {
   PREV_SAT_SHORT,
   getWeekRange,
 } from "@/app/app-domain";
+import { PayrollJobAssignmentsPanel } from "@/app/PayrollJobAssignmentsPanel";
+import {
+  employeePayrollAssignmentBadge,
+  payrollAssignmentAlertsForWeek,
+  type PayrollAssignmentBadgeStatus,
+} from "@/lib/payroll-job-assignments";
 
 
 export function toPayrollCalcRows(
@@ -453,6 +459,24 @@ export function PayrollPdfPreviewModal({
 
 // ─── Lista Płac (current week) ────────────────────────────────────────────────
 
+function PayrollAssignmentBadge({ status }: { status: PayrollAssignmentBadgeStatus }) {
+  if (status === "skip") return null;
+  const cfg =
+    status === "ok"
+      ? { dot: "🟢", label: "Spójne", cls: "text-green-600 dark:text-green-400" }
+      : status === "unassigned"
+        ? { dot: "🟡", label: "Nieprzypisane", cls: "text-yellow-600 dark:text-yellow-400" }
+        : { dot: "🔴", label: "Niezgodność", cls: "text-red-600 dark:text-red-400" };
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 text-[10px] font-medium shrink-0 ${cfg.cls}`}
+      title={cfg.label}
+    >
+      {cfg.dot}
+    </span>
+  );
+}
+
 export function PayrollView({
   weekEmployees, weekFrom, weekTo, directory, contacts, jobs, employeeLeaves,
   onWeekChange, onToggleSettled, onSaveWeek, savedWeeks,
@@ -464,6 +488,7 @@ export function PayrollView({
   initialEmpId,
   onInitialEmpConsumed,
   onDetailOpenChange,
+  onSetJobs,
 }:{
   weekEmployees: WeekEmployee[]; weekFrom:string; weekTo:string;
   directory: DirectoryEmployee[];
@@ -487,6 +512,7 @@ export function PayrollView({
   initialEmpId?: string | null;
   onInitialEmpConsumed?: () => void;
   onDetailOpenChange?: (open: boolean) => void;
+  onSetJobs: (jobs: Job[] | ((prev: Job[]) => Job[])) => void;
 }) {
   const { canViewRates } = useAdminAccess();
   const [selectedEmpId, setSelectedEmpId] = useState<string|null>(null);
@@ -498,20 +524,32 @@ export function PayrollView({
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [showBacklogModal, setShowBacklogModal] = useState(false);
-  const [payrollListMode, setPayrollListMode] = useState<"summary" | "detailed">(() => {
+  type PayrollListMode = "summary" | "detailed" | "assignments";
+  const [payrollListMode, setPayrollListMode] = useState<PayrollListMode>(() => {
     try {
-      return localStorage.getItem("wg-payroll-list-mode") === "detailed" ? "detailed" : "summary";
+      const stored = localStorage.getItem("wg-payroll-list-mode");
+      if (stored === "detailed" || stored === "assignments") return stored;
+      return "summary";
     } catch {
       return "summary";
     }
   });
 
-  const switchPayrollListMode = (mode: "summary" | "detailed") => {
+  const switchPayrollListMode = (mode: PayrollListMode) => {
     setPayrollListMode(mode);
     try {
       localStorage.setItem("wg-payroll-list-mode", mode);
     } catch { /* ignore */ }
   };
+
+  const assignmentAlerts = useMemo(
+    () => payrollAssignmentAlertsForWeek(weekEmployees, jobs, weekFrom, weekTo, directory),
+    [weekEmployees, jobs, weekFrom, weekTo, directory],
+  );
+  const assignmentBadgeFor = useCallback(
+    (emp: WeekEmployee) => employeePayrollAssignmentBadge(emp, assignmentAlerts, directory),
+    [assignmentAlerts, directory],
+  );
 
   useEffect(() => {
     if (initialEmpId && weekEmployees.some((e) => e.id === initialEmpId)) {
@@ -973,6 +1011,16 @@ export function PayrollView({
                       <LayoutGrid size={12}/>
                       Szczegóły dni
                     </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={payrollListMode === "assignments"}
+                      onClick={() => switchPayrollListMode("assignments")}
+                      className={`inline-flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] rounded-md text-[11px] font-medium transition-colors touch-manipulation ${payrollListMode === "assignments" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                    >
+                      <HardHat size={12}/>
+                      Przydziały robót
+                    </button>
                   </div>
                   <span className="text-xs text-muted-foreground whitespace-nowrap">{weekEmployees.filter(e=>e.settled).length}/{weekEmployees.length} rozliczonych</span>
                 </div>
@@ -1012,7 +1060,12 @@ export function PayrollView({
                               <div className="flex items-center gap-2.5">
                                 <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">{r.emp.name?r.emp.name[0].toUpperCase():"?"}</div>
                                 <div className="min-w-0">
-                                  <p className="font-medium leading-tight truncate">{r.emp.name||<span className="italic text-muted-foreground">Bez nazwy</span>}</p>
+                                  <p className="font-medium leading-tight truncate flex items-center gap-1.5">
+                                    {r.emp.name||<span className="italic text-muted-foreground">Bez nazwy</span>}
+                                    {payrollListMode === "assignments" && (
+                                      <PayrollAssignmentBadge status={assignmentBadgeFor(r.emp)} />
+                                    )}
+                                  </p>
                                   <p className="text-xs text-muted-foreground truncate">{r.emp.position||"—"}{canViewRates && <> · {fmt(r.rateNum)} PLN/h</>}
                                     {biweeklyRowMap.has(r.emp.id) && <span className="ml-1 text-[10px] bg-sky-500/15 text-sky-400 px-1 py-0.5 rounded-full">co 2 tyg.</span>}
                                   </p>
@@ -1157,7 +1210,7 @@ export function PayrollView({
                     </div>
                   </div>
                 </>
-              ) : (
+              ) : payrollListMode === "detailed" ? (
                 <>
                   <p className="px-5 py-2 text-[11px] text-muted-foreground border-b border-border/60 hidden sm:block">
                     Godziny pracy wg dni — zmiany podstawowe, dodatkowe i zaliczki. Kliknij wiersz, aby edytować.
@@ -1285,6 +1338,37 @@ export function PayrollView({
                     ))}
                   </div>
                 </>
+              ) : (
+                <>
+                  <p className="px-5 py-2 text-[11px] text-muted-foreground border-b border-border/60">
+                    Przypisz pracowników do robót — godziny z listy płac (Szczegóły dni). Kliknij wiersz, aby edytować przydziały.
+                  </p>
+                  <div className="divide-y divide-border">
+                    {rows.map((r, i) => (
+                      <div
+                        key={r.emp.id}
+                        onClick={() => setSelectedEmpId(r.emp.id === selectedEmpId ? null : r.emp.id)}
+                        className={`flex items-center gap-3 px-4 py-3.5 cursor-pointer transition-colors hover:bg-secondary/30 ${r.emp.settled ? "opacity-60" : ""} ${r.emp.id === selectedEmpId ? "bg-primary/5 border-l-2 border-primary" : ""}`}
+                      >
+                        <span className="text-xs text-muted-foreground w-6 shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{i + 1}</span>
+                        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
+                          {r.emp.name ? r.emp.name[0].toUpperCase() : "?"}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium truncate flex items-center gap-1.5">
+                            {r.emp.name || "—"}
+                            <PayrollAssignmentBadge status={assignmentBadgeFor(r.emp)} />
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">{r.emp.position || "—"}</p>
+                        </div>
+                        <span className="text-xs font-semibold shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                          {r.weekHours > 0 ? fmtH(r.weekHours) : "—"}
+                        </span>
+                        <ChevronRight size={14} className="text-muted-foreground shrink-0" />
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -1294,18 +1378,30 @@ export function PayrollView({
       {/* Detail panel */}
       {selectedEmp && (
         <div className="w-full sm:flex-1 sm:min-w-[400px] lg:min-w-[480px] border-l border-border bg-card shrink-0 flex flex-col min-h-0 h-full overflow-hidden absolute sm:relative inset-0 sm:inset-auto z-50 sm:z-auto">
-          <WeekEmployeeDetail
-            emp={selectedEmp}
-            weekFrom={weekFrom}
-            weekTo={weekTo}
-            directory={directory}
-            savedWeeks={savedWeeks}
-            isClosedWeek={isClosedWeek}
-            payrollRow={selectedPayrollRow}
-            onDeferPayroll={handleDeferPayroll}
-            onChange={onUpdateWeekEmployee}
-            onClose={()=>setSelectedEmpId(null)}
-          />
+          {payrollListMode === "assignments" ? (
+            <PayrollJobAssignmentsPanel
+              emp={selectedEmp}
+              jobs={jobs}
+              weekFrom={weekFrom}
+              weekTo={weekTo}
+              directory={directory}
+              onSetJobs={onSetJobs}
+              onClose={() => setSelectedEmpId(null)}
+            />
+          ) : (
+            <WeekEmployeeDetail
+              emp={selectedEmp}
+              weekFrom={weekFrom}
+              weekTo={weekTo}
+              directory={directory}
+              savedWeeks={savedWeeks}
+              isClosedWeek={isClosedWeek}
+              payrollRow={selectedPayrollRow}
+              onDeferPayroll={handleDeferPayroll}
+              onChange={onUpdateWeekEmployee}
+              onClose={()=>setSelectedEmpId(null)}
+            />
+          )}
         </div>
       )}
 
