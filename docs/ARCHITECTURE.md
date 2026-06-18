@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-18 (V3.1 Intelligence **v2.60.0** · § 12.1.13 · P1 Document Insights **v2.59.52** · PAYROLL-ASSIGNMENTS-P1 **v2.59.49**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-18 (P0 ZIP ATH **v2.61.4** · V4 Kosztorys **v2.61.3** · § 12.1.14 · P1 Document Insights **v2.59.52**)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1346,6 +1346,39 @@ buildTenderDocCandidates()
 **Audyt prod (Kąty Wrocławskie):** P2-H.3 działa; archiwum 14 MB = PDF projektów bez ATH/XLS — nie bug unpack.
 
 **Nie zmieniaj bez polecenia:** merge ZIP/7Z w resolver, semantyka `zipInnerPath`, lazy chunk 7z-wasm, wymóg `sourcePageUrl` Marketplanet.
+
+### 12.1.14 P0 — ZIP ATH Recovery (duże archiwum WM, v2.61.4)
+
+**Status:** **CLOSED** · commit **`653abe0`** · Edge deploy **PASS**  
+**Handoff SSOT:** [`docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md`](SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md)
+
+Problem: przetargi WM (`*.ezamawiajacy.pl`) — przedmiar w **`DOKUMENTACJA PROJEKTOWA.zip`** (często **> 15 MB**), formularz oferty XLSX błędnie wygrywał discovery.
+
+| Warstwa | Fix |
+|---------|-----|
+| Discovery | `isFormalOfferCostFilename()` — wyklucza formularz oferty z `discoverBestCostDocument()` |
+| Download | `loadDocBytes()` — sesja **ezamawiajacy** przed BZP readmodels (off-platform first) |
+| Edge limit | ZIP/7Z outer do **128 MB** (`maxBytesForDownload`) |
+| Edge API | `GET tenders-bzp-zip-catalog` — lista inner bez full ZIP w przeglądarce |
+| Edge API | `GET tenders-bzp-zip-entry-bytes` — extract pojedynczego ATH/PDF/XLSX |
+| Diagnostyka | `TenderDownloadDiag` — HTTP status, content-type, finalUrl, rejectReason |
+
+```text
+buildTenderDocCandidates()
+  → ZIP: fetchTenderZipCatalog() [Edge] → inner candidates
+  → parse: fetchTenderZipEntryBytes(innerPath) [Edge]
+discoverBestCostDocument()  // skip formal offer XLSX
+```
+
+**Metryki dossier:** `zipInnerCount`, `zipUnpackOk` (obok `sevenZInnerCount` dla 7Z).
+
+**Kluczowe pliki:** `tender-cost-discovery.ts`, `tender-document-resolver.ts`, `tenders-bzp.ts`, `make-server-0afb8820/index.tsx`
+
+**Testy:** `test-tender-zip-catalog-tp113.mjs` · `verify-tp113-zip-ath-recovery.mjs` · `test-tender-cost-discovery.mjs` (TP113)
+
+**Walidacja prod:** TP113 `08dec13d-5547-aa6d-5fad-9500015c4ea0` — zipSize 112984898 · ATH discovery · 40 rows.
+
+**Nie zmieniaj bez polecenia:** limit 128 MB tylko dla archiwów; `noticeNumber` wymagany do discovery ezamawiajacy; ponowny skan dossiera po release dla starych snapshotów KV.
 
 ### 12.1.12 P1 — Document Insights / Owner View Modal (P1A–P1D, v2.59.52)
 

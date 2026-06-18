@@ -1,64 +1,67 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-18 · **V3.1 Intelligence Sprint 1 (2.60.0 lokalnie)**
+**Ostatnia aktualizacja:** 2026-06-18 · **prod 2.61.4** · **P0 ZIP ATH Recovery CLOSED**
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod (`main`)** | **2.59.52** · P1 Document Insights |
-| **Wersja lokalna** | **2.60.0** — V3.1 Intelligence Dashboard (Sprint 1) |
-| **Stream V3.1 Sprint 1** | **COMPLETE lokalnie** — lib + UI + docs |
-| **Poprzedni lokalny** | **2.59.53** P2A Scope From PDF Text |
+| **Wersja prod (`main`)** | **2.61.4** · commit **`653abe0`** |
+| **PRODUCTION VERIFIED** | `version.json` = 2.61.4 · **TAK** (2026-06-18) |
+| **Edge deploy** | **PASS** — `tenders-bzp-zip-catalog` · `zip-entry-bytes` |
+| **P0 ZIP ATH Recovery** | **CLOSED** — TP113 validated |
+| **Poprzedni epic** | 2.61.3 V4.1.2 Kosztorys Source Recovery (`8b05afb`) |
 
 ## ★★ START HERE (nowy agent)
 
 | Temat | Dokument |
 |-------|----------|
-| **V3.1 Intelligence** | [`docs/V3.1-SPRINT-1-IMPLEMENTATION-PLAN.md`](docs/V3.1-SPRINT-1-IMPLEMENTATION-PLAN.md) · **ARCHITECTURE § 12.1.13** |
+| **★ P0 ZIP ATH (CLOSED)** | [`docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md`](docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md) |
 | **Baseline prod** | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
-| **P1 Document Insights** | [`docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md`](docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md) |
+| **P2-H dokumenty / ZIP** | [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) |
+| **V4 Kosztorys** | CHANGELOG 2.61.2–2.61.3 · `test-v41-kosztorys-workspace.mjs` |
+| **Architektura** | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.7 · § 12.1.14 |
 
-## Ukończone — V3.1 Sprint 1 (2026-06-18)
+## Ukończone — P0 ZIP ATH Recovery (2.61.4)
 
-| Faza | Zakres |
-|------|--------|
-| **A** | `tender-intelligence-*` lib + `test-v31` (34 PASS) |
-| **B** | `tender-owner-language-pl.ts` — Intelligence copy |
-| **C** | `TenderDetailPanel` wiring + `TenderOwnerView` 7 sekcji (renderer `intelligenceCtx`) |
-| **D** | CHANGELOG 2.60.0 · GuideView · ARCHITECTURE § 12.1.13 |
+| Element | Skrót |
+|---------|-------|
+| **FIX A** | `isFormalOfferCostFilename()` — formularz oferty nie wygrywa kosztorysu |
+| **FIX B** | Off-platform (ezamawiajacy) przed BZP readmodels w `loadDocBytes` |
+| **FIX C** | Edge zip-catalog + zip-entry-bytes · ZIP do **128 MB** |
+| **Walidacja** | TP113 · ATH `SĘPA-SZARZYŃSKIEGO 65a_P_Scalony…` · 40 rows · 250 catalogQuantities |
 
-## Smoke — V3.1 + regresja
+## Smoke / regresja
 
 ```bash
 npm run build
-npx vite-node scripts/test-v31-tender-intelligence.mjs
-npx vite-node scripts/test-p5-owner-view.mjs
-npx vite-node scripts/test-p5-owner-language.mjs
-npx vite-node scripts/test-p1c-executive-summary.mjs
-npx vite-node scripts/test-p1d-work-scope-inference.mjs
-npx vite-node scripts/test-p2a-scope-from-pdf-text.mjs
+npx vite-node scripts/test-tender-cost-discovery.mjs
+npx vite-node scripts/test-tender-dossier-pipeline.mjs
+npx vite-node scripts/test-tender-zip-catalog-tp113.mjs
+npx vite-node scripts/verify-tp113-zip-ath-recovery.mjs
+npx vite-node scripts/test-v41-kosztorys-workspace.mjs
 ```
 
-## Manual smoke (po deploy)
+## Manual smoke (prod)
 
-- **CASE A:** dossier + kosztorys + marża → STARTUJ, zakres, ekonomia, 1 akcja
-- **CASE B:** brak kosztorysu/marży → ANALIZUJ (nie STARTUJ)
-- **CASE C:** ref gap → ODPUŚĆ, bloker kwalifikacji
+1. Przetargi → TP113 (Sępa Szarzyńskiego 65A) → **Analizuj** (ponowny skan jeśli stary dossier)
+2. Zakładka **Kosztorys** — źródło **ATH** z `DOKUMENTACJA PROJEKTOWA.zip`, **nie** Formularz oferty
+3. Pozycje robót budowlanych, nie KRS/Wykonawca/CEIDG
 
-## Następny krok
+## Następny krok (backlog — tylko na polecenie)
 
-**COMMIT → PUSH → VERIFY `version.json` = 2.60.0** (na polecenie)
+| Priorytet | Temat |
+|-----------|-------|
+| OPEN | **P2-H.7** — Edge magic bytes 7Z |
+| OPEN | **V3.1 Sprint 2** — landing DECYZJE · Zasoby · Quick Estimate |
+| OPEN | **P3 Export** — Notatki operacyjne |
+| OPS | Masowy rescan dossier WM ze starym snapshotem formularza |
 
-**Backlog OPEN:** Sprint 2 landing DECYZJE · V3.2 Zasoby · Quick Estimate
-
-## Kluczowe pliki V3.1
+## Kluczowe pliki P0
 
 | Co | Plik |
 |----|------|
-| Kontekst SSOT | `src/lib/tender-intelligence-context.ts` |
-| Overlay | `src/lib/tender-intelligence-overlay.ts` |
-| Next action | `src/lib/tender-intelligence-next-action.ts` |
-| Wiring | `src/app/TenderDetailPanel.tsx` |
-| UI renderer | `src/app/TenderOwnerView.tsx` |
-| Copy PL | `src/lib/tender-owner-language-pl.ts` |
+| Discovery | `src/lib/tender-cost-discovery.ts` |
+| Resolver / ZIP | `src/lib/tender-document-resolver.ts` |
+| API klient | `src/lib/tenders-bzp.ts` |
+| Edge | `supabase/functions/make-server-0afb8820/index.tsx` |

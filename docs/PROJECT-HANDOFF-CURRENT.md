@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-17 (P1 Document Insights **2.59.52** · Tender Stabilization **2.59.51** · PAYROLL-ASSIGNMENTS-P1 **2.59.49** · EM-P1R **2.59.44** · WM Druk **2.59.25** · **PRODUCTION VERIFIED**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-18 (**P0 ZIP ATH Recovery 2.61.4** · V4 Kosztorys 2.61.2–2.61.3 · P1 Document Insights 2.59.52 · **PRODUCTION VERIFIED**)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -9,7 +9,8 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-1b. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1A–P1D Owner View · modal · Executive Summary
+1a. docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md  ← ★★ P0 ZIP ATH Recovery (2.61.4 CLOSED)
+1b. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1A–P1D Owner View · modal
 2. docs/MASTER-HANDOFF-POST-ZI-2026.md    ← ★★ skrót POST ZI-2026 (WM Druk COMPLETE)
 3. docs/ZI-2026-HANDOFF.md              ← ★★★ ZI Tauron 2026 prod SSOT
 4. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md  ← ★★ Pomiary Elektryczne EM-P1R (2.59.44)
@@ -28,10 +29,12 @@
 
 ---
 
-## 1a. Completed Epics (P1 + P2-F + P3 CLOSED)
+## 1a. Completed Epics (P0 ZIP ATH + P1 + P2-F + P3 CLOSED)
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **Przetargi · P0 ZIP ATH Recovery** | **2.61.4** (`653abe0`) | **CLOSED** · duże ZIP 128 MB · zip-catalog · ATH z dokumentacji WM | [`SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md`](SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md) |
+| **Przetargi · V4 Kosztorys** | **2.61.2–2.61.3** | **CLOSED** · filtr formalnych · `catalogQuantities` SSOT | CHANGELOG 2.61.2–2.61.3 |
 | **Przetargi · P1 Document Insights** | **2.59.52** (`ff20fec`) | **CLOSED** · P1A PDF UX + P1B Summary + P1C Executive + P1D Inference | [`SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md`](SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md) |
 | **Przetargi · Tender Stabilization (P3-AUDIT-001)** | **2.59.51** (`ed2eed5`+`cca4f92`+`3466ad7`) | **CLOSED** · FIX-A dokumenty + FIX-B UNKNOWN 0% + FIX-C wydajność | smoke FIX-A/B/C + `test-tender-cost-intelligence.mjs` |
 | **Odbiory WM Druk P0 infra** | 2.59.15–**2.59.19** | **CLOSED** (pollution/KV/runtime) | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) |
@@ -84,7 +87,11 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (repo / prod):      2.59.52       ← P1 Document Insights (P1A–P1D Owner View modal)
+Version (repo / prod):      2.61.4        ← P0 ZIP ATH Recovery (Edge zip-catalog + discovery)
+P0 ZIP ATH Recovery:        653abe0        v2.61.4 large ZIP 128MB · ezamawiajacy · ATH recovery
+V4 Kosztorys Source:        8b05afb        v2.61.3 catalogQuantities SSOT w zakładce Kosztorys
+V4 Kosztorys formal filter: f95451f        v2.61.2 buildKosztorysV4Display — bez KRS/CEIDG
+V4.1 tender workspace:      386b9ce        v2.61.1 Przetarg + Kosztorys + KPI Pro
 P1 Document Insights:       ff20fec        P1A PDF UX + P1B Summary + P1C Executive + P1D Inference
 P0 ATH preview hotfix:      fb9b8bd        PDF w 7Z · outer archive (osobny commit)
 Release commits (P3):       ed2eed5        FIX-A functional updateItem + auto-pipeline patch

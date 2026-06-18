@@ -9,7 +9,8 @@
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
 2. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (START dla nowego agenta)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.59.52)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.61.4)
+3a. docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md  ← ★★ P0 ZIP ATH Recovery (CLOSED)
 3b. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1 Owner View · modal
 4. docs/MASTER-HANDOFF-POST-ZI-2026.md  ← POST ZI · WM Druk COMPLETE
 5. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md  ← ★★ Pomiary Elektryczne EM-P1R
@@ -18,7 +19,7 @@
 7. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← Odbiory WM Druk
 8. CURRENT-TASK.md        ← status sesji
 9. docs/WORKFLOW-RELEASE-DEPLOY.md  ← release/deploy + VERIFY
-10. docs/ARCHITECTURE.md   ← § 12.1.12 P1 Document Insights · § 12.1.8 WM Druk · § 12.1.10 EM · § 15.1 widoki
+10. docs/ARCHITECTURE.md   ← § 12.1.14 P0 ZIP ATH · § 12.1.7 P2-H · § 12.1.8 WM Druk · § 15.1 widoki
 11. PROJECT-GUIDE.md      ← skrót + Known Issues
 12. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← Notatki operacyjne
 13. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← P3 wycena · BZP
@@ -50,6 +51,7 @@
 | **docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md** | **★★ Odbiory WM Druk** — COMPLETE · ZI 2026 STABLE |
 | **docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md** | **★★ Notatki operacyjne COMPLETE** (v2.57.0–2.58.1) — P0→P2C+HF, KV, ACL, testy, backlog P3 |
 | **docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md** | **★★ P3 wycena · BZP pipeline · P3.6 filtry · P1 WM** (2.56.0–2.56.10) |
+| **docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md** | **★★ P0 ZIP ATH Recovery** — duże ZIP 128 MB · zip-catalog · WM ezamawiajacy (2.61.4 CLOSED) |
 | **docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md** | **★★ P1 Owner View** — modal, Summary, Executive, Work Scope Inference (2.59.52) |
 | **docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md** | **★★ P2-H dokumenty / ZIP / 7Z / Marketplanet** (H.1–H.6 CLOSED) |
 | **docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md** | **★★ UX.1 Tender Workspace CLOSED** (2.53.1–2.53.4) — 5 tabs, lazy render, Anti-CC, ARCH-001 |
@@ -139,8 +141,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.59.49**) |
-| Prod `main` (app) | **v2.59.49** · PAYROLL-ASSIGNMENTS-P1 · EM-P1R · WM Druk · ZI 2026 STABLE |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.61.4**) |
+| Prod `main` (app) | **v2.61.4** (`653abe0`) · P0 ZIP ATH Recovery · V4 Kosztorys · EM-P1R · WM Druk · ZI 2026 STABLE |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
 | Dashboard V2 docs | [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md) |

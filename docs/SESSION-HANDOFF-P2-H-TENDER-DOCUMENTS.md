@@ -1,8 +1,9 @@
 # SESSION HANDOFF — P2-H Tender Documents & Dossier Pipeline
 
-> **Status:** **P2-H.1–H.3 COMPLETE** · **P2-H.4 OPEN** (UX copy 7Z)  
-> **Baseline prod:** **v2.55.5** · commit **`d725c24`**  
-> **Data:** 2026-06-13  
+> **Status:** **P2-H.1–H.6 COMPLETE** · **P2-H.7 OPEN** (Edge magic bytes 7Z)  
+> **★ Post-P2-H:** **P0 ZIP ATH Recovery** — [`SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md`](SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md) (**v2.61.4 CLOSED**) — duże ZIP WM >15 MB, zip-catalog, formal offer exclusion  
+> **Baseline prod (P2-H):** **v2.55.10** · **aktualny prod:** **v2.61.4**  
+> **Data:** 2026-06-13 (aktualizacja wskazówka P0: 2026-06-18)  
 > **Hasło agenta:** „kontynuuj WGDOM”
 
 **Czytaj ten plik przy:** załącznikach przetargowych, ZIP/7Z, Marketplanet, dossier, kosztorys ATH, analizie SWZ, platformach off-BZP.
