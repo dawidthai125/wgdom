@@ -31,6 +31,8 @@ export const TENDER_OWNER_VIEW_COPY = {
   riskFitLabel: "Szansa na wygraną",
   riskValueLabel: "Wartość zamówienia",
   positionsSection: "Plik z pozycjami",
+  prepStatusKosztorysLabel: "Kosztorys",
+  prepStatusPricingLabel: "Wycena",
   nextStepsSection: "Co dalej",
   moreSection: "Więcej szczegółów",
 } as const;

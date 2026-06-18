@@ -1,5 +1,6 @@
 /**
- * P5-OWNER-VIEW-SPRINT-1 — logika Owner View na Przeglądzie (tylko prezentacja).
+ * P5-OWNER-VIEW — logika Owner View na Decyzji (tylko prezentacja).
+ * P5.1 — recovery: pełny SSOT kosztorysu, stany pośrednie finansów, pasek statusu.
  */
 
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
@@ -13,11 +14,19 @@ import { computeWadiumInfo } from "@/lib/tenders-wadium";
 import { computeReferenceMatchSummary } from "@/lib/tenders-actions";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import {
+  buildOurEstimateTileDisplay,
   classifyCostDocument,
   resolvedCostStatus,
+  resolvedCostStatusDisplay,
   resolvedTenderValuePln,
 } from "@/lib/tender-data-ssot";
-import { isKosztorysAwaitingHeavyParse, countTenderAttachments, type TenderAnalysisStatusRow } from "@/lib/tender-analysis-status-ux";
+import {
+  isKosztorysAwaitingHeavyParse,
+  isPricingAwaitingLazyEvaluation,
+  countTenderAttachments,
+  type TenderAnalysisStatusRow,
+} from "@/lib/tender-analysis-status-ux";
+import { tenderDossierHeavyParseDone } from "@/lib/tender-dossier-pipeline";
 import { buildAthQuickAccessContext } from "@/lib/tender-ath-quick-access";
 import {
   scoreTender,
@@ -43,7 +52,11 @@ export interface OwnerDecisionView {
   blocks: OwnerDecisionBlockAlert[];
 }
 
+export type OwnerFinanceMode = "ready" | "intermediate" | "cta";
+
 export interface OwnerFinanceView {
+  mode: OwnerFinanceMode;
+  /** @deprecated use mode === "ready" */
   ready: boolean;
   revenuePln: number | null;
   costPln: number | null;
@@ -51,6 +64,9 @@ export interface OwnerFinanceView {
   revenueDisplay: string;
   costDisplay: string;
   marginDisplay: string;
+  message: string | null;
+  hint: string | null;
+  showCta: boolean;
 }
 
 export type OwnerPositionsFileState =
@@ -59,13 +75,27 @@ export type OwnerPositionsFileState =
   | "awaiting"
   | "missing";
 
+export type OwnerStatusIcon = "ok" | "pending" | "warn";
+
 export interface OwnerPositionsFileView {
   state: OwnerPositionsFileState;
   docType: string;
   rowCount: number;
-  title: string;
-  subtitle: string;
+  statusIcon: OwnerStatusIcon;
+  /** Pełny komunikat SSOT (resolvedCostStatusDisplay.display). */
+  statusLine: string;
+  hint: string | null;
   ctaLabel: string | null;
+}
+
+export interface OwnerPrepStatusLine {
+  icon: OwnerStatusIcon;
+  text: string;
+}
+
+export interface OwnerPrepStatusView {
+  kosztorys: OwnerPrepStatusLine;
+  pricing: OwnerPrepStatusLine;
 }
 
 export interface OwnerRiskTermRow {
@@ -136,6 +166,7 @@ export function scoreTenderForOwnerView(
 }
 
 export function buildOwnerFinanceView(
+  item: TenderPipelineItem,
   bidProposal: TenderBidProposal | null | undefined,
 ): OwnerFinanceView {
   const revenuePln = bidProposal?.recommendedBidPln ?? null;
@@ -145,8 +176,7 @@ export function buildOwnerFinanceView(
     && revenuePln != null
     && costPln != null;
 
-  return {
-    ready,
+  const numbers = {
     revenuePln,
     costPln,
     marginPct,
@@ -154,69 +184,221 @@ export function buildOwnerFinanceView(
     costDisplay: costPln != null ? fmtPln(costPln) : "—",
     marginDisplay: formatBidMarginPct(marginPct),
   };
-}
 
-export function buildOwnerPositionsFileView(item: TenderPipelineItem): OwnerPositionsFileView {
-  const costStatus = resolvedCostStatus(item);
-  const classified = classifyCostDocument(item);
-  const docType = classified?.type ?? "ATH";
-  const rowCount = classified?.rowCount ?? item.tenderDossier?.kosztorys?.rowCount ?? 0;
-  const athCtx = buildAthQuickAccessContext(item);
+  if (ready) {
+    return {
+      mode: "ready",
+      ready: true,
+      ...numbers,
+      message: null,
+      hint: null,
+      showCta: false,
+    };
+  }
 
   if (isKosztorysAwaitingHeavyParse(item)) {
+    const estimate = buildOurEstimateTileDisplay({
+      item,
+      ourEstimatePln: item.ourEstimatePln,
+      bidProposal,
+      pricingDeferred: false,
+    });
     return {
-      state: "awaiting",
-      docType,
-      rowCount,
-      title: "Oczekuje na przetworzenie",
-      subtitle: "Załączniki są dostępne.",
-      ctaLabel: "Otwórz Dokumenty",
+      mode: "intermediate",
+      ready: false,
+      ...numbers,
+      message: estimate.display,
+      hint: estimate.hint ?? null,
+      showCta: true,
     };
   }
 
-  if (costStatus === "FOUND_NO_VALUE") {
-    const rowSuffix = rowCount > 0 ? `${rowCount} pozycji` : "pozycje";
+  const estimate = buildOurEstimateTileDisplay({
+    item,
+    ourEstimatePln: item.ourEstimatePln,
+    bidProposal,
+    pricingDeferred: false,
+  });
+
+  if (item.ourEstimatePln != null) {
     return {
-      state: "przedmiar",
-      docType,
-      rowCount,
-      title: "Przedmiar znaleziony",
-      subtitle: `${docType} · ${rowSuffix}`,
-      ctaLabel: athCtx.previewItem ? "Otwórz przedmiar" : null,
+      mode: "ready",
+      ready: true,
+      revenuePln: item.ourEstimatePln,
+      costPln: bidProposal?.costPricePln ?? null,
+      marginPct: computeBidMarginPct(item.ourEstimatePln, bidProposal?.costPricePln ?? null),
+      revenueDisplay: fmtPln(item.ourEstimatePln),
+      costDisplay: bidProposal?.costPricePln != null ? fmtPln(bidProposal.costPricePln) : "—",
+      marginDisplay: formatBidMarginPct(
+        computeBidMarginPct(item.ourEstimatePln, bidProposal?.costPricePln ?? null),
+      ),
+      message: null,
+      hint: null,
+      showCta: false,
     };
   }
 
-  if (costStatus === "FOUND_WITH_VALUE") {
+  if (bidProposal != null && !bidProposal.ok) {
     return {
-      state: "kosztorys",
-      docType,
-      rowCount,
-      title: "Kosztorys znaleziony",
-      subtitle: `${docType} · wyceniony`,
-      ctaLabel: athCtx.previewItem ? "Otwórz kosztorys" : null,
+      mode: "intermediate",
+      ready: false,
+      ...numbers,
+      message: estimate.display,
+      hint: bidProposal.warnings?.[0] ?? estimate.hint ?? null,
+      showCta: true,
     };
   }
 
-  const hasAttachments = countTenderAttachments(item) > 0;
-  if (hasAttachments) {
+  if (estimate.display !== TENDER_OWNER_VIEW_COPY.financeEmpty) {
     return {
-      state: "awaiting",
-      docType,
-      rowCount,
-      title: "Oczekuje na przetworzenie",
-      subtitle: "Załączniki są dostępne.",
-      ctaLabel: "Otwórz Dokumenty",
+      mode: "intermediate",
+      ready: false,
+      ...numbers,
+      message: estimate.display,
+      hint: estimate.hint ?? null,
+      showCta: true,
     };
   }
 
   return {
-    state: "missing",
+    mode: "cta",
+    ready: false,
+    ...numbers,
+    message: TENDER_OWNER_VIEW_COPY.financeEmpty,
+    hint: null,
+    showCta: true,
+  };
+}
+
+function positionsStatusIcon(
+  state: OwnerPositionsFileState,
+): OwnerStatusIcon {
+  if (state === "awaiting") return "pending";
+  if (state === "missing") return "warn";
+  return "ok";
+}
+
+function resolvePositionsCta(
+  item: TenderPipelineItem,
+  state: OwnerPositionsFileState,
+): string | null {
+  const athCtx = buildAthQuickAccessContext(item);
+  if (state === "awaiting") return "Otwórz Dokumenty";
+  if (state === "przedmiar") return athCtx.previewItem ? "Otwórz przedmiar" : null;
+  if (state === "kosztorys") return athCtx.previewItem ? "Otwórz kosztorys" : null;
+  return null;
+}
+
+export function buildOwnerPositionsFileView(item: TenderPipelineItem): OwnerPositionsFileView {
+  const costStatus = resolvedCostStatus(item);
+  const costUi = resolvedCostStatusDisplay(item, costStatus);
+  const classified = classifyCostDocument(item);
+  const docType = classified?.type ?? "ATH";
+  const rowCount = classified?.rowCount ?? item.tenderDossier?.kosztorys?.rowCount ?? 0;
+
+  if (isKosztorysAwaitingHeavyParse(item)) {
+    const state: OwnerPositionsFileState = "awaiting";
+    return {
+      state,
+      docType,
+      rowCount,
+      statusIcon: positionsStatusIcon(state),
+      statusLine: costUi.display,
+      hint: costUi.hint ?? null,
+      ctaLabel: resolvePositionsCta(item, state),
+    };
+  }
+
+  if (costStatus === "FOUND_NO_VALUE") {
+    const state: OwnerPositionsFileState = "przedmiar";
+    return {
+      state,
+      docType,
+      rowCount,
+      statusIcon: positionsStatusIcon(state),
+      statusLine: costUi.display,
+      hint: costUi.hint ?? null,
+      ctaLabel: resolvePositionsCta(item, state),
+    };
+  }
+
+  if (costStatus === "FOUND_WITH_VALUE") {
+    const state: OwnerPositionsFileState = "kosztorys";
+    return {
+      state,
+      docType,
+      rowCount,
+      statusIcon: positionsStatusIcon(state),
+      statusLine: costUi.display,
+      hint: costUi.hint ?? null,
+      ctaLabel: resolvePositionsCta(item, state),
+    };
+  }
+
+  const hasAttachments = countTenderAttachments(item) > 0;
+  if (hasAttachments && !tenderDossierHeavyParseDone(item.tenderDossier)) {
+    const state: OwnerPositionsFileState = "awaiting";
+    return {
+      state,
+      docType,
+      rowCount,
+      statusIcon: positionsStatusIcon(state),
+      statusLine: costUi.display,
+      hint: costUi.hint ?? null,
+      ctaLabel: resolvePositionsCta(item, state),
+    };
+  }
+
+  const state: OwnerPositionsFileState = "missing";
+  return {
+    state,
     docType,
     rowCount,
-    title: "Brak pliku",
-    subtitle: "Nie znaleziono pliku z pozycjami.",
-    ctaLabel: null,
+    statusIcon: positionsStatusIcon(state),
+    statusLine: costUi.display,
+    hint: costUi.hint ?? null,
+    ctaLabel: resolvePositionsCta(item, state),
   };
+}
+
+/** P5.1 — krótki status Kosztorys / Wycena na Decyzji (bez pełnego stripa). */
+export function buildOwnerPrepStatusView(
+  item: TenderPipelineItem,
+  bidProposal: TenderBidProposal | null | undefined,
+): OwnerPrepStatusView {
+  const costStatus = resolvedCostStatus(item);
+  const kosztorysAwaiting = isKosztorysAwaitingHeavyParse(item);
+  const docCount = countTenderAttachments(item);
+  const heavyDone = tenderDossierHeavyParseDone(item.tenderDossier);
+
+  let kosztorys: OwnerPrepStatusLine;
+  if (kosztorysAwaiting || (docCount > 0 && !heavyDone && costStatus === "NOT_FOUND")) {
+    kosztorys = { icon: "pending", text: "oczekuje" };
+  } else if (costStatus !== "NOT_FOUND") {
+    kosztorys = { icon: "ok", text: "znaleziony" };
+  } else {
+    kosztorys = { icon: "warn", text: "brak" };
+  }
+
+  const pricingReady = item.ourEstimatePln != null
+    || (bidProposal?.ok && bidProposal.recommendedBidPln != null);
+
+  let pricing: OwnerPrepStatusLine;
+  if (pricingReady) {
+    pricing = { icon: "ok", text: "gotowa" };
+  } else if (kosztorysAwaiting || (docCount > 0 && !heavyDone)) {
+    pricing = { icon: "pending", text: "oczekuje" };
+  } else if (
+    isPricingAwaitingLazyEvaluation(item, bidProposal, undefined, false)
+    || (costStatus !== "NOT_FOUND" && !bidProposal?.ok)
+    || (heavyDone && costStatus === "NOT_FOUND")
+  ) {
+    pricing = { icon: "warn", text: "wymaga analizy" };
+  } else {
+    pricing = { icon: "warn", text: "wymaga analizy" };
+  }
+
+  return { kosztorys, pricing };
 }
 
 export function buildOwnerRiskTermRows(
@@ -250,8 +432,6 @@ export function buildOwnerRiskTermRows(
           : "bad",
     },
   ];
-
-  // P5-004 — wadium pokazywane w Owner Hero; bez duplikatu tutaj.
 
   if (fit) {
     rows.push({
@@ -300,5 +480,27 @@ export function ownerRiskToneClass(tone: OwnerRiskTermRow["tone"]): string {
       return "text-red-700 dark:text-red-400";
     default:
       return "text-foreground";
+  }
+}
+
+export function ownerStatusIconClass(icon: OwnerStatusIcon): string {
+  switch (icon) {
+    case "ok":
+      return "text-emerald-600 dark:text-emerald-400";
+    case "pending":
+      return "text-amber-600 dark:text-amber-400";
+    case "warn":
+      return "text-amber-700 dark:text-amber-300";
+  }
+}
+
+export function ownerStatusIconGlyph(icon: OwnerStatusIcon): string {
+  switch (icon) {
+    case "ok":
+      return "✓";
+    case "pending":
+      return "⏳";
+    case "warn":
+      return "⚠";
   }
 }

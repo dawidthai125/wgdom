@@ -24,9 +24,12 @@ import {
   buildOwnerDecisionView,
   buildOwnerFinanceView,
   buildOwnerPositionsFileView,
+  buildOwnerPrepStatusView,
   buildOwnerRiskTermRows,
   ownerDecisionTone,
   ownerRiskToneClass,
+  ownerStatusIconClass,
+  ownerStatusIconGlyph,
   scoreTenderForOwnerView,
 } from "@/lib/tender-owner-view-ux";
 import {
@@ -104,21 +107,59 @@ function OwnerHeroDecision({
   );
 }
 
+function OwnerPrepStatus({
+  item,
+  bidProposal,
+}: {
+  item: TenderPipelineItem;
+  bidProposal: TenderBidProposal | null | undefined;
+}) {
+  const status = useMemo(
+    () => buildOwnerPrepStatusView(item, bidProposal),
+    [item, bidProposal],
+  );
+
+  const rows = [
+    { key: "kosztorys", label: TENDER_OWNER_VIEW_COPY.prepStatusKosztorysLabel, line: status.kosztorys },
+    { key: "pricing", label: TENDER_OWNER_VIEW_COPY.prepStatusPricingLabel, line: status.pricing },
+  ] as const;
+
+  return (
+    <div className="rounded-lg border border-border/60 bg-secondary/20 px-3 py-2 flex flex-wrap gap-x-6 gap-y-1.5">
+      {rows.map(({ key, label, line }) => (
+        <span
+          key={key}
+          className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${ownerStatusIconClass(line.icon)}`}
+        >
+          <span aria-hidden>{ownerStatusIconGlyph(line.icon)}</span>
+          <span className="text-muted-foreground">{label}:</span>
+          <span className="text-foreground">{line.text}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function OwnerFinance({
+  item,
   bidProposal,
   onNavigate,
 }: {
+  item: TenderPipelineItem;
   bidProposal: TenderBidProposal | null | undefined;
   onNavigate: (tab: TenderWorkspaceTabId) => void;
 }) {
-  const finance = useMemo(() => buildOwnerFinanceView(bidProposal), [bidProposal]);
+  const finance = useMemo(
+    () => buildOwnerFinanceView(item, bidProposal),
+    [item, bidProposal],
+  );
 
   return (
     <section className="rounded-xl border border-border bg-card overflow-hidden">
       <div className="px-3 py-2 border-b border-border/60 bg-secondary/30">
         <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{TENDER_OWNER_VIEW_COPY.financeSection}</p>
       </div>
-      {finance.ready ? (
+      {finance.mode === "ready" ? (
         <div className="grid grid-cols-3 divide-x divide-border">
           {([
             { label: TENDER_OWNER_VIEW_COPY.revenueLabel, value: finance.revenueDisplay, icon: TrendingUp },
@@ -134,15 +175,22 @@ function OwnerFinance({
         </div>
       ) : (
         <div className="px-4 py-4 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">{TENDER_OWNER_VIEW_COPY.financeEmpty}</p>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onNavigate("valuation"); }}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:opacity-90"
-          >
-            {TENDER_OWNER_VIEW_COPY.financeCta}
-            <ChevronRight size={12} />
-          </button>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-foreground">{finance.message}</p>
+            {finance.hint && (
+              <p className="text-xs text-muted-foreground mt-1 whitespace-pre-line">{finance.hint}</p>
+            )}
+          </div>
+          {finance.showCta && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onNavigate("valuation"); }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 shrink-0"
+            >
+              {TENDER_OWNER_VIEW_COPY.financeCta}
+              <ChevronRight size={12} />
+            </button>
+          )}
         </div>
       )}
     </section>
@@ -206,9 +254,14 @@ function OwnerPositionsFile({
         <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{TENDER_OWNER_VIEW_COPY.positionsSection}</p>
       </div>
       <div className="px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold">{view.title}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{view.subtitle}</p>
+        <div className="min-w-0 flex-1">
+          <p className={`text-sm font-medium ${ownerStatusIconClass(view.statusIcon)}`}>
+            <span aria-hidden className="mr-1.5">{ownerStatusIconGlyph(view.statusIcon)}</span>
+            {view.statusLine}
+          </p>
+          {view.hint && (
+            <p className="text-xs text-muted-foreground mt-1 whitespace-pre-line">{view.hint}</p>
+          )}
         </div>
         {view.ctaLabel && (
           <button
@@ -280,7 +333,8 @@ export function TenderOwnerView({
   return (
     <div className="space-y-3">
       <OwnerHeroDecision item={item} allItems={allItems} />
-      <OwnerFinance bidProposal={ownerFinanceProposal} onNavigate={onNavigate} />
+      <OwnerPrepStatus item={item} bidProposal={ownerFinanceProposal} />
+      <OwnerFinance item={item} bidProposal={ownerFinanceProposal} onNavigate={onNavigate} />
       <OwnerRiskTermin item={item} swz={swz} fit={fit} />
       <OwnerPositionsFile item={item} onNavigate={onNavigate} onOpenPreview={onOpenPreview} />
       <OwnerNextSteps onNavigate={onNavigate} />
