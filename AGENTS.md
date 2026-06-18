@@ -9,7 +9,8 @@
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
 2. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (START dla nowego agenta)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.59.49)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.59.52)
+3b. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1 Owner View · modal
 4. docs/MASTER-HANDOFF-POST-ZI-2026.md  ← POST ZI · WM Druk COMPLETE
 5. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md  ← ★★ Pomiary Elektryczne EM-P1R
 5b. docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md  ← ★★ Lista Płac · Przydziały robót P1
@@ -17,7 +18,7 @@
 7. docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md  ← Odbiory WM Druk
 8. CURRENT-TASK.md        ← status sesji
 9. docs/WORKFLOW-RELEASE-DEPLOY.md  ← release/deploy + VERIFY
-10. docs/ARCHITECTURE.md   ← § 12.1.8 WM Druk · § 12.1.10 EM · § 15.1 widoki
+10. docs/ARCHITECTURE.md   ← § 12.1.12 P1 Document Insights · § 12.1.8 WM Druk · § 12.1.10 EM · § 15.1 widoki
 11. PROJECT-GUIDE.md      ← skrót + Known Issues
 12. docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md  ← Notatki operacyjne
 13. docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md  ← P3 wycena · BZP
@@ -49,6 +50,7 @@
 | **docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md** | **★★ Odbiory WM Druk** — COMPLETE · ZI 2026 STABLE |
 | **docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md** | **★★ Notatki operacyjne COMPLETE** (v2.57.0–2.58.1) — P0→P2C+HF, KV, ACL, testy, backlog P3 |
 | **docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md** | **★★ P3 wycena · BZP pipeline · P3.6 filtry · P1 WM** (2.56.0–2.56.10) |
+| **docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md** | **★★ P1 Owner View** — modal, Summary, Executive, Work Scope Inference (2.59.52) |
 | **docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md** | **★★ P2-H dokumenty / ZIP / 7Z / Marketplanet** (H.1–H.6 CLOSED) |
 | **docs/SESSION-HANDOFF-UX-1-TENDER-WORKSPACE.md** | **★★ UX.1 Tender Workspace CLOSED** (2.53.1–2.53.4) — 5 tabs, lazy render, Anti-CC, ARCH-001 |
 | **docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md** | **★★ Pomiary Elektryczne EM-P1R** — DOCX SSOT Word · rejestr RAP · katalog |

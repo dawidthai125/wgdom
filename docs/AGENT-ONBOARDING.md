@@ -1,7 +1,7 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.59.49** · https://www.wgdom.fun · **POST ZI-2026** · WM Druk **COMPLETE** · EM-P1R **COMPLETE** · **PAYROLL-ASSIGNMENTS-P1**
+> **Prod:** **2.59.52** · https://www.wgdom.fun · **P1 Document Insights** · POST ZI-2026 · WM Druk **COMPLETE** · EM-P1R **COMPLETE** · **PAYROLL-ASSIGNMENTS-P1**
 
 ---
 
@@ -10,6 +10,7 @@
 ```text
 1. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
 2. docs/PROJECT-HANDOFF-CURRENT.md    ← baseline prod, commity, releasy
+2b. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1 Owner View · modal · Executive Summary
 3. docs/MASTER-HANDOFF-POST-ZI-2026.md ← skrót POST ZI · WM Druk COMPLETE
 4. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md ← ★★ Pomiary Elektryczne EM-P1R
 5. docs/ZI-2026-HANDOFF.md            ← SSOT generatora ZI Tauron 2026
@@ -135,6 +136,46 @@ npx vite-node scripts/test-em-p1r-hotfix-001-address-parity.mjs
 
 ---
 
+## 6d. Przetargi — P1 Document Insights (Owner View) — **2.59.52 CLOSED**
+
+**Status:** **P1A–P1D CLOSED** · v**2.59.52** · prod **`ff20fec`**
+
+Warstwa UX nad podglądem dokumentów kosztorysowych — **bez zmian parserów/pipeline**.
+
+| Dokument | Rola |
+|----------|------|
+| [`SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md`](SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md) | **★★ SSOT P1** — architektura, pliki, smoke, backlog |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.12 | Architektura techniczna |
+
+### Kluczowe pliki
+
+```text
+src/app/TenderOwnerView.tsx              Owner View (biznesowy widok przetargu)
+src/app/JobFilePreviewModal.tsx          Modal podglądu — integracja P1A–P1D
+src/app/DocumentSummaryHeader.tsx      P1B — karta podsumowania
+src/app/ExecutiveSummaryCard.tsx       P1C/P1D — główne roboty + pewność
+src/lib/tender-pdf-preview-ux.ts         P1A — etykiety PDF, previewContext
+src/lib/tender-document-summary-header.ts   P1B — logika summary
+src/lib/tender-executive-summary.ts      P1C — executive summary
+src/lib/tender-work-scope-inference.ts   P1D — inferencja branż z opisów
+src/lib/tender-ath-quick-access.ts       resolveAthPreviewItem() + context
+```
+
+### Smoke P1
+
+```bash
+npx vite-node scripts/test-p1-pdf-preview-ux.mjs
+npx vite-node scripts/test-p1b-document-summary-header.mjs
+npx vite-node scripts/test-p1c-executive-summary.mjs
+npx vite-node scripts/test-p1d-work-scope-inference.mjs
+npx vite-node scripts/test-p0-ath-preview-hotfix.mjs
+npx vite-node scripts/test-p5-owner-view.mjs
+```
+
+**Nie ruszać bez briefu:** `tender-dossier-pipeline.ts`, `ath-parser.ts`, FIX-A/B/C — patrz handoff P1 §10.
+
+---
+
 ## 6c. Lista Płac — Przydziały robót (PAYROLL-ASSIGNMENTS-P1)
 
 **Status:** **P1 CLOSED** · v**2.59.49** · prod **`94ad114`**
@@ -235,6 +276,7 @@ npx vite-node scripts/test-wm-print-p0-1a-docx-fix.mjs
 
 | Epic | Wersja | Handoff |
 |------|--------|---------|
+| **P1 Document Insights** | **2.59.52** | `SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md` |
 | Notatki operacyjne | 2.57–2.58 | `SESSION-HANDOFF-OPERATIONAL-NOTES.md` |
 | P3 Wycena · BZP | 2.56 | `SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md` |
 | P2-H Dokumenty ZIP/7Z | 2.55 | `SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md` |
@@ -262,6 +304,7 @@ Szczegóły: [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md) · [`.cu
 
 ## 9. Backlog otwarty (na polecenie użytkownika)
 
+- **P3-FIX-C-UX-001** — komunikat lazy dossier na Owner View
 - Nowe funkcje **Odbiory WM Druk**
 - Audit Center / Security Log
 - Hero Tone Variant B
@@ -300,4 +343,4 @@ curl -s https://www.wgdom.fun/version.json   # VERIFY FAST
 
 ---
 
-*Ostatnia aktualizacja: 2026-06-16 · PAYROLL-ASSIGNMENTS-P1 v2.59.49 · EM-P1R · POST ZI-2026*
+*Ostatnia aktualizacja: 2026-06-17 · P1 Document Insights v2.59.52 · PAYROLL-ASSIGNMENTS-P1 · EM-P1R · POST ZI-2026*

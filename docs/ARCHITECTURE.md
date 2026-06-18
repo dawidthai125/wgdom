@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-16 (PAYROLL-ASSIGNMENTS-P1 **v2.59.49** · § 10.1 Przydziały robót)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-17 (P1 Document Insights **v2.59.52** · § 12.1.12 Owner View modal · PAYROLL-ASSIGNMENTS-P1 **v2.59.49** · § 10.1 Przydziały robót)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1346,6 +1346,35 @@ buildTenderDocCandidates()
 **Audyt prod (Kąty Wrocławskie):** P2-H.3 działa; archiwum 14 MB = PDF projektów bez ATH/XLS — nie bug unpack.
 
 **Nie zmieniaj bez polecenia:** merge ZIP/7Z w resolver, semantyka `zipInnerPath`, lazy chunk 7z-wasm, wymóg `sourcePageUrl` Marketplanet.
+
+### 12.1.12 P1 — Document Insights / Owner View Modal (P1A–P1D, v2.59.52)
+
+**Status:** **P1 STREAM CLOSED** (P1A PDF UX · P1B Summary Header · P1C Executive Summary · P1D Work Scope Inference)  
+**Handoff SSOT:** [`docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md`](SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md)  
+**Commit:** `ff20fec` · **bez zmian parserów / pipeline / FIX-A/B/C**
+
+Warstwa **frontend-only** nad istniejącym snapshotem `tenderDossier.kosztorys` — modal podglądu jako narzędzie biznesowe dla właściciela firmy.
+
+```text
+TenderOwnerView → resolveAthPreviewItem() → InspectorFileItem.previewContext
+  → JobFilePreviewModal
+       ├── DocumentSummaryHeader     (P1B: typ, pozycje, status, wycena, źródło)
+       ├── ExecutiveSummaryCard      (P1C/D: główne roboty, pewność, wartość)
+       └── treść PDF / tekst przedmiaru / tabela ATH-NOR
+```
+
+| Moduł | Plik lib | Plik UI |
+|-------|----------|---------|
+| P1A PDF UX | `tender-pdf-preview-ux.ts` | `JobFilePreviewModal.tsx` |
+| P1B Summary | `tender-document-summary-header.ts` | `DocumentSummaryHeader.tsx` |
+| P1C Executive | `tender-executive-summary.ts` | `ExecutiveSummaryCard.tsx` |
+| P1D Inference | `tender-work-scope-inference.ts` | *(w ExecutiveSummaryCard)* |
+
+**Źródła danych (kolejność P1D):** `categories[]` → `parseResult.categories` → `rows[].category` → opisy pozycji / `catalogQuantities` → `brief.scopeDescription`.
+
+**Testy:** `test-p1-pdf-preview-ux.mjs` · `test-p1b-document-summary-header.mjs` · `test-p1c-executive-summary.mjs` · `test-p1d-work-scope-inference.mjs` · regresja `test-p0-ath-preview-hotfix.mjs` · `test-p5-owner-view.mjs`.
+
+**Nie zmieniaj bez briefu:** `tender-dossier-pipeline.ts`, `pdf-przedmiar-heuristic.ts`, `ath-parser.ts`, FIX-A/B/C cache.
 
 ### 12.1.8 Odbiory WM Druk (`wmprint`, v2.59.26)
 

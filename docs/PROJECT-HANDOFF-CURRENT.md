@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-17 (Tender Stabilization **2.59.51** · PAYROLL-ASSIGNMENTS-P1 **2.59.49** · EM-P1R **2.59.44** · WM Druk **2.59.25** · **PRODUCTION VERIFIED**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-17 (P1 Document Insights **2.59.52** · Tender Stabilization **2.59.51** · PAYROLL-ASSIGNMENTS-P1 **2.59.49** · EM-P1R **2.59.44** · WM Druk **2.59.25** · **PRODUCTION VERIFIED**)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -9,6 +9,7 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
+1b. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1A–P1D Owner View · modal · Executive Summary
 2. docs/MASTER-HANDOFF-POST-ZI-2026.md    ← ★★ skrót POST ZI-2026 (WM Druk COMPLETE)
 3. docs/ZI-2026-HANDOFF.md              ← ★★★ ZI Tauron 2026 prod SSOT
 4. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md  ← ★★ Pomiary Elektryczne EM-P1R (2.59.44)
@@ -31,6 +32,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **Przetargi · P1 Document Insights** | **2.59.52** (`ff20fec`) | **CLOSED** · P1A PDF UX + P1B Summary + P1C Executive + P1D Inference | [`SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md`](SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md) |
 | **Przetargi · Tender Stabilization (P3-AUDIT-001)** | **2.59.51** (`ed2eed5`+`cca4f92`+`3466ad7`) | **CLOSED** · FIX-A dokumenty + FIX-B UNKNOWN 0% + FIX-C wydajność | smoke FIX-A/B/C + `test-tender-cost-intelligence.mjs` |
 | **Odbiory WM Druk P0 infra** | 2.59.15–**2.59.19** | **CLOSED** (pollution/KV/runtime) | [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) |
 | **ZI Tauron 2026** | **2.59.22–2.59.25** | **PRODUCTION STABLE** · preservation + §4 + P0.5B housekeeping | [`docs/ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) |
@@ -82,8 +84,10 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (repo / prod):      2.59.51       ← Tender Stabilization Release (P3-AUDIT-001 FIX-A+B+C)
-Release commits:            ed2eed5        FIX-A functional updateItem + auto-pipeline patch
+Version (repo / prod):      2.59.52       ← P1 Document Insights (P1A–P1D Owner View modal)
+P1 Document Insights:       ff20fec        P1A PDF UX + P1B Summary + P1C Executive + P1D Inference
+P0 ATH preview hotfix:      fb9b8bd        PDF w 7Z · outer archive (osobny commit)
+Release commits (P3):       ed2eed5        FIX-A functional updateItem + auto-pipeline patch
                             cca4f92        FIX-B UNKNOWN 10,9% → 0%, phrase rules 3.3
                             3466ad7        FIX-C cache + lazy dossier + lazy wycena
 PAYROLL-ASSIGNMENTS-P1:    94ad114        v2.59.49 Lista Płac → Przydziały robót P1
@@ -131,8 +135,8 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 | Status | Wartość |
 |--------|---------|
-| **RELEASE GO (2.59.51)** | **TAK** — Tender Stabilization Release |
-| **RELEASED (prod)** | **2.59.51** — verify `version.json` |
+| **RELEASE GO (2.59.52)** | **TAK** — P1 Document Insights Release |
+| **RELEASED (prod)** | **2.59.52** — verify `version.json` |
 | **Pomiary Elektryczne** | **COMPLETE** EM-P0→P1R · **PRODUCTION STABLE** (DOCX SSOT Word) |
 | **STABLE** | TAK (moduł wmprint · ZI 2026 · P0.5B) |
 | **PRODUCTION VERIFIED** | TAK — [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) |
@@ -159,7 +163,7 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.59.51" }
+# oczekiwane: { "version": "2.59.52" }
 ```
 
 ---
