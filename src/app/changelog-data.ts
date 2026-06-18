@@ -12,6 +12,37 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-18",
+    version: "2.61.0",
+    label: "Przetargi — WGDOM V4 UX Navigation MVP",
+    items: [
+      {
+        type: "new",
+        text: "Osobny widok przetargu — routing /przetargi/:id/:tab, breadcrumb, powrót do listy",
+      },
+      {
+        type: "new",
+        text: "KPI Bar na szczególe — termin składania, wadium, ZNW, wartość, warunki udziału (display-only)",
+      },
+      {
+        type: "new",
+        text: "Tender Detail Page + Tab Bar — Przetarg, Ceny, Dokumenty, Decyzja (MVP); Kosztorys/Materiały/Strategia wkrótce",
+      },
+      {
+        type: "improve",
+        text: "Lista przetargów bez accordionu — klik otwiera osobny widok zamiast rozwijanego panelu",
+      },
+      {
+        type: "improve",
+        text: "Feature flag TENDERS_V4_ROUTING — rollback bez revertu kodu (legacy accordion gdy false)",
+      },
+      {
+        type: "improve",
+        text: "Bez zmian: ATH, Dossier, Scoring, Qualification, Valuation, Intelligence V3.1",
+      },
+    ],
+  },
+  {
+    date: "2026-06-18",
     version: "2.60.0",
     label: "Przetargi — Tender Intelligence Dashboard V3.1 (Sprint 1)",
     items: [

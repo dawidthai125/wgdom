@@ -49,6 +49,7 @@ export function TendersView({
   athPreviewEnabled = true,
   initialExpandedId = null,
   onExpandedIdChange,
+  onItemNavigate,
 }: {
   showTestBadge?: boolean;
   /** ETAP 2 — lista bez mapy, profilu i słownika (osobne zakładki). */
@@ -60,6 +61,8 @@ export function TendersView({
   athPreviewEnabled?: boolean;
   initialExpandedId?: string | null;
   onExpandedIdChange?: (id: string | null) => void;
+  /** V4 — klik w wiersz nawiguje do /przetargi/:id zamiast accordionu. */
+  onItemNavigate?: (id: string) => void;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId);
   const [showLegend, setShowLegend] = useState(false);
@@ -393,7 +396,7 @@ export function TendersView({
           const days = daysUntil(item.submittingOffersDate);
           const offerOpen = isTenderOpenForOffers(item.submittingOffersDate);
           const urgent = offerOpen && days !== null && days >= 0 && days <= 7;
-          const expanded = expandedId === item.id;
+          const expanded = !onItemNavigate && expandedId === item.id;
           const bidLine = tenderListBidLine(item);
           const wadiumBlocked = computeWadiumInfo(
             item,
@@ -409,6 +412,13 @@ export function TendersView({
                 type="button"
                 className="w-full text-left px-4 py-3.5 hover:bg-secondary/40 transition-colors flex gap-2"
                 onClick={() => {
+                  if (onItemNavigate) {
+                    if (item.status === "new") {
+                      pipeline.updateItem(item.id, { status: "seen" });
+                    }
+                    onItemNavigate(item.id);
+                    return;
+                  }
                   const opening = expandedId !== item.id;
                   setExpanded(opening ? item.id : null);
                   if (opening && item.status === "new") {
@@ -509,7 +519,7 @@ export function TendersView({
                 </div>
               </button>
 
-              {expanded && (
+              {expanded && !onItemNavigate && (
                 <TenderDetailPanel
                   item={item}
                   allItems={pipeline.items}

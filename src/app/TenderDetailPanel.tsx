@@ -89,6 +89,9 @@ export function TenderDetailPanel({
   athPreviewEnabled,
   profileVersion = 0,
   onRemove,
+  embedV4ChromeHidden = false,
+  embedV4Workspace,
+  onEmbedV4Navigate,
 }: {
   item: TenderPipelineItem;
   allItems: TenderPipelineItem[];
@@ -99,6 +102,12 @@ export function TenderDetailPanel({
   /** Inkrementowany po zapisie profilu firmy — przelicza dopasowanie. */
   profileVersion?: number;
   onRemove?: () => void;
+  /** V4 — ukryj summary bar i legacy tab bar (shell w TenderDetailPage). */
+  embedV4ChromeHidden?: boolean;
+  /** V4 — wymuszona zakładka workspace (legacy id). */
+  embedV4Workspace?: TenderWorkspaceTabId;
+  /** V4 — nawigacja z TenderOwnerView → URL V4. */
+  onEmbedV4Navigate?: (tab: TenderWorkspaceTabId) => void;
 }) {
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -121,6 +130,7 @@ export function TenderDetailPanel({
   const [activeWorkspace, setActiveWorkspace] = useState<TenderWorkspaceTabId>(
     () => resolveDefaultTenderWorkspace(item),
   );
+  const workspaceForLogic = embedV4Workspace ?? activeWorkspace;
   const autoRanRef = useRef<Set<string>>(new Set());
   const dossierInflightRef = useRef<string | null>(null);
   const platformTelemetryRef = useRef<string | null>(null);
@@ -325,7 +335,7 @@ export function TenderDetailPanel({
 
   /** P3-FIX-C — ciężkie parsowanie dossier dopiero po wejściu w Dokumenty / Wycena. */
   useEffect(() => {
-    const wantsHeavyDossier = activeWorkspace === "documents" || activeWorkspace === "valuation";
+    const wantsHeavyDossier = workspaceForLogic === "documents" || workspaceForLogic === "valuation";
     if (!wantsHeavyDossier) return;
     if (tenderDossierHeavyParseDone(item.tenderDossier)) return;
     if (!item.tenderId || !(item.bzpDocuments?.length)) return;
@@ -363,7 +373,7 @@ export function TenderDetailPanel({
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- lazy dossier on tab + docs ready
   }, [
-    activeWorkspace,
+    workspaceForLogic,
     item.id,
     item.tenderId,
     item.documentsFetchedAt,
@@ -579,7 +589,7 @@ export function TenderDetailPanel({
     return getTenderPriceOverrides(store, item.id);
   }, [item.id, priceOverridesRevision]);
 
-  const valuationWorkspaceActive = activeWorkspace === "valuation" || activeWorkspace === "offer";
+  const valuationWorkspaceActive = workspaceForLogic === "valuation" || workspaceForLogic === "offer";
 
   const computeBidProposalNow = useCallback(() => {
     const profile = loadCompanyProfileLocal();
@@ -634,9 +644,9 @@ export function TenderDetailPanel({
 
   const bidPrepChecks = useMemo(
     () => computeBidPrepChecks(item, swz, item.tenderFit, bidProposal, {
-      pricingDeferred: activeWorkspace === "overview",
+      pricingDeferred: workspaceForLogic === "overview",
     }),
-    [item, swz, item.tenderFit, bidProposal, activeWorkspace],
+    [item, swz, item.tenderFit, bidProposal, workspaceForLogic],
   );
   const readyCount = bidPrepChecks.filter((c) => c.status === "ok").length;
 
@@ -700,19 +710,25 @@ export function TenderDetailPanel({
   }, [item.id, item.status]);
 
   const navigateWorkspace = useCallback((tab: TenderWorkspaceTabId) => {
+    if (onEmbedV4Navigate) {
+      onEmbedV4Navigate(tab);
+      return;
+    }
     setActiveWorkspace(tab);
     if (tab === "valuation") {
       setBidBreakdownOpen(false);
       setBidPanelHighlight(true);
       window.setTimeout(() => setBidPanelHighlight(false), 2200);
     }
-  }, []);
+  }, [onEmbedV4Navigate]);
+
+  const effectiveWorkspace = workspaceForLogic;
 
   const workspaceBadges = useMemo(() => {
     const badges: Partial<Record<TenderWorkspaceTabId, string>> = {};
     const mon = getTenderMonitoringCounts(item);
     // P5-004 — monitoring już w nagłówku (Pilne); bez badge na Przeglądzie.
-    if (mon.total > 0 && activeWorkspace !== "overview") {
+    if (mon.total > 0 && effectiveWorkspace !== "overview") {
       badges.overview = String(mon.total);
     }
     if (bidPrepChecks.some((c) => c.id === "kosztorys" && c.status !== "ok")) {
@@ -721,7 +737,7 @@ export function TenderDetailPanel({
     const wadiumCheck = bidPrepChecks.find((c) => c.id === "wadium");
     if (wadiumCheck?.status === "partial") badges.qualification = "!";
     return badges;
-  }, [item, bidPrepChecks, activeWorkspace]);
+  }, [item, bidPrepChecks, effectiveWorkspace]);
 
   const handleSaveSubmittedBid = useCallback(async () => {
     const pln = submittedBidDraft ? Number(submittedBidDraft) : null;
@@ -750,29 +766,33 @@ export function TenderDetailPanel({
   }, [item, bidProposal, computeBidProposalNow, submittedBidDraft, onUpdate]);
 
   return (
-    <div className="px-4 pb-4 pt-2 border-t border-border space-y-3">
+    <div className={`space-y-3 ${embedV4ChromeHidden ? "" : "px-4 pb-4 pt-2 border-t border-border"}`}>
       {autoRunning && (
         <p className="text-[10px] text-muted-foreground flex items-center gap-2">
           <Loader2 size={11} className="animate-spin" /> Ładowanie ogłoszenia i załączników…
         </p>
       )}
 
-      <TenderSummaryBar
-        item={item}
-        swz={swz}
-        readyCount={readyCount}
-        readyTotal={bidPrepChecks.length}
-        onStatusChange={(status) => onUpdate({ status })}
-        ownerViewCompact={activeWorkspace === "overview"}
-      />
+      {!embedV4ChromeHidden && (
+        <>
+          <TenderSummaryBar
+            item={item}
+            swz={swz}
+            readyCount={readyCount}
+            readyTotal={bidPrepChecks.length}
+            onStatusChange={(status) => onUpdate({ status })}
+            ownerViewCompact={effectiveWorkspace === "overview"}
+          />
 
-      <TenderWorkspaceTabBar
-        activeTab={activeWorkspace}
-        onTabChange={navigateWorkspace}
-        badges={workspaceBadges}
-      />
+          <TenderWorkspaceTabBar
+            activeTab={effectiveWorkspace}
+            onTabChange={navigateWorkspace}
+            badges={workspaceBadges}
+          />
+        </>
+      )}
 
-      {activeWorkspace === "overview" && (
+      {effectiveWorkspace === "overview" && (
         <div className="space-y-3 max-h-[calc(100vh-12rem)] overflow-y-auto">
           {intelligenceCtx ? (
             <TenderOwnerView
@@ -886,7 +906,7 @@ export function TenderDetailPanel({
         </div>
       )}
 
-      {activeWorkspace === "documents" && (
+      {effectiveWorkspace === "documents" && (
         <TenderDocumentsWorkspace
           item={item}
           swz={swz}
@@ -907,7 +927,7 @@ export function TenderDetailPanel({
         />
       )}
 
-      {activeWorkspace === "qualification" && (
+      {effectiveWorkspace === "qualification" && (
         <TenderQualificationWorkspace
           item={item}
           swz={swz}
@@ -915,7 +935,7 @@ export function TenderDetailPanel({
         />
       )}
 
-      {activeWorkspace === "valuation" && (
+      {effectiveWorkspace === "valuation" && (
         <section id={TENDER_VALUATION_SECTION_ID} className="scroll-mt-2 space-y-2">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground px-0.5">
             {TENDER_OWNER_WORKSPACE_SECTION_COPY.valuation}
@@ -962,7 +982,7 @@ export function TenderDetailPanel({
         </section>
       )}
 
-      {activeWorkspace === "offer" && (
+      {effectiveWorkspace === "offer" && (
         <div className="space-y-3">
           <TenderOfferCompletenessPanel swz={swz} combinedText={item.noticeHtml ?? undefined} />
           <TenderOfferSection

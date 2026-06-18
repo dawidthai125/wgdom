@@ -150,6 +150,13 @@ import { DEFAULT_ELECTRICAL_MEASUREMENT_SETTINGS } from "@/lib/electrical-measur
 import type { DeliveryPackagePublication } from "@/lib/delivery-package-publications/types";
 import { DELIVERY_PACKAGE_PUBLICATIONS_KEY } from "@/lib/delivery-package-publications/types";
 import { pushDeliveryPackagePublicationsToCloud } from "@/lib/delivery-package-publications/publication";
+import { useLocation, useNavigate } from "react-router";
+import { TENDERS_V4_ROUTING } from "@/lib/tenders-v4-config";
+import {
+  buildTenderDetailPath,
+  isTenderV4Path,
+  TENDERS_LIST_PATH,
+} from "@/lib/tender-detail-routes-v4";
 
 function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const { session: adminSession, canViewRates } = useAdminAccess();
@@ -196,6 +203,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       DEFAULT_ELECTRICAL_MEASUREMENT_SETTINGS,
     );
   const [view, setView] = useState<View>("dashboard");
+  const location = useLocation();
+  const navigate = useNavigate();
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
   const [pendingJobSection, setPendingJobSection] = useState<import("@/app/JobDetailSectionNav").JobDetailSection | null>(null);
   const [pendingTenderId, setPendingTenderId] = useState<string | null>(null);
@@ -1375,7 +1384,23 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setViewReturn(null);
     setView(v);
     setMobileMoreOpen(false);
-  }, []);
+    if (TENDERS_V4_ROUTING) {
+      if (v === "tenders") {
+        navigate(TENDERS_LIST_PATH);
+      } else if (isTenderV4Path(location.pathname)) {
+        navigate("/");
+      }
+    }
+  }, [navigate, location.pathname]);
+
+  const openTenderById = useCallback((tid: string) => {
+    setView("tenders");
+    if (TENDERS_V4_ROUTING) {
+      navigate(buildTenderDetailPath(tid, "decyzja"));
+    } else {
+      setPendingTenderId(tid);
+    }
+  }, [navigate]);
 
   const applyDeepLink = useCallback((route: DeepLinkRoute) => {
     if (route.type === "job") {
@@ -1392,6 +1417,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     if (view === "tenders" && !canViewTendersNav) setView("dashboard");
   }, [view, canViewTendersNav]);
+
+  useEffect(() => {
+    if (!TENDERS_V4_ROUTING) return;
+    if (isTenderV4Path(location.pathname)) {
+      setView("tenders");
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     const pending = consumePendingDeepLink();
@@ -1515,8 +1547,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           alertsSeenTick={alertsSeenTick}
           onAlertsSeen={() => setAlertsSeenTick((t) => t + 1)}
           onOpenSms={() => setShowSmsModal(true)}
-          onOpenTenders={() => { openTendersAtStrategyTab(); setView("tenders"); }}
-          onOpenTender={(tid) => { setPendingTenderId(tid); setView("tenders"); }}
+          onOpenTenders={() => {
+            if (TENDERS_V4_ROUTING) {
+              navigate(TENDERS_LIST_PATH);
+              setView("tenders");
+            } else {
+              openTendersAtStrategyTab();
+              setView("tenders");
+            }
+          }}
+          onOpenTender={openTenderById}
           handleNavigate={handleNavigate}
           onFixJobs={setJobs}
           setWeekFrom={setWeekFrom}
@@ -1549,7 +1589,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           onOpenJobInJobs={openJobInJobs}
           onGoToInspector={() => { setViewReturn({ view: "jobs", label: "Roboty" }); setView("inspector"); }}
           appSettings={appSettings}
-          onOpenTenderFromJobs={(tid) => { setPendingTenderId(tid); setViewReturn({ view: "jobs", label: "Roboty" }); setView("tenders"); }}
+          onOpenTenderFromJobs={(tid) => { setViewReturn({ view: "jobs", label: "Roboty" }); openTenderById(tid); }}
           jobsReturnNav={viewReturn && viewReturn.view !== "jobs" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); setPendingJobId(null); setPendingJobSection(null); } } : undefined}
           inspectorReturnNav={viewReturn && viewReturn.view !== "inspector" ? { label: viewReturn.label, onBack: () => { setView(viewReturn.view); setViewReturn(null); } } : undefined}
           onOpenJobFromGallery={(id) => { setPendingJobId(id); setPendingJobSection("photos"); setView("jobs"); }}

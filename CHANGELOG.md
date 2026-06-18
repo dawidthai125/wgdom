@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.60.0** · **V3.1 Intelligence Sprint 1**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.61.0** · **V4 UX Navigation MVP**
+
+## 2.61.0 — WGDOM V4 UX NAVIGATION MVP
+
+- **new:** Osobny widok przetargu — `/przetargi/:id/:tab`, breadcrumb, KPI Bar, Tender Detail Page + Tab Bar
+- **improve:** Lista bez accordionu — klik → osobny widok; rollback przez `TENDERS_V4_ROUTING = false`
+- **unchanged:** ATH, Dossier, Scoring, Qualification, Valuation, Intelligence V3.1
 
 ## 2.60.0 — TENDER INTELLIGENCE DASHBOARD V3.1 (SPRINT 1)
 

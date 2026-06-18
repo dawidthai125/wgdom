@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router";
 import { Analytics } from "@vercel/analytics/react";
 import "@/lib/cloud-sync";
 import App from "./app/App.tsx";
@@ -19,7 +20,9 @@ initDeepLinks();
 createRoot(document.getElementById("root")!).render(
   <>
     <AppUpdateBanner />
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
     {!isNativeApp() && <Analytics />}
   </>,
 );

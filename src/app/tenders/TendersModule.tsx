@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
 import {
   List,
   LayoutGrid,
@@ -25,6 +26,13 @@ import { TendersMapTab } from "@/app/tenders/tabs/TendersMapTab";
 import { TendersProfileTab } from "@/app/tenders/tabs/TendersProfileTab";
 import { TendersPriceBaseTab } from "@/app/tenders/tabs/TendersPriceBaseTab";
 import { TendersSettingsTab } from "@/app/tenders/tabs/TendersSettingsTab";
+import { TENDERS_V4_ROUTING } from "@/lib/tenders-v4-config";
+import {
+  buildTenderDetailPath,
+  parseTenderDetailPath,
+} from "@/lib/tender-detail-routes-v4";
+import { TendersListPage } from "@/app/TendersListPage";
+import { TenderDetailPage } from "@/app/TenderDetailPage";
 
 const TAB_CONFIG: { id: TendersTabId; icon: typeof List }[] = [
   { id: "list", icon: List },
@@ -141,12 +149,19 @@ export function TendersModule({
 
   const { activeTab, snapshot, openTenderInList } = useTendersContext();
   const { pipeline } = snapshot;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const v4Detail = TENDERS_V4_ROUTING ? parseTenderDetailPath(location.pathname) : null;
 
   useEffect(() => {
-    if (initialExpandedId) {
-      openTenderInList(initialExpandedId);
+    if (!TENDERS_V4_ROUTING) {
+      if (initialExpandedId) openTenderInList(initialExpandedId);
+      return;
     }
-  }, [initialExpandedId, openTenderInList]);
+    if (initialExpandedId) {
+      navigate(buildTenderDetailPath(initialExpandedId, "decyzja"), { replace: true });
+    }
+  }, [initialExpandedId, openTenderInList, navigate]);
 
   if (pipeline.loading) {
     return (
@@ -162,12 +177,33 @@ export function TendersModule({
       <TendersTabBar />
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         {activeTab === "list" && (
-          <TendersListTab
-            showTestBadge={false}
-            onCreateJobFromTender={onCreateJobFromTender}
-            onOpenJob={onOpenJob}
-            athPreviewEnabled={athPreviewEnabled}
-          />
+          TENDERS_V4_ROUTING
+            ? v4Detail
+              ? (
+                <TenderDetailPage
+                  tenderId={v4Detail.tenderId}
+                  tab={v4Detail.tab}
+                  onCreateJobFromTender={onCreateJobFromTender}
+                  onOpenJob={onOpenJob}
+                  athPreviewEnabled={athPreviewEnabled}
+                />
+              )
+              : (
+                <TendersListPage
+                  showTestBadge={false}
+                  onCreateJobFromTender={onCreateJobFromTender}
+                  onOpenJob={onOpenJob}
+                  athPreviewEnabled={athPreviewEnabled}
+                />
+              )
+            : (
+              <TendersListTab
+                showTestBadge={false}
+                onCreateJobFromTender={onCreateJobFromTender}
+                onOpenJob={onOpenJob}
+                athPreviewEnabled={athPreviewEnabled}
+              />
+            )
         )}
         {activeTab === "strategy" && (
           <TendersStrategyTab
