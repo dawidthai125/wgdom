@@ -12,6 +12,37 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-18",
+    version: "2.61.1",
+    label: "Przetargi — WGDOM V4.1 Przetarg + Kosztorys + KPI PRO",
+    items: [
+      {
+        type: "new",
+        text: "Zakładka Przetarg — podstawowe dane, warunki udziału, zakres robót (3–8 grup), najważniejsze informacje ze SWZ/executive summary",
+      },
+      {
+        type: "new",
+        text: "Zakładka Kosztorys — KPI pozycji ATH/wycenionych/niewycenionych, status ATH gotowy/niegotowy, tabela pozycji",
+      },
+      {
+        type: "new",
+        text: "KPI Bar PRO — dokumenty, ATH (liczba pozycji), wycena (np. 380/412 · 92%)",
+      },
+      {
+        type: "improve",
+        text: "Kolejność zakładek V4: Przetarg → Dokumenty → Kosztorys → Ceny → Decyzja → Strategia → Materiały",
+      },
+      {
+        type: "improve",
+        text: "Brak pozycji ATH — komunikat „Brak rozpoznanych pozycji” zamiast „0”",
+      },
+      {
+        type: "improve",
+        text: "Bez zmian: ATH parser, SWZ, Intelligence, Qualification, Dossier, Scoring, backend",
+      },
+    ],
+  },
+  {
+    date: "2026-06-18",
     version: "2.61.0",
     label: "Przetargi — WGDOM V4 UX Navigation MVP",
     items: [

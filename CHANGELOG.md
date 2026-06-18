@@ -1,6 +1,14 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.61.0** · **V4 UX Navigation MVP**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.61.1** · **V4.1 Przetarg + Kosztorys + KPI PRO**
+
+## 2.61.1 — PRZETARG + KOSZTORYS + KPI PRO
+
+- **new:** Zakładka **Przetarg** — dane, warunki udziału, zakres robót, najważniejsze informacje
+- **new:** Zakładka **Kosztorys** — KPI, status ATH, tabela pozycji, „Brak rozpoznanych pozycji”
+- **new:** **KPI Bar PRO** — dokumenty, ATH, wycena (ratio + %)
+- **improve:** Kolejność zakładek: Przetarg → Dokumenty → Kosztorys → Ceny → Decyzja → Strategia → Materiały
+- **unchanged:** ATH/SWZ parser, Intelligence, Qualification, Dossier, Scoring, backend
 
 ## 2.61.0 — WGDOM V4 UX NAVIGATION MVP
 

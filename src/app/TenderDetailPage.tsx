@@ -1,14 +1,15 @@
 import { useCallback, useMemo } from "react";
-import { ArrowLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { ArrowLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router";
 import {
   jobDraftFromTender,
-  TENDER_STATUS_LABELS,
   type TenderPipelineItem,
 } from "@/lib/tenders-bzp";
 import { TenderDetailPanel } from "@/app/TenderDetailPanel";
 import { TenderDetailKpiBar } from "@/app/TenderDetailKpiBar";
 import { TenderDetailTabBar } from "@/app/TenderDetailTabBar";
+import { TenderPrzetargWorkspace } from "@/app/TenderPrzetargWorkspace";
+import { TenderKosztorysWorkspace } from "@/app/TenderKosztorysWorkspace";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import {
   buildTenderDetailPath,
@@ -20,49 +21,6 @@ import {
   v4TabToLegacyWorkspace,
 } from "@/lib/tender-detail-routes-v4";
 import type { TenderWorkspaceTabId } from "@/lib/tender-workspace-ux";
-
-function TenderPrzetargOverview({ item }: { item: TenderPipelineItem }) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-        Przegląd formalny
-      </p>
-      <dl className="grid gap-2 text-sm sm:grid-cols-2">
-        <div>
-          <dt className="text-[10px] text-muted-foreground">Numer BZP</dt>
-          <dd className="font-mono text-xs">{item.bzpNumber || "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-[10px] text-muted-foreground">Status</dt>
-          <dd>{TENDER_STATUS_LABELS[item.status] ?? item.status}</dd>
-        </div>
-        <div className="sm:col-span-2">
-          <dt className="text-[10px] text-muted-foreground">Zamawiający</dt>
-          <dd>{item.organizationName || "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-[10px] text-muted-foreground">Miasto</dt>
-          <dd>{item.organizationCity || "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-[10px] text-muted-foreground">Trafność</dt>
-          <dd>{item.relevanceScore > 0 ? item.relevanceScore : "—"}</dd>
-        </div>
-      </dl>
-      {item.ezamowieniaUrl && (
-        <a
-          href={item.ezamowieniaUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20"
-        >
-          <ExternalLink size={12} />
-          e-Zamówienia
-        </a>
-      )}
-    </div>
-  );
-}
 
 function TenderV4Placeholder({ tab }: { tab: TenderDetailV4TabId }) {
   return (
@@ -167,7 +125,9 @@ export function TenderDetailPage({
         </div>
 
         <div className="px-4 sm:px-6 py-4">
-          {tab === "przetarg" && <TenderPrzetargOverview item={item} />}
+          {tab === "przetarg" && <TenderPrzetargWorkspace item={item} swz={swz} />}
+
+          {tab === "kosztorys" && <TenderKosztorysWorkspace item={item} />}
 
           {isTenderDetailV4PlaceholderTab(tab) && (
             <TenderV4Placeholder tab={tab} />

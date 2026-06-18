@@ -8,19 +8,18 @@ export const TENDERS_LIST_PATH = "/przetargi";
 
 export const TENDER_DETAIL_V4_TAB_ORDER = [
   "przetarg",
+  "dokumenty",
   "kosztorys",
   "ceny",
-  "materialy",
-  "strategia",
   "decyzja",
-  "dokumenty",
+  "strategia",
+  "materialy",
 ] as const;
 
 export type TenderDetailV4TabId = (typeof TENDER_DETAIL_V4_TAB_ORDER)[number];
 
 /** MVP — zakładki z treścią „Wkrótce”. */
 export const TENDER_DETAIL_V4_PLACEHOLDER_TABS: ReadonlySet<TenderDetailV4TabId> = new Set([
-  "kosztorys",
   "materialy",
   "strategia",
 ]);
@@ -54,8 +53,8 @@ export function v4TabToLegacyWorkspace(tab: TenderDetailV4TabId): TenderWorkspac
       return "documents";
     case "ceny":
       return "valuation";
-    case "przetarg":
     case "kosztorys":
+    case "przetarg":
     case "materialy":
     case "strategia":
       return null;
@@ -80,6 +79,15 @@ export function legacyWorkspaceToV4Tab(tab: TenderWorkspaceTabId): TenderDetailV
     default:
       return TENDER_DETAIL_V4_DEFAULT_TAB;
   }
+}
+
+/** Nawigacja z OwnerView / legacy → V4 (kosztorys osobno od dokumentów). */
+export function legacyWorkspaceToV4TabWithContext(
+  tab: TenderWorkspaceTabId,
+  preferKosztorys = false,
+): TenderDetailV4TabId {
+  if (preferKosztorys && tab === "documents") return "kosztorys";
+  return legacyWorkspaceToV4Tab(tab);
 }
 
 export function buildTenderDetailPath(
