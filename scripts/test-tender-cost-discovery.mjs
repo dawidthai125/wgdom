@@ -5,6 +5,7 @@
 import {
   classifyCostDocumentType,
   discoverBestCostDocument,
+  isFormalOfferCostFilename,
   scoreCostTitleMatch,
   costTypeKosztorysFoundLine,
 } from "../src/lib/tender-cost-discovery.ts";
@@ -73,6 +74,38 @@ assert("pdf no text ux line", costTypeKosztorysFoundLine("zip_pdf_przedmiar", "x
 }) === PDF_PRZEDMIAR_NO_TEXT_LAYER_LINE);
 
 assert("classify zip ath", classifyCostDocumentType("a.zip → b.ath").type === "zip_ath");
+
+// P0 — formal offer XLSX excluded from cost discovery
+const TP113_FORM =
+  "TP113_Zal. nr 1 do SWZ - Formularz oferty - Remont i przebudowa Sępa Szarzyńskiego 65A.xlsx";
+const TP113_ZIP_ATH =
+  "DOKUMENTACJA PROJEKTOWA.zip → SEPA 65A - SANITARNY - zest.ATH";
+
+assert("isFormalOfferCostFilename tp113", isFormalOfferCostFilename(TP113_FORM));
+assert("classify formal offer none", classifyCostDocumentType(TP113_FORM).type === "none");
+assert("classify offer form en", isFormalOfferCostFilename("Annex - Offer Form.xlsx"));
+
+const tp113Cands = [
+  { filename: TP113_FORM, score: 54 },
+  {
+    filename: TP113_ZIP_ATH,
+    score: 48,
+    zipInnerPath: "przedmiar/SEPA 65A - SANITARNY - zest.ATH",
+  },
+];
+const tp113Disc = discoverBestCostDocument(tp113Cands, {
+  tenderTitle:
+    "REMONT I PRZEBUDOWA BUDYNKU WIELORODZINNEGO PRZY UL. SĘPA SZARZYŃSKIEGO 65A WE WROCŁAWIU",
+});
+assert("TP113 formularz not winner", !tp113Disc.source.includes("Formularz oferty"));
+assert("TP113 zip ath type", tp113Disc.type === "zip_ath");
+assert("TP113 zip ath source", tp113Disc.source.includes("DOKUMENTACJA PROJEKTOWA.zip"));
+assert("TP113 zip ath inner", tp113Disc.source.includes(".ATH") || tp113Disc.source.includes(".ath"));
+
+assert("inner xlsx without przedmiar excluded", classifyCostDocumentType(
+  "Załączniki do umowy.zip → zał. nr 3 wzor harmonogramu rzeczowo - finansowego.xlsx",
+).type === "none");
+assert("inner przedmiar xlsx kept", classifyCostDocumentType("arch.zip → przedmiar.xlsx").type === "zip_xlsx");
 
 console.log(`\nTender cost discovery: ${pass} PASS, ${fail} FAIL`);
 process.exit(fail > 0 ? 1 : 0);

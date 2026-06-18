@@ -1,6 +1,6 @@
 /** Wybór i parsowanie najlepszego załącznika BZP (ATH/PDF/DOCX/XLSX/ZIP). */
 
-import { fetchTenderDocumentBytes, base64ToBytes, resolveTenderDocumentDownload, type TenderBzpDocument } from "@/lib/tenders-bzp";
+import { fetchTenderDocumentBytes, fetchTenderZipCatalog, fetchTenderZipEntryBytes, base64ToBytes, resolveTenderDocumentDownload, type TenderBzpDocument } from "@/lib/tenders-bzp";
 import {
   athPreviewToSnapshot,
   pickBestKosztorysDocument,
@@ -25,7 +25,13 @@ import { traceDossierPipeline } from "@/lib/tender-dossier-trace";
 import { enrichSwzFromText } from "@/lib/tenders-bzp-swz-enrich";
 import { applyMetadataConfidence, scoreEstimatedValueConfidence } from "@/lib/tender-metadata-confidence";
 import { roleContributesMetadata } from "@/lib/tender-metadata-sources";
-import { classifyCostDocumentType, discoverBestCostDocument, isPdfPrzedmiarCostFilename, type TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
+import {
+  classifyCostDocumentType,
+  discoverBestCostDocument,
+  isFormalOfferCostFilename,
+  isPdfPrzedmiarCostFilename,
+  type TenderCostDiscoveryResult,
+} from "@/lib/tender-cost-discovery";
 import { enrichKosztorysSnapshotFromPreview, estimatePlnFromKosztorysSnapshot, traceCostPipeline } from "@/lib/tender-cost-snapshot";
 import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
 import { mergeFormalRequirements } from "@/lib/tender-formal-requirements";
@@ -71,6 +77,51 @@ export interface TenderDossierParseResult extends TenderDocumentParseResult {
   /** P2-H.4 — co najmniej jedno archiwum 7Z rozpakowane z listą plików wewnętrznych. */
   sevenZUnpackOk?: boolean;
   sevenZInnerCount?: number;
+  /** P0 — inner z archiwów ZIP (np. DOKUMENTACJA PROJEKTOWA.zip). */
+  zipUnpackOk?: boolean;
+  zipInnerCount?: number;
+}
+
+function shouldBzpReadmodelsBytesFallback(
+  err: unknown,
+  downloadUrl?: string,
+  sourcePageUrl?: string,
+): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (/marketplanet|session replay|ezamawiajacy|nie udało się pobrać dokumentu/i.test(msg)) {
+    return true;
+  }
+  if (downloadUrl && /\/repository\/download\//i.test(downloadUrl) && !sourcePageUrl?.trim()) {
+    return true;
+  }
+  return Boolean(downloadUrl?.trim() || sourcePageUrl?.trim());
+}
+
+function isOffPlatformTenderDoc(
+  access: ReturnType<typeof resolveTenderDocumentDownload>,
+  resolvedUrl?: string,
+  sourcePageUrl?: string,
+): boolean {
+  return Boolean(
+    access?.platform === "ezamawiajacy"
+    || access?.platform === "logintrade"
+    || /\.ezamawiajacy\.pl/i.test(resolvedUrl || "")
+    || /\.ezamawiajacy\.pl/i.test(sourcePageUrl || "")
+    || /logintrade\.net/i.test(resolvedUrl || ""),
+  );
+}
+
+function traceDownloadDiag(
+  index: number,
+  label: string,
+  diag: unknown,
+  err?: unknown,
+): void {
+  const payload: Record<string, unknown> = { label };
+  if (diag && typeof diag === "object") Object.assign(payload, diag as Record<string, unknown>);
+  if (err instanceof Error) payload.error = err.message;
+  else if ((err as Error & { diag?: unknown })?.diag) payload.diag = (err as Error & { diag?: unknown }).diag;
+  traceDossierPipeline("document_download_diag", `doc#${index}`, payload);
 }
 
 async function loadDocBytes(
@@ -81,13 +132,88 @@ async function loadDocBytes(
 ): Promise<Uint8Array> {
   const access = resolveTenderDocumentDownload(docs, index);
   const resolvedUrl = downloadUrl ?? access?.downloadUrl;
-  const { base64 } = await fetchTenderDocumentBytes(
-    tenderId,
-    index,
-    resolvedUrl,
-    access?.sourcePageUrl,
-  );
-  return base64ToBytes(base64);
+  const sourcePageUrl = access?.sourcePageUrl;
+  const outerName = docs.find((d) => d.index === index)?.filename ?? "";
+  const offPlatform = isOffPlatformTenderDoc(access, resolvedUrl, sourcePageUrl);
+  const preferBzpReadmodelsFirst =
+    Boolean(tenderId)
+    && (isZipFilename(outerName) || is7zFilename(outerName))
+    && !offPlatform;
+
+  const fetchBytes = async (url?: string, pageUrl?: string, label = "fetch") => {
+    try {
+      const { base64, diag } = await fetchTenderDocumentBytes(tenderId, index, url, pageUrl);
+      if (diag) traceDownloadDiag(index, label, diag);
+      return base64ToBytes(base64);
+    } catch (err) {
+      traceDownloadDiag(index, `${label}_failed`, null, err);
+      throw err;
+    }
+  };
+
+  if (offPlatform && sourcePageUrl) {
+    return fetchBytes(resolvedUrl, sourcePageUrl, "platform_session");
+  }
+
+  if (preferBzpReadmodelsFirst) {
+    try {
+      const bytes = await fetchBytes(undefined, undefined, "bzp_primary");
+      traceDossierPipeline("document_bytes_bzp_primary", `doc#${index}`, {
+        filename: outerName,
+        bytes: bytes.byteLength,
+      });
+      return bytes;
+    } catch (bzpErr) {
+      traceDossierPipeline("document_bytes_bzp_primary_failed", `doc#${index}`, {
+        filename: outerName,
+        error: bzpErr instanceof Error ? bzpErr.message : String(bzpErr),
+      });
+    }
+  }
+
+  try {
+    return await fetchBytes(resolvedUrl, sourcePageUrl, "platform_or_url");
+  } catch (firstErr) {
+    if (!shouldBzpReadmodelsBytesFallback(firstErr, resolvedUrl, sourcePageUrl)) {
+      throw firstErr;
+    }
+    traceDossierPipeline("document_bytes_bzp_fallback", `doc#${index}`, {
+      filename: access?.filename ?? outerName,
+      hadDownloadUrl: Boolean(resolvedUrl),
+      error: firstErr instanceof Error ? firstErr.message : String(firstErr),
+    });
+    return fetchBytes(undefined, undefined, "bzp_fallback");
+  }
+}
+
+async function loadZipInnerEntries(
+  tenderId: string,
+  doc: TenderBzpDocument,
+  downloadUrl?: string,
+) {
+  const access = resolveTenderDocumentDownload([doc], doc.index);
+  try {
+    const catalog = await fetchTenderZipCatalog({
+      tenderId,
+      documentIndex: doc.index,
+      downloadUrl: downloadUrl ?? access?.downloadUrl,
+      sourcePageUrl: access?.sourcePageUrl,
+    });
+    traceDossierPipeline("zip_catalog_edge", doc.filename, {
+      zipSize: catalog.zipSize,
+      innerCount: catalog.entries.length,
+      ath: catalog.entries.filter((e) => /\.ath$/i.test(e.filename)).map((e) => e.filename).slice(0, 5),
+      diag: catalog.diag,
+    });
+    return catalog.entries;
+  } catch (err) {
+    traceDossierPipeline("zip_catalog_edge_failed", doc.filename, {
+      documentIndex: doc.index,
+      error: err instanceof Error ? err.message : String(err),
+      diag: (err as Error & { diag?: unknown }).diag,
+    });
+    return null;
+  }
 }
 
 function parentDownloadUrl(doc: TenderBzpDocument): string | undefined {
@@ -112,11 +238,12 @@ function pickCostParseCandidates(
   costDiscovery: TenderCostDiscoveryResult | null,
 ): TenderDocCandidate[] {
   const out = new Map<string, TenderDocCandidate>();
-  if (costDiscovery?.found) {
+  if (costDiscovery?.found && !isFormalOfferCostFilename(costDiscovery.source)) {
     const match = all.find((c) => c.filename === costDiscovery.source);
     if (match) out.set(candidateKey(match), match);
   }
   for (const c of all) {
+    if (isFormalOfferCostFilename(c.filename)) continue;
     if (classifyDocumentRole(c.filename) === "kosztorys") {
       out.set(candidateKey(c), c);
     }
@@ -154,9 +281,16 @@ export async function buildTenderDocCandidates(
           downloadUrl: Boolean(dl),
         });
         const { listZipFiles } = await loadDocParse();
-        const zipBytes = await loadDocBytes(tenderId, doc.index, docs, dl);
-        traceDossierPipeline("zip_opened", doc.filename, { bytes: zipBytes.byteLength });
-        const inner = await listZipFiles(zipBytes);
+        let inner = await loadZipInnerEntries(tenderId, doc, dl);
+        let zipBytes: Uint8Array | null = null;
+        if (!inner?.length) {
+          zipBytes = await loadDocBytes(tenderId, doc.index, docs, dl);
+          traceDossierPipeline("zip_opened", doc.filename, { bytes: zipBytes.byteLength });
+          inner = await listZipFiles(zipBytes);
+        } else {
+          traceDossierPipeline("zip_opened", doc.filename, { bytes: "edge_catalog", innerViaEdge: true });
+        }
+        const docZipBoost = /dokumentacja\s*projektowa|przedmiar|kosztorys/i.test(doc.filename) ? 20 : 0;
         traceDossierPipeline("zip_inner_files_found", doc.filename, {
           count: inner.length,
           ath: inner.filter((e) => /\.ath$/i.test(e.filename)).map((e) => e.filename).slice(0, 5),
@@ -172,7 +306,7 @@ export async function buildTenderDocCandidates(
             documentIndex: doc.index,
             filename: innerName,
             zipInnerPath: entry.path,
-            score: entry.score + (doc.isSwzHint ? 10 : 0),
+            score: entry.score + (doc.isSwzHint ? 10 : 0) + docZipBoost,
             downloadUrl: dl,
             platform: doc.platform,
           });
@@ -306,18 +440,42 @@ export async function parseTenderDocumentCandidate(
 
   const outerDoc = docs.find((d) => d.index === candidate.documentIndex);
   const outerName = outerDoc?.filename ?? candidate.filename.split(" → ")[0] ?? candidate.filename;
+  const outerAccess = resolveTenderDocumentDownload(docs, candidate.documentIndex);
 
-  const outerBytes = await loadBytes(candidate.documentIndex);
   let bytes: Uint8Array;
   let effectiveName: string;
 
-  if (candidate.zipInnerPath) {
+  if (candidate.zipInnerPath && isZipFilename(outerName)) {
+    try {
+      const innerPayload = await fetchTenderZipEntryBytes({
+        tenderId,
+        documentIndex: candidate.documentIndex,
+        innerPath: candidate.zipInnerPath,
+        downloadUrl: candidate.downloadUrl ?? outerAccess?.downloadUrl,
+        sourcePageUrl: outerAccess?.sourcePageUrl,
+      });
+      bytes = base64ToBytes(innerPayload.base64);
+      effectiveName = candidate.filename.split(" → ").pop() ?? candidate.filename;
+      traceDossierPipeline("zip_inner_bytes_edge", candidate.filename, {
+        innerPath: candidate.zipInnerPath,
+        bytes: bytes.byteLength,
+        diag: innerPayload.diag,
+      });
+    } catch {
+      const outerBytes = await loadBytes(candidate.documentIndex);
+      const inner = await readZipEntry(outerBytes, candidate.zipInnerPath);
+      bytes = inner ?? outerBytes;
+      effectiveName = candidate.filename.split(" → ").pop() ?? candidate.filename;
+    }
+  } else if (candidate.zipInnerPath) {
+    const outerBytes = await loadBytes(candidate.documentIndex);
     const inner = is7zFilename(outerName)
       ? await read7zEntry(outerBytes, candidate.zipInnerPath)
       : await readZipEntry(outerBytes, candidate.zipInnerPath);
     bytes = inner ?? outerBytes;
     effectiveName = candidate.filename.split(" → ").pop() ?? candidate.filename;
   } else if (isZipFilename(candidate.filename)) {
+    const outerBytes = await loadBytes(candidate.documentIndex);
     const picked = await pickBestFromZipBytes(outerBytes, candidate.filename);
     if (picked) {
       bytes = picked.bytes;
@@ -329,6 +487,7 @@ export async function parseTenderDocumentCandidate(
       effectiveName = candidate.filename;
     }
   } else if (is7zFilename(candidate.filename)) {
+    const outerBytes = await loadBytes(candidate.documentIndex);
     const picked = await pickBestFrom7zBytes(outerBytes, candidate.filename);
     if (picked) {
       bytes = picked.bytes;
@@ -340,7 +499,7 @@ export async function parseTenderDocumentCandidate(
       effectiveName = candidate.filename;
     }
   } else {
-    bytes = outerBytes;
+    bytes = await loadBytes(candidate.documentIndex);
     effectiveName = candidate.filename;
   }
 
@@ -671,6 +830,8 @@ export async function parseTenderDossierDocuments(
       costDiscovery: null,
       sevenZUnpackOk: false,
       sevenZInnerCount: 0,
+      zipUnpackOk: false,
+      zipInnerCount: 0,
     };
   }
 
@@ -697,6 +858,19 @@ export async function parseTenderDossierDocuments(
   ).length;
   const sevenZUnpackOk = sevenZDocIndices.size === 0 || sevenZWithInner.size > 0;
 
+  const zipDocIndices = new Set(
+    docs.filter((d) => isZipFilename(d.filename)).map((d) => d.index),
+  );
+  const zipWithInner = new Set(
+    allCandidates
+      .filter((c) => c.zipInnerPath && zipDocIndices.has(c.documentIndex))
+      .map((c) => c.documentIndex),
+  );
+  const zipInnerCount = allCandidates.filter(
+    (c) => c.zipInnerPath && zipDocIndices.has(c.documentIndex),
+  ).length;
+  const zipUnpackOk = zipDocIndices.size === 0 || zipWithInner.size > 0;
+
   const candidates = selectDossierCandidates(allCandidates);
   const costCandidates = pickCostParseCandidates(allCandidates, costDiscovery);
 
@@ -710,6 +884,13 @@ export async function parseTenderDossierDocuments(
       traceDossierPipeline("document_classified", doc.filename, { role: "7z", supported });
       if (!supported) {
         warnings.push(`Wykryto archiwum 7Z: ${doc.filename} — nie udało się odczytać zawartości`);
+      }
+    }
+    if (isZipFilename(doc.filename)) {
+      const supported = zipWithInner.has(doc.index);
+      traceDossierPipeline("document_classified", doc.filename, { role: "zip", supported, inner: zipInnerCount });
+      if (!supported && /dokumentacja\s*projektowa|przedmiar|kosztorys/i.test(doc.filename)) {
+        warnings.push(`Wykryto archiwum ZIP: ${doc.filename} — nie udało się odczytać zawartości`);
       }
     }
   }
@@ -870,6 +1051,8 @@ export async function parseTenderDossierDocuments(
     costDiscovery,
     sevenZUnpackOk,
     sevenZInnerCount,
+    zipUnpackOk,
+    zipInnerCount,
   };
 }
 

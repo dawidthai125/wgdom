@@ -12,6 +12,37 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-18",
+    version: "2.61.4",
+    label: "Przetargi — ZIP ATH Recovery",
+    items: [
+      {
+        type: "fix",
+        text: "Obsługa dużych archiwów ZIP do 128 MB (np. DOKUMENTACJA PROJEKTOWA.zip na eZamawiający)",
+      },
+      {
+        type: "new",
+        text: "Edge zip-catalog — lista plików wewnętrznych ZIP bez pobierania całego archiwum do przeglądarki",
+      },
+      {
+        type: "new",
+        text: "Edge zip-entry-bytes — pobieranie pojedynczego pliku z ZIP (ATH/przedmiar) po stronie serwera",
+      },
+      {
+        type: "fix",
+        text: "Wykluczenie formularzy ofertowych z discovery kosztorysu (Formularz oferty, zal. nr 1 do SWZ)",
+      },
+      {
+        type: "fix",
+        text: "Recovery ATH z dokumentacji projektowej — discovery i dossier dla WM / Marketplanet",
+      },
+      {
+        type: "improve",
+        text: "Diagnostyka pobierania dokumentów (HTTP status, content-type, final URL) w Edge",
+      },
+    ],
+  },
+  {
+    date: "2026-06-18",
     version: "2.61.3",
     label: "Przetargi — WGDOM V4.1.2 ATH / Kosztorys Source Recovery",
     items: [

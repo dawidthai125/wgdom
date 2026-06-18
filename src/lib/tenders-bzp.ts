@@ -642,8 +642,77 @@ async function tenderApiGet(path: string, params: Record<string, string>): Promi
   const res = await fetch(`${API_BASE}${path}?${q}`, { headers: API_HEADERS });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !(data as { ok?: boolean }).ok) {
-    throw new Error((data as { error?: string }).error || `Błąd API (${res.status})`);
+    const err = new Error((data as { error?: string }).error || `Błąd API (${res.status})`) as Error & {
+      diag?: TenderDownloadDiag;
+    };
+    err.diag = (data as { diag?: TenderDownloadDiag }).diag;
+    throw err;
   }
+  return data;
+}
+
+export interface TenderDownloadDiag {
+  path: string;
+  requestUrl: string;
+  finalUrl?: string;
+  httpStatus?: number;
+  contentType?: string;
+  contentLength?: string;
+  bytesReceived?: number;
+  rejectReason?: string;
+}
+
+export interface TenderZipCatalogEntry {
+  path: string;
+  filename: string;
+  score: number;
+}
+
+export async function fetchTenderZipCatalog(opts: {
+  tenderId: string;
+  documentIndex: number;
+  downloadUrl?: string;
+  sourcePageUrl?: string;
+}): Promise<{
+  zipSize: number;
+  outerFilename: string;
+  entries: TenderZipCatalogEntry[];
+  diag?: TenderDownloadDiag;
+}> {
+  const data = await tenderApiGet("/tenders-bzp-zip-catalog", {
+    tenderId: opts.tenderId,
+    documentIndex: String(opts.documentIndex),
+    ...(opts.downloadUrl ? { downloadUrl: opts.downloadUrl } : {}),
+    ...(opts.sourcePageUrl ? { sourcePageUrl: opts.sourcePageUrl } : {}),
+  }) as {
+    zipSize: number;
+    outerFilename: string;
+    entries: TenderZipCatalogEntry[];
+    diag?: TenderDownloadDiag;
+  };
+  return data;
+}
+
+export async function fetchTenderZipEntryBytes(opts: {
+  tenderId: string;
+  documentIndex: number;
+  innerPath: string;
+  downloadUrl?: string;
+  sourcePageUrl?: string;
+}): Promise<{ base64: string; filename: string; contentType: string; innerPath: string; diag?: TenderDownloadDiag }> {
+  const data = await tenderApiGet("/tenders-bzp-zip-entry-bytes", {
+    tenderId: opts.tenderId,
+    documentIndex: String(opts.documentIndex),
+    innerPath: opts.innerPath,
+    ...(opts.downloadUrl ? { downloadUrl: opts.downloadUrl } : {}),
+    ...(opts.sourcePageUrl ? { sourcePageUrl: opts.sourcePageUrl } : {}),
+  }) as {
+    base64: string;
+    filename: string;
+    contentType: string;
+    innerPath: string;
+    diag?: TenderDownloadDiag;
+  };
   return data;
 }
 
@@ -950,7 +1019,7 @@ export async function fetchTenderDocumentBytes(
   documentIndex: number,
   downloadUrl?: string,
   sourcePageUrl?: string,
-): Promise<{ base64: string; filename: string; contentType: string }> {
+): Promise<{ base64: string; filename: string; contentType: string; diag?: TenderDownloadDiag }> {
   const cacheKey = tenderDocumentBytesCacheKey(
     tenderId,
     documentIndex,
@@ -966,7 +1035,7 @@ export async function fetchTenderDocumentBytes(
     documentIndex: String(documentIndex),
     ...(downloadUrl ? { downloadUrl } : {}),
     ...(sourcePageUrl ? { sourcePageUrl } : {}),
-  }) as { base64: string; filename: string; contentType: string };
+  }) as { base64: string; filename: string; contentType: string; diag?: TenderDownloadDiag };
   setTenderDocumentBytesCached(cacheKey, data);
   return data;
 }

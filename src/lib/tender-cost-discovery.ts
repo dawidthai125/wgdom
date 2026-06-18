@@ -53,6 +53,34 @@ function baseName(filename: string): string {
   return (filename.split(" → ").pop() ?? filename).toLowerCase();
 }
 
+function foldCostFilename(filename: string): string {
+  return baseName(filename)
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/\s+/g, " ");
+}
+
+/**
+ * P0 — formularz ofertowy nie jest kosztorysem / przedmiarem (WM: Zal. nr 1 do SWZ).
+ * Używane w discovery, classify i pickCostParseCandidates.
+ */
+export function isFormalOfferCostFilename(filename: string): boolean {
+  const folded = foldCostFilename(filename);
+  if (!folded) return false;
+  if (/\bformularz\b/.test(folded) && /\bofert/.test(folded)) return true;
+  if (/\boffer\s+form\b/.test(folded)) return true;
+  if (/zal\.?\s*nr\s*1\b.*\bswz\b/.test(folded)) return true;
+  if (/zalacznik\s*nr\s*1\b.*\bswz\b/.test(folded)) return true;
+  if (
+    /\bofert/.test(folded)
+    && /\.xlsx?$/i.test(folded)
+    && !/koszt|przedm|obmiar/.test(folded)
+  ) {
+    return true;
+  }
+  return false;
+}
+
 function isNorFilename(name: string): boolean {
   return /\.nor$/i.test(name);
 }
@@ -73,6 +101,10 @@ export function classifyCostDocumentType(filename: string): {
   const base = baseName(filename);
   const inZip = filename.includes(" → ");
 
+  if (isFormalOfferCostFilename(filename)) {
+    return { type: "none", confidence: 0 };
+  }
+
   if (isNorFilename(base)) {
     const t: TenderCostDocumentType = inZip ? "zip_nor" : "nor";
     return { type: t, confidence: 0.95 };
@@ -86,12 +118,20 @@ export function classifyCostDocumentType(filename: string): {
     return { type: t, confidence: 0.98 };
   }
   if (isXlsxFilename(base)) {
+    const hasCostHint = /koszt|przedm|obmiar/i.test(base);
+    if (inZip && !hasCostHint) {
+      return { type: "none", confidence: 0 };
+    }
     const t: TenderCostDocumentType = inZip ? "zip_xlsx" : "xlsx";
-    return { type: t, confidence: /koszt|przedm|obmiar/i.test(base) ? 0.88 : 0.72 };
+    return { type: t, confidence: hasCostHint ? 0.88 : 0.72 };
   }
   if (isXlsOnlyFilename(base)) {
+    const hasCostHint = /koszt|przedm|obmiar/i.test(base);
+    if (inZip && !hasCostHint) {
+      return { type: "none", confidence: 0 };
+    }
     const t: TenderCostDocumentType = inZip ? "zip_xls" : "xls";
-    return { type: t, confidence: /koszt|przedm|obmiar/i.test(base) ? 0.85 : 0.68 };
+    return { type: t, confidence: hasCostHint ? 0.85 : 0.68 };
   }
   if (isPdfPrzedmiarCostFilename(filename)) {
     const t: TenderCostDocumentType = inZip ? "zip_pdf_przedmiar" : "pdf_przedmiar";
@@ -200,6 +240,7 @@ export function discoverBestCostDocument(
   let bestTitleMatch = Number.NEGATIVE_INFINITY;
 
   for (const cand of candidates) {
+    if (isFormalOfferCostFilename(cand.filename)) continue;
     const { type, confidence } = classifyCostDocumentType(cand.filename);
     if (type === "none") continue;
     const scoreBoost = (cand.score ?? 0) / 100;

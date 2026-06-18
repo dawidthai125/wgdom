@@ -3,6 +3,7 @@ import { Hono } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
 import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
+import JSZip from "npm:jszip@3.10.1";
 import * as kv from "./kv_store.tsx";
 
 const PHOTOS_BUCKET = "make-0afb8820-photos";
@@ -2621,6 +2622,29 @@ function normalizeBzpFilename(filename: string, index: number, contentType: stri
   return `Zalacznik_${index}${ext}`;
 }
 
+const MAX_DOCUMENT_BYTES_DEFAULT = 15 * 1024 * 1024;
+const MAX_ARCHIVE_OUTER_BYTES = 128 * 1024 * 1024;
+
+type TenderDownloadDiag = {
+  path: string;
+  requestUrl: string;
+  finalUrl?: string;
+  httpStatus?: number;
+  contentType?: string;
+  contentLength?: string;
+  bytesReceived?: number;
+  rejectReason?: string;
+};
+
+function maxBytesForDownload(filename: string | null, contentType: string): number {
+  const name = (filename || "").toLowerCase();
+  const ct = (contentType || "").toLowerCase();
+  if (/\.(zip|7z)$/i.test(name) || ct.includes("zip") || ct.includes("7z")) {
+    return MAX_ARCHIVE_OUTER_BYTES;
+  }
+  return MAX_DOCUMENT_BYTES_DEFAULT;
+}
+
 function assertDownloadMagicBytes(bytes: Uint8Array, filename: string | null, contentType: string): void {
   const name = (filename || "").toLowerCase();
   const ct = (contentType || "").toLowerCase();
@@ -2634,6 +2658,61 @@ function assertDownloadMagicBytes(bytes: Uint8Array, filename: string | null, co
   )) {
     throw new Error("invalid-download");
   }
+}
+
+function isArchiveInnerListableFilename(filename: string): boolean {
+  return /\.(ath|nor|xml|pdf|xlsx?|docx?)$/i.test(filename);
+}
+
+function scoreZipInnerFilename(filename: string): number {
+  const n = filename.toLowerCase();
+  let score = 0;
+  if (/kosztorys|przedmiar|obmiar|ath|nor\b/.test(n)) score += 30;
+  if (/specyfikac|swz|opz/.test(n)) score += 12;
+  if (/formularz|ofert/.test(n)) score -= 20;
+  if (/umow|protok|harmonogram/.test(n)) score -= 8;
+  return score;
+}
+
+function isTenderDownloadUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
+    const host = u.hostname.toLowerCase();
+    if (host === "localhost" || host.startsWith("127.") || host.startsWith("192.168.") || host.startsWith("10.")) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function listZipCatalogEntries(bytes: Uint8Array): Promise<{ path: string; filename: string; score: number }[]> {
+  const zip = await JSZip.loadAsync(bytes);
+  const out: { path: string; filename: string; score: number }[] = [];
+  zip.forEach((relativePath, file) => {
+    if (file.dir) return;
+    const filename = relativePath.split("/").pop() || relativePath;
+    if (/^__MACOSX|\/.DS_Store$/i.test(relativePath)) return;
+    if (!isArchiveInnerListableFilename(filename)) return;
+    const score = scoreZipInnerFilename(filename);
+    const costRelevant =
+      /\.(ath|nor|xml)$/i.test(filename)
+      || (/\.xlsx?$/i.test(filename) && /koszt|przedm|obmiar/i.test(filename))
+      || (/\.pdf$/i.test(filename) && /przedmiar|kosztorys|obmiar/i.test(filename));
+    if (score >= 6 || costRelevant) {
+      out.push({ path: relativePath, filename, score });
+    }
+  });
+  return out.sort((a, b) => b.score - a.score);
+}
+
+async function readZipCatalogEntry(bytes: Uint8Array, innerPath: string): Promise<Uint8Array | null> {
+  const zip = await JSZip.loadAsync(bytes);
+  const file = zip.file(innerPath);
+  if (!file) return null;
+  return new Uint8Array(await file.async("arraybuffer"));
 }
 
 /** Lekki probe istnienia pliku — GET + natychmiastowe anulowanie body (HEAD zwraca 405 na e-Zamówieniach). */
@@ -2919,13 +2998,34 @@ async function probeEzamawiajacyDocumentMeta(
 async function downloadEzamawiajacyDocumentByIndex(
   sourcePageUrl: string,
   documentIndex: number,
-): Promise<{ bytes: Uint8Array; filename: string; contentType: string } | null> {
+): Promise<
+  | { ok: true; bytes: Uint8Array; filename: string; contentType: string; diag: TenderDownloadDiag }
+  | { ok: false; diag: TenderDownloadDiag }
+> {
   const session = await openEzamawiajacyPageSession(sourcePageUrl);
-  if (!session?.cookie) return null;
+  if (!session?.cookie) {
+    return {
+      ok: false,
+      diag: {
+        path: "ezamawiajacy_session",
+        requestUrl: sourcePageUrl,
+        rejectReason: "session_open_failed",
+      },
+    };
+  }
   const origin = new URL(session.finalUrl).origin;
   const attachments = await collectEzamawiajacyAttachments(session);
   const ref = attachments[documentIndex - 1];
-  if (!ref) return null;
+  if (!ref) {
+    return {
+      ok: false,
+      diag: {
+        path: "ezamawiajacy_index",
+        requestUrl: sourcePageUrl,
+        rejectReason: `attachment_index_missing:${documentIndex}/${attachments.length}`,
+      },
+    };
+  }
   return downloadEzamawiajacyToken(origin, ref, session);
 }
 
@@ -2933,8 +3033,15 @@ async function downloadEzamawiajacyToken(
   origin: string,
   ref: { tokenPath: string; label?: string },
   session: { cookie: string; finalUrl: string },
-): Promise<{ bytes: Uint8Array; filename: string; contentType: string } | null> {
+): Promise<
+  | { ok: true; bytes: Uint8Array; filename: string; contentType: string; diag: TenderDownloadDiag }
+  | { ok: false; diag: TenderDownloadDiag }
+> {
   const downloadUrl = origin + ref.tokenPath;
+  const diag: TenderDownloadDiag = {
+    path: "ezamawiajacy_token",
+    requestUrl: downloadUrl,
+  };
   try {
     const res = await fetch(downloadUrl, {
       headers: {
@@ -2944,33 +3051,74 @@ async function downloadEzamawiajacyToken(
         Referer: session.finalUrl,
       },
       redirect: "follow",
-      signal: AbortSignal.timeout(35000),
+      signal: AbortSignal.timeout(120000),
     });
-    if (!res.ok) return null;
+    diag.httpStatus = res.status;
+    diag.finalUrl = res.url;
+    diag.contentType = res.headers.get("content-type") || undefined;
+    diag.contentLength = res.headers.get("content-length") || undefined;
+    if (!res.ok) {
+      diag.rejectReason = `http_not_ok:${res.status}`;
+      return { ok: false, diag };
+    }
     const bytes = new Uint8Array(await res.arrayBuffer());
-    if (bytes.byteLength < 100 || bytes.byteLength > 15 * 1024 * 1024) return null;
+    diag.bytesReceived = bytes.byteLength;
     const ct = res.headers.get("content-type") || "application/octet-stream";
     if (ct.includes("html")) {
       const text = new TextDecoder().decode(bytes.slice(0, 400));
-      if (/nie zosta[ał] znaleziony|404|Podany plik/i.test(text)) return null;
+      if (/nie zosta[ał] znaleziony|404|Podany plik/i.test(text)) {
+        diag.rejectReason = "html_error_page";
+        return { ok: false, diag };
+      }
     }
     const rawName = parseDispositionFilename(res.headers.get("content-disposition")) || ref.label || null;
     const filename = normalizeBzpFilename(rawName || "", 1, ct);
-    return { bytes, filename, contentType: ct.split(";")[0] };
-  } catch {
-    return null;
+    const maxBytes = maxBytesForDownload(filename, ct);
+    if (bytes.byteLength < 100) {
+      diag.rejectReason = "too_small";
+      return { ok: false, diag };
+    }
+    if (bytes.byteLength > maxBytes) {
+      diag.rejectReason = `size_limit_exceeded:${bytes.byteLength}>${maxBytes}`;
+      return { ok: false, diag };
+    }
+    return { bytes, filename, contentType: ct.split(";")[0], diag, ok: true };
+  } catch (e) {
+    diag.rejectReason = e instanceof Error ? e.message : "download_error";
+    return { ok: false, diag };
   }
 }
 
 async function downloadEzamawiajacyDocumentByUrl(
   sourcePageUrl: string,
   downloadUrl: string,
-): Promise<{ bytes: Uint8Array; filename: string; contentType: string } | null> {
+): Promise<
+  | { ok: true; bytes: Uint8Array; filename: string; contentType: string; diag: TenderDownloadDiag }
+  | { ok: false; diag: TenderDownloadDiag }
+> {
   const session = await openEzamawiajacyPageSession(sourcePageUrl);
-  if (!session?.cookie) return null;
+  if (!session?.cookie) {
+    return {
+      ok: false,
+      diag: {
+        path: "ezamawiajacy_session",
+        requestUrl: sourcePageUrl,
+        rejectReason: "session_open_failed",
+      },
+    };
+  }
   const origin = new URL(session.finalUrl).origin;
   const tokenPath = downloadUrl.match(EZAMAWIAJACY_REPO_RE)?.[0];
-  if (!tokenPath) return null;
+  if (!tokenPath) {
+    return {
+      ok: false,
+      diag: {
+        path: "ezamawiajacy_url",
+        requestUrl: downloadUrl,
+        rejectReason: "token_path_missing",
+      },
+    };
+  }
   const attachments = await collectEzamawiajacyAttachments(session);
   const ref = attachments.find((a) => a.tokenPath === tokenPath) ?? { tokenPath };
   return downloadEzamawiajacyToken(origin, ref, session);
@@ -3432,6 +3580,128 @@ app.post("/make-server-0afb8820/tenders-bzp-upload", async (c) => {
   }
 });
 
+async function downloadTenderDocumentRaw(opts: {
+  tenderId?: string;
+  docIndex?: number;
+  downloadUrl?: string;
+  sourcePageUrl?: string;
+}): Promise<
+  | { ok: true; bytes: Uint8Array; filename: string; contentType: string; diag: TenderDownloadDiag }
+  | { ok: false; error: string; diag: TenderDownloadDiag }
+> {
+  const tenderId = (opts.tenderId || "").trim();
+  const docIndex = opts.docIndex ?? 0;
+  const downloadUrl = (opts.downloadUrl || "").trim();
+  const sourcePageUrl = (opts.sourcePageUrl || "").trim();
+
+  if (sourcePageUrl && /\.ezamawiajacy\.pl/i.test(sourcePageUrl) && docIndex >= 1) {
+    const ez = await downloadEzamawiajacyDocumentByIndex(sourcePageUrl, docIndex);
+    if (!ez.ok) {
+      return {
+        ok: false,
+        error: ez.diag.rejectReason?.includes("size_limit_exceeded")
+          ? `Archiwum zbyt duże (${ez.diag.bytesReceived ?? "?"} B)`
+          : "Nie udało się pobrać dokumentu ezamawiajacy",
+        diag: ez.diag,
+      };
+    }
+    return ez;
+  }
+
+  if (downloadUrl && isTenderDownloadUrl(downloadUrl)) {
+    if (/\/repository\/download\//i.test(downloadUrl) && !sourcePageUrl) {
+      return {
+        ok: false,
+        error: "Marketplanet session replay required",
+        diag: { path: "marketplanet", requestUrl: downloadUrl, rejectReason: "session_required" },
+      };
+    }
+    if (/\.ezamawiajacy\.pl.*\/repository\/download\//i.test(downloadUrl) && sourcePageUrl) {
+      const ez = await downloadEzamawiajacyDocumentByIndex(sourcePageUrl, docIndex >= 1 ? docIndex : 1);
+      if (ez.ok) return ez;
+      return {
+        ok: false,
+        error: ez.diag.rejectReason?.includes("size_limit_exceeded")
+          ? `Archiwum zbyt duże (${ez.diag.bytesReceived ?? "?"} B)`
+          : "Nie udało się pobrać dokumentu ezamawiajacy",
+        diag: ez.diag,
+      };
+    }
+    const diag: TenderDownloadDiag = { path: "direct_url", requestUrl: downloadUrl };
+    const res = await fetch(downloadUrl, {
+      headers: {
+        Accept: "text/html,application/xhtml+xml,application/pdf,*/*",
+        "User-Agent": "WGDOM/2.44.0 tenders-external",
+      },
+      redirect: "follow",
+    });
+    diag.httpStatus = res.status;
+    diag.finalUrl = res.url;
+    diag.contentType = res.headers.get("content-type") || undefined;
+    diag.contentLength = res.headers.get("content-length") || undefined;
+    if (!res.ok) {
+      diag.rejectReason = `http_not_ok:${res.status}`;
+      return { ok: false, error: `Dokument HTTP ${res.status}`, diag };
+    }
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    diag.bytesReceived = bytes.byteLength;
+    const filename = parseDispositionFilename(res.headers.get("content-disposition"));
+    const contentType = res.headers.get("content-type") || "application/octet-stream";
+    const maxBytes = maxBytesForDownload(filename, contentType);
+    if (bytes.byteLength > maxBytes) {
+      diag.rejectReason = `size_limit_exceeded:${bytes.byteLength}>${maxBytes}`;
+      return { ok: false, error: `Plik zbyt duży (max ${Math.round(maxBytes / (1024 * 1024))} MB)`, diag };
+    }
+    return { ok: true, bytes, filename, contentType, diag };
+  }
+
+  if (!tenderId || docIndex < 1) {
+    return {
+      ok: false,
+      error: "Podaj tenderId i documentIndex >= 1 lub downloadUrl",
+      diag: { path: "readmodels", requestUrl: "", rejectReason: "missing_params" },
+    };
+  }
+  const documentId = `${tenderId}_${docIndex}`;
+  const url = `https://ezamowienia.gov.pl/mp-readmodels/api/Tender/DownloadDocument/${encodeURIComponent(tenderId)}/${encodeURIComponent(documentId)}`;
+  const diag: TenderDownloadDiag = { path: "bzp_readmodels", requestUrl: url };
+  const res = await fetch(url, { headers: EZAMOWIENIA_FETCH, redirect: "follow" });
+  diag.httpStatus = res.status;
+  diag.finalUrl = res.url;
+  diag.contentType = res.headers.get("content-type") || undefined;
+  diag.contentLength = res.headers.get("content-length") || undefined;
+  if (!res.ok) {
+    diag.rejectReason = `http_not_ok:${res.status}`;
+    return { ok: false, error: `Dokument HTTP ${res.status}`, diag };
+  }
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  diag.bytesReceived = bytes.byteLength;
+  const filename = parseDispositionFilename(res.headers.get("content-disposition"));
+  const contentType = res.headers.get("content-type") || "application/octet-stream";
+  const maxBytes = maxBytesForDownload(filename, contentType);
+  if (bytes.byteLength > maxBytes) {
+    diag.rejectReason = `size_limit_exceeded:${bytes.byteLength}>${maxBytes}`;
+    return { ok: false, error: `Plik zbyt duży (max ${Math.round(maxBytes / (1024 * 1024))} MB)`, diag };
+  }
+  return { ok: true, bytes, filename, contentType, diag };
+}
+
+function encodeDocumentBytesJson(bytes: Uint8Array, filename: string | null, contentType: string) {
+  assertDownloadMagicBytes(bytes, filename, contentType);
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return {
+    ok: true,
+    base64: btoa(binary),
+    filename,
+    contentType,
+    size: bytes.byteLength,
+  };
+}
+
 app.get("/make-server-0afb8820/tenders-bzp-document-bytes", async (c) => {
   try {
     const tenderId = (c.req.query("tenderId") || "").trim();
@@ -3439,69 +3709,96 @@ app.get("/make-server-0afb8820/tenders-bzp-document-bytes", async (c) => {
     const downloadUrl = (c.req.query("downloadUrl") || "").trim();
     const sourcePageUrl = (c.req.query("sourcePageUrl") || "").trim();
 
-    const encodeBytes = (bytes: Uint8Array, filename: string | null, contentType: string) => {
-      assertDownloadMagicBytes(bytes, filename, contentType);
-      let binary = "";
-      const chunk = 0x8000;
-      for (let i = 0; i < bytes.length; i += chunk) {
-        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-      }
-      return c.json({
-        ok: true,
-        base64: btoa(binary),
-        filename,
-        contentType,
-        size: bytes.byteLength,
-      });
-    };
-
-    if (
-      sourcePageUrl
-      && /\.ezamawiajacy\.pl/i.test(sourcePageUrl)
-      && docIndex >= 1
-    ) {
-      const ez = await downloadEzamawiajacyDocumentByIndex(sourcePageUrl, docIndex);
-      if (!ez) return c.json({ ok: false, error: "Nie udało się pobrać dokumentu ezamawiajacy" }, 502);
-      return encodeBytes(ez.bytes, ez.filename, ez.contentType);
+    const raw = await downloadTenderDocumentRaw({
+      tenderId,
+      docIndex,
+      downloadUrl,
+      sourcePageUrl,
+    });
+    if (!raw.ok) {
+      return c.json({ ok: false, error: raw.error, diag: raw.diag }, 502);
     }
-
-    if (downloadUrl && extIsSafeUrl(downloadUrl)) {
-      if (/\/repository\/download\//i.test(downloadUrl) && !sourcePageUrl) {
-        return c.json({ ok: false, error: "Marketplanet session replay required" }, 502);
-      }
-      if (/\.ezamawiajacy\.pl.*\/repository\/download\//i.test(downloadUrl) && sourcePageUrl) {
-        const ez = await downloadEzamawiajacyDocumentByIndex(sourcePageUrl, docIndex >= 1 ? docIndex : 1);
-        if (ez) return encodeBytes(ez.bytes, ez.filename, ez.contentType);
-      }
-      const res = await fetch(downloadUrl, { headers: EXTERNAL_FETCH_HEADERS });
-      if (!res.ok) return c.json({ ok: false, error: `Dokument HTTP ${res.status}` }, 502);
-      const bytes = new Uint8Array(await res.arrayBuffer());
-      if (bytes.byteLength > 15 * 1024 * 1024) {
-        return c.json({ ok: false, error: "Plik zbyt duży (max 15 MB)" }, 413);
-      }
-      const filename = parseDispositionFilename(res.headers.get("content-disposition"));
-      const contentType = res.headers.get("content-type") || "application/octet-stream";
-      return encodeBytes(bytes, filename, contentType);
-    }
-    if (!tenderId || docIndex < 1) {
-      return c.json({ ok: false, error: "Podaj tenderId i documentIndex >= 1 lub downloadUrl" }, 400);
-    }
-    const documentId = `${tenderId}_${docIndex}`;
-    const url = `https://ezamowienia.gov.pl/mp-readmodels/api/Tender/DownloadDocument/${encodeURIComponent(tenderId)}/${encodeURIComponent(documentId)}`;
-    const res = await fetch(url, { headers: EZAMOWIENIA_FETCH });
-    if (!res.ok) return c.json({ ok: false, error: `Dokument HTTP ${res.status}` }, 502);
-    const bytes = new Uint8Array(await res.arrayBuffer());
-    if (bytes.byteLength > 15 * 1024 * 1024) {
-      return c.json({ ok: false, error: "Plik zbyt duży (max 15 MB)" }, 413);
-    }
-    const filename = parseDispositionFilename(res.headers.get("content-disposition"));
-    const contentType = res.headers.get("content-type") || "application/octet-stream";
-    return encodeBytes(bytes, filename, contentType);
+    return c.json({
+      ...encodeDocumentBytesJson(raw.bytes, raw.filename, raw.contentType),
+      diag: raw.diag,
+    });
   } catch (e) {
     if (e instanceof Error && e.message === "invalid-download") {
       return c.json({ ok: false, error: "invalid-download" }, 502);
     }
     return c.json({ ok: false, error: e instanceof Error ? e.message : "document-bytes error" }, 500);
+  }
+});
+
+app.get("/make-server-0afb8820/tenders-bzp-zip-catalog", async (c) => {
+  try {
+    const tenderId = (c.req.query("tenderId") || "").trim();
+    const docIndex = parseInt(c.req.query("documentIndex") || "0", 10) || 0;
+    const downloadUrl = (c.req.query("downloadUrl") || "").trim();
+    const sourcePageUrl = (c.req.query("sourcePageUrl") || "").trim();
+    if (!tenderId || docIndex < 1) {
+      return c.json({ ok: false, error: "Brak tenderId lub documentIndex" }, 400);
+    }
+
+    const raw = await downloadTenderDocumentRaw({
+      tenderId,
+      docIndex,
+      downloadUrl,
+      sourcePageUrl,
+    });
+    if (!raw.ok) {
+      return c.json({ ok: false, error: raw.error, diag: raw.diag }, 502);
+    }
+    const entries = await listZipCatalogEntries(raw.bytes);
+    return c.json({
+      ok: true,
+      zipSize: raw.bytes.byteLength,
+      outerFilename: raw.filename,
+      entries,
+      diag: raw.diag,
+    });
+  } catch (e) {
+    return c.json({ ok: false, error: e instanceof Error ? e.message : "zip-catalog error" }, 500);
+  }
+});
+
+app.get("/make-server-0afb8820/tenders-bzp-zip-entry-bytes", async (c) => {
+  try {
+    const tenderId = (c.req.query("tenderId") || "").trim();
+    const docIndex = parseInt(c.req.query("documentIndex") || "0", 10) || 0;
+    const innerPath = (c.req.query("innerPath") || "").trim();
+    const downloadUrl = (c.req.query("downloadUrl") || "").trim();
+    const sourcePageUrl = (c.req.query("sourcePageUrl") || "").trim();
+    if (!tenderId || docIndex < 1 || !innerPath) {
+      return c.json({ ok: false, error: "Brak tenderId, documentIndex lub innerPath" }, 400);
+    }
+
+    const raw = await downloadTenderDocumentRaw({
+      tenderId,
+      docIndex,
+      downloadUrl,
+      sourcePageUrl,
+    });
+    if (!raw.ok) {
+      return c.json({ ok: false, error: raw.error, diag: raw.diag }, 502);
+    }
+    const innerBytes = await readZipCatalogEntry(raw.bytes, innerPath);
+    if (!innerBytes) {
+      return c.json({ ok: false, error: "Brak pliku w archiwum", diag: raw.diag }, 404);
+    }
+    const innerName = innerPath.split("/").pop() || innerPath;
+    const contentType = contentTypeForUploadedFile(innerName, "");
+    return c.json({
+      ...encodeDocumentBytesJson(innerBytes, innerName, contentType),
+      innerPath,
+      zipSize: raw.bytes.byteLength,
+      diag: raw.diag,
+    });
+  } catch (e) {
+    if (e instanceof Error && e.message === "invalid-download") {
+      return c.json({ ok: false, error: "invalid-download" }, 502);
+    }
+    return c.json({ ok: false, error: e instanceof Error ? e.message : "zip-entry error" }, 500);
   }
 });
 
@@ -3925,7 +4222,7 @@ app.post("/make-server-0afb8820/tenders-external-discover", async (c) => {
           && cand.sourcePageUrl
         ) {
           const ez = await downloadEzamawiajacyDocumentByUrl(cand.sourcePageUrl, cand.url);
-          if (ez) {
+          if (ez.ok) {
             bytes = ez.bytes;
             fn = ez.filename;
             contentType = ez.contentType;

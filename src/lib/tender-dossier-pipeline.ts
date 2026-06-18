@@ -39,6 +39,10 @@ export interface TenderDossierScanSummary {
   sevenZUnpackOk?: boolean;
   /** P2-H.4 — liczba inner candidates z archiwów 7Z (max ZIP_INNER_MAX na archiwum). */
   sevenZInnerCount?: number;
+  /** P0 — true gdy co najmniej jedno archiwum ZIP dało listę plików wewnętrznych. */
+  zipUnpackOk?: boolean;
+  /** P0 — liczba inner candidates z archiwów ZIP. */
+  zipInnerCount?: number;
   kosztorysFound: boolean;
   valueFound: boolean;
   criteriaFound: boolean;
@@ -286,6 +290,8 @@ export async function analyzeTenderWithDossier(opts: {
   let costDiscovery: TenderCostDiscoveryResult | null = null;
   let sevenZUnpackOk: boolean | undefined;
   let sevenZInnerCount: number | undefined;
+  let zipUnpackOk: boolean | undefined;
+  let zipInnerCount: number | undefined;
 
   if (opts.tenderId && docs.length > 0) {
     const dossier = await parseTenderDossierDocuments(opts.tenderId, docs, {
@@ -301,6 +307,8 @@ export async function analyzeTenderWithDossier(opts: {
     costDiscovery = dossier.costDiscovery;
     sevenZUnpackOk = dossier.sevenZUnpackOk;
     sevenZInnerCount = dossier.sevenZInnerCount;
+    zipUnpackOk = dossier.zipUnpackOk;
+    zipInnerCount = dossier.zipInnerCount;
     warnings.push(...dossier.warnings);
   }
 
@@ -334,6 +342,8 @@ export async function analyzeTenderWithDossier(opts: {
     sevenZipCount: filenames.filter((f) => is7zFilename(f)).length,
     sevenZUnpackOk,
     sevenZInnerCount,
+    zipUnpackOk,
+    zipInnerCount,
     kosztorysFound: Boolean(kosztorys?.ok),
     valueFound: merged.estimatedValuePln != null || kosztorysValuePln != null,
     criteriaFound: (merged.awardCriteria?.length ?? 0) > 0,

@@ -102,7 +102,11 @@ export async function listZipFiles(bytes: Uint8Array): Promise<ZipListedFile[]> 
     if (/^__MACOSX|\/.DS_Store$/i.test(relativePath)) return;
     if (!isArchiveInnerListableFile(filename)) return;
     const score = scoreTenderFilename(filename);
-    if (score >= 6) {
+    const costRelevant =
+      /\.(ath|nor|xml)$/i.test(filename)
+      || (isXlsxFilename(filename) && /koszt|przedm|obmiar/i.test(filename))
+      || isPdfPrzedmiarCostFilename(filename);
+    if (score >= 6 || costRelevant) {
       out.push({ path: relativePath, filename, score });
     }
   });

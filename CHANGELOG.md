@@ -1,6 +1,14 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.61.3** · **V4.1.2 ATH / Kosztorys Source Recovery**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.61.4** · **ZIP ATH Recovery**
+
+## 2.61.4 — ZIP ATH Recovery
+
+- **fix:** Duże ZIP do 128 MB (eZamawiający / WM) — Edge zip-catalog + zip-entry-bytes
+- **fix:** Wykluczenie formularzy ofertowych z discovery kosztorysu
+- **fix:** Recovery ATH z DOKUMENTACJA PROJEKTOWA.zip
+- **improve:** Diagnostyka pobierania dokumentów w Edge (HTTP, content-type, final URL)
+- **test:** `test-tender-zip-catalog-tp113.mjs`, `test-tender-cost-discovery.mjs`
 
 ## 2.61.3 — ATH / Kosztorys Source Recovery
 

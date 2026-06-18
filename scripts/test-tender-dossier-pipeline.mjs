@@ -150,6 +150,16 @@ const discoveredXlsx = discoverBestCostDocument([
 ]);
 assert("discover zip xlsx", discoveredXlsx.type === "zip_xlsx");
 
+assert(
+  "formal offer xlsx not cost",
+  classifyCostDocumentType("TP113_Zal. nr 1 do SWZ - Formularz oferty.xlsx").type === "none",
+);
+const formalOnly = discoverBestCostDocument([
+  { filename: "TP113_Zal. nr 1 do SWZ - Formularz oferty.xlsx", score: 54 },
+  { filename: "SWZ.pdf", score: 20 },
+]);
+assert("formal offer not discovered", formalOnly.found === false);
+
 // P2-H.5A — PDF przedmiar cost discovery (MVP)
 assert("isPdfPrzedmiar _PR", isPdfPrzedmiarCostFilename("Rynek_IS_W_PR_20260410.pdf"));
 assert("isPdfPrzedmiar przedmiar.pdf", isPdfPrzedmiarCostFilename("przedmiar.pdf"));
