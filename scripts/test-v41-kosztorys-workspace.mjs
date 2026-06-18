@@ -8,6 +8,8 @@ import { fileURLToPath } from "node:url";
 import { CATALOG_QUANTITIES_CAP } from "../src/lib/tenders-bzp-brief.ts";
 import {
   buildKosztorysV4Display,
+  buildKosztorysV4Stats,
+  buildKosztorysAthVisibilityHint,
   filterKosztorysDisplayRows,
   isFormalKosztorysSheetLabel,
   isKosztorysDisplayRow,
@@ -185,7 +187,7 @@ console.log("\nT06 — catalogQuantities = 250 → tabela 250 pozycji");
   assert(lines.length === 250, "T06 resolve 250 catalog lines");
   assert(display.catalogRows.length === 250, "T06 display 250 rows");
   assert(display.source === "catalog", "T06 source catalog");
-  assert(CATALOG_QUANTITIES_CAP === 250, "T06 cap is 250");
+  assert(CATALOG_QUANTITIES_CAP === 500, "T06 cap is 500");
 }
 
 console.log("\nT07 — rows=40, catalogQuantities=180 → tabela używa catalog");
@@ -241,6 +243,46 @@ console.log("\nT09 — Pełny podgląd ATH CTA");
   assert(wsSrc.includes("JobFilePreviewModal"), "T09 reuses JobFilePreviewModal");
   assert(wsSrc.includes("resolveAthPreviewItem"), "T09 ATH quick access resolve");
   assert(wsSrc.includes("data-kosztorys-full-preview-cta"), "T09 CTA marker");
+}
+
+console.log("\nT10 — KPI partial ATH visibility (legacy snapshot)");
+{
+  const item = baseItem({
+    ok: true,
+    sourceFilename: "kosztorys.ath",
+    sourceDocumentIndex: 1,
+    rowCount: 302,
+    rows: [],
+    catalogQuantities: makeCatalogN(250),
+    przedmiar: [],
+    categories: [],
+    warnings: [],
+    parsedAt: new Date().toISOString(),
+  });
+  const stats = buildKosztorysV4Stats(item);
+  assert(stats.athPositionsDisplay === "250 / 302", "T10 KPI shows shown/total");
+  const hint = buildKosztorysAthVisibilityHint(item);
+  assert(hint?.includes("250 z 302"), "T10 visibility hint");
+  assert(hint?.includes("Pełny podgląd ATH"), "T10 hint mentions full preview");
+}
+
+console.log("\nT11 — buildCatalogQuantitiesFromPreview filter before slice");
+{
+  const { buildCatalogQuantitiesFromPreview } = await import("../src/lib/tenders-bzp-brief.ts");
+  const rows = [
+    ...makeCatalogN(5).map((r) => ({ ...r, code: "", unitPrice: "", total: "" })),
+    { lp: "6", description: "Formularz oferty", unit: "", quantity: "", code: "", unitPrice: "", total: "" },
+    ...makeCatalogN(3).map((r, i) => ({
+      ...r,
+      lp: String(7 + i),
+      description: `Pozycja po szumie ${i + 1} KNR 2-02-01`,
+      code: "",
+      unitPrice: "",
+      total: "",
+    })),
+  ];
+  const built = buildCatalogQuantitiesFromPreview({ ok: true, format: "ath", rows, warnings: [] });
+  assert(built.length === 8, "T11 noise filtered, valid rows after noise kept");
 }
 
 console.log(`\n${fail === 0 ? "PASS" : "FAIL"} — ${pass} passed, ${fail} failed\n`);

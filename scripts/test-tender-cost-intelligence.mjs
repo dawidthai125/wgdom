@@ -363,12 +363,12 @@ assertEq(snap.catalogQuantities?.length, 221, "snapshot catalogQuantities 221 po
 assertEq(snap.rowCount, 221, "snapshot rowCount 221");
 assert(snap.rows.length <= 40, "snapshot rows UI cap 40");
 assertEq(buildCatalogQuantitiesFromPreview(preview221).length, 221, "buildCatalogQuantitiesFromPreview 221");
-assertEq(CATALOG_QUANTITIES_CAP, 250, "CATALOG_QUANTITIES_CAP 250");
+assertEq(CATALOG_QUANTITIES_CAP, 500, "CATALOG_QUANTITIES_CAP 500");
 const snap250 = athPreviewToSnapshot(
   { ...preview221, rows: makeCatalogQuantities(300).map((q) => ({ ...q, code: "", unitPrice: "", total: "" })) },
   "big.ath",
 );
-assertEq(snap250.catalogQuantities?.length, 250, "snapshot cap 250 poz.");
+assertEq(snap250.catalogQuantities?.length, 300, "snapshot cap 500 — 300 poz. bez utraty");
 
 console.log("\n9. P2-G.1B — pricingMode resolve");
 const noPriceK = makeNoPriceKosztorys(221);

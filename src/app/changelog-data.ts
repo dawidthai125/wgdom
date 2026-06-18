@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-18",
+    version: "2.61.5",
+    label: "Przetargi — pełna widoczność ATH (P0)",
+    items: [
+      {
+        type: "fix",
+        text: "Kosztorys — catalogQuantities do 500 pozycji (zgodnie z parserem ATH); TP113 i podobne nie tracą końcówki przedmiaru",
+      },
+      {
+        type: "fix",
+        text: "Budowa katalogu ilości: najpierw filtr jakości, potem limit — nie obcinamy dobrych pozycji przed odfiltrowaniem szumu",
+      },
+      {
+        type: "improve",
+        text: "KPI Kosztorys pokazuje pełny rowCount ATH; przy obciętym snapshotcie — format „pokazane / łącznie”",
+      },
+    ],
+  },
+  {
+    date: "2026-06-18",
     version: "2.61.4",
     label: "Przetargi — ZIP ATH Recovery",
     items: [

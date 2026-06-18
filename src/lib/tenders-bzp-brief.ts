@@ -20,7 +20,7 @@ export interface TenderPrzedmiarLine {
   formula?: string;
 }
 
-/** Lekkie wiersze pod wycenę katalogową P2-G — bez cen, do 250 poz. */
+/** Lekkie wiersze pod wycenę katalogową P2-G — bez cen, do 500 poz. (zgodnie z limitem parsera ATH). */
 export interface TenderCatalogQuantityLine {
   lp: string;
   description: string;
@@ -28,7 +28,7 @@ export interface TenderCatalogQuantityLine {
   quantity: string;
 }
 
-export const CATALOG_QUANTITIES_CAP = 250;
+export const CATALOG_QUANTITIES_CAP = 500;
 
 export interface TenderKosztorysSnapshot {
   ok: boolean;
@@ -201,8 +201,8 @@ export function buildCatalogQuantitiesFromPreview(
   preview: AthPreviewResult,
 ): TenderCatalogQuantityLine[] {
   return preview.rows
-    .slice(0, CATALOG_QUANTITIES_CAP)
     .filter((r) => isLikelyCatalogQuantityRow(r.description ?? ""))
+    .slice(0, CATALOG_QUANTITIES_CAP)
     .map((r) => ({
       lp: r.lp,
       description: r.description,

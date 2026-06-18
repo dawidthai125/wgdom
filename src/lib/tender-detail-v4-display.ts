@@ -259,6 +259,31 @@ export function formatAthPositionCount(count: number | null | undefined): string
   return String(count);
 }
 
+/** KPI Kosztorys — pełny rowCount ATH lub „pokazane / łącznie” gdy snapshot obcięty. */
+export function formatKosztorysAthPositionDisplay(
+  catalogCount: number,
+  rowCount: number | null | undefined,
+): string {
+  const total = rowCount ?? 0;
+  if (total > catalogCount && catalogCount > 0) return `${catalogCount} / ${total}`;
+  if (total > 0) return String(total);
+  return formatAthPositionCount(catalogCount);
+}
+
+/** Subtelny hint gdy tabela pokazuje mniej pozycji niż pełny ATH. */
+export function buildKosztorysAthVisibilityHint(
+  item: TenderPipelineItem,
+): string | null {
+  const k = item.tenderDossier?.kosztorys;
+  if (!k?.ok) return null;
+  const rowCount = k.rowCount ?? 0;
+  const shown = resolveKosztorysV4CatalogLines(item).length;
+  if (rowCount > shown && shown > 0) {
+    return `Wyświetlono ${shown} z ${rowCount} pozycji ATH.\nOtwórz Pełny podgląd ATH aby zobaczyć cały kosztorys.`;
+  }
+  return null;
+}
+
 function foldPlLabel(s: string): string {
   return s
     .toLowerCase()
@@ -386,8 +411,8 @@ export function resolveKosztorysV4CatalogLines(
 ): TenderCatalogQuantityLine[] {
   const k = item.tenderDossier?.kosztorys;
   return (k?.catalogQuantities ?? [])
-    .slice(0, CATALOG_QUANTITIES_CAP)
-    .filter((line) => isLikelyCatalogQuantityRow(line.description ?? ""));
+    .filter((line) => isLikelyCatalogQuantityRow(line.description ?? ""))
+    .slice(0, CATALOG_QUANTITIES_CAP);
 }
 
 export function extractKatalogHintFromDescription(description: string): string {
@@ -504,6 +529,7 @@ export function buildKosztorysV4Stats(
   const athReady = Boolean(k?.ok) && !awaiting;
   const catalog = resolveKosztorysV4CatalogLines(item);
   const athPositions = catalog.length;
+  const athRowCount = k?.rowCount ?? 0;
 
   let pricedPositions = 0;
   let unpricedPositions = 0;
@@ -532,7 +558,7 @@ export function buildKosztorysV4Stats(
     athReady,
     athStatusLabel: athReady ? "ATH gotowy" : "ATH niegotowy",
     athPositions,
-    athPositionsDisplay: formatAthPositionCount(athPositions),
+    athPositionsDisplay: formatKosztorysAthPositionDisplay(athPositions, athRowCount),
     pricedPositions,
     unpricedPositions,
     pricedDisplay: pricedPositions > 0 ? String(pricedPositions) : (athPositions > 0 ? "0" : "Brak rozpoznanych pozycji"),

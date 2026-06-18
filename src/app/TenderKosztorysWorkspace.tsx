@@ -4,6 +4,7 @@ import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import {
   buildKosztorysV4Display,
   buildKosztorysV4Stats,
+  buildKosztorysAthVisibilityHint,
   type KosztorysV4CatalogDisplayRow,
 } from "@/lib/tender-detail-v4-display";
 import { isKosztorysAwaitingHeavyParse } from "@/lib/tender-analysis-status-ux";
@@ -73,6 +74,7 @@ export function TenderKosztorysWorkspace({
 
   const athPreviewItem = useMemo(() => resolveAthPreviewItem(item), [item]);
   const canOpenFullPreview = athPreviewEnabled && athPreviewItem != null;
+  const athVisibilityHint = useMemo(() => buildKosztorysAthVisibilityHint(item), [item]);
 
   const tableRows = display.catalogRows;
   const previewLimit = 20;
@@ -147,6 +149,11 @@ export function TenderKosztorysWorkspace({
             {display.source === "catalog" ? " · źródło: catalogQuantities" : ""}
             {k?.totalValue ? ` · wartość wg pliku: ${k.totalValue} ${k.currency || "PLN"}` : ""}
           </p>
+          {athVisibilityHint && (
+            <p className="text-[10px] text-muted-foreground whitespace-pre-line">
+              {athVisibilityHint}
+            </p>
+          )}
         </div>
       ) : display.emptyMessage ? (
         <KosztorysEmptyMessage text={display.emptyMessage} />

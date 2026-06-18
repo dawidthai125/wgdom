@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.61.4** · **ZIP ATH Recovery**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.61.5** · **P0 ATH visibility**
+
+## 2.61.5 — Pełna widoczność ATH (P0)
+
+- **fix:** `CATALOG_QUANTITIES_CAP` 250 → 500 (zgodnie z parserem ATH)
+- **fix:** `buildCatalogQuantitiesFromPreview` — filter przed slice
+- **improve:** KPI Kosztorys `rowCount` / format „pokazane / łącznie” + hint przy obciętym snapshotcie
 
 ## 2.61.4 — ZIP ATH Recovery
 
