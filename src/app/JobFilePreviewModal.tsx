@@ -193,7 +193,8 @@ export function JobFilePreviewModal({
             item.downloadUrl,
           );
           if (cancelled) return;
-          const outerName = item.filename || serverName;
+          const innerFilename = item.filename || serverName;
+          const outerArchiveFilename = item.outerArchiveFilename ?? serverName;
           const zipInner = item.kind === "tenderBzp" ? item.zipInnerPath : undefined;
 
           const loadBytes = async (idx: number) => {
@@ -201,12 +202,16 @@ export function JobFilePreviewModal({
             const r = await loadTenderBytes(idx, item.downloadUrl);
             return r.bytes;
           };
-          let bytes = await resolveDocumentBytes(loadBytes, item.documentIndex, outerName, zipInner);
-          let name = zipInner
-            ? (outerName.includes(" → ") ? outerName.split(" → ").pop()! : outerName)
-            : outerName;
+          let bytes = await resolveDocumentBytes(
+            loadBytes,
+            item.documentIndex,
+            innerFilename,
+            zipInner,
+            zipInner ? outerArchiveFilename : undefined,
+          );
+          let name = zipInner ? innerFilename : innerFilename;
 
-          if (isZipFilename(outerName) && !zipInner) {
+          if (isZipFilename(outerArchiveFilename) && !zipInner) {
             const entries = await listZipFiles(outerBytes);
             if (!cancelled) setZipEntries(entries);
             if (entries.length > 0) {
@@ -216,7 +221,7 @@ export function JobFilePreviewModal({
                 name = entries[0].filename;
               }
             }
-          } else if (is7zFilename(outerName) && !zipInner) {
+          } else if (is7zFilename(outerArchiveFilename) && !zipInner) {
             const entries = await list7zFiles(outerBytes);
             if (!cancelled) setZipEntries(entries);
             if (entries.length > 0) {

@@ -55,7 +55,7 @@ export interface ResolvedCostStatusDisplay {
 }
 
 /** P2-E.5 — typ dokumentu kosztorysowego do UI. */
-export type CostDocumentUiType = "ATH" | "XLSX" | "XML" | "ZIP";
+export type CostDocumentUiType = "ATH" | "PDF" | "XLSX" | "XML" | "ZIP";
 
 export interface ClassifiedCostDocument {
   type: CostDocumentUiType;
@@ -118,6 +118,7 @@ function mapDiscoveryTypeToUi(
   if (/\.xlsx$/.test(base)) return "XLSX";
   if (/\.xls$/.test(base)) return "XLSX";
   if (/\.zip$/.test(base)) return "ZIP";
+  if (/\.pdf$/.test(base)) return "PDF";
   return "ATH";
 }
 

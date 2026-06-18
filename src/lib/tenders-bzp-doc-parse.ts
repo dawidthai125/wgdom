@@ -339,11 +339,12 @@ export async function resolveDocumentBytes(
   documentIndex: number,
   filename: string,
   zipInnerPath?: string,
+  outerArchiveFilename?: string,
 ): Promise<Uint8Array> {
   const outer = await loadBytes(documentIndex);
-  const outerBase = filename.split(" → ")[0] ?? filename;
+  const archiveName = outerArchiveFilename ?? filename.split(" → ")[0] ?? filename;
   if (zipInnerPath) {
-    if (is7zFilename(outerBase)) {
+    if (is7zFilename(archiveName)) {
       const inner = await read7zEntry(outer, zipInnerPath);
       if (inner) return inner;
     } else {
@@ -351,12 +352,12 @@ export async function resolveDocumentBytes(
       if (inner) return inner;
     }
   }
-  if (isZipFilename(filename) && !zipInnerPath) {
-    const picked = await pickBestFromZipBytes(outer, filename);
+  if (isZipFilename(archiveName) && !zipInnerPath) {
+    const picked = await pickBestFromZipBytes(outer, archiveName);
     if (picked) return picked.bytes;
   }
-  if (is7zFilename(filename) && !zipInnerPath) {
-    const picked = await pickBestFrom7zBytes(outer, filename);
+  if (is7zFilename(archiveName) && !zipInnerPath) {
+    const picked = await pickBestFrom7zBytes(outer, archiveName);
     if (picked) return picked.bytes;
   }
   return outer;

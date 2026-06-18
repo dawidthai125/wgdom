@@ -50,6 +50,7 @@ function previewItemForDoc(
     tenderId,
     documentIndex: doc.index,
     filename: opts?.displayName ?? doc.filename,
+    outerArchiveFilename: opts?.zipInnerPath ? doc.filename : undefined,
     contentType: doc.contentType,
     zipInnerPath: opts?.zipInnerPath,
     downloadUrl: doc.downloadUrl?.trim() || undefined,

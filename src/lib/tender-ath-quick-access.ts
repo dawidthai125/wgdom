@@ -16,10 +16,12 @@ import {
   parseKosztorysBytes,
   type AthPreviewResult,
 } from "@/lib/ath-parser";
+import { is7zFilename, isZipFilename } from "@/lib/tenders-bzp-filename";
 import { downloadKosztorysPdf } from "@/lib/ath-kosztorys-pdf";
 import {
   classifyCostDocument,
   resolvedCostStatus,
+  type CostDocumentUiType,
   type ResolvedCostStatus,
 } from "@/lib/tender-data-ssot";
 
@@ -57,7 +59,18 @@ async function loadTenderBzpBytesForAth(
   return loadTenderBzpDocumentBytes(tenderId, documentIndex, downloadUrl);
 }
 
-/** Zbuduj kontekst ATH quick access — tylko ATH + FOUND_WITH_VALUE / FOUND_NO_VALUE. */
+function isQuickAccessPreviewDocType(docType: CostDocumentUiType): boolean {
+  return docType === "ATH" || docType === "PDF";
+}
+
+function resolveOuterArchiveFilename(
+  bzpDocuments: TenderBzpDocument[] | undefined,
+  documentIndex: number,
+): string | undefined {
+  return bzpDocuments?.find((d) => d.index === documentIndex)?.filename;
+}
+
+/** Zbuduj kontekst ATH quick access — kosztorys/przedmiar z podglądem (ATH, NOR, PDF). */
 export function buildAthQuickAccessContext(item: TenderPipelineItem): AthQuickAccessContext {
   const costStatus = resolvedCostStatus(item);
   const classified = classifyCostDocument(item);
@@ -65,8 +78,10 @@ export function buildAthQuickAccessContext(item: TenderPipelineItem): AthQuickAc
   const rowCount = classified?.rowCount ?? item.tenderDossier?.kosztorys?.rowCount ?? 0;
   const k = item.tenderDossier?.kosztorys;
 
-  const enabled = costStatus !== "NOT_FOUND" && docType === "ATH";
-  const previewItem = enabled ? resolveAthPreviewItem(item) : null;
+  const previewItem = costStatus !== "NOT_FOUND" && isQuickAccessPreviewDocType(docType)
+    ? resolveAthPreviewItem(item)
+    : null;
+  const enabled = previewItem != null;
   const filename = previewItem
     ? (previewItem.kind === "tenderBzp" || previewItem.kind === "tenderUpload" ? previewItem.filename : null)
     : k?.sourceFilename ?? null;
@@ -79,12 +94,16 @@ export function buildAthQuickAccessContext(item: TenderPipelineItem): AthQuickAc
       source: "ATH",
       rows: rowCount,
       costStatus,
+      docType,
       previewReady: previewItem != null,
       platform: dl.platform ?? null,
       downloadUrlResolved: Boolean(
         previewItem?.kind === "tenderBzp" && previewItem.downloadUrl,
       ),
       zipInnerPath: k?.zipInnerPath ?? null,
+      outerArchiveFilename: previewItem?.kind === "tenderBzp"
+        ? previewItem.outerArchiveFilename ?? null
+        : null,
     });
   }
 
@@ -103,11 +122,15 @@ export function resolveAthPreviewItem(item: TenderPipelineItem): InspectorFileIt
   const k = item.tenderDossier?.kosztorys;
   if (k?.ok && k.sourceDocumentIndex != null && item.tenderId) {
     const dl = resolveAthDownloadMeta(item, k.sourceDocumentIndex);
+    const outerArchiveFilename = k.zipInnerPath
+      ? resolveOuterArchiveFilename(item.bzpDocuments, k.sourceDocumentIndex)
+      : undefined;
     return {
       kind: "tenderBzp",
       tenderId: item.tenderId,
       documentIndex: k.sourceDocumentIndex,
       filename: k.sourceFilename,
+      outerArchiveFilename,
       zipInnerPath: k.zipInnerPath,
       downloadUrl: dl.downloadUrl,
       sourcePageUrl: resolveTenderDocumentDownload(item.bzpDocuments, k.sourceDocumentIndex)?.sourcePageUrl,
@@ -150,7 +173,8 @@ async function parseTenderBzpPreviewItem(
     downloadUrl,
     bzpDocuments,
   );
-  const outerName = previewItem.filename || serverName;
+  const innerFilename = previewItem.filename || serverName;
+  const outerArchiveFilename = previewItem.outerArchiveFilename ?? serverName;
   const zipInner = previewItem.zipInnerPath;
 
   const loadBytes = async (idx: number) => {
@@ -164,12 +188,16 @@ async function parseTenderBzpPreviewItem(
     return r.bytes;
   };
 
-  let bytes = await resolveDocumentBytes(loadBytes, previewItem.documentIndex, outerName, zipInner);
-  let name = zipInner
-    ? (outerName.includes(" → ") ? outerName.split(" → ").pop()! : outerName)
-    : outerName;
+  let bytes = await resolveDocumentBytes(
+    loadBytes,
+    previewItem.documentIndex,
+    innerFilename,
+    zipInner,
+    zipInner ? outerArchiveFilename : undefined,
+  );
+  let name = zipInner ? innerFilename : innerFilename;
 
-  if (/\.zip$/i.test(outerName) && !zipInner) {
+  if (isZipFilename(outerArchiveFilename) && !zipInner) {
     const entries = await listZipFiles(outerBytes);
     if (entries.length > 0) {
       const inner = await readZipEntry(outerBytes, entries[0].path);
@@ -178,7 +206,7 @@ async function parseTenderBzpPreviewItem(
         name = entries[0].filename;
       }
     }
-  } else if (/\.7z$/i.test(outerName) && !zipInner) {
+  } else if (is7zFilename(outerArchiveFilename) && !zipInner) {
     const entries = await list7zFiles(outerBytes);
     if (entries.length > 0) {
       const inner = await read7zEntry(outerBytes, entries[0].path);

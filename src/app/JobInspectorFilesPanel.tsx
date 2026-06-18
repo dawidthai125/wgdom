@@ -23,6 +23,8 @@ export type InspectorFileItem =
     tenderId: string;
     documentIndex: number;
     filename: string;
+    /** Nazwa zewnętrznego archiwum (ZIP/7Z) — wymagana przy zipInnerPath. */
+    outerArchiveFilename?: string;
     contentType?: string;
     zipInnerPath?: string;
     downloadUrl?: string;
