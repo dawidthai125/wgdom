@@ -5,9 +5,11 @@
 import {
   detectPdfPrzedmiarSignals,
   extractPdfPrzedmiarRows,
+  normalizePdfBoqUnits,
   parsePdfPrzedmiarHeuristic,
   parsePdfPrzedmiarLine,
   PDF_PRZEDMIAR_UX_LINES,
+  splitPdfBoqText,
 } from "../src/lib/pdf-przedmiar-heuristic.ts";
 
 const SAMPLE_KNR = `
@@ -44,6 +46,12 @@ Rozdział 4. Tynki i gładzie
 Materiał powinien być zgodny z projektem technicznym.
 Dopuszczalna wilgotność podłoża przed aplikacją tynku.
 `;
+
+/** WM PDF — jedna strona, j.m. ze spacją, wiele pozycji (TP182 pattern). */
+const SAMPLE_WM_PAGE = `Nowowiejska OBMIAR Lp. Podstawa 1 d.1.1 KNR 4-04 0105-04 Rozebranie ścianek pełnych z cegły m 2 26.80 RAZEM 26.80 2 d.1.1 KNR 4-04 0404-05 Rozebranie ścianek działowych m 2 9.00 RAZEM 9.00 3 d.1.2 ZKNR C-1 0309-01 Izolacja gruntowanie podłoża m 2 9.90 RAZEM 9.90 4 KNR-W 4-01 0701-03 Odbicie tynków wewnętrznych m 2 25.00 RAZEM 25.00 5 NNRNKB 202 1134-02 Gruntowanie podłoży preparatami m 2 12.50 RAZEM 12.50`;
+
+const SAMPLE_KNR_W = "17 d.1.3 KNR-W 4-01 0713-01 Przecieranie tynków wewnętrznych m 2 109.98";
+const SAMPLE_KNR_AT = "24 d.1.4 KNR AT-22 0204-07 Okładziny ścienne z płytek m 2 19.02";
 
 let pass = 0;
 let fail = 0;
@@ -114,6 +122,32 @@ assert("line qty", line?.quantity === "12,5");
 // UMiG-style filename row (Kąty pattern)
 const katyLine = parsePdfPrzedmiarLine("12 KNR 4-01-02 Remont posadzki w łazience m2 8,75");
 assert("katy line", katyLine?.quantity === "8,75");
+
+// P0 WM PDF Recovery — M1 unit normalization
+assert("m1 m 2 -> m2", normalizePdfBoqUnits("powierzchnia m 2 26.80").includes("m2"));
+assert("m1 m 3 -> m3", normalizePdfBoqUnits("objętość m 3 7.46").includes("m3"));
+assert("m1 szt.", normalizePdfBoqUnits("szt. 12").includes("szt"));
+assert("m1 kpl.", normalizePdfBoqUnits("kpl. 1").includes("kpl"));
+const spacedLine = parsePdfPrzedmiarLine("1 KNR 401-01-01 Tynk gipsowy na ścianach m 2 12,5");
+assert("spaced m 2 line", spacedLine?.unit === "m2" && spacedLine?.quantity === "12,5");
+
+// Extended norms
+const knrW = parsePdfPrzedmiarLine(SAMPLE_KNR_W);
+assert("knr-w parse", knrW?.code.includes("KNR-W"));
+const knrAt = parsePdfPrzedmiarLine(SAMPLE_KNR_AT);
+assert("knr at parse", knrAt?.code.includes("KNR AT"));
+const zknr = parsePdfPrzedmiarLine("11 d.1.2 ZKNR C-1 0309-01 Izolacja gruntowanie m 2 9.90");
+assert("zknr parse", zknr?.code.includes("ZKNR"));
+const nnrnkb = parsePdfPrzedmiarLine("19 d.1.3 NNRNKB 202 1134-02 Gruntowanie podłoży m 2 12.50");
+assert("nnrnkb parse", nnrnkb?.code.includes("NNRNKB"));
+
+// M2 split — WM page line
+const wmSegments = splitPdfBoqText(SAMPLE_WM_PAGE);
+assert("wm split segments >= 5", wmSegments.length >= 5);
+const wmRows = extractPdfPrzedmiarRows(SAMPLE_WM_PAGE);
+assert("wm page rows >= 5", wmRows.length >= 5);
+assert("wm row knr-w", wmRows.some((r) => r.code.includes("KNR-W")));
+assert("wm row zknr", wmRows.some((r) => r.code.includes("ZKNR")));
 
 console.log(`\nPDF przedmiar heuristic: ${pass} PASS, ${fail} FAIL`);
 process.exit(fail > 0 ? 1 : 0);

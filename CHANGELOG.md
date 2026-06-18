@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.62.0** · **Kosztorys PRO V4.2**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.62.1** · **WM PDF Recovery**
+
+## 2.62.1 — WM PDF przedmiar recovery (TP182)
+
+- **fix:** M1 normalizacja j.m. (`m 2`→`m2`, `szt.`→`szt`) · M2 split BOQ po KNR/d.X.Y
+- **fix:** Extended norms — KNR-W, ZKNR, NNRNKB, KNR AT
+- **fix:** Merge protection — PDF przedmiar discovery nie przegrywa z formularzem ofertowym XLSX
+- **test:** `test-tp182-pdf-wm-recovery.mjs` (≥80 pozycji)
 
 ## 2.62.0 — Kosztorys PRO Dashboard (V4.2 + V4.2A UX polish)
 

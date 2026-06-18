@@ -232,6 +232,46 @@ function isKosztorysPreviewUsable(preview: AthPreviewResult): boolean {
   return preview.ok && Boolean(preview.rawPreview?.trim());
 }
 
+/** P0 WM PDF Recovery — discovery PDF przedmiar nie może zostać zastąpiony formularzem ofertowym XLSX. */
+function isPdfPrzedmiarDiscoveryType(
+  type: TenderCostDiscoveryResult["type"] | undefined,
+): boolean {
+  return type === "pdf_przedmiar" || type === "zip_pdf_przedmiar";
+}
+
+function isFormalOfferKosztorysCandidate(filename: string): boolean {
+  if (isFormalOfferCostFilename(filename)) return true;
+  const base = (filename.split(" → ").pop() ?? filename).toLowerCase();
+  return /formularz.*ofert|oferta.*cz[eę][sś][cć]\s*1/i.test(base);
+}
+
+function shouldProtectPdfPrzedmiarWinner(
+  existing: TenderKosztorysSnapshot | null,
+  candFilename: string,
+  discovery: TenderCostDiscoveryResult | null,
+): boolean {
+  if (!existing?.ok || (existing.rowCount ?? 0) <= 0) return false;
+  if (existing.pdfPrzedmiarCase !== 1) return false;
+  if (!discovery?.found || !isPdfPrzedmiarDiscoveryType(discovery.type)) return false;
+  return isFormalOfferKosztorysCandidate(candFilename);
+}
+
+function shouldReplaceBestKosztorys(
+  existing: TenderKosztorysSnapshot | null,
+  incoming: TenderKosztorysSnapshot,
+  candFilename: string,
+  discovery: TenderCostDiscoveryResult | null,
+  opts?: { allowTotalValueFill?: boolean },
+): boolean {
+  if (!existing?.ok) return true;
+  if (shouldProtectPdfPrzedmiarWinner(existing, candFilename, discovery)) return false;
+  const newRows = incoming.rows?.length ?? 0;
+  const oldRows = existing.rows?.length ?? 0;
+  if (newRows > oldRows) return true;
+  if (opts?.allowTotalValueFill && !existing.totalValue && incoming.totalValue) return true;
+  return false;
+}
+
 /** P2-E.1B — kosztorys zawsze parsowany (standalone ATH + inner ZIP ATH). */
 function pickCostParseCandidates(
   all: TenderDocCandidate[],
@@ -918,9 +958,9 @@ export async function parseTenderDossierDocuments(
       });
       parsedCount += 1;
       if (parsed.kosztorys?.ok) {
-        const newRows = parsed.kosztorys.rows?.length ?? 0;
-        const oldRows = bestKosztorys?.rows?.length ?? 0;
-        if (!bestKosztorys?.ok || newRows > oldRows || !bestKosztorys.totalValue) {
+        if (shouldReplaceBestKosztorys(bestKosztorys, parsed.kosztorys, cand.filename, costDiscovery, {
+          allowTotalValueFill: true,
+        })) {
           bestKosztorys = parsed.kosztorys;
           sourceDocumentIndex = parsed.sourceDocumentIndex;
           zipInnerPath = parsed.zipInnerPath;
@@ -963,9 +1003,7 @@ export async function parseTenderDossierDocuments(
       });
 
       if (parsed.kosztorys?.ok) {
-        const newRows = parsed.kosztorys.rows?.length ?? 0;
-        const oldRows = bestKosztorys?.rows?.length ?? 0;
-        if (!bestKosztorys?.ok || newRows > oldRows) {
+        if (shouldReplaceBestKosztorys(bestKosztorys, parsed.kosztorys, cand.filename, costDiscovery)) {
           bestKosztorys = parsed.kosztorys;
           sourceDocumentIndex = parsed.sourceDocumentIndex;
           zipInnerPath = parsed.zipInnerPath;

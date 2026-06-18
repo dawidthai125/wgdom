@@ -1,5 +1,6 @@
 /**
  * P2-H.5B — heurystyczny odczyt pozycji z natywnych PDF przedmiaru (bez OCR).
+ * P0 WM PDF Recovery — M1 unit norm · M2 BOQ split · extended norms (KNR-W, ZKNR, NNRNKB, KNR AT).
  */
 
 import type { AthPreviewResult, AthPreviewRow } from "@/lib/ath-parser";
@@ -18,15 +19,23 @@ export interface PdfPrzedmiarHeuristicResult {
 const MIN_SIGNALS = 3;
 
 const SIGNAL_CHECKS: { id: string; re: RegExp }[] = [
-  { id: "knr", re: /\b(?:KNR|KNNR|KSNR|TZKNBK)\b/i },
+  { id: "knr", re: /\b(?:KNR|KNNR|KSNR|ZKNR|NNRNKB|TZKNBK)\b/i },
   { id: "lp", re: /\b(?:Lp\.?|L\.?\s*P\.?)\b/ },
   { id: "ilosc", re: /\b(?:Ilo[sś][ćc]?|Obmiar)\b/i },
   { id: "jm", re: /\b(?:J\.?\s*m\.?|Jedn\.?)\b/i },
-  { id: "unit", re: /\b(?:m2|m²|m3|mb|kpl|szt|t|kg|rbh)\b/i },
+  { id: "unit", re: /\b(?:m\s*2|m²|m2|m\s*3|m³|m3|mb|kpl|szt\.?|t|kg|rbh)\b/i },
 ];
 
-const KNR_IN_LINE = /\b(?:KNR|KNNR|KSNR)\s*[\d]+(?:[-.\s/]*\d+)*/i;
-const UNIT_RE = /\b(m2|m²|m3|mb|kpl|szt|t|kg|rbh)\b/i;
+/** Extended WM norms — dłuższe tokeny przed KNR (ZKNR/NNRNKB); KNR nie łapie końcówki ZKNR. */
+const KNR_IN_LINE =
+  /\b(?:NNRNKB|ZKNR|KNNR|KSNR|(?<![A-Z])KNR(?:-W)?(?:\s+AT)?)\s*[\dA-Za-z]+(?:[-.\s/]*[\dA-Za-z]+)*/i;
+
+const UNIT_RE = /\b(m\s*2|m²|m2|m\s*3|m³|m3|mb|kpl|szt\.?|t|kg|rbh)\b/i;
+
+/** M2 — split segmentów BOQ (normy WM + markery d.X.Y). */
+const PDF_BOQ_SPLIT_RE =
+  /(?=(?:\d+\s+)?d\.\d+\.\d+\s+(?:(?:NNRNKB|ZKNR|KNNR|KSNR|KNR(?:-W)?(?:\s+AT)?)|kalk\.?\s*własn)|(?:NNRNKB|ZKNR|KNNR|KSNR|(?<![A-Z])KNR(?:-W)?(?:\s+AT)?)(?:[\s-]*[\dA-Za-z]))/gi;
+
 const HEADER_NOISE = /^(?:podstawa|opis|nazwa|cena|warto|razem|suma|strona|\d+\s*\/\s*\d+)/i;
 
 export const PDF_PRZEDMIAR_UX_LINES: Record<PdfPrzedmiarUxCase, string> = {
@@ -50,14 +59,53 @@ function normalizePdfText(text: string): string {
     .trim();
 }
 
+/** M1 — normalizacja j.m. z eksportu WM (m 2 → m2, szt. → szt). */
+export function normalizePdfBoqUnits(text: string): string {
+  return text
+    .replace(/\bm\s+2\b/gi, "m2")
+    .replace(/\bm\s+3\b/gi, "m3")
+    .replace(/\bszt\./gi, "szt")
+    .replace(/\bkpl\./gi, "kpl");
+}
+
+/** M2 — rozbij tekst stron PDF na segmenty pozycji BOQ. */
+export function splitPdfBoqText(text: string): string[] {
+  const hay = normalizePdfText(text);
+  if (!hay) return [];
+
+  const pageLines = hay.split("\n");
+  const segments: string[] = [];
+
+  for (const pageLine of pageLines) {
+    const trimmed = pageLine.trim();
+    if (trimmed.length < 8) continue;
+
+    const parts = trimmed
+      .split(PDF_BOQ_SPLIT_RE)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 8);
+
+    if (parts.length > 0) segments.push(...parts);
+    else segments.push(trimmed);
+  }
+
+  return segments;
+}
+
 export function detectPdfPrzedmiarSignals(text: string): string[] {
   const hay = normalizePdfText(text);
   return SIGNAL_CHECKS.filter((s) => s.re.test(hay)).map((s) => s.id);
 }
 
 function extractKnrCode(fragment: string): string {
-  const m = fragment.match(/\b((?:KNR|KNNR|KSNR)\s*[\d]+(?:[-.\s/]*\d+)*)/i);
+  const m = fragment.match(
+    /\b((?:NNRNKB|ZKNR|KNNR|KSNR|(?<![A-Z])KNR(?:-W)?(?:\s+AT)?)\s*[\dA-Za-z]+(?:[-.\s/]*[\dA-Za-z]+)*)/i,
+  );
   return m?.[1]?.replace(/\s+/g, " ").trim() ?? "";
+}
+
+function normalizeUnitToken(raw: string): string {
+  return raw.replace(/\s+/g, "").replace("²", "2").replace("³", "3").toLowerCase();
 }
 
 function parseQuantityToken(raw: string): string {
@@ -68,7 +116,7 @@ function parseQuantityToken(raw: string): string {
 
 /** Pojedyncza linia tekstu PDF z pozycją KNR + j.m. + ilość. */
 export function parsePdfPrzedmiarLine(line: string): AthPreviewRow | null {
-  const trimmed = line.replace(/\s+/g, " ").trim();
+  const trimmed = normalizePdfBoqUnits(line.replace(/\s+/g, " ").trim());
   if (trimmed.length < 12 || HEADER_NOISE.test(trimmed)) return null;
   if (!KNR_IN_LINE.test(trimmed)) return null;
 
@@ -80,7 +128,7 @@ export function parsePdfPrzedmiarLine(line: string): AthPreviewRow | null {
   if (!code) return null;
 
   const unitMatch = trimmed.match(UNIT_RE);
-  const unit = unitMatch?.[1]?.replace("²", "2").toLowerCase() ?? "";
+  const unit = unitMatch ? normalizeUnitToken(unitMatch[1]) : "";
   if (!unit) return null;
 
   let quantity = "";
@@ -115,11 +163,11 @@ export function parsePdfPrzedmiarLine(line: string): AthPreviewRow | null {
 }
 
 export function extractPdfPrzedmiarRows(text: string): AthPreviewRow[] {
-  const lines = normalizePdfText(text).split("\n");
+  const segments = splitPdfBoqText(text);
   const rows: AthPreviewRow[] = [];
   const seen = new Set<string>();
 
-  for (const line of lines) {
+  for (const line of segments) {
     const row = parsePdfPrzedmiarLine(line);
     if (!row) continue;
     const key = `${row.code}|${row.description.slice(0, 40)}|${row.quantity}`;

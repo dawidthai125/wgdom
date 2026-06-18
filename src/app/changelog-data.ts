@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-18",
+    version: "2.62.1",
+    label: "Przetargi — WM PDF przedmiar recovery (TP182)",
+    items: [
+      {
+        type: "fix",
+        text: "PDF przedmiar WM — normalizacja j.m. (m 2→m2), split pozycji BOQ po KNR/d.X.Y, rozszerzone normy (KNR-W, ZKNR, NNRNKB, KNR AT)",
+      },
+      {
+        type: "fix",
+        text: "Dossier merge — formularz ofertowy XLSX nie nadpisuje discovery PDF przedmiar tylko dlatego, że ma więcej wierszy",
+      },
+      {
+        type: "improve",
+        text: "Test regresyjny TP182 — oczekiwane ≥80 pozycji z PDF przedmiaru (bez OCR)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-18",
     version: "2.62.0",
     label: "Przetargi — Kosztorys PRO Dashboard (V4.2 + V4.2A)",
     items: [
