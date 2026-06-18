@@ -1,67 +1,64 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-18 · **prod 2.61.4** · **P0 ZIP ATH Recovery CLOSED**
+**Ostatnia aktualizacja:** 2026-06-18 · **repo 2.62.0** · **V4.2 + V4.2A UX polish COMPLETE**
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod (`main`)** | **2.61.4** · commit **`653abe0`** |
-| **PRODUCTION VERIFIED** | `version.json` = 2.61.4 · **TAK** (2026-06-18) |
-| **Edge deploy** | **PASS** — `tenders-bzp-zip-catalog` · `zip-entry-bytes` |
-| **P0 ZIP ATH Recovery** | **CLOSED** — TP113 validated |
-| **Poprzedni epic** | 2.61.3 V4.1.2 Kosztorys Source Recovery (`8b05afb`) |
+| **Wersja repo (lokalnie)** | **2.62.0** — Kosztorys PRO Dashboard (V4.2) |
+| **Wersja prod (`main`)** | **2.61.5** · commit **`c41d79b`** (ATH visibility hotfix) |
+| **PRODUCTION VERIFIED** | prod = 2.61.5 · **2.62.0 NIE wdrożone** (brak push) |
+| **P0 ZIP ATH Recovery** | **CLOSED** |
+| **V4.2 + V4.2A Kosztorys PRO** | **IMPLEMENT COMPLETE** — UX gate TP113 PASS lokalnie |
 
 ## ★★ START HERE (nowy agent)
 
 | Temat | Dokument |
 |-------|----------|
-| **★ P0 ZIP ATH (CLOSED)** | [`docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md`](docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md) |
+| **V4.2 Kosztorys PRO** | `TenderKosztorysWorkspace.tsx` · `tender-kosztorys-pro-dashboard.ts` · ARCHITECTURE § 12.1.15 |
+| **P0 ZIP ATH (CLOSED)** | [`docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md`](docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md) |
 | **Baseline prod** | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
-| **P2-H dokumenty / ZIP** | [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md) |
-| **V4 Kosztorys** | CHANGELOG 2.61.2–2.61.3 · `test-v41-kosztorys-workspace.mjs` |
-| **Architektura** | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.7 · § 12.1.14 |
+| **Architektura** | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.15 · § 12.1.14 |
 
-## Ukończone — P0 ZIP ATH Recovery (2.61.4)
+## Ukończone — V4.2 Kosztorys PRO (2.62.0)
 
-| Element | Skrót |
-|---------|-------|
-| **FIX A** | `isFormalOfferCostFilename()` — formularz oferty nie wygrywa kosztorysu |
-| **FIX B** | Off-platform (ezamawiajacy) przed BZP readmodels w `loadDocBytes` |
-| **FIX C** | Edge zip-catalog + zip-entry-bytes · ZIP do **128 MB** |
-| **Walidacja** | TP113 · ATH `SĘPA-SZARZYŃSKIEGO 65a_P_Scalony…` · 40 rows · 250 catalogQuantities |
+| Faza | Skrót |
+|------|-------|
+| **A** | KOSZTORYS PRO — 8 KPI nad tabelą |
+| **B** | TOP 20 największych pozycji kosztowych |
+| **C** | Filtry: Wszystkie · Wykończeniowe · Sanitarne · Elektryczne · Dachowe · Drogowe |
+| **D** | Karta „Ocena kosztorysu” + rekomendacja |
+| **E** | „Pobierz ATH” obok „Pełny podgląd ATH” |
 
-## Smoke / regresja
+## Smoke / regresja (2.62.0 — PASS lokalnie)
 
 ```bash
-npm run build
-npx vite-node scripts/test-tender-cost-discovery.mjs
-npx vite-node scripts/test-tender-dossier-pipeline.mjs
-npx vite-node scripts/test-tender-zip-catalog-tp113.mjs
-npx vite-node scripts/verify-tp113-zip-ath-recovery.mjs
-npx vite-node scripts/test-v41-kosztorys-workspace.mjs
+npm run build                                          # PASS
+npx vite-node scripts/test-v41-kosztorys-workspace.mjs # 42 PASS
+npx vite-node scripts/test-construction-scope-analysis.mjs  # 20 PASS
+npx vite-node scripts/test-construction-business-fit.mjs    # 17 PASS
+npx vite-node scripts/test-tender-cost-discovery.mjs        # 17 PASS
+npx vite-node scripts/verify-tp113-zip-ath-recovery.mjs       # PASS · catalogQuantities=302
 ```
 
-## Manual smoke (prod)
+## Pliki V4.2 (commit selektywny)
 
-1. Przetargi → TP113 (Sępa Szarzyńskiego 65A) → **Analizuj** (ponowny skan jeśli stary dossier)
-2. Zakładka **Kosztorys** — źródło **ATH** z `DOKUMENTACJA PROJEKTOWA.zip`, **nie** Formularz oferty
-3. Pozycje robót budowlanych, nie KRS/Wykonawca/CEIDG
+| Plik | Rola |
+|------|------|
+| `src/lib/tender-kosztorys-pro-dashboard.ts` | **NOWY** — KPI, TOP 20, filtry, ocena |
+| `src/app/TenderKosztorysWorkspace.tsx` | UI PRO dashboard |
+| `src/lib/tender-ath-quick-access.ts` | `downloadAthSourceFile()` |
+| `src/app/changelog-data.ts` | 2.62.0 |
+| `CHANGELOG.md` | skrót |
+| `scripts/test-v41-kosztorys-workspace.mjs` | T12–T13 |
+| `src/app/GuideView.tsx` | FAQ Kosztorys PRO |
+| `docs/ARCHITECTURE.md` | § 12.1.15 |
 
-## Następny krok (backlog — tylko na polecenie)
+**Nie commitować** w release 2.62.0: `tender-cost-discovery.ts`, `tender-document-resolver.ts`, `tenders-bzp-doc-parse.ts` (zmiany spoza zakresu).
 
-| Priorytet | Temat |
-|-----------|-------|
-| OPEN | **P2-H.7** — Edge magic bytes 7Z |
-| OPEN | **V3.1 Sprint 2** — landing DECYZJE · Zasoby · Quick Estimate |
-| OPEN | **P3 Export** — Notatki operacyjne |
-| OPS | Masowy rescan dossier WM ze starym snapshotem formularza |
+## Następny krok
 
-## Kluczowe pliki P0
-
-| Co | Plik |
-|----|------|
-| Discovery | `src/lib/tender-cost-discovery.ts` |
-| Resolver / ZIP | `src/lib/tender-document-resolver.ts` |
-| API klient | `src/lib/tenders-bzp.ts` |
-| Edge | `supabase/functions/make-server-0afb8820/index.tsx` |
+1. Commit selektywny V4.2 → `git push origin main`
+2. VERIFY FAST: `curl -s https://www.wgdom.fun/version.json` → oczekiwane **2.62.0**
+3. Manual smoke TP113 na prod (KPI, TOP 20, filtry, Pełny podgląd ATH)

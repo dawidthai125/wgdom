@@ -12,6 +12,37 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-18",
+    version: "2.62.0",
+    label: "Przetargi — Kosztorys PRO Dashboard (V4.2 + V4.2A)",
+    items: [
+      {
+        type: "new",
+        text: "Zakładka Kosztorys — panel KOSZTORYS PRO: 8 KPI (pokrycie, marża, FIT WGDOM, status oferty)",
+      },
+      {
+        type: "new",
+        text: "TOP 20 największych pozycji kosztowych + filtry branżowe (wykończeniowe, sanitarne, elektryczne…)",
+      },
+      {
+        type: "new",
+        text: "Karta Ocena kosztorysu — rekomendacja czy przygotowywać ofertę",
+      },
+      {
+        type: "new",
+        text: "Przycisk Pobierz ATH — oryginalny plik przedmiaru obok Pełnego podglądu",
+      },
+      {
+        type: "improve",
+        text: "V4.2A — hero KPI (ATH, pokrycie, FIT, status) above the fold; kompaktowy nagłówek na Kosztorys",
+      },
+      {
+        type: "fix",
+        text: "V4.2A — Ocena bez „Dominują inne”; marża „Ustal marżę” gdy brak danych; filtr Elektryczne bez false positives",
+      },
+    ],
+  },
+  {
+    date: "2026-06-18",
     version: "2.61.5",
     label: "Przetargi — pełna widoczność ATH (P0)",
     items: [

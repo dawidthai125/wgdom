@@ -70,6 +70,7 @@ export function TenderDetailPage({
   );
 
   const legacyWorkspace = v4TabToLegacyWorkspace(tab);
+  const compactKosztorysChrome = tab === "kosztorys";
 
   if (!item) {
     return (
@@ -98,7 +99,7 @@ export function TenderDetailPage({
         className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
         style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
       >
-        <div className="px-4 sm:px-6 py-3 space-y-3 border-b border-border bg-card/50">
+        <div className={`px-4 sm:px-6 ${compactKosztorysChrome ? "py-2 space-y-2" : "py-3 space-y-3"} border-b border-border bg-card/50`}>
           <button
             type="button"
             className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
@@ -108,23 +109,31 @@ export function TenderDetailPage({
             Powrót do listy
           </button>
 
-          <nav className="flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground" aria-label="Breadcrumb">
-            <span>Przetargi</span>
-            <ChevronRight size={12} className="shrink-0 opacity-60" />
-            <span className="truncate max-w-[12rem]">{item.bzpNumber || item.id.slice(0, 8)}</span>
-            <ChevronRight size={12} className="shrink-0 opacity-60" />
-            <span className="text-foreground font-medium">{TENDER_DETAIL_V4_TAB_LABELS[tab]}</span>
-          </nav>
+          {!compactKosztorysChrome && (
+            <nav className="flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground" aria-label="Breadcrumb">
+              <span>Przetargi</span>
+              <ChevronRight size={12} className="shrink-0 opacity-60" />
+              <span className="truncate max-w-[12rem]">{item.bzpNumber || item.id.slice(0, 8)}</span>
+              <ChevronRight size={12} className="shrink-0 opacity-60" />
+              <span className="text-foreground font-medium">{TENDER_DETAIL_V4_TAB_LABELS[tab]}</span>
+            </nav>
+          )}
 
-          <h1 className="text-base sm:text-lg font-semibold leading-snug text-foreground">
+          <h1
+            className={
+              compactKosztorysChrome
+                ? "text-sm font-semibold leading-snug text-foreground line-clamp-1"
+                : "text-base sm:text-lg font-semibold leading-snug text-foreground"
+            }
+          >
             {item.title}
           </h1>
 
-          <TenderDetailKpiBar item={item} swz={swz} />
+          {!compactKosztorysChrome && <TenderDetailKpiBar item={item} swz={swz} />}
           <TenderDetailTabBar activeTab={tab} onTabChange={handleTabChange} />
         </div>
 
-        <div className="px-4 sm:px-6 py-4">
+        <div className={`px-4 sm:px-6 ${compactKosztorysChrome ? "py-2" : "py-4"}`}>
           {tab === "przetarg" && <TenderPrzetargWorkspace item={item} swz={swz} />}
 
           {tab === "kosztorys" && (

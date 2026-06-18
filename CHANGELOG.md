@@ -1,6 +1,14 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.61.5** · **P0 ATH visibility**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.62.0** · **Kosztorys PRO V4.2**
+
+## 2.62.0 — Kosztorys PRO Dashboard (V4.2 + V4.2A UX polish)
+
+- **new:** KOSZTORYS PRO — 8 KPI, TOP 20 pozycji, filtry branżowe, Ocena kosztorysu
+- **new:** Pobierz ATH (oryginalny plik)
+- **improve:** V4.2A hero KPI above the fold · kompaktowy nagłówek Kosztorys
+- **fix:** V4.2A bez „Dominują inne” · marża „Ustal marżę” · filtr Elektryczne · Sanitarne empty state
+- **lib:** `tender-kosztorys-pro-dashboard.ts` + reuse P2 scope/fit
 
 ## 2.61.5 — Pełna widoczność ATH (P0)
 

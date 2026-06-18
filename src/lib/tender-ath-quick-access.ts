@@ -268,3 +268,68 @@ export async function downloadAthKosztorysPdf(
     zipInnerPath: ctx.previewItem.kind === "tenderBzp" ? ctx.previewItem.zipInnerPath ?? null : null,
   });
 }
+
+/** Pobierz oryginalny plik ATH/NOR/XML (bez PDF, bez zmian parsera). */
+export async function downloadAthSourceFile(
+  item: TenderPipelineItem,
+  athPreviewEnabled: boolean,
+): Promise<void> {
+  const previewItem = resolveAthPreviewItem(item);
+  if (!previewItem) throw new Error("Brak pliku ATH do pobrania");
+  if (!athPreviewEnabled) throw new Error("Podgląd ATH wyłączony w ustawieniach");
+
+  const { saveAs } = await import("file-saver");
+  let bytes: Uint8Array;
+  let filename: string;
+
+  if (previewItem.kind === "tenderUpload") {
+    const res = await fetch(previewItem.publicUrl);
+    if (!res.ok) throw new Error(`Nie udało się pobrać pliku (${res.status})`);
+    bytes = new Uint8Array(await res.arrayBuffer());
+    filename = previewItem.filename;
+  } else {
+    const {
+      resolveDocumentBytes,
+    } = await import("@/lib/tenders-bzp-doc-parse");
+    const downloadUrl = previewItem.downloadUrl
+      ?? resolveTenderDocumentDownload(item.bzpDocuments, previewItem.documentIndex)?.downloadUrl;
+    const { bytes: outerBytes, filename: serverName } = await loadTenderBzpBytesForAth(
+      previewItem.tenderId,
+      previewItem.documentIndex,
+      downloadUrl,
+      item.bzpDocuments,
+    );
+    const innerFilename = previewItem.filename || serverName;
+    const outerArchiveFilename = previewItem.outerArchiveFilename ?? serverName;
+    const loadBytes = async (idx: number) => {
+      if (idx === previewItem.documentIndex) return outerBytes;
+      const r = await loadTenderBzpBytesForAth(
+        previewItem.tenderId,
+        idx,
+        downloadUrl,
+        item.bzpDocuments,
+      );
+      return r.bytes;
+    };
+    bytes = await resolveDocumentBytes(
+      loadBytes,
+      previewItem.documentIndex,
+      innerFilename,
+      previewItem.zipInnerPath,
+      previewItem.zipInnerPath ? outerArchiveFilename : undefined,
+    );
+    filename = previewItem.zipInnerPath
+      ? innerFilename.split(/[/\\]/).pop() ?? innerFilename
+      : innerFilename;
+  }
+
+  const blob = new Blob([bytes], { type: "application/octet-stream" });
+  saveAs(blob, filename);
+  traceAthQuickAccess({
+    source: "ATH",
+    viewerOpened: false,
+    pdfDownloaded: false,
+    athSourceDownloaded: true,
+    filename,
+  });
+}

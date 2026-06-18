@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-18 (P0 ZIP ATH **v2.61.4** · V4 Kosztorys **v2.61.3** · § 12.1.14 · P1 Document Insights **v2.59.52**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-18 (V4.2 Kosztorys PRO **v2.62.0** · P0 ZIP ATH **v2.61.5** · § 12.1.15 · § 12.1.14)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1379,6 +1379,36 @@ discoverBestCostDocument()  // skip formal offer XLSX
 **Walidacja prod:** TP113 `08dec13d-5547-aa6d-5fad-9500015c4ea0` — zipSize 112984898 · ATH discovery · 40 rows.
 
 **Nie zmieniaj bez polecenia:** limit 128 MB tylko dla archiwów; `noticeNumber` wymagany do discovery ezamawiajacy; ponowny skan dossiera po release dla starych snapshotów KV.
+
+### 12.1.15 V4.2 — Kosztorys PRO Dashboard (v2.62.0)
+
+**Status:** **COMPLETE** (UI + lib, bez zmian discovery/parsera ATH)  
+**Wejście:** Przetargi → przetarg → workspace **Kosztorys**
+
+Ekran decyzyjny właściciela firmy — KPI, TOP pozycje, filtry branżowe i ocena bez otwierania ATH.
+
+```text
+TenderKosztorysWorkspace
+  → buildKosztorysV4Display()           // SSOT catalogQuantities (cap 500)
+  → buildKosztorysProDashboard(item)    // KPI · TOP 20 · assessment · FIT
+  → filterCatalogLinesByConstructionCategory()  // construction-keywords.ts
+```
+
+| Sekcja UI | Źródło danych |
+|-----------|---------------|
+| 8 KPI (pozycje, wycenione, pokrycie, wartość, marża, FIT, status) | `tender-kosztorys-pro-dashboard.ts` + `buildCatalogLinePricingView` |
+| TOP 20 pozycji | sort `quantity × (material + labor)` malejąco |
+| Filtry branżowe | `matchConstructionKeywordsInText` (`construction-keywords.ts`) |
+| Ocena kosztorysu | `buildKosztorysProAssessment` + `analyzeConstructionScope` + `computeConstructionBusinessFit` |
+| Pobierz ATH | `downloadAthSourceFile()` w `tender-ath-quick-access.ts` |
+
+**Status oferty:** `GOTOWE DO OFERTY` gdy pokrycie ≥ 70% i priced > 0; inaczej `WYMAGA WYCENY`.
+
+**Kluczowe pliki:** `TenderKosztorysWorkspace.tsx`, `tender-kosztorys-pro-dashboard.ts`, `tender-detail-v4-display.ts`, `tender-ath-quick-access.ts`
+
+**Testy:** `test-v41-kosztorys-workspace.mjs` (T12–T13) · `test-construction-scope-analysis.mjs` · `test-construction-business-fit.mjs` · regresja `test-tender-cost-discovery.mjs`
+
+**Nie zmieniaj bez polecenia:** `tender-cost-discovery.ts`, `tender-document-resolver.ts`, `tenders-bzp-doc-parse.ts`, `tender-dossier-pipeline.ts`, parser ATH, Edge.
 
 ### 12.1.12 P1 — Document Insights / Owner View Modal (P1A–P1D, v2.59.52)
 

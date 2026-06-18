@@ -285,5 +285,93 @@ console.log("\nT11 — buildCatalogQuantitiesFromPreview filter before slice");
   assert(built.length === 8, "T11 noise filtered, valid rows after noise kept");
 }
 
+console.log("\nT12 — V4.2 Kosztorys PRO dashboard");
+{
+  const { buildKosztorysProDashboard, lineMatchesConstructionFilter } = await import("../src/lib/tender-kosztorys-pro-dashboard.ts");
+  const catalog = makeCatalogN(10);
+  catalog[0] = { lp: "1", description: "Malowanie ścian wewnętrznych KNR 2-02-01", unit: "m2", quantity: "120" };
+  catalog[1] = { lp: "2", description: "Instalacja elektryczna — przewód YDY", unit: "m", quantity: "80" };
+  const item = baseItem({
+    ok: true,
+    sourceFilename: "kosztorys.ath",
+    sourceDocumentIndex: 1,
+    rowCount: 10,
+    rows: [],
+    catalogQuantities: catalog,
+    przedmiar: [],
+    categories: [],
+    warnings: [],
+    parsedAt: new Date().toISOString(),
+  });
+  const pro = buildKosztorysProDashboard(item);
+  assert(pro.athPositions === 10, "T12 ath positions");
+  assert(pro.coverageDisplay.endsWith("%"), "T12 coverage percent");
+  assert(pro.statusLabel === "GOTOWE DO OFERTY" || pro.statusLabel === "WYMAGA WYCENY", "T12 status");
+  assert(lineMatchesConstructionFilter("Malowanie ścian", "wykończeniowe"), "T12 filter wykończeniowe");
+  assert(!lineMatchesConstructionFilter("Malowanie ścian", "drogowe"), "T12 filter excludes drogowe");
+  assert(!lineMatchesConstructionFilter("Zapewnienie siedlisk nietoperzy", "elektryczne"), "T12 elektryczne excludes bats");
+  assert(lineMatchesConstructionFilter("Wciąganie przewodu YDYżo 5x6 do rur", "elektryczne"), "T12 elektryczne YDY");
+}
+
+console.log("\nT14 — V4.2A UX polish");
+{
+  const {
+    buildKosztorysProAssessment,
+    formatDominantScopeParagraph,
+    kosztorysFilterEmptyMessage,
+    lineMatchesConstructionFilter,
+  } = await import("../src/lib/tender-kosztorys-pro-dashboard.ts");
+
+  const inneScope = {
+    primaryCategory: "Inne",
+    primaryCategoryId: "inne",
+    secondaryCategories: [],
+    categoryBreakdown: [
+      { categoryId: "inne", category: "Inne", percentage: 90 },
+      { categoryId: "elektryczne", category: "Elektryczne", percentage: 6 },
+      { categoryId: "dachowe", category: "Dachowe", percentage: 4 },
+    ],
+    confidence: 0.9,
+    matchedKeywords: [],
+    dominantScopeLabel: "Inne",
+    sourcesUsed: ["catalog_quantities"],
+  };
+
+  const dominant = formatDominantScopeParagraph(inneScope, "Remont budynku wielorodzinnego");
+  assert(dominant != null, "T14 dominant line exists");
+  assert(!dominant.includes("inne"), "T14 no Dominują inne");
+  assert(dominant.includes("elektryczne") || dominant.includes("Remont"), "T14 fallback top3 or scope");
+
+  const assessment = buildKosztorysProAssessment({
+    scope: inneScope,
+    scopeDescription: "Remont budynku",
+    fit: null,
+    coveragePct: 58,
+    priced: 10,
+    unpriced: 5,
+    statusLabel: "WYMAGA WYCENY",
+    marketHint: null,
+  });
+  const allText = [assessment?.headline, ...(assessment?.paragraphs ?? [])].join(" ");
+  assert(!allText.toLowerCase().includes("dominują inne"), "T14 assessment no inne");
+
+  assert(kosztorysFilterEmptyMessage("sanitarne") === "Nie wykryto pozycji sanitarnych.", "T14 sanitarne empty msg");
+  assert(!lineMatchesConstructionFilter("Wykucie bruzd w ścianach wykańczanych tynkiem", "elektryczne"), "T14 bruzdy excluded");
+}
+
+console.log("\nT13 — V4.2 workspace PRO markers");
+{
+  const wsSrc = readFileSync(resolve(root, "src/app/TenderKosztorysWorkspace.tsx"), "utf8");
+  const pageSrc = readFileSync(resolve(root, "src/app/TenderDetailPage.tsx"), "utf8");
+  assert(wsSrc.includes("KOSZTORYS PRO"), "T13 pro section");
+  assert(wsSrc.includes("data-kosztorys-pro-hero"), "T13 hero above fold");
+  assert(wsSrc.includes("Największe pozycje kosztowe"), "T13 top section");
+  assert(wsSrc.includes("Ocena kosztorysu"), "T13 assessment");
+  assert(wsSrc.includes("Pobierz ATH"), "T13 download ath");
+  assert(wsSrc.includes("data-kosztorys-category-filters"), "T13 filters");
+  assert(wsSrc.includes("kosztorysFilterEmptyMessage"), "T13 filter empty message");
+  assert(pageSrc.includes("compactKosztorysChrome"), "T13 compact kosztorys chrome");
+}
+
 console.log(`\n${fail === 0 ? "PASS" : "FAIL"} — ${pass} passed, ${fail} failed\n`);
 process.exit(fail > 0 ? 1 : 0);

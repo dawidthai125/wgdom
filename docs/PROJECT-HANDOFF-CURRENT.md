@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-18 (**P0 ZIP ATH Recovery 2.61.4** · V4 Kosztorys 2.61.2–2.61.3 · P1 Document Insights 2.59.52 · **PRODUCTION VERIFIED**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-18 (**repo 2.62.0 V4.2 Kosztorys PRO** · **prod 2.61.5** · P0 ZIP ATH CLOSED · ATH visibility hotfix)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -33,6 +33,8 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **Przetargi · V4.2 Kosztorys PRO** | **2.62.0** (repo, nie prod) | **IMPLEMENT COMPLETE** · KPI · TOP 20 · filtry · ocena · Pobierz ATH | ARCHITECTURE § 12.1.15 · `tender-kosztorys-pro-dashboard.ts` |
+| **Przetargi · ATH visibility hotfix** | **2.61.5** (`c41d79b`) | **PROD** · cap 500 · filter→slice · 302/302 TP113 | CHANGELOG 2.61.5 |
 | **Przetargi · P0 ZIP ATH Recovery** | **2.61.4** (`653abe0`) | **CLOSED** · duże ZIP 128 MB · zip-catalog · ATH z dokumentacji WM | [`SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md`](SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md) |
 | **Przetargi · V4 Kosztorys** | **2.61.2–2.61.3** | **CLOSED** · filtr formalnych · `catalogQuantities` SSOT | CHANGELOG 2.61.2–2.61.3 |
 | **Przetargi · P1 Document Insights** | **2.59.52** (`ff20fec`) | **CLOSED** · P1A PDF UX + P1B Summary + P1C Executive + P1D Inference | [`SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md`](SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md) |
