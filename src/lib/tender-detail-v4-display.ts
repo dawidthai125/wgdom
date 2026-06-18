@@ -2,7 +2,10 @@
  * V4.1 — prezentacja danych przetargu (display-only, bez parserów / scoringu).
  */
 
+import type { TenderCostLine } from "@/lib/tenders-bzp-swz";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
+import type { TenderCatalogQuantityLine } from "@/lib/tenders-bzp-brief";
+import { isLikelyCatalogQuantityRow } from "@/lib/tender-catalog-quantity-filter";
 import { isTenderOpenForOffers, daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { fmtPln } from "@/lib/tenders-bzp-swz";
@@ -255,6 +258,179 @@ export function formatAthPositionCount(count: number | null | undefined): string
   return String(count);
 }
 
+function foldPlLabel(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/ą/g, "a")
+    .replace(/ć/g, "c")
+    .replace(/ę/g, "e")
+    .replace(/ł/g, "l")
+    .replace(/ń/g, "n")
+    .replace(/ó/g, "o")
+    .replace(/ś/g, "s")
+    .replace(/ź/g, "z")
+    .replace(/ż/g, "z");
+}
+
+/** Arkusz / plik formalny — nie kosztorys (V4.1.1 display-only). */
+const FORMAL_SHEET_MARKERS = [
+  "formularz",
+  "oferta",
+  "oferty",
+  "wykonawca",
+  "krs",
+  "regon",
+  "ceidg",
+  "oswiadczenie",
+] as const;
+
+export function isFormalKosztorysSheetLabel(label: string | null | undefined): boolean {
+  const folded = foldPlLabel((label ?? "").trim());
+  if (!folded) return false;
+  return FORMAL_SHEET_MARKERS.some((m) => folded.includes(m));
+}
+
+const FORMAL_ROW_DESC_RES: RegExp[] = [
+  /^krs\b/i,
+  /^regon\b/i,
+  /^ceidg\b/i,
+  /^wykonawca\b/i,
+  /^formularz\b/i,
+  /^oferta\b/i,
+  /^nr\s+krs\b/i,
+  /^nr\s+regon\b/i,
+  /^oswiadczenie\b/i,
+  /^oświadczenie\b/i,
+];
+
+function isFormalKosztorysRowDescription(description: string): boolean {
+  const raw = (description ?? "").trim();
+  if (!raw) return false;
+  const folded = foldPlLabel(raw);
+  for (const re of FORMAL_ROW_DESC_RES) {
+    if (re.test(raw) || re.test(folded)) return true;
+  }
+  return FORMAL_SHEET_MARKERS.some((m) => folded === m || folded.startsWith(`${m} `));
+}
+
+function cellHasValue(v: string | null | undefined): boolean {
+  const t = (v ?? "").trim();
+  return Boolean(t && t !== "—" && t !== "-" && t !== "0" && t !== "0,00");
+}
+
+/** Pozycja kosztorysowa — min. jeden sygnał: lp, ilość, j.m., cena, wartość, katalog. */
+export function isKosztorysDisplayRow(row: TenderCostLine): boolean {
+  if (isFormalKosztorysRowDescription(row.description ?? "")) return false;
+  if (!isLikelyCatalogQuantityRow(row.description ?? "")) return false;
+
+  const lp = (row.lp ?? "").trim();
+  if (lp && /^\d+([./]\d+)*$/.test(lp)) return true;
+  if (cellHasValue(row.quantity)) return true;
+  if (cellHasValue(row.unit) && (row.unit ?? "").trim().length <= 12) return true;
+  if (cellHasValue(row.unitPrice)) return true;
+  if (cellHasValue(row.total)) return true;
+
+  const desc = row.description ?? "";
+  if (/knr|nnr|\d{2}\s*\d{2}\s*\d{2}/i.test(desc)) return true;
+
+  return false;
+}
+
+export function filterKosztorysDisplayRows(rows: TenderCostLine[]): TenderCostLine[] {
+  return rows.filter(isKosztorysDisplayRow);
+}
+
+function catalogLineToCostRow(line: TenderCatalogQuantityLine): TenderCostLine {
+  return {
+    lp: line.lp,
+    description: line.description,
+    unit: line.unit,
+    quantity: line.quantity,
+    unitPrice: "",
+    total: "",
+  };
+}
+
+export type KosztorysV4EmptyState = "awaiting_parse" | "no_data" | "formal_document" | null;
+
+export const KOSZTORYS_V4_EMPTY_NO_POSITIONS =
+  "Brak rozpoznanych pozycji kosztorysowych.\nPrzejdź do Dokumentów i uruchom analizę kosztorysu.";
+
+export const KOSZTORYS_V4_EMPTY_FORMAL =
+  "Nie znaleziono pozycji kosztorysowych.\n\nTen plik wygląda na formularz ofertowy lub dokument formalny.\n\nPrzejdź do zakładki Dokumenty.";
+
+export interface KosztorysV4DisplayResult {
+  rows: TenderCostLine[];
+  source: "rows" | "catalog" | "none";
+  skippedFormalSheet: boolean;
+  formalDocumentDetected: boolean;
+  rawRowCount: number;
+  emptyState: KosztorysV4EmptyState;
+  emptyMessage: string | null;
+}
+
+/** SSOT wierszy zakładki Kosztorys V4 — tylko prezentacja, bez zmian pipeline. */
+export function buildKosztorysV4Display(item: TenderPipelineItem): KosztorysV4DisplayResult {
+  const k = item.tenderDossier?.kosztorys;
+  const awaiting = isKosztorysAwaitingHeavyParse(item);
+  const rawRows = k?.rows ?? [];
+  const rawRowCount = rawRows.length;
+
+  const sheetFormal =
+    isFormalKosztorysSheetLabel(k?.title) || isFormalKosztorysSheetLabel(k?.sourceFilename);
+
+  let rows: TenderCostLine[] = [];
+  let source: KosztorysV4DisplayResult["source"] = "none";
+
+  if (!sheetFormal && rawRows.length > 0) {
+    rows = filterKosztorysDisplayRows(rawRows);
+    if (rows.length > 0) source = "rows";
+  }
+
+  if (rows.length === 0) {
+    const catalog = (k?.catalogQuantities ?? [])
+      .filter((line) => isLikelyCatalogQuantityRow(line.description ?? "") && isKosztorysDisplayRow(catalogLineToCostRow(line)));
+    if (catalog.length > 0) {
+      rows = catalog.map(catalogLineToCostRow);
+      source = "catalog";
+    }
+  }
+
+  const formalRowHits = rawRows.filter(
+    (r) => isFormalKosztorysRowDescription(r.description ?? "") || !isLikelyCatalogQuantityRow(r.description ?? ""),
+  ).length;
+  const formalDocumentDetected =
+    sheetFormal || (rawRowCount > 0 && rows.length === 0 && formalRowHits > 0);
+
+  let emptyState: KosztorysV4EmptyState = null;
+  let emptyMessage: string | null = null;
+
+  if (rows.length === 0) {
+    if (awaiting) {
+      emptyState = "awaiting_parse";
+    } else if (formalDocumentDetected) {
+      emptyState = "formal_document";
+      emptyMessage = KOSZTORYS_V4_EMPTY_FORMAL;
+    } else if (!k?.ok) {
+      emptyState = "no_data";
+      emptyMessage = KOSZTORYS_V4_EMPTY_NO_POSITIONS;
+    } else {
+      emptyState = "no_data";
+      emptyMessage = KOSZTORYS_V4_EMPTY_NO_POSITIONS;
+    }
+  }
+
+  return {
+    rows,
+    source,
+    skippedFormalSheet: sheetFormal,
+    formalDocumentDetected,
+    rawRowCount,
+    emptyState,
+    emptyMessage,
+  };
+}
+
 export interface KosztorysV4Stats {
   athReady: boolean;
   athStatusLabel: string;
@@ -278,24 +454,45 @@ export function buildKosztorysV4Stats(
   const k = item.tenderDossier?.kosztorys;
   const awaiting = isKosztorysAwaitingHeavyParse(item);
   const athReady = Boolean(k?.ok) && !awaiting;
+  const display = buildKosztorysV4Display(item);
 
-  const catalog = k?.catalogQuantities?.filter((line) => {
+  const catalog = (k?.catalogQuantities ?? []).filter((line) => {
     const q = parseFloat(String(line.quantity ?? "").replace(",", "."));
-    return Number.isFinite(q) && q > 0;
-  }) ?? [];
+    return Number.isFinite(q) && q > 0 && isLikelyCatalogQuantityRow(line.description ?? "");
+  });
 
-  let athPositions = 0;
-  if (catalog.length > 0) athPositions = catalog.length;
-  else if (k?.rowCount && k.rowCount > 0) athPositions = k.rowCount;
-  else if (k?.rows?.length) athPositions = k.rows.length;
+  let athPositions = display.rows.length;
+  if (athPositions === 0 && catalog.length > 0 && !display.skippedFormalSheet) {
+    athPositions = catalog.filter((line) =>
+      isKosztorysDisplayRow(catalogLineToCostRow(line)),
+    ).length;
+  }
 
   let pricedPositions = 0;
   let unpricedPositions = 0;
 
-  if (catalog.length > 0) {
-    const classification = buildClassificationSummary(catalog);
-    pricedPositions = classification.classifiedRows;
-    unpricedPositions = classification.unknownRows;
+  if (display.rows.length > 0) {
+    if (display.source === "catalog" && catalog.length > 0) {
+      const pricingView = buildCatalogLinePricingView(
+        catalog,
+        undefined,
+        defaultCostModelFromPayroll(),
+        priceOverrides,
+      );
+      if (pricingView) {
+        pricedPositions = pricingView.classifiedPositionCount;
+        unpricedPositions = pricingView.unassignedCount;
+      } else {
+        const classification = buildClassificationSummary(catalog);
+        pricedPositions = classification.classifiedRows;
+        unpricedPositions = classification.unknownRows;
+      }
+    } else {
+      athPositions = display.rows.length;
+      pricedPositions = display.rows.filter((r) => cellHasValue(r.total)).length;
+      unpricedPositions = Math.max(0, athPositions - pricedPositions);
+    }
+  } else if (catalog.length > 0 && !display.skippedFormalSheet) {
     const pricingView = buildCatalogLinePricingView(
       catalog,
       undefined,
@@ -306,10 +503,6 @@ export function buildKosztorysV4Stats(
       pricedPositions = pricingView.classifiedPositionCount;
       unpricedPositions = pricingView.unassignedCount;
     }
-  } else if (k?.rows?.length) {
-    athPositions = k.rowCount || k.rows.length;
-    pricedPositions = k.rows.filter((r) => r.total?.trim() && r.total !== "—" && r.total !== "0").length;
-    unpricedPositions = Math.max(0, athPositions - pricedPositions);
   }
 
   const valuationTotalPln = pricingTotalPln(item, priceOverrides, catalog.length > 0 ? catalog : null);

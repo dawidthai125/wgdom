@@ -12,6 +12,33 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-18",
+    version: "2.61.2",
+    label: "Przetargi — WGDOM V4.1.1 Kosztorys Hotfix",
+    items: [
+      {
+        type: "fix",
+        text: "Zakładka Kosztorys — formularze ofertowe (KRS, REGON, CEIDG, Wykonawca) nie renderują się już jako pozycje kosztorysowe",
+      },
+      {
+        type: "fix",
+        text: "Filtr dokumentów formalnych przed tabelą: formularz, oferta, wykonawca, KRS, REGON, CEIDG, oświadczenia",
+      },
+      {
+        type: "fix",
+        text: "Walidacja pozycji kosztorysowych (lp, ilość, j.m., cena, wartość, katalog) + poprawny empty state dla dokumentów formalnych",
+      },
+      {
+        type: "fix",
+        text: "KPI kosztorysu liczone po przefiltrowanych danych (display SSOT buildKosztorysV4Display)",
+      },
+      {
+        type: "improve",
+        text: "Bez zmian: ATH parser, SWZ, dossier pipeline, Intelligence, Scoring, Qualification, Valuation, backend",
+      },
+    ],
+  },
+  {
+    date: "2026-06-18",
     version: "2.61.1",
     label: "Przetargi — WGDOM V4.1 Przetarg + Kosztorys + KPI PRO",
     items: [

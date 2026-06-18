@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
-import { buildKosztorysV4Stats } from "@/lib/tender-detail-v4-display";
+import {
+  buildKosztorysV4Display,
+  buildKosztorysV4Stats,
+} from "@/lib/tender-detail-v4-display";
 import { isKosztorysAwaitingHeavyParse } from "@/lib/tender-analysis-status-ux";
 import { KOSZTORYS_AWAITING_PARSE_HINT } from "@/lib/tender-analysis-status-ux";
 
@@ -50,13 +53,20 @@ function KosztorysCostTable({
   );
 }
 
+function KosztorysEmptyMessage({ text }: { text: string }) {
+  return (
+    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{text}</p>
+  );
+}
+
 export function TenderKosztorysWorkspace({ item }: { item: TenderPipelineItem }) {
   const stats = useMemo(() => buildKosztorysV4Stats(item), [item]);
+  const display = useMemo(() => buildKosztorysV4Display(item), [item]);
   const k = item.tenderDossier?.kosztorys;
   const awaiting = isKosztorysAwaitingHeavyParse(item);
   const [showAllRows, setShowAllRows] = useState(false);
 
-  const tableRows = k?.rows ?? [];
+  const tableRows = display.rows;
   const visibleRows = showAllRows ? tableRows.slice(0, 80) : tableRows.slice(0, 20);
 
   return (
@@ -78,6 +88,12 @@ export function TenderKosztorysWorkspace({ item }: { item: TenderPipelineItem })
         <p className="text-xs text-muted-foreground">{KOSZTORYS_AWAITING_PARSE_HINT}</p>
       )}
 
+      {display.skippedFormalSheet && (
+        <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">
+          Dokument formalny — pominięto arkusz bez pozycji kosztorysowych.
+        </p>
+      )}
+
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <KosztorysKpiCard label="Pozycje ATH" value={stats.athPositionsDisplay} />
         <KosztorysKpiCard label="Pozycje wycenione" value={stats.pricedDisplay} />
@@ -85,7 +101,7 @@ export function TenderKosztorysWorkspace({ item }: { item: TenderPipelineItem })
         <KosztorysKpiCard label="Wartość wyceny" value={stats.valuationValueDisplay} />
       </div>
 
-      {k?.title && (
+      {k?.title && !display.skippedFormalSheet && (
         <p className="text-xs text-muted-foreground">{k.title}</p>
       )}
 
@@ -100,23 +116,21 @@ export function TenderKosztorysWorkspace({ item }: { item: TenderPipelineItem })
             >
               {showAllRows
                 ? "Pokaż mniej pozycji"
-                : `Pokaż więcej (${Math.min(tableRows.length, 80)} z ${k?.rowCount ?? tableRows.length})`}
+                : `Pokaż więcej (${Math.min(tableRows.length, 80)} z ${tableRows.length})`}
             </button>
           )}
           <p className="text-[10px] text-muted-foreground">
-            {tableRows.length} pozycji w skrócie
+            {tableRows.length} pozycji kosztorysowych
             {k?.totalValue ? ` · wartość wg pliku: ${k.totalValue} ${k.currency || "PLN"}` : ""}
           </p>
         </div>
-      ) : stats.athReady && stats.athPositions === 0 ? (
-        <p className="text-sm text-muted-foreground">Brak rozpoznanych pozycji w kosztorysie.</p>
-      ) : !stats.athReady ? (
-        <p className="text-sm text-muted-foreground">
-          Otwórz zakładkę Dokumenty, aby załadować i przeanalizować kosztorys ATH.
-        </p>
+      ) : display.emptyMessage ? (
+        <KosztorysEmptyMessage text={display.emptyMessage} />
+      ) : !stats.athReady && !awaiting ? (
+        <KosztorysEmptyMessage text="Otwórz zakładkę Dokumenty, aby załadować i przeanalizować kosztorys ATH." />
       ) : null}
 
-      {(k?.categories?.length ?? 0) > 0 && (
+      {(k?.categories?.length ?? 0) > 0 && tableRows.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {k!.categories.map((c, i) => (
             <span key={i} className="text-[10px] bg-secondary px-2 py-1 rounded border border-border">

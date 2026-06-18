@@ -1,6 +1,14 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.61.1** · **V4.1 Przetarg + Kosztorys + KPI PRO**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.61.2** · **V4.1.1 Kosztorys Hotfix**
+
+## 2.61.2 — KOSZTORYS HOTFIX
+
+- **fix:** Kosztorys nie renderuje formularzy ofertowych jako pozycji — filtr formalnych arkuszy (KRS, REGON, CEIDG, oferta, wykonawca, oświadczenia)
+- **fix:** Walidacja pozycji przed tabelą + empty state dla dokumentów formalnych
+- **fix:** KPI kosztorysu po przefiltrowanych danych (`buildKosztorysV4Display`)
+- **unchanged:** ATH/SWZ parser, dossier pipeline, Intelligence, Scoring, Qualification, Valuation, backend
+- **test:** `test-v41-kosztorys-workspace.mjs` (T01–T05, 16/16)
 
 ## 2.61.1 — PRZETARG + KOSZTORYS + KPI PRO
 
