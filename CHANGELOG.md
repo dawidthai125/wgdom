@@ -1,6 +1,16 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.61.2** · **V4.1.1 Kosztorys Hotfix**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.61.3** · **V4.1.2 ATH / Kosztorys Source Recovery**
+
+## 2.61.3 — ATH / Kosztorys Source Recovery
+
+- **fix:** Zakładka Kosztorys korzysta z `catalogQuantities` jako głównego źródła danych (zamiast `kosztorys.rows`)
+- **fix:** Przywrócono historyczną ścieżkę wyświetlania pozycji kosztorysowych (do 250 w tabeli)
+- **new:** Przycisk „Pełny podgląd ATH” — reuse `JobFilePreviewModal` (do 500 pozycji)
+- **fix:** KPI kosztorysu liczone z danych katalogowych
+- **fix:** Poprawiony empty state przy braku pozycji
+- **unchanged:** ATH parser, parseKosztorysBytes, parseXlsxToKosztorys, dossier pipeline, athPreviewToSnapshot, Intelligence, Scoring, Qualification, Valuation Engine
+- **test:** `test-v41-kosztorys-workspace.mjs` (T01–T09, 28/28)
 
 ## 2.61.2 — KOSZTORYS HOTFIX
 

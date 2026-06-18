@@ -127,7 +127,9 @@ export function TenderDetailPage({
         <div className="px-4 sm:px-6 py-4">
           {tab === "przetarg" && <TenderPrzetargWorkspace item={item} swz={swz} />}
 
-          {tab === "kosztorys" && <TenderKosztorysWorkspace item={item} />}
+          {tab === "kosztorys" && (
+            <TenderKosztorysWorkspace item={item} athPreviewEnabled={athPreviewEnabled} />
+          )}
 
           {isTenderDetailV4PlaceholderTab(tab) && (
             <TenderV4Placeholder tab={tab} />

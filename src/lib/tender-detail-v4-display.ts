@@ -5,7 +5,9 @@
 import type { TenderCostLine } from "@/lib/tenders-bzp-swz";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderCatalogQuantityLine } from "@/lib/tenders-bzp-brief";
+import { CATALOG_QUANTITIES_CAP } from "@/lib/tenders-bzp-brief";
 import { isLikelyCatalogQuantityRow } from "@/lib/tender-catalog-quantity-filter";
+import { buildClassificationSummary } from "@/lib/tender-classification-inspector";
 import { isTenderOpenForOffers, daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { fmtPln } from "@/lib/tenders-bzp-swz";
@@ -25,7 +27,6 @@ import { buildDocumentPreviewSummary } from "@/lib/tender-document-summary-heade
 import { buildExecutiveSummary, type ExecutiveSummary } from "@/lib/tender-executive-summary";
 import { buildTenderIntelligenceNarrative } from "@/lib/tender-intelligence-narrative";
 import { summarizeSwzFindings } from "@/lib/tenders-bid-prep";
-import { buildClassificationSummary } from "@/lib/tender-classification-inspector";
 import {
   getTenderPriceOverrides,
   loadTenderPriceOverridesStoreLocal,
@@ -354,22 +355,74 @@ function catalogLineToCostRow(line: TenderCatalogQuantityLine): TenderCostLine {
 export type KosztorysV4EmptyState = "awaiting_parse" | "no_data" | "formal_document" | null;
 
 export const KOSZTORYS_V4_EMPTY_NO_POSITIONS =
-  "Brak rozpoznanych pozycji kosztorysowych.\nPrzejdź do Dokumentów i uruchom analizę kosztorysu.";
+  "Nie znaleziono pozycji kosztorysowych.\n\nOtwórz Dokumenty i uruchom analizę kosztorysu.";
 
 export const KOSZTORYS_V4_EMPTY_FORMAL =
   "Nie znaleziono pozycji kosztorysowych.\n\nTen plik wygląda na formularz ofertowy lub dokument formalny.\n\nPrzejdź do zakładki Dokumenty.";
 
+/** Wiersz tabeli Kosztorys V4 — SSOT catalogQuantities (jak TenderBidProposalPanel). */
+export interface KosztorysV4CatalogDisplayRow {
+  lp: string;
+  description: string;
+  unit: string;
+  quantity: string;
+  catalog: string;
+}
+
 export interface KosztorysV4DisplayResult {
-  rows: TenderCostLine[];
-  source: "rows" | "catalog" | "none";
+  catalogRows: KosztorysV4CatalogDisplayRow[];
+  source: "catalog" | "rows_fallback" | "none";
   skippedFormalSheet: boolean;
   formalDocumentDetected: boolean;
   rawRowCount: number;
+  debugRowsFallbackCount: number;
   emptyState: KosztorysV4EmptyState;
   emptyMessage: string | null;
 }
 
-/** SSOT wierszy zakładki Kosztorys V4 — tylko prezentacja, bez zmian pipeline. */
+/** SSOT linii katalogowych — ten sam filtr co wycena katalogowa (P2-G). */
+export function resolveKosztorysV4CatalogLines(
+  item: TenderPipelineItem,
+): TenderCatalogQuantityLine[] {
+  const k = item.tenderDossier?.kosztorys;
+  return (k?.catalogQuantities ?? [])
+    .slice(0, CATALOG_QUANTITIES_CAP)
+    .filter((line) => isLikelyCatalogQuantityRow(line.description ?? ""));
+}
+
+export function extractKatalogHintFromDescription(description: string): string {
+  const desc = (description ?? "").trim();
+  if (!desc) return "—";
+  const knr = desc.match(/\b(?:KNR|KNNR|NNR)\s*[\d][\d\s./-]*/i);
+  if (knr) return knr[0].replace(/\s+/g, " ").trim();
+  const code = desc.match(/\b\d{2}\s*\d{2}\s*\d{2}(?:\s*\d{2})?/);
+  if (code) return code[0].replace(/\s+/g, " ").trim();
+  return "—";
+}
+
+export function catalogLineToKosztorysDisplayRow(
+  line: TenderCatalogQuantityLine,
+): KosztorysV4CatalogDisplayRow {
+  return {
+    lp: line.lp,
+    description: line.description,
+    unit: line.unit,
+    quantity: line.quantity,
+    catalog: extractKatalogHintFromDescription(line.description),
+  };
+}
+
+function costRowToKosztorysDisplayRow(row: TenderCostLine): KosztorysV4CatalogDisplayRow {
+  return {
+    lp: row.lp,
+    description: row.description,
+    unit: row.unit,
+    quantity: row.quantity,
+    catalog: extractKatalogHintFromDescription(row.description),
+  };
+}
+
+/** SSOT wierszy zakładki Kosztorys V4 — catalogQuantities first (jak Wycena), rows tylko fallback debug. */
 export function buildKosztorysV4Display(item: TenderPipelineItem): KosztorysV4DisplayResult {
   const k = item.tenderDossier?.kosztorys;
   const awaiting = isKosztorysAwaitingHeavyParse(item);
@@ -379,20 +432,17 @@ export function buildKosztorysV4Display(item: TenderPipelineItem): KosztorysV4Di
   const sheetFormal =
     isFormalKosztorysSheetLabel(k?.title) || isFormalKosztorysSheetLabel(k?.sourceFilename);
 
-  let rows: TenderCostLine[] = [];
-  let source: KosztorysV4DisplayResult["source"] = "none";
+  const catalogLines = resolveKosztorysV4CatalogLines(item);
+  let catalogRows = catalogLines.map(catalogLineToKosztorysDisplayRow);
+  let source: KosztorysV4DisplayResult["source"] = catalogRows.length > 0 ? "catalog" : "none";
+  let debugRowsFallbackCount = 0;
 
-  if (!sheetFormal && rawRows.length > 0) {
-    rows = filterKosztorysDisplayRows(rawRows);
-    if (rows.length > 0) source = "rows";
-  }
-
-  if (rows.length === 0) {
-    const catalog = (k?.catalogQuantities ?? [])
-      .filter((line) => isLikelyCatalogQuantityRow(line.description ?? "") && isKosztorysDisplayRow(catalogLineToCostRow(line)));
-    if (catalog.length > 0) {
-      rows = catalog.map(catalogLineToCostRow);
-      source = "catalog";
+  if (catalogRows.length === 0 && !sheetFormal && rawRows.length > 0) {
+    const fallback = filterKosztorysDisplayRows(rawRows);
+    debugRowsFallbackCount = fallback.length;
+    if (fallback.length > 0) {
+      catalogRows = fallback.map(costRowToKosztorysDisplayRow);
+      source = "rows_fallback";
     }
   }
 
@@ -400,20 +450,17 @@ export function buildKosztorysV4Display(item: TenderPipelineItem): KosztorysV4Di
     (r) => isFormalKosztorysRowDescription(r.description ?? "") || !isLikelyCatalogQuantityRow(r.description ?? ""),
   ).length;
   const formalDocumentDetected =
-    sheetFormal || (rawRowCount > 0 && rows.length === 0 && formalRowHits > 0);
+    sheetFormal || (catalogRows.length === 0 && rawRowCount > 0 && formalRowHits > 0);
 
   let emptyState: KosztorysV4EmptyState = null;
   let emptyMessage: string | null = null;
 
-  if (rows.length === 0) {
+  if (catalogRows.length === 0) {
     if (awaiting) {
       emptyState = "awaiting_parse";
     } else if (formalDocumentDetected) {
       emptyState = "formal_document";
       emptyMessage = KOSZTORYS_V4_EMPTY_FORMAL;
-    } else if (!k?.ok) {
-      emptyState = "no_data";
-      emptyMessage = KOSZTORYS_V4_EMPTY_NO_POSITIONS;
     } else {
       emptyState = "no_data";
       emptyMessage = KOSZTORYS_V4_EMPTY_NO_POSITIONS;
@@ -421,11 +468,12 @@ export function buildKosztorysV4Display(item: TenderPipelineItem): KosztorysV4Di
   }
 
   return {
-    rows,
+    catalogRows,
     source,
     skippedFormalSheet: sheetFormal,
     formalDocumentDetected,
     rawRowCount,
+    debugRowsFallbackCount,
     emptyState,
     emptyMessage,
   };
@@ -454,45 +502,13 @@ export function buildKosztorysV4Stats(
   const k = item.tenderDossier?.kosztorys;
   const awaiting = isKosztorysAwaitingHeavyParse(item);
   const athReady = Boolean(k?.ok) && !awaiting;
-  const display = buildKosztorysV4Display(item);
-
-  const catalog = (k?.catalogQuantities ?? []).filter((line) => {
-    const q = parseFloat(String(line.quantity ?? "").replace(",", "."));
-    return Number.isFinite(q) && q > 0 && isLikelyCatalogQuantityRow(line.description ?? "");
-  });
-
-  let athPositions = display.rows.length;
-  if (athPositions === 0 && catalog.length > 0 && !display.skippedFormalSheet) {
-    athPositions = catalog.filter((line) =>
-      isKosztorysDisplayRow(catalogLineToCostRow(line)),
-    ).length;
-  }
+  const catalog = resolveKosztorysV4CatalogLines(item);
+  const athPositions = catalog.length;
 
   let pricedPositions = 0;
   let unpricedPositions = 0;
 
-  if (display.rows.length > 0) {
-    if (display.source === "catalog" && catalog.length > 0) {
-      const pricingView = buildCatalogLinePricingView(
-        catalog,
-        undefined,
-        defaultCostModelFromPayroll(),
-        priceOverrides,
-      );
-      if (pricingView) {
-        pricedPositions = pricingView.classifiedPositionCount;
-        unpricedPositions = pricingView.unassignedCount;
-      } else {
-        const classification = buildClassificationSummary(catalog);
-        pricedPositions = classification.classifiedRows;
-        unpricedPositions = classification.unknownRows;
-      }
-    } else {
-      athPositions = display.rows.length;
-      pricedPositions = display.rows.filter((r) => cellHasValue(r.total)).length;
-      unpricedPositions = Math.max(0, athPositions - pricedPositions);
-    }
-  } else if (catalog.length > 0 && !display.skippedFormalSheet) {
+  if (catalog.length > 0) {
     const pricingView = buildCatalogLinePricingView(
       catalog,
       undefined,
@@ -502,6 +518,10 @@ export function buildKosztorysV4Stats(
     if (pricingView) {
       pricedPositions = pricingView.classifiedPositionCount;
       unpricedPositions = pricingView.unassignedCount;
+    } else {
+      const classification = buildClassificationSummary(catalog);
+      pricedPositions = classification.classifiedRows;
+      unpricedPositions = classification.unknownRows;
     }
   }
 

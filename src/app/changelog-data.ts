@@ -12,6 +12,37 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-18",
+    version: "2.61.3",
+    label: "Przetargi — WGDOM V4.1.2 ATH / Kosztorys Source Recovery",
+    items: [
+      {
+        type: "fix",
+        text: "Zakładka Kosztorys korzysta z catalogQuantities jako głównego źródła danych (zamiast snapshot kosztorys.rows)",
+      },
+      {
+        type: "fix",
+        text: "Przywrócono historyczną ścieżkę wyświetlania pozycji kosztorysowych — do 250 pozycji w tabeli",
+      },
+      {
+        type: "new",
+        text: "Przycisk „Pełny podgląd ATH” — reuse JobFilePreviewModal (do 500 pozycji), bez nowych parserów",
+      },
+      {
+        type: "fix",
+        text: "KPI kosztorysu liczone z danych katalogowych (catalogQuantities)",
+      },
+      {
+        type: "fix",
+        text: "Poprawiony empty state przy braku pozycji kosztorysowych",
+      },
+      {
+        type: "improve",
+        text: "Bez zmian: ATH parser, parseKosztorysBytes, parseXlsxToKosztorys, dossier pipeline, athPreviewToSnapshot, Intelligence, Scoring, Qualification, Valuation Engine",
+      },
+    ],
+  },
+  {
+    date: "2026-06-18",
     version: "2.61.2",
     label: "Przetargi — WGDOM V4.1.1 Kosztorys Hotfix",
     items: [
