@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-17 (P1 Document Insights **v2.59.52** · § 12.1.12 Owner View modal · PAYROLL-ASSIGNMENTS-P1 **v2.59.49** · § 10.1 Przydziały robót)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-18 (V3.1 Intelligence **v2.60.0** · § 12.1.13 · P1 Document Insights **v2.59.52** · PAYROLL-ASSIGNMENTS-P1 **v2.59.49**)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1375,6 +1375,39 @@ TenderOwnerView → resolveAthPreviewItem() → InspectorFileItem.previewContext
 **Testy:** `test-p1-pdf-preview-ux.mjs` · `test-p1b-document-summary-header.mjs` · `test-p1c-executive-summary.mjs` · `test-p1d-work-scope-inference.mjs` · regresja `test-p0-ath-preview-hotfix.mjs` · `test-p5-owner-view.mjs`.
 
 **Nie zmieniaj bez briefu:** `tender-dossier-pipeline.ts`, `pdf-przedmiar-heuristic.ts`, `ath-parser.ts`, FIX-A/B/C cache.
+
+### 12.1.13 V3.1 — Tender Intelligence Dashboard (Sprint 1, v2.60.0)
+
+**Status:** **SPRINT 1 COMPLETE** (lib Faza A + UI Faza B/C)  
+**Plan SSOT:** [`docs/V3.1-SPRINT-1-IMPLEMENTATION-PLAN.md`](V3.1-SPRINT-1-IMPLEMENTATION-PLAN.md)
+
+Ekran **Intelligence** (zakładka `overview`) — reorganizacja Owner View bez backendu/KV.
+
+```text
+TenderDetailPanel
+  scoringContext = tendersCtx.snapshot.scoringContext   // SSOT — bez jobs:[] fallback
+  intelligenceCtx = buildTenderIntelligenceContext(...)
+  → TenderOwnerView (renderer only — intelligenceCtx)
+       ├── Sekcja 1 Werdykt      (overlay)
+       ├── Sekcja 2 O czym       (narrative + ExecutiveSummaryCard)
+       ├── Sekcja 3 Ekonomia     (finance, bez CTA)
+       ├── Sekcja 4 Blokery      (allBlocks + riskRows + monitoring)
+       ├── Sekcja 6 Następny krok (nextAction — 1 CTA)
+       └── Sekcja 7 Szczegóły    (prepStatus, positions, monitoring strip, …)
+```
+
+| Moduł lib | Rola |
+|-----------|------|
+| `tender-intelligence-context.ts` | `buildTenderIntelligenceContext()` — agregat SSOT |
+| `tender-intelligence-overlay.ts` | Decision Overlay O1–O5 + Reasons Policy |
+| `tender-intelligence-next-action.ts` | `resolveOwnerNextAction()` P0–P12 |
+| `tender-intelligence-narrative.ts` | Jedno zdanie o przetargu |
+
+**Decision Overlay vs Strategia:** Intelligence pokazuje `displayLabel` po overlay; Strategia/Action Center — surowy `DECISION_LABEL_PL` (bez zmian w `tenders-strategy-decision.ts`).
+
+**Testy:** `test-v31-tender-intelligence.mjs` (T01–T16) · regresja `test-p5-owner-view.mjs` · `test-p5-owner-language.mjs`.
+
+**Nie zmieniaj bez briefu:** ATH, dossier pipeline, P2-F panels, `TenderBidProposalPanel`, scoring engines.
 
 ### 12.1.8 Odbiory WM Druk (`wmprint`, v2.59.26)
 

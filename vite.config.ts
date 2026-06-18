@@ -9,6 +9,7 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
 import { readChangelogVersion } from './scripts/read-changelog-version.mjs'
+import { renderVersionJson } from './scripts/build-version-json.mjs'
 import { renderServiceWorker, writeServiceWorker } from './scripts/generate-service-worker.mjs'
 
 
@@ -99,7 +100,7 @@ function versionJsonPlugin() {
 
           res.setHeader('Cache-Control', 'no-store')
 
-          res.end(`${JSON.stringify({ version: readChangelogVersion() }, null, 2)}\n`)
+          res.end(renderVersionJson())
 
           return
 
@@ -117,7 +118,7 @@ function versionJsonPlugin() {
 
         path.resolve(__dirname, 'dist/version.json'),
 
-        `${JSON.stringify({ version }, null, 2)}\n`,
+        renderVersionJson(),
 
       )
 

@@ -1,24 +1,39 @@
 /**
- * P5-005A / P5-005B — Owner Language (copy + nawigacja zakładek).
+ * P5-005A / P5-005B / V3.1 Intelligence — Owner Language (copy + nawigacja zakładek).
  */
 
-/** P5-005B — nazwy modułu w pasku zakładek (nawigacja, muscle memory). */
+/** P5-005B / V3.1 — nazwy modułu w pasku zakładek. */
 export const TENDER_OWNER_TAB_LABELS = {
-  overview: "Decyzja",
+  overview: "Intelligence",
   documents: "Dokumenty",
   qualification: "Kwalifikacja",
   valuation: "Wycena",
   offer: "Oferta",
 } as const;
 
-/** P5-005B — CTA sekcji Co dalej (pytania biznesowe, nie w tab bar). */
+/**
+ * @deprecated V3.1 — zastąpione przez `ctx.nextAction` (Sekcja 6). Pozostawione dla testów migracyjnych.
+ */
 export const TENDER_OWNER_NEXT_STEP_CTA: Record<"documents" | "valuation" | "qualification", string> = {
   documents: "Dokumenty",
   valuation: "Ile zarobimy?",
   qualification: "Czy możemy wystartować?",
 };
 
-/** Owner View — sekcje Przeglądu. */
+/** V3.1 — sekcje Intelligence Dashboard. */
+export const TENDER_INTELLIGENCE_SECTION_COPY = {
+  verdict: "Werdykt",
+  about: "O czym jest ten przetarg",
+  economy: "Ekonomia",
+  blockers: "Blokery i ryzyko",
+  nextAction: "Co robić teraz",
+  details: "Szczegóły",
+  confidenceLabel: "Pewność rekomendacji",
+  monitoringSignals: (count: number) =>
+    count === 1 ? "1 nowy sygnał w dokumentacji" : `${count} nowych sygnałów w dokumentacji`,
+} as const;
+
+/** Owner View — sekcje Przeglądu (legacy + reuse). */
 export const TENDER_OWNER_VIEW_COPY = {
   decisionSection: "Decyzja",
   financeSection: "Ile zarobimy?",

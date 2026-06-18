@@ -1,6 +1,23 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.59.49** · **PAYROLL-ASSIGNMENTS-P1**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.60.0** · **V3.1 Intelligence Sprint 1**
+
+## 2.60.0 — TENDER INTELLIGENCE DASHBOARD V3.1 (SPRINT 1)
+
+- **new:** Zakładka **Intelligence** — werdykt, zakres, ekonomia, jedna akcja
+- **new:** Decision Overlay O1–O5 + Reasons Policy (STARTUJ / ANALIZUJ / ODPUŚĆ)
+- **new:** Executive Summary na panelu (bez wpływu na modal PDF)
+- **new:** `buildTenderIntelligenceContext` — scoringContext SSOT z Providera
+- **improve:** Owner View = renderer `intelligenceCtx`; 7 sekcji; OwnerNextSteps usunięte
+- **improve:** `version.json` — `version`, `commit`, `timestamp` przy buildzie
+- **improve:** Bez zmian: ATH, Dossier, Qualification, Valuation, PDF Preview
+- **test:** `test-v31-tender-intelligence.mjs` + regresja P5/P1C/P1D/P2A
+
+## 2.59.53 — P2A Scope From PDF Text
+
+- **new:** Executive Summary wnioskuje główne roboty z `pdfTextPreview` gdy brak `categories[]` i `catalogQuantities[]` (pewność Średnia)
+- **improve:** „Pozycje: 0” → „Nie ustalono liczby pozycji” / „W trakcie analizy”
+- **test:** `scripts/test-p2a-scope-from-pdf-text.mjs`
 
 ## 2.59.49 — Lista Płac Przydziały robót (PAYROLL-ASSIGNMENTS-P1)
 

@@ -11,6 +11,56 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-18",
+    version: "2.60.0",
+    label: "Przetargi — Tender Intelligence Dashboard V3.1 (Sprint 1)",
+    items: [
+      {
+        type: "new",
+        text: "Zakładka Intelligence — werdykt STARTUJ / ANALIZUJ / ODPUŚĆ, zakres robót, ekonomia i jedna rekomendowana akcja bez otwierania dokumentów",
+      },
+      {
+        type: "new",
+        text: "Decision Overlay (O1–O5) + Reasons Policy nad istniejącym scoringiem — Strategia nadal pokazuje surowy werdykt",
+      },
+      {
+        type: "new",
+        text: "Executive Summary na panelu Intelligence (reuse snapshot dossier; modal PDF bez zmian)",
+      },
+      {
+        type: "new",
+        text: "buildTenderIntelligenceContext — SSOT danych z scoringContext Providera (bez fallback jobs:[] w prod)",
+      },
+      {
+        type: "improve",
+        text: "Owner View jako renderer intelligenceCtx — 7 sekcji; PrepStatus i plik pozycji w Szczegółach; jeden CTA zamiast OwnerNextSteps",
+      },
+      {
+        type: "improve",
+        text: "version.json przy buildzie: version + commit + timestamp (banner odświeżenia)",
+      },
+      {
+        type: "improve",
+        text: "Bez zmian: ATH Preview, PDF Preview, Tender Dossier, Qualification Workspace, Valuation Workspace, silniki scoringu",
+      },
+    ],
+  },
+  {
+    date: "2026-06-18",
+    version: "2.59.53",
+    label: "Przetargi — Zakres robót z tekstu PDF (P2A)",
+    items: [
+      {
+        type: "new",
+        text: "Executive Summary: gdy brak działów i pozycji w snapshot, główne roboty są wnioskowane z tekstu PDF (pewność Średnia)",
+      },
+      {
+        type: "improve",
+        text: "Podgląd dokumentu: zamiast fałszywego „Pozycje: 0” — „Nie ustalono liczby pozycji” lub „W trakcie analizy”",
+      },
+    ],
+  },
+  {
     date: "2026-06-17",
     version: "2.59.52",
     label: "Przetargi — Podgląd dokumentów dla właściciela (P1A–P1D)",

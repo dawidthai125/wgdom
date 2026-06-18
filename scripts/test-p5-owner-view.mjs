@@ -67,15 +67,19 @@ function scoringContext(items) {
 
 console.log("\n=== P5 Owner View + P5.1 Recovery ===\n");
 
-console.log("1. UI wiring");
+console.log("1. UI wiring (V3.1 Intelligence)");
 const panelSrc = readSrc("src/app/TenderDetailPanel.tsx");
 const ownerSrc = readSrc("src/app/TenderOwnerView.tsx");
 assert(panelSrc.includes("TenderOwnerView"), "TenderDetailPanel uses TenderOwnerView");
-assert(ownerSrc.includes("TENDER_OWNER_VIEW_COPY"), "Owner view language SSOT");
-assert(ownerSrc.includes("TENDER_OWNER_NEXT_STEP_CTA"), "Co dalej uses business CTA SSOT");
-assert(ownerSrc.includes("OwnerPrepStatus"), "P5.1 prep status strip on Decyzja");
-assert(ownerSrc.includes("statusLine"), "P5.1 full SSOT status line in positions");
-assert(ownerSrc.includes("<details"), "Więcej collapsed section");
+assert(panelSrc.includes("buildTenderIntelligenceContext"), "panel builds intelligence context");
+assert(panelSrc.includes("scoringContext"), "panel uses scoringContext SSOT");
+assert(ownerSrc.includes("intelligenceCtx"), "Owner view intelligenceCtx prop");
+assert(ownerSrc.includes("TENDER_INTELLIGENCE_SECTION_COPY"), "Intelligence section copy");
+assert(ownerSrc.includes("OwnerPrepStatusDisplay"), "prep status in details section");
+assert(ownerSrc.includes("statusLine"), "positions status line in details");
+assert(ownerSrc.includes("<details"), "Szczegóły collapsed section");
+assert(!ownerSrc.includes("OwnerNextSteps"), "OwnerNextSteps removed");
+assert(!ownerSrc.includes("scoreTenderForOwnerView"), "no scoring in OwnerView");
 assert(!panelSrc.includes("TenderOverviewShortcuts"), "overview shortcuts removed from main");
 
 console.log("\n2. Decision labels");

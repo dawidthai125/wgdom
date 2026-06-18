@@ -6,7 +6,6 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   TENDER_OWNER_TAB_LABELS,
-  TENDER_OWNER_NEXT_STEP_CTA,
   TENDER_OWNER_VIEW_COPY,
   TENDER_OWNER_OPERATOR_COPY,
   TENDER_OWNER_TILE_LABELS,
@@ -29,17 +28,21 @@ function readSrc(rel) {
 
 console.log("\n=== P5-005A/B Owner Language ===\n");
 
-console.log("1. Tab labels SSOT (P5-005B module names)");
+console.log("1. Tab labels SSOT (P5-005B / V3.1 Intelligence)");
 assert(TENDER_WORKSPACE_TAB_LABELS.overview === TENDER_OWNER_TAB_LABELS.overview, "workspace uses owner tabs");
+assert(TENDER_OWNER_TAB_LABELS.overview === "Intelligence", "overview tab Intelligence");
 assert(TENDER_OWNER_TAB_LABELS.valuation === "Wycena", "valuation module tab");
 assert(TENDER_OWNER_TAB_LABELS.qualification === "Kwalifikacja", "qualification module tab");
 assert(TENDER_OWNER_TAB_LABELS.offer === "Oferta", "offer module tab");
 assert(!TENDER_OWNER_TAB_LABELS.overview.includes("Przegląd"), "no Przegląd");
+assert(!TENDER_OWNER_TAB_LABELS.overview.includes("Decyzja"), "no legacy Decyzja tab");
 
-console.log("\n2. Business questions in CTA, not tabs");
-assert(TENDER_OWNER_NEXT_STEP_CTA.valuation === "Ile zarobimy?", "next step valuation question");
-assert(TENDER_OWNER_NEXT_STEP_CTA.qualification === "Czy możemy wystartować?", "next step qualification question");
-assert(TENDER_OWNER_TAB_LABELS.valuation !== TENDER_OWNER_NEXT_STEP_CTA.valuation, "tab != CTA valuation");
+console.log("\n2. Intelligence copy SSOT");
+const ownerView = readSrc("src/app/TenderOwnerView.tsx");
+assert(ownerView.includes("TENDER_INTELLIGENCE_SECTION_COPY"), "Intelligence section copy");
+assert(ownerView.includes("intelligenceCtx"), "Owner view renderer uses intelligenceCtx");
+assert(!ownerView.includes("scoreTenderForOwnerView"), "no scoring in OwnerView");
+assert(!ownerView.includes("OwnerNextSteps"), "OwnerNextSteps removed");
 const bidPrep = readSrc("src/app/TenderBidPrepPanel.tsx");
 assert(bidPrep.includes("TENDER_OWNER_OPERATOR_COPY.analyzeDocuments"), "bid prep uses owner CTA");
 assert(!bidPrep.includes('"Analizuj SWZ"'), "removed Analizuj SWZ string");

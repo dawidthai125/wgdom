@@ -44,6 +44,12 @@ import { TenderOfferCompletenessPanel } from "@/app/TenderOfferCompletenessPanel
 import { TenderWorkspaceTabBar } from "@/app/TenderWorkspaceTabBar";
 import { TenderAnalysisStatusStrip } from "@/app/TenderAnalysisStatusStrip";
 import { TenderOwnerView } from "@/app/TenderOwnerView";
+import { buildTenderIntelligenceContext } from "@/lib/tender-intelligence-context";
+import { loadOwnerDecisions } from "@/lib/tenders-strategy-owner-decisions";
+import { loadCompanyQualificationProfileLocal } from "@/lib/company-qualification-profile";
+import { checkTenderParticipation } from "@/lib/tender-participation-check";
+import { extractParticipationRequirements } from "@/lib/tender-participation-requirements";
+import { extractExperienceRequirements } from "@/lib/tender-experience-requirements";
 import { resolvedCostStatus } from "@/lib/tender-data-ssot";
 import { isKosztorysAwaitingHeavyParse } from "@/lib/tender-analysis-status-ux";
 import { TenderDocumentsWorkspace } from "@/app/TenderDocumentsWorkspace";
@@ -634,6 +640,61 @@ export function TenderDetailPanel({
   );
   const readyCount = bidPrepChecks.filter((c) => c.status === "ok").length;
 
+  const scoringContext = tendersCtx?.snapshot.scoringContext;
+
+  const ownerDecision = useMemo(
+    () => loadOwnerDecisions().byId[item.id] ?? null,
+    [item.id],
+  );
+
+  const participationResult = useMemo(() => {
+    const combinedText = [item.title, item.noticeHtml ?? ""].join("\n");
+    const requirements = swz?.participationRequirements?.length
+      ? swz.participationRequirements
+      : extractParticipationRequirements(combinedText);
+    const experienceRequirements = swz?.experienceRequirements?.length
+      ? swz.experienceRequirements
+      : extractExperienceRequirements(combinedText);
+    if (requirements.length === 0 && experienceRequirements.length === 0) return null;
+    return checkTenderParticipation(
+      requirements,
+      loadCompanyQualificationProfileLocal(),
+      experienceRequirements,
+    );
+  }, [
+    item.title,
+    item.noticeHtml,
+    swz?.participationRequirements,
+    swz?.experienceRequirements,
+  ]);
+
+  const monitoringCounts = useMemo(() => getTenderMonitoringCounts(item), [item]);
+
+  const intelligenceCtx = useMemo(() => {
+    if (!scoringContext) return null;
+    return buildTenderIntelligenceContext({
+      item,
+      scoringContext,
+      ownerFinanceProposal,
+      ownerDecision,
+      monitoringCounts,
+      bidPrepChecks,
+      participationResult,
+      swz,
+      fit: item.tenderFit,
+    });
+  }, [
+    item,
+    scoringContext,
+    ownerFinanceProposal,
+    ownerDecision,
+    monitoringCounts,
+    bidPrepChecks,
+    participationResult,
+    swz,
+    item.tenderFit,
+  ]);
+
   useEffect(() => {
     setActiveWorkspace(resolveDefaultTenderWorkspace(item));
   }, [item.id, item.status]);
@@ -713,104 +774,106 @@ export function TenderDetailPanel({
 
       {activeWorkspace === "overview" && (
         <div className="space-y-3 max-h-[calc(100vh-12rem)] overflow-y-auto">
-          <TenderOwnerView
-            item={item}
-            allItems={allItems}
-            swz={swz}
-            fit={item.tenderFit}
-            ownerFinanceProposal={ownerFinanceProposal}
-            onNavigate={navigateWorkspace}
-            onOpenPreview={(previewItem) => setDocPreview(previewItem)}
-            moreSection={(
-              <>
-                <TenderMonitoringBanner
-                  item={item}
-                  onOpenStrategy={tendersCtx?.openTendersStrategy}
-                />
+          {intelligenceCtx ? (
+            <TenderOwnerView
+              intelligenceCtx={intelligenceCtx}
+              onNavigate={navigateWorkspace}
+              onOpenPreview={(previewItem) => setDocPreview(previewItem)}
+              detailsSection={(
+                <>
+                  <TenderMonitoringBanner
+                    item={item}
+                    onOpenStrategy={tendersCtx?.openTendersStrategy}
+                  />
 
-                <TenderAnalysisStatusStrip
-                  item={item}
-                  swz={swz}
-                  bidProposal={ownerFinanceProposal}
-                  dossierBuilding={dossierBuilding}
-                  autoRunning={autoRunning}
-                  ownerMoreContext
-                />
+                  <TenderAnalysisStatusStrip
+                    item={item}
+                    swz={swz}
+                    bidProposal={ownerFinanceProposal}
+                    dossierBuilding={dossierBuilding}
+                    autoRunning={autoRunning}
+                    ownerMoreContext
+                  />
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <a
-                    href={item.ezamowieniaUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <ExternalLink size={12} />
-                    e-Zamówienia
-                  </a>
-                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-xs font-medium cursor-pointer hover:bg-secondary/80">
-                    {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
-                    Wgraj SWZ
-                    <input
-                      type="file"
-                      accept=".pdf,.doc,.docx,.ath,.nor,.xml,.xlsx,.xls,.zip"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) void handleUpload(f);
-                        e.target.value = "";
-                      }}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <a
+                      href={item.ezamowieniaUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20"
                       onClick={(e) => e.stopPropagation()}
-                    />
-                  </label>
-                  {(item.status === "won" || item.status === "preparing") && onCreateJob && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (item.linkedJobId && onOpenJob) {
-                          onOpenJob(item.linkedJobId);
-                          return;
-                        }
-                        const jobId = onCreateJob(item);
-                        if (jobId) onUpdate({ linkedJobId: jobId, status: item.status === "won" ? "won" : item.status });
-                        toast.success("Utworzono robótę z przetargu");
-                      }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-medium hover:bg-emerald-500/20"
                     >
-                      <Briefcase size={12} />
-                      {item.linkedJobId ? "Otwórz robotę" : "Utwórz robotę"}
-                    </button>
-                  )}
-                  {onRemove && (
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); onRemove(); }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-700 dark:text-red-400 text-xs font-medium hover:bg-red-500/20"
-                    >
-                      <Trash2 size={12} />
-                      Usuń
-                    </button>
-                  )}
-                </div>
+                      <ExternalLink size={12} />
+                      e-Zamówienia
+                    </a>
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-xs font-medium cursor-pointer hover:bg-secondary/80">
+                      {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                      Wgraj SWZ
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.ath,.nor,.xml,.xlsx,.xls,.zip"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) void handleUpload(f);
+                          e.target.value = "";
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </label>
+                    {(item.status === "won" || item.status === "preparing") && onCreateJob && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (item.linkedJobId && onOpenJob) {
+                            onOpenJob(item.linkedJobId);
+                            return;
+                          }
+                          const jobId = onCreateJob(item);
+                          if (jobId) onUpdate({ linkedJobId: jobId, status: item.status === "won" ? "won" : item.status });
+                          toast.success("Utworzono robótę z przetargu");
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-medium hover:bg-emerald-500/20"
+                      >
+                        <Briefcase size={12} />
+                        {item.linkedJobId ? "Otwórz robotę" : "Utwórz robotę"}
+                      </button>
+                    )}
+                    {onRemove && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-700 dark:text-red-400 text-xs font-medium hover:bg-red-500/20"
+                      >
+                        <Trash2 size={12} />
+                        Usuń
+                      </button>
+                    )}
+                  </div>
 
-                <TenderBidPrepPanel
-                  item={item}
-                  swz={swz}
-                  fit={item.tenderFit}
-                  bidProposal={ownerFinanceProposal}
-                  ourEstimatePln={item.ourEstimatePln}
-                  analyzing={analyzing}
-                  onAnalyze={() => void runAnalysis()}
-                  onExportPdf={() => void handleExportPdf()}
-                  exportingPdf={exportingPdf}
-                  onUpdateOurEstimate={(pln) => onUpdate(patchOurEstimatePln(item, pln, "ręczna edycja"))}
-                  onNavigateWorkspace={navigateWorkspace}
-                  collapseTiles
-                />
-              </>
-            )}
-          />
+                  <TenderBidPrepPanel
+                    item={item}
+                    swz={swz}
+                    fit={item.tenderFit}
+                    bidProposal={ownerFinanceProposal}
+                    ourEstimatePln={item.ourEstimatePln}
+                    analyzing={analyzing}
+                    onAnalyze={() => void runAnalysis()}
+                    onExportPdf={() => void handleExportPdf()}
+                    exportingPdf={exportingPdf}
+                    onUpdateOurEstimate={(pln) => onUpdate(patchOurEstimatePln(item, pln, "ręczna edycja"))}
+                    onNavigateWorkspace={navigateWorkspace}
+                    collapseTiles
+                  />
+                </>
+              )}
+            />
+          ) : (
+            <p className="text-xs text-muted-foreground px-1 py-2">
+              Ładowanie kontekstu strategii przetargów…
+            </p>
+          )}
 
           <textarea
             value={item.notes}
