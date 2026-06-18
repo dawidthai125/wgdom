@@ -16,6 +16,7 @@ import {
   type ZipListedFile,
 } from "@/lib/tenders-bzp-filename";
 import type { TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
+import { buildPreviewContextFromBzpDoc } from "@/lib/tender-pdf-preview-ux";
 import {
   detectTenderDocumentPlatform,
   resolveTenderPlatformDocumentStatus,
@@ -45,16 +46,18 @@ function previewItemForDoc(
   doc: TenderBzpDocument,
   opts?: { zipInnerPath?: string; displayName?: string },
 ): InspectorFileItem {
+  const display = opts?.displayName ?? doc.filename;
   return {
     kind: "tenderBzp",
     tenderId,
     documentIndex: doc.index,
-    filename: opts?.displayName ?? doc.filename,
+    filename: display,
     outerArchiveFilename: opts?.zipInnerPath ? doc.filename : undefined,
     contentType: doc.contentType,
     zipInnerPath: opts?.zipInnerPath,
     downloadUrl: doc.downloadUrl?.trim() || undefined,
     sourcePageUrl: doc.sourcePageUrl?.trim() || undefined,
+    previewContext: buildPreviewContextFromBzpDoc(doc, display),
   };
 }
 

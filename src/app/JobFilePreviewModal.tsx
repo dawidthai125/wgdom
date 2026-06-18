@@ -26,6 +26,26 @@ import {
 import { resolveJobFileStoragePath } from "@/lib/job-documents";
 import { resolveJobAttachmentStoragePath } from "@/lib/job-attachments";
 import { bytesToBlobUrl, loadTenderBzpDocumentBytes, loadTenderBzpDocumentBytesResolved, type TenderBzpDocument } from "@/lib/tenders-bzp";
+import {
+  buildPdfPreviewModalCopy,
+  PDF_PRZEDMIAR_CAD_BANNER,
+  pdfPreviewDefaultViewMode,
+  resolvePdfDownloadFilename,
+  resolvePdfPreviewRole,
+  shouldShowPrzedmiarCadBanner,
+  triggerBlobDownload,
+  type PdfPreviewRole,
+} from "@/lib/tender-pdf-preview-ux";
+import {
+  buildDocumentPreviewSummary,
+  shouldShowDocumentSummary,
+} from "@/lib/tender-document-summary-header";
+import {
+  buildExecutiveSummary,
+  shouldShowExecutiveSummary,
+} from "@/lib/tender-executive-summary";
+import { DocumentSummaryHeader } from "@/app/DocumentSummaryHeader";
+import { ExecutiveSummaryCard } from "@/app/ExecutiveSummaryCard";
 import logoSrc from "@/imports/logo-wg-new-poziom.eb09de3e.png";
 import { ImageWithFallback } from "@/app/components/ui/ImageWithFallback";
 
@@ -84,6 +104,14 @@ export function JobFilePreviewModal({
   const [pdfScanWarning, setPdfScanWarning] = useState<string | null>(null);
   const [effectiveFilename, setEffectiveFilename] = useState(filename);
 
+  const previewContext = item.kind === "tenderBzp" ? item.previewContext : undefined;
+  const pdfRole: PdfPreviewRole | null = isPdfFilename(effectiveFilename)
+    ? resolvePdfPreviewRole(effectiveFilename, previewContext)
+    : null;
+  const modalCopy = pdfRole
+    ? buildPdfPreviewModalCopy(effectiveFilename, previewContext)
+    : null;
+
   const isPdf = isPdfFilename(effectiveFilename);
   const isPhoto =
     item.kind === "inspectorPhoto"
@@ -100,7 +128,9 @@ export function JobFilePreviewModal({
     const reset = () => {
       setParseResult(null);
       setPdfPreviewUrl(null);
-      setViewMode("table");
+      const ctx = item.kind === "tenderBzp" ? item.previewContext : undefined;
+      const role = isPdfFilename(filename) ? resolvePdfPreviewRole(filename, ctx) : null;
+      setViewMode(role ? pdfPreviewDefaultViewMode(role) : "table");
       setMediaBlobUrl(null);
       setZipEntries([]);
       setPdfTextPreview(null);
@@ -235,7 +265,7 @@ export function JobFilePreviewModal({
           if (!cancelled) setEffectiveFilename(name);
 
           if (isPdfFilename(name)) {
-            const blobUrl = bytesToBlobUrl(bytes, contentType);
+            const blobUrl = bytesToBlobUrl(bytes, "application/pdf");
             revokeMedia = blobUrl;
             setMediaBlobUrl(blobUrl);
             const { text, likelyScan, pageCount } = await extractPdfText(bytes);
@@ -340,7 +370,41 @@ export function JobFilePreviewModal({
   const showPhoto = isPhoto && Boolean(displayUrl);
   const canExportPdf = parseResult?.ok && parseResult.rows.length > 0;
   const hasTextPreview = Boolean(parseResult?.rawPreview) || Boolean(pdfTextPreview);
-  const showTextView = viewMode === "text" && hasTextPreview;
+  const showCadBanner = Boolean(pdfRole) && shouldShowPrzedmiarCadBanner({
+    role: pdfRole ?? "technical_pdf",
+    pdfTextPreview,
+    pdfPrzedmiarCase: previewContext?.pdfPrzedmiarCase,
+    pdfScanWarning,
+  });
+  const showTextView = viewMode === "text" && (hasTextPreview || pdfRole === "przedmiar_pdf");
+  const downloadFilename = resolvePdfDownloadFilename(filename, effectiveFilename);
+  const documentSummary = useMemo(
+    () => buildDocumentPreviewSummary(previewContext, {
+      parseResult,
+      filename: effectiveFilename,
+    }),
+    [previewContext, parseResult, effectiveFilename],
+  );
+  const executiveSummary = useMemo(
+    () => buildExecutiveSummary(previewContext, documentSummary, {
+      parseResult,
+      filename: effectiveFilename,
+    }),
+    [previewContext, documentSummary, parseResult, effectiveFilename],
+  );
+  const showKosztorysTable = !loading && Boolean(parseResult) && viewMode === "table" && isKosztorys && !isPdf;
+  const showSummaryHeader = Boolean(documentSummary) && (
+    shouldShowDocumentSummary(documentSummary, {
+      showTextView,
+      showPdf: showPdf && viewMode !== "text",
+      showKosztorysTable,
+    })
+    || (loading && isKosztorys && !isPdf)
+    || pdfRole === "przedmiar_pdf"
+    || pdfRole === "kosztorys_pdf"
+    || (!loading && !isPdf && isKosztorys && Boolean(parseResult) && viewMode === "pdf")
+  );
+  const showExecutiveSummary = showSummaryHeader && shouldShowExecutiveSummary(executiveSummary);
 
   const handlePdfPreview = useCallback(async () => {
     if (!parseResult) return;
@@ -396,8 +460,13 @@ export function JobFilePreviewModal({
       >
         <div className="flex items-center justify-between px-5 py-3 border-b border-border shrink-0 gap-2">
           <div className="min-w-0">
-            <p className="text-sm font-semibold truncate">Podgląd — {filename}</p>
-            {isKosztorys && !isPdf && (
+            <p className="text-sm font-semibold truncate">
+              {modalCopy?.title ?? `Podgląd — ${filename}`}
+            </p>
+            {modalCopy?.subtitle && (
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">{modalCopy.subtitle}</p>
+            )}
+            {isKosztorys && !isPdf && !documentSummary && (
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Podgląd wewnętrzny kosztorysu (.ath / .nor / .xml) — PDF z logo W&G DOM i klauzulą użytku wewnętrznego.
                 </p>
@@ -413,22 +482,31 @@ export function JobFilePreviewModal({
                 Tabela
               </button>
             )}
-            {showPdf && pdfTextPreview && viewMode !== "text" && (
+            {showPdf && pdfTextPreview && viewMode !== "text" && modalCopy && (
               <button
                 type="button"
                 onClick={() => setViewMode("text")}
                 className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-secondary hover:bg-secondary/80"
               >
-                Tekst SWZ
+                {modalCopy.labels.textTabButton}
               </button>
             )}
-            {(showTextView || (viewMode === "text" && hasTextPreview)) && (showPdf || isDocxFilename(effectiveFilename)) && (
+            {showPdf && viewMode === "text" && modalCopy && (
               <button
                 type="button"
-                onClick={() => setViewMode(showPdf ? "pdf" : "table")}
+                onClick={() => setViewMode("pdf")}
                 className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-secondary hover:bg-secondary/80"
               >
-                {showPdf ? "PDF" : "Wróć"}
+                {modalCopy.labels.pdfTabButton}
+              </button>
+            )}
+            {(showTextView || (viewMode === "text" && hasTextPreview)) && isDocxFilename(effectiveFilename) && (
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-secondary hover:bg-secondary/80"
+              >
+                Wróć
               </button>
             )}
             <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground">
@@ -438,6 +516,12 @@ export function JobFilePreviewModal({
         </div>
 
         <div className="flex-1 min-h-0 overflow-auto p-4">
+          {showSummaryHeader && documentSummary && (
+            <DocumentSummaryHeader summary={documentSummary} />
+          )}
+          {showExecutiveSummary && executiveSummary && (
+            <ExecutiveSummaryCard summary={executiveSummary} />
+          )}
           {zipEntries.length > 0 && item.kind === "tenderBzp" && !item.zipInnerPath && (
             <div className="mb-4 rounded-xl border border-border overflow-hidden">
               <div className="px-3 py-2 bg-secondary/50 border-b border-border">
@@ -474,6 +558,12 @@ export function JobFilePreviewModal({
                   {pdfScanWarning}
                 </div>
               )}
+              {showCadBanner && pdfRole === "przedmiar_pdf" && (
+                <div className="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 whitespace-pre-line">
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5"/>
+                  {PDF_PRZEDMIAR_CAD_BANNER}
+                </div>
+              )}
               <iframe
                 title={filename}
                 src={displayUrl}
@@ -483,13 +573,26 @@ export function JobFilePreviewModal({
           )}
 
           {showTextView && (
-            <div className="bg-secondary/30 rounded-xl p-4">
+            <div className="bg-secondary/30 rounded-xl p-4 space-y-3">
+              {showCadBanner && (
+                <div className="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 whitespace-pre-line">
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5"/>
+                  {PDF_PRZEDMIAR_CAD_BANNER}
+                </div>
+              )}
               <p className="text-xs font-medium mb-2 flex items-center gap-1.5">
-                <FileText size={13}/> Tekst dokumentu (pdf.js / DOCX)
+                <FileText size={13}/>
+                {modalCopy?.labels.textViewHeading ?? "Treść dokumentu"}
               </p>
-              <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap break-words max-h-[70dvh] overflow-auto font-mono leading-relaxed">
-                {pdfTextPreview || parseResult?.rawPreview}
-              </pre>
+              {pdfTextPreview || parseResult?.rawPreview ? (
+                <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap break-words max-h-[70dvh] overflow-auto font-mono leading-relaxed">
+                  {pdfTextPreview || parseResult?.rawPreview}
+                </pre>
+              ) : (
+                <p className="text-xs text-muted-foreground py-4 text-center">
+                  Ładowanie treści dokumentu…
+                </p>
+              )}
             </div>
           )}
 
@@ -701,15 +804,26 @@ export function JobFilePreviewModal({
             </>
           )}
           {displayUrl ? (
-            <a
-              href={displayUrl}
-              download={filename}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={() => {
+                if (displayUrl.startsWith("blob:")) {
+                  triggerBlobDownload(displayUrl, downloadFilename);
+                } else {
+                  const a = document.createElement("a");
+                  a.href = displayUrl;
+                  a.download = downloadFilename;
+                  a.target = "_blank";
+                  a.rel = "noopener noreferrer";
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                }
+              }}
               className="px-4 py-2 rounded-xl bg-secondary text-sm font-medium hover:bg-secondary/80"
             >
-              Pobierz plik
-            </a>
+              {modalCopy?.labels.downloadButton ?? "Pobierz plik"}
+            </button>
           ) : null}
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium">
             Zamknij

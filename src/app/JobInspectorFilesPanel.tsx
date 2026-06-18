@@ -12,6 +12,7 @@ import { isMediaAttachmentAvailable } from "@/lib/media-filter";
 import { JobFilePreviewModal } from "@/app/JobFilePreviewModal";
 import { JobFilesEmailModal } from "@/app/JobFilesEmailModal";
 import { downloadJobDocumentsPack, type JobPackSource } from "@/lib/job-documents-pack";
+import type { TenderBzpPreviewContext } from "@/lib/tender-pdf-preview-ux";
 
 export type InspectorFileItem =
   | { kind: "jobFile"; file: JobFileAttachment }
@@ -29,6 +30,7 @@ export type InspectorFileItem =
     zipInnerPath?: string;
     downloadUrl?: string;
     sourcePageUrl?: string;
+    previewContext?: TenderBzpPreviewContext;
   }
   | { kind: "tenderUpload"; filename: string; publicUrl: string; path: string };
 

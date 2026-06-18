@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-17",
+    version: "2.59.52",
+    label: "Przetargi — Podgląd dokumentów dla właściciela (P1A–P1D)",
+    items: [
+      {
+        type: "improve",
+        text: "Podgląd PDF: etykiety kontekstowe (przedmiar, kosztorys, SWZ), domyślna zakładka tekst dla przedmiaru, poprawne pobieranie pliku",
+      },
+      {
+        type: "new",
+        text: "Nagłówek podsumowania dokumentu — typ, pozycje, status cen, wycena, źródło (Owner View)",
+      },
+      {
+        type: "new",
+        text: "Executive Summary — główne roboty z działów KNR/ATH i inferencji słów kluczowych (P1D)",
+      },
+      {
+        type: "improve",
+        text: "Pewność rozpoznania zakresu robót (Wysoka/Średnia/Niska) — bez czytania dumpa pozycji",
+      },
+    ],
+  },
+  {
+    date: "2026-06-17",
     version: "2.59.51",
     label: "Przetargi — Stabilizacja i wydajność (P3-AUDIT-001)",
     items: [

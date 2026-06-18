@@ -18,6 +18,7 @@ import {
 } from "@/lib/ath-parser";
 import { is7zFilename, isZipFilename } from "@/lib/tenders-bzp-filename";
 import { downloadKosztorysPdf } from "@/lib/ath-kosztorys-pdf";
+import { buildPreviewContextFromPipelineItem } from "@/lib/tender-pdf-preview-ux";
 import {
   classifyCostDocument,
   resolvedCostStatus,
@@ -134,6 +135,7 @@ export function resolveAthPreviewItem(item: TenderPipelineItem): InspectorFileIt
       zipInnerPath: k.zipInnerPath,
       downloadUrl: dl.downloadUrl,
       sourcePageUrl: resolveTenderDocumentDownload(item.bzpDocuments, k.sourceDocumentIndex)?.sourcePageUrl,
+      previewContext: buildPreviewContextFromPipelineItem(item),
     };
   }
   if (item.uploadedFile && isKosztorysPreviewExt(item.uploadedFile.filename)) {
