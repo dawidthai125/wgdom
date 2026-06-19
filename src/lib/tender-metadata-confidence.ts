@@ -26,7 +26,7 @@ const RELIABLE_CRITERION_NAME_RE =
   /cen|termin|gwarancj|jakość|jakości|okres|realizac|doświadczen|personel|środowisk|bezpieczeństw|parametr|ofert/i;
 
 export function isFalsePositiveCriterion(c: TenderAwardCriterion): boolean {
-  const name = c.name.trim();
+  const name = (c.name ?? "").trim();
   if (FALSE_CRITERION_NAME_RE.some((re) => re.test(name))) return true;
   if (c.weightPct === 0) return true;
   if (c.weightPct != null && c.weightPct < 1) return true;

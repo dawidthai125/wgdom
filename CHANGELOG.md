@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.3** · **TP193A dossier loop CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.4** · **TP193B loading + dossier metadata CLOSED**
+
+## 2.62.4 — Loading guard + dossier metadata safety (TP193B)
+
+- **fix:** `useTendersPipeline` — `setLoading(false)` w `finally` na ścieżce cache mount
+- **fix:** `isFalsePositiveCriterion` — guard `(c.name ?? "").trim()` (brak crash na awardCriteria bez name)
+- **fix:** `buildTenderDossierHeavy` — `applyMetadataConfidence` best-effort; `scanSummary.parsedAt` zawsze
+- **test:** `test-tender-dossier-pipeline.mjs` — regresja TP193B
 
 ## 2.62.3 — Heavy dossier loop hotfix (TP193A)
 

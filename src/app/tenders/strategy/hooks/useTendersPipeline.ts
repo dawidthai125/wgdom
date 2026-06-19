@@ -172,33 +172,32 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
     };
 
     (async () => {
-      const cached = getPipelineSessionCacheIfFresh();
-      if (cached) {
-        let loaded = cached.items;
-        const localKw = loadCustomKeywordsLocal();
-        const epoch = keywordsEpochFromCustom(localKw);
-        if (cached.meta.keywordsEpoch !== epoch) {
-          const { items: rescored, changed } = rescorePipelineWithKeywords(loaded, localKw);
-          if (changed) {
-            loaded = rescored;
-            patchPipelineSessionCache(loaded, {
-              customKeywords: localKw,
-              partialMeta: { keywordsEpoch: epoch },
-            });
-            if (!cancelled && genAtStart === getPipelineCacheGeneration()) {
-              void saveTendersPipeline(rescored).catch(() => {});
+      try {
+        const cached = getPipelineSessionCacheIfFresh();
+        if (cached) {
+          let loaded = cached.items;
+          const localKw = loadCustomKeywordsLocal();
+          const epoch = keywordsEpochFromCustom(localKw);
+          if (cached.meta.keywordsEpoch !== epoch) {
+            const { items: rescored, changed } = rescorePipelineWithKeywords(loaded, localKw);
+            if (changed) {
+              loaded = rescored;
+              patchPipelineSessionCache(loaded, {
+                customKeywords: localKw,
+                partialMeta: { keywordsEpoch: epoch },
+              });
+              if (!cancelled && genAtStart === getPipelineCacheGeneration()) {
+                void saveTendersPipeline(rescored).catch(() => {});
+              }
             }
           }
+          if (cancelled || genAtStart !== getPipelineCacheGeneration()) return;
+          setItems(loaded);
+          void runBackgroundTasks(loaded);
+          return;
         }
-        if (cancelled || genAtStart !== getPipelineCacheGeneration()) return;
-        setItems(loaded);
-        setLoading(false);
-        void runBackgroundTasks(loaded);
-        return;
-      }
 
-      setLoading(true);
-      try {
+        setLoading(true);
         let loaded = await loadTendersPipeline();
         const { items: rescored, changed, custom } = await syncTenderKeywordsAndRescore(loaded);
         if (changed) {
@@ -206,7 +205,6 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
         }
         if (cancelled || genAtStart !== getPipelineCacheGeneration()) return;
         setItems(loaded);
-        setLoading(false);
         setPipelineSessionCache({
           items: loaded,
           customKeywords: custom,
@@ -222,9 +220,10 @@ export function useTendersPipeline(options: UseTendersPipelineOptions = {}) {
       } catch {
         if (!cancelled) {
           setItems([]);
-          setLoading(false);
           invalidatePipelineSessionCache("mount-error");
         }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };

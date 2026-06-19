@@ -251,7 +251,11 @@ export async function buildTenderDossierHeavy(opts: {
 
   if (swzMerged) {
     swzMerged = mergeKosztorysValueIntoSwz(swzMerged, kosztorysSnap);
-    swzMerged = applyMetadataConfidence(swzMerged);
+    try {
+      swzMerged = applyMetadataConfidence(swzMerged);
+    } catch {
+      /* TP193B — metadata best-effort; scanSummary.parsedAt must still be set */
+    }
   }
   const kosztorysValuePln = plnFromKosztorysSnapshot(kosztorysSnap);
   estimatePln = estimatePlnFromKosztorysSnapshot(

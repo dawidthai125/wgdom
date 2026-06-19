@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-19",
+    version: "2.62.4",
+    label: "Przetargi — loading guard + dossier metadata safety (TP193B)",
+    items: [
+      {
+        type: "fix",
+        text: "Pipeline cache mount — setLoading(false) w finally (koniec nieskończonego „Ładowanie przetargów…”)",
+      },
+      {
+        type: "fix",
+        text: "Metadata confidence — bezpieczny guard awardCriteria bez name (brak crash .trim)",
+      },
+      {
+        type: "fix",
+        text: "buildTenderDossierHeavy — metadata best-effort; scanSummary.parsedAt zawsze po heavy parse",
+      },
+      {
+        type: "improve",
+        text: "Regresja TP193B w test-tender-dossier-pipeline.mjs",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
     version: "2.62.3",
     label: "Przetargi — heavy dossier loop hotfix (TP193A)",
     items: [

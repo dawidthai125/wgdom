@@ -8,11 +8,13 @@ import {
   roleParsePriority,
 } from "../src/lib/tender-document-role.ts";
 import {
+  buildTenderDossierHeavy,
   countDocumentsByType,
   buildKosztorysMissingMessage,
   buildEstimateMissingReason,
   buildKosztorysStatusLine,
   buildScanTypeSummary,
+  tenderDossierHeavyParseDone,
 } from "../src/lib/tender-dossier-pipeline.ts";
 import { TBS_00266295_DOCUMENTS } from "../src/lib/tender-analysis-coverage.ts";
 import { mergeSwzAnalysis, parseTenderDossierDocuments } from "../src/lib/tender-document-resolver.ts";
@@ -335,6 +337,27 @@ assert("wadium percent kept", wadiumOnly.wadiumPercent === 6);
 
 // P2-E.1B — Cena 0% filtered
 assert("cena 0 filtered", isFalsePositiveCriterion({ name: "Cena oferty", weightPct: 0, maxPoints: null, description: "" }));
+
+// TP193B — awardCriteria bez name nie może rzucić
+assert(
+  "TP193B missing criterion name safe",
+  !isFalsePositiveCriterion({ weightPct: 60, maxPoints: null, description: "" }),
+);
+const missingNameConfidence = applyMetadataConfidence({
+  ...parseSwzPlainText("Kryteria oceny ofert.", { source: "pdf" }),
+  awardCriteria: [{ weightPct: 60 }, { name: "Termin", weightPct: 40 }],
+});
+assert("TP193B applyMetadata missing name", Array.isArray(missingNameConfidence.awardCriteria));
+const tp193bHeavy = await buildTenderDossierHeavy({
+  item: { tenderId: "t-tp193b", title: "TP193B", ourEstimatePln: null, uploadedFile: null },
+  docs: [],
+  existingSwz: {
+    ...parseSwzPlainText("SWZ test.", { source: "pdf" }),
+    awardCriteria: [{ weightPct: 60 }],
+  },
+});
+assert("TP193B heavy scanSummary.parsedAt", tp193bHeavy.tenderDossier.scanSummary?.parsedAt != null);
+assert("TP193B heavy parse done", tenderDossierHeavyParseDone(tp193bHeavy.tenderDossier));
 
 // P2-E.1B — VAT never in reliable criteria after fit-style filter
 const vatOnly = filterReliableAwardCriteria(extractAwardCriteria("VAT 8% stawka obniżona. Cena 0% w ofercie."));
