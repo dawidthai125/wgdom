@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.14** · **V4 decyzja fix lokalnie 2.62.15**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.15** · **SmartPZP MVP 2.62.16**
+
+## 2.62.16 — SmartPZP MVP
+
+- **new:** Adapter `portal.smartpzp.pl/{tenant}/public/postepowanie` — discovery + JSF download (bez logowania)
+- **new:** `discoverSmartPzpDocuments` — real metadata → `bzpDocuments` (`platform: smartpzp`)
+- **improve:** READMODELS skip host `smartpzp` · UX badge + CTA „Otwórz postępowanie SmartPZP”
 
 ## 2.62.15 — V4 Kwalifikacja / Oferta (?ws=)
 

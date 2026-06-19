@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-19",
+    version: "2.62.16",
+    label: "SmartPZP MVP — adapter dokumentacji publicznej",
+    items: [
+      {
+        type: "new",
+        text: "SmartPZP — discovery dokumentów z portal.smartpzp.pl (public postępowanie, bez logowania)",
+      },
+      {
+        type: "new",
+        text: "Pobieranie plików SmartPZP przez JSF (selekcja wiersza + Pobierz) — integracja z pipeline dossier",
+      },
+      {
+        type: "improve",
+        text: "Przetargi — platforma SmartPZP: badge, CTA „Otwórz postępowanie SmartPZP”, skip readmodels probe",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
     version: "2.62.15",
     label: "Przetargi V4 — Kwalifikacja i Oferta na tabie Decyzja",
     items: [

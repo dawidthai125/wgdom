@@ -10,6 +10,15 @@ import {
   resolvePlatformazakupowaFilename,
 } from "./tender-filename-encoding.ts";
 import { shouldSkipReadmodelsProbe, mapWithConcurrency, PZ_DOCUMENT_PROBE_CONCURRENCY } from "./tender-platform-adapters.ts";
+import {
+  buildSmartPzpDownloadUrl,
+  downloadSmartPzpDocument,
+  extractSmartPzpProceedingUrl,
+  inferSmartPzpContentType,
+  openSmartPzpSession,
+  parseListaDokumentowHtml,
+  parseSmartPzpDownloadUrl,
+} from "./tender-smartpzp.ts";
 
 const PHOTOS_BUCKET = "make-0afb8820-photos";
 
@@ -3392,8 +3401,33 @@ async function discoverOpenNexusDocuments(noticeHtml: string): Promise<Record<st
   return discoverPlatformaZakupowaDocuments(noticeHtml);
 }
 
-async function discoverSmartPzpDocuments(_noticeHtml: string): Promise<Record<string, unknown>[]> {
-  return [];
+async function discoverSmartPzpDocuments(noticeHtml: string): Promise<Record<string, unknown>[]> {
+  const ref = extractSmartPzpProceedingUrl(noticeHtml);
+  if (!ref) return [];
+
+  const session = await openSmartPzpSession(ref.canonicalUrl);
+  if (!session) return [];
+
+  const rows = parseListaDokumentowHtml(session.html);
+  if (rows.length === 0) return [];
+
+  const docs: Record<string, unknown>[] = [];
+  let idx = 0;
+  for (const row of rows.slice(0, 30)) {
+    idx += 1;
+    const contentType = inferSmartPzpContentType(row.filename);
+    docs.push({
+      index: idx,
+      documentId: `smartpzp_${ref.proceedingId}_${row.rk}`,
+      filename: row.filename,
+      contentType,
+      downloadUrl: buildSmartPzpDownloadUrl(ref.canonicalUrl, row.rk),
+      isSwzHint: isSwzFilename(row.filename),
+      platform: "smartpzp",
+      sourcePageUrl: ref.canonicalUrl,
+    });
+  }
+  return docs;
 }
 
 async function discoverOffPlatformDocuments(
@@ -3763,6 +3797,41 @@ async function downloadTenderDocumentRaw(opts: {
       };
     }
     return ez;
+  }
+
+  const smartPzp = parseSmartPzpDownloadUrl(downloadUrl);
+  if (smartPzp) {
+    const dl = await downloadSmartPzpDocument({
+      pageUrl: smartPzp.pageUrl,
+      rk: smartPzp.rk,
+    });
+    if (!dl.ok) {
+      return {
+        ok: false,
+        error: dl.error,
+        diag: { path: "smartpzp", requestUrl: downloadUrl, rejectReason: dl.error },
+      };
+    }
+    const maxBytes = maxBytesForDownload(dl.filename, dl.contentType);
+    if (dl.bytes.byteLength > maxBytes) {
+      return {
+        ok: false,
+        error: `Plik zbyt duży (max ${Math.round(maxBytes / (1024 * 1024))} MB)`,
+        diag: {
+          path: "smartpzp",
+          requestUrl: downloadUrl,
+          rejectReason: `size_limit_exceeded:${dl.bytes.byteLength}>${maxBytes}`,
+          bytesReceived: dl.bytes.byteLength,
+        },
+      };
+    }
+    return {
+      ok: true,
+      bytes: dl.bytes,
+      filename: dl.filename,
+      contentType: dl.contentType,
+      diag: { path: "smartpzp", requestUrl: downloadUrl, bytesReceived: dl.bytes.byteLength },
+    };
   }
 
   if (downloadUrl && isTenderDownloadUrl(downloadUrl)) {

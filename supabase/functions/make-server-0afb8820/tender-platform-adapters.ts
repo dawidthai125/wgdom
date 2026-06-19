@@ -22,6 +22,7 @@ export const READMODELS_PROBE_SKIP_HOSTS: OffPlatformHost[] = [
   "ezamawiajacy",
   "logintrade",
   "platformazakupowa",
+  "smartpzp",
 ];
 
 export function shouldSkipReadmodelsProbe(text: string): boolean {

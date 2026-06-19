@@ -8,12 +8,14 @@ import {
   type OffPlatformHost,
 } from "@/lib/tender-platform-adapters";
 import { extractEzamawiajacyPageUrls } from "@/lib/tender-ezamawiajacy";
+import { extractSmartPzpProceedingUrlFromText } from "@/lib/tender-smartpzp";
 
 export type TenderDocumentPlatform =
   | "ezamawiajacy"
   | "logintrade"
   | "ezamowienia"
   | "platformazakupowa"
+  | "smartpzp"
   | "opennexus"
   | "unknown";
 
@@ -24,7 +26,9 @@ export type DocumentsMissingReason =
   | "found_external"
   | "found_upload"
   | "found_platformazakupowa"
+  | "found_smartpzp"
   | "missing_platformazakupowa_empty"
+  | "missing_smartpzp_empty"
   | "missing_opennexus_empty"
   | "missing_ezamowienia_empty"
   | "missing_logintrade_empty"
@@ -99,6 +103,7 @@ function docPlatformFromFiles(item: TenderPipelineItem): OffPlatformHost | null 
   if (platforms.has("ezamawiajacy")) return "ezamawiajacy";
   if (platforms.has("logintrade")) return "logintrade";
   if (platforms.has("platformazakupowa")) return "platformazakupowa";
+  if (platforms.has("smartpzp")) return "smartpzp";
   if (platforms.has("opennexus")) return "opennexus";
   return null;
 }
@@ -116,6 +121,9 @@ export function detectTenderDocumentPlatform(item: TenderPipelineItem): TenderDo
   }
   if (hosts.includes("platformazakupowa") || /platformazakupowa\.pl/i.test(text)) {
     return "platformazakupowa";
+  }
+  if (hosts.includes("smartpzp") || extractSmartPzpProceedingUrlFromText(text)) {
+    return "smartpzp";
   }
   if (hasOpenNexusOAuthHint(text) || hosts.includes("opennexus")) {
     return "opennexus";
@@ -136,6 +144,7 @@ const PLATFORM_LABELS: Record<TenderDocumentPlatform, string> = {
   logintrade: "Logintrade",
   ezamowienia: "e-Zamówienia",
   platformazakupowa: "platformazakupowa.pl",
+  smartpzp: "SmartPZP (portal.smartpzp.pl)",
   opennexus: "Open Nexus",
   unknown: "Nieznane",
 };
@@ -156,6 +165,8 @@ export function resolveTenderPlatformDocumentStatus(
     || (platform === "ezamawiajacy" && bzpCount > 0);
   const platformazakupowaDocs = (item.bzpDocuments ?? []).some((d) => d.platform === "platformazakupowa")
     || (platform === "platformazakupowa" && bzpCount > 0);
+  const smartpzpDocs = (item.bzpDocuments ?? []).some((d) => d.platform === "smartpzp")
+    || (platform === "smartpzp" && bzpCount > 0);
 
   if (opts?.loadingDocs) {
     return {
@@ -229,6 +240,21 @@ export function resolveTenderPlatformDocumentStatus(
     };
   }
 
+  if (smartpzpDocs && bzpCount > 0) {
+    const proceedingUrl = extractSmartPzpProceedingUrlFromText(text);
+    return {
+      platform: "smartpzp",
+      platformLabel: "SmartPZP",
+      sourceLabel: "portal.smartpzp.pl",
+      documentsFound,
+      missingReason: "found_smartpzp",
+      badge: { text: "✓ SmartPZP", tone: "success" },
+      successMessage: `Pobrano ${bzpCount} plik(ów) z SmartPZP.`,
+      proceedingUrl: proceedingUrl ?? undefined,
+      proceedingButtonLabel: proceedingUrl ? "Otwórz postępowanie SmartPZP" : undefined,
+    };
+  }
+
   if (bzpCount > 0 && platform === "ezamowienia") {
     return {
       platform: "ezamowienia",
@@ -256,6 +282,28 @@ export function resolveTenderPlatformDocumentStatus(
   const openNexus = hasOpenNexusOAuthHint(text)
     || /\/transakcja\/\d+/i.test(text)
     || platform === "opennexus";
+
+  if (platform === "smartpzp") {
+    const scanned = Boolean(item.documentsFetchedAt);
+    const proceedingUrl = extractSmartPzpProceedingUrlFromText(text);
+    return {
+      platform: "smartpzp",
+      platformLabel: "SmartPZP",
+      sourceLabel: "portal.smartpzp.pl",
+      documentsFound: 0,
+      missingReason: scanned ? "missing_smartpzp_empty" : "not_fetched_yet",
+      emptyMessage: scanned ? "Dokumentacja na SmartPZP (portal.smartpzp.pl)" : undefined,
+      detailLines: scanned
+        ? [
+          "Dokumenty znajdują się na platformie SmartPZP.",
+          "Nie udało się automatycznie pobrać załączników — otwórz postępowanie lub wgraj SWZ ręcznie.",
+        ]
+        : undefined,
+      proceedingUrl: proceedingUrl ?? undefined,
+      proceedingButtonLabel: proceedingUrl ? "Otwórz postępowanie SmartPZP" : undefined,
+      showSearchExternalHint: scanned,
+    };
+  }
 
   if (platform === "platformazakupowa" || (openNexus && /platformazakupowa/i.test(text))) {
     const scanned = Boolean(item.documentsFetchedAt);

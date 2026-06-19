@@ -51,9 +51,15 @@ assert("TP192A-2 logintrade page urls", extractLogintradePageUrls(LT_HTML).lengt
 assert("TP192A-3 ezamawiajacy → probe skipped", shouldSkipReadmodelsProbe(EZ_HTML));
 assert("TP192A-3 detects ezamawiajacy host", detectOffPlatformHosts(EZ_HTML).includes("ezamawiajacy"));
 
+const SMARTPZP_HTML = `
+Ogłoszenie BZP — dokumentacja SmartPZP:
+https://portal.smartpzp.pl/mcus/public/postepowanie?postepowanie=83841053
+`;
+
 // TP192A-4
 assert("TP192A-4 BZP/e-Zamówienia → probe executes", !shouldSkipReadmodelsProbe(BZP_HTML));
 assert("TP192A-4 empty html → probe executes", !shouldSkipReadmodelsProbe(""));
-assert("TP192A-4 smartpzp alone does not skip readmodels", !shouldSkipReadmodelsProbe("https://smartpzp.pl/tender/1"));
+assert("TP192A-4 smartpzp portal → probe skipped", shouldSkipReadmodelsProbe(SMARTPZP_HTML));
+assert("TP192A-4 smartpzp host detected", detectOffPlatformHosts(SMARTPZP_HTML).includes("smartpzp"));
 
 console.log("\nTP192A host detection: ALL PASS");
