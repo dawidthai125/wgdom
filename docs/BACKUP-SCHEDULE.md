@@ -55,6 +55,21 @@ Przed rozpoczęciem nowego streamu feature wykonano pełny backup **v2.50.64** (
 
 **Uwaga:** artefakty lokalne (`WGDOM-BACKUP-2.50.64*`) zawierają hashe adminów — **nie commitować** do repo.
 
+## Pre-TP200 backup (2026-06-19, v2.62.10)
+
+Przed epicem **TP200** wykonano pełny snapshot prod:
+
+| Element | Wartość |
+|---------|---------|
+| Git tag | `wgdom-backup-2026-06-19-v2.62.10` |
+| Commit | `1992340` (PDF WM Recovery CLOSED) |
+| Lokalnie | `backups/WGDOM-BACKUP-2026-06-19/` + `.zip` (~124 MB) |
+| Manifest | `backups/WGDOM-BACKUP-2026-06-19/BACKUP-MANIFEST.md` |
+
+**Zawartość:** repo archive · DB kv_store (96 wierszy) · storage (191 plików) · edge functions · env inventory · `version-snapshot.json`.
+
+**Uwaga:** katalog `backups/WGDOM-BACKUP-*` zawiera hashe adminów — **nie commitować** do repo.
+
 ## Przywracanie
 
 ```powershell

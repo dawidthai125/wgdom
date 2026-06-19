@@ -1,7 +1,7 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.62.1** · https://www.wgdom.fun · **P0/P1 Kosztorys Merge Quality** · P1 Document Insights · POST ZI-2026 · WM Druk **COMPLETE** · EM-P1R **COMPLETE** · **PAYROLL-ASSIGNMENTS-P1**
+> **Prod:** **2.62.10** · https://www.wgdom.fun · **PDF WM Recovery CLOSED** · **TP200 PLANNED** · P1 Document Insights · POST ZI-2026 · WM Druk **COMPLETE** · EM-P1R **COMPLETE**
 
 ---
 
@@ -10,8 +10,10 @@
 ```text
 1. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
 2. docs/PROJECT-HANDOFF-CURRENT.md    ← baseline prod, commity, releasy
-2a. docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md  ← ★★ merge jakościowy kosztorysu (TP113/TP182)
-2b. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1 Owner View · modal · Executive Summary
+2a. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery CLOSED (2.62.10)
+2b. docs/SESSION-HANDOFF-TP200-PLANNED.md    ← ★★ Następny epic (parserVersion + fidelity)
+2c. docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md  ← ★★ merge jakościowy kosztorysu
+2d. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1 Owner View · modal · Executive Summary
 3. docs/MASTER-HANDOFF-POST-ZI-2026.md ← skrót POST ZI · WM Druk COMPLETE
 4. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md ← ★★ Pomiary Elektryczne EM-P1R
 5. docs/ZI-2026-HANDOFF.md            ← SSOT generatora ZI Tauron 2026
@@ -177,6 +179,26 @@ npx vite-node scripts/test-p5-owner-view.mjs
 
 ---
 
+## 6f. Przetargi — PDF WM Recovery — **2.62.10 CLOSED**
+
+**Status:** **TP196–TP198C CLOSED** · commit **`1992340`** · TP182 **86→123 pozycji**
+
+| Dokument | Rola |
+|----------|------|
+| [`SESSION-HANDOFF-PDF-WM-RECOVERY.md`](SESSION-HANDOFF-PDF-WM-RECOVERY.md) | **★★ SSOT** — milestone’y, testy, pułapki |
+| [`SESSION-HANDOFF-TP200-PLANNED.md`](SESSION-HANDOFF-TP200-PLANNED.md) | Następny epic |
+
+**Kluczowy plik:** `src/lib/pdf-przedmiar-heuristic.ts`
+
+**Smoke:**
+
+```bash
+npx vite-node scripts/test-pdf-przedmiar-heuristic.mjs
+npx vite-node scripts/test-tp182-pdf-wm-recovery.mjs
+```
+
+---
+
 ## 6e. Przetargi — P0/P1 Kosztorys Merge Quality — **2.62.1 CLOSED**
 
 **Status:** **P0+P1 CLOSED** · commity **`4574182`** + **`50d7501`** · incydenty **TP113** / **TP182**
@@ -335,13 +357,13 @@ Szczegóły: [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md) · [`.cu
 
 ## 9. Backlog otwarty (na polecenie użytkownika)
 
-- **P3-FIX-C-UX-001** — komunikat lazy dossier na Owner View
-- Nowe funkcje **Odbiory WM Druk**
-- Audit Center / Security Log
-- Hero Tone Variant B
-- Notatki operacyjne P3 Export (PDF/DOCX/Email)
+- **TP200A** — `parserVersion` + rescan legacy dossier
+- **TP200B** — kosztorys fidelity (`rows` cap, `pickBetterKosztorys` w parse loop)
+- **smartpzp.pl** adapter (discover stub)
+- P3-FIX-C-UX-001 — komunikat lazy dossier na Owner View
 - P2-H.7 Edge magic bytes 7z
-- Command Center — **odłożony**
+- Notatki operacyjne P3 Export
+- **Command Center — porzucony, nie wraca**
 
 ---
 
@@ -374,4 +396,4 @@ curl -s https://www.wgdom.fun/version.json   # VERIFY FAST
 
 ---
 
-*Ostatnia aktualizacja: 2026-06-17 · P1 Document Insights v2.59.52 · PAYROLL-ASSIGNMENTS-P1 · EM-P1R · POST ZI-2026*
+*Ostatnia aktualizacja: 2026-06-19 · PDF WM Recovery v2.62.10 · TP200 PLANNED · PAYROLL-ASSIGNMENTS-P1 · EM-P1R · POST ZI-2026*

@@ -12,8 +12,11 @@ Gdy użytkownik pisze **kontynuuj WGDOM**, **pamiętaj WGDOM** lub **stan WGDOM*
 - **App:** W&G DOM — React/Vite, monolit w `src/app/App.tsx`
 - **Prod:** wgdom.fun (Vercel) + Supabase Edge Function `make-server-0afb8820`
 - **Repo:** https://github.com/dawidthai125/wgdom · branch `main`
-- **Aktualna wersja UI:** **2.59.49** (prod) · **PAYROLL-ASSIGNMENTS-P1** · **EM-P1R COMPLETE** · **WM Druk COMPLETE · ZI Tauron 2026 STABLE**
-- **Prod (`main` / `origin/main`, app):** **`94ad114`** (2.59.49) · https://www.wgdom.fun
+- **Aktualna wersja UI:** **2.62.10** (prod) · commit **`1992340`** · **PDF WM Recovery CLOSED** · **TP200 PLANNED** · PAYROLL-ASSIGNMENTS-P1 · **EM-P1R COMPLETE** · **WM Druk COMPLETE · ZI Tauron 2026 STABLE**
+- **Prod (`main` / `origin/main`, app):** **`1992340`** (2.62.10) · https://www.wgdom.fun
+- **★★ Handoff PDF WM Recovery (CLOSED):** [`docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md`](../../docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md) — TP196–TP198C · `pdf-przedmiar-heuristic.ts` · TP182 123 poz.
+- **★★ Handoff TP200 (PLANNED):** [`docs/SESSION-HANDOFF-TP200-PLANNED.md`](../../docs/SESSION-HANDOFF-TP200-PLANNED.md) — parserVersion + kosztorys fidelity
+- **Git tag backup pre-TP200:** **`wgdom-backup-2026-06-19-v2.62.10`**
 - **★★ Handoff Przydziały robót (P1):** [`docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md`](../../docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md) — Lista Płac → edycja `workEntries[]` · bez nowego KV
 - **★★ Master handoff POST ZI:** [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](../../docs/MASTER-HANDOFF-POST-ZI-2026.md)
 - **★★ Handoff Pomiary Elektryczne (EM-P1R):** [`docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](../../docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md) — DOCX SSOT Word · rejestr RAP · katalog · ZIP odbiorowy

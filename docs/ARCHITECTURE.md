@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-19 (P0/P1 Kosztorys Merge Quality **4574182+50d7501** · V4.2 Kosztorys PRO **v2.62.0** · § 12.1.16 · § 12.1.15)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-19 (PDF WM Recovery **v2.62.10** `1992340` · TP200 PLANNED · § 12.1.17–18 · § 12.1.16)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1440,7 +1440,42 @@ mergeTenderDossierByQuality(a, b)     ← tender-dossier-merge.ts (SSOT rankingu
 
 **Testy:** `test-tender-dossier-merge-quality.mjs` (P0, 18) · `test-tender-bzp-merge-quality.mjs` (P1, 12)
 
-**Nie zmieniaj bez polecenia:** ranking w `tender-dossier-merge.ts` bez audytu TP113/TP182 · parsery ATH/PDF · `existingKosztorys` w `analyzeTenderWithDossier` (osobna warstwa).
+**Nie zmieniaj bez polecenia:** ranking w `tender-dossier-merge.ts` bez audytu TP113/TP182 · parsery ATH/PDF · `existingKosztorys` w `analyzeTenderWithDossier` (osobna warstwa — TP190A używa `pickBetterKosztorys`).
+
+### 12.1.17 PDF WM Przedmiar Recovery (TP196–TP198C, v2.62.10)
+
+**Status:** **CLOSED** · commit **`1992340`**  
+**Handoff SSOT:** [`docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md`](SESSION-HANDOFF-PDF-WM-RECOVERY.md)
+
+Heurystyczny parser PDF przedmiaru robót dla dokumentów WM (bez pełnego OCR). Benchmark **TP182:** 86 → **123 pozycji**.
+
+```text
+tender-document-resolver.ts
+  → parsePdfPrzedmiarHeuristic(buffer, filename)
+       ├── parseKalkWlasnaPrzedmiarLine   (TP197/198B — kotwica KNR_IN_LINE)
+       ├── normalizeUnitToken             (TP198C — aliasy j.m. → szt)
+       └── pdfPrzedmiarRowDedupKey        (TP198A — lp|code|unit|qty|description)
+```
+
+| Plik | Rola |
+|------|------|
+| `src/lib/pdf-przedmiar-heuristic.ts` | **SSOT** parsera PDF przedmiaru |
+| `scripts/test-pdf-przedmiar-heuristic.mjs` | Regresja TP196–TP198C (63 testy) |
+| `scripts/test-tp182-pdf-wm-recovery.mjs` | Benchmark TP182 (≥120 poz.) |
+
+**Nie zmieniaj bez audytu:** klucz dedup · kolejność kotwic kalk własna · mapowanie jednostek WM.
+
+### 12.1.18 TP200 — Parser Version + Kosztorys Fidelity (PLANNED)
+
+**Status:** **PLANNED** · baseline **v2.62.10** · backup tag `wgdom-backup-2026-06-19-v2.62.10`  
+**Handoff SSOT:** [`docs/SESSION-HANDOFF-TP200-PLANNED.md`](SESSION-HANDOFF-TP200-PLANNED.md) · audyt **TP199**
+
+| ID | Problem | Pliki |
+|----|---------|-------|
+| **TP200A** | Stare dossier KV/LS bez `parserVersion` — UI pokazuje snapshot sprzed TP198 mimo prod 2.62.10 | `tender-dossier-pipeline.ts`, KV merge |
+| **TP200B** | `rows.slice(0, 40)` vs pełny `rowCount`; parse loop używa `shouldReplaceBestKosztorys` zamiast `pickBetterKosztorys` | `tenders-bzp-brief.ts`, `tender-document-resolver.ts` |
+
+**Command Center:** usunięty v2.51.0 — **nie wraca**.
 
 ### 12.1.12 P1 — Document Insights / Owner View Modal (P1A–P1D, v2.59.52)
 

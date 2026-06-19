@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-19 (**prod 2.62.1** · P0/P1 Kosztorys Merge Quality CLOSED · P0 ZIP ATH · V4.2 Kosztorys PRO)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-19 (**prod 2.62.10** · PDF WM Recovery CLOSED · TP200 PLANNED)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -9,8 +9,10 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-1a. docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md  ← ★★ P0/P1 merge jakościowy kosztorysu (TP113/TP182 CLOSED)
-1b. docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md  ← ★★ P0 ZIP ATH Recovery (2.61.4 CLOSED)
+1a. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–198C (CLOSED 2.62.10)
+1b. docs/SESSION-HANDOFF-TP200-PLANNED.md    ← ★★ Następny epic: parserVersion + ATH fidelity
+1c. docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md  ← ★★ P0/P1 merge (TP113/TP182 CLOSED)
+1d. docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md  ← ★★ P0 ZIP ATH Recovery (2.61.4 CLOSED)
 1c. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1A–P1D Owner View · modal
 2. docs/MASTER-HANDOFF-POST-ZI-2026.md    ← ★★ skrót POST ZI-2026 (WM Druk COMPLETE)
 3. docs/ZI-2026-HANDOFF.md              ← ★★★ ZI Tauron 2026 prod SSOT
@@ -34,6 +36,12 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **Przetargi · PDF WM Recovery** | **2.62.10** (`1992340`) | **CLOSED** · TP182 **123 poz.** (+37) | [`SESSION-HANDOFF-PDF-WM-RECOVERY.md`](SESSION-HANDOFF-PDF-WM-RECOVERY.md) |
+| **Przetargi · TP190A re-analyze guard** | **2.62.9** (`73093e4`) | **CLOSED** | `tender-dossier-pipeline.ts` · `test-tender-dossier-merge-quality.mjs` |
+| **Przetargi · TP192A/B/C perf** | **2.62.6–2.62.8** | **CLOSED** | host skip · parallel probe · parallel bytes |
+| **Przetargi · TP191 PZ / Open Nexus** | **2.62.2** | **CLOSED** | `test-platformazakupowa-public-documents.mjs` |
+| **Przetargi · TP193A/B stabilization** | **2.62.3–2.62.4** | **CLOSED** | lazy dossier · loading guard |
+| **Przetargi · TP194A encoding PZ** | **2.62.5** | **CLOSED** | `tender-filename-encoding.ts` |
 | **Przetargi · P0/P1 Kosztorys Merge Quality** | **2.62.1** (`50d7501`+`4574182`) | **CLOSED** · ATH/PDF chronione przy sync + BZP | [`SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md`](SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md) |
 | **Przetargi · V4.2 Kosztorys PRO** | **2.62.0** | **COMPLETE** · KPI · TOP 20 · filtry · ocena · Pobierz ATH | ARCHITECTURE § 12.1.15 · `tender-kosztorys-pro-dashboard.ts` |
 | **Przetargi · ATH visibility hotfix** | **2.61.5** (`c41d79b`) | **PROD** · cap 500 · filter→slice · 302/302 TP113 | CHANGELOG 2.61.5 |
@@ -91,10 +99,19 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (prod):             2.62.1        ← WM PDF recovery + P0/P1 merge quality infra
+Version (prod):             2.62.10       ← PDF WM Recovery TP196–198C · TP182 123 poz.
+PDF WM Recovery:            1992340        feat(pdf): kalk po KNR + WM unit aliases
+TP190A re-analyze guard:    73093e4        pickBetterKosztorys w analyze/lazy dossier
+TP192C parallel bytes:      2.62.8         tender-document-bytes-prefetch
+TP192B parallel PZ probe:   2.62.7         mapWithConcurrency probe meta
+TP192A host skip:           2.62.6         shouldSkipReadmodelsProbe
+TP194A PZ encoding:         2.62.5         repairUtf8Mojibake
+TP193B stabilization:     2.62.4         loading guard + metadata safety
+TP193A lazy dossier:        2.62.3         scanSummary.parsedAt fix
+TP191 Open Nexus/PZ:        2.62.2         public guest session documents
 P0/P1 Merge Quality P1:     50d7501        BZP refresh — mergeTenderPipeline quality merge
 P0/P1 Merge Quality P0:     4574182        Cloud sync — mergePipelineItem quality merge
-WM PDF przedmiar recovery:  7167141        v2.62.1 TP182-style BOQ (parser path)
+Git tag backup pre-TP200:   wgdom-backup-2026-06-19-v2.62.10
 V4.2 Kosztorys PRO:         2.62.0         KPI · TOP 20 · filtry · ocena
 P0 ZIP ATH Recovery:        653abe0        v2.61.4 large ZIP 128MB · ezamawiajacy · ATH recovery
 V4 Kosztorys Source:        8b05afb        v2.61.3 catalogQuantities SSOT w zakładce Kosztorys
@@ -178,8 +195,23 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.59.52" }
+# oczekiwane: { "version": "2.62.10", "commit": "1992340" }
 ```
+
+---
+
+## 2b. Następny epic — TP200 (PLANNED)
+
+**Audyt:** TP199 · **Backup:** `wgdom-backup-2026-06-19-v2.62.10` · lokalnie `backups/WGDOM-BACKUP-2026-06-19/`
+
+| ID | Cel |
+|----|-----|
+| **TP200A** | `parserVersion` + invalidacja/rescan legacy dossier |
+| **TP200B** | Kosztorys fidelity — `pickBetterKosztorys` w parse loop; rozszerzenie `rows` |
+
+**SSOT:** [`SESSION-HANDOFF-TP200-PLANNED.md`](SESSION-HANDOFF-TP200-PLANNED.md)
+
+**Command Center:** **nie wraca** — usunięty v2.51.0.
 
 ---
 

@@ -9,9 +9,11 @@
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
 2. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (START dla nowego agenta)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.61.4)
-3a. docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md  ← ★★ P0 ZIP ATH Recovery (CLOSED)
-3a2. docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md  ← ★★ P0/P1 merge jakościowy kosztorysu (TP113/TP182 CLOSED)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.10)
+3a. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–198C (CLOSED)
+3a2. docs/SESSION-HANDOFF-TP200-PLANNED.md  ← ★★ Następny epic: parserVersion + fidelity
+3b. docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md  ← ★★ P0 ZIP ATH Recovery (CLOSED)
+3c. docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md  ← ★★ P0/P1 merge jakościowy kosztorysu (CLOSED)
 3b. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1 Owner View · modal
 4. docs/MASTER-HANDOFF-POST-ZI-2026.md  ← POST ZI · WM Druk COMPLETE
 5. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md  ← ★★ Pomiary Elektryczne EM-P1R
@@ -52,6 +54,8 @@
 | **docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md** | **★★ Odbiory WM Druk** — COMPLETE · ZI 2026 STABLE |
 | **docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md** | **★★ Notatki operacyjne COMPLETE** (v2.57.0–2.58.1) — P0→P2C+HF, KV, ACL, testy, backlog P3 |
 | **docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md** | **★★ P3 wycena · BZP pipeline · P3.6 filtry · P1 WM** (2.56.0–2.56.10) |
+| **docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md** | **★★ PDF WM Recovery** — TP196–TP198C · dedup · kalk po KNR · WM unit aliases (2.62.10 CLOSED) |
+| **docs/SESSION-HANDOFF-TP200-PLANNED.md** | **★★ TP200 PLANNED** — parserVersion + kosztorys fidelity (`rows` cap) |
 | **docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md** | **★★ P0 ZIP ATH Recovery** — duże ZIP 128 MB · zip-catalog · WM ezamawiajacy (2.61.4 CLOSED) |
 | **docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md** | **★★ P0/P1 Merge Quality** — ATH/PDF vs formularz · `tender-dossier-merge.ts` · TP113/TP182 CLOSED (`4574182`+`50d7501`) |
 | **docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md** | **★★ P1 Owner View** — modal, Summary, Executive, Work Scope Inference (2.59.52) |
@@ -143,8 +147,9 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.61.4**) |
-| Prod `main` (app) | **v2.61.4** (`653abe0`) · P0 ZIP ATH Recovery · V4 Kosztorys · EM-P1R · WM Druk · ZI 2026 STABLE |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.62.10**) |
+| Prod `main` (app) | **v2.62.10** (`1992340`) · PDF WM Recovery · P0/P1 merge · V4 Kosztorys · EM-P1R · WM Druk · ZI 2026 STABLE |
+| Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
 | Dashboard V2 docs | [`docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md`](docs/SESSION-HANDOFF-20.7-DASHBOARD-V2.md) |

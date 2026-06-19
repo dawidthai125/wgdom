@@ -10,7 +10,7 @@ Komunikuj się z użytkownikiem po **polsku**.
 ## Zanim zaczniesz pracę w tym repo
 
 1. **Przeczytaj [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)** — ★★ mapa systemu (widoki, sync, WM Druk, workflow).
-2. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.62.1**, `50d7501`).
+2. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.62.10**, `1992340`).
 3. **Przeczytaj [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md)** — ★★ POST ZI · WM Druk COMPLETE.
 4. **Przeczytaj [`docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md)** — ★★ Pomiary Elektryczne EM-P1R.
 5. **Przeczytaj [`docs/ZI-2026-HANDOFF.md`](docs/ZI-2026-HANDOFF.md)** — ★★★ ZI Tauron 2026 prod SSOT.

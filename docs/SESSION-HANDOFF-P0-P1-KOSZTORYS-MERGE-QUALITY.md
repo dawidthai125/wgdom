@@ -162,8 +162,8 @@ npx vite-node scripts/test-tender-bzp-merge-quality.mjs       # P1 — 12 testó
 
 | ID | Temat |
 |----|-------|
-| P2? | Quality guard w `analyzeTenderWithDossier` przy downgrade ATH→formularz |
-| P3? | Auto-invalidacja starych snapshotów dossier po deploy parserów (`parserVersion`) |
+| P2? | Quality guard w `analyzeTenderWithDossier` | **CLOSE** → TP190A (2.62.9) |
+| P3? | Auto-invalidacja starych snapshotów (`parserVersion`) | **OPEN** → **TP200A** |
 
 ---
 
