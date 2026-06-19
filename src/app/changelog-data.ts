@@ -12,6 +12,33 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-19",
+    version: "2.62.10",
+    label: "PDF WM recovery — kalk po KNR + unit aliases (TP198B+C)",
+    items: [
+      {
+        type: "new",
+        text: "pdf-przedmiar-heuristic — kalk. własna po kotwicy KNR (TP198B)",
+      },
+      {
+        type: "new",
+        text: "WM aliasy j.m. wyp./otw./podej./aparat/lokal. → szt (TP198C)",
+      },
+      {
+        type: "improve",
+        text: "M4 m→mb, M5 kalk. własna bez KNR, TP198A dedup lp+unit+opis",
+      },
+      {
+        type: "improve",
+        text: "TP182 benchmark — 123 pozycji z PDF przedmiaru WM (+37 vs 2.62.9 baseline)",
+      },
+      {
+        type: "improve",
+        text: "Regresja — test-pdf-przedmiar-heuristic.mjs TP196–TP198C, test-tp182-pdf-wm-recovery.mjs",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
     version: "2.62.9",
     label: "Przetargi — protect existing kosztorys during re-analysis (TP190A)",
     items: [

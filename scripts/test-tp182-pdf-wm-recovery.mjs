@@ -39,6 +39,11 @@ const OCDS = "ocds-148610-83a559be-df3f-4e5f-8935-44ef8bc31e15";
 const NOTICE = "2026/BZP 00296679/01";
 const INNER = "TP182 Zal. nr 3_Opis przedmiotu zamówienia/Zadanie 1/Nowowiejska 86a_27/Nowowiejska 86a_27 - przedmiar.pdf";
 const MIN_ROWS = 80;
+/** TP196 M4 baseline (v2.62.9); TP197 M5 baseline po M4. */
+const TP196_BASELINE_ROWS = 86;
+const TP197_M4_BASELINE_ROWS = 108;
+const TP198A_BEFORE_ROWS = 112;
+const TP198BC_BEFORE_ROWS = 115;
 
 let pass = 0;
 let fail = 0;
@@ -65,7 +70,6 @@ async function main() {
   const bytes = base64ToBytes(ent.base64);
 
   const extracted = await extractPdfTextLegacy(bytes);
-  const rowsBefore = 1; // prod baseline from audit
   const heuristic = parsePdfPrzedmiarHeuristic(extracted.text, {
     likelyScan: extracted.likelyScan,
     noTextLayer: extracted.noTextLayer,
@@ -73,11 +77,17 @@ async function main() {
   const rows = heuristic.rows;
 
   console.log("pages:", extracted.pageCount);
-  console.log("rows BEFORE (prod baseline):", rowsBefore);
-  console.log("rows AFTER (M1+M2+ext norms):", rows.length);
+  console.log("rows BEFORE (TP198A):", TP198A_BEFORE_ROWS);
+  console.log("rows BEFORE (TP198B+C):", TP198BC_BEFORE_ROWS);
+  console.log("rows AFTER (TP198B+C):", rows.length);
+  console.log("DELTA vs TP198A:", rows.length - TP198A_BEFORE_ROWS);
+  console.log("DELTA vs TP198B+C baseline:", rows.length - TP198BC_BEFORE_ROWS);
   console.log("parsePdfPrzedmiarHeuristic uxCase:", heuristic.uxCase);
 
   assert(`rows >= ${MIN_ROWS}`, rows.length >= MIN_ROWS);
+  assert("TP198BC rows >= 120", rows.length >= 120);
+  assert("TP198BC delta >= 5", rows.length - TP198BC_BEFORE_ROWS >= 5);
+  assert("has kalk. własna row", rows.some((r) => /kalk/i.test(r.code)));
   assert("heuristic rows >= MIN", rows.length >= MIN_ROWS);
   assert("pdfPrzedmiarCase 1", heuristic.uxCase === 1);
   assert("has KNR-W row", rows.some((r) => r.code.includes("KNR-W")));

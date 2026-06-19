@@ -9,6 +9,7 @@ import {
   parsePdfPrzedmiarHeuristic,
   parsePdfPrzedmiarLine,
   PDF_PRZEDMIAR_UX_LINES,
+  pdfPrzedmiarRowDedupKey,
   splitPdfBoqText,
 } from "../src/lib/pdf-przedmiar-heuristic.ts";
 
@@ -148,6 +149,102 @@ const wmRows = extractPdfPrzedmiarRows(SAMPLE_WM_PAGE);
 assert("wm page rows >= 5", wmRows.length >= 5);
 assert("wm row knr-w", wmRows.some((r) => r.code.includes("KNR-W")));
 assert("wm row zknr", wmRows.some((r) => r.code.includes("ZKNR")));
+
+// TP196 — M4: WM „m” jako metry bieżące (mb)
+console.log("\n=== TP196 M4 m → mb ===");
+assert("TP196-1 m -> mb", normalizePdfBoqUnits("rurociąg m 5 m 5.00").includes("mb 5"));
+assert("TP196-2 m2 unchanged", normalizePdfBoqUnits("powierzchnia m 2 26.80") === "powierzchnia m2 26.80");
+assert("TP196-3 m3 unchanged", normalizePdfBoqUnits("objętość m 3 7.46") === "objętość m3 7.46");
+const wmM5 = parsePdfPrzedmiarLine(
+  "KNR 4-02 0230 Demontaż rurociągu z PCW o śr. do 50 mm m 5 m 5.00",
+);
+assert("TP196-4 WM m 5 line", wmM5?.unit === "mb" && wmM5?.quantity === "5");
+const wmM6 = parsePdfPrzedmiarLine(
+  "KNR-W 4-02 0120-01 Demontaż rurociągu o śr. 15-20 mm m 6 m 6.00",
+);
+assert("TP196-4b WM m 6 line", wmM6?.unit === "mb" && wmM6?.quantity === "6");
+
+// TP197 — M5: kalk. własna bez KNR
+console.log("\n=== TP197 M5 kalk. własna ===");
+const kalkMb = parsePdfPrzedmiarLine(
+  "41 d.2.1 kalk. własna Roboty pomocnicze przy montażu instalacji mb 24.50",
+);
+assert("TP197-1 kalk. własna + mb", kalkMb?.code.toLowerCase().includes("kalk") && kalkMb?.unit === "mb" && kalkMb?.quantity === "24.50");
+const kalkM2 = parsePdfPrzedmiarLine(
+  "42 d.2.2 kalkulacja własna Tynki uzupełniające na ścianach m 2 18.75",
+);
+assert("TP197-2 kalkulacja własna + m2", kalkM2?.unit === "m2" && kalkM2?.quantity === "18.75");
+const kalkSzt = parsePdfPrzedmiarLine(
+  "43 d.2.3 wycena własna Dostawa i montaż elementów szt 6",
+);
+assert("TP197-3 wycena własna + szt", kalkSzt?.unit === "szt" && kalkSzt?.quantity === "6");
+const kalkSwz = parsePdfPrzedmiarLine(
+  "SPECYFIKACJA WARUNKÓW ZAMÓWIENIA Wadium 5% kalkulacja własna szt 1",
+);
+assert("TP197-4 SWZ false positive blocked", kalkSwz == null);
+
+// TP198A — dedup key (lp + unit + dłuższy opis)
+console.log("\n=== TP198A dedup key ===");
+function dedupCount(rowList) {
+  const seen = new Set();
+  let n = 0;
+  for (const row of rowList) {
+    const key = pdfPrzedmiarRowDedupKey(row);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    n += 1;
+  }
+  return n;
+}
+const baseDesc = "Wspólny prefix opisu pozycji przedmiaru robót budowlanych";
+const rowLp10 = { lp: "10", code: "KNR 401-01-01", unit: "m2", quantity: "10", description: `${baseDesc} wariant A` };
+const rowLp11 = { lp: "11", code: "KNR 401-01-01", unit: "m2", quantity: "10", description: `${baseDesc} wariant B` };
+assert("TP198A-1 different lp not deduped", dedupCount([rowLp10, rowLp11]) === 2);
+const rowMb = { lp: "12", code: "KNR 401-01-01", unit: "mb", quantity: "10", description: `${baseDesc} mb` };
+const rowM2 = { lp: "12", code: "KNR 401-01-01", unit: "m2", quantity: "10", description: `${baseDesc} m2` };
+assert("TP198A-2 different unit not deduped", dedupCount([rowMb, rowM2]) === 2);
+const rowDescA = { lp: "13", code: "KNR 401-01-01", unit: "m2", quantity: "10", description: "Opis A — montaż parapetów zewnętrznych z aluminium" };
+const rowDescB = { lp: "13", code: "KNR 401-01-01", unit: "m2", quantity: "10", description: "Opis B — montaż parapetów wewnętrznych z PCV" };
+assert("TP198A-3 different description not deduped", dedupCount([rowDescA, rowDescB]) === 2);
+const twin = { lp: "14", code: "KNR 202-08-03", unit: "szt", quantity: "12", description: "Montaż drzwi wewnętrznych" };
+assert("TP198A-4 identical record deduped", dedupCount([twin, { ...twin }]) === 1);
+const dupKnrDoc = `${SAMPLE_KNR.trim()}\n${SAMPLE_KNR.trim()}`;
+assert("TP198A-4b extractPdfPrzedmiarRows dedup duplicate doc", extractPdfPrzedmiarRows(dupKnrDoc).length === 3);
+
+// TP198B — kalk. własna po kotwicy KNR (bez Lp./d.X.Y)
+console.log("\n=== TP198B kalk po KNR ===");
+const kalkAfterKnr = parsePdfPrzedmiarLine(
+  "KNR 4-01 0108-09 0108-10 kalk. własna Wywiezienie gruzu spryzmowanego samochodami skrzyniowymi na odległość 18 km m 3 1 m 3 1.00",
+);
+assert(
+  "TP198B-1 KNR + kalk. własna",
+  kalkAfterKnr?.code.toLowerCase().includes("kalk") &&
+    kalkAfterKnr?.unit === "m3" &&
+    kalkAfterKnr?.quantity === "1",
+);
+
+// TP198C — WM aliasy j.m. → szt
+console.log("\n=== TP198C WM unit aliases ===");
+const wypRow = parsePdfPrzedmiarLine(
+  "KSNR 5 0404-01 Wypusty wykonywane przewodami wtynkowymi dzwonek wyp. 1 wyp. 1.00",
+);
+assert("TP198C-1 wyp.", wypRow?.unit === "szt" && wypRow?.quantity === "1.00");
+const otwRow = parsePdfPrzedmiarLine(
+  "KNR 4-03 1003-06 Mechaniczne przebijanie otworów śr.rury do 25 mm otw. 5 otw. 5.00",
+);
+assert("TP198C-2 otw.", otwRow?.unit === "szt" && otwRow?.quantity === "5.00");
+const podejRow = parsePdfPrzedmiarLine(
+  "KNR-W 2-15 0211-03 Dodatki za wykonanie podejść odpływowych PVC podej. 2 podej. 2.00",
+);
+assert("TP198C-3 podej.", podejRow?.unit === "szt" && podejRow?.quantity === "2.00");
+const aparatRow = parsePdfPrzedmiarLine(
+  "KNR 5-08 0401-08 Przygotowanie podłoża do zabudowania aparatów aparat 1 aparat 1.00",
+);
+assert("TP198C-4 aparat", aparatRow?.unit === "szt" && aparatRow?.quantity === "1.00");
+const lokalRow = parsePdfPrzedmiarLine(
+  "KNR INSTAL 0205-01 Próba szczelności instalacji gazowej lokal. 1 lokal. 1.00",
+);
+assert("TP198C-5 lokal.", lokalRow?.unit === "szt" && lokalRow?.quantity === "1.00");
 
 console.log(`\nPDF przedmiar heuristic: ${pass} PASS, ${fail} FAIL`);
 process.exit(fail > 0 ? 1 : 0);

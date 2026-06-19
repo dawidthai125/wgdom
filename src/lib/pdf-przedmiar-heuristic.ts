@@ -1,6 +1,6 @@
 /**
  * P2-H.5B — heurystyczny odczyt pozycji z natywnych PDF przedmiaru (bez OCR).
- * P0 WM PDF Recovery — M1 unit norm · M2 BOQ split · extended norms (KNR-W, ZKNR, NNRNKB, KNR AT).
+ * P0 WM PDF Recovery — M1 unit norm · M2 BOQ split · M4 m→mb · M5 kalk. własna · M6 WM unit aliases · extended norms.
  */
 
 import type { AthPreviewResult, AthPreviewRow } from "@/lib/ath-parser";
@@ -23,18 +23,37 @@ const SIGNAL_CHECKS: { id: string; re: RegExp }[] = [
   { id: "lp", re: /\b(?:Lp\.?|L\.?\s*P\.?)\b/ },
   { id: "ilosc", re: /\b(?:Ilo[sś][ćc]?|Obmiar)\b/i },
   { id: "jm", re: /\b(?:J\.?\s*m\.?|Jedn\.?)\b/i },
-  { id: "unit", re: /\b(?:m\s*2|m²|m2|m\s*3|m³|m3|mb|kpl|szt\.?|t|kg|rbh)\b/i },
+  {
+    id: "unit",
+    re: /\b(?:m\s*2|m²|m2|m\s*3|m³|m3|mb|kpl|szt\.?|t|kg|rbh|wyp\.?|otw\.?|podej\.?|aparat\.?|lokal\.?)\b/i,
+  },
 ];
 
 /** Extended WM norms — dłuższe tokeny przed KNR (ZKNR/NNRNKB); KNR nie łapie końcówki ZKNR. */
 const KNR_IN_LINE =
   /\b(?:NNRNKB|ZKNR|KNNR|KSNR|(?<![A-Z])KNR(?:-W)?(?:\s+AT)?)\s*[\dA-Za-z]+(?:[-.\s/]*[\dA-Za-z]+)*/i;
 
-const UNIT_RE = /\b(m\s*2|m²|m2|m\s*3|m³|m3|mb|kpl|szt\.?|t|kg|rbh)\b/i;
+/** M5 (TP197) — kalkulacja własna bez normy KNR. */
+const KALK_WLASNA_RE =
+  /\b(?:kalk\.?\s*własn[aą]|kalkulacj[aą]\s+własn[aą]|wycena\s+własn[aą])\b/i;
 
-/** M2 — split segmentów BOQ (normy WM + markery d.X.Y). */
+/** Odrzuca luźny tekst SWZ przypadkowo zawierający słowa „własna”. */
+const KALK_SWZ_FALSE_POSITIVE_RE =
+  /\b(?:wadium|kryteria\s+oceny|termin\s+składania|specyfikacja\s+warunków|zamówienia)\b/i;
+
+/** Kotwica BOQ WM — Lp. lub d.X.Y przed kalk. własna. */
+const KALK_BOQ_ANCHOR_RE =
+  /^(\d+(?:\.\d+)*\s+)?(d\.\d+\.\d+\s+)?(?:kalk\.?\s*własn|kalkulacj[aą]\s+własn|wycena\s+własn)/i;
+
+/** M6 (TP198C) — WM skróty j.m. (wyp./otw./podej./aparat/lokal.) mapowane do szt w normalizeUnitToken. */
+const UNIT_RE =
+  /\b(m\s*2|m²|m2|m\s*3|m³|m3|mb|kpl|szt\.?|t|kg|rbh|wyp\.?|otw\.?|podej\.?|aparat\.?|lokal\.?)\b/i;
+
+const WM_UNIT_ALIAS_TO_SZT = new Set(["wyp", "otw", "podej", "aparat", "lokal"]);
+
+/** M2 — split segmentów BOQ (normy WM + markery d.X.Y + kalk. własna). */
 const PDF_BOQ_SPLIT_RE =
-  /(?=(?:\d+\s+)?d\.\d+\.\d+\s+(?:(?:NNRNKB|ZKNR|KNNR|KSNR|KNR(?:-W)?(?:\s+AT)?)|kalk\.?\s*własn)|(?:NNRNKB|ZKNR|KNNR|KSNR|(?<![A-Z])KNR(?:-W)?(?:\s+AT)?)(?:[\s-]*[\dA-Za-z]))/gi;
+  /(?=(?:\d+\s+)?d\.\d+\.\d+\s+(?:(?:NNRNKB|ZKNR|KNNR|KSNR|KNR(?:-W)?(?:\s+AT)?)|kalk\.?\s*własn|kalkulacj[aą]\s+własn|wycena\s+własn)|(?:NNRNKB|ZKNR|KNNR|KSNR|(?<![A-Z])KNR(?:-W)?(?:\s+AT)?)(?:[\s-]*[\dA-Za-z]))/gi;
 
 const HEADER_NOISE = /^(?:podstawa|opis|nazwa|cena|warto|razem|suma|strona|\d+\s*\/\s*\d+)/i;
 
@@ -59,13 +78,15 @@ function normalizePdfText(text: string): string {
     .trim();
 }
 
-/** M1 — normalizacja j.m. z eksportu WM (m 2 → m2, szt. → szt). */
+/** M1 + M4 (TP196) — normalizacja j.m. z eksportu WM (m 2→m2, m→mb przed ilością). */
 export function normalizePdfBoqUnits(text: string): string {
   return text
     .replace(/\bm\s+2\b/gi, "m2")
     .replace(/\bm\s+3\b/gi, "m3")
     .replace(/\bszt\./gi, "szt")
-    .replace(/\bkpl\./gi, "kpl");
+    .replace(/\bkpl\./gi, "kpl")
+    // M4 — WM „m” jako metry bieżące (po m2/m3, żeby nie psuć powierzchni/objętości)
+    .replace(/\bm\b(?=\s+[\d])/gi, "mb");
 }
 
 /** M2 — rozbij tekst stron PDF na segmenty pozycji BOQ. */
@@ -105,7 +126,15 @@ function extractKnrCode(fragment: string): string {
 }
 
 function normalizeUnitToken(raw: string): string {
-  return raw.replace(/\s+/g, "").replace("²", "2").replace("³", "3").toLowerCase();
+  const norm = raw
+    .replace(/\s+/g, "")
+    .replace("²", "2")
+    .replace("³", "3")
+    .toLowerCase()
+    .replace(/\.$/, "");
+  if (norm === "m") return "mb";
+  if (WM_UNIT_ALIAS_TO_SZT.has(norm)) return "szt";
+  return norm;
 }
 
 function parseQuantityToken(raw: string): string {
@@ -114,10 +143,76 @@ function parseQuantityToken(raw: string): string {
   return raw.trim();
 }
 
-/** Pojedyncza linia tekstu PDF z pozycją KNR + j.m. + ilość. */
+function extractUnitAndQuantity(trimmed: string): {
+  unit: string;
+  quantity: string;
+  unitStart: number;
+  unitMatch: RegExpMatchArray;
+} | null {
+  const unitMatch = trimmed.match(UNIT_RE);
+  if (!unitMatch || unitMatch.index == null) return null;
+  const unit = normalizeUnitToken(unitMatch[1]);
+  if (!unit) return null;
+
+  let quantity = "";
+  const afterUnit = trimmed.slice(unitMatch.index + unitMatch[0].length);
+  const qtyAfterUnit = afterUnit.match(/^\s*([\d]+(?:[.,]\d+)?)/);
+  if (qtyAfterUnit) quantity = parseQuantityToken(qtyAfterUnit[1]);
+  if (!quantity) {
+    const endQty = trimmed.match(/([\d]+(?:[.,]\d+)?)\s*$/);
+    quantity = endQty ? parseQuantityToken(endQty[1]) : "";
+  }
+  if (!quantity) return null;
+
+  return { unit, quantity, unitStart: unitMatch.index, unitMatch };
+}
+
+/** M5 — pozycja kalk. własna / kalkulacja własna / wycena własna (bez KNR). */
+function parseKalkWlasnaPrzedmiarLine(trimmed: string): AthPreviewRow | null {
+  if (!KALK_WLASNA_RE.test(trimmed)) return null;
+  if (KALK_SWZ_FALSE_POSITIVE_RE.test(trimmed)) return null;
+  // TP198B — kalk. własna po kotwicy KNR (bez Lp./d.X.Y na początku segmentu).
+  if (!KALK_BOQ_ANCHOR_RE.test(trimmed) && !KNR_IN_LINE.test(trimmed)) return null;
+
+  const lpMatch = trimmed.match(/^(\d+(?:\.\d+)*)\s+/);
+  const lp = lpMatch?.[1] ?? "";
+
+  const kalkMatch = trimmed.match(KALK_WLASNA_RE);
+  if (!kalkMatch || kalkMatch.index == null) return null;
+  const code = kalkMatch[0].replace(/\s+/g, " ").trim();
+
+  const uq = extractUnitAndQuantity(trimmed);
+  if (!uq) return null;
+
+  const kalkEnd = kalkMatch.index + kalkMatch[0].length;
+  let description = trimmed.slice(kalkEnd, uq.unitStart).trim();
+  description = description.replace(/^[-–—]\s*/, "").trim();
+  if (description.length < 4) {
+    description = trimmed.slice((lpMatch?.[0]?.length ?? 0), uq.unitStart).replace(code, "").trim();
+  }
+  if (description.length < 4) return null;
+
+  return {
+    lp: lp || "",
+    code,
+    description: description.slice(0, 240),
+    unit: uq.unit,
+    quantity: uq.quantity,
+    unitPrice: "",
+    total: "",
+    category: "UNKNOWN",
+  };
+}
+
+/** Pojedyncza linia tekstu PDF z pozycją KNR lub kalk. własna + j.m. + ilość. */
 export function parsePdfPrzedmiarLine(line: string): AthPreviewRow | null {
   const trimmed = normalizePdfBoqUnits(line.replace(/\s+/g, " ").trim());
   if (trimmed.length < 12 || HEADER_NOISE.test(trimmed)) return null;
+
+  if (KALK_WLASNA_RE.test(trimmed)) {
+    const kalkRow = parseKalkWlasnaPrzedmiarLine(trimmed);
+    if (kalkRow) return kalkRow;
+  }
   if (!KNR_IN_LINE.test(trimmed)) return null;
 
   const lpMatch = trimmed.match(/^(\d+(?:\.\d+)*)\s+/);
@@ -127,26 +222,14 @@ export function parsePdfPrzedmiarLine(line: string): AthPreviewRow | null {
   const code = knrMatch ? extractKnrCode(knrMatch[0]) : "";
   if (!code) return null;
 
-  const unitMatch = trimmed.match(UNIT_RE);
-  const unit = unitMatch ? normalizeUnitToken(unitMatch[1]) : "";
-  if (!unit) return null;
-
-  let quantity = "";
-  const afterUnit = trimmed.slice((unitMatch?.index ?? 0) + unitMatch[0].length);
-  const qtyAfterUnit = afterUnit.match(/^\s*([\d]+(?:[.,]\d+)?)/);
-  if (qtyAfterUnit) quantity = parseQuantityToken(qtyAfterUnit[1]);
-  if (!quantity) {
-    const endQty = trimmed.match(/([\d]+(?:[.,]\d+)?)\s*$/);
-    quantity = endQty ? parseQuantityToken(endQty[1]) : "";
-  }
-  if (!quantity) return null;
+  const uq = extractUnitAndQuantity(trimmed);
+  if (!uq) return null;
 
   const knrStart = knrMatch?.index ?? 0;
-  const unitStart = unitMatch?.index ?? trimmed.length;
-  let description = trimmed.slice(knrStart + (knrMatch?.[0]?.length ?? 0), unitStart).trim();
+  let description = trimmed.slice(knrStart + (knrMatch?.[0]?.length ?? 0), uq.unitStart).trim();
   description = description.replace(/^[-–—]\s*/, "").trim();
   if (description.length < 4) {
-    description = trimmed.slice((lpMatch?.[0]?.length ?? 0), unitStart).replace(code, "").trim();
+    description = trimmed.slice((lpMatch?.[0]?.length ?? 0), uq.unitStart).replace(code, "").trim();
   }
   if (description.length < 4) return null;
 
@@ -154,12 +237,19 @@ export function parsePdfPrzedmiarLine(line: string): AthPreviewRow | null {
     lp: lp || "",
     code,
     description: description.slice(0, 240),
-    unit,
-    quantity: quantity,
+    unit: uq.unit,
+    quantity: uq.quantity,
     unitPrice: "",
     total: "",
     category: "UNKNOWN",
   };
+}
+
+/** TP198A — klucz dedup pozycji PDF (lp + code + unit + qty + opis). */
+export function pdfPrzedmiarRowDedupKey(
+  row: Pick<AthPreviewRow, "lp" | "code" | "unit" | "quantity" | "description">,
+): string {
+  return `${row.lp}|${row.code}|${row.unit}|${row.quantity}|${row.description}`;
 }
 
 export function extractPdfPrzedmiarRows(text: string): AthPreviewRow[] {
@@ -170,7 +260,7 @@ export function extractPdfPrzedmiarRows(text: string): AthPreviewRow[] {
   for (const line of segments) {
     const row = parsePdfPrzedmiarLine(line);
     if (!row) continue;
-    const key = `${row.code}|${row.description.slice(0, 40)}|${row.quantity}`;
+    const key = pdfPrzedmiarRowDedupKey(row);
     if (seen.has(key)) continue;
     seen.add(key);
     if (!row.lp) row.lp = String(rows.length + 1);

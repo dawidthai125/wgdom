@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.9** · **TP190A protect kosztorys during re-analyze CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.10** · **TP198B+C PDF WM recovery CLOSED**
+
+## 2.62.10 — PDF WM recovery: kalk po KNR + unit aliases (TP198B+C)
+
+- **feat:** `parseKalkWlasnaPrzedmiarLine` — kotwica `KNR_IN_LINE` (kalk. własna po normie KNR)
+- **feat:** WM aliasy j.m. (`wyp.` / `otw.` / `podej.` / `aparat` / `lokal.`) → `szt`
+- **feat:** M4 `m`→`mb`, M5 kalk. własna bez KNR, TP198A bezpieczniejszy klucz dedup
+- **test:** `test-pdf-przedmiar-heuristic.mjs` TP196–TP198C; `test-tp182-pdf-wm-recovery.mjs` — **123 pozycji** (baseline 86)
 
 ## 2.62.9 — protect existing kosztorys during re-analysis (TP190A)
 
