@@ -199,18 +199,33 @@ export async function buildTenderDossierHeavy(opts: {
   let kosztorysSnap: TenderKosztorysSnapshot | null = opts.existingDossier?.kosztorys ?? null;
   let swzMerged = opts.existingSwz ?? null;
   let estimatePln = opts.item.ourEstimatePln ?? null;
+  const filenames = opts.docs.map((d) => d.filename);
+  let scanned = 0;
+  let parsed = 0;
+  let costDiscovery: TenderCostDiscoveryResult | null = null;
+  let sevenZUnpackOk: boolean | undefined;
+  let sevenZInnerCount: number | undefined;
+  let zipUnpackOk: boolean | undefined;
+  let zipInnerCount: number | undefined;
 
   if (opts.docs.length && opts.item.tenderId) {
-    const parsed = await parseTenderDossierDocuments(opts.item.tenderId, opts.docs, {
+    const parsedResult = await parseTenderDossierDocuments(opts.item.tenderId, opts.docs, {
       ourEstimatePln: estimatePln,
       existingSwz: swzMerged ?? undefined,
       tenderTitle: opts.item.title,
     });
-    if (parsed.kosztorys) kosztorysSnap = parsed.kosztorys;
-    if (parsed.swzMerged) swzMerged = parsed.swzMerged;
-    if (parsed.estimatePln != null && opts.item.ourEstimatePln == null) {
-      estimatePln = parsed.estimatePln;
+    if (parsedResult.kosztorys) kosztorysSnap = parsedResult.kosztorys;
+    if (parsedResult.swzMerged) swzMerged = parsedResult.swzMerged;
+    if (parsedResult.estimatePln != null && opts.item.ourEstimatePln == null) {
+      estimatePln = parsedResult.estimatePln;
     }
+    scanned = parsedResult.scannedCount;
+    parsed = parsedResult.parsedCount;
+    costDiscovery = parsedResult.costDiscovery;
+    sevenZUnpackOk = parsedResult.sevenZUnpackOk;
+    sevenZInnerCount = parsedResult.sevenZInnerCount;
+    zipUnpackOk = parsedResult.zipUnpackOk;
+    zipInnerCount = parsedResult.zipInnerCount;
   }
 
   const uploaded = opts.item.uploadedFile;
@@ -234,10 +249,43 @@ export async function buildTenderDossierHeavy(opts: {
     } catch { /* ignore */ }
   }
 
+  if (swzMerged) {
+    swzMerged = mergeKosztorysValueIntoSwz(swzMerged, kosztorysSnap);
+    swzMerged = applyMetadataConfidence(swzMerged);
+  }
+  const kosztorysValuePln = plnFromKosztorysSnapshot(kosztorysSnap);
+  estimatePln = estimatePlnFromKosztorysSnapshot(
+    kosztorysSnap,
+    estimatePln,
+    kosztorysSnap?.sourceFilename ?? "dossier",
+  );
+
+  const scanSummary: TenderDossierScanSummary = {
+    totalDocuments: opts.docs.length,
+    scanned,
+    parsed,
+    byType: countDocumentsByType(filenames),
+    sevenZipCount: filenames.filter((f) => is7zFilename(f)).length,
+    sevenZUnpackOk,
+    sevenZInnerCount,
+    zipUnpackOk,
+    zipInnerCount,
+    kosztorysFound: Boolean(kosztorysSnap?.ok),
+    valueFound: swzMerged?.estimatedValuePln != null || kosztorysValuePln != null,
+    criteriaFound: (swzMerged?.awardCriteria?.length ?? 0) > 0,
+    estimateFound: estimatePln != null,
+    costDiscovery,
+    pdfPrzedmiarCase: kosztorysSnap?.pdfPrzedmiarCase,
+    pdfPrzedmiarNoTextLayer: kosztorysSnap?.pdfPrzedmiarNoTextLayer,
+    parsedAt: new Date().toISOString(),
+  };
+
   return {
     tenderDossier: {
       brief,
       kosztorys: kosztorysSnap,
+      scanSummary,
+      estimatePln: estimatePln ?? null,
       builtAt: new Date().toISOString(),
     },
     swzAnalysis: swzMerged,

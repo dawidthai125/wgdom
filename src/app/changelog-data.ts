@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-19",
+    version: "2.62.3",
+    label: "Przetargi — heavy dossier loop hotfix (TP193A)",
+    items: [
+      {
+        type: "fix",
+        text: "Lazy dossier — buildTenderDossierHeavy ustawia scanSummary.parsedAt po pierwszym skanie (koniec pętli builtAt)",
+      },
+      {
+        type: "fix",
+        text: "Zatrzymanie wielokrotnych zapisów pipeline do chmury i toastów przy platformazakupowa / Open Nexus",
+      },
+      {
+        type: "improve",
+        text: "Regresja TP193A w test-p3-fix-c-performance.mjs",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
     version: "2.62.2",
     label: "Przetargi — Open Nexus / platformazakupowa.pl (TP191)",
     items: [

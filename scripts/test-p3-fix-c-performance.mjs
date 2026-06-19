@@ -53,6 +53,27 @@ assert(
     builtAt: "x",
   }),
 );
+assert(
+  "TP193A scanSummary.parsedAt stops lazy dossier loop",
+  tenderDossierHeavyParseDone({
+    brief: { fields: [] },
+    kosztorys: null,
+    scanSummary: {
+      totalDocuments: 17,
+      scanned: 17,
+      parsed: 0,
+      byType: { pdf: 17, docx: 0, xlsx: 0, zip: 0, ath: 0, sevenZip: 0, other: 0 },
+      sevenZipCount: 0,
+      kosztorysFound: false,
+      valueFound: false,
+      criteriaFound: false,
+      estimateFound: false,
+      costDiscovery: null,
+      parsedAt: "2026-06-19T12:00:00.000Z",
+    },
+    builtAt: "x",
+  }),
+);
 
 // —— light SWZ from HTML ——
 const html = `<html><body>

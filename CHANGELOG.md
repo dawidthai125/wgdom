@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.2** · **TP191 Open Nexus CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.3** · **TP193A dossier loop CLOSED**
+
+## 2.62.3 — Heavy dossier loop hotfix (TP193A)
+
+- **fix:** `buildTenderDossierHeavy` — `scanSummary.parsedAt` po pierwszym heavy parse (koniec pętli `builtAt`)
+- **fix:** Brak wielokrotnych zapisów KV / toastów „Nie udało się zapisać pipeline do chmury”
+- **test:** `test-p3-fix-c-performance.mjs` — regresja TP193A
 
 ## 2.62.2 — Open Nexus / platformazakupowa.pl (TP191)
 
