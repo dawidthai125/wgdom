@@ -37,6 +37,12 @@ import type { TenderAwardCriterion } from "@/lib/tenders-bzp-fit";
 import { mergeFormalRequirements } from "@/lib/tender-formal-requirements";
 import { mergeParticipationRequirements } from "@/lib/tender-participation-requirements";
 import { mergeExperienceRequirements } from "@/lib/tender-experience-requirements";
+import {
+  DOSSIER_DOCUMENT_BYTES_CONCURRENCY,
+  filterBytesPrefetchTodo,
+  prefetchDocumentBytesWithConcurrency,
+  type BytesPrefetchSpec,
+} from "@/lib/tender-document-bytes-prefetch";
 
 const DOSSIER_MAX_CANDIDATES = 15;
 const ZIP_INNER_MAX = 20;
@@ -224,6 +230,39 @@ function candidateKey(c: TenderDocCandidate): string {
   return `${c.documentIndex}|${c.zipInnerPath ?? ""}`;
 }
 
+async function prefetchDossierDocumentBytes(
+  tenderId: string,
+  docs: TenderBzpDocument[],
+  specs: BytesPrefetchSpec[],
+): Promise<void> {
+  const todo = filterBytesPrefetchTodo(tenderId, docs, specs);
+  if (!todo.length) return;
+  traceDossierPipeline("document_bytes_prefetch", "dossier", {
+    count: todo.length,
+    concurrency: DOSSIER_DOCUMENT_BYTES_CONCURRENCY,
+  });
+  await prefetchDocumentBytesWithConcurrency(
+    todo,
+    DOSSIER_DOCUMENT_BYTES_CONCURRENCY,
+    async (spec) => {
+      await loadDocBytes(tenderId, spec.documentIndex, docs, spec.downloadUrl);
+    },
+  );
+}
+
+function collectArchivePrefetchSpecs(docs: TenderBzpDocument[]): BytesPrefetchSpec[] {
+  return docs
+    .filter((d) => isZipFilename(d.filename) || is7zFilename(d.filename))
+    .map((d) => ({ documentIndex: d.index, downloadUrl: parentDownloadUrl(d) }));
+}
+
+function collectCandidatePrefetchSpecs(candidates: TenderDocCandidate[]): BytesPrefetchSpec[] {
+  return candidates.map((c) => ({
+    documentIndex: c.documentIndex,
+    downloadUrl: c.downloadUrl,
+  }));
+}
+
 function isKosztorysPreviewUsable(preview: AthPreviewResult): boolean {
   if (preview.documentType === "PDF_PRZEDMIAR" && preview.ok) return true;
   if (preview.rows.length > 0) return true;
@@ -302,6 +341,7 @@ export async function buildTenderDocCandidates(
   tenderId: string,
   docs: TenderBzpDocument[],
 ): Promise<TenderDocCandidate[]> {
+  await prefetchDossierDocumentBytes(tenderId, docs, collectArchivePrefetchSpecs(docs));
   const candidates: TenderDocCandidate[] = [];
   for (const doc of docs) {
     const dl = parentDownloadUrl(doc);
@@ -913,6 +953,12 @@ export async function parseTenderDossierDocuments(
 
   const candidates = selectDossierCandidates(allCandidates);
   const costCandidates = pickCostParseCandidates(allCandidates, costDiscovery);
+
+  await prefetchDossierDocumentBytes(
+    tenderId,
+    docs,
+    collectCandidatePrefetchSpecs([...costCandidates, ...candidates]),
+  );
 
   for (const doc of docs) {
     traceDossierPipeline("document_discovered", doc.filename, {

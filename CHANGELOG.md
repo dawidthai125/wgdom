@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.7** · **TP192B parallel PZ probe CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.8** · **TP192C parallel dossier bytes prefetch CLOSED**
+
+## 2.62.8 — parallel dossier bytes prefetch (TP192C)
+
+- **improve:** `tender-document-bytes-prefetch` — concurrency 4 przed parse dossier
+- **improve:** `buildTenderDossierHeavy` — ~45–55% szybciej download komponentu
+- **test:** `test-tender-parallel-bytes-tp192c.mjs`
 
 ## 2.62.7 — parallel PZ metadata probe (TP192B)
 

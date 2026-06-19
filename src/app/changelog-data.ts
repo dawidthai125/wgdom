@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-19",
+    version: "2.62.8",
+    label: "Przetargi — parallel dossier bytes prefetch (TP192C)",
+    items: [
+      {
+        type: "improve",
+        text: "parseTenderDossierDocuments — równoległy prefetch fetchTenderDocumentBytes (concurrency 4) przed fazą parse",
+      },
+      {
+        type: "improve",
+        text: "TP192C — ~5–7 s szybszy buildTenderDossierHeavy; cache bytes i kolejność parse bez zmian",
+      },
+      {
+        type: "improve",
+        text: "Regresja — test-tender-parallel-bytes-tp192c.mjs",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
     version: "2.62.7",
     label: "Przetargi — parallel PZ metadata probe (TP192B)",
     items: [
