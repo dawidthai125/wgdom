@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-19",
+    version: "2.62.18",
+    label: "Przetargi — bootstrap dokumentów retry po błędzie sieci",
+    items: [
+      {
+        type: "fix",
+        text: "useTenderDocumentsBootstrap — guard completed dopiero po sukcesie; błąd fetch nie blokuje kolejnej próby (remount / zakładka)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
     version: "2.62.17",
     label: "Przetargi V4 — bootstrap dokumentów na /kosztorys",
     items: [

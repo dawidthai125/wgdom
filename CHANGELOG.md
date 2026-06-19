@@ -1,6 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.16** · **bootstrap /kosztorys 2.62.17**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.17** · **bootstrap retry 2.62.18**
+
+## 2.62.18 — Bootstrap docs retry (P1 Pack A)
+
+- **fix:** `useTenderDocumentsBootstrap` — guard completed dopiero po sukcesie fetch; błąd sieci nie blokuje retry (remount / zakładka)
 
 ## 2.62.17 — V4 bootstrap docs on /kosztorys
 
