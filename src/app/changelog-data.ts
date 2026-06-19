@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-19",
+    version: "2.62.5",
+    label: "Przetargi — platformazakupowa filename encoding (TP194A)",
+    items: [
+      {
+        type: "fix",
+        text: "Open Nexus / platformazakupowa — naprawa mojibake w Content-Disposition (Załącznik, Ogłoszenie, robót)",
+      },
+      {
+        type: "fix",
+        text: "Preferencja poprawnej etykiety HTML nad uszkodzonym CD przy discovery dokumentów",
+      },
+      {
+        type: "improve",
+        text: "Regresja TP194A — test-tender-filename-encoding-tp194a.mjs + live verify 1319989",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
     version: "2.62.4",
     label: "Przetargi — loading guard + dossier metadata safety (TP193B)",
     items: [

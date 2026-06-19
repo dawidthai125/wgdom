@@ -5,6 +5,10 @@ import { logger } from "npm:hono/logger";
 import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
 import JSZip from "npm:jszip@3.10.1";
 import * as kv from "./kv_store.tsx";
+import {
+  parseDispositionFilename,
+  resolvePlatformazakupowaFilename,
+} from "./tender-filename-encoding.ts";
 
 const PHOTOS_BUCKET = "make-0afb8820-photos";
 
@@ -2589,16 +2593,6 @@ function parseSwzFromText(
   };
 }
 
-function parseDispositionFilename(h: string | null): string {
-  if (!h) return "dokument";
-  const star = h.match(/filename\*=UTF-8''([^;]+)/i);
-  if (star) {
-    try { return decodeURIComponent(star[1]); } catch { return star[1]; }
-  }
-  const plain = h.match(/filename="([^"]+)"/i);
-  return plain ? plain[1] : "dokument";
-}
-
 function isSwzFilename(name: string): boolean {
   const n = name.toLowerCase();
   return /swz|opz|specyfikac|kosztorys|formularz/.test(n);
@@ -3353,7 +3347,12 @@ async function discoverPlatformaZakupowaDocuments(noticeHtml: string): Promise<R
   for (const ref of attachments.slice(0, 30)) {
     const meta = await probeTenderDocumentMeta(ref.downloadUrl);
     if (!meta) continue;
-    const rawName = parseDispositionFilename(meta.contentDisposition) || ref.filename;
+    const rawName = resolvePlatformazakupowaFilename({
+      contentDisposition: meta.contentDisposition,
+      htmlFilename: ref.filename,
+      htmlLabel: ref.label,
+      fallback: ref.filename,
+    }) || ref.filename;
     const filename = normalizeBzpFilename(rawName, idx + 1, meta.contentType);
     const key = `${filename}|${ref.downloadUrl}`;
     if (seen.has(key)) continue;

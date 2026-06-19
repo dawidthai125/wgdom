@@ -13,6 +13,7 @@ import {
   formatAwardCriteriaSummary,
   TENDER_VALUE_NOT_FOUND_LABEL,
 } from "@/lib/tender-data-ssot";
+import { repairUtf8Mojibake } from "@/lib/tender-filename-encoding";
 import { isTenderOpenForOffers, daysUntilTenderDeadline } from "@/lib/tenders-bzp";
 import { TENDER_OWNER_TAB_LABELS } from "@/lib/tender-owner-language-pl";
 
@@ -218,7 +219,7 @@ const PL_DOC_TITLE_TOKEN_FIXES: ReadonlyArray<[RegExp, string]> = [
 
 /** UX.1C — czytelna nazwa pliku (tylko UI; oryginalna nazwa pliku bez zmian). */
 export function normalizeTenderDocumentTitle(filename: string): string {
-  const trimmed = (filename || "").trim();
+  const trimmed = repairUtf8Mojibake((filename || "").trim());
   if (!trimmed) return trimmed;
 
   const extMatch = trimmed.match(/(\.[a-z0-9]{2,5})$/i);

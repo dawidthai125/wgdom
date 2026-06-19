@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.4** · **TP193B loading + dossier metadata CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.5** · **TP194A platformazakupowa encoding CLOSED**
+
+## 2.62.5 — platformazakupowa filename encoding (TP194A)
+
+- **fix:** `repairUtf8Mojibake` — Content-Disposition UTF-8↔Latin-1 (Załącznik, Ogłoszenie, robót)
+- **fix:** `resolvePlatformazakupowaFilename` — HTML label gdy CD ma mojibake
+- **improve:** UI legacy cache — `displayTenderFilename` / `normalizeTenderDocumentTitle`
+- **test:** `test-tender-filename-encoding-tp194a.mjs` + live 1319989
 
 ## 2.62.4 — Loading guard + dossier metadata safety (TP193B)
 

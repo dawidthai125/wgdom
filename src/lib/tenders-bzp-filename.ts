@@ -1,5 +1,7 @@
 /** Lekkie helpery nazw plików przetargowych — bez xlsx/mammoth/jszip/pdfjs. */
 
+import { repairUtf8Mojibake } from "@/lib/tender-filename-encoding";
+
 export interface ZipListedFile {
   path: string;
   filename: string;
@@ -64,7 +66,7 @@ export function displayTenderFilename(
   filename: string,
   opts?: { index?: number; contentType?: string | null; url?: string; prefix?: string },
 ): string {
-  let name = (filename || "").trim();
+  let name = repairUtf8Mojibake((filename || "").trim());
   try {
     if (name.includes("%")) name = decodeURIComponent(name);
   } catch { /* ignore */ }
