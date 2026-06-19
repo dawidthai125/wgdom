@@ -30,6 +30,9 @@ export interface TenderCatalogQuantityLine {
 
 export const CATALOG_QUANTITIES_CAP = 500;
 
+/** TP200B — priced rows w snapshot = parser ATH/PDF cap (nie 40). */
+export const SNAPSHOT_PRICED_ROWS_CAP = 500;
+
 export interface TenderKosztorysSnapshot {
   ok: boolean;
   sourceFilename: string;
@@ -216,7 +219,8 @@ export function athPreviewToSnapshot(
   sourceFilename: string,
 ): TenderKosztorysSnapshot {
   const catalogQuantities = buildCatalogQuantitiesFromPreview(preview);
-  const rows: TenderCostLine[] = preview.rows.slice(0, 40).map((r) => ({
+  const pricedCap = SNAPSHOT_PRICED_ROWS_CAP;
+  const rows: TenderCostLine[] = preview.rows.slice(0, pricedCap).map((r) => ({
     lp: r.lp,
     description: r.description,
     unit: r.unit,
@@ -225,7 +229,7 @@ export function athPreviewToSnapshot(
     total: r.total,
   }));
   const przedmiar: TenderPrzedmiarLine[] = [];
-  for (const r of preview.rows.slice(0, 25)) {
+  for (const r of preview.rows.slice(0, pricedCap)) {
     for (const p of r.przedmiar ?? []) {
       przedmiar.push({
         description: r.description.slice(0, 80),
@@ -281,6 +285,8 @@ export interface TenderDossier {
   scanSummary?: import("@/lib/tender-dossier-pipeline").TenderDossierScanSummary | null;
   /** Wartość z analizy kosztorysu (gdy brak w SWZ). P2-E.3 SSOT priorytet #3. */
   estimatePln?: number | null;
+  /** TP200A — wersja parsera dossier; brak = legacy snapshot sprzed PDF recovery. */
+  parserVersion?: number;
   builtAt: string;
 }
 

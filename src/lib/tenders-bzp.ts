@@ -580,10 +580,64 @@ export function loadTendersPipelineLocal(): TenderPipelineItem[] {
   }
 }
 
-export function saveTendersPipelineLocal(items: TenderPipelineItem[]): void {
+const PIPELINE_LS_TELEMETRY_KEY = "wgdom-pipeline-ls-telemetry";
+const PIPELINE_LS_TELEMETRY_MAX = 50;
+
+export interface PipelineLsTelemetryEntry {
+  at: string;
+  kind: "quota_exceeded" | "save_error";
+  bytes?: number;
+  itemCount?: number;
+  message?: string;
+}
+
+/** Telemetria zapisu pipeline w LS — bez PII (dev console + ring buffer LS). */
+export function logPipelineLocalSaveTelemetry(
+  entry: Omit<PipelineLsTelemetryEntry, "at">,
+): void {
+  if (typeof window === "undefined") return;
+  const row: PipelineLsTelemetryEntry = { ...entry, at: new Date().toISOString() };
+  console.warn("[wgdom:pipeline-ls]", row);
   try {
-    localStorage.setItem(TENDERS_PIPELINE_KEY, JSON.stringify(items));
-  } catch { /* ignore */ }
+    const raw = localStorage.getItem(PIPELINE_LS_TELEMETRY_KEY);
+    const prev: PipelineLsTelemetryEntry[] = raw ? JSON.parse(raw) : [];
+    prev.push(row);
+    if (prev.length > PIPELINE_LS_TELEMETRY_MAX) {
+      prev.splice(0, prev.length - PIPELINE_LS_TELEMETRY_MAX);
+    }
+    localStorage.setItem(PIPELINE_LS_TELEMETRY_KEY, JSON.stringify(prev));
+  } catch {
+    /* telemetry best-effort — nie blokuj zapisu głównego */
+  }
+}
+
+export function readPipelineLocalSaveTelemetry(): PipelineLsTelemetryEntry[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(PIPELINE_LS_TELEMETRY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveTendersPipelineLocal(items: TenderPipelineItem[]): void {
+  const payload = JSON.stringify(items);
+  const bytes = typeof Blob !== "undefined"
+    ? new Blob([payload]).size
+    : payload.length * 2;
+  try {
+    localStorage.setItem(TENDERS_PIPELINE_KEY, payload);
+  } catch (e) {
+    const isQuota = e instanceof DOMException
+      && (e.name === "QuotaExceededError" || e.code === 22);
+    logPipelineLocalSaveTelemetry({
+      kind: isQuota ? "quota_exceeded" : "save_error",
+      bytes,
+      itemCount: items.length,
+      message: e instanceof Error ? e.message : String(e),
+    });
+  }
 }
 
 export async function loadTendersPipeline(): Promise<TenderPipelineItem[]> {

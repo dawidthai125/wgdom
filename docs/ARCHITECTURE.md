@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-19 (PDF WM Recovery **v2.62.10** `1992340` · TP200 PLANNED · § 12.1.17–18 · § 12.1.16)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-19 (TP200A **v2.62.11** · PDF WM Recovery **v2.62.10** · § 12.1.17–18 · § 12.1.16)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1465,15 +1465,19 @@ tender-document-resolver.ts
 
 **Nie zmieniaj bez audytu:** klucz dedup · kolejność kotwic kalk własna · mapowanie jednostek WM.
 
-### 12.1.18 TP200 — Parser Version + Kosztorys Fidelity (PLANNED)
+### 12.1.18 TP200 — Parser Version + Kosztorys Fidelity
 
-**Status:** **PLANNED** · baseline **v2.62.10** · backup tag `wgdom-backup-2026-06-19-v2.62.10`  
+**Status:** **TP200A CLOSED** (v2.62.11) · **TP200B PLANNED** · backup tag `wgdom-backup-2026-06-19-v2.62.10`  
 **Handoff SSOT:** [`docs/SESSION-HANDOFF-TP200-PLANNED.md`](SESSION-HANDOFF-TP200-PLANNED.md) · audyt **TP199**
 
-| ID | Problem | Pliki |
-|----|---------|-------|
-| **TP200A** | Stare dossier KV/LS bez `parserVersion` — UI pokazuje snapshot sprzed TP198 mimo prod 2.62.10 | `tender-dossier-pipeline.ts`, KV merge |
-| **TP200B** | `rows.slice(0, 40)` vs pełny `rowCount`; parse loop używa `shouldReplaceBestKosztorys` zamiast `pickBetterKosztorys` | `tenders-bzp-brief.ts`, `tender-document-resolver.ts` |
+| ID | Problem | Pliki | Status |
+|----|---------|-------|--------|
+| **TP200A** | Stare dossier KV/LS bez `parserVersion` — UI pokazuje snapshot sprzed TP198 | `tender-dossier-parser-version.ts`, `tender-dossier-pipeline.ts`, `tender-dossier-merge.ts` | **CLOSED 2.62.11** |
+| **TP200B** | `rows.slice(0, 40)` vs pełny `rowCount`; parse loop używa `shouldReplaceBestKosztorys` zamiast `pickBetterKosztorys` | `tenders-bzp-brief.ts`, `tender-document-resolver.ts` | PLANNED |
+
+**TP200A mechanizm:** `DOSSIER_PARSER_VERSION` (`2.62.10`) na `tenderDossier.parserVersion` · `isDossierParserStale()` → `tenderDossierHeavyParseDone` false → lazy rescan Dokumenty/Wycena · `existingKosztorysUnlessStale` przy re-parse.
+
+**Test:** `test-tender-dossier-parser-version.mjs` TP200A-1…8.
 
 **Command Center:** usunięty v2.51.0 — **nie wraca**.
 

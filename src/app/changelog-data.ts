@@ -12,6 +12,94 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-19",
+    version: "2.62.14",
+    label: "Przetargi — STABILITY PATCH (pre-SmartPZP)",
+    items: [
+      {
+        type: "fix",
+        text: "External discovery — wybór kosztorysu przez pickBetterKosztorys (SSOT jakości, nie rows.length)",
+      },
+      {
+        type: "fix",
+        text: "Podgląd ATH w modalu — limit 80 pozycji + „Pokaż więcej” (TP200B)",
+      },
+      {
+        type: "improve",
+        text: "V4 — CTA pozycje/kosztorys prowadzi na /kosztorys gdy dossier gotowy",
+      },
+      {
+        type: "improve",
+        text: "Pipeline LS — widoczność QuotaExceeded (console + telemetria wgdom-pipeline-ls)",
+      },
+      {
+        type: "improve",
+        text: "Lazy dossier parse — log błędu (console + telemetria) i stan dossierParseFailed",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
+    version: "2.62.13",
+    label: "Przetargi — TP200B snapshot fidelity kosztorysu (500 poz.)",
+    items: [
+      {
+        type: "fix",
+        text: "athPreviewToSnapshot — priced rows do 500 (zgodnie z parserem ATH/PDF), nie 40",
+      },
+      {
+        type: "fix",
+        text: "Parse loop — shouldReplaceBestKosztorys używa pickBetterKosztorys (rowCount SSOT)",
+      },
+      {
+        type: "fix",
+        text: "ath_priced — bez skalowania gdy snapshot ma pełne rows (302=302)",
+      },
+      {
+        type: "improve",
+        text: "Regresja — test-tp200b-snapshot-fidelity.mjs T1–T6",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
+    version: "2.62.12",
+    label: "Przetargi — TP200A.1 external discovery zachowuje parserVersion",
+    items: [
+      {
+        type: "fix",
+        text: "Pobierz dokumenty u zamawiającego — nie kasuje parserVersion, scanSummary, bidProposal ani estimatePln w dossier",
+      },
+      {
+        type: "improve",
+        text: "Regresja — test-tp200a-external-discovery-preserve-parser-version.mjs T1–T6",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
+    version: "2.62.11",
+    label: "Przetargi — parserVersion + auto-rescan legacy dossier (TP200A)",
+    items: [
+      {
+        type: "new",
+        text: "tenderDossier.parserVersion — wersjonowanie snapshotu dossier (CURRENT_PARSER_VERSION=2)",
+      },
+      {
+        type: "fix",
+        text: "Legacy KV/LS bez parserVersion — lazy Dokumenty/Wycena wymusza ponowny parse",
+      },
+      {
+        type: "fix",
+        text: "Stale rescan — pickBetter ignoruje stary kosztorys; merge sync preferuje świeży parserVersion",
+      },
+      {
+        type: "improve",
+        text: "Regresja — test-tender-dossier-parser-version.mjs T1–T5",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
     version: "2.62.10",
     label: "PDF WM recovery — kalk po KNR + unit aliases (TP198B+C)",
     items: [

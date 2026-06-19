@@ -1,54 +1,39 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-19 · **prod 2.62.10** · **PDF WM Recovery CLOSED** · **TP200 PLANNED**
+**Ostatnia aktualizacja:** 2026-06-19 · **TP200A IMPLEMENTED (lokalnie 2.62.11)** · prod nadal **2.62.10**
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
+| **Wersja lokalna** | **2.62.11** · TP200A parserVersion + stale rescan |
 | **Wersja prod (`main`)** | **2.62.10** · commit **`1992340`** |
-| **PDF WM Recovery (TP196–198C)** | **CLOSED** — TP182: **123 pozycji** (baseline 86) |
-| **P0/P1 Merge Quality + TP190A** | **CLOSED** |
+| **PDF WM Recovery (TP196–198C)** | **CLOSED** — TP182: **123 pozycji** |
+| **TP200A** | **IMPLEMENTED** (nie wdrożone na prod) |
+| **TP200B** | **OPEN** — kosztorys snapshot fidelity |
 | **Backup pre-TP200** | tag `wgdom-backup-2026-06-19-v2.62.10` |
-| **Następny epic** | **TP200A/B** — parserVersion + kosztorys fidelity |
 
-## ★★ START HERE (nowy agent)
+## TP200A — co zrobiono
 
-| Temat | Dokument |
-|-------|----------|
-| **Mapa systemu** | [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md) |
-| **Baseline prod** | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
-| **★ PDF Recovery (CLOSED)** | [`docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md`](docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md) |
-| **★ TP200 (PLANNED)** | [`docs/SESSION-HANDOFF-TP200-PLANNED.md`](docs/SESSION-HANDOFF-TP200-PLANNED.md) |
-| **P0/P1 merge kosztorysu** | [`docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md`](docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md) |
-| **Architektura** | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.16 |
-| **Workflow release** | [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md) |
+| Element | Plik |
+|---------|------|
+| `DOSSIER_PARSER_VERSION` + stale detection | `src/lib/tender-dossier-parser-version.ts` |
+| Lazy rescan + stamp on build/analyze | `src/lib/tender-dossier-pipeline.ts` |
+| Merge preferuje fresh parserVersion | `src/lib/tender-dossier-merge.ts` |
+| Schema `tenderDossier.parserVersion` | `src/lib/tenders-bzp-brief.ts` |
+| Lazy dossier deps | `src/app/TenderDetailPanel.tsx` |
+| Testy TP200A-1…8 | `scripts/test-tender-dossier-parser-version.mjs` |
 
-## Ukończone — seria 2.62.x (Przetargi)
-
-| Wersja | Commit | Skrót |
-|--------|--------|-------|
-| **2.62.10** | `1992340` | TP196–TP198C PDF WM recovery |
-| **2.62.9** | `73093e4` | TP190A quality guard re-analyze |
-| **2.62.8** | — | TP192C parallel dossier bytes |
-| **2.62.7** | — | TP192B parallel PZ probe |
-| **2.62.6** | — | TP192A host detection shortcut |
-| **2.62.5** | — | TP194A filename encoding PZ |
-| **2.62.4** | — | TP193B loading + metadata safety |
-| **2.62.3** | — | TP193A lazy dossier loop |
-| **2.62.2** | — | TP191 Open Nexus / platformazakupowa |
-| **2.62.1** | `50d7501`+`4574182` | P0/P1 merge quality · TP182 parser infra |
-
-## Testy smoke (Przetargi)
+## Testy smoke
 
 ```bash
-npx vite-node scripts/test-pdf-przedmiar-heuristic.mjs
-npx vite-node scripts/test-tp182-pdf-wm-recovery.mjs
+npx vite-node scripts/test-tender-dossier-parser-version.mjs
 npx vite-node scripts/test-tender-dossier-merge-quality.mjs
+npx vite-node scripts/test-tp182-pdf-wm-recovery.mjs
 npm run build
 ```
 
-## Następny krok (na polecenie)
+## Następny krok
 
-- **TP200A** — `parserVersion` + invalidacja/rescan legacy dossier
-- **TP200B** — `pickBetterKosztorys` w parse loop + ATH rows fidelity
+- **Deploy TP200A** — commit + push → verify `version.json` 2.62.11
+- **TP200B** — `pickBetterKosztorys` w parse loop + ATH `rows` fidelity (`athPreviewToSnapshot`)

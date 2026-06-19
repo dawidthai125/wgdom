@@ -9,6 +9,7 @@ import {
   isFormalOfferCostFilename,
   type TenderCostDocumentType,
 } from "@/lib/tender-cost-discovery";
+import { isDossierParserStale } from "@/lib/tender-dossier-parser-version";
 
 /** Wyższa wartość = lepsze źródło kosztorysu. */
 const KOSZTORYS_SOURCE_TIER: Record<string, number> = {
@@ -27,8 +28,16 @@ function parseTs(iso: string | undefined | null): number {
   return Number.isFinite(t) ? t : 0;
 }
 
-function effectiveRowCount(k: TenderKosztorysSnapshot): number {
+/** SSOT liczby pozycji kosztorysu — rowCount przed rows.length (TP200B). */
+export function kosztorysEffectiveRowCount(
+  k: TenderKosztorysSnapshot | null | undefined,
+): number {
+  if (!k) return 0;
   return k.rowCount ?? k.rows?.length ?? k.catalogQuantities?.length ?? 0;
+}
+
+function effectiveRowCount(k: TenderKosztorysSnapshot): number {
+  return kosztorysEffectiveRowCount(k);
 }
 
 function mapCostTypeToTier(type: TenderCostDocumentType): number {
@@ -117,10 +126,18 @@ export function mergeTenderDossierByQuality(
   if (!dossierB) return dossierA;
 
   const kosztorysWinner = compareKosztorys(dossierA.kosztorys, dossierB.kosztorys);
-  const kosztorys = pickBetterKosztorys(dossierA.kosztorys, dossierB.kosztorys);
+  const staleA = isDossierParserStale(dossierA);
+  const staleB = isDossierParserStale(dossierB);
+  let kosztorys = pickBetterKosztorys(dossierA.kosztorys, dossierB.kosztorys);
+  if (staleA && !staleB && dossierB.kosztorys?.ok) {
+    kosztorys = dossierB.kosztorys;
+  } else if (staleB && !staleA && dossierA.kosztorys?.ok) {
+    kosztorys = dossierA.kosztorys;
+  }
   const kosztorysSide = kosztorysWinner === "b" ? dossierB : dossierA;
   const newerBuilt = parseTs(dossierA.builtAt) >= parseTs(dossierB.builtAt) ? dossierA : dossierB;
   const olderBuilt = newerBuilt === dossierA ? dossierB : dossierA;
+  const freshSide = !staleA ? dossierA : !staleB ? dossierB : newerBuilt;
 
   return {
     brief: newerBuilt.brief?.fields?.length ? newerBuilt.brief : olderBuilt.brief,
@@ -128,6 +145,7 @@ export function mergeTenderDossierByQuality(
     scanSummary: kosztorysSide.scanSummary ?? newerBuilt.scanSummary ?? olderBuilt.scanSummary ?? null,
     estimatePln: newerBuilt.estimatePln ?? olderBuilt.estimatePln ?? null,
     bidProposal: newerBuilt.bidProposal ?? olderBuilt.bidProposal ?? null,
+    parserVersion: freshSide.parserVersion ?? newerBuilt.parserVersion ?? olderBuilt.parserVersion,
     builtAt: newerBuilt.builtAt,
   };
 }

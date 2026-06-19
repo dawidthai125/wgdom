@@ -26,10 +26,12 @@ import { mergeSwzAnalysis, parseExternalTenderDocuments } from "@/lib/tender-doc
 import {
   analyzeTenderWithDossier,
   dossierFromAnalysisResult,
-  buildTenderDossierHeavy,
-  tenderDossierHeavyParseDone,
   analyzeSwzFromNoticeHtmlOnly,
 } from "@/lib/tender-dossier-pipeline";
+import { mergeExternalDiscoveryDossierPatch } from "@/lib/tender-dossier-external-discovery";
+import { pickBetterKosztorys } from "@/lib/tender-dossier-merge";
+import { existingKosztorysUnlessStale, stampDossierParserVersion } from "@/lib/tender-dossier-parser-version";
+import { useTenderDossierHeavyLazy } from "@/app/hooks/useTenderDossierHeavyLazy";
 import { resolvedCostStatusDisplay, traceSsotSnapshot } from "@/lib/tender-data-ssot";
 import { discoverExternalTenderDocs, type TenderExternalDocDiscovery } from "@/lib/tender-external-docs";
 import { summarizeSwzFindings } from "@/lib/tenders-bid-prep";
@@ -114,7 +116,6 @@ export function TenderDetailPanel({
   const [uploading, setUploading] = useState(false);
   const [learning, setLearning] = useState(false);
   const [autoRunning, setAutoRunning] = useState(false);
-  const [dossierBuilding, setDossierBuilding] = useState(false);
   const [externalDiscovering, setExternalDiscovering] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [fetchingAward, setFetchingAward] = useState(false);
@@ -132,8 +133,14 @@ export function TenderDetailPanel({
   );
   const workspaceForLogic = embedV4Workspace ?? activeWorkspace;
   const autoRanRef = useRef<Set<string>>(new Set());
-  const dossierInflightRef = useRef<string | null>(null);
   const platformTelemetryRef = useRef<string | null>(null);
+  const wantsHeavyDossier = workspaceForLogic === "documents" || workspaceForLogic === "valuation";
+  const { dossierBuilding } = useTenderDossierHeavyLazy({
+    item,
+    enabled: wantsHeavyDossier,
+    onUpdate,
+    athPreviewEnabled,
+  });
   const tendersCtx = useTendersContextOptional();
 
   const platformDocStatus = useMemo(
@@ -166,13 +173,12 @@ export function TenderDetailPanel({
         })),
         { ourEstimatePln: estimatePln, existingSwz: swzMerged ?? undefined },
       );
-      const existingK = item.tenderDossier?.kosztorys;
+      const existingK = existingKosztorysUnlessStale(item.tenderDossier, item.tenderDossier?.kosztorys);
       if (extParsed.kosztorys?.ok) {
-        const extRows = extParsed.kosztorys.rows?.length ?? 0;
-        const existingRows = existingK?.ok ? (existingK.rows?.length ?? 0) : 0;
-        if (!existingK?.ok || extRows > existingRows) {
-          kosztorysSnap = extParsed.kosztorys;
-        }
+        kosztorysSnap = pickBetterKosztorys(existingK, extParsed.kosztorys)
+          ?? extParsed.kosztorys
+          ?? existingK
+          ?? kosztorysSnap;
       }
       if (extParsed.swzFromDoc) {
         const missingValue = swzMerged?.estimatedValuePln == null;
@@ -186,11 +192,11 @@ export function TenderDetailPanel({
       }
     }
 
-    patch.tenderDossier = {
+    patch.tenderDossier = mergeExternalDiscoveryDossierPatch(item.tenderDossier, {
       brief,
       kosztorys: kosztorysSnap,
       builtAt: new Date().toISOString(),
-    };
+    });
     if (swzMerged) patch.swzAnalysis = swzMerged;
     if (estimatePln != null && item.ourEstimatePln == null) patch.ourEstimatePln = estimatePln;
     const { changeMonitor, newEvents } = processTenderChangeMonitorUpdate(
@@ -333,57 +339,6 @@ export function TenderDetailPanel({
   // eslint-disable-next-line react-hooks/exhaustive-deps -- once per item id on expand
   }, [item.id]);
 
-  /** P3-FIX-C — ciężkie parsowanie dossier dopiero po wejściu w Dokumenty / Wycena. */
-  useEffect(() => {
-    const wantsHeavyDossier = workspaceForLogic === "documents" || workspaceForLogic === "valuation";
-    if (!wantsHeavyDossier) return;
-    if (tenderDossierHeavyParseDone(item.tenderDossier)) return;
-    if (!item.tenderId || !(item.bzpDocuments?.length)) return;
-    if (dossierInflightRef.current === item.id) return;
-
-    let cancelled = false;
-    dossierInflightRef.current = item.id;
-    (async () => {
-      setDossierBuilding(true);
-      try {
-        const built = await buildTenderDossierHeavy({
-          item,
-          docs: item.bzpDocuments ?? [],
-          noticeHtml: item.noticeHtml,
-          existingSwz: item.swzAnalysis ?? null,
-          existingDossier: item.tenderDossier ?? null,
-          athPreviewEnabled,
-        });
-        if (cancelled) return;
-        const patch: Partial<TenderPipelineItem> = {
-          tenderDossier: built.tenderDossier,
-        };
-        if (built.swzAnalysis) patch.swzAnalysis = built.swzAnalysis;
-        if (built.ourEstimatePln != null && item.ourEstimatePln == null) {
-          patch.ourEstimatePln = built.ourEstimatePln;
-        }
-        onUpdate(patch);
-      } catch {
-        /* best-effort lazy dossier */
-      } finally {
-        if (dossierInflightRef.current === item.id) dossierInflightRef.current = null;
-        if (!cancelled) setDossierBuilding(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- lazy dossier on tab + docs ready
-  }, [
-    workspaceForLogic,
-    item.id,
-    item.tenderId,
-    item.documentsFetchedAt,
-    item.bzpDocuments,
-    item.tenderDossier?.builtAt,
-    item.tenderDossier?.kosztorys?.ok,
-    item.tenderDossier?.scanSummary?.parsedAt,
-    athPreviewEnabled,
-  ]);
-
   const pipelineWinRate = computePipelineFunnel(allItems).winRate;
 
   useEffect(() => {
@@ -470,6 +425,7 @@ export function TenderDetailPanel({
         ourEstimatePln: item.ourEstimatePln ?? null,
         existing: item.swzAnalysis ?? null,
         existingKosztorys: item.tenderDossier?.kosztorys ?? null,
+        existingDossier: item.tenderDossier ?? null,
         tenderTitle: item.title,
       });
 
@@ -550,11 +506,11 @@ export function TenderDetailPanel({
             item.title,
           );
         onUpdate({
-          tenderDossier: {
+          tenderDossier: stampDossierParserVersion({
             brief,
             kosztorys: kosztorysSnap,
             builtAt: new Date().toISOString(),
-          },
+          }),
         });
         if (preview.totalValue) {
           const num = parsePlnFromKosztorysTotal(preview.totalValue, preview.currency);

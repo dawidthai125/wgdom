@@ -1,6 +1,7 @@
-# SESSION HANDOFF — TP200 (PLANNED, nie wdrożone)
+# SESSION HANDOFF — TP200
 
-> **Status:** **PLANNED** · baseline przed startem: **v2.62.10** · **`1992340`**  
+> **Status:** **TP200A CLOSED (lokalnie 2.62.11)** · **TP200B PLANNED**  
+> **Baseline prod:** **v2.62.10** · **`1992340`**  
 > **Backup:** tag `wgdom-backup-2026-06-19-v2.62.10` · lokalnie `backups/WGDOM-BACKUP-2026-06-19/`  
 > **Audyt źródłowy:** TP199 POST-PDF RECOVERY AUDIT
 
@@ -18,10 +19,10 @@ Parser PDF odzyskuje pozycje (TP182: 123), ale użytkownik nadal traci wartość
 
 ## 2. Planowany podział
 
-| ID | Cel | Kluczowe pliki |
-|----|-----|----------------|
-| **TP200A** | `parserVersion` + auto-invalidacja / rescan starych dossier | `tender-dossier-pipeline.ts`, `tenders-sync.ts`, KV schema |
-| **TP200B** | Kosztorys fidelity: `pickBetterKosztorys` w parse loop; rozszerzenie `rows`/catalog | `tender-document-resolver.ts`, `tenders-bzp-brief.ts` |
+| ID | Cel | Kluczowe pliki | Status |
+|----|-----|----------------|--------|
+| **TP200A** | `parserVersion` + auto-invalidacja / rescan starych dossier | `tender-dossier-parser-version.ts`, `tender-dossier-pipeline.ts`, `tender-dossier-merge.ts` | **CLOSED 2.62.11** |
+| **TP200B** | Kosztorys fidelity: `pickBetterKosztorys` w parse loop; rozszerzenie `rows`/catalog | `tender-document-resolver.ts`, `tenders-bzp-brief.ts` | PLANNED |
 
 ---
 
@@ -46,6 +47,7 @@ Parser PDF odzyskuje pozycje (TP182: 123), ale użytkownik nadal traci wartość
 ## 5. Smoke przed/po TP200
 
 ```bash
+npx vite-node scripts/test-tender-dossier-parser-version.mjs   # TP200A
 npx vite-node scripts/test-tender-dossier-merge-quality.mjs   # TP113/TP190A
 npx vite-node scripts/test-tp182-pdf-wm-recovery.mjs           # >=120 rows
 npx vite-node scripts/test-tender-dossier-pipeline.mjs
@@ -56,4 +58,4 @@ npm run build
 
 ## 6. Werdykt planu
 
-**GO TP200** — najwyższy ROI po zamknięciu PDF Recovery (TP199).
+**TP200A GO** — wdrożone lokalnie (2.62.11). **TP200B** — następny krok.

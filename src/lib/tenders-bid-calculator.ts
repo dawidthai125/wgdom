@@ -127,7 +127,7 @@ function projectMonths(
   return Math.max(impliedDays / 22, minProjectDays / 22, 0.5);
 }
 
-/** Ilości pod wycenę katalogową — snapshot lub fallback z wierszy UI (max 40). */
+/** Ilości pod wycenę katalogową — snapshot catalogQuantities lub fallback z rows (TP200B: do 500). */
 export function resolveCatalogQuantities(
   kosztorys: TenderKosztorysSnapshot | null | undefined,
 ): TenderCatalogQuantityLine[] {
@@ -207,7 +207,13 @@ function computeAthPricedDirectCosts(
     warnings.push("Brak pozycji z kwotami — użyto domyślnego podziału 54% robocizna / 46% materiały.");
   } else {
     const athRowsSum = athLaborPortion + athMaterialPortion;
-    if (kosztorys.rowCount > rowsUsed && athRowsSum > 0 && athTotal > athRowsSum * 1.03) {
+    const snapshotRowGap = kosztorys.rowCount > (kosztorys.rows?.length ?? 0);
+    if (
+      snapshotRowGap
+      && kosztorys.rowCount > rowsUsed
+      && athRowsSum > 0
+      && athTotal > athRowsSum * 1.03
+    ) {
       const scale = athTotal / athRowsSum;
       laborCostReal *= scale;
       materialCostReal *= scale;

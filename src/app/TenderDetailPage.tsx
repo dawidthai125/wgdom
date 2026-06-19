@@ -10,17 +10,21 @@ import { TenderDetailKpiBar } from "@/app/TenderDetailKpiBar";
 import { TenderDetailTabBar } from "@/app/TenderDetailTabBar";
 import { TenderPrzetargWorkspace } from "@/app/TenderPrzetargWorkspace";
 import { TenderKosztorysWorkspace } from "@/app/TenderKosztorysWorkspace";
+import { useTenderDossierHeavyLazy } from "@/app/hooks/useTenderDossierHeavyLazy";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import {
   buildTenderDetailPath,
   isTenderDetailV4PlaceholderTab,
-  legacyWorkspaceToV4Tab,
+  legacyWorkspaceToV4TabWithContext,
   TENDER_DETAIL_V4_TAB_LABELS,
   TENDERS_LIST_PATH,
   type TenderDetailV4TabId,
   v4TabToLegacyWorkspace,
 } from "@/lib/tender-detail-routes-v4";
-import type { TenderWorkspaceTabId } from "@/lib/tender-workspace-ux";
+import {
+  shouldPreferKosztorysV4Tab,
+  type TenderWorkspaceTabId,
+} from "@/lib/tender-workspace-ux";
 
 function TenderV4Placeholder({ tab }: { tab: TenderDetailV4TabId }) {
   return (
@@ -64,13 +68,31 @@ export function TenderDetailPage({
 
   const handleLegacyNavigate = useCallback(
     (legacyTab: TenderWorkspaceTabId) => {
-      navigate(buildTenderDetailPath(tenderId, legacyWorkspaceToV4Tab(legacyTab)));
+      const preferKosztorys = item
+        ? shouldPreferKosztorysV4Tab(legacyTab, item)
+        : false;
+      navigate(buildTenderDetailPath(
+        tenderId,
+        legacyWorkspaceToV4TabWithContext(legacyTab, preferKosztorys),
+      ));
     },
-    [navigate, tenderId],
+    [navigate, tenderId, item],
   );
 
   const legacyWorkspace = v4TabToLegacyWorkspace(tab);
   const compactKosztorysChrome = tab === "kosztorys";
+
+  const onUpdateItem = useCallback(
+    (patch: Partial<TenderPipelineItem>) => pipeline.updateItem(item?.id ?? tenderId, patch),
+    [pipeline, item?.id, tenderId],
+  );
+
+  useTenderDossierHeavyLazy({
+    item: item ?? { id: tenderId, title: "", status: "seen", updatedAt: "" } as TenderPipelineItem,
+    enabled: Boolean(item) && tab === "kosztorys",
+    onUpdate: onUpdateItem,
+    athPreviewEnabled,
+  });
 
   if (!item) {
     return (

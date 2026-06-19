@@ -6,6 +6,7 @@ import {
   pickBestKosztorysDocument,
   type TenderKosztorysSnapshot,
 } from "@/lib/tenders-bzp-brief";
+import { pickBetterKosztorys } from "@/lib/tender-dossier-merge";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import { isWeakWadiumRaw, pickBetterWadiumPln, formatSwzWadiumDisplay } from "@/lib/tenders-bzp-swz";
 import {
@@ -304,9 +305,9 @@ function shouldReplaceBestKosztorys(
 ): boolean {
   if (!existing?.ok) return true;
   if (shouldProtectPdfPrzedmiarWinner(existing, candFilename, discovery)) return false;
-  const newRows = incoming.rows?.length ?? 0;
-  const oldRows = existing.rows?.length ?? 0;
-  if (newRows > oldRows) return true;
+  const picked = pickBetterKosztorys(existing, incoming);
+  if (picked === incoming) return true;
+  if (picked === existing) return false;
   if (opts?.allowTotalValueFill && !existing.totalValue && incoming.totalValue) return true;
   return false;
 }

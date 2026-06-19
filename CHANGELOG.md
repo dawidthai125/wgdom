@@ -1,6 +1,33 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.10** · **TP198B+C PDF WM recovery CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.11** · **STABILITY 2.62.14 lokalnie** · **TP200B 2.62.13**
+
+## 2.62.14 — STABILITY PATCH pre-SmartPZP
+
+- **fix:** `applyExternalDiscovery` → `pickBetterKosztorys` (SSOT jakości kosztorysu)
+- **fix:** `JobFilePreviewModal` — cap 80 wierszy + „Pokaż więcej”
+- **improve:** V4 CTA → `/kosztorys` gdy dossier ma kosztorys (`shouldPreferKosztorysV4Tab`)
+- **improve:** `saveTendersPipelineLocal` — QuotaExceeded → `console.warn` + telemetria LS
+- **improve:** `useTenderDossierHeavyLazy` — błąd parse → `console.error` + telemetria + `dossierParseFailed`
+
+## 2.62.13 — TP200B snapshot fidelity (500 poz.)
+
+- **fix:** `athPreviewToSnapshot` — `SNAPSHOT_PRICED_ROWS_CAP=500` (było 40); `rowCount` = parser output
+- **fix:** `shouldReplaceBestKosztorys` → `pickBetterKosztorys` (rowCount SSOT, nie `rows.length`)
+- **fix:** `ath_priced` — skalowanie tylko gdy `rowCount > rows.length` (legacy gap)
+- **test:** `test-tp200b-snapshot-fidelity.mjs` T1–T6
+
+## 2.62.12 — TP200A.1 external discovery zachowuje parserVersion
+
+- **fix:** `applyExternalDiscovery` — spread istniejącego dossier; nie kasuje `parserVersion`, `scanSummary`, `bidProposal`, `estimatePln`
+- **test:** `test-tp200a-external-discovery-preserve-parser-version.mjs` T1–T6
+
+## 2.62.11 — parserVersion + auto-rescan legacy dossier (TP200A)
+
+- **new:** `tenderDossier.parserVersion` — wersjonowanie snapshotu (SSOT `2.62.10`)
+- **fix:** legacy KV/LS bez `parserVersion` — lazy Dokumenty/Wycena wymusza ponowny parse
+- **fix:** stale rescan ignoruje stary kosztorys w `pickBetter`; merge sync preferuje świeży `parserVersion`
+- **test:** `test-tender-dossier-parser-version.mjs` TP200A-1…8
 
 ## 2.62.10 — PDF WM recovery: kalk po KNR + unit aliases (TP198B+C)
 

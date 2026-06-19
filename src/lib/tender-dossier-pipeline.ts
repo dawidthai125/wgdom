@@ -17,6 +17,11 @@ import { clearDossierTraceLog } from "@/lib/tender-dossier-trace";
 import { clearCostTraceLog, estimatePlnFromKosztorysSnapshot, mergeKosztorysValueIntoSwz, plnFromKosztorysSnapshot, traceCostPipeline, traceCostUiState } from "@/lib/tender-cost-snapshot";
 import { applyMetadataConfidence } from "@/lib/tender-metadata-confidence";
 import { pickBetterKosztorys } from "@/lib/tender-dossier-merge";
+import {
+  existingKosztorysUnlessStale,
+  CURRENT_PARSER_VERSION,
+  stampDossierParserVersion,
+} from "@/lib/tender-dossier-parser-version";
 import type { TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
 import { costTypeDisplayLabel, costTypeKosztorysFoundLine } from "@/lib/tender-cost-discovery";
 
@@ -153,12 +158,12 @@ export function buildEstimateMissingReason(summary: TenderDossierScanSummary): s
   return "Brak pliku kosztorysowego (ATH/NOR/XML/XLS/XLSX)";
 }
 
-/** P3-FIX-C — czy dossier ma już ciężkie parsowanie (kosztorys / scanSummary). */
+/** P3-FIX-C + TP200A — ciężkie parsowanie zakończone i parser aktualny. */
 export function tenderDossierHeavyParseDone(dossier: TenderDossier | null | undefined): boolean {
   if (!dossier) return false;
-  if (dossier.kosztorys?.ok) return true;
-  if (dossier.scanSummary?.parsedAt) return true;
-  return false;
+  if (dossier.parserVersion !== CURRENT_PARSER_VERSION) return false;
+  if (!dossier.kosztorys?.ok && !dossier.scanSummary?.parsedAt) return false;
+  return true;
 }
 
 /** Lekka analiza SWZ wyłącznie z HTML ogłoszenia (bez pobierania PDF). */
@@ -216,8 +221,8 @@ export async function buildTenderDossierHeavy(opts: {
       tenderTitle: opts.item.title,
     });
     if (parsedResult.kosztorys?.ok) {
-      kosztorysSnap = pickBetterKosztorys(opts.existingDossier?.kosztorys, parsedResult.kosztorys)
-        ?? kosztorysSnap;
+      const existingK = existingKosztorysUnlessStale(opts.existingDossier, kosztorysSnap);
+      kosztorysSnap = pickBetterKosztorys(existingK, parsedResult.kosztorys) ?? kosztorysSnap;
     }
     if (parsedResult.swzMerged) swzMerged = parsedResult.swzMerged;
     if (parsedResult.estimatePln != null && opts.item.ourEstimatePln == null) {
@@ -289,13 +294,13 @@ export async function buildTenderDossierHeavy(opts: {
   };
 
   return {
-    tenderDossier: {
+    tenderDossier: stampDossierParserVersion({
       brief,
       kosztorys: kosztorysSnap,
       scanSummary,
       estimatePln: estimatePln ?? null,
       builtAt: new Date().toISOString(),
-    },
+    }),
     swzAnalysis: swzMerged,
     ourEstimatePln: estimatePln,
   };
@@ -311,6 +316,7 @@ export async function analyzeTenderWithDossier(opts: {
   ourEstimatePln?: number | null;
   existing?: TenderSwzAnalysis | null;
   existingKosztorys?: TenderKosztorysSnapshot | null;
+  existingDossier?: TenderDossier | null;
   tenderTitle?: string;
 }): Promise<TenderDossierAnalysisResult> {
   clearDossierTraceLog();
@@ -357,7 +363,11 @@ export async function analyzeTenderWithDossier(opts: {
     });
     if (dossier.swzMerged) merged = dossier.swzMerged;
     if (dossier.kosztorys?.ok) {
-      kosztorys = pickBetterKosztorys(opts.existingKosztorys, dossier.kosztorys) ?? kosztorys;
+      const existingK = existingKosztorysUnlessStale(
+        opts.existingDossier,
+        opts.existingKosztorys ?? opts.existingDossier?.kosztorys ?? null,
+      );
+      kosztorys = pickBetterKosztorys(existingK, dossier.kosztorys) ?? kosztorys;
     }
     if (dossier.estimatePln != null) estimatePln = dossier.estimatePln;
     scanned = dossier.scannedCount;
@@ -428,11 +438,11 @@ export function dossierFromAnalysisResult(
   brief: TenderDossier["brief"],
   result: Pick<TenderDossierAnalysisResult, "kosztorys" | "scanSummary" | "estimatePln">,
 ): TenderDossier {
-  return {
+  return stampDossierParserVersion({
     brief,
     kosztorys: result.kosztorys,
     scanSummary: result.scanSummary,
     estimatePln: result.estimatePln ?? null,
     builtAt: new Date().toISOString(),
-  };
+  });
 }

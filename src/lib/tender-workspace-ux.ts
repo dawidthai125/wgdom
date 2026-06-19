@@ -141,6 +141,17 @@ export const TENDER_SECTION_TO_TAB: Record<TenderWorkspaceSectionId, TenderWorks
   noticeHtml: "documents",
 };
 
+/**
+ * V4 — gdy dossier ma kosztorys, nawigacja z workspace „documents” → tab /kosztorys.
+ * Używaj w `legacyWorkspaceToV4TabWithContext(tab, shouldPreferKosztorysV4Tab(tab, item))`.
+ */
+export function shouldPreferKosztorysV4Tab(
+  legacyTab: TenderWorkspaceTabId,
+  item: TenderPipelineItem,
+): boolean {
+  return legacyTab === "documents" && Boolean(item.tenderDossier?.kosztorys?.ok);
+}
+
 /** Kafelek gotowości → docelowy workspace (UX.1B — bez scrollIntoView). */
 export function bidPrepTileToWorkspace(checkId: string): TenderWorkspaceTabId | null {
   switch (checkId) {

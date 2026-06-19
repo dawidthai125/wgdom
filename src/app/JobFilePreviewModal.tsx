@@ -73,6 +73,9 @@ function isImageFilename(name: string): boolean {
   return /\.(jpe?g|png|gif|webp)$/i.test(name);
 }
 
+/** STABILITY 2.62.14 — cap wierszy tabeli ATH w modalu (TP200B). */
+const KOSZTORYS_PREVIEW_ROW_LIMIT = 80;
+
 export function JobFilePreviewModal({
   item,
   athPreviewEnabled,
@@ -103,6 +106,7 @@ export function JobFilePreviewModal({
   const [pdfTextPreview, setPdfTextPreview] = useState<string | null>(null);
   const [pdfScanWarning, setPdfScanWarning] = useState<string | null>(null);
   const [effectiveFilename, setEffectiveFilename] = useState(filename);
+  const [showAllKosztorysRows, setShowAllKosztorysRows] = useState(false);
 
   const previewContext = item.kind === "tenderBzp" ? item.previewContext : undefined;
   const pdfRole: PdfPreviewRole | null = isPdfFilename(effectiveFilename)
@@ -120,6 +124,10 @@ export function JobFilePreviewModal({
   const isKosztorys =
     (item.kind === "jobFile" && item.file.kind === "kosztorys")
     || ((item.kind === "tenderBzp" || item.kind === "tenderUpload") && isKosztorysPreviewExt(effectiveFilename));
+
+  useEffect(() => {
+    setShowAllKosztorysRows(false);
+  }, [parseResult]);
 
   useEffect(() => {
     let cancelled = false;
@@ -382,15 +390,18 @@ export function JobFilePreviewModal({
     () => buildDocumentPreviewSummary(previewContext, {
       parseResult,
       filename: effectiveFilename,
+      rowCountPending: loading && isPdf,
     }),
-    [previewContext, parseResult, effectiveFilename],
+    [previewContext, parseResult, effectiveFilename, loading, isPdf],
   );
   const executiveSummary = useMemo(
     () => buildExecutiveSummary(previewContext, documentSummary, {
       parseResult,
       filename: effectiveFilename,
+      pdfTextPreview,
+      rowCountPending: loading && isPdf,
     }),
-    [previewContext, documentSummary, parseResult, effectiveFilename],
+    [previewContext, documentSummary, parseResult, effectiveFilename, pdfTextPreview, loading, isPdf],
   );
   const showKosztorysTable = !loading && Boolean(parseResult) && viewMode === "table" && isKosztorys && !isPdf;
   const showSummaryHeader = Boolean(documentSummary) && (
@@ -697,7 +708,11 @@ export function JobFilePreviewModal({
                           {(() => {
                             const out: ReactNode[] = [];
                             let lastCat = "";
-                            for (const row of parseResult.rows) {
+                            const allRows = parseResult.rows;
+                            const displayRows = showAllKosztorysRows
+                              ? allRows
+                              : allRows.slice(0, KOSZTORYS_PREVIEW_ROW_LIMIT);
+                            for (const row of displayRows) {
                               const catKey = row.categoryLp ? `${row.categoryLp}|${row.category}` : row.category || "";
                               if (catKey && catKey !== lastCat) {
                                 lastCat = catKey;
@@ -725,8 +740,24 @@ export function JobFilePreviewModal({
                           })()}
                         </tbody>
                       </table>
+                      {parseResult.rows.length > KOSZTORYS_PREVIEW_ROW_LIMIT && (
+                        <div className="px-3 py-2 border-t border-border">
+                          <button
+                            type="button"
+                            onClick={() => setShowAllKosztorysRows((v) => !v)}
+                            className="text-[11px] font-medium text-primary hover:underline"
+                          >
+                            {showAllKosztorysRows
+                              ? "Pokaż mniej pozycji"
+                              : `Pokaż więcej (${parseResult.rows.length - KOSZTORYS_PREVIEW_ROW_LIMIT} poz.)`}
+                          </button>
+                        </div>
+                      )}
                       <p className="text-[10px] text-muted-foreground px-3 py-2 border-t border-border">
                         {parseResult.rows.length} pozycji
+                        {!showAllKosztorysRows && parseResult.rows.length > KOSZTORYS_PREVIEW_ROW_LIMIT
+                          ? ` · widoczne ${KOSZTORYS_PREVIEW_ROW_LIMIT}`
+                          : ""}
                         {parseResult.totalValue ? ` · wartość całkowita wg pliku: ${parseResult.totalValue} ${parseResult.currency || "PLN"}` : ""}
                       </p>
                     </div>
