@@ -6,6 +6,7 @@ import {
   TENDERS_DELETED_IDS_KEY,
 } from "@/lib/tenders-sync";
 import { patchPipelineSessionCache } from "@/lib/tenders-pipeline-session-cache";
+import { mergeTenderDossierByQuality } from "@/lib/tender-dossier-merge";
 import {
   matchTenderKeywords,
   isExcludedTenderTitle,
@@ -519,7 +520,7 @@ export function mergeTenderPipeline(
           tenderState: item.tenderState ?? prev.tenderState,
           noticeHtml: prev.noticeHtml ?? item.noticeHtml,
           noticeHtmlFetchedAt: prev.noticeHtmlFetchedAt ?? item.noticeHtmlFetchedAt,
-          tenderDossier: prev.tenderDossier ?? item.tenderDossier,
+          tenderDossier: mergeTenderDossierByQuality(prev.tenderDossier, item.tenderDossier) ?? prev.tenderDossier ?? item.tenderDossier,
           tenderFit: prev.tenderFit ?? item.tenderFit,
           externalDocDiscovery: prev.externalDocDiscovery ?? item.externalDocDiscovery,
           estimateHistory: prev.estimateHistory ?? item.estimateHistory,
