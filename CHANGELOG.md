@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.8** · **TP192C parallel dossier bytes prefetch CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.9** · **TP190A protect kosztorys during re-analyze CLOSED**
+
+## 2.62.9 — protect existing kosztorys during re-analysis (TP190A)
+
+- **fix:** `analyzeTenderWithDossier` — `pickBetterKosztorys` po parse (re-analyze nie degraduje ATH)
+- **fix:** `buildTenderDossierHeavy` — ten sam guard przy lazy dossier
+- **test:** `test-tender-dossier-merge-quality.mjs` TP190A-1…5
 
 ## 2.62.8 — parallel dossier bytes prefetch (TP192C)
 

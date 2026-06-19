@@ -153,5 +153,67 @@ console.log("\nT1b mergeTenderDossierByQuality — obowiązkowy przykład");
   assert(d?.kosztorys?.rowCount === 302, "dossier merge → ATH 302");
 }
 
+/** TP190A — ten sam merge co analyzeTenderWithDossier / buildTenderDossierHeavy po parse. */
+function resolveKosztorysAfterParse(existing, parsed) {
+  let kosztorys = existing ?? null;
+  if (parsed?.ok) {
+    kosztorys = pickBetterKosztorys(existing, parsed) ?? kosztorys;
+  }
+  return kosztorys;
+}
+
+console.log("\n=== TP190A RE-ANALYZE / LAZY DOSSIER QUALITY GUARD ===\n");
+
+// TP190A-1 — existing ATH 302, new EMPTY → existing survives
+console.log("TP190A-1 existing ATH 302 vs new EMPTY");
+{
+  const existing = kosztorys("SĘPA-SZARZYŃSKIEGO 65a_P_Scalony.ATH", 302);
+  const resolved = resolveKosztorysAfterParse(existing, null);
+  assert(resolved?.rowCount === 302, "existing ATH 302 survives empty parse");
+  assert(/\.ATH$/i.test(resolved?.sourceFilename ?? ""), "source remains ATH");
+}
+
+// TP190A-2 — existing ATH 302, new XLS 8 → existing survives
+console.log("\nTP190A-2 existing ATH 302 vs new XLS 8");
+{
+  const existing = kosztorys("SĘPA-SZARZYŃSKIEGO 65a_P_Scalony.ATH", 302);
+  const worse = kosztorys("TP190A_Zal. nr 1 do SWZ - Formularz oferty.xlsx", 8);
+  const resolved = resolveKosztorysAfterParse(existing, worse);
+  assert(resolved?.rowCount === 302, "existing ATH 302 survives formularz 8");
+  assert(/\.ATH$/i.test(resolved?.sourceFilename ?? ""), "source remains ATH");
+}
+
+// TP190A-3 — existing PDF 120, new PDF 80 → existing survives (same tier, rowCount)
+console.log("\nTP190A-3 existing PDF 120 vs new PDF 80");
+{
+  const existing = kosztorys("Nowowiejska 86a_27 - przedmiar.pdf", 120);
+  const worse = kosztorys("Nowowiejska 86a_27 - przedmiar partial.pdf", 80);
+  const resolved = resolveKosztorysAfterParse(existing, worse);
+  assert(resolved?.rowCount === 120, "existing PDF 120 survives PDF 80");
+}
+
+// TP190A-4 — existing PDF 80, new ATH 302 → new wins
+console.log("\nTP190A-4 existing PDF 80 vs new ATH 302");
+{
+  const existing = kosztorys("Nowowiejska 86a_27 - przedmiar.pdf", 80);
+  const better = kosztorys("SĘPA-SZARZYŃSKIEGO 65a_P_Scalony.ATH", 302);
+  const resolved = resolveKosztorysAfterParse(existing, better);
+  assert(resolved?.rowCount === 302, "ATH 302 wins over PDF 80");
+  assert(/\.ATH$/i.test(resolved?.sourceFilename ?? ""), "source becomes ATH");
+}
+
+// TP190A-5 — buildTenderDossierHeavy path: existing ATH not degraded by worse parse
+console.log("\nTP190A-5 buildTenderDossierHeavy guard — ATH survives worse parse");
+{
+  const existingDossierKosztorys = kosztorys("SĘPA.ATH", 302);
+  const parsedForm = kosztorys("Formularz oferty.xlsx", 8);
+  let kosztorysSnap = existingDossierKosztorys ?? null;
+  if (parsedForm?.ok) {
+    kosztorysSnap = pickBetterKosztorys(existingDossierKosztorys, parsedForm) ?? kosztorysSnap;
+  }
+  assert(kosztorysSnap?.rowCount === 302, "heavy path → existing ATH 302");
+  assert(/\.ATH$/i.test(kosztorysSnap?.sourceFilename ?? ""), "heavy path source remains ATH");
+}
+
 console.log(`\n=== WYNIK: ${pass} PASS, ${fail} FAIL ===`);
 process.exit(fail > 0 ? 1 : 0);

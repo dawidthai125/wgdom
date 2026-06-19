@@ -16,6 +16,7 @@ import { isDocxFilename, isXlsxFilename, isZipFilename, parsePlnFromKosztorysTot
 import { clearDossierTraceLog } from "@/lib/tender-dossier-trace";
 import { clearCostTraceLog, estimatePlnFromKosztorysSnapshot, mergeKosztorysValueIntoSwz, plnFromKosztorysSnapshot, traceCostPipeline, traceCostUiState } from "@/lib/tender-cost-snapshot";
 import { applyMetadataConfidence } from "@/lib/tender-metadata-confidence";
+import { pickBetterKosztorys } from "@/lib/tender-dossier-merge";
 import type { TenderCostDiscoveryResult } from "@/lib/tender-cost-discovery";
 import { costTypeDisplayLabel, costTypeKosztorysFoundLine } from "@/lib/tender-cost-discovery";
 
@@ -214,7 +215,10 @@ export async function buildTenderDossierHeavy(opts: {
       existingSwz: swzMerged ?? undefined,
       tenderTitle: opts.item.title,
     });
-    if (parsedResult.kosztorys) kosztorysSnap = parsedResult.kosztorys;
+    if (parsedResult.kosztorys?.ok) {
+      kosztorysSnap = pickBetterKosztorys(opts.existingDossier?.kosztorys, parsedResult.kosztorys)
+        ?? kosztorysSnap;
+    }
     if (parsedResult.swzMerged) swzMerged = parsedResult.swzMerged;
     if (parsedResult.estimatePln != null && opts.item.ourEstimatePln == null) {
       estimatePln = parsedResult.estimatePln;
@@ -352,7 +356,9 @@ export async function analyzeTenderWithDossier(opts: {
       tenderTitle: opts.tenderTitle,
     });
     if (dossier.swzMerged) merged = dossier.swzMerged;
-    if (dossier.kosztorys?.ok) kosztorys = dossier.kosztorys;
+    if (dossier.kosztorys?.ok) {
+      kosztorys = pickBetterKosztorys(opts.existingKosztorys, dossier.kosztorys) ?? kosztorys;
+    }
     if (dossier.estimatePln != null) estimatePln = dossier.estimatePln;
     scanned = dossier.scannedCount;
     parsed = dossier.parsedCount;

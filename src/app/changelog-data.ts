@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-19",
+    version: "2.62.9",
+    label: "Przetargi — protect existing kosztorys during re-analysis (TP190A)",
+    items: [
+      {
+        type: "fix",
+        text: "analyzeTenderWithDossier — pickBetterKosztorys zamiast bezwarunkowego replace po parse",
+      },
+      {
+        type: "fix",
+        text: "buildTenderDossierHeavy — ten sam quality guard przy lazy dossier",
+      },
+      {
+        type: "fix",
+        text: "Regresja — test-tender-dossier-merge-quality.mjs TP190A-1…5",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
     version: "2.62.8",
     label: "Przetargi — parallel dossier bytes prefetch (TP192C)",
     items: [
