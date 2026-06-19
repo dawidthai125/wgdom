@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-18 (V4.2 Kosztorys PRO **v2.62.0** · P0 ZIP ATH **v2.61.5** · § 12.1.15 · § 12.1.14)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-19 (P0/P1 Kosztorys Merge Quality **4574182+50d7501** · V4.2 Kosztorys PRO **v2.62.0** · § 12.1.16 · § 12.1.15)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -877,7 +877,8 @@ Audyt: `npm run audit:import-cycles` → JSON z `p0StaticImportViolations`, `cyc
 | Plik | Rola |
 |------|------|
 | `src/lib/tenders-bzp.ts` | Typy pipeline, scoring, merge, API klienta, `patchOurEstimatePln`, dashboard stats |
-| `src/lib/tenders-sync.ts` | Merge pipeline z chmurą, CSV, deleted ids |
+| `src/lib/tenders-sync.ts` | Merge pipeline z chmurą (P0 quality kosztorys), CSV, deleted ids |
+| `src/lib/tender-dossier-merge.ts` | **P0/P1** — ranking jakości `tenderDossier.kosztorys` przy merge |
 | `src/lib/tenders-bzp-keywords.ts` | Słowa kluczowe scoringu (sync z Edge) |
 | `src/lib/tenders-bzp-learn.ts` | Uczenie słów z przetargów „interesuje nas” |
 | `src/lib/tenders-actions.ts` | **v2.45.8** — chipy „wymaga działania”, auto-wynik BZP, alerty pulpitu, .ics, porównanie cen |
@@ -1409,6 +1410,37 @@ TenderKosztorysWorkspace
 **Testy:** `test-v41-kosztorys-workspace.mjs` (T12–T13) · `test-construction-scope-analysis.mjs` · `test-construction-business-fit.mjs` · regresja `test-tender-cost-discovery.mjs`
 
 **Nie zmieniaj bez polecenia:** `tender-cost-discovery.ts`, `tender-document-resolver.ts`, `tenders-bzp-doc-parse.ts`, `tender-dossier-pipeline.ts`, parser ATH, Edge.
+
+### 12.1.16 P0/P1 — Kosztorys Merge Quality Protection (TP113 / TP182, v2.62.1 infra)
+
+**Status:** **CLOSED** · commity **`4574182`** (P0 cloud merge) · **`50d7501`** (P1 BZP merge)  
+**Handoff SSOT:** [`docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md`](SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md)
+
+Chroni `tenderDossier.kosztorys` przed regresją do formularza ofertowego XLSX przy scalaniu pipeline — **niezależnie od `updatedAt` rekordu**.
+
+```text
+mergeTenderDossierByQuality(a, b)     ← tender-dossier-merge.ts (SSOT rankingu)
+  ├── mergePipelineItem()             ← tenders-sync.ts (P0: LS ↔ cloud)
+  └── mergeTenderPipeline()           ← tenders-bzp.ts (P1: Odśwież BZP)
+```
+
+| Ścieżka | Wejście | Wywołanie |
+|---------|---------|-----------|
+| **P0 Cloud sync** | `loadTendersPipeline()` · CloudLoader · backup import | `mergeTenderPipelineForCloud` → `mergePipelineItem` |
+| **P1 BZP refresh** | `refreshFromBzp()` → `runBzpMerge()` | `mergeTenderPipeline(baseItems, mapped)` |
+
+**Ranking źródeł:** ATH > NOR > PDF przedmiar > ZIP PDF > XLSX kosztorys > formularz ofertowy > brak.  
+**Tie-breaker:** `rowCount` → `parsedAt` (nie `updatedAt` pipeline).
+
+| Plik | Zmiana |
+|------|--------|
+| `tender-dossier-merge.ts` | `pickBetterKosztorys`, `mergeTenderDossierByQuality`, `kosztorysSourceQualityTier` |
+| `tenders-sync.ts` | `tenderDossier: mergeTenderDossierByQuality(a.tenderDossier, b.tenderDossier)` |
+| `tenders-bzp.ts` | `tenderDossier: mergeTenderDossierByQuality(prev.tenderDossier, item.tenderDossier)` |
+
+**Testy:** `test-tender-dossier-merge-quality.mjs` (P0, 18) · `test-tender-bzp-merge-quality.mjs` (P1, 12)
+
+**Nie zmieniaj bez polecenia:** ranking w `tender-dossier-merge.ts` bez audytu TP113/TP182 · parsery ATH/PDF · `existingKosztorys` w `analyzeTenderWithDossier` (osobna warstwa).
 
 ### 12.1.12 P1 — Document Insights / Owner View Modal (P1A–P1D, v2.59.52)
 

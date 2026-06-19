@@ -10,7 +10,7 @@ Komunikuj się z użytkownikiem po **polsku**.
 ## Zanim zaczniesz pracę w tym repo
 
 1. **Przeczytaj [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)** — ★★ mapa systemu (widoki, sync, WM Druk, workflow).
-2. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.59.49**, `94ad114`).
+2. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.62.1**, `50d7501`).
 3. **Przeczytaj [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md)** — ★★ POST ZI · WM Druk COMPLETE.
 4. **Przeczytaj [`docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md)** — ★★ Pomiary Elektryczne EM-P1R.
 5. **Przeczytaj [`docs/ZI-2026-HANDOFF.md`](docs/ZI-2026-HANDOFF.md)** — ★★★ ZI Tauron 2026 prod SSOT.
@@ -20,8 +20,9 @@ Komunikuj się z użytkownikiem po **polsku**.
 9. **Przeczytaj [`CURRENT-TASK.md`](CURRENT-TASK.md)** — status sesji / wznowienie.
 10. **Przeczytaj [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md)** — release/deploy A/B/C + verify `version.json`.
 11. **Przeczytaj [`AGENTS.md`](AGENTS.md)** — pełna lista handoffów i zakazy.
-12. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § 10.1 Przydziały robót · § 11 sync · § **12.1.8 WM Druk** · § **12.1.10 EM** · § 15.1 widoki.
+12. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § 10.1 Przydziały robót · § 11 sync · § **12.1.16 P0/P1 merge kosztorysu** · § **12.1.8 WM Druk** · § **12.1.10 EM** · § 15.1 widoki.
 13. **Tematycznie (gdy dotyczy zadania):**
+ - **P0/P1 merge jakościowy kosztorysu (TP113/TP182)** → [`docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md`](docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md)
  - **Lista Płac · Przydziały robót** → [`docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md`](docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md)
  - **Pomiary Elektryczne / DOCX** → [`docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md)
  - **P2-H Dokumenty / ZIP / 7Z** → [`docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md`](docs/SESSION-HANDOFF-P2-H-TENDER-DOCUMENTS.md)

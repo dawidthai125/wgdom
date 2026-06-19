@@ -1,7 +1,7 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.59.52** · https://www.wgdom.fun · **P1 Document Insights** · POST ZI-2026 · WM Druk **COMPLETE** · EM-P1R **COMPLETE** · **PAYROLL-ASSIGNMENTS-P1**
+> **Prod:** **2.62.1** · https://www.wgdom.fun · **P0/P1 Kosztorys Merge Quality** · P1 Document Insights · POST ZI-2026 · WM Druk **COMPLETE** · EM-P1R **COMPLETE** · **PAYROLL-ASSIGNMENTS-P1**
 
 ---
 
@@ -10,6 +10,7 @@
 ```text
 1. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
 2. docs/PROJECT-HANDOFF-CURRENT.md    ← baseline prod, commity, releasy
+2a. docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md  ← ★★ merge jakościowy kosztorysu (TP113/TP182)
 2b. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1 Owner View · modal · Executive Summary
 3. docs/MASTER-HANDOFF-POST-ZI-2026.md ← skrót POST ZI · WM Druk COMPLETE
 4. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md ← ★★ Pomiary Elektryczne EM-P1R
@@ -173,6 +174,36 @@ npx vite-node scripts/test-p5-owner-view.mjs
 ```
 
 **Nie ruszać bez briefu:** `tender-dossier-pipeline.ts`, `ath-parser.ts`, FIX-A/B/C — patrz handoff P1 §10.
+
+---
+
+## 6e. Przetargi — P0/P1 Kosztorys Merge Quality — **2.62.1 CLOSED**
+
+**Status:** **P0+P1 CLOSED** · commity **`4574182`** + **`50d7501`** · incydenty **TP113** / **TP182**
+
+Ochrona snapshotu `tenderDossier.kosztorys` (ATH / PDF) przy sync LS↔cloud i przy „Odśwież BZP”.
+
+| Dokument | Rola |
+|----------|------|
+| [`SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md`](SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md) | **★★ SSOT** — dwa merge path, ranking, testy, pułapki |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.16 | Architektura techniczna |
+
+### Dwa merge path (skrót)
+
+```text
+P0  loadTendersPipeline → mergePipelineItem → mergeTenderDossierByQuality   [tenders-sync.ts]
+P1  runBzpMerge → mergeTenderPipeline → mergeTenderDossierByQuality           [tenders-bzp.ts]
+SSOT rankingu: tender-dossier-merge.ts
+```
+
+### Smoke
+
+```bash
+npx vite-node scripts/test-tender-dossier-merge-quality.mjs   # P0
+npx vite-node scripts/test-tender-bzp-merge-quality.mjs       # P1
+```
+
+**Nie ruszać bez briefu:** parsery ATH/PDF · discovery · ranking tierów bez testów TP113/TP182.
 
 ---
 

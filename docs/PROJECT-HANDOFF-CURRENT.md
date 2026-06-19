@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-18 (**repo 2.62.0 V4.2 Kosztorys PRO** · **prod 2.61.5** · P0 ZIP ATH CLOSED · ATH visibility hotfix)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-19 (**prod 2.62.1** · P0/P1 Kosztorys Merge Quality CLOSED · P0 ZIP ATH · V4.2 Kosztorys PRO)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -9,8 +9,9 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-1a. docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md  ← ★★ P0 ZIP ATH Recovery (2.61.4 CLOSED)
-1b. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1A–P1D Owner View · modal
+1a. docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md  ← ★★ P0/P1 merge jakościowy kosztorysu (TP113/TP182 CLOSED)
+1b. docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md  ← ★★ P0 ZIP ATH Recovery (2.61.4 CLOSED)
+1c. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1A–P1D Owner View · modal
 2. docs/MASTER-HANDOFF-POST-ZI-2026.md    ← ★★ skrót POST ZI-2026 (WM Druk COMPLETE)
 3. docs/ZI-2026-HANDOFF.md              ← ★★★ ZI Tauron 2026 prod SSOT
 4. docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md  ← ★★ Pomiary Elektryczne EM-P1R (2.59.44)
@@ -33,7 +34,8 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
-| **Przetargi · V4.2 Kosztorys PRO** | **2.62.0** (repo, nie prod) | **IMPLEMENT COMPLETE** · KPI · TOP 20 · filtry · ocena · Pobierz ATH | ARCHITECTURE § 12.1.15 · `tender-kosztorys-pro-dashboard.ts` |
+| **Przetargi · P0/P1 Kosztorys Merge Quality** | **2.62.1** (`50d7501`+`4574182`) | **CLOSED** · ATH/PDF chronione przy sync + BZP | [`SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md`](SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md) |
+| **Przetargi · V4.2 Kosztorys PRO** | **2.62.0** | **COMPLETE** · KPI · TOP 20 · filtry · ocena · Pobierz ATH | ARCHITECTURE § 12.1.15 · `tender-kosztorys-pro-dashboard.ts` |
 | **Przetargi · ATH visibility hotfix** | **2.61.5** (`c41d79b`) | **PROD** · cap 500 · filter→slice · 302/302 TP113 | CHANGELOG 2.61.5 |
 | **Przetargi · P0 ZIP ATH Recovery** | **2.61.4** (`653abe0`) | **CLOSED** · duże ZIP 128 MB · zip-catalog · ATH z dokumentacji WM | [`SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md`](SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md) |
 | **Przetargi · V4 Kosztorys** | **2.61.2–2.61.3** | **CLOSED** · filtr formalnych · `catalogQuantities` SSOT | CHANGELOG 2.61.2–2.61.3 |
@@ -89,7 +91,11 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (repo / prod):      2.61.4        ← P0 ZIP ATH Recovery (Edge zip-catalog + discovery)
+Version (prod):             2.62.1        ← WM PDF recovery + P0/P1 merge quality infra
+P0/P1 Merge Quality P1:     50d7501        BZP refresh — mergeTenderPipeline quality merge
+P0/P1 Merge Quality P0:     4574182        Cloud sync — mergePipelineItem quality merge
+WM PDF przedmiar recovery:  7167141        v2.62.1 TP182-style BOQ (parser path)
+V4.2 Kosztorys PRO:         2.62.0         KPI · TOP 20 · filtry · ocena
 P0 ZIP ATH Recovery:        653abe0        v2.61.4 large ZIP 128MB · ezamawiajacy · ATH recovery
 V4 Kosztorys Source:        8b05afb        v2.61.3 catalogQuantities SSOT w zakładce Kosztorys
 V4 Kosztorys formal filter: f95451f        v2.61.2 buildKosztorysV4Display — bez KRS/CEIDG

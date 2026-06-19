@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **repo 2.62.1** · **WM PDF Recovery**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.1** · **P0/P1 Merge Quality CLOSED**
+
+## 2.62.1 — docs: P0/P1 Kosztorys Merge Quality handoff (agent AI)
+
+- **docs:** `SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md` — SSOT dla TP113/TP182 merge path
+- **docs:** ARCHITECTURE § 12.1.16 · AGENT-ONBOARDING § 6e · AGENTS.md · CURRENT-TASK.md
+- **infra (prod):** `4574182` P0 cloud merge · `50d7501` P1 BZP merge · `tender-dossier-merge.ts`
 
 ## 2.62.1 — WM PDF przedmiar recovery (TP182)
 
