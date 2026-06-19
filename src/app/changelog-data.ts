@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-19",
+    version: "2.62.15",
+    label: "Przetargi V4 — Kwalifikacja i Oferta na tabie Decyzja",
+    items: [
+      {
+        type: "fix",
+        text: "V4 routing — /decyzja?ws=qualification|offer odblokowuje workspace Kwalifikacja i Oferta (P2-F)",
+      },
+      {
+        type: "fix",
+        text: "CTA z OwnerView / kafelków gotowości — poprawny URL z ?ws=; reload i back/forward zachowują widok",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
     version: "2.62.14",
     label: "Przetargi — STABILITY PATCH (pre-SmartPZP)",
     items: [

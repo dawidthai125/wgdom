@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.11** · **STABILITY 2.62.14 lokalnie** · **TP200B 2.62.13**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.14** · **V4 decyzja fix lokalnie 2.62.15**
+
+## 2.62.15 — V4 Kwalifikacja / Oferta (?ws=)
+
+- **fix:** `/decyzja?ws=qualification|offer` — TenderQualificationWorkspace + TenderOfferSection widoczne w V4
+- **fix:** CTA OwnerView → `buildTenderDetailPathFromLegacyWorkspace` z query ?ws=
 
 ## 2.62.14 — STABILITY PATCH pre-SmartPZP
 

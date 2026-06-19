@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { ArrowLeft, ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import {
   jobDraftFromTender,
   type TenderPipelineItem,
@@ -14,12 +14,13 @@ import { useTenderDossierHeavyLazy } from "@/app/hooks/useTenderDossierHeavyLazy
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import {
   buildTenderDetailPath,
+  buildTenderDetailPathFromLegacyWorkspace,
   isTenderDetailV4PlaceholderTab,
-  legacyWorkspaceToV4TabWithContext,
+  resolveV4EmbedLegacyWorkspace,
+  TENDER_DETAIL_DECYZJA_WS_QUERY,
   TENDER_DETAIL_V4_TAB_LABELS,
   TENDERS_LIST_PATH,
   type TenderDetailV4TabId,
-  v4TabToLegacyWorkspace,
 } from "@/lib/tender-detail-routes-v4";
 import {
   shouldPreferKosztorysV4Tab,
@@ -49,8 +50,14 @@ export function TenderDetailPage({
   athPreviewEnabled?: boolean;
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { snapshot, profileVersion } = useTendersContext();
   const { pipeline } = snapshot;
+
+  const decyzjaWs = useMemo(() => {
+    if (tab !== "decyzja") return null;
+    return new URLSearchParams(location.search).get(TENDER_DETAIL_DECYZJA_WS_QUERY);
+  }, [tab, location.search]);
 
   const item = useMemo(
     () => pipeline.items.find((t) => t.id === tenderId) ?? null,
@@ -71,15 +78,12 @@ export function TenderDetailPage({
       const preferKosztorys = item
         ? shouldPreferKosztorysV4Tab(legacyTab, item)
         : false;
-      navigate(buildTenderDetailPath(
-        tenderId,
-        legacyWorkspaceToV4TabWithContext(legacyTab, preferKosztorys),
-      ));
+      navigate(buildTenderDetailPathFromLegacyWorkspace(tenderId, legacyTab, { preferKosztorys }));
     },
     [navigate, tenderId, item],
   );
 
-  const legacyWorkspace = v4TabToLegacyWorkspace(tab);
+  const legacyWorkspace = resolveV4EmbedLegacyWorkspace(tab, decyzjaWs);
   const compactKosztorysChrome = tab === "kosztorys";
 
   const onUpdateItem = useCallback(
@@ -116,6 +120,7 @@ export function TenderDetailPage({
       data-tender-detail-v4
       data-tender-id={item.id}
       data-tender-tab={tab}
+      data-tender-ws={tab === "decyzja" ? (decyzjaWs ?? "overview") : undefined}
     >
       <div
         className="flex-1 min-h-0 overflow-y-auto overscroll-contain"

@@ -143,7 +143,7 @@ export const TENDER_SECTION_TO_TAB: Record<TenderWorkspaceSectionId, TenderWorks
 
 /**
  * V4 — gdy dossier ma kosztorys, nawigacja z workspace „documents” → tab /kosztorys.
- * Używaj w `legacyWorkspaceToV4TabWithContext(tab, shouldPreferKosztorysV4Tab(tab, item))`.
+ * Używaj w `buildTenderDetailPathFromLegacyWorkspace(tenderId, tab, { preferKosztorys })`.
  */
 export function shouldPreferKosztorysV4Tab(
   legacyTab: TenderWorkspaceTabId,

@@ -44,6 +44,23 @@ export function isTenderDetailV4PlaceholderTab(tab: TenderDetailV4TabId): boolea
   return TENDER_DETAIL_V4_PLACEHOLDER_TABS.has(tab);
 }
 
+/** Query ?ws= na tabie decyzja — qualification | offer (overview = brak parametru). */
+export const TENDER_DETAIL_DECYZJA_WS_QUERY = "ws";
+
+export const DECYZJA_V4_EMBED_WORKSPACES = ["overview", "qualification", "offer"] as const;
+
+export type DecyzjaV4EmbedWorkspace = (typeof DECYZJA_V4_EMBED_WORKSPACES)[number];
+
+export function isDecyzjaV4EmbedWorkspace(value: string): value is DecyzjaV4EmbedWorkspace {
+  return (DECYZJA_V4_EMBED_WORKSPACES as readonly string[]).includes(value);
+}
+
+/** Parsuje ?ws=; nieznane wartości → overview. */
+export function parseDecyzjaWorkspaceQuery(raw: string | null | undefined): DecyzjaV4EmbedWorkspace {
+  if (raw && isDecyzjaV4EmbedWorkspace(raw)) return raw;
+  return "overview";
+}
+
 /** Slug V4 → legacy workspace (null = brak panelu / placeholder). */
 export function v4TabToLegacyWorkspace(tab: TenderDetailV4TabId): TenderWorkspaceTabId | null {
   switch (tab) {
@@ -61,6 +78,15 @@ export function v4TabToLegacyWorkspace(tab: TenderDetailV4TabId): TenderWorkspac
     default:
       return null;
   }
+}
+
+/** Tab V4 + opcjonalny ?ws= → workspace osadzony w TenderDetailPanel. */
+export function resolveV4EmbedLegacyWorkspace(
+  tab: TenderDetailV4TabId,
+  decyzjaWs?: string | null,
+): TenderWorkspaceTabId | null {
+  if (tab !== "decyzja") return v4TabToLegacyWorkspace(tab);
+  return parseDecyzjaWorkspaceQuery(decyzjaWs);
 }
 
 /** Legacy workspace → slug V4 (nawigacja z TenderOwnerView). */
@@ -93,8 +119,36 @@ export function legacyWorkspaceToV4TabWithContext(
 export function buildTenderDetailPath(
   tenderId: string,
   tab: TenderDetailV4TabId = TENDER_DETAIL_V4_DEFAULT_TAB,
+  opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace },
 ): string {
-  return `${TENDERS_LIST_PATH}/${encodeURIComponent(tenderId)}/${tab}`;
+  const base = `${TENDERS_LIST_PATH}/${encodeURIComponent(tenderId)}/${tab}`;
+  if (
+    tab === "decyzja"
+    && opts?.decyzjaWorkspace
+    && opts.decyzjaWorkspace !== "overview"
+  ) {
+    const q = new URLSearchParams({
+      [TENDER_DETAIL_DECYZJA_WS_QUERY]: opts.decyzjaWorkspace,
+    });
+    return `${base}?${q.toString()}`;
+  }
+  return base;
+}
+
+/** Nawigacja z legacy workspace (OwnerView, kafelki gotowości) → pełny path V4. */
+export function buildTenderDetailPathFromLegacyWorkspace(
+  tenderId: string,
+  legacyTab: TenderWorkspaceTabId,
+  opts?: { preferKosztorys?: boolean },
+): string {
+  if (opts?.preferKosztorys && legacyTab === "documents") {
+    return buildTenderDetailPath(tenderId, "kosztorys");
+  }
+  const v4Tab = legacyWorkspaceToV4Tab(legacyTab);
+  if (v4Tab === "decyzja" && (legacyTab === "qualification" || legacyTab === "offer")) {
+    return buildTenderDetailPath(tenderId, "decyzja", { decyzjaWorkspace: legacyTab });
+  }
+  return buildTenderDetailPath(tenderId, v4Tab);
 }
 
 export interface ParsedTenderDetailPath {
