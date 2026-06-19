@@ -31,6 +31,22 @@ export function detectOffPlatformHosts(text: string): OffPlatformHost[] {
   return OFF_PLATFORM_HOST_PRIORITY.filter((host) => OFF_PLATFORM_HOST_PATTERNS[host].test(text));
 }
 
+/** TP192A — hosty, dla których readmodels nie zwróci załączników (pomiń probe 1..50). */
+export const READMODELS_PROBE_SKIP_HOSTS: OffPlatformHost[] = [
+  "ezamawiajacy",
+  "logintrade",
+  "platformazakupowa",
+];
+
+/**
+ * TP192A — true gdy ogłoszenie wskazuje dokumenty poza BZP readmodels.
+ * Używane przed probeTenderDocuments(1..50) w discoverTenderDocuments.
+ */
+export function shouldSkipReadmodelsProbe(text: string): boolean {
+  if (!text?.trim()) return false;
+  return READMODELS_PROBE_SKIP_HOSTS.some((host) => OFF_PLATFORM_HOST_PATTERNS[host].test(text));
+}
+
 export function extractPlainUrls(text: string): string[] {
   return [...text.matchAll(/https?:\/\/[^\s<>"']+/gi)]
     .map((m) => m[0].replace(/[.,;)]+$/g, ""))

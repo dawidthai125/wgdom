@@ -9,6 +9,7 @@ import {
   parseDispositionFilename,
   resolvePlatformazakupowaFilename,
 } from "./tender-filename-encoding.ts";
+import { shouldSkipReadmodelsProbe } from "./tender-platform-adapters.ts";
 
 const PHOTOS_BUCKET = "make-0afb8820-photos";
 
@@ -2753,12 +2754,15 @@ async function probeTenderDocuments(tenderId: string): Promise<Record<string, un
 async function discoverMpClientDocuments(
   tenderId: string,
   _noticeNumber?: string,
+  opts?: { skipReadmodelsProbe?: boolean },
 ): Promise<{
   documents: Record<string, unknown>[];
   source: "readmodels" | "mp-client-auth" | "none";
   mpClientAuthRequired?: boolean;
 }> {
-  const documents = await probeTenderDocuments(tenderId);
+  const documents = opts?.skipReadmodelsProbe
+    ? []
+    : await probeTenderDocuments(tenderId);
   if (documents.length > 0) {
     return { documents, source: "readmodels" };
   }
@@ -3410,11 +3414,6 @@ async function discoverTenderDocuments(
   mpClientAuthRequired?: boolean;
   offPlatformHost?: OffPlatformHost | null;
 }> {
-  const mp = await discoverMpClientDocuments(tenderId, noticeNumber);
-  if (mp.documents.length > 0) {
-    return { ...mp, source: mp.source, offPlatformHost: null };
-  }
-
   let html = noticeHtml?.trim() || "";
   if (!html && noticeNumber) {
     try {
@@ -3430,6 +3429,12 @@ async function discoverTenderDocuments(
     } catch {
       /* brak HTML — pomijamy adaptery */
     }
+  }
+
+  const skipReadmodelsProbe = shouldSkipReadmodelsProbe(html);
+  const mp = await discoverMpClientDocuments(tenderId, noticeNumber, { skipReadmodelsProbe });
+  if (mp.documents.length > 0) {
+    return { ...mp, source: mp.source, offPlatformHost: null };
   }
 
   if (html.length > 100) {

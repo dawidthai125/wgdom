@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.5** · **TP194A platformazakupowa encoding CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.6** · **TP192A host detection shortcut CLOSED**
+
+## 2.62.6 — host detection shortcut (TP192A)
+
+- **improve:** `shouldSkipReadmodelsProbe` — pomiń probe 1..50 dla PZ / logintrade / ezamawiajacy
+- **improve:** `discoverTenderDocuments` — HTML przed probe; ~4 s szybszy cold fetch off-platform
+- **test:** `test-tender-host-detection-tp192a.mjs`
 
 ## 2.62.5 — platformazakupowa filename encoding (TP194A)
 

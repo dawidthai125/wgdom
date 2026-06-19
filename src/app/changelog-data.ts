@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-19",
+    version: "2.62.6",
+    label: "Przetargi — host detection shortcut (TP192A)",
+    items: [
+      {
+        type: "improve",
+        text: "discoverTenderDocuments — pomiń readmodels probe 1..50 gdy noticeHtml wskazuje platformazakupowa / logintrade / ezamawiajacy",
+      },
+      {
+        type: "improve",
+        text: "TP192A — ~4 s szybsze cold fetch dokumentów off-platform (edge)",
+      },
+      {
+        type: "improve",
+        text: "Regresja — test-tender-host-detection-tp192a.mjs",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
     version: "2.62.5",
     label: "Przetargi — platformazakupowa filename encoding (TP194A)",
     items: [
