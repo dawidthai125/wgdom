@@ -60,4 +60,11 @@ export function extractPlatformaZakupowaUrls(noticeHtml: string): string[] {
   return extractPlainUrls(noticeHtml).filter((u) => OFF_PLATFORM_HOST_PATTERNS.platformazakupowa.test(u));
 }
 
+/** ID postępowania z linku transakcja/{id} w ogłoszeniu BZP. */
+export function extractPlatformazakupowaTransakcjaId(text: string): string | null {
+  if (!text?.trim()) return null;
+  const m = text.match(/platformazakupowa\.pl\/transakcja\/(\d+)/i);
+  return m?.[1] ?? null;
+}
+
 export const LOGINTRADE_ATTACHMENT_RE = /DocumentService,getAttachmentUnlogged[^"'<\s]+/gi;

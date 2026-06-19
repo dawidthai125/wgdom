@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.1** · **P0/P1 Merge Quality CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.2** · **TP191 Open Nexus CLOSED**
+
+## 2.62.2 — Open Nexus / platformazakupowa.pl (TP191)
+
+- **new:** Adapter publicznych dokumentów Open Nexus — guest session + `/file/get_new/` (transakcja/{id})
+- **fix:** UX platform awareness — bez fałszywego komunikatu „login required”
+- **improve:** Badge ✓ platformazakupowa.pl · CTA Otwórz postępowanie
+- **test:** `test-platformazakupowa-public-documents.mjs` (14 PASS)
 
 ## 2.62.1 — docs: P0/P1 Kosztorys Merge Quality handoff (agent AI)
 

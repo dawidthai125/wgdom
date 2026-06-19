@@ -11,6 +11,29 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-19",
+    version: "2.62.2",
+    label: "Przetargi — Open Nexus / platformazakupowa.pl (TP191)",
+    items: [
+      {
+        type: "new",
+        text: "Automatyczne pobieranie dokumentów z platformazakupowa.pl (Open Nexus) — publiczne załączniki /file/get_new/",
+      },
+      {
+        type: "fix",
+        text: "Komunikat dokumentów — usunięto fałszywy „brak dostępu bez logowania” dla platformazakupowa.pl",
+      },
+      {
+        type: "improve",
+        text: "CTA „Otwórz postępowanie” + badge sukcesu przy pobranych dokumentach Open Nexus",
+      },
+      {
+        type: "improve",
+        text: "Test regresyjny TP191 — test-platformazakupowa-public-documents.mjs",
+      },
+    ],
+  },
+  {
     date: "2026-06-18",
     version: "2.62.1",
     label: "Przetargi — WM PDF przedmiar recovery (TP182)",

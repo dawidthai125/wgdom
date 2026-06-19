@@ -3227,16 +3227,160 @@ async function discoverLogintradeDocuments(noticeHtml: string): Promise<Record<s
   return docs;
 }
 
-/** platformazakupowa.pl — SPA bez publicznego API listy dokumentów (audyt P2-A.3: brak). */
-async function discoverPlatformaZakupowaDocuments(_noticeHtml: string): Promise<Record<string, unknown>[]> {
-  return [];
+/** platformazakupowa.pl / Open Nexus — publiczne załączniki z /file/get_new/ po sesji gościa (TP191). */
+const PZ_FETCH_UA = "WGDOM/2.63.0 platformazakupowa";
+const PZ_FILE_GET_RE = /\/file\/get_new\/[a-f0-9]+\.[a-z0-9]+/i;
+
+function extractPlatformazakupowaTransakcjaId(text: string): string | null {
+  if (!text?.trim()) return null;
+  const m = text.match(/platformazakupowa\.pl\/transakcja\/(\d+)/i);
+  return m?.[1] ?? null;
+}
+
+function parsePlatformazakupowaSetCookie(headers: Headers): string {
+  const withGetSetCookie = headers as Headers & { getSetCookie?: () => string[] };
+  if (typeof withGetSetCookie.getSetCookie === "function") {
+    return withGetSetCookie.getSetCookie()
+      .map((c) => c.split(";")[0])
+      .filter((c) => c && !/=\s*deleted$/i.test(c))
+      .join("; ");
+  }
+  const raw = headers.get("set-cookie");
+  if (!raw) return "";
+  return raw.split(/,(?=[^;]+?=)/)
+    .map((c) => c.split(";")[0].trim())
+    .filter((c) => c && !/=\s*deleted$/i.test(c))
+    .join("; ");
+}
+
+/** OAuth prompt=none → login_required → strona transakcji 200 z listą /file/get_new/. */
+async function openPlatformazakupowaGuestSession(transakcjaId: string): Promise<{
+  html: string;
+  pageUrl: string;
+  cookie: string;
+} | null> {
+  let cookie = "";
+  let url = `https://platformazakupowa.pl/transakcja/${transakcjaId}`;
+  for (let step = 0; step < 8; step++) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          Accept: "text/html,application/xhtml+xml,*/*",
+          "User-Agent": PZ_FETCH_UA,
+          ...(cookie ? { Cookie: cookie } : {}),
+        },
+        redirect: "manual",
+        signal: AbortSignal.timeout(25000),
+      });
+      const nextCookie = parsePlatformazakupowaSetCookie(res.headers);
+      if (nextCookie) cookie = nextCookie;
+      if (res.status >= 200 && res.status < 300) {
+        const html = await res.text();
+        if (html.length > 5000 && PZ_FILE_GET_RE.test(html)) {
+          return { html, pageUrl: url, cookie };
+        }
+        return null;
+      }
+      if (res.status < 301 || res.status > 303) return null;
+      const loc = res.headers.get("location") || "";
+      if (!loc) return null;
+      url = loc.startsWith("http") ? loc : `https://platformazakupowa.pl${loc}`;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function parsePlatformazakupowaFileAttachments(
+  html: string,
+  pageUrl: string,
+): { downloadUrl: string; filename: string; label: string; contentTypeHint: string }[] {
+  const out = new Map<string, { downloadUrl: string; filename: string; label: string; contentTypeHint: string }>();
+  const add = (href: string, label: string) => {
+    let downloadUrl: string;
+    try {
+      downloadUrl = href.startsWith("//") ? `https:${href}` : new URL(href, pageUrl).href;
+    } catch {
+      return;
+    }
+    if (!PZ_FILE_GET_RE.test(downloadUrl) || !extIsSafeUrl(downloadUrl)) return;
+    const hashName = decodeURIComponent(downloadUrl.split("/").pop()?.split("?")[0] || "dokument");
+    const ext = (hashName.split(".").pop() || "").toLowerCase();
+    const cleanLabel = label.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    const filename = cleanLabel && /\.(pdf|docx?|xlsx?|zip|7z|ath|nor)$/i.test(cleanLabel)
+      ? cleanLabel.slice(0, 200)
+      : hashName;
+    const contentTypeHint = ext === "pdf"
+      ? "application/pdf"
+      : ext === "docx"
+        ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        : ext === "doc"
+          ? "application/msword"
+          : ext === "xlsx"
+            ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            : ext === "xls"
+              ? "application/vnd.ms-excel"
+              : "application/octet-stream";
+    if (!out.has(downloadUrl)) {
+      out.set(downloadUrl, { downloadUrl, filename, label: cleanLabel, contentTypeHint });
+    }
+  };
+  for (const m of html.matchAll(/<a[^>]+href=["']([^"']*\/file\/get_new\/[^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
+    add(m[1], m[2]);
+  }
+  for (const m of html.matchAll(/href=["']([^"']*\/file\/get_new\/[a-f0-9]+\.[a-z0-9]+)["']/gi)) {
+    add(m[1], "");
+  }
+  return [...out.values()];
+}
+
+async function discoverPlatformaZakupowaDocuments(noticeHtml: string): Promise<Record<string, unknown>[]> {
+  const transakcjaId = extractPlatformazakupowaTransakcjaId(noticeHtml);
+  if (!transakcjaId) return [];
+
+  const session = await openPlatformazakupowaGuestSession(transakcjaId);
+  if (!session?.html) return [];
+
+  const attachments = parsePlatformazakupowaFileAttachments(session.html, session.pageUrl);
+  if (attachments.length === 0) return [];
+
+  const pageUrl = `https://platformazakupowa.pl/transakcja/${transakcjaId}`;
+  const docs: Record<string, unknown>[] = [];
+  const seen = new Set<string>();
+  let idx = 0;
+
+  for (const ref of attachments.slice(0, 30)) {
+    const meta = await probeTenderDocumentMeta(ref.downloadUrl);
+    if (!meta) continue;
+    const rawName = parseDispositionFilename(meta.contentDisposition) || ref.filename;
+    const filename = normalizeBzpFilename(rawName, idx + 1, meta.contentType);
+    const key = `${filename}|${ref.downloadUrl}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    idx += 1;
+    docs.push({
+      index: idx,
+      documentId: `platformazakupowa_${transakcjaId}_${idx}`,
+      filename,
+      contentType: (meta.contentType || ref.contentTypeHint).split(";")[0],
+      downloadUrl: ref.downloadUrl,
+      isSwzHint: isSwzFilename(filename),
+      platform: "platformazakupowa",
+      sourcePageUrl: pageUrl,
+    });
+  }
+  return docs;
+}
+
+async function discoverOpenNexusDocuments(noticeHtml: string): Promise<Record<string, unknown>[]> {
+  if (!/platformazakupowa\.pl/i.test(noticeHtml) && !extractPlatformazakupowaTransakcjaId(noticeHtml)) {
+    return [];
+  }
+  return discoverPlatformaZakupowaDocuments(noticeHtml);
 }
 
 async function discoverSmartPzpDocuments(_noticeHtml: string): Promise<Record<string, unknown>[]> {
-  return [];
-}
-
-async function discoverOpenNexusDocuments(_noticeHtml: string): Promise<Record<string, unknown>[]> {
   return [];
 }
 
@@ -3628,11 +3772,16 @@ async function downloadTenderDocumentRaw(opts: {
       };
     }
     const diag: TenderDownloadDiag = { path: "direct_url", requestUrl: downloadUrl };
+    const fetchHeaders: Record<string, string> = {
+      Accept: "text/html,application/xhtml+xml,application/pdf,*/*",
+      "User-Agent": "WGDOM/2.44.0 tenders-external",
+    };
+    if (/platformazakupowa\.pl\/file\/get_new\//i.test(downloadUrl)) {
+      fetchHeaders["User-Agent"] = PZ_FETCH_UA;
+      if (sourcePageUrl) fetchHeaders.Referer = sourcePageUrl;
+    }
     const res = await fetch(downloadUrl, {
-      headers: {
-        Accept: "text/html,application/xhtml+xml,application/pdf,*/*",
-        "User-Agent": "WGDOM/2.44.0 tenders-external",
-      },
+      headers: fetchHeaders,
       redirect: "follow",
     });
     diag.httpStatus = res.status;

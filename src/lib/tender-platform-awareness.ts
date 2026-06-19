@@ -23,8 +23,9 @@ export type DocumentsMissingReason =
   | "found_ezamowienia"
   | "found_external"
   | "found_upload"
-  | "missing_platformazakupowa_auth"
-  | "missing_opennexus_auth"
+  | "found_platformazakupowa"
+  | "missing_platformazakupowa_empty"
+  | "missing_opennexus_empty"
   | "missing_ezamowienia_empty"
   | "missing_logintrade_empty"
   | "missing_ezamawiajacy_empty"
@@ -98,6 +99,7 @@ function docPlatformFromFiles(item: TenderPipelineItem): OffPlatformHost | null 
   if (platforms.has("ezamawiajacy")) return "ezamawiajacy";
   if (platforms.has("logintrade")) return "logintrade";
   if (platforms.has("platformazakupowa")) return "platformazakupowa";
+  if (platforms.has("opennexus")) return "opennexus";
   return null;
 }
 
@@ -152,6 +154,8 @@ export function resolveTenderPlatformDocumentStatus(
     || (platform === "logintrade" && bzpCount > 0);
   const ezamawiajacyDocs = (item.bzpDocuments ?? []).some((d) => d.platform === "ezamawiajacy")
     || (platform === "ezamawiajacy" && bzpCount > 0);
+  const platformazakupowaDocs = (item.bzpDocuments ?? []).some((d) => d.platform === "platformazakupowa")
+    || (platform === "platformazakupowa" && bzpCount > 0);
 
   if (opts?.loadingDocs) {
     return {
@@ -210,6 +214,21 @@ export function resolveTenderPlatformDocumentStatus(
     };
   }
 
+  if (platformazakupowaDocs && bzpCount > 0) {
+    const proceedingUrl = extractPlatformazakupowaProceedingUrl(text);
+    return {
+      platform: "platformazakupowa",
+      platformLabel: "platformazakupowa.pl",
+      sourceLabel: "platformazakupowa.pl (Open Nexus)",
+      documentsFound,
+      missingReason: "found_platformazakupowa",
+      badge: { text: "✓ platformazakupowa.pl", tone: "success" },
+      successMessage: `Pobrano ${bzpCount} plik(ów) z platformazakupowa.pl.`,
+      proceedingUrl: proceedingUrl ?? undefined,
+      proceedingButtonLabel: proceedingUrl ? "Otwórz postępowanie" : undefined,
+    };
+  }
+
   if (bzpCount > 0 && platform === "ezamowienia") {
     return {
       platform: "ezamowienia",
@@ -239,38 +258,46 @@ export function resolveTenderPlatformDocumentStatus(
     || platform === "opennexus";
 
   if (platform === "platformazakupowa" || (openNexus && /platformazakupowa/i.test(text))) {
+    const scanned = Boolean(item.documentsFetchedAt);
     return {
       platform: "platformazakupowa",
       platformLabel: "platformazakupowa.pl",
       sourceLabel: "platformazakupowa.pl",
       documentsFound: 0,
-      missingReason: "missing_platformazakupowa_auth",
-      emptyMessage: "Dokumentacja na platformazakupowa.pl",
-      detailLines: [
-        "Dokumentacja znajduje się na platformazakupowa.pl.",
-        "Dostęp do dokumentów wymaga konta wykonawcy Open Nexus.",
-        "WGDOM nie ma dostępu do dokumentów bez logowania.",
-      ],
+      missingReason: scanned ? "missing_platformazakupowa_empty" : "not_fetched_yet",
+      emptyMessage: scanned ? "Dokumentacja na platformazakupowa.pl" : undefined,
+      detailLines: scanned
+        ? [
+          "Dokumenty znajdują się na platformazakupowa.pl.",
+          "Nie udało się automatycznie pobrać załączników — otwórz postępowanie lub wgraj SWZ ręcznie.",
+          "Otwórz postępowanie, aby przejrzeć dokumenty źródłowe.",
+        ]
+        : undefined,
       openNexusNote: true,
       proceedingUrl: proceedingUrl ?? undefined,
-      proceedingButtonLabel: "Otwórz postępowanie",
+      proceedingButtonLabel: proceedingUrl ? "Otwórz postępowanie" : undefined,
+      showSearchExternalHint: scanned,
     };
   }
 
   if (platform === "opennexus" || openNexus) {
+    const scanned = Boolean(item.documentsFetchedAt);
     return {
       platform: "opennexus",
       platformLabel: "Open Nexus",
       sourceLabel: "Open Nexus",
       documentsFound: 0,
-      missingReason: "missing_opennexus_auth",
-      emptyMessage: "Dokumenty za logowaniem Open Nexus",
-      detailLines: [
-        "Dokumenty dostępne po zalogowaniu do Open Nexus.",
-        "WGDOM nie pobiera dokumentów z Open Nexus bez autoryzacji.",
-      ],
+      missingReason: scanned ? "missing_opennexus_empty" : "not_fetched_yet",
+      emptyMessage: scanned ? "Dokumentacja Open Nexus" : undefined,
+      detailLines: scanned
+        ? [
+          "Dokumenty znajdują się na platformie Open Nexus.",
+          "Nie udało się automatycznie pobrać załączników — otwórz postępowanie lub wgraj SWZ ręcznie.",
+        ]
+        : undefined,
       proceedingUrl: proceedingUrl ?? undefined,
       proceedingButtonLabel: proceedingUrl ? "Otwórz postępowanie" : undefined,
+      showSearchExternalHint: scanned,
     };
   }
 

@@ -72,7 +72,8 @@ const pz = {
 };
 const pzStatus = resolveTenderPlatformDocumentStatus(pz);
 assert("pz platform", detectTenderDocumentPlatform(pz) === "platformazakupowa");
-assert("pz no generic brak", pzStatus.detailLines?.some((l) => l.includes("Open Nexus")));
+assert("pz no login-required msg", !pzStatus.detailLines?.some((l) => /bez logowania/i.test(l)));
+assert("pz empty reason", pzStatus.missingReason === "missing_platformazakupowa_empty");
 assert("pz proceedings url", pzStatus.proceedingUrl?.includes("/pn/amuz_wroc/proceedings"));
 
 // transakcja link
@@ -89,7 +90,8 @@ const onx = {
   documentsFetchedAt: "2026-06-12",
 };
 const onxStatus = resolveTenderPlatformDocumentStatus(onx);
-assert("opennexus missing reason", onxStatus.missingReason === "missing_opennexus_auth");
+assert("opennexus empty reason", onxStatus.missingReason === "missing_opennexus_empty");
+assert("opennexus no auth msg", !onxStatus.detailLines?.some((l) => /bez autoryzacji|po zalogowaniu/i.test(l)));
 
 // unknown — brak tenderId i platformy
 const unk = {
