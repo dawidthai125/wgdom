@@ -3,6 +3,7 @@
  */
 
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
+import { mergeTenderDossierByQuality } from "@/lib/tender-dossier-merge";
 import { mergeWgdomCostCatalogStore } from "@/lib/wgdom-cost-catalog-store";
 import { mergeWgdomUserClassificationDictionaryStore } from "@/lib/wgdom-user-classification-dictionary";
 import { mergeTenderCalibrationStore, TENDER_CALIBRATION_KEY } from "@/lib/tender-cost-calibration";
@@ -86,7 +87,7 @@ function mergePipelineItem(a: TenderPipelineItem, b: TenderPipelineItem): Tender
     tenderState: primary.tenderState ?? secondary.tenderState,
     noticeHtml: primary.noticeHtml ?? secondary.noticeHtml,
     noticeHtmlFetchedAt: primary.noticeHtmlFetchedAt ?? secondary.noticeHtmlFetchedAt,
-    tenderDossier: primary.tenderDossier ?? secondary.tenderDossier,
+    tenderDossier: mergeTenderDossierByQuality(a.tenderDossier, b.tenderDossier) ?? primary.tenderDossier ?? secondary.tenderDossier,
     tenderFit: primary.tenderFit ?? secondary.tenderFit,
     externalDocDiscovery: primary.externalDocDiscovery ?? secondary.externalDocDiscovery,
     estimateHistory: primary.estimateHistory?.length ? primary.estimateHistory : secondary.estimateHistory,
