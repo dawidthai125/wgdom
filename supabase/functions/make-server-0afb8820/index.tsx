@@ -9,7 +9,7 @@ import {
   parseDispositionFilename,
   resolvePlatformazakupowaFilename,
 } from "./tender-filename-encoding.ts";
-import { shouldSkipReadmodelsProbe } from "./tender-platform-adapters.ts";
+import { shouldSkipReadmodelsProbe, mapWithConcurrency, PZ_DOCUMENT_PROBE_CONCURRENCY } from "./tender-platform-adapters.ts";
 
 const PHOTOS_BUCKET = "make-0afb8820-photos";
 
@@ -3344,12 +3344,21 @@ async function discoverPlatformaZakupowaDocuments(noticeHtml: string): Promise<R
   if (attachments.length === 0) return [];
 
   const pageUrl = `https://platformazakupowa.pl/transakcja/${transakcjaId}`;
+  const refs = attachments.slice(0, 30);
+  const probed = await mapWithConcurrency(refs, PZ_DOCUMENT_PROBE_CONCURRENCY, async (ref) => {
+    try {
+      const meta = await probeTenderDocumentMeta(ref.downloadUrl);
+      return { ref, meta };
+    } catch {
+      return { ref, meta: null };
+    }
+  });
+
   const docs: Record<string, unknown>[] = [];
   const seen = new Set<string>();
   let idx = 0;
 
-  for (const ref of attachments.slice(0, 30)) {
-    const meta = await probeTenderDocumentMeta(ref.downloadUrl);
+  for (const { ref, meta } of probed) {
     if (!meta) continue;
     const rawName = resolvePlatformazakupowaFilename({
       contentDisposition: meta.contentDisposition,

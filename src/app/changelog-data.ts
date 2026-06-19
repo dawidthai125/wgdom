@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-19",
+    version: "2.62.7",
+    label: "Przetargi — parallel PZ metadata probe (TP192B)",
+    items: [
+      {
+        type: "improve",
+        text: "discoverPlatformaZakupowaDocuments — równoległy probeTenderDocumentMeta (concurrency 6) zamiast sekwencyjnego for-await",
+      },
+      {
+        type: "improve",
+        text: "TP192B — ~1–1,5 s szybszy discovery 17 dokumentów PZ; kolejność i TP194A encoding bez zmian",
+      },
+      {
+        type: "improve",
+        text: "Regresja — test-tender-parallel-probe-tp192b.mjs",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
     version: "2.62.6",
     label: "Przetargi — host detection shortcut (TP192A)",
     items: [

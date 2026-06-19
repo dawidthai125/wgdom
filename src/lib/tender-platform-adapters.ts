@@ -47,6 +47,36 @@ export function shouldSkipReadmodelsProbe(text: string): boolean {
   return READMODELS_PROBE_SKIP_HOSTS.some((host) => OFF_PLATFORM_HOST_PATTERNS[host].test(text));
 }
 
+/** TP192B — równoległe probe meta dokumentów platformazakupowa (limit 6–8). */
+export const PZ_DOCUMENT_PROBE_CONCURRENCY = 6;
+
+/**
+ * TP192B — mapWithConcurrency z zachowaniem kolejności wyników (indeks = indeks wejścia).
+ * Keep in sync with supabase/functions/.../tender-platform-adapters.ts
+ */
+export async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  if (items.length === 0) return [];
+  const limit = Math.max(1, Math.min(concurrency, items.length));
+  const results: R[] = new Array(items.length);
+  let next = 0;
+
+  async function worker(): Promise<void> {
+    while (true) {
+      const i = next;
+      next += 1;
+      if (i >= items.length) break;
+      results[i] = await fn(items[i], i);
+    }
+  }
+
+  await Promise.all(Array.from({ length: limit }, () => worker()));
+  return results;
+}
+
 export function extractPlainUrls(text: string): string[] {
   return [...text.matchAll(/https?:\/\/[^\s<>"']+/gi)]
     .map((m) => m[0].replace(/[.,;)]+$/g, ""))

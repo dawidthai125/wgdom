@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.6** · **TP192A host detection shortcut CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.7** · **TP192B parallel PZ probe CLOSED**
+
+## 2.62.7 — parallel PZ metadata probe (TP192B)
+
+- **improve:** `mapWithConcurrency` — probe meta dokumentów platformazakupowa (limit 6)
+- **improve:** `discoverPlatformaZakupowaDocuments` — ~30–35% szybciej po TP192A
+- **test:** `test-tender-parallel-probe-tp192b.mjs`
 
 ## 2.62.6 — host detection shortcut (TP192A)
 
