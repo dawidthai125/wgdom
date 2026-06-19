@@ -1,6 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.15** · **SmartPZP MVP 2.62.16**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.16** · **bootstrap /kosztorys 2.62.17**
+
+## 2.62.17 — V4 bootstrap docs on /kosztorys
+
+- **fix:** Bezpośrednie `/przetargi/:id/kosztorys` uruchamia `useTenderDocumentsBootstrap` → `bzpDocuments` → heavy dossier
 
 ## 2.62.16 — SmartPZP MVP
 

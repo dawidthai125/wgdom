@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-19",
+    version: "2.62.17",
+    label: "Przetargi V4 — bootstrap dokumentów na /kosztorys",
+    items: [
+      {
+        type: "fix",
+        text: "Bezpośrednie wejście /przetargi/:id/kosztorys — auto fetchTenderDocuments + lazy dossier (jak zakładka Dokumenty)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
     version: "2.62.16",
     label: "SmartPZP MVP — adapter dokumentacji publicznej",
     items: [

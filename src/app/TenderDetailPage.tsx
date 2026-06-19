@@ -11,6 +11,7 @@ import { TenderDetailTabBar } from "@/app/TenderDetailTabBar";
 import { TenderPrzetargWorkspace } from "@/app/TenderPrzetargWorkspace";
 import { TenderKosztorysWorkspace } from "@/app/TenderKosztorysWorkspace";
 import { useTenderDossierHeavyLazy } from "@/app/hooks/useTenderDossierHeavyLazy";
+import { useTenderDocumentsBootstrap } from "@/app/hooks/useTenderDocumentsBootstrap";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import {
   buildTenderDetailPath,
@@ -90,6 +91,12 @@ export function TenderDetailPage({
     (patch: Partial<TenderPipelineItem>) => pipeline.updateItem(item?.id ?? tenderId, patch),
     [pipeline, item?.id, tenderId],
   );
+
+  useTenderDocumentsBootstrap({
+    item: item ?? { id: tenderId, title: "", status: "seen", updatedAt: "" } as TenderPipelineItem,
+    onUpdate: onUpdateItem,
+    enabled: Boolean(item) && tab === "kosztorys",
+  });
 
   useTenderDossierHeavyLazy({
     item: item ?? { id: tenderId, title: "", status: "seen", updatedAt: "" } as TenderPipelineItem,
