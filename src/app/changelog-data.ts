@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-22",
+    version: "2.62.27",
+    label: "Przetargi — TP190C-3B Batch Rebuild Tooling",
+    items: [
+      {
+        type: "new",
+        text: "TP190C-3B — narzędzie batch rebuild parserVersion=3 dla stale dossier (kosztorys.ok, pv≠3)",
+      },
+      {
+        type: "improve",
+        text: "Dry-run domyślnie (scripts/tp190c-batch-rebuild.mjs); zapis KV tylko przez --write",
+      },
+      {
+        type: "improve",
+        text: "Zgodność z TP190B anti-downgrade i TP190C-1 pickBetter(existing,fresh); błąd per tender nie przerywa batch",
+      },
+      {
+        type: "fix",
+        text: "Regresja — test-tp190c-batch-rebuild.mjs T1–T6 (19 PASS)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-22",
     version: "2.62.26",
     label: "Przetargi — TP190C-2E PDF Extract Parity + Observability",
     items: [

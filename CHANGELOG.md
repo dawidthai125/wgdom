@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.26** · **TP190C-2E CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.27** · **TP190C-3B PLANNED**
+
+## 2.62.27 — TP190C-3B Batch Rebuild Tooling
+
+- **new:** `tp190c-batch-rebuild.ts` + `scripts/tp190c-batch-rebuild.mjs` — batch rebuild parserVersion=3
+- **improve:** dry-run domyślnie; `--write` zapisuje KV; obsługa błędów per tender
+- **improve:** zgodność TP190B + TP190C-1; przygotowanie migracji 9 stale dossier
+- **test:** `test-tp190c-batch-rebuild.mjs` T1–T6 (19 PASS)
 
 ## 2.62.26 — TP190C-2E PDF Extract Parity + Observability
 
