@@ -1,6 +1,14 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.29** · **TP201E-A M6A CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.30** · **TP201E-B CLOSED**
+
+## 2.62.30 — TP201E-B Layout Corruption Recovery
+
+- **fix:** skip WM footer layout rows — Norma PRO / scalony OBMIAR / `- N -` (LP 115)
+- **fix:** WM corruption aliases — `wyłącznikpodłoże`, `pojemkońc.k` → `pojemności kabla` (LP 124)
+- **improve:** `UNIT_RE` — j.m. `końc.k` (WM elektryka)
+- **improve:** TP182 layout extract 148 → 150 pozycji (+2)
+- **test:** `test-pdf-przedmiar-heuristic.mjs` TP201E-B-1…3 (85 PASS) + TP182/TP201A regresja PASS
 
 ## 2.62.29 — TP201E-A PDF Recovery M6A
 

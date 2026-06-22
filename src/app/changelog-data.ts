@@ -12,6 +12,33 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-22",
+    version: "2.62.30",
+    label: "PDF Recovery — TP201E-B layout corruption (footer + WM aliases)",
+    items: [
+      {
+        type: "fix",
+        text: "TP201E-B — skip WM footer layout rows (Norma PRO / scalony OBMIAR / - N -) — LP 115",
+      },
+      {
+        type: "fix",
+        text: "WM corruption aliases — wyłącznikpodłoże, pojemkońc.k → pojemności kabla (LP 124)",
+      },
+      {
+        type: "improve",
+        text: "UNIT_RE — obsługa j.m. końc.k (WM elektryka)",
+      },
+      {
+        type: "improve",
+        text: "TP182 recovery layout extract: 148 → 150 pozycji (+2)",
+      },
+      {
+        type: "fix",
+        text: "Regresja — test-pdf-przedmiar-heuristic.mjs TP201E-B-1…3 (85 PASS)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-22",
     version: "2.62.29",
     label: "PDF Recovery — TP201E-A M6A (split LP + kalk qty + section strip)",
     items: [

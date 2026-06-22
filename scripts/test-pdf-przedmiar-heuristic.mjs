@@ -307,5 +307,37 @@ const lp44 =
   "44 Montaż skrzydeł drzwiowych wewnętrznych wraz ościeżnicą z dopasowaniem szt. d.1.6 wycena indywidualna 1 szt. 2.00";
 assert("TP201E-A-8 LP44 action wycena", parsePdfPrzedmiarLine(lp44)?.quantity === "2.00");
 
+// TP201E-B — WM layout corruption (wyłącznikpodłoże / pojemkońc.k / footer noise)
+console.log("\n=== TP201E-B WM corruption ===");
+assert(
+  "TP201E-B-1 wyłącznikpodłoże alias",
+  parsePdfPrzedmiarLine(
+    "115 KSNR 5 Wypusty na wyp. d.3.3 0404-01 wyłącznikpodłoże z cegły-dzwonek .2 1 wyp. 1.00",
+  )?.description.includes("wyłącznik podłoże"),
+);
+const lp115Layout = [
+  "115 KSNR 5 Wypusty wykonywane przewodami wtynkowymi w budynkach mieszkalnych na wyp.",
+  "d.3.3 0404-01 wyłącznikpodłoże z cegły-dzwonek",
+  ".2",
+  "1 wyp. 1.00",
+  "- 8 -",
+  "Norma PRO Wersja 4.45 Nr seryjny: 27261 Użytkownik: Wrocławskie Mieszkania",
+  "Nowowiejska 86a_27 - scalony OBMIAR",
+  "Lp. Podstawa Opis i wyliczenia j.m. Poszcz. Razem",
+  "RAZEM 1.00",
+].join("\n");
+const lp115Rows = extractPdfPrzedmiarRows(lp115Layout);
+assert("TP201E-B-2 LP115 footer skip", lp115Rows.some((r) => r.lp === "115" && r.quantity === "1.00"));
+const lp124Layout = [
+  "124 KNR 5-05 Zarobienie, rozszycie na gniezdnikach i włączenie kabli stacyjnych o pojem- końc.k",
+  "d.3.4 0207-03 ności kabla 3x2 abl.",
+  ".1",
+  "1+1 końc.k 2.00",
+  "abl.",
+  "RAZEM 2.00",
+].join("\n");
+const lp124Rows = extractPdfPrzedmiarRows(lp124Layout);
+assert("TP201E-B-3 LP124 pojemkońc.k", lp124Rows.some((r) => r.lp === "124" && r.quantity === "2.00"));
+
 console.log(`\nPDF przedmiar heuristic: ${pass} PASS, ${fail} FAIL`);
 process.exit(fail > 0 ? 1 : 0);

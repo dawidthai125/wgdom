@@ -1,6 +1,6 @@
 /**
  * P2-H.5B — heurystyczny odczyt pozycji z natywnych PDF przedmiaru (bez OCR).
- * P0 WM PDF Recovery — M1 unit norm · M2 BOQ split · M4 m→mb · M5 kalk. własna · M6 WM unit aliases · TP201D M5 · TP201E-A M6 split/kalk/section.
+ * P0 WM PDF Recovery — M1 unit norm · M2 BOQ split · M4 m→mb · M5 kalk. własna · M6 WM unit aliases · TP201D M5 · TP201E-A M6 split/kalk/section · TP201E-B WM corruption.
  */
 
 import type { AthPreviewResult, AthPreviewRow } from "@/lib/ath-parser";
@@ -104,7 +104,7 @@ const PDF_BOQ_LP_DESC_ROW_RE =
 
 /** M6 (TP198C) + TP201C-B — WM skróty j.m. + pomiar/prób. (elektryka). */
 const UNIT_RE =
-  /\b(m\s*2|m²|m2|m\s*3|m³|m3|mb|metr(?:\s+bie(?:[żz][aą]cy|zacy))?|kpl|szt\.?|t|kg|rbh|wyp\.?|otw\.?|podej\.?|aparat\.?|lokal\.?|pomiar|pom\.?|prób\.?|prob\.?)\b/i;
+  /\b(m\s*2|m²|m2|m\s*3|m³|m3|mb|metr(?:\s+bie(?:[żz][aą]cy|zacy))?|kpl|szt\.?|t|kg|rbh|wyp\.?|otw\.?|podej\.?|aparat\.?|lokal\.?|pomiar|pom\.?|prób\.?|prob\.?|końc\.?k)\b/i;
 
 const WM_UNIT_ALIAS_TO_SZT = new Set(["wyp", "otw", "podej", "aparat", "lokal"]);
 
@@ -154,6 +154,14 @@ const PDF_BOQ_LP_ONLY_RE = /^\d+(?:\.\d+)*\s*$/;
 
 /** TP201B-B — wiersz pomocniczy tabeli (nie pozycja). */
 const PDF_BOQ_SKIP_ROW_RE = /^(?:RAZEM\b|STRONA\b|\d+\s*\/\s*\d+)/i;
+
+/** TP201E-B — WM footer/header noise wstrzyknięty między layout rows (strona / Norma PRO). */
+const PDF_BOQ_WM_FOOTER_ROW_RE =
+  /^(?:-\s*\d+\s*-|Norma PRO\b|Lp\.\s+Podstawa\b|(?:[\dA-Za-ząćęłńóśźż._\s-]{0,120}-\s*)?scalony OBMIAR\s*$)/i;
+
+function isPdfBoqSkipLayoutRow(trimmed: string): boolean {
+  return PDF_BOQ_SKIP_ROW_RE.test(trimmed) || PDF_BOQ_WM_FOOTER_ROW_RE.test(trimmed);
+}
 
 /** TP201B-B — kontynuacja: d.X.Y + kod, wzór obmiaru, sama ilość+j.m. */
 const PDF_BOQ_CONTINUATION_ROW_RE =
@@ -211,10 +219,22 @@ export function normalizePdfBoqUnits(text: string): string {
 }
 
 /** TP201C-B — alias Kalkulacja + trailing „d.X.Y własna” z layoutu WM. */
-function normalizePdfBoqAliases(text: string): string {
+function normalizePdfBoqWmCorruption(text: string): string {
   return text
-    .replace(/\bKalkulacja\b/g, "kalk. własna")
-    .replace(/\s+d\.\d+\.\d+\s+własna\b/gi, "");
+    .replace(/wyłącznikpodłoże/gi, "wyłącznik podłoże")
+    .replace(/pojemkońc\.k/gi, "pojem końc.k")
+    .replace(
+      /pojem\s+końc\.k\s+(d\.\d+\.\d+\s+[\d.-]+\s+)ności\s+kabla/gi,
+      "pojemności kabla $1",
+    );
+}
+
+function normalizePdfBoqAliases(text: string): string {
+  return normalizePdfBoqWmCorruption(
+    text
+      .replace(/\bKalkulacja\b/g, "kalk. własna")
+      .replace(/\s+d\.\d+\.\d+\s+własna\b/gi, ""),
+  );
 }
 
 /** TP201C-B — sklejanie rozbitých sylab (nis- kiego, gipsowo - karton). */
@@ -371,7 +391,7 @@ export function splitPdfBoqText(text: string): string[] {
       }
     }
 
-    if (PDF_BOQ_SKIP_ROW_RE.test(trimmed)) {
+    if (isPdfBoqSkipLayoutRow(trimmed)) {
       flushBuffer();
       continue;
     }
@@ -434,6 +454,7 @@ function normalizeUnitToken(raw: string): string {
   if (norm === "m" || norm === "metr" || norm.startsWith("metrbie")) return "mb";
   if (norm === "pom") return "pomiar";
   if (norm === "prób" || norm === "prob") return "prob";
+  if (norm === "końc.k" || norm === "konck") return "końc.k";
   if (WM_UNIT_ALIAS_TO_SZT.has(norm)) return "szt";
   return norm;
 }
