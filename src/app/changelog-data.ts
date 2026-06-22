@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-22",
+    version: "2.62.22",
+    label: "Lista Płac — Payroll Sync Stability Pack (przydziały + Sob. poprz.)",
+    items: [
+      {
+        type: "fix",
+        text: "mergeJobsById — mergeWorkEntriesById: union workEntries po id; „Dodaj robociznę” nie znika po sync",
+      },
+      {
+        type: "fix",
+        text: "pickPrevSaturdayByTimestamps — przy remisie mergePrevSaturdayByRichness; Sob. poprz. z godzinami zachowane po sync",
+      },
+      {
+        type: "fix",
+        text: "Regresja — test-payroll-work-entry-merge-fidelity.mjs T1–T6, test-payroll-prev-saturday-fidelity.mjs T1–T6",
+      },
+    ],
+  },
+  {
+    date: "2026-06-22",
     version: "2.62.21",
     label: "Lista Płac — P0 fix znikających godzin (merge dni)",
     items: [

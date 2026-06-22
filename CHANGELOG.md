@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.20** · **Payroll P0 fix 2.62.21**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.21** · **Payroll Sync Stability 2.62.22**
+
+## 2.62.22 — Payroll Sync Stability Pack (przydziały + Sob. poprz.)
+
+- **fix:** `mergeJobsById` — `mergeWorkEntriesById`: union `workEntries` po id; przydziały robót nie znikają po pierwszym „Dodaj robociznę”
+- **fix:** `pickPrevSaturdayByTimestamps` — przy remisie `dataUpdatedAt` → `mergePrevSaturdayByRichness` (jak `mergeDaysByRichness`)
+- **fix:** Lista Płac — Sob. poprz. z godzinami nie kasowane przez cloud default inactive po sync
+- **test:** `test-payroll-work-entry-merge-fidelity.mjs` T1–T6 · `test-payroll-prev-saturday-fidelity.mjs` T1–T6
 
 ## 2.62.21 — Payroll P0: merge dni (godziny nie znikają)
 

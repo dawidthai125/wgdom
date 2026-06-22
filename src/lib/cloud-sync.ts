@@ -218,6 +218,59 @@ function mergeActivityLogs(
     .slice(0, 200);
 }
 
+type WorkEntryMergeLike = {
+  id?: string;
+  directoryId?: string;
+  employeeName?: string;
+  date?: string;
+  hours?: number;
+  rate?: number;
+  notes?: string;
+};
+
+function workEntryRichness(e: WorkEntryMergeLike | undefined): number {
+  if (!e) return 0;
+  let s = 0;
+  const hours = typeof e.hours === "number" ? e.hours : parseFloat(String(e.hours ?? "")) || 0;
+  if (hours > 0) s += 8;
+  s += Math.min(String(e.notes ?? "").trim().length, 200);
+  if (String(e.directoryId ?? "").trim()) s += 1;
+  if (String(e.employeeName ?? "").trim()) s += 1;
+  if (String(e.date ?? "").trim()) s += 1;
+  return s;
+}
+
+/** Union job.workEntries po id — bogatszy wpis wygrywa; nie kasuje unikalnych id. */
+export function mergeWorkEntriesById(
+  a: unknown[] | undefined,
+  b: unknown[] | undefined,
+): unknown[] {
+  const map = new Map<string, WorkEntryMergeLike>();
+  const ingest = (list: unknown[] | undefined) => {
+    for (const raw of list || []) {
+      if (!raw || typeof raw !== "object") continue;
+      const e = raw as WorkEntryMergeLike;
+      const id = String(e.id ?? "").trim();
+      if (!id) continue;
+      const prev = map.get(id);
+      if (!prev) {
+        map.set(id, e);
+        continue;
+      }
+      const pr = workEntryRichness(prev);
+      const cr = workEntryRichness(e);
+      if (cr >= pr) map.set(id, e);
+    }
+  };
+  ingest(a);
+  ingest(b);
+  return [...map.values()].sort((x, y) => {
+    const dc = String(x.date ?? "").localeCompare(String(y.date ?? ""));
+    if (dc) return dc;
+    return String(x.id ?? "").localeCompare(String(y.id ?? ""));
+  });
+}
+
 export const JOBS_DELETED_IDS_KEY = "kw-jobs-deleted-ids";
 export const DIRECTORY_DELETED_IDS_KEY = "kw-directory-deleted-ids";
 export const CONTACTS_DELETED_IDS_KEY = "kw-contacts-deleted-ids";
@@ -562,6 +615,7 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
       jobAttachments: mergedJobAttachments.length ? mergedJobAttachments : undefined,
       deletedJobAttachmentTombstones: mergedAttachmentTombstones.length ? mergedAttachmentTombstones : undefined,
       activityLog: mergedLogs,
+      workEntries: mergeWorkEntriesById(prev.workEntries, j.workEntries),
       jobNotes: mergeJobNotes(prev.jobNotes, j.jobNotes),
       inspectorPhotos: jTs !== prevTs
         ? (jTs >= prevTs ? (j.inspectorPhotos || []) : (prev.inspectorPhotos || []))
@@ -751,7 +805,7 @@ function pickPrevSaturdayByTimestamps(
   const cAt = parseRecordTs(c.dataUpdatedAt);
   if (lAt > cAt) return lps !== undefined ? lps : cps;
   if (cAt > lAt) return cps !== undefined ? cps : lps;
-  return cps !== undefined ? cps : lps;
+  return mergePrevSaturdayByRichness(lps, cps);
 }
 
 function dayRichness(d: DayLike | undefined): number {
@@ -763,6 +817,21 @@ function dayRichness(d: DayLike | undefined): number {
   s += (d.notes?.length ?? 0) * 4;
   if (parseFloat(String(d.zaliczka || "")) > 0) s += 1;
   return s;
+}
+
+/** Sob.pr. przy remisie dataUpdatedAt — bogatszy wygrywa; remis → local. */
+export function mergePrevSaturdayByRichness(
+  lps: DayLike | undefined,
+  cps: DayLike | undefined,
+): DayLike | undefined {
+  if (!lps && !cps) return undefined;
+  if (lps && !cps) return lps;
+  if (!lps && cps) return cps;
+  const lr = dayRichness(lps);
+  const cr = dayRichness(cps);
+  if (lr > cr) return lps;
+  if (cr > lr) return cps;
+  return lps;
 }
 
 /** Im wyżej, tym więcej godzin / Sob.pr. / dodatkowych wpisów. */
