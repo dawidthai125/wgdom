@@ -55,6 +55,8 @@ export interface TenderKosztorysSnapshot {
   pdfPrzedmiarCase?: 1 | 2 | 3;
   /** P2-H.5C — CASE 3: brak warstwy tekstowej (CAD). */
   pdfPrzedmiarNoTextLayer?: boolean;
+  /** TP190C-2E-B — CASE 3: błąd ekstrakcji pdf.js. */
+  pdfPrzedmiarExtractError?: boolean;
 }
 
 export interface TenderBrief {
@@ -257,6 +259,7 @@ export function athPreviewToSnapshot(
     parsedAt: new Date().toISOString(),
     pdfPrzedmiarCase: preview.pdfPrzedmiarCase,
     pdfPrzedmiarNoTextLayer: preview.pdfPrzedmiarNoTextLayer,
+    pdfPrzedmiarExtractError: preview.pdfPrzedmiarExtractError,
   };
 }
 

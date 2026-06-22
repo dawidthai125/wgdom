@@ -3,7 +3,6 @@
 import JSZip from "jszip";
 import mammoth from "mammoth";
 import * as XLSX from "xlsx";
-import * as pdfjs from "pdfjs-dist";
 import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import {
   parseKosztorysBytes,
@@ -24,6 +23,7 @@ import {
 } from "@/lib/tenders-bzp-filename";
 import { list7zFiles, pickBestFrom7zBytes, read7zEntry } from "@/lib/wgdom-7z-archive";
 import { isPdfPrzedmiarCostFilename } from "@/lib/tender-cost-discovery";
+import { scoreCostDocumentFromXlsxBytes, isOfferFormXlsxBytes } from "@/lib/tender-cost-content-detection";
 import { pdfPrzedmiarHeuristicToPreview } from "@/lib/pdf-przedmiar-heuristic";
 import { recordTenderPdfExtract, recordTenderZipLoad } from "@/lib/tender-pipeline-metrics";
 
@@ -52,12 +52,7 @@ let pdfWorkerReady = false;
 const ZIP_CACHE_MAX = 24;
 const PDF_TEXT_CACHE_MAX = 32;
 const zipInstanceCache = new Map<string, Promise<JSZip>>();
-const pdfTextCache = new Map<string, Promise<{
-  text: string;
-  pageCount: number;
-  likelyScan: boolean;
-  noTextLayer: boolean;
-}>>();
+const pdfTextCache = new Map<string, Promise<PdfTextExtractResult>>();
 
 function bytesFingerprint(bytes: Uint8Array): string {
   const n = Math.min(24, bytes.length);
@@ -87,10 +82,130 @@ async function loadZipCached(bytes: Uint8Array): Promise<JSZip> {
   return pending;
 }
 
-function ensurePdfWorker(): void {
+function ensurePdfWorker(pdfjsMod: typeof import("pdfjs-dist")): void {
   if (pdfWorkerReady) return;
-  pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
+  pdfjsMod.GlobalWorkerOptions.workerSrc = pdfWorker;
   pdfWorkerReady = true;
+}
+
+function isNodeRuntime(): boolean {
+  return typeof window === "undefined";
+}
+
+export type PdfTextExtractResult = {
+  text: string;
+  pageCount: number;
+  likelyScan: boolean;
+  /** P2-H.5C — PDF otwarty, ale bez tekstu (CAD/skan bez OCR). */
+  noTextLayer: boolean;
+  /** TP190C-2E-B — błąd pdf.js/worker/runtime; nie mylić ze skanem. */
+  extractError: boolean;
+};
+
+function buildPdfTextExtractResult(text: string, pageCount: number): PdfTextExtractResult {
+  const charCount = text.replace(/\s/g, "").length;
+  return {
+    text,
+    pageCount,
+    likelyScan: pageCount > 0 && charCount < pageCount * 80,
+    noTextLayer: pageCount === 0 || charCount === 0,
+    extractError: false,
+  };
+}
+
+function buildPdfExtractErrorResult(): PdfTextExtractResult {
+  return {
+    text: "",
+    pageCount: 0,
+    likelyScan: false,
+    noTextLayer: false,
+    extractError: true,
+  };
+}
+
+type PdfJsDocument = {
+  numPages: number;
+  getPage(pageNumber: number): Promise<{
+    getTextContent(): Promise<{ items: Array<{ str?: string; transform?: number[]; width?: number }> }>;
+  }>;
+};
+
+/** Złączenie tokenów strony (fallback gdy layout rows puste, TP190C-2E-A). */
+function joinPdfPageTextItems(
+  items: Array<{ str?: string }>,
+): string {
+  return items
+    .map((it) => ("str" in it && typeof it.str === "string" ? it.str : ""))
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Tekst z otwartego dokumentu pdf.js — layout (TP201B-B) z join fallback gdy layout pusty.
+ */
+async function extractTextFromPdfDocument(
+  pdf: PdfJsDocument,
+  allowJoinFallback: boolean,
+): Promise<string> {
+  const layoutParts: string[] = [];
+  let rawItemCount = 0;
+  for (let p = 1; p <= pdf.numPages; p += 1) {
+    const content = await (await pdf.getPage(p)).getTextContent();
+    rawItemCount += content.items.length;
+    const pageLines = extractPdfPageLayoutLines(content.items);
+    if (pageLines.length > 0) layoutParts.push(...pageLines);
+  }
+  const layoutText = layoutParts.join("\n");
+  if (!allowJoinFallback || layoutText.replace(/\s/g, "").length > 0 || rawItemCount === 0) {
+    return layoutText;
+  }
+  const joinParts: string[] = [];
+  for (let p = 1; p <= pdf.numPages; p += 1) {
+    const content = await (await pdf.getPage(p)).getTextContent();
+    const line = joinPdfPageTextItems(content.items);
+    if (line) joinParts.push(line);
+  }
+  return joinParts.join("\n");
+}
+
+async function tryStandardPdfExtract(bytes: Uint8Array): Promise<PdfTextExtractResult | null> {
+  if (isNodeRuntime()) return null;
+  try {
+    const pdfjs = await import("pdfjs-dist");
+    ensurePdfWorker(pdfjs);
+    const pdf = await pdfjs.getDocument({ data: bytes.slice() }).promise;
+    const text = await extractTextFromPdfDocument(pdf, true);
+    return buildPdfTextExtractResult(text, pdf.numPages);
+  } catch {
+    return null;
+  }
+}
+
+/** TP190C-2E-A — legacy pdf.js (Node/vite-node parity, wzorzec TP182 smoke). */
+async function tryLegacyPdfExtract(bytes: Uint8Array): Promise<PdfTextExtractResult | null> {
+  try {
+    const legacyPdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    const pdf = await legacyPdfjs.getDocument({
+      data: bytes.slice(),
+      useSystemFonts: true,
+    }).promise;
+    const text = await extractTextFromPdfDocument(pdf, true);
+    return buildPdfTextExtractResult(text, pdf.numPages);
+  } catch {
+    return null;
+  }
+}
+
+function pickRicherPdfExtract(
+  a: PdfTextExtractResult | null,
+  b: PdfTextExtractResult | null,
+): PdfTextExtractResult | null {
+  if (!a) return b;
+  if (!b) return a;
+  const aChars = a.text.replace(/\s/g, "").length;
+  const bChars = b.text.replace(/\s/g, "").length;
+  return bChars > aChars ? b : a;
 }
 
 export async function listZipFiles(bytes: Uint8Array): Promise<ZipListedFile[]> {
@@ -159,12 +274,7 @@ export async function extractDocxText(bytes: Uint8Array): Promise<string> {
   }
 }
 
-export async function extractPdfText(bytes: Uint8Array): Promise<{
-  text: string;
-  pageCount: number;
-  likelyScan: boolean;
-  noTextLayer: boolean;
-}> {
+export async function extractPdfText(bytes: Uint8Array): Promise<PdfTextExtractResult> {
   const key = bytesFingerprint(bytes);
   let pending = pdfTextCache.get(key);
   if (!pending) {
@@ -174,36 +284,81 @@ export async function extractPdfText(bytes: Uint8Array): Promise<{
   return pending;
 }
 
-async function extractPdfTextUncached(bytes: Uint8Array): Promise<{
-  text: string;
-  pageCount: number;
-  likelyScan: boolean;
-  noTextLayer: boolean;
-}> {
-  recordTenderPdfExtract();
-  ensurePdfWorker();
-  try {
-    const loading = pdfjs.getDocument({ data: bytes.slice() });
-    const pdf = await loading.promise;
-    const parts: string[] = [];
-    for (let p = 1; p <= pdf.numPages; p += 1) {
-      const page = await pdf.getPage(p);
-      const content = await page.getTextContent();
-      const line = content.items
-        .map((it) => ("str" in it ? it.str : ""))
-        .join(" ")
-        .replace(/\s+/g, " ")
-        .trim();
-      if (line) parts.push(line);
-    }
-    const text = parts.join("\n");
-    const charCount = text.replace(/\s/g, "").length;
-    const likelyScan = pdf.numPages > 0 && charCount < pdf.numPages * 80;
-    const noTextLayer = pdf.numPages === 0 || charCount === 0;
-    return { text, pageCount: pdf.numPages, likelyScan, noTextLayer };
-  } catch {
-    return { text: "", pageCount: 0, likelyScan: false, noTextLayer: true };
+/** TP201B-B — tolerancja grupowania tokenów pdf.js po osi Y (pt). */
+const PDF_LAYOUT_Y_TOLERANCE = 3;
+/** TP201B-B — szeroka luka X → podwójna spacja (granica kolumny). */
+const PDF_LAYOUT_COLUMN_GAP_PT = 14;
+
+interface PdfLayoutTextItem {
+  str: string;
+  x: number;
+  y: number;
+  endX: number;
+}
+
+/** TP201B-B — layout rows: Y↓ bucket, w wierszu X→, wiele linii na stronę. */
+export function extractPdfPageLayoutLines(
+  items: Array<{ str?: string; transform?: number[]; width?: number }>,
+): string[] {
+  const parsed: PdfLayoutTextItem[] = [];
+  for (const it of items) {
+    const str = "str" in it && typeof it.str === "string" ? it.str : "";
+    if (!str.trim() || !it.transform || it.transform.length < 6) continue;
+    const x = it.transform[4]!;
+    const y = it.transform[5]!;
+    const width = typeof it.width === "number" && it.width > 0 ? it.width : str.length * 4.5;
+    parsed.push({ str, x, y, endX: x + width });
   }
+  if (!parsed.length) return [];
+
+  parsed.sort((a, b) => b.y - a.y || a.x - b.x);
+
+  const rowBuckets: { y: number; items: PdfLayoutTextItem[] }[] = [];
+  for (const item of parsed) {
+    let bucket = rowBuckets.find((b) => Math.abs(b.y - item.y) <= PDF_LAYOUT_Y_TOLERANCE);
+    if (!bucket) {
+      bucket = { y: item.y, items: [] };
+      rowBuckets.push(bucket);
+    }
+    bucket.items.push(item);
+  }
+
+  const lines: string[] = [];
+  for (const bucket of rowBuckets) {
+    bucket.items.sort((a, b) => a.x - b.x);
+    let line = "";
+    for (let i = 0; i < bucket.items.length; i += 1) {
+      const item = bucket.items[i]!;
+      if (i > 0) {
+        const prev = bucket.items[i - 1]!;
+        const gap = item.x - prev.endX;
+        line += gap >= PDF_LAYOUT_COLUMN_GAP_PT ? "  " : " ";
+      }
+      line += item.str;
+    }
+    const trimmed = line.replace(/\s+/g, " ").trim();
+    if (trimmed) lines.push(trimmed);
+  }
+  return lines;
+}
+
+async function extractPdfTextUncached(bytes: Uint8Array): Promise<PdfTextExtractResult> {
+  recordTenderPdfExtract();
+
+  if (isNodeRuntime()) {
+    const legacy = await tryLegacyPdfExtract(bytes);
+    if (legacy) return legacy;
+    return buildPdfExtractErrorResult();
+  }
+
+  const standard = await tryStandardPdfExtract(bytes);
+  if (standard && !standard.noTextLayer) return standard;
+
+  const legacy = await tryLegacyPdfExtract(bytes);
+  const best = pickRicherPdfExtract(standard, legacy);
+  if (best) return best;
+
+  return buildPdfExtractErrorResult();
 }
 
 function cellStr(v: unknown): string {
@@ -215,6 +370,18 @@ function cellStr(v: unknown): string {
 /** XLSX → struktura jak kosztorys (heurystyka nagłówków). */
 export function parseXlsxToKosztorys(bytes: Uint8Array, filename: string): AthPreviewResult {
   const warnings: string[] = [];
+  if (isOfferFormXlsxBytes(bytes)) {
+    const contentScore = scoreCostDocumentFromXlsxBytes(bytes);
+    return {
+      ok: false,
+      format: "unknown",
+      rows: [],
+      warnings: [
+        "Rozpoznano formularz ofertowy (treść dokumentu) — nie jest kosztorysem ani przedmiarem.",
+        `Sygnały formalne: ${contentScore.negativeMatches.slice(0, 5).join(", ") || "—"}`,
+      ],
+    };
+  }
   try {
     const wb = XLSX.read(bytes, { type: "array" });
     const sheetName = wb.SheetNames.find((n) => /koszt|przedm|obmiar|pozyc/i.test(n)) ?? wb.SheetNames[0];
@@ -300,8 +467,8 @@ export async function parseDocumentToKosztorys(
     return parseXlsxToKosztorys(bytes, filename);
   }
   if (isPdfPrzedmiarCostFilename(filename)) {
-    const { text, likelyScan, noTextLayer } = await extractPdfText(bytes);
-    return pdfPrzedmiarHeuristicToPreview(text, filename, { likelyScan, noTextLayer });
+    const { text, likelyScan, noTextLayer, extractError } = await extractPdfText(bytes);
+    return pdfPrzedmiarHeuristicToPreview(text, filename, { likelyScan, noTextLayer, extractError });
   }
   return null;
 }

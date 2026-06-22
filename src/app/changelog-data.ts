@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-22",
+    version: "2.62.26",
+    label: "Przetargi — TP190C-2E PDF Extract Parity + Observability",
+    items: [
+      {
+        type: "fix",
+        text: "TP190C-2E-A — parity Browser ↔ Node: legacy pdf.js w vite-node, join fallback gdy layout nie zwraca wierszy",
+      },
+      {
+        type: "fix",
+        text: "3 Maja 5B_9.pdf — replay Node: CASE 3 (0 rows) → CASE 1 po poprawnym extract",
+      },
+      {
+        type: "improve",
+        text: "TP190C-2E-B — extractError vs noTextLayer: osobny komunikat błędu ekstrakcji PDF (łatwiejsze RCA)",
+      },
+      {
+        type: "fix",
+        text: "Regresja — test-tp190c-extract-parity.mjs + test-tp190c-extract-observability.mjs",
+      },
+    ],
+  },
+  {
+    date: "2026-06-22",
     version: "2.62.25",
     label: "Przetargi — TP190C-1 Stale Rebuild Protection",
     items: [

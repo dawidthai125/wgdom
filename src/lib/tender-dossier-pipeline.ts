@@ -58,6 +58,8 @@ export interface TenderDossierScanSummary {
   pdfPrzedmiarCase?: 1 | 2 | 3;
   /** P2-H.5C — CASE 3 z powodu braku warstwy tekstowej. */
   pdfPrzedmiarNoTextLayer?: boolean;
+  /** TP190C-2E-B — CASE 3 z powodu błędu ekstrakcji pdf.js. */
+  pdfPrzedmiarExtractError?: boolean;
   parsedAt: string;
 }
 
@@ -125,6 +127,7 @@ export function buildKosztorysStatusLine(summary: TenderDossierScanSummary): str
       return `Kosztorys:\n${costTypeKosztorysFoundLine(disc.type, disc.source, {
         pdfCase: summary.pdfPrzedmiarCase,
         pdfNoTextLayer: summary.pdfPrzedmiarNoTextLayer,
+        pdfExtractError: summary.pdfPrzedmiarExtractError,
       })}`;
     }
     const label = disc?.found
@@ -293,6 +296,7 @@ export async function buildTenderDossierHeavy(opts: {
     costDiscovery,
     pdfPrzedmiarCase: kosztorysSnap?.pdfPrzedmiarCase,
     pdfPrzedmiarNoTextLayer: kosztorysSnap?.pdfPrzedmiarNoTextLayer,
+    pdfPrzedmiarExtractError: kosztorysSnap?.pdfPrzedmiarExtractError,
     parsedAt: new Date().toISOString(),
   };
 
@@ -425,6 +429,7 @@ export async function analyzeTenderWithDossier(opts: {
     costDiscovery,
     pdfPrzedmiarCase: kosztorys?.pdfPrzedmiarCase,
     pdfPrzedmiarNoTextLayer: kosztorys?.pdfPrzedmiarNoTextLayer,
+    pdfPrzedmiarExtractError: kosztorys?.pdfPrzedmiarExtractError,
     parsedAt: new Date().toISOString(),
   };
 

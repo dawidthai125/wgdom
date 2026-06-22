@@ -58,6 +58,8 @@ export interface AthPreviewResult {
   pdfPrzedmiarCase?: 1 | 2 | 3;
   /** P2-H.5C — CASE 3 z powodu braku warstwy tekstowej (CAD), nie skanu. */
   pdfPrzedmiarNoTextLayer?: boolean;
+  /** TP190C-2E-B — CASE 3 z powodu błędu ekstrakcji pdf.js, nie skanu/CAD. */
+  pdfPrzedmiarExtractError?: boolean;
 }
 
 /** Ogólne komunikaty o ograniczeniach podglądu — nie pokazujemy przy udanym parsowaniu ani w PDF. */

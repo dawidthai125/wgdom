@@ -6,7 +6,15 @@
 import type { AthPreviewResult } from "@/lib/ath-parser";
 import { isKosztorysPreviewExt } from "@/lib/ath-parser";
 import { is7zFilename, isXlsxFilename, isZipFilename } from "@/lib/tenders-bzp-filename";
-import { PDF_PRZEDMIAR_NO_TEXT_LAYER_LINE } from "@/lib/pdf-przedmiar-heuristic";
+import {
+  PDF_PRZEDMIAR_EXTRACT_ERROR_LINE,
+  PDF_PRZEDMIAR_NO_TEXT_LAYER_LINE,
+} from "@/lib/pdf-przedmiar-heuristic";
+import type { CostContentScoreResult } from "@/lib/tender-cost-content-detection";
+import {
+  contentScoreDiscoveryBoost,
+  isOfferFormByContent,
+} from "@/lib/tender-cost-content-detection";
 
 export type TenderCostDocumentType =
   | "ath"
@@ -47,6 +55,8 @@ export interface TenderCostCandidate {
   score?: number;
   zipInnerPath?: string;
   documentIndex?: number;
+  /** P1 content-based — opcjonalny sygnał z treści (XLSX/PDF text). */
+  contentScore?: CostContentScoreResult;
 }
 
 function baseName(filename: string): string {
@@ -241,10 +251,12 @@ export function discoverBestCostDocument(
 
   for (const cand of candidates) {
     if (isFormalOfferCostFilename(cand.filename)) continue;
+    if (isOfferFormByContent(cand.contentScore)) continue;
     const { type, confidence } = classifyCostDocumentType(cand.filename);
     if (type === "none") continue;
     const scoreBoost = (cand.score ?? 0) / 100;
-    const effective = Math.min(0.99, confidence + scoreBoost * 0.05);
+    const contentBoost = contentScoreDiscoveryBoost(cand.contentScore);
+    const effective = Math.min(0.99, Math.max(0, confidence + scoreBoost * 0.05 + contentBoost));
     const priority = COST_TYPE_PRIORITY[type];
     const titleMatch = scoreCostTitleMatch(cand, opts?.tenderTitle);
 
@@ -304,11 +316,12 @@ export function buildPdfPrzedmiarMvpSnapshot(filename: string): AthPreviewResult
 export function costTypeKosztorysFoundLine(
   type: TenderCostDocumentType,
   source?: string,
-  opts?: { pdfCase?: 1 | 2 | 3; pdfNoTextLayer?: boolean },
+  opts?: { pdfCase?: 1 | 2 | 3; pdfNoTextLayer?: boolean; pdfExtractError?: boolean },
 ): string {
   if (type === "pdf_przedmiar" || type === "zip_pdf_przedmiar") {
     if (opts?.pdfCase === 1) return "Rozpoznano pozycje robót w PDF.";
     if (opts?.pdfCase === 3) {
+      if (opts?.pdfExtractError) return PDF_PRZEDMIAR_EXTRACT_ERROR_LINE;
       return opts?.pdfNoTextLayer
         ? PDF_PRZEDMIAR_NO_TEXT_LAYER_LINE
         : "PDF zawiera skan i wymaga OCR.";

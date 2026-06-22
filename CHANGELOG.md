@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.24** · **TP190C-1 planned 2.62.25**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.26** · **TP190C-2E CLOSED**
+
+## 2.62.26 — TP190C-2E PDF Extract Parity + Observability
+
+- **fix (2E-A):** Browser ↔ Node parity — legacy pdf.js w vite-node, join fallback gdy layout pusty
+- **fix (2E-A):** 3 Maja 5B_9.pdf replay: CASE 3 → CASE 1 (178 rows)
+- **improve (2E-B):** `extractError` vs `noTextLayer` — osobny komunikat błędu ekstrakcji PDF
+- **test:** `test-tp190c-extract-parity.mjs` + `test-tp190c-extract-observability.mjs` PASS + regresja dossier
 
 ## 2.62.25 — TP190C-1 Stale Rebuild Protection
 

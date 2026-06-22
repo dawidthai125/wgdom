@@ -235,6 +235,7 @@ export function enrichKosztorysSnapshotFromPreview(
     rowCount: snapshot.rowCount || preview.rows.length,
     pdfPrzedmiarCase: preview.pdfPrzedmiarCase ?? snapshot.pdfPrzedmiarCase,
     pdfPrzedmiarNoTextLayer: preview.pdfPrzedmiarNoTextLayer ?? snapshot.pdfPrzedmiarNoTextLayer,
+    pdfPrzedmiarExtractError: preview.pdfPrzedmiarExtractError ?? snapshot.pdfPrzedmiarExtractError,
   };
   if (totalValue && !snapshot.totalValue?.trim()) {
     traceCostPipeline("snapshot_created", snapshot.sourceFilename, {
