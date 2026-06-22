@@ -11,6 +11,25 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-22",
+    version: "2.62.20",
+    label: "Lista Płac — P0 fix znikającego składu (merge asymmetry)",
+    items: [
+      {
+        type: "fix",
+        text: "mergeWeekEmployeesForWeekRange — przy asymetrii pustości wygrywa strona niepusta; skład nie kasowany przez pusty KV po rolloverze",
+      },
+      {
+        type: "fix",
+        text: "Odśwież skład / Dodaj aktywnych — pracownicy pozostają po sync chmury",
+      },
+      {
+        type: "fix",
+        text: "Regresja — test-payroll-week-employee-merge-asymmetry.mjs T1–T5",
+      },
+    ],
+  },
+  {
     date: "2026-06-19",
     version: "2.62.19",
     label: "PDF Recovery TP201A — pełne opisy pozycji KNR",

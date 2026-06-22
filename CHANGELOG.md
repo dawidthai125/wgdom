@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.17** · **TP201A PDF fidelity 2.62.19**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.19** · **Payroll P0 fix 2.62.20**
+
+## 2.62.20 — Payroll P0: merge asymmetry (skład nie znika)
+
+- **fix:** `mergeWeekEmployeesForWeekRange` — przy asymetrii pustości wybierana strona niepusta (local pełny + cloud pusty → local; odwrotnie → cloud)
+- **fix:** Lista Płac — pracownicy nie znikają po „Odśwież skład” / „Dodaj aktywnych” na nowym tygodniu
+- **test:** `test-payroll-week-employee-merge-asymmetry.mjs` T1–T5
 
 ## 2.62.19 — PDF Recovery TP201A (description fidelity)
 

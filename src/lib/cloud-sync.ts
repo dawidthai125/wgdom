@@ -1346,7 +1346,7 @@ export function mergeWeekEmployeesForWeekRange(
     const localEmpty = local.length === 0;
     const cloudEmpty = cloud.length === 0;
     if (!hasArchivedWeek && localEmpty !== cloudEmpty) {
-      return localEmpty ? local : cloud;
+      return localEmpty ? cloud : local;
     }
     return mergeWeekEmployees(local, cloud);
   }
