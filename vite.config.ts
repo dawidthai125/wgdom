@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 
 import path from 'path'
 
-import { writeFileSync } from 'node:fs'
+import { writeFileSync, mkdirSync } from 'node:fs'
 
 import tailwindcss from '@tailwindcss/vite'
 
@@ -44,10 +44,9 @@ function serviceWorkerPlugin() {
       })
     },
     closeBundle() {
-      writeServiceWorker(
-        version,
-        path.resolve(__dirname, 'dist/sw.js'),
-      )
+      const outPath = path.resolve(__dirname, 'dist/sw.js')
+      mkdirSync(path.dirname(outPath), { recursive: true })
+      writeServiceWorker(version, outPath)
     },
   }
 }
@@ -113,15 +112,9 @@ function versionJsonPlugin() {
     },
 
     closeBundle() {
-
-      writeFileSync(
-
-        path.resolve(__dirname, 'dist/version.json'),
-
-        renderVersionJson(),
-
-      )
-
+      const outPath = path.resolve(__dirname, 'dist/version.json')
+      mkdirSync(path.dirname(outPath), { recursive: true })
+      writeFileSync(outPath, renderVersionJson())
     },
 
   }

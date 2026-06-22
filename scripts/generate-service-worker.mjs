@@ -1,5 +1,5 @@
 /** Generuje dist/sw.js z APP_VERSION (CHANGELOG[0]). Używane przez vite plugin i smoke. */
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -19,5 +19,6 @@ export function renderServiceWorker(version) {
 }
 
 export function writeServiceWorker(version, outPath) {
+  mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, renderServiceWorker(version), "utf8");
 }
