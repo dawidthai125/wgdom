@@ -1,6 +1,6 @@
 /**
  * P2-H.5B — heurystyczny odczyt pozycji z natywnych PDF przedmiaru (bez OCR).
- * P0 WM PDF Recovery — M1 unit norm · M2 BOQ split · M4 m→mb · M5 kalk. własna · M6 WM unit aliases · extended norms.
+ * P0 WM PDF Recovery — M1 unit norm · M2 BOQ split · M4 m→mb · M5 kalk. własna · M6 WM unit aliases · TP201D M5 metr→mb + kalk marker fix.
  */
 
 import type { AthPreviewResult, AthPreviewRow } from "@/lib/ath-parser";
@@ -25,7 +25,7 @@ const SIGNAL_CHECKS: { id: string; re: RegExp }[] = [
   { id: "jm", re: /\b(?:J\.?\s*m\.?|Jedn\.?)\b/i },
   {
     id: "unit",
-    re: /\b(?:m\s*2|m²|m2|m\s*3|m³|m3|mb|kpl|szt\.?|t|kg|rbh|wyp\.?|otw\.?|podej\.?|aparat\.?|lokal\.?|pomiar|pom\.?|prób\.?|prob\.?)\b/i,
+    re: /\b(?:m\s*2|m²|m2|m\s*3|m³|m3|mb|metr(?:\s+bie(?:[żz][aą]cy|zacy))?|kpl|szt\.?|t|kg|rbh|wyp\.?|otw\.?|podej\.?|aparat\.?|lokal\.?|pomiar|pom\.?|prób\.?|prob\.?)\b/i,
   },
 ];
 
@@ -104,7 +104,7 @@ const PDF_BOQ_LP_DESC_ROW_RE =
 
 /** M6 (TP198C) + TP201C-B — WM skróty j.m. + pomiar/prób. (elektryka). */
 const UNIT_RE =
-  /\b(m\s*2|m²|m2|m\s*3|m³|m3|mb|kpl|szt\.?|t|kg|rbh|wyp\.?|otw\.?|podej\.?|aparat\.?|lokal\.?|pomiar|pom\.?|prób\.?|prob\.?)\b/i;
+  /\b(m\s*2|m²|m2|m\s*3|m³|m3|mb|metr(?:\s+bie(?:[żz][aą]cy|zacy))?|kpl|szt\.?|t|kg|rbh|wyp\.?|otw\.?|podej\.?|aparat\.?|lokal\.?|pomiar|pom\.?|prób\.?|prob\.?)\b/i;
 
 const WM_UNIT_ALIAS_TO_SZT = new Set(["wyp", "otw", "podej", "aparat", "lokal"]);
 
@@ -163,7 +163,7 @@ function normalizePdfText(text: string): string {
     .trim();
 }
 
-/** M1 + M4 (TP196) — normalizacja j.m. z eksportu WM (m 2→m2, m→mb przed ilością). */
+/** M1 + M4 (TP196) + TP201D M5 — normalizacja j.m. WM (m2/m3, metr→mb, m→mb przed ilością). */
 export function normalizePdfBoqUnits(text: string): string {
   return text
     .replace(/\bm\s+2\b/gi, "m2")
@@ -173,6 +173,10 @@ export function normalizePdfBoqUnits(text: string): string {
     .replace(/\bpom\./gi, "pomiar")
     .replace(/\bprób\./gi, "prob")
     .replace(/\bprob\./gi, "prob")
+    // TP201D M5 — pełne formy metrów bieżących (przed skrótem „m”)
+    .replace(/\bmetr\s+bie[żz][aą]cy\b/gi, "mb")
+    .replace(/\bmetr\s+biezacy\b/gi, "mb")
+    .replace(/\bmetr\b(?=\s+[\d])/gi, "mb")
     // M4 — WM „m” jako metry bieżące (po m2/m3, żeby nie psuć powierzchni/objętości)
     .replace(/\bm\b(?=\s+[\d])/gi, "mb");
 }
@@ -311,7 +315,7 @@ function normalizeUnitToken(raw: string): string {
     .replace("³", "3")
     .toLowerCase()
     .replace(/\.$/, "");
-  if (norm === "m") return "mb";
+  if (norm === "m" || norm === "metr" || norm.startsWith("metrbie")) return "mb";
   if (norm === "pom") return "pomiar";
   if (norm === "prób" || norm === "prob") return "prob";
   if (WM_UNIT_ALIAS_TO_SZT.has(norm)) return "szt";
@@ -402,7 +406,8 @@ function parseKalkWlasnaPrzedmiarLine(trimmed: string): AthPreviewRow | null {
     description = trimmed.slice((lpMatch?.[0]?.length ?? 0), uq.unitStart).replace(code, "").trim();
   }
   if (description.length < 4) description = "Kalkulacja własna";
-  if (PDF_BOQ_MARKER_ONLY_DESC_RE.test(description)) return null;
+  // TP201D M5 — marker-only dotyczy ścieżki KNR; kalk nie odrzucaj przy d.X.Y + liczba
+  if (PDF_BOQ_MARKER_ONLY_DESC_RE.test(description)) description = "Kalkulacja własna";
 
   return {
     lp: lp || "",

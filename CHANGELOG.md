@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.27** · **TP190C-3B CLOSED** · handoff: [`SESSION-HANDOFF-TP190-PARSER-V3.md`](docs/SESSION-HANDOFF-TP190-PARSER-V3.md)
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.28** · **TP201D M5 CLOSED**
+
+## 2.62.28 — TP201D PDF Recovery M5
+
+- **improve:** `metr` / `metr bieżący` / `metr biezacy` / `metr biezący` → `mb` w `normalizePdfBoqUnits` + `UNIT_RE`
+- **fix:** kalk. własna — opis marker-only (`d.X.Y` + liczba) nie odrzuca pozycji; fallback „Kalkulacja własna”
+- **improve:** TP182 layout extract 142 → 145 pozycji (+3)
+- **test:** `test-pdf-przedmiar-heuristic.mjs` TP201D-1…10 (74 PASS) + TP182/TP201A regresja PASS
 
 ## 2.62.27 — TP190C-3B Batch Rebuild Tooling
 

@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-22",
+    version: "2.62.28",
+    label: "PDF Recovery — TP201D M5 (metr→mb + kalk marker fix)",
+    items: [
+      {
+        type: "improve",
+        text: "TP201D M5 — normalizacja metr / metr bieżący / metr biezacy → mb w PDF przedmiar WM",
+      },
+      {
+        type: "fix",
+        text: "kalk. własna — marker-only opis (d.X.Y + liczba) nie odrzuca pozycji; fallback „Kalkulacja własna”",
+      },
+      {
+        type: "improve",
+        text: "TP182 recovery layout extract: 142 → 145 pozycji (+3 kalk marker fix)",
+      },
+      {
+        type: "fix",
+        text: "Regresja — test-pdf-przedmiar-heuristic.mjs TP201D-1…10 (74 PASS)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-22",
     version: "2.62.27",
     label: "Przetargi — TP190C-3B Batch Rebuild Tooling",
     items: [

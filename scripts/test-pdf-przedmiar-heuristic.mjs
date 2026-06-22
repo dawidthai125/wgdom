@@ -246,5 +246,27 @@ const lokalRow = parsePdfPrzedmiarLine(
 );
 assert("TP198C-5 lokal.", lokalRow?.unit === "szt" && lokalRow?.quantity === "1.00");
 
+// TP201D M5 — metr → mb + kalk marker-only fix
+console.log("\n=== TP201D M5 metr + kalk marker ===");
+assert("TP201D-1 metr bieżący norm", normalizePdfBoqUnits("rurociąg metr bieżący 12.5") === "rurociąg mb 12.5");
+assert("TP201D-2 metr biezacy norm", normalizePdfBoqUnits("przewód metr biezacy 8") === "przewód mb 8");
+assert("TP201D-3 metr biezący norm", normalizePdfBoqUnits("listwa metr biezący 3.5") === "listwa mb 3.5");
+assert("TP201D-4 metr solo norm", normalizePdfBoqUnits("izolacja metr 15.00") === "izolacja mb 15.00");
+const metrBiezacyRow = parsePdfPrzedmiarLine(
+  "KNR 4-02 0230 Demontaż rurociągu z PCW metr bieżący 5.00",
+);
+assert("TP201D-5 metr bieżący line", metrBiezacyRow?.unit === "mb" && metrBiezacyRow?.quantity === "5.00");
+const metrSoloRow = parsePdfPrzedmiarLine("KNR 4-02 0120 Demontaż rurociągu metr 6.00");
+assert("TP201D-6 metr solo line", metrSoloRow?.unit === "mb" && metrSoloRow?.quantity === "6.00");
+const kalkKpl = parsePdfPrzedmiarLine("9 d.1.1 kalk. własna 1 kpl. 1.00");
+assert("TP201D-7 kalk kpl marker fix", kalkKpl?.code.toLowerCase().includes("kalk") && kalkKpl?.unit === "kpl" && kalkKpl?.quantity === "1.00");
+assert("TP201D-7b kalk kpl desc", kalkKpl?.description === "Kalkulacja własna");
+const kalkSztMarker = parsePdfPrzedmiarLine("34 d.1.5 kalk. własna 4 szt 4.00");
+assert("TP201D-8 kalk szt marker fix", kalkSztMarker?.unit === "szt" && kalkSztMarker?.quantity === "4.00");
+const kalkM3 = parsePdfPrzedmiarLine("153 d.3.7 kalk. własna 2.5 m 3 2.50");
+assert("TP201D-9 kalk m3 marker fix", kalkM3?.unit === "m3" && kalkM3?.quantity === "2.50");
+const metrSignals = detectPdfPrzedmiarSignals("Lp. KNR 401 metr bieżący 12 szt 3 kpl 1");
+assert("TP201D-10 metr signal", metrSignals.includes("unit"));
+
 console.log(`\nPDF przedmiar heuristic: ${pass} PASS, ${fail} FAIL`);
 process.exit(fail > 0 ? 1 : 0);
