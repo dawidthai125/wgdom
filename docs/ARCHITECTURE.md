@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-19 (TP200A **v2.62.11** · PDF WM Recovery **v2.62.10** · § 12.1.17–18 · § 12.1.16)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-22 (TP190C-3B **v2.62.27** · parser v3 · § 12.1.19 · TP200A **v2.62.11** · PDF WM **v2.62.24** · § 12.1.16–18)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1467,19 +1467,46 @@ tender-document-resolver.ts
 
 ### 12.1.18 TP200 — Parser Version + Kosztorys Fidelity
 
-**Status:** **TP200A CLOSED** (v2.62.11) · **TP200B PLANNED** · backup tag `wgdom-backup-2026-06-19-v2.62.10`  
-**Handoff SSOT:** [`docs/SESSION-HANDOFF-TP200-PLANNED.md`](SESSION-HANDOFF-TP200-PLANNED.md) · audyt **TP199**
+**Status:** **TP200A CLOSED** (v2.62.11) · **TP190B/C v3 CLOSED** (2.62.23–2.62.27) · **TP200B PLANNED**  
+**Handoff SSOT:** [`docs/SESSION-HANDOFF-TP200-PLANNED.md`](SESSION-HANDOFF-TP200-PLANNED.md) · [`docs/SESSION-HANDOFF-TP190-PARSER-V3.md`](SESSION-HANDOFF-TP190-PARSER-V3.md)
 
 | ID | Problem | Pliki | Status |
 |----|---------|-------|--------|
-| **TP200A** | Stare dossier KV/LS bez `parserVersion` — UI pokazuje snapshot sprzed TP198 | `tender-dossier-parser-version.ts`, `tender-dossier-pipeline.ts`, `tender-dossier-merge.ts` | **CLOSED 2.62.11** |
+| **TP200A** | Stare dossier KV/LS bez `parserVersion` — UI pokazuje snapshot sprzed TP198 | `tender-dossier-parser-version.ts`, `tender-dossier-pipeline.ts` | **CLOSED 2.62.11** |
+| **TP190B/C** | Bump `CURRENT_PARSER_VERSION=3`; anti-downgrade; stale rebuild; batch tooling | `tender-dossier-merge.ts`, `tp190c-batch-rebuild.ts` | **CLOSED 2.62.27** |
 | **TP200B** | `rows.slice(0, 40)` vs pełny `rowCount`; parse loop używa `shouldReplaceBestKosztorys` zamiast `pickBetterKosztorys` | `tenders-bzp-brief.ts`, `tender-document-resolver.ts` | PLANNED |
 
-**TP200A mechanizm:** `DOSSIER_PARSER_VERSION` (`2.62.10`) na `tenderDossier.parserVersion` · `isDossierParserStale()` → `tenderDossierHeavyParseDone` false → lazy rescan Dokumenty/Wycena · `existingKosztorysUnlessStale` przy re-parse.
+**TP200A mechanizm:** `CURRENT_PARSER_VERSION` (`3` od TP190B) na `tenderDossier.parserVersion` · `isDossierParserStale()` → lazy rescan Dokumenty/Wycena · `existingKosztorysUnlessStale` przy lazy parse · `existingKosztorysForRebuildPick` przy forced rebuild (TP190C-1).
 
-**Test:** `test-tender-dossier-parser-version.mjs` TP200A-1…8.
+**Test:** `test-tender-dossier-parser-version.mjs` · `test-tp190b-dossier-stability.mjs` · `test-tp190c-stale-rebuild-protection.mjs` · `test-tp190c-batch-rebuild.mjs`.
 
 **Command Center:** usunięty v2.51.0 — **nie wraca**.
+
+### 12.1.19 TP190C-3B — Batch Rebuild Tooling (v2.62.27)
+
+**Status:** **CLOSED** · commit **`df2524f`**  
+**Handoff SSOT:** [`docs/SESSION-HANDOFF-TP190-PARSER-V3.md`](SESSION-HANDOFF-TP190-PARSER-V3.md)
+
+Operacyjne narzędzie migracji stale dossier (`kosztorys.ok` + `parserVersion ≠ CURRENT_PARSER_VERSION`) na prod KV — **bez zmiany logiki UI**.
+
+```text
+scripts/tp190c-batch-rebuild.mjs
+  → fetch kw-tenders-pipeline (batch-get)
+  → runTp190cBatchRebuild({ dryRun: true })   # domyślnie
+  → rebuildTenderPipelineItem()               # = UI analyze + dossierFromAnalysisResult
+  → [--write] batch-set KV
+```
+
+| Plik | Rola |
+|------|------|
+| `src/lib/tp190c-batch-rebuild.ts` | SSOT: `isStaleDossierCandidate`, `rebuildTenderPipelineItem`, `runTp190cBatchRebuild` |
+| `scripts/tp190c-batch-rebuild.mjs` | CLI prod: dry-run / `--write` |
+| `scripts/test-tp190c-batch-rebuild.mjs` | T1–T6 (19 PASS) |
+
+**Kandydat stale:** `tenderDossier.kosztorys.ok === true` AND `parserVersion !== 3`.  
+**Prod audyt (TP190C-3):** 9 stale dossier — batch write **nie wykonany** (backlog TP190C-3C).
+
+**Nie zmieniaj bez polecenia:** domyślny dry-run · izolacja błędów per tender · nie commitować `audit/tp190c3b-*.json`.
 
 ### 12.1.12 P1 — Document Insights / Owner View Modal (P1A–P1D, v2.59.52)
 

@@ -1,7 +1,7 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.62.10** · https://www.wgdom.fun · **PDF WM Recovery CLOSED** · **TP200 PLANNED** · P1 Document Insights · POST ZI-2026 · WM Druk **COMPLETE** · EM-P1R **COMPLETE**
+> **Prod:** **2.62.27** · https://www.wgdom.fun · **TP190 Parser v3 CLOSED** · **TP190C-3B batch rebuild** · PDF WM Recovery · TP200B PLANNED · POST ZI-2026 · WM Druk **COMPLETE** · EM-P1R **COMPLETE**
 
 ---
 
@@ -10,8 +10,9 @@
 ```text
 1. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
 2. docs/PROJECT-HANDOFF-CURRENT.md    ← baseline prod, commity, releasy
-2a. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery CLOSED (2.62.10)
-2b. docs/SESSION-HANDOFF-TP200-PLANNED.md    ← ★★ Następny epic (parserVersion + fidelity)
+2a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
+2b. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery CLOSED
+2c. docs/SESSION-HANDOFF-TP200-PLANNED.md    ← ★★ TP200B fidelity (PLANNED)
 2c. docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md  ← ★★ merge jakościowy kosztorysu
 2d. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1 Owner View · modal · Executive Summary
 3. docs/MASTER-HANDOFF-POST-ZI-2026.md ← skrót POST ZI · WM Druk COMPLETE
@@ -179,14 +180,52 @@ npx vite-node scripts/test-p5-owner-view.mjs
 
 ---
 
-## 6f. Przetargi — PDF WM Recovery — **2.62.10 CLOSED**
+## 6f. Przetargi — TP190 Parser v3 + Batch Rebuild — **2.62.27 CLOSED**
 
-**Status:** **TP196–TP198C CLOSED** · commit **`1992340`** · TP182 **86→123 pozycji**
+**Status:** **TP190A→TP190C-3B CLOSED** · `CURRENT_PARSER_VERSION = 3` · **TP190C-3C batch write prod OPEN**
 
 | Dokument | Rola |
 |----------|------|
-| [`SESSION-HANDOFF-PDF-WM-RECOVERY.md`](SESSION-HANDOFF-PDF-WM-RECOVERY.md) | **★★ SSOT** — milestone’y, testy, pułapki |
-| [`SESSION-HANDOFF-TP200-PLANNED.md`](SESSION-HANDOFF-TP200-PLANNED.md) | Następny epic |
+| [`SESSION-HANDOFF-TP190-PARSER-V3.md`](SESSION-HANDOFF-TP190-PARSER-V3.md) | **★★ SSOT** — łańcuch TP190, architektura, testy, operacje |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.18–19 | Parser version + batch rebuild |
+
+### Pipeline dossier (skrót)
+
+```text
+analyzeTenderWithDossier → pickBetterKosztorys → dossierFromAnalysisResult
+parserVersion=3 stamp · isDossierParserStale → lazy rescan
+Batch: tp190c-batch-rebuild.mjs (dry-run / --write)
+```
+
+### Kluczowe pliki
+
+```text
+src/lib/tender-dossier-parser-version.ts   CURRENT_PARSER_VERSION, stale detection
+src/lib/tender-dossier-merge.ts            pickBetterKosztorys, TP190B anti-downgrade
+src/lib/tender-dossier-pipeline.ts         analyze + dossier build
+src/lib/tp190c-batch-rebuild.ts            batch rebuild SSOT
+scripts/tp190c-batch-rebuild.mjs           CLI prod KV
+```
+
+### Smoke
+
+```bash
+npx vite-node scripts/test-tp190c-batch-rebuild.mjs
+npx vite-node scripts/test-tp190c-stale-rebuild-protection.mjs
+npx vite-node scripts/test-tp190b-dossier-stability.mjs
+npx vite-node scripts/test-tender-dossier-parser-version.mjs
+```
+
+---
+
+## 6g. Przetargi — PDF WM Recovery — **2.62.24 CLOSED**
+
+**Status:** **TP196–TP201C CLOSED** · TP182 **~142 pozycji** (TP201C-B)
+
+| Dokument | Rola |
+|----------|------|
+| [`SESSION-HANDOFF-PDF-WM-RECOVERY.md`](SESSION-HANDOFF-PDF-WM-RECOVERY.md) | **★★ SSOT** — milestone'y, testy, pułapki |
+| [`SESSION-HANDOFF-TP200-PLANNED.md`](SESSION-HANDOFF-TP200-PLANNED.md) | TP200B fidelity |
 
 **Kluczowy plik:** `src/lib/pdf-przedmiar-heuristic.ts`
 
@@ -396,4 +435,4 @@ curl -s https://www.wgdom.fun/version.json   # VERIFY FAST
 
 ---
 
-*Ostatnia aktualizacja: 2026-06-19 · PDF WM Recovery v2.62.10 · TP200 PLANNED · PAYROLL-ASSIGNMENTS-P1 · EM-P1R · POST ZI-2026*
+*Ostatnia aktualizacja: 2026-06-22 · TP190C-3B v2.62.27 · parser v3 · TP200B PLANNED · PAYROLL-ASSIGNMENTS-P1 · EM-P1R · POST ZI-2026*

@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-19 (**prod 2.62.10** · PDF WM Recovery CLOSED · TP200 PLANNED)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-22 (**prod 2.62.27** · TP190C-3B CLOSED · TP190 Parser v3)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -9,9 +9,9 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-1a. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–198C (CLOSED 2.62.10)
-1b. docs/SESSION-HANDOFF-TP200-PLANNED.md    ← ★★ Następny epic: parserVersion + ATH fidelity
-1c. docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md  ← ★★ P0/P1 merge (TP113/TP182 CLOSED)
+1a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
+1b. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–TP201C (CLOSED)
+1c. docs/SESSION-HANDOFF-TP200-PLANNED.md    ← ★★ TP200B fidelity (PLANNED)
 1d. docs/SESSION-HANDOFF-P0-ZIP-ATH-RECOVERY.md  ← ★★ P0 ZIP ATH Recovery (2.61.4 CLOSED)
 1c. docs/SESSION-HANDOFF-P1-DOCUMENT-INSIGHTS.md  ← ★★ P1A–P1D Owner View · modal
 2. docs/MASTER-HANDOFF-POST-ZI-2026.md    ← ★★ skrót POST ZI-2026 (WM Druk COMPLETE)
@@ -36,7 +36,13 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
-| **Przetargi · PDF WM Recovery** | **2.62.10** (`1992340`) | **CLOSED** · TP182 **123 poz.** (+37) | [`SESSION-HANDOFF-PDF-WM-RECOVERY.md`](SESSION-HANDOFF-PDF-WM-RECOVERY.md) |
+| **Przetargi · TP190C-3B Batch Rebuild** | **2.62.27** (`df2524f`) | **CLOSED** · tooling dry-run/`--write` | [`SESSION-HANDOFF-TP190-PARSER-V3.md`](SESSION-HANDOFF-TP190-PARSER-V3.md) |
+| **Przetargi · TP190C-2E Extract parity** | **2.62.26** (`c869be7`) | **CLOSED** | `tenders-bzp-doc-parse.ts` |
+| **Przetargi · TP190C-1 Stale rebuild** | **2.62.25** (`43ebc3f`) | **CLOSED** | `existingKosztorysForRebuildPick` |
+| **Przetargi · TP190B Parser v3** | **2.62.23** (`dd82593`) | **CLOSED** · `CURRENT_PARSER_VERSION=3` | `test-tp190b-dossier-stability.mjs` |
+| **Lista Płac · Payroll sync fidelity** | **2.62.20–2.62.22** | **CLOSED** | merge days/roster/workEntries |
+| **Przetargi · PDF WM Recovery** | **2.62.10–2.62.24** | **CLOSED** · TP182 **~142 poz.** | [`SESSION-HANDOFF-PDF-WM-RECOVERY.md`](SESSION-HANDOFF-PDF-WM-RECOVERY.md) |
+| **Przetargi · TP200A parserVersion** | **2.62.11** (`6b3ca8a`) | **CLOSED** | `tender-dossier-parser-version.ts` |
 | **Przetargi · TP190A re-analyze guard** | **2.62.9** (`73093e4`) | **CLOSED** | `tender-dossier-pipeline.ts` · `test-tender-dossier-merge-quality.mjs` |
 | **Przetargi · TP192A/B/C perf** | **2.62.6–2.62.8** | **CLOSED** | host skip · parallel probe · parallel bytes |
 | **Przetargi · TP191 PZ / Open Nexus** | **2.62.2** | **CLOSED** | `test-platformazakupowa-public-documents.mjs` |
@@ -99,9 +105,16 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (prod):             2.62.10       ← PDF WM Recovery TP196–198C · TP182 123 poz.
-PDF WM Recovery:            1992340        feat(pdf): kalk po KNR + WM unit aliases
+Version (prod):             2.62.27       ← TP190C-3B batch rebuild tooling
+TP190C-3B batch rebuild:    df2524f        feat(tenders): parser v3 batch rebuild
+TP190C-2E extract parity:   c869be7        Browser↔Node pdf.js + extractError
+TP190C-1 stale rebuild:     43ebc3f        existingKosztorysForRebuildPick
+TP201C-B PDF M4 fidelity:   b0792c4        TP182 ~142 poz.
+TP190B parser v3:           dd82593        CURRENT_PARSER_VERSION=3 anti-downgrade
+Payroll sync fidelity:      66d9863        merge days/roster/workEntries (2.62.20–22)
+PDF WM Recovery baseline:   1992340        v2.62.10 TP196–198C
 TP190A re-analyze guard:    73093e4        pickBetterKosztorys w analyze/lazy dossier
+TP200A parserVersion:       6b3ca8a        isDossierParserStale + lazy rescan
 TP192C parallel bytes:      2.62.8         tender-document-bytes-prefetch
 TP192B parallel PZ probe:   2.62.7         mapWithConcurrency probe meta
 TP192A host skip:           2.62.6         shouldSkipReadmodelsProbe
@@ -195,21 +208,20 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.62.10", "commit": "1992340" }
+# oczekiwane: { "version": "2.62.27", "commit": "df2524f" }
 ```
 
 ---
 
-## 2b. Następny epic — TP200 (PLANNED)
+## 2b. Następny epic — TP190C-3C + TP200B
 
-**Audyt:** TP199 · **Backup:** `wgdom-backup-2026-06-19-v2.62.10` · lokalnie `backups/WGDOM-BACKUP-2026-06-19/`
+| ID | Cel | Status |
+|----|-----|--------|
+| **TP190C-3C** | Batch `--write` prod KV — 9 stale dossier | **OPEN** (tooling 2.62.27 gotowy) |
+| **TP200B** | Kosztorys fidelity — `pickBetterKosztorys` w parse loop; rozszerzenie `rows` | **PLANNED** |
 
-| ID | Cel |
-|----|-----|
-| **TP200A** | `parserVersion` + invalidacja/rescan legacy dossier |
-| **TP200B** | Kosztorys fidelity — `pickBetterKosztorys` w parse loop; rozszerzenie `rows` |
-
-**SSOT:** [`SESSION-HANDOFF-TP200-PLANNED.md`](SESSION-HANDOFF-TP200-PLANNED.md)
+**SSOT TP190:** [`SESSION-HANDOFF-TP190-PARSER-V3.md`](SESSION-HANDOFF-TP190-PARSER-V3.md)  
+**SSOT TP200:** [`SESSION-HANDOFF-TP200-PLANNED.md`](SESSION-HANDOFF-TP200-PLANNED.md)
 
 **Command Center:** **nie wraca** — usunięty v2.51.0.
 
