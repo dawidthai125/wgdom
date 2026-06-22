@@ -18,7 +18,7 @@ import { clearCostTraceLog, estimatePlnFromKosztorysSnapshot, mergeKosztorysValu
 import { applyMetadataConfidence } from "@/lib/tender-metadata-confidence";
 import { pickBetterKosztorys } from "@/lib/tender-dossier-merge";
 import {
-  existingKosztorysUnlessStale,
+  existingKosztorysForRebuildPick,
   CURRENT_PARSER_VERSION,
   stampDossierParserVersion,
 } from "@/lib/tender-dossier-parser-version";
@@ -220,9 +220,12 @@ export async function buildTenderDossierHeavy(opts: {
       existingSwz: swzMerged ?? undefined,
       tenderTitle: opts.item.title,
     });
-    if (parsedResult.kosztorys?.ok) {
-      const existingK = existingKosztorysUnlessStale(opts.existingDossier, kosztorysSnap);
-      kosztorysSnap = pickBetterKosztorys(existingK, parsedResult.kosztorys) ?? kosztorysSnap;
+    {
+      const existingK = existingKosztorysForRebuildPick(opts.existingDossier, kosztorysSnap);
+      const freshK = parsedResult.kosztorys?.ok ? parsedResult.kosztorys : null;
+      if (existingK || freshK) {
+        kosztorysSnap = pickBetterKosztorys(existingK, freshK) ?? kosztorysSnap;
+      }
     }
     if (parsedResult.swzMerged) swzMerged = parsedResult.swzMerged;
     if (parsedResult.estimatePln != null && opts.item.ourEstimatePln == null) {
@@ -362,12 +365,15 @@ export async function analyzeTenderWithDossier(opts: {
       tenderTitle: opts.tenderTitle,
     });
     if (dossier.swzMerged) merged = dossier.swzMerged;
-    if (dossier.kosztorys?.ok) {
-      const existingK = existingKosztorysUnlessStale(
+    {
+      const existingK = existingKosztorysForRebuildPick(
         opts.existingDossier,
         opts.existingKosztorys ?? opts.existingDossier?.kosztorys ?? null,
       );
-      kosztorys = pickBetterKosztorys(existingK, dossier.kosztorys) ?? kosztorys;
+      const freshK = dossier.kosztorys?.ok ? dossier.kosztorys : null;
+      if (existingK || freshK) {
+        kosztorys = pickBetterKosztorys(existingK, freshK) ?? kosztorys;
+      }
     }
     if (dossier.estimatePln != null) estimatePln = dossier.estimatePln;
     scanned = dossier.scannedCount;

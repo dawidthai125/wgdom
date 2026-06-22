@@ -28,7 +28,7 @@ import {
 } from "@/lib/tender-dossier-pipeline";
 import { mergeExternalDiscoveryDossierPatch } from "@/lib/tender-dossier-external-discovery";
 import { pickBetterKosztorys } from "@/lib/tender-dossier-merge";
-import { existingKosztorysUnlessStale, stampDossierParserVersion } from "@/lib/tender-dossier-parser-version";
+import { existingKosztorysForRebuildPick, stampDossierParserVersion } from "@/lib/tender-dossier-parser-version";
 import { useTenderDossierHeavyLazy } from "@/app/hooks/useTenderDossierHeavyLazy";
 import { useTenderDocumentsBootstrap } from "@/app/hooks/useTenderDocumentsBootstrap";
 import { resolvedCostStatusDisplay, traceSsotSnapshot } from "@/lib/tender-data-ssot";
@@ -171,10 +171,11 @@ export function TenderDetailPanel({
         })),
         { ourEstimatePln: estimatePln, existingSwz: swzMerged ?? undefined },
       );
-      const existingK = existingKosztorysUnlessStale(item.tenderDossier, item.tenderDossier?.kosztorys);
-      if (extParsed.kosztorys?.ok) {
-        kosztorysSnap = pickBetterKosztorys(existingK, extParsed.kosztorys)
-          ?? extParsed.kosztorys
+      const existingK = existingKosztorysForRebuildPick(item.tenderDossier, item.tenderDossier?.kosztorys);
+      const freshK = extParsed.kosztorys?.ok ? extParsed.kosztorys : null;
+      if (existingK || freshK) {
+        kosztorysSnap = pickBetterKosztorys(existingK, freshK)
+          ?? freshK
           ?? existingK
           ?? kosztorysSnap;
       }

@@ -37,6 +37,18 @@ export function existingKosztorysUnlessStale(
   return kosztorys ?? dossier?.kosztorys ?? null;
 }
 
+/**
+ * TP190C-1 — kosztorys do pickBetter po świeżym parse (również gdy dossier stale).
+ * Stale wymusza rebuild, ale nie odrzuca istniejącego snapshotu przed quality gate.
+ */
+export function existingKosztorysForRebuildPick(
+  dossier: TenderDossier | null | undefined,
+  kosztorys: import("@/lib/tenders-bzp-brief").TenderKosztorysSnapshot | null | undefined,
+): import("@/lib/tenders-bzp-brief").TenderKosztorysSnapshot | null {
+  const k = kosztorys ?? dossier?.kosztorys ?? null;
+  return k?.ok ? k : null;
+}
+
 export function stampDossierParserVersion(dossier: TenderDossier): TenderDossier {
   return { ...dossier, parserVersion: CURRENT_PARSER_VERSION };
 }

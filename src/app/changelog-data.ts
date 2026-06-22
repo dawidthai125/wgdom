@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-22",
+    version: "2.62.25",
+    label: "Przetargi — TP190C-1 Stale Rebuild Protection",
+    items: [
+      {
+        type: "fix",
+        text: "Stale rebuild — pickBetter(existing, fresh) zamiast pickBetter(null, fresh); dobry snapshot nie jest odrzucany przed quality gate",
+      },
+      {
+        type: "fix",
+        text: "Ochrona przed downgrade przy forced rebuild (np. PDF 148 → PDF 0 CASE 3 w multi-lot)",
+      },
+      {
+        type: "improve",
+        text: "existingKosztorysForRebuildPick — stale nadal wymusza rebuild i parserVersion=3; zachowana zgodność z TP190B anti-downgrade",
+      },
+      {
+        type: "fix",
+        text: "Regresja — test-tp190c-stale-rebuild-protection.mjs TP190C-1…6",
+      },
+    ],
+  },
+  {
+    date: "2026-06-22",
     version: "2.62.24",
     label: "PDF Recovery — TP201C-B (WM M4 fidelity)",
     items: [

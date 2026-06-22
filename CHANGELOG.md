@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.21** · **Payroll Sync Stability 2.62.22**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.24** · **TP190C-1 planned 2.62.25**
+
+## 2.62.25 — TP190C-1 Stale Rebuild Protection
+
+- **fix:** stale snapshot nie odrzucany przed quality gate — `pickBetter(existing, fresh)` przy forced rebuild
+- **fix:** ochrona przed downgrade (np. PDF 148 → PDF 0 CASE 3)
+- **improve:** `existingKosztorysForRebuildPick` — rebuild + parserVersion=3; TP190B anti-downgrade bez zmian
+- **test:** `test-tp190c-stale-rebuild-protection.mjs` TP190C-1…6 PASS + regresja dossier
 
 ## 2.62.24 — TP201C-B PDF Recovery M4 (WM)
 
