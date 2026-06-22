@@ -1,6 +1,10 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.17** · **bootstrap retry 2.62.18**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.17** · **TP201A PDF fidelity 2.62.19**
+
+## 2.62.19 — PDF Recovery TP201A (description fidelity)
+
+- **fix:** `pdf-przedmiar-heuristic` — granica kodu KNR tylko na numerach normy; pełne opisy (Próba szczelności, Wymiana wkładek, Demontaż oprawek, Izolacja rurociągów)
 
 ## 2.62.18 — Bootstrap docs retry (P1 Pack A)
 

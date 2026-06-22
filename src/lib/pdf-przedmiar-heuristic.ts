@@ -29,9 +29,58 @@ const SIGNAL_CHECKS: { id: string; re: RegExp }[] = [
   },
 ];
 
-/** Extended WM norms — dłuższe tokeny przed KNR (ZKNR/NNRNKB); KNR nie łapie końcówki ZKNR. */
-const KNR_IN_LINE =
-  /\b(?:NNRNKB|ZKNR|KNNR|KSNR|(?<![A-Z])KNR(?:-W)?(?:\s+AT)?)\s*[\dA-Za-z]+(?:[-.\s/]*[\dA-Za-z]+)*/i;
+/** TP201A — sam prefiks normy (bez opisu pozycji). */
+const KNR_PREFIX_RE =
+  /\b(?:NNRNKB|ZKNR|KNNR|KSNR|(?<![A-Z])KNR(?:-W)?)\b/i;
+
+/** Wykrywanie linii z normą — tylko prefiks (nie greedy na opis). */
+const KNR_IN_LINE = KNR_PREFIX_RE;
+
+/** Tokeny opisu / modyfikatora — nie wchodzą do kodu normy. */
+const KNR_NORM_STOP_WORDS = new Set(["analogia", "ana-", "logia"]);
+
+/** TP201A — czy token należy do kodu normy WM (numery, AT-xx, INSTAL, GEBERIT). */
+export function isPdfBoqNormToken(token: string): boolean {
+  let t = token.trim().replace(/^[,;]+|[,;]+$/g, "");
+  if (!t) return false;
+  if (KNR_NORM_STOP_WORDS.has(t.toLowerCase())) return false;
+  if (/^AT-\d+$/i.test(t)) return true;
+  if (/^INSTAL$/i.test(t)) return true;
+  if (/^C-\d+$/i.test(t)) return true;
+  if (/^\d+(?:[-./]\d+)*\/?$/.test(t)) return true;
+  if (/^\d+$/.test(t)) return true;
+  if (/^[A-Z]{2,15}$/.test(t) && !/^(RAZEM|UWAGA|LP|PODSTAWA)$/.test(t)) return true;
+  return false;
+}
+
+/** TP201A — kod normy + indeks końca w linii (bez słów opisu pozycji). */
+export function extractKnrCodeSpan(trimmed: string): {
+  code: string;
+  knrStart: number;
+  codeEnd: number;
+} | null {
+  const prefixMatch = trimmed.match(KNR_PREFIX_RE);
+  if (!prefixMatch || prefixMatch.index == null) return null;
+
+  const knrStart = prefixMatch.index;
+  const tokens = [prefixMatch[0]];
+  let cursor = knrStart + prefixMatch[0].length;
+
+  while (cursor < trimmed.length) {
+    const rest = trimmed.slice(cursor);
+    const ws = rest.match(/^\s+/);
+    if (!ws) break;
+    cursor += ws[0].length;
+    const word = rest.slice(ws[0].length).match(/^(\S+)/);
+    if (!word) break;
+    if (!isPdfBoqNormToken(word[1])) break;
+    tokens.push(word[1]);
+    cursor += word[1].length;
+  }
+
+  const code = tokens.join(" ").replace(/\s+/g, " ").trim();
+  return { code, knrStart, codeEnd: knrStart + code.length };
+}
 
 /** M5 (TP197) — kalkulacja własna bez normy KNR. */
 const KALK_WLASNA_RE =
@@ -119,10 +168,7 @@ export function detectPdfPrzedmiarSignals(text: string): string[] {
 }
 
 function extractKnrCode(fragment: string): string {
-  const m = fragment.match(
-    /\b((?:NNRNKB|ZKNR|KNNR|KSNR|(?<![A-Z])KNR(?:-W)?(?:\s+AT)?)\s*[\dA-Za-z]+(?:[-.\s/]*[\dA-Za-z]+)*)/i,
-  );
-  return m?.[1]?.replace(/\s+/g, " ").trim() ?? "";
+  return extractKnrCodeSpan(fragment.trim())?.code ?? "";
 }
 
 function normalizeUnitToken(raw: string): string {
@@ -218,15 +264,14 @@ export function parsePdfPrzedmiarLine(line: string): AthPreviewRow | null {
   const lpMatch = trimmed.match(/^(\d+(?:\.\d+)*)\s+/);
   const lp = lpMatch?.[1] ?? "";
 
-  const knrMatch = trimmed.match(KNR_IN_LINE);
-  const code = knrMatch ? extractKnrCode(knrMatch[0]) : "";
+  const knrSpan = extractKnrCodeSpan(trimmed);
+  const code = knrSpan?.code ?? "";
   if (!code) return null;
 
   const uq = extractUnitAndQuantity(trimmed);
   if (!uq) return null;
 
-  const knrStart = knrMatch?.index ?? 0;
-  let description = trimmed.slice(knrStart + (knrMatch?.[0]?.length ?? 0), uq.unitStart).trim();
+  let description = trimmed.slice(knrSpan.codeEnd, uq.unitStart).trim();
   description = description.replace(/^[-–—]\s*/, "").trim();
   if (description.length < 4) {
     description = trimmed.slice((lpMatch?.[0]?.length ?? 0), uq.unitStart).replace(code, "").trim();

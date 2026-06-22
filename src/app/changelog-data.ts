@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-19",
+    version: "2.62.19",
+    label: "PDF Recovery TP201A — pełne opisy pozycji KNR",
+    items: [
+      {
+        type: "fix",
+        text: "pdf-przedmiar-heuristic — kod normy kończy się na numerach (bez Próba/Demontaż/Wymiana); Kosztorys V4 pokazuje pełne opisy z PDF WM",
+      },
+    ],
+  },
+  {
+    date: "2026-06-19",
     version: "2.62.18",
     label: "Przetargi — bootstrap dokumentów retry po błędzie sieci",
     items: [
