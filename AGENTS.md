@@ -9,7 +9,8 @@
 ```text
 1. AGENTS.md              ← ten plik (JAK pracować)
 2. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (START dla nowego agenta)
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.27)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.31)
+3u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 deploy unblock (CLOSED)
 3a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (CLOSED)
 3a2. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–TP201C (CLOSED)
 3a3. docs/SESSION-HANDOFF-TP200-PLANNED.md  ← ★★ TP200B fidelity (PLANNED)
@@ -55,6 +56,7 @@
 | **docs/SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md** | **★★ Odbiory WM Druk** — COMPLETE · ZI 2026 STABLE |
 | **docs/SESSION-HANDOFF-OPERATIONAL-NOTES.md** | **★★ Notatki operacyjne COMPLETE** (v2.57.0–2.58.1) — P0→P2C+HF, KV, ACL, testy, backlog P3 |
 | **docs/SESSION-HANDOFF-P3-PRICING-BZP-PIPELINE.md** | **★★ P3 wycena · BZP pipeline · P3.6 filtry · P1 WM** (2.56.0–2.56.10) |
+| **docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md** | **★★ P0 Production Unblock** — Vercel BUILD FAILED → 2.62.31 VERIFIED (`d79f7c1` CLOSED) |
 | **docs/SESSION-HANDOFF-TP190-PARSER-V3.md** | **★★ TP190 Parser v3** — anti-downgrade, stale rebuild, batch tooling (2.62.27 CLOSED) |
 | **docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md** | **★★ PDF WM Recovery** — TP196–TP201C · dedup · kalk po KNR (CLOSED) |
 | **docs/SESSION-HANDOFF-TP200-PLANNED.md** | **★★ TP200B PLANNED** — kosztorys fidelity (`rows` cap) |
@@ -133,6 +135,8 @@ Szczegóły: [`.cursor/rules/wgdom-development.mdc`](.cursor/rules/wgdom-develop
 
 **Zakazane:** retry/sleep/polling `version.json`, GitHub Deployments API, Vercel API, oczekiwanie na SUCCESS deployment.
 
+**P0 — przed push nowego pliku `src/`:** `git status` + `git ls-files` — untracked plik z importem w tracked kodzie = **Vercel ENOENT** (patrz [`SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md)).
+
 Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md) § 3.
 
 | Zakres | Workflow |
@@ -149,8 +153,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.62.27**) |
-| Prod `main` (app) | **v2.62.27** (`df2524f`) · TP190C-3B batch rebuild · parser v3 · PDF WM · EM-P1R · WM Druk · ZI 2026 STABLE |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.62.31**) |
+| Prod `main` (app) | **v2.62.31** (`d79f7c1`) · TP202A · deploy unblock · parser v3 · PDF WM · EM-P1R · WM Druk · ZI 2026 STABLE |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |

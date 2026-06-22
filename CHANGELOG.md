@@ -1,13 +1,15 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.31** · **TP202A CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.31** · **deploy unblock CLOSED** · **TP202A CLOSED**
 
-## 2.62.31 — TP202A Analyze/Dossier Consistency
+## 2.62.31 — TP202A Analyze/Dossier Consistency (+ infra deploy unblock)
 
 - **fix:** `dossierFromAnalysisResult` — spread existing dossier; re-analyze nie kasuje `bidProposal` i pól poza analizą
 - **fix:** `analyzeTenderWithDossier` — `ourEstimatePln` użytkownika chronione (zgodnie z heavy pipeline)
 - **fix:** `runAnalysis` / batch rebuild — `existingDossier` przekazywany do merge wyniku
 - **test:** `test-tp202a-analyze-dossier-consistency.mjs` (12 PASS) + regresja dossier/analyze (322 PASS)
+- **infra (deploy unblock):** `8a2f6d8` mkdir `dist/` w vite SW + version.json · `d79f7c1` dodany `tender-cost-content-detection.ts` (był untracked od `c869be7`)
+- **docs:** `SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md` + aktualizacja handoffów agentów
 
 ## 2.62.30 — TP201E-B Layout Corruption Recovery
 

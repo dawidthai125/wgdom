@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-22 (**prod 2.62.27** · TP190C-3B CLOSED · TP190 Parser v3)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-22 (**prod 2.62.31** · deploy unblock CLOSED · TP202A CLOSED)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -9,6 +9,7 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
+1u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
 1a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
 1b. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–TP201C (CLOSED)
 1c. docs/SESSION-HANDOFF-TP200-PLANNED.md    ← ★★ TP200B fidelity (PLANNED)
@@ -36,7 +37,11 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **Production deploy unblock** | **2.62.31** (`d79f7c1`) | **CLOSED** · Vercel BUILD PASS | [`SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md) |
+| **Przetargi · TP202A Analyze/Dossier** | **2.62.31** (`94d2e72`) | **CLOSED** · `existingDossier` merge | `tender-dossier-pipeline.ts` |
+| **Przetargi · TP201E-B PDF layout** | **2.62.30** (`cba8f6f`) | **CLOSED** | `pdf-przedmiar-heuristic.ts` |
 | **Przetargi · TP190C-3B Batch Rebuild** | **2.62.27** (`df2524f`) | **CLOSED** · tooling dry-run/`--write` | [`SESSION-HANDOFF-TP190-PARSER-V3.md`](SESSION-HANDOFF-TP190-PARSER-V3.md) |
+| **Przetargi · P1 Cost Content Detection** | **2.62.26** (`c869be7`+`d79f7c1`) | **CLOSED** · `tender-cost-content-detection.ts` | unblock handoff §3 |
 | **Przetargi · TP190C-2E Extract parity** | **2.62.26** (`c869be7`) | **CLOSED** | `tenders-bzp-doc-parse.ts` |
 | **Przetargi · TP190C-1 Stale rebuild** | **2.62.25** (`43ebc3f`) | **CLOSED** | `existingKosztorysForRebuildPick` |
 | **Przetargi · TP190B Parser v3** | **2.62.23** (`dd82593`) | **CLOSED** · `CURRENT_PARSER_VERSION=3` | `test-tp190b-dossier-stability.mjs` |
@@ -105,7 +110,11 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (prod):             2.62.27       ← TP190C-3B batch rebuild tooling
+Version (prod):             2.62.31       ← deploy unblock + TP202A na prod
+Deploy unblock (missing file): d79f7c1        tender-cost-content-detection.ts + test
+Deploy unblock (mkdir dist): 8a2f6d8        vite.config.ts + generate-service-worker.mjs
+TP202A analyze/dossier:     94d2e72        existingDossier merge · ourEstimatePln guard
+TP201E-B PDF layout:        cba8f6f        skip WM footer rows · corruption aliases
 TP190C-3B batch rebuild:    df2524f        feat(tenders): parser v3 batch rebuild
 TP190C-2E extract parity:   c869be7        Browser↔Node pdf.js + extractError
 TP190C-1 stale rebuild:     43ebc3f        existingKosztorysForRebuildPick
@@ -208,7 +217,7 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.62.27", "commit": "df2524f" }
+# oczekiwane: { "version": "2.62.31", "commit": "d79f7c1" }
 ```
 
 ---

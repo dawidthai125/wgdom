@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-22 (TP190C-3B **v2.62.27** · parser v3 · § 12.1.19 · TP200A **v2.62.11** · PDF WM **v2.62.24** · § 12.1.16–18)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-22 (prod **v2.62.31** · deploy unblock · § 12.1.20 · § 13.1 mkdir · TP202A · TP190C-3B · PDF WM · § 12.1.16–19)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1508,6 +1508,22 @@ scripts/tp190c-batch-rebuild.mjs
 
 **Nie zmieniaj bez polecenia:** domyślny dry-run · izolacja błędów per tender · nie commitować `audit/tp190c3b-*.json`.
 
+### 12.1.20 P1 — Smart Cost Content Detection (v2.62.26+)
+
+**Status:** **CLOSED** · moduł dodany do repo w **`d79f7c1`** (wcześniej untracked od `c869be7`)  
+**Handoff deploy:** [`docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md) §3
+
+Klasyfikacja kosztorysu/przedmiaru po **treści** pliku XLSX (jednostki miary, KNR, wzorce budowlanki) — sygnał **dodatkowy** obok ATH i reguł nazwy pliku.
+
+| Plik | Rola |
+|------|------|
+| `src/lib/tender-cost-content-detection.ts` | `scoreCostDocumentFromXlsxBytes`, `isOfferFormXlsxBytes`, typy klasyfikacji |
+| `src/lib/tender-cost-discovery.ts` | import scoring w `discoverBestCostDocument()` |
+| `src/lib/tenders-bzp-doc-parse.ts` | scoring bytes przy parse BZP |
+| `scripts/test-tender-cost-content-detection.mjs` | 19 PASS |
+
+**Nie zmieniaj bez polecenia:** nie zastępuje ATH ani `isFormalOfferCostFilename()` — tylko wzmacnia ranking.
+
 ### 12.1.12 P1 — Document Insights / Owner View Modal (P1A–P1D, v2.59.52)
 
 **Status:** **P1 STREAM CLOSED** (P1A PDF UX · P1B Summary Header · P1C Executive Summary · P1D Work Scope Inference)  
@@ -2013,9 +2029,9 @@ Inspektor ma analogiczny flow w `InspectorPhotoGallery.tsx` + `InspectorJobPhoto
 | `src/app/AppUpdateBanner.tsx` | Globalny banner „Odśwież teraz” / „Później” (session dismiss) |
 | `dist/version.json` | Generowany przy buildzie — `{ "version": "2.50.x" }` |
 | `scripts/read-changelog-version.mjs` | Parser wersji z `changelog-data.ts` (build + smoke) |
-| `vite.config.ts` | Plugin `wgdom-version-json` + `wgdom-service-worker` + `__APP_VERSION__` define |
+| `vite.config.ts` | Plugin `wgdom-version-json` + `wgdom-service-worker` + `__APP_VERSION__` define — **`mkdirSync` przed zapisem do `dist/`** (P0 2026-06-22) |
 | `scripts/sw.template.js` | Szablon SW (precache shell, network-first assets) |
-| `scripts/generate-service-worker.mjs` | Render `dist/sw.js` z `wgdom-shell-{version}` |
+| `scripts/generate-service-worker.mjs` | Render `dist/sw.js` z `wgdom-shell-{version}` — **`mkdirSync` przed zapisem** (P0 2026-06-22) |
 | `vercel.json` | `Cache-Control: no-store` dla `/version.json` |
 
 **Flow:** karta ładuje bundle z wbudowanym `APP_VERSION`. Co 5 min (oraz przy powrocie do karty) klient pobiera `/version.json` z `cache: no-store`. Gdy `serverVersion !== APP_VERSION` → banner u góry ekranu. **Brak auto-reload** — użytkownik klika „Odśwież teraz” (`location.reload()`).
@@ -2027,6 +2043,8 @@ Inspektor ma analogiczny flow w `InspectorPhotoGallery.tsx` + `InspectorJobPhoto
 **Źródło prawdy wersji UI:** `CHANGELOG[0].version` w `changelog-data.ts` — przy release nowy wpis na górze; build automatycznie aktualizuje `version.json` i define.
 
 **Nie dotyczy:** sync, KV, Edge, auth. **Poza zakresem:** auto-reload (20.5B.7C), sync dismiss między kartami.
+
+**P0 deploy (2026-06-22):** na czystym buildzie Vercel katalog `dist/` może nie istnieć w `closeBundle()` — pluginy **muszą** wywołać `mkdirSync(path.dirname(outPath), { recursive: true })` przed `writeFileSync`. Handoff: [`SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md).
 
 ---
 

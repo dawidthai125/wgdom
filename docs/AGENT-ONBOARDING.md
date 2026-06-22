@@ -1,7 +1,7 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.62.27** · https://www.wgdom.fun · **TP190 Parser v3 CLOSED** · **TP190C-3B batch rebuild** · PDF WM Recovery · TP200B PLANNED · POST ZI-2026 · WM Druk **COMPLETE** · EM-P1R **COMPLETE**
+> **Prod:** **2.62.31** · https://www.wgdom.fun · **Deploy unblock CLOSED** (`d79f7c1`) · **TP202A CLOSED** · **TP190 Parser v3 CLOSED** · PDF WM Recovery · TP200B PLANNED · POST ZI-2026 · WM Druk **COMPLETE** · EM-P1R **COMPLETE**
 
 ---
 
@@ -10,6 +10,7 @@
 ```text
 1. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
 2. docs/PROJECT-HANDOFF-CURRENT.md    ← baseline prod, commity, releasy
+2u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
 2a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
 2b. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery CLOSED
 2c. docs/SESSION-HANDOFF-TP200-PLANNED.md    ← ★★ TP200B fidelity (PLANNED)
@@ -107,6 +108,26 @@ Router: `AdminViewRouter.tsx` · mobile: `mobile.css`, bottom nav 4 pozycje.
 | Bootstrap | `CloudLoader.tsx` — P11 payroll, P15 admin passwords |
 
 **Incydenty:** `docs/INCIDENTS-2026-06.md`
+
+---
+
+## 5a. Deploy i build (KRYTYCZNE)
+
+**Handoff incydentu:** [`SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md)
+
+| Element | Wartość |
+|---------|---------|
+| **Trigger prod** | `git push origin main` → Vercel Git Integration |
+| **Zakaz** | `vercel deploy` / `vercel --prod` |
+| **Build** | `npm run build` → `dist/` + `dist/version.json` + `dist/sw.js` |
+| **Wersja SSOT** | `src/app/changelog-data.ts` → `CHANGELOG[0].version` |
+| **Verify prod** | `curl -s https://www.wgdom.fun/version.json` |
+
+**Pułapka #1:** nowy plik `src/lib/*.ts` z importem w tracked kodzie — **musi być w `git ls-files`**, inaczej Vercel ENOENT mimo lokalnego PASS.
+
+**Pułapka #2:** pluginy Vite zapisują do `dist/` — wymagają `mkdirSync(..., { recursive: true })` przed zapisem (`vite.config.ts` § 13.1).
+
+**Pełny workflow:** [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE-DEPLOY.md)
 
 ---
 
@@ -234,6 +255,25 @@ npx vite-node scripts/test-tender-dossier-parser-version.mjs
 ```bash
 npx vite-node scripts/test-pdf-przedmiar-heuristic.mjs
 npx vite-node scripts/test-tp182-pdf-wm-recovery.mjs
+```
+
+---
+
+## 6h. Przetargi — P1 Cost Content Detection — **2.62.26+ CLOSED**
+
+**Status:** moduł **`tender-cost-content-detection.ts`** — scoring kosztorysu po treści XLSX (P1, obok ATH i nazwy pliku).
+
+| Importujący | Rola |
+|-------------|------|
+| `tender-cost-discovery.ts` | ranking dokumentów kosztowych |
+| `tenders-bzp-doc-parse.ts` | `isOfferFormXlsxBytes`, scoring bytes |
+
+**Incydent 2026-06-22:** plik był untracked przy commicie `c869be7` → Vercel BUILD FAILED do `d79f7c1`.
+
+**Smoke:**
+
+```bash
+npx vite-node scripts/test-tender-cost-content-detection.mjs
 ```
 
 ---

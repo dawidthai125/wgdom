@@ -3,7 +3,7 @@
 > **Źródło prawdy** dla agentów AI, programistów i raportów końcowych sesji.  
 > **Hasło agenta:** „kontynuuj WGDOM” · **Powiązane:** [`AGENTS.md`](../AGENTS.md) · [`PROJECT-HANDOFF.md`](PROJECT-HANDOFF.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) § 13
 
-**Ostatnia aktualizacja:** 2026-06-11 · **VERIFY DEPLOY FAST**
+**Ostatnia aktualizacja:** 2026-06-22 · **VERIFY DEPLOY FAST** · **§ 6 Deploy blockers (P0)**
 
 ---
 
@@ -197,7 +197,38 @@ Po każdym release / hotfix / housekeeping podaj:
 
 ---
 
-## 6. Proces feature (przed IMPLEMENT)
+## 6. Deploy blockers (P0) — lekcje z 2026-06-22
+
+**Handoff:** [`SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md)
+
+Prod była zamrożona na **2.62.25** (`43ebc3f`) mimo pushy na `main` — **Vercel BUILD FAILED**, nie opóźnienie cache.
+
+### 6.1 Checklist przed `git push`
+
+```bash
+npm run build
+git status --porcelain src/          # brak ?? w nowych plikach importowanych z tracked kodu
+git ls-files | findstr nowy-modul      # każdy import @/lib/* musi być tracked
+```
+
+| Objaw lokalny | Objaw Vercel | Fix |
+|---------------|--------------|-----|
+| Build PASS, plik `??` w status | `Could not load … ENOENT` | `git add` + commit brakującego pliku |
+| Build PASS po `rm -rf dist` | `[wgdom-version-json] ENOENT dist/version.json` | `mkdirSync` przed zapisem w pluginie Vite |
+
+### 6.2 Werdykt deploy — rozróżnij
+
+| Sygnał | Znaczenie |
+|--------|-----------|
+| GitHub status `Vercel: success` | **Build Vercel PASS** |
+| `version.json` = nowa wersja + commit | **PRODUCTION VERIFIED** |
+| Push OK, `version.json` stare | **DEPLOY PROPAGATING** lub **BUILD FAILED** — sprawdź status Vercel |
+
+**Incydent 2026-06-22:** przez wiele godzin `version.json` pokazywało 2.62.25 — przyczyna: kolejne commity **nie deployowały się** (build error), nie „wolny Vercel”.
+
+---
+
+## 7. Proces feature (przed IMPLEMENT)
 
 Niezależnie od wariantu A/B/C, nowa funkcja przechodzi:
 
@@ -209,11 +240,12 @@ Szczegóły: [`PROJECT-HANDOFF.md`](PROJECT-HANDOFF.md) § „Proces pracy”.
 
 ---
 
-## 7. Szybka mapa dokumentów
+## 8. Szybka mapa dokumentów
 
 | Dokument | Rola |
 |----------|------|
 | **Ten plik** | ★ Workflow release/deploy A/B/C + VERIFY |
+| [`SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md) | ★ P0 deploy blockers — untracked imports, mkdir dist |
 | [`AGENTS.md`](../AGENTS.md) | Start agenta + kolejność CHANGELOG/ARCHITECTURE |
 | [`DEPLOY.md`](../DEPLOY.md) | Jednorazowa konfiguracja GitHub + Vercel |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) § 13 | Vercel, PWA, version awareness |

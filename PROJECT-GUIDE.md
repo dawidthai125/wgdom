@@ -20,7 +20,8 @@
 | § 11 | **Sync i merge** (`cloud-sync.ts`) — **KRYTYCZNE** |
 | § 12 | Supabase backend, endpointy, **§ 12.1.1 przetargi**, **§ 12.1.3 COMMAND CENTER + pulpit 7G + polonizacja 20.3B+** |
 | — | **[`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)** — ★★ mapa systemu dla agentów AI |
-| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (v2.59.25) |
+| — | **[`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (v2.62.31) |
+| — | **[`docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md)** — ★★ P0 Vercel deploy unblock |
 | — | **[`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md)** — POST ZI · WM Druk COMPLETE |
 | — | **[`docs/ZI-2026-HANDOFF.md`](docs/ZI-2026-HANDOFF.md)** — ZI Tauron 2026 prod |
 | — | **[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) § 12.1.8** — Odbiory WM Druk |
@@ -32,6 +33,25 @@
 | § 18 | Testy (`test:mobile`, `audit:mobile`) |
 | § 19 | Czego nie commitować |
 | § 22 | Historia kluczowych wersji |
+
+---
+
+## Handoff sesji 2026-06-22 (Production Unblock + TP202A)
+
+Po hasłach **„kontynuuj WGDOM”** / nowa sesja:
+
+1. [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)
+2. [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)
+3. [`docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md)
+4. [`CURRENT-TASK.md`](CURRENT-TASK.md)
+
+| Temat | Dokument |
+|-------|----------|
+| **Prod v2.62.31 — deploy unblock** | `SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md` |
+| **TP202A Analyze/Dossier** | `CHANGELOG.md` 2.62.31 |
+| **SSOT baseline prod** | `PROJECT-HANDOFF-CURRENT.md` |
+
+**Prod HEAD:** **`d79f7c1`** · **UI:** **2.62.31** · **Vercel BUILD PASS**
 
 ---
 
