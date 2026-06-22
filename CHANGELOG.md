@@ -1,6 +1,15 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.28** · **TP201D M5 CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.29** · **TP201E-A M6A CLOSED**
+
+## 2.62.29 — TP201E-A PDF Recovery M6A
+
+- **fix:** split złączonych LP — Montaż/Demontaż/Dostawa/Wymiana + RAZEM boundary (fix JS `\b` + `ż`)
+- **fix:** kalk/Kalkulacja deferred qty — max 4 layout rows (LP 66)
+- **fix:** section trailer allowlist — `3.6 Pomiary elektryczne` (LP 140)
+- **improve:** LP action bez KNR — wycena indywidualna (LP 44)
+- **improve:** TP182 layout extract 145 → 148 pozycji (+3)
+- **test:** `test-pdf-przedmiar-heuristic.mjs` TP201E-A-1…8 (82 PASS) + TP182/TP201A regresja PASS
 
 ## 2.62.28 — TP201D PDF Recovery M5
 

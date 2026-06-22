@@ -268,5 +268,44 @@ assert("TP201D-9 kalk m3 marker fix", kalkM3?.unit === "m3" && kalkM3?.quantity 
 const metrSignals = detectPdfPrzedmiarSignals("Lp. KNR 401 metr bieżący 12 szt 3 kpl 1");
 assert("TP201D-10 metr signal", metrSignals.includes("unit"));
 
+// TP201E-A — M6 split LP / kalk deferred qty / section strip
+console.log("\n=== TP201E-A M6 split + kalk qty + section ===");
+const merged4344 =
+  "43 KNR 4-01 demontaż wraz z utylizacją istniejącej wewnętrznej stolarki drzwiowej szt. d.1.6 0354-04 analogia 3 szt. 3.00 RAZEM 3.00 44 Montaż skrzydeł drzwiowych wewnętrznych wraz ościeżnicą z dopasowaniem szt.";
+const split4344 = splitPdfBoqText(merged4344);
+assert("TP201E-A-1 split 43/44 segments", split4344.length >= 2);
+assert("TP201E-A-2 LP43 parses", split4344.some((s) => s.startsWith("43") && parsePdfPrzedmiarLine(s)?.quantity === "3.00"));
+const kalk66Text = [
+  "66 Kalkulacja Zamkniecie i otwarcie dopływu wody do lokalu szt.",
+  "d.2.4 własna",
+  "kalk. własna",
+  "1 szt. 1.00",
+].join("\n");
+const kalk66Rows = extractPdfPrzedmiarRows(kalk66Text);
+assert("TP201E-A-3 kalk 66 deferred qty", kalk66Rows.some((r) => r.lp === "66" && r.quantity === "1.00"));
+const lp140 =
+  "140 KNR-W 4-02 Dostawa i montaż czteropalnikowej kuchenki elektrycznej z piekarnikiem szt. d.3.5 0315-02 .1 1 szt. 1.00 3.6 Pomiary elektryczne";
+assert("TP201E-A-4 section strip LP140", parsePdfPrzedmiarLine(lp140)?.quantity === "1.00");
+const razemSplit = splitPdfBoqText(
+  "10 KNR 401-01 Tynk gipsowy m2 12,5 RAZEM 12,50 11 KNR 202-08 Montaż drzwi szt 3",
+);
+assert("TP201E-A-5 RAZEM boundary split", razemSplit.length >= 2);
+const montazLayout = [
+  "43 KNR 4-01 demontaż wraz z utylizacją istniejącej wewnętrznej stolarki drzwiowej szt.",
+  "d.1.6 0354-04",
+  "analogia",
+  "3 szt. 3.00",
+  "RAZEM 3.00",
+  "44 Montaż skrzydeł drzwiowych wewnętrznych wraz ościeżnicą z dopasowaniem szt.",
+  "d.1.6 wycena indywidualna",
+  "1 szt. 2.00",
+].join("\n");
+const montazSegs = splitPdfBoqText(montazLayout);
+assert("TP201E-A-6 layout split 43/44", montazSegs.filter((s) => /^43\b/.test(s)).length === 1 && montazSegs.filter((s) => /^44\b/.test(s)).length === 1);
+assert("TP201E-A-7 layout LP43 parses", montazSegs.some((s) => s.startsWith("43") && parsePdfPrzedmiarLine(s)?.quantity === "3.00"));
+const lp44 =
+  "44 Montaż skrzydeł drzwiowych wewnętrznych wraz ościeżnicą z dopasowaniem szt. d.1.6 wycena indywidualna 1 szt. 2.00";
+assert("TP201E-A-8 LP44 action wycena", parsePdfPrzedmiarLine(lp44)?.quantity === "2.00");
+
 console.log(`\nPDF przedmiar heuristic: ${pass} PASS, ${fail} FAIL`);
 process.exit(fail > 0 ? 1 : 0);

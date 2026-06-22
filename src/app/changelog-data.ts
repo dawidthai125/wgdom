@@ -12,6 +12,37 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-22",
+    version: "2.62.29",
+    label: "PDF Recovery — TP201E-A M6A (split LP + kalk qty + section strip)",
+    items: [
+      {
+        type: "fix",
+        text: "TP201E-A — split złączonych LP: Montaż/Demontaż/Dostawa/Wymiana + delimiter RAZEM (fix JS \\b + ż)",
+      },
+      {
+        type: "fix",
+        text: "kalk/Kalkulacja — deferred qty z max 4 layout rows (np. LP 66)",
+      },
+      {
+        type: "fix",
+        text: "allowlist section trailer strip — „3.6 Pomiary elektryczne” (LP 140)",
+      },
+      {
+        type: "improve",
+        text: "LP action bez KNR — wycena indywidualna (np. LP 44 Montaż)",
+      },
+      {
+        type: "improve",
+        text: "TP182 recovery layout extract: 145 → 148 pozycji (+3)",
+      },
+      {
+        type: "fix",
+        text: "Regresja — test-pdf-przedmiar-heuristic.mjs TP201E-A-1…8 (82 PASS)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-22",
     version: "2.62.28",
     label: "PDF Recovery — TP201D M5 (metr→mb + kalk marker fix)",
     items: [
