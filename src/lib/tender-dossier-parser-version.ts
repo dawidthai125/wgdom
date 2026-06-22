@@ -8,7 +8,8 @@
 import type { TenderDossier } from "@/lib/tenders-bzp-brief";
 
 /** v2 = PDF WM Recovery TP196–198C + merge quality TP190A (baseline prod 2.62.10). */
-export const CURRENT_PARSER_VERSION = 2;
+/** v3 = TP201B layout PDF recovery + TP190B anti-downgrade merge (PDF vs ATH). */
+export const CURRENT_PARSER_VERSION = 3;
 
 /** @deprecated alias — używaj CURRENT_PARSER_VERSION */
 export const DOSSIER_PARSER_VERSION = CURRENT_PARSER_VERSION;

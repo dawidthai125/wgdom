@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-22",
+    version: "2.62.23",
+    label: "Przetargi — TP190B Dossier Stability (parser v3 + ochrona PDF)",
+    items: [
+      {
+        type: "fix",
+        text: "tenderDossier.parserVersion 3 — wymusza rebuild snapshotów v2 po TP201B rollout",
+      },
+      {
+        type: "fix",
+        text: "pickBetterKosztorys — silny PDF Recovery (CASE 1, ≥120 poz.) nie przegrywa z ATH przy znacząco mniejszym rowCount",
+      },
+      {
+        type: "fix",
+        text: "existingKosztorysUnlessStale + anti-downgrade — ochrona przed degradacją kosztorysu przy re-analyze i merge",
+      },
+      {
+        type: "fix",
+        text: "Regresja — test-tp190b-dossier-stability.mjs TP190B-1…6",
+      },
+    ],
+  },
+  {
+    date: "2026-06-22",
     version: "2.62.22",
     label: "Lista Płac — Payroll Sync Stability Pack (przydziały + Sob. poprz.)",
     items: [

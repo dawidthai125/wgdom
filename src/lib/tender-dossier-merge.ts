@@ -82,14 +82,61 @@ export function kosztorysSourceQualityTier(
 
 export type KosztorysPickWinner = "a" | "b" | null;
 
+/** TP190B — silny PDF WM CASE 1: dużo pozycji po recovery. */
+const PDF_STRONG_RECOVERY_MIN_ROWS = 120;
+/**
+ * TP190B — ATH poniżej tej frakcji rowCount PDF nie zastępuje silnego PDF.
+ * 70% = ogólna heurystyka (nie hardcode TP182); ATH 128 vs PDF 132 przechodzi próg.
+ */
+const ATH_VS_STRONG_PDF_ROW_RATIO = 0.7;
+
+function isPdfPrzedmiarTier(tier: number): boolean {
+  return tier === KOSZTORYS_SOURCE_TIER.pdf_przedmiar
+    || tier === KOSZTORYS_SOURCE_TIER.zip_pdf_przedmiar;
+}
+
+/** TP190B — PDF przedmiar CASE 1 z wysokim rowCount (dobry recovery). */
+export function isStrongPdfPrzedmiarRecovery(
+  k: TenderKosztorysSnapshot | null | undefined,
+): boolean {
+  if (!k?.ok) return false;
+  const tier = kosztorysSourceQualityTier(k);
+  if (!isPdfPrzedmiarTier(tier)) return false;
+  if (k.pdfPrzedmiarCase !== 1) return false;
+  return effectiveRowCount(k) >= PDF_STRONG_RECOVERY_MIN_ROWS;
+}
+
+function isAthTierSnapshot(k: TenderKosztorysSnapshot | null | undefined): boolean {
+  if (!k?.ok) return false;
+  return kosztorysSourceQualityTier(k) === KOSZTORYS_SOURCE_TIER.ath;
+}
+
+/** TP190B — tier ATH nie powinien zdegradować silnego PDF recovery. */
+function athWouldDowngradeStrongPdf(
+  pdfSide: TenderKosztorysSnapshot,
+  athSide: TenderKosztorysSnapshot,
+): boolean {
+  if (!isStrongPdfPrzedmiarRecovery(pdfSide)) return false;
+  if (!isAthTierSnapshot(athSide)) return false;
+  const pdfRows = effectiveRowCount(pdfSide);
+  const athRows = effectiveRowCount(athSide);
+  return athRows < pdfRows * ATH_VS_STRONG_PDF_ROW_RATIO;
+}
+
 function compareKosztorys(
   a: TenderKosztorysSnapshot | null | undefined,
   b: TenderKosztorysSnapshot | null | undefined,
 ): KosztorysPickWinner {
   const tierA = kosztorysSourceQualityTier(a);
   const tierB = kosztorysSourceQualityTier(b);
-  if (tierA > tierB) return "a";
-  if (tierB > tierA) return "b";
+  if (tierA > tierB) {
+    if (a && b && athWouldDowngradeStrongPdf(b, a)) return "b";
+    return "a";
+  }
+  if (tierB > tierA) {
+    if (a && b && athWouldDowngradeStrongPdf(a, b)) return "a";
+    return "b";
+  }
   if (tierA === KOSZTORYS_SOURCE_TIER.absent) return null;
 
   const rowsA = a ? effectiveRowCount(a) : 0;

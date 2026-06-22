@@ -71,10 +71,10 @@ function discoveryUpdates(k = kosztorys(123)) {
 
 console.log("=== TP200A.1 EXTERNAL DISCOVERY PRESERVE TESTS ===\n");
 
-console.log("T1 parserVersion=2 preserved");
+console.log("T1 parserVersion preserved");
 {
   const merged = mergeExternalDiscoveryDossierPatch(existingDossier(), discoveryUpdates());
-  assert(merged.parserVersion === 2, "parserVersion still 2");
+  assert(merged.parserVersion === CURRENT_PARSER_VERSION, "parserVersion still current");
 }
 
 console.log("\nT2 scanSummary preserved");
@@ -101,15 +101,15 @@ console.log("\nT5 kosztorys updated — parserVersion still correct");
   const newK = kosztorys(200, "updated-przedmiar.pdf");
   const merged = mergeExternalDiscoveryDossierPatch(existing, discoveryUpdates(newK));
   assert(merged.kosztorys?.rowCount === 200, "kosztorys updated");
-  assert(merged.parserVersion === 2, "parserVersion still 2 after kosztorys update");
+  assert(merged.parserVersion === CURRENT_PARSER_VERSION, "parserVersion still current after kosztorys update");
 }
 
-console.log("\nT6 legacy dossier without parserVersion — no fake v2");
+console.log("\nT6 legacy dossier without parserVersion — no fake stamp");
 {
   const legacy = existingDossier({ parserVersion: undefined });
   delete legacy.parserVersion;
   const merged = mergeExternalDiscoveryDossierPatch(legacy, discoveryUpdates());
-  assert(merged.parserVersion === undefined, "no fake parserVersion=2");
+  assert(merged.parserVersion === undefined, "no fake parserVersion stamp");
 }
 
 console.log(`\n=== ${pass} PASS / ${fail} FAIL ===`);

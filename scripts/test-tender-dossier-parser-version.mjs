@@ -71,7 +71,7 @@ console.log("T1 legacy dossier without parserVersion");
   assert(!tenderDossierHeavyParseDone(d), "heavy parse required");
 }
 
-/** T2 — parserVersion 1, CURRENT 2 → stale */
+/** T2 — parserVersion 1, CURRENT → stale */
 console.log("\nT2 outdated parserVersion 1");
 {
   const d = dossier(kosztorys("przedmiar.pdf", 86), { parserVersion: 1 });
@@ -83,7 +83,7 @@ console.log("\nT2 outdated parserVersion 1");
 console.log("\nT3 current parserVersion");
 {
   const d = stampDossierParserVersion(dossier(kosztorys("przedmiar.pdf", 123)));
-  assert(d.parserVersion === CURRENT_PARSER_VERSION, "stamped v2");
+  assert(d.parserVersion === CURRENT_PARSER_VERSION, "stamped current");
   assert(!isDossierParserStale(d), "not stale");
   assert(tenderDossierHeavyParseDone(d), "dossier valid");
 }
@@ -93,7 +93,7 @@ console.log("\nT4 stamp after rebuild");
 {
   const legacy = dossier(kosztorys("formularz.xlsx", 45));
   const stamped = stampDossierParserVersion(legacy);
-  assert(stamped.parserVersion === 2, "parserVersion 2 saved");
+  assert(stamped.parserVersion === CURRENT_PARSER_VERSION, "parserVersion saved");
   assert(tenderDossierHeavyParseDone(stamped), "valid after stamp");
 }
 
@@ -108,7 +108,7 @@ console.log("\nT5 TP182 legacy fixture (form 55 vs PDF 123 target)");
   const picked = pickBetterKosztorys(existingK, replayPdf);
   assert(picked?.rowCount === 123, "fresh PDF 123 wins after rescan");
   const rebuilt = stampDossierParserVersion({ ...tp182Legacy, kosztorys: picked });
-  assert(rebuilt.parserVersion === 2, "rebuilt dossier has parserVersion 2");
+  assert(rebuilt.parserVersion === CURRENT_PARSER_VERSION, "rebuilt dossier has current parserVersion");
 }
 
 console.log("\n--- supplementary ---");
