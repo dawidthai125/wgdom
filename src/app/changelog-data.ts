@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-22",
+    version: "2.62.31",
+    label: "Przetargi — TP202A analyze/dossier consistency",
+    items: [
+      {
+        type: "fix",
+        text: "dossierFromAnalysisResult — spread existing dossier; re-analyze nie kasuje bidProposal i pól poza analizą",
+      },
+      {
+        type: "fix",
+        text: "analyzeTenderWithDossier — ourEstimatePln użytkownika chronione jak w buildTenderDossierHeavy",
+      },
+      {
+        type: "fix",
+        text: "runAnalysis / batch rebuild — przekazanie existingDossier do dossierFromAnalysisResult",
+      },
+      {
+        type: "fix",
+        text: "Regresja — test-tp202a-analyze-dossier-consistency.mjs (12 PASS)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-22",
     version: "2.62.30",
     label: "PDF Recovery — TP201E-B layout corruption (footer + WM aliases)",
     items: [

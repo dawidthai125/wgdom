@@ -379,7 +379,9 @@ export async function analyzeTenderWithDossier(opts: {
         kosztorys = pickBetterKosztorys(existingK, freshK) ?? kosztorys;
       }
     }
-    if (dossier.estimatePln != null) estimatePln = dossier.estimatePln;
+    if (dossier.estimatePln != null && opts.ourEstimatePln == null) {
+      estimatePln = dossier.estimatePln;
+    }
     scanned = dossier.scannedCount;
     parsed = dossier.parsedCount;
     costDiscovery = dossier.costDiscovery;
@@ -445,15 +447,18 @@ export async function analyzeTenderWithDossier(opts: {
   return { analysis: merged, kosztorys, estimatePln, scanSummary, warnings };
 }
 
+/** TP202A — spread existing dossier; nadpisuje wyłącznie pola z analizy. */
 export function dossierFromAnalysisResult(
   brief: TenderDossier["brief"],
   result: Pick<TenderDossierAnalysisResult, "kosztorys" | "scanSummary" | "estimatePln">,
+  existingDossier?: TenderDossier | null,
 ): TenderDossier {
   return stampDossierParserVersion({
+    ...(existingDossier ?? {}),
     brief,
     kosztorys: result.kosztorys,
     scanSummary: result.scanSummary,
-    estimatePln: result.estimatePln ?? null,
+    estimatePln: result.estimatePln ?? existingDossier?.estimatePln ?? null,
     builtAt: new Date().toISOString(),
   });
 }

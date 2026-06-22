@@ -334,7 +334,7 @@ export function TenderDetailPanel({
 
       const patch: Partial<TenderPipelineItem> = {
         swzAnalysis: result.analysis,
-        tenderDossier: dossierFromAnalysisResult(brief, result),
+        tenderDossier: dossierFromAnalysisResult(brief, result, item.tenderDossier ?? null),
       };
       if (result.estimatePln != null && item.ourEstimatePln == null) {
         patch.ourEstimatePln = result.estimatePln;

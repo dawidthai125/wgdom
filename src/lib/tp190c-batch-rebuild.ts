@@ -91,7 +91,7 @@ export async function rebuildTenderPipelineItem(
     tenderTitle: item.title,
   });
 
-  const tenderDossier = dossierFromAnalysisResult(brief, result);
+  const tenderDossier = dossierFromAnalysisResult(brief, result, item.tenderDossier ?? null);
   const patch: Partial<TenderPipelineItem> = {
     swzAnalysis: result.analysis,
     tenderDossier,
