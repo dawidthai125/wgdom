@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.19** · **Payroll P0 fix 2.62.20**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.20** · **Payroll P0 fix 2.62.21**
+
+## 2.62.21 — Payroll P0: merge dni (godziny nie znikają)
+
+- **fix:** `pickDaysByTimestamps` — przy remisie `dataUpdatedAt` → `mergeDaysByRichness` (bogatszy dzień wygrywa; remis → local)
+- **fix:** Lista Płac — wpisane godziny pozostają po sync chmury (Pn active + 08:00–17:00 nie kasowane przez cloud inactive)
+- **test:** `test-payroll-day-merge-fidelity.mjs` T1–T6
 
 ## 2.62.20 — Payroll P0: merge asymmetry (skład nie znika)
 

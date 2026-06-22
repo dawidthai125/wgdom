@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-22",
+    version: "2.62.21",
+    label: "Lista Płac — P0 fix znikających godzin (merge dni)",
+    items: [
+      {
+        type: "fix",
+        text: "pickDaysByTimestamps — przy remisie dataUpdatedAt mergeDaysByRichness: aktywny dzień z godzinami wygrywa z pustym/inactive w chmurze",
+      },
+      {
+        type: "fix",
+        text: "Wpis czasu pracy — godziny pozostają po sync (nie nadpisywane domyślnym inactive z KV)",
+      },
+      {
+        type: "fix",
+        text: "Regresja — test-payroll-day-merge-fidelity.mjs T1–T6",
+      },
+    ],
+  },
+  {
+    date: "2026-06-22",
     version: "2.62.20",
     label: "Lista Płac — P0 fix znikającego składu (merge asymmetry)",
     items: [

@@ -710,7 +710,35 @@ function pickDaysByTimestamps(l: Record<string, unknown>, c: Record<string, unkn
   const cAt = parseRecordTs(c.dataUpdatedAt);
   if (lAt > cAt) return { ...cDays, ...lDays };
   if (cAt > lAt) return { ...lDays, ...cDays };
-  return { ...lDays, ...cDays };
+  return mergeDaysByRichness(lDays, cDays);
+}
+
+/** Per-day merge przy remisie dataUpdatedAt — bogatszy dzień wygrywa; remis → local. */
+export function mergeDaysByRichness(
+  lDays: Record<string, DayLike>,
+  cDays: Record<string, DayLike>,
+): Record<string, DayLike> {
+  const keys = new Set([...Object.keys(lDays), ...Object.keys(cDays)]);
+  const out: Record<string, DayLike> = {};
+  for (const key of keys) {
+    const ld = lDays[key];
+    const cd = cDays[key];
+    if (!ld && cd) {
+      out[key] = cd;
+      continue;
+    }
+    if (ld && !cd) {
+      out[key] = ld;
+      continue;
+    }
+    if (!ld && !cd) continue;
+    const lr = dayRichness(ld);
+    const cr = dayRichness(cd);
+    if (lr > cr) out[key] = ld!;
+    else if (cr > lr) out[key] = cd!;
+    else out[key] = ld!;
+  }
+  return out;
 }
 
 function pickPrevSaturdayByTimestamps(
