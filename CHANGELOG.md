@@ -2,6 +2,21 @@
 
 > **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.21** · **Payroll Sync Stability 2.62.22**
 
+## 2.62.24 — TP201C-B PDF Recovery M4 (WM)
+
+- **improve:** TP182 +10 pozycji (132 → 142), luka recovery ~21 → ~10, lowercase-start ~1.5% → ~1.4%
+- **fix:** `UNIT_RE` — obsługa `pomiar`, `pom.`, `prób.`, `prob.` (sekcja pomiarów elektrycznych)
+- **fix:** LP lookahead dla `kalk. własna` (LP+opis w wierszu wyżej)
+- **fix:** in-word hyphen rejoin (np. `nis- kiego`, `na- stępny`, `pojem- ności`, `gipsowo - kartonowy`)
+- **fix:** LP-aware dedup + alias `Kalkulacja` → `kalk. własna`
+- **test:** PASS: `test-tp201a-pdf-description-fidelity.mjs`, `test-tp182-pdf-wm-recovery.mjs`, `test-pdf-przedmiar-heuristic.mjs`, `test-tp190b-dossier-stability.mjs`, `test-tender-dossier-parser-version.mjs`, `test-tender-dossier-pipeline.mjs`
+
+## 2.62.23 — TP190B Dossier Stability
+
+- **fix:** `CURRENT_PARSER_VERSION` 2 → 3; forced rebuild snapshotów v2
+- **fix:** anti-downgrade silnego PDF Recovery (PDF 132 nie przegrywa z ATH 40)
+- **test:** `test-tp190b-dossier-stability.mjs` TP190B-1…6 PASS
+
 ## 2.62.22 — Payroll Sync Stability Pack (przydziały + Sob. poprz.)
 
 - **fix:** `mergeJobsById` — `mergeWorkEntriesById`: union `workEntries` po id; przydziały robót nie znikają po pierwszym „Dodaj robociznę”

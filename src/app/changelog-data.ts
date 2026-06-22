@@ -12,6 +12,20 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-22",
+    version: "2.62.24",
+    label: "PDF Recovery — TP201C-B (WM M4 fidelity)",
+    items: [
+      { type: "improve", text: "PDF przedmiar WM — +10 pozycji na TP182 (132 → 142) + zmniejszenie luki ~21 → ~10" },
+      { type: "fix", text: "UNIT_RE: pomiar/pom./prób./prob. — odzysk pozycji elektrycznych (pomiary/próby)" },
+      { type: "fix", text: "LP lookahead: <LP opis> + d.X.Y kalk. własna — składanie w jedną pozycję" },
+      { type: "fix", text: "In-word hyphen rejoin: nis- kiego, na- stępny, pojem- ności, gipsowo - kartonowy" },
+      { type: "fix", text: "Dedup LP-aware: LP z segmentu przed dedup; brak utraty pozycji przy powtórzeniach kodu normy" },
+      { type: "fix", text: "Alias: „Kalkulacja” → „kalk. własna” (spójna ścieżka parsowania)" },
+      { type: "fix", text: "Regresja: TP201A/TP182/TP190B + pipeline dossier — PASS" },
+    ],
+  },
+  {
+    date: "2026-06-22",
     version: "2.62.23",
     label: "Przetargi — TP190B Dossier Stability (parser v3 + ochrona PDF)",
     items: [
