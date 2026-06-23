@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-23",
+    version: "2.62.36",
+    label: "Audit Hub MVP-0B — panel Super Admin",
+    items: [
+      {
+        type: "new",
+        text: "Menu Audit Hub (tylko Super Admin) — agregacja 5 istniejących logów: notatki, inspektor, roboty, WM Druk, pakiety odbiorowe",
+      },
+      {
+        type: "new",
+        text: "Filtry źródło / osoba / szukaj, KPI per źródło, paginacja 50, deep linki do modułów (bez nowego KV)",
+      },
+      {
+        type: "improve",
+        text: "Testy test-audit-hub-adapters.mjs (47) + test-audit-hub-view-model.mjs (22)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-23",
     version: "2.62.35",
     label: "Notatki operacyjne — fix licznika nieprzeczytanych",
     items: [

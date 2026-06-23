@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.35** · **OP Notes Unread Fix**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.36** · **Audit Hub MVP-0B**
+
+## 2.62.36 — Audit Hub MVP-0B
+
+- **new:** Widok `audit` — Super Admin only; `AuditHubView` lazy; agregacja 5 źródeł bez nowego KV
+- **new:** Filtry source/actor/search, KPI, paginacja 50, deep linki (notatki, inspektor, roboty, WM Druk)
+- **lib:** `src/lib/audit-hub/*` — adapters, filters, acl, deeplink, view-model
+- **test:** `test-audit-hub-adapters.mjs` (47) + `test-audit-hub-view-model.mjs` (22)
 
 ## 2.62.35 — Operational Notes Unread Counter Fix
 

@@ -70,6 +70,9 @@ import { mergeOperationalNotesReadState } from "@/lib/operational-notes-read-sta
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
 import { adminCanViewTendersTab } from "@/lib/admin-auth";
+import { canAccessAuditHub } from "@/lib/audit-hub/acl";
+import { resolveAuditHubNavigation } from "@/lib/audit-hub/deeplink";
+import type { AuditFeedDeepLink } from "@/lib/audit-hub/types";
 import type { DirectoryEmployee, WeekEmployee, WeekSnapshot, Job } from "@/app/app-domain";
 import {
   isProductionDirectoryEmployee,
@@ -215,6 +218,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [pendingRecoverableChargeCreatePreset, setPendingRecoverableChargeCreatePreset] =
     useState<Partial<RecoverableCharge> | null>(null);
   const [pendingOperationalNoteId, setPendingOperationalNoteId] = useState<string | null>(null);
+  const [pendingOperationalNotesAuditOpen, setPendingOperationalNotesAuditOpen] = useState(false);
   const [pendingOperationalNoteCreatePreset, setPendingOperationalNoteCreatePreset] = useState<{
     linkedJobId?: string;
     linkedJobNameSnapshot?: string;
@@ -1357,6 +1361,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       media: "Zdjęcia i pliki",
       recoverablecharges: "Do rozliczenia",
       operationalnotes: "Notatki operacyjne",
+      audit: "Audit Hub",
       guide: "Instrukcja",
       tenders: "Przetargi",
     };
@@ -1385,6 +1390,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       archive: "Archiwum",
       jobs: "Roboty",
       operationalnotes: "Notatki operacyjne",
+      audit: "Audit Hub",
     };
     if ((dest === "jobs" || dest === "inspector") && view !== dest) {
       setViewReturn({ view, label: returnLabels[view] ?? "Wstecz" });
@@ -1422,6 +1428,33 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     }
   }, [navigate]);
 
+  const handleAuditHubDeepLink = useCallback((deepLink: AuditFeedDeepLink) => {
+    const nav = resolveAuditHubNavigation(deepLink);
+    if (!nav) return;
+    setViewReturn({ view: "audit", label: "Audit Hub" });
+    setMobileMoreOpen(false);
+    if (nav.view === "operationalnotes") {
+      setPendingOperationalNoteId(nav.noteId);
+      setPendingOperationalNotesAuditOpen(!!nav.openAudit);
+      setView("operationalnotes");
+      return;
+    }
+    if (nav.view === "inspector") {
+      setView("inspector");
+      return;
+    }
+    if (nav.view === "jobs") {
+      setPendingJobId(nav.jobId);
+      setPendingJobSection(nav.section);
+      setView("jobs");
+      return;
+    }
+    if (nav.view === "wmprint") {
+      setPendingWmPrintNav({ tab: nav.tab, jobId: nav.jobId });
+      setView("wmprint");
+    }
+  }, []);
+
   const applyDeepLink = useCallback((route: DeepLinkRoute) => {
     if (route.type === "job") {
       setPendingJobId(route.jobId);
@@ -1437,6 +1470,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     if (view === "tenders" && !canViewTendersNav) setView("dashboard");
   }, [view, canViewTendersNav]);
+
+  useEffect(() => {
+    if (view === "audit" && !canAccessAuditHub(adminSession)) setView("dashboard");
+  }, [view, adminSession]);
 
   useEffect(() => {
     if (!TENDERS_V4_ROUTING) return;
@@ -1633,7 +1670,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             setView("recoverablecharges");
           }}
           pendingOperationalNoteId={pendingOperationalNoteId}
+          pendingOperationalNotesAuditOpen={pendingOperationalNotesAuditOpen}
           onInitialOperationalNoteConsumed={() => setPendingOperationalNoteId(null)}
+          onInitialOperationalNotesAuditOpenConsumed={() => setPendingOperationalNotesAuditOpen(false)}
+          onAuditHubDeepLink={handleAuditHubDeepLink}
           pendingOperationalNoteCreatePreset={pendingOperationalNoteCreatePreset}
           onInitialOperationalNoteCreatePresetConsumed={() => setPendingOperationalNoteCreatePreset(null)}
           onOpenOperationalNoteFromJobs={(noteId, fromJobId) => {

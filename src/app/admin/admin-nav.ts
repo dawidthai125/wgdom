@@ -13,7 +13,9 @@ import {
   Wallet,
   ScrollText,
   Printer,
+  Shield,
 } from "lucide-react";
+import { adminIsSuperAdmin } from "@/lib/admin-auth";
 import type { DirectoryEmployee, Job, WeekEmployee, WeekSnapshot } from "@/app/app-domain";
 import type { AdminSession } from "@/lib/admin-auth";
 import type { OperationalNote } from "@/lib/operational-notes";
@@ -46,7 +48,8 @@ export type View =
   | "media"
   | "recoverablecharges"
   | "guide"
-  | "tenders";
+  | "tenders"
+  | "audit";
 
 export type AdminNavItem = {
   key: View;
@@ -192,6 +195,16 @@ export function buildAdminNavItems(input: BuildAdminNavItemsInput): AdminNavItem
         return n > 0 ? n : undefined;
       })(),
     },
+    ...(adminSession && adminIsSuperAdmin(adminSession.role)
+      ? [
+          {
+            key: "audit" as const,
+            label: "Audit Hub",
+            hint: "Historia działań z istniejących logów — tylko Super Admin.",
+            icon: Shield,
+          },
+        ]
+      : []),
     {
       key: "guide",
       label: "Zmiany/Instrukcja",

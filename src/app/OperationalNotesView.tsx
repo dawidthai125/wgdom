@@ -71,7 +71,9 @@ export function OperationalNotesView({
   onChangeAuditLog,
   onCommit,
   initialNoteId,
+  initialAuditOpen,
   onInitialNoteConsumed,
+  onInitialAuditOpenConsumed,
   initialCreatePreset,
   onInitialCreatePresetConsumed,
   returnNav,
@@ -92,7 +94,9 @@ export function OperationalNotesView({
     nextReadState?: OperationalNoteReadReceipt[],
   ) => void;
   initialNoteId?: string | null;
+  initialAuditOpen?: boolean;
   onInitialNoteConsumed?: () => void;
+  onInitialAuditOpenConsumed?: () => void;
   initialCreatePreset?: { linkedJobId?: string; linkedJobNameSnapshot?: string; title?: string } | null;
   onInitialCreatePresetConsumed?: () => void;
   returnNav?: { label: string; onBack: () => void };
@@ -155,6 +159,12 @@ export function OperationalNotesView({
       onInitialNoteConsumed?.();
     }
   }, [initialNoteId, notes, onInitialNoteConsumed]);
+
+  useEffect(() => {
+    if (!initialAuditOpen || !showAuditUi) return;
+    setAuditOpen(true);
+    onInitialAuditOpenConsumed?.();
+  }, [initialAuditOpen, showAuditUi, onInitialAuditOpenConsumed]);
 
   useEffect(() => {
     if (!initialCreatePreset || !session || !canCreateOperationalNote(session)) return;

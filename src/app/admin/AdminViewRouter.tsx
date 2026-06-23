@@ -18,6 +18,8 @@ import type { OperationalNote } from "@/lib/operational-notes";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
 import type { WmPrintHistoryEntry } from "@/lib/wm-print/history";
+import type { AuditFeedDeepLink } from "@/lib/audit-hub/types";
+import { canAccessAuditHub } from "@/lib/audit-hub/acl";
 import type { WmPrintJobDocument, WmPrintSettings, WmPrintTemplate } from "@/lib/wm-print/types";
 import type { ElectricalMeasurement, ElectricalMeasurementRegistryState, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
 import type { View } from "@/app/admin/admin-nav";
@@ -39,6 +41,9 @@ const OperationalNotesView = lazy(() =>
 );
 const WmPrintView = lazy(() =>
   import("@/app/WmPrintView").then((m) => ({ default: m.WmPrintView })),
+);
+const AuditHubView = lazy(() =>
+  import("@/app/AuditHubView").then((m) => ({ default: m.AuditHubView })),
 );
 const TendersModule = lazy(() =>
   import("@/app/tenders/TendersModule").then((m) => ({ default: m.TendersModule })),
@@ -227,7 +232,10 @@ export type AdminViewRouterProps = {
   onOpenRecoverableChargeFromJobs: (chargeId: string) => void;
   onOpenRecoverableChargeCreateFromJobs: (preset: Partial<RecoverableCharge>) => void;
   pendingOperationalNoteId: string | null;
+  pendingOperationalNotesAuditOpen: boolean;
   onInitialOperationalNoteConsumed: () => void;
+  onInitialOperationalNotesAuditOpenConsumed: () => void;
+  onAuditHubDeepLink: (deepLink: AuditFeedDeepLink) => void;
   pendingOperationalNoteCreatePreset: { linkedJobId?: string; linkedJobNameSnapshot?: string; title?: string } | null;
   onInitialOperationalNoteCreatePresetConsumed: () => void;
   onOpenOperationalNoteFromJobs: (noteId: string, fromJobId?: string) => void;
@@ -337,7 +345,10 @@ export function AdminViewRouter({
   onInitialWmPrintNavigationConsumed,
   onOpenWmPrintMeasurements,
   pendingOperationalNoteId,
+  pendingOperationalNotesAuditOpen,
   onInitialOperationalNoteConsumed,
+  onInitialOperationalNotesAuditOpenConsumed,
+  onAuditHubDeepLink,
   pendingOperationalNoteCreatePreset,
   onInitialOperationalNoteCreatePresetConsumed,
   onOpenOperationalNoteFromJobs,
@@ -577,7 +588,9 @@ export function AdminViewRouter({
               onChangeAuditLog={setOperationalNotesAuditLog}
               onCommit={commitOperationalNotes}
               initialNoteId={pendingOperationalNoteId}
+              initialAuditOpen={pendingOperationalNotesAuditOpen}
               onInitialNoteConsumed={onInitialOperationalNoteConsumed}
+              onInitialAuditOpenConsumed={onInitialOperationalNotesAuditOpenConsumed}
               initialCreatePreset={pendingOperationalNoteCreatePreset}
               onInitialCreatePresetConsumed={onInitialOperationalNoteCreatePresetConsumed}
               returnNav={operationalNotesReturnNav}
@@ -628,6 +641,20 @@ export function AdminViewRouter({
               onInitialChargeConsumed={onInitialRecoverableChargeConsumed}
               initialCreatePreset={pendingRecoverableChargeCreatePreset}
               onInitialCreatePresetConsumed={onInitialRecoverableChargeCreatePresetConsumed}
+            />
+          </Suspense>
+        </ViewErrorBoundary>
+      )}
+      {view === "audit" && canAccessAuditHub(adminSession) && (
+        <ViewErrorBoundary label="Audit Hub">
+          <Suspense fallback={<ViewLoadFallback label="Ładowanie Audit Hub…" />}>
+            <AuditHubView
+              session={adminSession}
+              operationalNotesAuditLog={operationalNotesAuditLog}
+              jobs={jobs}
+              wmPrintHistory={wmPrintHistory}
+              deliveryPackagePublications={deliveryPackagePublications}
+              onDeepLink={onAuditHubDeepLink}
             />
           </Suspense>
         </ViewErrorBoundary>

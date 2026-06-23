@@ -15,6 +15,7 @@ import {
   Archive,
   HardHat,
   ClipboardCheck,
+  Shield,
   Cloud,
   Download,
   HelpCircle,
@@ -259,6 +260,35 @@ function HelpView({ embedded = false }: { embedded?: boolean }) {
               {q:"Komentarze", a:"W szczegółach notatki dodajesz komentarze pod treścią — np. doprecyzowanie ustalenia. Enter lub Wyślij zapisuje. Komentarze nie zastępują edycji treści głównej."},
               {q:"Archiwum", a:"Archiwizuj starą notatkę, gdy nie jest już aktywna, ale chcesz ją zachować. Zakładka Archiwum w module — stamtąd możesz Przywrócić. Archiwum ≠ usunięcie: usunięta notatka znika z list (logical delete) i nie wraca z chmury."},
               {q:"Kto ma dostęp?", a:"Super Administrator, Administrator i Moderator — pełny dostęp w module (tworzenie, edycja, archiwum, usuwanie). Inspektor terenowy — osobny panel (2.58.0): ikona Notatki operacyjne w headerze, bez edycji własnych notatek — tylko tworzenie i komentarze."},
+            ].map((item,i)=>(
+              <div key={i} className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-secondary/30">
+                  <p className="text-sm font-medium flex items-center gap-2"><HelpCircle size={13} className="text-primary shrink-0"/>{item.q}</p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id:"audithub",
+      icon:Shield,
+      title:"Audit Hub",
+      subtitle:"Historia działań — tylko Super Admin (2.62.36)",
+      content:(
+        <div className="space-y-4">
+          <p className="text-sm text-foreground/90 leading-relaxed">
+            <strong>Audit Hub</strong> to read-only podgląd istniejących logów w jednym miejscu — bez nowego zapisu w chmurze. Nie zastępuje pełnego Security Log (logowanie admina, sync, payroll — planowane później).
+          </p>
+          <div className="space-y-3">
+            {[
+              {q:"Co to jest Audit Hub?", a:"Menu „Audit Hub” (ikona tarczy) łączy pięć źródeł: audyt notatek operacyjnych, logowania/wejścia inspektora, activity log robotów, historię generowania WM Druk oraz publikacje pakietów odbiorowych. Wpisy sortowane od najnowszych. Filtry: źródło, osoba, wyszukiwanie. Paginacja 50 na stronę."},
+              {q:"Kto ma dostęp?", a:"Wyłącznie Super Administrator (konto Dawid). Administrator i moderator nie widzą pozycji w menu ani widoku — próba wejścia przekierowuje na Pulpit."},
+              {q:"Jak działają deep linki?", a:"Kliknij wiersz w tabeli → szczegóły → przycisk „Przejdź”. Notatki operacyjne → moduł Notatki + panel Audyt. Inspektor · logowania → widok Inspektor. Roboty → karta roboty (właściwa zakładka: zdjęcia, dokumenty, …). WM Druk → zakładka Historia. Pakiety odbiorowe → WM Druk → Odbiory. Powrót: strzałka Wstecz do Audit Hub."},
             ].map((item,i)=>(
               <div key={i} className="border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-secondary/30">

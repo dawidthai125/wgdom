@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-23 (prod **v2.62.34** · Work Entry Delete Persistence · § 10.1)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-23 (prod **v2.62.36** · Audit Hub MVP-0B · § 15.2)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -2123,6 +2123,7 @@ WGDOM1/
 | `archive` | Archiwum | *(App.tsx)* | Zapisane tygodnie |
 | `jobs` | Roboty | `JobsView.tsx` | MID-B, billing panel 20.5A · **badge menu** = `countActiveJobsForNavBadge()` (W toku + Do odbioru, 20.5Z.5A) |
 | `operationalnotes` | Notatki operacyjne | `OperationalNotesView.tsx` | P0 — CRUD, komentarze, archiwum · panel w Roboty → Przegląd |
+| `audit` | Audit Hub | `AuditHubView.tsx` | **Super Admin only** · MVP-0B — agregacja logów read-only · § 15.2 |
 | `inspector` | Inspektor | `InspectorAdminView.tsx` | Feed zmian terenowych |
 | `recoverablecharges` | Do rozliczenia | `RecoverableChargesView.tsx` | Settlement 20.3A–20.4C |
 | `media` | Zdjęcia i pliki | `MediaView.tsx` | Galeria obrazów + dokumenty · liczniki · ZIP |
@@ -2133,6 +2134,32 @@ WGDOM1/
 **Mobile bottom nav (primary):** Pulpit · Lista Płac · Grafik · Roboty — reszta w „Więcej”.
 
 **Przetargi 3.0:** `TendersProvider` owija `dashboard` + `tenders` gdy `canViewTendersNav` — jeden pipeline BZP. Strategia → zakładka **Strategia** w `TendersModule`.
+
+### 15.2 Audit Hub MVP-0 (v2.62.36)
+
+**Status:** MVP-0A (lib) + MVP-0B (UI) — **read-only**, **bez nowego KV**, **bez zmian** `cloud-sync.ts` / Edge.
+
+| Element | Plik / klucz |
+|---------|----------------|
+| Widok | `AuditHubView.tsx` — lazy w `AdminViewRouter` |
+| ACL | `canAccessAuditHub()` — `adminIsSuperAdmin` · menu + guard w `App.tsx` |
+| Agregacja | `buildAuditFeed()` — 5 adapterów w `src/lib/audit-hub/adapters.ts` |
+| Filtry / strony | `filterAuditFeed`, `paginateAuditFeed` (50) — `filters.ts` |
+| Deep linki | `resolveAuditHubNavigation()` — `deeplink.ts` → `handleAuditHubDeepLink` w `App.tsx` |
+
+**Źródła feedu (istniejące dane):**
+
+| Źródło | KV / pole | Cap |
+|--------|-----------|-----|
+| Notatki operacyjne | `kw-operational-notes-audit-log` | 3000 |
+| Inspektor logowania | `kw-inspector-stats` | 300 |
+| Roboty activity | `job.activityLog[]` | 200 / robota |
+| WM Druk historia | `kw-wm-print-history` | 1000 |
+| Pakiety odbiorowe | `kw-delivery-package-publications` | 500 |
+
+**Nie obejmuje:** logowania admina, sync/merge, payroll, przetargów — backlog MVP-1 (`kw-security-audit-log`).
+
+**Testy:** `scripts/test-audit-hub-adapters.mjs`, `scripts/test-audit-hub-view-model.mjs`.
 
 ---
 
@@ -2153,6 +2180,7 @@ WGDOM1/
 | `payroll-export.ts` / `payroll-cycle.ts` | PDF/Word listy płac, cykle tygodni |
 | `payroll-job-assignments.ts` | **P1 v2.59.49** — edycja `workEntries` z Listy Płac, badge spójności, mutacje jobs |
 | `inspector-stats.ts` | Statystyki logowań inspektorów |
+| `audit-hub/*` | **MVP-0B** — agregacja logów Audit Hub (adapters, filters, acl, deeplink) |
 | `inspector-dashboard.ts` | Statystyki pulpitu inspektora |
 | `email-contacts.ts` | Kontakty mailingowe |
 | `operational-notes.ts` | **P0 v2.57.0** — notatki operacyjne: model, ACL, mutacje, merge |
