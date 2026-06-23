@@ -1745,6 +1745,10 @@ export async function fetchAndMergeDeferredBootstrap(): Promise<void> {
         [...pushValues, mergedContactsDeleted, mergedLeavesDeleted, mergedChargesDeleted],
       ).catch(() => {});
     }
+
+    if (keys.includes(OPERATIONAL_NOTES_KEY)) {
+      await pullOperationalNotesAuxFromCloud();
+    }
   } catch {
     /* offline — zostaw lokalne dane */
   } finally {
@@ -2085,29 +2089,36 @@ export async function pushOperationalNotesToCloud(
   );
 }
 
+function readOperationalNotesAuxFromLocalStorage(): {
+  readState: ReturnType<typeof normalizeOperationalNotesReadState>;
+  auditLog: ReturnType<typeof normalizeOperationalNotesAuditLog>;
+  deletedIds: string[];
+} {
+  try {
+    const rawRead = localStorage.getItem(OPERATIONAL_NOTES_READ_STATE_KEY);
+    const rawAudit = localStorage.getItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY);
+    return {
+      readState: normalizeOperationalNotesReadState(rawRead ? JSON.parse(rawRead) : []),
+      auditLog: normalizeOperationalNotesAuditLog(rawAudit ? JSON.parse(rawAudit) : []),
+      deletedIds: getDeletedOperationalNoteIds(),
+    };
+  } catch {
+    return { readState: [], auditLog: [], deletedIds: getDeletedOperationalNoteIds() };
+  }
+}
+
 export async function pullOperationalNotesAuxFromCloud(): Promise<{
   readState: ReturnType<typeof normalizeOperationalNotesReadState>;
   auditLog: ReturnType<typeof normalizeOperationalNotesAuditLog>;
   deletedIds: string[];
 }> {
   if (!isSupabaseConfigured() || !API_BASE) {
-    try {
-      const rawRead = localStorage.getItem(OPERATIONAL_NOTES_READ_STATE_KEY);
-      const rawAudit = localStorage.getItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY);
-      return {
-        readState: normalizeOperationalNotesReadState(rawRead ? JSON.parse(rawRead) : []),
-        auditLog: normalizeOperationalNotesAuditLog(rawAudit ? JSON.parse(rawAudit) : []),
-        deletedIds: getDeletedOperationalNoteIds(),
-      };
-    } catch {
-      return { readState: [], auditLog: [], deletedIds: getDeletedOperationalNoteIds() };
-    }
+    return readOperationalNotesAuxFromLocalStorage();
   }
   try {
-    const rawRead = localStorage.getItem(OPERATIONAL_NOTES_READ_STATE_KEY);
-    const rawAudit = localStorage.getItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY);
-    const localRead = rawRead ? JSON.parse(rawRead) : [];
-    const localAudit = rawAudit ? JSON.parse(rawAudit) : [];
+    const localAux = readOperationalNotesAuxFromLocalStorage();
+    const localRead = localAux.readState;
+    const localAudit = localAux.auditLog;
     const fetched = await fetchKeysFromCloud([
       OPERATIONAL_NOTES_DELETED_IDS_KEY,
       OPERATIONAL_NOTES_READ_STATE_KEY,
@@ -2121,11 +2132,7 @@ export async function pullOperationalNotesAuxFromCloud(): Promise<{
     localStorage.setItem(OPERATIONAL_NOTES_AUDIT_LOG_KEY, JSON.stringify(auditLog));
     return { readState, auditLog, deletedIds: mergedDeleted };
   } catch {
-    return {
-      readState: [],
-      auditLog: [],
-      deletedIds: getDeletedOperationalNoteIds(),
-    };
+    return readOperationalNotesAuxFromLocalStorage();
   }
 }
 

@@ -158,14 +158,41 @@ function mergeRevisions(a: OperationalNoteRevision[], b: OperationalNoteRevision
   return [...byId.values()].sort((x, y) => x.contentRev - y.contentRev);
 }
 
+/** Fingerprint wersji istotnej dla ACK (title/content + komentarze + metadane widoczności). */
+export function operationalNoteAckFingerprint(note: OperationalNote): string {
+  return JSON.stringify({
+    title: note.title,
+    content: note.content,
+    commentIds: note.comments.map((c) => c.id).sort(),
+    shareWithInspector: note.shareWithInspector,
+    status: note.status,
+    linkedJobId: note.linkedJobId ?? "",
+  });
+}
+
+/** Po merge: jeśli obie strony mają ten sam fingerprint co wynik — min(contentRev), inaczej rev pasującej strony. */
+function mergedContentRevForPair(
+  prev: OperationalNote,
+  next: OperationalNote,
+  merged: OperationalNote,
+): number {
+  const mergedFp = operationalNoteAckFingerprint(merged);
+  const revs: number[] = [];
+  if (operationalNoteAckFingerprint(prev) === mergedFp) revs.push(prev.contentRev);
+  if (operationalNoteAckFingerprint(next) === mergedFp) revs.push(next.contentRev);
+  if (revs.length === 0) return Math.max(prev.contentRev, next.contentRev);
+  return Math.min(...revs);
+}
+
 export function mergeOperationalNotePair(prev: OperationalNote, next: OperationalNote): OperationalNote {
   const scalarWinner = next.updatedAt >= prev.updatedAt ? next : prev;
   const other = scalarWinner === next ? prev : next;
-  return {
+  const mergedComments = mergeComments(prev.comments, next.comments);
+  const mergedRevisions = mergeRevisions(prev.revisions, next.revisions);
+  const merged: OperationalNote = {
     ...scalarWinner,
-    comments: mergeComments(prev.comments, next.comments),
-    revisions: mergeRevisions(prev.revisions, next.revisions),
-    contentRev: Math.max(prev.contentRev, next.contentRev),
+    comments: mergedComments,
+    revisions: mergedRevisions,
     shareWithInspector: scalarWinner.updatedAt >= other.updatedAt ? scalarWinner.shareWithInspector : other.shareWithInspector,
     status: scalarWinner.updatedAt >= other.updatedAt ? scalarWinner.status : other.status,
     archivedAt: scalarWinner.updatedAt >= other.updatedAt ? scalarWinner.archivedAt : other.archivedAt,
@@ -179,6 +206,11 @@ export function mergeOperationalNotePair(prev: OperationalNote, next: Operationa
       scalarWinner.lastActivityAt >= other.lastActivityAt
         ? scalarWinner.lastActivityByUserId
         : other.lastActivityByUserId,
+    contentRev: 1,
+  };
+  return {
+    ...merged,
+    contentRev: mergedContentRevForPair(prev, next, merged),
   };
 }
 

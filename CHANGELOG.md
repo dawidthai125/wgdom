@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.34** · **Work Entry Delete Persistence**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.35** · **OP Notes Unread Fix**
+
+## 2.62.35 — Operational Notes Unread Counter Fix
+
+- **fix:** `mergeOperationalNotePair` — fingerprint ACK; brak fałszywego podbijania `contentRev` przy identycznej treści
+- **fix:** `pullOperationalNotesAuxFromCloud` catch → fallback localStorage; deferred bootstrap sync read-state
+- **fix:** `App.tsx` — `WGDOM_DEFERRED_BOOTSTRAP_EVENT` odświeża notes + read-state w React
+- **test:** `test-operational-notes-unread-content-rev.mjs` T1–T5 + regresja p0/p1/sync-race
 
 ## 2.62.34 — Work Entry Delete Persistence
 

@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-23",
+    version: "2.62.35",
+    label: "Notatki operacyjne — fix licznika nieprzeczytanych",
+    items: [
+      {
+        type: "fix",
+        text: "Merge notatek nie podbija contentRev gdy treść/metadane ACK są identyczne — ACK nie ginie po refresh/sync",
+      },
+      {
+        type: "fix",
+        text: "Deferred bootstrap + pull aux — synchronizacja read-state z notatkami; catch nie zeruje stanu (fallback localStorage)",
+      },
+      {
+        type: "improve",
+        text: "Test T1–T5 — ACK vs merge bez zmiany treści / realna edycja / komentarz (unread-content-rev)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-23",
     version: "2.62.34",
     label: "Przydziały robót — trwałe usuwanie wpisów",
     items: [

@@ -60,6 +60,7 @@ import {
   mergeDeletedOperationalNoteIds,
   normalizeDeletedOperationalNoteIds,
   OPERATIONAL_NOTES_BACKUP_AUX_KEYS,
+  WGDOM_DEFERRED_BOOTSTRAP_EVENT,
   ADMIN_PASSWORDS_KEY,
   ADMIN_USERS_CONFIG_KEY,
   isSupabaseConfigured,
@@ -676,6 +677,25 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     initialSyncDone.current = true;
     queueMicrotask(() => { autoSyncMountSettledRef.current = true; });
   }, []);
+
+  /** Deferred bootstrap scala kw-operational-notes w LS — odśwież notes + read-state w React. */
+  useEffect(() => {
+    const onDeferredBootstrap = () => {
+      void (async () => {
+        try {
+          const rawNotes = localStorage.getItem("kw-operational-notes");
+          if (rawNotes) {
+            setOperationalNotes(normalizeOperationalNotes(JSON.parse(rawNotes)));
+          }
+          const aux = await pullOperationalNotesAuxFromCloud();
+          setOperationalNotesReadState(aux.readState);
+          setOperationalNotesAuditLog(aux.auditLog);
+        } catch { /* offline */ }
+      })();
+    };
+    window.addEventListener(WGDOM_DEFERRED_BOOTSTRAP_EVENT, onDeferredBootstrap);
+    return () => window.removeEventListener(WGDOM_DEFERRED_BOOTSTRAP_EVENT, onDeferredBootstrap);
+  }, [setOperationalNotes, setOperationalNotesReadState, setOperationalNotesAuditLog]);
 
   const wmPrintSeedCheckedRef = useRef(false);
 
