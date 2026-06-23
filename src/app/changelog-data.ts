@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-22",
+    version: "2.62.33",
+    label: "Przetargi — Formal XLSX UI Guard",
+    items: [
+      {
+        type: "fix",
+        text: "Kosztorys V4 — formularz oferty XLSX bez qty>0 nie pokazuje fałszywej tabeli pozycji (np. „13 pozycji kosztorysowych”)",
+      },
+      {
+        type: "fix",
+        text: "resolveEffectiveKosztorysV4CatalogLines — SSOT display spójny z wyceną katalogową (resolveCatalogQuantities)",
+      },
+      {
+        type: "improve",
+        text: "Test T09A — formal XLSX boilerplate guard (hasCatalog=false, emptyState=formal_document)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-22",
     version: "2.62.32",
     label: "Przetargi — R1-FIX ATH vs Strong PDF Recovery",
     items: [

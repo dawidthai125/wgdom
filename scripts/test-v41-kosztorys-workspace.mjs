@@ -16,6 +16,7 @@ import {
   KOSZTORYS_V4_EMPTY_FORMAL,
   KOSZTORYS_V4_EMPTY_NO_POSITIONS,
   resolveKosztorysV4CatalogLines,
+  resolveEffectiveKosztorysV4CatalogLines,
 } from "../src/lib/tender-detail-v4-display.ts";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -243,6 +244,52 @@ console.log("\nT09 — Pełny podgląd ATH CTA");
   assert(wsSrc.includes("JobFilePreviewModal"), "T09 reuses JobFilePreviewModal");
   assert(wsSrc.includes("resolveAthPreviewItem"), "T09 ATH quick access resolve");
   assert(wsSrc.includes("data-kosztorys-full-preview-cta"), "T09 CTA marker");
+}
+
+console.log("\nT09A — Formal XLSX UI guard (boilerplate catalog, qty=0)");
+{
+  const { buildKosztorysProDashboard } = await import("../src/lib/tender-kosztorys-pro-dashboard.ts");
+  const formalBoilerplateCatalog = [
+    { lp: "1", description: "Wykonawca", unit: "szt", quantity: "" },
+    { lp: "2", description: "Nazwa podwykonawcy", unit: "", quantity: "" },
+    { lp: "3", description: "Adres siedziby wykonawcy", unit: "", quantity: "0" },
+    { lp: "4", description: "Osoba upoważniona do kontaktów", unit: "", quantity: "" },
+    { lp: "5", description: "Wartość oferty netto", unit: "PLN", quantity: "" },
+    { lp: "6", description: "Wartość oferty brutto", unit: "PLN", quantity: "" },
+    { lp: "7", description: "Stawka podatku VAT", unit: "%", quantity: "" },
+    { lp: "8", description: "Termin wykonania zamówienia", unit: "", quantity: "" },
+    { lp: "9", description: "Okres gwarancji na wykonane roboty", unit: "mies.", quantity: "" },
+    { lp: "10", description: "Zobowiązanie do wykonania zamówienia", unit: "", quantity: "" },
+    { lp: "11", description: "Podwykonawcy wskazani przez wykonawcę", unit: "", quantity: "" },
+    { lp: "12", description: "Część zamówienia powierzona podwykonawcom", unit: "", quantity: "" },
+    { lp: "13", description: "Uzasadnienie wyboru podwykonawców", unit: "", quantity: "" },
+  ];
+  const item = baseItem({
+    ok: true,
+    sourceFilename: "TP190_Zal. nr 1 do SWZ - Formularz oferty_MODYFIKACJA.xlsx",
+    title: "Formularz oferty",
+    rowCount: 45,
+    rows: formalOfferRows(),
+    catalogQuantities: formalBoilerplateCatalog,
+    przedmiar: [],
+    categories: [],
+    warnings: [],
+    parsedAt: new Date().toISOString(),
+  });
+  const rawLines = resolveKosztorysV4CatalogLines(item);
+  assert(rawLines.length > 0, "T09A raw catalog has boilerplate lines");
+  assert(resolveEffectiveKosztorysV4CatalogLines(item).length === 0, "T09A effective catalog suppressed");
+  const display = buildKosztorysV4Display(item);
+  assert(display.formalDocumentDetected, "T09A formalDocumentDetected");
+  assert(display.catalogRows.length === 0, "T09A no table rows");
+  assert(display.emptyState === "formal_document", "T09A formal empty state");
+  assert(display.emptyMessage === KOSZTORYS_V4_EMPTY_FORMAL, "T09A formal message");
+  const stats = buildKosztorysV4Stats(item);
+  assert(stats.athPositions === 0, "T09A no ATH KPI positions");
+  assert(!stats.athPositionsDisplay.includes("/"), "T09A no partial ATH KPI");
+  const pro = buildKosztorysProDashboard(item);
+  assert(!pro.hasCatalog, "T09A hasCatalog false");
+  assert(buildKosztorysAthVisibilityHint(item) == null, "T09A no visibility hint");
 }
 
 console.log("\nT10 — KPI partial ATH visibility (legacy snapshot)");

@@ -277,7 +277,7 @@ export function buildKosztorysAthVisibilityHint(
   const k = item.tenderDossier?.kosztorys;
   if (!k?.ok) return null;
   const rowCount = k.rowCount ?? 0;
-  const shown = resolveKosztorysV4CatalogLines(item).length;
+  const shown = resolveEffectiveKosztorysV4CatalogLines(item).length;
   if (rowCount > shown && shown > 0) {
     return `Wyświetlono ${shown} z ${rowCount} pozycji ATH.\nOtwórz Pełny podgląd ATH aby zobaczyć cały kosztorys.`;
   }
@@ -415,6 +415,46 @@ export function resolveKosztorysV4CatalogLines(
     .slice(0, CATALOG_QUANTITIES_CAP);
 }
 
+function parseCatalogLineQty(s: string | undefined): number {
+  if (!s?.trim()) return 0;
+  const n = parseFloat(s.replace(/\s/g, "").replace(",", "."));
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+/** Flagi dokumentu formalnego (formularz oferty / klauzule SWZ). */
+export function resolveFormalKosztorysDocumentFlags(
+  item: TenderPipelineItem,
+  filteredCatalogLineCount: number,
+): { sheetFormal: boolean; formalDocumentDetected: boolean } {
+  const k = item.tenderDossier?.kosztorys;
+  const rawRows = k?.rows ?? [];
+  const sheetFormal =
+    isFormalKosztorysSheetLabel(k?.title) || isFormalKosztorysSheetLabel(k?.sourceFilename);
+  const formalRowHits = rawRows.filter(
+    (r) => isFormalKosztorysRowDescription(r.description ?? "") || !isLikelyCatalogQuantityRow(r.description ?? ""),
+  ).length;
+  const formalDocumentDetected =
+    sheetFormal ||
+    (filteredCatalogLineCount === 0 && rawRows.length > 0 && formalRowHits > 0);
+  return { sheetFormal, formalDocumentDetected };
+}
+
+/**
+ * SSOT linii katalogowych do UI (Kosztorys V4) — ukrywa klauzule formularza bez qty>0,
+ * spójnie z resolveCatalogQuantities (wycena katalogowa).
+ */
+export function resolveEffectiveKosztorysV4CatalogLines(
+  item: TenderPipelineItem,
+): TenderCatalogQuantityLine[] {
+  const lines = resolveKosztorysV4CatalogLines(item);
+  const { formalDocumentDetected } = resolveFormalKosztorysDocumentFlags(item, lines.length);
+  const linesWithQty = lines.filter((line) => parseCatalogLineQty(line.quantity) > 0);
+  if (formalDocumentDetected && lines.length > 0 && linesWithQty.length === 0) {
+    return [];
+  }
+  return lines;
+}
+
 export function extractKatalogHintFromDescription(description: string): string {
   const desc = (description ?? "").trim();
   if (!desc) return "—";
@@ -454,10 +494,13 @@ export function buildKosztorysV4Display(item: TenderPipelineItem): KosztorysV4Di
   const rawRows = k?.rows ?? [];
   const rawRowCount = rawRows.length;
 
-  const sheetFormal =
-    isFormalKosztorysSheetLabel(k?.title) || isFormalKosztorysSheetLabel(k?.sourceFilename);
+  const rawCatalogLineCount = resolveKosztorysV4CatalogLines(item).length;
+  const { sheetFormal, formalDocumentDetected } = resolveFormalKosztorysDocumentFlags(
+    item,
+    rawCatalogLineCount,
+  );
 
-  const catalogLines = resolveKosztorysV4CatalogLines(item);
+  const catalogLines = resolveEffectiveKosztorysV4CatalogLines(item);
   let catalogRows = catalogLines.map(catalogLineToKosztorysDisplayRow);
   let source: KosztorysV4DisplayResult["source"] = catalogRows.length > 0 ? "catalog" : "none";
   let debugRowsFallbackCount = 0;
@@ -470,12 +513,6 @@ export function buildKosztorysV4Display(item: TenderPipelineItem): KosztorysV4Di
       source = "rows_fallback";
     }
   }
-
-  const formalRowHits = rawRows.filter(
-    (r) => isFormalKosztorysRowDescription(r.description ?? "") || !isLikelyCatalogQuantityRow(r.description ?? ""),
-  ).length;
-  const formalDocumentDetected =
-    sheetFormal || (catalogRows.length === 0 && rawRowCount > 0 && formalRowHits > 0);
 
   let emptyState: KosztorysV4EmptyState = null;
   let emptyMessage: string | null = null;
@@ -527,7 +564,7 @@ export function buildKosztorysV4Stats(
   const k = item.tenderDossier?.kosztorys;
   const awaiting = isKosztorysAwaitingHeavyParse(item);
   const athReady = Boolean(k?.ok) && !awaiting;
-  const catalog = resolveKosztorysV4CatalogLines(item);
+  const catalog = resolveEffectiveKosztorysV4CatalogLines(item);
   const athPositions = catalog.length;
   const athRowCount = k?.rowCount ?? 0;
 

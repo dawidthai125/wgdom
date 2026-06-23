@@ -29,7 +29,7 @@ import {
 import { computeBidMarginPct, formatBidMarginPct } from "@/lib/tender-bid-ux";
 import {
   buildKosztorysV4Stats,
-  resolveKosztorysV4CatalogLines,
+  resolveEffectiveKosztorysV4CatalogLines,
 } from "@/lib/tender-detail-v4-display";
 import { buildPrzetargExecutiveBundle } from "@/lib/tender-detail-v4-display";
 import {
@@ -337,7 +337,7 @@ export function buildKosztorysProAssessment(opts: {
 
 export function buildKosztorysProDashboard(item: TenderPipelineItem): KosztorysProDashboard {
   const stats = buildKosztorysV4Stats(item);
-  const catalog = resolveKosztorysV4CatalogLines(item);
+  const catalog = resolveEffectiveKosztorysV4CatalogLines(item);
   const priceOverrides = getTenderPriceOverrides(
     loadTenderPriceOverridesStoreLocal(),
     item.id,

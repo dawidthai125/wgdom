@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.32** · **R1-FIX CLOSED** · **TP202A CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.33** · **Formal XLSX UI Guard**
+
+## 2.62.33 — Formal XLSX UI Guard
+
+- **fix:** Kosztorys V4 — formularz oferty XLSX bez qty>0 nie renderuje fałszywej tabeli pozycji
+- **fix:** `resolveEffectiveKosztorysV4CatalogLines` — SSOT display spójny z `resolveCatalogQuantities`
+- **test:** `test-v41-kosztorys-workspace.mjs` T09A (63 PASS)
 
 ## 2.62.32 — R1-FIX ATH vs Strong PDF Recovery
 
