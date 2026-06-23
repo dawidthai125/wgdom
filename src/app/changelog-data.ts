@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-23",
+    version: "2.62.39",
+    label: "Audit Hub MVP-1 — Security Log",
+    items: [
+      {
+        type: "new",
+        text: "Security log — append-only KV kw-security-audit-log (AUTH, uprawnienia, usuwanie robot)",
+      },
+      {
+        type: "new",
+        text: "Audit Hub — 6. źródło Security log z KPI, filtrem i badge severity",
+      },
+      {
+        type: "improve",
+        text: "Logowanie admina: sukces, nieudane (login bez hasła), wylogowanie",
+      },
+      {
+        type: "improve",
+        text: "Ustawienia adminów — audyt tworzenia/usuwania kont i zmian haseł/ról",
+      },
+    ],
+  },
+  {
+    date: "2026-06-23",
     version: "2.62.38",
     label: "Audit Hub — actor fidelity activityLog",
     items: [

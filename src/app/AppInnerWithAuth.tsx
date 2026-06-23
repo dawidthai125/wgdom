@@ -9,6 +9,7 @@ import {
 } from "@/lib/admin-auth";
 import type { DirectoryEmployee } from "@/app/app-domain";
 import { recordInspectorEvent } from "@/lib/inspector-stats";
+import { recordSecurityAudit } from "@/lib/security-audit-log";
 import { AppInner, LoginScreen, WorkerPhotoView } from "@/app/App";
 
 const InspectorPanel = lazy(() =>
@@ -61,6 +62,14 @@ export function AppInnerWithAuth() {
     setInspectorSession(null);
     sessionStorage.setItem("wg-session-mode", "admin");
     setAppMode("admin");
+    void recordSecurityAudit({
+      actor: session.displayName,
+      actorUserId: session.id,
+      category: "AUTH",
+      action: "admin_login_success",
+      severity: "info",
+      summary: `Logowanie: ${session.displayName}`,
+    }).catch(() => {});
   };
   const enterInspector = (session: AdminSession) => {
     if (session.role !== "inspector") return;
@@ -81,6 +90,17 @@ export function AppInnerWithAuth() {
     setAppMode("worker");
   };
   const logout = () => {
+    const admin = adminSession;
+    if (admin) {
+      void recordSecurityAudit({
+        actor: admin.displayName,
+        actorUserId: admin.id,
+        category: "AUTH",
+        action: "admin_logout",
+        severity: "info",
+        summary: `Wylogowanie: ${admin.displayName}`,
+      }).catch(() => {});
+    }
     sessionStorage.removeItem("wg-session-mode");
     sessionStorage.removeItem("wg-worker-name");
     sessionStorage.removeItem("wg-worker-id");

@@ -49,14 +49,47 @@ function sourceChipClass(source: AuditFeedItem["source"]): string {
       return "bg-amber-500/10 text-amber-700 dark:text-amber-300";
     case "delivery_package":
       return "bg-rose-500/10 text-rose-700 dark:text-rose-300";
+    case "security_log":
+      return "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300";
     default:
       return "bg-secondary text-muted-foreground";
+  }
+}
+
+function severityBadgeClass(severity?: string): string {
+  switch (severity) {
+    case "info":
+      return "bg-sky-500/10 text-sky-700 dark:text-sky-300";
+    case "warn":
+      return "bg-amber-500/10 text-amber-700 dark:text-amber-300";
+    case "high":
+      return "bg-orange-500/10 text-orange-700 dark:text-orange-300";
+    case "critical":
+      return "bg-red-500/10 text-red-700 dark:text-red-300";
+    default:
+      return "bg-secondary text-muted-foreground";
+  }
+}
+
+function severityLabelPl(severity?: string): string {
+  switch (severity) {
+    case "info":
+      return "Info";
+    case "warn":
+      return "Ostrzeżenie";
+    case "high":
+      return "Wysokie";
+    case "critical":
+      return "Krytyczne";
+    default:
+      return severity ?? "";
   }
 }
 
 export function AuditHubView({
   session,
   operationalNotesAuditLog,
+  securityAuditLog,
   jobs,
   wmPrintHistory,
   deliveryPackagePublications,
@@ -64,6 +97,7 @@ export function AuditHubView({
 }: {
   session: AdminSession | null | undefined;
   operationalNotesAuditLog: AuditHubInput["operationalNotesAuditLog"];
+  securityAuditLog: AuditHubInput["securityAuditLog"];
   jobs: AuditHubInput["jobs"];
   wmPrintHistory: AuditHubInput["wmPrintHistory"];
   deliveryPackagePublications: AuditHubInput["deliveryPackagePublications"];
@@ -103,8 +137,9 @@ export function AuditHubView({
       jobs,
       wmPrintHistory,
       deliveryPackagePublications,
+      securityAuditLog,
     }),
-    [operationalNotesAuditLog, inspectorEvents, jobs, wmPrintHistory, deliveryPackagePublications],
+    [operationalNotesAuditLog, inspectorEvents, jobs, wmPrintHistory, deliveryPackagePublications, securityAuditLog],
   );
 
   const model = useMemo(
@@ -142,7 +177,7 @@ export function AuditHubView({
               Audit Hub
             </h1>
             <p className="text-xs text-muted-foreground mt-1 max-w-xl">
-              Agregacja istniejących logów — bez nowego KV. Nie obejmuje logowania admina, sync ani payroll.
+              Agregacja logów z 6 źródeł — w tym Security log (AUTH, uprawnienia, usuwanie robot). Read-only.
             </p>
           </div>
           <button
@@ -162,7 +197,7 @@ export function AuditHubView({
           </p>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
           <div className="bg-secondary/50 rounded-xl px-3 py-2.5 border border-border col-span-2 sm:col-span-1">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Razem</p>
             <p className="text-lg font-semibold mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
@@ -283,7 +318,16 @@ export function AuditHubView({
                             {AUDIT_FEED_SOURCE_LABEL_PL[item.source]}
                           </span>
                         </td>
-                        <td className="px-3 py-2 text-xs whitespace-nowrap">{item.actionLabel}</td>
+                        <td className="px-3 py-2 text-xs whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1.5 flex-wrap">
+                            {item.actionLabel}
+                            {item.severity && (
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${severityBadgeClass(item.severity)}`}>
+                                {severityLabelPl(item.severity)}
+                              </span>
+                            )}
+                          </span>
+                        </td>
                         <td className="px-3 py-2 text-xs truncate max-w-[100px]">{item.actor}</td>
                         <td className="px-3 py-2 text-xs truncate max-w-[240px]">{item.summary}</td>
                       </tr>
@@ -344,7 +388,14 @@ export function AuditHubView({
                 </div>
                 <div>
                   <dt className="text-xs text-muted-foreground">Akcja</dt>
-                  <dd>{detailItem.actionLabel}</dd>
+                  <dd className="flex items-center gap-2 flex-wrap">
+                    {detailItem.actionLabel}
+                    {detailItem.severity && (
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${severityBadgeClass(detailItem.severity)}`}>
+                        {severityLabelPl(detailItem.severity)}
+                      </span>
+                    )}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-xs text-muted-foreground">Kto</dt>

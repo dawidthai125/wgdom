@@ -7,6 +7,7 @@ import {
   adaptInspectorLoginEvents,
   adaptJobActivityLog,
   adaptOperationalNotesAudit,
+  adaptSecurityAuditLog,
   adaptWmPrintHistory,
   buildAuditFeed,
   countAuditFeedBySource,
@@ -22,6 +23,7 @@ import {
 } from "../src/lib/audit-hub/filters.ts";
 import { auditFeedItemId } from "../src/lib/audit-hub/types.ts";
 import { buildOperationalNoteAuditEntry } from "../src/lib/operational-notes-audit.ts";
+import { buildSecurityAuditEntry, normalizeSecurityAuditLog } from "../src/lib/security-audit-log.ts";
 
 let passed = 0;
 let failed = 0;
@@ -138,6 +140,7 @@ console.log("Audit Hub MVP-0A — test-audit-hub-adapters\n");
     jobs: [],
     wmPrintHistory: [],
     deliveryPackagePublications: [],
+    securityAuditLog: [],
   });
   assert(feed.length === 0, "T1 buildAuditFeed — pusty input → []");
 }
@@ -150,6 +153,7 @@ console.log("Audit Hub MVP-0A — test-audit-hub-adapters\n");
     jobs: [jobA],
     wmPrintHistory: [wmEntry],
     deliveryPackagePublications: [deliveryPub],
+    securityAuditLog: [],
   });
   assert(feed.length === 5, "T2 buildAuditFeed — 5 wpisów (po 1 na źródło)");
   for (let i = 1; i < feed.length; i++) {
@@ -211,6 +215,7 @@ console.log("Audit Hub MVP-0A — test-audit-hub-adapters\n");
     jobs: [jobA],
     wmPrintHistory: [],
     deliveryPackagePublications: [],
+    securityAuditLog: [],
   });
   const filtered = filterAuditFeed(feed, { ...EMPTY_AUDIT_HUB_FILTERS, source: "operational_notes" });
   assert(filtered.length === 1 && filtered[0].source === "operational_notes", "T8 filter source operational_notes");
@@ -224,6 +229,7 @@ console.log("Audit Hub MVP-0A — test-audit-hub-adapters\n");
     jobs: [],
     wmPrintHistory: [],
     deliveryPackagePublications: [],
+    securityAuditLog: [],
   });
   const filtered = filterAuditFeed(feed, { ...EMPTY_AUDIT_HUB_FILTERS, source: "inspector_login" });
   assert(filtered.length === 2, "T9 filter source inspector_login — 2 wpisy");
@@ -237,6 +243,7 @@ console.log("Audit Hub MVP-0A — test-audit-hub-adapters\n");
     jobs: [],
     wmPrintHistory: [],
     deliveryPackagePublications: [],
+    securityAuditLog: [],
   });
   const filtered = filterAuditFeed(feed, { ...EMPTY_AUDIT_HUB_FILTERS, actor: "dawid" });
   assert(filtered.length === 1 && filtered[0].actorUserId === "dawid", "T10 filter actor userId dawid");
@@ -257,6 +264,7 @@ console.log("Audit Hub MVP-0A — test-audit-hub-adapters\n");
     jobs: [jobA],
     wmPrintHistory: [],
     deliveryPackagePublications: [],
+    securityAuditLog: [],
   });
   const hit = filterAuditFeed(feed, { ...EMPTY_AUDIT_HUB_FILTERS, search: "lazienka" });
   const miss = filterAuditFeed(feed, { ...EMPTY_AUDIT_HUB_FILTERS, search: "nieistniejący" });
@@ -311,6 +319,7 @@ console.log("Audit Hub MVP-0A — test-audit-hub-adapters\n");
     jobs: [],
     wmPrintHistory: [],
     deliveryPackagePublications: [],
+    securityAuditLog: [],
   });
   assert(feed.length === 1, "T15 buildAuditFeed — duplikat note audit id → 1 wpis");
 }
@@ -323,6 +332,7 @@ console.log("Audit Hub MVP-0A — test-audit-hub-adapters\n");
     jobs: [jobA],
     wmPrintHistory: [wmEntry],
     deliveryPackagePublications: [deliveryPub],
+    securityAuditLog: [],
   });
   const counts = countAuditFeedBySource(feed);
   assert(counts.operational_notes === 1, "counts operational_notes");
@@ -330,9 +340,66 @@ console.log("Audit Hub MVP-0A — test-audit-hub-adapters\n");
   assert(counts.job_activity === 1, "counts job_activity");
   assert(counts.wm_print === 1, "counts wm_print");
   assert(counts.delivery_package === 1, "counts delivery_package");
+  assert(counts.security_log === 0, "counts security_log");
   const opts = collectAuditHubFilterOptions(feed);
   assert(opts.actors.length >= 3, "collectAuditHubFilterOptions — actors");
-  assert(opts.sources.length === 5, "collectAuditHubFilterOptions — 5 sources");
+  assert(opts.sources.length === 6, "collectAuditHubFilterOptions — 6 sources");
+}
+
+// T16 — adapter security_log
+{
+  const sec = buildSecurityAuditEntry({
+    actor: "Dawid",
+    actorUserId: "dawid",
+    category: "AUTH",
+    action: "admin_login_success",
+    severity: "info",
+    summary: "Logowanie: Dawid",
+    at: "2026-06-23T08:00:00.000Z",
+  });
+  const [item] = adaptSecurityAuditLog([sec]);
+  assert(item.id === auditFeedItemId("security_log", sec.id), "T16 security_log id");
+  assert(item.source === "security_log", "T16 source security_log");
+  assert(item.actor === "Dawid", "T16 actor");
+  assert(item.severity === "info", "T16 severity");
+  assert(item.deepLink.kind === "none", "T16 deepLink none");
+}
+
+// T17 — security_log legacy empty actor/at
+{
+  const legacy = {
+    id: "legacy-sec",
+    action: "admin_login_failed",
+    category: "AUTH",
+    severity: "warn",
+    summary: "Nieudane logowanie",
+  };
+  const [item] = adaptSecurityAuditLog(normalizeSecurityAuditLog([legacy]));
+  assert(item.actor === "Administrator", "T17 legacy empty actor → Administrator");
+  assert(item.at === "" || typeof item.at === "string", "T17 legacy at string");
+}
+
+// T18 — buildAuditFeed 6 sources
+{
+  const sec = buildSecurityAuditEntry({
+    actor: "Dawid",
+    category: "DATA",
+    action: "job_delete",
+    severity: "high",
+    summary: "Usunięto robotę",
+    at: "2026-06-23T12:00:00.000Z",
+  });
+  const feed = buildAuditFeed({
+    operationalNotesAuditLog: [noteAudit],
+    inspectorLoginEvents: [inspectorLogin],
+    jobs: [jobA],
+    wmPrintHistory: [wmEntry],
+    deliveryPackagePublications: [deliveryPub],
+    securityAuditLog: [sec],
+  });
+  assert(feed.length === 6, "T18 buildAuditFeed — 6 wpisów (6 źródeł)");
+  const counts = countAuditFeedBySource(feed);
+  assert(counts.security_log === 1, "T18 counts security_log");
 }
 
 // sortAuditFeed tie-breaker id
@@ -363,6 +430,7 @@ const sampleFeed = buildAuditFeed({
   jobs: [jobA],
   wmPrintHistory: [wmEntry],
   deliveryPackagePublications: [deliveryPub],
+  securityAuditLog: [],
 });
 const sampleCounts = countAuditFeedBySource(sampleFeed);
 console.log("\nSample feed counts:", JSON.stringify(sampleCounts));

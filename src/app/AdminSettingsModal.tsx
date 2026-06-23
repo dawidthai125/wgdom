@@ -12,6 +12,8 @@ import {
   deleteAdminUser,
   adminRoleLabel,
   type AdminAssignableRole,
+  type AdminSession,
+  type SecurityAuditActor,
 } from "@/lib/admin-auth";
 import { saveAppSettings, type AppSettings } from "@/lib/app-settings";
 import {
@@ -42,12 +44,17 @@ export function AdminSettingsModal({
   appSettings,
   onAppSettingsChange,
   backupTools,
+  adminSession,
 }: {
   onClose: () => void;
   appSettings: AppSettings;
   onAppSettingsChange: (next: AppSettings) => void;
   backupTools: AdminBackupTools;
+  adminSession: AdminSession | null | undefined;
 }) {
+  const auditActor: SecurityAuditActor | undefined = adminSession
+    ? { userId: adminSession.id, displayName: adminSession.displayName }
+    : undefined;
   const [refreshKey, setRefreshKey] = useState(0);
   const users = useMemo(() => listAdminUsersForManagement(), [refreshKey]);
   const [drafts, setDrafts] = useState<Record<string, { pw: string; pw2: string; show: boolean }>>({});
@@ -105,7 +112,7 @@ export function AdminSettingsModal({
     setBusyId(userId);
     setMsg(null);
     try {
-      await setAdminUserRole(userId, role);
+      await setAdminUserRole(userId, role, auditActor);
       reload();
       setMsg({ userId, text: `Rola zmieniona na ${adminRoleLabel(role)}`, ok: true });
     } catch (err) {
@@ -129,7 +136,7 @@ export function AdminSettingsModal({
     setBusyId(userId);
     setMsg(null);
     try {
-      await setAdminUserPassword(userId, d.pw);
+      await setAdminUserPassword(userId, d.pw, auditActor);
       setDrafts((prev) => ({ ...prev, [userId]: { pw: "", pw2: "", show: false } }));
       reload();
       setMsg({ userId, text: "Hasło zmienione — działa na wszystkich urządzeniach po sync", ok: true });
@@ -145,7 +152,7 @@ export function AdminSettingsModal({
     setBusyId(userId);
     setMsg(null);
     try {
-      await resetAdminUserPassword(userId);
+      await resetAdminUserPassword(userId, auditActor);
       setDrafts((prev) => ({ ...prev, [userId]: { pw: "", pw2: "", show: false } }));
       reload();
       setMsg({ userId, text: "Przywrócono hasło startowe", ok: true });
@@ -161,7 +168,7 @@ export function AdminSettingsModal({
     setBusyId(userId);
     setMsg(null);
     try {
-      await deleteAdminUser(userId);
+      await deleteAdminUser(userId, auditActor);
       reload();
       setMsg(null);
     } catch (err) {
@@ -187,7 +194,7 @@ export function AdminSettingsModal({
     }
     setAddBusy(true);
     try {
-      await createAdminUser({ login: newLogin.trim(), password: newPw, role: newRole });
+      await createAdminUser({ login: newLogin.trim(), password: newPw, role: newRole, auditActor });
       setNewLogin("");
       setNewPw("");
       setNewPw2("");

@@ -55,6 +55,7 @@ import {
   pushRecoverableChargesToCloud,
   pushOperationalNotesToCloud,
   pullOperationalNotesAuxFromCloud,
+  pullSecurityAuditLogFromCloud,
   getDeletedOperationalNoteIds,
   addDeletedOperationalNoteId,
   mergeDeletedOperationalNoteIds,
@@ -66,6 +67,12 @@ import {
   isSupabaseConfigured,
 } from "@/lib/cloud-sync";
 import { mergeOperationalNotesAuditLog } from "@/lib/operational-notes-audit";
+import {
+  SECURITY_AUDIT_LOG_KEY,
+  normalizeSecurityAuditLog,
+  recordSecurityAudit,
+  type SecurityAuditEntry,
+} from "@/lib/security-audit-log";
 import { mergeOperationalNotesReadState } from "@/lib/operational-notes-read-state";
 import { saveLocalDataSnapshot, restoreLocalDataSnapshot, listLocalDataSnapshots, readLocalDataBundle } from "@/lib/local-data-backup";
 import { saveLocalJobsSnapshot, restoreLocalJobsSnapshot, listLocalJobsSnapshots } from "@/lib/jobs-safety";
@@ -181,6 +188,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   );
   const [operationalNotesAuditLog, setOperationalNotesAuditLog] = useLocalStorage<OperationalNoteAuditEntry[]>(
     "kw-operational-notes-audit-log",
+    [],
+  );
+  const [securityAuditLog, setSecurityAuditLog] = useLocalStorage<SecurityAuditEntry[]>(
+    SECURITY_AUDIT_LOG_KEY,
     [],
   );
   const [wmPrintTemplates, setWmPrintTemplates] = useLocalStorage<WmPrintTemplate[]>("kw-wm-print-templates", []);
@@ -501,6 +512,22 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     });
     try {
       await pushJobsAfterDelete(updated, deletedIds);
+      void recordSecurityAudit({
+        actor: adminSession?.displayName ?? "Administrator",
+        actorUserId: adminSession?.id,
+        category: "DATA",
+        action: "job_delete",
+        severity: "high",
+        summary: unique.length === 1 ? "Usunięto 1 robotę" : `Usunięto ${unique.length} robot`,
+        detail: JSON.stringify({ ids: unique, count: unique.length }),
+      })
+        .then(() => {
+          try {
+            const raw = localStorage.getItem(SECURITY_AUDIT_LOG_KEY);
+            if (raw) setSecurityAuditLog(normalizeSecurityAuditLog(JSON.parse(raw)));
+          } catch { /* ignore */ }
+        })
+        .catch(() => {});
       toast.success(unique.length === 1 ? "Robota usunięta" : `Usunięto ${unique.length} robot`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Błąd zapisu do chmury";
@@ -508,7 +535,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     } finally {
       deleteJobsInFlightRef.current = false;
     }
-  }, [clearPendingAutoSync, setJobs]);
+  }, [clearPendingAutoSync, setJobs, adminSession, setSecurityAuditLog]);
 
   const pullFromCloudAndMerge = useCallback(async () => {
     if (!tabVisibleRef.current || !isSupabaseConfigured() || pullInFlightRef.current) return;
@@ -523,12 +550,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         setOperationalNotesReadState(aux.readState);
         setOperationalNotesAuditLog(aux.auditLog);
       } catch { /* offline */ }
+      try {
+        const securityLog = await pullSecurityAuditLogFromCloud();
+        setSecurityAuditLog(securityLog);
+      } catch { /* offline */ }
     } catch {
       /* offline — zostaw lokalne dane */
     } finally {
       pullInFlightRef.current = false;
     }
-  }, [adminDataBundle, applyAdminDataBundle, clearAutoSyncTimers, setOperationalNotesReadState, setOperationalNotesAuditLog]);
+  }, [adminDataBundle, applyAdminDataBundle, clearAutoSyncTimers, setOperationalNotesReadState, setOperationalNotesAuditLog, setSecurityAuditLog]);
 
   const pushToCloud = pushAllDataToCloud;
 
@@ -1572,6 +1603,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           setOperationalNotesReadState={setOperationalNotesReadState}
           operationalNotesAuditLog={operationalNotesAuditLog}
           setOperationalNotesAuditLog={setOperationalNotesAuditLog}
+          securityAuditLog={securityAuditLog}
           commitOperationalNotes={commitOperationalNotes}
           wmPrintTemplates={wmPrintTemplates}
           setWmPrintTemplates={setWmPrintTemplates}
@@ -1739,6 +1771,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           onClose={() => setShowAdminSettings(false)}
           appSettings={appSettings}
           onAppSettingsChange={setAppSettings}
+          adminSession={adminSession}
           backupTools={{
             exportBackup,
             importBackup,

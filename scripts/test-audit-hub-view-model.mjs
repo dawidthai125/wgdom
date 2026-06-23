@@ -3,6 +3,7 @@
  * Uruchom: npx vite-node scripts/test-audit-hub-view-model.mjs
  */
 import { buildOperationalNoteAuditEntry } from "../src/lib/operational-notes-audit.ts";
+import { buildSecurityAuditEntry, normalizeSecurityAuditLog } from "../src/lib/security-audit-log.ts";
 import { buildAuditHubViewModel } from "../src/lib/audit-hub/view-model.ts";
 import { EMPTY_AUDIT_HUB_FILTERS } from "../src/lib/audit-hub/filters.ts";
 import {
@@ -121,6 +122,7 @@ const hubInput = {
       updatedAt: "2026-06-21T14:00:00.000Z",
     },
   ],
+  securityAuditLog: [],
 };
 
 console.log("Audit Hub MVP-0B — test-audit-hub-view-model\n");
@@ -183,12 +185,32 @@ console.log("Audit Hub MVP-0B — test-audit-hub-view-model\n");
       + model.kpi.bySource.inspector_login
       + model.kpi.bySource.job_activity
       + model.kpi.bySource.wm_print
-      + model.kpi.bySource.delivery_package,
+      + model.kpi.bySource.delivery_package
+      + model.kpi.bySource.security_log,
     "KPI total = suma per source",
   );
 }
 
-// deep links — wszystkie 5 źródeł
+// security_log source + KPI
+{
+  const sec = buildSecurityAuditEntry({
+    actor: "Dawid",
+    actorUserId: "dawid",
+    category: "PERMISSIONS",
+    action: "user_create",
+    severity: "warn",
+    summary: "Nowe konto: Test",
+    at: "2026-06-23T11:00:00.000Z",
+  });
+  const withSecurity = { ...hubInput, securityAuditLog: [sec] };
+  const all = buildAuditHubViewModel(withSecurity, EMPTY_AUDIT_HUB_FILTERS, 1);
+  assert(all.kpi.total === 7, "security_log — total 7 z jednym wpisem security");
+  assert(all.kpi.bySource.security_log === 1, "security_log KPI = 1");
+  const filtered = buildAuditHubViewModel(withSecurity, { ...EMPTY_AUDIT_HUB_FILTERS, source: "security_log" }, 1);
+  assert(filtered.filtered.length === 1 && filtered.filtered[0].severity === "warn", "security_log source filter");
+}
+
+// deep links — wszystkie 5 źródeł z deeplinkami (+ security none)
 {
   const model = buildAuditHubViewModel(hubInput, EMPTY_AUDIT_HUB_FILTERS, 1);
   const bySource = Object.fromEntries(
@@ -317,6 +339,7 @@ console.log("Audit Hub MVP-0B — test-audit-hub-view-model\n");
         updatedAt: "2026-06-18T09:00:00.000Z",
       },
     ],
+    securityAuditLog: [],
   };
 
   let threw = false;
@@ -352,6 +375,33 @@ console.log("Audit Hub MVP-0B — test-audit-hub-view-model\n");
   [...actors].sort((a, b) => (a ?? "").localeCompare(b ?? "", "pl")).length === actors.length,
     "legacy — sort etykiet aktorów bez crash",
   );
+}
+
+// security_log legacy empty actor/at w view model
+{
+  const legacyInput = {
+    ...hubInput,
+    securityAuditLog: normalizeSecurityAuditLog([
+      {
+        id: "sec-legacy",
+        action: "admin_logout",
+        category: "AUTH",
+        severity: "info",
+        summary: "Wylogowanie",
+      },
+    ]),
+  };
+  let threw = false;
+  let model;
+  try {
+    model = buildAuditHubViewModel(legacyInput, EMPTY_AUDIT_HUB_FILTERS, 1);
+  } catch {
+    threw = true;
+  }
+  assert(!threw, "security legacy — buildAuditHubViewModel nie rzuca");
+  const sec = model?.feed.find((i) => i.source === "security_log");
+  assert(sec?.actor === "Administrator", "security legacy — actor fallback");
+  assert(typeof sec?.at === "string", "security legacy — at string");
 }
 
 console.log(`\n--- ${passed} passed, ${failed} failed ---`);

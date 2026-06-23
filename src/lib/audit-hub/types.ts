@@ -5,6 +5,7 @@ import type { Job } from "@/app/app-domain";
 import type { DeliveryPackagePublication } from "@/lib/delivery-package-publications/types";
 import type { InspectorStatsEvent } from "@/lib/inspector-stats";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
+import type { SecurityAuditEntry } from "@/lib/security-audit-log";
 import type { WmPrintHistoryEntry } from "@/lib/wm-print/history";
 import type { WmPrintTab } from "@/lib/wm-print/wm-print-tabs";
 
@@ -13,7 +14,8 @@ export type AuditFeedSource =
   | "inspector_login"
   | "job_activity"
   | "wm_print"
-  | "delivery_package";
+  | "delivery_package"
+  | "security_log";
 
 export const AUDIT_FEED_SOURCES: AuditFeedSource[] = [
   "operational_notes",
@@ -21,6 +23,7 @@ export const AUDIT_FEED_SOURCES: AuditFeedSource[] = [
   "job_activity",
   "wm_print",
   "delivery_package",
+  "security_log",
 ];
 
 export const AUDIT_FEED_SOURCE_LABEL_PL: Record<AuditFeedSource, string> = {
@@ -29,6 +32,7 @@ export const AUDIT_FEED_SOURCE_LABEL_PL: Record<AuditFeedSource, string> = {
   job_activity: "Roboty",
   wm_print: "WM Druk",
   delivery_package: "Pakiety odbiorowe",
+  security_log: "Security log",
 };
 
 export type AuditFeedDeepLink =
@@ -54,6 +58,8 @@ export interface AuditFeedItem {
   noteId?: string;
   nativeId: string;
   deepLink: AuditFeedDeepLink;
+  /** Tylko security_log — badge severity w UI */
+  severity?: string;
 }
 
 export type AuditHubJob = Pick<Job, "id" | "address" | "flatNumber" | "client" | "activityLog">;
@@ -64,6 +70,7 @@ export interface AuditHubInput {
   jobs: AuditHubJob[];
   wmPrintHistory: WmPrintHistoryEntry[];
   deliveryPackagePublications: DeliveryPackagePublication[];
+  securityAuditLog: SecurityAuditEntry[];
 }
 
 export function auditFeedItemId(source: AuditFeedSource, nativeId: string): string {

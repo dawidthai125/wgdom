@@ -16,6 +16,7 @@ import {
   clearRememberedAdminPassword,
   digestSha256Hex,
 } from "@/lib/admin-auth";
+import { recordSecurityAudit } from "@/lib/security-audit-log";
 import {
   fetchKeysFromCloud,
   mergeDirectory,
@@ -103,6 +104,14 @@ export function LoginScreen({onAdmin, onInspector, onWorker}: {onAdmin:(session:
     }
     setPassLoading(false);
     setPassError("Błędne hasło");
+    void recordSecurityAudit({
+      actor: selectedAdmin.login,
+      category: "AUTH",
+      action: "admin_login_failed",
+      severity: "warn",
+      summary: `Nieudane logowanie: ${selectedAdmin.login}`,
+      detail: JSON.stringify({ login: selectedAdmin.login }),
+    }).catch(() => {});
     setPassword("");
   };
 

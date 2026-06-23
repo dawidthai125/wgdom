@@ -1,22 +1,22 @@
 # SESSION HANDOFF — Audit Hub (MVP-0A → MVP-0B + P0 hotfix)
 
-> **Status streamu:** **MVP-0 CLOSED** (0A lib · 0B UI · P0 localeCompare hotfix)  
-> **Data closeout:** 2026-06-23  
-> **Prod baseline:** **v2.62.37** · commit **`a0d7093`** (hotfix) · MVP-0B **`b2eed93`**  
-> **Architektura:** [`ARCHITECTURE.md`](ARCHITECTURE.md) § **15.2**  
+> **Status streamu:** **MVP-0 CLOSED** · **MVP-1 Security Log CLOSED**  
+> **Data closeout MVP-1:** 2026-06-23  
+> **Prod baseline:** **v2.62.39** · MVP-0 **2.62.37** · Actor Fidelity **2.62.38**  
+> **Architektura:** [`ARCHITECTURE.md`](ARCHITECTURE.md) § **15.2–15.3**  
 > **SSOT projektu:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md)
 
 ---
 
 ## 1. Co to jest (dla agenta — czytaj NAJPIERW)
 
-**Audit Hub** = read-only panel Super Admina agregujący **istniejące** logi z 5 źródeł w jeden timeline. **Bez nowego KV**, **bez zmian** `cloud-sync.ts` / Edge.
+**Audit Hub** = read-only panel Super Admina agregujący logi z **6 źródeł** w jeden timeline. MVP-0: 5 istniejących KV/pól. **MVP-1:** dodatkowe źródło `kw-security-audit-log` (append-only, read-only w Hub).
 
 | To JEST | To NIE JEST |
 |---------|-------------|
-| Agregacja + filtry + deep linki do modułów źródłowych | Globalny security log admina (backlog MVP-1) |
+| Agregacja + filtry + deep linki do modułów źródłowych | Pełny SIEM / alerty (MVP-2) |
 | Widok `audit` w menu admina (ikona Shield) | Duplikat audit UI notatek operacyjnych (P2C Sheet) |
-| Read-only prezentacja | Zapis / edycja danych źródłowych |
+| Read-only prezentacja + Security log (AUTH, PERMISSIONS, DATA) | Logowanie auto-sync / merge (MVP-1B) |
 
 **Kto ma dostęp:** tylko **Super Admin** (`canAccessAuditHub` → `adminIsSuperAdmin`).
 
@@ -32,6 +32,8 @@
 | **MVP-0A** | — | (w `b2eed93`) | `src/lib/audit-hub/*` — typy, adaptery, filtry, test adapters 47 | **CLOSED** |
 | **MVP-0B** | **2.62.36** | **`b2eed93`** | `AuditHubView`, router, nav, deep linki, HelpView, test view-model 22 | **CLOSED** |
 | **P0 hotfix** | **2.62.37** | **`a0d7093`** | Crash `localeCompare` — legacy `actor`/`at` undefined; fix `JobsView` photo_upload | **CLOSED** |
+| **Actor fidelity** | **2.62.38** | **`8138991`** | `activityLog` zapisuje `displayName` sesji | **CLOSED** |
+| **MVP-1 Security Log** | **2.62.39** | — | `kw-security-audit-log`, 6. źródło Audit Hub, hooki AUTH/PERMISSIONS/DATA | **CLOSED** |
 
 ### Incydent prod (2.62.36)
 
@@ -54,7 +56,7 @@
 ```text
 src/lib/audit-hub/
   types.ts           ← AuditFeedItem, AuditFeedSource, AuditHubInput, deep link types
-  adapters.ts        ← 5 adapterów + buildAuditFeed + sortAuditFeed + dedupe
+  adapters.ts        ← 6 adapterów + buildAuditFeed + sortAuditFeed + dedupe
   filters.ts         ← filterAuditFeed, paginateAuditFeed (50), collectAuditHubFilterOptions
   acl.ts             ← canAccessAuditHub() — Super Admin only
   deeplink.ts        ← resolveAuditHubNavigation(), auditHubDeepLinkLabel()
@@ -68,8 +70,9 @@ src/app/
   GuideView.tsx      ← FAQ: co to jest, dostęp, deep linki
 
 scripts/
-  test-audit-hub-adapters.mjs    ← T1–T15 (47 PASS)
-  test-audit-hub-view-model.mjs  ← filtry, KPI, deep linki, legacy P0 (32 PASS)
+  test-security-audit-log.mjs    ← MVP-1 append/merge/cap
+  test-audit-hub-adapters.mjs    ← adapters + security_log
+  test-audit-hub-view-model.mjs  ← filtry, KPI, deep linki, legacy P0
 ```
 
 ### 3.2 Przepływ danych (UI)
@@ -80,6 +83,7 @@ App.tsx (props)
   jobs[]                    ← kw-jobs (activityLog per job)
   wmPrintHistory            ← kw-wm-print-history
   deliveryPackagePublications ← kw-delivery-package-publications
+  securityAuditLog          ← LS kw-security-audit-log (pull aux przy sync)
        +
 AuditHubView (async)
   inspectorLoginEvents      ← syncInspectorStatsFromCloud() → kw-inspector-stats
@@ -99,15 +103,16 @@ buildAuditHubViewModel(input, filters, page)
 | `id` | tak | `${source}:${nativeId}` |
 | `at` | tak (string, może `""`) | **P0:** `feedAt()` — nigdy `undefined` |
 | `actor` | tak (string) | **P0:** `feedActor()` — nigdy `undefined` |
-| `source` | tak | jeden z 5 enumów |
+| `source` | tak | jeden z 6 enumów |
 | `action` / `actionLabel` | tak | |
 | `summary` | tak | job_activity: `(text ?? "").trim() \|\| actionLabel` |
 | `actorUserId` | opcjonalne | filtr „Osoba” dopasowuje też userId |
 | `detail`, `jobId`, `jobLabel`, `noteId` | opcjonalne | |
-| `deepLink` | tak | nawigacja do modułu źródłowego |
+| `deepLink` | tak | nawigacja do modułu źródłowego (`security_log` → `none`) |
+| `severity` | opcjonalne | tylko `security_log` — badge w UI |
 | `nativeId` | tak | id w źródle |
 
-### 3.4 Pięć adapterów (`adapters.ts`)
+### 3.4 Sześć adapterów (`adapters.ts`)
 
 | Adapter | Źródło wejścia | Pole `at` | Pole `actor` | Normalizacja źródła |
 |---------|----------------|-----------|--------------|---------------------|
@@ -116,10 +121,11 @@ buildAuditHubViewModel(input, filters, page)
 | `adaptJobActivityLog` | `jobs[].activityLog[]` | `ev.at` | `ev.actor` → fallback `"Administrator"` | **brak** |
 | `adaptWmPrintHistory` | `WmPrintHistoryEntry[]` | `timestamp` | `userName` | **tak** — `normalizeWmPrintHistory()` |
 | `adaptDeliveryPackagePublications` | `DeliveryPackagePublication[]` | `publishedAt` | `publishedByUserName` | **brak** w adapterze |
+| `adaptSecurityAuditLog` | `SecurityAuditEntry[]` | `entry.at` | `entry.actor` | **tak** — `normalizeSecurityAuditLog()` przy merge |
 
 **P0 reguła:** każdy adapter musi zwracać `at: string` i `actor: string` — używaj `feedAt()` / `feedActor()`.
 
-### 3.5 Źródła KV (istniejące — nie dodawać nowych dla MVP-0)
+### 3.5 Źródła KV
 
 | Źródło `AuditFeedSource` | Klucz / pole | Cap | Etykieta PL |
 |--------------------------|--------------|-----|-------------|
@@ -128,8 +134,19 @@ buildAuditHubViewModel(input, filters, page)
 | `job_activity` | `kw-jobs` → `job.activityLog[]` | 200 / robota | Roboty |
 | `wm_print` | `kw-wm-print-history` | 1000 | WM Druk |
 | `delivery_package` | `kw-delivery-package-publications` | 500 | Pakiety odbiorowe |
+| `security_log` | `kw-security-audit-log` | 5000 | Security log |
 
-**Nie obejmuje:** logowanie admina, sync/merge, payroll, przetargi.
+**MVP-1 Security log — zdarzenia (append-only):**
+
+| Kategoria | Akcje | Severity | Hooki |
+|-----------|-------|----------|-------|
+| AUTH | `admin_login_success`, `admin_login_failed`, `admin_logout` | info / warn / info | `LoginScreen`, `AppInnerWithAuth` |
+| PERMISSIONS | `user_create`, `user_delete`, `user_role_change`, `user_password_change`, `user_password_reset` | warn / high | `admin-auth`, `AdminSettingsModal` |
+| DATA | `job_delete` | high | `deleteJobsByIds()` w `App.tsx` |
+
+**Sync:** AUX KEY (nie `DATA_KEYS`) — `persistKey`, `pullSecurityAuditLogFromCloud`, `recordSecurityAudit` → push pojedynczego klucza (bez pełnego `runCloudSync`).
+
+**Nie obejmuje (MVP-1B):** auto-sync logging, inspector/worker login, eksport, alerty, migracja historycznego KV.
 
 ---
 
@@ -137,7 +154,7 @@ buildAuditHubViewModel(input, filters, page)
 
 | Element | Opis |
 |---------|------|
-| KPI | Razem + licznik per źródło (5 kafli) |
+| KPI | Razem + licznik per źródło (6 kafli + Razem) |
 | Filtry | Źródło · Osoba · Szukaj (treść, robota, akcja) |
 | Tabela | Data · Źródło · Akcja · Kto · Opis — klik → Sheet |
 | Paginacja | 50 wpisów / strona (`AUDIT_HUB_PAGE_SIZE`) |
@@ -163,8 +180,9 @@ Handler: `handleAuditHubDeepLink` w `App.tsx` · `viewReturn` z etykietą „Aud
 ## 6. Testy (obowiązkowe przy zmianach)
 
 ```bash
-npx vite-node scripts/test-audit-hub-adapters.mjs      # 47 PASS
-npx vite-node scripts/test-audit-hub-view-model.mjs      # 32 PASS (w tym legacy P0)
+npx vite-node scripts/test-security-audit-log.mjs      # MVP-1
+npx vite-node scripts/test-audit-hub-adapters.mjs      # adapters + security_log
+npx vite-node scripts/test-audit-hub-view-model.mjs      # view-model + security_log
 npm run build
 ```
 
@@ -192,7 +210,8 @@ Przy release: workflow **B** — [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE
 
 | ID | Opis | Status |
 |----|------|--------|
-| **MVP-1** | Globalny security log — `kw-security-audit-log` (logowania admina, sync) | **OPEN** — tylko na polecenie |
+| **MVP-1** | Globalny security log — `kw-security-audit-log` | **CLOSED** (2.62.39) |
+| **MVP-1B** | Sync logging, directory_delete, eksport, alerty | **OPEN** |
 | **MVP-0C** | Eksport CSV/PDF feedu | **OPEN** |
 | **MVP-0D** | Retencja / archiwizacja unified feed | **OPEN** |
 | **MVP-0E** | Real-time push nowych wpisów (bez pełnego przeładowania) | **OPEN** |

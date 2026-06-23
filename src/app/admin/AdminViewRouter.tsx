@@ -16,6 +16,7 @@ import type { EmployeeLeave } from "@/lib/employee-leaves";
 import type { RecoverableCharge } from "@/lib/recoverable-charges";
 import type { OperationalNote } from "@/lib/operational-notes";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
+import type { SecurityAuditEntry } from "@/lib/security-audit-log";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
 import type { WmPrintHistoryEntry } from "@/lib/wm-print/history";
 import type { AuditFeedDeepLink } from "@/lib/audit-hub/types";
@@ -118,6 +119,7 @@ export type AdminViewRouterProps = {
   setOperationalNotesAuditLog: (
     v: OperationalNoteAuditEntry[] | ((prev: OperationalNoteAuditEntry[]) => OperationalNoteAuditEntry[]),
   ) => void;
+  securityAuditLog: SecurityAuditEntry[];
   commitOperationalNotes: (
     nextNotes?: OperationalNote[],
     nextAudit?: OperationalNoteAuditEntry[],
@@ -320,6 +322,7 @@ export function AdminViewRouter({
   setOperationalNotesReadState,
   operationalNotesAuditLog,
   setOperationalNotesAuditLog,
+  securityAuditLog,
   commitOperationalNotes,
   wmPrintTemplates,
   setWmPrintTemplates,
@@ -651,6 +654,7 @@ export function AdminViewRouter({
             <AuditHubView
               session={adminSession}
               operationalNotesAuditLog={operationalNotesAuditLog}
+              securityAuditLog={securityAuditLog}
               jobs={jobs}
               wmPrintHistory={wmPrintHistory}
               deliveryPackagePublications={deliveryPackagePublications}

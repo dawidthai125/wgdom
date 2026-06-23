@@ -3,6 +3,9 @@
 
 
 import { ADMIN_PASSWORDS_KEY, ADMIN_USERS_CONFIG_KEY, persistKey } from "@/lib/cloud-sync";
+import { recordSecurityAudit, type SecurityAuditActor } from "@/lib/security-audit-log";
+
+export type { SecurityAuditActor };
 
 
 
@@ -587,7 +590,11 @@ export function adminPasswordIsCustomized(userId: string): boolean {
 
 
 
-export async function setAdminUserPassword(userId: string, newPassword: string): Promise<void> {
+export async function setAdminUserPassword(
+  userId: string,
+  newPassword: string,
+  auditActor?: SecurityAuditActor,
+): Promise<void> {
 
   const account = findAdminAccountById(userId);
 
@@ -619,11 +626,26 @@ export async function setAdminUserPassword(userId: string, newPassword: string):
 
   clearRememberedAdminPasswordIfUser(userId);
 
+  if (auditActor) {
+    void recordSecurityAudit({
+      actor: auditActor.displayName,
+      actorUserId: auditActor.userId,
+      category: "PERMISSIONS",
+      action: "user_password_change",
+      severity: "high",
+      summary: `Zmiana hasła: ${account.displayName}`,
+      detail: JSON.stringify({ targetUserId: userId }),
+    }).catch(() => {});
+  }
+
 }
 
 
 
-export async function resetAdminUserPassword(userId: string): Promise<void> {
+export async function resetAdminUserPassword(
+  userId: string,
+  auditActor?: SecurityAuditActor,
+): Promise<void> {
 
   const account = findAdminAccountById(userId);
 
@@ -637,11 +659,27 @@ export async function resetAdminUserPassword(userId: string): Promise<void> {
 
   clearRememberedAdminPasswordIfUser(userId);
 
+  if (auditActor) {
+    void recordSecurityAudit({
+      actor: auditActor.displayName,
+      actorUserId: auditActor.userId,
+      category: "PERMISSIONS",
+      action: "user_password_reset",
+      severity: "warn",
+      summary: `Reset hasła: ${account.displayName}`,
+      detail: JSON.stringify({ targetUserId: userId }),
+    }).catch(() => {});
+  }
+
 }
 
 
 
-export async function setAdminUserRole(userId: string, role: AdminAssignableRole): Promise<void> {
+export async function setAdminUserRole(
+  userId: string,
+  role: AdminAssignableRole,
+  auditActor?: SecurityAuditActor,
+): Promise<void> {
 
   const account = findAdminAccountById(userId);
 
@@ -667,6 +705,18 @@ export async function setAdminUserRole(userId: string, role: AdminAssignableRole
 
   await persistAdminUsersConfig(config);
 
+  if (auditActor) {
+    void recordSecurityAudit({
+      actor: auditActor.displayName,
+      actorUserId: auditActor.userId,
+      category: "PERMISSIONS",
+      action: "user_role_change",
+      severity: "warn",
+      summary: `Zmiana roli: ${account.displayName} → ${adminRoleLabel(role)}`,
+      detail: JSON.stringify({ targetUserId: userId, role }),
+    }).catch(() => {});
+  }
+
 }
 
 
@@ -680,6 +730,8 @@ export async function createAdminUser(params: {
   role: AdminAssignableRole;
 
   displayName?: string;
+
+  auditActor?: SecurityAuditActor;
 
 }): Promise<AdminSession> {
 
@@ -719,13 +771,30 @@ export async function createAdminUser(params: {
 
   await persistAdminUsersConfig(config);
 
-  return { id: user.id, login: user.login, displayName: user.displayName, role: user.role };
+  const session = { id: user.id, login: user.login, displayName: user.displayName, role: user.role };
+
+  if (params.auditActor) {
+    void recordSecurityAudit({
+      actor: params.auditActor.displayName,
+      actorUserId: params.auditActor.userId,
+      category: "PERMISSIONS",
+      action: "user_create",
+      severity: "warn",
+      summary: `Nowe konto: ${displayName} (${params.role})`,
+      detail: JSON.stringify({ targetUserId: user.id, login: user.login, role: params.role }),
+    }).catch(() => {});
+  }
+
+  return session;
 
 }
 
 
 
-export async function deleteAdminUser(userId: string): Promise<void> {
+export async function deleteAdminUser(
+  userId: string,
+  auditActor?: SecurityAuditActor,
+): Promise<void> {
 
   const account = findAdminAccountById(userId);
 
@@ -738,6 +807,18 @@ export async function deleteAdminUser(userId: string): Promise<void> {
   await persistAdminUsersConfig(config);
 
   clearRememberedAdminPasswordIfUser(userId);
+
+  if (auditActor) {
+    void recordSecurityAudit({
+      actor: auditActor.displayName,
+      actorUserId: auditActor.userId,
+      category: "PERMISSIONS",
+      action: "user_delete",
+      severity: "high",
+      summary: `Usunięto konto: ${account.displayName}`,
+      detail: JSON.stringify({ targetUserId: userId, login: account.login }),
+    }).catch(() => {});
+  }
 
 }
 

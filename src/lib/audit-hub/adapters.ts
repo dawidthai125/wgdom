@@ -9,6 +9,10 @@ import type { InspectorStatsEvent } from "@/lib/inspector-stats";
 import { OPERATIONAL_NOTE_AUDIT_ACTION_LABEL_PL } from "@/lib/operational-notes-audit-filters";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import {
+  SECURITY_AUDIT_ACTION_LABEL_PL,
+  type SecurityAuditEntry,
+} from "@/lib/security-audit-log";
+import {
   normalizeWmPrintHistory,
   wmPrintHistoryOutputTypeLabel,
 } from "@/lib/wm-print/history";
@@ -198,6 +202,27 @@ export function adaptDeliveryPackagePublications(
   });
 }
 
+export function adaptSecurityAuditLog(entries: SecurityAuditEntry[]): AuditFeedItem[] {
+  const source: AuditFeedSource = "security_log";
+  return entries.map((entry) => {
+    const actionLabel = SECURITY_AUDIT_ACTION_LABEL_PL[entry.action] ?? entry.action;
+    return {
+      id: auditFeedItemId(source, entry.id),
+      at: feedAt(entry.at),
+      source,
+      action: entry.action,
+      actionLabel,
+      actor: feedActor(entry.actor),
+      actorUserId: entry.actorUserId,
+      summary: entry.summary,
+      detail: entry.detail,
+      nativeId: entry.id,
+      deepLink: { kind: "none" },
+      severity: entry.severity,
+    };
+  });
+}
+
 export function sortAuditFeed(items: AuditFeedItem[]): AuditFeedItem[] {
   return [...items].sort(
     (a, b) => (b.at ?? "").localeCompare(a.at ?? "") || a.id.localeCompare(b.id),
@@ -220,6 +245,7 @@ export function buildAuditFeed(input: AuditHubInput): AuditFeedItem[] {
     ...adaptJobActivityLog(input.jobs),
     ...adaptWmPrintHistory(input.wmPrintHistory),
     ...adaptDeliveryPackagePublications(input.deliveryPackagePublications, input.jobs),
+    ...adaptSecurityAuditLog(input.securityAuditLog),
   ];
   return dedupeAuditFeed(merged);
 }
@@ -231,6 +257,7 @@ export function countAuditFeedBySource(items: AuditFeedItem[]): Record<AuditFeed
     job_activity: 0,
     wm_print: 0,
     delivery_package: 0,
+    security_log: 0,
   };
   for (const item of items) counts[item.source] += 1;
   return counts;

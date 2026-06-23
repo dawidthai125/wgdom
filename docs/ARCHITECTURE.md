@@ -2145,7 +2145,7 @@ WGDOM1/
 |---------|----------------|
 | Widok | `AuditHubView.tsx` — lazy w `AdminViewRouter` |
 | ACL | `canAccessAuditHub()` — `adminIsSuperAdmin` · menu + guard w `App.tsx` |
-| Agregacja | `buildAuditFeed()` — 5 adapterów w `src/lib/audit-hub/adapters.ts` |
+| Agregacja | `buildAuditFeed()` — 6 adapterów w `src/lib/audit-hub/adapters.ts` |
 | Normalizacja P0 | `feedAt()` / `feedActor()` — **każdy adapter** zwraca `at` i `actor` jako `string` (nigdy `undefined`) |
 | Filtry / strony | `filterAuditFeed`, `paginateAuditFeed` (50) — `filters.ts` · sort aktorów: `(label ?? "")` |
 | Sort feedu | `sortAuditFeed` — `(at ?? "").localeCompare` |
@@ -2161,12 +2161,28 @@ WGDOM1/
 | Roboty activity | `job.activityLog[]` | 200 / robota | `adaptJobActivityLog` |
 | WM Druk historia | `kw-wm-print-history` | 1000 | `adaptWmPrintHistory` (+ `normalizeWmPrintHistory`) |
 | Pakiety odbiorowe | `kw-delivery-package-publications` | 500 | `adaptDeliveryPackagePublications` |
+| Security log | `kw-security-audit-log` | 5000 | `adaptSecurityAuditLog` |
 
 **P0 prod (2.62.36):** crash `localeCompare` gdy legacy `job.activityLog` miał `actor` undefined (`JobsView` photo_upload bez 4. arg `appendJobActivity`) — naprawione w **2.62.37**.
 
-**Nie obejmuje:** logowania admina, sync/merge, payroll, przetargów — backlog **MVP-1** (`kw-security-audit-log`).
+**Nie zmieniaj bez polecenia:** ACL Super Admin, lazy chunk `AuditHubView`, brak zapisu z poziomu Audit Hub (read-only).
 
-**Testy:** `scripts/test-audit-hub-adapters.mjs` (47), `scripts/test-audit-hub-view-model.mjs` (32, w tym legacy P0).
+---
+
+### 15.3 Audit Hub MVP-1 — Security Log (v2.62.39)
+
+**Status:** **CLOSED** — 6. źródło `security_log`, append-only KV `kw-security-audit-log`.
+
+| Element | Plik / klucz |
+|---------|----------------|
+| Lib | `src/lib/security-audit-log.ts` — normalize, merge, append, `recordSecurityAudit` |
+| Cloud sync | `pullSecurityAuditLogFromCloud()` — AUX KEY, **nie** w `DATA_KEYS` |
+| Adapter | `adaptSecurityAuditLog()` — `feedAt`/`feedActor`, `deepLink: none`, `severity` |
+| Hooki AUTH | `AppInnerWithAuth`, `LoginScreen` |
+| Hooki PERMISSIONS | `admin-auth.ts`, `AdminSettingsModal` |
+| Hook DATA | `deleteJobsByIds()` — `ids` + `count` w `detail`, bez payloadów |
+
+**Testy:** `scripts/test-security-audit-log.mjs` + rozszerzone `test-audit-hub-*.mjs`.
 
 ---
 
@@ -2187,7 +2203,8 @@ WGDOM1/
 | `payroll-export.ts` / `payroll-cycle.ts` | PDF/Word listy płac, cykle tygodni |
 | `payroll-job-assignments.ts` | **P1 v2.59.49** — edycja `workEntries` z Listy Płac, badge spójności, mutacje jobs |
 | `inspector-stats.ts` | Statystyki logowań inspektorów |
-| `audit-hub/*` | **MVP-0 CLOSED** — agregacja logów Audit Hub (adapters, filters, acl, deeplink, view-model) · handoff: `SESSION-HANDOFF-AUDIT-HUB.md` |
+| `audit-hub/*` | **MVP-0 + MVP-1 CLOSED** — agregacja logów Audit Hub (6 źródeł) · handoff: `SESSION-HANDOFF-AUDIT-HUB.md` |
+| `security-audit-log.ts` | **MVP-1** — append-only security audit KV `kw-security-audit-log` |
 | `inspector-dashboard.ts` | Statystyki pulpitu inspektora |
 | `email-contacts.ts` | Kontakty mailingowe |
 | `operational-notes.ts` | **P0 v2.57.0** — notatki operacyjne: model, ACL, mutacje, merge |
