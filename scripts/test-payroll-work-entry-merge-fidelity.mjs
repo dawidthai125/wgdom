@@ -270,6 +270,7 @@ console.log("\nT9 fixJobsForConsistencyAlert bulk delete + merge");
     weekFrom,
     weekTo,
     directory,
+    "Dawid",
   );
   assert("T9 fixed job empty", (fixed[0].workEntries || []).length === 0);
   assert("T9 fixed tombstone", (fixed[0].deletedWorkEntryTombstones || []).some((t) => t.id === "we-a"));

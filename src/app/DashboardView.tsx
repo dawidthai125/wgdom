@@ -112,6 +112,7 @@ export function DashboardView({
   tenderJobUploadedBy?: string;
 }) {
   const { session: adminSession } = useAdminAccess();
+  const createdByName = adminSession?.displayName || "Administrator";
   const isSuperAdmin = adminSession ? adminIsSuperAdmin(adminSession.role) : false;
   const showOperationalNotesWidget = canShowOperationalNotesDashboardWidget(adminSession);
   const operationalNotesSummary = useMemo(
@@ -321,7 +322,9 @@ export function DashboardView({
   );
 
   const handleFixConsistency = (alert: PayrollJobConsistencyAlert) => {
-    onFixJobs((prev) => fixJobsForConsistencyAlert(prev, alert, weekEmployees, weekFrom, weekTo, directory));
+    onFixJobs((prev) =>
+      fixJobsForConsistencyAlert(prev, alert, weekEmployees, weekFrom, weekTo, directory, createdByName),
+    );
   };
 
   const acknowledgeReport = (jobId: string, reportId: string) => {
@@ -351,7 +354,7 @@ export function DashboardView({
           next,
           "document",
           `${nextChecked ? "Zaznaczono" : "Odznaczono"}: ${DOC_LABELS[doc]}`,
-          "Administrator",
+          createdByName,
         );
         if (!isWmClient(next.client)) {
           const allDone = REQUIRED_DOCS.every((d) => next.documents[d]);

@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-23",
+    version: "2.62.38",
+    label: "Audit Hub — actor fidelity activityLog",
+    items: [
+      {
+        type: "fix",
+        text: "Roboty — activityLog zapisuje displayName sesji zamiast domyślnego „Administrator” (updateJob SSOT)",
+      },
+      {
+        type: "fix",
+        text: "Pulpit — zaznaczanie dokumentów i „Popraw” spójności płac loguje rzeczywistego użytkownika",
+      },
+      {
+        type: "improve",
+        text: "Audit Hub — nowe wpisy job_activity pokazują Dawid/Paweł/Stanisław zamiast Administrator (bez migracji KV)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-23",
     version: "2.62.37",
     label: "Audit Hub — hotfix crash localeCompare",
     items: [

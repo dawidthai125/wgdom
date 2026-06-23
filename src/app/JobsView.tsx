@@ -765,7 +765,7 @@ export function JobsView({
   const updateJob = (updated: Job, activity?: { type: JobActivityType; text: string; actor?: string }) => {
     let next = syncJobDocuments(updated);
     next = activity
-      ? appendJobActivity(next, activity.type, activity.text, activity.actor || "Administrator")
+      ? appendJobActivity(next, activity.type, activity.text, activity.actor ?? createdByName ?? "Administrator")
       : next;
 
     if (next.jobPhase) {

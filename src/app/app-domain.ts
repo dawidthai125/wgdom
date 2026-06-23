@@ -1056,7 +1056,9 @@ export function fixJobsForConsistencyAlert(
   weekFrom: string,
   weekTo: string,
   directory: DirectoryEmployee[],
+  actorName: string,
 ): Job[] {
+  const actor = (actorName || "Administrator").trim() || "Administrator";
   const empRef = employeeRefForAlert(alert, weekEmployees, directory);
   const multiSite = alert.multiSite ?? isMultiSiteEmployee(empRef, directory);
   const targetHours = alert.payrollHours;
@@ -1087,7 +1089,7 @@ export function fixJobsForConsistencyAlert(
         job,
         "work_entry",
         `${alert.name}: usunięto wpis ${alert.dayLabel} (brak w liście płac)`,
-        "Pulpit",
+        actor,
       );
     });
   }
@@ -1119,7 +1121,7 @@ export function fixJobsForConsistencyAlert(
           { ...job, workEntries: [...job.workEntries, newEntry] },
           "work_entry",
           `${alert.name}: ${fmtH(h)} — ${alert.dayLabel} (${formatJobStreet(job)})`,
-          "Pulpit",
+          actor,
         );
       });
     }
@@ -1141,7 +1143,7 @@ export function fixJobsForConsistencyAlert(
             { ...job, workEntries: [...job.workEntries, newEntry] },
             "work_entry",
             `${alert.name}: ${fmtH(targetHours)} — ${alert.dayLabel} (z listy płac)`,
-            "Pulpit",
+            actor,
           ),
     );
   }
@@ -1156,7 +1158,7 @@ export function fixJobsForConsistencyAlert(
     const nextEntries = job.workEntries.map((we) =>
       hourByEntryId.has(we.id) ? { ...we, hours: hourByEntryId.get(we.id)! } : we,
     );
-    return appendJobActivity({ ...job, workEntries: nextEntries }, "work_entry", fixLabel, "Pulpit");
+    return appendJobActivity({ ...job, workEntries: nextEntries }, "work_entry", fixLabel, actor);
   });
 }
 
