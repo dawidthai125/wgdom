@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.33** · **Formal XLSX UI Guard**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.34** · **Work Entry Delete Persistence**
+
+## 2.62.34 — Work Entry Delete Persistence
+
+- **fix:** `deletedWorkEntryTombstones[]` na `Job` — usunięty wpis pracy nie wraca po sync z chmurą
+- **fix:** `mergeWorkEntriesById` filtruje tombstone przed union
+- **fix:** JobsView + Pulpit (`fixJobsForConsistencyAlert`) — SSOT `removeWorkEntryFromJobs` / `removeWorkEntriesMatchingFromJobs`
+- **test:** `test-payroll-work-entry-merge-fidelity.mjs` T1–T9b (29 PASS)
 
 ## 2.62.33 — Formal XLSX UI Guard
 

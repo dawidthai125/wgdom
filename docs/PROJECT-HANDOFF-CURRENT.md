@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-22 (**prod 2.62.31** · deploy unblock CLOSED · TP202A CLOSED)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-23 (**prod 2.62.34** · Work Entry Delete Persistence)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -38,6 +38,10 @@
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
 | **Production deploy unblock** | **2.62.31** (`d79f7c1`) | **CLOSED** · Vercel BUILD PASS | [`SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md) |
+| **Lista Płac · Work Entry Delete Persistence** | **2.62.34** | **CLOSED** · `deletedWorkEntryTombstones` · merge + JobsView + Pulpit | `payroll-job-assignments.ts` |
+| **Przetargi · Formal XLSX UI Guard** | **2.62.33** (`59307da`) | **CLOSED** | `tender-detail-v4-display.ts` |
+| **Przetargi · R1-FIX ATH vs Strong PDF** | **2.62.32** (`40eb274`) | **CLOSED** · `pdfRows > athRows × 1.05` | `tender-dossier-merge.ts` |
+| **Przetargi · TP190C-3C Batch Write prod** | **2026-06-22** | **CLOSED** · 9/9 migrated · stale=0 · failed=0 | [`SESSION-HANDOFF-TP190-PARSER-V3.md`](SESSION-HANDOFF-TP190-PARSER-V3.md) |
 | **Przetargi · TP202A Analyze/Dossier** | **2.62.31** (`94d2e72`) | **CLOSED** · `existingDossier` merge | `tender-dossier-pipeline.ts` |
 | **Przetargi · TP201E-B PDF layout** | **2.62.30** (`cba8f6f`) | **CLOSED** | `pdf-przedmiar-heuristic.ts` |
 | **Przetargi · TP190C-3B Batch Rebuild** | **2.62.27** (`df2524f`) | **CLOSED** · tooling dry-run/`--write` | [`SESSION-HANDOFF-TP190-PARSER-V3.md`](SESSION-HANDOFF-TP190-PARSER-V3.md) |
@@ -217,16 +221,15 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.62.31", "commit": "d79f7c1" }
+# oczekiwane: { "version": "2.62.34", "commit": "<sha>" }
 ```
 
 ---
 
-## 2b. Następny epic — TP190C-3C + TP200B
+## 2b. Następny epic — TP200B
 
 | ID | Cel | Status |
 |----|-----|--------|
-| **TP190C-3C** | Batch `--write` prod KV — 9 stale dossier | **OPEN** (tooling 2.62.27 gotowy) |
 | **TP200B** | Kosztorys fidelity — `pickBetterKosztorys` w parse loop; rozszerzenie `rows` | **PLANNED** |
 
 **SSOT TP190:** [`SESSION-HANDOFF-TP190-PARSER-V3.md`](SESSION-HANDOFF-TP190-PARSER-V3.md)  

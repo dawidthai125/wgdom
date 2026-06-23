@@ -3,6 +3,11 @@
  * npx vite-node scripts/test-payroll-work-entry-merge-fidelity.mjs
  */
 import { mergeJobsById, mergeWorkEntriesById } from "../src/lib/cloud-sync.ts";
+import {
+  removeWorkEntryFromJobs,
+  removeWorkEntriesMatchingFromJobs,
+} from "../src/lib/payroll-job-assignments.ts";
+import { fixJobsForConsistencyAlert } from "../src/app/app-domain.ts";
 
 let pass = 0;
 let fail = 0;
@@ -148,6 +153,153 @@ console.log("\nT6 multiple employees — union");
   assert("T6 has we-b", ids.has("we-b"));
   assert("T6 has we-b-local", ids.has("we-b-local"));
   assert("T6 has we-c", ids.has("we-c"));
+}
+
+// T7 — local delete + tombstone — cloud entry suppressed after merge
+console.log("\nT7 local delete + tombstone — cloud entry suppressed");
+{
+  const deletedAt = "2026-06-22T14:00:00.000Z";
+  const local = [{
+    ...baseJob,
+    updatedAt: deletedAt,
+    workEntries: [],
+    deletedWorkEntryTombstones: [{ id: "we-a", at: deletedAt }],
+  }];
+  const cloud = [{
+    ...baseJob,
+    updatedAt: "2026-06-22T10:00:00.000Z",
+    workEntries: [entryA],
+  }];
+  const [merged] = mergeJobsById(local, cloud);
+  assert("T7 entry removed", !(merged.workEntries || []).some((e) => e.id === "we-a"));
+  assert("T7 tombstone kept", (merged.deletedWorkEntryTombstones || []).some((t) => t.id === "we-a"));
+}
+
+// T7b — removeWorkEntryFromJobs writes tombstone
+console.log("\nT7b removeWorkEntryFromJobs — tombstone on delete");
+{
+  const job = {
+    ...baseJob,
+    workEntries: [entryA, entryB],
+  };
+  const [next] = removeWorkEntryFromJobs([job], "job-1", "we-a");
+  assert("T7b entry gone", !(next.workEntries || []).some((e) => e.id === "we-a"));
+  assert("T7b other kept", (next.workEntries || []).some((e) => e.id === "we-b"));
+  assert("T7b tombstone", (next.deletedWorkEntryTombstones || []).some((t) => t.id === "we-a"));
+  const merged = mergeWorkEntriesById(next.workEntries, [entryA], next.deletedWorkEntryTombstones);
+  assert("T7b merge respects tombstone", !merged.some((e) => e.id === "we-a"));
+}
+
+// T8 — JobsView delete path (removeWorkEntryFromJobs) — cloud entry not restored
+console.log("\nT8 JobsView delete — local tombstone vs cloud entry");
+{
+  const deletedAt = "2026-06-22T15:00:00.000Z";
+  const [localJob] = removeWorkEntryFromJobs(
+    [{ ...baseJob, updatedAt: deletedAt, workEntries: [entryA] }],
+    "job-1",
+    "we-a",
+  );
+  const local = [localJob];
+  const cloud = [{
+    ...baseJob,
+    updatedAt: "2026-06-22T10:00:00.000Z",
+    workEntries: [entryA],
+  }];
+  const [merged] = mergeJobsById(local, cloud);
+  assert("T8 entry not restored", !(merged.workEntries || []).some((e) => e.id === "we-a"));
+  assert("T8 tombstone on merged job", (merged.deletedWorkEntryTombstones || []).some((t) => t.id === "we-a"));
+}
+
+// T9 — fixJobsForConsistencyAlert bulk delete — entries stay deleted after merge
+console.log("\nT9 fixJobsForConsistencyAlert bulk delete + merge");
+{
+  const weekFrom = "2026-06-09";
+  const weekTo = "2026-06-14";
+  const dateIso = "2026-06-10";
+  const directory = [{
+    id: "d1",
+    name: "Jan Kowalski",
+    phone: "+48123456789",
+    position: "Murarz",
+    defaultRate: "50",
+    active: true,
+  }];
+  const weekEmp = {
+    id: "we1",
+    directoryId: "d1",
+    name: "Jan Kowalski",
+    phone: "",
+    position: "Murarz",
+    rate: "50",
+    days: {
+      Pn: { active: false, from: "", to: "", zaliczka: "" },
+      Wt: { active: false, from: "", to: "", zaliczka: "" },
+      Sr: { active: false, from: "", to: "", zaliczka: "" },
+      Cz: { active: false, from: "", to: "", zaliczka: "" },
+      Pt: { active: false, from: "", to: "", zaliczka: "" },
+      So: { active: false, from: "", to: "", zaliczka: "" },
+    },
+    settled: false,
+  };
+  const alert = {
+    name: "Jan Kowalski",
+    dayLabel: "Wt (10.06)",
+    dayKey: "Wt",
+    dateIso,
+    payrollHours: 0,
+    jobHours: 9,
+    kind: "job_only",
+  };
+  const jobsBefore = [{
+    ...baseJob,
+    updatedAt: "2026-06-22T16:00:00.000Z",
+    workEntries: [{
+      id: "we-a",
+      directoryId: "d1",
+      employeeName: "Jan Kowalski",
+      date: dateIso,
+      hours: 9,
+      rate: 50,
+      notes: "",
+    }],
+  }];
+  const fixed = fixJobsForConsistencyAlert(
+    jobsBefore,
+    alert,
+    [weekEmp],
+    weekFrom,
+    weekTo,
+    directory,
+  );
+  assert("T9 fixed job empty", (fixed[0].workEntries || []).length === 0);
+  assert("T9 fixed tombstone", (fixed[0].deletedWorkEntryTombstones || []).some((t) => t.id === "we-a"));
+  const cloud = [{
+    ...baseJob,
+    updatedAt: "2026-06-22T10:00:00.000Z",
+    workEntries: [{
+      id: "we-a",
+      directoryId: "d1",
+      employeeName: "Jan Kowalski",
+      date: dateIso,
+      hours: 9,
+      rate: 50,
+      notes: "",
+    }],
+  }];
+  const [merged] = mergeJobsById(fixed, cloud);
+  assert("T9 merge no entry restore", !(merged.workEntries || []).some((e) => e.id === "we-a"));
+}
+
+// T9b — removeWorkEntriesMatchingFromJobs direct
+console.log("\nT9b removeWorkEntriesMatchingFromJobs — multi entry tombstones");
+{
+  const job = {
+    ...baseJob,
+    workEntries: [entryA, entryB],
+  };
+  const next = removeWorkEntriesMatchingFromJobs([job], (_j, we) => we.id === "we-a" || we.id === "we-b");
+  assert("T9b all removed", (next[0].workEntries || []).length === 0);
+  assert("T9b both tombstones", (next[0].deletedWorkEntryTombstones || []).length === 2);
 }
 
 console.log(`\n=== ${pass} PASS / ${fail} FAIL ===`);

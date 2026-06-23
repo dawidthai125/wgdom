@@ -11,6 +11,25 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-23",
+    version: "2.62.34",
+    label: "Przydziały robót — trwałe usuwanie wpisów",
+    items: [
+      {
+        type: "fix",
+        text: "Usunięty wpis pracy (Roboty, Lista Płac, Pulpit) nie wraca po synchronizacji z chmurą — deletedWorkEntryTombstones na robocie",
+      },
+      {
+        type: "fix",
+        text: "mergeWorkEntriesById respektuje tombstone przy union workEntries[]",
+      },
+      {
+        type: "improve",
+        text: "SSOT delete: removeWorkEntryFromJobs + removeWorkEntriesMatchingFromJobs (JobsView, fixJobsForConsistencyAlert)",
+      },
+    ],
+  },
+  {
     date: "2026-06-22",
     version: "2.62.33",
     label: "Przetargi — Formal XLSX UI Guard",

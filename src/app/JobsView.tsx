@@ -127,6 +127,7 @@ import {
   getRecoverableChargeJobStats,
   validateRecoverableChargeDraft,
 } from "@/lib/recoverable-charges";
+import { removeWorkEntryFromJobs } from "@/lib/payroll-job-assignments";
 
 export function jobEmailDefaultSubject(job: Job): string {
   const addr = `${job.address || "Robota"}${job.flatNumber ? ` m.${job.flatNumber}` : ""}`;
@@ -775,6 +776,14 @@ export function JobsView({
 
     setJobs((prev) => prev.map((j) => (j.id === next.id ? next : j)));
   };
+
+  const handleRemoveWorkEntry = useCallback(
+    (entryId: string) => {
+      if (!selectedJob) return;
+      setJobs((prev) => removeWorkEntryFromJobs(prev, selectedJob.id, entryId));
+    },
+    [selectedJob, setJobs],
+  );
 
   const handleAddBillingNote = useCallback((chargeId: string, text: string, _files?: BillingNotePendingFiles) => {
     if (!selectedJob) return;
@@ -2373,7 +2382,7 @@ export function JobsView({
                                       <Copy size={12}/>
                                     </button>
                                   )}
-                                  <button onClick={() => updateJob({ ...selectedJob, workEntries: selectedJob.workEntries.filter((e) => e.id !== entry.id) })} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded">
+                                  <button onClick={() => handleRemoveWorkEntry(entry.id)} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded">
                                     <Trash2 size={12}/>
                                   </button>
                                 </div>
@@ -2457,7 +2466,7 @@ export function JobsView({
                                         <Copy size={11}/>
                                       </button>
                                     )}
-                                    <button onClick={() => updateJob({ ...selectedJob, workEntries: selectedJob.workEntries.filter((e) => e.id !== entry.id) })} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded">
+                                    <button onClick={() => handleRemoveWorkEntry(entry.id)} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded">
                                       <Trash2 size={11}/>
                                     </button>
                                   </div>

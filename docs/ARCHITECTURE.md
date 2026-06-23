@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-22 (prod **v2.62.31** · deploy unblock · § 12.1.20 · § 13.1 mkdir · TP202A · TP190C-3B · PDF WM · § 12.1.16–19)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-23 (prod **v2.62.34** · Work Entry Delete Persistence · § 10.1)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -563,6 +563,7 @@ Pliki 20.1B: `src/lib/payroll-cycle.ts`, `src/app/PayrollView.tsx`, `src/app/App
 | **Filtr robót** | Dropdown: `inferJobPhase !== "completed"` (`jobsForPayrollAssignmentDropdown`) |
 | **Kopia wczoraj** | `copyEmployeeAssignmentsFromPreviousDay` + `distributeHoursAcrossEntries` |
 | **Zapis** | `onSetJobs={setJobs}` w `AdminViewRouter` → sync jak Roboty |
+| **Delete persistence (2.62.34)** | `Job.deletedWorkEntryTombstones[]` — SSOT `removeWorkEntryFromJobs` / `removeWorkEntriesMatchingFromJobs`; merge w `mergeWorkEntriesById` |
 | **Zakaz** | Brak nowego KV; brak zmian wypłat/grafiku/sobót/zaliczek |
 
 Pliki: `src/lib/payroll-job-assignments.ts`, `src/app/PayrollJobAssignmentsPanel.tsx`, `src/app/PayrollView.tsx`, `src/app/admin/AdminViewRouter.tsx`, `src/app/app-domain.ts` (algorytm spójności), `src/app/JobsView.tsx` (wzorcowa edycja). Handoff: [`SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md`](SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md). Smoke: `scripts/test-payroll-assignments-p1.mjs`.
@@ -580,6 +581,7 @@ Pliki: `src/lib/payroll-job-assignments.ts`, `src/app/PayrollJobAssignmentsPanel
 | `kw-employee-leaves-deleted-ids` | Usunięte nieobecności (Sprint 20.0A) — merge i Edge batch-set filtrują te ID |
 | `kw-recoverable-charges-deleted-ids` | Usunięte pozycje do rozliczenia (Sprint 20.3A) |
 | `kw-operational-notes-deleted-ids` | Logicznie usunięte notatki operacyjne (P0, v2.57.0) |
+| `Job.deletedWorkEntryTombstones[]` | Usunięte wpisy `workEntries[]` per robota (2.62.34) — merge w `mergeJobsById`, nie osobny klucz KV |
 
 ### 10.3 Klucze konfiguracyjne (chmura przez `persistKey`)
 
@@ -1482,9 +1484,9 @@ tender-document-resolver.ts
 
 **Command Center:** usunięty v2.51.0 — **nie wraca**.
 
-### 12.1.19 TP190C-3B — Batch Rebuild Tooling (v2.62.27)
+### 12.1.19 TP190C-3B/3C — Batch Rebuild Tooling + Prod Migration (v2.62.27 → 2026-06-22)
 
-**Status:** **CLOSED** · commit **`df2524f`**  
+**Status:** **CLOSED** · tooling **`df2524f`** · prod batch write **TP190C-3C CLOSED**  
 **Handoff SSOT:** [`docs/SESSION-HANDOFF-TP190-PARSER-V3.md`](SESSION-HANDOFF-TP190-PARSER-V3.md)
 
 Operacyjne narzędzie migracji stale dossier (`kosztorys.ok` + `parserVersion ≠ CURRENT_PARSER_VERSION`) na prod KV — **bez zmiany logiki UI**.
@@ -1504,7 +1506,7 @@ scripts/tp190c-batch-rebuild.mjs
 | `scripts/test-tp190c-batch-rebuild.mjs` | T1–T6 (19 PASS) |
 
 **Kandydat stale:** `tenderDossier.kosztorys.ok === true` AND `parserVersion !== 3`.  
-**Prod audyt (TP190C-3):** 9 stale dossier — batch write **nie wykonany** (backlog TP190C-3C).
+**Prod TP190C-3C (2026-06-22):** batch `--write` · **9/9** migrated (6 upgraded, 3 unchanged) · failed **0** · stale **0** (pre-flight 2026-06-23).
 
 **Nie zmieniaj bez polecenia:** domyślny dry-run · izolacja błędów per tender · nie commitować `audit/tp190c3b-*.json`.
 

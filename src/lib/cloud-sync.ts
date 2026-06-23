@@ -6,6 +6,7 @@ import {
 } from "@/config/supabase";
 import { filterJobFilesByTombstones, mergeJobFileTombstones, mergeJobFiles, mergeJobsDocumentsOnConflict, mergeReportDocSaOverrideOnConflict } from "@/lib/job-documents";
 import { filterJobAttachmentsByTombstones, mergeJobAttachmentTombstones, mergeJobAttachments } from "@/lib/job-attachments";
+import { mergeWorkEntryTombstones, type WorkEntryTombstone } from "@/lib/payroll-job-assignments";
 import {
   mergeJobNotes,
   mergeInspectorPhotos,
@@ -240,18 +241,20 @@ function workEntryRichness(e: WorkEntryMergeLike | undefined): number {
   return s;
 }
 
-/** Union job.workEntries po id — bogatszy wpis wygrywa; nie kasuje unikalnych id. */
+/** Union job.workEntries po id — bogatszy wpis wygrywa; tombstone usuwa wpis z union. */
 export function mergeWorkEntriesById(
   a: unknown[] | undefined,
   b: unknown[] | undefined,
+  tombstones: WorkEntryTombstone[] = [],
 ): unknown[] {
+  const deletedIds = new Set(tombstones.map((t) => t.id).filter(Boolean));
   const map = new Map<string, WorkEntryMergeLike>();
   const ingest = (list: unknown[] | undefined) => {
     for (const raw of list || []) {
       if (!raw || typeof raw !== "object") continue;
       const e = raw as WorkEntryMergeLike;
       const id = String(e.id ?? "").trim();
-      if (!id) continue;
+      if (!id || deletedIds.has(id)) continue;
       const prev = map.get(id);
       if (!prev) {
         map.set(id, e);
@@ -552,6 +555,7 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
     deletedJobFileTombstones?: import("@/lib/job-documents").JobFileTombstone[];
     jobAttachments?: import("@/lib/job-attachments").JobAttachment[];
     deletedJobAttachmentTombstones?: import("@/lib/job-attachments").JobAttachmentTombstone[];
+    deletedWorkEntryTombstones?: WorkEntryTombstone[];
     activityLog?: { id: string; at: string }[];
     jobNotes?: import("@/lib/job-wm").JobNote[];
     inspectorPhotos?: import("@/lib/job-wm").InspectorPhotoEntry[];
@@ -600,6 +604,10 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
       prev.deletedJobAttachmentTombstones,
       j.deletedJobAttachmentTombstones,
     );
+    const mergedWorkEntryTombstones = mergeWorkEntryTombstones(
+      prev.deletedWorkEntryTombstones,
+      j.deletedWorkEntryTombstones,
+    );
     const mergedJobAttachments = jTs !== prevTs
       ? filterJobAttachmentsByTombstones(
           jTs >= prevTs ? (j.jobAttachments || []) : (prev.jobAttachments || []),
@@ -614,8 +622,9 @@ export function mergeJobsById(local: unknown[], cloud: unknown[], deletedJobIds:
       deletedJobFileTombstones: mergedTombstones.length ? mergedTombstones : undefined,
       jobAttachments: mergedJobAttachments.length ? mergedJobAttachments : undefined,
       deletedJobAttachmentTombstones: mergedAttachmentTombstones.length ? mergedAttachmentTombstones : undefined,
+      deletedWorkEntryTombstones: mergedWorkEntryTombstones.length ? mergedWorkEntryTombstones : undefined,
       activityLog: mergedLogs,
-      workEntries: mergeWorkEntriesById(prev.workEntries, j.workEntries),
+      workEntries: mergeWorkEntriesById(prev.workEntries, j.workEntries, mergedWorkEntryTombstones),
       jobNotes: mergeJobNotes(prev.jobNotes, j.jobNotes),
       inspectorPhotos: jTs !== prevTs
         ? (jTs >= prevTs ? (j.inspectorPhotos || []) : (prev.inspectorPhotos || []))

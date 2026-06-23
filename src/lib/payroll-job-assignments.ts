@@ -26,6 +26,35 @@ import { inferJobPhase } from "@/lib/job-list-status";
 
 export type PayrollAssignmentBadgeStatus = "ok" | "unassigned" | "mismatch" | "skip";
 
+export interface WorkEntryTombstone {
+  id: string;
+  at: string;
+}
+
+export function appendWorkEntryTombstone<T extends { deletedWorkEntryTombstones?: WorkEntryTombstone[] }>(
+  job: T,
+  entryId: string,
+  at: string = new Date().toISOString(),
+): T {
+  const prev = job.deletedWorkEntryTombstones ?? [];
+  const tombstone: WorkEntryTombstone = { id: entryId, at };
+  const next = [...prev.filter((t) => t.id !== entryId), tombstone];
+  return { ...job, deletedWorkEntryTombstones: next };
+}
+
+export function mergeWorkEntryTombstones(
+  a: WorkEntryTombstone[] | undefined,
+  b: WorkEntryTombstone[] | undefined,
+): WorkEntryTombstone[] {
+  const map = new Map<string, WorkEntryTombstone>();
+  for (const t of [...(a || []), ...(b || [])]) {
+    if (!t?.id) continue;
+    const prev = map.get(t.id);
+    if (!prev || t.at >= prev.at) map.set(t.id, t);
+  }
+  return [...map.values()];
+}
+
 export interface PayrollDayAssignmentFooter {
   payrollHours: number;
   jobHours: number;
@@ -230,7 +259,29 @@ export function updateWorkEntryHoursInJobs(
 export function removeWorkEntryFromJobs(jobs: Job[], jobId: string, entryId: string): Job[] {
   return jobs.map((job) => {
     if (job.id !== jobId) return job;
-    return { ...job, workEntries: job.workEntries.filter((we) => we.id !== entryId) };
+    if (!job.workEntries.some((we) => we.id === entryId)) return job;
+    const stripped = { ...job, workEntries: job.workEntries.filter((we) => we.id !== entryId) };
+    return appendWorkEntryTombstone(stripped, entryId);
+  });
+}
+
+/** Usuwa wpisy pasujące do predykatu i zapisuje tombstone per id (sync-safe bulk delete). */
+export function removeWorkEntriesMatchingFromJobs(
+  jobs: Job[],
+  predicate: (job: Job, entry: WorkEntry) => boolean,
+): Job[] {
+  return jobs.map((job) => {
+    const toRemove = job.workEntries.filter((we) => predicate(job, we));
+    if (toRemove.length === 0) return job;
+    const removeIds = new Set(toRemove.map((we) => we.id));
+    let next: Job = {
+      ...job,
+      workEntries: job.workEntries.filter((we) => !removeIds.has(we.id)),
+    };
+    for (const we of toRemove) {
+      next = appendWorkEntryTombstone(next, we.id);
+    }
+    return next;
   });
 }
 
@@ -247,7 +298,8 @@ export function moveWorkEntryToJob(
     const entry = job.workEntries.find((we) => we.id === entryId);
     if (!entry) return job;
     moved = { ...entry, hours };
-    return { ...job, workEntries: job.workEntries.filter((we) => we.id !== entryId) };
+    const stripped = { ...job, workEntries: job.workEntries.filter((we) => we.id !== entryId) };
+    return appendWorkEntryTombstone(stripped, entryId);
   });
   if (!moved) return jobs;
   return stripped.map((job) => {

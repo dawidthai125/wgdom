@@ -19,6 +19,7 @@ import { normalizeJobWmFields, inferHandoverStage, HANDOVER_STAGE_LABELS } from 
 import { resolveJobListStatus, JOB_LIST_STATUS_CONFIG, type JobListStatusJob } from "@/lib/job-list-status";
 import { syncJobDocuments } from "@/lib/job-documents";
 import { filterAvailablePhotos } from "@/lib/media-filter";
+import { removeWorkEntriesMatchingFromJobs } from "@/lib/payroll-job-assignments";
 
 export type DayKey = "Pn" | "Wt" | "Sr" | "Cz" | "Pt" | "So";
 export const DAY_LABELS: Record<DayKey, string> = { Pn: "Poniedziałek", Wt: "Wtorek", Sr: "Środa", Cz: "Czwartek", Pt: "Piątek", So: "Sobota" };
@@ -285,6 +286,8 @@ export interface Job {
   /** Sprint 20.5A.10 — ogólne załączniki (osobno od jobFiles kontraktowych). */
   jobAttachments?: import("@/lib/job-attachments").JobAttachment[];
   deletedJobAttachmentTombstones?: import("@/lib/job-attachments").JobAttachmentTombstone[];
+  /** Usunięte wpisy robocizny — tombstone dla sync (union merge workEntries). */
+  deletedWorkEntryTombstones?: import("@/lib/payroll-job-assignments").WorkEntryTombstone[];
   handoverStage?: import("@/lib/job-wm").JobHandoverStage;
   plannedHandoverDate?: string;
   jobNotes?: import("@/lib/job-wm").JobNote[];
@@ -1076,10 +1079,12 @@ export function fixJobsForConsistencyAlert(
   const rate = weekEmp ? parseFloat(weekEmp.rate) || 0 : parseFloat(dirEmp?.defaultRate || "0") || 0;
 
   if (targetHours <= 0.01) {
-    return jobs.map((job) => {
-      if (!job.workEntries.some(matchesEntry)) return job;
+    const stripped = removeWorkEntriesMatchingFromJobs(jobs, (_job, we) => matchesEntry(we));
+    return stripped.map((job) => {
+      const prev = jobs.find((j) => j.id === job.id);
+      if (!prev?.workEntries.some(matchesEntry)) return job;
       return appendJobActivity(
-        { ...job, workEntries: job.workEntries.filter((we) => !matchesEntry(we)) },
+        job,
         "work_entry",
         `${alert.name}: usunięto wpis ${alert.dayLabel} (brak w liście płac)`,
         "Pulpit",
