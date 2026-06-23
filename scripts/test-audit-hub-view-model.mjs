@@ -231,5 +231,128 @@ console.log("Audit Hub MVP-0B — test-audit-hub-view-model\n");
   assert(sorted, "feed sort DESC");
 }
 
+// P0 hotfix — legacy wpisy bez actor / at / text (prod crash localeCompare)
+{
+  const legacyInput = {
+    operationalNotesAuditLog: [
+      {
+        id: "legacy-note-audit",
+        action: "comment",
+        at: undefined,
+        userId: "dawid",
+        displayName: undefined,
+        role: "super_admin",
+      },
+    ],
+    inspectorLoginEvents: [
+      {
+        id: "legacy-insp",
+        userId: "szymon",
+        displayName: undefined,
+        type: "login",
+        at: undefined,
+      },
+    ],
+    jobs: [
+      {
+        id: "job-legacy",
+        address: "Testowa",
+        flatNumber: "1",
+        client: "WM",
+        activityLog: [
+          {
+            id: "legacy-photo",
+            at: undefined,
+            actor: undefined,
+            type: "photo_upload",
+            text: undefined,
+          },
+          {
+            id: "legacy-mixed",
+            at: "2026-06-18T10:00:00.000Z",
+            actor: "  ",
+            type: "note",
+            text: "",
+          },
+        ],
+      },
+    ],
+    wmPrintHistory: [],
+    deliveryPackagePublications: [
+      {
+        id: "legacy-pub",
+        jobId: "job-legacy",
+        zipVersion: 1,
+        publishedAt: undefined,
+        publishedByUserId: "dawid",
+        publishedByUserName: undefined,
+        generationFingerprint: "fp",
+        fingerprintPayload: {
+          schemaVersion: 1,
+          jobId: "job-legacy",
+          selectedTemplateIds: [],
+          includeMeasurements: false,
+          measurementId: null,
+          measurementUpdatedAt: null,
+          measurementReportNumber: null,
+          dateMode: "today",
+          customDateIso: null,
+          jobVariableDigest: "x",
+          checklistDigest: "y",
+          wmJobDocDigests: [],
+          templateFileDigests: [],
+          settingsDigest: "z",
+        },
+        storagePath: "p",
+        zipPublicUrl: "https://x",
+        fileName: "pakiet.zip",
+        fileSizeBytes: 100,
+        fileCount: 1,
+        odbiorFileCount: 1,
+        pomiaryFileCount: 0,
+        includesMeasurements: false,
+        manifest: [],
+        status: "ACTIVE",
+        createdAt: "2026-06-18T09:00:00.000Z",
+        updatedAt: "2026-06-18T09:00:00.000Z",
+      },
+    ],
+  };
+
+  let threw = false;
+  let model;
+  try {
+    model = buildAuditHubViewModel(legacyInput, EMPTY_AUDIT_HUB_FILTERS, 1);
+  } catch {
+    threw = true;
+  }
+  assert(!threw, "legacy mixed entries — buildAuditHubViewModel nie rzuca");
+  assert(model != null, "legacy — model zwrócony");
+
+  const allItems = model.feed;
+  assert(
+    allItems.every((i) => typeof i.actor === "string" && typeof i.at === "string"),
+    "legacy — każdy wpis ma actor i at jako string",
+  );
+
+  const photo = allItems.find((i) => i.nativeId === "job-legacy:legacy-photo");
+  assert(photo?.actor === "Administrator", "legacy photo_upload — actor fallback Administrator");
+  assert(photo?.at === "", "legacy photo_upload — at fallback pusty string");
+  assert(photo?.summary.length > 0, "legacy photo_upload — summary z actionLabel");
+
+  const noteAudit = allItems.find((i) => i.source === "operational_notes");
+  assert(noteAudit?.actor === "dawid", "legacy operational_notes — actor fallback userId");
+
+  const insp = allItems.find((i) => i.source === "inspector_login");
+  assert(insp?.actor === "Inspektor", "legacy inspector_login — actor fallback Inspektor");
+
+  const actors = model.filterOptions.actors.map((a) => a.label);
+  assert(actors.every((l) => typeof l === "string"), "legacy — actor filter labels są stringami");
+  assert(
+  [...actors].sort((a, b) => (a ?? "").localeCompare(b ?? "", "pl")).length === actors.length,
+    "legacy — sort etykiet aktorów bez crash",
+  );
+}
+
 console.log(`\n--- ${passed} passed, ${failed} failed ---`);
 if (failed > 0) process.exit(1);

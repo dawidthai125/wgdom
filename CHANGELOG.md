@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.36** · **Audit Hub MVP-0B**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.37** · **Audit Hub P0 hotfix**
+
+## 2.62.37 — Audit Hub localeCompare crash hotfix
+
+- **fix:** `collectAuditHubFilterOptions` — bezpieczny sort `(label ?? "")` przy legacy `actor` undefined
+- **fix:** `sortAuditFeed` + adaptery — `feedAt`/`feedActor`; fallback we wszystkich 5 źródłach
+- **fix:** `JobsView` — `photo_upload` zapisuje `createdByName` w `activityLog`
+- **test:** `test-audit-hub-view-model.mjs` +10 legacy (32 PASS) · adapters 47 PASS
 
 ## 2.62.36 — Audit Hub MVP-0B
 

@@ -77,7 +77,7 @@ export function collectAuditHubFilterOptions(items: AuditFeedItem[]): {
     actorsByKey.set(key, item.actor);
   }
   const actors = [...actorsByKey.entries()]
-    .map(([key, label]) => ({ key, label }))
-    .sort((a, b) => a.label.localeCompare(b.label, "pl"));
+    .map(([key, label]) => ({ key: key || label || "", label: label ?? "" }))
+    .sort((a, b) => (a.label ?? "").localeCompare(b.label ?? "", "pl"));
   return { actors, sources: [...AUDIT_FEED_SOURCES] };
 }

@@ -848,7 +848,7 @@ export function JobsView({
           ...j,
           photos: [...(j.photos || []), ...entries],
         });
-        next = appendJobActivity(next, "photo_upload", activityText);
+        next = appendJobActivity(next, "photo_upload", activityText, createdByName);
         if (next.jobPhase) next = applyJobPhase(next, next.jobPhase);
         else if (isWmClient(next.client)) next = normalizeJobWmFields(next);
         return next;

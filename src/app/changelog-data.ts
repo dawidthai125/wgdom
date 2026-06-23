@@ -12,6 +12,29 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-23",
+    version: "2.62.37",
+    label: "Audit Hub — hotfix crash localeCompare",
+    items: [
+      {
+        type: "fix",
+        text: "Audit Hub — legacy wpisy bez actor/at nie powodują już crash runtime (localeCompare)",
+      },
+      {
+        type: "fix",
+        text: "Adaptery feedu — fallback actor/at we wszystkich 5 źródłach; bezpieczny sort feedu i filtra osób",
+      },
+      {
+        type: "fix",
+        text: "Roboty — upload zdjęć zapisuje actor w activityLog (photo_upload)",
+      },
+      {
+        type: "improve",
+        text: "Testy test-audit-hub-view-model.mjs — legacy actor/at/text undefined (32 PASS)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-23",
     version: "2.62.36",
     label: "Audit Hub MVP-0B — panel Super Admin",
     items: [

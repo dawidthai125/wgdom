@@ -34,6 +34,16 @@ const INSPECTOR_EVENT_LABEL_PL: Record<InspectorStatsEvent["type"], string> = {
   visit: "Wejście",
 };
 
+/** P0 — legacy KV / LS może nie mieć pól wymaganych przez typ TS. */
+function feedAt(raw: string | undefined | null): string {
+  return raw != null ? String(raw) : "";
+}
+
+function feedActor(raw: string | undefined | null, fallback = "Administrator"): string {
+  const trimmed = (raw ?? "").trim();
+  return trimmed || fallback;
+}
+
 function jobLabel(job: Pick<AuditHubJob, "address" | "flatNumber" | "client">): string {
   const addr = job.address?.trim() || "Bez adresu";
   const flat = job.flatNumber?.trim();
@@ -75,13 +85,14 @@ export function adaptOperationalNotesAudit(
     const summary = title
       ? `${OPERATIONAL_NOTE_AUDIT_ACTION_LABEL_PL[entry.action]} · ${title}`
       : OPERATIONAL_NOTE_AUDIT_ACTION_LABEL_PL[entry.action];
+    const actor = feedActor(entry.displayName, entry.userId || "Administrator");
     return {
       id: auditFeedItemId(source, entry.id),
-      at: entry.at,
+      at: feedAt(entry.at),
       source,
       action: entry.action,
       actionLabel: OPERATIONAL_NOTE_AUDIT_ACTION_LABEL_PL[entry.action],
-      actor: entry.displayName,
+      actor,
       actorUserId: entry.userId,
       summary,
       detail: entry.detail,
@@ -96,18 +107,22 @@ export function adaptOperationalNotesAudit(
 
 export function adaptInspectorLoginEvents(events: InspectorStatsEvent[]): AuditFeedItem[] {
   const source: AuditFeedSource = "inspector_login";
-  return events.map((event) => ({
-    id: auditFeedItemId(source, event.id),
-    at: event.at,
-    source,
-    action: event.type,
-    actionLabel: INSPECTOR_EVENT_LABEL_PL[event.type],
-    actor: event.displayName,
-    actorUserId: event.userId,
-    summary: `${INSPECTOR_EVENT_LABEL_PL[event.type]} — ${event.displayName}`,
-    nativeId: event.id,
-    deepLink: { kind: "inspector_view" },
-  }));
+  return events.map((event) => {
+    const actor = feedActor(event.displayName, "Inspektor");
+    const actionLabel = INSPECTOR_EVENT_LABEL_PL[event.type] ?? String(event.type ?? "event");
+    return {
+      id: auditFeedItemId(source, event.id),
+      at: feedAt(event.at),
+      source,
+      action: event.type,
+      actionLabel,
+      actor,
+      actorUserId: event.userId,
+      summary: `${actionLabel} — ${actor}`,
+      nativeId: event.id,
+      deepLink: { kind: "inspector_view" },
+    };
+  });
 }
 
 export function adaptJobActivityLog(jobs: AuditHubJob[]): AuditFeedItem[] {
@@ -120,12 +135,12 @@ export function adaptJobActivityLog(jobs: AuditHubJob[]): AuditFeedItem[] {
       const actionLabel = ACTIVITY_LABELS[ev.type] ?? ev.type;
       out.push({
         id: auditFeedItemId(source, nativeId),
-        at: ev.at,
+        at: feedAt(ev.at),
         source,
         action: ev.type,
         actionLabel,
-        actor: ev.actor,
-        summary: ev.text.trim() || actionLabel,
+        actor: feedActor(ev.actor),
+        summary: (ev.text ?? "").trim() || actionLabel,
         jobId: job.id,
         jobLabel: label,
         nativeId,
@@ -140,11 +155,11 @@ export function adaptWmPrintHistory(history: WmPrintHistoryEntry[]): AuditFeedIt
   const source: AuditFeedSource = "wm_print";
   return normalizeWmPrintHistory(history).map((entry) => ({
     id: auditFeedItemId(source, entry.id),
-    at: entry.timestamp,
+    at: feedAt(entry.timestamp),
     source,
     action: entry.outputType,
     actionLabel: wmPrintHistoryOutputTypeLabel(entry.outputType),
-    actor: entry.userName,
+    actor: feedActor(entry.userName),
     actorUserId: entry.userId,
     summary: `${entry.templateName} · ${entry.jobName}`,
     jobId: entry.jobId,
@@ -164,13 +179,14 @@ export function adaptDeliveryPackagePublications(
     const job = jobById.get(pub.jobId);
     const label = job ? jobLabel(job) : pub.jobId;
     const actionLabel = DELIVERY_STATUS_LABEL_PL[pub.status];
+    const actor = feedActor(pub.publishedByUserName);
     return {
       id: auditFeedItemId(source, pub.id),
-      at: pub.publishedAt,
+      at: feedAt(pub.publishedAt),
       source,
       action: pub.status,
       actionLabel,
-      actor: pub.publishedByUserName,
+      actor,
       actorUserId: pub.publishedByUserId,
       summary: `Pakiet odbiorowy v${pub.zipVersion} · ${pub.fileCount} plików`,
       detail: pub.fileName,
@@ -183,7 +199,9 @@ export function adaptDeliveryPackagePublications(
 }
 
 export function sortAuditFeed(items: AuditFeedItem[]): AuditFeedItem[] {
-  return [...items].sort((a, b) => b.at.localeCompare(a.at) || a.id.localeCompare(b.id));
+  return [...items].sort(
+    (a, b) => (b.at ?? "").localeCompare(a.at ?? "") || a.id.localeCompare(b.id),
+  );
 }
 
 /** Usuwa duplikaty po `id` — pierwszy wpis wygrywa (stabilność przy ponownym merge). */
