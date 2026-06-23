@@ -1,7 +1,7 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.62.31** · https://www.wgdom.fun · **Deploy unblock CLOSED** (`d79f7c1`) · **TP202A CLOSED** · **TP190 Parser v3 CLOSED** · PDF WM Recovery · TP200B PLANNED · POST ZI-2026 · WM Druk **COMPLETE** · EM-P1R **COMPLETE**
+> **Prod:** **2.62.37** · https://www.wgdom.fun · **Audit Hub MVP-0 CLOSED** · **TP190 stream CLOSED** · PDF WM Recovery · TP200B PLANNED · POST ZI-2026 · WM Druk **COMPLETE** · EM-P1R **COMPLETE**
 
 ---
 
@@ -10,6 +10,7 @@
 ```text
 1. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
 2. docs/PROJECT-HANDOFF-CURRENT.md    ← baseline prod, commity, releasy
+2v. docs/SESSION-HANDOFF-AUDIT-HUB.md ← ★★ Audit Hub MVP-0 (2.62.36–37 CLOSED)
 2u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
 2a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
 2b. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery CLOSED
@@ -83,6 +84,7 @@ Pełna tabela: **ARCHITECTURE.md § 15.1**.
 | `schedule` | Grafik | `App.tsx` |
 | `jobs` | Roboty | `JobsView.tsx` |
 | `operationalnotes` | Notatki operacyjne | `OperationalNotesView.tsx` |
+| `audit` | Audit Hub | `AuditHubView.tsx` | **Super Admin only** · MVP-0 CLOSED · § 15.2 |
 | `tenders` | Przetargi | `TendersModule.tsx` (5 zakładek) |
 | `wmprint` | Odbiory WM Druk + **Pomiary** | `WmPrintView.tsx` |
 | `recoverablecharges` | Do rozliczenia | `RecoverableChargesView.tsx` |
@@ -201,9 +203,9 @@ npx vite-node scripts/test-p5-owner-view.mjs
 
 ---
 
-## 6f. Przetargi — TP190 Parser v3 + Batch Rebuild — **2.62.27 CLOSED**
+## 6f. Przetargi — TP190 Parser v3 + Batch Rebuild — **CLOSED**
 
-**Status:** **TP190A→TP190C-3B CLOSED** · `CURRENT_PARSER_VERSION = 3` · **TP190C-3C batch write prod OPEN**
+**Status:** **TP190 stream CLOSED** (TP190A→TP190C-3C) · `CURRENT_PARSER_VERSION = 3` · prod stale **0**
 
 | Dokument | Rola |
 |----------|------|
@@ -335,6 +337,39 @@ npx vite-node scripts/test-payroll-assignments-p1.mjs
 ```
 
 **Nie ruszać bez briefu:** model godzin `emp.days` · wypłaty · grafik · nowy KV · duplikat algorytmu spójności
+
+---
+
+## 6d. Audit Hub (MVP-0 CLOSED)
+
+**Status:** **MVP-0 CLOSED** · v**2.62.37** · prod **`a0d7093`** (MVP-0B `b2eed93`)
+
+| Dokument | Rola |
+|----------|------|
+| [`SESSION-HANDOFF-AUDIT-HUB.md`](SESSION-HANDOFF-AUDIT-HUB.md) | **★★ SSOT modułu** — adaptery, deep linki, RCA P0, backlog MVP-1 |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) § **15.2** | Sekcja techniczna + mapa widoku `audit` § 15.1 |
+
+### Kluczowe pliki
+
+```text
+src/lib/audit-hub/types.ts       AuditFeedItem, AuditHubInput, deep link types
+src/lib/audit-hub/adapters.ts    5 adapterów + buildAuditFeed + feedAt/feedActor
+src/lib/audit-hub/filters.ts     filtry, paginacja 50, collectAuditHubFilterOptions
+src/lib/audit-hub/view-model.ts  buildAuditHubViewModel
+src/lib/audit-hub/acl.ts         canAccessAuditHub — Super Admin
+src/lib/audit-hub/deeplink.ts    resolveAuditHubNavigation
+src/app/AuditHubView.tsx         UI panelu
+src/app/App.tsx                  handleAuditHubDeepLink
+```
+
+### Smoke
+
+```bash
+npx vite-node scripts/test-audit-hub-adapters.mjs
+npx vite-node scripts/test-audit-hub-view-model.mjs
+```
+
+**Nie ruszać bez briefu:** nowy KV · `cloud-sync` · ACL inne niż Super Admin · sort bez guard na `actor`/`at` · `appendJobActivity` bez `actor`
 
 ---
 
@@ -475,4 +510,4 @@ curl -s https://www.wgdom.fun/version.json   # VERIFY FAST
 
 ---
 
-*Ostatnia aktualizacja: 2026-06-22 · TP190C-3B v2.62.27 · parser v3 · TP200B PLANNED · PAYROLL-ASSIGNMENTS-P1 · EM-P1R · POST ZI-2026*
+*Ostatnia aktualizacja: 2026-06-23 · TP190 stream CLOSED (TP190C-3C 9/9) · R1-FIX 2.62.32 · TP200B PLANNED · PAYROLL-ASSIGNMENTS-P1 · EM-P1R · POST ZI-2026*

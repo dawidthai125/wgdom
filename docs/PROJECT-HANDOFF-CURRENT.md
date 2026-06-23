@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-23 (**prod 2.62.34** · Work Entry Delete Persistence)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-23 (**prod 2.62.37** · Audit Hub P0 hotfix)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -9,6 +9,7 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
+1v. docs/SESSION-HANDOFF-AUDIT-HUB.md     ← ★★ Audit Hub MVP-0 (2.62.36–37 CLOSED)
 1u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
 1a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
 1b. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–TP201C (CLOSED)
@@ -37,6 +38,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **Audit Hub MVP-0** | **2.62.36–2.62.37** (`b2eed93`+`a0d7093`) | **CLOSED** · agregacja 5 źródeł · P0 localeCompare hotfix | [`SESSION-HANDOFF-AUDIT-HUB.md`](SESSION-HANDOFF-AUDIT-HUB.md) |
 | **Production deploy unblock** | **2.62.31** (`d79f7c1`) | **CLOSED** · Vercel BUILD PASS | [`SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md) |
 | **Lista Płac · Work Entry Delete Persistence** | **2.62.34** | **CLOSED** · `deletedWorkEntryTombstones` · merge + JobsView + Pulpit | `payroll-job-assignments.ts` |
 | **Przetargi · Formal XLSX UI Guard** | **2.62.33** (`59307da`) | **CLOSED** | `tender-detail-v4-display.ts` |
@@ -86,6 +88,7 @@
 Dashboard
 Roboty
 Notatki operacyjne          ← COMPLETE v2.58.1 (admin · ACK · widget · audit · inspektor · backup)
+Audit Hub                   ← MVP-0 CLOSED v2.62.37 (Super Admin · 5 źródeł · read-only)
 Do Rozliczenia
 Przetargi (+ Karta ofertowa P2-F, Wycena P3, Baza cen, Profil wykonawcy)
 WM Druk (+ Pomiary Elektryczne, Katalog RAP, ZIP odbiorowy)   ← EM-P1R v2.59.44
@@ -114,7 +117,11 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (prod):             2.62.31       ← deploy unblock + TP202A na prod
+Version (prod):             2.62.37       ← Audit Hub P0 localeCompare hotfix (a0d7093)
+Audit Hub MVP-0B:           b2eed93       v2.62.36 — panel Super Admin · 5 źródeł
+Audit Hub P0 hotfix:        a0d7093       feedAt/feedActor · JobsView photo_upload actor
+Operational Notes unread:   00ccfa1       v2.62.35 — mergeOperationalNotePair fingerprint ACK
+Work Entry Delete:          (2.62.34)     deletedWorkEntryTombstones
 Deploy unblock (missing file): d79f7c1        tender-cost-content-detection.ts + test
 Deploy unblock (mkdir dist): 8a2f6d8        vite.config.ts + generate-service-worker.mjs
 TP202A analyze/dossier:     94d2e72        existingDossier merge · ourEstimatePln guard
@@ -221,7 +228,7 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.62.34", "commit": "<sha>" }
+# oczekiwane: { "version": "2.62.37", "commit": "a0d7093" }
 ```
 
 ---
