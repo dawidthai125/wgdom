@@ -82,13 +82,32 @@ export function kosztorysSourceQualityTier(
 
 export type KosztorysPickWinner = "a" | "b" | null;
 
+/** TP190C-2C — opcje pickBetter przy parse loop dossier. */
+export interface PickBetterKosztorysOptions {
+  /** Przy remisie tier+rowCount preferuj źródło z discoverBestCostDocument (pełna lub bazowa nazwa). */
+  discoveryWinnerSource?: string | null;
+}
+
+function kosztorysSourceBaseName(filename: string): string {
+  return (filename.split(" → ").pop() ?? filename).trim().toLowerCase();
+}
+
+/** Czy snapshot pochodzi z discovery winner (dopasowanie po bazowej nazwie pliku). */
+export function kosztorysMatchesDiscoveryWinner(
+  k: TenderKosztorysSnapshot | null | undefined,
+  discoveryWinnerSource: string | null | undefined,
+): boolean {
+  if (!k?.sourceFilename?.trim() || !discoveryWinnerSource?.trim()) return false;
+  return kosztorysSourceBaseName(k.sourceFilename) === kosztorysSourceBaseName(discoveryWinnerSource);
+}
+
 /** TP190B — silny PDF WM CASE 1: dużo pozycji po recovery. */
 const PDF_STRONG_RECOVERY_MIN_ROWS = 120;
 /**
- * TP190B — ATH poniżej tej frakcji rowCount PDF nie zastępuje silnego PDF.
- * 70% = ogólna heurystyka (nie hardcode TP182); ATH 128 vs PDF 132 przechodzi próg.
+ * R1-FIX / TP190B — silny PDF wygrywa nad ATH tier gdy ma >5% więcej pozycji.
+ * PDF 132 vs ATH 128 (ratio 1.031) → ATH tier; PDF 150 vs ATH 128 → PDF recovery.
  */
-const ATH_VS_STRONG_PDF_ROW_RATIO = 0.7;
+const STRONG_PDF_VS_ATH_ROW_MARGIN = 1.05;
 
 function isPdfPrzedmiarTier(tier: number): boolean {
   return tier === KOSZTORYS_SOURCE_TIER.pdf_przedmiar
@@ -120,12 +139,13 @@ function athWouldDowngradeStrongPdf(
   if (!isAthTierSnapshot(athSide)) return false;
   const pdfRows = effectiveRowCount(pdfSide);
   const athRows = effectiveRowCount(athSide);
-  return athRows < pdfRows * ATH_VS_STRONG_PDF_ROW_RATIO;
+  return pdfRows > athRows * STRONG_PDF_VS_ATH_ROW_MARGIN;
 }
 
 function compareKosztorys(
   a: TenderKosztorysSnapshot | null | undefined,
   b: TenderKosztorysSnapshot | null | undefined,
+  opts?: PickBetterKosztorysOptions,
 ): KosztorysPickWinner {
   const tierA = kosztorysSourceQualityTier(a);
   const tierB = kosztorysSourceQualityTier(b);
@@ -144,6 +164,13 @@ function compareKosztorys(
   if (rowsA > rowsB) return "a";
   if (rowsB > rowsA) return "b";
 
+  if (opts?.discoveryWinnerSource) {
+    const aDisc = kosztorysMatchesDiscoveryWinner(a, opts.discoveryWinnerSource);
+    const bDisc = kosztorysMatchesDiscoveryWinner(b, opts.discoveryWinnerSource);
+    if (aDisc && !bDisc) return "a";
+    if (bDisc && !aDisc) return "b";
+  }
+
   const parsedA = a ? parseTs(a.parsedAt) : 0;
   const parsedB = b ? parseTs(b.parsedAt) : 0;
   if (parsedA > parsedB) return "a";
@@ -156,8 +183,9 @@ function compareKosztorys(
 export function pickBetterKosztorys(
   a: TenderKosztorysSnapshot | null | undefined,
   b: TenderKosztorysSnapshot | null | undefined,
+  opts?: PickBetterKosztorysOptions,
 ): TenderKosztorysSnapshot | null {
-  const winner = compareKosztorys(a, b);
+  const winner = compareKosztorys(a, b, opts);
   if (winner === "a") return a ?? null;
   if (winner === "b") return b ?? null;
   return null;

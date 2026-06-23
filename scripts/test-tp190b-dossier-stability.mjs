@@ -94,8 +94,36 @@ console.log("\nTP190B-2 PDF 132 vs ATH 128");
   const pdf = pdfKosztorys(132);
   const ath = athKosztorys(128);
   const picked = pickBetterKosztorys(pdf, ath);
-  assert(picked?.rowCount === 128, "ATH 128 wins (above 70% threshold)");
+  assert(picked?.rowCount === 128, "ATH 128 wins (within 5% margin — TP190B-2)");
   assert(/\.ATH$/i.test(picked?.sourceFilename ?? ""), "source becomes ATH");
+}
+
+// R1-FIX — silny PDF wygrywa gdy rowCount > ATH × 1.05
+console.log("\nR1-FIX PDF 150 vs ATH 128 → PDF");
+{
+  const pdf = pdfKosztorys(150);
+  const ath = athKosztorys(128);
+  const picked = pickBetterKosztorys(pdf, ath);
+  assert(picked?.rowCount === 150, "PDF 150 wins over ATH 128");
+  assert(/przedmiar\.pdf/i.test(picked?.sourceFilename ?? ""), "source stays PDF");
+}
+
+console.log("\nR1-FIX PDF 150 vs ATH 105 → PDF");
+{
+  const pdf = pdfKosztorys(150);
+  const ath = athKosztorys(105);
+  const picked = pickBetterKosztorys(pdf, ath);
+  assert(picked?.rowCount === 150, "PDF 150 wins over ATH 105");
+  assert(/przedmiar\.pdf/i.test(picked?.sourceFilename ?? ""), "source stays PDF");
+}
+
+console.log("\nR1-FIX PDF 145 vs ATH 128 → PDF");
+{
+  const pdf = pdfKosztorys(145);
+  const ath = athKosztorys(128);
+  const picked = pickBetterKosztorys(pdf, ath);
+  assert(picked?.rowCount === 145, "PDF 145 wins over ATH 128");
+  assert(/przedmiar\.pdf/i.test(picked?.sourceFilename ?? ""), "source stays PDF");
 }
 
 // TP190B-3 — PDF 132 vs formularz 20 → PDF

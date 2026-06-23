@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-22",
+    version: "2.62.32",
+    label: "Przetargi — R1-FIX ATH vs Strong PDF Recovery",
+    items: [
+      {
+        type: "fix",
+        text: "pickBetterKosztorys — silny PDF Recovery wygrywa nad ATH gdy ma >5% więcej pozycji (np. 150 vs 128)",
+      },
+      {
+        type: "fix",
+        text: "TP190B-2 bez zmian — PDF 132 vs ATH 128 nadal preferuje ATH tier (margines 5%)",
+      },
+      {
+        type: "fix",
+        text: "Regresja — test-tp190b-dossier-stability.mjs R1-FIX + TP190B (20 PASS)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-22",
     version: "2.62.31",
     label: "Przetargi — TP202A analyze/dossier consistency",
     items: [

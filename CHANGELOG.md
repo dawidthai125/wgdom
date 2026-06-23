@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.31** · **deploy unblock CLOSED** · **TP202A CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.32** · **R1-FIX CLOSED** · **TP202A CLOSED**
+
+## 2.62.32 — R1-FIX ATH vs Strong PDF Recovery
+
+- **fix:** `pickBetterKosztorys` — silny PDF Recovery (CASE 1, ≥120 poz.) wygrywa nad ATH tier gdy `pdfRows > athRows × 1.05` (np. 150 vs 128)
+- **fix:** TP190B-2 zachowany — PDF 132 vs ATH 128 nadal preferuje ATH (ratio 1.031 < 1.05)
+- **test:** `test-tp190b-dossier-stability.mjs` R1-FIX 150/128, 150/105, 145/128 + regresja merge/stale (60 PASS)
 
 ## 2.62.31 — TP202A Analyze/Dossier Consistency (+ infra deploy unblock)
 
