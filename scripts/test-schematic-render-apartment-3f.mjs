@@ -121,7 +121,7 @@ console.log("\n=== R04 — unsupported layout throws ===");
 
 console.log("\n=== R05 — render version ===");
 {
-  assert(SCHEMATIC_RENDER_VERSION === 4, "R05 version 4");
+  assert(SCHEMATIC_RENDER_VERSION === 5, "R05 version 5");
 }
 
 console.log(`\n=== WYNIK: ${passed} PASS / ${failed} FAIL ===`);

@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.50** · **WM Schematy renderer v4**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.51** · **WM Schematy renderer v5**
+
+## 2.62.51 — WM Schematy layout scale V2 (renderer v5)
+
+- **improve:** bus layout v2 — szyna do ostatniego obwodu, pełny span kolumn
+- **improve:** większe symbole, kropki r=6, viewBox 1360×780 (3F) / 1248×748 (1F)
+- **improve:** wykorzystanie strony A4 ~93% tuszu vs referencja WM
+- **test:** `test-schematic-v1b-visual-smoke.mjs` · renderer `SCHEMATIC_RENDER_VERSION=5`
 
 ## 2.62.50 — WM Schematy visual fidelity (renderer v4)
 

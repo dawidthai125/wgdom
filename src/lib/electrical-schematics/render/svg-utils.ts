@@ -41,8 +41,8 @@ export function svgLine(x1: number, y1: number, x2: number, y2: number, stroke =
   return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#000" stroke-width="${stroke}" />`;
 }
 
-/** Kropki przyłączeń na szynach (V1B: większe). */
-export const SVG_DOT_RADIUS_BUS = 5;
+/** Kropki przyłączeń na szynach (V2: większe). */
+export const SVG_DOT_RADIUS_BUS = 6;
 
 export function svgDot(cx: number, cy: number, r = 3): string {
   return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#000" />`;

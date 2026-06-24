@@ -1,4 +1,5 @@
 import type { SchematicCircuit, SingleLineDiagram } from "@/lib/electrical-schematics/types";
+import { resolveBusLayoutV2 } from "@/lib/electrical-schematics/layout/bus-layout-v2";
 import { svgLine, svgText } from "@/lib/electrical-schematics/render/svg-utils";
 import {
   METER_BODY_HEIGHT,
@@ -13,48 +14,45 @@ import {
   renderSupplyBus,
   renderVerticalCableLabel,
   STROKE_THIN,
+  TEXT_SIZE_CIRCUIT_NAME,
+  TEXT_SIZE_HEADER,
 } from "@/lib/electrical-schematics/symbols/iec-simplified";
 
-export const APARTMENT_1F_VIEWBOX = { width: 1100, height: 915 };
+export const APARTMENT_1F_VIEWBOX = { width: 1248, height: 748 };
 
-/** V1A visual fidelity + V1B polish — proporcje jak 3F, węższa kanwa. */
+/** V2 layout scale — proporcje jak 3F, węższa kanwa. */
 export const APARTMENT_1F_LAYOUT = {
-  marginX: 44,
-  headerY: 40,
-  supplyBusY: 72,
-  feedBackboneX: 84,
-  rcdCenterX: 178,
-  meterTopY: 132,
-  mainBreakerY: 255,
-  rcdTeeY: 325,
-  branchBusY: 378,
-  circuitDropTop: 398,
-  circuitDropBottom: 615,
-  circuitNameY: 674,
+  marginX: 24,
+  busColumnTail: 24,
+  headerY: 34,
+  supplyBusY: 64,
+  feedBackboneX: 68,
+  rcdCenterX: 162,
+  meterTopY: 112,
+  mainBreakerY: 232,
+  rcdTeeY: 298,
+  branchBusY: 346,
+  circuitDropTop: 366,
+  circuitDropBottom: 572,
+  circuitNameY: 622,
   showColumnGuides: true,
-  minCircuitSpacing: 88,
-  maxCircuitSpacing: 140,
+  minCircuitSpacing: 72,
 };
 
 function sortedCircuits(diagram: SingleLineDiagram): SchematicCircuit[] {
   return [...diagram.circuits].sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
-function busSpan(): { busStartX: number; busEndX: number } {
-  const { marginX } = APARTMENT_1F_LAYOUT;
-  const { width } = APARTMENT_1F_VIEWBOX;
-  return { busStartX: marginX + 40, busEndX: width - marginX };
-}
-
-function circuitColumnPositions(count: number, busStartX: number, busEndX: number): number[] {
-  const { minCircuitSpacing, maxCircuitSpacing } = APARTMENT_1F_LAYOUT;
-  const span = busEndX - busStartX;
-  if (count <= 1) return [busStartX + span / 2];
-  const ideal = span / (count - 1);
-  const spacing = Math.max(minCircuitSpacing, Math.min(maxCircuitSpacing, ideal));
-  const used = spacing * (count - 1);
-  const offset = (span - used) / 2;
-  return Array.from({ length: count }, (_, i) => busStartX + offset + i * spacing);
+function resolveLayout(diagram: SingleLineDiagram) {
+  const circuits = sortedCircuits(diagram);
+  const bus = resolveBusLayoutV2(circuits.length, {
+    viewBoxWidth: APARTMENT_1F_VIEWBOX.width,
+    feedBackboneX: APARTMENT_1F_LAYOUT.feedBackboneX,
+    marginX: APARTMENT_1F_LAYOUT.marginX,
+    minCircuitSpacing: APARTMENT_1F_LAYOUT.minCircuitSpacing,
+    busColumnTail: APARTMENT_1F_LAYOUT.busColumnTail,
+  });
+  return { circuits, ...bus };
 }
 
 function renderHeader(diagram: SingleLineDiagram): string {
@@ -62,7 +60,10 @@ function renderHeader(diagram: SingleLineDiagram): string {
   const title = diagram.title.trim();
   const address = diagram.address.trim();
   const headerLine = address ? `${title} - ${address}` : title;
-  return svgText(width / 2, APARTMENT_1F_LAYOUT.headerY, headerLine, { anchor: "middle", size: 13 });
+  return svgText(width / 2, APARTMENT_1F_LAYOUT.headerY, headerLine, {
+    anchor: "middle",
+    size: TEXT_SIZE_HEADER,
+  });
 }
 
 function renderFeedChain(diagram: SingleLineDiagram): string {
@@ -78,7 +79,7 @@ function renderFeedChain(diagram: SingleLineDiagram): string {
   const parts: string[] = [];
 
   const meterBottomY = meterTopY + METER_BODY_HEIGHT;
-  const frY = meterTopY - 42;
+  const frY = meterTopY - 48;
 
   parts.push(svgLine(feedBackboneX, supplyBusY, feedBackboneX, meterTopY - 8, STROKE_THIN));
 
@@ -122,15 +123,15 @@ function renderFeedChain(diagram: SingleLineDiagram): string {
 
 function renderCircuitColumn(circuit: SchematicCircuit, x: number, busY: number): string {
   const { circuitDropTop, circuitDropBottom, circuitNameY } = APARTMENT_1F_LAYOUT;
-  const mcbY = circuitDropTop + 26;
-  const loadY = circuitDropBottom - 10;
+  const mcbY = circuitDropTop + 32;
+  const loadY = circuitDropBottom - 12;
 
   return [
     svgLine(x, busY, x, circuitDropTop, STROKE_THIN),
     renderVerticalCableLabel(x, circuitDropTop, circuitDropBottom, circuit.cableLabel, "left"),
     renderMcbSymbol(x, mcbY, circuit),
     renderLoadSymbol(x, loadY, circuit.loadKind, circuit),
-    svgText(x, circuitNameY, circuit.name, { anchor: "middle", size: 9 }),
+    svgText(x, circuitNameY, circuit.name, { anchor: "middle", size: TEXT_SIZE_CIRCUIT_NAME }),
   ].join("\n");
 }
 
@@ -140,18 +141,16 @@ function renderCircuitColumn(circuit: SchematicCircuit, x: number, busY: number)
  */
 export function renderApartment1fV1Svg(diagram: SingleLineDiagram): string {
   const { width, height } = APARTMENT_1F_VIEWBOX;
-  const { supplyBusY, branchBusY, feedBackboneX, circuitNameY, showColumnGuides } = APARTMENT_1F_LAYOUT;
-  const { busStartX, busEndX } = busSpan();
-  const circuits = sortedCircuits(diagram);
-  const columnXs = circuitColumnPositions(circuits.length, busStartX, busEndX);
+  const { supplyBusY, branchBusY, circuitNameY, showColumnGuides } = APARTMENT_1F_LAYOUT;
+  const { circuits, columnXs, busStartX, busEndX } = resolveLayout(diagram);
 
-  const guides = renderCircuitColumnGuides(columnXs, branchBusY, circuitNameY + 18, showColumnGuides);
+  const guides = renderCircuitColumnGuides(columnXs, branchBusY, circuitNameY + 14, showColumnGuides);
 
   const body = [
     renderHeader(diagram),
     renderSupplyBus(busStartX, supplyBusY, busEndX, diagram.supply.busLabel),
     renderFeedChain(diagram),
-    renderDistributionBus(feedBackboneX, branchBusY, busEndX, columnXs),
+    renderDistributionBus(busStartX, branchBusY, busEndX, columnXs),
     ...circuits.map((c, i) => renderCircuitColumn(c, columnXs[i], branchBusY)),
   ].join("\n");
 
@@ -169,12 +168,15 @@ export function renderApartment1fV1Svg(diagram: SingleLineDiagram): string {
 export function apartment1fLayoutMeta(diagram: SingleLineDiagram): {
   circuitCount: number;
   columnXs: number[];
+  busStartX: number;
+  busEndX: number;
 } {
-  const { busStartX, busEndX } = busSpan();
-  const circuits = sortedCircuits(diagram);
+  const { circuits, columnXs, busStartX, busEndX } = resolveLayout(diagram);
   return {
     circuitCount: circuits.length,
-    columnXs: circuitColumnPositions(circuits.length, busStartX, busEndX),
+    columnXs,
+    busStartX,
+    busEndX,
   };
 }
 

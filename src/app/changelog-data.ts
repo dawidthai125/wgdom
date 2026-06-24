@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.51",
+    label: "WM Druk — Schematy layout scale V2 (renderer v5)",
+    items: [
+      {
+        type: "improve",
+        text: "Schematy SVG — bus layout v2: szyna do ostatniego obwodu, kolumny na pełnej szerokości strony (renderer v5)",
+      },
+      {
+        type: "improve",
+        text: "Schematy — większe symbole (licznik, MCB, RCD, odbiory), większe kropki r=6, viewBox 1360×780 (3F) / 1248×748 (1F)",
+      },
+      {
+        type: "improve",
+        text: "Schematy — lepsze wykorzystanie strony A4: klastr obwodów ~93% szerokości tuszu vs referencja WM",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.50",
     label: "WM Druk — Schematy visual fidelity (renderer v4)",
     items: [

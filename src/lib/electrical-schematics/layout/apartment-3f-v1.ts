@@ -1,4 +1,5 @@
 import type { SchematicCircuit, SingleLineDiagram } from "@/lib/electrical-schematics/types";
+import { resolveBusLayoutV2 } from "@/lib/electrical-schematics/layout/bus-layout-v2";
 import { svgLine, svgText } from "@/lib/electrical-schematics/render/svg-utils";
 import {
   METER_BODY_HEIGHT,
@@ -13,48 +14,45 @@ import {
   renderSupplyBus,
   renderVerticalCableLabel,
   STROKE_THIN,
+  TEXT_SIZE_CIRCUIT_NAME,
+  TEXT_SIZE_HEADER,
 } from "@/lib/electrical-schematics/symbols/iec-simplified";
 
-export const APARTMENT_3F_VIEWBOX = { width: 1200, height: 955 };
+export const APARTMENT_3F_VIEWBOX = { width: 1360, height: 780 };
 
-/** V1A visual fidelity + V1B polish — referencja Benedyktyńska 22/13. */
+/** V2 layout scale — referencja Benedyktyńska 22/13 (pełna szerokość strony). */
 export const APARTMENT_3F_LAYOUT = {
-  marginX: 48,
-  headerY: 42,
-  supplyBusY: 76,
-  feedBackboneX: 88,
-  rcdCenterX: 188,
-  meterTopY: 140,
-  mainBreakerY: 270,
-  rcdTeeY: 345,
-  branchBusY: 400,
-  circuitDropTop: 420,
-  circuitDropBottom: 650,
-  circuitNameY: 712,
+  marginX: 24,
+  busColumnTail: 24,
+  headerY: 36,
+  supplyBusY: 68,
+  feedBackboneX: 72,
+  rcdCenterX: 172,
+  meterTopY: 118,
+  mainBreakerY: 248,
+  rcdTeeY: 318,
+  branchBusY: 368,
+  circuitDropTop: 388,
+  circuitDropBottom: 598,
+  circuitNameY: 648,
   showColumnGuides: true,
-  minCircuitSpacing: 72,
-  maxCircuitSpacing: 120,
+  minCircuitSpacing: 80,
 };
 
 function sortedCircuits(diagram: SingleLineDiagram): SchematicCircuit[] {
   return [...diagram.circuits].sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
-function busSpan(): { busStartX: number; busEndX: number } {
-  const { marginX } = APARTMENT_3F_LAYOUT;
-  const { width } = APARTMENT_3F_VIEWBOX;
-  return { busStartX: marginX + 40, busEndX: width - marginX };
-}
-
-function circuitColumnPositions(count: number, busStartX: number, busEndX: number): number[] {
-  const { minCircuitSpacing, maxCircuitSpacing } = APARTMENT_3F_LAYOUT;
-  const span = busEndX - busStartX;
-  if (count <= 1) return [busStartX + span / 2];
-  const ideal = span / (count - 1);
-  const spacing = Math.max(minCircuitSpacing, Math.min(maxCircuitSpacing, ideal));
-  const used = spacing * (count - 1);
-  const offset = (span - used) / 2;
-  return Array.from({ length: count }, (_, i) => busStartX + offset + i * spacing);
+function resolveLayout(diagram: SingleLineDiagram) {
+  const circuits = sortedCircuits(diagram);
+  const bus = resolveBusLayoutV2(circuits.length, {
+    viewBoxWidth: APARTMENT_3F_VIEWBOX.width,
+    feedBackboneX: APARTMENT_3F_LAYOUT.feedBackboneX,
+    marginX: APARTMENT_3F_LAYOUT.marginX,
+    minCircuitSpacing: APARTMENT_3F_LAYOUT.minCircuitSpacing,
+    busColumnTail: APARTMENT_3F_LAYOUT.busColumnTail,
+  });
+  return { circuits, ...bus };
 }
 
 function renderHeader(diagram: SingleLineDiagram): string {
@@ -62,12 +60,12 @@ function renderHeader(diagram: SingleLineDiagram): string {
   const title = diagram.title.trim();
   const address = diagram.address.trim();
   const headerLine = address ? `${title} - ${address}` : title;
-  return svgText(width / 2, APARTMENT_3F_LAYOUT.headerY, headerLine, { anchor: "middle", size: 13 });
+  return svgText(width / 2, APARTMENT_3F_LAYOUT.headerY, headerLine, {
+    anchor: "middle",
+    size: TEXT_SIZE_HEADER,
+  });
 }
 
-/**
- * H1 — pionowy backbone: supply → FR? → licznik → C25A → RCD tee → szyna.
- */
 function renderFeedChain(diagram: SingleLineDiagram): string {
   const {
     feedBackboneX,
@@ -81,7 +79,7 @@ function renderFeedChain(diagram: SingleLineDiagram): string {
   const parts: string[] = [];
 
   const meterBottomY = meterTopY + METER_BODY_HEIGHT;
-  const frY = meterTopY - 42;
+  const frY = meterTopY - 48;
 
   parts.push(svgLine(feedBackboneX, supplyBusY, feedBackboneX, meterTopY - 8, STROKE_THIN));
 
@@ -125,15 +123,15 @@ function renderFeedChain(diagram: SingleLineDiagram): string {
 
 function renderCircuitColumn(circuit: SchematicCircuit, x: number, busY: number): string {
   const { circuitDropTop, circuitDropBottom, circuitNameY } = APARTMENT_3F_LAYOUT;
-  const mcbY = circuitDropTop + 28;
-  const loadY = circuitDropBottom - 10;
+  const mcbY = circuitDropTop + 34;
+  const loadY = circuitDropBottom - 12;
 
   return [
     svgLine(x, busY, x, circuitDropTop, STROKE_THIN),
     renderVerticalCableLabel(x, circuitDropTop, circuitDropBottom, circuit.cableLabel, "left"),
     renderMcbSymbol(x, mcbY, circuit),
     renderLoadSymbol(x, loadY, circuit.loadKind, circuit),
-    svgText(x, circuitNameY, circuit.name, { anchor: "middle", size: 9 }),
+    svgText(x, circuitNameY, circuit.name, { anchor: "middle", size: TEXT_SIZE_CIRCUIT_NAME }),
   ].join("\n");
 }
 
@@ -143,18 +141,16 @@ function renderCircuitColumn(circuit: SchematicCircuit, x: number, busY: number)
  */
 export function renderApartment3fV1Svg(diagram: SingleLineDiagram): string {
   const { width, height } = APARTMENT_3F_VIEWBOX;
-  const { supplyBusY, branchBusY, feedBackboneX, circuitNameY, showColumnGuides } = APARTMENT_3F_LAYOUT;
-  const { busStartX, busEndX } = busSpan();
-  const circuits = sortedCircuits(diagram);
-  const columnXs = circuitColumnPositions(circuits.length, busStartX, busEndX);
+  const { supplyBusY, branchBusY, circuitNameY, showColumnGuides } = APARTMENT_3F_LAYOUT;
+  const { circuits, columnXs, busStartX, busEndX } = resolveLayout(diagram);
 
-  const guides = renderCircuitColumnGuides(columnXs, branchBusY, circuitNameY + 18, showColumnGuides);
+  const guides = renderCircuitColumnGuides(columnXs, branchBusY, circuitNameY + 14, showColumnGuides);
 
   const body = [
     renderHeader(diagram),
     renderSupplyBus(busStartX, supplyBusY, busEndX, diagram.supply.busLabel),
     renderFeedChain(diagram),
-    renderDistributionBus(feedBackboneX, branchBusY, busEndX, columnXs),
+    renderDistributionBus(busStartX, branchBusY, busEndX, columnXs),
     ...circuits.map((c, i) => renderCircuitColumn(c, columnXs[i], branchBusY)),
   ].join("\n");
 
@@ -172,12 +168,15 @@ export function renderApartment3fV1Svg(diagram: SingleLineDiagram): string {
 export function apartment3fLayoutMeta(diagram: SingleLineDiagram): {
   circuitCount: number;
   columnXs: number[];
+  busStartX: number;
+  busEndX: number;
 } {
-  const { busStartX, busEndX } = busSpan();
-  const circuits = sortedCircuits(diagram);
+  const { circuits, columnXs, busStartX, busEndX } = resolveLayout(diagram);
   return {
     circuitCount: circuits.length,
-    columnXs: circuitColumnPositions(circuits.length, busStartX, busEndX),
+    columnXs,
+    busStartX,
+    busEndX,
   };
 }
 

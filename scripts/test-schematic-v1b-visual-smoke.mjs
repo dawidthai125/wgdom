@@ -95,7 +95,7 @@ function buildDense10() {
 }
 
 console.log("=== V1B — render version ===");
-assert(SCHEMATIC_RENDER_VERSION === 4, "renderer version 4");
+assert(SCHEMATIC_RENDER_VERSION === 5, "renderer version 5");
 
 console.log("\n=== V1B — 4 obwody (1F) ===");
 {
@@ -107,7 +107,7 @@ console.log("\n=== V1B — 4 obwody (1F) ===");
   const svg = renderSchematicSvg(d);
   writeFileSync("audit/_tmp-v1b-4c-1f.svg", svg);
   assert(svg.includes('stroke="#e8e8e8"'), "column guides present");
-  assert(svg.includes('r="5"'), "bus dots enlarged");
+  assert(svg.includes('r="6"'), "bus dots enlarged");
   assert(countText(svg, "Kuchenka Elektryczna") === 0, "no stove label on 1F default");
   const overlaps = findHorizontalLabelOverlaps(svg);
   assert(overlaps.length === 0, `no horizontal label overlap (${overlaps.length})`);
@@ -124,6 +124,9 @@ console.log("\n=== V1B — 7 obwodów (3F gate) ===");
   assert(!svg.includes('font-size="7"'), "no inline 7px stove duplicate");
   const overlaps = findHorizontalLabelOverlaps(svg);
   assert(overlaps.length === 0, `no horizontal label overlap (${overlaps.length})`);
+  const span = meta.columnXs[6] - meta.columnXs[0];
+  const busUse = span / (meta.busEndX - meta.busStartX);
+  assert(busUse >= 0.9, `gate 7 bus cluster span >=90% (${(busUse * 100).toFixed(1)}%)`);
 }
 
 console.log("\n=== V1B — 10 obwodów (3F dense) ===");
@@ -137,7 +140,8 @@ console.log("\n=== V1B — 10 obwodów (3F dense) ===");
   const overlaps = findHorizontalLabelOverlaps(svg);
   assert(overlaps.length === 0, `no horizontal label overlap (${overlaps.length})`);
   const spacing = meta.columnXs[1] - meta.columnXs[0];
-  assert(spacing >= 72, `column spacing >= 72px (${spacing})`);
+  assert(spacing >= 80, `column spacing >= 80px (${spacing})`);
+  assert(meta.busEndX <= 1360, "bus ends within viewBox");
 }
 
 console.log(`\n=== WYNIK: ${passed} PASS / ${failed} FAIL ===`);
