@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.47** · **TP203 Address Parser M1**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.48** · **P4 WM upload toast**
+
+## 2.62.48 — P4 WM Druk upload toast
+
+- **fix:** `resolveWmPrintTemplateUploadToast` — brak „Dodano 0 plików” gdy storage OK, added=0
+- **test:** `test-wm-print-upload-toast-p4.mjs`
 
 ## 2.62.47 — TP203 Address Parser Recovery M1
 

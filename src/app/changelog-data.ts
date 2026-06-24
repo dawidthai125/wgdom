@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.48",
+    label: "P4 WM Druk — upload toast (bez „Dodano 0 plików”)",
+    items: [
+      {
+        type: "fix",
+        text: "WM Druk — po udanym uploadzie do storage bez nowego wpisu w grupie: komunikat zamiast „Dodano 0 plików…”",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.47",
     label: "TP203 — Address Parser Recovery M1 (WM Druk / ZI)",
     items: [
