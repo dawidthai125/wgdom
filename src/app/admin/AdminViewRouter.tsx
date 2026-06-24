@@ -197,6 +197,7 @@ export type AdminViewRouterProps = {
   clearAllWeekEmployees: () => void;
   replaceWeekWithAllActive: () => void;
   updateWeekEmployee: (updated: WeekEmployee) => void;
+  updateWeekEmployeeExtraCosts: (empId: string, nextExtraCosts: WeekEmployee["extraCosts"]) => void;
   syncWeekRatesFromDirectory: () => void;
   goToCurrent: () => void;
   restoreWeekFromArchive: () => void;
@@ -209,6 +210,7 @@ export type AdminViewRouterProps = {
   setContacts: (c: EmailContact[] | ((prev: EmailContact[]) => EmailContact[])) => void;
   onArchiveDelete: (id: string) => void;
   updateArchiveWeekEmployee: (weekId: string, updatedEmp: WeekEmployee) => void;
+  updateArchiveWeekEmployeeExtraCosts: (weekId: string, empId: string, nextExtraCosts: WeekEmployee["extraCosts"]) => void;
   toggleArchiveSettled: (weekId: string, empId: string) => void;
   setJobs: (jobs: Job[] | ((prev: Job[]) => Job[])) => void;
   deleteJobsByIds: (ids: string[]) => Promise<void>;
@@ -280,6 +282,7 @@ export function AdminViewRouter({
   clearAllWeekEmployees,
   replaceWeekWithAllActive,
   updateWeekEmployee,
+  updateWeekEmployeeExtraCosts,
   syncWeekRatesFromDirectory,
   goToCurrent,
   restoreWeekFromArchive,
@@ -292,6 +295,7 @@ export function AdminViewRouter({
   setContacts,
   onArchiveDelete,
   updateArchiveWeekEmployee,
+  updateArchiveWeekEmployeeExtraCosts,
   toggleArchiveSettled,
   setJobs,
   deleteJobsByIds,
@@ -447,6 +451,7 @@ export function AdminViewRouter({
               onClearAllWeekEmployees={clearAllWeekEmployees}
               onReplaceWithAllActive={replaceWeekWithAllActive}
               onUpdateWeekEmployee={updateWeekEmployee}
+              onUpdateWeekEmployeeExtraCosts={updateWeekEmployeeExtraCosts}
               onSyncRatesFromDirectory={syncWeekRatesFromDirectory}
               onGoToCurrent={goToCurrent}
               onManageContacts={() => onSetView("contacts")}
@@ -500,6 +505,7 @@ export function AdminViewRouter({
             savedWeeks={savedWeeks}
             onDelete={onArchiveDelete}
             onUpdateWeekEmployee={updateArchiveWeekEmployee}
+            onUpdateWeekEmployeeExtraCosts={updateArchiveWeekEmployeeExtraCosts}
             onToggleArchiveSettled={toggleArchiveSettled}
             jobs={jobs}
             directory={directory}

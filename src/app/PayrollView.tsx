@@ -480,7 +480,7 @@ function PayrollAssignmentBadge({ status }: { status: PayrollAssignmentBadgeStat
 export function PayrollView({
   weekEmployees, weekFrom, weekTo, directory, contacts, jobs, employeeLeaves,
   onWeekChange, onToggleSettled, onSaveWeek, savedWeeks,
-  onAddFromDirectory, onRemoveWeekEmployee, onClearAllWeekEmployees, onReplaceWithAllActive, onUpdateWeekEmployee,   onGoToCurrent,
+  onAddFromDirectory, onRemoveWeekEmployee, onClearAllWeekEmployees, onReplaceWithAllActive, onUpdateWeekEmployee, onUpdateWeekEmployeeExtraCosts, onGoToCurrent,
   onManageContacts,
   onRestoreFromArchive,
   onSyncRatesFromDirectory,
@@ -504,6 +504,7 @@ export function PayrollView({
   onClearAllWeekEmployees?:()=>void;
   onReplaceWithAllActive?:()=>void;
   onUpdateWeekEmployee:(emp:WeekEmployee)=>void;
+  onUpdateWeekEmployeeExtraCosts:(empId:string, nextExtraCosts:WeekEmployee["extraCosts"])=>void;
   onGoToCurrent:()=>void;
   onManageContacts:()=>void;
   onRestoreFromArchive?:()=>void;
@@ -1399,6 +1400,7 @@ export function PayrollView({
               payrollRow={selectedPayrollRow}
               onDeferPayroll={handleDeferPayroll}
               onChange={onUpdateWeekEmployee}
+              onPatchExtraCosts={(next) => onUpdateWeekEmployeeExtraCosts(selectedEmp.id, next)}
               onClose={()=>setSelectedEmpId(null)}
             />
           )}

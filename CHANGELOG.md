@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.37** · **Audit Hub P0 hotfix**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.43** · **P0 Payroll extra costs ETAP 1**
+
+## 2.62.43 — Lista Płac · koszty do zwrotu ETAP 1 (P0 PAYROLL-EXTRACOSTS-FIDELITY)
+
+- **fix:** `onPatchExtraCosts` — zapis kwoty na `prev` state (bez stale `safeEmp` snapshot)
+- **fix:** `updateWeekEmployeeExtraCosts` w `App.tsx` + archiwum
+- **test:** `test-payroll-extra-cost-etap1.mjs` · `test-payroll-extra-cost-amount-rca.mjs` · smoke helpers
+- **backlog:** ETAP 2 merge fidelity (`mergeExtraCostsById`) — tylko na zgłoszenie autosync/multi-device
 
 ## 2.62.37 — Audit Hub localeCompare crash hotfix
 

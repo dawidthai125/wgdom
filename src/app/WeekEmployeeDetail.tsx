@@ -62,6 +62,7 @@ export function WeekEmployeeDetail({
   payrollRow,
   onDeferPayroll,
   onChange,
+  onPatchExtraCosts,
   onClose,
 }: {
   emp: WeekEmployee;
@@ -73,6 +74,7 @@ export function WeekEmployeeDetail({
   payrollRow?: { emp: WeekEmployee } & PayrollCalcWithAdjustments;
   onDeferPayroll?: (emp: WeekEmployee) => void;
   onChange: (u: WeekEmployee) => void;
+  onPatchExtraCosts: (next: EmployeeExtraCost[]) => void;
   onClose: () => void;
 }) {
   const safeEmp = ensureWeekEmployeeDays(emp);
@@ -85,8 +87,8 @@ export function WeekEmployeeDetail({
   const prevSatIso = previousSaturdayIso(weekFrom);
   const extraCosts = safeEmp.extraCosts ?? [];
   const updateExtraCosts = useCallback((next: EmployeeExtraCost[]) => {
-    onChange({ ...safeEmp, extraCosts: next });
-  }, [safeEmp, onChange]);
+    onPatchExtraCosts(next);
+  }, [onPatchExtraCosts]);
   const addExtraCost = () => {
     updateExtraCosts([...extraCosts, { id: crypto.randomUUID(), description: "", amount: "" }]);
   };

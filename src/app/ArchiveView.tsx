@@ -83,6 +83,7 @@ export function ArchiveView({
   savedWeeks,
   onDelete,
   onUpdateWeekEmployee,
+  onUpdateWeekEmployeeExtraCosts,
   onToggleArchiveSettled,
   jobs,
   directory,
@@ -90,6 +91,7 @@ export function ArchiveView({
   savedWeeks: WeekSnapshot[];
   onDelete: (id: string) => void;
   onUpdateWeekEmployee: (weekId: string, emp: WeekEmployee) => void;
+  onUpdateWeekEmployeeExtraCosts: (weekId: string, empId: string, nextExtraCosts: WeekEmployee["extraCosts"]) => void;
   onToggleArchiveSettled: (weekId: string, empId: string) => void;
   jobs: Job[];
   directory: DirectoryEmployee[];
@@ -597,6 +599,7 @@ export function ArchiveView({
                       directory={directory}
                       savedWeeks={savedWeeks}
                       onChange={(updated) => onUpdateWeekEmployee(week.id, updated)}
+                      onPatchExtraCosts={(next) => onUpdateWeekEmployeeExtraCosts(week.id, editEmp.id, next)}
                       onClose={() => setEditContext(null)}
                     />
                   </div>

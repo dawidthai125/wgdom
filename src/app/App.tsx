@@ -1217,6 +1217,25 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     });
   },[setWeekEmployees, refreshSavedActiveWeekSnapshot]);
 
+  /** ETAP 1 — koszty do zwrotu: patch na prev state (bez stale safeEmp snapshot). */
+  const updateWeekEmployeeExtraCosts = useCallback((empId: string, nextExtraCosts: WeekEmployee["extraCosts"]) => {
+    setWeekEmployees((prev) => {
+      const now = new Date().toISOString();
+      const next = prev.map((e) => {
+        if (e.id !== empId) return e;
+        const dataChanged = JSON.stringify(e.extraCosts) !== JSON.stringify(nextExtraCosts);
+        if (!dataChanged) return e;
+        return {
+          ...e,
+          extraCosts: nextExtraCosts,
+          dataUpdatedAt: now,
+        };
+      });
+      refreshSavedActiveWeekSnapshot(next);
+      return next;
+    });
+  }, [setWeekEmployees, refreshSavedActiveWeekSnapshot]);
+
   const syncWeekRatesFromDirectory = useCallback(() => {
     const now = new Date().toISOString();
     const byId = new Map(directory.map((d) => [d.id, d]));
@@ -1268,6 +1287,22 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const updateArchiveWeekEmployee = useCallback((weekId: string, updatedEmp: WeekEmployee) => {
     patchArchiveWeek(weekId, (emps) => emps.map((e) => (e.id === updatedEmp.id ? updatedEmp : e)));
+  }, [patchArchiveWeek]);
+
+  const updateArchiveWeekEmployeeExtraCosts = useCallback((
+    weekId: string,
+    empId: string,
+    nextExtraCosts: WeekEmployee["extraCosts"],
+  ) => {
+    patchArchiveWeek(weekId, (emps) => {
+      const now = new Date().toISOString();
+      return emps.map((e) => {
+        if (e.id !== empId) return e;
+        const dataChanged = JSON.stringify(e.extraCosts) !== JSON.stringify(nextExtraCosts);
+        if (!dataChanged) return e;
+        return { ...e, extraCosts: nextExtraCosts, dataUpdatedAt: now };
+      });
+    });
   }, [patchArchiveWeek]);
 
   const toggleArchiveSettled = useCallback((weekId: string, empId: string) => {
@@ -1784,6 +1819,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           clearAllWeekEmployees={clearAllWeekEmployees}
           replaceWeekWithAllActive={replaceWeekWithAllActive}
           updateWeekEmployee={updateWeekEmployee}
+          updateWeekEmployeeExtraCosts={updateWeekEmployeeExtraCosts}
           syncWeekRatesFromDirectory={syncWeekRatesFromDirectory}
           goToCurrent={goToCurrent}
           restoreWeekFromArchive={restoreWeekFromArchive}
@@ -1796,6 +1832,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           setContacts={setContacts}
           onArchiveDelete={(id) => { addDeletedArchiveId(id); setSavedWeeks((prev) => prev.filter((w) => w.id !== id)); }}
           updateArchiveWeekEmployee={updateArchiveWeekEmployee}
+          updateArchiveWeekEmployeeExtraCosts={updateArchiveWeekEmployeeExtraCosts}
           toggleArchiveSettled={toggleArchiveSettled}
           setJobs={setJobs}
           deleteJobsByIds={deleteJobsByIds}

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.43",
+    label: "Lista Płac — fix znikającej kwoty kosztu do zwrotu (ETAP 1)",
+    items: [
+      {
+        type: "fix",
+        text: "Koszty do zwrotu — zapis kwoty przez patch na prev state (bez stale safeEmp); edge autosync merge → backlog ETAP 2",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.42",
     label: "Cloud sync — przywrócony import merge delivery package",
     items: [
