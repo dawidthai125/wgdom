@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.48** · **WM Schematy UI 3B local**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.50** · **WM Schematy renderer v4**
+
+## 2.62.50 — WM Schematy visual fidelity (renderer v4)
+
+- **improve:** backbone supply→szyna, RCD tee, spacing, wieloliniowe etykiety MCB/RCD
+- **improve:** symbol kuchenki 3P, grubsza szyna, kropki r=5, linie pomocnicze kolumn
+- **fix:** podwójna etykieta „Kuchenka Elektryczna”
+- **test:** `test-schematic-v1b-visual-smoke.mjs` · renderer `SCHEMATIC_RENDER_VERSION=4`
 
 ## 2.62.49 — WM Druk Schematy MVP UI
 

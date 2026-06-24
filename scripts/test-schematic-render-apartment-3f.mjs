@@ -70,14 +70,18 @@ console.log("\n=== R02 — Benedyktyńska gate (7 obwodów) ===");
   assert(svg.includes("3F"), "R02 meter 3F");
   assert(svg.includes("KWh"), "R02 KWh");
   assert(svg.includes("YDYp 5x6mm²"), "R02 main cable");
-  assert(svg.includes("C25A 3P 6kA"), "R02 main breaker");
-  assert(svg.includes("25A 30mA 4P AC"), "R02 RCD label");
+  assert(svg.includes("C25A"), "R02 main breaker rating");
+  assert(svg.includes("3P") && svg.includes("6kA"), "R02 main breaker poles/ka");
+  assert(svg.includes("25A"), "R02 RCD rating");
+  assert(svg.includes("30mA"), "R02 RCD sensitivity");
+  assert(svg.includes("4P") && svg.includes("AC"), "R02 RCD poles/type");
   assert(svg.includes("Kuchenka Elektryczna"), "R02 stove name");
   assert(svg.includes("GN 230V Salon"), "R02 salon");
   assert(svg.includes("GN 230V Kuchnia"), "R02 kitchen");
-  assert(svg.includes("B16A 3P 6kA"), "R02 stove MCB 3P");
-  assert(svg.includes("B16A 1P 6kA"), "R02 socket MCB 1P");
-  assert(svg.includes("B10A 1P 6kA"), "R02 lighting MCB");
+  // V1A: etykiety MCB wieloliniowe (B16A / 3P / 6kA)
+  assert(svg.includes("B16A") && svg.includes("3P") && svg.includes("6kA"), "R02 stove MCB 3P");
+  assert(svg.includes("B16A") && svg.includes("1P"), "R02 socket MCB 1P");
+  assert(svg.includes("B10A") && svg.includes("1P"), "R02 lighting MCB");
   assert(svg.includes("YDYp 5x2,5mm²"), "R02 cable 5x2.5");
   assert(svg.includes("YDYp 3x2,5mm²"), "R02 cable 3x2.5");
   assert(svg.includes("YDYp 3x1,5mm²"), "R02 cable 3x1.5");
@@ -117,7 +121,7 @@ console.log("\n=== R04 — unsupported layout throws ===");
 
 console.log("\n=== R05 — render version ===");
 {
-  assert(SCHEMATIC_RENDER_VERSION === 2, "R05 version 2");
+  assert(SCHEMATIC_RENDER_VERSION === 4, "R05 version 4");
 }
 
 console.log(`\n=== WYNIK: ${passed} PASS / ${failed} FAIL ===`);

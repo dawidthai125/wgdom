@@ -1,36 +1,49 @@
 import type { SchematicCircuit, SingleLineDiagram } from "@/lib/electrical-schematics/types";
-import { svgDot, svgLine, svgText } from "@/lib/electrical-schematics/render/svg-utils";
+import { svgLine, svgText } from "@/lib/electrical-schematics/render/svg-utils";
 import {
+  METER_BODY_HEIGHT,
+  renderCircuitColumnGuides,
+  renderDistributionBus,
   renderLoadSymbol,
   renderMainBreakerSymbol,
   renderMainSwitch,
   renderMcbSymbol,
   renderMeter,
-  renderRcd,
+  renderRcdTee,
   renderSupplyBus,
   renderVerticalCableLabel,
+  STROKE_THIN,
 } from "@/lib/electrical-schematics/symbols/iec-simplified";
 
-export const APARTMENT_3F_VIEWBOX = { width: 1200, height: 850 };
+export const APARTMENT_3F_VIEWBOX = { width: 1200, height: 955 };
 
+/** V1A visual fidelity + V1B polish — referencja Benedyktyńska 22/13. */
 export const APARTMENT_3F_LAYOUT = {
   marginX: 48,
   headerY: 42,
-  supplyBusY: 88,
-  leftColumnX: 108,
-  meterTopY: 118,
-  mainBreakerY: 228,
-  rcdAnchorY: 298,
-  branchBusY: 348,
-  circuitDropTop: 368,
-  circuitDropBottom: 600,
-  circuitNameY: 640,
+  supplyBusY: 76,
+  feedBackboneX: 88,
+  rcdCenterX: 188,
+  meterTopY: 140,
+  mainBreakerY: 270,
+  rcdTeeY: 345,
+  branchBusY: 400,
+  circuitDropTop: 420,
+  circuitDropBottom: 650,
+  circuitNameY: 712,
+  showColumnGuides: true,
   minCircuitSpacing: 72,
   maxCircuitSpacing: 120,
 };
 
 function sortedCircuits(diagram: SingleLineDiagram): SchematicCircuit[] {
   return [...diagram.circuits].sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+function busSpan(): { busStartX: number; busEndX: number } {
+  const { marginX } = APARTMENT_3F_LAYOUT;
+  const { width } = APARTMENT_3F_VIEWBOX;
+  return { busStartX: marginX + 40, busEndX: width - marginX };
 }
 
 function circuitColumnPositions(count: number, busStartX: number, busEndX: number): number[] {
@@ -52,90 +65,103 @@ function renderHeader(diagram: SingleLineDiagram): string {
   return svgText(width / 2, APARTMENT_3F_LAYOUT.headerY, headerLine, { anchor: "middle", size: 13 });
 }
 
-function renderLeftFeed(diagram: SingleLineDiagram, busY: number): string {
-  const x = APARTMENT_3F_LAYOUT.leftColumnX;
+/**
+ * H1 — pionowy backbone: supply → FR? → licznik → C25A → RCD tee → szyna.
+ */
+function renderFeedChain(diagram: SingleLineDiagram): string {
+  const {
+    feedBackboneX,
+    supplyBusY,
+    meterTopY,
+    mainBreakerY,
+    rcdTeeY,
+    rcdCenterX,
+    branchBusY,
+  } = APARTMENT_3F_LAYOUT;
   const parts: string[] = [];
 
-  parts.push(svgLine(x, busY, x, APARTMENT_3F_LAYOUT.meterTopY - 16, 1.2));
+  const meterBottomY = meterTopY + METER_BODY_HEIGHT;
+  const frY = meterTopY - 42;
+
+  parts.push(svgLine(feedBackboneX, supplyBusY, feedBackboneX, meterTopY - 8, STROKE_THIN));
 
   if (diagram.mainSwitch?.label) {
-    parts.push(renderMainSwitch(x, APARTMENT_3F_LAYOUT.meterTopY - 36, diagram.mainSwitch.label));
+    parts.push(renderMainSwitch(feedBackboneX, frY, diagram.mainSwitch.label));
   }
 
-  parts.push(renderMeter(x, APARTMENT_3F_LAYOUT.meterTopY, diagram.meter.phases, diagram.meter.label));
+  parts.push(renderMeter(feedBackboneX, meterTopY, diagram.meter.phases, diagram.meter.label));
 
-  const cableMidY = APARTMENT_3F_LAYOUT.meterTopY + 70;
   parts.push(
     renderVerticalCableLabel(
-      x - 22,
-      APARTMENT_3F_LAYOUT.meterTopY + 52,
-      APARTMENT_3F_LAYOUT.mainBreakerY - 8,
+      feedBackboneX,
+      meterBottomY + 4,
+      mainBreakerY - 6,
       diagram.supply.mainCableLabel,
+      "left",
     ),
   );
 
-  parts.push(
-    renderMainBreakerSymbol(
-      x,
-      APARTMENT_3F_LAYOUT.mainBreakerY,
-      diagram.mainBreaker.breakerType,
-      diagram.mainBreaker.ratedCurrentA,
-      diagram.mainBreaker.poles,
-      diagram.mainBreaker.breakingCapacityKa,
-    ),
+  parts.push(svgLine(feedBackboneX, meterBottomY, feedBackboneX, mainBreakerY, STROKE_THIN));
+
+  const { svg: breakerSvg, bottomY: breakerBottomY } = renderMainBreakerSymbol(
+    feedBackboneX,
+    mainBreakerY,
+    diagram.mainBreaker.breakerType,
+    diagram.mainBreaker.ratedCurrentA,
+    diagram.mainBreaker.poles,
+    diagram.mainBreaker.breakingCapacityKa,
   );
+  parts.push(breakerSvg);
 
-  parts.push(renderRcd(x, APARTMENT_3F_LAYOUT.rcdAnchorY, diagram.mainRcd, busY));
-
-  return parts.join("\n");
-}
-
-function renderBranchBus(busStartX: number, busEndX: number, busY: number, xs: number[]): string {
-  const parts = [svgLine(busStartX, busY, busEndX, busY, 1.2)];
-  for (const x of xs) {
-    parts.push(svgDot(x, busY));
+  const teeStartY = Math.max(breakerBottomY, rcdTeeY - 8);
+  if (teeStartY < rcdTeeY) {
+    parts.push(svgLine(feedBackboneX, teeStartY, feedBackboneX, rcdTeeY, STROKE_THIN));
   }
+
+  parts.push(renderRcdTee(feedBackboneX, rcdTeeY, rcdCenterX, branchBusY, diagram.mainRcd));
+
   return parts.join("\n");
 }
 
 function renderCircuitColumn(circuit: SchematicCircuit, x: number, busY: number): string {
   const { circuitDropTop, circuitDropBottom, circuitNameY } = APARTMENT_3F_LAYOUT;
-  const mcbY = circuitDropTop + 24;
-  const loadY = circuitDropBottom - 8;
+  const mcbY = circuitDropTop + 28;
+  const loadY = circuitDropBottom - 10;
 
-  const parts = [
-    svgLine(x, busY, x, circuitDropTop, 1.2),
-    renderVerticalCableLabel(x + 14, circuitDropTop, circuitDropBottom, circuit.cableLabel),
+  return [
+    svgLine(x, busY, x, circuitDropTop, STROKE_THIN),
+    renderVerticalCableLabel(x, circuitDropTop, circuitDropBottom, circuit.cableLabel, "left"),
     renderMcbSymbol(x, mcbY, circuit),
     renderLoadSymbol(x, loadY, circuit.loadKind, circuit),
     svgText(x, circuitNameY, circuit.name, { anchor: "middle", size: 9 }),
-  ];
-  return parts.join("\n");
+  ].join("\n");
 }
 
 /**
  * Layout apartment-3f-v1 — referencja Benedyktyńska 22/13.
- * Obsługuje 6–10 obwodów (dynamiczne rozstawienie kolumn).
+ * Obsługuje 1–12 obwodów (dynamiczne rozstawienie kolumn).
  */
 export function renderApartment3fV1Svg(diagram: SingleLineDiagram): string {
   const { width, height } = APARTMENT_3F_VIEWBOX;
-  const { marginX, supplyBusY, branchBusY } = APARTMENT_3F_LAYOUT;
+  const { supplyBusY, branchBusY, feedBackboneX, circuitNameY, showColumnGuides } = APARTMENT_3F_LAYOUT;
+  const { busStartX, busEndX } = busSpan();
   const circuits = sortedCircuits(diagram);
-  const busStartX = marginX + 40;
-  const busEndX = width - marginX;
   const columnXs = circuitColumnPositions(circuits.length, busStartX, busEndX);
+
+  const guides = renderCircuitColumnGuides(columnXs, branchBusY, circuitNameY + 18, showColumnGuides);
 
   const body = [
     renderHeader(diagram),
     renderSupplyBus(busStartX, supplyBusY, busEndX, diagram.supply.busLabel),
-    renderLeftFeed(diagram, branchBusY),
-    renderBranchBus(busStartX, busEndX, branchBusY, columnXs),
+    renderFeedChain(diagram),
+    renderDistributionBus(feedBackboneX, branchBusY, busEndX, columnXs),
     ...circuits.map((c, i) => renderCircuitColumn(c, columnXs[i], branchBusY)),
   ].join("\n");
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">`,
     `<rect width="100%" height="100%" fill="#fff" />`,
+    ...(guides ? [`<g stroke-linecap="round">${guides}</g>`] : []),
     `<g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round">`,
     body,
     `</g>`,
@@ -143,15 +169,11 @@ export function renderApartment3fV1Svg(diagram: SingleLineDiagram): string {
   ].join("\n");
 }
 
-/** Metadane layoutu — diagnostyka / testy. */
 export function apartment3fLayoutMeta(diagram: SingleLineDiagram): {
   circuitCount: number;
   columnXs: number[];
 } {
-  const { marginX } = APARTMENT_3F_LAYOUT;
-  const { width } = APARTMENT_3F_VIEWBOX;
-  const busStartX = marginX + 40;
-  const busEndX = width - marginX;
+  const { busStartX, busEndX } = busSpan();
   const circuits = sortedCircuits(diagram);
   return {
     circuitCount: circuits.length,

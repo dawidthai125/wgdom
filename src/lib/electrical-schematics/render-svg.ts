@@ -10,7 +10,7 @@ import { parseSingleLineDiagram } from "@/lib/electrical-schematics/normalize";
 import type { SingleLineDiagram } from "@/lib/electrical-schematics/types";
 
 /** Wersja renderera SVG — bump przy zmianie layoutu/symboli. */
-export const SCHEMATIC_RENDER_VERSION = 2;
+export const SCHEMATIC_RENDER_VERSION = 4;
 
 export class SchematicRenderError extends Error {
   constructor(message: string) {

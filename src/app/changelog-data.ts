@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.50",
+    label: "WM Druk — Schematy visual fidelity (renderer v4)",
+    items: [
+      {
+        type: "improve",
+        text: "Schematy SVG — pionowy backbone, RCD na tee, większe odstępy i etykiety wieloliniowe MCB/RCD (renderer v4)",
+      },
+      {
+        type: "improve",
+        text: "Schematy — symbol kuchenki 3P, grubsza szyna i większe kropki, jasne linie pomocnicze kolumn, odstęp nazwy obwodu od symbolu",
+      },
+      {
+        type: "fix",
+        text: "Schematy — usunięty podwójny opis „Kuchenka Elektryczna” w SVG/PDF",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.49",
     label: "WM Druk — Schematy jednokreskowe (MVP UI)",
     items: [

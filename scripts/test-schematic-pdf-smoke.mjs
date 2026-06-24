@@ -68,7 +68,11 @@ console.log("=== P01 — render apartment-1f-v1 (4 obwody) ===");
   const svg = renderSchematicSvg(d);
   assert(svg.includes("1F"), "P01 meter 1F");
   assert(svg.includes("L, N, PE"), "P01 bus label");
-  assert(svg.includes("25A 30mA 2P AC"), "P01 RCD 2P");
+  // V1A: etykieta RCD wieloliniowa (25A / 30mA / 2P / AC)
+  assert(
+    svg.includes("25A") && svg.includes("30mA") && svg.includes("2P") && svg.includes("AC"),
+    "P01 RCD 2P",
+  );
   assert(!svg.includes("FR 100A"), "P01 no FR default");
 }
 
