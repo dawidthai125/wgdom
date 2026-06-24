@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-24 (**prod 2.62.42** · P0 cloud-sync hotfix)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-24 (**prod 2.62.48** · TP203 + P4 WM toast)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -9,7 +9,8 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-1s. docs/SESSION-HANDOFF-2026-06-24.md    ← ★★ ostatnia sesja (2.62.38–42, architektura)
+1s. docs/SESSION-HANDOFF-2026-06-24.md    ← sesja Audit Hub · TP200C · P0 cloud-sync
+1t. docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md  ← ★★ WM Druk ZI §4/§5 · TP203 · P4 toast (2.62.46–48)
 1v. docs/SESSION-HANDOFF-AUDIT-HUB.md     ← ★★ Audit Hub MVP-0→1B (CLOSED)
 1u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
 1a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
@@ -39,6 +40,9 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **P4 WM upload toast** | **2.62.48** (`5cef155`) | **CLOSED** · brak „Dodano 0 plików” | [`SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md) §4 |
+| **TP203 Address Parser M1** | **2.62.47** (`08178cc`) | **CLOSED** · `parseJobAddressParts` | j.w. §3 · `test-wm-print-address-parser-tp203.mjs` |
+| **ZI §5 owner preservation** | **2.62.46** (`a40381c`) | **CLOSED** · §4 tylko 95–97 | j.w. §2 · `ZI-2026-HANDOFF.md` |
 | **P0 cloud-sync delivery package import** | **2.62.42** (`d799033`) | **CLOSED** · regresja 2.62.39 | [`SESSION-HANDOFF-2026-06-24.md`](SESSION-HANDOFF-2026-06-24.md) §4 |
 | **Audit Hub MVP-1B Recovery Events** | **2.62.41** (`656a00c`) | **CLOSED** · security_log RECOVERY/DATA | [`SESSION-HANDOFF-AUDIT-HUB.md`](SESSION-HANDOFF-AUDIT-HUB.md) |
 | **Przetargi · TP200C sync merge fidelity** | **2.62.40** (`0d5b916`) | **CLOSED** · `pickBetterKosztorys` SSOT | `tender-dossier-merge.ts` · `test-tp200c-sync-merge-fidelity.mjs` |
@@ -122,7 +126,10 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (prod):             2.62.42       ← P0 cloud-sync mergeDeliveryPackagePublications import (d799033)
+Version (prod):             2.62.48       ← P4 WM upload toast (5cef155)
+TP203 Address Parser M1:    08178cc       v2.62.47 — parseJobAddressParts m.3/lok./slash
+ZI §5 owner hotfix:         a40381c       v2.62.46 — §4 pola 95–97 only
+P0 cloud-sync hotfix:       d799033       v2.62.42 — mergeDeliveryPackagePublications import
 Audit Hub MVP-1B:           656a00c       v2.62.41 — RECOVERY + DATA events w security_log
 TP200C sync merge:          0d5b916       v2.62.40 — pickBetterKosztorys SSOT
 Audit Hub MVP-1:            2b8980c       v2.62.39 — kw-security-audit-log · 6. źródło

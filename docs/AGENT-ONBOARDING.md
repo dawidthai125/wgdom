@@ -1,7 +1,7 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.62.42** · https://www.wgdom.fun · **Audit Hub MVP-1B CLOSED** · **TP200C CLOSED** · **P0 cloud-sync hotfix** · TP200B PLANNED · POST ZI-2026 · WM Druk **COMPLETE** · EM-P1R **COMPLETE**
+> **Prod:** **2.62.48** · https://www.wgdom.fun · **TP203 + P4 WM CLOSED** · **ZI §4/§5 STABLE** · Audit Hub MVP-1B · TP200B PLANNED
 
 ---
 
@@ -9,7 +9,8 @@
 
 ```text
 1. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
-1s. docs/SESSION-HANDOFF-2026-06-24.md ← ★★ ostatnia sesja (2.62.38–42, architektura skrót)
+1s. docs/SESSION-HANDOFF-2026-06-24.md ← sesja Audit Hub · TP200C
+1t. docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md ← ★★ WM Druk ZI §4/§5 · TP203 · P4 (2.62.46–48)
 2. docs/PROJECT-HANDOFF-CURRENT.md    ← baseline prod, commity, releasy
 2v. docs/SESSION-HANDOFF-AUDIT-HUB.md ← ★★ Audit Hub MVP-0 (2.62.36–37 CLOSED)
 2u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
@@ -402,6 +403,8 @@ npx vite-node scripts/test-audit-hub-view-model.mjs
 | `generate-docx.ts` | **TAK** | Oświadczenia DOCX (`{{VAR}}`) |
 | `wm-print-sync.ts` | **TAK** | Tombstone merge · seed guard |
 | `templates.ts` · `types.ts` · `variables.ts` | **TAK** | Model szablonów i zmiennych |
+| `address-vars.ts` | **TAK** | **TP203** — `parseJobAddressParts` → JOB_STREET/BUILDING/APARTMENT |
+| `template-upload-toast.ts` | **TAK** | **P4** — komunikat po uploadzie szablonu |
 | `WmPrintView.tsx` | **TAK** | UI admina |
 | `generate-pdf.ts` | legacy | LiveCycle P0 audyty — **nie ruszać** bez audytu |
 | `template-cleanup.ts` | testy | Tylko skrypty — nie UI |
@@ -415,7 +418,8 @@ WmPrintView → downloadWmPrintZip()
     → per szablon:
         DOCX     → generate-docx.ts
         ZI       → detectLegacyLiveCycleZiForm (guard)
-                 → generatePdfZiTauron2026 (§4: 99/111/112)
+                 → generatePdfZiTauron2026 (§4: **95/96/97** górny wiersz)
+                 → parseJobAddressParts (TP203) → JOB_*
         pdf      → copyStaticPdfTemplate
         pdf_form → legacy gałąź (martwa w KV poza ZI)
 ```
@@ -437,6 +441,8 @@ WmPrintView → downloadWmPrintZip()
 
 ```bash
 npm run build
+npx vite-node scripts/test-wm-print-address-parser-tp203.mjs
+npx vite-node scripts/test-wm-print-upload-toast-p4.mjs
 npx vite-node scripts/test-wm-print-zi-2026-smoke.mjs
 npx vite-node scripts/test-wm-print-zi-2026-preservation-smoke.mjs
 npx vite-node scripts/test-wm-print-zi-zip-post-cleanup.mjs

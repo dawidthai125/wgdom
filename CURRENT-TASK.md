@@ -1,57 +1,40 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-24 · **TP203 M1 RELEASED** · prod **2.62.47** (po push)
+**Ostatnia aktualizacja:** 2026-06-24 · **prod 2.62.48** · `5cef155`
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod (`main`)** | **2.62.47** (release TP203 — po push) |
-| **Poprzedni prod** | **2.62.46** (`a40381c`) · ZI §5 owner hotfix |
-| **TP203 M1** | **RELEASED** — parser adresów WM · Kleczkowska manual gate PASS |
-| **Audit Hub** | **MVP-0 + MVP-1 + MVP-1B CLOSED** · MVP-1C OPEN |
-| **TP200C** | **CLOSED** (2.62.40) · sync merge fidelity kosztorysu |
-| **TP200B** | **PLANNED** — kosztorys fidelity / ATH rows cap |
-| **P0 cloud-sync** | **CLOSED** (2.62.42) — `mergeDeliveryPackagePublications` import |
+| **Wersja prod (`main`)** | **2.62.48** (`5cef155`) |
+| **Poprzedni prod** | **2.62.47** (`08178cc`) · TP203 parser |
+| **TP203 M1** | **RELEASED** — `parseJobAddressParts` |
+| **P4 WM upload toast** | **RELEASED** — `resolveWmPrintTemplateUploadToast` |
+| **ZI §4/§5** | **STABLE** — obiekt 95–97 · zgłaszający 99/111/112 ze szablonu |
+| **Audit Hub** | MVP-0 + MVP-1 + MVP-1B **CLOSED** · MVP-1C OPEN |
+| **TP200B** | **PLANNED** |
 
-## Co zrobiono (sesja 2026-06-23 — 2026-06-24)
+## Co zrobiono (2026-06-24 — WM Druk)
 
-| Temat | Skrót |
-|-------|-------|
-| **2.62.39** | Audit Hub MVP-1 — Security Log, 6. źródło Hub |
-| **2.62.40** | TP200C — `pickBetterKosztorys` SSOT w `mergeTenderDossierByQuality` |
-| **2.62.41** | Audit Hub MVP-1B — RECOVERY + DATA events w security log |
-| **Audyt ATH/PDF** | NO-GO na zmianę progu 5% — zebrać hybrid ZIP fixtures |
-| **2.62.42** | P0 hotfix — brakujący import delivery package w `cloud-sync.ts` |
-| **TP203 M1** | Parser adresów `parseJobAddressParts` — Kleczkowska 26 m.3 → 95/96/97 PASS · Edge visual PASS |
-| **Dokumentacja** | [`docs/SESSION-HANDOFF-2026-06-24.md`](docs/SESSION-HANDOFF-2026-06-24.md) |
+| Wersja | Temat |
+|--------|-------|
+| **2.62.46** | ZI §5 preservation — tylko pola 95–97 dla adresu obiektu |
+| **2.62.47** | TP203 — parser `Kleczkowska 26 m.3` → ulica/budynek/lokal |
+| **2.62.48** | P4 — toast upload bez „Dodano 0 plików” |
 
-### TP203 M1 — RELEASED (2.62.47)
-
-| Gate | Werdykt |
-|------|---------|
-| Parser unit tests | PASS |
-| Regresja WM P1 / business | PASS |
-| Manual gate Kleczkowska | PASS — 95=Kleczkowska, 96=26, 97=3 |
-| Edge visual | PASS |
-| Build | PASS |
-
-**Commit:** `parseJobAddressParts` + `test-wm-print-address-parser-tp203.mjs`
+**Handoff:** [`docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md)
 
 ## Następne (tylko na polecenie)
 
-- **TP200B** — kosztorys fidelity (`SESSION-HANDOFF-TP200-PLANNED.md`)
-- **Audit Hub MVP-1C** — sync logging, eksport, alerty
-- **Audit Hub MVP-0C** — eksport CSV/PDF feedu
-- Notatki operacyjne P3 Export
+- TP200B · Audit Hub MVP-1C · Notatki P3 Export
 
 ## Szybki start agenta
 
 ```text
-docs/SESSION-HANDOFF-2026-06-24.md  ← ostatnia sesja + architektura skrót
-docs/AGENT-ONBOARDING.md            ← mapa systemu
-docs/PROJECT-HANDOFF-CURRENT.md     ← baseline prod
-docs/ARCHITECTURE.md § 11           ← cloud-sync / merge
+docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md  ← WM Druk / ZI / TP203 / P4
+docs/AGENT-ONBOARDING.md                           ← mapa systemu
+docs/PROJECT-HANDOFF-CURRENT.md                  ← baseline prod
+docs/ZI-2026-HANDOFF.md                          ← mapping §4 (95–97)
 ```
 
 **Hasło użytkownika:** „kontynuuj WGDOM”

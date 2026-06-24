@@ -1,9 +1,9 @@
 # ZI Tauron 2026 — Handoff implementacji
 
 > **Status:** **PRODUCTION STABLE** — zastępuje legacy LiveCycle ZI (CLOSED)  
-> **Data:** 2026-06-16 · **Prod:** **2.59.25** · commit `2b03c9d` (P0.5B) · ZI core `9434787` (2.59.22)  
+> **Data:** 2026-06-24 (aktualizacja mapping §4) · **Prod:** **2.62.47+** · mapping §4 **95–97** · TP203 parser  
 > **Master handoff:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
-> **Walidacja prod:** [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md)
+> **Sesja WM/ZI:** [`SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md)
 
 ---
 
@@ -29,17 +29,27 @@
 
 ---
 
-## Mapping §4 (OKREŚLENIE OBIEKTU — strona 2, dolny wiersz)
+## Mapping §4 (OKREŚLENIE OBIEKTU — strona 2, **górny wiersz** y≈728)
 
 | Zmienna WGDOM | Pole PDF | Etykieta wizualna | Uwagi |
 |---------------|----------|-------------------|-------|
-| **JOB_STREET** | `Pole tekstowe 99` | Ulica | rect y≈584.7, x≈24.5 |
-| **JOB_BUILDING** | `Pole tekstowe 111` | Numer budynku | rect y≈584.9, x≈388.7 · max 2 znaki |
-| **JOB_APARTMENT** | `Pole tekstowe 112` | Numer lokalu | rect y≈584.9, x≈486.7 |
+| **JOB_STREET** | `Pole tekstowe 95` | Ulica (górny wiersz) | rect y≈728 · **SSOT od 2.62.46** |
+| **JOB_BUILDING** | `Pole tekstowe 96` | Numer budynku | max 2 znaki (`formatBuildingForZi2026`) |
+| **JOB_APARTMENT** | `Pole tekstowe 97` | Numer lokalu | |
 
-**Korekta 2026-06-15:** ~~102~~ (Kod pocztowy) i ~~111 jako lokal~~ — patrz [`audit/tauron-audit-2026-06-15/ZI-2026-MAPPING-CORRECTION-REPORT.md`](../audit/tauron-audit-2026-06-15/ZI-2026-MAPPING-CORRECTION-REPORT.md).
+**Parser adresu (TP203, 2.62.47):** `parseJobAddressParts` w `address-vars.ts` — np. `Kleczkowska 26 m.3` → 95/96/97.
 
-**OPEN:** górny wiersz §4 (pola 95/96/97 @ y≈728) — pusty w smoke; ewentualny dual-fill po manual gate.
+### §5 zgłaszający — **nie nadpisywać** (preservation)
+
+| Pola | Rola | Przykład ze szablonu WM |
+|------|------|-------------------------|
+| 39, 40 | Imię, nazwisko | Dawid / Thai Thanh |
+| 99, 111, 112 | Ulica, budynek, lokal zgłaszającego | Szkolna / 5 / (puste) |
+| 101, 102, 110 | Miasto, kod | Stróża / 55-081 |
+
+**Historycznie (audyt 2026-06-15):** dolny wiersz 99/111/112 był kandydatem na JOB_* — **odrzucone** po hotfixie §5 (2.62.45→2.62.46). Patrz [`SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md).
+
+~~Mapping dolny wiersz 99/111/112 jako JOB_* — **SUPERSEDED**~~
 
 ---
 
@@ -67,7 +77,7 @@
 1. Source = aktywny `ZI.pdf` z WM Druk (storage).
 2. pdf-lib `< 50` pól (R6 encrypted) → pdf.js odczyt wszystkich `/V` ze source.
 3. pdf-lib zapis na odszyfrowanej bazie (upload decrypted **lub** bundled FormMaker — ten sam układ 59 pól).
-4. Patch wyłącznie **99 / 111 / 112** z `JOB_*`.
+4. Patch wyłącznie **95 / 96 / 97** z `JOB_*` (§4 obiekt, górny wiersz).
 
 Patrz: [`audit/tauron-audit-2026-06-15/ZI-2026-PRESERVATION-GATE-REPORT.md`](../audit/tauron-audit-2026-06-15/ZI-2026-PRESERVATION-GATE-REPORT.md).
 
@@ -90,7 +100,7 @@ npx vite-node scripts/test-wm-print-zi-2026-preservation-smoke.mjs
 npx vite-node scripts/test-wm-print-zi-2026-tombstone-smoke.mjs
 ```
 
-Mapping: **Sępa Szarzyńskiego / 83 / 7** → **99 / 111 / 112**.  
+Mapping: **Sępa Szarzyńskiego / 83 / 7** → **95 / 96 / 97** (górny wiersz §4).  
 Preservation: wypełniony `ZI.pdf` (Dawid / Thai Thanh / Stróża …) + nowy §4.
 
 Gate prod (manual): Edge · Chrome · Adobe — dane użytkownika + adres §4 **widoczne**.

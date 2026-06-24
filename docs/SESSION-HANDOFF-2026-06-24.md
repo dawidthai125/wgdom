@@ -1,7 +1,8 @@
 # SESSION HANDOFF — 2026-06-24 (Audit Hub MVP-1 · TP200C · P0 cloud-sync)
 
 > **Status sesji:** **CLOSED** (hotfix prod **2.62.42** zweryfikowany)  
-> **Prod baseline:** **v2.62.42** · commit **`d799033`**  
+> **Prod baseline:** **v2.62.48** · commit **`5cef155`** (dokumentacja zaktualizowana 2026-06-24)  
+> **WM Druk follow-up:** [`SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md) — ZI §4/§5 · TP203 · P4  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **SSOT projektu:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md)  
 > **Mapa systemu:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md)

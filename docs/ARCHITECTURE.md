@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-23 (prod **v2.62.37** · Audit Hub P0 hotfix · § 15.2)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-24 (prod **v2.62.48** · TP203 · P4 WM toast · § 12.1.8)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1587,11 +1587,11 @@ TenderDetailPanel
 
 **Nie zmieniaj bez briefu:** ATH, dossier pipeline, P2-F panels, `TenderBidProposalPanel`, scoring engines.
 
-### 12.1.8 Odbiory WM Druk (`wmprint`, v2.59.26)
+### 12.1.8 Odbiory WM Druk (`wmprint`, v2.62.48)
 
-**Status:** Moduł **COMPLETE** · ZIP · DOCX · preservation · sync **PASS** · **ZI Tauron 2026 PRODUCTION STABLE** · **Historia generowania WM-HISTORY-001**
+**Status:** Moduł **COMPLETE** · ZIP · DOCX · preservation · sync **PASS** · **ZI Tauron 2026 PRODUCTION STABLE** · **TP203 parser** · **P4 upload toast**
 
-**Handoff:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md) · [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) · [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) § 6  
+**Handoff:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md) · [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) · [`SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md) · [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) § 6  
 **★★ SSOT ZI:** [`ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) · validation: [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) · P0.5B: [`audit/P0.5B-HOUSEKEEPING-REPORT.md`](../audit/P0.5B-HOUSEKEEPING-REPORT.md)
 
 Moduł admina do generowania pakietów dokumentów odbiorowych WM — ZIP per robota, szablony DOCX/PDF, upload dokumentów.
@@ -1615,7 +1615,9 @@ Moduł admina do generowania pakietów dokumentów odbiorowych WM — ZIP per ro
 | Plik | Prod | Rola |
 |------|------|------|
 | `generate-zip.ts` | ✓ | Routing ZIP · dedupe |
-| `generate-pdf-zi-tauron2026.ts` | ✓ | Generator ZI 2026 |
+| `generate-pdf-zi-tauron2026.ts` | ✓ | Generator ZI 2026 · §4 pola **95–97** |
+| `address-vars.ts` | ✓ | **TP203** `parseJobAddressParts` |
+| `template-upload-toast.ts` | ✓ | **P4** komunikat upload szablonu |
 | `zi-tauron2026-form-extract.ts` | ✓ | Preservation pdf.js |
 | `wm-print-pdf-fonts.ts` | ✓ | Noto loader (P0.5B) |
 | `wm-print-pdf-static.ts` | ✓ | Statyczne PDF (P0.5B) |
@@ -1629,14 +1631,19 @@ Moduł admina do generowania pakietów dokumentów odbiorowych WM — ZIP per ro
 generate-zip.ts → buildWmPrintFilesForJob()
   dedupeWmPrintTemplatesByName(...)
   DOCX  → generate-docx.ts (osobny akapit po {{DATE}} w Oświadczeniach)
-  ZI    → detectLegacyLiveCycleZiForm → generatePdfZiTauron2026 + preservation §4
+  ZI    → detectLegacyLiveCycleZiForm → generatePdfZiTauron2026 + preservation §4 (95–97)
+        → parseJobAddressParts (TP203) → JOB_STREET/BUILDING/APARTMENT
   pdf   → wm-print-pdf-static.ts
   pdf_form → generate-pdf.ts (martwa gałąź KV poza ZI)
 ```
 
-**ZI §4 mapping:** 99 → JOB_STREET · 111 → JOB_BUILDING · 112 → JOB_APARTMENT · bundled `public/wm-print/zi-tauron-2026-template.pdf`.
+**ZI §4 mapping (prod 2.62.46+):** **95** → JOB_STREET · **96** → JOB_BUILDING · **97** → JOB_APARTMENT.  
+**§5 zgłaszający (preservation):** 99/111/112 + 101/102/110 — **nie** nadpisywać JOB_* (patrz `SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`).  
+Bundled `public/wm-print/zi-tauron-2026-template.pdf`.
 
-**Smoke:** `test-wm-print-zi-2026-smoke.mjs` · `test-wm-print-zi-2026-preservation-smoke.mjs` · `test-wm-print-zi-zip-post-cleanup.mjs` · `test-wm-print-p0-1a-docx-fix.mjs` · **`test-wm-print-history-001.mjs`**
+**Upload szablonu (P4):** `WmPrintView.handleTemplateFilesPick` → `resolveWmPrintTemplateUploadToast` — brak „Dodano 0 plików” gdy storage OK.
+
+**Smoke:** `test-wm-print-address-parser-tp203.mjs` · `test-wm-print-upload-toast-p4.mjs` · `test-wm-print-zi-2026-smoke.mjs` · `test-wm-print-zi-2026-preservation-smoke.mjs` · `test-wm-print-zi-zip-post-cleanup.mjs` · `test-wm-print-p0-1a-docx-fix.mjs` · **`test-wm-print-history-001.mjs`**
 
 **Historia generowania (WM-HISTORY-001):** `src/lib/wm-print/history.ts` · wpis po `res.ok` (PDF/DOCX/ZIP) · UI: zakładka Historia + `JobWmPrintHistoryPanel` w Robotach · **bez** blobów/URL/plików.
 
