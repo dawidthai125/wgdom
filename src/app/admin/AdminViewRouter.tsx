@@ -198,6 +198,10 @@ export type AdminViewRouterProps = {
   replaceWeekWithAllActive: () => void;
   updateWeekEmployee: (updated: WeekEmployee) => void;
   updateWeekEmployeeExtraCosts: (empId: string, nextExtraCosts: WeekEmployee["extraCosts"]) => void;
+  updateWeekEmployeeDay: (empId: string, key: import("@/app/app-domain").DayKey, next: import("@/app/app-domain").DayData) => void;
+  updateWeekEmployeeRate: (empId: string, rate: string) => void;
+  updateWeekEmployeePrevSaturday: (empId: string, next: import("@/app/app-domain").DayData) => void;
+  updateWeekEmployeePayrollCarryForward: (empId: string, carry: WeekEmployee["payrollCarryForward"]) => void;
   syncWeekRatesFromDirectory: () => void;
   goToCurrent: () => void;
   restoreWeekFromArchive: () => void;
@@ -211,6 +215,10 @@ export type AdminViewRouterProps = {
   onArchiveDelete: (id: string) => void;
   updateArchiveWeekEmployee: (weekId: string, updatedEmp: WeekEmployee) => void;
   updateArchiveWeekEmployeeExtraCosts: (weekId: string, empId: string, nextExtraCosts: WeekEmployee["extraCosts"]) => void;
+  updateArchiveWeekEmployeeDay: (weekId: string, empId: string, key: import("@/app/app-domain").DayKey, next: import("@/app/app-domain").DayData) => void;
+  updateArchiveWeekEmployeeRate: (weekId: string, empId: string, rate: string) => void;
+  updateArchiveWeekEmployeePrevSaturday: (weekId: string, empId: string, next: import("@/app/app-domain").DayData) => void;
+  updateArchiveWeekEmployeePayrollCarryForward: (weekId: string, empId: string, carry: WeekEmployee["payrollCarryForward"]) => void;
   toggleArchiveSettled: (weekId: string, empId: string) => void;
   setJobs: (jobs: Job[] | ((prev: Job[]) => Job[])) => void;
   deleteJobsByIds: (ids: string[]) => Promise<void>;
@@ -283,6 +291,10 @@ export function AdminViewRouter({
   replaceWeekWithAllActive,
   updateWeekEmployee,
   updateWeekEmployeeExtraCosts,
+  updateWeekEmployeeDay,
+  updateWeekEmployeeRate,
+  updateWeekEmployeePrevSaturday,
+  updateWeekEmployeePayrollCarryForward,
   syncWeekRatesFromDirectory,
   goToCurrent,
   restoreWeekFromArchive,
@@ -296,6 +308,10 @@ export function AdminViewRouter({
   onArchiveDelete,
   updateArchiveWeekEmployee,
   updateArchiveWeekEmployeeExtraCosts,
+  updateArchiveWeekEmployeeDay,
+  updateArchiveWeekEmployeeRate,
+  updateArchiveWeekEmployeePrevSaturday,
+  updateArchiveWeekEmployeePayrollCarryForward,
   toggleArchiveSettled,
   setJobs,
   deleteJobsByIds,
@@ -450,8 +466,11 @@ export function AdminViewRouter({
               onRemoveWeekEmployee={removeWeekEmployee}
               onClearAllWeekEmployees={clearAllWeekEmployees}
               onReplaceWithAllActive={replaceWeekWithAllActive}
-              onUpdateWeekEmployee={updateWeekEmployee}
               onUpdateWeekEmployeeExtraCosts={updateWeekEmployeeExtraCosts}
+              onUpdateWeekEmployeeDay={updateWeekEmployeeDay}
+              onUpdateWeekEmployeeRate={updateWeekEmployeeRate}
+              onUpdateWeekEmployeePrevSaturday={updateWeekEmployeePrevSaturday}
+              onUpdateWeekEmployeePayrollCarryForward={updateWeekEmployeePayrollCarryForward}
               onSyncRatesFromDirectory={syncWeekRatesFromDirectory}
               onGoToCurrent={goToCurrent}
               onManageContacts={() => onSetView("contacts")}
@@ -504,8 +523,11 @@ export function AdminViewRouter({
           <ArchiveView
             savedWeeks={savedWeeks}
             onDelete={onArchiveDelete}
-            onUpdateWeekEmployee={updateArchiveWeekEmployee}
             onUpdateWeekEmployeeExtraCosts={updateArchiveWeekEmployeeExtraCosts}
+            onUpdateWeekEmployeeDay={updateArchiveWeekEmployeeDay}
+            onUpdateWeekEmployeeRate={updateArchiveWeekEmployeeRate}
+            onUpdateWeekEmployeePrevSaturday={updateArchiveWeekEmployeePrevSaturday}
+            onUpdateWeekEmployeePayrollCarryForward={updateArchiveWeekEmployeePayrollCarryForward}
             onToggleArchiveSettled={toggleArchiveSettled}
             jobs={jobs}
             directory={directory}

@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.43** · **P0 Payroll extra costs ETAP 1**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.44** · **P0 Payroll hours ETAP 1**
+
+## 2.62.44 — Lista Płac · godziny ETAP 1 (P0 PAYROLL-HOURS-PERSISTENCE)
+
+- `updateWeekEmployeeDay/Rate/PrevSaturday/PayrollCarryForward` — functional patch w `App.tsx`
+- `WeekEmployeeDetail` — `onPatchDay/Rate/PrevSaturday` zamiast `onChange({...safeEmp})`
+- Smoke: `scripts/test-payroll-hours-etap1.mjs` (A2/A3/A4)
 
 ## 2.62.43 — Lista Płac · koszty do zwrotu ETAP 1 (P0 PAYROLL-EXTRACOSTS-FIDELITY)
 

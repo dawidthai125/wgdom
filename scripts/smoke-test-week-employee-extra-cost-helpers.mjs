@@ -23,6 +23,11 @@ check("WeekEmployeeDetail uses extraCostStatus(cost)", detailSrc.includes("extra
 check("WeekEmployeeDetail uses EXTRA_COST_STATUS_LABELS[st]", detailSrc.includes("EXTRA_COST_STATUS_LABELS[st]"));
 check("WeekEmployeeDetail onPatchExtraCosts (ETAP1)", detailSrc.includes("onPatchExtraCosts(next)"));
 check("WeekEmployeeDetail no safeEmp extraCosts spread", !detailSrc.includes("onChange({ ...safeEmp, extraCosts:"));
+check("WeekEmployeeDetail onPatchDay (hours ETAP1)", detailSrc.includes("onPatchDay(key, next)"));
+check("WeekEmployeeDetail onPatchRate (hours ETAP1)", detailSrc.includes("onPatchRate(e.target.value)"));
+check("WeekEmployeeDetail onPatchPrevSaturday (hours ETAP1)", detailSrc.includes("onPatchPrevSaturday({"));
+check("WeekEmployeeDetail no safeEmp days spread", !detailSrc.includes("onChange({ ...safeEmp, days:"));
+check("WeekEmployeeDetail no safeEmp rate spread", !detailSrc.includes("onChange({...safeEmp,rate:"));
 
 const pending = { id: "t1", description: "chemia", amount: "50", status: "pending" };
 const legacy = { id: "t2", description: "paliwo", amount: "30" };

@@ -58,6 +58,7 @@ import {
   type DirectoryEmployee,
   type Job,
   type DayKey,
+  type DayData,
   DAYS,
   DAY_LABELS,
   fmt,
@@ -480,7 +481,9 @@ function PayrollAssignmentBadge({ status }: { status: PayrollAssignmentBadgeStat
 export function PayrollView({
   weekEmployees, weekFrom, weekTo, directory, contacts, jobs, employeeLeaves,
   onWeekChange, onToggleSettled, onSaveWeek, savedWeeks,
-  onAddFromDirectory, onRemoveWeekEmployee, onClearAllWeekEmployees, onReplaceWithAllActive, onUpdateWeekEmployee, onUpdateWeekEmployeeExtraCosts, onGoToCurrent,
+  onAddFromDirectory, onRemoveWeekEmployee, onClearAllWeekEmployees, onReplaceWithAllActive,
+  onUpdateWeekEmployeeExtraCosts, onUpdateWeekEmployeeDay, onUpdateWeekEmployeeRate,
+  onUpdateWeekEmployeePrevSaturday, onUpdateWeekEmployeePayrollCarryForward, onGoToCurrent,
   onManageContacts,
   onRestoreFromArchive,
   onSyncRatesFromDirectory,
@@ -503,8 +506,11 @@ export function PayrollView({
   onRemoveWeekEmployee:(id:string)=>void;
   onClearAllWeekEmployees?:()=>void;
   onReplaceWithAllActive?:()=>void;
-  onUpdateWeekEmployee:(emp:WeekEmployee)=>void;
   onUpdateWeekEmployeeExtraCosts:(empId:string, nextExtraCosts:WeekEmployee["extraCosts"])=>void;
+  onUpdateWeekEmployeeDay:(empId:string, key:DayKey, next:DayData)=>void;
+  onUpdateWeekEmployeeRate:(empId:string, rate:string)=>void;
+  onUpdateWeekEmployeePrevSaturday:(empId:string, next:DayData)=>void;
+  onUpdateWeekEmployeePayrollCarryForward:(empId:string, carry:WeekEmployee["payrollCarryForward"])=>void;
   onGoToCurrent:()=>void;
   onManageContacts:()=>void;
   onRestoreFromArchive?:()=>void;
@@ -739,12 +745,9 @@ export function PayrollView({
       ) {
         return;
       }
-      onUpdateWeekEmployee({
-        ...emp,
-        payrollCarryForward: target,
-      });
+      onUpdateWeekEmployeePayrollCarryForward(emp.id, target);
     },
-    [rows, directory, isClosedWeek, weekFrom, weekTo, onUpdateWeekEmployee],
+    [rows, directory, isClosedWeek, weekFrom, weekTo, onUpdateWeekEmployeePayrollCarryForward],
   );
 
   const exportTotals: PayrollExportTotals = {
@@ -1399,7 +1402,9 @@ export function PayrollView({
               isClosedWeek={isClosedWeek}
               payrollRow={selectedPayrollRow}
               onDeferPayroll={handleDeferPayroll}
-              onChange={onUpdateWeekEmployee}
+              onPatchDay={(key, next) => onUpdateWeekEmployeeDay(selectedEmp.id, key, next)}
+              onPatchRate={(rate) => onUpdateWeekEmployeeRate(selectedEmp.id, rate)}
+              onPatchPrevSaturday={(next) => onUpdateWeekEmployeePrevSaturday(selectedEmp.id, next)}
               onPatchExtraCosts={(next) => onUpdateWeekEmployeeExtraCosts(selectedEmp.id, next)}
               onClose={()=>setSelectedEmpId(null)}
             />

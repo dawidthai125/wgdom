@@ -9,7 +9,7 @@ import { ArchiveScheduleGrid } from "@/app/ArchiveScheduleGrid";
 import { WeekEmployeeDetail } from "@/app/WeekEmployeeDetail";
 import { loadPdfMake, type PdfDocDef } from "@/lib/pdfmake-loader";
 import { isBiweeklyPayrollEmployee, calcBiweeklyRowDisplay } from "@/lib/payroll-cycle";
-import type { DirectoryEmployee, WeekSnapshot, WeekEmployee, Job } from "@/app/app-domain";
+import type { DirectoryEmployee, WeekSnapshot, WeekEmployee, Job, DayKey, DayData } from "@/app/app-domain";
 import {
   MONTH_NAMES,
   fmt,
@@ -82,16 +82,22 @@ function archiveEmployeePayrollDisplay(
 export function ArchiveView({
   savedWeeks,
   onDelete,
-  onUpdateWeekEmployee,
   onUpdateWeekEmployeeExtraCosts,
+  onUpdateWeekEmployeeDay,
+  onUpdateWeekEmployeeRate,
+  onUpdateWeekEmployeePrevSaturday,
+  onUpdateWeekEmployeePayrollCarryForward,
   onToggleArchiveSettled,
   jobs,
   directory,
 }: {
   savedWeeks: WeekSnapshot[];
   onDelete: (id: string) => void;
-  onUpdateWeekEmployee: (weekId: string, emp: WeekEmployee) => void;
   onUpdateWeekEmployeeExtraCosts: (weekId: string, empId: string, nextExtraCosts: WeekEmployee["extraCosts"]) => void;
+  onUpdateWeekEmployeeDay: (weekId: string, empId: string, key: DayKey, next: DayData) => void;
+  onUpdateWeekEmployeeRate: (weekId: string, empId: string, rate: string) => void;
+  onUpdateWeekEmployeePrevSaturday: (weekId: string, empId: string, next: DayData) => void;
+  onUpdateWeekEmployeePayrollCarryForward: (weekId: string, empId: string, carry: WeekEmployee["payrollCarryForward"]) => void;
   onToggleArchiveSettled: (weekId: string, empId: string) => void;
   jobs: Job[];
   directory: DirectoryEmployee[];
@@ -598,7 +604,9 @@ export function ArchiveView({
                       weekTo={week.weekTo}
                       directory={directory}
                       savedWeeks={savedWeeks}
-                      onChange={(updated) => onUpdateWeekEmployee(week.id, updated)}
+                      onPatchDay={(key, next) => onUpdateWeekEmployeeDay(week.id, editEmp.id, key, next)}
+                      onPatchRate={(rate) => onUpdateWeekEmployeeRate(week.id, editEmp.id, rate)}
+                      onPatchPrevSaturday={(next) => onUpdateWeekEmployeePrevSaturday(week.id, editEmp.id, next)}
                       onPatchExtraCosts={(next) => onUpdateWeekEmployeeExtraCosts(week.id, editEmp.id, next)}
                       onClose={() => setEditContext(null)}
                     />

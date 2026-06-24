@@ -81,7 +81,8 @@ import { adminCanViewTendersTab } from "@/lib/admin-auth";
 import { canAccessAuditHub } from "@/lib/audit-hub/acl";
 import { resolveAuditHubNavigation } from "@/lib/audit-hub/deeplink";
 import type { AuditFeedDeepLink } from "@/lib/audit-hub/types";
-import type { DirectoryEmployee, WeekEmployee, WeekSnapshot, Job } from "@/app/app-domain";
+import type { DirectoryEmployee, WeekEmployee, WeekSnapshot, Job, DayKey, DayData } from "@/app/app-domain";
+import type { PayrollCarryForward } from "@/lib/payroll-carry-forward";
 import {
   isProductionDirectoryEmployee,
   filterProductionDirectory,
@@ -1236,6 +1237,67 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     });
   }, [setWeekEmployees, refreshSavedActiveWeekSnapshot]);
 
+  /** ETAP 1 — godziny dnia: patch na prev state (bez stale safeEmp snapshot). */
+  const updateWeekEmployeeDay = useCallback((empId: string, key: DayKey, nextDay: DayData) => {
+    setWeekEmployees((prev) => {
+      const now = new Date().toISOString();
+      const next = prev.map((e) => {
+        if (e.id !== empId) return e;
+        const days = { ...e.days, [key]: nextDay };
+        const dataChanged = JSON.stringify(e.days) !== JSON.stringify(days);
+        if (!dataChanged) return e;
+        return { ...e, days, dataUpdatedAt: now };
+      });
+      refreshSavedActiveWeekSnapshot(next);
+      return next;
+    });
+  }, [setWeekEmployees, refreshSavedActiveWeekSnapshot]);
+
+  const updateWeekEmployeeRate = useCallback((empId: string, rate: string) => {
+    setWeekEmployees((prev) => {
+      const now = new Date().toISOString();
+      const next = prev.map((e) => {
+        if (e.id !== empId) return e;
+        if (e.rate === rate) return e;
+        return { ...e, rate, rateUpdatedAt: now };
+      });
+      refreshSavedActiveWeekSnapshot(next);
+      return next;
+    });
+  }, [setWeekEmployees, refreshSavedActiveWeekSnapshot]);
+
+  const updateWeekEmployeePrevSaturday = useCallback((empId: string, nextPrevSaturday: DayData) => {
+    const prevSaturday = { ...nextPrevSaturday, extraHours: undefined };
+    setWeekEmployees((prev) => {
+      const now = new Date().toISOString();
+      const next = prev.map((e) => {
+        if (e.id !== empId) return e;
+        const dataChanged = JSON.stringify(e.prevSaturday) !== JSON.stringify(prevSaturday);
+        if (!dataChanged) return e;
+        return { ...e, prevSaturday, dataUpdatedAt: now };
+      });
+      refreshSavedActiveWeekSnapshot(next);
+      return next;
+    });
+  }, [setWeekEmployees, refreshSavedActiveWeekSnapshot]);
+
+  const updateWeekEmployeePayrollCarryForward = useCallback((
+    empId: string,
+    payrollCarryForward: PayrollCarryForward | undefined,
+  ) => {
+    setWeekEmployees((prev) => {
+      const now = new Date().toISOString();
+      const next = prev.map((e) => {
+        if (e.id !== empId) return e;
+        const dataChanged = JSON.stringify(e.payrollCarryForward) !== JSON.stringify(payrollCarryForward);
+        if (!dataChanged) return e;
+        return { ...e, payrollCarryForward, dataUpdatedAt: now };
+      });
+      refreshSavedActiveWeekSnapshot(next);
+      return next;
+    });
+  }, [setWeekEmployees, refreshSavedActiveWeekSnapshot]);
+
   const syncWeekRatesFromDirectory = useCallback(() => {
     const now = new Date().toISOString();
     const byId = new Map(directory.map((d) => [d.id, d]));
@@ -1301,6 +1363,68 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         const dataChanged = JSON.stringify(e.extraCosts) !== JSON.stringify(nextExtraCosts);
         if (!dataChanged) return e;
         return { ...e, extraCosts: nextExtraCosts, dataUpdatedAt: now };
+      });
+    });
+  }, [patchArchiveWeek]);
+
+  const updateArchiveWeekEmployeeDay = useCallback((
+    weekId: string,
+    empId: string,
+    key: DayKey,
+    nextDay: DayData,
+  ) => {
+    patchArchiveWeek(weekId, (emps) => {
+      const now = new Date().toISOString();
+      return emps.map((e) => {
+        if (e.id !== empId) return e;
+        const days = { ...e.days, [key]: nextDay };
+        const dataChanged = JSON.stringify(e.days) !== JSON.stringify(days);
+        if (!dataChanged) return e;
+        return { ...e, days, dataUpdatedAt: now };
+      });
+    });
+  }, [patchArchiveWeek]);
+
+  const updateArchiveWeekEmployeeRate = useCallback((weekId: string, empId: string, rate: string) => {
+    patchArchiveWeek(weekId, (emps) => {
+      const now = new Date().toISOString();
+      return emps.map((e) => {
+        if (e.id !== empId) return e;
+        if (e.rate === rate) return e;
+        return { ...e, rate, rateUpdatedAt: now };
+      });
+    });
+  }, [patchArchiveWeek]);
+
+  const updateArchiveWeekEmployeePrevSaturday = useCallback((
+    weekId: string,
+    empId: string,
+    nextPrevSaturday: DayData,
+  ) => {
+    const prevSaturday = { ...nextPrevSaturday, extraHours: undefined };
+    patchArchiveWeek(weekId, (emps) => {
+      const now = new Date().toISOString();
+      return emps.map((e) => {
+        if (e.id !== empId) return e;
+        const dataChanged = JSON.stringify(e.prevSaturday) !== JSON.stringify(prevSaturday);
+        if (!dataChanged) return e;
+        return { ...e, prevSaturday, dataUpdatedAt: now };
+      });
+    });
+  }, [patchArchiveWeek]);
+
+  const updateArchiveWeekEmployeePayrollCarryForward = useCallback((
+    weekId: string,
+    empId: string,
+    payrollCarryForward: PayrollCarryForward | undefined,
+  ) => {
+    patchArchiveWeek(weekId, (emps) => {
+      const now = new Date().toISOString();
+      return emps.map((e) => {
+        if (e.id !== empId) return e;
+        const dataChanged = JSON.stringify(e.payrollCarryForward) !== JSON.stringify(payrollCarryForward);
+        if (!dataChanged) return e;
+        return { ...e, payrollCarryForward, dataUpdatedAt: now };
       });
     });
   }, [patchArchiveWeek]);
@@ -1820,6 +1944,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           replaceWeekWithAllActive={replaceWeekWithAllActive}
           updateWeekEmployee={updateWeekEmployee}
           updateWeekEmployeeExtraCosts={updateWeekEmployeeExtraCosts}
+          updateWeekEmployeeDay={updateWeekEmployeeDay}
+          updateWeekEmployeeRate={updateWeekEmployeeRate}
+          updateWeekEmployeePrevSaturday={updateWeekEmployeePrevSaturday}
+          updateWeekEmployeePayrollCarryForward={updateWeekEmployeePayrollCarryForward}
           syncWeekRatesFromDirectory={syncWeekRatesFromDirectory}
           goToCurrent={goToCurrent}
           restoreWeekFromArchive={restoreWeekFromArchive}
@@ -1833,6 +1961,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           onArchiveDelete={(id) => { addDeletedArchiveId(id); setSavedWeeks((prev) => prev.filter((w) => w.id !== id)); }}
           updateArchiveWeekEmployee={updateArchiveWeekEmployee}
           updateArchiveWeekEmployeeExtraCosts={updateArchiveWeekEmployeeExtraCosts}
+          updateArchiveWeekEmployeeDay={updateArchiveWeekEmployeeDay}
+          updateArchiveWeekEmployeeRate={updateArchiveWeekEmployeeRate}
+          updateArchiveWeekEmployeePrevSaturday={updateArchiveWeekEmployeePrevSaturday}
+          updateArchiveWeekEmployeePayrollCarryForward={updateArchiveWeekEmployeePayrollCarryForward}
           toggleArchiveSettled={toggleArchiveSettled}
           setJobs={setJobs}
           deleteJobsByIds={deleteJobsByIds}

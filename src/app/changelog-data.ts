@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.44",
+    label: "Lista Płac — fix znikających godzin po zmianie pracownika (ETAP 1)",
+    items: [
+      {
+        type: "fix",
+        text: "Godziny dni / stawka / Sob.pr. — zapis przez patch na prev state (bez stale safeEmp); defer wypłaty osobno",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.43",
     label: "Lista Płac — fix znikającej kwoty kosztu do zwrotu (ETAP 1)",
     items: [
