@@ -1,8 +1,8 @@
 # SESSION HANDOFF — Audit Hub (MVP-0A → MVP-0B + P0 hotfix)
 
-> **Status streamu:** **MVP-0 CLOSED** · **MVP-1 Security Log CLOSED**  
-> **Data closeout MVP-1:** 2026-06-23  
-> **Prod baseline:** **v2.62.39** · MVP-0 **2.62.37** · Actor Fidelity **2.62.38**  
+> **Status streamu:** **MVP-0 CLOSED** · **MVP-1 Security Log CLOSED** · **MVP-1B Recovery Events CLOSED**  
+> **Data closeout MVP-1B:** 2026-06-24  
+> **Prod baseline:** **v2.62.41** · MVP-1 **2.62.39** · Recovery Events **2.62.41**  
 > **Architektura:** [`ARCHITECTURE.md`](ARCHITECTURE.md) § **15.2–15.3**  
 > **SSOT projektu:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md)
 
@@ -16,7 +16,7 @@
 |---------|-------------|
 | Agregacja + filtry + deep linki do modułów źródłowych | Pełny SIEM / alerty (MVP-2) |
 | Widok `audit` w menu admina (ikona Shield) | Duplikat audit UI notatek operacyjnych (P2C Sheet) |
-| Read-only prezentacja + Security log (AUTH, PERMISSIONS, DATA) | Logowanie auto-sync / merge (MVP-1B) |
+| Read-only prezentacja + Security log (AUTH, PERMISSIONS, DATA, RECOVERY) | Logowanie auto-sync / merge (MVP-1C) |
 
 **Kto ma dostęp:** tylko **Super Admin** (`canAccessAuditHub` → `adminIsSuperAdmin`).
 
@@ -34,6 +34,7 @@
 | **P0 hotfix** | **2.62.37** | **`a0d7093`** | Crash `localeCompare` — legacy `actor`/`at` undefined; fix `JobsView` photo_upload | **CLOSED** |
 | **Actor fidelity** | **2.62.38** | **`8138991`** | `activityLog` zapisuje `displayName` sesji | **CLOSED** |
 | **MVP-1 Security Log** | **2.62.39** | — | `kw-security-audit-log`, 6. źródło Audit Hub, hooki AUTH/PERMISSIONS/DATA | **CLOSED** |
+| **MVP-1B Recovery Events** | **2.62.41** | — | RECOVERY restore + DATA import/directory_delete w `security_log` | **CLOSED** |
 
 ### Incydent prod (2.62.36)
 
@@ -142,11 +143,14 @@ buildAuditHubViewModel(input, filters, page)
 |-----------|-------|----------|-------|
 | AUTH | `admin_login_success`, `admin_login_failed`, `admin_logout` | info / warn / info | `LoginScreen`, `AppInnerWithAuth` |
 | PERMISSIONS | `user_create`, `user_delete`, `user_role_change`, `user_password_change`, `user_password_reset` | warn / high | `admin-auth`, `AdminSettingsModal` |
-| DATA | `job_delete` | high | `deleteJobsByIds()` w `App.tsx` |
+| DATA | `job_delete`, `data_import_*`, `directory_delete` | high / warn | `deleteJobsByIds`, `importBackup`, `DirectoryView.remove` |
+| RECOVERY | `restore_backup_started`, `restore_backup_completed`, `restore_backup_failed` | info / high | `restore*FromCloud/Local` w `App.tsx` |
+
+**MVP-1B Recovery Events (2.62.41):** bez nowego źródła Audit Hub — wszystkie wpisy w `security_log`. Detail: `{ scope, source, backupSlot?, count?, message? }` lub `{ entryId }` — **bez payloadów backupów ani danych osobowych**.
 
 **Sync:** AUX KEY (nie `DATA_KEYS`) — `persistKey`, `pullSecurityAuditLogFromCloud`, `recordSecurityAudit` → push pojedynczego klucza (bez pełnego `runCloudSync`).
 
-**Nie obejmuje (MVP-1B):** auto-sync logging, inspector/worker login, eksport, alerty, migracja historycznego KV.
+**Nie obejmuje (MVP-1C):** auto-sync logging, sync conflict, inspector/worker login, eksport, alerty, migracja historycznego KV.
 
 ---
 
@@ -211,7 +215,8 @@ Przy release: workflow **B** — [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE
 | ID | Opis | Status |
 |----|------|--------|
 | **MVP-1** | Globalny security log — `kw-security-audit-log` | **CLOSED** (2.62.39) |
-| **MVP-1B** | Sync logging, directory_delete, eksport, alerty | **OPEN** |
+| **MVP-1B** | Recovery + data protection events w security_log | **CLOSED** (2.62.41) |
+| **MVP-1C** | Sync logging, eksport, alerty | **OPEN** |
 | **MVP-0C** | Eksport CSV/PDF feedu | **OPEN** |
 | **MVP-0D** | Retencja / archiwizacja unified feed | **OPEN** |
 | **MVP-0E** | Real-time push nowych wpisów (bez pełnego przeładowania) | **OPEN** |

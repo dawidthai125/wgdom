@@ -2180,9 +2180,26 @@ WGDOM1/
 | Adapter | `adaptSecurityAuditLog()` — `feedAt`/`feedActor`, `deepLink: none`, `severity` |
 | Hooki AUTH | `AppInnerWithAuth`, `LoginScreen` |
 | Hooki PERMISSIONS | `admin-auth.ts`, `AdminSettingsModal` |
-| Hook DATA | `deleteJobsByIds()` — `ids` + `count` w `detail`, bez payloadów |
+| Hook DATA | `deleteJobsByIds()`, `importBackup()`, `DirectoryView.remove()` |
+| Hook RECOVERY | `restoreJobsFromCloud/Local`, `restorePayrollFromCloud`, `restoreAllDataFromCloud/Local` |
 
 **Testy:** `scripts/test-security-audit-log.mjs` + rozszerzone `test-audit-hub-*.mjs`.
+
+### 15.4 Audit Hub MVP-1B — Recovery Events (v2.62.41)
+
+**Status:** **CLOSED** — rozszerzenie `security_log` (bez nowego źródła Audit Hub).
+
+| Akcja | Kategoria | Severity | Detail (bez PII) |
+|-------|-----------|----------|------------------|
+| `restore_backup_started` | RECOVERY | info | `scope`, `source`, opcjonalnie `backupSlot` |
+| `restore_backup_completed` | RECOVERY | high | + `count` gdy dostępny |
+| `restore_backup_failed` | RECOVERY | high | + `message` |
+| `data_import_started` | DATA | info | `source: file` |
+| `data_import_completed` | DATA | warn | + `count` kluczy |
+| `data_import_failed` | DATA | high | + `message` |
+| `directory_delete` | DATA | high | `entryId` |
+
+**Wykluczone:** sync push/pull, conflict detection, payroll guard, auto-sync logging.
 
 ---
 
@@ -2203,8 +2220,8 @@ WGDOM1/
 | `payroll-export.ts` / `payroll-cycle.ts` | PDF/Word listy płac, cykle tygodni |
 | `payroll-job-assignments.ts` | **P1 v2.59.49** — edycja `workEntries` z Listy Płac, badge spójności, mutacje jobs |
 | `inspector-stats.ts` | Statystyki logowań inspektorów |
-| `audit-hub/*` | **MVP-0 + MVP-1 CLOSED** — agregacja logów Audit Hub (6 źródeł) · handoff: `SESSION-HANDOFF-AUDIT-HUB.md` |
-| `security-audit-log.ts` | **MVP-1** — append-only security audit KV `kw-security-audit-log` |
+| `audit-hub/*` | **MVP-0 + MVP-1 + MVP-1B CLOSED** — agregacja logów Audit Hub (6 źródeł) · handoff: `SESSION-HANDOFF-AUDIT-HUB.md` |
+| `security-audit-log.ts` | **MVP-1 + MVP-1B** — append-only security audit KV `kw-security-audit-log` (AUTH, PERMISSIONS, DATA, RECOVERY) |
 | `inspector-dashboard.ts` | Statystyki pulpitu inspektora |
 | `email-contacts.ts` | Kontakty mailingowe |
 | `operational-notes.ts` | **P0 v2.57.0** — notatki operacyjne: model, ACL, mutacje, merge |

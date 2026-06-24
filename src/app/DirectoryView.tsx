@@ -20,13 +20,14 @@ import type { EmployeeLeave } from "@/lib/employee-leaves";
 import { mergeEmployeeLeaves } from "@/lib/employee-leaves";
 import { EmployeeLeavesSection } from "@/app/EmployeeLeavesSection";
 import { digestSha256Hex } from "@/lib/admin-auth";
+import { recordSecurityAudit } from "@/lib/security-audit-log";
 
 async function hashWorkerPin(pin: string): Promise<string> {
   return digestSha256Hex(`wgdom-worker-pin-v1:${pin}`);
 }
 
 export function DirectoryView({directory, savedWeeks, employeeLeaves, onChange, onCommit, onLeavesChange, onLeavesCommit, onOpenSms}:{directory:DirectoryEmployee[]; savedWeeks: WeekSnapshot[]; employeeLeaves: EmployeeLeave[]; onChange:(d:DirectoryEmployee[])=>void; onCommit?:()=>void; onLeavesChange:(l:EmployeeLeave[])=>void; onLeavesCommit?:(next:EmployeeLeave[], deletedId?:string)=>void; onOpenSms?:()=>void}) {
-  const { canViewRates } = useAdminAccess();
+  const { canViewRates, session: adminSession } = useAdminAccess();
   const [editId, setEditId] = useState<string|null>(null);
   const [archiveEmpId, setArchiveEmpId] = useState<string|null>(null);
   const [search, setSearch] = useState("");
@@ -52,6 +53,15 @@ export function DirectoryView({directory, savedWeeks, employeeLeaves, onChange, 
     const next = directory.filter((d)=>d.id!==id);
     onChange(next);
     pushDirectoryToCloud(next).catch(() => {});
+    void recordSecurityAudit({
+      actor: adminSession?.displayName ?? "Administrator",
+      actorUserId: adminSession?.id,
+      category: "DATA",
+      action: "directory_delete",
+      severity: "high",
+      summary: "Usunięto pracownika z katalogu",
+      detail: JSON.stringify({ entryId: id }),
+    }).catch(() => {});
   };
   const toggleActive = (id:string) => update({...directory.find((d)=>d.id===id)!, active:!directory.find((d)=>d.id===id)!.active});
 

@@ -5,7 +5,7 @@ import { fetchKeysFromCloud, pushKeysToCloud } from "@/lib/cloud-sync";
 export const SECURITY_AUDIT_LOG_KEY = "kw-security-audit-log";
 export const SECURITY_AUDIT_CAP = 5000;
 
-export type SecurityAuditCategory = "AUTH" | "PERMISSIONS" | "DATA" | "SYNC" | "SYSTEM";
+export type SecurityAuditCategory = "AUTH" | "PERMISSIONS" | "DATA" | "RECOVERY" | "SYNC" | "SYSTEM";
 
 export type SecurityAuditSeverity = "info" | "warn" | "high" | "critical";
 
@@ -18,7 +18,14 @@ export type SecurityAuditAction =
   | "user_role_change"
   | "user_password_change"
   | "user_password_reset"
-  | "job_delete";
+  | "job_delete"
+  | "restore_backup_started"
+  | "restore_backup_completed"
+  | "restore_backup_failed"
+  | "data_import_started"
+  | "data_import_completed"
+  | "data_import_failed"
+  | "directory_delete";
 
 export interface SecurityAuditEntry {
   id: string;
@@ -42,9 +49,19 @@ export const SECURITY_AUDIT_ACTION_LABEL_PL: Record<SecurityAuditAction, string>
   user_password_change: "Zmiana hasła",
   user_password_reset: "Reset hasła",
   job_delete: "Usunięcie roboty",
+  restore_backup_started: "Rozpoczęto przywracanie kopii",
+  restore_backup_completed: "Przywrócono kopię zapasową",
+  restore_backup_failed: "Błąd przywracania kopii",
+  data_import_started: "Rozpoczęto import backupu",
+  data_import_completed: "Import backupu zakończony",
+  data_import_failed: "Błąd importu backupu",
+  directory_delete: "Usunięcie pracownika z katalogu",
 };
 
-const VALID_CATEGORIES = new Set<string>(["AUTH", "PERMISSIONS", "DATA", "SYNC", "SYSTEM"]);
+/** @deprecated alias — używaj SECURITY_AUDIT_ACTION_LABEL_PL */
+export const SECURITY_ACTION_LABELS = SECURITY_AUDIT_ACTION_LABEL_PL;
+
+const VALID_CATEGORIES = new Set<string>(["AUTH", "PERMISSIONS", "DATA", "RECOVERY", "SYNC", "SYSTEM"]);
 const VALID_SEVERITIES = new Set<string>(["info", "warn", "high", "critical"]);
 const VALID_ACTIONS = new Set<string>(Object.keys(SECURITY_AUDIT_ACTION_LABEL_PL));
 

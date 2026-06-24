@@ -71,6 +71,7 @@ import {
   SECURITY_AUDIT_LOG_KEY,
   normalizeSecurityAuditLog,
   recordSecurityAudit,
+  type RecordSecurityAuditInput,
   type SecurityAuditEntry,
 } from "@/lib/security-audit-log";
 import { mergeOperationalNotesReadState } from "@/lib/operational-notes-read-state";
@@ -495,6 +496,87 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     }
   }, [setDirectory, setWeekEmployees, setSavedWeeks, setWeekFrom, setWeekTo, setJobs, setContacts, setEmployeeLeaves, setRecoverableCharges, setOperationalNotes]);
 
+  const logSecurityAudit = useCallback((input: RecordSecurityAuditInput) => {
+    void recordSecurityAudit({
+      ...input,
+      actor: input.actor ?? adminSession?.displayName ?? "Administrator",
+      actorUserId: input.actorUserId ?? adminSession?.id,
+    })
+      .then(() => {
+        try {
+          const raw = localStorage.getItem(SECURITY_AUDIT_LOG_KEY);
+          if (raw) setSecurityAuditLog(normalizeSecurityAuditLog(JSON.parse(raw)));
+        } catch { /* ignore */ }
+      })
+      .catch(() => {});
+  }, [adminSession, setSecurityAuditLog]);
+
+  const auditRestoreBackup = useCallback((
+    phase: "started" | "completed" | "failed",
+    opts: {
+      scope: "jobs" | "payroll" | "all";
+      source: "cloud" | "local";
+      backupSlot?: string;
+      count?: number;
+      message?: string;
+    },
+  ) => {
+    const scopePl = { jobs: "roboty", payroll: "lista płac", all: "wszystkie dane" };
+    const sourcePl = { cloud: "chmura", local: "lokalnie" };
+    const action = phase === "started"
+      ? "restore_backup_started"
+      : phase === "completed"
+        ? "restore_backup_completed"
+        : "restore_backup_failed";
+    const severity = phase === "started" ? "info" : "high";
+    const verb = phase === "started"
+      ? "Rozpoczęto przywracanie"
+      : phase === "completed"
+        ? "Przywrócono"
+        : "Błąd przywracania";
+    logSecurityAudit({
+      category: "RECOVERY",
+      action,
+      severity,
+      summary: `${verb}: ${scopePl[opts.scope]} (${sourcePl[opts.source]})`,
+      detail: JSON.stringify({
+        scope: opts.scope,
+        source: opts.source,
+        ...(opts.backupSlot ? { backupSlot: opts.backupSlot } : {}),
+        ...(opts.count != null ? { count: opts.count } : {}),
+        ...(opts.message ? { message: opts.message } : {}),
+      }),
+    });
+  }, [logSecurityAudit]);
+
+  const auditDataImport = useCallback((
+    phase: "started" | "completed" | "failed",
+    opts?: { count?: number; message?: string },
+  ) => {
+    const action = phase === "started"
+      ? "data_import_started"
+      : phase === "completed"
+        ? "data_import_completed"
+        : "data_import_failed";
+    const severity = phase === "started" ? "info" : phase === "completed" ? "warn" : "high";
+    const verb = phase === "started"
+      ? "Rozpoczęto import backupu"
+      : phase === "completed"
+        ? "Import backupu zakończony"
+        : "Błąd importu backupu";
+    logSecurityAudit({
+      category: "DATA",
+      action,
+      severity,
+      summary: verb,
+      detail: JSON.stringify({
+        source: "file",
+        ...(opts?.count != null ? { count: opts.count } : {}),
+        ...(opts?.message ? { message: opts.message } : {}),
+      }),
+    });
+  }, [logSecurityAudit]);
+
   const deleteJobsByIds = useCallback(async (ids: string[]) => {
     const unique = [...new Set(ids.filter(Boolean))];
     if (unique.length === 0) return;
@@ -512,22 +594,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     });
     try {
       await pushJobsAfterDelete(updated, deletedIds);
-      void recordSecurityAudit({
-        actor: adminSession?.displayName ?? "Administrator",
-        actorUserId: adminSession?.id,
+      logSecurityAudit({
         category: "DATA",
         action: "job_delete",
         severity: "high",
         summary: unique.length === 1 ? "Usunięto 1 robotę" : `Usunięto ${unique.length} robot`,
         detail: JSON.stringify({ ids: unique, count: unique.length }),
-      })
-        .then(() => {
-          try {
-            const raw = localStorage.getItem(SECURITY_AUDIT_LOG_KEY);
-            if (raw) setSecurityAuditLog(normalizeSecurityAuditLog(JSON.parse(raw)));
-          } catch { /* ignore */ }
-        })
-        .catch(() => {});
+      });
       toast.success(unique.length === 1 ? "Robota usunięta" : `Usunięto ${unique.length} robot`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Błąd zapisu do chmury";
@@ -535,7 +608,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     } finally {
       deleteJobsInFlightRef.current = false;
     }
-  }, [clearPendingAutoSync, setJobs, adminSession, setSecurityAuditLog]);
+  }, [clearPendingAutoSync, setJobs, logSecurityAudit]);
 
   const pullFromCloudAndMerge = useCallback(async () => {
     if (!tabVisibleRef.current || !isSupabaseConfigured() || pullInFlightRef.current) return;
@@ -791,8 +864,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const importBackup = (file: File) => {
     const reader=new FileReader();
     reader.onload=async (e)=>{
+      auditDataImport("started");
       try {
         const data=JSON.parse(e.target?.result as string);
+        const keyCount = Object.keys(data).length;
         if (data["kw-jobs"] != null) {
           const local = normalizeJobsValue(JSON.parse(localStorage.getItem("kw-jobs") || "[]"));
           data["kw-jobs"] = mergeJobsById(local, normalizeJobsValue(data["kw-jobs"]));
@@ -880,8 +955,14 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             );
           }
         } catch { /* reload i tak wczyta */ }
+        auditDataImport("completed", { count: keyCount });
         window.location.reload();
-      } catch { alert("Błąd importu pliku."); }
+      } catch (err) {
+        auditDataImport("failed", {
+          message: err instanceof Error ? err.message : "Błąd importu pliku",
+        });
+        alert("Błąd importu pliku.");
+      }
     };
     reader.readAsText(file);
   };
@@ -889,6 +970,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const restoreJobsFromCloud = async (source: "prev" | "prev2" | "today") => {
     const labels = { prev: "poprzedni zapis", prev2: "starszą kopię", today: "zapis z dziś" };
     if (!window.confirm(`Przywrócić roboty z chmury (${labels[source]})? Obecna lista zostanie zachowana w kopii.`)) return;
+    auditRestoreBackup("started", { scope: "jobs", source: "cloud", backupSlot: source });
     setRestoreBusy(true);
     try {
       const { count } = await restoreCloudJobsBackup(source);
@@ -898,9 +980,16 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       localStorage.setItem("kw-jobs", JSON.stringify(synced));
       setJobs(synced);
       await pushKeysToCloud(["kw-jobs"], [synced], { replaceJobsKeys: ["kw-jobs"] });
+      auditRestoreBackup("completed", { scope: "jobs", source: "cloud", backupSlot: source, count: synced.length });
       alert(`Przywrócono ${count} robót z kopii chmurowej. Łącznie w aplikacji: ${synced.length}.`);
       fetchJobsBackupStatus().then(setJobsBackupStatus).catch(() => {});
     } catch (err) {
+      auditRestoreBackup("failed", {
+        scope: "jobs",
+        source: "cloud",
+        backupSlot: source,
+        message: err instanceof Error ? err.message : "Nie udało się przywrócić kopii z chmury",
+      });
       alert(err instanceof Error ? err.message : "Nie udało się przywrócić kopii z chmury.");
     } finally {
       setRestoreBusy(false);
@@ -916,18 +1005,29 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const latest = snaps[0];
     const when = new Date(latest.at).toLocaleString("pl-PL");
     if (!window.confirm(`Przywrócić ${latest.jobs.length} robót z lokalnej kopii (${when})?`)) return;
+    auditRestoreBackup("started", { scope: "jobs", source: "local" });
     const restored = restoreLocalJobsSnapshot(0);
-    if (!restored) { alert("Błąd odczytu lokalnej kopii."); return; }
+    if (!restored) {
+      auditRestoreBackup("failed", {
+        scope: "jobs",
+        source: "local",
+        message: "Błąd odczytu lokalnej kopii",
+      });
+      alert("Błąd odczytu lokalnej kopii.");
+      return;
+    }
     const merged = mergeJobsById(jobs, restored, getDeletedJobIds()) as Job[];
     const synced = normalizeJobsList(merged as unknown[]);
     setJobs(synced);
     pushKeysToCloudSafe(["kw-jobs"], [synced]).catch(() => {});
+    auditRestoreBackup("completed", { scope: "jobs", source: "local", count: synced.length });
     alert(`Przywrócono lokalną kopię. Łącznie robot: ${synced.length}.`);
   };
 
   const restorePayrollFromCloud = async (source: "prev" | "prev2" = "prev") => {
     const label = source === "prev2" ? "starszą kopię" : "poprzedni zapis";
     if (!window.confirm(`Przywrócić listę płac i archiwum z chmury (${label})? Połączy z obecnymi danymi — bogatsze wpisy wygrywają.`)) return;
+    auditRestoreBackup("started", { scope: "payroll", source: "cloud", backupSlot: source });
     setRestoreBusy(true);
     try {
       await restoreCloudPayrollBackup(source);
@@ -939,11 +1039,23 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       setWeekEmployees(mergedEmps);
       setSavedWeeks(mergedArch);
       await pushKeysToCloudSafe(["kw-week-employees", "kw-archive"], [mergedEmps, mergedArch]);
+      auditRestoreBackup("completed", {
+        scope: "payroll",
+        source: "cloud",
+        backupSlot: source,
+        count: mergedEmps.length,
+      });
       alert(`Przywrócono listę płac (${mergedEmps.length} prac.) i archiwum (${mergedArch.length} tyg.).`);
       fetchPayrollBackupStatus().then((s) => {
         if (s) setPayrollBackupStatus({ employeesPrev: s.employeesPrev, employeesPrev2: s.employeesPrev2, archivePrev: s.archivePrev });
       }).catch(() => {});
     } catch (err) {
+      auditRestoreBackup("failed", {
+        scope: "payroll",
+        source: "cloud",
+        backupSlot: source,
+        message: err instanceof Error ? err.message : "Nie udało się przywrócić listy płac z chmury",
+      });
       alert(err instanceof Error ? err.message : "Nie udało się przywrócić listy płac z chmury.");
     } finally {
       setRestoreBusy(false);
@@ -963,6 +1075,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const restoreAllDataFromCloud = async (source: "prev" | "prev2" | "today" = "prev") => {
     const labels = { prev: "poprzedni zapis", prev2: "starszą kopię", today: "zapis z dziś" };
     if (!window.confirm(`Przywrócić WSZYSTKIE dane firmy z chmury (${labels[source]})? Scalą się z obecnymi — bogatsze wpisy wygrywają.`)) return;
+    auditRestoreBackup("started", { scope: "all", source: "cloud", backupSlot: source });
     setRestoreBusy(true);
     try {
       saveLocalDataSnapshot();
@@ -974,9 +1087,21 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         localStorage.setItem(DATA_KEYS[i], JSON.stringify(merged[i]));
       }
       await pushAllDataToCloud(merged);
+      auditRestoreBackup("completed", {
+        scope: "all",
+        source: "cloud",
+        backupSlot: source,
+        count: restoredKeys.length,
+      });
       alert(`Przywrócono z chmury: ${restoredKeys.join(", ")}. Strona się odświeży.`);
       window.location.reload();
     } catch (err) {
+      auditRestoreBackup("failed", {
+        scope: "all",
+        source: "cloud",
+        backupSlot: source,
+        message: err instanceof Error ? err.message : "Nie udało się przywrócić danych z chmury",
+      });
       alert(err instanceof Error ? err.message : "Nie udało się przywrócić danych z chmury.");
     } finally {
       setRestoreBusy(false);
@@ -991,7 +1116,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       return;
     }
     if (!window.confirm(`Przywrócić dane z kopii lokalnej (${new Date(pick.at).toLocaleString("pl-PL")})?`)) return;
+    auditRestoreBackup("started", { scope: "all", source: "local" });
     restoreLocalDataSnapshot(pick.usePrev);
+    auditRestoreBackup("completed", { scope: "all", source: "local" });
     window.location.reload();
   };
 

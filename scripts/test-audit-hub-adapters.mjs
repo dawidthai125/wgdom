@@ -402,6 +402,43 @@ console.log("Audit Hub MVP-0A — test-audit-hub-adapters\n");
   assert(counts.security_log === 1, "T18 counts security_log");
 }
 
+// T19 — security_log recovery + data actions
+{
+  const restore = buildSecurityAuditEntry({
+    actor: "Dawid",
+    category: "RECOVERY",
+    action: "restore_backup_completed",
+    severity: "high",
+    summary: "Przywrócono: roboty (chmura)",
+    detail: JSON.stringify({ scope: "jobs", source: "cloud", count: 10 }),
+    at: "2026-06-24T10:00:00.000Z",
+  });
+  const [item] = adaptSecurityAuditLog([restore]);
+  assert(item.actionLabel === "Przywrócono kopię zapasową", "T19 restore actionLabel PL");
+  assert(item.severity === "high", "T19 restore severity");
+  const importEvt = buildSecurityAuditEntry({
+    actor: "Dawid",
+    category: "DATA",
+    action: "data_import_completed",
+    severity: "warn",
+    summary: "Import backupu zakończony",
+    at: "2026-06-24T11:00:00.000Z",
+  });
+  const [importItem] = adaptSecurityAuditLog([importEvt]);
+  assert(importItem.severity === "warn", "T19 import severity warn");
+  const dirDel = buildSecurityAuditEntry({
+    actor: "Dawid",
+    category: "DATA",
+    action: "directory_delete",
+    severity: "high",
+    summary: "Usunięto pracownika z katalogu",
+    detail: JSON.stringify({ entryId: "dir-1" }),
+    at: "2026-06-24T12:00:00.000Z",
+  });
+  const [delItem] = adaptSecurityAuditLog([dirDel]);
+  assert(delItem.action === "directory_delete", "T19 directory_delete action");
+}
+
 // sortAuditFeed tie-breaker id
 {
   const a = {

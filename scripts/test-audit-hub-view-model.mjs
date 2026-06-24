@@ -404,5 +404,55 @@ console.log("Audit Hub MVP-0B — test-audit-hub-view-model\n");
   assert(typeof sec?.at === "string", "security legacy — at string");
 }
 
+// security_log — recovery + import + directory delete KPI
+{
+  const securityEvents = normalizeSecurityAuditLog([
+    buildSecurityAuditEntry({
+      actor: "Dawid",
+      category: "RECOVERY",
+      action: "restore_backup_completed",
+      severity: "high",
+      summary: "Przywrócono: wszystkie dane (chmura)",
+      at: "2026-06-24T09:00:00.000Z",
+    }),
+    buildSecurityAuditEntry({
+      actor: "Dawid",
+      category: "RECOVERY",
+      action: "restore_backup_failed",
+      severity: "high",
+      summary: "Błąd przywracania: roboty (chmura)",
+      at: "2026-06-24T08:00:00.000Z",
+    }),
+    buildSecurityAuditEntry({
+      actor: "Dawid",
+      category: "DATA",
+      action: "data_import_completed",
+      severity: "warn",
+      summary: "Import backupu zakończony",
+      detail: JSON.stringify({ source: "file", count: 8 }),
+      at: "2026-06-24T07:00:00.000Z",
+    }),
+    buildSecurityAuditEntry({
+      actor: "Dawid",
+      category: "DATA",
+      action: "directory_delete",
+      severity: "high",
+      summary: "Usunięto pracownika z katalogu",
+      detail: JSON.stringify({ entryId: "emp-x" }),
+      at: "2026-06-24T06:00:00.000Z",
+    }),
+  ]);
+  const withRecovery = { ...hubInput, securityAuditLog: securityEvents };
+  const model = buildAuditHubViewModel(withRecovery, EMPTY_AUDIT_HUB_FILTERS, 1);
+  assert(model.kpi.bySource.security_log === 4, "recovery events — security_log KPI 4");
+  assert(model.kpi.total === 10, "recovery events — total feed 10");
+  const restoreItem = model.feed.find((i) => i.action === "restore_backup_completed");
+  assert(restoreItem?.severity === "high", "restore success — severity high in feed");
+  const importItem = model.feed.find((i) => i.action === "data_import_completed");
+  assert(importItem?.severity === "warn", "import success — severity warn in feed");
+  const deleteItem = model.feed.find((i) => i.action === "directory_delete");
+  assert(deleteItem?.actionLabel === "Usunięcie pracownika z katalogu", "directory delete — actionLabel PL");
+}
+
 console.log(`\n--- ${passed} passed, ${failed} failed ---`);
 if (failed > 0) process.exit(1);

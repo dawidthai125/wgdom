@@ -11,6 +11,25 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-24",
+    version: "2.62.41",
+    label: "Audit Hub — Recovery Events (Security Log)",
+    items: [
+      {
+        type: "new",
+        text: "Security log RECOVERY — restore_backup_started/completed/failed (roboty, płace, pełny backup)",
+      },
+      {
+        type: "new",
+        text: "Security log DATA — data_import_started/completed/failed oraz directory_delete",
+      },
+      {
+        type: "improve",
+        text: "Audit Hub — wpisy recovery/import/delete w istniejącym źródle security_log (severity badge)",
+      },
+    ],
+  },
+  {
     date: "2026-06-23",
     version: "2.62.40",
     label: "Przetargi — TP200C sync merge fidelity kosztorysu",

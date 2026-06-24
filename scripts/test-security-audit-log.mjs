@@ -5,6 +5,7 @@
 import {
   SECURITY_AUDIT_CAP,
   SECURITY_AUDIT_LOG_KEY,
+  SECURITY_AUDIT_ACTION_LABEL_PL,
   appendSecurityAuditEntry,
   buildSecurityAuditEntry,
   mergeSecurityAuditLog,
@@ -117,6 +118,62 @@ console.log("Security audit log MVP-1 — test-security-audit-log\n");
 // T09 — key constant
 {
   assert(SECURITY_AUDIT_LOG_KEY === "kw-security-audit-log", "T09 SECURITY_AUDIT_LOG_KEY");
+}
+
+// T10 — RECOVERY actions
+{
+  const started = buildSecurityAuditEntry({
+    actor: "Dawid",
+    category: "RECOVERY",
+    action: "restore_backup_started",
+    severity: "info",
+    summary: "Rozpoczęto przywracanie: roboty (chmura)",
+    detail: JSON.stringify({ scope: "jobs", source: "cloud", backupSlot: "prev" }),
+  });
+  assert(started.category === "RECOVERY" && started.action === "restore_backup_started", "T10 restore_backup_started");
+  const completed = buildSecurityAuditEntry({
+    actor: "Dawid",
+    category: "RECOVERY",
+    action: "restore_backup_completed",
+    severity: "high",
+    summary: "Przywrócono: roboty (chmura)",
+    detail: JSON.stringify({ scope: "jobs", source: "cloud", count: 42 }),
+  });
+  assert(completed.severity === "high", "T10 restore_backup_completed severity high");
+  const failed = buildSecurityAuditEntry({
+    actor: "Dawid",
+    category: "RECOVERY",
+    action: "restore_backup_failed",
+    severity: "high",
+    summary: "Błąd przywracania",
+    detail: JSON.stringify({ scope: "all", source: "cloud", message: "offline" }),
+  });
+  const [parsedFailed] = normalizeSecurityAuditLog([failed]);
+  assert(parsedFailed?.action === "restore_backup_failed", "T10 normalize restore_backup_failed");
+}
+
+// T11 — DATA import + directory_delete
+{
+  const importDone = buildSecurityAuditEntry({
+    actor: "Admin",
+    category: "DATA",
+    action: "data_import_completed",
+    severity: "warn",
+    summary: "Import backupu zakończony",
+    detail: JSON.stringify({ source: "file", count: 12 }),
+  });
+  assert(importDone.severity === "warn", "T11 data_import_completed warn");
+  const dirDel = buildSecurityAuditEntry({
+    actor: "Admin",
+    category: "DATA",
+    action: "directory_delete",
+    severity: "high",
+    summary: "Usunięto pracownika z katalogu",
+    detail: JSON.stringify({ entryId: "emp-1" }),
+  });
+  assert(SECURITY_AUDIT_ACTION_LABEL_PL.directory_delete === "Usunięcie pracownika z katalogu", "T11 directory_delete label PL");
+  const [parsedDir] = normalizeSecurityAuditLog([dirDel]);
+  assert(parsedDir?.category === "DATA", "T11 directory_delete category DATA");
 }
 
 console.log(`\n--- ${passed} passed, ${failed} failed ---`);
