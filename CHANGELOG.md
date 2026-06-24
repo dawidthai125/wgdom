@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.44** · **P0 Payroll hours ETAP 1**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.45** · **P1 ZI-PDF-ADDRESS-COMPLETENESS**
+
+## 2.62.45 — ZI Tauron 2026 · adres §4 dual-fill (P1 ZI-PDF-ADDRESS-COMPLETENESS)
+
+- **improve:** `applyAddressSectionFields` — 95–97 + 99/111/112, 101←JOB_CITY, 102/110 czyszczone
+- **test:** `test-wm-print-zi-2026-smoke.mjs` · `test-wm-print-zi-2026-preservation-smoke.mjs`
 
 ## 2.62.44 — Lista Płac · godziny ETAP 1 (P0 PAYROLL-HOURS-PERSISTENCE)
 

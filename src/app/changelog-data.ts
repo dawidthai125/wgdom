@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.45",
+    label: "ZI Tauron 2026 — pełny adres §4 (dual-fill + miasto + czyszczenie kodu)",
+    items: [
+      {
+        type: "improve",
+        text: "ZI PDF — górny i dolny wiersz §4 (95–97 + 99/111/112), miejscowość 101 z ustawień WM, kod 102/110 czyszczony ze szablonu",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.44",
     label: "Lista Płac — fix znikających godzin po zmianie pracownika (ETAP 1)",
     items: [

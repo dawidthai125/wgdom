@@ -1,6 +1,6 @@
 /**
  * ZI Tauron 2026 — smoke test (Sępa Szarzyńskiego 83/7).
- * Weryfikuje fill pól 99/111/112 + dopasowanie pozycji do etykiet §4.
+ * Weryfikuje dual-fill §4 (95–97 + 99/111/112), 101=JOB_CITY, 102/110 puste.
  */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -10,6 +10,7 @@ import {
   generatePdfZiTauron2026,
   inspectZiTauron2026Fill,
   WM_PRINT_ZI_TAURON2026_FIELD_MAP,
+  WM_PRINT_ZI_TAURON2026_POSTAL_CLEAR_FIELDS,
 } from "../src/lib/wm-print/generate-pdf-zi-tauron2026.ts";
 import { buildWmPrintVariableMap } from "../src/lib/wm-print/variables.ts";
 
@@ -22,12 +23,19 @@ const EXPECTED = {
   street: "Sępa Szarzyńskiego",
   building: "83",
   apartment: "7",
+  city: "Wrocław",
 };
 
-const SPATIAL = {
-  "Pole tekstowe 99": { label: "Ulica", x: 24.52, y: 584.69 },
-  "Pole tekstowe 111": { label: "Numer budynku", x: 388.68, y: 584.92 },
-  "Pole tekstowe 112": { label: "Numer lokalu", x: 486.72, y: 584.92 },
+const SPATIAL_UPPER = {
+  "Pole tekstowe 95": { label: "Ulica (górny)", x: 24.52, y: 728.08 },
+  "Pole tekstowe 96": { label: "Numer budynku (górny)", x: 388.68, y: 728.08 },
+  "Pole tekstowe 97": { label: "Numer lokalu (górny)", x: 486.72, y: 728.08 },
+};
+
+const SPATIAL_LOWER = {
+  "Pole tekstowe 99": { label: "Ulica (dolny)", x: 24.52, y: 584.69 },
+  "Pole tekstowe 111": { label: "Numer budynku (dolny)", x: 388.68, y: 584.92 },
+  "Pole tekstowe 112": { label: "Numer lokalu (dolny)", x: 486.72, y: 584.92 },
 };
 
 const templatePath = join(process.cwd(), "public", "wm-print", "zi-tauron-2026-template.pdf");
@@ -45,9 +53,17 @@ const vars = buildWmPrintVariableMap(
 );
 
 const filled = await inspectZiTauron2026Fill(templateBytes, vars);
-assert(filled["Pole tekstowe 99"] === EXPECTED.street, "field 99 = street");
-assert(filled["Pole tekstowe 111"] === EXPECTED.building, "field 111 = building");
-assert(filled["Pole tekstowe 112"] === EXPECTED.apartment, "field 112 = apartment");
+
+assert(filled["Pole tekstowe 95"] === EXPECTED.street, "field 95 = street (górny)");
+assert(filled["Pole tekstowe 96"] === EXPECTED.building, "field 96 = building (górny)");
+assert(filled["Pole tekstowe 97"] === EXPECTED.apartment, "field 97 = apartment (górny)");
+assert(filled["Pole tekstowe 99"] === EXPECTED.street, "field 99 = street (dolny)");
+assert(filled["Pole tekstowe 111"] === EXPECTED.building, "field 111 = building (dolny)");
+assert(filled["Pole tekstowe 112"] === EXPECTED.apartment, "field 112 = apartment (dolny)");
+assert(filled["Pole tekstowe 101"] === EXPECTED.city, "field 101 = JOB_CITY");
+for (const fieldName of WM_PRINT_ZI_TAURON2026_POSTAL_CLEAR_FIELDS) {
+  assert(filled[fieldName] === "", `${fieldName} cleared`);
+}
 
 const outBytes = await generatePdfZiTauron2026(templateBytes, vars);
 const outDir = join(process.cwd(), "audit", "tauron-audit-2026-06-15");
@@ -64,8 +80,13 @@ for (const [fieldName, varKey] of Object.entries(WM_PRINT_ZI_TAURON2026_FIELD_MA
   assert(val === expected, `pdf.js ${fieldName} = ${expected} (got ${val})`);
 }
 
+for (const fieldName of WM_PRINT_ZI_TAURON2026_POSTAL_CLEAR_FIELDS) {
+  const val = fields?.[fieldName]?.[0]?.value ?? "";
+  assert(val === "", `pdf.js ${fieldName} cleared (got ${JSON.stringify(val)})`);
+}
+
 const spatialReport = [];
-for (const [fieldName, spec] of Object.entries(SPATIAL)) {
+for (const [fieldName, spec] of Object.entries({ ...SPATIAL_UPPER, ...SPATIAL_LOWER })) {
   const f = fields?.[fieldName]?.[0];
   assert(f, `pdf.js has field ${fieldName}`);
   const dx = Math.abs((f.rect?.[0] ?? 0) - spec.x);
@@ -79,13 +100,11 @@ for (const [fieldName, spec] of Object.entries(SPATIAL)) {
   });
 }
 
-const kod102 = fields?.["Pole tekstowe 102"]?.[0]?.value ?? "";
-assert(kod102 === "", "field 102 (Kod pocztowy) remains empty");
-
 const report = {
   generatedAt: new Date().toISOString(),
   fixture: EXPECTED,
   mapping: WM_PRINT_ZI_TAURON2026_FIELD_MAP,
+  postalClearFields: WM_PRINT_ZI_TAURON2026_POSTAL_CLEAR_FIELDS,
   spatialReport,
   output: outPath,
   verdict: "SMOKE PASS",
@@ -98,4 +117,4 @@ console.log("\n=== ZI-2026 SMOKE PASS ===");
 console.log("Output:", outPath);
 console.log("Report:", reportPath);
 console.log("Spatial:", spatialReport);
-console.log("Manual gate: otwórz PDF w Edge — §4 dolny wiersz: Ulica | 83 | 7");
+console.log("Manual gate: §4 górny wiersz (95–97) + dolny (99/111/112) + 101=Wrocław; 102/110 puste");

@@ -1,5 +1,5 @@
 /**
- * ZI Tauron 2026 — preservation gate (encrypted WM ZI.pdf + adres §4).
+ * ZI Tauron 2026 — preservation gate (encrypted WM ZI.pdf + adres §4 dual-fill).
  * Źródło: wypełniony ZI.pdf użytkownika (Dawid / Thai Thanh / Stróża …).
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -10,6 +10,7 @@ import {
   countZiTauron2026PdfLibFields,
   generatePdfZiTauron2026,
   WM_PRINT_ZI_TAURON2026_FIELD_MAP,
+  WM_PRINT_ZI_TAURON2026_POSTAL_CLEAR_FIELDS,
 } from "../src/lib/wm-print/generate-pdf-zi-tauron2026.ts";
 import {
   extractZiTauron2026FormFieldsPdfJs,
@@ -52,7 +53,6 @@ assert(Object.keys(beforeFields).length >= 10, "source has user-filled fields (p
 const PRESERVE = [
   { field: "Pole tekstowe 39", label: "DAWID", match: (v) => norm(v) === "dawid" },
   { field: "Pole tekstowe 40", label: "THAI THANH", match: (v) => norm(v) === "thai thanh" },
-  { field: "Pole tekstowe 101", label: "STRÓŻA", match: (v) => norm(v).includes("stroz") || norm(v).includes("stróża") },
   { field: "Pole wyboru 39", label: "checkbox Tak", match: (v) => norm(v) === "tak" },
 ];
 
@@ -61,7 +61,12 @@ for (const p of PRESERVE) {
   assert(v !== undefined && p.match(v), `before: ${p.label} (${p.field})`);
 }
 
-const EXPECTED_ADDR = { street: "Sępa Szarzyńskiego", building: "83", apartment: "7" };
+assert(
+  beforeFields["Pole tekstowe 101"] !== undefined,
+  "before: source had stale miejscowość (101) from template",
+);
+
+const EXPECTED_ADDR = { street: "Sępa Szarzyńskiego", building: "83", apartment: "7", city: "Wrocław" };
 const parts = parseJobAddressParts("Sępa Szarzyńskiego 83", "7");
 assert(parts.street === EXPECTED_ADDR.street, "parse street");
 
@@ -89,6 +94,14 @@ for (const [fieldName, varKey] of Object.entries(WM_PRINT_ZI_TAURON2026_FIELD_MA
   assert(val === expected, `after §4: ${fieldName} = ${expected}`);
 }
 
+for (const fieldName of WM_PRINT_ZI_TAURON2026_POSTAL_CLEAR_FIELDS) {
+  const val = afterFields?.[fieldName]?.[0]?.value ?? "";
+  assert(val === "", `after §4: ${fieldName} cleared (was stale from template)`);
+}
+
+const cityAfter = afterFields?.["Pole tekstowe 101"]?.[0]?.value ?? "";
+assert(cityAfter === vars.JOB_CITY, `101 overwritten with JOB_CITY (not stale Stróża): ${cityAfter}`);
+
 const report = {
   generatedAt: new Date().toISOString(),
   fixture: FIXTURE_ZI,
@@ -101,9 +114,15 @@ const report = {
     after: afterFields?.[p.field]?.[0]?.value ?? "",
   })),
   address: {
+    "Pole tekstowe 95": afterFields?.["Pole tekstowe 95"]?.[0]?.value,
+    "Pole tekstowe 96": afterFields?.["Pole tekstowe 96"]?.[0]?.value,
+    "Pole tekstowe 97": afterFields?.["Pole tekstowe 97"]?.[0]?.value,
     "Pole tekstowe 99": afterFields?.["Pole tekstowe 99"]?.[0]?.value,
     "Pole tekstowe 111": afterFields?.["Pole tekstowe 111"]?.[0]?.value,
     "Pole tekstowe 112": afterFields?.["Pole tekstowe 112"]?.[0]?.value,
+    "Pole tekstowe 101": afterFields?.["Pole tekstowe 101"]?.[0]?.value,
+    "Pole tekstowe 102": afterFields?.["Pole tekstowe 102"]?.[0]?.value,
+    "Pole tekstowe 110": afterFields?.["Pole tekstowe 110"]?.[0]?.value,
   },
   output: outPath,
   verdict: "PRESERVATION SMOKE PASS",
