@@ -20,9 +20,13 @@ import {
 
 export const APARTMENT_1F_VIEWBOX = { width: 1248, height: 748 };
 
+/** MCB + etykieta po prawej od osi kolumny (renderBreaker: x+34 + stack). */
+export const APARTMENT_1F_CIRCUIT_SYMBOL_RIGHT_WIDTH = 96;
+
 /** V2 layout scale — proporcje jak 3F, węższa kanwa. */
 export const APARTMENT_1F_LAYOUT = {
   marginX: 24,
+  columnRightInset: APARTMENT_1F_CIRCUIT_SYMBOL_RIGHT_WIDTH,
   busColumnTail: 24,
   headerY: 34,
   supplyBusY: 64,
@@ -51,6 +55,7 @@ function resolveLayout(diagram: SingleLineDiagram) {
     marginX: APARTMENT_1F_LAYOUT.marginX,
     minCircuitSpacing: APARTMENT_1F_LAYOUT.minCircuitSpacing,
     busColumnTail: APARTMENT_1F_LAYOUT.busColumnTail,
+    columnRightInset: APARTMENT_1F_LAYOUT.columnRightInset,
   });
   return { circuits, ...bus };
 }

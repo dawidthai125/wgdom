@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.54** · **WM Schematy Header Spaces Hotfix**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.55** · **WM Schematy Right Edge Clipping Hotfix**
+
+## 2.62.55 — WM Schematy Right Edge Clipping Hotfix
+
+- **fix:** ucinanie ostatniego obwodu w PDF — `columnRightInset` 96 px w `bus-layout-v2`
+- **fix:** apartment-1f-v1 / 3f-v1 — ostatnia kolumna mieści się w viewBox (MCB + etykiety)
+- **test:** `test-schematic-1f-right-edge-margin.mjs` R01–R05 · regresja `test-schematic-v1b-visual-smoke.mjs`
 
 ## 2.62.54 — WM Schematy Header Input Spaces Hotfix
 

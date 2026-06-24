@@ -20,9 +20,13 @@ import {
 
 export const APARTMENT_3F_VIEWBOX = { width: 1360, height: 780 };
 
+/** MCB + etykieta po prawej od osi kolumny (renderBreaker: x+34 + stack). */
+export const APARTMENT_3F_CIRCUIT_SYMBOL_RIGHT_WIDTH = 96;
+
 /** V2 layout scale — referencja Benedyktyńska 22/13 (pełna szerokość strony). */
 export const APARTMENT_3F_LAYOUT = {
   marginX: 24,
+  columnRightInset: APARTMENT_3F_CIRCUIT_SYMBOL_RIGHT_WIDTH,
   busColumnTail: 24,
   headerY: 36,
   supplyBusY: 68,
@@ -51,6 +55,7 @@ function resolveLayout(diagram: SingleLineDiagram) {
     marginX: APARTMENT_3F_LAYOUT.marginX,
     minCircuitSpacing: APARTMENT_3F_LAYOUT.minCircuitSpacing,
     busColumnTail: APARTMENT_3F_LAYOUT.busColumnTail,
+    columnRightInset: APARTMENT_3F_LAYOUT.columnRightInset,
   });
   return { circuits, ...bus };
 }

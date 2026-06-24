@@ -6,6 +6,8 @@ export interface BusLayoutV2Options {
   marginX: number;
   minCircuitSpacing: number;
   busColumnTail: number;
+  /** Rezerwa po prawej od środka ostatniej kolumny (MCB + etykieta). */
+  columnRightInset?: number;
 }
 
 export interface BusLayoutV2Result {
@@ -19,8 +21,9 @@ export interface BusLayoutV2Result {
  * Szyna: min(backbone, pierwsza kolumna) → ostatnia kolumna + tail.
  */
 export function resolveBusLayoutV2(count: number, options: BusLayoutV2Options): BusLayoutV2Result {
-  const { viewBoxWidth, feedBackboneX, marginX, minCircuitSpacing, busColumnTail } = options;
-  const layoutEndX = viewBoxWidth - marginX;
+  const { viewBoxWidth, feedBackboneX, marginX, minCircuitSpacing, busColumnTail, columnRightInset = 0 } =
+    options;
+  const layoutEndX = viewBoxWidth - marginX - columnRightInset;
 
   if (count <= 0) {
     return { columnXs: [], busStartX: feedBackboneX, busEndX: layoutEndX };

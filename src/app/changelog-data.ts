@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.55",
+    label: "WM Schematy — Right Edge Clipping Hotfix",
+    items: [
+      {
+        type: "fix",
+        text: "WM Schematy — naprawiono ucinanie ostatniego obwodu przy prawej krawędzi PDF (apartment-1f-v1 / 3f-v1)",
+      },
+      {
+        type: "fix",
+        text: "Schematy — dodano bezpieczny margines columnRightInset (96 px) dla ostatniej kolumny w bus-layout-v2",
+      },
+      {
+        type: "fix",
+        text: "Schematy — poprawiono geometrię layoutu bez zmiany pozycji pierwszego obwodu i renderer v5",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.54",
     label: "WM Schematy — Header Input Spaces Hotfix",
     items: [
