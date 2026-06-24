@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.42",
+    label: "Cloud sync — przywrócony import merge delivery package",
+    items: [
+      {
+        type: "fix",
+        text: "cloud-sync — przywrócony import mergeDeliveryPackagePublications (regresja 2.62.39); toast „Nie udało się wysłać do chmury” po odświeżeniu",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.41",
     label: "Audit Hub — Recovery Events (Security Log)",
     items: [

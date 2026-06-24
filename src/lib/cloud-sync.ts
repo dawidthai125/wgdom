@@ -75,6 +75,7 @@ import {
   defaultUserClassificationDictionaryStore,
   refreshUserClassificationDictionaryCacheFromLocalStorage,
 } from "@/lib/wgdom-user-classification-dictionary";
+import { mergeDeliveryPackagePublications } from "@/lib/delivery-package-publications/merge";
 import {
   mergeSecurityAuditLog,
   normalizeSecurityAuditLog,
