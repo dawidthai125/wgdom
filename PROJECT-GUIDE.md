@@ -117,6 +117,13 @@ Po hasłach **„kontynuuj WGDOM”** / nowa sesja:
 
 Operacje KV (Szymon/Paweł override, martwe URL) — tylko read-then-set ze snapshotem; szczegóły w INCIDENTS.
 
+### Audit Hub + WM Druk (AUDIT-HUB-WM-001)
+
+- **Audit Hub** agreguje 6 źródeł read-only — **nie** ma własnego Event Store.
+- **WM Odbiory** logują do `kw-wm-print-history` → widoczne jako źródło `wm_print`.
+- **WM Pomiary + Schematy** — **brak integracji** (RAP CRUD, PDF schematu nie trafia do Hub).
+- Plan P1: [`docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md).
+
 ### Monolit UI
 
 - Główny plik: `src/app/App.tsx` (bardzo duży) — szukaj widoków po nazwie, nie czytaj od zera.

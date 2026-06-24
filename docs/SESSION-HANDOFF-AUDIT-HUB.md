@@ -218,6 +218,7 @@ Przy release: workflow **B** — [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE
 | **MVP-1** | Globalny security log — `kw-security-audit-log` | **CLOSED** (2.62.39) |
 | **MVP-1B** | Recovery + data protection events w security_log | **CLOSED** (2.62.41) |
 | **MVP-1C** | Sync logging, eksport, alerty | **OPEN** |
+| **P1 WM Druk** | Integracja Pomiary + Schematy → Audit Hub (`kw-wm-druk-audit-log`) | **OPEN** · audyt **AUDIT-HUB-WM-001 CLOSED** → [`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](SESSION-HANDOFF-AUDIT-HUB-WM-001.md) |
 | **MVP-0C** | Eksport CSV/PDF feedu | **OPEN** |
 | **MVP-0D** | Retencja / archiwizacja unified feed | **OPEN** |
 | **MVP-0E** | Real-time push nowych wpisów (bez pełnego przeładowania) | **OPEN** |
@@ -231,6 +232,7 @@ Przy release: workflow **B** — [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE
 | Zadanie użytkownika | Gdzie szukać |
 |---------------------|--------------|
 | Nowe źródło logów | `types.ts` → adapter w `adapters.ts` → `buildAuditFeed` → test adapters + view-model |
+| WM Druk → Audit Hub (P1) | [`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](SESSION-HANDOFF-AUDIT-HUB-WM-001.md) — GAP Pomiary/Schematy, wzorzec `operational-notes-audit.ts` |
 | Nowy filtr | `filters.ts` + `AuditHubView` + test view-model |
 | Zmiana deep linku | `deeplink.ts` + `handleAuditHubDeepLink` w `App.tsx` |
 | Crash przy otwarciu | Sprawdź `sortAuditFeed` + `collectAuditHubFilterOptions` + adaptery pod `undefined` |

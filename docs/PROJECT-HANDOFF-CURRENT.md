@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-24 (**prod 2.62.51** · WM Schematy MVP + V2 visual fidelity · **`78f11cd`**)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-24 (**prod 2.62.55** · WM Schematy hotfixy · **AUDIT-HUB-WM-001**)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -14,6 +14,7 @@
 1w. docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md      ← ★★ WM Schematy jednokreskowe MVP (CLOSED · 2.62.49)
 1x. docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md ← ★★ WM Schematy visual fidelity V2 (CLOSED · 2.62.51)
 1v. docs/SESSION-HANDOFF-AUDIT-HUB.md     ← ★★ Audit Hub MVP-0→1B (CLOSED)
+1w. docs/SESSION-HANDOFF-AUDIT-HUB-WM-001.md  ← ★ AUDIT WM→Hub (audyt CLOSED · P1 OPEN)
 1u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
 1a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
 1b. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–TP201C (CLOSED)
@@ -42,6 +43,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **AUDIT-HUB-WM-001** | 2026-06-24 | **AUDIT CLOSED** · WM Pomiary/Schematy **nie** w Audit Hub · P1 implementacja OPEN | [`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](SESSION-HANDOFF-AUDIT-HUB-WM-001.md) · [`../audit/AUDIT-HUB-WM-001-REPORT.md`](../audit/AUDIT-HUB-WM-001-REPORT.md) |
 | **WM Schematy jednokreskowe MVP + V2 fidelity** | **2.62.51** (`78f11cd`) | **CLOSED** · tab Schematy · KV sync · PDF · renderer **v5** · audyt V2C B+ | [`SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md`](SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md) · [`SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md) · ARCHITECTURE § 12.1.21 |
 | **P4 WM upload toast** | **2.62.48** (`5cef155`) | **CLOSED** · brak „Dodano 0 plików” | [`SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md) §4 |
 | **TP203 Address Parser M1** | **2.62.47** (`08178cc`) | **CLOSED** · `parseJobAddressParts` | j.w. §3 · `test-wm-print-address-parser-tp203.mjs` |
@@ -100,7 +102,7 @@
 Dashboard
 Roboty
 Notatki operacyjne          ← COMPLETE v2.58.1 (admin · ACK · widget · audit · inspektor · backup)
-Audit Hub                   ← MVP-1B CLOSED v2.62.41 (Super Admin · 6 źródeł · security log)
+Audit Hub                   ← MVP-1B CLOSED v2.62.41 · **WM Pomiary/Schematy → Hub: P1 OPEN** (AUDIT-HUB-WM-001)
 Do Rozliczenia
 Przetargi (+ Karta ofertowa P2-F, Wycena P3, Baza cen, Profil wykonawcy)
 WM Druk (+ Pomiary Elektryczne, **Schematy**, Katalog RAP, ZIP odbiorowy)   ← EM-P1R v2.59.44 · Schematy v2.62.49
@@ -129,8 +131,11 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (prod):             2.62.51       ← WM Schematy V2 layout scale (78f11cd)
-WM Schematy visual V2:      78f11cd       v2.62.51 — bus-layout-v2 · renderer v5 · SCHEMATIC_RENDER_VERSION=5
+Version (prod):             2.62.55       ← WM Schematy right edge PDF hotfix
+WM Schematy hotfixy:        2.62.53–55    detached RAP crash · header spaces · columnRightInset
+WM Pomiary UX Upgrade:      2.62.52       detached RAP · katalog edit/delete · Registry Guard
+WM Schematy visual V2:      78f11cd       v2.62.51 — bus-layout-v2 · renderer v5
+AUDIT-HUB-WM-001:           2026-06-24    audyt CLOSED — WM nie w Hub (Pomiary/Schematy) · P1 plan
 WM Schematy visual V1A/B:   c149116       v2.62.50 — backbone · RCD tee · renderer v4
 WM Schematy MVP UI:         (2.62.49)     tab Schematy · kw-electrical-schematics
 P4 WM upload toast:         5cef155       v2.62.48 — resolveWmPrintTemplateUploadToast

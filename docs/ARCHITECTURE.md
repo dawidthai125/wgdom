@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-24 (**v2.62.52** · WM Pomiary UX Upgrade · § 12.1.10a · prod **v2.62.52** pending deploy)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-24 (**v2.62.55** · AUDIT-HUB-WM-001 · § 15.5 · prod **2.62.55**)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -2281,6 +2281,25 @@ WGDOM1/
 | `directory_delete` | DATA | high | `entryId` |
 
 **Wykluczone:** sync push/pull, conflict detection, payroll guard, auto-sync logging.
+
+### 15.5 AUDIT-HUB-WM-001 — luka integracji WM Druk (audyt 2026-06-24)
+
+**Status audytu:** **CLOSED** · **implementacja P1:** **OPEN** (tylko na polecenie)
+
+**Werdykt:** WM Druk **nie jest zintegrowany** z Audit Hub w zakresie **Pomiarów** i **Schematów**.
+
+| Zakres WM Druk | Logowanie | Źródło Audit Hub |
+|----------------|-----------|------------------|
+| Odbiory — PDF/DOCX/ZIP szablonów | `recordHistory()` → `kw-wm-print-history` | `wm_print` |
+| Publikacja pakietu inspektora | `kw-delivery-package-publications` + history | `delivery_package` + `wm_print` |
+| Pomiary — CRUD RAP, DOCX, ZIP katalog | **brak** | — |
+| Schematy — CRUD, PDF, import z pomiaru | **brak** | — |
+
+**Przyczyna:** brak hooków `record*` w `electrical-measurements/*`, `electrical-schematics/*` i panelach UI. Filtry Audit Hub **nie ukrywają** tych akcji — wpisy nie powstają.
+
+**Nie rozszerzać** `kw-wm-print-history` o RAP/schematy — schema wymaga `jobId`; detached RAP nie pasuje.
+
+**Plan P1 (rekomendacja):** append-only `kw-wm-druk-audit-log` + adapter (wzorzec `operational-notes-audit.ts`). Szczegóły: [`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](SESSION-HANDOFF-AUDIT-HUB-WM-001.md) · raport: [`../audit/AUDIT-HUB-WM-001-REPORT.md`](../audit/AUDIT-HUB-WM-001-REPORT.md).
 
 ---
 

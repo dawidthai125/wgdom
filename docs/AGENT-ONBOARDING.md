@@ -352,7 +352,8 @@ npx vite-node scripts/test-payroll-assignments-p1.mjs
 | Dokument | Rola |
 |----------|------|
 | [`SESSION-HANDOFF-AUDIT-HUB.md`](SESSION-HANDOFF-AUDIT-HUB.md) | **★★ SSOT modułu** — 6 źródeł, security log, recovery events, backlog MVP-1C |
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) § **15.2** | Sekcja techniczna + mapa widoku `audit` § 15.1 |
+| [`SESSION-HANDOFF-AUDIT-HUB-WM-001.md`](SESSION-HANDOFF-AUDIT-HUB-WM-001.md) | **AUDIT CLOSED** — WM Pomiary/Schematy **nie** w Hub · P1 `kw-wm-druk-audit-log` |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) § **15.2** · § **15.5** | Sekcja techniczna + luka WM |
 
 ### Kluczowe pliki
 
@@ -379,6 +380,8 @@ npx vite-node scripts/test-audit-hub-view-model.mjs
 **Pułapka cloud-sync (2.62.42):** commit `2b8980c` usunął import `mergeDeliveryPackagePublications` — patrz [`SESSION-HANDOFF-2026-06-24.md`](SESSION-HANDOFF-2026-06-24.md) §4.
 
 **Nie ruszać bez briefu:** nowy KV · zmiana nagłówka `cloud-sync.ts` bez grep merge imports · ACL inne niż Super Admin
+
+**Luka WM (AUDIT-HUB-WM-001):** Pomiary i Schematy **nie** logują do Audit Hub — tylko Odbiory (`kw-wm-print-history`). Implementacja P1 → handoff WM-001.
 
 ---
 
