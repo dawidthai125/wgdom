@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.53** · **WM Detached RAP Crash Hotfix**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.54** · **WM Schematy Header Spaces Hotfix**
+
+## 2.62.54 — WM Schematy Header Input Spaces Hotfix
+
+- **fix:** spacje w polach Tytuł i Adres (nagłówek PDF) — usunięto `.trim()` przy zapisie w `parseSingleLineDiagram`
+- **fix:** fallback DEFAULT_SCHEMATIC_TITLE tylko gdy pole faktycznie puste
+- **test:** `test-schematic-header-spaces-hotfix.mjs` · `test-wm-schematics-ui-3b.mjs` U09
 
 ## 2.62.53 — WM Druk Detached RAP Crash Hotfix
 

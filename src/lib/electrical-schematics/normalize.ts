@@ -305,11 +305,14 @@ export function parseSingleLineDiagram(raw: unknown): SingleLineDiagram | null {
   const schemaVersion =
     r.schemaVersion === SCHEMATIC_SCHEMA_VERSION ? SCHEMATIC_SCHEMA_VERSION : SCHEMATIC_SCHEMA_VERSION;
 
+  const titleRaw = parseStringField(r.title, DEFAULT_SCHEMATIC_TITLE);
+  const addressRaw = parseStringField(r.address);
+
   return {
     id: String(r.id),
     schemaVersion,
-    title: parseStringField(r.title, DEFAULT_SCHEMATIC_TITLE).trim() || DEFAULT_SCHEMATIC_TITLE,
-    address: parseStringField(r.address).trim(),
+    title: titleRaw.trim() === "" ? DEFAULT_SCHEMATIC_TITLE : titleRaw,
+    address: addressRaw,
     documentDate: parseIsoDate(r.documentDate),
     ...(notes ? { notes } : {}),
     ...(isTestFlag ? { flags: { test: true } } : {}),

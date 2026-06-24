@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.54",
+    label: "WM Schematy — Header Input Spaces Hotfix",
+    items: [
+      {
+        type: "fix",
+        text: "WM Schematy — naprawiono wpisywanie spacji w polach Tytuł i Adres (nagłówek PDF)",
+      },
+      {
+        type: "fix",
+        text: "Schematy — usunięto agresywną normalizację .trim() podczas edycji (touchSchematic)",
+      },
+      {
+        type: "fix",
+        text: "Schematy — poprawiono UX nagłówków PDF przy adresach wielowyrazowych",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.53",
     label: "WM Druk — Detached RAP Crash Hotfix",
     items: [

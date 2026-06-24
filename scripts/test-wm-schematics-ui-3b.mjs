@@ -148,6 +148,23 @@ console.log("\n=== U08 — export PDF (draft + final) ===");
   assert(draftPng.length !== finalPng.length || draftPng.some((b, i) => b !== finalPng[i]), "U08 watermark diff");
 }
 
+console.log("\n=== U09 — title/address preserve spaces (P0 hotfix) ===");
+{
+  const base = store.find((s) => s.circuits.length > 0) ?? store[0];
+  const trailingSpace = touchSchematic(base, { address: "UL. " });
+  assert(trailingSpace.address === "UL. ", "U09 trailing space preserved in address");
+
+  const fullAddress = touchSchematic(base, { address: "WROCŁAW UL. NOWOWIEJSKA 15/2" });
+  assert(fullAddress.address === "WROCŁAW UL. NOWOWIEJSKA 15/2", "U09 full address with spaces");
+
+  const titleLong = "SCHEMAT JEDNOKRESKOWY INSTALACJI ELEKTRYCZNEJ";
+  const titled = touchSchematic(base, { title: titleLong });
+  assert(titled.title === titleLong, "U09 title with internal spaces");
+
+  const titleTrailing = touchSchematic(base, { title: "SCHEMAT " });
+  assert(titleTrailing.title === "SCHEMAT ", "U09 title trailing space preserved");
+}
+
 console.log(`\n=== WYNIK: ${passed} passed, ${failed} failed ===`);
 if (failed > 0) process.exit(1);
 console.log("UI 3B SMOKE: PASS");
