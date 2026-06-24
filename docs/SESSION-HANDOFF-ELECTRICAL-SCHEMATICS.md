@@ -1,7 +1,8 @@
 # SESSION HANDOFF — Schematy Jednokreskowe (WM-SCHEMATY-V1)
 
-> **★★ SSOT epica WM-SCHEMATY-V1** · **Status:** **DESIGN FREEZE GO** · **2026-06-24**  
-> **Baseline WGDOM:** prod **2.62.48** (`5cef155`)  
+> **★★ SSOT epica WM-SCHEMATY-V1** · **Status:** **MVP + Visual Fidelity CLOSED** · **2026-06-24**  
+> **Baseline WGDOM:** prod **2.62.51** (`78f11cd`) · renderer **v5**  
+> **V2 release handoff:** [`SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md)  
 > **Specyfikacja zamrożona:** [`WM-SCHEMATY-V1-DESIGN-FREEZE.md`](WM-SCHEMATY-V1-DESIGN-FREEZE.md)  
 > **Powiązane:** [`SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md) · [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) · ARCHITECTURE § **12.1.21**
 
@@ -31,9 +32,9 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 
 | Element | Wartość |
 |---------|---------|
-| **Prod** | https://www.wgdom.fun · **2.62.48** (`5cef155`) |
-| **WM Druk** | ZI Tauron 2026 STABLE · EM-P1R COMPLETE (v2.59.44) |
-| **Zakładki WM Druk (obecnie)** | Odbiory · Pomiary · Katalog · Szablony · Historia · Ustawienia |
+| **Prod** | https://www.wgdom.fun · **2.62.51** (`78f11cd`) |
+| **WM Druk** | ZI Tauron 2026 STABLE · EM-P1R COMPLETE · **Schematy MVP CLOSED** |
+| **Zakładki WM Druk (prod)** | Odbiory · Pomiary · **Schematy** · Katalog · Szablony · Historia · Ustawienia |
 | **Wzorzec domeny** | `src/lib/electrical-measurements/` (types → normalize → merge → sync → report) |
 | **Sync** | `cloud-sync.ts` · merge LWW per `id` |
 | **Backend** | Brak zmian Supabase w MVP — tylko frontend + KV |
@@ -401,10 +402,11 @@ Epic **WM-SCHEMATY-V1 MVP** uznany za **CLOSED** gdy:
 - [x] Visual gate Benedyktyńska 22/13 — **PASS** (manual review operatora)
 - [x] Smoke M15: render snapshot · PDF draft/final · import z EM — **PASS** (239 asercji epic)
 - [x] KV `kw-electrical-schematics` sync LS ↔ chmura bez regresji — smoke 3A **25/25**
-- [ ] Zakładka Schematy widoczna w WM Druk na prod — po deploy **2.62.49**
+- [x] Zakładka Schematy widoczna w WM Druk na prod — **2.62.49+**
 - [x] CHANGELOG + HelpView + ARCHITECTURE § 12.1.21 zaktualizowane
-- [x] `docs/PROJECT-HANDOFF-CURRENT.md` — baseline po release (kandydat **2.62.49**)
-- [x] Ten handoff — sekcja Status = **MVP CLOSED**
+- [x] `docs/PROJECT-HANDOFF-CURRENT.md` — baseline po release (**2.62.51**)
+- [x] Visual fidelity V2 — audyt V2C **RECOMMEND RELEASE** · prod **2.62.51**
+- [x] Ten handoff — sekcja Status = **MVP + Visual Fidelity CLOSED**
 
 ---
 
@@ -437,10 +439,25 @@ Epic **WM-SCHEMATY-V1 MVP** uznany za **CLOSED** gdy:
 | **Faza 3B** — UI MVP | **COMPLETE** | 2026-06-24 |
 | **Faza 3** — integracja + UI | **COMPLETE** | 2026-06-24 |
 | **Faza 4** — QA / release readiness | **COMPLETE** | 2026-06-24 |
-| **Epic MVP** | **CLOSED** · DESIGN FREEZE **GO** · release **2.62.49** (pending push) | 2026-06-24 |
+| **Visual V1A/V1B** — renderer v4 | **COMPLETE** · **2.62.50** | 2026-06-24 |
+| **Visual V2** — bus layout v2 · renderer v5 | **COMPLETE** · **2.62.51** | 2026-06-24 |
+| **Epic MVP + fidelity** | **CLOSED** · prod **2.62.51** (`78f11cd`) | 2026-06-24 |
 
 ---
 
-**Następny krok (backlog, nie MVP):** V1.1 — UI detach · ZIP `Schematy/` · WM Historia po PDF · `feedFrom`/`position` · layout `commercial-3f-v1` w UI.
+## 18. Visual fidelity (living)
 
-**Podpis MVP:** WM-SCHEMATY-V1 · epic zamknięty lokalnie · 2026-06-24
+| Etap | Wersja | Renderer | ~% tuszu vs ref. | Status |
+|------|--------|----------|------------------|--------|
+| V1 MVP | 2.62.49 | 2→3 | ~55–58% | CLOSED |
+| V1A | 2.62.50 | 4 | ~87% | CLOSED |
+| V1B | 2.62.50 | 4 | ~92% | CLOSED |
+| **V2** | **2.62.51** | **5** | **93.4%** (audyt PDF) | **CLOSED** |
+
+Szczegóły release V2: [`SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md)
+
+---
+
+**Następny krok (backlog, nie MVP):** V1.1 — UI detach · ZIP `Schematy/` · WM Historia po PDF · `feedFrom`/`position` · layout `commercial-3f-v1` w UI · epic R1/R6 (osobny scope).
+
+**Podpis:** WM-SCHEMATY-V1 · epic + visual fidelity **CLOSED** · prod **2.62.51** · 2026-06-24

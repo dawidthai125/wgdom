@@ -10,8 +10,9 @@ Komunikuj się z użytkownikiem po **polsku**.
 ## Zanim zaczniesz pracę w tym repo
 
 1. **Przeczytaj [`docs/AGENT-ONBOARDING.md`](docs/AGENT-ONBOARDING.md)** — ★★ mapa systemu (widoki, sync, WM Druk, workflow).
-2. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.62.48**, `5cef155`).
+2. **Przeczytaj [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md)** — ★★ SSOT baseline prod (**2.62.51**, `78f11cd`).
 2s. [`docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md) ← ★★ WM Druk ZI §4/§5 · TP203 · P4
+2t. [`docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md) ← ★★ WM Schematy visual V2 (CLOSED)
 3. **Przeczytaj [`docs/MASTER-HANDOFF-POST-ZI-2026.md`](docs/MASTER-HANDOFF-POST-ZI-2026.md)** — ★★ POST ZI · WM Druk COMPLETE.
 4. **Przeczytaj [`docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md)** — ★★ Pomiary Elektryczne EM-P1R.
 5. **Przeczytaj [`docs/ZI-2026-HANDOFF.md`](docs/ZI-2026-HANDOFF.md)** — ★★★ ZI Tauron 2026 prod SSOT.
@@ -23,6 +24,7 @@ Komunikuj się z użytkownikiem po **polsku**.
 11. **Przeczytaj [`AGENTS.md`](AGENTS.md)** — pełna lista handoffów i zakazy.
 12. **Przeczytaj [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)** — § 10.1 Przydziały robót · § 11 sync · § **12.1.16 P0/P1 merge kosztorysu** · § **12.1.8 WM Druk** · § **12.1.10 EM** · § 15.1 widoki.
 13. **Tematycznie (gdy dotyczy zadania):**
+ - **WM Schematy jednokreskowe (CLOSED 2.62.51)** → [`docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md`](docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md) · [`docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md)
  - **P0/P1 merge jakościowy kosztorysu (TP113/TP182)** → [`docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md`](docs/SESSION-HANDOFF-P0-P1-KOSZTORYS-MERGE-QUALITY.md)
  - **Lista Płac · Przydziały robót** → [`docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md`](docs/SESSION-HANDOFF-PAYROLL-ASSIGNMENTS-P1.md)
  - **Pomiary Elektryczne / DOCX** → [`docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md`](docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md)

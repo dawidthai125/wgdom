@@ -10,7 +10,8 @@
 1. AGENTS.md              ← ten plik (JAK pracować)
 2. docs/AGENT-ONBOARDING.md  ← ★★ mapa systemu (START dla nowego agenta)
 2s. docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md  ← ★★ WM Druk ZI §4/§5 · TP203 · P4
-3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.48)
+2t. docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md  ← ★★ WM Schematy visual fidelity V2 (CLOSED · 2.62.51)
+3. docs/PROJECT-HANDOFF-CURRENT.md  ← ★★ SSOT baseline prod (2.62.51)
 3v. docs/SESSION-HANDOFF-AUDIT-HUB.md  ← ★★ Audit Hub MVP-0→1B (CLOSED)
 3u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 deploy unblock (CLOSED)
 3a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (CLOSED)
@@ -157,8 +158,8 @@ Szczegóły: [`docs/WORKFLOW-RELEASE-DEPLOY.md`](docs/WORKFLOW-RELEASE-DEPLOY.md
 |---|---|
 | Produkcja | https://www.wgdom.fun |
 | Repo | https://github.com/dawidthai125/wgdom · branch `main` |
-| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.62.48**) |
-| Prod `main` (app) | **v2.62.48** (`5cef155`) · P4 WM toast · TP203 parser · ZI §4 95–97 · EM-P1R · WM Druk STABLE |
+| Wersja UI | `CHANGELOG[0].version` w `changelog-data.ts` (**2.62.51**) |
+| Prod `main` (app) | **v2.62.51** (`78f11cd`) · WM Schematy V2 · renderer v5 · ZI §4 95–97 · EM-P1R · WM Druk STABLE |
 | Git tag backup pre-TP200 | **`wgdom-backup-2026-06-19-v2.62.10`** |
 | Poprzedni feature | **2.1.0** · **v2.50.69** · commit **`5391d03`** |
 | SSOT handoff | [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) |
@@ -428,6 +429,21 @@ Szczegóły: **ARCHITECTURE.md § 12.1.2**.
 - **Test:** `test-audit-hub-adapters.mjs` (47) · `test-audit-hub-view-model.mjs` (32)
 
 **Nie zmieniaj bez polecenia:** ACL Super Admin only; `feedAt`/`feedActor` na wyjściu adapterów; brak zapisu/sync; backlog MVP-1 security log tylko na polecenie.
+
+---
+
+## 3l3. WM Schematy jednokreskowe — MVP + V2 fidelity (**COMPLETE**, prod `78f11cd`, v2.62.51)
+
+- **Handoff SSOT:** [`docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md`](docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md) · V2 release [`docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md)
+- **Architektura:** **ARCHITECTURE.md** § **12.1.21** · zakładka `schematy` w WM Druk
+- **Fazy CLOSED:** MVP 2.62.49 · V1A/V1B 2.62.50 (renderer v4) · V2 2.62.51 (renderer **v5** · `bus-layout-v2.ts`)
+- **KV:** `kw-electrical-schematics` · merge LWW per `id`
+- **Kluczowe pliki:** `src/lib/electrical-schematics/*`, `WmPrintSchematicsPanel.tsx`, `WmPrintSchematicEditor.tsx`
+- **Test:** `test-schematic-v1b-visual-smoke.mjs` · `test-schematic-render-apartment-3f.mjs` · `test-schematic-pdf-smoke.mjs` · `test-wm-schematics-ui-3b.mjs`
+
+**Nie zmieniaj bez polecenia:** merge LWW · import EM bez `valueSet` · auto-sync EM↔schemat · layout R1/R6 · `export-pdf.ts` raster path · sync/UI bez briefu.
+
+**Backlog OPEN:** V1.1 (ZIP Schematy, feedFrom) · P1 commercial-3f UI — tylko na polecenie.
 
 ---
 

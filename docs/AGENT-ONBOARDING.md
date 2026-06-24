@@ -1,7 +1,7 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.62.48** · https://www.wgdom.fun · **TP203 + P4 WM CLOSED** · **ZI §4/§5 STABLE** · Audit Hub MVP-1B · TP200B PLANNED
+> **Prod:** **2.62.51** · https://www.wgdom.fun · **WM Schematy CLOSED** · **ZI §4/§5 STABLE** · Audit Hub MVP-1B · TP200B PLANNED
 
 ---
 
@@ -11,6 +11,8 @@
 1. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
 1s. docs/SESSION-HANDOFF-2026-06-24.md ← sesja Audit Hub · TP200C
 1t. docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md ← ★★ WM Druk ZI §4/§5 · TP203 · P4 (2.62.46–48)
+1u. docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md     ← ★★ WM Schematy MVP (CLOSED · 2.62.49)
+1v. docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md ← ★★ WM Schematy visual V2 (CLOSED · 2.62.51)
 2. docs/PROJECT-HANDOFF-CURRENT.md    ← baseline prod, commity, releasy
 2v. docs/SESSION-HANDOFF-AUDIT-HUB.md ← ★★ Audit Hub MVP-0 (2.62.36–37 CLOSED)
 2u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
@@ -88,7 +90,7 @@ Pełna tabela: **ARCHITECTURE.md § 15.1**.
 | `operationalnotes` | Notatki operacyjne | `OperationalNotesView.tsx` |
 | `audit` | Audit Hub | `AuditHubView.tsx` | **Super Admin only** · MVP-0 CLOSED · § 15.2 |
 | `tenders` | Przetargi | `TendersModule.tsx` (5 zakładek) |
-| `wmprint` | Odbiory WM Druk + **Pomiary** | `WmPrintView.tsx` |
+| `wmprint` | Odbiory WM Druk + **Pomiary** + **Schematy** | `WmPrintView.tsx` |
 | `recoverablecharges` | Do rozliczenia | `RecoverableChargesView.tsx` |
 | `media` | Zdjęcia i pliki | `MediaView.tsx` |
 | `inspector` | Inspektor (admin feed) | `InspectorAdminView.tsx` |
@@ -451,6 +453,47 @@ npx vite-node scripts/test-wm-print-p0-1a-docx-fix.mjs
 
 ---
 
+## 6i. WM Schematy jednokreskowe — **CLOSED** (2.62.49–51)
+
+**Status:** **MVP + Visual Fidelity V2 CLOSED** · renderer **`SCHEMATIC_RENDER_VERSION = 5`**
+
+| Dokument | Rola |
+|----------|------|
+| [`SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md`](SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md) | Epic SSOT — model, scope, DoD |
+| [`SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md) | Release V2 — bus layout · symbole · audyt |
+| [`WM-SCHEMATY-V1-DESIGN-FREEZE.md`](WM-SCHEMATY-V1-DESIGN-FREEZE.md) | Spec zamrożona |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) § 12.1.21 | Architektura techniczna |
+
+### Pliki `src/lib/electrical-schematics/`
+
+| Plik | Opis |
+|------|------|
+| `types.ts` · `normalize.ts` · `merge.ts` · `sync.ts` · `report.ts` | Domena + KV |
+| `circuit-presets.ts` · `start-templates.ts` | Presety i szablony startowe |
+| `import-from-measurement.ts` | Import jednorazowy z RAP (bez `valueSet`) |
+| `layout/bus-layout-v2.ts` | **V2** — span kolumn · szyna do ostatniego obwodu |
+| `layout/apartment-3f-v1.ts` · `layout/apartment-1f-v1.ts` | Layout render SVG |
+| `symbols/iec-simplified.ts` | Symbole IEC |
+| `render-svg.ts` | Dispatcher · `SCHEMATIC_RENDER_VERSION` |
+| `export-pdf.ts` | Raster PNG @2× → pdf-lib A4 landscape |
+
+### UI
+
+`WmPrintSchematicsPanel.tsx` · `WmPrintSchematicEditor.tsx` · zakładka `schematy` w `wm-print-tabs.ts`
+
+### Smoke regresji
+
+```bash
+npx vite-node scripts/test-schematic-v1b-visual-smoke.mjs
+npx vite-node scripts/test-schematic-render-apartment-3f.mjs
+npx vite-node scripts/test-schematic-pdf-smoke.mjs
+npx vite-node scripts/test-wm-schematics-ui-3b.mjs
+```
+
+**Nie ruszać bez briefu:** `cloud-sync.ts` · model danych · `export-pdf.ts` · import EM · UI paneli.
+
+---
+
 ## 7. Inne ukończone epiki (skrót)
 
 | Epic | Wersja | Handoff |
@@ -522,4 +565,4 @@ curl -s https://www.wgdom.fun/version.json   # VERIFY FAST
 
 ---
 
-*Ostatnia aktualizacja: 2026-06-24 · prod **2.62.42** · TP200C CLOSED · Audit Hub MVP-1B · P0 cloud-sync hotfix*
+*Ostatnia aktualizacja: 2026-06-24 · prod **2.62.51** · WM Schematy V2 CLOSED · Audit Hub MVP-1B*

@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-24 (kandydat **v2.62.49** · WM Schematy MVP · § 12.1.21 · prod **v2.62.48**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-24 (**v2.62.51** · WM Schematy V2 visual fidelity · § 12.1.21 · prod **v2.62.51** `78f11cd`)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1525,10 +1525,10 @@ Klasyfikacja kosztorysu/przedmiaru po **treści** pliku XLSX (jednostki miary, K
 
 **Nie zmieniaj bez polecenia:** nie zastępuje ATH ani `isFormalOfferCostFilename()` — tylko wzmacnia ranking.
 
-### 12.1.21 WM Schematy jednokreskowe (WM-SCHEMATY-V1, v2.62.49)
+### 12.1.21 WM Schematy jednokreskowe (WM-SCHEMATY-V1, v2.62.51)
 
-**Status:** **MVP COMPLETE** (Faza 0→4) · render 1F/3F · PDF A4 landscape · sync KV · UI WM Druk  
-**Handoff SSOT:** [`SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md`](SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md) · [`WM-SCHEMATY-V1-DESIGN-FREEZE.md`](WM-SCHEMATY-V1-DESIGN-FREEZE.md)  
+**Status:** **MVP + Visual Fidelity V2 CLOSED** (Faza 0→4 + V1A/V1B/V2) · render 1F/3F · PDF A4 landscape · sync KV · UI WM Druk  
+**Handoff SSOT:** [`SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md`](SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md) · [`SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md) · [`WM-SCHEMATY-V1-DESIGN-FREEZE.md`](WM-SCHEMATY-V1-DESIGN-FREEZE.md)  
 **Powiązane:** § 12.1.8 WM Druk · § 12.1.10 Pomiary Elektryczne (import RAP jednorazowy)
 
 Osobna domena schematów instalacji elektrycznej — użytkownik edytuje dane formularza (nie CAD). SVG generowane automatycznie; PDF = produkt końcowy.
@@ -1551,7 +1551,9 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 
 **Model:** `SingleLineDiagram` · `schemaVersion: 1` · `status: draft | final` · `linkStatus: linked | detached | manual`
 
-**Render:** `renderSchematicSvg()` → layout dispatch · `SCHEMATIC_RENDER_VERSION = 2` · symbole IEC w `symbols/iec-simplified.ts`
+**Render:** `renderSchematicSvg()` → layout dispatch · `SCHEMATIC_RENDER_VERSION = 5` (2.62.51) · symbole IEC w `symbols/iec-simplified.ts` · bus layout v2 w `layout/bus-layout-v2.ts`
+
+**Layout V2 (2.62.51):** `resolveBusLayoutV2()` — szyna do ostatniego obwodu · kolumny na pełnej szerokości · viewBox 3F **1360×780** · 1F **1248×748** · kropki r=6 · symbole ~1.25× vs V1B
 
 **PDF:** `export-pdf.ts` — SVG → raster PNG @2× (canvas w przeglądarce) → pdf-lib A4 landscape · Noto Sans (`wm-print-pdf-fonts`) · draft = watermark `WERSJA ROBOCZA`
 
@@ -1564,10 +1566,12 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 | Tabs | `wm-print-tabs.ts` (`schematy` między `pomiary` a `katalog`) |
 | UI | `WmPrintSchematicsPanel.tsx`, `WmPrintSchematicEditor.tsx`, `WmPrintView.tsx`, `App.tsx` |
 | Domena | `types.ts`, `normalize.ts`, `merge.ts`, `sync.ts`, `report.ts`, `circuit-presets.ts`, `start-templates.ts`, `import-from-measurement.ts` |
-| Layout | `layout/apartment-1f-v1.ts`, `layout/apartment-3f-v1.ts` |
+| Layout | `layout/apartment-1f-v1.ts`, `layout/apartment-3f-v1.ts`, `layout/bus-layout-v2.ts` |
 | Export | `render-svg.ts`, `export-pdf.ts`, `render/svg-raster.ts` |
 
-**Smoke:** `test-schematic-presets-templates-1b.mjs` (77) · `test-schematic-merge-sync-1c.mjs` (29) · `test-schematic-import-from-measurement.mjs` (29) · `test-schematic-render-apartment-3f.mjs` (28) · `test-schematic-pdf-smoke.mjs` (22) · `test-schematic-cloud-sync-3a.mjs` (25) · `test-wm-schematics-ui-3b.mjs` (29)
+**Smoke:** `test-schematic-presets-templates-1b.mjs` (77) · `test-schematic-merge-sync-1c.mjs` (29) · `test-schematic-import-from-measurement.mjs` (29) · `test-schematic-render-apartment-3f.mjs` (31) · `test-schematic-v1b-visual-smoke.mjs` (16) · `test-schematic-pdf-smoke.mjs` (22) · `test-schematic-cloud-sync-3a.mjs` (25) · `test-wm-schematics-ui-3b.mjs` (29)
+
+**Visual gate:** Benedyktyńska 22/13 · audyt V2C PDF **93.4%** tuszu vs ref. **92.5%** · **B+** · epic fidelity **CLOSED** (2.62.51)
 
 **Backlog znany (nie blokuje MVP):** przycisk UI „Odłącz od pomiaru” (`detachSchematicFromMeasurement` w domenie — smoke 1c PASS)
 
