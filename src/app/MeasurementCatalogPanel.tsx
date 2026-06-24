@@ -587,7 +587,7 @@ function MeasurementCatalogMain({
           <div className="space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h2 className="font-semibold text-base font-mono">{editingMeasurement.reportNumber}</h2>
+                <h2 className="font-semibold text-base font-mono">{(editingMeasurement.reportNumber ?? "").trim() || "Bez numeru"}</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">Edycja — numer RAP bez zmian</p>
               </div>
               <button

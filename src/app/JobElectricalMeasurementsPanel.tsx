@@ -129,6 +129,11 @@ export function JobElectricalMeasurementsPanel({
   const [generateError, setGenerateError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (focusedMeasurementId) {
+      setSelectedId(focusedMeasurementId);
+      setDetailsExpanded(true);
+      return;
+    }
     if (jobReports.length === 0) {
       setSelectedId(null);
       return;
@@ -136,9 +141,21 @@ export function JobElectricalMeasurementsPanel({
     if (!selectedId || !jobReports.some((r) => r.id === selectedId)) {
       setSelectedId(jobReports[0].id);
     }
-  }, [jobReports, selectedId]);
+  }, [jobReports, selectedId, focusedMeasurementId]);
 
-  const selected = jobReports.find((r) => r.id === selectedId) ?? null;
+  const selected = useMemo(() => {
+    if (jobReports.length === 0) return null;
+    if (selectedId) {
+      const hit = jobReports.find((r) => r.id === selectedId);
+      if (hit) return hit;
+    }
+    if (focusedMeasurementId) {
+      return jobReports.find((r) => r.id === focusedMeasurementId) ?? jobReports[0];
+    }
+    return jobReports[0];
+  }, [jobReports, selectedId, focusedMeasurementId]);
+
+  const selectedReportLabel = (selected?.reportNumber ?? "").trim() || "Bez numeru";
   const preview = selected ? buildElectricalMeasurementPreview(selected) : null;
   const sortedCircuits = selected
     ? [...selected.circuits].sort((a, b) => a.sortOrder - b.sortOrder)
@@ -354,13 +371,15 @@ export function JobElectricalMeasurementsPanel({
             ? "Brak raportu do edycji."
             : "Brak raportów pomiarowych dla tej roboty. Użyj „Nowy pomiar” u góry zakładki lub przycisków poniżej."}
         </p>
-      ) : jobReports.length === 0 ? null : (
+      ) : jobReports.length === 0 ? null : !selected ? (
+        <p className="text-xs text-muted-foreground">Ładowanie raportu…</p>
+      ) : (
         <>
           <div className="flex flex-wrap items-center gap-2">
             <label className="text-[11px] text-muted-foreground">Raport:</label>
             {isCatalogEdit || jobReports.length <= 1 ? (
               <span className="text-xs font-mono font-medium">
-                {selected.reportNumber.trim() || "Bez numeru"}
+                {selectedReportLabel}
                 {selectedIsTest ? " [TEST]" : ""}
               </span>
             ) : (

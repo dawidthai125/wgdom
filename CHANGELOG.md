@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.52** · **WM Pomiary UX Upgrade**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.53** · **WM Detached RAP Crash Hotfix**
+
+## 2.62.53 — WM Druk Detached RAP Crash Hotfix
+
+- **fix:** crash po utworzeniu samodzielnego RAP (`reportNumber` na null selected)
+- **fix:** race condition — fallback selectedId → focusedMeasurementId → jobReports[0]
+- **fix:** null-safety reportNumber w panelu edycji i Katalogu Pomiarów
+- **test:** `test-electrical-measurements-independent-rap.mjs` T8/T9
 
 ## 2.62.52 — WM Druk Pomiary UX Upgrade
 

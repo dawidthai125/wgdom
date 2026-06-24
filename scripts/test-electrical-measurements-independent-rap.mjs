@@ -154,6 +154,36 @@ const linkedRow = buildMeasurementCatalogRows(measurements, registry, [JOB_FIXTU
 );
 assert(linkedRow?.address.includes("Powiązana"), "T6 katalog linked address");
 
+/** Mirrors JobElectricalMeasurementsPanel selected useMemo — P0 detached create race */
+function resolvePanelSelected(jobReports, selectedId, focusedMeasurementId) {
+  if (jobReports.length === 0) return null;
+  if (selectedId) {
+    const hit = jobReports.find((r) => r.id === selectedId);
+    if (hit) return hit;
+  }
+  if (focusedMeasurementId) {
+    return jobReports.find((r) => r.id === focusedMeasurementId) ?? jobReports[0];
+  }
+  return jobReports[0];
+}
+
+function panelReportLabel(selected) {
+  return (selected?.reportNumber ?? "").trim() || "Bez numeru";
+}
+
+console.log("\n=== T8 P0 hotfix — selected race (detached create) ===");
+const raceReports = [detached];
+const raceSelected = resolvePanelSelected(raceReports, null, detached.id);
+assert(raceSelected != null, "T8 selected nie null przy race jobReports>0, selectedId null");
+assert(panelReportLabel(raceSelected) === "RAP-45-2026", "T8 reportNumber bez crash");
+assert(panelReportLabel(null) === "Bez numeru", "T8 null selected → Bez numeru");
+
+console.log("\n=== T9 P0 hotfix — panel guard (statyczny) ===");
+const panelSrc = fs.readFileSync(path.join("src/app/JobElectricalMeasurementsPanel.tsx"), "utf8");
+assert(panelSrc.includes("selectedReportLabel"), "T9 selectedReportLabel helper");
+assert(panelSrc.includes("!selected ?"), "T9 loading guard gdy brak selected");
+assert(panelSrc.includes("setSelectedId(focusedMeasurementId)"), "T9 sync focusedMeasurementId → selectedId");
+
 console.log("\n=== T7 UI wiring (statyczny) ===");
 const wmSrc = fs.readFileSync(path.join("src/app/WmPrintView.tsx"), "utf8");
 assert(wmSrc.includes("ElectricalMeasurementNewDialog"), "T7 dialog Nowy pomiar");

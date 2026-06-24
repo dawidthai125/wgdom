@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.53",
+    label: "WM Druk — Detached RAP Crash Hotfix",
+    items: [
+      {
+        type: "fix",
+        text: "WM Druk — naprawiono crash po utworzeniu samodzielnego RAP (Pomiary → Nowy pomiar → Samodzielny)",
+      },
+      {
+        type: "fix",
+        text: "Pomiary — poprawiono race condition przy pierwszym renderze detached measurement (selected fallback)",
+      },
+      {
+        type: "fix",
+        text: "Pomiary — dodatkowe null-safety dla reportNumber w panelu edycji i Katalogu",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.52",
     label: "WM Druk — Pomiary UX Upgrade",
     items: [
