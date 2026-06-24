@@ -9,8 +9,6 @@ import {
   isFormalOfferCostFilename,
   type TenderCostDocumentType,
 } from "@/lib/tender-cost-discovery";
-import { isDossierParserStale } from "@/lib/tender-dossier-parser-version";
-
 /** Wyższa wartość = lepsze źródło kosztorysu. */
 const KOSZTORYS_SOURCE_TIER: Record<string, number> = {
   absent: 0,
@@ -200,27 +198,20 @@ export function mergeTenderDossierByQuality(
   if (!dossierA) return dossierB ?? null;
   if (!dossierB) return dossierA;
 
-  const kosztorysWinner = compareKosztorys(dossierA.kosztorys, dossierB.kosztorys);
-  const staleA = isDossierParserStale(dossierA);
-  const staleB = isDossierParserStale(dossierB);
-  let kosztorys = pickBetterKosztorys(dossierA.kosztorys, dossierB.kosztorys);
-  if (staleA && !staleB && dossierB.kosztorys?.ok) {
-    kosztorys = dossierB.kosztorys;
-  } else if (staleB && !staleA && dossierA.kosztorys?.ok) {
-    kosztorys = dossierA.kosztorys;
-  }
-  const kosztorysSide = kosztorysWinner === "b" ? dossierB : dossierA;
+  const kosztorys = pickBetterKosztorys(dossierA.kosztorys, dossierB.kosztorys);
   const newerBuilt = parseTs(dossierA.builtAt) >= parseTs(dossierB.builtAt) ? dossierA : dossierB;
   const olderBuilt = newerBuilt === dossierA ? dossierB : dossierA;
-  const freshSide = !staleA ? dossierA : !staleB ? dossierB : newerBuilt;
+  const kosztorysFromA = kosztorys != null && kosztorys === dossierA.kosztorys;
+  const kosztorysFromB = kosztorys != null && kosztorys === dossierB.kosztorys;
+  const winningDossier = kosztorysFromB ? dossierB : kosztorysFromA ? dossierA : newerBuilt;
 
   return {
     brief: newerBuilt.brief?.fields?.length ? newerBuilt.brief : olderBuilt.brief,
     kosztorys,
-    scanSummary: kosztorysSide.scanSummary ?? newerBuilt.scanSummary ?? olderBuilt.scanSummary ?? null,
+    scanSummary: winningDossier.scanSummary ?? newerBuilt.scanSummary ?? olderBuilt.scanSummary ?? null,
     estimatePln: newerBuilt.estimatePln ?? olderBuilt.estimatePln ?? null,
     bidProposal: newerBuilt.bidProposal ?? olderBuilt.bidProposal ?? null,
-    parserVersion: freshSide.parserVersion ?? newerBuilt.parserVersion ?? olderBuilt.parserVersion,
+    parserVersion: winningDossier.parserVersion ?? newerBuilt.parserVersion ?? olderBuilt.parserVersion,
     builtAt: newerBuilt.builtAt,
   };
 }

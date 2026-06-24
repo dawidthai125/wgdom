@@ -12,6 +12,25 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-23",
+    version: "2.62.40",
+    label: "Przetargi — TP200C sync merge fidelity kosztorysu",
+    items: [
+      {
+        type: "fix",
+        text: "mergeTenderDossierByQuality — usunięty stale override; kosztorys wyłącznie przez pickBetterKosztorys",
+      },
+      {
+        type: "fix",
+        text: "parserVersion i scanSummary z winningDossier — lazy rebuild przy ATH v2, spójne metadane",
+      },
+      {
+        type: "improve",
+        text: "Regresja — test-tp200c-sync-merge-fidelity.mjs T200C-1..10",
+      },
+    ],
+  },
+  {
+    date: "2026-06-23",
     version: "2.62.39",
     label: "Audit Hub MVP-1 — Security Log",
     items: [
