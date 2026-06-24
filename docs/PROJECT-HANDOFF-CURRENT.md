@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-24 (**prod 2.62.48** · TP203 + P4 WM toast)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-24 (**kandydat prod 2.62.49** · WM Schematy MVP · poprzedni prod **2.62.48**)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -11,6 +11,7 @@
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
 1s. docs/SESSION-HANDOFF-2026-06-24.md    ← sesja Audit Hub · TP200C · P0 cloud-sync
 1t. docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md  ← ★★ WM Druk ZI §4/§5 · TP203 · P4 toast (2.62.46–48)
+1w. docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md      ← ★★ WM Schematy jednokreskowe MVP (2.62.49 CLOSED)
 1v. docs/SESSION-HANDOFF-AUDIT-HUB.md     ← ★★ Audit Hub MVP-0→1B (CLOSED)
 1u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
 1a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
@@ -31,7 +32,7 @@
 11. docs/SESSION-HANDOFF-DASHBOARD-V3.md   ← Pulpit V3 (COMPLETE — referencja)
 12. CURRENT-TASK.md                         ← status sesji / wznowienie
 13. docs/WORKFLOW-RELEASE-DEPLOY.md         ← workflow A/B/C
-14. AGENTS.md → docs/ARCHITECTURE.md § 12.1.8 WM Druk · § 12.1.10 EM · § Notatki
+14. AGENTS.md → docs/ARCHITECTURE.md § 12.1.8 WM Druk · § 12.1.10 EM · § 12.1.21 Schematy · § Notatki
 ```
 
 ---
@@ -40,6 +41,7 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **WM Schematy jednokreskowe MVP** | **2.62.49** (local) | **CLOSED** · WM Druk tab Schematy · KV sync · PDF draft/final | [`SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md`](SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md) · ARCHITECTURE § 12.1.21 |
 | **P4 WM upload toast** | **2.62.48** (`5cef155`) | **CLOSED** · brak „Dodano 0 plików” | [`SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md) §4 |
 | **TP203 Address Parser M1** | **2.62.47** (`08178cc`) | **CLOSED** · `parseJobAddressParts` | j.w. §3 · `test-wm-print-address-parser-tp203.mjs` |
 | **ZI §5 owner preservation** | **2.62.46** (`a40381c`) | **CLOSED** · §4 tylko 95–97 | j.w. §2 · `ZI-2026-HANDOFF.md` |
@@ -100,7 +102,7 @@ Notatki operacyjne          ← COMPLETE v2.58.1 (admin · ACK · widget · audi
 Audit Hub                   ← MVP-1B CLOSED v2.62.41 (Super Admin · 6 źródeł · security log)
 Do Rozliczenia
 Przetargi (+ Karta ofertowa P2-F, Wycena P3, Baza cen, Profil wykonawcy)
-WM Druk (+ Pomiary Elektryczne, Katalog RAP, ZIP odbiorowy)   ← EM-P1R v2.59.44
+WM Druk (+ Pomiary Elektryczne, **Schematy**, Katalog RAP, ZIP odbiorowy)   ← EM-P1R v2.59.44 · Schematy v2.62.49
 ```
 
 **Przetargi 3.0** — zakładki: Lista · Strategia · Mapa · Profil firmy · **Baza cen** · Ustawienia.  
@@ -127,6 +129,8 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 
 ```text
 Version (prod):             2.62.48       ← P4 WM upload toast (5cef155)
+Version (kandydat release): 2.62.49       ← WM Schematy MVP (pending push)
+WM Schematy MVP:            (local)       v2.62.49 — kw-electrical-schematics · tab Schematy
 TP203 Address Parser M1:    08178cc       v2.62.47 — parseJobAddressParts m.3/lok./slash
 ZI §5 owner hotfix:         a40381c       v2.62.46 — §4 pola 95–97 only
 P0 cloud-sync hotfix:       d799033       v2.62.42 — mergeDeliveryPackagePublications import

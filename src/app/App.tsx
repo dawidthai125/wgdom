@@ -160,6 +160,9 @@ import {
 } from "@/lib/electrical-measurements/registry";
 import { applyRapRegistryBaselineRepairP16C } from "@/lib/electrical-measurements/registry-baseline-repair";
 import { DEFAULT_ELECTRICAL_MEASUREMENT_SETTINGS } from "@/lib/electrical-measurements/settings";
+import type { SingleLineDiagram } from "@/lib/electrical-schematics/types";
+import { ELECTRICAL_SCHEMATICS_KEY } from "@/lib/electrical-schematics/types";
+import { pushElectricalSchematicsToCloud } from "@/lib/electrical-schematics/sync";
 import type { DeliveryPackagePublication } from "@/lib/delivery-package-publications/types";
 import { DELIVERY_PACKAGE_PUBLICATIONS_KEY } from "@/lib/delivery-package-publications/types";
 import { pushDeliveryPackagePublicationsToCloud } from "@/lib/delivery-package-publications/publication";
@@ -219,6 +222,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       ELECTRICAL_MEASUREMENT_SETTINGS_KEY,
       DEFAULT_ELECTRICAL_MEASUREMENT_SETTINGS,
     );
+  const [electricalSchematics, setElectricalSchematics] = useLocalStorage<SingleLineDiagram[]>(
+    ELECTRICAL_SCHEMATICS_KEY,
+    [],
+  );
   const [view, setView] = useState<View>("dashboard");
   const location = useLocation();
   const navigate = useNavigate();
@@ -399,6 +406,18 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       pushElectricalMeasurementsBundleToCloud(payload, registryPayload).catch(() => {});
     },
     [electricalMeasurements, electricalMeasurementRegistry, setElectricalMeasurementRegistry],
+  );
+
+  const commitElectricalSchematics = useCallback(
+    (next?: SingleLineDiagram[]) => {
+      const payload = next ?? electricalSchematics;
+      if (next !== undefined) {
+        setElectricalSchematics(payload);
+      }
+      suppressAutoSyncUntilRef.current = Date.now() + 4500;
+      pushElectricalSchematicsToCloud(payload).catch(() => {});
+    },
+    [electricalSchematics, setElectricalSchematics],
   );
 
   useEffect(() => {
@@ -831,7 +850,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   useEffect(() => {
     scheduleAutoCloudSync();
     remoteMergeInFlightRef.current = false;
-  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, deliveryPackagePublications, electricalMeasurements, electricalMeasurementRegistry, electricalMeasurementSettings, scheduleAutoCloudSync]);
+  }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, deliveryPackagePublications, electricalMeasurements, electricalMeasurementRegistry, electricalMeasurementSettings, electricalSchematics, scheduleAutoCloudSync]);
 
   useEffect(() => () => clearAutoSyncTimers(), [clearAutoSyncTimers]);
 
@@ -1911,6 +1930,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           setElectricalMeasurementSettings={setElectricalMeasurementSettings}
           commitElectricalMeasurementSettings={commitElectricalMeasurementSettings}
           commitElectricalMeasurements={commitElectricalMeasurements}
+          electricalSchematics={electricalSchematics}
+          setElectricalSchematics={setElectricalSchematics}
+          commitElectricalSchematics={commitElectricalSchematics}
           pendingWmPrintNav={pendingWmPrintNav}
           onInitialWmPrintNavigationConsumed={onInitialWmPrintNavigationConsumed}
           onOpenWmPrintMeasurements={(jobId) => {

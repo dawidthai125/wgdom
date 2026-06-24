@@ -35,6 +35,11 @@ import { mergeElectricalMeasurements } from "@/lib/electrical-measurements/merge
 import { mergeElectricalMeasurementRegistry, createEmptyRegistryState } from "@/lib/electrical-measurements/registry";
 import { mergeElectricalMeasurementSettings, normalizeElectricalMeasurementSettings } from "@/lib/electrical-measurements/settings";
 import { normalizeElectricalMeasurements } from "@/lib/electrical-measurements/normalize";
+import { mergeElectricalSchematics } from "@/lib/electrical-schematics/merge";
+import { normalizeElectricalSchematics } from "@/lib/electrical-schematics/normalize";
+import {
+  ELECTRICAL_SCHEMATICS_KEY,
+} from "@/lib/electrical-schematics/types";
 import {
   ELECTRICAL_MEASUREMENT_REGISTRY_KEY,
   ELECTRICAL_MEASUREMENT_SETTINGS_KEY,
@@ -102,6 +107,7 @@ export const DATA_KEYS = [
   "kw-electrical-measurements",
   "kw-electrical-measurement-registry",
   "kw-electrical-measurement-settings",
+  "kw-electrical-schematics",
   "kw-tenders-pipeline",
   "kw-tenders-company-profile",
   "kw-wgdom-cost-catalog",
@@ -148,6 +154,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-electrical-measurements",
   "kw-electrical-measurement-registry",
   "kw-electrical-measurement-settings",
+  "kw-electrical-schematics",
 ] as const satisfies readonly DataKey[];
 
 export const WGDOM_DEFERRED_BOOTSTRAP_EVENT = "wgdom-deferred-bootstrap";
@@ -1633,6 +1640,8 @@ export function mergeDataKey(
       return mergeElectricalMeasurementRegistry(local, cloud);
     case "kw-electrical-measurement-settings":
       return mergeElectricalMeasurementSettings(local, cloud);
+    case "kw-electrical-schematics":
+      return mergeElectricalSchematics(local, cloud);
     case "kw-tenders-pipeline":
       return mergeTenderDataKey(TENDERS_PIPELINE_KEY, local, cloud);
     case "kw-tenders-company-profile":
@@ -1839,6 +1848,7 @@ export function dataKeyRichness(key: DataKey, value: unknown): number {
     case "kw-operational-notes":
     case "kw-electrical-measurements":
     case "kw-electrical-measurement-registry":
+    case "kw-electrical-schematics":
       return normalizeArrayValue(value).length + (typeof value === "object" && value && "entries" in value ? recordRichness(value) : 0);
     default:
       return value != null && value !== "" ? 1 : 0;
@@ -1858,6 +1868,7 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
   }
   if (key === ELECTRICAL_MEASUREMENT_SETTINGS_KEY) return normalizeElectricalMeasurementSettings(null);
   if (key === ELECTRICAL_MEASUREMENT_REGISTRY_KEY) return createEmptyRegistryState();
+  if (key === ELECTRICAL_SCHEMATICS_KEY) return [];
   if (key.startsWith("kw-")) return [];
   return {};
 }
@@ -1867,6 +1878,9 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
   if (key === "kw-jobs") return normalizeJobsValue(coerced);
   if (key === "kw-week-employees" || key === "kw-archive" || key === "kw-directory" || key === "kw-contacts" || key === "kw-employee-leaves" || key === "kw-recoverable-charges" || key === "kw-operational-notes" || key === ELECTRICAL_MEASUREMENTS_KEY || key === ELECTRICAL_MEASUREMENT_REGISTRY_KEY) {
     return normalizeArrayValue(coerced);
+  }
+  if (key === ELECTRICAL_SCHEMATICS_KEY) {
+    return normalizeElectricalSchematics(coerced);
   }
   if (key === ELECTRICAL_MEASUREMENT_SETTINGS_KEY) return normalizeElectricalMeasurementSettings(coerced);
   if (key === ELECTRICAL_MEASUREMENT_REGISTRY_KEY) {

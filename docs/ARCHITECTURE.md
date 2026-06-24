@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-24 (prod **v2.62.48** · TP203 · P4 WM toast · § 12.1.8)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-24 (kandydat **v2.62.49** · WM Schematy MVP · § 12.1.21 · prod **v2.62.48**)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1525,6 +1525,56 @@ Klasyfikacja kosztorysu/przedmiaru po **treści** pliku XLSX (jednostki miary, K
 
 **Nie zmieniaj bez polecenia:** nie zastępuje ATH ani `isFormalOfferCostFilename()` — tylko wzmacnia ranking.
 
+### 12.1.21 WM Schematy jednokreskowe (WM-SCHEMATY-V1, v2.62.49)
+
+**Status:** **MVP COMPLETE** (Faza 0→4) · render 1F/3F · PDF A4 landscape · sync KV · UI WM Druk  
+**Handoff SSOT:** [`SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md`](SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md) · [`WM-SCHEMATY-V1-DESIGN-FREEZE.md`](WM-SCHEMATY-V1-DESIGN-FREEZE.md)  
+**Powiązane:** § 12.1.8 WM Druk · § 12.1.10 Pomiary Elektryczne (import RAP jednorazowy)
+
+Osobna domena schematów instalacji elektrycznej — użytkownik edytuje dane formularza (nie CAD). SVG generowane automatycznie; PDF = produkt końcowy.
+
+**Zakładki WM Druk (po 2.62.49):**
+
+```text
+Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawienia
+```
+
+| Element | Wartość |
+|---------|---------|
+| **View** | `wmprint` → zakładka `schematy` → `WmPrintSchematicsPanel.tsx` + `WmPrintSchematicEditor.tsx` |
+| **Domena** | `src/lib/electrical-schematics/` (types → normalize → merge → sync → report → render → export-pdf) |
+| **KV** | `kw-electrical-schematics` — tablica `SingleLineDiagram[]` |
+| **Sync** | LWW merge per `id` (`updatedAt`) · `pushElectricalSchematicsToCloud` · `App.tsx` `commitElectricalSchematics` |
+| **Import EM** | Jednorazowy `importSchematicFromMeasurement` — **brak** auto-sync po zmianie RAP |
+| **Layout MVP** | `apartment-1f-v1` · `apartment-3f-v1` (UI szablony); `commercial-3f-v1` w domenie, poza UI MVP |
+| **Poza MVP** | R1/R6 · `feedFrom`/`position` · ZIP `Schematy/` · WM Historia po eksporcie |
+
+**Model:** `SingleLineDiagram` · `schemaVersion: 1` · `status: draft | final` · `linkStatus: linked | detached | manual`
+
+**Render:** `renderSchematicSvg()` → layout dispatch · `SCHEMATIC_RENDER_VERSION = 2` · symbole IEC w `symbols/iec-simplified.ts`
+
+**PDF:** `export-pdf.ts` — SVG → raster PNG @2× (canvas w przeglądarce) → pdf-lib A4 landscape · Noto Sans (`wm-print-pdf-fonts`) · draft = watermark `WERSJA ROBOCZA`
+
+**UI MVP:** lista (search, filtr draft/final) · utwórz z szablonu 1F/3F · import z RAP · duplikuj · usuń · edytor obwodów/presetów · podgląd SVG na żywo · eksport PDF
+
+**Kluczowe pliki:**
+
+| Warstwa | Pliki |
+|---------|--------|
+| Tabs | `wm-print-tabs.ts` (`schematy` między `pomiary` a `katalog`) |
+| UI | `WmPrintSchematicsPanel.tsx`, `WmPrintSchematicEditor.tsx`, `WmPrintView.tsx`, `App.tsx` |
+| Domena | `types.ts`, `normalize.ts`, `merge.ts`, `sync.ts`, `report.ts`, `circuit-presets.ts`, `start-templates.ts`, `import-from-measurement.ts` |
+| Layout | `layout/apartment-1f-v1.ts`, `layout/apartment-3f-v1.ts` |
+| Export | `render-svg.ts`, `export-pdf.ts`, `render/svg-raster.ts` |
+
+**Smoke:** `test-schematic-presets-templates-1b.mjs` (77) · `test-schematic-merge-sync-1c.mjs` (29) · `test-schematic-import-from-measurement.mjs` (29) · `test-schematic-render-apartment-3f.mjs` (28) · `test-schematic-pdf-smoke.mjs` (22) · `test-schematic-cloud-sync-3a.mjs` (25) · `test-wm-schematics-ui-3b.mjs` (29)
+
+**Backlog znany (nie blokuje MVP):** przycisk UI „Odłącz od pomiaru” (`detachSchematicFromMeasurement` w domenie — smoke 1c PASS)
+
+**Nie zmieniaj bez polecenia:** merge LWW schematów, import bez `valueSet` EM, layouty R1/R6, auto-sync EM↔schemat, `kw-electrical-measurements`.
+
+---
+
 ### 12.1.12 P1 — Document Insights / Owner View Modal (P1A–P1D, v2.59.52)
 
 **Status:** **P1 STREAM CLOSED** (P1A PDF UX · P1B Summary Header · P1C Executive Summary · P1D Work Scope Inference)  
@@ -1587,9 +1637,9 @@ TenderDetailPanel
 
 **Nie zmieniaj bez briefu:** ATH, dossier pipeline, P2-F panels, `TenderBidProposalPanel`, scoring engines.
 
-### 12.1.8 Odbiory WM Druk (`wmprint`, v2.62.48)
+### 12.1.8 Odbiory WM Druk (`wmprint`, v2.62.49)
 
-**Status:** Moduł **COMPLETE** · ZIP · DOCX · preservation · sync **PASS** · **ZI Tauron 2026 PRODUCTION STABLE** · **TP203 parser** · **P4 upload toast**
+**Status:** Moduł **COMPLETE** · ZIP · DOCX · preservation · sync **PASS** · **ZI Tauron 2026 PRODUCTION STABLE** · **TP203 parser** · **P4 upload toast** · **Schematy MVP** (§ 12.1.21)
 
 **Handoff:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md) · [`SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md`](SESSION-HANDOFF-WM-PRINT-ODBIORY-DRUK.md) · [`SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md`](SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md) · [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) § 6  
 **★★ SSOT ZI:** [`ZI-2026-HANDOFF.md`](ZI-2026-HANDOFF.md) · validation: [`audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md`](../audit/tauron-audit-2026-06-15/FINAL-ZI-2026-PROD-VALIDATION.md) · P0.5B: [`audit/P0.5B-HOUSEKEEPING-REPORT.md`](../audit/P0.5B-HOUSEKEEPING-REPORT.md)

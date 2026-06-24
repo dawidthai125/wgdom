@@ -23,6 +23,7 @@ import type { AuditFeedDeepLink } from "@/lib/audit-hub/types";
 import { canAccessAuditHub } from "@/lib/audit-hub/acl";
 import type { WmPrintJobDocument, WmPrintSettings, WmPrintTemplate } from "@/lib/wm-print/types";
 import type { ElectricalMeasurement, ElectricalMeasurementRegistryState, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
+import type { SingleLineDiagram } from "@/lib/electrical-schematics/types";
 import type { View } from "@/app/admin/admin-nav";
 import { TeamDirectoryContactsView } from "@/app/TeamDirectoryContactsView";
 import { TendersProvider } from "@/app/tenders/context/TendersProvider";
@@ -172,6 +173,11 @@ export type AdminViewRouterProps = {
     nextMeasurements?: ElectricalMeasurement[],
     nextRegistry?: ElectricalMeasurementRegistryState,
   ) => void;
+  electricalSchematics: SingleLineDiagram[];
+  setElectricalSchematics: (
+    v: SingleLineDiagram[] | ((prev: SingleLineDiagram[]) => SingleLineDiagram[]),
+  ) => void;
+  commitElectricalSchematics: (next?: SingleLineDiagram[]) => void;
   pendingWmPrintNav: import("@/lib/wm-print/wm-print-tabs").WmPrintPendingNavigation | null;
   onInitialWmPrintNavigationConsumed: () => void;
   onOpenWmPrintMeasurements: (jobId: string) => void;
@@ -364,6 +370,9 @@ export function AdminViewRouter({
   setElectricalMeasurementSettings,
   commitElectricalMeasurementSettings,
   commitElectricalMeasurements,
+  electricalSchematics,
+  setElectricalSchematics,
+  commitElectricalSchematics,
   pendingWmPrintNav,
   onInitialWmPrintNavigationConsumed,
   onOpenWmPrintMeasurements,
@@ -597,6 +606,9 @@ export function AdminViewRouter({
               electricalMeasurementSettings={electricalMeasurementSettings}
               onChangeElectricalMeasurementSettings={setElectricalMeasurementSettings}
               onCommitElectricalMeasurementSettings={commitElectricalMeasurementSettings}
+              electricalSchematics={electricalSchematics}
+              onChangeElectricalSchematics={setElectricalSchematics}
+              onCommitElectricalSchematics={commitElectricalSchematics}
               initialTab={pendingWmPrintNav?.tab ?? null}
               initialJobId={pendingWmPrintNav?.jobId ?? null}
               onInitialNavigationConsumed={onInitialWmPrintNavigationConsumed}

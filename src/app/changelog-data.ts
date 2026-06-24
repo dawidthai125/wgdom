@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.49",
+    label: "WM Druk — Schematy jednokreskowe (MVP UI)",
+    items: [
+      {
+        type: "new",
+        text: "WM Druk → zakładka Schematy: lista, edytor, podgląd SVG, eksport PDF (draft/final + watermark)",
+      },
+      {
+        type: "new",
+        text: "Schematy — tworzenie z szablonu (1F/3F) lub import z raportu pomiarowego RAP; sync kw-electrical-schematics",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.48",
     label: "P4 WM Druk — upload toast (bez „Dodano 0 plików”)",
     items: [

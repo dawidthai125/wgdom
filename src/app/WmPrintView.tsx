@@ -19,12 +19,14 @@ import {
   History,
   Gauge,
   Library,
+  Network,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
 import { jobDisplayTitle } from "@/app/app-domain";
 import { JobElectricalMeasurementsPanel } from "@/app/JobElectricalMeasurementsPanel";
 import { MeasurementCatalogPanel } from "@/app/MeasurementCatalogPanel";
+import { WmPrintSchematicsPanel } from "@/app/WmPrintSchematicsPanel";
 import { WmPrintHistoryPanel } from "@/app/WmPrintHistoryPanel";
 import type { AdminSession } from "@/lib/admin-auth";
 import { computeWmPrintCompleteness } from "@/lib/wm-print/completeness";
@@ -104,6 +106,7 @@ import {
   touchElectricalMeasurementSettings,
 } from "@/lib/electrical-measurements/settings";
 import type { DeliveryPackagePublication } from "@/lib/delivery-package-publications/types";
+import type { SingleLineDiagram } from "@/lib/electrical-schematics/types";
 import {
   buildDeliveryPackageGenerationFingerprint,
   deliveryPackageStatusLabel,
@@ -116,6 +119,7 @@ import { formatDeliveryPackageFileSize } from "@/lib/delivery-package-publicatio
 const TAB_ICONS: Record<WmPrintTab, typeof ClipboardList> = {
   odbiory: ClipboardList,
   pomiary: Gauge,
+  schematy: Network,
   katalog: Library,
   szablony: FileText,
   historia: History,
@@ -146,6 +150,9 @@ export function WmPrintView({
   electricalMeasurementSettings,
   onChangeElectricalMeasurementSettings,
   onCommitElectricalMeasurementSettings,
+  electricalSchematics,
+  onChangeElectricalSchematics,
+  onCommitElectricalSchematics,
   initialTab,
   initialJobId,
   onInitialNavigationConsumed,
@@ -186,6 +193,9 @@ export function WmPrintView({
   electricalMeasurementSettings: ElectricalMeasurementSettings;
   onChangeElectricalMeasurementSettings: (next: ElectricalMeasurementSettings) => void;
   onCommitElectricalMeasurementSettings: (next?: ElectricalMeasurementSettings) => void;
+  electricalSchematics: SingleLineDiagram[];
+  onChangeElectricalSchematics: (next: SingleLineDiagram[]) => void;
+  onCommitElectricalSchematics: (next?: SingleLineDiagram[]) => void;
   initialTab?: WmPrintTab | null;
   initialJobId?: string | null;
   onInitialNavigationConsumed?: () => void;
@@ -969,6 +979,16 @@ export function WmPrintView({
               )}
             </div>
           </div>
+        )}
+
+        {tab === "schematy" && (
+          <WmPrintSchematicsPanel
+            jobs={jobs}
+            measurements={electricalMeasurements}
+            schematics={electricalSchematics}
+            onChangeSchematics={onChangeElectricalSchematics}
+            onCommitSchematics={onCommitElectricalSchematics}
+          />
         )}
 
         {tab === "katalog" && (

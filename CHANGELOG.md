@@ -1,6 +1,12 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.48** · **P4 WM upload toast**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.48** · **WM Schematy UI 3B local**
+
+## 2.62.49 — WM Druk Schematy MVP UI
+
+- Zakładka **Schematy** (między Pomiary a Katalog Pomiarów)
+- `WmPrintSchematicsPanel` + `WmPrintSchematicEditor` — lista, edytor, podgląd SVG, eksport PDF
+- Sync `kw-electrical-schematics` · smoke `test-wm-schematics-ui-3b.mjs`
 
 ## 2.62.48 — P4 WM Druk upload toast
 
