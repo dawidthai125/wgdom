@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.45** · **P1 ZI-PDF-ADDRESS-COMPLETENESS**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.46** · **P0 ZI §5 owner hotfix**
+
+## 2.62.46 — ZI Tauron 2026 · hotfix §5 zgłaszający (P0 OWNER ADDRESS)
+
+- **fix:** `applyAddressSectionFields` — tylko 95–97; §5 z graftu szablonu WM
+- **test:** preservation smoke — Szkolna/Stróża/55-081 zachowane
 
 ## 2.62.45 — ZI Tauron 2026 · adres §4 dual-fill (P1 ZI-PDF-ADDRESS-COMPLETENESS)
 

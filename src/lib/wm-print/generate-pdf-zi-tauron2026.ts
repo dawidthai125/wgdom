@@ -8,19 +8,12 @@ import { loadWmPrintZiPdfFontBytes } from "@/lib/wm-print/wm-print-pdf-fonts";
 import type { WmPrintVariableKey } from "@/lib/wm-print/types";
 import { extractZiTauron2026FormFieldsPdfJs } from "@/lib/wm-print/zi-tauron2026-form-extract";
 
-/** §4 OKREŚLENIE OBIEKTU — strona 2 formularza Tauron 2026 (górny + dolny wiersz + miejscowość). */
+/** §4 OKREŚLENIE OBIEKTU — górny wiersz (nad bannerem §5). Pola §5 zostają ze szablonu WM. */
 export const WM_PRINT_ZI_TAURON2026_FIELD_MAP: Record<string, WmPrintVariableKey> = {
   "Pole tekstowe 95": "JOB_STREET",
   "Pole tekstowe 96": "JOB_BUILDING",
   "Pole tekstowe 97": "JOB_APARTMENT",
-  "Pole tekstowe 99": "JOB_STREET",
-  "Pole tekstowe 111": "JOB_BUILDING",
-  "Pole tekstowe 112": "JOB_APARTMENT",
-  "Pole tekstowe 101": "JOB_CITY",
 };
-
-/** §4 kod pocztowy — czyszczone gdy brak źródła w modelu Job. */
-export const WM_PRINT_ZI_TAURON2026_POSTAL_CLEAR_FIELDS = ["Pole tekstowe 102", "Pole tekstowe 110"] as const;
 
 export const WM_PRINT_ZI_TAURON2026_TEMPLATE_PATH = "/wm-print/zi-tauron-2026-template.pdf";
 
@@ -118,21 +111,10 @@ function applyExtractedFormFieldValue(form: PDFForm, fieldName: string, value: s
 }
 
 function applyAddressSectionFields(form: PDFForm, vars: Record<WmPrintVariableKey, string>): void {
-  const street = (vars.JOB_STREET ?? "").trim();
-  const building = formatBuildingForZi2026(vars.JOB_BUILDING ?? "");
-  const apartment = (vars.JOB_APARTMENT ?? "").trim();
-  const city = (vars.JOB_CITY ?? "").trim();
-
   const values: Record<string, string> = {
-    "Pole tekstowe 95": street,
-    "Pole tekstowe 96": building,
-    "Pole tekstowe 97": apartment,
-    "Pole tekstowe 99": street,
-    "Pole tekstowe 111": building,
-    "Pole tekstowe 112": apartment,
-    "Pole tekstowe 101": city,
-    "Pole tekstowe 102": "",
-    "Pole tekstowe 110": "",
+    "Pole tekstowe 95": (vars.JOB_STREET ?? "").trim(),
+    "Pole tekstowe 96": formatBuildingForZi2026(vars.JOB_BUILDING ?? ""),
+    "Pole tekstowe 97": (vars.JOB_APARTMENT ?? "").trim(),
   };
 
   for (const [fieldName, value] of Object.entries(values)) {
@@ -147,8 +129,7 @@ function applyAddressSectionFields(form: PDFForm, vars: Record<WmPrintVariableKe
 }
 
 /**
- * Wypełnia §4 adres obiektu (95–97 + 99/111/112 + 101; czyści 102/110).
- * Zachowuje pozostałe dane szablonu WM (pdf.js graft gdy R6).
+ * Wypełnia §4 adres obiektu (tylko 95–97). §5 i dolny wiersz — z graftu / szablonu WM.
  */
 export async function generatePdfZiTauron2026(
   templateBytes: Uint8Array,
@@ -193,13 +174,6 @@ export async function inspectZiTauron2026Fill(
   const form = reloaded.getForm();
   const result: Record<string, string> = {};
   for (const fieldName of Object.keys(WM_PRINT_ZI_TAURON2026_FIELD_MAP)) {
-    try {
-      result[fieldName] = form.getTextField(fieldName).getText() ?? "";
-    } catch {
-      result[fieldName] = "";
-    }
-  }
-  for (const fieldName of WM_PRINT_ZI_TAURON2026_POSTAL_CLEAR_FIELDS) {
     try {
       result[fieldName] = form.getTextField(fieldName).getText() ?? "";
     } catch {

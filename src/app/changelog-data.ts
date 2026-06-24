@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.46",
+    label: "ZI Tauron 2026 — hotfix §5 zgłaszający (P0 owner address)",
+    items: [
+      {
+        type: "fix",
+        text: "ZI PDF — adres obiektu tylko pola 95–97 (§4); §5 (99/101/102/110/111) zachowane ze wgranego szablonu WM",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.45",
     label: "ZI Tauron 2026 — pełny adres §4 (dual-fill + miasto + czyszczenie kodu)",
     items: [

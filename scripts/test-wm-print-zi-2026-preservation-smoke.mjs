@@ -1,6 +1,6 @@
 /**
- * ZI Tauron 2026 — preservation gate (encrypted WM ZI.pdf + adres §4 dual-fill).
- * Źródło: wypełniony ZI.pdf użytkownika (Dawid / Thai Thanh / Stróża …).
+ * ZI Tauron 2026 — preservation gate (encrypted WM ZI.pdf).
+ * §4: 95–97 z roboty. §5: 39/40/99/101/102/110/111 zachowane ze szablonu.
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -10,7 +10,6 @@ import {
   countZiTauron2026PdfLibFields,
   generatePdfZiTauron2026,
   WM_PRINT_ZI_TAURON2026_FIELD_MAP,
-  WM_PRINT_ZI_TAURON2026_POSTAL_CLEAR_FIELDS,
 } from "../src/lib/wm-print/generate-pdf-zi-tauron2026.ts";
 import {
   extractZiTauron2026FormFieldsPdfJs,
@@ -50,23 +49,31 @@ assert(pdfLibBefore < 50, `source is encrypted for pdf-lib (${pdfLibBefore} fiel
 const beforeFields = pickNonEmptyZiFormFields(await extractZiTauron2026FormFieldsPdfJs(sourceBytes));
 assert(Object.keys(beforeFields).length >= 10, "source has user-filled fields (pdf.js)");
 
-const PRESERVE = [
+const PRESERVE_PERSON = [
   { field: "Pole tekstowe 39", label: "DAWID", match: (v) => norm(v) === "dawid" },
   { field: "Pole tekstowe 40", label: "THAI THANH", match: (v) => norm(v) === "thai thanh" },
   { field: "Pole wyboru 39", label: "checkbox Tak", match: (v) => norm(v) === "tak" },
 ];
 
-for (const p of PRESERVE) {
+const PRESERVE_OWNER_ADDRESS = [
+  { field: "Pole tekstowe 99", expected: "Szkolna" },
+  { field: "Pole tekstowe 101", expected: "Stróża" },
+  { field: "Pole tekstowe 102", expected: "55" },
+  { field: "Pole tekstowe 110", expected: "081" },
+  { field: "Pole tekstowe 111", expected: "5" },
+];
+
+for (const p of PRESERVE_PERSON) {
   const v = beforeFields[p.field];
   assert(v !== undefined && p.match(v), `before: ${p.label} (${p.field})`);
 }
 
-assert(
-  beforeFields["Pole tekstowe 101"] !== undefined,
-  "before: source had stale miejscowość (101) from template",
-);
+for (const p of PRESERVE_OWNER_ADDRESS) {
+  const v = beforeFields[p.field];
+  assert(v === p.expected, `before §5: ${p.field} = ${p.expected} (got ${JSON.stringify(v)})`);
+}
 
-const EXPECTED_ADDR = { street: "Sępa Szarzyńskiego", building: "83", apartment: "7", city: "Wrocław" };
+const EXPECTED_ADDR = { street: "Sępa Szarzyńskiego", building: "83", apartment: "7" };
 const parts = parseJobAddressParts("Sępa Szarzyńskiego 83", "7");
 assert(parts.street === EXPECTED_ADDR.street, "parse street");
 
@@ -83,9 +90,14 @@ writeFileSync(outPath, outBytes);
 const doc = await getDocument({ data: outBytes, verbosity: 0 }).promise;
 const afterFields = await doc.getFieldObjects();
 
-for (const p of PRESERVE) {
+for (const p of PRESERVE_PERSON) {
   const v = afterFields?.[p.field]?.[0]?.value ?? "";
   assert(p.match(v), `after preserve: ${p.label} (${p.field}=${JSON.stringify(String(v))})`);
+}
+
+for (const p of PRESERVE_OWNER_ADDRESS) {
+  const v = afterFields?.[p.field]?.[0]?.value ?? "";
+  assert(v === p.expected, `after §5 preserve: ${p.field} = ${p.expected} (got ${JSON.stringify(v)})`);
 }
 
 for (const [fieldName, varKey] of Object.entries(WM_PRINT_ZI_TAURON2026_FIELD_MAP)) {
@@ -94,24 +106,17 @@ for (const [fieldName, varKey] of Object.entries(WM_PRINT_ZI_TAURON2026_FIELD_MA
   assert(val === expected, `after §4: ${fieldName} = ${expected}`);
 }
 
-for (const fieldName of WM_PRINT_ZI_TAURON2026_POSTAL_CLEAR_FIELDS) {
-  const val = afterFields?.[fieldName]?.[0]?.value ?? "";
-  assert(val === "", `after §4: ${fieldName} cleared (was stale from template)`);
-}
-
-const cityAfter = afterFields?.["Pole tekstowe 101"]?.[0]?.value ?? "";
-assert(cityAfter === vars.JOB_CITY, `101 overwritten with JOB_CITY (not stale Stróża): ${cityAfter}`);
-
 const report = {
   generatedAt: new Date().toISOString(),
   fixture: FIXTURE_ZI,
   sourcePdfLibFields: pdfLibBefore,
   beforeNonEmptyCount: Object.keys(beforeFields).length,
   beforeSample: beforeFields,
-  preserveChecks: PRESERVE.map((p) => ({
+  preserveChecks: [...PRESERVE_PERSON, ...PRESERVE_OWNER_ADDRESS].map((p) => ({
     field: p.field,
     before: beforeFields[p.field],
     after: afterFields?.[p.field]?.[0]?.value ?? "",
+    expected: "expected" in p ? p.expected : undefined,
   })),
   address: {
     "Pole tekstowe 95": afterFields?.["Pole tekstowe 95"]?.[0]?.value,
