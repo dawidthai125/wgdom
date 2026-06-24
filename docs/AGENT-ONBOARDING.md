@@ -1,7 +1,7 @@
 # W&G DOM — onboarding agenta AI / programisty
 
 > **Cel:** jeden dokument startowy — jak działa aplikacja, gdzie szukać prawdy, czego nie ruszać.  
-> **Prod:** **2.62.37** · https://www.wgdom.fun · **Audit Hub MVP-0 CLOSED** · **TP190 stream CLOSED** · PDF WM Recovery · TP200B PLANNED · POST ZI-2026 · WM Druk **COMPLETE** · EM-P1R **COMPLETE**
+> **Prod:** **2.62.42** · https://www.wgdom.fun · **Audit Hub MVP-1B CLOSED** · **TP200C CLOSED** · **P0 cloud-sync hotfix** · TP200B PLANNED · POST ZI-2026 · WM Druk **COMPLETE** · EM-P1R **COMPLETE**
 
 ---
 
@@ -9,6 +9,7 @@
 
 ```text
 1. docs/AGENT-ONBOARDING.md           ← TEN PLIK (mapa systemu)
+1s. docs/SESSION-HANDOFF-2026-06-24.md ← ★★ ostatnia sesja (2.62.38–42, architektura skrót)
 2. docs/PROJECT-HANDOFF-CURRENT.md    ← baseline prod, commity, releasy
 2v. docs/SESSION-HANDOFF-AUDIT-HUB.md ← ★★ Audit Hub MVP-0 (2.62.36–37 CLOSED)
 2u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
@@ -105,6 +106,7 @@ Router: `AdminViewRouter.tsx` · mobile: `mobile.css`, bottom nav 4 pozycje.
 | Trwałe dane | Zawsze LS + push do KV przez `DATA_KEYS` |
 | Partial push | `prepareKeysForCloudPush` — nie omijać |
 | Merge | Per-klucz w `mergeDataKey` — **nie zgaduj** semantyki |
+| **Import merge helperów** | Każda funkcja w `mergeDataKey` **musi** mieć `import` w nagłówku `cloud-sync.ts` — regresja **2.62.39→2.62.42** |
 | Payroll Guard | Blokuje push gdy lista płac „kurczy się” >50% |
 | Admin hasła | Osobny merge `mergeAdminPasswordOverrides` |
 | Bootstrap | `CloudLoader.tsx` — P11 payroll, P15 admin passwords |
@@ -340,20 +342,21 @@ npx vite-node scripts/test-payroll-assignments-p1.mjs
 
 ---
 
-## 6d. Audit Hub (MVP-0 CLOSED)
+## 6d. Audit Hub (MVP-0 + MVP-1 + MVP-1B CLOSED)
 
-**Status:** **MVP-0 CLOSED** · v**2.62.37** · prod **`a0d7093`** (MVP-0B `b2eed93`)
+**Status:** **MVP-1B CLOSED** · v**2.62.41** · Security Log **2.62.39** · P0 localeCompare **2.62.37**
 
 | Dokument | Rola |
 |----------|------|
-| [`SESSION-HANDOFF-AUDIT-HUB.md`](SESSION-HANDOFF-AUDIT-HUB.md) | **★★ SSOT modułu** — adaptery, deep linki, RCA P0, backlog MVP-1 |
+| [`SESSION-HANDOFF-AUDIT-HUB.md`](SESSION-HANDOFF-AUDIT-HUB.md) | **★★ SSOT modułu** — 6 źródeł, security log, recovery events, backlog MVP-1C |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) § **15.2** | Sekcja techniczna + mapa widoku `audit` § 15.1 |
 
 ### Kluczowe pliki
 
 ```text
 src/lib/audit-hub/types.ts       AuditFeedItem, AuditHubInput, deep link types
-src/lib/audit-hub/adapters.ts    5 adapterów + buildAuditFeed + feedAt/feedActor
+src/lib/audit-hub/adapters.ts    6 adapterów + buildAuditFeed + feedAt/feedActor
+src/lib/security-audit-log.ts    kw-security-audit-log (AUX, MVP-1)
 src/lib/audit-hub/filters.ts     filtry, paginacja 50, collectAuditHubFilterOptions
 src/lib/audit-hub/view-model.ts  buildAuditHubViewModel
 src/lib/audit-hub/acl.ts         canAccessAuditHub — Super Admin
@@ -365,11 +368,14 @@ src/app/App.tsx                  handleAuditHubDeepLink
 ### Smoke
 
 ```bash
+npx vite-node scripts/test-security-audit-log.mjs
 npx vite-node scripts/test-audit-hub-adapters.mjs
 npx vite-node scripts/test-audit-hub-view-model.mjs
 ```
 
-**Nie ruszać bez briefu:** nowy KV · `cloud-sync` · ACL inne niż Super Admin · sort bez guard na `actor`/`at` · `appendJobActivity` bez `actor`
+**Pułapka cloud-sync (2.62.42):** commit `2b8980c` usunął import `mergeDeliveryPackagePublications` — patrz [`SESSION-HANDOFF-2026-06-24.md`](SESSION-HANDOFF-2026-06-24.md) §4.
+
+**Nie ruszać bez briefu:** nowy KV · zmiana nagłówka `cloud-sync.ts` bez grep merge imports · ACL inne niż Super Admin
 
 ---
 
@@ -510,4 +516,4 @@ curl -s https://www.wgdom.fun/version.json   # VERIFY FAST
 
 ---
 
-*Ostatnia aktualizacja: 2026-06-23 · TP190 stream CLOSED (TP190C-3C 9/9) · R1-FIX 2.62.32 · TP200B PLANNED · PAYROLL-ASSIGNMENTS-P1 · EM-P1R · POST ZI-2026*
+*Ostatnia aktualizacja: 2026-06-24 · prod **2.62.42** · TP200C CLOSED · Audit Hub MVP-1B · P0 cloud-sync hotfix*

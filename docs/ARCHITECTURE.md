@@ -639,8 +639,7 @@ Pliki: `src/lib/payroll-job-assignments.ts`, `src/app/PayrollJobAssignmentsPanel
 5. Usuwanie z kartoteki → `pushDirectoryToCloud` (natychmiast).
 6. **Stale localStorage + bootstrap push** — stary LS może przywrócić usunięte klucze KV (admin passwords, martwe URL w jobs). Fix: P11/P15 w `CloudLoader`; po incydencie **hard refresh**. Szczegóły → [`INCIDENTS-2026-06.md`](INCIDENTS-2026-06.md).
 7. **Logout nie uruchamia ponownie CloudLoader** — merge bootstrap tylko przy pierwszym mount strony.
-
-### 11.4 Payroll Guard i bootstrap merge (P11, czerwiec 2026)
+8. **`mergeDataKey` ↔ importy nagłówka** — każda funkcja wywoływana w `case` musi być zaimportowana w `cloud-sync.ts`. Regresja **2.62.39** (`2b8980c`): usunięto `mergeDeliveryPackagePublications` przy dodaniu Security Log → `ReferenceError` przy `runCloudSync` (hotfix **2.62.42** `d799033`). Patrz [`SESSION-HANDOFF-2026-06-24.md`](SESSION-HANDOFF-2026-06-24.md) §4. i bootstrap merge (P11, czerwiec 2026)
 
 | Mechanizm | Plik | Rola |
 |-----------|------|------|

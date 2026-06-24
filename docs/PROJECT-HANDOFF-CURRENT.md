@@ -1,6 +1,6 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-23 (**prod 2.62.37** · Audit Hub P0 hotfix)  
+> **★ Główny handoff projektu (SSOT)** · **Data closeout:** 2026-06-24 (**prod 2.62.42** · P0 cloud-sync hotfix)  
 > **Skrót post-ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Hasło agenta:** „kontynuuj WGDOM”  
 > **Poprzedni handoff końcowy serii:** [`PROJECT-HANDOFF-FINAL-20.5Z.md`](PROJECT-HANDOFF-FINAL-20.5Z.md) — nadal ważny dla architektury platformy 20.5Z; **ten dokument** aktualizuje baseline prod i releasy **po** 20.5Z.
@@ -9,7 +9,8 @@
 
 ```text
 1. docs/PROJECT-HANDOFF-CURRENT.md        ← TEN PLIK (baseline prod)
-1v. docs/SESSION-HANDOFF-AUDIT-HUB.md     ← ★★ Audit Hub MVP-0 (2.62.36–37 CLOSED)
+1s. docs/SESSION-HANDOFF-2026-06-24.md    ← ★★ ostatnia sesja (2.62.38–42, architektura)
+1v. docs/SESSION-HANDOFF-AUDIT-HUB.md     ← ★★ Audit Hub MVP-0→1B (CLOSED)
 1u. docs/SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md  ← ★★ P0 Vercel deploy unblock (CLOSED)
 1a. docs/SESSION-HANDOFF-TP190-PARSER-V3.md  ← ★★ TP190 parser v3 + batch rebuild (2.62.27)
 1b. docs/SESSION-HANDOFF-PDF-WM-RECOVERY.md  ← ★★ PDF WM Recovery TP196–TP201C (CLOSED)
@@ -38,6 +39,10 @@
 
 | Epic | Wersja | Status | SSOT |
 |------|--------|--------|------|
+| **P0 cloud-sync delivery package import** | **2.62.42** (`d799033`) | **CLOSED** · regresja 2.62.39 | [`SESSION-HANDOFF-2026-06-24.md`](SESSION-HANDOFF-2026-06-24.md) §4 |
+| **Audit Hub MVP-1B Recovery Events** | **2.62.41** (`656a00c`) | **CLOSED** · security_log RECOVERY/DATA | [`SESSION-HANDOFF-AUDIT-HUB.md`](SESSION-HANDOFF-AUDIT-HUB.md) |
+| **Przetargi · TP200C sync merge fidelity** | **2.62.40** (`0d5b916`) | **CLOSED** · `pickBetterKosztorys` SSOT | `tender-dossier-merge.ts` · `test-tp200c-sync-merge-fidelity.mjs` |
+| **Audit Hub MVP-1 Security Log** | **2.62.39** (`2b8980c`) | **CLOSED** · 6. źródło Hub | [`SESSION-HANDOFF-AUDIT-HUB.md`](SESSION-HANDOFF-AUDIT-HUB.md) |
 | **Audit Hub MVP-0** | **2.62.36–2.62.37** (`b2eed93`+`a0d7093`) | **CLOSED** · agregacja 5 źródeł · P0 localeCompare hotfix | [`SESSION-HANDOFF-AUDIT-HUB.md`](SESSION-HANDOFF-AUDIT-HUB.md) |
 | **Production deploy unblock** | **2.62.31** (`d79f7c1`) | **CLOSED** · Vercel BUILD PASS | [`SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md`](SESSION-HANDOFF-PRODUCTION-UNBLOCK-2026-06-22.md) |
 | **Lista Płac · Work Entry Delete Persistence** | **2.62.34** | **CLOSED** · `deletedWorkEntryTombstones` · merge + JobsView + Pulpit | `payroll-job-assignments.ts` |
@@ -88,7 +93,7 @@
 Dashboard
 Roboty
 Notatki operacyjne          ← COMPLETE v2.58.1 (admin · ACK · widget · audit · inspektor · backup)
-Audit Hub                   ← MVP-0 CLOSED v2.62.37 (Super Admin · 5 źródeł · read-only)
+Audit Hub                   ← MVP-1B CLOSED v2.62.41 (Super Admin · 6 źródeł · security log)
 Do Rozliczenia
 Przetargi (+ Karta ofertowa P2-F, Wycena P3, Baza cen, Profil wykonawcy)
 WM Druk (+ Pomiary Elektryczne, Katalog RAP, ZIP odbiorowy)   ← EM-P1R v2.59.44
@@ -117,7 +122,10 @@ Pulpit: operacje + `TendersShortcutPanel` (CTA → Strategia).
 ## 2. PRODUCTION BASELINE
 
 ```text
-Version (prod):             2.62.37       ← Audit Hub P0 localeCompare hotfix (a0d7093)
+Version (prod):             2.62.42       ← P0 cloud-sync mergeDeliveryPackagePublications import (d799033)
+Audit Hub MVP-1B:           656a00c       v2.62.41 — RECOVERY + DATA events w security_log
+TP200C sync merge:          0d5b916       v2.62.40 — pickBetterKosztorys SSOT
+Audit Hub MVP-1:            2b8980c       v2.62.39 — kw-security-audit-log · 6. źródło
 Audit Hub MVP-0B:           b2eed93       v2.62.36 — panel Super Admin · 5 źródeł
 Audit Hub P0 hotfix:        a0d7093       feedAt/feedActor · JobsView photo_upload actor
 Operational Notes unread:   00ccfa1       v2.62.35 — mergeOperationalNotePair fingerprint ACK
@@ -228,7 +236,7 @@ E2E (origin/main):    8906485         20.5Z.2B
 
 ```bash
 curl -s https://www.wgdom.fun/version.json
-# oczekiwane: { "version": "2.62.37", "commit": "a0d7093" }
+# oczekiwane: { "version": "2.62.42", "commit": "d799033" }
 ```
 
 ---

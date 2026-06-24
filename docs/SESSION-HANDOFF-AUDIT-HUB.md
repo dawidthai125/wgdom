@@ -205,6 +205,7 @@ Przy release: workflow **B** — [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE
 | `appendJobActivity(job, type, text)` bez `actor` | Legacy `photo_upload` bez aktora | Zawsze 4. argument; wzorzec: `createdByName` |
 | Zakładanie że LS = znormalizowany parser | Stare wpisy KV bez `displayName`/`at` | Adaptery defensywne, nie tylko typy TS |
 | Nowy KV / `cloud-sync` bez briefu | Poza zakresem MVP-0 | Tylko na polecenie (MVP-1) |
+| **Zamiana importu w `cloud-sync.ts` bez grep `mergeDataKey`** | **ReferenceError** przy auto sync (2.62.39→2.62.42) | Każdy helper w `case` musi mieć `import`; patrz [`SESSION-HANDOFF-2026-06-24.md`](SESSION-HANDOFF-2026-06-24.md) §4 |
 
 ---
 
@@ -245,4 +246,7 @@ Przy release: workflow **B** — [`WORKFLOW-RELEASE-DEPLOY.md`](WORKFLOW-RELEASE
 ```text
 b2eed93  feat(audit-hub): MVP-0B Super Admin panel (2.62.36)
 a0d7093  fix(audit-hub): P0 localeCompare crash hotfix (2.62.37)
+2b8980c  feat(audit-hub): MVP-1 Security Log (2.62.39) — ⚠️ regresja importu cloud-sync
+656a00c  feat(audit-hub): MVP-1B Recovery Events (2.62.41)
+d799033  fix(cloud-sync): mergeDeliveryPackagePublications import (2.62.42)
 ```
