@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.46** · **P0 ZI §5 owner hotfix**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.47** · **TP203 Address Parser M1**
+
+## 2.62.47 — TP203 Address Parser Recovery M1
+
+- **fix:** `parseJobAddressParts` — `m.3`, `lok.`, `mieszkanie`, slash `26/3`, budynek z literą `12A`
+- **test:** `test-wm-print-address-parser-tp203.mjs` · manual gate Kleczkowska 95/96/97 PASS
 
 ## 2.62.46 — ZI Tauron 2026 · hotfix §5 zgłaszający (P0 OWNER ADDRESS)
 

@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.47",
+    label: "TP203 — Address Parser Recovery M1 (WM Druk / ZI)",
+    items: [
+      {
+        type: "fix",
+        text: "Parser adresu roboty — formaty m.3, lok., mieszkanie, 26/3, 12A/7 (np. Kleczkowska 26 m.3 → ulica/budynek/lokal)",
+      },
+      {
+        type: "improve",
+        text: "Test TP203 — test-wm-print-address-parser-tp203.mjs (regresja Gorlicka, Sępa 83/7)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.46",
     label: "ZI Tauron 2026 — hotfix §5 zgłaszający (P0 owner address)",
     items: [
