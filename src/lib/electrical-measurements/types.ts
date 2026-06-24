@@ -14,6 +14,9 @@ export interface ElectricalMeasurementFlags {
   test?: boolean;
 }
 
+/** EM-UX-002 — powiązanie z robotą vs samodzielny RAP (bez jobId). */
+export type ElectricalMeasurementLinkStatus = "linked" | "detached";
+
 export interface ElectricalMeasurementRegistryEntry {
   jobId: string;
   rapNumber: string;
@@ -131,7 +134,13 @@ export interface ElectricalMeasurementValueSet {
 
 export interface ElectricalMeasurement {
   id: string;
+  /** Puste dla samodzielnego RAP (linkStatus=detached). */
   jobId: string;
+  /** EM-UX-002 — linked (domyślnie gdy jobId) lub detached (adres ręczny). */
+  linkStatus?: ElectricalMeasurementLinkStatus;
+  /** Adres obiektu — tylko dla detached. */
+  manualAddress?: string;
+  manualFlatNumber?: string;
   reportNumber: string;
   measurementDate: string;
   technicianName: string;

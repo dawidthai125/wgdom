@@ -54,7 +54,7 @@ export function createTestElectricalMeasurement(
   settings?: Pick<ElectricalMeasurementSettings, "technicianName" | "meterModel" | "meterSerialNumber">,
 ): ElectricalMeasurement {
   const reportNumber = allocateNextTestReportNumber(allMeasurements);
-  const base = createEmptyElectricalMeasurement(jobId, reportNumber, settings);
+  const base = createEmptyElectricalMeasurement(jobId.trim(), reportNumber, settings);
   return touchElectricalMeasurement(base, { flags: { test: true } });
 }
 

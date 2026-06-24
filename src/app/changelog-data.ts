@@ -12,6 +12,33 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.52",
+    label: "WM Druk — Pomiary UX Upgrade",
+    items: [
+      {
+        type: "new",
+        text: "Samodzielne pomiary (detached RAP) — raport bez Roboty z normalnym numerem RAP, eksport DOCX i ZIP",
+      },
+      {
+        type: "new",
+        text: "Katalog Pomiarów — edycja istniejącego RAP bez przechodzenia do WM Druk → Pomiary",
+      },
+      {
+        type: "new",
+        text: "Katalog Pomiarów — usuwanie pojedynczego i wielu raportów (multi-select)",
+      },
+      {
+        type: "new",
+        text: "Registry Guard — usunięty numer RAP pozostaje w rejestrze (CANCELLED); tombstone sync kw-electrical-measurements-deleted-ids",
+      },
+      {
+        type: "improve",
+        text: "Pomiary — linkStatus linked/detached, manualAddress/manualFlatNumber, ochrona ciągłości numeracji RAP",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.51",
     label: "WM Druk — Schematy layout scale V2 (renderer v5)",
     items: [

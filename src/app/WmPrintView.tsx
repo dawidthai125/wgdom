@@ -25,6 +25,10 @@ import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
 import { jobDisplayTitle } from "@/app/app-domain";
 import { JobElectricalMeasurementsPanel } from "@/app/JobElectricalMeasurementsPanel";
+import {
+  ElectricalMeasurementNewDialog,
+  type ElectricalMeasurementCreateKind,
+} from "@/app/ElectricalMeasurementNewDialog";
 import { MeasurementCatalogPanel } from "@/app/MeasurementCatalogPanel";
 import { WmPrintSchematicsPanel } from "@/app/WmPrintSchematicsPanel";
 import { WmPrintHistoryPanel } from "@/app/WmPrintHistoryPanel";
@@ -100,6 +104,16 @@ import {
 import type { WmPrintTab } from "@/lib/wm-print/wm-print-tabs";
 import { WM_PRINT_TABS } from "@/lib/wm-print/wm-print-tabs";
 import type { ElectricalMeasurement, ElectricalMeasurementRegistryState, ElectricalMeasurementSettings } from "@/lib/electrical-measurements/types";
+import { filterDetachedElectricalMeasurements } from "@/lib/electrical-measurements/merge";
+import { assignRapForJob, assignRapForRegistryKey } from "@/lib/electrical-measurements/registry";
+import {
+  createDetachedElectricalMeasurement,
+  createEmptyElectricalMeasurement,
+  touchElectricalMeasurement,
+  upsertElectricalMeasurement,
+} from "@/lib/electrical-measurements/report";
+import { createTestElectricalMeasurement } from "@/lib/electrical-measurements/test-report";
+import { isDetachedMeasurement, measurementAddressLine } from "@/lib/electrical-measurements/link-status";
 import {
   DEFAULT_ELECTRICAL_MEASUREMENT_SETTINGS,
   normalizeElectricalMeasurementSettings,
@@ -214,6 +228,14 @@ export function WmPrintView({
   const jobDocFileRef = useRef<HTMLInputElement>(null);
   const [pendingTemplateUploadId, setPendingTemplateUploadId] = useState<string | null>(null);
   const [pendingJobDocTemplateId, setPendingJobDocTemplateId] = useState<string | null>(null);
+  const [showNewMeasurementDialog, setShowNewMeasurementDialog] = useState(false);
+  const [focusedDetachedMeasurementId, setFocusedDetachedMeasurementId] = useState<string | null>(null);
+  const [pomiarySide, setPomiarySide] = useState<"jobs" | "detached">("jobs");
+
+  const detachedMeasurements = useMemo(
+    () => filterDetachedElectricalMeasurements(electricalMeasurements),
+    [electricalMeasurements],
+  );
 
   const normalizedSettings = useMemo(() => normalizeWmPrintSettings(settings), [settings]);
 
@@ -334,15 +356,23 @@ export function WmPrintView({
     );
   };
 
-  const renderJobRow = (job: Job) => {
+  const renderJobRow = (job: Job, pomiaryMode = false) => {
     const comp = computeWmPrintCompleteness(job, templates, jobDocs);
     const docCount = getWmPrintJobDocumentsForJob(jobDocs, job.id).length;
-    const active = selectedJobId === job.id;
+    const active = pomiaryMode
+      ? pomiarySide === "jobs" && selectedJobId === job.id && !focusedDetachedMeasurementId
+      : selectedJobId === job.id;
     return (
       <button
         key={job.id}
         type="button"
-        onClick={() => setSelectedJobId(job.id)}
+        onClick={() => {
+          if (pomiaryMode) {
+            setPomiarySide("jobs");
+            setFocusedDetachedMeasurementId(null);
+          }
+          setSelectedJobId(job.id);
+        }}
         className={`w-full text-left px-4 py-3 transition-colors ${active ? "bg-primary/8" : "hover:bg-secondary/60"}`}
       >
         <div className="flex items-start justify-between gap-2">
@@ -360,8 +390,42 @@ export function WmPrintView({
     );
   };
 
-  const renderJobListColumn = () => (
+  const renderJobListColumn = (pomiaryMode = false) => (
     <div className="space-y-3 min-h-0">
+      {pomiaryMode && (
+        <div className="rounded-xl border border-border overflow-hidden">
+          <div className="px-4 py-2.5 bg-secondary/40 text-sm font-semibold border-b border-border">
+            Samodzielne ({detachedMeasurements.length})
+          </div>
+          {detachedMeasurements.length === 0 ? (
+            <p className="p-4 text-xs text-muted-foreground">
+              Brak samodzielnych pomiarów. Użyj „Nowy pomiar” → Samodzielny pomiar.
+            </p>
+          ) : (
+            <div className="divide-y divide-border max-h-48 overflow-y-auto">
+              {detachedMeasurements.map((m) => {
+                const active = pomiarySide === "detached" && focusedDetachedMeasurementId === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => {
+                      setPomiarySide("detached");
+                      setFocusedDetachedMeasurementId(m.id);
+                      setSelectedJobId(null);
+                    }}
+                    className={`w-full text-left px-4 py-3 transition-colors ${active ? "bg-primary/8" : "hover:bg-secondary/60"}`}
+                  >
+                    <p className="font-medium text-sm font-mono truncate">{m.reportNumber || "Bez numeru"}</p>
+                    <p className="text-xs text-muted-foreground truncate">{measurementAddressLine(m)}</p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-2 items-center">
         <div className="relative flex-1 min-w-[200px]">
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -387,6 +451,11 @@ export function WmPrintView({
       </div>
 
       <div className="rounded-xl border border-border overflow-hidden">
+        {pomiaryMode && (
+          <div className="px-4 py-2 bg-muted/30 text-[11px] font-medium text-muted-foreground border-b border-border">
+            Powiązane z robotą
+          </div>
+        )}
         {filteredJobs.length === 0 ? (
           <p className="p-4 text-sm text-muted-foreground">Brak robót dla wybranych filtrów.</p>
         ) : (
@@ -405,7 +474,9 @@ export function WmPrintView({
                   {WM_PRINT_SECTION_LABELS[phase]} ({sectionJobs.length})
                 </button>
                 {!collapsed && (
-                  <div className="divide-y divide-border">{sectionJobs.map((job) => renderJobRow(job))}</div>
+                  <div className="divide-y divide-border">
+                    {sectionJobs.map((job) => renderJobRow(job, pomiaryMode))}
+                  </div>
                 )}
               </div>
             );
@@ -414,6 +485,85 @@ export function WmPrintView({
       </div>
     </div>
   );
+
+  const commitElectricalBundle = (
+    nextMeasurements: ElectricalMeasurement[],
+    nextRegistry: ElectricalMeasurementRegistryState,
+  ) => {
+    onChangeElectricalMeasurements(nextMeasurements);
+    onChangeElectricalMeasurementRegistry(nextRegistry);
+    onCommitElectricalMeasurements(nextMeasurements, nextRegistry);
+  };
+
+  const handleNewMeasurementConfirm = (payload: {
+    kind: ElectricalMeasurementCreateKind;
+    jobId?: string;
+    manualAddress?: string;
+    manualFlatNumber?: string;
+  }) => {
+    setShowNewMeasurementDialog(false);
+
+    if (payload.kind === "linked" && payload.jobId) {
+      const { registry: nextRegistry, entry } = assignRapForJob(
+        electricalMeasurementRegistry,
+        payload.jobId,
+      );
+      const created = createEmptyElectricalMeasurement(
+        payload.jobId,
+        entry.rapNumber,
+        electricalMeasurementSettings,
+      );
+      const nextAll = upsertElectricalMeasurement(electricalMeasurements, created);
+      commitElectricalBundle(nextAll, nextRegistry);
+      setSelectedJobId(payload.jobId);
+      setFocusedDetachedMeasurementId(null);
+      setPomiarySide("jobs");
+      setTab("pomiary");
+      toast.success(`Utworzono raport ${entry.rapNumber}`);
+      return;
+    }
+
+    if (payload.kind === "detached") {
+      const draft = createDetachedElectricalMeasurement(
+        payload.manualAddress ?? "",
+        payload.manualFlatNumber ?? "",
+        "",
+        electricalMeasurementSettings,
+      );
+      const { registry: nextRegistry, entry } = assignRapForRegistryKey(
+        electricalMeasurementRegistry,
+        draft.id,
+      );
+      const created = touchElectricalMeasurement(draft, { reportNumber: entry.rapNumber });
+      const nextAll = upsertElectricalMeasurement(electricalMeasurements, created);
+      commitElectricalBundle(nextAll, nextRegistry);
+      setSelectedJobId(null);
+      setFocusedDetachedMeasurementId(created.id);
+      setPomiarySide("detached");
+      setTab("pomiary");
+      toast.success(`Utworzono samodzielny raport ${entry.rapNumber}`);
+      return;
+    }
+
+    const created = createTestElectricalMeasurement(
+      payload.jobId ?? "",
+      electricalMeasurements,
+      electricalMeasurementSettings,
+    );
+    const nextAll = upsertElectricalMeasurement(electricalMeasurements, created);
+    commitElectricalBundle(nextAll, electricalMeasurementRegistry);
+    if (payload.jobId) {
+      setSelectedJobId(payload.jobId);
+      setFocusedDetachedMeasurementId(null);
+      setPomiarySide("jobs");
+    } else {
+      setSelectedJobId(null);
+      setFocusedDetachedMeasurementId(created.id);
+      setPomiarySide("detached");
+    }
+    setTab("pomiary");
+    toast.success(`Utworzono raport testowy ${created.reportNumber}`);
+  };
 
   const handleGenerateZip = async (job: Job) => {
     if (selectedTemplateIds.size === 0) {
@@ -956,27 +1106,43 @@ export function WmPrintView({
         )}
 
         {tab === "pomiary" && (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 min-h-0">
-            {renderJobListColumn()}
-            <div className="min-w-0">
-              {!selectedJob ? (
-                <p className="text-sm text-muted-foreground rounded-xl border border-border bg-card p-4">
-                  Wybierz robotę z listy, aby edytować raporty pomiarowe i generować DOCX.
-                </p>
-              ) : (
-                <JobElectricalMeasurementsPanel
-                  job={selectedJob}
-                  measurements={electricalMeasurements}
-                  registry={electricalMeasurementRegistry}
-                  measurementSettings={electricalMeasurementSettings}
-                  adminSession={adminSession}
-                  onChangeMeasurements={onChangeElectricalMeasurements}
-                  onChangeRegistry={onChangeElectricalMeasurementRegistry}
-                  onCommit={(nextMeasurements, nextRegistry) =>
-                    onCommitElectricalMeasurements(nextMeasurements, nextRegistry)
-                  }
-                />
-              )}
+          <div className="space-y-3 min-h-0">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm text-muted-foreground">
+                Raporty powiązane z robotą lub samodzielne — pełny RAP, DOCX i sync chmury.
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowNewMeasurementDialog(true)}
+                className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 shrink-0"
+              >
+                <Plus size={14} />
+                Nowy pomiar
+              </button>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 min-h-0">
+              {renderJobListColumn(true)}
+              <div className="min-w-0">
+                {!selectedJob && !focusedDetachedMeasurementId ? (
+                  <p className="text-sm text-muted-foreground rounded-xl border border-border bg-card p-4">
+                    Wybierz robotę lub samodzielny pomiar z listy — albo użyj „Nowy pomiar”.
+                  </p>
+                ) : (
+                  <JobElectricalMeasurementsPanel
+                    job={pomiarySide === "jobs" ? selectedJob : null}
+                    focusedMeasurementId={focusedDetachedMeasurementId}
+                    measurements={electricalMeasurements}
+                    registry={electricalMeasurementRegistry}
+                    measurementSettings={electricalMeasurementSettings}
+                    adminSession={adminSession}
+                    onChangeMeasurements={onChangeElectricalMeasurements}
+                    onChangeRegistry={onChangeElectricalMeasurementRegistry}
+                    onCommit={(nextMeasurements, nextRegistry) =>
+                      onCommitElectricalMeasurements(nextMeasurements, nextRegistry)
+                    }
+                  />
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -996,8 +1162,24 @@ export function WmPrintView({
             jobs={jobs}
             measurements={electricalMeasurements}
             registry={electricalMeasurementRegistry}
+            measurementSettings={electricalMeasurementSettings}
+            adminSession={adminSession}
+            onChangeMeasurements={onChangeElectricalMeasurements}
+            onChangeRegistry={onChangeElectricalMeasurementRegistry}
+            onCommitMeasurements={onCommitElectricalMeasurements}
             onOpenJob={(jobId) => {
-              setSelectedJobId(jobId);
+              const detached = electricalMeasurements.find(
+                (m) => m.id === jobId && isDetachedMeasurement(m),
+              );
+              if (detached) {
+                setFocusedDetachedMeasurementId(jobId);
+                setSelectedJobId(null);
+                setPomiarySide("detached");
+              } else {
+                setSelectedJobId(jobId);
+                setFocusedDetachedMeasurementId(null);
+                setPomiarySide("jobs");
+              }
               setTab("pomiary");
             }}
             onOpenJobInJobs={onOpenJobInJobs}
@@ -1390,6 +1572,14 @@ export function WmPrintView({
           void handleJobDocUpload(file, selectedJob, tpl?.id, tpl?.name);
           setPendingJobDocTemplateId(null);
         }}
+      />
+
+      <ElectricalMeasurementNewDialog
+        open={showNewMeasurementDialog}
+        jobs={jobs}
+        defaultJobId={selectedJobId}
+        onClose={() => setShowNewMeasurementDialog(false)}
+        onConfirm={handleNewMeasurementConfirm}
       />
     </div>
   );

@@ -32,6 +32,12 @@ import {
 import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-leaves";
 import { mergeRecoverableCharges, normalizeRecoverableCharges } from "@/lib/recoverable-charges";
 import { mergeElectricalMeasurements } from "@/lib/electrical-measurements/merge";
+import {
+  ELECTRICAL_MEASUREMENTS_DELETED_IDS_KEY,
+  getDeletedElectricalMeasurementIds,
+  mergeDeletedElectricalMeasurementIds,
+  saveDeletedElectricalMeasurementIds,
+} from "@/lib/electrical-measurements/deleted-ids";
 import { mergeElectricalMeasurementRegistry, createEmptyRegistryState } from "@/lib/electrical-measurements/registry";
 import { mergeElectricalMeasurementSettings, normalizeElectricalMeasurementSettings } from "@/lib/electrical-measurements/settings";
 import { normalizeElectricalMeasurements } from "@/lib/electrical-measurements/normalize";
@@ -1635,7 +1641,7 @@ export function mergeDataKey(
     case "kw-delivery-package-publications":
       return mergeDeliveryPackagePublications(local, cloud);
     case "kw-electrical-measurements":
-      return mergeElectricalMeasurements(local, cloud);
+      return mergeElectricalMeasurements(local, cloud, getDeletedElectricalMeasurementIds());
     case "kw-electrical-measurement-registry":
       return mergeElectricalMeasurementRegistry(local, cloud);
     case "kw-electrical-measurement-settings":
@@ -2198,6 +2204,7 @@ export async function computeMergedDataBundle(
   let cloudOpNotesDeleted: string[] = [];
   let cloudWmTplDeleted: string[] = [];
   let cloudWmDocDeleted: string[] = [];
+  let cloudEmDeleted: string[] = [];
   let cloudReachable = false;
   try {
     const fetched = await fetchKeysFromCloud([
@@ -2211,6 +2218,7 @@ export async function computeMergedDataBundle(
       OPERATIONAL_NOTES_DELETED_IDS_KEY,
       WM_PRINT_DELETED_TEMPLATE_IDS_KEY,
       WM_PRINT_DELETED_JOB_DOC_IDS_KEY,
+      ELECTRICAL_MEASUREMENTS_DELETED_IDS_KEY,
     ]);
     cloudValues = fetched.slice(0, keys.length);
     cloudDeleted = normalizeDeletedJobIds(fetched[keys.length]);
@@ -2222,6 +2230,7 @@ export async function computeMergedDataBundle(
     cloudOpNotesDeleted = normalizeDeletedOperationalNoteIds(fetched[keys.length + 6]);
     cloudWmTplDeleted = mergeDeletedWmPrintTemplateIds([], fetched[keys.length + 7]);
     cloudWmDocDeleted = mergeDeletedWmPrintJobDocIds([], fetched[keys.length + 8]);
+    cloudEmDeleted = mergeDeletedElectricalMeasurementIds([], fetched[keys.length + 9]);
     cloudReachable = true;
   } catch {
     /* offline — scal tylko lokalne źródła */
@@ -2244,6 +2253,8 @@ export async function computeMergedDataBundle(
   saveDeletedWmPrintTemplateIds(mergedWmTplDeleted);
   const mergedWmDocDeleted = mergeDeletedWmPrintJobDocIds(getDeletedWmPrintJobDocIds(), cloudWmDocDeleted);
   saveDeletedWmPrintJobDocIds(mergedWmDocDeleted);
+  const mergedEmDeleted = mergeDeletedElectricalMeasurementIds(getDeletedElectricalMeasurementIds(), cloudEmDeleted);
+  saveDeletedElectricalMeasurementIds(mergedEmDeleted);
   let merged = mergeAllDataKeys(
     valuesForMerge,
     cloudValues,
@@ -2284,7 +2295,7 @@ export async function pullAndMergeDataBundle(values: unknown[]): Promise<unknown
 /** Zapis już scalonego bundle do chmury (bez ponownego merge). */
 export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<void> {
   await pushKeysToCloud(
-    [...DATA_KEYS, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY, EMPLOYEE_LEAVES_DELETED_IDS_KEY, RECOVERABLE_CHARGES_DELETED_IDS_KEY, OPERATIONAL_NOTES_DELETED_IDS_KEY],
+    [...DATA_KEYS, JOBS_DELETED_IDS_KEY, DIRECTORY_DELETED_IDS_KEY, CONTACTS_DELETED_IDS_KEY, ARCHIVE_DELETED_IDS_KEY, EMPLOYEE_LEAVES_DELETED_IDS_KEY, RECOVERABLE_CHARGES_DELETED_IDS_KEY, OPERATIONAL_NOTES_DELETED_IDS_KEY, ELECTRICAL_MEASUREMENTS_DELETED_IDS_KEY],
     [
       ...merged,
       getDeletedJobIds(),
@@ -2294,6 +2305,7 @@ export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<vo
       getDeletedEmployeeLeaveIds(),
       getDeletedRecoverableChargeIds(),
       getDeletedOperationalNoteIds(),
+      getDeletedElectricalMeasurementIds(),
     ],
     {
       replaceJobsKeys: ["kw-jobs"],

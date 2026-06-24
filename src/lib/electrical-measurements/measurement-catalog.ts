@@ -10,9 +10,16 @@ import type {
   ElectricalMeasurementRegistryState,
   ElectricalMeasurementRegistryStatus,
 } from "@/lib/electrical-measurements/types";
-import { getRegistryEntryForJob, parseRapNumber } from "@/lib/electrical-measurements/registry";
+import { getRegistryEntryForJob, getRegistryEntryForKey, parseRapNumber } from "@/lib/electrical-measurements/registry";
 import { filterElectricalMeasurementsForJob } from "@/lib/electrical-measurements/merge";
 import { isTestMeasurement, parseTestReportNumber } from "@/lib/electrical-measurements/test-report";
+import {
+  getMeasurementRegistryKey,
+  isDetachedMeasurement,
+  measurementAddressLine,
+  measurementCatalogScopeLabel,
+  measurementCatalogTitle,
+} from "@/lib/electrical-measurements/link-status";
 import { catalogZipFolderName } from "@/lib/electrical-measurements/measurement-docx-names";
 
 export { catalogZipFolderName };
@@ -135,51 +142,64 @@ export function buildMeasurementCatalogRows(
   jobs: Pick<Job, "id" | "address" | "flatNumber" | "notes" | "client">[],
 ): MeasurementCatalogRow[] {
   const jobById = new Map(jobs.map((j) => [j.id, j]));
-  const measurementByJobId = new Map<string, ElectricalMeasurement>();
+  const measurementByRegistryKey = new Map<string, ElectricalMeasurement>();
   for (const m of measurements) {
-    if (!measurementByJobId.has(m.jobId)) measurementByJobId.set(m.jobId, m);
+    const key = getMeasurementRegistryKey(m);
+    if (key && !measurementByRegistryKey.has(key)) measurementByRegistryKey.set(key, m);
   }
 
   const rows: MeasurementCatalogRow[] = [];
-  const seenJobIds = new Set<string>();
+  const seenRegistryKeys = new Set<string>();
 
   for (const m of measurements) {
-    const job = jobById.get(m.jobId);
-    const reg = getRegistryEntryForJob(registry, m.jobId);
+    const job = m.jobId ? jobById.get(m.jobId) : undefined;
+    const regKey = getMeasurementRegistryKey(m);
+    const reg = regKey ? getRegistryEntryForKey(registry, regKey) : undefined;
     const parsed = parseRapNumber(m.reportNumber);
     const testParsed = parseTestReportNumber(m.reportNumber);
+    const detached = isDetachedMeasurement(m);
     rows.push({
       id: m.id,
       rapNumber: m.reportNumber,
       year: parsed?.year ?? (testParsed ? new Date(m.measurementDate).getFullYear() : new Date(m.measurementDate).getFullYear()),
       sequence: parsed?.sequence ?? testParsed?.sequence ?? 0,
       measurementDate: m.measurementDate,
-      address: jobAddressLine(job),
-      jobName: jobScopeLabel(job),
-      jobTitle: job ? jobDisplayTitle(job as Job) : m.jobId,
-      jobId: m.jobId,
+      address: detached ? measurementAddressLine(m) : jobAddressLine(job),
+      jobName: measurementCatalogScopeLabel(m, job, jobScopeLabel),
+      jobTitle: measurementCatalogTitle(m, job),
+      jobId: detached ? m.id : m.jobId,
       technicianName: m.technicianName,
       meterModel: m.meterModel,
       meterSerialNumber: m.meterSerialNumber,
       status: resolveMeasurementCatalogStatus(m, reg?.status),
       measurement: m,
     });
-    seenJobIds.add(m.jobId);
+    if (regKey) seenRegistryKeys.add(regKey);
   }
 
   for (const entry of registry.entries) {
-    if (seenJobIds.has(entry.jobId)) continue;
+    if (seenRegistryKeys.has(entry.jobId)) continue;
     if (entry.status !== "CANCELLED") continue;
     const job = jobById.get(entry.jobId);
+    const orphanMeasurement = measurementByRegistryKey.get(entry.jobId);
+    const detachedOrphan = orphanMeasurement && isDetachedMeasurement(orphanMeasurement);
     rows.push({
       id: `registry-${entry.jobId}`,
       rapNumber: entry.rapNumber,
       year: entry.year,
       sequence: entry.sequence,
       measurementDate: entry.assignedAt.slice(0, 10),
-      address: jobAddressLine(job),
-      jobName: jobScopeLabel(job),
-      jobTitle: job ? jobDisplayTitle(job as Job) : entry.jobId,
+      address: detachedOrphan
+        ? measurementAddressLine(orphanMeasurement)
+        : jobAddressLine(job),
+      jobName: detachedOrphan
+        ? "Samodzielny pomiar"
+        : jobScopeLabel(job),
+      jobTitle: detachedOrphan
+        ? measurementAddressLine(orphanMeasurement)
+        : job
+          ? jobDisplayTitle(job as Job)
+          : entry.jobId,
       jobId: entry.jobId,
       technicianName: "—",
       meterModel: "—",
@@ -232,22 +252,24 @@ export function buildRapRegistryRows(
   jobs: Pick<Job, "id" | "address" | "flatNumber" | "notes" | "client">[],
 ): RapRegistryRow[] {
   const jobById = new Map(jobs.map((j) => [j.id, j]));
-  const measurementByJobId = new Map<string, ElectricalMeasurement>();
+  const measurementByRegistryKey = new Map<string, ElectricalMeasurement>();
   for (const m of measurements) {
     if (isTestMeasurement(m)) continue;
-    if (!measurementByJobId.has(m.jobId)) measurementByJobId.set(m.jobId, m);
+    const key = getMeasurementRegistryKey(m);
+    if (key && !measurementByRegistryKey.has(key)) measurementByRegistryKey.set(key, m);
   }
 
   const rows: RapRegistryRow[] = registry.entries.map((entry) => {
     const job = jobById.get(entry.jobId);
-    const measurement = measurementByJobId.get(entry.jobId);
+    const measurement = measurementByRegistryKey.get(entry.jobId);
+    const detached = measurement && isDetachedMeasurement(measurement);
     return {
       id: entry.jobId,
       rapNumber: entry.rapNumber,
       year: entry.year,
       sequence: entry.sequence,
-      address: jobAddressLine(job),
-      jobName: jobScopeLabel(job),
+      address: detached ? measurementAddressLine(measurement) : jobAddressLine(job),
+      jobName: detached ? "Samodzielny pomiar" : jobScopeLabel(job),
       jobId: entry.jobId,
       status: entry.status,
       date: measurement?.measurementDate ?? entry.assignedAt.slice(0, 10),

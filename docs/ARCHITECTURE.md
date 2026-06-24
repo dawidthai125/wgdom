@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-24 (**v2.62.51** · WM Schematy V2 visual fidelity · § 12.1.21 · prod **v2.62.51** `78f11cd`)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-24 (**v2.62.52** · WM Pomiary UX Upgrade · § 12.1.10a · prod **v2.62.52** pending deploy)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1747,6 +1747,27 @@ Bundled `public/wm-print/zi-tauron-2026-template.pdf`.
 **Smoke:** `test-electrical-measurements-p1.mjs` · `test-em-p1r-visual-smoke.mjs` · `test-em-p1r-hotfix-001-address-parity.mjs`
 
 **Nie zmieniaj bez polecenia:** preview SSOT, value engine, kontrakt placeholderów P1.5, szablony Word 1:1 layout, semantyka rejestru RAP/TEST-RAP.
+
+#### 12.1.10a Electrical Measurements UX Upgrade (2.62.52)
+
+**Status:** **EM-UX-002** · **EM-CATALOG-002** · **EM-CATALOG-001** — **CLOSED**
+
+**Zakres:** samodzielne RAP (detached) · edycja z Katalogu Pomiarów · usuwanie single/bulk · Registry Guard · tombstone sync.
+
+| Element | Wartość |
+|---------|---------|
+| **`linkStatus`** | `linked` (powiązany z `jobId`) · `detached` (bez roboty) |
+| **`manualAddress` / `manualFlatNumber`** | Adres ręczny dla detached — trafia do DOCX, katalogu i ZIP |
+| **Edycja katalogu** | `MeasurementCatalogPanel` → `JobElectricalMeasurementsPanel` (`variant="catalog-edit"`) — bez nowego numeru RAP |
+| **Usuwanie** | `deleteElectricalMeasurementsFromBundle()` — `removeElectricalMeasurement` + `cancelRegistryForKey` (produkcyjne) |
+| **Registry Guard** | Wpis `CANCELLED` zostaje w `kw-electrical-measurement-registry`; `getMaxSequenceForYear` liczy wszystkie wpisy → numer **nigdy** nie wraca do puli |
+| **Tombstone sync** | `kw-electrical-measurements-deleted-ids` — union ID; `mergeElectricalMeasurements` filtruje tombstone (wzorzec WM Druk / Notatki) |
+
+**Kluczowe pliki:** `link-status.ts` · `delete-bundle.ts` · `deleted-ids.ts` · `ElectricalMeasurementNewDialog.tsx` · `MeasurementCatalogPanel.tsx`
+
+**Smoke:** `test-electrical-measurements-independent-rap.mjs` · `test-electrical-measurements-catalog-edit.mjs` · `test-electrical-measurements-delete-registry-guard.mjs`
+
+**Przykład Registry Guard:** RAP-45, RAP-46, RAP-47 → usuń RAP-46 → następny nowy raport = **RAP-48** (nie RAP-46).
 
 ### 12.1.11 Inspektor — Published Delivery Package (INSPECTOR-P1A/P1B, v2.59.45–46) · UX-002 (v2.59.47)
 

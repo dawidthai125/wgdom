@@ -1,6 +1,13 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.51** · **WM Schematy renderer v5**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.52** · **WM Pomiary UX Upgrade**
+
+## 2.62.52 — WM Druk Pomiary UX Upgrade
+
+- **new:** detached RAP (samodzielne pomiary bez Roboty) · edycja RAP z Katalogu · usuwanie single/bulk
+- **new:** Registry Guard (CANCELLED w registry) + tombstone `kw-electrical-measurements-deleted-ids`
+- **improve:** `linkStatus` linked/detached · `manualAddress` / `manualFlatNumber`
+- **test:** `test-electrical-measurements-independent-rap.mjs` · `test-electrical-measurements-catalog-edit.mjs` · `test-electrical-measurements-delete-registry-guard.mjs`
 
 ## 2.62.51 — WM Schematy layout scale V2 (renderer v5)
 

@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
-import { Download, Loader2, Package, Search } from "lucide-react";
+import { Download, Loader2, Package, Pencil, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Job } from "@/app/app-domain";
+import { JobElectricalMeasurementsPanel } from "@/app/JobElectricalMeasurementsPanel";
+import type { AdminSession } from "@/lib/admin-auth";
 import { RapRegistryPanel } from "@/app/RapRegistryPanel";
 import {
   buildMeasurementCatalogRows,
@@ -27,7 +29,13 @@ import type {
   ElectricalMeasurement,
   ElectricalMeasurementCatalogStatus,
   ElectricalMeasurementRegistryState,
+  ElectricalMeasurementSettings,
 } from "@/lib/electrical-measurements/types";
+import { deleteElectricalMeasurementsFromBundle } from "@/lib/electrical-measurements/delete-bundle";
+import {
+  isDetachedMeasurement,
+  resolveMeasurementExportJob,
+} from "@/lib/electrical-measurements/link-status";
 
 const DOC_DOWNLOAD_LABELS: Record<EmDocxDocumentKind, string> = {
   protokol: "Pobierz Protokół",
@@ -47,12 +55,25 @@ export function MeasurementCatalogPanel({
   jobs,
   measurements,
   registry,
+  measurementSettings,
+  adminSession,
+  onChangeMeasurements,
+  onChangeRegistry,
+  onCommitMeasurements,
   onOpenJob,
   onOpenJobInJobs,
 }: {
   jobs: Job[];
   measurements: ElectricalMeasurement[];
   registry: ElectricalMeasurementRegistryState;
+  measurementSettings: ElectricalMeasurementSettings;
+  adminSession?: AdminSession | null;
+  onChangeMeasurements: (next: ElectricalMeasurement[]) => void;
+  onChangeRegistry: (next: ElectricalMeasurementRegistryState) => void;
+  onCommitMeasurements: (
+    nextMeasurements: ElectricalMeasurement[],
+    nextRegistry: ElectricalMeasurementRegistryState,
+  ) => void;
   /** WM Druk → Pomiary (ta sama roboty). */
   onOpenJob?: (jobId: string) => void;
   /** Roboty → szczegóły roboty (deep-link). */
@@ -86,6 +107,11 @@ export function MeasurementCatalogPanel({
         jobs={jobs}
         measurements={measurements}
         registry={registry}
+        measurementSettings={measurementSettings}
+        adminSession={adminSession}
+        onChangeMeasurements={onChangeMeasurements}
+        onChangeRegistry={onChangeRegistry}
+        onCommitMeasurements={onCommitMeasurements}
         onOpenJob={onOpenJob}
         openJobDetails={openJobDetails}
         hasJobDeepLink={Boolean(onOpenJobInJobs || onOpenJob)}
@@ -125,10 +151,23 @@ function CatalogSubTabs({
   );
 }
 
+function resolveCatalogEditJob(
+  measurement: ElectricalMeasurement,
+  jobs: Job[],
+): Job | null {
+  if (isDetachedMeasurement(measurement) || !measurement.jobId) return null;
+  return jobs.find((j) => j.id === measurement.jobId) ?? null;
+}
+
 function MeasurementCatalogMain({
   jobs,
   measurements,
   registry,
+  measurementSettings,
+  adminSession,
+  onChangeMeasurements,
+  onChangeRegistry,
+  onCommitMeasurements,
   onOpenJob,
   openJobDetails,
   hasJobDeepLink,
@@ -136,6 +175,14 @@ function MeasurementCatalogMain({
   jobs: Job[];
   measurements: ElectricalMeasurement[];
   registry: ElectricalMeasurementRegistryState;
+  measurementSettings: ElectricalMeasurementSettings;
+  adminSession?: AdminSession | null;
+  onChangeMeasurements: (next: ElectricalMeasurement[]) => void;
+  onChangeRegistry: (next: ElectricalMeasurementRegistryState) => void;
+  onCommitMeasurements: (
+    nextMeasurements: ElectricalMeasurement[],
+    nextRegistry: ElectricalMeasurementRegistryState,
+  ) => void;
   onOpenJob?: (jobId: string) => void;
   openJobDetails: (jobId: string) => void;
   hasJobDeepLink: boolean;
@@ -145,25 +192,42 @@ function MeasurementCatalogMain({
     [measurements, registry, jobs],
   );
 
+  /** Katalog — tylko raporty z danymi (bez wpisów registry-only po usunięciu). */
+  const catalogRows = useMemo(
+    () => allRows.filter((r) => r.measurement != null),
+    [allRows],
+  );
+
   const [filters, setFilters] = useState<MeasurementCatalogFilters>({ status: "ALL" });
   const [selectedRapId, setSelectedRapId] = useState<string | null>(null);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [downloadingKind, setDownloadingKind] = useState<EmDocxDocumentKind | null>(null);
+  const [editingMeasurementId, setEditingMeasurementId] = useState<string | null>(null);
+
+  const editingMeasurement = useMemo(
+    () => (editingMeasurementId ? measurements.find((m) => m.id === editingMeasurementId) ?? null : null),
+    [measurements, editingMeasurementId],
+  );
 
   const filteredRows = useMemo(
-    () => filterMeasurementCatalogRows(allRows, filters),
-    [allRows, filters],
+    () => filterMeasurementCatalogRows(catalogRows, filters),
+    [catalogRows, filters],
   );
 
-  const years = useMemo(() => catalogAvailableYears(allRows), [allRows]);
+  const years = useMemo(() => catalogAvailableYears(catalogRows), [catalogRows]);
 
   const selectedRow = useMemo(
-    () => filteredRows.find((r) => r.id === selectedRapId) ?? allRows.find((r) => r.id === selectedRapId) ?? null,
-    [filteredRows, allRows, selectedRapId],
+    () => filteredRows.find((r) => r.id === selectedRapId) ?? catalogRows.find((r) => r.id === selectedRapId) ?? null,
+    [filteredRows, catalogRows, selectedRapId],
   );
 
-  const selectedJob = selectedRow ? jobs.find((j) => j.id === selectedRow.jobId) ?? null : null;
+  const selectedDetached = selectedRow?.measurement ? isDetachedMeasurement(selectedRow.measurement) : false;
+
+  const selectedExportJob = useMemo(() => {
+    if (!selectedRow?.measurement) return null;
+    return resolveMeasurementExportJob(selectedRow.measurement, jobs);
+  }, [selectedRow, jobs]);
 
   const toggleCheck = (id: string) => {
     setCheckedIds((prev) => {
@@ -189,15 +253,54 @@ function MeasurementCatalogMain({
   };
 
   const checkedRows = useMemo(
-    () => allRows.filter((r) => checkedIds.has(r.id) && r.measurement && r.status !== "CANCELLED"),
-    [allRows, checkedIds],
+    () => catalogRows.filter((r) => checkedIds.has(r.id) && r.measurement),
+    [catalogRows, checkedIds],
   );
 
+  const applyDelete = (ids: string[], confirmMessage: string) => {
+    if (ids.length === 0) return;
+    if (!window.confirm(confirmMessage)) return;
+    const result = deleteElectricalMeasurementsFromBundle(measurements, registry, ids);
+    if (result.deletedIds.length === 0) return;
+    onChangeMeasurements(result.measurements);
+    onChangeRegistry(result.registry);
+    onCommitMeasurements(result.measurements, result.registry);
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      for (const id of result.deletedIds) next.delete(id);
+      return next;
+    });
+    if (selectedRapId && result.deletedIds.includes(selectedRapId)) {
+      setSelectedRapId(null);
+    }
+    if (editingMeasurementId && result.deletedIds.includes(editingMeasurementId)) {
+      setEditingMeasurementId(null);
+    }
+    toast.success(
+      result.deletedIds.length === 1
+        ? "Usunięto raport"
+        : `Usunięto ${result.deletedIds.length} raportów`,
+    );
+  };
+
+  const handleDeleteRow = (row: MeasurementCatalogRow) => {
+    if (!row.measurement) return;
+    applyDelete([row.id], `Usunąć raport ${row.rapNumber}?`);
+  };
+
+  const handleDeleteChecked = () => {
+    if (checkedRows.length === 0) {
+      toast.error("Zaznacz co najmniej jeden raport do usunięcia");
+      return;
+    }
+    applyDelete(checkedRows.map((r) => r.id), `Usunąć ${checkedRows.length} raportów?`);
+  };
+
   const handleDownloadDoc = async (kind: EmDocxDocumentKind) => {
-    if (!selectedRow?.measurement || !selectedJob) return;
+    if (!selectedRow?.measurement || !selectedExportJob) return;
     setDownloadingKind(kind);
     try {
-      await downloadEmDocxDocument(kind, { measurement: selectedRow.measurement, job: selectedJob });
+      await downloadEmDocxDocument(kind, { measurement: selectedRow.measurement, job: selectedExportJob });
       toast.success(`Pobrano: ${catalogDocxFileName(selectedRow.rapNumber, kind)}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Błąd generowania DOCX");
@@ -207,9 +310,9 @@ function MeasurementCatalogMain({
   };
 
   const handleSingleZip = async () => {
-    if (!selectedRow?.measurement || !selectedJob) return;
+    if (!selectedRow?.measurement || !selectedExportJob) return;
     setBusy(true);
-    const res = await downloadCatalogSingleZip(selectedRow, selectedJob);
+    const res = await downloadCatalogSingleZip(selectedRow, selectedExportJob);
     setBusy(false);
     if (res.ok) {
       toast.success(`Pobrano ${catalogSingleZipDownloadName(selectedRow.rapNumber, selectedRow.address)}`);
@@ -226,6 +329,25 @@ function MeasurementCatalogMain({
     setBusy(false);
     if (res.ok) toast.success(`Pobrano archiwum (${checkedRows.length} raportów)`);
     else toast.error(res.error);
+  };
+
+  const startEdit = (measurementId: string) => {
+    setSelectedRapId(measurementId);
+    setEditingMeasurementId(measurementId);
+  };
+
+  const stopEdit = () => {
+    setEditingMeasurementId(null);
+  };
+
+  const handleEditorCommit = (
+    nextMeasurements: ElectricalMeasurement[],
+    nextRegistry: ElectricalMeasurementRegistryState,
+  ) => {
+    onChangeMeasurements(nextMeasurements);
+    onChangeRegistry(nextRegistry);
+    onCommitMeasurements(nextMeasurements, nextRegistry);
+    toast.success("Zapisano zmiany raportu");
   };
 
   return (
@@ -300,15 +422,26 @@ function MeasurementCatalogMain({
         </div>
 
         {checkedRows.length > 0 && (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void handleMultiZip()}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50"
-          >
-            {busy ? <Loader2 size={14} className="animate-spin" /> : <Package size={14} />}
-            Pobierz wybrane ZIP ({checkedRows.length})
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void handleMultiZip()}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50"
+            >
+              {busy ? <Loader2 size={14} className="animate-spin" /> : <Package size={14} />}
+              Pobierz wybrane ZIP ({checkedRows.length})
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={handleDeleteChecked}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-destructive/40 text-destructive text-sm font-medium hover:bg-destructive/10 disabled:opacity-50"
+            >
+              <Trash2 size={14} />
+              Usuń zaznaczone ({checkedRows.length})
+            </button>
+          </div>
         )}
 
         <div className="rounded-xl border border-border overflow-hidden">
@@ -335,12 +468,13 @@ function MeasurementCatalogMain({
                   <th className="px-3 py-2 font-medium hidden md:table-cell">Robota</th>
                   <th className="px-3 py-2 font-medium hidden lg:table-cell">Pomiarowiec</th>
                   <th className="px-3 py-2 font-medium">Status</th>
+                  <th className="px-3 py-2 font-medium w-36">Akcje</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {filteredRows.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">
+                    <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">
                       Brak raportów w katalogu.
                     </td>
                   </tr>
@@ -409,6 +543,34 @@ function MeasurementCatalogMain({
                             {MEASUREMENT_CATALOG_STATUS_LABELS[row.status]}
                           </span>
                         </td>
+                        <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
+                          {canPack ? (
+                            <div className="flex flex-wrap gap-1">
+                              <button
+                                type="button"
+                                onClick={() => startEdit(row.id)}
+                                className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md border font-medium transition-colors ${
+                                  editingMeasurementId === row.id
+                                    ? "border-primary bg-primary/10 text-primary"
+                                    : "border-border hover:bg-secondary"
+                                }`}
+                              >
+                                <Pencil size={12} />
+                                Edytuj
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteRow(row)}
+                                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md border border-destructive/30 text-destructive font-medium hover:bg-destructive/10"
+                              >
+                                <Trash2 size={12} />
+                                Usuń
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </td>
                       </tr>
                     );
                   })
@@ -420,16 +582,67 @@ function MeasurementCatalogMain({
         <p className="text-xs text-muted-foreground">{filteredRows.length} raport(ów) · źródło: kw-electrical-measurements + registry</p>
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-4 space-y-4 min-w-0 xl:sticky xl:top-0 self-start">
-        {!selectedRow ? (
+      <div className="rounded-xl border border-border bg-card p-4 space-y-4 min-w-0 xl:sticky xl:top-0 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
+        {editingMeasurement ? (
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h2 className="font-semibold text-base font-mono">{editingMeasurement.reportNumber}</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Edycja — numer RAP bez zmian</p>
+              </div>
+              <button
+                type="button"
+                onClick={stopEdit}
+                className="inline-flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-border hover:bg-secondary shrink-0"
+              >
+                <X size={12} />
+                Zamknij
+              </button>
+            </div>
+            <JobElectricalMeasurementsPanel
+              variant="catalog-edit"
+              job={resolveCatalogEditJob(editingMeasurement, jobs)}
+              focusedMeasurementId={editingMeasurement.id}
+              measurements={measurements}
+              registry={registry}
+              measurementSettings={measurementSettings}
+              adminSession={adminSession}
+              onChangeMeasurements={onChangeMeasurements}
+              onChangeRegistry={onChangeRegistry}
+              onCommit={handleEditorCommit}
+            />
+          </div>
+        ) : !selectedRow ? (
           <p className="text-sm text-muted-foreground">Kliknij raport na liście, aby zobaczyć szczegóły i pobierać dokumenty.</p>
         ) : (
           <>
-            <div>
-              <h2 className="font-semibold text-base font-mono">{selectedRow.rapNumber}</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {MEASUREMENT_CATALOG_STATUS_LABELS[selectedRow.status]}
-              </p>
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h2 className="font-semibold text-base font-mono">{selectedRow.rapNumber}</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {MEASUREMENT_CATALOG_STATUS_LABELS[selectedRow.status]}
+                </p>
+              </div>
+              {selectedRow.measurement && selectedRow.status !== "CANCELLED" && (
+                <div className="flex flex-wrap gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => startEdit(selectedRow.id)}
+                    className="inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90"
+                  >
+                    <Pencil size={14} />
+                    Edytuj
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteRow(selectedRow)}
+                    className="inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg border border-destructive/40 text-destructive font-medium hover:bg-destructive/10"
+                  >
+                    <Trash2 size={14} />
+                    Usuń
+                  </button>
+                </div>
+              )}
             </div>
 
             <dl className="grid grid-cols-1 gap-2 text-sm">
@@ -453,7 +666,7 @@ function MeasurementCatalogMain({
                 <dt className="text-xs text-muted-foreground">Robota</dt>
                 <dd className="flex items-center gap-2 flex-wrap">
                   <span>{selectedRow.jobName}</span>
-                  {hasJobDeepLink && (
+                  {hasJobDeepLink && !selectedDetached && (
                     <button
                       type="button"
                       onClick={() => openJobDetails(selectedRow.jobId)}
@@ -487,7 +700,7 @@ function MeasurementCatalogMain({
               </div>
             </dl>
 
-            {selectedRow.measurement && selectedJob ? (
+            {selectedRow.measurement && selectedExportJob ? (
               <div className="space-y-2 pt-2 border-t border-border">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dokumenty</p>
                 <div className="flex flex-col gap-1.5">

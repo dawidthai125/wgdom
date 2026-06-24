@@ -14,12 +14,12 @@ import {
   buildElectricalMeasurementPreview,
   buildJobElectricalMeasurementsSummary,
 } from "@/lib/electrical-measurements/preview";
+import { deleteElectricalMeasurementsFromBundle } from "@/lib/electrical-measurements/delete-bundle";
 import {
   addElectricalMeasurementCircuit,
   addElectricalMeasurementRcd,
   createEmptyElectricalMeasurement,
   recalculateElectricalMeasurementValues,
-  removeElectricalMeasurement,
   removeElectricalMeasurementCircuit,
   removeElectricalMeasurementRcd,
   touchElectricalMeasurement,
@@ -38,7 +38,7 @@ import {
 } from "@/lib/electrical-measurements/measurement-value-engine";
 import {
   assignRapForJob,
-  cancelRegistryForJob,
+  getRegistryEntryForKey,
   getRegistryEntryForJob,
   registryStatusLabel,
 } from "@/lib/electrical-measurements/registry";
@@ -47,6 +47,11 @@ import {
   isTestMeasurement,
   jobHasProductionMeasurement,
 } from "@/lib/electrical-measurements/test-report";
+import {
+  getMeasurementRegistryKey,
+  isDetachedMeasurement,
+  resolveMeasurementExportJob,
+} from "@/lib/electrical-measurements/link-status";
 import { isMeasurementMetaFieldsEditable } from "@/lib/electrical-measurements/settings";
 import type {
   ElectricalMeasurement,
@@ -69,6 +74,7 @@ function isEmAdministrator(session?: AdminSession | null): boolean {
 
 export function JobElectricalMeasurementsPanel({
   job,
+  focusedMeasurementId = null,
   measurements,
   registry,
   measurementSettings,
@@ -76,8 +82,12 @@ export function JobElectricalMeasurementsPanel({
   onChangeMeasurements,
   onChangeRegistry,
   onCommit,
+  variant = "default",
 }: {
-  job: Job;
+  /** Powiązany raport — wymagany gdy brak focusedMeasurementId. */
+  job?: Job | null;
+  /** Samodzielny / pojedynczy RAP — edycja po id raportu. */
+  focusedMeasurementId?: string | null;
   measurements: ElectricalMeasurement[];
   registry: ElectricalMeasurementRegistryState;
   measurementSettings: ElectricalMeasurementSettings;
@@ -88,11 +98,17 @@ export function JobElectricalMeasurementsPanel({
     nextMeasurements: ElectricalMeasurement[],
     nextRegistry: ElectricalMeasurementRegistryState,
   ) => void;
+  /** EM-CATALOG-002 — edycja z katalogu: bez tworzenia nowych raportów. */
+  variant?: "default" | "catalog-edit";
 }) {
-  const jobReports = useMemo(
-    () => filterElectricalMeasurementsForJob(measurements, job.id),
-    [measurements, job.id],
-  );
+  const jobReports = useMemo(() => {
+    if (focusedMeasurementId) {
+      const m = measurements.find((x) => x.id === focusedMeasurementId);
+      return m ? [m] : [];
+    }
+    if (!job) return [];
+    return filterElectricalMeasurementsForJob(measurements, job.id);
+  }, [measurements, job, focusedMeasurementId]);
   const productionReports = useMemo(
     () => jobReports.filter((r) => !isTestMeasurement(r)),
     [jobReports],
@@ -128,15 +144,31 @@ export function JobElectricalMeasurementsPanel({
     ? [...selected.circuits].sort((a, b) => a.sortOrder - b.sortOrder)
     : [];
 
-  const registryEntry = useMemo(
-    () => getRegistryEntryForJob(registry, job.id),
-    [registry, job.id],
+  const focusedMeasurement = useMemo(
+    () => (focusedMeasurementId ? measurements.find((m) => m.id === focusedMeasurementId) ?? null : null),
+    [measurements, focusedMeasurementId],
   );
-  const pomiaryChecklistDone = job.documents?.pomiary === true;
+
+  const registryEntry = useMemo(() => {
+    if (focusedMeasurement) {
+      const key = getMeasurementRegistryKey(focusedMeasurement);
+      return key ? getRegistryEntryForKey(registry, key) : undefined;
+    }
+    if (!job) return undefined;
+    return getRegistryEntryForJob(registry, job.id);
+  }, [registry, job, focusedMeasurement]);
+
+  const isDetachedContext = focusedMeasurement
+    ? isDetachedMeasurement(focusedMeasurement)
+    : selected
+      ? isDetachedMeasurement(selected)
+      : false;
+  const isCatalogEdit = variant === "catalog-edit";
+  const pomiaryChecklistDone = job?.documents?.pomiary === true;
   const showPomiaryCompletedBlock =
-    pomiaryChecklistDone && productionReports.length === 0 && registryEntry != null;
+    !isDetachedContext && Boolean(job) && pomiaryChecklistDone && productionReports.length === 0 && registryEntry != null;
   const isAdmin = isEmAdministrator(adminSession);
-  const hasProductionReport = jobHasProductionMeasurement(measurements, job.id);
+  const hasProductionReport = job ? jobHasProductionMeasurement(measurements, job.id) : false;
   const selectedIsTest = selected ? isTestMeasurement(selected) : false;
 
   const persistBundle = (
@@ -154,6 +186,7 @@ export function JobElectricalMeasurementsPanel({
   };
 
   const handleCreateTestReport = () => {
+    if (!job) return;
     const created = createTestElectricalMeasurement(job.id, measurements, measurementSettings);
     const nextAll = upsertElectricalMeasurement(measurements, created);
     onChangeMeasurements(nextAll);
@@ -163,6 +196,7 @@ export function JobElectricalMeasurementsPanel({
   };
 
   const handleCreateReport = () => {
+    if (!job) return;
     const { registry: nextRegistry, entry } = assignRapForJob(registry, job.id);
     const created = createEmptyElectricalMeasurement(job.id, entry.rapNumber, measurementSettings);
     const nextAll = upsertElectricalMeasurement(measurements, created);
@@ -180,17 +214,17 @@ export function JobElectricalMeasurementsPanel({
 
   const handleDeleteReport = () => {
     if (!selected) return;
-    const nextAll = removeElectricalMeasurement(measurements, selected.id);
-    if (isTestMeasurement(selected)) {
-      onChangeMeasurements(nextAll);
-      onCommit(nextAll, registry);
-    } else {
-      const nextRegistry = cancelRegistryForJob(registry, job.id);
-      onChangeMeasurements(nextAll);
-      onChangeRegistry(nextRegistry);
-      onCommit(nextAll, nextRegistry);
-    }
-    setSelectedId(nextAll.filter((m) => m.jobId === job.id)[0]?.id ?? null);
+    if (!window.confirm(`Usunąć raport ${selected.reportNumber}?`)) return;
+    const result = deleteElectricalMeasurementsFromBundle(measurements, registry, [selected.id]);
+    onChangeMeasurements(result.measurements);
+    onChangeRegistry(result.registry);
+    onCommit(result.measurements, result.registry);
+    const fallbackJobId = job?.id;
+    setSelectedId(
+      fallbackJobId
+        ? (result.measurements.filter((m) => m.jobId === fallbackJobId)[0]?.id ?? null)
+        : (result.measurements.find((m) => m.id === focusedMeasurementId)?.id ?? null),
+    );
   };
 
   const metaFieldsEditable = selected ? isMeasurementMetaFieldsEditable(selected) : false;
@@ -207,10 +241,11 @@ export function JobElectricalMeasurementsPanel({
 
   const handleGenerateDocx = async (kind: EmDocxDocumentKind) => {
     if (!selected) return;
+    const exportJob = job ? job : resolveMeasurementExportJob(selected);
     setGenerateError(null);
     setGeneratingKind(kind);
     try {
-      await downloadEmDocxDocument(kind, { measurement: selected, job });
+      await downloadEmDocxDocument(kind, { measurement: selected, job: exportJob });
     } catch (e) {
       setGenerateError(e instanceof Error ? e.message : "Nie udało się wygenerować DOCX");
     } finally {
@@ -232,7 +267,7 @@ export function JobElectricalMeasurementsPanel({
         <div className="space-y-1 min-w-0">
           <h3 className="text-sm font-semibold flex items-center gap-1.5">
             <Gauge size={14} className="text-primary shrink-0" />
-            Pomiary Elektryczne
+            {isCatalogEdit ? "Edycja raportu" : "Pomiary Elektryczne"}
           </h3>
           <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
             <span>Raporty: {jobSummary.reportCount}</span>
@@ -242,7 +277,7 @@ export function JobElectricalMeasurementsPanel({
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {jobReports.length > 0 && (
+          {!isCatalogEdit && jobReports.length > 0 && (
             <button
               type="button"
               onClick={() => setDetailsExpanded((v) => !v)}
@@ -252,7 +287,7 @@ export function JobElectricalMeasurementsPanel({
               {detailsExpanded ? "Zwiń" : "Rozwiń"}
             </button>
           )}
-          {!showPomiaryCompletedBlock && !hasProductionReport && (
+          {!isCatalogEdit && !showPomiaryCompletedBlock && !hasProductionReport && job && !isDetachedContext && (
             <button
               type="button"
               onClick={handleCreateReport}
@@ -262,15 +297,17 @@ export function JobElectricalMeasurementsPanel({
               Nowy raport
             </button>
           )}
-          <button
-            type="button"
-            onClick={handleCreateTestReport}
-            className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-100 font-medium hover:bg-amber-500/15"
-          >
-            <Plus size={12} />
-            Nowy raport testowy
-          </button>
-          {showPomiaryCompletedBlock && isAdmin && (
+          {!isCatalogEdit && job && !isDetachedContext && (
+            <button
+              type="button"
+              onClick={handleCreateTestReport}
+              className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-100 font-medium hover:bg-amber-500/15"
+            >
+              <Plus size={12} />
+              Nowy raport testowy
+            </button>
+          )}
+          {!isCatalogEdit && showPomiaryCompletedBlock && isAdmin && (
             <button
               type="button"
               onClick={handleRecreateReport}
@@ -313,26 +350,34 @@ export function JobElectricalMeasurementsPanel({
 
       {jobReports.length === 0 && !showPomiaryCompletedBlock ? (
         <p className="text-xs text-muted-foreground">
-          Brak raportów pomiarowych dla tej roboty. „Nowy raport” — numer RAP z rejestru. „Nowy raport
-          testowy” — TEST-RAP bez wpływu na numerację produkcyjną.
+          {isDetachedContext
+            ? "Brak raportu do edycji."
+            : "Brak raportów pomiarowych dla tej roboty. Użyj „Nowy pomiar” u góry zakładki lub przycisków poniżej."}
         </p>
       ) : jobReports.length === 0 ? null : (
         <>
           <div className="flex flex-wrap items-center gap-2">
             <label className="text-[11px] text-muted-foreground">Raport:</label>
-            <select
-              value={selectedId ?? ""}
-              onChange={(e) => setSelectedId(e.target.value)}
-              className="text-xs rounded-lg border border-border bg-background px-2 py-1.5 min-w-[180px]"
-            >
-              {jobReports.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.reportNumber.trim() || "Bez numeru"}
-                  {isTestMeasurement(r) ? " [TEST]" : ""}
-                  {r.measurementDate ? ` · ${r.measurementDate}` : ""}
-                </option>
-              ))}
-            </select>
+            {isCatalogEdit || jobReports.length <= 1 ? (
+              <span className="text-xs font-mono font-medium">
+                {selected.reportNumber.trim() || "Bez numeru"}
+                {selectedIsTest ? " [TEST]" : ""}
+              </span>
+            ) : (
+              <select
+                value={selectedId ?? ""}
+                onChange={(e) => setSelectedId(e.target.value)}
+                className="text-xs rounded-lg border border-border bg-background px-2 py-1.5 min-w-[180px]"
+              >
+                {jobReports.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.reportNumber.trim() || "Bez numeru"}
+                    {isTestMeasurement(r) ? " [TEST]" : ""}
+                    {r.measurementDate ? ` · ${r.measurementDate}` : ""}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           {detailsExpanded && selected && (
@@ -342,17 +387,24 @@ export function JobElectricalMeasurementsPanel({
                   Raport testowy — bez wpisu w rejestrze RAP, bez wpływu na checklistę odbiorową.
                 </div>
               )}
+              {isDetachedMeasurement(selected) && (
+                <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs text-sky-900 dark:text-sky-100">
+                  Samodzielny pomiar — bez powiązania z robotą. Adres trafia do DOCX i katalogu.
+                </div>
+              )}
               <section className="space-y-2 rounded-lg border border-border p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h4 className="text-xs font-semibold text-foreground">1. Dane pomiaru</h4>
-                  <button
-                    type="button"
-                    onClick={handleDeleteReport}
-                    className="text-[11px] text-destructive flex items-center gap-1 hover:underline"
-                  >
-                    <Trash2 size={11} />
-                    Usuń raport
-                  </button>
+                  {!isCatalogEdit && (
+                    <button
+                      type="button"
+                      onClick={handleDeleteReport}
+                      className="text-[11px] text-destructive flex items-center gap-1 hover:underline"
+                    >
+                      <Trash2 size={11} />
+                      Usuń raport
+                    </button>
+                  )}
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <label className="space-y-0.5">
@@ -416,6 +468,28 @@ export function JobElectricalMeasurementsPanel({
                       }`}
                     />
                   </label>
+                  {isDetachedMeasurement(selected) && (
+                    <>
+                      <label className="space-y-0.5 sm:col-span-2">
+                        <span className="text-[10px] text-muted-foreground">Adres obiektu</span>
+                        <input
+                          type="text"
+                          value={selected.manualAddress ?? ""}
+                          onChange={(e) => patchSelected({ manualAddress: e.target.value })}
+                          className="w-full text-xs rounded-lg border border-border bg-background px-2 py-1.5"
+                        />
+                      </label>
+                      <label className="space-y-0.5">
+                        <span className="text-[10px] text-muted-foreground">Nr lokalu</span>
+                        <input
+                          type="text"
+                          value={selected.manualFlatNumber ?? ""}
+                          onChange={(e) => patchSelected({ manualFlatNumber: e.target.value })}
+                          className="w-full text-xs rounded-lg border border-border bg-background px-2 py-1.5"
+                        />
+                      </label>
+                    </>
+                  )}
                 </div>
                 {!metaFieldsEditable && (
                   <button

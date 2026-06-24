@@ -1,4 +1,5 @@
 import { pushKeysToCloud } from "@/lib/cloud-sync";
+import { getDeletedElectricalMeasurementIds, mergeDeletedElectricalMeasurementIds, saveDeletedElectricalMeasurementIds, ELECTRICAL_MEASUREMENTS_DELETED_IDS_KEY } from "@/lib/electrical-measurements/deleted-ids";
 import {
   mergeElectricalMeasurementRegistry,
   normalizeElectricalMeasurementRegistryState,
@@ -72,8 +73,8 @@ export async function pushElectricalMeasurementsBundleToCloud(
     /* ignore quota */
   }
   await pushKeysToCloud(
-    [ELECTRICAL_MEASUREMENTS_KEY, ELECTRICAL_MEASUREMENT_REGISTRY_KEY],
-    [normMeasurements, normRegistry],
+    [ELECTRICAL_MEASUREMENTS_KEY, ELECTRICAL_MEASUREMENT_REGISTRY_KEY, ELECTRICAL_MEASUREMENTS_DELETED_IDS_KEY],
+    [normMeasurements, normRegistry, getDeletedElectricalMeasurementIds()],
   );
 }
 

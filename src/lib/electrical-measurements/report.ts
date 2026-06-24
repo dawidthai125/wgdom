@@ -52,6 +52,20 @@ export function createEmptyElectricalMeasurement(
   return applyGeneratedValuesToMeasurement(base);
 }
 
+export function createDetachedElectricalMeasurement(
+  manualAddress: string,
+  manualFlatNumber: string,
+  reportNumber = "",
+  settings?: Pick<ElectricalMeasurementSettings, "technicianName" | "meterModel" | "meterSerialNumber">,
+): ElectricalMeasurement {
+  const base = createEmptyElectricalMeasurement("", reportNumber, settings);
+  return touchElectricalMeasurement(base, {
+    linkStatus: "detached",
+    manualAddress: manualAddress.trim(),
+    manualFlatNumber: manualFlatNumber.trim(),
+  });
+}
+
 /** EM-P1.5 — ponowne losowanie (seed z id + numer raportu). */
 export function recalculateElectricalMeasurementValues(m: ElectricalMeasurement): ElectricalMeasurement {
   return applyGeneratedValuesToMeasurement(m);
@@ -59,7 +73,11 @@ export function recalculateElectricalMeasurementValues(m: ElectricalMeasurement)
 
 export function touchElectricalMeasurement(
   m: ElectricalMeasurement,
-  patch: Partial<Omit<ElectricalMeasurement, "id" | "jobId" | "createdAt">>,
+  patch: Partial<
+    Omit<ElectricalMeasurement, "id" | "createdAt"> & {
+      jobId?: string;
+    }
+  >,
 ): ElectricalMeasurement {
   return {
     ...m,

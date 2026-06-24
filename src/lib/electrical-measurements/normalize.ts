@@ -19,6 +19,8 @@ import {
   SUPPLY_TYPES,
 } from "@/lib/electrical-measurements/types";
 import { EM_VALUE_SET_VERSION } from "@/lib/electrical-measurements/measurement-value-engine";
+import { normalizeMeasurementLinkStatus } from "@/lib/electrical-measurements/link-status";
+import { isTestReportNumber } from "@/lib/electrical-measurements/test-report";
 
 function renumberCircuitSortOrder(circuits: ElectricalMeasurementCircuit[]): ElectricalMeasurementCircuit[] {
   const sorted = [...circuits].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -143,7 +145,20 @@ function parseRcd(raw: unknown): ElectricalMeasurementRcd | null {
 export function parseElectricalMeasurement(raw: unknown): ElectricalMeasurement | null {
   if (!raw || typeof raw !== "object") return null;
   const r = raw as Partial<ElectricalMeasurement>;
-  if (!r.id || !r.jobId) return null;
+  if (!r.id) return null;
+
+  const flagsTest =
+    r.flags && typeof r.flags === "object" && (r.flags as { test?: boolean }).test === true;
+  const reportNumber = String(r.reportNumber ?? "");
+  const isTest = flagsTest || isTestReportNumber(reportNumber);
+
+  const linkStatus = normalizeMeasurementLinkStatus(r.linkStatus);
+  const jobId = String(r.jobId ?? "").trim();
+  const detached = linkStatus === "detached" || (!jobId && !isTest);
+
+  if (!detached && !jobId && !isTest) return null;
+
+  const resolvedLinkStatus: ElectricalMeasurement["linkStatus"] = detached ? "detached" : "linked";
   const supplyType = SUPPLY_TYPES.includes(r.supplyType as SupplyType) ? (r.supplyType as SupplyType) : "ydy-3x4";
   const circuits: ElectricalMeasurementCircuit[] = [];
   if (Array.isArray(r.circuits)) {
@@ -163,8 +178,11 @@ export function parseElectricalMeasurement(raw: unknown): ElectricalMeasurement 
   const valueSet = parseValueSet(r.valueSet);
   return {
     id: String(r.id),
-    jobId: String(r.jobId),
-    reportNumber: String(r.reportNumber ?? ""),
+    jobId: detached ? "" : jobId,
+    linkStatus: isTest ? undefined : resolvedLinkStatus,
+    manualAddress: detached ? String(r.manualAddress ?? "").trim() : undefined,
+    manualFlatNumber: detached ? String(r.manualFlatNumber ?? "").trim() : undefined,
+    reportNumber,
     measurementDate: String(r.measurementDate ?? "").slice(0, 10),
     technicianName: String(r.technicianName ?? ""),
     meterModel: String(r.meterModel ?? ""),

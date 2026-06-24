@@ -12,6 +12,7 @@ import {
 } from "@/lib/electrical-measurements/measurement-catalog";
 import { appendMeasurementIndexFiles } from "@/lib/electrical-measurements/measurement-index-export";
 import { catalogZipFolderName } from "@/lib/electrical-measurements/measurement-docx-names";
+import { resolveMeasurementExportJob } from "@/lib/electrical-measurements/link-status";
 import {
   EM_DOCX_DOCUMENT_KINDS,
   generateEmDocxBytes,
@@ -85,12 +86,11 @@ export async function buildMultiRapArchiveZipBytes(
   if (packRows.length === 0) {
     throw new Error("Brak aktywnych raportów do spakowania.");
   }
-  const jobById = new Map(jobs.map((j) => [j.id, j]));
   const zip = new JSZip();
 
   for (const row of packRows) {
-    const job = jobById.get(row.jobId);
-    if (!job || !row.measurement) continue;
+    if (!row.measurement) continue;
+    const job = resolveMeasurementExportJob(row.measurement, jobs);
     const folder = catalogZipFolderName(row.rapNumber, row.address);
     await appendMeasurementDocxToZip(zip, folder, row.measurement, job, templateLoader);
   }

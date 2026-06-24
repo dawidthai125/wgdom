@@ -1,83 +1,58 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-24 · **prod 2.62.51** · `78f11cd`
+**Ostatnia aktualizacja:** 2026-06-24 · **release 2.62.52** · WM Pomiary UX Upgrade
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod (`main`)** | **2.62.51** (`78f11cd`) |
-| **Poprzedni prod** | **2.62.50** (`c149116`) · V1A+V1B renderer v4 |
-| **WM-SCHEMATY MVP** | **CLOSED** · UI 2.62.49 · visual fidelity V2 **CLOSED** 2.62.51 |
-| **Renderer schematów** | **`SCHEMATIC_RENDER_VERSION = 5`** |
-| **TP203 M1** | **RELEASED** — `parseJobAddressParts` |
-| **P4 WM upload toast** | **RELEASED** — `resolveWmPrintTemplateUploadToast` |
-| **ZI §4/§5** | **STABLE** — obiekt 95–97 · zgłaszający 99/111/112 ze szablonu |
-| **Audit Hub** | MVP-0 + MVP-1 + MVP-1B **CLOSED** · MVP-1C OPEN |
-| **TP200B** | **PLANNED** |
+| **Wersja release** | **2.62.52** — WM Druk Pomiary UX Upgrade |
+| **Poprzedni prod** | **2.62.51** (`78f11cd`) · WM Schematy V2 |
+| **EM-UX-002** | **CLOSED** — samodzielne pomiary (detached RAP) |
+| **EM-CATALOG-002** | **CLOSED** — edycja RAP z Katalogu Pomiarów |
+| **EM-CATALOG-001** | **CLOSED** — usuwanie RAP + Registry Guard + tombstone sync |
+| **WM-SCHEMATY** | **CLOSED** · renderer v5 · 2.62.51 |
+| **ZI §4/§5** | **STABLE** |
+| **Audit Hub** | MVP-0→1B **CLOSED** · MVP-1C OPEN |
 
 ---
 
-## Epic zamknięty: WM-SCHEMATY (MVP + Visual Fidelity)
+## Epic zamknięty: WM Pomiary UX Upgrade (2.62.52)
 
-| Pole | Wartość |
-|------|---------|
-| **Status epica** | **CLOSED** |
-| **MVP UI** | **2.62.49** — zakładka Schematy · KV sync · PDF draft/final |
-| **Visual V1A/V1B** | **2.62.50** — backbone · RCD tee · renderer **v4** |
-| **Visual V2** | **2.62.51** — bus layout v2 · pełny span · renderer **v5** |
-| **Handoff epic** | [`docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md`](docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md) |
-| **Handoff V2 release** | [`docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md) |
-| **Spec SSOT** | [`docs/WM-SCHEMATY-V1-DESIGN-FREEZE.md`](docs/WM-SCHEMATY-V1-DESIGN-FREEZE.md) |
-| **Audyt release** | `audit/WM-SCHEMATY-V2C-PDF-SIDE-BY-SIDE-AUDIT.md` — RECOMMEND RELEASE |
+| Sprint | Status | Skrót |
+|--------|--------|-------|
+| **EM-UX-002** | **CLOSED** | detached RAP · `linkStatus` · `manualAddress` |
+| **EM-CATALOG-002** | **CLOSED** | edycja z katalogu · `catalog-edit` variant |
+| **EM-CATALOG-001** | **CLOSED** | delete single/bulk · Registry Guard · `kw-electrical-measurements-deleted-ids` |
 
-### Visual Fidelity (vs Benedyktyńska 22/13)
-
-| Etap | ~% tuszu | Werdykt |
-|------|----------|---------|
-| V1 MVP | ~55–58% | Za wąski |
-| V1A | ~87% | PASS funkcjonalny |
-| V1B | ~92% | PASS |
-| V2 | **93.4%** vs ref. **92.5%** | **B+** · CLOSED |
-
-### Smoke regresji schematów
+### Smoke (wymagane PASS przed release)
 
 ```bash
-npx vite-node scripts/test-schematic-v1b-visual-smoke.mjs
-npx vite-node scripts/test-schematic-render-apartment-3f.mjs
-npx vite-node scripts/test-schematic-pdf-smoke.mjs
-npx vite-node scripts/test-wm-schematics-ui-3b.mjs
+npx vite-node scripts/test-electrical-measurements-independent-rap.mjs
+npx vite-node scripts/test-electrical-measurements-catalog-edit.mjs
+npx vite-node scripts/test-electrical-measurements-delete-registry-guard.mjs
+npm run build
 ```
 
----
+### Registry Guard (SSOT)
 
-## Co zrobiono (2026-06-24 — WM Schematy release)
+Usunięcie RAP → wpis `CANCELLED` w registry · numer zużyty na zawsze · tombstone chroni merge chmury.
 
-| Wersja | Commit | Temat |
-|--------|--------|-------|
-| **2.62.49** | (wcześniej) | MVP UI — zakładka Schematy · domena · sync KV |
-| **2.62.50** | `c149116` | V1A+V1B — renderer v4 · backbone · RCD tee · kuchenka 3P |
-| **2.62.51** | `78f11cd` | V2 — bus layout v2 · symbole · viewBox · renderer v5 |
-
-**Handoff:** [`docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md`](docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md)
+Przykład: RAP-45, RAP-46, RAP-47 → usuń RAP-46 → następny nowy = **RAP-48**.
 
 ---
 
 ## Następne (tylko na polecenie)
 
-- **WM-SCHEMATY V1.1** — ZIP `Schematy/` · WM Historia · PDF wektorowy · UI detach · `feedFrom`/`position`
-- **WM-SCHEMATY P1** — `commercial-3f-v1` w UI · link z Pomiarów
+- WM-SCHEMATY V1.1 · P1 commercial-3f UI
 - TP200B · Audit Hub MVP-1C · Notatki P3 Export
 
 ## Szybki start agenta
 
 ```text
-docs/SESSION-HANDOFF-ELECTRICAL-SCHEMATICS.md           ← ★★ WM Schematy epic (CLOSED)
-docs/SESSION-HANDOFF-WM-SCHEMATY-V2-2026-06-24.md       ← ★★ visual fidelity V2 release
-docs/WM-SCHEMATY-V1-DESIGN-FREEZE.md                    ← spec zamrożona
-docs/SESSION-HANDOFF-WM-ZI-TP203-P4-2026-06-24.md       ← WM Druk / ZI
-docs/AGENT-ONBOARDING.md                                ← mapa systemu
-docs/PROJECT-HANDOFF-CURRENT.md                         ← baseline prod 2.62.51
+docs/SESSION-HANDOFF-ELECTRICAL-MEASUREMENTS.md     ← EM-P1R baseline
+docs/ARCHITECTURE.md § 12.1.10a                     ← UX Upgrade 2.62.52
+docs/PROJECT-HANDOFF-CURRENT.md                     ← baseline prod (po deploy)
 ```
 
 **Hasło użytkownika:** „kontynuuj WGDOM”

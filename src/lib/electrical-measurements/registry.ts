@@ -10,6 +10,7 @@ import type {
   ElectricalMeasurementRegistryStatus,
 } from "@/lib/electrical-measurements/types";
 import { isTestMeasurement } from "@/lib/electrical-measurements/test-report";
+import { getMeasurementRegistryKey } from "@/lib/electrical-measurements/link-status";
 
 const RAP_RE = /^RAP-(\d+)-(\d{4})$/i;
 
@@ -123,8 +124,16 @@ export function getRegistryEntryForJob(
   state: ElectricalMeasurementRegistryState,
   jobId: string,
 ): ElectricalMeasurementRegistryEntry | undefined {
-  if (!jobId) return undefined;
-  return state.entries.find((e) => e.jobId === jobId);
+  return getRegistryEntryForKey(state, jobId);
+}
+
+/** EM-UX-002 — klucz rejestru: jobId (powiązany) lub measurement.id (samodzielny). */
+export function getRegistryEntryForKey(
+  state: ElectricalMeasurementRegistryState,
+  registryKey: string,
+): ElectricalMeasurementRegistryEntry | undefined {
+  if (!registryKey) return undefined;
+  return state.entries.find((e) => e.jobId === registryKey);
 }
 
 export function getMaxSequenceForYear(
@@ -149,15 +158,15 @@ function upsertRegistryEntry(
   };
 }
 
-/** Przydziel lub odtwórz numer RAP dla roboty (nigdy nowy numer jeśli wpis już istnieje). */
-export function assignRapForJob(
+/** Przydziel lub odtwórz numer RAP (klucz: jobId lub measurement.id). */
+export function assignRapForRegistryKey(
   state: ElectricalMeasurementRegistryState,
-  jobId: string,
+  registryKey: string,
   options?: { now?: Date },
 ): { registry: ElectricalMeasurementRegistryState; entry: ElectricalMeasurementRegistryEntry } {
   const now = options?.now ?? new Date();
   const year = now.getFullYear();
-  const existing = getRegistryEntryForJob(state, jobId);
+  const existing = getRegistryEntryForKey(state, registryKey);
 
   if (existing) {
     const next: ElectricalMeasurementRegistryEntry = {
@@ -170,7 +179,7 @@ export function assignRapForJob(
 
   const sequence = getMaxSequenceForYear(state, year) + 1;
   const entry: ElectricalMeasurementRegistryEntry = {
-    jobId,
+    jobId: registryKey,
     rapNumber: formatRapNumber(sequence, year),
     year,
     sequence,
@@ -180,14 +189,30 @@ export function assignRapForJob(
   return { registry: upsertRegistryEntry(state, entry), entry };
 }
 
+/** Przydziel lub odtwórz numer RAP dla roboty (nigdy nowy numer jeśli wpis już istnieje). */
+export function assignRapForJob(
+  state: ElectricalMeasurementRegistryState,
+  jobId: string,
+  options?: { now?: Date },
+): { registry: ElectricalMeasurementRegistryState; entry: ElectricalMeasurementRegistryEntry } {
+  return assignRapForRegistryKey(state, jobId, options);
+}
+
 /** Usunięcie raportu — wpis zostaje, status CANCELLED. */
+export function cancelRegistryForKey(
+  state: ElectricalMeasurementRegistryState,
+  registryKey: string,
+): ElectricalMeasurementRegistryState {
+  const existing = getRegistryEntryForKey(state, registryKey);
+  if (!existing) return state;
+  return upsertRegistryEntry(state, { ...existing, status: "CANCELLED" });
+}
+
 export function cancelRegistryForJob(
   state: ElectricalMeasurementRegistryState,
   jobId: string,
 ): ElectricalMeasurementRegistryState {
-  const existing = getRegistryEntryForJob(state, jobId);
-  if (!existing) return state;
-  return upsertRegistryEntry(state, { ...existing, status: "CANCELLED" });
+  return cancelRegistryForKey(state, jobId);
 }
 
 /** Migracja — istniejące raporty z numerem RAP → wpisy registry (bez utraty). */
@@ -200,19 +225,21 @@ export function migrateRegistryFromMeasurements(
   for (const m of measurements) {
     if (isTestMeasurement(m)) continue;
     const parsed = parseRapNumber(m.reportNumber);
-    if (!parsed || !m.jobId) continue;
-    const list = byJob.get(m.jobId) ?? [];
+    if (!parsed) continue;
+    const key = getMeasurementRegistryKey(m);
+    if (!key) continue;
+    const list = byJob.get(key) ?? [];
     list.push(m);
-    byJob.set(m.jobId, list);
+    byJob.set(key, list);
   }
 
-  for (const [jobId, reports] of byJob) {
-    if (getRegistryEntryForJob(next, jobId)) continue;
+  for (const [registryKey, reports] of byJob) {
+    if (getRegistryEntryForKey(next, registryKey)) continue;
     const sorted = [...reports].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     const primary = sorted[0];
     const parsed = parseRapNumber(primary.reportNumber)!;
     next = upsertRegistryEntry(next, {
-      jobId,
+      jobId: registryKey,
       rapNumber: formatRapNumber(parsed.sequence, parsed.year),
       year: parsed.year,
       sequence: parsed.sequence,
@@ -237,7 +264,8 @@ export function registryNeedsMigrationFromMeasurements(
 ): boolean {
   for (const m of measurements) {
     if (isTestMeasurement(m)) continue;
-    if (parseRapNumber(m.reportNumber) && !getRegistryEntryForJob(state, m.jobId)) return true;
+    const key = getMeasurementRegistryKey(m);
+    if (parseRapNumber(m.reportNumber) && key && !getRegistryEntryForKey(state, key)) return true;
   }
   return false;
 }
