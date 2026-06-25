@@ -1,6 +1,36 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.55** · **WM Schematy Right Edge Clipping Hotfix**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.60** · **Tender Workspace Automation**
+
+## 2.62.60 — Tender Workspace Automation
+
+- **improve:** auto-checklista · auto timeline · insights 2–3 · auto progress
+- **test:** `test-tender-workspace-v2-ux.mjs`
+
+## 2.62.59 — Tender Workspace V2
+
+- **new:** status realizacji 0–100% · następny krok · oś czasu · dokumenty 1-klik · checklista
+- **test:** `test-tender-workspace-v2-ux.mjs`
+
+## 2.62.58 — Przetargi Lista UX V3
+
+- **new:** Moja kolejka (decyzje, terminy, kosztorys, referencje) · ulubione presety (localStorage)
+- **improve:** sticky toolbar (szukaj, status, filtry, odśwież)
+- **new:** komunikaty AI (heurystyki UX)
+- **test:** `test-tenders-list-ux.mjs` (kolejka, presety, sort)
+
+## 2.62.57 — Przetargi Lista UX V2
+
+- **improve:** klikalne KPI → filtry · pasek szybkich filtrów (Wszystkie/Moje/…)
+- **new:** sekcja „Dzisiaj” (wymaga reakcji) · sort pilne → strategiczne
+- **improve:** prefs filtrów w localStorage `wg-tenders-list-filter-prefs-v2`
+- **test:** `test-tenders-list-ux.mjs`
+
+## 2.62.56 — Przetargi Lista UX rework
+
+- **improve:** KPI kompakt (4 metryki) · wyszukiwarka + chipy filtrów wyżej · lista bliżej góry ekranu
+- **improve:** Pipeline + legenda zwinięte · „Filtry zaawansowane” (lista/status) · ikony CSV/masowy
+- **UX-only:** bez zmian BZP, pipeline danych, parserów, sync
 
 ## 2.62.55 — WM Schematy Right Edge Clipping Hotfix
 

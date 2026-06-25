@@ -10,6 +10,9 @@ import {
   buildPrzetargWorkScopeLabels,
   hasParticipationDisplayData,
 } from "@/lib/tender-detail-v4-display";
+import { TenderWorkspaceV2Panel } from "@/app/TenderWorkspaceV2Panel";
+import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
+import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
 
 function BlockShell({
   title,
@@ -40,9 +43,14 @@ function KeyFactCard({ label, value }: { label: string; value: string }) {
 export function TenderPrzetargWorkspace({
   item,
   swz,
+  onNavigateTab,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
+  onNavigateTab: (
+    tab: TenderDetailV4TabId,
+    opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace },
+  ) => void;
 }) {
   const bundle = useMemo(() => buildPrzetargExecutiveBundle(item), [item]);
   const keyFacts = useMemo(() => buildPrzetargKeyFacts(item, swz), [item, swz]);
@@ -52,6 +60,8 @@ export function TenderPrzetargWorkspace({
 
   return (
     <div className="space-y-4">
+      <TenderWorkspaceV2Panel item={item} swz={swz} onNavigateTab={onNavigateTab} />
+
       <BlockShell title="Podstawowe dane">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {keyFacts.map((fact) => (

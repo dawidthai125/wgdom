@@ -21,6 +21,7 @@ import {
   TENDER_DETAIL_DECYZJA_WS_QUERY,
   TENDER_DETAIL_V4_TAB_LABELS,
   TENDERS_LIST_PATH,
+  type DecyzjaV4EmbedWorkspace,
   type TenderDetailV4TabId,
 } from "@/lib/tender-detail-routes-v4";
 import {
@@ -68,8 +69,8 @@ export function TenderDetailPage({
   const swz = item?.swzAnalysis ?? null;
 
   const handleTabChange = useCallback(
-    (next: TenderDetailV4TabId) => {
-      navigate(buildTenderDetailPath(tenderId, next));
+    (next: TenderDetailV4TabId, opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace }) => {
+      navigate(buildTenderDetailPath(tenderId, next, opts));
     },
     [navigate, tenderId],
   );
@@ -168,7 +169,9 @@ export function TenderDetailPage({
         </div>
 
         <div className={`px-4 sm:px-6 ${compactKosztorysChrome ? "py-2" : "py-4"}`}>
-          {tab === "przetarg" && <TenderPrzetargWorkspace item={item} swz={swz} />}
+          {tab === "przetarg" && (
+            <TenderPrzetargWorkspace item={item} swz={swz} onNavigateTab={handleTabChange} />
+          )}
 
           {tab === "kosztorys" && (
             <TenderKosztorysWorkspace item={item} athPreviewEnabled={athPreviewEnabled} />

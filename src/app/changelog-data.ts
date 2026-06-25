@@ -12,6 +12,113 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-24",
+    version: "2.62.60",
+    label: "Tender Workspace — automatyzacja",
+    items: [
+      {
+        type: "improve",
+        text: "Workspace Przetarg: auto-checklista SWZ/ATH/Formularz/Referencje/Wadium (✔ gotowe · ⚠ brak · ⌛ działanie)",
+      },
+      {
+        type: "improve",
+        text: "Auto timeline — dni do terminu, sugerowany start/koniec wyceny, ostatni bezpieczny termin wysłania",
+      },
+      {
+        type: "new",
+        text: "Workspace Insights — 2–3 komunikaty operacyjne pod paskiem postępu (wadium, referencje, oferta dziś)",
+      },
+      {
+        type: "improve",
+        text: "Auto Progress — postęp łączy analizę, kosztorys, ofertę, dokumenty i referencje z auto-checklisty",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
+    version: "2.62.59",
+    label: "Tender Workspace V2 — status, timeline, checklista",
+    items: [
+      {
+        type: "new",
+        text: "Przetarg → zakładka Przetarg: status realizacji 0–100% (Dokumenty, Analiza, Kosztorys, Referencje, Wadium, Oferta)",
+      },
+      {
+        type: "new",
+        text: "Następny krok — jedna rekomendowana akcja z przyciskiem (np. policz kosztorys, uzupełnij referencje)",
+      },
+      {
+        type: "new",
+        text: "Oś czasu, skróty do SWZ/Kosztorys/ATH/Formularz/ZIP oraz checklista ofertowa (podpis lokalnie)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
+    version: "2.62.58",
+    label: "Przetargi Lista UX V3 — workspace właściciela",
+    items: [
+      {
+        type: "new",
+        text: "Sekcja „Moja kolejka” — Do decyzji, kończy się dziś/jutro, brak kosztorysu/referencji (klikalne filtry)",
+      },
+      {
+        type: "new",
+        text: "Ulubione filtry — przypinanie własnych presetów (zapis lokalny w przeglądarce)",
+      },
+      {
+        type: "improve",
+        text: "Sticky toolbar po scrollu — wyszukiwarka, status, szybkie filtry i odśwież zawsze pod ręką",
+      },
+      {
+        type: "new",
+        text: "Komunikaty AI na liście przetargów (heurystyki UX — decyzje, potencjał WM, brak pilnych)",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
+    version: "2.62.57",
+    label: "Przetargi Lista UX V2 — filtry operacyjne",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → Lista — klikalne KPI (aktywne, do zgłoszenia, ≤7 dni, kluczowe) ustawiają filtry jednym kliknięciem",
+      },
+      {
+        type: "new",
+        text: "Pasek szybkich filtrów: Wszystkie · Moje · Do zgłoszenia · ≤7 dni · Bez kosztorysu · WM · ZZK",
+      },
+      {
+        type: "improve",
+        text: "Sekcja „Dzisiaj” — przetargi wymagające reakcji na górze listy; sortowanie pilne → strategiczne",
+      },
+      {
+        type: "improve",
+        text: "Zapamiętywanie filtrów listy w localStorage (wyszukiwarka, status, chipy) — bez zmian sync/KV",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
+    version: "2.62.56",
+    label: "Przetargi — UX Lista (OPERACJE > FILTRY > LISTA)",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → Lista — kompaktowe KPI (aktywne, do zgłoszenia, ≤7 dni, kluczowe); wyszukiwarka i chipy filtrów wyżej",
+      },
+      {
+        type: "improve",
+        text: "Pipeline i legenda domyślnie zwinięte; filtry listy/statusu w panelu „Filtry zaawansowane”; mniej pustej przestrzeni nad listą",
+      },
+      {
+        type: "improve",
+        text: "Chipy akcji — neutralne tło gdy nieaktywne (mniej czerwonych badge); eksport CSV i tryb masowy jako ikony na pasku",
+      },
+    ],
+  },
+  {
+    date: "2026-06-24",
     version: "2.62.55",
     label: "WM Schematy — Right Edge Clipping Hotfix",
     items: [
