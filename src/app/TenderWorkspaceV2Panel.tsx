@@ -22,6 +22,7 @@ import {
   buildWorkspaceV2AutoChecklist,
   buildWorkspaceV2Checklist,
   buildWorkspaceV2Insights,
+  buildWorkspaceV2NextActionButtonLabel,
   buildWorkspaceV2NextActionLabel,
   buildWorkspaceV2Timeline,
   buildWorkspaceV2TimelineAutomation,
@@ -31,6 +32,7 @@ import {
   resolveWorkspaceV2KeyDocuments,
   saveWorkspaceV2ChecklistPersist,
   workspaceV2AutoStatusGlyph,
+  workspaceV2PrefersKosztorysTab,
   type WorkspaceV2AutoStatus,
   type WorkspaceV2InsightTone,
   type WorkspaceV2PillarStatus,
@@ -156,9 +158,8 @@ export function TenderWorkspaceV2Panel({
   );
 
   const nextLabel = buildWorkspaceV2NextActionLabel(intelligence.nextAction);
-  const nextTab = intelligence.nextAction.tab;
-  const preferKosztorys = nextTab === "documents"
-    && intelligence.nextAction.title.toLowerCase().includes("kosztorys");
+  const nextButtonLabel = buildWorkspaceV2NextActionButtonLabel(intelligence.nextAction);
+  const preferKosztorys = workspaceV2PrefersKosztorysTab(intelligence.nextAction);
 
   const handleNextAction = () => {
     const action = intelligence.nextAction;
@@ -255,7 +256,7 @@ export function TenderWorkspaceV2Panel({
             onClick={handleNextAction}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 shrink-0"
           >
-            {intelligence.nextAction.buttonLabel}
+            {nextButtonLabel}
             <ArrowRight size={14} />
           </button>
         )}

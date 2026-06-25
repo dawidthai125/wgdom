@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-06-25",
+    version: "2.62.61",
+    label: "Workspace V2 — etykieta Następny krok",
+    items: [
+      {
+        type: "fix",
+        text: "Workspace Przetarg — przycisk „Następny krok” przy „Znajdź kosztorys” prowadzi na Kosztorys z etykietą „Przejdź do kosztorysu” (zgodność z nawigacją)",
+      },
+    ],
+  },
+  {
     date: "2026-06-24",
     version: "2.62.60",
     label: "Tender Workspace — automatyzacja",

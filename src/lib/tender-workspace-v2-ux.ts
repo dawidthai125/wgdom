@@ -581,6 +581,39 @@ export function buildWorkspaceV2NextActionLabel(action: IntelligenceNextAction):
   return map[action.ruleId] ?? action.title;
 }
 
+/** P5 „Znajdź kosztorys” kieruje na zakładkę Kosztorys (nie Dokumenty). */
+export function workspaceV2PrefersKosztorysTab(action: IntelligenceNextAction): boolean {
+  return action.tab === "documents"
+    && action.title.toLowerCase().includes("kosztorys");
+}
+
+/** Etykieta przycisku = rzeczywisty cel nawigacji V4 (UX-only, bez zmian reguł P0–P12). */
+export function buildWorkspaceV2NextActionButtonLabel(action: IntelligenceNextAction): string {
+  if (action.informationalOnly || action.ownerDecision || action.expandDetails) {
+    return action.buttonLabel;
+  }
+  if (!action.tab) return action.buttonLabel;
+
+  const v4 = legacyWorkspaceTabToV4Navigate(
+    action.tab,
+    workspaceV2PrefersKosztorysTab(action),
+  );
+  switch (v4) {
+    case "kosztorys":
+      return "Przejdź do kosztorysu";
+    case "dokumenty":
+      return "Przejdź do dokumentów";
+    case "ceny":
+      return "Przejdź do wyceny";
+    case "decyzja":
+      if (action.tab === "qualification") return "Przejdź do kwalifikacji";
+      if (action.tab === "offer") return "Przejdź do oferty";
+      return action.buttonLabel;
+    default:
+      return action.buttonLabel;
+  }
+}
+
 export function legacyWorkspaceTabToV4Navigate(
   tab: TenderWorkspaceTabId | null,
   preferKosztorys = false,

@@ -13,6 +13,9 @@ const {
   buildWorkspaceV2Checklist,
   resolveWorkspaceV2KeyDocuments,
   buildWorkspaceV2NextActionLabel,
+  buildWorkspaceV2NextActionButtonLabel,
+  legacyWorkspaceTabToV4Navigate,
+  workspaceV2PrefersKosztorysTab,
   loadWorkspaceV2ChecklistPersist,
   saveWorkspaceV2ChecklistPersist,
   workspaceV2AutoStatusGlyph,
@@ -100,5 +103,32 @@ const nextLabel = buildWorkspaceV2NextActionLabel({
   informationalOnly: false,
 });
 assert.equal(nextLabel, "Policz kosztorys");
+
+const p5Action = {
+  ruleId: "P5",
+  title: "Znajdź kosztorys",
+  description: "Brak pliku z pozycjami do wyceny.",
+  buttonLabel: "Przejdź do dokumentów",
+  tab: "documents",
+  ownerDecision: null,
+  expandDetails: false,
+  informationalOnly: false,
+};
+assert.equal(workspaceV2PrefersKosztorysTab(p5Action), true);
+assert.equal(legacyWorkspaceTabToV4Navigate("documents", true), "kosztorys");
+assert.equal(buildWorkspaceV2NextActionButtonLabel(p5Action), "Przejdź do kosztorysu");
+
+const p9DocsAction = {
+  ruleId: "P9",
+  title: "Deleguj analizę",
+  description: "System nie jest gotowy na ostateczną decyzję właściciela.",
+  buttonLabel: "Przejdź do dokumentów",
+  tab: "documents",
+  ownerDecision: null,
+  expandDetails: false,
+  informationalOnly: false,
+};
+assert.equal(workspaceV2PrefersKosztorysTab(p9DocsAction), false);
+assert.equal(buildWorkspaceV2NextActionButtonLabel(p9DocsAction), "Przejdź do dokumentów");
 
 console.log("test-tender-workspace-v2-ux.mjs — PASS (workspace/progress/checklist/timeline/insights)");

@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.60** · **Tender Workspace Automation**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.61** · **Workspace V2 next-action label**
+
+## 2.62.61 — Workspace V2 Następny krok (etykieta przycisku)
+
+- **fix:** P5 „Znajdź kosztorys” → przycisk „Przejdź do kosztorysu” (nawigacja na zakładkę Kosztorys)
+- **test:** `test-tender-workspace-v2-ux.mjs` (P5/P9 button label parity)
 
 ## 2.62.60 — Tender Workspace Automation
 
