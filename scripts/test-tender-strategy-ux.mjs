@@ -15,6 +15,8 @@ import {
   buildStrategyMonitoringFeed,
   prioritizeStrategyList,
   buildBestOpportunityLite,
+  buildStrategyWhyBullets,
+  buildStrategyRiskBullets,
 } from "../src/lib/tender-strategy-ux.ts";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -55,8 +57,8 @@ function mockBundle(item, score = 70, decision = "GO") {
     item,
     decision,
     decisionLabel: decision,
-    opportunity: { score, label: "ok" },
-    strategic: { score: 65, label: "ok" },
+    opportunity: { score, label: "ok", reasons: ["+ test opportunity"] },
+    strategic: { score: 65, label: "ok", reasons: ["+ test strategic"] },
     risk: { score: 20, label: "low" },
   };
 }
@@ -199,26 +201,34 @@ assert(
 const monitorTop = prioritizeStrategyList(feed, STRATEGY_MONITORING_TOP_LIMIT);
 assert(monitorTop.top.length <= STRATEGY_MONITORING_TOP_LIMIT, "T4: TOP limit");
 
-console.log("\nT6–T8 — UI structure");
+console.log("\nT6–T8 — UI structure (UX.2T guidance-first layout)");
 const strategySrc = readSrc("src/app/tenders/components/TendersStrategyContent.tsx");
 const bestSrc = readSrc("src/app/tenders/strategy/components/BestOpportunityCard.tsx");
 const collapsibleSrc = readSrc("src/app/tenders/strategy/components/StrategyCollapsibleSection.tsx");
 
-assert(strategySrc.includes("StrategyKpiStrip"), "T1 UI: KPI strip");
-assert(strategySrc.includes("StrategyDecisionsTodayPanel"), "T2 UI: decisions panel");
-assert(strategySrc.includes("StrategyUrgentDeadlinesPanel"), "T3 UI: urgent panel");
-assert(strategySrc.includes("StrategyMonitoringFeedPanel"), "T4 UI: monitoring feed");
-assert(!strategySrc.includes("ActionCenter"), "removed ActionCenter from axis");
+assert(strategySrc.includes("strategy-guidance-primary"), "T6: primary guidance section");
+assert(strategySrc.includes("strategy-guidance-why"), "T6: why section");
+assert(strategySrc.includes("strategy-guidance-actions"), "T6: actions section");
+assert(strategySrc.includes("strategy-guidance-risks"), "T6: risks section");
+assert(strategySrc.includes("strategy-guidance-details"), "T6: details section");
+assert(strategySrc.indexOf("strategy-guidance-primary") < strategySrc.indexOf("strategy-guidance-why"), "T6: primary before why");
+assert(strategySrc.indexOf("strategy-guidance-why") < strategySrc.indexOf("strategy-guidance-actions"), "T6: why before actions");
+assert(strategySrc.indexOf("strategy-guidance-actions") < strategySrc.indexOf("strategy-guidance-risks"), "T6: actions before risks");
+assert(strategySrc.indexOf("strategy-guidance-risks") < strategySrc.indexOf("strategy-guidance-details"), "T6: risks before details");
+assert(strategySrc.includes("ActionCenter"), "T6: ActionCenter restored in guidance zone");
+assert(strategySrc.includes("StrategyKpiStrip"), "T1 UI: KPI strip retained in details");
+assert(strategySrc.includes("StrategyDecisionsTodayPanel"), "T2 UI: decisions panel in details");
+assert(strategySrc.includes("StrategyUrgentDeadlinesPanel"), "T3 UI: urgent panel in details");
+assert(strategySrc.includes("StrategyMonitoringFeedPanel"), "T4 UI: monitoring in details");
 assert(!strategySrc.includes("TendersAttentionPanel"), "removed Attention from axis");
 assert(!strategySrc.includes("TenderChangeMonitorPanel"), "removed ChangeMonitor from axis");
 assert(!strategySrc.includes("TenderQaMonitorPanel"), "removed QaMonitor from axis");
 assert(!strategySrc.includes("OpportunityOverview"), "removed OpportunityOverview from axis");
-assert(strategySrc.indexOf("StrategyDecisionsTodayPanel") < strategySrc.indexOf("strategy-analytics-zone"), "decision zone before analytics");
-assert(bestSrc.includes("liteDefault"), "T6: best opportunity lite mode");
+assert(strategySrc.includes("liteDefault={false}"), "T7: best opportunity full on strategy tab");
+assert(bestSrc.includes("liteDefault"), "T7: lite mode prop still supported");
 assert(bestSrc.includes("Pokaż analizę"), "T7: expand full analysis");
-assert(bestSrc.includes('useState(!liteDefault)'), "T6: lite default collapsed");
 assert(collapsibleSrc.includes("defaultExpanded"), "T8: collapsible sections");
-assert(strategySrc.includes('defaultExpanded={false}'), "T8: analytics collapsed default");
+assert(strategySrc.includes('defaultExpanded={false}'), "T8: details collapsed default");
 assert(bestSrc.includes("showFullAnalysis"), "T7: lazy full analysis toggle");
 
 console.log("\nT9–T10 — Regresja snapshot + dashboard shortcut");
@@ -268,5 +278,18 @@ const withOwner = buildStrategyKpiCounts({
 });
 assert(withOwner.pendingDecisions === 0, "P0 T2: owner decision present — excluded from pending");
 
-console.log(`\n=== UX.2S + P0 2.54.1: ${pass} PASS, ${fail} FAIL ===\n`);
+console.log("\nT11 — UX.2T why + risks helpers");
+const why = buildStrategyWhyBullets(mockBundle(mockPipelineItem(), 72), null);
+assert(why.length >= 0, "T11: why bullets array");
+const risks = buildStrategyRiskBullets({
+  health: { index: 45, label: "at_risk", recommendation: "Wstrzymaj starty", overloadIndex: 1.1, freeSlots: 0, suggestedGrowthMode: "stabilize" },
+  financialCapacity: null,
+  ownerAlerts: [{ id: "a1", tone: "warning", message: "Test alert", source: "test" }],
+  marketKpi: { ...marketKpi, wadiumBlockedCount: 2 },
+  bestOpportunity: mockBundle(mockPipelineItem(), 40, "NO-GO"),
+});
+assert(risks.length >= 2, "T11: aggregates risk signals");
+assert(risks[0].tone === "danger" || risks[0].tone === "warning", "T11: risk tone");
+
+console.log(`\n=== UX.2S + UX.2T + P0 2.54.1: ${pass} PASS, ${fail} FAIL ===\n`);
 if (fail > 0) process.exit(1);

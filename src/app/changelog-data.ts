@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-25",
+    version: "2.62.62",
+    label: "Strategia — układ decyzyjny (UX.2T)",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → Strategia: najpierw rekomendacja i najlepsza okazja, potem Dlaczego · Co zrobić (Centrum działań) · Ryzyka — monitoring i analityka w sekcji Pozostałe informacje",
+      },
+    ],
+  },
+  {
+    date: "2026-06-25",
     version: "2.62.61",
     label: "Workspace V2 — etykieta Następny krok",
     items: [

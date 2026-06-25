@@ -9,7 +9,9 @@ import {
   type TenderPipelineItem,
 } from "@/lib/tenders-bzp";
 import type { TenderScoringBundle, TenderDecision } from "@/lib/tenders-strategy-decision";
-import { DECISION_LABEL_PL } from "@/lib/tenders-strategy-decision";
+import { DECISION_LABEL_PL, topDecisionReasons } from "@/lib/tenders-strategy-decision";
+import type { ActionCenterResult } from "@/lib/tenders-strategy-action-center";
+import type { OwnerStrategicAlert } from "@/lib/tenders-strategy-alerts";
 import type { OwnerTenderDecisionRecord } from "@/lib/tenders-strategy-owner-decisions";
 import type { OwnerDecisionsStore } from "@/lib/tenders-strategy-owner-decisions";
 import type { TendersStrategyMarketKpi } from "@/lib/tenders-strategy-kpi";
@@ -384,6 +386,117 @@ export function buildStrategyPortfolioSummary(
     hold: counts.HOLD,
     noGo: counts["NO-GO"],
   };
+}
+
+export interface StrategyRiskBullet {
+  id: string;
+  tone: "danger" | "warning" | "info";
+  text: string;
+}
+
+function normalizeReasonLine(raw: string): string {
+  return raw.replace(/^[\s+−\-]+/, "").trim();
+}
+
+function safeTopDecisionReasons(bundle: TenderScoringBundle | null): string[] {
+  if (!bundle?.opportunity?.reasons || !bundle?.strategic?.reasons) return [];
+  return topDecisionReasons(bundle);
+}
+
+/** UX.2T — krótkie „dlaczego” pod rekomendacją (tylko prezentacja). */
+export function buildStrategyWhyBullets(
+  bundle: TenderScoringBundle | null,
+  primaryAction: ActionCenterResult["primaryAction"],
+  max = 4,
+): string[] {
+  const out: string[] = [];
+  if (bundle) {
+    for (const r of safeTopDecisionReasons(bundle)) {
+      const t = normalizeReasonLine(r);
+      if (t && !out.includes(t)) out.push(t);
+      if (out.length >= max) return out;
+    }
+  }
+  if (primaryAction?.reason && out.length < max) {
+    const t = primaryAction.reason.trim();
+    if (t && !out.includes(t)) out.push(t);
+  }
+  return out.slice(0, max);
+}
+
+/** UX.2T — największe ryzyka z istniejących sygnałów (bez nowego scoringu). */
+export function buildStrategyRiskBullets(input: {
+  health: CompanyHealthResult;
+  financialCapacity: FinancialCapacityResult | null;
+  ownerAlerts: OwnerStrategicAlert[];
+  marketKpi: TendersStrategyMarketKpi;
+  bestOpportunity: TenderScoringBundle | null;
+  max?: number;
+}): StrategyRiskBullet[] {
+  const max = input.max ?? 5;
+  const out: StrategyRiskBullet[] = [];
+  const seen = new Set<string>();
+
+  const push = (id: string, tone: StrategyRiskBullet["tone"], text: string) => {
+    const t = text.trim();
+    if (!t || seen.has(t) || out.length >= max) return;
+    seen.add(t);
+    out.push({ id, tone, text: t });
+  };
+
+  for (const alert of input.ownerAlerts) {
+    if (alert.tone === "danger") push(alert.id, "danger", alert.message);
+    else if (alert.tone === "warning") push(alert.id, "warning", alert.message);
+  }
+
+  if (input.health.label === "at_risk") {
+    push("health-at-risk", "danger", input.health.recommendation);
+  } else if (input.health.label === "strained") {
+    push("health-strained", "warning", input.health.recommendation);
+  } else if (input.health.index < 50) {
+    push("health-low-index", "warning", input.health.recommendation);
+  }
+
+  if (input.health.overloadIndex >= 1) {
+    push(
+      "health-overload",
+      "warning",
+      "Lejek ofert jest przeciążony — rozważ odłożenie nowych startów.",
+    );
+  }
+
+  const fc = input.financialCapacity;
+  if (fc && fc.recommendation !== "MOŻESZ STARTOWAĆ") {
+    push(`fin-rec-${fc.recommendation}`, "danger", fc.recommendation);
+    for (const line of fc.recommendationDetail.slice(0, 2)) {
+      push(`fin-detail-${line}`, "warning", line);
+    }
+  }
+
+  if (input.marketKpi.wadiumBlockedCount > 0) {
+    push(
+      "market-wadium-blocked",
+      "warning",
+      `${input.marketKpi.wadiumBlockedCount} przetargów przekracza limit wadium w profilu firmy.`,
+    );
+  }
+
+  if (input.bestOpportunity) {
+    for (const r of safeTopDecisionReasons(input.bestOpportunity)) {
+      const trimmed = r.trim();
+      if (trimmed.startsWith("−") || trimmed.startsWith("-")) {
+        push(`opp-neg-${trimmed}`, "info", normalizeReasonLine(trimmed));
+      }
+      if (out.length >= max) break;
+    }
+  }
+
+  const rank: Record<StrategyRiskBullet["tone"], number> = {
+    danger: 0,
+    warning: 1,
+    info: 2,
+  };
+  return [...out].sort((a, b) => rank[a.tone] - rank[b.tone]).slice(0, max);
 }
 
 export function strategyMonitoringKindEmoji(kind: StrategyMonitoringEventKind): string {

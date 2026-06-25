@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.61** · **Workspace V2 next-action label**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.62** · **Strategia UX.2T guidance layout**
+
+## 2.62.62 — Strategia UX.2T (układ decyzyjny)
+
+- **improve:** rekomendacja → dlaczego → działania → ryzyka → pozostałe (zwinięte)
+- **test:** `test-tender-strategy-ux.mjs`
 
 ## 2.62.61 — Workspace V2 Następny krok (etykieta przycisku)
 

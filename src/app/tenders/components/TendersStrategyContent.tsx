@@ -5,6 +5,7 @@ import type { GrowthModeState } from "@/lib/tenders-strategy-growth-mode";
 import type { TenderScoringBundle } from "@/lib/tenders-strategy-decision";
 import { useTendersContext, useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 import { useTenderJobFromPipeline } from "@/app/tenders/strategy/hooks/useTenderJobFromPipeline";
+import { ActionCenter } from "@/app/tenders/strategy/components/ActionCenter";
 import { BestOpportunityCard } from "@/app/tenders/strategy/components/BestOpportunityCard";
 import { TendersStrategyForecastStrip } from "@/app/tenders/strategy/components/TendersStrategyForecastStrip";
 import { WhatIfPanel } from "@/app/tenders/strategy/components/WhatIfPanel";
@@ -16,6 +17,10 @@ import { StrategyDecisionsTodayPanel } from "@/app/tenders/strategy/components/S
 import { StrategyUrgentDeadlinesPanel } from "@/app/tenders/strategy/components/StrategyUrgentDeadlinesPanel";
 import { StrategyMonitoringFeedPanel } from "@/app/tenders/strategy/components/StrategyMonitoringFeedPanel";
 import { StrategyCollapsibleSection } from "@/app/tenders/strategy/components/StrategyCollapsibleSection";
+import { StrategyGuidanceSection } from "@/app/tenders/strategy/components/StrategyGuidanceSection";
+import { StrategyGuidanceWhy } from "@/app/tenders/strategy/components/StrategyGuidanceWhy";
+import { StrategyGuidanceRisks } from "@/app/tenders/strategy/components/StrategyGuidanceRisks";
+import { formatActionCenterItemTitle } from "@/lib/tenders-strategy-action-center-display";
 import {
   buildStrategyKpiCounts,
   buildStrategyMonitoringFeed,
@@ -24,6 +29,8 @@ import {
   buildStrategyForecastSummary,
   buildStrategyWhatIfSummary,
   buildStrategyPortfolioSummary,
+  buildStrategyWhyBullets,
+  buildStrategyRiskBullets,
 } from "@/lib/tender-strategy-ux";
 import { SECTION_LABEL_PL } from "@/lib/tenders-strategy-ui-labels-pl";
 import type { Job } from "@/app/app-domain";
@@ -77,7 +84,6 @@ export function TendersStrategyContent({
     pipeline,
     growthModeState,
     setGrowthMode: applyGrowthMode,
-    profile,
     health,
     forecast90,
     forecastInput,
@@ -87,6 +93,8 @@ export function TendersStrategyContent({
     portfolioCounts,
     goCandidates,
     scoredForForecast,
+    actionCenter,
+    ownerAlerts,
   } = snapshot;
 
   const monitoringFeed = useMemo(
@@ -105,6 +113,22 @@ export function TendersStrategyContent({
     [scoredForForecast, ownerDecisions.store, marketKpi, pipeline.items, monitoringFeed],
   );
 
+  const whyBullets = useMemo(
+    () => buildStrategyWhyBullets(bestOpportunity, actionCenter.primaryAction),
+    [bestOpportunity, actionCenter.primaryAction],
+  );
+
+  const riskBullets = useMemo(
+    () => buildStrategyRiskBullets({
+      health,
+      financialCapacity,
+      ownerAlerts,
+      marketKpi,
+      bestOpportunity,
+    }),
+    [health, financialCapacity, ownerAlerts, marketKpi, bestOpportunity],
+  );
+
   const healthSummary = buildStrategyHealthSummary(health, growthModeState.mode);
   const financialSummary = buildStrategyFinancialSummary(financialCapacity);
   const forecastSummary = buildStrategyForecastSummary(forecast90);
@@ -121,6 +145,8 @@ export function TendersStrategyContent({
   ) => {
     ownerDecisions.setOwnerDecision(bundle, decision);
   };
+
+  const primaryAction = actionCenter.primaryAction;
 
   return (
     <div
@@ -143,7 +169,7 @@ export function TendersStrategyContent({
         </div>
       )}
 
-      <div className="px-4 sm:px-6 py-3 space-y-4">
+      <div className="px-4 sm:px-6 py-3 space-y-5">
         {pipeline.error && (
           <div className="flex items-start gap-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
             <AlertCircle size={14} className="shrink-0 mt-0.5" />
@@ -155,38 +181,137 @@ export function TendersStrategyContent({
           <p className="text-[10px] text-muted-foreground">Sprawdzam wyniki zakończonych postępowań…</p>
         )}
 
-        <StrategyKpiStrip counts={kpiCounts} />
+        <div className="space-y-5" data-testid="strategy-guidance-zone">
+          <StrategyGuidanceSection
+            title="Najważniejsza rekomendacja"
+            subtitle="Czy warto startować — werdykt systemu i najlepsza okazja"
+            testId="strategy-guidance-primary"
+          >
+            {primaryAction ? (
+              <div
+                className="rounded-xl border-2 border-primary/35 bg-primary/10 px-4 py-3.5 space-y-1.5"
+                data-testid="strategy-guidance-primary-action"
+              >
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-primary">
+                  Dzisiaj system rekomenduje
+                </p>
+                <p className="text-base font-semibold leading-snug">
+                  {formatActionCenterItemTitle(primaryAction, forecast90)}
+                </p>
+                <p className="text-sm text-foreground/90 leading-snug">
+                  {primaryAction.recommendedAction}
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground rounded-lg border border-border/70 bg-secondary/20 px-3 py-3">
+                {actionCenter.headline}
+              </p>
+            )}
 
-        <div className="space-y-4" data-testid="strategy-decision-zone">
-          <StrategyDecisionsTodayPanel
-            scoredBundles={scoredForForecast}
-            ownerStore={ownerDecisions.store}
-            onOpenTender={handleOpenTender}
-          />
+            <BestOpportunityCard
+              bundle={bestOpportunity}
+              ownerRecord={bestOpportunity ? ownerDecisions.getOwnerDecision(bestOpportunity.item.id) : null}
+              onSetDecision={handleSetDecision}
+              onOpenTender={handleOpenTender}
+              onCreateJobFromTender={handleCreateJobFromTenderItem}
+              onOpenJob={openLinkedJob}
+              liteDefault={false}
+            />
+          </StrategyGuidanceSection>
 
-          <StrategyUrgentDeadlinesPanel
-            items={pipeline.items}
-            onOpenTender={handleOpenTender}
-          />
+          <StrategyGuidanceSection
+            title="Dlaczego"
+            subtitle="Najważniejsze powody rekomendacji"
+            testId="strategy-guidance-why"
+          >
+            <StrategyGuidanceWhy bullets={whyBullets} />
+          </StrategyGuidanceSection>
 
-          <StrategyMonitoringFeedPanel
-            items={pipeline.items}
-            onOpenTender={handleOpenTender}
-          />
+          <StrategyGuidanceSection
+            title="Co zrobić teraz"
+            subtitle="Lista działań z Centrum działań — w kolejności priorytetu"
+            testId="strategy-guidance-actions"
+          >
+            <ActionCenter
+              center={actionCenter}
+              variant="full"
+              forecast={forecast90}
+              onOpenTender={handleOpenTender}
+              pipelineItems={pipeline.items}
+              onCreateJobFromTender={handleCreateJobFromTenderItem}
+              onOpenJob={openLinkedJob}
+            />
+          </StrategyGuidanceSection>
 
-          <BestOpportunityCard
-            bundle={bestOpportunity}
-            ownerRecord={bestOpportunity ? ownerDecisions.getOwnerDecision(bestOpportunity.item.id) : null}
-            onSetDecision={handleSetDecision}
-            onOpenTender={handleOpenTender}
-            onCreateJobFromTender={handleCreateJobFromTenderItem}
-            onOpenJob={openLinkedJob}
-            liteDefault
-          />
+          <StrategyGuidanceSection
+            title="Największe ryzyka"
+            subtitle="Finanse, kondycja firmy i sygnały strategiczne"
+            testId="strategy-guidance-risks"
+          >
+            <StrategyGuidanceRisks risks={riskBullets} />
+          </StrategyGuidanceSection>
         </div>
 
-        <div className="space-y-3 pt-1 border-t border-border/60" data-testid="strategy-analytics-zone">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground px-0.5">
+        <div className="space-y-3 pt-2 border-t border-border/60" data-testid="strategy-guidance-details">
+          <div>
+            <h2 className="text-sm font-semibold text-foreground">Pozostałe informacje</h2>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Może poczekać — monitoring, kolejki, prognozy i analityka
+            </p>
+          </div>
+
+          <StrategyCollapsibleSection
+            title="Liczniki i kolejki"
+            icon={<Activity size={14} className="text-primary shrink-0" />}
+            summary={(
+              <>
+                <p>
+                  <span className="text-foreground font-medium">Decyzje:</span> {kpiCounts.pendingDecisions}
+                  {" · "}
+                  <span className="text-foreground font-medium">Termin ≤7d:</span> {kpiCounts.urgentDeadlines}
+                </p>
+                <p>
+                  <span className="text-foreground font-medium">Monitoring:</span> {kpiCounts.monitoring}
+                  {" · "}
+                  <span className="text-foreground font-medium">Wygrane bez roboty:</span> {kpiCounts.wonWithoutJob}
+                </p>
+              </>
+            )}
+            defaultExpanded={false}
+            testId="strategy-details-queues"
+          >
+            <div className="space-y-4">
+              <StrategyKpiStrip counts={kpiCounts} />
+              <StrategyDecisionsTodayPanel
+                scoredBundles={scoredForForecast}
+                ownerStore={ownerDecisions.store}
+                onOpenTender={handleOpenTender}
+              />
+              <StrategyUrgentDeadlinesPanel
+                items={pipeline.items}
+                onOpenTender={handleOpenTender}
+              />
+            </div>
+          </StrategyCollapsibleSection>
+
+          <StrategyCollapsibleSection
+            title="Monitoring"
+            icon={<Activity size={14} className="text-primary shrink-0" />}
+            summary={(
+              <p>
+                <span className="text-foreground font-medium">Sygnały (7 dni):</span> {kpiCounts.monitoring}
+              </p>
+            )}
+            defaultExpanded={false}
+            testId="strategy-details-monitoring"
+          >
+            <StrategyMonitoringFeedPanel
+              items={pipeline.items}
+              onOpenTender={handleOpenTender}
+            />
+          </StrategyCollapsibleSection>
+
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground px-0.5 pt-1">
             Analityka
           </p>
 
@@ -255,15 +380,13 @@ export function TendersStrategyContent({
             title="Portfel"
             icon={<Briefcase size={14} className="text-primary shrink-0" />}
             summary={(
-              <>
-                <p>
-                  <span className="text-foreground font-medium">GO</span> {portfolioSummary.go}
-                  {" · "}
-                  <span className="text-foreground font-medium">HOLD</span> {portfolioSummary.hold}
-                  {" · "}
-                  <span className="text-foreground font-medium">NO-GO</span> {portfolioSummary.noGo}
-                </p>
-              </>
+              <p>
+                <span className="text-foreground font-medium">GO</span> {portfolioSummary.go}
+                {" · "}
+                <span className="text-foreground font-medium">HOLD</span> {portfolioSummary.hold}
+                {" · "}
+                <span className="text-foreground font-medium">NO-GO</span> {portfolioSummary.noGo}
+              </p>
             )}
             defaultExpanded={false}
             testId="strategy-analytics-portfolio"
