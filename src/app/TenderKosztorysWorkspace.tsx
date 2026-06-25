@@ -196,7 +196,7 @@ export function TenderKosztorysWorkspace({
       <KosztorysProcessStatusBar
         phase={phase}
         onRetry={onRetryParse}
-        retryBusy={processSession?.dossierBuilding}
+        retryBusy={processSession?.dossierBuilding || processSession?.dossierSaving}
       />
 
       {pro.hasCatalog && (

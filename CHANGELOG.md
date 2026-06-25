@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.63** · **Kosztorys UX state machine P0 (lokalnie 2.62.64)**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.65** · **Kosztorys UX state machine P0+P1 CLOSED**
+
+## 2.62.65 — Kosztorys V4 fazy procesu (P1 technical + saving)
+
+- **improve:** 13 faz technicznych E0–E12 · `deriveKosztorysTechnicalPhase` · faza `saving` (`dossierSaving`) · `resolveKosztorysAwaitingParseDisplay` w Owner View / Wycena / SSOT
+- **test:** `test-tender-kosztorys-process-phase.mjs` (18) · regresja `test-p3-ux-analysis-status.mjs`
 
 ## 2.62.64 — Kosztorys V4 fazy procesu (P0 UX)
 

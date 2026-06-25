@@ -56,28 +56,48 @@ export function useTenderDossierHeavyLazy(opts: {
   athPreviewEnabled?: boolean;
 }): {
   dossierBuilding: boolean;
+  dossierSaving: boolean;
   dossierParseFailed: boolean;
   parseErrorMessage: string | null;
   retryDossierParse: () => void;
 } {
   const { item, enabled, onUpdate, athPreviewEnabled = true } = opts;
   const [dossierBuilding, setDossierBuilding] = useState(false);
+  const [dossierSaving, setDossierSaving] = useState(false);
   const [dossierParseFailed, setDossierParseFailed] = useState(false);
   const [parseErrorMessage, setParseErrorMessage] = useState<string | null>(null);
   const [retryNonce, setRetryNonce] = useState(0);
   const onUpdateRef = useRef(onUpdate);
+  const pendingSaveRef = useRef(false);
   onUpdateRef.current = onUpdate;
 
   const retryDossierParse = useCallback(() => {
     dossierInflightIds.delete(item.id);
+    pendingSaveRef.current = false;
+    setDossierSaving(false);
     setDossierParseFailed(false);
     setParseErrorMessage(null);
     setRetryNonce((n) => n + 1);
   }, [item.id]);
 
   useEffect(() => {
+    if (!pendingSaveRef.current) return;
+    if (tenderDossierHeavyParseDone(item.tenderDossier)) {
+      pendingSaveRef.current = false;
+      setDossierSaving(false);
+    }
+  }, [
+    item.tenderDossier?.builtAt,
+    item.tenderDossier?.parserVersion,
+    item.tenderDossier?.kosztorys?.ok,
+    item.tenderDossier?.scanSummary?.parsedAt,
+  ]);
+
+  useEffect(() => {
     if (!enabled) return;
     if (tenderDossierHeavyParseDone(item.tenderDossier)) {
+      pendingSaveRef.current = false;
+      setDossierSaving(false);
       setDossierParseFailed(false);
       setParseErrorMessage(null);
       return;
@@ -108,6 +128,8 @@ export function useTenderDossierHeavyLazy(opts: {
         if (built.ourEstimatePln != null && item.ourEstimatePln == null) {
           patch.ourEstimatePln = built.ourEstimatePln;
         }
+        pendingSaveRef.current = true;
+        setDossierSaving(true);
         onUpdateRef.current(patch);
       } catch (e) {
         if (cancelled) return;
@@ -142,7 +164,7 @@ export function useTenderDossierHeavyLazy(opts: {
     retryNonce,
   ]);
 
-  return { dossierBuilding, dossierParseFailed, parseErrorMessage, retryDossierParse };
+  return { dossierBuilding, dossierSaving, dossierParseFailed, parseErrorMessage, retryDossierParse };
 }
 
 /** Test-only reset — nie używać w prod UI. */

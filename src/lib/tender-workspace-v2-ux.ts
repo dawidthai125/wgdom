@@ -13,6 +13,7 @@ import {
   countTenderAttachments,
   isKosztorysAwaitingHeavyParse,
 } from "@/lib/tender-analysis-status-ux";
+import { resolveKosztorysAwaitingParseDisplay } from "@/lib/tender-kosztorys-process-phase";
 import { resolvedCostStatus } from "@/lib/tender-data-ssot";
 import {
   classifyTenderDocumentDisplayTier,
@@ -192,11 +193,12 @@ function resolveAthAutoStatus(item: TenderPipelineItem): WorkspaceV2AutoChecklis
     return { id: "ath", label: AUTO_CHECKLIST_LABELS.ath, status: "ready" };
   }
   if (isKosztorysAwaitingHeavyParse(item)) {
+    const awaitingUx = resolveKosztorysAwaitingParseDisplay(item);
     return {
       id: "ath",
       label: AUTO_CHECKLIST_LABELS.ath,
       status: "action",
-      hint: "Trwa przetwarzanie ATH",
+      hint: awaitingUx?.label ?? "Trwa przetwarzanie ATH",
     };
   }
   if (athDoc) {

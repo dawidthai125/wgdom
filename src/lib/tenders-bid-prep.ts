@@ -12,10 +12,12 @@ import { buildKosztorysMissingMessage } from "@/lib/tender-dossier-pipeline";
 import {
   isKosztorysAwaitingHeavyParse,
   isPricingAwaitingLazyEvaluation,
-  KOSZTORYS_AWAITING_PARSE_HINT,
-  KOSZTORYS_AWAITING_PARSE_LABEL,
   countTenderAttachments,
 } from "@/lib/tender-analysis-status-ux";
+import {
+  resolveKosztorysAwaitingParseDisplay,
+  type KosztorysProcessSession,
+} from "@/lib/tender-kosztorys-process-phase";
 import { TENDER_OWNER_HINT_COPY, TENDER_OWNER_TILE_LABELS } from "@/lib/tender-owner-language-pl";
 import {
   buildKosztorysChecklistDisplay,
@@ -52,7 +54,7 @@ export function computeBidPrepChecks(
   swz: TenderSwzAnalysis | null | undefined,
   fit: TenderFitAssessment | null | undefined,
   bidProposal: TenderBidProposal | null | undefined,
-  opts?: { pricingDeferred?: boolean },
+  opts?: { pricingDeferred?: boolean; kosztorysSession?: KosztorysProcessSession },
 ): BidPrepCheckItem[] {
   const days = daysUntilTenderDeadline(item.submittingOffersDate);
   const offerOpen = isTenderOpenForOffers(item.submittingOffersDate);
@@ -78,6 +80,7 @@ export function computeBidPrepChecks(
   const platformDoc = resolveTenderPlatformDocumentStatus(item);
   const scanSummary = item.tenderDossier?.scanSummary;
   const kosztorysAwaiting = isKosztorysAwaitingHeavyParse(item);
+  const awaitingUx = resolveKosztorysAwaitingParseDisplay(item, opts?.kosztorysSession ?? {});
   const pricingDeferred = opts?.pricingDeferred ?? false;
   const estimateDisplay = buildOurEstimateTileDisplay({
     item,
@@ -86,24 +89,27 @@ export function computeBidPrepChecks(
     pricingDeferred,
   });
   const kosztorysMissingDisplay = costStatus === "NOT_FOUND"
-    ? (kosztorysAwaiting
-      ? KOSZTORYS_AWAITING_PARSE_LABEL
-      : docCount > 0
-        ? "Nie znaleziono kosztorysu."
-        : platformDoc.emptyMessage
-          ?? platformDoc.detailLines?.[0]
-          ?? "Brak plików")
+    ? (awaitingUx
+      ? awaitingUx.label
+      : kosztorysAwaiting
+        ? "Kosztorys oczekuje na przetworzenie"
+        : docCount > 0
+          ? "Nie znaleziono kosztorysu."
+          : platformDoc.emptyMessage
+            ?? platformDoc.detailLines?.[0]
+            ?? "Brak plików")
     : buildKosztorysChecklistDisplay(item);
   const kosztorysMissingHint = costStatus === "NOT_FOUND"
-    ? (kosztorysAwaiting
-      ? KOSZTORYS_AWAITING_PARSE_HINT
-      : !kosztorysOk && scanSummary
-        ? `${buildKosztorysMissingMessage(scanSummary)}`
-        : !kosztorysOk && docCount === 0 && platformDoc.detailLines?.[1]
-          ? platformDoc.detailLines[1]
-          : !kosztorysOk
-            ? "Pobierz załączniki BZP, szukaj u zamawiającego lub wgraj ATH/PDF"
-            : undefined)
+    ? (awaitingUx?.hint
+      ?? (kosztorysAwaiting
+        ? "Otwórz Dokumenty lub Wycena aby rozpocząć analizę."
+        : !kosztorysOk && scanSummary
+          ? `${buildKosztorysMissingMessage(scanSummary)}`
+          : !kosztorysOk && docCount === 0 && platformDoc.detailLines?.[1]
+            ? platformDoc.detailLines[1]
+            : !kosztorysOk
+              ? "Pobierz załączniki BZP, szukaj u zamawiającego lub wgraj ATH/PDF"
+              : undefined))
     : buildKosztorysChecklistHint(item);
 
   const checks: BidPrepCheckItem[] = [

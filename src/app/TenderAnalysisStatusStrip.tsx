@@ -33,14 +33,18 @@ export function TenderAnalysisStatusStrip({
   swz,
   bidProposal,
   dossierBuilding,
+  dossierSaving,
   autoRunning,
+  kosztorysSession,
   ownerMoreContext = false,
 }: {
   item: TenderPipelineItem;
   swz?: TenderSwzAnalysis | null;
   bidProposal?: TenderBidProposal | null;
   dossierBuilding?: boolean;
+  dossierSaving?: boolean;
   autoRunning?: boolean;
+  kosztorysSession?: import("@/lib/tender-kosztorys-process-phase").KosztorysProcessSession;
   /** P5-004 — w Więcej pomiń kroki duplikujące Owner View. */
   ownerMoreContext?: boolean;
 }) {
@@ -49,7 +53,9 @@ export function TenderAnalysisStatusStrip({
     swz,
     bidProposal,
     dossierBuilding,
+    dossierSaving,
     autoRunning,
+    kosztorysSession,
   });
   const visibleRows = ownerMoreContext
     ? rows.filter((r) => r.id === "notice" || r.id === "documents")

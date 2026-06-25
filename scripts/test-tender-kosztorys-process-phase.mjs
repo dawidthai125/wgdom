@@ -1,9 +1,14 @@
 /**
- * P0 UX — deriveKosztorysProcessPhase (prezentacja only).
+ * P0/P1 UX — deriveKosztorysProcessPhase (prezentacja only).
  * npx vite-node scripts/test-tender-kosztorys-process-phase.mjs
  */
 
-import { deriveKosztorysProcessPhase } from "../src/lib/tender-kosztorys-process-phase.ts";
+import {
+  deriveKosztorysProcessPhase,
+  deriveKosztorysTechnicalPhase,
+  mapKosztorysTechnicalToBusiness,
+  resolveKosztorysAwaitingParseDisplay,
+} from "../src/lib/tender-kosztorys-process-phase.ts";
 
 const TENDER_ID = "bzp-uuid-test";
 
@@ -50,7 +55,7 @@ function phaseId(item, session = {}) {
   return deriveKosztorysProcessPhase(item, session).id;
 }
 
-console.log("=== KOSZTORYS PROCESS PHASE P0 ===\n");
+console.log("=== KOSZTORYS PROCESS PHASE P0/P1 ===\n");
 
 // waiting — brak dokumentów
 ok("waiting_data bez docs", phaseId(baseItem()) === "waiting_data");
@@ -140,6 +145,54 @@ ok(
 ok(
   "waiting_data bez tenderId",
   phaseId(baseItem({ tenderId: "" })) === "waiting_data",
+);
+
+// P1 — saving
+ok(
+  "saving dossierSaving",
+  phaseId(baseItem({ bzpDocuments: [mockDoc] }), { dossierSaving: true }) === "saving",
+);
+
+ok(
+  "saving label",
+  deriveKosztorysProcessPhase(baseItem({ bzpDocuments: [mockDoc] }), { dossierSaving: true }).label
+    === "Zapisywanie wyników",
+);
+
+// P1 — technical E2 notice bootstrap
+ok(
+  "technical e2 fetching notice",
+  deriveKosztorysTechnicalPhase(baseItem({ noticeNumber: "2026/BZP 1" }), { autoRunning: true })
+    .technicalId === "e2",
+);
+
+// P1 — technical E4 partial attachments
+ok(
+  "technical e4 upload bez bzp",
+  deriveKosztorysTechnicalPhase(
+    baseItem({ uploadedFile: { id: "u1", filename: "x.pdf", path: "p", publicUrl: "u", uploadedAt: "" } }),
+  ).technicalId === "e4",
+);
+
+// P1 — mapowanie techniczne → biznesowe
+ok(
+  "map e11 → failed",
+  mapKosztorysTechnicalToBusiness("e11") === "failed",
+);
+ok(
+  "map e8 → saving",
+  mapKosztorysTechnicalToBusiness("e8") === "saving",
+);
+
+// P1 — awaiting display (nie stały legacy label)
+ok(
+  "awaiting display pobieranie",
+  (() => {
+    const ux = resolveKosztorysAwaitingParseDisplay(baseItem({ bzpDocuments: [mockDoc] }), {
+      dossierBuilding: true,
+    });
+    return ux?.label === "Analiza kosztorysu";
+  })(),
 );
 
 console.log(`\n=== WYNIK: ${pass} PASS / ${fail} FAIL ===`);

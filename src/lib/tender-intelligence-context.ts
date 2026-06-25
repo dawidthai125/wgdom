@@ -38,6 +38,7 @@ import {
   resolveOwnerNextAction,
   type IntelligenceNextAction,
 } from "@/lib/tender-intelligence-next-action";
+import type { KosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 
 export interface BuildTenderIntelligenceContextInput {
   item: TenderPipelineItem;
@@ -50,6 +51,7 @@ export interface BuildTenderIntelligenceContextInput {
   participationResult?: ParticipationCheckResult | null;
   swz?: TenderSwzAnalysis | null;
   fit?: TenderFitAssessment | null;
+  kosztorysProcessSession?: KosztorysProcessSession;
 }
 
 export interface TenderIntelligenceContext {
@@ -88,6 +90,7 @@ export function buildTenderIntelligenceContext(
     participationResult = null,
     swz = item.swzAnalysis,
     fit = item.tenderFit,
+    kosztorysProcessSession,
   } = input;
 
   const scoringBundle = scoreTenderForOwnerView(item, scoringContext);
@@ -121,7 +124,7 @@ export function buildTenderIntelligenceContext(
     narrative,
     nextAction,
     prepStatus: buildOwnerPrepStatusView(item, ownerFinanceProposal),
-    positions: buildOwnerPositionsFileView(item),
+    positions: buildOwnerPositionsFileView(item, kosztorysProcessSession),
     riskRows: buildOwnerRiskTermRows(item, swz, fit),
     monitoringCounts,
     bidPrepChecks,

@@ -26,6 +26,7 @@ import {
   countTenderAttachments,
   type TenderAnalysisStatusRow,
 } from "@/lib/tender-analysis-status-ux";
+import type { KosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import { tenderDossierHeavyParseDone } from "@/lib/tender-dossier-pipeline";
 import { buildAthQuickAccessContext } from "@/lib/tender-ath-quick-access";
 import {
@@ -289,9 +290,12 @@ function resolvePositionsCta(
   return null;
 }
 
-export function buildOwnerPositionsFileView(item: TenderPipelineItem): OwnerPositionsFileView {
+export function buildOwnerPositionsFileView(
+  item: TenderPipelineItem,
+  kosztorysSession?: KosztorysProcessSession,
+): OwnerPositionsFileView {
   const costStatus = resolvedCostStatus(item);
-  const costUi = resolvedCostStatusDisplay(item, costStatus);
+  const costUi = resolvedCostStatusDisplay(item, costStatus, kosztorysSession);
   const classified = classifyCostDocument(item);
   const docType = classified?.type ?? "ATH";
   const rowCount = classified?.rowCount ?? item.tenderDossier?.kosztorys?.rowCount ?? 0;

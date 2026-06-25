@@ -6,7 +6,6 @@ import {
   isKosztorysAwaitingHeavyParse,
   isPricingAwaitingLazyEvaluation,
   buildTenderAnalysisStatusRows,
-  KOSZTORYS_AWAITING_PARSE_LABEL,
 } from "../src/lib/tender-analysis-status-ux.ts";
 import { resolvedCostStatusDisplay } from "../src/lib/tender-data-ssot.ts";
 
@@ -34,13 +33,14 @@ const withDocsNotParsed = {
 
 assert.equal(isKosztorysAwaitingHeavyParse(withDocsNotParsed), true);
 const awaitingUi = resolvedCostStatusDisplay(withDocsNotParsed);
-assert.equal(awaitingUi.display, KOSZTORYS_AWAITING_PARSE_LABEL);
-assert.ok(awaitingUi.hint?.includes("Dokumenty"));
+assert.equal(awaitingUi.display, "Gotowe do analizy");
+assert.ok(awaitingUi.hint?.includes("analiz"));
 
 const parsedNoKosztorys = {
   ...withDocsNotParsed,
   tenderDossier: {
     ...withDocsNotParsed.tenderDossier,
+    parserVersion: 3,
     scanSummary: { parsedAt: new Date().toISOString(), kosztorysFound: false, estimateFound: false },
   },
 };
@@ -62,8 +62,10 @@ const withKosztorys = {
   bzpDocuments: [{ filename: "a.ath", url: "https://x", documentIndex: 0 }],
   tenderDossier: {
     brief: {},
+    parserVersion: 3,
     kosztorys: { ok: true, filename: "a.ath", rowCount: 10, totalValue: null, currency: "PLN" },
     builtAt: new Date().toISOString(),
+    scanSummary: { parsedAt: new Date().toISOString(), kosztorysFound: true, estimateFound: false },
   },
 };
 assert.equal(isPricingAwaitingLazyEvaluation(withKosztorys, null, undefined, true), true);

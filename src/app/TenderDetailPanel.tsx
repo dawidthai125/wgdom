@@ -56,6 +56,7 @@ import { extractParticipationRequirements } from "@/lib/tender-participation-req
 import { extractExperienceRequirements } from "@/lib/tender-experience-requirements";
 import { resolvedCostStatus } from "@/lib/tender-data-ssot";
 import { isKosztorysAwaitingHeavyParse } from "@/lib/tender-analysis-status-ux";
+import { buildKosztorysProcessSession } from "@/lib/tender-kosztorys-process-phase";
 import { TenderDocumentsWorkspace } from "@/app/TenderDocumentsWorkspace";
 import { TenderQualificationWorkspace } from "@/app/TenderQualificationWorkspace";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
@@ -136,12 +137,21 @@ export function TenderDetailPanel({
   const { autoRunning } = useTenderDocumentsBootstrap({ item, onUpdate });
   const platformTelemetryRef = useRef<string | null>(null);
   const wantsHeavyDossier = workspaceForLogic === "documents" || workspaceForLogic === "valuation";
-  const { dossierBuilding } = useTenderDossierHeavyLazy({
+  const { dossierBuilding, dossierSaving } = useTenderDossierHeavyLazy({
     item,
     enabled: wantsHeavyDossier,
     onUpdate,
     athPreviewEnabled,
   });
+  const kosztorysProcessSession = useMemo(
+    () => buildKosztorysProcessSession({
+      autoRunning,
+      dossierBuilding,
+      dossierSaving,
+      lazyEnabled: wantsHeavyDossier,
+    }),
+    [autoRunning, dossierBuilding, dossierSaving, wantsHeavyDossier],
+  );
   const tendersCtx = useTendersContextOptional();
 
   const platformDocStatus = useMemo(
@@ -514,8 +524,9 @@ export function TenderDetailPanel({
   const bidPrepChecks = useMemo(
     () => computeBidPrepChecks(item, swz, item.tenderFit, bidProposal, {
       pricingDeferred: workspaceForLogic === "overview",
+      kosztorysSession: kosztorysProcessSession,
     }),
-    [item, swz, item.tenderFit, bidProposal, workspaceForLogic],
+    [item, swz, item.tenderFit, bidProposal, workspaceForLogic, kosztorysProcessSession],
   );
   const readyCount = bidPrepChecks.filter((c) => c.status === "ok").length;
 
@@ -561,6 +572,7 @@ export function TenderDetailPanel({
       participationResult,
       swz,
       fit: item.tenderFit,
+      kosztorysProcessSession,
     });
   }, [
     item,
@@ -572,6 +584,7 @@ export function TenderDetailPanel({
     participationResult,
     swz,
     item.tenderFit,
+    kosztorysProcessSession,
   ]);
 
   useEffect(() => {
@@ -680,7 +693,9 @@ export function TenderDetailPanel({
                     swz={swz}
                     bidProposal={ownerFinanceProposal}
                     dossierBuilding={dossierBuilding}
+                    dossierSaving={dossierSaving}
                     autoRunning={autoRunning}
+                    kosztorysSession={kosztorysProcessSession}
                     ownerMoreContext
                   />
 

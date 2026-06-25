@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-25",
+    version: "2.62.65",
+    label: "Kosztorys V4 — fazy procesu P1",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → Kosztorys: 13 faz technicznych E0–E12, faza „Zapisywanie wyników”, spójne etykiety w Owner View / Wycena / checklista",
+      },
+    ],
+  },
+  {
+    date: "2026-06-25",
     version: "2.62.64",
     label: "Kosztorys V4 — fazy procesu (P0 UX)",
     items: [

@@ -7,6 +7,11 @@ import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
 import { tenderDossierHeavyParseDone } from "@/lib/tender-dossier-pipeline";
 import { resolvedCostStatus } from "@/lib/tender-data-ssot";
+import {
+  deriveKosztorysProcessPhase,
+  isKosztorysProcessInProgress,
+  type KosztorysProcessSession,
+} from "@/lib/tender-kosztorys-process-phase";
 
 export const KOSZTORYS_AWAITING_PARSE_LABEL = "⏳ Kosztorys oczekuje na przetworzenie";
 export const KOSZTORYS_AWAITING_PARSE_HINT =
@@ -59,9 +64,18 @@ export function buildTenderAnalysisStatusRows(opts: {
   swz?: TenderSwzAnalysis | null;
   bidProposal?: TenderBidProposal | null;
   dossierBuilding?: boolean;
+  dossierSaving?: boolean;
   autoRunning?: boolean;
+  kosztorysSession?: KosztorysProcessSession;
 }): TenderAnalysisStatusRow[] {
-  const { item, bidProposal, dossierBuilding, autoRunning } = opts;
+  const { item, bidProposal, dossierBuilding, dossierSaving, autoRunning, kosztorysSession } = opts;
+  const session: KosztorysProcessSession = kosztorysSession ?? {
+    autoRunning,
+    dossierBuilding,
+    dossierSaving,
+    lazyEnabled: true,
+  };
+  const processPhase = deriveKosztorysProcessPhase(item, session);
   const docCount = countTenderAttachments(item);
   const heavyDone = tenderDossierHeavyParseDone(item.tenderDossier);
   const costStatus = resolvedCostStatus(item);
@@ -83,7 +97,7 @@ export function buildTenderAnalysisStatusRows(opts: {
       : "missing";
 
   let kosztorysState: TenderAnalysisStepState;
-  if (dossierBuilding || kosztorysAwaiting) {
+  if (dossierBuilding || dossierSaving || kosztorysAwaiting) {
     kosztorysState = "pending";
   } else if (costStatus !== "NOT_FOUND") {
     kosztorysState = "ready";
@@ -96,7 +110,7 @@ export function buildTenderAnalysisStatusRows(opts: {
   let pricingState: TenderAnalysisStepState;
   if (pricingReady) {
     pricingState = "ready";
-  } else if (dossierBuilding || kosztorysAwaiting) {
+  } else if (dossierBuilding || dossierSaving || kosztorysAwaiting) {
     pricingState = "pending";
   } else if (pricingAwaitingLazy) {
     pricingState = "warn";
@@ -108,10 +122,16 @@ export function buildTenderAnalysisStatusRows(opts: {
     pricingState = "missing";
   }
 
+  const kosztorysRowLabel = kosztorysState === "pending"
+    && (dossierBuilding || dossierSaving || kosztorysAwaiting)
+    && (isKosztorysProcessInProgress(processPhase) || processPhase.id === "waiting_data")
+    ? processPhase.label
+    : "Kosztorys";
+
   return [
     { id: "notice", label: "Ogłoszenie", state: noticeState },
     { id: "documents", label: "Dokumenty", state: documentsState },
-    { id: "kosztorys", label: "Kosztorys", state: kosztorysState },
+    { id: "kosztorys", label: kosztorysRowLabel, state: kosztorysState },
     { id: "pricing", label: "Wycena", state: pricingState },
   ];
 }

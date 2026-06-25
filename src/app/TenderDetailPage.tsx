@@ -104,6 +104,7 @@ export function TenderDetailPage({
 
   const {
     dossierBuilding,
+    dossierSaving,
     dossierParseFailed,
     parseErrorMessage,
     retryDossierParse,
@@ -188,6 +189,7 @@ export function TenderDetailPage({
               processSession={{
                 autoRunning,
                 dossierBuilding,
+                dossierSaving,
                 dossierParseFailed,
                 parseErrorMessage,
                 lazyEnabled: true,

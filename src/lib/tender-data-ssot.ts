@@ -22,6 +22,10 @@ import {
   PRICING_NEEDS_ANALYSIS_HINT,
   PRICING_NEEDS_ANALYSIS_LABEL,
 } from "@/lib/tender-analysis-status-ux";
+import {
+  resolveKosztorysAwaitingParseDisplay,
+  type KosztorysProcessSession,
+} from "@/lib/tender-kosztorys-process-phase";
 import type { TenderCostDocumentType } from "@/lib/tender-cost-discovery";
 import { parsePlnFromKosztorysTotal } from "@/lib/tenders-bzp-filename";
 import type { TenderBidPricingMode, TenderBidProposal } from "@/lib/tenders-bid-calculator";
@@ -243,14 +247,22 @@ export function resolvedCostStatus(item: TenderPipelineItem): ResolvedCostStatus
 export function resolvedCostStatusDisplay(
   item: TenderPipelineItem,
   status: ResolvedCostStatus = resolvedCostStatus(item),
+  kosztorysSession?: KosztorysProcessSession,
 ): ResolvedCostStatusDisplay {
-  if (status === "NOT_FOUND" && isKosztorysAwaitingHeavyParse(item)) {
-    return {
-      display: KOSZTORYS_AWAITING_PARSE_LABEL,
-      hint: KOSZTORYS_AWAITING_PARSE_HINT,
-    };
-  }
   if (status === "NOT_FOUND") {
+    const awaitingUx = resolveKosztorysAwaitingParseDisplay(item, kosztorysSession ?? {});
+    if (awaitingUx) {
+      return {
+        display: awaitingUx.label,
+        hint: awaitingUx.hint ?? KOSZTORYS_AWAITING_PARSE_HINT,
+      };
+    }
+    if (isKosztorysAwaitingHeavyParse(item)) {
+      return {
+        display: KOSZTORYS_AWAITING_PARSE_LABEL,
+        hint: KOSZTORYS_AWAITING_PARSE_HINT,
+      };
+    }
     return { display: "Nie znaleziono kosztorysu." };
   }
 

@@ -40,7 +40,7 @@ export function KosztorysProcessStatusBar({
   retryBusy?: boolean;
 }) {
   return (
-    <div className="space-y-2" data-kosztorys-process-phase={phase.id}>
+    <div className="space-y-2" data-kosztorys-process-phase={phase.id} data-kosztorys-technical-phase={phase.technicalId ?? undefined} data-kosztorys-e6-sub={phase.e6Sub ?? undefined}>
       <div className="flex flex-wrap items-center gap-2">
         <div
           className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${toneClasses(phase.tone)}`}
