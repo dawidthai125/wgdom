@@ -60,6 +60,7 @@ export function useTenderDossierHeavyLazy(opts: {
   dossierParseFailed: boolean;
   parseErrorMessage: string | null;
   retryDossierParse: () => void;
+  retryNonce: number;
 } {
   const { item, enabled, onUpdate, athPreviewEnabled = true } = opts;
   const [dossierBuilding, setDossierBuilding] = useState(false);
@@ -164,7 +165,14 @@ export function useTenderDossierHeavyLazy(opts: {
     retryNonce,
   ]);
 
-  return { dossierBuilding, dossierSaving, dossierParseFailed, parseErrorMessage, retryDossierParse };
+  return {
+    dossierBuilding,
+    dossierSaving,
+    dossierParseFailed,
+    parseErrorMessage,
+    retryDossierParse,
+    retryNonce,
+  };
 }
 
 /** Test-only reset — nie używać w prod UI. */

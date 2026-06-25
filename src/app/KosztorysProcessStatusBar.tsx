@@ -1,5 +1,6 @@
 import { AlertCircle, CheckCircle2, Circle, RefreshCw, XCircle } from "lucide-react";
 import type { KosztorysProcessPhaseView } from "@/lib/tender-kosztorys-process-phase";
+import type { KosztorysProcessHealthView } from "@/lib/tender-kosztorys-process-health";
 
 function toneClasses(tone: KosztorysProcessPhaseView["tone"]): string {
   switch (tone) {
@@ -32,26 +33,37 @@ function PhaseIcon({ phase }: { phase: KosztorysProcessPhaseView }) {
 
 export function KosztorysProcessStatusBar({
   phase,
+  health,
   onRetry,
   retryBusy,
 }: {
   phase: KosztorysProcessPhaseView;
+  health?: KosztorysProcessHealthView | null;
   onRetry?: () => void;
   retryBusy?: boolean;
 }) {
+  const showRetry = phase.showRetry || health?.showRetry;
+  const displayPhase = health?.currentPhase ?? phase;
+
   return (
-    <div className="space-y-2" data-kosztorys-process-phase={phase.id} data-kosztorys-technical-phase={phase.technicalId ?? undefined} data-kosztorys-e6-sub={phase.e6Sub ?? undefined}>
+    <div
+      className="space-y-2"
+      data-kosztorys-process-phase={displayPhase.id}
+      data-kosztorys-technical-phase={displayPhase.technicalId ?? undefined}
+      data-kosztorys-e6-sub={displayPhase.e6Sub ?? undefined}
+      data-kosztorys-health={health?.status ?? "healthy"}
+    >
       <div className="flex flex-wrap items-center gap-2">
         <div
-          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${toneClasses(phase.tone)}`}
+          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${toneClasses(displayPhase.tone)}`}
           role="status"
           aria-live="polite"
         >
-          <PhaseIcon phase={phase} />
-          <span>{phase.label}</span>
+          <PhaseIcon phase={displayPhase} />
+          <span>{displayPhase.label}</span>
         </div>
 
-        {phase.showRetry && onRetry && (
+        {showRetry && onRetry && (
           <button
             type="button"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background text-xs font-semibold hover:bg-secondary/60 disabled:opacity-60"
@@ -65,8 +77,8 @@ export function KosztorysProcessStatusBar({
         )}
       </div>
 
-      {phase.hint && (
-        <p className="text-xs text-muted-foreground whitespace-pre-wrap">{phase.hint}</p>
+      {displayPhase.hint && (
+        <p className="text-xs text-muted-foreground whitespace-pre-wrap">{displayPhase.hint}</p>
       )}
     </div>
   );

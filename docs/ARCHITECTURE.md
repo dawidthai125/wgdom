@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, agent AI, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-06-25 (**v2.62.64** · Kosztorys UX P0 · § 12.1.15a · prod **2.62.64**)
+> **Ostatnia aktualizacja tego dokumentu:** 2026-06-25 (**v2.62.66** · Kosztorys UX P2 · § 12.1.15b · prod **2.62.66**)
 > **★ Onboarding agenta:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1442,9 +1442,41 @@ KosztorysProcessStatusBar                         ← badge + hint + retry
 
 **Legacy:** `isKosztorysAwaitingHeavyParse()` w `tender-analysis-status-ux.ts` nadal używane w Owner View / Wycena — **nie** usuwać bez P1 migracji.
 
-**Test:** `test-tender-kosztorys-process-phase.mjs` (11)
+**Test:** `test-tender-kosztorys-process-phase.mjs` (18)
 
 **Nie zmieniaj bez polecenia:** logika w `deriveKosztorysProcessPhase` rozproszona po komponentach · zmiana `buildTenderDossierHeavy` pod UX.
+
+### 12.1.15b Kosztorys V4 — health procesu UX (P2, lokalnie)
+
+**Status:** **CLOSED** · commit **2.62.66** · **prezentacja only** (bez zmian parserów / pipeline / Edge)  
+**Handoff:** [`SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P2.md`](SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P2.md)
+
+Warstwa zdrowia procesu — wykrywanie długotrwałej lub zatrzymanej analizy kosztorysu. **Nie przerywa parsera, nie anuluje requestów, nie zatrzymuje pipeline.**
+
+```text
+TenderKosztorysWorkspace
+  ├── useKosztorysProcessHealth (poll 5s)     ← hook obserwatora
+  │     └── deriveKosztorysProcessHealth()    ← tender-kosztorys-process-health.ts (SSOT)
+  │           ├── tickKosztorysActivityClock()
+  │           ├── snapshotKosztorysActivityFingerprint()
+  │           └── applyKosztorysHealthToPhaseView()
+  └── KosztorysProcessStatusBar               ← data-kosztorys-health + retry
+```
+
+| `status` | Próg bezczynności | UI |
+|----------|-------------------|-----|
+| `healthy` | &lt; 30 s | brak komunikatu |
+| `slow` | ≥ 30 s | „Analiza trwa dłużej niż zwykle…” |
+| `stale` | ≥ 90 s | „Wygląda na zatrzymaną analizę.” + **Spróbuj ponownie** |
+| `timeout` | ≥ 180 s | komunikat timeout + retry · faza techniczna `e12` |
+
+**Źródła danych (read-only):** `getDossierTraceLog()` · `retryNonce` · `dossierBuilding` · `dossierSaving` · `autoRunning` · `Date.now()`.
+
+**Retry:** istniejące `retryDossierParse()` — health tylko pokazuje przycisk przy `stale` / `timeout`.
+
+**Test:** `test-tender-kosztorys-process-health.mjs` (16)
+
+**Nie zmieniaj bez polecenia:** progi w komponentach React · anulowanie pipeline przy timeout · nowe endpointy / zapis KV.
 
 ### 12.1.16 P0/P1 — Kosztorys Merge Quality Protection (TP113 / TP182, v2.62.1 infra)
 

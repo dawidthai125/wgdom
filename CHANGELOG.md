@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.65** · **Kosztorys UX state machine P0+P1 CLOSED**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.66** · **Kosztorys UX P0+P1+P2**
+
+## 2.62.66 — Kosztorys V4 health procesu (P2 timeout / stale)
+
+- **improve:** `deriveKosztorysProcessHealth` · slow 30s / stale 90s / timeout 180s · retry UI · `useKosztorysProcessHealth` (prezentacja only)
+- **test:** `test-tender-kosztorys-process-health.mjs` (16) · regresja `test-tender-kosztorys-process-phase.mjs` · `test-p3-ux-analysis-status.mjs`
 
 ## 2.62.65 — Kosztorys V4 fazy procesu (P1 technical + saving)
 

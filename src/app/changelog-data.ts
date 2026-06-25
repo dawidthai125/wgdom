@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-25",
+    version: "2.62.66",
+    label: "Kosztorys V4 — health procesu P2",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → Kosztorys: wykrywanie długiej lub zatrzymanej analizy (slow / stale / timeout) z komunikatem i ponowieniem — bez zmian parsera",
+      },
+    ],
+  },
+  {
+    date: "2026-06-25",
     version: "2.62.65",
     label: "Kosztorys V4 — fazy procesu P1",
     items: [

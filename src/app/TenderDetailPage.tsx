@@ -108,6 +108,7 @@ export function TenderDetailPage({
     dossierParseFailed,
     parseErrorMessage,
     retryDossierParse,
+    retryNonce,
   } = useTenderDossierHeavyLazy({
     item: bootstrapItem,
     enabled: kosztorysTabActive,
@@ -194,6 +195,7 @@ export function TenderDetailPage({
                 parseErrorMessage,
                 lazyEnabled: true,
               }}
+              retryNonce={retryNonce}
               onRetryParse={retryDossierParse}
             />
           )}

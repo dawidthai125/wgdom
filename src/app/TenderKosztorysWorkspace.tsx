@@ -12,6 +12,7 @@ import {
   isKosztorysProcessInProgress,
   type KosztorysProcessSession,
 } from "@/lib/tender-kosztorys-process-phase";
+import { useKosztorysProcessHealth } from "@/app/hooks/useKosztorysProcessHealth";
 import { KosztorysProcessStatusBar } from "@/app/KosztorysProcessStatusBar";
 import {
   downloadAthSourceFile,
@@ -132,19 +133,31 @@ export function TenderKosztorysWorkspace({
   item,
   athPreviewEnabled = true,
   processSession,
+  retryNonce = 0,
   onRetryParse,
 }: {
   item: TenderPipelineItem;
   athPreviewEnabled?: boolean;
   processSession?: KosztorysProcessSession;
+  retryNonce?: number;
   onRetryParse?: () => void;
 }) {
+  const session = useMemo(
+    () => ({ ...processSession, lazyEnabled: true }),
+    [processSession],
+  );
+  const health = useKosztorysProcessHealth({
+    item,
+    session,
+    retryNonce,
+    enabled: Boolean(processSession),
+  });
   const pro = useMemo(() => buildKosztorysProDashboard(item), [item]);
   const display = useMemo(() => buildKosztorysV4Display(item), [item]);
   const k = item.tenderDossier?.kosztorys;
   const phase = useMemo(
-    () => deriveKosztorysProcessPhase(item, { ...processSession, lazyEnabled: true }),
-    [item, processSession],
+    () => health?.currentPhase ?? deriveKosztorysProcessPhase(item, session),
+    [item, session, health],
   );
   const inProgress = isKosztorysProcessInProgress(phase);
   const [showAllRows, setShowAllRows] = useState(false);
@@ -195,6 +208,7 @@ export function TenderKosztorysWorkspace({
     <div className="space-y-4">
       <KosztorysProcessStatusBar
         phase={phase}
+        health={health}
         onRetry={onRetryParse}
         retryBusy={processSession?.dossierBuilding || processSession?.dossierSaving}
       />
