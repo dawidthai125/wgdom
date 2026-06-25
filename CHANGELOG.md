@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.67** · **Tender List UX V4**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.68** · **Workflow Hub EPIC A**
+
+## 2.62.68 — Workflow Hub (EPIC A)
+
+- **improve:** Przetarg = Workflow Hub (postęp V2, blokery, prep status, operator) · Decyzja = werdykt + ekonomia + GO/HOLD/ODPUŚĆ — bez duplikacji workflow
+- **test:** `test-tender-workflow-hub.mjs` · regresja `test-p5-owner-view.mjs` · `test-tender-workspace-ux.mjs`
 
 ## 2.62.67 — Przetargi Lista UX V4
 

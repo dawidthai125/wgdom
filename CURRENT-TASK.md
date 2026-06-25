@@ -1,42 +1,39 @@
 # W&G DOM — bieżąca sesja
 
-**Ostatnia aktualizacja:** 2026-06-25 · **prod 2.62.67** · Tender List UX V4 CLOSED
+**Ostatnia aktualizacja:** 2026-06-25 · **prod 2.62.68** · Workflow Hub EPIC A CLOSED
 
 ## STATUS
 
 | Pole | Wartość |
 |------|---------|
-| **Wersja prod** | **2.62.67** — Przetargi Lista UX V4 |
-| **Poprzedni release** | 2.62.66 — Kosztorys UX P2 |
-| **Tender List UX V4** | **CLOSED** · banner · kolejka 2 chipy · klienci · zaawansowane |
+| **Wersja prod** | **2.62.68** — Workflow Hub EPIC A |
+| **Poprzedni release** | 2.62.67 — Przetargi Lista UX V4 |
+| **Workflow Hub EPIC A** | **CLOSED** · Przetarg = hub · Decyzja = GO/HOLD/ODPUŚĆ |
+| **Tender List UX V4** | **CLOSED** · commit `6a494c0` |
 | **Kosztorys UX P2** | **CLOSED** · `deriveKosztorysProcessHealth` |
-| **Kosztorys UX P1** | **CLOSED** · 13 faz technicznych |
-| **Kosztorys UX P0** | **CLOSED** · commit `4056223` |
-| **Discovery dokumentów** | **CLOSED** · variant B |
-| **WM Schematy** | **CLOSED** · renderer v5 |
 | **ZI §4/§5** | **STABLE** |
 
 ---
 
 ## Zamknięte w tej sesji (2026-06-25)
 
-### Tender List UX V4 (2.62.67)
+### Workflow Hub EPIC A (2.62.68)
 
 | Pole | Wartość |
 |------|---------|
-| **Zakres** | Uproszczenie głównego widoku listy przetargów (prezentacja only) |
-| **Bez zmian** | pipeline · logika filtrów · scoring · sync |
+| **Zakres** | Reorganizacja odpowiedzialności zakładek Przetarg / Decyzja (UX only) |
+| **Bez zmian** | parsery · pipeline · logika wyceny · sync |
 
-### Kosztorys Process UX — P2 (2.62.66)
+### Tender List UX V4 (2.62.67)
 
-**Handoff:** [`docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P2.md`](docs/SESSION-HANDOFF-KOSZTORYS-PROCESS-UX-P2.md)
+Commit `6a494c0` — uproszczony widok listy przetargów.
 
 ---
 
 ## Następne (tylko na polecenie)
 
+- **Workflow EPIC B** — Sticky Process + Sticky CTA (po audycie workflow)
 - **Kosztorys UX P3** — pełny progress techniczny z trace w UI
-- **P1 Audit Hub Integration for WM Druk** — AUDIT-HUB-WM-001
 - TP200B · Audit Hub MVP-1C
 
 ## Szybki start agenta

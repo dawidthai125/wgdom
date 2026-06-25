@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  ExternalLink, Loader2, Briefcase,
-  Upload, Trash2,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   type TenderPipelineItem,
@@ -39,15 +36,17 @@ import { discoverExternalTenderDocs, type TenderExternalDocDiscovery } from "@/l
 import { summarizeSwzFindings } from "@/lib/tenders-bid-prep";
 import { fetchTenderAwardResult } from "@/lib/tenders-bzp-award";
 import { exportTenderBidPackagePdf } from "@/lib/tender-bid-package-pdf";
-import { TenderBidPrepPanel, computeBidPrepChecks } from "@/app/TenderBidPrepPanel";
+import { computeBidPrepChecks } from "@/app/TenderBidPrepPanel";
 import { TenderBidProposalPanel } from "@/app/TenderBidProposalPanel";
 import { TenderSummaryBar } from "@/app/TenderSummaryBar";
-import { TenderMonitoringBanner } from "@/app/TenderMonitoringBanner";
 import { TenderOfferSection } from "@/app/TenderOfferSection";
 import { TenderOfferCompletenessPanel } from "@/app/TenderOfferCompletenessPanel";
 import { TenderWorkspaceTabBar } from "@/app/TenderWorkspaceTabBar";
-import { TenderAnalysisStatusStrip } from "@/app/TenderAnalysisStatusStrip";
-import { TenderOwnerView } from "@/app/TenderOwnerView";
+import { TenderDecisionView } from "@/app/TenderDecisionView";
+import { TenderPrzetargWorkspace } from "@/app/TenderPrzetargWorkspace";
+import { TenderWorkflowOperatorSection } from "@/app/TenderWorkflowOperatorSection";
+import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
+import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
 import { buildTenderIntelligenceContext } from "@/lib/tender-intelligence-context";
 import { loadOwnerDecisions } from "@/lib/tenders-strategy-owner-decisions";
 import { loadCompanyQualificationProfileLocal } from "@/lib/company-qualification-profile";
@@ -64,6 +63,8 @@ import {
   TENDER_VALUATION_SECTION_ID,
   getTenderMonitoringCounts,
   resolveDefaultTenderWorkspace,
+  TENDER_WORKFLOW_HUB_EMBED_WORKSPACE,
+  type TenderEmbedV4WorkspaceId,
   type TenderWorkspaceTabId,
 } from "@/lib/tender-workspace-ux";
 import { TENDER_OWNER_WORKSPACE_SECTION_COPY } from "@/lib/tender-owner-language-pl";
@@ -97,6 +98,7 @@ export function TenderDetailPanel({
   embedV4ChromeHidden = false,
   embedV4Workspace,
   onEmbedV4Navigate,
+  onEmbedV4TabNavigate,
 }: {
   item: TenderPipelineItem;
   allItems: TenderPipelineItem[];
@@ -109,10 +111,15 @@ export function TenderDetailPanel({
   onRemove?: () => void;
   /** V4 — ukryj summary bar i legacy tab bar (shell w TenderDetailPage). */
   embedV4ChromeHidden?: boolean;
-  /** V4 — wymuszona zakładka workspace (legacy id). */
-  embedV4Workspace?: TenderWorkspaceTabId;
-  /** V4 — nawigacja z TenderOwnerView → URL V4. */
+  /** V4 — wymuszona zakładka workspace (legacy id lub workflow-hub). */
+  embedV4Workspace?: TenderEmbedV4WorkspaceId;
+  /** V4 — nawigacja z hub / legacy workspace → URL V4. */
   onEmbedV4Navigate?: (tab: TenderWorkspaceTabId) => void;
+  /** V4 — nawigacja z Workflow Hub (Przetarg) po slugach V4. */
+  onEmbedV4TabNavigate?: (
+    tab: TenderDetailV4TabId,
+    opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace },
+  ) => void;
 }) {
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -136,7 +143,9 @@ export function TenderDetailPanel({
   const workspaceForLogic = embedV4Workspace ?? activeWorkspace;
   const { autoRunning } = useTenderDocumentsBootstrap({ item, onUpdate });
   const platformTelemetryRef = useRef<string | null>(null);
-  const wantsHeavyDossier = workspaceForLogic === "documents" || workspaceForLogic === "valuation";
+  const wantsHeavyDossier = workspaceForLogic === "documents"
+    || workspaceForLogic === "valuation"
+    || workspaceForLogic === TENDER_WORKFLOW_HUB_EMBED_WORKSPACE;
   const { dossierBuilding, dossierSaving } = useTenderDossierHeavyLazy({
     item,
     enabled: wantsHeavyDossier,
@@ -674,108 +683,63 @@ export function TenderDetailPanel({
         </>
       )}
 
-      {effectiveWorkspace === "overview" && (
-        <div className="space-y-3 max-h-[calc(100vh-12rem)] overflow-y-auto">
+      {effectiveWorkspace === TENDER_WORKFLOW_HUB_EMBED_WORKSPACE && (
+        <div className="space-y-3">
           {intelligenceCtx ? (
-            <TenderOwnerView
+            <TenderPrzetargWorkspace
+              item={item}
+              swz={swz}
               intelligenceCtx={intelligenceCtx}
-              onNavigate={navigateWorkspace}
+              onNavigateTab={(tab, opts) => onEmbedV4TabNavigate?.(tab, opts)}
+              onNavigateLegacy={navigateWorkspace}
               onOpenPreview={(previewItem) => setDocPreview(previewItem)}
-              detailsSection={(
-                <>
-                  <TenderMonitoringBanner
-                    item={item}
-                    onOpenStrategy={tendersCtx?.openTendersStrategy}
-                  />
-
-                  <TenderAnalysisStatusStrip
-                    item={item}
-                    swz={swz}
-                    bidProposal={ownerFinanceProposal}
-                    dossierBuilding={dossierBuilding}
-                    dossierSaving={dossierSaving}
-                    autoRunning={autoRunning}
-                    kosztorysSession={kosztorysProcessSession}
-                    ownerMoreContext
-                  />
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    <a
-                      href={item.ezamowieniaUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <ExternalLink size={12} />
-                      e-Zamówienia
-                    </a>
-                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-xs font-medium cursor-pointer hover:bg-secondary/80">
-                      {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
-                      Wgraj SWZ
-                      <input
-                        type="file"
-                        accept=".pdf,.doc,.docx,.ath,.nor,.xml,.xlsx,.xls,.zip"
-                        className="hidden"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (f) void handleUpload(f);
-                          e.target.value = "";
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </label>
-                    {(item.status === "won" || item.status === "preparing") && onCreateJob && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (item.linkedJobId && onOpenJob) {
-                            onOpenJob(item.linkedJobId);
-                            return;
-                          }
-                          const jobId = onCreateJob(item);
-                          if (jobId) onUpdate({ linkedJobId: jobId, status: item.status === "won" ? "won" : item.status });
+              operatorSection={(
+                <TenderWorkflowOperatorSection
+                  item={item}
+                  swz={swz}
+                  bidProposal={ownerFinanceProposal}
+                  kosztorysSession={kosztorysProcessSession}
+                  autoRunning={autoRunning}
+                  dossierBuilding={dossierBuilding}
+                  dossierSaving={dossierSaving}
+                  analyzing={analyzing}
+                  exportingPdf={exportingPdf}
+                  uploading={uploading}
+                  onOpenStrategy={tendersCtx?.openTendersStrategy}
+                  onUpload={(file) => void handleUpload(file)}
+                  onCreateJob={onCreateJob
+                    ? () => {
+                        const jobId = onCreateJob(item);
+                        if (jobId) {
+                          onUpdate({ linkedJobId: jobId, status: item.status === "won" ? "won" : item.status });
                           toast.success("Utworzono robótę z przetargu");
-                        }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-medium hover:bg-emerald-500/20"
-                      >
-                        <Briefcase size={12} />
-                        {item.linkedJobId ? "Otwórz robotę" : "Utwórz robotę"}
-                      </button>
-                    )}
-                    {onRemove && (
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); onRemove(); }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-700 dark:text-red-400 text-xs font-medium hover:bg-red-500/20"
-                      >
-                        <Trash2 size={12} />
-                        Usuń
-                      </button>
-                    )}
-                  </div>
-
-                  <TenderBidPrepPanel
-                    item={item}
-                    swz={swz}
-                    fit={item.tenderFit}
-                    bidProposal={ownerFinanceProposal}
-                    ourEstimatePln={item.ourEstimatePln}
-                    analyzing={analyzing}
-                    onAnalyze={() => void runAnalysis()}
-                    onExportPdf={() => void handleExportPdf()}
-                    exportingPdf={exportingPdf}
-                    onUpdateOurEstimate={(pln) => onUpdate(patchOurEstimatePln(item, pln, "ręczna edycja"))}
-                    onNavigateWorkspace={navigateWorkspace}
-                    collapseTiles
-                  />
-                </>
+                        }
+                      }
+                    : undefined}
+                  onOpenJob={onOpenJob}
+                  onRemove={onRemove}
+                  onAnalyze={() => void runAnalysis()}
+                  onExportPdf={() => void handleExportPdf()}
+                  onUpdateOurEstimate={(pln) => onUpdate(patchOurEstimatePln(item, pln, "ręczna edycja"))}
+                  onNavigateWorkspace={navigateWorkspace}
+                />
               )}
             />
           ) : (
             <p className="text-xs text-muted-foreground px-1 py-2">
-              Ładowanie kontekstu strategii przetargów…
+              Ładowanie kontekstu workflow…
+            </p>
+          )}
+        </div>
+      )}
+
+      {effectiveWorkspace === "overview" && (
+        <div className="space-y-3 max-h-[calc(100vh-12rem)] overflow-y-auto">
+          {intelligenceCtx ? (
+            <TenderDecisionView intelligenceCtx={intelligenceCtx} />
+          ) : (
+            <p className="text-xs text-muted-foreground px-1 py-2">
+              Ładowanie kontekstu decyzji…
             </p>
           )}
 

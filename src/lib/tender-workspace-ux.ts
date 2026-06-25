@@ -125,6 +125,19 @@ export const TENDER_WORKSPACE_TAB_ORDER = [
 
 export type TenderWorkspaceTabId = (typeof TENDER_WORKSPACE_TAB_ORDER)[number];
 
+/** EPIC A — embed V4 Przetarg (Workflow Hub), nie jest zakładką legacy tab bar. */
+export const TENDER_WORKFLOW_HUB_EMBED_WORKSPACE = "workflow-hub" as const;
+
+export type TenderEmbedV4WorkspaceId =
+  | TenderWorkspaceTabId
+  | typeof TENDER_WORKFLOW_HUB_EMBED_WORKSPACE;
+
+export function isTenderEmbedV4WorkspaceId(
+  value: string,
+): value is TenderEmbedV4WorkspaceId {
+  return isTenderWorkspaceTabId(value) || value === TENDER_WORKFLOW_HUB_EMBED_WORKSPACE;
+}
+
 export const TENDER_WORKSPACE_TAB_LABELS: Record<TenderWorkspaceTabId, string> = {
   ...TENDER_OWNER_TAB_LABELS,
 };

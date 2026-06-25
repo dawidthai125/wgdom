@@ -2,6 +2,7 @@ import { useMemo, type ReactNode } from "react";
 import { ExternalLink } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
+import type { InspectorFileItem } from "@/app/JobInspectorFilesPanel";
 import {
   buildParticipationDisplayGroups,
   buildPrzetargExecutiveBundle,
@@ -10,9 +11,11 @@ import {
   buildPrzetargWorkScopeLabels,
   hasParticipationDisplayData,
 } from "@/lib/tender-detail-v4-display";
-import { TenderWorkspaceV2Panel } from "@/app/TenderWorkspaceV2Panel";
+import { TenderWorkflowHubPanel } from "@/app/TenderWorkflowHubPanel";
+import type { TenderIntelligenceContext } from "@/lib/tender-intelligence-context";
 import type { TenderDetailV4TabId } from "@/lib/tender-detail-routes-v4";
 import type { DecyzjaV4EmbedWorkspace } from "@/lib/tender-detail-routes-v4";
+import type { TenderWorkspaceTabId } from "@/lib/tender-workspace-ux";
 
 function BlockShell({
   title,
@@ -43,14 +46,22 @@ function KeyFactCard({ label, value }: { label: string; value: string }) {
 export function TenderPrzetargWorkspace({
   item,
   swz,
+  intelligenceCtx,
   onNavigateTab,
+  onNavigateLegacy,
+  onOpenPreview,
+  operatorSection,
 }: {
   item: TenderPipelineItem;
   swz: TenderSwzAnalysis | null | undefined;
+  intelligenceCtx: TenderIntelligenceContext;
   onNavigateTab: (
     tab: TenderDetailV4TabId,
     opts?: { decyzjaWorkspace?: DecyzjaV4EmbedWorkspace },
   ) => void;
+  onNavigateLegacy: (tab: TenderWorkspaceTabId) => void;
+  onOpenPreview: (previewItem: InspectorFileItem) => void;
+  operatorSection?: ReactNode;
 }) {
   const bundle = useMemo(() => buildPrzetargExecutiveBundle(item), [item]);
   const keyFacts = useMemo(() => buildPrzetargKeyFacts(item, swz), [item, swz]);
@@ -59,8 +70,16 @@ export function TenderPrzetargWorkspace({
   const highlights = useMemo(() => buildPrzetargHighlights(item, swz, bundle), [item, swz, bundle]);
 
   return (
-    <div className="space-y-4">
-      <TenderWorkspaceV2Panel item={item} swz={swz} onNavigateTab={onNavigateTab} />
+    <div className="space-y-4" data-tender-przetarg-workspace>
+      <TenderWorkflowHubPanel
+        item={item}
+        swz={swz}
+        intelligenceCtx={intelligenceCtx}
+        onNavigateTab={onNavigateTab}
+        onNavigateLegacy={onNavigateLegacy}
+        onOpenPreview={onOpenPreview}
+        operatorSection={operatorSection}
+      />
 
       <BlockShell title="Podstawowe dane">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

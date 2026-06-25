@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-25",
+    version: "2.62.68",
+    label: "Workflow Hub EPIC A",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → Workflow Hub: Przetarg = centrum przygotowania (postęp, następny krok, blokery, operator); Decyzja = wyłącznie werdykt i GO/HOLD/ODPUŚĆ",
+      },
+    ],
+  },
+  {
+    date: "2026-06-25",
     version: "2.62.67",
     label: "Przetargi Lista UX V4",
     items: [

@@ -67,19 +67,20 @@ function scoringContext(items) {
 
 console.log("\n=== P5 Owner View + P5.1 Recovery ===\n");
 
-console.log("1. UI wiring (V3.1 Intelligence)");
+console.log("\n1. UI wiring (V3.1 Intelligence / EPIC A Hub)");
 const panelSrc = readSrc("src/app/TenderDetailPanel.tsx");
 const ownerSrc = readSrc("src/app/TenderOwnerView.tsx");
-assert(panelSrc.includes("TenderOwnerView"), "TenderDetailPanel uses TenderOwnerView");
+const hubSrc = readSrc("src/app/TenderWorkflowHubSections.tsx");
+assert(panelSrc.includes("TenderDecisionView"), "TenderDetailPanel uses TenderDecisionView on Decyzja");
+assert(panelSrc.includes("TenderPrzetargWorkspace"), "TenderDetailPanel Workflow Hub on Przetarg");
 assert(panelSrc.includes("buildTenderIntelligenceContext"), "panel builds intelligence context");
 assert(panelSrc.includes("scoringContext"), "panel uses scoringContext SSOT");
-assert(ownerSrc.includes("intelligenceCtx"), "Owner view intelligenceCtx prop");
-assert(ownerSrc.includes("TENDER_INTELLIGENCE_SECTION_COPY"), "Intelligence section copy");
-assert(ownerSrc.includes("OwnerPrepStatusDisplay"), "prep status in details section");
-assert(ownerSrc.includes("statusLine"), "positions status line in details");
-assert(ownerSrc.includes("<details"), "Szczegóły collapsed section");
+assert(ownerSrc.includes("TenderDecisionView"), "Owner view delegates to DecisionView");
+assert(ownerSrc.includes("TENDER_INTELLIGENCE_SECTION_COPY"), "Intelligence section copy retained");
+assert(hubSrc.includes("WorkflowHubPrepStatusDisplay"), "prep status on Workflow Hub");
+assert(hubSrc.includes("statusLine"), "positions status line on hub");
+assert(!ownerSrc.includes("<details"), "no collapsed Więcej on Decyzja");
 assert(!ownerSrc.includes("OwnerNextSteps"), "OwnerNextSteps removed");
-assert(!ownerSrc.includes("scoreTenderForOwnerView"), "no scoring in OwnerView");
 assert(!panelSrc.includes("TenderOverviewShortcuts"), "overview shortcuts removed from main");
 
 console.log("\n2. Decision labels");

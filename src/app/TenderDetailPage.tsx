@@ -8,7 +8,6 @@ import {
 import { TenderDetailPanel } from "@/app/TenderDetailPanel";
 import { TenderDetailKpiBar } from "@/app/TenderDetailKpiBar";
 import { TenderDetailTabBar } from "@/app/TenderDetailTabBar";
-import { TenderPrzetargWorkspace } from "@/app/TenderPrzetargWorkspace";
 import { TenderKosztorysWorkspace } from "@/app/TenderKosztorysWorkspace";
 import { useTenderDossierHeavyLazy } from "@/app/hooks/useTenderDossierHeavyLazy";
 import { useTenderDocumentsBootstrap } from "@/app/hooks/useTenderDocumentsBootstrap";
@@ -26,6 +25,7 @@ import {
 } from "@/lib/tender-detail-routes-v4";
 import {
   shouldPreferKosztorysV4Tab,
+  TENDER_WORKFLOW_HUB_EMBED_WORKSPACE,
   type TenderWorkspaceTabId,
 } from "@/lib/tender-workspace-ux";
 
@@ -85,7 +85,9 @@ export function TenderDetailPage({
     [navigate, tenderId, item],
   );
 
-  const legacyWorkspace = resolveV4EmbedLegacyWorkspace(tab, decyzjaWs);
+  const legacyWorkspace = tab === "przetarg"
+    ? TENDER_WORKFLOW_HUB_EMBED_WORKSPACE
+    : resolveV4EmbedLegacyWorkspace(tab, decyzjaWs);
   const compactKosztorysChrome = tab === "kosztorys";
 
   const onUpdateItem = useCallback(
@@ -179,10 +181,6 @@ export function TenderDetailPage({
         </div>
 
         <div className={`px-4 sm:px-6 ${compactKosztorysChrome ? "py-2" : "py-4"}`}>
-          {tab === "przetarg" && (
-            <TenderPrzetargWorkspace item={item} swz={swz} onNavigateTab={handleTabChange} />
-          )}
-
           {tab === "kosztorys" && (
             <TenderKosztorysWorkspace
               item={item}
@@ -219,6 +217,7 @@ export function TenderDetailPage({
               embedV4ChromeHidden
               embedV4Workspace={legacyWorkspace}
               onEmbedV4Navigate={handleLegacyNavigate}
+              onEmbedV4TabNavigate={handleTabChange}
             />
           )}
         </div>

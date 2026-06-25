@@ -132,8 +132,10 @@ assert(detailSrc.includes("TenderDocumentsWorkspace"), "documents workspace comp
 assert(detailSrc.includes("TenderQualificationWorkspace"), "qualification workspace component");
 assert(detailSrc.includes("onNavigateWorkspace={navigateWorkspace}"), "tile → workspace nav");
 assert(!detailSrc.includes("scrollIntoView"), "no scrollIntoView in DetailPanel");
-assert(detailSrc.includes("TenderOwnerView"), "P5 owner view on overview");
-assert(detailSrc.includes("moreSection"), "Więcej section in owner view");
+assert(detailSrc.includes("TenderDecisionView"), "P5 decision view on overview");
+assert(detailSrc.includes("TENDER_WORKFLOW_HUB_EMBED_WORKSPACE"), "EPIC A workflow hub embed");
+assert(detailSrc.includes("TenderPrzetargWorkspace"), "EPIC A przetarg workspace");
+assert(!detailSrc.includes("ownerMoreContext"), "no duplicated workflow strip on Decyzja");
 assert(!detailSrc.includes("TenderOverviewShortcuts"), "overview shortcuts moved out of main");
 assert(!detailSrc.includes("TenderQualificationSection"), "no inline qualification accordion");
 assert(bidPrepSrc.includes("onNavigateWorkspace"), "BidPrep workspace nav prop");
