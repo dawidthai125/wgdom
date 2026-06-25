@@ -93,15 +93,23 @@ export function TenderDetailPage({
     [pipeline, item?.id, tenderId],
   );
 
-  useTenderDocumentsBootstrap({
-    item: item ?? { id: tenderId, title: "", status: "seen", updatedAt: "" } as TenderPipelineItem,
+  const bootstrapItem = item ?? { id: tenderId, title: "", status: "seen", updatedAt: "" } as TenderPipelineItem;
+  const kosztorysTabActive = Boolean(item) && tab === "kosztorys";
+
+  const { autoRunning } = useTenderDocumentsBootstrap({
+    item: bootstrapItem,
     onUpdate: onUpdateItem,
-    enabled: Boolean(item) && tab === "kosztorys",
+    enabled: kosztorysTabActive,
   });
 
-  useTenderDossierHeavyLazy({
-    item: item ?? { id: tenderId, title: "", status: "seen", updatedAt: "" } as TenderPipelineItem,
-    enabled: Boolean(item) && tab === "kosztorys",
+  const {
+    dossierBuilding,
+    dossierParseFailed,
+    parseErrorMessage,
+    retryDossierParse,
+  } = useTenderDossierHeavyLazy({
+    item: bootstrapItem,
+    enabled: kosztorysTabActive,
     onUpdate: onUpdateItem,
     athPreviewEnabled,
   });
@@ -174,7 +182,18 @@ export function TenderDetailPage({
           )}
 
           {tab === "kosztorys" && (
-            <TenderKosztorysWorkspace item={item} athPreviewEnabled={athPreviewEnabled} />
+            <TenderKosztorysWorkspace
+              item={item}
+              athPreviewEnabled={athPreviewEnabled}
+              processSession={{
+                autoRunning,
+                dossierBuilding,
+                dossierParseFailed,
+                parseErrorMessage,
+                lazyEnabled: true,
+              }}
+              onRetryParse={retryDossierParse}
+            />
           )}
 
           {isTenderDetailV4PlaceholderTab(tab) && (

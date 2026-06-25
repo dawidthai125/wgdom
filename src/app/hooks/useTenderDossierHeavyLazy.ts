@@ -2,7 +2,7 @@
  * TP200A — lazy heavy dossier build (Dokumenty / Wycena / Kosztorys V4).
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import {
   buildTenderDossierHeavy,
@@ -54,17 +54,32 @@ export function useTenderDossierHeavyLazy(opts: {
   enabled: boolean;
   onUpdate: (patch: Partial<TenderPipelineItem>) => void;
   athPreviewEnabled?: boolean;
-}): { dossierBuilding: boolean; dossierParseFailed: boolean } {
+}): {
+  dossierBuilding: boolean;
+  dossierParseFailed: boolean;
+  parseErrorMessage: string | null;
+  retryDossierParse: () => void;
+} {
   const { item, enabled, onUpdate, athPreviewEnabled = true } = opts;
   const [dossierBuilding, setDossierBuilding] = useState(false);
   const [dossierParseFailed, setDossierParseFailed] = useState(false);
+  const [parseErrorMessage, setParseErrorMessage] = useState<string | null>(null);
+  const [retryNonce, setRetryNonce] = useState(0);
   const onUpdateRef = useRef(onUpdate);
   onUpdateRef.current = onUpdate;
+
+  const retryDossierParse = useCallback(() => {
+    dossierInflightIds.delete(item.id);
+    setDossierParseFailed(false);
+    setParseErrorMessage(null);
+    setRetryNonce((n) => n + 1);
+  }, [item.id]);
 
   useEffect(() => {
     if (!enabled) return;
     if (tenderDossierHeavyParseDone(item.tenderDossier)) {
       setDossierParseFailed(false);
+      setParseErrorMessage(null);
       return;
     }
     if (!item.tenderId || !(item.bzpDocuments?.length)) return;
@@ -73,6 +88,7 @@ export function useTenderDossierHeavyLazy(opts: {
     let cancelled = false;
     dossierInflightIds.add(item.id);
     setDossierParseFailed(false);
+    setParseErrorMessage(null);
     (async () => {
       setDossierBuilding(true);
       try {
@@ -97,6 +113,7 @@ export function useTenderDossierHeavyLazy(opts: {
         if (cancelled) return;
         const message = e instanceof Error ? e.message : String(e);
         setDossierParseFailed(true);
+        setParseErrorMessage(message);
         logDossierParseErrorTelemetry({
           tenderId: item.tenderId,
           itemId: item.id,
@@ -122,7 +139,13 @@ export function useTenderDossierHeavyLazy(opts: {
     item.ourEstimatePln,
     item.noticeHtml,
     athPreviewEnabled,
+    retryNonce,
   ]);
 
-  return { dossierBuilding, dossierParseFailed };
+  return { dossierBuilding, dossierParseFailed, parseErrorMessage, retryDossierParse };
+}
+
+/** Test-only reset — nie używać w prod UI. */
+export function resetDossierHeavyLazyForTests(): void {
+  dossierInflightIds.clear();
 }

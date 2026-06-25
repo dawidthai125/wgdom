@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.62** · **Discovery dokumentów variant B (lokalnie 2.62.63)**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.63** · **Kosztorys UX state machine P0 (lokalnie 2.62.64)**
+
+## 2.62.64 — Kosztorys V4 fazy procesu (P0 UX)
+
+- **improve:** `deriveKosztorysProcessPhase` + `KosztorysProcessStatusBar` — 8 faz biznesowych; błąd parse → „Analiza została przerwana” + ponów
+- **test:** `test-tender-kosztorys-process-phase.mjs`
 
 ## 2.62.63 — Discovery dokumentów (variant B root-cause)
 

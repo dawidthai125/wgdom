@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CheckCircle2, Download, Eye, Loader2, XCircle } from "lucide-react";
+import { Download, Eye, Loader2 } from "lucide-react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import {
   buildKosztorysV4Display,
@@ -7,8 +7,12 @@ import {
   catalogLineToKosztorysDisplayRow,
   type KosztorysV4CatalogDisplayRow,
 } from "@/lib/tender-detail-v4-display";
-import { isKosztorysAwaitingHeavyParse } from "@/lib/tender-analysis-status-ux";
-import { KOSZTORYS_AWAITING_PARSE_HINT } from "@/lib/tender-analysis-status-ux";
+import {
+  deriveKosztorysProcessPhase,
+  isKosztorysProcessInProgress,
+  type KosztorysProcessSession,
+} from "@/lib/tender-kosztorys-process-phase";
+import { KosztorysProcessStatusBar } from "@/app/KosztorysProcessStatusBar";
 import {
   downloadAthSourceFile,
   resolveAthPreviewItem,
@@ -127,14 +131,22 @@ function KosztorysEmptyMessage({ text }: { text: string }) {
 export function TenderKosztorysWorkspace({
   item,
   athPreviewEnabled = true,
+  processSession,
+  onRetryParse,
 }: {
   item: TenderPipelineItem;
   athPreviewEnabled?: boolean;
+  processSession?: KosztorysProcessSession;
+  onRetryParse?: () => void;
 }) {
   const pro = useMemo(() => buildKosztorysProDashboard(item), [item]);
   const display = useMemo(() => buildKosztorysV4Display(item), [item]);
   const k = item.tenderDossier?.kosztorys;
-  const awaiting = isKosztorysAwaitingHeavyParse(item);
+  const phase = useMemo(
+    () => deriveKosztorysProcessPhase(item, { ...processSession, lazyEnabled: true }),
+    [item, processSession],
+  );
+  const inProgress = isKosztorysProcessInProgress(phase);
   const [showAllRows, setShowAllRows] = useState(false);
   const [docPreview, setDocPreview] = useState<InspectorFileItem | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<KosztorysProFilterId>("all");
@@ -181,6 +193,12 @@ export function TenderKosztorysWorkspace({
 
   return (
     <div className="space-y-4">
+      <KosztorysProcessStatusBar
+        phase={phase}
+        onRetry={onRetryParse}
+        retryBusy={processSession?.dossierBuilding}
+      />
+
       {pro.hasCatalog && (
         <section
           className="rounded-xl border border-primary/25 bg-primary/5 px-3 py-2.5 space-y-2"
@@ -206,20 +224,8 @@ export function TenderKosztorysWorkspace({
         </section>
       )}
 
+      {(canOpenFullPreview || canDownloadAth) && (
       <div className="flex flex-wrap items-center gap-2">
-        <div
-          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${
-            pro.hasCatalog && !awaiting
-              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-              : awaiting
-                ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
-                : "bg-red-500/15 text-red-700 dark:text-red-400"
-          }`}
-        >
-          {pro.hasCatalog && !awaiting ? <CheckCircle2 size={14} /> : awaiting ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
-          {pro.hasCatalog && !awaiting ? "ATH gotowy" : awaiting ? "Analiza kosztorysu…" : "ATH niegotowy"}
-        </div>
-
         {canOpenFullPreview && (
           <button
             type="button"
@@ -245,13 +251,10 @@ export function TenderKosztorysWorkspace({
           </button>
         )}
       </div>
+      )}
 
       {athDownloadError && (
         <p className="text-xs text-red-600 dark:text-red-400">{athDownloadError}</p>
-      )}
-
-      {awaiting && (
-        <p className="text-xs text-muted-foreground">{KOSZTORYS_AWAITING_PARSE_HINT}</p>
       )}
 
       {display.source === "rows_fallback" && (
@@ -369,7 +372,7 @@ export function TenderKosztorysWorkspace({
         <>
           {display.emptyMessage ? (
             <KosztorysEmptyMessage text={display.emptyMessage} />
-          ) : awaiting ? null : (
+          ) : inProgress || phase.id === "waiting_data" ? null : (
             <KosztorysEmptyMessage text="Otwórz zakładkę Dokumenty, aby załadować i przeanalizować kosztorys ATH." />
           )}
         </>

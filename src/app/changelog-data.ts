@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-25",
+    version: "2.62.64",
+    label: "Kosztorys V4 — fazy procesu (P0 UX)",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → Kosztorys: jeden pasek statusu (pobieranie, przygotowanie, analiza, gotowy, błąd) zamiast stałego „Analiza kosztorysu…”; po błędzie parse — „Analiza została przerwana” i ponów",
+      },
+    ],
+  },
+  {
+    date: "2026-06-25",
     version: "2.62.63",
     label: "Discovery dokumentów — fix przedwczesnego skanu",
     items: [
