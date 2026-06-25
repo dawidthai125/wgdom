@@ -1,6 +1,11 @@
 # W&G DOM — changelog (skrót dla agentów AI)
 
-> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.66** · **Kosztorys UX P0+P1+P2**
+> **Handoff SSOT:** [`docs/PROJECT-HANDOFF-CURRENT.md`](docs/PROJECT-HANDOFF-CURRENT.md) · **prod 2.62.67** · **Tender List UX V4**
+
+## 2.62.67 — Przetargi Lista UX V4
+
+- **improve:** uproszczony główny widok listy — banner (klikalny) · Moja kolejka (2 chipy) · Klienci · Filtry zaawansowane (operacyjne, KPI, presety, pipeline)
+- **test:** `test-tenders-list-ux.mjs` (V2/V3/V4)
 
 ## 2.62.66 — Kosztorys V4 health procesu (P2 timeout / stale)
 

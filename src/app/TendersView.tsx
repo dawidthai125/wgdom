@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   RefreshCw, Search, Scale, MapPin, Calendar, Building2,
-  Filter, AlertCircle, HelpCircle, Download, Trash2, CheckSquare, Square,
+  Filter, AlertCircle, Download, Trash2, CheckSquare, Square,
   ChevronDown, SlidersHorizontal, Sparkles, Pin, BookmarkPlus,
 } from "lucide-react";
 import {
@@ -27,9 +27,12 @@ import { computeWadiumInfo } from "@/lib/tenders-wadium";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
 import { getPipelineSessionCacheIfFresh } from "@/lib/tenders-pipeline-session-cache";
 import {
+  TENDERS_LIST_CLIENT_BAR,
+  TENDERS_LIST_PRIMARY_QUEUE,
+  TENDERS_LIST_SECONDARY_QUEUE,
   TENDERS_LIST_QUICK_BAR,
-  TENDERS_LIST_QUEUE,
   applyFavoritePreset,
+  applyListClientBarPreset,
   applyListKpiPreset,
   applyListQuickBarPreset,
   applyQueuePreset,
@@ -37,21 +40,22 @@ import {
   buildTendersListFilterPrefs,
   computeMyQueueCounts,
   createFavoriteFromState,
-  detectActiveListKpi,
+  detectActiveClientBarId,
   detectListQuickBarId,
   isTenderMine,
   isTenderNeedsReactionToday,
   loadTendersListFavorites,
   loadTendersListFilterPrefs,
   matchesQueueFilter,
+  resolveTendersListBannerQueueAction,
   saveTendersListFavorites,
   saveTendersListFilterPrefs,
   sortTendersForListDisplay,
+  type TendersListClientBarId,
   type TendersListKpiId,
   type TendersListQueueId,
   type TendersListQuickBarId,
 } from "@/lib/tenders-list-ux";
-import type { TenderQuickFilter } from "@/lib/tenders-actions";
 
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -96,21 +100,15 @@ function aiInsightClass(tone: "neutral" | "action" | "positive"): string {
   }
 }
 
-function kpiChipClass(active: boolean, tone: "neutral" | "primary" | "amber" | "orange"): string {
-  const base = "text-[11px] px-2 py-0.5 rounded-md tabular-nums border transition-colors cursor-pointer hover:opacity-90";
-  if (!active) {
-    switch (tone) {
-      case "primary":
-        return `${base} bg-primary/10 text-primary font-medium border-transparent`;
-      case "amber":
-        return `${base} bg-amber-500/10 text-amber-700 dark:text-amber-400 border-transparent`;
-      case "orange":
-        return `${base} bg-orange-500/10 text-orange-700 dark:text-orange-400 border-transparent`;
-      default:
-        return `${base} bg-secondary text-muted-foreground border-transparent`;
-    }
-  }
-  return `${base} bg-primary/15 text-primary font-semibold border-primary/35 ring-2 ring-primary/30`;
+function clientChipClass(active: boolean): string {
+  const base = "text-[10px] font-medium px-2 py-0.5 rounded-md border transition-colors";
+  return active
+    ? `${base} bg-orange-500/15 text-orange-800 dark:text-orange-300 border-orange-500/30 ring-2 ring-orange-500/25`
+    : `${base} bg-secondary/60 text-foreground/85 border-border hover:bg-secondary`;
+}
+
+function advancedSectionTitle(text: string) {
+  return <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{text}</p>;
 }
 
 function actionChipToneClass(tone: string, active: boolean): string {
@@ -155,8 +153,6 @@ export function TendersView({
   onItemNavigate?: (id: string) => void;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId);
-  const [showLegend, setShowLegend] = useState(false);
-  const [showPipeline, setShowPipeline] = useState(false);
   const [showAdvancedPanel, setShowAdvancedPanel] = useState(false);
   const [mineOnly, setMineOnly] = useState(false);
   const [queueFilter, setQueueFilter] = useState<TendersListQueueId | null>(null);
@@ -180,8 +176,11 @@ export function TendersView({
     pipeline.statusFilter,
   ]);
 
-  const activeKpi = useMemo(() => detectActiveListKpi(filterState), [filterState]);
   const activeQuickBar = useMemo(() => detectListQuickBarId(filterState), [filterState]);
+  const activeClient = useMemo(
+    () => detectActiveClientBarId(pipeline.strategicClientFilter),
+    [pipeline.strategicClientFilter],
+  );
 
   const applyFilterPatch = useCallback((
     patch: ReturnType<typeof applyListQuickBarPreset> & { queueFilter?: TendersListQueueId | null },
@@ -202,13 +201,22 @@ export function TendersView({
     applyFilterPatch({ ...applyListQuickBarPreset(id), queueFilter: null });
   }, [activeQuickBar, applyFilterPatch]);
 
-  const handleKpiClick = useCallback((kpi: TendersListKpiId) => {
-    if (activeKpi === kpi) {
-      applyFilterPatch({ ...applyListQuickBarPreset("actionable"), queueFilter: null });
+  const handleClientClick = useCallback((id: TendersListClientBarId) => {
+    if (id === "all") {
+      if (activeClient === "all" && !queueFilter && !pipeline.quickFilter && !mineOnly) return;
+      applyFilterPatch(applyListClientBarPreset("all"));
       return;
     }
+    if (activeClient === id && !queueFilter) {
+      applyFilterPatch(applyListClientBarPreset("all"));
+      return;
+    }
+    applyFilterPatch({ ...applyListClientBarPreset(id), queueFilter: null });
+  }, [activeClient, applyFilterPatch, mineOnly, pipeline.quickFilter, queueFilter]);
+
+  const handleKpiClick = useCallback((kpi: TendersListKpiId) => {
     applyFilterPatch({ ...applyListKpiPreset(kpi), queueFilter: null });
-  }, [activeKpi, applyFilterPatch]);
+  }, [applyFilterPatch]);
 
   const handleQueueClick = useCallback((id: TendersListQueueId) => {
     if (queueFilter === id) {
@@ -300,10 +308,18 @@ export function TendersView({
     [pipeline.items, ownerDecisions.store, queueCounts],
   );
 
-  const pinnedFavorites = useMemo(
-    () => favorites.filter((f) => f.pinned),
-    [favorites],
+  const bannerQueueAction = useMemo(
+    () => resolveTendersListBannerQueueAction(queueCounts),
+    [queueCounts],
   );
+
+  const handleClearFilters = useCallback(() => {
+    pipeline.setQuickFilter(null);
+    pipeline.setStrategicClientFilter(null);
+    setMineOnly(false);
+    setQueueFilter(null);
+    pipeline.setLocalFilter("actionable");
+  }, [pipeline]);
 
   const todayItems = useMemo(
     () => sortTendersForListDisplay(
@@ -328,16 +344,6 @@ export function TendersView({
     list = list.filter((i) => !todayIds.has(i.id));
     return sortTendersForListDisplay(list);
   }, [pipeline.filtered, mineOnly, ownerDecisions.store, todayItems, queueFilter]);
-
-  const secondaryActionChips = useMemo(() => {
-    const inQuickBar = new Set<TenderQuickFilter>(["deadline_7d", "no_kosztorys"]);
-    return pipeline.actionChips.filter((c) => !inQuickBar.has(c.id));
-  }, [pipeline.actionChips]);
-
-  const secondaryStrategicChips = useMemo(
-    () => pipeline.strategicClientFilters.filter((c) => c.id !== "wm" && c.id !== "zzk"),
-    [pipeline.strategicClientFilters],
-  );
 
   /** ETAP 8.0A / 2.1C — Classic mount; pomiń gdy sesyjny cache świeży (PRO już załadował). */
   useEffect(() => {
@@ -566,8 +572,8 @@ export function TendersView({
         )}
 
         <div className="px-4 sm:px-6 py-2 space-y-2">
-        {/* Sticky toolbar — wyszukiwarka, status, filtry, odśwież */}
-        <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 border-b border-border space-y-2">
+        {/* V4 — Rząd 1: wyszukiwarka, status, odśwież */}
+        <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 border-b border-border">
           <div className="flex flex-wrap gap-2 items-center">
             <div className="relative flex-1 min-w-[180px] max-w-3xl">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -600,63 +606,32 @@ export function TendersView({
               {pipeline.syncing ? "Pobieranie…" : "Odśwież"}
             </button>
           </div>
-          <div className="flex flex-wrap gap-1 items-center max-w-4xl">
-            {TENDERS_LIST_QUICK_BAR.map(({ id, label }) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => handleQuickBar(id)}
-                className={quickBarChipClass(activeQuickBar === id)}
-              >
-                {label}
-              </button>
-            ))}
+        </div>
+
+        {/* V4 — Rząd 2: banner AI (klikalny → kolejka Do decyzji) */}
+        {bannerQueueAction ? (
+          <button
+            type="button"
+            className={`${aiInsightClass(aiInsight.tone)} w-full text-left cursor-pointer hover:opacity-90 transition-opacity`}
+            onClick={() => handleQueueClick(bannerQueueAction)}
+            data-tenders-list-banner-action={bannerQueueAction}
+            aria-pressed={queueFilter === bannerQueueAction}
+          >
+            <Sparkles size={14} className="shrink-0 mt-0.5 opacity-80" />
+            <span>{aiInsight.text}</span>
+          </button>
+        ) : (
+          <div className={aiInsightClass(aiInsight.tone)} role="status">
+            <Sparkles size={14} className="shrink-0 mt-0.5 opacity-80" />
+            <span>{aiInsight.text}</span>
           </div>
-        </div>
+        )}
 
-        {/* Komunikat AI (heurystyka UX, bez backendu) */}
-        <div className={aiInsightClass(aiInsight.tone)} role="status">
-          <Sparkles size={14} className="shrink-0 mt-0.5 opacity-80" />
-          <span>{aiInsight.text}</span>
-        </div>
-
-        {/* KPI — klikalne filtry operacyjne */}
-        <div className="flex flex-wrap items-center gap-1.5 max-w-3xl">
-          <button
-            type="button"
-            onClick={() => handleKpiClick("active")}
-            className={kpiChipClass(activeKpi === "active", "neutral")}
-          >
-            {pipeline.stats.active} aktywnych
-          </button>
-          <button
-            type="button"
-            onClick={() => handleKpiClick("actionable")}
-            className={kpiChipClass(activeKpi === "actionable", "primary")}
-          >
-            ⚠ {pipeline.stats.actionable} do zgłoszenia
-          </button>
-          <button
-            type="button"
-            onClick={() => handleKpiClick("urgent")}
-            className={kpiChipClass(activeKpi === "urgent", pipeline.stats.urgent > 0 ? "amber" : "neutral")}
-          >
-            ⏰ {pipeline.stats.urgent} kończy się ≤7 dni
-          </button>
-          <button
-            type="button"
-            onClick={() => handleKpiClick("priority")}
-            className={kpiChipClass(activeKpi === "priority", "orange")}
-          >
-            ⭐ {pipeline.stats.priority} kluczowych
-          </button>
-        </div>
-
-        {/* Moja kolejka — workspace właściciela */}
+        {/* V4 — Moja kolejka (główny widok) */}
         <section className="space-y-1.5 max-w-4xl" aria-label="Moja kolejka">
           <h2 className="text-xs font-semibold text-foreground">Moja kolejka</h2>
           <div className="flex flex-wrap gap-1 items-center">
-            {TENDERS_LIST_QUEUE.map(({ id, label }) => {
+            {TENDERS_LIST_PRIMARY_QUEUE.map(({ id, label }) => {
               const count = queueCounts[id];
               return (
                 <button
@@ -669,240 +644,244 @@ export function TendersView({
                 </button>
               );
             })}
-            {queueFilter && (
-              <button
-                type="button"
-                onClick={() => applyFilterPatch({ ...applyListQuickBarPreset("actionable"), queueFilter: null })}
-                className="text-[10px] text-muted-foreground hover:text-foreground underline px-1"
-              >
-                Wyczyść kolejkę
-              </button>
-            )}
           </div>
         </section>
 
-        {/* Ulubione filtry — presety lokalne */}
-        <section className="space-y-1.5 max-w-4xl" aria-label="Ulubione filtry">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-xs font-semibold text-foreground">Ulubione filtry</h2>
-            <button
-              type="button"
-              onClick={handleSaveFavorite}
-              className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
-            >
-              <BookmarkPlus size={12} />
-              Zapisz bieżące
-            </button>
-          </div>
-          {favorites.length === 0 ? (
-            <p className="text-[10px] text-muted-foreground">Przypnij własne presety — zapis lokalny w przeglądarce.</p>
-          ) : (
-            <div className="flex flex-wrap gap-1 items-center">
-              {(pinnedFavorites.length > 0 ? pinnedFavorites : favorites).map((fav) => (
-                <span key={fav.id} className="inline-flex items-center gap-0.5">
-                  <button
-                    type="button"
-                    onClick={() => handleApplyFavorite(fav.id)}
-                    className={quickBarChipClass(false)}
-                    title={fav.name}
-                  >
-                    {fav.name}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleToggleFavoritePin(fav.id)}
-                    className={`p-0.5 rounded ${fav.pinned ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                    title={fav.pinned ? "Odepnij" : "Przypnij"}
-                    aria-label={fav.pinned ? "Odepnij preset" : "Przypnij preset"}
-                  >
-                    <Pin size={11} className={fav.pinned ? "fill-current" : ""} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Filtry dodatkowe (poza paskiem szybkich) */}
-        {(secondaryActionChips.length > 0 || secondaryStrategicChips.some((c) => pipeline.strategicClientCounts[c.id] > 0)) && (
+        {/* V4 — Klienci */}
+        <section className="space-y-1.5 max-w-4xl" aria-label="Klienci">
+          <h2 className="text-xs font-semibold text-foreground">Klienci</h2>
           <div className="flex flex-wrap gap-1 items-center">
-            {secondaryActionChips.map((chip) => {
-              const active = pipeline.quickFilter === chip.id;
+            {TENDERS_LIST_CLIENT_BAR.map(({ id, label }) => {
+              const count = id === "all"
+                ? pipeline.items.length
+                : pipeline.strategicClientCounts[id];
+              const active = activeClient === id && !queueFilter;
               return (
                 <button
-                  key={chip.id}
+                  key={id}
                   type="button"
-                  onClick={() => pipeline.setQuickFilter(active ? null : chip.id)}
-                  className={actionChipToneClass(chip.tone, active)}
+                  onClick={() => handleClientClick(id)}
+                  className={clientChipClass(active)}
+                  title={id === "all" ? "Wszyscy zamawiający" : label}
                 >
-                  {chip.label}{chip.count > 0 ? ` (${chip.count})` : ""}
+                  {label}{id !== "all" && count > 0 ? ` (${count})` : ""}
                 </button>
               );
             })}
-            {secondaryStrategicChips.map((chip) => {
-              const count = pipeline.strategicClientCounts[chip.id];
-              if (count === 0) return null;
-              const active = pipeline.strategicClientFilter === chip.id;
-              return (
-                <button
-                  key={chip.id}
-                  type="button"
-                  title={chip.label}
-                  onClick={() => pipeline.setStrategicClientFilter(active ? null : chip.id)}
-                  className={`text-[10px] font-medium px-2 py-0.5 rounded-md border transition-colors ${
-                    active
-                      ? "bg-orange-500/15 text-orange-800 dark:text-orange-300 border-orange-500/30 ring-2 ring-orange-500/25"
-                      : "bg-secondary/60 text-foreground/85 border-border hover:bg-secondary"
-                  }`}
-                >
-                  {chip.shortLabel} ({count})
-                </button>
-              );
-            })}
-            {(pipeline.quickFilter || pipeline.strategicClientFilter || mineOnly || queueFilter) && (
-              <button
-                type="button"
-                onClick={() => {
-                  pipeline.setQuickFilter(null);
-                  pipeline.setStrategicClientFilter(null);
-                  setMineOnly(false);
-                  setQueueFilter(null);
-                  pipeline.setLocalFilter("actionable");
-                }}
-                className="text-[10px] text-muted-foreground hover:text-foreground underline px-1"
-              >
-                Wyczyść
-              </button>
-            )}
           </div>
-        )}
-
-        {/* Pasek narzędzi — analityka drugorzędna */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setShowPipeline((v) => !v)}
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-secondary/80 text-[11px] text-muted-foreground hover:text-foreground hover:bg-secondary"
-            aria-expanded={showPipeline}
-          >
-            <ChevronDown size={12} className={`shrink-0 transition-transform ${showPipeline ? "rotate-180" : ""}`} />
-            Pipeline
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowLegend((v) => !v)}
-            className={`inline-flex items-center justify-center w-7 h-7 rounded-md text-[11px] ${
-              showLegend ? "bg-primary/15 text-primary" : "bg-secondary/80 text-muted-foreground hover:text-foreground hover:bg-secondary"
-            }`}
-            title="Legenda trafności i statusów"
-            aria-label="Legenda trafności i statusów"
-            aria-expanded={showLegend}
-          >
-            <HelpCircle size={14} />
-          </button>
+        </section>
+        <div className="max-w-4xl">
           <button
             type="button"
             onClick={() => setShowAdvancedPanel((v) => !v)}
             className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-secondary/80 text-[11px] text-muted-foreground hover:text-foreground hover:bg-secondary"
             aria-expanded={showAdvancedPanel}
+            data-tenders-list-advanced-toggle
           >
             <SlidersHorizontal size={12} className="shrink-0" />
             Filtry zaawansowane
             <ChevronDown size={12} className={`shrink-0 transition-transform ${showAdvancedPanel ? "rotate-180" : ""}`} />
           </button>
-          <button
-            type="button"
-            onClick={() => pipeline.toggleBulkMode()}
-            className={`inline-flex items-center justify-center w-7 h-7 rounded-md ${
-              pipeline.bulkMode ? "bg-violet-500/15 text-violet-700" : "bg-secondary/80 text-muted-foreground hover:text-foreground hover:bg-secondary"
-            }`}
-            title={pipeline.bulkMode ? "Wyłącz tryb masowy" : "Zaznacz wiele"}
-            aria-label={pipeline.bulkMode ? "Wyłącz tryb masowy" : "Zaznacz wiele"}
-          >
-            {pipeline.bulkMode ? <CheckSquare size={14} /> : <Square size={14} />}
-          </button>
-          <button
-            type="button"
-            onClick={() => pipeline.exportCsv()}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-secondary/80 text-muted-foreground hover:text-foreground hover:bg-secondary"
-            title="Eksport CSV (aktualna lista)"
-            aria-label="Eksport CSV"
-          >
-            <Download size={14} />
-          </button>
+
+          {showAdvancedPanel && (
+            <div className="mt-2 rounded-lg border border-border bg-secondary/30 px-2.5 py-3 space-y-3">
+              <div className="space-y-1.5">
+                {advancedSectionTitle("Operacyjne")}
+                <div className="flex flex-wrap gap-1 items-center">
+                  {TENDERS_LIST_QUICK_BAR.map(({ id, label }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => handleQuickBar(id)}
+                      className={quickBarChipClass(activeQuickBar === id)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                {advancedSectionTitle("Kolejka — pozostałe")}
+                <div className="flex flex-wrap gap-1 items-center">
+                  {TENDERS_LIST_SECONDARY_QUEUE.map(({ id, label }) => {
+                    const count = queueCounts[id];
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => handleQueueClick(id)}
+                        className={queueChipClass(queueFilter === id, count > 0)}
+                      >
+                        {label}{count > 0 ? ` (${count})` : ""}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {pipeline.actionChips.length > 0 && (
+                <div className="space-y-1.5">
+                  {advancedSectionTitle("Alerty")}
+                  <div className="flex flex-wrap gap-1 items-center">
+                    {pipeline.actionChips.map((chip) => {
+                      const active = pipeline.quickFilter === chip.id;
+                      return (
+                        <button
+                          key={chip.id}
+                          type="button"
+                          onClick={() => pipeline.setQuickFilter(active ? null : chip.id)}
+                          className={actionChipToneClass(chip.tone, active)}
+                        >
+                          {chip.label}{chip.count > 0 ? ` (${chip.count})` : ""}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                {advancedSectionTitle("Zakres listy")}
+                <select
+                  value={pipeline.localFilter}
+                  onChange={(e) => pipeline.setLocalFilter(e.target.value as typeof pipeline.localFilter)}
+                  className="w-full bg-secondary rounded-lg px-2.5 py-1.5 text-xs border border-border focus:border-primary focus:outline-none"
+                >
+                  <option value="actionable">Do zgłoszenia (Wrocław · remont budynków)</option>
+                  <option value="active">Wszystkie aktywne</option>
+                  <option value="priority">Kluczowi zamawiający</option>
+                  <option value="wroclaw">Tylko Wrocław</option>
+                  <option value="high">Wysoka trafność</option>
+                  <option value="archive">Archiwum (termin minął)</option>
+                  <option value="all">Pełna lista</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                {advancedSectionTitle("Statystyki")}
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground tabular-nums">
+                  <button type="button" onClick={() => handleKpiClick("active")} className="hover:text-foreground underline-offset-2 hover:underline">
+                    {pipeline.stats.active} aktywnych
+                  </button>
+                  <button type="button" onClick={() => handleKpiClick("actionable")} className="hover:text-foreground underline-offset-2 hover:underline">
+                    {pipeline.stats.actionable} do zgłoszenia
+                  </button>
+                  <button type="button" onClick={() => handleKpiClick("urgent")} className="hover:text-foreground underline-offset-2 hover:underline">
+                    {pipeline.stats.urgent} kończy się ≤7 dni
+                  </button>
+                  <button type="button" onClick={() => handleKpiClick("priority")} className="hover:text-foreground underline-offset-2 hover:underline">
+                    {pipeline.stats.priority} kluczowych
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                {advancedSectionTitle("Pipeline")}
+                <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground">
+                  <span>Nowe: <strong className="text-foreground">{pipeline.funnel.new}</strong></span>
+                  <span>Obejrzane: <strong className="text-foreground">{pipeline.funnel.seen}</strong></span>
+                  <span>Interesuje: <strong className="text-violet-600">{pipeline.funnel.interested}</strong></span>
+                  <span>Oferta: <strong className="text-foreground">{pipeline.funnel.preparing}</strong></span>
+                  <span>Złożone: <strong className="text-foreground">{pipeline.funnel.submitted}</strong></span>
+                  <span>Wygrane: <strong className="text-emerald-600">{pipeline.funnel.won}</strong></span>
+                  <span>Przegrane: <strong className="text-foreground">{pipeline.funnel.lost}</strong></span>
+                  {pipeline.funnel.winRate != null && (
+                    <span>Skuteczność: <strong className="text-primary">{pipeline.funnel.winRate}%</strong></span>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  {advancedSectionTitle("Moje presety")}
+                  <button
+                    type="button"
+                    onClick={handleSaveFavorite}
+                    className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+                  >
+                    <BookmarkPlus size={12} />
+                    Zapisz bieżące
+                  </button>
+                </div>
+                {favorites.length === 0 ? (
+                  <p className="text-[10px] text-muted-foreground">Zapis lokalny w przeglądarce — pełna kombinacja filtrów.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-1 items-center">
+                    {favorites.map((fav) => (
+                      <span key={fav.id} className="inline-flex items-center gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => handleApplyFavorite(fav.id)}
+                          className={quickBarChipClass(false)}
+                          title={fav.name}
+                        >
+                          {fav.name}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleFavoritePin(fav.id)}
+                          className={`p-0.5 rounded ${fav.pinned ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                          title={fav.pinned ? "Odepnij" : "Przypnij"}
+                          aria-label={fav.pinned ? "Odepnij preset" : "Przypnij preset"}
+                        >
+                          <Pin size={11} className={fav.pinned ? "fill-current" : ""} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                {advancedSectionTitle("Narzędzia")}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => pipeline.toggleBulkMode()}
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] ${
+                      pipeline.bulkMode ? "bg-violet-500/15 text-violet-700" : "bg-secondary/80 text-muted-foreground hover:text-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    {pipeline.bulkMode ? <CheckSquare size={14} /> : <Square size={14} />}
+                    {pipeline.bulkMode ? "Wyłącz zaznaczanie" : "Zaznacz wiele"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => pipeline.exportCsv()}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-secondary/80 text-[11px] text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  >
+                    <Download size={14} />
+                    Eksport CSV
+                  </button>
+                  {(pipeline.quickFilter || pipeline.strategicClientFilter || mineOnly || queueFilter) && (
+                    <button
+                      type="button"
+                      onClick={handleClearFilters}
+                      className="text-[10px] text-muted-foreground hover:text-foreground underline px-1"
+                    >
+                      Wyczyść filtry
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                {advancedSectionTitle("Legenda")}
+                <TendersLegend compact />
+              </div>
+            </div>
+          )}
         </div>
 
-        {showPipeline && (
-          <div className="rounded-lg bg-secondary/40 px-2.5 py-2 max-w-3xl">
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground">
-              <span>Nowe: <strong className="text-foreground">{pipeline.funnel.new}</strong></span>
-              <span>Obejrzane: <strong className="text-foreground">{pipeline.funnel.seen}</strong></span>
-              <span>Interesuje: <strong className="text-violet-600">{pipeline.funnel.interested}</strong></span>
-              <span>Oferta: <strong className="text-foreground">{pipeline.funnel.preparing}</strong></span>
-              <span>Złożone: <strong className="text-foreground">{pipeline.funnel.submitted}</strong></span>
-              <span>Wygrane: <strong className="text-emerald-600">{pipeline.funnel.won}</strong></span>
-              <span>Przegrane: <strong className="text-foreground">{pipeline.funnel.lost}</strong></span>
-              {pipeline.funnel.winRate != null && (
-                <span>Skuteczność: <strong className="text-primary">{pipeline.funnel.winRate}%</strong></span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {showLegend && (
-          <div className="max-w-3xl">
-            <TendersLegend compact />
-          </div>
-        )}
-
-        {showAdvancedPanel && (
-          <div className="rounded-lg border border-border bg-secondary/30 px-2.5 py-2 space-y-2 max-w-3xl">
-            <div className="flex flex-col sm:flex-row gap-2">
-              <select
-                value={pipeline.localFilter}
-                onChange={(e) => pipeline.setLocalFilter(e.target.value as typeof pipeline.localFilter)}
-                className="flex-1 bg-secondary rounded-lg px-2.5 py-1.5 text-xs border border-border focus:border-primary focus:outline-none"
-              >
-                <option value="actionable">Do zgłoszenia (Wrocław · remont budynków)</option>
-                <option value="active">Wszystkie aktywne</option>
-                <option value="priority">Kluczowi zamawiający</option>
-                <option value="wroclaw">Tylko Wrocław</option>
-                <option value="high">Wysoka trafność</option>
-                <option value="archive">Archiwum (termin minął)</option>
-                <option value="all">Pełna lista</option>
-              </select>
-              <select
-                value={pipeline.statusFilter}
-                onChange={(e) => pipeline.setStatusFilter(e.target.value as TenderPipelineStatus | "all")}
-                className="sm:w-44 bg-secondary rounded-lg px-2.5 py-1.5 text-xs border border-border focus:border-primary focus:outline-none"
-              >
-                <option value="all">Wszystkie statusy</option>
-                {(Object.keys(TENDER_STATUS_LABELS) as TenderPipelineStatus[]).map((s) => (
-                  <option key={s} value={s}>{TENDER_STATUS_LABELS[s]}</option>
-                ))}
-              </select>
-            </div>
-            <p className="text-[10px] text-muted-foreground tabular-nums">
-              Wyświetlono <strong className="text-foreground">{displayList.length + todayItems.length}</strong>
-              {" "}
-              {(displayList.length + todayItems.length) === 1 ? "przetarg" : (displayList.length + todayItems.length) < 5 ? "przetargi" : "przetargów"}
-              {pipeline.items.length !== displayList.length + todayItems.length && (
-                <> z <strong className="text-foreground">{pipeline.items.length}</strong> w pipeline</>
-              )}
-            </p>
-          </div>
-        )}
-
-        {!showAdvancedPanel && (
-          <p className="text-[10px] text-muted-foreground tabular-nums -mt-0.5">
-            Wyświetlono <strong className="text-foreground">{displayList.length + todayItems.length}</strong>
-            {" "}
-            {(displayList.length + todayItems.length) === 1 ? "przetarg" : (displayList.length + todayItems.length) < 5 ? "przetargi" : "przetargów"}
-            {pipeline.items.length !== displayList.length + todayItems.length && (
-              <> z <strong className="text-foreground">{pipeline.items.length}</strong></>
-            )}
-          </p>
-        )}
+        <p className="text-[10px] text-muted-foreground tabular-nums">
+          Wyświetlono <strong className="text-foreground">{displayList.length + todayItems.length}</strong>
+          {" "}
+          {(displayList.length + todayItems.length) === 1 ? "przetarg" : (displayList.length + todayItems.length) < 5 ? "przetargi" : "przetargów"}
+          {pipeline.items.length !== displayList.length + todayItems.length && (
+            <> z <strong className="text-foreground">{pipeline.items.length}</strong></>
+          )}
+        </p>
 
         {!listOnly && (
           <>

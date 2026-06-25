@@ -1,5 +1,5 @@
 /**
- * Przetargi → Lista — UX V2/V3 (workspace właściciela, filtry, sort, prefs localStorage).
+ * Przetargi → Lista — UX V2/V3/V4 (workspace właściciela, filtry, sort, prefs localStorage).
  * Bez zmian pipeline/KV/sync — tylko warstwa prezentacji.
  */
 
@@ -44,6 +44,18 @@ export const TENDERS_LIST_QUEUE: readonly { id: TendersListQueueId; label: strin
   { id: "no_kosztorys", label: "Brak kosztorysu" },
   { id: "reference_gap", label: "Brak referencji" },
 ] as const;
+
+/** V4 — główny widok listy (pod bannerem). */
+export const TENDERS_LIST_PRIMARY_QUEUE: readonly { id: TendersListQueueId; label: string }[] = [
+  { id: "needs_decision", label: "Do decyzji" },
+  { id: "no_kosztorys", label: "Brak kosztorysu" },
+] as const;
+
+/** V4 — pozostałe filtry kolejki (panel zaawansowany). */
+export const TENDERS_LIST_SECONDARY_QUEUE: readonly { id: TendersListQueueId; label: string }[] =
+  TENDERS_LIST_QUEUE.filter(
+    (q) => q.id !== "needs_decision" && q.id !== "no_kosztorys",
+  );
 
 export type TendersListQuickBarId =
   | "all"
@@ -103,6 +115,18 @@ export const TENDERS_LIST_QUICK_BAR: readonly { id: TendersListQuickBarId; label
   { id: "no_kosztorys", label: "Bez kosztorysu" },
   { id: "wm", label: "WM" },
   { id: "zzk", label: "ZZK" },
+] as const;
+
+export type TendersListClientBarId = StrategicClientFilterId | "all";
+
+/** V4 — rząd Klienci (główny widok listy). */
+export const TENDERS_LIST_CLIENT_BAR: readonly { id: TendersListClientBarId; label: string }[] = [
+  { id: "wm", label: "WM" },
+  { id: "mops", label: "MOPS" },
+  { id: "zzk", label: "ZZK" },
+  { id: "gminy", label: "Gminy" },
+  { id: "uczelnie", label: "Uczelnie" },
+  { id: "all", label: "Wszystko" },
 ] as const;
 
 const MINE_STATUSES: TenderPipelineStatus[] = ["interested", "preparing", "submitted"];
@@ -495,6 +519,40 @@ export function sortTendersForListDisplay(items: TenderPipelineItem[]): TenderPi
     }
     return (b.publicationDate || "").localeCompare(a.publicationDate || "");
   });
+}
+
+export function detectActiveClientBarId(
+  strategicClientFilter: StrategicClientFilterId | null,
+): TendersListClientBarId {
+  return strategicClientFilter ?? "all";
+}
+
+export function applyListClientBarPreset(
+  id: TendersListClientBarId,
+): Pick<TendersListFilterPrefs, "localFilter" | "quickFilter" | "strategicClientFilter" | "mineOnly" | "quickBarId" | "statusFilter" | "queueFilter"> {
+  if (id === "all") {
+    return {
+      ...applyListQuickBarPreset("actionable"),
+      strategicClientFilter: null,
+      queueFilter: null,
+    };
+  }
+  return {
+    localFilter: "active",
+    quickFilter: null,
+    strategicClientFilter: id,
+    mineOnly: false,
+    quickBarId: null,
+    statusFilter: "all",
+    queueFilter: null,
+  };
+}
+
+/** V4 — akcja bannera AI (klik → filtr kolejki). */
+export function resolveTendersListBannerQueueAction(
+  queueCounts: MyQueueCounts,
+): TendersListQueueId | null {
+  return queueCounts.needs_decision > 0 ? "needs_decision" : null;
 }
 
 export function applyListQuickBarPreset(

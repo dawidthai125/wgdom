@@ -19,7 +19,13 @@ const {
   buildTendersListAiInsight,
   createFavoriteFromState,
   applyFavoritePreset,
+  TENDERS_LIST_CLIENT_BAR,
+  TENDERS_LIST_PRIMARY_QUEUE,
+  TENDERS_LIST_SECONDARY_QUEUE,
   TENDERS_LIST_QUEUE,
+  applyListClientBarPreset,
+  detectActiveClientBarId,
+  resolveTendersListBannerQueueAction,
 } = await import("../src/lib/tenders-list-ux.ts");
 
 const base = {
@@ -99,6 +105,9 @@ assert.equal(queuePreset.localFilter, "actionable");
 
 assert.equal(matchesQueueFilter(needsDecision, "needs_decision", emptyStore), true);
 assert.equal(TENDERS_LIST_QUEUE.length, 5);
+assert.equal(TENDERS_LIST_PRIMARY_QUEUE.length, 2);
+assert.equal(TENDERS_LIST_PRIMARY_QUEUE[0].id, "needs_decision");
+assert.equal(TENDERS_LIST_SECONDARY_QUEUE.length, 3);
 
 const aiAction = buildTendersListAiInsight([needsDecision], emptyStore, counts);
 assert.equal(aiAction.tone, "action");
@@ -117,4 +126,11 @@ const applied = applyFavoritePreset(fav);
 assert.equal(applied.strategicClientFilter, "wm");
 assert.equal(applied.version, 3);
 
-console.log("test-tenders-list-ux.mjs — PASS (sticky/kolejka/presety/filtry/sortowanie)");
+assert.equal(TENDERS_LIST_CLIENT_BAR.length, 6);
+assert.equal(detectActiveClientBarId("mops"), "mops");
+assert.equal(detectActiveClientBarId(null), "all");
+assert.equal(applyListClientBarPreset("gminy").strategicClientFilter, "gminy");
+assert.equal(resolveTendersListBannerQueueAction(counts), "needs_decision");
+assert.equal(resolveTendersListBannerQueueAction({ ...counts, needs_decision: 0 }), null);
+
+console.log("test-tenders-list-ux.mjs — PASS (V2/V3/V4 lista UX)");

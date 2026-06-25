@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-06-25",
+    version: "2.62.67",
+    label: "Przetargi Lista UX V4",
+    items: [
+      {
+        type: "improve",
+        text: "Przetargi → Lista: uproszczony widok — banner decyzji, kolejka (Do decyzji / Brak kosztorysu), klienci WM/MOPS/ZZK/Gminy/Uczelnie; reszta w Filtrach zaawansowanych",
+      },
+    ],
+  },
+  {
+    date: "2026-06-25",
     version: "2.62.66",
     label: "Kosztorys V4 — health procesu P2",
     items: [
